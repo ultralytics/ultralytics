@@ -45,8 +45,8 @@ setup(
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
     ],
-    keywords=
-    'machine-learning, deep-learning, ml, pytorch, YOLO, object-detection, YOLOv3, YOLOv4, YOLOv5',
+    keywords="machine-learning, deep-learning, ml, pytorch, YOLO, object-detection,\
+    YOLOv3, YOLOv4, YOLOv5",
     package_dir={'': 'ultralytics'},
     packages=find_packages(where='ultralytics'),
     python_requires='>=3.7, <4',
@@ -58,9 +58,9 @@ setup(
     package_data={
         'ultralytics': ['package_data.dat'],
     },
-    #data_files=[('my_data', ['data/data_file'])],  # Optional
+    # data_files=[('my_data', ['data/data_file'])],
 
-    #entry_points={'console_scripts': ['ultralytics=ultralytics.console:main', ],},  # Optional
+    # entry_points={'console_scripts': ['ultralytics=ultralytics.console:main', ],},
     project_urls={
         'Bug Reports': 'https://github.com/ultralytics/ultralytics/issues',
         'Funding': 'https://www.ultralytics.com',

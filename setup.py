@@ -1,61 +1,54 @@
-"""A setuptools based setup module.
-
-See:
-https://packaging.python.org/guides/distributing-packages-using-setuptools/
-https://github.com/pypa/sampleproject
-"""
-
-import pathlib
 import re
+import pkg_resources as pkg
+from pathlib import Path
 
-# Always prefer setuptools over distutils
 from setuptools import find_packages, setup
 
-here = pathlib.Path(__file__).parent.resolve()  # current path
-long_description = (here / 'README.md').read_text(encoding='utf-8')  # Get the long description from the README file
-with open(here / 'requirements.txt') as fp:  # read requirements.txt
-    install_reqs = [r.rstrip() for r in fp.readlines() if not r.startswith('#')]
-
+# Settings
+FILE = Path(__file__).resolve()
+ROOT = FILE.parent  # root directory
+README = (ROOT / "README.md").read_text(encoding="utf-8")
+REQUIREMENTS = [f'{x.name}{x.specifier}' for x in pkg.parse_requirements((ROOT / 'requirements.txt').read_text())]
 
 def get_version():
-    file = here / 'ultralytics/__init__.py'
-    return re.search(r'^__version__ = [\'"]([^\'"]*)[\'"]', file.read_text(), re.M).group(1)
+    file = ROOT / 'ultralytics/__init__.py'
+    return re.search(r'^__version__ = [\'"]([^\'"]*)[\'"]', file.read_text(), re.M)[1]
 
 
 setup(
-    name='ultralytics',
-    version=get_version(),
-    description='Ultralytics Python package, https://ultralytics.com',
-    long_description=long_description,
-    long_description_content_type='text/markdown',
-    url='https://github.com/ultralytics/ultralytics',
-    author='Ultralytics',
-    classifiers=[
-        'Intended Audience :: Developers',
-        'Operating System :: OS Independent',
-        'Topic :: Scientific/Engineering',
-        'Topic :: Scientific/Engineering :: Artificial Intelligence',
-        'Topic :: Scientific/Engineering :: Image Recognition',
-        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10',],
-    keywords="machine-learning, deep-learning, dl, ml, ai, pytorch, YOLO, YOLOv3, YOLOv5, YOLOv8",
-    package_dir={'': 'ultralytics'},
-    packages=find_packages(where='ultralytics'),
-    python_requires='>=3.7, <4',
-    install_requires=install_reqs,
-    extras_require={
-        'dev': ['check-manifest'],
-        'test': ['coverage'],},
-    package_data={
-        'ultralytics': ['package_data.dat'],},
-    # data_files=[('my_data', ['data/data_file'])],
-
-    # entry_points={'console_scripts': ['...',],},
+    name="ultralytics",  # name of pypi package
+    version=get_version(),  # version of pypi package
+    python_requires=">=3.7.0",
+    long_description=README,
+    long_description_content_type="text/markdown",
+    #url="https://github.com/ultralytics/ultralytics",
     project_urls={
         'Bug Reports': 'https://github.com/ultralytics/ultralytics/issues',
-        'Funding': 'https://www.ultralytics.com',
-        'Source': 'https://github.com/ultralytics/ultralytics/',},
-)
+        'Funding': 'https://ultralytics.com',
+        'Source': 'https://github.com/ultralytics/ultralytics',},
+    author="Ultralytics",
+    author_email='hello@ultralytics.com',
+    # package_dir={'': 'ultralytics'},  # Optional, use if source code is in a subdirectory under the project root, i.e. `src/`
+    packages=find_packages('ultralytics'),  # required
+    include_package_data=True,
+    install_requires=REQUIREMENTS,
+    extras_require={
+        'dev': ['check-manifest'],
+        'test': ['pytest', 'pytest-cov', 'coverage'],},
+    classifiers=[
+        "Intended Audience :: Developers",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Topic :: Software Development",
+        "Topic :: Scientific/Engineering",
+        "Topic :: Scientific/Engineering :: Artificial Intelligence",
+        "Topic :: Scientific/Engineering :: Image Recognition",
+        "Operating System :: POSIX :: Linux",
+        "Operating System :: MacOS",
+        "Operating System :: Microsoft :: Windows"],
+    keywords="machine-learning, deep-learning, ML, DL, AI, PyTorch, vision, YOLO, YOLOv3, YOLOv5, YOLOv8, HUB, Ultralytics")

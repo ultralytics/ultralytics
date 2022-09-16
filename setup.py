@@ -2,7 +2,7 @@ import re
 from pathlib import Path
 
 import pkg_resources as pkg
-from setuptools import find_packages, setup
+from setuptools import setup
 
 # Settings
 FILE = Path(__file__).resolve()
@@ -26,16 +26,15 @@ setup(
     project_urls={
         'Bug Reports': 'https://github.com/ultralytics/ultralytics/issues',
         'Funding': 'https://ultralytics.com',
-        'Source': 'https://github.com/ultralytics/ultralytics',},
+        'Source': 'https://github.com/ultralytics/ultralytics', },
     author="Ultralytics",
     author_email='hello@ultralytics.com',
-    package_dir={'': 'ultralytics'},  # optional, use if source code is in a subdir under project root, i.e. `src/`
-    packages=find_packages('ultralytics'),  # required
+    packages=['ultralytics'],  # required
     include_package_data=True,
     install_requires=REQUIREMENTS,
     extras_require={
         'dev': ['check-manifest'],
-        'test': ['pytest', 'pytest-cov', 'coverage'],},
+        'test': ['pytest', 'pytest-cov', 'coverage'], },
     classifiers=[
         "Intended Audience :: Developers", "Intended Audience :: Science/Research",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)", "Programming Language :: Python :: 3",

@@ -29,7 +29,7 @@ setup(
         'Source': 'https://github.com/ultralytics/ultralytics',},
     author="Ultralytics",
     author_email='hello@ultralytics.com',
-    # package_dir={'': 'ultralytics'},  # Optional, use if source code is in a subdirectory under the project root, i.e. `src/`
+    package_dir={'': 'ultralytics'},  # Optional, use if source code is in a subdirectory under the project root, i.e. `src/`
     packages=find_packages('ultralytics'),  # required
     include_package_data=True,
     install_requires=REQUIREMENTS,

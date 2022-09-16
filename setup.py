@@ -12,18 +12,14 @@ import re
 from setuptools import find_packages, setup
 
 here = pathlib.Path(__file__).parent.resolve()  # current path
-long_description = (here / 'README.md').read_text(
-    encoding='utf-8')  # Get the long description from the README file
+long_description = (here / 'README.md').read_text(encoding='utf-8')  # Get the long description from the README file
 with open(here / 'requirements.txt') as fp:  # read requirements.txt
-    install_reqs = [
-        r.rstrip() for r in fp.readlines() if not r.startswith('#')
-    ]
+    install_reqs = [r.rstrip() for r in fp.readlines() if not r.startswith('#')]
 
 
 def get_version():
     file = here / 'ultralytics/__init__.py'
-    return re.search(r'^__version__ = [\'"]([^\'"]*)[\'"]', file.read_text(),
-                     re.M).group(1)
+    return re.search(r'^__version__ = [\'"]([^\'"]*)[\'"]', file.read_text(), re.M).group(1)
 
 
 setup(
@@ -44,27 +40,22 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10',
-    ],
-    keywords=
-    "machine-learning, deep-learning, dl, ml, ai, pytorch, YOLO, YOLOv3, YOLOv5, YOLOv8",
+        'Programming Language :: Python :: 3.10',],
+    keywords="machine-learning, deep-learning, dl, ml, ai, pytorch, YOLO, YOLOv3, YOLOv5, YOLOv8",
     package_dir={'': 'ultralytics'},
     packages=find_packages(where='ultralytics'),
     python_requires='>=3.7, <4',
     install_requires=install_reqs,
     extras_require={
         'dev': ['check-manifest'],
-        'test': ['coverage'],
-    },
+        'test': ['coverage'],},
     package_data={
-        'ultralytics': ['package_data.dat'],
-    },
+        'ultralytics': ['package_data.dat'],},
     # data_files=[('my_data', ['data/data_file'])],
 
     # entry_points={'console_scripts': ['...',],},
     project_urls={
         'Bug Reports': 'https://github.com/ultralytics/ultralytics/issues',
         'Funding': 'https://www.ultralytics.com',
-        'Source': 'https://github.com/ultralytics/ultralytics/',
-    },
+        'Source': 'https://github.com/ultralytics/ultralytics/',},
 )

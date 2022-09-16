@@ -29,7 +29,7 @@ def get_version():
 setup(
     name='ultralytics',
     version=get_version(),
-    description='Ultralytics YOLOv5 Python package, https://ultralytics.com',
+    description='Ultralytics Python package, https://ultralytics.com',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/ultralytics/ultralytics',
@@ -44,9 +44,9 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
     ],
-    keywords="machine-learning, deep-learning, ml, pytorch, YOLO, \
-    object-detection, YOLOv3, YOLOv4, YOLOv5",
+    keywords="machine-learning, deep-learning, dl, ml, ai, pytorch, YOLO, YOLOv3, YOLOv5, YOLOv8",
     package_dir={'': 'ultralytics'},
     packages=find_packages(where='ultralytics'),
     python_requires='>=3.7, <4',

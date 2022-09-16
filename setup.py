@@ -45,4 +45,5 @@ setup(
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
         "Topic :: Scientific/Engineering :: Image Recognition", "Operating System :: POSIX :: Linux",
         "Operating System :: MacOS", "Operating System :: Microsoft :: Windows"],
-    keywords="machine-learning, deep-learning, ML, DL, AI, PyTorch, vision, YOLO, YOLOv3, YOLOv5, YOLOv8, HUB, Ultralytics")
+    keywords=
+    "machine-learning, deep-learning, ML, DL, AI, PyTorch, vision, YOLO, YOLOv3, YOLOv5, YOLOv8, HUB, Ultralytics")

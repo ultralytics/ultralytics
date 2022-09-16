@@ -57,8 +57,8 @@ jobs:
         run: |
           import os
           import ultralytics
+          key = os.environ['APIKEY']
           print(ultralytics.__version__)
           # ultralytics.checks()
-          # key = os.environ['APIKEY']
           # ultralytics.reset_model(key)  # reset trained model
           # ultralytics.start(key)  # train model

@@ -46,7 +46,8 @@ setup(
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
     ],
-    keywords="machine-learning, deep-learning, dl, ml, ai, pytorch, YOLO, YOLOv3, YOLOv5, YOLOv8",
+    keywords=
+    "machine-learning, deep-learning, dl, ml, ai, pytorch, YOLO, YOLOv3, YOLOv5, YOLOv8",
     package_dir={'': 'ultralytics'},
     packages=find_packages(where='ultralytics'),
     python_requires='>=3.7, <4',

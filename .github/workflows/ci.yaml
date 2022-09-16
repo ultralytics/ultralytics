@@ -55,8 +55,9 @@ jobs:
         env:
          APIKEY: ${{ secrets.ULTRALYTICS_HUB_APIKEY }}
         run: |
-          # import os
-          # import ultralytics
+          import os
+          import ultralytics
+          print(ultralytics.__version__)
           # ultralytics.checks()
           # key = os.environ['APIKEY']
           # ultralytics.reset_model(key)  # reset trained model

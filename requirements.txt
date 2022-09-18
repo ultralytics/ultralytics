@@ -30,7 +30,7 @@ seaborn>=0.11.0
 # nvidia-pyindex  # TensorRT export
 # nvidia-tensorrt  # TensorRT export
 # scikit-learn==0.19.2  # CoreML quantization
-# tensorflow>=2.4.1  # TF export (or tensorflow-cpu, tensorflow-aarch64)
+# tensorflow>=2.4.1  # TF exports (-cpu, -aarch64, -macos)
 # tensorflowjs>=3.9.0  # TF.js export
 # openvino-dev  # OpenVINO export
 

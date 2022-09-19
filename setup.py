@@ -2,7 +2,7 @@ import re
 from pathlib import Path
 
 import pkg_resources as pkg
-from setuptools import setup
+from setuptools import find_packages, setup
 
 # Settings
 FILE = Path(__file__).resolve()
@@ -29,7 +29,7 @@ setup(
         'Source': 'https://github.com/ultralytics/ultralytics',},
     author="Ultralytics",
     author_email='hello@ultralytics.com',
-    packages=['ultralytics'],  # required
+    packages=find_packages(),  # required
     include_package_data=True,
     install_requires=REQUIREMENTS,
     extras_require={

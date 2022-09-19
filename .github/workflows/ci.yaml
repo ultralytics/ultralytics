@@ -59,6 +59,7 @@ jobs:
         run: |
           import os
           import ultralytics
+          from ultralytics import hub, yolo
           key = os.environ['APIKEY']
           print(ultralytics.__version__)
           # ultralytics.checks()

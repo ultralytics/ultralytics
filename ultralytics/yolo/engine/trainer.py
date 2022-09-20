@@ -12,6 +12,7 @@ import time
 from pathlib import Path
 
 import torch
+from torch.cuda import amp
 import torch.nn as nn
 from torch.utils.data.dataloader import DataLoader
 from omegaconf import DictConfig, OmegaConf
@@ -26,12 +27,13 @@ DEFAULT_CONFIG = "defaults.yaml"
 
 class BaseTrainer:
         
-    def __init__(self, model, dataset, config=CONFIG_PATH_ABS/DEFAULT_CONFIG):
+    def __init__(self, model, dataset, criterion, config=CONFIG_PATH_ABS/DEFAULT_CONFIG):
         self.console = LOGGER
         self.model = model
         self.dataset = dataset
         self.callbacks = defaultdict(list)
         self.train, self.hyps = self._get_config(config)
+        self.console.info(f"Training config: \n Train: \n {self.train} \n hyps: \n {self.hyps}") # delete this
         # Directories
         self.save_dir = utils.increment_path(Path(self.train.project) / self.train.name, exist_ok=self.train.exist_ok)
         self.wdir = self.save_dir / 'weights'
@@ -48,13 +50,15 @@ class BaseTrainer:
                                         momentum=self.hyps.momentum,
                                         decay=self.hyps.weight_decay
                                         )
-
+        self.criterion = criterion # ComputeLoss object TODO: create yolo.Loss classes
         if self.train.device == '':
             self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         else:
             self.device = self.train.device
         self.model = self.model.to(self.device)
-        LOGGER.info("running on device", self.device)
+        self.console.info(f"running on device {self.device}")
+
+        self.scaler = amp.GradScaler(enabled=self.device!="cpu")
 
     def _get_config(self, config: Union[str, Path, DictConfig]=None):
         """
@@ -88,40 +92,38 @@ class BaseTrainer:
         test_loader = self.get_dataloader(testset)
         # TODO: callback hook. before_train
 
-
-        model.train()
-        self.epoch = 0
-        self.iter_time = time.time()
+        self.epochs = 1
+        self.epoch_time = time.time()
         data_iter = iter(train_loader)
         for epoch in range(self.train.epochs): 
+            # TODO: callback hook. on_epoch_start
+            model.train()
+            pbar = enumerate(train_loader)
 
-            # fetch the next batch (x, y) and re-init iterator if needed
-            try:
-                batch = next(data_iter)
-            except StopIteration:
-                data_iter = iter(train_loader)
-                batch = next(data_iter)
-            batch = [t.to(self.device) for t in batch]
-            x, y = batch
-
-            # forward the model
-            logits, self.loss = model(x, y)
+            for i, (images, labels) in pbar:  # progress bar
+                images, labels = images.to(self.device, non_blocking=True), labels.to(self.device)
+                self.loss = self.criterion(model(images), labels)
 
             # backprop and update the parameters
             model.zero_grad(set_to_none=True)
-            self.loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), config.grad_norm_clip)
-            self.optimizer.step()
+            self.scaler.scale(self.loss).backward()
+
+            # optimize
+            self.scaler.unscale_(self.optimizer)  # unscale gradients
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=10.0)  # clip gradients
+            self.scaler.step(self.optimizer)
+            self.scaler.update()
+            self.optimizer.zero_grad()
 
             self.trigger_callbacks('on_batch_end')
-            self.iter_num += 1
+
+            self.epochs += 1
             tnow = time.time()
             self.iter_dt = tnow - self.iter_time
             self.iter_time = tnow
 
             # termination conditions
-            if config.max_iters is not None and self.iter_num >= config.max_iters:
-                break
+
     
     def get_dataloader(self, path):
         """
@@ -141,7 +143,12 @@ class BaseTrainer:
         Uses self.model to load/create/download dataset for any task
         """
         pass
-
+    
+    def set_criterion(self, criterion):
+        """
+        :param criterion: yolo.Loss object.
+        """
+        self.criterion = criterion
 
 def build_optimizer(model, name='Adam', lr=0.001, momentum=0.9, decay=1e-5):
     # TODO: docstring with example?

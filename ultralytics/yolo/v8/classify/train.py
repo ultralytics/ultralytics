@@ -6,10 +6,14 @@ import torchvision
 import torchvision.transforms as T
 import torch.hub as hub
 
-import ultralytics.yolo as yolo
-from yolo import utils, v8
+from ultralytics.yolo import BaseTrainer, utils, v8
+from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG, CONFIG_PATH_ABS
+import hydra
+from omegaconf import DictConfig, OmegaConf
 
-class Trainer(yolo.BaseTrainer):
+
+# BaseTrainer python usage 
+class Trainer(BaseTrainer):
     def get_dataset(self):
         # temporary solution. Replace with new ultralytics.yolo.ClassificationDataset module
         with utils.torch_distributed_zero_first(utils.LOCAL_RANK), utils.WorkingDirectory(Path.cwd()):
@@ -53,4 +57,23 @@ class Trainer(yolo.BaseTrainer):
             p.requires_grad = True  # for training
         model = model.to(self.device)
     
+
+"""
+CLI usage:
+python ../path/to/train.py train.epochs=10 train.project="name" hyps.lr0=0.1
+
+TODO:
+Direct cli support, i.e, yolov8 classify_train train.epochs 10 
+"""
+
+@hydra.main(config_path=CONFIG_PATH_ABS, config_name=str(DEFAULT_CONFIG).split(".")[0])
+def train(cfg):
+    model = torch.nn.Sequential(torch.nn.Linear(10,100))
+    dataset = "mnist" # or yolo.ClassificationDataset("mnist")
+    criterion = None # yolo.Loss object
+    trainer = Trainer(model, "mnist", criterion, cfg)
+    #trainer.train()
+
+if __name__ == "__main__":
+    train()
 

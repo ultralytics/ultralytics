@@ -39,8 +39,7 @@ jobs:
           python -m pip install --upgrade pip wheel
           pip install torch torchvision --extra-index-url https://download.pytorch.org/whl/cpu
           # pip install ultralytics (production)
-          # python setup.py install (deprecated)
-          python -m pip install .
+          pip install .
       - name: Check environment
         run: |
           echo "RUNNER_OS is ${{ runner.os }}"

@@ -4,12 +4,17 @@ so nothing in this file really has anything to do with GPT specifically.
 """
 
 from collections import defaultdict
+from hmac import trans_36
 import logging
+from multiprocessing import reduction
 import os
 from pydoc import resolve
 from typing import Union
 import time
 from pathlib import Path
+from datetime import datetime
+from copy import deepcopy
+from tqdm import tqdm
 
 import torch
 from torch.cuda import amp
@@ -27,13 +32,22 @@ DEFAULT_CONFIG = "defaults.yaml"
 
 class BaseTrainer:
         
-    def __init__(self, model, dataset, criterion, config=CONFIG_PATH_ABS/DEFAULT_CONFIG):
+    def __init__(
+                self, 
+                model: str,
+                data: str,
+                criterion, # Should we create out own base loss classes? yolo.losses -> v8.losses.clfLoss
+                validator=None, 
+                config=CONFIG_PATH_ABS/DEFAULT_CONFIG
+                ):
         self.console = LOGGER
         self.model = model
-        self.dataset = dataset
+        self.data = data
+        self.criterion = criterion # ComputeLoss object TODO: create yolo.Loss classes
+        self.validator = val # Dummy validator
         self.callbacks = defaultdict(list)
         self.train, self.hyps = self._get_config(config)
-        self.console.info(f"Training config: \n Train: \n {self.train} \n hyps: \n {self.hyps}") # delete this
+        self.console.info(f"Training config: \n train: \n {self.train} \n hyps: \n {self.hyps}") # to debug
         # Directories
         self.save_dir = utils.increment_path(Path(self.train.project) / self.train.name, exist_ok=self.train.exist_ok)
         self.wdir = self.save_dir / 'weights'
@@ -43,22 +57,33 @@ class BaseTrainer:
         # Save run settings
         utils.save_yaml(self.save_dir / 'train.yaml', OmegaConf.to_container(self.train, resolve=True))
 
-        self.optimizer = build_optimizer(
-                                        model=self.model,
-                                        name=self.train.optimizer,
-                                        lr=self.hyps.lr0,
-                                        momentum=self.hyps.momentum,
-                                        decay=self.hyps.weight_decay
-                                        )
-        self.criterion = criterion # ComputeLoss object TODO: create yolo.Loss classes
+        # device 
         if self.train.device == '':
             self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         else:
             self.device = self.train.device
-        self.model = self.model.to(self.device)
         self.console.info(f"running on device {self.device}")
-
         self.scaler = amp.GradScaler(enabled=self.device!="cpu")
+
+        # Model and Dataloaders. TBD: Should we move this inside trainer?
+        self.trainset, self.testset = self.get_dataset() # initialize dataset before as nc is needed for model
+        self.model = self.get_model()
+        self.model = self.model.to(self.device)
+        self.optimizer = build_optimizer(
+                                model=self.model,
+                                name=self.train.optimizer,
+                                lr=self.hyps.lr0,
+                                momentum=self.hyps.momentum,
+                                decay=self.hyps.weight_decay
+                                )
+        self.train_loader = self.get_dataloader(self.trainset)
+        self.test_loader = self.get_dataloader(self.testset)
+
+        # epoch level metrics
+        self.metrics = {} # handle metrics returned by validator
+        self.best_fitness = None
+        self.fitness = None
+        self.loss = None
 
     def _get_config(self, config: Union[str, Path, DictConfig]=None):
         """
@@ -83,47 +108,77 @@ class BaseTrainer:
         for callback in self.callbacks.get(onevent, []):
             callback(self)
 
-    def train(self):
-        model = self.get_model(self.model)
+    def run(self):
+        # callback hook. before_train
+        self.epoch = 1
+        self.epoch_time = None
+        self.epoch_time_start = time.time()
+        self.train_time_start = time.time()
 
-        # setup the dataloader
-        trainset, testset = self.get_dataset()
-        train_loader = self.get_dataloader(trainset)
-        test_loader = self.get_dataloader(testset)
-        # TODO: callback hook. before_train
-
-        self.epochs = 1
-        self.epoch_time = time.time()
-        data_iter = iter(train_loader)
         for epoch in range(self.train.epochs): 
-            # TODO: callback hook. on_epoch_start
-            model.train()
-            pbar = enumerate(train_loader)
+            # callback hook. on_epoch_start
+            self.model.train()
+            pbar = tqdm(enumerate(self.train_loader), \
+                    total=len(self.train_loader), bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
+            tloss = 0
+            for i, (images, labels) in pbar:
+                # callback hook. on_batch_start
+                # forward
+                images, labels = self.preprocess_batch(images, labels)
+                self.loss = self.criterion(self.model(images), labels)
+                tloss = (tloss * i + self.loss.item()) / (i + 1) 
 
-            for i, (images, labels) in pbar:  # progress bar
-                images, labels = images.to(self.device, non_blocking=True), labels.to(self.device)
-                self.loss = self.criterion(model(images), labels)
+                # backward
+                self.model.zero_grad(set_to_none=True)
+                self.scaler.scale(self.loss).backward()
 
-            # backprop and update the parameters
-            model.zero_grad(set_to_none=True)
-            self.scaler.scale(self.loss).backward()
+                # optimize
+                self.optimizer_step()
+                self.trigger_callbacks('on_batch_end')
 
-            # optimize
-            self.scaler.unscale_(self.optimizer)  # unscale gradients
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=10.0)  # clip gradients
-            self.scaler.step(self.optimizer)
-            self.scaler.update()
-            self.optimizer.zero_grad()
+                # log 
+                mem = '%.3gG' % (torch.cuda.memory_reserved() / 1E9 if torch.cuda.is_available() else 0)  # (GB)
+                pbar.desc = f"{f'{epoch + 1}/{self.train.epochs}':>10}{mem:>10}{tloss:>12.3g}" + ' ' * 36
 
-            self.trigger_callbacks('on_batch_end')
+            # Test
+            # callback: on_val_start()  
+            self.validate()
+            # callback: on_val_end()
 
-            self.epochs += 1
+            # save model
+            if (not self.train.nosave) or (self.epoch+1 == self.train.epochs):
+                self.save_model()
+                # callback; on_model_save
+
+            self.epoch += 1
             tnow = time.time()
-            self.iter_dt = tnow - self.iter_time
-            self.iter_time = tnow
+            self.epoch_time = tnow - self.epoch_time_start
+            self.epoch_time_start = tnow
 
-            # termination conditions
+            # TODO: termination condition
 
+        self.console.info(f"\nTraining complete ({(time.time() - self.train_time_start) / 3600:.3f} hours) \
+                            \n{self.usage_help()}")
+        # callback; on_train_end
+        
+
+
+    def save_model(self):
+        ckpt = {
+            'epoch': self.epoch,
+            'best_fitness': self.best_fitness,
+            'model': None,# deepcopy(ema.ema).half(),  # deepcopy(de_parallel(model)).half(),
+            'ema': None,  # deepcopy(ema.ema).half(),
+            'updates': None, # ema.updates,
+            'optimizer': None,  # optimizer.state_dict(),
+            'train_args': self.train,
+            'date': datetime.now().isoformat()}
+
+        # Save last, best and delete
+        torch.save(ckpt, self.last)
+        if self.best_fitness == self.fitness:
+            torch.save(ckpt, self.best)
+        del ckpt
     
     def get_dataloader(self, path):
         """
@@ -150,8 +205,46 @@ class BaseTrainer:
         """
         self.criterion = criterion
 
+    def optimizer_step(self):
+        self.scaler.unscale_(self.optimizer)  # unscale gradients
+        torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)  # clip gradients
+        self.scaler.step(self.optimizer)
+        self.scaler.update()
+        self.optimizer.zero_grad()
+
+    def preprocess_batch(self, images, labels):
+        """
+        Allows custom preprocessing model inputs and ground truths depeding on task type
+        """
+        return images.to(self.device, non_blocking=True), labels.to(self.device)
+    
+    def validate(self):
+        """
+        Runs validation on test set using self.validator.
+        # TODO: discuss validator class. Enforce that a validator metrics dict should contain
+        "fitness" metric. 
+        """
+        self.metrics = self.validator(self)
+        self.fitness = self.metrics.get("fitness") or (-self.loss) # use loss as fitness measure if not found
+        if not self.best_fitness or self.best_fitness < self.fitness:
+            self.best_fitness = self.fitness   
+        
+
+    def progress_string():
+        """
+        Returns progress string depending on task type.
+        """
+        pass
+
+    def usage_help():
+        """
+        Returns usage functionality. gets printed to the console after training.
+        """
+        pass
+
+
 def build_optimizer(model, name='Adam', lr=0.001, momentum=0.9, decay=1e-5):
-    # TODO: docstring with example?
+    # TODO: 1. docstring with example? 2. Move this inside Trainer? or utils?
     # YOLOv5 3-param group optimizer: 0) weights with decay, 1) weights no decay, 2) biases no decay
     g = [], [], []  # optimizer parameter groups
     bn = tuple(v for k, v in nn.__dict__.items() if 'Norm' in k)  # normalization layers, i.e. BatchNorm2d()
@@ -180,8 +273,8 @@ def build_optimizer(model, name='Adam', lr=0.001, momentum=0.9, decay=1e-5):
                 f"{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias")
     return optimizer
 
+# Dummy validator
+def val(trainer: BaseTrainer):
+    trainer.console.info("validating")
+    return {"metric_1": 0.1, "metric_2": 0.2, "fitness": 1}
 
-
-if __name__ == "__main__":
-    model = torch.nn.Sequential(nn.Linear(10,100))
-    Trainer(model, "dataset")

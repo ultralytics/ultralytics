@@ -1,16 +1,16 @@
 # TODO: Follow google docs format for all functions. Easier for autmatic doc parser
-from pathlib import Path
-import os
-import yaml
 import contextlib
-from multiprocessing.pool import ThreadPool
 import logging
-
-import torch
+import os
+from multiprocessing.pool import ThreadPool
+from pathlib import Path
 from zipfile import ZipFile
 
+import torch
+import yaml
 
 LOGGER = logging.getLogger()
+
 
 def increment_path(path, exist_ok=False, sep='', mkdir=False):
     '''
@@ -33,10 +33,12 @@ def increment_path(path, exist_ok=False, sep='', mkdir=False):
 
     return path
 
+
 def save_yaml(file='data.yaml', data={}):
     # Single-line safe yaml saving
     with open(file, 'w') as f:
         yaml.safe_dump({k: str(v) if isinstance(v, Path) else v for k, v in data.items()}, f, sort_keys=False)
+
 
 def download(url, dir='.', unzip=True, delete=True, curl=False, threads=1, retry=3):
     # Multithreaded file download and unzip function, used in data.yaml for autodownload

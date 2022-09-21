@@ -1,19 +1,21 @@
+import subprocess
 import time
 from pathlib import Path
-import subprocess
+
+import hydra
 import torch
+import torch.hub as hub
 import torchvision
 import torchvision.transforms as T
-import torch.hub as hub
-
-from ultralytics.yolo import BaseTrainer, utils, v8
-from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG, CONFIG_PATH_ABS
-import hydra
 from omegaconf import DictConfig, OmegaConf
 
+from ultralytics.yolo import BaseTrainer, utils, v8
+from ultralytics.yolo.engine.trainer import CONFIG_PATH_ABS, DEFAULT_CONFIG
 
-# BaseTrainer python usage 
+
+# BaseTrainer python usage
 class Trainer(BaseTrainer):
+
     def get_dataset(self):
         # temporary solution. Replace with new ultralytics.yolo.ClassificationDataset module
         data = Path("datasets") / self.data
@@ -31,21 +33,20 @@ class Trainer(BaseTrainer):
                 s = f"Dataset download success ✅ ({time.time() - t:.1f}s), saved to {'bold', data_dir}\n"
                 self.console.info(s)
         train_set = data_dir / "train"
-        test_set =  data_dir / 'test' if (data_dir / 'test').exists() else data_dir / 'val'  # data/test or data/val        
-        transform =  T.Compose([T.ToTensor()])
+        test_set = data_dir / 'test' if (data_dir / 'test').exists() else data_dir / 'val'  # data/test or data/val
+        transform = T.Compose([T.ToTensor()])
         train_set = torchvision.datasets.ImageFolder(train_set, transform=transform)
         test_set = torchvision.datasets.ImageFolder(test_set, transform=transform)
 
         return train_set, test_set
-    
+
     def get_dataloader(self, dataset, batch_size=None):
-        loader = torch.utils.data.DataLoader(dataset=dataset,
-                                                batch_size=batch_size or self.train.batch_size)
-        
+        loader = torch.utils.data.DataLoader(dataset=dataset, batch_size=batch_size or self.train.batch_size)
+
         return loader
-    
+
     def get_model(self):
-        # temp. minimal. only supports torchvision models 
+        # temp. minimal. only supports torchvision models
         if self.model in torchvision.models.__dict__:  # TorchVision models i.e. resnet50, efficientnet_b0
             model = torchvision.models.__dict__[self.model](weights='IMAGENET1K_V1' if self.train.pretrained else None)
         else:
@@ -55,26 +56,27 @@ class Trainer(BaseTrainer):
                 m.reset_parameters()
         for p in model.parameters():
             p.requires_grad = True  # for training
-        
+
         return model
-    
+
 
 """
 CLI usage:
 python ../path/to/train.py train.epochs=10 train.project="name" hyps.lr0=0.1
 
 TODO:
-Direct cli support, i.e, yolov8 classify_train train.epochs 10 
+Direct cli support, i.e, yolov8 classify_train train.epochs 10
 """
+
 
 @hydra.main(config_path=CONFIG_PATH_ABS, config_name=str(DEFAULT_CONFIG).split(".")[0])
 def train(cfg):
     model = "squeezenet1_0"
-    dataset = "mnist" # or yolo.ClassificationDataset("mnist")
-    criterion = torch.nn.CrossEntropyLoss() # yolo.Loss object
+    dataset = "mnist"  # or yolo.ClassificationDataset("mnist")
+    criterion = torch.nn.CrossEntropyLoss()  # yolo.Loss object
     trainer = Trainer("resnet18", dataset, criterion, config=cfg)
     trainer.run()
 
+
 if __name__ == "__main__":
     train()
-

@@ -47,7 +47,7 @@ hyps:
   copy_paste: 0.0  # segment copy-paste (probability)
 
 # to disable hydra directory creation
-hydra:  
-  output_subdir: null  
-  run:  
+hydra:
+  output_subdir: null
+  run:
     dir: .

@@ -50,7 +50,7 @@ class Trainer(BaseTrainer):
         if self.model in torchvision.models.__dict__:  # TorchVision models i.e. resnet50, efficientnet_b0
             model = torchvision.models.__dict__[self.model](weights='IMAGENET1K_V1' if self.train.pretrained else None)
         else:
-            raise ModuleNotFoundError(f'--model {self.model} not found. Available models are: \n' + '\n'.join(m))
+            raise ModuleNotFoundError(f'--model {self.model} not found.')
         for m in model.modules():
             if not self.train.pretrained and hasattr(m, 'reset_parameters'):
                 m.reset_parameters()

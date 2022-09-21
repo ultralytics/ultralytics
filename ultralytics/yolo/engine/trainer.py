@@ -117,7 +117,8 @@ class BaseTrainer:
             # callback hook. on_epoch_start
             self.model.train()
             pbar = tqdm(enumerate(self.train_loader),
-                    total=len(self.train_loader), bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
+                        total=len(self.train_loader),
+                        bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
             tloss = 0
             for i, (images, labels) in pbar:
                 # callback hook. on_batch_start

@@ -1,12 +1,18 @@
 [![Ultralytics CI](https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml/badge.svg)](https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml)
 
-### Usage
+### Install
 
 ```bash
+git clone https://github.com/ultralytics/ultralytics
+cd ultralytics
 python -m pip install --upgrade pip wheel
-python -m pip install .  # (dev)
+pip install .  # (dev)
 # pip install ultralytics (production)
+```
 
+
+### Usage
+```python
 import ultralytics
 from ultralytics import HUB, YOLO
 

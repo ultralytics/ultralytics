@@ -225,13 +225,13 @@ class BaseTrainer:
         if not self.best_fitness or self.best_fitness < self.fitness:
             self.best_fitness = self.fitness
 
-    def progress_string():
+    def progress_string(self):
         """
         Returns progress string depending on task type.
         """
         pass
 
-    def usage_help():
+    def usage_help(self):
         """
         Returns usage functionality. gets printed to the console after training.
         """

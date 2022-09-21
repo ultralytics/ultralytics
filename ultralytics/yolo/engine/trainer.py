@@ -93,7 +93,7 @@ class BaseTrainer:
             if isinstance(config, str) or isinstance(config, Path):
                 config = OmegaConf.load(config)
             return config.train, config.hyps
-        except:
+        except KeyError:
             raise Exception("Missing key(s) in config")
 
     def add_callback(self, onevent: str, callback):
@@ -116,7 +116,7 @@ class BaseTrainer:
         for epoch in range(self.train.epochs):
             # callback hook. on_epoch_start
             self.model.train()
-            pbar = tqdm(enumerate(self.train_loader), \
+            pbar = tqdm(enumerate(self.train_loader),
                     total=len(self.train_loader), bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
             tloss = 0
             for i, (images, labels) in pbar:

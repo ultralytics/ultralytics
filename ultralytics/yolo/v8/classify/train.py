@@ -74,7 +74,7 @@ def train(cfg):
     model = "squeezenet1_0"
     dataset = "mnist"  # or yolo.ClassificationDataset("mnist")
     criterion = torch.nn.CrossEntropyLoss()  # yolo.Loss object
-    trainer = Trainer("resnet18", dataset, criterion, config=cfg)
+    trainer = Trainer(model, dataset, criterion, config=cfg)
     trainer.run()
 
 

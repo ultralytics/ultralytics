@@ -1,5 +1,7 @@
 from .base import BaseDataset
 from .utils import img2label_paths, get_hash, verify_image_label, LOCAL_RANK, BAR_FORMAT, HELP_URL
+from .augment import *
+
 # from .augment import *
 from ..utils.general import NUM_THREADS, LOGGER
 from multiprocessing.pool import Pool
@@ -11,7 +13,7 @@ import numpy as np
 import torch
 
 
-class YOLODetectionDataset(BaseDataset):
+class YOLODataset(BaseDataset):
     cache_version = 0.6  # dataset labels *.cache version
     rand_interp_methods = [cv2.INTER_NEAREST, cv2.INTER_LINEAR, cv2.INTER_CUBIC, cv2.INTER_AREA, cv2.INTER_LANCZOS4]
     """YOLO Dataset.
@@ -28,15 +30,20 @@ class YOLODetectionDataset(BaseDataset):
         label_path=None,
         cache_images=False,
         augment=True,
+        hyp=None,
         prefix="",
         rect=False,
         batch_size=None,
         stride=32,
         pad=0.0,
+        single_cls=False,
+        use_segments=False,
+        use_keypoints=False,
     ):
-        self.mask = False
-        self.keypoint = False
-        super().__init__(img_path, img_size, label_path, cache_images, augment, prefix, rect, batch_size, stride, pad)
+        self.use_segments = use_segments
+        self.use_keypoints = use_keypoints
+        assert not (self.use_segments and self.use_keypoints), "We can't use both of segmentation and pose."
+        super().__init__(img_path, img_size, label_path, cache_images, augment, hyp, prefix, rect, batch_size, stride, pad, single_cls)
 
     def cache_labels(self, path=Path("./labels.cache")):
         # Cache dataset labels, check images and read shapes
@@ -46,7 +53,7 @@ class YOLODetectionDataset(BaseDataset):
         desc = f"{self.prefix}Scanning '{path.parent / path.stem}' images and labels..."
         with Pool(NUM_THREADS) as pool:
             pbar = tqdm(
-                pool.imap(verify_image_label, zip(self.im_files, self.label_files, repeat(self.prefix), repeat(self.keypoint))),
+                pool.imap(verify_image_label, zip(self.im_files, self.label_files, repeat(self.prefix), repeat(self.use_keypoints))),
                 desc=desc,
                 total=len(self.im_files),
                 bar_format=BAR_FORMAT,
@@ -64,9 +71,9 @@ class YOLODetectionDataset(BaseDataset):
                             cls=lb[:, 0:1],  # n, 1
                             bboxes=lb[:, 1:],  # n, 4
                             segments=segments,
-                            keypoint=keypoint,
+                            keypoints=keypoint,
                             normalized=True,
-                            bbox_format="xywh"
+                            bbox_format="xywh",
                         )
                     )
                 if msg:
@@ -122,7 +129,7 @@ class YOLODetectionDataset(BaseDataset):
         # but I don't know if this will slow down a little bit.
         new_batch = dict()
         keys = batch[0].keys()
-        values = list(zip([b.values() for b in batch]))
+        values = list(zip(*[list(b.values()) for b in batch]))
         for i, k in enumerate(keys):
             value = values[i]
             if k == "img":
@@ -130,79 +137,55 @@ class YOLODetectionDataset(BaseDataset):
             if k in ["mask", "keypoint", "bboxes", "cls"]:
                 value = torch.cat(value, 0)
             new_batch[k] = values[i]
+        new_batch["batch_idx"] = list(new_batch["batch_idx"])
         for i in range(len(new_batch["batch_idx"])):
-            new_batch["batch_idx"][i] = i  # add target image index for build_targets()
+            new_batch["batch_idx"][i] += i  # add target image index for build_targets()
         new_batch["batch_idx"] = torch.cat(new_batch["batch_idx"], 0)
         return new_batch
 
-    # def build_transforms(self):
-    #     # TODO: use hyp config to set these augmentations
-    #     mosaic = self.augment and not self.rect
-    #     if self.augment:
-    #         if mosaic:
-    #             transforms = Compose(
-    #                 [
-    #                     Mosaic(img_size=self.img_size, p=1.0),
-    #                     CopyPaste(p=0.0),
-    #                     RandomPerspective(border=[-self.img_size // 2, -self.img_size // 2]),
-    #                     MixUp(p=0.0),
-    #                     Albumentations(p=1.0),
-    #                     RandomHSV(),
-    #                     RandomFlip(direction="vertical", p=0.5),
-    #                     RandomFlip(direction="horizontal", p=0.5),
-    #                 ]
-    #             )
-    #         else:
-    #             # rect, randomperspective, albumentation, hsv, flipud, fliplr
-    #             transforms = Compose(
-    #                 [
-    #                     LetterBox(new_shape=(self.img_size, self.img_size)),
-    #                     RandomPerspective(border=[-self.img_size // 2, -self.img_size // 2]),
-    #                     Albumentations(p=1.0),
-    #                     RandomHSV(),
-    #                     RandomFlip(direction="vertical", p=0.5),
-    #                     RandomFlip(direction="horizontal", p=0.5),
-    #                 ]
-    #             )
-    #     else:
-    #         transforms = Compose([LetterBox(new_shape=(self.img_size, self.img_size))])
-    #     transforms.append(Format(bbox_format="xywh", normalize=True, mask=self.mask, batch_idx=True))
-    #     return transforms
+    # TODO: use hyp config to set all these augmentations
+    def build_transforms(self, hyp=None):
+        mosaic = self.augment and not self.rect
+        # mosaic = False
+        if self.augment:
+            if mosaic:
+                transforms = Compose(
+                    [
+                        Mosaic(img_size=self.img_size, p=1.0, border=[-self.img_size // 2, -self.img_size // 2]),
+                        # CopyPaste(p=0.1),  
+                        RandomPerspective(border=[-self.img_size // 2, -self.img_size // 2]),
+                        # MixUp(p=0.0),   # TODO
+                        Albumentations(p=1.0),
+                        RandomHSV(),
+                        RandomFlip(direction="vertical", p=0.0),
+                        RandomFlip(direction="horizontal", p=0.5),
+                    ]
+                )
+            else:
+                # rect, randomperspective, albumentation, hsv, flipud, fliplr
+                transforms = Compose(
+                    [
+                        LetterBox(new_shape=(self.img_size, self.img_size)),
+                        RandomPerspective(border=[0, 0]),
+                        Albumentations(p=1.0),
+                        RandomHSV(),
+                        RandomFlip(direction="vertical", p=0.0),
+                        RandomFlip(direction="horizontal", p=0.5),
+                    ]
+                )
+        else:
+            transforms = Compose([LetterBox(new_shape=(self.img_size, self.img_size))])
+        transforms.append(Format(bbox_format="xywh", normalize=True, mask=self.use_segments, batch_idx=True))
+        return transforms
 
 
-class YOLOSegmentDataset(YOLODetectionDataset):
-    def __init__(
-        self,
-        img_path,
-        img_size=640,
-        label_path=None,
-        cache_images=False,
-        augment=True,
-        prefix="",
-        rect=False,
-        batch_size=None,
-        stride=32,
-        pad=0.5,
-    ):
-        self.keypoint = False
-        super().__init__(img_path, img_size, label_path, cache_images, augment, prefix, rect, batch_size, stride, pad)
-        # TODO
-        self.mask = True
+# TODO: suppport classify
+class ClassifyDataset(BaseDataset):
+    def __init__(self):
+        pass
 
 
-class YOLOPoseDataset(YOLODetectionDataset):
-    def __init__(
-        self,
-        img_path,
-        img_size=640,
-        label_path=None,
-        cache_images=False,
-        augment=True,
-        prefix="",
-        rect=False,
-        batch_size=None,
-        stride=32,
-        pad=0.5,
-    ):
-        self.keypoint = True
-        super().__init__(img_path, img_size, label_path, cache_images, augment, prefix, rect, batch_size, stride, pad)
+# TODO: support semantic segmentation
+class SemanticDataset(BaseDataset):
+    def __init__(self):
+        pass

@@ -9,45 +9,13 @@ from ..utils.general import segment2box, check_version, colorstr, LOGGER
 from ..utils.metrics import bbox_ioa
 from ..utils.instance import Instances
 
-# TODO: we might need a BaseTransform to apply
+# TODO: we might need a BaseTransform to make all these augments be compatible with both classification and semantic
 class BaseTransform:
     def __init__(self) -> None:
         pass
 
     def apply_image(self):
         pass
-
-
-def mosaic_transforms():
-    # mosaic(copy_paste, randomperspective), mixup, albumentation, hsv, flipud, fliplr
-    img_size = 640
-    return Compose(
-        [
-            Mosaic(img_size=img_size, p=1.0),
-            CopyPaste(p=0.0),
-            RandomPerspective(border=[-img_size // 2, -img_size // 2]),
-            MixUp(p=0.0),
-            Albumentations(p=1.0),
-            RandomHSV(),
-            RandomFlip(direction="vertical", p=0.5),
-            RandomFlip(direction="horizontal", p=0.5),
-        ]
-    )
-
-
-def augment_transforms():
-    # rect, randomperspective, albumentation, hsv, flipud, fliplr
-    img_size = 640
-    return Compose(
-        [
-            LetterBox(new_shape=(img_size, img_size)),
-            RandomPerspective(border=[-img_size // 2, -img_size // 2]),
-            Albumentations(p=1.0),
-            RandomHSV(),
-            RandomFlip(direction="vertical", p=0.5),
-            RandomFlip(direction="horizontal", p=0.5),
-        ]
-    )
 
 
 class Compose:
@@ -72,6 +40,20 @@ class Compose:
             format_string += "    {0}".format(t)
         format_string += "\n)"
         return format_string
+
+
+class BaseMixTransform:
+    # TODO: This idea is basically from the mmyolo which just be released
+    # I think it's cleaner than the solution with data_wrapper
+    def __init__(self, pre_transform=None, p=0.0) -> None:
+        self.pre_transform = None
+        self.p = p
+
+    def __call__(self, labels):
+        if random.uniform(0, 1) > self.p:
+            return labels
+
+        assert "dataset" in labels
 
 
 class Mosaic:
@@ -165,7 +147,7 @@ class Mosaic:
 
 
 class RandomPerspective:
-    def __init__(self, degrees=10, translate=0.1, scale=0.1, shear=10, perspective=0.0, border=(0, 0)):
+    def __init__(self, degrees=0.0, translate=0.1, scale=0.5, shear=0.0, perspective=0.0, border=(0, 0)):
         self.degrees = degrees
         self.translate = translate
         self.scale = scale
@@ -282,7 +264,7 @@ class RandomPerspective:
         new_keypoints = (new_keypoints[:, :2] / new_keypoints[:, 2:3] if self.perspective else new_keypoints[:, :2]).reshape(
             n, 34
         )  # perspective rescale or affine
-        new_keypoints[keypoints == 0] = 0
+        new_keypoints[keypoints.reshape(-1, 34) == 0] = 0
         x_kpts = new_keypoints[:, list(range(0, 34, 2))]
         y_kpts = new_keypoints[:, list(range(1, 34, 2))]
 
@@ -323,6 +305,7 @@ class RandomPerspective:
         if keypoints is not None:
             keypoints = self.apply_keypoints(keypoints, M)
         new_instances = Instances(bboxes, segments, keypoints, bbox_format="xyxy", normalized=False)
+        new_instances.clip(*self.size)
 
         # filter instances
         instances.scale(scale_w=scale, scale_h=scale, bbox_only=True)
@@ -330,7 +313,6 @@ class RandomPerspective:
         i = self.box_candidates(box1=instances.bboxes.T, box2=new_instances.bboxes.T, area_thr=0.01 if segments is not None else 0.10)
         labels["instances"] = new_instances[i]
         # clip
-        labels["instances"].clip(*self.size)
         labels["cls"] = cls[i]
         labels["img"] = img
         return labels
@@ -469,13 +451,14 @@ class CopyPaste:
             # TODO: this implement can be parallel since segments are ndarray, also might work with Instances inside
             for j in random.sample(range(n), k=round(self.p * n)):
                 c, b, s = cls[j], bboxes[j], segments[j]
-                box = w - b[3], b[2], w - b[1], b[4]
-                ioa = bbox_ioa(box, bboxes[:, 1:5])  # intersection over area
+                box = w - b[2], b[1], w - b[0], b[3]
+                ioa = bbox_ioa(box, bboxes)  # intersection over area
                 if (ioa < 0.30).all():  # allow 30% obscuration of existing labels
                     bboxes = np.concatenate((bboxes, [box]), 0)
-                    cls = np.concatenate((cls, c))
-                    segments = np.concatenate((segments, np.concatenate((w - s[:, 0:1], s[:, 1:2]), 1)), 0)
+                    cls = np.concatenate((cls, c[None]), axis=0)
+                    segments = np.concatenate((segments, np.concatenate((w - s[:, 0:1], s[:, 1:2]), 1)[None]), 0)
                     if keypoints is not None:
+                        print(keypoints.shape, (w - keypoints[j][:, 0:1]).shape, keypoints[j][:, 1:2].shape)
                         keypoints = np.concatenate((keypoints, np.concatenate((w - keypoints[j][:, 0:1], keypoints[j][:, 1:2]), 1)), 0)
                     cv2.drawContours(im_new, [segments[j].astype(np.int32)], -1, (255, 255, 255), cv2.FILLED)
 
@@ -537,14 +520,17 @@ class Albumentations:
 
 
 class MixUp:
-    # TODO: this's a bug here, which the mix_labels should have the same size with original labels
-    def __init__(self, p=0.0) -> None:
+    # TODO: add mosaic transform as a pre_transform
+    def __init__(self, pre_transform=None, p=0.0) -> None:
         self.p = p
+        self.pre_transform = pre_transform
 
     def get_indexes(self, dataset):
         return random.randint(0, len(dataset))
 
     def __call__(self, labels):
+        if self.pre_transform is not None:
+            labels = self.pre_transform(labels)
         im = labels["img"]
         im2 = labels["mix_labels"][0]["img"]
         # Applies MixUp augmentation https://arxiv.org/pdf/1710.09412.pdf
@@ -561,7 +547,7 @@ class Format:
     def __init__(self, bbox_format="xywh", normalize=True, mask=False, mask_ratio=4, mask_overlap=True, batch_idx=True):
         self.bbox_format = bbox_format
         self.normalize = normalize
-        self.mask = mask     # set False when training detection only
+        self.mask = mask  # set False when training detection only
         self.mask_ratio = mask_ratio
         self.mask_overlap = mask_overlap
         self.batch_idx = batch_idx  # keep the batch indexes
@@ -569,20 +555,23 @@ class Format:
     def __call__(self, labels):
         img = labels["img"]
         h, w = img.shape[:2]
+        cls = labels.pop("cls")
         instances = labels.pop("instances")
         instances.convert_bbox(format=self.bbox_format)
         instances.denormalize(w, h)
         nl = len(instances)
 
         if instances.segments is not None and self.mask:
-            masks, instances = self._format_segments(instances, w, h)
+            masks, instances, cls = self._format_segments(instances, cls, w, h)
             labels["masks"] = (
                 torch.from_numpy(masks)
                 if nl
                 else torch.zeros(1 if self.mask_overlap else nl, img.shape[0] // self.mask_ratio, img.shape[1] // self.mask_ratio)
             )
+        if self.normalize:
+            instances.normalize(w, h)
         labels["img"] = self._format_img(img)
-        labels["cls"] = torch.from_numpy(labels["cls"]) if nl else torch.zeros(nl)
+        labels["cls"] = torch.from_numpy(cls) if nl else torch.zeros(nl)
         labels["bboxes"] = torch.from_numpy(instances.bboxes) if nl else torch.zeros((nl, 4))
         if instances.keypoints is not None:
             labels["keypoints"] = torch.from_numpy(instances.keypoints) if nl else torch.zeros((nl, 17, 2))
@@ -592,22 +581,21 @@ class Format:
         return labels
 
     def _format_img(self, img):
-        # if len(img.shape) < 3:
-        #     img = np.expand_dims(img, -1)
-        # img = np.ascontiguousarray(img.transpose(2, 0, 1))
-        # img = torch.from_numpy(img)
+        if len(img.shape) < 3:
+            img = np.expand_dims(img, -1)
+        img = np.ascontiguousarray(img.transpose(2, 0, 1))
+        img = torch.from_numpy(img)
         return img
 
-    def _format_segments(self, instances, w, h):
+    def _format_segments(self, instances, cls, w, h):
         """convert polygon points to bitmap"""
         segments = instances.segments
-        segments[..., 0] *= w
-        segments[..., 1] *= h
         if self.mask_overlap:
             masks, sorted_idx = polygons2masks_overlap((h, w), segments, downsample_ratio=self.mask_ratio)
             masks = masks[None]  # (640, 640) -> (1, 640, 640)
             instances = instances[sorted_idx]
+            cls = cls[sorted_idx]
         else:
             masks = polygons2masks((h, w), segments, color=1, downsample_ratio=self.mask_ratio)
 
-        return masks, instances
+        return masks, instances, cls

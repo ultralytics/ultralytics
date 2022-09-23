@@ -29,11 +29,13 @@ class BaseDataset(Dataset):
         label_path=None,
         cache_images=False,
         augment=True,
+        hyp=None,
         prefix="",
         rect=False,
         batch_size=None,
         stride=32,
-        pad=0.5):
+        pad=0.5,
+        single_cls=False):
         super().__init__()
         self.img_path = img_path
         self.img_size = img_size
@@ -43,14 +45,9 @@ class BaseDataset(Dataset):
 
         self.im_files = self.get_img_files(self.img_path)
         self.labels = self.get_labels()
-        self.update_labels(include_class=[], single_cls=False)
+        self.update_labels(include_class=[], single_cls=single_cls)
 
         self.ni = len(self.im_files)
-        # cache stuff
-        self.ims = [None] * self.ni
-        self.npy_files = [Path(f).with_suffix(".npy") for f in self.im_files]
-        if cache_images:
-            self.load_images()
 
         # rect stuff
         self.rect = rect
@@ -58,9 +55,17 @@ class BaseDataset(Dataset):
         self.stride = stride
         self.pad = pad
         if self.rect:
+            assert self.batch_size is not None
             self.set_rectangle()
+
+        # cache stuff
+        self.ims = [None] * self.ni
+        self.npy_files = [Path(f).with_suffix(".npy") for f in self.im_files]
+        if cache_images:
+            self.load_images()
+
         # transforms
-        self.transforms = self.build_transforms()
+        self.transforms = self.build_transforms(hyp=hyp)
 
     def get_img_files(self, img_path):
         """Read image files."""
@@ -148,6 +153,7 @@ class BaseDataset(Dataset):
         s = np.array([l["shape"] for l in self.labels])  # hw
         ar = s[:, 0] / s[:, 1]  # aspect ratio
         irect = ar.argsort()
+        self.im_files = [self.im_files[i] for i in irect]
         self.labels = [self.labels[i] for i in irect]
         ar = ar[irect]
 
@@ -168,23 +174,26 @@ class BaseDataset(Dataset):
         img, (h0, w0), (h, w) = self.load_image(index)
         label = self.labels[index].copy()
         label["img"] = img
+        # TODO: I'm not sure if these shape info are necessary, we can remove these if we don't need
         label["ori_shape"] = (h0, w0)
         label["resized_shape"] = (h, w)
-        # NOTE: cls is not with bboxes now
         # TODO: now the BaseDataset supports detection, segments, keypoints,
-        # maybe we can make it also support classification and semantic segmentation
+        # NOTE: cls is not with bboxes now, since other tasks like classification and semantic segmentation need a independent cls label
+        # we can make it also support classification and semantic segmentation by add or remove some dict keys there.
         bboxes = label.pop("bboxes")
         segments = label.pop("segments", None)
         keypoints = label.pop("keypoints", None)
         bbox_format = label.pop("bbox_format")
         normalized = label.pop("normalized")
         label["instances"] = Instances(bboxes, segments, keypoints, bbox_format=bbox_format, normalized=normalized)
-        return self.transforms(label)
+        # TODO: once we don't need a data wrapper, we can return the self.transforms(label)
+        # return self.transforms(label)
+        return label
 
     def __len__(self):
         return len(self.im_files)
 
-    def build_transforms(self):
+    def build_transforms(self, hyp=None):
         """Users can custom augmentations here"""
         if self.augment:
             # training transforms

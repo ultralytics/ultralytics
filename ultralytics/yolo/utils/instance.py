@@ -1,20 +1,16 @@
-from .general import (
-    xywh2xyxy,
-    xyxy2xywh,
-    xyxy2ltwh,
-    xywh2ltwh,
-    ltwh2xywh,
-    ltwh2xyxy,
-    resample_segments,
-)
-from typing import List
-import numpy as np
-from numbers import Number
-from itertools import repeat
 from collections import abc
+from itertools import repeat
+from numbers import Number
+from typing import List
+
+import numpy as np
+
+from .general import ltwh2xywh, ltwh2xyxy, resample_segments, xywh2ltwh, xywh2xyxy, xyxy2ltwh, xyxy2xywh
+
 
 # From PyTorch internals
 def _ntuple(n):
+
     def parse(x):
         if isinstance(x, abc.Iterable):
             return x
@@ -173,11 +169,12 @@ class Bboxes:
         if isinstance(index, int):
             return Bboxes(self.bboxes[index].view(1, -1))
         b = self.bboxes[index]
-        assert b.ndim == 2, "Indexing on Bboxes with {} failed to return a matrix!".format(index)
+        assert b.ndim == 2, f"Indexing on Bboxes with {index} failed to return a matrix!"
         return Bboxes(b)
 
 
 class Instances:
+
     def __init__(self, bboxes, segments=None, keypoints=None, bbox_format="xywh", normalized=True) -> None:
         """
         Args:
@@ -339,4 +336,3 @@ class Instances:
     @property
     def bboxes(self):
         return self._bboxes.bboxes
-

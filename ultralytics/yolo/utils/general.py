@@ -1,10 +1,10 @@
-import numpy as np
-import torch
+import logging
 import os
 import platform
-import logging
-import pkg_resources as pkg
 
+import numpy as np
+import pkg_resources as pkg
+import torch
 
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLOv5 multiprocessing threads
 VERBOSE = str(os.getenv("YOLOv5_VERBOSE", True)).lower() == "true"  # global verbose mode
@@ -92,8 +92,7 @@ def colorstr(*input):
         "bright_white": "\033[97m",
         "end": "\033[0m",  # misc
         "bold": "\033[1m",
-        "underline": "\033[4m",
-    }
+        "underline": "\033[4m",}
     return "".join(colors[x] for x in args) + f"{string}" + colors["end"]
 
 
@@ -156,6 +155,7 @@ def segments2boxes(segments):
         x, y = s.T  # segment xy
         boxes.append([x.min(), y.min(), x.max(), y.max()])  # cls, xyxy
     return xyxy2xywh(np.array(boxes))  # cls, xywh
+
 
 def resample_segments(segments, n=1000):
     # Up-sample an (n,2) segment

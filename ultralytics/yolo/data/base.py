@@ -1,17 +1,18 @@
-from .utils import IMG_FORMATS, HELP_URL, BAR_FORMAT, LOCAL_RANK
+import glob
+import os
+from multiprocessing.pool import ThreadPool
+from pathlib import Path
+from typing import Optional
+
+import cv2
+import numpy as np
+from torch.utils.data import Dataset
+from tqdm import tqdm
+
 from ..utils.general import NUM_THREADS
 from ..utils.instance import Instances
 from .augment import Compose
-
-from multiprocessing.pool import ThreadPool
-from torch.utils.data import Dataset
-from typing import Optional
-from pathlib import Path
-from tqdm import tqdm
-import numpy as np
-import glob
-import os
-import cv2
+from .utils import BAR_FORMAT, HELP_URL, IMG_FORMATS, LOCAL_RANK
 
 
 class BaseDataset(Dataset):
@@ -22,20 +23,19 @@ class BaseDataset(Dataset):
         label_path (str): label path, this can also be a ann_file or other custom label path.
     """
 
-    def __init__(
-        self,
-        img_path,
-        img_size=640,
-        label_path=None,
-        cache_images=False,
-        augment=True,
-        hyp=None,
-        prefix="",
-        rect=False,
-        batch_size=None,
-        stride=32,
-        pad=0.5,
-        single_cls=False):
+    def __init__(self,
+                 img_path,
+                 img_size=640,
+                 label_path=None,
+                 cache_images=False,
+                 augment=True,
+                 hyp=None,
+                 prefix="",
+                 rect=False,
+                 batch_size=None,
+                 stride=32,
+                 pad=0.5,
+                 single_cls=False):
         super().__init__()
         self.img_path = img_path
         self.img_size = img_size

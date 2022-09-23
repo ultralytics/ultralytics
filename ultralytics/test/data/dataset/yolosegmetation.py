@@ -1,7 +1,9 @@
-from ultralytics.yolo.data import YOLODataset, MixAndRectDataset
 import cv2
-import torch
 import numpy as np
+import torch
+
+from ultralytics.yolo.data import MixAndRectDataset, YOLODataset
+
 
 class Colors:
     # Ultralytics color palette https://ultralytics.com/
@@ -49,22 +51,20 @@ def plot_one_box(x, img, color=None, label=None, line_thickness=None):
         )
 
 
-dataset = MixAndRectDataset(
-    dataset=YOLODataset(
-        img_path="/d/dataset/COCO/images/val2017",
-        img_size=640,
-        label_path=None,
-        cache_images=False,
-        augment=True,
-        prefix="",
-        rect=False,
-        batch_size=4,
-        stride=32,
-        pad=0.5,
-        use_segments=True,
-        use_keypoints=False,
-    )
-)
+dataset = MixAndRectDataset(dataset=YOLODataset(
+    img_path="/d/dataset/COCO/images/val2017",
+    img_size=640,
+    label_path=None,
+    cache_images=False,
+    augment=True,
+    prefix="",
+    rect=False,
+    batch_size=4,
+    stride=32,
+    pad=0.5,
+    use_segments=True,
+    use_keypoints=False,
+))
 
 color = (255, 255, 0)
 for d in dataset:

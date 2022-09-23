@@ -1,13 +1,15 @@
+import os
+import random
+
+import numpy as np
+import torch
 from torch.utils.data import DataLoader, dataloader, distributed
+
+from ..utils.general import LOGGER
+from ..utils.torch_utils import torch_distributed_zero_first
 from .dataset import YOLODataset
 from .dataset_wrappers import MixAndRectDataset
 from .utils import PIN_MEMORY
-from ..utils.general import LOGGER
-from ..utils.torch_utils import torch_distributed_zero_first
-import torch
-import os
-import numpy as np
-import random
 
 
 class InfiniteDataLoader(dataloader.DataLoader):
@@ -103,7 +105,7 @@ def build_dataloader(
     return (
         loader(
             # TODO: we can remove this once we don't need a data wrapper
-            dataset = MixAndRectDataset(dataset),
+            dataset=MixAndRectDataset(dataset),
             batch_size=batch_size,
             shuffle=shuffle and sampler is None,
             num_workers=nw,

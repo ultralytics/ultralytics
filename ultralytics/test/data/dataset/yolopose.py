@@ -1,7 +1,9 @@
-from ultralytics.yolo.data import YOLODataset, MixAndRectDataset
 import cv2
-import torch
 import numpy as np
+import torch
+
+from ultralytics.yolo.data import MixAndRectDataset, YOLODataset
+
 
 class Colors:
     # Ultralytics color palette https://ultralytics.com/
@@ -61,22 +63,20 @@ def plot_keypoint(img, keypoints, color, tl):
         cv2.circle(img, (point_x, point_y), tl + 3, color, -1)
 
 
-dataset = MixAndRectDataset(
-    dataset=YOLODataset(
-        img_path="/d/dataset/COCO/images/val2017",
-        img_size=640,
-        label_path=None,
-        cache_images=False,
-        augment=False,
-        prefix="",
-        rect=True,
-        batch_size=4,
-        stride=32,
-        pad=0.5,
-        use_segments=False,
-        use_keypoints=True,
-    )
-)
+dataset = MixAndRectDataset(dataset=YOLODataset(
+    img_path="/d/dataset/COCO/images/val2017",
+    img_size=640,
+    label_path=None,
+    cache_images=False,
+    augment=False,
+    prefix="",
+    rect=True,
+    batch_size=4,
+    stride=32,
+    pad=0.5,
+    use_segments=False,
+    use_keypoints=True,
+))
 
 color = (255, 255, 0)
 for d in dataset:

@@ -1,10 +1,12 @@
-from PIL import ExifTags, Image, ImageOps
-from ..utils.general import segments2boxes
 import contextlib
 import hashlib
 import os
+
 import cv2
 import numpy as np
+from PIL import ExifTags, Image, ImageOps
+
+from ..utils.general import segments2boxes
 
 HELP_URL = "See https://github.com/ultralytics/yolov5/wiki/Train-Custom-Data"
 IMG_FORMATS = "bmp", "dng", "jpeg", "jpg", "mpo", "png", "tif", "tiff", "webp", "pfm"  # include image suffixes
@@ -80,14 +82,16 @@ def verify_image_label(args):
                     assert (lb[:, 6::3] <= 1).all(), "non-normalized or out of bounds coordinate labels"
                     kpts = np.zeros((lb.shape[0], 39))
                     for i in range(len(lb)):
-                        kpt = np.delete(lb[i, 5:], np.arange(2, lb.shape[1] - 5, 3))  # remove the occlusion paramater from the GT
+                        kpt = np.delete(lb[i, 5:], np.arange(2, lb.shape[1] - 5,
+                                                             3))  # remove the occlusion paramater from the GT
                         kpts[i] = np.hstack((lb[i, :5], kpt))
                     lb = kpts
                     assert lb.shape[1] == 39, "labels require 39 columns each after removing occlusion paramater"
                 else:
                     assert lb.shape[1] == 5, f"labels require 5 columns, {lb.shape[1]} columns detected"
                     assert (lb >= 0).all(), f"negative label values {lb[lb < 0]}"
-                    assert (lb[:, 1:] <= 1).all(), f"non-normalized or out of bounds coordinates {lb[:, 1:][lb[:, 1:] > 1]}"
+                    assert (lb[:, 1:] <=
+                            1).all(), f"non-normalized or out of bounds coordinates {lb[:, 1:][lb[:, 1:] > 1]}"
                 _, i = np.unique(lb, axis=0, return_index=True)
                 if len(i) < nl:  # duplicate row check
                     lb = lb[i]  # remove duplicates
@@ -147,7 +151,8 @@ def polygons2masks(img_size, polygons, color, downsample_ratio=1):
 
 def polygons2masks_overlap(img_size, segments, downsample_ratio=1):
     """Return a (640, 640) overlap mask."""
-    masks = np.zeros((img_size[0] // downsample_ratio, img_size[1] // downsample_ratio), dtype=np.int32 if len(segments) > 255 else np.uint8)
+    masks = np.zeros((img_size[0] // downsample_ratio, img_size[1] // downsample_ratio),
+                     dtype=np.int32 if len(segments) > 255 else np.uint8)
     areas = []
     ms = []
     for si in range(len(segments)):

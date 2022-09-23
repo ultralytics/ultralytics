@@ -1,6 +1,7 @@
-from copy import deepcopy
-from .augment import LetterBox
 import collections
+from copy import deepcopy
+
+from .augment import LetterBox
 
 
 class MixAndRectDataset:
@@ -34,4 +35,3 @@ class MixAndRectDataset:
             if "mix_labels" in labels:
                 labels.pop("mix_labels")
         return labels
-

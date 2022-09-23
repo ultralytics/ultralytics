@@ -1,6 +1,8 @@
-from ultralytics.yolo.data import build_dataloader
 import cv2
 import numpy as np
+
+from ultralytics.yolo.data import build_dataloader
+
 
 class Colors:
     # Ultralytics color palette https://ultralytics.com/
@@ -61,19 +63,19 @@ def plot_keypoint(img, keypoints, color, tl):
 
 
 dataloader = build_dataloader(
-        img_path="/d/dataset/COCO/images/val2017",
-        img_size=640,
-        label_path=None,
-        cache=False,
-        augment=True,
-        prefix="",
-        rect=False,
-        batch_size=1,
-        stride=32,
-        pad=0.5,
-        use_segments=False,
-        use_keypoints=True,
-        )
+    img_path="/d/dataset/COCO/images/val2017",
+    img_size=640,
+    label_path=None,
+    cache=False,
+    augment=True,
+    prefix="",
+    rect=False,
+    batch_size=1,
+    stride=32,
+    pad=0.5,
+    use_segments=False,
+    use_keypoints=True,
+)
 
 for d in dataloader[0]:
     img = d["img"][0].numpy()

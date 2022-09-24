@@ -14,12 +14,22 @@ from .utils import polygons2masks, polygons2masks_overlap
 
 # TODO: we might need a BaseTransform to make all these augments be compatible with both classification and semantic
 class BaseTransform:
-
     def __init__(self) -> None:
         pass
 
-    def apply_image(self):
+    def apply_image(self, labels):
         pass
+
+    def apply_instances(self, labels):
+        pass
+
+    def apply_semantic(self, labels):
+        pass
+
+    def __call__(self, labels):
+        self.apply_image(labels)
+        self.apply_instances(labels)
+        self.apply_semantic(labels)
 
 
 class Compose:
@@ -236,21 +246,18 @@ class RandomPerspective:
             new_segments(ndarray): list of segments after affine, [num_samples, 500, 2].
             new_bboxes(ndarray): bboxes after affine, [N, 4].
         """
-        n = len(segments)
+        n, num = segments.shape[:2]
         if n == 0:
             return [], segments
-        new_bboxes = np.zeros((n, 4))
-        new_segments = []
-        for i, segment in enumerate(segments):
-            xy = np.ones((len(segment), 3))
-            xy[:, :2] = segment
-            xy = xy @ M.T  # transform
-            xy = xy[:, :2] / xy[:, 2:3] if self.perspective else xy[:, :2]  # perspective rescale or affine
 
-            new_bboxes[i] = segment2box(xy, self.size[0], self.size[1])
-            new_segments.append(xy)
-        new_segments = np.stack(new_segments, axis=0) if len(new_segments) > 1 else new_segments[0][None, :]
-        return new_bboxes, new_segments
+        xy = np.ones((n * num, 3))
+        segments = segments.reshape(-1, 2)
+        xy[:, :2] = segments
+        xy = xy @ M.T  # transform
+        xy = xy[:, :2] / xy[:, 2:3]
+        segments = xy.reshape(n, -1, 2)
+        bboxes = np.stack([segment2box(xy, self.size[0], self.size[1]) for xy in segments], 0)
+        return bboxes, segments
 
     def apply_keypoints(self, keypoints, M):
         """apply affine to keypoints.
@@ -267,9 +274,7 @@ class RandomPerspective:
         new_keypoints = np.ones((n * 17, 3))
         new_keypoints[:, :2] = keypoints.reshape(n * 17, 2)  # num_kpt is hardcoded to 17
         new_keypoints = new_keypoints @ M.T  # transform
-        new_keypoints = (new_keypoints[:, :2] /
-                         new_keypoints[:, 2:3] if self.perspective else new_keypoints[:, :2]).reshape(
-                             n, 34)  # perspective rescale or affine
+        new_keypoints = (new_keypoints[:, :2] / new_keypoints[:, 2:3]).reshape(n, 34)  # perspective rescale or affine
         new_keypoints[keypoints.reshape(-1, 34) == 0] = 0
         x_kpts = new_keypoints[:, list(range(0, 34, 2))]
         y_kpts = new_keypoints[:, list(range(1, 34, 2))]
@@ -521,17 +526,11 @@ class Albumentations:
             labels["instances"].normalize(*im.shape[:2][::-1])
             bboxes = labels["instances"].bboxes
             # TODO: add supports of segments and keypoints
-            segments = labels["instances"].segments
-            keypoints = labels["instances"].keypoints
             if self.transform and random.random() < self.p:
                 new = self.transform(image=im, bboxes=bboxes, class_labels=cls)  # transformed
             labels["img"] = new["image"]
             labels["cls"] = np.array(new["class_labels"])
-            labels["instances"] = Instances(np.array(new["bboxes"]),
-                                            segments,
-                                            keypoints,
-                                            bbox_format="xywh",
-                                            normalized=True)
+            labels["instances"].update(bboxes=bboxes)
         return labels
 
 

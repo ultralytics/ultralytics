@@ -189,11 +189,12 @@ class BaseTrainer:
         del ckpt
 
     def setup_ddp(self, rank, world_size):
-        print(f"RANK - LOCAL - World: {torch.distributed.get_rank()} - {LOCAL_RANK} - {world_size}")
         os.environ['MASTER_ADDR'] = 'localhost'
         os.environ['MASTER_PORT'] = '12355'
 
         dist.init_process_group("nccl" if dist.is_nccl_available() else "gloo", rank=rank, world_size=world_size)
+        print(f"RANK - LOCAL - World: {torch.distributed.get_rank()} - {LOCAL_RANK} - {world_size}")
+
 
     def get_dataloader(self, path):
         """

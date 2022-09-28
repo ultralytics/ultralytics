@@ -12,12 +12,11 @@ from pathlib import Path
 from typing import Union
 
 import torch
+import torch.distributed as dist
+import torch.multiprocessing as mp
 import torch.nn as nn
 from omegaconf import DictConfig, OmegaConf
 from torch.cuda import amp
-import torch.distributed as dist
-import torch.multiprocessing as mp
-
 from tqdm import tqdm
 
 import ultralytics.yolo.utils as utils
@@ -108,15 +107,12 @@ class BaseTrainer:
     def run(self):
         world_size = torch.cuda.device_count()
         if world_size > 1:
-            mp.spawn(self._do_train,
-             args=(world_size,),
-             nprocs=world_size,
-             join=True)
+            mp.spawn(self._do_train, args=(world_size,), nprocs=world_size, join=True)
         else:
             self._do_train(0, 1)
 
     def _do_train(self, rank, world_size):
-        self.setup_ddp(rank, world_size) if world_size!=1 else None
+        self.setup_ddp(rank, world_size) if world_size != 1 else None
 
         # callback hook. before_train
         self.epoch = 1
@@ -196,10 +192,7 @@ class BaseTrainer:
         os.environ['MASTER_ADDR'] = 'localhost'
         os.environ['MASTER_PORT'] = '12355'
 
-        dist.init_process_group("nccl" if dist.is_nccl_available() else "gloo",
-                                 rank=rank,
-                                 world_size=world_size)
-    
+        dist.init_process_group("nccl" if dist.is_nccl_available() else "gloo", rank=rank, world_size=world_size)
 
     def get_dataloader(self, path):
         """

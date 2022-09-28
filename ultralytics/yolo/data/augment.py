@@ -3,6 +3,7 @@ import random
 from copy import deepcopy
 
 import cv2
+import collections
 import numpy as np
 import torch
 
@@ -14,7 +15,6 @@ from .utils import polygons2masks, polygons2masks_overlap
 
 # TODO: we might need a BaseTransform to make all these augments be compatible with both classification and semantic
 class BaseTransform:
-
     def __init__(self) -> None:
         pass
 
@@ -34,7 +34,6 @@ class BaseTransform:
 
 
 class Compose:
-
     def __init__(self, transforms):
         self.transforms = transforms
 
@@ -59,10 +58,10 @@ class Compose:
 
 
 class BaseMixTransform:
-    # TODO: This idea is basically from the mmyolo which just be released
-    # I think it's cleaner than the solution with data_wrapper
+    """This implementation is from mmyolo"""
+
     def __init__(self, pre_transform=None, p=0.0) -> None:
-        self.pre_transform = None
+        self.pre_transform = pre_transform
         self.p = p
 
     def __call__(self, labels):
@@ -70,9 +69,44 @@ class BaseMixTransform:
             return labels
 
         assert "dataset" in labels
+        dataset = labels.pop("dataset")
+
+        # get index of one or three other images
+        indexes = self.get_indexes(dataset)
+        if not isinstance(indexes, collections.abc.Sequence):
+            indexes = [indexes]
+
+        # get images information will be used for Mosaic or MixUp
+        mix_labels = [deepcopy(dataset.get_label_info(index)) for index in indexes]
+
+        if self.pre_transform is not None:
+            for i, data in enumerate(mix_labels):
+                # pre_transform may also require dataset
+                data.update({"dataset": dataset})
+                # before Mosaic or MixUp need to go through
+                # the necessary pre_transform
+                _labels = self.pre_transform(data)
+                _labels.pop("dataset")
+                mix_labels[i] = _labels
+        labels['mix_labels'] = mix_labels
+
+        # Mosaic or MixUp
+        labels = self._mix_transform(labels)
+
+        if "mix_labels" in labels:
+            labels.pop("mix_labels")
+        labels["dataset"] = dataset
+
+        return labels
+
+    def _mix_transform(self, labels):
+        raise NotImplementedError
+
+    def get_indexes(self, dataset):
+        raise NotImplementedError
 
 
-class Mosaic:
+class Mosaic(BaseMixTransform):
     """Mosaic augmentation.
     Args:
         img_size (Sequence[int]): Image size after mosaic pipeline of single
@@ -82,19 +116,14 @@ class Mosaic:
 
     def __init__(self, img_size=640, p=1.0, border=(0, 0)):
         assert 0 <= p <= 1.0, "The probability should be in range [0, 1]. " f"got {p}."
+        super().__init__(pre_transform=None, p=p)
         self.img_size = img_size
-        self.p = p
         self.border = border
-
-    def __call__(self, labels):
-        if random.uniform(0, 1) < self.p:
-            return self._mosaic_transform(labels)
-        return labels
 
     def get_indexes(self, dataset):
         return [random.randint(0, len(dataset)) for _ in range(3)]
 
-    def _mosaic_transform(self, labels):
+    def _mix_transform(self, labels):
         mosaic_labels = []
         assert labels.get("rect_shape", None) is None, "rect and mosaic is exclusive."
         assert len(labels.get("mix_labels", [])) > 0, "There are no other images for mosaic augment."
@@ -162,8 +191,26 @@ class Mosaic:
         return final_labels
 
 
-class RandomPerspective:
+class MixUp(BaseMixTransform):
+    def __init__(self, pre_transform=None, p=0.0) -> None:
+        super().__init__(pre_transform=pre_transform, p=p)
 
+    def get_indexes(self, dataset):
+        return random.randint(0, len(dataset))
+
+    def _mix_transform(self, labels):
+        im = labels["img"]
+        im2 = labels["mix_labels"][0]["img"]
+        # Applies MixUp augmentation https://arxiv.org/pdf/1710.09412.pdf
+        r = np.random.beta(32.0, 32.0)  # mixup ratio, alpha=beta=32.0
+        im = (im * r + im2 * (1 - r)).astype(np.uint8)
+        cat_instances = Instances.concatenate([labels["instances"], labels["mix_labels"]["instances"]], axis=0)
+        labels["img"] = im
+        labels["instances"] = cat_instances
+        return labels
+
+
+class RandomPerspective:
     def __init__(self, degrees=0.0, translate=0.1, scale=0.5, shear=0.0, perspective=0.0, border=(0, 0)):
         self.degrees = degrees
         self.translate = translate
@@ -322,9 +369,7 @@ class RandomPerspective:
         # filter instances
         instances.scale(scale_w=scale, scale_h=scale, bbox_only=True)
         # make the bboxes have the same scale with new_bboxes
-        i = self.box_candidates(box1=instances.bboxes.T,
-                                box2=new_instances.bboxes.T,
-                                area_thr=0.01 if segments is not None else 0.10)
+        i = self.box_candidates(box1=instances.bboxes.T, box2=new_instances.bboxes.T, area_thr=0.01 if segments is not None else 0.10)
         labels["instances"] = new_instances[i]
         # clip
         labels["cls"] = cls[i]
@@ -340,7 +385,6 @@ class RandomPerspective:
 
 
 class RandomHSV:
-
     def __init__(self, hgain=0.5, sgain=0.5, vgain=0.5) -> None:
         self.hgain = hgain
         self.sgain = sgain
@@ -365,7 +409,6 @@ class RandomHSV:
 
 
 class RandomFlip:
-
     def __init__(self, p=0.5, direction="horizontal") -> None:
         assert direction in ["horizontal", "vertical"], f"Support direction `horizontal` or `vertical`, got {direction}"
         assert 0 <= p <= 1.0
@@ -408,24 +451,25 @@ class LetterBox:
     def __call__(self, labels):
         img = labels["img"]
         shape = img.shape[:2]  # current shape [height, width]
-        if isinstance(self.new_shape, int):
-            self.new_shape = (self.new_shape, self.new_shape)
+        new_shape = labels.get("rect_shape", self.new_shape)
+        if isinstance(new_shape, int):
+            new_shape = (new_shape, new_shape)
 
         # Scale ratio (new / old)
-        r = min(self.new_shape[0] / shape[0], self.new_shape[1] / shape[1])
+        r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])
         if not self.scaleup:  # only scale down, do not scale up (for better val mAP)
             r = min(r, 1.0)
 
         # Compute padding
         ratio = r, r  # width, height ratios
         new_unpad = int(round(shape[1] * r)), int(round(shape[0] * r))
-        dw, dh = self.new_shape[1] - new_unpad[0], self.new_shape[0] - new_unpad[1]  # wh padding
+        dw, dh = new_shape[1] - new_unpad[0], new_shape[0] - new_unpad[1]  # wh padding
         if self.auto:  # minimum rectangle
             dw, dh = np.mod(dw, self.stride), np.mod(dh, self.stride)  # wh padding
         elif self.scaleFill:  # stretch
             dw, dh = 0.0, 0.0
-            new_unpad = (self.new_shape[1], self.new_shape[0])
-            ratio = self.new_shape[1] / shape[1], self.new_shape[0] / shape[0]  # width, height ratios
+            new_unpad = (new_shape[1], new_shape[0])
+            ratio = new_shape[1] / shape[1], new_shape[0] / shape[0]  # width, height ratios
 
         dw /= 2  # divide padding into 2 sides
         dh /= 2
@@ -434,8 +478,7 @@ class LetterBox:
             img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
         top, bottom = int(round(dh - 0.1)), int(round(dh + 0.1))
         left, right = int(round(dw - 0.1)), int(round(dw + 0.1))
-        img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT,
-                                 value=(114, 114, 114))  # add border
+        img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(114, 114, 114))  # add border
 
         labels = self._update_labels(labels, ratio, dw, dh)
         labels["img"] = img
@@ -451,7 +494,6 @@ class LetterBox:
 
 
 class CopyPaste:
-
     def __init__(self, p=0.5) -> None:
         self.p = p
 
@@ -477,8 +519,7 @@ class CopyPaste:
                     segments = np.concatenate((segments, np.concatenate((w - s[:, 0:1], s[:, 1:2]), 1)[None]), 0)
                     if keypoints is not None:
                         print(keypoints.shape, (w - keypoints[j][:, 0:1]).shape, keypoints[j][:, 1:2].shape)
-                        keypoints = np.concatenate(
-                            (keypoints, np.concatenate((w - keypoints[j][:, 0:1], keypoints[j][:, 1:2]), 1)), 0)
+                        keypoints = np.concatenate((keypoints, np.concatenate((w - keypoints[j][:, 0:1], keypoints[j][:, 1:2]), 1)), 0)
                     cv2.drawContours(im_new, [segments[j].astype(np.int32)], -1, (255, 255, 255), cv2.FILLED)
 
             result = cv2.bitwise_and(src1=im, src2=im_new)
@@ -510,7 +551,8 @@ class Albumentations:
                 A.CLAHE(p=0.01),
                 A.RandomBrightnessContrast(p=0.0),
                 A.RandomGamma(p=0.0),
-                A.ImageCompression(quality_lower=75, p=0.0),]  # transforms
+                A.ImageCompression(quality_lower=75, p=0.0),
+            ]  # transforms
             self.transform = A.Compose(T, bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"]))
 
             LOGGER.info(prefix + ", ".join(f"{x}".replace("always_apply=False, ", "") for x in T if x.p))
@@ -535,32 +577,8 @@ class Albumentations:
         return labels
 
 
-class MixUp:
-    # TODO: add mosaic transform as a pre_transform
-    def __init__(self, pre_transform=None, p=0.0) -> None:
-        self.p = p
-        self.pre_transform = pre_transform
-
-    def get_indexes(self, dataset):
-        return random.randint(0, len(dataset))
-
-    def __call__(self, labels):
-        if self.pre_transform is not None:
-            labels = self.pre_transform(labels)
-        im = labels["img"]
-        im2 = labels["mix_labels"][0]["img"]
-        # Applies MixUp augmentation https://arxiv.org/pdf/1710.09412.pdf
-        r = np.random.beta(32.0, 32.0)  # mixup ratio, alpha=beta=32.0
-        im = (im * r + im2 * (1 - r)).astype(np.uint8)
-        cat_instances = Instances.concatenate([labels["instances"], labels["mix_labels"]["instances"]], axis=0)
-        labels["img"] = im
-        labels["instances"] = cat_instances
-        return labels
-
-
 # TODO: technically this is not an augmentation, maybe we should put this to another files
 class Format:
-
     def __init__(self, bbox_format="xywh", normalize=True, mask=False, mask_ratio=4, mask_overlap=True, batch_idx=True):
         self.bbox_format = bbox_format
         self.normalize = normalize
@@ -580,8 +598,11 @@ class Format:
 
         if instances.segments is not None and self.mask:
             masks, instances, cls = self._format_segments(instances, cls, w, h)
-            labels["masks"] = (torch.from_numpy(masks) if nl else torch.zeros(
-                1 if self.mask_overlap else nl, img.shape[0] // self.mask_ratio, img.shape[1] // self.mask_ratio))
+            labels["masks"] = (
+                torch.from_numpy(masks)
+                if nl
+                else torch.zeros(1 if self.mask_overlap else nl, img.shape[0] // self.mask_ratio, img.shape[1] // self.mask_ratio)
+            )
         if self.normalize:
             instances.normalize(w, h)
         labels["img"] = self._format_img(img)

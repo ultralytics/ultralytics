@@ -23,19 +23,21 @@ class BaseDataset(Dataset):
         label_path (str): label path, this can also be a ann_file or other custom label path.
     """
 
-    def __init__(self,
-                 img_path,
-                 img_size=640,
-                 label_path=None,
-                 cache_images=False,
-                 augment=True,
-                 hyp=None,
-                 prefix="",
-                 rect=False,
-                 batch_size=None,
-                 stride=32,
-                 pad=0.5,
-                 single_cls=False):
+    def __init__(
+        self,
+        img_path,
+        img_size=640,
+        label_path=None,
+        cache=False,
+        augment=True,
+        hyp=None,
+        prefix="",
+        rect=False,
+        batch_size=None,
+        stride=32,
+        pad=0.5,
+        single_cls=False,
+    ):
         super().__init__()
         self.img_path = img_path
         self.img_size = img_size
@@ -61,8 +63,8 @@ class BaseDataset(Dataset):
         # cache stuff
         self.ims = [None] * self.ni
         self.npy_files = [Path(f).with_suffix(".npy") for f in self.im_files]
-        if cache_images:
-            self.load_images()
+        if cache:
+            self.cache_images()
 
         # transforms
         self.transforms = self.build_transforms(hyp=hyp)
@@ -124,20 +126,20 @@ class BaseDataset(Dataset):
             return im, (h0, w0), im.shape[:2]  # im, hw_original, hw_resized
         return self.ims[i], self.im_hw0[i], self.im_hw[i]  # im, hw_original, hw_resized
 
-    def load_images(self):
+    def cache_images(self):
         # cache images to memory or disk
         gb = 0  # Gigabytes of cached images
         self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni
-        fcn = self.cache_images_to_disk if self.cache_images == "disk" else self.load_image
+        fcn = self.cache_images_to_disk if self.cache == "disk" else self.load_image
         results = ThreadPool(NUM_THREADS).imap(fcn, range(self.ni))
         pbar = tqdm(enumerate(results), total=self.ni, bar_format=BAR_FORMAT, disable=LOCAL_RANK > 0)
         for i, x in pbar:
-            if self.cache_images == "disk":
+            if self.cache == "disk":
                 gb += self.npy_files[i].stat().st_size
             else:  # 'ram'
                 self.ims[i], self.im_hw0[i], self.im_hw[i] = x  # im, hw_orig, hw_resized = load_image(self, i)
                 gb += self.ims[i].nbytes
-            pbar.desc = f"{self.prefix}Caching images ({gb / 1E9:.1f}GB {self.cache_images})"
+            pbar.desc = f"{self.prefix}Caching images ({gb / 1E9:.1f}GB {self.cache})"
         pbar.close()
 
     def cache_images_to_disk(self, i):
@@ -171,27 +173,24 @@ class BaseDataset(Dataset):
         self.batch = bi  # batch index of image
 
     def __getitem__(self, index):
-        img, (h0, w0), (h, w) = self.load_image(index)
+        label = self.get_label_info(index)
+        return self.transforms(label)
+
+    def get_label_info(self, index):
         label = self.labels[index].copy()
+        img, (h0, w0), (h, w) = self.load_image(index)
         label["img"] = img
-        # TODO: I'm not sure if these shape info are necessary, we can remove these if we don't need
         label["ori_shape"] = (h0, w0)
         label["resized_shape"] = (h, w)
-        # TODO: now the BaseDataset supports detection, segments, keypoints,
-        # NOTE: cls is not with bboxes now, since other tasks like classification and semantic segmentation need a independent cls label
-        # we can make it also support classification and semantic segmentation by add or remove some dict keys there.
-        bboxes = label.pop("bboxes")
-        segments = label.pop("segments", None)
-        keypoints = label.pop("keypoints", None)
-        bbox_format = label.pop("bbox_format")
-        normalized = label.pop("normalized")
-        label["instances"] = Instances(bboxes, segments, keypoints, bbox_format=bbox_format, normalized=normalized)
-        # TODO: once we don't need a data wrapper, we can return the self.transforms(label)
-        # return self.transforms(label)
+        label = self.update_labels_info(label)
         return label
 
     def __len__(self):
         return len(self.im_files)
+
+    def update_labels_info(self, label):
+        """custom your label format here"""
+        return label
 
     def build_transforms(self, hyp=None):
         """Users can custom augmentations here"""

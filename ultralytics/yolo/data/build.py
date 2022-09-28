@@ -86,7 +86,7 @@ def build_dataloader(
             augment=augment,  # augmentation
             hyp=hyp,
             rect=rect,  # rectangular batches
-            cache_images=cache,
+            cache=cache,
             single_cls=single_cls,
             stride=int(stride),
             pad=pad,
@@ -105,7 +105,7 @@ def build_dataloader(
     return (
         loader(
             # TODO: we can remove this once we don't need a data wrapper
-            dataset=MixAndRectDataset(dataset),
+            dataset=dataset,
             batch_size=batch_size,
             shuffle=shuffle and sampler is None,
             num_workers=nw,

@@ -189,7 +189,7 @@ class BaseTrainer:
         del ckpt
 
     def setup_ddp(self, rank, world_size):
-        print(f"RANK - World: {rank} - {world_size} " )
+        print(f"RANK - World: {rank} - {world_size} ")
         os.environ['MASTER_ADDR'] = 'localhost'
         os.environ['MASTER_PORT'] = '12355'
 

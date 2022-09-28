@@ -174,7 +174,8 @@ class BaseDataset(Dataset):
 
     def __getitem__(self, index):
         label = self.get_label_info(index)
-        label["dataset"] = self
+        if self.augment:
+            label["dataset"] = self
         return self.transforms(label)
 
     def get_label_info(self, index):
@@ -183,6 +184,8 @@ class BaseDataset(Dataset):
         label["img"] = img
         label["ori_shape"] = (h0, w0)
         label["resized_shape"] = (h, w)
+        if self.rect:
+            label["rect_shape"] = self.batch_shapes[self.batch[index]]
         label = self.update_labels_info(label)
         return label
 

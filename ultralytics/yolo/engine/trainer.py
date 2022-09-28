@@ -114,8 +114,7 @@ class BaseTrainer:
         torch.cuda.set_device(rank)
         if world_size > 1:
             self.setup_ddp(rank, world_size)
-            if rank != 0:
-                self.model = utils.DDP_model(self.model)
+            self.model = utils.DDP_model(self.model)
 
         self.epoch = 1
         self.epoch_time = None

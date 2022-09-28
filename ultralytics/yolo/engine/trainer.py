@@ -195,7 +195,6 @@ class BaseTrainer:
 
         dist.init_process_group("nccl" if dist.is_nccl_available() else "gloo", rank=rank, world_size=world_size)
 
-
     def get_dataloader(self, path):
         """
         Returns dataloader derived from torch.data.Dataloader

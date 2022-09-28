@@ -60,7 +60,7 @@ class Trainer(BaseTrainer):
         return model
 
 
-@hydra.main(config_path=CONFIG_PATH_ABS, config_name=str(DEFAULT_CONFIG).split(".")[0])
+@hydra.main(version_base=None, config_path=CONFIG_PATH_ABS, config_name=str(DEFAULT_CONFIG).split(".")[0])
 def train(cfg):
     model = "squeezenet1_0"
     dataset = "mnist"  # or yolo.ClassificationDataset("mnist")

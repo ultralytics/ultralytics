@@ -3,6 +3,7 @@ from contextlib import contextmanager
 
 import torch
 import torch.distributed as dist
+
 from ultralytics.yolo.utils import check_version
 
 LOCAL_RANK = int(os.getenv('LOCAL_RANK', -1))  # https://pytorch.org/docs/stable/elastic/run.html
@@ -29,4 +30,3 @@ def DDP_model(model):
         return DDP(model, device_ids=[LOCAL_RANK], output_device=LOCAL_RANK, static_graph=True)
     else:
         return DDP(model, device_ids=[LOCAL_RANK], output_device=LOCAL_RANK)
-

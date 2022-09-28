@@ -1,5 +1,5 @@
-from .general import WorkingDirectory, download, increment_path, save_yaml, check_version
-from .torch_utils import LOCAL_RANK, RANK, WORLD_SIZE, torch_distributed_zero_first, DDP_model
+from .general import WorkingDirectory, check_version, download, increment_path, save_yaml
+from .torch_utils import LOCAL_RANK, RANK, WORLD_SIZE, DDP_model, torch_distributed_zero_first
 
 __all__ = [
     # general
@@ -13,5 +13,4 @@ __all__ = [
     "LOCAL_RANK",
     "RANK",
     "WORLD_SIZE",
-    "DDP_model"
-    ]
+    "DDP_model"]

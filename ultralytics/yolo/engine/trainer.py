@@ -33,7 +33,9 @@ LOCAL_RANK = int(os.getenv('LOCAL_RANK', -1))  # https://pytorch.org/docs/stable
 RANK = int(os.getenv('RANK', -1))
 WORLD_SIZE = int(os.getenv('WORLD_SIZE', 1))
 
+
 class BaseTrainer:
+
     def __init__(
             self,
             model: str,
@@ -111,7 +113,7 @@ class BaseTrainer:
 
     def run(self):
         self._do_train()
-        
+
     def _do_train(self):
         # callback hook. before_train
         self.epoch = 1
@@ -246,11 +248,11 @@ class BaseTrainer:
         Returns usage functionality. gets printed to the console after training.
         """
         pass
-    
+
     def log(self, text, rank=[0, -1]):
         """
         Logs the given text to given ranks process if provided, otherwise logs to all ranks
-        :param rank: List[Int] 
+        :param rank: List[Int]
 
         """
         if not rank:

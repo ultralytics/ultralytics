@@ -110,7 +110,6 @@ class BaseTrainer:
 
     def _do_train(self, rank, world_size):
         # callback hook. before_train
-        torch.cuda.set_device(rank)
         if world_size > 1:
             self.setup_ddp(rank, world_size)
             self.model = self.model.to(rank)
@@ -190,7 +189,7 @@ class BaseTrainer:
         del ckpt
 
     def setup_ddp(self, rank, world_size):
-        print(f"RANK - World: {rank} - {world_size} ")
+        print(f"RANK - LOCAL - World: {RANK} - {LOCAL_RANK} - {world_size}")
         os.environ['MASTER_ADDR'] = 'localhost'
         os.environ['MASTER_PORT'] = '12355'
 

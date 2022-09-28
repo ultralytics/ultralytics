@@ -112,7 +112,7 @@ class BaseTrainer:
     def _do_train(self, rank, world_size):
         # callback hook. before_train
         if world_size != 1:
-            self.setup_ddp(rank, world_size) 
+            self.setup_ddp(rank, world_size)
             self.model = utils.DDP_model(self.model)
 
         self.epoch = 1

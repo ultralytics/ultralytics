@@ -29,10 +29,11 @@ LOGGER = logging.getLogger()
 CONFIG_PATH_REL = "../utils/configs"
 CONFIG_PATH_ABS = Path(__file__).parents[1] / "utils/configs"
 DEFAULT_CONFIG = "defaults.yaml"
-
+LOCAL_RANK = int(os.getenv('LOCAL_RANK', -1))  # https://pytorch.org/docs/stable/elastic/run.html
+RANK = int(os.getenv('RANK', -1))
+WORLD_SIZE = int(os.getenv('WORLD_SIZE', 1))
 
 class BaseTrainer:
-
     def __init__(
             self,
             model: str,
@@ -69,6 +70,8 @@ class BaseTrainer:
         self.trainset, self.testset = self.get_dataset()  # initialize dataset before as nc is needed for model
         self.model = self.get_model()
         self.model = self.model.to(self.device)
+        if self.train.device == 'cuda' and RANK != -1:
+            model = utils.DDP_model(model)
         self.optimizer = build_optimizer(model=self.model,
                                          name=self.train.optimizer,
                                          lr=self.hyps.lr0,
@@ -107,6 +110,9 @@ class BaseTrainer:
             callback(self)
 
     def run(self):
+        self._do_train()
+        
+    def _do_train(self):
         # callback hook. before_train
         self.epoch = 1
         self.epoch_time = None
@@ -116,9 +122,11 @@ class BaseTrainer:
         for epoch in range(self.train.epochs):
             # callback hook. on_epoch_start
             self.model.train()
-            pbar = tqdm(enumerate(self.train_loader),
-                        total=len(self.train_loader),
-                        bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
+            pbar = enumerate(self.train_loader)
+            if RANK in {-1, 0}:
+                pbar = tqdm(enumerate(self.train_loader),
+                            total=len(self.train_loader),
+                            bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
             tloss = 0
             for i, (images, labels) in pbar:
                 # callback hook. on_batch_start
@@ -139,15 +147,16 @@ class BaseTrainer:
                 mem = '%.3gG' % (torch.cuda.memory_reserved() / 1E9 if torch.cuda.is_available() else 0)  # (GB)
                 pbar.desc = f"{f'{epoch + 1}/{self.train.epochs}':>10}{mem:>10}{tloss:>12.3g}" + ' ' * 36
 
-            # Test
-            # callback: on_val_start()
-            self.validate()
-            # callback: on_val_end()
+            if RANK in [-1, 0]:
+                # validation
+                # callback: on_val_start()
+                self.validate()
+                # callback: on_val_end()
 
-            # save model
-            if (not self.train.nosave) or (self.epoch + 1 == self.train.epochs):
-                self.save_model()
-                # callback; on_model_save
+                # save model
+                if (not self.train.nosave) or (self.epoch + 1 == self.train.epochs):
+                    self.save_model()
+                    # callback; on_model_save
 
             self.epoch += 1
             tnow = time.time()
@@ -156,7 +165,7 @@ class BaseTrainer:
 
             # TODO: termination condition
 
-        self.console.info(f"\nTraining complete ({(time.time() - self.train_time_start) / 3600:.3f} hours) \
+        self.log(f"\nTraining complete ({(time.time() - self.train_time_start) / 3600:.3f} hours) \
                             \n{self.usage_help()}")
         # callback; on_train_end
 
@@ -237,6 +246,18 @@ class BaseTrainer:
         Returns usage functionality. gets printed to the console after training.
         """
         pass
+    
+    def log(self, text, rank=[0, -1]):
+        """
+        Logs the given text to given ranks process if provided, otherwise logs to all ranks
+        :param rank: List[Int] 
+
+        """
+        if not rank:
+            self.console.info(text)
+        else:
+            if RANK in rank:
+                self.console.info(text)
 
 
 def build_optimizer(model, name='Adam', lr=0.001, momentum=0.9, decay=1e-5):

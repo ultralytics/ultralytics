@@ -60,15 +60,6 @@ class Trainer(BaseTrainer):
         return model
 
 
-"""
-CLI usage:
-python ../path/to/train.py train.epochs=10 train.project="name" hyps.lr0=0.1
-
-TODO:
-Direct cli support, i.e, yolov8 classify_train train.epochs 10
-"""
-
-
 @hydra.main(config_path=CONFIG_PATH_ABS, config_name=str(DEFAULT_CONFIG).split(".")[0])
 def train(cfg):
     model = "squeezenet1_0"
@@ -79,4 +70,11 @@ def train(cfg):
 
 
 if __name__ == "__main__":
+    """
+    CLI usage:
+    python ../path/to/train.py train.epochs=10 train.project="name" hyps.lr0=0.1
+
+    TODO:
+    Direct cli support, i.e, yolov8 classify_train train.epochs 10
+    """
     train()

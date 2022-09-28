@@ -135,7 +135,15 @@ class YOLODataset(BaseDataset):
                         Mosaic(img_size=self.img_size, p=1.0, border=[-self.img_size // 2, -self.img_size // 2]),
                         # CopyPaste(p=0.1),
                         RandomPerspective(border=[-self.img_size // 2, -self.img_size // 2]),
-                        # MixUp(p=0.0),   # TODO
+                        MixUp(
+                            pre_transform=Compose(
+                                [
+                                    Mosaic(img_size=self.img_size, p=1.0, border=[-self.img_size // 2, -self.img_size // 2]),
+                                    RandomPerspective(border=[-self.img_size // 2, -self.img_size // 2]),
+                                ]
+                            ),
+                            p=0.5,
+                        ),
                         Albumentations(p=1.0),
                         RandomHSV(),
                         RandomFlip(direction="vertical", p=0.0),

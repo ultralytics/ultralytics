@@ -88,7 +88,7 @@ class BaseMixTransform:
                 _labels = self.pre_transform(data)
                 _labels.pop("dataset")
                 mix_labels[i] = _labels
-        labels['mix_labels'] = mix_labels
+        labels["mix_labels"] = mix_labels
 
         # Mosaic or MixUp
         labels = self._mix_transform(labels)
@@ -200,13 +200,17 @@ class MixUp(BaseMixTransform):
 
     def _mix_transform(self, labels):
         im = labels["img"]
-        im2 = labels["mix_labels"][0]["img"]
+        labels2 = labels["mix_labels"][0]
+        im2 = labels2["img"]
+        cls2 = labels2["cls"]
         # Applies MixUp augmentation https://arxiv.org/pdf/1710.09412.pdf
         r = np.random.beta(32.0, 32.0)  # mixup ratio, alpha=beta=32.0
         im = (im * r + im2 * (1 - r)).astype(np.uint8)
-        cat_instances = Instances.concatenate([labels["instances"], labels["mix_labels"]["instances"]], axis=0)
+        cat_instances = Instances.concatenate([labels["instances"], labels2["instances"]], axis=0)
+        cls = labels["cls"]
         labels["img"] = im
         labels["instances"] = cat_instances
+        labels["cls"] = np.concatenate([cls, cls2], 0)
         return labels
 
 

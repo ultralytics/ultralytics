@@ -110,9 +110,11 @@ class BaseTrainer:
 
     def _do_train(self, rank, world_size):
         # callback hook. before_train
+        torch.cuda.set_device(rank)
         if world_size > 1:
+            print("device:", self.device)
             self.setup_ddp(rank, world_size)
-            self.model = self.model.to(rank)
+            self.model = self.model.to(self.device)
             self.model = utils.DDP_model(self.model)
 
         self.epoch = 1
@@ -133,7 +135,7 @@ class BaseTrainer:
                 # callback hook. on_batch_start
                 # forward
                 images, labels = self.preprocess_batch(images, labels)
-                self.loss = self.criterion(self.model(images.to(rank)), labels.to(rank))
+                self.loss = self.criterion(self.model(images), labels)
                 tloss = (tloss * i + self.loss.item()) / (i + 1)
 
                 # backward
@@ -231,7 +233,7 @@ class BaseTrainer:
         """
         Allows custom preprocessing model inputs and ground truths depeding on task type
         """
-        return images, labels
+        return images.to(self.device, non_blocking=True), labels.to(self.device)
 
     def validate(self):
         """

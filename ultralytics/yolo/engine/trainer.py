@@ -111,7 +111,7 @@ class BaseTrainer:
     def _do_train(self, rank, world_size):
         # callback hook. before_train
         torch.cuda.set_device(rank)
-        if world_size > 1 and rank!=0:
+        if world_size > 1 and rank != 0:
             self.setup_ddp(rank, world_size)
             self.model = self.model.to(self.device)
             self.model = utils.DDP_model(self.model)

@@ -64,7 +64,6 @@ class BaseTrainer:
         # Model and Dataloaders. TBD: Should we move this inside trainer?
         self.trainset, self.testset = self.get_dataset()  # initialize dataset before as nc is needed for model
         self.model = self.get_model()
-        self.model = self.model.to(self.device)
         self.optimizer = build_optimizer(model=self.model,
                                          name=self.train.optimizer,
                                          lr=self.hyps.lr0,
@@ -114,6 +113,7 @@ class BaseTrainer:
         torch.cuda.set_device(rank)
         if world_size > 1:
             self.setup_ddp(rank, world_size)
+            self.model = self.model.to(rank)
             self.model = utils.DDP_model(self.model)
 
         self.epoch = 1

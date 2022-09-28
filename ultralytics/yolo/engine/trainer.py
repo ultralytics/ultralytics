@@ -169,7 +169,7 @@ class BaseTrainer:
         self.log(f"\nTraining complete ({(time.time() - self.train_time_start) / 3600:.3f} hours) \
                             \n{self.usage_help()}")
         # callback; on_train_end
-        dist.destroy_process_group() if world_size!=1 else None
+        dist.destroy_process_group() if world_size != 1 else None
 
     def save_model(self):
         ckpt = {

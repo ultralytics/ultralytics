@@ -110,6 +110,7 @@ class BaseTrainer:
 
     def _do_train(self, rank, world_size):
         # callback hook. before_train
+        print(f"RANK - LOCAL - World: {dist.get_rank()} - {LOCAL_RANK} - {world_size}")
         if world_size > 1:
             self.setup_ddp(rank, world_size)
             self.model = self.model.to(rank)
@@ -193,7 +194,6 @@ class BaseTrainer:
         os.environ['MASTER_PORT'] = '12355'
 
         dist.init_process_group("nccl" if dist.is_nccl_available() else "gloo", rank=rank, world_size=world_size)
-        print(f"RANK - LOCAL - World: {torch.distributed.get_rank()} - {LOCAL_RANK} - {world_size}")
 
 
     def get_dataloader(self, path):

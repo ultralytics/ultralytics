@@ -27,6 +27,7 @@ CONFIG_PATH_REL = "../utils/configs"
 CONFIG_PATH_ABS = Path(__file__).parents[1] / "utils/configs"
 DEFAULT_CONFIG = "defaults.yaml"
 
+
 class BaseTrainer:
 
     def __init__(
@@ -105,7 +106,7 @@ class BaseTrainer:
             mp.spawn(self._do_train, args=(world_size,), nprocs=world_size, join=True)
         else:
             self._do_train(0, 1)
-    
+
     def _do_train(self, rank, world_size):
         # callback hook. before_train
         if world_size > 1:

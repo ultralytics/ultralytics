@@ -189,7 +189,7 @@ class BaseTrainer:
         del ckpt
 
     def setup_ddp(self, rank, world_size):
-        print(f"RANK - LOCAL - World: {RANK} - {LOCAL_RANK} - {world_size}")
+        print(f"RANK - LOCAL - World: {torch.distributed.get_rank()} - {LOCAL_RANK} - {world_size}")
         os.environ['MASTER_ADDR'] = 'localhost'
         os.environ['MASTER_PORT'] = '12355'
 

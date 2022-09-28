@@ -65,8 +65,6 @@ class BaseTrainer:
         self.trainset, self.testset = self.get_dataset()  # initialize dataset before as nc is needed for model
         self.model = self.get_model()
         self.model = self.model.to(self.device)
-        if self.train.device == 'cuda' and RANK != -1:
-            model = utils.DDP_model(model)
         self.optimizer = build_optimizer(model=self.model,
                                          name=self.train.optimizer,
                                          lr=self.hyps.lr0,
@@ -112,9 +110,11 @@ class BaseTrainer:
             self._do_train(0, 1)
 
     def _do_train(self, rank, world_size):
-        self.setup_ddp(rank, world_size) if world_size != 1 else None
-
         # callback hook. before_train
+        if world_size != 1:
+            self.setup_ddp(rank, world_size) 
+            model = utils.DDP_model(model)
+            
         self.epoch = 1
         self.epoch_time = None
         self.epoch_time_start = time.time()

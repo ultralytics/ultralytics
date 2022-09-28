@@ -17,6 +17,7 @@ import torch.multiprocessing as mp
 import torch.nn as nn
 from omegaconf import DictConfig, OmegaConf
 from torch.cuda import amp
+from torch.nn.parallel import DistributedDataParallel as DDP
 from tqdm import tqdm
 
 import ultralytics.yolo.utils as utils
@@ -64,6 +65,7 @@ class BaseTrainer:
         # Model and Dataloaders. TBD: Should we move this inside trainer?
         self.trainset, self.testset = self.get_dataset()  # initialize dataset before as nc is needed for model
         self.model = self.get_model()
+        self.model = self.model.to(self.device)
         self.optimizer = build_optimizer(model=self.model,
                                          name=self.train.optimizer,
                                          lr=self.hyps.lr0,
@@ -110,8 +112,8 @@ class BaseTrainer:
 
     def _do_train(self, rank, world_size):
         # callback hook. before_train
-        torch.cuda.set_device(rank)
-        if world_size > 1 and rank != 0:
+        if world_size > 1:
+            torch.cuda.set_device(rank)
             self.setup_ddp(rank, world_size)
             self.model = self.model.to(self.device)
             self.model = utils.DDP_model(self.model)
@@ -192,7 +194,7 @@ class BaseTrainer:
     def setup_ddp(self, rank, world_size):
         print(f"RANK - World: {rank} - {world_size} ")
         os.environ['MASTER_ADDR'] = 'localhost'
-        os.environ['MASTER_PORT'] = '12555'
+        os.environ['MASTER_PORT'] = '12355'
 
         dist.init_process_group("nccl" if dist.is_nccl_available() else "gloo", rank=rank, world_size=world_size)
 

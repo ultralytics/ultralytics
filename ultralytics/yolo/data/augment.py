@@ -1,9 +1,9 @@
+import collections
 import math
 import random
 from copy import deepcopy
 
 import cv2
-import collections
 import numpy as np
 import torch
 
@@ -15,6 +15,7 @@ from .utils import polygons2masks, polygons2masks_overlap
 
 # TODO: we might need a BaseTransform to make all these augments be compatible with both classification and semantic
 class BaseTransform:
+
     def __init__(self) -> None:
         pass
 
@@ -34,6 +35,7 @@ class BaseTransform:
 
 
 class Compose:
+
     def __init__(self, transforms):
         self.transforms = transforms
 
@@ -192,6 +194,7 @@ class Mosaic(BaseMixTransform):
 
 
 class MixUp(BaseMixTransform):
+
     def __init__(self, pre_transform=None, p=0.0) -> None:
         super().__init__(pre_transform=pre_transform, p=p)
 
@@ -215,6 +218,7 @@ class MixUp(BaseMixTransform):
 
 
 class RandomPerspective:
+
     def __init__(self, degrees=0.0, translate=0.1, scale=0.5, shear=0.0, perspective=0.0, border=(0, 0)):
         self.degrees = degrees
         self.translate = translate
@@ -373,7 +377,9 @@ class RandomPerspective:
         # filter instances
         instances.scale(scale_w=scale, scale_h=scale, bbox_only=True)
         # make the bboxes have the same scale with new_bboxes
-        i = self.box_candidates(box1=instances.bboxes.T, box2=new_instances.bboxes.T, area_thr=0.01 if segments is not None else 0.10)
+        i = self.box_candidates(box1=instances.bboxes.T,
+                                box2=new_instances.bboxes.T,
+                                area_thr=0.01 if segments is not None else 0.10)
         labels["instances"] = new_instances[i]
         # clip
         labels["cls"] = cls[i]
@@ -389,6 +395,7 @@ class RandomPerspective:
 
 
 class RandomHSV:
+
     def __init__(self, hgain=0.5, sgain=0.5, vgain=0.5) -> None:
         self.hgain = hgain
         self.sgain = sgain
@@ -413,6 +420,7 @@ class RandomHSV:
 
 
 class RandomFlip:
+
     def __init__(self, p=0.5, direction="horizontal") -> None:
         assert direction in ["horizontal", "vertical"], f"Support direction `horizontal` or `vertical`, got {direction}"
         assert 0 <= p <= 1.0
@@ -482,7 +490,8 @@ class LetterBox:
             img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
         top, bottom = int(round(dh - 0.1)), int(round(dh + 0.1))
         left, right = int(round(dw - 0.1)), int(round(dw + 0.1))
-        img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(114, 114, 114))  # add border
+        img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT,
+                                 value=(114, 114, 114))  # add border
 
         labels = self._update_labels(labels, ratio, dw, dh)
         labels["img"] = img
@@ -498,6 +507,7 @@ class LetterBox:
 
 
 class CopyPaste:
+
     def __init__(self, p=0.5) -> None:
         self.p = p
 
@@ -522,7 +532,8 @@ class CopyPaste:
                     cls = np.concatenate((cls, c[None]), axis=0)
                     segments = np.concatenate((segments, np.concatenate((w - s[:, 0:1], s[:, 1:2]), 1)[None]), 0)
                     if keypoints is not None:
-                        keypoints = np.concatenate((keypoints, np.concatenate((w - keypoints[j][:, 0:1], keypoints[j][:, 1:2]), 1)), 0)
+                        keypoints = np.concatenate(
+                            (keypoints, np.concatenate((w - keypoints[j][:, 0:1], keypoints[j][:, 1:2]), 1)), 0)
                     cv2.drawContours(im_new, [segments[j].astype(np.int32)], -1, (255, 255, 255), cv2.FILLED)
 
             result = cv2.bitwise_and(src1=im, src2=im_new)
@@ -554,8 +565,7 @@ class Albumentations:
                 A.CLAHE(p=0.01),
                 A.RandomBrightnessContrast(p=0.0),
                 A.RandomGamma(p=0.0),
-                A.ImageCompression(quality_lower=75, p=0.0),
-            ]  # transforms
+                A.ImageCompression(quality_lower=75, p=0.0),]  # transforms
             self.transform = A.Compose(T, bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"]))
 
             LOGGER.info(prefix + ", ".join(f"{x}".replace("always_apply=False, ", "") for x in T if x.p))
@@ -582,6 +592,7 @@ class Albumentations:
 
 # TODO: technically this is not an augmentation, maybe we should put this to another files
 class Format:
+
     def __init__(self, bbox_format="xywh", normalize=True, mask=False, mask_ratio=4, mask_overlap=True, batch_idx=True):
         self.bbox_format = bbox_format
         self.normalize = normalize
@@ -601,11 +612,8 @@ class Format:
 
         if instances.segments is not None and self.mask:
             masks, instances, cls = self._format_segments(instances, cls, w, h)
-            labels["masks"] = (
-                torch.from_numpy(masks)
-                if nl
-                else torch.zeros(1 if self.mask_overlap else nl, img.shape[0] // self.mask_ratio, img.shape[1] // self.mask_ratio)
-            )
+            labels["masks"] = (torch.from_numpy(masks) if nl else torch.zeros(
+                1 if self.mask_overlap else nl, img.shape[0] // self.mask_ratio, img.shape[1] // self.mask_ratio))
         if self.normalize:
             instances.normalize(w, h)
         labels["img"] = self._format_img(img)

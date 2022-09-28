@@ -1,7 +1,7 @@
+import os
 from itertools import repeat
 from multiprocessing.pool import Pool, ThreadPool
 from pathlib import Path
-import os
 
 import cv2
 import numpy as np
@@ -44,7 +44,8 @@ class YOLODataset(BaseDataset):
         self.use_segments = use_segments
         self.use_keypoints = use_keypoints
         assert not (self.use_segments and self.use_keypoints), "We can't use both of segmentation and pose."
-        super().__init__(img_path, img_size, label_path, cache, augment, hyp, prefix, rect, batch_size, stride, pad, single_cls)
+        super().__init__(img_path, img_size, label_path, cache, augment, hyp, prefix, rect, batch_size, stride, pad,
+                         single_cls)
 
     def cache_labels(self, path=Path("./labels.cache")):
         # Cache dataset labels, check images and read shapes
@@ -54,7 +55,8 @@ class YOLODataset(BaseDataset):
         desc = f"{self.prefix}Scanning '{path.parent / path.stem}' images and labels..."
         with Pool(NUM_THREADS) as pool:
             pbar = tqdm(
-                pool.imap(verify_image_label, zip(self.im_files, self.label_files, repeat(self.prefix), repeat(self.use_keypoints))),
+                pool.imap(verify_image_label,
+                          zip(self.im_files, self.label_files, repeat(self.prefix), repeat(self.use_keypoints))),
                 desc=desc,
                 total=len(self.im_files),
                 bar_format=BAR_FORMAT,
@@ -75,8 +77,7 @@ class YOLODataset(BaseDataset):
                             keypoints=keypoint,
                             normalized=True,
                             bbox_format="xywh",
-                        )
-                    )
+                        ))
                 if msg:
                     msgs.append(msg)
                 pbar.desc = f"{desc}{nf} found, {nm} missing, {ne} empty, {nc} corrupt"
@@ -95,7 +96,8 @@ class YOLODataset(BaseDataset):
             path.with_suffix(".cache.npy").rename(path)  # remove .npy suffix
             LOGGER.info(f"{self.prefix}New cache created: {path}")
         except Exception as e:
-            LOGGER.warning(f"{self.prefix}WARNING ⚠️ Cache directory {path.parent} is not writeable: {e}")  # not writeable
+            LOGGER.warning(
+                f"{self.prefix}WARNING ⚠️ Cache directory {path.parent} is not writeable: {e}")  # not writeable
         return x
 
     def get_labels(self):
@@ -130,38 +132,29 @@ class YOLODataset(BaseDataset):
         # mosaic = False
         if self.augment:
             if mosaic:
-                pre_transform = Compose(
-                    [
-                        Mosaic(img_size=self.img_size, p=1.0, border=[-self.img_size // 2, -self.img_size // 2]),
-                        CopyPaste(p=1.0),
-                        RandomPerspective(border=[-self.img_size // 2, -self.img_size // 2]),
-                    ]
-                )
-                transforms = Compose(
-                    [
-                        pre_transform,
-                        MixUp(
-                            pre_transform=pre_transform,
-                            p=0.5,
-                        ),
-                        Albumentations(p=1.0),
-                        RandomHSV(),
-                        RandomFlip(direction="vertical", p=0.0),
-                        RandomFlip(direction="horizontal", p=0.5),
-                    ]
-                )
+                pre_transform = Compose([
+                    Mosaic(img_size=self.img_size, p=1.0, border=[-self.img_size // 2, -self.img_size // 2]),
+                    CopyPaste(p=1.0),
+                    RandomPerspective(border=[-self.img_size // 2, -self.img_size // 2]),])
+                transforms = Compose([
+                    pre_transform,
+                    MixUp(
+                        pre_transform=pre_transform,
+                        p=0.5,
+                    ),
+                    Albumentations(p=1.0),
+                    RandomHSV(),
+                    RandomFlip(direction="vertical", p=0.0),
+                    RandomFlip(direction="horizontal", p=0.5),])
             else:
                 # rect, randomperspective, albumentation, hsv, flipud, fliplr
-                transforms = Compose(
-                    [
-                        LetterBox(new_shape=(self.img_size, self.img_size)),
-                        RandomPerspective(border=[0, 0]),
-                        Albumentations(p=1.0),
-                        RandomHSV(),
-                        RandomFlip(direction="vertical", p=0.0),
-                        RandomFlip(direction="horizontal", p=0.5),
-                    ]
-                )
+                transforms = Compose([
+                    LetterBox(new_shape=(self.img_size, self.img_size)),
+                    RandomPerspective(border=[0, 0]),
+                    Albumentations(p=1.0),
+                    RandomHSV(),
+                    RandomFlip(direction="vertical", p=0.0),
+                    RandomFlip(direction="horizontal", p=0.5),])
         else:
             transforms = Compose([LetterBox(new_shape=(self.img_size, self.img_size))])
         transforms.append(Format(bbox_format="xywh", normalize=True, mask=self.use_segments, batch_idx=True))
@@ -202,6 +195,7 @@ class YOLODataset(BaseDataset):
 
 # TODO: suppport classify
 class ClassifyDataset(BaseDataset):
+
     def __init__(self, root, imgsz, augment, cache=False):
         super().__init__(root, cache=cache, img_size=imgsz, augment=augment)
         self.names, self.name_to_idx = self.find_classes(root)
@@ -234,7 +228,7 @@ class ClassifyDataset(BaseDataset):
             else:  # read image
                 im = cv2.imread(f)  # BGR
                 assert im is not None, f"Image Not Found {f}"
-            return im   # im
+            return im  # im
         return self.ims[i]  # im
 
     def cache_images(self):
@@ -262,5 +256,6 @@ class ClassifyDataset(BaseDataset):
 
 # TODO: support semantic segmentation
 class SemanticDataset(BaseDataset):
+
     def __init__(self):
         pass

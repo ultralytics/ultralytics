@@ -26,10 +26,6 @@ LOGGER = logging.getLogger()
 CONFIG_PATH_REL = "../utils/configs"
 CONFIG_PATH_ABS = Path(__file__).parents[1] / "utils/configs"
 DEFAULT_CONFIG = "defaults.yaml"
-LOCAL_RANK = int(os.getenv('LOCAL_RANK', -1))  # https://pytorch.org/docs/stable/elastic/run.html
-RANK = int(os.getenv('RANK', -1))
-WORLD_SIZE = int(os.getenv('WORLD_SIZE', 1))
-
 
 class BaseTrainer:
 
@@ -109,7 +105,7 @@ class BaseTrainer:
             mp.spawn(self._do_train, args=(world_size,), nprocs=world_size, join=True)
         else:
             self._do_train(0, 1)
-
+    
     def _do_train(self, rank, world_size):
         # callback hook. before_train
         if world_size > 1:
@@ -117,7 +113,7 @@ class BaseTrainer:
             self.setup_ddp(rank, world_size)
             self.model = self.model.to(self.device)
             self.model = DDP(self.model, device_ids=[rank]) if rank!=0 else self.model
-            
+
         self.epoch = 1
         self.epoch_time = None
         self.epoch_time_start = time.time()
@@ -127,7 +123,7 @@ class BaseTrainer:
             # callback hook. on_epoch_start
             self.model.train()
             pbar = enumerate(self.train_loader)
-            if RANK in {-1, 0}:
+            if rank in {-1, 0}:
                 pbar = tqdm(enumerate(self.train_loader),
                             total=len(self.train_loader),
                             bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
@@ -151,7 +147,7 @@ class BaseTrainer:
                 mem = '%.3gG' % (torch.cuda.memory_reserved() / 1E9 if torch.cuda.is_available() else 0)  # (GB)
                 pbar.desc = f"{f'{epoch + 1}/{self.train.epochs}':>10}{mem:>10}{tloss:>12.3g}" + ' ' * 36
 
-            if RANK in [-1, 0]:
+            if rank in [-1, 0]:
                 # validation
                 # callback: on_val_start()
                 self.validate()

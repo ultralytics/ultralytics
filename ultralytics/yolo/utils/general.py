@@ -6,9 +6,8 @@ from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from zipfile import ZipFile
-from itertools import repeat
-import pkg_resources as pkg
 
+import pkg_resources as pkg
 import torch
 import yaml
 
@@ -103,6 +102,7 @@ class WorkingDirectory(contextlib.ContextDecorator):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         os.chdir(self.cwd)
+
 
 def check_version(current='0.0.0', minimum='0.0.0', name='version ', pinned=False, hard=False, verbose=False):
     # Check version vs. required version

@@ -133,7 +133,7 @@ class BaseTrainer:
                 # callback hook. on_batch_start
                 # forward
                 images, labels = self.preprocess_batch(images, labels)
-                self.loss = self.criterion(self.model(images), labels)
+                self.loss = self.criterion(self.model(images.to(rank)), labels.to(rank))
                 tloss = (tloss * i + self.loss.item()) / (i + 1)
 
                 # backward
@@ -231,7 +231,7 @@ class BaseTrainer:
         """
         Allows custom preprocessing model inputs and ground truths depeding on task type
         """
-        return images.to(self.device, non_blocking=True), labels.to(self.device)
+        return images, labels
 
     def validate(self):
         """

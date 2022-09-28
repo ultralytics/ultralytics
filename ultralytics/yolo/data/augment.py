@@ -522,7 +522,6 @@ class CopyPaste:
                     cls = np.concatenate((cls, c[None]), axis=0)
                     segments = np.concatenate((segments, np.concatenate((w - s[:, 0:1], s[:, 1:2]), 1)[None]), 0)
                     if keypoints is not None:
-                        print(keypoints.shape, (w - keypoints[j][:, 0:1]).shape, keypoints[j][:, 1:2].shape)
                         keypoints = np.concatenate((keypoints, np.concatenate((w - keypoints[j][:, 0:1], keypoints[j][:, 1:2]), 1)), 0)
                     cv2.drawContours(im_new, [segments[j].astype(np.int32)], -1, (255, 255, 255), cv2.FILLED)
 

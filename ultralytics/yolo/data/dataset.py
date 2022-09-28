@@ -1,6 +1,7 @@
 from itertools import repeat
-from multiprocessing.pool import Pool
+from multiprocessing.pool import Pool, ThreadPool
 from pathlib import Path
+import os
 
 import cv2
 import numpy as np
@@ -20,7 +21,6 @@ class YOLODataset(BaseDataset):
     """YOLO Dataset.
     Args:
         img_path (str): image path.
-        pipeline (dict): a dict of image transforms.
         prefix (str): prefix.
     """
 
@@ -130,18 +130,18 @@ class YOLODataset(BaseDataset):
         # mosaic = False
         if self.augment:
             if mosaic:
-                transforms = Compose(
+                pre_transform = Compose(
                     [
                         Mosaic(img_size=self.img_size, p=1.0, border=[-self.img_size // 2, -self.img_size // 2]),
-                        # CopyPaste(p=0.1),
+                        CopyPaste(p=1.0),
                         RandomPerspective(border=[-self.img_size // 2, -self.img_size // 2]),
+                    ]
+                )
+                transforms = Compose(
+                    [
+                        pre_transform,
                         MixUp(
-                            pre_transform=Compose(
-                                [
-                                    Mosaic(img_size=self.img_size, p=1.0, border=[-self.img_size // 2, -self.img_size // 2]),
-                                    RandomPerspective(border=[-self.img_size // 2, -self.img_size // 2]),
-                                ]
-                            ),
+                            pre_transform=pre_transform,
                             p=0.5,
                         ),
                         Albumentations(p=1.0),
@@ -202,8 +202,62 @@ class YOLODataset(BaseDataset):
 
 # TODO: suppport classify
 class ClassifyDataset(BaseDataset):
-    def __init__(self):
-        pass
+    def __init__(self, root, imgsz, augment, cache=False):
+        super().__init__(root, cache=cache, img_size=imgsz, augment=augment)
+        self.names, self.name_to_idx = self.find_classes(root)
+
+    def find_classes(directory: str):
+        """Finds the class folders in a dataset.
+
+        See :class:`DatasetFolder` for details.
+        """
+        classes = sorted(entry.name for entry in os.scandir(directory) if entry.is_dir())
+        if not classes:
+            raise FileNotFoundError(f"Couldn't find any class folder in {directory}.")
+
+        class_to_idx = {cls_name: i for i, cls_name in enumerate(classes)}
+        return classes, class_to_idx
+
+    def get_labels(self):
+        labels = [self.name_to_idx(im_file.split(os.sep)[-2]) for im_file in self.im_files]
+        return labels
+
+    def build_transforms(self, hyp=None):
+        return super().build_transforms(hyp)
+
+    def load_image(self, i):
+        # Loads 1 image from dataset index 'i', returns (im, resized hw)
+        im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
+        if im is None:  # not cached in RAM
+            if fn.exists():  # load npy
+                im = np.load(fn)
+            else:  # read image
+                im = cv2.imread(f)  # BGR
+                assert im is not None, f"Image Not Found {f}"
+            return im   # im
+        return self.ims[i]  # im
+
+    def cache_images(self):
+        # cache images to memory or disk
+        gb = 0  # Gigabytes of cached images
+        fcn = self.cache_images_to_disk if self.cache == "disk" else self.load_image
+        results = ThreadPool(NUM_THREADS).imap(fcn, range(self.ni))
+        pbar = tqdm(enumerate(results), total=self.ni, bar_format=BAR_FORMAT, disable=LOCAL_RANK > 0)
+        for i, x in pbar:
+            if self.cache == "disk":
+                gb += self.npy_files[i].stat().st_size
+            else:  # 'ram'
+                self.ims[i] = x  # im, hw_orig, hw_resized = load_image(self, i)
+                gb += self.ims[i].nbytes
+            pbar.desc = f"{self.prefix}Caching images ({gb / 1E9:.1f}GB {self.cache})"
+        pbar.close()
+
+    def get_label_info(self, index):
+        label = self.labels[index].copy()
+        img = self.load_image(index)
+        label["img"] = img
+        label = self.update_labels_info(label)
+        return label
 
 
 # TODO: support semantic segmentation

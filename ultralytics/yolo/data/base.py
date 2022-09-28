@@ -10,7 +10,6 @@ from torch.utils.data import Dataset
 from tqdm import tqdm
 
 from ..utils.general import NUM_THREADS
-from ..utils.instance import Instances
 from .augment import Compose
 from .utils import BAR_FORMAT, HELP_URL, IMG_FORMATS, LOCAL_RANK
 
@@ -47,7 +46,8 @@ class BaseDataset(Dataset):
 
         self.im_files = self.get_img_files(self.img_path)
         self.labels = self.get_labels()
-        self.update_labels(include_class=[], single_cls=single_cls)
+        if single_cls:
+            self.update_labels(include_class=[], single_cls=single_cls)
 
         self.ni = len(self.im_files)
 
@@ -93,7 +93,7 @@ class BaseDataset(Dataset):
             raise Exception(f"{self.prefix}Error loading data from {img_path}: {e}\n{HELP_URL}")
         return im_files
 
-    def update_labels(self, include_class: Optional[list], single_cls: Optional[bool] = False):
+    def update_labels(self, include_class: Optional[list]):
         """include_class, filter labels to include only these classes (optional)"""
         include_class_array = np.array(include_class).reshape(1, -1)
         for i in range(len(self.labels)):
@@ -106,7 +106,7 @@ class BaseDataset(Dataset):
                 self.labels[i]["bboxes"] = bboxes[j]
                 if segments:
                     self.labels[i]["segments"] = segments[j]
-            if single_cls:
+            if self.single_cls:
                 self.labels[i]["cls"] = 0
 
     def load_image(self, i):
@@ -197,13 +197,16 @@ class BaseDataset(Dataset):
         return label
 
     def build_transforms(self, hyp=None):
-        """Users can custom augmentations here"""
-        if self.augment:
-            # training transforms
-            return Compose([])
-        else:
-            # val transforms
-            return Compose([])
+        """Users can custom augmentations here
+        like:
+            if self.augment:
+                # training transforms
+                return Compose([])
+            else:
+                # val transforms
+                return Compose([])
+        """
+        raise NotImplementedError
 
     def get_labels(self):
         """Users can custom their own format here.
@@ -219,4 +222,4 @@ class BaseDataset(Dataset):
                 bbox_format="xyxy",  # or xywh, ltwh
             )
         """
-        pass
+        raise NotImplementedError

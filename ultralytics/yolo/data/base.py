@@ -174,6 +174,7 @@ class BaseDataset(Dataset):
 
     def __getitem__(self, index):
         label = self.get_label_info(index)
+        label["dataset"] = self
         return self.transforms(label)
 
     def get_label_info(self, index):

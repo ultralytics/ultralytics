@@ -110,7 +110,7 @@ class BaseTrainer:
 
     def _do_train(self, rank, world_size):
         # callback hook. before_train
-        print(f"RANK - LOCAL - World: {dist.get_rank()} - {LOCAL_RANK} - {world_size}")
+        torch.cuda.set_device(rank)
         if world_size > 1:
             self.setup_ddp(rank, world_size)
             self.model = self.model.to(rank)
@@ -134,6 +134,7 @@ class BaseTrainer:
                 # callback hook. on_batch_start
                 # forward
                 images, labels = self.preprocess_batch(images, labels)
+                images, labels = images.to(rank, non_blocking=True), labels.to(rank)
                 self.loss = self.criterion(self.model(images), labels)
                 tloss = (tloss * i + self.loss.item()) / (i + 1)
 
@@ -190,6 +191,7 @@ class BaseTrainer:
         del ckpt
 
     def setup_ddp(self, rank, world_size):
+        print(f"RANK - World: {rank} - {world_size} ")
         os.environ['MASTER_ADDR'] = 'localhost'
         os.environ['MASTER_PORT'] = '12355'
 

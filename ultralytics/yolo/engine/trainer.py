@@ -7,20 +7,17 @@ import logging
 import os
 import time
 from collections import defaultdict
-from copy import deepcopy
 from datetime import datetime
-from hmac import trans_36
-from multiprocessing import reduction
 from pathlib import Path
-from pydoc import resolve
 from typing import Union
 
-import hydra
 import torch
 import torch.nn as nn
 from omegaconf import DictConfig, OmegaConf
 from torch.cuda import amp
-from torch.utils.data.dataloader import DataLoader
+import torch.distributed as dist
+import torch.multiprocessing as mp
+
 from tqdm import tqdm
 
 import ultralytics.yolo.utils as utils
@@ -59,12 +56,9 @@ class BaseTrainer:
         utils.save_yaml(self.save_dir / 'train.yaml', OmegaConf.to_container(self.train, resolve=True))
 
         # device
-        if self.train.device == '':
-            self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        else:
-            self.device = self.train.device
+        self.device = utils.select_device(self.train.device, self.train.batch_size)
         self.console.info(f"running on device {self.device}")
-        self.scaler = amp.GradScaler(enabled=self.device != "cpu")
+        self.scaler = amp.GradScaler(enabled=self.device != "CPU")
 
         # Model and Dataloaders. TBD: Should we move this inside trainer?
         self.trainset, self.testset = self.get_dataset()  # initialize dataset before as nc is needed for model
@@ -110,9 +104,18 @@ class BaseTrainer:
             callback(self)
 
     def run(self):
-        self._do_train()
-        
-    def _do_train(self):
+        world_size = torch.cuda.device_count()
+        if world_size > 1:
+            mp.spawn(self._do_train,
+             args=(world_size,),
+             nprocs=world_size,
+             join=True)
+        else:
+            self._do_train(0, 1)
+
+    def _do_train(self, rank, world_size):
+        self.setup_ddp(rank, world_size) if world_size!=1 else None
+
         # callback hook. before_train
         self.epoch = 1
         self.epoch_time = None
@@ -168,6 +171,7 @@ class BaseTrainer:
         self.log(f"\nTraining complete ({(time.time() - self.train_time_start) / 3600:.3f} hours) \
                             \n{self.usage_help()}")
         # callback; on_train_end
+        dist.destroy_process_group()
 
     def save_model(self):
         ckpt = {
@@ -185,6 +189,15 @@ class BaseTrainer:
         if self.best_fitness == self.fitness:
             torch.save(ckpt, self.best)
         del ckpt
+
+    def setup_ddp(self, rank, world_size):
+        os.environ['MASTER_ADDR'] = 'localhost'
+        os.environ['MASTER_PORT'] = '12355'
+
+        dist.init_process_group("nccl" if dist.is_nccl_available() else "gloo",
+                                 rank=rank,
+                                 world_size=world_size)
+    
 
     def get_dataloader(self, path):
         """

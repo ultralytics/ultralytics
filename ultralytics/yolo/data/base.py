@@ -10,7 +10,6 @@ from torch.utils.data import Dataset
 from tqdm import tqdm
 
 from ..utils.general import NUM_THREADS
-from .augment import Compose
 from .utils import BAR_FORMAT, HELP_URL, IMG_FORMATS, LOCAL_RANK
 
 

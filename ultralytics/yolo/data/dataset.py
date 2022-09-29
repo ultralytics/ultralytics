@@ -1,14 +1,13 @@
-import os
 from itertools import repeat
-from multiprocessing.pool import Pool, ThreadPool
+from multiprocessing.pool import Pool
 from pathlib import Path
+import torchvision
 
 import cv2
 import numpy as np
 import torch
 from tqdm import tqdm
 
-# from .augment import *
 from ..utils.general import LOGGER, NUM_THREADS
 from .augment import *
 from .base import BaseDataset
@@ -44,8 +43,7 @@ class YOLODataset(BaseDataset):
         self.use_segments = use_segments
         self.use_keypoints = use_keypoints
         assert not (self.use_segments and self.use_keypoints), "We can't use both of segmentation and pose."
-        super().__init__(img_path, img_size, label_path, cache, augment, hyp, prefix, rect, batch_size, stride, pad,
-                         single_cls)
+        super().__init__(img_path, img_size, label_path, cache, augment, hyp, prefix, rect, batch_size, stride, pad, single_cls)
 
     def cache_labels(self, path=Path("./labels.cache")):
         # Cache dataset labels, check images and read shapes
@@ -55,8 +53,7 @@ class YOLODataset(BaseDataset):
         desc = f"{self.prefix}Scanning '{path.parent / path.stem}' images and labels..."
         with Pool(NUM_THREADS) as pool:
             pbar = tqdm(
-                pool.imap(verify_image_label,
-                          zip(self.im_files, self.label_files, repeat(self.prefix), repeat(self.use_keypoints))),
+                pool.imap(verify_image_label, zip(self.im_files, self.label_files, repeat(self.prefix), repeat(self.use_keypoints))),
                 desc=desc,
                 total=len(self.im_files),
                 bar_format=BAR_FORMAT,
@@ -77,7 +74,8 @@ class YOLODataset(BaseDataset):
                             keypoints=keypoint,
                             normalized=True,
                             bbox_format="xywh",
-                        ))
+                        )
+                    )
                 if msg:
                     msgs.append(msg)
                 pbar.desc = f"{desc}{nf} found, {nm} missing, {ne} empty, {nc} corrupt"
@@ -96,8 +94,7 @@ class YOLODataset(BaseDataset):
             path.with_suffix(".cache.npy").rename(path)  # remove .npy suffix
             LOGGER.info(f"{self.prefix}New cache created: {path}")
         except Exception as e:
-            LOGGER.warning(
-                f"{self.prefix}WARNING ⚠️ Cache directory {path.parent} is not writeable: {e}")  # not writeable
+            LOGGER.warning(f"{self.prefix}WARNING ⚠️ Cache directory {path.parent} is not writeable: {e}")  # not writeable
         return x
 
     def get_labels(self):
@@ -132,29 +129,9 @@ class YOLODataset(BaseDataset):
         # mosaic = False
         if self.augment:
             if mosaic:
-                pre_transform = Compose([
-                    Mosaic(img_size=self.img_size, p=1.0, border=[-self.img_size // 2, -self.img_size // 2]),
-                    CopyPaste(p=1.0),
-                    RandomPerspective(border=[-self.img_size // 2, -self.img_size // 2]),])
-                transforms = Compose([
-                    pre_transform,
-                    MixUp(
-                        pre_transform=pre_transform,
-                        p=0.5,
-                    ),
-                    Albumentations(p=1.0),
-                    RandomHSV(),
-                    RandomFlip(direction="vertical", p=0.0),
-                    RandomFlip(direction="horizontal", p=0.5),])
+                transforms = mosaic_transforms(self.img_size, hyp)
             else:
-                # rect, randomperspective, albumentation, hsv, flipud, fliplr
-                transforms = Compose([
-                    LetterBox(new_shape=(self.img_size, self.img_size)),
-                    RandomPerspective(border=[0, 0]),
-                    Albumentations(p=1.0),
-                    RandomHSV(),
-                    RandomFlip(direction="vertical", p=0.0),
-                    RandomFlip(direction="horizontal", p=0.5),])
+                transforms = affine_transforms(self.img_size, hyp)
         else:
             transforms = Compose([LetterBox(new_shape=(self.img_size, self.img_size))])
         transforms.append(Format(bbox_format="xywh", normalize=True, mask=self.use_segments, batch_idx=True))
@@ -193,69 +170,42 @@ class YOLODataset(BaseDataset):
         return new_batch
 
 
-# TODO: suppport classify
-class ClassifyDataset(BaseDataset):
+# Classification dataloaders -------------------------------------------------------------------------------------------
+class ClassificationDataset(torchvision.datasets.ImageFolder):
+    """
+    YOLOv5 Classification Dataset.
+    Arguments
+        root:  Dataset path
+        transform:  torchvision transforms, used by default
+        album_transform: Albumentations transforms, used if installed
+    """
 
-    def __init__(self, root, imgsz, augment, cache=False):
-        super().__init__(root, cache=cache, img_size=imgsz, augment=augment)
-        self.names, self.name_to_idx = self.find_classes(root)
+    def __init__(self, root, augment, imgsz, cache=False):
+        super().__init__(root=root)
+        self.torch_transforms = classify_transforms(imgsz)
+        self.album_transforms = classify_albumentations(augment, imgsz) if augment else None
+        self.cache_ram = cache is True or cache == "ram"
+        self.cache_disk = cache == "disk"
+        self.samples = [list(x) + [Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
 
-    def find_classes(directory: str):
-        """Finds the class folders in a dataset.
-
-        See :class:`DatasetFolder` for details.
-        """
-        classes = sorted(entry.name for entry in os.scandir(directory) if entry.is_dir())
-        if not classes:
-            raise FileNotFoundError(f"Couldn't find any class folder in {directory}.")
-
-        class_to_idx = {cls_name: i for i, cls_name in enumerate(classes)}
-        return classes, class_to_idx
-
-    def get_labels(self):
-        labels = [self.name_to_idx(im_file.split(os.sep)[-2]) for im_file in self.im_files]
-        return labels
-
-    def build_transforms(self, hyp=None):
-        return super().build_transforms(hyp)
-
-    def load_image(self, i):
-        # Loads 1 image from dataset index 'i', returns (im, resized hw)
-        im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
-        if im is None:  # not cached in RAM
-            if fn.exists():  # load npy
-                im = np.load(fn)
-            else:  # read image
-                im = cv2.imread(f)  # BGR
-                assert im is not None, f"Image Not Found {f}"
-            return im  # im
-        return self.ims[i]  # im
-
-    def cache_images(self):
-        # cache images to memory or disk
-        gb = 0  # Gigabytes of cached images
-        fcn = self.cache_images_to_disk if self.cache == "disk" else self.load_image
-        results = ThreadPool(NUM_THREADS).imap(fcn, range(self.ni))
-        pbar = tqdm(enumerate(results), total=self.ni, bar_format=BAR_FORMAT, disable=LOCAL_RANK > 0)
-        for i, x in pbar:
-            if self.cache == "disk":
-                gb += self.npy_files[i].stat().st_size
-            else:  # 'ram'
-                self.ims[i] = x  # im, hw_orig, hw_resized = load_image(self, i)
-                gb += self.ims[i].nbytes
-            pbar.desc = f"{self.prefix}Caching images ({gb / 1E9:.1f}GB {self.cache})"
-        pbar.close()
-
-    def get_label_info(self, index):
-        label = self.labels[index].copy()
-        img = self.load_image(index)
-        label["img"] = img
-        label = self.update_labels_info(label)
-        return label
+    def __getitem__(self, i):
+        f, j, fn, im = self.samples[i]  # filename, index, filename.with_suffix('.npy'), image
+        if self.cache_ram and im is None:
+            im = self.samples[i][3] = cv2.imread(f)
+        elif self.cache_disk:
+            if not fn.exists():  # load npy
+                np.save(fn.as_posix(), cv2.imread(f))
+            im = np.load(fn)
+        else:  # read image
+            im = cv2.imread(f)  # BGR
+        if self.album_transforms:
+            sample = self.album_transforms(image=cv2.cvtColor(im, cv2.COLOR_BGR2RGB))["image"]
+        else:
+            sample = self.torch_transforms(im)
+        return sample, j
 
 
 # TODO: support semantic segmentation
 class SemanticDataset(BaseDataset):
-
     def __init__(self):
         pass

@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from omegaconf import OmegaConf
 
 from ultralytics.yolo.data import build_dataloader
 
@@ -49,15 +50,18 @@ def plot_one_box(x, img, color=None, label=None, line_thickness=None):
             lineType=cv2.LINE_AA,
         )
 
+with open("ultralytics/test/data/dataloader/hyp_test.yaml", 'r') as f:
+    hyp = OmegaConf.load(f)
 
 dataloader = build_dataloader(
     img_path="/d/dataset/COCO/images/val2017",
     img_size=640,
     label_path=None,
+    hyp=hyp,
     cache=False,
     augment=True,
     prefix="",
-    rect=False,
+    rect=True,
     batch_size=1,
     stride=32,
     pad=0.5,

@@ -6,16 +6,16 @@ from copy import deepcopy
 import cv2
 import numpy as np
 import torch
+import torchvision.transforms as T
 
 from ..utils.general import LOGGER, check_version, colorstr, segment2box
 from ..utils.instance import Instances
 from ..utils.metrics import bbox_ioa
-from .utils import polygons2masks, polygons2masks_overlap
+from .utils import polygons2masks, polygons2masks_overlap, IMAGENET_MEAN, IMAGENET_STD
 
 
 # TODO: we might need a BaseTransform to make all these augments be compatible with both classification and semantic
 class BaseTransform:
-
     def __init__(self) -> None:
         pass
 
@@ -35,7 +35,6 @@ class BaseTransform:
 
 
 class Compose:
-
     def __init__(self, transforms):
         self.transforms = transforms
 
@@ -194,7 +193,6 @@ class Mosaic(BaseMixTransform):
 
 
 class MixUp(BaseMixTransform):
-
     def __init__(self, pre_transform=None, p=0.0) -> None:
         super().__init__(pre_transform=pre_transform, p=p)
 
@@ -218,7 +216,6 @@ class MixUp(BaseMixTransform):
 
 
 class RandomPerspective:
-
     def __init__(self, degrees=0.0, translate=0.1, scale=0.5, shear=0.0, perspective=0.0, border=(0, 0)):
         self.degrees = degrees
         self.translate = translate
@@ -377,9 +374,7 @@ class RandomPerspective:
         # filter instances
         instances.scale(scale_w=scale, scale_h=scale, bbox_only=True)
         # make the bboxes have the same scale with new_bboxes
-        i = self.box_candidates(box1=instances.bboxes.T,
-                                box2=new_instances.bboxes.T,
-                                area_thr=0.01 if segments is not None else 0.10)
+        i = self.box_candidates(box1=instances.bboxes.T, box2=new_instances.bboxes.T, area_thr=0.01 if segments is not None else 0.10)
         labels["instances"] = new_instances[i]
         # clip
         labels["cls"] = cls[i]
@@ -395,7 +390,6 @@ class RandomPerspective:
 
 
 class RandomHSV:
-
     def __init__(self, hgain=0.5, sgain=0.5, vgain=0.5) -> None:
         self.hgain = hgain
         self.sgain = sgain
@@ -420,7 +414,6 @@ class RandomHSV:
 
 
 class RandomFlip:
-
     def __init__(self, p=0.5, direction="horizontal") -> None:
         assert direction in ["horizontal", "vertical"], f"Support direction `horizontal` or `vertical`, got {direction}"
         assert 0 <= p <= 1.0
@@ -490,8 +483,7 @@ class LetterBox:
             img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
         top, bottom = int(round(dh - 0.1)), int(round(dh + 0.1))
         left, right = int(round(dw - 0.1)), int(round(dw + 0.1))
-        img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT,
-                                 value=(114, 114, 114))  # add border
+        img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(114, 114, 114))  # add border
 
         labels = self._update_labels(labels, ratio, dw, dh)
         labels["img"] = img
@@ -507,7 +499,6 @@ class LetterBox:
 
 
 class CopyPaste:
-
     def __init__(self, p=0.5) -> None:
         self.p = p
 
@@ -532,8 +523,7 @@ class CopyPaste:
                     cls = np.concatenate((cls, c[None]), axis=0)
                     segments = np.concatenate((segments, np.concatenate((w - s[:, 0:1], s[:, 1:2]), 1)[None]), 0)
                     if keypoints is not None:
-                        keypoints = np.concatenate(
-                            (keypoints, np.concatenate((w - keypoints[j][:, 0:1], keypoints[j][:, 1:2]), 1)), 0)
+                        keypoints = np.concatenate((keypoints, np.concatenate((w - keypoints[j][:, 0:1], keypoints[j][:, 1:2]), 1)), 0)
                     cv2.drawContours(im_new, [segments[j].astype(np.int32)], -1, (255, 255, 255), cv2.FILLED)
 
             result = cv2.bitwise_and(src1=im, src2=im_new)
@@ -565,7 +555,8 @@ class Albumentations:
                 A.CLAHE(p=0.01),
                 A.RandomBrightnessContrast(p=0.0),
                 A.RandomGamma(p=0.0),
-                A.ImageCompression(quality_lower=75, p=0.0),]  # transforms
+                A.ImageCompression(quality_lower=75, p=0.0),
+            ]  # transforms
             self.transform = A.Compose(T, bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"]))
 
             LOGGER.info(prefix + ", ".join(f"{x}".replace("always_apply=False, ", "") for x in T if x.p))
@@ -592,7 +583,6 @@ class Albumentations:
 
 # TODO: technically this is not an augmentation, maybe we should put this to another files
 class Format:
-
     def __init__(self, bbox_format="xywh", normalize=True, mask=False, mask_ratio=4, mask_overlap=True, batch_idx=True):
         self.bbox_format = bbox_format
         self.normalize = normalize
@@ -612,8 +602,11 @@ class Format:
 
         if instances.segments is not None and self.mask:
             masks, instances, cls = self._format_segments(instances, cls, w, h)
-            labels["masks"] = (torch.from_numpy(masks) if nl else torch.zeros(
-                1 if self.mask_overlap else nl, img.shape[0] // self.mask_ratio, img.shape[1] // self.mask_ratio))
+            labels["masks"] = (
+                torch.from_numpy(masks)
+                if nl
+                else torch.zeros(1 if self.mask_overlap else nl, img.shape[0] // self.mask_ratio, img.shape[1] // self.mask_ratio)
+            )
         if self.normalize:
             instances.normalize(w, h)
         labels["img"] = self._format_img(img)
@@ -645,3 +638,153 @@ class Format:
             masks = polygons2masks((h, w), segments, color=1, downsample_ratio=self.mask_ratio)
 
         return masks, instances, cls
+
+
+def mosaic_transforms(img_size, hyp):
+    pre_transform = Compose(
+        [
+            Mosaic(img_size=img_size, p=hyp.mosaic, border=[-img_size // 2, -img_size // 2]),
+            CopyPaste(p=hyp.copy_paste),
+            RandomPerspective(
+                degrees=hyp.degrees,
+                translate=hyp.translate,
+                scale=hyp.scale,
+                shear=hyp.shear,
+                perspective=hyp.perspective,
+                border=[-img_size // 2, -img_size // 2],
+            ),
+        ]
+    )
+    transforms = Compose(
+        [
+            pre_transform,
+            MixUp(
+                pre_transform=pre_transform,
+                p=hyp.mixup,
+            ),
+            Albumentations(p=1.0),
+            RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
+            RandomFlip(direction="vertical", p=hyp.flipud),
+            RandomFlip(direction="horizontal", p=hyp.fliplr),
+        ]
+    )
+    return transforms
+
+
+def affine_transforms(img_size, hyp):
+    # rect, randomperspective, albumentation, hsv, flipud, fliplr
+    transforms = Compose(
+        [
+            LetterBox(new_shape=(img_size, img_size)),
+            RandomPerspective(
+                degrees=hyp.degrees,
+                translate=hyp.translate,
+                scale=hyp.scale,
+                shear=hyp.shear,
+                perspective=hyp.perspective,
+                border=[0, 0],
+            ),
+            Albumentations(p=1.0),
+            RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
+            RandomFlip(direction="vertical", p=hyp.flipud),
+            RandomFlip(direction="horizontal", p=hyp.fliplr),
+        ]
+    )
+    return transforms
+
+
+# Classification augmentations -------------------------------------------------------------------------------------------
+def classify_transforms(size=224):
+    # Transforms to apply if albumentations not installed
+    assert isinstance(size, int), f"ERROR: classify_transforms size {size} must be integer, not (list, tuple)"
+    # T.Compose([T.ToTensor(), T.Resize(size), T.CenterCrop(size), T.Normalize(IMAGENET_MEAN, IMAGENET_STD)])
+    return T.Compose([CenterCrop(size), ToTensor(), T.Normalize(IMAGENET_MEAN, IMAGENET_STD)])
+
+
+def classify_albumentations(
+    augment=True,
+    size=224,
+    scale=(0.08, 1.0),
+    hflip=0.5,
+    vflip=0.0,
+    jitter=0.4,
+    mean=IMAGENET_MEAN,
+    std=IMAGENET_STD,
+    auto_aug=False,
+):
+    # YOLOv5 classification Albumentations (optional, only used if package is installed)
+    prefix = colorstr("albumentations: ")
+    try:
+        import albumentations as A
+        from albumentations.pytorch import ToTensorV2
+
+        check_version(A.__version__, "1.0.3", hard=True)  # version requirement
+        if augment:  # Resize and crop
+            T = [A.RandomResizedCrop(height=size, width=size, scale=scale)]
+            if auto_aug:
+                # TODO: implement AugMix, AutoAug & RandAug in albumentation
+                LOGGER.info(f"{prefix}auto augmentations are currently not supported")
+            else:
+                if hflip > 0:
+                    T += [A.HorizontalFlip(p=hflip)]
+                if vflip > 0:
+                    T += [A.VerticalFlip(p=vflip)]
+                if jitter > 0:
+                    color_jitter = (float(jitter),) * 3  # repeat value for brightness, contrast, satuaration, 0 hue
+                    T += [A.ColorJitter(*color_jitter, 0)]
+        else:  # Use fixed crop for eval set (reproducibility)
+            T = [A.SmallestMaxSize(max_size=size), A.CenterCrop(height=size, width=size)]
+        T += [A.Normalize(mean=mean, std=std), ToTensorV2()]  # Normalize and convert to Tensor
+        LOGGER.info(prefix + ", ".join(f"{x}".replace("always_apply=False, ", "") for x in T if x.p))
+        return A.Compose(T)
+
+    except ImportError:  # package not installed, skip
+        pass
+    except Exception as e:
+        LOGGER.info(f"{prefix}{e}")
+
+
+class ClassifyLetterBox:
+    # YOLOv5 LetterBox class for image preprocessing, i.e. T.Compose([LetterBox(size), ToTensor()])
+    def __init__(self, size=(640, 640), auto=False, stride=32):
+        super().__init__()
+        self.h, self.w = (size, size) if isinstance(size, int) else size
+        self.auto = auto  # pass max size integer, automatically solve for short side using stride
+        self.stride = stride  # used with auto
+
+    def __call__(self, im):  # im = np.array HWC
+        imh, imw = im.shape[:2]
+        r = min(self.h / imh, self.w / imw)  # ratio of new/old
+        h, w = round(imh * r), round(imw * r)  # resized image
+        hs, ws = (math.ceil(x / self.stride) * self.stride for x in (h, w)) if self.auto else self.h, self.w
+        top, left = round((hs - h) / 2 - 0.1), round((ws - w) / 2 - 0.1)
+        im_out = np.full((self.h, self.w, 3), 114, dtype=im.dtype)
+        im_out[top : top + h, left : left + w] = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
+        return im_out
+
+
+class CenterCrop:
+    # YOLOv5 CenterCrop class for image preprocessing, i.e. T.Compose([CenterCrop(size), ToTensor()])
+    def __init__(self, size=640):
+        super().__init__()
+        self.h, self.w = (size, size) if isinstance(size, int) else size
+
+    def __call__(self, im):  # im = np.array HWC
+        imh, imw = im.shape[:2]
+        m = min(imh, imw)  # min dimension
+        top, left = (imh - m) // 2, (imw - m) // 2
+        return cv2.resize(im[top : top + m, left : left + m], (self.w, self.h), interpolation=cv2.INTER_LINEAR)
+
+
+class ToTensor:
+    # YOLOv5 ToTensor class for image preprocessing, i.e. T.Compose([LetterBox(size), ToTensor()])
+    def __init__(self, half=False):
+        super().__init__()
+        self.half = half
+
+    def __call__(self, im):  # im = np.array HWC in BGR order
+        im = np.ascontiguousarray(im.transpose((2, 0, 1))[::-1])  # HWC to CHW -> BGR to RGB -> contiguous
+        im = torch.from_numpy(im)  # to torch
+        im = im.half() if self.half else im.float()  # uint8 to fp16/32
+        im /= 255.0  # 0-255 to 0.0-1.0
+        return im

@@ -7,9 +7,8 @@ from torch.utils.data import DataLoader, dataloader, distributed
 
 from ..utils.general import LOGGER
 from ..utils.torch_utils import torch_distributed_zero_first
-from .dataset import YOLODataset
-from .dataset_wrappers import MixAndRectDataset
-from .utils import PIN_MEMORY
+from .dataset import YOLODataset, ClassificationDataset
+from .utils import PIN_MEMORY, RANK
 
 
 class InfiniteDataLoader(dataloader.DataLoader):
@@ -56,19 +55,19 @@ def seed_worker(worker_id):
 # TODO: we can inject most args from a config file
 def build_dataloader(
     img_path,
-    img_size,
-    batch_size,
+    img_size,#
+    batch_size,#
+    single_cls=False,#
+    hyp=None,#
+    augment=False,
+    cache=False,#
+    image_weights=False,#
     stride=32,
     label_path=None,
-    single_cls=False,
-    hyp=None,
-    augment=False,
-    cache=False,
     pad=0.0,
     rect=False,
     rank=-1,
     workers=8,
-    image_weights=False,
     prefix="",
     shuffle=False,
     use_segments=False,
@@ -100,11 +99,10 @@ def build_dataloader(
     nw = min([os.cpu_count() // max(nd, 1), batch_size if batch_size > 1 else 0, workers])  # number of workers
     sampler = None if rank == -1 else distributed.DistributedSampler(dataset, shuffle=shuffle)
     loader = DataLoader if image_weights else InfiniteDataLoader  # only DataLoader allows for attribute updates
-    # generator = torch.Generator()
-    # generator.manual_seed(0)
+    generator = torch.Generator()
+    generator.manual_seed(6148914691236517205 + RANK)
     return (
         loader(
-            # TODO: we can remove this once we don't need a data wrapper
             dataset=dataset,
             batch_size=batch_size,
             shuffle=shuffle and sampler is None,
@@ -113,7 +111,36 @@ def build_dataloader(
             pin_memory=PIN_MEMORY,
             collate_fn=getattr(dataset, "collate_fn", None),
             worker_init_fn=seed_worker,
-            # generator=generator,
+            generator=generator,
         ),
         dataset,
     )
+
+# build classification
+def build_classification_dataloader(path,
+                                    imgsz=224,
+                                    batch_size=16,
+                                    augment=True,
+                                    cache=False,
+                                    rank=-1,
+                                    workers=8,
+                                    shuffle=True):
+    # Returns Dataloader object to be used with YOLOv5 Classifier
+    with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
+        dataset = ClassificationDataset(root=path, imgsz=imgsz, augment=augment, cache=cache)
+    batch_size = min(batch_size, len(dataset))
+    nd = torch.cuda.device_count()
+    nw = min([os.cpu_count() // max(nd, 1), batch_size if batch_size > 1 else 0, workers])
+    sampler = None if rank == -1 else distributed.DistributedSampler(dataset, shuffle=shuffle)
+    generator = torch.Generator()
+    generator.manual_seed(6148914691236517205 + RANK)
+    return InfiniteDataLoader(dataset,
+                              batch_size=batch_size,
+                              shuffle=shuffle and sampler is None,
+                              num_workers=nw,
+                              sampler=sampler,
+                              pin_memory=PIN_MEMORY,
+                              worker_init_fn=seed_worker,
+                              generator=generator)  # or DataLoader(persistent_workers=True)
+
+

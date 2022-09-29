@@ -153,15 +153,12 @@ class BaseTrainer:
                 pbar = tqdm(enumerate(self.train_loader),
                             total=len(self.train_loader),
                             bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
-            print("before loop 2 ", rank)
             tloss = 0
             for i, (images, labels) in pbar:
                 # callback hook. on_batch_start
                 # forward
                 images, labels = self.preprocess_batch(images, labels)
-                print("before forward pass ", rank)
                 self.loss = self.criterion(self.model(images), labels)
-                print("after forward pass", rank)
                 tloss = (tloss * i + self.loss.item()) / (i + 1)
 
                 # backward

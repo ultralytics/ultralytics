@@ -102,7 +102,7 @@ class BaseTrainer:
 
     def _setup_ddp(self, rank, world_size):
         os.environ['MASTER_ADDR'] = 'localhost'
-        os.environ['MASTER_PORT'] = '8005'
+        os.environ['MASTER_PORT'] = '9020'
         torch.cuda.set_device(rank)
         self.device = torch.device('cuda', rank)
         print(f"RANK - WORLD_SIZE - DEVICE: {rank} - {world_size} - {self.device} ")
@@ -116,6 +116,7 @@ class BaseTrainer:
         '''
         Builds dataloaders and optimizer on correct rank process
         '''
+        print("Batch size: ", self.train.batch_size)
         self.optimizer = build_optimizer(model=self.model,
                                          name=self.train.optimizer,
                                          lr=self.hyps.lr0,
@@ -125,9 +126,9 @@ class BaseTrainer:
         print("created trainloader : ", rank)
         if rank in {0, -1}:
             print(" Creating testloader rank :", rank)
-            self.test_loader = self.get_dataloader(self.testset,
-                                                   batch_size=self.train.batch_size*2,
-                                                   rank=rank)
+            # self.test_loader = self.get_dataloader(self.testset,
+            #                                       batch_size=self.train.batch_size*2,
+            #                                       rank=rank)
             print("created testloader :" , rank)
 
     def _do_train(self, rank, world_size):
@@ -168,7 +169,8 @@ class BaseTrainer:
 
                 # log
                 mem = '%.3gG' % (torch.cuda.memory_reserved() / 1E9 if torch.cuda.is_available() else 0)  # (GB)
-                pbar.desc = f"{f'{epoch + 1}/{self.train.epochs}':>10}{mem:>10}{tloss:>12.3g}" + ' ' * 36
+                if rank in {-1, 0}:
+                    pbar.desc = f"{f'{epoch + 1}/{self.train.epochs}':>10}{mem:>10}{tloss:>12.3g}" + ' ' * 36
 
             if rank in [-1, 0]:
                 # validation

@@ -1,4 +1,5 @@
 
+
 """
 Simple training loop; Boilerplate that could apply to any arbitrary neural network,
 so nothing in this file really has anything to do with GPT specifically.
@@ -129,7 +130,7 @@ class BaseTrainer:
         print("created trainloader : ", rank)
         if rank in {0, -1}:
             self.test_loader = self.get_dataloader(self.testset,
-                                                   batch_size=self.train.batch_size,
+                                                   batch_size=self.train.batch_size*2,
                                                    rank=rank)
             print("created testloader :" , rank)
     
@@ -144,7 +145,7 @@ class BaseTrainer:
         self.epoch_time = None
         self.epoch_time_start = time.time()
         self.train_time_start = time.time()
-
+        print("Starting train on : " , self.device)
         for epoch in range(self.train.epochs):
             # callback hook. on_epoch_start
             self.model.train()
@@ -274,18 +275,14 @@ class BaseTrainer:
         """
         pass
 
-    def log(self, text, rank=[0, -1]):
+    def log(self, text, rank=-1):
         """
         Logs the given text to given ranks process if provided, otherwise logs to all ranks
         :param rank: List[Int]
 
         """
-        if not rank:
+        if rank in {-1, 0}:
             self.console.info(text)
-        else:
-            if RANK in rank:
-                self.console.info(text)
-
 
 def build_optimizer(model, name='Adam', lr=0.001, momentum=0.9, decay=1e-5):
     # TODO: 1. docstring with example? 2. Move this inside Trainer? or utils?

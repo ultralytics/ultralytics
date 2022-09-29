@@ -37,7 +37,7 @@ class Trainer(BaseTrainer):
 
         return train_set, test_set
 
-    def get_dataloader(self, dataset, batch_size=None, rank=-1):
+    def get_dataloader(self, dataset, batch_size=None, rank=0):
         loader = build_classification_dataloader(path=dataset, batch_size=self.train.batch_size, rank=rank)
 
         return loader

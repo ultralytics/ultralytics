@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# datasets and projects
+datasets/
+ultralytics-yolo/

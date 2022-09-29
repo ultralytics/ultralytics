@@ -1,21 +1,18 @@
 # TODO: Follow google docs format for all functions. Easier for autmatic doc parser
 
-import logging
-import platform
 import contextlib
+import logging
 import os
+import platform
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from zipfile import ZipFile
 
-import pkg_resources as pkg
-import torch
-import yaml
-
 import numpy as np
 import pkg_resources as pkg
 import torch
+import yaml
 
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLOv5 multiprocessing threads
 VERBOSE = str(os.getenv("YOLOv5_VERBOSE", True)).lower() == "true"  # global verbose mode
@@ -176,7 +173,6 @@ def resample_segments(segments, n=1000):
         xp = np.arange(len(s))
         segments[i] = np.concatenate([np.interp(x, xp, s[:, i]) for i in range(2)]).reshape(2, -1).T  # segment xy
     return segments
-
 
 
 def increment_path(path, exist_ok=False, sep='', mkdir=False):

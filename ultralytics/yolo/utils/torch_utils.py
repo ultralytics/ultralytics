@@ -1,6 +1,5 @@
-from contextlib import contextmanager
-import torch.distributed as dist
 import os
+from contextlib import contextmanager
 
 import torch
 import torch.distributed as dist
@@ -21,6 +20,7 @@ def torch_distributed_zero_first(local_rank: int):
     yield
     if local_rank == 0:
         dist.barrier(device_ids=[0])
+
 
 def DDP_model(model):
     # Model DDP creation with checks

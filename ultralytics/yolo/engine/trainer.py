@@ -68,9 +68,6 @@ class BaseTrainer:
                                          lr=self.hyps.lr0,
                                          momentum=self.hyps.momentum,
                                          decay=self.hyps.weight_decay)
-        self.train_loader = self.get_dataloader(self.trainset)
-        self.test_loader = self.get_dataloader(self.testset)
-
         # epoch level metrics
         self.metrics = {}  # handle metrics returned by validator
         self.best_fitness = None
@@ -112,12 +109,15 @@ class BaseTrainer:
     def _do_train(self, rank, world_size):
         # callback hook. before_train
         if world_size > 1:
-            #torch.cuda.set_device(rank)
+            print("device:" , rank)
+            torch.cuda.set_device(rank)
             self.device = rank
             self.setup_ddp(rank, world_size)
             self.model = self.model.to(self.device)
             self.model = DDP(self.model, device_ids=[rank]) if rank != 0 else self.model
 
+        self.train_loader = self.get_dataloader(self.trainset, rank=rank)
+        self.test_loader = self.get_dataloader(self.testset, rank=rank) if rank == 0 else None
         self.epoch = 1
         self.epoch_time = None
         self.epoch_time_start = time.time()

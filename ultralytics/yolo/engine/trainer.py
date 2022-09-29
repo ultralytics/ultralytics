@@ -1,3 +1,4 @@
+
 """
 Simple training loop; Boilerplate that could apply to any arbitrary neural network,
 so nothing in this file really has anything to do with GPT specifically.
@@ -63,11 +64,7 @@ class BaseTrainer:
         self.trainset, self.testset = self.get_dataset()  # initialize dataset before as nc is needed for model
         self.model = self.get_model()
         self.model = self.model.to(self.device)
-        self.optimizer = build_optimizer(model=self.model,
-                                         name=self.train.optimizer,
-                                         lr=self.hyps.lr0,
-                                         momentum=self.hyps.momentum,
-                                         decay=self.hyps.weight_decay)
+
         # epoch level metrics
         self.metrics = {}  # handle metrics returned by validator
         self.best_fitness = None
@@ -106,7 +103,7 @@ class BaseTrainer:
 
     def setup_ddp(self, rank, world_size):
         os.environ['MASTER_ADDR'] = 'localhost'
-        os.environ['MASTER_PORT'] = '12355'
+        os.environ['MASTER_PORT'] = '8005'
         torch.cuda.set_device(rank)
         self.device = torch.device('cuda', rank)
         print(f"RANK - WORLD_SIZE - DEVICE: {rank} - {world_size} - {self.device} ")
@@ -117,19 +114,25 @@ class BaseTrainer:
         self.train.batch_size = self.train.batch_size  // world_size
 
 
-
     def _do_train(self, rank, world_size):
         # callback hook. before_train
-        if world_size > 1 and rank != -1:
+        if world_size > 1:
             self.setup_ddp(rank, world_size)
 
+        self.optimizer = build_optimizer(model=self.model,
+                                         name=self.train.optimizer,
+                                         lr=self.hyps.lr0,
+                                         momentum=self.hyps.momentum,
+                                         decay=self.hyps.weight_decay)
         self.train_loader = self.get_dataloader(self.trainset,
                                                 batch_size=self.train.batch_size,
                                                  rank=rank)
+        print("created trainloader : ", rank)
         if rank in {0, -1}:
             self.test_loader = self.get_dataloader(self.testset,
                                                    batch_size=self.train.batch_size,
                                                    rank=rank)
+            print("created testloader :" , rank)
         self.epoch = 1
         self.epoch_time = None
         self.epoch_time_start = time.time()
@@ -143,12 +146,15 @@ class BaseTrainer:
                 pbar = tqdm(enumerate(self.train_loader),
                             total=len(self.train_loader),
                             bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
+            print("before loop 2 ", rank)
             tloss = 0
             for i, (images, labels) in pbar:
                 # callback hook. on_batch_start
                 # forward
                 images, labels = self.preprocess_batch(images, labels)
+                print("before forwared ", rank)
                 self.loss = self.criterion(self.model(images), labels)
+                print("after forward ", rank)
                 tloss = (tloss * i + self.loss.item()) / (i + 1)
 
                 # backward

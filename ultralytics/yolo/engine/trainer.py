@@ -116,7 +116,6 @@ class BaseTrainer:
         '''
         Builds dataloaders and optimizer on correct rank process
         '''
-        print("Batch size: ", self.train.batch_size)
         self.optimizer = build_optimizer(model=self.model,
                                          name=self.train.optimizer,
                                          lr=self.hyps.lr0,
@@ -131,6 +130,7 @@ class BaseTrainer:
             #                                       rank=rank)
             print("created testloader :" , rank)
 
+
     def _do_train(self, rank, world_size):
         if world_size > 1:
             self._setup_ddp(rank, world_size)
@@ -142,7 +142,7 @@ class BaseTrainer:
         self.epoch_time = None
         self.epoch_time_start = time.time()
         self.train_time_start = time.time()
-        print("Starting train on : " , self.device)
+        print("Starting train on : ", self.device)
         for epoch in range(self.train.epochs):
             # callback hook. on_epoch_start
             self.model.train()
@@ -281,6 +281,7 @@ class BaseTrainer:
         """
         if rank in {-1, 0}:
             self.console.info(text)
+
 
 def build_optimizer(model, name='Adam', lr=0.001, momentum=0.9, decay=1e-5):
     # TODO: 1. docstring with example? 2. Move this inside Trainer? or utils?

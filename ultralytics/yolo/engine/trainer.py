@@ -3,19 +3,23 @@ Simple training loop; Boilerplate that could apply to any arbitrary neural netwo
 so nothing in this file really has anything to do with GPT specifically.
 """
 
-from collections import defaultdict
 import logging
 import os
-from pydoc import resolve
-from typing import Union
 import time
+from collections import defaultdict
+from datetime import datetime
 from pathlib import Path
+from typing import Union
 
 import torch
+import torch.distributed as dist
+import torch.multiprocessing as mp
 import torch.nn as nn
-from torch.utils.data.dataloader import DataLoader
 from omegaconf import DictConfig, OmegaConf
-import hydra
+from torch.cuda import amp
+from torch.nn.parallel import DistributedDataParallel as DDP
+from tqdm import tqdm
+
 import ultralytics.yolo.utils as utils
 
 LOGGER = logging.getLogger()
@@ -25,13 +29,22 @@ DEFAULT_CONFIG = "defaults.yaml"
 
 
 class BaseTrainer:
-        
-    def __init__(self, model, dataset, config=CONFIG_PATH_ABS/DEFAULT_CONFIG):
+
+    def __init__(
+            self,
+            model: str,
+            data: str,
+            criterion,  # Should we create out own base loss classes? yolo.losses -> v8.losses.clfLoss
+            validator=None,
+            config=CONFIG_PATH_ABS / DEFAULT_CONFIG):
         self.console = LOGGER
         self.model = model
-        self.dataset = dataset
+        self.data = data
+        self.criterion = criterion  # ComputeLoss object TODO: create yolo.Loss classes
+        self.validator = val  # Dummy validator
         self.callbacks = defaultdict(list)
         self.train, self.hyps = self._get_config(config)
+        self.console.info(f"Training config: \n train: \n {self.train} \n hyps: \n {self.hyps}")  # to debug
         # Directories
         self.save_dir = utils.increment_path(Path(self.train.project) / self.train.name, exist_ok=self.train.exist_ok)
         self.wdir = self.save_dir / 'weights'
@@ -41,22 +54,30 @@ class BaseTrainer:
         # Save run settings
         utils.save_yaml(self.save_dir / 'train.yaml', OmegaConf.to_container(self.train, resolve=True))
 
-        self.optimizer = build_optimizer(
-                                        model=self.model,
-                                        name=self.train.optimizer,
-                                        lr=self.hyps.lr0,
-                                        momentum=self.hyps.momentum,
-                                        decay=self.hyps.weight_decay
-                                        )
+        # device
+        self.device = utils.select_device(self.train.device, self.train.batch_size)
+        self.console.info(f"running on device {self.device}")
+        self.scaler = amp.GradScaler(enabled=self.device != "CPU")
 
-        if self.train.device == '':
-            self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        else:
-            self.device = self.train.device
+        # Model and Dataloaders. TBD: Should we move this inside trainer?
+        self.trainset, self.testset = self.get_dataset()  # initialize dataset before as nc is needed for model
+        self.model = self.get_model()
         self.model = self.model.to(self.device)
-        LOGGER.info("running on device", self.device)
+        self.optimizer = build_optimizer(model=self.model,
+                                         name=self.train.optimizer,
+                                         lr=self.hyps.lr0,
+                                         momentum=self.hyps.momentum,
+                                         decay=self.hyps.weight_decay)
+        self.train_loader = self.get_dataloader(self.trainset)
+        self.test_loader = self.get_dataloader(self.testset)
 
-    def _get_config(self, config: Union[str, Path, DictConfig]=None):
+        # epoch level metrics
+        self.metrics = {}  # handle metrics returned by validator
+        self.best_fitness = None
+        self.fitness = None
+        self.loss = None
+
+    def _get_config(self, config: Union[str, Path, DictConfig] = None):
         """
         Accepts yaml file name or DictConfig containing experiment configuration.
         Returns train and hyps namespace
@@ -66,7 +87,7 @@ class BaseTrainer:
             if isinstance(config, str) or isinstance(config, Path):
                 config = OmegaConf.load(config)
             return config.train, config.hyps
-        except:
+        except KeyError:
             raise Exception("Missing key(s) in config")
 
     def add_callback(self, onevent: str, callback):
@@ -79,50 +100,101 @@ class BaseTrainer:
         for callback in self.callbacks.get(onevent, []):
             callback(self)
 
-    def train(self):
-        model = self.get_model(self.model)
+    def run(self):
+        world_size = torch.cuda.device_count()
+        if world_size > 1:
+            mp.spawn(self._do_train, args=(world_size,), nprocs=world_size, join=True)
+        else:
+            self._do_train(0, 1)
 
-        # setup the dataloader
-        trainset, testset = self.get_dataset()
-        train_loader = self.get_dataloader(trainset)
-        test_loader = self.get_dataloader(testset)
-        # TODO: callback hook. before_train
+    def _do_train(self, rank, world_size):
+        # callback hook. before_train
+        if world_size > 1:
+            torch.cuda.set_device(rank)
+            self.setup_ddp(rank, world_size)
+            self.model = self.model.to(self.device)
+            self.model = DDP(self.model, device_ids=[rank]) if rank != 0 else self.model
 
+        self.epoch = 1
+        self.epoch_time = None
+        self.epoch_time_start = time.time()
+        self.train_time_start = time.time()
 
-        model.train()
-        self.epoch = 0
-        self.iter_time = time.time()
-        data_iter = iter(train_loader)
-        for epoch in range(self.train.epochs): 
+        for epoch in range(self.train.epochs):
+            # callback hook. on_epoch_start
+            self.model.train()
+            pbar = enumerate(self.train_loader)
+            if rank in {-1, 0}:
+                pbar = tqdm(enumerate(self.train_loader),
+                            total=len(self.train_loader),
+                            bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
+            tloss = 0
+            for i, (images, labels) in pbar:
+                # callback hook. on_batch_start
+                # forward
+                images, labels = self.preprocess_batch(images, labels)
+                self.loss = self.criterion(self.model(images), labels)
+                tloss = (tloss * i + self.loss.item()) / (i + 1)
 
-            # fetch the next batch (x, y) and re-init iterator if needed
-            try:
-                batch = next(data_iter)
-            except StopIteration:
-                data_iter = iter(train_loader)
-                batch = next(data_iter)
-            batch = [t.to(self.device) for t in batch]
-            x, y = batch
+                # backward
+                self.model.zero_grad(set_to_none=True)
+                self.scaler.scale(self.loss).backward()
 
-            # forward the model
-            logits, self.loss = model(x, y)
+                # optimize
+                self.optimizer_step()
+                self.trigger_callbacks('on_batch_end')
 
-            # backprop and update the parameters
-            model.zero_grad(set_to_none=True)
-            self.loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), config.grad_norm_clip)
-            self.optimizer.step()
+                # log
+                mem = '%.3gG' % (torch.cuda.memory_reserved() / 1E9 if torch.cuda.is_available() else 0)  # (GB)
+                pbar.desc = f"{f'{epoch + 1}/{self.train.epochs}':>10}{mem:>10}{tloss:>12.3g}" + ' ' * 36
 
-            self.trigger_callbacks('on_batch_end')
-            self.iter_num += 1
+            if rank in [-1, 0]:
+                # validation
+                # callback: on_val_start()
+                self.validate()
+                # callback: on_val_end()
+
+                # save model
+                if (not self.train.nosave) or (self.epoch + 1 == self.train.epochs):
+                    self.save_model()
+                    # callback; on_model_save
+
+            self.epoch += 1
             tnow = time.time()
-            self.iter_dt = tnow - self.iter_time
-            self.iter_time = tnow
+            self.epoch_time = tnow - self.epoch_time_start
+            self.epoch_time_start = tnow
 
-            # termination conditions
-            if config.max_iters is not None and self.iter_num >= config.max_iters:
-                break
-    
+            # TODO: termination condition
+
+        self.log(f"\nTraining complete ({(time.time() - self.train_time_start) / 3600:.3f} hours) \
+                            \n{self.usage_help()}")
+        # callback; on_train_end
+        dist.destroy_process_group() if world_size != 1 else None
+
+    def save_model(self):
+        ckpt = {
+            'epoch': self.epoch,
+            'best_fitness': self.best_fitness,
+            'model': None,  # deepcopy(ema.ema).half(),  # deepcopy(de_parallel(model)).half(),
+            'ema': None,  # deepcopy(ema.ema).half(),
+            'updates': None,  # ema.updates,
+            'optimizer': None,  # optimizer.state_dict(),
+            'train_args': self.train,
+            'date': datetime.now().isoformat()}
+
+        # Save last, best and delete
+        torch.save(ckpt, self.last)
+        if self.best_fitness == self.fitness:
+            torch.save(ckpt, self.best)
+        del ckpt
+
+    def setup_ddp(self, rank, world_size):
+        print(f"RANK - World: {rank} - {world_size} ")
+        os.environ['MASTER_ADDR'] = 'localhost'
+        os.environ['MASTER_PORT'] = '12355'
+
+        dist.init_process_group("nccl" if dist.is_nccl_available() else "gloo", rank=rank, world_size=world_size)
+
     def get_dataloader(self, path):
         """
         Returns dataloader derived from torch.data.Dataloader
@@ -135,16 +207,70 @@ class BaseTrainer:
         Returns train and val split datasets
         """
         pass
-    
+
     def get_model(self):
         """
         Uses self.model to load/create/download dataset for any task
         """
         pass
 
+    def set_criterion(self, criterion):
+        """
+        :param criterion: yolo.Loss object.
+        """
+        self.criterion = criterion
+
+    def optimizer_step(self):
+        self.scaler.unscale_(self.optimizer)  # unscale gradients
+        torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)  # clip gradients
+        self.scaler.step(self.optimizer)
+        self.scaler.update()
+        self.optimizer.zero_grad()
+
+    def preprocess_batch(self, images, labels):
+        """
+        Allows custom preprocessing model inputs and ground truths depeding on task type
+        """
+        return images.to(self.device, non_blocking=True), labels.to(self.device)
+
+    def validate(self):
+        """
+        Runs validation on test set using self.validator.
+        # TODO: discuss validator class. Enforce that a validator metrics dict should contain
+        "fitness" metric.
+        """
+        self.metrics = self.validator(self)
+        self.fitness = self.metrics.get("fitness") or (-self.loss)  # use loss as fitness measure if not found
+        if not self.best_fitness or self.best_fitness < self.fitness:
+            self.best_fitness = self.fitness
+
+    def progress_string(self):
+        """
+        Returns progress string depending on task type.
+        """
+        pass
+
+    def usage_help(self):
+        """
+        Returns usage functionality. gets printed to the console after training.
+        """
+        pass
+
+    def log(self, text, rank=[0, -1]):
+        """
+        Logs the given text to given ranks process if provided, otherwise logs to all ranks
+        :param rank: List[Int]
+
+        """
+        if not rank:
+            self.console.info(text)
+        else:
+            if RANK in rank:
+                self.console.info(text)
+
 
 def build_optimizer(model, name='Adam', lr=0.001, momentum=0.9, decay=1e-5):
-    # TODO: docstring with example?
+    # TODO: 1. docstring with example? 2. Move this inside Trainer? or utils?
     # YOLOv5 3-param group optimizer: 0) weights with decay, 1) weights no decay, 2) biases no decay
     g = [], [], []  # optimizer parameter groups
     bn = tuple(v for k, v in nn.__dict__.items() if 'Norm' in k)  # normalization layers, i.e. BatchNorm2d()
@@ -174,7 +300,7 @@ def build_optimizer(model, name='Adam', lr=0.001, momentum=0.9, decay=1e-5):
     return optimizer
 
 
-
-if __name__ == "__main__":
-    model = torch.nn.Sequential(nn.Linear(10,100))
-    Trainer(model, "dataset")
+# Dummy validator
+def val(trainer: BaseTrainer):
+    trainer.console.info("validating")
+    return {"metric_1": 0.1, "metric_2": 0.2, "fitness": 1}

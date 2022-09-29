@@ -1,7 +1,7 @@
 train:
   epochs: 300
-  batch-size: 16
-  img-size: 640
+  batch_size: 16
+  img_size: 640
   nosave: False
   cache: False # True/ram for ram, or disc
   device: '' # cuda device, i.e. 0 or 0,1,2,3 or cpu
@@ -45,3 +45,9 @@ hyps:
   mosaic: 1.0  # image mosaic (probability)
   mixup: 0.0  # image mixup (probability)
   copy_paste: 0.0  # segment copy-paste (probability)
+
+# to disable hydra directory creation
+hydra:
+  output_subdir: null
+  run:
+    dir: .

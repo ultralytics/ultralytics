@@ -1,16 +1,18 @@
 # TODO: Follow google docs format for all functions. Easier for autmatic doc parser
-from pathlib import Path
-import os
-import yaml
 import contextlib
-from multiprocessing.pool import ThreadPool
 import logging
-
-import torch
+import os
+from itertools import repeat
+from multiprocessing.pool import ThreadPool
+from pathlib import Path
 from zipfile import ZipFile
 
+import pkg_resources as pkg
+import torch
+import yaml
 
 LOGGER = logging.getLogger()
+
 
 def increment_path(path, exist_ok=False, sep='', mkdir=False):
     '''
@@ -33,10 +35,12 @@ def increment_path(path, exist_ok=False, sep='', mkdir=False):
 
     return path
 
+
 def save_yaml(file='data.yaml', data={}):
     # Single-line safe yaml saving
     with open(file, 'w') as f:
         yaml.safe_dump({k: str(v) if isinstance(v, Path) else v for k, v in data.items()}, f, sort_keys=False)
+
 
 def download(url, dir='.', unzip=True, delete=True, curl=False, threads=1, retry=3):
     # Multithreaded file download and unzip function, used in data.yaml for autodownload
@@ -98,3 +102,15 @@ class WorkingDirectory(contextlib.ContextDecorator):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         os.chdir(self.cwd)
+
+
+def check_version(current='0.0.0', minimum='0.0.0', name='version ', pinned=False, hard=False, verbose=False):
+    # Check version vs. required version
+    current, minimum = (pkg.parse_version(x) for x in (current, minimum))
+    result = (current == minimum) if pinned else (current >= minimum)  # bool
+    s = f'WARNING ⚠️ {name}{minimum} is required by YOLOv5, but {name}{current} is currently installed'  # string
+    if hard:
+        assert result, s  # assert min requirements met
+    if verbose and not result:
+        LOGGER.warning(s)
+    return result

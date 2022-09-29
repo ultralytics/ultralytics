@@ -71,6 +71,7 @@ class BaseTrainer:
         self.fitness = None
         self.loss = None
 
+
     def _get_config(self, config: Union[str, Path, DictConfig] = None):
         """
         Accepts yaml file name or DictConfig containing experiment configuration.
@@ -101,7 +102,7 @@ class BaseTrainer:
         else:
             self._do_train(-1, 1)
 
-    def setup_ddp(self, rank, world_size):
+    def _setup_ddp(self, rank, world_size):
         os.environ['MASTER_ADDR'] = 'localhost'
         os.environ['MASTER_PORT'] = '8005'
         torch.cuda.set_device(rank)
@@ -113,12 +114,10 @@ class BaseTrainer:
         self.model = DDP(self.model, device_ids=[rank])
         self.train.batch_size = self.train.batch_size  // world_size
 
-
-    def _do_train(self, rank, world_size):
-        # callback hook. before_train
-        if world_size > 1:
-            self.setup_ddp(rank, world_size)
-
+    def _setup_train(self, rank):
+        '''
+        Builds dataloaders and optimizer on correct rank process 
+        '''
         self.optimizer = build_optimizer(model=self.model,
                                          name=self.train.optimizer,
                                          lr=self.hyps.lr0,
@@ -133,6 +132,14 @@ class BaseTrainer:
                                                    batch_size=self.train.batch_size,
                                                    rank=rank)
             print("created testloader :" , rank)
+    
+    def _do_train(self, rank, world_size):
+        if world_size > 1:
+            self._setup_ddp(rank, world_size)
+
+        # callback hook. before_train
+        self._before_train(rank)
+
         self.epoch = 1
         self.epoch_time = None
         self.epoch_time_start = time.time()
@@ -152,9 +159,9 @@ class BaseTrainer:
                 # callback hook. on_batch_start
                 # forward
                 images, labels = self.preprocess_batch(images, labels)
-                print("before forwared ", rank)
+                print("before forward pass ", rank)
                 self.loss = self.criterion(self.model(images), labels)
-                print("after forward ", rank)
+                print("after forward pass", rank)
                 tloss = (tloss * i + self.loss.item()) / (i + 1)
 
                 # backward

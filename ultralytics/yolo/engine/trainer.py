@@ -138,7 +138,7 @@ class BaseTrainer:
             self._setup_ddp(rank, world_size)
 
         # callback hook. before_train
-        self._before_train(rank)
+        self._setup_train(rank)
 
         self.epoch = 1
         self.epoch_time = None

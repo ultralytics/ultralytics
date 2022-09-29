@@ -128,8 +128,7 @@ class BaseTrainer:
             # self.test_loader = self.get_dataloader(self.testset,
             #                                       batch_size=self.train.batch_size*2,
             #                                       rank=rank)
-            print("created testloader :" , rank)
-
+            print("created testloader :", rank)
 
     def _do_train(self, rank, world_size):
         if world_size > 1:

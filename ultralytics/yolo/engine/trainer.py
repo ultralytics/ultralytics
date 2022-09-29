@@ -121,7 +121,7 @@ class BaseTrainer:
     def _do_train(self, rank, world_size):
         # callback hook. before_train
         if world_size > 1 and rank != -1:
-            self.setup_dpp(rank, world_size)
+            self.setup_ddp(rank, world_size)
 
         self.train_loader = self.get_dataloader(self.trainset,
                                                 batch_size=self.train.batch_size,

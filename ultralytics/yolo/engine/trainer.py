@@ -74,8 +74,6 @@ class BaseTrainer:
         self.fitness = None
         self.loss = None
 
-        # manage DDP
-
     def _get_config(self, config: Union[str, Path, DictConfig] = None):
         """
         Accepts yaml file name or DictConfig containing experiment configuration.
@@ -104,20 +102,34 @@ class BaseTrainer:
         if world_size > 1:
             mp.spawn(self._do_train, args=(world_size,), nprocs=world_size, join=True)
         else:
-            self._do_train(0, 1)
+            self._do_train(-1, 1)
+
+    def setup_ddp(self, rank, world_size):
+        os.environ['MASTER_ADDR'] = 'localhost'
+        os.environ['MASTER_PORT'] = '12355'
+        torch.cuda.set_device(rank)
+        self.device = torch.device('cuda', rank)
+        print(f"RANK - WORLD_SIZE - DEVICE: {rank} - {world_size} - {self.device} ")
+        
+        self.model = self.model.to(self.device)
+        self.model = DDP(self.model, device_ids=[rank])
+        self.train.batch_size = self.train.batch_size  // world_size
+
+        dist.init_process_group("nccl" if dist.is_nccl_available() else "gloo", rank=rank, world_size=world_size)
+
 
     def _do_train(self, rank, world_size):
         # callback hook. before_train
-        if world_size > 1:
-            print("device:" , rank)
-            torch.cuda.set_device(rank)
-            self.device = rank
-            self.setup_ddp(rank, world_size)
-            self.model = self.model.to(self.device)
-            self.model = DDP(self.model, device_ids=[rank]) if rank != 0 else self.model
+        if world_size > 1 and rank != -1:
+            self.setup_dpp()
 
-        self.train_loader = self.get_dataloader(self.trainset, rank=rank)
-        self.test_loader = self.get_dataloader(self.testset, rank=rank) if rank == 0 else None
+        self.train_loader = self.get_dataloader(self.trainset,
+                                                batch_size=self.train.batch_size,
+                                                 rank=rank)
+        if rank in {0, -1}:
+            self.test_loader = self.get_dataloader(self.testset,
+                                                   batch_size=self.train.batch_size,
+                                                   rank=rank)
         self.epoch = 1
         self.epoch_time = None
         self.epoch_time_start = time.time()
@@ -190,13 +202,6 @@ class BaseTrainer:
         if self.best_fitness == self.fitness:
             torch.save(ckpt, self.best)
         del ckpt
-
-    def setup_ddp(self, rank, world_size):
-        print(f"RANK - World: {rank} - {world_size} ")
-        os.environ['MASTER_ADDR'] = 'localhost'
-        os.environ['MASTER_PORT'] = '12355'
-
-        dist.init_process_group("nccl" if dist.is_nccl_available() else "gloo", rank=rank, world_size=world_size)
 
     def get_dataloader(self, path):
         """

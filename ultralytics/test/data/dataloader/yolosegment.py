@@ -51,7 +51,8 @@ def plot_one_box(x, img, color=None, label=None, line_thickness=None):
             lineType=cv2.LINE_AA,
         )
 
-with open("ultralytics/test/data/dataloader/hyp_test.yaml", 'r') as f:
+
+with open("ultralytics/test/data/dataloader/hyp_test.yaml") as f:
     hyp = OmegaConf.load(f)
 
 dataloader = build_dataloader(

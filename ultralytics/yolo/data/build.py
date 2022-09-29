@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader, dataloader, distributed
 
 from ..utils.general import LOGGER
 from ..utils.torch_utils import torch_distributed_zero_first
-from .dataset import YOLODataset, ClassificationDataset
+from .dataset import ClassificationDataset, YOLODataset
 from .utils import PIN_MEMORY, RANK
 
 
@@ -55,13 +55,13 @@ def seed_worker(worker_id):
 # TODO: we can inject most args from a config file
 def build_dataloader(
     img_path,
-    img_size,#
-    batch_size,#
-    single_cls=False,#
-    hyp=None,#
+    img_size,  #
+    batch_size,  #
+    single_cls=False,  #
+    hyp=None,  #
     augment=False,
-    cache=False,#
-    image_weights=False,#
+    cache=False,  #
+    image_weights=False,  #
     stride=32,
     label_path=None,
     pad=0.0,
@@ -116,6 +116,7 @@ def build_dataloader(
         dataset,
     )
 
+
 # build classification
 def build_classification_dataloader(path,
                                     imgsz=224,
@@ -142,5 +143,3 @@ def build_classification_dataloader(path,
                               pin_memory=PIN_MEMORY,
                               worker_init_fn=seed_worker,
                               generator=generator)  # or DataLoader(persistent_workers=True)
-
-

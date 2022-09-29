@@ -1,11 +1,11 @@
 from itertools import repeat
 from multiprocessing.pool import Pool
 from pathlib import Path
-import torchvision
 
 import cv2
 import numpy as np
 import torch
+import torchvision
 from tqdm import tqdm
 
 from ..utils.general import LOGGER, NUM_THREADS
@@ -43,7 +43,8 @@ class YOLODataset(BaseDataset):
         self.use_segments = use_segments
         self.use_keypoints = use_keypoints
         assert not (self.use_segments and self.use_keypoints), "We can't use both of segmentation and pose."
-        super().__init__(img_path, img_size, label_path, cache, augment, hyp, prefix, rect, batch_size, stride, pad, single_cls)
+        super().__init__(img_path, img_size, label_path, cache, augment, hyp, prefix, rect, batch_size, stride, pad,
+                         single_cls)
 
     def cache_labels(self, path=Path("./labels.cache")):
         # Cache dataset labels, check images and read shapes
@@ -53,7 +54,8 @@ class YOLODataset(BaseDataset):
         desc = f"{self.prefix}Scanning '{path.parent / path.stem}' images and labels..."
         with Pool(NUM_THREADS) as pool:
             pbar = tqdm(
-                pool.imap(verify_image_label, zip(self.im_files, self.label_files, repeat(self.prefix), repeat(self.use_keypoints))),
+                pool.imap(verify_image_label,
+                          zip(self.im_files, self.label_files, repeat(self.prefix), repeat(self.use_keypoints))),
                 desc=desc,
                 total=len(self.im_files),
                 bar_format=BAR_FORMAT,
@@ -74,8 +76,7 @@ class YOLODataset(BaseDataset):
                             keypoints=keypoint,
                             normalized=True,
                             bbox_format="xywh",
-                        )
-                    )
+                        ))
                 if msg:
                     msgs.append(msg)
                 pbar.desc = f"{desc}{nf} found, {nm} missing, {ne} empty, {nc} corrupt"
@@ -94,7 +95,8 @@ class YOLODataset(BaseDataset):
             path.with_suffix(".cache.npy").rename(path)  # remove .npy suffix
             LOGGER.info(f"{self.prefix}New cache created: {path}")
         except Exception as e:
-            LOGGER.warning(f"{self.prefix}WARNING ⚠️ Cache directory {path.parent} is not writeable: {e}")  # not writeable
+            LOGGER.warning(
+                f"{self.prefix}WARNING ⚠️ Cache directory {path.parent} is not writeable: {e}")  # not writeable
         return x
 
     def get_labels(self):
@@ -207,5 +209,6 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
 
 # TODO: support semantic segmentation
 class SemanticDataset(BaseDataset):
+
     def __init__(self):
         pass

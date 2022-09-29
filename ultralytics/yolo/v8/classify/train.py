@@ -10,8 +10,9 @@ import torchvision.transforms as T
 from omegaconf import DictConfig, OmegaConf
 
 from ultralytics.yolo import BaseTrainer, utils, v8
-from ultralytics.yolo.engine.trainer import CONFIG_PATH_ABS, DEFAULT_CONFIG
 from ultralytics.yolo.data import build_classification_dataloader
+from ultralytics.yolo.engine.trainer import CONFIG_PATH_ABS, DEFAULT_CONFIG
+
 
 # BaseTrainer python usage
 class Trainer(BaseTrainer):

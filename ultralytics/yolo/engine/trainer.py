@@ -1,4 +1,3 @@
-
 """
 Simple training loop; Boilerplate that could apply to any arbitrary neural network,
 so nothing in this file really has anything to do with GPT specifically.
@@ -71,7 +70,6 @@ class BaseTrainer:
         self.fitness = None
         self.loss = None
 
-
     def _get_config(self, config: Union[str, Path, DictConfig] = None):
         """
         Accepts yaml file name or DictConfig containing experiment configuration.
@@ -108,31 +106,27 @@ class BaseTrainer:
         torch.cuda.set_device(rank)
         self.device = torch.device('cuda', rank)
         print(f"RANK - WORLD_SIZE - DEVICE: {rank} - {world_size} - {self.device} ")
-        
+
         dist.init_process_group("nccl" if dist.is_nccl_available() else "gloo", rank=rank, world_size=world_size)
         self.model = self.model.to(self.device)
         self.model = DDP(self.model, device_ids=[rank])
-        self.train.batch_size = self.train.batch_size  // world_size
+        self.train.batch_size = self.train.batch_size // world_size
 
     def _setup_train(self, rank):
         '''
-        Builds dataloaders and optimizer on correct rank process 
+        Builds dataloaders and optimizer on correct rank process
         '''
         self.optimizer = build_optimizer(model=self.model,
                                          name=self.train.optimizer,
                                          lr=self.hyps.lr0,
                                          momentum=self.hyps.momentum,
                                          decay=self.hyps.weight_decay)
-        self.train_loader = self.get_dataloader(self.trainset,
-                                                batch_size=self.train.batch_size,
-                                                 rank=rank)
+        self.train_loader = self.get_dataloader(self.trainset, batch_size=self.train.batch_size, rank=rank)
         print("created trainloader : ", rank)
         if rank in {0, -1}:
-            self.test_loader = self.get_dataloader(self.testset,
-                                                   batch_size=self.train.batch_size,
-                                                   rank=rank)
-            print("created testloader :" , rank)
-    
+            self.test_loader = self.get_dataloader(self.testset, batch_size=self.train.batch_size, rank=rank)
+            print("created testloader :", rank)
+
     def _do_train(self, rank, world_size):
         if world_size > 1:
             self._setup_ddp(rank, world_size)

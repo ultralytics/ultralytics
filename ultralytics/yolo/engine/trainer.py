@@ -111,11 +111,11 @@ class BaseTrainer:
         self.device = torch.device('cuda', rank)
         print(f"RANK - WORLD_SIZE - DEVICE: {rank} - {world_size} - {self.device} ")
         
+        dist.init_process_group("nccl" if dist.is_nccl_available() else "gloo", rank=rank, world_size=world_size)
         self.model = self.model.to(self.device)
         self.model = DDP(self.model, device_ids=[rank])
         self.train.batch_size = self.train.batch_size  // world_size
 
-        dist.init_process_group("nccl" if dist.is_nccl_available() else "gloo", rank=rank, world_size=world_size)
 
 
     def _do_train(self, rank, world_size):

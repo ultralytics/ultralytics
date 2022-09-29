@@ -11,7 +11,7 @@ from omegaconf import DictConfig, OmegaConf
 
 from ultralytics.yolo import BaseTrainer, utils, v8
 from ultralytics.yolo.engine.trainer import CONFIG_PATH_ABS, DEFAULT_CONFIG
-
+from ultralytics.yolo.data import build_classification_dataloader
 
 # BaseTrainer python usage
 class Trainer(BaseTrainer):
@@ -34,14 +34,11 @@ class Trainer(BaseTrainer):
                 self.console.info(s)
         train_set = data_dir / "train"
         test_set = data_dir / 'test' if (data_dir / 'test').exists() else data_dir / 'val'  # data/test or data/val
-        transform = T.Compose([T.ToTensor()])
-        train_set = torchvision.datasets.ImageFolder(train_set, transform=transform)
-        test_set = torchvision.datasets.ImageFolder(test_set, transform=transform)
 
         return train_set, test_set
 
-    def get_dataloader(self, dataset, batch_size=None):
-        loader = torch.utils.data.DataLoader(dataset=dataset, batch_size=batch_size or self.train.batch_size)
+    def get_dataloader(self, dataset, batch_size=None, rank=-1):
+        loader = build_classification_dataloader(path=dataset, batch_size=self.train.batch_size, rank=rank)
 
         return loader
 

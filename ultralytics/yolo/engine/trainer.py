@@ -77,6 +77,8 @@ class BaseTrainer:
         self.fitness = None
         self.loss = None
 
+        # manage DDP
+
     def _get_config(self, config: Union[str, Path, DictConfig] = None):
         """
         Accepts yaml file name or DictConfig containing experiment configuration.
@@ -110,7 +112,8 @@ class BaseTrainer:
     def _do_train(self, rank, world_size):
         # callback hook. before_train
         if world_size > 1:
-            torch.cuda.set_device(rank)
+            #torch.cuda.set_device(rank)
+            self.device = rank
             self.setup_ddp(rank, world_size)
             self.model = self.model.to(self.device)
             self.model = DDP(self.model, device_ids=[rank]) if rank != 0 else self.model

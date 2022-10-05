@@ -268,18 +268,6 @@ class WorkingDirectory(contextlib.ContextDecorator):
         os.chdir(self.cwd)
 
 
-def check_version(current='0.0.0', minimum='0.0.0', name='version ', pinned=False, hard=False, verbose=False):
-    # Check version vs. required version
-    current, minimum = (pkg.parse_version(x) for x in (current, minimum))
-    result = (current == minimum) if pinned else (current >= minimum)  # bool
-    s = f'WARNING ⚠️ {name}{minimum} is required by YOLOv5, but {name}{current} is currently installed'  # string
-    if hard:
-        assert result, s  # assert min requirements met
-    if verbose and not result:
-        LOGGER.warning(s)
-    return result
-
-
 def safe_download(file, url, url2=None, min_bytes=1E0, error_msg=''):
     # Attempts to download file from url or url2, checks and removes incomplete downloads < min_bytes
     from utils.general import LOGGER

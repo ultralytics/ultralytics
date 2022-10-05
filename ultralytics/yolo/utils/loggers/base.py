@@ -1,8 +1,3 @@
-#from ultralytics.yolo import BaseTrainer
-
-# Default callbacks
-
-
 def before_train(trainer):
     # Initialize tensorboard logger
     pass

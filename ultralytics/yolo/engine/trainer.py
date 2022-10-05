@@ -131,13 +131,12 @@ class BaseTrainer:
                                          momentum=self.hyps.momentum,
                                          decay=self.hyps.weight_decay)
         self.train_loader = self.get_dataloader(self.trainset, batch_size=self.train.batch_size, rank=rank)
-        print("created trainloader : ", rank)
         if rank in {0, -1}:
             print(" Creating testloader rank :", rank)
             # self.test_loader = self.get_dataloader(self.testset,
             #                                       batch_size=self.train.batch_size*2,
             #                                       rank=rank)
-            print("created testloader :", rank)
+            # print("created testloader :", rank)
 
     def _do_train(self, rank, world_size):
         if world_size > 1:
@@ -150,7 +149,6 @@ class BaseTrainer:
         self.epoch_time = None
         self.epoch_time_start = time.time()
         self.train_time_start = time.time()
-        print("Starting train on : ", self.device)
         for epoch in range(self.train.epochs):
             # callback hook. on_epoch_start
             self.model.train()

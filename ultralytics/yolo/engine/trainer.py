@@ -21,6 +21,7 @@ from tqdm import tqdm
 
 import ultralytics.yolo.utils as utils
 import ultralytics.yolo.utils.loggers as loggers
+
 LOGGER = logging.getLogger()
 CONFIG_PATH_REL = "../utils/configs"
 CONFIG_PATH_ABS = Path(__file__).parents[1] / "utils/configs"
@@ -71,6 +72,7 @@ class BaseTrainer:
 
         for callback, func in loggers.default_callbacks.items():
             self.add_callback(callback, func)
+
     def _get_config(self, config: Union[str, Path, DictConfig] = None):
         """
         Accepts yaml file name or DictConfig containing experiment configuration.

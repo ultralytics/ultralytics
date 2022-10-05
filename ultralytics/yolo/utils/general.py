@@ -4,16 +4,16 @@ import contextlib
 import logging
 import os
 import platform
+import subprocess
+import urllib
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from zipfile import ZipFile
-import requests
-import subprocess
-import urllib
 
 import numpy as np
 import pkg_resources as pkg
+import requests
 import torch
 import yaml
 
@@ -351,7 +351,7 @@ def attempt_download(file, repo='ultralytics/yolov5', release='v6.2'):
 
     return str(file)
 
+
 def get_model(model: str):
     # check for local weights
     pass
-

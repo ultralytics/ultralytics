@@ -20,7 +20,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from tqdm import tqdm
 
 import ultralytics.yolo.utils as utils
-
+import ultralytics.yolo.utils.loggers as loggers
 LOGGER = logging.getLogger()
 CONFIG_PATH_REL = "../utils/configs"
 CONFIG_PATH_ABS = Path(__file__).parents[1] / "utils/configs"
@@ -69,6 +69,8 @@ class BaseTrainer:
         self.fitness = None
         self.loss = None
 
+        for callback, func in loggers.default_callbacks.items():
+            self.add_callback(callback, func)
     def _get_config(self, config: Union[str, Path, DictConfig] = None):
         """
         Accepts yaml file name or DictConfig containing experiment configuration.
@@ -83,9 +85,15 @@ class BaseTrainer:
             raise Exception("Missing key(s) in config")
 
     def add_callback(self, onevent: str, callback):
+        """
+        appends the given callback
+        """
         self.callbacks[onevent].append(callback)
 
     def set_callback(self, onevent: str, callback):
+        """
+        overrides the existing callbacks with the given callback
+        """
         self.callbacks[onevent] = [callback]
 
     def trigger_callbacks(self, onevent: str):

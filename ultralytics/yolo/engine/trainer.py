@@ -2,7 +2,6 @@
 Simple training loop; Boilerplate that could apply to any arbitrary neural network,
 """
 
-import logging
 import os
 import time
 from collections import defaultdict
@@ -22,7 +21,7 @@ from tqdm import tqdm
 import ultralytics.yolo.utils as utils
 import ultralytics.yolo.utils.loggers as loggers
 
-LOGGER = logging.getLogger()
+LOGGER = utils.general.LOGGER
 CONFIG_PATH_REL = "../utils/configs"
 CONFIG_PATH_ABS = Path(__file__).parents[1] / "utils/configs"
 DEFAULT_CONFIG = "defaults.yaml"

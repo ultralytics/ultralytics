@@ -57,7 +57,7 @@ class BaseTrainer:
         # device
         self.device = utils.select_device(self.train.device, self.train.batch_size)
         self.console.info(f"running on device {self.device}")
-        self.scaler = amp.GradScaler(enabled=self.device != "CPU")
+        self.scaler = amp.GradScaler(enabled=self.device.type != 'cpu')
 
         # Model and Dataloaders. TBD: Should we move this inside trainer?
         self.trainset, self.testset = self.get_dataset()  # initialize dataset before as nc is needed for model

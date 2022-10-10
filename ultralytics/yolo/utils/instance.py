@@ -10,11 +10,8 @@ from .general import ltwh2xywh, ltwh2xyxy, resample_segments, xywh2ltwh, xywh2xy
 
 # From PyTorch internals
 def _ntuple(n):
-
     def parse(x):
-        if isinstance(x, abc.Iterable):
-            return x
-        return tuple(repeat(x, n))
+        return x if isinstance(x, abc.Iterable) else tuple(repeat(x, n))
 
     return parse
 
@@ -68,27 +65,17 @@ class Bboxes:
         if self.format == format:
             return
         elif self.format == "xyxy":
-            if format == "xywh":
-                bboxes = xyxy2xywh(self.bboxes)
-            else:
-                bboxes = xyxy2ltwh(self.bboxes)
+            bboxes = xyxy2xywh(self.bboxes) if format == "xywh" else xyxy2ltwh(self.bboxes)
         elif self.format == "xywh":
-            if format == "xyxy":
-                bboxes = xywh2xyxy(self.bboxes)
-            else:
-                bboxes = xywh2ltwh(self.bboxes)
+            bboxes = xywh2xyxy(self.bboxes) if format == "xyxy" else xywh2ltwh(self.bboxes)
         else:
-            if format == "xyxy":
-                bboxes = ltwh2xyxy(self.bboxes)
-            else:
-                bboxes = ltwh2xywh(self.bboxes)
+            bboxes = ltwh2xyxy(self.bboxes) if format == "xyxy" else ltwh2xywh(self.bboxes)
         self.bboxes = bboxes
         self.format = format
 
     def areas(self):
         self.convert("xyxy")
-        area = (self.bboxes[:, 2] - self.bboxes[:, 0]) * (self.bboxes[:, 3] - self.bboxes[:, 1])
-        return area
+        return (self.bboxes[:, 2] - self.bboxes[:, 0]) * (self.bboxes[:, 3] - self.bboxes[:, 1])
 
     # def denormalize(self, w, h):
     #     if not self.normalized:
@@ -149,14 +136,13 @@ class Bboxes:
             Bboxes: the concatenated Boxes
         """
         assert isinstance(boxes_list, (list, tuple))
-        if len(boxes_list) == 0:
+        if not boxes_list:
             return cls(np.empty(0))
-        assert all([isinstance(box, Bboxes) for box in boxes_list])
+        assert all(isinstance(box, Bboxes) for box in boxes_list)
 
         if len(boxes_list) == 1:
             return boxes_list[0]
-        cat_boxes = cls(np.concatenate([b.bboxes for b in boxes_list], axis=axis))
-        return cat_boxes
+        return cls(np.concatenate([b.bboxes for b in boxes_list], axis=axis))
 
     def __getitem__(self, index) -> "Bboxes":
         """
@@ -316,9 +302,9 @@ class Instances:
             Boxes: the concatenated Boxes
         """
         assert isinstance(instances_list, (list, tuple))
-        if len(instances_list) == 0:
+        if not instances_list:
             return cls(np.empty(0))
-        assert all([isinstance(instance, Instances) for instance in instances_list])
+        assert all(isinstance(instance, Instances) for instance in instances_list)
 
         if len(instances_list) == 1:
             return instances_list[0]

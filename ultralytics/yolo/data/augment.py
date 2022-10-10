@@ -52,7 +52,7 @@ class Compose:
         return self.transforms
 
     def __repr__(self):
-        format_string = self.__class__.__name__ + "("
+        format_string = f"{self.__class__.__name__}("
         for t in self.transforms:
             format_string += "\n"
             format_string += f"    {t}"
@@ -134,10 +134,7 @@ class Mosaic(BaseMixTransform):
         yc, xc = (int(random.uniform(-x, 2 * s + x)) for x in self.border)  # mosaic center x, y
         mix_labels = labels["mix_labels"]
         for i in range(4):
-            if i == 0:
-                labels_patch = deepcopy(labels)
-            else:
-                labels_patch = deepcopy(mix_labels[i - 1])
+            labels_patch = deepcopy(labels) if i == 0 else deepcopy(mix_labels[i - 1])
             # Load image
             img = labels_patch["img"]
             h, w = labels_patch["resized_shape"]
@@ -177,18 +174,17 @@ class Mosaic(BaseMixTransform):
 
     def _cat_labels(self, mosaic_labels):
         if len(mosaic_labels) == 0:
-            return dict()
-        final_labels = dict()
-        final_labels["ori_shape"] = (self.img_size * 2, self.img_size * 2)
-        final_labels["resized_shape"] = (self.img_size * 2, self.img_size * 2)
-        final_labels["im_file"] = mosaic_labels[0]["im_file"]
-
+            return {}
         cls = []
         instances = []
         for labels in mosaic_labels:
             cls.append(labels["cls"])
             instances.append(labels["instances"])
-        final_labels["cls"] = np.concatenate(cls, 0)
+        final_labels = {"ori_shape": (self.img_size * 2, self.img_size * 2),
+                        "resized_shape": (self.img_size * 2, self.img_size * 2),
+                        "im_file": mosaic_labels[0]["im_file"],
+                        "cls": np.concatenate(cls, 0)}
+
         final_labels["instances"] = Instances.concatenate(instances, axis=0)
         final_labels["instances"].clip(self.img_size * 2, self.img_size * 2)
         return final_labels
@@ -290,8 +286,7 @@ class RandomPerspective:
         # create new boxes
         x = xy[:, [0, 2, 4, 6]]
         y = xy[:, [1, 3, 5, 7]]
-        new_bboxes = np.concatenate((x.min(1), y.min(1), x.max(1), y.max(1))).reshape(4, n).T
-        return new_bboxes
+        return np.concatenate((x.min(1), y.min(1), x.max(1), y.max(1))).reshape(4, n).T
 
     def apply_segments(self, segments, M):
         """apply affine to segments and generate new bboxes from segments.

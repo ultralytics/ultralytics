@@ -59,7 +59,7 @@ class Trainer(BaseTrainer):
 @hydra.main(version_base=None, config_path=CONFIG_PATH_ABS, config_name=str(DEFAULT_CONFIG).split(".")[0])
 def train(cfg):
     model = "squeezenet1_0"
-    dataset = "mnist"  # or yolo.ClassificationDataset("mnist")
+    dataset = "imagenette160"  # or yolo.ClassificationDataset("mnist")
     criterion = torch.nn.CrossEntropyLoss()  # yolo.Loss object
     trainer = Trainer(model, dataset, criterion, config=cfg)
     trainer.run()

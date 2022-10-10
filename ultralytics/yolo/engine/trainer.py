@@ -77,7 +77,7 @@ class BaseTrainer:
         """
         Accepts yaml file name or DictConfig containing experiment configuration.
         Returns train and hyps namespace
-        :param conf: Optional file name or DictConfig object
+        :param config: Optional file name or DictConfig object
         """
         try:
             if isinstance(config, (str, Path)):
@@ -122,9 +122,9 @@ class BaseTrainer:
         self.train.batch_size = self.train.batch_size // world_size
 
     def _setup_train(self, rank):
-        '''
+        """
         Builds dataloaders and optimizer on correct rank process
-        '''
+        """
         self.optimizer = build_optimizer(model=self.model,
                                          name=self.train.optimizer,
                                          lr=self.hyps.lr0,
@@ -282,6 +282,7 @@ class BaseTrainer:
     def log(self, text, rank=-1):
         """
         Logs the given text to given ranks process if provided, otherwise logs to all ranks
+        :param text: text to log
         :param rank: List[Int]
 
         """

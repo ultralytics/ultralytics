@@ -297,7 +297,8 @@ class Instances:
         Concatenates a list of Boxes into a single Bboxes
 
         Arguments:
-            boxes_list (list[Bboxes])
+            instances_list (list[Bboxes])
+            axis
 
         Returns:
             Boxes: the concatenated Boxes

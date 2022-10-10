@@ -1,4 +1,4 @@
-# TODO: Follow google docs format for all functions. Easier for autmatic doc parser
+# TODO: Follow google docs format for all functions. Easier for automatic doc parser
 
 import contextlib
 import logging
@@ -179,10 +179,10 @@ def resample_segments(segments, n=1000):
 
 
 def increment_path(path, exist_ok=False, sep='', mkdir=False):
-    '''
+    """
     Increment file or directory path, i.e. runs/exp --> runs/exp{sep}2, runs/exp{sep}3, ... etc.
     # TODO: docs
-    '''
+    """
     path = Path(path)  # os-agnostic
     if path.exists() and not exist_ok:
         path, suffix = (path.with_suffix(''), path.suffix) if path.is_file() else (path, '')

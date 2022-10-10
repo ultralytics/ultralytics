@@ -8,5 +8,5 @@ include LICENSE
 # Include setup.py
 include setup.py
 
-# Include the data files
-recursive-include data *
+# Include config YAMLs
+recursive-include *.yaml

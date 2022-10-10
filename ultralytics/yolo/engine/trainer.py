@@ -34,7 +34,7 @@ class BaseTrainer:
             self,
             model: str,
             data: str,
-            criterion,  # Should we create out own base loss classes? yolo.losses -> v8.losses.clfLoss
+            criterion,  # Should we create our own base loss classes? yolo.losses -> v8.losses.clfLoss
             validator=None,
             config=CONFIG_PATH_ABS / DEFAULT_CONFIG):
         self.console = LOGGER

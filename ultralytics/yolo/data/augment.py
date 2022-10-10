@@ -180,10 +180,11 @@ class Mosaic(BaseMixTransform):
         for labels in mosaic_labels:
             cls.append(labels["cls"])
             instances.append(labels["instances"])
-        final_labels = {"ori_shape": (self.img_size * 2, self.img_size * 2),
-                        "resized_shape": (self.img_size * 2, self.img_size * 2),
-                        "im_file": mosaic_labels[0]["im_file"],
-                        "cls": np.concatenate(cls, 0)}
+        final_labels = {
+            "ori_shape": (self.img_size * 2, self.img_size * 2),
+            "resized_shape": (self.img_size * 2, self.img_size * 2),
+            "im_file": mosaic_labels[0]["im_file"],
+            "cls": np.concatenate(cls, 0)}
 
         final_labels["instances"] = Instances.concatenate(instances, axis=0)
         final_labels["instances"].clip(self.img_size * 2, self.img_size * 2)

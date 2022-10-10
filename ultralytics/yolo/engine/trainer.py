@@ -80,7 +80,7 @@ class BaseTrainer:
         :param conf: Optional file name or DictConfig object
         """
         try:
-            if isinstance(config, str) or isinstance(config, Path):
+            if isinstance(config, (str, Path)):
                 config = OmegaConf.load(config)
             return config.train, config.hyps
         except KeyError:
@@ -315,7 +315,7 @@ def build_optimizer(model, name='Adam', lr=0.001, momentum=0.9, decay=1e-5):
 
     optimizer.add_param_group({'params': g[0], 'weight_decay': decay})  # add g0 with weight_decay
     optimizer.add_param_group({'params': g[1], 'weight_decay': 0.0})  # add g1 (BatchNorm2d weights)
-    LOGGER.info(f"{'optimizer:'} {type(optimizer).__name__}(lr={lr}) with parameter groups "
+    LOGGER.info(f"optimizer: {type(optimizer).__name__}(lr={lr}) with parameter groups "
                 f"{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias")
     return optimizer
 

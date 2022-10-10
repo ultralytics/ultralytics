@@ -3,6 +3,7 @@
 
 # Base ----------------------------------------
 fire>=0.4.0
+hydra-core>=1.2.0
 matplotlib>=3.2.2
 numpy>=1.18.5
 opencv-python>=4.1.1
@@ -44,4 +45,3 @@ thop>=0.1.1  # FLOPs computation
 
 # HUB -----------------------------------------
 GitPython>=3.1.24
-requests

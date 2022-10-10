@@ -82,8 +82,8 @@ class BaseTrainer:
             if isinstance(config, (str, Path)):
                 config = OmegaConf.load(config)
             return config.train, config.hyps
-        except KeyError:
-            raise Exception("Missing key(s) in config")
+        except KeyError as e:
+            raise Exception("Missing key(s) in config") from e
 
     def add_callback(self, onevent: str, callback):
         """

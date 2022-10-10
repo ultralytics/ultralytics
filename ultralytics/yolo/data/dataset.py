@@ -48,8 +48,7 @@ class YOLODataset(BaseDataset):
 
     def cache_labels(self, path=Path("./labels.cache")):
         # Cache dataset labels, check images and read shapes
-        x = {}  # dict
-        x["labels"] = []
+        x = {"labels": []}
         nm, nf, ne, nc, msgs = 0, 0, 0, 0, []  # number missing, found, empty, corrupt, messages
         desc = f"{self.prefix}Scanning '{path.parent / path.stem}' images and labels..."
         with Pool(NUM_THREADS) as pool:
@@ -155,7 +154,7 @@ class YOLODataset(BaseDataset):
     def collate_fn(batch):
         # TODO: returning a dict can make thing easier and cleaner when using dataset in training
         # but I don't know if this will slow down a little bit.
-        new_batch = dict()
+        new_batch = {}
         keys = batch[0].keys()
         values = list(zip(*[list(b.values()) for b in batch]))
         for i, k in enumerate(keys):

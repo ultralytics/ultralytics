@@ -7,6 +7,7 @@ import math
 import numpy as np
 import torch
 
+
 def bbox_ioa(box1, box2, eps=1e-7):
     """Returns the intersection over box2 area given box1, box2. Boxes are x1y1x2y2
     box1:       np.array of shape(4)
@@ -28,6 +29,7 @@ def bbox_ioa(box1, box2, eps=1e-7):
     # Intersection over box2 area
     return inter_area / box2_area
 
+
 def wh_iou(wh1, wh2, eps=1e-7):
     # Returns the nxm IoU matrix. wh1 is nx2, wh2 is mx2
     wh1 = wh1[:, None]  # [N,1,2]
@@ -35,9 +37,11 @@ def wh_iou(wh1, wh2, eps=1e-7):
     inter = torch.min(wh1, wh2).prod(2)  # [N,M]
     return inter / (wh1.prod(2) + wh2.prod(2) - inter + eps)  # iou = inter / (area1 + area2 - inter)
 
+
 def box_area(box):
     # box = xyxy(4,n)
     return (box[2] - box[0]) * (box[3] - box[1])
+
 
 def box_iou(box1, box2, eps=1e-7):
     # https://github.com/pytorch/vision/blob/master/torchvision/ops/boxes.py
@@ -58,6 +62,7 @@ def box_iou(box1, box2, eps=1e-7):
 
     # IoU = inter / (area1 + area2 - inter)
     return inter / (box_area(box1.T)[:, None] + box_area(box2.T) - inter + eps)
+
 
 def bbox_iou(box1, box2, xywh=True, GIoU=False, DIoU=False, CIoU=False, eps=1e-7):
     # Returns Intersection over Union (IoU) of box1(1,4) to box2(n,4)
@@ -99,15 +104,18 @@ def bbox_iou(box1, box2, xywh=True, GIoU=False, DIoU=False, CIoU=False, eps=1e-7
         return iou - (c_area - union) / c_area  # GIoU https://arxiv.org/pdf/1902.09630.pdf
     return iou  # IoU
 
+
 def fitness_bbox(x):
     # Model fitness as a weighted combination of metrics
     w = [0.0, 0.0, 0.1, 0.9]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
     return (x[:, :4] * w).sum(1)
 
+
 def fitness_mask(x):
     # Model fitness as a weighted combination of metrics
     w = [0.0, 0.0, 0.1, 0.9, 0.0, 0.0, 0.1, 0.9]
     return (x[:, :8] * w).sum(1)
+
 
 def smooth(y, f=0.05):
     # Box filter of fraction f
@@ -115,6 +123,7 @@ def smooth(y, f=0.05):
     p = np.ones(nf // 2)  # ones padding
     yp = np.concatenate((p * y[0], y, p * y[-1]), 0)  # y padded
     return np.convolve(yp, np.ones(nf) / nf, mode='valid')  # y-smoothed
+
 
 def ap_per_class(tp, conf, pred_cls, target_cls, plot=False, save_dir='.', names=(), eps=1e-16, prefix=""):
     """ Compute the average precision, given the recall and precision curves.
@@ -184,6 +193,7 @@ def ap_per_class(tp, conf, pred_cls, target_cls, plot=False, save_dir='.', names
     fp = (tp / (p + eps) - tp).round()  # false positives
     return tp, fp, p, r, f1, ap, unique_classes.astype(int)
 
+
 def compute_ap(recall, precision):
     """ Compute the average precision, given the recall and precision curves
     # Arguments
@@ -211,7 +221,9 @@ def compute_ap(recall, precision):
 
     return ap, mpre, mrec
 
+
 class Metric:
+
     def __init__(self) -> None:
         self.p = []  # (nc, )
         self.r = []  # (nc, )
@@ -323,26 +335,19 @@ class Metrics:
         # boxes and masks have the same ap_class_index
         return self.metric_box.ap_class_index
 
+
 def fix_keys(keys, prefix="", postfix=""):
-    return [prefix+key+postfix for key in keys]
+    return [prefix + key + postfix for key in keys]
+
 
 METRICS = ["precision", "recall", "mAP_0.5", "mAP_0.5:0.95"]
 LOSSES = ["box_loss", "obj_loss", "clas_loss"]
 
 KEYS_BBOX = [
-    "x/lr0",
-    "x/lr1",
-    "x/lr2",
-    *fix_keys(LOSSES, "train/", ""),
-    *fix_keys(LOSSES, "val/", ""),
-    *fix_keys(METRICS, "metrics/", "(BOX)")
-]
+    "x/lr0", "x/lr1", "x/lr2", *fix_keys(LOSSES, "train/", ""), *fix_keys(LOSSES, "val/", ""),
+    *fix_keys(METRICS, "metrics/", "(BOX)")]
 
-KEYS_SEG = KEYS_BBOX + [
-    "train/seg_loss",
-    "val/seg_loss",
-    *fix_keys(METRICS, "metrics/", "(Mask)")
-]
+KEYS_SEG = KEYS_BBOX + ["train/seg_loss", "val/seg_loss", *fix_keys(METRICS, "metrics/", "(Mask)")]
 
 KEYS_CLF = []
 

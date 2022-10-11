@@ -265,6 +265,12 @@ class BaseTrainer:
         if not self.best_fitness or self.best_fitness < self.fitness:
             self.best_fitness = self.fitness
 
+    def build_targets(self, preds, targets):
+        pass
+
+    def loss(self, preds, targets):
+        pass
+
     def progress_string(self):
         """
         Returns progress string depending on task type.

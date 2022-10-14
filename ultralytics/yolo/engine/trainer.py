@@ -62,10 +62,6 @@ class BaseTrainer:
         for callback, func in loggers.default_callbacks.items():
             self.add_callback(callback, func)
 
-    @classmethod
-    def get_trainer(cls):
-        return cls()
-
     def _get_config(self, config: Union[str, Path, DictConfig] = None):
         """
         Accepts yaml file name or DictConfig containing experiment configuration.

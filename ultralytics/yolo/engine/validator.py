@@ -78,7 +78,7 @@ class BaseValidator:
             t = tuple(x.t / len(self.dataloader.dataset.samples) * 1E3 for x in dt)  # speeds per image
             # shape = (self.dataloader.batch_size, 3, imgsz, imgsz)
             self.logger.info(
-                f'Speed: %.1fms pre-process, %.1fms inference, %.1fms loss, %.1fms post-process per image at shape ' %
+                'Speed: %.1fms pre-process, %.1fms inference, %.1fms loss, %.1fms post-process per image at shape ' %
                 t)
 
         # TODO: implement save json

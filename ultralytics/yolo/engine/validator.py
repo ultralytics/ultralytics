@@ -40,7 +40,7 @@ class BaseValidator:
 
         model.eval()
         dt = Profile(), Profile(), Profile(), Profile()
-        loss, pred, targets = 0, [], []
+        loss = 0
         n_batches = len(self.dataloader)
         desc = self.set_desc()
         bar = tqdm(self.dataloader, desc, n_batches, not training, bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')

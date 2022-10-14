@@ -28,7 +28,7 @@ DEFAULT_CONFIG = "defaults.yaml"
 
 class BaseTrainer:
 
-    def __init__(self,config=CONFIG_PATH_ABS / DEFAULT_CONFIG):
+    def __init__(self, config=CONFIG_PATH_ABS / DEFAULT_CONFIG):
         self.console = LOGGER
         self.model, self.data, self.train, self.hyps = self._get_config(config)
         self.validator = None
@@ -126,9 +126,7 @@ class BaseTrainer:
         self.train_loader = self.get_dataloader(self.trainset, batch_size=self.train.batch_size, rank=rank)
         if rank in {0, -1}:
             print(" Creating testloader rank :", rank)
-            self.test_loader = self.get_dataloader(self.testset,
-                                                   batch_size=self.train.batch_size*2,
-                                                   rank=rank)
+            self.test_loader = self.get_dataloader(self.testset, batch_size=self.train.batch_size * 2, rank=rank)
             self.validator = self.get_validator()
             print("created testloader :", rank)
 

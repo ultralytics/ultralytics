@@ -5,11 +5,12 @@ from pathlib import Path
 import hydra
 import torch
 import torchvision
+from val import ClassificationValidator
 
 from ultralytics.yolo import BaseTrainer, utils, v8
 from ultralytics.yolo.data import build_classification_dataloader
 from ultralytics.yolo.engine.trainer import CONFIG_PATH_ABS, DEFAULT_CONFIG
-from val import ClassificationValidator
+
 
 # BaseTrainer python usage
 class ClassificationTrainer(BaseTrainer):
@@ -51,13 +52,14 @@ class ClassificationTrainer(BaseTrainer):
             p.requires_grad = True  # for training
 
         return model
-    
+
     def get_validator(self):
         validator = ClassificationValidator(self.test_loader, self.device, logger=self.console)
         return validator
-    
+
     def criterion(self, preds, targets):
         return torch.nn.functional.cross_entropy(preds, targets)
+
 
 @hydra.main(version_base=None, config_path=CONFIG_PATH_ABS, config_name=str(DEFAULT_CONFIG).split(".")[0])
 def train(cfg):

@@ -1,4 +1,4 @@
-from .general import WorkingDirectory, check_version, download, increment_path, save_yaml, Profile
+from .general import Profile, WorkingDirectory, check_version, download, increment_path, save_yaml
 from .torch_utils import LOCAL_RANK, RANK, WORLD_SIZE, DDP_model, select_device, torch_distributed_zero_first
 
 __all__ = [

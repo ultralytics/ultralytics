@@ -5,12 +5,12 @@ import logging
 import os
 import platform
 import subprocess
+import time
 import urllib
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from zipfile import ZipFile
-import time
 
 import numpy as np
 import pkg_resources as pkg

@@ -1,17 +1,21 @@
-from tqdm import tqdm
 import logging
+
 import torch
-from ultralytics.yolo.utils import select_device, Profile
+from tqdm import tqdm
+
+from ultralytics.yolo.utils import Profile, select_device
+
 
 class BaseValidator:
     """
     Base validator class.
     """
+
     def __init__(self, dataloader, device='', half=False, pbar=None, logger=None):
         self.dataloader = dataloader
         self.half = half
         self.device = select_device(device, dataloader.batch_size)
-        self.pbar = pbar 
+        self.pbar = pbar
         self.logger = logger or logging.getLogger()
         # self.trainer_class = self.get_trainer_class(self)
 
@@ -29,7 +33,7 @@ class BaseValidator:
             model = trainer.model
             self.half &= device.type != 'cpu'
             model = model.half() if self.half else model
-        else: # TODO: handle this when detectMultiBackend is supported
+        else:  # TODO: handle this when detectMultiBackend is supported
             device = self.device
             # model = DetectMultiBacked(model)
             pass
@@ -46,7 +50,7 @@ class BaseValidator:
                 # pre-process
                 with dt[0]:
                     images, labels = trainer.preprocess_batch(images, labels)
-                
+
                 # inference
                 with dt[1]:
                     preds = model(images)
@@ -63,7 +67,7 @@ class BaseValidator:
                     preds = self.preprocess_preds(preds)
 
                 self.update_metrics(preds, labels)
-        
+
         stats = self.get_stats()
         self.check_stats(stats)
 
@@ -73,7 +77,9 @@ class BaseValidator:
         if not training:
             t = tuple(x.t / len(self.dataloader.dataset.samples) * 1E3 for x in dt)  # speeds per image
             # shape = (self.dataloader.batch_size, 3, imgsz, imgsz)
-            self.logger.info(f'Speed: %.1fms pre-process, %.1fms inference, %.1fms loss, %.1fms post-process per image at shape ' % t)
+            self.logger.info(
+                f'Speed: %.1fms pre-process, %.1fms inference, %.1fms loss, %.1fms post-process per image at shape ' %
+                t)
 
         # TODO: implement save json
 
@@ -81,7 +87,7 @@ class BaseValidator:
 
     def get_trainer_class(self):
         """
-        Function to be implemented by derived classes. Returns the Trainer class used for the 
+        Function to be implemented by derived classes. Returns the Trainer class used for the
         given task.
         """
         # raise NotImplementedError("Validator should implement this function")
@@ -107,5 +113,3 @@ class BaseValidator:
 
     def set_desc(self):
         pass
-
-    

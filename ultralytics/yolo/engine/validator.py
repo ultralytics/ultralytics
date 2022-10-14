@@ -17,7 +17,6 @@ class BaseValidator:
         self.device = select_device(device, dataloader.batch_size)
         self.pbar = pbar
         self.logger = logger or logging.getLogger()
-        # self.trainer_class = self.get_trainer_class(self)
 
     def __call__(self, trainer=None, model=None):
         """
@@ -29,12 +28,10 @@ class BaseValidator:
         if not training and not model:
             raise Exception("Either trainer or model is needed for validation")
         if training:
-            device = trainer.device
             model = trainer.model
-            self.half &= device.type != 'cpu'
+            self.half &= self.device.type != 'cpu'
             model = model.half() if self.half else model
         else:  # TODO: handle this when detectMultiBackend is supported
-            device = self.device
             # model = DetectMultiBacked(model)
             pass
 
@@ -49,7 +46,7 @@ class BaseValidator:
             for images, labels in bar:
                 # pre-process
                 with dt[0]:
-                    images, labels = trainer.preprocess_batch(images, labels)
+                    images, labels = self.preprocess_batch(images, labels)
 
                 # inference
                 with dt[1]:
@@ -84,13 +81,8 @@ class BaseValidator:
 
         return stats
 
-    def get_trainer_class(self):
-        """
-        Function to be implemented by derived classes. Returns the Trainer class used for the
-        given task.
-        """
-        # raise NotImplementedError("Validator should implement this function")
-        pass
+    def preprocess_batch(self, images, labels):
+        return images.to(self.device, non_blocking=True), labels.to(self.device)
 
     def preprocess_preds(self, preds):
         return preds

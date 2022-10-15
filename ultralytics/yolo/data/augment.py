@@ -8,10 +8,10 @@ import numpy as np
 import torch
 import torchvision.transforms as T
 
+from .utils import IMAGENET_MEAN, IMAGENET_STD, polygons2masks, polygons2masks_overlap
 from ..utils.general import LOGGER, check_version, colorstr, segment2box
 from ..utils.instance import Instances
 from ..utils.metrics import bbox_ioa
-from .utils import IMAGENET_MEAN, IMAGENET_STD, polygons2masks, polygons2masks_overlap
 
 
 # TODO: we might need a BaseTransform to make all these augments be compatible with both classification and semantic

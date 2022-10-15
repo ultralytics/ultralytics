@@ -5,11 +5,11 @@ from pathlib import Path
 import hydra
 import torch
 import torchvision
-from val import ClassificationValidator
 
 from ultralytics.yolo import BaseTrainer, utils, v8
 from ultralytics.yolo.data import build_classification_dataloader
 from ultralytics.yolo.engine.trainer import CONFIG_PATH_ABS, DEFAULT_CONFIG
+from val import ClassificationValidator
 
 
 # BaseTrainer python usage

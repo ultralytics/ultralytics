@@ -54,8 +54,7 @@ class ClassificationTrainer(BaseTrainer):
         return model
 
     def get_validator(self):
-        validator = ClassificationValidator(self.test_loader, self.device, logger=self.console)
-        return validator
+        return ClassificationValidator(self.test_loader, self.device, logger=self.console)  # validator
 
     def criterion(self, preds, targets):
         return torch.nn.functional.cross_entropy(preds, targets)

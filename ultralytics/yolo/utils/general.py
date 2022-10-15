@@ -209,7 +209,7 @@ def increment_path(path, exist_ok=False, sep='', mkdir=False):
     return path
 
 
-def save_yaml(file='data.yaml', data={}):
+def save_yaml(file='data.yaml', data=None):
     # Single-line safe yaml saving
     with open(file, 'w') as f:
         yaml.safe_dump({k: str(v) if isinstance(v, Path) else v for k, v in data.items()}, f, sort_keys=False)
@@ -279,7 +279,6 @@ class WorkingDirectory(contextlib.ContextDecorator):
 
 def safe_download(file, url, url2=None, min_bytes=1E0, error_msg=''):
     # Attempts to download file from url or url2, checks and removes incomplete downloads < min_bytes
-    from utils.general import LOGGER
 
     file = Path(file)
     assert_msg = f"Downloaded file '{file}' does not exist or size is < min_bytes={min_bytes}"
@@ -302,7 +301,6 @@ def safe_download(file, url, url2=None, min_bytes=1E0, error_msg=''):
 
 def attempt_download(file, repo='ultralytics/yolov5', release='v6.2'):
     # Attempt file download from GitHub release assets if not found locally. release = 'latest', 'v6.2', etc.
-    from utils.general import LOGGER
 
     def github_assets(repository, version='latest'):
         # Return GitHub repo tag and assets (i.e. ['yolov5s.pt', 'yolov5m.pt', ...])

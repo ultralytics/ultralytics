@@ -20,13 +20,12 @@ class BaseValidator:
 
     def __call__(self, trainer=None, model=None):
         """
-        Supports validation of a pre-trained model if model if passed or a model being trained
-        if trainer is passed. trainer gets the priority.
+        Supports validation of a pre-trained model if passed or a model being trained
+        if trainer is passed (trainer gets priority).
         """
         training = trainer is not None
         # trainer = trainer or self.trainer_class.get_trainer()
-        if not training and not model:
-            raise Exception("Either trainer or model is needed for validation")
+        assert training or model is not None, "Either trainer or model is needed for validation"
         if training:
             model = trainer.model
             self.half &= self.device.type != 'cpu'

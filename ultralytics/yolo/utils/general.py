@@ -112,7 +112,7 @@ def colorstr(*input):
         "bright_white": "\033[97m",
         "end": "\033[0m",  # misc
         "bold": "\033[1m",
-        "underline": "\033[4m",}
+        "underline": "\033[4m", }
     return "".join(colors[x] for x in args) + f"{string}" + colors["end"]
 
 

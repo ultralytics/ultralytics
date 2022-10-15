@@ -1,3 +1,5 @@
+model: null
+data: null
 train:
   epochs: 300
   batch_size: 16

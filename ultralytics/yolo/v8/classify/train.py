@@ -4,10 +4,8 @@ from pathlib import Path
 
 import hydra
 import torch
-import torch.hub as hub
 import torchvision
-import torchvision.transforms as T
-from omegaconf import DictConfig, OmegaConf
+from val import ClassificationValidator
 
 from ultralytics.yolo import BaseTrainer, utils, v8
 from ultralytics.yolo.data import build_classification_dataloader
@@ -15,7 +13,7 @@ from ultralytics.yolo.engine.trainer import CONFIG_PATH_ABS, DEFAULT_CONFIG
 
 
 # BaseTrainer python usage
-class Trainer(BaseTrainer):
+class ClassificationTrainer(BaseTrainer):
 
     def get_dataset(self):
         # temporary solution. Replace with new ultralytics.yolo.ClassificationDataset module
@@ -55,13 +53,18 @@ class Trainer(BaseTrainer):
 
         return model
 
+    def get_validator(self):
+        return ClassificationValidator(self.test_loader, self.device, logger=self.console)  # validator
+
+    def criterion(self, preds, targets):
+        return torch.nn.functional.cross_entropy(preds, targets)
+
 
 @hydra.main(version_base=None, config_path=CONFIG_PATH_ABS, config_name=str(DEFAULT_CONFIG).split(".")[0])
 def train(cfg):
-    model = "squeezenet1_0"
-    dataset = "imagenette160"  # or yolo.ClassificationDataset("mnist")
-    criterion = torch.nn.CrossEntropyLoss()  # yolo.Loss object
-    trainer = Trainer(model, dataset, criterion, config=cfg)
+    cfg.model = cfg.model or "squeezenet1_0"
+    cfg.data = cfg.data or "imagenette160"  # or yolo.ClassificationDataset("mnist")
+    trainer = ClassificationTrainer(cfg)
     trainer.run()
 
 

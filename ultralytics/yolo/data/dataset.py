@@ -2,13 +2,10 @@ from itertools import repeat
 from multiprocessing.pool import Pool
 from pathlib import Path
 
-import cv2
-import numpy as np
-import torch
 import torchvision
 from tqdm import tqdm
 
-from ..utils.general import LOGGER, NUM_THREADS
+from ..utils.general import NUM_THREADS
 from .augment import *
 from .base import BaseDataset
 from .utils import BAR_FORMAT, HELP_URL, LOCAL_RANK, get_hash, img2label_paths, verify_image_label

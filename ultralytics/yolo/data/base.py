@@ -9,8 +9,8 @@ import numpy as np
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
-from .utils import BAR_FORMAT, HELP_URL, IMG_FORMATS, LOCAL_RANK
 from ..utils.general import NUM_THREADS
+from .utils import BAR_FORMAT, HELP_URL, IMG_FORMATS, LOCAL_RANK
 
 
 class BaseDataset(Dataset):

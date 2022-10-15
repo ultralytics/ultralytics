@@ -54,24 +54,24 @@ def seed_worker(worker_id):
 
 # TODO: we can inject most args from a config file
 def build_dataloader(
-        img_path,
-        img_size,  #
-        batch_size,  #
-        single_cls=False,  #
-        hyp=None,  #
-        augment=False,
-        cache=False,  #
-        image_weights=False,  #
-        stride=32,
-        label_path=None,
-        pad=0.0,
-        rect=False,
-        rank=-1,
-        workers=8,
-        prefix="",
-        shuffle=False,
-        use_segments=False,
-        use_keypoints=False,
+    img_path,
+    img_size,  #
+    batch_size,  #
+    single_cls=False,  #
+    hyp=None,  #
+    augment=False,
+    cache=False,  #
+    image_weights=False,  #
+    stride=32,
+    label_path=None,
+    pad=0.0,
+    rect=False,
+    rank=-1,
+    workers=8,
+    prefix="",
+    shuffle=False,
+    use_segments=False,
+    use_keypoints=False,
 ):
     if rect and shuffle:
         LOGGER.warning("WARNING ⚠️ --rect is incompatible with DataLoader shuffle, setting shuffle=False")

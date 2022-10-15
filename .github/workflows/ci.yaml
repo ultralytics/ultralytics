@@ -54,7 +54,7 @@ jobs:
       - name: Test HUB training
         shell: python
         env:
-         APIKEY: ${{ secrets.ULTRALYTICS_HUB_APIKEY }}
+          APIKEY: ${{ secrets.ULTRALYTICS_HUB_APIKEY }}
         run: |
           import os
           import ultralytics

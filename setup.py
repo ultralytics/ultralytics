@@ -28,7 +28,7 @@ setup(
     project_urls={
         'Bug Reports': 'https://github.com/ultralytics/ultralytics/issues',
         'Funding': 'https://ultralytics.com',
-        'Source': 'https://github.com/ultralytics/ultralytics',},
+        'Source': 'https://github.com/ultralytics/ultralytics', },
     author="Ultralytics",
     author_email='hello@ultralytics.com',
     packages=find_packages(),  # required
@@ -36,7 +36,7 @@ setup(
     install_requires=REQUIREMENTS,
     extras_require={
         'dev': ['check-manifest'],
-        'test': ['pytest', 'pytest-cov', 'coverage'],},
+        'test': ['pytest', 'pytest-cov', 'coverage'], },
     classifiers=[
         "Intended Audience :: Developers", "Intended Audience :: Science/Research",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)", "Programming Language :: Python :: 3",

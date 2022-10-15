@@ -10,8 +10,8 @@ pip install .  # (dev)
 # pip install ultralytics (production)
 ```
 
-
 ### Usage
+
 ```python
 import ultralytics
 from ultralytics import HUB, YOLO

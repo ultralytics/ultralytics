@@ -5,6 +5,7 @@ import logging
 import os
 import platform
 import subprocess
+import time
 import urllib
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
@@ -255,7 +256,7 @@ def increment_path(path, exist_ok=False, sep='', mkdir=False):
     return path
 
 
-def save_yaml(file='data.yaml', data={}):
+def save_yaml(file='data.yaml', data=None):
     # Single-line safe yaml saving
     with open(file, 'w') as f:
         yaml.safe_dump({k: str(v) if isinstance(v, Path) else v for k, v in data.items()}, f, sort_keys=False)
@@ -370,6 +371,46 @@ def check_requirements(requirements=ROOT / 'requirements.txt', exclude=(), insta
     s = ''
     n = 0
     for r in requirements:
+        torch.hub.download_url_to_file(url, str(file), progress=LOGGER.level <= logging.INFO)
+        assert file.exists() and file.stat().st_size > min_bytes, assert_msg  # check
+    except Exception as e:  # url2
+        if file.exists():
+            file.unlink()  # remove partial downloads
+        LOGGER.info(f'ERROR: {e}\nRe-attempting {url2 or url} to {file}...')
+        os.system(f"curl -# -L '{url2 or url}' -o '{file}' --retry 3 -C -")  # curl download, retry and resume on fail
+    finally:
+        if not file.exists() or file.stat().st_size < min_bytes:  # check
+            if file.exists():
+                file.unlink()  # remove partial downloads
+            LOGGER.info(f"ERROR: {assert_msg}\n{error_msg}")
+        LOGGER.info('')
+
+
+def attempt_download(file, repo='ultralytics/yolov5', release='v6.2'):
+    # Attempt file download from GitHub release assets if not found locally. release = 'latest', 'v6.2', etc.
+
+    def github_assets(repository, version='latest'):
+        # Return GitHub repo tag and assets (i.e. ['yolov5s.pt', 'yolov5m.pt', ...])
+        if version != 'latest':
+            version = f'tags/{version}'  # i.e. tags/v6.2
+        response = requests.get(f'https://api.github.com/repos/{repository}/releases/{version}').json()  # github api
+        return response['tag_name'], [x['name'] for x in response['assets']]  # tag, assets
+
+    file = Path(str(file).strip().replace("'", ''))
+    if not file.exists():
+        # URL specified
+        name = Path(urllib.parse.unquote(str(file))).name  # decode '%2F' to '/' etc.
+        if str(file).startswith(('http:/', 'https:/')):  # download
+            url = str(file).replace(':/', '://')  # Pathlib turns :// -> :/
+            file = name.split('?')[0]  # parse authentication https://url.com/file.txt?auth...
+            if Path(file).is_file():
+                LOGGER.info(f'Found {url} locally at {file}')  # file already exists
+            else:
+                safe_download(file=file, url=url, min_bytes=1E5)
+            return file
+
+        # GitHub assets
+        assets = [f'yolov5{size}{suffix}.pt' for size in 'nsmlx' for suffix in ('', '6', '-cls', '-seg')]  # default
         try:
             pkg.require(r)
         except (pkg.VersionConflict, pkg.DistributionNotFound):  # exception if requirements not met
@@ -473,6 +514,17 @@ def check_file(file, suffix=''):
 def check_yaml(file, suffix=('.yaml', '.yml')):
     # Search/download YAML file (if necessary) and return path, checking suffix
     return check_file(file, suffix)
+
+class Profile(contextlib.ContextDecorator):
+    # YOLOv5 Profile class. Usage: @Profile() decorator or 'with Profile():' context manager
+    def __init__(self, t=0.0):
+        self.t = t
+        self.cuda = torch.cuda.is_available()
+
+def get_model(model: str):
+    # check for local weights
+    pass
+
 
 class Profile(contextlib.ContextDecorator):
     # YOLOv5 Profile class. Usage: @Profile() decorator or 'with Profile():' context manager

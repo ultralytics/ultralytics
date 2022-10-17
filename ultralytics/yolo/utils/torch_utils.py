@@ -1,18 +1,18 @@
-import os
-from contextlib import contextmanager
-import time
-from pathlib import Path
-from copy import deepcopy
 import math
+import os
+import time
+from contextlib import contextmanager
+from copy import deepcopy
+from pathlib import Path
 
 import thop
 import torch
+import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-from ultralytics.yolo.utils import check_version, LOGGER
+from ultralytics.yolo.utils import LOGGER, check_version
 
 LOCAL_RANK = int(os.getenv('LOCAL_RANK', -1))  # https://pytorch.org/docs/stable/elastic/run.html
 RANK = int(os.getenv('RANK', -1))

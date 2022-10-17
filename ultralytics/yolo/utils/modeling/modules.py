@@ -3,6 +3,7 @@
 Common modules
 """
 
+import argparse
 import math
 import warnings
 from copy import copy
@@ -16,18 +17,18 @@ import torch
 import torch.nn as nn
 from PIL import Image, ImageOps
 from torch.cuda import amp
-from ultralytics.yolo.utils.general import (LOGGER, Profile, check_version, colorstr, increment_path,
-                            make_divisible, non_max_suppression, scale_boxes, xyxy2xywh, make_divisible)
-from ultralytics.yolo.utils.torch_utils import copy_attr, smart_inference_mode
-from ultralytics.yolo.utils.plotting import Annotator, save_one_box, colors
-import argparse
-from pathlib import Path
 
-
-from ultralytics.yolo.utils import LOGGER, check_version
 from ultralytics.yolo.data.augment import LetterBox
+from ultralytics.yolo.utils import LOGGER, check_version
+from ultralytics.yolo.utils.general import (LOGGER, Profile, check_version, colorstr, increment_path, make_divisible,
+                                            non_max_suppression, scale_boxes, xyxy2xywh)
+from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
+from ultralytics.yolo.utils.torch_utils import copy_attr, smart_inference_mode
+
 from .autobackend import AutoBackend
+
 # from utils.plots import feature_visualization TODO
+
 
 def autopad(k, p=None, d=1):  # kernel, padding, dilation
     # Pad to 'same' shape outputs
@@ -542,6 +543,7 @@ class Ensemble(nn.ModuleList):
         # y = torch.stack(y).mean(0)  # mean ensemble
         y = torch.cat(y, 1)  # nms ensemble
         return y, None  # inference, train output
+
 
 # heads
 class Detect(nn.Module):

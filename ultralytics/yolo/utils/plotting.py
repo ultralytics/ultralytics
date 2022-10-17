@@ -1,13 +1,14 @@
-
 from pathlib import Path
 from urllib.error import URLError
-from PIL import Image, ImageDraw, ImageFont
 
 import cv2
-import torch
 import numpy as np
+import torch
+from PIL import Image, ImageDraw, ImageFont
 
-from ultralytics.yolo.utils.general import FONT, CONFIG_DIR, check_font, is_ascii, scale_image, check_requirements, xywh2xyxy, xyxy2xywh, clip_coords, increment_path
+from ultralytics.yolo.utils.general import (CONFIG_DIR, FONT, check_font, check_requirements, clip_coords,
+                                            increment_path, is_ascii, scale_image, xywh2xyxy, xyxy2xywh)
+
 
 class Colors:
     # Ultralytics color palette https://ultralytics.com/

@@ -27,6 +27,7 @@ def bbox_ioa(box1, box2, eps=1e-7):
     # Intersection over box2 area
     return inter_area / box2_area
 
+
 def box_iou(box1, box2, eps=1e-7):
     # https://github.com/pytorch/vision/blob/master/torchvision/ops/boxes.py
     """

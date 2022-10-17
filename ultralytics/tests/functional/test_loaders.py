@@ -1,6 +1,8 @@
+import torch
+
 from ultralytics.yolo.utils.general import check_yaml
 from ultralytics.yolo.utils.modeling.tasks import DetectionModel
-import torch
+
 
 def test_model_parser():
     cfg = check_yaml("../assets/dummy_model.yaml")  # check YAML

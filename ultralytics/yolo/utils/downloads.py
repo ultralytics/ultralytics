@@ -1,14 +1,16 @@
 import contextlib
-import yaml
-import urllib
-import subprocess
-from pathlib import Path
 import os
+import subprocess
+import urllib
+from pathlib import Path
 
 import torch
 import torch.nn as nn
+import yaml
+
 # from ultralytics.yolo.utils.modeling.modules import *
 import ultralytics.yolo.utils as utils
+
 
 def safe_download(file, url, url2=None, min_bytes=1E0, error_msg=''):
     # Attempts to download file from url or url2, checks and removes incomplete downloads < min_bytes
@@ -42,6 +44,7 @@ def is_url(url, check=True):
         return (urllib.request.urlopen(url).getcode() == 200) if check else True  # check if exists online
     except (AssertionError, urllib.request.HTTPError):
         return False
+
 
 def attempt_download(file, repo='ultralytics/yolov5', release='v6.2'):
     # Attempt file download from GitHub release assets if not found locally. release = 'latest', 'v6.2', etc.
@@ -90,5 +93,3 @@ def attempt_download(file, repo='ultralytics/yolov5', release='v6.2'):
                 error_msg=f'{file} missing, try downloading from https://github.com/{repo}/releases/{tag} or {url3}')
 
     return str(file)
-
-

@@ -1,29 +1,29 @@
 # TODO: Follow google docs format for all functions. Easier for automatic doc parser
 
 import contextlib
+import glob
 import logging
+import math
 import os
 import platform
 import subprocess
+import sys
 import time
 import urllib
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
-from zipfile import ZipFile
 from subprocess import check_output
-import glob
-import sys
-import time
-import math
+from zipfile import ZipFile
 
-import torchvision
+import cv2
 import numpy as np
 import pkg_resources as pkg
 import requests
 import torch
+import torchvision
 import yaml
-import cv2
+
 from ultralytics.yolo.utils.metrics import box_iou
 
 FILE = Path(__file__).resolve()

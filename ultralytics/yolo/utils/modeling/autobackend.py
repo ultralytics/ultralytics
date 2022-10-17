@@ -1,13 +1,15 @@
 import json
 from collections import OrderedDict, namedtuple
-from urllib.parse import urlparse
 from pathlib import Path
+from urllib.parse import urlparse
 
-import cv2 
+import cv2
 import torch
 import torch.nn as nn
-from ultralytics.yolo.utils.general import LOGGER, check_requirements, check_suffix, xywh2xyxy, ROOT, check_version
-from ultralytics.yolo.utils.downloads import  attempt_download, is_url
+
+from ultralytics.yolo.utils.downloads import attempt_download, is_url
+from ultralytics.yolo.utils.general import LOGGER, ROOT, check_requirements, check_suffix, check_version, xywh2xyxy
+
 
 class AutoBackend(nn.Module):
     # YOLOv5 MultiBackend class for python inference on various backends
@@ -25,7 +27,7 @@ class AutoBackend(nn.Module):
         #   TensorFlow Lite:                *.tflite
         #   TensorFlow Edge TPU:            *_edgetpu.tflite
         #   PaddlePaddle:                   *_paddle_model
-        from ultralytics.yolo.utils.modeling import yaml_load, attempt_load_weights
+        from ultralytics.yolo.utils.modeling import attempt_load_weights, yaml_load
 
         super().__init__()
         w = str(weights[0] if isinstance(weights, list) else weights)
@@ -306,6 +308,7 @@ class AutoBackend(nn.Module):
     @staticmethod
     def _load_metadata(f=Path('path/to/meta.yaml')):
         from ultralytics.yolo.utils.modeling import yaml_load
+
         # Load metadata from meta.yaml if it exists
         if f.exists():
             d = yaml_load(f)

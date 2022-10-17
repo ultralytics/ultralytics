@@ -1,8 +1,11 @@
-import yaml
 import contextlib
 
-from .modules import *
+import yaml
+
 from ultralytics.yolo.utils.downloads import attempt_download
+
+from .modules import *
+
 
 def attempt_load_weights(weights, device=None, inplace=True, fuse=True):
     # Loads an ensemble of models weights=[a,b,c] or a single model weights=[a] or weights=a

@@ -1,12 +1,14 @@
-import torch.nn as nn
-import thop
 import time
 from copy import deepcopy
 
-from ultralytics.yolo.utils import time_sync, LOGGER, fuse_conv_and_bn, model_info, initialize_weights, scale_img
+import thop
+import torch.nn as nn
+
+from ultralytics.yolo.utils import LOGGER, fuse_conv_and_bn, initialize_weights, model_info, scale_img, time_sync
+from ultralytics.yolo.utils.anchors import check_anchor_order
 from ultralytics.yolo.utils.modeling import parse_model
 from ultralytics.yolo.utils.modeling.modules import *
-from ultralytics.yolo.utils.anchors import check_anchor_order
+
 
 class BaseModel(nn.Module):
     # YOLOv5 base model
@@ -63,7 +65,6 @@ class BaseModel(nn.Module):
             if isinstance(m.anchor_grid, list):
                 m.anchor_grid = list(map(fn, m.anchor_grid))
         return self
-
 
 
 class DetectionModel(BaseModel):
@@ -164,6 +165,7 @@ class DetectionModel(BaseModel):
             b.data[:, 5:5 + m.nc] += math.log(0.6 / (m.nc - 0.99999)) if cf is None else torch.log(cf / cf.sum())  # cls
             mi.bias = torch.nn.Parameter(b.view(-1), requires_grad=True)
 
+
 class SegmentationModel(DetectionModel):
     # YOLOv5 segmentation model
     def __init__(self, cfg='yolov5s-seg.yaml', ch=3, nc=None, anchors=None):
@@ -194,4 +196,3 @@ class ClassificationModel(BaseModel):
     def _from_yaml(self, cfg):
         # Create a YOLOv5 classification model from a *.yaml file
         self.model = None
-

@@ -30,6 +30,7 @@ class Colors:
 
 colors = Colors()  # create instance for 'from utils.plots import colors'
 
+
 class Annotator:
     # YOLOv5 Annotator for train/val mosaics and jpgs and detect/hub inference annotations
     def __init__(self, im, line_width=None, font_size=None, font='Arial.ttf', pil=False, example='abc'):
@@ -142,6 +143,7 @@ class Annotator:
         # Return annotated image as array
         return np.asarray(self.im)
 
+
 def check_pil_font(font=FONT, size=10):
     # Return a PIL TrueType Font, downloading to CONFIG_DIR if necessary
     font = Path(font)
@@ -156,6 +158,7 @@ def check_pil_font(font=FONT, size=10):
             check_requirements('Pillow>=8.4.0')  # known issue https://github.com/ultralytics/yolov5/issues/5374
         except URLError:  # not online
             return ImageFont.load_default()
+
 
 def save_one_box(xyxy, im, file=Path('im.jpg'), gain=1.02, pad=10, square=False, BGR=False, save=True):
     # Save image crop as {file} with crop size multiple {gain} and {pad} pixels. Save and/or return crop

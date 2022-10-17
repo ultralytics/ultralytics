@@ -37,6 +37,7 @@ AUTOINSTALL = str(os.getenv('YOLOv5_AUTOINSTALL', True)).lower() == 'true'  # gl
 VERBOSE = str(os.getenv('YOLOv5_VERBOSE', True)).lower() == 'true'  # global verbose mode
 FONT = 'Arial.ttf'  # https://ultralytics.com/assets/Arial.ttf
 
+
 def is_writeable(dir, test=False):
     # Return True if directory has write permissions, test opening a file with write permissions if test=True
     if not test:
@@ -50,6 +51,7 @@ def is_writeable(dir, test=False):
     except OSError:
         return False
 
+
 def user_config_dir(dir='Ultralytics', env_var='YOLOV5_CONFIG_DIR'):
     # Return path of user configuration directory. Prefer environment variable if exists. Make dir if required.
     env = os.getenv(env_var)
@@ -62,7 +64,9 @@ def user_config_dir(dir='Ultralytics', env_var='YOLOV5_CONFIG_DIR'):
     path.mkdir(exist_ok=True)  # make if required
     return path
 
+
 CONFIG_DIR = user_config_dir()  # Ultralytics settings dir
+
 
 class TryExcept(contextlib.ContextDecorator):
     # YOLOv5 TryExcept class. Usage: @TryExcept() decorator or 'with TryExcept():' context manager
@@ -76,6 +80,7 @@ class TryExcept(contextlib.ContextDecorator):
         if value:
             print(emojis(f'{self.msg}{value}'))
         return True
+
 
 def is_colab():
     # Is environment a Google Colab instance?
@@ -338,9 +343,11 @@ def check_font(font=FONT, progress=False):
         LOGGER.info(f'Downloading {url} to {file}...')
         torch.hub.download_url_to_file(url, str(file), progress=progress)
 
+
 def emojis(str=''):
     # Return platform-dependent emoji-safe version of string
     return str.encode().decode('ascii', 'ignore') if platform.system() == 'Windows' else str
+
 
 def check_online():
     # Check internet connectivity
@@ -351,9 +358,11 @@ def check_online():
     except OSError:
         return False
 
+
 def check_python(minimum='3.7.0'):
     # Check current python version vs. required python version
     check_version(platform.python_version(), minimum, name='Python ', hard=True)
+
 
 @TryExcept()
 def check_requirements(requirements=ROOT / 'requirements.txt', exclude=(), install=True, cmds=''):
@@ -389,10 +398,12 @@ def check_requirements(requirements=ROOT / 'requirements.txt', exclude=(), insta
         except Exception as e:
             LOGGER.warning(f'{prefix} ❌ {e}')
 
+
 def is_ascii(s=''):
     # Is string composed of all ASCII (no UTF) characters? (note str().isascii() introduced in python 3.7)
     s = str(s)  # convert list, tuple, None, etc. to str
     return len(s.encode().decode('ascii', 'ignore')) == len(s)
+
 
 # segment
 def scale_image(im1_shape, masks, im0_shape, ratio_pad=None):
@@ -422,6 +433,7 @@ def scale_image(im1_shape, masks, im0_shape, ratio_pad=None):
         masks = masks[:, :, None]
     return masks
 
+
 def clip_coords(boxes, shape):
     # Clip bounding xyxy bounding boxes to image shape (height, width)
     if isinstance(boxes, torch.Tensor):  # faster individually
@@ -443,6 +455,7 @@ def check_suffix(file='yolov5s.pt', suffix=('.pt',), msg=''):
             s = Path(f).suffix.lower()  # file suffix
             if len(s):
                 assert s in suffix, f"{msg}{f} acceptable suffix is {suffix}"
+
 
 def check_file(file, suffix=''):
     # Search/download file (if necessary) and return path
@@ -471,15 +484,18 @@ def check_file(file, suffix=''):
         assert len(files) == 1, f"Multiple files match '{file}', specify exact path: {files}"  # assert unique
         return files[0]  # return file
 
+
 def check_yaml(file, suffix=('.yaml', '.yml')):
     # Search/download YAML file (if necessary) and return path, checking suffix
     return check_file(file, suffix)
+
 
 class Profile(contextlib.ContextDecorator):
     # YOLOv5 Profile class. Usage: @Profile() decorator or 'with Profile():' context manager
     def __init__(self, t=0.0):
         self.t = t
         self.cuda = torch.cuda.is_available()
+
 
 def get_model(model: str):
     # check for local weights
@@ -505,11 +521,13 @@ class Profile(contextlib.ContextDecorator):
             torch.cuda.synchronize()
         return time.time()
 
+
 def make_divisible(x, divisor):
     # Returns nearest x divisible by divisor
     if isinstance(divisor, torch.Tensor):
         divisor = int(divisor.max())  # to int
     return math.ceil(x / divisor) * divisor
+
 
 def non_max_suppression(
         prediction,
@@ -627,6 +645,7 @@ def non_max_suppression(
 
     return output
 
+
 def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None):
     # Rescale boxes (xyxy) from img1_shape to img0_shape
     if ratio_pad is None:  # calculate from img0_shape
@@ -641,6 +660,7 @@ def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None):
     boxes[:, :4] /= gain
     clip_boxes(boxes, img0_shape)
     return boxes
+
 
 def clip_boxes(boxes, shape):
     # Clip boxes (xyxy) to image shape (height, width)

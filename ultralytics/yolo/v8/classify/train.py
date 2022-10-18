@@ -7,9 +7,12 @@ import torch
 import torchvision
 from val import ClassificationValidator
 
-from ultralytics.yolo import BaseTrainer, utils, v8
+from ultralytics.yolo import BaseTrainer, v8
 from ultralytics.yolo.data import build_classification_dataloader
 from ultralytics.yolo.engine.trainer import CONFIG_PATH_ABS, DEFAULT_CONFIG
+from ultralytics.yolo.utils.downloads import download
+from ultralytics.yolo.utils.files import WorkingDirectory
+from ultralytics.yolo.utils.torch_utils import LOCAL_RANK, torch_distributed_zero_first
 
 
 # BaseTrainer python usage
@@ -18,7 +21,7 @@ class ClassificationTrainer(BaseTrainer):
     def get_dataset(self):
         # temporary solution. Replace with new ultralytics.yolo.ClassificationDataset module
         data = Path("datasets") / self.data
-        with utils.torch_distributed_zero_first(utils.LOCAL_RANK), utils.WorkingDirectory(Path.cwd()):
+        with torch_distributed_zero_first(LOCAL_RANK), WorkingDirectory(Path.cwd()):
             data_dir = data if data.is_dir() else (Path.cwd() / data)
             if not data_dir.is_dir():
                 self.console.info(f'\nDataset not found ⚠️, missing path {data_dir}, attempting download...')
@@ -27,7 +30,7 @@ class ClassificationTrainer(BaseTrainer):
                     subprocess.run(f"bash {v8.ROOT / 'data/scripts/get_imagenet.sh'}", shell=True, check=True)
                 else:
                     url = f'https://github.com/ultralytics/yolov5/releases/download/v1.0/{self.data}.zip'
-                    utils.download(url, dir=data_dir.parent)
+                    download(url, dir=data_dir.parent)
                 # TODO: add colorstr
                 s = f"Dataset download success ✅ ({time.time() - t:.1f}s), saved to {'bold', data_dir}\n"
                 self.console.info(s)

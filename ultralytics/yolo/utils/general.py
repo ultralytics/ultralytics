@@ -315,7 +315,6 @@ def emojis(str=''):
     return str.encode().decode('ascii', 'ignore') if platform.system() == 'Windows' else str
 
 
-
 # segment
 def scale_image(im1_shape, masks, im0_shape, ratio_pad=None):
     """

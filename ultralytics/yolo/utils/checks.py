@@ -1,5 +1,6 @@
 from .general import LOGGER
 
+
 def check_version(current="0.0.0", minimum="0.0.0", name="version ", pinned=False, hard=False, verbose=False):
     # Check version vs. required version
     current, minimum = (pkg.parse_version(x) for x in (current, minimum))
@@ -11,6 +12,7 @@ def check_version(current="0.0.0", minimum="0.0.0", name="version ", pinned=Fals
         LOGGER.warning(s)
     return result
 
+
 def check_font(font=FONT, progress=False):
     # Download font to CONFIG_DIR if necessary
     font = Path(font)
@@ -19,6 +21,7 @@ def check_font(font=FONT, progress=False):
         url = f'https://ultralytics.com/assets/{font.name}'
         LOGGER.info(f'Downloading {url} to {file}...')
         torch.hub.download_url_to_file(url, str(file), progress=progress)
+
 
 def check_online():
     # Check internet connectivity
@@ -29,9 +32,11 @@ def check_online():
     except OSError:
         return False
 
+
 def check_python(minimum='3.7.0'):
     # Check current python version vs. required python version
     check_version(platform.python_version(), minimum, name='Python ', hard=True)
+
 
 @TryExcept()
 def check_requirements(requirements=ROOT / 'requirements.txt', exclude=(), install=True, cmds=''):
@@ -67,10 +72,12 @@ def check_requirements(requirements=ROOT / 'requirements.txt', exclude=(), insta
         except Exception as e:
             LOGGER.warning(f'{prefix} ❌ {e}')
 
+
 def is_ascii(s=''):
     # Is string composed of all ASCII (no UTF) characters? (note str().isascii() introduced in python 3.7)
     s = str(s)  # convert list, tuple, None, etc. to str
     return len(s.encode().decode('ascii', 'ignore')) == len(s)
+
 
 def check_suffix(file='yolov5s.pt', suffix=('.pt',), msg=''):
     # Check file(s) for acceptable suffix
@@ -81,6 +88,7 @@ def check_suffix(file='yolov5s.pt', suffix=('.pt',), msg=''):
             s = Path(f).suffix.lower()  # file suffix
             if len(s):
                 assert s in suffix, f"{msg}{f} acceptable suffix is {suffix}"
+
 
 def check_file(file, suffix=''):
     # Search/download file (if necessary) and return path
@@ -108,6 +116,7 @@ def check_file(file, suffix=''):
         assert len(files), f'File not found: {file}'  # assert file was found
         assert len(files) == 1, f"Multiple files match '{file}', specify exact path: {files}"  # assert unique
         return files[0]  # return file
+
 
 def check_yaml(file, suffix=('.yaml', '.yml')):
     # Search/download YAML file (if necessary) and return path, checking suffix

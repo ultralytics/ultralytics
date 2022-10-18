@@ -3,12 +3,12 @@ import platform
 from collections import OrderedDict, namedtuple
 from pathlib import Path
 from urllib.parse import urlparse
-from PIL import Image
 
 import cv2
 import numpy as np
 import torch
 import torch.nn as nn
+from PIL import Image
 
 from ultralytics.yolo.utils import LOGGER, ROOT
 from ultralytics.yolo.utils.checks import check_requirements, check_suffix, check_version

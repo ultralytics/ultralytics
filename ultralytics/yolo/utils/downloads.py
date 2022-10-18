@@ -1,3 +1,4 @@
+import logging
 import os
 import subprocess
 import urllib
@@ -5,10 +6,10 @@ from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from zipfile import ZipFile
-import logging
-import requests
 
+import requests
 import torch
+
 from ultralytics.yolo.utils import LOGGER
 
 

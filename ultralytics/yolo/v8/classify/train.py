@@ -10,9 +10,10 @@ from val import ClassificationValidator
 from ultralytics.yolo import BaseTrainer, v8
 from ultralytics.yolo.data import build_classification_dataloader
 from ultralytics.yolo.engine.trainer import CONFIG_PATH_ABS, DEFAULT_CONFIG
-from ultralytics.yolo.utils.files import WorkingDirectory
-from ultralytics.yolo.utils.torch_utils import torch_distributed_zero_first, LOCAL_RANK
 from ultralytics.yolo.utils.downloads import download
+from ultralytics.yolo.utils.files import WorkingDirectory
+from ultralytics.yolo.utils.torch_utils import LOCAL_RANK, torch_distributed_zero_first
+
 
 # BaseTrainer python usage
 class ClassificationTrainer(BaseTrainer):

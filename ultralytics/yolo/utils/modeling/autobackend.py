@@ -3,10 +3,11 @@ from collections import OrderedDict, namedtuple
 from pathlib import Path
 from urllib.parse import urlparse
 
-import numpy as np
 import cv2
+import numpy as np
 import torch
 import torch.nn as nn
+
 from ultralytics.yolo.utils import LOGGER, ROOT
 from ultralytics.yolo.utils.checks import check_requirements, check_suffix, check_version
 from ultralytics.yolo.utils.downloads import attempt_download, is_url

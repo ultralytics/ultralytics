@@ -6,6 +6,9 @@ Model validation metrics
 import numpy as np
 import torch
 
+def box_area(box):
+    # box = xyxy(4,n)
+    return (box[2] - box[0]) * (box[3] - box[1])
 
 def bbox_ioa(box1, box2, eps=1e-7):
     """Returns the intersection over box2 area given box1, box2. Boxes are x1y1x2y2

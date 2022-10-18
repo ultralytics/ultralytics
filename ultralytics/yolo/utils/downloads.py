@@ -5,11 +5,10 @@ from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from zipfile import ZipFile
-
+import logging
 import requests
-import torch
 
-# from ultralytics.yolo.utils.modeling.modules import *
+import torch
 from ultralytics.yolo.utils import LOGGER
 
 
@@ -47,7 +46,6 @@ def is_url(url, check=True):
 
 def attempt_download(file, repo='ultralytics/yolov5', release='v6.2'):
     # Attempt file download from GitHub release assets if not found locally. release = 'latest', 'v6.2', etc.
-    # from utils.general import LOGGER
 
     def github_assets(repository, version='latest'):
         # Return GitHub repo tag and assets (i.e. ['yolov5s.pt', 'yolov5m.pt', ...])

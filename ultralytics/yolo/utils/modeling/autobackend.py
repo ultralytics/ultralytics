@@ -1,7 +1,9 @@
 import json
+import platform
 from collections import OrderedDict, namedtuple
 from pathlib import Path
 from urllib.parse import urlparse
+from PIL import Image
 
 import cv2
 import numpy as np
@@ -185,7 +187,7 @@ class AutoBackend(nn.Module):
             input_handle = predictor.get_input_handle(predictor.get_input_names()[0])
             output_names = predictor.get_output_names()
         elif triton:  # NVIDIA Triton Inference Server
-            LOGGER.info(f'Triton Inference Server not supported...')
+            LOGGER.info('Triton Inference Server not supported...')
             '''
             TODO:
             check_requirements('tritonclient[all]')

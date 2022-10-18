@@ -2,6 +2,8 @@ import logging
 import os
 import platform
 
+from .base import default_callbacks
+
 VERBOSE = str(os.getenv('YOLOv5_VERBOSE', True)).lower() == 'true'  # global verbose mode
 
 

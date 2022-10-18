@@ -8,7 +8,6 @@ def test_model_parser():
     cfg = check_yaml("../assets/dummy_model.yaml")  # check YAML
 
     # Create model
-    im = torch.rand(8, 3, 640, 640)
     model = DetectionModel(cfg)
     print(model)
     '''

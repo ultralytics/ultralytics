@@ -1,12 +1,12 @@
 import os
 import subprocess
 import urllib
-from pathlib import Path
-import requests
-from multiprocessing.pool import ThreadPool
 from itertools import repeat
+from multiprocessing.pool import ThreadPool
+from pathlib import Path
 from zipfile import ZipFile
 
+import requests
 import torch
 
 # from ultralytics.yolo.utils.modeling.modules import *
@@ -92,6 +92,7 @@ def attempt_download(file, repo='ultralytics/yolov5', release='v6.2'):
                 error_msg=f'{file} missing, try downloading from https://github.com/{repo}/releases/{tag} or {url3}')
 
     return str(file)
+
 
 def download(url, dir=Path.cwd(), unzip=True, delete=True, curl=False, threads=1, retry=3):
     # Multithreaded file download and unzip function, used in data.yaml for autodownload

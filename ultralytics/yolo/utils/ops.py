@@ -1,6 +1,6 @@
+import contextlib
 import math
 import time
-import contextlib
 
 import cv2
 import numpy as np
@@ -8,7 +8,9 @@ import torch
 import torchvision
 
 from ultralytics.yolo.utils import LOGGER
+
 from .metrics import box_iou
+
 
 class Profile(contextlib.ContextDecorator):
     # YOLOv5 Profile class. Usage: @Profile() decorator or 'with Profile():' context manager
@@ -29,6 +31,7 @@ class Profile(contextlib.ContextDecorator):
             torch.cuda.synchronize()
         return time.time()
 
+
 def segment2box(segment, width=640, height=640):
     # Convert 1 segment label to 1 box label, applying inside-image constraint, i.e. (xy1, xy2, ...) to (xyxy)
     x, y = segment.T  # segment xy
@@ -38,6 +41,7 @@ def segment2box(segment, width=640, height=640):
         y[inside],
     )
     return np.array([x.min(), y.min(), x.max(), y.max()]) if any(x) else np.zeros(4)  # xyxy
+
 
 def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None):
     # Rescale boxes (xyxy) from img1_shape to img0_shape
@@ -65,6 +69,7 @@ def clip_boxes(boxes, shape):
     else:  # np.array (faster grouped)
         boxes[:, [0, 2]] = boxes[:, [0, 2]].clip(0, shape[1])  # x1, x2
         boxes[:, [1, 3]] = boxes[:, [1, 3]].clip(0, shape[0])  # y1, y2
+
 
 def make_divisible(x, divisor):
     # Returns nearest x divisible by divisor
@@ -201,6 +206,7 @@ def clip_coords(boxes, shape):
         boxes[:, [0, 2]] = boxes[:, [0, 2]].clip(0, shape[1])  # x1, x2
         boxes[:, [1, 3]] = boxes[:, [1, 3]].clip(0, shape[0])  # y1, y2
 
+
 def scale_image(im1_shape, masks, im0_shape, ratio_pad=None):
     """
     img1_shape: model input shape, [h, w]
@@ -227,7 +233,6 @@ def scale_image(im1_shape, masks, im0_shape, ratio_pad=None):
     if len(masks.shape) == 2:
         masks = masks[:, :, None]
     return masks
-
 
 
 def xyxy2xywh(x):

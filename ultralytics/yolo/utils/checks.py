@@ -1,16 +1,17 @@
-from pathlib import Path
-import platform
-import pkg_resources as pkg
-from subprocess import check_output
-import urllib
 import glob
-import sys
 import os
+import platform
+import sys
+import urllib
+from pathlib import Path
+from subprocess import check_output
 
+import pkg_resources as pkg
 import torch
-from ultralytics.yolo.utils import ROOT, LOGGER, CONFIG_DIR, FONT, AUTOINSTALL, TryExcept
-from .loggers import colorstr, emojis
 
+from ultralytics.yolo.utils import AUTOINSTALL, CONFIG_DIR, FONT, LOGGER, ROOT, TryExcept
+
+from .loggers import colorstr, emojis
 
 
 def check_version(current="0.0.0", minimum="0.0.0", name="version ", pinned=False, hard=False, verbose=False):

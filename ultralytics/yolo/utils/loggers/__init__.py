@@ -1,13 +1,15 @@
-import platform
-import os
 import logging
+import os
+import platform
 
 VERBOSE = str(os.getenv('YOLOv5_VERBOSE', True)).lower() == 'true'  # global verbose mode
+
 
 # console logging utils
 def emojis(str=''):
     # Return platform-dependent emoji-safe version of string
     return str.encode().decode('ascii', 'ignore') if platform.system() == 'Windows' else str
+
 
 def colorstr(*input):
     # Colors a string https://en.wikipedia.org/wiki/ANSI_escape_code, i.e.  colorstr('blue', 'hello world')
@@ -34,9 +36,11 @@ def colorstr(*input):
         "underline": "\033[4m",}
     return "".join(colors[x] for x in args) + f"{string}" + colors["end"]
 
+
 def set_logging(name=None, verbose=VERBOSE):
     # Sets level and returns logger
-    is_kaggle = os.environ.get("PWD") == "/kaggle/working" and os.environ.get("KAGGLE_URL_BASE") == "https://www.kaggle.com"
+    is_kaggle = os.environ.get("PWD") == "/kaggle/working" and os.environ.get(
+        "KAGGLE_URL_BASE") == "https://www.kaggle.com"
     is_colab = "COLAB_GPU" in os.environ
     if is_colab or is_kaggle:
         for h in logging.root.handlers:

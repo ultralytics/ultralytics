@@ -5,10 +5,10 @@ import thop
 import torch.nn as nn
 
 from ultralytics.yolo.utils import LOGGER
-from ultralytics.yolo.utils.torch_utils import fuse_conv_and_bn, initialize_weights, model_info, scale_img, time_sync
 from ultralytics.yolo.utils.anchors import check_anchor_order
 from ultralytics.yolo.utils.modeling import parse_model
 from ultralytics.yolo.utils.modeling.modules import *
+from ultralytics.yolo.utils.torch_utils import fuse_conv_and_bn, initialize_weights, model_info, scale_img, time_sync
 
 
 class BaseModel(nn.Module):

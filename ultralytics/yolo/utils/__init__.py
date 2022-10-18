@@ -1,11 +1,11 @@
+import contextlib
+import logging
 import os
 import platform
 from pathlib import Path
-import logging
-import contextlib
 
-from .loggers import set_logging, emojis
 from .files import user_config_dir
+from .loggers import emojis, set_logging
 
 # Constants
 
@@ -25,6 +25,7 @@ if platform.system() == "Windows":
     for fn in LOGGER.info, LOGGER.warning:
         setattr(LOGGER, fn.__name__, lambda x: fn(emojis(x)))  # emoji safe logging
 
+
 class TryExcept(contextlib.ContextDecorator):
     # YOLOv5 TryExcept class. Usage: @TryExcept() decorator or 'with TryExcept():' context manager
     def __init__(self, msg=''):
@@ -37,4 +38,3 @@ class TryExcept(contextlib.ContextDecorator):
         if value:
             print(emojis(f'{self.msg}{value}'))
         return True
-

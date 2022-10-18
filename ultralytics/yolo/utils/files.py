@@ -1,8 +1,9 @@
 import contextlib
 import os
-from pathlib import Path
-import yaml
 import platform
+from pathlib import Path
+
+import yaml
 
 
 class WorkingDirectory(contextlib.ContextDecorator):
@@ -30,6 +31,7 @@ def is_writeable(dir, test=False):
         return True
     except OSError:
         return False
+
 
 def user_config_dir(dir='Ultralytics', env_var='YOLOV5_CONFIG_DIR'):
     # Return path of user configuration directory. Prefer environment variable if exists. Make dir if required.

@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 from PIL import ExifTags, Image, ImageOps
 
-from ..utils.general import segments2boxes
+from ..utils.ops import segments2boxes
 
 HELP_URL = "See https://github.com/ultralytics/yolov5/wiki/Train-Custom-Data"
 IMG_FORMATS = "bmp", "dng", "jpeg", "jpg", "mpo", "png", "tif", "tiff", "webp", "pfm"  # include image suffixes

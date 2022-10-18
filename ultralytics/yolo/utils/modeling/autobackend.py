@@ -8,7 +8,9 @@ import torch
 import torch.nn as nn
 
 from ultralytics.yolo.utils.downloads import attempt_download, is_url
-from ultralytics.yolo.utils.general import LOGGER, ROOT, check_requirements, check_suffix, check_version, xywh2xyxy
+from ultralytics.yolo.utils import LOGGER, ROOT
+from ultralytics.yolo.utils.checks import check_requirements, check_suffix, check_version
+from ultralytics.yolo.utils.ops import xywh2xyxy
 
 
 class AutoBackend(nn.Module):

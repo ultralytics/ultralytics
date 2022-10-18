@@ -12,7 +12,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-from ultralytics.yolo.utils import LOGGER, check_version
+from ultralytics.yolo.utils import LOGGER
+from .checks import check_version
 
 LOCAL_RANK = int(os.getenv('LOCAL_RANK', -1))  # https://pytorch.org/docs/stable/elastic/run.html
 RANK = int(os.getenv('RANK', -1))

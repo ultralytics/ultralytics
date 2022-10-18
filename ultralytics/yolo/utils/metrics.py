@@ -4,6 +4,7 @@ Model validation metrics
 """
 
 import numpy as np
+import torch
 
 
 def bbox_ioa(box1, box2, eps=1e-7):

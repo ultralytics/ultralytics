@@ -1,6 +1,6 @@
 import torch
 
-from ultralytics.yolo.utils.general import check_yaml
+from ultralytics.yolo.utils.checks import check_yaml
 from ultralytics.yolo.utils.modeling.tasks import DetectionModel
 
 

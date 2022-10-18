@@ -16,13 +16,15 @@ import requests
 import torch
 import torch.nn as nn
 from PIL import Image, ImageOps
-from torch.cuda import amp
 
+from torch.cuda import amp
 from ultralytics.yolo.data.augment import LetterBox
-from ultralytics.yolo.utils import LOGGER, check_version
-from ultralytics.yolo.utils.general import (LOGGER, Profile, check_version, colorstr, increment_path, make_divisible,
-                                            non_max_suppression, scale_boxes, xyxy2xywh)
+from ultralytics.yolo.utils import LOGGER
+from ultralytics.yolo.utils.ops import non_max_suppression, scale_boxes, xyxy2xywh, make_divisible, Profile
+from ultralytics.yolo.utils.files import increment_path
+from ultralytics.yolo.utils.checks import check_version
 from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
+from ultralytics.yolo.utils.loggers import colorstr
 from ultralytics.yolo.utils.torch_utils import copy_attr, smart_inference_mode
 
 from .autobackend import AutoBackend

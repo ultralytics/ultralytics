@@ -1,21 +1,20 @@
-import contextlib
 import os
 import subprocess
 import urllib
 from pathlib import Path
+import requests
+from multiprocessing.pool import ThreadPool
+from itertools import repeat
+from zipfile import ZipFile
 
 import torch
-import torch.nn as nn
-import yaml
 
 # from ultralytics.yolo.utils.modeling.modules import *
-import ultralytics.yolo.utils as utils
+from ultralytics.yolo.utils import LOGGER
 
 
 def safe_download(file, url, url2=None, min_bytes=1E0, error_msg=''):
     # Attempts to download file from url or url2, checks and removes incomplete downloads < min_bytes
-    from utils.general import LOGGER
-
     file = Path(file)
     assert_msg = f"Downloaded file '{file}' does not exist or size is < min_bytes={min_bytes}"
     try:  # url1
@@ -48,7 +47,7 @@ def is_url(url, check=True):
 
 def attempt_download(file, repo='ultralytics/yolov5', release='v6.2'):
     # Attempt file download from GitHub release assets if not found locally. release = 'latest', 'v6.2', etc.
-    from utils.general import LOGGER
+    # from utils.general import LOGGER
 
     def github_assets(repository, version='latest'):
         # Return GitHub repo tag and assets (i.e. ['yolov5s.pt', 'yolov5m.pt', ...])
@@ -93,3 +92,56 @@ def attempt_download(file, repo='ultralytics/yolov5', release='v6.2'):
                 error_msg=f'{file} missing, try downloading from https://github.com/{repo}/releases/{tag} or {url3}')
 
     return str(file)
+
+def download(url, dir=Path.cwd(), unzip=True, delete=True, curl=False, threads=1, retry=3):
+    # Multithreaded file download and unzip function, used in data.yaml for autodownload
+    def download_one(url, dir):
+        # Download 1 file
+        success = True
+        if Path(url).is_file():
+            f = Path(url)  # filename
+        else:  # does not exist
+            f = dir / Path(url).name
+            LOGGER.info(f'Downloading {url} to {f}...')
+            for i in range(retry + 1):
+                if curl:
+                    s = 'sS' if threads > 1 else ''  # silent
+                    r = os.system(
+                        f'curl -# -{s}L "{url}" -o "{f}" --retry 9 -C -')  # curl download with retry, continue
+                    success = r == 0
+                else:
+                    torch.hub.download_url_to_file(url, f, progress=threads == 1)  # torch download
+                    success = f.is_file()
+                if success:
+                    break
+                elif i < retry:
+                    LOGGER.warning(f'⚠️ Download failure, retrying {i + 1}/{retry} {url}...')
+                else:
+                    LOGGER.warning(f'❌ Failed to download {url}...')
+
+        if unzip and success and f.suffix in ('.zip', '.tar', '.gz'):
+            LOGGER.info(f'Unzipping {f}...')
+            if f.suffix == '.zip':
+                ZipFile(f).extractall(path=dir)  # unzip
+            elif f.suffix == '.tar':
+                os.system(f'tar xf {f} --directory {f.parent}')  # unzip
+            elif f.suffix == '.gz':
+                os.system(f'tar xfz {f} --directory {f.parent}')  # unzip
+            if delete:
+                f.unlink()  # remove zip
+
+    dir = Path(dir)
+    dir.mkdir(parents=True, exist_ok=True)  # make directory
+    if threads > 1:
+        pool = ThreadPool(threads)
+        pool.imap(lambda x: download_one(*x), zip(url, repeat(dir)))  # multithreaded
+        pool.close()
+        pool.join()
+    else:
+        for u in [url] if isinstance(url, (str, Path)) else url:
+            download_one(u, dir)
+
+
+def get_model(model: str):
+    # check for local weights
+    pass

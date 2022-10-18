@@ -20,7 +20,7 @@ from tqdm import tqdm
 
 import ultralytics.yolo.utils as utils
 import ultralytics.yolo.utils.loggers as loggers
-from ultralytics.yolo.utils.general import LOGGER, ROOT
+from ultralytics.yolo.utils import LOGGER, ROOT
 
 CONFIG_PATH_ABS = ROOT / "yolo/utils/configs"
 DEFAULT_CONFIG = "defaults.yaml"

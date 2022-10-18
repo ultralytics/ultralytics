@@ -6,8 +6,10 @@ import numpy as np
 import torch
 from PIL import Image, ImageDraw, ImageFont
 
-from ultralytics.yolo.utils.general import (CONFIG_DIR, FONT, check_font, check_requirements, clip_coords,
-                                            increment_path, is_ascii, scale_image, xywh2xyxy, xyxy2xywh)
+from ultralytics.yolo.utils import CONFIG_DIR, FONT 
+from .checks import check_font, check_requirements, is_ascii
+from .ops import clip_coords,  scale_image, xywh2xyxy, xyxy2xywh
+from .files import increment_path
 
 
 class Colors:

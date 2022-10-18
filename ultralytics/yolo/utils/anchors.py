@@ -11,7 +11,8 @@ import yaml
 from tqdm import tqdm
 
 from ultralytics.yolo.data import BaseDataset
-from ultralytics.yolo.utils.general import LOGGER, TryExcept, colorstr
+from ultralytics.yolo.utils import LOGGER, TryExcept
+from .loggers import colorstr
 
 PREFIX = colorstr('AutoAnchor: ')
 

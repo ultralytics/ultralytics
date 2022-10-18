@@ -8,9 +8,12 @@ import numpy as np
 import torch
 import torchvision.transforms as T
 
-from ..utils.general import LOGGER, check_version, colorstr, segment2box
+from ..utils import LOGGER
+from ..utils.checks import check_version
 from ..utils.instance import Instances
+from ..utils.loggers import colorstr
 from ..utils.metrics import bbox_ioa
+from ..utils.ops import segment2box
 from .utils import IMAGENET_MEAN, IMAGENET_STD, polygons2masks, polygons2masks_overlap
 
 
@@ -457,8 +460,8 @@ class LetterBox:
         self.scaleup = scaleup
         self.stride = stride
 
-    def __call__(self, labels):
-        img = labels["img"]
+    def __call__(self, labels={}, image=None):
+        img = image or labels["img"]
         shape = img.shape[:2]  # current shape [height, width]
         new_shape = labels.get("rect_shape", self.new_shape)
         if isinstance(new_shape, int):

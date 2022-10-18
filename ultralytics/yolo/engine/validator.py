@@ -3,7 +3,8 @@ import logging
 import torch
 from tqdm import tqdm
 
-from ultralytics.yolo.utils import Profile, select_device
+from ultralytics.yolo.utils.ops import Profile
+from ultralytics.yolo.utils.torch_utils import select_device
 
 
 class BaseValidator:

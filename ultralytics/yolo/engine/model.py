@@ -29,7 +29,7 @@ class YOLO:
         self.model, self.trainer = self._get_model_and_trainer(cfg)
 
     def load(self, weights, autodownload=True):
-        if not isinstance(self.pretrained_weights, NoneType):
+        if not isinstance(self.pretrained_weights, type(None)):
             LOGGER.info("Overwitting weights")
         # TODO: weights = smart_file_loader(weights)
         if self.model:

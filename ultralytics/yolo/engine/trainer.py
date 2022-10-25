@@ -244,7 +244,7 @@ class BaseTrainer:
 
     def preprocess_batch(self, images, labels):
         """
-        Allows custom preprocessing model inputs and ground truths depeding on task type
+        Allows custom preprocessing model inputs and ground truths depending on task type
         """
         return images.to(self.device, non_blocking=True), labels.to(self.device)
 

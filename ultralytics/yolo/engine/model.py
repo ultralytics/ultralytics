@@ -1,9 +1,6 @@
 """
 Top-level YOLO model interface. First principle usage example - https://github.com/ultralytics/ultralytics/issues/13
 """
-
-from types import NoneType
-
 import torch
 import yaml
 

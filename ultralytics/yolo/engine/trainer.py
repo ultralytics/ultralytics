@@ -79,8 +79,7 @@ class BaseTrainer:
         elif isinstance(overrides, Dict):
             overrides = OmegaConf.create(overrides)
 
-        config = OmegaConf.merge(config, overrides)
-        return config
+        return OmegaConf.merge(config, overrides)
 
     def add_callback(self, onevent: str, callback):
         """

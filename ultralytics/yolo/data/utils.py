@@ -51,7 +51,8 @@ def exif_size(img):
 def verify_image_label(args):
     # Verify one image-label pair
     im_file, lb_file, prefix, keypoint = args
-    nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, "", None, None  # number (missing, found, empty, corrupt), message, segments, keypoints
+    # number (missing, found, empty, corrupt), message, segments, keypoints
+    nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, "", None, None
     try:
         # verify images
         im = Image.open(im_file)
@@ -86,10 +87,10 @@ def verify_image_label(args):
                     kpts = np.zeros((lb.shape[0], 39))
                     for i in range(len(lb)):
                         kpt = np.delete(lb[i, 5:], np.arange(2, lb.shape[1] - 5,
-                                                             3))  # remove the occlusion paramater from the GT
+                                                             3))  # remove the occlusion parameter from the GT
                         kpts[i] = np.hstack((lb[i, :5], kpt))
                     lb = kpts
-                    assert lb.shape[1] == 39, "labels require 39 columns each after removing occlusion paramater"
+                    assert lb.shape[1] == 39, "labels require 39 columns each after removing occlusion parameter"
                 else:
                     assert lb.shape[1] == 5, f"labels require 5 columns, {lb.shape[1]} columns detected"
                     assert (lb >= 0).all(), f"negative label values {lb[lb < 0]}"

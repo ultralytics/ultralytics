@@ -5,11 +5,10 @@ from pathlib import Path
 import hydra
 import torch
 import torchvision
-from val import ClassificationValidator
 
-from ultralytics.yolo import BaseTrainer, v8
+from ultralytics.yolo import v8
 from ultralytics.yolo.data import build_classification_dataloader
-from ultralytics.yolo.engine.trainer import CONFIG_PATH_ABS, DEFAULT_CONFIG
+from ultralytics.yolo.engine.trainer import CONFIG_PATH_ABS, DEFAULT_CONFIG, BaseTrainer
 from ultralytics.yolo.utils.downloads import download
 from ultralytics.yolo.utils.files import WorkingDirectory
 from ultralytics.yolo.utils.torch_utils import LOCAL_RANK, torch_distributed_zero_first
@@ -18,9 +17,9 @@ from ultralytics.yolo.utils.torch_utils import LOCAL_RANK, torch_distributed_zer
 # BaseTrainer python usage
 class ClassificationTrainer(BaseTrainer):
 
-    def get_dataset(self):
+    def get_dataset(self, dataset):
         # temporary solution. Replace with new ultralytics.yolo.ClassificationDataset module
-        data = Path("datasets") / self.data
+        data = Path("datasets") / dataset
         with torch_distributed_zero_first(LOCAL_RANK), WorkingDirectory(Path.cwd()):
             data_dir = data if data.is_dir() else (Path.cwd() / data)
             if not data_dir.is_dir():
@@ -29,7 +28,7 @@ class ClassificationTrainer(BaseTrainer):
                 if str(data) == 'imagenet':
                     subprocess.run(f"bash {v8.ROOT / 'data/scripts/get_imagenet.sh'}", shell=True, check=True)
                 else:
-                    url = f'https://github.com/ultralytics/yolov5/releases/download/v1.0/{self.data}.zip'
+                    url = f'https://github.com/ultralytics/yolov5/releases/download/v1.0/{dataset}.zip'
                     download(url, dir=data_dir.parent)
                 # TODO: add colorstr
                 s = f"Dataset download success ✅ ({time.time() - t:.1f}s), saved to {'bold', data_dir}\n"
@@ -39,17 +38,18 @@ class ClassificationTrainer(BaseTrainer):
 
         return train_set, test_set
 
-    def get_dataloader(self, dataset, batch_size=None, rank=0):
-        return build_classification_dataloader(path=dataset, batch_size=self.train.batch_size, rank=rank)
+    def get_dataloader(self, dataset_path, batch_size=None, rank=0):
+        return build_classification_dataloader(path=dataset_path, batch_size=self.args.batch_size, rank=rank)
 
-    def get_model(self):
+    def get_model(self, model, pretrained):
         # temp. minimal. only supports torchvision models
-        if self.model in torchvision.models.__dict__:  # TorchVision models i.e. resnet50, efficientnet_b0
-            model = torchvision.models.__dict__[self.model](weights='IMAGENET1K_V1' if self.train.pretrained else None)
+        model = self.args.model
+        if model in torchvision.models.__dict__:  # TorchVision models i.e. resnet50, efficientnet_b0
+            model = torchvision.models.__dict__[model](weights='IMAGENET1K_V1' if pretrained else None)
         else:
-            raise ModuleNotFoundError(f'--model {self.model} not found.')
+            raise ModuleNotFoundError(f'--model {model} not found.')
         for m in model.modules():
-            if not self.train.pretrained and hasattr(m, 'reset_parameters'):
+            if not pretrained and hasattr(m, 'reset_parameters'):
                 m.reset_parameters()
         for p in model.parameters():
             p.requires_grad = True  # for training
@@ -57,7 +57,7 @@ class ClassificationTrainer(BaseTrainer):
         return model
 
     def get_validator(self):
-        return ClassificationValidator(self.test_loader, self.device, logger=self.console)  # validator
+        return v8.classify.ClassificationValidator(self.test_loader, self.device, logger=self.console)
 
     def criterion(self, preds, targets):
         return torch.nn.functional.cross_entropy(preds, targets)
@@ -66,17 +66,17 @@ class ClassificationTrainer(BaseTrainer):
 @hydra.main(version_base=None, config_path=CONFIG_PATH_ABS, config_name=str(DEFAULT_CONFIG).split(".")[0])
 def train(cfg):
     cfg.model = cfg.model or "squeezenet1_0"
-    cfg.data = cfg.data or "imagenette160"  # or yolo.ClassificationDataset("mnist")
+    cfg.data = cfg.data or "imagenette"  # or yolo.ClassificationDataset("mnist")
     trainer = ClassificationTrainer(cfg)
-    trainer.run()
+    trainer.train()
 
 
 if __name__ == "__main__":
     """
     CLI usage:
-    python ../path/to/train.py train.epochs=10 train.project="name" hyps.lr0=0.1
+    python ../path/to/train.py args.epochs=10 args.project="name" hyps.lr0=0.1
 
     TODO:
-    Direct cli support, i.e, yolov8 classify_train train.epochs 10
+    Direct cli support, i.e, yolov8 classify_train args.epochs 10
     """
     train()

@@ -1,9 +1,9 @@
 import torch
 
-from ultralytics import yolo
+from ultralytics.yolo.engine.validator import BaseValidator
 
 
-class ClassificationValidator(yolo.BaseValidator):
+class ClassificationValidator(BaseValidator):
 
     def init_metrics(self):
         self.correct = torch.tensor([])

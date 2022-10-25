@@ -3,22 +3,24 @@ Top-level YOLO model interface. First principle usage example - https://github.c
 """
 
 from types import NoneType
-import yaml
 
 import torch
+import yaml
+
 import ultralytics.yolo as yolo
-from ultralytics.yolo.utils.modeling.tasks import ClassificationModel, DetectionModel, SegmentationModel
-from ultralytics.yolo.utils.checks import check_yaml
 from ultralytics.yolo.utils import LOGGER
+from ultralytics.yolo.utils.checks import check_yaml
+from ultralytics.yolo.utils.modeling.tasks import ClassificationModel, DetectionModel, SegmentationModel
 
 # map head: [model, trainer]
 MODEL_MAP = {
     "Classify": [ClassificationModel, 'yolo.VERSION.classify.train.ClassificationTrainer'],
-    "Detect": [ClassificationModel, 'yolo.VERSION.classify.train.ClassificationTrainer'], # temp
-    "Segment": []
-}
+    "Detect": [ClassificationModel, 'yolo.VERSION.classify.train.ClassificationTrainer'],  # temp
+    "Segment": []}
+
 
 class YOLO:
+
     def __init__(self, version=8) -> None:
         self.version = version
         self.model = None
@@ -39,7 +41,7 @@ class YOLO:
         else:
             # TODO: infer model and trainer
             pass
-        
+
         self.pretrained_weights = weights
 
     def reset(self):
@@ -53,7 +55,6 @@ class YOLO:
         kwargs["model"] = self.model
         trainer = self.trainer(overrides=kwargs)
         trainer.train()
-        
 
     def _get_model_and_trainer(self, cfg):
         with open(cfg, encoding='ascii', errors='ignore') as f:

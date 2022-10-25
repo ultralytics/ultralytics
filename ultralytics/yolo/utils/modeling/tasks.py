@@ -8,7 +8,8 @@ from ultralytics.yolo.utils import LOGGER
 from ultralytics.yolo.utils.anchors import check_anchor_order
 from ultralytics.yolo.utils.modeling import parse_model
 from ultralytics.yolo.utils.modeling.modules import *
-from ultralytics.yolo.utils.torch_utils import fuse_conv_and_bn, initialize_weights, intersect_state_dicts, model_info, scale_img, time_sync
+from ultralytics.yolo.utils.torch_utils import (fuse_conv_and_bn, initialize_weights, intersect_state_dicts, model_info,
+                                                scale_img, time_sync)
 
 
 class BaseModel(nn.Module):
@@ -66,7 +67,7 @@ class BaseModel(nn.Module):
             if isinstance(m.anchor_grid, list):
                 m.anchor_grid = list(map(fn, m.anchor_grid))
         return self
-    
+
     def load(self, weights):
         # Force all tasks implement this function
         raise NotImplementedError("This function needs to be implemented by derived classes!")
@@ -175,7 +176,7 @@ class DetectionModel(BaseModel):
         csd = ckpt['model'].float().state_dict()  # checkpoint state_dict as FP32
         csd = intersect_state_dicts(csd, self.state_dict())  # intersect
         self.load_state_dict(csd, strict=False)  # load
-        
+
 
 class SegmentationModel(DetectionModel):
     # YOLOv5 segmentation model

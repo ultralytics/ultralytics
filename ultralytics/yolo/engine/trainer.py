@@ -62,7 +62,7 @@ class BaseTrainer:
         for callback, func in loggers.default_callbacks.items():
             self.add_callback(callback, func)
 
-    def _get_config(self, config: Union[str, DictConfig], overrides: Union[str, Dict]={}):
+    def _get_config(self, config: Union[str, DictConfig], overrides: Union[str, Dict] = {}):
         """
         Accepts yaml file name or DictConfig containing experiment configuration.
         Returns training args namespace
@@ -78,10 +78,9 @@ class BaseTrainer:
             overrides = OmegaConf.load(overrides)
         elif isinstance(overrides, Dict):
             overrides = OmegaConf.create(overrides)
-            
+
         config = OmegaConf.merge(config, overrides)
         return config
-
 
     def add_callback(self, onevent: str, callback):
         """

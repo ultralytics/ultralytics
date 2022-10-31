@@ -84,6 +84,7 @@ class YOLO:
 
         return model_class, trainer_class
 
+
 if __name__ == "__main__":
     model = YOLO()
     # model.new("assets/dummy_model.yaml")

@@ -22,6 +22,7 @@ import ultralytics.yolo.utils as utils
 import ultralytics.yolo.utils.loggers as loggers
 from ultralytics.yolo.utils import LOGGER, ROOT
 from ultralytics.yolo.utils.files import increment_path, save_yaml
+from ultralytics.yolo.utils.modeling import get_model
 
 CONFIG_PATH_ABS = ROOT / "yolo/utils/configs"
 DEFAULT_CONFIG = "defaults.yaml"
@@ -33,6 +34,7 @@ class BaseTrainer:
         self.console = LOGGER
         self.args = self._get_config(config, overrides)
         self.validator = None
+        self.model = None
         self.callbacks = defaultdict(list)
         self.console.info(f"Training config: \n args: \n {self.args}")  # to debug
         # Directories
@@ -51,7 +53,8 @@ class BaseTrainer:
 
         # Model and Dataloaders.
         self.trainset, self.testset = self.get_dataset(self.args.data)
-        self.model = self.get_model(self.args.model, self.args.pretrained).to(self.device)
+        if self.args.model is not None:
+            self.model = self.get_model(self.args.model, self.args.pretrained).to(self.device)
 
         # epoch level metrics
         self.metrics = {}  # handle metrics returned by validator
@@ -225,11 +228,18 @@ class BaseTrainer:
         """
         pass
 
-    def get_model(self, model, pretrained=True):
+    def get_model(self, model, pretrained):
         """
         load/create/download model for any task
         """
-        pass
+        model = get_model(model)
+        for m in model.modules():
+            if not pretrained and hasattr(m, 'reset_parameters'):
+                m.reset_parameters()
+        for p in model.parameters():
+            p.requires_grad = True
+
+        return model
 
     def get_validator(self):
         pass

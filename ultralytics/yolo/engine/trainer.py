@@ -53,7 +53,7 @@ class BaseTrainer:
 
         # Model and Dataloaders.
         self.trainset, self.testset = self.get_dataset(self.args.data)
-        if self.args.model != None:
+        if self.args.model is not None:
             self.model = self.get_model(self.args.model, self.args.pretrained).to(self.device)
 
         # epoch level metrics

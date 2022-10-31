@@ -90,6 +90,6 @@ class YOLO:
 
 if __name__ == "__main__":
     model = YOLO()
-    #model.new("assets/dummy_model.yaml")
+    # model.new("assets/dummy_model.yaml")
     model.load("yolov5n-cls.pt")
     model.train(data="imagenette160", epochs=1, lr0=0.01)

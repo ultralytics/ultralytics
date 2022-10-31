@@ -1,7 +1,8 @@
 import contextlib
-import yaml
 
 import torchvision
+import yaml
+
 from ultralytics.yolo.utils.downloads import attempt_download
 from ultralytics.yolo.utils.modeling.modules import *
 
@@ -110,12 +111,12 @@ def get_model(model: str):
     if model.endswith(".pt"):
         model = model.split(".")[0]
 
-    if Path(model+".pt").is_file():
-        trained_model = torch.load(model+".pt", map_location='cpu')
-    elif model in torchvision.models.__dict__: # try torch hub classifier models
+    if Path(model + ".pt").is_file():
+        trained_model = torch.load(model + ".pt", map_location='cpu')
+    elif model in torchvision.models.__dict__:  # try torch hub classifier models
         trained_model = torch.hub.load("pytorch/vision", model, pretrained=True)
     else:
-        model_ckpt = attempt_download(model+".pt") # try ultralytics assets
+        model_ckpt = attempt_download(model + ".pt")  # try ultralytics assets
         trained_model = torch.load(model_ckpt, map_location='cpu')
     return trained_model
 

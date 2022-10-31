@@ -238,7 +238,7 @@ class BaseTrainer:
                 m.reset_parameters()
         for p in model.parameters():
             p.requires_grad = True
-        
+
         return model
 
     def get_validator(self):

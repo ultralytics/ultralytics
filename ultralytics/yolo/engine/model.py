@@ -2,6 +2,7 @@
 Top-level YOLO model interface. First principle usage example - https://github.com/ultralytics/ultralytics/issues/13
 """
 from statistics import mode
+
 import torch
 import yaml
 
@@ -31,7 +32,7 @@ class YOLO:
                 raise Exception(f"Unsupported task {task}. The supported tasks are: \n {MODEL_MAP.keys()}")
             self.ModelClass, self.TrainerClass = MODEL_MAP[task]
             self.TrainerClass = eval(self.trainer.replace("VERSION", f"v{self.version}"))
-                
+
     def new(self, cfg: str):
         cfg = check_yaml(cfg)  # check YAML
         if self.model:
@@ -40,7 +41,7 @@ class YOLO:
             with open(cfg, encoding='ascii', errors='ignore') as f:
                 cfg = yaml.safe_load(f)  # model dict
             self.ModelClass, self.TrainerClass = self._get_model_and_trainer(cfg["head"])
-            self.model = self.ModelClass(cfg) # initialize
+            self.model = self.ModelClass(cfg)  # initialize
 
     def load(self, weights, autodownload=True):
         if not isinstance(self.pretrained_weights, type(None)):
@@ -85,6 +86,7 @@ class YOLO:
         trainer_class = eval(trainer_class.replace("VERSION", f"v{self.version}"))
 
         return model_class, trainer_class
+
 
 if __name__ == "__main__":
     model = YOLO()

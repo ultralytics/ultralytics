@@ -127,7 +127,7 @@ class Mosaic(BaseMixTransform):
         self.border = border
 
     def get_indexes(self, dataset):
-        return [random.randint(0, len(dataset)) for _ in range(3)]
+        return [random.randint(0, len(dataset) - 1) for _ in range(3)]
 
     def _mix_transform(self, labels):
         mosaic_labels = []
@@ -200,7 +200,7 @@ class MixUp(BaseMixTransform):
         super().__init__(pre_transform=pre_transform, p=p)
 
     def get_indexes(self, dataset):
-        return random.randint(0, len(dataset))
+        return random.randint(0, len(dataset) - 1)
 
     def _mix_transform(self, labels):
         im = labels["img"]
@@ -366,7 +366,7 @@ class RandomPerspective:
         segments = instances.segments
         keypoints = instances.keypoints
         # update bboxes if there are segments.
-        if segments is not None:
+        if len(segments):
             bboxes, segments = self.apply_segments(segments, M)
 
         if keypoints is not None:
@@ -379,7 +379,7 @@ class RandomPerspective:
         # make the bboxes have the same scale with new_bboxes
         i = self.box_candidates(box1=instances.bboxes.T,
                                 box2=new_instances.bboxes.T,
-                                area_thr=0.01 if segments is not None else 0.10)
+                                area_thr=0.01 if len(segments) else 0.10)
         labels["instances"] = new_instances[i]
         # clip
         labels["cls"] = cls[i]
@@ -518,7 +518,7 @@ class CopyPaste:
         bboxes = labels["instances"].bboxes
         segments = labels["instances"].segments  # n, 1000, 2
         keypoints = labels["instances"].keypoints
-        if self.p and segments is not None:
+        if self.p and len(segments):
             n = len(segments)
             h, w, _ = im.shape  # height, width, channels
             im_new = np.zeros(im.shape, np.uint8)
@@ -593,10 +593,18 @@ class Albumentations:
 # TODO: technically this is not an augmentation, maybe we should put this to another files
 class Format:
 
-    def __init__(self, bbox_format="xywh", normalize=True, mask=False, mask_ratio=4, mask_overlap=True, batch_idx=True):
+    def __init__(self,
+                 bbox_format="xywh",
+                 normalize=True,
+                 return_mask=False,
+                 return_keypoint=False,
+                 mask_ratio=4,
+                 mask_overlap=True,
+                 batch_idx=True):
         self.bbox_format = bbox_format
         self.normalize = normalize
-        self.mask = mask  # set False when training detection only
+        self.return_mask = return_mask  # set False when training detection only
+        self.return_keypoint = return_keypoint
         self.mask_ratio = mask_ratio
         self.mask_overlap = mask_overlap
         self.batch_idx = batch_idx  # keep the batch indexes
@@ -610,16 +618,20 @@ class Format:
         instances.denormalize(w, h)
         nl = len(instances)
 
-        if instances.segments is not None and self.mask:
-            masks, instances, cls = self._format_segments(instances, cls, w, h)
-            labels["masks"] = (torch.from_numpy(masks) if nl else torch.zeros(
-                1 if self.mask_overlap else nl, img.shape[0] // self.mask_ratio, img.shape[1] // self.mask_ratio))
+        if self.return_mask:
+            if nl:
+                masks, instances, cls = self._format_segments(instances, cls, w, h)
+                masks = torch.from_numpy(masks)
+            else:
+                masks = torch.zeros(1 if self.mask_overlap else nl, img.shape[0] // self.mask_ratio,
+                                    img.shape[1] // self.mask_ratio)
+            labels["masks"] = masks
         if self.normalize:
             instances.normalize(w, h)
         labels["img"] = self._format_img(img)
         labels["cls"] = torch.from_numpy(cls) if nl else torch.zeros(nl)
         labels["bboxes"] = torch.from_numpy(instances.bboxes) if nl else torch.zeros((nl, 4))
-        if instances.keypoints is not None:
+        if self.return_keypoint:
             labels["keypoints"] = torch.from_numpy(instances.keypoints) if nl else torch.zeros((nl, 17, 2))
         # then we can use collate_fn
         if self.batch_idx:

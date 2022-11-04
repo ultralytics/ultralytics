@@ -52,7 +52,7 @@ def verify_image_label(args):
     # Verify one image-label pair
     im_file, lb_file, prefix, keypoint = args
     # number (missing, found, empty, corrupt), message, segments, keypoints
-    nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, "", None, None
+    nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, "", [], None
     try:
         # verify images
         im = Image.open(im_file)

@@ -1,4 +1,5 @@
 model: null
+cfg: null
 data: null
 
 # Training options
@@ -17,6 +18,10 @@ optimizer: "Adam" # choices=['SGD', 'Adam', 'AdamW', 'RMSProp']
 verbose: False
 seed: 0
 local_rank: -1
+single_cls: False # train multi-class data as single-class
+image_weights: False # use weighted image selection for training
+shuffle: True
+rect: False # support rectangular training
 #-----------------------------------#
 
 # Hyper-parameters

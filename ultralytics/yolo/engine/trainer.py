@@ -1,6 +1,10 @@
 """
 Simple training loop; Boilerplate that could apply to any arbitrary neural network,
 """
+# TODOs
+# 1. finish _set_model_attributes
+# 2. allow num_class update for both pretrained and csv_loaded models
+# 3. 
 
 import os
 import time
@@ -53,6 +57,8 @@ class BaseTrainer:
 
         # Model and Dataloaders.
         self.trainset, self.testset = self.get_dataset(self.args.data)
+        if self.args.cfg is not None:
+            self.model = self.load_cfg(self.args.cfg)
         if self.args.model is not None:
             self.model = self.get_model(self.args.model, self.args.pretrained).to(self.device)
 
@@ -132,8 +138,18 @@ class BaseTrainer:
         if rank in {0, -1}:
             print(" Creating testloader rank :", rank)
             self.test_loader = self.get_dataloader(self.testset, batch_size=self.args.batch_size * 2, rank=rank)
-            self.validator = self.get_validator()
+            # self.validator = self.get_validator()
             print("created testloader :", rank)
+    
+    def _set_model_attributes(self):
+        nl = utils.torch_utils.de_parallel(self.model).model[-1].nl
+        self.args.box *= 3 / nl  # scale to layers
+        self.args.cls *= nc / 80 * 3 / nl  # scale to classes and layers
+        self.args.obj *= (imgsz / 640) ** 2 * 3 / nl  # scale to image size and layers
+        model.nc = nc  # attach number of classes to model
+        model.hyp = hyp  # attach hyperparameters to model
+        model.class_weights = labels_to_class_weights(dataset.labels, nc).to(device) * nc  # attach class weights
+        model.names = names
 
     def _do_train(self, rank, world_size):
         if world_size > 1:
@@ -155,11 +171,16 @@ class BaseTrainer:
                             total=len(self.train_loader),
                             bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
             tloss = 0
-            for i, (images, labels) in pbar:
+            for i, batch in pbar:
+                # img, label (classification)/ img, targets, paths, _, masks(detection)
                 # callback hook. on_batch_start
                 # forward
-                images, labels = self.preprocess_batch(images, labels)
-                self.loss = self.criterion(self.model(images), labels)
+                batch = self.preprocess_batch(batch)
+
+                # TODO: warmup, multiscale
+                preds = self.model(batch["img"])
+                self.loss = self.criterion(preds, batch)
+                import pdb; pdb.set_trace()
                 tloss = (tloss * i + self.loss.item()) / (i + 1)
 
                 # backward
@@ -178,7 +199,7 @@ class BaseTrainer:
             if rank in [-1, 0]:
                 # validation
                 # callback: on_val_start()
-                self.validate()
+                # self.validate()
                 # callback: on_val_end()
 
                 # save model
@@ -240,6 +261,9 @@ class BaseTrainer:
             p.requires_grad = True
 
         return model
+    
+    def load_cfg(self, cfg):
+        raise NotImplementedError("This task trainer doesn't support loading cfg files")
 
     def get_validator(self):
         pass

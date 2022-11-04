@@ -162,7 +162,7 @@ class Bboxes:
 
 class Instances:
 
-    def __init__(self, bboxes, segments=None, keypoints=None, bbox_format="xywh", normalized=True) -> None:
+    def __init__(self, bboxes, segments=[], keypoints=None, bbox_format="xywh", normalized=True) -> None:
         """
         Args:
             bboxes (ndarray): bboxes with shape [N, 4].
@@ -173,11 +173,13 @@ class Instances:
         self.keypoints = keypoints
         self.normalized = normalized
 
-        if isinstance(segments, list) and len(segments) > 0:
+        if len(segments) > 0:
             # list[np.array(1000, 2)] * num_samples
             segments = resample_segments(segments)
             # (N, 1000, 2)
             segments = np.stack(segments, axis=0)
+        else:
+            segments = np.zeros((0, 1000, 2), dtype=np.float32)
         self.segments = segments
 
     def convert_bbox(self, format):
@@ -191,9 +193,8 @@ class Instances:
         self._bboxes.mul(scale=(scale_w, scale_h, scale_w, scale_h))
         if bbox_only:
             return
-        if self.segments is not None:
-            self.segments[..., 0] *= scale_w
-            self.segments[..., 1] *= scale_h
+        self.segments[..., 0] *= scale_w
+        self.segments[..., 1] *= scale_h
         if self.keypoints is not None:
             self.keypoints[..., 0] *= scale_w
             self.keypoints[..., 1] *= scale_h
@@ -202,9 +203,8 @@ class Instances:
         if not self.normalized:
             return
         self._bboxes.mul(scale=(w, h, w, h))
-        if self.segments is not None:
-            self.segments[..., 0] *= w
-            self.segments[..., 1] *= h
+        self.segments[..., 0] *= w
+        self.segments[..., 1] *= h
         if self.keypoints is not None:
             self.keypoints[..., 0] *= w
             self.keypoints[..., 1] *= h
@@ -214,9 +214,8 @@ class Instances:
         if self.normalized:
             return
         self._bboxes.mul(scale=(1 / w, 1 / h, 1 / w, 1 / h))
-        if self.segments is not None:
-            self.segments[..., 0] /= w
-            self.segments[..., 1] /= h
+        self.segments[..., 0] /= w
+        self.segments[..., 1] /= h
         if self.keypoints is not None:
             self.keypoints[..., 0] /= w
             self.keypoints[..., 1] /= h
@@ -226,9 +225,8 @@ class Instances:
         # handle rect and mosaic situation
         assert not self.normalized, "you should add padding with absolute coordinates."
         self._bboxes.add(offset=(padw, padh, padw, padh))
-        if self.segments is not None:
-            self.segments[..., 0] += padw
-            self.segments[..., 1] += padh
+        self.segments[..., 0] += padw
+        self.segments[..., 1] += padh
         if self.keypoints is not None:
             self.keypoints[..., 0] += padw
             self.keypoints[..., 1] += padh
@@ -241,7 +239,7 @@ class Instances:
         Returns:
             Instances: Create a new :class:`Instances` by indexing.
         """
-        segments = self.segments[index] if self.segments is not None else None
+        segments = self.segments[index] if len(self.segments) else self.segments
         keypoints = self.keypoints[index] if self.keypoints is not None else None
         bboxes = self.bboxes[index]
         bbox_format = self._bboxes.format
@@ -256,16 +254,14 @@ class Instances:
     def flipud(self, h):
         # this function may not be very logical, just for clean code when using augment flipud
         self.bboxes[:, 1] = h - self.bboxes[:, 1]
-        if self.segments is not None:
-            self.segments[..., 1] = h - self.segments[..., 1]
+        self.segments[..., 1] = h - self.segments[..., 1]
         if self.keypoints is not None:
             self.keypoints[..., 1] = h - self.keypoints[..., 1]
 
     def fliplr(self, w):
         # this function may not be very logical, just for clean code when using augment fliplr
         self.bboxes[:, 0] = w - self.bboxes[:, 0]
-        if self.segments is not None:
-            self.segments[..., 0] = w - self.segments[..., 0]
+        self.segments[..., 0] = w - self.segments[..., 0]
         if self.keypoints is not None:
             self.keypoints[..., 0] = w - self.keypoints[..., 0]
 
@@ -273,9 +269,8 @@ class Instances:
         self.convert_bbox(format="xyxy")
         self.bboxes[:, [0, 2]] = self.bboxes[:, [0, 2]].clip(0, w)
         self.bboxes[:, [1, 3]] = self.bboxes[:, [1, 3]].clip(0, h)
-        if self.segments is not None:
-            self.segments[..., 0] = self.segments[..., 0].clip(0, w)
-            self.segments[..., 1] = self.segments[..., 1].clip(0, h)
+        self.segments[..., 0] = self.segments[..., 0].clip(0, w)
+        self.segments[..., 1] = self.segments[..., 1].clip(0, h)
         if self.keypoints is not None:
             self.keypoints[..., 0] = self.keypoints[..., 0].clip(0, w)
             self.keypoints[..., 1] = self.keypoints[..., 1].clip(0, h)
@@ -311,13 +306,12 @@ class Instances:
         if len(instances_list) == 1:
             return instances_list[0]
 
-        use_segment = instances_list[0].segments is not None
         use_keypoint = instances_list[0].keypoints is not None
         bbox_format = instances_list[0]._bboxes.format
         normalized = instances_list[0].normalized
 
         cat_boxes = np.concatenate([ins.bboxes for ins in instances_list], axis=axis)
-        cat_segments = np.concatenate([b.segments for b in instances_list], axis=axis) if use_segment else None
+        cat_segments = np.concatenate([b.segments for b in instances_list], axis=axis)
         cat_keypoints = np.concatenate([b.keypoints for b in instances_list], axis=axis) if use_keypoint else None
         return cls(cat_boxes, cat_segments, cat_keypoints, bbox_format, normalized)
 

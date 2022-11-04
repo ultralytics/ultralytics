@@ -52,7 +52,7 @@ def verify_image_label(args):
     # Verify one image-label pair
     im_file, lb_file, prefix, keypoint = args
     # number (missing, found, empty, corrupt), message, segments, keypoints
-    nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, "", None, None
+    nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, "", [], None
     try:
         # verify images
         im = Image.open(im_file)
@@ -94,8 +94,7 @@ def verify_image_label(args):
                 else:
                     assert lb.shape[1] == 5, f"labels require 5 columns, {lb.shape[1]} columns detected"
                     assert (lb >= 0).all(), f"negative label values {lb[lb < 0]}"
-                    assert (lb[:, 1:] <=
-                            1).all(), f"non-normalized or out of bounds coordinates {lb[:, 1:][lb[:, 1:] > 1]}"
+                    assert (lb[:, 1:] <=1).all(), f"non-normalized or out of bounds coordinates {lb[:, 1:][lb[:, 1:] > 1]}"
                 _, i = np.unique(lb, axis=0, return_index=True)
                 if len(i) < nl:  # duplicate row check
                     lb = lb[i]  # remove duplicates

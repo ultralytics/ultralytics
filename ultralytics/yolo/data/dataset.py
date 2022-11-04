@@ -132,8 +132,12 @@ class YOLODataset(BaseDataset):
                 transforms = affine_transforms(self.img_size, hyp)
         else:
             transforms = Compose([LetterBox(new_shape=(self.img_size, self.img_size))])
-        transforms.append(Format(bbox_format="xywh", normalize=True, 
-                                 return_mask=self.use_segments, return_keypoint=self.use_keypoints, batch_idx=True))
+        transforms.append(
+            Format(bbox_format="xywh",
+                   normalize=True,
+                   return_mask=self.use_segments,
+                   return_keypoint=self.use_keypoints,
+                   batch_idx=True))
         return transforms
 
     def update_labels_info(self, label):

@@ -72,7 +72,7 @@ dataloader, dataset = build_dataloader(
 )
 
 for d in dataloader:
-    idx = 1   # show which image inside one batch
+    idx = 1  # show which image inside one batch
     img = d["img"][idx].numpy()
     img = np.ascontiguousarray(img.transpose(1, 2, 0))
     ih, iw = img.shape[:2]

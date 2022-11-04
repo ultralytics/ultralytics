@@ -593,8 +593,14 @@ class Albumentations:
 # TODO: technically this is not an augmentation, maybe we should put this to another files
 class Format:
 
-    def __init__(self, bbox_format="xywh", normalize=True, return_mask=False, return_keypoint=False, 
-                 mask_ratio=4, mask_overlap=True, batch_idx=True):
+    def __init__(self,
+                 bbox_format="xywh",
+                 normalize=True,
+                 return_mask=False,
+                 return_keypoint=False,
+                 mask_ratio=4,
+                 mask_overlap=True,
+                 batch_idx=True):
         self.bbox_format = bbox_format
         self.normalize = normalize
         self.return_mask = return_mask  # set False when training detection only
@@ -617,7 +623,8 @@ class Format:
                 masks, instances, cls = self._format_segments(instances, cls, w, h)
                 masks = torch.from_numpy(masks)
             else:
-                masks = torch.zeros(1 if self.mask_overlap else nl, img.shape[0] // self.mask_ratio, img.shape[1] // self.mask_ratio)
+                masks = torch.zeros(1 if self.mask_overlap else nl, img.shape[0] // self.mask_ratio,
+                                    img.shape[1] // self.mask_ratio)
             labels["masks"] = masks
         if self.normalize:
             instances.normalize(w, h)

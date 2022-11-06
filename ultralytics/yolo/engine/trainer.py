@@ -24,13 +24,12 @@ from ultralytics.yolo.utils import LOGGER, ROOT
 from ultralytics.yolo.utils.files import increment_path, save_yaml
 from ultralytics.yolo.utils.modeling import get_model
 
-CONFIG_PATH_ABS = ROOT / "yolo/utils/configs"
-DEFAULT_CONFIG = "defaults.yaml"
+DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yml"
 
 
 class BaseTrainer:
 
-    def __init__(self, config=CONFIG_PATH_ABS / DEFAULT_CONFIG, overrides={}):
+    def __init__(self, config=DEFAULT_CONFIG, overrides={}):
         self.console = LOGGER
         self.args = self._get_config(config, overrides)
         self.validator = None

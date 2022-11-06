@@ -5,17 +5,18 @@ from pathlib import Path
 
 import hydra
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
-import torchvision
 
 from ultralytics.yolo import v8
 from ultralytics.yolo.data import build_dataloader
 from ultralytics.yolo.engine.trainer import CONFIG_PATH_ABS, DEFAULT_CONFIG, BaseTrainer
 from ultralytics.yolo.utils.downloads import download
 from ultralytics.yolo.utils.files import WorkingDirectory
-from ultralytics.yolo.utils.torch_utils import LOCAL_RANK, torch_distributed_zero_first
+from ultralytics.yolo.utils.torch_utils import LOCAL_RANK, torch_distributed_zero_first, de_parallel
 from ultralytics.yolo.utils.modeling.tasks import SegmentationModel
-from ultralytics.yolo.utils import ops
+from ultralytics.yolo.utils.metrics import bbox_iou, smooth_BCE, FocalLoss
+from ultralytics.yolo.utils.ops import xywh2xyxy, crop_mask
 
 # BaseTrainer python usage
 class SegmentationTrainer(BaseTrainer):
@@ -60,23 +61,50 @@ class SegmentationTrainer(BaseTrainer):
                                             )[0]
         return loader
     def preprocess_batch(self, batch):
-        batch["img"] =  torch.stack(batch["img"]).to(self.device, non_blocking=True).float() / 255
+        batch["img"] = batch["img"].to(self.device, non_blocking=True).float() / 255
         return batch
 
     def load_cfg(self, cfg):
         return SegmentationModel(cfg, nc=80)
 
     def get_validator(self):
-        return v8.classify.ClassificationValidator(self.test_loader, self.device, logger=self.console)
+        return v8.segment.SegmentationValidator(self.test_loader, self.device, logger=self.console)
 
     def criterion(self, preds, batch):
-        def build_targets(self, p, targets):
+        head = de_parallel(self.model).model[-1]
+        sort_obj_iou = False
+        autobalance = False
+
+        # init losses
+        BCEcls = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([self.args.cls_pw], device=self.device))
+        BCEobj = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([self.args.obj_pw], device=self.device))
+
+        # Class label smoothing https://arxiv.org/pdf/1902.04103.pdf eqn 3
+        cp, cn = smooth_BCE(eps=self.args.label_smoothing)  # positive, negative BCE targets
+
+        # Focal loss
+        g = self.args.fl_gamma
+        if self.args.fl_gamma > 0:
+            BCEcls, BCEobj = FocalLoss(BCEcls, g), FocalLoss(BCEobj, g)
+
+        balance = {3: [4.0, 1.0, 0.4]}.get(head.nl, [4.0, 1.0, 0.25, 0.06, 0.02])  # P3-P7
+        ssi = list(head.stride).index(16) if autobalance else 0  # stride 16 index
+        BCEcls, BCEobj, gr, autobalance = BCEcls, BCEobj, 1.0, autobalance
+
+        def single_mask_loss(gt_mask, pred, proto, xyxy, area):
+            # Mask loss for one image
+            pred_mask = (pred @ proto.view(head.nm, -1)).view(-1, *proto.shape[1:])  # (n,32) @ (32,80,80) -> (n,80,80)
+            loss = F.binary_cross_entropy_with_logits(pred_mask, gt_mask, reduction="none")
+            return (crop_mask(loss, xyxy).mean(dim=(1, 2)) / area).mean()
+
+        def build_targets(p, targets):
             # Build targets for compute_loss(), input targets(image,class,x,y,w,h)
-            na, nt = self.na, targets.shape[0]  # number of anchors, targets
+            nonlocal head
+            na, nt = head.na, targets.shape[0]  # number of anchors, targets
             tcls, tbox, indices, anch, tidxs, xywhn = [], [], [], [], [], []
             gain = torch.ones(8, device=self.device)  # normalized to gridspace gain
             ai = torch.arange(na, device=self.device).float().view(na, 1).repeat(1, nt)  # same as .repeat_interleave(nt)
-            if self.overlap:
+            if self.args.overlap_mask:
                 batch = p[0].shape[0]
                 ti = []
                 for i in range(batch):
@@ -99,8 +127,9 @@ class SegmentationTrainer(BaseTrainer):
                 ],
                 device=self.device).float() * g  # offsets
 
-            for i in range(self.nl):
-                anchors, shape = self.anchors[i], p[i].shape
+            for i in range(head.nl):
+                anchors, shape = head.anchors[i], p[i].shape
+                import pdb;pdb.set_trace()
                 gain[2:6] = torch.tensor(shape)[[3, 2, 3, 2]]  # xyxy gain
 
                 # Match targets to anchors
@@ -108,7 +137,7 @@ class SegmentationTrainer(BaseTrainer):
                 if nt:
                     # Matches
                     r = t[..., 4:6] / anchors[:, None]  # wh ratio
-                    j = torch.max(r, 1 / r).max(2)[0] < self.hyp['anchor_t']  # compare
+                    j = torch.max(r, 1 / r).max(2)[0] < self.args.anchor_t  # compare
                     # j = wh_iou(anchors, t[:, 4:6]) > model.hyp['iou_t']  # iou(3,n)=wh_iou(anchors(3,2), gwh(n,2))
                     t = t[j]  # filter
 
@@ -139,9 +168,9 @@ class SegmentationTrainer(BaseTrainer):
                 xywhn.append(torch.cat((gxy, gwh), 1) / gain[2:6])  # xywh normalized
 
             return tcls, tbox, indices, anch, tidxs, xywhn
-        
-        p, proto = preds
-        targets, masks = batch["bboxes"], batch["masks"]
+        p, proto = preds[0], preds[1]
+        targets  = torch.cat((batch["batch_idx"].view(-1,1), batch["cls"].view(-1,1), batch["bboxes"]), 1)
+        masks = batch["masks"]
         targets, masks = targets.to(self.device), masks.to(self.device).float()
 
         bs, nm, mask_h, mask_w = proto.shape  # batch size, number of masks, mask height, mask width
@@ -158,58 +187,61 @@ class SegmentationTrainer(BaseTrainer):
 
             n = b.shape[0]  # number of targets
             if n:
-                pxy, pwh, _, pcls, pmask = pi[b, a, gj, gi].split((2, 2, 1, self.nc, nm), 1)  # subset of predictions
+                pxy, pwh, _, pcls, pmask = pi[b, a, gj, gi].split((2, 2, 1, head.nc, nm), 1)  # subset of predictions
 
                 # Box regression
                 pxy = pxy.sigmoid() * 2 - 0.5
                 pwh = (pwh.sigmoid() * 2) ** 2 * anchors[i]
                 pbox = torch.cat((pxy, pwh), 1)  # predicted box
-                iou = ops.bbox_iou(pbox, tbox[i], CIoU=True).squeeze()  # iou(prediction, target)
+                iou = bbox_iou(pbox, tbox[i], CIoU=True).squeeze()  # iou(prediction, target)
                 lbox += (1.0 - iou).mean()  # iou loss
 
                 # Objectness
                 iou = iou.detach().clamp(0).type(tobj.dtype)
-                if self.sort_obj_iou:
+                if sort_obj_iou:
                     j = iou.argsort()
                     b, a, gj, gi, iou = b[j], a[j], gj[j], gi[j], iou[j]
-                if self.gr < 1:
-                    iou = (1.0 - self.gr) + self.gr * iou
+                if gr < 1:
+                    iou = (1.0 - gr) + gr * iou
                 tobj[b, a, gj, gi] = iou  # iou ratio
 
                 # Classification
-                if self.nc > 1:  # cls loss (only if multiple classes)
-                    t = torch.full_like(pcls, self.cn, device=self.device)  # targets
-                    t[range(n), tcls[i]] = self.cp
-                    lcls += self.BCEcls(pcls, t)  # BCE
+                if head.nc > 1:  # cls loss (only if multiple classes)
+                    t = torch.full_like(pcls, cn, device=self.device)  # targets
+                    t[range(n), tcls[i]] = cp
+                    lcls += BCEcls(pcls, t)  # BCE
 
                 # Mask regression
                 if tuple(masks.shape[-2:]) != (mask_h, mask_w):  # downsample
                     masks = F.interpolate(masks[None], (mask_h, mask_w), mode="nearest")[0]
                 marea = xywhn[i][:, 2:].prod(1)  # mask width, height normalized
-                mxyxy = ops.xywh2xyxy(xywhn[i] * torch.tensor([mask_w, mask_h, mask_w, mask_h], device=self.device))
+                mxyxy = xywh2xyxy(xywhn[i] * torch.tensor([mask_w, mask_h, mask_w, mask_h], device=self.device))
                 for bi in b.unique():
                     j = b == bi  # matching index
-                    if self.overlap:
+                    if True:
                         mask_gti = torch.where(masks[bi][None] == tidxs[i][j].view(-1, 1, 1), 1.0, 0.0)
                     else:
                         mask_gti = masks[tidxs[i]][j]
-                    lseg += self.single_mask_loss(mask_gti, pmask[j], proto[bi], mxyxy[j], marea[j])
+                    lseg += single_mask_loss(mask_gti, pmask[j], proto[bi], mxyxy[j], marea[j])
 
-            obji = self.BCEobj(pi[..., 4], tobj)
-            lobj += obji * self.balance[i]  # obj loss
-            if self.autobalance:
-                self.balance[i] = self.balance[i] * 0.9999 + 0.0001 / obji.detach().item()
+            obji = BCEobj(pi[..., 4], tobj)
+            lobj += obji * balance[i]  # obj loss
+            if autobalance:
+                balance[i] = balance[i] * 0.9999 + 0.0001 / obji.detach().item()
 
-        if self.autobalance:
-            self.balance = [x / self.balance[self.ssi] for x in self.balance]
-        lbox *= self.hyp["box"]
-        lobj *= self.hyp["obj"]
-        lcls *= self.hyp["cls"]
-        lseg *= self.hyp["box"] / bs
+        if autobalance:
+            balance = [x / balance[ssi] for x in balance]
+        lbox *= self.args.box
+        lobj *= self.args.obj
+        lcls *= self.args.cls
+        lseg *= self.args.box / bs
 
         loss = lbox + lobj + lcls + lseg
         return loss * bs, torch.cat((lbox, lseg, lobj, lcls)).detach()
 
+    def progress_string(self):
+        return  ('\n' + '%11s' * 7)% \
+        ('Epoch', 'GPU_mem', 'box_loss', 'seg_loss', 'obj_loss', 'cls_loss', 'Size')
 
 @hydra.main(version_base=None, config_path=CONFIG_PATH_ABS, config_name=str(DEFAULT_CONFIG).split(".")[0])
 def train(cfg):

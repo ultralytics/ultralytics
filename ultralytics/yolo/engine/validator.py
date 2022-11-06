@@ -2,22 +2,24 @@ import logging
 
 import torch
 from tqdm import tqdm
+from omegaconf import DictConfig, OmegaConf
 
 from ultralytics.yolo.utils.ops import Profile
 from ultralytics.yolo.utils.torch_utils import select_device
-
+from ultralytics.yolo.engine.trainer import CONFIG_PATH_ABS, DEFAULT_CONFIG
 
 class BaseValidator:
     """
     Base validator class.
     """
 
-    def __init__(self, dataloader, device='', half=False, pbar=None, logger=None):
+    def __init__(self,  dataloader, pbar=None, logger=None, args=None):
         self.dataloader = dataloader
-        self.half = half
-        self.device = select_device(device, dataloader.batch_size)
         self.pbar = pbar
         self.logger = logger or logging.getLogger()
+        self.args = args or OmegaConf.load(CONFIG_PATH_ABS / DEFAULT_CONFIG)
+        self.device = select_device(self.args.device, dataloader.batch_size)
+        self.cuda = self.device.type != 'cpu'
 
     def __call__(self, trainer=None, model=None):
         """
@@ -29,41 +31,42 @@ class BaseValidator:
         assert training or model is not None, "Either trainer or model is needed for validation"
         if training:
             model = trainer.model
-            self.half &= self.device.type != 'cpu'
-            model = model.half() if self.half else model
+            self.args.half &= self.device.type != 'cpu'
+            model = model.half() if self.args.half else model
         else:  # TODO: handle this when detectMultiBackend is supported
             # model = DetectMultiBacked(model)
             pass
+            # TODO: implement init_model_attributes()
 
         model.eval()
         dt = Profile(), Profile(), Profile(), Profile()
         loss = 0
         n_batches = len(self.dataloader)
-        desc = self.set_desc()
+        desc = self.get_desc()
         bar = tqdm(self.dataloader, desc, n_batches, not training, bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
-        self.init_metrics()
+        self.init_metrics(model)
         with torch.cuda.amp.autocast(enabled=self.device.type != 'cpu'):
-            for images, labels in bar:
+            for batch in bar:
                 # pre-process
                 with dt[0]:
-                    images, labels = self.preprocess_batch(images, labels)
+                    batch = self.preprocess_batch(batch)
 
                 # inference
                 with dt[1]:
-                    preds = model(images)
+                    preds = model(batch["img"])
                     # TODO: remember to add native augmentation support when implementing model, like:
                     #  preds, train_out = model(im, augment=augment)
 
                 # loss
                 with dt[2]:
                     if training:
-                        loss += trainer.criterion(preds, labels) / images.shape[0]
+                        loss += trainer.criterion(preds, batch)[0]
 
                 # pre-process predictions
                 with dt[3]:
                     preds = self.preprocess_preds(preds)
 
-                self.update_metrics(preds, labels)
+                self.update_metrics(preds, batch)
 
         stats = self.get_stats()
         self.check_stats(stats)
@@ -81,8 +84,8 @@ class BaseValidator:
 
         return stats
 
-    def preprocess_batch(self, images, labels):
-        return images.to(self.device, non_blocking=True), labels.to(self.device)
+    def preprocess_batch(self, batch):
+        return batch
 
     def preprocess_preds(self, preds):
         return preds
@@ -90,7 +93,7 @@ class BaseValidator:
     def init_metrics(self):
         pass
 
-    def update_metrics(self, preds, targets):
+    def update_metrics(self, preds, batch):
         pass
 
     def get_stats(self):
@@ -102,5 +105,5 @@ class BaseValidator:
     def print_results(self):
         pass
 
-    def set_desc(self):
+    def get_desc(self):
         pass

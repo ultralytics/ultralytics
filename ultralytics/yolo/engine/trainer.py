@@ -24,7 +24,7 @@ from ultralytics.yolo.utils import LOGGER, ROOT
 from ultralytics.yolo.utils.files import increment_path, save_yaml
 from ultralytics.yolo.utils.modeling import get_model
 
-DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yml"
+DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yaml"
 
 
 class BaseTrainer:

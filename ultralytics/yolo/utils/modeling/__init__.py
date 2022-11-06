@@ -66,8 +66,8 @@ def parse_model(d, ch):  # model_dict, input_channels(3)
 
         n = n_ = max(round(n * gd), 1) if n > 1 else n  # depth gain
         if m in {
-                Conv, GhostConv, Bottleneck, GhostBottleneck, SPP, SPPF, DWConv, Focus, CrossConv, BottleneckCSP, C3,
-                C3TR, C3SPP, C3Ghost, nn.ConvTranspose2d, DWConvTranspose2d, C3x}:
+            Conv, GhostConv, Bottleneck, GhostBottleneck, SPP, SPPF, DWConv, Focus, CrossConv, BottleneckCSP, C3,
+            C3TR, C3SPP, C3Ghost, nn.ConvTranspose2d, DWConvTranspose2d, C3x}:
             c1, c2 = ch[f], args[0]
             if c2 != no:  # if not output
                 c2 = make_divisible(c2 * gw, 8)
@@ -107,18 +107,17 @@ def parse_model(d, ch):  # model_dict, input_channels(3)
     return nn.Sequential(*layers), sorted(save)
 
 
-def get_model(model: str):
+def get_model(model='s.pt', pretrained=True):
+    # Load a YOLO model locally, from torchvision, or from Ultralytics assets
     if model.endswith(".pt"):
         model = model.split(".")[0]
 
-    if Path(model + ".pt").is_file():
-        trained_model = torch.load(model + ".pt", map_location='cpu')
-    elif model in torchvision.models.__dict__:  # try torch hub classifier models
-        trained_model = torch.hub.load("pytorch/vision", model, pretrained=True)
-    else:
-        model_ckpt = attempt_download(model + ".pt")  # try ultralytics assets
-        trained_model = torch.load(model_ckpt, map_location='cpu')
-    return trained_model
+    if Path(f"{model}.pt").is_file():  # local file
+        return torch.load(f"{model}.pt", map_location='cpu')
+    elif model in torchvision.models.__dict__:  # TorchVision models i.e. resnet50, efficientnet_b0
+        return torchvision.models.__dict__[model](weights='IMAGENET1K_V1' if pretrained else None)
+    else:  # Ultralytics assets
+        return torch.load(attempt_download(f"{model}.pt"), map_location='cpu')
 
 
 def yaml_load(file='data.yaml'):

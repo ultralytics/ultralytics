@@ -5,6 +5,7 @@ import time
 import cv2
 import numpy as np
 import torch
+import torch.nn as nn
 import torchvision
 
 from ultralytics.yolo.utils import LOGGER

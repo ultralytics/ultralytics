@@ -20,6 +20,8 @@ class BaseValidator:
         self.args = args or OmegaConf.load(CONFIG_PATH_ABS / DEFAULT_CONFIG)
         self.device = select_device(self.args.device, dataloader.batch_size)
         self.cuda = self.device.type != 'cpu'
+        self.batch_i = None
+        self.training = True
 
     def __call__(self, trainer=None, model=None):
         """
@@ -27,6 +29,7 @@ class BaseValidator:
         if trainer is passed (trainer gets priority).
         """
         training = trainer is not None
+        self.training = training
         # trainer = trainer or self.trainer_class.get_trainer()
         assert training or model is not None, "Either trainer or model is needed for validation"
         if training:
@@ -46,7 +49,8 @@ class BaseValidator:
         bar = tqdm(self.dataloader, desc, n_batches, not training, bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
         self.init_metrics(model)
         with torch.cuda.amp.autocast(enabled=self.device.type != 'cpu'):
-            for batch in bar:
+            for batch_i, batch in enumerate(bar):
+                self.batch_i = batch_i
                 # pre-process
                 with dt[0]:
                     batch = self.preprocess_batch(batch)

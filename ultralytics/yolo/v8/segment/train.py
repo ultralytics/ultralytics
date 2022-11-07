@@ -129,7 +129,6 @@ class SegmentationTrainer(BaseTrainer):
 
             for i in range(head.nl):
                 anchors, shape = head.anchors[i], p[i].shape
-                import pdb;pdb.set_trace()
                 gain[2:6] = torch.tensor(shape)[[3, 2, 3, 2]]  # xyxy gain
 
                 # Match targets to anchors
@@ -168,7 +167,11 @@ class SegmentationTrainer(BaseTrainer):
                 xywhn.append(torch.cat((gxy, gwh), 1) / gain[2:6])  # xywh normalized
 
             return tcls, tbox, indices, anch, tidxs, xywhn
-        p, proto = preds[0], preds[1]
+        if self.model.training:
+            p, proto, = preds
+        else:
+            p, proto, train_out = preds
+            p = train_out
         targets  = torch.cat((batch["batch_idx"].view(-1,1), batch["cls"].view(-1,1), batch["bboxes"]), 1)
         masks = batch["masks"]
         targets, masks = targets.to(self.device), masks.to(self.device).float()
@@ -178,7 +181,7 @@ class SegmentationTrainer(BaseTrainer):
         lbox = torch.zeros(1, device=self.device)
         lobj = torch.zeros(1, device=self.device)
         lseg = torch.zeros(1, device=self.device)
-        tcls, tbox, indices, anchors, tidxs, xywhn = build_targets(p, targets)  # targets
+        tcls, tbox, indices, anchors, tidxs, xywhn = build_targets(p, targets)
 
         # Losses
         for i, pi in enumerate(p):  # layer index, layer predictions

@@ -1,4 +1,5 @@
-# Ultralytics Continuous Integration (CI) GitHub Actions tests
+# YOLO 🚀 by Ultralytics, GPL-3.0 license
+# YOLO Continuous Integration (CI) GitHub Actions tests
 
 name: Ultralytics CI
 
@@ -11,17 +12,70 @@ on:
   #   - cron: '0 0 * * *'  # runs at 00:00 UTC every day
 
 jobs:
+#  Benchmarks:
+#    runs-on: ${{ matrix.os }}
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        os: [ ubuntu-latest ]
+#        python-version: [ '3.9' ]  # requires python<=3.9
+#        model: [ yolov5n ]
+#    steps:
+#      - uses: actions/checkout@v3
+#      - uses: actions/setup-python@v4
+#        with:
+#          python-version: ${{ matrix.python-version }}
+#      #- name: Cache pip
+#      #  uses: actions/cache@v3
+#      #  with:
+#      #    path: ~/.cache/pip
+#      #    key: ${{ runner.os }}-Benchmarks-${{ hashFiles('requirements.txt') }}
+#      #    restore-keys: ${{ runner.os }}-Benchmarks-
+#      - name: Install requirements
+#        run: |
+#          python -m pip install --upgrade pip wheel
+#          pip install -r requirements.txt coremltools openvino-dev tensorflow-cpu --extra-index-url https://download.pytorch.org/whl/cpu
+#          python --version
+#          pip --version
+#          pip list
+#      - name: Benchmark DetectionModel
+#        run: |
+#          python benchmarks.py --data coco128.yaml --weights ${{ matrix.model }}.pt --img 320 --hard-fail 0.29
+#      - name: Benchmark SegmentationModel
+#        run: |
+#          python benchmarks.py --data coco128-seg.yaml --weights ${{ matrix.model }}-seg.pt --img 320 --hard-fail 0.22
+#      - name: Test predictions
+#        run: |
+#          python export.py --weights ${{ matrix.model }}-cls.pt --include onnx --img 224
+#          python detect.py --weights ${{ matrix.model }}.onnx --img 320
+#          python segment/predict.py --weights ${{ matrix.model }}-seg.onnx --img 320
+#          python classify/predict.py --weights ${{ matrix.model }}-cls.onnx --img 224
   Tests:
+    timeout-minutes: 60
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        python-version: [ 3.9 ]
-    timeout-minutes: 60
+        python-version: [ '3.10' ]
+        model: [ yolov5n ]
+        include:
+#          - os: ubuntu-latest
+#            python-version: '3.7'  # '3.6.8' min
+#            model: yolov5n
+#          - os: ubuntu-latest
+#            python-version: '3.8'
+#            model: yolov5n
+#          - os: ubuntu-latest
+#            python-version: '3.9'
+#            model: yolov5n
+#          - os: ubuntu-latest
+            python-version: '3.8'  # torch 1.7.0 requires python >=3.6, <=3.8
+            model: yolov5n
+            torch: '1.7.0'  # min torch version CI https://pypi.org/project/torchvision/
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
       - name: Get cache dir
@@ -37,11 +91,15 @@ jobs:
       - name: Install requirements
         run: |
           python -m pip install --upgrade pip wheel
-          pip install torch torchvision --extra-index-url https://download.pytorch.org/whl/cpu
-          # pip install ultralytics (production)
-          pip install .
+          if [ "${{ matrix.torch }}" == "1.7.0" ]; then
+              pip install -r requirements.txt torch==1.7.0 torchvision==0.8.1 --extra-index-url https://download.pytorch.org/whl/cpu
+          else
+              pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu
+          fi
+        shell: bash  # for Windows compatibility
       - name: Check environment
         run: |
+          # python -c "import utils; utils.notebook_init()"
           echo "RUNNER_OS is ${{ runner.os }}"
           echo "GITHUB_EVENT_NAME is ${{ github.event_name }}"
           echo "GITHUB_WORKFLOW is ${{ github.workflow }}"
@@ -51,7 +109,7 @@ jobs:
           python --version
           pip --version
           pip list
-      - name: Test HUB training
+      - name: Test pip package
         shell: python
         env:
           APIKEY: ${{ secrets.ULTRALYTICS_HUB_APIKEY }}
@@ -64,3 +122,15 @@ jobs:
           # ultralytics.checks()
           # ultralytics.reset_model(key)  # reset trained model
           # ultralytics.start(key)  # train model
+      - name: Test detection
+        shell: bash  # for Windows compatibility
+        run: |
+          echo "TODO"
+      - name: Test segmentation
+        shell: bash  # for Windows compatibility
+        run: |
+          echo "TODO"
+      - name: Test classification
+        shell: bash  # for Windows compatibility
+        run: |
+          echo "TODO"

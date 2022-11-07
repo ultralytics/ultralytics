@@ -127,14 +127,10 @@ class BaseTrainer:
                                          lr=self.args.lr0,
                                          momentum=self.args.momentum,
                                          decay=self.args.weight_decay)
-        self.train_loader = self.get_dataloader(self.trainset,
-                                                batch_size=self.args.batch_size,
-                                                rank=rank)
+        self.train_loader = self.get_dataloader(self.trainset, batch_size=self.args.batch_size, rank=rank)
         if rank in {0, -1}:
             print(" Creating testloader rank :", rank)
-            self.test_loader = self.get_dataloader(self.testset,
-                                                   batch_size=self.args.batch_size * 2,
-                                                   rank=rank)
+            self.test_loader = self.get_dataloader(self.testset, batch_size=self.args.batch_size * 2, rank=rank)
             self.validator = self.get_validator()
             print("created testloader :", rank)
 

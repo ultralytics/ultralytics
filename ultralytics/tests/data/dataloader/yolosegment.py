@@ -61,7 +61,7 @@ dataloader, dataset = build_dataloader(
     label_path=None,
     cache=False,
     hyp=hyp,
-    augment=False,
+    augment=True,
     prefix="",
     rect=False,
     batch_size=4,
@@ -72,6 +72,14 @@ dataloader, dataset = build_dataloader(
 )
 
 for d in dataloader:
+    # info
+    im_file = d["im_file"]
+    ori_shape = d["ori_shape"]
+    resize_shape = d["resized_shape"]
+    print(ori_shape, resize_shape)
+    print(im_file)
+
+    # labels
     idx = 1  # show which image inside one batch
     img = d["img"][idx].numpy()
     img = np.ascontiguousarray(img.transpose(1, 2, 0))

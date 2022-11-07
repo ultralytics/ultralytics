@@ -11,8 +11,9 @@ import IPython
 import pkg_resources as pkg
 import torch
 
-from ultralytics.yolo.utils.torch_utils import select_device
 from ultralytics.yolo.utils import AUTOINSTALL, CONFIG_DIR, FONT, LOGGER, ROOT, TryExcept
+from ultralytics.yolo.utils.torch_utils import select_device
+
 from .loggers import colorstr, emojis
 
 

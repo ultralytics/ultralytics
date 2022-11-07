@@ -6,12 +6,13 @@ import math
 import warnings
 from pathlib import Path
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 import torch
 import torch.nn as nn
 
 from ultralytics.yolo.utils import TryExcept
+
 
 # boxes
 def box_area(box):
@@ -61,6 +62,7 @@ def box_iou(box1, box2, eps=1e-7):
     # IoU = inter / (area1 + area2 - inter)
     return inter / (box_area(box1.T)[:, None] + box_area(box2.T) - inter + eps)
 
+
 def bbox_iou(box1, box2, xywh=True, GIoU=False, DIoU=False, CIoU=False, eps=1e-7):
     # Returns Intersection over Union (IoU) of box1(1,4) to box2(n,4)
 
@@ -101,6 +103,7 @@ def bbox_iou(box1, box2, xywh=True, GIoU=False, DIoU=False, CIoU=False, eps=1e-7
         return iou - (c_area - union) / c_area  # GIoU https://arxiv.org/pdf/1902.09630.pdf
     return iou  # IoU
 
+
 def mask_iou(mask1, mask2, eps=1e-7):
     """
     mask1: [N, n] m1 means number of predicted objects
@@ -124,9 +127,11 @@ def masks_iou(mask1, mask2, eps=1e-7):
     union = (mask1.sum(1) + mask2.sum(1))[None] - intersection  # (area1 + area2) - intersection
     return intersection / (union + eps)
 
+
 def smooth_BCE(eps=0.1):  # https://github.com/ultralytics/yolov3/issues/238#issuecomment-598028441
     # return positive, negative label smoothing BCE targets
     return 1.0 - 0.5 * eps, 0.5 * eps
+
 
 # losses
 class FocalLoss(nn.Module):
@@ -258,11 +263,11 @@ class ConfusionMatrix:
             print(' '.join(map(str, self.matrix[i])))
 
 
-
 def fitness_detection(x):
     # Model fitness as a weighted combination of metrics
     w = [0.0, 0.0, 0.1, 0.9]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
     return (x[:, :4] * w).sum(1)
+
 
 def fitness_segmentation(x):
     # Model fitness as a weighted combination of metrics
@@ -276,6 +281,7 @@ def smooth(y, f=0.05):
     p = np.ones(nf // 2)  # ones padding
     yp = np.concatenate((p * y[0], y, p * y[-1]), 0)  # y padded
     return np.convolve(yp, np.ones(nf) / nf, mode='valid')  # y-smoothed
+
 
 def compute_ap(recall, precision):
     """ Compute the average precision, given the recall and precision curves
@@ -374,6 +380,7 @@ def ap_per_class(tp, conf, pred_cls, target_cls, plot=False, save_dir='.', names
     fp = (tp / (p + eps) - tp).round()  # false positives
     return tp, fp, p, r, f1, ap, unique_classes.astype(int)
 
+
 def ap_per_class_box_and_mask(
         tp_m,
         tp_b,
@@ -421,6 +428,7 @@ def ap_per_class_box_and_mask(
             "f1": results_masks[2],
             "ap_class": results_masks[4]}}
     return results
+
 
 class Metric:
 
@@ -504,6 +512,7 @@ class Metric:
         self.all_ap = all_ap
         self.f1 = f1
         self.ap_class_index = ap_class_index
+
 
 class Metrics:
     """Metric for boxes and masks."""

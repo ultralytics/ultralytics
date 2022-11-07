@@ -336,7 +336,6 @@ def crop_mask(masks, boxes):
     return masks * ((r >= x1) * (r < x2) * (c >= y1) * (c < y2))
 
 
-
 def process_mask_upsample(protos, masks_in, bboxes, shape):
     """
     Crop after upsample.

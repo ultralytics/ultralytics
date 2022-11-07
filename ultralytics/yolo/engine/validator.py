@@ -1,19 +1,20 @@
 import logging
 
 import torch
-from tqdm import tqdm
 from omegaconf import DictConfig, OmegaConf
+from tqdm import tqdm
 
+from ultralytics.yolo.engine.trainer import CONFIG_PATH_ABS, DEFAULT_CONFIG
 from ultralytics.yolo.utils.ops import Profile
 from ultralytics.yolo.utils.torch_utils import select_device
-from ultralytics.yolo.engine.trainer import CONFIG_PATH_ABS, DEFAULT_CONFIG
+
 
 class BaseValidator:
     """
     Base validator class.
     """
 
-    def __init__(self,  dataloader, pbar=None, logger=None, args=None):
+    def __init__(self, dataloader, pbar=None, logger=None, args=None):
         self.dataloader = dataloader
         self.pbar = pbar
         self.logger = logger or logging.getLogger()

@@ -2,6 +2,7 @@ import logging
 import os
 import platform
 
+from ultralytics.yolo.utils.checks import is_colab, is_kaggle
 from .base import default_callbacks
 
 VERBOSE = str(os.getenv('YOLOv5_VERBOSE', True)).lower() == 'true'  # global verbose mode
@@ -35,16 +36,13 @@ def colorstr(*input):
         "bright_white": "\033[97m",
         "end": "\033[0m",  # misc
         "bold": "\033[1m",
-        "underline": "\033[4m",}
+        "underline": "\033[4m", }
     return "".join(colors[x] for x in args) + f"{string}" + colors["end"]
 
 
 def set_logging(name=None, verbose=VERBOSE):
     # Sets level and returns logger
-    is_kaggle = os.environ.get("PWD") == "/kaggle/working" and os.environ.get(
-        "KAGGLE_URL_BASE") == "https://www.kaggle.com"
-    is_colab = "COLAB_GPU" in os.environ
-    if is_colab or is_kaggle:
+    if is_colab() or is_kaggle():
         for h in logging.root.handlers:
             logging.root.removeHandler(h)  # remove all handlers associated with the root logger object
     rank = int(os.getenv("RANK", -1))  # rank in world for Multi-GPU trainings

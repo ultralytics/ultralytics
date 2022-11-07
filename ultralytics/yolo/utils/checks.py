@@ -1,17 +1,57 @@
 import glob
 import os
 import platform
+import re
 import sys
 import urllib
 from pathlib import Path
 from subprocess import check_output
 
+import IPython
 import pkg_resources as pkg
 import torch
 
+from ultralytics.yolo.utils.torch_utils import select_device
 from ultralytics.yolo.utils import AUTOINSTALL, CONFIG_DIR, FONT, LOGGER, ROOT, TryExcept
-
 from .loggers import colorstr, emojis
+
+
+def is_ascii(s=''):
+    # Is string composed of all ASCII (no UTF) characters? (note str().isascii() introduced in python 3.7)
+    s = str(s)  # convert list, tuple, None, etc. to str
+    return len(s.encode().decode('ascii', 'ignore')) == len(s)
+
+
+def is_chinese(s='人工智能'):
+    # Is string composed of any Chinese characters?
+    return bool(re.search('[\u4e00-\u9fff]', str(s)))
+
+
+def is_colab():
+    # Is environment a Google Colab instance?
+    return 'google.colab' in sys.modules
+
+
+def is_notebook():
+    # Is environment a Jupyter notebook? Verified on Colab, Jupyterlab, Kaggle, Paperspace
+    ipython_type = str(type(IPython.get_ipython()))
+    return 'colab' in ipython_type or 'zmqshell' in ipython_type
+
+
+def is_kaggle():
+    # Is environment a Kaggle Notebook?
+    return os.environ.get('PWD') == '/kaggle/working' and os.environ.get('KAGGLE_URL_BASE') == 'https://www.kaggle.com'
+
+
+def is_docker() -> bool:
+    """Check if the process runs inside a docker container."""
+    if Path("/.dockerenv").exists():
+        return True
+    try:  # check if docker is in control groups
+        with open("/proc/self/cgroup") as file:
+            return any("docker" in line for line in file)
+    except OSError:
+        return False
 
 
 def check_version(current="0.0.0", minimum="0.0.0", name="version ", pinned=False, hard=False, verbose=False):
@@ -86,12 +126,6 @@ def check_requirements(requirements=ROOT / 'requirements.txt', exclude=(), insta
             LOGGER.warning(f'{prefix} ❌ {e}')
 
 
-def is_ascii(s=''):
-    # Is string composed of all ASCII (no UTF) characters? (note str().isascii() introduced in python 3.7)
-    s = str(s)  # convert list, tuple, None, etc. to str
-    return len(s.encode().decode('ascii', 'ignore')) == len(s)
-
-
 def check_suffix(file='yolov5s.pt', suffix=('.pt',), msg=''):
     # Check file(s) for acceptable suffix
     if file and suffix:
@@ -134,3 +168,33 @@ def check_file(file, suffix=''):
 def check_yaml(file, suffix=('.yaml', '.yml')):
     # Search/download YAML file (if necessary) and return path, checking suffix
     return check_file(file, suffix)
+
+
+def check_system(verbose=True):
+    # Check system software and hardware
+    print('Checking setup...')
+
+    import os
+    import shutil
+
+    check_font()
+
+    import psutil
+    from IPython import display  # to display images and clear console output
+
+    if is_colab():
+        shutil.rmtree('/content/sample_data', ignore_errors=True)  # remove colab /sample_data directory
+
+    # System info
+    if verbose:
+        gb = 1 << 30  # bytes to GiB (1024 ** 3)
+        ram = psutil.virtual_memory().total
+        total, used, free = shutil.disk_usage("/")
+        display.clear_output()
+        s = f'({os.cpu_count()} CPUs, {ram / gb:.1f} GB RAM, {(total - free) / gb:.1f}/{total / gb:.1f} GB disk)'
+    else:
+        s = ''
+
+    select_device(newline=False)
+    print(emojis(f'Setup complete ✅ {s}'))
+    return display

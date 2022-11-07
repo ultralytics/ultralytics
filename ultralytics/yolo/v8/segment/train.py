@@ -10,7 +10,7 @@ import torch.nn.functional as F
 
 from ultralytics.yolo import v8
 from ultralytics.yolo.data import build_dataloader
-from ultralytics.yolo.engine.trainer import CONFIG_PATH_ABS, DEFAULT_CONFIG, BaseTrainer
+from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG, BaseTrainer
 from ultralytics.yolo.utils.downloads import download
 from ultralytics.yolo.utils.files import WorkingDirectory
 from ultralytics.yolo.utils.metrics import FocalLoss, bbox_iou, smooth_BCE
@@ -252,7 +252,7 @@ class SegmentationTrainer(BaseTrainer):
         ('Epoch', 'GPU_mem', 'box_loss', 'seg_loss', 'obj_loss', 'cls_loss', 'Size')
 
 
-@hydra.main(version_base=None, config_path=CONFIG_PATH_ABS, config_name=str(DEFAULT_CONFIG).split(".")[0])
+@hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
 def train(cfg):
     cfg.cfg = "yolov5n-seg.yaml"
     cfg.data = cfg.data or "coco128-segments"  # or yolo.ClassificationDataset("mnist")

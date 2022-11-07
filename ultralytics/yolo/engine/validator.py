@@ -4,7 +4,7 @@ import torch
 from omegaconf import DictConfig, OmegaConf
 from tqdm import tqdm
 
-from ultralytics.yolo.engine.trainer import CONFIG_PATH_ABS, DEFAULT_CONFIG
+from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.utils.ops import Profile
 from ultralytics.yolo.utils.torch_utils import select_device
 
@@ -18,7 +18,7 @@ class BaseValidator:
         self.dataloader = dataloader
         self.pbar = pbar
         self.logger = logger or logging.getLogger()
-        self.args = args or OmegaConf.load(CONFIG_PATH_ABS / DEFAULT_CONFIG)
+        self.args = args or OmegaConf.load(DEFAULT_CONFIG)
         self.device = select_device(self.args.device, dataloader.batch_size)
         self.cuda = self.device.type != 'cpu'
         self.batch_i = None

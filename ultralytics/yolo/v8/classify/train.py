@@ -58,7 +58,7 @@ def train(cfg):
 if __name__ == "__main__":
     """
     CLI usage:
-    python path/to/train.py epochs=10 project=PROJECT lr0=0.1
+    python ultralytics/yolo/v8/classify/train.py model=resnet18 data=imagenette160 epochs=1 img_size=224
 
     TODO:
     Direct cli support, i.e, yolov8 classify_train args.epochs 10

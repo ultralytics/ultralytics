@@ -3,6 +3,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
+import torch.nn.functional as F
 
 from ultralytics.yolo.engine.validator import BaseValidator
 from ultralytics.yolo.utils import ops
@@ -116,7 +117,7 @@ class SegmentationValidator(BaseValidator):
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, labelsn)
             self.stats.append((correct_masks, correct_bboxes, pred[:, 4], pred[:, 5], labels[:,
-                                                                                             0]))  # (conf, pcls, tcls)
+                                                                                      0]))  # (conf, pcls, tcls)
 
             pred_masks = torch.as_tensor(pred_masks, dtype=torch.uint8)
             if self.plots and self.batch_i < 3:
@@ -152,7 +153,7 @@ class SegmentationValidator(BaseValidator):
         self.nt_per_class = np.bincount(stats[4].astype(int), minlength=self.nc)  # number of targets per class
         keys = ["mp_bbox", "mr_bbox", "map50_bbox", "map_bbox", "mp_mask", "mr_mask", "map50_mask", "map_mask"]
         metrics = {"fitness": fitness_segmentation(np.array(self.metrics.mean_results()).reshape(1, -1))}
-        metrics.update(zip(keys, self.metrics.mean_results()))
+        metrics |= zip(keys, self.metrics.mean_results())
         return metrics
 
     def print_results(self):

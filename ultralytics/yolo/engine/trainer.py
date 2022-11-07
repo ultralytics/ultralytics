@@ -145,10 +145,11 @@ class BaseTrainer:
 
     
     def _set_model_attributes(self):
-        nl = utils.torch_utils.de_parallel(self.model).model[-1].nl
-        self.args.box *= 3 / nl  # scale to layers
-        self.args.cls *= nc / 80 * 3 / nl  # scale to classes and layers
-        self.args.obj *= (imgsz / 640) ** 2 * 3 / nl  # scale to image size and layers
+        # TODO: fix and use after self.data_dict is available
+        head = utils.torch_utils.de_parallel(self.model).model[-1]
+        self.args.box *= 3 / head.nl  # scale to layers
+        self.args.cls *= head.nc / 80 * 3 / head.nl  # scale to classes and layers
+        self.args.obj *= (self.args.img_size / 640) ** 2 * 3 / nl  # scale to image size and layers
         model.nc = nc  # attach number of classes to model
         model.hyp = hyp  # attach hyperparameters to model
         model.class_weights = labels_to_class_weights(dataset.labels, nc).to(device) * nc  # attach class weights

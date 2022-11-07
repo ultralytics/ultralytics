@@ -55,6 +55,7 @@ def plot_one_box(x, img, color=None, label=None, line_thickness=None):
 with open("ultralytics/tests/data/dataloader/hyp_test.yaml") as f:
     hyp = OmegaConf.load(f)
 
+
 def test(augment, rect):
     dataloader, _ = build_dataloader(
         img_path="/d/dataset/COCO/coco128-seg/images",
@@ -119,6 +120,7 @@ def test(augment, rect):
         cv2.imshow("p", img)
         if cv2.waitKey(0) == ord("q"):
             break
+
 
 if __name__ == "__main__":
     test(augment=True, rect=False)

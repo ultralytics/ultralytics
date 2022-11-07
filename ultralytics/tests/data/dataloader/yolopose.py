@@ -67,6 +67,7 @@ def plot_keypoint(img, keypoints, color, tl):
 with open("ultralytics/tests/data/dataloader/hyp_test.yaml") as f:
     hyp = OmegaConf.load(f)
 
+
 def test(augment, rect):
     dataloader, _ = build_dataloader(
         img_path="/d/dataset/COCO/images/val2017",
@@ -109,10 +110,15 @@ def test(augment, rect):
             y2 = y + h / 2
             c = int(cls[i][0])
             # print(x1, y1, x2, y2)
-            plot_one_box([int(x1), int(y1), int(x2), int(y2)], img, keypoints=keypoints[i], label=f"{c}", color=colors(c))
+            plot_one_box([int(x1), int(y1), int(x2), int(y2)],
+                         img,
+                         keypoints=keypoints[i],
+                         label=f"{c}",
+                         color=colors(c))
         cv2.imshow("p", img)
         if cv2.waitKey(0) == ord("q"):
             break
+
 
 if __name__ == "__main__":
     test(augment=True, rect=False)

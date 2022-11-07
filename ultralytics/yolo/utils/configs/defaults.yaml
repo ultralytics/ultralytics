@@ -1,32 +1,34 @@
-model: null
-cfg: null
-data: null
+# YOLO 🚀 by Ultralytics, GPL-3.0 license
+# Default training settings and hyperparameters for medium-augmentation COCO training
 
-# Training options
+
+# Train settings -------------------------------------------------------------------------------------------------------
+model: null  # i.e. yolov5s.pt
+cfg: null  # i.e. yolov5s.yaml
+data: null  # i.e. coco128.yaml
 epochs: 300
 batch_size: 16
 img_size: 640
 nosave: False
-cache: False # True/ram for ram, or disc
-device: '' # cuda device, i.e. 0 or 0,1,2,3 or cpu
+cache: False  # True/ram, disk or False
+device: ''  # cuda device, i.e. 0 or 0,1,2,3 or cpu
 workers: 8
-project: "ultralytics-yolo"
-name: "exp" # TODO: make this informative, maybe exp{#number}_{datetime} ?
+project: 'runs'
+name: 'exp'
 exist_ok: False
 pretrained: False
-optimizer: "Adam" # choices=['SGD', 'Adam', 'AdamW', 'RMSProp']
+optimizer: 'SGD'  # choices=['SGD', 'Adam', 'AdamW', 'RMSProp']
 verbose: False
 seed: 0
 local_rank: -1
-single_cls: False # train multi-class data as single-class
-image_weights: False # use weighted image selection for training
+single_cls: False  # train multi-class data as single-class
+image_weights: False  # use weighted image selection for training
 shuffle: True
-rect: False # support rectangular training
-overlap_mask: True # Segmentation masks overlap
-mask_ratio: 4 # Segmentation mask downsample ratio
-#-----------------------------------#
+rect: False  # support rectangular training
+overlap_mask: True  # Segmentation masks overlap
+mask_ratio: 4  # Segmentation mask downsample ratio
 
-# Validation options
+# Val/Test settings ----------------------------------------------------------------------------------------------------
 save_json: False
 save_hybrid: False
 conf_thres: 0.001
@@ -36,7 +38,8 @@ half: True
 plots: False
 save_txt: False
 task: 'val'
-# Hyper-parameters
+
+# Hyperparameters ------------------------------------------------------------------------------------------------------
 lr0: 0.001  # initial learning rate (SGD=1E-2, Adam=1E-3)
 lrf: 0.01  # final OneCycleLR learning rate (lr0 * lrf)
 momentum: 0.937  # SGD momentum/Adam beta1
@@ -68,9 +71,8 @@ mixup: 0.0  # image mixup (probability)
 copy_paste: 0.0  # segment copy-paste (probability)
 label_smoothing: 0.0
 
-# Hydra configs -------------------------------------
-# to disable hydra directory creation
+# Hydra configs --------------------------------------------------------------------------------------------------------
 hydra:
-  output_subdir: null
+  output_subdir: null  # disable hydra directory creation
   run:
     dir: .

@@ -38,7 +38,10 @@ class ClassificationTrainer(BaseTrainer):
         return train_set, test_set
 
     def get_dataloader(self, dataset_path, batch_size=None, rank=0):
-        return build_classification_dataloader(path=dataset_path, imgsz=self.args.img_size, batch_size=self.args.batch_size, rank=rank)
+        return build_classification_dataloader(path=dataset_path,
+                                               imgsz=self.args.img_size,
+                                               batch_size=self.args.batch_size,
+                                               rank=rank)
 
     def preprocess_batch(self, batch):
         batch["img"] = batch["img"].to(self.device)

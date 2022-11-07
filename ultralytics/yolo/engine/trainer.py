@@ -7,11 +7,11 @@ Simple training loop; Boilerplate that could apply to any arbitrary neural netwo
 # 3. save
 
 import os
-from telnetlib import TLS
 import time
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
+from telnetlib import TLS
 from typing import Dict, Union
 
 import torch
@@ -142,7 +142,6 @@ class BaseTrainer:
             print("created testloader :", rank)
             self.console.info(self.progress_string())
 
-    
     def _set_model_attributes(self):
         # TODO: fix and use after self.data_dict is available
         head = utils.torch_utils.de_parallel(self.model).model[-1]
@@ -196,9 +195,11 @@ class BaseTrainer:
                 # log
                 mem = (torch.cuda.memory_reserved() / 1E9 if torch.cuda.is_available() else 0)  # (GB)
                 loss_len = tloss.shape[0] if len(tloss.size()) else 1
-                losses = tloss if loss_len>1 else torch.unsqueeze(tloss, 0)
+                losses = tloss if loss_len > 1 else torch.unsqueeze(tloss, 0)
                 if rank in {-1, 0}:
-                    pbar.set_description((" {} "+ "{:.3f}  " *(2+loss_len)).format(f'{epoch + 1}/{self.args.epochs}', mem, *losses, batch["img"].shape[-1]))
+                    pbar.set_description(
+                        (" {} " + "{:.3f}  " * (2 + loss_len)).format(f'{epoch + 1}/{self.args.epochs}', mem, *losses,
+                                                                      batch["img"].shape[-1]))
 
             if rank in [-1, 0]:
                 # validation
@@ -265,7 +266,7 @@ class BaseTrainer:
             p.requires_grad = True
 
         return model
-    
+
     def load_cfg(self, cfg):
         raise NotImplementedError("This task trainer doesn't support loading cfg files")
 

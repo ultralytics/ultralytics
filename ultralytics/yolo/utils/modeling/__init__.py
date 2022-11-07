@@ -3,9 +3,6 @@ import contextlib
 import torchvision
 import yaml
 
-import torchvision
-import yaml
-
 from ultralytics.yolo.utils.downloads import attempt_download
 from ultralytics.yolo.utils.modeling.modules import *
 

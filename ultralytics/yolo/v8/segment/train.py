@@ -1,6 +1,6 @@
-from cProfile import label
 import subprocess
 import time
+from cProfile import label
 from pathlib import Path
 
 import hydra
@@ -13,10 +13,11 @@ from ultralytics.yolo.data import build_dataloader
 from ultralytics.yolo.engine.trainer import CONFIG_PATH_ABS, DEFAULT_CONFIG, BaseTrainer
 from ultralytics.yolo.utils.downloads import download
 from ultralytics.yolo.utils.files import WorkingDirectory
-from ultralytics.yolo.utils.torch_utils import LOCAL_RANK, torch_distributed_zero_first, de_parallel
+from ultralytics.yolo.utils.metrics import FocalLoss, bbox_iou, smooth_BCE
 from ultralytics.yolo.utils.modeling.tasks import SegmentationModel
-from ultralytics.yolo.utils.metrics import bbox_iou, smooth_BCE, FocalLoss
-from ultralytics.yolo.utils.ops import xywh2xyxy, crop_mask
+from ultralytics.yolo.utils.ops import crop_mask, xywh2xyxy
+from ultralytics.yolo.utils.torch_utils import LOCAL_RANK, de_parallel, torch_distributed_zero_first
+
 
 # BaseTrainer python usage
 class SegmentationTrainer(BaseTrainer):
@@ -37,7 +38,7 @@ class SegmentationTrainer(BaseTrainer):
                 # TODO: add colorstr
                 s = f"Dataset download success ✅ ({time.time() - t:.1f}s), saved to {'bold', data_dir}\n"
                 self.console.info(s)
-        train_set = data_dir 
+        train_set = data_dir
         test_set = data_dir
 
         return train_set, test_set
@@ -46,20 +47,22 @@ class SegmentationTrainer(BaseTrainer):
         # TODO: manage splits differently
         # calculate stride - check if model is initialized
         gs = max(int(self.model.stride.max() if self.model else 0), 32)
-        loader = build_dataloader(img_path=dataset_path,
-                                img_size=self.args.img_size,
-                                batch_size=batch_size,
-                                single_cls=self.args.single_cls,
-                                cache=self.args.cache,
-                                image_weights=self.args.image_weights,
-                                stride=gs,
-                                rect=self.args.rect,
-                                rank=rank,
-                                workers=self.args.workers,
-                                shuffle=self.args.shuffle,
-                                use_segments=True,
-                                            )[0]
+        loader = build_dataloader(
+            img_path=dataset_path,
+            img_size=self.args.img_size,
+            batch_size=batch_size,
+            single_cls=self.args.single_cls,
+            cache=self.args.cache,
+            image_weights=self.args.image_weights,
+            stride=gs,
+            rect=self.args.rect,
+            rank=rank,
+            workers=self.args.workers,
+            shuffle=self.args.shuffle,
+            use_segments=True,
+        )[0]
         return loader
+
     def preprocess_batch(self, batch):
         batch["img"] = batch["img"].to(self.device, non_blocking=True).float() / 255
         return batch
@@ -103,7 +106,8 @@ class SegmentationTrainer(BaseTrainer):
             na, nt = head.na, targets.shape[0]  # number of anchors, targets
             tcls, tbox, indices, anch, tidxs, xywhn = [], [], [], [], [], []
             gain = torch.ones(8, device=self.device)  # normalized to gridspace gain
-            ai = torch.arange(na, device=self.device).float().view(na, 1).repeat(1, nt)  # same as .repeat_interleave(nt)
+            ai = torch.arange(na, device=self.device).float().view(na, 1).repeat(1,
+                                                                                 nt)  # same as .repeat_interleave(nt)
             if self.args.overlap_mask:
                 batch = p[0].shape[0]
                 ti = []
@@ -167,12 +171,13 @@ class SegmentationTrainer(BaseTrainer):
                 xywhn.append(torch.cat((gxy, gwh), 1) / gain[2:6])  # xywh normalized
 
             return tcls, tbox, indices, anch, tidxs, xywhn
+
         if self.model.training:
             p, proto, = preds
         else:
             p, proto, train_out = preds
             p = train_out
-        targets  = torch.cat((batch["batch_idx"].view(-1,1), batch["cls"].view(-1,1), batch["bboxes"]), 1)
+        targets = torch.cat((batch["batch_idx"].view(-1, 1), batch["cls"].view(-1, 1), batch["bboxes"]), 1)
         masks = batch["masks"]
         targets, masks = targets.to(self.device), masks.to(self.device).float()
 
@@ -245,6 +250,7 @@ class SegmentationTrainer(BaseTrainer):
     def progress_string(self):
         return  ('\n' + '%11s' * 7)% \
         ('Epoch', 'GPU_mem', 'box_loss', 'seg_loss', 'obj_loss', 'cls_loss', 'Size')
+
 
 @hydra.main(version_base=None, config_path=CONFIG_PATH_ABS, config_name=str(DEFAULT_CONFIG).split(".")[0])
 def train(cfg):

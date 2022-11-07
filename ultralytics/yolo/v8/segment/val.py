@@ -1,17 +1,20 @@
 import os
-import numpy as np
 from pathlib import Path
 
+import numpy as np
 import torch
+
 from ultralytics.yolo.engine.validator import BaseValidator
-from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils import ops
-from ultralytics.yolo.utils.metrics import ConfusionMatrix, Metrics, mask_iou, ap_per_class_box_and_mask, box_iou, fitness_segmentation
+from ultralytics.yolo.utils.checks import check_requirements
+from ultralytics.yolo.utils.metrics import (ConfusionMatrix, Metrics, ap_per_class_box_and_mask, box_iou,
+                                            fitness_segmentation, mask_iou)
 from ultralytics.yolo.utils.modeling import yaml_load
 from ultralytics.yolo.utils.torch_utils import de_parallel
 
 
 class SegmentationValidator(BaseValidator):
+
     def __init__(self, dataloader, pbar=None, logger=None, args=None):
         super().__init__(dataloader, pbar, logger, args)
         if self.args.save_json:
@@ -30,15 +33,17 @@ class SegmentationValidator(BaseValidator):
         batch["bboxes"] = batch["bboxes"].to(self.device)
         batch["masks"] = batch["masks"].to(self.device).float()
         self.nb, _, self.height, self.width = batch["img"].shape  # batch size, channels, height, width
-        self.targets  = torch.cat((batch["batch_idx"].view(-1,1), batch["cls"].view(-1,1), batch["bboxes"]), 1)
-        self.lb = [self.targets[self.targets[:, 0] == i, 1:] for i in range(self.nb)] if self.args.save_hybrid else []  # for autolabelling
+        self.targets = torch.cat((batch["batch_idx"].view(-1, 1), batch["cls"].view(-1, 1), batch["bboxes"]), 1)
+        self.lb = [self.targets[self.targets[:, 0] == i, 1:]
+                   for i in range(self.nb)] if self.args.save_hybrid else []  # for autolabelling
 
         return batch
 
     def init_metrics(self, model):
         head = de_parallel(model).model[-1]
         if self.data_dict:
-            self.is_coco = isinstance(self.data_dict.get('val'), str) and self.data_dict['val'].endswith(f'coco{os.sep}val2017.txt')
+            self.is_coco = isinstance(self.data_dict.get('val'),
+                                      str) and self.data_dict['val'].endswith(f'coco{os.sep}val2017.txt')
             self.class_map = ops.coco80_to_coco91_class() if self.is_coco else list(range(1000))
 
         self.nc = head.nc
@@ -56,10 +61,9 @@ class SegmentationValidator(BaseValidator):
         self.jdict = []
         self.stats = []
 
-
     def get_desc(self):
-        return ('%22s' + '%11s' * 10) % ('Class', 'Images', 'Instances', 'Box(P', "R", "mAP50", "mAP50-95)", "Mask(P", "R",
-                                  "mAP50", "mAP50-95)")
+        return ('%22s' + '%11s' * 10) % ('Class', 'Images', 'Instances', 'Box(P', "R", "mAP50", "mAP50-95)", "Mask(P",
+                                         "R", "mAP50", "mAP50-95)")
 
     def preprocess_preds(self, preds):
         p = ops.non_max_suppression(preds[0],
@@ -85,7 +89,8 @@ class SegmentationValidator(BaseValidator):
 
             if npr == 0:
                 if nl:
-                    self.stats.append((correct_masks, correct_bboxes, *torch.zeros((2, 0), device=self.device), labels[:, 0]))
+                    self.stats.append((correct_masks, correct_bboxes, *torch.zeros(
+                        (2, 0), device=self.device), labels[:, 0]))
                     if self.args.plots:
                         self.confusion_matrix.process_batch(detections=None, labels=labels[:, 0])
                 continue
@@ -110,7 +115,8 @@ class SegmentationValidator(BaseValidator):
                 correct_masks = self._process_batch(predn, labelsn, self.iouv, pred_masks, gt_masks, masks=True)
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, labelsn)
-            self.stats.append((correct_masks, correct_bboxes, pred[:, 4], pred[:, 5], labels[:, 0]))  # (conf, pcls, tcls)
+            self.stats.append((correct_masks, correct_bboxes, pred[:, 4], pred[:, 5], labels[:,
+                                                                                             0]))  # (conf, pcls, tcls)
 
             pred_masks = torch.as_tensor(pred_masks, dtype=torch.uint8)
             if self.plots and self.batch_i < 3:
@@ -137,7 +143,6 @@ class SegmentationValidator(BaseValidator):
                                   save_dir / f'val_batch{batch_i}_pred.jpg', names)  # pred
         '''
 
-
     def get_stats(self):
         stats = [torch.cat(x, 0).cpu().numpy() for x in zip(*self.stats)]  # to numpy
         if len(stats) and stats[0].any():
@@ -149,18 +154,19 @@ class SegmentationValidator(BaseValidator):
         metrics = {"fitness": fitness_segmentation(np.array(self.metrics.mean_results()).reshape(1, -1))}
         metrics.update(zip(keys, self.metrics.mean_results()))
         return metrics
-    
+
     def print_results(self):
         pf = '%22s' + '%11i' * 2 + '%11.3g' * 8  # print format
         self.logger.info(pf % ("all", self.seen, self.nt_per_class.sum(), *self.metrics.mean_results()))
         if self.nt_per_class.sum() == 0:
-            self.logger.warning(f'WARNING ⚠️ no labels found in {self.args.task} set, can not compute metrics without labels')
+            self.logger.warning(
+                f'WARNING ⚠️ no labels found in {self.args.task} set, can not compute metrics without labels')
 
         # Print results per class
         if (self.args.verbose or (self.nc < 50 and not self.training)) and self.nc > 1 and len(self.stats):
             for i, c in enumerate(self.metrics.ap_class_index):
                 self.logger.info(pf % (self.names[c], self.seen, self.nt_per_class[c], *self.metrics.class_result(i)))
-        
+
         # plot TODO: save_dir
         if self.args.plots:
             self.confusion_matrix.plot(save_dir='', names=list(self.names.values()))
@@ -192,7 +198,8 @@ class SegmentationValidator(BaseValidator):
         for i in range(len(iouv)):
             x = torch.where((iou >= iouv[i]) & correct_class)  # IoU > threshold and classes match
             if x[0].shape[0]:
-                matches = torch.cat((torch.stack(x, 1), iou[x[0], x[1]][:, None]), 1).cpu().numpy()  # [label, detect, iou]
+                matches = torch.cat((torch.stack(x, 1), iou[x[0], x[1]][:, None]),
+                                    1).cpu().numpy()  # [label, detect, iou]
                 if x[0].shape[0] > 1:
                     matches = matches[matches[:, 2].argsort()[::-1]]
                     matches = matches[np.unique(matches[:, 1], return_index=True)[1]]

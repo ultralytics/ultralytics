@@ -1,6 +1,5 @@
 import subprocess
 import time
-from cProfile import label
 from pathlib import Path
 
 import hydra
@@ -248,8 +247,8 @@ class SegmentationTrainer(BaseTrainer):
         return loss * bs, torch.cat((lbox, lseg, lobj, lcls)).detach()
 
     def progress_string(self):
-        return  ('\n' + '%11s' * 7)% \
-        ('Epoch', 'GPU_mem', 'box_loss', 'seg_loss', 'obj_loss', 'cls_loss', 'Size')
+        return ('\n' + '%11s' * 7) % \
+               ('Epoch', 'GPU_mem', 'box_loss', 'seg_loss', 'obj_loss', 'cls_loss', 'Size')
 
 
 @hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)

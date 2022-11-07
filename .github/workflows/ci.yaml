@@ -22,7 +22,7 @@ jobs:
         python-version: [ '3.10' ]
         model: [ yolov5n ]
         torch: [ latest ]
-        include:
+#        include:
 #          - os: ubuntu-latest
 #            python-version: '3.7'  # '3.6.8' min
 #            model: yolov5n

@@ -184,7 +184,7 @@ class Mosaic(BaseMixTransform):
             cls.append(labels["cls"])
             instances.append(labels["instances"])
         final_labels = {
-            "ori_shape": (self.img_size * 2, self.img_size * 2),
+            "ori_shape": mosaic_labels[0]["ori_shape"],
             "resized_shape": (self.img_size * 2, self.img_size * 2),
             "im_file": mosaic_labels[0]["im_file"],
             "cls": np.concatenate(cls, 0)}
@@ -351,7 +351,7 @@ class RandomPerspective:
         """
         img = labels["img"]
         cls = labels["cls"]
-        instances = labels["instances"]
+        instances = labels.pop("instances")
         # make sure the coord formats are right
         instances.convert_bbox(format="xyxy")
         instances.denormalize(*img.shape[:2][::-1])
@@ -372,6 +372,7 @@ class RandomPerspective:
         if keypoints is not None:
             keypoints = self.apply_keypoints(keypoints, M)
         new_instances = Instances(bboxes, segments, keypoints, bbox_format="xyxy", normalized=False)
+        # clip
         new_instances.clip(*self.size)
 
         # filter instances
@@ -381,7 +382,6 @@ class RandomPerspective:
                                 box2=new_instances.bboxes.T,
                                 area_thr=0.01 if len(segments) else 0.10)
         labels["instances"] = new_instances[i]
-        # clip
         labels["cls"] = cls[i]
         labels["img"] = img
         labels["resized_shape"] = img.shape[:2]
@@ -431,7 +431,7 @@ class RandomFlip:
 
     def __call__(self, labels):
         img = labels["img"]
-        instances = labels["instances"]
+        instances = labels.pop("instances")
         instances.convert_bbox(format="xywh")
         h, w = img.shape[:2]
         h = 1 if instances.normalized else h
@@ -440,13 +440,11 @@ class RandomFlip:
         # Flip up-down
         if self.direction == "vertical" and random.random() < self.p:
             img = np.flipud(img)
-            img = np.ascontiguousarray(img)
             instances.flipud(h)
         if self.direction == "horizontal" and random.random() < self.p:
             img = np.fliplr(img)
-            img = np.ascontiguousarray(img)
             instances.fliplr(w)
-        labels["img"] = img
+        labels["img"] = np.ascontiguousarray(img)
         labels["instances"] = instances
         return labels
 
@@ -464,7 +462,7 @@ class LetterBox:
     def __call__(self, labels={}, image=None):
         img = image or labels["img"]
         shape = img.shape[:2]  # current shape [height, width]
-        new_shape = labels.get("rect_shape", self.new_shape)
+        new_shape = labels.pop("rect_shape", self.new_shape)
         if isinstance(new_shape, int):
             new_shape = (new_shape, new_shape)
 

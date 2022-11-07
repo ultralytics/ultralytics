@@ -12,44 +12,6 @@ on:
   #   - cron: '0 0 * * *'  # runs at 00:00 UTC every day
 
 jobs:
-#  Benchmarks:
-#    runs-on: ${{ matrix.os }}
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        os: [ ubuntu-latest ]
-#        python-version: [ '3.9' ]  # requires python<=3.9
-#        model: [ yolov5n ]
-#    steps:
-#      - uses: actions/checkout@v3
-#      - uses: actions/setup-python@v4
-#        with:
-#          python-version: ${{ matrix.python-version }}
-#      #- name: Cache pip
-#      #  uses: actions/cache@v3
-#      #  with:
-#      #    path: ~/.cache/pip
-#      #    key: ${{ runner.os }}-Benchmarks-${{ hashFiles('requirements.txt') }}
-#      #    restore-keys: ${{ runner.os }}-Benchmarks-
-#      - name: Install requirements
-#        run: |
-#          python -m pip install --upgrade pip wheel
-#          pip install -r requirements.txt coremltools openvino-dev tensorflow-cpu --extra-index-url https://download.pytorch.org/whl/cpu
-#          python --version
-#          pip --version
-#          pip list
-#      - name: Benchmark DetectionModel
-#        run: |
-#          python benchmarks.py --data coco128.yaml --weights ${{ matrix.model }}.pt --img 320 --hard-fail 0.29
-#      - name: Benchmark SegmentationModel
-#        run: |
-#          python benchmarks.py --data coco128-seg.yaml --weights ${{ matrix.model }}-seg.pt --img 320 --hard-fail 0.22
-#      - name: Test predictions
-#        run: |
-#          python export.py --weights ${{ matrix.model }}-cls.pt --include onnx --img 224
-#          python detect.py --weights ${{ matrix.model }}.onnx --img 320
-#          python segment/predict.py --weights ${{ matrix.model }}-seg.onnx --img 320
-#          python classify/predict.py --weights ${{ matrix.model }}-cls.onnx --img 224
   Tests:
     timeout-minutes: 60
     runs-on: ${{ matrix.os }}
@@ -69,7 +31,7 @@ jobs:
 #          - os: ubuntu-latest
 #            python-version: '3.9'
 #            model: yolov5n
-#          - os: ubuntu-latest
+          - os: ubuntu-latest
             python-version: '3.8'  # torch 1.7.0 requires python >=3.6, <=3.8
             model: yolov5n
             torch: '1.7.0'  # min torch version CI https://pypi.org/project/torchvision/
@@ -96,6 +58,8 @@ jobs:
           else
               pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu
           fi
+          # pip install ultralytics (production)
+          pip install .
         shell: bash  # for Windows compatibility
       - name: Check environment
         run: |

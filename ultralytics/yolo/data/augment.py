@@ -384,6 +384,7 @@ class RandomPerspective:
         # clip
         labels["cls"] = cls[i]
         labels["img"] = img
+        labels["resized_shape"] = img.shape[:2]
         return labels
 
     def box_candidates(self, box1, box2, wh_thr=2, ar_thr=100, area_thr=0.1, eps=1e-16):  # box1(4,n), box2(4,n)
@@ -495,6 +496,7 @@ class LetterBox:
 
         labels = self._update_labels(labels, ratio, dw, dh)
         labels["img"] = img
+        labels["resized_shape"] = new_shape
         return labels
 
     def _update_labels(self, labels, ratio, padw, padh):

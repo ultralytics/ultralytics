@@ -515,26 +515,21 @@ class CopyPaste:
         # Implement Copy-Paste augmentation https://arxiv.org/abs/2012.07177, labels as nx5 np.array(cls, xyxy)
         im = labels["img"]
         cls = labels["cls"]
-        bboxes = labels["instances"].bboxes
-        segments = labels["instances"].segments  # n, 1000, 2
-        keypoints = labels["instances"].keypoints
-        if self.p and len(segments):
-            n = len(segments)
+        instances = labels.pop("instances")
+        instances.convert_bbox(format="xyxy")
+        if self.p and len(instances.segments):
+            n = len(instances)
             h, w, _ = im.shape  # height, width, channels
             im_new = np.zeros(im.shape, np.uint8)
-            # TODO: this implement can be parallel since segments are ndarray, also might work with Instances inside
-            for j in random.sample(range(n), k=round(self.p * n)):
-                c, b, s = cls[j], bboxes[j], segments[j]
-                box = w - b[2], b[1], w - b[0], b[3]
-                ioa = bbox_ioa(box, bboxes)  # intersection over area
-                if (ioa < 0.30).all():  # allow 30% obscuration of existing labels
-                    bboxes = np.concatenate((bboxes, [box]), 0)
-                    cls = np.concatenate((cls, c[None]), axis=0)
-                    segments = np.concatenate((segments, np.concatenate((w - s[:, 0:1], s[:, 1:2]), 1)[None]), 0)
-                    if keypoints is not None:
-                        keypoints = np.concatenate(
-                            (keypoints, np.concatenate((w - keypoints[j][:, 0:1], keypoints[j][:, 1:2]), 1)), 0)
-                    cv2.drawContours(im_new, [segments[j].astype(np.int32)], -1, (255, 255, 255), cv2.FILLED)
+            j = random.sample(range(n), k=round(self.p * n))
+            c, instance = cls[j], instances[j]
+            instance.fliplr(w)
+            ioa = bbox_ioa(instance.bboxes, instances.bboxes)  # intersection over area, (N, M)
+            i = (ioa < 0.30).all(1)  # (N, )
+            if i.sum():
+                cls = np.concatenate((cls, c[i]), axis=0)
+                instances = Instances.concatenate((instances, instance[i]), axis=0)
+                cv2.drawContours(im_new, instances.segments[j][i].astype(np.int32), -1, (255, 255, 255), cv2.FILLED)
 
             result = cv2.bitwise_and(src1=im, src2=im_new)
             result = cv2.flip(result, 1)  # augment segments (flip left-right)
@@ -543,7 +538,7 @@ class CopyPaste:
             im[i] = result[i]  # cv2.imwrite('debug.jpg', im)  # debug
         labels["img"] = im
         labels["cls"] = cls
-        labels["instances"].update(bboxes, segments, keypoints)
+        labels["instances"] = instances
         return labels
 
 

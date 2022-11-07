@@ -5,11 +5,10 @@ import time
 import cv2
 import numpy as np
 import torch
-import torch.nn as nn
+import torch.nn.functional as F
 import torchvision
 
 from ultralytics.yolo.utils import LOGGER
-
 from .metrics import box_iou
 
 
@@ -49,10 +48,7 @@ def segment2box(segment, width=640, height=640):
     # Convert 1 segment label to 1 box label, applying inside-image constraint, i.e. (xy1, xy2, ...) to (xyxy)
     x, y = segment.T  # segment xy
     inside = (x >= 0) & (y >= 0) & (x <= width) & (y <= height)
-    x, y, = (
-        x[inside],
-        y[inside],
-    )
+    x, y, = x[inside], y[inside]
     return np.array([x.min(), y.min(), x.max(), y.max()]) if any(x) else np.zeros(4)  # xyxy
 
 
@@ -334,7 +330,6 @@ def crop_mask(masks, boxes):
     c = torch.arange(h, device=masks.device, dtype=x1.dtype)[None, :, None]  # cols shape(h,1,1)
 
     return masks * ((r >= x1) * (r < x2) * (c >= y1) * (c < y2))
-
 
 
 def process_mask_upsample(protos, masks_in, bboxes, shape):

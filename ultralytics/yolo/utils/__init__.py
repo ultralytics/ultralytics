@@ -5,8 +5,6 @@ import platform
 import sys
 from pathlib import Path
 
-from .files import user_config_dir
-
 # Constants
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[2]  # YOLOv5 root directory
@@ -17,8 +15,6 @@ AUTOINSTALL = str(os.getenv('YOLOv5_AUTOINSTALL', True)).lower() == 'true'  # gl
 FONT = 'Arial.ttf'  # https://ultralytics.com/assets/Arial.ttf
 VERBOSE = str(os.getenv('YOLOv5_VERBOSE', True)).lower() == 'true'  # global verbose mode
 
-CONFIG_DIR = user_config_dir()  # Ultralytics settings dir
-
 
 def is_colab():
     # Is environment a Google Colab instance?
@@ -28,6 +24,36 @@ def is_colab():
 def is_kaggle():
     # Is environment a Kaggle Notebook?
     return os.environ.get('PWD') == '/kaggle/working' and os.environ.get('KAGGLE_URL_BASE') == 'https://www.kaggle.com'
+
+
+def is_writeable(dir, test=False):
+    # Return True if directory has write permissions, test opening a file with write permissions if test=True
+    if not test:
+        return os.access(dir, os.W_OK)  # possible issues on Windows
+    file = Path(dir) / 'tmp.txt'
+    try:
+        with open(file, 'w'):  # open file with write permissions
+            pass
+        file.unlink()  # remove file
+        return True
+    except OSError:
+        return False
+
+
+def user_config_dir(dir='Ultralytics', env_var='YOLOV5_CONFIG_DIR'):
+    # Return path of user configuration directory. Prefer environment variable if exists. Make dir if required.
+    env = os.getenv(env_var)
+    if env:
+        path = Path(env)  # use environment variable
+    else:
+        cfg = {'Windows': 'AppData/Roaming', 'Linux': '.config', 'Darwin': 'Library/Application Support'}  # 3 OS dirs
+        path = Path.home() / cfg.get(platform.system(), '')  # OS-specific config dir
+        path = (path if is_writeable(path) else Path('/tmp')) / dir  # GCP and AWS lambda fix, only /tmp is writeable
+    path.mkdir(exist_ok=True)  # make if required
+    return path
+
+
+USER_CONFIG_DIR = user_config_dir()  # Ultralytics settings dir
 
 
 def emojis(str=''):
@@ -57,7 +83,7 @@ def colorstr(*input):
         "bright_white": "\033[97m",
         "end": "\033[0m",  # misc
         "bold": "\033[1m",
-        "underline": "\033[4m",}
+        "underline": "\033[4m", }
     return "".join(colors[x] for x in args) + f"{string}" + colors["end"]
 
 

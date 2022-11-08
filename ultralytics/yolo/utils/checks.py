@@ -8,7 +8,7 @@ from subprocess import check_output
 import pkg_resources as pkg
 import torch
 
-from ultralytics.yolo.utils import AUTOINSTALL, CONFIG_DIR, FONT, LOGGER, ROOT, TryExcept, colorstr, emojis
+from ultralytics.yolo.utils import AUTOINSTALL, USER_CONFIG_DIR, FONT, LOGGER, ROOT, TryExcept, colorstr, emojis
 
 
 def is_ascii(s=''):
@@ -32,7 +32,7 @@ def check_version(current="0.0.0", minimum="0.0.0", name="version ", pinned=Fals
 def check_font(font=FONT, progress=False):
     # Download font to CONFIG_DIR if necessary
     font = Path(font)
-    file = CONFIG_DIR / font.name
+    file = USER_CONFIG_DIR / font.name
     if not font.exists() and not file.exists():
         url = f'https://ultralytics.com/assets/{font.name}'
         LOGGER.info(f'Downloading {url} to {file}...')

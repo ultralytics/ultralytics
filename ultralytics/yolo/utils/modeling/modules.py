@@ -24,8 +24,8 @@ from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.ops import Profile, make_divisible, non_max_suppression, scale_boxes, xyxy2xywh
 from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
 from ultralytics.yolo.utils.torch_utils import copy_attr, smart_inference_mode
-from .autobackend import AutoBackend
 
+from .autobackend import AutoBackend
 
 # from utils.plots import feature_visualization TODO
 

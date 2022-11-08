@@ -7,6 +7,7 @@ import torch
 from PIL import Image, ImageDraw, ImageFont
 
 from ultralytics.yolo.utils import CONFIG_DIR, FONT
+
 from .checks import check_font, check_requirements, is_ascii
 from .files import increment_path
 from .ops import clip_coords, scale_image, xywh2xyxy, xyxy2xywh

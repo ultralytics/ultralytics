@@ -252,23 +252,36 @@ class Instances:
         )
 
     def flipud(self, h):
-        # this function may not be very logical, just for clean code when using augment flipud
-        self.bboxes[:, 1] = h - self.bboxes[:, 1]
+        if self._bboxes.format == "xyxy":
+            y1 = self.bboxes[:, 1].copy()
+            y2 = self.bboxes[:, 3].copy()
+            self.bboxes[:, 1] = h - y2
+            self.bboxes[:, 3] = h - y1
+        else:
+            self.bboxes[:, 1] = h - self.bboxes[:, 1]
         self.segments[..., 1] = h - self.segments[..., 1]
         if self.keypoints is not None:
             self.keypoints[..., 1] = h - self.keypoints[..., 1]
 
     def fliplr(self, w):
-        # this function may not be very logical, just for clean code when using augment fliplr
-        self.bboxes[:, 0] = w - self.bboxes[:, 0]
+        if self._bboxes.format == "xyxy":
+            x1 = self.bboxes[:, 0].copy()
+            x2 = self.bboxes[:, 2].copy()
+            self.bboxes[:, 0] = w - x2
+            self.bboxes[:, 2] = w - x1
+        else:
+            self.bboxes[:, 0] = w - self.bboxes[:, 0]
         self.segments[..., 0] = w - self.segments[..., 0]
         if self.keypoints is not None:
             self.keypoints[..., 0] = w - self.keypoints[..., 0]
 
     def clip(self, w, h):
+        ori_format = self._bboxes.format
         self.convert_bbox(format="xyxy")
         self.bboxes[:, [0, 2]] = self.bboxes[:, [0, 2]].clip(0, w)
         self.bboxes[:, [1, 3]] = self.bboxes[:, [1, 3]].clip(0, h)
+        if ori_format != "xyxy":
+            self.convert_bbox(format=ori_format)
         self.segments[..., 0] = self.segments[..., 0].clip(0, w)
         self.segments[..., 1] = self.segments[..., 1].clip(0, h)
         if self.keypoints is not None:

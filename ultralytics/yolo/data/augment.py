@@ -184,7 +184,7 @@ class Mosaic(BaseMixTransform):
             cls.append(labels["cls"])
             instances.append(labels["instances"])
         final_labels = {
-            "ori_shape": (self.img_size * 2, self.img_size * 2),
+            "ori_shape": mosaic_labels[0]["ori_shape"],
             "resized_shape": (self.img_size * 2, self.img_size * 2),
             "im_file": mosaic_labels[0]["im_file"],
             "cls": np.concatenate(cls, 0)}
@@ -351,7 +351,7 @@ class RandomPerspective:
         """
         img = labels["img"]
         cls = labels["cls"]
-        instances = labels["instances"]
+        instances = labels.pop("instances")
         # make sure the coord formats are right
         instances.convert_bbox(format="xyxy")
         instances.denormalize(*img.shape[:2][::-1])
@@ -372,6 +372,7 @@ class RandomPerspective:
         if keypoints is not None:
             keypoints = self.apply_keypoints(keypoints, M)
         new_instances = Instances(bboxes, segments, keypoints, bbox_format="xyxy", normalized=False)
+        # clip
         new_instances.clip(*self.size)
 
         # filter instances
@@ -381,9 +382,9 @@ class RandomPerspective:
                                 box2=new_instances.bboxes.T,
                                 area_thr=0.01 if len(segments) else 0.10)
         labels["instances"] = new_instances[i]
-        # clip
         labels["cls"] = cls[i]
         labels["img"] = img
+        labels["resized_shape"] = img.shape[:2]
         return labels
 
     def box_candidates(self, box1, box2, wh_thr=2, ar_thr=100, area_thr=0.1, eps=1e-16):  # box1(4,n), box2(4,n)
@@ -430,7 +431,7 @@ class RandomFlip:
 
     def __call__(self, labels):
         img = labels["img"]
-        instances = labels["instances"]
+        instances = labels.pop("instances")
         instances.convert_bbox(format="xywh")
         h, w = img.shape[:2]
         h = 1 if instances.normalized else h
@@ -439,13 +440,11 @@ class RandomFlip:
         # Flip up-down
         if self.direction == "vertical" and random.random() < self.p:
             img = np.flipud(img)
-            img = np.ascontiguousarray(img)
             instances.flipud(h)
         if self.direction == "horizontal" and random.random() < self.p:
             img = np.fliplr(img)
-            img = np.ascontiguousarray(img)
             instances.fliplr(w)
-        labels["img"] = img
+        labels["img"] = np.ascontiguousarray(img)
         labels["instances"] = instances
         return labels
 
@@ -463,7 +462,7 @@ class LetterBox:
     def __call__(self, labels={}, image=None):
         img = image or labels["img"]
         shape = img.shape[:2]  # current shape [height, width]
-        new_shape = labels.get("rect_shape", self.new_shape)
+        new_shape = labels.pop("rect_shape", self.new_shape)
         if isinstance(new_shape, int):
             new_shape = (new_shape, new_shape)
 
@@ -495,6 +494,7 @@ class LetterBox:
 
         labels = self._update_labels(labels, ratio, dw, dh)
         labels["img"] = img
+        labels["resized_shape"] = new_shape
         return labels
 
     def _update_labels(self, labels, ratio, padw, padh):
@@ -515,26 +515,21 @@ class CopyPaste:
         # Implement Copy-Paste augmentation https://arxiv.org/abs/2012.07177, labels as nx5 np.array(cls, xyxy)
         im = labels["img"]
         cls = labels["cls"]
-        bboxes = labels["instances"].bboxes
-        segments = labels["instances"].segments  # n, 1000, 2
-        keypoints = labels["instances"].keypoints
-        if self.p and len(segments):
-            n = len(segments)
+        instances = labels.pop("instances")
+        instances.convert_bbox(format="xyxy")
+        if self.p and len(instances.segments):
+            n = len(instances)
             h, w, _ = im.shape  # height, width, channels
             im_new = np.zeros(im.shape, np.uint8)
-            # TODO: this implement can be parallel since segments are ndarray, also might work with Instances inside
-            for j in random.sample(range(n), k=round(self.p * n)):
-                c, b, s = cls[j], bboxes[j], segments[j]
-                box = w - b[2], b[1], w - b[0], b[3]
-                ioa = bbox_ioa(box, bboxes)  # intersection over area
-                if (ioa < 0.30).all():  # allow 30% obscuration of existing labels
-                    bboxes = np.concatenate((bboxes, [box]), 0)
-                    cls = np.concatenate((cls, c[None]), axis=0)
-                    segments = np.concatenate((segments, np.concatenate((w - s[:, 0:1], s[:, 1:2]), 1)[None]), 0)
-                    if keypoints is not None:
-                        keypoints = np.concatenate(
-                            (keypoints, np.concatenate((w - keypoints[j][:, 0:1], keypoints[j][:, 1:2]), 1)), 0)
-                    cv2.drawContours(im_new, [segments[j].astype(np.int32)], -1, (255, 255, 255), cv2.FILLED)
+            j = random.sample(range(n), k=round(self.p * n))
+            c, instance = cls[j], instances[j]
+            instance.fliplr(w)
+            ioa = bbox_ioa(instance.bboxes, instances.bboxes)  # intersection over area, (N, M)
+            i = (ioa < 0.30).all(1)  # (N, )
+            if i.sum():
+                cls = np.concatenate((cls, c[i]), axis=0)
+                instances = Instances.concatenate((instances, instance[i]), axis=0)
+                cv2.drawContours(im_new, instances.segments[j][i].astype(np.int32), -1, (255, 255, 255), cv2.FILLED)
 
             result = cv2.bitwise_and(src1=im, src2=im_new)
             result = cv2.flip(result, 1)  # augment segments (flip left-right)
@@ -543,7 +538,7 @@ class CopyPaste:
             im[i] = result[i]  # cv2.imwrite('debug.jpg', im)  # debug
         labels["img"] = im
         labels["cls"] = cls
-        labels["instances"].update(bboxes, segments, keypoints)
+        labels["instances"] = instances
         return labels
 
 

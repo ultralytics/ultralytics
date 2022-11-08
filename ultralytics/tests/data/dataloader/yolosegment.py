@@ -55,58 +55,74 @@ def plot_one_box(x, img, color=None, label=None, line_thickness=None):
 with open("ultralytics/tests/data/dataloader/hyp_test.yaml") as f:
     hyp = OmegaConf.load(f)
 
-dataloader, dataset = build_dataloader(
-    img_path="/d/dataset/COCO/coco128-seg/images",
-    img_size=640,
-    label_path=None,
-    cache=False,
-    hyp=hyp,
-    augment=False,
-    prefix="",
-    rect=False,
-    batch_size=4,
-    stride=32,
-    pad=0.5,
-    use_segments=True,
-    use_keypoints=False,
-)
 
-for d in dataloader:
-    idx = 1  # show which image inside one batch
-    img = d["img"][idx].numpy()
-    img = np.ascontiguousarray(img.transpose(1, 2, 0))
-    ih, iw = img.shape[:2]
-    # print(img.shape)
-    bidx = d["batch_idx"]
-    cls = d["cls"][bidx == idx].numpy()
-    bboxes = d["bboxes"][bidx == idx].numpy()
-    masks = d["masks"][idx]
-    print(bboxes.shape)
-    bboxes[:, [0, 2]] *= iw
-    bboxes[:, [1, 3]] *= ih
-    nl = len(cls)
+def test(augment, rect):
+    dataloader, _ = build_dataloader(
+        img_path="/d/dataset/COCO/coco128-seg/images",
+        img_size=640,
+        label_path=None,
+        cache=False,
+        hyp=hyp,
+        augment=augment,
+        prefix="",
+        rect=rect,
+        batch_size=4,
+        stride=32,
+        pad=0.5,
+        use_segments=True,
+        use_keypoints=False,
+    )
 
-    index = torch.arange(nl).view(nl, 1, 1) + 1
-    masks = masks.repeat(nl, 1, 1)
-    # print(masks.shape, index.shape)
-    masks = torch.where(masks == index, 1, 0)
-    masks = masks.numpy().astype(np.uint8)
-    print(masks.shape)
-    # keypoints = d["keypoints"]
+    for d in dataloader:
+        # info
+        im_file = d["im_file"]
+        ori_shape = d["ori_shape"]
+        resize_shape = d["resized_shape"]
+        print(ori_shape, resize_shape)
+        print(im_file)
 
-    for i, b in enumerate(bboxes):
-        x, y, w, h = b
-        x1 = x - w / 2
-        x2 = x + w / 2
-        y1 = y - h / 2
-        y2 = y + h / 2
-        c = int(cls[i][0])
-        # print(x1, y1, x2, y2)
-        plot_one_box([int(x1), int(y1), int(x2), int(y2)], img, label=f"{c}", color=colors(c))
-        mask = masks[i]
-        mask = cv2.resize(mask, (iw, ih))
-        mask = mask.astype(bool)
-        img[mask] = img[mask] * 0.5 + np.array(colors(c)) * 0.5
-    cv2.imshow("p", img)
-    if cv2.waitKey(0) == ord("q"):
-        break
+        # labels
+        idx = 1  # show which image inside one batch
+        img = d["img"][idx].numpy()
+        img = np.ascontiguousarray(img.transpose(1, 2, 0))
+        ih, iw = img.shape[:2]
+        # print(img.shape)
+        bidx = d["batch_idx"]
+        cls = d["cls"][bidx == idx].numpy()
+        bboxes = d["bboxes"][bidx == idx].numpy()
+        masks = d["masks"][idx]
+        print(bboxes.shape)
+        bboxes[:, [0, 2]] *= iw
+        bboxes[:, [1, 3]] *= ih
+        nl = len(cls)
+
+        index = torch.arange(nl).view(nl, 1, 1) + 1
+        masks = masks.repeat(nl, 1, 1)
+        # print(masks.shape, index.shape)
+        masks = torch.where(masks == index, 1, 0)
+        masks = masks.numpy().astype(np.uint8)
+        print(masks.shape)
+        # keypoints = d["keypoints"]
+
+        for i, b in enumerate(bboxes):
+            x, y, w, h = b
+            x1 = x - w / 2
+            x2 = x + w / 2
+            y1 = y - h / 2
+            y2 = y + h / 2
+            c = int(cls[i][0])
+            # print(x1, y1, x2, y2)
+            plot_one_box([int(x1), int(y1), int(x2), int(y2)], img, label=f"{c}", color=colors(c))
+            mask = masks[i]
+            mask = cv2.resize(mask, (iw, ih))
+            mask = mask.astype(bool)
+            img[mask] = img[mask] * 0.5 + np.array(colors(c)) * 0.5
+        cv2.imshow("p", img)
+        if cv2.waitKey(0) == ord("q"):
+            break
+
+
+if __name__ == "__main__":
+    test(augment=True, rect=False)
+    test(augment=False, rect=True)
+    test(augment=False, rect=False)

@@ -67,48 +67,60 @@ def plot_keypoint(img, keypoints, color, tl):
 with open("ultralytics/tests/data/dataloader/hyp_test.yaml") as f:
     hyp = OmegaConf.load(f)
 
-dataloader, dataset = build_dataloader(
-    img_path="/d/dataset/COCO/images/val2017",
-    img_size=640,
-    label_path=None,
-    cache=False,
-    hyp=hyp,
-    augment=False,
-    prefix="",
-    rect=False,
-    batch_size=4,
-    stride=32,
-    pad=0.5,
-    use_segments=False,
-    use_keypoints=True,
-)
 
-for d in dataloader:
-    idx = 1  # show which image inside one batch
-    img = d["img"][idx].numpy()
-    img = np.ascontiguousarray(img.transpose(1, 2, 0))
-    ih, iw = img.shape[:2]
-    # print(img.shape)
-    bidx = d["batch_idx"]
-    cls = d["cls"][bidx == idx].numpy()
-    bboxes = d["bboxes"][bidx == idx].numpy()
-    bboxes[:, [0, 2]] *= iw
-    bboxes[:, [1, 3]] *= ih
-    keypoints = d["keypoints"][bidx == idx]
-    keypoints[..., 0] *= iw
-    keypoints[..., 1] *= ih
-    # print(keypoints, keypoints.shape)
-    # print(d["im_file"])
+def test(augment, rect):
+    dataloader, _ = build_dataloader(
+        img_path="/d/dataset/COCO/images/val2017",
+        img_size=640,
+        label_path=None,
+        cache=False,
+        hyp=hyp,
+        augment=augment,
+        prefix="",
+        rect=rect,
+        batch_size=4,
+        stride=32,
+        pad=0.5,
+        use_segments=False,
+        use_keypoints=True,
+    )
 
-    for i, b in enumerate(bboxes):
-        x, y, w, h = b
-        x1 = x - w / 2
-        x2 = x + w / 2
-        y1 = y - h / 2
-        y2 = y + h / 2
-        c = int(cls[i][0])
-        # print(x1, y1, x2, y2)
-        plot_one_box([int(x1), int(y1), int(x2), int(y2)], img, keypoints=keypoints[i], label=f"{c}", color=colors(c))
-    cv2.imshow("p", img)
-    if cv2.waitKey(0) == ord("q"):
-        break
+    for d in dataloader:
+        idx = 1  # show which image inside one batch
+        img = d["img"][idx].numpy()
+        img = np.ascontiguousarray(img.transpose(1, 2, 0))
+        ih, iw = img.shape[:2]
+        # print(img.shape)
+        bidx = d["batch_idx"]
+        cls = d["cls"][bidx == idx].numpy()
+        bboxes = d["bboxes"][bidx == idx].numpy()
+        bboxes[:, [0, 2]] *= iw
+        bboxes[:, [1, 3]] *= ih
+        keypoints = d["keypoints"][bidx == idx]
+        keypoints[..., 0] *= iw
+        keypoints[..., 1] *= ih
+        # print(keypoints, keypoints.shape)
+        # print(d["im_file"])
+
+        for i, b in enumerate(bboxes):
+            x, y, w, h = b
+            x1 = x - w / 2
+            x2 = x + w / 2
+            y1 = y - h / 2
+            y2 = y + h / 2
+            c = int(cls[i][0])
+            # print(x1, y1, x2, y2)
+            plot_one_box([int(x1), int(y1), int(x2), int(y2)],
+                         img,
+                         keypoints=keypoints[i],
+                         label=f"{c}",
+                         color=colors(c))
+        cv2.imshow("p", img)
+        if cv2.waitKey(0) == ord("q"):
+            break
+
+
+if __name__ == "__main__":
+    test(augment=True, rect=False)
+    test(augment=False, rect=True)
+    test(augment=False, rect=False)

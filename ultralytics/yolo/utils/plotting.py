@@ -6,7 +6,7 @@ import numpy as np
 import torch
 from PIL import Image, ImageDraw, ImageFont
 
-from ultralytics.yolo.utils import USER_CONFIG_DIR, FONT
+from ultralytics.yolo.utils import FONT, USER_CONFIG_DIR
 
 from .checks import check_font, check_requirements, is_ascii
 from .files import increment_path

@@ -1,6 +1,7 @@
 from itertools import repeat
 from multiprocessing.pool import Pool
 from pathlib import Path
+from typing import OrderedDict
 
 import torchvision
 from tqdm import tqdm
@@ -205,7 +206,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
             sample = self.album_transforms(image=cv2.cvtColor(im, cv2.COLOR_BGR2RGB))["image"]
         else:
             sample = self.torch_transforms(im)
-        return sample, j
+        return OrderedDict(img=sample, cls=j)
 
 
 # TODO: support semantic segmentation

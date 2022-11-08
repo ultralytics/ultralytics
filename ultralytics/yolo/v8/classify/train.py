@@ -38,13 +38,22 @@ class ClassificationTrainer(BaseTrainer):
         return train_set, test_set
 
     def get_dataloader(self, dataset_path, batch_size=None, rank=0):
-        return build_classification_dataloader(path=dataset_path, batch_size=self.args.batch_size, rank=rank)
+        return build_classification_dataloader(path=dataset_path,
+                                               imgsz=self.args.img_size,
+                                               batch_size=self.args.batch_size,
+                                               rank=rank)
+
+    def preprocess_batch(self, batch):
+        batch["img"] = batch["img"].to(self.device)
+        batch["cls"] = batch["cls"].to(self.device)
+        return batch
 
     def get_validator(self):
         return v8.classify.ClassificationValidator(self.test_loader, self.device, logger=self.console)
 
-    def criterion(self, preds, targets):
-        return torch.nn.functional.cross_entropy(preds, targets)
+    def criterion(self, preds, batch):
+        loss = torch.nn.functional.cross_entropy(preds, batch["cls"])
+        return loss, loss
 
 
 @hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)

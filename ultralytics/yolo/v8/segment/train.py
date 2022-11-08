@@ -37,9 +37,8 @@ class SegmentationTrainer(BaseTrainer):
                 # TODO: add colorstr
                 s = f"Dataset download success ✅ ({time.time() - t:.1f}s), saved to {'bold', data_dir}\n"
                 self.console.info(s)
-        train_set = data_dir
-        test_set = data_dir
-
+        train_set = data_dir.parent / "coco128-seg"
+        test_set = train_set
         return train_set, test_set
 
     def get_dataloader(self, dataset_path, batch_size, rank=0):

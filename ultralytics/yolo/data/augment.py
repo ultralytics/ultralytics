@@ -8,10 +8,9 @@ import numpy as np
 import torch
 import torchvision.transforms as T
 
-from ..utils import LOGGER
+from ..utils import LOGGER, colorstr
 from ..utils.checks import check_version
 from ..utils.instance import Instances
-from ..utils.loggers import colorstr
 from ..utils.metrics import bbox_ioa
 from ..utils.ops import segment2box
 from .utils import IMAGENET_MEAN, IMAGENET_STD, polygons2masks, polygons2masks_overlap

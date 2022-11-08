@@ -2,8 +2,8 @@ import logging
 import os
 import platform
 
-from .base import default_callbacks
 from ..checks import is_colab, is_kaggle
+from .base import default_callbacks
 
 VERBOSE = str(os.getenv('YOLOv5_VERBOSE', True)).lower() == 'true'  # global verbose mode
 
@@ -36,7 +36,7 @@ def colorstr(*input):
         "bright_white": "\033[97m",
         "end": "\033[0m",  # misc
         "bold": "\033[1m",
-        "underline": "\033[4m", }
+        "underline": "\033[4m",}
     return "".join(colors[x] for x in args) + f"{string}" + colors["end"]
 
 

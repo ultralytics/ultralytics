@@ -10,6 +10,7 @@ import pkg_resources as pkg
 import torch
 
 from ultralytics.yolo.utils import AUTOINSTALL, CONFIG_DIR, FONT, LOGGER, ROOT, TryExcept
+
 from .loggers import colorstr, emojis
 
 

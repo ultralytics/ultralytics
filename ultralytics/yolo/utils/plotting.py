@@ -6,7 +6,7 @@ import numpy as np
 import torch
 from PIL import Image, ImageDraw, ImageFont
 
-from ultralytics.yolo.utils import CONFIG_DIR, FONT
+from ultralytics.yolo.utils import FONT, USER_CONFIG_DIR
 
 from .checks import check_font, check_requirements, is_ascii
 from .files import increment_path
@@ -150,7 +150,7 @@ class Annotator:
 def check_pil_font(font=FONT, size=10):
     # Return a PIL TrueType Font, downloading to CONFIG_DIR if necessary
     font = Path(font)
-    font = font if font.exists() else (CONFIG_DIR / font.name)
+    font = font if font.exists() else (USER_CONFIG_DIR / font.name)
     try:
         return ImageFont.truetype(str(font) if font.exists() else font.name, size)
     except Exception:  # download if missing

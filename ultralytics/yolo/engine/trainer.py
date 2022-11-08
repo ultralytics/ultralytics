@@ -11,7 +11,6 @@ import time
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-from telnetlib import TLS
 from typing import Dict, Union
 
 import torch

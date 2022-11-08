@@ -3,7 +3,6 @@
 Common modules
 """
 
-import argparse
 import math
 import warnings
 from copy import copy
@@ -19,10 +18,9 @@ from PIL import Image, ImageOps
 from torch.cuda import amp
 
 from ultralytics.yolo.data.augment import LetterBox
-from ultralytics.yolo.utils import LOGGER
+from ultralytics.yolo.utils import LOGGER, colorstr
 from ultralytics.yolo.utils.checks import check_version
 from ultralytics.yolo.utils.files import increment_path
-from ultralytics.yolo.utils.loggers import colorstr
 from ultralytics.yolo.utils.ops import Profile, make_divisible, non_max_suppression, scale_boxes, xyxy2xywh
 from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
 from ultralytics.yolo.utils.torch_utils import copy_attr, smart_inference_mode

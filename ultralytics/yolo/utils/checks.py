@@ -1,5 +1,4 @@
 import glob
-import os
 import platform
 import sys
 import urllib
@@ -9,9 +8,13 @@ from subprocess import check_output
 import pkg_resources as pkg
 import torch
 
-from ultralytics.yolo.utils import AUTOINSTALL, CONFIG_DIR, FONT, LOGGER, ROOT, TryExcept
+from ultralytics.yolo.utils import AUTOINSTALL, FONT, LOGGER, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, emojis
 
-from .loggers import colorstr, emojis
+
+def is_ascii(s=''):
+    # Is string composed of all ASCII (no UTF) characters? (note str().isascii() introduced in python 3.7)
+    s = str(s)  # convert list, tuple, None, etc. to str
+    return len(s.encode().decode('ascii', 'ignore')) == len(s)
 
 
 def check_version(current="0.0.0", minimum="0.0.0", name="version ", pinned=False, hard=False, verbose=False):
@@ -29,7 +32,7 @@ def check_version(current="0.0.0", minimum="0.0.0", name="version ", pinned=Fals
 def check_font(font=FONT, progress=False):
     # Download font to CONFIG_DIR if necessary
     font = Path(font)
-    file = CONFIG_DIR / font.name
+    file = USER_CONFIG_DIR / font.name
     if not font.exists() and not file.exists():
         url = f'https://ultralytics.com/assets/{font.name}'
         LOGGER.info(f'Downloading {url} to {file}...')
@@ -86,12 +89,6 @@ def check_requirements(requirements=ROOT / 'requirements.txt', exclude=(), insta
             LOGGER.warning(f'{prefix} ❌ {e}')
 
 
-def is_ascii(s=''):
-    # Is string composed of all ASCII (no UTF) characters? (note str().isascii() introduced in python 3.7)
-    s = str(s)  # convert list, tuple, None, etc. to str
-    return len(s.encode().decode('ascii', 'ignore')) == len(s)
-
-
 def check_suffix(file='yolov5s.pt', suffix=('.pt',), msg=''):
     # Check file(s) for acceptable suffix
     if file and suffix:
@@ -120,7 +117,7 @@ def check_file(file, suffix=''):
             assert Path(file).exists() and Path(file).stat().st_size > 0, f'File download failed: {url}'  # check
         return file
     elif file.startswith('clearml://'):  # ClearML Dataset ID
-        assert 'clearml' in sys.modules, "ClearML is not installed, so cannot use ClearML dataset. Try running 'pip install clearml'."
+        assert 'clearml' in sys.modules, "Can not use ClearML dataset. Run 'pip install clearml' to install"
         return file
     else:  # search
         files = []

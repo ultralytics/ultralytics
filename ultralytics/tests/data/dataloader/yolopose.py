@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-import torch
 from omegaconf import OmegaConf
 
 from ultralytics.yolo.data import build_dataloader

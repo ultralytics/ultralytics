@@ -8,9 +8,9 @@ import torch
 from ultralytics.yolo import v8
 from ultralytics.yolo.data import build_classification_dataloader
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG, BaseTrainer
+from ultralytics.yolo.utils import colorstr
 from ultralytics.yolo.utils.downloads import download
 from ultralytics.yolo.utils.files import WorkingDirectory
-from ultralytics.yolo.utils.loggers import colorstr
 from ultralytics.yolo.utils.torch_utils import LOCAL_RANK, torch_distributed_zero_first
 
 

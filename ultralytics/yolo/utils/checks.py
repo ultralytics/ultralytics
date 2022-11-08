@@ -8,7 +8,7 @@ from subprocess import check_output
 import pkg_resources as pkg
 import torch
 
-from ultralytics.yolo.utils import AUTOINSTALL, USER_CONFIG_DIR, FONT, LOGGER, ROOT, TryExcept, colorstr, emojis
+from ultralytics.yolo.utils import AUTOINSTALL, FONT, LOGGER, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, emojis
 
 
 def is_ascii(s=''):

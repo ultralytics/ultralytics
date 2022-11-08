@@ -261,7 +261,7 @@ def train(cfg):
 if __name__ == "__main__":
     """
     CLI usage:
-    python ../path/to/train.py args.epochs=10 args.project="name" hyps.lr0=0.1
+    python ultralytics/yolo/v8/segment/train.py cfg=yolov5n-seg.yaml data=coco128-segments epochs=100 img_size=640
 
     TODO:
     Direct cli support, i.e, yolov8 classify_train args.epochs 10

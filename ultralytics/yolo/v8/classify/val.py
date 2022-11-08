@@ -5,10 +5,16 @@ from ultralytics.yolo.engine.validator import BaseValidator
 
 class ClassificationValidator(BaseValidator):
 
-    def init_metrics(self):
+    def init_metrics(self, model):
         self.correct = torch.tensor([])
 
-    def update_metrics(self, preds, targets):
+    def preprocess_batch(self, batch):
+        batch["img"] = batch["img"].to(self.device)
+        batch["cls"] = batch["cls"].to(self.device)
+        return batch
+
+    def update_metrics(self, preds, batch):
+        targets = batch["cls"]
         correct_in_batch = (targets[:, None] == preds).float()
         self.correct = torch.cat((self.correct, correct_in_batch))
 

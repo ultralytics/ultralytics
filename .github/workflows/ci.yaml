@@ -21,7 +21,8 @@ jobs:
         os: [ ubuntu-latest ]
         python-version: [ '3.10' ]
         model: [ yolov5n ]
-        include:
+        torch: [ latest ]
+#        include:
 #          - os: ubuntu-latest
 #            python-version: '3.7'  # '3.6.8' min
 #            model: yolov5n
@@ -31,10 +32,10 @@ jobs:
 #          - os: ubuntu-latest
 #            python-version: '3.9'
 #            model: yolov5n
-          - os: ubuntu-latest
-            python-version: '3.8'  # torch 1.7.0 requires python >=3.6, <=3.8
-            model: yolov5n
-            torch: '1.7.0'  # min torch version CI https://pypi.org/project/torchvision/
+#          - os: ubuntu-latest
+#            python-version: '3.8'  # torch 1.7.0 requires python >=3.6, <=3.8
+#            model: yolov5n
+#            torch: '1.7.0'  # min torch version CI https://pypi.org/project/torchvision/
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -93,9 +94,8 @@ jobs:
       - name: Test segmentation
         shell: bash  # for Windows compatibility
         run: |
-          echo "TODO"
+          python ultralytics/yolo/v8/segment/train.py cfg=yolov5n-seg.yaml data=coco128-segments epochs=1 img_size=64
       - name: Test classification
         shell: bash  # for Windows compatibility
         run: |
-          echo "TODO"
-          # python ultralytics/yolo/v8/classify/train.py model=resnet18 data=mnist2560 epochs=1 img_size=64
+          python ultralytics/yolo/v8/classify/train.py model=resnet18 data=mnist160 epochs=1 img_size=32

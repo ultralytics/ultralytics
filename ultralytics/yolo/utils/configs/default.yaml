@@ -4,6 +4,7 @@
 
 # Train settings -------------------------------------------------------------------------------------------------------
 model: null  # i.e. yolov5s.pt
+cfg: null  # i.e. yolov5s.yaml
 data: null  # i.e. coco128.yaml
 epochs: 300
 batch_size: 16
@@ -20,6 +21,23 @@ optimizer: 'SGD'  # choices=['SGD', 'Adam', 'AdamW', 'RMSProp']
 verbose: False
 seed: 0
 local_rank: -1
+single_cls: False  # train multi-class data as single-class
+image_weights: False  # use weighted image selection for training
+shuffle: True
+rect: False  # support rectangular training
+overlap_mask: True  # Segmentation masks overlap
+mask_ratio: 4  # Segmentation mask downsample ratio
+
+# Val/Test settings ----------------------------------------------------------------------------------------------------
+save_json: False
+save_hybrid: False
+conf_thres: 0.001
+iou_thres: 0.6
+max_det: 300
+half: True
+plots: False
+save_txt: False
+task: 'val'
 
 # Hyperparameters ------------------------------------------------------------------------------------------------------
 lr0: 0.001  # initial learning rate (SGD=1E-2, Adam=1E-3)
@@ -51,6 +69,7 @@ fliplr: 0.5  # image flip left-right (probability)
 mosaic: 1.0  # image mosaic (probability)
 mixup: 0.0  # image mixup (probability)
 copy_paste: 0.0  # segment copy-paste (probability)
+label_smoothing: 0.0
 
 # Hydra configs --------------------------------------------------------------------------------------------------------
 hydra:

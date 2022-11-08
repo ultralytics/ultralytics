@@ -1,10 +1,7 @@
-import time
 from copy import deepcopy
 
 import thop
-import torch.nn as nn
 
-from ultralytics.yolo.utils import LOGGER
 from ultralytics.yolo.utils.anchors import check_anchor_order
 from ultralytics.yolo.utils.modeling import parse_model
 from ultralytics.yolo.utils.modeling.modules import *

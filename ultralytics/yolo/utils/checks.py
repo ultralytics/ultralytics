@@ -1,5 +1,4 @@
 import glob
-import os
 import platform
 import sys
 import urllib

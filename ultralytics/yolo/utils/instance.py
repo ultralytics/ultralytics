@@ -10,7 +10,6 @@ from .ops import ltwh2xywh, ltwh2xyxy, resample_segments, xywh2ltwh, xywh2xyxy, 
 
 # From PyTorch internals
 def _ntuple(n):
-
     def parse(x):
         return x if isinstance(x, abc.Iterable) else tuple(repeat(x, n))
 

@@ -1,7 +1,7 @@
 import logging
 
 import torch
-from omegaconf import DictConfig, OmegaConf
+from omegaconf import OmegaConf
 from tqdm import tqdm
 
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG

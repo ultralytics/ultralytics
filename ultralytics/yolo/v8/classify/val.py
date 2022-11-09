@@ -8,7 +8,7 @@ class ClassificationValidator(BaseValidator):
     def init_metrics(self, model):
         self.correct = torch.tensor([])
 
-    def preprocess_batch(self, batch):
+    def preprocess(self, batch):
         batch["img"] = batch["img"].to(self.device)
         batch["cls"] = batch["cls"].to(self.device)
         return batch

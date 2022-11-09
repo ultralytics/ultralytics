@@ -66,7 +66,7 @@ class SegmentationValidator(BaseValidator):
         return ('%22s' + '%11s' * 10) % ('Class', 'Images', 'Instances', 'Box(P', "R", "mAP50", "mAP50-95)", "Mask(P",
                                          "R", "mAP50", "mAP50-95)")
 
-    def preprocess(self, preds):
+    def postprocess(self, preds):
         p = ops.non_max_suppression(preds[0],
                                     self.args.conf_thres,
                                     self.args.iou_thres,

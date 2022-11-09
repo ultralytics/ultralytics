@@ -54,7 +54,7 @@ class BaseValidator:
                 self.batch_i = batch_i
                 # pre-process
                 with dt[0]:
-                    batch = self.preprocess_batch(batch)
+                    batch = self.preprocess(batch)
 
                 # inference
                 with dt[1]:
@@ -69,7 +69,7 @@ class BaseValidator:
 
                 # pre-process predictions
                 with dt[3]:
-                    preds = self.preprocess_preds(preds)
+                    preds = self.postprocess(preds)
 
                 self.update_metrics(preds, batch)
 
@@ -89,10 +89,10 @@ class BaseValidator:
 
         return stats
 
-    def preprocess_batch(self, batch):
+    def preprocess(self, batch):
         return batch
 
-    def preprocess_preds(self, preds):
+    def postprocess(self, preds):
         return preds
 
     def init_metrics(self):

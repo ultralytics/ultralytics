@@ -28,7 +28,7 @@ class SegmentationValidator(BaseValidator):
         self.class_map = None
         self.targets = None
 
-    def preprocess_batch(self, batch):
+    def preprocess(self, batch):
         batch["img"] = batch["img"].to(self.device, non_blocking=True)
         batch["img"] = (batch["img"].half() if self.args.half else batch["img"].float()) / 225
         batch["bboxes"] = batch["bboxes"].to(self.device)
@@ -66,7 +66,7 @@ class SegmentationValidator(BaseValidator):
         return ('%22s' + '%11s' * 10) % ('Class', 'Images', 'Instances', 'Box(P', "R", "mAP50", "mAP50-95)", "Mask(P",
                                          "R", "mAP50", "mAP50-95)")
 
-    def preprocess_preds(self, preds):
+    def postprocess(self, preds):
         p = ops.non_max_suppression(preds[0],
                                     self.args.conf_thres,
                                     self.args.iou_thres,

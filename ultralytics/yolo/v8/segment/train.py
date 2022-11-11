@@ -20,6 +20,7 @@ from ultralytics.yolo.utils.torch_utils import LOCAL_RANK, de_parallel, torch_di
 
 # BaseTrainer python usage
 class SegmentationTrainer(BaseTrainer):
+
     def get_dataloader(self, dataset_path, batch_size, rank=0):
         # TODO: manage splits differently
         # calculate stride - check if model is initialized

@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import time
 from tarfile import is_tarfile
+import subprocess
 
 import torch
 import cv2
@@ -12,7 +13,7 @@ from PIL import ExifTags, Image, ImageOps
 from zipfile import is_zipfile
 from ..utils.ops import segments2boxes
 from ultralytics.yolo.utils import LOGGER, ROOT, colorstr
-from ultralytics.yolo.utils.checks import check_font, is_ascii
+from ultralytics.yolo.utils.checks import check_font, is_ascii, check_file
 from ultralytics.yolo.utils.downloads import download
 from ultralytics.yolo.utils.files import yaml_load, unzip_file
 
@@ -185,9 +186,10 @@ def polygons2masks_overlap(img_size, segments, downsample_ratio=1):
         masks = np.clip(masks, a_min=0, a_max=i + 1)
     return masks, index
 
-def check_dataset(data, autodownload=True):
+def check_dataset_yaml(data, autodownload=True):
     # Download, check and/or unzip dataset if not found locally
-    DATASETS_DIR = Path.cwd() / "../datasets"
+    data = check_file(data)
+    DATASETS_DIR = Path.cwd() / "datasets"
     # Download (optional)
     extract_dir = ''
     if isinstance(data, (str, Path)) and (is_zipfile(data) or is_tarfile(data)):
@@ -247,3 +249,23 @@ def check_dataset(data, autodownload=True):
             LOGGER.info(f"Dataset download {s}")
     check_font('Arial.ttf' if is_ascii(data['names']) else 'Arial.Unicode.ttf', progress=True)  # download fonts
     return data  # dictionary
+
+def check_dataset(dataset: str):
+        data = Path.cwd() / "datasets" / dataset
+        data_dir = data if data.is_dir() else (Path.cwd() / data)
+        if not data_dir.is_dir():
+            LOGGER.info(f'\nDataset not found ⚠️, missing path {data_dir}, attempting download...')
+            t = time.time()
+            if str(data) == 'imagenet':
+                subprocess.run(f"bash {ROOT / 'data/scripts/get_imagenet.sh'}", shell=True, check=True)
+            else:
+                url = f'https://github.com/ultralytics/yolov5/releases/download/v1.0/{dataset}.zip'
+                download(url, dir=data_dir.parent)
+            s = f"Dataset download success ✅ ({time.time() - t:.1f}s), saved to {colorstr('bold', data_dir)}\n"
+            LOGGER.info(s)
+        train_set = data_dir / "train"
+        test_set = data_dir / 'test' if (data_dir / 'test').exists() else data_dir / 'val'  # data/test or data/val
+        nc = len([x for x in (data_dir / 'train').glob('*') if x.is_dir()])  # number of classes
+        names = [name for name in os.listdir(data_dir / 'train') if os.path.isdir(data_dir / 'train' / name)]
+        data = {"train": train_set, "val": test_set, "nc": nc, "names": names}
+        return data

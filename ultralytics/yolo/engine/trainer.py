@@ -27,7 +27,7 @@ import ultralytics.yolo.utils.loggers as loggers
 from ultralytics.yolo.utils import LOGGER, ROOT
 from ultralytics.yolo.utils.files import increment_path, save_yaml
 from ultralytics.yolo.utils.modeling import get_model
-from ultralytics.yolo.data.utils import check_dataset
+from ultralytics.yolo.data.utils import check_dataset_yaml, check_dataset
 from ultralytics.yolo.utils.checks import check_yaml, check_file
 
 DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yaml"
@@ -59,7 +59,9 @@ class BaseTrainer:
         # Model and Dataloaders.
         self.data = self.args.data
         if self.data.endswith(".yaml"):
-            self.data = check_dataset(check_yaml(self.data))
+            self.data = check_dataset_yaml(self.data)
+        else:
+            self.data = check_dataset(self.data)
         self.trainset, self.testset = self.get_dataset(self.data)
         if self.args.cfg is not None:
             self.model = self.load_cfg(check_file(self.args.cfg))
@@ -256,8 +258,8 @@ class BaseTrainer:
     def get_dataset(self, data):
         """
         Get train, val path from data dict if it exists. Returns None if data format is not recognized
-        """
-        pass   
+        """     
+        return data["train"], data["val"]
 
     def get_model(self, model, pretrained):
         """

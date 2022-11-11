@@ -119,8 +119,3 @@ def get_model(model='s.pt', pretrained=True):
     else:  # Ultralytics assets
         return torch.load(attempt_download(f"{model}.pt"), map_location='cpu')
 
-
-def yaml_load(file='data.yaml'):
-    # Single-line safe yaml loading
-    with open(file, errors='ignore') as f:
-        return yaml.safe_load(f)

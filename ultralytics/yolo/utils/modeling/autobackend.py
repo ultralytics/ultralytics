@@ -32,7 +32,8 @@ class AutoBackend(nn.Module):
         #   TensorFlow Lite:                *.tflite
         #   TensorFlow Edge TPU:            *_edgetpu.tflite
         #   PaddlePaddle:                   *_paddle_model
-        from ultralytics.yolo.utils.modeling import attempt_load_weights, yaml_load
+        from ultralytics.yolo.utils.files import yaml_load
+        from ultralytics.yolo.utils.modeling import attempt_load_weights
 
         super().__init__()
         w = str(weights[0] if isinstance(weights, list) else weights)
@@ -315,7 +316,7 @@ class AutoBackend(nn.Module):
 
     @staticmethod
     def _load_metadata(f=Path('path/to/meta.yaml')):
-        from ultralytics.yolo.utils.modeling import yaml_load
+        from ultralytics.yolo.utils.files import yaml_load
 
         # Load metadata from meta.yaml if it exists
         if f.exists():

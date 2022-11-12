@@ -1,6 +1,7 @@
 import contextlib
 import os
 from pathlib import Path
+from zipfile import ZipFile
 
 import yaml
 
@@ -44,3 +45,19 @@ def save_yaml(file='data.yaml', data=None):
     # Single-line safe yaml saving
     with open(file, 'w') as f:
         yaml.safe_dump({k: str(v) if isinstance(v, Path) else v for k, v in data.items()}, f, sort_keys=False)
+
+
+def yaml_load(file='data.yaml'):
+    # Single-line safe yaml loading
+    with open(file, errors='ignore') as f:
+        return yaml.safe_load(f)
+
+
+def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX')):
+    # Unzip a *.zip file to path/, excluding files containing strings in exclude list
+    if path is None:
+        path = Path(file).parent  # default path
+    with ZipFile(file) as zipObj:
+        for f in zipObj.namelist():  # list all archived filenames in the zip
+            if all(x not in f for x in exclude):
+                zipObj.extract(f, path=path)

@@ -7,7 +7,7 @@ from pathlib import Path
 
 # Constants
 FILE = Path(__file__).resolve()
-ROOT = FILE.parents[2]  # YOLOv5 root directory
+ROOT = FILE.parents[2]  # YOLO
 RANK = int(os.getenv('RANK', -1))
 DATASETS_DIR = ROOT.parent / 'datasets'  # YOLOv5 datasets directory
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLOv5 multiprocessing threads

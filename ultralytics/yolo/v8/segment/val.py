@@ -8,9 +8,9 @@ import torch.nn.functional as F
 from ultralytics.yolo.engine.validator import BaseValidator
 from ultralytics.yolo.utils import ops
 from ultralytics.yolo.utils.checks import check_requirements
+from ultralytics.yolo.utils.files import yaml_load
 from ultralytics.yolo.utils.metrics import (ConfusionMatrix, Metrics, ap_per_class_box_and_mask, box_iou,
                                             fitness_segmentation, mask_iou)
-from ultralytics.yolo.utils.modeling import yaml_load
 from ultralytics.yolo.utils.torch_utils import de_parallel
 
 

@@ -131,3 +131,4 @@ dmypy.json
 # datasets and projects
 datasets/
 ultralytics-yolo/
+runs/

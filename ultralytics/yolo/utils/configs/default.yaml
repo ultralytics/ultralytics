@@ -70,6 +70,7 @@ mosaic: 1.0  # image mosaic (probability)
 mixup: 0.0  # image mixup (probability)
 copy_paste: 0.0  # segment copy-paste (probability)
 label_smoothing: 0.0
+# anchors: 3
 
 # Hydra configs --------------------------------------------------------------------------------------------------------
 hydra:

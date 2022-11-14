@@ -140,8 +140,3 @@ def download(url, dir=Path.cwd(), unzip=True, delete=True, curl=False, threads=1
     else:
         for u in [url] if isinstance(url, (str, Path)) else url:
             download_one(u, dir)
-
-
-def get_model(model: str):
-    # check for local weights
-    pass

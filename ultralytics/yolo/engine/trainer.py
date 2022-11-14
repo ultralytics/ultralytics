@@ -259,19 +259,17 @@ class BaseTrainer:
         """
         return data["train"], data["val"]
 
-    def get_model(self, model:str, data: Dict):
+    def get_model(self, model: str, data: Dict):
         """
         load/create/download model for any task
         """
         pretrained = False
         if not model.endswith(".yaml"):
             pretrained = True
-            weights = get_model(model) # rename this to something less confusing?
-        model = self.load_model(
-                        model_cfg=model if not pretrained else None,
-                        weights=weights if pretrained else None,
-                        data=self.data
-                        )
+            weights = get_model(model)  # rename this to something less confusing?
+        model = self.load_model(model_cfg=model if not pretrained else None,
+                                weights=weights if pretrained else None,
+                                data=self.data)
         return model
 
     def load_model(self, model_cfg, weights, data):

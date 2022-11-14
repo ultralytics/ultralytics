@@ -174,6 +174,7 @@ class DetectionModel(BaseModel):
         self.load_state_dict(csd, strict=False)  # load
         LOGGER.info(f'Transferred {len(csd)}/{len(self.model.state_dict())} items from {weights}')
 
+
 class SegmentationModel(DetectionModel):
     # YOLOv5 segmentation model
     def __init__(self, cfg='yolov5s-seg.yaml', ch=3, nc=None, anchors=None):
@@ -206,11 +207,11 @@ class ClassificationModel(BaseModel):
         self.model = None
 
     def load(self, weights):
-        model = weights["model"] if isinstance(weights, dict) else weights # torchvision models are not dicts
+        model = weights["model"] if isinstance(weights, dict) else weights  # torchvision models are not dicts
         csd = model.float().state_dict()
         csd = intersect_state_dicts(csd, self.state_dict())  # intersect
         self.load_state_dict(csd, strict=False)  # load
-    
+
     @staticmethod
     def reshape_outputs(model, nc):
         # Update a TorchVision classification model to class count 'n' if required

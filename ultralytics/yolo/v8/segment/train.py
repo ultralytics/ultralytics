@@ -10,11 +10,11 @@ import torch.nn.functional as F
 from ultralytics.yolo import v8
 from ultralytics.yolo.data import build_dataloader
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG, BaseTrainer
+from ultralytics.yolo.utils.anchors import check_anchors
 from ultralytics.yolo.utils.metrics import FocalLoss, bbox_iou, smooth_BCE
 from ultralytics.yolo.utils.modeling.tasks import SegmentationModel
 from ultralytics.yolo.utils.ops import crop_mask, xywh2xyxy
 from ultralytics.yolo.utils.torch_utils import de_parallel
-from ultralytics.yolo.utils.anchors import check_anchors
 
 
 # BaseTrainer python usage
@@ -48,8 +48,7 @@ class SegmentationTrainer(BaseTrainer):
         model = SegmentationModel(model_cfg if model_cfg else weights["model"].yaml,
                                   ch=3,
                                   nc=data["nc"],
-                                  anchors=self.args.get("anchors")
-                                  )
+                                  anchors=self.args.get("anchors"))
         check_anchors(model, self.args.anchor_t, self.args.img_size)
         if weights:
             model.load(weights)

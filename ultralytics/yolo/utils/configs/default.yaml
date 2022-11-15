@@ -3,8 +3,7 @@
 
 
 # Train settings -------------------------------------------------------------------------------------------------------
-model: null  # i.e. yolov5s.pt
-cfg: null  # i.e. yolov5s.yaml
+model: null  # i.e. yolov5s.pt, yolo.yaml
 data: null  # i.e. coco128.yaml
 epochs: 300
 batch_size: 16
@@ -70,6 +69,7 @@ mosaic: 1.0  # image mosaic (probability)
 mixup: 0.0  # image mixup (probability)
 copy_paste: 0.0  # segment copy-paste (probability)
 label_smoothing: 0.0
+# anchors: 3
 
 # Hydra configs --------------------------------------------------------------------------------------------------------
 hydra:

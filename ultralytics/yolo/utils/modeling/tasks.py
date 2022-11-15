@@ -66,7 +66,7 @@ class BaseModel(nn.Module):
         return self
 
     def load(self, weights):
-        # Force all tasks implement this function
+        # Force all tasks to implement this function
         raise NotImplementedError("This function needs to be implemented by derived classes!")
 
 
@@ -169,10 +169,10 @@ class DetectionModel(BaseModel):
             mi.bias = torch.nn.Parameter(b.view(-1), requires_grad=True)
 
     def load(self, weights):
-        ckpt = torch.load(weights, map_location='cpu')  # load checkpoint to CPU to avoid CUDA memory leak
-        csd = ckpt['model'].float().state_dict()  # checkpoint state_dict as FP32
+        csd = weights['model'].float().state_dict()  # checkpoint state_dict as FP32
         csd = intersect_state_dicts(csd, self.state_dict())  # intersect
         self.load_state_dict(csd, strict=False)  # load
+        LOGGER.info(f'Transferred {len(csd)}/{len(self.model.state_dict())} items from {weights}')
 
 
 class SegmentationModel(DetectionModel):
@@ -203,11 +203,33 @@ class ClassificationModel(BaseModel):
         self.nc = nc
 
     def _from_yaml(self, cfg):
-        # Create a YOLOv5 classification model from a *.yaml file
+        # TODO: Create a YOLOv5 classification model from a *.yaml file
         self.model = None
 
     def load(self, weights):
-        ckpt = torch.load(weights, map_location='cpu')  # load checkpoint to CPU to avoid CUDA memory leak
-        csd = ckpt['model'].float().state_dict()  # checkpoint state_dict as FP32
+        model = weights["model"] if isinstance(weights, dict) else weights  # torchvision models are not dicts
+        csd = model.float().state_dict()
         csd = intersect_state_dicts(csd, self.state_dict())  # intersect
         self.load_state_dict(csd, strict=False)  # load
+
+    @staticmethod
+    def reshape_outputs(model, nc):
+        # Update a TorchVision classification model to class count 'n' if required
+        from ultralytics.yolo.utils.modeling.modules import Classify
+        name, m = list((model.model if hasattr(model, 'model') else model).named_children())[-1]  # last module
+        if isinstance(m, Classify):  # YOLO Classify() head
+            if m.linear.out_features != nc:
+                m.linear = nn.Linear(m.linear.in_features, nc)
+        elif isinstance(m, nn.Linear):  # ResNet, EfficientNet
+            if m.out_features != nc:
+                setattr(model, name, nn.Linear(m.in_features, nc))
+        elif isinstance(m, nn.Sequential):
+            types = [type(x) for x in m]
+            if nn.Linear in types:
+                i = types.index(nn.Linear)  # nn.Linear index
+                if m[i].out_features != nc:
+                    m[i] = nn.Linear(m[i].in_features, nc)
+            elif nn.Conv2d in types:
+                i = types.index(nn.Conv2d)  # nn.Conv2d index
+                if m[i].out_channels != nc:
+                    m[i] = nn.Conv2d(m[i].in_channels, nc, m[i].kernel_size, m[i].stride, bias=m[i].bias)

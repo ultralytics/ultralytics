@@ -94,7 +94,7 @@ jobs:
       - name: Test segmentation
         shell: bash  # for Windows compatibility
         run: |
-          python ultralytics/yolo/v8/segment/train.py cfg=yolov5n-seg.yaml data=coco128-seg.yaml epochs=1 img_size=64
+          python ultralytics/yolo/v8/segment/train.py model=yolov5n-seg.yaml data=coco128-seg.yaml epochs=1 img_size=64
       - name: Test classification
         shell: bash  # for Windows compatibility
         run: |

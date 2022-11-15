@@ -1,26 +1,27 @@
-import subprocess
-import time
-from pathlib import Path
-
 import hydra
 import torch
 
 from ultralytics.yolo import v8
 from ultralytics.yolo.data import build_classification_dataloader
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG, BaseTrainer
-from ultralytics.yolo.utils import colorstr
-from ultralytics.yolo.utils.downloads import download
-from ultralytics.yolo.utils.files import WorkingDirectory
-from ultralytics.yolo.utils.torch_utils import LOCAL_RANK, torch_distributed_zero_first
+from ultralytics.yolo.utils.modeling.tasks import ClassificationModel
 
 
-# BaseTrainer python usage
 class ClassificationTrainer(BaseTrainer):
+
+    def load_model(self, model_cfg, weights, data):
+        # TODO: why treat clf models as unique. We should have clf yamls?
+        if weights and not weights.__class__.__name__.startswith("yolo"):  # torchvision
+            model = weights
+        else:
+            model = ClassificationModel(model_cfg, weights, data["nc"])
+        ClassificationModel.reshape_outputs(model, data["nc"])
+        return model
 
     def get_dataloader(self, dataset_path, batch_size=None, rank=0):
         return build_classification_dataloader(path=dataset_path,
                                                imgsz=self.args.img_size,
-                                               batch_size=self.args.batch_size,
+                                               batch_size=batch_size,
                                                rank=rank)
 
     def preprocess_batch(self, batch):

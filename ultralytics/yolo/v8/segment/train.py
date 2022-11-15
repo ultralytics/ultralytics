@@ -10,12 +10,11 @@ import torch.nn.functional as F
 from ultralytics.yolo import v8
 from ultralytics.yolo.data import build_dataloader
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG, BaseTrainer
-from ultralytics.yolo.utils.downloads import download
-from ultralytics.yolo.utils.files import WorkingDirectory
+from ultralytics.yolo.utils.anchors import check_anchors
 from ultralytics.yolo.utils.metrics import FocalLoss, bbox_iou, smooth_BCE
 from ultralytics.yolo.utils.modeling.tasks import SegmentationModel
 from ultralytics.yolo.utils.ops import crop_mask, xywh2xyxy
-from ultralytics.yolo.utils.torch_utils import LOCAL_RANK, de_parallel, torch_distributed_zero_first
+from ultralytics.yolo.utils.torch_utils import de_parallel
 
 
 # BaseTrainer python usage
@@ -45,8 +44,15 @@ class SegmentationTrainer(BaseTrainer):
         batch["img"] = batch["img"].to(self.device, non_blocking=True).float() / 255
         return batch
 
-    def load_cfg(self, cfg):
-        return SegmentationModel(cfg, nc=80)
+    def load_model(self, model_cfg, weights, data):
+        model = SegmentationModel(model_cfg if model_cfg else weights["model"].yaml,
+                                  ch=3,
+                                  nc=data["nc"],
+                                  anchors=self.args.get("anchors"))
+        check_anchors(model, self.args.anchor_t, self.args.img_size)
+        if weights:
+            model.load(weights)
+        return model
 
     def get_validator(self):
         return v8.segment.SegmentationValidator(self.test_loader, self.device, logger=self.console)
@@ -232,7 +238,7 @@ class SegmentationTrainer(BaseTrainer):
 
 @hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
 def train(cfg):
-    cfg.cfg = v8.ROOT / "models/yolov5n-seg.yaml"
+    cfg.model = v8.ROOT / "models/yolov5n-seg.yaml"
     cfg.data = cfg.data or "coco128-seg.yaml"  # or yolo.ClassificationDataset("mnist")
     trainer = SegmentationTrainer(cfg)
     trainer.train()

@@ -11,7 +11,7 @@ class ClassificationTrainer(BaseTrainer):
 
     def load_model(self, model_cfg, weights, data):
         # TODO: why treat clf models as unique. We should have clf yamls?
-        if weights and not weights.__class__.__name__.startswith("yolo"):  #torchvision
+        if weights and not weights.__class__.__name__.startswith("yolo"):  # torchvision
             model = weights
         else:
             model = ClassificationModel(model_cfg, weights, data["nc"])

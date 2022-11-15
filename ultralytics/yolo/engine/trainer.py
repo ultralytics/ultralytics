@@ -264,7 +264,7 @@ class BaseTrainer:
         load/create/download model for any task
         """
         pretrained = False
-        if not model.endswith(".yaml"):
+        if not str(model).endswith(".yaml"):
             pretrained = True
             weights = get_model(model)  # rename this to something less confusing?
         model = self.load_model(model_cfg=model if not pretrained else None,

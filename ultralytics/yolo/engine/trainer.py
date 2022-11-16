@@ -300,7 +300,7 @@ class BaseTrainer:
         "fitness" metric.
         """
         self.metrics = self.validator(self)
-        self.fitness = self.metrics.get("fitness") or (-self.loss)  # use loss as fitness measure if not found
+        self.fitness = self.metrics.get("fitness", -self.loss.detach().cpu().numpy())  # use loss as fitness measure if not found
         if not self.best_fitness or self.best_fitness < self.fitness:
             self.best_fitness = self.fitness
 

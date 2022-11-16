@@ -210,7 +210,7 @@ class SegmentationTrainer(BaseTrainer):
                 mxyxy = xywh2xyxy(xywhn[i] * torch.tensor([mask_w, mask_h, mask_w, mask_h], device=self.device))
                 for bi in b.unique():
                     j = b == bi  # matching index
-                    if True:
+                    if self.args.overlap_mask:
                         mask_gti = torch.where(masks[bi][None] == tidxs[i][j].view(-1, 1, 1), 1.0, 0.0)
                     else:
                         mask_gti = masks[tidxs[i]][j]

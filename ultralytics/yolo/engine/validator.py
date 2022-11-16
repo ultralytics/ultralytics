@@ -49,7 +49,7 @@ class BaseValidator:
         desc = self.get_desc()
         bar = tqdm(self.dataloader, desc, n_batches, not training, bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
         self.init_metrics(model)
-        with torch.cuda.amp.autocast(enabled=self.device.type != 'cpu'):
+        with torch.no_grad():
             for batch_i, batch in enumerate(bar):
                 self.batch_i = batch_i
                 # pre-process
@@ -85,6 +85,8 @@ class BaseValidator:
             self.logger.info(
                 'Speed: %.1fms pre-process, %.1fms inference, %.1fms loss, %.1fms post-process per image at shape ' % t)
 
+        if self.training:
+            model.float()
         # TODO: implement save json
 
         return stats

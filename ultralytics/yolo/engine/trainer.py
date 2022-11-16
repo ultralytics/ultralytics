@@ -162,6 +162,8 @@ class BaseTrainer:
     def _do_train(self, rank, world_size):
         if world_size > 1:
             self._setup_ddp(rank, world_size)
+        else:
+            self.model = self.model.to(self.device)
 
         # callback hook. before_train
         self._setup_train(rank)

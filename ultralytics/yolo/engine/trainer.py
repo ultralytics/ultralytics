@@ -142,7 +142,7 @@ class BaseTrainer:
         self.train_loader = self.get_dataloader(self.trainset, batch_size=self.args.batch_size, rank=rank)
         if rank in {0, -1}:
             print(" Creating testloader rank :", rank)
-            self.test_loader = self.get_dataloader(self.testset, batch_size=self.args.batch_size * 2, rank=rank)
+            self.test_loader = self.get_dataloader(self.testset, batch_size=self.args.batch_size * 2, rank=-1)
             self.validator = self.get_validator()
             print("created testloader :", rank)
             self.console.info(self.progress_string())
@@ -150,6 +150,8 @@ class BaseTrainer:
     def _do_train(self, rank, world_size):
         if world_size > 1:
             self._setup_ddp(rank, world_size)
+        else:
+            self.model = self.model.to(self.device)
 
         # callback hook. before_train
         self._setup_train(rank)
@@ -192,8 +194,8 @@ class BaseTrainer:
                 losses = tloss if loss_len > 1 else torch.unsqueeze(tloss, 0)
                 if rank in {-1, 0}:
                     pbar.set_description(
-                        (" {} " + "{:.3f}  " * (2 + loss_len)).format(f'{epoch + 1}/{self.args.epochs}', mem, *losses,
-                                                                      batch["img"].shape[-1]))
+                        (" {} " + "{:.3f}  " * (1 + loss_len) + ' {} ').format(f'{epoch + 1}/{self.args.epochs}', mem,
+                                                                               *losses, batch["img"].shape[-1]))
 
             if rank in [-1, 0]:
                 # validation
@@ -286,7 +288,8 @@ class BaseTrainer:
         "fitness" metric.
         """
         self.metrics = self.validator(self)
-        self.fitness = self.metrics.get("fitness") or (-self.loss)  # use loss as fitness measure if not found
+        self.fitness = self.metrics.get("fitness",
+                                        -self.loss.detach().cpu().numpy())  # use loss as fitness measure if not found
         if not self.best_fitness or self.best_fitness < self.fitness:
             self.best_fitness = self.fitness
 

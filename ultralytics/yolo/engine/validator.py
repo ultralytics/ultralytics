@@ -6,8 +6,7 @@ from tqdm import tqdm
 
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.utils.ops import Profile
-from ultralytics.yolo.utils.torch_utils import select_device
-from ultralytics.yolo.utils.torch_utils import de_parallel
+from ultralytics.yolo.utils.torch_utils import de_parallel, select_device
 
 
 class BaseValidator:

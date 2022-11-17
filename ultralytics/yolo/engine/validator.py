@@ -37,7 +37,9 @@ class BaseValidator:
         if training:
             model = trainer.model
             self.args.half &= self.device.type != 'cpu'
-            model = model.half() if self.args.half else model
+            # NOTE: half() inference in evaluation will make training stuck,
+            # so I comment it out for now, I think we can reuse half mode after we add EMA.
+            # model = model.half() if self.args.half else model
         else:  # TODO: handle this when detectMultiBackend is supported
             # model = DetectMultiBacked(model)
             pass
@@ -59,7 +61,7 @@ class BaseValidator:
 
                 # inference
                 with dt[1]:
-                    preds = model(batch["img"])
+                    preds = model(batch["img"].float())
                     # TODO: remember to add native augmentation support when implementing model, like:
                     #  preds, train_out = model(im, augment=augment)
 

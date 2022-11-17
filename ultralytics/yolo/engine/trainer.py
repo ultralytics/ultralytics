@@ -142,7 +142,7 @@ class BaseTrainer:
         self.train_loader = self.get_dataloader(self.trainset, batch_size=self.args.batch_size, rank=rank)
         if rank in {0, -1}:
             print(" Creating testloader rank :", rank)
-            self.test_loader = self.get_dataloader(self.testset, batch_size=self.args.batch_size * 2, rank=rank)
+            self.test_loader = self.get_dataloader(self.testset, batch_size=self.args.batch_size * 2, rank=-1)
             self.validator = self.get_validator()
             print("created testloader :", rank)
             self.console.info(self.progress_string())

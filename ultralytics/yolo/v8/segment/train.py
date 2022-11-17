@@ -23,7 +23,7 @@ class SegmentationTrainer(BaseTrainer):
     def get_dataloader(self, dataset_path, batch_size, rank=0):
         # TODO: manage splits differently
         # calculate stride - check if model is initialized
-        gs = max(int(self.model.stride.max() if self.model else 0), 32)
+        gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
         loader = build_dataloader(
             img_path=dataset_path,
             img_size=self.args.img_size,

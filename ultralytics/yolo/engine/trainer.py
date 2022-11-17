@@ -133,6 +133,7 @@ class BaseTrainer:
         """
         Builds dataloaders and optimizer on correct rank process
         """
+        self.set_model_attributes()
         self.optimizer = build_optimizer(model=self.model,
                                          name=self.args.optimizer,
                                          lr=self.args.lr0,
@@ -145,19 +146,6 @@ class BaseTrainer:
             self.validator = self.get_validator()
             print("created testloader :", rank)
             self.console.info(self.progress_string())
-
-    def _set_model_attributes(self):
-        # TODO: fix and use after self.data_dict is available
-        '''
-        head = utils.torch_utils.de_parallel(self.model).model[-1]
-        self.args.box *= 3 / head.nl  # scale to layers
-        self.args.cls *= head.nc / 80 * 3 / head.nl  # scale to classes and layers
-        self.args.obj *= (self.args.img_size / 640) ** 2 * 3 / nl  # scale to image size and layers
-        model.nc = nc  # attach number of classes to model
-        model.hyp = hyp  # attach hyperparameters to model
-        model.class_weights = labels_to_class_weights(dataset.labels, nc).to(device) * nc  # attach class weights
-        model.names = names
-        '''
 
     def _do_train(self, rank, world_size):
         if world_size > 1:
@@ -301,6 +289,12 @@ class BaseTrainer:
         self.fitness = self.metrics.get("fitness") or (-self.loss)  # use loss as fitness measure if not found
         if not self.best_fitness or self.best_fitness < self.fitness:
             self.best_fitness = self.fitness
+
+    def set_model_attributes(self):
+        """
+        To set or update model parameters before training.
+        """
+        pass
 
     def build_targets(self, preds, targets):
         pass

@@ -206,7 +206,7 @@ class BaseTrainer:
                 losses = tloss if loss_len > 1 else torch.unsqueeze(tloss, 0)
                 if rank in {-1, 0}:
                     pbar.set_description(
-                        (" {} " + "{:.3f}  " * (2 + loss_len)).format(f'{epoch + 1}/{self.args.epochs}', mem, *losses,
+                        (" {} " + "{:.3f}  " * (1 + loss_len) + ' {} ').format(f'{epoch + 1}/{self.args.epochs}', mem, *losses,
                                                                       batch["img"].shape[-1]))
 
             if rank in [-1, 0]:

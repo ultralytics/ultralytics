@@ -6,10 +6,11 @@ from ultralytics.yolo.engine.validator import BaseValidator
 class ClassificationValidator(BaseValidator):
 
     def init_metrics(self, model):
-        self.correct = torch.tensor([])
+        self.correct = torch.tensor([], device=next(model.parameters()).device)
 
     def preprocess(self, batch):
-        batch["img"] = batch["img"].to(self.device)
+        batch["img"] = batch["img"].to(self.device, non_blocking=True)
+        batch["img"] = batch["img"].half() if self.args.half else batch["img"].float()
         batch["cls"] = batch["cls"].to(self.device)
         return batch
 

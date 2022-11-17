@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.utils.ops import Profile
-from ultralytics.yolo.utils.torch_utils import select_device
+from ultralytics.yolo.utils.torch_utils import de_parallel, select_device
 
 
 class BaseValidator:
@@ -36,7 +36,9 @@ class BaseValidator:
         if training:
             model = trainer.model
             self.args.half &= self.device.type != 'cpu'
-            model = model.half() if self.args.half else model
+            # NOTE: half() inference in evaluation will make training stuck,
+            # so I comment it out for now, I think we can reuse half mode after we add EMA.
+            # model = model.half() if self.args.half else model
         else:  # TODO: handle this when detectMultiBackend is supported
             # model = DetectMultiBacked(model)
             pass
@@ -48,8 +50,8 @@ class BaseValidator:
         n_batches = len(self.dataloader)
         desc = self.get_desc()
         bar = tqdm(self.dataloader, desc, n_batches, not training, bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
-        self.init_metrics(model)
-        with torch.cuda.amp.autocast(enabled=self.device.type != 'cpu'):
+        self.init_metrics(de_parallel(model))
+        with torch.no_grad():
             for batch_i, batch in enumerate(bar):
                 self.batch_i = batch_i
                 # pre-process
@@ -58,7 +60,7 @@ class BaseValidator:
 
                 # inference
                 with dt[1]:
-                    preds = model(batch["img"])
+                    preds = model(batch["img"].float())
                     # TODO: remember to add native augmentation support when implementing model, like:
                     #  preds, train_out = model(im, augment=augment)
 
@@ -85,6 +87,8 @@ class BaseValidator:
             self.logger.info(
                 'Speed: %.1fms pre-process, %.1fms inference, %.1fms loss, %.1fms post-process per image at shape ' % t)
 
+        if self.training:
+            model.float()
         # TODO: implement save json
 
         return stats

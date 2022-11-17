@@ -23,7 +23,7 @@ class SegmentationTrainer(BaseTrainer):
     def get_dataloader(self, dataset_path, batch_size, rank=0):
         # TODO: manage splits differently
         # calculate stride - check if model is initialized
-        gs = max(int(self.model.stride.max() if self.model else 0), 32)
+        gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
         loader = build_dataloader(
             img_path=dataset_path,
             img_size=self.args.img_size,
@@ -220,7 +220,7 @@ class SegmentationTrainer(BaseTrainer):
                 mxyxy = xywh2xyxy(xywhn[i] * torch.tensor([mask_w, mask_h, mask_w, mask_h], device=self.device))
                 for bi in b.unique():
                     j = b == bi  # matching index
-                    if True:
+                    if self.args.overlap_mask:
                         mask_gti = torch.where(masks[bi][None] == tidxs[i][j].view(-1, 1, 1), 1.0, 0.0)
                     else:
                         mask_gti = masks[tidxs[i]][j]

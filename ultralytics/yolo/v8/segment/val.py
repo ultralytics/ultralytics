@@ -30,11 +30,13 @@ class SegmentationValidator(BaseValidator):
 
     def preprocess(self, batch):
         batch["img"] = batch["img"].to(self.device, non_blocking=True)
-        batch["img"] = (batch["img"].half() if self.args.half else batch["img"].float()) / 225
-        batch["bboxes"] = batch["bboxes"].to(self.device)
+        batch["img"] = (batch["img"].half() if self.args.half else batch["img"].float()) / 255
         batch["masks"] = batch["masks"].to(self.device).float()
         self.nb, _, self.height, self.width = batch["img"].shape  # batch size, channels, height, width
         self.targets = torch.cat((batch["batch_idx"].view(-1, 1), batch["cls"].view(-1, 1), batch["bboxes"]), 1)
+        self.targets = self.targets.to(self.device)
+        height, width = batch["img"].shape[2:]
+        self.targets[:, 2:] *= torch.tensor((width, height, width, height), device=self.device)  # to pixels
         self.lb = [self.targets[self.targets[:, 0] == i, 1:]
                    for i in range(self.nb)] if self.args.save_hybrid else []  # for autolabelling
 
@@ -75,7 +77,7 @@ class SegmentationValidator(BaseValidator):
                                     agnostic=self.args.single_cls,
                                     max_det=self.args.max_det,
                                     nm=self.nm)
-        return (p, preds[0], preds[2])
+        return (p, preds[1], preds[2])
 
     def update_metrics(self, preds, batch):
         # Metrics
@@ -83,7 +85,7 @@ class SegmentationValidator(BaseValidator):
         for si, (pred, proto) in enumerate(zip(preds[0], preds[1])):
             labels = self.targets[self.targets[:, 0] == si, 1:]
             nl, npr = labels.shape[0], pred.shape[0]  # number of labels, predictions
-            shape = Path(batch["im_file"][si])
+            shape = batch["shape"][si]
             # path = batch["shape"][si][0]
             correct_masks = torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device)  # init
             correct_bboxes = torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device)  # init
@@ -106,22 +108,29 @@ class SegmentationValidator(BaseValidator):
             if self.args.single_cls:
                 pred[:, 5] = 0
             predn = pred.clone()
-            ops.scale_boxes(batch["img"][si].shape[1:], predn[:, :4], shape, batch["shape"][si][1])  # native-space pred
+            ops.scale_boxes(batch["img"][si].shape[1:], predn[:, :4], shape)  # native-space pred
 
             # Evaluate
             if nl:
                 tbox = ops.xywh2xyxy(labels[:, 1:5])  # target boxes
-                ops.scale_boxes(batch["img"][si].shape[1:], tbox, shape, batch["shapes"][si][1])  # native-space labels
+                ops.scale_boxes(batch["img"][si].shape[1:], tbox, shape)  # native-space labels
                 labelsn = torch.cat((labels[:, 0:1], tbox), 1)  # native-space labels
                 correct_bboxes = self._process_batch(predn, labelsn, self.iouv)
-                correct_masks = self._process_batch(predn, labelsn, self.iouv, pred_masks, gt_masks, masks=True)
+                # TODO: maybe remove these `self.` arguments as they already are member variable
+                correct_masks = self._process_batch(predn,
+                                                    labelsn,
+                                                    self.iouv,
+                                                    pred_masks,
+                                                    gt_masks,
+                                                    overlap=self.args.overlap_mask,
+                                                    masks=True)
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, labelsn)
             self.stats.append((correct_masks, correct_bboxes, pred[:, 4], pred[:, 5], labels[:,
                                                                                              0]))  # (conf, pcls, tcls)
 
             pred_masks = torch.as_tensor(pred_masks, dtype=torch.uint8)
-            if self.plots and self.batch_i < 3:
+            if self.args.plots and self.batch_i < 3:
                 plot_masks.append(pred_masks[:15].cpu())  # filter top 15 to plot
 
             # TODO: Save/log

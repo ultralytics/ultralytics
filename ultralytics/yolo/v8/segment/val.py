@@ -124,9 +124,9 @@ class SegmentationValidator(BaseValidator):
             self.stats.append((correct_masks, correct_bboxes, pred[:, 4], pred[:, 5], labels[:,
                                                                                              0]))  # (conf, pcls, tcls)
 
-            # pred_masks = torch.as_tensor(pred_masks, dtype=torch.uint8)
-            # if self.plots and self.batch_i < 3:
-            #     plot_masks.append(pred_masks[:15].cpu())  # filter top 15 to plot
+            pred_masks = torch.as_tensor(pred_masks, dtype=torch.uint8)
+            if self.args.plots and self.batch_i < 3:
+                plot_masks.append(pred_masks[:15].cpu())  # filter top 15 to plot
 
             # TODO: Save/log
             '''

@@ -6,10 +6,10 @@ from typing import OrderedDict
 import torchvision
 from tqdm import tqdm
 
-from ..utils import NUM_THREADS
+from ..utils import NUM_THREADS, TQDM_BAR_FORMAT
 from .augment import *
 from .base import BaseDataset
-from .utils import BAR_FORMAT, HELP_URL, LOCAL_RANK, get_hash, img2label_paths, verify_image_label
+from .utils import HELP_URL, LOCAL_RANK, get_hash, img2label_paths, verify_image_label
 
 
 class YOLODataset(BaseDataset):
@@ -40,7 +40,7 @@ class YOLODataset(BaseDataset):
     ):
         self.use_segments = use_segments
         self.use_keypoints = use_keypoints
-        assert not (self.use_segments and self.use_keypoints), "We can't use both of segmentation and pose."
+        assert not (self.use_segments and self.use_keypoints), "Can not use both segments and keypoints."
         super().__init__(img_path, img_size, label_path, cache, augment, hyp, prefix, rect, batch_size, stride, pad,
                          single_cls)
 
@@ -48,14 +48,14 @@ class YOLODataset(BaseDataset):
         # Cache dataset labels, check images and read shapes
         x = {"labels": []}
         nm, nf, ne, nc, msgs = 0, 0, 0, 0, []  # number missing, found, empty, corrupt, messages
-        desc = f"{self.prefix}Scanning '{path.parent / path.stem}' images and labels..."
+        desc = f"{self.prefix}Scanning {path.parent / path.stem}..."
         with Pool(NUM_THREADS) as pool:
             pbar = tqdm(
                 pool.imap(verify_image_label,
                           zip(self.im_files, self.label_files, repeat(self.prefix), repeat(self.use_keypoints))),
                 desc=desc,
                 total=len(self.im_files),
-                bar_format=BAR_FORMAT,
+                bar_format=TQDM_BAR_FORMAT,
             )
             for im_file, lb, shape, segments, keypoint, nm_f, nf_f, ne_f, nc_f, msg in pbar:
                 nm += nm_f
@@ -76,7 +76,7 @@ class YOLODataset(BaseDataset):
                         ))
                 if msg:
                     msgs.append(msg)
-                pbar.desc = f"{desc}{nf} found, {nm} missing, {ne} empty, {nc} corrupt"
+                pbar.desc = f"{desc} {nf} images, {nm + ne} backgrounds, {nc} corrupt"
 
         pbar.close()
         if msgs:
@@ -109,8 +109,8 @@ class YOLODataset(BaseDataset):
         # Display cache
         nf, nm, ne, nc, n = cache.pop("results")  # found, missing, empty, corrupt, total
         if exists and LOCAL_RANK in {-1, 0}:
-            d = f"Scanning '{cache_path}' images and labels... {nf} found, {nm} missing, {ne} empty, {nc} corrupt"
-            tqdm(None, desc=self.prefix + d, total=n, initial=n, bar_format=BAR_FORMAT)  # display cache results
+            d = f"Scanning {cache_path}... {nf} images, {nm + ne} backgrounds, {nc} corrupt"
+            tqdm(None, desc=self.prefix + d, total=n, initial=n, bar_format=TQDM_BAR_FORMAT)  # display cache results
             if cache["msgs"]:
                 LOGGER.info("\n".join(cache["msgs"]))  # display warnings
         assert nf > 0, f"{self.prefix}No labels found in {cache_path}, can not start training. {HELP_URL}"

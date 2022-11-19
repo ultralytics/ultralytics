@@ -5,6 +5,7 @@ from omegaconf import OmegaConf
 from tqdm import tqdm
 
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
+from ultralytics.yolo.utils import TQDM_BAR_FORMAT
 from ultralytics.yolo.utils.ops import Profile
 from ultralytics.yolo.utils.torch_utils import de_parallel, select_device
 
@@ -49,7 +50,7 @@ class BaseValidator:
         loss = 0
         n_batches = len(self.dataloader)
         desc = self.get_desc()
-        bar = tqdm(self.dataloader, desc, n_batches, not training, bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
+        bar = tqdm(self.dataloader, desc, n_batches, not training, bar_format=TQDM_BAR_FORMAT)
         self.init_metrics(de_parallel(model))
         with torch.no_grad():
             for batch_i, batch in enumerate(bar):

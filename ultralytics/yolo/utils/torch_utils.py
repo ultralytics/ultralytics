@@ -1,5 +1,6 @@
 import math
 import os
+import platform
 import time
 from contextlib import contextmanager
 from copy import deepcopy
@@ -12,7 +13,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.parallel import DistributedDataParallel as DDP
 
+import ultralytics
 from ultralytics.yolo.utils import LOGGER
+from ultralytics.yolo.utils.checks import git_describe
 
 from .checks import check_version
 
@@ -44,8 +47,8 @@ def DDP_model(model):
 
 def select_device(device='', batch_size=0, newline=True):
     # device = None or 'cpu' or 0 or '0' or '0,1,2,3'
-    # s = f'YOLOv5 🚀 {git_describe() or file_date()} Python-{platform.python_version()} torch-{torch.__version__} '
-    s = f'YOLOv5 🚀 torch-{torch.__version__} '
+    ver = git_describe() or ultralytics.__version__  # git commit or pip package version
+    s = f'Ultralytics YOLO 🚀 {ver} Python-{platform.python_version()} torch-{torch.__version__} '
     device = str(device).strip().lower().replace('cuda:', '').replace('none', '')  # to string, 'cuda:0' to '0'
     cpu = device == 'cpu'
     mps = device == 'mps'  # Apple Metal Performance Shaders (MPS)
@@ -75,7 +78,7 @@ def select_device(device='', batch_size=0, newline=True):
 
     if not newline:
         s = s.rstrip()
-    print(s)
+    LOGGER.info(s)
     return torch.device(arg)
 
 

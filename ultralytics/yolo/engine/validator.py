@@ -34,11 +34,11 @@ class BaseValidator:
         # trainer = trainer or self.trainer_class.get_trainer()
         assert training or model is not None, "Either trainer or model is needed for validation"
         if training:
-            model = trainer.model
+            model = trainer.ema.ema or trainer.model
             self.args.half &= self.device.type != 'cpu'
             # NOTE: half() inference in evaluation will make training stuck,
             # so I comment it out for now, I think we can reuse half mode after we add EMA.
-            # model = model.half() if self.args.half else model
+            model = model.half() if self.args.half else model.float()
         else:  # TODO: handle this when detectMultiBackend is supported
             # model = DetectMultiBacked(model)
             pass

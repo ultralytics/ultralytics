@@ -24,17 +24,20 @@ class SegmentationTrainer(BaseTrainer):
         # TODO: manage splits differently
         # calculate stride - check if model is initialized
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
-        return build_dataloader(img_path=dataset_path,
-                                img_size=self.args.img_size,
-                                batch_size=batch_size,
-                                single_cls=self.args.single_cls,
-                                cache=self.args.cache,
-                                image_weights=self.args.image_weights,
-                                stride=gs, rect=self.args.rect,
-                                rank=rank,
-                                workers=self.args.workers,
-                                shuffle=self.args.shuffle,
-                                use_segments=True,)[0]
+        return build_dataloader(
+            img_path=dataset_path,
+            img_size=self.args.img_size,
+            batch_size=batch_size,
+            single_cls=self.args.single_cls,
+            cache=self.args.cache,
+            image_weights=self.args.image_weights,
+            stride=gs,
+            rect=self.args.rect,
+            rank=rank,
+            workers=self.args.workers,
+            shuffle=self.args.shuffle,
+            use_segments=True,
+        )[0]
 
     def preprocess_batch(self, batch):
         batch["img"] = batch["img"].to(self.device, non_blocking=True).float() / 255
@@ -42,7 +45,8 @@ class SegmentationTrainer(BaseTrainer):
 
     def load_model(self, model_cfg, weights, data):
         model = SegmentationModel(model_cfg or weights["model"].yaml,
-                                  ch=3, nc=data["nc"],
+                                  ch=3,
+                                  nc=data["nc"],
                                   anchors=self.args.get("anchors"))
         check_anchors(model, self.args.anchor_t, self.args.img_size)
         if weights:

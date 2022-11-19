@@ -1,7 +1,3 @@
-import subprocess
-import time
-from pathlib import Path
-
 import hydra
 import torch
 import torch.nn as nn
@@ -10,7 +6,6 @@ import torch.nn.functional as F
 from ultralytics.yolo import v8
 from ultralytics.yolo.data import build_dataloader
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG, BaseTrainer
-from ultralytics.yolo.utils.anchors import check_anchors
 from ultralytics.yolo.utils.metrics import FocalLoss, bbox_iou, smooth_BCE
 from ultralytics.yolo.utils.modeling.tasks import SegmentationModel
 from ultralytics.yolo.utils.ops import crop_mask, xywh2xyxy
@@ -48,7 +43,6 @@ class SegmentationTrainer(BaseTrainer):
                                   ch=3,
                                   nc=data["nc"],
                                   anchors=self.args.get("anchors"))
-        check_anchors(model, self.args.anchor_t, self.args.img_size)
         if weights:
             model.load(weights)
         return model

@@ -62,7 +62,7 @@ class BaseTrainer:
             self.data = check_dataset(self.data)
         self.trainset, self.testset = self.get_dataset(self.data)
         if self.args.model:
-            self.model = self.get_model(self.args.model, self.data)
+            self.model = self.get_model(self.args.model)
 
         # epoch level metrics
         self.metrics = {}  # handle metrics returned by validator
@@ -247,11 +247,11 @@ class BaseTrainer:
         """
         return data["train"], data["val"]
 
-    def get_model(self, model: str, data: Dict):
+    def get_model(self, model: Union[str, Path]):
         """
         load/create/download model for any task
         """
-        pretrained = not model.endswith(".yaml")
+        pretrained = not str(model).endswith(".yaml")
         return self.load_model(model_cfg=None if pretrained else model,
                                weights=get_model(model) if pretrained else None,
                                data=self.data)  # model

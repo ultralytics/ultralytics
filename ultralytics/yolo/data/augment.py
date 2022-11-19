@@ -665,7 +665,7 @@ def mosaic_transforms(img_size, hyp):
             perspective=hyp.perspective,
             border=[-img_size // 2, -img_size // 2],
         ),])
-    transforms = Compose([
+    return Compose([
         pre_transform,
         MixUp(
             pre_transform=pre_transform,
@@ -674,13 +674,11 @@ def mosaic_transforms(img_size, hyp):
         Albumentations(p=1.0),
         RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
         RandomFlip(direction="vertical", p=hyp.flipud),
-        RandomFlip(direction="horizontal", p=hyp.fliplr),])
-    return transforms
+        RandomFlip(direction="horizontal", p=hyp.fliplr),])  # transforms
 
 
 def affine_transforms(img_size, hyp):
-    # rect, randomperspective, albumentation, hsv, flipud, fliplr
-    transforms = Compose([
+    return Compose([
         LetterBox(new_shape=(img_size, img_size)),
         RandomPerspective(
             degrees=hyp.degrees,
@@ -693,11 +691,10 @@ def affine_transforms(img_size, hyp):
         Albumentations(p=1.0),
         RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
         RandomFlip(direction="vertical", p=hyp.flipud),
-        RandomFlip(direction="horizontal", p=hyp.fliplr),])
-    return transforms
+        RandomFlip(direction="horizontal", p=hyp.fliplr),])  # transforms
 
 
-# Classification augmentations -------------------------------------------------------------------------------------------
+# Classification augmentations -----------------------------------------------------------------------------------------
 def classify_transforms(size=224):
     # Transforms to apply if albumentations not installed
     assert isinstance(size, int), f"ERROR: classify_transforms size {size} must be integer, not (list, tuple)"

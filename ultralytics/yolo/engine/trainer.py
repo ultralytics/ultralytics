@@ -67,7 +67,6 @@ class BaseTrainer:
             self.model = self.get_model(self.args.model)
         self.ema = None
 
-
         # epoch level metrics
         self.metrics = {}  # handle metrics returned by validator
         self.best_fitness = None

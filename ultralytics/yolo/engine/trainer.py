@@ -256,8 +256,6 @@ class BaseTrainer:
                                weights=get_model(model) if pretrained else None,
                                data=self.data)  # model
 
-
-
     def load_model(self, model_cfg, weights, data):
         raise NotImplementedError("This task trainer doesn't support loading cfg files")
 

@@ -251,14 +251,12 @@ class BaseTrainer:
         """
         load/create/download model for any task
         """
-        pretrained = False
-        if not str(model).endswith(".yaml"):
-            pretrained = True
-            weights = get_model(model)  # rename this to something less confusing?
-        model = self.load_model(model_cfg=model if not pretrained else None,
-                                weights=weights if pretrained else None,
-                                data=self.data)
-        return model
+        pretrained = not model.endswith(".yaml")
+        return self.load_model(model_cfg=None if pretrained else model,
+                               weights=get_model(model) if pretrained else None,
+                               data=self.data)  # model
+
+
 
     def load_model(self, model_cfg, weights, data):
         raise NotImplementedError("This task trainer doesn't support loading cfg files")

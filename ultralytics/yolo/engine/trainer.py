@@ -26,7 +26,7 @@ import ultralytics.yolo.utils as utils
 import ultralytics.yolo.utils.loggers as loggers
 from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
 from ultralytics.yolo.utils import LOGGER, ROOT
-from ultralytics.yolo.utils.checks import check_file, check_yaml
+from ultralytics.yolo.utils.checks import print_args
 from ultralytics.yolo.utils.files import increment_path, save_yaml
 from ultralytics.yolo.utils.modeling import get_model
 
@@ -41,19 +41,17 @@ class BaseTrainer:
         self.validator = None
         self.model = None
         self.callbacks = defaultdict(list)
-        self.console.info(f"Training config: \n args: \n {self.args}")  # to debug
-        # Directories
         self.save_dir = increment_path(Path(self.args.project) / self.args.name, exist_ok=self.args.exist_ok)
-        self.wdir = self.save_dir / 'weights'
+        self.wdir = self.save_dir / 'weights'  # weights dir
         self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
-        self.last, self.best = self.wdir / 'last.pt', self.wdir / 'best.pt'
+        self.last, self.best = self.wdir / 'last.pt', self.wdir / 'best.pt'  # checkpoint paths
+        print_args(dict(self.args))
 
         # Save run settings
         save_yaml(self.save_dir / 'args.yaml', OmegaConf.to_container(self.args, resolve=True))
 
         # device
         self.device = utils.torch_utils.select_device(self.args.device, self.args.batch_size)
-        self.console.info(f"running on device {self.device}")
         self.scaler = amp.GradScaler(enabled=self.device.type != 'cpu')
 
         # Model and Dataloaders.

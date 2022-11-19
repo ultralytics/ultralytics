@@ -25,7 +25,7 @@ from tqdm import tqdm
 import ultralytics.yolo.utils as utils
 import ultralytics.yolo.utils.loggers as loggers
 from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
-from ultralytics.yolo.utils import LOGGER, ROOT
+from ultralytics.yolo.utils import LOGGER, ROOT, TQDM_BAR_FORMAT
 from ultralytics.yolo.utils.checks import print_args
 from ultralytics.yolo.utils.files import increment_path, save_yaml
 from ultralytics.yolo.utils.modeling import get_model
@@ -165,7 +165,7 @@ class BaseTrainer:
             if rank in {-1, 0}:
                 pbar = tqdm(enumerate(self.train_loader),
                             total=len(self.train_loader),
-                            bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')
+                            bar_format=TQDM_BAR_FORMAT)
             tloss = None
             for i, batch in pbar:
                 # img, label (classification)/ img, targets, paths, _, masks(detection)

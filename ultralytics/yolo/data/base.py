@@ -9,8 +9,8 @@ import numpy as np
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
-from ..utils import NUM_THREADS
-from .utils import BAR_FORMAT, HELP_URL, IMG_FORMATS, LOCAL_RANK
+from ..utils import NUM_THREADS, TQDM_BAR_FORMAT
+from .utils import HELP_URL, IMG_FORMATS, LOCAL_RANK
 
 
 class BaseDataset(Dataset):
@@ -18,7 +18,7 @@ class BaseDataset(Dataset):
     Args:
         img_path (str): image path.
         pipeline (dict): a dict of image transforms.
-        label_path (str): label path, this can also be a ann_file or other custom label path.
+        label_path (str): label path, this can also be an ann_file or other custom label path.
     """
 
     def __init__(
@@ -131,7 +131,7 @@ class BaseDataset(Dataset):
         self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni
         fcn = self.cache_images_to_disk if self.cache == "disk" else self.load_image
         results = ThreadPool(NUM_THREADS).imap(fcn, range(self.ni))
-        pbar = tqdm(enumerate(results), total=self.ni, bar_format=BAR_FORMAT, disable=LOCAL_RANK > 0)
+        pbar = tqdm(enumerate(results), total=self.ni, bar_format=TQDM_BAR_FORMAT, disable=LOCAL_RANK > 0)
         for i, x in pbar:
             if self.cache == "disk":
                 gb += self.npy_files[i].stat().st_size

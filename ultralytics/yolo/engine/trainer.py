@@ -9,10 +9,10 @@ Simple training loop; Boilerplate that could apply to any arbitrary neural netwo
 import os
 import time
 from collections import defaultdict
+from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Union
-from copy import deepcopy
 
 import torch
 import torch.distributed as dist
@@ -280,7 +280,6 @@ class BaseTrainer:
         self.optimizer.zero_grad()
         if self.ema:
             self.ema.update(self.model)
-        
 
     def preprocess_batch(self, batch):
         """

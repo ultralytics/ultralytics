@@ -113,7 +113,7 @@ class BaseTrainer:
         if world_size > 1:
             mp.spawn(self._do_train, args=(world_size,), nprocs=world_size, join=True)
         else:
-            self._do_train(-1, 1)
+            self._do_train()
 
     def _setup_ddp(self, rank, world_size):
         os.environ['MASTER_ADDR'] = 'localhost'
@@ -145,7 +145,7 @@ class BaseTrainer:
             print("created testloader :", rank)
             self.console.info(self.progress_string())
 
-    def _do_train(self, rank, world_size):
+    def _do_train(self, rank=-1, world_size=1):
         if world_size > 1:
             self._setup_ddp(rank, world_size)
         else:

@@ -159,11 +159,11 @@ class SegmentationTrainer(BaseTrainer):
 
             return tcls, tbox, indices, anch, tidxs, xywhn
 
-        if self.model.training:
+        if len(preds) == 2:  # eval
             p, proto, = preds
-        else:
-            p, proto, train_out = preds
-            p = train_out
+        else:  # len(3) train
+            _, proto, p = preds
+
         targets = torch.cat((batch["batch_idx"].view(-1, 1), batch["cls"].view(-1, 1), batch["bboxes"]), 1)
         masks = batch["masks"]
         targets, masks = targets.to(self.device), masks.to(self.device).float()

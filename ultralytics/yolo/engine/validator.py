@@ -30,19 +30,16 @@ class BaseValidator:
         Supports validation of a pre-trained model if passed or a model being trained
         if trainer is passed (trainer gets priority).
         """
-        training = trainer is not None
-        self.training = training
-        # trainer = trainer or self.trainer_class.get_trainer()
-        assert training or model is not None, "Either trainer or model is needed for validation"
-        if training:
-            model = trainer.model
+        self.training = trainer is not None
+        if self.training:
+            model = trainer.ema.ema or trainer.model
             self.args.half &= self.device.type != 'cpu'
             # NOTE: half() inference in evaluation will make training stuck,
             # so I comment it out for now, I think we can reuse half mode after we add EMA.
-            # model = model.half() if self.args.half else model
+            model = model.half() if self.args.half else model.float()
         else:  # TODO: handle this when detectMultiBackend is supported
+            assert model is not None, "Either trainer or model is needed for validation"
             # model = DetectMultiBacked(model)
-            pass
             # TODO: implement init_model_attributes()
 
         model.eval()
@@ -50,7 +47,7 @@ class BaseValidator:
         loss = 0
         n_batches = len(self.dataloader)
         desc = self.get_desc()
-        bar = tqdm(self.dataloader, desc, n_batches, not training, bar_format=TQDM_BAR_FORMAT)
+        bar = tqdm(self.dataloader, desc, n_batches, not self.training, bar_format=TQDM_BAR_FORMAT)
         self.init_metrics(de_parallel(model))
         with torch.no_grad():
             for batch_i, batch in enumerate(bar):
@@ -67,7 +64,7 @@ class BaseValidator:
 
                 # loss
                 with dt[2]:
-                    if training:
+                    if self.training:
                         loss += trainer.criterion(preds, batch)[0]
 
                 # pre-process predictions
@@ -82,7 +79,7 @@ class BaseValidator:
         self.print_results()
 
         # print speeds
-        if not training:
+        if not self.training:
             t = tuple(x.t / len(self.dataloader.dataset.samples) * 1E3 for x in dt)  # speeds per image
             # shape = (self.dataloader.batch_size, 3, imgsz, imgsz)
             self.logger.info(

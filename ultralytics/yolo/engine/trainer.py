@@ -163,9 +163,7 @@ class BaseTrainer:
             self.model.train()
             pbar = enumerate(self.train_loader)
             if rank in {-1, 0}:
-                pbar = tqdm(enumerate(self.train_loader),
-                            total=len(self.train_loader),
-                            bar_format=TQDM_BAR_FORMAT)
+                pbar = tqdm(enumerate(self.train_loader), total=len(self.train_loader), bar_format=TQDM_BAR_FORMAT)
             tloss = None
             for i, batch in pbar:
                 # img, label (classification)/ img, targets, paths, _, masks(detection)

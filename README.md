@@ -31,4 +31,4 @@ model.new("s-seg.yaml") # automatically detects task type
 model.load("s-seg.pt") # load checkpoint
 model.train(data="coco128-segments", epochs=1, lr0=0.01, ...)
 ```
-If you're looking to modify YOLO or build on top of it, refer to [Using Trainer]() Guide on our docs.
+If you're looking to modify YOLO for R&D or to build on top of it, refer to [Using Trainer]() Guide on our docs.

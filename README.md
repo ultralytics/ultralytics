@@ -13,14 +13,14 @@ pip install -e .
 ```
 
 ## Usage
-### 1. CLI 
+### 1. CLI
 To simply use the latest Ultralytics YOLO models
 ```bash
 yolo task=detect    mode=train  model=s.yaml ...
           classify       infer        s-cls.yaml
           segment        val          s-seg.yaml
 ```
-### 2. Python SDK 
+### 2. Python SDK
 To use pythonic interface of Ultralytics YOLO model
 ```python
 import ultralytics

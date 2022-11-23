@@ -132,3 +132,5 @@ dmypy.json
 datasets/
 ultralytics-yolo/
 runs/
+
+.DS_Store

@@ -1,6 +1,9 @@
 # YOLO 🚀 by Ultralytics, GPL-3.0 license
 # Default training settings and hyperparameters for medium-augmentation COCO training
 
+# Task and Mode
+task: "classify" # choices=['detect', 'segment', 'classify']
+mode: "train" # choice=['train', 'val', 'infer']
 
 # Train settings -------------------------------------------------------------------------------------------------------
 model: null  # i.e. yolov5s.pt, yolo.yaml
@@ -36,7 +39,6 @@ max_det: 300
 half: True
 plots: False
 save_txt: False
-task: 'val'
 
 # Hyperparameters ------------------------------------------------------------------------------------------------------
 lr0: 0.001  # initial learning rate (SGD=1E-2, Adam=1E-3)

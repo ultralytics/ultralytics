@@ -22,6 +22,7 @@ pretrained: False
 optimizer: 'SGD'  # choices=['SGD', 'Adam', 'AdamW', 'RMSProp']
 verbose: False
 seed: 0
+deterministic: True
 local_rank: -1
 single_cls: False  # train multi-class data as single-class
 image_weights: False  # use weighted image selection for training

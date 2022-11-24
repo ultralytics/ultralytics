@@ -15,10 +15,10 @@ import torch
 import torch.distributed as dist
 import torch.multiprocessing as mp
 import torch.nn as nn
-from torch.optim import lr_scheduler
+from omegaconf import DictConfig, OmegaConf
 from torch.cuda import amp
 from torch.nn.parallel import DistributedDataParallel as DDP
-from omegaconf import DictConfig, OmegaConf
+from torch.optim import lr_scheduler
 from tqdm import tqdm
 
 import ultralytics.yolo.utils as utils
@@ -152,7 +152,7 @@ class BaseTrainer:
         else:
             self.lf = lambda x: (1 - x / self.args.epochs) * (1.0 - self.args.lrf + self.args.lrf)  # linear
         self.scheduler = lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
-        
+
         # dataloaders
         self.train_loader = self.get_dataloader(self.trainset, batch_size=self.args.batch_size, rank=rank)
         if rank in {0, -1}:
@@ -197,7 +197,8 @@ class BaseTrainer:
                     accumulate = max(1, np.interp(ni, xi, [1, self.args.nbs / self.args.batch_size]).round())
                     for j, x in enumerate(self.optimizer.param_groups):
                         # bias lr falls from 0.1 to lr0, all other lrs rise from 0.0 to lr0
-                        x['lr'] = np.interp(ni, xi, [self.args.warmup_bias_lr if j == 0 else 0.0, x['initial_lr'] * self.lf(epoch)])
+                        x['lr'] = np.interp(
+                            ni, xi, [self.args.warmup_bias_lr if j == 0 else 0.0, x['initial_lr'] * self.lf(epoch)])
                         if 'momentum' in x:
                             x['momentum'] = np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum])
 

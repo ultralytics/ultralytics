@@ -27,6 +27,7 @@ single_cls: False  # train multi-class data as single-class
 image_weights: False  # use weighted image selection for training
 shuffle: True
 rect: False  # support rectangular training
+cos_lr: False # Use cosine LR scheduler
 overlap_mask: True  # Segmentation masks overlap
 mask_ratio: 4  # Segmentation mask downsample ratio
 
@@ -71,6 +72,7 @@ mosaic: 1.0  # image mosaic (probability)
 mixup: 0.0  # image mixup (probability)
 copy_paste: 0.0  # segment copy-paste (probability)
 label_smoothing: 0.0
+nbs: 64 # nominal batch size
 # anchors: 3
 
 # Hydra configs --------------------------------------------------------------------------------------------------------

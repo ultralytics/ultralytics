@@ -233,7 +233,7 @@ class SegmentationTrainer(BaseTrainer):
 
         loss = lbox + lobj + lcls + lseg
         return loss * bs, torch.cat((lbox, lseg, lobj, lcls)).detach()
-    
+
     def label_loss_items(self, loss_items):
         # We should just use named tensors here in future
         keys = ["lbox", "lseg", "lobj", "lcls"]

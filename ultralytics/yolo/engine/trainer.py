@@ -270,12 +270,10 @@ class BaseTrainer:
         "fitness" metric.
         """
         metrics = self.validator(self)
-        fitness = metrics.get("fitness",
-                                        -self.loss.detach().cpu().numpy())  # use loss as fitness measure if not found
+        fitness = metrics.get("fitness", -self.loss.detach().cpu().numpy())  # use loss as fitness measure if not found
         if not self.best_fitness or self.best_fitness < fitness:
             self.best_fitness = self.fitness
         return metrics, fitness
-
 
     def log(self, text, rank=-1):
         """
@@ -304,7 +302,7 @@ class BaseTrainer:
         Returns loss and individual loss items as Tensor
         """
         raise NotImplementedError("criterion function not implemented in trainer")
-    
+
     def label_loss_items(self, loss_items):
         """
         Returns a loss dict with labelled training loss items tensor
@@ -320,6 +318,7 @@ class BaseTrainer:
 
     def build_targets(self, preds, targets):
         pass
+
 
 def build_optimizer(model, name='Adam', lr=0.001, momentum=0.9, decay=1e-5):
     # TODO: 1. docstring with example? 2. Move this inside Trainer? or utils?

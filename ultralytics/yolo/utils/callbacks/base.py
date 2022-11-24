@@ -35,10 +35,7 @@ default_callbacks = {
 def add_integration_callbacks(trainer):
     callbacks = {}
 
-    from .clearml import clearml, callbacks
+    from .clearml import callbacks, clearml
     if clearml:
         for callback, func in callbacks.items():
             trainer.add_callback(callback, func)
-
-        
-

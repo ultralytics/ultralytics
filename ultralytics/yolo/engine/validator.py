@@ -24,6 +24,7 @@ class BaseValidator:
         self.cuda = self.device.type != 'cpu'
         self.batch_i = None
         self.training = True
+        self.loss = None
 
     def __call__(self, trainer=None, model=None):
         """
@@ -44,7 +45,7 @@ class BaseValidator:
 
         model.eval()
         dt = Profile(), Profile(), Profile(), Profile()
-        loss = 0
+        self.loss = 0
         n_batches = len(self.dataloader)
         desc = self.get_desc()
         bar = tqdm(self.dataloader, desc, n_batches, not self.training, bar_format=TQDM_BAR_FORMAT)
@@ -65,7 +66,7 @@ class BaseValidator:
                 # loss
                 with dt[2]:
                     if self.training:
-                        loss += trainer.criterion(preds, batch)[0]
+                        self.loss += trainer.criterion(preds, batch)[0]
 
                 # pre-process predictions
                 with dt[3]:

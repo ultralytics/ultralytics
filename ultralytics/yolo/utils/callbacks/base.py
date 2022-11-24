@@ -30,3 +30,15 @@ default_callbacks = {
     "on_val_start": on_val_start,
     "on_val_end": on_val_end,
     "on_model_save": on_model_save}
+
+
+def add_integration_callbacks(trainer):
+    callbacks = {}
+
+    from .clearml import clearml, callbacks
+    if clearml:
+        for callback, func in callbacks.items():
+            trainer.add_callback(callback, func)
+
+        
+

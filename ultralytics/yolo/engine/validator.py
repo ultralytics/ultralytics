@@ -41,6 +41,7 @@ class BaseValidator:
         else:  # TODO: handle this when detectMultiBackend is supported
             assert model is not None, "Either trainer or model is needed for validation"
             # model = DetectMultiBacked(model)
+            # TODO: implement init_model_attributes()
 
         model.eval()
         dt = Profile(), Profile(), Profile(), Profile()

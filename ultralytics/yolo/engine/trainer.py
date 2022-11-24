@@ -28,16 +28,19 @@ from ultralytics.yolo.utils import LOGGER, ROOT, TQDM_BAR_FORMAT
 from ultralytics.yolo.utils.checks import print_args
 from ultralytics.yolo.utils.files import increment_path, save_yaml
 from ultralytics.yolo.utils.modeling import get_model
-from ultralytics.yolo.utils.torch_utils import ModelEMA, de_parallel, one_cycle
+from ultralytics.yolo.utils.torch_utils import ModelEMA, de_parallel, one_cycle, init_seeds
 
 DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yaml"
+RANK = int(os.getenv('RANK', -1))
 
 
 class BaseTrainer:
 
     def __init__(self, config=DEFAULT_CONFIG, overrides={}):
-        self.console = LOGGER
         self.args = self._get_config(config, overrides)
+
+        init_seeds(self.args.seed + 1 + RANK, deterministic=True)
+        self.console = LOGGER
         self.validator = None
         self.model = None
         self.callbacks = defaultdict(list)

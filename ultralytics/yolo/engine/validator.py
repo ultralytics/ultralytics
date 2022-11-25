@@ -59,7 +59,7 @@ class BaseValidator:
 
                 # inference
                 with dt[1]:
-                    preds = model(batch["img"].float())
+                    preds = model(batch["img"])
                     # TODO: remember to add native augmentation support when implementing model, like:
                     #  preds, train_out = model(im, augment=augment)
 

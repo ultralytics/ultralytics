@@ -352,7 +352,6 @@ class BaseTrainer:
         """
         self.model.names = self.data["names"]
 
-
     def build_targets(self, preds, targets):
         pass
 

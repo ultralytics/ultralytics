@@ -5,6 +5,8 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
+from ultralytics.yolo.data import build_dataloader
+from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.engine.validator import BaseValidator
 from ultralytics.yolo.utils import ops
 from ultralytics.yolo.utils.checks import check_requirements
@@ -12,8 +14,6 @@ from ultralytics.yolo.utils.files import yaml_load
 from ultralytics.yolo.utils.metrics import (ConfusionMatrix, Metrics, ap_per_class_box_and_mask, box_iou,
                                             fitness_segmentation, mask_iou)
 from ultralytics.yolo.utils.torch_utils import de_parallel
-from ultralytics.yolo.data import build_dataloader
-from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 
 
 class SegmentationValidator(BaseValidator):
@@ -222,7 +222,7 @@ class SegmentationValidator(BaseValidator):
                     matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
                 correct[matches[:, 1].astype(int), i] = True
         return torch.tensor(correct, dtype=torch.bool, device=iouv.device)
-    
+
     def get_dataloader(self, dataset_path, batch_size):
         # TODO: manage splits differently
         # calculate stride - check if model is initialized

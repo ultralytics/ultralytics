@@ -4,13 +4,13 @@ import torch
 from omegaconf import OmegaConf
 from tqdm import tqdm
 
-from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
-from ultralytics.yolo.utils import TQDM_BAR_FORMAT, LOGGER
-from ultralytics.yolo.utils.ops import Profile
-from ultralytics.yolo.utils.torch_utils import de_parallel, select_device, check_img_size
-from ultralytics.yolo.utils.modeling.autobackend import AutoBackend
-from ultralytics.yolo.utils.modeling import get_model
 from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
+from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
+from ultralytics.yolo.utils import LOGGER, TQDM_BAR_FORMAT
+from ultralytics.yolo.utils.modeling import get_model
+from ultralytics.yolo.utils.modeling.autobackend import AutoBackend
+from ultralytics.yolo.utils.ops import Profile
+from ultralytics.yolo.utils.torch_utils import check_img_size, de_parallel, select_device
 
 
 class BaseValidator:
@@ -24,7 +24,7 @@ class BaseValidator:
         self.logger = logger or LOGGER
         self.args = args or OmegaConf.load(DEFAULT_CONFIG)
         self.device = None
-        self.model=None
+        self.model = None
         self.data = None
         self.cuda = None
         self.batch_i = None
@@ -62,14 +62,15 @@ class BaseValidator:
                 self.device = model.device
                 if not (pt or jit):
                     self.args.batch_size = 1  # export.py models default to batch-size 1
-                    self.logger.info(f'Forcing --batch-size 1 square inference (1,3,{imgsz},{imgsz}) for non-PyTorch models')
-            
+                    self.logger.info(
+                        f'Forcing --batch-size 1 square inference (1,3,{imgsz},{imgsz}) for non-PyTorch models')
+
             if self.args.data.endswith(".yaml"):
                 data = check_dataset_yaml(self.args.data)
             else:
                 data = check_dataset(self.args.data)
             self.dataloader = self.get_dataloader(data.get("val") or data.set("test"), self.args.batch_size)
-            
+
         model.eval()
         dt = Profile(), Profile(), Profile(), Profile()
         self.loss = 0

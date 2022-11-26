@@ -58,12 +58,13 @@ def build_dataloader(cfg, img_path, stride=32, label_path=None, rank=-1, mode="t
     if cfg.rect and shuffle:
         LOGGER.warning("WARNING ⚠️ --rect is incompatible with DataLoader shuffle, setting shuffle=False")
         shuffle = False
+    batch_size=cfg.batch_size if mode == "train" else cfg.batch_size * 2
     with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
         dataset = YOLODataset(
             img_path=img_path,
             label_path=label_path,
             img_size=cfg.img_size,
-            batch_size=cfg.batch_size if mode == "train" else cfg.batch_size * 2,
+            batch_size=batch_size,
             augment=True if mode == "train" else False,  # augmentation
             hyp=cfg.get("augment_hyp", None),
             rect=cfg.rect if mode == "train" else True,  # rectangular batches
@@ -76,7 +77,7 @@ def build_dataloader(cfg, img_path, stride=32, label_path=None, rank=-1, mode="t
             use_keypoints=cfg.task == "keypoint",
         )
 
-    batch_size = min(cfg.batch_size, len(dataset))
+    batch_size = min(batch_size, len(dataset))
     nd = torch.cuda.device_count()  # number of CUDA devices
     workers = cfg.workers if mode == "train" else cfg.workers * 2
     nw = min([os.cpu_count() // max(nd, 1), batch_size if batch_size > 1 else 0, workers])  # number of workers

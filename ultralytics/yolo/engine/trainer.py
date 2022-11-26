@@ -129,7 +129,7 @@ class BaseTrainer:
         os.environ['MASTER_PORT'] = '9020'
         torch.cuda.set_device(rank)
         self.device = torch.device('cuda', rank)
-        print(f"RANK - WORLD_SIZE - DEVICE: {rank} - {world_size} - {self.device} ")
+        self.console.info(f"RANK - WORLD_SIZE - DEVICE: {rank} - {world_size} - {self.device} ")
 
         dist.init_process_group("nccl" if dist.is_nccl_available() else "gloo", rank=rank, world_size=world_size)
         self.model = self.model.to(self.device)
@@ -159,10 +159,10 @@ class BaseTrainer:
         # dataloaders
         self.train_loader = self.get_dataloader(self.trainset, batch_size=self.args.batch_size, rank=rank)
         if rank in {0, -1}:
-            print(" Creating testloader rank :", rank)
+            self.console.info(f" Creating testloader rank :{rank}")
             self.test_loader = self.get_dataloader(self.testset, batch_size=self.args.batch_size * 2, rank=-1)
             self.validator = self.get_validator()
-            print("created testloader :", rank)
+            self.console.info(f"created testloader :{rank}")
             self.ema = ModelEMA(self.model)
 
     def _do_train(self, rank=-1, world_size=1):
@@ -184,7 +184,7 @@ class BaseTrainer:
         for epoch in range(self.args.epochs):
             self.trigger_callbacks("on_epoch_start")
             self.model.train()
-            pbar = enumerate(self.train_loader)
+            self.console.info(self.progress_string())
             if rank in {-1, 0}:
                 pbar = tqdm(enumerate(self.train_loader), total=len(self.train_loader), bar_format=TQDM_BAR_FORMAT)
             self.tloss = None
@@ -220,13 +220,12 @@ class BaseTrainer:
                     last_opt_step = ni
 
                 # log
-                mem = (torch.cuda.memory_reserved() / 1E9 if torch.cuda.is_available() else 0)  # (GB)
+                mem = f'{torch.cuda.memory_reserved() / 1E9 if torch.cuda.is_available() else 0:.3g}G'  # (GB)
                 loss_len = self.tloss.shape[0] if len(self.tloss.size()) else 1
                 losses = self.tloss if loss_len > 1 else torch.unsqueeze(self.tloss, 0)
                 if rank in {-1, 0}:
-                    pbar.set_description(
-                        (" {} " + "{:.3f}  " * (1 + loss_len) + ' {} ').format(f'{epoch + 1}/{self.args.epochs}', mem,
-                                                                               *losses, batch["img"].shape[-1]))
+                    pbar.set_description(('%11s' * 2 + '%11.4g' * (2 + loss_len)) %
+                                         (f'{epoch}/{self.args.epochs}', mem, *losses, batch["cls"].shape[0], batch["img"].shape[-1]))
                     self.trigger_callbacks('on_batch_end')
 
             if rank in [-1, 0]:
@@ -353,6 +352,9 @@ class BaseTrainer:
         pass
 
     def build_targets(self, preds, targets):
+        pass
+
+    def progress_string(self):
         pass
 
 

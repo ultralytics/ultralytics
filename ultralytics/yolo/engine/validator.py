@@ -35,8 +35,6 @@ class BaseValidator:
         if self.training:
             model = trainer.ema.ema or trainer.model
             self.args.half &= self.device.type != 'cpu'
-            # NOTE: half() inference in evaluation will make training stuck,
-            # so I comment it out for now, I think we can reuse half mode after we add EMA.
             model = model.half() if self.args.half else model.float()
         else:  # TODO: handle this when detectMultiBackend is supported
             assert model is not None, "Either trainer or model is needed for validation"
@@ -48,7 +46,10 @@ class BaseValidator:
         self.loss = 0
         n_batches = len(self.dataloader)
         desc = self.get_desc()
-        bar = tqdm(self.dataloader, desc, n_batches, not self.training, bar_format=TQDM_BAR_FORMAT)
+        # NOTE: keeping this `not self.training` in tqdm will eliminate pbar after finishing segmantation evaluation during training,
+        # so I removed it, not sure if this will affect classification task cause I saw we use this arg in yolov5/classify/val.py.
+        # bar = tqdm(self.dataloader, desc, n_batches, not self.training, bar_format=TQDM_BAR_FORMAT)
+        bar = tqdm(self.dataloader, desc, n_batches, bar_format=TQDM_BAR_FORMAT)
         self.init_metrics(de_parallel(model))
         with torch.no_grad():
             for batch_i, batch in enumerate(bar):
@@ -81,7 +82,7 @@ class BaseValidator:
 
         # print speeds
         if not self.training:
-            t = tuple(x.t / len(self.dataloader.dataset.samples) * 1E3 for x in dt)  # speeds per image
+            t = tuple(x.t / len(self.dataloader.dataset) * 1E3 for x in dt)  # speeds per image
             # shape = (self.dataloader.batch_size, 3, imgsz, imgsz)
             self.logger.info(
                 'Speed: %.1fms pre-process, %.1fms inference, %.1fms loss, %.1fms post-process per image at shape ' % t)

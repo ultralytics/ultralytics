@@ -5,7 +5,7 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader, dataloader, distributed
 
-from ..utils import LOGGER
+from ..utils import LOGGER, colorstr
 from ..utils.torch_utils import torch_distributed_zero_first
 from .dataset import ClassificationDataset, YOLODataset
 from .utils import PIN_MEMORY, RANK
@@ -72,7 +72,7 @@ def build_dataloader(cfg, img_path, stride=32, label_path=None, rank=-1, mode="t
             single_cls=cfg.get("single_cls", False),
             stride=int(stride),
             pad=0.0 if mode == "train" else 0.5,
-            prefix=mode,
+            prefix=colorstr(f"{mode}: "),
             use_segments=cfg.task == "segment",
             use_keypoints=cfg.task == "keypoint",
         )

@@ -24,7 +24,7 @@ from tqdm import tqdm
 import ultralytics.yolo.utils as utils
 import ultralytics.yolo.utils.callbacks as callbacks
 from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
-from ultralytics.yolo.utils import LOGGER, ROOT, TQDM_BAR_FORMAT
+from ultralytics.yolo.utils import LOGGER, ROOT, TQDM_BAR_FORMAT, colorstr
 from ultralytics.yolo.utils.checks import print_args
 from ultralytics.yolo.utils.files import increment_path, save_yaml
 from ultralytics.yolo.utils.modeling import get_model
@@ -159,10 +159,8 @@ class BaseTrainer:
         # dataloaders
         self.train_loader = self.get_dataloader(self.trainset, rank=rank, mode="train")
         if rank in {0, -1}:
-            self.console.info(f" Creating testloader rank :{rank}")
             self.test_loader = self.get_dataloader(self.testset, rank=-1, mode="val")
             self.validator = self.get_validator()
-            self.console.info(f"created testloader :{rank}")
             self.ema = ModelEMA(self.model)
 
     def _do_train(self, rank=-1, world_size=1):
@@ -393,7 +391,7 @@ def build_optimizer(model, name='Adam', lr=0.001, momentum=0.9, decay=1e-5):
 
     optimizer.add_param_group({'params': g[0], 'weight_decay': decay})  # add g0 with weight_decay
     optimizer.add_param_group({'params': g[1], 'weight_decay': 0.0})  # add g1 (BatchNorm2d weights)
-    LOGGER.info(f"optimizer: {type(optimizer).__name__}(lr={lr}) with parameter groups "
+    LOGGER.info(f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}) with parameter groups "
                 f"{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias")
     return optimizer
 

@@ -248,7 +248,7 @@ class SegmentationTrainer(BaseTrainer):
 
 @hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
 def train(cfg):
-    cfg.model = cfg.model or v8.ROOT / "models/yolov5n-seg.yaml"
+    cfg.model = cfg.model or "models/yolov5n-seg.yaml"
     cfg.data = cfg.data or "coco128-seg.yaml"  # or yolo.ClassificationDataset("mnist")
     trainer = SegmentationTrainer(cfg)
     trainer.train()

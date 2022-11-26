@@ -25,7 +25,7 @@ import ultralytics.yolo.utils as utils
 import ultralytics.yolo.utils.callbacks as callbacks
 from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
 from ultralytics.yolo.utils import LOGGER, ROOT, TQDM_BAR_FORMAT
-from ultralytics.yolo.utils.checks import print_args
+from ultralytics.yolo.utils.checks import print_args, check_file
 from ultralytics.yolo.utils.files import increment_path, save_yaml
 from ultralytics.yolo.utils.modeling import get_model
 from ultralytics.yolo.utils.torch_utils import ModelEMA, de_parallel, init_seeds, one_cycle
@@ -279,7 +279,9 @@ class BaseTrainer:
         """
         load/create/download model for any task
         """
-        pretrained = not str(model).endswith(".yaml")
+        pretrained = False
+        if str(model).endswith(".yaml"):
+            model = check_file(model)
         return self.load_model(model_cfg=None if pretrained else model,
                                weights=get_model(model) if pretrained else None,
                                data=self.data)  # model

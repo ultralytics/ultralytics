@@ -95,7 +95,7 @@ jobs:
         shell: bash  # for Windows compatibility
         run: |
           yolo task=segment mode=train model=yolov5n-seg.yaml data=coco128-seg.yaml epochs=1 img_size=64
-          yolo task=segment mode=val model=run/exp/weights/best.pt data=coco128-seg.yaml img_size=64
+          yolo task=segment mode=val model=runs/exp/weights/best.pt data=coco128-seg.yaml img_size=64
       - name: Test classification
         shell: bash  # for Windows compatibility
         run: |

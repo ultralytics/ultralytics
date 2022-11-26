@@ -3,10 +3,12 @@ import logging
 import torch
 from omegaconf import OmegaConf
 from tqdm import tqdm
+from pathlib import Path
 
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.utils import TQDM_BAR_FORMAT
 from ultralytics.yolo.utils.ops import Profile
+from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.torch_utils import de_parallel, select_device
 
 
@@ -15,12 +17,14 @@ class BaseValidator:
     Base validator class.
     """
 
-    def __init__(self, dataloader, pbar=None, logger=None, args=None):
+    def __init__(self, dataloader, save_dir=None, pbar=None, logger=None, args=None):
         self.dataloader = dataloader
         self.pbar = pbar
         self.logger = logger or logging.getLogger()
         self.args = args or OmegaConf.load(DEFAULT_CONFIG)
         self.device = select_device(self.args.device, dataloader.batch_size)
+        self.save_dir = save_dir if save_dir is not None else \
+                increment_path(Path(self.args.project) / self.args.name, exist_ok=self.args.exist_ok)
         self.cuda = self.device.type != 'cpu'
         self.batch_i = None
         self.training = True
@@ -42,6 +46,10 @@ class BaseValidator:
             # TODO: implement init_model_attributes()
 
         model.eval()
+
+        self.names = model.names if hasattr(model, 'names') else model.module.names  # get class names
+        if isinstance(self.names, (list, tuple)):  # old format
+            self.names = dict(enumerate(self.names))
         dt = Profile(), Profile(), Profile(), Profile()
         self.loss = 0
         n_batches = len(self.dataloader)
@@ -76,7 +84,7 @@ class BaseValidator:
                 self.update_metrics(preds, batch)
                 if self.args.plots and batch_i < 3:
                     self.plot_val_samples(batch, batch_i)
-                    self.plot_predictions(preds, batch_i)
+                    self.plot_predictions(batch, preds, batch_i)
 
         stats = self.get_stats()
         self.check_stats(stats)
@@ -123,5 +131,5 @@ class BaseValidator:
     def plot_val_samples(self, batch, ni):
         pass
 
-    def plot_predictions(self, preds, ni):
+    def plot_predictions(self, batch, preds, ni):
         pass

@@ -55,7 +55,6 @@ class BaseValidator:
             self.model = model
             stride, pt, jit, engine = model.stride, model.pt, model.jit, model.engine
             imgsz = check_img_size(self.args.img_size, s=stride)
-            half = model.fp16  # FP16 supported on limited backends with CUDA
             if engine:
                 self.args.batch_size = model.batch_size
             else:

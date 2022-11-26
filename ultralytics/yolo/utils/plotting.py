@@ -184,7 +184,7 @@ def save_one_box(xyxy, im, file=Path('im.jpg'), gain=1.02, pad=10, square=False,
 
 
 @threaded
-def plot_images_and_masks(images, batch_idx, cls, bboxes, masks, paths, conf=None, fname='images.jpg', names=None):
+def plot_images_and_masks(images, batch_idx, cls, bboxes, masks, paths, confs=None, fname='images.jpg', names=None):
     # Plot image grid with labels
     if isinstance(images, torch.Tensor):
         images = images.cpu().float().numpy()
@@ -234,8 +234,8 @@ def plot_images_and_masks(images, batch_idx, cls, bboxes, masks, paths, conf=Non
 
             boxes = xywh2xyxy(bboxes[idx]).T
             classes = cls[idx].astype('int')
-            labels = conf is None  # labels if no conf column
-            conf = None if labels else conf[idx]  # check for confidence presence (label vs pred)
+            labels = confs is None  # labels if no conf column
+            conf = None if labels else confs[idx]  # check for confidence presence (label vs pred)
 
             if boxes.shape[1]:
                 if boxes.max() <= 1.01:  # if normalized with tolerance 0.01
@@ -289,4 +289,4 @@ def output_to_target(output, max_det=300):
         j = torch.full((conf.shape[0], 1), i)
         targets.append(torch.cat((j, cls, xyxy2xywh(box), conf), 1))
     targets = torch.cat(targets, 0).numpy()
-    return targets[:, 0], targets[:, 1], targets[:, 2:]
+    return targets[:, 0], targets[:, 1], targets[:, 2:6], targets[:, 6]

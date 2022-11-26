@@ -222,7 +222,7 @@ class SegmentationValidator(BaseValidator):
     def plot_val_samples(self, batch, ni):
         images = batch["img"]
         masks = batch["masks"]
-        cls = batch["cls"]
+        cls = batch["cls"].squeeze(-1)
         bboxes = batch["bboxes"]
         paths = batch["im_file"]
         batch_idx = batch["batch_idx"]
@@ -234,6 +234,7 @@ class SegmentationValidator(BaseValidator):
         paths = batch["im_file"]
         if len(self.plot_masks):
             plot_masks = torch.cat(self.plot_masks, dim=0)
-        plot_images_and_masks(images, *output_to_target(preds, max_det=15), plot_masks, paths,
+        batch_idx, cls, bboxes, conf = output_to_target(preds[0], max_det=15)
+        plot_images_and_masks(images, batch_idx, cls, bboxes, plot_masks, paths, conf,
                               self.save_dir / f'val_batch{ni}_pred.jpg', self.names)  # pred
         self.plot_masks.clear()

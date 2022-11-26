@@ -180,7 +180,7 @@ class SegmentationValidator(BaseValidator):
 
         # plot TODO: save_dir
         if self.args.plots:
-            self.confusion_matrix.plot(save_dir='', names=list(self.names.values()))
+            self.confusion_matrix.plot(save_dir=self.save_dir, names=list(self.names.values()))
 
     def _process_batch(self, detections, labels, iouv, pred_masks=None, gt_masks=None, overlap=False, masks=False):
         """

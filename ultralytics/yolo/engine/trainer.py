@@ -157,10 +157,10 @@ class BaseTrainer:
         self.scheduler = lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
 
         # dataloaders
-        self.train_loader = self.get_dataloader(self.trainset, batch_size=self.args.batch_size, rank=rank)
+        self.train_loader = self.get_dataloader(self.trainset, rank=rank, mode="train")
         if rank in {0, -1}:
             self.console.info(f" Creating testloader rank :{rank}")
-            self.test_loader = self.get_dataloader(self.testset, batch_size=self.args.batch_size * 2, rank=-1)
+            self.test_loader = self.get_dataloader(self.testset, rank=-1, mode="val")
             self.validator = self.get_validator()
             self.console.info(f"created testloader :{rank}")
             self.ema = ModelEMA(self.model)

@@ -46,7 +46,7 @@ class SegmentationTrainer(BaseTrainer):
         self.model.names = self.data["names"]
 
     def get_validator(self):
-        return v8.segment.SegmentationValidator(self.test_loader, self.device, logger=self.console)
+        return v8.segment.SegmentationValidator(self.test_loader, self.device, logger=self.console, args=self.args)
 
     def criterion(self, preds, batch):
         head = de_parallel(self.model).model[-1]

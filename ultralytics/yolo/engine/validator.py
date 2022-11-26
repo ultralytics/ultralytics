@@ -74,6 +74,9 @@ class BaseValidator:
                     preds = self.postprocess(preds)
 
                 self.update_metrics(preds, batch)
+                if self.args.plots and batch_i < 3:
+                    self.plot_val_samples(batch, batch_i)
+                    self.plot_predictions(preds, batch_i)
 
         stats = self.get_stats()
         self.check_stats(stats)
@@ -115,4 +118,10 @@ class BaseValidator:
         pass
 
     def get_desc(self):
+        pass
+
+    def plot_val_samples(self, batch, ni):
+        pass
+
+    def plot_predictions(self, preds, ni):
         pass

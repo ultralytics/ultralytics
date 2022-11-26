@@ -7,6 +7,7 @@ from ultralytics.yolo import v8
 from ultralytics.yolo.data import build_dataloader
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG, BaseTrainer
 from ultralytics.yolo.utils.metrics import FocalLoss, bbox_iou, smooth_BCE
+from ultralytics.yolo.utils.plotting import plot_images_and_masks
 from ultralytics.yolo.utils.modeling.tasks import SegmentationModel
 from ultralytics.yolo.utils.ops import crop_mask, xywh2xyxy
 from ultralytics.yolo.utils.torch_utils import de_parallel
@@ -242,6 +243,15 @@ class SegmentationTrainer(BaseTrainer):
     def progress_string(self):
         return ('\n' + '%11s' * 7) % \
                ('Epoch', 'GPU_mem', 'box_loss', 'seg_loss', 'obj_loss', 'cls_loss', 'Size')
+
+    def plot_training_samples(self, batch, ni):
+        images = batch["img"]
+        masks = batch["masks"]
+        cls = batch["cls"]
+        bboxes = batch["bboxes"]
+        paths = batch["im_file"]
+        batch_idx = batch["batch_idx"]
+        plot_images_and_masks(images, batch_idx, cls, bboxes, masks, paths, fname=self.save_dir / f"train_batch{ni}.jpg")
 
 
 @hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)

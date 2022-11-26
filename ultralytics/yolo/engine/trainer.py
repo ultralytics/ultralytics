@@ -227,6 +227,11 @@ class BaseTrainer:
                     pbar.set_description(('%11s' * 2 + '%11.4g' * (2 + loss_len)) %
                                          (f'{epoch}/{self.args.epochs}', mem, *losses, batch["cls"].shape[0], batch["img"].shape[-1]))
                     self.trigger_callbacks('on_batch_end')
+                    if self.args.plots and ni < 3:
+                        self.plot_training_samples(batch, ni)
+
+            lr = [x['lr'] for x in self.optimizer.param_groups]  # for loggers
+            self.scheduler.step()
 
             if rank in [-1, 0]:
                 # validation
@@ -356,6 +361,10 @@ class BaseTrainer:
 
     def progress_string(self):
         pass
+
+    def plot_training_samples(self, batch, ni):
+        pass
+
 
 
 def build_optimizer(model, name='Adam', lr=0.001, momentum=0.9, decay=1e-5):

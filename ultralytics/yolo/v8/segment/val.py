@@ -84,7 +84,7 @@ class SegmentationValidator(BaseValidator):
         for si, (pred, proto) in enumerate(zip(preds[0], preds[1])):
             labels = self.targets[self.targets[:, 0] == si, 1:]
             nl, npr = labels.shape[0], pred.shape[0]  # number of labels, predictions
-            shape = batch["shape"][si]
+            shape = batch["ori_shape"][si]
             # path = batch["shape"][si][0]
             correct_masks = torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device)  # init
             correct_bboxes = torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device)  # init

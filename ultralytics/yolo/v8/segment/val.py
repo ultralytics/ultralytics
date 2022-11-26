@@ -16,8 +16,8 @@ from ultralytics.yolo.utils.plotting import plot_images_and_masks, output_to_tar
 
 class SegmentationValidator(BaseValidator):
 
-    def __init__(self, dataloader, pbar=None, logger=None, args=None):
-        super().__init__(dataloader, pbar, logger, args)
+    def __init__(self, dataloader, save_dir=None, pbar=None, logger=None, args=None):
+        super().__init__(dataloader, save_dir, pbar, logger, args)
         if self.args.save_json:
             check_requirements(['pycocotools'])
             self.process = ops.process_mask_upsample  # more accurate

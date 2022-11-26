@@ -29,8 +29,11 @@ image_weights: False  # use weighted image selection for training
 shuffle: True
 rect: False  # support rectangular training
 cos_lr: False # Use cosine LR scheduler
-overlap_mask: True  # Segmentation masks overlap
-mask_ratio: 4  # Segmentation mask downsample ratio
+# Segmentation
+overlap_mask: True  # masks overlap
+mask_ratio: 4  # mask downsample ratio
+# Classification
+dropout: False # use dropout
 
 # Val/Test settings ----------------------------------------------------------------------------------------------------
 save_json: False
@@ -39,6 +42,7 @@ conf_thres: 0.001
 iou_thres: 0.6
 max_det: 300
 half: True
+dnn: False # use OpenCV DNN for ONNX inference
 plots: False
 save_txt: False
 

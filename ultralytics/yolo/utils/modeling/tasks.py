@@ -172,7 +172,7 @@ class DetectionModel(BaseModel):
         csd = weights['model'].float().state_dict()  # checkpoint state_dict as FP32
         csd = intersect_state_dicts(csd, self.state_dict())  # intersect
         self.load_state_dict(csd, strict=False)  # load
-        LOGGER.info(f'Transferred {len(csd)}/{len(self.model.state_dict())} items from {weights}')
+        LOGGER.info(f'Transferred {len(csd)}/{len(self.model.state_dict())} items from pretrained weights')
 
 
 class SegmentationModel(DetectionModel):

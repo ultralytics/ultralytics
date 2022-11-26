@@ -273,7 +273,7 @@ class BaseTrainer:
         """
         Get train, val path from data dict if it exists. Returns None if data format is not recognized
         """
-        return data["train"], data["val"]
+        return data["train"], data.get("val") or data.get("test")
 
     def get_model(self, model: Union[str, Path]):
         """
@@ -350,7 +350,8 @@ class BaseTrainer:
         """
         To set or update model parameters before training.
         """
-        pass
+        self.model.names = self.data["names"]
+
 
     def build_targets(self, preds, targets):
         pass

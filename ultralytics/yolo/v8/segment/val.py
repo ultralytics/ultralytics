@@ -1,5 +1,6 @@
 import os
 
+import hydra
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -11,18 +12,19 @@ from ultralytics.yolo.utils.files import yaml_load
 from ultralytics.yolo.utils.metrics import (ConfusionMatrix, Metrics, ap_per_class_box_and_mask, box_iou,
                                             fitness_segmentation, mask_iou)
 from ultralytics.yolo.utils.torch_utils import de_parallel
+from ultralytics.yolo.data import build_dataloader
+from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 
 
 class SegmentationValidator(BaseValidator):
 
-    def __init__(self, dataloader, pbar=None, logger=None, args=None):
+    def __init__(self, dataloader=None, pbar=None, logger=None, args=None):
         super().__init__(dataloader, pbar, logger, args)
         if self.args.save_json:
             check_requirements(['pycocotools'])
             self.process = ops.process_mask_upsample  # more accurate
         else:
             self.process = ops.process_mask  # faster
-        self.data_dict = yaml_load(self.args.data) if self.args.data else None
         self.is_coco = False
         self.class_map = None
         self.targets = None
@@ -42,14 +44,17 @@ class SegmentationValidator(BaseValidator):
         return batch
 
     def init_metrics(self, model):
-        head = de_parallel(model).model[-1]
-        if self.data_dict:
-            self.is_coco = isinstance(self.data_dict.get('val'),
-                                      str) and self.data_dict['val'].endswith(f'coco{os.sep}val2017.txt')
-            self.class_map = ops.coco80_to_coco91_class() if self.is_coco else list(range(1000))
+        if self.training:
+            head = de_parallel(model).model[-1]
+        else:
+            head = de_parallel(model).model.model[-1]
 
+        if self.data:
+            self.is_coco = isinstance(self.data.get('val'),
+                                      str) and self.data['val'].endswith(f'coco{os.sep}val2017.txt')
+            self.class_map = ops.coco80_to_coco91_class() if self.is_coco else list(range(1000))
+        self.nm = head.nm if hasattr(head, "nm") else 32
         self.nc = head.nc
-        self.nm = head.nm
         self.names = model.names
         if isinstance(self.names, (list, tuple)):  # old format
             self.names = dict(enumerate(self.names))
@@ -217,3 +222,32 @@ class SegmentationValidator(BaseValidator):
                     matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
                 correct[matches[:, 1].astype(int), i] = True
         return torch.tensor(correct, dtype=torch.bool, device=iouv.device)
+    
+    def get_dataloader(self, dataset_path, batch_size):
+        # TODO: manage splits differently
+        # calculate stride - check if model is initialized
+        gs = max(int(de_parallel(self.model).stride if self.model else 0), 32)
+        return build_dataloader(
+            img_path=dataset_path,
+            img_size=self.args.img_size,
+            batch_size=batch_size,
+            single_cls=self.args.single_cls,
+            cache=self.args.cache,
+            image_weights=self.args.image_weights,
+            stride=gs,
+            rect=self.args.rect,
+            workers=self.args.workers,
+            shuffle=self.args.shuffle,
+            use_segments=True,
+        )[0]
+
+
+@hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
+def val(cfg):
+    cfg.data = cfg.data or "coco128-seg.yaml"
+    validator = SegmentationValidator(args=cfg)
+    validator(model=cfg.model)
+
+
+if __name__ == "__main__":
+    val()

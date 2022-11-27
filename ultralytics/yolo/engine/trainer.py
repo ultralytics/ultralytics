@@ -142,8 +142,8 @@ class BaseTrainer:
         """
         # Optimizer
         self.set_model_attributes()
-        accumulate = max(round(self.args.nbs / self.args.batch_size), 1)  # accumulate loss before optimizing
-        self.args.weight_decay *= self.args.batch_size * accumulate / self.args.nbs  # scale weight_decay
+        self.accumulate = max(round(self.args.nbs / self.args.batch_size), 1)  # accumulate loss before optimizing
+        self.args.weight_decay *= self.args.batch_size * self.accumulate / self.args.nbs  # scale weight_decay
         self.optimizer = build_optimizer(model=self.model,
                                          name=self.args.optimizer,
                                          lr=self.args.lr0,
@@ -186,6 +186,7 @@ class BaseTrainer:
             if rank in {-1, 0}:
                 pbar = tqdm(enumerate(self.train_loader), total=len(self.train_loader), bar_format=TQDM_BAR_FORMAT)
             self.tloss = None
+            self.optimizer.zero_grad()
             for i, batch in pbar:
                 self.trigger_callbacks("on_batch_start")
                 # forward
@@ -195,7 +196,7 @@ class BaseTrainer:
                 ni = i + nb * epoch
                 if ni <= nw:
                     xi = [0, nw]  # x interp
-                    accumulate = max(1, np.interp(ni, xi, [1, self.args.nbs / self.args.batch_size]).round())
+                    self.accumulate = max(1, np.interp(ni, xi, [1, self.args.nbs / self.args.batch_size]).round())
                     for j, x in enumerate(self.optimizer.param_groups):
                         # bias lr falls from 0.1 to lr0, all other lrs rise from 0.0 to lr0
                         x['lr'] = np.interp(
@@ -209,11 +210,11 @@ class BaseTrainer:
                                 else self.loss_items
 
                 # backward
-                self.model.zero_grad(set_to_none=True)
+                # self.model.zero_grad(set_to_none=True)
                 self.scaler.scale(self.loss).backward()
 
                 # optimize
-                if ni - last_opt_step >= accumulate:
+                if ni - last_opt_step >= self.accumulate:
                     self.optimizer_step()
                     last_opt_step = ni
 
@@ -223,7 +224,7 @@ class BaseTrainer:
                 losses = self.tloss if loss_len > 1 else torch.unsqueeze(self.tloss, 0)
                 if rank in {-1, 0}:
                     pbar.set_description(('%11s' * 2 + '%11.4g' * (2 + loss_len)) %
-                                         (f'{epoch}/{self.args.epochs}', mem, *losses, batch["cls"].shape[0], batch["img"].shape[-1]))
+                                         (f'{epoch + 1}/{self.args.epochs}', mem, *losses, batch["cls"].shape[0], batch["img"].shape[-1]))
                     self.trigger_callbacks('on_batch_end')
                     if self.args.plots and ni < 3:
                         self.plot_training_samples(batch, ni)

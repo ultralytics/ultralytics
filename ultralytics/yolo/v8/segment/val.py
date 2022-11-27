@@ -179,8 +179,9 @@ class SegmentationValidator(BaseValidator):
                 self.logger.info(pf % (self.names[c], self.seen, self.nt_per_class[c], *self.metrics.class_result(i)))
 
         # plot TODO: save_dir
-        if self.args.plots:
-            self.confusion_matrix.plot(save_dir=self.save_dir, names=list(self.names.values()))
+        # this plot will cause a strange qt error in my case, so I comment it out for now.
+        # if self.args.plots:
+            # self.confusion_matrix.plot(save_dir=self.save_dir, names=list(self.names.values()))
 
     def _process_batch(self, detections, labels, iouv, pred_masks=None, gt_masks=None, overlap=False, masks=False):
         """

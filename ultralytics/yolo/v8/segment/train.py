@@ -234,7 +234,7 @@ class SegmentationTrainer(BaseTrainer):
     def plot_training_samples(self, batch, ni):
         images = batch["img"]
         masks = batch["masks"]
-        cls = batch["cls"]
+        cls = batch["cls"].squeeze(-1)
         bboxes = batch["bboxes"]
         paths = batch["im_file"]
         batch_idx = batch["batch_idx"]

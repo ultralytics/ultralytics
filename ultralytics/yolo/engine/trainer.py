@@ -233,7 +233,7 @@ class BaseTrainer:
             lr = [x['lr'] for x in self.optimizer.param_groups]  # for loggers
             self.scheduler.step()
 
-            if rank in [-1, 0] and epoch == self.args.epochs:
+            if rank in [-1, 0]:
                 # validation
                 self.trigger_callbacks('on_val_start')
                 self.ema.update_attr(self.model, include=['yaml', 'nc', 'args', 'names', 'stride', 'class_weights'])

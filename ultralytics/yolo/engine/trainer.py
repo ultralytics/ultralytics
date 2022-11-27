@@ -224,8 +224,9 @@ class BaseTrainer:
                 loss_len = self.tloss.shape[0] if len(self.tloss.size()) else 1
                 losses = self.tloss if loss_len > 1 else torch.unsqueeze(self.tloss, 0)
                 if rank in {-1, 0}:
-                    pbar.set_description(('%11s' * 2 + '%11.4g' * (2 + loss_len)) %
-                                         (f'{epoch + 1}/{self.args.epochs}', mem, *losses, batch["cls"].shape[0], batch["img"].shape[-1]))
+                    pbar.set_description(
+                        ('%11s' * 2 + '%11.4g' * (2 + loss_len)) % (f'{epoch + 1}/{self.args.epochs}', mem, *losses,
+                                                                    batch["cls"].shape[0], batch["img"].shape[-1]))
                     self.trigger_callbacks('on_batch_end')
                     if self.args.plots and ni < 3:
                         self.plot_training_samples(batch, ni)
@@ -364,7 +365,6 @@ class BaseTrainer:
 
     def plot_training_samples(self, batch, ni):
         pass
-
 
 
 def build_optimizer(model, name='Adam', lr=0.001, momentum=0.9, decay=1e-5):

@@ -1,11 +1,11 @@
+import contextlib
+import math
 from pathlib import Path
 from urllib.error import URLError
 
 import cv2
 import numpy as np
 import torch
-import math
-import contextlib
 from PIL import Image, ImageDraw, ImageFont
 
 from ultralytics.yolo.utils import FONT, USER_CONFIG_DIR, threaded

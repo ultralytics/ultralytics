@@ -58,7 +58,7 @@ def build_dataloader(cfg, img_path, stride=32, label_path=None, rank=-1, mode="t
     if cfg.rect and shuffle:
         LOGGER.warning("WARNING ⚠️ --rect is incompatible with DataLoader shuffle, setting shuffle=False")
         shuffle = False
-    batch_size=cfg.batch_size if mode == "train" else cfg.batch_size * 2
+    batch_size = cfg.batch_size if mode == "train" else cfg.batch_size * 2
     with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
         dataset = YOLODataset(
             img_path=img_path,

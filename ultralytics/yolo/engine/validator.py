@@ -1,14 +1,14 @@
 import logging
+from pathlib import Path
 
 import torch
 from omegaconf import OmegaConf
 from tqdm import tqdm
-from pathlib import Path
 
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.utils import TQDM_BAR_FORMAT
-from ultralytics.yolo.utils.ops import Profile
 from ultralytics.yolo.utils.files import increment_path
+from ultralytics.yolo.utils.ops import Profile
 from ultralytics.yolo.utils.torch_utils import de_parallel, select_device
 
 

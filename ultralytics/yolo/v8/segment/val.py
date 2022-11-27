@@ -10,8 +10,8 @@ from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils.files import yaml_load
 from ultralytics.yolo.utils.metrics import (ConfusionMatrix, Metrics, ap_per_class_box_and_mask, box_iou,
                                             fitness_segmentation, mask_iou)
+from ultralytics.yolo.utils.plotting import output_to_target, plot_images_and_masks
 from ultralytics.yolo.utils.torch_utils import de_parallel
-from ultralytics.yolo.utils.plotting import plot_images_and_masks, output_to_target
 
 
 class SegmentationValidator(BaseValidator):
@@ -126,8 +126,8 @@ class SegmentationValidator(BaseValidator):
                                                     masks=True)
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, labelsn)
-            self.stats.append((correct_masks, correct_bboxes, pred[:, 4], pred[:, 5], 
-                               labels[:, 0]))  # (conf, pcls, tcls)
+            self.stats.append((correct_masks, correct_bboxes, pred[:, 4], pred[:, 5], labels[:,
+                                                                                             0]))  # (conf, pcls, tcls)
 
             pred_masks = torch.as_tensor(pred_masks, dtype=torch.uint8)
             if self.args.plots and self.batch_i < 3:
@@ -181,7 +181,7 @@ class SegmentationValidator(BaseValidator):
         # plot TODO: save_dir
         # this plot will cause a strange qt error in my case, so I comment it out for now.
         # if self.args.plots:
-            # self.confusion_matrix.plot(save_dir=self.save_dir, names=list(self.names.values()))
+        # self.confusion_matrix.plot(save_dir=self.save_dir, names=list(self.names.values()))
 
     def _process_batch(self, detections, labels, iouv, pred_masks=None, gt_masks=None, overlap=False, masks=False):
         """
@@ -227,8 +227,14 @@ class SegmentationValidator(BaseValidator):
         bboxes = batch["bboxes"]
         paths = batch["im_file"]
         batch_idx = batch["batch_idx"]
-        plot_images_and_masks(images, batch_idx, cls, bboxes, masks, paths, 
-                              fname=self.save_dir / f"val_batch{ni}_labels.jpg", names=self.names)
+        plot_images_and_masks(images,
+                              batch_idx,
+                              cls,
+                              bboxes,
+                              masks,
+                              paths,
+                              fname=self.save_dir / f"val_batch{ni}_labels.jpg",
+                              names=self.names)
 
     def plot_predictions(self, batch, preds, ni):
         images = batch["img"]

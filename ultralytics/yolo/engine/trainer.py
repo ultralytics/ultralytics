@@ -182,8 +182,9 @@ class BaseTrainer:
         for epoch in range(self.args.epochs):
             self.trigger_callbacks("on_epoch_start")
             self.model.train()
-            self.console.info(self.progress_string())
+            pbar = enumerate(self.train_loader)
             if rank in {-1, 0}:
+                self.console.info(self.progress_string())
                 pbar = tqdm(enumerate(self.train_loader), total=len(self.train_loader), bar_format=TQDM_BAR_FORMAT)
             self.tloss = None
             self.optimizer.zero_grad()
@@ -232,7 +233,7 @@ class BaseTrainer:
             lr = [x['lr'] for x in self.optimizer.param_groups]  # for loggers
             self.scheduler.step()
 
-            if rank in [-1, 0]:
+            if rank in [-1, 0] and epoch == self.args.epochs:
                 # validation
                 self.trigger_callbacks('on_val_start')
                 self.ema.update_attr(self.model, include=['yaml', 'nc', 'args', 'names', 'stride', 'class_weights'])

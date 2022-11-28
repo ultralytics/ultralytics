@@ -73,7 +73,6 @@ class BaseTrainer:
         self.scheduler = None
 
         # epoch level metrics
-        self.metrics = {}  # handle metrics returned by validator
         self.best_fitness = None
         self.fitness = None
         self.loss = None
@@ -161,7 +160,12 @@ class BaseTrainer:
         self.train_loader = self.get_dataloader(self.trainset, rank=rank, mode="train")
         if rank in {0, -1}:
             self.test_loader = self.get_dataloader(self.testset, rank=-1, mode="val")
-            self.validator = self.get_validator()
+            validator = self.get_validator()
+            # init metric, for plot_results
+            metric_keys = validator.metric_keys + self.label_loss_items(prefix="val")
+            self.metrics = dict(zip(metric_keys, 
+                                    [0] * len(metric_keys)))
+            self.validator = validator
             self.ema = ModelEMA(self.model)
 
     def _do_train(self, rank=-1, world_size=1):
@@ -239,7 +243,9 @@ class BaseTrainer:
                 # validation
                 self.trigger_callbacks('on_val_start')
                 self.ema.update_attr(self.model, include=['yaml', 'nc', 'args', 'names', 'stride', 'class_weights'])
-                self.metrics, self.fitness = self.validate()
+                final_epoch = (epoch + 1 == self.args.epochs)
+                if not self.args.noval or final_epoch:
+                    self.metrics, self.fitness = self.validate()
                 self.trigger_callbacks('on_val_end')
                 log_vals = self.label_loss_items(tloss) | self.metrics | lr
                 self.save_metrics(metrics=log_vals)
@@ -353,12 +359,12 @@ class BaseTrainer:
         """
         raise NotImplementedError("criterion function not implemented in trainer")
 
-    def label_loss_items(self, loss_items):
+    def label_loss_items(self, loss_items=None, prefix="train"):
         """
         Returns a loss dict with labelled training loss items tensor
         """
         # Not needed for classification but necessary for segmentation & detection
-        return {"loss": loss_items}
+        return {"loss": loss_items} if loss_items is not None else ["loss"]
 
     def set_model_attributes(self):
         """
@@ -372,7 +378,7 @@ class BaseTrainer:
     def progress_string(self):
         pass
 
-    # TODO: mey need to put these following functions into callback
+    # TODO: may need to put these following functions into callback
     def plot_training_samples(self, batch, ni):
         pass
 

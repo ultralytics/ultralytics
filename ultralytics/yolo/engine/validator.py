@@ -128,6 +128,11 @@ class BaseValidator:
     def get_desc(self):
         pass
 
+    @property
+    def metric_keys(self):
+        return []
+
+    # TODO: may need to put these following functions into callback
     def plot_val_samples(self, batch, ni):
         pass
 

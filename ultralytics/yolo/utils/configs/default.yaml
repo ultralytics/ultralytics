@@ -30,6 +30,7 @@ rect: False  # support rectangular training
 cos_lr: False # Use cosine LR scheduler
 overlap_mask: True  # Segmentation masks overlap
 mask_ratio: 4  # Segmentation mask downsample ratio
+noval: False
 
 # Val/Test settings ----------------------------------------------------------------------------------------------------
 save_json: False

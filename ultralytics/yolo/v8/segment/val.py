@@ -144,26 +144,14 @@ class SegmentationValidator(BaseValidator):
             # callbacks.run('on_val_image_end', pred, predn, path, names, im[si])
             '''
 
-        # TODO Plot images
-        '''
-        if self.args.plots and self.batch_i < 3:
-            if len(plot_masks):
-                plot_masks = torch.cat(plot_masks, dim=0)
-            plot_images_and_masks(im, targets, masks, paths, save_dir / f'val_batch{batch_i}_labels.jpg', names)
-            plot_images_and_masks(im, output_to_target(preds, max_det=15), plot_masks, paths,
-                                  save_dir / f'val_batch{batch_i}_pred.jpg', names)  # pred
-        '''
-
     def get_stats(self):
         stats = [torch.cat(x, 0).cpu().numpy() for x in zip(*self.stats)]  # to numpy
         if len(stats) and stats[0].any():
-            # TODO: save_dir
             results = ap_per_class_box_and_mask(*stats, plot=self.args.plots, save_dir=self.save_dir, names=self.names)
             self.metrics.update(results)
         self.nt_per_class = np.bincount(stats[4].astype(int), minlength=self.nc)  # number of targets per class
-        keys = ["mp_bbox", "mr_bbox", "map50_bbox", "map_bbox", "mp_mask", "mr_mask", "map50_mask", "map_mask"]
         metrics = {"fitness": fitness_segmentation(np.array(self.metrics.mean_results()).reshape(1, -1))}
-        metrics |= zip(keys, self.metrics.mean_results())
+        metrics |= zip(self.metric_keys, self.metrics.mean_results())
         return metrics
 
     def print_results(self):
@@ -217,6 +205,19 @@ class SegmentationValidator(BaseValidator):
                     matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
                 correct[matches[:, 1].astype(int), i] = True
         return torch.tensor(correct, dtype=torch.bool, device=iouv.device)
+
+    @property
+    def metric_keys(self):
+        return [
+            "metrics/precision(B)",
+            "metrics/recall(B)",
+            "metrics/mAP_0.5(B)",
+            "metrics/mAP_0.5:0.95(B)",  # metrics
+            "metrics/precision(M)",
+            "metrics/recall(M)",
+            "metrics/mAP_0.5(M)",
+            "metrics/mAP_0.5:0.95(M)",
+        ]
 
     def plot_val_samples(self, batch, ni):
         images = batch["img"]

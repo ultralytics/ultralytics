@@ -4,10 +4,10 @@ from pathlib import Path
 from urllib.error import URLError
 
 import cv2
-import numpy as np
-import torch
-import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import torch
 from PIL import Image, ImageDraw, ImageFont
 
 from ultralytics.yolo.utils import FONT, USER_CONFIG_DIR, threaded

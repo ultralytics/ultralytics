@@ -119,14 +119,14 @@ class BaseTrainer:
 
     def train(self):
         world_size = torch.cuda.device_count()
-        if world_size > 1:
-            mp.spawn(self._do_train, args=(world_size,), nprocs=world_size, join=True)
-        else:
-            self._do_train()
+        # if world_size > 1:
+        #     mp.spawn(self._do_train, args=(world_size,), nprocs=world_size, join=True)
+        # else:
+        self._do_train(int(os.getenv("RANK", -1)), world_size)
 
     def _setup_ddp(self, rank, world_size):
-        os.environ['MASTER_ADDR'] = 'localhost'
-        os.environ['MASTER_PORT'] = '9020'
+        # os.environ['MASTER_ADDR'] = 'localhost'
+        # os.environ['MASTER_PORT'] = '9020'
         torch.cuda.set_device(rank)
         self.device = torch.device('cuda', rank)
         self.console.info(f"RANK - WORLD_SIZE - DEVICE: {rank} - {world_size} - {self.device} ")
@@ -215,7 +215,6 @@ class BaseTrainer:
                                 else self.loss_items
 
                 # backward
-                # self.model.zero_grad(set_to_none=True)
                 self.scaler.scale(self.loss).backward()
 
                 # optimize

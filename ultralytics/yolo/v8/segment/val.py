@@ -216,8 +216,7 @@ class SegmentationValidator(BaseValidator):
             "metrics/precision(M)",
             "metrics/recall(M)",
             "metrics/mAP_0.5(M)",
-            "metrics/mAP_0.5:0.95(M)",
-        ]
+            "metrics/mAP_0.5:0.95(M)",]
 
     def plot_val_samples(self, batch, ni):
         images = batch["img"]

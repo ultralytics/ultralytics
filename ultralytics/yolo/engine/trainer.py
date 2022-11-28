@@ -163,8 +163,7 @@ class BaseTrainer:
             validator = self.get_validator()
             # init metric, for plot_results
             metric_keys = validator.metric_keys + self.label_loss_items(prefix="val")
-            self.metrics = dict(zip(metric_keys, 
-                                    [0] * len(metric_keys)))
+            self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))
             self.validator = validator
             self.ema = ModelEMA(self.model)
 

@@ -28,7 +28,7 @@ from ultralytics.yolo.utils import LOGGER, ROOT, TQDM_BAR_FORMAT, colorstr
 from ultralytics.yolo.utils.checks import print_args
 from ultralytics.yolo.utils.files import increment_path, save_yaml
 from ultralytics.yolo.utils.modeling import get_model
-from ultralytics.yolo.utils.torch_utils import ModelEMA, de_parallel, init_seeds, one_cycle
+from ultralytics.yolo.utils.torch_utils import ModelEMA, de_parallel, init_seeds, one_cycle, strip_optimizer
 
 DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yaml"
 RANK = int(os.getenv('RANK', -1))
@@ -256,11 +256,15 @@ class BaseTrainer:
 
             # TODO: termination condition
 
-        if self.args.plots:
-            self.plot_metrics()
-        self.log(f"\nTraining complete ({(time.time() - self.train_time_start) / 3600:.3f} hours)")
-        self.trigger_callbacks('on_train_end')
+        if rank in [-1, 0]:
+            # do the last evaluation with best.pt
+            self.final_eval()
+            if self.args.plots:
+                self.plot_metrics()
+            self.log(f"\nTraining complete ({(time.time() - self.train_time_start) / 3600:.3f} hours)")
+            self.trigger_callbacks('on_train_end')
         dist.destroy_process_group() if world_size != 1 else None
+        torch.cuda.empty_cache()
 
     def save_model(self):
         ckpt = {
@@ -368,7 +372,7 @@ class BaseTrainer:
     def progress_string(self):
         pass
 
-    # TODO: put these functions into callback
+    # TODO: mey need to put these following functions into callback
     def plot_training_samples(self, batch, ni):
         pass
 
@@ -381,6 +385,14 @@ class BaseTrainer:
 
     def plot_metrics(self):
         pass
+
+    def final_eval(self):
+        # TODO: need standalone evaluator to do this
+        for f in self.last, self.best:
+            if f.exists():
+                strip_optimizer(f)  # strip optimizers
+                if f is self.best:
+                    self.console.info(f'\nValidating {f}...')
 
 
 def build_optimizer(model, name='Adam', lr=0.001, momentum=0.9, decay=1e-5):

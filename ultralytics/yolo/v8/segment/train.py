@@ -209,6 +209,8 @@ class SegmentationTrainer(BaseTrainer):
                     else:
                         mask_gti = masks[tidxs[i]][j]
                     lseg += single_mask_loss(mask_gti, pmask[j], proto[bi], mxyxy[j], marea[j])
+            else:
+                lseg += (proto * 0).sum()
 
             obji = BCEobj(pi[..., 4], tobj)
             lobj += obji * balance[i]  # obj loss

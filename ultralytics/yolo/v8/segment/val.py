@@ -158,7 +158,7 @@ class SegmentationValidator(BaseValidator):
         stats = [torch.cat(x, 0).cpu().numpy() for x in zip(*self.stats)]  # to numpy
         if len(stats) and stats[0].any():
             # TODO: save_dir
-            results = ap_per_class_box_and_mask(*stats, plot=self.args.plots, save_dir='', names=self.names)
+            results = ap_per_class_box_and_mask(*stats, plot=self.args.plots, save_dir=self.save_dir, names=self.names)
             self.metrics.update(results)
         self.nt_per_class = np.bincount(stats[4].astype(int), minlength=self.nc)  # number of targets per class
         keys = ["mp_bbox", "mr_bbox", "map50_bbox", "map_bbox", "mp_mask", "mr_mask", "map50_mask", "map_mask"]
@@ -178,10 +178,8 @@ class SegmentationValidator(BaseValidator):
             for i, c in enumerate(self.metrics.ap_class_index):
                 self.logger.info(pf % (self.names[c], self.seen, self.nt_per_class[c], *self.metrics.class_result(i)))
 
-        # plot TODO: save_dir
-        # this plot will cause a strange qt error in my case, so I comment it out for now.
-        # if self.args.plots:
-        # self.confusion_matrix.plot(save_dir=self.save_dir, names=list(self.names.values()))
+        if self.args.plots:
+            self.confusion_matrix.plot(save_dir=self.save_dir, names=list(self.names.values()))
 
     def _process_batch(self, detections, labels, iouv, pred_masks=None, gt_masks=None, overlap=False, masks=False):
         """

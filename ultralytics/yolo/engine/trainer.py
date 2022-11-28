@@ -77,6 +77,7 @@ class BaseTrainer:
         self.best_fitness = None
         self.fitness = None
         self.loss = None
+        self.csv = self.save_dir / 'results.csv'
 
         for callback, func in callbacks.default_callbacks.items():
             self.add_callback(callback, func)
@@ -186,7 +187,7 @@ class BaseTrainer:
             if rank in {-1, 0}:
                 self.console.info(self.progress_string())
                 pbar = tqdm(enumerate(self.train_loader), total=len(self.train_loader), bar_format=TQDM_BAR_FORMAT)
-            self.tloss = None
+            tloss = None
             self.optimizer.zero_grad()
             for i, batch in pbar:
                 self.trigger_callbacks("on_batch_start")
@@ -207,7 +208,7 @@ class BaseTrainer:
 
                 preds = self.model(batch["img"])
                 self.loss, self.loss_items = self.criterion(preds, batch)
-                self.tloss = (self.tloss * i + self.loss_items) / (i + 1) if self.tloss is not None \
+                tloss = (tloss * i + self.loss_items) / (i + 1) if tloss is not None \
                                 else self.loss_items
 
                 # backward
@@ -221,8 +222,8 @@ class BaseTrainer:
 
                 # log
                 mem = f'{torch.cuda.memory_reserved() / 1E9 if torch.cuda.is_available() else 0:.3g}G'  # (GB)
-                loss_len = self.tloss.shape[0] if len(self.tloss.size()) else 1
-                losses = self.tloss if loss_len > 1 else torch.unsqueeze(self.tloss, 0)
+                loss_len = tloss.shape[0] if len(tloss.size()) else 1
+                losses = tloss if loss_len > 1 else torch.unsqueeze(tloss, 0)
                 if rank in {-1, 0}:
                     pbar.set_description(
                         ('%11s' * 2 + '%11.4g' * (2 + loss_len)) % (f'{epoch + 1}/{self.args.epochs}', mem, *losses,
@@ -231,7 +232,7 @@ class BaseTrainer:
                     if self.args.plots and ni < 3:
                         self.plot_training_samples(batch, ni)
 
-            lr = [x['lr'] for x in self.optimizer.param_groups]  # for loggers
+            lr = {f"lr{ir}": x['lr'] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers
             self.scheduler.step()
 
             if rank in [-1, 0]:
@@ -240,6 +241,8 @@ class BaseTrainer:
                 self.ema.update_attr(self.model, include=['yaml', 'nc', 'args', 'names', 'stride', 'class_weights'])
                 self.metrics, self.fitness = self.validate()
                 self.trigger_callbacks('on_val_end')
+                log_vals = self.label_loss_items(tloss) | self.metrics | lr
+                self.save_metrics(metrics=log_vals)
 
                 # save model
                 if (not self.args.nosave) or (self.epoch + 1 == self.args.epochs):
@@ -253,6 +256,8 @@ class BaseTrainer:
 
             # TODO: termination condition
 
+        if self.args.plots:
+            self.plot_metrics()
         self.log(f"\nTraining complete ({(time.time() - self.train_time_start) / 3600:.3f} hours)")
         self.trigger_callbacks('on_train_end')
         dist.destroy_process_group() if world_size != 1 else None
@@ -311,7 +316,7 @@ class BaseTrainer:
         "fitness" metric.
         """
         metrics = self.validator(self)
-        fitness = metrics.get("fitness", -self.loss.detach().cpu().numpy())  # use loss as fitness measure if not found
+        fitness = metrics.pop("fitness", -self.loss.detach().cpu().numpy())  # use loss as fitness measure if not found
         if not self.best_fitness or self.best_fitness < fitness:
             self.best_fitness = self.fitness
         return metrics, fitness
@@ -363,7 +368,18 @@ class BaseTrainer:
     def progress_string(self):
         pass
 
+    # TODO: put these functions into callback
     def plot_training_samples(self, batch, ni):
+        pass
+
+    def save_metrics(self, metrics):
+        keys, vals = list(metrics.keys()), list(metrics.values())
+        n = len(metrics) + 1  # number of cols
+        s = '' if self.csv.exists() else (('%23s,' * n % tuple(['epoch'] + keys)).rstrip(',') + '\n')  # header
+        with open(self.csv, 'a') as f:
+            f.write(s + ('%23.5g,' * n % tuple([self.epoch] + vals)).rstrip(',') + '\n')
+
+    def plot_metrics(self):
         pass
 
 

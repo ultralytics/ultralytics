@@ -28,7 +28,6 @@ class BaseValidator:
         self.cuda = self.device.type != 'cpu'
         self.batch_i = None
         self.training = True
-        self.loss = None
 
     def __call__(self, trainer=None, model=None):
         """
@@ -40,6 +39,7 @@ class BaseValidator:
             model = trainer.ema.ema or trainer.model
             self.args.half &= self.device.type != 'cpu'
             model = model.half() if self.args.half else model.float()
+            loss = torch.zeros(len(trainer.loss_items), device=trainer.device)
         else:  # TODO: handle this when detectMultiBackend is supported
             assert model is not None, "Either trainer or model is needed for validation"
             # model = DetectMultiBacked(model)
@@ -51,7 +51,6 @@ class BaseValidator:
         if isinstance(self.names, (list, tuple)):  # old format
             self.names = dict(enumerate(self.names))
         dt = Profile(), Profile(), Profile(), Profile()
-        self.loss = 0
         n_batches = len(self.dataloader)
         desc = self.get_desc()
         # NOTE: keeping this `not self.training` in tqdm will eliminate pbar after finishing segmantation evaluation during training,
@@ -75,7 +74,7 @@ class BaseValidator:
                 # loss
                 with dt[2]:
                     if self.training:
-                        self.loss += trainer.criterion(preds, batch)[0]
+                        loss += trainer.criterion(preds, batch)[1]
 
                 # pre-process predictions
                 with dt[3]:
@@ -102,7 +101,8 @@ class BaseValidator:
             model.float()
         # TODO: implement save json
 
-        return stats
+        return stats | trainer.label_loss_items(loss.cpu() / len(self.dataloader), prefix="val") \
+                if self.training else stats
 
     def preprocess(self, batch):
         return batch
@@ -117,7 +117,7 @@ class BaseValidator:
         pass
 
     def get_stats(self):
-        pass
+        return {}
 
     def check_stats(self, stats):
         pass

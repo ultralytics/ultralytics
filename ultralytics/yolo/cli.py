@@ -1,11 +1,12 @@
-import shutil
 import os
+import shutil
 
 import hydra
 
 import ultralytics
 import ultralytics.yolo.v8 as yolo
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
+
 from .utils import LOGGER, colorstr
 
 
@@ -14,7 +15,7 @@ def cli(cfg):
     LOGGER.info(f"{colorstr(f'Ultralytics YOLO v{ultralytics.__version__}')}")
 
     module_file = None
-    if cfg.task.lower() == "init": # special case
+    if cfg.task.lower() == "init":  # special case
         shutil.copy2(DEFAULT_CONFIG, os.getcwd())
         LOGGER.info(f"""
         {colorstr("YOLO :")} configuration saved to {os.getcwd()}/{DEFAULT_CONFIG.name}.

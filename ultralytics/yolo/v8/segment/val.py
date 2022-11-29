@@ -216,19 +216,7 @@ class SegmentationValidator(BaseValidator):
         # TODO: manage splits differently
         # calculate stride - check if model is initialized
         gs = max(int(de_parallel(self.model).stride if self.model else 0), 32)
-        return build_dataloader(
-            img_path=dataset_path,
-            img_size=self.args.img_size,
-            batch_size=batch_size,
-            single_cls=self.args.single_cls,
-            cache=self.args.cache,
-            image_weights=self.args.image_weights,
-            stride=gs,
-            rect=self.args.rect,
-            workers=self.args.workers,
-            shuffle=self.args.shuffle,
-            use_segments=True,
-        )[0]
+        return build_dataloader(self.args, batch_size, img_path=dataset_path, stride=gs, mode="val")[0]
 
     @property
     def metric_keys(self):

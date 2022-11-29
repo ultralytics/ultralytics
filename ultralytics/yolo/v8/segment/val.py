@@ -6,7 +6,7 @@ import torch.nn.functional as F
 
 from ultralytics.yolo.engine.validator import BaseValidator
 from ultralytics.yolo.utils import ops
-from ultralytics.yolo.utils.checks import check_requirements
+from ultralytics.yolo.utils.checks import check_requirements, check_file
 from ultralytics.yolo.utils.files import yaml_load
 from ultralytics.yolo.utils.metrics import (ConfusionMatrix, Metrics, ap_per_class_box_and_mask, box_iou,
                                             fitness_segmentation, mask_iou)
@@ -23,7 +23,7 @@ class SegmentationValidator(BaseValidator):
             self.process = ops.process_mask_upsample  # more accurate
         else:
             self.process = ops.process_mask  # faster
-        self.data_dict = yaml_load(self.args.data) if self.args.data else None
+        self.data_dict = yaml_load(check_file(self.args.data)) if self.args.data else None
         self.is_coco = False
         self.class_map = None
         self.targets = None

@@ -578,8 +578,8 @@ class Albumentations:
             # TODO: add supports of segments and keypoints
             if self.transform and random.random() < self.p:
                 new = self.transform(image=im, bboxes=bboxes, class_labels=cls)  # transformed
-            labels["img"] = new["image"]
-            labels["cls"] = np.array(new["class_labels"])
+                labels["img"] = new["image"]
+                labels["cls"] = np.array(new["class_labels"])
             labels["instances"].update(bboxes=bboxes)
         return labels
 
@@ -635,7 +635,7 @@ class Format:
     def _format_img(self, img):
         if len(img.shape) < 3:
             img = np.expand_dims(img, -1)
-        img = np.ascontiguousarray(img.transpose(2, 0, 1))
+        img = np.ascontiguousarray(img.transpose(2, 0, 1)[::-1])
         img = torch.from_numpy(img)
         return img
 

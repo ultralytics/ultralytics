@@ -154,7 +154,7 @@ class BaseTrainer:
         if self.args.cos_lr:
             self.lf = one_cycle(1, self.args.lrf, self.epochs)  # cosine 1->hyp['lrf']
         else:
-            self.lf = lambda x: (1 - x / self.epochs) * (1.0 - self.args.lrf + self.args.lrf)  # linear
+            self.lf = lambda x: (1 - x / self.epochs) * (1.0 - self.args.lrf) + self.args.lrf  # linear
         self.scheduler = lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
 
         # dataloaders

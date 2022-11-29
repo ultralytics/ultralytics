@@ -3,7 +3,6 @@ Top-level YOLO model interface. First principle usage example - https://github.c
 """
 import yaml
 
-import ultralytics.yolo as yolo
 from ultralytics.yolo.utils import LOGGER
 from ultralytics.yolo.utils.checks import check_yaml
 from ultralytics.yolo.utils.modeling import get_model

@@ -2,7 +2,7 @@
 # Default training settings and hyperparameters for medium-augmentation COCO training
 
 # Task and Mode
-task: "classify" # choices=['detect', 'segment', 'classify']
+task: "classify" # choices=['detect', 'segment', 'classify', 'init'] # init is a special case
 mode: "train" # choice=['train', 'val', 'infer']
 
 # Train settings -------------------------------------------------------------------------------------------------------

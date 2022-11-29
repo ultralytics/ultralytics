@@ -26,11 +26,11 @@ deterministic: True
 local_rank: -1
 single_cls: False  # train multi-class data as single-class
 image_weights: False  # use weighted image selection for training
-shuffle: True
 rect: False  # support rectangular training
 cos_lr: False # Use cosine LR scheduler
 overlap_mask: True  # Segmentation masks overlap
 mask_ratio: 4  # Segmentation mask downsample ratio
+noval: False
 
 # Val/Test settings ----------------------------------------------------------------------------------------------------
 save_json: False
@@ -43,7 +43,7 @@ plots: False
 save_txt: False
 
 # Hyperparameters ------------------------------------------------------------------------------------------------------
-lr0: 0.001  # initial learning rate (SGD=1E-2, Adam=1E-3)
+lr0: 0.01  # initial learning rate (SGD=1E-2, Adam=1E-3)
 lrf: 0.01  # final OneCycleLR learning rate (lr0 * lrf)
 momentum: 0.937  # SGD momentum/Adam beta1
 weight_decay: 0.0005  # optimizer weight decay 5e-4
@@ -59,22 +59,23 @@ iou_t: 0.20  # IoU training threshold
 anchor_t: 4.0  # anchor-multiple threshold
 # anchors: 3  # anchors per output layer (0 to ignore)
 fl_gamma: 0.0  # focal loss gamma (efficientDet default gamma=1.5)
-hsv_h: 0.015  # image HSV-Hue augmentation (fraction)
-hsv_s: 0.7  # image HSV-Saturation augmentation (fraction)
-hsv_v: 0.4  # image HSV-Value augmentation (fraction)
-degrees: 0.0  # image rotation (+/- deg)
-translate: 0.1  # image translation (+/- fraction)
-scale: 0.5  # image scale (+/- gain)
-shear: 0.0  # image shear (+/- deg)
-perspective: 0.0  # image perspective (+/- fraction), range 0-0.001
-flipud: 0.0  # image flip up-down (probability)
-fliplr: 0.5  # image flip left-right (probability)
-mosaic: 1.0  # image mosaic (probability)
-mixup: 0.0  # image mixup (probability)
-copy_paste: 0.0  # segment copy-paste (probability)
 label_smoothing: 0.0
 nbs: 64 # nominal batch size
 # anchors: 3
+augment_hyp:
+  hsv_h: 0.015  # image HSV-Hue augmentation (fraction)
+  hsv_s: 0.7  # image HSV-Saturation augmentation (fraction)
+  hsv_v: 0.4  # image HSV-Value augmentation (fraction)
+  degrees: 0.0  # image rotation (+/- deg)
+  translate: 0.1  # image translation (+/- fraction)
+  scale: 0.5  # image scale (+/- gain)
+  shear: 0.0  # image shear (+/- deg)
+  perspective: 0.0  # image perspective (+/- fraction), range 0-0.001
+  flipud: 0.0  # image flip up-down (probability)
+  fliplr: 0.5  # image flip left-right (probability)
+  mosaic: 1.0  # image mosaic (probability)
+  mixup: 0.0  # image mixup (probability)
+  copy_paste: 0.0  # segment copy-paste (probability)
 
 # Hydra configs --------------------------------------------------------------------------------------------------------
 hydra:

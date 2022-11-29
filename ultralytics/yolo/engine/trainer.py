@@ -78,6 +78,7 @@ class BaseTrainer:
         self.best_fitness = None
         self.fitness = None
         self.loss = None
+        self.tloss = None
         self.csv = self.save_dir / 'results.csv'
 
         for callback, func in callbacks.default_callbacks.items():
@@ -195,7 +196,7 @@ class BaseTrainer:
             if rank in {-1, 0}:
                 self.console.info(self.progress_string())
                 pbar = tqdm(enumerate(self.train_loader), total=len(self.train_loader), bar_format=TQDM_BAR_FORMAT)
-            tloss = None
+            self.tloss = None
             self.optimizer.zero_grad()
             for i, batch in pbar:
                 self.trigger_callbacks("on_batch_start")
@@ -218,7 +219,7 @@ class BaseTrainer:
                 self.loss, self.loss_items = self.criterion(preds, batch)
                 if rank != -1:
                     self.loss *= world_size
-                tloss = (tloss * i + self.loss_items) / (i + 1) if tloss is not None \
+                self.tloss = (self.tloss * i + self.loss_items) / (i + 1) if self.tloss is not None \
                                 else self.loss_items
 
                 # backward
@@ -231,8 +232,8 @@ class BaseTrainer:
 
                 # log
                 mem = f'{torch.cuda.memory_reserved() / 1E9 if torch.cuda.is_available() else 0:.3g}G'  # (GB)
-                loss_len = tloss.shape[0] if len(tloss.size()) else 1
-                losses = tloss if loss_len > 1 else torch.unsqueeze(tloss, 0)
+                loss_len = self.tloss.shape[0] if len(self.tloss.size()) else 1
+                losses = self.tloss if loss_len > 1 else torch.unsqueeze(self.tloss, 0)
                 if rank in {-1, 0}:
                     pbar.set_description(
                         ('%11s' * 2 + '%11.4g' * (2 + loss_len)) %
@@ -252,7 +253,8 @@ class BaseTrainer:
                 if not self.args.noval or final_epoch:
                     self.metrics, self.fitness = self.validate()
                 self.trigger_callbacks('on_val_end')
-                log_vals = self.label_loss_items(tloss) | self.metrics | lr
+                log_vals = self.label_loss_items(self.tloss) | self.metrics | lr
+                import pdb;pdb.set_trace()
                 self.save_metrics(metrics=log_vals)
 
                 # save model

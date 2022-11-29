@@ -52,13 +52,12 @@ def seed_worker(worker_id):
     random.seed(worker_seed)
 
 
-def build_dataloader(cfg, img_path, stride=32, label_path=None, rank=-1, mode="train"):
+def build_dataloader(cfg, batch_size, img_path, stride=32, label_path=None, rank=-1, mode="train"):
     assert mode in ["train", "val"]
     shuffle = mode == "train"
     if cfg.rect and shuffle:
         LOGGER.warning("WARNING ⚠️ --rect is incompatible with DataLoader shuffle, setting shuffle=False")
         shuffle = False
-    batch_size = cfg.batch_size if mode == "train" else cfg.batch_size * 2
     with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
         dataset = YOLODataset(
             img_path=img_path,

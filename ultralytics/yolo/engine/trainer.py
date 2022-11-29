@@ -48,13 +48,15 @@ class BaseTrainer:
         self.wdir = self.save_dir / 'weights'  # weights dir
         self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
         self.last, self.best = self.wdir / 'last.pt', self.wdir / 'best.pt'  # checkpoint paths
+        self.batch_size = self.args.batch_size
+        self.epochs = self.args.epochs
         print_args(dict(self.args))
 
         # Save run settings
         save_yaml(self.save_dir / 'args.yaml', OmegaConf.to_container(self.args, resolve=True))
 
         # device
-        self.device = utils.torch_utils.select_device(self.args.device, self.args.batch_size)
+        self.device = utils.torch_utils.select_device(self.args.device, self.batch_size)
         self.scaler = amp.GradScaler(enabled=self.device.type != 'cpu')
 
         # Model and Dataloaders.
@@ -134,16 +136,15 @@ class BaseTrainer:
         dist.init_process_group("nccl" if dist.is_nccl_available() else "gloo", rank=rank, world_size=world_size)
         self.model = self.model.to(self.device)
         self.model = DDP(self.model, device_ids=[rank])
-        self.args.batch_size = self.args.batch_size // world_size
 
-    def _setup_train(self, rank):
+    def _setup_train(self, rank, world_size):
         """
         Builds dataloaders and optimizer on correct rank process
         """
         # Optimizer
         self.set_model_attributes()
-        self.accumulate = max(round(self.args.nbs / self.args.batch_size), 1)  # accumulate loss before optimizing
-        self.args.weight_decay *= self.args.batch_size * self.accumulate / self.args.nbs  # scale weight_decay
+        self.accumulate = max(round(self.args.nbs / self.batch_size), 1)  # accumulate loss before optimizing
+        self.args.weight_decay *= self.batch_size * self.accumulate / self.args.nbs  # scale weight_decay
         self.optimizer = build_optimizer(model=self.model,
                                          name=self.args.optimizer,
                                          lr=self.args.lr0,
@@ -151,15 +152,16 @@ class BaseTrainer:
                                          decay=self.args.weight_decay)
         # Scheduler
         if self.args.cos_lr:
-            self.lf = one_cycle(1, self.args.lrf, self.args.epochs)  # cosine 1->hyp['lrf']
+            self.lf = one_cycle(1, self.args.lrf, self.epochs)  # cosine 1->hyp['lrf']
         else:
-            self.lf = lambda x: (1 - x / self.args.epochs) * (1.0 - self.args.lrf + self.args.lrf)  # linear
+            self.lf = lambda x: (1 - x / self.epochs) * (1.0 - self.args.lrf + self.args.lrf)  # linear
         self.scheduler = lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
 
         # dataloaders
-        self.train_loader = self.get_dataloader(self.trainset, rank=rank, mode="train")
+        batch_size = self.batch_size // world_size
+        self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=rank, mode="train")
         if rank in {0, -1}:
-            self.test_loader = self.get_dataloader(self.testset, rank=-1, mode="val")
+            self.test_loader = self.get_dataloader(self.testset, batch_size=batch_size * 2, rank=-1, mode="val")
             validator = self.get_validator()
             # init metric, for plot_results
             metric_keys = validator.metric_keys + self.label_loss_items(prefix="val")
@@ -174,7 +176,7 @@ class BaseTrainer:
             self.model = self.model.to(self.device)
 
         self.trigger_callbacks("before_train")
-        self._setup_train(rank)
+        self._setup_train(rank, world_size)
 
         self.epoch = 0
         self.epoch_time = None
@@ -183,7 +185,7 @@ class BaseTrainer:
         nb = len(self.train_loader)  # number of batches
         nw = max(round(self.args.warmup_epochs * nb), 100)  # number of warmup iterations
         last_opt_step = -1
-        for epoch in range(self.args.epochs):
+        for epoch in range(self.epochs):
             self.trigger_callbacks("on_epoch_start")
             self.model.train()
             pbar = enumerate(self.train_loader)
@@ -201,7 +203,7 @@ class BaseTrainer:
                 ni = i + nb * epoch
                 if ni <= nw:
                     xi = [0, nw]  # x interp
-                    self.accumulate = max(1, np.interp(ni, xi, [1, self.args.nbs / self.args.batch_size]).round())
+                    self.accumulate = max(1, np.interp(ni, xi, [1, self.args.nbs / self.batch_size]).round())
                     for j, x in enumerate(self.optimizer.param_groups):
                         # bias lr falls from 0.1 to lr0, all other lrs rise from 0.0 to lr0
                         x['lr'] = np.interp(
@@ -228,7 +230,7 @@ class BaseTrainer:
                 losses = tloss if loss_len > 1 else torch.unsqueeze(tloss, 0)
                 if rank in {-1, 0}:
                     pbar.set_description(
-                        ('%11s' * 2 + '%11.4g' * (2 + loss_len)) % (f'{epoch + 1}/{self.args.epochs}', mem, *losses,
+                        ('%11s' * 2 + '%11.4g' * (2 + loss_len)) % (f'{epoch + 1}/{self.epochs}', mem, *losses,
                                                                     batch["cls"].shape[0], batch["img"].shape[-1]))
                     self.trigger_callbacks('on_batch_end')
                     if self.args.plots and ni < 3:
@@ -241,7 +243,7 @@ class BaseTrainer:
                 # validation
                 self.trigger_callbacks('on_val_start')
                 self.ema.update_attr(self.model, include=['yaml', 'nc', 'args', 'names', 'stride', 'class_weights'])
-                final_epoch = (epoch + 1 == self.args.epochs)
+                final_epoch = (epoch + 1 == self.epochs)
                 if not self.args.noval or final_epoch:
                     self.metrics, self.fitness = self.validate()
                 self.trigger_callbacks('on_val_end')
@@ -249,7 +251,7 @@ class BaseTrainer:
                 self.save_metrics(metrics=log_vals)
 
                 # save model
-                if (not self.args.nosave) or (self.epoch + 1 == self.args.epochs):
+                if (not self.args.nosave) or (self.epoch + 1 == self.epochs):
                     self.save_model()
                     self.trigger_callbacks('on_model_save')
 

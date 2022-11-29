@@ -18,11 +18,11 @@ class ClassificationTrainer(BaseTrainer):
         ClassificationModel.reshape_outputs(model, data["nc"])
         return model
 
-    def get_dataloader(self, dataset_path, rank=0, mode="train"):
+    def get_dataloader(self, dataset_path, batch_size, rank=0, mode="train"):
         return build_classification_dataloader(
             path=dataset_path,
             imgsz=self.args.img_size,
-            batch_size=self.args.batch_size if mode == "train" else self.args.batch_size * 2,
+            batch_size=batch_size,
             rank=rank)
 
     def preprocess_batch(self, batch):

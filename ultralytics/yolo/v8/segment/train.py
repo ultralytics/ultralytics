@@ -16,11 +16,12 @@ from ultralytics.yolo.utils.torch_utils import de_parallel
 # BaseTrainer python usage
 class SegmentationTrainer(BaseTrainer):
 
-    def get_dataloader(self, dataset_path, mode="train", rank=0):
+    def get_dataloader(self, dataset_path, batch_size, mode="train", rank=0):
         # TODO: manage splits differently
         # calculate stride - check if model is initialized
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
-        return build_dataloader(cfg=self.args, img_path=dataset_path, stride=gs, rank=rank, mode=mode)[0]
+        return build_dataloader(self.args, batch_size, 
+                                img_path=dataset_path, stride=gs, rank=rank, mode=mode)[0]
 
     def preprocess_batch(self, batch):
         batch["img"] = batch["img"].to(self.device, non_blocking=True).float() / 255

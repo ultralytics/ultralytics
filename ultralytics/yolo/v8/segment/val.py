@@ -18,6 +18,7 @@ from ultralytics.yolo.utils.torch_utils import de_parallel
 
 
 class SegmentationValidator(BaseValidator):
+
     def __init__(self, dataloader, save_dir=None, pbar=None, logger=None, args=None):
         super().__init__(dataloader, save_dir, pbar, logger, args)
         if self.args.save_json:
@@ -228,6 +229,7 @@ class SegmentationValidator(BaseValidator):
             shuffle=self.args.shuffle,
             use_segments=True,
         )[0]
+
     @property
     def metric_keys(self):
         return [
@@ -265,6 +267,7 @@ class SegmentationValidator(BaseValidator):
         plot_images_and_masks(images, batch_idx, cls, bboxes, plot_masks, paths, conf,
                               self.save_dir / f'val_batch{ni}_pred.jpg', self.names)  # pred
         self.plot_masks.clear()
+
 
 @hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
 def val(cfg):

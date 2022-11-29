@@ -29,7 +29,7 @@ class ClassificationValidator(BaseValidator):
 
     def get_dataloader(self, dataset_path, batch_size):
         return build_classification_dataloader(path=dataset_path, imgsz=self.args.img_size, batch_size=batch_size)
-        
+
     @property
     def metric_keys(self):
         return ["top1", "top5"]

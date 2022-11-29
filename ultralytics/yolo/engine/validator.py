@@ -8,9 +8,9 @@ from tqdm import tqdm
 from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.utils import LOGGER, TQDM_BAR_FORMAT
+from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.modeling import get_model
 from ultralytics.yolo.utils.modeling.autobackend import AutoBackend
-from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.ops import Profile
 from ultralytics.yolo.utils.torch_utils import check_img_size, de_parallel, select_device
 

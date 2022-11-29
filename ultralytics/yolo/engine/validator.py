@@ -34,7 +34,6 @@ class BaseValidator:
         self.save_dir = save_dir if save_dir is not None else \
                 increment_path(Path(self.args.project) / self.args.name, exist_ok=self.args.exist_ok)
 
-
     def __call__(self, trainer=None, model=None):
         """
         Supports validation of a pre-trained model if passed or a model being trained

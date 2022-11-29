@@ -27,12 +27,13 @@ class BaseValidator:
         self.args = args or OmegaConf.load(DEFAULT_CONFIG)
         self.model = None
         self.data = None
-        self.device = select_device(self.args.device, dataloader.batch_size)
-        self.save_dir = save_dir if save_dir is not None else \
-                increment_path(Path(self.args.project) / self.args.name, exist_ok=self.args.exist_ok)
-        self.cuda = self.device.type != 'cpu'
+        self.device = None
+        self.cuda = None
         self.batch_i = None
         self.training = True
+        self.save_dir = save_dir if save_dir is not None else \
+                increment_path(Path(self.args.project) / self.args.name, exist_ok=self.args.exist_ok)
+
 
     def __call__(self, trainer=None, model=None):
         """

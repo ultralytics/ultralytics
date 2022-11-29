@@ -188,6 +188,8 @@ class BaseTrainer:
         for epoch in range(self.epochs):
             self.trigger_callbacks("on_epoch_start")
             self.model.train()
+            if rank != -1:
+                self.train_loader.sampler.set_epoch(epoch)
             pbar = enumerate(self.train_loader)
             if rank in {-1, 0}:
                 self.console.info(self.progress_string())
@@ -378,7 +380,7 @@ class BaseTrainer:
         pass
 
     def progress_string(self):
-        pass
+        return ""
 
     # TODO: may need to put these following functions into callback
     def plot_training_samples(self, batch, ni):

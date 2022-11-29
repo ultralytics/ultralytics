@@ -24,5 +24,6 @@ class ClassificationValidator(BaseValidator):
         top1, top5 = acc.mean(0).tolist()
         return {"top1": top1, "top5": top5, "fitness": top5}
 
+    @property
     def metric_keys(self):
         return ["top1", "top5"]

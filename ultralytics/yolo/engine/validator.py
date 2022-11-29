@@ -39,7 +39,7 @@ class BaseValidator:
             model = trainer.ema.ema or trainer.model
             self.args.half &= self.device.type != 'cpu'
             model = model.half() if self.args.half else model.float()
-            loss = torch.zeros(len(trainer.loss_items), device=trainer.device)
+            loss = torch.zeros_like(trainer.loss_items, device=trainer.device)
         else:  # TODO: handle this when detectMultiBackend is supported
             assert model is not None, "Either trainer or model is needed for validation"
             # model = DetectMultiBacked(model)
@@ -47,9 +47,6 @@ class BaseValidator:
 
         model.eval()
 
-        self.names = model.names if hasattr(model, 'names') else model.module.names  # get class names
-        if isinstance(self.names, (list, tuple)):  # old format
-            self.names = dict(enumerate(self.names))
         dt = Profile(), Profile(), Profile(), Profile()
         n_batches = len(self.dataloader)
         desc = self.get_desc()

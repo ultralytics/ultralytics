@@ -9,6 +9,9 @@ from ultralytics.yolo.utils.modeling.tasks import ClassificationModel
 
 class ClassificationTrainer(BaseTrainer):
 
+    def set_model_attributes(self):
+        self.model.names = self.data["names"]
+
     def load_model(self, model_cfg, weights, data):
         # TODO: why treat clf models as unique. We should have clf yamls?
         if weights and not weights.__class__.__name__.startswith("yolo"):  # torchvision

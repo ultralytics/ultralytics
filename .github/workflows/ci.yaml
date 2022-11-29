@@ -101,4 +101,4 @@ jobs:
         shell: bash  # for Windows compatibility
         run: |
           yolo task=classify mode=train model=resnet18 data=mnist160 epochs=1 img_size=32
-          yolo task=classify mode=val modelruns/exp2/weights/last.pt data=mnist160
+          yolo task=classify mode=val model=runs/exp2/weights/last.pt data=mnist160

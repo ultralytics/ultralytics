@@ -19,7 +19,7 @@ def cli(cfg):
         shutil.copy2(DEFAULT_CONFIG, os.getcwd())
         LOGGER.info(f"""
         {colorstr("YOLO :")} configuration saved to {os.getcwd()}/{DEFAULT_CONFIG.name}.
-        To run experiments with using custom configuration:
+        To run experiments using custom configuration:
         yolo task='task' mode='mode' --config-name config_file.yaml
                     """)
         return

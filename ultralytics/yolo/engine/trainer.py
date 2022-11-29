@@ -254,7 +254,8 @@ class BaseTrainer:
                     self.metrics, self.fitness = self.validate()
                 self.trigger_callbacks('on_val_end')
                 log_vals = self.label_loss_items(self.tloss) | self.metrics | lr
-                import pdb;pdb.set_trace()
+                import pdb
+                pdb.set_trace()
                 self.save_metrics(metrics=log_vals)
 
                 # save model

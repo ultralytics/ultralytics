@@ -20,7 +20,7 @@ class BaseValidator:
     Base validator class.
     """
 
-    def __init__(self, dataloader, save_dir=None, pbar=None, logger=None, args=None):
+    def __init__(self, dataloader=None, save_dir=None, pbar=None, logger=None, args=None):
         self.dataloader = dataloader
         self.pbar = pbar
         self.logger = logger or LOGGER

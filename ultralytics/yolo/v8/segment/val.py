@@ -19,7 +19,7 @@ from ultralytics.yolo.utils.torch_utils import de_parallel
 
 class SegmentationValidator(BaseValidator):
 
-    def __init__(self, dataloader, save_dir=None, pbar=None, logger=None, args=None):
+    def __init__(self, dataloader=None, save_dir=None, pbar=None, logger=None, args=None):
         super().__init__(dataloader, save_dir, pbar, logger, args)
         if self.args.save_json:
             check_requirements(['pycocotools'])

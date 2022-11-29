@@ -27,10 +27,10 @@ class BaseValidator:
         self.args = args or OmegaConf.load(DEFAULT_CONFIG)
         self.model = None
         self.data = None
-        self.device = select_device(self.args.device, dataloader.batch_size)
+        self.device = None
+        self.cuda = None
         self.save_dir = save_dir if save_dir is not None else \
                 increment_path(Path(self.args.project) / self.args.name, exist_ok=self.args.exist_ok)
-        self.cuda = self.device.type != 'cpu'
         self.batch_i = None
         self.training = True
 
@@ -45,6 +45,7 @@ class BaseValidator:
             self.cuda = self.device.type != 'cpu'
             self.data = trainer.data
             model = trainer.ema.ema or trainer.model
+            self.device = trainer.device
             self.args.half &= self.device.type != 'cpu'
             model = model.half() if self.args.half else model.float()
             self.model = model

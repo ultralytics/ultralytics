@@ -28,7 +28,6 @@ class BaseValidator:
         self.model = None
         self.data = None
         self.device = None
-        self.cuda = None
         self.batch_i = None
         self.training = True
         self.save_dir = save_dir if save_dir is not None else \
@@ -42,7 +41,6 @@ class BaseValidator:
         self.training = trainer is not None
         if self.training:
             self.device = trainer.device
-            self.cuda = self.device.type != 'cpu'
             self.data = trainer.data
             model = trainer.ema.ema or trainer.model
             self.args.half &= self.device.type != 'cpu'
@@ -53,7 +51,6 @@ class BaseValidator:
             assert model is not None, "Either trainer or model is needed for validation"
             self.device = select_device(self.args.device, self.args.batch_size)
             self.args.half &= self.device.type != 'cpu'
-            self.cuda = self.device.type != 'cpu'
             model = AutoBackend(model, device=self.device, dnn=self.args.dnn, fp16=self.args.half)
             self.model = model
             stride, pt, jit, engine = model.stride, model.pt, model.jit, model.engine

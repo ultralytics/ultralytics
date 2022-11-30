@@ -19,6 +19,13 @@ class ClassificationTrainer(BaseTrainer):
         else:
             model = ClassificationModel(model_cfg, weights, data["nc"])
         ClassificationModel.reshape_outputs(model, data["nc"])
+        for m in model.modules():
+            if not weights and hasattr(m, 'reset_parameters'):
+                m.reset_parameters()
+            if isinstance(m, torch.nn.Dropout) and self.args.dropout is not None:
+                m.p = self.args.dropout  # set dropout
+        for p in model.parameters():
+            p.requires_grad = True  # for training
         return model
 
     def get_dataloader(self, dataset_path, batch_size, rank=0, mode="train"):

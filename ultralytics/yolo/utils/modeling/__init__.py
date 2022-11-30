@@ -113,8 +113,8 @@ def get_model(model='s.pt', pretrained=True):
         model = model.split(".")[0]
 
     if Path(f"{model}.pt").is_file():  # local file
-        return torch.load(f"{model}.pt", map_location='cpu')
+        return attempt_load_weights(f"{model}.pt", device='cpu')
     elif model in torchvision.models.__dict__:  # TorchVision models i.e. resnet50, efficientnet_b0
         return torchvision.models.__dict__[model](weights='IMAGENET1K_V1' if pretrained else None)
     else:  # Ultralytics assets
-        return torch.load(attempt_download(f"{model}.pt"), map_location='cpu')
+        return attempt_load_weights(f"{model}.pt", device='cpu')

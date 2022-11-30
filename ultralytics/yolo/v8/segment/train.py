@@ -33,6 +33,8 @@ class SegmentationTrainer(BaseTrainer):
                                   anchors=self.args.get("anchors"))
         if weights:
             model.load(weights)
+        for _, v in model.named_parameters():
+            v.requires_grad = True  # train all layers
         return model
 
     def set_model_attributes(self):
@@ -257,7 +259,7 @@ class SegmentationTrainer(BaseTrainer):
 
 @hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
 def train(cfg):
-    cfg.model = v8.ROOT / "models/yolov5n-seg.yaml"
+    cfg.model = cfg.model or "models/yolov5n-seg.yaml"
     cfg.data = cfg.data or "coco128-seg.yaml"  # or yolo.ClassificationDataset("mnist")
     trainer = SegmentationTrainer(cfg)
     trainer.train()

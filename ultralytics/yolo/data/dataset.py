@@ -208,6 +208,9 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
             sample = self.torch_transforms(im)
         return OrderedDict(img=sample, cls=j)
 
+    def __len__(self) -> int:
+        return len(self.samples)
+
 
 # TODO: support semantic segmentation
 class SemanticDataset(BaseDataset):

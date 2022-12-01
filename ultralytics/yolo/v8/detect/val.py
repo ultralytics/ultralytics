@@ -11,8 +11,7 @@ from ultralytics.yolo.engine.validator import BaseValidator
 from ultralytics.yolo.utils import ops
 from ultralytics.yolo.utils.checks import check_file, check_requirements
 from ultralytics.yolo.utils.files import yaml_load
-from ultralytics.yolo.utils.metrics import (ConfusionMatrix, Metric, ap_per_class, box_iou,
-                                            fitness_detection)
+from ultralytics.yolo.utils.metrics import ConfusionMatrix, Metric, ap_per_class, box_iou, fitness_detection
 from ultralytics.yolo.utils.plotting import output_to_target, plot_images_and_masks
 from ultralytics.yolo.utils.torch_utils import de_parallel
 
@@ -73,12 +72,12 @@ class DetectionValidator(BaseValidator):
 
     def postprocess(self, preds):
         preds = ops.non_max_suppression(preds,
-                                    self.args.conf_thres,
-                                    self.args.iou_thres,
-                                    labels=self.lb,
-                                    multi_label=True,
-                                    agnostic=self.args.single_cls,
-                                    max_det=self.args.max_det)
+                                        self.args.conf_thres,
+                                        self.args.iou_thres,
+                                        labels=self.lb,
+                                        multi_label=True,
+                                        agnostic=self.args.single_cls,
+                                        max_det=self.args.max_det)
         return preds
 
     def update_metrics(self, preds, batch):
@@ -189,12 +188,7 @@ class DetectionValidator(BaseValidator):
     # TODO: align with train loss metrics
     @property
     def metric_keys(self):
-        return [
-            "metrics/precision(B)",
-            "metrics/recall(B)",
-            "metrics/mAP_0.5(B)",
-            "metrics/mAP_0.5:0.95(B)"
-            ]
+        return ["metrics/precision(B)", "metrics/recall(B)", "metrics/mAP_0.5(B)", "metrics/mAP_0.5:0.95(B)"]
 
     def plot_val_samples(self, batch, ni):
         images = batch["img"]
@@ -203,7 +197,6 @@ class DetectionValidator(BaseValidator):
         paths = batch["im_file"]
         batch_idx = batch["batch_idx"]
         pass
-
 
     def plot_predictions(self, batch, preds, ni):
         pass

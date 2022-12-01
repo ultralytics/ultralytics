@@ -15,11 +15,12 @@ from ultralytics.yolo.utils.torch_utils import de_parallel
 
 # BaseTrainer python usage
 class DetectionTrainer(v8.segment.SegmentationTrainer):
+
     def load_model(self, model_cfg, weights, data):
         model = DetectionModel(model_cfg or weights["model"].yaml,
-                                  ch=3,
-                                  nc=data["nc"],
-                                  anchors=self.args.get("anchors"))
+                               ch=3,
+                               nc=data["nc"],
+                               anchors=self.args.get("anchors"))
         if weights:
             model.load(weights)
         for _, v in model.named_parameters():
@@ -28,9 +29,9 @@ class DetectionTrainer(v8.segment.SegmentationTrainer):
 
     def get_validator(self):
         return v8.detect.DetectionValidator(self.test_loader,
-                                                save_dir=self.save_dir,
-                                                logger=self.console,
-                                                args=self.args)
+                                            save_dir=self.save_dir,
+                                            logger=self.console,
+                                            args=self.args)
 
     def criterion(self, preds, batch):
         head = de_parallel(self.model).model[-1]
@@ -105,7 +106,6 @@ class DetectionTrainer(v8.segment.SegmentationTrainer):
                 gij = (gxy - offsets).long()
                 gi, gj = gij.T  # grid indices
 
-
                 # Append
                 indices.append((b, a, gj.clamp_(0, shape[2] - 1), gi.clamp_(0, shape[3] - 1)))  # image, anchor, grid
                 tbox.append(torch.cat((gxy - gij, gwh), 1))  # box
@@ -113,6 +113,7 @@ class DetectionTrainer(v8.segment.SegmentationTrainer):
                 tcls.append(c)  # class
 
             return tcls, tbox, indices, anch
+
         if len(preds) == 2:  # eval
             _, p = preds
         else:  # len(3) train

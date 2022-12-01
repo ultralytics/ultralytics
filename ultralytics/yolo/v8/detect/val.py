@@ -191,11 +191,13 @@ class DetectionValidator(BaseValidator):
         return ["metrics/precision(B)", "metrics/recall(B)", "metrics/mAP_0.5(B)", "metrics/mAP_0.5:0.95(B)"]
 
     def plot_val_samples(self, batch, ni):
+        '''
         images = batch["img"]
         cls = batch["cls"].squeeze(-1)
         bboxes = batch["bboxes"]
         paths = batch["im_file"]
         batch_idx = batch["batch_idx"]
+        '''
         pass
 
     def plot_predictions(self, batch, preds, ni):
@@ -211,3 +213,4 @@ def val(cfg):
 
 if __name__ == "__main__":
     val()
+

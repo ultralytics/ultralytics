@@ -9,8 +9,10 @@ from ultralytics.yolo.utils.modeling.tasks import DetectionModel
 from ultralytics.yolo.utils.ops import crop_mask, xywh2xyxy
 from ultralytics.yolo.utils.plotting import plot_images_and_masks, plot_results_with_masks
 from ultralytics.yolo.utils.torch_utils import de_parallel
-from .val import DetectionValidator
+
 from ..segment import SegmentationTrainer
+from .val import DetectionValidator
+
 
 # BaseTrainer python usage
 class DetectionTrainer(SegmentationTrainer):
@@ -27,10 +29,7 @@ class DetectionTrainer(SegmentationTrainer):
         return model
 
     def get_validator(self):
-        return DetectionValidator(self.test_loader,
-                                            save_dir=self.save_dir,
-                                            logger=self.console,
-                                            args=self.args)
+        return DetectionValidator(self.test_loader, save_dir=self.save_dir, logger=self.console, args=self.args)
 
     def criterion(self, preds, batch):
         head = de_parallel(self.model).model[-1]

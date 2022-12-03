@@ -186,7 +186,15 @@ def save_one_box(xyxy, im, file=Path('im.jpg'), gain=1.02, pad=10, square=False,
 
 
 @threaded
-def plot_images_and_masks(images, batch_idx, cls, bboxes, masks, paths, confs=None, fname='images.jpg', names=None):
+def plot_images_and_masks(images,
+                          batch_idx,
+                          cls,
+                          bboxes,
+                          masks,
+                          confs=None,
+                          paths=None,
+                          fname='images.jpg',
+                          names=None):
     # Plot image grid with labels
     if isinstance(images, torch.Tensor):
         images = images.cpu().float().numpy()
@@ -327,3 +335,99 @@ def output_to_target(output, max_det=300):
         targets.append(torch.cat((j, cls, xyxy2xywh(box), conf), 1))
     targets = torch.cat(targets, 0).numpy()
     return targets[:, 0], targets[:, 1], targets[:, 2:6], targets[:, 6]
+
+
+@threaded
+def plot_images(images, batch_idx, cls, bboxes, confs=None, paths=None, fname='images.jpg', names=None):
+    # Plot image grid with labels
+    if isinstance(images, torch.Tensor):
+        images = images.cpu().float().numpy()
+    if isinstance(cls, torch.Tensor):
+        cls = cls.cpu().numpy()
+    if isinstance(bboxes, torch.Tensor):
+        bboxes = bboxes.cpu().numpy()
+    if isinstance(batch_idx, torch.Tensor):
+        batch_idx = batch_idx.cpu().numpy()
+
+    max_size = 1920  # max image size
+    max_subplots = 16  # max image subplots, i.e. 4x4
+    bs, _, h, w = images.shape  # batch size, _, height, width
+    bs = min(bs, max_subplots)  # limit plot images
+    ns = np.ceil(bs ** 0.5)  # number of subplots (square)
+    if np.max(images[0]) <= 1:
+        images *= 255  # de-normalise (optional)
+
+    # Build Image
+    mosaic = np.full((int(ns * h), int(ns * w), 3), 255, dtype=np.uint8)  # init
+    for i, im in enumerate(images):
+        if i == max_subplots:  # if last batch has fewer images than we expect
+            break
+        x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
+        im = im.transpose(1, 2, 0)
+        mosaic[y:y + h, x:x + w, :] = im
+
+    # Resize (optional)
+    scale = max_size / ns / max(h, w)
+    if scale < 1:
+        h = math.ceil(scale * h)
+        w = math.ceil(scale * w)
+        mosaic = cv2.resize(mosaic, tuple(int(x * ns) for x in (w, h)))
+
+    # Annotate
+    fs = int((h + w) * ns * 0.01)  # font size
+    annotator = Annotator(mosaic, line_width=round(fs / 10), font_size=fs, pil=True, example=names)
+    for i in range(i + 1):
+        x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
+        annotator.rectangle([x, y, x + w, y + h], None, (255, 255, 255), width=2)  # borders
+        if paths:
+            annotator.text((x + 5, y + 5 + h), text=Path(paths[i]).name[:40], txt_color=(220, 220, 220))  # filenames
+        if len(cls) > 0:
+            idx = batch_idx == i
+
+            boxes = xywh2xyxy(bboxes[idx]).T
+            classes = cls[idx].astype('int')
+            labels = confs is None  # labels if no conf column
+            conf = None if labels else confs[idx]  # check for confidence presence (label vs pred)
+
+            if boxes.shape[1]:
+                if boxes.max() <= 1.01:  # if normalized with tolerance 0.01
+                    boxes[[0, 2]] *= w  # scale to pixels
+                    boxes[[1, 3]] *= h
+                elif scale < 1:  # absolute coords need scale if image scales
+                    boxes *= scale
+            boxes[[0, 2]] += x
+            boxes[[1, 3]] += y
+            for j, box in enumerate(boxes.T.tolist()):
+                c = classes[j]
+                color = colors(c)
+                c = names[c] if names else c
+                if labels or conf[j] > 0.25:  # 0.25 conf thresh
+                    label = f'{c}' if labels else f'{c} {conf[j]:.1f}'
+                    annotator.box_label(box, label, color=color)
+    annotator.im.save(fname)  # save
+
+
+def plot_results(file='path/to/results.csv', dir=''):
+    # Plot training results.csv. Usage: from utils.plots import *; plot_results('path/to/results.csv')
+    save_dir = Path(file).parent if file else Path(dir)
+    fig, ax = plt.subplots(2, 5, figsize=(12, 6), tight_layout=True)
+    ax = ax.ravel()
+    files = list(save_dir.glob('results*.csv'))
+    assert len(files), f'No results.csv files found in {save_dir.resolve()}, nothing to plot.'
+    for f in files:
+        try:
+            data = pd.read_csv(f)
+            s = [x.strip() for x in data.columns]
+            x = data.values[:, 0]
+            for i, j in enumerate([1, 2, 3, 4, 5, 8, 9, 10, 6, 7]):
+                y = data.values[:, j].astype('float')
+                # y[y == 0] = np.nan  # don't show zero values
+                ax[i].plot(x, y, marker='.', label=f.stem, linewidth=2, markersize=8)
+                ax[i].set_title(s[j], fontsize=12)
+                # if j in [8, 9, 10]:  # share train and val loss y axes
+                #     ax[i].get_shared_y_axes().join(ax[i], ax[i - 5])
+        except Exception as e:
+            print(f'Warning: Plotting error for {f}: {e}')
+    ax[1].legend()
+    fig.savefig(save_dir / 'results.png', dpi=200)
+    plt.close()

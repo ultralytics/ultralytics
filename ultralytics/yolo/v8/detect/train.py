@@ -184,12 +184,7 @@ class DetectionTrainer(SegmentationTrainer):
         bboxes = batch["bboxes"]
         paths = batch["im_file"]
         batch_idx = batch["batch_idx"]
-        plot_images(images,
-                    batch_idx,
-                    cls,
-                    bboxes,
-                    paths=paths,
-                    fname=self.save_dir / f"train_batch{ni}.jpg")
+        plot_images(images, batch_idx, cls, bboxes, paths=paths, fname=self.save_dir / f"train_batch{ni}.jpg")
 
     def plot_metrics(self):
         plot_results(file=self.csv)  # save results.png

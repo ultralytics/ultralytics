@@ -26,13 +26,13 @@ CLI requires no customization or code. You can simply run all tasks from the ter
 
     === "Example"
         ```bash
-        yolo task=detect mode=val model=s.yaml 
+        yolo task=detect mode=val model=s.yaml
         ```
         TODO:  add terminal screen/gif
 [CLI Guide](#){ .md-button .md-button--primary}
 
 ## Python API
-Ultralytics YOLO comes with pythonic Model and Trainer interface. 
+Ultralytics YOLO comes with pythonic Model and Trainer interface.
 !!! tip
     ```python
     import ultralytics

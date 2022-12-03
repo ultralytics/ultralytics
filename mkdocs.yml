@@ -21,11 +21,11 @@ theme:
       example: octicons/beaker-16
       quote: octicons/quote-16
 
-  palette: 
+  palette:
     # Palette toggle for light mode
     - scheme: default
       toggle:
-        icon: material/brightness-7 
+        icon: material/brightness-7
         name: Switch to dark mode
 
     # Palette toggle for dark mode
@@ -59,7 +59,7 @@ markdown_extensions:
   - pymdownx.details
   - pymdownx.superfences
 
-  # Syntax highlight 
+  # Syntax highlight
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.inlinehilite
@@ -67,11 +67,11 @@ markdown_extensions:
 
   # button
   - attr_list
-  
+
   # content tabs
   - pymdownx.superfences
   - pymdownx.tabbed:
-      alternate_style: true 
+      alternate_style: true
 
 plugins:
   - mkdocstrings

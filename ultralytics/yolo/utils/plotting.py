@@ -186,7 +186,15 @@ def save_one_box(xyxy, im, file=Path('im.jpg'), gain=1.02, pad=10, square=False,
 
 
 @threaded
-def plot_images_and_masks(images, batch_idx, cls, bboxes, masks, confs=None, paths=None, fname='images.jpg', names=None):
+def plot_images_and_masks(images,
+                          batch_idx,
+                          cls,
+                          bboxes,
+                          masks,
+                          confs=None,
+                          paths=None,
+                          fname='images.jpg',
+                          names=None):
     # Plot image grid with labels
     if isinstance(images, torch.Tensor):
         images = images.cpu().float().numpy()
@@ -397,6 +405,7 @@ def plot_images(images, batch_idx, cls, bboxes, confs=None, paths=None, fname='i
                     label = f'{c}' if labels else f'{c} {conf[j]:.1f}'
                     annotator.box_label(box, label, color=color)
     annotator.im.save(fname)  # save
+
 
 def plot_results(file='path/to/results.csv', dir=''):
     # Plot training results.csv. Usage: from utils.plots import *; plot_results('path/to/results.csv')

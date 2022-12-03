@@ -203,8 +203,8 @@ class DetectionValidator(BaseValidator):
     def plot_predictions(self, batch, preds, ni):
         images = batch["img"]
         paths = batch["im_file"]
-        plot_images(images, *output_to_target(preds[0], max_det=15), paths,
-                    self.save_dir / f'val_batch{ni}_pred.jpg', self.names)  # pred
+        plot_images(images, *output_to_target(preds[0], max_det=15), paths, self.save_dir / f'val_batch{ni}_pred.jpg',
+                    self.names)  # pred
 
 
 @hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)

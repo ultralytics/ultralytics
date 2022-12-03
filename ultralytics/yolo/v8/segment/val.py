@@ -252,7 +252,7 @@ class SegmentationValidator(BaseValidator):
         if len(self.plot_masks):
             plot_masks = torch.cat(self.plot_masks, dim=0)
         batch_idx, cls, bboxes, conf = output_to_target(preds[0], max_det=15)
-        plot_images_and_masks(images, batch_idx, cls, bboxes, plot_masks, paths, conf,
+        plot_images_and_masks(images, batch_idx, cls, bboxes, plot_masks, conf, paths,
                               self.save_dir / f'val_batch{ni}_pred.jpg', self.names)  # pred
         self.plot_masks.clear()
 

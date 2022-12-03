@@ -2,12 +2,10 @@ import hydra
 import torch
 import torch.nn as nn
 
-from ultralytics.yolo.data import build_dataloader
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.utils.metrics import FocalLoss, bbox_iou, smooth_BCE
 from ultralytics.yolo.utils.modeling.tasks import DetectionModel
-from ultralytics.yolo.utils.ops import crop_mask, xywh2xyxy
-from ultralytics.yolo.utils.plotting import plot_images_and_masks, plot_results_with_masks
+from ultralytics.yolo.utils.plotting import plot_images, plot_results
 from ultralytics.yolo.utils.torch_utils import de_parallel
 
 from ..segment import SegmentationTrainer
@@ -182,21 +180,19 @@ class DetectionTrainer(SegmentationTrainer):
 
     def plot_training_samples(self, batch, ni):
         images = batch["img"]
-        masks = batch["masks"]
         cls = batch["cls"].squeeze(-1)
         bboxes = batch["bboxes"]
         paths = batch["im_file"]
         batch_idx = batch["batch_idx"]
-        plot_images_and_masks(images,
-                              batch_idx,
-                              cls,
-                              bboxes,
-                              masks,
-                              paths,
-                              fname=self.save_dir / f"train_batch{ni}.jpg")
+        plot_images(images,
+                    batch_idx,
+                    cls,
+                    bboxes,
+                    paths,
+                    fname=self.save_dir / f"train_batch{ni}.jpg")
 
     def plot_metrics(self):
-        plot_results_with_masks(file=self.csv)  # save results.png
+        plot_results(file=self.csv)  # save results.png
 
 
 @hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)

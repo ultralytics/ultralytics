@@ -12,7 +12,7 @@ from ultralytics.yolo.utils import ops
 from ultralytics.yolo.utils.checks import check_file, check_requirements
 from ultralytics.yolo.utils.files import yaml_load
 from ultralytics.yolo.utils.metrics import ConfusionMatrix, Metric, ap_per_class, box_iou, fitness_detection
-from ultralytics.yolo.utils.plotting import output_to_target, plot_images_and_masks
+from ultralytics.yolo.utils.plotting import output_to_target, plot_images
 from ultralytics.yolo.utils.torch_utils import de_parallel
 
 
@@ -114,10 +114,6 @@ class DetectionValidator(BaseValidator):
                     self.confusion_matrix.process_batch(predn, labelsn)
             self.stats.append((correct_bboxes, pred[:, 4], pred[:, 5], labels[:, 0]))  # (conf, pcls, tcls)
 
-            if self.args.plots and self.batch_i < 3:
-                pass
-                # TODO: self.plot_masks.append(pred_masks[:15].cpu())  # filter top 15 to plot
-
             # TODO: Save/log
             '''
             if self.args.save_txt:
@@ -191,17 +187,24 @@ class DetectionValidator(BaseValidator):
         return ["metrics/precision(B)", "metrics/recall(B)", "metrics/mAP_0.5(B)", "metrics/mAP_0.5:0.95(B)"]
 
     def plot_val_samples(self, batch, ni):
-        '''
         images = batch["img"]
         cls = batch["cls"].squeeze(-1)
         bboxes = batch["bboxes"]
         paths = batch["im_file"]
         batch_idx = batch["batch_idx"]
-        '''
-        pass
+        plot_images(images,
+                    batch_idx,
+                    cls,
+                    bboxes,
+                    paths,
+                    fname=self.save_dir / f"val_batch{ni}_labels.jpg",
+                    names=self.names)
 
     def plot_predictions(self, batch, preds, ni):
-        pass
+        images = batch["img"]
+        paths = batch["im_file"]
+        plot_images(images, *output_to_target(preds[0], max_det=15), paths,
+                    self.save_dir / f'val_batch{ni}_pred.jpg', self.names)  # pred
 
 
 @hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)

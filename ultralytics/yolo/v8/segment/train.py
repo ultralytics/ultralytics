@@ -250,7 +250,7 @@ class SegmentationTrainer(BaseTrainer):
                               cls,
                               bboxes,
                               masks,
-                              paths,
+                              paths=paths,
                               fname=self.save_dir / f"train_batch{ni}.jpg")
 
     def plot_metrics(self):

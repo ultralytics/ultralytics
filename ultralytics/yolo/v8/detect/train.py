@@ -188,7 +188,7 @@ class DetectionTrainer(SegmentationTrainer):
                     batch_idx,
                     cls,
                     bboxes,
-                    paths,
+                    paths=paths,
                     fname=self.save_dir / f"train_batch{ni}.jpg")
 
     def plot_metrics(self):

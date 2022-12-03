@@ -459,14 +459,14 @@ def ap_per_class_box_and_mask(
         "boxes": {
             "p": results_boxes[0],
             "r": results_boxes[1],
-            "ap": results_boxes[3],
             "f1": results_boxes[2],
+            "ap": results_boxes[3],
             "ap_class": results_boxes[4]},
         "masks": {
             "p": results_masks[0],
             "r": results_masks[1],
-            "ap": results_masks[3],
             "f1": results_masks[2],
+            "ap": results_masks[3],
             "ap_class": results_masks[4]}}
     return results
 
@@ -547,7 +547,7 @@ class Metric:
         Args:
             results: tuple(p, r, ap, f1, ap_class)
         """
-        p, r, all_ap, f1, ap_class_index = results
+        p, r, f1, all_ap, ap_class_index = results
         self.p = p
         self.r = r
         self.all_ap = all_ap

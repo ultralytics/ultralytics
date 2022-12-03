@@ -133,7 +133,7 @@ class DetectionValidator(BaseValidator):
         stats = [torch.cat(x, 0).cpu().numpy() for x in zip(*self.stats)]  # to numpy
         if len(stats) and stats[0].any():
             results = ap_per_class(*stats, plot=self.args.plots, save_dir=self.save_dir, names=self.names)
-            self.metrics.update(results)
+            self.metrics.update(results[2:])
         self.nt_per_class = np.bincount(stats[3].astype(int), minlength=self.nc)  # number of targets per class
         metrics = {"fitness": fitness_detection(np.array(self.metrics.mean_results()).reshape(1, -1))}
         metrics |= zip(self.metric_keys, self.metrics.mean_results())

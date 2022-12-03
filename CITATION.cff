@@ -12,7 +12,7 @@ preferred-citation:
     given-names: L
   title: "YOLO by Ultralytics"
   version: 8.0.0
-  doi: 10.5281/zenodo.3908559
+  # doi: 10.5281/zenodo.3908559
   date-released: 2023-1-10
   license: GPL-3.0
   url: "https://github.com/ultralytics/ultralytics"

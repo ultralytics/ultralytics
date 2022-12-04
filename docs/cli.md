@@ -47,7 +47,7 @@ All global default arguments can be overriden by simply passing them as argument
         Perform detection training for `10 epochs` with `learning_rate` of `0.01`
         ```
         yolo task=detect mode=train {++ epochs=10 lr0=0.01 ++}
-    
+
         ```
 ---
 ## Overriding default config file

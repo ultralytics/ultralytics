@@ -40,7 +40,7 @@ theme:
     - search.share
     - search.suggest
     - toc.follow
-    
+
 markdown_extensions:
   # Div text decorators
   - admonition
@@ -61,7 +61,7 @@ markdown_extensions:
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
-  
+
   # highlight
   - pymdownx.critic
   - pymdownx.caret

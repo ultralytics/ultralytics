@@ -34,30 +34,19 @@ theme:
         icon: material/brightness-4
         name: Switch to light mode
   features:
-    # - announce.dismiss
     - content.code.annotate
-    # - content.tabs.link
     - content.tooltips
-    # - header.autohide
-    # - navigation.expand
-    - navigation.indexes
-    # - navigation.instant
-    # - navigation.prune
-    - navigation.sections
-    - navigation.tabs
-    # - navigation.tabs.sticky
-    - navigation.top
-    - navigation.tracking
     - search.highlight
     - search.share
     - search.suggest
     - toc.follow
-    - content.tabs.link
+    
 markdown_extensions:
   # Div text decorators
   - admonition
   - pymdownx.details
   - pymdownx.superfences
+  - tables
 
   # Syntax highlight
   - pymdownx.highlight:
@@ -72,12 +61,25 @@ markdown_extensions:
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
-
+  
+  # highlight
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tilde
 plugins:
   - mkdocstrings
 
+# primary navigation
 nav:
   - Quickstart: quickstart.md
   - CLI: cli.md
   - Python API: api.md
-  - explanation.md
+  - Trainer: trainer.md
+  - Configuration: conf.md
+  - Tasks:
+      - Detection: tasks/detection.md
+      - Segmentation: tasks/segmentation.md
+      - Classification: tasks/classification.md
+  - Reference: ref.md

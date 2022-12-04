@@ -75,11 +75,11 @@ plugins:
 nav:
   - Quickstart: quickstart.md
   - CLI: cli.md
-  - Python API: api.md
+  - Python SDK: sdk.md
   - Trainer: trainer.md
   - Configuration: conf.md
   - Tasks:
       - Detection: tasks/detection.md
       - Segmentation: tasks/segmentation.md
       - Classification: tasks/classification.md
-  - Reference: ref.md
+  - Reference: reference/ref.md

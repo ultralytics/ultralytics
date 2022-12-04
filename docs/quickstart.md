@@ -1,6 +1,14 @@
 ## Installation
 
-## !!! note "Latest Stable Release" `     pip install ultralytics     ` ??? tip "Development and Contributing" `     git clone https://github.com/ultralytics/ultralytics     cd ultralytics     pip install -e .     ` See contributing section to know more about contributing to the project
+!!! note "Latest Stable Release" 
+    ```pip install ultralytics```
+??? tip "Development and Contributing" 
+    ```
+    git clone https://github.com/ultralytics/ultralytics
+    cd ultralytics
+    pip install -e .
+    ``` 
+See contributing section to know more about contributing to the project
 
 ## CLI ䷢
 

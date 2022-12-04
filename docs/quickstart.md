@@ -30,9 +30,12 @@ Ultralytics YOLO comes with pythonic Model and Trainer interface.
 import ultralytics
 from ultralytics import YOLO
 
-    model = YOLO()
-    model.new("s-seg.yaml") # Build model. automatically detect task type
-    model.load("s-seg.pt") # load checkpoint
-    model.train(data="coco128-segments", epochs=1, lr0=0.01, ...)
-    ```
+````
+model = YOLO()
+model.new("s-seg.yaml") # Build model. automatically detect task type
+model.load("s-seg.pt") # load checkpoint
+model.train(data="coco128-segments", epochs=1, lr0=0.01, ...)
+```
+````
+
 [API Guide](sdk.md){ .md-button .md-button--primary}

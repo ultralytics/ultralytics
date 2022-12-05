@@ -27,7 +27,6 @@ from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
 from ultralytics.yolo.utils import LOGGER, ROOT, TQDM_BAR_FORMAT, colorstr
 from ultralytics.yolo.utils.checks import check_file, print_args
 from ultralytics.yolo.utils.files import get_latest_run, increment_path, save_yaml
-from ultralytics.yolo.utils.modeling import get_model
 from ultralytics.yolo.utils.torch_utils import ModelEMA, de_parallel, init_seeds, one_cycle, strip_optimizer
 
 DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yaml"
@@ -307,15 +306,16 @@ class BaseTrainer:
         load/create/download model for any task
         """
         model = self.args.model
-        pretrained = str(model).endswith(".pt")
+        pretrained = not (str(model).endswith(".yaml"))
         # config
         if not pretrained:
             model = check_file(model)
-        # ckpt = get_model(model) if pretrained else None
-        # TODO: this might break classify training with pre-trained weights
-        ckpt = torch.load(model, map_location='cpu') if pretrained else None
+        ckpt = self.load_ckpt(model) if pretrained else None
         self.model = self.load_model(model_cfg=None if pretrained else model, weights=ckpt).to(self.device)  # model
         return ckpt
+
+    def load_ckpt(self, ckpt):
+        return torch.load(ckpt, map_location='cpu')
 
     def optimizer_step(self):
         self.scaler.unscale_(self.optimizer)  # unscale gradients

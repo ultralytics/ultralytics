@@ -5,6 +5,7 @@ from ultralytics.yolo import v8
 from ultralytics.yolo.data import build_classification_dataloader
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG, BaseTrainer
 from ultralytics.yolo.utils.modeling.tasks import ClassificationModel
+from ultralytics.yolo.utils.modeling import get_model
 
 
 class ClassificationTrainer(BaseTrainer):
@@ -28,6 +29,9 @@ class ClassificationTrainer(BaseTrainer):
             p.requires_grad = True  # for training
         return model
 
+    def load_ckpt(self, ckpt):
+        return get_model(ckpt)
+
     def get_dataloader(self, dataset_path, batch_size, rank=0, mode="train"):
         return build_classification_dataloader(path=dataset_path,
                                                imgsz=self.args.img_size,
@@ -45,6 +49,9 @@ class ClassificationTrainer(BaseTrainer):
     def criterion(self, preds, batch):
         loss = torch.nn.functional.cross_entropy(preds, batch["cls"])
         return loss, loss
+
+    def resume_training(self, ckpt):
+        raise NotImplementedError("classification doesn't support resume for now!!!")
 
 
 @hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)

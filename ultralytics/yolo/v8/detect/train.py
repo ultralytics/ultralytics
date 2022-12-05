@@ -15,10 +15,10 @@ from .val import DetectionValidator
 # BaseTrainer python usage
 class DetectionTrainer(SegmentationTrainer):
 
-    def load_model(self, model_cfg, weights, data):
+    def load_model(self, model_cfg, weights):
         model = DetectionModel(model_cfg or weights["model"].yaml,
                                ch=3,
-                               nc=data["nc"],
+                               nc=self.data["nc"],
                                anchors=self.args.get("anchors"))
         if weights:
             model.load(weights)

@@ -161,6 +161,7 @@ class BaseTrainer:
             self.lf = lambda x: (1 - x / self.epochs) * (1.0 - self.args.lrf) + self.args.lrf  # linear
         self.scheduler = lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
         self.resume_training(ckpt)
+        self.scheduler.last_epoch = self.start_epoch - 1  # do not move
 
         # dataloaders
         batch_size = self.batch_size // world_size
@@ -440,7 +441,6 @@ class BaseTrainer:
         if self.epochs < start_epoch:
             LOGGER.info(f"{self.args.model} has been trained for {ckpt['epoch']} epochs. Fine-tuning for {self.epochs} more epochs.")
             self.epochs += ckpt['epoch']  # finetune additional epochs
-        self.scheduler.last_epoch = start_epoch - 1  # do not move
         self.best_fitness = best_fitness
         self.start_epoch = start_epoch
 

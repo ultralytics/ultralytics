@@ -7,7 +7,7 @@
     ```
     git clone https://github.com/ultralytics/ultralytics
     cd ultralytics
-    pip install -e .
+    pip install -e '.[dev]'
     ```
     See contributing section to know more about contributing to the project
 

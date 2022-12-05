@@ -181,14 +181,14 @@ class BaseTrainer:
         self._setup_train(rank, world_size)
         self.trigger_callbacks("before_train")
 
-        self.epoch = 0
         self.epoch_time = None
         self.epoch_time_start = time.time()
         self.train_time_start = time.time()
         nb = len(self.train_loader)  # number of batches
         nw = max(round(self.args.warmup_epochs * nb), 100)  # number of warmup iterations
         last_opt_step = -1
-        for epoch in range(self.epochs):
+        for epoch in range(self.start_epoch, self.epochs):
+            self.epoch = epoch
             self.trigger_callbacks("on_epoch_start")
             self.model.train()
             if rank != -1:
@@ -258,11 +258,10 @@ class BaseTrainer:
                 self.save_metrics(metrics=log_vals)
 
                 # save model
-                if (not self.args.nosave) or (self.epoch + 1 == self.epochs):
+                if (not self.args.nosave) or (epoch + 1 == self.epochs):
                     self.save_model()
                     self.trigger_callbacks('on_model_save')
 
-            self.epoch += 1
             tnow = time.time()
             self.epoch_time = tnow - self.epoch_time_start
             self.epoch_time_start = tnow
@@ -311,7 +310,9 @@ class BaseTrainer:
         # config
         if not pretrained:
             model = check_file(model)
-        ckpt = get_model(model) if pretrained else None
+        # ckpt = get_model(model) if pretrained else None
+        # TODO: this might break classify training with pre-trained weights
+        ckpt = torch.load(model, map_location='cpu') if pretrained else None
         self.model = self.load_model(model_cfg=None if pretrained else model, weights=ckpt).to(self.device)  # model
         return ckpt
 

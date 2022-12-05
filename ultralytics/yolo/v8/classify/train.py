@@ -50,8 +50,11 @@ class ClassificationTrainer(BaseTrainer):
         loss = torch.nn.functional.cross_entropy(preds, batch["cls"])
         return loss, loss
 
+    def check_resume(self):
+        pass
+
     def resume_training(self, ckpt):
-        raise NotImplementedError("classification doesn't support resume for now!!!")
+        pass
 
 
 @hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)

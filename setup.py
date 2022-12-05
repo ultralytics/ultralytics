@@ -35,8 +35,8 @@ setup(
     include_package_data=True,
     install_requires=REQUIREMENTS,
     extras_require={
-        'dev': ['check-manifest'],
-        'test': ['pytest', 'pytest-cov', 'coverage'],},
+        'dev':
+        ['check-manifest', 'pytest', 'pytest-cov', 'coverage', 'mkdocs', 'mkdocstrings[python]', 'mkdocs-material'],},
     classifiers=[
         "Intended Audience :: Developers", "Intended Audience :: Science/Research",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)", "Programming Language :: Python :: 3",

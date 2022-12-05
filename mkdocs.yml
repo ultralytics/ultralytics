@@ -1,0 +1,85 @@
+site_name: Ultralytics YOLO Docs
+repo_url: https://github.com/ultralytics/yolov5
+repo_name: Ultralytics
+
+theme:
+  name: "material"
+  logo: assets/logo.png
+  icon:
+    repo: fontawesome/brands/github
+    admonition:
+      note: octicons/tag-16
+      abstract: octicons/checklist-16
+      info: octicons/info-16
+      tip: octicons/squirrel-16
+      success: octicons/check-16
+      question: octicons/question-16
+      warning: octicons/alert-16
+      failure: octicons/x-circle-16
+      danger: octicons/zap-16
+      bug: octicons/bug-16
+      example: octicons/beaker-16
+      quote: octicons/quote-16
+
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - content.code.annotate
+    - content.tooltips
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+
+markdown_extensions:
+  # Div text decorators
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - tables
+
+  # Syntax highlight
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+
+  # button
+  - attr_list
+
+  # content tabs
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+
+  # highlight
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tilde
+plugins:
+  - mkdocstrings
+
+# primary navigation
+nav:
+  - Quickstart: quickstart.md
+  - CLI: cli.md
+  - Python SDK: sdk.md
+  - Trainer: trainer.md
+  - Configuration: conf.md
+  - Tasks:
+      - Detection: tasks/detection.md
+      - Segmentation: tasks/segmentation.md
+      - Classification: tasks/classification.md
+  - Reference: reference/ref.md

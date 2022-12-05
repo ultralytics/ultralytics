@@ -4,7 +4,7 @@
 default_language_version:
   python: python3.8
 
-exclude: 'docs/', 'CONTRIBUTING.md'
+exclude: 'docs/'
 # Define bot property if installed via https://github.com/marketplace/pre-commit-ci
 ci:
   autofix_prs: true
@@ -45,6 +45,7 @@ repos:
 
   - repo: https://github.com/executablebooks/mdformat
     rev: 0.7.16
+    excude: "CONTRIBUTING.md"
     hooks:
       - id: mdformat
         name: MD formatting

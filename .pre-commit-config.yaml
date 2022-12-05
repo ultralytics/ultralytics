@@ -45,7 +45,7 @@ repos:
 
   - repo: https://github.com/executablebooks/mdformat
     rev: 0.7.16
-    excude: "CONTRIBUTING.md"
+    exclude: "CONTRIBUTING.md"
     hooks:
       - id: mdformat
         name: MD formatting

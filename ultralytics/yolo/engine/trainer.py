@@ -436,7 +436,7 @@ class BaseTrainer:
             self.ema.updates = ckpt['updates']
         if self.args.resume:
             assert start_epoch > 0, f'{self.args.model} training to {self.epochs} epochs is finished, nothing to resume.\n' \
-                                    f"Start a new training without --resume, i.e. 'python train.py --weights {self.args.model}'"
+                                    f"Start a new training without --resume, i.e. 'yolo task=... mode=train model={self.args.model}'"
             LOGGER.info(
                 f'Resuming training from {self.args.model} from epoch {start_epoch} to {self.epochs} total epochs')
         if self.epochs < start_epoch:

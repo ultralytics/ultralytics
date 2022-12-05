@@ -24,3 +24,4 @@ Not all functions or classes require docstrings but when they do, we follow [goo
     Raises:
         Exception Class: When and why this exception can be raised by the function.
 '''
+```

@@ -45,14 +45,13 @@ repos:
 
   - repo: https://github.com/executablebooks/mdformat
     rev: 0.7.16
-    exclude: "CONTRIBUTING.md"
     hooks:
       - id: mdformat
         name: MD formatting
         additional_dependencies:
           - mdformat-gfm
           - mdformat-black
-        exclude: "README.md|README_cn.md"
+        exclude: "README.md|README_cn.md| CONTRIBUTING.md"
 
   - repo: https://github.com/asottile/yesqa
     rev: v1.4.0

@@ -61,6 +61,7 @@ update: False # Update all models
 visualize: False
 augment: False
 agnostic_nms: False  # class-agnostic NMS
+retina_masks: False
 
 # Hyperparameters ------------------------------------------------------------------------------------------------------
 lr0: 0.01  # initial learning rate (SGD=1E-2, Adam=1E-3)

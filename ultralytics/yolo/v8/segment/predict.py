@@ -48,7 +48,7 @@ class SegmentationPredictor(DetectionPredictor):
             frame = self.dataset.cound
         else:
             frame = getattr(self.dataset, 'frame', 0)
-        
+
         self.data_path = p
         self.txt_path = str(self.save_dir / 'labels' / p.stem) + ('' if self.dataset.mode == 'image' else f'_{frame}')
         log_string += '%gx%g ' % im.shape[2:]  # print string
@@ -94,7 +94,7 @@ class SegmentationPredictor(DetectionPredictor):
             if self.args.save_crop:
                 imc = im0.copy()
                 save_one_box(xyxy, imc, file=self.save_dir / 'crops' / self.model.names[c] / f'{p.stem}.jpg', BGR=True)
-        
+
         return log_string
 
 

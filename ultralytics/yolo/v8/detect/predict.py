@@ -80,7 +80,7 @@ class DetectionPredictor(BasePredictor):
                              imc,
                              file=self.save_dir / 'crops' / self.model.model.names[c] / f'{self.data_path.stem}.jpg',
                              BGR=True)
-        
+
         return log_string
 
 

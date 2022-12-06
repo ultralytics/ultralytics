@@ -226,7 +226,7 @@ class LoadImages:
         if self.transforms:
             im = self.transforms(im0)  # transforms
         else:
-            im = LetterBox(self.img_size, self.auto, stride=self.stride)(image=im0)[0]
+            im = LetterBox(self.img_size, self.auto, stride=self.stride)(image=im0)
             im = im.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
             im = np.ascontiguousarray(im)  # contiguous
 

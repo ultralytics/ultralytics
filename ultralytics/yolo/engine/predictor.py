@@ -67,7 +67,7 @@ class BasePredictor:
 
     def write_results(self, pred, img, orig_img):
         raise NotImplementedError("print_results function needs to be implemented")
-    
+
     def postprocess(self, preds):
         return preds
 
@@ -135,7 +135,8 @@ class BasePredictor:
 
             # Inference
             with dt[1]:
-                visualize = increment_path(self.save_dir / Path(path).stem, mkdir=True) if self.args.visualize else False
+                visualize = increment_path(self.save_dir /
+                                           Path(path).stem, mkdir=True) if self.args.visualize else False
                 preds = model(im, augment=self.args.augment, visualize=self.args.visualize)
 
             # postprocess
@@ -196,8 +197,8 @@ class BasePredictor:
         # Print results
         t = tuple(x.t / seen * 1E3 for x in dt)  # speeds per image
         LOGGER.info(
-            f'Speed: %.1fms pre-process, %.1fms inference, %.1fms postprocess per image at shape {(1, 3, *self.imgsz)}' % t)
+            f'Speed: %.1fms pre-process, %.1fms inference, %.1fms postprocess per image at shape {(1, 3, *self.imgsz)}'
+            % t)
         if self.args.save_txt or self.save_img:
             s = f"\n{len(list(self.save_dir.glob('labels/*.txt')))} labels saved to {self.save_dir / 'labels'}" if self.args.save_txt else ''
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
-

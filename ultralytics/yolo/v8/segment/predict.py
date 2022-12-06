@@ -4,7 +4,9 @@ import torch
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.utils import ROOT, ops
 from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
+
 from ..detect.predict import DetectionPredictor
+
 
 class SegmentationPredictor(DetectionPredictor):
     def postprocess(self, preds):
@@ -18,12 +20,12 @@ class SegmentationPredictor(DetectionPredictor):
                                        nm=32
                                        )
         return (pred, proto)
-    
+
 
     def write_results(self, pred, img, orig_img, print_string=""):
         if not len(pred):
             return
-        
+
         if self.args.retina_masks:
         det[:, :4] = scale_boxes(im.shape[2:], det[:, :4], im0.shape).round()  # rescale boxes to im0 size
         # Rescale boxes from img_size to im0 size

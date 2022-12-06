@@ -34,8 +34,9 @@ class DetectionPredictor(BasePredictor):
 
         return preds
 
-    def write_results(self, idx, preds, batch, log_string):
+    def write_results(self, idx, preds, batch):
         p, im, im0 = batch
+        log_string = ""
         if len(im.shape) == 3:
             im = im[None]  # expand for batch dim
         self.seen += 1
@@ -54,7 +55,7 @@ class DetectionPredictor(BasePredictor):
 
         det = preds[idx]
         if len(det) == 0:
-            return
+            return log_string
         for c in det[:, 5].unique():
             n = (det[:, 5] == c).sum()  # detections per class
             log_string += f"{n} {self.model.names[int(c)]}{'s' * (n > 1)}, "
@@ -79,12 +80,14 @@ class DetectionPredictor(BasePredictor):
                              imc,
                              file=self.save_dir / 'crops' / self.model.model.names[c] / f'{self.data_path.stem}.jpg',
                              BGR=True)
+        
+        return log_string
 
 
 @hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
 def predict(cfg):
     cfg.model = cfg.model or "n.pt"
-    cfg.source = cfg.source or ROOT / "assets/"
+    cfg.source = ROOT / "assets/"
     sz = cfg.img_size
     if type(sz) != int:  # recieved listConfig
         cfg.img_size = [sz[0], sz[0]] if len(cfg.img_size) == 1 else [sz[0], sz[1]]  # expand

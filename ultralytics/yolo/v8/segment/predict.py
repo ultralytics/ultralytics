@@ -37,9 +37,9 @@ class SegmentationPredictor(DetectionPredictor):
 
         return (p, masks)
 
-    def write_results(self, idx, preds, batch, log_string):
+    def write_results(self, idx, preds, batch):
         p, im, im0 = batch
-
+        log_string = ""
         if len(im.shape) == 3:
             im = im[None]  # expand for batch dim
         self.seen += 1
@@ -48,7 +48,7 @@ class SegmentationPredictor(DetectionPredictor):
             frame = self.dataset.cound
         else:
             frame = getattr(self.dataset, 'frame', 0)
-
+        
         self.data_path = p
         self.txt_path = str(self.save_dir / 'labels' / p.stem) + ('' if self.dataset.mode == 'image' else f'_{frame}')
         log_string += '%gx%g ' % im.shape[2:]  # print string
@@ -57,7 +57,7 @@ class SegmentationPredictor(DetectionPredictor):
         preds, masks = preds
         det = preds[idx]
         if len(det) == 0:
-            return
+            return log_string
         # Segments
         mask = masks[idx]
         if self.args.save_txt:
@@ -94,12 +94,14 @@ class SegmentationPredictor(DetectionPredictor):
             if self.args.save_crop:
                 imc = im0.copy()
                 save_one_box(xyxy, imc, file=self.save_dir / 'crops' / self.model.names[c] / f'{p.stem}.jpg', BGR=True)
+        
+        return log_string
 
 
 @hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
 def predict(cfg):
     cfg.model = cfg.model or "n.pt"
-    cfg.source = cfg.source or ROOT / "assets/"
+    cfg.source = ROOT / "assets/"
     sz = cfg.img_size
     if type(sz) != int:  # recieved listConfig
         cfg.img_size = [sz[0], sz[0]] if len(cfg.img_size) == 1 else [sz[0], sz[1]]  # expand

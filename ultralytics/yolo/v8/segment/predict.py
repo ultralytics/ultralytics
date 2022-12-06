@@ -44,7 +44,6 @@ class SegmentationPredictor(DetectionPredictor):
         if len(im.shape) == 3:
             im = im[None]  # expand for batch dim
         for i, det in enumerate(preds):  # per image
-            print(det.shape, det.device)
             self.seen += 1
             if self.webcam:  # batch_size >= 1
                 p, im0, frame = path[i], im0s[i].copy(), self.dataset.count

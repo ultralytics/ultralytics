@@ -459,7 +459,7 @@ class LetterBox:
         self.stride = stride
 
     def __call__(self, labels={}, image=None):
-        img = image or labels["img"]
+        img = labels.get("img") or image
         shape = img.shape[:2]  # current shape [height, width]
         new_shape = labels.pop("rect_shape", self.new_shape)
         if isinstance(new_shape, int):
@@ -491,10 +491,13 @@ class LetterBox:
         img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT,
                                  value=(114, 114, 114))  # add border
 
-        labels = self._update_labels(labels, ratio, dw, dh)
-        labels["img"] = img
-        labels["resized_shape"] = new_shape
-        return labels
+        if len(labels):
+            labels = self._update_labels(labels, ratio, dw, dh)
+            labels["img"] = img
+            labels["resized_shape"] = new_shape
+            return labels
+        else:
+            return img
 
     def _update_labels(self, labels, ratio, padw, padh):
         """Update labels"""
@@ -578,8 +581,8 @@ class Albumentations:
             # TODO: add supports of segments and keypoints
             if self.transform and random.random() < self.p:
                 new = self.transform(image=im, bboxes=bboxes, class_labels=cls)  # transformed
-                labels["img"] = new["image"]
-                labels["cls"] = np.array(new["class_labels"])
+            labels["img"] = new["image"]
+            labels["cls"] = np.array(new["class_labels"])
             labels["instances"].update(bboxes=bboxes)
         return labels
 
@@ -635,7 +638,7 @@ class Format:
     def _format_img(self, img):
         if len(img.shape) < 3:
             img = np.expand_dims(img, -1)
-        img = np.ascontiguousarray(img.transpose(2, 0, 1)[::-1])
+        img = np.ascontiguousarray(img.transpose(2, 0, 1))
         img = torch.from_numpy(img)
         return img
 

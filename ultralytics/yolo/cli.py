@@ -39,9 +39,9 @@ def cli(cfg):
         module_function = module_file.train
     elif cfg.mode.lower() == "val":
         module_function = module_file.val
-    elif cfg.mode.lower() == "infer":
-        module_function = module_file.infer
+    elif cfg.mode.lower() == "predict":
+        module_function = module_file.predict
 
     if not module_function:
-        raise Exception("mode not recognized. Choices are `'train', 'val', 'infer'`")
+        raise Exception("mode not recognized. Choices are `'train', 'val', 'predict'`")
     module_function(cfg)

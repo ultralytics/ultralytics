@@ -34,7 +34,13 @@ def torch_distributed_zero_first(local_rank: int):
     yield
     if local_rank == 0:
         dist.barrier(device_ids=[0])
+        
+def smart_inference_mode(torch_1_9=check_version(torch.__version__, '1.9.0')):
+    # Applies torch.inference_mode() decorator if torch>=1.9.0 else torch.no_grad() decorator
+    def decorate(fn):
+        return (torch.inference_mode if torch_1_9 else torch.no_grad)()(fn)
 
+    return decorate
 
 def DDP_model(model):
     # Model DDP creation with checks

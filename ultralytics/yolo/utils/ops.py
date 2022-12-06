@@ -1,6 +1,7 @@
 import contextlib
 import math
 import time
+import re
 
 import cv2
 import numpy as np
@@ -374,3 +375,7 @@ def process_mask(protos, masks_in, bboxes, shape, upsample=False):
     if upsample:
         masks = F.interpolate(masks[None], shape, mode='bilinear', align_corners=False)[0]  # CHW
     return masks.gt_(0.5)
+
+def clean_str(s):
+    # Cleans a string by replacing special characters with underscore _
+    return re.sub(pattern="[|@#!¡·$€%&()=?¿^*;:,¨´><+]", repl="_", string=s)

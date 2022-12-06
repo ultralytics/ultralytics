@@ -13,10 +13,11 @@ from ..detect.predict import DetectionPredictor
 class SegmentationPredictor(DetectionPredictor):
 
     def postprocess(self, preds, img, orig_img):
+        masks = []
         if len(preds) == 2:  # eval
             p, proto, = preds
         else:  # len(3) train
-            _, proto, p = preds
+            p, proto, _ = preds
         # TODO: filter by classes
         p = ops.non_max_suppression(p,
                                     self.args.conf_thres,
@@ -29,16 +30,16 @@ class SegmentationPredictor(DetectionPredictor):
                 continue
             if self.args.retina_masks:
                 pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape).round()
-                proto[i] = ops.process_mask_native(proto[i], pred[:, 6:], pred[:, :4], orig_img.shape[:2])  # HWC
+                masks.append(ops.process_mask_native(proto[i], pred[:, 6:], pred[:, :4], orig_img.shape[:2]))  # HWC
             else:
-                proto[i] = ops.process_mask(proto[i], pred[:, 6:], pred[:, :4], img.shape[2:], upsample=True)  # HWC
+                masks.append(ops.process_mask(proto[i], pred[:, 6:], pred[:, :4], img.shape[2:], upsample=True))  # HWC
                 pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape).round()
 
-        return (p, proto)
+        return (p, masks)
 
     def write_results(self, preds, batch, log_string):
         path, im, im0s, vid_cap, s = batch
-        preds, proto = preds
+        preds, masks = preds
 
         if len(im.shape) == 3:
             im = im[None]  # expand for batch dim
@@ -65,15 +66,15 @@ class SegmentationPredictor(DetectionPredictor):
                         ops.scale_segments(im0.shape if self.arg.retina_masks else im.shape[2:],
                                            x,
                                            im0.shape,
-                                           normalize=True) for x in reversed(ops.masks2segments(proto[i]))]
+                                           normalize=True) for x in reversed(ops.masks2segments(masks[i]))]
 
                 # Print results
                 for c in pred[:, 5].unique():
                     n = (pred[:, 5] == c).sum()  # detections per class
-                    s += f"{n} {self.names[int(c)]}{'s' * (n > 1)}, "  # add to string
+                    s += f"{n} {self.model.names[int(c)]}{'s' * (n > 1)}, "  # add to string
 
                 # Mask plotting
-                self.annotator.masks(proto[i],
+                self.annotator.masks(masks[i],
                                      colors=[colors(x, True) for x in pred[:, 5]],
                                      im_gpu=torch.as_tensor(im0, dtype=torch.float16).to(self.device).permute(
                                          2, 0, 1).flip(0).contiguous() / 255 if self.args.retina_masks else im[i])
@@ -105,7 +106,7 @@ class SegmentationPredictor(DetectionPredictor):
 @hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
 def predict(cfg):
     cfg.model = cfg.model or "n.pt"
-    cfg.source = ROOT / "assets/"
+    cfg.source = cfg.source or ROOT / "assets/"
     sz = cfg.img_size
     if type(sz) != int:  # recieved listConfig
         cfg.img_size = [sz[0], sz[0]] if len(cfg.img_size) == 1 else [sz[0], sz[1]]  # expand

@@ -135,6 +135,8 @@ class BasePredictor:
         for batch in self.dataset:
             path, im, im0s, vid_cap, s = batch
             log_string = ""
+            visualize = increment_path(self.save_dir /
+                                           Path(path).stem, mkdir=True) if self.args.visualize else False
             with self.dt[0]:
                 im = self.preprocess(im)
                 if len(im.shape) == 3:

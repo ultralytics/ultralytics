@@ -87,7 +87,7 @@ class DetectionPredictor(BasePredictor):
             if len(pred):
                 for c in pred[:, 5].unique():
                     n = (pred[:, 5] == c).sum()  # detections per class
-                    print_string += f"{n} {self.model.names[int(c)]}{'s' * (n > 1)}, "
+                    log_string += f"{n} {self.model.names[int(c)]}{'s' * (n > 1)}, "
 
                 # write
                 gn = torch.tensor(im0s.shape)[[1, 0, 1, 0]]  # normalization gain whwh

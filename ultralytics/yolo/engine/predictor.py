@@ -39,13 +39,11 @@ from ultralytics.yolo.utils.configs import get_config
 from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.modeling.autobackend import AutoBackend
 from ultralytics.yolo.utils.plotting import Annotator
-from ultralytics.yolo.utils.torch_utils import check_img_size, select_device, strip_optimizer
+from ultralytics.yolo.utils.torch_utils import check_img_size, select_device, smart_inference_mode
 
 DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yaml"
 
-
 class BasePredictor:
-
     def __init__(self, config=DEFAULT_CONFIG, overrides={}):
         self.args = get_config(config, overrides)
         self.save_dir = increment_path(Path(self.args.project) / self.args.name, exist_ok=self.args.exist_ok)
@@ -56,19 +54,23 @@ class BasePredictor:
         # Usable if setup is done
         self.model = None
         self.data = self.args.data  # data_dict
+        self.device = None
         self.dataset = None
         self.vid_path, self.vid_writer = None, None
         self.view_img = None
         self.annotator = None
         self.data_path = None
+    
+    def preprocess(self, img):
+        pass
 
     def get_annotator(self, img):
         raise NotImplementedError("get_annotator function needs to be implemented")
 
-    def write_results(self, pred, img, orig_img, print_string):
+    def write_results(self, pred, batch, print_string):
         raise NotImplementedError("print_results function needs to be implemented")
 
-    def postprocess(self, preds):
+    def postprocess(self, preds, img, orig_img):
         return preds
 
     def setup(self, source=None, model=None):
@@ -115,87 +117,44 @@ class BasePredictor:
         self.screenshot = screenshot
         self.imgsz = imgsz
         self.done_setup = True
+        self.device = device
 
         return model
 
+    @smart_inference_mode()
     def __call__(self, source=None, model=None):
         if not self.done_setup:
             model = self.setup(source, model)
         else:
             model = self.model
 
-        seen, windows, dt = 0, [], (ops.Profile(), ops.Profile(), ops.Profile())
-        for path, im, im0s, vid_cap, s in self.dataset:
-            with dt[0]:
-                im = torch.from_numpy(im).to(self.model.device)
-                im = im.half() if model.fp16 else im.float()  # uint8 to fp16/32
-                im /= 255  # 0 - 255 to 0.0 - 1.0
+        self.seen, self.windows, self.dt = 0, [], (ops.Profile(), ops.Profile(), ops.Profile())
+        visualize = increment_path(self.save_dir /
+                                           Path(path).stem, mkdir=True) if self.args.visualize else False
+        for batch in self.dataset:
+            path, im, im0s, vid_cap, s = batch
+            log_string = ""
+            with self.dt[0]:
+                im = self.preprocess(im)
                 if len(im.shape) == 3:
                     im = im[None]  # expand for batch dim
 
             # Inference
-            with dt[1]:
-                visualize = increment_path(self.save_dir /
-                                           Path(path).stem, mkdir=True) if self.args.visualize else False
+            with self.dt[1]:
                 preds = model(im, augment=self.args.augment, visualize=visualize)
 
             # postprocess
-            with dt[2]:
-                preds = self.postprocess(preds)
-
-            for i, pred in enumerate(preds):  # per image
-                seen += 1
-                if self.webcam:  # batch_size >= 1
-                    p, im0, frame = path[i], im0s[i].copy(), self.dataset.count
-                    s += f'{i}: '
-                else:
-                    p, im0, frame = path, im0s.copy(), getattr(self.dataset, 'frame', 0)
-
-                p = Path(p)  # to Path
-                self.data_path = p
-                save_path = str(self.save_dir / p.name)  # im.jpg
-                self.txt_path = str(
-                    self.save_dir / 'labels' / p.stem) + ('' if self.dataset.mode == 'image' else f'_{frame}')
-                s += '%gx%g ' % im.shape[2:]  # print string
-
-                self.annotator = self.get_annotator(im0)  # initialize only once
-                self.write_results(pred=pred, img=im, orig_img=im0, print_string=s)
-
-                # stream
-                im0 = self.annotator.result()
-                if self.args.view_img:
-                    if platform.system() == 'Linux' and p not in windows:
-                        windows.append(p)
-                        cv2.namedWindow(str(p), cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
-                        cv2.resizeWindow(str(p), im0.shape[1], im0.shape[0])
-                    cv2.imshow(str(p), im0)
-                    cv2.waitKey(1)  # 1 millisecond
-
-                # save imgs
-                if self.save_img:
-                    if self.dataset.mode == 'image':
-                        cv2.imwrite(save_path, im0)
-                    else:  # 'video' or 'stream'
-                        if self.vid_path[i] != save_path:  # new video
-                            self.vid_path[i] = save_path
-                            if isinstance(self.vid_writer[i], cv2.VideoWriter):
-                                self.vid_writer[i].release()  # release previous video writer
-                            if vid_cap:  # video
-                                fps = vid_cap.get(cv2.CAP_PROP_FPS)
-                                w = int(vid_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-                                h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-                            else:  # stream
-                                fps, w, h = 30, im0.shape[1], im0.shape[0]
-                            save_path = str(Path(save_path).with_suffix('.mp4'))  # force *.mp4 suffix on results videos
-                            self.vid_writer[i] = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps,
-                                                                 (w, h))
-                        self.vid_writer[i].write(im0)
+            with self.dt[2]:
+                preds = self.postprocess(preds, im, im0s)
+            
+            self.write_results(preds, (path, im, im0s, vid_cap, s), log_string)
+    
 
             # Print time (inference-only)
-            LOGGER.info(f"{s}{'' if len(pred) else '(no detections), '}{dt[1].dt * 1E3:.1f}ms")
+            LOGGER.info(f"{log_string}{'' if len(preds) else '(no detections), '}{self.dt[1].dt * 1E3:.1f}ms")
 
         # Print results
-        t = tuple(x.t / seen * 1E3 for x in dt)  # speeds per image
+        t = tuple(x.t / self.seen * 1E3 for x in self.dt)  # speeds per image
         LOGGER.info(
             f'Speed: %.1fms pre-process, %.1fms inference, %.1fms postprocess per image at shape {(1, 3, *self.imgsz)}'
             % t)

@@ -65,7 +65,7 @@ class BasePredictor:
     def get_annotator(self, img):
         raise NotImplementedError("get_annotator function needs to be implemented")
 
-    def write_results(self, pred, img, orig_img):
+    def write_results(self, pred, img, orig_img, print_string):
         raise NotImplementedError("print_results function needs to be implemented")
 
     def postprocess(self, preds):
@@ -94,7 +94,7 @@ class BasePredictor:
         model = model or self.args.model
         self.args.half &= device.type != 'cpu'  # half precision only supported on CUDA
         model = AutoBackend(model, device=device, dnn=self.args.dnn, fp16=self.args.half)  # NOTE: not passing data
-        stride, names, pt = model.stride, model.names, model.pt
+        stride, pt = model.stride, model.pt
         imgsz = check_img_size(self.args.img_size, s=stride)  # check image size
 
         # Dataloader
@@ -135,9 +135,8 @@ class BasePredictor:
 
             # Inference
             with dt[1]:
-                visualize = increment_path(self.save_dir /
-                                           Path(path).stem, mkdir=True) if self.args.visualize else False
-                preds = model(im, augment=self.args.augment, visualize=self.args.visualize)
+                visualize = increment_path(self.save_dir / Path(path).stem, mkdir=True) if self.args.visualize else False
+                preds = model(im, augment=self.args.augment, visualize=visualize)
 
             # postprocess
             with dt[2]:
@@ -159,7 +158,7 @@ class BasePredictor:
                 s += '%gx%g ' % im.shape[2:]  # print string
 
                 self.annotator = self.annotator or self.get_annotator(im0)  # initialize only once
-                self.write_results(pred=pred, img=im, orig_img=im0)
+                self.write_results(pred=pred, img=im, orig_img=im0, print_string=s)
 
                 # stream
                 im0 = self.annotator.result()

@@ -13,20 +13,15 @@ class DetectionPredictor(BasePredictor):
         return Annotator(img, line_width=self.args.line_thickness, example=str(self.model.names))
 
     def postprocess(self, preds):
-        return ops.non_max_suppression(preds,
-                                       self.args.conf_thres,
-                                       self.args.iou_thres,
-                                       agnostic=self.args.agnostic_nms,
-                                       max_det=self.args.max_det)
-
-    def write_results(self, pred, img, orig_img):
+        return ops.non_max_suppression(preds, self.args.conf_thres, self.args.iou_thres, agnostic=self.args.agnostic_nms, max_det=self.args.max_det)
+    def write_results(self, pred, img, orig_img, print_string=""):
         # Rescale boxes from img_size to im0 size
         pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape).round()
 
         # Print results
         for c in pred[:, 5].unique():
             n = (pred[:, 5] == c).sum()  # detections per class
-            s += f"{n} {self.model.names[int(c)]}{'s' * (n > 1)}, "  # add to string
+            print_string += f"{n} {self.model.names[int(c)]}{'s' * (n > 1)}, "
 
         # Write results
         gn = torch.tensor(orig_img.shape)[[1, 0, 1, 0]]  # normalization gain whwh
@@ -64,11 +59,4 @@ def predict(cfg):
 
 
 if __name__ == "__main__":
-    """
-    CLI usage:
-    python ultralytics/yolo/v8/segment/train.py cfg=yolov5n-seg.yaml data=coco128-segments epochs=100 img_size=640
-
-    TODO:
-    Direct cli support, i.e, yolov8 classify_train args.epochs 10
-    """
     predict()

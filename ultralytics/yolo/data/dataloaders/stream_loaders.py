@@ -92,7 +92,7 @@ class LoadStreams:
         if self.transforms:
             im = np.stack([self.transforms(x) for x in im0])  # transforms
         else:
-            s = np.stack([LetterBox(self.img_size, self.auto, stride=self.stride)(x)[0] for x in im0])
+            # s = np.stack([LetterBox(self.img_size, self.auto, stride=self.stride)(x)[0] for x in im0])
             im = im[..., ::-1].transpose((0, 3, 1, 2))  # BGR to RGB, BHWC to BCHW
             im = np.ascontiguousarray(im)  # contiguous
 

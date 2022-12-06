@@ -131,7 +131,6 @@ class BasePredictor:
             model = self.model
 
         self.seen, self.windows, self.dt = 0, [], (ops.Profile(), ops.Profile(), ops.Profile())
-        visualize = increment_path(self.save_dir / Path(path).stem, mkdir=True) if self.args.visualize else False
         for batch in self.dataset:
             path, im, im0s, vid_cap, s = batch
             log_string = ""

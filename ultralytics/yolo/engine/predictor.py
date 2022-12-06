@@ -158,7 +158,7 @@ class BasePredictor:
                     self.save_dir / 'labels' / p.stem) + ('' if self.dataset.mode == 'image' else f'_{frame}')
                 s += '%gx%g ' % im.shape[2:]  # print string
 
-                self.annotator = self.annotator or self.get_annotator(im0)  # initialize only once
+                self.annotator = self.get_annotator(im0)  # initialize only once
                 self.write_results(pred=pred, img=im, orig_img=im0, print_string=s)
 
                 # stream

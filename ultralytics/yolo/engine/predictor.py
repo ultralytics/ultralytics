@@ -43,7 +43,9 @@ from ultralytics.yolo.utils.torch_utils import check_img_size, select_device, sm
 
 DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yaml"
 
+
 class BasePredictor:
+
     def __init__(self, config=DEFAULT_CONFIG, overrides={}):
         self.args = get_config(config, overrides)
         self.save_dir = increment_path(Path(self.args.project) / self.args.name, exist_ok=self.args.exist_ok)
@@ -60,7 +62,7 @@ class BasePredictor:
         self.view_img = None
         self.annotator = None
         self.data_path = None
-    
+
     def preprocess(self, img):
         pass
 
@@ -129,8 +131,7 @@ class BasePredictor:
             model = self.model
 
         self.seen, self.windows, self.dt = 0, [], (ops.Profile(), ops.Profile(), ops.Profile())
-        visualize = increment_path(self.save_dir /
-                                           Path(path).stem, mkdir=True) if self.args.visualize else False
+        visualize = increment_path(self.save_dir / Path(path).stem, mkdir=True) if self.args.visualize else False
         for batch in self.dataset:
             path, im, im0s, vid_cap, s = batch
             log_string = ""
@@ -146,9 +147,8 @@ class BasePredictor:
             # postprocess
             with self.dt[2]:
                 preds = self.postprocess(preds, im, im0s)
-            
+
             self.write_results(preds, (path, im, im0s, vid_cap, s), log_string)
-    
 
             # Print time (inference-only)
             LOGGER.info(f"{log_string}{'' if len(preds) else '(no detections), '}{self.dt[1].dt * 1E3:.1f}ms")

@@ -398,6 +398,7 @@ def process_mask_native(protos, masks_in, bboxes, shape):
     masks = crop_mask(masks, bboxes)  # CHW
     return masks.gt_(0.5)
 
+
 def scale_segments(img1_shape, segments, img0_shape, ratio_pad=None, normalize=False):
     # Rescale coords (xyxy) from img1_shape to img0_shape
     if ratio_pad is None:  # calculate from img0_shape
@@ -416,6 +417,7 @@ def scale_segments(img1_shape, segments, img0_shape, ratio_pad=None, normalize=F
         segments[:, 1] /= img0_shape[0]  # height
     return segments
 
+
 def masks2segments(masks, strategy='largest'):
     # Convert masks(n,160,160) into segments(n,xy)
     segments = []
@@ -430,7 +432,8 @@ def masks2segments(masks, strategy='largest'):
             c = np.zeros((0, 2))  # no segments found
         segments.append(c.astype('float32'))
     return segments
-    
+
+
 def clip_segments(segments, shape):
     # Clip segments (xy1,xy2,...) to image shape (height, width)
     if isinstance(segments, torch.Tensor):  # faster individually
@@ -439,6 +442,7 @@ def clip_segments(segments, shape):
     else:  # np.array (faster grouped)
         segments[:, 0] = segments[:, 0].clip(0, shape[1])  # x
         segments[:, 1] = segments[:, 1].clip(0, shape[0])  # y
+
 
 def clean_str(s):
     # Cleans a string by replacing special characters with underscore _

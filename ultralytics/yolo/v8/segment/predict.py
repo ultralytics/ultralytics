@@ -11,6 +11,7 @@ from ..detect.predict import DetectionPredictor
 
 
 class SegmentationPredictor(DetectionPredictor):
+
     def postprocess(self, preds, img, orig_img):
         if len(preds) == 2:  # eval
             p, proto, = preds
@@ -18,24 +19,22 @@ class SegmentationPredictor(DetectionPredictor):
             _, proto, p = preds
         # TODO: filter by classes
         p = ops.non_max_suppression(p,
-                                       self.args.conf_thres,
-                                       self.args.iou_thres,
-                                       agnostic=self.args.agnostic_nms,
-                                       max_det=self.args.max_det,
-                                       nm=32
-                                       )
+                                    self.args.conf_thres,
+                                    self.args.iou_thres,
+                                    agnostic=self.args.agnostic_nms,
+                                    max_det=self.args.max_det,
+                                    nm=32)
         for i, pred in enumerate(p):
             if not len(pred):
                 continue
             if self.args.retina_masks:
-                pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape).round() 
+                pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape).round()
                 proto[i] = ops.process_mask_native(proto[i], pred[:, 6:], pred[:, :4], orig_img.shape[:2])  # HWC
             else:
                 proto[i] = ops.process_mask(proto[i], pred[:, 6:], pred[:, :4], img.shape[2:], upsample=True)  # HWC
-                pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape).round() 
+                pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape).round()
 
         return (p, proto)
-    
 
     def write_results(self, preds, batch, log_string):
         path, im, im0s, vid_cap, s = batch
@@ -50,7 +49,7 @@ class SegmentationPredictor(DetectionPredictor):
                 log_string += f'{i}: '
             else:
                 p, im0, frame = path, im0s.copy(), getattr(self.dataset, 'frame', 0)
-            
+
             p = Path(p)  # to Path
             self.data_path = p
             save_path = str(self.save_dir / p.name)  # im.jpg
@@ -58,13 +57,15 @@ class SegmentationPredictor(DetectionPredictor):
                 self.save_dir / 'labels' / p.stem) + ('' if self.dataset.mode == 'image' else f'_{frame}')
             log_string += '%gx%g ' % im.shape[2:]  # print string
             self.annotator = self.get_annotator(im0)
-            
+
             if len(pred):
                 # Segments
                 if self.args.save_txt:
                     segments = [
-                        ops.scale_segments(im0.shape if self.arg.retina_masks else im.shape[2:], x, im0.shape, normalize=True)
-                        for x in reversed(ops.masks2segments(proto[i]))]
+                        ops.scale_segments(im0.shape if self.arg.retina_masks else im.shape[2:],
+                                           x,
+                                           im0.shape,
+                                           normalize=True) for x in reversed(ops.masks2segments(proto[i]))]
 
                 # Print results
                 for c in pred[:, 5].unique():
@@ -72,12 +73,11 @@ class SegmentationPredictor(DetectionPredictor):
                     s += f"{n} {self.names[int(c)]}{'s' * (n > 1)}, "  # add to string
 
                 # Mask plotting
-                self.annotator.masks(
-                    proto[i],
-                    colors=[colors(x, True) for x in pred[:, 5]],
-                    im_gpu=torch.as_tensor(im0,  dtype=torch.float16).to(self.device).permute(2, 0, 1).flip(0).contiguous() /
-                        255 if self.args.retina_masks else im[i]) 
-                
+                self.annotator.masks(proto[i],
+                                     colors=[colors(x, True) for x in pred[:, 5]],
+                                     im_gpu=torch.as_tensor(im0, dtype=torch.float16).to(self.device).permute(
+                                         2, 0, 1).flip(0).contiguous() / 255 if self.args.retina_masks else im[i])
+
                 # Write results
                 for j, (*xyxy, conf, cls) in enumerate(reversed(pred[:, :6])):
                     if self.args.save_txt:  # Write to file
@@ -88,12 +88,16 @@ class SegmentationPredictor(DetectionPredictor):
 
                     if self.save_img or self.args.save_crop or self.args.view_img:
                         c = int(cls)  # integer class
-                        label = None if self.args.hide_labels else (self.model.names[c] if self.args.hide_conf else f'{self.model.names[c]} {conf:.2f}')
+                        label = None if self.args.hide_labels else (
+                            self.model.names[c] if self.args.hide_conf else f'{self.model.names[c]} {conf:.2f}')
                         self.annotator.box_label(xyxy, label, color=colors(c, True))
                         # annotator.draw.polygon(segments[j], outline=colors(c, True), width=3)
                     if self.args.save_crop:
                         imc = im0s.copy()
-                        save_one_box(xyxy, imc, file=self.save_dir / 'crops' / self.model.names[c] / f'{p.stem}.jpg', BGR=True)
+                        save_one_box(xyxy,
+                                     imc,
+                                     file=self.save_dir / 'crops' / self.model.names[c] / f'{p.stem}.jpg',
+                                     BGR=True)
             self._stream_results(p)
             self._save_preds(vid_cap, im0, i, save_path)
 
@@ -101,7 +105,7 @@ class SegmentationPredictor(DetectionPredictor):
 @hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
 def predict(cfg):
     cfg.model = cfg.model or "n.pt"
-    cfg.source =  ROOT / "assets/"
+    cfg.source = ROOT / "assets/"
     sz = cfg.img_size
     if type(sz) != int:  # recieved listConfig
         cfg.img_size = [sz[0], sz[0]] if len(cfg.img_size) == 1 else [sz[0], sz[1]]  # expand

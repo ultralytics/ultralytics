@@ -1,5 +1,5 @@
-from pathlib import Path
 import platform
+from pathlib import Path
 
 import cv2
 import hydra
@@ -7,7 +7,7 @@ import torch
 
 from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
-from ultralytics.yolo.utils import ROOT, LOGGER, ops
+from ultralytics.yolo.utils import LOGGER, ROOT, ops
 from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
 
 
@@ -24,14 +24,14 @@ class DetectionPredictor(BasePredictor):
 
     def postprocess(self, preds, img, orig_img):
         preds = ops.non_max_suppression(preds,
-                                       self.args.conf_thres,
-                                       self.args.iou_thres,
-                                       agnostic=self.args.agnostic_nms,
-                                       max_det=self.args.max_det)
+                                        self.args.conf_thres,
+                                        self.args.iou_thres,
+                                        agnostic=self.args.agnostic_nms,
+                                        max_det=self.args.max_det)
 
         for pred in preds:
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape).round()
-        
+
         return preds
 
     def _stream_results(self, p):
@@ -61,8 +61,7 @@ class DetectionPredictor(BasePredictor):
                     else:  # stream
                         fps, w, h = 30, im0.shape[1], im0.shape[0]
                     save_path = str(Path(save_path).with_suffix('.mp4'))  # force *.mp4 suffix on results videos
-                    self.vid_writer[idx] = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps,
-                                                            (w, h))
+                    self.vid_writer[idx] = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
                 self.vid_writer[idx].write(im0)
 
     def write_results(self, preds, batch, log_string):
@@ -83,7 +82,7 @@ class DetectionPredictor(BasePredictor):
             self.txt_path = str(
                 self.save_dir / 'labels' / p.stem) + ('' if self.dataset.mode == 'image' else f'_{frame}')
             log_string += '%gx%g ' % im.shape[2:]  # print string
-            self.annotator = self.get_annotator(im0) 
+            self.annotator = self.get_annotator(im0)
 
             if len(pred):
                 for c in pred[:, 5].unique():
@@ -107,21 +106,19 @@ class DetectionPredictor(BasePredictor):
                     if self.args.save_crop:
                         imc = im0s.copy()
                         save_one_box(xyxy,
-                                    imc,
-                                    file=self.save_dir / 'crops' / self.model.model.names[c] / f'{self.data_path.stem}.jpg',
-                                    BGR=True)
-            
+                                     imc,
+                                     file=self.save_dir / 'crops' / self.model.model.names[c] /
+                                     f'{self.data_path.stem}.jpg',
+                                     BGR=True)
+
             self._stream_results(p)
             self._save_preds(vid_cap, im0, i, save_path)
-
-
-
 
 
 @hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
 def predict(cfg):
     cfg.model = cfg.model or "n.pt"
-    cfg.source =  ROOT / "assets/"
+    cfg.source = ROOT / "assets/"
     sz = cfg.img_size
     if type(sz) != int:  # recieved listConfig
         cfg.img_size = [sz[0], sz[0]] if len(cfg.img_size) == 1 else [sz[0], sz[1]]  # expand

@@ -33,6 +33,7 @@ overlap_mask: True  # masks overlap
 mask_ratio: 4  # mask downsample ratio
 # Classification
 dropout: False # use dropout
+resume: False
 
 
 # Val/Test settings ----------------------------------------------------------------------------------------------------

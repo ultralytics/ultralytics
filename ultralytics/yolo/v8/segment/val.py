@@ -242,7 +242,7 @@ class SegmentationValidator(BaseValidator):
                               cls,
                               bboxes,
                               masks,
-                              paths,
+                              paths=paths,
                               fname=self.save_dir / f"val_batch{ni}_labels.jpg",
                               names=self.names)
 

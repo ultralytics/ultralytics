@@ -1,6 +1,7 @@
 from pathlib import Path
+from typing import Dict, Union
+
 from omegaconf import DictConfig, OmegaConf
-from typing import Union, Dict
 
 
 def get_config(config: Union[str, DictConfig], overrides: Union[str, Dict] = {}):

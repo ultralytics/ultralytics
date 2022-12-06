@@ -6,11 +6,12 @@ from pathlib import Path
 from subprocess import check_output
 from typing import Optional
 
+import cv2
 import pkg_resources as pkg
 import torch
-import cv2
 
-from ultralytics.yolo.utils import AUTOINSTALL, FONT, LOGGER, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, emojis, is_notebook, is_docker
+from ultralytics.yolo.utils import (AUTOINSTALL, FONT, LOGGER, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, emojis,
+                                    is_docker, is_notebook)
 
 
 def is_ascii(s=''):
@@ -130,6 +131,7 @@ def check_file(file, suffix=''):
 def check_yaml(file, suffix=('.yaml', '.yml')):
     # Search/download YAML file (if necessary) and return path, checking suffix
     return check_file(file, suffix)
+
 
 def check_imshow(warn=False):
     # Check if environment supports image displays

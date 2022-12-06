@@ -1,19 +1,19 @@
+import glob
+import math
+import os
+import time
 from pathlib import Path
 from threading import Thread
 from urllib.parse import urlparse
-import time
-import math
-import glob
-import os
 
-import numpy as np
 import cv2
+import numpy as np
 import torch
-from ultralytics.yolo.utils.checks import check_requirements
-from ultralytics.yolo.utils import is_colab, is_kaggle, LOGGER
+
 from ultralytics.yolo.data.augment import LetterBox
 from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS
-from ultralytics.yolo.utils import ops
+from ultralytics.yolo.utils import LOGGER, is_colab, is_kaggle, ops
+from ultralytics.yolo.utils.checks import check_requirements
 
 
 class LoadStreams:
@@ -101,6 +101,7 @@ class LoadStreams:
     def __len__(self):
         return len(self.sources)  # 1E12 frames = 32 streams at 30 FPS for 30 years
 
+
 class LoadScreenshots:
     # YOLOv5 screenshot dataloader, i.e. `python detect.py --source "screen 0 100 100 512 256"`
     def __init__(self, source, img_size=640, stride=32, auto=True, transforms=None):
@@ -148,6 +149,7 @@ class LoadScreenshots:
             im = np.ascontiguousarray(im)  # contiguous
         self.frame += 1
         return str(self.screen), im, im0, None, s  # screen, img, original img, im0s, s
+
 
 class LoadImages:
     # YOLOv5 image/video dataloader, i.e. `python detect.py --source image.jpg/vid.mp4`

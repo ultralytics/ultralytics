@@ -4,8 +4,9 @@ import os
 import platform
 import sys
 import threading
-import IPython
 from pathlib import Path
+
+import IPython
 
 # Constants
 FILE = Path(__file__).resolve()
@@ -29,10 +30,12 @@ def is_kaggle():
     # Is environment a Kaggle Notebook?
     return os.environ.get('PWD') == '/kaggle/working' and os.environ.get('KAGGLE_URL_BASE') == 'https://www.kaggle.com'
 
+
 def is_notebook():
     # Is environment a Jupyter notebook? Verified on Colab, Jupyterlab, Kaggle, Paperspace
     ipython_type = str(type(IPython.get_ipython()))
     return 'colab' in ipython_type or 'zmqshell' in ipython_type
+
 
 def is_docker() -> bool:
     """Check if the process runs inside a docker container."""
@@ -43,6 +46,7 @@ def is_docker() -> bool:
             return any("docker" in line for line in file)
     except OSError:
         return False
+
 
 def is_writeable(dir, test=False):
     # Return True if directory has write permissions, test opening a file with write permissions if test=True

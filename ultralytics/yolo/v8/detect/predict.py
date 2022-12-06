@@ -2,14 +2,16 @@ import hydra
 import torch
 
 from ultralytics.yolo.engine.predictor import BasePredictor
-from ultralytics.yolo.utils import ops, ROOT
-from ultralytics.yolo.utils.plotting import save_one_box, Annotator, colors
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
+from ultralytics.yolo.utils import ROOT, ops
+from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
+
 
 class DetectionPredictor(BasePredictor):
+
     def get_annotator(self, img):
         return Annotator(img, line_width=self.args.line_thickness, example=str(self.model.names))
-    
+
     def write_results(self, pred, img, orig_img):
         # Rescale boxes from img_size to im0 size
         pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape).round()
@@ -30,23 +32,29 @@ class DetectionPredictor(BasePredictor):
 
             if self.save_img or self.args.save_crop or self.args.view_img:  # Add bbox to image
                 c = int(cls)  # integer class
-                label = None if self.args.hide_labels else (self.model.names[c] if self.args.hide_conf else f'{self.model.names[c]} {conf:.2f}')
+                label = None if self.args.hide_labels else (
+                    self.model.names[c] if self.args.hide_conf else f'{self.model.names[c]} {conf:.2f}')
                 self.annotator.box_label(xyxy, label, color=colors(c, True))
             if self.args.save_crop:
                 imc = orig_img.copy()
-                save_one_box(xyxy, imc, file=self.save_dir / 'crops' / self.model.model.names[c] / f'{self.data_path.stem}.jpg', BGR=True)
+                save_one_box(xyxy,
+                             imc,
+                             file=self.save_dir / 'crops' / self.model.model.names[c] / f'{self.data_path.stem}.jpg',
+                             BGR=True)
+
 
 @hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
 def predict(cfg):
     cfg.model = cfg.model or "n.pt"
-    cfg.source = ROOT/ "assets/"
+    cfg.source = ROOT / "assets/"
     sz = cfg.img_size
-    if type(sz) != int: # recieved listConfig
+    if type(sz) != int:  # recieved listConfig
         cfg.img_size = [sz[0], sz[0]] if len(cfg.img_size) == 1 else [sz[0], sz[1]]  # expand
     else:
         cfg.img_size = [sz, sz]
     predictor = DetectionPredictor(cfg)
     predictor()
+
 
 if __name__ == "__main__":
     """

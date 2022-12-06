@@ -148,7 +148,17 @@ class BasePredictor:
             with self.dt[2]:
                 preds = self.postprocess(preds, im, im0s)
 
-            self.write_results(preds, (path, im, im0s, vid_cap, s), log_string)
+            for i in range(len(im)):
+                if self.webcam:
+                    path, im0s = path[i], im0s[i]
+                p = Path(path)
+                self.write_results(i, preds, (p, im, im0s), log_string)
+
+                if self.args.view_img:
+                    self.show(p)
+
+                if self.save_img:
+                    self.save_preds(vid_cap, i, str(self.save_dir / p.name))
 
             # Print time (inference-only)
             LOGGER.info(f"{log_string}{'' if len(preds) else '(no detections), '}{self.dt[1].dt * 1E3:.1f}ms")
@@ -161,3 +171,32 @@ class BasePredictor:
         if self.args.save_txt or self.save_img:
             s = f"\n{len(list(self.save_dir.glob('labels/*.txt')))} labels saved to {self.save_dir / 'labels'}" if self.args.save_txt else ''
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
+
+    def show(self, p):
+        im0 = self.annotator.result()
+        if platform.system() == 'Linux' and p not in self.windows:
+            self.windows.append(p)
+            cv2.namedWindow(str(p), cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
+            cv2.resizeWindow(str(p), im0.shape[1], im0.shape[0])
+        cv2.imshow(str(p), im0)
+        cv2.waitKey(1)  # 1 millisecond
+
+    def save_preds(self, vid_cap, idx, save_path):
+        im0 = self.annotator.result()
+        # save imgs
+        if self.dataset.mode == 'image':
+            cv2.imwrite(save_path, im0)
+        else:  # 'video' or 'stream'
+            if self.vid_path[idx] != save_path:  # new video
+                self.vid_path[idx] = save_path
+                if isinstance(self.vid_writer[idx], cv2.VideoWriter):
+                    self.vid_writer[idx].release()  # release previous video writer
+                if vid_cap:  # video
+                    fps = vid_cap.get(cv2.CAP_PROP_FPS)
+                    w = int(vid_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+                    h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                else:  # stream
+                    fps, w, h = 30, im0.shape[1], im0.shape[0]
+                save_path = str(Path(save_path).with_suffix('.mp4'))  # force *.mp4 suffix on results videos
+                self.vid_writer[idx] = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
+            self.vid_writer[idx].write(im0)

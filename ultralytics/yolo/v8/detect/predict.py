@@ -68,7 +68,7 @@ class DetectionPredictor(BasePredictor):
         path, im, im0s, vid_cap, s = batch
         if len(im.shape) == 3:
             im = im[None]  # expand for batch dim
-        for i, pred in enumerate(preds):  # per image
+        for i, det in enumerate(preds):  # per image
             self.seen += 1
             if self.webcam:  # batch_size >= 1
                 p, im0, frame = path[i], im0s[i].copy(), self.dataset.count
@@ -84,14 +84,14 @@ class DetectionPredictor(BasePredictor):
             log_string += '%gx%g ' % im.shape[2:]  # print string
             self.annotator = self.get_annotator(im0)
 
-            if len(pred):
-                for c in pred[:, 5].unique():
-                    n = (pred[:, 5] == c).sum()  # detections per class
+            if len(det):
+                for c in det[:, 5].unique():
+                    n = (det[:, 5] == c).sum()  # detections per class
                     log_string += f"{n} {self.model.names[int(c)]}{'s' * (n > 1)}, "
 
                 # write
                 gn = torch.tensor(im0s.shape)[[1, 0, 1, 0]]  # normalization gain whwh
-                for *xyxy, conf, cls in reversed(pred):
+                for *xyxy, conf, cls in reversed(det):
                     if self.args.save_txt:  # Write to file
                         xywh = (ops.xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
                         line = (cls, *xywh, conf) if self.args.save_conf else (cls, *xywh)  # label format

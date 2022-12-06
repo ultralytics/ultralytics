@@ -43,7 +43,8 @@ class SegmentationPredictor(DetectionPredictor):
 
         if len(im.shape) == 3:
             im = im[None]  # expand for batch dim
-        for i, pred in enumerate(preds):  # per image
+        for i, det in enumerate(preds):  # per image
+            print(det.shape, det.device)
             self.seen += 1
             if self.webcam:  # batch_size >= 1
                 p, im0, frame = path[i], im0s[i].copy(), self.dataset.count
@@ -59,7 +60,7 @@ class SegmentationPredictor(DetectionPredictor):
             log_string += '%gx%g ' % im.shape[2:]  # print string
             self.annotator = self.get_annotator(im0)
 
-            if len(pred):
+            if len(det):
                 # Segments
                 if self.args.save_txt:
                     segments = [
@@ -69,18 +70,18 @@ class SegmentationPredictor(DetectionPredictor):
                                            normalize=True) for x in reversed(ops.masks2segments(masks[i]))]
 
                 # Print results
-                for c in pred[:, 5].unique():
-                    n = (pred[:, 5] == c).sum()  # detections per class
+                for c in det[:, 5].unique():
+                    n = (det[:, 5] == c).sum()  # detections per class
                     s += f"{n} {self.model.names[int(c)]}{'s' * (n > 1)}, "  # add to string
 
                 # Mask plotting
                 self.annotator.masks(masks[i],
-                                     colors=[colors(x, True) for x in pred[:, 5]],
+                                     colors=[colors(x, True) for x in det[:, 5]],
                                      im_gpu=torch.as_tensor(im0, dtype=torch.float16).to(self.device).permute(
                                          2, 0, 1).flip(0).contiguous() / 255 if self.args.retina_masks else im[i])
 
                 # Write results
-                for j, (*xyxy, conf, cls) in enumerate(reversed(pred[:, :6])):
+                for j, (*xyxy, conf, cls) in enumerate(reversed(det[:, :6])):
                     if self.args.save_txt:  # Write to file
                         seg = segments[j].reshape(-1)  # (n,2) to (n*2)
                         line = (cls, *seg, conf) if self.args.save_conf else (cls, *seg)  # label format

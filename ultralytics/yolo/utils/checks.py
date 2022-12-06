@@ -6,8 +6,8 @@ from pathlib import Path
 from subprocess import check_output
 from typing import Optional
 
-import numpy as np
 import cv2
+import numpy as np
 import pkg_resources as pkg
 import torch
 

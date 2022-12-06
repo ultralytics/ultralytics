@@ -135,7 +135,8 @@ class BasePredictor:
 
             # Inference
             with dt[1]:
-                visualize = increment_path(self.save_dir / Path(path).stem, mkdir=True) if self.args.visualize else False
+                visualize = increment_path(self.save_dir /
+                                           Path(path).stem, mkdir=True) if self.args.visualize else False
                 preds = model(im, augment=self.args.augment, visualize=visualize)
 
             # postprocess

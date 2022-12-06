@@ -58,6 +58,9 @@ hide_conf: False
 vid_stride: 1 # video frame-rate stride
 line_thickness: 3  # bounding box thickness (pixels)
 update: False # Update all models
+visualize: False
+augment: False
+agnostic_nms: False  # class-agnostic NMS
 
 # Hyperparameters ------------------------------------------------------------------------------------------------------
 lr0: 0.01  # initial learning rate (SGD=1E-2, Adam=1E-3)

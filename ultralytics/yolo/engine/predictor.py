@@ -67,6 +67,9 @@ class BasePredictor:
 
     def write_results(self, pred, img, orig_img):
         raise NotImplementedError("print_results function needs to be implemented")
+    
+    def postprocess(self, preds):
+        return preds
 
     def setup(self, source=None, model=None):
         # source
@@ -89,6 +92,7 @@ class BasePredictor:
         # model
         device = select_device(self.args.device)
         model = model or self.args.model
+        self.args.half &= device.type != 'cpu'  # half precision only supported on CUDA
         model = AutoBackend(model, device=device, dnn=self.args.dnn, fp16=self.args.half)  # NOTE: not passing data
         stride, names, pt = model.stride, model.names, model.pt
         imgsz = check_img_size(self.args.img_size, s=stride)  # check image size
@@ -131,8 +135,8 @@ class BasePredictor:
 
             # Inference
             with dt[1]:
-                visualize = increment_path(self.save_dir / Path(path).stem, mkdir=True) if visualize else False
-                preds = model(im, augment=self.augment, visualize=visualize)
+                visualize = increment_path(self.save_dir / Path(path).stem, mkdir=True) if self.args.visualize else False
+                preds = model(im, augment=self.args.augment, visualize=self.args.visualize)
 
             # postprocess
             with dt[2]:
@@ -192,10 +196,8 @@ class BasePredictor:
         # Print results
         t = tuple(x.t / seen * 1E3 for x in dt)  # speeds per image
         LOGGER.info(
-            f'Speed: %.1fms pre-process, %.1fms inference, %.1fms postprocess per image at shape {(1, 3, *self.imgsz)}'
-            % t)
-        if self.save_txt or self.save_img:
-            s = f"\n{len(list(self.save_dir.glob('labels/*.txt')))} labels saved to {self.save_dir / 'labels'}" if self.save_txt else ''
+            f'Speed: %.1fms pre-process, %.1fms inference, %.1fms postprocess per image at shape {(1, 3, *self.imgsz)}' % t)
+        if self.args.save_txt or self.save_img:
+            s = f"\n{len(list(self.save_dir.glob('labels/*.txt')))} labels saved to {self.save_dir / 'labels'}" if self.args.save_txt else ''
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
-        if self.args.update:
-            strip_optimizer(model[0])  # update model (to fix SourceChangeWarning)
+

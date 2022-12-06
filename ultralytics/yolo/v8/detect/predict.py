@@ -12,6 +12,8 @@ class DetectionPredictor(BasePredictor):
     def get_annotator(self, img):
         return Annotator(img, line_width=self.args.line_thickness, example=str(self.model.names))
 
+    def postprocess(self, preds):
+        return ops.non_max_suppression(preds, self.args.conf_thres, self.args.iou_thres, agnostic=self.args.agnostic_nms, max_det=self.args.max_det)
     def write_results(self, pred, img, orig_img):
         # Rescale boxes from img_size to im0 size
         pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape).round()

@@ -459,7 +459,7 @@ class LetterBox:
         self.stride = stride
 
     def __call__(self, labels={}, image=None):
-        img = labels.get("img") or image
+        img = labels.get("img") if image is None else image
         shape = img.shape[:2]  # current shape [height, width]
         new_shape = labels.pop("rect_shape", self.new_shape)
         if isinstance(new_shape, int):

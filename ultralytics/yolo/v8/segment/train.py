@@ -26,10 +26,10 @@ class SegmentationTrainer(BaseTrainer):
         batch["img"] = batch["img"].to(self.device, non_blocking=True).float() / 255
         return batch
 
-    def load_model(self, model_cfg, weights, data):
+    def load_model(self, model_cfg, weights):
         model = SegmentationModel(model_cfg or weights["model"].yaml,
                                   ch=3,
-                                  nc=data["nc"],
+                                  nc=self.data["nc"],
                                   anchors=self.args.get("anchors"))
         if weights:
             model.load(weights)

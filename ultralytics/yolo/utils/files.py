@@ -1,4 +1,5 @@
 import contextlib
+import glob
 import os
 from datetime import datetime
 from pathlib import Path
@@ -74,3 +75,9 @@ def file_date(path=__file__):
     # Return human-readable file modification date, i.e. '2021-3-26'
     t = datetime.fromtimestamp(Path(path).stat().st_mtime)
     return f'{t.year}-{t.month}-{t.day}'
+
+
+def get_latest_run(search_dir='.'):
+    # Return path to most recent 'last.pt' in /runs (i.e. to --resume from)
+    last_list = glob.glob(f'{search_dir}/**/last*.pt', recursive=True)
+    return max(last_list, key=os.path.getctime) if last_list else ''

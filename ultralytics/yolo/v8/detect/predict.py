@@ -48,8 +48,7 @@ class DetectionPredictor(BasePredictor):
 
         self.data_path = p
         # save_path = str(self.save_dir / p.name)  # im.jpg
-        self.txt_path = str(
-            self.save_dir / 'labels' / p.stem) + ('' if self.dataset.mode == 'image' else f'_{frame}')
+        self.txt_path = str(self.save_dir / 'labels' / p.stem) + ('' if self.dataset.mode == 'image' else f'_{frame}')
         log_string += '%gx%g ' % im.shape[2:]  # print string
         self.annotator = self.get_annotator(im0)
 
@@ -78,8 +77,7 @@ class DetectionPredictor(BasePredictor):
                 imc = im0.copy()
                 save_one_box(xyxy,
                              imc,
-                             file=self.save_dir / 'crops' / self.model.model.names[c] /
-                             f'{self.data_path.stem}.jpg',
+                             file=self.save_dir / 'crops' / self.model.model.names[c] / f'{self.data_path.stem}.jpg',
                              BGR=True)
 
 

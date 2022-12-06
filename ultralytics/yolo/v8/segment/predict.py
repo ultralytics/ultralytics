@@ -50,8 +50,7 @@ class SegmentationPredictor(DetectionPredictor):
             frame = getattr(self.dataset, 'frame', 0)
 
         self.data_path = p
-        self.txt_path = str(
-            self.save_dir / 'labels' / p.stem) + ('' if self.dataset.mode == 'image' else f'_{frame}')
+        self.txt_path = str(self.save_dir / 'labels' / p.stem) + ('' if self.dataset.mode == 'image' else f'_{frame}')
         log_string += '%gx%g ' % im.shape[2:]  # print string
         self.annotator = self.get_annotator(im0)
 
@@ -63,10 +62,8 @@ class SegmentationPredictor(DetectionPredictor):
         mask = masks[idx]
         if self.args.save_txt:
             segments = [
-                ops.scale_segments(im0.shape if self.arg.retina_masks else im.shape[2:],
-                                   x,
-                                   im0.shape,
-                                   normalize=True) for x in reversed(ops.masks2segments(mask))]
+                ops.scale_segments(im0.shape if self.arg.retina_masks else im.shape[2:], x, im0.shape, normalize=True)
+                for x in reversed(ops.masks2segments(mask))]
 
         # Print results
         for c in det[:, 5].unique():
@@ -74,10 +71,11 @@ class SegmentationPredictor(DetectionPredictor):
             log_string += f"{n} {self.model.names[int(c)]}{'s' * (n > 1)}, "  # add to string
 
         # Mask plotting
-        self.annotator.masks(mask,
-                             colors=[colors(x, True) for x in det[:, 5]],
-                             im_gpu=torch.as_tensor(im0, dtype=torch.float16).to(self.device).permute(
-                                 2, 0, 1).flip(0).contiguous() / 255 if self.args.retina_masks else im[idx])
+        self.annotator.masks(
+            mask,
+            colors=[colors(x, True) for x in det[:, 5]],
+            im_gpu=torch.as_tensor(im0, dtype=torch.float16).to(self.device).permute(2, 0, 1).flip(0).contiguous() /
+            255 if self.args.retina_masks else im[idx])
 
         # Write results
         for j, (*xyxy, conf, cls) in enumerate(reversed(det[:, :6])):
@@ -95,10 +93,7 @@ class SegmentationPredictor(DetectionPredictor):
                 # annotator.draw.polygon(segments[j], outline=colors(c, True), width=3)
             if self.args.save_crop:
                 imc = im0.copy()
-                save_one_box(xyxy,
-                             imc,
-                             file=self.save_dir / 'crops' / self.model.names[c] / f'{p.stem}.jpg',
-                             BGR=True)
+                save_one_box(xyxy, imc, file=self.save_dir / 'crops' / self.model.names[c] / f'{p.stem}.jpg', BGR=True)
 
 
 @hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)

@@ -459,7 +459,7 @@ class LetterBox:
         self.stride = stride
 
     def __call__(self, labels={}, image=None):
-        img = image or labels["img"]
+        img = labels.get("img") if image is None else image
         shape = img.shape[:2]  # current shape [height, width]
         new_shape = labels.pop("rect_shape", self.new_shape)
         if isinstance(new_shape, int):
@@ -491,10 +491,13 @@ class LetterBox:
         img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT,
                                  value=(114, 114, 114))  # add border
 
-        labels = self._update_labels(labels, ratio, dw, dh)
-        labels["img"] = img
-        labels["resized_shape"] = new_shape
-        return labels
+        if len(labels):
+            labels = self._update_labels(labels, ratio, dw, dh)
+            labels["img"] = img
+            labels["resized_shape"] = new_shape
+            return labels
+        else:
+            return img
 
     def _update_labels(self, labels, ratio, padw, padh):
         """Update labels"""

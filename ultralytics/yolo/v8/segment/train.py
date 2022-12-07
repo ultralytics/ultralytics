@@ -9,7 +9,7 @@ from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG, BaseTrainer
 from ultralytics.yolo.utils.metrics import FocalLoss, bbox_iou, smooth_BCE
 from ultralytics.yolo.utils.modeling.tasks import SegmentationModel
 from ultralytics.yolo.utils.ops import crop_mask, xywh2xyxy
-from ultralytics.yolo.utils.plotting import plot_images_and_masks, plot_results_with_masks
+from ultralytics.yolo.utils.plotting import plot_images, plot_results_with_masks
 from ultralytics.yolo.utils.torch_utils import de_parallel
 
 
@@ -245,13 +245,13 @@ class SegmentationTrainer(BaseTrainer):
         bboxes = batch["bboxes"]
         paths = batch["im_file"]
         batch_idx = batch["batch_idx"]
-        plot_images_and_masks(images,
-                              batch_idx,
-                              cls,
-                              bboxes,
-                              masks,
-                              paths=paths,
-                              fname=self.save_dir / f"train_batch{ni}.jpg")
+        plot_images(images,
+                    batch_idx,
+                    cls,
+                    bboxes,
+                    masks,
+                    paths=paths,
+                    fname=self.save_dir / f"train_batch{ni}.jpg")
 
     def plot_metrics(self):
         plot_results_with_masks(file=self.csv)  # save results.png

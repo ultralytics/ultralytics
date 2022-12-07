@@ -3,6 +3,7 @@ import hydra
 import numpy as np
 
 from ultralytics.yolo.data import build_dataloader
+from ultralytics.yolo.utils.plotting import plot_images
 from ultralytics.yolo.utils import ROOT
 
 DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yaml"
@@ -67,36 +68,14 @@ def test(cfg):
     )
 
     for d in dataloader:
-        # info
-        im_file = d["im_file"]
-        ori_shape = d["ori_shape"]
-        resize_shape = d["resized_shape"]
-        print(ori_shape, resize_shape)
-        print(im_file)
+        images = d["img"]
+        cls = d["cls"].squeeze(-1)
+        bboxes = d["bboxes"]
+        paths = d["im_file"]
+        batch_idx = d["batch_idx"]
+        result = plot_images(images, batch_idx, cls, bboxes, paths=paths)
 
-        # labels
-        idx = 1  # show which image inside one batch
-        img = d["img"][idx].numpy()[::-1]
-        img = np.ascontiguousarray(img.transpose(1, 2, 0))
-        ih, iw = img.shape[:2]
-        # print(img.shape)
-        bidx = d["batch_idx"]
-        cls = d["cls"][bidx == idx].numpy()
-        bboxes = d["bboxes"][bidx == idx].numpy()
-        print(bboxes.shape)
-        bboxes[:, [0, 2]] *= iw
-        bboxes[:, [1, 3]] *= ih
-
-        for i, b in enumerate(bboxes):
-            x, y, w, h = b
-            x1 = x - w / 2
-            x2 = x + w / 2
-            y1 = y - h / 2
-            y2 = y + h / 2
-            c = int(cls[i][0])
-            # print(x1, y1, x2, y2)
-            plot_one_box([int(x1), int(y1), int(x2), int(y2)], img, label=f"{c}", color=colors(c))
-        cv2.imshow("p", img)
+        cv2.imshow("p", result)
         if cv2.waitKey(0) == ord("q"):
             break
 

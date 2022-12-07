@@ -289,7 +289,7 @@ class BaseTrainer:
         """
         load/create/download model for any task
         """
-        if isinstance(self.model, torch.nn.Module): # if loaded model is passed
+        if isinstance(self.model, torch.nn.Module):  # if loaded model is passed
             return
             # We should improve the code flow here. This function looks hacky
         model = self.model
@@ -424,12 +424,10 @@ class BaseTrainer:
         if self.args.resume:
             assert start_epoch > 0, f'{self.model} training to {self.epochs} epochs is finished, nothing to resume.\n' \
                                     f"Start a new training without --resume, i.e. 'yolo task=... mode=train model={self.model}'"
-            LOGGER.info(
-                f'Resuming training from {self.model} from epoch {start_epoch} to {self.epochs} total epochs')
+            LOGGER.info(f'Resuming training from {self.model} from epoch {start_epoch} to {self.epochs} total epochs')
         if self.epochs < start_epoch:
             LOGGER.info(
-                f"{self.model} has been trained for {ckpt['epoch']} epochs. Fine-tuning for {self.epochs} more epochs."
-            )
+                f"{self.model} has been trained for {ckpt['epoch']} epochs. Fine-tuning for {self.epochs} more epochs.")
             self.epochs += ckpt['epoch']  # finetune additional epochs
         self.best_fitness = best_fitness
         self.start_epoch = start_epoch

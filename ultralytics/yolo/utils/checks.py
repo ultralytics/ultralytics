@@ -6,10 +6,13 @@ from pathlib import Path
 from subprocess import check_output
 from typing import Optional
 
+import cv2
+import numpy as np
 import pkg_resources as pkg
 import torch
 
-from ultralytics.yolo.utils import AUTOINSTALL, FONT, LOGGER, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, emojis
+from ultralytics.yolo.utils import (AUTOINSTALL, FONT, LOGGER, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, emojis,
+                                    is_docker, is_notebook)
 
 
 def is_ascii(s=''):
@@ -129,6 +132,22 @@ def check_file(file, suffix=''):
 def check_yaml(file, suffix=('.yaml', '.yml')):
     # Search/download YAML file (if necessary) and return path, checking suffix
     return check_file(file, suffix)
+
+
+def check_imshow(warn=False):
+    # Check if environment supports image displays
+    try:
+        assert not is_notebook()
+        assert not is_docker()
+        cv2.imshow('test', np.zeros((1, 1, 3)))
+        cv2.waitKey(1)
+        cv2.destroyAllWindows()
+        cv2.waitKey(1)
+        return True
+    except Exception as e:
+        if warn:
+            LOGGER.warning(f'WARNING ⚠️ Environment does not support cv2.imshow() or PIL Image.show()\n{e}')
+        return False
 
 
 def git_describe(path=ROOT):  # path must be a directory

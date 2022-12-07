@@ -46,7 +46,22 @@ max_det: 300
 half: True
 dnn: False # use OpenCV DNN for ONNX inference
 plots: False
+
+# Prediction settings:
+source: "ultralytics/assets/"
+view_img: False
 save_txt: False
+save_conf: False
+save_crop: False
+hide_labels: False  # hide labels
+hide_conf: False
+vid_stride: 1 # video frame-rate stride
+line_thickness: 3  # bounding box thickness (pixels)
+update: False # Update all models
+visualize: False
+augment: False
+agnostic_nms: False  # class-agnostic NMS
+retina_masks: False
 
 # Hyperparameters ------------------------------------------------------------------------------------------------------
 lr0: 0.01  # initial learning rate (SGD=1E-2, Adam=1E-3)

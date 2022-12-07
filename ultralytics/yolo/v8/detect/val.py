@@ -63,7 +63,7 @@ class DetectionValidator(BaseValidator):
         self.seen = 0
         self.confusion_matrix = ConfusionMatrix(nc=self.nc)
         self.metrics = Metric()
-        self.loss = torch.zeros(4, device=self.device)
+        self.loss = torch.zeros(3, device=self.device)
         self.jdict = []
         self.stats = []
 

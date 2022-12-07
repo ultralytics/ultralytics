@@ -55,7 +55,7 @@ class LoadStreams:
         LOGGER.info('')  # newline
 
         # check for common shapes
-        s = np.stack([LetterBox(img_size, auto, stride=stride)(x)[0].shape for x in self.imgs])
+        s = np.stack([LetterBox(img_size, auto, stride=stride)(image=x).shape for x in self.imgs])
         self.rect = np.unique(s, axis=0).shape[0] == 1  # rect inference if all shapes equal
         self.auto = auto and self.rect
         self.transforms = transforms  # optional
@@ -92,7 +92,7 @@ class LoadStreams:
         if self.transforms:
             im = np.stack([self.transforms(x) for x in im0])  # transforms
         else:
-            # s = np.stack([LetterBox(self.img_size, self.auto, stride=self.stride)(x)[0] for x in im0])
+            im = np.stack([LetterBox(self.img_size, self.auto, stride=self.stride)(image=x) for x in im0])
             im = im[..., ::-1].transpose((0, 3, 1, 2))  # BGR to RGB, BHWC to BCHW
             im = np.ascontiguousarray(im)  # contiguous
 
@@ -144,7 +144,7 @@ class LoadScreenshots:
         if self.transforms:
             im = self.transforms(im0)  # transforms
         else:
-            im = LetterBox(self.img_size, self.auto, stride=self.stride)(im0)[0]
+            im = LetterBox(self.img_size, self.auto, stride=self.stride)(image=im0)
             im = im.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
             im = np.ascontiguousarray(im)  # contiguous
         self.frame += 1

@@ -1,0 +1,68 @@
+import hydra
+import torch
+
+from ultralytics.yolo.engine.predictor import BasePredictor
+from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
+from ultralytics.yolo.utils import ops
+from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
+
+
+class ClassificationPredictor(BasePredictor):
+
+    def get_annotator(self, img):
+        return Annotator(img, example=str(self.model.names), pil=True)
+
+    def preprocess(self, img):
+        img = torch.Tensor(img).to(self.model.device)
+        img = img.half() if self.model.fp16 else img.float()  # uint8 to fp16/32
+        return img
+
+    def write_results(self, idx, preds, batch):
+        p, im, im0 = batch
+        log_string = ""
+        if len(im.shape) == 3:
+            im = im[None]  # expand for batch dim
+        self.seen += 1
+        im0 = im0.copy()
+        if self.webcam:  # batch_size >= 1
+            log_string += f'{idx}: '
+            frame = self.dataset.cound
+        else:
+            frame = getattr(self.dataset, 'frame', 0)
+
+        self.data_path = p
+        # save_path = str(self.save_dir / p.name)  # im.jpg
+        self.txt_path = str(self.save_dir / 'labels' / p.stem) + ('' if self.dataset.mode == 'image' else f'_{frame}')
+        log_string += '%gx%g ' % im.shape[2:]  # print string
+        self.annotator = self.get_annotator(im0)
+
+        prob = preds[idx]
+        # Print results
+        top5i = prob.argsort(0, descending=True)[:5].tolist()  # top 5 indices
+        log_string += f"{', '.join(f'{self.model.names[j]} {prob[j]:.2f}' for j in top5i)}, "
+
+        # write
+        text = '\n'.join(f'{prob[j]:.2f} {self.model.names[j]}' for j in top5i)
+        if self.save_img or self.args.view_img:  # Add bbox to image
+            self.annotator.text((32, 32), text, txt_color=(255, 255, 255))
+        if self.args.save_txt:  # Write to file
+            with open(f'{self.txt_path}.txt', 'a') as f:
+                f.write(text + '\n')
+
+        return log_string
+
+
+@hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
+def predict(cfg):
+    cfg.model = cfg.model or "squeezenet1_0"
+    sz = cfg.img_size
+    if type(sz) != int:  # recieved listConfig
+        cfg.img_size = [sz[0], sz[0]] if len(cfg.img_size) == 1 else [sz[0], sz[1]]  # expand
+    else:
+        cfg.img_size = [sz, sz]
+    predictor = ClassificationPredictor(cfg)
+    predictor()
+
+
+if __name__ == "__main__":
+    predict()

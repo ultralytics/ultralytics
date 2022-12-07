@@ -26,14 +26,15 @@ class SegmentationPredictor(DetectionPredictor):
                                     max_det=self.args.max_det,
                                     nm=32)
         for i, pred in enumerate(p):
+            shape = orig_img[i].shape if self.webcam else orig_img.shape
             if not len(pred):
                 continue
             if self.args.retina_masks:
-                pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape).round()
-                masks.append(ops.process_mask_native(proto[i], pred[:, 6:], pred[:, :4], orig_img.shape[:2]))  # HWC
+                pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
+                masks.append(ops.process_mask_native(proto[i], pred[:, 6:], pred[:, :4], shape[:2]))  # HWC
             else:
                 masks.append(ops.process_mask(proto[i], pred[:, 6:], pred[:, :4], img.shape[2:], upsample=True))  # HWC
-                pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape).round()
+                pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
 
         return (p, masks)
 
@@ -45,7 +46,7 @@ class SegmentationPredictor(DetectionPredictor):
         self.seen += 1
         if self.webcam:  # batch_size >= 1
             log_string += f'{idx}: '
-            frame = self.dataset.cound
+            frame = self.dataset.count
         else:
             frame = getattr(self.dataset, 'frame', 0)
 

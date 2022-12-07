@@ -48,7 +48,7 @@ dnn: False # use OpenCV DNN for ONNX inference
 plots: False
 
 # Prediction settings:
-source: None
+source: "ultralytics/assets/"
 view_img: False
 save_txt: False
 save_conf: False

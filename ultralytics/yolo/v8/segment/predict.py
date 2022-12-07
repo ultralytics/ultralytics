@@ -101,7 +101,6 @@ class SegmentationPredictor(DetectionPredictor):
 @hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
 def predict(cfg):
     cfg.model = cfg.model or "n.pt"
-    cfg.source = ROOT / "assets/"
     sz = cfg.img_size
     if type(sz) != int:  # recieved listConfig
         cfg.img_size = [sz[0], sz[0]] if len(cfg.img_size) == 1 else [sz[0], sz[1]]  # expand

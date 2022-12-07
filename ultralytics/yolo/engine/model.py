@@ -60,9 +60,9 @@ class YOLO:
             p.requires_grad = True
 
     def train(self, **kwargs):
-        if 'data' not in kwargs:
+        if 'data' not in kwargs and 'resume' not in kwargs:
             raise Exception("data is required to train")
-        if not self.model:
+        if not self.model and 'resume' not in kwargs:
             raise Exception("model not initialized. Use .new() or .load()")
         # kwargs["model"] = self.model
         trainer = self.TrainerClass(overrides=kwargs)

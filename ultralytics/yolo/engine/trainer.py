@@ -63,6 +63,7 @@ class BaseTrainer:
         self.scaler = amp.GradScaler(enabled=self.device.type != 'cpu')
 
         # Model and Dataloaders.
+        self.model = self.args.model
         self.data = self.args.data
         if self.data.endswith(".yaml"):
             self.data = check_dataset_yaml(self.data)
@@ -288,7 +289,10 @@ class BaseTrainer:
         """
         load/create/download model for any task
         """
-        model = self.args.model
+        if isinstance(self.model, torch.nn.Module): # if loaded model is passed
+            return
+            # We should improve the code flow here. This function looks hacky
+        model = self.model
         pretrained = not (str(model).endswith(".yaml"))
         # config
         if not pretrained:
@@ -402,7 +406,7 @@ class BaseTrainer:
             last = Path(check_file(resume) if isinstance(resume, str) else get_latest_run())
             args_yaml = last.parent.parent / 'args.yaml'  # train options yaml
             if args_yaml.is_file():
-                args = self._get_config(args_yaml)  # replace
+                args = get_config(args_yaml)  # replace
             args.model, args.resume, args.exist_ok = str(last), True, True  # reinstate
             self.args = args
 
@@ -418,13 +422,13 @@ class BaseTrainer:
             self.ema.ema.load_state_dict(ckpt['ema'].float().state_dict())  # EMA
             self.ema.updates = ckpt['updates']
         if self.args.resume:
-            assert start_epoch > 0, f'{self.args.model} training to {self.epochs} epochs is finished, nothing to resume.\n' \
-                                    f"Start a new training without --resume, i.e. 'yolo task=... mode=train model={self.args.model}'"
+            assert start_epoch > 0, f'{self.model} training to {self.epochs} epochs is finished, nothing to resume.\n' \
+                                    f"Start a new training without --resume, i.e. 'yolo task=... mode=train model={self.model}'"
             LOGGER.info(
-                f'Resuming training from {self.args.model} from epoch {start_epoch} to {self.epochs} total epochs')
+                f'Resuming training from {self.model} from epoch {start_epoch} to {self.epochs} total epochs')
         if self.epochs < start_epoch:
             LOGGER.info(
-                f"{self.args.model} has been trained for {ckpt['epoch']} epochs. Fine-tuning for {self.epochs} more epochs."
+                f"{self.model} has been trained for {ckpt['epoch']} epochs. Fine-tuning for {self.epochs} more epochs."
             )
             self.epochs += ckpt['epoch']  # finetune additional epochs
         self.best_fitness = best_fitness

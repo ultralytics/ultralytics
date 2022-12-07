@@ -3,6 +3,7 @@ Top-level YOLO model interface. First principle usage example - https://github.c
 """
 import yaml
 
+from ultralytics import yolo
 from ultralytics.yolo.utils import LOGGER
 from ultralytics.yolo.utils.checks import check_yaml
 from ultralytics.yolo.utils.modeling import get_model
@@ -10,9 +11,9 @@ from ultralytics.yolo.utils.modeling.tasks import ClassificationModel, Detection
 
 # map head: [model, trainer]
 MODEL_MAP = {
-    "classify": [ClassificationModel, 'yolo.VERSION.classify.train.ClassificationTrainer'],
-    "detect": [ClassificationModel, 'yolo.VERSION.classify.train.ClassificationTrainer'],  # temp
-    "segment": []}
+    "classify": [ClassificationModel, 'yolo.VERSION.classify.ClassificationTrainer'],
+    "detect": [DetectionModel, 'yolo.VERSION.detect.DetectionTrainer'],
+    "segment": [SegmentationModel, 'yolo.VERSION.segment.SegmentationTrainer']}
 
 
 class YOLO:
@@ -36,7 +37,7 @@ class YOLO:
         else:
             with open(cfg, encoding='ascii', errors='ignore') as f:
                 cfg = yaml.safe_load(f)  # model dict
-            self.ModelClass, self.TrainerClass = self._get_model_and_trainer(cfg["head"])
+            self.ModelClass, self.TrainerClass = self._guess_model_and_trainer(cfg["head"])
             self.model = self.ModelClass(cfg)  # initialize
 
     def load(self, weights, autodownload=True):
@@ -71,6 +72,7 @@ class YOLO:
     def _guess_model_and_trainer(self, cfg):
         # TODO: warn
         head = cfg[-1][-2]
+        task = None
         if head.lower() in ["classify", "classifier", "cls", "fc"]:
             task = "classify"
         if head.lower() in ["detect"]:

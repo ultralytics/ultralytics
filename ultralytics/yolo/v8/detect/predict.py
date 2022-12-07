@@ -25,8 +25,9 @@ class DetectionPredictor(BasePredictor):
                                         agnostic=self.args.agnostic_nms,
                                         max_det=self.args.max_det)
 
-        for pred in preds:
-            pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape).round()
+        for i, pred in enumerate(preds):
+            shape = orig_img[i].shape if self.webcam else orig_img.shape
+            pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
 
         return preds
 
@@ -39,7 +40,7 @@ class DetectionPredictor(BasePredictor):
         im0 = im0.copy()
         if self.webcam:  # batch_size >= 1
             log_string += f'{idx}: '
-            frame = self.dataset.cound
+            frame = self.dataset.count
         else:
             frame = getattr(self.dataset, 'frame', 0)
 

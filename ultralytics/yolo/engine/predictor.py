@@ -133,7 +133,6 @@ class BasePredictor:
         self.seen, self.windows, self.dt = 0, [], (ops.Profile(), ops.Profile(), ops.Profile())
         for batch in self.dataset:
             path, im, im0s, vid_cap, s = batch
-            log_string = ""
             visualize = increment_path(self.save_dir / Path(path).stem, mkdir=True) if self.args.visualize else False
             with self.dt[0]:
                 im = self.preprocess(im)
@@ -152,7 +151,7 @@ class BasePredictor:
                 if self.webcam:
                     path, im0s = path[i], im0s[i]
                 p = Path(path)
-                log_string += self.write_results(i, preds, (p, im, im0s))
+                s += self.write_results(i, preds, (p, im, im0s))
 
                 if self.args.view_img:
                     self.show(p)
@@ -161,7 +160,7 @@ class BasePredictor:
                     self.save_preds(vid_cap, i, str(self.save_dir / p.name))
 
             # Print time (inference-only)
-            LOGGER.info(f"{log_string}{'' if len(preds) else '(no detections), '}{self.dt[1].dt * 1E3:.1f}ms")
+            LOGGER.info(f"{s}{'' if len(preds) else '(no detections), '}{self.dt[1].dt * 1E3:.1f}ms")
 
         # Print results
         t = tuple(x.t / self.seen * 1E3 for x in self.dt)  # speeds per image

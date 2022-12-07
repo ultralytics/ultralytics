@@ -532,10 +532,9 @@ class CopyPaste:
             indexes = np.nonzero((ioa < 0.30).all(1))[0]  # (N, )
             n = len(indexes)
             for j in random.sample(list(indexes), k=round(self.p * n)):
-                print(cls.shape, j, cls[j].shape)
-                cls = np.concatenate((cls, cls[j]), axis=0)
-                instances = Instances.concatenate((instances, ins_flip[j]), axis=0)
-                cv2.drawContours(im_new, instances.segments[j].astype(np.int32), -1, (1, 1, 1), cv2.FILLED)
+                cls = np.concatenate((cls, cls[[j]]), axis=0)
+                instances = Instances.concatenate((instances, ins_flip[[j]]), axis=0)
+                cv2.drawContours(im_new, instances.segments[[j]].astype(np.int32), -1, (1, 1, 1), cv2.FILLED)
 
             result = cv2.flip(im, 1)  # augment segments (flip left-right)
             i = cv2.flip(im_new, 1).astype(bool)

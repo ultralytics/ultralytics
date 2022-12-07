@@ -1,13 +1,9 @@
-import platform
-from pathlib import Path
-
-import cv2
 import hydra
 import torch
 
 from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
-from ultralytics.yolo.utils import LOGGER, ROOT, ops
+from ultralytics.yolo.utils import ops
 from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
 
 

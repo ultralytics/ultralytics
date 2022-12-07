@@ -46,7 +46,7 @@ class BaseValidator:
             self.args.half &= self.device.type != 'cpu'
             model = model.half() if self.args.half else model.float()
             self.model = model
-            loss = torch.zeros_like(trainer.loss_items, device=trainer.device)
+            self.loss = torch.zeros_like(trainer.loss_items, device=trainer.device)
         else:  # TODO: handle this when detectMultiBackend is supported
             assert model is not None, "Either trainer or model is needed for validation"
             self.device = select_device(self.args.device, self.args.batch_size)
@@ -96,7 +96,7 @@ class BaseValidator:
                 # loss
                 with dt[2]:
                     if self.training:
-                        loss += trainer.criterion(preds, batch)[1]
+                        self.loss += trainer.criterion(preds, batch)[1]
 
                 # pre-process predictions
                 with dt[3]:
@@ -123,7 +123,7 @@ class BaseValidator:
             model.float()
         # TODO: implement save json
 
-        return stats | trainer.label_loss_items(loss.cpu() / len(self.dataloader), prefix="val") \
+        return stats | trainer.label_loss_items(self.loss.cpu() / len(self.dataloader), prefix="val") \
                 if self.training else stats
 
     def get_dataloader(self, dataset_path, batch_size):

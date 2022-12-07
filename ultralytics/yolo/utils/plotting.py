@@ -175,7 +175,6 @@ def plot_images(images,
                 cls,
                 bboxes,
                 masks=np.zeros(0, dtype=np.uint8),
-                confs=None,
                 paths=None,
                 fname='images.jpg',
                 names=None):
@@ -226,10 +225,10 @@ def plot_images(images,
         if len(cls) > 0:
             idx = batch_idx == i
 
-            boxes = xywh2xyxy(bboxes[idx]).T
+            boxes = xywh2xyxy(bboxes[idx, :4]).T
             classes = cls[idx].astype('int')
-            labels = confs is None  # labels if no conf column
-            conf = None if labels else confs[idx]  # check for confidence presence (label vs pred)
+            labels = bboxes.shape[1] == 4  # labels if no conf column
+            conf = None if labels else bboxes[idx, 4]  # check for confidence presence (label vs pred)
 
             if boxes.shape[1]:
                 if boxes.max() <= 1.01:  # if normalized with tolerance 0.01
@@ -314,4 +313,4 @@ def output_to_target(output, max_det=300):
         j = torch.full((conf.shape[0], 1), i)
         targets.append(torch.cat((j, cls, xyxy2xywh(box), conf), 1))
     targets = torch.cat(targets, 0).numpy()
-    return targets[:, 0], targets[:, 1], targets[:, 2:6], targets[:, 6]
+    return targets[:, 0], targets[:, 1], targets[:, 2:]

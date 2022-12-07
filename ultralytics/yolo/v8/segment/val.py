@@ -13,7 +13,7 @@ from ultralytics.yolo.utils.checks import check_file, check_requirements
 from ultralytics.yolo.utils.files import yaml_load
 from ultralytics.yolo.utils.metrics import (ConfusionMatrix, Metrics, ap_per_class_box_and_mask, box_iou,
                                             fitness_segmentation, mask_iou)
-from ultralytics.yolo.utils.plotting import output_to_target, plot_images_and_masks
+from ultralytics.yolo.utils.plotting import output_to_target, plot_images
 from ultralytics.yolo.utils.torch_utils import de_parallel
 
 
@@ -237,7 +237,7 @@ class SegmentationValidator(BaseValidator):
         bboxes = batch["bboxes"]
         paths = batch["im_file"]
         batch_idx = batch["batch_idx"]
-        plot_images_and_masks(images,
+        plot_images(images,
                               batch_idx,
                               cls,
                               bboxes,
@@ -252,7 +252,7 @@ class SegmentationValidator(BaseValidator):
         if len(self.plot_masks):
             plot_masks = torch.cat(self.plot_masks, dim=0)
         batch_idx, cls, bboxes, conf = output_to_target(preds[0], max_det=15)
-        plot_images_and_masks(images, batch_idx, cls, bboxes, plot_masks, conf, paths,
+        plot_images(images, batch_idx, cls, bboxes, plot_masks, conf, paths,
                               self.save_dir / f'val_batch{ni}_pred.jpg', self.names)  # pred
         self.plot_masks.clear()
 

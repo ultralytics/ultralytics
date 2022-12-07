@@ -12,7 +12,6 @@ class ClassificationPredictor(BasePredictor):
     def get_annotator(self, img):
         return Annotator(img, example=str(self.model.names), pil=True)
 
-
     def preprocess(self, img):
         img = torch.Tensor(img).to(self.model.device)
         img = img.half() if self.model.fp16 else img.float()  # uint8 to fp16/32
@@ -42,7 +41,6 @@ class ClassificationPredictor(BasePredictor):
         top5i = prob.argsort(0, descending=True)[:5].tolist()  # top 5 indices
         log_string += f"{', '.join(f'{self.model.names[j]} {prob[j]:.2f}' for j in top5i)}, "
 
-
         # write
         text = '\n'.join(f'{prob[j]:.2f} {self.model.names[j]}' for j in top5i)
         if self.save_img or self.args.view_img:  # Add bbox to image
@@ -50,7 +48,7 @@ class ClassificationPredictor(BasePredictor):
         if self.args.save_txt:  # Write to file
             with open(f'{self.txt_path}.txt', 'a') as f:
                 f.write(text + '\n')
-            
+
         return log_string
 
 

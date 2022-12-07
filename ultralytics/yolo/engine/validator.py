@@ -47,7 +47,7 @@ class BaseValidator:
             model = model.half() if self.args.half else model.float()
             self.model = model
             self.loss = torch.zeros_like(trainer.loss_items, device=trainer.device)
-        else: 
+        else:
             assert model is not None, "Either trainer or model is needed for validation"
             self.device = select_device(self.args.device, self.args.batch_size)
             self.args.half &= self.device.type != 'cpu'

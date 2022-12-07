@@ -1,10 +1,12 @@
 import cv2
+import hydra
 import numpy as np
 import torch
-from omegaconf import OmegaConf
 
 from ultralytics.yolo.data import build_dataloader
+from ultralytics.yolo.utils import ROOT
 
+DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yaml"
 
 class Colors:
     # Ultralytics color palette https://ultralytics.com/
@@ -52,25 +54,17 @@ def plot_one_box(x, img, color=None, label=None, line_thickness=None):
         )
 
 
-with open("ultralytics/tests/data/dataloader/hyp_test.yaml") as f:
-    hyp = OmegaConf.load(f)
-
-
-def test(augment, rect):
+@hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
+def test(cfg):
+    cfg.task = "segment"
+    cfg.mode = "train"
     dataloader, _ = build_dataloader(
-        img_path="/d/dataset/COCO/coco128-seg/images",
-        img_size=640,
-        label_path=None,
-        cache=False,
-        hyp=hyp,
-        augment=augment,
-        prefix="",
-        rect=rect,
+        cfg=cfg,
         batch_size=4,
+        img_path="/d/dataset/COCO/coco128-seg/images",
         stride=32,
-        pad=0.5,
-        use_segments=True,
-        use_keypoints=False,
+        label_path=None,
+        mode=cfg.mode,
     )
 
     for d in dataloader:
@@ -83,7 +77,7 @@ def test(augment, rect):
 
         # labels
         idx = 1  # show which image inside one batch
-        img = d["img"][idx].numpy()
+        img = d["img"][idx].numpy()[::-1]
         img = np.ascontiguousarray(img.transpose(1, 2, 0))
         ih, iw = img.shape[:2]
         # print(img.shape)
@@ -123,6 +117,7 @@ def test(augment, rect):
 
 
 if __name__ == "__main__":
-    test(augment=True, rect=False)
-    test(augment=False, rect=True)
-    test(augment=False, rect=False)
+    test()
+    # test(augment=True, rect=False)
+    # test(augment=False, rect=True)
+    # test(augment=False, rect=False)

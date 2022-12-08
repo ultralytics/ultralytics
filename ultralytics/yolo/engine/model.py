@@ -1,16 +1,15 @@
 """
 Top-level YOLO model interface. First principle usage example - https://github.com/ultralytics/ultralytics/issues/13
 """
-import yaml
-
 import torch
+import yaml
 
 from ultralytics import yolo
 from ultralytics.yolo.utils import LOGGER
 from ultralytics.yolo.utils.checks import check_yaml
+from ultralytics.yolo.utils.files import get_latest_run
 from ultralytics.yolo.utils.modeling import attempt_load_weights
 from ultralytics.yolo.utils.modeling.tasks import ClassificationModel, DetectionModel, SegmentationModel
-from ultralytics.yolo.utils.files import get_latest_run
 
 # map head: [model, trainer]
 MODEL_MAP = {
@@ -20,6 +19,7 @@ MODEL_MAP = {
 
 
 class YOLO:
+
     def __init__(self, version=8) -> None:
         self.version = version
         self.ModelClass = None
@@ -27,7 +27,7 @@ class YOLO:
         self.model = None
         self.trainer = None
         self.task = None
-        
+
     def new(self, cfg: str):
         cfg = check_yaml(cfg)  # check YAML
         with open(cfg, encoding='ascii', errors='ignore') as f:
@@ -59,7 +59,7 @@ class YOLO:
         kwargs["mode"] = "train"
         self.trainer = self.TrainerClass(overrides=kwargs)
         # load pre-trained weights if found, else use the loaded model
-        self.trainer.model = self.trainer.load_model(weights=self.ckpt) if self.ckpt else self.model 
+        self.trainer.model = self.trainer.load_model(weights=self.ckpt) if self.ckpt else self.model
         self.trainer.train()
 
     def _guess_model_trainer_and_task(self, head):
@@ -81,4 +81,3 @@ class YOLO:
         if not self.model:
             LOGGER.info("model not initialized!")
         return self.model(imgs)
-

@@ -8,7 +8,6 @@ from collections import defaultdict
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Union
 
 import numpy as np
 import torch

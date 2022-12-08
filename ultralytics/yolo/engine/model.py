@@ -4,10 +4,8 @@ Top-level YOLO model interface. First principle usage example - https://github.c
 import torch
 import yaml
 
-from ultralytics import yolo
 from ultralytics.yolo.utils import LOGGER
 from ultralytics.yolo.utils.checks import check_yaml
-from ultralytics.yolo.utils.files import get_latest_run
 from ultralytics.yolo.utils.modeling import attempt_load_weights
 from ultralytics.yolo.utils.modeling.tasks import ClassificationModel, DetectionModel, SegmentationModel
 

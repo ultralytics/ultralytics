@@ -125,6 +125,7 @@ class BaseTrainer:
         """
         # model
         ckpt = self.setup_model()
+        self.model = self.model.to(self.device)
         self.set_model_attributes()
         if world_size > 1:
             self.model = DDP(self.model, device_ids=[rank])
@@ -297,7 +298,7 @@ class BaseTrainer:
         if not pretrained:
             model = check_file(model)
         ckpt = self.load_ckpt(model) if pretrained else None
-        self.model = self.load_model(model_cfg=None if pretrained else model, weights=ckpt).to(self.device)  # model
+        self.model = self.load_model(model_cfg=None if pretrained else model, weights=ckpt)  # model
         return ckpt
 
     def load_ckpt(self, ckpt):
@@ -421,9 +422,9 @@ class BaseTrainer:
             self.ema.ema.load_state_dict(ckpt['ema'].float().state_dict())  # EMA
             self.ema.updates = ckpt['updates']
         if self.args.resume:
-            assert start_epoch > 0, f'{self.model} training to {self.epochs} epochs is finished, nothing to resume.\n' \
-                                    f"Start a new training without --resume, i.e. 'yolo task=... mode=train model={self.model}'"
-            LOGGER.info(f'Resuming training from {self.model} from epoch {start_epoch} to {self.epochs} total epochs')
+            assert start_epoch > 0, f'{self.args.model} training to {self.epochs} epochs is finished, nothing to resume.\n' \
+                                    f"Start a new training without --resume, i.e. 'yolo task=... mode=train model={self.args.model}'"
+            LOGGER.info(f'Resuming training from {self.args.model} from epoch {start_epoch} to {self.epochs} total epochs')
         if self.epochs < start_epoch:
             LOGGER.info(
                 f"{self.model} has been trained for {ckpt['epoch']} epochs. Fine-tuning for {self.epochs} more epochs.")

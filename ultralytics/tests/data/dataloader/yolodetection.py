@@ -1,8 +1,12 @@
 import cv2
+import hydra
 import numpy as np
-from omegaconf import OmegaConf
 
 from ultralytics.yolo.data import build_dataloader
+from ultralytics.yolo.utils import ROOT
+from ultralytics.yolo.utils.plotting import plot_images
+
+DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yaml"
 
 
 class Colors:
@@ -51,47 +55,34 @@ def plot_one_box(x, img, color=None, label=None, line_thickness=None):
         )
 
 
-with open("ultralytics/tests/data/dataloader/hyp_test.yaml") as f:
-    hyp = OmegaConf.load(f)
+@hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
+def test(cfg):
+    cfg.task = "detect"
+    cfg.mode = "train"
+    dataloader, _ = build_dataloader(
+        cfg=cfg,
+        batch_size=4,
+        img_path="/d/dataset/COCO/coco128-seg/images",
+        stride=32,
+        label_path=None,
+        mode=cfg.mode,
+    )
 
-dataloader, dataset = build_dataloader(
-    img_path="/d/dataset/COCO/coco128-seg/images",
-    img_size=640,
-    label_path=None,
-    cache=False,
-    hyp=hyp,
-    augment=False,
-    prefix="",
-    rect=False,
-    batch_size=4,
-    stride=32,
-    pad=0.5,
-    use_segments=True,
-    use_keypoints=False,
-)
+    for d in dataloader:
+        images = d["img"]
+        cls = d["cls"].squeeze(-1)
+        bboxes = d["bboxes"]
+        paths = d["im_file"]
+        batch_idx = d["batch_idx"]
+        result = plot_images(images, batch_idx, cls, bboxes, paths=paths)
 
-for d in dataloader:
-    idx = 1  # show which image inside one batch
-    img = d["img"][idx].numpy()
-    img = np.ascontiguousarray(img.transpose(1, 2, 0))
-    ih, iw = img.shape[:2]
-    # print(img.shape)
-    bidx = d["batch_idx"]
-    cls = d["cls"][bidx == idx].numpy()
-    bboxes = d["bboxes"][bidx == idx].numpy()
-    print(bboxes.shape)
-    bboxes[:, [0, 2]] *= iw
-    bboxes[:, [1, 3]] *= ih
-    nl = len(cls)
+        cv2.imshow("p", result)
+        if cv2.waitKey(0) == ord("q"):
+            break
 
-    for i, b in enumerate(bboxes):
-        x, y, w, h = b
-        x1 = x - w / 2
-        x2 = x + w / 2
-        y1 = y - h / 2
-        y2 = y + h / 2
-        c = int(cls[i][0])
-        plot_one_box([int(x1), int(y1), int(x2), int(y2)], img, label=f"{c}", color=colors(c))
-    cv2.imshow("p", img)
-    if cv2.waitKey(0) == ord("q"):
-        break
+
+if __name__ == "__main__":
+    test()
+    # test(augment=True, rect=False)
+    # test(augment=False, rect=True)
+    # test(augment=False, rect=False)

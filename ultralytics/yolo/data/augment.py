@@ -521,23 +521,25 @@ class CopyPaste:
         instances.convert_bbox(format="xyxy")
         if self.p and len(instances.segments):
             n = len(instances)
-            h, w, _ = im.shape  # height, width, channels
+            _, w, _ = im.shape  # height, width, channels
             im_new = np.zeros(im.shape, np.uint8)
-            j = random.sample(range(n), k=round(self.p * n))
-            c, instance = cls[j], instances[j]
-            instance.fliplr(w)
-            ioa = bbox_ioa(instance.bboxes, instances.bboxes)  # intersection over area, (N, M)
-            i = (ioa < 0.30).all(1)  # (N, )
-            if i.sum():
-                cls = np.concatenate((cls, c[i]), axis=0)
-                instances = Instances.concatenate((instances, instance[i]), axis=0)
-                cv2.drawContours(im_new, instances.segments[j][i].astype(np.int32), -1, (255, 255, 255), cv2.FILLED)
 
-            result = cv2.bitwise_and(src1=im, src2=im_new)
-            result = cv2.flip(result, 1)  # augment segments (flip left-right)
-            i = result > 0  # pixels to replace
-            # i[:, :] = result.max(2).reshape(h, w, 1)  # act over ch
+            # calculate ioa first then select indexes randomly
+            ins_flip = deepcopy(instances)
+            ins_flip.fliplr(w)
+
+            ioa = bbox_ioa(ins_flip.bboxes, instances.bboxes)  # intersection over area, (N, M)
+            indexes = np.nonzero((ioa < 0.30).all(1))[0]  # (N, )
+            n = len(indexes)
+            for j in random.sample(list(indexes), k=round(self.p * n)):
+                cls = np.concatenate((cls, cls[[j]]), axis=0)
+                instances = Instances.concatenate((instances, ins_flip[[j]]), axis=0)
+                cv2.drawContours(im_new, instances.segments[[j]].astype(np.int32), -1, (1, 1, 1), cv2.FILLED)
+
+            result = cv2.flip(im, 1)  # augment segments (flip left-right)
+            i = cv2.flip(im_new, 1).astype(bool)
             im[i] = result[i]  # cv2.imwrite('debug.jpg', im)  # debug
+
         labels["img"] = im
         labels["cls"] = cls
         labels["instances"] = instances

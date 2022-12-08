@@ -34,7 +34,7 @@ class DetectionTrainer(BaseTrainer):
         # TODO: self.model.class_weights = labels_to_class_weights(dataset.labels, nc).to(device) * nc
         self.model.names = self.data["names"]
 
-    def load_model(self, model_cfg, weights):
+    def load_model(self, model_cfg=None, weights=None):
         model = DetectionModel(model_cfg or weights["model"].yaml,
                                ch=3,
                                nc=self.data["nc"],

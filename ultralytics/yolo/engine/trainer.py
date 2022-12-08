@@ -8,7 +8,6 @@ from collections import defaultdict
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Union
 
 import numpy as np
 import torch
@@ -28,7 +27,6 @@ from ultralytics.yolo.utils import LOGGER, ROOT, TQDM_BAR_FORMAT, colorstr
 from ultralytics.yolo.utils.checks import check_file, print_args
 from ultralytics.yolo.utils.configs import get_config
 from ultralytics.yolo.utils.files import get_latest_run, increment_path, save_yaml
-from ultralytics.yolo.utils.modeling import get_model
 from ultralytics.yolo.utils.torch_utils import ModelEMA, de_parallel, init_seeds, one_cycle, strip_optimizer
 
 DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yaml"
@@ -63,6 +61,7 @@ class BaseTrainer:
         self.scaler = amp.GradScaler(enabled=self.device.type != 'cpu')
 
         # Model and Dataloaders.
+        self.model = self.args.model
         self.data = self.args.data
         if self.data.endswith(".yaml"):
             self.data = check_dataset_yaml(self.data)
@@ -125,6 +124,7 @@ class BaseTrainer:
         """
         # model
         ckpt = self.setup_model()
+        self.model = self.model.to(self.device)
         self.set_model_attributes()
         if world_size > 1:
             self.model = DDP(self.model, device_ids=[rank])
@@ -288,13 +288,16 @@ class BaseTrainer:
         """
         load/create/download model for any task
         """
-        model = self.args.model
+        if isinstance(self.model, torch.nn.Module):  # if loaded model is passed
+            return
+            # We should improve the code flow here. This function looks hacky
+        model = self.model
         pretrained = not (str(model).endswith(".yaml"))
         # config
         if not pretrained:
             model = check_file(model)
         ckpt = self.load_ckpt(model) if pretrained else None
-        self.model = self.load_model(model_cfg=None if pretrained else model, weights=ckpt).to(self.device)  # model
+        self.model = self.load_model(model_cfg=None if pretrained else model, weights=ckpt)  # model
         return ckpt
 
     def load_ckpt(self, ckpt):
@@ -402,7 +405,7 @@ class BaseTrainer:
             last = Path(check_file(resume) if isinstance(resume, str) else get_latest_run())
             args_yaml = last.parent.parent / 'args.yaml'  # train options yaml
             if args_yaml.is_file():
-                args = self._get_config(args_yaml)  # replace
+                args = get_config(args_yaml)  # replace
             args.model, args.resume, args.exist_ok = str(last), True, True  # reinstate
             self.args = args
 
@@ -424,8 +427,7 @@ class BaseTrainer:
                 f'Resuming training from {self.args.model} from epoch {start_epoch} to {self.epochs} total epochs')
         if self.epochs < start_epoch:
             LOGGER.info(
-                f"{self.args.model} has been trained for {ckpt['epoch']} epochs. Fine-tuning for {self.epochs} more epochs."
-            )
+                f"{self.model} has been trained for {ckpt['epoch']} epochs. Fine-tuning for {self.epochs} more epochs.")
             self.epochs += ckpt['epoch']  # finetune additional epochs
         self.best_fitness = best_fitness
         self.start_epoch = start_epoch
@@ -460,9 +462,3 @@ def build_optimizer(model, name='Adam', lr=0.001, momentum=0.9, decay=1e-5):
     LOGGER.info(f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}) with parameter groups "
                 f"{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias")
     return optimizer
-
-
-# Dummy validator
-def val(trainer: BaseTrainer):
-    trainer.console.info("validating")
-    return {"metric_1": 0.1, "metric_2": 0.2, "fitness": 1}

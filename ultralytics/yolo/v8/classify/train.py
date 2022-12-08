@@ -13,8 +13,10 @@ class ClassificationTrainer(BaseTrainer):
     def set_model_attributes(self):
         self.model.names = self.data["names"]
 
-    def load_model(self, model_cfg, weights):
+    def load_model(self, model_cfg=None, weights=None):
         # TODO: why treat clf models as unique. We should have clf yamls?
+        if isinstance(weights, dict):  # yolo ckpt
+            weights = weights["model"]
         if weights and not weights.__class__.__name__.startswith("yolo"):  # torchvision
             model = weights
         else:

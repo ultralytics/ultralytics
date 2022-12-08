@@ -1,3 +1,5 @@
+from ultralytics.yolo import v8
+
 from .engine.model import YOLO
 from .engine.trainer import BaseTrainer
 from .engine.validator import BaseValidator

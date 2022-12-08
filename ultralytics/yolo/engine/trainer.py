@@ -28,7 +28,6 @@ from ultralytics.yolo.utils import LOGGER, ROOT, TQDM_BAR_FORMAT, colorstr
 from ultralytics.yolo.utils.checks import check_file, print_args
 from ultralytics.yolo.utils.configs import get_config
 from ultralytics.yolo.utils.files import get_latest_run, increment_path, save_yaml
-from ultralytics.yolo.utils.modeling import get_model
 from ultralytics.yolo.utils.torch_utils import ModelEMA, de_parallel, init_seeds, one_cycle, strip_optimizer
 
 DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yaml"
@@ -462,9 +461,3 @@ def build_optimizer(model, name='Adam', lr=0.001, momentum=0.9, decay=1e-5):
     LOGGER.info(f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}) with parameter groups "
                 f"{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias")
     return optimizer
-
-
-# Dummy validator
-def val(trainer: BaseTrainer):
-    trainer.console.info("validating")
-    return {"metric_1": 0.1, "metric_2": 0.2, "fitness": 1}

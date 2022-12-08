@@ -65,7 +65,9 @@ class YOLO:
 
     def resume(self, task=None, model=None):
         if not task:
-            raise Exception("pass the task type and/or model(optional) from which you want to resume: `model.resume(task="")`")
+            raise Exception(
+                "pass the task type and/or model(optional) from which you want to resume: `model.resume(task="
+                ")`")
         if task.lower() not in MODEL_MAP:
             raise Exception(f"unrecognised task - {task}. Supported tasks are {MODEL_MAP.keys()}")
         _, trainer_class_literal = MODEL_MAP[task.lower()]

@@ -26,7 +26,7 @@ class SegmentationTrainer(BaseTrainer):
         batch["img"] = batch["img"].to(self.device, non_blocking=True).float() / 255
         return batch
 
-    def load_model(self, model_cfg, weights):
+    def load_model(self, model_cfg=None, weights=None):
         model = SegmentationModel(model_cfg or weights["model"].yaml,
                                   ch=3,
                                   nc=self.data["nc"],

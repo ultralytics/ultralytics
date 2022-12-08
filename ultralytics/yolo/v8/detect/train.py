@@ -15,7 +15,7 @@ from .val import DetectionValidator
 # BaseTrainer python usage
 class DetectionTrainer(SegmentationTrainer):
 
-    def load_model(self, model_cfg, weights):
+    def load_model(self, model_cfg=None, weights=None):
         model = DetectionModel(model_cfg or weights["model"].yaml,
                                ch=3,
                                nc=self.data["nc"],

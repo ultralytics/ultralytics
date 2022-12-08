@@ -27,6 +27,7 @@ class YOLO:
         self.model = None
         self.trainer = None
         self.task = None
+        self.ckpt = None
 
     def new(self, cfg: str):
         cfg = check_yaml(cfg)  # check YAML
@@ -60,6 +61,16 @@ class YOLO:
         self.trainer = self.TrainerClass(overrides=kwargs)
         # load pre-trained weights if found, else use the loaded model
         self.trainer.model = self.trainer.load_model(weights=self.ckpt) if self.ckpt else self.model
+        self.trainer.train()
+
+    def resume(self, task=None, model=None):
+        if not task:
+            raise Exception("pass the task type and/or model(optional) from which you want to resume: `model.resume(task="")`")
+        if task.lower() not in MODEL_MAP:
+            raise Exception(f"unrecognised task - {task}. Supported tasks are {MODEL_MAP.keys()}")
+        _, trainer_class_literal = MODEL_MAP[task.lower()]
+        self.TrainerClass = eval(trainer_class_literal.replace("VERSION", f"v{self.version}"))
+        self.trainer = self.TrainerClass(overrides={"task": task.lower(), "resume": model if model else True})
         self.trainer.train()
 
     def _guess_model_trainer_and_task(self, head):

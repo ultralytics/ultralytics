@@ -202,7 +202,10 @@ class DetectionValidator(BaseValidator):
     def plot_predictions(self, batch, preds, ni):
         images = batch["img"]
         paths = batch["im_file"]
-        plot_images(images, *output_to_target(preds, max_det=15), paths=paths, fname=self.save_dir / f'val_batch{ni}_pred.jpg',
+        plot_images(images,
+                    *output_to_target(preds, max_det=15),
+                    paths=paths,
+                    fname=self.save_dir / f'val_batch{ni}_pred.jpg',
                     names=self.names)  # pred
 
 

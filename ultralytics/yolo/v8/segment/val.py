@@ -229,13 +229,13 @@ class SegmentationValidator(DetectionValidator):
         paths = batch["im_file"]
         batch_idx = batch["batch_idx"]
         plot_images(images,
-                              batch_idx,
-                              cls,
-                              bboxes,
-                              masks,
-                              paths=paths,
-                              fname=self.save_dir / f"val_batch{ni}_labels.jpg",
-                              names=self.names)
+                    batch_idx,
+                    cls,
+                    bboxes,
+                    masks,
+                    paths=paths,
+                    fname=self.save_dir / f"val_batch{ni}_labels.jpg",
+                    names=self.names)
 
     def plot_predictions(self, batch, preds, ni):
         images = batch["img"]
@@ -243,7 +243,7 @@ class SegmentationValidator(DetectionValidator):
         if len(self.plot_masks):
             plot_masks = torch.cat(self.plot_masks, dim=0)
         plot_images(images, *output_to_target(preds[0], max_det=15), plot_masks, paths,
-                              self.save_dir / f'val_batch{ni}_pred.jpg', self.names)  # pred
+                    self.save_dir / f'val_batch{ni}_pred.jpg', self.names)  # pred
         self.plot_masks.clear()
 
 

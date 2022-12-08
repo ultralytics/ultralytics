@@ -13,6 +13,7 @@ from ultralytics.yolo.utils.torch_utils import de_parallel
 
 from ..detect import DetectionTrainer
 
+
 # BaseTrainer python usage
 class SegmentationTrainer(DetectionTrainer):
 
@@ -225,13 +226,7 @@ class SegmentationTrainer(DetectionTrainer):
         bboxes = batch["bboxes"]
         paths = batch["im_file"]
         batch_idx = batch["batch_idx"]
-        plot_images(images,
-                    batch_idx,
-                    cls,
-                    bboxes,
-                    masks,
-                    paths=paths,
-                    fname=self.save_dir / f"train_batch{ni}.jpg")
+        plot_images(images, batch_idx, cls, bboxes, masks, paths=paths, fname=self.save_dir / f"train_batch{ni}.jpg")
 
     def plot_metrics(self):
         plot_results(file=self.csv, segment=True)  # save results.png

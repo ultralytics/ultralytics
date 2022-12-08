@@ -7,6 +7,7 @@ from ultralytics.yolo.utils.plotting import plot_images
 
 DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yaml"
 
+
 class Colors:
     # Ultralytics color palette https://ultralytics.com/
     def __init__(self):
@@ -73,12 +74,7 @@ def test(cfg):
         bboxes = d["bboxes"]
         paths = d["im_file"]
         batch_idx = d["batch_idx"]
-        result = plot_images(images,
-                             batch_idx,
-                             cls,
-                             bboxes,
-                             masks,
-                             paths=paths)
+        result = plot_images(images, batch_idx, cls, bboxes, masks, paths=paths)
         cv2.imshow("p", result)
         if cv2.waitKey(0) == ord("q"):
             break

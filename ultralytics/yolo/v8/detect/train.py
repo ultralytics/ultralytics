@@ -46,7 +46,10 @@ class DetectionTrainer(BaseTrainer):
         return model
 
     def get_validator(self):
-        return v8.detect.DetectionValidator(self.test_loader, save_dir=self.save_dir, logger=self.console, args=self.args)
+        return v8.detect.DetectionValidator(self.test_loader,
+                                            save_dir=self.save_dir,
+                                            logger=self.console,
+                                            args=self.args)
 
     def criterion(self, preds, batch):
         head = de_parallel(self.model).model[-1]

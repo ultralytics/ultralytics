@@ -327,7 +327,7 @@ class BaseTrainer:
         metrics = self.validator(self)
         fitness = metrics.pop("fitness", -self.loss.detach().cpu().numpy())  # use loss as fitness measure if not found
         if not self.best_fitness or self.best_fitness < fitness:
-            self.best_fitness = self.fitness
+            self.best_fitness = fitness
         return metrics, fitness
 
     def log(self, text, rank=-1):

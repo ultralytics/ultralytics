@@ -263,18 +263,6 @@ class ConfusionMatrix:
             print(' '.join(map(str, self.matrix[i])))
 
 
-def fitness_detection(x):
-    # Model fitness as a weighted combination of metrics
-    w = [0.0, 0.0, 0.1, 0.9]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
-    return (x[:, :4] * w).sum(1)
-
-
-def fitness_segmentation(x):
-    # Model fitness as a weighted combination of metrics
-    w = [0.0, 0.0, 0.1, 0.9, 0.0, 0.0, 0.1, 0.9]
-    return (x[:, :8] * w).sum(1)
-
-
 def smooth(y, f=0.05):
     # Box filter of fraction f
     nf = round(len(y) * f * 2) // 2 + 1  # number of filter elements (must be odd)
@@ -512,7 +500,6 @@ class Metric:
 
 
 class DetMetrics:
-
     def __init__(self, save_dir=Path("."), plot=False, names=()) -> None:
         self.save_dir = save_dir
         self.plot = plot
@@ -520,8 +507,8 @@ class DetMetrics:
         self.metric = Metric()
 
     def process(self, tp, conf, pred_cls, target_cls):
-        results = ap_per_class(tp, conf, pred_cls, target_cls, plot=self.plot, save_dir=self.save_dir,
-                               names=self.names)[2:]
+        results = ap_per_class(tp, conf, pred_cls, target_cls, 
+                               plot=self.plot, save_dir=self.save_dir, names=self.names)[2:]
         self.metric.update(results)
 
     @property
@@ -546,7 +533,6 @@ class DetMetrics:
 
 
 class SegmentMetrics:
-
     def __init__(self, save_dir=Path("."), plot=False, names=()) -> None:
         self.save_dir = save_dir
         self.plot = plot
@@ -555,23 +541,11 @@ class SegmentMetrics:
         self.metric_mask = Metric()
 
     def process(self, tp_m, tp_b, conf, pred_cls, target_cls):
-        results_mask = ap_per_class(tp_m,
-                                    conf,
-                                    pred_cls,
-                                    target_cls,
-                                    plot=self.plot,
-                                    save_dir=self.save_dir,
-                                    names=self.names,
-                                    prefix="Mask")[2:]
+        results_mask = ap_per_class(tp_m, conf, pred_cls, target_cls, plot=self.plot,
+                                    save_dir=self.save_dir, names=self.names, prefix="Mask")[2:]
         self.metric_mask.update(results_mask)
-        results_box = ap_per_class(tp_b,
-                                   conf,
-                                   pred_cls,
-                                   target_cls,
-                                   plot=self.plot,
-                                   save_dir=self.save_dir,
-                                   names=self.names,
-                                   prefix="Box")[2:]
+        results_box = ap_per_class(tp_b, conf, pred_cls, target_cls, plot=self.plot, 
+                                   save_dir=self.save_dir, names=self.names, prefix="Box")[2:]
         self.metric_box.update(results_box)
 
     @property

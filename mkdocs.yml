@@ -75,12 +75,12 @@ plugins:
 nav:
   - Quickstart: quickstart.md
   - CLI: cli.md
-  - Python SDK: sdk.md
-  - Trainer: trainer.md
+  - Python Interface: sdk.md
   - Configuration: conf.md
   - Tasks:
       - Detection: tasks/detection.md
       - Segmentation: tasks/segmentation.md
       - Classification: tasks/classification.md
   - Reference:
-      - YOLO: reference/model.md
+      - YOLO Models: reference/model.md
+      - Trainers : reference/trainers.md

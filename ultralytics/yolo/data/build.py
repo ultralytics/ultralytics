@@ -65,7 +65,7 @@ def build_dataloader(cfg, batch_size, img_path, stride=32, label_path=None, rank
             img_size=cfg.img_size,
             batch_size=batch_size,
             augment=True if mode == "train" else False,  # augmentation
-            hyp=cfg.get("augment_hyp", None),
+            hyp=cfg,  # TODO: probably add a get_hyps_from_cfg function
             rect=cfg.rect if mode == "train" else True,  # rectangular batches
             cache=None if cfg.noval else cfg.get("cache", None),
             single_cls=cfg.get("single_cls", False),

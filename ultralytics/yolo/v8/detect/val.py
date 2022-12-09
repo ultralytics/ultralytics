@@ -9,9 +9,9 @@ from ultralytics.yolo.data import build_dataloader
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.engine.validator import BaseValidator
 from ultralytics.yolo.utils import ops
-from ultralytics.yolo.utils.checks import check_file, check_requirements
+from ultralytics.yolo.utils.checks import check_file
 from ultralytics.yolo.utils.files import yaml_load
-from ultralytics.yolo.utils.metrics import ConfusionMatrix, Metric, ap_per_class, box_iou, fitness_detection
+from ultralytics.yolo.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
 from ultralytics.yolo.utils.plotting import output_to_target, plot_images
 from ultralytics.yolo.utils.torch_utils import de_parallel
 
@@ -20,15 +20,16 @@ class DetectionValidator(BaseValidator):
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, logger=None, args=None):
         super().__init__(dataloader, save_dir, pbar, logger, args)
-        if self.args.save_json:
-            check_requirements(['pycocotools'])
-            self.process = ops.process_mask_upsample  # more accurate
-        else:
-            self.process = ops.process_mask  # faster
         self.data_dict = yaml_load(check_file(self.args.data)) if self.args.data else None
         self.is_coco = False
         self.class_map = None
         self.targets = None
+        self.metrics = DetMetrics(save_dir=self.save_dir, plot=self.args.plots)
+        self.iouv = torch.linspace(0.5, 0.95, 10, device=self.device)  # iou vector for mAP@0.5:0.95
+        self.niou = self.iouv.numel()
+        self.seen = 0
+        self.jdict = []
+        self.stats = []
 
     def preprocess(self, batch):
         batch["img"] = batch["img"].to(self.device, non_blocking=True)
@@ -44,11 +45,7 @@ class DetectionValidator(BaseValidator):
         return batch
 
     def init_metrics(self, model):
-        if self.training:
-            head = de_parallel(model).model[-1]
-        else:
-            head = de_parallel(model).model.model[-1]
-
+        head = model.model[-1] if self.training else model.model.model[-1]
         if self.data:
             self.is_coco = isinstance(self.data.get('val'),
                                       str) and self.data['val'].endswith(f'coco{os.sep}val2017.txt')
@@ -57,15 +54,8 @@ class DetectionValidator(BaseValidator):
         self.names = model.names
         if isinstance(self.names, (list, tuple)):  # old format
             self.names = dict(enumerate(self.names))
-
-        self.iouv = torch.linspace(0.5, 0.95, 10, device=self.device)  # iou vector for mAP@0.5:0.95
-        self.niou = self.iouv.numel()
-        self.seen = 0
+        self.metrics.names = self.names
         self.confusion_matrix = ConfusionMatrix(nc=self.nc)
-        self.metrics = Metric()
-        self.loss = torch.zeros(3, device=self.device)
-        self.jdict = []
-        self.stats = []
 
     def get_desc(self):
         return ('%22s' + '%11s' * 6) % ('Class', 'Images', 'Instances', 'Box(P', "R", "mAP50", "mAP50-95)")
@@ -128,15 +118,14 @@ class DetectionValidator(BaseValidator):
     def get_stats(self):
         stats = [torch.cat(x, 0).cpu().numpy() for x in zip(*self.stats)]  # to numpy
         if len(stats) and stats[0].any():
-            results = ap_per_class(*stats, plot=self.args.plots, save_dir=self.save_dir, names=self.names)
-            self.metrics.update(results[2:])
-        self.nt_per_class = np.bincount(stats[3].astype(int), minlength=self.nc)  # number of targets per class
-        metrics = {"fitness": fitness_detection(np.array(self.metrics.mean_results()).reshape(1, -1))}
+            self.metrics.process(*stats)
+        self.nt_per_class = np.bincount(stats[-1].astype(int), minlength=self.nc)  # number of targets per class
+        metrics = {"fitness": self.metrics.fitness()}
         metrics |= zip(self.metric_keys, self.metrics.mean_results())
         return metrics
 
     def print_results(self):
-        pf = '%22s' + '%11i' * 2 + '%11.3g' * 4  # print format
+        pf = '%22s' + '%11i' * 2 + '%11.3g' * len(self.metric_keys)  # print format
         self.logger.info(pf % ("all", self.seen, self.nt_per_class.sum(), *self.metrics.mean_results()))
         if self.nt_per_class.sum() == 0:
             self.logger.warning(
@@ -203,8 +192,11 @@ class DetectionValidator(BaseValidator):
     def plot_predictions(self, batch, preds, ni):
         images = batch["img"]
         paths = batch["im_file"]
-        plot_images(images, *output_to_target(preds, max_det=15), paths, self.save_dir / f'val_batch{ni}_pred.jpg',
-                    self.names)  # pred
+        plot_images(images,
+                    *output_to_target(preds, max_det=15),
+                    paths=paths,
+                    fname=self.save_dir / f'val_batch{ni}_pred.jpg',
+                    names=self.names)  # pred
 
 
 @hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)

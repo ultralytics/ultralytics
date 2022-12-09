@@ -4,27 +4,18 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from ultralytics.yolo import v8
-from ultralytics.yolo.data import build_dataloader
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG, BaseTrainer
 from ultralytics.yolo.utils.metrics import FocalLoss, bbox_iou, smooth_BCE
 from ultralytics.yolo.utils.modeling.tasks import SegmentationModel
 from ultralytics.yolo.utils.ops import crop_mask, xywh2xyxy
-from ultralytics.yolo.utils.plotting import plot_images_and_masks, plot_results_with_masks
+from ultralytics.yolo.utils.plotting import plot_images, plot_results
 from ultralytics.yolo.utils.torch_utils import de_parallel
+
+from ..detect import DetectionTrainer
 
 
 # BaseTrainer python usage
-class SegmentationTrainer(BaseTrainer):
-
-    def get_dataloader(self, dataset_path, batch_size, mode="train", rank=0):
-        # TODO: manage splits differently
-        # calculate stride - check if model is initialized
-        gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
-        return build_dataloader(self.args, batch_size, img_path=dataset_path, stride=gs, rank=rank, mode=mode)[0]
-
-    def preprocess_batch(self, batch):
-        batch["img"] = batch["img"].to(self.device, non_blocking=True).float() / 255
-        return batch
+class SegmentationTrainer(DetectionTrainer):
 
     def load_model(self, model_cfg=None, weights=None):
         model = SegmentationModel(model_cfg or weights["model"].yaml,
@@ -36,16 +27,6 @@ class SegmentationTrainer(BaseTrainer):
         for _, v in model.named_parameters():
             v.requires_grad = True  # train all layers
         return model
-
-    def set_model_attributes(self):
-        nl = de_parallel(self.model).model[-1].nl  # number of detection layers (to scale hyps)
-        self.args.box *= 3 / nl  # scale to layers
-        self.args.cls *= self.data["nc"] / 80 * 3 / nl  # scale to classes and layers
-        self.args.obj *= (self.args.img_size / 640) ** 2 * 3 / nl  # scale to image size and layers
-        self.model.nc = self.data["nc"]  # attach number of classes to model
-        self.model.args = self.args  # attach hyperparameters to model
-        # TODO: self.model.class_weights = labels_to_class_weights(dataset.labels, nc).to(device) * nc
-        self.model.names = self.data["names"]
 
     def get_validator(self):
         return v8.segment.SegmentationValidator(self.test_loader,
@@ -245,16 +226,10 @@ class SegmentationTrainer(BaseTrainer):
         bboxes = batch["bboxes"]
         paths = batch["im_file"]
         batch_idx = batch["batch_idx"]
-        plot_images_and_masks(images,
-                              batch_idx,
-                              cls,
-                              bboxes,
-                              masks,
-                              paths=paths,
-                              fname=self.save_dir / f"train_batch{ni}.jpg")
+        plot_images(images, batch_idx, cls, bboxes, masks, paths=paths, fname=self.save_dir / f"train_batch{ni}.jpg")
 
     def plot_metrics(self):
-        plot_results_with_masks(file=self.csv)  # save results.png
+        plot_results(file=self.csv, segment=True)  # save results.png
 
 
 @hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)

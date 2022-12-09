@@ -263,18 +263,6 @@ class ConfusionMatrix:
             print(' '.join(map(str, self.matrix[i])))
 
 
-def fitness_detection(x):
-    # Model fitness as a weighted combination of metrics
-    w = [0.0, 0.0, 0.1, 0.9]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
-    return (x[:, :4] * w).sum(1)
-
-
-def fitness_segmentation(x):
-    # Model fitness as a weighted combination of metrics
-    w = [0.0, 0.0, 0.1, 0.9, 0.0, 0.0, 0.1, 0.9]
-    return (x[:, :8] * w).sum(1)
-
-
 def smooth(y, f=0.05):
     # Box filter of fraction f
     nf = round(len(y) * f * 2) // 2 + 1  # number of filter elements (must be odd)
@@ -422,55 +410,6 @@ def ap_per_class(tp, conf, pred_cls, target_cls, plot=False, save_dir='.', names
     return tp, fp, p, r, f1, ap, unique_classes.astype(int)
 
 
-def ap_per_class_box_and_mask(
-        tp_m,
-        tp_b,
-        conf,
-        pred_cls,
-        target_cls,
-        plot=False,
-        save_dir=".",
-        names=(),
-):
-    """
-    Args:
-        tp_b: tp of boxes.
-        tp_m: tp of masks.
-        other arguments see `func: ap_per_class`.
-    """
-    results_boxes = ap_per_class(tp_b,
-                                 conf,
-                                 pred_cls,
-                                 target_cls,
-                                 plot=plot,
-                                 save_dir=save_dir,
-                                 names=names,
-                                 prefix="Box")[2:]
-    results_masks = ap_per_class(tp_m,
-                                 conf,
-                                 pred_cls,
-                                 target_cls,
-                                 plot=plot,
-                                 save_dir=save_dir,
-                                 names=names,
-                                 prefix="Mask")[2:]
-
-    results = {
-        "boxes": {
-            "p": results_boxes[0],
-            "r": results_boxes[1],
-            "f1": results_boxes[2],
-            "ap": results_boxes[3],
-            "ap_class": results_boxes[4]},
-        "masks": {
-            "p": results_masks[0],
-            "r": results_masks[1],
-            "f1": results_masks[2],
-            "ap": results_masks[3],
-            "ap_class": results_masks[4]}}
-    return results
-
-
 class Metric:
 
     def __init__(self) -> None:
@@ -542,6 +481,11 @@ class Metric:
             maps[c] = self.ap[i]
         return maps
 
+    def fitness(self):
+        # Model fitness as a weighted combination of metrics
+        w = [0.0, 0.0, 0.1, 0.9]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
+        return (np.array(self.mean_results()) * w).sum()
+
     def update(self, results):
         """
         Args:
@@ -555,20 +499,80 @@ class Metric:
         self.ap_class_index = ap_class_index
 
 
-class Metrics:
-    """Metric for boxes and masks."""
+class DetMetrics:
 
-    def __init__(self) -> None:
+    def __init__(self, save_dir=Path("."), plot=False, names=()) -> None:
+        self.save_dir = save_dir
+        self.plot = plot
+        self.names = names
+        self.metric = Metric()
+
+    def process(self, tp, conf, pred_cls, target_cls):
+        results = ap_per_class(tp, conf, pred_cls, target_cls, plot=self.plot, save_dir=self.save_dir,
+                               names=self.names)[2:]
+        self.metric.update(results)
+
+    @property
+    def keys(self):
+        return ["metrics/precision(B)", "metrics/recall(B)", "metrics/mAP_0.5(B)", "metrics/mAP_0.5:0.95(B)"]
+
+    def mean_results(self):
+        return self.metric.mean_results()
+
+    def class_result(self, i):
+        return self.metric.class_result(i)
+
+    def get_maps(self, nc):
+        return self.metric.get_maps(nc)
+
+    def fitness(self):
+        return self.metric.fitness()
+
+    @property
+    def ap_class_index(self):
+        return self.metric.ap_class_index
+
+
+class SegmentMetrics:
+
+    def __init__(self, save_dir=Path("."), plot=False, names=()) -> None:
+        self.save_dir = save_dir
+        self.plot = plot
+        self.names = names
         self.metric_box = Metric()
         self.metric_mask = Metric()
 
-    def update(self, results):
-        """
-        Args:
-            results: Dict{'boxes': Dict{}, 'masks': Dict{}}
-        """
-        self.metric_box.update(list(results["boxes"].values()))
-        self.metric_mask.update(list(results["masks"].values()))
+    def process(self, tp_m, tp_b, conf, pred_cls, target_cls):
+        results_mask = ap_per_class(tp_m,
+                                    conf,
+                                    pred_cls,
+                                    target_cls,
+                                    plot=self.plot,
+                                    save_dir=self.save_dir,
+                                    names=self.names,
+                                    prefix="Mask")[2:]
+        self.metric_mask.update(results_mask)
+        results_box = ap_per_class(tp_b,
+                                   conf,
+                                   pred_cls,
+                                   target_cls,
+                                   plot=self.plot,
+                                   save_dir=self.save_dir,
+                                   names=self.names,
+                                   prefix="Box")[2:]
+        self.metric_box.update(results_box)
+
+    @property
+    def keys(self):
+        return [
+            "metrics/precision(B)",
+            "metrics/recall(B)",
+            "metrics/mAP_0.5(B)",
+            "metrics/mAP_0.5:0.95(B)",  # metrics
+            "metrics/precision(M)",
+            "metrics/recall(M)",
+            "metrics/mAP_0.5(M)",
+            "metrics/mAP_0.5:0.95(M)"]
 
     def mean_results(self):
         return self.metric_box.mean_results() + self.metric_mask.mean_results()
@@ -578,6 +582,9 @@ class Metrics:
 
     def get_maps(self, nc):
         return self.metric_box.get_maps(nc) + self.metric_mask.get_maps(nc)
+
+    def fitness(self):
+        return self.metric_mask.fitness() + self.metric_box.fitness()
 
     @property
     def ap_class_index(self):

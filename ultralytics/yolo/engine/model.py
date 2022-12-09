@@ -1,6 +1,7 @@
 import torch
 import yaml
 
+from ultralytics import yolo
 from ultralytics.yolo.utils import LOGGER
 from ultralytics.yolo.utils.checks import check_yaml
 from ultralytics.yolo.utils.modeling import attempt_load_weights

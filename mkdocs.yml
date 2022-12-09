@@ -82,4 +82,5 @@ nav:
       - Detection: tasks/detection.md
       - Segmentation: tasks/segmentation.md
       - Classification: tasks/classification.md
-  - Reference: reference/ref.md
+  - Reference:
+      - YOLO: reference/model.md

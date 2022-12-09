@@ -8,8 +8,7 @@ import torch.nn.functional as F
 from ultralytics.yolo.data import build_dataloader
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.utils import ops
-from ultralytics.yolo.utils.checks import check_file, check_requirements
-from ultralytics.yolo.utils.files import yaml_load
+from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils.metrics import ConfusionMatrix, SegmentMetrics, box_iou, mask_iou
 from ultralytics.yolo.utils.plotting import output_to_target, plot_images
 from ultralytics.yolo.utils.torch_utils import de_parallel
@@ -26,10 +25,7 @@ class SegmentationValidator(DetectionValidator):
             self.process = ops.process_mask_upsample  # more accurate
         else:
             self.process = ops.process_mask  # faster
-        self.data_dict = yaml_load(check_file(self.args.data)) if self.args.data else None
-        self.is_coco = False
-        self.class_map = None
-        self.targets = None
+        self.metrics = SegmentMetrics(save_dir=self.save_dir, plot=self.args.plots)
 
     def preprocess(self, batch):
         batch["img"] = batch["img"].to(self.device, non_blocking=True)
@@ -46,29 +42,18 @@ class SegmentationValidator(DetectionValidator):
         return batch
 
     def init_metrics(self, model):
-        if self.training:
-            head = de_parallel(model).model[-1]
-        else:
-            head = de_parallel(model).model.model[-1]
-
+        head = model.model[-1] if self.training else model.model.model[-1]
         if self.data:
             self.is_coco = isinstance(self.data.get('val'),
                                       str) and self.data['val'].endswith(f'coco{os.sep}val2017.txt')
             self.class_map = ops.coco80_to_coco91_class() if self.is_coco else list(range(1000))
-        self.nm = head.nm if hasattr(head, "nm") else 32
         self.nc = head.nc
+        self.nm = head.nm if hasattr(head, "nm") else 32
         self.names = model.names
         if isinstance(self.names, (list, tuple)):  # old format
             self.names = dict(enumerate(self.names))
-
-        self.iouv = torch.linspace(0.5, 0.95, 10, device=self.device)  # iou vector for mAP@0.5:0.95
-        self.niou = self.iouv.numel()
-        self.seen = 0
+        self.metrics.names = self.names
         self.confusion_matrix = ConfusionMatrix(nc=self.nc)
-        self.metrics = SegmentMetrics(save_dir=self.save_dir, plot=self.args.plots, names=self.names)
-        self.loss = torch.zeros(4, device=self.device)
-        self.jdict = []
-        self.stats = []
         self.plot_masks = []
 
     def get_desc(self):
@@ -150,21 +135,6 @@ class SegmentationValidator(DetectionValidator):
             # callbacks.run('on_val_image_end', pred, predn, path, names, im[si])
             '''
 
-    def print_results(self):
-        pf = '%22s' + '%11i' * 2 + '%11.3g' * 8  # print format
-        self.logger.info(pf % ("all", self.seen, self.nt_per_class.sum(), *self.metrics.mean_results()))
-        if self.nt_per_class.sum() == 0:
-            self.logger.warning(
-                f'WARNING ⚠️ no labels found in {self.args.task} set, can not compute metrics without labels')
-
-        # Print results per class
-        if (self.args.verbose or (self.nc < 50 and not self.training)) and self.nc > 1 and len(self.stats):
-            for i, c in enumerate(self.metrics.ap_class_index):
-                self.logger.info(pf % (self.names[c], self.seen, self.nt_per_class[c], *self.metrics.class_result(i)))
-
-        if self.args.plots:
-            self.confusion_matrix.plot(save_dir=self.save_dir, names=list(self.names.values()))
-
     def _process_batch(self, detections, labels, iouv, pred_masks=None, gt_masks=None, overlap=False, masks=False):
         """
         Return correct prediction matrix
@@ -201,12 +171,6 @@ class SegmentationValidator(DetectionValidator):
                     matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
                 correct[matches[:, 1].astype(int), i] = True
         return torch.tensor(correct, dtype=torch.bool, device=iouv.device)
-
-    def get_dataloader(self, dataset_path, batch_size):
-        # TODO: manage splits differently
-        # calculate stride - check if model is initialized
-        gs = max(int(de_parallel(self.model).stride if self.model else 0), 32)
-        return build_dataloader(self.args, batch_size, img_path=dataset_path, stride=gs, mode="val")[0]
 
     # TODO: probably add this to class Metrics
     @property

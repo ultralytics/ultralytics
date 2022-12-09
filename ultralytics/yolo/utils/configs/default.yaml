@@ -83,20 +83,19 @@ fl_gamma: 0.0  # focal loss gamma (efficientDet default gamma=1.5)
 label_smoothing: 0.0
 nbs: 64 # nominal batch size
 # anchors: 3
-augment_hyp:
-  hsv_h: 0.015  # image HSV-Hue augmentation (fraction)
-  hsv_s: 0.7  # image HSV-Saturation augmentation (fraction)
-  hsv_v: 0.4  # image HSV-Value augmentation (fraction)
-  degrees: 0.0  # image rotation (+/- deg)
-  translate: 0.1  # image translation (+/- fraction)
-  scale: 0.5  # image scale (+/- gain)
-  shear: 0.0  # image shear (+/- deg)
-  perspective: 0.0  # image perspective (+/- fraction), range 0-0.001
-  flipud: 0.0  # image flip up-down (probability)
-  fliplr: 0.5  # image flip left-right (probability)
-  mosaic: 1.0  # image mosaic (probability)
-  mixup: 0.0  # image mixup (probability)
-  copy_paste: 0.0  # segment copy-paste (probability)
+hsv_h: 0.015  # image HSV-Hue augmentation (fraction)
+hsv_s: 0.7  # image HSV-Saturation augmentation (fraction)
+hsv_v: 0.4  # image HSV-Value augmentation (fraction)
+degrees: 0.0  # image rotation (+/- deg)
+translate: 0.1  # image translation (+/- fraction)
+scale: 0.5  # image scale (+/- gain)
+shear: 0.0  # image shear (+/- deg)
+perspective: 0.0  # image perspective (+/- fraction), range 0-0.001
+flipud: 0.0  # image flip up-down (probability)
+fliplr: 0.5  # image flip left-right (probability)
+mosaic: 1.0  # image mosaic (probability)
+mixup: 0.0  # image mixup (probability)
+copy_paste: 0.0  # segment copy-paste (probability)
 
 # Hydra configs --------------------------------------------------------------------------------------------------------
 hydra:

@@ -21,7 +21,7 @@ class YOLO:
     def __init__(self, type="v8") -> None:
         """
         Args:
-            type (str): Type/version of models to use        
+            type (str): Type/version of models to use
         """
         self.type = type
         self.ModelClass = None
@@ -93,7 +93,7 @@ class YOLO:
         Resume a training task.
 
         Args:
-            task (str): The task type you want to resume. Automatically finds the last run to resume if `model` is not specified. 
+            task (str): The task type you want to resume. Automatically finds the last run to resume if `model` is not specified.
             model (str): [Optional] The model checkpoint to resume from. If not found, the last run of the given task type is resumed.
         """
         if task.lower() not in MODEL_MAP:

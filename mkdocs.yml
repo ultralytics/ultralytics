@@ -86,7 +86,6 @@ nav:
       - Classification: tasks/classification.md
   - Reference:
       - YOLO Models: reference/model.md
-      - Trainer : 
+      - Trainer :
           - BaseTrainer: reference/base_trainer.md
 
-          

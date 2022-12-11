@@ -42,12 +42,29 @@ To know more about using `YOLO` models, refer Model class refernce
 You can easily cusotmize Trainers to support custom tasks or explore R&D ideas.
 
 !!! tip "Trainer Examples"
-=== "DetectionTrainer"
-        ```TODO```
-=== "SegmentationTrainer"
+    === "DetectionTrainer"
+        ```python
+        from ultralytics import yolo
 
-=== "ClassificationTrainer"
+        trainer = yolo.DetectionTrainer(data=..., epochs=1) # override default configs
+        trainer.train()
+        ```
 
-Learn more about `Trainers` in the Trainers Reference
+    === "SegmentationTrainer"
+        ```python
+        from ultralytics import yolo
 
-[Trainers reference](#){ .md-button .md-button--primary}
+        trainer = yolo.SegmentationTrainer(data=..., epochs=1) # override default configs
+        trainer.train()
+        ```
+    === "ClassificationTrainer"
+        ```python
+        from ultralytics import yolo
+
+        trainer = yolo.ClassificationTrainer(data=..., epochs=1) # override default configs
+        trainer.train()
+        ```
+
+Learn more about Customizing `Trainers`, `Validators` and `Predictors` to suit your project needs in the Customization Section
+
+[Customize reference](#){ .md-button .md-button--primary}

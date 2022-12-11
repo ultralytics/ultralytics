@@ -4,6 +4,7 @@ import yaml
 from ultralytics import yolo
 from ultralytics.yolo.utils import LOGGER
 from ultralytics.yolo.utils.checks import check_yaml
+from ultralytics.yolo.utils.files import yaml_load
 from ultralytics.yolo.utils.modeling import attempt_load_weights
 from ultralytics.yolo.utils.modeling.tasks import ClassificationModel, DetectionModel, SegmentationModel
 
@@ -69,22 +70,27 @@ class YOLO:
         for p in self.model.parameters():
             p.requires_grad = True
 
-    def train(self, data, **kwargs):
+    def train(self, **kwargs):
         """
         Trains the model on given dataset.
 
         Args:
-            data (str): dataset name, directory or config file depending on the model and task-type.
-                        See the supported datasets input format on the "task" section
-            **kwargs (Any): Any number of arguments representing the training configuration. List of all args can be founf in 'config' section.
+            **kwargs (Any): Any number of arguments representing the training configuration. List of all args can be found in 'config' section.
+                            You can pass all arguments as a yaml file in `cfg`. Other args are ignored if `cfg` file is passed
         """
         if not self.model and not self.ckpt:
             raise Exception("model not initialized. Use .new() or .load()")
 
-        kwargs["task"] = self.task
-        kwargs["mode"] = "train"
-        kwargs["data"] = data
-        self.trainer = self.TrainerClass(overrides=kwargs)
+        overrides = kwargs
+        if kwargs.get("cfg"):
+            LOGGER.info(f"cfg file passed. Overriding default params with {kwargs['cfg']}.")
+            overrides = yaml_load(check_yaml(kwargs["cfg"]))
+        overrides["task"] = self.task
+        overrides["mode"] = "train"
+        if not overrides.get("data"):
+            raise Exception("dataset not provided! Please check if you have defined `data` in you configs")
+
+        self.trainer = self.TrainerClass(overrides=overrides)
         # load pre-trained weights if found, else use the loaded model
         self.trainer.model = self.trainer.load_model(weights=self.ckpt) if self.ckpt else self.model
         self.trainer.train()
@@ -114,7 +120,7 @@ class YOLO:
             task = "segment"
         model_class, trainer_class = MODEL_MAP[task]
         # warning: eval is unsafe. Use with caution
-        trainer_class = eval(trainer_class.replace("TYPE", f"v{self.type}"))
+        trainer_class = eval(trainer_class.replace("TYPE", f"{self.type}"))
 
         return model_class, trainer_class, task
 

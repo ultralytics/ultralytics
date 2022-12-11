@@ -65,6 +65,6 @@ You can easily cusotmize Trainers to support custom tasks or explore R&D ideas.
         trainer.train()
         ```
 
-Learn more about Customizing `Trainers`, `Validators` and `Predictors` to suit your project needs in the Customization Section
+Learn more about Customizing `Trainers`, `Validators` and `Predictors` to suit your project needs in the Customization Section. More details about the base engine classes is available in the reference section.
 
-[Customize reference](#){ .md-button .md-button--primary}
+[Customization tutorials](#){ .md-button .md-button--primary}

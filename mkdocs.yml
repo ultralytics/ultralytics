@@ -84,6 +84,10 @@ nav:
       - Detection: tasks/detection.md
       - Segmentation: tasks/segmentation.md
       - Classification: tasks/classification.md
+  - Customization Tutorials:
+      - Customize Trainer: customize/train.md
+      - Customize Validator: customize/val.md
+      - Customize Predictor: customize/predict.md
   - Reference:
       - YOLO Models: reference/model.md
       - Trainer :

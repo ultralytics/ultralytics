@@ -48,6 +48,8 @@ You can easily cusotmize Trainers to support custom tasks or explore R&D ideas.
 
         trainer = yolo.DetectionTrainer(data=..., epochs=1) # override default configs
         trainer.train()
+        # DDP model
+        # TODO Laughing-q model.train(device="1,2,3,4")
         ```
 
     === "SegmentationTrainer"

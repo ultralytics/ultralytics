@@ -41,13 +41,16 @@ theme:
     - search.suggest
     - toc.follow
 
+extra_css:
+  - stylesheets/style.css
+
 markdown_extensions:
   # Div text decorators
   - admonition
   - pymdownx.details
   - pymdownx.superfences
   - tables
-
+  - attr_list
   # Syntax highlight
   - pymdownx.highlight:
       anchor_linenums: true
@@ -75,11 +78,18 @@ plugins:
 nav:
   - Quickstart: quickstart.md
   - CLI: cli.md
-  - Python SDK: sdk.md
-  - Trainer: trainer.md
+  - Python Interface: sdk.md
   - Configuration: conf.md
   - Tasks:
       - Detection: tasks/detection.md
       - Segmentation: tasks/segmentation.md
       - Classification: tasks/classification.md
-  - Reference: reference/ref.md
+  - Customization Tutorials:
+      - Customize Trainer: customize/train.md
+      - Customize Validator: customize/val.md
+      - Customize Predictor: customize/predict.md
+  - Reference:
+      - YOLO Models: reference/model.md
+      - Trainer :
+          - BaseTrainer: reference/base_trainer.md
+

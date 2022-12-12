@@ -35,8 +35,8 @@ RANK = int(os.getenv('RANK', -1))
 
 class BaseTrainer:
 
-    def __init__(self, config=DEFAULT_CONFIG, overrides={}):
-        self.args = get_config(config, overrides)
+    def __init__(self, cfg=DEFAULT_CONFIG, overrides={}):
+        self.args = get_config(cfg, overrides)
         self.check_resume()
         init_seeds(self.args.seed + 1 + RANK, deterministic=self.args.deterministic)
 

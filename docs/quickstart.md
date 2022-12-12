@@ -37,6 +37,7 @@ Ultralytics YOLO comes with pythonic Model and Trainer interface.
     ```python
     import ultralytics
     from ultralytics import YOLO
+
     model = YOLO()
     model.new("s-seg.yaml") # automatically detects task type
     model.load("s-seg.pt") # load checkpoint

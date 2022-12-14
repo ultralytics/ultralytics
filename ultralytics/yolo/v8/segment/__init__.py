@@ -1,3 +1,2 @@
-from .predict import SegmentationPredictor, predict
-from .train import SegmentationTrainer, train
-from .val import SegmentationValidator, val
+from ultralytics.yolo.v8.segment.train import SegmentationTrainer
+from ultralytics.yolo.v8.segment.val import SegmentationValidator

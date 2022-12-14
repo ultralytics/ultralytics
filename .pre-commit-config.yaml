@@ -4,7 +4,6 @@
 default_language_version:
   python: python3.8
 
-exclude: 'docs/'
 # Define bot property if installed via https://github.com/marketplace/pre-commit-ci
 ci:
   autofix_prs: true
@@ -51,7 +50,7 @@ repos:
         additional_dependencies:
           - mdformat-gfm
           - mdformat-black
-        exclude: "README.md|README_cn.md| CONTRIBUTING.md"
+        exclude: "README.md|README_cn.md"
 
   - repo: https://github.com/asottile/yesqa
     rev: v1.4.0

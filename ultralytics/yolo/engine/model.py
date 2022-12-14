@@ -10,7 +10,7 @@ from ultralytics.yolo.utils.configs import get_config
 from ultralytics.yolo.utils.files import yaml_load
 from ultralytics.yolo.utils.modeling import attempt_load_weights
 from ultralytics.yolo.utils.modeling.tasks import ClassificationModel, DetectionModel, SegmentationModel
-from ultralytics.yolo.utils.torch_utils import model_info
+from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 
 # map head: [model, trainer, validator, predictor]
 MODEL_MAP = {
@@ -94,10 +94,10 @@ class YOLO:
             LOGGER.info("model not initialized!")
         self.model.fuse()
 
-    def predict(self, imgs):
+    def forward(self, imgs):
         return self.__call__(imgs)
 
-    def visualize_preds(self, **kwargs):
+    def predict(self, **kwargs):
         predictor = self.PredictorClass(overrides=kwargs)
 
         # check size type
@@ -190,8 +190,10 @@ class YOLO:
         predictor_class = eval(pred_lit.replace("TYPE", f"{self.type}"))
 
         return model_class, trainer_class, validator_class, predictor_class
-
+    
+    @smart_inference_mode()
     def __call__(self, imgs):
         if not self.model:
             LOGGER.info("model not initialized!")
         return self.model(imgs)
+

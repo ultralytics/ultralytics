@@ -1,38 +1,71 @@
+import subprocess
+import time
+from pathlib import Path
+
 import hydra
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 from ultralytics.yolo import v8
+from ultralytics.yolo.data import build_dataloader
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG, BaseTrainer
+from ultralytics.yolo.utils.anchors import check_anchors
 from ultralytics.yolo.utils.metrics import FocalLoss, bbox_iou, smooth_BCE
 from ultralytics.yolo.utils.modeling.tasks import SegmentationModel
 from ultralytics.yolo.utils.ops import crop_mask, xywh2xyxy
-from ultralytics.yolo.utils.plotting import plot_images, plot_results
 from ultralytics.yolo.utils.torch_utils import de_parallel
-
-from ..detect import DetectionTrainer
 
 
 # BaseTrainer python usage
-class SegmentationTrainer(DetectionTrainer):
+class SegmentationTrainer(BaseTrainer):
 
-    def load_model(self, model_cfg=None, weights=None):
-        model = SegmentationModel(model_cfg or weights["model"].yaml,
+    def get_dataloader(self, dataset_path, batch_size, rank=0):
+        # TODO: manage splits differently
+        # calculate stride - check if model is initialized
+        gs = max(int(self.model.stride.max() if self.model else 0), 32)
+        loader = build_dataloader(
+            img_path=dataset_path,
+            img_size=self.args.img_size,
+            batch_size=batch_size,
+            single_cls=self.args.single_cls,
+            cache=self.args.cache,
+            image_weights=self.args.image_weights,
+            stride=gs,
+            rect=self.args.rect,
+            rank=rank,
+            workers=self.args.workers,
+            shuffle=self.args.shuffle,
+            use_segments=True,
+        )[0]
+        return loader
+
+    def preprocess_batch(self, batch):
+        batch["img"] = batch["img"].to(self.device, non_blocking=True).float() / 255
+        return batch
+
+    def load_model(self, model_cfg, weights, data):
+        model = SegmentationModel(model_cfg if model_cfg else weights["model"].yaml,
                                   ch=3,
-                                  nc=self.data["nc"],
+                                  nc=data["nc"],
                                   anchors=self.args.get("anchors"))
+        check_anchors(model, self.args.anchor_t, self.args.img_size)
         if weights:
             model.load(weights)
-        for _, v in model.named_parameters():
-            v.requires_grad = True  # train all layers
         return model
 
+    def set_model_attributes(self):
+        nl = de_parallel(self.model).model[-1].nl  # number of detection layers (to scale hyps)
+        self.args.box *= 3 / nl  # scale to layers
+        self.args.cls *= self.data["nc"] / 80 * 3 / nl  # scale to classes and layers
+        self.args.obj *= (self.args.img_size / 640) ** 2 * 3 / nl  # scale to image size and layers
+        self.model.nc = self.data["nc"]  # attach number of classes to model
+        self.model.args = self.args  # attach hyperparameters to model
+        # TODO: self.model.class_weights = labels_to_class_weights(dataset.labels, nc).to(device) * nc
+        self.model.names = self.data["names"]
+
     def get_validator(self):
-        return v8.segment.SegmentationValidator(self.test_loader,
-                                                save_dir=self.save_dir,
-                                                logger=self.console,
-                                                args=self.args)
+        return v8.segment.SegmentationValidator(self.test_loader, self.device, logger=self.console)
 
     def criterion(self, preds, batch):
         head = de_parallel(self.model).model[-1]
@@ -133,11 +166,11 @@ class SegmentationTrainer(DetectionTrainer):
 
             return tcls, tbox, indices, anch, tidxs, xywhn
 
-        if len(preds) == 2:  # eval
+        if self.model.training:
             p, proto, = preds
-        else:  # len(3) train
-            _, proto, p = preds
-
+        else:
+            p, proto, train_out = preds
+            p = train_out
         targets = torch.cat((batch["batch_idx"].view(-1, 1), batch["cls"].view(-1, 1), batch["bboxes"]), 1)
         masks = batch["masks"]
         targets, masks = targets.to(self.device), masks.to(self.device).float()
@@ -187,13 +220,11 @@ class SegmentationTrainer(DetectionTrainer):
                 mxyxy = xywh2xyxy(xywhn[i] * torch.tensor([mask_w, mask_h, mask_w, mask_h], device=self.device))
                 for bi in b.unique():
                     j = b == bi  # matching index
-                    if self.args.overlap_mask:
+                    if True:
                         mask_gti = torch.where(masks[bi][None] == tidxs[i][j].view(-1, 1, 1), 1.0, 0.0)
                     else:
                         mask_gti = masks[tidxs[i]][j]
                     lseg += single_mask_loss(mask_gti, pmask[j], proto[bi], mxyxy[j], marea[j])
-            else:
-                lseg += (proto * 0).sum()
 
             obji = BCEobj(pi[..., 4], tobj)
             lobj += obji * balance[i]  # obj loss
@@ -210,31 +241,14 @@ class SegmentationTrainer(DetectionTrainer):
         loss = lbox + lobj + lcls + lseg
         return loss * bs, torch.cat((lbox, lseg, lobj, lcls)).detach()
 
-    def label_loss_items(self, loss_items=None, prefix="train"):
-        # We should just use named tensors here in future
-        keys = [f"{prefix}/lbox", f"{prefix}/lseg", f"{prefix}/lobj", f"{prefix}/lcls"]
-        return dict(zip(keys, loss_items)) if loss_items is not None else keys
-
     def progress_string(self):
         return ('\n' + '%11s' * 7) % \
                ('Epoch', 'GPU_mem', 'box_loss', 'seg_loss', 'obj_loss', 'cls_loss', 'Size')
 
-    def plot_training_samples(self, batch, ni):
-        images = batch["img"]
-        masks = batch["masks"]
-        cls = batch["cls"].squeeze(-1)
-        bboxes = batch["bboxes"]
-        paths = batch["im_file"]
-        batch_idx = batch["batch_idx"]
-        plot_images(images, batch_idx, cls, bboxes, masks, paths=paths, fname=self.save_dir / f"train_batch{ni}.jpg")
-
-    def plot_metrics(self):
-        plot_results(file=self.csv, segment=True)  # save results.png
-
 
 @hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
 def train(cfg):
-    cfg.model = cfg.model or "models/yolov5n-seg.yaml"
+    cfg.model = v8.ROOT / "models/yolov5n-seg.yaml"
     cfg.data = cfg.data or "coco128-seg.yaml"  # or yolo.ClassificationDataset("mnist")
     trainer = SegmentationTrainer(cfg)
     trainer.train()

@@ -1,12 +1,9 @@
 import contextlib
-import logging.config
+import logging
 import os
 import platform
 import sys
-import threading
 from pathlib import Path
-
-import IPython
 
 # Constants
 FILE = Path(__file__).resolve()
@@ -17,8 +14,6 @@ NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLOv5 multiproces
 AUTOINSTALL = str(os.getenv('YOLOv5_AUTOINSTALL', True)).lower() == 'true'  # global auto-install mode
 FONT = 'Arial.ttf'  # https://ultralytics.com/assets/Arial.ttf
 VERBOSE = str(os.getenv('YOLOv5_VERBOSE', True)).lower() == 'true'  # global verbose mode
-TQDM_BAR_FORMAT = '{l_bar}{bar:10}| {n_fmt}/{total_fmt} {elapsed}'  # tqdm bar format
-LOGGING_NAME = 'yolov5'
 
 
 def is_colab():
@@ -29,23 +24,6 @@ def is_colab():
 def is_kaggle():
     # Is environment a Kaggle Notebook?
     return os.environ.get('PWD') == '/kaggle/working' and os.environ.get('KAGGLE_URL_BASE') == 'https://www.kaggle.com'
-
-
-def is_notebook():
-    # Is environment a Jupyter notebook? Verified on Colab, Jupyterlab, Kaggle, Paperspace
-    ipython_type = str(type(IPython.get_ipython()))
-    return 'colab' in ipython_type or 'zmqshell' in ipython_type
-
-
-def is_docker() -> bool:
-    """Check if the process runs inside a docker container."""
-    if Path("/.dockerenv").exists():
-        return True
-    try:  # check if docker is in control groups
-        with open("/proc/self/cgroup") as file:
-            return any("docker" in line for line in file)
-    except OSError:
-        return False
 
 
 def is_writeable(dir, test=False):
@@ -109,31 +87,24 @@ def colorstr(*input):
     return "".join(colors[x] for x in args) + f"{string}" + colors["end"]
 
 
-def set_logging(name=LOGGING_NAME, verbose=True):
-    # sets up logging for the given name
-    rank = int(os.getenv('RANK', -1))  # rank in world for Multi-GPU trainings
+def set_logging(name=None, verbose=VERBOSE):
+    # Sets level and returns logger
+    if is_colab() or is_kaggle():
+        for h in logging.root.handlers:
+            logging.root.removeHandler(h)  # remove all handlers associated with the root logger object
+    rank = int(os.getenv("RANK", -1))  # rank in world for Multi-GPU trainings
     level = logging.INFO if verbose and rank in {-1, 0} else logging.ERROR
-    logging.config.dictConfig({
-        "version": 1,
-        "disable_existing_loggers": False,
-        "formatters": {
-            name: {
-                "format": "%(message)s"}},
-        "handlers": {
-            name: {
-                "class": "logging.StreamHandler",
-                "formatter": name,
-                "level": level,}},
-        "loggers": {
-            name: {
-                "level": level,
-                "handlers": [name],
-                "propagate": False,}}})
+    log = logging.getLogger(name)
+    log.setLevel(level)
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter("%(message)s"))
+    handler.setLevel(level)
+    log.addHandler(handler)
 
 
-set_logging(LOGGING_NAME)  # run before defining LOGGER
-LOGGER = logging.getLogger(LOGGING_NAME)  # define globally (used in train.py, val.py, detect.py, etc.)
-if platform.system() == 'Windows':
+set_logging()  # run before defining LOGGER
+LOGGER = logging.getLogger("yolov5")  # define globally
+if platform.system() == "Windows":
     for fn in LOGGER.info, LOGGER.warning:
         setattr(LOGGER, fn.__name__, lambda x: fn(emojis(x)))  # emoji safe logging
 
@@ -148,15 +119,5 @@ class TryExcept(contextlib.ContextDecorator):
 
     def __exit__(self, exc_type, value, traceback):
         if value:
-            print(emojis(f"{self.msg}{': ' if self.msg else ''}{value}"))
+            print(emojis(f'{self.msg}{value}'))
         return True
-
-
-def threaded(func):
-    # Multi-threads a target function and returns thread. Usage: @threaded decorator
-    def wrapper(*args, **kwargs):
-        thread = threading.Thread(target=func, args=args, kwargs=kwargs, daemon=True)
-        thread.start()
-        return thread
-
-    return wrapper

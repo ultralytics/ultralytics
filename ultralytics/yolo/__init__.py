@@ -1,4 +1,4 @@
-from ultralytics.yolo import v8
+import ultralytics.yolo.v8 as v8
 
 from .engine.model import YOLO
 from .engine.trainer import BaseTrainer

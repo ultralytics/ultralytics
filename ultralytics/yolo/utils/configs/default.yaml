@@ -1,9 +1,6 @@
 # YOLO 🚀 by Ultralytics, GPL-3.0 license
 # Default training settings and hyperparameters for medium-augmentation COCO training
 
-# Task and Mode
-task: "classify" # choices=['detect', 'segment', 'classify', 'init'] # init is a special case
-mode: "train" # choice=['train', 'val', 'infer']
 
 # Train settings -------------------------------------------------------------------------------------------------------
 model: null  # i.e. yolov5s.pt, yolo.yaml
@@ -22,49 +19,27 @@ pretrained: False
 optimizer: 'SGD'  # choices=['SGD', 'Adam', 'AdamW', 'RMSProp']
 verbose: False
 seed: 0
-deterministic: True
 local_rank: -1
 single_cls: False  # train multi-class data as single-class
 image_weights: False  # use weighted image selection for training
+shuffle: True
 rect: False  # support rectangular training
-cos_lr: False # Use cosine LR scheduler
-# Segmentation
-overlap_mask: True  # masks overlap
-mask_ratio: 4  # mask downsample ratio
-# Classification
-dropout: False # use dropout
-resume: False
-
+overlap_mask: True  # Segmentation masks overlap
+mask_ratio: 4  # Segmentation mask downsample ratio
 
 # Val/Test settings ----------------------------------------------------------------------------------------------------
-noval: False
 save_json: False
 save_hybrid: False
 conf_thres: 0.001
 iou_thres: 0.6
 max_det: 300
 half: True
-dnn: False # use OpenCV DNN for ONNX inference
 plots: False
-
-# Prediction settings:
-source: "ultralytics/assets/"
-view_img: False
 save_txt: False
-save_conf: False
-save_crop: False
-hide_labels: False  # hide labels
-hide_conf: False
-vid_stride: 1 # video frame-rate stride
-line_thickness: 3  # bounding box thickness (pixels)
-update: False # Update all models
-visualize: False
-augment: False
-agnostic_nms: False  # class-agnostic NMS
-retina_masks: False
+task: 'val'
 
 # Hyperparameters ------------------------------------------------------------------------------------------------------
-lr0: 0.01  # initial learning rate (SGD=1E-2, Adam=1E-3)
+lr0: 0.001  # initial learning rate (SGD=1E-2, Adam=1E-3)
 lrf: 0.01  # final OneCycleLR learning rate (lr0 * lrf)
 momentum: 0.937  # SGD momentum/Adam beta1
 weight_decay: 0.0005  # optimizer weight decay 5e-4
@@ -80,9 +55,6 @@ iou_t: 0.20  # IoU training threshold
 anchor_t: 4.0  # anchor-multiple threshold
 # anchors: 3  # anchors per output layer (0 to ignore)
 fl_gamma: 0.0  # focal loss gamma (efficientDet default gamma=1.5)
-label_smoothing: 0.0
-nbs: 64 # nominal batch size
-# anchors: 3
 hsv_h: 0.015  # image HSV-Hue augmentation (fraction)
 hsv_s: 0.7  # image HSV-Saturation augmentation (fraction)
 hsv_v: 0.4  # image HSV-Value augmentation (fraction)
@@ -96,6 +68,8 @@ fliplr: 0.5  # image flip left-right (probability)
 mosaic: 1.0  # image mosaic (probability)
 mixup: 0.0  # image mixup (probability)
 copy_paste: 0.0  # segment copy-paste (probability)
+label_smoothing: 0.0
+# anchors: 3
 
 # Hydra configs --------------------------------------------------------------------------------------------------------
 hydra:

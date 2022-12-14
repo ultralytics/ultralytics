@@ -459,7 +459,7 @@ class LetterBox:
         self.stride = stride
 
     def __call__(self, labels={}, image=None):
-        img = labels.get("img") if image is None else image
+        img = image or labels["img"]
         shape = img.shape[:2]  # current shape [height, width]
         new_shape = labels.pop("rect_shape", self.new_shape)
         if isinstance(new_shape, int):
@@ -491,13 +491,10 @@ class LetterBox:
         img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT,
                                  value=(114, 114, 114))  # add border
 
-        if len(labels):
-            labels = self._update_labels(labels, ratio, dw, dh)
-            labels["img"] = img
-            labels["resized_shape"] = new_shape
-            return labels
-        else:
-            return img
+        labels = self._update_labels(labels, ratio, dw, dh)
+        labels["img"] = img
+        labels["resized_shape"] = new_shape
+        return labels
 
     def _update_labels(self, labels, ratio, padw, padh):
         """Update labels"""
@@ -521,25 +518,23 @@ class CopyPaste:
         instances.convert_bbox(format="xyxy")
         if self.p and len(instances.segments):
             n = len(instances)
-            _, w, _ = im.shape  # height, width, channels
+            h, w, _ = im.shape  # height, width, channels
             im_new = np.zeros(im.shape, np.uint8)
+            j = random.sample(range(n), k=round(self.p * n))
+            c, instance = cls[j], instances[j]
+            instance.fliplr(w)
+            ioa = bbox_ioa(instance.bboxes, instances.bboxes)  # intersection over area, (N, M)
+            i = (ioa < 0.30).all(1)  # (N, )
+            if i.sum():
+                cls = np.concatenate((cls, c[i]), axis=0)
+                instances = Instances.concatenate((instances, instance[i]), axis=0)
+                cv2.drawContours(im_new, instances.segments[j][i].astype(np.int32), -1, (255, 255, 255), cv2.FILLED)
 
-            # calculate ioa first then select indexes randomly
-            ins_flip = deepcopy(instances)
-            ins_flip.fliplr(w)
-
-            ioa = bbox_ioa(ins_flip.bboxes, instances.bboxes)  # intersection over area, (N, M)
-            indexes = np.nonzero((ioa < 0.30).all(1))[0]  # (N, )
-            n = len(indexes)
-            for j in random.sample(list(indexes), k=round(self.p * n)):
-                cls = np.concatenate((cls, cls[[j]]), axis=0)
-                instances = Instances.concatenate((instances, ins_flip[[j]]), axis=0)
-                cv2.drawContours(im_new, instances.segments[[j]].astype(np.int32), -1, (1, 1, 1), cv2.FILLED)
-
-            result = cv2.flip(im, 1)  # augment segments (flip left-right)
-            i = cv2.flip(im_new, 1).astype(bool)
+            result = cv2.bitwise_and(src1=im, src2=im_new)
+            result = cv2.flip(result, 1)  # augment segments (flip left-right)
+            i = result > 0  # pixels to replace
+            # i[:, :] = result.max(2).reshape(h, w, 1)  # act over ch
             im[i] = result[i]  # cv2.imwrite('debug.jpg', im)  # debug
-
         labels["img"] = im
         labels["cls"] = cls
         labels["instances"] = instances
@@ -583,8 +578,8 @@ class Albumentations:
             # TODO: add supports of segments and keypoints
             if self.transform and random.random() < self.p:
                 new = self.transform(image=im, bboxes=bboxes, class_labels=cls)  # transformed
-                labels["img"] = new["image"]
-                labels["cls"] = np.array(new["class_labels"])
+            labels["img"] = new["image"]
+            labels["cls"] = np.array(new["class_labels"])
             labels["instances"].update(bboxes=bboxes)
         return labels
 
@@ -640,7 +635,7 @@ class Format:
     def _format_img(self, img):
         if len(img.shape) < 3:
             img = np.expand_dims(img, -1)
-        img = np.ascontiguousarray(img.transpose(2, 0, 1)[::-1])
+        img = np.ascontiguousarray(img.transpose(2, 0, 1))
         img = torch.from_numpy(img)
         return img
 
@@ -670,7 +665,7 @@ def mosaic_transforms(img_size, hyp):
             perspective=hyp.perspective,
             border=[-img_size // 2, -img_size // 2],
         ),])
-    return Compose([
+    transforms = Compose([
         pre_transform,
         MixUp(
             pre_transform=pre_transform,
@@ -679,11 +674,13 @@ def mosaic_transforms(img_size, hyp):
         Albumentations(p=1.0),
         RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
         RandomFlip(direction="vertical", p=hyp.flipud),
-        RandomFlip(direction="horizontal", p=hyp.fliplr),])  # transforms
+        RandomFlip(direction="horizontal", p=hyp.fliplr),])
+    return transforms
 
 
 def affine_transforms(img_size, hyp):
-    return Compose([
+    # rect, randomperspective, albumentation, hsv, flipud, fliplr
+    transforms = Compose([
         LetterBox(new_shape=(img_size, img_size)),
         RandomPerspective(
             degrees=hyp.degrees,
@@ -696,10 +693,11 @@ def affine_transforms(img_size, hyp):
         Albumentations(p=1.0),
         RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
         RandomFlip(direction="vertical", p=hyp.flipud),
-        RandomFlip(direction="horizontal", p=hyp.fliplr),])  # transforms
+        RandomFlip(direction="horizontal", p=hyp.fliplr),])
+    return transforms
 
 
-# Classification augmentations -----------------------------------------------------------------------------------------
+# Classification augmentations -------------------------------------------------------------------------------------------
 def classify_transforms(size=224):
     # Transforms to apply if albumentations not installed
     assert isinstance(size, int), f"ERROR: classify_transforms size {size} must be integer, not (list, tuple)"

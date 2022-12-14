@@ -263,56 +263,24 @@ class ConfusionMatrix:
             print(' '.join(map(str, self.matrix[i])))
 
 
+def fitness_detection(x):
+    # Model fitness as a weighted combination of metrics
+    w = [0.0, 0.0, 0.1, 0.9]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
+    return (x[:, :4] * w).sum(1)
+
+
+def fitness_segmentation(x):
+    # Model fitness as a weighted combination of metrics
+    w = [0.0, 0.0, 0.1, 0.9, 0.0, 0.0, 0.1, 0.9]
+    return (x[:, :8] * w).sum(1)
+
+
 def smooth(y, f=0.05):
     # Box filter of fraction f
     nf = round(len(y) * f * 2) // 2 + 1  # number of filter elements (must be odd)
     p = np.ones(nf // 2)  # ones padding
     yp = np.concatenate((p * y[0], y, p * y[-1]), 0)  # y padded
     return np.convolve(yp, np.ones(nf) / nf, mode='valid')  # y-smoothed
-
-
-def plot_pr_curve(px, py, ap, save_dir=Path('pr_curve.png'), names=()):
-    # Precision-recall curve
-    fig, ax = plt.subplots(1, 1, figsize=(9, 6), tight_layout=True)
-    py = np.stack(py, axis=1)
-
-    if 0 < len(names) < 21:  # display per-class legend if < 21 classes
-        for i, y in enumerate(py.T):
-            ax.plot(px, y, linewidth=1, label=f'{names[i]} {ap[i, 0]:.3f}')  # plot(recall, precision)
-    else:
-        ax.plot(px, py, linewidth=1, color='grey')  # plot(recall, precision)
-
-    ax.plot(px, py.mean(1), linewidth=3, color='blue', label='all classes %.3f mAP@0.5' % ap[:, 0].mean())
-    ax.set_xlabel('Recall')
-    ax.set_ylabel('Precision')
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
-    ax.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
-    ax.set_title('Precision-Recall Curve')
-    fig.savefig(save_dir, dpi=250)
-    plt.close(fig)
-
-
-def plot_mc_curve(px, py, save_dir=Path('mc_curve.png'), names=(), xlabel='Confidence', ylabel='Metric'):
-    # Metric-confidence curve
-    fig, ax = plt.subplots(1, 1, figsize=(9, 6), tight_layout=True)
-
-    if 0 < len(names) < 21:  # display per-class legend if < 21 classes
-        for i, y in enumerate(py):
-            ax.plot(px, y, linewidth=1, label=f'{names[i]}')  # plot(confidence, metric)
-    else:
-        ax.plot(px, py.T, linewidth=1, color='grey')  # plot(confidence, metric)
-
-    y = smooth(py.mean(0), 0.05)
-    ax.plot(px, y, linewidth=3, color='blue', label=f'all classes {y.max():.2f} at {px[y.argmax()]:.3f}')
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
-    ax.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
-    ax.set_title(f'{ylabel}-Confidence Curve')
-    fig.savefig(save_dir, dpi=250)
-    plt.close(fig)
 
 
 def compute_ap(recall, precision):
@@ -397,17 +365,69 @@ def ap_per_class(tp, conf, pred_cls, target_cls, plot=False, save_dir='.', names
     f1 = 2 * p * r / (p + r + eps)
     names = [v for k, v in names.items() if k in unique_classes]  # list: only classes that have data
     names = dict(enumerate(names))  # to dict
+    # TODO: plot
+    '''
     if plot:
         plot_pr_curve(px, py, ap, Path(save_dir) / f'{prefix}PR_curve.png', names)
         plot_mc_curve(px, f1, Path(save_dir) / f'{prefix}F1_curve.png', names, ylabel='F1')
         plot_mc_curve(px, p, Path(save_dir) / f'{prefix}P_curve.png', names, ylabel='Precision')
         plot_mc_curve(px, r, Path(save_dir) / f'{prefix}R_curve.png', names, ylabel='Recall')
+    '''
 
     i = smooth(f1.mean(0), 0.1).argmax()  # max F1 index
     p, r, f1 = p[:, i], r[:, i], f1[:, i]
     tp = (r * nt).round()  # true positives
     fp = (tp / (p + eps) - tp).round()  # false positives
     return tp, fp, p, r, f1, ap, unique_classes.astype(int)
+
+
+def ap_per_class_box_and_mask(
+        tp_m,
+        tp_b,
+        conf,
+        pred_cls,
+        target_cls,
+        plot=False,
+        save_dir=".",
+        names=(),
+):
+    """
+    Args:
+        tp_b: tp of boxes.
+        tp_m: tp of masks.
+        other arguments see `func: ap_per_class`.
+    """
+    results_boxes = ap_per_class(tp_b,
+                                 conf,
+                                 pred_cls,
+                                 target_cls,
+                                 plot=plot,
+                                 save_dir=save_dir,
+                                 names=names,
+                                 prefix="Box")[2:]
+    results_masks = ap_per_class(tp_m,
+                                 conf,
+                                 pred_cls,
+                                 target_cls,
+                                 plot=plot,
+                                 save_dir=save_dir,
+                                 names=names,
+                                 prefix="Mask")[2:]
+
+    results = {
+        "boxes": {
+            "p": results_boxes[0],
+            "r": results_boxes[1],
+            "ap": results_boxes[3],
+            "f1": results_boxes[2],
+            "ap_class": results_boxes[4]},
+        "masks": {
+            "p": results_masks[0],
+            "r": results_masks[1],
+            "ap": results_masks[3],
+            "f1": results_masks[2],
+            "ap_class": results_masks[4]}}
+    return results
 
 
 class Metric:
@@ -481,17 +501,12 @@ class Metric:
             maps[c] = self.ap[i]
         return maps
 
-    def fitness(self):
-        # Model fitness as a weighted combination of metrics
-        w = [0.0, 0.0, 0.1, 0.9]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
-        return (np.array(self.mean_results()) * w).sum()
-
     def update(self, results):
         """
         Args:
             results: tuple(p, r, ap, f1, ap_class)
         """
-        p, r, f1, all_ap, ap_class_index = results
+        p, r, all_ap, f1, ap_class_index = results
         self.p = p
         self.r = r
         self.all_ap = all_ap
@@ -499,80 +514,20 @@ class Metric:
         self.ap_class_index = ap_class_index
 
 
-class DetMetrics:
+class Metrics:
+    """Metric for boxes and masks."""
 
-    def __init__(self, save_dir=Path("."), plot=False, names=()) -> None:
-        self.save_dir = save_dir
-        self.plot = plot
-        self.names = names
-        self.metric = Metric()
-
-    def process(self, tp, conf, pred_cls, target_cls):
-        results = ap_per_class(tp, conf, pred_cls, target_cls, plot=self.plot, save_dir=self.save_dir,
-                               names=self.names)[2:]
-        self.metric.update(results)
-
-    @property
-    def keys(self):
-        return ["metrics/precision(B)", "metrics/recall(B)", "metrics/mAP_0.5(B)", "metrics/mAP_0.5:0.95(B)"]
-
-    def mean_results(self):
-        return self.metric.mean_results()
-
-    def class_result(self, i):
-        return self.metric.class_result(i)
-
-    def get_maps(self, nc):
-        return self.metric.get_maps(nc)
-
-    def fitness(self):
-        return self.metric.fitness()
-
-    @property
-    def ap_class_index(self):
-        return self.metric.ap_class_index
-
-
-class SegmentMetrics:
-
-    def __init__(self, save_dir=Path("."), plot=False, names=()) -> None:
-        self.save_dir = save_dir
-        self.plot = plot
-        self.names = names
+    def __init__(self) -> None:
         self.metric_box = Metric()
         self.metric_mask = Metric()
 
-    def process(self, tp_m, tp_b, conf, pred_cls, target_cls):
-        results_mask = ap_per_class(tp_m,
-                                    conf,
-                                    pred_cls,
-                                    target_cls,
-                                    plot=self.plot,
-                                    save_dir=self.save_dir,
-                                    names=self.names,
-                                    prefix="Mask")[2:]
-        self.metric_mask.update(results_mask)
-        results_box = ap_per_class(tp_b,
-                                   conf,
-                                   pred_cls,
-                                   target_cls,
-                                   plot=self.plot,
-                                   save_dir=self.save_dir,
-                                   names=self.names,
-                                   prefix="Box")[2:]
-        self.metric_box.update(results_box)
-
-    @property
-    def keys(self):
-        return [
-            "metrics/precision(B)",
-            "metrics/recall(B)",
-            "metrics/mAP_0.5(B)",
-            "metrics/mAP_0.5:0.95(B)",  # metrics
-            "metrics/precision(M)",
-            "metrics/recall(M)",
-            "metrics/mAP_0.5(M)",
-            "metrics/mAP_0.5:0.95(M)"]
+    def update(self, results):
+        """
+        Args:
+            results: Dict{'boxes': Dict{}, 'masks': Dict{}}
+        """
+        self.metric_box.update(list(results["boxes"].values()))
+        self.metric_mask.update(list(results["masks"].values()))
 
     def mean_results(self):
         return self.metric_box.mean_results() + self.metric_mask.mean_results()
@@ -582,9 +537,6 @@ class SegmentMetrics:
 
     def get_maps(self, nc):
         return self.metric_box.get_maps(nc) + self.metric_mask.get_maps(nc)
-
-    def fitness(self):
-        return self.metric_mask.fitness() + self.metric_box.fitness()
 
     @property
     def ap_class_index(self):

@@ -35,8 +35,8 @@ setup(
     include_package_data=True,
     install_requires=REQUIREMENTS,
     extras_require={
-        'dev':
-        ['check-manifest', 'pytest', 'pytest-cov', 'coverage', 'mkdocs', 'mkdocstrings[python]', 'mkdocs-material'],},
+        'dev': ['check-manifest'],
+        'test': ['pytest', 'pytest-cov', 'coverage'],},
     classifiers=[
         "Intended Audience :: Developers", "Intended Audience :: Science/Research",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)", "Programming Language :: Python :: 3",
@@ -46,7 +46,4 @@ setup(
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
         "Topic :: Scientific/Engineering :: Image Recognition", "Operating System :: POSIX :: Linux",
         "Operating System :: MacOS", "Operating System :: Microsoft :: Windows"],
-    keywords="machine-learning, deep-learning, vision, ML, DL, AI, YOLO, YOLOv3, YOLOv5, YOLOv8, HUB, Ultralytics",
-    entry_points={
-        'console_scripts': [
-            'yolo = ultralytics.yolo.cli:cli',],})
+    keywords="machine-learning, deep-learning, vision, ML, DL, AI, YOLO, YOLOv3, YOLOv5, YOLOv8, HUB, Ultralytics")

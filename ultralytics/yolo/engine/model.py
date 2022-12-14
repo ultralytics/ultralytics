@@ -116,7 +116,7 @@ class YOLO:
 
         args = get_config(config=DEFAULT_CONFIG, overrides=kwargs)
         args.data = data
-        args.task = "segment"
+        args.task = self.task
 
         validator = self.ValidatorClass(args=args)
         validator(model=self.model)

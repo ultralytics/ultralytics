@@ -89,7 +89,7 @@ class YOLO:
         Logs model info
 
         Args:
-        verbose (bool): Controls verbosity. 
+        verbose (bool): Controls verbosity.
         """
         if not self.model:
             LOGGER.info("model not initialized!")

@@ -190,7 +190,7 @@ class YOLO:
         predictor_class = eval(pred_lit.replace("TYPE", f"{self.type}"))
 
         return model_class, trainer_class, validator_class, predictor_class
-    
+
     @smart_inference_mode()
     def __call__(self, imgs):
         if not self.model:

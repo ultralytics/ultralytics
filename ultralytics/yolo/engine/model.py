@@ -1,18 +1,28 @@
 import torch
 import yaml
+from omegaconf import OmegaConf
 
 from ultralytics import yolo
+from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.utils import LOGGER
 from ultralytics.yolo.utils.checks import check_yaml
+from ultralytics.yolo.utils.configs import get_config
 from ultralytics.yolo.utils.files import yaml_load
 from ultralytics.yolo.utils.modeling import attempt_load_weights
 from ultralytics.yolo.utils.modeling.tasks import ClassificationModel, DetectionModel, SegmentationModel
+from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 
-# map head: [model, trainer]
+# map head: [model, trainer, validator, predictor]
 MODEL_MAP = {
-    "classify": [ClassificationModel, 'yolo.TYPE.classify.ClassificationTrainer'],
-    "detect": [DetectionModel, 'yolo.TYPE.detect.DetectionTrainer'],
-    "segment": [SegmentationModel, 'yolo.TYPE.segment.SegmentationTrainer']}
+    "classify": [
+        ClassificationModel, 'yolo.TYPE.classify.ClassificationTrainer', 'yolo.TYPE.classify.ClassificationValidator',
+        'yolo.TYPE.classify.ClassificationPredictor'],
+    "detect": [
+        DetectionModel, 'yolo.TYPE.detect.DetectionTrainer', 'yolo.TYPE.detect.DetectionValidator',
+        'yolo.TYPE.detect.DetectionPredictor'],
+    "segment": [
+        SegmentationModel, 'yolo.TYPE.segment.SegmentationTrainer', 'yolo.TYPE.segment.SegmentationValidator',
+        'yolo.TYPE.segment.SegmentationPredictor']}
 
 
 class YOLO:
@@ -28,6 +38,8 @@ class YOLO:
         self.type = type
         self.ModelClass = None
         self.TrainerClass = None
+        self.ValidatorClass = None
+        self.PredictorClass = None
         self.model = None
         self.trainer = None
         self.task = None
@@ -43,7 +55,9 @@ class YOLO:
         cfg = check_yaml(cfg)  # check YAML
         with open(cfg, encoding='ascii', errors='ignore') as f:
             cfg = yaml.safe_load(f)  # model dict
-        self.ModelClass, self.TrainerClass, self.task = self._guess_model_trainer_and_task(cfg["head"][-1][-2])
+        self.task = self._guess_task_from_head(cfg["head"][-1][-2])
+        self.ModelClass, self.TrainerClass, self.ValidatorClass, self.PredictorClass = self._guess_ops_from_task(
+            self.task)
         self.model = self.ModelClass(cfg)  # initialize
 
     def load(self, weights: str):
@@ -56,8 +70,8 @@ class YOLO:
         """
         self.ckpt = torch.load(weights, map_location="cpu")
         self.task = self.ckpt["train_args"]["task"]
-        _, trainer_class_literal = MODEL_MAP[self.task]
-        self.TrainerClass = eval(trainer_class_literal.replace("TYPE", f"v{self.type}"))
+        self.ModelClass, self.TrainerClass, self.ValidatorClass, self.PredictorClass = self._guess_ops_from_task(
+            task=self.task)
         self.model = attempt_load_weights(weights)
 
     def reset(self):
@@ -69,6 +83,60 @@ class YOLO:
                 m.reset_parameters()
         for p in self.model.parameters():
             p.requires_grad = True
+
+    def info(self, verbose=False):
+        """
+        Logs model info
+
+        Args:
+        verbose (bool): Controls verbosity.
+        """
+        if not self.model:
+            LOGGER.info("model not initialized!")
+        self.model.info(verbose=verbose)
+
+    def fuse(self):
+        if not self.model:
+            LOGGER.info("model not initialized!")
+        self.model.fuse()
+
+    def predict(self, source, **kwargs):
+        """
+        Visualize prection.
+
+        Args:
+        source (str): Accepts all source types accepted by yolo
+        **kwargs : Any other args accepted by the predictors. Too see all args check 'configuration' section in the docs
+        """
+        predictor = self.PredictorClass(overrides=kwargs)
+
+        # check size type
+        sz = predictor.args.img_size
+        if type(sz) != int:  # recieved listConfig
+            predictor.args.img_size = [sz[0], sz[0]] if len(sz) == 1 else [sz[0], sz[1]]  # expand
+        else:
+            predictor.args.img_size = [sz, sz]
+
+        predictor.setup(model=self.model, source=source)
+        predictor()
+
+    def val(self, data, **kwargs):
+        """
+        Validate a model on a given dataset
+
+        Args:
+        data (str): The dataset to validate on. Accepts all formats accepted by yolo
+        kwargs: Any other args accepted by the validators. Too see all args check 'configuration' section in the docs
+        """
+        if not self.model:
+            raise Exception("model not initialized!")
+
+        args = get_config(config=DEFAULT_CONFIG, overrides=kwargs)
+        args.data = data
+        args.task = self.task
+
+        validator = self.ValidatorClass(args=args)
+        validator(model=self.model)
 
     def train(self, **kwargs):
         """
@@ -95,22 +163,28 @@ class YOLO:
         self.trainer.model = self.trainer.load_model(weights=self.ckpt) if self.ckpt else self.model
         self.trainer.train()
 
-    def resume(self, task, model=None):
+    def resume(self, task=None, model=None):
         """
-        Resume a training task.
-
+        Resume a training task. Requires either `task` or `model`. `model` takes the higher precederence.
         Args:
             task (str): The task type you want to resume. Automatically finds the last run to resume if `model` is not specified.
-            model (str): [Optional] The model checkpoint to resume from. If not found, the last run of the given task type is resumed.
+            model (str): The model checkpoint to resume from. If not found, the last run of the given task type is resumed.
+                         If `model` is speficied
         """
-        if task.lower() not in MODEL_MAP:
-            raise Exception(f"unrecognised task - {task}. Supported tasks are {MODEL_MAP.keys()}")
-        _, trainer_class_literal = MODEL_MAP[task.lower()]
-        self.TrainerClass = eval(trainer_class_literal.replace("TYPE", f"v{self.type}"))
+        if task:
+            if task.lower() not in MODEL_MAP:
+                raise Exception(f"unrecognised task - {task}. Supported tasks are {MODEL_MAP.keys()}")
+        else:
+            ckpt = torch.load(model, map_location="cpu")
+            task = ckpt["train_args"]["task"]
+            del ckpt
+        self.ModelClass, self.TrainerClass, self.ValidatorClass, self.PredictorClass = self._guess_ops_from_task(
+            task=task.lower())
         self.trainer = self.TrainerClass(overrides={"task": task.lower(), "resume": model if model else True})
         self.trainer.train()
 
-    def _guess_model_trainer_and_task(self, head):
+    @staticmethod
+    def _guess_task_from_head(head):
         task = None
         if head.lower() in ["classify", "classifier", "cls", "fc"]:
             task = "classify"
@@ -118,13 +192,27 @@ class YOLO:
             task = "detect"
         if head.lower() in ["segment"]:
             task = "segment"
-        model_class, trainer_class = MODEL_MAP[task]
+
+        if not task:
+            raise Exception(
+                "task or model not recognized! Please refer the docs at : ")  # TODO: add gitHub and docs links
+
+        return task
+
+    def _guess_ops_from_task(self, task):
+        model_class, train_lit, val_lit, pred_lit = MODEL_MAP[task]
         # warning: eval is unsafe. Use with caution
-        trainer_class = eval(trainer_class.replace("TYPE", f"{self.type}"))
+        trainer_class = eval(train_lit.replace("TYPE", f"{self.type}"))
+        validator_class = eval(val_lit.replace("TYPE", f"{self.type}"))
+        predictor_class = eval(pred_lit.replace("TYPE", f"{self.type}"))
 
-        return model_class, trainer_class, task
+        return model_class, trainer_class, validator_class, predictor_class
 
+    @smart_inference_mode()
     def __call__(self, imgs):
         if not self.model:
             LOGGER.info("model not initialized!")
         return self.model(imgs)
+
+    def forward(self, imgs):
+        return self.__call__(imgs)

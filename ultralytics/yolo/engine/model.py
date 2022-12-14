@@ -85,6 +85,12 @@ class YOLO:
             p.requires_grad = True
 
     def info(self, verbose=False):
+        """
+        Logs model info
+
+        Args:
+        verbose (bool): Controls verbosity. 
+        """
         if not self.model:
             LOGGER.info("model not initialized!")
         self.model.info(verbose=verbose)
@@ -94,10 +100,14 @@ class YOLO:
             LOGGER.info("model not initialized!")
         self.model.fuse()
 
-    def forward(self, imgs):
-        return self.__call__(imgs)
+    def predict(self, source, **kwargs):
+        """
+        Visualize prection.
 
-    def predict(self, **kwargs):
+        Args:
+        source (str): Accepts all source types accepted by yolo
+        **kwargs : Any other args accepted by the predictors. Too see all args check 'configuration' section in the docs
+        """
         predictor = self.PredictorClass(overrides=kwargs)
 
         # check size type
@@ -107,10 +117,17 @@ class YOLO:
         else:
             predictor.args.img_size = [sz, sz]
 
-        predictor.setup(model=self.model, source=kwargs["source"])
+        predictor.setup(model=self.model, source=source)
         predictor()
 
     def val(self, data, **kwargs):
+        """
+        Validate a model on a given dataset
+
+        Args:
+        data (str): The dataset to validate on. Accepts all formats accepted by yolo
+        kwargs: Any other args accepted by the validators. Too see all args check 'configuration' section in the docs
+        """
         if not self.model:
             raise Exception("model not initialized!")
 
@@ -196,3 +213,6 @@ class YOLO:
         if not self.model:
             LOGGER.info("model not initialized!")
         return self.model(imgs)
+
+    def forward(self, imgs):
+        return self.__call__(imgs)

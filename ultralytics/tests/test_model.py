@@ -48,6 +48,12 @@ def test_model_resume():
     except AssertionError:
         print("Successfully caught resume assert!")
 
+def test_model_train_pretrained():
+    model = YOLO()
+    model.load("balloon-detect.pt")
+    model.train(data="coco128.yaml", epochs=1, img_size=32)
+    model.new("yolov5n.yaml")
+    model.train(data="coco128.yaml", epochs=1, img_size=32)
 
 def test():
     test_model_forward()
@@ -56,6 +62,7 @@ def test():
     test_visualize_preds()
     test_val()
     test_model_resume()
+    test_model_train_pretrained()
 
 
 if __name__ == "__main__":

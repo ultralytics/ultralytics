@@ -10,7 +10,8 @@ from ultralytics.yolo.utils.configs import get_config
 from ultralytics.yolo.utils.files import yaml_load
 from ultralytics.yolo.utils.modeling import attempt_load_weights
 from ultralytics.yolo.utils.modeling.tasks import ClassificationModel, DetectionModel, SegmentationModel
-from ultralytics.yolo.utils.torch_utils import smart_inference_mode
+from ultralytics.yolo.utils.torch_utils import smart_inference_mode, intersect_state_dicts
+from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
 
 # map head: [model, trainer, validator, predictor]
 MODEL_MAP = {
@@ -146,7 +147,7 @@ class YOLO:
             **kwargs (Any): Any number of arguments representing the training configuration. List of all args can be found in 'config' section.
                             You can pass all arguments as a yaml file in `cfg`. Other args are ignored if `cfg` file is passed
         """
-        if not self.model and not self.ckpt:
+        if not self.model:
             raise Exception("model not initialized. Use .new() or .load()")
 
         overrides = kwargs
@@ -159,8 +160,9 @@ class YOLO:
             raise Exception("dataset not provided! Please check if you have defined `data` in you configs")
 
         self.trainer = self.TrainerClass(overrides=overrides)
-        # load pre-trained weights if found, else use the loaded model
-        self.trainer.model = self.trainer.load_model(weights=self.ckpt) if self.ckpt else self.model
+        self.trainer.model = self.trainer.load_model(weights=self.ckpt, model_cfg=self.model.yaml if self.task!="classify" else None )
+        self.model = self.trainer.model # override here to save memory
+
         self.trainer.train()
 
     def resume(self, task=None, model=None):
@@ -199,6 +201,9 @@ class YOLO:
 
         return task
 
+    def to(self, device):
+        self.model.to(device)
+
     def _guess_ops_from_task(self, task):
         model_class, train_lit, val_lit, pred_lit = MODEL_MAP[task]
         # warning: eval is unsafe. Use with caution
@@ -207,6 +212,14 @@ class YOLO:
         predictor_class = eval(pred_lit.replace("TYPE", f"{self.type}"))
 
         return model_class, trainer_class, validator_class, predictor_class
+
+    def _override_model_head(self, nc):
+        if self.task == "classify":
+            pass
+        state_dict = self.model.state_dict()
+        self.model = self.ModelClass(self.model.cfg, nc=nc)
+        csd = intersect_state_dicts(state_dict, self.model.state_dict())
+        self.model.load_state_dict(csd, strict=False)
 
     @smart_inference_mode()
     def __call__(self, imgs):

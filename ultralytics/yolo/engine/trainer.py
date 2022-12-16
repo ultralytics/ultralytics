@@ -30,15 +30,11 @@ from ultralytics.yolo.utils.checks import check_file, print_args
 from ultralytics.yolo.utils.configs import get_config
 from ultralytics.yolo.utils.files import get_latest_run, increment_path, save_yaml
 from ultralytics.yolo.utils.torch_utils import ModelEMA, de_parallel, init_seeds, one_cycle, strip_optimizer
+from ultralytics.yolo.utils.dist import generate_ddp_command
 
 DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yaml"
 RANK = int(os.getenv('RANK', -1))
 
-def _generate_ddp_command(world_size):
-    import __main__  # local import to avoid https://github.com/Lightning-AI/lightning/issues/15218
-
-    return [sys.executable, "-m", "torch.distributed.launch", "--nproc_per_node", 
-            f"{world_size}", os.path.abspath(sys.argv[0])] + sys.argv[1:]
 
 class BaseTrainer:
 
@@ -111,7 +107,7 @@ class BaseTrainer:
     def train(self):
         world_size = torch.cuda.device_count()
         if world_size > 1 and not ("LOCAL_RANK" in os.environ):
-            command = _generate_ddp_command(world_size)
+            command = generate_ddp_command(world_size)
             subprocess.Popen(command)
         else:
             self._do_train(int(os.getenv("RANK", -1)), world_size)

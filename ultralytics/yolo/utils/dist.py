@@ -1,6 +1,6 @@
+import os
 import socket
 import sys
-import os
 
 
 def find_free_network_port() -> int:
@@ -20,6 +20,7 @@ def find_free_network_port() -> int:
 def generate_ddp_command(world_size):
     import __main__  # local import to avoid https://github.com/Lightning-AI/lightning/issues/15218
 
-    return [sys.executable, "-m", "torch.distributed.launch", "--nproc_per_node", f"{world_size}", 
-            "--master_port", f"{find_free_network_port()}",
-            os.path.abspath(sys.argv[0])] + sys.argv[1:]
+    return [
+        sys.executable, "-m", "torch.distributed.launch", "--nproc_per_node", f"{world_size}", "--master_port",
+        f"{find_free_network_port()}",
+        os.path.abspath(sys.argv[0])] + sys.argv[1:]

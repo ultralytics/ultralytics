@@ -3,9 +3,9 @@ Simple training loop; Boilerplate that could apply to any arbitrary neural netwo
 """
 
 import os
-import time
-import sys
 import subprocess
+import sys
+import time
 from collections import defaultdict
 from copy import deepcopy
 from datetime import datetime
@@ -28,9 +28,9 @@ from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
 from ultralytics.yolo.utils import LOGGER, ROOT, TQDM_BAR_FORMAT, colorstr
 from ultralytics.yolo.utils.checks import check_file, print_args
 from ultralytics.yolo.utils.configs import get_config
+from ultralytics.yolo.utils.dist import generate_ddp_command
 from ultralytics.yolo.utils.files import get_latest_run, increment_path, save_yaml
 from ultralytics.yolo.utils.torch_utils import ModelEMA, de_parallel, init_seeds, one_cycle, strip_optimizer
-from ultralytics.yolo.utils.dist import generate_ddp_command
 
 DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yaml"
 RANK = int(os.getenv('RANK', -1))

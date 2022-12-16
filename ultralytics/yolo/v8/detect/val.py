@@ -27,9 +27,6 @@ class DetectionValidator(BaseValidator):
         self.metrics = DetMetrics(save_dir=self.save_dir, plot=self.args.plots)
         self.iouv = torch.linspace(0.5, 0.95, 10)  # iou vector for mAP@0.5:0.95
         self.niou = self.iouv.numel()
-        self.seen = 0
-        self.jdict = []
-        self.stats = []
 
     def preprocess(self, batch):
         batch["img"] = batch["img"].to(self.device, non_blocking=True)
@@ -56,6 +53,9 @@ class DetectionValidator(BaseValidator):
             self.names = dict(enumerate(self.names))
         self.metrics.names = self.names
         self.confusion_matrix = ConfusionMatrix(nc=self.nc)
+        self.seen = 0
+        self.jdict = []
+        self.stats = []
 
     def get_desc(self):
         return ('%22s' + '%11s' * 6) % ('Class', 'Images', 'Instances', 'Box(P', "R", "mAP50", "mAP50-95)")

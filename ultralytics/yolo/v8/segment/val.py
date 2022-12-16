@@ -55,6 +55,9 @@ class SegmentationValidator(DetectionValidator):
         self.metrics.names = self.names
         self.confusion_matrix = ConfusionMatrix(nc=self.nc)
         self.plot_masks = []
+        self.seen = 0
+        self.jdict = []
+        self.stats = []
 
     def get_desc(self):
         return ('%22s' + '%11s' * 10) % ('Class', 'Images', 'Instances', 'Box(P', "R", "mAP50", "mAP50-95)", "Mask(P",

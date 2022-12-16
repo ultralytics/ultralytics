@@ -49,6 +49,16 @@ def test_model_resume():
         print("Successfully caught resume assert!")
 
 
+def test_model_train_pretrained():
+    model = YOLO()
+    model.load("balloon-detect.pt")
+    model.train(data="coco128.yaml", epochs=1, img_size=32)
+    model.new("yolov5n.yaml")
+    model.train(data="coco128.yaml", epochs=1, img_size=32)
+    img = torch.rand(512 * 512 * 3).view(1, 3, 512, 512)
+    model(img)
+
+
 def test():
     test_model_forward()
     test_model_info()
@@ -56,6 +66,7 @@ def test():
     test_visualize_preds()
     test_val()
     test_model_resume()
+    test_model_train_pretrained()
 
 
 if __name__ == "__main__":

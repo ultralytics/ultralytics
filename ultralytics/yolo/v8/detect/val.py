@@ -162,7 +162,7 @@ class DetectionValidator(BaseValidator):
                     # matches = matches[matches[:, 2].argsort()[::-1]]
                     matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
                 correct[matches[:, 1].astype(int), i] = True
-        return torch.tensor(correct, dtype=torch.bool, device=iouv.device)
+        return torch.tensor(correct, dtype=torch.bool, device=detections.device)
 
     def get_dataloader(self, dataset_path, batch_size):
         # TODO: manage splits differently

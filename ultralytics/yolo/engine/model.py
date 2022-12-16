@@ -1,6 +1,5 @@
 import torch
 import yaml
-from omegaconf import OmegaConf
 
 from ultralytics import yolo
 from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
@@ -11,7 +10,7 @@ from ultralytics.yolo.utils.configs import get_config
 from ultralytics.yolo.utils.files import yaml_load
 from ultralytics.yolo.utils.modeling import attempt_load_weights
 from ultralytics.yolo.utils.modeling.tasks import ClassificationModel, DetectionModel, SegmentationModel
-from ultralytics.yolo.utils.torch_utils import intersect_state_dicts, smart_inference_mode
+from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 
 # map head: [model, trainer, validator, predictor]
 MODEL_MAP = {
@@ -213,14 +212,6 @@ class YOLO:
         predictor_class = eval(pred_lit.replace("TYPE", f"{self.type}"))
 
         return model_class, trainer_class, validator_class, predictor_class
-
-    def _override_model_head(self, nc):
-        if self.task == "classify":
-            pass
-        state_dict = self.model.state_dict()
-        self.model = self.ModelClass(self.model.cfg, nc=nc)
-        csd = intersect_state_dicts(state_dict, self.model.state_dict())
-        self.model.load_state_dict(csd, strict=False)
 
     @smart_inference_mode()
     def __call__(self, imgs):

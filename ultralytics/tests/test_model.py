@@ -55,6 +55,8 @@ def test_model_train_pretrained():
     model.train(data="coco128.yaml", epochs=1, img_size=32)
     model.new("yolov5n.yaml")
     model.train(data="coco128.yaml", epochs=1, img_size=32)
+    img = torch.rand(512 * 512 * 3).view(1, 3, 512, 512)
+    model(img)
 
 
 def test():

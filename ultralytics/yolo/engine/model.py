@@ -53,13 +53,12 @@ class YOLO:
             cfg (str): model configuration file
         """
         cfg = check_yaml(cfg)  # check YAML
-        self.model = cfg
         with open(cfg, encoding='ascii', errors='ignore') as f:
             cfg = yaml.safe_load(f)  # model dict
         self.task = self._guess_task_from_head(cfg["head"][-1][-2])
         self.ModelClass, self.TrainerClass, self.ValidatorClass, self.PredictorClass = self._guess_ops_from_task(
             self.task)
-        # self.model = self.ModelClass(cfg)  # initialize
+        self.model = self.ModelClass(cfg)  # initialize
 
     def load(self, weights: str):
         """
@@ -73,8 +72,7 @@ class YOLO:
         self.task = self.ckpt["train_args"]["task"]
         self.ModelClass, self.TrainerClass, self.ValidatorClass, self.PredictorClass = self._guess_ops_from_task(
             task=self.task)
-        if self.task == "classify":
-            self.model = attempt_load_weights(weights)
+        self.model = attempt_load_weights(weights)
 
     def reset(self):
         """

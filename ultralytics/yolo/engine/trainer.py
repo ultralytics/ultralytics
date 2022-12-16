@@ -4,6 +4,8 @@ Simple training loop; Boilerplate that could apply to any arbitrary neural netwo
 
 import os
 import time
+import sys
+import subprocess
 from collections import defaultdict
 from copy import deepcopy
 from datetime import datetime
@@ -32,6 +34,14 @@ from ultralytics.yolo.utils.torch_utils import ModelEMA, de_parallel, init_seeds
 DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yaml"
 RANK = int(os.getenv('RANK', -1))
 
+def _basic_subprocess_cmd(world_size):
+    import __main__  # local import to avoid https://github.com/Lightning-AI/lightning/issues/15218
+
+    if __main__.__spec__ is None:  # pragma: no-cover
+        return [sys.executable, "-m", "torch.distributed.launch", "--nproc_per_node", 
+                f"{world_size}", os.path.abspath(sys.argv[0])] + sys.argv[1:]
+    else:
+        return [sys.executable, "-m", __main__.__spec__.name] + sys.argv[1:]
 
 class BaseTrainer:
 
@@ -103,15 +113,15 @@ class BaseTrainer:
 
     def train(self):
         world_size = torch.cuda.device_count()
-        if world_size > 1:
-            mp.spawn(self._do_train, args=(world_size,), nprocs=world_size, join=True)
+        if world_size > 1 and not ("LOCAL_RANK" in os.environ):
+            command = _basic_subprocess_cmd(world_size)
+            subprocess.Popen(command)
         else:
-            # self._do_train(int(os.getenv("RANK", -1)), world_size)
-            self._do_train()
+            self._do_train(int(os.getenv("RANK", -1)), world_size)
 
     def _setup_ddp(self, rank, world_size):
-        os.environ['MASTER_ADDR'] = 'localhost'
-        os.environ['MASTER_PORT'] = '9020'
+        # os.environ['MASTER_ADDR'] = 'localhost'
+        # os.environ['MASTER_PORT'] = '9020'
         torch.cuda.set_device(rank)
         self.device = torch.device('cuda', rank)
         self.console.info(f"RANK - WORLD_SIZE - DEVICE: {rank} - {world_size} - {self.device} ")

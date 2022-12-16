@@ -121,11 +121,11 @@ class DetectionValidator(BaseValidator):
             self.metrics.process(*stats)
         self.nt_per_class = np.bincount(stats[-1].astype(int), minlength=self.nc)  # number of targets per class
         metrics = {"fitness": self.metrics.fitness()}
-        metrics |= zip(self.metrics.keys, self.metrics.mean_results())
+        metrics |= zip(self.metric_keys, self.metrics.mean_results())
         return metrics
 
     def print_results(self):
-        pf = '%22s' + '%11i' * 2 + '%11.3g' * len(self.metrics.keys)  # print format
+        pf = '%22s' + '%11i' * 2 + '%11.3g' * len(self.metric_keys)  # print format
         self.logger.info(pf % ("all", self.seen, self.nt_per_class.sum(), *self.metrics.mean_results()))
         if self.nt_per_class.sum() == 0:
             self.logger.warning(
@@ -169,6 +169,11 @@ class DetectionValidator(BaseValidator):
         # calculate stride - check if model is initialized
         gs = max(int(de_parallel(self.model).stride if self.model else 0), 32)
         return build_dataloader(self.args, batch_size, img_path=dataset_path, stride=gs, mode="val")[0]
+
+    # TODO: align with train loss metrics
+    @property
+    def metric_keys(self):
+        return ["metrics/precision(B)", "metrics/recall(B)", "metrics/mAP_0.5(B)", "metrics/mAP_0.5:0.95(B)"]
 
     def plot_val_samples(self, batch, ni):
         images = batch["img"]

@@ -107,7 +107,7 @@ class BaseTrainer:
     def train(self):
         world_size = torch.cuda.device_count()
         if world_size > 1 and not ("LOCAL_RANK" in os.environ):
-            command = generate_ddp_command(world_size)
+            command = generate_ddp_command(world_size, self)
             subprocess.Popen(command)
         else:
             self._do_train(int(os.getenv("RANK", -1)), world_size)

@@ -30,7 +30,6 @@ def generate_ddp_file(trainer):
     trainer.train()'''
     with tempfile.NamedTemporaryFile(suffix=".py", mode="w+", encoding='utf-8', dir=os.path.curdir, delete=False) as file: 
         file.write(content)
-    import pdb;pdb.set_trace()
     return file.name
 
 def generate_ddp_command(world_size, trainer):

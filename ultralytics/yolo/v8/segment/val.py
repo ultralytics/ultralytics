@@ -5,13 +5,11 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from ultralytics.yolo.data import build_dataloader
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.utils import ops
 from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils.metrics import ConfusionMatrix, SegmentMetrics, box_iou, mask_iou
 from ultralytics.yolo.utils.plotting import output_to_target, plot_images
-from ultralytics.yolo.utils.torch_utils import de_parallel
 
 from ..detect import DetectionValidator
 
@@ -173,19 +171,6 @@ class SegmentationValidator(DetectionValidator):
                     matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
                 correct[matches[:, 1].astype(int), i] = True
         return torch.tensor(correct, dtype=torch.bool, device=detections.device)
-
-    # TODO: probably add this to class Metrics
-    @property
-    def metric_keys(self):
-        return [
-            "metrics/precision(B)",
-            "metrics/recall(B)",
-            "metrics/mAP_0.5(B)",
-            "metrics/mAP_0.5:0.95(B)",  # metrics
-            "metrics/precision(M)",
-            "metrics/recall(M)",
-            "metrics/mAP_0.5(M)",
-            "metrics/mAP_0.5:0.95(M)",]
 
     def plot_val_samples(self, batch, ni):
         images = batch["img"]

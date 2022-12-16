@@ -170,11 +170,6 @@ class DetectionValidator(BaseValidator):
         gs = max(int(de_parallel(self.model).stride if self.model else 0), 32)
         return build_dataloader(self.args, batch_size, img_path=dataset_path, stride=gs, mode="val")[0]
 
-    # TODO: align with train loss metrics
-    @property
-    def metric_keys(self):
-        return ["metrics/precision(B)", "metrics/recall(B)", "metrics/mAP_0.5(B)", "metrics/mAP_0.5:0.95(B)"]
-
     def plot_val_samples(self, batch, ni):
         images = batch["img"]
         cls = batch["cls"].squeeze(-1)

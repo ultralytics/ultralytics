@@ -121,11 +121,11 @@ class DetectionValidator(BaseValidator):
             self.metrics.process(*stats)
         self.nt_per_class = np.bincount(stats[-1].astype(int), minlength=self.nc)  # number of targets per class
         metrics = {"fitness": self.metrics.fitness()}
-        metrics |= zip(self.metric_keys, self.metrics.mean_results())
+        metrics |= zip(self.metrics.keys, self.metrics.mean_results())
         return metrics
 
     def print_results(self):
-        pf = '%22s' + '%11i' * 2 + '%11.3g' * len(self.metric_keys)  # print format
+        pf = '%22s' + '%11i' * 2 + '%11.3g' * len(self.metrics.keys)  # print format
         self.logger.info(pf % ("all", self.seen, self.nt_per_class.sum(), *self.metrics.mean_results()))
         if self.nt_per_class.sum() == 0:
             self.logger.warning(

@@ -3,6 +3,7 @@ import yaml
 from omegaconf import OmegaConf
 
 from ultralytics import yolo
+from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.utils import LOGGER
 from ultralytics.yolo.utils.checks import check_yaml
@@ -10,8 +11,7 @@ from ultralytics.yolo.utils.configs import get_config
 from ultralytics.yolo.utils.files import yaml_load
 from ultralytics.yolo.utils.modeling import attempt_load_weights
 from ultralytics.yolo.utils.modeling.tasks import ClassificationModel, DetectionModel, SegmentationModel
-from ultralytics.yolo.utils.torch_utils import smart_inference_mode, intersect_state_dicts
-from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
+from ultralytics.yolo.utils.torch_utils import intersect_state_dicts, smart_inference_mode
 
 # map head: [model, trainer, validator, predictor]
 MODEL_MAP = {
@@ -160,8 +160,9 @@ class YOLO:
             raise Exception("dataset not provided! Please check if you have defined `data` in you configs")
 
         self.trainer = self.TrainerClass(overrides=overrides)
-        self.trainer.model = self.trainer.load_model(weights=self.ckpt, model_cfg=self.model.yaml if self.task!="classify" else None )
-        self.model = self.trainer.model # override here to save memory
+        self.trainer.model = self.trainer.load_model(weights=self.ckpt,
+                                                     model_cfg=self.model.yaml if self.task != "classify" else None)
+        self.model = self.trainer.model  # override here to save memory
 
         self.trainer.train()
 

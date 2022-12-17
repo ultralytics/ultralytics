@@ -52,10 +52,8 @@ def generate_ddp_command(world_size, trainer):
 
 def ddp_cleanup(command, trainer):
     # delete temp file if  created
-    tempfile_suffix = str(id(trainer)) + ".py"
-    import pdb
-    pdb.set_trace()
-    if tempfile_suffix in "".join(command):
+    tempfile_suffix = str(id(trainer))+".py"
+    if tempfile_suffix  in "".join(command):
         for chunk in command:
             if tempfile_suffix in chunk:
                 os.remove(chunk)

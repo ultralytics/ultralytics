@@ -2,8 +2,8 @@ import os
 import shutil
 import socket
 import sys
-import time
 import tempfile
+import time
 
 
 def find_free_network_port() -> int:

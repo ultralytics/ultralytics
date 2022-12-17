@@ -172,6 +172,19 @@ class SegmentationValidator(DetectionValidator):
                 correct[matches[:, 1].astype(int), i] = True
         return torch.tensor(correct, dtype=torch.bool, device=detections.device)
 
+    # TODO: probably add this to class Metrics
+    @property
+    def metric_keys(self):
+        return [
+            "metrics/precision(B)",
+            "metrics/recall(B)",
+            "metrics/mAP_0.5(B)",
+            "metrics/mAP_0.5:0.95(B)",  # metrics
+            "metrics/precision(M)",
+            "metrics/recall(M)",
+            "metrics/mAP_0.5(M)",
+            "metrics/mAP_0.5:0.95(M)",]
+
     def plot_val_samples(self, batch, ni):
         images = batch["img"]
         masks = batch["masks"]

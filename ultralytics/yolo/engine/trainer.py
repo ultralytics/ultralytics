@@ -155,7 +155,7 @@ class BaseTrainer:
             self.test_loader = self.get_dataloader(self.testset, batch_size=batch_size * 2, rank=-1, mode="val")
             validator = self.get_validator()
             # init metric, for plot_results
-            metric_keys = validator.metrics.keys + self.label_loss_items(prefix="val")
+            metric_keys = validator.metric_keys + self.label_loss_items(prefix="val")
             self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))
             self.validator = validator
             self.ema = ModelEMA(self.model)
@@ -261,7 +261,7 @@ class BaseTrainer:
                 self.plot_metrics()
             self.log(f"\nTraining complete ({(time.time() - self.train_time_start) / 3600:.3f} hours)")
             self.trigger_callbacks('on_train_end')
-        dist.destroy_process_group() if world_size != 1 else None
+        dist.destroy_process_group() if world_size > 1 else None
         torch.cuda.empty_cache()
 
     def save_model(self):

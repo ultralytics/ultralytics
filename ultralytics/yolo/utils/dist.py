@@ -29,11 +29,10 @@ def generate_ddp_file(trainer):
 
     trainer = {trainer.__class__.__name__}(overrides=overrides)
     trainer.train()'''
-    with tempfile.NamedTemporaryFile(suffix=".py", mode="w+", encoding='utf-8', dir=os.path.curdir,
+    with tempfile.NamedTemporaryFile(prefix="_temp_", suffix=f"{id(trainer)}.py", mode="w+", encoding='utf-8', dir=os.path.curdir,
                                      delete=False) as file:
         file.write(content)
     return file.name
-
 
 def generate_ddp_command(world_size, trainer):
     import __main__  # local import to avoid https://github.com/Lightning-AI/lightning/issues/15218
@@ -44,3 +43,13 @@ def generate_ddp_command(world_size, trainer):
     return [
         sys.executable, "-m", "torch.distributed.launch", "--nproc_per_node", f"{world_size}", "--master_port",
         f"{find_free_network_port()}", file_name] + sys.argv[1:]
+
+def ddp_cleanup(command, trainer):
+    # delete temp file if  created
+    tempfile_suffix = str(id(trainer))+".py"
+    import pdb;pdb.set_trace()
+    if tempfile_suffix  in "".join(command):
+        for chunk in command:
+            if tempfile_suffix in chunk:
+                os.remove(chunk)
+                break

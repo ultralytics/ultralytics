@@ -8,6 +8,7 @@ This is the simplest way of simply using yolo models in a python environment. It
 
         model = YOLO()
         model.new("n.yaml") # pass any model type
+        model(img_tensor) # Or model.forward(). inference.
         model.train(data="coco128.yaml", epochs=5)
         ```
 
@@ -27,8 +28,34 @@ This is the simplest way of simply using yolo models in a python environment. It
 
         model = YOLO()
         model.resume(task="detect") # resume last detection training
-        model.resume(task="detect", model="last.pt") # resume from a given model
+        model.resume(model="last.pt") # resume from a given model/run
         ```
+    
+    === "Visualize/save Predictions"
+    ```python
+    from ultralytics import YOLO
+
+    model = YOLO()
+    model.load("model.pt")
+    model.predict(source="0") # accepts all formats - img/folder/vid.*(mp4/format). 0 for webcam
+    model.predict(source="folder", view_img=True) # Display preds. Accepts all yolo predict arguments
+
+    ```
+
+!!! note "Export and Deployment"
+
+    === "Export, Fuse & info" 
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO()
+        model.fuse()  
+        model.info(verbose=True)  # Print model information
+        model.export(format=)  # TODO: 
+
+        ```
+    === "Deployment"
+
 
     More functionality coming soon
 

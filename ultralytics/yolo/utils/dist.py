@@ -2,6 +2,7 @@ import os
 import shutil
 import socket
 import sys
+import time
 import tempfile
 
 
@@ -52,6 +53,8 @@ def generate_ddp_command(world_size, trainer):
 
 def ddp_cleanup(command, trainer):
     # delete temp file if  created
+    # TODO: this is a temp solution in case the file is deleted before DDP launching
+    time.sleep(5)
     tempfile_suffix = str(id(trainer)) + ".py"
     if tempfile_suffix in "".join(command):
         for chunk in command:

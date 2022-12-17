@@ -1,6 +1,8 @@
 import os
+import shutil
 import socket
 import sys
+import tempfile
 
 
 def find_free_network_port() -> int:
@@ -17,10 +19,28 @@ def find_free_network_port() -> int:
     return port
 
 
-def generate_ddp_command(world_size):
-    import __main__  # local import to avoid https://github.com/Lightning-AI/lightning/issues/15218
+def generate_ddp_file(trainer):
+    import_path = '.'.join(str(trainer.__class__).split(".")[1:-1])
 
+    # remove the save_dir
+    shutil.rmtree(trainer.save_dir)
+    content = f'''overrides = {dict(trainer.args)} \nif __name__ == "__main__":
+    from ultralytics.{import_path} import {trainer.__class__.__name__}
+
+    trainer = {trainer.__class__.__name__}(overrides=overrides)
+    trainer.train()'''
+    with tempfile.NamedTemporaryFile(suffix=".py", mode="w+", encoding='utf-8', dir=os.path.curdir,
+                                     delete=False) as file:
+        file.write(content)
+    return file.name
+
+
+def generate_ddp_command(world_size, trainer):
+    import __main__  # local import to avoid https://github.com/Lightning-AI/lightning/issues/15218
+    file_name = os.path.abspath(sys.argv[0])
+    using_cli = not file_name.endswith(".py")
+    if using_cli:
+        file_name = generate_ddp_file(trainer)
     return [
         sys.executable, "-m", "torch.distributed.launch", "--nproc_per_node", f"{world_size}", "--master_port",
-        f"{find_free_network_port()}",
-        os.path.abspath(sys.argv[0])] + sys.argv[1:]
+        f"{find_free_network_port()}", file_name] + sys.argv[1:]

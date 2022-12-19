@@ -5,13 +5,11 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from ultralytics.yolo.data import build_dataloader
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.utils import ops
 from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils.metrics import ConfusionMatrix, SegmentMetrics, box_iou, mask_iou
 from ultralytics.yolo.utils.plotting import output_to_target, plot_images
-from ultralytics.yolo.utils.torch_utils import de_parallel
 
 from ..detect import DetectionValidator
 
@@ -55,6 +53,9 @@ class SegmentationValidator(DetectionValidator):
         self.metrics.names = self.names
         self.confusion_matrix = ConfusionMatrix(nc=self.nc)
         self.plot_masks = []
+        self.seen = 0
+        self.jdict = []
+        self.stats = []
 
     def get_desc(self):
         return ('%22s' + '%11s' * 10) % ('Class', 'Images', 'Instances', 'Box(P', "R", "mAP50", "mAP50-95)", "Mask(P",
@@ -106,11 +107,10 @@ class SegmentationValidator(DetectionValidator):
                 tbox = ops.xywh2xyxy(labels[:, 1:5])  # target boxes
                 ops.scale_boxes(batch["img"][si].shape[1:], tbox, shape)  # native-space labels
                 labelsn = torch.cat((labels[:, 0:1], tbox), 1)  # native-space labels
-                correct_bboxes = self._process_batch(predn, labelsn, self.iouv)
+                correct_bboxes = self._process_batch(predn, labelsn)
                 # TODO: maybe remove these `self.` arguments as they already are member variable
                 correct_masks = self._process_batch(predn,
                                                     labelsn,
-                                                    self.iouv,
                                                     pred_masks,
                                                     gt_masks,
                                                     overlap=self.args.overlap_mask,
@@ -135,7 +135,7 @@ class SegmentationValidator(DetectionValidator):
             # callbacks.run('on_val_image_end', pred, predn, path, names, im[si])
             '''
 
-    def _process_batch(self, detections, labels, iouv, pred_masks=None, gt_masks=None, overlap=False, masks=False):
+    def _process_batch(self, detections, labels, pred_masks=None, gt_masks=None, overlap=False, masks=False):
         """
         Return correct prediction matrix
         Arguments:
@@ -157,10 +157,10 @@ class SegmentationValidator(DetectionValidator):
         else:  # boxes
             iou = box_iou(labels[:, 1:], detections[:, :4])
 
-        correct = np.zeros((detections.shape[0], iouv.shape[0])).astype(bool)
+        correct = np.zeros((detections.shape[0], self.iouv.shape[0])).astype(bool)
         correct_class = labels[:, 0:1] == detections[:, 5]
-        for i in range(len(iouv)):
-            x = torch.where((iou >= iouv[i]) & correct_class)  # IoU > threshold and classes match
+        for i in range(len(self.iouv)):
+            x = torch.where((iou >= self.iouv[i]) & correct_class)  # IoU > threshold and classes match
             if x[0].shape[0]:
                 matches = torch.cat((torch.stack(x, 1), iou[x[0], x[1]][:, None]),
                                     1).cpu().numpy()  # [label, detect, iou]
@@ -170,7 +170,7 @@ class SegmentationValidator(DetectionValidator):
                     # matches = matches[matches[:, 2].argsort()[::-1]]
                     matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
                 correct[matches[:, 1].astype(int), i] = True
-        return torch.tensor(correct, dtype=torch.bool, device=iouv.device)
+        return torch.tensor(correct, dtype=torch.bool, device=detections.device)
 
     # TODO: probably add this to class Metrics
     @property

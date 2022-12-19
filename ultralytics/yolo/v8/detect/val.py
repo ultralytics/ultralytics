@@ -25,11 +25,8 @@ class DetectionValidator(BaseValidator):
         self.class_map = None
         self.targets = None
         self.metrics = DetMetrics(save_dir=self.save_dir, plot=self.args.plots)
-        self.iouv = torch.linspace(0.5, 0.95, 10, device=self.device)  # iou vector for mAP@0.5:0.95
+        self.iouv = torch.linspace(0.5, 0.95, 10)  # iou vector for mAP@0.5:0.95
         self.niou = self.iouv.numel()
-        self.seen = 0
-        self.jdict = []
-        self.stats = []
 
     def preprocess(self, batch):
         batch["img"] = batch["img"].to(self.device, non_blocking=True)
@@ -56,6 +53,9 @@ class DetectionValidator(BaseValidator):
             self.names = dict(enumerate(self.names))
         self.metrics.names = self.names
         self.confusion_matrix = ConfusionMatrix(nc=self.nc)
+        self.seen = 0
+        self.jdict = []
+        self.stats = []
 
     def get_desc(self):
         return ('%22s' + '%11s' * 6) % ('Class', 'Images', 'Instances', 'Box(P', "R", "mAP50", "mAP50-95)")
@@ -98,7 +98,7 @@ class DetectionValidator(BaseValidator):
                 tbox = ops.xywh2xyxy(labels[:, 1:5])  # target boxes
                 ops.scale_boxes(batch["img"][si].shape[1:], tbox, shape)  # native-space labels
                 labelsn = torch.cat((labels[:, 0:1], tbox), 1)  # native-space labels
-                correct_bboxes = self._process_batch(predn, labelsn, self.iouv)
+                correct_bboxes = self._process_batch(predn, labelsn)
                 # TODO: maybe remove these `self.` arguments as they already are member variable
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, labelsn)
@@ -139,7 +139,7 @@ class DetectionValidator(BaseValidator):
         if self.args.plots:
             self.confusion_matrix.plot(save_dir=self.save_dir, names=list(self.names.values()))
 
-    def _process_batch(self, detections, labels, iouv):
+    def _process_batch(self, detections, labels):
         """
         Return correct prediction matrix
         Arguments:
@@ -149,10 +149,10 @@ class DetectionValidator(BaseValidator):
             correct (array[N, 10]), for 10 IoU levels
         """
         iou = box_iou(labels[:, 1:], detections[:, :4])
-        correct = np.zeros((detections.shape[0], iouv.shape[0])).astype(bool)
+        correct = np.zeros((detections.shape[0], self.iouv.shape[0])).astype(bool)
         correct_class = labels[:, 0:1] == detections[:, 5]
-        for i in range(len(iouv)):
-            x = torch.where((iou >= iouv[i]) & correct_class)  # IoU > threshold and classes match
+        for i in range(len(self.iouv)):
+            x = torch.where((iou >= self.iouv[i]) & correct_class)  # IoU > threshold and classes match
             if x[0].shape[0]:
                 matches = torch.cat((torch.stack(x, 1), iou[x[0], x[1]][:, None]),
                                     1).cpu().numpy()  # [label, detect, iou]
@@ -162,7 +162,7 @@ class DetectionValidator(BaseValidator):
                     # matches = matches[matches[:, 2].argsort()[::-1]]
                     matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
                 correct[matches[:, 1].astype(int), i] = True
-        return torch.tensor(correct, dtype=torch.bool, device=iouv.device)
+        return torch.tensor(correct, dtype=torch.bool, device=detections.device)
 
     def get_dataloader(self, dataset_path, batch_size):
         # TODO: manage splits differently

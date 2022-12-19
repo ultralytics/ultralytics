@@ -15,7 +15,8 @@ from hydra.errors import ConfigCompositionException
 from ultralytics.yolo.utils import LOGGER, colorstr
 
 def override_config(overrides, cfg):
-    check_config_mismatch(overrides, cfg)
+    override_keys = [override.key_or_group for override in overrides]
+    check_config_mismatch(override_keys, cfg.keys())
     for override in overrides:
         if override.package is not None:
             raise ConfigCompositionException(
@@ -82,15 +83,13 @@ def override_config(overrides, cfg):
 
 
 def check_config_mismatch(overrides, cfg):
-    overrides = [override.key_or_group for override in overrides]
-    cfg = dict(cfg).keys()
     mismatched = []
     for option in overrides:
         if option not in cfg and 'hydra.' not in option:
             mismatched.append(option)
     
     for option in mismatched:
-        LOGGER.info(f"{colorstr(option)} is not a valid key. Similar keys: {get_close_matches(option, cfg)}")
+        LOGGER.info(f"{colorstr(option)} is not a valid key. Similar keys: {get_close_matches(option, cfg, 3, 0.6)}")
     if mismatched:
         exit()
     

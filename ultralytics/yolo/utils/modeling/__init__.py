@@ -25,11 +25,8 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=True):
     # Module compatibility updates
     for m in model.modules():
         t = type(m)
-        if t in (nn.Hardswish, nn.LeakyReLU, nn.ReLU, nn.ReLU6, nn.SiLU, Detect):
+        if t in (nn.Hardswish, nn.LeakyReLU, nn.ReLU, nn.ReLU6, nn.SiLU, Detect, Segment):
             m.inplace = inplace  # torch 1.7.0 compatibility
-            if t is Detect and not isinstance(m.anchor_grid, list):
-                delattr(m, 'anchor_grid')
-                setattr(m, 'anchor_grid', [torch.zeros(1)] * m.nl)
         elif t is nn.Upsample and not hasattr(m, 'recompute_scale_factor'):
             m.recompute_scale_factor = None  # torch 1.11.0 compatibility
 

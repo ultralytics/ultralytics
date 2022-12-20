@@ -14,9 +14,9 @@ import pandas as pd
 import requests
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from PIL import Image, ImageOps
 from torch.cuda import amp
-import torch.nn.functional as F
 from torch.nn.modules.utils import _pair
 
 from ultralytics.yolo.data.augment import LetterBox
@@ -82,6 +82,7 @@ class ConvTranspose(nn.Module):
 
     def forward(self, x):
         return self.act(self.bn(self.conv_transpose(x)))
+
 
 class DFL(nn.Module):
     # DFL module
@@ -449,8 +450,9 @@ class SPPF(nn.Module):
 
 
 class SoftPool2d(nn.Module):
+
     def __init__(self, kernel_size, stride, padding=0):
-        super(SoftPool2d, self).__init__()
+        super().__init__()
         self.kernel_size = kernel_size
         self.stride = stride
         self.padding = padding
@@ -463,8 +465,9 @@ class SoftPool2d(nn.Module):
         k = _pair(k)
         s = k if s is None else _pair(s)
         e_x = torch.sum(torch.exp(x), dim=1, keepdim=True)
-        return F.avg_pool2d(x.mul(e_x), k, stride=s, padding=self.padding).div_(
-            F.avg_pool2d(e_x, k, stride=s, padding=self.padding) + 1e-7)
+        return F.avg_pool2d(x.mul(e_x), k, stride=s,
+                            padding=self.padding).div_(F.avg_pool2d(e_x, k, stride=s, padding=self.padding) + 1e-7)
+
 
 class Focus(nn.Module):
     # Focus wh information into c-space

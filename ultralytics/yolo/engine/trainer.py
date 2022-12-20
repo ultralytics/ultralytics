@@ -119,7 +119,7 @@ class BaseTrainer:
         torch.cuda.set_device(rank)
         self.device = torch.device('cuda', rank)
         self.console.info(f"RANK - WORLD_SIZE - DEVICE: {rank} - {world_size} - {self.device} ")
-
+        mp.use_start_method('spawn', force=True)
         dist.init_process_group("nccl" if dist.is_nccl_available() else "gloo", rank=rank, world_size=world_size)
 
     def _setup_train(self, rank, world_size):

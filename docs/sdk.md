@@ -74,6 +74,7 @@ You can easily cusotmize Trainers to support custom tasks or explore R&D ideas.
         from ultralytics import yolo
 
         trainer = yolo.DetectionTrainer(data=..., epochs=1) # override default configs
+        trainer = yolo.DetectionTrainer(data=..., epochs=1, device="1,2,3,4") # DDP
         trainer.train()
         ```
 
@@ -82,6 +83,7 @@ You can easily cusotmize Trainers to support custom tasks or explore R&D ideas.
         from ultralytics import yolo
 
         trainer = yolo.SegmentationTrainer(data=..., epochs=1) # override default configs
+        trainer = yolo.SegmentationTrainer(data=..., epochs=1, device="0,1,2,3") # DDP
         trainer.train()
         ```
     === "ClassificationTrainer"
@@ -89,6 +91,7 @@ You can easily cusotmize Trainers to support custom tasks or explore R&D ideas.
         from ultralytics import yolo
 
         trainer = yolo.ClassificationTrainer(data=..., epochs=1) # override default configs
+        trainer = yolo.ClassificationTrainer(data=..., epochs=1, device="0,1,2,3") # DDP
         trainer.train()
         ```
 

@@ -3,6 +3,8 @@ Simple training loop; Boilerplate that could apply to any arbitrary neural netwo
 """
 
 import os
+import subprocess
+import sys
 import time
 from collections import defaultdict
 from copy import deepcopy
@@ -26,6 +28,7 @@ from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
 from ultralytics.yolo.utils import LOGGER, ROOT, TQDM_BAR_FORMAT, colorstr
 from ultralytics.yolo.utils.checks import check_file, print_args
 from ultralytics.yolo.utils.configs import get_config
+from ultralytics.yolo.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.yolo.utils.files import get_latest_run, increment_path, save_yaml
 from ultralytics.yolo.utils.torch_utils import ModelEMA, de_parallel, init_seeds, one_cycle, strip_optimizer
 
@@ -103,15 +106,16 @@ class BaseTrainer:
 
     def train(self):
         world_size = torch.cuda.device_count()
-        if world_size > 1:
-            mp.spawn(self._do_train, args=(world_size,), nprocs=world_size, join=True)
+        if world_size > 1 and not ("LOCAL_RANK" in os.environ):
+            command = generate_ddp_command(world_size, self)
+            subprocess.Popen(command)
+            ddp_cleanup(command, self)
         else:
-            # self._do_train(int(os.getenv("RANK", -1)), world_size)
-            self._do_train()
+            self._do_train(int(os.getenv("RANK", -1)), world_size)
 
     def _setup_ddp(self, rank, world_size):
-        os.environ['MASTER_ADDR'] = 'localhost'
-        os.environ['MASTER_PORT'] = '9020'
+        # os.environ['MASTER_ADDR'] = 'localhost'
+        # os.environ['MASTER_PORT'] = '9020'
         torch.cuda.set_device(rank)
         self.device = torch.device('cuda', rank)
         self.console.info(f"RANK - WORLD_SIZE - DEVICE: {rank} - {world_size} - {self.device} ")
@@ -146,7 +150,7 @@ class BaseTrainer:
         self.scheduler.last_epoch = self.start_epoch - 1  # do not move
 
         # dataloaders
-        batch_size = self.batch_size // world_size
+        batch_size = self.batch_size // world_size if world_size > 1 else self.batch_size
         self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=rank, mode="train")
         if rank in {0, -1}:
             self.test_loader = self.get_dataloader(self.testset, batch_size=batch_size * 2, rank=-1, mode="val")
@@ -258,7 +262,7 @@ class BaseTrainer:
                 self.plot_metrics()
             self.log(f"\nTraining complete ({(time.time() - self.train_time_start) / 3600:.3f} hours)")
             self.trigger_callbacks('on_train_end')
-        dist.destroy_process_group() if world_size != 1 else None
+        dist.destroy_process_group() if world_size > 1 else None
         torch.cuda.empty_cache()
 
     def save_model(self):

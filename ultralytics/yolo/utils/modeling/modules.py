@@ -16,6 +16,8 @@ import torch
 import torch.nn as nn
 from PIL import Image, ImageOps
 from torch.cuda import amp
+import torch.nn.functional as F
+from torch.nn.modules.utils import _pair
 
 from ultralytics.yolo.data.augment import LetterBox
 from ultralytics.yolo.utils import LOGGER, colorstr
@@ -131,6 +133,19 @@ class TransformerBlock(nn.Module):
         b, _, w, h = x.shape
         p = x.flatten(2).permute(2, 0, 1)
         return self.tr(p + self.linear(p)).permute(1, 2, 0).reshape(b, self.c2, w, h)
+
+
+class BottleneckBase(nn.Module):
+    # Standard bottleneck
+    def __init__(self, c1, c2, shortcut=True, g=1, k=(1, 3), e=0.5):  # ch_in, ch_out, shortcut, kernels, groups, expand
+        super().__init__()
+        c_ = int(c2 * e)  # hidden channels
+        self.cv1 = Conv(c1, c_, k[0], 1)
+        self.cv2 = Conv(c_, c2, k[1], 1, g=g)
+        self.add = shortcut and c1 == c2
+
+    def forward(self, x):
+        return x + self.cv2(self.cv1(x)) if self.add else self.cv2(self.cv1(x))
 
 
 class Bottleneck(nn.Module):
@@ -314,6 +329,24 @@ class SPPF(nn.Module):
             y2 = self.m(y1)
             return self.cv2(torch.cat((x, y1, y2, self.m(y2)), 1))
 
+
+class SoftPool2d(nn.Module):
+    def __init__(self, kernel_size, stride, padding=0):
+        super(SoftPool2d, self).__init__()
+        self.kernel_size = kernel_size
+        self.stride = stride
+        self.padding = padding
+
+    def forward(self, x):
+        x = self.soft_pool2d(x, k=self.kernel_size, s=self.stride)
+        return x
+
+    def soft_pool2d(self, x, k=2, s=None):
+        k = _pair(k)
+        s = k if s is None else _pair(s)
+        e_x = torch.sum(torch.exp(x), dim=1, keepdim=True)
+        return F.avg_pool2d(x.mul(e_x), k, stride=s, padding=self.padding).div_(
+            F.avg_pool2d(e_x, k, stride=s, padding=self.padding) + 1e-7)
 
 class Focus(nn.Module):
     # Focus wh information into c-space

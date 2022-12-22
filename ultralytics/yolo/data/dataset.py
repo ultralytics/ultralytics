@@ -13,7 +13,7 @@ from .utils import HELP_URL, LOCAL_RANK, get_hash, img2label_paths, verify_image
 
 
 class YOLODataset(BaseDataset):
-    cache_version = 0.6  # dataset labels *.cache version
+    cache_version = 1.0  # dataset labels *.cache version, >= 1.0 for YOLOv8
     rand_interp_methods = [cv2.INTER_NEAREST, cv2.INTER_LINEAR, cv2.INTER_CUBIC, cv2.INTER_AREA, cv2.INTER_LANCZOS4]
     """YOLO Dataset.
     Args:

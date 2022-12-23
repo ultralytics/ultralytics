@@ -30,6 +30,7 @@ class BaseValidator:
         self.device = None
         self.batch_i = None
         self.training = True
+        self.speed = None
         self.save_dir = save_dir if save_dir is not None else \
                 increment_path(Path(self.args.project) / self.args.name, exist_ok=self.args.exist_ok)
 
@@ -110,12 +111,14 @@ class BaseValidator:
 
         self.print_results()
 
-        # print speeds
-        if not self.training:
+        # calculate speed only once when training
+        if not self.training or trainer.epoch == 0:
             t = tuple(x.t / len(self.dataloader.dataset) * 1E3 for x in dt)  # speeds per image
-            # shape = (self.dataloader.batch_size, 3, imgsz, imgsz)
-            self.logger.info(
-                'Speed: %.1fms pre-process, %.1fms inference, %.1fms loss, %.1fms post-process per image at shape ' % t)
+            self.speed = t
+
+            if not self.training:  # print only at inference
+                self.logger.info(
+                    'Speed: %.1fms pre-process, %.1fms inference, %.1fms loss, %.1fms post-process per image' % t)
 
         if self.training:
             model.float()

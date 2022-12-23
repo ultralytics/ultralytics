@@ -55,11 +55,11 @@ class ClassificationPredictor(BasePredictor):
 @hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
 def predict(cfg):
     cfg.model = cfg.model or "squeezenet1_0"
-    sz = cfg.img_size
+    sz = cfg.imgsz
     if type(sz) != int:  # recieved listConfig
-        cfg.img_size = [sz[0], sz[0]] if len(cfg.img_size) == 1 else [sz[0], sz[1]]  # expand
+        cfg.imgsz = [sz[0], sz[0]] if len(cfg.imgsz) == 1 else [sz[0], sz[1]]  # expand
     else:
-        cfg.img_size = [sz, sz]
+        cfg.imgsz = [sz, sz]
     predictor = ClassificationPredictor(cfg)
     predictor()
 

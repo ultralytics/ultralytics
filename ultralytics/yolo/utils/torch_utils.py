@@ -124,7 +124,7 @@ def fuse_conv_and_bn(conv, bn):
 
 
 def model_info(model, verbose=False, imgsz=640):
-    # Model information. img_size may be int or list, i.e. img_size=640 or img_size=[640, 320]
+    # Model information. imgsz may be int or list, i.e. imgsz=640 or imgsz=[640, 320]
     n_p = get_num_params(model)
     n_g = get_num_gradients(model)  # number gradients
     if verbose:
@@ -185,11 +185,11 @@ def scale_img(img, ratio=1.0, same_shape=False, gs=32):  # img(16,3,256,416)
     return F.pad(img, [0, w - s[1], 0, h - s[0]], value=0.447)  # value = imagenet mean
 
 
-def check_img_size(imgsz, s=32, floor=0):
+def check_imgsz(imgsz, s=32, floor=0):
     # Verify image size is a multiple of stride s in each dimension
-    if isinstance(imgsz, int):  # integer i.e. img_size=640
+    if isinstance(imgsz, int):  # integer i.e. imgsz=640
         new_size = max(make_divisible(imgsz, int(s)), floor)
-    else:  # list i.e. img_size=[640, 480]
+    else:  # list i.e. imgsz=[640, 480]
         imgsz = list(imgsz)  # convert to list if tuple
         new_size = [max(make_divisible(x, int(s)), floor) for x in imgsz]
     if new_size != imgsz:

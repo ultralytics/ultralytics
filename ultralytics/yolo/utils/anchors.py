@@ -51,7 +51,7 @@ def check_anchors(dataset, model, thr=4.0, imgsz=640):
     else:
         LOGGER.info(f'{s}Anchors are a poor fit to dataset ⚠️, attempting to improve...')
         na = m.anchors.numel() // 2  # number of anchors
-        anchors = kmean_anchors(dataset, n=na, img_size=imgsz, thr=thr, gen=1000, verbose=False)
+        anchors = kmean_anchors(dataset, n=na, imgsz=imgsz, thr=thr, gen=1000, verbose=False)
         new_bpr = metric(anchors)[0]
         if new_bpr > bpr:  # replace anchors
             anchors = torch.tensor(anchors, device=m.anchors.device).type_as(m.anchors)
@@ -64,13 +64,13 @@ def check_anchors(dataset, model, thr=4.0, imgsz=640):
         LOGGER.info(s)
 
 
-def kmean_anchors(dataset='./data/coco128.yaml', n=9, img_size=640, thr=4.0, gen=1000, verbose=True):
+def kmean_anchors(dataset='./data/coco128.yaml', n=9, imgsz=640, thr=4.0, gen=1000, verbose=True):
     """ Creates kmeans-evolved anchors from training dataset
 
         Arguments:
             dataset: path to data.yaml, or a loaded dataset
             n: number of anchors
-            img_size: image size used for training
+            imgsz: image size used for training
             thr: anchor-label wh ratio threshold hyperparameter hyp['anchor_t'] used for training, default=4.0
             gen: generations to evolve anchors using genetic algorithm
             verbose: print all results
@@ -101,7 +101,7 @@ def kmean_anchors(dataset='./data/coco128.yaml', n=9, img_size=640, thr=4.0, gen
         x, best = metric(k, wh0)
         bpr, aat = (best > thr).float().mean(), (x > thr).float().mean() * n  # best possible recall, anch > thr
         s = f'{PREFIX}thr={thr:.2f}: {bpr:.4f} best possible recall, {aat:.2f} anchors past thr\n' \
-            f'{PREFIX}n={n}, img_size={img_size}, metric_all={x.mean():.3f}/{best.mean():.3f}-mean/best, ' \
+            f'{PREFIX}n={n}, imgsz={imgsz}, metric_all={x.mean():.3f}/{best.mean():.3f}-mean/best, ' \
             f'past_thr={x[x > thr].mean():.3f}-mean: '
         for x in k:
             s += '%i,%i, ' % (round(x[0]), round(x[1]))
@@ -116,7 +116,7 @@ def kmean_anchors(dataset='./data/coco128.yaml', n=9, img_size=640, thr=4.0, gen
         dataset = BaseDataset(data_dict['train'], augment=True, rect=True)
 
     # Get label wh
-    shapes = img_size * dataset.shapes / dataset.shapes.max(1, keepdims=True)
+    shapes = imgsz * dataset.shapes / dataset.shapes.max(1, keepdims=True)
     wh0 = np.concatenate([l[:, 3:5] * s for s, l in zip(shapes, dataset.labels)])  # wh
 
     # Filter
@@ -135,7 +135,7 @@ def kmean_anchors(dataset='./data/coco128.yaml', n=9, img_size=640, thr=4.0, gen
         assert n == len(k)  # kmeans may return fewer points than requested if wh is insufficient or too similar
     except Exception:
         LOGGER.warning(f'{PREFIX}WARNING ⚠️ switching strategies from kmeans to random init')
-        k = np.sort(npr.rand(n * 2)).reshape(n, 2) * img_size  # random init
+        k = np.sort(npr.rand(n * 2)).reshape(n, 2) * imgsz  # random init
     wh, wh0 = (torch.tensor(x, dtype=torch.float32) for x in (wh, wh0))
     k = print_results(k, verbose=False)
 

@@ -24,7 +24,7 @@ class BaseDataset(Dataset):
     def __init__(
         self,
         img_path,
-        img_size=640,
+        imgsz=640,
         label_path=None,
         cache=False,
         augment=True,
@@ -38,7 +38,7 @@ class BaseDataset(Dataset):
     ):
         super().__init__()
         self.img_path = img_path
-        self.img_size = img_size
+        self.imgsz = imgsz
         self.label_path = label_path
         self.augment = augment
         self.prefix = prefix
@@ -118,7 +118,7 @@ class BaseDataset(Dataset):
                 im = cv2.imread(f)  # BGR
                 assert im is not None, f"Image Not Found {f}"
             h0, w0 = im.shape[:2]  # orig hw
-            r = self.img_size / max(h0, w0)  # ratio
+            r = self.imgsz / max(h0, w0)  # ratio
             if r != 1:  # if sizes are not equal
                 interp = cv2.INTER_LINEAR if (self.augment or r > 1) else cv2.INTER_AREA
                 im = cv2.resize(im, (int(w0 * r), int(h0 * r)), interpolation=interp)
@@ -168,7 +168,7 @@ class BaseDataset(Dataset):
             elif mini > 1:
                 shapes[i] = [1, 1 / mini]
 
-        self.batch_shapes = np.ceil(np.array(shapes) * self.img_size / self.stride + self.pad).astype(int) * self.stride
+        self.batch_shapes = np.ceil(np.array(shapes) * self.imgsz / self.stride + self.pad).astype(int) * self.stride
         self.batch = bi  # batch index of image
 
     def __getitem__(self, index):

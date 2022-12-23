@@ -14,7 +14,7 @@ class MixAndRectDataset:
 
     def __init__(self, dataset):
         self.dataset = dataset
-        self.img_size = dataset.img_size
+        self.imgsz = dataset.imgsz
 
     def __len__(self):
         return len(self.dataset)

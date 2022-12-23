@@ -36,13 +36,13 @@ def test_visualize_preds():
 def test_val():
     model = YOLO()
     model.load("balloon-segment.pt")
-    model.val(data="coco128-seg.yaml", img_size=32)
+    model.val(data="coco128-seg.yaml", imgsz=32)
 
 
 def test_model_resume():
     model = YOLO()
     model.new("yolov5n-seg.yaml")
-    model.train(epochs=1, img_size=32, data="coco128-seg.yaml")
+    model.train(epochs=1, imgsz=32, data="coco128-seg.yaml")
     try:
         model.resume(task="segment")
     except AssertionError:
@@ -52,9 +52,9 @@ def test_model_resume():
 def test_model_train_pretrained():
     model = YOLO()
     model.load("balloon-detect.pt")
-    model.train(data="coco128.yaml", epochs=1, img_size=32)
+    model.train(data="coco128.yaml", epochs=1, imgsz=32)
     model.new("yolov5n.yaml")
-    model.train(data="coco128.yaml", epochs=1, img_size=32)
+    model.train(data="coco128.yaml", epochs=1, imgsz=32)
     img = torch.rand(512 * 512 * 3).view(1, 3, 512, 512)
     model(img)
 

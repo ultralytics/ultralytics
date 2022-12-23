@@ -24,7 +24,7 @@ class YOLODataset(BaseDataset):
     def __init__(
         self,
         img_path,
-        img_size=640,
+        imgsz=640,
         label_path=None,
         cache=False,
         augment=True,
@@ -41,7 +41,7 @@ class YOLODataset(BaseDataset):
         self.use_segments = use_segments
         self.use_keypoints = use_keypoints
         assert not (self.use_segments and self.use_keypoints), "Can not use both segments and keypoints."
-        super().__init__(img_path, img_size, label_path, cache, augment, hyp, prefix, rect, batch_size, stride, pad,
+        super().__init__(img_path, imgsz, label_path, cache, augment, hyp, prefix, rect, batch_size, stride, pad,
                          single_cls)
 
     def cache_labels(self, path=Path("./labels.cache")):
@@ -128,11 +128,11 @@ class YOLODataset(BaseDataset):
         # mosaic = False
         if self.augment:
             if mosaic:
-                transforms = mosaic_transforms(self.img_size, hyp)
+                transforms = mosaic_transforms(self.imgsz, hyp)
             else:
-                transforms = affine_transforms(self.img_size, hyp)
+                transforms = affine_transforms(self.imgsz, hyp)
         else:
-            transforms = Compose([LetterBox(new_shape=(self.img_size, self.img_size))])
+            transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz))])
         transforms.append(
             Format(bbox_format="xywh",
                    normalize=True,

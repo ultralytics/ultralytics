@@ -62,7 +62,7 @@ def build_dataloader(cfg, batch_size, img_path, stride=32, label_path=None, rank
         dataset = YOLODataset(
             img_path=img_path,
             label_path=label_path,
-            img_size=cfg.img_size,
+            imgsz=cfg.imgsz,
             batch_size=batch_size,
             augment=True if mode == "train" else False,  # augmentation
             hyp=cfg,  # TODO: probably add a get_hyps_from_cfg function

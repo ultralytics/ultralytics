@@ -12,7 +12,7 @@ from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.modeling import get_model
 from ultralytics.yolo.utils.modeling.autobackend import AutoBackend
 from ultralytics.yolo.utils.ops import Profile
-from ultralytics.yolo.utils.torch_utils import check_img_size, de_parallel, select_device
+from ultralytics.yolo.utils.torch_utils import check_imgsz, de_parallel, select_device
 
 
 class BaseValidator:
@@ -55,7 +55,7 @@ class BaseValidator:
             model = AutoBackend(model, device=self.device, dnn=self.args.dnn, fp16=self.args.half)
             self.model = model
             stride, pt, jit, engine = model.stride, model.pt, model.jit, model.engine
-            imgsz = check_img_size(self.args.img_size, s=stride)
+            imgsz = check_imgsz(self.args.imgsz, s=stride)
             if engine:
                 self.args.batch_size = model.batch_size
             else:

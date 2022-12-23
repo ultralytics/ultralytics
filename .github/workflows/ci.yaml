@@ -90,16 +90,16 @@ jobs:
       - name: Test detection
         shell: bash  # for Windows compatibility
         run: |
-          yolo task=detect mode=train model=yolov5n.yaml data=coco128.yaml epochs=1 img_size=64
-          yolo task=detect mode=val model=runs/exp/weights/last.pt img_size=64
+          yolo task=detect mode=train model=yolov5n.yaml data=coco128.yaml epochs=1 imgsz=64
+          yolo task=detect mode=val model=runs/exp/weights/last.pt imgsz=64
       - name: Test segmentation
         shell: bash  # for Windows compatibility
         # TODO: redo val test without hardcoded weights
         run: |
-          yolo task=segment mode=train model=yolov5n-seg.yaml data=coco128-seg.yaml epochs=1 img_size=64
-          yolo task=segment mode=val model=runs/exp2/weights/last.pt data=coco128-seg.yaml img_size=64
+          yolo task=segment mode=train model=yolov5n-seg.yaml data=coco128-seg.yaml epochs=1 imgsz=64
+          yolo task=segment mode=val model=runs/exp2/weights/last.pt data=coco128-seg.yaml imgsz=64
       - name: Test classification
         shell: bash  # for Windows compatibility
         run: |
-          yolo task=classify mode=train model=resnet18 data=mnist160 epochs=1 img_size=32
+          yolo task=classify mode=train model=resnet18 data=mnist160 epochs=1 imgsz=32
           yolo task=classify mode=val model=runs/exp3/weights/last.pt data=mnist160

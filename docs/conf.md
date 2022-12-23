@@ -21,7 +21,7 @@ Default training settings and hyperparameters for medium-augmentation COCO train
     | epochs          | 100    | Number of epochs to train                                                       |
     | workers         | 8      | Number of cpu workers used per process. Scales automatically with DDP           |
     | batch_size      | 16     | Batch size of the dataloader                                                    |
-    | img_size        | 640    | Image size of data in dataloader                                                |
+    | imgsz        | 640    | Image size of data in dataloader                                                |
     | optimizer       | SGD    | Optimizer used. Supported optimizer are: `Adam`, `SGD`, `RMSProp`               |
     | single_cls      | False  | Train on multi-class data as single-class                                       |
     | image_weights   | False  | Use weighted image selection for training                                       |

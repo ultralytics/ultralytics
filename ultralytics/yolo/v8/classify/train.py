@@ -36,7 +36,7 @@ class ClassificationTrainer(BaseTrainer):
 
     def get_dataloader(self, dataset_path, batch_size, rank=0, mode="train"):
         return build_classification_dataloader(path=dataset_path,
-                                               imgsz=self.args.img_size,
+                                               imgsz=self.args.imgsz,
                                                batch_size=batch_size,
                                                rank=rank)
 
@@ -70,7 +70,7 @@ def train(cfg):
 if __name__ == "__main__":
     """
     CLI usage:
-    python ultralytics/yolo/v8/classify/train.py model=resnet18 data=imagenette160 epochs=1 img_size=224
+    python ultralytics/yolo/v8/classify/train.py model=resnet18 data=imagenette160 epochs=1 imgsz=224
 
     TODO:
     Direct cli support, i.e, yolov8 classify_train args.epochs 10

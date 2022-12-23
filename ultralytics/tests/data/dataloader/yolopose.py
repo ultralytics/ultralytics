@@ -70,7 +70,7 @@ with open("ultralytics/tests/data/dataloader/hyp_test.yaml") as f:
 def test(augment, rect):
     dataloader, _ = build_dataloader(
         img_path="/d/dataset/COCO/images/val2017",
-        img_size=640,
+        imgsz=640,
         label_path=None,
         cache=False,
         hyp=hyp,

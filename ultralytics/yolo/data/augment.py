@@ -114,15 +114,15 @@ class BaseMixTransform:
 class Mosaic(BaseMixTransform):
     """Mosaic augmentation.
     Args:
-        img_size (Sequence[int]): Image size after mosaic pipeline of single
+        imgsz (Sequence[int]): Image size after mosaic pipeline of single
             image. The shape order should be (height, width).
             Default to (640, 640).
     """
 
-    def __init__(self, img_size=640, p=1.0, border=(0, 0)):
+    def __init__(self, imgsz=640, p=1.0, border=(0, 0)):
         assert 0 <= p <= 1.0, "The probability should be in range [0, 1]. " f"got {p}."
         super().__init__(pre_transform=None, p=p)
-        self.img_size = img_size
+        self.imgsz = imgsz
         self.border = border
 
     def get_indexes(self, dataset):
@@ -132,7 +132,7 @@ class Mosaic(BaseMixTransform):
         mosaic_labels = []
         assert labels.get("rect_shape", None) is None, "rect and mosaic is exclusive."
         assert len(labels.get("mix_labels", [])) > 0, "There are no other images for mosaic augment."
-        s = self.img_size
+        s = self.imgsz
         yc, xc = (int(random.uniform(-x, 2 * s + x)) for x in self.border)  # mosaic center x, y
         mix_labels = labels["mix_labels"]
         for i in range(4):
@@ -184,12 +184,12 @@ class Mosaic(BaseMixTransform):
             instances.append(labels["instances"])
         final_labels = {
             "ori_shape": mosaic_labels[0]["ori_shape"],
-            "resized_shape": (self.img_size * 2, self.img_size * 2),
+            "resized_shape": (self.imgsz * 2, self.imgsz * 2),
             "im_file": mosaic_labels[0]["im_file"],
             "cls": np.concatenate(cls, 0)}
 
         final_labels["instances"] = Instances.concatenate(instances, axis=0)
-        final_labels["instances"].clip(self.img_size * 2, self.img_size * 2)
+        final_labels["instances"].clip(self.imgsz * 2, self.imgsz * 2)
         return final_labels
 
 
@@ -658,9 +658,9 @@ class Format:
         return masks, instances, cls
 
 
-def mosaic_transforms(img_size, hyp):
+def mosaic_transforms(imgsz, hyp):
     pre_transform = Compose([
-        Mosaic(img_size=img_size, p=hyp.mosaic, border=[-img_size // 2, -img_size // 2]),
+        Mosaic(imgsz=imgsz, p=hyp.mosaic, border=[-imgsz // 2, -imgsz // 2]),
         CopyPaste(p=hyp.copy_paste),
         RandomPerspective(
             degrees=hyp.degrees,
@@ -668,7 +668,7 @@ def mosaic_transforms(img_size, hyp):
             scale=hyp.scale,
             shear=hyp.shear,
             perspective=hyp.perspective,
-            border=[-img_size // 2, -img_size // 2],
+            border=[-imgsz // 2, -imgsz // 2],
         ),])
     return Compose([
         pre_transform,
@@ -682,9 +682,9 @@ def mosaic_transforms(img_size, hyp):
         RandomFlip(direction="horizontal", p=hyp.fliplr),])  # transforms
 
 
-def affine_transforms(img_size, hyp):
+def affine_transforms(imgsz, hyp):
     return Compose([
-        LetterBox(new_shape=(img_size, img_size)),
+        LetterBox(new_shape=(imgsz, imgsz)),
         RandomPerspective(
             degrees=hyp.degrees,
             translate=hyp.translate,

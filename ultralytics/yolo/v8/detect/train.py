@@ -223,9 +223,9 @@ def train(cfg):
 if __name__ == "__main__":
     """
     CLI usage:
-    python ultralytics/yolo/v8/segment/train.py cfg=yolov5n-seg.yaml data=coco128-segments epochs=100 img_size=640
+    python ultralytics/yolo/v8/detect/train.py model=yolov5n.yaml data=coco128 epochs=100 img_size=640
 
     TODO:
-    Direct cli support, i.e, yolov8 classify_train args.epochs 10
+    yolo task=detect mode=train model=yolov5n.yaml data=coco128.yaml epochs=100
     """
     train()

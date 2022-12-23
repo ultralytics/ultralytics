@@ -25,11 +25,8 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=True):
     # Module compatibility updates
     for m in model.modules():
         t = type(m)
-        if t in (nn.Hardswish, nn.LeakyReLU, nn.ReLU, nn.ReLU6, nn.SiLU, Detect):
+        if t in (nn.Hardswish, nn.LeakyReLU, nn.ReLU, nn.ReLU6, nn.SiLU, Detect, Segment):
             m.inplace = inplace  # torch 1.7.0 compatibility
-            if t is Detect and not isinstance(m.anchor_grid, list):
-                delattr(m, 'anchor_grid')
-                setattr(m, 'anchor_grid', [torch.zeros(1)] * m.nl)
         elif t is nn.Upsample and not hasattr(m, 'recompute_scale_factor'):
             m.recompute_scale_factor = None  # torch 1.11.0 compatibility
 
@@ -65,8 +62,8 @@ def parse_model(d, ch):  # model_dict, input_channels(3)
 
         n = n_ = max(round(n * gd), 1) if n > 1 else n  # depth gain
         if m in {
-                Conv, GhostConv, Bottleneck, GhostBottleneck, SPP, SPPF, DWConv, Focus, CrossConv, BottleneckCSP, C3,
-                C3TR, C3SPP, C3Ghost, nn.ConvTranspose2d, DWConvTranspose2d, C3x}:
+                Conv, GhostConv, Bottleneck, GhostBottleneck, SPP, SPPF, DWConv, Focus, BottleneckCSP, C3, C3TR,
+                C3Ghost, nn.ConvTranspose2d, DWConvTranspose2d, C3x}:
             c1, c2 = ch[f], args[0]
             if c2 != no:  # if not output
                 c2 = make_divisible(c2 * gw, 8)
@@ -86,10 +83,6 @@ def parse_model(d, ch):  # model_dict, input_channels(3)
                 args[1] = [list(range(args[1] * 2))] * len(f)
             if m is Segment:
                 args[3] = make_divisible(args[3] * gw, 8)
-        elif m is Contract:
-            c2 = ch[f] * args[0] ** 2
-        elif m is Expand:
-            c2 = ch[f] // args[0] ** 2
         else:
             c2 = ch[f]
 

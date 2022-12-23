@@ -180,20 +180,6 @@ class BottleneckCSP(nn.Module):
         return self.cv4(self.act(self.bn(torch.cat((y1, y2), 1))))
 
 
-class CrossConv(nn.Module):
-    # Cross Convolution Downsample
-    def __init__(self, c1, c2, k=3, s=1, g=1, e=1.0, shortcut=False):
-        # ch_in, ch_out, kernel, stride, groups, expansion, shortcut
-        super().__init__()
-        c_ = int(c2 * e)  # hidden channels
-        self.cv1 = Conv(c1, c_, (1, k), (1, s))
-        self.cv2 = Conv(c_, c2, (k, 1), (s, 1), g=g)
-        self.add = shortcut and c1 == c2
-
-    def forward(self, x):
-        return x + self.cv2(self.cv1(x)) if self.add else self.cv2(self.cv1(x))
-
-
 class C3(nn.Module):
     # CSP Bottleneck with 3 convolutions
     def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):  # ch_in, ch_out, number, shortcut, groups, expansion
@@ -206,53 +192,6 @@ class C3(nn.Module):
 
     def forward(self, x):
         return self.cv3(torch.cat((self.m(self.cv1(x)), self.cv2(x)), 1))
-
-
-class C2Base(nn.Module):
-    # CSP Bottleneck with 2 convolutions
-    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):  # ch_in, ch_out, number, shortcut, groups, expansion
-        super().__init__()
-        self.c = int(c2 * e)  # hidden channels
-        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
-        self.cv2 = Conv(2 * self.c, c2, 1)  # optional act=FReLU(c2)
-        # self.attention = ChannelAttention(2 * self.c)  # or SpatialAttention()
-        self.m = nn.Sequential(*(Bottleneck(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0) for _ in range(n)))
-
-    def forward(self, x):
-        a, b = self.cv1(x).split((self.c, self.c), 1)
-        return self.cv2(torch.cat((self.m(a), b), 1))
-
-
-class C2_sum_all(nn.Module):
-    # CSP Bottleneck with 2 convolutions
-    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):  # ch_in, ch_out, number, shortcut, groups, expansion
-        super().__init__()
-        n *= 2
-        self.c = int(c2 * e)  # hidden channels
-        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
-        self.cv2 = Conv(2 * self.c, c2, 1)  # optional act=FReLU(c2)
-        self.cvm = nn.ModuleList(Conv(self.c, self.c, 3) for _ in range(n))
-        self.w = nn.Parameter(torch.zeros(n))
-        self.n = n
-
-    def forward(self, x):
-        a, b = self.cv1(x).split((self.c, self.c), 1)
-        c = a.clone()
-        for i in range(self.n):
-            c = self.cvm[i](c) + a * self.w[i].sigmoid()
-        return self.cv2(torch.cat((c, b), 1))
-
-
-class Down(nn.Module):
-    # CSP Bottleneck with 2 convolutions
-    def __init__(self, c1, c2):  # ch_in, ch_out, number, shortcut, groups, expansion
-        super().__init__()
-        self.pool = nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
-        self.cv1 = Conv(c1, c1, 3, 2)
-        self.cv2 = Conv(c1 * 2, c2, 1)
-
-    def forward(self, x):
-        return self.cv2(torch.cat((self.pool(x), self.cv1(x)), 1))
 
 
 class C2(nn.Module):
@@ -269,22 +208,6 @@ class C2(nn.Module):
         a, b = self.cv1(x).split((self.c, self.c), 1)
         return self.cv2(torch.cat((self.m(a), b), 1))
 
-
-class C2f_orig(nn.Module):
-    # CSP Bottleneck with 2 convolutions
-    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):  # ch_in, ch_out, number, shortcut, groups, expansion
-        super().__init__()
-        self.c = int(c2 * e)  # hidden channels
-        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
-        self.cv2 = Conv((2 + n) * self.c, c2, 1)  # optional act=FReLU(c2)
-        self.m = nn.ModuleList(Bottleneck(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0) for _ in range(n))
-
-    def forward(self, x):
-        y = list(self.cv1(x).split((self.c, self.c), 1))
-        y.extend(m(y[-1]) for m in self.m)
-        return self.cv2(torch.cat(y, 1))
-
-
 class C2f(nn.Module):
     # CSP Bottleneck with 2 convolutions
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):  # ch_in, ch_out, number, shortcut, groups, expansion
@@ -299,14 +222,6 @@ class C2f(nn.Module):
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
 
-
-class C2x(C2):
-    # Depth-wise convolution
-    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):  # ch_in, ch_out, kernel, stride, dilation, activation
-        super().__init__(c1, c2, n=1, shortcut=True, g=1, e=0.5)
-        self.m = nn.Sequential(*(Bottleneck(self.c, self.c, shortcut, g, k=((1, 3), (3, 1)), e=1.0) for _ in range(n)))
-
-
 class ChannelAttention(nn.Module):
     # Channel-attention module https://github.com/open-mmlab/mmdetection/tree/v3.0.0rc1/configs/rtmdet
     def __init__(self, channels: int) -> None:
@@ -317,34 +232,6 @@ class ChannelAttention(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return x * self.act(self.fc(self.pool(x)))
-
-
-class ChannelAttention2(nn.Module):
-    # Channel-attention module https://github.com/open-mmlab/mmdetection/tree/v3.0.0rc1/configs/rtmdet
-    def __init__(self, channels: int) -> None:
-        super().__init__()
-        self.pool1 = nn.AdaptiveMaxPool2d(1)
-        self.pool2 = nn.AdaptiveAvgPool2d(1)
-        self.cv1 = nn.Conv2d(channels, channels, 1, 1, 0, bias=True)
-        self.act = nn.Sigmoid()
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return x * self.act(self.cv1(self.pool1(x) + self.pool2(x)))
-
-
-class ChannelAttention3(nn.Module):
-    # Channel-attention module https://github.com/open-mmlab/mmdetection/tree/v3.0.0rc1/configs/rtmdet
-    def __init__(self, channels: int) -> None:
-        super().__init__()
-        self.pool1 = nn.AdaptiveMaxPool2d(1)
-        self.pool2 = nn.AdaptiveAvgPool2d(1)
-        self.cv1 = nn.Conv2d(channels, channels // 16, 1, 1, 0, bias=True)
-        self.cv2 = nn.Conv2d(channels // 16, channels, 1, 1, 0, bias=True)
-        self.silu = nn.SiLU()
-        self.act = nn.Sigmoid()
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return x * self.act(self.cv2(self.silu(self.cv1(self.pool1(x)))) + self.cv2(self.silu(self.cv1(self.pool2(x)))))
 
 
 class SpatialAttention(nn.Module):
@@ -397,14 +284,6 @@ class C3TR(C3):
         super().__init__(c1, c2, n, shortcut, g, e)
         c_ = int(c2 * e)
         self.m = TransformerBlock(c_, c_, 4, n)
-
-
-class C3SPP(C3):
-    # C3 module with SPP()
-    def __init__(self, c1, c2, k=(5, 9, 13), n=1, shortcut=True, g=1, e=0.5):
-        super().__init__(c1, c2, n, shortcut, g, e)
-        c_ = int(c2 * e)
-        self.m = SPP(c_, c_, k)
 
 
 class C3Ghost(C3):
@@ -508,34 +387,6 @@ class GhostBottleneck(nn.Module):
 
     def forward(self, x):
         return self.conv(x) + self.shortcut(x)
-
-
-class Contract(nn.Module):
-    # Contract width-height into channels, i.e. x(1,64,80,80) to x(1,256,40,40)
-    def __init__(self, gain=2):
-        super().__init__()
-        self.gain = gain
-
-    def forward(self, x):
-        b, c, h, w = x.size()  # assert (h / s == 0) and (W / s == 0), 'Indivisible gain'
-        s = self.gain
-        x = x.view(b, c, h // s, s, w // s, s)  # x(1,64,40,2,40,2)
-        x = x.permute(0, 3, 5, 1, 2, 4).contiguous()  # x(1,2,2,64,40,40)
-        return x.view(b, c * s * s, h // s, w // s)  # x(1,256,40,40)
-
-
-class Expand(nn.Module):
-    # Expand channels into width-height, i.e. x(1,64,80,80) to x(1,16,160,160)
-    def __init__(self, gain=2):
-        super().__init__()
-        self.gain = gain
-
-    def forward(self, x):
-        b, c, h, w = x.size()  # assert C / s ** 2 == 0, 'Indivisible gain'
-        s = self.gain
-        x = x.view(b, s, s, c // s ** 2, h, w)  # x(1,2,2,16,80,80)
-        x = x.permute(0, 3, 4, 1, 5, 2).contiguous()  # x(1,16,80,2,80,2)
-        return x.view(b, c // s ** 2, h * s, w * s)  # x(1,16,160,160)
 
 
 class Concat(nn.Module):

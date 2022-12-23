@@ -112,11 +112,11 @@ class BaseValidator:
         self.print_results()
 
         # calculate speed only once when training
-        if not self.training or trainer.epoch==0:
+        if not self.training or trainer.epoch == 0:
             t = tuple(x.t / len(self.dataloader.dataset) * 1E3 for x in dt)  # speeds per image
             self.speed = t
-            
-            if not self.training: # print only at inference
+
+            if not self.training:  # print only at inference
                 self.logger.info(
                     'Speed: %.1fms pre-process, %.1fms inference, %.1fms loss, %.1fms post-process per image' % t)
 

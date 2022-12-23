@@ -208,6 +208,7 @@ class C2(nn.Module):
         a, b = self.cv1(x).split((self.c, self.c), 1)
         return self.cv2(torch.cat((self.m(a), b), 1))
 
+
 class C2f(nn.Module):
     # CSP Bottleneck with 2 convolutions
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):  # ch_in, ch_out, number, shortcut, groups, expansion
@@ -221,6 +222,7 @@ class C2f(nn.Module):
         y = list(self.cv1(x).split((self.c, self.c), 1))
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
+
 
 class ChannelAttention(nn.Module):
     # Channel-attention module https://github.com/open-mmlab/mmdetection/tree/v3.0.0rc1/configs/rtmdet

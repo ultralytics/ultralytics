@@ -45,20 +45,18 @@ def on_val_end(trainer):
         model_info = {
             "inference_speed": infer_speed,
             "flops@640": get_flops(trainer.model),
-            "params": get_num_params(trainer.model)
-        }
+            "params": get_num_params(trainer.model)}
         _log_scalers(model_info, "model")
-       
+
 
 def on_train_end(trainer):
     task = Task.current_task()
     if task:
-        task.update_output_model(model_path=str(trainer.best),
-                                 model_name='Best Model',
-                                 auto_delete_file=False)
+        task.update_output_model(model_path=str(trainer.best), model_name='Best Model', auto_delete_file=False)
+
+
 callbacks = {
     "before_train": before_train,
     "on_val_end": on_val_end,
     "on_batch_end": on_batch_end,
-    "on_train_end": on_train_end
-    }
+    "on_train_end": on_train_end}

@@ -133,17 +133,20 @@ def model_info(model, verbose=False, imgsz=640):
             name = name.replace('module_list.', '')
             print('%5g %40s %9s %12g %20s %10.3g %10.3g' %
                   (i, name, p.requires_grad, p.numel(), list(p.shape), p.mean(), p.std()))
-        
+
     flops = get_flops(model)
     fs = f', {flops:.1f} GFLOPs' if flops else ''
     name = Path(model.yaml_file).stem.replace('yolov5', 'YOLOv5') if hasattr(model, 'yaml_file') else 'Model'
     LOGGER.info(f"{name} summary: {len(list(model.modules()))} layers, {n_p} parameters, {n_g} gradients{fs}")
 
+
 def get_num_params(model):
     return sum(x.numel() for x in model.parameters())
 
+
 def get_num_gradients(model):
     return sum(x.numel() for x in model.parameters() if x.requires_grad)
+
 
 def get_flops(model):
     try:
@@ -156,6 +159,7 @@ def get_flops(model):
         return flops
     except Exception:
         return 0
+
 
 def initialize_weights(model):
     for m in model.modules():

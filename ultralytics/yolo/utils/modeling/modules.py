@@ -14,10 +14,8 @@ import pandas as pd
 import requests
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from PIL import Image, ImageOps
 from torch.cuda import amp
-from torch.nn.modules.utils import _pair
 
 from ultralytics.yolo.data.augment import LetterBox
 from ultralytics.yolo.utils import LOGGER, colorstr

@@ -39,7 +39,7 @@ from ultralytics.yolo.utils.configs import get_config
 from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.modeling.autobackend import AutoBackend
 from ultralytics.yolo.utils.plotting import Annotator
-from ultralytics.yolo.utils.torch_utils import check_img_size, select_device, smart_inference_mode
+from ultralytics.yolo.utils.torch_utils import check_imgsz, select_device, smart_inference_mode
 
 DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yaml"
 
@@ -99,18 +99,18 @@ class BasePredictor:
         self.args.half &= device.type != 'cpu'  # half precision only supported on CUDA
         model = AutoBackend(model, device=device, dnn=self.args.dnn, fp16=self.args.half)  # NOTE: not passing data
         stride, pt = model.stride, model.pt
-        imgsz = check_img_size(self.args.img_size, s=stride)  # check image size
+        imgsz = check_imgsz(self.args.imgsz, s=stride)  # check image size
 
         # Dataloader
         bs = 1  # batch_size
         if webcam:
             self.view_img = check_imshow(warn=True)
-            self.dataset = LoadStreams(source, img_size=imgsz, stride=stride, auto=pt, vid_stride=self.args.vid_stride)
+            self.dataset = LoadStreams(source, imgsz=imgsz, stride=stride, auto=pt, vid_stride=self.args.vid_stride)
             bs = len(self.dataset)
         elif screenshot:
-            self.dataset = LoadScreenshots(source, img_size=imgsz, stride=stride, auto=pt)
+            self.dataset = LoadScreenshots(source, imgsz=imgsz, stride=stride, auto=pt)
         else:
-            self.dataset = LoadImages(source, img_size=imgsz, stride=stride, auto=pt, vid_stride=self.args.vid_stride)
+            self.dataset = LoadImages(source, imgsz=imgsz, stride=stride, auto=pt, vid_stride=self.args.vid_stride)
         self.vid_path, self.vid_writer = [None] * bs, [None] * bs
         model.warmup(imgsz=(1 if pt or model.triton else bs, 3, *imgsz))  # warmup
 

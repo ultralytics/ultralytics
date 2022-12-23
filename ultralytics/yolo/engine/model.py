@@ -111,11 +111,11 @@ class YOLO:
         predictor = self.PredictorClass(overrides=kwargs)
 
         # check size type
-        sz = predictor.args.img_size
+        sz = predictor.args.imgsz
         if type(sz) != int:  # recieved listConfig
-            predictor.args.img_size = [sz[0], sz[0]] if len(sz) == 1 else [sz[0], sz[1]]  # expand
+            predictor.args.imgsz = [sz[0], sz[0]] if len(sz) == 1 else [sz[0], sz[1]]  # expand
         else:
-            predictor.args.img_size = [sz, sz]
+            predictor.args.imgsz = [sz, sz]
 
         predictor.setup(model=self.model, source=source)
         predictor()

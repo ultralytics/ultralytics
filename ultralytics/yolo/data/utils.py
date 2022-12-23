@@ -128,50 +128,50 @@ def verify_image_label(args):
         return [None, None, None, None, None, nm, nf, ne, nc, msg]
 
 
-def polygon2mask(img_size, polygons, color=1, downsample_ratio=1):
+def polygon2mask(imgsz, polygons, color=1, downsample_ratio=1):
     """
     Args:
-        img_size (tuple): The image size.
+        imgsz (tuple): The image size.
         polygons (np.ndarray): [N, M], N is the number of polygons,
             M is the number of points(Be divided by 2).
     """
-    mask = np.zeros(img_size, dtype=np.uint8)
+    mask = np.zeros(imgsz, dtype=np.uint8)
     polygons = np.asarray(polygons)
     polygons = polygons.astype(np.int32)
     shape = polygons.shape
     polygons = polygons.reshape(shape[0], -1, 2)
     cv2.fillPoly(mask, polygons, color=color)
-    nh, nw = (img_size[0] // downsample_ratio, img_size[1] // downsample_ratio)
+    nh, nw = (imgsz[0] // downsample_ratio, imgsz[1] // downsample_ratio)
     # NOTE: fillPoly firstly then resize is trying the keep the same way
     # of loss calculation when mask-ratio=1.
     mask = cv2.resize(mask, (nw, nh))
     return mask
 
 
-def polygons2masks(img_size, polygons, color, downsample_ratio=1):
+def polygons2masks(imgsz, polygons, color, downsample_ratio=1):
     """
     Args:
-        img_size (tuple): The image size.
+        imgsz (tuple): The image size.
         polygons (list[np.ndarray]): each polygon is [N, M],
             N is the number of polygons,
             M is the number of points(Be divided by 2).
     """
     masks = []
     for si in range(len(polygons)):
-        mask = polygon2mask(img_size, [polygons[si].reshape(-1)], color, downsample_ratio)
+        mask = polygon2mask(imgsz, [polygons[si].reshape(-1)], color, downsample_ratio)
         masks.append(mask)
     return np.array(masks)
 
 
-def polygons2masks_overlap(img_size, segments, downsample_ratio=1):
+def polygons2masks_overlap(imgsz, segments, downsample_ratio=1):
     """Return a (640, 640) overlap mask."""
-    masks = np.zeros((img_size[0] // downsample_ratio, img_size[1] // downsample_ratio),
+    masks = np.zeros((imgsz[0] // downsample_ratio, imgsz[1] // downsample_ratio),
                      dtype=np.int32 if len(segments) > 255 else np.uint8)
     areas = []
     ms = []
     for si in range(len(segments)):
         mask = polygon2mask(
-            img_size,
+            imgsz,
             [segments[si].reshape(-1)],
             downsample_ratio=downsample_ratio,
             color=1,

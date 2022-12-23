@@ -51,8 +51,8 @@ class BaseModel(nn.Module):
         self.info()
         return self
 
-    def info(self, verbose=False, img_size=640):  # print model information
-        model_info(self, verbose, img_size)
+    def info(self, verbose=False, imgsz=640):  # print model information
+        model_info(self, verbose, imgsz)
 
     def _apply(self, fn):
         # Apply to(), cpu(), cuda(), half() to model tensors that are not parameters or registered buffers
@@ -117,7 +117,7 @@ class DetectionModel(BaseModel):
         return self._forward_once(x, profile, visualize)  # single-scale inference, train
 
     def _forward_augment(self, x):
-        img_size = x.shape[-2:]  # height, width
+        imgsz = x.shape[-2:]  # height, width
         s = [1, 0.83, 0.67]  # scales
         f = [None, 3, None]  # flips (2-ud, 3-lr)
         y = []  # outputs
@@ -125,25 +125,25 @@ class DetectionModel(BaseModel):
             xi = scale_img(x.flip(fi) if fi else x, si, gs=int(self.stride.max()))
             yi = self._forward_once(xi)[0]  # forward
             # cv2.imwrite(f'img_{si}.jpg', 255 * xi[0].cpu().numpy().transpose((1, 2, 0))[:, :, ::-1])  # save
-            yi = self._descale_pred(yi, fi, si, img_size)
+            yi = self._descale_pred(yi, fi, si, imgsz)
             y.append(yi)
         y = self._clip_augmented(y)  # clip augmented tails
         return torch.cat(y, 1), None  # augmented inference, train
 
-    def _descale_pred(self, p, flips, scale, img_size):
+    def _descale_pred(self, p, flips, scale, imgsz):
         # de-scale predictions following augmented inference (inverse operation)
         if self.inplace:
             p[..., :4] /= scale  # de-scale
             if flips == 2:
-                p[..., 1] = img_size[0] - p[..., 1]  # de-flip ud
+                p[..., 1] = imgsz[0] - p[..., 1]  # de-flip ud
             elif flips == 3:
-                p[..., 0] = img_size[1] - p[..., 0]  # de-flip lr
+                p[..., 0] = imgsz[1] - p[..., 0]  # de-flip lr
         else:
             x, y, wh = p[..., 0:1] / scale, p[..., 1:2] / scale, p[..., 2:4] / scale  # de-scale
             if flips == 2:
-                y = img_size[0] - y  # de-flip ud
+                y = imgsz[0] - y  # de-flip ud
             elif flips == 3:
-                x = img_size[1] - x  # de-flip lr
+                x = imgsz[1] - x  # de-flip lr
             p = torch.cat((x, y, wh, p[..., 4:]), -1)
         return p
 

@@ -123,7 +123,7 @@ def fuse_conv_and_bn(conv, bn):
     return fusedconv
 
 
-def model_info(model, verbose=False, imgsz=640):
+def model_info(model, verbose=False):
     # Model information. img_size may be int or list, i.e. img_size=640 or img_size=[640, 320]
     n_p = get_num_params(model)
     n_g = get_num_gradients(model)  # number gradients
@@ -147,8 +147,7 @@ def get_num_params(model):
 def get_num_gradients(model):
     return sum(x.numel() for x in model.parameters() if x.requires_grad)
 
-
-def get_flops(model):
+def get_flops(model, imgsz=640):
     try:
         p = next(model.parameters())
         stride = max(int(model.stride.max()), 32) if hasattr(model, 'stride') else 32  # max stride

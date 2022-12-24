@@ -215,7 +215,7 @@ class SegmentationTrainer(DetectionTrainer):
 
     def progress_string(self):
         return ('\n' + '%11s' * 7) % \
-               ('Epoch', 'GPU_mem', *self.loss_names, 'Size')
+               ('Epoch', 'GPU_mem', *self.loss_names, 'Instances', 'Size')
 
     def plot_training_samples(self, batch, ni):
         images = batch["img"]

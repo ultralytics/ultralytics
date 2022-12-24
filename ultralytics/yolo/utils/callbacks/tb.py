@@ -23,7 +23,4 @@ def on_val_end(trainer):
     _log_scalars(trainer.metrics, trainer.epoch)
 
 
-callbacks = {
-    "on_train_start": on_train_start,
-    "on_val_end": on_val_end,
-    "on_batch_end": on_batch_end}
+callbacks = {"on_train_start": on_train_start, "on_val_end": on_val_end, "on_batch_end": on_batch_end}

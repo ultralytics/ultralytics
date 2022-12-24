@@ -35,6 +35,4 @@ def on_train_end(trainer):
                                             auto_delete_file=False)
 
 
-callbacks = {
-    "on_train_start": on_train_start,
-    "on_train_end": on_train_end} if clearml else {}
+callbacks = {"on_train_start": on_train_start, "on_train_end": on_train_end} if clearml else {}

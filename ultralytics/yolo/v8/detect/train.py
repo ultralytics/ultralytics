@@ -53,7 +53,7 @@ class DetectionTrainer(BaseTrainer):
                                             args=self.args)
 
     def criterion(self, preds, batch):
-        if not hasattr(self, 'run_criterion'):
+        if not hasattr(self, 'compute_loss'):
             self.compute_loss = Loss(self.model)
         return self.compute_loss(preds, batch)
 

@@ -362,7 +362,7 @@ class BaseTrainer:
         """
         raise NotImplementedError("criterion function not implemented in trainer")
 
-    def label_loss_items(self, loss_items=None, prefix="train"):
+    def label_loss_items(self, loss_items=None, prefix="train", names=None):
         """
         Returns a loss dict with labelled training loss items tensor
         """

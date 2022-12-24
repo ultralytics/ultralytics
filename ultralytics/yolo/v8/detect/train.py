@@ -190,10 +190,9 @@ class DetectionTrainer(BaseTrainer):
         loss = lbox + lobj + lcls
         return loss * bs, torch.cat((lbox, lobj, lcls)).detach()
 
-    # TODO: improve from API users perspective
-    def label_loss_items(self, loss_items=None, prefix="train"):
+    def label_loss_items(self, loss_items=None, prefix="train", names=("lbox", "lobj", "lcls")):
         # We should just use named tensors here in future
-        keys = [f"{prefix}/lbox", f"{prefix}/lobj", f"{prefix}/lcls"]
+        keys = [f"{prefix}/{x}" for x in names]
         return dict(zip(keys, loss_items)) if loss_items is not None else keys
 
     def progress_string(self):

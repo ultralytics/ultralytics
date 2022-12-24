@@ -29,21 +29,15 @@ def before_train(trainer):
 
 
 def on_batch_end(trainer):
-    train_loss = trainer.tloss
-    _log_scalers(trainer.label_loss_items(train_loss), "train", trainer.epoch)
+    _log_scalers(trainer.label_loss_items(trainer.tloss, prefix="train"), "train", trainer.epoch)
 
 
 def on_val_end(trainer):
-    metrics = trainer.metrics
-    val_losses = trainer.validator.loss
-    val_loss_dict = trainer.label_loss_items(val_losses)
-    _log_scalers(val_loss_dict, "val", trainer.epoch)
-    _log_scalers(metrics, "metrics", trainer.epoch)
-
+    _log_scalers(trainer.label_loss_items(trainer.validator.loss, prefix="val"), "val", trainer.epoch)
+    _log_scalers({k: v for k, v in trainer.metrics.items() if k.startswith("metrics")}, "metrics", trainer.epoch)
     if trainer.epoch == 0:
-        infer_speed = trainer.validator.speed[1]
         model_info = {
-            "inference_speed": infer_speed,
+            "inference_speed": trainer.validator.speed[1],
             "flops@640": get_flops(trainer.model),
             "params": get_num_params(trainer.model)}
         _log_scalers(model_info, "model")

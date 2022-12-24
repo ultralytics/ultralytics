@@ -210,9 +210,9 @@ class SegmentationTrainer(DetectionTrainer):
         loss = lbox + lobj + lcls + lseg
         return loss * bs, torch.cat((lbox, lseg, lobj, lcls)).detach()
 
-    def label_loss_items(self, loss_items=None, prefix="train"):
+    def label_loss_items(self, loss_items=None, prefix="train", names=("lbox", "lseg", "lobj", "lcls")):
         # We should just use named tensors here in future
-        keys = [f"{prefix}/lbox", f"{prefix}/lseg", f"{prefix}/lobj", f"{prefix}/lcls"]
+        keys = [f"{prefix}/{x}" for x in names]
         return dict(zip(keys, loss_items)) if loss_items is not None else keys
 
     def progress_string(self):

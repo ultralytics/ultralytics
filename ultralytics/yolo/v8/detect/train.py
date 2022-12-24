@@ -131,7 +131,7 @@ class Loss:
 
     def __call__(self, preds, batch):
         loss = torch.zeros(3, device=self.device)  # box, cls, dfl
-        feats, pred_distri, pred_scores = preds
+        feats, pred_distri, pred_scores = preds if len(preds) == 3 else preds[1]
         pred_scores = pred_scores.permute(0, 2, 1).contiguous()
         pred_distri = pred_distri.permute(0, 2, 1).contiguous()
 

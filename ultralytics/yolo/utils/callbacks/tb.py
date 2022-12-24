@@ -16,11 +16,11 @@ def on_train_start(trainer):
 
 
 def on_batch_end(trainer):
-    _log_scalars(trainer.label_loss_items(trainer.tloss, prefix="train"), trainer.epoch)
+    _log_scalars(trainer.label_loss_items(trainer.tloss, prefix="train"), trainer.epoch + 1)
 
 
 def on_val_end(trainer):
-    _log_scalars(trainer.metrics, trainer.epoch)
+    _log_scalars(trainer.metrics, trainer.epoch + 1)
 
 
 callbacks = {"on_train_start": on_train_start, "on_val_end": on_val_end, "on_batch_end": on_batch_end}

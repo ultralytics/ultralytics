@@ -2,7 +2,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from .checks import check_version
 from .metrics import bbox_iou
+
+TORCH_1_10 = check_version(torch.__version__, '1.10.0')
 
 
 def select_candidates_in_gts(xy_centers, gt_bboxes, eps=1e-9):
@@ -174,13 +177,6 @@ class TaskAlignedAssigner(nn.Module):
         target_scores = torch.where(fg_scores_mask > 0, target_scores, 0)
 
         return target_labels, target_bboxes, target_scores
-
-
-import torch
-
-from utils.general import check_version
-
-TORCH_1_10 = check_version(torch.__version__, '1.10.0')
 
 
 def make_anchors(feats, strides, grid_cell_offset=0.5):

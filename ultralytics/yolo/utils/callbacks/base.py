@@ -1,13 +1,36 @@
-def before_train(trainer):
-    # Initialize tensorboard logger
+def on_pretrain_routine_start(trainer):
     pass
 
 
-def on_epoch_start(trainer):
+def on_pretrain_routine_end(trainer):
     pass
 
 
-def on_batch_start(trainer):
+def on_train_start(trainer):
+    pass
+
+
+def on_train_epoch_start(trainer):
+    pass
+
+
+def on_train_batch_start(trainer):
+    pass
+
+
+def optimizer_step(trainer):
+    pass
+
+
+def on_before_zero_grad(trainer):
+    pass
+
+
+def on_train_batch_end(trainer):
+    pass
+
+
+def on_train_epoch_end(trainer):
     pass
 
 
@@ -15,7 +38,23 @@ def on_val_start(trainer):
     pass
 
 
+def on_val_batch_start(trainer):
+    pass
+
+
+def on_val_image_end(trainer):
+    pass
+
+
+def on_val_batch_end(trainer):
+    pass
+
+
 def on_val_end(trainer):
+    pass
+
+
+def on_fit_epoch_end(trainer):
     pass
 
 
@@ -23,18 +62,41 @@ def on_model_save(trainer):
     pass
 
 
+def on_train_end(trainer):
+    pass
+
+
+def on_params_update(trainer):
+    pass
+
+
+def teardown(trainer):
+    pass
+
+
 default_callbacks = {
-    "before_train": before_train,
-    "on_epoch_start": on_epoch_start,
-    "on_batch_start": on_batch_start,
-    "on_val_start": on_val_start,
-    "on_val_end": on_val_end,
-    "on_model_save": on_model_save}
+    'on_pretrain_routine_start': on_pretrain_routine_start,
+    'on_pretrain_routine_end': on_pretrain_routine_end,
+    'on_train_start': on_train_start,
+    'on_train_epoch_start': on_train_epoch_start,
+    'on_train_batch_start': on_train_batch_start,
+    'optimizer_step': optimizer_step,
+    'on_before_zero_grad': optimizer_step,
+    'on_train_batch_end': on_train_batch_end,
+    'on_train_epoch_end': on_train_epoch_end,
+    'on_val_start': on_val_start,
+    'on_val_batch_start': on_val_batch_start,
+    'on_val_image_end': on_val_image_end,
+    'on_val_batch_end': on_val_batch_end,
+    'on_val_end': on_val_end,
+    'on_fit_epoch_end': on_fit_epoch_end,  # fit = train + val
+    'on_model_save': on_model_save,
+    'on_train_end': on_train_end,
+    'on_params_update': on_params_update,
+    'teardown': teardown}
 
 
 def add_integration_callbacks(trainer):
-    callbacks = {}
-
     from .clearml import callbacks, clearml
     if clearml:
         for callback, func in callbacks.items():

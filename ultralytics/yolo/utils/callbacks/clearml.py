@@ -16,7 +16,7 @@ def _log_scalers(metric_dict, group="", step=0):
             task.get_logger().report_scalar(group, k, v, step)
 
 
-def before_train(trainer):
+def on_train_start(trainer):
     # TODO: reuse existing task
     task = Task.init(project_name=trainer.args.project if trainer.args.project != 'runs/train' else 'YOLOv8',
                      task_name=trainer.args.name,
@@ -49,7 +49,7 @@ def on_train_end(trainer):
 
 
 callbacks = {
-    "before_train": before_train,
+    "on_train_start": on_train_start,
     "on_val_end": on_val_end,
     "on_batch_end": on_batch_end,
     "on_train_end": on_train_end}

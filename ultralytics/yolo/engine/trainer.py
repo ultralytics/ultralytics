@@ -165,7 +165,7 @@ class BaseTrainer:
             self._setup_ddp(rank, world_size)
 
         self._setup_train(rank, world_size)
-        self.trigger_callbacks("before_train")
+        self.trigger_callbacks("on_train_start")
 
         self.epoch_time = None
         self.epoch_time_start = time.time()
@@ -175,7 +175,7 @@ class BaseTrainer:
         last_opt_step = -1
         for epoch in range(self.start_epoch, self.epochs):
             self.epoch = epoch
-            self.trigger_callbacks("on_epoch_start")
+            self.trigger_callbacks("on_train_epoch_start")
             self.model.train()
             if rank != -1:
                 self.train_loader.sampler.set_epoch(epoch)
@@ -186,7 +186,7 @@ class BaseTrainer:
             self.tloss = None
             self.optimizer.zero_grad()
             for i, batch in pbar:
-                self.trigger_callbacks("on_batch_start")
+                self.trigger_callbacks("on_train_batch_start")
                 # forward
                 batch = self.preprocess_batch(batch)
 

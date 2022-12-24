@@ -5,10 +5,10 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader, dataloader, distributed
 
-from .dataset import ClassificationDataset, YOLODataset
-from .utils import PIN_MEMORY, RANK
 from ..utils import LOGGER, colorstr
 from ..utils.torch_utils import torch_distributed_zero_first
+from .dataset import ClassificationDataset, YOLODataset
+from .utils import PIN_MEMORY, RANK
 
 
 class InfiniteDataLoader(dataloader.DataLoader):
@@ -85,16 +85,15 @@ def build_dataloader(cfg, batch_size, img_path, stride=32, label_path=None, rank
     loader = DataLoader if cfg.image_weights or cfg.close_mosaic else InfiniteDataLoader  # allow attribute updates
     generator = torch.Generator()
     generator.manual_seed(6148914691236517205 + RANK)
-    return loader(
-        dataset=dataset,
-        batch_size=batch_size,
-        shuffle=shuffle and sampler is None,
-        num_workers=nw,
-        sampler=sampler,
-        pin_memory=PIN_MEMORY,
-        collate_fn=getattr(dataset, "collate_fn", None),
-        worker_init_fn=seed_worker,
-        generator=generator), dataset
+    return loader(dataset=dataset,
+                  batch_size=batch_size,
+                  shuffle=shuffle and sampler is None,
+                  num_workers=nw,
+                  sampler=sampler,
+                  pin_memory=PIN_MEMORY,
+                  collate_fn=getattr(dataset, "collate_fn", None),
+                  worker_init_fn=seed_worker,
+                  generator=generator), dataset
 
 
 # build classification

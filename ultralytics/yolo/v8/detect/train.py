@@ -37,8 +37,7 @@ class DetectionTrainer(BaseTrainer):
     def load_model(self, model_cfg=None, weights=None):
         model = DetectionModel(model_cfg or weights["model"].yaml,
                                ch=3,
-                               nc=self.data["nc"],
-                               anchors=self.args.get("anchors"))
+                               nc=self.data["nc"])
         if weights:
             model.load(weights)
         for _, v in model.named_parameters():

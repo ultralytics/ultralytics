@@ -18,9 +18,9 @@ def _log_scalers(metric_dict, group="", step=0):
 
 def before_train(trainer):
     # TODO: reuse existing task
-    task = Task.init(project_name=trainer.args.project if trainer.args.project != 'runs/train' else 'YOLOv5',
-                     task_name=trainer.args.name if trainer.args.name != 'exp' else 'Training',
-                     tags=['YOLOv5'],
+    task = Task.init(project_name=trainer.args.project if trainer.args.project != 'runs/train' else 'YOLOv8',
+                     task_name=trainer.args.name,
+                     tags=['YOLOv8'],
                      output_uri=True,
                      reuse_last_task_id=False,
                      auto_connect_frameworks={'pytorch': False})

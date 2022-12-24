@@ -10,7 +10,7 @@ from ultralytics.yolo.utils import LOGGER, TQDM_BAR_FORMAT
 from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.modeling.autobackend import AutoBackend
 from ultralytics.yolo.utils.ops import Profile
-from ultralytics.yolo.utils.torch_utils import check_imgsz, de_parallel, select_device
+from ultralytics.yolo.utils.torch_utils import check_imgsz, de_parallel, select_device, smart_inference_mode
 
 
 class BaseValidator:
@@ -32,6 +32,7 @@ class BaseValidator:
         self.save_dir = save_dir if save_dir is not None else \
             increment_path(Path(self.args.project) / self.args.name, exist_ok=self.args.exist_ok)
 
+    @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
         """
         Supports validation of a pre-trained model if passed or a model being trained
@@ -79,30 +80,29 @@ class BaseValidator:
         # bar = tqdm(self.dataloader, desc, n_batches, not self.training, bar_format=TQDM_BAR_FORMAT)
         bar = tqdm(self.dataloader, desc, n_batches, bar_format=TQDM_BAR_FORMAT)
         self.init_metrics(de_parallel(model))
-        with torch.no_grad():
-            for batch_i, batch in enumerate(bar):
-                self.batch_i = batch_i
-                # pre-process
-                with dt[0]:
-                    batch = self.preprocess(batch)
+        for batch_i, batch in enumerate(bar):
+            self.batch_i = batch_i
+            # pre-process
+            with dt[0]:
+                batch = self.preprocess(batch)
 
-                # inference
-                with dt[1]:
-                    preds = model(batch["img"])
+            # inference
+            with dt[1]:
+                preds = model(batch["img"])
 
-                # loss
-                with dt[2]:
-                    if self.training:
-                        self.loss += trainer.criterion(preds, batch)[1]
+            # loss
+            with dt[2]:
+                if self.training:
+                    self.loss += trainer.criterion(preds, batch)[1]
 
-                # pre-process predictions
-                with dt[3]:
-                    preds = self.postprocess(preds)
+            # pre-process predictions
+            with dt[3]:
+                preds = self.postprocess(preds)
 
-                self.update_metrics(preds, batch)
-                if self.args.plots and batch_i < 3:
-                    self.plot_val_samples(batch, batch_i)
-                    self.plot_predictions(batch, preds, batch_i)
+            self.update_metrics(preds, batch)
+            if self.args.plots and batch_i < 3:
+                self.plot_val_samples(batch, batch_i)
+                self.plot_predictions(batch, preds, batch_i)
 
         stats = self.get_stats()
         self.check_stats(stats)

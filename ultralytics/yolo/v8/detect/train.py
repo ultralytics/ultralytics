@@ -5,9 +5,12 @@ import torch.nn as nn
 from ultralytics.yolo import v8
 from ultralytics.yolo.data import build_dataloader
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG, BaseTrainer
-from ultralytics.yolo.utils.metrics import FocalLoss, bbox_iou, smooth_BCE
+from ultralytics.yolo.utils.loss import BboxLoss
+from ultralytics.yolo.utils.metrics import smooth_BCE
 from ultralytics.yolo.utils.modeling.tasks import DetectionModel
+from ultralytics.yolo.utils.ops import xywh2xyxy
 from ultralytics.yolo.utils.plotting import plot_images, plot_results
+from ultralytics.yolo.utils.tal import TaskAlignedAssigner, dist2bbox, make_anchors
 from ultralytics.yolo.utils.torch_utils import de_parallel
 
 
@@ -35,10 +38,7 @@ class DetectionTrainer(BaseTrainer):
         self.model.names = self.data["names"]
 
     def load_model(self, model_cfg=None, weights=None):
-        model = DetectionModel(model_cfg or weights["model"].yaml,
-                               ch=3,
-                               nc=self.data["nc"],
-                               anchors=self.args.get("anchors"))
+        model = DetectionModel(model_cfg or weights["model"].yaml, ch=3, nc=self.data["nc"])
         if weights:
             model.load(weights)
         for _, v in model.named_parameters():
@@ -46,150 +46,14 @@ class DetectionTrainer(BaseTrainer):
         return model
 
     def get_validator(self):
-        self.loss_names = 'box_loss', 'obj_loss', 'cls_loss'
+        self.loss_names = 'box_loss', 'cls_loss', 'dfl_loss'
         return v8.detect.DetectionValidator(self.test_loader,
                                             save_dir=self.save_dir,
                                             logger=self.console,
                                             args=self.args)
 
     def criterion(self, preds, batch):
-        head = de_parallel(self.model).model[-1]
-        sort_obj_iou = False
-        autobalance = False
-
-        # init losses
-        BCEcls = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([self.args.cls_pw], device=self.device))
-        BCEobj = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([self.args.obj_pw], device=self.device))
-
-        # Class label smoothing https://arxiv.org/pdf/1902.04103.pdf eqn 3
-        cp, cn = smooth_BCE(eps=self.args.label_smoothing)  # positive, negative BCE targets
-
-        # Focal loss
-        g = self.args.fl_gamma
-        if self.args.fl_gamma > 0:
-            BCEcls, BCEobj = FocalLoss(BCEcls, g), FocalLoss(BCEobj, g)
-
-        balance = {3: [4.0, 1.0, 0.4]}.get(head.nl, [4.0, 1.0, 0.25, 0.06, 0.02])  # P3-P7
-        ssi = list(head.stride).index(16) if autobalance else 0  # stride 16 index
-        BCEcls, BCEobj, gr, autobalance = BCEcls, BCEobj, 1.0, autobalance
-
-        def build_targets(p, targets):
-            # Build targets for compute_loss(), input targets(image,class,x,y,w,h)
-            nonlocal head
-            na, nt = head.na, targets.shape[0]  # number of anchors, targets
-            tcls, tbox, indices, anch = [], [], [], []
-            gain = torch.ones(7, device=self.device)  # normalized to gridspace gain
-            ai = torch.arange(na, device=self.device).float().view(na, 1).repeat(1, nt)
-            targets = torch.cat((targets.repeat(na, 1, 1), ai[..., None]), 2)  # append anchor indices
-
-            g = 0.5  # bias
-            off = torch.tensor(
-                [
-                    [0, 0],
-                    [1, 0],
-                    [0, 1],
-                    [-1, 0],
-                    [0, -1],  # j,k,l,m
-                    # [1, 1], [1, -1], [-1, 1], [-1, -1],  # jk,jm,lk,lm
-                ],
-                device=self.device).float() * g  # offsets
-
-            for i in range(head.nl):
-                anchors, shape = head.anchors[i], p[i].shape
-                gain[2:6] = torch.tensor(shape)[[3, 2, 3, 2]]  # xyxy gain
-
-                # Match targets to anchors
-                t = targets * gain  # shape(3,n,7)
-                if nt:
-                    # Matches
-                    r = t[..., 4:6] / anchors[:, None]  # wh ratio
-                    j = torch.max(r, 1 / r).max(2)[0] < self.args.anchor_t  # compare
-                    # j = wh_iou(anchors, t[:, 4:6]) > model.hyp['iou_t']  # iou(3,n)=wh_iou(anchors(3,2), gwh(n,2))
-                    t = t[j]  # filter
-
-                    # Offsets
-                    gxy = t[:, 2:4]  # grid xy
-                    gxi = gain[[2, 3]] - gxy  # inverse
-                    j, k = ((gxy % 1 < g) & (gxy > 1)).T
-                    l, m = ((gxi % 1 < g) & (gxi > 1)).T
-                    j = torch.stack((torch.ones_like(j), j, k, l, m))
-                    t = t.repeat((5, 1, 1))[j]
-                    offsets = (torch.zeros_like(gxy)[None] + off[:, None])[j]
-                else:
-                    t = targets[0]
-                    offsets = 0
-
-                # Define
-                bc, gxy, gwh, a = t.chunk(4, 1)  # (image, class), grid xy, grid wh, anchors
-                a, (b, c) = a.long().view(-1), bc.long().T  # anchors, image, class
-                gij = (gxy - offsets).long()
-                gi, gj = gij.T  # grid indices
-
-                # Append
-                indices.append((b, a, gj.clamp_(0, shape[2] - 1), gi.clamp_(0, shape[3] - 1)))  # image, anchor, grid
-                tbox.append(torch.cat((gxy - gij, gwh), 1))  # box
-                anch.append(anchors[a])  # anchors
-                tcls.append(c)  # class
-
-            return tcls, tbox, indices, anch
-
-        if len(preds) == 2:  # eval
-            _, p = preds
-        else:  # len(3) train
-            p = preds
-
-        targets = torch.cat((batch["batch_idx"].view(-1, 1), batch["cls"].view(-1, 1), batch["bboxes"]), 1)
-        targets = targets.to(self.device)
-
-        lcls = torch.zeros(1, device=self.device)
-        lbox = torch.zeros(1, device=self.device)
-        lobj = torch.zeros(1, device=self.device)
-        tcls, tbox, indices, anchors = build_targets(p, targets)
-
-        # Losses
-        for i, pi in enumerate(p):  # layer index, layer predictions
-            b, a, gj, gi = indices[i]  # image, anchor, gridy, gridx
-            tobj = torch.zeros(pi.shape[:4], dtype=pi.dtype, device=self.device)  # target obj
-            bs = tobj.shape[0]
-            n = b.shape[0]  # number of targets
-            if n:
-                pxy, pwh, _, pcls = pi[b, a, gj, gi].split((2, 2, 1, head.nc), 1)  # subset of predictions
-
-                # Box regression
-                pxy = pxy.sigmoid() * 2 - 0.5
-                pwh = (pwh.sigmoid() * 2) ** 2 * anchors[i]
-                pbox = torch.cat((pxy, pwh), 1)  # predicted box
-                iou = bbox_iou(pbox, tbox[i], CIoU=True).squeeze()  # iou(prediction, target)
-                lbox += (1.0 - iou).mean()  # iou loss
-
-                # Objectness
-                iou = iou.detach().clamp(0).type(tobj.dtype)
-                if sort_obj_iou:
-                    j = iou.argsort()
-                    b, a, gj, gi, iou = b[j], a[j], gj[j], gi[j], iou[j]
-                if gr < 1:
-                    iou = (1.0 - gr) + gr * iou
-                tobj[b, a, gj, gi] = iou  # iou ratio
-
-                # Classification
-                if head.nc > 1:  # cls loss (only if multiple classes)
-                    t = torch.full_like(pcls, cn, device=self.device)  # targets
-                    t[range(n), tcls[i]] = cp
-                    lcls += BCEcls(pcls, t)  # BCE
-
-            obji = BCEobj(pi[..., 4], tobj)
-            lobj += obji * balance[i]  # obj loss
-            if autobalance:
-                balance[i] = balance[i] * 0.9999 + 0.0001 / obji.detach().item()
-
-        if autobalance:
-            balance = [x / balance[ssi] for x in balance]
-        lbox *= self.args.box
-        lobj *= self.args.obj
-        lcls *= self.args.cls
-
-        loss = lbox + lobj + lcls
-        return loss * bs, torch.cat((lbox, lobj, lcls)).detach()
+        return Loss(self.model)(preds, batch)
 
     def label_loss_items(self, loss_items=None, prefix="train"):
         # We should just use named tensors here in future
@@ -212,10 +76,105 @@ class DetectionTrainer(BaseTrainer):
         plot_results(file=self.csv)  # save results.png
 
 
+# Criterion class for computing training losses
+class Loss:
+
+    def __init__(self, model):
+
+        device = next(model.parameters()).device  # get model device
+        h = model.args  # hyperparameters
+
+        # Define criteria
+        BCEcls = nn.BCEWithLogitsLoss(pos_weight=torch.tensor([h["cls_pw"]], device=device), reduction='none')
+
+        # Class label smoothing https://arxiv.org/pdf/1902.04103.pdf eqn 3
+        self.cp, self.cn = smooth_BCE(eps=h.get("label_smoothing", 0.0))  # positive, negative BCE targets
+
+        m = de_parallel(model).model[-1]  # Detect() module
+        self.BCEcls = BCEcls
+        self.hyp = h
+        self.stride = m.stride  # model strides
+        self.nc = m.nc  # number of classes
+        self.nl = m.nl  # number of layers
+        self.device = device
+
+        self.use_dfl = m.reg_max > 1
+        self.assigner = TaskAlignedAssigner(topk=10, num_classes=self.nc, alpha=0.5, beta=6.0)
+        self.bbox_loss = BboxLoss(m.reg_max - 1, use_dfl=self.use_dfl).to(device)
+        self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
+
+    def preprocess(self, targets, batch_size, scale_tensor):
+        if targets.shape[0] == 0:
+            out = torch.zeros(batch_size, 0, 5, device=self.device)
+        else:
+            i = targets[:, 0]  # image index
+            _, counts = i.unique(return_counts=True)
+            out = torch.zeros(batch_size, counts.max(), 5, device=self.device)
+            for j in range(batch_size):
+                matches = i == j
+                n = matches.sum()
+                if n:
+                    out[j, :n] = targets[matches, 1:]
+            out[..., 1:5] = xywh2xyxy(out[..., 1:5].mul_(scale_tensor))
+        return out
+
+    def bbox_decode(self, anchor_points, pred_dist):
+        if self.use_dfl:
+            b, a, c = pred_dist.shape  # batch, anchors, channels
+            pred_dist = pred_dist.view(b, a, 4, c // 4).softmax(3).matmul(self.proj.type(pred_dist.dtype))
+            # pred_dist = pred_dist.view(b, a, c // 4, 4).transpose(2,3).softmax(3).matmul(self.proj.type(pred_dist.dtype))
+            # pred_dist = (pred_dist.view(b, a, c // 4, 4).softmax(2) * self.proj.type(pred_dist.dtype).view(1, 1, -1, 1)).sum(2)
+        return dist2bbox(pred_dist, anchor_points, xywh=False)
+
+    def __call__(self, preds, batch):
+        loss = torch.zeros(3, device=self.device)  # box, cls, dfl
+        feats, pred_distri, pred_scores = preds if len(preds) == 3 else preds[1]
+        pred_scores = pred_scores.permute(0, 2, 1).contiguous()
+        pred_distri = pred_distri.permute(0, 2, 1).contiguous()
+
+        dtype = pred_scores.dtype
+        batch_size, grid_size = pred_scores.shape[:2]
+        imgsz = torch.tensor(feats[0].shape[2:], device=self.device, dtype=dtype) * self.stride[0]  # image size (h,w)
+        anchor_points, stride_tensor = make_anchors(feats, self.stride, 0.5)
+
+        # targets
+        targets = torch.cat((batch["batch_idx"].view(-1, 1), batch["cls"].view(-1, 1), batch["bboxes"]), 1)
+        targets = self.preprocess(targets.to(self.device), batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
+        gt_labels, gt_bboxes = targets.split((1, 4), 2)  # cls, xyxy
+        mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0)
+
+        # pboxes
+        pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
+
+        target_labels, target_bboxes, target_scores, fg_mask = self.assigner(
+            pred_scores.detach().sigmoid(), (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),
+            anchor_points * stride_tensor, gt_labels, gt_bboxes, mask_gt)
+
+        target_bboxes /= stride_tensor
+        target_scores_sum = target_scores.sum()
+
+        # cls loss
+        # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
+        loss[1] = self.BCEcls(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
+
+        # bbox loss
+        if fg_mask.sum():
+            loss[0], loss[2] = self.bbox_loss(pred_distri, pred_bboxes, anchor_points, target_bboxes, target_scores,
+                                              target_scores_sum, fg_mask)
+
+        loss[0] *= 7.5  # box gain
+        loss[1] *= 0.5  # cls gain
+        loss[2] *= 1.5  # dfl gain
+
+        return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
+
+
 @hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
 def train(cfg):
-    cfg.model = cfg.model or "models/yolov5n.yaml"
+    cfg.model = cfg.model or "models/yolov8n.yaml"
     cfg.data = cfg.data or "coco128.yaml"  # or yolo.ClassificationDataset("mnist")
+    cfg.imgsz = 160
+    cfg.epochs = 5
     trainer = DetectionTrainer(cfg)
     trainer.train()
 
@@ -223,9 +182,9 @@ def train(cfg):
 if __name__ == "__main__":
     """
     CLI usage:
-    python ultralytics/yolo/v8/detect/train.py model=yolov5n.yaml data=coco128 epochs=100 imgsz=640
+    python ultralytics/yolo/v8/detect/train.py model=yolov8n.yaml data=coco128 epochs=100 imgsz=640
 
     TODO:
-    yolo task=detect mode=train model=yolov5n.yaml data=coco128.yaml epochs=100
+    yolo task=detect mode=train model=yolov8n.yaml data=coco128.yaml epochs=100
     """
     train()

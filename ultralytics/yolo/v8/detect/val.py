@@ -3,7 +3,6 @@ import os
 import hydra
 import numpy as np
 import torch
-import torch.nn.functional as F
 
 from ultralytics.yolo.data import build_dataloader
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG

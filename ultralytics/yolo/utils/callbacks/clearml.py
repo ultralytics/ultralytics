@@ -24,8 +24,7 @@ def before_train(trainer):
                      output_uri=True,
                      reuse_last_task_id=False,
                      auto_connect_frameworks={'pytorch': False})
-
-    task.connect(trainer.args, name='parameters')
+    task.connect(dict(trainer.args), name='General')
 
 
 def on_batch_end(trainer):
@@ -40,7 +39,7 @@ def on_val_end(trainer):
             "inference_speed": trainer.validator.speed[1],
             "flops@640": get_flops(trainer.model),
             "params": get_num_params(trainer.model)}
-        _log_scalers(model_info, "model")
+        Task.current_task().connect(model_info, 'Model')
 
 
 def on_train_end(trainer):

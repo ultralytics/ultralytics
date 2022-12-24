@@ -29,6 +29,7 @@ class SegmentationTrainer(DetectionTrainer):
         return model
 
     def get_validator(self):
+        self.loss_names = 'box_loss', 'seg_loss', 'obj_loss', 'cls_loss'
         return v8.segment.SegmentationValidator(self.test_loader,
                                                 save_dir=self.save_dir,
                                                 logger=self.console,
@@ -212,12 +213,12 @@ class SegmentationTrainer(DetectionTrainer):
 
     def label_loss_items(self, loss_items=None, prefix="train"):
         # We should just use named tensors here in future
-        keys = [f"{prefix}/lbox", f"{prefix}/lseg", f"{prefix}/lobj", f"{prefix}/lcls"]
+        keys = [f"{prefix}/{x}" for x in self.loss_names]
         return dict(zip(keys, loss_items)) if loss_items is not None else keys
 
     def progress_string(self):
         return ('\n' + '%11s' * 7) % \
-               ('Epoch', 'GPU_mem', 'box_loss', 'seg_loss', 'obj_loss', 'cls_loss', 'Size')
+               ('Epoch', 'GPU_mem', *self.loss_names, 'Size')
 
     def plot_training_samples(self, batch, ni):
         images = batch["img"]

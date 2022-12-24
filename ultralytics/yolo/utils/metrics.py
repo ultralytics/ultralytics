@@ -514,7 +514,7 @@ class DetMetrics:
 
     @property
     def keys(self):
-        return ["metrics/precision(B)", "metrics/recall(B)", "metrics/mAP_0.5(B)", "metrics/mAP_0.5:0.95(B)"]
+        return ["metrics/precision(B)", "metrics/recall(B)", "metrics/mAP50(B)", "metrics/mAP50-95(B)"]
 
     def mean_results(self):
         return self.metric.mean_results()
@@ -567,12 +567,12 @@ class SegmentMetrics:
         return [
             "metrics/precision(B)",
             "metrics/recall(B)",
-            "metrics/mAP_0.5(B)",
-            "metrics/mAP_0.5:0.95(B)",  # metrics
+            "metrics/mAP50(B)",
+            "metrics/mAP50-95(B)",  # metrics
             "metrics/precision(M)",
             "metrics/recall(M)",
-            "metrics/mAP_0.5(M)",
-            "metrics/mAP_0.5:0.95(M)"]
+            "metrics/mAP50(M)",
+            "metrics/mAP50-95(M)"]
 
     def mean_results(self):
         return self.metric_box.mean_results() + self.metric_mask.mean_results()

@@ -211,7 +211,7 @@ class DetectionTrainer(BaseTrainer):
 
 @hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
 def train(cfg):
-    cfg.model = cfg.model or "models/yolov5n.yaml"
+    cfg.model = cfg.model or "models/yolov8n.yaml"
     cfg.data = cfg.data or "coco128.yaml"  # or yolo.ClassificationDataset("mnist")
     cfg.imgsz = 160
     cfg.epochs = 5
@@ -222,9 +222,9 @@ def train(cfg):
 if __name__ == "__main__":
     """
     CLI usage:
-    python ultralytics/yolo/v8/detect/train.py model=yolov5n.yaml data=coco128 epochs=100 imgsz=640
+    python ultralytics/yolo/v8/detect/train.py model=yolov8n.yaml data=coco128 epochs=100 imgsz=640
 
     TODO:
-    yolo task=detect mode=train model=yolov5n.yaml data=coco128.yaml epochs=100
+    yolo task=detect mode=train model=yolov8n.yaml data=coco128.yaml epochs=100
     """
     train()

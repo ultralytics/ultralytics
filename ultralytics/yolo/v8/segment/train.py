@@ -235,7 +235,7 @@ class SegmentationTrainer(DetectionTrainer):
 
 @hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
 def train(cfg):
-    cfg.model = cfg.model or "models/yolov5n-seg.yaml"
+    cfg.model = cfg.model or "models/yolov8n-seg.yaml"
     cfg.data = cfg.data or "coco128-seg.yaml"  # or yolo.ClassificationDataset("mnist")
     trainer = SegmentationTrainer(cfg)
     trainer.train()
@@ -244,7 +244,7 @@ def train(cfg):
 if __name__ == "__main__":
     """
     CLI usage:
-    python ultralytics/yolo/v8/segment/train.py model=yolov5n-seg.yaml data=coco128-segments epochs=100 imgsz=640
+    python ultralytics/yolo/v8/segment/train.py model=yolov8n-seg.yaml data=coco128-segments epochs=100 imgsz=640
 
     TODO:
     Direct cli support, i.e, yolov8 classify_train args.epochs 10

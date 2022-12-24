@@ -245,7 +245,7 @@ class BaseTrainer:
                 if not self.args.noval or final_epoch:
                     self.metrics, self.fitness = self.validate()
                 self.trigger_callbacks('on_val_end')
-                log_vals = self.label_loss_items(self.tloss) | self.metrics | lr
+                log_vals = {**self.label_loss_items(self.tloss), **self.metrics, **lr}
                 self.save_metrics(metrics=log_vals)
 
                 # save model

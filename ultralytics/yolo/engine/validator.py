@@ -1,4 +1,3 @@
-import logging
 from pathlib import Path
 
 import torch
@@ -9,7 +8,6 @@ from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.utils import LOGGER, TQDM_BAR_FORMAT
 from ultralytics.yolo.utils.files import increment_path
-from ultralytics.yolo.utils.modeling import get_model
 from ultralytics.yolo.utils.modeling.autobackend import AutoBackend
 from ultralytics.yolo.utils.ops import Profile
 from ultralytics.yolo.utils.torch_utils import check_imgsz, de_parallel, select_device
@@ -32,7 +30,7 @@ class BaseValidator:
         self.training = True
         self.speed = None
         self.save_dir = save_dir if save_dir is not None else \
-                increment_path(Path(self.args.project) / self.args.name, exist_ok=self.args.exist_ok)
+            increment_path(Path(self.args.project) / self.args.name, exist_ok=self.args.exist_ok)
 
     def __call__(self, trainer=None, model=None):
         """
@@ -113,22 +111,21 @@ class BaseValidator:
 
         # calculate speed only once when training
         if not self.training or trainer.epoch == 0:
-            t = tuple(x.t / len(self.dataloader.dataset) * 1E3 for x in dt)  # speeds per image
-            self.speed = t
+            self.speed = tuple(x.t / len(self.dataloader.dataset) * 1E3 for x in dt)  # speeds per image
 
-            if not self.training:  # print only at inference
-                self.logger.info(
-                    'Speed: %.1fms pre-process, %.1fms inference, %.1fms loss, %.1fms post-process per image' % t)
+        if not self.training:  # print only at inference
+            self.logger.info(
+                'Speed: %.1fms pre-process, %.1fms inference, %.1fms loss, %.1fms post-process per image' % self.speed)
 
         if self.training:
             model.float()
         # TODO: implement save json
 
-        return stats | trainer.label_loss_items(self.loss.cpu() / len(self.dataloader), prefix="val") \
-                if self.training else stats
+        return {**stats, **trainer.label_loss_items(self.loss.cpu() / len(self.dataloader), prefix="val")} \
+            if self.training else stats
 
     def get_dataloader(self, dataset_path, batch_size):
-        raise Exception("get_dataloder function not implemented for this validator")
+        raise NotImplementedError("get_dataloader function not implemented for this validator")
 
     def preprocess(self, batch):
         return batch

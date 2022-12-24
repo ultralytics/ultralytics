@@ -119,9 +119,9 @@ class DetectionValidator(BaseValidator):
         if len(stats) and stats[0].any():
             self.metrics.process(*stats)
         self.nt_per_class = np.bincount(stats[-1].astype(int), minlength=self.nc)  # number of targets per class
-        metrics = {"fitness": self.metrics.fitness()}
-        metrics |= zip(self.metric_keys, self.metrics.mean_results())
-        return metrics
+        fitness = {"fitness": self.metrics.fitness()}
+        metrics = dict(zip(self.metric_keys, self.metrics.mean_results()))
+        return {**metrics, **fitness}
 
     def print_results(self):
         pf = '%22s' + '%11i' * 2 + '%11.3g' * len(self.metric_keys)  # print format

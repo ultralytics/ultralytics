@@ -114,8 +114,8 @@ class BaseValidator:
             self.speed = tuple(x.t / len(self.dataloader.dataset) * 1E3 for x in dt)  # speeds per image
 
         if not self.training:  # print only at inference
-            self.logger.info(
-                'Speed: %.1fms pre-process, %.1fms inference, %.1fms loss, %.1fms post-process per image' % self.speed)
+            self.logger.info('Speed: %.1fms pre-process, %.1fms inference, %.1fms loss, %.1fms post-process per image' %
+                             self.speed)
 
         if self.training:
             model.float()

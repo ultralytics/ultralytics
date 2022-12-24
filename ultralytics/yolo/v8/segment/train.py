@@ -29,7 +29,7 @@ class SegmentationTrainer(DetectionTrainer):
         return model
 
     def get_validator(self):
-        self.loss_names = 'box_loss', 'seg_loss', 'obj_loss', 'cls_loss'
+        self.loss_names = 'box_loss', 'seg_loss', 'cls_loss', 'dfl_loss'
         return v8.segment.SegmentationValidator(self.test_loader,
                                                 save_dir=self.save_dir,
                                                 logger=self.console,

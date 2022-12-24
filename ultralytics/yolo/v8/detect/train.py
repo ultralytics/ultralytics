@@ -43,7 +43,7 @@ class DetectionTrainer(BaseTrainer):
         return model
 
     def get_validator(self):
-        self.loss_names = 'box_loss', 'obj_loss', 'cls_loss'
+        self.loss_names = 'box_loss', 'cls_loss', 'dfl_loss'
         return v8.detect.DetectionValidator(self.test_loader,
                                             save_dir=self.save_dir,
                                             logger=self.console,

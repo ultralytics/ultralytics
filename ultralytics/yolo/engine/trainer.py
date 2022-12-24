@@ -86,7 +86,8 @@ class BaseTrainer:
 
         for callback, func in callbacks.default_callbacks.items():
             self.add_callback(callback, func)
-        callbacks.add_integration_callbacks(self)
+        if RANK in {0, -1}:
+            callbacks.add_integration_callbacks(self)
 
     def add_callback(self, onevent: str, callback):
         """

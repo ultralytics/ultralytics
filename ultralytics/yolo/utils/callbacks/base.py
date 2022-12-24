@@ -97,7 +97,9 @@ default_callbacks = {
 
 
 def add_integration_callbacks(trainer):
-    from .clearml import callbacks, clearml
-    if clearml:
-        for callback, func in callbacks.items():
-            trainer.add_callback(callback, func)
+    from .tb import callbacks as tb_callbacks
+    from .clearml import callbacks as clearml_callbacks
+
+    for x in tb_callbacks, clearml_callbacks:
+        for k, v in x.items():
+            trainer.add_callback(k, v)  # add_callback(name, func)

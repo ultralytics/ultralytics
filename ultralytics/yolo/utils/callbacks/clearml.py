@@ -9,13 +9,6 @@ except (ImportError, AssertionError):
     clearml = None
 
 
-def _log_scalars(metric_dict, group="", step=0):
-    task = Task.current_task()
-    if task:
-        for k, v in metric_dict.items():
-            task.get_logger().report_scalar(group, k, v, step)
-
-
 def on_train_start(trainer):
     # TODO: reuse existing task
     task = Task.init(project_name=trainer.args.project if trainer.args.project != 'runs/train' else 'YOLOv8',
@@ -27,13 +20,7 @@ def on_train_start(trainer):
     task.connect(dict(trainer.args), name='General')
 
 
-def on_batch_end(trainer):
-    _log_scalars(trainer.label_loss_items(trainer.tloss, prefix="train"), "train", trainer.epoch)
-
-
 def on_val_end(trainer):
-    _log_scalars(trainer.label_loss_items(trainer.validator.loss, prefix="val"), "val", trainer.epoch)
-    _log_scalars({k: v for k, v in trainer.metrics.items() if k.startswith("metrics")}, "metrics", trainer.epoch)
     if trainer.epoch == 0:
         model_info = {
             "inference_speed": trainer.validator.speed[1],
@@ -43,13 +30,11 @@ def on_val_end(trainer):
 
 
 def on_train_end(trainer):
-    task = Task.current_task()
-    if task:
-        task.update_output_model(model_path=str(trainer.best), model_name='Best Model', auto_delete_file=False)
+    Task.current_task().update_output_model(model_path=str(trainer.best),
+                                            model_name=trainer.args.name,
+                                            auto_delete_file=False)
 
 
 callbacks = {
     "on_train_start": on_train_start,
-    "on_val_end": on_val_end,
-    "on_batch_end": on_batch_end,
-    "on_train_end": on_train_end}
+    "on_train_end": on_train_end} if clearml else {}

@@ -8,12 +8,12 @@ import numpy as np
 import torch
 import torchvision.transforms as T
 
+from .utils import IMAGENET_MEAN, IMAGENET_STD, polygons2masks, polygons2masks_overlap
 from ..utils import LOGGER, colorstr
 from ..utils.checks import check_version
 from ..utils.instance import Instances
 from ..utils.metrics import bbox_ioa
 from ..utils.ops import segment2box
-from .utils import IMAGENET_MEAN, IMAGENET_STD, polygons2masks, polygons2masks_overlap
 
 
 # TODO: we might need a BaseTransform to make all these augments be compatible with both classification and semantic
@@ -182,13 +182,10 @@ class Mosaic(BaseMixTransform):
         for labels in mosaic_labels:
             cls.append(labels["cls"])
             instances.append(labels["instances"])
-        final_labels = {
-            "ori_shape": mosaic_labels[0]["ori_shape"],
-            "resized_shape": (self.imgsz * 2, self.imgsz * 2),
-            "im_file": mosaic_labels[0]["im_file"],
-            "cls": np.concatenate(cls, 0)}
-
-        final_labels["instances"] = Instances.concatenate(instances, axis=0)
+        final_labels = {"ori_shape": mosaic_labels[0]["ori_shape"],
+                        "resized_shape": (self.imgsz * 2, self.imgsz * 2),
+                        "im_file": mosaic_labels[0]["im_file"], "cls": np.concatenate(cls, 0),
+                        "instances": Instances.concatenate(instances, axis=0)}
         final_labels["instances"].clip(self.imgsz * 2, self.imgsz * 2)
         return final_labels
 
@@ -345,7 +342,6 @@ class RandomPerspective:
         Affine images and targets.
 
         Args:
-            img(ndarray): image.
             labels(Dict): a dict of `bboxes`, `segments`, `keypoints`.
         """
         img = labels["img"]
@@ -387,7 +383,7 @@ class RandomPerspective:
         return labels
 
     def box_candidates(self, box1, box2, wh_thr=2, ar_thr=100, area_thr=0.1, eps=1e-16):  # box1(4,n), box2(4,n)
-        # Compute candidate boxes: box1 before augment, box2 after augment, wh_thr (pixels), aspect_ratio_thr, area_ratio
+        # Compute box candidates: box1 before augment, box2 after augment, wh_thr (pixels), aspect_ratio_thr, area_ratio
         w1, h1 = box1[2] - box1[0], box1[3] - box1[1]
         w2, h2 = box2[2] - box2[0], box2[3] - box2[1]
         ar = np.maximum(w2 / (h2 + eps), h2 / (w2 + eps))  # aspect ratio
@@ -564,7 +560,7 @@ class Albumentations:
                 A.CLAHE(p=0.01),
                 A.RandomBrightnessContrast(p=0.0),
                 A.RandomGamma(p=0.0),
-                A.ImageCompression(quality_lower=75, p=0.0),]  # transforms
+                A.ImageCompression(quality_lower=75, p=0.0), ]  # transforms
             self.transform = A.Compose(T, bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"]))
 
             LOGGER.info(prefix + ", ".join(f"{x}".replace("always_apply=False, ", "") for x in T if x.p))
@@ -669,17 +665,14 @@ def mosaic_transforms(imgsz, hyp):
             shear=hyp.shear,
             perspective=hyp.perspective,
             border=[-imgsz // 2, -imgsz // 2],
-        ),])
+        ), ])
     return Compose([
         pre_transform,
-        MixUp(
-            pre_transform=pre_transform,
-            p=hyp.mixup,
-        ),
+        MixUp(pre_transform=pre_transform, p=hyp.mixup),
         Albumentations(p=1.0),
         RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
         RandomFlip(direction="vertical", p=hyp.flipud),
-        RandomFlip(direction="horizontal", p=hyp.fliplr),])  # transforms
+        RandomFlip(direction="horizontal", p=hyp.fliplr), ])  # transforms
 
 
 def affine_transforms(imgsz, hyp):
@@ -696,7 +689,7 @@ def affine_transforms(imgsz, hyp):
         Albumentations(p=1.0),
         RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
         RandomFlip(direction="vertical", p=hyp.flipud),
-        RandomFlip(direction="horizontal", p=hyp.fliplr),])  # transforms
+        RandomFlip(direction="horizontal", p=hyp.fliplr), ])  # transforms
 
 
 # Classification augmentations -----------------------------------------------------------------------------------------

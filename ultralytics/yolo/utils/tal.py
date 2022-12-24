@@ -49,6 +49,7 @@ def select_highest_overlaps(mask_pos, overlaps, n_max_boxes):
 
 
 class TaskAlignedAssigner(nn.Module):
+
     def __init__(self, topk=13, num_classes=80, alpha=1.0, beta=6.0, eps=1e-9):
         super().__init__()
         self.topk = topk
@@ -81,10 +82,8 @@ class TaskAlignedAssigner(nn.Module):
 
         if self.n_max_boxes == 0:
             device = gt_bboxes.device
-            return (torch.full_like(pd_scores[..., 0], self.bg_idx).to(device),
-                    torch.zeros_like(pd_bboxes).to(device),
-                    torch.zeros_like(pd_scores).to(device),
-                    torch.zeros_like(pd_scores[..., 0]).to(device))
+            return (torch.full_like(pd_scores[..., 0], self.bg_idx).to(device), torch.zeros_like(pd_bboxes).to(device),
+                    torch.zeros_like(pd_scores).to(device), torch.zeros_like(pd_scores[..., 0]).to(device))
 
         mask_pos, align_metric, overlaps = self.get_pos_mask(pd_scores, pd_bboxes, gt_labels, gt_bboxes, anc_points,
                                                              mask_gt)
@@ -177,7 +176,6 @@ class TaskAlignedAssigner(nn.Module):
 
 
 import torch
-
 from utils.general import check_version
 
 TORCH_1_10 = check_version(torch.__version__, '1.10.0')

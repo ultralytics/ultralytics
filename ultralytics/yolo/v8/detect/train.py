@@ -63,7 +63,7 @@ class DetectionTrainer(BaseTrainer):
         return dict(zip(keys, loss_items)) if loss_items is not None else keys
 
     def progress_string(self):
-        return ('\n' + '%11s' * 6) % \
+        return ('\n' + '%11s' * 7) % \
                ('Epoch', 'GPU_mem', *self.loss_names, 'Instances', 'Size')
 
     def plot_training_samples(self, batch, ni):

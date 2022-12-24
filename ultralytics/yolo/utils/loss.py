@@ -1,6 +1,6 @@
 import torch
-import torch.nn.functional as F
 import torch.nn as nn
+import torch.nn.functional as F
 
 from .metrics import bbox_iou
 from .tal import bbox2dist
@@ -14,12 +14,13 @@ class VarifocalLoss(nn.Module):
     def forward(self, pred_score, gt_score, label, alpha=0.75, gamma=2.0):
         weight = alpha * pred_score.sigmoid().pow(gamma) * (1 - label) + gt_score * label
         with torch.cuda.amp.autocast(enabled=False):
-            loss = (F.binary_cross_entropy_with_logits(pred_score.float(), gt_score.float(),
-                                                       reduction="none") * weight).sum()
+            loss = (F.binary_cross_entropy_with_logits(pred_score.float(), gt_score.float(), reduction="none") *
+                    weight).sum()
         return loss
 
 
 class BboxLoss(nn.Module):
+
     def __init__(self, reg_max, use_dfl=False):
         super().__init__()
         self.reg_max = reg_max

@@ -6,10 +6,10 @@ from typing import OrderedDict
 import torchvision
 from tqdm import tqdm
 
+from ..utils import NUM_THREADS, TQDM_BAR_FORMAT
 from .augment import *
 from .base import BaseDataset
 from .utils import HELP_URL, LOCAL_RANK, get_hash, img2label_paths, verify_image_label
-from ..utils import NUM_THREADS, TQDM_BAR_FORMAT
 
 
 class YOLODataset(BaseDataset):
@@ -22,21 +22,21 @@ class YOLODataset(BaseDataset):
     """
 
     def __init__(
-            self,
-            img_path,
-            imgsz=640,
-            label_path=None,
-            cache=False,
-            augment=True,
-            hyp=None,
-            prefix="",
-            rect=False,
-            batch_size=None,
-            stride=32,
-            pad=0.0,
-            single_cls=False,
-            use_segments=False,
-            use_keypoints=False,
+        self,
+        img_path,
+        imgsz=640,
+        label_path=None,
+        cache=False,
+        augment=True,
+        hyp=None,
+        prefix="",
+        rect=False,
+        batch_size=None,
+        stride=32,
+        pad=0.0,
+        single_cls=False,
+        use_segments=False,
+        use_keypoints=False,
     ):
         self.use_segments = use_segments
         self.use_keypoints = use_keypoints

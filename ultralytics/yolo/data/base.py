@@ -1,9 +1,9 @@
 import glob
+import math
 import os
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from typing import Optional
-import math
 
 import cv2
 import numpy as np

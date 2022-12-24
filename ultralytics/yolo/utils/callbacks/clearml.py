@@ -23,9 +23,9 @@ def on_train_start(trainer):
 def on_val_end(trainer):
     if trainer.epoch == 0:
         model_info = {
-            "inference_speed": trainer.validator.speed[1],
-            "flops@640": get_flops(trainer.model),
-            "params": get_num_params(trainer.model)}
+            "Inference speed (ms/img)": round(trainer.validator.speed[1], 1),
+            "GFLOPs": round(get_flops(trainer.model), 1),
+            "Parameters": get_num_params(trainer.model)}
         Task.current_task().connect(model_info, name='Model')
 
 

@@ -239,7 +239,7 @@ class BaseTrainer:
             self.scheduler.step()
             self.trigger_callbacks("on_train_epoch_end")
 
-            if rank in [-1, 0]:
+            if rank in {-1, 0}:
                 # validation
                 self.trigger_callbacks('on_val_start')
                 self.ema.update_attr(self.model, include=['yaml', 'nc', 'args', 'names', 'stride', 'class_weights'])
@@ -261,12 +261,13 @@ class BaseTrainer:
 
             # TODO: termination condition
 
-        if rank in [-1, 0]:
+        if rank in {-1, 0}:
             # do the last evaluation with best.pt
+            self.log(f'\n{epoch - self.start_epoch + 1} epochs completed in '
+                     f'{(time.time() - self.train_time_start) / 3600:.3f} hours.')
             self.final_eval()
             if self.args.plots:
                 self.plot_metrics()
-            self.log(f"\nTraining complete ({(time.time() - self.train_time_start) / 3600:.3f} hours)")
             self.log(f"Results saved to {colorstr('bold', self.save_dir)}")
             self.trigger_callbacks('on_train_end')
         dist.destroy_process_group() if world_size > 1 else None

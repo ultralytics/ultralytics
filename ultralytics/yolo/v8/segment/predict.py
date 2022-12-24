@@ -99,7 +99,7 @@ class SegmentationPredictor(DetectionPredictor):
         return log_string
 
 
-@hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
+@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def predict(cfg):
     cfg.model = cfg.model or "n.pt"
     sz = cfg.imgsz

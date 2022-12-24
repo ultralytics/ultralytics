@@ -53,7 +53,9 @@ class DetectionTrainer(BaseTrainer):
                                             args=self.args)
 
     def criterion(self, preds, batch):
-        return Loss(self.model)(preds, batch)
+        if not hasattr(self, 'run_criterion'):
+            self.compute_loss = Loss(self.model)
+        return self.compute_loss(preds, batch)
 
     def label_loss_items(self, loss_items=None, prefix="train"):
         # We should just use named tensors here in future

@@ -4,7 +4,6 @@ Simple training loop; Boilerplate that could apply to any arbitrary neural netwo
 
 import os
 import subprocess
-import sys
 import time
 from collections import defaultdict
 from copy import deepcopy
@@ -128,6 +127,7 @@ class BaseTrainer:
         Builds dataloaders and optimizer on correct rank process
         """
         # model
+        self.trigger_callbacks("on_pretrain_routine_start")
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
         self.set_model_attributes()
@@ -159,13 +159,13 @@ class BaseTrainer:
             # metric_keys = self.validator.metric_keys + self.label_loss_items(prefix="val")
             # self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))  # TODO: init metrics for plot_results()?
             self.ema = ModelEMA(self.model)
+        self.trigger_callbacks("on_pretrain_routine_end")
 
     def _do_train(self, rank=-1, world_size=1):
         if world_size > 1:
             self._setup_ddp(rank, world_size)
 
         self._setup_train(rank, world_size)
-        self.trigger_callbacks("before_train")
 
         self.epoch_time = None
         self.epoch_time_start = time.time()
@@ -173,9 +173,10 @@ class BaseTrainer:
         nb = len(self.train_loader)  # number of batches
         nw = max(round(self.args.warmup_epochs * nb), 100)  # number of warmup iterations
         last_opt_step = -1
+        self.trigger_callbacks("on_train_start")
         for epoch in range(self.start_epoch, self.epochs):
             self.epoch = epoch
-            self.trigger_callbacks("on_epoch_start")
+            self.trigger_callbacks("on_train_epoch_start")
             self.model.train()
             if rank != -1:
                 self.train_loader.sampler.set_epoch(epoch)
@@ -186,7 +187,7 @@ class BaseTrainer:
             self.tloss = None
             self.optimizer.zero_grad()
             for i, batch in pbar:
-                self.trigger_callbacks("on_batch_start")
+                self.trigger_callbacks("on_train_batch_start")
                 # forward
                 batch = self.preprocess_batch(batch)
 
@@ -207,7 +208,7 @@ class BaseTrainer:
                 if rank != -1:
                     self.loss *= world_size
                 self.tloss = (self.tloss * i + self.loss_items) / (i + 1) if self.tloss is not None \
-                                else self.loss_items
+                    else self.loss_items
 
                 # backward
                 self.scaler.scale(self.loss).backward()
@@ -229,8 +230,11 @@ class BaseTrainer:
                     if self.args.plots and ni < 3:
                         self.plot_training_samples(batch, ni)
 
+                self.trigger_callbacks("on_train_batch_end")
+
             lr = {f"lr{ir}": x['lr'] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers
             self.scheduler.step()
+            self.trigger_callbacks("on_train_epoch_end")
 
             if rank in [-1, 0]:
                 # validation
@@ -260,9 +264,11 @@ class BaseTrainer:
             if self.args.plots:
                 self.plot_metrics()
             self.log(f"\nTraining complete ({(time.time() - self.train_time_start) / 3600:.3f} hours)")
+            self.log(f"Results saved to {colorstr('bold', self.save_dir)}")
             self.trigger_callbacks('on_train_end')
         dist.destroy_process_group() if world_size > 1 else None
         torch.cuda.empty_cache()
+        self.trigger_callbacks('teardown')
 
     def save_model(self):
         ckpt = {

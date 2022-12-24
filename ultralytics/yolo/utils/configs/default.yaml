@@ -15,7 +15,7 @@ nosave: False
 cache: False  # True/ram, disk or False
 device: ''  # cuda device, i.e. 0 or 0,1,2,3 or cpu
 workers: 8
-project: 'runs'
+project: 'runs/train'
 name: 'exp'
 exist_ok: False
 pretrained: False

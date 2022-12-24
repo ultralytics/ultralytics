@@ -6,10 +6,10 @@ from typing import OrderedDict
 import torchvision
 from tqdm import tqdm
 
-from ..utils import NUM_THREADS, TQDM_BAR_FORMAT
 from .augment import *
 from .base import BaseDataset
 from .utils import HELP_URL, LOCAL_RANK, get_hash, img2label_paths, verify_image_label
+from ..utils import NUM_THREADS, TQDM_BAR_FORMAT
 
 
 class YOLODataset(BaseDataset):
@@ -22,21 +22,21 @@ class YOLODataset(BaseDataset):
     """
 
     def __init__(
-        self,
-        img_path,
-        imgsz=640,
-        label_path=None,
-        cache=False,
-        augment=True,
-        hyp=None,
-        prefix="",
-        rect=False,
-        batch_size=None,
-        stride=32,
-        pad=0.0,
-        single_cls=False,
-        use_segments=False,
-        use_keypoints=False,
+            self,
+            img_path,
+            imgsz=640,
+            label_path=None,
+            cache=False,
+            augment=True,
+            hyp=None,
+            prefix="",
+            rect=False,
+            batch_size=None,
+            stride=32,
+            pad=0.0,
+            single_cls=False,
+            use_segments=False,
+            use_keypoints=False,
     ):
         self.use_segments = use_segments
         self.use_keypoints = use_keypoints
@@ -127,10 +127,7 @@ class YOLODataset(BaseDataset):
         mosaic = self.augment and not self.rect
         # mosaic = False
         if self.augment:
-            if mosaic:
-                transforms = mosaic_transforms(self.imgsz, hyp)
-            else:
-                transforms = affine_transforms(self.imgsz, hyp)
+            transforms = mosaic_transforms(self.imgsz, hyp) if mosaic else affine_transforms(self.imgsz, hyp)
         else:
             transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz))])
         transforms.append(
@@ -143,7 +140,7 @@ class YOLODataset(BaseDataset):
 
     def update_labels_info(self, label):
         """custom your label format here"""
-        # NOTE: cls is not with bboxes now, since other tasks like classification and semantic segmentation need a independent cls label
+        # NOTE: cls is not with bboxes now, classification and semantic segmentation need an independent cls label
         # we can make it also support classification and semantic segmentation by add or remove some dict keys there.
         bboxes = label.pop("bboxes")
         segments = label.pop("segments")

@@ -216,6 +216,8 @@ class DetectionTrainer(BaseTrainer):
 def train(cfg):
     cfg.model = cfg.model or "models/yolov5n.yaml"
     cfg.data = cfg.data or "coco128.yaml"  # or yolo.ClassificationDataset("mnist")
+    cfg.imgsz = 160
+    cfg.epochs = 5
     trainer = DetectionTrainer(cfg)
     trainer.train()
 

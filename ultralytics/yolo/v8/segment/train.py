@@ -18,9 +18,7 @@ from ..detect import DetectionTrainer
 class SegmentationTrainer(DetectionTrainer):
 
     def load_model(self, model_cfg=None, weights=None):
-        model = SegmentationModel(model_cfg or weights["model"].yaml,
-                                  ch=3,
-                                  nc=self.data["nc"])
+        model = SegmentationModel(model_cfg or weights["model"].yaml, ch=3, nc=self.data["nc"])
         if weights:
             model.load(weights)
         for _, v in model.named_parameters():

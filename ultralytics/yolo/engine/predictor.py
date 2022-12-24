@@ -29,16 +29,14 @@ import platform
 from pathlib import Path
 
 import cv2
-import torch
 
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages, LoadScreenshots, LoadStreams
 from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS, check_dataset, check_dataset_yaml
-from ultralytics.yolo.utils import LOGGER, ROOT, TQDM_BAR_FORMAT, colorstr, ops
+from ultralytics.yolo.utils import LOGGER, ROOT, colorstr, ops
 from ultralytics.yolo.utils.checks import check_file, check_imshow
 from ultralytics.yolo.utils.configs import get_config
 from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.modeling.autobackend import AutoBackend
-from ultralytics.yolo.utils.plotting import Annotator
 from ultralytics.yolo.utils.torch_utils import check_imgsz, select_device, smart_inference_mode
 
 DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yaml"
@@ -125,11 +123,7 @@ class BasePredictor:
 
     @smart_inference_mode()
     def __call__(self, source=None, model=None):
-        if not self.done_setup:
-            model = self.setup(source, model)
-        else:
-            model = self.model
-
+        model = self.model if self.done_setup else self.setup(source, model)
         self.seen, self.windows, self.dt = 0, [], (ops.Profile(), ops.Profile(), ops.Profile())
         for batch in self.dataset:
             path, im, im0s, vid_cap, s = batch

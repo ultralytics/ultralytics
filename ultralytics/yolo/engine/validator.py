@@ -75,8 +75,8 @@ class BaseValidator:
         dt = Profile(), Profile(), Profile(), Profile()
         n_batches = len(self.dataloader)
         desc = self.get_desc()
-        # NOTE: keeping this `not self.training` in tqdm will eliminate pbar after finishing segmantation evaluation during training,
-        # so I removed it, not sure if this will affect classification task cause I saw we use this arg in yolov5/classify/val.py.
+        # NOTE: keeping `not self.training` in tqdm will eliminate pbar after segmentation evaluation during training,
+        # which may affect classification task since this arg is in yolov5/classify/val.py.
         # bar = tqdm(self.dataloader, desc, n_batches, not self.training, bar_format=TQDM_BAR_FORMAT)
         bar = tqdm(self.dataloader, desc, n_batches, bar_format=TQDM_BAR_FORMAT)
         self.init_metrics(de_parallel(model))

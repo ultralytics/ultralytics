@@ -26,7 +26,7 @@ def on_val_end(trainer):
             "inference_speed": trainer.validator.speed[1],
             "flops@640": get_flops(trainer.model),
             "params": get_num_params(trainer.model)}
-        Task.current_task().connect(model_info, 'Model')
+        Task.current_task().connect(model_info, name='Model')
 
 
 def on_train_end(trainer):
@@ -37,4 +37,5 @@ def on_train_end(trainer):
 
 callbacks = {
     "on_train_start": on_train_start,
+    "on_val_end": on_val_end,
     "on_train_end": on_train_end} if clearml else {}

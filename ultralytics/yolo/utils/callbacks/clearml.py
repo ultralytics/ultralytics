@@ -9,7 +9,7 @@ except (ImportError, AssertionError):
     clearml = None
 
 
-def _log_scalers(metric_dict, group="", step=0):
+def _log_scalars(metric_dict, group="", step=0):
     task = Task.current_task()
     if task:
         for k, v in metric_dict.items():
@@ -28,12 +28,12 @@ def on_train_start(trainer):
 
 
 def on_batch_end(trainer):
-    _log_scalers(trainer.label_loss_items(trainer.tloss, prefix="train"), "train", trainer.epoch)
+    _log_scalars(trainer.label_loss_items(trainer.tloss, prefix="train"), "train", trainer.epoch)
 
 
 def on_val_end(trainer):
-    _log_scalers(trainer.label_loss_items(trainer.validator.loss, prefix="val"), "val", trainer.epoch)
-    _log_scalers({k: v for k, v in trainer.metrics.items() if k.startswith("metrics")}, "metrics", trainer.epoch)
+    _log_scalars(trainer.label_loss_items(trainer.validator.loss, prefix="val"), "val", trainer.epoch)
+    _log_scalars({k: v for k, v in trainer.metrics.items() if k.startswith("metrics")}, "metrics", trainer.epoch)
     if trainer.epoch == 0:
         model_info = {
             "inference_speed": trainer.validator.speed[1],

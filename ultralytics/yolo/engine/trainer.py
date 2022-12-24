@@ -34,6 +34,7 @@ from ultralytics.yolo.utils.torch_utils import ModelEMA, de_parallel, init_seeds
 DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yaml"
 RANK = int(os.getenv('RANK', -1))
 
+
 class BaseTrainer:
 
     def __init__(self, cfg=DEFAULT_CONFIG, overrides={}):

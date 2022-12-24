@@ -1,6 +1,5 @@
 from torch.utils.tensorboard import SummaryWriter
 
-
 writer = None  # TensorBoard SummaryWriter instance
 
 

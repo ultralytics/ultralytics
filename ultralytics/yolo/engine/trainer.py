@@ -82,6 +82,7 @@ class BaseTrainer:
         self.fitness = None
         self.loss = None
         self.tloss = None
+        self.loss_names = None
         self.csv = self.save_dir / 'results.csv'
 
         for callback, func in callbacks.default_callbacks.items():
@@ -154,11 +155,9 @@ class BaseTrainer:
         self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=rank, mode="train")
         if rank in {0, -1}:
             self.test_loader = self.get_dataloader(self.testset, batch_size=batch_size * 2, rank=-1, mode="val")
-            validator = self.get_validator()
-            # init metric, for plot_results
-            metric_keys = validator.metric_keys + self.label_loss_items(prefix="val")
-            self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))
-            self.validator = validator
+            self.validator = self.get_validator()
+            # metric_keys = self.validator.metric_keys + self.label_loss_items(prefix="val")
+            # self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))  # TODO: init metrics for plot_results()?
             self.ema = ModelEMA(self.model)
 
     def _do_train(self, rank=-1, world_size=1):
@@ -362,7 +361,7 @@ class BaseTrainer:
         """
         raise NotImplementedError("criterion function not implemented in trainer")
 
-    def label_loss_items(self, loss_items=None, prefix="train", names=None):
+    def label_loss_items(self, loss_items=None, prefix="train"):
         """
         Returns a loss dict with labelled training loss items tensor
         """

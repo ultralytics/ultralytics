@@ -24,8 +24,8 @@ from ultralytics.yolo.utils.ops import Profile, make_divisible, non_max_suppress
 from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
 from ultralytics.yolo.utils.tal import dist2bbox, make_anchors
 from ultralytics.yolo.utils.torch_utils import copy_attr, smart_inference_mode
-from .autobackend import AutoBackend
 
+from .autobackend import AutoBackend
 
 # from utils.plots import feature_visualization TODO
 
@@ -622,8 +622,7 @@ class Detect(nn.Module):
         c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0], self.nc)  # channels
         self.cv2 = nn.ModuleList(
             nn.Sequential(Conv(x, c2, 3), Conv(c2, c2, 3), nn.Conv2d(c2, 4 * self.reg_max, 1)) for x in ch)
-        self.cv3 = nn.ModuleList(
-            nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, self.nc, 1)) for x in ch)
+        self.cv3 = nn.ModuleList(nn.Sequential(Conv(x, c3, 3), Conv(c3, c3, 3), nn.Conv2d(c3, self.nc, 1)) for x in ch)
         self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
 
     def forward(self, x):

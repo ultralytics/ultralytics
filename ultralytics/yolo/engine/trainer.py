@@ -60,7 +60,8 @@ class BaseTrainer:
 
         # device
         self.device = utils.torch_utils.select_device(self.args.device, self.batch_size)
-        self.scaler = amp.GradScaler(enabled=self.device.type != 'cpu')
+        self.amp = self.device.type != 'cpu'
+        self.scaler = amp.GradScaler(enabled=self.amp)
 
         # Model and Dataloaders.
         self.model = self.args.model
@@ -189,8 +190,6 @@ class BaseTrainer:
             self.optimizer.zero_grad()
             for i, batch in pbar:
                 self.trigger_callbacks("on_train_batch_start")
-                # forward
-                batch = self.preprocess_batch(batch)
 
                 # warmup
                 ni = i + nb * epoch
@@ -204,17 +203,20 @@ class BaseTrainer:
                         if 'momentum' in x:
                             x['momentum'] = np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum])
 
-                preds = self.model(batch["img"])
-                self.loss, self.loss_items = self.criterion(preds, batch)
-                if rank != -1:
-                    self.loss *= world_size
-                self.tloss = (self.tloss * i + self.loss_items) / (i + 1) if self.tloss is not None \
-                    else self.loss_items
+                # Forward
+                with torch.cuda.amp.autocast(self.amp):
+                    batch = self.preprocess_batch(batch)
+                    preds = self.model(batch["img"])
+                    self.loss, self.loss_items = self.criterion(preds, batch)
+                    if rank != -1:
+                        self.loss *= world_size
+                    self.tloss = (self.tloss * i + self.loss_items) / (i + 1) if self.tloss is not None \
+                        else self.loss_items
 
-                # backward
+                # Backward
                 self.scaler.scale(self.loss).backward()
 
-                # optimize
+                # Optimize - https://pytorch.org/docs/master/notes/amp_examples.html
                 if ni - last_opt_step >= self.accumulate:
                     self.optimizer_step()
                     last_opt_step = ni

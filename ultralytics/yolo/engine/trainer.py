@@ -34,7 +34,6 @@ from ultralytics.yolo.utils.torch_utils import ModelEMA, de_parallel, init_seeds
 DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yaml"
 RANK = int(os.getenv('RANK', -1))
 
-
 class BaseTrainer:
 
     def __init__(self, cfg=DEFAULT_CONFIG, overrides={}):
@@ -176,6 +175,10 @@ class BaseTrainer:
         nw = max(round(self.args.warmup_epochs * nb), 100)  # number of warmup iterations
         last_opt_step = -1
         self.trigger_callbacks("on_train_start")
+        self.log(f"Image sizes {self.args.imgsz} train, {self.args.imgsz} val\n"
+                 f'Using {self.train_loader.num_workers * (world_size or 1)} dataloader workers\n'
+                 f"Logging results to {colorstr('bold', self.save_dir)}\n"
+                 f"Starting training for {self.epochs} epochs...")
         for epoch in range(self.start_epoch, self.epochs):
             self.epoch = epoch
             self.trigger_callbacks("on_train_epoch_start")

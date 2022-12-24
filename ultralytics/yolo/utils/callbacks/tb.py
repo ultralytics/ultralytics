@@ -1,5 +1,6 @@
 from torch.utils.tensorboard import SummaryWriter
 
+
 writer = None  # TensorBoard SummaryWriter instance
 
 
@@ -11,8 +12,6 @@ def _log_scalars(scalars, step=0):
 def on_train_start(trainer):
     global writer
     writer = SummaryWriter(str(trainer.save_dir))
-    trainer.console.info(f"Logging results to {trainer.save_dir}\n"
-                         f"Starting training for {trainer.args.epochs} epochs...")
 
 
 def on_batch_end(trainer):

@@ -607,6 +607,7 @@ class Format:
         self.batch_idx = batch_idx  # keep the batch indexes
 
     def __call__(self, labels):
+        labels.pop("dataset", None)
         img = labels["img"]
         h, w = img.shape[:2]
         cls = labels.pop("cls")

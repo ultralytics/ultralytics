@@ -34,6 +34,7 @@ class DetectionTrainer(BaseTrainer):
                                  rect=self.args.rect,
                                  rank=rank,
                                  workers=self.args.workers,
+                                 close_mosaic=self.args.close_mosaic != 0,
                                  prefix=colorstr(f'{mode}: '),
                                  shuffle=True,
                                  seed=self.args.seed)[0] if self.args.v5loader else \

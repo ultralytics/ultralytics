@@ -196,6 +196,11 @@ class BaseTrainer:
             for i, batch in pbar:
                 self.trigger_callbacks("on_train_batch_start")
 
+                # update dataloader attributes (optional)
+                if epoch == (self.epochs - self.args.close_mosaic) and hasattr(self.train_loader.dataset, 'mosaic'):
+                    LOGGER.info("Closing dataloader mosaic")
+                    self.train_loader.dataset.mosaic = False
+
                 # warmup
                 ni = i + nb * epoch
                 if ni <= nw:
@@ -208,7 +213,7 @@ class BaseTrainer:
                         if 'momentum' in x:
                             x['momentum'] = np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum])
 
-                # Forward
+                # forward
                 with torch.cuda.amp.autocast(self.amp):
                     batch = self.preprocess_batch(batch)
                     preds = self.model(batch["img"])
@@ -218,10 +223,10 @@ class BaseTrainer:
                     self.tloss = (self.tloss * i + self.loss_items) / (i + 1) if self.tloss is not None \
                         else self.loss_items
 
-                # Backward
+                # backward
                 self.scaler.scale(self.loss).backward()
 
-                # Optimize - https://pytorch.org/docs/master/notes/amp_examples.html
+                # optimize - https://pytorch.org/docs/master/notes/amp_examples.html
                 if ni - last_opt_step >= self.accumulate:
                     self.optimizer_step()
                     last_opt_step = ni

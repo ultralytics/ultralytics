@@ -23,7 +23,7 @@ from tqdm import tqdm
 
 import ultralytics.yolo.utils as utils
 import ultralytics.yolo.utils.callbacks as callbacks
-from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml, convert_old_batch_to_new_format
+from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
 from ultralytics.yolo.utils import LOGGER, ROOT, TQDM_BAR_FORMAT, colorstr
 from ultralytics.yolo.utils.checks import check_file, print_args
 from ultralytics.yolo.utils.configs import get_config
@@ -193,8 +193,6 @@ class BaseTrainer:
             self.tloss = None
             self.optimizer.zero_grad()
             for i, batch in pbar:
-                if self.args.old_loader:
-                    batch = convert_old_batch_to_new_format(batch)
                 self.trigger_callbacks("on_train_batch_start")
 
                 # warmup

@@ -9,6 +9,13 @@ except (ImportError, AssertionError):
     clearml = None
 
 
+def _log_images(imgs_dict, group="", step=0):
+    task = Task.current_task()
+    if task:
+        for k, v in imgs_dict.items():
+            task.get_logger().report_image(group, k, step, v)
+
+
 def on_train_start(trainer):
     # TODO: reuse existing task
     task = Task.init(project_name=trainer.args.project if trainer.args.project != 'runs/train' else 'YOLOv8',
@@ -18,6 +25,11 @@ def on_train_start(trainer):
                      reuse_last_task_id=False,
                      auto_connect_frameworks={'pytorch': False})
     task.connect(dict(trainer.args), name='General')
+
+
+def on_train_epoch_end(trainer):
+    if trainer.epoch == 1:
+        _log_images({f.stem: str(f) for f in trainer.save_dir.glob('train_batch*.jpg')}, "Mosaic", trainer.epoch)
 
 
 def on_val_end(trainer):
@@ -37,5 +49,6 @@ def on_train_end(trainer):
 
 callbacks = {
     "on_train_start": on_train_start,
+    "on_train_epoch_end": on_train_epoch_end,
     "on_val_end": on_val_end,
     "on_train_end": on_train_end} if clearml else {}

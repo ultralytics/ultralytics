@@ -46,7 +46,7 @@ iou_thres: 0.6
 max_det: 300
 half: True
 dnn: False # use OpenCV DNN for ONNX inference
-plots: False
+plots: True
 
 # Prediction settings:
 source: "ultralytics/assets/"

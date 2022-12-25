@@ -214,8 +214,8 @@ class SegmentationTrainer(DetectionTrainer):
         return dict(zip(keys, loss_items)) if loss_items is not None else keys
 
     def progress_string(self):
-        return ('\n' + '%11s' * 7) % \
-               ('Epoch', 'GPU_mem', *self.loss_names, 'Size')
+        return ('\n' + '%11s' * 8) % \
+               ('Epoch', 'GPU_mem', *self.loss_names, 'Instances', 'Size')
 
     def plot_training_samples(self, batch, ni):
         images = batch["img"]
@@ -230,7 +230,7 @@ class SegmentationTrainer(DetectionTrainer):
         plot_results(file=self.csv, segment=True)  # save results.png
 
 
-@hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
+@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def train(cfg):
     cfg.model = cfg.model or "models/yolov8n-seg.yaml"
     cfg.data = cfg.data or "coco128-seg.yaml"  # or yolo.ClassificationDataset("mnist")

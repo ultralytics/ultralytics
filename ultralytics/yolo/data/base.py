@@ -1,4 +1,5 @@
 import glob
+import math
 import os
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
@@ -121,7 +122,7 @@ class BaseDataset(Dataset):
             r = self.imgsz / max(h0, w0)  # ratio
             if r != 1:  # if sizes are not equal
                 interp = cv2.INTER_LINEAR if (self.augment or r > 1) else cv2.INTER_AREA
-                im = cv2.resize(im, (int(w0 * r), int(h0 * r)), interpolation=interp)
+                im = cv2.resize(im, (math.ceil(w0 * r), math.ceil(h0 * r)), interpolation=interp)
             return im, (h0, w0), im.shape[:2]  # im, hw_original, hw_resized
         return self.ims[i], self.im_hw0[i], self.im_hw[i]  # im, hw_original, hw_resized
 
@@ -179,10 +180,7 @@ class BaseDataset(Dataset):
 
     def get_label_info(self, index):
         label = self.labels[index].copy()
-        img, (h0, w0), (h, w) = self.load_image(index)
-        label["img"] = img
-        label["ori_shape"] = (h0, w0)
-        label["resized_shape"] = (h, w)
+        label["img"], label["ori_shape"], label["resized_shape"] = self.load_image(index)
         if self.rect:
             label["rect_shape"] = self.batch_shapes[self.batch[index]]
         label = self.update_labels_info(label)

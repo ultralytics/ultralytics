@@ -82,7 +82,7 @@ class BaseMixTransform:
             indexes = [indexes]
 
         # get images information will be used for Mosaic or MixUp
-        mix_labels = [deepcopy(dataset.get_label_info(index)) for index in indexes]
+        mix_labels = [dataset.get_label_info(index) for index in indexes]
 
         if self.pre_transform is not None:
             for i, data in enumerate(mix_labels):
@@ -134,9 +134,8 @@ class Mosaic(BaseMixTransform):
         assert len(labels.get("mix_labels", [])) > 0, "There are no other images for mosaic augment."
         s = self.imgsz
         yc, xc = (int(random.uniform(-x, 2 * s + x)) for x in self.border)  # mosaic center x, y
-        mix_labels = labels["mix_labels"]
         for i in range(4):
-            labels_patch = deepcopy(labels) if i == 0 else deepcopy(mix_labels[i - 1])
+            labels_patch = (labels if i == 0 else labels["mix_labels"][i - 1]).copy()
             # Load image
             img = labels_patch["img"]
             h, w = labels_patch["resized_shape"]
@@ -186,9 +185,8 @@ class Mosaic(BaseMixTransform):
             "ori_shape": mosaic_labels[0]["ori_shape"],
             "resized_shape": (self.imgsz * 2, self.imgsz * 2),
             "im_file": mosaic_labels[0]["im_file"],
-            "cls": np.concatenate(cls, 0)}
-
-        final_labels["instances"] = Instances.concatenate(instances, axis=0)
+            "cls": np.concatenate(cls, 0),
+            "instances": Instances.concatenate(instances, axis=0)}
         final_labels["instances"].clip(self.imgsz * 2, self.imgsz * 2)
         return final_labels
 
@@ -345,7 +343,6 @@ class RandomPerspective:
         Affine images and targets.
 
         Args:
-            img(ndarray): image.
             labels(Dict): a dict of `bboxes`, `segments`, `keypoints`.
         """
         img = labels["img"]
@@ -387,7 +384,7 @@ class RandomPerspective:
         return labels
 
     def box_candidates(self, box1, box2, wh_thr=2, ar_thr=100, area_thr=0.1, eps=1e-16):  # box1(4,n), box2(4,n)
-        # Compute candidate boxes: box1 before augment, box2 after augment, wh_thr (pixels), aspect_ratio_thr, area_ratio
+        # Compute box candidates: box1 before augment, box2 after augment, wh_thr (pixels), aspect_ratio_thr, area_ratio
         w1, h1 = box1[2] - box1[0], box1[3] - box1[1]
         w2, h2 = box2[2] - box2[0], box2[3] - box2[1]
         ar = np.maximum(w2 / (h2 + eps), h2 / (w2 + eps))  # aspect ratio
@@ -609,6 +606,7 @@ class Format:
         self.batch_idx = batch_idx  # keep the batch indexes
 
     def __call__(self, labels):
+        labels.pop("dataset", None)
         img = labels["img"]
         h, w = img.shape[:2]
         cls = labels.pop("cls")
@@ -672,10 +670,7 @@ def mosaic_transforms(imgsz, hyp):
         ),])
     return Compose([
         pre_transform,
-        MixUp(
-            pre_transform=pre_transform,
-            p=hyp.mixup,
-        ),
+        MixUp(pre_transform=pre_transform, p=hyp.mixup),
         Albumentations(p=1.0),
         RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
         RandomFlip(direction="vertical", p=hyp.flipud),

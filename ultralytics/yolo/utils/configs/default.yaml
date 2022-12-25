@@ -27,12 +27,13 @@ local_rank: -1
 single_cls: False  # train multi-class data as single-class
 image_weights: False  # use weighted image selection for training
 rect: False  # support rectangular training
-cos_lr: False # Use cosine LR scheduler
+cos_lr: False  # use cosine LR scheduler
+close_mosaic: 10  # disable mosaic for final 10 epochs
 # Segmentation
 overlap_mask: True  # masks overlap
 mask_ratio: 4  # mask downsample ratio
 # Classification
-dropout: False # use dropout
+dropout: False  # use dropout
 resume: False
 
 

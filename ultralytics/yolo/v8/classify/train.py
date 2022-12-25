@@ -59,7 +59,7 @@ class ClassificationTrainer(BaseTrainer):
         pass
 
 
-@hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
+@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def train(cfg):
     cfg.model = cfg.model or "resnet18"
     cfg.data = cfg.data or "imagenette160"  # or yolo.ClassificationDataset("mnist")

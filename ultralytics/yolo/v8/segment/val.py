@@ -211,7 +211,7 @@ class SegmentationValidator(DetectionValidator):
         self.plot_masks.clear()
 
 
-@hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
+@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def val(cfg):
     cfg.data = cfg.data or "coco128-seg.yaml"
     validator = SegmentationValidator(args=cfg)

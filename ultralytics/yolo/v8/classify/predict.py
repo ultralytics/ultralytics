@@ -52,7 +52,7 @@ class ClassificationPredictor(BasePredictor):
         return log_string
 
 
-@hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
+@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def predict(cfg):
     cfg.model = cfg.model or "squeezenet1_0"
     sz = cfg.imgsz

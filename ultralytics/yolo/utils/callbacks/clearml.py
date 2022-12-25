@@ -12,13 +12,6 @@ except (ImportError, AssertionError):
     clearml = None
 
 
-def _log_scalers(metric_dict, group="", step=0):
-    task = Task.current_task()
-    if task:
-        for k, v in metric_dict.items():
-            task.get_logger().report_scalar(group, k, v, step)
-
-
 def _log_images(imgs_dict, group="", step=0):
     task = Task.current_task()
     if task:

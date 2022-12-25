@@ -174,10 +174,7 @@ class BaseDataset(Dataset):
         self.batch = bi  # batch index of image
 
     def __getitem__(self, index):
-        label = self.get_label_info(index)
-        if self.augment:
-            label["dataset"] = self
-        return self.transforms(label)
+        return self.transforms(self.get_label_info(index))
 
     def get_label_info(self, index):
         label = self.labels[index].copy()

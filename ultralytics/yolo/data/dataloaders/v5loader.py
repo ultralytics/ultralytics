@@ -891,13 +891,14 @@ class LoadImagesAndLabels(Dataset):
         for i, lb in enumerate(label):
             lb[:, 0] = i  # add target image index for build_targets()
         batch_idx, cls, bboxes = torch.cat(label, 0).split((1, 1, 4), dim=1)
-        return {'ori_shape': shapes,
-                'resized_shape': tuple(tuple(x.shape[1:]) for x in im),
-                'im_file': path,
-                'img': torch.stack(im, 0),
-                'cls': cls,
-                'bboxes': bboxes,
-                'batch_idx': batch_idx.view(-1)}
+        return {
+            'ori_shape': shapes,
+            'resized_shape': tuple(tuple(x.shape[1:]) for x in im),
+            'im_file': path,
+            'img': torch.stack(im, 0),
+            'cls': cls,
+            'bboxes': bboxes,
+            'batch_idx': batch_idx.view(-1)}
 
     @staticmethod
     def collate_fn_old(batch):

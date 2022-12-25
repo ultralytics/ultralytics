@@ -54,7 +54,7 @@ class DetectionTrainer(BaseTrainer):
 
     def criterion(self, preds, batch):
         if not hasattr(self, 'compute_loss'):
-            self.compute_loss = Loss(self.model)
+            self.compute_loss = Loss(de_parallel(self.model))
         return self.compute_loss(preds, batch)
 
     def label_loss_items(self, loss_items=None, prefix="train"):
@@ -81,7 +81,7 @@ class DetectionTrainer(BaseTrainer):
 # Criterion class for computing training losses
 class Loss:
 
-    def __init__(self, model):
+    def __init__(self, model):  # model must be de-paralleled
 
         device = next(model.parameters()).device  # get model device
         h = model.args  # hyperparameters
@@ -92,7 +92,7 @@ class Loss:
         # Class label smoothing https://arxiv.org/pdf/1902.04103.pdf eqn 3
         self.cp, self.cn = smooth_BCE(eps=h.get("label_smoothing", 0.0))  # positive, negative BCE targets
 
-        m = de_parallel(model).model[-1]  # Detect() module
+        m = model.model[-1]  # Detect() module
         self.BCEcls = BCEcls
         self.hyp = h
         self.stride = m.stride  # model strides

@@ -273,6 +273,7 @@ def check_dataset(dataset: str):
     data = {"train": train_set, "val": test_set, "nc": nc, "names": names}
     return data
 
+
 def convert_old_batch_to_new_format(batch):
     # TODO: convert old loader's batch to new loader format
     # new loader foramat -> dict with keys:['ori_shape', 'resized_shape', 'im_file', 'img', 'cls', 'bboxes', 'batch_idx']

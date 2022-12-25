@@ -47,6 +47,7 @@ class BaseValidator:
             model = model.half() if self.args.half else model.float()
             self.model = model
             self.loss = torch.zeros_like(trainer.loss_items, device=trainer.device)
+            self.args.plots = trainer.epoch == trainer.epochs - 1  # always plot final epoch
         else:
             assert model is not None, "Either trainer or model is needed for validation"
             self.device = select_device(self.args.device, self.args.batch_size)

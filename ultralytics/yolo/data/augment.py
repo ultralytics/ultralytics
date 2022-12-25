@@ -111,7 +111,7 @@ class Mosaic(BaseMixTransform):
     def __init__(self, dataset, imgsz=640, p=1.0, border=(0, 0)):
         assert 0 <= p <= 1.0, "The probability should be in range [0, 1]. " f"got {p}."
         super().__init__(dataset=dataset, pre_transform=None, p=p)
-        self.dataset=dataset
+        self.dataset = dataset
         self.imgsz = imgsz
         self.border = border
 

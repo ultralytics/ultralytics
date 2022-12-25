@@ -111,7 +111,7 @@ class BaseTrainer:
         if world_size > 1 and "LOCAL_RANK" not in os.environ:
             command = generate_ddp_command(world_size, self)
             subprocess.Popen(command)
-            ddp_cleanup(command, self)
+            # ddp_cleanup(command, self)  # TODO: uncomment and fix
         else:
             self._do_train(int(os.getenv("RANK", -1)), world_size)
 

@@ -1,3 +1,6 @@
+from pathlib import Path
+import os
+
 from ultralytics.yolo.utils.torch_utils import get_flops, get_num_params
 
 try:
@@ -15,6 +18,11 @@ def _log_scalers(metric_dict, group="", step=0):
         for k, v in metric_dict.items():
             task.get_logger().report_scalar(group, k, v, step)
 
+def _log_images(imgs_dict, group="", step=0):
+    task = Task.current_task()
+    if task:
+        for k, v in imgs_dict.items():    
+            task.get_logger().report_image(group, k, step, v)
 
 def before_train(trainer):
     # TODO: reuse existing task
@@ -25,6 +33,14 @@ def before_train(trainer):
                      reuse_last_task_id=False,
                      auto_connect_frameworks={'pytorch': False})
     task.connect(dict(trainer.args), name='General')
+
+
+def on_epoch_start(trainer):
+    if trainer.epoch == 1:
+        plots = [filename for filename in os.listdir(trainer.save_dir) if filename.startswith("train_batch")]
+        imgs_dict = {f"train_batch_{i}": Path(trainer.save_dir)/img for i,img in enumerate(plots)}
+        if imgs_dict:
+            _log_images(imgs_dict, "Mosaic", trainer.epoch)
 
 
 def on_batch_end(trainer):
@@ -50,6 +66,7 @@ def on_train_end(trainer):
 
 callbacks = {
     "before_train": before_train,
+    "on_epoch_start": on_epoch_start,
     "on_val_end": on_val_end,
     "on_batch_end": on_batch_end,
     "on_train_end": on_train_end}

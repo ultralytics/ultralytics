@@ -45,10 +45,6 @@ def on_epoch_start(trainer):
             _log_images(imgs_dict, "Mosaic", trainer.epoch)
 
 
-def on_batch_end(trainer):
-    _log_scalers(trainer.label_loss_items(trainer.tloss, prefix="train"), "train", trainer.epoch)
-
-
 def on_val_end(trainer):
     if trainer.epoch == 0:
         model_info = {

@@ -228,7 +228,7 @@ class BaseTrainer:
                         ('%11s' * 2 + '%11.4g' * (2 + loss_len)) %
                         (f'{epoch + 1}/{self.epochs}', mem, *losses, batch["cls"].shape[0], batch["img"].shape[-1]))
                     self.trigger_callbacks('on_batch_end')
-                    if ni < 3:
+                    if self.args.plots and ni < 3:
                         self.plot_training_samples(batch, ni)
 
                 self.trigger_callbacks("on_train_batch_end")

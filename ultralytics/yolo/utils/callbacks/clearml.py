@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 from ultralytics.yolo.utils.torch_utils import get_flops, get_num_params
 
 try:
@@ -9,6 +12,13 @@ except (ImportError, AssertionError):
     clearml = None
 
 
+def _log_images(imgs_dict, group="", step=0):
+    task = Task.current_task()
+    if task:
+        for k, v in imgs_dict.items():
+            task.get_logger().report_image(group, k, step, v)
+
+
 def on_train_start(trainer):
     # TODO: reuse existing task
     task = Task.init(project_name=trainer.args.project if trainer.args.project != 'runs/train' else 'YOLOv8',
@@ -18,6 +28,14 @@ def on_train_start(trainer):
                      reuse_last_task_id=False,
                      auto_connect_frameworks={'pytorch': False})
     task.connect(dict(trainer.args), name='General')
+
+
+def on_epoch_start(trainer):
+    if trainer.epoch == 1:
+        plots = [filename for filename in os.listdir(trainer.save_dir) if filename.startswith("train_batch")]
+        imgs_dict = {f"train_batch_{i}": Path(trainer.save_dir) / img for i, img in enumerate(plots)}
+        if imgs_dict:
+            _log_images(imgs_dict, "Mosaic", trainer.epoch)
 
 
 def on_val_end(trainer):
@@ -37,5 +55,6 @@ def on_train_end(trainer):
 
 callbacks = {
     "on_train_start": on_train_start,
+    "on_epoch_start": on_epoch_start,
     "on_val_end": on_val_end,
     "on_train_end": on_train_end} if clearml else {}

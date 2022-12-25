@@ -5,10 +5,10 @@ from pathlib import Path
 import torchvision
 from tqdm import tqdm
 
+from ..utils import NUM_THREADS, TQDM_BAR_FORMAT
 from .augment import *
 from .base import BaseDataset
 from .utils import HELP_URL, LOCAL_RANK, get_hash, img2label_paths, verify_image_label
-from ..utils import NUM_THREADS, TQDM_BAR_FORMAT
 
 
 class YOLODataset(BaseDataset):

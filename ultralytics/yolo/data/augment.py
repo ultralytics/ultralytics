@@ -1,4 +1,3 @@
-import collections
 import math
 import random
 from copy import deepcopy
@@ -76,11 +75,11 @@ class BaseMixTransform:
 
         # get index of one or three other images
         indexes = self.get_indexes()
-        if not isinstance(indexes, collections.abc.Sequence):
+        if isinstance(indexes, int):
             indexes = [indexes]
 
         # get images information will be used for Mosaic or MixUp
-        mix_labels = [self.dataset.get_label_info(index) for index in indexes]
+        mix_labels = [self.dataset.get_label_info(i) for i in indexes]
 
         if self.pre_transform is not None:
             for i, data in enumerate(mix_labels):
@@ -111,7 +110,7 @@ class Mosaic(BaseMixTransform):
     def __init__(self, dataset, imgsz=640, p=1.0, border=(0, 0)):
         assert 0 <= p <= 1.0, "The probability should be in range [0, 1]. " f"got {p}."
         super().__init__(dataset=dataset, pre_transform=None, p=p)
-        self.dataset=dataset
+        self.dataset = dataset
         self.imgsz = imgsz
         self.border = border
 
@@ -550,7 +549,7 @@ class Albumentations:
                 A.CLAHE(p=0.01),
                 A.RandomBrightnessContrast(p=0.0),
                 A.RandomGamma(p=0.0),
-                A.ImageCompression(quality_lower=75, p=0.0),]  # transforms
+                A.ImageCompression(quality_lower=75, p=0.0), ]  # transforms
             self.transform = A.Compose(T, bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"]))
 
             LOGGER.info(prefix + ", ".join(f"{x}".replace("always_apply=False, ", "") for x in T if x.p))
@@ -655,14 +654,14 @@ def mosaic_transforms(dataset, imgsz, hyp):
             shear=hyp.shear,
             perspective=hyp.perspective,
             border=[-imgsz // 2, -imgsz // 2],
-        ),])
+        ), ])
     return Compose([
         pre_transform,
         MixUp(dataset, pre_transform=pre_transform, p=hyp.mixup),
         Albumentations(p=1.0),
         RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
         RandomFlip(direction="vertical", p=hyp.flipud),
-        RandomFlip(direction="horizontal", p=hyp.fliplr),])  # transforms
+        RandomFlip(direction="horizontal", p=hyp.fliplr), ])  # transforms
 
 
 def affine_transforms(imgsz, hyp):
@@ -679,7 +678,7 @@ def affine_transforms(imgsz, hyp):
         Albumentations(p=1.0),
         RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
         RandomFlip(direction="vertical", p=hyp.flipud),
-        RandomFlip(direction="horizontal", p=hyp.fliplr),])  # transforms
+        RandomFlip(direction="horizontal", p=hyp.fliplr), ])  # transforms
 
 
 # Classification augmentations -----------------------------------------------------------------------------------------

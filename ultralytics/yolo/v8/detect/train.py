@@ -6,6 +6,7 @@ from ultralytics.yolo import v8
 from ultralytics.yolo.data import build_dataloader
 from ultralytics.yolo.data.dataloaders.v5loader import create_dataloader
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG, BaseTrainer
+from ultralytics.yolo.utils import colorstr
 from ultralytics.yolo.utils.loss import BboxLoss
 from ultralytics.yolo.utils.metrics import smooth_BCE
 from ultralytics.yolo.utils.modeling.tasks import DetectionModel
@@ -33,7 +34,7 @@ class DetectionTrainer(BaseTrainer):
                                  rect=self.args.rect,
                                  rank=rank,
                                  workers=self.args.workers,
-                                 prefix=mode,
+                                 prefix=colorstr(f'{mode}: '),
                                  shuffle=True,
                                  seed=self.args.seed)[0] if self.args.v5loader else \
             build_dataloader(self.args, batch_size, img_path=dataset_path, stride=gs, rank=rank, mode=mode)[0]

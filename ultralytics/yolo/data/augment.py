@@ -82,7 +82,7 @@ class BaseMixTransform:
             indexes = [indexes]
 
         # get images information will be used for Mosaic or MixUp
-        mix_labels = [deepcopy(dataset.get_label_info(index)) for index in indexes]
+        mix_labels = [dataset.get_label_info(index) for index in indexes]
 
         if self.pre_transform is not None:
             for i, data in enumerate(mix_labels):
@@ -134,9 +134,8 @@ class Mosaic(BaseMixTransform):
         assert len(labels.get("mix_labels", [])) > 0, "There are no other images for mosaic augment."
         s = self.imgsz
         yc, xc = (int(random.uniform(-x, 2 * s + x)) for x in self.border)  # mosaic center x, y
-        mix_labels = labels["mix_labels"]
         for i in range(4):
-            labels_patch = deepcopy(labels) if i == 0 else deepcopy(mix_labels[i - 1])
+            labels_patch = (labels if i == 0 else labels["mix_labels"][i - 1]).copy()
             # Load image
             img = labels_patch["img"]
             h, w = labels_patch["resized_shape"]

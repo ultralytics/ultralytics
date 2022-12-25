@@ -180,10 +180,7 @@ class BaseDataset(Dataset):
 
     def get_label_info(self, index):
         label = self.labels[index].copy()
-        img, (h0, w0), (h, w) = self.load_image(index)
-        label["img"] = img
-        label["ori_shape"] = (h0, w0)
-        label["resized_shape"] = (h, w)
+        label["img"], label["ori_shape"], label["resized_shape"] = self.load_image(index)
         if self.rect:
             label["rect_shape"] = self.batch_shapes[self.batch[index]]
         label = self.update_labels_info(label)

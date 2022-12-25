@@ -245,14 +245,17 @@ def copy_paste(im, labels, segments, p=0.5):
     if p and n:
         h, w, c = im.shape  # height, width, channels
         im_new = np.zeros(im.shape, np.uint8)
-        for j in random.sample(range(n), k=round(p * n)):
-            l, s = labels[j], segments[j]
-            box = w - l[3], l[2], w - l[1], l[4]
-            ioa = bbox_ioa(box, labels[:, 1:5])  # intersection over area
-            if (ioa < 0.30).all():  # allow 30% obscuration of existing labels
-                labels = np.concatenate((labels, [[l[0], *box]]), 0)
-                segments.append(np.concatenate((w - s[:, 0:1], s[:, 1:2]), 1))
-                cv2.drawContours(im_new, [segments[j].astype(np.int32)], -1, (1, 1, 1), cv2.FILLED)
+
+        # calculate ioa first then select indexes randomly
+        boxes = np.stack([w - labels[:, 3], labels[:, 2], w - labels[:, 1], labels[:, 4]], axis=-1)  # (n, 4)
+        ioa = bbox_ioa(boxes, labels[:, 1:5])  # intersection over area
+        indexes = np.nonzero((ioa < 0.30).all(1))[0]  # (N, )
+        n = len(indexes)
+        for j in random.sample(list(indexes), k=round(p * n)):
+            l, box, s = labels[j], boxes[j], segments[j]
+            labels = np.concatenate((labels, [[l[0], *box]]), 0)
+            segments.append(np.concatenate((w - s[:, 0:1], s[:, 1:2]), 1))
+            cv2.drawContours(im_new, [segments[j].astype(np.int32)], -1, (1, 1, 1), cv2.FILLED)
 
         result = cv2.flip(im, 1)  # augment segments (flip left-right)
         i = cv2.flip(im_new, 1).astype(bool)
@@ -281,8 +284,8 @@ def cutout(im, labels, p=0.5):
 
             # return unobscured labels
             if len(labels) and s > 0.03:
-                box = np.array([xmin, ymin, xmax, ymax], dtype=np.float32)
-                ioa = bbox_ioa(box, xywhn2xyxy(labels[:, 1:5], w, h))  # intersection over area
+                box = np.array([[xmin, ymin, xmax, ymax]], dtype=np.float32)
+                ioa = bbox_ioa(box, xywhn2xyxy(labels[:, 1:5], w, h))[0]  # intersection over area
                 labels = labels[ioa < 0.60]  # remove >60% obscured labels
 
     return labels

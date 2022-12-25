@@ -1,5 +1,5 @@
-from pathlib import Path
 import os
+from pathlib import Path
 
 from ultralytics.yolo.utils.torch_utils import get_flops, get_num_params
 
@@ -18,10 +18,11 @@ def _log_scalers(metric_dict, group="", step=0):
         for k, v in metric_dict.items():
             task.get_logger().report_scalar(group, k, v, step)
 
+
 def _log_images(imgs_dict, group="", step=0):
     task = Task.current_task()
     if task:
-        for k, v in imgs_dict.items():    
+        for k, v in imgs_dict.items():
             task.get_logger().report_image(group, k, step, v)
 
 
@@ -39,13 +40,14 @@ def on_train_start(trainer):
 def on_epoch_start(trainer):
     if trainer.epoch == 1:
         plots = [filename for filename in os.listdir(trainer.save_dir) if filename.startswith("train_batch")]
-        imgs_dict = {f"train_batch_{i}": Path(trainer.save_dir)/img for i,img in enumerate(plots)}
+        imgs_dict = {f"train_batch_{i}": Path(trainer.save_dir) / img for i, img in enumerate(plots)}
         if imgs_dict:
             _log_images(imgs_dict, "Mosaic", trainer.epoch)
 
 
 def on_batch_end(trainer):
     _log_scalers(trainer.label_loss_items(trainer.tloss, prefix="train"), "train", trainer.epoch)
+
 
 def on_val_end(trainer):
     if trainer.epoch == 0:

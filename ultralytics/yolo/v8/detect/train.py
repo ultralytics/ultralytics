@@ -63,16 +63,15 @@ class DetectionTrainer(BaseTrainer):
         return dict(zip(keys, loss_items)) if loss_items is not None else keys
 
     def progress_string(self):
-        return ('\n' + '%11s' * 7) % \
-               ('Epoch', 'GPU_mem', *self.loss_names, 'Instances', 'Size')
+        return ('\n' + '%11s' * 7) % ('Epoch', 'GPU_mem', *self.loss_names, 'Instances', 'Size')
 
     def plot_training_samples(self, batch, ni):
-        images = batch["img"]
-        cls = batch["cls"].squeeze(-1)
-        bboxes = batch["bboxes"]
-        paths = batch["im_file"]
-        batch_idx = batch["batch_idx"]
-        plot_images(images, batch_idx, cls, bboxes, paths=paths, fname=self.save_dir / f"train_batch{ni}.jpg")
+        plot_images(images=batch["img"],
+                    batch_idx=batch["batch_idx"],
+                    cls=batch["cls"].squeeze(-1),
+                    bboxes=batch["bboxes"],
+                    paths=batch["im_file"],
+                    fname=self.save_dir / f"train_batch{ni}.jpg")
 
     def plot_metrics(self):
         plot_results(file=self.csv)  # save results.png

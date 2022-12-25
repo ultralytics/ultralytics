@@ -1,6 +1,3 @@
-import os
-from pathlib import Path
-
 from ultralytics.yolo.utils.torch_utils import get_flops, get_num_params
 
 try:
@@ -30,12 +27,9 @@ def on_train_start(trainer):
     task.connect(dict(trainer.args), name='General')
 
 
-def on_epoch_start(trainer):
+def on_train_epoch_end(trainer):
     if trainer.epoch == 1:
-        plots = [filename for filename in os.listdir(trainer.save_dir) if filename.startswith("train_batch")]
-        imgs_dict = {f"train_batch_{i}": Path(trainer.save_dir) / img for i, img in enumerate(plots)}
-        if imgs_dict:
-            _log_images(imgs_dict, "Mosaic", trainer.epoch)
+        _log_images({f.stem: str(f) for f in trainer.save_dir.glob('train_batch*.jpg')}, "Mosaic", trainer.epoch)
 
 
 def on_val_end(trainer):
@@ -55,6 +49,6 @@ def on_train_end(trainer):
 
 callbacks = {
     "on_train_start": on_train_start,
-    "on_epoch_start": on_epoch_start,
+    "on_train_epoch_end": on_train_epoch_end,
     "on_val_end": on_val_end,
     "on_train_end": on_train_end} if clearml else {}

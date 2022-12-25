@@ -12,7 +12,7 @@ from ultralytics.yolo.utils.ops import xywh2xyxy
 from ultralytics.yolo.utils.plotting import plot_images, plot_results
 from ultralytics.yolo.utils.tal import TaskAlignedAssigner, dist2bbox, make_anchors
 from ultralytics.yolo.utils.torch_utils import de_parallel
-
+from ultralytics.yolo.data.dataloaders.loader_old import create_dataloader
 
 # BaseTrainer python usage
 class DetectionTrainer(BaseTrainer):
@@ -21,7 +21,20 @@ class DetectionTrainer(BaseTrainer):
         # TODO: manage splits differently
         # calculate stride - check if model is initialized
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
-        return build_dataloader(self.args, batch_size, img_path=dataset_path, stride=gs, rank=rank, mode=mode)[0]
+        hyp = dict(self.args) # Improve this
+        return create_dataloader(path=dataset_path, imgsz=self.args.imgsz, batch_size=batch_size, stride=gs, hyp=hyp,
+        augment=True,
+        cache=None if self.args.cache == 'val' else self.args.cache,
+        pad=0 if mode=="train" else 0.5,
+        rect=self.args.rect,
+        rank=rank,
+        workers=self.args.workers,
+        prefix=mode,
+        shuffle=True,
+        seed=self.args.seed
+        )[0] if self.args.old_loader else \
+        build_dataloader(self.args, batch_size, img_path=dataset_path, stride=gs, rank=rank, mode=mode)[0]
+
 
     def preprocess_batch(self, batch):
         batch["img"] = batch["img"].to(self.device, non_blocking=True).float() / 255

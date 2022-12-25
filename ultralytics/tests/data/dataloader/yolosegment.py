@@ -54,7 +54,7 @@ def plot_one_box(x, img, color=None, label=None, line_thickness=None):
         )
 
 
-@hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
+@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def test(cfg):
     cfg.task = "segment"
     cfg.mode = "train"

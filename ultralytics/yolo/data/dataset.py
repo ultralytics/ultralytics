@@ -124,13 +124,9 @@ class YOLODataset(BaseDataset):
 
     # TODO: use hyp config to set all these augmentations
     def build_transforms(self, hyp=None):
-        mosaic = self.augment and not self.rect
-        # mosaic = False
         if self.augment:
-            if mosaic:
-                transforms = mosaic_transforms(self.imgsz, hyp)
-            else:
-                transforms = affine_transforms(self.imgsz, hyp)
+            mosaic = self.augment and not self.rect
+            transforms = mosaic_transforms(self.imgsz, hyp) if mosaic else affine_transforms(self.imgsz, hyp)
         else:
             transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz))])
         transforms.append(
@@ -143,7 +139,7 @@ class YOLODataset(BaseDataset):
 
     def update_labels_info(self, label):
         """custom your label format here"""
-        # NOTE: cls is not with bboxes now, since other tasks like classification and semantic segmentation need a independent cls label
+        # NOTE: cls is not with bboxes now, classification and semantic segmentation need an independent cls label
         # we can make it also support classification and semantic segmentation by add or remove some dict keys there.
         bboxes = label.pop("bboxes")
         segments = label.pop("segments")
@@ -206,7 +202,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
             sample = self.album_transforms(image=cv2.cvtColor(im, cv2.COLOR_BGR2RGB))["image"]
         else:
             sample = self.torch_transforms(im)
-        return OrderedDict(img=sample, cls=j)
+        return {'img': sample, 'cls': j}
 
     def __len__(self) -> int:
         return len(self.samples)

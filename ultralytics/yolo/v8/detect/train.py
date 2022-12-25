@@ -53,7 +53,9 @@ class DetectionTrainer(BaseTrainer):
                                             args=self.args)
 
     def criterion(self, preds, batch):
-        return Loss(self.model)(preds, batch)
+        if not hasattr(self, 'compute_loss'):
+            self.compute_loss = Loss(de_parallel(self.model))
+        return self.compute_loss(preds, batch)
 
     def label_loss_items(self, loss_items=None, prefix="train"):
         # We should just use named tensors here in future
@@ -61,8 +63,8 @@ class DetectionTrainer(BaseTrainer):
         return dict(zip(keys, loss_items)) if loss_items is not None else keys
 
     def progress_string(self):
-        return ('\n' + '%11s' * 6) % \
-               ('Epoch', 'GPU_mem', *self.loss_names, 'Size')
+        return ('\n' + '%11s' * 7) % \
+               ('Epoch', 'GPU_mem', *self.loss_names, 'Instances', 'Size')
 
     def plot_training_samples(self, batch, ni):
         images = batch["img"]
@@ -79,7 +81,7 @@ class DetectionTrainer(BaseTrainer):
 # Criterion class for computing training losses
 class Loss:
 
-    def __init__(self, model):
+    def __init__(self, model):  # model must be de-paralleled
 
         device = next(model.parameters()).device  # get model device
         h = model.args  # hyperparameters
@@ -90,7 +92,7 @@ class Loss:
         # Class label smoothing https://arxiv.org/pdf/1902.04103.pdf eqn 3
         self.cp, self.cn = smooth_BCE(eps=h.get("label_smoothing", 0.0))  # positive, negative BCE targets
 
-        m = de_parallel(model).model[-1]  # Detect() module
+        m = model.model[-1]  # Detect() module
         self.BCEcls = BCEcls
         self.hyp = h
         self.stride = m.stride  # model strides
@@ -169,12 +171,12 @@ class Loss:
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
 
 
-@hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
+@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def train(cfg):
     cfg.model = cfg.model or "models/yolov8n.yaml"
     cfg.data = cfg.data or "coco128.yaml"  # or yolo.ClassificationDataset("mnist")
-    cfg.imgsz = 160
-    cfg.epochs = 5
+    # cfg.imgsz = 160
+    # cfg.epochs = 5
     trainer = DetectionTrainer(cfg)
     trainer.train()
 

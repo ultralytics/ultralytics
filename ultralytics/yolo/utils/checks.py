@@ -11,7 +11,7 @@ import numpy as np
 import pkg_resources as pkg
 import torch
 
-from ultralytics.yolo.utils import (AUTOINSTALL, FONT, LOGGER, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, emojis,
+from ultralytics.yolo.utils import (AUTOINSTALL, FONT, LOGGER, RANK, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, emojis,
                                     is_docker, is_notebook)
 
 
@@ -160,6 +160,8 @@ def git_describe(path=ROOT):  # path must be a directory
 
 
 def print_args(args: Optional[dict] = None, show_file=True, show_func=False):
+    if RANK not in {-1, 0}:
+        return
     # Print function arguments (optional args dict)
     x = inspect.currentframe().f_back  # previous frame
     file, _, func, _, _ = inspect.getframeinfo(x)

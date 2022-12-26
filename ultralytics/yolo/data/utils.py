@@ -16,7 +16,6 @@ from ultralytics.yolo.utils import LOGGER, ROOT, colorstr
 from ultralytics.yolo.utils.checks import check_file, check_font, is_ascii
 from ultralytics.yolo.utils.downloads import download
 from ultralytics.yolo.utils.files import unzip_file, yaml_load
-
 from ..utils.ops import segments2boxes
 
 HELP_URL = "See https://github.com/ultralytics/yolov5/wiki/Train-Custom-Data"
@@ -132,8 +131,9 @@ def polygon2mask(imgsz, polygons, color=1, downsample_ratio=1):
     """
     Args:
         imgsz (tuple): The image size.
-        polygons (np.ndarray): [N, M], N is the number of polygons,
-            M is the number of points(Be divided by 2).
+        polygons (np.ndarray): [N, M], N is the number of polygons, M is the number of points(Be divided by 2).
+        color (int): color
+        downsample_ratio (int): downsample ratio
     """
     mask = np.zeros(imgsz, dtype=np.uint8)
     polygons = np.asarray(polygons)
@@ -152,9 +152,9 @@ def polygons2masks(imgsz, polygons, color, downsample_ratio=1):
     """
     Args:
         imgsz (tuple): The image size.
-        polygons (list[np.ndarray]): each polygon is [N, M],
-            N is the number of polygons,
-            M is the number of points(Be divided by 2).
+        polygons (list[np.ndarray]): each polygon is [N, M], N is number of polygons, M is number of points (M % 2 = 0)
+        color (int): color
+        downsample_ratio (int): downsample ratio
     """
     masks = []
     for si in range(len(polygons)):
@@ -191,7 +191,7 @@ def polygons2masks_overlap(imgsz, segments, downsample_ratio=1):
 def check_dataset_yaml(data, autodownload=True):
     # Download, check and/or unzip dataset if not found locally
     data = check_file(data)
-    DATASETS_DIR = Path.cwd() / "../datasets"
+    DATASETS_DIR = Path.cwd() / "../datasets"  # TODO: handle global dataset dir
     # Download (optional)
     extract_dir = ''
     if isinstance(data, (str, Path)) and (is_zipfile(data) or is_tarfile(data)):
@@ -231,7 +231,7 @@ def check_dataset_yaml(data, autodownload=True):
         if not all(x.exists() for x in val):
             LOGGER.info('\nDataset not found ⚠️, missing paths %s' % [str(x) for x in val if not x.exists()])
             if not s or not autodownload:
-                raise Exception('Dataset not found ❌')
+                raise FileNotFoundError('Dataset not found ❌')
             t = time.time()
             if s.startswith('http') and s.endswith('.zip'):  # URL
                 f = Path(s).name  # filename

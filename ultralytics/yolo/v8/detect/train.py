@@ -54,10 +54,10 @@ class DetectionTrainer(BaseTrainer):
         # TODO: self.model.class_weights = labels_to_class_weights(dataset.labels, nc).to(device) * nc
         self.model.names = self.data["names"]
 
-    def load_model(self, model_cfg=None, weights=None):
-        model = DetectionModel(model_cfg or weights["model"].yaml, ch=3, nc=self.data["nc"])
+    def load_model(self, model_cfg=None, weights=None, verbose=True):
+        model = DetectionModel(model_cfg or weights["model"].yaml, ch=3, nc=self.data["nc"], verbose=verbose)
         if weights:
-            model.load(weights)
+            model.load(weights, verbose)
         return model
 
     def get_validator(self):
@@ -98,7 +98,8 @@ class DetectionTrainer(BaseTrainer):
                 if f is self.best:
                     self.console.info(f'\nValidating {f}...')
                     self.ema.ema=None  # do not val EMA
-                    self.model = self.load_model(f)  # load best.pt
+                    self.model = self.load_model(weights=torch.load(f, map_location='cpu'), verbose=False)\
+                        .to(self.device).float()
                     self.validate()
 
 

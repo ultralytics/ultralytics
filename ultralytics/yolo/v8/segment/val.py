@@ -7,10 +7,8 @@ import torch.nn.functional as F
 
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.utils import ops
-from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils.metrics import ConfusionMatrix, SegmentMetrics, box_iou, mask_iou
 from ultralytics.yolo.utils.plotting import output_to_target, plot_images
-
 from ..detect import DetectionValidator
 
 
@@ -179,31 +177,25 @@ class SegmentationValidator(DetectionValidator):
             "metrics/precision(M)",
             "metrics/recall(M)",
             "metrics/mAP50(M)",
-            "metrics/mAP50-95(M)",]
+            "metrics/mAP50-95(M)", ]
 
     def plot_val_samples(self, batch, ni):
-        images = batch["img"]
-        masks = batch["masks"]
-        cls = batch["cls"].squeeze(-1)
-        bboxes = batch["bboxes"]
-        paths = batch["im_file"]
-        batch_idx = batch["batch_idx"]
-        plot_images(images,
-                    batch_idx,
-                    cls,
-                    bboxes,
-                    masks,
-                    paths=paths,
+        plot_images(batch["img"],
+                    batch["batch_idx"],
+                    batch["cls"].squeeze(-1),
+                    batch["bboxes"],
+                    batch["masks"],
+                    paths=batch["im_file"],
                     fname=self.save_dir / f"val_batch{ni}_labels.jpg",
                     names=self.names)
 
     def plot_predictions(self, batch, preds, ni):
-        images = batch["img"]
-        paths = batch["im_file"]
-        if len(self.plot_masks):
-            plot_masks = torch.cat(self.plot_masks, dim=0)
-        plot_images(images, *output_to_target(preds[0], max_det=15), plot_masks, paths,
-                    self.save_dir / f'val_batch{ni}_pred.jpg', self.names)  # pred
+        plot_images(batch["img"],
+                    *output_to_target(preds[0], max_det=15),
+                    torch.cat(self.plot_masks, dim=0) if len(self.plot_masks) else self.plot_masks,
+                    paths=batch["im_file"],
+                    fname=self.save_dir / f'val_batch{ni}_pred.jpg',
+                    names=self.names)  # pred
         self.plot_masks.clear()
 
 

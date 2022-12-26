@@ -182,25 +182,18 @@ class DetectionValidator(BaseValidator):
         return ["metrics/precision(B)", "metrics/recall(B)", "metrics/mAP50(B)", "metrics/mAP50-95(B)"]
 
     def plot_val_samples(self, batch, ni):
-        images = batch["img"]
-        cls = batch["cls"].squeeze(-1)
-        bboxes = batch["bboxes"]
-        paths = batch["im_file"]
-        batch_idx = batch["batch_idx"]
-        plot_images(images,
-                    batch_idx,
-                    cls,
-                    bboxes,
-                    paths=paths,
+        plot_images(batch["img"],
+                    batch["batch_idx"],
+                    batch["cls"].squeeze(-1),
+                    batch["bboxes"],
+                    paths=batch["im_file"],
                     fname=self.save_dir / f"val_batch{ni}_labels.jpg",
                     names=self.names)
 
     def plot_predictions(self, batch, preds, ni):
-        images = batch["img"]
-        paths = batch["im_file"]
-        plot_images(images,
+        plot_images(batch["img"],
                     *output_to_target(preds, max_det=15),
-                    paths=paths,
+                    paths=batch["im_file"],
                     fname=self.save_dir / f'val_batch{ni}_pred.jpg',
                     names=self.names)  # pred
 

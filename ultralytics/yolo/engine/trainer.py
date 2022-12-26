@@ -22,6 +22,7 @@ from tqdm import tqdm
 
 import ultralytics.yolo.utils as utils
 import ultralytics.yolo.utils.callbacks as callbacks
+from ultralytics import __version__
 from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
 from ultralytics.yolo.utils import LOGGER, ROOT, TQDM_BAR_FORMAT, colorstr
 from ultralytics.yolo.utils.checks import check_file, print_args
@@ -294,7 +295,8 @@ class BaseTrainer:
             'updates': self.ema.updates,
             'optimizer': self.optimizer.state_dict(),
             'train_args': self.args,
-            'date': datetime.now().isoformat()}
+            'date': datetime.now().isoformat(),
+            'version': __version__}
 
         # Save last, best and delete
         torch.save(ckpt, self.last)

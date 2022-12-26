@@ -8,12 +8,12 @@ import torch.nn as nn
 import torchvision
 import yaml
 
-from ultralytics.nn.modules import (Detect, Segment, Classify, Conv, ConvTranspose, GhostConv, Bottleneck,
-                                    GhostBottleneck, SPP, SPPF, DWConv, Focus, BottleneckCSP,
-                                    C1, C2, C2f, C3, C3TR, C3Ghost, DWConvTranspose2d, C3x, Ensemble, Concat)
+from ultralytics.nn.modules import (C1, C2, C3, C3TR, SPP, SPPF, Bottleneck, BottleneckCSP, C2f, C3Ghost, C3x, Classify,
+                                    Concat, Conv, ConvTranspose, Detect, DWConv, DWConvTranspose2d, Ensemble, Focus,
+                                    GhostBottleneck, GhostConv, Segment)
 from ultralytics.yolo.utils import LOGGER, colorstr
-from ultralytics.yolo.utils.torch_utils import (fuse_conv_and_bn, initialize_weights, intersect_state_dicts, model_info,
-                                                scale_img, time_sync, make_divisible)
+from ultralytics.yolo.utils.torch_utils import (fuse_conv_and_bn, initialize_weights, intersect_state_dicts,
+                                                make_divisible, model_info, scale_img, time_sync)
 
 
 class BaseModel(nn.Module):
@@ -278,8 +278,8 @@ def parse_model(d, ch):  # model_dict, input_channels(3)
 
         n = n_ = max(round(n * gd), 1) if n > 1 else n  # depth gain
         if m in {
-            Conv, ConvTranspose, GhostConv, Bottleneck, GhostBottleneck, SPP, SPPF, DWConv, Focus, BottleneckCSP,
-            C1, C2, C2f, C3, C3TR, C3Ghost, nn.ConvTranspose2d, DWConvTranspose2d, C3x}:
+                Conv, ConvTranspose, GhostConv, Bottleneck, GhostBottleneck, SPP, SPPF, DWConv, Focus, BottleneckCSP,
+                C1, C2, C2f, C3, C3TR, C3Ghost, nn.ConvTranspose2d, DWConvTranspose2d, C3x}:
             c1, c2 = ch[f], args[0]
             if c2 != no:  # if not output
                 c2 = make_divisible(c2 * gw, 8)

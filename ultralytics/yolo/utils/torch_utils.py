@@ -86,7 +86,8 @@ def select_device(device='', batch_size=0, newline=False):
         s += 'CPU\n'
         arg = 'cpu'
 
-    LOGGER.info(s if newline else s.rstrip())
+    if RANK == -1:
+        LOGGER.info(s if newline else s.rstrip())
     return torch.device(arg)
 
 

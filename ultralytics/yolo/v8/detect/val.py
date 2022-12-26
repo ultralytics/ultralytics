@@ -211,8 +211,9 @@ class DetectionValidator(BaseValidator):
                     'category_id': self.class_map[int(p[5])],
                     'bbox': [round(x, 3) for x in b],
                     'score': round(p[4], 5)})
-        
+
         return jdict
+
 
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def val(cfg):

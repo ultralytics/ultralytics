@@ -1,5 +1,5 @@
-from pathlib import Path
 import json
+from pathlib import Path
 
 import torch
 from omegaconf import OmegaConf
@@ -83,7 +83,7 @@ class BaseValidator:
         # bar = tqdm(self.dataloader, desc, n_batches, not self.training, bar_format=TQDM_BAR_FORMAT)
         bar = tqdm(self.dataloader, desc, n_batches, bar_format=TQDM_BAR_FORMAT)
         self.init_metrics(de_parallel(model))
-        self.jdict = [] # empty before each val
+        self.jdict = []  # empty before each val
         for batch_i, batch in enumerate(bar):
             self.batch_i = batch_i
             # pre-process
@@ -107,7 +107,7 @@ class BaseValidator:
             if self.args.plots and batch_i < 3:
                 self.plot_val_samples(batch, batch_i)
                 self.plot_predictions(batch, preds, batch_i)
-            
+
             if self.args.save_json:
                 self.jdict.append(self.pred_to_json(preds, batch))
 
@@ -126,7 +126,7 @@ class BaseValidator:
 
         if self.training:
             model.float()
-        
+
         if self.args.save_json and self.jdict:
             pred_json = str(self.save_dir / f"predictions.json")  # predictions
             with open(pred_json, 'w') as f:
@@ -172,7 +172,7 @@ class BaseValidator:
 
     def plot_predictions(self, batch, preds, ni):
         pass
-    
+
     def pred_to_json(self, preds, batch):
         """
         Returns json/dict for predictions on one batch

@@ -13,7 +13,6 @@ from pathlib import Path
 import numpy as np
 import torch
 import torch.distributed as dist
-import torch.multiprocessing as mp
 import torch.nn as nn
 from omegaconf import OmegaConf
 from torch.cuda import amp

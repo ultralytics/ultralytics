@@ -16,7 +16,7 @@ def _log_images(imgs_dict, group="", step=0):
             task.get_logger().report_image(group, k, step, v)
 
 
-def on_train_start(trainer):
+def on_pretrain_routine_start(trainer):
     # TODO: reuse existing task
     task = Task.init(project_name=trainer.args.project if trainer.args.project != 'runs/train' else 'YOLOv8',
                      task_name=trainer.args.name,
@@ -48,7 +48,7 @@ def on_train_end(trainer):
 
 
 callbacks = {
-    "on_train_start": on_train_start,
+    "on_pretrain_routine_start": on_pretrain_routine_start,
     "on_train_epoch_end": on_train_epoch_end,
     "on_val_end": on_val_end,
     "on_train_end": on_train_end} if clearml else {}

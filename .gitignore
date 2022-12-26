@@ -134,3 +134,4 @@ ultralytics-yolo/
 runs/
 
 .DS_Store
+wandb/

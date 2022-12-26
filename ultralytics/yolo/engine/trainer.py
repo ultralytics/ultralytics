@@ -423,7 +423,7 @@ class BaseTrainer:
                 strip_optimizer(f)  # strip optimizers
                 if f is self.best:
                     self.console.info(f'\nValidating {f}...')
-                    self.validate(model=self.best)
+                    self.validator(model=self.best)
 
     def check_resume(self):
         resume = self.args.resume

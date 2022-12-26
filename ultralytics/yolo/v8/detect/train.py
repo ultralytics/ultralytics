@@ -58,8 +58,6 @@ class DetectionTrainer(BaseTrainer):
         model = DetectionModel(model_cfg or weights["model"].yaml, ch=3, nc=self.data["nc"])
         if weights:
             model.load(weights)
-        for _, v in model.named_parameters():
-            v.requires_grad = True  # train all layers
         return model
 
     def get_validator(self):

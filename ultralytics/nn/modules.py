@@ -17,6 +17,7 @@ import torch.nn as nn
 from PIL import Image, ImageOps
 from torch.cuda import amp
 
+from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.yolo.data.augment import LetterBox
 from ultralytics.yolo.utils import LOGGER, colorstr
 from ultralytics.yolo.utils.files import increment_path
@@ -24,8 +25,6 @@ from ultralytics.yolo.utils.ops import Profile, make_divisible, non_max_suppress
 from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
 from ultralytics.yolo.utils.tal import dist2bbox, make_anchors
 from ultralytics.yolo.utils.torch_utils import copy_attr, smart_inference_mode
-
-from .autobackend import AutoBackend
 
 # from utils.plots import feature_visualization TODO
 

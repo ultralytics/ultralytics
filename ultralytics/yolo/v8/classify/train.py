@@ -1,11 +1,10 @@
 import hydra
 import torch
 
+from ultralytics.nn.tasks import ClassificationModel, get_model
 from ultralytics.yolo import v8
 from ultralytics.yolo.data import build_classification_dataloader
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG, BaseTrainer
-from ultralytics.yolo.utils.modeling import get_model
-from ultralytics.yolo.utils.modeling.tasks import ClassificationModel
 
 
 class ClassificationTrainer(BaseTrainer):

@@ -1,11 +1,19 @@
+import contextlib
 from copy import deepcopy
+from pathlib import Path
 
 import thop
+import torch
+import torch.nn as nn
+import torchvision
+import yaml
 
-from ultralytics.yolo.utils.modeling import parse_model
-from ultralytics.yolo.utils.modeling.modules import *
-from ultralytics.yolo.utils.torch_utils import (fuse_conv_and_bn, initialize_weights, intersect_state_dicts, model_info,
-                                                scale_img, time_sync)
+from ultralytics.nn.modules import (C1, C2, C3, C3TR, SPP, SPPF, Bottleneck, BottleneckCSP, C2f, C3Ghost, C3x, Classify,
+                                    Concat, Conv, ConvTranspose, Detect, DWConv, DWConvTranspose2d, Ensemble, Focus,
+                                    GhostBottleneck, GhostConv, Segment)
+from ultralytics.yolo.utils import LOGGER, colorstr
+from ultralytics.yolo.utils.torch_utils import (fuse_conv_and_bn, initialize_weights, intersect_state_dicts,
+                                                make_divisible, model_info, scale_img, time_sync)
 
 
 class BaseModel(nn.Module):
@@ -75,7 +83,6 @@ class DetectionModel(BaseModel):
         if isinstance(cfg, dict):
             self.yaml = cfg  # model dict
         else:  # is *.yaml
-            import yaml  # for torch hub
             self.yaml_file = Path(cfg).name
             with open(cfg, encoding='ascii', errors='ignore') as f:
                 self.yaml = yaml.safe_load(f)  # model dict
@@ -166,6 +173,7 @@ class ClassificationModel(BaseModel):
 
     def _from_detection_model(self, model, nc=1000, cutoff=10):
         # Create a YOLOv5 classification model from a YOLOv5 detection model
+        from ultralytics.nn.autobackend import AutoBackend
         if isinstance(model, AutoBackend):
             model = model.model  # unwrap DetectMultiBackend
         model.model = model.model[:cutoff]  # backbone
@@ -192,7 +200,6 @@ class ClassificationModel(BaseModel):
     @staticmethod
     def reshape_outputs(model, nc):
         # Update a TorchVision classification model to class count 'n' if required
-        from ultralytics.yolo.utils.modeling.modules import Classify
         name, m = list((model.model if hasattr(model, 'model') else model).named_children())[-1]  # last module
         if isinstance(m, Classify):  # YOLO Classify() head
             if m.linear.out_features != nc:
@@ -210,3 +217,110 @@ class ClassificationModel(BaseModel):
                 i = types.index(nn.Conv2d)  # nn.Conv2d index
                 if m[i].out_channels != nc:
                     m[i] = nn.Conv2d(m[i].in_channels, nc, m[i].kernel_size, m[i].stride, bias=m[i].bias is not None)
+
+
+# Functions ------------------------------------------------------------------------------------------------------------
+
+
+def attempt_load_weights(weights, device=None, inplace=True, fuse=True):
+    # Loads an ensemble of models weights=[a,b,c] or a single model weights=[a] or weights=a
+    from ultralytics.yolo.utils.downloads import attempt_download
+
+    model = Ensemble()
+    for w in weights if isinstance(weights, list) else [weights]:
+        ckpt = torch.load(attempt_download(w), map_location='cpu')  # load
+        ckpt = (ckpt.get('ema') or ckpt['model']).to(device).float()  # FP32 model
+
+        # Model compatibility updates
+        if not hasattr(ckpt, 'stride'):
+            ckpt.stride = torch.tensor([32.])
+        if hasattr(ckpt, 'names') and isinstance(ckpt.names, (list, tuple)):
+            ckpt.names = dict(enumerate(ckpt.names))  # convert to dict
+
+        model.append(ckpt.fuse().eval() if fuse and hasattr(ckpt, 'fuse') else ckpt.eval())  # model in eval mode
+
+    # Module compatibility updates
+    for m in model.modules():
+        t = type(m)
+        if t in (nn.Hardswish, nn.LeakyReLU, nn.ReLU, nn.ReLU6, nn.SiLU, Detect, Segment):
+            m.inplace = inplace  # torch 1.7.0 compatibility
+        elif t is nn.Upsample and not hasattr(m, 'recompute_scale_factor'):
+            m.recompute_scale_factor = None  # torch 1.11.0 compatibility
+
+    # Return model
+    if len(model) == 1:
+        return model[-1]
+
+    # Return detection ensemble
+    print(f'Ensemble created with {weights}\n')
+    for k in 'names', 'nc', 'yaml':
+        setattr(model, k, getattr(model[0], k))
+    model.stride = model[torch.argmax(torch.tensor([m.stride.max() for m in model])).int()].stride  # max stride
+    assert all(model[0].nc == m.nc for m in model), f'Models have different class counts: {[m.nc for m in model]}'
+    return model
+
+
+def parse_model(d, ch):  # model_dict, input_channels(3)
+    # Parse a YOLOv5 model.yaml dictionary
+    LOGGER.info(f"\n{'':>3}{'from':>20}{'n':>3}{'params':>10}  {'module':<45}{'arguments':<30}")
+    nc, gd, gw, act = d['nc'], d['depth_multiple'], d['width_multiple'], d.get('activation')
+    if act:
+        Conv.default_act = eval(act)  # redefine default activation, i.e. Conv.default_act = nn.SiLU()
+        LOGGER.info(f"{colorstr('activation:')} {act}")  # print
+    no = nc + 4  # number of outputs = classes + box
+
+    layers, save, c2 = [], [], ch[-1]  # layers, savelist, ch out
+    for i, (f, n, m, args) in enumerate(d['backbone'] + d['head']):  # from, number, module, args
+        m = eval(m) if isinstance(m, str) else m  # eval strings
+        for j, a in enumerate(args):
+            with contextlib.suppress(NameError):
+                args[j] = eval(a) if isinstance(a, str) else a  # eval strings
+
+        n = n_ = max(round(n * gd), 1) if n > 1 else n  # depth gain
+        if m in {
+                Conv, ConvTranspose, GhostConv, Bottleneck, GhostBottleneck, SPP, SPPF, DWConv, Focus, BottleneckCSP,
+                C1, C2, C2f, C3, C3TR, C3Ghost, nn.ConvTranspose2d, DWConvTranspose2d, C3x}:
+            c1, c2 = ch[f], args[0]
+            if c2 != no:  # if not output
+                c2 = make_divisible(c2 * gw, 8)
+
+            args = [c1, c2, *args[1:]]
+            if m in {BottleneckCSP, C1, C2, C2f, C3, C3TR, C3Ghost, C3x}:
+                args.insert(2, n)  # number of repeats
+                n = 1
+        elif m is nn.BatchNorm2d:
+            args = [ch[f]]
+        elif m is Concat:
+            c2 = sum(ch[x] for x in f)
+        # TODO: channel, gw, gd
+        elif m in {Detect, Segment}:
+            args.append([ch[x] for x in f])
+            if m is Segment:
+                args[3] = make_divisible(args[3] * gw, 8)
+        else:
+            c2 = ch[f]
+
+        m_ = nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
+        t = str(m)[8:-2].replace('__main__.', '')  # module type
+        m.np = sum(x.numel() for x in m_.parameters())  # number params
+        m_.i, m_.f, m_.type = i, f, t  # attach index, 'from' index, type
+        LOGGER.info(f'{i:>3}{str(f):>20}{n_:>3}{m.np:10.0f}  {t:<45}{str(args):<30}')  # print
+        save.extend(x % i for x in ([f] if isinstance(f, int) else f) if x != -1)  # append to savelist
+        layers.append(m_)
+        if i == 0:
+            ch = []
+        ch.append(c2)
+    return nn.Sequential(*layers), sorted(save)
+
+
+def get_model(model='s.pt', pretrained=True):
+    # Load a YOLO model locally, from torchvision, or from Ultralytics assets
+    if model.endswith(".pt"):
+        model = model.split(".")[0]
+
+    if Path(f"{model}.pt").is_file():  # local file
+        return attempt_load_weights(f"{model}.pt", device='cpu')
+    elif model in torchvision.models.__dict__:  # TorchVision models i.e. resnet50, efficientnet_b0
+        return torchvision.models.__dict__[model](weights='IMAGENET1K_V1' if pretrained else None)
+    else:  # Ultralytics assets
+        return attempt_load_weights(f"{model}.pt", device='cpu')

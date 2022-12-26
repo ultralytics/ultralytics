@@ -30,6 +30,7 @@ def generate_ddp_file(trainer):
 
     trainer = {trainer.__class__.__name__}(overrides=overrides)
     trainer.train()'''
+    (USER_CONFIG_DIR / 'DDP').mkdir(exist_ok=True)
     with tempfile.NamedTemporaryFile(prefix="_temp_",
                                      suffix=f"{id(trainer)}.py",
                                      mode="w+",

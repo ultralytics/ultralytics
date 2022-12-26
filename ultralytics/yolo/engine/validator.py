@@ -71,7 +71,8 @@ class BaseValidator:
                 data = check_dataset_yaml(self.args.data)
             else:
                 data = check_dataset(self.args.data)
-            self.dataloader = self.get_dataloader(data.get("val") or data.set("test"), self.args.batch_size)
+            self.dataloader = self.get_dataloader(data.get("val") or data.set("test"),
+                                                  self.args.batch_size) if not self.dataloader else self.dataloader
 
         model.eval()
 

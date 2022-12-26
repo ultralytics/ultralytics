@@ -282,7 +282,6 @@ class BaseTrainer:
                 self.plot_metrics()
             self.log(f"Results saved to {colorstr('bold', self.save_dir)}")
             self.trigger_callbacks('on_train_end')
-        dist.destroy_process_group() if world_size > 1 else None
         torch.cuda.empty_cache()
         self.trigger_callbacks('teardown')
 

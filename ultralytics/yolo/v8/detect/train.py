@@ -13,7 +13,7 @@ from ultralytics.yolo.utils.metrics import smooth_BCE
 from ultralytics.yolo.utils.ops import xywh2xyxy
 from ultralytics.yolo.utils.plotting import plot_images, plot_results
 from ultralytics.yolo.utils.tal import TaskAlignedAssigner, dist2bbox, make_anchors
-from ultralytics.yolo.utils.torch_utils import de_parallel
+from ultralytics.yolo.utils.torch_utils import de_parallel, strip_optimizer
 
 
 # BaseTrainer python usage
@@ -90,6 +90,16 @@ class DetectionTrainer(BaseTrainer):
 
     def plot_metrics(self):
         plot_results(file=self.csv)  # save results.png
+
+    def final_eval(self):
+        for f in self.last, self.best:
+            if f.exists():
+                strip_optimizer(f)  # strip optimizers
+                if f is self.best:
+                    self.console.info(f'\nValidating {f}...')
+                    self.ema.ema=None  # do not val EMA
+                    self.model = self.load_model(f)  # load best.pt
+                    self.validate()
 
 
 # Criterion class for computing training losses

@@ -20,7 +20,7 @@ def on_val_end(trainer):
         model_info = {
             "Model/Parameters": get_num_params(trainer.model),
             "Model/GFLOPs": round(get_flops(trainer.model), 1),
-            "Model/Inference speed (ms)": round(trainer.validator.speed[1], 1)}
+            "Model/Inference speed(ms)": round(trainer.validator.speed[1], 1)}
 
         wandb.run.log(model_info, step=trainer.epoch + 1)
 

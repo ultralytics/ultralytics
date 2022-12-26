@@ -8,7 +8,7 @@ def _log_scalars(scalars, step=0):
         writer.add_scalar(k, v, step)
 
 
-def on_train_start(trainer):
+def on_pretrain_routine_start(trainer):
     global writer
     writer = SummaryWriter(str(trainer.save_dir))
 
@@ -21,4 +21,7 @@ def on_val_end(trainer):
     _log_scalars(trainer.metrics, trainer.epoch + 1)
 
 
-callbacks = {"on_train_start": on_train_start, "on_val_end": on_val_end, "on_batch_end": on_batch_end}
+callbacks = {
+    "on_pretrain_routine_start": on_pretrain_routine_start,
+    "on_val_end": on_val_end,
+    "on_batch_end": on_batch_end}

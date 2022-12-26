@@ -55,7 +55,7 @@ def DDP_model(model):
         return DDP(model, device_ids=[LOCAL_RANK], output_device=LOCAL_RANK)
 
 
-def select_device(device='', batch_size=0, newline=True):
+def select_device(device='', batch_size=0, newline=False):
     # device = None or 'cpu' or 0 or '0' or '0,1,2,3'
     ver = git_describe() or ultralytics.__version__  # git commit or pip package version
     s = f'Ultralytics YOLO 🚀 {ver} Python-{platform.python_version()} torch-{torch.__version__} '
@@ -86,9 +86,7 @@ def select_device(device='', batch_size=0, newline=True):
         s += 'CPU\n'
         arg = 'cpu'
 
-    if not newline:
-        s = s.rstrip()
-    LOGGER.info(s)
+    LOGGER.info(s if newline else s.rstrip())
     return torch.device(arg)
 
 
@@ -150,6 +148,7 @@ def get_num_gradients(model):
 
 def get_flops(model, imgsz=640):
     try:
+        model = de_parallel(model)
         p = next(model.parameters())
         stride = max(int(model.stride.max()), 32) if hasattr(model, 'stride') else 32  # max stride
         im = torch.empty((1, p.shape[1], stride, stride), device=p.device)  # input image in BCHW format

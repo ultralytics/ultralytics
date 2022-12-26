@@ -128,7 +128,7 @@ class BaseValidator:
             model.float()
 
         if self.args.save_json and self.jdict:
-            pred_json = str(self.save_dir / f"predictions.json")  # predictions
+            pred_json = str(self.save_dir / "predictions.json")  # predictions
             with open(pred_json, 'w') as f:
                 json.dump(self.jdict, f)
 

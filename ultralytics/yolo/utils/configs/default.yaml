@@ -2,13 +2,13 @@
 # Default training settings and hyperparameters for medium-augmentation COCO training
 
 # Task and Mode
-task: "classify" # choices=['detect', 'segment', 'classify', 'init'] # init is a special case
-mode: "train" # choice=['train', 'val', 'infer']
+task: "classify"  # choices=['detect', 'segment', 'classify', 'init'] # init is a special case
+mode: "train"  # choice=['train', 'val', 'infer']
 
 # Train settings -------------------------------------------------------------------------------------------------------
 model: null  # i.e. yolov5s.pt, yolo.yaml
 data: null  # i.e. coco128.yaml
-epochs: 300
+epochs: 100
 batch_size: 16
 imgsz: 640
 nosave: False
@@ -42,10 +42,10 @@ noval: False
 save_json: False
 save_hybrid: False
 conf_thres: 0.001
-iou_thres: 0.6
+iou_thres: 0.7
 max_det: 300
 half: True
-dnn: False # use OpenCV DNN for ONNX inference
+dnn: False  # use OpenCV DNN for ONNX inference
 plots: True
 
 # Prediction settings:
@@ -56,9 +56,9 @@ save_conf: False
 save_crop: False
 hide_labels: False  # hide labels
 hide_conf: False
-vid_stride: 1 # video frame-rate stride
+vid_stride: 1  # video frame-rate stride
 line_thickness: 3  # bounding box thickness (pixels)
-update: False # Update all models
+update: False  # Update all models
 visualize: False
 augment: False
 agnostic_nms: False  # class-agnostic NMS
@@ -77,7 +77,7 @@ cls: 0.5  # cls loss gain (scale with pixels)
 dfl: 1.5  # dfl loss gain
 fl_gamma: 0.0  # focal loss gamma (efficientDet default gamma=1.5)
 label_smoothing: 0.0
-nbs: 64 # nominal batch size
+nbs: 64  # nominal batch size
 hsv_h: 0.015  # image HSV-Hue augmentation (fraction)
 hsv_s: 0.7  # image HSV-Saturation augmentation (fraction)
 hsv_v: 0.4  # image HSV-Value augmentation (fraction)
@@ -91,6 +91,9 @@ fliplr: 0.5  # image flip left-right (probability)
 mosaic: 1.0  # image mosaic (probability)
 mixup: 0.0  # image mixup (probability)
 copy_paste: 0.0  # segment copy-paste (probability)
+
+# For debugging. Don't change
+v5loader: True
 
 # Hydra configs --------------------------------------------------------------------------------------------------------
 hydra:

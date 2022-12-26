@@ -1,7 +1,7 @@
 import torch
 import yaml
 
-# from ultralytics import yolo
+from ultralytics import yolo  # (required for python usage)
 # from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.utils import LOGGER

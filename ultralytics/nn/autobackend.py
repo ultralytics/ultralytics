@@ -13,6 +13,7 @@ from PIL import Image
 from ultralytics.yolo.utils import LOGGER, ROOT
 from ultralytics.yolo.utils.checks import check_requirements, check_suffix, check_version
 from ultralytics.yolo.utils.downloads import attempt_download, is_url
+from ultralytics.yolo.utils.files import yaml_load
 from ultralytics.yolo.utils.ops import xywh2xyxy
 
 
@@ -32,8 +33,6 @@ class AutoBackend(nn.Module):
         #   TensorFlow Lite:                *.tflite
         #   TensorFlow Edge TPU:            *_edgetpu.tflite
         #   PaddlePaddle:                   *_paddle_model
-        from ultralytics.nn import attempt_load_weights
-        from ultralytics.yolo.utils.files import yaml_load
 
         super().__init__()
         w = str(weights[0] if isinstance(weights, list) else weights)
@@ -54,6 +53,7 @@ class AutoBackend(nn.Module):
             model.half() if fp16 else model.float()
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
         elif pt:  # PyTorch
+            from ultralytics.nn.tasks import attempt_load_weights
             model = attempt_load_weights(weights if isinstance(weights, list) else w,
                                          device=device,
                                          inplace=True,

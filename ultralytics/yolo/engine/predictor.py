@@ -32,11 +32,11 @@ import cv2
 
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages, LoadScreenshots, LoadStreams
 from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS, check_dataset, check_dataset_yaml
+from ultralytics.yolo.nn import AutoBackend
 from ultralytics.yolo.utils import LOGGER, ROOT, colorstr, ops
 from ultralytics.yolo.utils.checks import check_file, check_imshow
 from ultralytics.yolo.utils.configs import get_config
 from ultralytics.yolo.utils.files import increment_path
-from ultralytics.yolo.nn import AutoBackend
 from ultralytics.yolo.utils.torch_utils import check_imgsz, select_device, smart_inference_mode
 
 DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yaml"

@@ -6,7 +6,6 @@ import hydra
 import ultralytics
 import ultralytics.yolo.v8 as yolo
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
-
 from .utils import LOGGER, colorstr
 
 

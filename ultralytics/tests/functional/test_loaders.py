@@ -1,5 +1,5 @@
-from ultralytics.yolo.utils.checks import check_yaml
 from ultralytics.yolo.nn import DetectionModel
+from ultralytics.yolo.utils.checks import check_yaml
 
 
 def test_model_parser():

@@ -6,9 +6,10 @@ import numpy as np
 import torch
 
 from ultralytics.yolo.data import build_dataloader
+from ultralytics.yolo.data.dataloaders.v5loader import create_dataloader
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.engine.validator import BaseValidator
-from ultralytics.yolo.utils import ops
+from ultralytics.yolo.utils import ops, colorstr
 from ultralytics.yolo.utils.checks import check_file
 from ultralytics.yolo.utils.files import yaml_load
 from ultralytics.yolo.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
@@ -161,8 +162,21 @@ class DetectionValidator(BaseValidator):
     def get_dataloader(self, dataset_path, batch_size):
         # TODO: manage splits differently
         # calculate stride - check if model is initialized
-        gs = max(int(de_parallel(self.model).stride if self.model else 0), 32)
-        return build_dataloader(self.args, batch_size, img_path=dataset_path, stride=gs, mode="val")[0]
+        gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
+        return create_dataloader(path=dataset_path,
+                                 imgsz=self.args.imgsz,
+                                 batch_size=batch_size,
+                                 stride=gs,
+                                 hyp=dict(self.args),
+                                 cache=self.args.cache,
+                                 pad=0.5,
+                                 rect=self.args.rect,
+                                 workers=self.args.workers,
+                                 close_mosaic=self.args.close_mosaic != 0,
+                                 prefix=colorstr(f'{val}: '),
+                                 shuffle=False,
+                                 seed=self.args.seed)[0] if self.args.v5loader else \
+            build_dataloader(self.args, batch_size, img_path=dataset_path, stride=gs, mode="val")[0]
 
     # TODO: align with train loss metrics
     @property

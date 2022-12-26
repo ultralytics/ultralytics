@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import hydra
 import numpy as np
@@ -195,6 +196,23 @@ class DetectionValidator(BaseValidator):
                     paths=paths,
                     fname=self.save_dir / f'val_batch{ni}_pred.jpg',
                     names=self.names)  # pred
+
+    def pred_to_json(self, preds, batch):
+        imgs = batch["img"]
+        jdict = []
+        for i, _ in enumerate(imgs):
+            img_name = Path(batch["im_file"][i]).stem
+            image_id = int(img_name) if img_name.isnumeric() else img_name
+            box = ops.xyxy2xywh(preds[i][:, :4])  # xywh
+            box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
+            for p, b in zip(preds[i].tolist(), box.tolist()):
+                jdict.append({
+                    'image_id': image_id,
+                    'category_id': self.class_map[int(p[5])],
+                    'bbox': [round(x, 3) for x in b],
+                    'score': round(p[4], 5)})
+
+        return jdict
 
 
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)

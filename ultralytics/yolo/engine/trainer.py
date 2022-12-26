@@ -422,10 +422,6 @@ class BaseTrainer:
                 strip_optimizer(f)  # strip optimizers
                 if f is self.best:
                     self.console.info(f'\nValidating {f}...')
-                    # self.ema.ema = None  # do not val EMA
-                    # self.model = self.load_model(weights=torch.load(f, map_location='cpu'), verbose=False)\
-                    #     .to(self.device).float()
-                    # self.validate()
                     self.metrics = self.validator(model=f)
                     self.metrics.pop('fitness', None)
                     self.trigger_callbacks('on_val_end')

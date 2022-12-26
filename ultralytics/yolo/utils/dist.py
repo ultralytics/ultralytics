@@ -52,9 +52,7 @@ def generate_ddp_command(world_size, trainer):
 
 
 def ddp_cleanup(command, trainer):
-    # delete temp file if  created
-    # TODO: this is a temp solution in case the file is deleted before DDP launching
-    time.sleep(5)
+    # delete temp file if created
     tempfile_suffix = f"{id(trainer)}.py"
     if tempfile_suffix in "".join(command):
         for chunk in command:

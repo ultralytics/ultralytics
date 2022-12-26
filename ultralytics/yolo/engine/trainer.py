@@ -53,7 +53,8 @@ class BaseTrainer:
         self.batch_size = self.args.batch_size
         self.epochs = self.args.epochs
         self.start_epoch = 0
-        print_args(dict(self.args))
+        if RANK == -1:
+            print_args(dict(self.args))
 
         # Save run settings
         save_yaml(self.save_dir / 'args.yaml', OmegaConf.to_container(self.args, resolve=True))

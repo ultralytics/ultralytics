@@ -260,8 +260,7 @@ class BaseTrainer:
                 if not self.args.noval or final_epoch:
                     self.metrics, self.fitness = self.validate()
                 self.trigger_callbacks('on_val_end')
-                log_vals = {**self.label_loss_items(self.tloss), **self.metrics, **lr}
-                self.save_metrics(metrics=log_vals)
+                self.save_metrics(metrics={**self.label_loss_items(self.tloss), **self.metrics, **lr})
 
                 # save model
                 if (not self.args.nosave) or (epoch + 1 == self.epochs):
@@ -366,7 +365,7 @@ class BaseTrainer:
         if rank in {-1, 0}:
             self.console.info(text)
 
-    def load_model(self, model_cfg, weights):
+    def load_model(self, model_cfg=None, weights=None, verbose=True):
         raise NotImplementedError("This task trainer doesn't support loading cfg files")
 
     def get_validator(self):
@@ -418,12 +417,16 @@ class BaseTrainer:
         pass
 
     def final_eval(self):
-        # TODO: need standalone evaluator to do this
         for f in self.last, self.best:
             if f.exists():
                 strip_optimizer(f)  # strip optimizers
                 if f is self.best:
                     self.console.info(f'\nValidating {f}...')
+                    self.ema.ema = None  # do not val EMA
+                    self.model = self.load_model(weights=torch.load(f, map_location='cpu'), verbose=False)\
+                        .to(self.device).float()
+                    self.validate()
+                    self.trigger_callbacks('on_val_end')
 
     def check_resume(self):
         resume = self.args.resume

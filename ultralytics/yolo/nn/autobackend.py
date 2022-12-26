@@ -33,7 +33,7 @@ class AutoBackend(nn.Module):
         #   TensorFlow Edge TPU:            *_edgetpu.tflite
         #   PaddlePaddle:                   *_paddle_model
         from ultralytics.yolo.utils.files import yaml_load
-        from ultralytics.yolo.utils.modeling import attempt_load_weights
+        from ultralytics.yolo.nn import attempt_load_weights
 
         super().__init__()
         w = str(weights[0] if isinstance(weights, list) else weights)
@@ -89,7 +89,7 @@ class AutoBackend(nn.Module):
         elif xml:  # OpenVINO
             LOGGER.info(f'Loading {w} for OpenVINO inference...')
             check_requirements('openvino')  # requires openvino-dev: https://pypi.org/project/openvino-dev/
-            from openvino.runtime import Core, Layout, get_batch
+            from openvino.runtime import Core, Layout, get_batch  # noqa
             ie = Core()
             if not Path(w).is_file():  # if not *.xml
                 w = next(Path(w).glob('*.xml'))  # get *.xml file from *_openvino_model dir

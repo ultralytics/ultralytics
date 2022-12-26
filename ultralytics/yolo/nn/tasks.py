@@ -2,8 +2,8 @@ from copy import deepcopy
 
 import thop
 
-from ultralytics.yolo.utils.modeling import parse_model
-from ultralytics.yolo.utils.modeling.modules import *
+from ultralytics.yolo.nn import parse_model
+from ultralytics.yolo.nn.modules import *
 from ultralytics.yolo.utils.torch_utils import (fuse_conv_and_bn, initialize_weights, intersect_state_dicts, model_info,
                                                 scale_img, time_sync)
 
@@ -192,7 +192,7 @@ class ClassificationModel(BaseModel):
     @staticmethod
     def reshape_outputs(model, nc):
         # Update a TorchVision classification model to class count 'n' if required
-        from ultralytics.yolo.utils.modeling.modules import Classify
+        from ultralytics.yolo.nn.modules import Classify
         name, m = list((model.model if hasattr(model, 'model') else model).named_children())[-1]  # last module
         if isinstance(m, Classify):  # YOLO Classify() head
             if m.linear.out_features != nc:

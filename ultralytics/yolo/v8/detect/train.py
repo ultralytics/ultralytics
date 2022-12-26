@@ -9,7 +9,7 @@ from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG, BaseTrainer
 from ultralytics.yolo.utils import colorstr
 from ultralytics.yolo.utils.loss import BboxLoss
 from ultralytics.yolo.utils.metrics import smooth_BCE
-from ultralytics.yolo.utils.modeling.tasks import DetectionModel
+from ultralytics.yolo.nn.tasks import DetectionModel
 from ultralytics.yolo.utils.ops import xywh2xyxy
 from ultralytics.yolo.utils.plotting import plot_images, plot_results
 from ultralytics.yolo.utils.tal import TaskAlignedAssigner, dist2bbox, make_anchors

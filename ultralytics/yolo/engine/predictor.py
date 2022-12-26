@@ -36,7 +36,7 @@ from ultralytics.yolo.utils import LOGGER, ROOT, colorstr, ops
 from ultralytics.yolo.utils.checks import check_file, check_imshow
 from ultralytics.yolo.utils.configs import get_config
 from ultralytics.yolo.utils.files import increment_path
-from ultralytics.yolo.utils.modeling.autobackend import AutoBackend
+from ultralytics.yolo.nn import AutoBackend
 from ultralytics.yolo.utils.torch_utils import check_imgsz, select_device, smart_inference_mode
 
 DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yaml"

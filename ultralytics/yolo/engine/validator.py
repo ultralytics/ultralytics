@@ -67,7 +67,7 @@ class BaseValidator:
                     self.logger.info(
                         f'Forcing --batch-size 1 square inference (1,3,{imgsz},{imgsz}) for non-PyTorch models')
 
-            if self.args.data.endswith(".yaml"):
+            if isinstance(self.args.data, str) and self.args.data.endswith(".yaml"):
                 data = check_dataset_yaml(self.args.data)
             else:
                 data = check_dataset(self.args.data)

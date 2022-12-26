@@ -44,6 +44,7 @@ def on_train_end(trainer):
 
 callbacks = {
     "on_train_start": on_train_start,
+    "on_batch_end": on_batch_end,
     "on_train_epoch_end": on_train_epoch_end,
     "on_val_end": on_val_end,
     "on_train_end": on_train_end} if wandb else {}

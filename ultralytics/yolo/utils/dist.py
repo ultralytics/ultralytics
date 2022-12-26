@@ -41,7 +41,7 @@ def generate_ddp_file(trainer):
 
 
 def generate_ddp_command(world_size, trainer):
-    import __main__  # noqa local import to avoid https://github.com/Lightning-AI/lightning/issues/15218
+    import __main__  # local import to avoid https://github.com/Lightning-AI/lightning/issues/15218
     file_name = os.path.abspath(sys.argv[0])
     using_cli = not file_name.endswith(".py")
     if using_cli:

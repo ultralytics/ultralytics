@@ -9,7 +9,7 @@ from ultralytics.yolo.data import build_dataloader
 from ultralytics.yolo.data.dataloaders.v5loader import create_dataloader
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.engine.validator import BaseValidator
-from ultralytics.yolo.utils import ops, colorstr
+from ultralytics.yolo.utils import colorstr, ops
 from ultralytics.yolo.utils.checks import check_file
 from ultralytics.yolo.utils.files import yaml_load
 from ultralytics.yolo.utils.metrics import ConfusionMatrix, DetMetrics, box_iou

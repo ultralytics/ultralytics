@@ -1,7 +1,6 @@
 from itertools import repeat
 from multiprocessing.pool import Pool
 from pathlib import Path
-from typing import OrderedDict
 
 import torchvision
 from tqdm import tqdm
@@ -24,7 +23,7 @@ class YOLODataset(BaseDataset):
     def __init__(
         self,
         img_path,
-        img_size=640,
+        imgsz=640,
         label_path=None,
         cache=False,
         augment=True,
@@ -41,7 +40,7 @@ class YOLODataset(BaseDataset):
         self.use_segments = use_segments
         self.use_keypoints = use_keypoints
         assert not (self.use_segments and self.use_keypoints), "Can not use both segments and keypoints."
-        super().__init__(img_path, img_size, label_path, cache, augment, hyp, prefix, rect, batch_size, stride, pad,
+        super().__init__(img_path, imgsz, label_path, cache, augment, hyp, prefix, rect, batch_size, stride, pad,
                          single_cls)
 
     def cache_labels(self, path=Path("./labels.cache")):
@@ -100,7 +99,7 @@ class YOLODataset(BaseDataset):
         self.label_files = img2label_paths(self.im_files)
         cache_path = Path(self.label_files[0]).parent.with_suffix(".cache")
         try:
-            cache, exists = np.load(cache_path, allow_pickle=True).item(), True  # load dict
+            cache, exists = np.load(str(cache_path), allow_pickle=True).item(), True  # load dict
             assert cache["version"] == self.cache_version  # matches current version
             assert cache["hash"] == get_hash(self.label_files + self.im_files)  # identical hash
         except Exception:
@@ -124,15 +123,11 @@ class YOLODataset(BaseDataset):
 
     # TODO: use hyp config to set all these augmentations
     def build_transforms(self, hyp=None):
-        mosaic = self.augment and not self.rect
-        # mosaic = False
         if self.augment:
-            if mosaic:
-                transforms = mosaic_transforms(self.img_size, hyp)
-            else:
-                transforms = affine_transforms(self.img_size, hyp)
+            mosaic = self.augment and not self.rect
+            transforms = mosaic_transforms(self, self.imgsz, hyp) if mosaic else affine_transforms(self.imgsz, hyp)
         else:
-            transforms = Compose([LetterBox(new_shape=(self.img_size, self.img_size))])
+            transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz))])
         transforms.append(
             Format(bbox_format="xywh",
                    normalize=True,
@@ -143,7 +138,7 @@ class YOLODataset(BaseDataset):
 
     def update_labels_info(self, label):
         """custom your label format here"""
-        # NOTE: cls is not with bboxes now, since other tasks like classification and semantic segmentation need a independent cls label
+        # NOTE: cls is not with bboxes now, classification and semantic segmentation need an independent cls label
         # we can make it also support classification and semantic segmentation by add or remove some dict keys there.
         bboxes = label.pop("bboxes")
         segments = label.pop("segments")
@@ -206,7 +201,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
             sample = self.album_transforms(image=cv2.cvtColor(im, cv2.COLOR_BGR2RGB))["image"]
         else:
             sample = self.torch_transforms(im)
-        return OrderedDict(img=sample, cls=j)
+        return {'img': sample, 'cls': j}
 
     def __len__(self) -> int:
         return len(self.samples)

@@ -4,7 +4,6 @@ Simple training loop; Boilerplate that could apply to any arbitrary neural netwo
 
 import os
 import subprocess
-import sys
 import time
 from collections import defaultdict
 from copy import deepcopy
@@ -14,7 +13,6 @@ from pathlib import Path
 import numpy as np
 import torch
 import torch.distributed as dist
-import torch.multiprocessing as mp
 import torch.nn as nn
 from omegaconf import OmegaConf
 from torch.cuda import amp
@@ -61,7 +59,8 @@ class BaseTrainer:
 
         # device
         self.device = utils.torch_utils.select_device(self.args.device, self.batch_size)
-        self.scaler = amp.GradScaler(enabled=self.device.type != 'cpu')
+        self.amp = self.device.type != 'cpu'
+        self.scaler = amp.GradScaler(enabled=self.amp)
 
         # Model and Dataloaders.
         self.model = self.args.model
@@ -82,11 +81,13 @@ class BaseTrainer:
         self.fitness = None
         self.loss = None
         self.tloss = None
+        self.loss_names = None
         self.csv = self.save_dir / 'results.csv'
 
         for callback, func in callbacks.default_callbacks.items():
             self.add_callback(callback, func)
-        callbacks.add_integration_callbacks(self)
+        if RANK in {0, -1}:
+            callbacks.add_integration_callbacks(self)
 
     def add_callback(self, onevent: str, callback):
         """
@@ -106,10 +107,15 @@ class BaseTrainer:
 
     def train(self):
         world_size = torch.cuda.device_count()
-        if world_size > 1 and not ("LOCAL_RANK" in os.environ):
+        if world_size > 1 and "LOCAL_RANK" not in os.environ:
             command = generate_ddp_command(world_size, self)
-            subprocess.Popen(command)
-            ddp_cleanup(command, self)
+            print('DDP command: ', command)
+            try:
+                subprocess.run(command)
+            except Exception as e:
+                self.console(e)
+            finally:
+                ddp_cleanup(command, self)
         else:
             self._do_train(int(os.getenv("RANK", -1)), world_size)
 
@@ -119,7 +125,6 @@ class BaseTrainer:
         torch.cuda.set_device(rank)
         self.device = torch.device('cuda', rank)
         self.console.info(f"RANK - WORLD_SIZE - DEVICE: {rank} - {world_size} - {self.device} ")
-        mp.use_start_method('spawn', force=True)
         dist.init_process_group("nccl" if dist.is_nccl_available() else "gloo", rank=rank, world_size=world_size)
 
     def _setup_train(self, rank, world_size):
@@ -127,6 +132,7 @@ class BaseTrainer:
         Builds dataloaders and optimizer on correct rank process
         """
         # model
+        self.trigger_callbacks("on_pretrain_routine_start")
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
         self.set_model_attributes()
@@ -154,19 +160,17 @@ class BaseTrainer:
         self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=rank, mode="train")
         if rank in {0, -1}:
             self.test_loader = self.get_dataloader(self.testset, batch_size=batch_size * 2, rank=-1, mode="val")
-            validator = self.get_validator()
-            # init metric, for plot_results
-            metric_keys = validator.metric_keys + self.label_loss_items(prefix="val")
-            self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))
-            self.validator = validator
+            self.validator = self.get_validator()
+            metric_keys = self.validator.metric_keys + self.label_loss_items(prefix="val")
+            self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))  # TODO: init metrics for plot_results()?
             self.ema = ModelEMA(self.model)
+        self.trigger_callbacks("on_pretrain_routine_end")
 
     def _do_train(self, rank=-1, world_size=1):
         if world_size > 1:
             self._setup_ddp(rank, world_size)
 
         self._setup_train(rank, world_size)
-        self.trigger_callbacks("before_train")
 
         self.epoch_time = None
         self.epoch_time_start = time.time()
@@ -174,9 +178,14 @@ class BaseTrainer:
         nb = len(self.train_loader)  # number of batches
         nw = max(round(self.args.warmup_epochs * nb), 100)  # number of warmup iterations
         last_opt_step = -1
+        self.trigger_callbacks("on_train_start")
+        self.log(f"Image sizes {self.args.imgsz} train, {self.args.imgsz} val\n"
+                 f'Using {self.train_loader.num_workers * (world_size or 1)} dataloader workers\n'
+                 f"Logging results to {colorstr('bold', self.save_dir)}\n"
+                 f"Starting training for {self.epochs} epochs...")
         for epoch in range(self.start_epoch, self.epochs):
             self.epoch = epoch
-            self.trigger_callbacks("on_epoch_start")
+            self.trigger_callbacks("on_train_epoch_start")
             self.model.train()
             if rank != -1:
                 self.train_loader.sampler.set_epoch(epoch)
@@ -187,9 +196,12 @@ class BaseTrainer:
             self.tloss = None
             self.optimizer.zero_grad()
             for i, batch in pbar:
-                self.trigger_callbacks("on_batch_start")
-                # forward
-                batch = self.preprocess_batch(batch)
+                self.trigger_callbacks("on_train_batch_start")
+
+                # update dataloader attributes (optional)
+                if epoch == (self.epochs - self.args.close_mosaic) and hasattr(self.train_loader.dataset, 'mosaic'):
+                    LOGGER.info("Closing dataloader mosaic")
+                    self.train_loader.dataset.mosaic = False
 
                 # warmup
                 ni = i + nb * epoch
@@ -203,17 +215,20 @@ class BaseTrainer:
                         if 'momentum' in x:
                             x['momentum'] = np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum])
 
-                preds = self.model(batch["img"])
-                self.loss, self.loss_items = self.criterion(preds, batch)
-                if rank != -1:
-                    self.loss *= world_size
-                self.tloss = (self.tloss * i + self.loss_items) / (i + 1) if self.tloss is not None \
-                                else self.loss_items
+                # forward
+                with torch.cuda.amp.autocast(self.amp):
+                    batch = self.preprocess_batch(batch)
+                    preds = self.model(batch["img"])
+                    self.loss, self.loss_items = self.criterion(preds, batch)
+                    if rank != -1:
+                        self.loss *= world_size
+                    self.tloss = (self.tloss * i + self.loss_items) / (i + 1) if self.tloss is not None \
+                        else self.loss_items
 
                 # backward
                 self.scaler.scale(self.loss).backward()
 
-                # optimize
+                # optimize - https://pytorch.org/docs/master/notes/amp_examples.html
                 if ni - last_opt_step >= self.accumulate:
                     self.optimizer_step()
                     last_opt_step = ni
@@ -230,10 +245,13 @@ class BaseTrainer:
                     if self.args.plots and ni < 3:
                         self.plot_training_samples(batch, ni)
 
+                self.trigger_callbacks("on_train_batch_end")
+
             lr = {f"lr{ir}": x['lr'] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers
             self.scheduler.step()
+            self.trigger_callbacks("on_train_epoch_end")
 
-            if rank in [-1, 0]:
+            if rank in {-1, 0}:
                 # validation
                 self.trigger_callbacks('on_val_start')
                 self.ema.update_attr(self.model, include=['yaml', 'nc', 'args', 'names', 'stride', 'class_weights'])
@@ -241,7 +259,7 @@ class BaseTrainer:
                 if not self.args.noval or final_epoch:
                     self.metrics, self.fitness = self.validate()
                 self.trigger_callbacks('on_val_end')
-                log_vals = self.label_loss_items(self.tloss) | self.metrics | lr
+                log_vals = {**self.label_loss_items(self.tloss), **self.metrics, **lr}
                 self.save_metrics(metrics=log_vals)
 
                 # save model
@@ -255,15 +273,18 @@ class BaseTrainer:
 
             # TODO: termination condition
 
-        if rank in [-1, 0]:
+        if rank in {-1, 0}:
             # do the last evaluation with best.pt
+            self.log(f'\n{epoch - self.start_epoch + 1} epochs completed in '
+                     f'{(time.time() - self.train_time_start) / 3600:.3f} hours.')
             self.final_eval()
             if self.args.plots:
                 self.plot_metrics()
-            self.log(f"\nTraining complete ({(time.time() - self.train_time_start) / 3600:.3f} hours)")
+            self.log(f"Results saved to {colorstr('bold', self.save_dir)}")
             self.trigger_callbacks('on_train_end')
         dist.destroy_process_group() if world_size > 1 else None
         torch.cuda.empty_cache()
+        self.trigger_callbacks('teardown')
 
     def save_model(self):
         ckpt = {

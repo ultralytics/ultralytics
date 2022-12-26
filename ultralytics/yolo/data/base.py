@@ -1,4 +1,5 @@
 import glob
+import math
 import os
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
@@ -24,7 +25,7 @@ class BaseDataset(Dataset):
     def __init__(
         self,
         img_path,
-        img_size=640,
+        imgsz=640,
         label_path=None,
         cache=False,
         augment=True,
@@ -38,15 +39,16 @@ class BaseDataset(Dataset):
     ):
         super().__init__()
         self.img_path = img_path
-        self.img_size = img_size
+        self.imgsz = imgsz
         self.label_path = label_path
         self.augment = augment
+        self.single_cls = single_cls
         self.prefix = prefix
 
         self.im_files = self.get_img_files(self.img_path)
         self.labels = self.get_labels()
-        if single_cls:
-            self.update_labels(include_class=[], single_cls=single_cls)
+        if self.single_cls:
+            self.update_labels(include_class=[])
 
         self.ni = len(self.im_files)
 
@@ -118,10 +120,10 @@ class BaseDataset(Dataset):
                 im = cv2.imread(f)  # BGR
                 assert im is not None, f"Image Not Found {f}"
             h0, w0 = im.shape[:2]  # orig hw
-            r = self.img_size / max(h0, w0)  # ratio
+            r = self.imgsz / max(h0, w0)  # ratio
             if r != 1:  # if sizes are not equal
                 interp = cv2.INTER_LINEAR if (self.augment or r > 1) else cv2.INTER_AREA
-                im = cv2.resize(im, (int(w0 * r), int(h0 * r)), interpolation=interp)
+                im = cv2.resize(im, (math.ceil(w0 * r), math.ceil(h0 * r)), interpolation=interp)
             return im, (h0, w0), im.shape[:2]  # im, hw_original, hw_resized
         return self.ims[i], self.im_hw0[i], self.im_hw[i]  # im, hw_original, hw_resized
 
@@ -168,21 +170,15 @@ class BaseDataset(Dataset):
             elif mini > 1:
                 shapes[i] = [1, 1 / mini]
 
-        self.batch_shapes = np.ceil(np.array(shapes) * self.img_size / self.stride + self.pad).astype(int) * self.stride
+        self.batch_shapes = np.ceil(np.array(shapes) * self.imgsz / self.stride + self.pad).astype(int) * self.stride
         self.batch = bi  # batch index of image
 
     def __getitem__(self, index):
-        label = self.get_label_info(index)
-        if self.augment:
-            label["dataset"] = self
-        return self.transforms(label)
+        return self.transforms(self.get_label_info(index))
 
     def get_label_info(self, index):
         label = self.labels[index].copy()
-        img, (h0, w0), (h, w) = self.load_image(index)
-        label["img"] = img
-        label["ori_shape"] = (h0, w0)
-        label["resized_shape"] = (h, w)
+        label["img"], label["ori_shape"], label["resized_shape"] = self.load_image(index)
         if self.rect:
             label["rect_shape"] = self.batch_shapes[self.batch[index]]
         label = self.update_labels_info(label)

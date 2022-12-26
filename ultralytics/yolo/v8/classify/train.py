@@ -1,11 +1,10 @@
 import hydra
 import torch
 
+from ultralytics.nn.tasks import ClassificationModel, get_model
 from ultralytics.yolo import v8
 from ultralytics.yolo.data import build_classification_dataloader
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG, BaseTrainer
-from ultralytics.yolo.utils.modeling import get_model
-from ultralytics.yolo.utils.modeling.tasks import ClassificationModel
 
 
 class ClassificationTrainer(BaseTrainer):
@@ -36,7 +35,7 @@ class ClassificationTrainer(BaseTrainer):
 
     def get_dataloader(self, dataset_path, batch_size, rank=0, mode="train"):
         return build_classification_dataloader(path=dataset_path,
-                                               imgsz=self.args.img_size,
+                                               imgsz=self.args.imgsz,
                                                batch_size=batch_size,
                                                rank=rank)
 
@@ -59,7 +58,7 @@ class ClassificationTrainer(BaseTrainer):
         pass
 
 
-@hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
+@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def train(cfg):
     cfg.model = cfg.model or "resnet18"
     cfg.data = cfg.data or "imagenette160"  # or yolo.ClassificationDataset("mnist")
@@ -70,7 +69,7 @@ def train(cfg):
 if __name__ == "__main__":
     """
     CLI usage:
-    python ultralytics/yolo/v8/classify/train.py model=resnet18 data=imagenette160 epochs=1 img_size=224
+    python ultralytics/yolo/v8/classify/train.py model=resnet18 data=imagenette160 epochs=1 imgsz=224
 
     TODO:
     Direct cli support, i.e, yolov8 classify_train args.epochs 10

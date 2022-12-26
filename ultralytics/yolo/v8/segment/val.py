@@ -178,12 +178,12 @@ class SegmentationValidator(DetectionValidator):
         return [
             "metrics/precision(B)",
             "metrics/recall(B)",
-            "metrics/mAP_0.5(B)",
-            "metrics/mAP_0.5:0.95(B)",  # metrics
+            "metrics/mAP50(B)",
+            "metrics/mAP50-95(B)",  # metrics
             "metrics/precision(M)",
             "metrics/recall(M)",
-            "metrics/mAP_0.5(M)",
-            "metrics/mAP_0.5:0.95(M)",]
+            "metrics/mAP50(M)",
+            "metrics/mAP50-95(M)",]
 
     def plot_val_samples(self, batch, ni):
         images = batch["img"]
@@ -211,7 +211,7 @@ class SegmentationValidator(DetectionValidator):
         self.plot_masks.clear()
 
 
-@hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
+@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def val(cfg):
     cfg.data = cfg.data or "coco128-seg.yaml"
     validator = SegmentationValidator(args=cfg)

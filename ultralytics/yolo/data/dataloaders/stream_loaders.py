@@ -18,10 +18,10 @@ from ultralytics.yolo.utils.checks import check_requirements
 
 class LoadStreams:
     # YOLOv5 streamloader, i.e. `python detect.py --source 'rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP streams`
-    def __init__(self, sources='file.streams', img_size=640, stride=32, auto=True, transforms=None, vid_stride=1):
+    def __init__(self, sources='file.streams', imgsz=640, stride=32, auto=True, transforms=None, vid_stride=1):
         torch.backends.cudnn.benchmark = True  # faster for fixed-size inference
         self.mode = 'stream'
-        self.img_size = img_size
+        self.imgsz = imgsz
         self.stride = stride
         self.vid_stride = vid_stride  # video frame-rate stride
         sources = Path(sources).read_text().rsplit() if os.path.isfile(sources) else [sources]
@@ -55,7 +55,7 @@ class LoadStreams:
         LOGGER.info('')  # newline
 
         # check for common shapes
-        s = np.stack([LetterBox(img_size, auto, stride=stride)(image=x).shape for x in self.imgs])
+        s = np.stack([LetterBox(imgsz, auto, stride=stride)(image=x).shape for x in self.imgs])
         self.rect = np.unique(s, axis=0).shape[0] == 1  # rect inference if all shapes equal
         self.auto = auto and self.rect
         self.transforms = transforms  # optional
@@ -92,7 +92,7 @@ class LoadStreams:
         if self.transforms:
             im = np.stack([self.transforms(x) for x in im0])  # transforms
         else:
-            im = np.stack([LetterBox(self.img_size, self.auto, stride=self.stride)(image=x) for x in im0])
+            im = np.stack([LetterBox(self.imgsz, self.auto, stride=self.stride)(image=x) for x in im0])
             im = im[..., ::-1].transpose((0, 3, 1, 2))  # BGR to RGB, BHWC to BCHW
             im = np.ascontiguousarray(im)  # contiguous
 
@@ -104,7 +104,7 @@ class LoadStreams:
 
 class LoadScreenshots:
     # YOLOv5 screenshot dataloader, i.e. `python detect.py --source "screen 0 100 100 512 256"`
-    def __init__(self, source, img_size=640, stride=32, auto=True, transforms=None):
+    def __init__(self, source, imgsz=640, stride=32, auto=True, transforms=None):
         # source = [screen_number left top width height] (pixels)
         check_requirements('mss')
         import mss
@@ -117,7 +117,7 @@ class LoadScreenshots:
             left, top, width, height = (int(x) for x in params)
         elif len(params) == 5:
             self.screen, left, top, width, height = (int(x) for x in params)
-        self.img_size = img_size
+        self.imgsz = imgsz
         self.stride = stride
         self.transforms = transforms
         self.auto = auto
@@ -144,7 +144,7 @@ class LoadScreenshots:
         if self.transforms:
             im = self.transforms(im0)  # transforms
         else:
-            im = LetterBox(self.img_size, self.auto, stride=self.stride)(image=im0)
+            im = LetterBox(self.imgsz, self.auto, stride=self.stride)(image=im0)
             im = im.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
             im = np.ascontiguousarray(im)  # contiguous
         self.frame += 1
@@ -153,7 +153,7 @@ class LoadScreenshots:
 
 class LoadImages:
     # YOLOv5 image/video dataloader, i.e. `python detect.py --source image.jpg/vid.mp4`
-    def __init__(self, path, img_size=640, stride=32, auto=True, transforms=None, vid_stride=1):
+    def __init__(self, path, imgsz=640, stride=32, auto=True, transforms=None, vid_stride=1):
         if isinstance(path, str) and Path(path).suffix == ".txt":  # *.txt file with img/vid/dir on each line
             path = Path(path).read_text().rsplit()
         files = []
@@ -172,7 +172,7 @@ class LoadImages:
         videos = [x for x in files if x.split('.')[-1].lower() in VID_FORMATS]
         ni, nv = len(images), len(videos)
 
-        self.img_size = img_size
+        self.imgsz = imgsz
         self.stride = stride
         self.files = images + videos
         self.nf = ni + nv  # number of files
@@ -226,7 +226,7 @@ class LoadImages:
         if self.transforms:
             im = self.transforms(im0)  # transforms
         else:
-            im = LetterBox(self.img_size, self.auto, stride=self.stride)(image=im0)
+            im = LetterBox(self.imgsz, self.auto, stride=self.stride)(image=im0)
             im = im.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
             im = np.ascontiguousarray(im)  # contiguous
 

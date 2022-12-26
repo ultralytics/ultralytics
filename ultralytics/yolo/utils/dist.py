@@ -3,7 +3,8 @@ import shutil
 import socket
 import sys
 import tempfile
-import time
+
+from . import USER_CONFIG_DIR
 
 
 def find_free_network_port() -> int:
@@ -23,39 +24,37 @@ def find_free_network_port() -> int:
 def generate_ddp_file(trainer):
     import_path = '.'.join(str(trainer.__class__).split(".")[1:-1])
 
-    # remove the save_dir
-    shutil.rmtree(trainer.save_dir)
+    shutil.rmtree(trainer.save_dir)  # remove the save_dir
     content = f'''overrides = {dict(trainer.args)} \nif __name__ == "__main__":
     from ultralytics.{import_path} import {trainer.__class__.__name__}
 
     trainer = {trainer.__class__.__name__}(overrides=overrides)
     trainer.train()'''
+    (USER_CONFIG_DIR / 'DDP').mkdir(exist_ok=True)
     with tempfile.NamedTemporaryFile(prefix="_temp_",
                                      suffix=f"{id(trainer)}.py",
                                      mode="w+",
                                      encoding='utf-8',
-                                     dir=os.path.curdir,
+                                     dir=USER_CONFIG_DIR / 'DDP',
                                      delete=False) as file:
         file.write(content)
     return file.name
 
 
 def generate_ddp_command(world_size, trainer):
-    import __main__  # local import to avoid https://github.com/Lightning-AI/lightning/issues/15218
+    import __main__  # noqa local import to avoid https://github.com/Lightning-AI/lightning/issues/15218
     file_name = os.path.abspath(sys.argv[0])
     using_cli = not file_name.endswith(".py")
     if using_cli:
         file_name = generate_ddp_file(trainer)
     return [
-        sys.executable, "-m", "torch.distributed.launch", "--nproc_per_node", f"{world_size}", "--master_port",
+        sys.executable, "-m", "torch.distributed.run", "--nproc_per_node", f"{world_size}", "--master_port",
         f"{find_free_network_port()}", file_name] + sys.argv[1:]
 
 
 def ddp_cleanup(command, trainer):
-    # delete temp file if  created
-    # TODO: this is a temp solution in case the file is deleted before DDP launching
-    time.sleep(5)
-    tempfile_suffix = str(id(trainer)) + ".py"
+    # delete temp file if created
+    tempfile_suffix = f"{id(trainer)}.py"
     if tempfile_suffix in "".join(command):
         for chunk in command:
             if tempfile_suffix in chunk:

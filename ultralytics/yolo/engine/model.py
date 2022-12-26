@@ -1,15 +1,14 @@
 import torch
 import yaml
 
-from ultralytics import yolo
-from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
+from ultralytics import yolo  # noqa required for python usage
+from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, attempt_load_weights
+# from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.utils import LOGGER
 from ultralytics.yolo.utils.checks import check_yaml
 from ultralytics.yolo.utils.configs import get_config
 from ultralytics.yolo.utils.files import yaml_load
-from ultralytics.yolo.utils.modeling import attempt_load_weights
-from ultralytics.yolo.utils.modeling.tasks import ClassificationModel, DetectionModel, SegmentationModel
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 
 # map head: [model, trainer, validator, predictor]
@@ -111,11 +110,11 @@ class YOLO:
         predictor = self.PredictorClass(overrides=kwargs)
 
         # check size type
-        sz = predictor.args.img_size
+        sz = predictor.args.imgsz
         if type(sz) != int:  # recieved listConfig
-            predictor.args.img_size = [sz[0], sz[0]] if len(sz) == 1 else [sz[0], sz[1]]  # expand
+            predictor.args.imgsz = [sz[0], sz[0]] if len(sz) == 1 else [sz[0], sz[1]]  # expand
         else:
-            predictor.args.img_size = [sz, sz]
+            predictor.args.imgsz = [sz, sz]
 
         predictor.setup(model=self.model, source=source)
         predictor()
@@ -147,7 +146,7 @@ class YOLO:
                             You can pass all arguments as a yaml file in `cfg`. Other args are ignored if `cfg` file is passed
         """
         if not self.model:
-            raise Exception("model not initialized. Use .new() or .load()")
+            raise AttributeError("model not initialized. Use .new() or .load()")
 
         overrides = kwargs
         if kwargs.get("cfg"):
@@ -156,7 +155,7 @@ class YOLO:
         overrides["task"] = self.task
         overrides["mode"] = "train"
         if not overrides.get("data"):
-            raise Exception("dataset not provided! Please check if you have defined `data` in you configs")
+            raise AttributeError("dataset not provided! Please check if you have defined `data` in you configs")
 
         self.trainer = self.TrainerClass(overrides=overrides)
         self.trainer.model = self.trainer.load_model(weights=self.ckpt,
@@ -175,14 +174,15 @@ class YOLO:
         """
         if task:
             if task.lower() not in MODEL_MAP:
-                raise Exception(f"unrecognised task - {task}. Supported tasks are {MODEL_MAP.keys()}")
+                raise SyntaxError(f"unrecognised task - {task}. Supported tasks are {MODEL_MAP.keys()}")
         else:
             ckpt = torch.load(model, map_location="cpu")
             task = ckpt["train_args"]["task"]
             del ckpt
         self.ModelClass, self.TrainerClass, self.ValidatorClass, self.PredictorClass = self._guess_ops_from_task(
             task=task.lower())
-        self.trainer = self.TrainerClass(overrides={"task": task.lower(), "resume": model if model else True})
+        self.trainer = self.TrainerClass(overrides={"task": task.lower(), "resume": model or True})
+
         self.trainer.train()
 
     @staticmethod
@@ -196,8 +196,7 @@ class YOLO:
             task = "segment"
 
         if not task:
-            raise Exception(
-                "task or model not recognized! Please refer the docs at : ")  # TODO: add gitHub and docs links
+            raise SyntaxError("task or model not recognized! Please refer the docs at : ")  # TODO: add docs links
 
         return task
 

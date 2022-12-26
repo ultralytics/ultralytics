@@ -1,3 +1,5 @@
+from ultralytics.yolo.utils.torch_utils import get_flops, get_num_params
+
 try:
     import clearml
     from clearml import Task
@@ -7,39 +9,46 @@ except (ImportError, AssertionError):
     clearml = None
 
 
-def _log_scalers(metric_dict, group="", step=0):
+def _log_images(imgs_dict, group="", step=0):
     task = Task.current_task()
     if task:
-        for k, v in metric_dict.items():
-            task.get_logger().report_scalar(group, k, v, step)
+        for k, v in imgs_dict.items():
+            task.get_logger().report_image(group, k, step, v)
 
 
-def before_train(trainer):
+def on_train_start(trainer):
     # TODO: reuse existing task
-    task = Task.init(project_name=trainer.args.project if trainer.args.project != 'runs/train' else 'YOLOv5',
-                     task_name=trainer.args.name if trainer.args.name != 'exp' else 'Training',
-                     tags=['YOLOv5'],
+    task = Task.init(project_name=trainer.args.project if trainer.args.project != 'runs/train' else 'YOLOv8',
+                     task_name=trainer.args.name,
+                     tags=['YOLOv8'],
                      output_uri=True,
                      reuse_last_task_id=False,
                      auto_connect_frameworks={'pytorch': False})
+    task.connect(dict(trainer.args), name='General')
 
-    task.connect(trainer.args, name='parameters')
 
-
-def on_batch_end(trainer):
-    train_loss = trainer.tloss
-    _log_scalers(trainer.label_loss_items(train_loss), "train", trainer.epoch)
+def on_train_epoch_end(trainer):
+    if trainer.epoch == 1:
+        _log_images({f.stem: str(f) for f in trainer.save_dir.glob('train_batch*.jpg')}, "Mosaic", trainer.epoch)
 
 
 def on_val_end(trainer):
-    metrics = trainer.metrics
-    val_losses = trainer.validator.loss
-    val_loss_dict = trainer.label_loss_items(val_losses)
-    _log_scalers(val_loss_dict, "val", trainer.epoch)
-    _log_scalers(metrics, "metrics", trainer.epoch)
+    if trainer.epoch == 0:
+        model_info = {
+            "Parameters": get_num_params(trainer.model),
+            "GFLOPs": round(get_flops(trainer.model), 1),
+            "Inference speed (ms/img)": round(trainer.validator.speed[1], 1)}
+        Task.current_task().connect(model_info, name='Model')
+
+
+def on_train_end(trainer):
+    Task.current_task().update_output_model(model_path=str(trainer.best),
+                                            model_name=trainer.args.name,
+                                            auto_delete_file=False)
 
 
 callbacks = {
-    "before_train": before_train,
+    "on_train_start": on_train_start,
+    "on_train_epoch_end": on_train_epoch_end,
     "on_val_end": on_val_end,
-    "on_batch_end": on_batch_end,}
+    "on_train_end": on_train_end} if clearml else {}

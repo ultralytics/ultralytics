@@ -29,17 +29,15 @@ import platform
 from pathlib import Path
 
 import cv2
-import torch
 
+from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages, LoadScreenshots, LoadStreams
 from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS, check_dataset, check_dataset_yaml
-from ultralytics.yolo.utils import LOGGER, ROOT, TQDM_BAR_FORMAT, colorstr, ops
+from ultralytics.yolo.utils import LOGGER, ROOT, colorstr, ops
 from ultralytics.yolo.utils.checks import check_file, check_imshow
 from ultralytics.yolo.utils.configs import get_config
 from ultralytics.yolo.utils.files import increment_path
-from ultralytics.yolo.utils.modeling.autobackend import AutoBackend
-from ultralytics.yolo.utils.plotting import Annotator
-from ultralytics.yolo.utils.torch_utils import check_img_size, select_device, smart_inference_mode
+from ultralytics.yolo.utils.torch_utils import check_imgsz, select_device, smart_inference_mode
 
 DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yaml"
 
@@ -97,20 +95,20 @@ class BasePredictor:
         device = select_device(self.args.device)
         model = model or self.args.model
         self.args.half &= device.type != 'cpu'  # half precision only supported on CUDA
-        model = AutoBackend(model, device=device, dnn=self.args.dnn, fp16=self.args.half)  # NOTE: not passing data
+        model = AutoBackend(model, device=device, dnn=self.args.dnn, fp16=self.args.half)
         stride, pt = model.stride, model.pt
-        imgsz = check_img_size(self.args.img_size, s=stride)  # check image size
+        imgsz = check_imgsz(self.args.imgsz, s=stride)  # check image size
 
         # Dataloader
         bs = 1  # batch_size
         if webcam:
             self.view_img = check_imshow(warn=True)
-            self.dataset = LoadStreams(source, img_size=imgsz, stride=stride, auto=pt, vid_stride=self.args.vid_stride)
+            self.dataset = LoadStreams(source, imgsz=imgsz, stride=stride, auto=pt, vid_stride=self.args.vid_stride)
             bs = len(self.dataset)
         elif screenshot:
-            self.dataset = LoadScreenshots(source, img_size=imgsz, stride=stride, auto=pt)
+            self.dataset = LoadScreenshots(source, imgsz=imgsz, stride=stride, auto=pt)
         else:
-            self.dataset = LoadImages(source, img_size=imgsz, stride=stride, auto=pt, vid_stride=self.args.vid_stride)
+            self.dataset = LoadImages(source, imgsz=imgsz, stride=stride, auto=pt, vid_stride=self.args.vid_stride)
         self.vid_path, self.vid_writer = [None] * bs, [None] * bs
         model.warmup(imgsz=(1 if pt or model.triton else bs, 3, *imgsz))  # warmup
 
@@ -125,11 +123,7 @@ class BasePredictor:
 
     @smart_inference_mode()
     def __call__(self, source=None, model=None):
-        if not self.done_setup:
-            model = self.setup(source, model)
-        else:
-            model = self.model
-
+        model = self.model if self.done_setup else self.setup(source, model)
         self.seen, self.windows, self.dt = 0, [], (ops.Profile(), ops.Profile(), ops.Profile())
         for batch in self.dataset:
             path, im, im0s, vid_cap, s = batch

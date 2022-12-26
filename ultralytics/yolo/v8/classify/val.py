@@ -28,14 +28,14 @@ class ClassificationValidator(BaseValidator):
         return {"top1": top1, "top5": top5, "fitness": top5}
 
     def get_dataloader(self, dataset_path, batch_size):
-        return build_classification_dataloader(path=dataset_path, imgsz=self.args.img_size, batch_size=batch_size)
+        return build_classification_dataloader(path=dataset_path, imgsz=self.args.imgsz, batch_size=batch_size)
 
     @property
     def metric_keys(self):
         return ["top1", "top5"]
 
 
-@hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
+@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def val(cfg):
     cfg.data = cfg.data or "imagenette160"
     cfg.model = cfg.model or "resnet18"

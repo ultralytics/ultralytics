@@ -29,7 +29,7 @@ WORLD_SIZE = int(os.getenv('WORLD_SIZE', 1))
 @contextmanager
 def torch_distributed_zero_first(local_rank: int):
     # Decorator to make all processes in distributed training wait for each local_master to do something
-    if local_rank not in [-1, 0]:
+    if local_rank not in {-1, 0}:
         dist.barrier(device_ids=[local_rank])
     yield
     if local_rank == 0:
@@ -124,9 +124,9 @@ def fuse_conv_and_bn(conv, bn):
 
 
 def model_info(model, verbose=False, imgsz=640):
-    # Model information. img_size may be int or list, i.e. img_size=640 or img_size=[640, 320]
-    n_p = sum(x.numel() for x in model.parameters())  # number parameters
-    n_g = sum(x.numel() for x in model.parameters() if x.requires_grad)  # number gradients
+    # Model information. imgsz may be int or list, i.e. imgsz=640 or imgsz=[640, 320]
+    n_p = get_num_params(model)
+    n_g = get_num_gradients(model)  # number gradients
     if verbose:
         print(f"{'layer':>5} {'name':>40} {'gradient':>9} {'parameters':>12} {'shape':>20} {'mu':>10} {'sigma':>10}")
         for i, (name, p) in enumerate(model.named_parameters()):
@@ -134,18 +134,31 @@ def model_info(model, verbose=False, imgsz=640):
             print('%5g %40s %9s %12g %20s %10.3g %10.3g' %
                   (i, name, p.requires_grad, p.numel(), list(p.shape), p.mean(), p.std()))
 
-    try:  # FLOPs
+    flops = get_flops(model, imgsz)
+    fs = f', {flops:.1f} GFLOPs' if flops else ''
+    name = Path(model.yaml_file).stem.replace('yolov5', 'YOLOv5') if hasattr(model, 'yaml_file') else 'Model'
+    LOGGER.info(f"{name} summary: {len(list(model.modules()))} layers, {n_p} parameters, {n_g} gradients{fs}")
+
+
+def get_num_params(model):
+    return sum(x.numel() for x in model.parameters())
+
+
+def get_num_gradients(model):
+    return sum(x.numel() for x in model.parameters() if x.requires_grad)
+
+
+def get_flops(model, imgsz=640):
+    try:
         p = next(model.parameters())
         stride = max(int(model.stride.max()), 32) if hasattr(model, 'stride') else 32  # max stride
         im = torch.empty((1, p.shape[1], stride, stride), device=p.device)  # input image in BCHW format
         flops = thop.profile(deepcopy(model), inputs=(im,), verbose=False)[0] / 1E9 * 2  # stride GFLOPs
         imgsz = imgsz if isinstance(imgsz, list) else [imgsz, imgsz]  # expand if int/float
-        fs = f', {flops * imgsz[0] / stride * imgsz[1] / stride:.1f} GFLOPs'  # 640x640 GFLOPs
+        flops = flops * imgsz[0] / stride * imgsz[1] / stride  # 640x640 GFLOPs
+        return flops
     except Exception:
-        fs = ''
-
-    name = Path(model.yaml_file).stem.replace('yolov5', 'YOLOv5') if hasattr(model, 'yaml_file') else 'Model'
-    LOGGER.info(f"{name} summary: {len(list(model.modules()))} layers, {n_p} parameters, {n_g} gradients{fs}")
+        return 0
 
 
 def initialize_weights(model):
@@ -172,11 +185,11 @@ def scale_img(img, ratio=1.0, same_shape=False, gs=32):  # img(16,3,256,416)
     return F.pad(img, [0, w - s[1], 0, h - s[0]], value=0.447)  # value = imagenet mean
 
 
-def check_img_size(imgsz, s=32, floor=0):
+def check_imgsz(imgsz, s=32, floor=0):
     # Verify image size is a multiple of stride s in each dimension
-    if isinstance(imgsz, int):  # integer i.e. img_size=640
+    if isinstance(imgsz, int):  # integer i.e. imgsz=640
         new_size = max(make_divisible(imgsz, int(s)), floor)
-    else:  # list i.e. img_size=[640, 480]
+    else:  # list i.e. imgsz=[640, 480]
         imgsz = list(imgsz)  # convert to list if tuple
         new_size = [max(make_divisible(x, int(s)), floor) for x in imgsz]
     if new_size != imgsz:

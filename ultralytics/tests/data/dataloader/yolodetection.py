@@ -1,6 +1,5 @@
 import cv2
 import hydra
-import numpy as np
 
 from ultralytics.yolo.data import build_dataloader
 from ultralytics.yolo.utils import ROOT
@@ -55,7 +54,7 @@ def plot_one_box(x, img, color=None, label=None, line_thickness=None):
         )
 
 
-@hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
+@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def test(cfg):
     cfg.task = "detect"
     cfg.mode = "train"

@@ -1,4 +1,3 @@
-import collections
 import math
 import random
 from copy import deepcopy
@@ -65,7 +64,8 @@ class Compose:
 class BaseMixTransform:
     """This implementation is from mmyolo"""
 
-    def __init__(self, pre_transform=None, p=0.0) -> None:
+    def __init__(self, dataset, pre_transform=None, p=0.0) -> None:
+        self.dataset = dataset
         self.pre_transform = pre_transform
         self.p = p
 
@@ -73,70 +73,57 @@ class BaseMixTransform:
         if random.uniform(0, 1) > self.p:
             return labels
 
-        assert "dataset" in labels
-        dataset = labels.pop("dataset")
-
         # get index of one or three other images
-        indexes = self.get_indexes(dataset)
-        if not isinstance(indexes, collections.abc.Sequence):
+        indexes = self.get_indexes()
+        if isinstance(indexes, int):
             indexes = [indexes]
 
         # get images information will be used for Mosaic or MixUp
-        mix_labels = [deepcopy(dataset.get_label_info(index)) for index in indexes]
+        mix_labels = [self.dataset.get_label_info(i) for i in indexes]
 
         if self.pre_transform is not None:
             for i, data in enumerate(mix_labels):
-                # pre_transform may also require dataset
-                data.update({"dataset": dataset})
-                # before Mosaic or MixUp need to go through
-                # the necessary pre_transform
-                _labels = self.pre_transform(data)
-                _labels.pop("dataset")
-                mix_labels[i] = _labels
+                mix_labels[i] = self.pre_transform(data)
         labels["mix_labels"] = mix_labels
 
         # Mosaic or MixUp
         labels = self._mix_transform(labels)
-
-        if "mix_labels" in labels:
-            labels.pop("mix_labels")
-        labels["dataset"] = dataset
-
+        labels.pop("mix_labels", None)
         return labels
 
     def _mix_transform(self, labels):
         raise NotImplementedError
 
-    def get_indexes(self, dataset):
+    def get_indexes(self):
         raise NotImplementedError
 
 
 class Mosaic(BaseMixTransform):
     """Mosaic augmentation.
     Args:
-        img_size (Sequence[int]): Image size after mosaic pipeline of single
+        imgsz (Sequence[int]): Image size after mosaic pipeline of single
             image. The shape order should be (height, width).
             Default to (640, 640).
     """
 
-    def __init__(self, img_size=640, p=1.0, border=(0, 0)):
+    def __init__(self, dataset, imgsz=640, p=1.0, border=(0, 0)):
         assert 0 <= p <= 1.0, "The probability should be in range [0, 1]. " f"got {p}."
-        super().__init__(pre_transform=None, p=p)
-        self.img_size = img_size
+        super().__init__(dataset=dataset, p=p)
+        self.dataset = dataset
+        self.imgsz = imgsz
         self.border = border
 
-    def get_indexes(self, dataset):
-        return [random.randint(0, len(dataset) - 1) for _ in range(3)]
+    def get_indexes(self):
+        return [random.randint(0, len(self.dataset) - 1) for _ in range(3)]
 
     def _mix_transform(self, labels):
         mosaic_labels = []
         assert labels.get("rect_shape", None) is None, "rect and mosaic is exclusive."
         assert len(labels.get("mix_labels", [])) > 0, "There are no other images for mosaic augment."
-        s = self.img_size
+        s = self.imgsz
         yc, xc = (int(random.uniform(-x, 2 * s + x)) for x in self.border)  # mosaic center x, y
-        mix_labels = labels["mix_labels"]
         for i in range(4):
-            labels_patch = deepcopy(labels) if i == 0 else deepcopy(mix_labels[i - 1])
+            labels_patch = (labels if i == 0 else labels["mix_labels"][i - 1]).copy()
             # Load image
             img = labels_patch["img"]
             h, w = labels_patch["resized_shape"]
@@ -184,36 +171,29 @@ class Mosaic(BaseMixTransform):
             instances.append(labels["instances"])
         final_labels = {
             "ori_shape": mosaic_labels[0]["ori_shape"],
-            "resized_shape": (self.img_size * 2, self.img_size * 2),
+            "resized_shape": (self.imgsz * 2, self.imgsz * 2),
             "im_file": mosaic_labels[0]["im_file"],
-            "cls": np.concatenate(cls, 0)}
-
-        final_labels["instances"] = Instances.concatenate(instances, axis=0)
-        final_labels["instances"].clip(self.img_size * 2, self.img_size * 2)
+            "cls": np.concatenate(cls, 0),
+            "instances": Instances.concatenate(instances, axis=0)}
+        final_labels["instances"].clip(self.imgsz * 2, self.imgsz * 2)
         return final_labels
 
 
 class MixUp(BaseMixTransform):
 
-    def __init__(self, pre_transform=None, p=0.0) -> None:
-        super().__init__(pre_transform=pre_transform, p=p)
+    def __init__(self, dataset, pre_transform=None, p=0.0) -> None:
+        super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
 
-    def get_indexes(self, dataset):
-        return random.randint(0, len(dataset) - 1)
+    def get_indexes(self):
+        return random.randint(0, len(self.dataset) - 1)
 
     def _mix_transform(self, labels):
-        im = labels["img"]
-        labels2 = labels["mix_labels"][0]
-        im2 = labels2["img"]
-        cls2 = labels2["cls"]
         # Applies MixUp augmentation https://arxiv.org/pdf/1710.09412.pdf
         r = np.random.beta(32.0, 32.0)  # mixup ratio, alpha=beta=32.0
-        im = (im * r + im2 * (1 - r)).astype(np.uint8)
-        cat_instances = Instances.concatenate([labels["instances"], labels2["instances"]], axis=0)
-        cls = labels["cls"]
-        labels["img"] = im
-        labels["instances"] = cat_instances
-        labels["cls"] = np.concatenate([cls, cls2], 0)
+        labels2 = labels["mix_labels"][0]
+        labels["img"] = (labels["img"] * r + labels2["img"] * (1 - r)).astype(np.uint8)
+        labels["instances"] = Instances.concatenate([labels["instances"], labels2["instances"]], axis=0)
+        labels["cls"] = np.concatenate([labels["cls"], labels2["cls"]], 0)
         return labels
 
 
@@ -345,7 +325,6 @@ class RandomPerspective:
         Affine images and targets.
 
         Args:
-            img(ndarray): image.
             labels(Dict): a dict of `bboxes`, `segments`, `keypoints`.
         """
         img = labels["img"]
@@ -387,7 +366,7 @@ class RandomPerspective:
         return labels
 
     def box_candidates(self, box1, box2, wh_thr=2, ar_thr=100, area_thr=0.1, eps=1e-16):  # box1(4,n), box2(4,n)
-        # Compute candidate boxes: box1 before augment, box2 after augment, wh_thr (pixels), aspect_ratio_thr, area_ratio
+        # Compute box candidates: box1 before augment, box2 after augment, wh_thr (pixels), aspect_ratio_thr, area_ratio
         w1, h1 = box1[2] - box1[0], box1[3] - box1[1]
         w2, h2 = box2[2] - box2[0], box2[3] - box2[1]
         ar = np.maximum(w2 / (h2 + eps), h2 / (w2 + eps))  # aspect ratio
@@ -415,7 +394,6 @@ class RandomHSV:
 
             im_hsv = cv2.merge((cv2.LUT(hue, lut_hue), cv2.LUT(sat, lut_sat), cv2.LUT(val, lut_val)))
             cv2.cvtColor(im_hsv, cv2.COLOR_HSV2BGR, dst=img)  # no return needed
-        labels["img"] = img
         return labels
 
 
@@ -658,9 +636,9 @@ class Format:
         return masks, instances, cls
 
 
-def mosaic_transforms(img_size, hyp):
+def mosaic_transforms(dataset, imgsz, hyp):
     pre_transform = Compose([
-        Mosaic(img_size=img_size, p=hyp.mosaic, border=[-img_size // 2, -img_size // 2]),
+        Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic, border=[-imgsz // 2, -imgsz // 2]),
         CopyPaste(p=hyp.copy_paste),
         RandomPerspective(
             degrees=hyp.degrees,
@@ -668,23 +646,20 @@ def mosaic_transforms(img_size, hyp):
             scale=hyp.scale,
             shear=hyp.shear,
             perspective=hyp.perspective,
-            border=[-img_size // 2, -img_size // 2],
+            border=[-imgsz // 2, -imgsz // 2],
         ),])
     return Compose([
         pre_transform,
-        MixUp(
-            pre_transform=pre_transform,
-            p=hyp.mixup,
-        ),
+        MixUp(dataset, pre_transform=pre_transform, p=hyp.mixup),
         Albumentations(p=1.0),
         RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
         RandomFlip(direction="vertical", p=hyp.flipud),
         RandomFlip(direction="horizontal", p=hyp.fliplr),])  # transforms
 
 
-def affine_transforms(img_size, hyp):
+def affine_transforms(imgsz, hyp):
     return Compose([
-        LetterBox(new_shape=(img_size, img_size)),
+        LetterBox(new_shape=(imgsz, imgsz)),
         RandomPerspective(
             degrees=hyp.degrees,
             translate=hyp.translate,

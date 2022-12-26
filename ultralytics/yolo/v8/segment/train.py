@@ -3,10 +3,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from ultralytics.nn.tasks import SegmentationModel
 from ultralytics.yolo import v8
-from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG, BaseTrainer
+from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.utils.metrics import FocalLoss, bbox_iou, smooth_BCE
-from ultralytics.yolo.utils.modeling.tasks import SegmentationModel
 from ultralytics.yolo.utils.ops import crop_mask, xywh2xyxy
 from ultralytics.yolo.utils.plotting import plot_images, plot_results
 from ultralytics.yolo.utils.torch_utils import de_parallel
@@ -18,17 +18,13 @@ from ..detect import DetectionTrainer
 class SegmentationTrainer(DetectionTrainer):
 
     def load_model(self, model_cfg=None, weights=None):
-        model = SegmentationModel(model_cfg or weights["model"].yaml,
-                                  ch=3,
-                                  nc=self.data["nc"],
-                                  anchors=self.args.get("anchors"))
+        model = SegmentationModel(model_cfg or weights["model"].yaml, ch=3, nc=self.data["nc"])
         if weights:
             model.load(weights)
-        for _, v in model.named_parameters():
-            v.requires_grad = True  # train all layers
         return model
 
     def get_validator(self):
+        self.loss_names = 'box_loss', 'seg_loss', 'cls_loss', 'dfl_loss'
         return v8.segment.SegmentationValidator(self.test_loader,
                                                 save_dir=self.save_dir,
                                                 logger=self.console,
@@ -212,12 +208,11 @@ class SegmentationTrainer(DetectionTrainer):
 
     def label_loss_items(self, loss_items=None, prefix="train"):
         # We should just use named tensors here in future
-        keys = [f"{prefix}/lbox", f"{prefix}/lseg", f"{prefix}/lobj", f"{prefix}/lcls"]
+        keys = [f"{prefix}/{x}" for x in self.loss_names]
         return dict(zip(keys, loss_items)) if loss_items is not None else keys
 
     def progress_string(self):
-        return ('\n' + '%11s' * 7) % \
-               ('Epoch', 'GPU_mem', 'box_loss', 'seg_loss', 'obj_loss', 'cls_loss', 'Size')
+        return ('\n' + '%11s' * 8) % ('Epoch', 'GPU_mem', *self.loss_names, 'Instances', 'Size')
 
     def plot_training_samples(self, batch, ni):
         images = batch["img"]
@@ -232,9 +227,9 @@ class SegmentationTrainer(DetectionTrainer):
         plot_results(file=self.csv, segment=True)  # save results.png
 
 
-@hydra.main(version_base=None, config_path=DEFAULT_CONFIG.parent, config_name=DEFAULT_CONFIG.name)
+@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def train(cfg):
-    cfg.model = cfg.model or "models/yolov5n-seg.yaml"
+    cfg.model = cfg.model or "models/yolov8n-seg.yaml"
     cfg.data = cfg.data or "coco128-seg.yaml"  # or yolo.ClassificationDataset("mnist")
     trainer = SegmentationTrainer(cfg)
     trainer.train()
@@ -243,7 +238,7 @@ def train(cfg):
 if __name__ == "__main__":
     """
     CLI usage:
-    python ultralytics/yolo/v8/segment/train.py model=yolov5n-seg.yaml data=coco128-segments epochs=100 img_size=640
+    python ultralytics/yolo/v8/segment/train.py model=yolov8n-seg.yaml data=coco128-segments epochs=100 imgsz=640
 
     TODO:
     Direct cli support, i.e, yolov8 classify_train args.epochs 10

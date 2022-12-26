@@ -894,7 +894,7 @@ class LoadImagesAndLabels(Dataset):
             lb[:, 0] = i  # add target image index for build_targets()
         batch_idx, cls, bboxes = torch.cat(label, 0).split((1, 1, 4), dim=1)
         return {
-            'ori_shape': shapes,
+            'ori_shape': tuple((x[0] if x else None) for x in shapes),
             'resized_shape': tuple(tuple(x.shape[1:]) for x in im),
             'im_file': path,
             'img': torch.stack(im, 0),

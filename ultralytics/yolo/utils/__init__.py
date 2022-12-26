@@ -6,8 +6,8 @@ import sys
 import threading
 from pathlib import Path
 
-import IPython
 import cv2
+import IPython
 import pandas as pd
 
 # Constants

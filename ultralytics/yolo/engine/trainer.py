@@ -110,8 +110,9 @@ class BaseTrainer:
         world_size = torch.cuda.device_count()
         if world_size > 1 and "LOCAL_RANK" not in os.environ:
             command = generate_ddp_command(world_size, self)
+            print('DDP command: ', command)
             subprocess.Popen(command)
-            ddp_cleanup(command, self)
+            # ddp_cleanup(command, self)  # TODO: uncomment and fix
         else:
             self._do_train(int(os.getenv("RANK", -1)), world_size)
 
@@ -121,7 +122,7 @@ class BaseTrainer:
         torch.cuda.set_device(rank)
         self.device = torch.device('cuda', rank)
         self.console.info(f"RANK - WORLD_SIZE - DEVICE: {rank} - {world_size} - {self.device} ")
-        mp.use_start_method('spawn', force=True)
+        mp.set_start_method('spawn', force=True)
         dist.init_process_group("nccl" if dist.is_nccl_available() else "gloo", rank=rank, world_size=world_size)
 
     def _setup_train(self, rank, world_size):
@@ -195,6 +196,11 @@ class BaseTrainer:
             for i, batch in pbar:
                 self.trigger_callbacks("on_train_batch_start")
 
+                # update dataloader attributes (optional)
+                if epoch == (self.epochs - self.args.close_mosaic) and hasattr(self.train_loader.dataset, 'mosaic'):
+                    LOGGER.info("Closing dataloader mosaic")
+                    self.train_loader.dataset.mosaic = False
+
                 # warmup
                 ni = i + nb * epoch
                 if ni <= nw:
@@ -207,7 +213,7 @@ class BaseTrainer:
                         if 'momentum' in x:
                             x['momentum'] = np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum])
 
-                # Forward
+                # forward
                 with torch.cuda.amp.autocast(self.amp):
                     batch = self.preprocess_batch(batch)
                     preds = self.model(batch["img"])
@@ -217,10 +223,10 @@ class BaseTrainer:
                     self.tloss = (self.tloss * i + self.loss_items) / (i + 1) if self.tloss is not None \
                         else self.loss_items
 
-                # Backward
+                # backward
                 self.scaler.scale(self.loss).backward()
 
-                # Optimize - https://pytorch.org/docs/master/notes/amp_examples.html
+                # optimize - https://pytorch.org/docs/master/notes/amp_examples.html
                 if ni - last_opt_step >= self.accumulate:
                     self.optimizer_step()
                     last_opt_step = ni

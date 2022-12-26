@@ -47,7 +47,7 @@ def generate_ddp_command(world_size, trainer):
     if using_cli:
         file_name = generate_ddp_file(trainer)
     return [
-        sys.executable, "-m", "torch.distributed.launch", "--nproc_per_node", f"{world_size}", "--master_port",
+        sys.executable, "-m", "torch.distributed.run", "--nproc_per_node", f"{world_size}", "--master_port",
         f"{find_free_network_port()}", file_name] + sys.argv[1:]
 
 
@@ -55,7 +55,7 @@ def ddp_cleanup(command, trainer):
     # delete temp file if  created
     # TODO: this is a temp solution in case the file is deleted before DDP launching
     time.sleep(5)
-    tempfile_suffix = str(id(trainer)) + ".py"
+    tempfile_suffix = f"{id(trainer)}.py"
     if tempfile_suffix in "".join(command):
         for chunk in command:
             if tempfile_suffix in chunk:

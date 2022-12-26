@@ -168,11 +168,10 @@ class DetectionValidator(BaseValidator):
                                  batch_size=batch_size,
                                  stride=gs,
                                  hyp=dict(self.args),
-                                 cache=self.args.cache,
+                                 cache=False,
                                  pad=0.5,
                                  rect=self.args.rect,
                                  workers=self.args.workers,
-                                 close_mosaic=self.args.close_mosaic != 0,
                                  prefix=colorstr(f'{val}: '),
                                  shuffle=False,
                                  seed=self.args.seed)[0] if self.args.v5loader else \

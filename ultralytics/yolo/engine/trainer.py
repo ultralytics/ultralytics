@@ -157,8 +157,8 @@ class BaseTrainer:
         if rank in {0, -1}:
             self.test_loader = self.get_dataloader(self.testset, batch_size=batch_size * 2, rank=-1, mode="val")
             self.validator = self.get_validator()
-            # metric_keys = self.validator.metric_keys + self.label_loss_items(prefix="val")
-            # self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))  # TODO: init metrics for plot_results()?
+            metric_keys = self.validator.metric_keys + self.label_loss_items(prefix="val")
+            self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))  # TODO: init metrics for plot_results()?
             self.ema = ModelEMA(self.model)
         self.trigger_callbacks("on_pretrain_routine_end")
 

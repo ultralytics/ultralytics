@@ -110,7 +110,6 @@ class BaseTrainer:
         world_size = torch.cuda.device_count()
         if world_size > 1 and "LOCAL_RANK" not in os.environ:
             command = generate_ddp_command(world_size, self)
-            print('DDP command: ', command)
             try:
                 subprocess.run(command)
             except Exception as e:

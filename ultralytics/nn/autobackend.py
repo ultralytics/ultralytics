@@ -32,7 +32,7 @@ class AutoBackend(nn.Module):
         #   TensorFlow Lite:                *.tflite
         #   TensorFlow Edge TPU:            *_edgetpu.tflite
         #   PaddlePaddle:                   *_paddle_model
-        from ultralytics.yolo.nn import attempt_load_weights
+        from ultralytics.nn import attempt_load_weights
         from ultralytics.yolo.utils.files import yaml_load
 
         super().__init__()

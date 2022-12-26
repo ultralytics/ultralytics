@@ -1,4 +1,4 @@
-from ultralytics.yolo.nn import DetectionModel
+from ultralytics.nn import DetectionModel
 from ultralytics.yolo.utils.checks import check_yaml
 
 

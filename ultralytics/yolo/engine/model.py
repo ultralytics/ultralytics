@@ -4,8 +4,8 @@ import yaml
 from ultralytics import yolo  # noqa required for python usage
 # from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
-from ultralytics.yolo.nn import attempt_load_weights
-from ultralytics.yolo.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel
+from ultralytics.nn import attempt_load_weights
+from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel
 from ultralytics.yolo.utils import LOGGER
 from ultralytics.yolo.utils.checks import check_yaml
 from ultralytics.yolo.utils.configs import get_config

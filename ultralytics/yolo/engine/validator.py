@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
-from ultralytics.yolo.nn import AutoBackend
+from ultralytics.nn import AutoBackend
 from ultralytics.yolo.utils import LOGGER, TQDM_BAR_FORMAT
 from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.ops import Profile

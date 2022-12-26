@@ -1,8 +1,6 @@
 import contextlib
 
-import torchvision
-
-from ultralytics.yolo.nn.modules import *
+from ultralytics.nn.modules import *
 from ultralytics.yolo.utils.downloads import attempt_download
 
 

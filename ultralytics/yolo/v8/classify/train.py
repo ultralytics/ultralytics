@@ -57,6 +57,9 @@ class ClassificationTrainer(BaseTrainer):
     def resume_training(self, ckpt):
         pass
 
+    def final_eval(self):
+        pass
+
 
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def train(cfg):

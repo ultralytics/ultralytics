@@ -16,6 +16,7 @@ from ultralytics.yolo.utils import LOGGER, ROOT, colorstr
 from ultralytics.yolo.utils.checks import check_file, check_font, is_ascii
 from ultralytics.yolo.utils.downloads import download
 from ultralytics.yolo.utils.files import unzip_file, yaml_load
+
 from ..utils.ops import segments2boxes
 
 HELP_URL = "See https://github.com/ultralytics/yolov5/wiki/Train-Custom-Data"

@@ -148,6 +148,7 @@ def get_num_gradients(model):
 
 def get_flops(model, imgsz=640):
     try:
+        model = de_parallel(model)
         p = next(model.parameters())
         stride = max(int(model.stride.max()), 32) if hasattr(model, 'stride') else 32  # max stride
         im = torch.empty((1, p.shape[1], stride, stride), device=p.device)  # input image in BCHW format

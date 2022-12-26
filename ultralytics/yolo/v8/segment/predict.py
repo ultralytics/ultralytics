@@ -4,6 +4,7 @@ import torch
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.utils import ops
 from ultralytics.yolo.utils.plotting import colors, save_one_box
+
 from ..detect.predict import DetectionPredictor
 
 

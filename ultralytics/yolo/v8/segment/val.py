@@ -48,8 +48,6 @@ class SegmentationValidator(DetectionValidator):
         self.nc = head.nc
         self.nm = head.nm if hasattr(head, "nm") else 32
         self.names = model.names
-        if isinstance(self.names, (list, tuple)):  # old format
-            self.names = dict(enumerate(self.names))
         self.metrics.names = self.names
         self.confusion_matrix = ConfusionMatrix(nc=self.nc)
         self.plot_masks = []

@@ -1,6 +1,5 @@
 import cv2
 import hydra
-import numpy as np
 
 from ultralytics.yolo.data import build_dataloader
 from ultralytics.yolo.utils import ROOT

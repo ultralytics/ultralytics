@@ -48,7 +48,7 @@ class DetectionValidator(BaseValidator):
             self.is_coco = self.data.get('val', '').endswith(f'coco{os.sep}val2017.txt')  # is COCO dataset
             self.class_map = ops.coco80_to_coco91_class() if self.is_coco else list(range(1000))
             self.args.save_json |= self.is_coco and not self.training
-            print('DEBUG STRING:', self.training, self.is_coco, self.save_json)
+            print('DEBUG STRING:', self.training, self.is_coco, self.args.save_json)
         self.nc = head.nc
         self.names = model.names
         self.metrics.names = self.names

@@ -114,11 +114,6 @@ class BaseValidator:
 
         stats = self.get_stats()
         self.check_stats(stats)
-
-        if self.args.save_json and self.jdict:
-            with open(str(self.save_dir / "predictions.json"), 'w') as f:
-                json.dump(self.jdict, f)
-
         self.print_results()
         self.speed = tuple(x.t / len(self.dataloader.dataset) * 1E3 for x in dt)  # speeds per image
         if self.training:
@@ -127,6 +122,11 @@ class BaseValidator:
         else:
             self.logger.info('Speed: %.1fms pre-process, %.1fms inference, %.1fms loss, %.1fms post-process per image' %
                              self.speed)
+            if self.args.save_json and self.jdict:
+                with open(str(self.save_dir / "predictions.json"), 'w') as f:
+                    self.logger.info(f"Saving {f.name}...")
+                    json.dump(self.jdict, f)
+            self.eval_json()
             return stats
 
     def get_dataloader(self, dataset_path, batch_size):
@@ -171,4 +171,7 @@ class BaseValidator:
         """
         Returns json/dict for predictions on one batch
         """
+        pass
+
+    def eval_json(self):
         pass

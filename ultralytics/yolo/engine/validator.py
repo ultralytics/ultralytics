@@ -125,8 +125,8 @@ class BaseValidator:
             model.float()
             return {**stats, **trainer.label_loss_items(self.loss.cpu() / len(self.dataloader), prefix="val")}
         else:
-            self.logger.info(
-                'Speed: %.1fms pre-process, %.1fms inference, %.1fms loss, %.1fms post-process per image' % self.speed)
+            self.logger.info('Speed: %.1fms pre-process, %.1fms inference, %.1fms loss, %.1fms post-process per image' %
+                             self.speed)
             return stats
 
     def get_dataloader(self, dataset_path, batch_size):

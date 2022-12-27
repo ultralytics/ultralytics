@@ -215,15 +215,15 @@ class DetectionValidator(BaseValidator):
             anno_json = self.data['path'] / "annotations/instances_val2017.json"  # annotations
             pred_json = self.save_dir / "predictions.json"  # predictions
             self.logger.info(f'\nEvaluating pycocotools mAP using {pred_json} and {anno_json}...')
-            if True:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
+            try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
                 check_requirements('pycocotools')
                 from pycocotools.coco import COCO  # noqa
                 from pycocotools.cocoeval import COCOeval  # noqa
 
                 for x in anno_json, pred_json:
                     assert x.is_file(), f"{x} file not found"
-                anno = COCO(anno_json)  # init annotations api
-                pred = anno.loadRes(str(pred_json))  # init predictions api
+                anno = COCO(str(anno_json))  # init annotations api
+                pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
                 eval = COCOeval(anno, pred, 'bbox')
                 if self.is_coco:
                     eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # images to eval
@@ -231,8 +231,8 @@ class DetectionValidator(BaseValidator):
                 eval.accumulate()
                 eval.summarize()
                 self.metrics.metric.map, self.metrics.metric.map50 = eval.stats[:2]  # update mAP50-95 and mAP50
-            # except Exception as e:
-            #    self.logger.warning(f'pycocotools unable to run: {e}')
+            except Exception as e:
+                self.logger.warning(f'pycocotools unable to run: {e}')
 
 
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)

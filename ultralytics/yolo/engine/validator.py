@@ -116,25 +116,18 @@ class BaseValidator:
         self.check_stats(stats)
 
         if self.args.save_json and self.jdict:
-            path = self.save_dir / "predictions.json"
-            self.logger.info(f'Saving {path}...')
-            with open(str(path), 'w') as f:
+            with open(str(self.save_dir / "predictions.json"), 'w') as f:
                 json.dump(self.jdict, f)
 
         self.print_results()
-
-        if not self.training or trainer.epoch == 0:  # calculate speed only once when training
-            self.speed = tuple(x.t / len(self.dataloader.dataset) * 1E3 for x in dt)  # speeds per image
-
-        if not self.training:  # print only at inference
-            self.logger.info('Speed: %.1fms pre-process, %.1fms inference, %.1fms loss, %.1fms post-process per image' %
-                             self.speed)
-
+        self.speed = tuple(x.t / len(self.dataloader.dataset) * 1E3 for x in dt)  # speeds per image
         if self.training:
             model.float()
-
-        return {**stats, **trainer.label_loss_items(self.loss.cpu() / len(self.dataloader), prefix="val")} \
-            if self.training else stats
+            return {**stats, **trainer.label_loss_items(self.loss.cpu() / len(self.dataloader), prefix="val")}
+        else:
+            self.logger.info(
+                'Speed: %.1fms pre-process, %.1fms inference, %.1fms loss, %.1fms post-process per image' % self.speed)
+            return stats
 
     def get_dataloader(self, dataset_path, batch_size):
         raise NotImplementedError("get_dataloader function not implemented for this validator")

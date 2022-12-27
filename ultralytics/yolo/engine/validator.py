@@ -125,7 +125,7 @@ class BaseValidator:
             if self.args.save_json and self.jdict:
                 with open(str(self.save_dir / "predictions.json"), 'w') as f:
                     self.logger.info(f"Saving {f.name}...")
-                    json.dump(self.jdict, f)
+                    json.dump(sum(self.jdict, []), f)  # flatten and save
 
             self.eval_json()
             return stats

@@ -198,8 +198,7 @@ class DetectionValidator(BaseValidator):
                     names=self.names)  # pred
 
     def pred_to_json(self, preds, batch):
-        imgs = batch["img"]
-        for i, _ in enumerate(imgs):
+        for i in range(len(batch["imgs"])):
             stem = Path(batch["im_file"][i]).stem
             image_id = int(stem) if stem.isnumeric() else stem
             box = ops.xyxy2xywh(preds[i][:, :4])  # xywh
@@ -224,7 +223,7 @@ class DetectionValidator(BaseValidator):
                 for x in anno_json, pred_json:
                     assert x.is_file(), f"{x} file not found"
                 anno = COCO(anno_json)  # init annotations api
-                pred = anno.loadRes(pred_json)  # init predictions api
+                pred = anno.loadRes('yolov5n_predictions.json')  # init predictions api
                 eval = COCOeval(anno, pred, 'bbox')
                 if self.is_coco:
                     eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # images to eval

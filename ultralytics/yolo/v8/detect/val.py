@@ -103,15 +103,11 @@ class DetectionValidator(BaseValidator):
                     self.confusion_matrix.process_batch(predn, labelsn)
             self.stats.append((correct_bboxes, pred[:, 4], pred[:, 5], labels[:, 0]))  # (conf, pcls, tcls)
 
-            # To JSON
+            # Save
             if self.args.save_json:
                 self.pred_to_json(predn, batch)
-
-            # TODO: Save/log
-            '''
-            if self.args.save_txt:
-                save_one_txt(predn, save_conf, shape, file=save_dir / 'labels' / f'{path.stem}.txt')
-            '''
+            # if self.args.save_txt:
+            #    save_one_txt(predn, save_conf, shape, file=save_dir / 'labels' / f'{path.stem}.txt')
 
     def get_stats(self):
         stats = [torch.cat(x, 0).cpu().numpy() for x in zip(*self.stats)]  # to numpy

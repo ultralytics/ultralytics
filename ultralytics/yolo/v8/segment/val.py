@@ -7,7 +7,6 @@ import torch.nn.functional as F
 
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.utils import ops
-from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils.metrics import ConfusionMatrix, SegmentMetrics, box_iou, mask_iou
 from ultralytics.yolo.utils.plotting import output_to_target, plot_images
 
@@ -19,7 +18,6 @@ class SegmentationValidator(DetectionValidator):
     def __init__(self, dataloader=None, save_dir=None, pbar=None, logger=None, args=None):
         super().__init__(dataloader, save_dir, pbar, logger, args)
         if self.args.save_json:
-            check_requirements(['pycocotools'])
             self.process = ops.process_mask_upsample  # more accurate
         else:
             self.process = ops.process_mask  # faster
@@ -42,14 +40,12 @@ class SegmentationValidator(DetectionValidator):
     def init_metrics(self, model):
         head = model.model[-1] if self.training else model.model.model[-1]
         if self.data:
-            self.is_coco = isinstance(self.data.get('val'),
-                                      str) and self.data['val'].endswith(f'coco{os.sep}val2017.txt')
+            self.is_coco = self.data.get('val', '').endswith(f'coco{os.sep}val2017.txt')  # is COCO dataset
             self.class_map = ops.coco80_to_coco91_class() if self.is_coco else list(range(1000))
+            self.args.save_json |= self.is_coco and not self.training  # run on final val if training COCO
         self.nc = head.nc
         self.nm = head.nm if hasattr(head, "nm") else 32
         self.names = model.names
-        if isinstance(self.names, (list, tuple)):  # old format
-            self.names = dict(enumerate(self.names))
         self.metrics.names = self.names
         self.confusion_matrix = ConfusionMatrix(nc=self.nc)
         self.plot_masks = []
@@ -70,7 +66,7 @@ class SegmentationValidator(DetectionValidator):
                                     agnostic=self.args.single_cls,
                                     max_det=self.args.max_det,
                                     nm=self.nm)
-        return (p, preds[1], preds[2])
+        return p, preds[1], preds[2]
 
     def update_metrics(self, preds, batch):
         # Metrics
@@ -117,8 +113,7 @@ class SegmentationValidator(DetectionValidator):
                                                     masks=True)
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, labelsn)
-            self.stats.append((correct_masks, correct_bboxes, pred[:, 4], pred[:, 5], labels[:,
-                                                                                             0]))  # (conf, pcls, tcls)
+            self.stats.append((correct_masks, correct_bboxes, pred[:, 4], pred[:, 5], labels[:, 0]))  # conf, pcls, tcls
 
             pred_masks = torch.as_tensor(pred_masks, dtype=torch.uint8)
             if self.args.plots and self.batch_i < 3:
@@ -186,28 +181,22 @@ class SegmentationValidator(DetectionValidator):
             "metrics/mAP50-95(M)",]
 
     def plot_val_samples(self, batch, ni):
-        images = batch["img"]
-        masks = batch["masks"]
-        cls = batch["cls"].squeeze(-1)
-        bboxes = batch["bboxes"]
-        paths = batch["im_file"]
-        batch_idx = batch["batch_idx"]
-        plot_images(images,
-                    batch_idx,
-                    cls,
-                    bboxes,
-                    masks,
-                    paths=paths,
+        plot_images(batch["img"],
+                    batch["batch_idx"],
+                    batch["cls"].squeeze(-1),
+                    batch["bboxes"],
+                    batch["masks"],
+                    paths=batch["im_file"],
                     fname=self.save_dir / f"val_batch{ni}_labels.jpg",
                     names=self.names)
 
     def plot_predictions(self, batch, preds, ni):
-        images = batch["img"]
-        paths = batch["im_file"]
-        if len(self.plot_masks):
-            plot_masks = torch.cat(self.plot_masks, dim=0)
-        plot_images(images, *output_to_target(preds[0], max_det=15), plot_masks, paths,
-                    self.save_dir / f'val_batch{ni}_pred.jpg', self.names)  # pred
+        plot_images(batch["img"],
+                    *output_to_target(preds[0], max_det=15),
+                    torch.cat(self.plot_masks, dim=0) if len(self.plot_masks) else self.plot_masks,
+                    paths=batch["im_file"],
+                    fname=self.save_dir / f'val_batch{ni}_pred.jpg',
+                    names=self.names)  # pred
         self.plot_masks.clear()
 
 

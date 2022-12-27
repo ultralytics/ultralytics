@@ -110,7 +110,7 @@ class BaseValidator:
                 self.plot_predictions(batch, preds, batch_i)
 
             if self.args.save_json:
-                self.jdict.append(self.pred_to_json(preds, batch))
+                self.pred_to_json(preds, batch)
 
         stats = self.get_stats()
         self.check_stats(stats)
@@ -126,6 +126,7 @@ class BaseValidator:
                 with open(str(self.save_dir / "predictions.json"), 'w') as f:
                     self.logger.info(f"Saving {f.name}...")
                     json.dump(self.jdict, f)
+
             self.eval_json()
             return stats
 
@@ -168,9 +169,6 @@ class BaseValidator:
         pass
 
     def pred_to_json(self, preds, batch):
-        """
-        Returns json/dict for predictions on one batch
-        """
         pass
 
     def eval_json(self):

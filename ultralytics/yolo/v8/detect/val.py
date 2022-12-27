@@ -199,21 +199,17 @@ class DetectionValidator(BaseValidator):
 
     def pred_to_json(self, preds, batch):
         imgs = batch["img"]
-        jdict = []
         for i, _ in enumerate(imgs):
             stem = Path(batch["im_file"][i]).stem
             image_id = int(stem) if stem.isnumeric() else stem
             box = ops.xyxy2xywh(preds[i][:, :4])  # xywh
             box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
             for p, b in zip(preds[i].tolist(), box.tolist()):
-                jdict.append({
+                self.jdict.append({
                     'image_id': image_id,
                     'category_id': self.class_map[int(p[5])],
                     'bbox': [round(x, 3) for x in b],
                     'score': round(p[4], 5)})
-
-                print(jdict[-1])
-        return jdict
 
     def eval_json(self):
         if self.args.save_json and self.is_coco and len(self.jdict):

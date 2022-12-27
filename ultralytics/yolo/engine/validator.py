@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import torch
@@ -29,6 +30,7 @@ class BaseValidator:
         self.batch_i = None
         self.training = True
         self.speed = None
+        self.jdict = None
         self.save_dir = save_dir if save_dir is not None else \
             increment_path(Path(self.args.project) / self.args.name, exist_ok=self.args.exist_ok)
 
@@ -65,11 +67,12 @@ class BaseValidator:
                     self.logger.info(
                         f'Forcing --batch-size 1 square inference (1,3,{imgsz},{imgsz}) for non-PyTorch models')
 
-            if self.args.data.endswith(".yaml"):
+            if isinstance(self.args.data, str) and self.args.data.endswith(".yaml"):
                 data = check_dataset_yaml(self.args.data)
             else:
                 data = check_dataset(self.args.data)
-            self.dataloader = self.get_dataloader(data.get("val") or data.set("test"), self.args.batch_size)
+            self.dataloader = self.get_dataloader(data.get("val") or data.set("test"),
+                                                  self.args.batch_size) if not self.dataloader else self.dataloader
 
         model.eval()
 
@@ -81,6 +84,7 @@ class BaseValidator:
         # bar = tqdm(self.dataloader, desc, n_batches, not self.training, bar_format=TQDM_BAR_FORMAT)
         bar = tqdm(self.dataloader, desc, n_batches, bar_format=TQDM_BAR_FORMAT)
         self.init_metrics(de_parallel(model))
+        self.jdict = []  # empty before each val
         for batch_i, batch in enumerate(bar):
             self.batch_i = batch_i
             # pre-process
@@ -105,25 +109,26 @@ class BaseValidator:
                 self.plot_val_samples(batch, batch_i)
                 self.plot_predictions(batch, preds, batch_i)
 
+            if self.args.save_json:
+                self.pred_to_json(preds, batch)
+
         stats = self.get_stats()
         self.check_stats(stats)
-
         self.print_results()
-
-        # calculate speed only once when training
-        if not self.training or trainer.epoch == 0:
-            self.speed = tuple(x.t / len(self.dataloader.dataset) * 1E3 for x in dt)  # speeds per image
-
-        if not self.training:  # print only at inference
-            self.logger.info('Speed: %.1fms pre-process, %.1fms inference, %.1fms loss, %.1fms post-process per image' %
-                             self.speed)
-
+        self.speed = tuple(x.t / len(self.dataloader.dataset) * 1E3 for x in dt)  # speeds per image
         if self.training:
             model.float()
-        # TODO: implement save json
+            return {**stats, **trainer.label_loss_items(self.loss.cpu() / len(self.dataloader), prefix="val")}
+        else:
+            self.logger.info('Speed: %.1fms pre-process, %.1fms inference, %.1fms loss, %.1fms post-process per image' %
+                             self.speed)
+            if self.args.save_json and self.jdict:
+                with open(str(self.save_dir / "predictions.json"), 'w') as f:
+                    self.logger.info(f"Saving {f.name}...")
+                    json.dump(self.jdict, f)  # flatten and save
 
-        return {**stats, **trainer.label_loss_items(self.loss.cpu() / len(self.dataloader), prefix="val")} \
-            if self.training else stats
+            self.eval_json()
+            return stats
 
     def get_dataloader(self, dataset_path, batch_size):
         raise NotImplementedError("get_dataloader function not implemented for this validator")
@@ -161,4 +166,10 @@ class BaseValidator:
         pass
 
     def plot_predictions(self, batch, preds, ni):
+        pass
+
+    def pred_to_json(self, preds, batch):
+        pass
+
+    def eval_json(self):
         pass

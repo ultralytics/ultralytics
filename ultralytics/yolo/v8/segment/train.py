@@ -17,10 +17,10 @@ from ..detect import DetectionTrainer
 # BaseTrainer python usage
 class SegmentationTrainer(DetectionTrainer):
 
-    def load_model(self, model_cfg=None, weights=None):
-        model = SegmentationModel(model_cfg or weights["model"].yaml, ch=3, nc=self.data["nc"])
+    def load_model(self, model_cfg=None, weights=None, verbose=True):
+        model = SegmentationModel(model_cfg or weights["model"].yaml, ch=3, nc=self.data["nc"], verbose=verbose)
         if weights:
-            model.load(weights)
+            model.load(weights, verbose)
         return model
 
     def get_validator(self):

@@ -1,14 +1,16 @@
 import os
+from pathlib import Path
 
 import hydra
 import numpy as np
 import torch
 
 from ultralytics.yolo.data import build_dataloader
+from ultralytics.yolo.data.dataloaders.v5loader import create_dataloader
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.engine.validator import BaseValidator
-from ultralytics.yolo.utils import ops
-from ultralytics.yolo.utils.checks import check_file
+from ultralytics.yolo.utils import colorstr, ops
+from ultralytics.yolo.utils.checks import check_file, check_requirements
 from ultralytics.yolo.utils.files import yaml_load
 from ultralytics.yolo.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
 from ultralytics.yolo.utils.plotting import output_to_target, plot_images
@@ -43,13 +45,11 @@ class DetectionValidator(BaseValidator):
     def init_metrics(self, model):
         head = model.model[-1] if self.training else model.model.model[-1]
         if self.data:
-            self.is_coco = isinstance(self.data.get('val'),
-                                      str) and self.data['val'].endswith(f'coco{os.sep}val2017.txt')
+            self.is_coco = self.data.get('val', '').endswith(f'coco{os.sep}val2017.txt')  # is COCO dataset
             self.class_map = ops.coco80_to_coco91_class() if self.is_coco else list(range(1000))
+            self.args.save_json |= self.is_coco and not self.training  # run on final val if training COCO
         self.nc = head.nc
         self.names = model.names
-        if isinstance(self.names, (list, tuple)):  # old format
-            self.names = dict(enumerate(self.names))
         self.metrics.names = self.names
         self.confusion_matrix = ConfusionMatrix(nc=self.nc)
         self.seen = 0
@@ -107,11 +107,6 @@ class DetectionValidator(BaseValidator):
             '''
             if self.args.save_txt:
                 save_one_txt(predn, save_conf, shape, file=save_dir / 'labels' / f'{path.stem}.txt')
-            if self.args.save_json:
-                pred_masks = scale_image(im[si].shape[1:],
-                                         pred_masks.permute(1, 2, 0).contiguous().cpu().numpy(), shape, shapes[si][1])
-                save_one_json(predn, jdict, path, class_map, pred_masks)  # append to COCO-JSON dictionary
-            # callbacks.run('on_val_image_end', pred, predn, path, names, im[si])
             '''
 
     def get_stats(self):
@@ -131,7 +126,7 @@ class DetectionValidator(BaseValidator):
                 f'WARNING ⚠️ no labels found in {self.args.task} set, can not compute metrics without labels')
 
         # Print results per class
-        if (self.args.verbose or (self.nc < 50 and not self.training)) and self.nc > 1 and len(self.stats):
+        if (self.args.verbose or not self.training) and self.nc > 1 and len(self.stats):
             for i, c in enumerate(self.metrics.ap_class_index):
                 self.logger.info(pf % (self.names[c], self.seen, self.nt_per_class[c], *self.metrics.class_result(i)))
 
@@ -167,7 +162,19 @@ class DetectionValidator(BaseValidator):
         # TODO: manage splits differently
         # calculate stride - check if model is initialized
         gs = max(int(de_parallel(self.model).stride if self.model else 0), 32)
-        return build_dataloader(self.args, batch_size, img_path=dataset_path, stride=gs, mode="val")[0]
+        return create_dataloader(path=dataset_path,
+                                 imgsz=self.args.imgsz,
+                                 batch_size=batch_size,
+                                 stride=gs,
+                                 hyp=dict(self.args),
+                                 cache=False,
+                                 pad=0.5,
+                                 rect=self.args.rect,
+                                 workers=self.args.workers,
+                                 prefix=colorstr(f'{val}: '),
+                                 shuffle=False,
+                                 seed=self.args.seed)[0] if self.args.v5loader else \
+            build_dataloader(self.args, batch_size, img_path=dataset_path, stride=gs, mode="val")[0]
 
     # TODO: align with train loss metrics
     @property
@@ -175,27 +182,57 @@ class DetectionValidator(BaseValidator):
         return ["metrics/precision(B)", "metrics/recall(B)", "metrics/mAP50(B)", "metrics/mAP50-95(B)"]
 
     def plot_val_samples(self, batch, ni):
-        images = batch["img"]
-        cls = batch["cls"].squeeze(-1)
-        bboxes = batch["bboxes"]
-        paths = batch["im_file"]
-        batch_idx = batch["batch_idx"]
-        plot_images(images,
-                    batch_idx,
-                    cls,
-                    bboxes,
-                    paths=paths,
+        plot_images(batch["img"],
+                    batch["batch_idx"],
+                    batch["cls"].squeeze(-1),
+                    batch["bboxes"],
+                    paths=batch["im_file"],
                     fname=self.save_dir / f"val_batch{ni}_labels.jpg",
                     names=self.names)
 
     def plot_predictions(self, batch, preds, ni):
-        images = batch["img"]
-        paths = batch["im_file"]
-        plot_images(images,
+        plot_images(batch["img"],
                     *output_to_target(preds, max_det=15),
-                    paths=paths,
+                    paths=batch["im_file"],
                     fname=self.save_dir / f'val_batch{ni}_pred.jpg',
                     names=self.names)  # pred
+
+    def pred_to_json(self, preds, batch):
+        for i, f in enumerate(batch["im_file"]):
+            stem = Path(f).stem
+            image_id = int(stem) if stem.isnumeric() else stem
+            box = ops.xyxy2xywh(preds[i][:, :4])  # xywh
+            box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
+            for p, b in zip(preds[i].tolist(), box.tolist()):
+                self.jdict.append({
+                    'image_id': image_id,
+                    'category_id': self.class_map[int(p[5])],
+                    'bbox': [round(x, 3) for x in b],
+                    'score': round(p[4], 5)})
+
+    def eval_json(self):
+        if self.args.save_json and self.is_coco and len(self.jdict):
+            anno_json = self.data['path'] / "annotations/instances_val2017.json"  # annotations
+            pred_json = self.save_dir / "predictions.json"  # predictions
+            self.logger.info(f'\nEvaluating pycocotools mAP using {pred_json} and {anno_json}...')
+            try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
+                check_requirements('pycocotools')
+                from pycocotools.coco import COCO  # noqa
+                from pycocotools.cocoeval import COCOeval  # noqa
+
+                for x in anno_json, pred_json:
+                    assert x.is_file(), f"{x} file not found"
+                anno = COCO(str(anno_json))  # init annotations api
+                pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
+                eval = COCOeval(anno, pred, 'bbox')
+                if self.is_coco:
+                    eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # images to eval
+                eval.evaluate()
+                eval.accumulate()
+                eval.summarize()
+                self.metrics.metric.map, self.metrics.metric.map50 = eval.stats[:2]  # update mAP50-95 and mAP50
+            except Exception as e:
+                self.logger.warning(f'pycocotools unable to run: {e}')
 
 
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)

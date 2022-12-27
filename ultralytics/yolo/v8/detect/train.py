@@ -13,7 +13,7 @@ from ultralytics.yolo.utils.metrics import smooth_BCE
 from ultralytics.yolo.utils.ops import xywh2xyxy
 from ultralytics.yolo.utils.plotting import plot_images, plot_results
 from ultralytics.yolo.utils.tal import TaskAlignedAssigner, dist2bbox, make_anchors
-from ultralytics.yolo.utils.torch_utils import de_parallel
+from ultralytics.yolo.utils.torch_utils import de_parallel, strip_optimizer
 
 
 # BaseTrainer python usage
@@ -54,10 +54,10 @@ class DetectionTrainer(BaseTrainer):
         # TODO: self.model.class_weights = labels_to_class_weights(dataset.labels, nc).to(device) * nc
         self.model.names = self.data["names"]
 
-    def load_model(self, model_cfg=None, weights=None):
-        model = DetectionModel(model_cfg or weights["model"].yaml, ch=3, nc=self.data["nc"])
+    def load_model(self, model_cfg=None, weights=None, verbose=True):
+        model = DetectionModel(model_cfg or weights["model"].yaml, ch=3, nc=self.data["nc"], verbose=verbose)
         if weights:
-            model.load(weights)
+            model.load(weights, verbose)
         return model
 
     def get_validator(self):

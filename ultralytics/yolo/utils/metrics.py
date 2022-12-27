@@ -337,7 +337,7 @@ def compute_ap(recall, precision):
         x = np.linspace(0, 1, 101)  # 101-point interp (COCO)
         ap = np.trapz(np.interp(x, mrec, mpre), x)  # integrate
     else:  # 'continuous'
-        i = np.where(mrec[1:] != mrec[:-1])[0]  # points where x axis (recall) changes
+        i = np.where(mrec[1:] != mrec[:-1])[0]  # points where x-axis (recall) changes
         ap = np.sum((mrec[i + 1] - mrec[i]) * mpre[i + 1])  # area under curve
 
     return ap, mpre, mrec
@@ -469,11 +469,11 @@ class Metric:
 
     def mean_results(self):
         """Mean of results, return mp, mr, map50, map"""
-        return (self.mp, self.mr, self.map50, self.map)
+        return self.mp, self.mr, self.map50, self.map
 
     def class_result(self, i):
         """class-aware result, return p[i], r[i], ap50[i], ap[i]"""
-        return (self.p[i], self.r[i], self.ap50[i], self.ap[i])
+        return self.p[i], self.r[i], self.ap50[i], self.ap[i]
 
     def get_maps(self, nc):
         maps = np.zeros(nc) + self.map
@@ -491,12 +491,7 @@ class Metric:
         Args:
             results: tuple(p, r, ap, f1, ap_class)
         """
-        p, r, f1, all_ap, ap_class_index = results
-        self.p = p
-        self.r = r
-        self.all_ap = all_ap
-        self.f1 = f1
-        self.ap_class_index = ap_class_index
+        self.p, self.r, self.f1, self.all_ap, self.ap_class_index = results
 
 
 class DetMetrics:

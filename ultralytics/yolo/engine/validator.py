@@ -171,5 +171,5 @@ class BaseValidator:
     def pred_to_json(self, preds, batch):
         pass
 
-    def eval_json(self):
+    def eval_json(self, stats):
         pass

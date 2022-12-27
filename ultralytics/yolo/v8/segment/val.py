@@ -9,6 +9,7 @@ from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.utils import ops
 from ultralytics.yolo.utils.metrics import ConfusionMatrix, SegmentMetrics, box_iou, mask_iou
 from ultralytics.yolo.utils.plotting import output_to_target, plot_images
+
 from ..detect import DetectionValidator
 
 
@@ -177,7 +178,7 @@ class SegmentationValidator(DetectionValidator):
             "metrics/precision(M)",
             "metrics/recall(M)",
             "metrics/mAP50(M)",
-            "metrics/mAP50-95(M)", ]
+            "metrics/mAP50-95(M)",]
 
     def plot_val_samples(self, batch, ni):
         plot_images(batch["img"],

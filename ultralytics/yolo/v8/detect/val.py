@@ -105,7 +105,7 @@ class DetectionValidator(BaseValidator):
 
             # To JSON
             if self.args.save_json:
-                self.pred_to_json(preds, batch)
+                self.pred_to_json(predn, batch)
 
             # TODO: Save/log
             '''

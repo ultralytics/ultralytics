@@ -223,7 +223,7 @@ class DetectionValidator(BaseValidator):
                 for x in anno_json, pred_json:
                     assert x.is_file(), f"{x} file not found"
                 anno = COCO(anno_json)  # init annotations api
-                pred = anno.loadRes('yolov5n_predictions.json')  # init predictions api
+                pred = anno.loadRes(pred_json)  # init predictions api
                 eval = COCOeval(anno, pred, 'bbox')
                 if self.is_coco:
                     eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # images to eval

@@ -201,8 +201,8 @@ class DetectionValidator(BaseValidator):
         imgs = batch["img"]
         jdict = []
         for i, _ in enumerate(imgs):
-            img_name = Path(batch["im_file"][i]).stem
-            image_id = int(img_name) if img_name.isnumeric() else img_name
+            stem = Path(batch["im_file"][i]).stem
+            image_id = int(stem) if stem.isnumeric() else stem
             box = ops.xyxy2xywh(preds[i][:, :4])  # xywh
             box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
             for p, b in zip(preds[i].tolist(), box.tolist()):
@@ -211,6 +211,8 @@ class DetectionValidator(BaseValidator):
                     'category_id': self.class_map[int(p[5])],
                     'bbox': [round(x, 3) for x in b],
                     'score': round(p[4], 5)})
+
+                print(jdict[-1])
         return jdict
 
     def eval_json(self):
@@ -225,8 +227,8 @@ class DetectionValidator(BaseValidator):
 
                 for x in anno_json, pred_json:
                     assert x.is_file(), f"{x} file not found"
-                anno = COCO(str(anno_json))  # init annotations api
-                pred = anno.loadRes(str(pred_json))  # init predictions api
+                anno = COCO(anno_json)  # init annotations api
+                pred = anno.loadRes(pred_json)  # init predictions api
                 eval = COCOeval(anno, pred, 'bbox')
                 if self.is_coco:
                     eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # images to eval
@@ -234,7 +236,7 @@ class DetectionValidator(BaseValidator):
                 eval.accumulate()
                 eval.summarize()
                 self.metrics.metric.map, self.metrics.metric.map50 = eval.stats[:2]  # update mAP50-95 and mAP50
-            #except Exception as e:
+            # except Exception as e:
             #    self.logger.warning(f'pycocotools unable to run: {e}')
 
 

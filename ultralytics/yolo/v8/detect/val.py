@@ -103,7 +103,7 @@ class DetectionValidator(BaseValidator):
                     self.confusion_matrix.process_batch(predn, labelsn)
             self.stats.append((correct_bboxes, pred[:, 4], pred[:, 5], labels[:, 0]))  # (conf, pcls, tcls)
 
-             # To JSON
+            # To JSON
             if self.args.save_json:
                 self.pred_to_json(preds, batch)
 

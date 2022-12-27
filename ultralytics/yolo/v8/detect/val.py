@@ -198,8 +198,8 @@ class DetectionValidator(BaseValidator):
                     names=self.names)  # pred
 
     def pred_to_json(self, preds, batch):
-        for i in range(len(batch["imgs"])):
-            stem = Path(batch["im_file"][i]).stem
+        for i, f in enumerate(batch["im_file"]):
+            stem = Path(f).stem
             image_id = int(stem) if stem.isnumeric() else stem
             box = ops.xyxy2xywh(preds[i][:, :4])  # xywh
             box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner

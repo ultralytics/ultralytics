@@ -123,8 +123,7 @@ class BaseValidator:
                 with open(str(self.save_dir / "predictions.json"), 'w') as f:
                     self.logger.info(f"Saving {f.name}...")
                     json.dump(self.jdict, f)  # flatten and save
-
-            stats = self.eval_json(stats)
+                stats = self.eval_json(stats)  # update stats
             return stats
 
     def get_dataloader(self, dataset_path, batch_size):

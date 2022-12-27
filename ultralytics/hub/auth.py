@@ -3,8 +3,9 @@ import json
 
 import requests
 
-from .config import HUB_API_ROOT
 from ultralytics.yolo.utils import emojis, is_colab
+
+from .config import HUB_API_ROOT
 from .yolov5_utils.hub_utils import request_with_credentials
 
 API_KEY_PATH = "https://hub.ultralytics.com/settings?tab=api+keys"
@@ -41,7 +42,7 @@ class Auth:
         Attempt to fetch authentication via cookies and set id_token.
         User must be logged in to HUB and running in a supported browser.
         """
-        if not is_colab(): return False # Currently only works with Colab
+        if not is_colab(): return False  # Currently only works with Colab
         try:
             authn = request_with_credentials(f"{HUB_API_ROOT}/v1/auth/auto")
             if authn.get("success", False):
@@ -65,6 +66,6 @@ class Auth:
         """Get the authentication state"""
         return self.id_token or self.api_key
 
-    def set_api_key(self, key : str) -> bool:
+    def set_api_key(self, key: str) -> bool:
         """Get the authentication state"""
         self.api_key = key

@@ -218,7 +218,7 @@ class DetectionValidator(BaseValidator):
             anno_json = self.data['path'] / "annotations/instances_val2017.json"  # annotations
             pred_json = self.save_dir / "predictions.json"  # predictions
             self.logger.info(f'\nEvaluating pycocotools mAP using {pred_json}...')
-            try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
+            if True:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
                 check_requirements('pycocotools')
                 from pycocotools.coco import COCO  # noqa
                 from pycocotools.cocoeval import COCOeval  # noqa
@@ -234,8 +234,8 @@ class DetectionValidator(BaseValidator):
                 eval.accumulate()
                 eval.summarize()
                 self.metrics.metric.map, self.metrics.metric.map50 = eval.stats[:2]  # update mAP50-95 and mAP50
-            except Exception as e:
-                self.logger.warning(f'pycocotools unable to run: {e}')
+            #except Exception as e:
+            #    self.logger.warning(f'pycocotools unable to run: {e}')
 
 
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)

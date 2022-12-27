@@ -142,11 +142,11 @@ class BaseTrainer:
         # Optimizer
         self.accumulate = max(round(self.args.nbs / self.batch_size), 1)  # accumulate loss before optimizing
         self.args.weight_decay *= self.batch_size * self.accumulate / self.args.nbs  # scale weight_decay
-        self.optimizer = build_optimizer(model=self.model,
-                                         name=self.args.optimizer,
-                                         lr=self.args.lr0,
-                                         momentum=self.args.momentum,
-                                         decay=self.args.weight_decay)
+        self.optimizer = self.build_optimizer(model=self.model,
+                                              name=self.args.optimizer,
+                                              lr=self.args.lr0,
+                                              momentum=self.args.momentum,
+                                              decay=self.args.weight_decay)
         # Scheduler
         if self.args.cos_lr:
             self.lf = one_cycle(1, self.args.lrf, self.epochs)  # cosine 1->hyp['lrf']
@@ -459,33 +459,31 @@ class BaseTrainer:
         self.best_fitness = best_fitness
         self.start_epoch = start_epoch
 
+    @staticmethod
+    def build_optimizer(model, name='Adam', lr=0.001, momentum=0.9, decay=1e-5):
+        g = [], [], []  # optimizer parameter groups
+        bn = tuple(v for k, v in nn.__dict__.items() if 'Norm' in k)  # normalization layers, i.e. BatchNorm2d()
+        for v in model.modules():
+            if hasattr(v, 'bias') and isinstance(v.bias, nn.Parameter):  # bias (no decay)
+                g[2].append(v.bias)
+            if isinstance(v, bn):  # weight (no decay)
+                g[1].append(v.weight)
+            elif hasattr(v, 'weight') and isinstance(v.weight, nn.Parameter):  # weight (with decay)
+                g[0].append(v.weight)
 
-def build_optimizer(model, name='Adam', lr=0.001, momentum=0.9, decay=1e-5):
-    # TODO: 1. docstring with example? 2. Move this inside Trainer? or utils?
-    # YOLOv5 3-param group optimizer: 0) weights with decay, 1) weights no decay, 2) biases no decay
-    g = [], [], []  # optimizer parameter groups
-    bn = tuple(v for k, v in nn.__dict__.items() if 'Norm' in k)  # normalization layers, i.e. BatchNorm2d()
-    for v in model.modules():
-        if hasattr(v, 'bias') and isinstance(v.bias, nn.Parameter):  # bias (no decay)
-            g[2].append(v.bias)
-        if isinstance(v, bn):  # weight (no decay)
-            g[1].append(v.weight)
-        elif hasattr(v, 'weight') and isinstance(v.weight, nn.Parameter):  # weight (with decay)
-            g[0].append(v.weight)
+        if name == 'Adam':
+            optimizer = torch.optim.Adam(g[2], lr=lr, betas=(momentum, 0.999))  # adjust beta1 to momentum
+        elif name == 'AdamW':
+            optimizer = torch.optim.AdamW(g[2], lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
+        elif name == 'RMSProp':
+            optimizer = torch.optim.RMSprop(g[2], lr=lr, momentum=momentum)
+        elif name == 'SGD':
+            optimizer = torch.optim.SGD(g[2], lr=lr, momentum=momentum, nesterov=True)
+        else:
+            raise NotImplementedError(f'Optimizer {name} not implemented.')
 
-    if name == 'Adam':
-        optimizer = torch.optim.Adam(g[2], lr=lr, betas=(momentum, 0.999))  # adjust beta1 to momentum
-    elif name == 'AdamW':
-        optimizer = torch.optim.AdamW(g[2], lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
-    elif name == 'RMSProp':
-        optimizer = torch.optim.RMSprop(g[2], lr=lr, momentum=momentum)
-    elif name == 'SGD':
-        optimizer = torch.optim.SGD(g[2], lr=lr, momentum=momentum, nesterov=True)
-    else:
-        raise NotImplementedError(f'Optimizer {name} not implemented.')
-
-    optimizer.add_param_group({'params': g[0], 'weight_decay': decay})  # add g0 with weight_decay
-    optimizer.add_param_group({'params': g[1], 'weight_decay': 0.0})  # add g1 (BatchNorm2d weights)
-    LOGGER.info(f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}) with parameter groups "
-                f"{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias")
-    return optimizer
+        optimizer.add_param_group({'params': g[0], 'weight_decay': decay})  # add g0 with weight_decay
+        optimizer.add_param_group({'params': g[1], 'weight_decay': 0.0})  # add g1 (BatchNorm2d weights)
+        LOGGER.info(f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}) with parameter groups "
+                    f"{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias")
+        return optimizer

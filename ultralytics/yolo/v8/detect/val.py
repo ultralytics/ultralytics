@@ -210,7 +210,7 @@ class DetectionValidator(BaseValidator):
                     'bbox': [round(x, 3) for x in b],
                     'score': round(p[4], 5)})
 
-    def eval_json(self):
+    def eval_json(self, stats):
         if self.args.save_json and self.is_coco and len(self.jdict):
             anno_json = self.data['path'] / "annotations/instances_val2017.json"  # annotations
             pred_json = self.save_dir / "predictions.json"  # predictions
@@ -230,9 +230,10 @@ class DetectionValidator(BaseValidator):
                 eval.evaluate()
                 eval.accumulate()
                 eval.summarize()
-                self.metrics.metric.map, self.metrics.metric.map50 = eval.stats[:2]  # update mAP50-95 and mAP50
+                stats[self.metric_keys[-1]], stats[self.metric_keys[-2]] = eval.stats[:2]   # update mAP50-95 and mAP50
             except Exception as e:
                 self.logger.warning(f'pycocotools unable to run: {e}')
+        return stats
 
 
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)

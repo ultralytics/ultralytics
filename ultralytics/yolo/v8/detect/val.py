@@ -71,7 +71,7 @@ class DetectionValidator(BaseValidator):
 
     def update_metrics(self, preds, batch):
         # Metrics
-        for si, (pred) in enumerate(preds):
+        for si, pred in enumerate(preds):
             labels = self.targets[self.targets[:, 0] == si, 1:]
             nl, npr = labels.shape[0], pred.shape[0]  # number of labels, predictions
             shape = batch["ori_shape"][si]
@@ -102,6 +102,10 @@ class DetectionValidator(BaseValidator):
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, labelsn)
             self.stats.append((correct_bboxes, pred[:, 4], pred[:, 5], labels[:, 0]))  # (conf, pcls, tcls)
+
+             # To JSON
+            if self.args.save_json:
+                self.pred_to_json(preds, batch)
 
             # TODO: Save/log
             '''

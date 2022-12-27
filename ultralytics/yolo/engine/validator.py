@@ -109,9 +109,6 @@ class BaseValidator:
                 self.plot_val_samples(batch, batch_i)
                 self.plot_predictions(batch, preds, batch_i)
 
-            if self.args.save_json:
-                self.pred_to_json(preds, batch)
-
         stats = self.get_stats()
         self.check_stats(stats)
         self.print_results()

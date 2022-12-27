@@ -129,7 +129,9 @@ class BaseValidator:
             model.float()
 
         if self.args.save_json and self.jdict:
-            with open(str(self.save_dir / "predictions.json"), 'w') as f:
+            path = self.save_dir / "predictions.json"
+            self.logger.info(f'Saving {path}...')
+            with open(str(path), 'w') as f:
                 json.dump(self.jdict, f)
 
         return {**stats, **trainer.label_loss_items(self.loss.cpu() / len(self.dataloader), prefix="val")} \

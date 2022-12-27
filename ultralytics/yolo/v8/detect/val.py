@@ -10,7 +10,7 @@ from ultralytics.yolo.data.dataloaders.v5loader import create_dataloader
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.engine.validator import BaseValidator
 from ultralytics.yolo.utils import colorstr, ops
-from ultralytics.yolo.utils.checks import check_file
+from ultralytics.yolo.utils.checks import check_file, check_requirements
 from ultralytics.yolo.utils.files import yaml_load
 from ultralytics.yolo.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
 from ultralytics.yolo.utils.plotting import output_to_target, plot_images
@@ -132,6 +132,28 @@ class DetectionValidator(BaseValidator):
 
         if self.args.plots:
             self.confusion_matrix.plot(save_dir=self.save_dir, names=list(self.names.values()))
+
+        # Pycocotools eval
+        if self.args.save_json and self.is_coco and len(self.jdict):
+            anno_json = str(Path('../datasets/coco/annotations/instances_val2017.json'))  # annotations
+            pred_json = str(self.save_dir / "predictions.json")
+            self.logger.info(f'Evaluating pycocotools mAP...')
+            try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
+                check_requirements('pycocotools')
+                from pycocotools.coco import COCO  # noqa
+                from pycocotools.cocoeval import COCOeval  # noqa
+
+                anno = COCO(anno_json)  # init annotations api
+                pred = anno.loadRes(pred_json)  # init predictions api
+                eval = COCOeval(anno, pred, 'bbox')
+                if self.is_coco:
+                    eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # images to eval
+                eval.evaluate()
+                eval.accumulate()
+                eval.summarize()
+                self.metrics.metric.map, self.metrics.metric.map50 = eval.stats[:2]  # update mAP50-95 and mAP50
+            except Exception as e:
+                self.logger.info(f'pycocotools unable to run: {e}')
 
     def _process_batch(self, detections, labels):
         """

@@ -115,10 +115,15 @@ class BaseValidator:
         stats = self.get_stats()
         self.check_stats(stats)
 
+        if self.args.save_json and self.jdict:
+            path = self.save_dir / "predictions.json"
+            self.logger.info(f'Saving {path}...')
+            with open(str(path), 'w') as f:
+                json.dump(self.jdict, f)
+
         self.print_results()
 
-        # calculate speed only once when training
-        if not self.training or trainer.epoch == 0:
+        if not self.training or trainer.epoch == 0:  # calculate speed only once when training
             self.speed = tuple(x.t / len(self.dataloader.dataset) * 1E3 for x in dt)  # speeds per image
 
         if not self.training:  # print only at inference
@@ -127,12 +132,6 @@ class BaseValidator:
 
         if self.training:
             model.float()
-
-        if self.args.save_json and self.jdict:
-            path = self.save_dir / "predictions.json"
-            self.logger.info(f'Saving {path}...')
-            with open(str(path), 'w') as f:
-                json.dump(self.jdict, f)
 
         return {**stats, **trainer.label_loss_items(self.loss.cpu() / len(self.dataloader), prefix="val")} \
             if self.training else stats

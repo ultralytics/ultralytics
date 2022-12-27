@@ -127,7 +127,7 @@ class BaseValidator:
                     self.logger.info(f"Saving {f.name}...")
                     json.dump(self.jdict, f)  # flatten and save
 
-            self.eval_json()
+            stats = self.eval_json(stats)
             return stats
 
     def get_dataloader(self, dataset_path, batch_size):
@@ -171,5 +171,5 @@ class BaseValidator:
     def pred_to_json(self, preds, batch):
         pass
 
-    def eval_json(self):
+    def eval_json(self, stats):
         pass

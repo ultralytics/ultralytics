@@ -214,7 +214,7 @@ class DetectionValidator(BaseValidator):
         if self.args.save_json and self.is_coco and len(self.jdict):
             anno_json = self.data['path'] / "annotations/instances_val2017.json"  # annotations
             pred_json = self.save_dir / "predictions.json"  # predictions
-            self.logger.info(f'\nEvaluating pycocotools mAP using {pred_json}...')
+            self.logger.info(f'\nEvaluating pycocotools mAP using {pred_json} and {anno_json}...')
             if True:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
                 check_requirements('pycocotools')
                 from pycocotools.coco import COCO  # noqa

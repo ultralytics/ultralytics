@@ -91,14 +91,14 @@ jobs:
         shell: bash  # for Windows compatibility
         run: |
           yolo task=detect mode=train model=yolov8n.yaml data=coco128.yaml epochs=1 imgsz=64
-          yolo task=detect mode=val model=runs/train/exp/weights/last.pt imgsz=64
+          yolo task=detect mode=val model=runs/detect/train/weights/last.pt imgsz=64
       - name: Test segmentation  # TODO: segmentation CI
         shell: bash  # for Windows compatibility
         run: |
         # yolo task=segment mode=train model=yolov8n-seg.yaml data=coco128-seg.yaml epochs=1 imgsz=64
-        # yolo task=segment mode=val model=runs/train/exp2/weights/last.pt data=coco128-seg.yaml imgsz=64
+        # yolo task=segment mode=val model=runs/segment/train/weights/last.pt data=coco128-seg.yaml imgsz=64
       - name: Test classification  # TODO: change to exp3 on Segmentation CI update
         shell: bash  # for Windows compatibility
         run: |
           yolo task=classify mode=train model=resnet18 data=mnist160 epochs=1 imgsz=32
-          yolo task=classify mode=val model=runs/train/exp2/weights/last.pt data=mnist160
+          yolo task=classify mode=val model=runs/classify/train/weights/last.pt data=mnist160

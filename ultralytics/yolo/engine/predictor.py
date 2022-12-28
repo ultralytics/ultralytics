@@ -86,10 +86,15 @@ class BasePredictor:
 
         # data
         if self.data:
-            if self.data.endswith(".yaml"):
-                self.data = check_dataset_yaml(self.data)
-            else:
-                self.data = check_dataset(self.data)
+            try:
+                if self.data.endswith(".yaml"):
+                    self.data = check_dataset_yaml(self.data)
+                else:
+                    self.data = check_dataset(self.data)
+            except AssertionError as e:
+                LOGGER.info(f"Error ocurred: {e}")
+            finally:
+                LOGGER.info("Predictor will continue without reading the dataset")
 
         # model
         device = select_device(self.args.device)

@@ -112,8 +112,9 @@ class YOLO:
         source (str): Accepts all source types accepted by yolo
         **kwargs : Any other args accepted by the predictors. Too see all args check 'configuration' section in the docs
         """
-        kwargs.update(self.overrides)
-        predictor = self.PredictorClass(overrides=kwargs)
+        overrides = self.overrides.copy()
+        overrides.update(kwargs)
+        predictor = self.PredictorClass(overrides=overrides)
 
         # check size type
         sz = predictor.args.imgsz
@@ -136,8 +137,9 @@ class YOLO:
         if not self.model:
             raise Exception("model not initialized!")
 
-        kwargs.update(self.overrides)
-        args = get_config(config=DEFAULT_CONFIG, overrides=kwargs)
+        overrides = self.overrides.copy()
+        overrides.update(kwargs)
+        args = get_config(config=DEFAULT_CONFIG, overrides=overrides)
         args.data = data or args.data
         args.task = self.task
 

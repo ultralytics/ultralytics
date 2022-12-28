@@ -33,7 +33,7 @@ class SegmentationTrainer(DetectionTrainer):
 
     def criterion(self, preds, batch):
         if not hasattr(self, 'compute_loss'):
-            self.compute_loss = SegLoss(de_parallel(self.model))
+            self.compute_loss = SegLoss(de_parallel(self.model), overlap=self.args.overlap_mask)
         return self.compute_loss(preds, batch)
 
     def plot_training_samples(self, batch, ni):

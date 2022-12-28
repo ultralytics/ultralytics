@@ -23,8 +23,11 @@ yolo task=detect    mode=train     model=yolov8n.yaml ...
 ### 2. Python SDK
 To use pythonic interface of Ultralytics YOLO model
 ```python
+from ultralytics import YOLO
+
 model = YOLO.new('yolov8n.yaml')  # create a new model from scratch
 model = YOLO.load('yolov8n.pt')  # load a pretrained model (recommended for best training results)
+
 results = model.train(data='coco128.yaml', epochs=100, imgsz=640, ...)
 results = model.val()
 results = model.predict(source='bus.jpg')

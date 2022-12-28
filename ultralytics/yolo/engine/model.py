@@ -1,11 +1,12 @@
+from pathlib import Path
+
 import torch
 import yaml
-from pathlib import Path
 
 from ultralytics import yolo  # noqa required for python usage
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, attempt_load_weights
-from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.engine.exporter import export_model
+from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.utils import HELP_MSG, LOGGER
 from ultralytics.yolo.utils.checks import check_yaml
 from ultralytics.yolo.utils.configs import get_config
@@ -183,28 +184,29 @@ class YOLO:
             file = Path(save_dir) / file.name
             file.parent.mkdir(parents=True, exist_ok=True)
 
-        export_model(model=self.model,
-                     file=file,
-                     data=args.data,  # 'dataset.yaml path'
-                     imgsz=args.imgsz or (640, 640),  # image (height, width)
-                     batch_size=1,  # batch size
-                     device=args.device,  # cuda device, i.e. 0 or 0,1,2,3 or cpu
-                     format=args.format or 'onnx',  # include formats
-                     half=args.half or False,  # FP16 half-precision export
-                     keras=args.keras or False,  # use Keras
-                     optimize=args.optimize or False,  # TorchScript: optimize for mobile
-                     int8=args.int8 or False,  # CoreML/TF INT8 quantization
-                     dynamic=args.dynamic or False,  # ONNX/TF/TensorRT: dynamic axes
-                     opset=args.opset or 17,  # ONNX: opset version
-                     verbose=False,  # TensorRT: verbose log
-                     workspace=args.workspace or 4,  # TensorRT: workspace size (GB)
-                     nms=False,  # TF: add NMS to model
-                     agnostic_nms=False,  # TF: add agnostic NMS to model
-                     topk_per_class=100,  # TF.js NMS: topk per class to keep
-                     topk_all=100,  # TF.js NMS: topk for all classes to keep
-                     iou_thres=0.45,  # TF.js NMS: IoU threshold
-                     conf_thres=0.25,  # TF.js NMS: confidence threshold
-                     )
+        export_model(
+            model=self.model,
+            file=file,
+            data=args.data,  # 'dataset.yaml path'
+            imgsz=args.imgsz or (640, 640),  # image (height, width)
+            batch_size=1,  # batch size
+            device=args.device,  # cuda device, i.e. 0 or 0,1,2,3 or cpu
+            format=args.format or 'onnx',  # include formats
+            half=args.half or False,  # FP16 half-precision export
+            keras=args.keras or False,  # use Keras
+            optimize=args.optimize or False,  # TorchScript: optimize for mobile
+            int8=args.int8 or False,  # CoreML/TF INT8 quantization
+            dynamic=args.dynamic or False,  # ONNX/TF/TensorRT: dynamic axes
+            opset=args.opset or 17,  # ONNX: opset version
+            verbose=False,  # TensorRT: verbose log
+            workspace=args.workspace or 4,  # TensorRT: workspace size (GB)
+            nms=False,  # TF: add NMS to model
+            agnostic_nms=False,  # TF: add agnostic NMS to model
+            topk_per_class=100,  # TF.js NMS: topk per class to keep
+            topk_all=100,  # TF.js NMS: topk for all classes to keep
+            iou_thres=0.45,  # TF.js NMS: IoU threshold
+            conf_thres=0.25,  # TF.js NMS: confidence threshold
+        )
 
     def train(self, **kwargs):
         """

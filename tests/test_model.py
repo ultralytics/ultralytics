@@ -5,6 +5,7 @@ from ultralytics import YOLO
 
 def test_model_init():
     model = YOLO.new("yolov8n.yaml")
+    model.info()
     try:
         YOLO()
     except Exception:

@@ -4,10 +4,10 @@ import torch
 
 from ultralytics import yolo  # noqa required for python usage
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, attempt_load_weights
+from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.engine.exporter import export_model
 from ultralytics.yolo.utils import DEFAULT_CONFIG, HELP_MSG, LOGGER
 from ultralytics.yolo.utils.checks import check_yaml
-from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.utils.files import yaml_load
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 

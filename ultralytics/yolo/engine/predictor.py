@@ -31,11 +31,11 @@ from pathlib import Path
 import cv2
 
 from ultralytics.nn.autobackend import AutoBackend
+from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages, LoadScreenshots, LoadStreams
 from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS
 from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, colorstr, ops
 from ultralytics.yolo.utils.checks import check_file, check_imshow
-from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.torch_utils import check_imgsz, select_device, smart_inference_mode
 

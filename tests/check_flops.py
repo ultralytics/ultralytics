@@ -1,6 +1,5 @@
 from ultralytics import YOLO
 from ultralytics.nn.modules import Detect, Segment
-import ultralytics.yolo.v8
 import torch
 
 

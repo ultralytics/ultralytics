@@ -670,8 +670,8 @@ class Segment(Detect):
         mc = torch.cat([mi.view(p.shape[0], self.nm, -1) for mi in mc], 2)
         x = self.detect(self, x)
         if self.training:
-            return x, (mc, p)
-        return (torch.cat([x, mc], 1), p) if self.export else (torch.cat([x[0], mc], 1), (x[1], (mc, p)))
+            return x, mc, p
+        return (torch.cat([x, mc], 1), p) if self.export else (torch.cat([x[0], mc], 1), (x[1], mc, p))
 
 
 class Classify(nn.Module):

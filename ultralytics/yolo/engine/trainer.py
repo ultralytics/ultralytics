@@ -50,7 +50,7 @@ class BaseTrainer:
         # dirs
         project = overrides.get("project") or self.args.task
         name = overrides.get("name") or self.args.mode
-        self.save_dir = increment_path(Path("runs")/project/name, exist_ok=self.args.exist_ok)
+        self.save_dir = increment_path(Path("runs") / project / name, exist_ok=self.args.exist_ok)
         self.wdir = self.save_dir / 'weights'  # weights dir
         self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
         self.last, self.best = self.wdir / 'last.pt', self.wdir / 'best.pt'  # checkpoint paths

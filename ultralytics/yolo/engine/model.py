@@ -50,10 +50,6 @@ class YOLO:
         self.overrides = {}
         self.init_disabled = False
 
-    @staticmethod
-    def _init_instruction():
-        return "The correct way to initialize a model is: YOLO.new(*.cfg) or YOLO.load('*.pt')"
-
     @classmethod
     def new(cls, cfg: str):
         """

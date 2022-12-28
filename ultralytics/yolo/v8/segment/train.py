@@ -141,7 +141,7 @@ class SegLoss:
                                               target_scores, target_scores_sum, fg_mask)
             for i in range(batch_size):
                 if fg_mask[i].sum():
-                    mask_idx = target_gt_idx[i][fg_mask[i]]
+                    mask_idx = target_gt_idx[i][fg_mask[i]] + 1
                     if self.overlap:
                         gt_mask = torch.where(masks[[i]] == mask_idx.view(-1, 1, 1), 1.0, 0.0)
                     else:

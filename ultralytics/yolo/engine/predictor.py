@@ -46,7 +46,9 @@ class BasePredictor:
 
     def __init__(self, config=DEFAULT_CONFIG, overrides={}):
         self.args = get_config(config, overrides)
-        self.save_dir = increment_path(Path(self.args.project) / self.args.name, exist_ok=self.args.exist_ok)
+        project = overrides.get("project") or self.args.task
+        name = overrides.get("name") or self.args.mode
+        self.save_dir = increment_path(Path("runs") / project / name, exist_ok=self.args.exist_ok)
         (self.save_dir / 'labels' if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
 
         self.done_setup = False
@@ -83,18 +85,6 @@ class BasePredictor:
         screenshot = source.lower().startswith('screen')
         if is_url and is_file:
             source = check_file(source)  # download
-
-        # data
-        if self.data:
-            try:
-                if self.data.endswith(".yaml"):
-                    self.data = check_dataset_yaml(self.data)
-                else:
-                    self.data = check_dataset(self.data)
-            except AssertionError as e:
-                LOGGER.info(f"Error ocurred: {e}")
-            finally:
-                LOGGER.info("Predictor will continue without reading the dataset")
 
         # model
         device = select_device(self.args.device)

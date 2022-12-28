@@ -94,7 +94,7 @@ class BasePredictor:
             except AssertionError as e:
                 LOGGER.info(f"Error ocurred: {e}")
             finally:
-                LOGGER.info("Predictor will continue witout reading the dataset")
+                LOGGER.info("Predictor will continue without reading the dataset")
 
         # model
         device = select_device(self.args.device)

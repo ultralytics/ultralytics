@@ -1,9 +1,11 @@
 import torch
 import yaml
+from pathlib import Path
 
 from ultralytics import yolo  # noqa required for python usage
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, attempt_load_weights
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
+from ultralytics.yolo.engine.exporter import export_model
 from ultralytics.yolo.utils import HELP_MSG, LOGGER
 from ultralytics.yolo.utils.checks import check_yaml
 from ultralytics.yolo.utils.configs import get_config
@@ -45,7 +47,8 @@ class YOLO:
         self.model = None
         self.trainer = None
         self.task = None
-        self.ckpt = None
+        self.ckpt = None  # if loaded from *.pt
+        self.cfg = None  # if loaded from *.yaml
         self.overrides = {}
         self.init_disabled = False
 
@@ -59,11 +62,12 @@ class YOLO:
         """
         cfg = check_yaml(cfg)  # check YAML
         with open(cfg, encoding='ascii', errors='ignore') as f:
-            cfg = yaml.safe_load(f)  # model dict
+            cfg_dict = yaml.safe_load(f)  # model dict
         obj = cls(init_key=cls.__init_key)
-        obj.task = obj._guess_task_from_head(cfg["head"][-1][-2])
+        obj.task = obj._guess_task_from_head(cfg_dict["head"][-1][-2])
         obj.ModelClass, obj.TrainerClass, obj.ValidatorClass, obj.PredictorClass = obj._guess_ops_from_task(obj.task)
-        obj.model = obj.ModelClass(cfg)  # initialize
+        obj.model = obj.ModelClass(cfg_dict)  # initialize
+        obj.cfg = cfg
 
         return obj
 
@@ -115,6 +119,7 @@ class YOLO:
             LOGGER.info("model not initialized!")
         self.model.fuse()
 
+    @smart_inference_mode()
     def predict(self, source, **kwargs):
         """
         Visualize prediction.
@@ -137,6 +142,7 @@ class YOLO:
         predictor.setup(model=self.model, source=source)
         predictor()
 
+    @smart_inference_mode()
     def val(self, data=None, **kwargs):
         """
         Validate a model on a given dataset
@@ -146,7 +152,7 @@ class YOLO:
         kwargs: Any other args accepted by the validators. To see all args check 'configuration' section in the docs
         """
         if not self.model:
-            raise Exception("model not initialized!")
+            raise ModuleNotFoundError("model not initialized!")
 
         overrides = self.overrides.copy()
         overrides.update(kwargs)
@@ -156,6 +162,49 @@ class YOLO:
 
         validator = self.ValidatorClass(args=args)
         validator(model=self.model)
+
+    @smart_inference_mode()
+    def export(self, format='torchscript', save_dir='', **kwargs):
+        """
+        Export model.
+
+        Args:
+        format (str): Export format
+        **kwargs : Any other args accepted by the predictors. To see all args check 'configuration' section in the docs
+        """
+
+        overrides = self.overrides.copy()
+        overrides.update(kwargs)
+        args = get_config(config=DEFAULT_CONFIG, overrides=overrides)
+        args.task = self.task
+
+        file = self.ckpt or Path(Path(self.cfg).name)
+        if save_dir:
+            file = Path(save_dir) / file.name
+            file.parent.mkdir(parents=True, exist_ok=True)
+
+        export_model(model=self.model,
+                     file=file,
+                     data=args.data,  # 'dataset.yaml path'
+                     imgsz=args.imgsz or (640, 640),  # image (height, width)
+                     batch_size=1,  # batch size
+                     device=args.device,  # cuda device, i.e. 0 or 0,1,2,3 or cpu
+                     format=args.format or 'onnx',  # include formats
+                     half=args.half or False,  # FP16 half-precision export
+                     keras=args.keras or False,  # use Keras
+                     optimize=args.optimize or False,  # TorchScript: optimize for mobile
+                     int8=args.int8 or False,  # CoreML/TF INT8 quantization
+                     dynamic=args.dynamic or False,  # ONNX/TF/TensorRT: dynamic axes
+                     opset=args.opset or 17,  # ONNX: opset version
+                     verbose=False,  # TensorRT: verbose log
+                     workspace=args.workspace or 4,  # TensorRT: workspace size (GB)
+                     nms=False,  # TF: add NMS to model
+                     agnostic_nms=False,  # TF: add agnostic NMS to model
+                     topk_per_class=100,  # TF.js NMS: topk per class to keep
+                     topk_all=100,  # TF.js NMS: topk for all classes to keep
+                     iou_thres=0.45,  # TF.js NMS: IoU threshold
+                     conf_thres=0.25,  # TF.js NMS: confidence threshold
+                     )
 
     def train(self, **kwargs):
         """
@@ -175,7 +224,7 @@ class YOLO:
         overrides["task"] = self.task
         overrides["mode"] = "train"
         if not overrides.get("data"):
-            raise AttributeError("dataset not provided! Please check if you have defined `data` in you configs")
+            raise AttributeError("dataset not provided! Please define `data` in config.yaml or pass as an argument.")
 
         self.trainer = self.TrainerClass(overrides=overrides)
         self.trainer.model = self.trainer.load_model(weights=self.ckpt,

@@ -26,28 +26,27 @@ HELP_MSG = \
     Please refer to below Usage examples for help running YOLOv8
     For help visit the Ultralytics Community at https://community.ultralytics.com/
     Submit bug reports to https//github.com/ultralytics/ultralytics
-    
+
     Install:
         pip install ultralytics
-    
+
     Python usage:
         from ultralytics import YOLO
-        
+
         model = YOLO.new('yolov8n.yaml')  # create a new model from scratch
         model = YOLO.load('yolov8n.pt')  # load a pretrained model (recommended for best training results)
         results = model.train(data='coco128.yaml')
         results = model.val()
         results = model.predict(source='bus.jpg')
         success = model.export(format='onnx')
-        
+
     CLI usage:
         yolo task=detect    mode=train     model=s.yaml ...
                   classify       predict         s-cls.yaml
                   segment        val             s-seg.yaml
-                  
+
     For all arguments see https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/utils/configs/default.yaml
     """
-
 
 # Settings
 # torch.set_printoptions(linewidth=320, precision=5, profile='long')

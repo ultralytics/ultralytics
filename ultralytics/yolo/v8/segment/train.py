@@ -206,14 +206,6 @@ class SegmentationTrainer(DetectionTrainer):
         loss = lbox + lobj + lcls + lseg
         return loss * bs, torch.cat((lbox, lseg, lobj, lcls)).detach()
 
-    def label_loss_items(self, loss_items=None, prefix="train"):
-        # We should just use named tensors here in future
-        keys = [f"{prefix}/{x}" for x in self.loss_names]
-        return dict(zip(keys, loss_items)) if loss_items is not None else keys
-
-    def progress_string(self):
-        return ('\n' + '%11s' * 8) % ('Epoch', 'GPU_mem', *self.loss_names, 'Instances', 'Size')
-
     def plot_training_samples(self, batch, ni):
         images = batch["img"]
         masks = batch["masks"]

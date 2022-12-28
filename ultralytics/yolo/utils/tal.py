@@ -146,9 +146,6 @@ class TaskAlignedAssigner(nn.Module):
         # (b, max_num_obj, topk, h*w) -> (b, max_num_obj, h*w)
         is_in_topk = F.one_hot(topk_idxs, num_anchors).sum(-2)
         # filter invalid bboxes
-        # assigned topk should be unique, this is for dealing with empty labels
-        # since empty labels will generate index `0` through `F.one_hot`
-        # NOTE: but what if the topk_idxs include `0`?
         is_in_topk = torch.where(is_in_topk > 1, 0, is_in_topk)
         return is_in_topk.to(metrics.dtype)
 

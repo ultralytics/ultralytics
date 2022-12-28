@@ -3,7 +3,7 @@
 
 # Task and Mode
 task: "classify"  # choices=['detect', 'segment', 'classify', 'init'] # init is a special case
-mode: "train"  # choice=['train', 'val', 'infer']
+mode: "train"  # choice=['train', 'val', 'predict']
 
 # Train settings -------------------------------------------------------------------------------------------------------
 model: null  # i.e. yolov5s.pt, yolo.yaml

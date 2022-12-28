@@ -5,7 +5,7 @@ from ultralytics import yolo  # noqa required for python usage
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, attempt_load_weights
 # from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
-from ultralytics.yolo.utils import LOGGER
+from ultralytics.yolo.utils import HELP_MSG, LOGGER
 from ultralytics.yolo.utils.checks import check_yaml
 from ultralytics.yolo.utils.configs import get_config
 from ultralytics.yolo.utils.files import yaml_load
@@ -28,12 +28,16 @@ class YOLO:
     """
     Python interface which emulates a model-like behaviour by wrapping trainers.
     """
+    __init_key = object()
 
-    def __init__(self, type="v8") -> None:
+    def __init__(self, init_key=None, type="v8") -> None:
         """
         Args:
             type (str): Type/version of models to use
         """
+        if init_key != YOLO.__init_key:
+            raise Exception(HELP_MSG)
+
         self.type = type
         self.ModelClass = None
         self.TrainerClass = None
@@ -44,8 +48,10 @@ class YOLO:
         self.task = None
         self.ckpt = None
         self.overrides = {}
+        self.init_disabled = False
 
-    def new(self, cfg: str):
+    @classmethod
+    def new(cls, cfg: str):
         """
         Initializes a new model and infers the task type from the model definitions
 
@@ -55,12 +61,15 @@ class YOLO:
         cfg = check_yaml(cfg)  # check YAML
         with open(cfg, encoding='ascii', errors='ignore') as f:
             cfg = yaml.safe_load(f)  # model dict
-        self.task = self._guess_task_from_head(cfg["head"][-1][-2])
-        self.ModelClass, self.TrainerClass, self.ValidatorClass, self.PredictorClass = self._guess_ops_from_task(
-            self.task)
-        self.model = self.ModelClass(cfg)  # initialize
+        obj = cls(init_key=cls.__init_key)
+        obj.task = obj._guess_task_from_head(cfg["head"][-1][-2])
+        obj.ModelClass, obj.TrainerClass, obj.ValidatorClass, obj.PredictorClass = obj._guess_ops_from_task(obj.task)
+        obj.model = obj.ModelClass(cfg)  # initialize
 
-    def load(self, weights: str):
+        return obj
+
+    @classmethod
+    def load(cls, weights: str):
         """
         Initializes a new model and infers the task type from the model head
 
@@ -68,15 +77,18 @@ class YOLO:
             weights (str): model checkpoint to be loaded
 
         """
-        self.ckpt = torch.load(weights, map_location="cpu")
-        self.task = self.ckpt["train_args"]["task"]
-        self.overrides = dict(self.ckpt["train_args"])
-        self.overrides["device"] = ''  # reset device
+        obj = cls(init_key=cls.__init_key)
+        obj.ckpt = torch.load(weights, map_location="cpu")
+        obj.task = obj.ckpt["train_args"]["task"]
+        obj.overrides = dict(obj.ckpt["train_args"])
+        obj.overrides["device"] = ''  # reset device
         LOGGER.info("Device has been reset to ''")
 
-        self.ModelClass, self.TrainerClass, self.ValidatorClass, self.PredictorClass = self._guess_ops_from_task(
-            task=self.task)
-        self.model = attempt_load_weights(weights)
+        obj.ModelClass, obj.TrainerClass, obj.ValidatorClass, obj.PredictorClass = obj._guess_ops_from_task(
+            task=obj.task)
+        obj.model = attempt_load_weights(weights)
+
+        return obj
 
     def reset(self):
         """

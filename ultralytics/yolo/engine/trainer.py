@@ -46,10 +46,15 @@ class BaseTrainer:
         self.validator = None
         self.model = None
         self.callbacks = defaultdict(list)
-        self.save_dir = increment_path(Path(self.args.project) / self.args.name, exist_ok=self.args.exist_ok)
+
+        # dirs
+        project = overrides.get("project") or self.args.task
+        name = overrides.get("name") or self.args.mode
+        self.save_dir = increment_path(Path("runs") / project / name, exist_ok=self.args.exist_ok)
         self.wdir = self.save_dir / 'weights'  # weights dir
         self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
         self.last, self.best = self.wdir / 'last.pt', self.wdir / 'best.pt'  # checkpoint paths
+
         self.batch_size = self.args.batch_size
         self.epochs = self.args.epochs
         self.start_epoch = 0

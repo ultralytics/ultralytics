@@ -102,7 +102,7 @@ mixup: 0.0  # image mixup (probability)
 copy_paste: 0.0  # segment copy-paste (probability)
 
 # For debugging. Don't change
-v5loader: True
+v5loader: False
 
 # Hydra configs --------------------------------------------------------------------------------------------------------
 hydra:

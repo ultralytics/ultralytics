@@ -150,7 +150,7 @@ class SegLoss:
                     xyxyn = target_bboxes[i][fg_mask[i]] / imgsz[[1, 0, 1, 0]]
                     marea = xyxy2xywh(xyxyn)[:, 2:].prod(1)
                     mxyxy = xyxyn * torch.tensor([mask_w, mask_h, mask_w, mask_h], device=self.device)
-                    loss_seg = self.single_mask_loss(gt_mask, pred_masks[i][fg_mask[i]], proto[i], mxyxy, marea)
+                    loss[1] += self.single_mask_loss(gt_mask, pred_masks[i][fg_mask[i]], proto[i], mxyxy, marea)  # seg loss
         # WARNING: Uncomment lines below in case of Multi-GPU DDP unused gradient errors
         #         else:
         #             loss[1] += proto.sum() * 0

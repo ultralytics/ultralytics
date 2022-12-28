@@ -64,13 +64,13 @@ from omegaconf import OmegaConf
 from torch.utils.mobile_optimizer import optimize_for_mobile
 
 from ultralytics.nn.modules import Detect, Segment
-from ultralytics.nn.tasks import SegmentationModel, DetectionModel, ClassificationModel, attempt_load_weights
+from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, attempt_load_weights
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages
 from ultralytics.yolo.data.utils import check_dataset
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.utils import LOGGER, ROOT, colorstr, get_default_args
 from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version, check_yaml
-from ultralytics.yolo.utils.files import increment_path, file_size, url2file, yaml_save
+from ultralytics.yolo.utils.files import file_size, increment_path, url2file, yaml_save
 from ultralytics.yolo.utils.ops import Profile
 from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode
 

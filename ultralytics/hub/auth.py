@@ -4,8 +4,8 @@ import json
 import requests
 
 from .config import HUB_API_ROOT
-from ultralytics.yolo.utils import emojis, is_colab
-from .yolov5_utils.hub_utils import request_with_credentials
+from ultralytics.yolo.utils import is_colab
+from .utils import request_with_credentials
 
 API_KEY_PATH = "https://hub.ultralytics.com/settings?tab=api+keys"
 

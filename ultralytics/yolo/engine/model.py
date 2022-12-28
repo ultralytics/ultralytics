@@ -62,8 +62,7 @@ class YOLO:
             cfg (str): model configuration file
         """
         cfg = check_yaml(cfg)  # check YAML
-        with open(cfg, encoding='ascii', errors='ignore') as f:
-            cfg_dict = yaml.safe_load(f)  # model dict
+        cfg_dict = yaml_load(cfg)  # model dict
         obj = cls(init_key=cls.__init_key)
         obj.task = obj._guess_task_from_head(cfg_dict["head"][-1][-2])
         obj.ModelClass, obj.TrainerClass, obj.ValidatorClass, obj.PredictorClass = obj._guess_ops_from_task(obj.task)

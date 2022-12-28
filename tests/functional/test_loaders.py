@@ -3,11 +3,11 @@ from ultralytics.yolo.utils.checks import check_yaml
 
 
 def test_model_parser():
-    cfg = check_yaml("../assets/dummy_model.yaml")  # check YAML
+    cfg = check_yaml("yolov8n.yaml")  # check YAML
 
     # Create model
     model = DetectionModel(cfg)
-    print(model)
+    model.info()
     '''
     # Options
     if opt.line_profile:  # profile layer by layer

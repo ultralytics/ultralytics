@@ -651,19 +651,42 @@ class Detect(nn.Module):
 
 class Segment(Detect):
     # YOLOv5 Segment head for segmentation models
-    def __init__(self, nc=80, anchors=(), nm=32, npr=256, ch=()):
-        super().__init__(nc, anchors, ch)
+    def __init__(self, nc=80, nm=32, npr=256, ch=()):
+        super().__init__(nc, ch)
         self.nm = nm  # number of masks
         self.npr = npr  # number of protos
-        self.no = 5 + nc + self.nm  # number of outputs per anchor
-        self.m = nn.ModuleList(nn.Conv2d(x, self.no * self.na, 1) for x in ch)  # output conv
         self.proto = Proto(ch[0], self.npr, self.nm)  # protos
         self.detect = Detect.forward
+
+        c4 = max(ch[0], self.nm)
+        self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.nm, 1)) for x in ch)
 
     def forward(self, x):
         p = self.proto(x[0])
         x = self.detect(self, x)
-        return (x, p) if self.training else (x[0], p) if self.export else (x[0], p, x[1])
+
+        mc = []  # mask coefficient
+        for i in range(self.nl):
+            mc.append(self.cv4[i](x[i]))
+        mc = torch.cat([mi.view(p.shape[0], self.nm, -1) for mi in mc], 2)
+
+        p = (mc, p)
+        return (x, p) if self.training else (x, p) if self.export else (x[0], p, x[1])
+
+    # def forward(self, x):
+    #     shape = x[0].shape  # BCHW
+    #     for i in range(self.nl):
+    #         x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
+    #     box, cls = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2).split((self.reg_max * 4, self.nc), 1)
+    #     if self.training:
+    #         return x, box, cls
+    #     elif self.dynamic or self.shape != shape:
+    #         self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.5))
+    #         self.shape = shape
+    #
+    #     dbox = dist2bbox(self.dfl(box), self.anchors.unsqueeze(0), xywh=True, dim=1) * self.strides
+    #     y = torch.cat((dbox, cls.sigmoid()), 1)
+    #     return y if self.export else (y, (x, box, cls))
 
 
 class Classify(nn.Module):

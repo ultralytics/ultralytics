@@ -163,8 +163,8 @@ class DetectionModel(BaseModel):
 
 class SegmentationModel(DetectionModel):
     # YOLOv5 segmentation model
-    def __init__(self, cfg='yolov5s-seg.yaml', ch=3, nc=None):
-        super().__init__(cfg, ch, nc)
+    def __init__(self, cfg='yolov5s-seg.yaml', ch=3, nc=None, verbose=True):
+        super().__init__(cfg, ch, nc, verbose)
 
 
 class ClassificationModel(BaseModel):

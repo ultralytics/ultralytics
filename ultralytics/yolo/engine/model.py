@@ -58,12 +58,11 @@ class YOLO:
             cfg = yaml.safe_load(f)  # model dict
         obj = cls()
         obj.task = obj._guess_task_from_head(cfg["head"][-1][-2])
-        obj.ModelClass, obj.TrainerClass, obj.ValidatorClass, obj.PredictorClass = obj._guess_ops_from_task(
-            obj.task)
+        obj.ModelClass, obj.TrainerClass, obj.ValidatorClass, obj.PredictorClass = obj._guess_ops_from_task(obj.task)
         obj.model = obj.ModelClass(cfg)  # initialize
 
         return obj
-    
+
     @classmethod
     def load(cls, weights: str):
         """

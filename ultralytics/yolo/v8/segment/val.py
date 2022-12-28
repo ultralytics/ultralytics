@@ -66,7 +66,7 @@ class SegmentationValidator(DetectionValidator):
                                     agnostic=self.args.single_cls,
                                     max_det=self.args.max_det,
                                     nm=self.nm)
-        return p, preds[1], preds[2]
+        return p, preds[1][-1]
 
     def update_metrics(self, preds, batch):
         # Metrics

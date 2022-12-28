@@ -77,7 +77,8 @@ class DetectionTrainer(BaseTrainer):
         return dict(zip(keys, loss_items)) if loss_items is not None else keys
 
     def progress_string(self):
-        return ('\n' + '%11s' * (4 + len(self.loss_names))) % ('Epoch', 'GPU_mem', *self.loss_names, 'Instances', 'Size')
+        return ('\n' + '%11s' *
+                (4 + len(self.loss_names))) % ('Epoch', 'GPU_mem', *self.loss_names, 'Instances', 'Size')
 
     def plot_training_samples(self, batch, ni):
         plot_images(images=batch["img"],
@@ -139,8 +140,8 @@ class Loss:
     def __call__(self, preds, batch):
         loss = torch.zeros(3, device=self.device)  # box, cls, dfl
         feats = preds[1] if isinstance(preds, tuple) else preds
-        pred_distri, pred_scores = torch.cat(
-            [xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split((self.reg_max * 4, self.nc), 1)
+        pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
+            (self.reg_max * 4, self.nc), 1)
 
         pred_scores = pred_scores.permute(0, 2, 1).contiguous()
         pred_distri = pred_distri.permute(0, 2, 1).contiguous()

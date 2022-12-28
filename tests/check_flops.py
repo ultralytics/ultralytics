@@ -1,6 +1,7 @@
+import torch
+
 from ultralytics import YOLO
 from ultralytics.nn.modules import Detect, Segment
-import torch
 
 
 def export_onnx(model, file):
@@ -14,7 +15,7 @@ def export_onnx(model, file):
             m.export = True
 
     torch.onnx.export(
-        model, 
+        model,
         im,
         file,
         verbose=False,

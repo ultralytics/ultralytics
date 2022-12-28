@@ -6,10 +6,10 @@ import torch.nn.functional as F
 from ultralytics.nn.tasks import SegmentationModel
 from ultralytics.yolo import v8
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
+from ultralytics.yolo.utils.loss import BboxLoss
 from ultralytics.yolo.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
 from ultralytics.yolo.utils.plotting import plot_images, plot_results
 from ultralytics.yolo.utils.tal import TaskAlignedAssigner, dist2bbox, make_anchors
-from ultralytics.yolo.utils.loss import BboxLoss
 from ultralytics.yolo.utils.torch_utils import de_parallel
 
 from ..detect import DetectionTrainer
@@ -47,6 +47,7 @@ class SegmentationTrainer(DetectionTrainer):
 
     def plot_metrics(self):
         plot_results(file=self.csv, segment=True)  # save results.png
+
 
 # Criterion class for computing training losses
 class SegLoss:
@@ -99,8 +100,8 @@ class SegLoss:
         loss = torch.zeros(4, device=self.device)  # box, cls, dfl
         feats, pred_masks, proto = preds if len(preds) == 3 else preds[1]
         batch_size, _, mask_h, mask_w = proto.shape  # batch size, number of masks, mask height, mask width
-        pred_distri, pred_scores = torch.cat(
-            [xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split((self.reg_max * 4, self.nc), 1)
+        pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
+            (self.reg_max * 4, self.nc), 1)
 
         # b, grids, ..
         pred_scores = pred_scores.permute(0, 2, 1).contiguous()
@@ -137,7 +138,7 @@ class SegLoss:
 
         # bbox loss
         if fg_mask.sum():
-            loss[0], loss[3] = self.bbox_loss(pred_distri, pred_bboxes, anchor_points, target_bboxes / stride_tensor, 
+            loss[0], loss[3] = self.bbox_loss(pred_distri, pred_bboxes, anchor_points, target_bboxes / stride_tensor,
                                               target_scores, target_scores_sum, fg_mask)
             for i in range(batch_size):
                 if fg_mask[i].sum():

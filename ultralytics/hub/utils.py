@@ -23,13 +23,12 @@ def check_dataset_disk_space(url='https://github.com/ultralytics/yolov5/releases
     return False  # insufficient space
 
 
-def request_with_credentials(url : str) -> any:
+def request_with_credentials(url: str) -> any:
     """ Make a ajax request with cookies attached """
     from google.colab import output  # noqa
     from IPython import display  # noqa
     display.display(
-        display.Javascript(
-            """
+        display.Javascript("""
             window._hub_tmp = new Promise((resolve, reject) => {
                 const timeout = setTimeout(() => reject("Failed authenticating existing browser session"), 5000)
                 fetch("%s", {
@@ -44,10 +43,7 @@ def request_with_credentials(url : str) -> any:
                     reject(err);
                 });
             });
-            """
-            % url
-        )
-    )
+            """ % url))
     return output.eval_js("_hub_tmp")
 
 
@@ -71,8 +67,7 @@ def split_key(key=''):
 def smart_request(*args, retry=3, timeout=30, thread=True, code='', method="post", **kwargs):
     # requests.post with exponential standoff retries up to timeout(seconds)
     retry_codes = (408, 500)  # retry only these codes
-    methods = {'post': requests.post,
-               'get': requests.get}  # request methods
+    methods = {'post': requests.post, 'get': requests.get}  # request methods
 
     def fcn(*args, **kwargs):
         t0 = time.time()

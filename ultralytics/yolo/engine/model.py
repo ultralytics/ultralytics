@@ -3,7 +3,6 @@ import yaml
 
 from ultralytics import yolo  # noqa required for python usage
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, attempt_load_weights
-# from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.utils import LOGGER
 from ultralytics.yolo.utils.checks import check_yaml
@@ -106,11 +105,11 @@ class YOLO:
 
     def predict(self, source, **kwargs):
         """
-        Visualize prection.
+        Visualize prediction.
 
         Args:
         source (str): Accepts all source types accepted by yolo
-        **kwargs : Any other args accepted by the predictors. Too see all args check 'configuration' section in the docs
+        **kwargs : Any other args accepted by the predictors. To see all args check 'configuration' section in the docs
         """
         overrides = self.overrides.copy()
         overrides.update(kwargs)
@@ -118,7 +117,7 @@ class YOLO:
 
         # check size type
         sz = predictor.args.imgsz
-        if type(sz) != int:  # recieved listConfig
+        if type(sz) != int:  # received listConfig
             predictor.args.imgsz = [sz[0], sz[0]] if len(sz) == 1 else [sz[0], sz[1]]  # expand
         else:
             predictor.args.imgsz = [sz, sz]
@@ -132,7 +131,7 @@ class YOLO:
 
         Args:
         data (str): The dataset to validate on. Accepts all formats accepted by yolo
-        kwargs: Any other args accepted by the validators. Too see all args check 'configuration' section in the docs
+        kwargs: Any other args accepted by the validators. To see all args check 'configuration' section in the docs
         """
         if not self.model:
             raise Exception("model not initialized!")
@@ -175,11 +174,11 @@ class YOLO:
 
     def resume(self, task=None, model=None):
         """
-        Resume a training task. Requires either `task` or `model`. `model` takes the higher precederence.
+        Resume a training task. Requires either `task` or `model`. `model` takes the higher precedence.
         Args:
             task (str): The task type you want to resume. Automatically finds the last run to resume if `model` is not specified.
             model (str): The model checkpoint to resume from. If not found, the last run of the given task type is resumed.
-                         If `model` is speficied
+                         If `model` is specified
         """
         if task:
             if task.lower() not in MODEL_MAP:

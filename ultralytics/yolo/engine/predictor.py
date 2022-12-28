@@ -1,6 +1,6 @@
 # predictor engine by Ultralytics
 """
-Run prection on images, videos, directories, globs, YouTube, webcam, streams, etc.
+Run prediction on images, videos, directories, globs, YouTube, webcam, streams, etc.
 Usage - sources:
     $ yolo task=... mode=predict  model=s.pt --source 0                         # webcam
                                                 img.jpg                         # image

@@ -42,6 +42,11 @@ TensorFlow.js:
     $ npm install
     $ ln -s ../../yolov5/yolov5s_web_model public/yolov5s_web_model
     $ npm start
+
+
+from ultralytics import YOLO
+model = YOLO().new('yolov8n.yaml')
+results = model.export(format='onnx')
 """
 import contextlib
 import json
@@ -71,7 +76,7 @@ MACOS = platform.system() == 'Darwin'  # macOS environment
 
 
 def export_formats():
-    # YOLOv5 export formats
+    # YOLOv8 export formats
     x = [
         ['PyTorch', '-', '.pt', True, True],
         ['TorchScript', 'torchscript', '.torchscript', True, True],
@@ -86,6 +91,24 @@ def export_formats():
         ['TensorFlow.js', 'tfjs', '_web_model', False, False],
         ['PaddlePaddle', 'paddle', '_paddle_model', True, True], ]
     return pd.DataFrame(x, columns=['Format', 'Argument', 'Suffix', 'CPU', 'GPU'])
+
+
+def try_export(inner_func):
+    # YOLOv8 export decorator, i..e @try_export
+    inner_args = get_default_args(inner_func)
+
+    def outer_func(*args, **kwargs):
+        prefix = inner_args['prefix']
+        try:
+            with Profile() as dt:
+                f, model = inner_func(*args, **kwargs)
+            LOGGER.info(f'{prefix} export success ✅ {dt.t:.1f}s, saved as {f} ({file_size(f):.1f} MB)')
+            return f, model
+        except Exception as e:
+            LOGGER.info(f'{prefix} export failure ❌ {dt.t:.1f}s: {e}')
+            return None, None
+
+    return outer_func
 
 
 class BaseExporter:
@@ -182,7 +205,7 @@ class BaseExporter:
         if coreml:  # CoreML
             f[4], _ = self.export_coreml(model, im, file, int8, half)
         if any((saved_model, pb, tflite, edgetpu, tfjs)):  # TensorFlow formats
-            assert not tflite or not tfjs, 'TFLite and TF.js models must be exported separately, please pass only one type.'
+            assert not tflite or not tfjs, 'TFLite and TF.js must be exported separately, please pass only one type.'
             assert not isinstance(model,
                                   ClassificationModel), 'ClassificationModel export to TF formats not yet supported.'
             f[5], s_model = self.export_saved_model(model.cpu(),
@@ -220,29 +243,12 @@ class BaseExporter:
             s = "# WARNING ⚠️ ClassificationModel not yet supported for PyTorch Hub AutoShape inference" if cls else \
                 "# WARNING ⚠️ SegmentationModel not yet supported for PyTorch Hub AutoShape inference" if seg else ''
             self.logger.info(f'\nExport complete ({time.time() - t:.1f}s)'
-                        f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
-                        f"\nDetect:          python {dir / ('detect.py' if det else 'predict.py')} --weights {f[-1]} {h}"
-                        f"\nValidate:        python {dir / 'val.py'} --weights {f[-1]} {h}"
-                        f"\nPyTorch Hub:     model = torch.hub.load('ultralytics/yolov5', 'custom', '{f[-1]}')  {s}"
-                        f"\nVisualize:       https://netron.app")
+                             f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
+                             f"\nPredict          python {dir / 'predict.py'} --weights {f[-1]} {h}"
+                             f"\nValidate:        python {dir / 'val.py'} --weights {f[-1]} {h}"
+                             f"\nPyTorch Hub:     model = torch.hub.load('ultralytics/yolov5', 'custom', '{f[-1]}')  {s}"
+                             f"\nVisualize:       https://netron.app")
         return f  # return list of exported files/dirs
-
-    def try_export(self, inner_func):
-        # YOLOv5 export decorator, i..e @try_export
-        inner_args = get_default_args(inner_func)
-
-        def outer_func(*args, **kwargs):
-            prefix = inner_args['prefix']
-            try:
-                with Profile() as dt:
-                    f, model = inner_func(*args, **kwargs)
-                self.self.logger.info(f'{prefix} export success ✅ {dt.t:.1f}s, saved as {f} ({file_size(f):.1f} MB)')
-                return f, model
-            except Exception as e:
-                self.self.logger.info(f'{prefix} export failure ❌ {dt.t:.1f}s: {e}')
-                return None, None
-
-        return outer_func
 
     @try_export
     def export_torchscript(self, model, im, file, optimize, prefix=colorstr('TorchScript:')):

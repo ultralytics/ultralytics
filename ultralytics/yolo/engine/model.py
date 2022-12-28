@@ -113,7 +113,7 @@ class YOLO:
         **kwargs : Any other args accepted by the predictors. Too see all args check 'configuration' section in the docs
         """
         overrides = self.overrides.copy()
-        overrides.update(self.overrides)
+        overrides.update(kwargs)
         predictor = self.PredictorClass(overrides=overrides)
 
         # check size type
@@ -138,7 +138,7 @@ class YOLO:
             raise Exception("model not initialized!")
 
         overrides = self.overrides.copy()
-        overrides.update(self.overrides)
+        overrides.update(kwargs)
         args = get_config(config=DEFAULT_CONFIG, overrides=overrides)
         args.data = data or args.data
         args.task = self.task

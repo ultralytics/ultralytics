@@ -61,17 +61,13 @@ from pathlib import Path
 
 import pandas as pd
 import torch
-from omegaconf import OmegaConf
 from torch.utils.mobile_optimizer import optimize_for_mobile
 
 from ultralytics.nn.modules import Detect, Segment
-from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, attempt_load_weights
-from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages
-from ultralytics.yolo.data.utils import check_dataset
-from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
+from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel
 from ultralytics.yolo.utils import LOGGER, ROOT, colorstr, get_default_args
-from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version, check_yaml
-from ultralytics.yolo.utils.files import file_size, increment_path, url2file, yaml_save
+from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version
+from ultralytics.yolo.utils.files import file_size, yaml_save
 from ultralytics.yolo.utils.ops import Profile
 from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode
 
@@ -148,16 +144,18 @@ def export_onnx(model, im, file, opset, dynamic, simplify, prefix=colorstr('ONNX
         elif isinstance(model, DetectionModel):
             dynamic['output0'] = {0: 'batch', 1: 'anchors'}  # shape(1,25200,85)
 
-    torch.onnx.export(
-        model.cpu() if dynamic else model,  # --dynamic only compatible with cpu
-        im.cpu() if dynamic else im,
-        f,
-        verbose=False,
-        opset_version=opset,
-        do_constant_folding=True,  # WARNING: DNN inference with torch>=1.12 may require do_constant_folding=False
-        input_names=['images'],
-        output_names=output_names,
-        dynamic_axes=dynamic or None)
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', UserWarning)  # suppress shape prim::Constant type is missing ONNX warning
+        torch.onnx.export(
+            model.cpu() if dynamic else model,  # --dynamic only compatible with cpu
+            im.cpu() if dynamic else im,
+            f,
+            verbose=False,
+            opset_version=opset,
+            do_constant_folding=True,  # WARNING: DNN inference with torch>=1.12 may require do_constant_folding=False
+            input_names=['images'],
+            output_names=output_names,
+            dynamic_axes=dynamic or None)
 
     # Checks
     model_onnx = onnx.load(f)  # load onnx model

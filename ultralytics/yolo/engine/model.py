@@ -38,7 +38,7 @@ class YOLO:
             type (str): Type/version of models to use
         """
         if init_key != YOLO.__init_key:
-            raise Exception(HELP_MSG)
+            raise SyntaxError(HELP_MSG)
 
         self.type = type
         self.ModelClass = None
@@ -165,7 +165,7 @@ class YOLO:
         validator(model=self.model)
 
     @smart_inference_mode()
-    def export(self, format='torchscript', save_dir='', **kwargs):
+    def export(self, save_dir='', **kwargs):
         """
         Export model.
 

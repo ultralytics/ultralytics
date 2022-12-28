@@ -165,7 +165,7 @@ class BaseExporter:
             im, model = im.half(), model.half()  # to FP16
         shape = tuple((y[0] if isinstance(y, tuple) else y).shape)  # model output shape
         metadata = {'stride': int(max(model.stride)), 'names': model.names}  # model metadata
-        LOGGER.info(
+        self.logger.info(
             f"\n{colorstr('PyTorch:')} starting from {file} with output shape {shape} ({file_size(file):.1f} MB)")
 
         # Exports
@@ -219,7 +219,7 @@ class BaseExporter:
             h = '--half' if half else ''  # --half FP16 inference arg
             s = "# WARNING ⚠️ ClassificationModel not yet supported for PyTorch Hub AutoShape inference" if cls else \
                 "# WARNING ⚠️ SegmentationModel not yet supported for PyTorch Hub AutoShape inference" if seg else ''
-            LOGGER.info(f'\nExport complete ({time.time() - t:.1f}s)'
+            self.logger.info(f'\nExport complete ({time.time() - t:.1f}s)'
                         f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
                         f"\nDetect:          python {dir / ('detect.py' if det else 'predict.py')} --weights {f[-1]} {h}"
                         f"\nValidate:        python {dir / 'val.py'} --weights {f[-1]} {h}"
@@ -227,8 +227,7 @@ class BaseExporter:
                         f"\nVisualize:       https://netron.app")
         return f  # return list of exported files/dirs
 
-    @staticmethod
-    def try_export(inner_func):
+    def try_export(self, inner_func):
         # YOLOv5 export decorator, i..e @try_export
         inner_args = get_default_args(inner_func)
 
@@ -237,10 +236,10 @@ class BaseExporter:
             try:
                 with Profile() as dt:
                     f, model = inner_func(*args, **kwargs)
-                LOGGER.info(f'{prefix} export success ✅ {dt.t:.1f}s, saved as {f} ({file_size(f):.1f} MB)')
+                self.self.logger.info(f'{prefix} export success ✅ {dt.t:.1f}s, saved as {f} ({file_size(f):.1f} MB)')
                 return f, model
             except Exception as e:
-                LOGGER.info(f'{prefix} export failure ❌ {dt.t:.1f}s: {e}')
+                self.self.logger.info(f'{prefix} export failure ❌ {dt.t:.1f}s: {e}')
                 return None, None
 
         return outer_func
@@ -248,7 +247,7 @@ class BaseExporter:
     @try_export
     def export_torchscript(self, model, im, file, optimize, prefix=colorstr('TorchScript:')):
         # YOLOv5 TorchScript model export
-        LOGGER.info(f'\n{prefix} starting export with torch {torch.__version__}...')
+        self.logger.info(f'\n{prefix} starting export with torch {torch.__version__}...')
         f = file.with_suffix('.torchscript')
 
         ts = torch.jit.trace(model, im, strict=False)
@@ -266,7 +265,7 @@ class BaseExporter:
         check_requirements('onnx>=1.12.0')
         import onnx  # noqa
 
-        LOGGER.info(f'\n{prefix} starting export with onnx {onnx.__version__}...')
+        self.logger.info(f'\n{prefix} starting export with onnx {onnx.__version__}...')
         f = file.with_suffix('.onnx')
 
         output_names = ['output0', 'output1'] if isinstance(model, SegmentationModel) else ['output0']
@@ -307,12 +306,12 @@ class BaseExporter:
                 check_requirements(('onnxruntime-gpu' if cuda else 'onnxruntime', 'onnx-simplifier>=0.4.1'))
                 import onnxsim  # noqa
 
-                LOGGER.info(f'{prefix} simplifying with onnx-simplifier {onnxsim.__version__}...')
+                self.logger.info(f'{prefix} simplifying with onnx-simplifier {onnxsim.__version__}...')
                 model_onnx, check = onnxsim.simplify(model_onnx)
                 assert check, 'assert check failed'
                 onnx.save(model_onnx, f)
             except Exception as e:
-                LOGGER.info(f'{prefix} simplifier failure: {e}')
+                self.logger.info(f'{prefix} simplifier failure: {e}')
         return f, model_onnx
 
     @try_export
@@ -321,7 +320,7 @@ class BaseExporter:
         check_requirements('openvino-dev')  # requires openvino-dev: https://pypi.org/project/openvino-dev/
         import openvino.inference_engine as ie  # noqa
 
-        LOGGER.info(f'\n{prefix} starting export with openvino {ie.__version__}...')
+        self.logger.info(f'\n{prefix} starting export with openvino {ie.__version__}...')
         f = str(file).replace('.pt', f'_openvino_model{os.sep}')
 
         cmd = f"mo --input_model {file.with_suffix('.onnx')} --output_dir {f} --data_type {'FP16' if half else 'FP32'}"
@@ -336,7 +335,7 @@ class BaseExporter:
         import x2paddle  # noqa
         from x2paddle.convert import pytorch2paddle  # noqa
 
-        LOGGER.info(f'\n{prefix} starting export with X2Paddle {x2paddle.__version__}...')
+        self.logger.info(f'\n{prefix} starting export with X2Paddle {x2paddle.__version__}...')
         f = str(file).replace('.pt', f'_paddle_model{os.sep}')
 
         pytorch2paddle(module=model, save_dir=f, jit_type='trace', input_examples=[im])  # export
@@ -349,7 +348,7 @@ class BaseExporter:
         check_requirements('coremltools')
         import coremltools as ct  # noqa
 
-        LOGGER.info(f'\n{prefix} starting export with coremltools {ct.__version__}...')
+        self.logger.info(f'\n{prefix} starting export with coremltools {ct.__version__}...')
         f = file.with_suffix('.mlmodel')
 
         ts = torch.jit.trace(model, im, strict=False)  # TorchScript model
@@ -387,7 +386,7 @@ class BaseExporter:
             self.export_onnx(model, im, file, 12, dynamic, simplify)  # opset 12
         onnx = file.with_suffix('.onnx')
 
-        LOGGER.info(f'\n{prefix} starting export with TensorRT {trt.__version__}...')
+        self.logger.info(f'\n{prefix} starting export with TensorRT {trt.__version__}...')
         assert onnx.exists(), f'failed to export ONNX file: {onnx}'
         f = file.with_suffix('.engine')  # TensorRT engine file
         logger = trt.Logger(trt.Logger.INFO)
@@ -408,19 +407,19 @@ class BaseExporter:
         inputs = [network.get_input(i) for i in range(network.num_inputs)]
         outputs = [network.get_output(i) for i in range(network.num_outputs)]
         for inp in inputs:
-            LOGGER.info(f'{prefix} input "{inp.name}" with shape{inp.shape} {inp.dtype}')
+            self.logger.info(f'{prefix} input "{inp.name}" with shape{inp.shape} {inp.dtype}')
         for out in outputs:
-            LOGGER.info(f'{prefix} output "{out.name}" with shape{out.shape} {out.dtype}')
+            self.logger.info(f'{prefix} output "{out.name}" with shape{out.shape} {out.dtype}')
 
         if dynamic:
             if im.shape[0] <= 1:
-                LOGGER.warning(f"{prefix} WARNING ⚠️ --dynamic model requires maximum --batch-size argument")
+                self.logger.warning(f"{prefix} WARNING ⚠️ --dynamic model requires maximum --batch-size argument")
             profile = builder.create_optimization_profile()
             for inp in inputs:
                 profile.set_shape(inp.name, (1, *im.shape[1:]), (max(1, im.shape[0] // 2), *im.shape[1:]), im.shape)
             config.add_optimization_profile(profile)
 
-        LOGGER.info(f'{prefix} building FP{16 if builder.platform_has_fast_fp16 and half else 32} engine as {f}')
+        self.logger.info(f'{prefix} building FP{16 if builder.platform_has_fast_fp16 and half else 32} engine as {f}')
         if builder.platform_has_fast_fp16 and half:
             config.set_flag(trt.BuilderFlag.FP16)
         with builder.build_engine(network, config) as engine, open(f, 'wb') as t:
@@ -450,7 +449,7 @@ class BaseExporter:
         from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2  # noqa
         from models.tf import TFModel  # noqa
 
-        LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
+        self.logger.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
         f = str(file).replace('.pt', '_saved_model')
         batch_size, ch, *imgsz = list(im.shape)  # BCHW
 
@@ -485,7 +484,7 @@ class BaseExporter:
         import tensorflow as tf  # noqa
         from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2  # noqa
 
-        LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
+        self.logger.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
         f = file.with_suffix('.pb')
 
         m = tf.function(lambda x: keras_model(x))  # full model
@@ -500,7 +499,7 @@ class BaseExporter:
         # YOLOv5 TensorFlow Lite export
         import tensorflow as tf  # noqa
 
-        LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
+        self.logger.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
         batch_size, ch, *imgsz = list(im.shape)  # BCHW
         f = str(file).replace('.pt', '-fp16.tflite')
 
@@ -532,7 +531,7 @@ class BaseExporter:
         help_url = 'https://coral.ai/docs/edgetpu/compiler/'
         assert platform.system() == 'Linux', f'export only supported on Linux. See {help_url}'
         if subprocess.run(f'{cmd} >/dev/null', shell=True).returncode != 0:
-            LOGGER.info(f'\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}')
+            self.logger.info(f'\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}')
             sudo = subprocess.run('sudo --version >/dev/null', shell=True).returncode == 0  # sudo installed on system
             for c in (
                     'curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -',
@@ -541,7 +540,7 @@ class BaseExporter:
                 subprocess.run(c if sudo else c.replace('sudo ', ''), shell=True, check=True)
         ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().split()[-1]
 
-        LOGGER.info(f'\n{prefix} starting export with Edge TPU compiler {ver}...')
+        self.logger.info(f'\n{prefix} starting export with Edge TPU compiler {ver}...')
         f = str(file).replace('.pt', '-int8_edgetpu.tflite')  # Edge TPU model
         f_tfl = str(file).replace('.pt', '-int8.tflite')  # TFLite model
 
@@ -555,7 +554,7 @@ class BaseExporter:
         check_requirements('tensorflowjs')
         import tensorflowjs as tfjs  # noqa
 
-        LOGGER.info(f'\n{prefix} starting export with tensorflowjs {tfjs.__version__}...')
+        self.logger.info(f'\n{prefix} starting export with tensorflowjs {tfjs.__version__}...')
         f = str(file).replace('.pt', '_web_model')  # js dir
         f_pb = file.with_suffix('.pb')  # *.pb path
         f_json = f'{f}/model.json'  # *.json path

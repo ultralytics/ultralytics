@@ -1,12 +1,11 @@
 import requests
 
 from ultralytics import __version__
-from ultralytics.yolo.utils import LOGGER, PREFIX, check_requirements, emojis, is_colab
+from ultralytics.yolo.utils import LOGGER, check_requirements, emojis, is_colab
 from ultralytics.yolo.utils.torch_utils import select_device
 
 from .auth import Auth
-from .utils import split_key
-
+from .utils import split_key, PREFIX
 # from .trainer import Trainer
 
 

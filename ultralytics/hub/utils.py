@@ -4,8 +4,9 @@ import time
 
 import requests
 
-from ultralytics.yolo.utils import LOGGER, PREFIX, emojis
+from ultralytics.yolo.utils import LOGGER, emojis, colorstr
 
+PREFIX = colorstr('Ultralytics: ')
 HELP_MSG = 'If this issue persists please visit https://github.com/ultralytics/hub/issues for assistance.'
 
 

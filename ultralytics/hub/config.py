@@ -1,5 +1,4 @@
 import os
-import sys
 
 # Global variables
 REPO_URL = "https://github.com/ultralytics/yolov5.git"

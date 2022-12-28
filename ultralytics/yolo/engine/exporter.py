@@ -65,9 +65,11 @@ from torch.utils.mobile_optimizer import optimize_for_mobile
 
 from ultralytics.nn.modules import Detect, Segment
 from ultralytics.nn.tasks import SegmentationModel, DetectionModel, ClassificationModel, attempt_load_weights
+from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages
+from ultralytics.yolo.data.utils import check_dataset
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.utils import LOGGER, ROOT, colorstr, get_default_args
-from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version
+from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version, check_yaml
 from ultralytics.yolo.utils.files import increment_path, file_size, url2file, yaml_save
 from ultralytics.yolo.utils.ops import Profile
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode, select_device
@@ -514,8 +516,9 @@ class BaseExporter:
         converter.target_spec.supported_types = [tf.float16]
         converter.optimizations = [tf.lite.Optimize.DEFAULT]
         if int8:
-            from models.tf import representative_dataset_gen
-            dataset = LoadImages(check_dataset(check_yaml(data))['train'], img_size=imgsz, auto=False)
+            # from models.tf import representative_dataset_gen
+            representative_dataset_gen = None  # TODO: implement in TF
+            dataset = LoadImages(check_dataset(check_yaml(data))['train'], imgsz=imgsz, auto=False)
             converter.representative_dataset = lambda: representative_dataset_gen(dataset, ncalib=100)
             converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
             converter.target_spec.supported_types = []

@@ -164,7 +164,7 @@ class YOLO:
         validator(model=self.model)
 
     @smart_inference_mode()
-    def export(self, save_dir='', **kwargs):
+    def export(self, format='', save_dir='', **kwargs):
         """
         Export model.
 
@@ -177,6 +177,7 @@ class YOLO:
         overrides.update(kwargs)
         args = get_config(config=DEFAULT_CONFIG, overrides=overrides)
         args.task = self.task
+        args.format = format
 
         file = self.ckpt or Path(Path(self.cfg).name)
         if save_dir:
@@ -190,7 +191,7 @@ class YOLO:
             imgsz=args.imgsz or (640, 640),  # image (height, width)
             batch_size=1,  # batch size
             device=args.device,  # cuda device, i.e. 0 or 0,1,2,3 or cpu
-            format=args.format or 'onnx',  # include formats
+            format=args.format,  # include formats
             half=args.half or False,  # FP16 half-precision export
             keras=args.keras or False,  # use Keras
             optimize=args.optimize or False,  # TorchScript: optimize for mobile

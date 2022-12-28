@@ -144,18 +144,16 @@ def export_onnx(model, im, file, opset, dynamic, simplify, prefix=colorstr('ONNX
         elif isinstance(model, DetectionModel):
             dynamic['output0'] = {0: 'batch', 1: 'anchors'}  # shape(1,25200,85)
 
-    with warnings.catch_warnings():
-        warnings.simplefilter('ignore', UserWarning)  # suppress shape prim::Constant type is missing ONNX warning
-        torch.onnx.export(
-            model.cpu() if dynamic else model,  # --dynamic only compatible with cpu
-            im.cpu() if dynamic else im,
-            f,
-            verbose=False,
-            opset_version=opset,
-            do_constant_folding=True,  # WARNING: DNN inference with torch>=1.12 may require do_constant_folding=False
-            input_names=['images'],
-            output_names=output_names,
-            dynamic_axes=dynamic or None)
+    torch.onnx.export(
+        model.cpu() if dynamic else model,  # --dynamic only compatible with cpu
+        im.cpu() if dynamic else im,
+        f,
+        verbose=False,
+        opset_version=opset,
+        do_constant_folding=True,  # WARNING: DNN inference with torch>=1.12 may require do_constant_folding=False
+        input_names=['images'],
+        output_names=output_names,
+        dynamic_axes=dynamic or None)
 
     # Checks
     model_onnx = onnx.load(f)  # load onnx model
@@ -228,11 +226,9 @@ def export_coreml(model, im, file, int8, half, prefix=colorstr('CoreML:')):
     bits, mode = (8, 'kmeans_lut') if int8 else (16, 'linear') if half else (32, None)
     if bits < 32:
         if MACOS:  # quantization only supported on macOS
-            with warnings.catch_warnings():
-                warnings.filterwarnings("ignore", category=DeprecationWarning)  # suppress numpy==1.20 float warning
-                ct_model = ct.models.neural_network.quantization_utils.quantize_weights(ct_model, bits, mode)
+            ct_model = ct.models.neural_network.quantization_utils.quantize_weights(ct_model, bits, mode)
         else:
-            print(f'{prefix} quantization only supported on macOS, skipping...')
+            LOGGER.info(f'{prefix} quantization only supported on macOS, skipping...')
     ct_model.save(f)
     return f, ct_model
 
@@ -551,9 +547,13 @@ def export_model(
     metadata = {'stride': int(max(model.stride)), 'names': model.names}  # model metadata
     LOGGER.info(f"\n{colorstr('PyTorch:')} starting from {file} with output shape {shape} ({file_size(file):.1f} MB)")
 
+    # Warnings
+    warnings.filterwarnings('ignore', category=torch.jit.TracerWarning)  # suppress TracerWarning
+    warnings.filterwarnings('ignore', category=UserWarning)  # suppress shape prim::Constant type missing ONNX warning
+    warnings.filterwarnings('ignore', category=DeprecationWarning)  # suppress CoreML np.bool deprecation warning
+
     # Exports
     f = [''] * len(fmts)  # exported filenames
-    warnings.filterwarnings(action='ignore', category=torch.jit.TracerWarning)  # suppress TracerWarning
     if jit:  # TorchScript
         f[0], _ = export_torchscript(model, im, file, optimize)
     if engine:  # TensorRT required before ONNX

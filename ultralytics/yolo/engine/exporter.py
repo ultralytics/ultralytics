@@ -64,13 +64,13 @@ from omegaconf import OmegaConf
 from torch.utils.mobile_optimizer import optimize_for_mobile
 
 from ultralytics.nn.modules import Detect, Segment
-from ultralytics.nn.tasks import SegmentationModel, DetectionModel, ClassificationModel, attempt_load_weights
+from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, attempt_load_weights
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.utils import LOGGER, ROOT, colorstr, get_default_args
 from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version
-from ultralytics.yolo.utils.files import increment_path, file_size, url2file, yaml_save
+from ultralytics.yolo.utils.files import file_size, increment_path, url2file, yaml_save
 from ultralytics.yolo.utils.ops import Profile
-from ultralytics.yolo.utils.torch_utils import smart_inference_mode, select_device
+from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode
 
 MACOS = platform.system() == 'Darwin'  # macOS environment
 
@@ -89,7 +89,7 @@ def export_formats():
         ['TensorFlow Lite', 'tflite', '.tflite', True, False],
         ['TensorFlow Edge TPU', 'edgetpu', '_edgetpu.tflite', False, False],
         ['TensorFlow.js', 'tfjs', '_web_model', False, False],
-        ['PaddlePaddle', 'paddle', '_paddle_model', True, True], ]
+        ['PaddlePaddle', 'paddle', '_paddle_model', True, True],]
     return pd.DataFrame(x, columns=['Format', 'Argument', 'Suffix', 'CPU', 'GPU'])
 
 
@@ -126,30 +126,31 @@ class BaseExporter:
             increment_path(Path(self.args.project) / self.args.name, exist_ok=self.args.exist_ok)
 
     @smart_inference_mode()
-    def __call__(self,
-                 data=ROOT / 'data/coco128.yaml',  # 'dataset.yaml path'
-                 weights=ROOT / 'yolov5s.pt',  # weights path
-                 imgsz=(640, 640),  # image (height, width)
-                 batch_size=1,  # batch size
-                 device='cpu',  # cuda device, i.e. 0 or 0,1,2,3 or cpu
-                 include=('torchscript', 'onnx'),  # include formats
-                 half=False,  # FP16 half-precision export
-                 inplace=False,  # set YOLOv5 Detect() inplace=True
-                 keras=False,  # use Keras
-                 optimize=False,  # TorchScript: optimize for mobile
-                 int8=False,  # CoreML/TF INT8 quantization
-                 dynamic=False,  # ONNX/TF/TensorRT: dynamic axes
-                 simplify=False,  # ONNX: simplify model
-                 opset=12,  # ONNX: opset version
-                 verbose=False,  # TensorRT: verbose log
-                 workspace=4,  # TensorRT: workspace size (GB)
-                 nms=False,  # TF: add NMS to model
-                 agnostic_nms=False,  # TF: add agnostic NMS to model
-                 topk_per_class=100,  # TF.js NMS: topk per class to keep
-                 topk_all=100,  # TF.js NMS: topk for all classes to keep
-                 iou_thres=0.45,  # TF.js NMS: IoU threshold
-                 conf_thres=0.25,  # TF.js NMS: confidence threshold
-                 ):
+    def __call__(
+            self,
+            data=ROOT / 'data/coco128.yaml',  # 'dataset.yaml path'
+            weights=ROOT / 'yolov5s.pt',  # weights path
+            imgsz=(640, 640),  # image (height, width)
+            batch_size=1,  # batch size
+            device='cpu',  # cuda device, i.e. 0 or 0,1,2,3 or cpu
+            include=('torchscript', 'onnx'),  # include formats
+            half=False,  # FP16 half-precision export
+            inplace=False,  # set YOLOv5 Detect() inplace=True
+            keras=False,  # use Keras
+            optimize=False,  # TorchScript: optimize for mobile
+            int8=False,  # CoreML/TF INT8 quantization
+            dynamic=False,  # ONNX/TF/TensorRT: dynamic axes
+            simplify=False,  # ONNX: simplify model
+            opset=12,  # ONNX: opset version
+            verbose=False,  # TensorRT: verbose log
+            workspace=4,  # TensorRT: workspace size (GB)
+            nms=False,  # TF: add NMS to model
+            agnostic_nms=False,  # TF: add agnostic NMS to model
+            topk_per_class=100,  # TF.js NMS: topk per class to keep
+            topk_all=100,  # TF.js NMS: topk for all classes to keep
+            iou_thres=0.45,  # TF.js NMS: IoU threshold
+            conf_thres=0.25,  # TF.js NMS: confidence threshold
+    ):
         t = time.time()
         include = [x.lower() for x in include]  # to lowercase
         fmts = tuple(export_formats()['Argument'][1:])  # --include arguments
@@ -222,7 +223,12 @@ class BaseExporter:
             if pb or tfjs:  # pb prerequisite to tfjs
                 f[6], _ = self.export_pb(s_model, file)
             if tflite or edgetpu:
-                f[7], _ = self.export_tflite(s_model, im, file, int8 or edgetpu, data=data, nms=nms,
+                f[7], _ = self.export_tflite(s_model,
+                                             im,
+                                             file,
+                                             int8 or edgetpu,
+                                             data=data,
+                                             nms=nms,
                                              agnostic_nms=agnostic_nms)
                 if edgetpu:
                     f[8], _ = self.export_edgetpu(file)
@@ -235,19 +241,20 @@ class BaseExporter:
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
         if any(f):
-            cls, det, seg = (isinstance(model, x) for x in
-                             (ClassificationModel, DetectionModel, SegmentationModel))  # type
+            cls, det, seg = (isinstance(model, x)
+                             for x in (ClassificationModel, DetectionModel, SegmentationModel))  # type
             det &= not seg  # segmentation models inherit from SegmentationModel(DetectionModel)
             dir = Path('segment' if seg else 'classify' if cls else '')
             h = '--half' if half else ''  # --half FP16 inference arg
             s = "# WARNING ⚠️ ClassificationModel not yet supported for PyTorch Hub AutoShape inference" if cls else \
                 "# WARNING ⚠️ SegmentationModel not yet supported for PyTorch Hub AutoShape inference" if seg else ''
-            self.logger.info(f'\nExport complete ({time.time() - t:.1f}s)'
-                             f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
-                             f"\nPredict          python {dir / 'predict.py'} --weights {f[-1]} {h}"
-                             f"\nValidate:        python {dir / 'val.py'} --weights {f[-1]} {h}"
-                             f"\nPyTorch Hub:     model = torch.hub.load('ultralytics/yolov5', 'custom', '{f[-1]}')  {s}"
-                             f"\nVisualize:       https://netron.app")
+            self.logger.info(
+                f'\nExport complete ({time.time() - t:.1f}s)'
+                f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
+                f"\nPredict          python {dir / 'predict.py'} --weights {f[-1]} {h}"
+                f"\nValidate:        python {dir / 'val.py'} --weights {f[-1]} {h}"
+                f"\nPyTorch Hub:     model = torch.hub.load('ultralytics/yolov5', 'custom', '{f[-1]}')  {s}"
+                f"\nVisualize:       https://netron.app")
         return f  # return list of exported files/dirs
 
     @try_export
@@ -371,7 +378,15 @@ class BaseExporter:
         return f, ct_model
 
     @try_export
-    def export_engine(self, model, im, file, half, dynamic, simplify, workspace=4, verbose=False,
+    def export_engine(self,
+                      model,
+                      im,
+                      file,
+                      half,
+                      dynamic,
+                      simplify,
+                      workspace=4,
+                      verbose=False,
                       prefix=colorstr('TensorRT:')):
         # YOLOv5 TensorRT export https://developer.nvidia.com/tensorrt
         assert im.device.type != 'cpu', 'export running on CPU but must be on GPU, i.e. `python export.py --device 0`'
@@ -452,8 +467,8 @@ class BaseExporter:
         except Exception:
             check_requirements(f"tensorflow{'' if torch.cuda.is_available() else '-macos' if MACOS else '-cpu'}")
             import tensorflow as tf  # noqa
-        from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2  # noqa
         from models.tf import TFModel  # noqa
+        from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2  # noqa
 
         self.logger.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
         f = str(file).replace('.pt', '_saved_model')
@@ -479,9 +494,8 @@ class BaseExporter:
             tfm.__call__(im)
             tf.saved_model.save(tfm,
                                 f,
-                                options=tf.saved_model.SaveOptions(
-                                    experimental_custom_gradients=False) if check_version(
-                                    tf.__version__, '2.6') else tf.saved_model.SaveOptions())
+                                options=tf.saved_model.SaveOptions(experimental_custom_gradients=False)
+                                if check_version(tf.__version__, '2.6') else tf.saved_model.SaveOptions())
         return f, keras_model
 
     @try_export
@@ -576,9 +590,9 @@ class BaseExporter:
                 r'"Identity.?.?": {"name": "Identity.?.?"}, '
                 r'"Identity.?.?": {"name": "Identity.?.?"}, '
                 r'"Identity.?.?": {"name": "Identity.?.?"}}}', r'{"outputs": {"Identity": {"name": "Identity"}, '
-                                                               r'"Identity_1": {"name": "Identity_1"}, '
-                                                               r'"Identity_2": {"name": "Identity_2"}, '
-                                                               r'"Identity_3": {"name": "Identity_3"}}}', json)
+                r'"Identity_1": {"name": "Identity_1"}, '
+                r'"Identity_2": {"name": "Identity_2"}, '
+                r'"Identity_3": {"name": "Identity_3"}}}', json)
             j.write(subst)
         return f, None
 

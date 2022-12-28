@@ -108,7 +108,8 @@ class Loss:
         self.hyp = h
         self.stride = m.stride  # model strides
         self.nc = m.nc  # number of classes
-        self.nl = m.nl  # number of layers
+        self.no = m.no  # number of layers
+        self.reg_max = m.reg_max
         self.device = device
 
         self.use_dfl = m.reg_max > 1
@@ -141,7 +142,10 @@ class Loss:
 
     def __call__(self, preds, batch):
         loss = torch.zeros(3, device=self.device)  # box, cls, dfl
-        feats, pred_distri, pred_scores = preds if len(preds) == 3 else preds[1]
+        feats = preds[1] if isinstance(preds, tuple) else preds
+        pred_distri, pred_scores = torch.cat(
+            [xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split((self.reg_max * 4, self.nc), 1)
+
         pred_scores = pred_scores.permute(0, 2, 1).contiguous()
         pred_distri = pred_distri.permute(0, 2, 1).contiguous()
 

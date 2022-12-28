@@ -2,8 +2,11 @@ import getpass
 import json
 
 import requests
-from config import HUB_API_ROOT
-from utils import request_with_credentials
+
+from ultralytics.yolo.utils import is_colab
+
+from ultralytics.hub.config import HUB_API_ROOT
+from ultralytics.hub.utils import request_with_credentials
 
 from ultralytics.yolo.utils import is_colab
 

@@ -24,7 +24,7 @@ LOGGING_NAME = 'yolov5'
 HELP_MSG = \
     """
     Please refer to below Usage examples for help running YOLOv8
-    For help visit the Ultralytics Community at https://community.ultralytics.com/
+    For help visit Ultralytics Community at https://community.ultralytics.com/
     Submit bug reports to https//github.com/ultralytics/ultralytics
 
     Install:
@@ -41,9 +41,9 @@ HELP_MSG = \
         success = model.export(format='onnx')
 
     CLI usage:
-        yolo task=detect    mode=train     model=s.yaml ...
-                  classify       predict         s-cls.yaml
-                  segment        val             s-seg.yaml
+        yolo task=detect    mode=train     model=yolov8n.yaml ...
+                  classify       predict         yolov8n-cls.yaml
+                  segment        val             yolov8n-seg.yaml
 
     For all arguments see https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/utils/configs/default.yaml
     """

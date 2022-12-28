@@ -109,9 +109,6 @@ class BaseValidator:
                 self.plot_val_samples(batch, batch_i)
                 self.plot_predictions(batch, preds, batch_i)
 
-            if self.args.save_json:
-                self.pred_to_json(preds, batch)
-
         stats = self.get_stats()
         self.check_stats(stats)
         self.print_results()
@@ -126,8 +123,7 @@ class BaseValidator:
                 with open(str(self.save_dir / "predictions.json"), 'w') as f:
                     self.logger.info(f"Saving {f.name}...")
                     json.dump(self.jdict, f)  # flatten and save
-
-            self.eval_json()
+                stats = self.eval_json(stats)  # update stats
             return stats
 
     def get_dataloader(self, dataset_path, batch_size):
@@ -171,5 +167,5 @@ class BaseValidator:
     def pred_to_json(self, preds, batch):
         pass
 
-    def eval_json(self):
+    def eval_json(self, stats):
         pass

@@ -71,7 +71,7 @@ class DetectionValidator(BaseValidator):
 
     def update_metrics(self, preds, batch):
         # Metrics
-        for si, (pred) in enumerate(preds):
+        for si, pred in enumerate(preds):
             labels = self.targets[self.targets[:, 0] == si, 1:]
             nl, npr = labels.shape[0], pred.shape[0]  # number of labels, predictions
             shape = batch["ori_shape"][si]
@@ -103,11 +103,11 @@ class DetectionValidator(BaseValidator):
                     self.confusion_matrix.process_batch(predn, labelsn)
             self.stats.append((correct_bboxes, pred[:, 4], pred[:, 5], labels[:, 0]))  # (conf, pcls, tcls)
 
-            # TODO: Save/log
-            '''
-            if self.args.save_txt:
-                save_one_txt(predn, save_conf, shape, file=save_dir / 'labels' / f'{path.stem}.txt')
-            '''
+            # Save
+            if self.args.save_json:
+                self.pred_to_json(predn, batch["im_file"][si])
+            # if self.args.save_txt:
+            #    save_one_txt(predn, save_conf, shape, file=save_dir / 'labels' / f'{path.stem}.txt')
 
     def get_stats(self):
         stats = [torch.cat(x, 0).cpu().numpy() for x in zip(*self.stats)]  # to numpy
@@ -197,26 +197,25 @@ class DetectionValidator(BaseValidator):
                     fname=self.save_dir / f'val_batch{ni}_pred.jpg',
                     names=self.names)  # pred
 
-    def pred_to_json(self, preds, batch):
-        for i, f in enumerate(batch["im_file"]):
-            stem = Path(f).stem
-            image_id = int(stem) if stem.isnumeric() else stem
-            box = ops.xyxy2xywh(preds[i][:, :4])  # xywh
-            box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
-            for p, b in zip(preds[i].tolist(), box.tolist()):
-                self.jdict.append({
-                    'image_id': image_id,
-                    'category_id': self.class_map[int(p[5])],
-                    'bbox': [round(x, 3) for x in b],
-                    'score': round(p[4], 5)})
+    def pred_to_json(self, predn, filename):
+        stem = Path(filename).stem
+        image_id = int(stem) if stem.isnumeric() else stem
+        box = ops.xyxy2xywh(predn[:, :4])  # xywh
+        box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
+        for p, b in zip(predn.tolist(), box.tolist()):
+            self.jdict.append({
+                'image_id': image_id,
+                'category_id': self.class_map[int(p[5])],
+                'bbox': [round(x, 3) for x in b],
+                'score': round(p[4], 5)})
 
-    def eval_json(self):
+    def eval_json(self, stats):
         if self.args.save_json and self.is_coco and len(self.jdict):
             anno_json = self.data['path'] / "annotations/instances_val2017.json"  # annotations
             pred_json = self.save_dir / "predictions.json"  # predictions
             self.logger.info(f'\nEvaluating pycocotools mAP using {pred_json} and {anno_json}...')
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
-                check_requirements('pycocotools')
+                check_requirements('pycocotools>=2.0.6')
                 from pycocotools.coco import COCO  # noqa
                 from pycocotools.cocoeval import COCOeval  # noqa
 
@@ -230,9 +229,10 @@ class DetectionValidator(BaseValidator):
                 eval.evaluate()
                 eval.accumulate()
                 eval.summarize()
-                self.metrics.metric.map, self.metrics.metric.map50 = eval.stats[:2]  # update mAP50-95 and mAP50
+                stats[self.metric_keys[-1]], stats[self.metric_keys[-2]] = eval.stats[:2]  # update mAP50-95 and mAP50
             except Exception as e:
                 self.logger.warning(f'pycocotools unable to run: {e}')
+        return stats
 
 
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)

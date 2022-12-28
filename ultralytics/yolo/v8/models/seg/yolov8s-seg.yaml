@@ -3,9 +3,9 @@
 # Parameters
 nc: 80  # number of classes
 depth_multiple: 0.33  # model depth multiple
-width_multiple: 0.25  # layer channel multiple
+width_multiple: 0.50  # layer channel multiple
 
-# YOLOv8.0n backbone
+# YOLOv8.0s backbone
 backbone:
   # [from, number, module, args]
   [[-1, 1, Conv, [64, 3, 2]],  # 0-P1/2
@@ -20,7 +20,7 @@ backbone:
    [-1, 1, SPPF, [1024, 5]],  # 9
   ]
 
-# YOLOv8.0n head
+# YOLOv8.0s head
 head:
   [[-1, 1, nn.Upsample, [None, 2, 'nearest']],
    [[-1, 6], 1, Concat, [1]],  # cat backbone P4

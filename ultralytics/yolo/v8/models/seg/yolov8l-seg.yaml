@@ -2,10 +2,10 @@
 
 # Parameters
 nc: 80  # number of classes
-depth_multiple: 0.33  # model depth multiple
-width_multiple: 0.25  # layer channel multiple
+depth_multiple: 1.00  # model depth multiple
+width_multiple: 1.00  # layer channel multiple
 
-# YOLOv8.0n backbone
+# YOLOv8.0l backbone
 backbone:
   # [from, number, module, args]
   [[-1, 1, Conv, [64, 3, 2]],  # 0-P1/2
@@ -15,12 +15,12 @@ backbone:
    [-1, 6, C2f, [256, True]],
    [-1, 1, Conv, [512, 3, 2]],  # 5-P4/16
    [-1, 6, C2f, [512, True]],
-   [-1, 1, Conv, [1024, 3, 2]],  # 7-P5/32
-   [-1, 3, C2f, [1024, True]],
-   [-1, 1, SPPF, [1024, 5]],  # 9
+   [-1, 1, Conv, [512, 3, 2]],  # 7-P5/32
+   [-1, 3, C2f, [512, True]],
+   [-1, 1, SPPF, [512, 5]],  # 9
   ]
 
-# YOLOv8.0n head
+# YOLOv8.0l head
 head:
   [[-1, 1, nn.Upsample, [None, 2, 'nearest']],
    [[-1, 6], 1, Concat, [1]],  # cat backbone P4
@@ -36,7 +36,7 @@ head:
 
    [-1, 1, Conv, [512, 3, 2]],
    [[-1, 9], 1, Concat, [1]],  # cat head P5
-   [-1, 3, C2f, [1024]],  # 23 (P5/32-large)
+   [-1, 3, C2f, [512]],  # 23 (P5/32-large)
 
    [[15, 18, 21], 1, Segment, [nc, 32, 256]],  # Detect(P3, P4, P5)
   ]

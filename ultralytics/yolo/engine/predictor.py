@@ -13,15 +13,15 @@ Usage - sources:
                                                 'https://youtu.be/Zgi9g1ksQHc'  # YouTube
                                                 'rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP stream
 Usage - formats:
-    $ yolo task=... mode=predict --weights yolov5s.pt          # PyTorch
-                                    yolov5s.torchscript        # TorchScript
-                                    yolov5s.onnx               # ONNX Runtime or OpenCV DNN with --dnn
+    $ yolo task=... mode=predict --weights yolov8n.pt          # PyTorch
+                                    yolov8n.torchscript        # TorchScript
+                                    yolov8n.onnx               # ONNX Runtime or OpenCV DNN with --dnn
                                     yolov5s_openvino_model     # OpenVINO
-                                    yolov5s.engine             # TensorRT
-                                    yolov5s.mlmodel            # CoreML (macOS-only)
+                                    yolov8n.engine             # TensorRT
+                                    yolov8n.mlmodel            # CoreML (macOS-only)
                                     yolov5s_saved_model        # TensorFlow SavedModel
-                                    yolov5s.pb                 # TensorFlow GraphDef
-                                    yolov5s.tflite             # TensorFlow Lite
+                                    yolov8n.pb                 # TensorFlow GraphDef
+                                    yolov8n.tflite             # TensorFlow Lite
                                     yolov5s_edgetpu.tflite     # TensorFlow Edge TPU
                                     yolov5s_paddle_model       # PaddlePaddle
     """

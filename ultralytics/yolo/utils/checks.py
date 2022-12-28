@@ -106,7 +106,7 @@ def check_requirements(requirements=ROOT / 'requirements.txt', exclude=(), insta
             LOGGER.warning(f'{prefix} ❌ {e}')
 
 
-def check_suffix(file='yolov5s.pt', suffix=('.pt',), msg=''):
+def check_suffix(file='yolov8n.pt', suffix=('.pt',), msg=''):
     # Check file(s) for acceptable suffix
     if file and suffix:
         if isinstance(suffix, str):

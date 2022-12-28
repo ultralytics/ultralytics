@@ -4,15 +4,15 @@ Export a YOLOv5 PyTorch model to other formats. TensorFlow exports authored by h
 
 Format                      | `export.py --include`         | Model
 ---                         | ---                           | ---
-PyTorch                     | -                             | yolov5s.pt
-TorchScript                 | `torchscript`                 | yolov5s.torchscript
-ONNX                        | `onnx`                        | yolov5s.onnx
+PyTorch                     | -                             | yolov8n.pt
+TorchScript                 | `torchscript`                 | yolov8n.torchscript
+ONNX                        | `onnx`                        | yolov8n.onnx
 OpenVINO                    | `openvino`                    | yolov5s_openvino_model/
-TensorRT                    | `engine`                      | yolov5s.engine
-CoreML                      | `coreml`                      | yolov5s.mlmodel
+TensorRT                    | `engine`                      | yolov8n.engine
+CoreML                      | `coreml`                      | yolov8n.mlmodel
 TensorFlow SavedModel       | `saved_model`                 | yolov5s_saved_model/
-TensorFlow GraphDef         | `pb`                          | yolov5s.pb
-TensorFlow Lite             | `tflite`                      | yolov5s.tflite
+TensorFlow GraphDef         | `pb`                          | yolov8n.pb
+TensorFlow Lite             | `tflite`                      | yolov8n.tflite
 TensorFlow Edge TPU         | `edgetpu`                     | yolov5s_edgetpu.tflite
 TensorFlow.js               | `tfjs`                        | yolov5s_web_model/
 PaddlePaddle                | `paddle`                      | yolov5s_paddle_model/
@@ -22,18 +22,18 @@ Requirements:
     $ pip install -r requirements.txt coremltools onnx onnx-simplifier onnxruntime-gpu openvino-dev tensorflow  # GPU
 
 Usage:
-    $ python export.py --weights yolov5s.pt --include torchscript onnx openvino engine coreml tflite ...
+    $ python export.py --weights yolov8n.pt --include torchscript onnx openvino engine coreml tflite ...
 
 Inference:
-    $ python detect.py --weights yolov5s.pt                 # PyTorch
-                                 yolov5s.torchscript        # TorchScript
-                                 yolov5s.onnx               # ONNX Runtime or OpenCV DNN with --dnn
+    $ python detect.py --weights yolov8n.pt                 # PyTorch
+                                 yolov8n.torchscript        # TorchScript
+                                 yolov8n.onnx               # ONNX Runtime or OpenCV DNN with --dnn
                                  yolov5s_openvino_model     # OpenVINO
-                                 yolov5s.engine             # TensorRT
-                                 yolov5s.mlmodel            # CoreML (macOS-only)
+                                 yolov8n.engine             # TensorRT
+                                 yolov8n.mlmodel            # CoreML (macOS-only)
                                  yolov5s_saved_model        # TensorFlow SavedModel
-                                 yolov5s.pb                 # TensorFlow GraphDef
-                                 yolov5s.tflite             # TensorFlow Lite
+                                 yolov8n.pb                 # TensorFlow GraphDef
+                                 yolov8n.tflite             # TensorFlow Lite
                                  yolov5s_edgetpu.tflite     # TensorFlow Edge TPU
                                  yolov5s_paddle_model       # PaddlePaddle
 

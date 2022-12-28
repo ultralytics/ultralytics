@@ -5,7 +5,7 @@ from ultralytics import yolo  # noqa required for python usage
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, attempt_load_weights
 # from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
-from ultralytics.yolo.utils import LOGGER
+from ultralytics.yolo.utils import LOGGER, HELP_MSG
 from ultralytics.yolo.utils.checks import check_yaml
 from ultralytics.yolo.utils.configs import get_config
 from ultralytics.yolo.utils.files import yaml_load
@@ -36,7 +36,7 @@ class YOLO:
             type (str): Type/version of models to use
         """
         if init_key != YOLO.__init_key:
-            raise Exception(YOLO._init_instruction())
+            raise Exception(HELP_MSG)
 
         self.type = type
         self.ModelClass = None

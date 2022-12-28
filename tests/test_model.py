@@ -11,6 +11,7 @@ def test_model_init():
         print("Successfully caught constructor assert!")
     raise Exception("constructor error didn't occur")
 
+
 def test_model_forward():
     model = YOLO.new("yolov8n.yaml")
     img = torch.rand(512 * 512 * 3).view(1, 3, 512, 512)

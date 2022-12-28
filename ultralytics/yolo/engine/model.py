@@ -24,7 +24,7 @@ MODEL_MAP = {
         'yolo.TYPE.segment.SegmentationPredictor']}
 
 
-class YOLO(object):
+class YOLO:
     """
     Python interface which emulates a model-like behaviour by wrapping trainers.
     """

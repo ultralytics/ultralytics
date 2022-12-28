@@ -5,8 +5,8 @@ import requests
 
 from ultralytics.yolo.utils import is_colab
 
-from .config import HUB_API_ROOT
-from .utils import request_with_credentials
+from config import HUB_API_ROOT
+from utils import request_with_credentials
 
 API_KEY_PATH = "https://hub.ultralytics.com/settings?tab=api+keys"
 

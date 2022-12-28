@@ -32,7 +32,7 @@ class Auth:
                     raise Exception("Unable to authenticate.")
                 return True
             raise Exception("User has not authenticated locally.")
-        except Exception as e:
+        except Exception:
             self.id_token = self.api_key = False  # reset invalid
             return False
 
@@ -41,7 +41,8 @@ class Auth:
         Attempt to fetch authentication via cookies and set id_token.
         User must be logged in to HUB and running in a supported browser.
         """
-        if not is_colab(): return False  # Currently only works with Colab
+        if not is_colab():
+            return False  # Currently only works with Colab
         try:
             authn = request_with_credentials(f"{HUB_API_ROOT}/v1/auth/auto")
             if authn.get("success", False):
@@ -49,7 +50,7 @@ class Auth:
                 self.authenticate()
                 return True
             raise Exception("Unable to fetch browser authentication details.")
-        except Exception as e:
+        except Exception:
             self.id_token = False  # reset invalid
             return False
 

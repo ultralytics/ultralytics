@@ -71,9 +71,9 @@ class YOLO:
         self.ckpt = torch.load(weights, map_location="cpu")
         self.task = self.ckpt["train_args"]["task"]
         self.overrides = dict(self.ckpt["train_args"])
-        self.overrides["device"] = '' # reset device
+        self.overrides["device"] = ''  # reset device
         LOGGER.info("Device has been reset to ''")
-        
+
         self.ModelClass, self.TrainerClass, self.ValidatorClass, self.PredictorClass = self._guess_ops_from_task(
             task=self.task)
         self.model = attempt_load_weights(weights)

@@ -5,12 +5,11 @@ import hydra
 
 import ultralytics
 import ultralytics.yolo.v8 as yolo
-from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 
-from .utils import LOGGER, colorstr
+from .utils import DEFAULT_CONFIG, LOGGER, colorstr
 
 
-@hydra.main(version_base=None, config_path="utils/configs", config_name="default")
+@hydra.main(version_base=None, config_path="configs", config_name="default")
 def cli(cfg):
     LOGGER.info(f"{colorstr(f'Ultralytics YOLO v{ultralytics.__version__}')}")
     task, mode = cfg.task.lower(), cfg.mode.lower()

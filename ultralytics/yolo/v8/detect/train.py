@@ -6,8 +6,8 @@ from ultralytics.nn.tasks import DetectionModel
 from ultralytics.yolo import v8
 from ultralytics.yolo.data import build_dataloader
 from ultralytics.yolo.data.dataloaders.v5loader import create_dataloader
-from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG, BaseTrainer
-from ultralytics.yolo.utils import colorstr
+from ultralytics.yolo.engine.trainer import BaseTrainer
+from ultralytics.yolo.utils import DEFAULT_CONFIG, colorstr
 from ultralytics.yolo.utils.loss import BboxLoss
 from ultralytics.yolo.utils.ops import xywh2xyxy
 from ultralytics.yolo.utils.plotting import plot_images, plot_results

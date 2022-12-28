@@ -192,7 +192,7 @@ def polygons2masks_overlap(imgsz, segments, downsample_ratio=1):
 def check_dataset_yaml(data, autodownload=True):
     # Download, check and/or unzip dataset if not found locally
     data = check_file(data)
-    DATASETS_DIR = Path.cwd() / "../datasets"  # TODO: handle global dataset dir
+    DATASETS_DIR = (Path.cwd() / "../datasets").resolve()  # TODO: handle global dataset dir
     # Download (optional)
     extract_dir = ''
     if isinstance(data, (str, Path)) and (is_zipfile(data) or is_tarfile(data)):

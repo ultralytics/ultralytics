@@ -151,12 +151,11 @@ class SegLoss:
                     marea = xyxy2xywh(xyxyn)[:, 2:].prod(1)
                     mxyxy = xyxyn * torch.tensor([mask_w, mask_h, mask_w, mask_h], device=self.device)
                     loss_seg = self.single_mask_loss(gt_mask, pred_masks[i][fg_mask[i]], proto[i], mxyxy, marea)
-                    loss[1] += loss_seg
-                else:
-                    loss[1] += (proto * 0).sum()
-        else:
-            # NOTE: in case unused params error when using DDP mode
-            loss[1] += (proto * 0).sum()
+        # WARNING: Uncomment lines below in case of Multi-GPU DDP unused gradient errors
+        #         else:
+        #             loss[1] += proto.sum() * 0
+        # else:
+        #     loss[1] += proto.sum() * 0
 
         loss[0] *= 7.5  # box gain
         loss[1] *= 7.5 / batch_size  # seg gain

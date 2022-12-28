@@ -13,12 +13,25 @@ import torch
 
 from ultralytics.yolo.utils import (AUTOINSTALL, FONT, LOGGER, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, emojis,
                                     is_docker, is_notebook)
+from ultralytics.yolo.utils.ops import make_divisible
 
 
 def is_ascii(s=''):
     # Is string composed of all ASCII (no UTF) characters? (note str().isascii() introduced in python 3.7)
     s = str(s)  # convert list, tuple, None, etc. to str
     return len(s.encode().decode('ascii', 'ignore')) == len(s)
+
+
+def check_imgsz(imgsz, s=32, floor=0):
+    # Verify image size is a multiple of stride s in each dimension
+    if isinstance(imgsz, int):  # integer i.e. img_size=640
+        new_size = max(make_divisible(imgsz, int(s)), floor)
+    else:  # list i.e. img_size=[640, 480]
+        imgsz = list(imgsz)  # convert to list if tuple
+        new_size = [max(make_divisible(x, int(s)), floor) for x in imgsz]
+    if new_size != imgsz:
+        LOGGER.warning(f'WARNING ⚠️ --img-size {imgsz} must be multiple of max stride {s}, updating to {new_size}')
+    return new_size
 
 
 def check_version(current="0.0.0", minimum="0.0.0", name="version ", pinned=False, hard=False, verbose=False):

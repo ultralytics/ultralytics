@@ -28,7 +28,7 @@ from ultralytics.yolo.utils import LOGGER, ROOT, TQDM_BAR_FORMAT, colorstr
 from ultralytics.yolo.utils.checks import check_file, print_args
 from ultralytics.yolo.utils.configs import get_config
 from ultralytics.yolo.utils.dist import ddp_cleanup, generate_ddp_command
-from ultralytics.yolo.utils.files import get_latest_run, increment_path, save_yaml
+from ultralytics.yolo.utils.files import get_latest_run, increment_path, yaml_save
 from ultralytics.yolo.utils.torch_utils import ModelEMA, de_parallel, init_seeds, one_cycle, strip_optimizer
 
 DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yaml"
@@ -62,7 +62,7 @@ class BaseTrainer:
             print_args(dict(self.args))
 
         # Save run settings
-        save_yaml(self.save_dir / 'args.yaml', OmegaConf.to_container(self.args, resolve=True))
+        yaml_save(self.save_dir / 'args.yaml', OmegaConf.to_container(self.args, resolve=True))
 
         # device
         self.device = utils.torch_utils.select_device(self.args.device, self.batch_size)

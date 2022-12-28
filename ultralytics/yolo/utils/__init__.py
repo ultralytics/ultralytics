@@ -1,4 +1,5 @@
 import contextlib
+import inspect
 import logging.config
 import os
 import platform
@@ -70,6 +71,12 @@ def is_writeable(dir, test=False):
         return True
     except OSError:
         return False
+
+
+def get_default_args(func):
+    # Get func() default arguments
+    signature = inspect.signature(func)
+    return {k: v.default for k, v in signature.parameters.items() if v.default is not inspect.Parameter.empty}
 
 
 def user_config_dir(dir='Ultralytics', env_var='YOLOV5_CONFIG_DIR'):

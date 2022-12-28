@@ -48,7 +48,7 @@ def request_with_credentials(url: str) -> any:
     return output.eval_js("_hub_tmp")
 
 
-#! deprecated
+# Deprecated TODO: eliminate this function?
 def split_key(key=''):
     # Verify and split a 'api_key[sep]model_id' string, sep is one of '.' or '_'
     # key = 'ac0ab020186aeb50cc4c2a5272de17f58bbd2c0_RqFCDNBxgU4mOLmaBrcd'  # example

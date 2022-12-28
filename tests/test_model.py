@@ -3,6 +3,14 @@ import torch
 from ultralytics import YOLO
 
 
+def test_model_init():
+    model = YOLO.new("yolov8n.yaml")
+    try:
+        YOLO()
+    except Exception:
+        print("Successfully caught constructor assert!")
+    raise Exception("constructor error didn't occur")
+
 def test_model_forward():
     model = YOLO.new("yolov8n.yaml")
     img = torch.rand(512 * 512 * 3).view(1, 3, 512, 512)

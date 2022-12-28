@@ -24,16 +24,20 @@ MODEL_MAP = {
         'yolo.TYPE.segment.SegmentationPredictor']}
 
 
-class YOLO:
+class YOLO(object):
     """
     Python interface which emulates a model-like behaviour by wrapping trainers.
     """
+    __init_key = object()
 
-    def __init__(self, type="v8") -> None:
+    def __init__(self, init_key=None, type="v8") -> None:
         """
         Args:
             type (str): Type/version of models to use
         """
+        if init_key != YOLO.__init_key:
+            raise Exception(YOLO._init_instruction())
+
         self.type = type
         self.ModelClass = None
         self.TrainerClass = None
@@ -44,6 +48,11 @@ class YOLO:
         self.task = None
         self.ckpt = None
         self.overrides = {}
+        self.init_disabled = False
+
+    @staticmethod
+    def _init_instruction():
+        return "The correct way to initialize a model is: YOLO.new(*.cfg) or YOLO.load('*.pt')"
 
     @classmethod
     def new(cls, cfg: str):
@@ -56,7 +65,7 @@ class YOLO:
         cfg = check_yaml(cfg)  # check YAML
         with open(cfg, encoding='ascii', errors='ignore') as f:
             cfg = yaml.safe_load(f)  # model dict
-        obj = cls()
+        obj = cls(init_key=cls.__init_key)
         obj.task = obj._guess_task_from_head(cfg["head"][-1][-2])
         obj.ModelClass, obj.TrainerClass, obj.ValidatorClass, obj.PredictorClass = obj._guess_ops_from_task(obj.task)
         obj.model = obj.ModelClass(cfg)  # initialize
@@ -72,7 +81,7 @@ class YOLO:
             weights (str): model checkpoint to be loaded
 
         """
-        obj = cls()
+        obj = cls(init_key=cls.__init_key)
         obj.ckpt = torch.load(weights, map_location="cpu")
         obj.task = obj.ckpt["train_args"]["task"]
         obj.overrides = dict(obj.ckpt["train_args"])

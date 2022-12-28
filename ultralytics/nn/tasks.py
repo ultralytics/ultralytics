@@ -300,7 +300,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         elif m in {Detect, Segment}:
             args.append([ch[x] for x in f])
             if m is Segment:
-                args[3] = make_divisible(args[3] * gw, 8)
+                args[2] = make_divisible(args[2] * gw, 8)
         else:
             c2 = ch[f]
 

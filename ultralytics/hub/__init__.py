@@ -1,6 +1,4 @@
 import requests
-from auth import Auth
-from utils import PREFIX, split_key
 
 from ultralytics import __version__
 from ultralytics.hub.auth import Auth

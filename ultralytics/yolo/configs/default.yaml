@@ -65,6 +65,7 @@ agnostic_nms: False  # class-agnostic NMS
 retina_masks: False
 
 # Export settings ------------------------------------------------------------------------------------------------------
+format: torchscript
 keras: False  # use Keras
 optimize: False  # TorchScript: optimize for mobile
 int8: False  # CoreML/TF INT8 quantization

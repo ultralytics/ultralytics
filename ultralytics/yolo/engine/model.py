@@ -164,7 +164,7 @@ class YOLO:
         validator(model=self.model)
 
     @smart_inference_mode()
-    def export(self, format='', save_dir='', **kwargs):
+    def export(self, **kwargs):
         """
         Export model.
 
@@ -177,15 +177,9 @@ class YOLO:
         overrides.update(kwargs)
         args = get_config(config=DEFAULT_CONFIG, overrides=overrides)
         args.task = self.task
-        args.format = format
-
-        file = self.ckpt or Path(Path(self.cfg).name)
-        if save_dir:
-            file = Path(save_dir) / file.name
-            file.parent.mkdir(parents=True, exist_ok=True)
 
         exporter = Exporter(overrides=overrides)
-        exporter(model=self.model, format=format)
+        exporter(model=self.model)
 
     def train(self, **kwargs):
         """

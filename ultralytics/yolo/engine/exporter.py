@@ -65,7 +65,7 @@ import pandas as pd
 import torch
 
 from ultralytics.nn.modules import Detect, Segment
-from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel
+from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, attempt_load_weights
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages
 from ultralytics.yolo.data.utils import check_dataset
@@ -125,9 +125,9 @@ class Exporter:
         self.imgsz = self.args.imgsz
 
     @smart_inference_mode()
-    def __call__(self, model=None, format=None):
+    def __call__(self, model=None):
         t = time.time()
-        format = format.lower()  # to lowercase
+        format = self.args.format.lower()  # to lowercase
         fmts = tuple(export_formats()['Argument'][1:])  # available export formats
         flags = [x == format for x in fmts]
         assert sum(flags), f'ERROR: Invalid format={format}, valid formats are {fmts}'
@@ -601,8 +601,18 @@ class Exporter:
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def export(cfg):
     cfg.model = cfg.model or "yolov8n.yaml"
+    cfg.format = cfg.format or "torchscript"
     exporter = Exporter(cfg)
-    exporter(model=DetectionModel(cfg.model), format='torchscript')
+
+    model = None
+    if isinstance(cfg.model, (str, Path)):
+        if Path(cfg.model).suffix == '.yaml':
+            model = DetectionModel(cfg.model)
+        elif Path(cfg.model).suffix == '.pt':
+            model = attempt_load_weights(cfg.model)
+        else:
+            TypeError(f'Unsupported model type {cfg.model}')
+    exporter(model=model)
 
 
 if __name__ == "__main__":

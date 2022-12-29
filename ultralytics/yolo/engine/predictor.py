@@ -46,9 +46,9 @@ class BasePredictor:
 
     def __init__(self, config=DEFAULT_CONFIG, overrides={}):
         self.args = get_config(config, overrides)
-        project = overrides.get("project") or self.args.task
-        name = overrides.get("name") or self.args.mode
-        self.save_dir = increment_path(Path("runs") / project / name, exist_ok=self.args.exist_ok)
+        project = self.args.project or f"runs/{self.args.task}"
+        name = self.args.name or f"{self.args.mode}"
+        self.save_dir = increment_path(Path(project) / name, exist_ok=self.args.exist_ok)
         (self.save_dir / 'labels' if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
 
         self.done_setup = False

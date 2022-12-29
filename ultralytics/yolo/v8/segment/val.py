@@ -1,14 +1,14 @@
 import os
+from multiprocessing.pool import ThreadPool
+from pathlib import Path
 
 import hydra
 import numpy as np
 import torch
 import torch.nn.functional as F
-from multiprocessing.pool import ThreadPool
-from pathlib import Path
 
+from ultralytics.yolo.utils import DEFAULT_CONFIG, NUM_THREADS, ops
 from ultralytics.yolo.utils.checks import check_requirements
-from ultralytics.yolo.utils import ops, NUM_THREADS, DEFAULT_CONFIG
 from ultralytics.yolo.utils.metrics import ConfusionMatrix, SegmentMetrics, box_iou, mask_iou
 from ultralytics.yolo.utils.plotting import output_to_target, plot_images
 
@@ -199,7 +199,7 @@ class SegmentationValidator(DetectionValidator):
         self.plot_masks.clear()
 
     def pred_to_json(self, predn, filename, pred_masks):
-    # def save_one_json(predn, path, class_map, pred_masks):
+    f save_one_json(predn, path, class_map, pred_masks):
         # Save one JSON result {"image_id": 42, "category_id": 18, "bbox": [258.15, 41.29, 348.26, 243.78], "score": 0.236}
         from pycocotools.mask import encode
 

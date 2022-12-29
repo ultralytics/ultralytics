@@ -305,7 +305,7 @@ class Exporter:
         return f, model_onnx
 
     @try_export
-    def _export_openvino(self, half, prefix=colorstr('OpenVINO:')):
+    def _export_openvino(self, prefix=colorstr('OpenVINO:')):
         # YOLOv5 OpenVINO export
         check_requirements('openvino-dev')  # requires openvino-dev: https://pypi.org/project/openvino-dev/
         import openvino.inference_engine as ie  # noqa
@@ -334,7 +334,7 @@ class Exporter:
         return f, None
 
     @try_export
-    def _export_coreml(self, int8, half, prefix=colorstr('CoreML:')):
+    def _export_coreml(self, prefix=colorstr('CoreML:')):
         # YOLOv5 CoreML export
         check_requirements('coremltools')
         import coremltools as ct  # noqa
@@ -350,7 +350,7 @@ class Exporter:
                 ct_model = ct.models.neural_network.quantization_utils.quantize_weights(ct_model, bits, mode)
             else:
                 LOGGER.info(f'{prefix} quantization only supported on macOS, skipping...')
-        ct_model.save(f)
+        ct_model.save(str(f))
         return f, ct_model
 
     @try_export
@@ -359,7 +359,7 @@ class Exporter:
         assert self.im.device.type != 'cpu', 'export running on CPU but must be on GPU, i.e. `device==0`'
         try:
             import tensorrt as trt  # noqa
-        except Exception:
+        except ImportError:
             if platform.system() == 'Linux':
                 check_requirements('nvidia-tensorrt', cmds='-U --index-url https://pypi.ngc.nvidia.com')
             import tensorrt as trt  # noqa
@@ -422,7 +422,7 @@ class Exporter:
         # YOLOv5 TensorFlow SavedModel export
         try:
             import tensorflow as tf  # noqa
-        except Exception:
+        except ImportError:
             check_requirements(f"tensorflow{'' if torch.cuda.is_available() else '-macos' if MACOS else '-cpu'}")
             import tensorflow as tf  # noqa
         # from models.tf import TFModel
@@ -488,18 +488,18 @@ class Exporter:
         converter.optimizations = [tf.lite.Optimize.DEFAULT]
         if int8:
 
-            def representative_dataset_gen(dataset, ncalib=100):
+            def representative_dataset_gen(dataset, n_images=100):
                 # Dataset generator for use with converter.representative_dataset, returns a generator of np arrays
                 for n, (path, img, im0s, vid_cap, string) in enumerate(dataset):
                     im = np.transpose(img, [1, 2, 0])
                     im = np.expand_dims(im, axis=0).astype(np.float32)
                     im /= 255
                     yield [im]
-                    if n >= ncalib:
+                    if n >= n_images:
                         break
 
             dataset = LoadImages(check_dataset(check_yaml(data))['train'], imgsz=imgsz, auto=False)
-            converter.representative_dataset = lambda: representative_dataset_gen(dataset, ncalib=100)
+            converter.representative_dataset = lambda: representative_dataset_gen(dataset, n_images=100)
             converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
             converter.target_spec.supported_types = []
             converter.inference_input_type = tf.uint8  # or tf.int8
@@ -552,7 +552,7 @@ class Exporter:
               f'--output_node_names=Identity,Identity_1,Identity_2,Identity_3 {f_pb} {f}'
         subprocess.run(cmd.split())
 
-        json = Path(f_json).read_text()
+        json_text = Path(f_json).read_text()
         with open(f_json, 'w') as j:  # sort JSON Identity_* in ascending order
             subst = re.sub(
                 r'{"outputs": {"Identity.?.?": {"name": "Identity.?.?"}, '
@@ -561,7 +561,7 @@ class Exporter:
                 r'"Identity.?.?": {"name": "Identity.?.?"}}}', r'{"outputs": {"Identity": {"name": "Identity"}, '
                 r'"Identity_1": {"name": "Identity_1"}, '
                 r'"Identity_2": {"name": "Identity_2"}, '
-                r'"Identity_3": {"name": "Identity_3"}}}', json)
+                r'"Identity_3": {"name": "Identity_3"}}}', json_text)
             j.write(subst)
         return f, None
 

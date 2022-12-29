@@ -123,32 +123,6 @@ class Exporter:
 
     @smart_inference_mode()
     def __call__(self, model=None, format=None):
-        #         model,  # model
-        #         file=ROOT / 'yolov8n.pt',
-        #         data=ROOT / 'data/coco128.yaml',  # 'dataset.yaml path'
-        #         imgsz=(640, 640),  # image (height, width)
-        #         batch_size=1,  # batch size
-        #         device=torch.device('cpu'),  # cuda device, i.e. 0 or 0,1,2,3 or cpu
-        #         format='onnx',  # export format
-        #         half=False,  # FP16 half-precision export
-        #         keras=False,  # use Keras
-        #         optimize=False,  # TorchScript: optimize for mobile
-        #         int8=False,  # CoreML/TF INT8 quantization
-        #         dynamic=False,  # ONNX/TF/TensorRT: dynamic axes
-        #         simplify=False,  # ONNX: simplify model
-        #         opset=17,  # ONNX: opset version
-        #         verbose=False,  # TensorRT: verbose log
-        #         workspace=4,  # TensorRT: workspace size (GB)
-        #         nms=False,  # TF: add NMS to model
-        #         agnostic_nms=False,  # TF: add agnostic NMS to model
-        #         topk_per_class=100,  # TF.js NMS: topk per class to keep
-        #         topk_all=100,  # TF.js NMS: topk for all classes to keep
-        #         iou_thres=0.45,  # TF.js NMS: IoU threshold
-        #         conf_thres=0.25,  # TF.js NMS: confidence threshold
-        #         task=None,
-        #         mode=None,
-        # ):
-
         t = time.time()
         format = format.lower()  # to lowercase
         fmts = tuple(export_formats()['Argument'][1:])  # available export formats
@@ -622,7 +596,7 @@ class Exporter:
 def export(cfg):
     cfg.model = cfg.model or "yolov8n.yaml"
     exporter = Exporter(cfg)
-    exporter()
+    exporter(model=cfg.model, format='torchscript')
 
 
 if __name__ == "__main__":

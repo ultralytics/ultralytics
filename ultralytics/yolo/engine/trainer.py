@@ -25,7 +25,7 @@ import ultralytics.yolo.utils.callbacks as callbacks
 from ultralytics import __version__
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
-from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, TQDM_BAR_FORMAT, RANK, colorstr
+from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, RANK, TQDM_BAR_FORMAT, colorstr
 from ultralytics.yolo.utils.checks import check_file, print_args
 from ultralytics.yolo.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.yolo.utils.files import get_latest_run, increment_path, yaml_save

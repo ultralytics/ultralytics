@@ -7,7 +7,8 @@ from time import sleep, time
 import requests
 
 from ultralytics.hub.config import HUB_API_ROOT
-from ultralytics.hub.utils import PREFIX
+from ultralytics.hub.callbacks import callbacks
+from ultralytics.hub.utils import smart_request, check_dataset_disk_space
 from ultralytics.yolo.utils import LOGGER, emojis
 
 
@@ -21,21 +22,9 @@ class HubTrainingSession:
         self.rate_limits = {'metrics': 3.0, 'ckpt': 900.0, 'heartbeat': 300.0}  # rate limits (seconds)
         self.t = {}  # rate limit timers (seconds)
         self.metrics_queue = {}  # metrics queue
-        self.keys = [
-            'train/box_loss',
-            'train/obj_loss',
-            'train/cls_loss',  # train loss
-            'metrics/precision',
-            'metrics/recall',
-            'metrics/mAP_0.5',
-            'metrics/mAP_0.5:0.95',  # metrics
-            'val/box_loss',
-            'val/obj_loss',
-            'val/cls_loss',  # val loss
-            'x/lr0',
-            'x/lr1',
-            'x/lr2']  # metrics keys
         self.alive = True  # for heartbeats
+        self.model = self._get_model(model_id)
+
         self._heartbeats()  # start heartbeats
 
     def __del__(self):
@@ -73,6 +62,29 @@ class HubTrainingSession:
                           headers=self.auth_header,
                           files={"last.pt": file},
                           code=3)
+
+    def _get_model(self):
+        # Returns model from database by id
+        api_url = f"{HUB_API_ROOT}/v1/models/{self.model_id}"
+        headers = self.auth.get_auth_header()
+
+        try:
+            r = smart_request(api_url, method="get", headers=headers, thread=False, code=0)
+            data = r.json().get("data", None)
+            if not data: return
+            assert data['data'], 'ERROR: Dataset may still be processing. Please wait a minute and try again.'  # RF fix
+            self.model_id = data["id"]
+            return data
+        except requests.exceptions.ConnectionError as e:
+            raise Exception('ERROR: The HUB server is not online. Please try again later.') from e
+
+    def check_disk_space(self):
+        if not check_dataset_disk_space(self.model['data']):
+            raise Exception("Not enough disk space")
+    
+    def register_callbacks(self, trainer):
+        for k, v in callbacks.items():
+            trainer.add_callback(k, v)
 
     @threaded
     def _heartbeats(self):

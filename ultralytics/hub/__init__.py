@@ -2,12 +2,13 @@ import requests
 
 from ultralytics import __version__
 from ultralytics.hub.auth import Auth
+from ultralytics.hub.session import HubTrainingSession
 from ultralytics.hub.utils import PREFIX, split_key
 from ultralytics.yolo.utils import LOGGER, emojis, is_colab
 from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils.torch_utils import select_device
+from ultralytics.yolo.v8.detect import DetectionTrainer
 
-# from .trainer import Trainer
 
 
 def checks(verbose=True):
@@ -70,12 +71,12 @@ def start(key=''):
         LOGGER.info(emojis(f"{PREFIX}Authenticated ✅"))
         if not model_id:
             raise Exception(emojis('Connecting with global API key is not currently supported. ❌'))
-        '''
-        TODO:
-        trainer = Trainer(model_id=model_id, auth=authCtrl)
-        if trainer.model is not None:
-            trainer.start()
-        '''
+        session = HubTrainingSession(model_id=model_id, auth=authCtrl)
+        session.check_disk_space()
+        trainer = DetectionTrainer(overrides=session.model)
+        session.register_callbacks(trainer)
+        setattr(trainer, 'hub_session', session)
+        trainer.train()
     except Exception as e:
         LOGGER.warning(f"{PREFIX}{e}")
 

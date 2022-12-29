@@ -4,7 +4,6 @@ from time import sleep, time
 from ultralytics.hub.utils import PREFIX
 from ultralytics.yolo.utils import LOGGER, emojis
 
-
 # def signal_handler(signum, frame):
 #     """ Confirm exit """
 #     global hub_logger
@@ -13,8 +12,8 @@ from ultralytics.yolo.utils import LOGGER, emojis
 #         hub_logger.alive = False
 #         del hub_logger
 #     sys.exit(signum)
-# 
-# 
+#
+#
 # signal.signal(signal.SIGTERM, signal_handler)
 # signal.signal(signal.SIGINT, signal_handler)
 

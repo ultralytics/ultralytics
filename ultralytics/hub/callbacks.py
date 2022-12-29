@@ -2,14 +2,14 @@ import json
 import signal
 import sys
 from pathlib import Path
-from time import time, sleep
+from time import sleep, time
+
 import requests
 
-
-from ultralytics.yolo.utils import LOGGER, emojis
 from ultralytics.hub.config import HUB_API_ROOT
-from ultralytics.hub.utils import PREFIX
 from ultralytics.hub.session import HubTrainingSession
+from ultralytics.hub.utils import PREFIX
+from ultralytics.yolo.utils import LOGGER, emojis
 
 
 def signal_handler(signum, frame):
@@ -84,6 +84,7 @@ def on_pretrain_routine_end(trainer):
     LOGGER.info(emojis(f"{PREFIX}View model at https://hub.ultralytics.com/models/{trainer.hub_session.model_id} 🚀"))
     trainer.hub_session.t = {'metrics': time(), 'ckpt': time()}  # start timer on self.rate_limit
 
+
 def on_fit_epoch_end(trainer):
     # Upload metrics after val end
     session = trainer.hub_session
@@ -92,6 +93,7 @@ def on_fit_epoch_end(trainer):
         session._upload_metrics()
         session.t['metrics'] = time()  # reset timer
         session.metrics_queue = {}  # reset queue
+
 
 def on_model_save(trainer):
     # Upload checkpoints with rate limiting
@@ -102,20 +104,20 @@ def on_model_save(trainer):
         session._upload_model(trainer.epoch, trainer.last, is_best)
         session.t['ckpt'] = time()  # reset timer
 
+
 def on_train_end(trainer):
     # Upload final model and metrics with exponential standoff
     session = trainer.hub_session
     LOGGER.info(emojis(f"{PREFIX}Training completed successfully ✅"))
     LOGGER.info(f"{PREFIX}Uploading final {session.model_id}")
-    session._upload_model(trainer.epoch, trainer.best, map=trainer.metrics['metrics/mAP50(B)'], final=True)  # results[3] is mAP0.5:0.95
+    session._upload_model(trainer.epoch, trainer.best, map=trainer.metrics['metrics/mAP50(B)'],
+                          final=True)  # results[3] is mAP0.5:0.95
     session.alive = False  # stop heartbeats
     LOGGER.info(emojis(f"{PREFIX}View model at https://hub.ultralytics.com/models/{session.model_id} 🚀"))
+
 
 callbacks = {
     "on_pretrain_routine_end": on_pretrain_routine_end,
     "on_fit_epoch_end": on_fit_epoch_end,
     "on_model_save": on_model_save,
-    "on_train_end": on_train_end
-}
-
-
+    "on_train_end": on_train_end}

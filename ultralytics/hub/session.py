@@ -2,15 +2,17 @@ import json
 import signal
 import sys
 from pathlib import Path
-from time import time, sleep
+from time import sleep, time
 
 import requests
-from ultralytics.yolo.utils import LOGGER, emojis
+
 from ultralytics.hub.config import HUB_API_ROOT
 from ultralytics.hub.utils import PREFIX
+from ultralytics.yolo.utils import LOGGER, emojis
 
 
 class HubTrainingSession:
+
     def __init__(self, model_id, auth):
         self.agent_id = None  # identifies which instance is communicating with server
         self.model_id = model_id
@@ -44,11 +46,12 @@ class HubTrainingSession:
     def _heartbeats(self):
         while self.alive:
             r = smart_request(f'{HUB_API_ROOT}/v1/agent/heartbeat/models/{self.model_id}',
-                                json={"agent": AGENT_NAME, "agentId": self.agent_id},
-                                headers=self.auth_header,
-                                retry=0,
-                                code=5,
-                                thread=False)
+                              json={
+                                  "agent": AGENT_NAME,
+                                  "agentId": self.agent_id},
+                              headers=self.auth_header,
+                              retry=0,
+                              code=5,
+                              thread=False)
             self.agent_id = r.json().get('data', {}).get('agentId', None)
             sleep(self.rate_limits['heartbeat'])
-

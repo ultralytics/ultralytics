@@ -7,9 +7,8 @@ import torch.nn.functional as F
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 
-from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.utils.checks import check_requirements
-from ultralytics.yolo.utils import ops, NUM_THREADS
+from ultralytics.yolo.utils import ops, NUM_THREADS, DEFAULT_CONFIG
 from ultralytics.yolo.utils.metrics import ConfusionMatrix, SegmentMetrics, box_iou, mask_iou
 from ultralytics.yolo.utils.plotting import output_to_target, plot_images
 

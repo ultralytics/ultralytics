@@ -2,7 +2,7 @@ import hydra
 import torch
 
 from ultralytics.yolo.engine.predictor import BasePredictor
-from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
+from ultralytics.yolo.utils import DEFAULT_CONFIG
 from ultralytics.yolo.utils.plotting import Annotator
 
 

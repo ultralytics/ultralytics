@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 from ultralytics.nn.tasks import SegmentationModel
 from ultralytics.yolo import v8
-from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
+from ultralytics.yolo.utils import DEFAULT_CONFIG
 from ultralytics.yolo.utils.loss import BboxLoss
 from ultralytics.yolo.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
 from ultralytics.yolo.utils.plotting import plot_images, plot_results

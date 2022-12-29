@@ -2,8 +2,8 @@ import hydra
 import torch
 
 from ultralytics.yolo.data import build_classification_dataloader
-from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
 from ultralytics.yolo.engine.validator import BaseValidator
+from ultralytics.yolo.utils import DEFAULT_CONFIG
 
 
 class ClassificationValidator(BaseValidator):

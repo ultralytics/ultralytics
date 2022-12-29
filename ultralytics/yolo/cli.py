@@ -31,7 +31,7 @@ def cli(cfg):
     elif task == "classify":
         module = yolo.v8.classify
     elif task == "export":
-        func = yolo.engine.exporter
+        func = yolo.engine.exporter.export
     else:
         raise SyntaxError("task not recognized. Choices are `'detect', 'segment', 'classify'`")
 

@@ -42,6 +42,32 @@ class HubTrainingSession:
         # Class destructor
         self.alive = False
 
+    # Internal functions ---
+    def _upload_metrics(self):
+        payload = {"metrics": self.metrics_queue.copy(), "type": "metrics"}
+        smart_request(f'{self.api_url}', json=payload, headers=self.auth_header, code=2)
+
+    def _upload_model(self, epoch, weights, is_best=False, map=0.0, final=False):
+        # Upload a model to HUB
+        file = None
+        if Path(weights).is_file():
+            with open(weights, "rb") as f:
+                file = f.read()
+        if final:
+            smart_request(f'{self.api_url}/upload',
+                            data={"epoch": epoch, "type": "final", "map": map},
+                            files={"best.pt": file},
+                            headers=self.auth_header,
+                            retry=10,
+                            timeout=3600,
+                            code=4)
+        else:
+            smart_request(f'{self.api_url}/upload',
+                            data={"epoch": epoch, "type": "epoch", "isBest": bool(is_best)},
+                            headers=self.auth_header,
+                            files={"last.pt": file},
+                            code=3)
+
     @threaded
     def _heartbeats(self):
         while self.alive:

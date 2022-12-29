@@ -55,18 +55,24 @@ class HubTrainingSession:
                 file = f.read()
         if final:
             smart_request(f'{self.api_url}/upload',
-                            data={"epoch": epoch, "type": "final", "map": map},
-                            files={"best.pt": file},
-                            headers=self.auth_header,
-                            retry=10,
-                            timeout=3600,
-                            code=4)
+                          data={
+                              "epoch": epoch,
+                              "type": "final",
+                              "map": map},
+                          files={"best.pt": file},
+                          headers=self.auth_header,
+                          retry=10,
+                          timeout=3600,
+                          code=4)
         else:
             smart_request(f'{self.api_url}/upload',
-                            data={"epoch": epoch, "type": "epoch", "isBest": bool(is_best)},
-                            headers=self.auth_header,
-                            files={"last.pt": file},
-                            code=3)
+                          data={
+                              "epoch": epoch,
+                              "type": "epoch",
+                              "isBest": bool(is_best)},
+                          headers=self.auth_header,
+                          files={"last.pt": file},
+                          code=3)
 
     @threaded
     def _heartbeats(self):

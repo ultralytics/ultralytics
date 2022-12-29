@@ -67,7 +67,7 @@ class BaseTrainer:
         self.tloss = None
         self.loss_names = None
         self.csv = self.save_dir / 'results.csv'
-        
+
         # dirs
         if RANK in {-1, 0}:
             project = overrides.get("project") or self.args.task

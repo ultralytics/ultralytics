@@ -1,6 +1,7 @@
 import contextlib
 import glob
 import os
+import urllib
 from datetime import datetime
 from pathlib import Path
 from zipfile import ZipFile
@@ -43,7 +44,7 @@ def increment_path(path, exist_ok=False, sep='', mkdir=False):
     return path
 
 
-def save_yaml(file='data.yaml', data=None):
+def yaml_save(file='data.yaml', data=None):
     # Single-line safe yaml saving
     with open(file, 'w') as f:
         yaml.safe_dump({k: str(v) if isinstance(v, Path) else v for k, v in data.items()}, f, sort_keys=False)
@@ -52,7 +53,7 @@ def save_yaml(file='data.yaml', data=None):
 def yaml_load(file='data.yaml'):
     # Single-line safe yaml loading
     with open(file, errors='ignore') as f:
-        return yaml.safe_load(f)
+        return {**yaml.safe_load(f), 'yaml_file': file}  # add YAML filename to dict and return
 
 
 def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX')):
@@ -75,6 +76,24 @@ def file_date(path=__file__):
     # Return human-readable file modification date, i.e. '2021-3-26'
     t = datetime.fromtimestamp(Path(path).stat().st_mtime)
     return f'{t.year}-{t.month}-{t.day}'
+
+
+def file_size(path):
+    # Return file/dir size (MB)
+    mb = 1 << 20  # bytes to MiB (1024 ** 2)
+    path = Path(path)
+    if path.is_file():
+        return path.stat().st_size / mb
+    elif path.is_dir():
+        return sum(f.stat().st_size for f in path.glob('**/*') if f.is_file()) / mb
+    else:
+        return 0.0
+
+
+def url2file(url):
+    # Convert URL to filename, i.e. https://url.com/file.txt?auth -> file.txt
+    url = str(Path(url)).replace(':/', '://')  # Pathlib turns :// -> :/
+    return Path(urllib.parse.unquote(url)).name.split('?')[0]  # '%2F' to '/', split https://url.com/file.txt?auth
 
 
 def get_latest_run(search_dir='.'):

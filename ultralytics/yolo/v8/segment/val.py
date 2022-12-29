@@ -5,8 +5,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
-from ultralytics.yolo.utils import ops
+from ultralytics.yolo.utils import DEFAULT_CONFIG, ops
 from ultralytics.yolo.utils.metrics import ConfusionMatrix, SegmentMetrics, box_iou, mask_iou
 from ultralytics.yolo.utils.plotting import output_to_target, plot_images
 

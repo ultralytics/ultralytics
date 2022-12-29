@@ -39,6 +39,7 @@ class SegmentationValidator(DetectionValidator):
         head = model.model[-1] if self.training else model.model.model[-1]
         if self.data:
             self.is_coco = self.data.get('val', '').endswith(f'coco{os.sep}val2017.txt')  # is COCO dataset
+            self.is_coco = True
             self.class_map = ops.coco80_to_coco91_class() if self.is_coco else list(range(1000))
             self.args.save_json |= self.is_coco and not self.training  # run on final val if training COCO
         self.nc = head.nc
@@ -225,7 +226,8 @@ class SegmentationValidator(DetectionValidator):
 
     def eval_json(self, stats):
         if self.args.save_json and self.is_coco and len(self.jdict):
-            anno_json = self.data['path'] / "annotations/instances_val2017.json"  # annotations
+            # anno_json = self.data['path'] / "annotations/instances_val2017.json"  # annotations
+            anno_json = Path("/data/datasets/COCO/yolo/annotations/instances_val2017.json")
             pred_json = self.save_dir / "predictions.json"  # predictions
             self.logger.info(f'\nEvaluating pycocotools mAP using {pred_json} and {anno_json}...')
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
@@ -237,7 +239,7 @@ class SegmentationValidator(DetectionValidator):
                     assert x.is_file(), f"{x} file not found"
                 anno = COCO(str(anno_json))  # init annotations api
                 pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
-                for i, eval in enumerate(COCOeval(anno, pred, 'bbox'), COCOeval(anno, pred, 'segm')):
+                for i, eval in enumerate([COCOeval(anno, pred, 'bbox'), COCOeval(anno, pred, 'segm')]):
                     if self.is_coco:
                         eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # images to eval
                     eval.evaluate()

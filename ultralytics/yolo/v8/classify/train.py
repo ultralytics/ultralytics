@@ -45,7 +45,7 @@ class ClassificationTrainer(BaseTrainer):
         return batch
 
     def get_validator(self):
-        return v8.classify.ClassificationValidator(self.test_loader, self.device, logger=self.console)
+        return v8.classify.ClassificationValidator(self.test_loader, self.save_dir, logger=self.console)
 
     def criterion(self, preds, batch):
         loss = torch.nn.functional.cross_entropy(preds, batch["cls"])

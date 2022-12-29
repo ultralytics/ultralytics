@@ -7,10 +7,11 @@ import requests
 from ultralytics import __version__
 from ultralytics.hub.callbacks import callbacks
 from ultralytics.hub.config import HUB_API_ROOT
-from ultralytics.hub.utils import smart_request, check_dataset_disk_space
-from ultralytics.yolo.utils import threaded, is_colab
+from ultralytics.hub.utils import check_dataset_disk_space, smart_request
+from ultralytics.yolo.utils import is_colab, threaded
 
 AGENT_NAME = f'python-{__version__}-colab' if is_colab() else f'python-{__version__}-local'
+
 
 class HubTrainingSession:
 

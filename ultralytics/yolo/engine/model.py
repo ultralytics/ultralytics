@@ -9,7 +9,7 @@ from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import DEFAULT_CONFIG, HELP_MSG, LOGGER
 from ultralytics.yolo.utils.checks import check_yaml
 from ultralytics.yolo.utils.files import yaml_load
-from ultralytics.yolo.utils.torch_utils import smart_inference_mode, guess_task_from_head
+from ultralytics.yolo.utils.torch_utils import guess_task_from_head, smart_inference_mode
 
 # map head: [model, trainer, validator, predictor]
 MODEL_MAP = {

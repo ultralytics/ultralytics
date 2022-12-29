@@ -71,9 +71,10 @@ class BaseTrainer:
             world_size = torch.cuda.device_count()
             if world_size > 1 and "LOCAL_RANK" not in os.environ:
                 LOGGER.disabled = True
-            import pdb;pdb.set_trace()
-            project = self.args.project if self.args.project!="runs/train" else self.args.task
-            name = self.args.name if self.args.name!="exp" else self.args.mode
+            import pdb
+            pdb.set_trace()
+            project = self.args.project if self.args.project != "runs/train" else self.args.task
+            name = self.args.name if self.args.name != "exp" else self.args.mode
             self.save_dir = increment_path(Path("runs") / project / name, exist_ok=self.args.exist_ok)
             self.wdir = self.save_dir / 'weights'  # weights dir
             self.wdir.mkdir(parents=True, exist_ok=True)  # make dir

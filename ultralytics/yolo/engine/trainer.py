@@ -51,7 +51,8 @@ class BaseTrainer:
         name = self.args.name or f"{self.args.mode}"
         self.save_dir = increment_path(Path(project) / name, exist_ok=self.args.exist_ok if RANK in [-1, 0] else True)
         self.wdir = self.save_dir / 'weights'  # weights dir
-        self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
+        if RANK in [-1, 0]:
+            self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
         self.last, self.best = self.wdir / 'last.pt', self.wdir / 'best.pt'  # checkpoint paths
 
         self.batch_size = self.args.batch_size

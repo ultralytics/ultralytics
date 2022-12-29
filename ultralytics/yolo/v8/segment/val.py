@@ -20,10 +20,6 @@ class SegmentationValidator(DetectionValidator):
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, logger=None, args=None):
         super().__init__(dataloader, save_dir, pbar, logger, args)
-        if self.args.save_json:
-            self.process = ops.process_mask_upsample  # more accurate
-        else:
-            self.process = ops.process_mask  # faster
         self.metrics = SegmentMetrics(save_dir=self.save_dir, plot=self.args.plots)
 
     def preprocess(self, batch):
@@ -55,6 +51,10 @@ class SegmentationValidator(DetectionValidator):
         self.seen = 0
         self.jdict = []
         self.stats = []
+        if self.args.save_json:
+            self.process = ops.process_mask_upsample  # more accurate
+        else:
+            self.process = ops.process_mask  # faster
 
     def get_desc(self):
         return ('%22s' + '%11s' * 10) % ('Class', 'Images', 'Instances', 'Box(P', "R", "mAP50", "mAP50-95)", "Mask(P",

@@ -1,8 +1,7 @@
 import hydra
 import torch
 
-from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
-from ultralytics.yolo.utils import ops
+from ultralytics.yolo.utils import DEFAULT_CONFIG, ops
 from ultralytics.yolo.utils.plotting import colors, save_one_box
 
 from ..detect.predict import DetectionPredictor
@@ -98,7 +97,7 @@ class SegmentationPredictor(DetectionPredictor):
 def predict(cfg):
     cfg.model = cfg.model or "n.pt"
     sz = cfg.imgsz
-    if type(sz) != int:  # recieved listConfig
+    if type(sz) != int:  # received listConfig
         cfg.imgsz = [sz[0], sz[0]] if len(cfg.imgsz) == 1 else [sz[0], sz[1]]  # expand
     else:
         cfg.imgsz = [sz, sz]

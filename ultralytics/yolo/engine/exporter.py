@@ -21,7 +21,12 @@ Requirements:
     $ pip install -r requirements.txt coremltools onnx onnx-simplifier onnxruntime openvino-dev tensorflow-cpu  # CPU
     $ pip install -r requirements.txt coremltools onnx onnx-simplifier onnxruntime-gpu openvino-dev tensorflow  # GPU
 
-Usage:
+Python:
+    from ultralytics import YOLO
+    model = YOLO.new('yolov8n.yaml')
+    results = model.export(format='onnx')
+
+CLI:
     $ python export.py --weights yolov8n.pt --include torchscript onnx openvino engine coreml tflite ...
 
 Inference:
@@ -42,11 +47,6 @@ TensorFlow.js:
     $ npm install
     $ ln -s ../../yolov5/yolov5s_web_model public/yolov5s_web_model
     $ npm start
-
-
-from ultralytics import YOLO
-model = YOLO().new('yolov8n.yaml')
-results = model.export(format='onnx')
 """
 import contextlib
 import json
@@ -518,7 +518,6 @@ def export_model(
     if half:
         assert device.type != 'cpu' or coreml, '--half only compatible with GPU export, i.e. use --device 0'
         assert not dynamic, '--half not compatible with --dynamic, i.e. use either --half or --dynamic but not both'
-    model = deepcopy(model).fuse()  # load FP32 model
 
     # Checks
     if isinstance(imgsz, int):
@@ -533,7 +532,11 @@ def export_model(
     im = torch.zeros(batch_size, 3, *imgsz).to(device)  # image size(1,3,320,192) BCHW iDetection
 
     # Update model
+    model = deepcopy(model)
+    for p in model.parameters():
+        p.requires_grad = False
     model.eval()
+    model = model.fuse()
     for k, m in model.named_modules():
         if isinstance(m, (Detect, Segment)):
             m.dynamic = dynamic
@@ -595,14 +598,11 @@ def export_model(
     if any(f):
         cls, det, seg = (isinstance(model, x) for x in (ClassificationModel, DetectionModel, SegmentationModel))  # type
         det &= not seg  # segmentation models inherit from SegmentationModel(DetectionModel)
-        dir = Path('segment' if seg else 'classify' if cls else '')
-        h = '--half' if half else ''  # --half FP16 inference arg
-        s = "# WARNING ⚠️ ClassificationModel not yet supported for PyTorch Hub AutoShape inference" if cls else \
-            "# WARNING ⚠️ SegmentationModel not yet supported for PyTorch Hub AutoShape inference" if seg else ''
+        s = "-WARNING ⚠️ not yet supported for YOLOv8 exported models"
+        task = 'detect' if det else 'segment' if seg else 'classify' if cls else ''
         LOGGER.info(f'\nExport complete ({time.time() - t:.1f}s)'
                     f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
-                    f"\nDetect:          python {dir / 'predict.py'} --weights {f[-1]} {h}"
-                    f"\nValidate:        python {dir / 'val.py'} --weights {f[-1]} {h}"
-                    f"\nPyTorch Hub:     model = torch.hub.load('ultralytics/yolov5', 'custom', '{f[-1]}')  {s}"
+                    f"\nPredict:         yolo task={task} mode=predict model={f[-1]} {s}"
+                    f"\nValidate:        yolo task={task} mode=val model={f[-1]} {s}"
                     f"\nVisualize:       https://netron.app")
     return f  # return list of exported files/dirs

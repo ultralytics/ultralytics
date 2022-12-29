@@ -47,7 +47,7 @@ HELP_MSG = \
                   classify       predict         yolov8n-cls.yaml
                   segment        val             yolov8n-seg.yaml
 
-    For all arguments see https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/utils/configs/default.yaml
+    For all arguments see https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/configs/default.yaml
     """
 
 # Settings

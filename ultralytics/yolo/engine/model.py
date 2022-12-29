@@ -184,7 +184,7 @@ class YOLO:
             file = Path(save_dir) / file.name
             file.parent.mkdir(parents=True, exist_ok=True)
 
-        export_model(
+        return export_model(
             model=self.model,
             file=file,
             data=args.data,  # 'dataset.yaml path'

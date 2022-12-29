@@ -23,7 +23,7 @@ class HubTrainingSession:
         self.t = {}  # rate limit timers (seconds)
         self.metrics_queue = {}  # metrics queue
         self.alive = True  # for heartbeats
-        self.model = self._get_model(model_id)
+        self.model = self._get_model()
 
         self._heartbeats()  # start heartbeats
 
@@ -66,7 +66,7 @@ class HubTrainingSession:
     def _get_model(self):
         # Returns model from database by id
         api_url = f"{HUB_API_ROOT}/v1/models/{self.model_id}"
-        headers = self.auth.get_auth_header()
+        headers = self.auth_header
 
         try:
             r = smart_request(api_url, method="get", headers=headers, thread=False, code=0)
@@ -74,6 +74,12 @@ class HubTrainingSession:
             if not data: return
             assert data['data'], 'ERROR: Dataset may still be processing. Please wait a minute and try again.'  # RF fix
             self.model_id = data["id"]
+            # TODO: refactor. Hardcoding model to yolov8n
+            # v8 doesn't have `weights` argument. replace it with `model`. 
+            data["model"] = "yolov8n.yaml"
+            if data.get("weights"):
+                data.pop("weights")
+
             return data
         except requests.exceptions.ConnectionError as e:
             raise Exception('ERROR: The HUB server is not online. Please try again later.') from e

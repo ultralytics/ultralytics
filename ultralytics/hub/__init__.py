@@ -72,7 +72,11 @@ def start(key=''):
             raise Exception(emojis('Connecting with global API key is not currently supported. ❌'))
         session = HubTrainingSession(model_id=model_id, auth=authCtrl)
         session.check_disk_space()
-        trainer = DetectionTrainer(overrides=session.model)
+        # TODO: refactor
+        args = session.model.copy()
+        args.pop("id")
+        args.pop("status")
+        trainer = DetectionTrainer(overrides=args)
         session.register_callbacks(trainer)
         setattr(trainer, 'hub_session', session)
         trainer.train()
@@ -121,3 +125,7 @@ def get_export(key='', format='torchscript'):
                           "format": format})
     assert r.status_code == 200, f"{PREFIX}{format} get_export failure {r.status_code} {r.reason}"
     return r.json()
+
+# temp. For checking
+if __name__ == "__main__":
+    start(key="")

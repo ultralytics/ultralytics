@@ -29,6 +29,7 @@ image_weights: False  # use weighted image selection for training
 rect: False  # support rectangular training
 cos_lr: False  # use cosine LR scheduler
 close_mosaic: 10  # disable mosaic for final 10 epochs
+patience: 50 # TODO: use this for early stopping
 # Segmentation
 overlap_mask: True  # masks overlap
 mask_ratio: 4  # mask downsample ratio
@@ -94,7 +95,6 @@ copy_paste: 0.0  # segment copy-paste (probability)
 
 # For debugging. Don't change
 v5loader: True
-
 # Hydra configs --------------------------------------------------------------------------------------------------------
 hydra:
   output_subdir: null  # disable hydra directory creation

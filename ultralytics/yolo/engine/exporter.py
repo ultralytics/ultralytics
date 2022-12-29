@@ -2,20 +2,20 @@
 """
 Export a YOLOv5 PyTorch model to other formats. TensorFlow exports authored by https://github.com/zldrobit
 
-Format                      | `export.py --include`         | Model
+Format                      | `format=argument`             | Model
 ---                         | ---                           | ---
 PyTorch                     | -                             | yolov8n.pt
 TorchScript                 | `torchscript`                 | yolov8n.torchscript
 ONNX                        | `onnx`                        | yolov8n.onnx
-OpenVINO                    | `openvino`                    | yolov5s_openvino_model/
+OpenVINO                    | `openvino`                    | yolov8n_openvino_model/
 TensorRT                    | `engine`                      | yolov8n.engine
 CoreML                      | `coreml`                      | yolov8n.mlmodel
-TensorFlow SavedModel       | `saved_model`                 | yolov5s_saved_model/
+TensorFlow SavedModel       | `saved_model`                 | yolov8n_saved_model/
 TensorFlow GraphDef         | `pb`                          | yolov8n.pb
 TensorFlow Lite             | `tflite`                      | yolov8n.tflite
-TensorFlow Edge TPU         | `edgetpu`                     | yolov5s_edgetpu.tflite
-TensorFlow.js               | `tfjs`                        | yolov5s_web_model/
-PaddlePaddle                | `paddle`                      | yolov5s_paddle_model/
+TensorFlow Edge TPU         | `edgetpu`                     | yolov8n_edgetpu.tflite
+TensorFlow.js               | `tfjs`                        | yolov8n_web_model/
+PaddlePaddle                | `paddle`                      | yolov8n_paddle_model/
 
 Requirements:
     $ pip install -r requirements.txt coremltools onnx onnx-simplifier onnxruntime openvino-dev tensorflow-cpu  # CPU
@@ -27,25 +27,25 @@ Python:
     results = model.export(format='onnx')
 
 CLI:
-    $ python export.py --weights yolov8n.pt --include torchscript onnx openvino engine coreml tflite ...
+    $ yolo mode=export model=yolov8n.pt format=onnx
 
 Inference:
     $ python detect.py --weights yolov8n.pt                 # PyTorch
                                  yolov8n.torchscript        # TorchScript
                                  yolov8n.onnx               # ONNX Runtime or OpenCV DNN with --dnn
-                                 yolov5s_openvino_model     # OpenVINO
+                                 yolov8n_openvino_model     # OpenVINO
                                  yolov8n.engine             # TensorRT
                                  yolov8n.mlmodel            # CoreML (macOS-only)
-                                 yolov5s_saved_model        # TensorFlow SavedModel
+                                 yolov8n_saved_model        # TensorFlow SavedModel
                                  yolov8n.pb                 # TensorFlow GraphDef
                                  yolov8n.tflite             # TensorFlow Lite
-                                 yolov5s_edgetpu.tflite     # TensorFlow Edge TPU
-                                 yolov5s_paddle_model       # PaddlePaddle
+                                 yolov8n_edgetpu.tflite     # TensorFlow Edge TPU
+                                 yolov8n_paddle_model       # PaddlePaddle
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
     $ npm install
-    $ ln -s ../../yolov5/yolov5s_web_model public/yolov5s_web_model
+    $ ln -s ../../yolov5/yolov8n_web_model public/yolov8n_web_model
     $ npm start
 """
 import contextlib

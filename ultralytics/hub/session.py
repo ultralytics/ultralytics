@@ -71,7 +71,8 @@ class HubTrainingSession:
         try:
             r = smart_request(api_url, method="get", headers=headers, thread=False, code=0)
             data = r.json().get("data", None)
-            if not data: return
+            if not data:
+                return
             assert data['data'], 'ERROR: Dataset may still be processing. Please wait a minute and try again.'  # RF fix
             self.model_id = data["id"]
             # TODO: refactor. Hardcoding model to yolov8n

@@ -15,8 +15,8 @@ nosave: False
 cache: False  # True/ram, disk or False
 device: ''  # cuda device, i.e. 0 or 0,1,2,3 or cpu
 workers: 8
-project: 'runs/train'
-name: 'exp'
+project: null
+name: null
 exist_ok: False
 pretrained: False
 optimizer: 'SGD'  # choices=['SGD', 'Adam', 'AdamW', 'RMSProp']

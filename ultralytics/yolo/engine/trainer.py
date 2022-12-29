@@ -25,7 +25,7 @@ import ultralytics.yolo.utils.callbacks as callbacks
 from ultralytics import __version__
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
-from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, RANK, TQDM_BAR_FORMAT, colorstr
+from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, TQDM_BAR_FORMAT, RANK, colorstr
 from ultralytics.yolo.utils.checks import check_file, print_args
 from ultralytics.yolo.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.yolo.utils.files import get_latest_run, increment_path, yaml_save
@@ -45,9 +45,9 @@ class BaseTrainer:
         self.callbacks = defaultdict(list)
 
         # dirs
-        project = overrides.get("project") or self.args.task
-        name = overrides.get("name") or self.args.mode
-        self.save_dir = increment_path(Path("runs") / project / name, exist_ok=self.args.exist_ok)
+        project = self.args.project or f"runs/{self.args.task}"
+        name = self.args.name or f"{self.args.mode}"
+        self.save_dir = increment_path(Path(project) / name, exist_ok=self.args.exist_ok if RANK == -1 else True)
         self.wdir = self.save_dir / 'weights'  # weights dir
         self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
         self.last, self.best = self.wdir / 'last.pt', self.wdir / 'best.pt'  # checkpoint paths

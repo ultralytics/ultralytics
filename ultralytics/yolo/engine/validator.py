@@ -8,7 +8,7 @@ from tqdm import tqdm
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
 from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
-from ultralytics.yolo.utils import LOGGER, TQDM_BAR_FORMAT
+from ultralytics.yolo.utils import LOGGER, RANK, TQDM_BAR_FORMAT
 from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.ops import Profile
 from ultralytics.yolo.utils.torch_utils import check_imgsz, de_parallel, select_device, smart_inference_mode
@@ -32,9 +32,10 @@ class BaseValidator:
         self.speed = None
         self.jdict = None
 
-        project = self.args.project if self.args.project != "runs/train" else self.args.task
-        name = self.args.name if self.args.name != "exp" else self.args.mode
-        self.save_dir = increment_path(Path("runs") / project / name, exist_ok=self.args.exist_ok)
+        project = self.args.project or f"runs/{self.args.task}"
+        name = self.args.name or f"{self.args.mode}"
+        self.save_dir = save_dir or increment_path(Path(project) / name,
+                                                   exist_ok=self.args.exist_ok if RANK == -1 else True)
         (self.save_dir / 'labels' if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
 
     @smart_inference_mode()

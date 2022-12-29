@@ -1,5 +1,4 @@
 from pathlib import Path
-from threading import thre
 from time import sleep
 
 import requests

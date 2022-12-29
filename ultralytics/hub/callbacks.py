@@ -3,7 +3,6 @@ from time import sleep, time
 
 from ultralytics.hub.utils import PREFIX
 from ultralytics.yolo.utils import LOGGER, emojis
-
 '''
 def signal_handler(signum, frame):
     """ Confirm exit """
@@ -18,6 +17,7 @@ def signal_handler(signum, frame):
 signal.signal(signal.SIGTERM, signal_handler)
 signal.signal(signal.SIGINT, signal_handler)
 '''
+
 
 def on_pretrain_routine_end(trainer):
     # Start timer for upload rate limit

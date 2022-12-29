@@ -44,11 +44,11 @@ save_hybrid: False
 conf_thres: 0.001
 iou_thres: 0.7
 max_det: 300
-half: True
+half: False
 dnn: False  # use OpenCV DNN for ONNX inference
 plots: True
 
-# Prediction settings:
+# Prediction settings --------------------------------------------------------------------------------------------------
 source: "ultralytics/assets/"
 view_img: False
 save_txt: False
@@ -63,6 +63,15 @@ visualize: False
 augment: False
 agnostic_nms: False  # class-agnostic NMS
 retina_masks: False
+
+# Export settings ------------------------------------------------------------------------------------------------------
+keras: False  # use Keras
+optimize: False  # TorchScript: optimize for mobile
+int8: False  # CoreML/TF INT8 quantization
+dynamic: False  # ONNX/TF/TensorRT: dynamic axes
+simplify: False  # ONNX: simplify model
+opset: 17  # ONNX: opset version
+workspace: 4  # TensorRT: workspace size (GB)
 
 # Hyperparameters ------------------------------------------------------------------------------------------------------
 lr0: 0.01  # initial learning rate (SGD=1E-2, Adam=1E-3)
@@ -93,7 +102,7 @@ mixup: 0.0  # image mixup (probability)
 copy_paste: 0.0  # segment copy-paste (probability)
 
 # For debugging. Don't change
-v5loader: True
+v5loader: False
 
 # Hydra configs --------------------------------------------------------------------------------------------------------
 hydra:

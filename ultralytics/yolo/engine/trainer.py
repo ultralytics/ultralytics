@@ -23,15 +23,13 @@ from tqdm import tqdm
 import ultralytics.yolo.utils as utils
 import ultralytics.yolo.utils.callbacks as callbacks
 from ultralytics import __version__
+from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
-from ultralytics.yolo.utils import LOGGER, RANK, ROOT, TQDM_BAR_FORMAT, colorstr
+from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, RANK, TQDM_BAR_FORMAT, colorstr
 from ultralytics.yolo.utils.checks import check_file, print_args
-from ultralytics.yolo.utils.configs import get_config
 from ultralytics.yolo.utils.dist import ddp_cleanup, generate_ddp_command
-from ultralytics.yolo.utils.files import get_latest_run, increment_path, save_yaml
+from ultralytics.yolo.utils.files import get_latest_run, increment_path, yaml_save
 from ultralytics.yolo.utils.torch_utils import ModelEMA, de_parallel, init_seeds, one_cycle, strip_optimizer
-
-DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yaml"
 
 
 class BaseTrainer:
@@ -53,8 +51,7 @@ class BaseTrainer:
         self.wdir = self.save_dir / 'weights'  # weights dir
         if RANK in {-1, 0}:
             self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
-            # Save run settings
-            save_yaml(self.save_dir / 'args.yaml', OmegaConf.to_container(self.args, resolve=True))
+            yaml_save(self.save_dir / 'args.yaml', OmegaConf.to_container(self.args, resolve=True))  # save run args
         self.last, self.best = self.wdir / 'last.pt', self.wdir / 'best.pt'  # checkpoint paths
 
         self.batch_size = self.args.batch_size
@@ -452,8 +449,9 @@ class BaseTrainer:
             self.ema.ema.load_state_dict(ckpt['ema'].float().state_dict())  # EMA
             self.ema.updates = ckpt['updates']
         if self.args.resume:
-            assert start_epoch > 0, f'{self.args.model} training to {self.epochs} epochs is finished, nothing to resume.\n' \
-                                    f"Start a new training without --resume, i.e. 'yolo task=... mode=train model={self.args.model}'"
+            assert start_epoch > 0, \
+                f'{self.args.model} training to {self.epochs} epochs is finished, nothing to resume.\n' \
+                f"Start a new training without --resume, i.e. 'yolo task=... mode=train model={self.args.model}'"
             LOGGER.info(
                 f'Resuming training from {self.args.model} from epoch {start_epoch} to {self.epochs} total epochs')
         if self.epochs < start_epoch:

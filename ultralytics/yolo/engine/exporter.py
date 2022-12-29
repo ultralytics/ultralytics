@@ -71,7 +71,7 @@ from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages
 from ultralytics.yolo.data.utils import check_dataset
 from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, colorstr, get_default_args
 from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version, check_yaml
-from ultralytics.yolo.utils.files import file_size, yaml_save, increment_path
+from ultralytics.yolo.utils.files import file_size, increment_path, yaml_save
 from ultralytics.yolo.utils.ops import Profile
 from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode
 
@@ -92,7 +92,7 @@ def export_formats():
         ['TensorFlow Lite', 'tflite', '.tflite', True, False],
         ['TensorFlow Edge TPU', 'edgetpu', '_edgetpu.tflite', False, False],
         ['TensorFlow.js', 'tfjs', '_web_model', False, False],
-        ['PaddlePaddle', 'paddle', '_paddle_model', True, True], ]
+        ['PaddlePaddle', 'paddle', '_paddle_model', True, True],]
     return pd.DataFrame(x, columns=['Format', 'Argument', 'Suffix', 'CPU', 'GPU'])
 
 
@@ -115,6 +115,7 @@ def try_export(inner_func):
 
 
 class Exporter:
+
     def __init__(self, config=DEFAULT_CONFIG, overrides={}):
         self.args = get_config(config, overrides)
         project = self.args.project or f"runs/{self.args.task}"
@@ -202,7 +203,10 @@ class Exporter:
             if pb or tfjs:  # pb prerequisite to tfjs
                 f[6], _ = self._export_pb(s_model, file)
             if tflite or edgetpu:
-                f[7], _ = self._export_tflite(s_model, int8=self.args.int8 or edgetpu, data=self.args.data, nms=nms,
+                f[7], _ = self._export_tflite(s_model,
+                                              int8=self.args.int8 or edgetpu,
+                                              data=self.args.data,
+                                              nms=nms,
                                               agnostic_nms=self.args.agnostic_nms)
                 if edgetpu:
                     f[8], _ = self._export_edgetpu(file)
@@ -215,8 +219,8 @@ class Exporter:
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
         if any(f):
-            cls, det, seg = (isinstance(model, x) for x in
-                             (ClassificationModel, DetectionModel, SegmentationModel))  # type
+            cls, det, seg = (isinstance(model, x)
+                             for x in (ClassificationModel, DetectionModel, SegmentationModel))  # type
             det &= not seg  # segmentation models inherit from SegmentationModel(DetectionModel)
             s = "-WARNING ⚠️ not yet supported for YOLOv8 exported models"
             task = 'detect' if det else 'segment' if seg else 'classify' if cls else ''
@@ -449,9 +453,8 @@ class Exporter:
             tfm.__call__(im)
             tf.saved_model.save(tfm,
                                 f,
-                                options=tf.saved_model.SaveOptions(
-                                    experimental_custom_gradients=False) if check_version(
-                                    tf.__version__, '2.6') else tf.saved_model.SaveOptions())
+                                options=tf.saved_model.SaveOptions(experimental_custom_gradients=False)
+                                if check_version(tf.__version__, '2.6') else tf.saved_model.SaveOptions())
         return f, keras_model
 
     @try_export
@@ -555,9 +558,9 @@ class Exporter:
                 r'"Identity.?.?": {"name": "Identity.?.?"}, '
                 r'"Identity.?.?": {"name": "Identity.?.?"}, '
                 r'"Identity.?.?": {"name": "Identity.?.?"}}}', r'{"outputs": {"Identity": {"name": "Identity"}, '
-                                                               r'"Identity_1": {"name": "Identity_1"}, '
-                                                               r'"Identity_2": {"name": "Identity_2"}, '
-                                                               r'"Identity_3": {"name": "Identity_3"}}}', json)
+                r'"Identity_1": {"name": "Identity_1"}, '
+                r'"Identity_2": {"name": "Identity_2"}, '
+                r'"Identity_3": {"name": "Identity_3"}}}', json)
             j.write(subst)
         return f, None
 

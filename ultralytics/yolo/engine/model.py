@@ -126,6 +126,7 @@ class YOLO:
         """
         overrides = self.overrides.copy()
         overrides.update(kwargs)
+        overrides["mode"] = "predict"
         predictor = self.PredictorClass(overrides=overrides)
 
         # check size type
@@ -151,6 +152,7 @@ class YOLO:
 
         overrides = self.overrides.copy()
         overrides.update(kwargs)
+        overrides["mode"] = "val"
         args = get_config(config=DEFAULT_CONFIG, overrides=overrides)
         args.data = data or args.data
         args.task = self.task

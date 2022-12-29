@@ -5,6 +5,7 @@ import hydra
 
 import ultralytics
 from ultralytics import yolo
+
 from .utils import DEFAULT_CONFIG, LOGGER, colorstr
 
 

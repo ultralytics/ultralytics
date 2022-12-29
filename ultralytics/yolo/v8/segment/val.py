@@ -124,7 +124,7 @@ class SegmentationValidator(DetectionValidator):
             # Save
             if self.args.save_json:
                 pred_masks = ops.scale_image(batch["img"][si].shape[1:],
-                                         pred_masks.permute(1, 2, 0).contiguous().cpu().numpy(), shape)
+                                             pred_masks.permute(1, 2, 0).contiguous().cpu().numpy(), shape)
                 self.pred_to_json(predn, batch["im_file"][si], pred_masks)
             # if self.args.save_txt:
             #    save_one_txt(predn, save_conf, shape, file=save_dir / 'labels' / f'{path.stem}.txt')
@@ -216,11 +216,11 @@ class SegmentationValidator(DetectionValidator):
             rles = pool.map(single_encode, pred_masks)
         for i, (p, b) in enumerate(zip(predn.tolist(), box.tolist())):
             self.jdict.append({
-                    'image_id': image_id,
-                    'category_id': self.class_map[int(p[5])],
-                    'bbox': [round(x, 3) for x in b],
-                    'score': round(p[4], 5),
-                    'segmentation': rles[i]})
+                'image_id': image_id,
+                'category_id': self.class_map[int(p[5])],
+                'bbox': [round(x, 3) for x in b],
+                'score': round(p[4], 5),
+                'segmentation': rles[i]})
 
     def eval_json(self, stats):
         if self.args.save_json and self.is_coco and len(self.jdict):
@@ -238,12 +238,14 @@ class SegmentationValidator(DetectionValidator):
                 pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
                 for i, eval in enumerate([COCOeval(anno, pred, 'bbox'), COCOeval(anno, pred, 'segm')]):
                     if self.is_coco:
-                        eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # images to eval
+                        eval.params.imgIds = [int(Path(x).stem)
+                                              for x in self.dataloader.dataset.im_files]  # images to eval
                     eval.evaluate()
                     eval.accumulate()
                     eval.summarize()
                     idx = i * 4 + 2
-                    stats[self.metric_keys[idx + 1]], stats[self.metric_keys[idx]] = eval.stats[:2]  # update mAP50-95 and mAP50
+                    stats[self.metric_keys[idx + 1]], stats[
+                        self.metric_keys[idx]] = eval.stats[:2]  # update mAP50-95 and mAP50
             except Exception as e:
                 self.logger.warning(f'pycocotools unable to run: {e}')
         return stats

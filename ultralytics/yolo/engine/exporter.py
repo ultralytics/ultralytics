@@ -202,7 +202,7 @@ class Exporter:
             f[5], s_model = self._export_saved_model(nms=nms or self.args.agnostic_nms or tfjs,
                                                      agnostic_nms=self.args.agnostic_nms or tfjs)
             if pb or tfjs:  # pb prerequisite to tfjs
-                f[6], _ = self._export_pb(s_model, )
+                f[6], _ = self._export_pb(s_model,)
             if tflite or edgetpu:
                 f[7], _ = self._export_tflite(s_model,
                                               int8=self.args.int8 or edgetpu,

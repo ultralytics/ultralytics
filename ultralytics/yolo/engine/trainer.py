@@ -65,7 +65,6 @@ class BaseTrainer:
         self.loss = None
         self.tloss = None
         self.loss_names = None
-        self.csv = self.save_dir / 'results.csv'
 
         # dirs
         if RANK in {-1, 0}:
@@ -75,6 +74,7 @@ class BaseTrainer:
             self.wdir = self.save_dir / 'weights'  # weights dir
             self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
             self.last, self.best = self.wdir / 'last.pt', self.wdir / 'best.pt'  # checkpoint paths
+            self.csv = self.save_dir / 'results.csv'
             print_args(dict(self.args))
 
             # Save run settings

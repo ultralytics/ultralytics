@@ -68,6 +68,10 @@ class BaseTrainer:
 
         # dirs
         if RANK in {-1, 0}:
+            world_size = torch.cuda.device_count()
+            if world_size > 1 and "LOCAL_RANK" not in os.environ:
+                LOGGER.disabled = True
+
             project = overrides.get("project") or self.args.task
             name = overrides.get("name") or self.args.mode
             self.save_dir = increment_path(Path("runs") / project / name, exist_ok=self.args.exist_ok)

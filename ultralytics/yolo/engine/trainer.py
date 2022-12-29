@@ -47,37 +47,14 @@ class BaseTrainer:
         self.model = None
         self.callbacks = defaultdict(list)
 
-        # dirs
-        project = overrides.get("project") or self.args.task
-        name = overrides.get("name") or self.args.mode
-        self.save_dir = increment_path(Path("runs") / project / name, exist_ok=self.args.exist_ok)
-        self.wdir = self.save_dir / 'weights'  # weights dir
-        self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
-        self.last, self.best = self.wdir / 'last.pt', self.wdir / 'best.pt'  # checkpoint paths
-
-        self.batch_size = self.args.batch_size
-        self.epochs = self.args.epochs
-        self.start_epoch = 0
-        if RANK == -1:
-            print_args(dict(self.args))
-
-        # Save run settings
-        save_yaml(self.save_dir / 'args.yaml', OmegaConf.to_container(self.args, resolve=True))
-
         # device
         self.device = utils.torch_utils.select_device(self.args.device, self.batch_size)
         self.amp = self.device.type != 'cpu'
         self.scaler = amp.GradScaler(enabled=self.amp)
 
-        # Model and Dataloaders.
-        self.model = self.args.model
-        self.data = self.args.data
-        if self.data.endswith(".yaml"):
-            self.data = check_dataset_yaml(self.data)
-        else:
-            self.data = check_dataset(self.data)
-        self.trainset, self.testset = self.get_dataset(self.data)
-        self.ema = None
+        self.batch_size = self.args.batch_size
+        self.epochs = self.args.epochs
+        self.start_epoch = 0
 
         # Optimization utils init
         self.lf = None
@@ -90,6 +67,29 @@ class BaseTrainer:
         self.tloss = None
         self.loss_names = None
         self.csv = self.save_dir / 'results.csv'
+        
+        # dirs
+        if RANK in {-1, 0}:
+            project = overrides.get("project") or self.args.task
+            name = overrides.get("name") or self.args.mode
+            self.save_dir = increment_path(Path("runs") / project / name, exist_ok=self.args.exist_ok)
+            self.wdir = self.save_dir / 'weights'  # weights dir
+            self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
+            self.last, self.best = self.wdir / 'last.pt', self.wdir / 'best.pt'  # checkpoint paths
+            print_args(dict(self.args))
+
+            # Save run settings
+            save_yaml(self.save_dir / 'args.yaml', OmegaConf.to_container(self.args, resolve=True))
+
+        # Model and Dataloaders.
+        self.model = self.args.model
+        self.data = self.args.data
+        if self.data.endswith(".yaml"):
+            self.data = check_dataset_yaml(self.data)
+        else:
+            self.data = check_dataset(self.data)
+        self.trainset, self.testset = self.get_dataset(self.data)
+        self.ema = None
 
         for callback, func in callbacks.default_callbacks.items():
             self.add_callback(callback, func)

@@ -59,8 +59,8 @@ import warnings
 from copy import deepcopy
 from pathlib import Path
 
-import numpy as np
 import hydra
+import numpy as np
 import pandas as pd
 import torch
 
@@ -432,7 +432,7 @@ class Exporter:
         f = str(self.file).replace('.pt', '_saved_model')
         batch_size, ch, *imgsz = list(self.im.shape)  # BCHW
 
-        tf_models = None # TODO: no TF modules available
+        tf_models = None  # TODO: no TF modules available
         tf_model = tf_models.TFModel(cfg=self.model.yaml, model=self.model.cpu(), nc=self.model.nc, imgsz=imgsz)
         im = tf.zeros((batch_size, *imgsz, ch))  # BHWC order for TensorFlow
         _ = tf_model.predict(im, nms, agnostic_nms, topk_per_class, topk_all, iou_thres, conf_thres)
@@ -487,6 +487,7 @@ class Exporter:
         converter.target_spec.supported_types = [tf.float16]
         converter.optimizations = [tf.lite.Optimize.DEFAULT]
         if int8:
+
             def representative_dataset_gen(dataset, ncalib=100):
                 # Dataset generator for use with converter.representative_dataset, returns a generator of np arrays
                 for n, (path, img, im0s, vid_cap, string) in enumerate(dataset):

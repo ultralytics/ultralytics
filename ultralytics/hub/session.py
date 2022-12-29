@@ -75,7 +75,7 @@ class HubTrainingSession:
             assert data['data'], 'ERROR: Dataset may still be processing. Please wait a minute and try again.'  # RF fix
             self.model_id = data["id"]
             # TODO: refactor. Hardcoding model to yolov8n
-            # v8 doesn't have `weights` argument. replace it with `model`. 
+            # v8 doesn't have `weights` argument. replace it with `model`.
             data["model"] = "yolov8n.yaml"
             if data.get("weights"):
                 data.pop("weights")

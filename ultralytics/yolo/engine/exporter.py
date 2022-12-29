@@ -67,8 +67,9 @@ from torch.utils.mobile_optimizer import optimize_for_mobile
 from ultralytics.nn.modules import Detect, Segment
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel
 from ultralytics.yolo.configs import get_config
+from ultralytics.yolo.data.utils import check_dataset
 from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, colorstr, get_default_args
-from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version
+from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version, check_yaml
 from ultralytics.yolo.utils.files import file_size, yaml_save, increment_path
 from ultralytics.yolo.utils.ops import Profile
 from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode
@@ -144,6 +145,7 @@ class Exporter:
             assert self.device.type == 'cpu', '--optimize not compatible with cuda devices, i.e. use --device cpu'
 
         # Input
+        self.args.batch_size = 1  # TODO: resolve this issue, default 16 not fit for export
         gs = int(max(model.stride))  # grid size (max stride)
         imgsz = [check_imgsz(x, gs) for x in self.imgsz]  # verify img_size are gs-multiples
         im = torch.zeros(self.args.batch_size, 3, *imgsz).to(self.device)  # image size(1,3,320,192) BCHW iDetection
@@ -193,21 +195,12 @@ class Exporter:
             f[4], _ = self._export_coreml()
         if any((saved_model, pb, tflite, edgetpu, tfjs)):  # TensorFlow formats
             assert not isinstance(model, ClassificationModel), 'ClassificationModel TF exports not yet supported.'
-            f[5], s_model = self._export_saved_model(model.cpu(),
-                                                     im,
-                                                     file,
-                                                     dynamic,
-                                                     tf_nms=nms or agnostic_nms or tfjs,
-                                                     agnostic_nms=agnostic_nms or tfjs,
-                                                     topk_per_class=topk_per_class,
-                                                     topk_all=topk_all,
-                                                     iou_thres=iou_thres,
-                                                     conf_thres=conf_thres,
-                                                     keras=keras)
+            f[5], s_model = self._export_saved_model(tf_nms=nms or agnostic_nms or tfjs,
+                                                     agnostic_nms=agnostic_nms or tfjs)
             if pb or tfjs:  # pb prerequisite to tfjs
                 f[6], _ = self._export_pb(s_model, file)
             if tflite or edgetpu:
-                f[7], _ = self._export_tflite(s_model, im, file, int8 or edgetpu, data=data, nms=nms,
+                f[7], _ = self._export_tflite(s_model, int8=self.args.int8 or edgetpu, data=data, nms=nms,
                                               agnostic_nms=agnostic_nms)
                 if edgetpu:
                     f[8], _ = self._export_edgetpu(file)
@@ -411,17 +404,12 @@ class Exporter:
 
     @try_export
     def _export_saved_model(self,
-                            model,
-                            im,
-                            file,
-                            dynamic,
                             tf_nms=False,
                             agnostic_nms=False,
                             topk_per_class=100,
                             topk_all=100,
                             iou_thres=0.45,
                             conf_thres=0.25,
-                            keras=False,
                             prefix=colorstr('TensorFlow SavedModel:')):
         # YOLOv5 TensorFlow SavedModel export
         try:
@@ -433,18 +421,18 @@ class Exporter:
         from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2  # noqa
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
-        f = str(file).replace('.pt', '_saved_model')
-        batch_size, ch, *imgsz = list(im.shape)  # BCHW
+        f = str(self.file).replace('.pt', '_saved_model')
+        batch_size, ch, *imgsz = list(self.im.shape)  # BCHW
 
-        tf_model = TFModel(cfg=model.yaml, model=model, nc=model.nc, imgsz=imgsz)
+        tf_model = TFModel(cfg=self.model.yaml, model=self.model.cpu(), nc=self.model.nc, imgsz=imgsz)
         im = tf.zeros((batch_size, *imgsz, ch))  # BHWC order for TensorFlow
         _ = tf_model.predict(im, tf_nms, agnostic_nms, topk_per_class, topk_all, iou_thres, conf_thres)
-        inputs = tf.keras.Input(shape=(*imgsz, ch), batch_size=None if dynamic else batch_size)
+        inputs = tf.keras.Input(shape=(*imgsz, ch), batch_size=None if self.args.dynamic else batch_size)
         outputs = tf_model.predict(inputs, tf_nms, agnostic_nms, topk_per_class, topk_all, iou_thres, conf_thres)
         keras_model = tf.keras.Model(inputs=inputs, outputs=outputs)
         keras_model.trainable = False
         keras_model.summary()
-        if keras:
+        if self.args.keras:
             keras_model.save(f, save_format='tf')
         else:
             spec = tf.TensorSpec(keras_model.inputs[0].shape, keras_model.inputs[0].dtype)
@@ -478,28 +466,28 @@ class Exporter:
         return f, None
 
     @try_export
-    def _export_tflite(self, keras_model, im, file, int8, data, nms, agnostic_nms, prefix=colorstr('TensorFlow Lite:')):
+    def _export_tflite(self, keras_model, int8, data, nms, agnostic_nms, prefix=colorstr('TensorFlow Lite:')):
         # YOLOv5 TensorFlow Lite export
         import tensorflow as tf  # noqa
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
-        batch_size, ch, *imgsz = list(im.shape)  # BCHW
-        f = str(file).replace('.pt', '-fp16.tflite')
+        batch_size, ch, *imgsz = list(self.im.shape)  # BCHW
+        f = str(self.file).replace('.pt', '-fp16.tflite')
 
         converter = tf.lite.TFLiteConverter.from_keras_model(keras_model)
         converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS]
         converter.target_spec.supported_types = [tf.float16]
         converter.optimizations = [tf.lite.Optimize.DEFAULT]
         if int8:
-            # from models.tf import representative_dataset_gen
-            # dataset = LoadImages(check_dataset(check_yaml(data))['train'], imgsz=imgsz, auto=False)
-            # converter.representative_dataset = lambda: representative_dataset_gen(dataset, ncalib=100)
+            from models.tf import representative_dataset_gen
+            dataset = LoadImages(check_dataset(check_yaml(data))['train'], imgsz=imgsz, auto=False)
+            converter.representative_dataset = lambda: representative_dataset_gen(dataset, ncalib=100)
             converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
             converter.target_spec.supported_types = []
             converter.inference_input_type = tf.uint8  # or tf.int8
             converter.inference_output_type = tf.uint8  # or tf.int8
             converter.experimental_new_quantizer = True
-            f = str(file).replace('.pt', '-int8.tflite')
+            f = str(self.file).replace('.pt', '-int8.tflite')
         if nms or agnostic_nms:
             converter.target_spec.supported_ops.append(tf.lite.OpsSet.SELECT_TF_OPS)
 
@@ -596,7 +584,7 @@ class Exporter:
 def export(cfg):
     cfg.model = cfg.model or "yolov8n.yaml"
     exporter = Exporter(cfg)
-    exporter(model=cfg.model, format='torchscript')
+    exporter(model=DetectionModel(cfg.model), format='torchscript')
 
 
 if __name__ == "__main__":

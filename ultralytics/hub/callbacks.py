@@ -2,6 +2,7 @@ import json
 from time import time
 
 import torch
+
 from ultralytics.hub.utils import PREFIX
 from ultralytics.yolo.utils import LOGGER, emojis
 
@@ -18,7 +19,7 @@ def on_val_end(trainer):
 
     # Temp. Figure out the source of this problm
     metrics = trainer.metrics
-    for k,v in metrics.items():
+    for k, v in metrics.items():
         if isinstance(v, torch.Tensor):
             metrics[k] = v.item()
 

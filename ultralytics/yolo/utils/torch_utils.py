@@ -293,3 +293,18 @@ def strip_optimizer(f='best.pt', s=''):  # from utils.general import *; strip_op
     torch.save(x, s or f)
     mb = os.path.getsize(s or f) / 1E6  # filesize
     LOGGER.info(f"Optimizer stripped from {f},{f' saved as {s},' if s else ''} {mb:.1f}MB")
+
+
+def guess_task_from_head(head):
+    task = None
+    if head.lower() in ["classify", "classifier", "cls", "fc"]:
+        task = "classify"
+    if head.lower() in ["detect"]:
+        task = "detect"
+    if head.lower() in ["segment"]:
+        task = "segment"
+
+    if not task:
+        raise SyntaxError("task or model not recognized! Please refer the docs at : ")  # TODO: add docs links
+
+    return task

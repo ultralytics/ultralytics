@@ -46,15 +46,14 @@ class BaseTrainer:
         self.validator = None
         self.model = None
         self.callbacks = defaultdict(list)
+        self.batch_size = self.args.batch_size
+        self.epochs = self.args.epochs
+        self.start_epoch = 0
 
         # device
         self.device = utils.torch_utils.select_device(self.args.device, self.batch_size)
         self.amp = self.device.type != 'cpu'
         self.scaler = amp.GradScaler(enabled=self.amp)
-
-        self.batch_size = self.args.batch_size
-        self.epochs = self.args.epochs
-        self.start_epoch = 0
 
         # Optimization utils init
         self.lf = None

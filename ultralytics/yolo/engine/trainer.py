@@ -423,6 +423,7 @@ class BaseTrainer:
                 strip_optimizer(f)  # strip optimizers
                 if f is self.best:
                     self.console.info(f'\nValidating {f}...')
+                    self.validator.args.save_json = True
                     self.metrics = self.validator(model=f)
                     self.metrics.pop('fitness', None)
                     self.trigger_callbacks('on_val_end')

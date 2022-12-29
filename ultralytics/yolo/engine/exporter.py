@@ -164,6 +164,7 @@ class Exporter:
                 m.dynamic = self.args.dynamic
                 m.export = True
 
+        y = None
         for _ in range(2):
             y = model(im)  # dry runs
         if self.args.half and not coreml:
@@ -201,7 +202,7 @@ class Exporter:
             f[5], s_model = self._export_saved_model(nms=nms or self.args.agnostic_nms or tfjs,
                                                      agnostic_nms=self.args.agnostic_nms or tfjs)
             if pb or tfjs:  # pb prerequisite to tfjs
-                f[6], _ = self._export_pb(s_model, file)
+                f[6], _ = self._export_pb(s_model, )
             if tflite or edgetpu:
                 f[7], _ = self._export_tflite(s_model,
                                               int8=self.args.int8 or edgetpu,
@@ -209,10 +210,10 @@ class Exporter:
                                               nms=nms,
                                               agnostic_nms=self.args.agnostic_nms)
                 if edgetpu:
-                    f[8], _ = self._export_edgetpu(file)
+                    f[8], _ = self._export_edgetpu()
                 self._add_tflite_metadata(f[8] or f[7], num_outputs=len(s_model.outputs))
             if tfjs:
-                f[9], _ = self._export_tfjs(file)
+                f[9], _ = self._export_tfjs()
         if paddle:  # PaddlePaddle
             f[10], _ = self._export_paddle()
 
@@ -311,7 +312,7 @@ class Exporter:
         import openvino.inference_engine as ie  # noqa
 
         LOGGER.info(f'\n{prefix} starting export with openvino {ie.__version__}...')
-        f = str(self.file).replace('.pt', f'_openvino_model{os.sep}')
+        f = str(self.file).replace(self.file.suffix, f'_openvino_model{os.sep}')
         f_onnx = self.file.with_suffix('.onnx')
 
         cmd = f"mo --input_model {f_onnx} --output_dir {f} --data_type {'FP16' if self.args.half else 'FP32'}"
@@ -327,7 +328,7 @@ class Exporter:
         from x2paddle.convert import pytorch2paddle  # noqa
 
         LOGGER.info(f'\n{prefix} starting export with X2Paddle {x2paddle.__version__}...')
-        f = str(self.file).replace('.pt', f'_paddle_model{os.sep}')
+        f = str(self.file).replace(self.file.suffix, f'_paddle_model{os.sep}')
 
         pytorch2paddle(module=self.model, save_dir=f, jit_type='trace', input_examples=[self.im])  # export
         yaml_save(Path(f) / self.file.with_suffix('.yaml').name, self.metadata)  # add metadata.yaml
@@ -429,7 +430,7 @@ class Exporter:
         from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2  # noqa
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
-        f = str(self.file).replace('.pt', '_saved_model')
+        f = str(self.file).replace(self.file.suffix, '_saved_model')
         batch_size, ch, *imgsz = list(self.im.shape)  # BCHW
 
         tf_models = None  # TODO: no TF modules available
@@ -480,7 +481,7 @@ class Exporter:
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
         batch_size, ch, *imgsz = list(self.im.shape)  # BCHW
-        f = str(self.file).replace('.pt', '-fp16.tflite')
+        f = str(self.file).replace(self.file.suffix, '-fp16.tflite')
 
         converter = tf.lite.TFLiteConverter.from_keras_model(keras_model)
         converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS]
@@ -505,7 +506,7 @@ class Exporter:
             converter.inference_input_type = tf.uint8  # or tf.int8
             converter.inference_output_type = tf.uint8  # or tf.int8
             converter.experimental_new_quantizer = True
-            f = str(self.file).replace('.pt', '-int8.tflite')
+            f = str(self.file).replace(self.file.suffix, '-int8.tflite')
         if nms or agnostic_nms:
             converter.target_spec.supported_ops.append(tf.lite.OpsSet.SELECT_TF_OPS)
 
@@ -514,7 +515,7 @@ class Exporter:
         return f, None
 
     @try_export
-    def _export_edgetpu(self, file, prefix=colorstr('Edge TPU:')):
+    def _export_edgetpu(self, prefix=colorstr('Edge TPU:')):
         # YOLOv5 Edge TPU export https://coral.ai/docs/edgetpu/models-intro/
         cmd = 'edgetpu_compiler --version'
         help_url = 'https://coral.ai/docs/edgetpu/compiler/'
@@ -530,29 +531,28 @@ class Exporter:
         ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().split()[-1]
 
         LOGGER.info(f'\n{prefix} starting export with Edge TPU compiler {ver}...')
-        f = str(file).replace('.pt', '-int8_edgetpu.tflite')  # Edge TPU model
-        f_tfl = str(file).replace('.pt', '-int8.tflite')  # TFLite model
+        f = str(self.file).replace(self.file.suffix, '-int8_edgetpu.tflite')  # Edge TPU model
+        f_tfl = str(self.file).replace(self.file.suffix, '-int8.tflite')  # TFLite model
 
-        cmd = f"edgetpu_compiler -s -d -k 10 --out_dir {file.parent} {f_tfl}"
+        cmd = f"edgetpu_compiler -s -d -k 10 --out_dir {self.file.parent} {f_tfl}"
         subprocess.run(cmd.split(), check=True)
         return f, None
 
     @try_export
-    def _export_tfjs(self, file, prefix=colorstr('TensorFlow.js:')):
+    def _export_tfjs(self, prefix=colorstr('TensorFlow.js:')):
         # YOLOv5 TensorFlow.js export
         check_requirements('tensorflowjs')
         import tensorflowjs as tfjs  # noqa
 
         LOGGER.info(f'\n{prefix} starting export with tensorflowjs {tfjs.__version__}...')
-        f = str(file).replace('.pt', '_web_model')  # js dir
-        f_pb = file.with_suffix('.pb')  # *.pb path
-        f_json = f'{f}/model.json'  # *.json path
+        f = str(self.file).replace(self.file.suffix, '_web_model')  # js dir
+        f_pb = self.file.with_suffix('.pb')  # *.pb path
+        f_json = Path(f) / 'model.json'  # *.json path
 
         cmd = f'tensorflowjs_converter --input_format=tf_frozen_model ' \
               f'--output_node_names=Identity,Identity_1,Identity_2,Identity_3 {f_pb} {f}'
         subprocess.run(cmd.split())
 
-        json_text = Path(f_json).read_text()
         with open(f_json, 'w') as j:  # sort JSON Identity_* in ascending order
             subst = re.sub(
                 r'{"outputs": {"Identity.?.?": {"name": "Identity.?.?"}, '
@@ -561,7 +561,7 @@ class Exporter:
                 r'"Identity.?.?": {"name": "Identity.?.?"}}}', r'{"outputs": {"Identity": {"name": "Identity"}, '
                 r'"Identity_1": {"name": "Identity_1"}, '
                 r'"Identity_2": {"name": "Identity_2"}, '
-                r'"Identity_3": {"name": "Identity_3"}}}', json_text)
+                r'"Identity_3": {"name": "Identity_3"}}}', f_json.read_text())
             j.write(subst)
         return f, None
 

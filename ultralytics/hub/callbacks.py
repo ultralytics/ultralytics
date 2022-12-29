@@ -3,20 +3,20 @@ from time import sleep, time
 
 from ultralytics.hub.utils import PREFIX
 from ultralytics.yolo.utils import LOGGER, emojis
-'''
-def signal_handler(signum, frame):
-    """ Confirm exit """
-    global hub_logger
-    print(f'Signal received. {signum} {frame}')
-    if isinstance(hub_logger, HUBLogger):
-        hub_logger.alive = False
-        del hub_logger
-    sys.exit(signum)
 
 
-signal.signal(signal.SIGTERM, signal_handler)
-signal.signal(signal.SIGINT, signal_handler)
-'''
+# def signal_handler(signum, frame):
+#     """ Confirm exit """
+#     global hub_logger
+#     print(f'Signal received. {signum} {frame}')
+#     if isinstance(hub_logger, HUBLogger):
+#         hub_logger.alive = False
+#         del hub_logger
+#     sys.exit(signum)
+# 
+# 
+# signal.signal(signal.SIGTERM, signal_handler)
+# signal.signal(signal.SIGINT, signal_handler)
 
 
 def on_pretrain_routine_end(trainer):

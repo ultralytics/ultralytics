@@ -35,7 +35,7 @@ class BaseValidator:
         project = self.args.project or f"runs/{self.args.task}"
         name = self.args.name or f"{self.args.mode}"
         self.save_dir = save_dir or increment_path(Path(project) / name,
-                                                   exist_ok=self.args.exist_ok if RANK == -1 else True)
+                                                   exist_ok=self.args.exist_ok if RANK in {-1, 0} else True)
         (self.save_dir / 'labels' if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
 
     @smart_inference_mode()

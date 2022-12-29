@@ -1,7 +1,8 @@
 from pathlib import Path
 from time import sleep
-
 import requests
+import sys
+import signal
 
 from ultralytics import __version__
 from ultralytics.hub.callbacks import callbacks
@@ -9,8 +10,24 @@ from ultralytics.hub.config import HUB_API_ROOT
 from ultralytics.hub.utils import check_dataset_disk_space, smart_request
 from ultralytics.yolo.utils import is_colab, threaded
 
+
+
 AGENT_NAME = f'python-{__version__}-colab' if is_colab() else f'python-{__version__}-local'
 
+session = None
+
+def signal_handler(signum, frame):
+    """ Confirm exit """
+    global hub_logger
+    print(f'Signal received. {signum} {frame}')
+    if isinstance(session, HubTrainingSession):
+        hub_logger.alive = False
+        del hub_logger
+    sys.exit(signum)
+
+
+signal.signal(signal.SIGTERM, signal_handler)
+signal.signal(signal.SIGINT, signal_handler)
 
 class HubTrainingSession:
 

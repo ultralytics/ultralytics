@@ -199,7 +199,6 @@ class SegmentationValidator(DetectionValidator):
         self.plot_masks.clear()
 
     def pred_to_json(self, predn, filename, pred_masks):
-    f save_one_json(predn, path, class_map, pred_masks):
         # Save one JSON result {"image_id": 42, "category_id": 18, "bbox": [258.15, 41.29, 348.26, 243.78], "score": 0.236}
         from pycocotools.mask import encode
 

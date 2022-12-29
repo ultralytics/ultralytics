@@ -171,7 +171,7 @@ class DetectionValidator(BaseValidator):
                                  pad=0.5,
                                  rect=self.args.rect,
                                  workers=self.args.workers,
-                                 prefix=colorstr(f'{val}: '),
+                                 prefix=colorstr(f'{self.args.mode}: '),
                                  shuffle=False,
                                  seed=self.args.seed)[0] if self.args.v5loader else \
             build_dataloader(self.args, batch_size, img_path=dataset_path, stride=gs, mode="val")[0]

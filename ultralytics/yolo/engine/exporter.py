@@ -48,6 +48,7 @@ TensorFlow.js:
     $ ln -s ../../yolov5/yolov8n_web_model public/yolov8n_web_model
     $ npm start
 """
+import hydra
 import contextlib
 import json
 import os
@@ -65,9 +66,10 @@ from torch.utils.mobile_optimizer import optimize_for_mobile
 
 from ultralytics.nn.modules import Detect, Segment
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel
-from ultralytics.yolo.utils import LOGGER, ROOT, colorstr, get_default_args
+from ultralytics.yolo.configs import get_config
+from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, ROOT, colorstr, get_default_args
 from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version
-from ultralytics.yolo.utils.files import file_size, yaml_save
+from ultralytics.yolo.utils.files import file_size, yaml_save, increment_path
 from ultralytics.yolo.utils.ops import Profile
 from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode
 
@@ -88,7 +90,7 @@ def export_formats():
         ['TensorFlow Lite', 'tflite', '.tflite', True, False],
         ['TensorFlow Edge TPU', 'edgetpu', '_edgetpu.tflite', False, False],
         ['TensorFlow.js', 'tfjs', '_web_model', False, False],
-        ['PaddlePaddle', 'paddle', '_paddle_model', True, True],]
+        ['PaddlePaddle', 'paddle', '_paddle_model', True, True], ]
     return pd.DataFrame(x, columns=['Format', 'Argument', 'Suffix', 'CPU', 'GPU'])
 
 
@@ -110,20 +112,168 @@ def try_export(inner_func):
     return outer_func
 
 
-@try_export
-def export_torchscript(model, im, file, optimize, prefix=colorstr('TorchScript:')):
-    # YOLOv5 TorchScript model export
-    LOGGER.info(f'\n{prefix} starting export with torch {torch.__version__}...')
-    f = file.with_suffix('.torchscript')
+class Exporter:
+    def __init__(self, config=DEFAULT_CONFIG, overrides={}):
+        self.args = get_config(config, overrides)
+        project = self.args.project or f"runs/{self.args.task}"
+        name = self.args.name or f"{self.args.mode}"
+        self.save_dir = increment_path(Path(project) / name, exist_ok=self.args.exist_ok)
+        self.save_dir.mkdir(parents=True, exist_ok=True)
+        self.imgsz = self.args.imgsz
 
-    ts = torch.jit.trace(model, im, strict=False)
-    d = {"shape": im.shape, "stride": int(max(model.stride)), "names": model.names}
-    extra_files = {'config.txt': json.dumps(d)}  # torch._C.ExtraFilesMap()
-    if optimize:  # https://pytorch.org/tutorials/recipes/mobile_interpreter.html
-        optimize_for_mobile(ts)._save_for_lite_interpreter(str(f), _extra_files=extra_files)
-    else:
-        ts.save(str(f), _extra_files=extra_files)
-    return f, None
+    @smart_inference_mode()
+    def __call__(self, model=None, format=None):
+        #         model,  # model
+        #         file=ROOT / 'yolov8n.pt',
+        #         data=ROOT / 'data/coco128.yaml',  # 'dataset.yaml path'
+        #         imgsz=(640, 640),  # image (height, width)
+        #         batch_size=1,  # batch size
+        #         device=torch.device('cpu'),  # cuda device, i.e. 0 or 0,1,2,3 or cpu
+        #         format='onnx',  # export format
+        #         half=False,  # FP16 half-precision export
+        #         keras=False,  # use Keras
+        #         optimize=False,  # TorchScript: optimize for mobile
+        #         int8=False,  # CoreML/TF INT8 quantization
+        #         dynamic=False,  # ONNX/TF/TensorRT: dynamic axes
+        #         simplify=False,  # ONNX: simplify model
+        #         opset=17,  # ONNX: opset version
+        #         verbose=False,  # TensorRT: verbose log
+        #         workspace=4,  # TensorRT: workspace size (GB)
+        #         nms=False,  # TF: add NMS to model
+        #         agnostic_nms=False,  # TF: add agnostic NMS to model
+        #         topk_per_class=100,  # TF.js NMS: topk per class to keep
+        #         topk_all=100,  # TF.js NMS: topk for all classes to keep
+        #         iou_thres=0.45,  # TF.js NMS: IoU threshold
+        #         conf_thres=0.25,  # TF.js NMS: confidence threshold
+        #         task=None,
+        #         mode=None,
+        # ):
+
+        t = time.time()
+        format = format.lower()  # to lowercase
+        fmts = tuple(export_formats()['Argument'][1:])  # available export formats
+        flags = [x == format for x in fmts]
+        assert sum(flags), f'ERROR: Invalid format={format}, valid formats are {fmts}'
+        jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle = flags  # export booleans
+
+        # Load PyTorch model
+        self.device = select_device(self.args.device)
+        if self.args.half:
+            assert self.device.type != 'cpu' or coreml, '--half only compatible with GPU export, i.e. use --device 0'
+            assert not self.args.dynamic, '--half not compatible with --dynamic, i.e. use either --half or --dynamic'
+
+        # Checks
+        if isinstance(self.imgsz, int):
+            self.imgsz = [self.imgsz]
+        self.imgsz *= 2 if len(self.imgsz) == 1 else 1  # expand
+        if self.args.optimize:
+            assert self.device.type == 'cpu', '--optimize not compatible with cuda devices, i.e. use --device cpu'
+
+        # Input
+        gs = int(max(model.stride))  # grid size (max stride)
+        imgsz = [check_imgsz(x, gs) for x in self.imgsz]  # verify img_size are gs-multiples
+        im = torch.zeros(self.args.batch_size, 3, *imgsz).to(self.device)  # image size(1,3,320,192) BCHW iDetection
+        file = Path(Path(model.yaml['yaml_file']).name)
+
+        # Update model
+        model = deepcopy(model)
+        for p in model.parameters():
+            p.requires_grad = False
+        model.eval()
+        model = model.fuse()
+        for k, m in model.named_modules():
+            if isinstance(m, (Detect, Segment)):
+                m.dynamic = self.args.dynamic
+                m.export = True
+
+        for _ in range(2):
+            y = model(im)  # dry runs
+        if self.args.half and not coreml:
+            im, model = im.half(), model.half()  # to FP16
+        shape = tuple((y[0] if isinstance(y, tuple) else y).shape)  # model output shape
+        metadata = {'stride': int(max(model.stride)), 'names': model.names}  # model metadata
+        LOGGER.info(
+            f"\n{colorstr('PyTorch:')} starting from {file} with output shape {shape} ({file_size(file):.1f} MB)")
+
+        # Warnings
+        warnings.filterwarnings('ignore', category=torch.jit.TracerWarning)  # suppress TracerWarning
+        warnings.filterwarnings('ignore', category=UserWarning)  # suppress shape prim::Constant missing ONNX warning
+        warnings.filterwarnings('ignore', category=DeprecationWarning)  # suppress CoreML np.bool deprecation warning
+
+        # Assign
+        self.im = im
+        self.model = model
+        self.file = file
+
+        # Exports
+        f = [''] * len(fmts)  # exported filenames
+        if jit:  # TorchScript
+            f[0], _ = self._export_torchscript()
+        if engine:  # TensorRT required before ONNX
+            f[1], _ = export_engine(model, im, file, half, dynamic, simplify, workspace, verbose)
+        if onnx or xml:  # OpenVINO requires ONNX
+            f[2], _ = export_onnx(model, im, file, opset, dynamic, simplify)
+        if xml:  # OpenVINO
+            f[3], _ = export_openvino(file, metadata, half)
+        if coreml:  # CoreML
+            f[4], _ = export_coreml(model, im, file, int8, half)
+        if any((saved_model, pb, tflite, edgetpu, tfjs)):  # TensorFlow formats
+            assert not tflite or not tfjs, 'TFLite and TF.js models must be exported separately, please pass only one type.'
+            assert not isinstance(model,
+                                  ClassificationModel), 'ClassificationModel export to TF formats not yet supported.'
+            f[5], s_model = export_saved_model(model.cpu(),
+                                               im,
+                                               file,
+                                               dynamic,
+                                               tf_nms=nms or agnostic_nms or tfjs,
+                                               agnostic_nms=agnostic_nms or tfjs,
+                                               topk_per_class=topk_per_class,
+                                               topk_all=topk_all,
+                                               iou_thres=iou_thres,
+                                               conf_thres=conf_thres,
+                                               keras=keras)
+            if pb or tfjs:  # pb prerequisite to tfjs
+                f[6], _ = export_pb(s_model, file)
+            if tflite or edgetpu:
+                f[7], _ = export_tflite(s_model, im, file, int8 or edgetpu, data=data, nms=nms,
+                                        agnostic_nms=agnostic_nms)
+                if edgetpu:
+                    f[8], _ = export_edgetpu(file)
+                add_tflite_metadata(f[8] or f[7], metadata, num_outputs=len(s_model.outputs))
+            if tfjs:
+                f[9], _ = export_tfjs(file)
+        if paddle:  # PaddlePaddle
+            f[10], _ = export_paddle(model, im, file, metadata)
+
+        # Finish
+        f = [str(x) for x in f if x]  # filter out '' and None
+        if any(f):
+            cls, det, seg = (isinstance(model, x) for x in
+                             (ClassificationModel, DetectionModel, SegmentationModel))  # type
+            det &= not seg  # segmentation models inherit from SegmentationModel(DetectionModel)
+            s = "-WARNING ⚠️ not yet supported for YOLOv8 exported models"
+            task = 'detect' if det else 'segment' if seg else 'classify' if cls else ''
+            LOGGER.info(f'\nExport complete ({time.time() - t:.1f}s)'
+                        f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
+                        f"\nPredict:         yolo task={task} mode=predict model={f[-1]} {s}"
+                        f"\nValidate:        yolo task={task} mode=val model={f[-1]} {s}"
+                        f"\nVisualize:       https://netron.app")
+        return f  # return list of exported files/dirs
+
+    @try_export
+    def _export_torchscript(self, prefix=colorstr('TorchScript:')):
+        # YOLOv5 TorchScript model export
+        LOGGER.info(f'\n{prefix} starting export with torch {torch.__version__}...')
+        f = self.file.with_suffix('.torchscript')
+
+        ts = torch.jit.trace(self.model, self.im, strict=False)
+        d = {"shape": self.im.shape, "stride": int(max(self.model.stride)), "names": self.model.names}
+        extra_files = {'config.txt': json.dumps(d)}  # torch._C.ExtraFilesMap()
+        if self.args.optimize:  # https://pytorch.org/tutorials/recipes/mobile_interpreter.html
+            optimize_for_mobile(ts)._save_for_lite_interpreter(str(f), _extra_files=extra_files)
+        else:
+            ts.save(str(f), _extra_files=extra_files)
+        return f, None
 
 
 @try_export
@@ -441,9 +591,9 @@ def export_tfjs(file, prefix=colorstr('TensorFlow.js:')):
             r'"Identity.?.?": {"name": "Identity.?.?"}, '
             r'"Identity.?.?": {"name": "Identity.?.?"}, '
             r'"Identity.?.?": {"name": "Identity.?.?"}}}', r'{"outputs": {"Identity": {"name": "Identity"}, '
-            r'"Identity_1": {"name": "Identity_1"}, '
-            r'"Identity_2": {"name": "Identity_2"}, '
-            r'"Identity_3": {"name": "Identity_3"}}}', json)
+                                                           r'"Identity_1": {"name": "Identity_1"}, '
+                                                           r'"Identity_2": {"name": "Identity_2"}, '
+                                                           r'"Identity_3": {"name": "Identity_3"}}}', json)
         j.write(subst)
     return f, None
 
@@ -481,128 +631,16 @@ def add_tflite_metadata(file, metadata, num_outputs):
         tmp_file.unlink()
 
 
-@smart_inference_mode()
-def export_model(
-        model,  # model
-        file=ROOT / 'yolov8n.pt',
-        data=ROOT / 'data/coco128.yaml',  # 'dataset.yaml path'
-        imgsz=(640, 640),  # image (height, width)
-        batch_size=1,  # batch size
-        device=torch.device('cpu'),  # cuda device, i.e. 0 or 0,1,2,3 or cpu
-        format='onnx',  # export format
-        half=False,  # FP16 half-precision export
-        keras=False,  # use Keras
-        optimize=False,  # TorchScript: optimize for mobile
-        int8=False,  # CoreML/TF INT8 quantization
-        dynamic=False,  # ONNX/TF/TensorRT: dynamic axes
-        simplify=False,  # ONNX: simplify model
-        opset=17,  # ONNX: opset version
-        verbose=False,  # TensorRT: verbose log
-        workspace=4,  # TensorRT: workspace size (GB)
-        nms=False,  # TF: add NMS to model
-        agnostic_nms=False,  # TF: add agnostic NMS to model
-        topk_per_class=100,  # TF.js NMS: topk per class to keep
-        topk_all=100,  # TF.js NMS: topk for all classes to keep
-        iou_thres=0.45,  # TF.js NMS: IoU threshold
-        conf_thres=0.25,  # TF.js NMS: confidence threshold
-):
-    t = time.time()
-    format = format.lower()  # to lowercase
-    fmts = tuple(export_formats()['Argument'][1:])  # available export formats
-    flags = [x == format for x in fmts]
-    assert sum(flags), f'ERROR: Invalid format={format}, valid formats are {fmts}'
-    jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle = flags  # export booleans
+@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
+def export(cfg):
+    cfg.model = cfg.model or "yolov8n.yaml"
+    exporter = Exporter(cfg)
+    exporter()
 
-    # Load PyTorch model
-    device = select_device(device)
-    if half:
-        assert device.type != 'cpu' or coreml, '--half only compatible with GPU export, i.e. use --device 0'
-        assert not dynamic, '--half not compatible with --dynamic, i.e. use either --half or --dynamic but not both'
 
-    # Checks
-    if isinstance(imgsz, int):
-        imgsz = [imgsz]
-    imgsz *= 2 if len(imgsz) == 1 else 1  # expand
-    if optimize:
-        assert device.type == 'cpu', '--optimize not compatible with cuda devices, i.e. use --device cpu'
-
-    # Input
-    gs = int(max(model.stride))  # grid size (max stride)
-    imgsz = [check_imgsz(x, gs) for x in imgsz]  # verify img_size are gs-multiples
-    im = torch.zeros(batch_size, 3, *imgsz).to(device)  # image size(1,3,320,192) BCHW iDetection
-
-    # Update model
-    model = deepcopy(model)
-    for p in model.parameters():
-        p.requires_grad = False
-    model.eval()
-    model = model.fuse()
-    for k, m in model.named_modules():
-        if isinstance(m, (Detect, Segment)):
-            m.dynamic = dynamic
-            m.export = True
-
-    for _ in range(2):
-        y = model(im)  # dry runs
-    if half and not coreml:
-        im, model = im.half(), model.half()  # to FP16
-    shape = tuple((y[0] if isinstance(y, tuple) else y).shape)  # model output shape
-    metadata = {'stride': int(max(model.stride)), 'names': model.names}  # model metadata
-    LOGGER.info(f"\n{colorstr('PyTorch:')} starting from {file} with output shape {shape} ({file_size(file):.1f} MB)")
-
-    # Warnings
-    warnings.filterwarnings('ignore', category=torch.jit.TracerWarning)  # suppress TracerWarning
-    warnings.filterwarnings('ignore', category=UserWarning)  # suppress shape prim::Constant type missing ONNX warning
-    warnings.filterwarnings('ignore', category=DeprecationWarning)  # suppress CoreML np.bool deprecation warning
-
-    # Exports
-    f = [''] * len(fmts)  # exported filenames
-    if jit:  # TorchScript
-        f[0], _ = export_torchscript(model, im, file, optimize)
-    if engine:  # TensorRT required before ONNX
-        f[1], _ = export_engine(model, im, file, half, dynamic, simplify, workspace, verbose)
-    if onnx or xml:  # OpenVINO requires ONNX
-        f[2], _ = export_onnx(model, im, file, opset, dynamic, simplify)
-    if xml:  # OpenVINO
-        f[3], _ = export_openvino(file, metadata, half)
-    if coreml:  # CoreML
-        f[4], _ = export_coreml(model, im, file, int8, half)
-    if any((saved_model, pb, tflite, edgetpu, tfjs)):  # TensorFlow formats
-        assert not tflite or not tfjs, 'TFLite and TF.js models must be exported separately, please pass only one type.'
-        assert not isinstance(model, ClassificationModel), 'ClassificationModel export to TF formats not yet supported.'
-        f[5], s_model = export_saved_model(model.cpu(),
-                                           im,
-                                           file,
-                                           dynamic,
-                                           tf_nms=nms or agnostic_nms or tfjs,
-                                           agnostic_nms=agnostic_nms or tfjs,
-                                           topk_per_class=topk_per_class,
-                                           topk_all=topk_all,
-                                           iou_thres=iou_thres,
-                                           conf_thres=conf_thres,
-                                           keras=keras)
-        if pb or tfjs:  # pb prerequisite to tfjs
-            f[6], _ = export_pb(s_model, file)
-        if tflite or edgetpu:
-            f[7], _ = export_tflite(s_model, im, file, int8 or edgetpu, data=data, nms=nms, agnostic_nms=agnostic_nms)
-            if edgetpu:
-                f[8], _ = export_edgetpu(file)
-            add_tflite_metadata(f[8] or f[7], metadata, num_outputs=len(s_model.outputs))
-        if tfjs:
-            f[9], _ = export_tfjs(file)
-    if paddle:  # PaddlePaddle
-        f[10], _ = export_paddle(model, im, file, metadata)
-
-    # Finish
-    f = [str(x) for x in f if x]  # filter out '' and None
-    if any(f):
-        cls, det, seg = (isinstance(model, x) for x in (ClassificationModel, DetectionModel, SegmentationModel))  # type
-        det &= not seg  # segmentation models inherit from SegmentationModel(DetectionModel)
-        s = "-WARNING ⚠️ not yet supported for YOLOv8 exported models"
-        task = 'detect' if det else 'segment' if seg else 'classify' if cls else ''
-        LOGGER.info(f'\nExport complete ({time.time() - t:.1f}s)'
-                    f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
-                    f"\nPredict:         yolo task={task} mode=predict model={f[-1]} {s}"
-                    f"\nValidate:        yolo task={task} mode=val model={f[-1]} {s}"
-                    f"\nVisualize:       https://netron.app")
-    return f  # return list of exported files/dirs
+if __name__ == "__main__":
+    """
+    CLI:
+    yolo mode=export model=yolov8n.yaml format=onnx
+    """
+    export()

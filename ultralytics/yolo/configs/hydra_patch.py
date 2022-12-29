@@ -4,8 +4,8 @@ from textwrap import dedent
 
 import hydra
 from hydra.errors import ConfigCompositionException
-from omegaconf import OmegaConf, open_dict
-from omegaconf.errors import ConfigAttributeError, ConfigKeyError, OmegaConfBaseException
+from omegaconf import OmegaConf, open_dict  # noqa
+from omegaconf.errors import ConfigAttributeError, ConfigKeyError, OmegaConfBaseException  # noqa
 
 from ultralytics.yolo.utils import LOGGER, colorstr
 
@@ -16,8 +16,7 @@ def override_config(overrides, cfg):
     for override in overrides:
         if override.package is not None:
             raise ConfigCompositionException(f"Override {override.input_line} looks like a config group"
-                                             f" override, but config group '{override.key_or_group}' does not"
-                                             " exist.")
+                                             f" override, but config group '{override.key_or_group}' does not exist.")
 
         key = override.key_or_group
         value = override.value()
@@ -37,7 +36,7 @@ def override_config(overrides, cfg):
                     if last_dot == -1:
                         del cfg[key]
                     else:
-                        node = OmegaConf.select(cfg, key[0:last_dot])
+                        node = OmegaConf.select(cfg, key[:last_dot])
                         del node[key[last_dot + 1:]]
 
             elif override.is_add():
@@ -65,10 +64,7 @@ def override_config(overrides, cfg):
 
 
 def check_config_mismatch(overrides, cfg):
-    mismatched = []
-    for option in overrides:
-        if option not in cfg and 'hydra.' not in option:
-            mismatched.append(option)
+    mismatched = [option for option in overrides if option not in cfg and 'hydra.' not in option]
 
     for option in mismatched:
         LOGGER.info(f"{colorstr(option)} is not a valid key. Similar keys: {get_close_matches(option, cfg, 3, 0.6)}")

@@ -49,7 +49,7 @@ def attempt_download(file, repo='ultralytics/yolov5', release='v6.2'):
     # Attempt file download from GitHub release assets if not found locally. release = 'latest', 'v6.2', etc.
 
     def github_assets(repository, version='latest'):
-        # Return GitHub repo tag and assets (i.e. ['yolov5s.pt', 'yolov5m.pt', ...])
+        # Return GitHub repo tag and assets (i.e. ['yolov8n.pt', 'yolov5m.pt', ...])
         if version != 'latest':
             version = f'tags/{version}'  # i.e. tags/v6.2
         response = requests.get(f'https://api.github.com/repos/{repository}/releases/{version}').json()  # github api

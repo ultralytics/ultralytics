@@ -2,10 +2,8 @@ import cv2
 import hydra
 
 from ultralytics.yolo.data import build_dataloader
-from ultralytics.yolo.utils import ROOT
+from ultralytics.yolo.utils import DEFAULT_CONFIG
 from ultralytics.yolo.utils.plotting import plot_images
-
-DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yaml"
 
 
 class Colors:

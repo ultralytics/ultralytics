@@ -85,7 +85,7 @@ class DetectionPredictor(BasePredictor):
 def predict(cfg):
     cfg.model = cfg.model or "n.pt"
     sz = cfg.imgsz
-    if type(sz) != int:  # recieved listConfig
+    if type(sz) != int:  # received listConfig
         cfg.imgsz = [sz[0], sz[0]] if len(cfg.imgsz) == 1 else [sz[0], sz[1]]  # expand
     else:
         cfg.imgsz = [sz, sz]

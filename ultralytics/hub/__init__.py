@@ -72,10 +72,17 @@ def start(key=''):
             raise Exception(emojis('Connecting with global API key is not currently supported. ❌'))
         session = HubTrainingSession(model_id=model_id, auth=authCtrl)
         session.check_disk_space()
-        # TODO: refactor
+
+        # TODO: refactor. Hardcoding for v8
         args = session.model.copy()
         args.pop("id")
         args.pop("status")
+        args.pop("weights")
+        args["data"] = "coco128.yaml"
+        args["model"] = "yolov8n.yaml"
+        args["batch_size"] = 16
+        args["imgsz"] = 64
+
         trainer = DetectionTrainer(overrides=args)
         session.register_callbacks(trainer)
         setattr(trainer, 'hub_session', session)
@@ -129,4 +136,4 @@ def get_export(key='', format='torchscript'):
 
 # temp. For checking
 if __name__ == "__main__":
-    start(key="")
+    start(key="b3fba421be84a20dbe68644e14436d1cce1b0a0aaa_HeMfHgvHsseMPhdq7Ylz")

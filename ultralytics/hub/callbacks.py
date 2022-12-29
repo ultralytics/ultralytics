@@ -1,16 +1,10 @@
 import json
-import signal
-import sys
-from pathlib import Path
 from time import sleep, time
 
-import requests
-
-from ultralytics.hub.config import HUB_API_ROOT
-from ultralytics.hub.utils import PREFIX, smart_request
+from ultralytics.hub.utils import PREFIX
 from ultralytics.yolo.utils import LOGGER, emojis
 
-
+'''
 def signal_handler(signum, frame):
     """ Confirm exit """
     global hub_logger
@@ -23,7 +17,7 @@ def signal_handler(signum, frame):
 
 signal.signal(signal.SIGTERM, signal_handler)
 signal.signal(signal.SIGINT, signal_handler)
-
+'''
 
 def on_pretrain_routine_end(trainer):
     # Start timer for upload rate limit

@@ -10,7 +10,6 @@ from ultralytics.yolo.utils.torch_utils import select_device
 from ultralytics.yolo.v8.detect import DetectionTrainer
 
 
-
 def checks(verbose=True):
     import os
     import shutil

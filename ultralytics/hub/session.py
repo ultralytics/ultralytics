@@ -6,9 +6,9 @@ from time import sleep, time
 
 import requests
 
-from ultralytics.hub.config import HUB_API_ROOT
 from ultralytics.hub.callbacks import callbacks
-from ultralytics.hub.utils import smart_request, check_dataset_disk_space
+from ultralytics.hub.config import HUB_API_ROOT
+from ultralytics.hub.utils import check_dataset_disk_space, smart_request
 from ultralytics.yolo.utils import LOGGER, emojis
 
 
@@ -81,7 +81,7 @@ class HubTrainingSession:
     def check_disk_space(self):
         if not check_dataset_disk_space(self.model['data']):
             raise Exception("Not enough disk space")
-    
+
     def register_callbacks(self, trainer):
         for k, v in callbacks.items():
             trainer.add_callback(k, v)

@@ -52,19 +52,20 @@ class YOLO:
         self.init_disabled = False
 
     @classmethod
-    def new(cls, cfg: str):
+    def new(cls, cfg: str, verbose=True):
         """
         Initializes a new model and infers the task type from the model definitions
 
         Args:
             cfg (str): model configuration file
+            verbsoe (bool): display model info on load
         """
         cfg = check_yaml(cfg)  # check YAML
         cfg_dict = yaml_load(cfg)  # model dict
         obj = cls(init_key=cls.__init_key)
         obj.task = obj._guess_task_from_head(cfg_dict["head"][-1][-2])
         obj.ModelClass, obj.TrainerClass, obj.ValidatorClass, obj.PredictorClass = obj._guess_ops_from_task(obj.task)
-        obj.model = obj.ModelClass(cfg_dict)  # initialize
+        obj.model = obj.ModelClass(cfg_dict, verbose=verbose)  # initialize
         obj.cfg = cfg
 
         return obj

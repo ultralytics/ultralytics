@@ -93,7 +93,7 @@ def export_formats():
         ['TensorFlow Lite', 'tflite', '.tflite', True, False],
         ['TensorFlow Edge TPU', 'edgetpu', '_edgetpu.tflite', False, False],
         ['TensorFlow.js', 'tfjs', '_web_model', False, False],
-        ['PaddlePaddle', 'paddle', '_paddle_model', True, True], ]
+        ['PaddlePaddle', 'paddle', '_paddle_model', True, True],]
     return pd.DataFrame(x, columns=['Format', 'Argument', 'Suffix', 'CPU', 'GPU'])
 
 
@@ -356,7 +356,7 @@ class Exporter:
                     self.normalize = torch.tensor([1.0 / w, 1.0 / h, 1.0 / w, 1.0 / h])  # broadcast (slower, smaller)
 
             def forward(self, x):
-                xywh, cls = self.model(x)[0].transpose(0,1).split((4, self.nc), 1)
+                xywh, cls = self.model(x)[0].transpose(0, 1).split((4, self.nc), 1)
                 return cls, xywh * self.normalize  # confidence (3780, 80), coordinates (3780, 4)
 
         LOGGER.info(f'\n{prefix} starting export with coremltools {ct.__version__}...')
@@ -550,7 +550,8 @@ class Exporter:
                     'curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -',
                     'echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | '  # no comma
                     'sudo tee /etc/apt/sources.list.d/coral-edgetpu.list',
-                    'sudo apt-get update', 'sudo apt-get install edgetpu-compiler'):
+                    'sudo apt-get update',
+                    'sudo apt-get install edgetpu-compiler'):
                 subprocess.run(c if sudo else c.replace('sudo ', ''), shell=True, check=True)
         ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().split()[-1]
 
@@ -728,8 +729,9 @@ class Exporter:
         pipeline.spec.description.metadata.shortDescription = f'Ultralytics {self.pretty_name} CoreML model'
         pipeline.spec.description.metadata.author = 'Ultralytics (https://ultralytics.com)'
         pipeline.spec.description.metadata.license = 'GPL-3.0 license (https://ultralytics.com/license)'
-        pipeline.spec.description.metadata.userDefined.update({'IoU threshold': str(nms.iouThreshold),
-                                                               'Confidence threshold': str(nms.confidenceThreshold)})
+        pipeline.spec.description.metadata.userDefined.update({
+            'IoU threshold': str(nms.iouThreshold),
+            'Confidence threshold': str(nms.confidenceThreshold)})
 
         # Save the model
         model = ct.models.MLModel(pipeline.spec)

@@ -16,9 +16,10 @@ pip install -e .
 ### 1. CLI
 To simply use the latest Ultralytics YOLO models
 ```bash
-yolo task=detect    mode=train     model=yolov8n.yaml ...
-          classify       predict         yolov8n-cls.yaml
-          segment        val             yolov8n-seg.yaml
+yolo task=detect    mode=train    model=yolov8n.yaml      args=...
+          classify       predict        yolov8n-cls.yaml  args=...
+          segment        val            yolov8n-seg.yaml  args=...
+                         export         yolov8n.pt        format=onnx
 ```
 ### 2. Python SDK
 To use pythonic interface of Ultralytics YOLO model

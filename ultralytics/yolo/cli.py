@@ -31,7 +31,7 @@ def cli(cfg):
     elif task == "classify":
         module = yolo.v8.classify
     elif task == "export":
-        func = yolo.trainer.exporter.export_model
+        func = yolo.engine.exporter.export
     else:
         raise SyntaxError("task not recognized. Choices are `'detect', 'segment', 'classify'`")
 
@@ -42,7 +42,7 @@ def cli(cfg):
     elif mode == "predict":
         func = module.predict
     elif mode == "export":
-        func = yolo.trainer.exporter.export_model
+        func = yolo.engine.exporter.export
     else:
         raise SyntaxError("mode not recognized. Choices are `'train', 'val', 'predict', 'export'`")
     func(cfg)

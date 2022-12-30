@@ -11,6 +11,7 @@ from ultralytics.nn.modules import (C1, C2, C3, C3TR, SPP, SPPF, Bottleneck, Bot
                                     Concat, Conv, ConvTranspose, Detect, DWConv, DWConvTranspose2d, Ensemble, Focus,
                                     GhostBottleneck, GhostConv, Segment)
 from ultralytics.yolo.utils import LOGGER, colorstr
+from ultralytics.yolo.utils.checks import check_yaml
 from ultralytics.yolo.utils.files import yaml_load
 from ultralytics.yolo.utils.torch_utils import (fuse_conv_and_bn, initialize_weights, intersect_state_dicts,
                                                 make_divisible, model_info, scale_img, time_sync)
@@ -80,7 +81,7 @@ class DetectionModel(BaseModel):
     # YOLOv5 detection model
     def __init__(self, cfg='yolov8n.yaml', ch=3, nc=None, verbose=True):  # model, input channels, number of classes
         super().__init__()
-        self.yaml = cfg if isinstance(cfg, dict) else yaml_load(cfg)  # cfg dict
+        self.yaml = cfg if isinstance(cfg, dict) else yaml_load(check_yaml(cfg))  # cfg dict
 
         # Define model
         ch = self.yaml['ch'] = self.yaml.get('ch', ch)  # input channels

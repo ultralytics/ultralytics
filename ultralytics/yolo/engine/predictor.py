@@ -16,14 +16,14 @@ Usage - formats:
     $ yolo task=... mode=predict --weights yolov8n.pt          # PyTorch
                                     yolov8n.torchscript        # TorchScript
                                     yolov8n.onnx               # ONNX Runtime or OpenCV DNN with --dnn
-                                    yolov5s_openvino_model     # OpenVINO
+                                    yolov8n_openvino_model     # OpenVINO
                                     yolov8n.engine             # TensorRT
                                     yolov8n.mlmodel            # CoreML (macOS-only)
-                                    yolov5s_saved_model        # TensorFlow SavedModel
+                                    yolov8n_saved_model        # TensorFlow SavedModel
                                     yolov8n.pb                 # TensorFlow GraphDef
                                     yolov8n.tflite             # TensorFlow Lite
-                                    yolov5s_edgetpu.tflite     # TensorFlow Edge TPU
-                                    yolov5s_paddle_model       # PaddlePaddle
+                                    yolov8n_edgetpu.tflite     # TensorFlow Edge TPU
+                                    yolov8n_paddle_model       # PaddlePaddle
     """
 import platform
 from pathlib import Path

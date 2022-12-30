@@ -340,7 +340,7 @@ class Exporter:
     @try_export
     def _export_coreml(self, prefix=colorstr('CoreML:')):
         # YOLOv5 CoreML export
-        check_requirements('coremltools')
+        check_requirements('coremltools>=6.0')
         import coremltools as ct  # noqa
 
         class iOSModel(torch.nn.Module):

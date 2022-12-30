@@ -9,6 +9,7 @@ mode: "train"  # choice=['train', 'val', 'predict']
 model: null  # i.e. yolov5s.pt, yolo.yaml
 data: null  # i.e. coco128.yaml
 epochs: 100
+patience: 50  # TODO: use this for early stopping
 batch_size: 16
 imgsz: 640
 nosave: False
@@ -29,13 +30,12 @@ image_weights: False  # use weighted image selection for training
 rect: False  # support rectangular training
 cos_lr: False  # use cosine LR scheduler
 close_mosaic: 10  # disable mosaic for final 10 epochs
-patience: 50 # TODO: use this for early stopping
+resume: False
 # Segmentation
 overlap_mask: True  # masks overlap
 mask_ratio: 4  # mask downsample ratio
 # Classification
 dropout: False  # use dropout
-resume: False
 
 
 # Val/Test settings ----------------------------------------------------------------------------------------------------
@@ -66,6 +66,7 @@ agnostic_nms: False  # class-agnostic NMS
 retina_masks: False
 
 # Export settings ------------------------------------------------------------------------------------------------------
+format: torchscript
 keras: False  # use Keras
 optimize: False  # TorchScript: optimize for mobile
 int8: False  # CoreML/TF INT8 quantization

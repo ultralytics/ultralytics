@@ -25,14 +25,12 @@ TQDM_BAR_FORMAT = '{l_bar}{bar:10}{r_bar}'  # tqdm bar format
 LOGGING_NAME = 'yolov5'
 HELP_MSG = \
     """
-    Please refer to below Usage examples for help running YOLOv8
-    For help visit Ultralytics Community at https://community.ultralytics.com/
-    Submit bug reports to https//github.com/ultralytics/ultralytics
+    Please refer to below Usage examples for help running YOLOv8:
 
     Install:
         pip install ultralytics
 
-    Python usage:
+    Python SDK:
         from ultralytics import YOLO
 
         model = YOLO.new('yolov8n.yaml')  # create a new model from scratch
@@ -42,12 +40,15 @@ HELP_MSG = \
         results = model.predict(source='bus.jpg')
         success = model.export(format='onnx')
 
-    CLI usage:
-        yolo task=detect    mode=train     model=yolov8n.yaml ...
-                  classify       predict         yolov8n-cls.yaml
-                  segment        val             yolov8n-seg.yaml
+    CLI:
+        yolo task=detect    mode=train    model=yolov8n.yaml      args...
+                  classify       predict        yolov8n-cls.yaml  args...
+                  segment        val            yolov8n-seg.yaml  args...
+                                 export         yolov8n.pt        format=onnx  args...
 
-    For all arguments see https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/utils/configs/default.yaml
+    Docs: https://docs.ultralytics.com
+    Community: https://community.ultralytics.com
+    GitHub: https://github.com/ultralytics/ultralytics
     """
 
 # Settings
@@ -56,7 +57,6 @@ HELP_MSG = \
 pd.options.display.max_columns = 10
 cv2.setNumThreads(0)  # prevent OpenCV from multithreading (incompatible with PyTorch DataLoader)
 os.environ['NUMEXPR_MAX_THREADS'] = str(NUM_THREADS)  # NumExpr max threads
-os.environ['OMP_NUM_THREADS'] = '1' if platform.system() == 'darwin' else str(NUM_THREADS)  # OpenMP (PyTorch and SciPy)
 
 
 def is_colab():

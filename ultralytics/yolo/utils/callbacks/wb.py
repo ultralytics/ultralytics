@@ -19,8 +19,8 @@ def on_val_end(trainer):
     if trainer.epoch == 0:
         model_info = {
             "model/parameters": get_num_params(trainer.model),
-            "model/GFLOPs": round(get_flops(trainer.model), 1),
-            "model/speed(ms)": round(trainer.validator.speed[1], 1)}
+            "model/GFLOPs": round(get_flops(trainer.model), 3),
+            "model/speed(ms)": round(trainer.validator.speed[1], 3)}
         wandb.run.log(model_info, step=trainer.epoch + 1)
 
 

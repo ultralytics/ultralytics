@@ -2,15 +2,16 @@ import json
 from pathlib import Path
 
 import torch
-from omegaconf import OmegaConf
+from omegaconf import OmegaConf  # noqa
 from tqdm import tqdm
 
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
 from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, RANK, TQDM_BAR_FORMAT
+from ultralytics.yolo.utils.checks import check_imgsz
 from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.ops import Profile
-from ultralytics.yolo.utils.torch_utils import check_imgsz, de_parallel, select_device, smart_inference_mode
+from ultralytics.yolo.utils.torch_utils import de_parallel, select_device, smart_inference_mode
 
 
 class BaseValidator:

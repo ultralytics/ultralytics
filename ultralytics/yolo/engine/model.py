@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import torch
 
 from ultralytics import yolo  # noqa required for python usage

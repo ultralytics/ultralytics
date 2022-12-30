@@ -141,17 +141,13 @@ class Exporter:
             assert not self.args.dynamic, '--half not compatible with --dynamic, i.e. use either --half or --dynamic'
 
         # Checks
-        if isinstance(self.imgsz, int):
-            self.imgsz = [self.imgsz]
-        self.imgsz *= 2 if len(self.imgsz) == 1 else 1  # expand
+        self.imgsz = check_imgsz(self.imgsz, stride=model.stride, min_dim=2)  # check image size
         if self.args.optimize:
             assert self.device.type == 'cpu', '--optimize not compatible with cuda devices, i.e. use --device cpu'
 
         # Input
         self.args.batch_size = 1  # TODO: resolve this issue, default 16 not fit for export
-        gs = int(max(model.stride))  # grid size (max stride)
-        imgsz = [check_imgsz(x, gs) for x in self.imgsz]  # verify img_size are gs-multiples
-        im = torch.zeros(self.args.batch_size, 3, *imgsz).to(self.device)  # image size(1,3,320,192) BCHW iDetection
+        im = torch.zeros(self.args.batch_size, 3, *self.imgsz).to(self.device)
         file = Path(getattr(model, 'yaml_file', None) or Path(model.yaml['yaml_file']).name)
 
         # Update model

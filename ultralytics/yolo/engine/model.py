@@ -5,7 +5,7 @@ from ultralytics.nn.tasks import ClassificationModel, DetectionModel, Segmentati
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import DEFAULT_CONFIG, HELP_MSG, LOGGER
-from ultralytics.yolo.utils.checks import check_yaml, check_imgsz
+from ultralytics.yolo.utils.checks import check_imgsz, check_yaml
 from ultralytics.yolo.utils.files import yaml_load
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 

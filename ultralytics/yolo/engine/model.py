@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import torch
 
 from ultralytics import yolo  # noqa required for python usage
@@ -7,7 +5,7 @@ from ultralytics.nn.tasks import ClassificationModel, DetectionModel, Segmentati
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import DEFAULT_CONFIG, HELP_MSG, LOGGER
-from ultralytics.yolo.utils.checks import check_yaml
+from ultralytics.yolo.utils.checks import check_imgsz, check_yaml
 from ultralytics.yolo.utils.files import yaml_load
 from ultralytics.yolo.utils.torch_utils import guess_task_from_head, smart_inference_mode
 
@@ -132,13 +130,7 @@ class YOLO:
         overrides["mode"] = "predict"
         predictor = self.PredictorClass(overrides=overrides)
 
-        # check size type
-        sz = predictor.args.imgsz
-        if type(sz) != int:  # received listConfig
-            predictor.args.imgsz = [sz[0], sz[0]] if len(sz) == 1 else [sz[0], sz[1]]  # expand
-        else:
-            predictor.args.imgsz = [sz, sz]
-
+        predictor.args.imgsz = check_imgsz(predictor.args.imgsz, min_dim=2)  # check image size
         predictor.setup(model=self.model, source=source)
         predictor()
 

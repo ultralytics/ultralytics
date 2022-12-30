@@ -73,6 +73,7 @@ dynamic: False  # ONNX/TF/TensorRT: dynamic axes
 simplify: False  # ONNX: simplify model
 opset: 17  # ONNX: opset version
 workspace: 4  # TensorRT: workspace size (GB)
+nms: False  # CoreML: add NMS
 
 # Hyperparameters ------------------------------------------------------------------------------------------------------
 lr0: 0.01  # initial learning rate (SGD=1E-2, Adam=1E-3)

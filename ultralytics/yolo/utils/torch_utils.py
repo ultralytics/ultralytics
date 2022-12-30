@@ -185,18 +185,6 @@ def scale_img(img, ratio=1.0, same_shape=False, gs=32):  # img(16,3,256,416)
     return F.pad(img, [0, w - s[1], 0, h - s[0]], value=0.447)  # value = imagenet mean
 
 
-def check_imgsz(imgsz, s=32, floor=0):
-    # Verify image size is a multiple of stride s in each dimension
-    if isinstance(imgsz, int):  # integer i.e. imgsz=640
-        new_size = max(make_divisible(imgsz, int(s)), floor)
-    else:  # list i.e. imgsz=[640, 480]
-        imgsz = list(imgsz)  # convert to list if tuple
-        new_size = [max(make_divisible(x, int(s)), floor) for x in imgsz]
-    if new_size != imgsz:
-        LOGGER.warning(f'WARNING ⚠️ --img-size {imgsz} must be multiple of max stride {s}, updating to {new_size}')
-    return new_size
-
-
 def make_divisible(x, divisor):
     # Returns nearest x divisible by divisor
     if isinstance(divisor, torch.Tensor):

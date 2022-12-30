@@ -90,7 +90,7 @@ class BasePredictor:
         self.args.half &= device.type != 'cpu'  # half precision only supported on CUDA
         model = AutoBackend(model, device=device, dnn=self.args.dnn, fp16=self.args.half)
         stride, pt = model.stride, model.pt
-        imgsz = check_imgsz(self.args.imgsz, s=stride)  # check image size
+        imgsz = check_imgsz(self.args.imgsz, stride=stride)  # check image size
 
         # Dataloader
         bs = 1  # batch_size

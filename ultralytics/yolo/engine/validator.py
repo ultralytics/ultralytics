@@ -61,7 +61,7 @@ class BaseValidator:
             model = AutoBackend(model, device=self.device, dnn=self.args.dnn, fp16=self.args.half)
             self.model = model
             stride, pt, jit, engine = model.stride, model.pt, model.jit, model.engine
-            imgsz = check_imgsz(self.args.imgsz, s=stride)
+            imgsz = check_imgsz(self.args.imgsz, stride=stride)
             if engine:
                 self.args.batch_size = model.batch_size
             else:

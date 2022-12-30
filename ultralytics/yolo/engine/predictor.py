@@ -35,9 +35,9 @@ from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages, LoadScreenshots, LoadStreams
 from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS
 from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, colorstr, ops
-from ultralytics.yolo.utils.checks import check_file, check_imshow
+from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_imshow
 from ultralytics.yolo.utils.files import increment_path
-from ultralytics.yolo.utils.torch_utils import check_imgsz, select_device, smart_inference_mode
+from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode
 
 
 class BasePredictor:
@@ -90,7 +90,7 @@ class BasePredictor:
         self.args.half &= device.type != 'cpu'  # half precision only supported on CUDA
         model = AutoBackend(model, device=device, dnn=self.args.dnn, fp16=self.args.half)
         stride, pt = model.stride, model.pt
-        imgsz = check_imgsz(self.args.imgsz, s=stride)  # check image size
+        imgsz = check_imgsz(self.args.imgsz, stride=stride)  # check image size
 
         # Dataloader
         bs = 1  # batch_size

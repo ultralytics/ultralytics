@@ -1,16 +1,12 @@
 from ultralytics import YOLO
+from ultralytics.yolo.utils import ROOT
 
 if __name__ == "__main__":
-    YOLO.new("yolov8n.yaml")
-    YOLO.new("yolov8n-seg.yaml")
-    YOLO.new("yolov8s.yaml")
-    YOLO.new("yolov8s-seg.yaml")
-    YOLO.new("yolov8m.yaml")
-    YOLO.new("yolov8m-seg.yaml")
-    YOLO.new("yolov8l.yaml")
-    YOLO.new("yolov8l-seg.yaml")
-    YOLO.new("yolov8x.yaml")
-    YOLO.new("yolov8x-seg.yaml")
+    for m in list((ROOT / 'yolo/v8/models').rglob('*.yaml')):
+        try:
+            YOLO.new(m.name, verbose=True)
+        except Exception as e:
+            print(f'ERROR for {m}: {e}')
 
     # n vs n-seg: 8.9GFLOPs vs 12.8GFLOPs, 3.16M vs 3.6M. ch[0] // 4 (11.9GFLOPs, 3.39M)
     # s vs s-seg: 28.8GFLOPs vs 44.4GFLOPs, 11.1M vs 12.9M. ch[0] // 4 (39.5GFLOPs, 11.7M)

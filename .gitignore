@@ -130,7 +130,21 @@ dmypy.json
 
 # datasets and projects
 datasets/
-ultralytics-yolo/
 runs/
+wandb/
 
 .DS_Store
+
+# Neural Network weights -----------------------------------------------------------------------------------------------
+*.weights
+*.pt
+*.pb
+*.onnx
+*.engine
+*.mlmodel
+*.torchscript
+*.tflite
+*.h5
+*_saved_model/
+*_web_model/
+*_openvino_model/

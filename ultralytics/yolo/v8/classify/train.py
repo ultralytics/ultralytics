@@ -4,7 +4,8 @@ import torch
 from ultralytics.nn.tasks import ClassificationModel, get_model
 from ultralytics.yolo import v8
 from ultralytics.yolo.data import build_classification_dataloader
-from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG, BaseTrainer
+from ultralytics.yolo.engine.trainer import BaseTrainer
+from ultralytics.yolo.utils import DEFAULT_CONFIG
 
 
 class ClassificationTrainer(BaseTrainer):
@@ -12,8 +13,8 @@ class ClassificationTrainer(BaseTrainer):
     def set_model_attributes(self):
         self.model.names = self.data["names"]
 
-    def load_model(self, model_cfg=None, weights=None):
-        # TODO: why treat clf models as unique. We should have clf yamls?
+    def load_model(self, model_cfg=None, weights=None, verbose=True):
+        # TODO: why treat clf models as unique. We should have clf yamls? YES WE SHOULD!
         if isinstance(weights, dict):  # yolo ckpt
             weights = weights["model"]
         if weights and not weights.__class__.__name__.startswith("yolo"):  # torchvision
@@ -45,7 +46,7 @@ class ClassificationTrainer(BaseTrainer):
         return batch
 
     def get_validator(self):
-        return v8.classify.ClassificationValidator(self.test_loader, self.device, logger=self.console)
+        return v8.classify.ClassificationValidator(self.test_loader, self.save_dir, logger=self.console)
 
     def criterion(self, preds, batch):
         loss = torch.nn.functional.cross_entropy(preds, batch["cls"])
@@ -55,6 +56,9 @@ class ClassificationTrainer(BaseTrainer):
         pass
 
     def resume_training(self, ckpt):
+        pass
+
+    def final_eval(self):
         pass
 
 

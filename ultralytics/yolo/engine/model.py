@@ -1,13 +1,13 @@
+from pathlib import Path
+
 import torch
-import yaml
 
 from ultralytics import yolo  # noqa required for python usage
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, attempt_load_weights
-# from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
-from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
-from ultralytics.yolo.utils import LOGGER
+from ultralytics.yolo.configs import get_config
+from ultralytics.yolo.engine.exporter import Exporter
+from ultralytics.yolo.utils import DEFAULT_CONFIG, HELP_MSG, LOGGER
 from ultralytics.yolo.utils.checks import check_yaml
-from ultralytics.yolo.utils.configs import get_config
 from ultralytics.yolo.utils.files import yaml_load
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 
@@ -28,12 +28,16 @@ class YOLO:
     """
     Python interface which emulates a model-like behaviour by wrapping trainers.
     """
+    __init_key = object()
 
-    def __init__(self, type="v8") -> None:
+    def __init__(self, init_key=None, type="v8") -> None:
         """
         Args:
             type (str): Type/version of models to use
         """
+        if init_key != YOLO.__init_key:
+            raise SyntaxError(HELP_MSG)
+
         self.type = type
         self.ModelClass = None
         self.TrainerClass = None
@@ -42,24 +46,32 @@ class YOLO:
         self.model = None
         self.trainer = None
         self.task = None
-        self.ckpt = None
+        self.ckpt = None  # if loaded from *.pt
+        self.cfg = None  # if loaded from *.yaml
+        self.overrides = {}
+        self.init_disabled = False
 
-    def new(self, cfg: str):
+    @classmethod
+    def new(cls, cfg: str, verbose=True):
         """
         Initializes a new model and infers the task type from the model definitions
 
         Args:
             cfg (str): model configuration file
+            verbsoe (bool): display model info on load
         """
         cfg = check_yaml(cfg)  # check YAML
-        with open(cfg, encoding='ascii', errors='ignore') as f:
-            cfg = yaml.safe_load(f)  # model dict
-        self.task = self._guess_task_from_head(cfg["head"][-1][-2])
-        self.ModelClass, self.TrainerClass, self.ValidatorClass, self.PredictorClass = self._guess_ops_from_task(
-            self.task)
-        self.model = self.ModelClass(cfg)  # initialize
+        cfg_dict = yaml_load(cfg)  # model dict
+        obj = cls(init_key=cls.__init_key)
+        obj.task = obj._guess_task_from_head(cfg_dict["head"][-1][-2])
+        obj.ModelClass, obj.TrainerClass, obj.ValidatorClass, obj.PredictorClass = obj._guess_ops_from_task(obj.task)
+        obj.model = obj.ModelClass(cfg_dict, verbose=verbose)  # initialize
+        obj.cfg = cfg
 
-    def load(self, weights: str):
+        return obj
+
+    @classmethod
+    def load(cls, weights: str):
         """
         Initializes a new model and infers the task type from the model head
 
@@ -67,11 +79,18 @@ class YOLO:
             weights (str): model checkpoint to be loaded
 
         """
-        self.ckpt = torch.load(weights, map_location="cpu")
-        self.task = self.ckpt["train_args"]["task"]
-        self.ModelClass, self.TrainerClass, self.ValidatorClass, self.PredictorClass = self._guess_ops_from_task(
-            task=self.task)
-        self.model = attempt_load_weights(weights)
+        obj = cls(init_key=cls.__init_key)
+        obj.ckpt = torch.load(weights, map_location="cpu")
+        obj.task = obj.ckpt["train_args"]["task"]
+        obj.overrides = dict(obj.ckpt["train_args"])
+        obj.overrides["device"] = ''  # reset device
+        LOGGER.info("Device has been reset to ''")
+
+        obj.ModelClass, obj.TrainerClass, obj.ValidatorClass, obj.PredictorClass = obj._guess_ops_from_task(
+            task=obj.task)
+        obj.model = attempt_load_weights(weights)
+
+        return obj
 
     def reset(self):
         """
@@ -99,19 +118,23 @@ class YOLO:
             LOGGER.info("model not initialized!")
         self.model.fuse()
 
+    @smart_inference_mode()
     def predict(self, source, **kwargs):
         """
-        Visualize prection.
+        Visualize prediction.
 
         Args:
         source (str): Accepts all source types accepted by yolo
-        **kwargs : Any other args accepted by the predictors. Too see all args check 'configuration' section in the docs
+        **kwargs : Any other args accepted by the predictors. To see all args check 'configuration' section in the docs
         """
-        predictor = self.PredictorClass(overrides=kwargs)
+        overrides = self.overrides.copy()
+        overrides.update(kwargs)
+        overrides["mode"] = "predict"
+        predictor = self.PredictorClass(overrides=overrides)
 
         # check size type
         sz = predictor.args.imgsz
-        if type(sz) != int:  # recieved listConfig
+        if type(sz) != int:  # received listConfig
             predictor.args.imgsz = [sz[0], sz[0]] if len(sz) == 1 else [sz[0], sz[1]]  # expand
         else:
             predictor.args.imgsz = [sz, sz]
@@ -119,23 +142,45 @@ class YOLO:
         predictor.setup(model=self.model, source=source)
         predictor()
 
-    def val(self, data, **kwargs):
+    @smart_inference_mode()
+    def val(self, data=None, **kwargs):
         """
         Validate a model on a given dataset
 
         Args:
         data (str): The dataset to validate on. Accepts all formats accepted by yolo
-        kwargs: Any other args accepted by the validators. Too see all args check 'configuration' section in the docs
+        kwargs: Any other args accepted by the validators. To see all args check 'configuration' section in the docs
         """
         if not self.model:
-            raise Exception("model not initialized!")
+            raise ModuleNotFoundError("model not initialized!")
 
-        args = get_config(config=DEFAULT_CONFIG, overrides=kwargs)
-        args.data = data
+        overrides = self.overrides.copy()
+        overrides.update(kwargs)
+        overrides["mode"] = "val"
+        args = get_config(config=DEFAULT_CONFIG, overrides=overrides)
+        args.data = data or args.data
         args.task = self.task
 
         validator = self.ValidatorClass(args=args)
         validator(model=self.model)
+
+    @smart_inference_mode()
+    def export(self, **kwargs):
+        """
+        Export model.
+
+        Args:
+        format (str): Export format
+        **kwargs : Any other args accepted by the predictors. To see all args check 'configuration' section in the docs
+        """
+
+        overrides = self.overrides.copy()
+        overrides.update(kwargs)
+        args = get_config(config=DEFAULT_CONFIG, overrides=overrides)
+        args.task = self.task
+
+        exporter = Exporter(overrides=overrides)
+        exporter(model=self.model)
 
     def train(self, **kwargs):
         """
@@ -155,7 +200,7 @@ class YOLO:
         overrides["task"] = self.task
         overrides["mode"] = "train"
         if not overrides.get("data"):
-            raise AttributeError("dataset not provided! Please check if you have defined `data` in you configs")
+            raise AttributeError("dataset not provided! Please define `data` in config.yaml or pass as an argument.")
 
         self.trainer = self.TrainerClass(overrides=overrides)
         self.trainer.model = self.trainer.load_model(weights=self.ckpt,
@@ -166,11 +211,11 @@ class YOLO:
 
     def resume(self, task=None, model=None):
         """
-        Resume a training task. Requires either `task` or `model`. `model` takes the higher precederence.
+        Resume a training task. Requires either `task` or `model`. `model` takes the higher precedence.
         Args:
             task (str): The task type you want to resume. Automatically finds the last run to resume if `model` is not specified.
             model (str): The model checkpoint to resume from. If not found, the last run of the given task type is resumed.
-                         If `model` is speficied
+                         If `model` is specified
         """
         if task:
             if task.lower() not in MODEL_MAP:

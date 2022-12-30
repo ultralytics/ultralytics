@@ -1,6 +1,6 @@
 # predictor engine by Ultralytics
 """
-Run prection on images, videos, directories, globs, YouTube, webcam, streams, etc.
+Run prediction on images, videos, directories, globs, YouTube, webcam, streams, etc.
 Usage - sources:
     $ yolo task=... mode=predict  model=s.pt --source 0                         # webcam
                                                 img.jpg                         # image
@@ -13,17 +13,17 @@ Usage - sources:
                                                 'https://youtu.be/Zgi9g1ksQHc'  # YouTube
                                                 'rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP stream
 Usage - formats:
-    $ yolo task=... mode=predict --weights yolov5s.pt          # PyTorch
-                                    yolov5s.torchscript        # TorchScript
-                                    yolov5s.onnx               # ONNX Runtime or OpenCV DNN with --dnn
-                                    yolov5s_openvino_model     # OpenVINO
-                                    yolov5s.engine             # TensorRT
-                                    yolov5s.mlmodel            # CoreML (macOS-only)
-                                    yolov5s_saved_model        # TensorFlow SavedModel
-                                    yolov5s.pb                 # TensorFlow GraphDef
-                                    yolov5s.tflite             # TensorFlow Lite
-                                    yolov5s_edgetpu.tflite     # TensorFlow Edge TPU
-                                    yolov5s_paddle_model       # PaddlePaddle
+    $ yolo task=... mode=predict --weights yolov8n.pt          # PyTorch
+                                    yolov8n.torchscript        # TorchScript
+                                    yolov8n.onnx               # ONNX Runtime or OpenCV DNN with --dnn
+                                    yolov8n_openvino_model     # OpenVINO
+                                    yolov8n.engine             # TensorRT
+                                    yolov8n.mlmodel            # CoreML (macOS-only)
+                                    yolov8n_saved_model        # TensorFlow SavedModel
+                                    yolov8n.pb                 # TensorFlow GraphDef
+                                    yolov8n.tflite             # TensorFlow Lite
+                                    yolov8n_edgetpu.tflite     # TensorFlow Edge TPU
+                                    yolov8n_paddle_model       # PaddlePaddle
     """
 import platform
 from pathlib import Path
@@ -31,22 +31,22 @@ from pathlib import Path
 import cv2
 
 from ultralytics.nn.autobackend import AutoBackend
+from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages, LoadScreenshots, LoadStreams
-from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS, check_dataset, check_dataset_yaml
-from ultralytics.yolo.utils import LOGGER, ROOT, colorstr, ops
+from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS
+from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, colorstr, ops
 from ultralytics.yolo.utils.checks import check_file, check_imshow
-from ultralytics.yolo.utils.configs import get_config
 from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.torch_utils import check_imgsz, select_device, smart_inference_mode
-
-DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yaml"
 
 
 class BasePredictor:
 
     def __init__(self, config=DEFAULT_CONFIG, overrides={}):
         self.args = get_config(config, overrides)
-        self.save_dir = increment_path(Path(self.args.project) / self.args.name, exist_ok=self.args.exist_ok)
+        project = self.args.project or f"runs/{self.args.task}"
+        name = self.args.name or f"{self.args.mode}"
+        self.save_dir = increment_path(Path(project) / name, exist_ok=self.args.exist_ok)
         (self.save_dir / 'labels' if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
 
         self.done_setup = False
@@ -83,13 +83,6 @@ class BasePredictor:
         screenshot = source.lower().startswith('screen')
         if is_url and is_file:
             source = check_file(source)  # download
-
-        # data
-        if self.data:
-            if self.data.endswith(".yaml"):
-                self.data = check_dataset_yaml(self.data)
-            else:
-                self.data = check_dataset(self.data)
 
         # model
         device = select_device(self.args.device)

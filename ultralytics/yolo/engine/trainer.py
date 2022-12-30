@@ -22,16 +22,14 @@ from tqdm import tqdm
 
 import ultralytics.yolo.utils as utils
 import ultralytics.yolo.utils.callbacks as callbacks
+from ultralytics import __version__
+from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
-from ultralytics.yolo.utils import LOGGER, ROOT, TQDM_BAR_FORMAT, colorstr
+from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, RANK, TQDM_BAR_FORMAT, colorstr
 from ultralytics.yolo.utils.checks import check_file, print_args
-from ultralytics.yolo.utils.configs import get_config
 from ultralytics.yolo.utils.dist import ddp_cleanup, generate_ddp_command
-from ultralytics.yolo.utils.files import get_latest_run, increment_path, save_yaml
+from ultralytics.yolo.utils.files import get_latest_run, increment_path, yaml_save
 from ultralytics.yolo.utils.torch_utils import ModelEMA, de_parallel, init_seeds, one_cycle, strip_optimizer
-
-DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yaml"
-RANK = int(os.getenv('RANK', -1))
 
 
 class BaseTrainer:
@@ -45,17 +43,22 @@ class BaseTrainer:
         self.validator = None
         self.model = None
         self.callbacks = defaultdict(list)
-        self.save_dir = increment_path(Path(self.args.project) / self.args.name, exist_ok=self.args.exist_ok)
+
+        # dirs
+        project = self.args.project or f"runs/{self.args.task}"
+        name = self.args.name or f"{self.args.mode}"
+        self.save_dir = increment_path(Path(project) / name, exist_ok=self.args.exist_ok if RANK in {-1, 0} else True)
         self.wdir = self.save_dir / 'weights'  # weights dir
-        self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
+        if RANK in {-1, 0}:
+            self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
+            yaml_save(self.save_dir / 'args.yaml', OmegaConf.to_container(self.args, resolve=True))  # save run args
         self.last, self.best = self.wdir / 'last.pt', self.wdir / 'best.pt'  # checkpoint paths
+
         self.batch_size = self.args.batch_size
         self.epochs = self.args.epochs
         self.start_epoch = 0
-        print_args(dict(self.args))
-
-        # Save run settings
-        save_yaml(self.save_dir / 'args.yaml', OmegaConf.to_container(self.args, resolve=True))
+        if RANK == -1:
+            print_args(dict(self.args))
 
         # device
         self.device = utils.torch_utils.select_device(self.args.device, self.batch_size)
@@ -109,7 +112,6 @@ class BaseTrainer:
         world_size = torch.cuda.device_count()
         if world_size > 1 and "LOCAL_RANK" not in os.environ:
             command = generate_ddp_command(world_size, self)
-            print('DDP command: ', command)
             try:
                 subprocess.run(command)
             except Exception as e:
@@ -124,7 +126,7 @@ class BaseTrainer:
         # os.environ['MASTER_PORT'] = '9020'
         torch.cuda.set_device(rank)
         self.device = torch.device('cuda', rank)
-        self.console.info(f"RANK - WORLD_SIZE - DEVICE: {rank} - {world_size} - {self.device} ")
+        self.console.info(f"DDP settings: RANK {rank}, WORLD_SIZE {world_size}, DEVICE {self.device}")
         dist.init_process_group("nccl" if dist.is_nccl_available() else "gloo", rank=rank, world_size=world_size)
 
     def _setup_train(self, rank, world_size):
@@ -141,11 +143,11 @@ class BaseTrainer:
         # Optimizer
         self.accumulate = max(round(self.args.nbs / self.batch_size), 1)  # accumulate loss before optimizing
         self.args.weight_decay *= self.batch_size * self.accumulate / self.args.nbs  # scale weight_decay
-        self.optimizer = build_optimizer(model=self.model,
-                                         name=self.args.optimizer,
-                                         lr=self.args.lr0,
-                                         momentum=self.args.momentum,
-                                         decay=self.args.weight_decay)
+        self.optimizer = self.build_optimizer(model=self.model,
+                                              name=self.args.optimizer,
+                                              lr=self.args.lr0,
+                                              momentum=self.args.momentum,
+                                              decay=self.args.weight_decay)
         # Scheduler
         if self.args.cos_lr:
             self.lf = one_cycle(1, self.args.lrf, self.epochs)  # cosine 1->hyp['lrf']
@@ -259,8 +261,7 @@ class BaseTrainer:
                 if not self.args.noval or final_epoch:
                     self.metrics, self.fitness = self.validate()
                 self.trigger_callbacks('on_val_end')
-                log_vals = {**self.label_loss_items(self.tloss), **self.metrics, **lr}
-                self.save_metrics(metrics=log_vals)
+                self.save_metrics(metrics={**self.label_loss_items(self.tloss), **self.metrics, **lr})
 
                 # save model
                 if (not self.args.nosave) or (epoch + 1 == self.epochs):
@@ -282,7 +283,6 @@ class BaseTrainer:
                 self.plot_metrics()
             self.log(f"Results saved to {colorstr('bold', self.save_dir)}")
             self.trigger_callbacks('on_train_end')
-        dist.destroy_process_group() if world_size > 1 else None
         torch.cuda.empty_cache()
         self.trigger_callbacks('teardown')
 
@@ -295,7 +295,8 @@ class BaseTrainer:
             'updates': self.ema.updates,
             'optimizer': self.optimizer.state_dict(),
             'train_args': self.args,
-            'date': datetime.now().isoformat()}
+            'date': datetime.now().isoformat(),
+            'version': __version__}
 
         # Save last, best and delete
         torch.save(ckpt, self.last)
@@ -365,7 +366,7 @@ class BaseTrainer:
         if rank in {-1, 0}:
             self.console.info(text)
 
-    def load_model(self, model_cfg, weights):
+    def load_model(self, model_cfg=None, weights=None, verbose=True):
         raise NotImplementedError("This task trainer doesn't support loading cfg files")
 
     def get_validator(self):
@@ -417,12 +418,15 @@ class BaseTrainer:
         pass
 
     def final_eval(self):
-        # TODO: need standalone evaluator to do this
         for f in self.last, self.best:
             if f.exists():
                 strip_optimizer(f)  # strip optimizers
                 if f is self.best:
                     self.console.info(f'\nValidating {f}...')
+                    self.validator.args.save_json = True
+                    self.metrics = self.validator(model=f)
+                    self.metrics.pop('fitness', None)
+                    self.trigger_callbacks('on_val_end')
 
     def check_resume(self):
         resume = self.args.resume
@@ -446,8 +450,9 @@ class BaseTrainer:
             self.ema.ema.load_state_dict(ckpt['ema'].float().state_dict())  # EMA
             self.ema.updates = ckpt['updates']
         if self.args.resume:
-            assert start_epoch > 0, f'{self.args.model} training to {self.epochs} epochs is finished, nothing to resume.\n' \
-                                    f"Start a new training without --resume, i.e. 'yolo task=... mode=train model={self.args.model}'"
+            assert start_epoch > 0, \
+                f'{self.args.model} training to {self.epochs} epochs is finished, nothing to resume.\n' \
+                f"Start a new training without --resume, i.e. 'yolo task=... mode=train model={self.args.model}'"
             LOGGER.info(
                 f'Resuming training from {self.args.model} from epoch {start_epoch} to {self.epochs} total epochs')
         if self.epochs < start_epoch:
@@ -457,33 +462,31 @@ class BaseTrainer:
         self.best_fitness = best_fitness
         self.start_epoch = start_epoch
 
+    @staticmethod
+    def build_optimizer(model, name='Adam', lr=0.001, momentum=0.9, decay=1e-5):
+        g = [], [], []  # optimizer parameter groups
+        bn = tuple(v for k, v in nn.__dict__.items() if 'Norm' in k)  # normalization layers, i.e. BatchNorm2d()
+        for v in model.modules():
+            if hasattr(v, 'bias') and isinstance(v.bias, nn.Parameter):  # bias (no decay)
+                g[2].append(v.bias)
+            if isinstance(v, bn):  # weight (no decay)
+                g[1].append(v.weight)
+            elif hasattr(v, 'weight') and isinstance(v.weight, nn.Parameter):  # weight (with decay)
+                g[0].append(v.weight)
 
-def build_optimizer(model, name='Adam', lr=0.001, momentum=0.9, decay=1e-5):
-    # TODO: 1. docstring with example? 2. Move this inside Trainer? or utils?
-    # YOLOv5 3-param group optimizer: 0) weights with decay, 1) weights no decay, 2) biases no decay
-    g = [], [], []  # optimizer parameter groups
-    bn = tuple(v for k, v in nn.__dict__.items() if 'Norm' in k)  # normalization layers, i.e. BatchNorm2d()
-    for v in model.modules():
-        if hasattr(v, 'bias') and isinstance(v.bias, nn.Parameter):  # bias (no decay)
-            g[2].append(v.bias)
-        if isinstance(v, bn):  # weight (no decay)
-            g[1].append(v.weight)
-        elif hasattr(v, 'weight') and isinstance(v.weight, nn.Parameter):  # weight (with decay)
-            g[0].append(v.weight)
+        if name == 'Adam':
+            optimizer = torch.optim.Adam(g[2], lr=lr, betas=(momentum, 0.999))  # adjust beta1 to momentum
+        elif name == 'AdamW':
+            optimizer = torch.optim.AdamW(g[2], lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
+        elif name == 'RMSProp':
+            optimizer = torch.optim.RMSprop(g[2], lr=lr, momentum=momentum)
+        elif name == 'SGD':
+            optimizer = torch.optim.SGD(g[2], lr=lr, momentum=momentum, nesterov=True)
+        else:
+            raise NotImplementedError(f'Optimizer {name} not implemented.')
 
-    if name == 'Adam':
-        optimizer = torch.optim.Adam(g[2], lr=lr, betas=(momentum, 0.999))  # adjust beta1 to momentum
-    elif name == 'AdamW':
-        optimizer = torch.optim.AdamW(g[2], lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
-    elif name == 'RMSProp':
-        optimizer = torch.optim.RMSprop(g[2], lr=lr, momentum=momentum)
-    elif name == 'SGD':
-        optimizer = torch.optim.SGD(g[2], lr=lr, momentum=momentum, nesterov=True)
-    else:
-        raise NotImplementedError(f'Optimizer {name} not implemented.')
-
-    optimizer.add_param_group({'params': g[0], 'weight_decay': decay})  # add g0 with weight_decay
-    optimizer.add_param_group({'params': g[1], 'weight_decay': 0.0})  # add g1 (BatchNorm2d weights)
-    LOGGER.info(f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}) with parameter groups "
-                f"{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias")
-    return optimizer
+        optimizer.add_param_group({'params': g[0], 'weight_decay': decay})  # add g0 with weight_decay
+        optimizer.add_param_group({'params': g[1], 'weight_decay': 0.0})  # add g1 (BatchNorm2d weights)
+        LOGGER.info(f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}) with parameter groups "
+                    f"{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias")
+        return optimizer

@@ -1,8 +1,7 @@
 import hydra
 import torch
 
-from ultralytics.yolo.engine.trainer import DEFAULT_CONFIG
-from ultralytics.yolo.utils import ops
+from ultralytics.yolo.utils import DEFAULT_CONFIG, ops
 from ultralytics.yolo.utils.plotting import colors, save_one_box
 
 from ..detect.predict import DetectionPredictor
@@ -12,17 +11,14 @@ class SegmentationPredictor(DetectionPredictor):
 
     def postprocess(self, preds, img, orig_img):
         masks = []
-        if len(preds) == 2:  # eval
-            p, proto, = preds
-        else:  # len(3) train
-            p, proto, _ = preds
         # TODO: filter by classes
-        p = ops.non_max_suppression(p,
+        p = ops.non_max_suppression(preds[0],
                                     self.args.conf_thres,
                                     self.args.iou_thres,
                                     agnostic=self.args.agnostic_nms,
                                     max_det=self.args.max_det,
                                     nm=32)
+        proto = preds[1][-1]
         for i, pred in enumerate(p):
             shape = orig_img[i].shape if self.webcam else orig_img.shape
             if not len(pred):
@@ -101,7 +97,7 @@ class SegmentationPredictor(DetectionPredictor):
 def predict(cfg):
     cfg.model = cfg.model or "n.pt"
     sz = cfg.imgsz
-    if type(sz) != int:  # recieved listConfig
+    if type(sz) != int:  # received listConfig
         cfg.imgsz = [sz[0], sz[0]] if len(cfg.imgsz) == 1 else [sz[0], sz[1]]  # expand
     else:
         cfg.imgsz = [sz, sz]

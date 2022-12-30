@@ -3,10 +3,10 @@ from typing import Dict, Union
 
 from omegaconf import DictConfig, OmegaConf
 
-from ultralytics.yolo.utils.configs.hydra_patch import check_config_mismatch
+from ultralytics.yolo.configs.hydra_patch import check_config_mismatch
 
 
-def get_config(config: Union[str, DictConfig], overrides: Union[str, Dict]):
+def get_config(config: Union[str, DictConfig], overrides: Union[str, Dict] = {}):
     """
     Accepts yaml file name or DictConfig containing experiment configuration.
     Returns training args namespace

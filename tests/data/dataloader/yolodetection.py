@@ -2,10 +2,8 @@ import cv2
 import hydra
 
 from ultralytics.yolo.data import build_dataloader
-from ultralytics.yolo.utils import ROOT
+from ultralytics.yolo.utils import DEFAULT_CONFIG
 from ultralytics.yolo.utils.plotting import plot_images
-
-DEFAULT_CONFIG = ROOT / "yolo/utils/configs/default.yaml"
 
 
 class Colors:
@@ -56,7 +54,7 @@ def plot_one_box(x, img, color=None, label=None, line_thickness=None):
 
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def test(cfg):
-    cfg.task = "segment"
+    cfg.task = "detect"
     cfg.mode = "train"
     dataloader, _ = build_dataloader(
         cfg=cfg,
@@ -69,12 +67,12 @@ def test(cfg):
 
     for d in dataloader:
         images = d["img"]
-        masks = d["masks"]
         cls = d["cls"].squeeze(-1)
         bboxes = d["bboxes"]
         paths = d["im_file"]
         batch_idx = d["batch_idx"]
-        result = plot_images(images, batch_idx, cls, bboxes, masks, paths=paths)
+        result = plot_images(images, batch_idx, cls, bboxes, paths=paths)
+
         cv2.imshow("p", result)
         if cv2.waitKey(0) == ord("q"):
             break

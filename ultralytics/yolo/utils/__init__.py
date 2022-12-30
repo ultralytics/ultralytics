@@ -1,4 +1,5 @@
 import contextlib
+import inspect
 import logging.config
 import os
 import platform
@@ -13,6 +14,7 @@ import pandas as pd
 # Constants
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[2]  # YOLO
+DEFAULT_CONFIG = ROOT / "yolo/configs/default.yaml"
 RANK = int(os.getenv('RANK', -1))
 DATASETS_DIR = Path(os.getenv('YOLOv5_DATASETS_DIR', ROOT.parent / 'datasets'))  # global datasets directory
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLOv5 multiprocessing threads
@@ -21,6 +23,33 @@ FONT = 'Arial.ttf'  # https://ultralytics.com/assets/Arial.ttf
 VERBOSE = str(os.getenv('YOLOv5_VERBOSE', True)).lower() == 'true'  # global verbose mode
 TQDM_BAR_FORMAT = '{l_bar}{bar:10}{r_bar}'  # tqdm bar format
 LOGGING_NAME = 'yolov5'
+HELP_MSG = \
+    """
+    Please refer to below Usage examples for help running YOLOv8:
+
+    Install:
+        pip install ultralytics
+
+    Python SDK:
+        from ultralytics import YOLO
+
+        model = YOLO.new('yolov8n.yaml')  # create a new model from scratch
+        model = YOLO.load('yolov8n.pt')  # load a pretrained model (recommended for best training results)
+        results = model.train(data='coco128.yaml')
+        results = model.val()
+        results = model.predict(source='bus.jpg')
+        success = model.export(format='onnx')
+
+    CLI:
+        yolo task=detect    mode=train    model=yolov8n.yaml      args...
+                  classify       predict        yolov8n-cls.yaml  args...
+                  segment        val            yolov8n-seg.yaml  args...
+                                 export         yolov8n.pt        format=onnx  args...
+
+    Docs: https://docs.ultralytics.com
+    Community: https://community.ultralytics.com
+    GitHub: https://github.com/ultralytics/ultralytics
+    """
 
 # Settings
 # torch.set_printoptions(linewidth=320, precision=5, profile='long')
@@ -28,7 +57,6 @@ LOGGING_NAME = 'yolov5'
 pd.options.display.max_columns = 10
 cv2.setNumThreads(0)  # prevent OpenCV from multithreading (incompatible with PyTorch DataLoader)
 os.environ['NUMEXPR_MAX_THREADS'] = str(NUM_THREADS)  # NumExpr max threads
-os.environ['OMP_NUM_THREADS'] = '1' if platform.system() == 'darwin' else str(NUM_THREADS)  # OpenMP (PyTorch and SciPy)
 
 
 def is_colab():
@@ -70,6 +98,12 @@ def is_writeable(dir, test=False):
         return True
     except OSError:
         return False
+
+
+def get_default_args(func):
+    # Get func() default arguments
+    signature = inspect.signature(func)
+    return {k: v.default for k, v in signature.parameters.items() if v.default is not inspect.Parameter.empty}
 
 
 def user_config_dir(dir='Ultralytics', env_var='YOLOV5_CONFIG_DIR'):

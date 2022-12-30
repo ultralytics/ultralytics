@@ -627,7 +627,6 @@ class Exporter:
 
         LOGGER.info(f'{prefix} starting pipeline with coremltools {ct.__version__}...')
         batch_size, ch, h, w = list(self.im.shape)  # BCHW
-        t = time.time()
 
         # Output shapes
         spec = model.get_spec()

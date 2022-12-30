@@ -74,7 +74,7 @@ from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, colorstr, get_default
 from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version, check_yaml
 from ultralytics.yolo.utils.files import file_size, increment_path, yaml_save
 from ultralytics.yolo.utils.ops import Profile
-from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode
+from ultralytics.yolo.utils.torch_utils import guess_task_from_head, select_device, smart_inference_mode
 
 MACOS = platform.system() == 'Darwin'  # macOS environment
 
@@ -120,7 +120,7 @@ class Exporter:
     def __init__(self, config=DEFAULT_CONFIG, overrides={}):
         self.args = get_config(config, overrides)
         project = self.args.project or f"runs/{self.args.task}"
-        name = self.args.name or f"{self.args.mode}"
+        name = self.args.name or "exp"  # hardcode mode as export doesn't require it
         self.save_dir = increment_path(Path(project) / name, exist_ok=self.args.exist_ok)
         self.save_dir.mkdir(parents=True, exist_ok=True)
         self.imgsz = self.args.imgsz
@@ -221,11 +221,8 @@ class Exporter:
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
         if any(f):
-            cls, det, seg = (isinstance(model, x)
-                             for x in (ClassificationModel, DetectionModel, SegmentationModel))  # type
-            det &= not seg  # segmentation models inherit from SegmentationModel(DetectionModel)
+            task = guess_task_from_head(model.yaml["head"][-1][-2])
             s = "-WARNING ⚠️ not yet supported for YOLOv8 exported models"
-            task = 'detect' if det else 'segment' if seg else 'classify' if cls else ''
             LOGGER.info(f'\nExport complete ({time.time() - t:.1f}s)'
                         f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
                         f"\nPredict:         yolo task={task} mode=predict model={f[-1]} {s}"

@@ -1,6 +1,6 @@
 ## Ultralytics YOLO
 
-YOLO (You Only Look Once) settings and hyperparameters play a critical role in the model's performance, speed, and
+YOLO settings and hyperparameters play a critical role in the model's performance, speed, and
 accuracy. These settings and hyperparameters can affect the model's behavior at various stages of the model development
 process, including training, validation, and prediction.
 
@@ -18,7 +18,7 @@ pay careful attention to them to achieve the desired results.
 
 ### Setting the operation type
 
-YOLO (You Only Look Once) models can be used for a variety of tasks, including detection, segmentation, and
+YOLO models can be used for a variety of tasks, including detection, segmentation, and
 classification. These tasks differ in the type of output they produce and the specific problem they are designed to
 solve.
 
@@ -51,7 +51,7 @@ include train, val, and predict.
 
 ### Training settings
 
-Training settings for YOLO (You Only Look Once) models refer to the various hyperparameters and configurations used to
+Training settings for YOLO models refer to the various hyperparameters and configurations used to
 train the model on a dataset. These settings can affect the model's performance, speed, and accuracy. Some common YOLO
 training settings include the batch size, learning rate, momentum, and weight decay. Other factors that may affect the
 training process include the choice of optimizer, the choice of loss function, and the size and composition of the
@@ -93,7 +93,7 @@ performance for a given task.
 
 ### Prediction Settings
 
-Prediction settings for YOLO (You Only Look Once) models refer to the various hyperparameters and configurations used to
+Prediction settings for YOLO models refer to the various hyperparameters and configurations used to
 make predictions with the model on new data. These settings can affect the model's performance, speed, and accuracy.
 Some common YOLO prediction settings include the confidence threshold, non-maximum suppression (NMS) threshold, and the
 number of classes to consider. Other factors that may affect the prediction process include the size and format of the
@@ -119,7 +119,7 @@ possible performance for a given task.
 
 ### Validation settings
 
-Validation settings for YOLO (You Only Look Once) models refer to the various hyperparameters and configurations used to
+Validation settings for YOLO models refer to the various hyperparameters and configurations used to
 evaluate the model's performance on a validation dataset. These settings can affect the model's performance, speed, and
 accuracy. Some common YOLO validation settings include the batch size, the frequency with which validation is performed
 during training, and the metrics used to evaluate the model's performance. Other factors that may affect the validation
@@ -141,7 +141,7 @@ validation dataset and to detect and prevent overfitting.
 
 ### Export settings
 
-Export settings for YOLO (You Only Look Once) models refer to the various configurations and options used to save or
+Export settings for YOLO models refer to the various configurations and options used to save or
 export the model for use in other environments or platforms. These settings can affect the model's performance, size,
 and compatibility with different systems. Some common YOLO export settings include the format of the exported model
 file (e.g. ONNX, TensorFlow SavedModel), the device on which the model will be run (e.g. CPU, GPU), and the presence of
@@ -152,7 +152,7 @@ the intended use case and can be used effectively in the target environment.
 
 ### Augmentation settings
 
-Augmentation settings for YOLO (You Only Look Once) models refer to the various transformations and modifications
+Augmentation settings for YOLO models refer to the various transformations and modifications
 applied to the training data to increase the diversity and size of the dataset. These settings can affect the model's
 performance, speed, and accuracy. Some common YOLO augmentation settings include the type and intensity of the
 transformations applied (e.g. random flips, rotations, cropping, color changes), the probability with which each

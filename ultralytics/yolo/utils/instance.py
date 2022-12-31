@@ -162,13 +162,15 @@ class Bboxes:
 
 class Instances:
 
-    def __init__(self, bboxes, segments=[], keypoints=None, bbox_format="xywh", normalized=True) -> None:
+    def __init__(self, bboxes, segments=None, keypoints=None, bbox_format="xywh", normalized=True) -> None:
         """
         Args:
             bboxes (ndarray): bboxes with shape [N, 4].
             segments (list | ndarray): segments.
             keypoints (ndarray): keypoints with shape [N, 17, 2].
         """
+        if segments is None:
+            segments = []
         self._bboxes = Bboxes(bboxes=bboxes, format=bbox_format)
         self.keypoints = keypoints
         self.normalized = normalized

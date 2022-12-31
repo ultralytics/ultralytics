@@ -6,8 +6,6 @@ from datetime import datetime
 from pathlib import Path
 from zipfile import ZipFile
 
-import yaml
-
 
 class WorkingDirectory(contextlib.ContextDecorator):
     # Usage: @WorkingDirectory(dir) decorator or 'with WorkingDirectory(dir):' context manager
@@ -55,18 +53,6 @@ def increment_path(path, exist_ok=False, sep='', mkdir=False):
         path.mkdir(parents=True, exist_ok=True)  # make directory
 
     return path
-
-
-def yaml_save(file='data.yaml', data=None):
-    # Single-line safe yaml saving
-    with open(file, 'w') as f:
-        yaml.safe_dump({k: str(v) if isinstance(v, Path) else v for k, v in data.items()}, f, sort_keys=False)
-
-
-def yaml_load(file='data.yaml'):
-    # Single-line safe yaml loading
-    with open(file, errors='ignore') as f:
-        return {**yaml.safe_load(f), 'yaml_file': file}  # add YAML filename to dict and return
 
 
 def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX')):

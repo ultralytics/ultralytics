@@ -38,3 +38,22 @@ For more information about the history and development of YOLO, you can refer to
 - Redmon, J., & Farhadi, A. (2015). You only look once: Unified, real-time object detection. In Proceedings of the IEEE
   conference on computer vision and pattern recognition (pp. 779-788).
 - Redmon, J., & Farhadi, A. (2016). YOLO9000: Better, faster, stronger. In Proceedings
+
+### YOLOv8 by Ultralytics
+
+YOLOv8 is the latest version of the YOLO object detection and image segmentation model developed by
+Ultralytics. YOLOv8 is a cutting-edge, state-of-the-art (SOTA) model that builds upon the success of previous YOLO
+versions and introduces new features and improvements to further boost performance and flexibility.
+
+One key feature of YOLOv8 is its extensibility. It is designed as a framework that supports all previous versions of
+YOLO, making it easy to switch between different versions and compare their performance. This makes YOLOv8 an ideal
+choice for users who want to take advantage of the latest YOLO technology while still being able to use their existing
+YOLO models.
+
+In addition to its extensibility, YOLOv8 includes a number of other innovations that make it an appealing choice for a
+wide range of object detection and image segmentation tasks. These include a new backbone network, a new anchor-free
+detection head, and a new loss function. YOLOv8 is also highly efficient and can be run on a variety of hardware
+platforms, from CPUs to GPUs.
+
+Overall, YOLOv8 is a powerful and flexible tool for object detection and image segmentation that offers the best of both
+worlds: the latest SOTA technology and the ability to use and compare all previous YOLO versions.

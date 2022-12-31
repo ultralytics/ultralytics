@@ -436,7 +436,9 @@ class LetterBox:
         self.scaleup = scaleup
         self.stride = stride
 
-    def __call__(self, labels={}, image=None):
+    def __call__(self, labels=None, image=None):
+        if labels is None:
+            labels = {}
         img = labels.get("img") if image is None else image
         shape = img.shape[:2]  # current shape [height, width]
         new_shape = labels.pop("rect_shape", self.new_shape)

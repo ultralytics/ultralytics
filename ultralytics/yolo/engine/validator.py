@@ -16,10 +16,36 @@ from ultralytics.yolo.utils.torch_utils import de_parallel, select_device, smart
 
 class BaseValidator:
     """
-    Base validator class.
+    BaseValidator
+
+    A base class for creating validators.
+
+    Attributes:
+        dataloader (DataLoader): Dataloader to use for validation.
+        pbar (tqdm): Progress bar to update during validation.
+        logger (logging.Logger): Logger to use for validation.
+        args (OmegaConf): Configuration for the validator.
+        model (nn.Module): Model to validate.
+        data (dict): Data dictionary.
+        device (torch.device): Device to use for validation.
+        batch_i (int): Current batch index.
+        training (bool): Whether the model is in training mode.
+        speed (float): Batch processing speed in seconds.
+        jdict (dict): Dictionary to store validation results.
+        save_dir (Path): Directory to save results.
     """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, logger=None, args=None):
+        """
+        Initializes a BaseValidator instance.
+
+        Args:
+            dataloader (torch.utils.data.DataLoader): Dataloader to be used for validation.
+            save_dir (Path): Directory to save results.
+            pbar (tqdm.tqdm): Progress bar for displaying progress.
+            logger (logging.Logger): Logger to log messages.
+            args (OmegaConf): Configuration for the validator.
+        """
         self.dataloader = dataloader
         self.pbar = pbar
         self.logger = logger or LOGGER

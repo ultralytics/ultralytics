@@ -198,7 +198,7 @@ class Exporter:
         self.im = im
         self.model = model
         self.file = file
-        self.output_shape = tuple(y.shape)
+        self.output_shape = tuple(y.shape) if isinstance(y, torch.Tensor) else (x.shape for x in y)
         self.metadata = {'stride': int(max(model.stride)), 'names': model.names}  # model metadata
         self.pretty_name = self.file.stem.replace('yolo', 'YOLO')
 

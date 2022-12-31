@@ -10,6 +10,7 @@ from pathlib import Path
 
 import cv2
 import pandas as pd
+import yaml
 
 # Constants
 FILE = Path(__file__).resolve()
@@ -248,25 +249,60 @@ def threaded(func):
     return wrapper
 
 
-def check_first_install():
+def get_settings(file=USER_CONFIG_DIR / 'settings.yaml'):
     """
-    Function that runs on a first-time ultralytics package installation to set up global settings and create necessary
-    directories.
+    Function that loads a global settings YAML, or creates it and populates it with default values if it does not exist.
 
-    This function creates a global settings file (settings.yaml) in the user's configuration directory and initializes
-    it with default values for the datasets and weights directories, as well as the 'sync' setting. If the datasets or
-    weights directories are set to None, the current working directory will be used. The 'sync' setting determines
-    whether analytics will be synced to help with YOLO development.
+    If the datasets or weights directories are set to None, the current working directory will be used.
+    The 'sync' setting determines whether analytics will be synced to help with YOLO development.
     """
-    from ultralytics.yolo.utils.files import yaml_save
+    from ultralytics.yolo.utils.torch_utils import torch_distributed_zero_first
 
-    file = USER_CONFIG_DIR / 'settings.yaml'  # global settings file
-    if not file.exists():
-        settings = {
-            'datasets_dir': None,  # default datasets directory. If None, current working directory is used.
-            'weights_dir': None,  # default weights directory. If None, current working directory is used.
-            'sync': True}  # sync analytics to help with YOLO development
-        yaml_save(file, settings)
+    with torch_distributed_zero_first(RANK):
+        if not file.exists():
+            settings = {
+                'datasets_dir': None,  # default datasets directory. If None, current working directory is used.
+                'weights_dir': None,  # default weights directory. If None, current working directory is used.
+                'sync': True}  # sync analytics to help with YOLO development
+            yaml_save(file, settings)
+
+    return yaml_load(file)
+
+
+def yaml_save(file='data.yaml', data=None):
+    """
+    Save YAML data to a file.
+
+    Args:
+        file (str, optional): File name. Default is 'data.yaml'.
+        data (dict, optional): Data to save in YAML format. Default is None.
+
+    Returns:
+        None: Data is saved to the specified file.
+    """
+    file = Path(file)
+    if not file.parent.exists():
+        # Create parent directories if they don't exist
+        file.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(file, 'w') as f:
+        # Dump data to file in YAML format, converting Path objects to strings
+        yaml.safe_dump({k: str(v) if isinstance(v, Path) else v for k, v in data.items()}, f, sort_keys=False)
+
+
+def yaml_load(file='data.yaml'):
+    """
+    Load YAML data from a file.
+
+    Args:
+        file (str, optional): File name. Default is 'data.yaml'.
+
+    Returns:
+        dict: YAML data and file name.
+    """
+    with open(file, errors='ignore') as f:
+        # Add YAML filename to dict and return
+        return {**yaml.safe_load(f), 'yaml_file': file}
 
 
 # Run below code on utils init -----------------------------------------------------------------------------------------
@@ -278,6 +314,15 @@ if platform.system() == 'Windows':
     for fn in LOGGER.info, LOGGER.warning:
         setattr(LOGGER, fn.__name__, lambda x: fn(emojis(x)))  # emoji safe logging
 
-# Run first-time installation steps
-if RANK in {-1, 0}:
-    check_first_install()
+# Check first-install steps
+SETTINGS = get_settings()
+
+
+def set_settings(kwargs, file=USER_CONFIG_DIR / 'settings.yaml'):
+    """
+    Function that runs on a first-time ultralytics package installation to set up global settings and create necessary
+    directories.
+    """
+    SETTINGS.update(kwargs)
+
+    yaml_save(file, SETTINGS)

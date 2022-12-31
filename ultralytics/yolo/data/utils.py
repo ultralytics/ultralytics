@@ -12,10 +12,10 @@ import numpy as np
 import torch
 from PIL import ExifTags, Image, ImageOps
 
-from ultralytics.yolo.utils import LOGGER, ROOT, colorstr
+from ultralytics.yolo.utils import LOGGER, ROOT, colorstr, yaml_load
 from ultralytics.yolo.utils.checks import check_file, check_font, is_ascii
 from ultralytics.yolo.utils.downloads import download
-from ultralytics.yolo.utils.files import unzip_file, yaml_load
+from ultralytics.yolo.utils.files import unzip_file
 
 from ..utils.ops import segments2boxes
 

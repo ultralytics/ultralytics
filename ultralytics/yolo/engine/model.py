@@ -4,9 +4,8 @@ from ultralytics import yolo  # noqa
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, attempt_load_weights
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.engine.exporter import Exporter
-from ultralytics.yolo.utils import DEFAULT_CONFIG, HELP_MSG, LOGGER
+from ultralytics.yolo.utils import DEFAULT_CONFIG, HELP_MSG, LOGGER, yaml_load
 from ultralytics.yolo.utils.checks import check_imgsz, check_yaml
-from ultralytics.yolo.utils.files import yaml_load
 from ultralytics.yolo.utils.torch_utils import guess_task_from_head, smart_inference_mode
 
 # Map head to model, trainer, validator, and predictor classes

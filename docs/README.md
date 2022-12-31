@@ -61,6 +61,6 @@ Copy code
 mkdocs gh-deploy
 If you are using GitHub Pages, you can set a custom domain for your documentation site by going to the "Settings" page for your repository and updating the "Custom domain" field in the "GitHub Pages" section.
 
-Screenshot of GitHub Pages custom domain settings
+![196814117-fc16e711-d2be-4722-9536-b7c6d78fd167](https://user-images.githubusercontent.com/26833433/210150206-9e86dcd7-10af-43e4-9eb2-9518b3799eac.png)
 
 For more information on deploying your MkDocs documentation site, see the [MkDocs documentation](https://www.mkdocs.org/user-guide/deploying-your-docs/).

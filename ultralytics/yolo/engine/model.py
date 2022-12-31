@@ -80,7 +80,6 @@ class YOLO:
 
         Args:
             weights (str): model checkpoint to be loaded
-
         """
         obj = cls(init_key=cls.__init_key)
         obj.ckpt = torch.load(weights, map_location="cpu")
@@ -110,7 +109,7 @@ class YOLO:
         Logs model info
 
         Args:
-        verbose (bool): Controls verbosity.
+            verbose (bool): Controls verbosity.
         """
         if not self.model:
             LOGGER.info("model not initialized!")
@@ -127,8 +126,8 @@ class YOLO:
         Visualize prediction.
 
         Args:
-        source (str): Accepts all source types accepted by yolo
-        **kwargs : Any other args accepted by the predictors. To see all args check 'configuration' section in the docs
+            source (str): Accepts all source types accepted by yolo
+            **kwargs : Any other args accepted by the predictors. To see all args check 'configuration' section in docs
         """
         overrides = self.overrides.copy()
         overrides.update(kwargs)
@@ -145,8 +144,8 @@ class YOLO:
         Validate a model on a given dataset
 
         Args:
-        data (str): The dataset to validate on. Accepts all formats accepted by yolo
-        kwargs: Any other args accepted by the validators. To see all args check 'configuration' section in the docs
+            data (str): The dataset to validate on. Accepts all formats accepted by yolo
+            **kwargs : Any other args accepted by the validators. To see all args check 'configuration' section in docs
         """
         if not self.model:
             raise ModuleNotFoundError("model not initialized!")
@@ -167,8 +166,7 @@ class YOLO:
         Export model.
 
         Args:
-        format (str): Export format
-        **kwargs : Any other args accepted by the predictors. To see all args check 'configuration' section in the docs
+            **kwargs : Any other args accepted by the predictors. To see all args check 'configuration' section in docs
         """
 
         overrides = self.overrides.copy()

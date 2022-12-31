@@ -4,7 +4,7 @@
 Deployed to https://docs.ultralytics.com
 
 
-## Install
+### Install Ultralytics package
 
 To install the ultralytics package in developer mode, you will need to have Git and Python 3 installed on your system. Then, follow these steps:
 
@@ -25,7 +25,7 @@ This will install the ultralytics package and its dependencies in developer mode
 Note that you may need to use the pip3 command instead of pip if you have multiple versions of Python installed on your system.
 
 
-## Build Docs
+### Building and Serving Locally
 
 The `mkdocs serve` command is used to build and serve a local version of the MkDocs documentation site. It is typically used during the development and testing phase of a documentation project.
 
@@ -45,3 +45,22 @@ When you run the `mkdocs serve` command, it will build the documentation site us
 While the site is being served, you can make changes to the documentation files and see them reflected in the live site immediately. This is useful for testing and debugging your documentation before deploying it to a live server.
 
 To stop the serve command and terminate the local server, you can use the `CTRL+C` keyboard shortcut.
+
+
+### Deploying Your Documentation Site
+
+To deploy your MkDocs documentation site, you will need to choose a hosting provider and a deployment method. Some popular options include GitHub Pages, GitLab Pages, and Amazon S3.
+
+Before you can deploy your site, you will need to configure your `mkdocs.yml` file to specify the remote host and any other necessary deployment settings.
+
+Once you have configured your `mkdocs.yml` file, you can use the `mkdocs deploy` command to build and deploy your site. This command will build the documentation site using the files in the `docs/` directory and the specified configuration file and theme, and then deploy the site to the specified remote host.
+
+For example, to deploy your site to GitHub Pages using the gh-deploy plugin, you can use the following command:
+
+Copy code
+mkdocs gh-deploy
+If you are using GitHub Pages, you can set a custom domain for your documentation site by going to the "Settings" page for your repository and updating the "Custom domain" field in the "GitHub Pages" section.
+
+Screenshot of GitHub Pages custom domain settings
+
+For more information on deploying your MkDocs documentation site, see the [MkDocs documentation](https://www.mkdocs.org/user-guide/deploying-your-docs/).

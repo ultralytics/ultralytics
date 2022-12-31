@@ -224,13 +224,6 @@ def set_logging(name=LOGGING_NAME, verbose=True):
                 "propagate": False,}}})
 
 
-set_logging(LOGGING_NAME)  # run before defining LOGGER
-LOGGER = logging.getLogger(LOGGING_NAME)  # define globally (used in train.py, val.py, detect.py, etc.)
-if platform.system() == 'Windows':
-    for fn in LOGGER.info, LOGGER.warning:
-        setattr(LOGGER, fn.__name__, lambda x: fn(emojis(x)))  # emoji safe logging
-
-
 class TryExcept(contextlib.ContextDecorator):
     # YOLOv5 TryExcept class. Usage: @TryExcept() decorator or 'with TryExcept():' context manager
     def __init__(self, msg=''):
@@ -253,3 +246,38 @@ def threaded(func):
         return thread
 
     return wrapper
+
+
+def check_first_install():
+    """
+    Function that runs on a first-time ultralytics package installation to set up global settings and create necessary
+    directories.
+
+    This function creates a global settings file (settings.yaml) in the user's configuration directory and initializes
+    it with default values for the datasets and weights directories, as well as the 'sync' setting. If the datasets or
+    weights directories are set to None, the current working directory will be used. The 'sync' setting determines
+    whether analytics will be synced to help with YOLO development.
+    """
+    from ultralytics.yolo.utils.files import yaml_save
+
+    file = USER_CONFIG_DIR / 'settings.yaml'  # global settings file
+    if not file.exists():
+        settings = {
+            'datasets_dir': None,  # default datasets directory. If None, current working directory is used.
+            'weights_dir': None,  # default weights directory. If None, current working directory is used.
+            'sync': True}  # sync analytics to help with YOLO development
+        yaml_save(file, settings)
+
+
+# Run below code on utils init -----------------------------------------------------------------------------------------
+
+# Set logger
+set_logging(LOGGING_NAME)  # run before defining LOGGER
+LOGGER = logging.getLogger(LOGGING_NAME)  # define globally (used in train.py, val.py, detect.py, etc.)
+if platform.system() == 'Windows':
+    for fn in LOGGER.info, LOGGER.warning:
+        setattr(LOGGER, fn.__name__, lambda x: fn(emojis(x)))  # emoji safe logging
+
+# Run first-time installation steps
+if RANK in {-1, 0}:
+    check_first_install()

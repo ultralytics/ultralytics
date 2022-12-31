@@ -59,6 +59,10 @@ def increment_path(path, exist_ok=False, sep='', mkdir=False):
 
 def yaml_save(file='data.yaml', data=None):
     # Single-line safe yaml saving
+    file = Path(file)
+    if not file.parent.exists():
+        file.parent.mkdir(parents=True, exist_ok=True)
+
     with open(file, 'w') as f:
         yaml.safe_dump({k: str(v) if isinstance(v, Path) else v for k, v in data.items()}, f, sort_keys=False)
 

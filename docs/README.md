@@ -1,7 +1,7 @@
 
 # Ultralytics Docs
 
-Deployed to https://docs.ultralytics.com/
+Deployed to https://docs.ultralytics.com
 
 
 ## Install

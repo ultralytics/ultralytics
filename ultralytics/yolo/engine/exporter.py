@@ -2,20 +2,20 @@
 """
 Export a YOLOv5 PyTorch model to other formats. TensorFlow exports authored by https://github.com/zldrobit
 
-Format                      | `format=argument`             | Model
----                         | ---                           | ---
-PyTorch                     | -                             | yolov8n.pt
-TorchScript                 | `torchscript`                 | yolov8n.torchscript
-ONNX                        | `onnx`                        | yolov8n.onnx
-OpenVINO                    | `openvino`                    | yolov8n_openvino_model/
-TensorRT                    | `engine`                      | yolov8n.engine
-CoreML                      | `coreml`                      | yolov8n.mlmodel
-TensorFlow SavedModel       | `saved_model`                 | yolov8n_saved_model/
-TensorFlow GraphDef         | `pb`                          | yolov8n.pb
-TensorFlow Lite             | `tflite`                      | yolov8n.tflite
-TensorFlow Edge TPU         | `edgetpu`                     | yolov8n_edgetpu.tflite
-TensorFlow.js               | `tfjs`                        | yolov8n_web_model/
-PaddlePaddle                | `paddle`                      | yolov8n_paddle_model/
+Format                  | `format=argument`         | Model
+---                     | ---                       | ---
+PyTorch                 | -                         | yolov8n.pt
+TorchScript             | `torchscript`             | yolov8n.torchscript
+ONNX                    | `onnx`                    | yolov8n.onnx
+OpenVINO                | `openvino`                | yolov8n_openvino_model/
+TensorRT                | `engine`                  | yolov8n.engine
+CoreML                  | `coreml`                  | yolov8n.mlmodel
+TensorFlow SavedModel   | `saved_model`             | yolov8n_saved_model/
+TensorFlow GraphDef     | `pb`                      | yolov8n.pb
+TensorFlow Lite         | `tflite`                  | yolov8n.tflite
+TensorFlow Edge TPU     | `edgetpu`                 | yolov8n_edgetpu.tflite
+TensorFlow.js           | `tfjs`                    | yolov8n_web_model/
+PaddlePaddle            | `paddle`                  | yolov8n_paddle_model/
 
 Requirements:
     $ pip install -r requirements.txt coremltools onnx onnx-simplifier onnxruntime openvino-dev tensorflow-cpu  # CPU

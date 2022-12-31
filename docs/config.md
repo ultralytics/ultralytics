@@ -1,8 +1,8 @@
 ## Ultralytics YOLO
 
-YOLO settings and hyperparameters play a critical role in the model's performance, speed, and
-accuracy. These settings and hyperparameters can affect the model's behavior at various stages of the model development
-process, including training, validation, and prediction.
+YOLO settings and hyperparameters play a critical role in the model's performance, speed, and accuracy. These settings
+and hyperparameters can affect the model's behavior at various stages of the model development process, including
+training, validation, and prediction.
 
 Properly setting and tuning these parameters can have a significant impact on the model's ability to learn effectively
 from the training data and generalize to new data. For example, choosing an appropriate learning rate, batch size, and
@@ -18,9 +18,8 @@ pay careful attention to them to achieve the desired results.
 
 ### Setting the operation type
 
-YOLO models can be used for a variety of tasks, including detection, segmentation, and
-classification. These tasks differ in the type of output they produce and the specific problem they are designed to
-solve.
+YOLO models can be used for a variety of tasks, including detection, segmentation, and classification. These tasks
+differ in the type of output they produce and the specific problem they are designed to solve.
 
 - Detection: Detection tasks involve identifying and localizing objects or regions of interest in an image or video.
   YOLO models can be used for object detection tasks by predicting the bounding boxes and class labels of objects in an
@@ -51,12 +50,12 @@ include train, val, and predict.
 
 ### Training settings
 
-Training settings for YOLO models refer to the various hyperparameters and configurations used to
-train the model on a dataset. These settings can affect the model's performance, speed, and accuracy. Some common YOLO
-training settings include the batch size, learning rate, momentum, and weight decay. Other factors that may affect the
-training process include the choice of optimizer, the choice of loss function, and the size and composition of the
-training dataset. It is important to carefully tune and experiment with these settings to achieve the best possible
-performance for a given task.
+Training settings for YOLO models refer to the various hyperparameters and configurations used to train the model on a
+dataset. These settings can affect the model's performance, speed, and accuracy. Some common YOLO training settings
+include the batch size, learning rate, momentum, and weight decay. Other factors that may affect the training process
+include the choice of optimizer, the choice of loss function, and the size and composition of the training dataset. It
+is important to carefully tune and experiment with these settings to achieve the best possible performance for a given
+task.
 
 | Key             | Value   | Description                                                                 |
 |-----------------|---------|-----------------------------------------------------------------------------|
@@ -93,13 +92,13 @@ performance for a given task.
 
 ### Prediction Settings
 
-Prediction settings for YOLO models refer to the various hyperparameters and configurations used to
-make predictions with the model on new data. These settings can affect the model's performance, speed, and accuracy.
-Some common YOLO prediction settings include the confidence threshold, non-maximum suppression (NMS) threshold, and the
-number of classes to consider. Other factors that may affect the prediction process include the size and format of the
-input data, the presence of additional features such as masks or multiple labels per box, and the specific task the
-model is being used for. It is important to carefully tune and experiment with these settings to achieve the best
-possible performance for a given task.
+Prediction settings for YOLO models refer to the various hyperparameters and configurations used to make predictions
+with the model on new data. These settings can affect the model's performance, speed, and accuracy. Some common YOLO
+prediction settings include the confidence threshold, non-maximum suppression (NMS) threshold, and the number of classes
+to consider. Other factors that may affect the prediction process include the size and format of the input data, the
+presence of additional features such as masks or multiple labels per box, and the specific task the model is being used
+for. It is important to carefully tune and experiment with these settings to achieve the best possible performance for a
+given task.
 
 | Key            | Value                | Description                                     |
 |----------------|----------------------|-------------------------------------------------|
@@ -178,8 +177,7 @@ ensure that the augmented dataset is diverse and representative enough to train 
 
 ### Logging, checkpoints, plotting and file management
 
-Logging, checkpoints, plotting, and file management are important considerations when training a YOLO (You Only Look
-Once) model.
+Logging, checkpoints, plotting, and file management are important considerations when training a YOLO model.
 
 - Logging: It is often helpful to log various metrics and statistics during training to track the model's progress and
   diagnose any issues that may arise. This can be done using a logging library such as TensorBoard or by writing log

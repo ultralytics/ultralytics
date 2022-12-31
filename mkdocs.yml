@@ -57,15 +57,15 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.snippets
 
-  # button
+  # Button
   - attr_list
 
-  # content tabs
+  # Content tabs
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
 
-  # highlight
+  # Highlight
   - pymdownx.critic
   - pymdownx.caret
   - pymdownx.keys
@@ -74,7 +74,7 @@ markdown_extensions:
 plugins:
   - mkdocstrings
 
-# primary navigation
+# Primary navigation
 nav:
   - Quickstart: quickstart.md
   - CLI: cli.md

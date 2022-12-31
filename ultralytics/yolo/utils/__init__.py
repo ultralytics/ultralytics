@@ -4,11 +4,11 @@ import logging.config
 import os
 import platform
 import sys
+import tempfile
 import threading
 from pathlib import Path
 
 import cv2
-import tempfile
 import pandas as pd
 
 # Constants
@@ -28,11 +28,11 @@ HELP_MSG = \
     Usage examples for running YOLOv8:
 
     1. Install the ultralytics package:
-    
+
         pip install ultralytics
 
     2. Use the Python SDK:
-    
+
         from ultralytics import YOLO
 
         model = YOLO.new('yolov8n.yaml')            # create a new model from scratch
@@ -43,7 +43,7 @@ HELP_MSG = \
         success = model.export(format='onnx')       # export the model to ONNX format
 
     3. Use the command line interface (CLI):
-    
+
         yolo task=detect    mode=train    model=yolov8n.yaml      args...
                   classify       predict        yolov8n-cls.yaml  args...
                   segment        val            yolov8n-seg.yaml  args...
@@ -107,7 +107,7 @@ def is_docker() -> bool:
     Returns:
         bool: True if the script is running inside a Docker container, False otherwise.
     """
-    with open('/proc/self/cgroup', 'r') as f:
+    with open('/proc/self/cgroup') as f:
         return 'docker' in f.read()
 
 
@@ -198,7 +198,7 @@ def colorstr(*input):
         "bright_white": "\033[97m",
         "end": "\033[0m",  # misc
         "bold": "\033[1m",
-        "underline": "\033[4m", }
+        "underline": "\033[4m",}
     return "".join(colors[x] for x in args) + f"{string}" + colors["end"]
 
 
@@ -216,12 +216,12 @@ def set_logging(name=LOGGING_NAME, verbose=True):
             name: {
                 "class": "logging.StreamHandler",
                 "formatter": name,
-                "level": level, }},
+                "level": level,}},
         "loggers": {
             name: {
                 "level": level,
                 "handlers": [name],
-                "propagate": False, }}})
+                "propagate": False,}}})
 
 
 set_logging(LOGGING_NAME)  # run before defining LOGGER

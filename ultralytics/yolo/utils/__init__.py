@@ -8,7 +8,7 @@ import threading
 from pathlib import Path
 
 import cv2
-import IPython
+import tempfile
 import pandas as pd
 
 # Constants
@@ -111,33 +111,22 @@ def is_docker() -> bool:
         return 'docker' in f.read()
 
 
-def is_path_writeable(path):
+def is_dir_writeable(dir_path: str) -> bool:
     """
-    Check if the given file path is writeable.
+    Check if a directory is writeable.
 
     Args:
-        path (str, Path): The file path to check.
+        dir_path (str): The path to the directory.
 
     Returns:
-        bool: True if the file path is writeable, False otherwise.
+        bool: True if the directory is writeable, False otherwise.
     """
-    # Get the operating system name
-    os_name = platform.system()
-
-    # Check if the path is writeable for each operating system
-    if os_name == 'Windows':
-        # On Windows, check if the file can be opened for writing
-        try:
-            with open(path, 'w'):
-                return True
-        except OSError:
-            return False
-    elif os_name in ['Darwin', 'Linux']:
-        # On macOS and Linux, check if the parent directory is writeable
-        # and the file does not already exist
-        return os.access(os.path.dirname(path), os.W_OK) and not os.path.exists(path)
-    else:
-        raise ValueError(f'Unsupported operating system: {os_name}')
+    try:
+        with tempfile.TemporaryFile(dir=dir_path):
+            pass
+        return True
+    except OSError:
+        return False
 
 
 def get_default_args(func):
@@ -170,7 +159,7 @@ def get_user_config_dir(sub_dir='Ultralytics'):
         raise ValueError(f'Unsupported operating system: {os_name}')
 
     # GCP and AWS lambda fix, only /tmp is writeable
-    if not is_path_writeable(path):
+    if not is_dir_writeable(path.parent):
         path = Path('/tmp') / sub_dir
 
     # Create the subdirectory if it does not exist

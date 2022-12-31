@@ -90,6 +90,8 @@ nav:
       - Customize Predictor: customize/predict.md
   - Reference:
       - YOLO Models: reference/model.md
-      - Trainer:
-          - BaseTrainer: reference/base_trainer.md
-
+      - Engine:
+          - Trainer: reference/base_trainer.md
+          - Validator: reference/base_val.md
+          - Predictor: reference/base_pred.md
+          - Exporter: reference/exporter.md

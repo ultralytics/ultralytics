@@ -1,5 +1,5 @@
 # YOLOv5 🚀 by Ultralytics, GPL-3.0 license
-# Builds ultralytics/ultralytics:latest image on DockerHub https://hub.docker.com/r/ultralytics/yolov5
+# Builds ultralytics/ultralytics:latest image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
 # Image is CUDA-optimized for YOLOv5 single/multi-GPU training and inference
 
 # Start FROM NVIDIA PyTorch image https://ngc.nvidia.com/catalog/containers/nvidia:pytorch
@@ -12,24 +12,23 @@ ADD https://ultralytics.com/assets/Arial.ttf https://ultralytics.com/assets/Aria
 # Install linux packages
 RUN apt update && apt install --no-install-recommends -y zip htop screen libgl1-mesa-glx
 
-# Install pip packages
-COPY requirements.txt .
-RUN python -m pip install --upgrade pip wheel
-RUN pip uninstall -y Pillow torchtext  # torch torchvision
-RUN pip install --no-cache -r requirements.txt ultralytics albumentations comet gsutil notebook Pillow>=9.1.0 \
-    'opencv-python<4.6.0.66' \
-    --extra-index-url https://download.pytorch.org/whl/cu113
-
 # Create working directory
-RUN mkdir -p /usr/src/app
-WORKDIR /usr/src/app
+RUN mkdir -p /usr/src/ultralytics
+WORKDIR /usr/src/ultralytics
 
 # Copy contents
 # COPY . /usr/src/app  (issues as not a .git directory)
-RUN git clone https://github.com/ultralytics/yolov5 /usr/src/app
+RUN git clone https://github.com/ultralytics/ultralytics /usr/src/ultralytics
+
+# Install pip packages
+RUN python -m pip install --upgrade pip wheel
+RUN pip uninstall -y Pillow torchtext  # torch torchvision
+RUN pip install --no-cache ultralytics albumentations comet gsutil notebook Pillow>=9.1.0 \
+    'opencv-python<4.6.0.66' \
+    --extra-index-url https://download.pytorch.org/whl/cu113
 
 # Set environment variables
-ENV OMP_NUM_THREADS=8
+ENV OMP_NUM_THREADS=1
 
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
@@ -50,7 +49,7 @@ ENV OMP_NUM_THREADS=8
 # sudo docker kill $(sudo docker ps -qa --filter ancestor=ultralytics/ultralytics:latest)
 
 # DockerHub tag update
-# t=ultralytics/ultralytics:latest tnew=ultralytics/yolov5:v6.2 && sudo docker pull $t && sudo docker tag $t $tnew && sudo docker push $tnew
+# t=ultralytics/ultralytics:latest tnew=ultralytics/ultralytics:v6.2 && sudo docker pull $t && sudo docker tag $t $tnew && sudo docker push $tnew
 
 # Clean up
 # docker system prune -a --volumes

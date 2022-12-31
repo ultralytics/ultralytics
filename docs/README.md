@@ -1,6 +1,9 @@
 
 # Ultralytics Docs
 
+Deployed to https://docs.ultralytics.com/
+
+
 ## Install
 
 To install the ultralytics package in developer mode, you will need to have Git and Python 3 installed on your system. Then, follow these steps:
@@ -20,6 +23,7 @@ pip install -e .
 This will install the ultralytics package and its dependencies in developer mode, allowing you to make changes to the package code and have them reflected immediately in your Python environment.
 
 Note that you may need to use the pip3 command instead of pip if you have multiple versions of Python installed on your system.
+
 
 ## Build Docs
 

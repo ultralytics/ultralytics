@@ -91,7 +91,7 @@ class BaseDataset(Dataset):
             # self.img_files = sorted([x for x in f if x.suffix[1:].lower() in IMG_FORMATS])  # pathlib
             assert im_files, f"{self.prefix}No images found"
         except Exception as e:
-            raise Exception(f"{self.prefix}Error loading data from {img_path}: {e}\n{HELP_URL}")
+            raise FileNotFoundError(f"{self.prefix}Error loading data from {img_path}: {e}\n{HELP_URL}") from e
         return im_files
 
     def update_labels(self, include_class: Optional[list]):

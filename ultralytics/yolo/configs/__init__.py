@@ -6,13 +6,19 @@ from omegaconf import DictConfig, OmegaConf
 from ultralytics.yolo.configs.hydra_patch import check_config_mismatch
 
 
-def get_config(config: Union[str, DictConfig], overrides: Union[str, Dict] = {}):
+def get_config(config: Union[str, DictConfig], overrides: Union[str, Dict] = None):
     """
-    Accepts yaml file name or DictConfig containing experiment configuration.
-    Returns training args namespace
-    :param overrides: Overrides str or Dict
-    :param config: Optional file name or DictConfig object
+    Load and merge configuration data from a file or dictionary.
+
+    Args:
+        config (Union[str, DictConfig]): Configuration data in the form of a file name or a DictConfig object.
+        overrides (Union[str, Dict], optional): Overrides in the form of a file name or a dictionary. Default is None.
+
+    Returns:
+        OmegaConf.Namespace: Training arguments namespace.
     """
+    if overrides is None:
+        overrides = {}
     if isinstance(config, (str, Path)):
         config = OmegaConf.load(config)
     elif isinstance(config, Dict):

@@ -79,7 +79,7 @@ nav:
   - Quickstart: quickstart.md
   - CLI: cli.md
   - Python Interface: sdk.md
-  - Configuration: conf.md
+  - Configuration: config.md
   - Tasks:
       - Detection: tasks/detection.md
       - Segmentation: tasks/segmentation.md
@@ -95,4 +95,3 @@ nav:
           - Validator: reference/base_val.md
           - Predictor: reference/base_pred.md
           - Exporter: reference/exporter.md
-

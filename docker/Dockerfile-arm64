@@ -1,5 +1,5 @@
 # YOLOv5 🚀 by Ultralytics, GPL-3.0 license
-# Builds ultralytics/yolov5:latest-arm64 image on DockerHub https://hub.docker.com/r/ultralytics/yolov5
+# Builds ultralytics/ultralytics:latest-arm64 image on DockerHub https://hub.docker.com/r/ultralytics/yolov5
 # Image is aarch64-compatible for Apple M1 and other ARM architectures i.e. Jetson Nano and Raspberry Pi
 
 # Start FROM Ubuntu image https://hub.docker.com/_/ubuntu
@@ -37,7 +37,7 @@ ENV DEBIAN_FRONTEND teletype
 # Usage Examples -------------------------------------------------------------------------------------------------------
 
 # Build and Push
-# t=ultralytics/yolov5:latest-arm64 && sudo docker build --platform linux/arm64 -f utils/docker/Dockerfile-arm64 -t $t . && sudo docker push $t
+# t=ultralytics/ultralytics:latest-arm64 && sudo docker build --platform linux/arm64 -f utils/docker/Dockerfile-arm64 -t $t . && sudo docker push $t
 
 # Pull and Run
-# t=ultralytics/yolov5:latest-arm64 && sudo docker pull $t && sudo docker run -it --ipc=host -v "$(pwd)"/datasets:/usr/src/datasets $t
+# t=ultralytics/ultralytics:latest-arm64 && sudo docker pull $t && sudo docker run -it --ipc=host -v "$(pwd)"/datasets:/usr/src/datasets $t

@@ -519,7 +519,7 @@ class BaseTrainer:
             decay (float): weight decay
 
         Returns:
-            torch.optim.Optimizer: the built optimizer
+            optimizer (torch.optim.Optimizer): the built optimizer
         """
         g = [], [], []  # optimizer parameter groups
         bn = tuple(v for k, v in nn.__dict__.items() if 'Norm' in k)  # normalization layers, i.e. BatchNorm2d()

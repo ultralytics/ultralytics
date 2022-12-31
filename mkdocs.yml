@@ -79,7 +79,7 @@ nav:
   - Quickstart: quickstart.md
   - CLI: cli.md
   - Python Interface: sdk.md
-  - Configuration: conf.md
+  - Configuration: config.md
   - Tasks:
       - Detection: tasks/detection.md
       - Segmentation: tasks/segmentation.md
@@ -90,6 +90,6 @@ nav:
       - Customize Predictor: customize/predict.md
   - Reference:
       - YOLO Models: reference/model.md
-      - Trainer :
+      - Trainer:
           - BaseTrainer: reference/base_trainer.md
 

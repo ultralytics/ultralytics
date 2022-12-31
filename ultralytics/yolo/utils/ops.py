@@ -100,10 +100,31 @@ def non_max_suppression(
         max_det=300,
         nm=0,  # number of masks
 ):
-    """Non-Maximum Suppression (NMS) on inference results to reject overlapping detections
+    """
+    Perform non-maximum suppression (NMS) on a set of boxes, with support for masks and multiple labels per box.
+
+    Arguments:
+        prediction (torch.Tensor): A tensor of shape (batch_size, num_boxes, num_classes + 4 + num_masks)
+            containing the predicted boxes, classes, and masks. The tensor should be in the format
+            output by a model, such as YOLO.
+        conf_thres (float): The confidence threshold below which boxes will be filtered out.
+            Valid values are between 0.0 and 1.0.
+        iou_thres (float): The IoU threshold below which boxes will be filtered out during NMS.
+            Valid values are between 0.0 and 1.0.
+        classes (List[int]): A list of class indices to consider. If None, all classes will be considered.
+        agnostic (bool): If True, the model is agnostic to the number of classes, and all
+            classes will be considered as one.
+        multi_label (bool): If True, each box may have multiple labels.
+        labels (List[List[Union[int, float, torch.Tensor]]]): A list of lists, where each inner
+            list contains the apriori labels for a given image. The list should be in the format
+            output by a dataloader, with each label being a tuple of (class_index, x1, y1, x2, y2).
+        max_det (int): The maximum number of boxes to keep after NMS.
+        nm (int): The number of masks output by the model.
 
     Returns:
-         list of detections, on (n,6) tensor per image [xyxy, conf, cls]
+        List[torch.Tensor]: A list of length batch_size, where each element is a tensor of
+            shape (num_boxes, 6 + num_masks) containing the kept boxes, with columns
+            (x1, y1, x2, y2, confidence, class, mask1, mask2, ...).
     """
 
     # Checks

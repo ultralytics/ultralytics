@@ -116,14 +116,31 @@ def try_export(inner_func):
 
 
 class Exporter:
+    """
+    Exporter
 
-    def __init__(self, config=DEFAULT_CONFIG, overrides={}):
+    A class for exporting a model.
+
+    Attributes:
+        args (OmegaConf): Configuration for the exporter.
+        save_dir (Path): Directory to save results.
+    """
+
+    def __init__(self, config=DEFAULT_CONFIG, overrides=None):
+        """
+        Initializes the Exporter class.
+
+        Args:
+            cfg (str, optional): Path to a configuration file. Defaults to DEFAULT_CONFIG.
+            overrides (dict, optional): Configuration overrides. Defaults to None.
+        """
+        if overrides is None:
+            overrides = {}
         self.args = get_config(config, overrides)
         project = self.args.project or f"runs/{self.args.task}"
         name = self.args.name or "exp"  # hardcode mode as export doesn't require it
         self.save_dir = increment_path(Path(project) / name, exist_ok=self.args.exist_ok)
         self.save_dir.mkdir(parents=True, exist_ok=True)
-        self.imgsz = self.args.imgsz
 
     @smart_inference_mode()
     def __call__(self, model=None):
@@ -143,7 +160,7 @@ class Exporter:
             assert not self.args.dynamic, '--half not compatible with --dynamic, i.e. use either --half or --dynamic'
 
         # Checks
-        self.imgsz = check_imgsz(self.imgsz, stride=model.stride, min_dim=2)  # check image size
+        self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
         if self.args.optimize:
             assert self.device.type == 'cpu', '--optimize not compatible with cuda devices, i.e. use --device cpu'
 

@@ -12,27 +12,27 @@ If you want to train, validate or run inference on models and don't need to make
 The experiment arguments can be overridden directly by pass `arg=val` covered in the next section. You can run any supported task by setting `task` and `mode` in cli.
 === "Training"
 
-    |                    | `task`          | snippet                                                     |
-    | -----------        | -------------   | ----------------------------------------------------------- |
-    |  Detection         |  `detect`       | <pre><code>yolo task=detect mode=train       </code></pre>  |
-    |  Instance Segment  |  `segment`      | <pre><code>yolo task=segment mode=train      </code></pre>  |
-    |  Classification    |  `classify`     | <pre><code>yolo task=classify mode=train    </code></pre>   |
+|                | `task`      | snippet                                                 |
+| -----------    | -------------   | ----------------------------------------------------------- |
+|  Detection     |  `detect`   | <pre><code>yolo task=detect mode=train       </code></pre>  |
+|  Instance Segment  |  `segment`  | <pre><code>yolo task=segment mode=train      </code></pre>  |
+|  Classification|  `classify` | <pre><code>yolo task=classify mode=train    </code></pre>   |
 
 === "Inference"
 
-    |                    | `task`          | snippet                                                      |
-    | -----------        | -------------   | ------------------------------------------------------------ |
-    |  Detection         |  `detect`       | <pre><code>yolo task=detect mode=infer       </code></pre>   |
-    |  Instance Segment  |  `segment`      | <pre><code>yolo task=segment mode=infer     </code></pre>    |
-    |  Classification    |  `classify`     | <pre><code>yolo task=classify mode=infer    </code></pre>    |
+|                | `task`      | snippet                                                  |
+| -----------    | -------------   | ------------------------------------------------------------ |
+|  Detection     |  `detect`   | <pre><code>yolo task=detect mode=infer       </code></pre>   |
+|  Instance Segment  |  `segment`  | <pre><code>yolo task=segment mode=infer     </code></pre>|
+|  Classification|  `classify` | <pre><code>yolo task=classify mode=infer    </code></pre>|
 
 === "Validation"
 
-    |                    | `task`          | snippet                                                       |
-    | -----------        | -------------   | ------------------------------------------------------------- |
-    |  Detection         |  `detect`       | <pre><code>yolo task=detect mode=val        </code></pre>     |
-    |  Instance Segment  |  `segment`      | <pre><code>yolo task=segment mode=val       </code></pre>     |
-    |  Classification    |  `classify`     | <pre><code>yolo task=classify mode=val      </code></pre>     |
+|                | `task`      | snippet                                                   |
+| -----------    | -------------   | ------------------------------------------------------------- |
+|  Detection     |  `detect`   | <pre><code>yolo task=detect mode=val        </code></pre> |
+|  Instance Segment  |  `segment`  | <pre><code>yolo task=segment mode=val       </code></pre> |
+|  Classification|  `classify` | <pre><code>yolo task=classify mode=val      </code></pre> |
 
 !!! note ""
     <b>Note:</b> The arguments don't require `'--'` prefix. These are reserved for special commands covered later

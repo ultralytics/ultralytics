@@ -2,20 +2,20 @@
 """
 Export a YOLOv5 PyTorch model to other formats. TensorFlow exports authored by https://github.com/zldrobit
 
-Format                      | `format=argument`             | Model
----                         | ---                           | ---
-PyTorch                     | -                             | yolov8n.pt
-TorchScript                 | `torchscript`                 | yolov8n.torchscript
-ONNX                        | `onnx`                        | yolov8n.onnx
-OpenVINO                    | `openvino`                    | yolov8n_openvino_model/
-TensorRT                    | `engine`                      | yolov8n.engine
-CoreML                      | `coreml`                      | yolov8n.mlmodel
-TensorFlow SavedModel       | `saved_model`                 | yolov8n_saved_model/
-TensorFlow GraphDef         | `pb`                          | yolov8n.pb
-TensorFlow Lite             | `tflite`                      | yolov8n.tflite
-TensorFlow Edge TPU         | `edgetpu`                     | yolov8n_edgetpu.tflite
-TensorFlow.js               | `tfjs`                        | yolov8n_web_model/
-PaddlePaddle                | `paddle`                      | yolov8n_paddle_model/
+Format                  | `format=argument`         | Model
+---                     | ---                       | ---
+PyTorch                 | -                         | yolov8n.pt
+TorchScript             | `torchscript`             | yolov8n.torchscript
+ONNX                    | `onnx`                    | yolov8n.onnx
+OpenVINO                | `openvino`                | yolov8n_openvino_model/
+TensorRT                | `engine`                  | yolov8n.engine
+CoreML                  | `coreml`                  | yolov8n.mlmodel
+TensorFlow SavedModel   | `saved_model`             | yolov8n_saved_model/
+TensorFlow GraphDef     | `pb`                      | yolov8n.pb
+TensorFlow Lite         | `tflite`                  | yolov8n.tflite
+TensorFlow Edge TPU     | `edgetpu`                 | yolov8n_edgetpu.tflite
+TensorFlow.js           | `tfjs`                    | yolov8n_web_model/
+PaddlePaddle            | `paddle`                  | yolov8n_paddle_model/
 
 Requirements:
     $ pip install -r requirements.txt coremltools onnx onnx-simplifier onnxruntime openvino-dev tensorflow-cpu  # CPU
@@ -70,9 +70,9 @@ from ultralytics.nn.tasks import ClassificationModel, DetectionModel, Segmentati
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages
 from ultralytics.yolo.data.utils import check_dataset
-from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, colorstr, get_default_args
+from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, colorstr, get_default_args, yaml_save
 from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version, check_yaml
-from ultralytics.yolo.utils.files import file_size, increment_path, yaml_save
+from ultralytics.yolo.utils.files import file_size, increment_path
 from ultralytics.yolo.utils.ops import Profile
 from ultralytics.yolo.utils.torch_utils import guess_task_from_head, select_device, smart_inference_mode
 
@@ -116,14 +116,31 @@ def try_export(inner_func):
 
 
 class Exporter:
+    """
+    Exporter
 
-    def __init__(self, config=DEFAULT_CONFIG, overrides={}):
+    A class for exporting a model.
+
+    Attributes:
+        args (OmegaConf): Configuration for the exporter.
+        save_dir (Path): Directory to save results.
+    """
+
+    def __init__(self, config=DEFAULT_CONFIG, overrides=None):
+        """
+        Initializes the Exporter class.
+
+        Args:
+            config (str, optional): Path to a configuration file. Defaults to DEFAULT_CONFIG.
+            overrides (dict, optional): Configuration overrides. Defaults to None.
+        """
+        if overrides is None:
+            overrides = {}
         self.args = get_config(config, overrides)
         project = self.args.project or f"runs/{self.args.task}"
         name = self.args.name or "exp"  # hardcode mode as export doesn't require it
         self.save_dir = increment_path(Path(project) / name, exist_ok=self.args.exist_ok)
         self.save_dir.mkdir(parents=True, exist_ok=True)
-        self.imgsz = self.args.imgsz
 
     @smart_inference_mode()
     def __call__(self, model=None):
@@ -143,7 +160,7 @@ class Exporter:
             assert not self.args.dynamic, '--half not compatible with --dynamic, i.e. use either --half or --dynamic'
 
         # Checks
-        self.imgsz = check_imgsz(self.imgsz, stride=model.stride, min_dim=2)  # check image size
+        self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
         if self.args.optimize:
             assert self.device.type == 'cpu', '--optimize not compatible with cuda devices, i.e. use --device cpu'
 
@@ -181,7 +198,7 @@ class Exporter:
         self.im = im
         self.model = model
         self.file = file
-        self.output_shape = tuple(y.shape)
+        self.output_shape = tuple(y.shape) if isinstance(y, torch.Tensor) else (x.shape for x in y)
         self.metadata = {'stride': int(max(model.stride)), 'names': model.names}  # model metadata
         self.pretty_name = self.file.stem.replace('yolo', 'YOLO')
 

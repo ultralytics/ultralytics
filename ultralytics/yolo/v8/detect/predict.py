@@ -66,7 +66,7 @@ class DetectionPredictor(BasePredictor):
                 with open(f'{self.txt_path}.txt', 'a') as f:
                     f.write(('%g ' * len(line)).rstrip() % line + '\n')
 
-            if self.save_img or self.args.save_crop or self.args.view_img:  # Add bbox to image
+            if self.args.save or self.args.save_crop or self.args.show:  # Add bbox to image
                 c = int(cls)  # integer class
                 label = None if self.args.hide_labels else (
                     self.model.names[c] if self.args.hide_conf else f'{self.model.names[c]} {conf:.2f}')

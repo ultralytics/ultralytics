@@ -244,12 +244,12 @@ class BaseTrainer:
             for i, batch in pbar:
                 self.trigger_callbacks("on_train_batch_start")
 
-                # update dataloader attributes (optional)
+                # Update dataloader attributes (optional)
                 if epoch == (self.epochs - self.args.close_mosaic) and hasattr(self.train_loader.dataset, 'mosaic'):
                     LOGGER.info("Closing dataloader mosaic")
                     self.train_loader.dataset.mosaic = False
 
-                # warmup
+                # Warmup
                 ni = i + nb * epoch
                 if ni <= nw:
                     xi = [0, nw]  # x interp
@@ -261,7 +261,7 @@ class BaseTrainer:
                         if 'momentum' in x:
                             x['momentum'] = np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum])
 
-                # forward
+                # Forward
                 with torch.cuda.amp.autocast(self.amp):
                     batch = self.preprocess_batch(batch)
                     preds = self.model(batch["img"])
@@ -271,15 +271,15 @@ class BaseTrainer:
                     self.tloss = (self.tloss * i + self.loss_items) / (i + 1) if self.tloss is not None \
                         else self.loss_items
 
-                # backward
+                # Backward
                 self.scaler.scale(self.loss).backward()
 
-                # optimize - https://pytorch.org/docs/master/notes/amp_examples.html
+                # Optimize - https://pytorch.org/docs/master/notes/amp_examples.html
                 if ni - last_opt_step >= self.accumulate:
                     self.optimizer_step()
                     last_opt_step = ni
 
-                # log
+                # Log
                 mem = f'{torch.cuda.memory_reserved() / 1E9 if torch.cuda.is_available() else 0:.3g}G'  # (GB)
                 loss_len = self.tloss.shape[0] if len(self.tloss.size()) else 1
                 losses = self.tloss if loss_len > 1 else torch.unsqueeze(self.tloss, 0)
@@ -298,17 +298,17 @@ class BaseTrainer:
             self.trigger_callbacks("on_train_epoch_end")
 
             if rank in {-1, 0}:
-                # validation
+                # Validation
                 self.trigger_callbacks('on_val_start')
                 self.ema.update_attr(self.model, include=['yaml', 'nc', 'args', 'names', 'stride', 'class_weights'])
                 final_epoch = (epoch + 1 == self.epochs)
-                if not self.args.noval or final_epoch:
+                if self.args.val or final_epoch:
                     self.metrics, self.fitness = self.validate()
                 self.trigger_callbacks('on_val_end')
                 self.save_metrics(metrics={**self.label_loss_items(self.tloss), **self.metrics, **lr})
 
-                # save model
-                if (not self.args.nosave) or (epoch + 1 == self.epochs):
+                # Save model
+                if self.args.save or (epoch + 1 == self.epochs):
                     self.save_model()
                     self.trigger_callbacks('on_model_save')
 
@@ -319,7 +319,7 @@ class BaseTrainer:
             # TODO: termination condition
 
         if rank in {-1, 0}:
-            # do the last evaluation with best.pt
+            # Do final val with best.pt
             self.log(f'\n{epoch - self.start_epoch + 1} epochs completed in '
                      f'{(time.time() - self.train_time_start) / 3600:.3f} hours.')
             self.final_eval()

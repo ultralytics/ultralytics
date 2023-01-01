@@ -31,25 +31,23 @@ def cli(cfg):
                     """)
         return
 
-    elif task == "detect":
-        module = yolo.v8.detect
-    elif task == "segment":
-        module = yolo.v8.segment
-    elif task == "classify":
-        module = yolo.v8.classify
-    elif task == "export":
-        func = yolo.engine.exporter.export
-    else:
-        raise SyntaxError("task not recognized. Choices are `'detect', 'segment', 'classify'`")
+    # Mapping from task to module
+    task_module_map = {
+        "detect": yolo.v8.detect,
+        "segment": yolo.v8.segment,
+        "classify": yolo.v8.classify}
+    module = task_module_map.get(task)
+    if not module:
+        raise SyntaxError(f"task not recognized. Choices are {', '.join(task_module_map.keys())}")
 
-    if mode == "train":
-        func = module.train
-    elif mode == "val":
-        func = module.val
-    elif mode == "predict":
-        func = module.predict
-    elif mode == "export":
-        func = yolo.engine.exporter.export
-    else:
-        raise SyntaxError("mode not recognized. Choices are `'train', 'val', 'predict', 'export'`")
+    # Mapping from mode to function
+    mode_func_map = {
+        "train": module.train,
+        "val": module.val,
+        "predict": module.predict,
+        "export": yolo.engine.exporter.export}
+    func = mode_func_map.get(mode)
+    if not func:
+        raise SyntaxError(f"mode not recognized. Choices are {', '.join(mode_func_map.keys())}")
+
     func(cfg)

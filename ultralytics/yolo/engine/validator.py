@@ -73,7 +73,6 @@ class BaseValidator:
         Supports validation of a pre-trained model if passed or a model being trained
         if trainer is passed (trainer gets priority).
         """
-        self.run_callbacks('on_val_start')
         self.training = trainer is not None
         if self.training:
             self.device = trainer.device
@@ -85,6 +84,8 @@ class BaseValidator:
             self.loss = torch.zeros_like(trainer.loss_items, device=trainer.device)
             self.args.plots = trainer.epoch == trainer.epochs - 1  # always plot final epoch
         else:
+            callbacks.add_integration_callbacks(self)
+            self.run_callbacks('on_val_start')
             assert model is not None, "Either trainer or model is needed for validation"
             self.device = select_device(self.args.device, self.args.batch_size)
             self.args.half &= self.device.type != 'cpu'

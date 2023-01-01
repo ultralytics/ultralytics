@@ -135,7 +135,7 @@ default_callbacks = {
     'on_export_end': on_export_end}
 
 
-def add_integration_callbacks(trainer):
+def add_integration_callbacks(instance):
     from .clearml import callbacks as clearml_callbacks
     from .hub import callbacks as hub_callbacks
     from .tensorboard import callbacks as tb_callbacks
@@ -143,4 +143,4 @@ def add_integration_callbacks(trainer):
 
     for x in clearml_callbacks, hub_callbacks, tb_callbacks, wb_callbacks:
         for k, v in x.items():
-            trainer.callbacks[k].append(v)  # ballback[name].append(func)
+            instance.callbacks[k].append(v)  # callback[name].append(func)

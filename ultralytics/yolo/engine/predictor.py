@@ -90,6 +90,7 @@ class BasePredictor:
         self.annotator = None
         self.data_path = None
         self.callbacks = defaultdict(list, {k: [v] for k, v in callbacks.default_callbacks.items()})  # add callbacks
+        callbacks.add_integration_callbacks(self)
 
     def preprocess(self, img):
         pass

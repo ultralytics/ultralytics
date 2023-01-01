@@ -145,6 +145,7 @@ class Exporter:
         self.save_dir = increment_path(Path(project) / name, exist_ok=self.args.exist_ok)
         self.save_dir.mkdir(parents=True, exist_ok=True)
         self.callbacks = defaultdict(list, {k: [v] for k, v in callbacks.default_callbacks.items()})  # add callbacks
+        callbacks.add_integration_callbacks(self)
 
     @smart_inference_mode()
     def __call__(self, model=None):

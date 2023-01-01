@@ -469,7 +469,7 @@ class BaseTrainer:
                     self.validator.args.save_json = True
                     self.metrics = self.validator(model=f)
                     self.metrics.pop('fitness', None)
-                    self.run_callbacks('on_val_end')
+                    self.run_callbacks('on_fit_epoch_end')
 
     def check_resume(self):
         resume = self.args.resume

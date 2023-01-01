@@ -43,7 +43,7 @@ class ClassificationPredictor(BasePredictor):
 
         # write
         text = '\n'.join(f'{prob[j]:.2f} {self.model.names[j]}' for j in top5i)
-        if self.save_img or self.args.view_img:  # Add bbox to image
+        if self.args.save or self.args.show:  # Add bbox to image
             self.annotator.text((32, 32), text, txt_color=(255, 255, 255))
         if self.args.save_txt:  # Write to file
             with open(f'{self.txt_path}.txt', 'a') as f:

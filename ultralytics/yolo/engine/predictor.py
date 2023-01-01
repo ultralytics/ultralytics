@@ -104,7 +104,6 @@ class BasePredictor:
     def setup(self, source=None, model=None):
         # source
         source = str(source or self.args.source)
-        self.save_img = not self.args.nosave and not source.endswith('.txt')
         is_file = Path(source).suffix[1:] in (IMG_FORMATS + VID_FORMATS)
         is_url = source.lower().startswith(('rtsp://', 'rtmp://', 'http://', 'https://'))
         webcam = source.isnumeric() or source.endswith('.streams') or (is_url and not is_file)
@@ -168,10 +167,10 @@ class BasePredictor:
                 p = Path(path)
                 s += self.write_results(i, preds, (p, im, im0s))
 
-                if self.args.view_img:
+                if self.args.show:
                     self.show(p)
 
-                if self.save_img:
+                if self.args.save:
                     self.save_preds(vid_cap, i, str(self.save_dir / p.name))
 
             # Print time (inference-only)
@@ -182,7 +181,7 @@ class BasePredictor:
         LOGGER.info(
             f'Speed: %.1fms pre-process, %.1fms inference, %.1fms postprocess per image at shape {(1, 3, *self.imgsz)}'
             % t)
-        if self.args.save_txt or self.save_img:
+        if self.args.save_txt or self.args.save:
             s = f"\n{len(list(self.save_dir.glob('labels/*.txt')))} labels saved to {self.save_dir / 'labels'}" if self.args.save_txt else ''
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
 

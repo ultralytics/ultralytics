@@ -3,9 +3,9 @@ from pathlib import Path
 
 import hydra
 
-import ultralytics
 from ultralytics import hub, yolo
 from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, colorstr
+
 
 DIR = Path(__file__).parent
 
@@ -20,12 +20,13 @@ def cli(cfg):
     """
     # LOGGER.info(f"{colorstr(f'Ultralytics YOLO v{ultralytics.__version__}')}")
     task, mode = cfg.task.lower(), cfg.mode.lower()
+    hub.utils.sync_analytics(cfg)  # sync analytics data if enabled in the global settings
 
     # Special case for initializing the configuration
     if task == "init":
-        shutil.copy2(DEFAULT_CONFIG, Path().cwd())
+        shutil.copy2(DEFAULT_CONFIG, Path.cwd())
         LOGGER.info(f"""
-        {colorstr("YOLO:")} configuration saved to {Path().cwd() / DEFAULT_CONFIG.name}.
+        {colorstr("YOLO:")} configuration saved to {Path.cwd() / DEFAULT_CONFIG.name}.
         To run experiments using custom configuration:
         yolo task='task' mode='mode' --config-name config_file.yaml
                     """)

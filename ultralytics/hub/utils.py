@@ -1,10 +1,12 @@
 import shutil
 import threading
 import time
+import uuid
 
 import requests
 
-from ultralytics.yolo.utils import LOGGER, colorstr, emojis
+from ultralytics.hub.config import HUB_API_ROOT
+from ultralytics.yolo.utils import LOGGER, colorstr, emojis, SETTINGS
 
 PREFIX = colorstr('Ultralytics: ')
 HELP_MSG = 'If this issue persists please visit https://github.com/ultralytics/hub/issues for assistance.'
@@ -12,9 +14,9 @@ HELP_MSG = 'If this issue persists please visit https://github.com/ultralytics/h
 
 def check_dataset_disk_space(url='https://github.com/ultralytics/yolov5/releases/download/v1.0/coco128.zip', sf=2.0):
     # Check that url fits on disk with safety factor sf, i.e. require 2GB free if url size is 1GB with sf=2.0
-    gib = 1 / 1024 ** 3  # bytes to GiB
-    data = int(requests.head(url).headers['Content-Length']) * gib  # dataset size (GB)
-    total, used, free = (x * gib for x in shutil.disk_usage("/"))  # bytes
+    gib = 1 << 30  # bytes to GiB
+    data = int(requests.head(url).headers['Content-Length']) / gib  # dataset size (GB)
+    total, used, free = (x / gib for x in shutil.disk_usage("/"))  # bytes
     print(f'{PREFIX}{data:.3f} GB dataset, {free:.1f}/{total:.1f} GB free disk space')
     if data * sf < free:
         return True  # sufficient space
@@ -49,24 +51,45 @@ def request_with_credentials(url: str) -> any:
 
 
 # Deprecated TODO: eliminate this function?
-def split_key(key=''):
-    # Verify and split a 'api_key[sep]model_id' string, sep is one of '.' or '_'
-    # key = 'ac0ab020186aeb50cc4c2a5272de17f58bbd2c0_RqFCDNBxgU4mOLmaBrcd'  # example
-    # api_key='ac0ab020186aeb50cc4c2a5272de17f58bbd2c0', model_id='RqFCDNBxgU4mOLmaBrcd'  # example
+def split_key(key: str = '') -> tuple[str, str]:
+    """
+    Verify and split a 'api_key[sep]model_id' string, sep is one of '.' or '_'
+
+    Args:
+        key (str): The model key to split. If not provided, the user will be prompted to enter it.
+
+    Returns:
+        Tuple[str, str]: A tuple containing the API key and model ID.
+    """
+
     import getpass
 
-    s = emojis(f'{PREFIX}Invalid API key ⚠️\n')  # error string
+    error_string = emojis(f'{PREFIX}Invalid API key ⚠️\n')  # error string
     if not key:
         key = getpass.getpass('Enter model key: ')
     sep = '_' if '_' in key else '.' if '.' in key else None  # separator
-    assert sep, s
+    assert sep, error_string
     api_key, model_id = key.split(sep)
-    assert len(api_key) and len(model_id), s
+    assert len(api_key) and len(model_id), error_string
     return api_key, model_id
 
 
-def smart_request(*args, retry=3, timeout=30, thread=True, code='', method="post", **kwargs):
-    # requests.post with exponential standoff retries up to timeout(seconds)
+def smart_request(*args, retry=3, timeout=30, thread=True, code=-1, method="post", **kwargs):
+    """
+    Makes an HTTP request using the 'requests' library, with exponential backoff retries up to a specified timeout.
+
+    Args:
+        *args: Positional arguments to be passed to the requests function specified in method.
+        retry (int, optional): Number of retries to attempt before giving up. Default is 3.
+        timeout (int, optional): Timeout in seconds after which the function will give up retrying. Default is 30.
+        thread (bool, optional): Whether to execute the request in a separate daemon thread. Default is True.
+        code (int, optional): An identifier for the request, used for logging purposes. Default is -1.
+        method (str, optional): The HTTP method to use for the request. Choices are 'post' and 'get'. Default is 'post'.
+        **kwargs: Keyword arguments to be passed to the requests function specified in method.
+
+    Returns:
+        requests.Response: The HTTP response object. If the request is executed in a separate thread, returns None.
+    """
     retry_codes = (408, 500)  # retry only these codes
     methods = {'post': requests.post, 'get': requests.get}  # request methods
 
@@ -99,3 +122,19 @@ def smart_request(*args, retry=3, timeout=30, thread=True, code='', method="post
         threading.Thread(target=fcn, args=args, kwargs=kwargs, daemon=True).start()
     else:
         return fcn(*args, **kwargs)
+
+
+def sync_analytics(cfg, enabled=False):
+    """
+   Sync analytics data if enabled in the global settings
+
+    Args:
+        cfg (DictConfig): Configuration for the task and mode.
+    """
+    if SETTINGS['sync']:
+        cfg = dict(cfg)  # convert type from DictConfig to dict
+        cfg['uuid'] = uuid.getnode()  # add the device UUID to the configuration data
+
+        # Send a request to the HUB API to sync the analytics data
+        if enabled:
+            smart_request(f'{HUB_API_ROOT}/analytics', data=cfg, headers=None, code=3, retry=0)

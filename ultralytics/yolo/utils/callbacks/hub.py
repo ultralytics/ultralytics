@@ -73,4 +73,8 @@ callbacks = {
     "on_pretrain_routine_end": on_pretrain_routine_end,
     "on_fit_epoch_end": on_fit_epoch_end,
     "on_model_save": on_model_save,
-    "on_train_end": on_train_end}
+    "on_train_end": on_train_end,
+    "on_train_start": on_train_start,
+    "on_val_start": on_val_start,
+    "on_predict_start": on_predict_start,
+    "on_export_start": on_export_start}

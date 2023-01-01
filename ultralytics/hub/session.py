@@ -5,7 +5,6 @@ from time import sleep
 
 import requests
 
-import ultralytics.yolo.utils.callbacks.hub as hub_callbacks
 from ultralytics import __version__
 from ultralytics.hub.config import HUB_API_ROOT
 from ultralytics.hub.utils import check_dataset_disk_space, smart_request
@@ -100,10 +99,12 @@ class HubTrainingSession:
         if not check_dataset_disk_space(self.model['data']):
             raise MemoryError("Not enough disk space")
 
-    @staticmethod
-    def register_callbacks(trainer):
-        for k, v in hub_callbacks.callbacks.items():
-            trainer.add_callback(k, v)
+    # COMMENT: Should not be needed as HUB is now considered an integration and is in integrations_callbacks
+    # import ultralytics.yolo.utils.callbacks.hub as hub_callbacks
+    # @staticmethod
+    # def register_callbacks(trainer):
+    #     for k, v in hub_callbacks.callbacks.items():
+    #         trainer.add_callback(k, v)
 
     @threaded
     def _heartbeats(self):

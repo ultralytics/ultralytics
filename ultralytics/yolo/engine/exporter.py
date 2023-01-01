@@ -137,6 +137,8 @@ class Exporter:
         """
         if overrides is None:
             overrides = {}
+        if 'batch_size' not in overrides:
+            overrides['batch_size'] = 1  # set default export batch size
         self.args = get_config(config, overrides)
         project = self.args.project or f"runs/{self.args.task}"
         name = self.args.name or "exp"  # hardcode mode as export doesn't require it
@@ -168,7 +170,6 @@ class Exporter:
             assert self.device.type == 'cpu', '--optimize not compatible with cuda devices, i.e. use --device cpu'
 
         # Input
-        self.args.batch_size = 1  # TODO: resolve this issue, default 16 not fit for export
         im = torch.zeros(self.args.batch_size, 3, *self.imgsz).to(self.device)
         file = Path(getattr(model, 'yaml_file', None) or Path(model.yaml['yaml_file']).name)
 

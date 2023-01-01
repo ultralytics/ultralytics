@@ -6,7 +6,7 @@ import uuid
 import requests
 
 from ultralytics.hub.config import HUB_API_ROOT
-from ultralytics.yolo.utils import LOGGER, colorstr, emojis, SETTINGS
+from ultralytics.yolo.utils import LOGGER, SETTINGS, colorstr, emojis
 
 PREFIX = colorstr('Ultralytics: ')
 HELP_MSG = 'If this issue persists please visit https://github.com/ultralytics/hub/issues for assistance.'

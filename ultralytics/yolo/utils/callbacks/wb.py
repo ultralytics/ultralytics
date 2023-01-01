@@ -9,7 +9,7 @@ except (ImportError, AssertionError):
 
 
 def on_pretrain_routine_start(trainer):
-    wandb.init(project=trainer.args.project if trainer.args.project != 'runs/train' else 'YOLOv8',
+    wandb.init(project=trainer.args.project if trainer.args.project else "YOLOv8",
                name=trainer.args.name,
                config=dict(trainer.args)) if not wandb.run else wandb.run
 

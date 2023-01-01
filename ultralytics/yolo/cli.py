@@ -32,10 +32,7 @@ def cli(cfg):
         return
 
     # Mapping from task to module
-    task_module_map = {
-        "detect": yolo.v8.detect,
-        "segment": yolo.v8.segment,
-        "classify": yolo.v8.classify}
+    task_module_map = {"detect": yolo.v8.detect, "segment": yolo.v8.segment, "classify": yolo.v8.classify}
     module = task_module_map.get(task)
     if not module:
         raise SyntaxError(f"task not recognized. Choices are {', '.join(task_module_map.keys())}")

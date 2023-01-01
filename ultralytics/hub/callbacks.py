@@ -13,7 +13,7 @@ def on_pretrain_routine_end(trainer):
     trainer.hub_session.t = {'metrics': time(), 'ckpt': time()}  # start timer on self.rate_limit
 
 
-def on_val_end(trainer):
+def on_fit_epoch_end(trainer):
     # Upload metrics after val end
     session = trainer.hub_session
 
@@ -53,6 +53,6 @@ def on_train_end(trainer):
 
 callbacks = {
     "on_pretrain_routine_end": on_pretrain_routine_end,
-    "on_val_end": on_val_end,
+    "on_fit_epoch_end": on_fit_epoch_end,
     "on_model_save": on_model_save,
     "on_train_end": on_train_end}

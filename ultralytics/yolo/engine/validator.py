@@ -16,7 +16,6 @@ from ultralytics.yolo.utils.ops import Profile
 from ultralytics.yolo.utils.torch_utils import de_parallel, select_device, smart_inference_mode
 
 
-
 class BaseValidator:
     """
     BaseValidator

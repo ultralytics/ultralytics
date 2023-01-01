@@ -136,20 +136,20 @@ class BaseTrainer:
         if RANK in {0, -1}:
             callbacks.add_integration_callbacks(self)
 
-    def add_callback(self, onevent: str, callback):
+    def add_callback(self, event: str, callback):
         """
         appends the given callback
         """
-        self.callbacks[onevent].append(callback)
+        self.callbacks[event].append(callback)
 
-    def set_callback(self, onevent: str, callback):
+    def set_callback(self, event: str, callback):
         """
         overrides the existing callbacks with the given callback
         """
-        self.callbacks[onevent] = [callback]
+        self.callbacks[event] = [callback]
 
-    def trigger_callbacks(self, onevent: str):
-        for callback in self.callbacks.get(onevent, []):
+    def run_callbacks(self, event: str):
+        for callback in self.callbacks.get(event, []):
             callback(self)
 
     def train(self):
@@ -178,7 +178,7 @@ class BaseTrainer:
         Builds dataloaders and optimizer on correct rank process
         """
         # model
-        self.trigger_callbacks("on_pretrain_routine_start")
+        self.run_callbacks("on_pretrain_routine_start")
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
         self.set_model_attributes()
@@ -210,7 +210,7 @@ class BaseTrainer:
             metric_keys = self.validator.metric_keys + self.label_loss_items(prefix="val")
             self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))  # TODO: init metrics for plot_results()?
             self.ema = ModelEMA(self.model)
-        self.trigger_callbacks("on_pretrain_routine_end")
+        self.run_callbacks("on_pretrain_routine_end")
 
     def _do_train(self, rank=-1, world_size=1):
         if world_size > 1:
@@ -224,14 +224,14 @@ class BaseTrainer:
         nb = len(self.train_loader)  # number of batches
         nw = max(round(self.args.warmup_epochs * nb), 100)  # number of warmup iterations
         last_opt_step = -1
-        self.trigger_callbacks("on_train_start")
+        self.run_callbacks("on_train_start")
         self.log(f"Image sizes {self.args.imgsz} train, {self.args.imgsz} val\n"
                  f'Using {self.train_loader.num_workers * (world_size or 1)} dataloader workers\n'
                  f"Logging results to {colorstr('bold', self.save_dir)}\n"
                  f"Starting training for {self.epochs} epochs...")
         for epoch in range(self.start_epoch, self.epochs):
             self.epoch = epoch
-            self.trigger_callbacks("on_train_epoch_start")
+            self.run_callbacks("on_train_epoch_start")
             self.model.train()
             if rank != -1:
                 self.train_loader.sampler.set_epoch(epoch)
@@ -242,7 +242,7 @@ class BaseTrainer:
             self.tloss = None
             self.optimizer.zero_grad()
             for i, batch in pbar:
-                self.trigger_callbacks("on_train_batch_start")
+                self.run_callbacks("on_train_batch_start")
 
                 # Update dataloader attributes (optional)
                 if epoch == (self.epochs - self.args.close_mosaic) and hasattr(self.train_loader.dataset, 'mosaic'):
@@ -287,35 +287,34 @@ class BaseTrainer:
                     pbar.set_description(
                         ('%11s' * 2 + '%11.4g' * (2 + loss_len)) %
                         (f'{epoch + 1}/{self.epochs}', mem, *losses, batch["cls"].shape[0], batch["img"].shape[-1]))
-                    self.trigger_callbacks('on_batch_end')
+                    self.run_callbacks('on_batch_end')
                     if self.args.plots and ni < 3:
                         self.plot_training_samples(batch, ni)
 
-                self.trigger_callbacks("on_train_batch_end")
+                self.run_callbacks("on_train_batch_end")
 
             lr = {f"lr{ir}": x['lr'] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers
             self.scheduler.step()
-            self.trigger_callbacks("on_train_epoch_end")
+            self.run_callbacks("on_train_epoch_end")
 
             if rank in {-1, 0}:
+
                 # Validation
-                self.trigger_callbacks('on_val_start')
                 self.ema.update_attr(self.model, include=['yaml', 'nc', 'args', 'names', 'stride', 'class_weights'])
                 final_epoch = (epoch + 1 == self.epochs)
                 if self.args.val or final_epoch:
                     self.metrics, self.fitness = self.validate()
-                self.trigger_callbacks('on_val_end')
                 self.save_metrics(metrics={**self.label_loss_items(self.tloss), **self.metrics, **lr})
 
                 # Save model
                 if self.args.save or (epoch + 1 == self.epochs):
                     self.save_model()
-                    self.trigger_callbacks('on_model_save')
+                    self.run_callbacks('on_model_save')
 
             tnow = time.time()
             self.epoch_time = tnow - self.epoch_time_start
             self.epoch_time_start = tnow
-
+            self.run_callbacks("on_fit_epoch_end")
             # TODO: termination condition
 
         if rank in {-1, 0}:
@@ -326,9 +325,9 @@ class BaseTrainer:
             if self.args.plots:
                 self.plot_metrics()
             self.log(f"Results saved to {colorstr('bold', self.save_dir)}")
-            self.trigger_callbacks('on_train_end')
+            self.run_callbacks('on_train_end')
         torch.cuda.empty_cache()
-        self.trigger_callbacks('teardown')
+        self.run_callbacks('teardown')
 
     def save_model(self):
         ckpt = {
@@ -470,7 +469,7 @@ class BaseTrainer:
                     self.validator.args.save_json = True
                     self.metrics = self.validator(model=f)
                     self.metrics.pop('fitness', None)
-                    self.trigger_callbacks('on_val_end')
+                    self.run_callbacks('on_val_end')
 
     def check_resume(self):
         resume = self.args.resume

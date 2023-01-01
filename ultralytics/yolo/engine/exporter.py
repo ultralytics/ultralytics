@@ -56,6 +56,7 @@ import re
 import subprocess
 import time
 import warnings
+from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
 
@@ -71,6 +72,7 @@ from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages
 from ultralytics.yolo.data.utils import check_dataset
 from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, colorstr, get_default_args, yaml_save
+from ultralytics.yolo.utils.callbacks import default_callbacks
 from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version, check_yaml
 from ultralytics.yolo.utils.files import file_size, increment_path
 from ultralytics.yolo.utils.ops import Profile
@@ -142,8 +144,14 @@ class Exporter:
         self.save_dir = increment_path(Path(project) / name, exist_ok=self.args.exist_ok)
         self.save_dir.mkdir(parents=True, exist_ok=True)
 
+        # callbacks
+        self.callbacks = defaultdict([])
+        for callback, func in default_callbacks.items():
+            self.add_callback(callback, func)
+
     @smart_inference_mode()
     def __call__(self, model=None):
+        self.run_callbacks("on_export_start")
         t = time.time()
         format = self.args.format.lower()  # to lowercase
         fmts = tuple(export_formats()['Argument'][1:])  # available export formats
@@ -245,6 +253,8 @@ class Exporter:
                         f"\nPredict:         yolo task={task} mode=predict model={f[-1]} {s}"
                         f"\nValidate:        yolo task={task} mode=val model={f[-1]} {s}"
                         f"\nVisualize:       https://netron.app")
+
+        self.run_callbacks("on_export_end")
         return f  # return list of exported files/dirs
 
     @try_export
@@ -754,6 +764,22 @@ class Exporter:
         model.output_description['coordinates'] = 'Boxes × [x, y, width, height] (relative to image size)'
         LOGGER.info(f'{prefix} pipeline success')
         return model
+
+    def add_callback(self, event: str, callback):
+        """
+        appends the given callback
+        """
+        self.callbacks[event].append(callback)
+
+    def set_callback(self, event: str, callback):
+        """
+        overrides the existing callbacks with the given callback
+        """
+        self.callbacks[event] = [callback]
+
+    def run_callbacks(self, event: str):
+        for callback in self.callbacks.get(event, []):
+            callback(self)
 
 
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)

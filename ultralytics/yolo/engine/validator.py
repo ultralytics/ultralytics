@@ -1,4 +1,5 @@
 import json
+from collections import defaultdict
 from pathlib import Path
 
 import torch
@@ -8,6 +9,7 @@ from tqdm import tqdm
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
 from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, RANK, TQDM_BAR_FORMAT
+from ultralytics.yolo.utils.callbacks import default_callbacks
 from ultralytics.yolo.utils.checks import check_imgsz
 from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.ops import Profile
@@ -64,12 +66,18 @@ class BaseValidator:
                                                    exist_ok=self.args.exist_ok if RANK in {-1, 0} else True)
         (self.save_dir / 'labels' if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
 
+        # callbacks
+        self.callbacks = defaultdict(list)
+        for callback, func in default_callbacks.items():
+            self.add_callback(callback, func)
+
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
         """
         Supports validation of a pre-trained model if passed or a model being trained
         if trainer is passed (trainer gets priority).
         """
+        self.run_callbacks('on_val_start')
         self.training = trainer is not None
         if self.training:
             self.device = trainer.device
@@ -116,6 +124,7 @@ class BaseValidator:
         self.init_metrics(de_parallel(model))
         self.jdict = []  # empty before each val
         for batch_i, batch in enumerate(bar):
+            self.run_callbacks('on_val_batch_start')
             self.batch_i = batch_i
             # pre-process
             with dt[0]:
@@ -139,10 +148,12 @@ class BaseValidator:
                 self.plot_val_samples(batch, batch_i)
                 self.plot_predictions(batch, preds, batch_i)
 
+            self.run_callbacks('on_val_batch_end')
         stats = self.get_stats()
         self.check_stats(stats)
         self.print_results()
         self.speed = tuple(x.t / len(self.dataloader.dataset) * 1E3 for x in dt)  # speeds per image
+        self.run_callbacks('on_val_end')
         if self.training:
             model.float()
             return {**stats, **trainer.label_loss_items(self.loss.cpu() / len(self.dataloader), prefix="val")}
@@ -155,6 +166,22 @@ class BaseValidator:
                     json.dump(self.jdict, f)  # flatten and save
                 stats = self.eval_json(stats)  # update stats
             return stats
+
+    def add_callback(self, event: str, callback):
+        """
+        appends the given callback
+        """
+        self.callbacks[event].append(callback)
+
+    def set_callback(self, event: str, callback):
+        """
+        overrides the existing callbacks with the given callback
+        """
+        self.callbacks[event] = [callback]
+
+    def run_callbacks(self, event: str):
+        for callback in self.callbacks.get(event, []):
+            callback(self)
 
     def get_dataloader(self, dataset_path, batch_size):
         raise NotImplementedError("get_dataloader function not implemented for this validator")

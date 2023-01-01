@@ -5,27 +5,27 @@ task: "classify" # choices=['detect', 'segment', 'classify', 'init'] # init is a
 mode: "train" # choices=['train', 'val', 'predict'] # mode to run task in.
 
 # Train settings -------------------------------------------------------------------------------------------------------
-model: null # i.e. yolov5s.pt, yolo.yaml. Path to model file.
-data: null # i.e. coco128.yaml. Path to data file.
-epochs: 100 # number of epochs to train for.
-batch_size: 16 # number of images per batch.
-imgsz: 640 # size of input images.
-save: True # save checkpoints.
-cache: False # True/ram, disk or False. Use cache for data loading.
-device: '' # cuda device, i.e. 0 or 0,1,2,3 or cpu. Device to run on.
-workers: 8 # number of worker threads for data loading.
-project: null # project name.
-name: null # experiment name.
-exist_ok: False # whether to overwrite existing experiment.
-pretrained: False # whether to use a pretrained model.
-optimizer: 'SGD' # choices=['SGD', 'Adam', 'AdamW', 'RMSProp']. Optimizer to use.
-verbose: False # whether to print verbose output.
-seed: 0 # random seed for reproducibility.
-deterministic: True # whether to enable deterministic mode.
-local_rank: -1 # local rank for distributed training.
-single_cls: False # train multi-class data as single-class.
-image_weights: False # use weighted image selection for training.
-rect: False # support rectangular training.
+model: null # i.e. yolov5s.pt, yolo.yaml. Path to model file
+data: null # i.e. coco128.yaml. Path to data file
+epochs: 100 # number of epochs to train for
+batch_size: 16 # number of images per batch
+imgsz: 640 # size of input images
+save: True # save checkpoints
+cache: False # True/ram, disk or False. Use cache for data loading
+device: '' # cuda device, i.e. 0 or 0,1,2,3 or cpu. Device to run on
+workers: 8 # number of worker threads for data loading
+project: null # project name
+name: null # experiment name
+exist_ok: False # whether to overwrite existing experiment
+pretrained: False # whether to use a pretrained model
+optimizer: 'SGD' # optimizer to use, choices=['SGD', 'Adam', 'AdamW', 'RMSProp']
+verbose: False # whether to print verbose output
+seed: 0 # random seed for reproducibility
+deterministic: True # whether to enable deterministic mode
+local_rank: -1 # local rank for distributed training
+single_cls: False # train multi-class data as single-class
+image_weights: False # use weighted image selection for training
+rect: False # support rectangular training
 cos_lr: False # use cosine learning rate scheduler
 close_mosaic: 10 # disable mosaic augmentation for final 10 epochs
 resume: False # resume training from last checkpoint
@@ -101,11 +101,11 @@ mosaic: 1.0  # image mosaic (probability)
 mixup: 0.0  # image mixup (probability)
 copy_paste: 0.0  # segment copy-paste (probability)
 
-# For debugging. Don't change
-v5loader: False
-
 # Hydra configs --------------------------------------------------------------------------------------------------------
 hydra:
   output_subdir: null  # disable hydra directory creation
   run:
     dir: .
+
+# Debug, do not modify -------------------------------------------------------------------------------------------------
+v5loader: False  # use legacy YOLOv5 dataloader

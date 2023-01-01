@@ -6,7 +6,7 @@ from omegaconf import DictConfig, OmegaConf
 from ultralytics.yolo.configs.hydra_patch import check_config_mismatch
 
 
-def get_config(config: Union[str, DictConfig], overrides: Union[str, Dict] = None):
+def get_config(config: Union[str, DictConfig], overrides: Union[str, Dict] = None, force_match=True):
     """
     Load and merge configuration data from a file or dictionary.
 
@@ -28,6 +28,15 @@ def get_config(config: Union[str, DictConfig], overrides: Union[str, Dict] = Non
         overrides = OmegaConf.load(overrides)
     elif isinstance(overrides, Dict):
         overrides = OmegaConf.create(overrides)
+
+    # Patch. Force update the configs.
+    if force_match:
+        if overrides.get("nosave") is not None:
+            overrides.save = not overrides.pop("nosave")
+        if overrides.get("noval") is not None:
+            overrides.val = not overrides.pop("noval")
+        if overrides.get("view_img") is not None:
+            overrides.show = overrides.pop("view_img")
 
     check_config_mismatch(dict(overrides).keys(), dict(config).keys())
 

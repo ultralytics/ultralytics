@@ -137,7 +137,7 @@ default_callbacks = {
 
 def add_integration_callbacks(trainer):
     from .clearml import callbacks as clearml_callbacks
-    from .tb import callbacks as tb_callbacks
+    from .tensorboard import callbacks as tb_callbacks
     from .wb import callbacks as wb_callbacks
 
     for x in clearml_callbacks, tb_callbacks, wb_callbacks:

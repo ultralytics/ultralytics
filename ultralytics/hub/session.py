@@ -5,8 +5,8 @@ from time import sleep
 
 import requests
 
+import ultralytics.yolo.utils.callbacks.hub as hub_callbacks
 from ultralytics import __version__
-from ultralytics.hub.callbacks import callbacks
 from ultralytics.hub.config import HUB_API_ROOT
 from ultralytics.hub.utils import check_dataset_disk_space, smart_request
 from ultralytics.yolo.utils import LOGGER, is_colab, threaded
@@ -102,7 +102,7 @@ class HubTrainingSession:
 
     @staticmethod
     def register_callbacks(trainer):
-        for k, v in callbacks.items():
+        for k, v in hub_callbacks.callbacks.items():
             trainer.add_callback(k, v)
 
     @threaded

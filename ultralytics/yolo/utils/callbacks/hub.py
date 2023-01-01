@@ -17,7 +17,7 @@ def on_fit_epoch_end(trainer):
     # Upload metrics after val end
     session = trainer.hub_session
 
-    # Temp. Figure out the source of this problm
+    # Temp. Figure out the source of this problem
     metrics = trainer.metrics
     for k, v in metrics.items():
         if isinstance(v, torch.Tensor):
@@ -45,8 +45,7 @@ def on_train_end(trainer):
     session = trainer.hub_session
     LOGGER.info(f"{PREFIX}Training completed successfully ✅")
     LOGGER.info(f"{PREFIX}Uploading final {session.model_id}")
-    session.upload_model(trainer.epoch, trainer.best, map=trainer.metrics['metrics/mAP50(B)'],
-                         final=True)  # results[3] is mAP0.5:0.95
+    session.upload_model(trainer.epoch, trainer.best, map=trainer.metrics['metrics/mAP50(B)'], final=True)
     session.alive = False  # stop heartbeats
     LOGGER.info(f"{PREFIX}View model at https://hub.ultralytics.com/models/{session.model_id} 🚀")
 

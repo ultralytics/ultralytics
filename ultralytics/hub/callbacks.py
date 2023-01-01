@@ -4,7 +4,7 @@ from time import time
 import torch
 
 from ultralytics.hub.utils import PREFIX
-from ultralytics.yolo.utils import LOGGER, emojis
+from ultralytics.yolo.utils import LOGGER
 
 
 def on_pretrain_routine_end(trainer):

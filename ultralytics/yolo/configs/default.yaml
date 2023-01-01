@@ -11,7 +11,7 @@ data: null  # i.e. coco128.yaml
 epochs: 100
 batch_size: 16
 imgsz: 640
-save: True
+save: True  # save checkpoints
 cache: False  # True/ram, disk or False
 device: ''  # cuda device, i.e. 0 or 0,1,2,3 or cpu
 workers: 8
@@ -38,7 +38,7 @@ dropout: False  # use dropout
 
 
 # Val/Test settings ----------------------------------------------------------------------------------------------------
-val: True
+val: True  # validate/test during training
 save_json: False
 save_hybrid: False
 conf_thres: 0.001
@@ -49,8 +49,8 @@ dnn: False  # use OpenCV DNN for ONNX inference
 plots: True
 
 # Prediction settings --------------------------------------------------------------------------------------------------
-source: "ultralytics/assets/"
-view_img: False
+source: "ultralytics/assets"
+show: False  # show results if possible
 save_txt: False
 save_conf: False
 save_crop: False

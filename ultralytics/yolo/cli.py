@@ -19,7 +19,6 @@ def cli(cfg):
     """
     # LOGGER.info(f"{colorstr(f'Ultralytics YOLO v{ultralytics.__version__}')}")
     task, mode = cfg.task.lower(), cfg.mode.lower()
-    hub.utils.sync_analytics(cfg)  # sync analytics data if enabled in the global settings
 
     # Special case for initializing the configuration
     if task == "init":

@@ -6,7 +6,7 @@ import uuid
 import requests
 
 from ultralytics.hub.config import HUB_API_ROOT
-from ultralytics.yolo.utils import LOGGER, SETTINGS, colorstr, emojis
+from ultralytics.yolo.utils import LOGGER, RANK, SETTINGS, colorstr, emojis
 
 PREFIX = colorstr('Ultralytics: ')
 HELP_MSG = 'If this issue persists please visit https://github.com/ultralytics/hub/issues for assistance.'
@@ -130,11 +130,11 @@ def sync_analytics(cfg, enabled=False):
 
     Args:
         cfg (DictConfig): Configuration for the task and mode.
+        enabled (bool): For debugging.
     """
-    if SETTINGS['sync']:
+    if SETTINGS['sync'] and RANK in {-1, 0} and enabled:
         cfg = dict(cfg)  # convert type from DictConfig to dict
         cfg['uuid'] = uuid.getnode()  # add the device UUID to the configuration data
 
         # Send a request to the HUB API to sync the analytics data
-        if enabled:
-            smart_request(f'{HUB_API_ROOT}/analytics', data=cfg, headers=None, code=3, retry=0)
+        smart_request(f'{HUB_API_ROOT}/analytics', data=cfg, headers=None, code=3, retry=0)

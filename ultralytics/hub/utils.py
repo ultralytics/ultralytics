@@ -17,12 +17,11 @@ def check_dataset_disk_space(url='https://github.com/ultralytics/yolov5/releases
     gib = 1 << 30  # bytes per GiB
     data = int(requests.head(url).headers['Content-Length']) / gib  # dataset size (GB)
     total, used, free = (x / gib for x in shutil.disk_usage("/"))  # bytes
-    print(f'{PREFIX}{data:.3f} GB dataset, {free:.1f}/{total:.1f} GB free disk space')
+    LOGGER.info(f'{PREFIX}{data:.3f} GB dataset, {free:.1f}/{total:.1f} GB free disk space')
     if data * sf < free:
         return True  # sufficient space
-    s = f'{PREFIX}WARNING: Insufficient free disk space {free:.1f} GB < {data * sf:.3f} GB required, ' \
-        f'training cancelled ❌. Please free {data * sf - free:.1f} GB additional disk space and try again.'
-    print(emojis(s))
+    LOGGER.warning(f'{PREFIX}WARNING: Insufficient free disk space {free:.1f} GB < {data * sf:.3f} GB required, '
+                   f'training cancelled ❌. Please free {data * sf - free:.1f} GB additional disk space and try again.')
     return False  # insufficient space
 
 

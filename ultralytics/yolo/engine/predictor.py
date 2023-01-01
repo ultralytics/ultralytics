@@ -167,7 +167,7 @@ class BasePredictor:
                 p = Path(path)
                 s += self.write_results(i, preds, (p, im, im0s))
 
-                if self.args.view_img:
+                if self.args.show:
                     self.show(p)
 
                 if self.args.save:

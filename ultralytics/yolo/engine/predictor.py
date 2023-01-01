@@ -154,6 +154,7 @@ class BasePredictor:
         model = self.model if self.done_setup else self.setup(source, model)
         self.seen, self.windows, self.dt = 0, [], (ops.Profile(), ops.Profile(), ops.Profile())
         for batch in self.dataset:
+            self.run_callbacks("on_pred_batch_start")
             path, im, im0s, vid_cap, s = batch
             visualize = increment_path(self.save_dir / Path(path).stem, mkdir=True) if self.args.visualize else False
             with self.dt[0]:
@@ -180,10 +181,11 @@ class BasePredictor:
 
                 if self.args.save:
                     self.save_preds(vid_cap, i, str(self.save_dir / p.name))
-            self.run_callbacks("on_pred_image_end")
 
             # Print time (inference-only)
             LOGGER.info(f"{s}{'' if len(preds) else '(no detections), '}{self.dt[1].dt * 1E3:.1f}ms")
+
+            self.run_callbacks("on_pred_batch_end")
 
         # Print results
         t = tuple(x.t / self.seen * 1E3 for x in self.dt)  # speeds per image

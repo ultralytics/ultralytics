@@ -66,10 +66,6 @@ def on_val_batch_start(validator):
     pass
 
 
-def on_val_image_end(validator):
-    pass
-
-
 def on_val_batch_end(validator):
     pass
 
@@ -84,10 +80,6 @@ def on_pred_start(predictor):
 
 
 def on_pred_batch_start(predictor):
-    pass
-
-
-def on_pred_image_end(predictor):
     pass
 
 
@@ -133,7 +125,8 @@ default_callbacks = {
 
     # triggered in predictor
     'on_pred_start': on_pred_start,
-    'on_pred_image_end': on_pred_image_end,
+    'on_pred_batch_start': on_pred_batch_start,
+    'on_pred_batch_end': on_pred_batch_end,
     'on_pred_end': on_pred_end,
 
     # triggered in exporter

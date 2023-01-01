@@ -5,10 +5,10 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader, dataloader, distributed
 
-from ..utils import LOGGER, colorstr
-from ..utils.torch_utils import torch_distributed_zero_first
 from .dataset import ClassificationDataset, YOLODataset
 from .utils import PIN_MEMORY, RANK
+from ..utils import LOGGER, colorstr
+from ..utils.torch_utils import torch_distributed_zero_first
 
 
 class InfiniteDataLoader(dataloader.DataLoader):
@@ -67,7 +67,7 @@ def build_dataloader(cfg, batch_size, img_path, stride=32, label_path=None, rank
             augment=mode == "train",  # augmentation
             hyp=cfg,  # TODO: probably add a get_hyps_from_cfg function
             rect=cfg.rect if mode == "train" else True,  # rectangular batches
-            cache=None if cfg.noval else cfg.get("cache", None),
+            cache=cfg.get("cache", None),
             single_cls=cfg.get("single_cls", False),
             stride=int(stride),
             pad=0.0 if mode == "train" else 0.5,

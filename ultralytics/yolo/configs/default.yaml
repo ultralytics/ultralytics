@@ -11,7 +11,7 @@ data: null  # i.e. coco128.yaml
 epochs: 100
 batch_size: 16
 imgsz: 640
-nosave: False
+save: True
 cache: False  # True/ram, disk or False
 device: ''  # cuda device, i.e. 0 or 0,1,2,3 or cpu
 workers: 8
@@ -38,7 +38,7 @@ dropout: False  # use dropout
 
 
 # Val/Test settings ----------------------------------------------------------------------------------------------------
-noval: False
+val: True
 save_json: False
 save_hybrid: False
 conf_thres: 0.001

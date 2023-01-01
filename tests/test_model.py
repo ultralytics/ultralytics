@@ -73,7 +73,6 @@ def test_exports():
     10          TensorFlow.js         tfjs       _web_model  False  False
     11           PaddlePaddle       paddle    _paddle_model   True   True
     """
-    from ultralytics import YOLO
     from ultralytics.yolo.engine.exporter import export_formats
 
     print(export_formats())

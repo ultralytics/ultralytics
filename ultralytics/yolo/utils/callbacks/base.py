@@ -76,19 +76,19 @@ def on_val_end(validator):
 
 
 # Predictor callbacks --------------------------------------------------------------------------------------------------
-def on_pred_start(predictor):
+def on_predict_start(predictor):
     pass
 
 
-def on_pred_batch_start(predictor):
+def on_predict_batch_start(predictor):
     pass
 
 
-def on_pred_batch_end(predictor):
+def on_predict_batch_end(predictor):
     pass
 
 
-def on_pred_end(predictor):
+def on_predict_end(predictor):
     pass
 
 
@@ -125,10 +125,10 @@ default_callbacks = {
     'on_val_end': on_val_end,
 
     # triggered in predictor
-    'on_pred_start': on_pred_start,
-    'on_pred_batch_start': on_pred_batch_start,
-    'on_pred_batch_end': on_pred_batch_end,
-    'on_pred_end': on_pred_end,
+    'on_predict_start': on_predict_start,
+    'on_predict_batch_start': on_predict_batch_start,
+    'on_predict_batch_end': on_predict_batch_end,
+    'on_predict_end': on_predict_end,
 
     # triggered in exporter
     'on_export_start': on_export_start,

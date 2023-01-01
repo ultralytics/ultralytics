@@ -150,11 +150,11 @@ class BasePredictor:
 
     @smart_inference_mode()
     def __call__(self, source=None, model=None):
-        self.run_callbacks("on_pred_start")
+        self.run_callbacks("on_predict_start")
         model = self.model if self.done_setup else self.setup(source, model)
         self.seen, self.windows, self.dt = 0, [], (ops.Profile(), ops.Profile(), ops.Profile())
         for batch in self.dataset:
-            self.run_callbacks("on_pred_batch_start")
+            self.run_callbacks("on_predict_batch_start")
             path, im, im0s, vid_cap, s = batch
             visualize = increment_path(self.save_dir / Path(path).stem, mkdir=True) if self.args.visualize else False
             with self.dt[0]:
@@ -185,7 +185,7 @@ class BasePredictor:
             # Print time (inference-only)
             LOGGER.info(f"{s}{'' if len(preds) else '(no detections), '}{self.dt[1].dt * 1E3:.1f}ms")
 
-            self.run_callbacks("on_pred_batch_end")
+            self.run_callbacks("on_predict_batch_end")
 
         # Print results
         t = tuple(x.t / self.seen * 1E3 for x in self.dt)  # speeds per image
@@ -196,7 +196,7 @@ class BasePredictor:
             s = f"\n{len(list(self.save_dir.glob('labels/*.txt')))} labels saved to {self.save_dir / 'labels'}" if self.args.save_txt else ''
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
 
-        self.run_callbacks("on_pred_end")
+        self.run_callbacks("on_predict_end")
 
     def show(self, p):
         im0 = self.annotator.result()

@@ -34,6 +34,26 @@ def on_train_epoch_end(trainer):
     pass
 
 
+def on_fit_epoch_end(trainer):
+    pass
+
+
+def on_model_save(trainer):
+    pass
+
+
+def on_train_end(trainer):
+    pass
+
+
+def on_params_update(trainer):
+    pass
+
+
+def teardown(trainer):
+    pass
+
+# validator callbacks
 def on_val_start(trainer):
     pass
 
@@ -54,27 +74,32 @@ def on_val_end(trainer):
     pass
 
 
-def on_fit_epoch_end(trainer):
+# predictor callbacks
+def on_pred_start(predictor):
     pass
 
-
-def on_model_save(trainer):
+def on_pred_batch_start(predictor):
     pass
 
-
-def on_train_end(trainer):
+def on_pred_image_end(predictor):
     pass
 
-
-def on_params_update(trainer):
+def on_pred_batch_end(predictor):
     pass
 
+def on_pred_end(predictor):
+    pass
 
-def teardown(trainer):
+# exporter callbacks
+def on_export_start(exporter):
+    pass
+
+def on_export_end(exporter):
     pass
 
 
 default_callbacks = {
+    # triggered in trainer
     'on_pretrain_routine_start': on_pretrain_routine_start,
     'on_pretrain_routine_end': on_pretrain_routine_end,
     'on_train_start': on_train_start,
@@ -84,16 +109,28 @@ default_callbacks = {
     'on_before_zero_grad': on_before_zero_grad,
     'on_train_batch_end': on_train_batch_end,
     'on_train_epoch_end': on_train_epoch_end,
+    'on_fit_epoch_end': on_fit_epoch_end,  # fit = train + val
+    'on_model_save': on_model_save,
+    'on_train_end': on_train_end,
+    'on_params_update': on_params_update,
+    'teardown': teardown,
+
+    # triggered in validator
     'on_val_start': on_val_start,
     'on_val_batch_start': on_val_batch_start,
     'on_val_image_end': on_val_image_end,
     'on_val_batch_end': on_val_batch_end,
     'on_val_end': on_val_end,
-    'on_fit_epoch_end': on_fit_epoch_end,  # fit = train + val
-    'on_model_save': on_model_save,
-    'on_train_end': on_train_end,
-    'on_params_update': on_params_update,
-    'teardown': teardown}
+
+    # triggered in predictor
+    'on_pred_start': on_pred_start,
+    'on_pred_image_end': on_pred_image_end,
+    'on_pred_end': on_pred_end,
+
+    # triggered in exporter
+    'on_export_start': on_export_start,
+    'on_export_end': on_export_end
+}
 
 
 def add_integration_callbacks(trainer):

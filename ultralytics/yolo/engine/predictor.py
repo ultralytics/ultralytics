@@ -27,6 +27,7 @@ Usage - formats:
     """
 import platform
 from pathlib import Path
+from collections import defaultdict
 
 import cv2
 
@@ -38,7 +39,7 @@ from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, colorstr, ops
 from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_imshow
 from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode
-
+from ultralytics.yolo.utils.callbacks import default_callbacks
 
 class BasePredictor:
     """
@@ -88,6 +89,11 @@ class BasePredictor:
         self.view_img = None
         self.annotator = None
         self.data_path = None
+
+        # callbacks
+        self.callbacks = defaultdict([])
+        for callback, func in default_callbacks.items():
+            self.add_callback(callback, func)
 
     def preprocess(self, img):
         pass
@@ -144,6 +150,7 @@ class BasePredictor:
 
     @smart_inference_mode()
     def __call__(self, source=None, model=None):
+        self.trigger_callbacks("on_pred_start")
         model = self.model if self.done_setup else self.setup(source, model)
         self.seen, self.windows, self.dt = 0, [], (ops.Profile(), ops.Profile(), ops.Profile())
         for batch in self.dataset:
@@ -173,6 +180,7 @@ class BasePredictor:
 
                 if self.save_img:
                     self.save_preds(vid_cap, i, str(self.save_dir / p.name))
+            self.trigger_callbacks("on_pred_image_end")
 
             # Print time (inference-only)
             LOGGER.info(f"{s}{'' if len(preds) else '(no detections), '}{self.dt[1].dt * 1E3:.1f}ms")
@@ -185,6 +193,8 @@ class BasePredictor:
         if self.args.save_txt or self.save_img:
             s = f"\n{len(list(self.save_dir.glob('labels/*.txt')))} labels saved to {self.save_dir / 'labels'}" if self.args.save_txt else ''
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
+        
+        self.trigger_callbacks("on_pred_end")
 
     def show(self, p):
         im0 = self.annotator.result()
@@ -214,3 +224,19 @@ class BasePredictor:
                 save_path = str(Path(save_path).with_suffix('.mp4'))  # force *.mp4 suffix on results videos
                 self.vid_writer[idx] = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
             self.vid_writer[idx].write(im0)
+
+    def add_callback(self, onevent: str, callback):
+        """
+        appends the given callback
+        """
+        self.callbacks[onevent].append(callback)
+
+    def set_callback(self, onevent: str, callback):
+        """
+        overrides the existing callbacks with the given callback
+        """
+        self.callbacks[onevent] = [callback]
+
+    def trigger_callbacks(self, onevent: str):
+        for callback in self.callbacks.get(onevent, []):
+            callback(self)

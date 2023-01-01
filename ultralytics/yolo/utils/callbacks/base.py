@@ -143,4 +143,4 @@ def add_integration_callbacks(trainer):
 
     for x in clearml_callbacks, hub_callbacks, tb_callbacks, wb_callbacks:
         for k, v in x.items():
-            trainer.add_callback(k, v)  # add_callback(name, func)
+            trainer.callbacks[k].append(v)  # ballback[name].append(func)

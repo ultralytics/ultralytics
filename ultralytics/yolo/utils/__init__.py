@@ -249,26 +249,6 @@ def threaded(func):
     return wrapper
 
 
-def get_settings(file=USER_CONFIG_DIR / 'settings.yaml'):
-    """
-    Function that loads a global settings YAML, or creates it and populates it with default values if it does not exist.
-
-    If the datasets or weights directories are set to None, the current working directory will be used.
-    The 'sync' setting determines whether analytics will be synced to help with YOLO development.
-    """
-    from ultralytics.yolo.utils.torch_utils import torch_distributed_zero_first
-
-    with torch_distributed_zero_first(RANK):
-        if not file.exists():
-            settings = {
-                'datasets_dir': None,  # default datasets directory. If None, current working directory is used.
-                'weights_dir': None,  # default weights directory. If None, current working directory is used.
-                'sync': True}  # sync analytics to help with YOLO development
-            yaml_save(file, settings)
-
-    return yaml_load(file)
-
-
 def yaml_save(file='data.yaml', data=None):
     """
     Save YAML data to a file.
@@ -303,6 +283,26 @@ def yaml_load(file='data.yaml'):
     with open(file, errors='ignore') as f:
         # Add YAML filename to dict and return
         return {**yaml.safe_load(f), 'yaml_file': file}
+
+
+def get_settings(file=USER_CONFIG_DIR / 'settings.yaml'):
+    """
+    Function that loads a global settings YAML, or creates it and populates it with default values if it does not exist.
+
+    If the datasets or weights directories are set to None, the current working directory will be used.
+    The 'sync' setting determines whether analytics will be synced to help with YOLO development.
+    """
+    from ultralytics.yolo.utils.torch_utils import torch_distributed_zero_first
+
+    with torch_distributed_zero_first(RANK):
+        if not file.exists():
+            settings = {
+                'datasets_dir': None,  # default datasets directory. If None, current working directory is used.
+                'weights_dir': None,  # default weights directory. If None, current working directory is used.
+                'sync': True}  # sync analytics to help with YOLO development
+            yaml_save(file, settings)
+
+    return yaml_load(file)
 
 
 # Run below code on utils init -----------------------------------------------------------------------------------------

@@ -35,8 +35,7 @@ from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages, LoadScreenshots, LoadStreams
 from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS
-from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, colorstr, ops
-from ultralytics.yolo.utils.callbacks import default_callbacks
+from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, callbacks, colorstr, ops
 from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_imshow
 from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode
@@ -90,11 +89,8 @@ class BasePredictor:
         self.view_img = None
         self.annotator = None
         self.data_path = None
-
-        # callbacks
-        self.callbacks = defaultdict([])
-        for callback, func in default_callbacks.items():
-            self.add_callback(callback, func)
+        self.callbacks = defaultdict(list, {k: [v] for k, v in callbacks.default_callbacks.items()})  # add callbacks
+        callbacks.add_integration_callbacks(self)
 
     def preprocess(self, img):
         pass
@@ -226,18 +222,6 @@ class BasePredictor:
                 save_path = str(Path(save_path).with_suffix('.mp4'))  # force *.mp4 suffix on results videos
                 self.vid_writer[idx] = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
             self.vid_writer[idx].write(im0)
-
-    def add_callback(self, event: str, callback):
-        """
-        appends the given callback
-        """
-        self.callbacks[event].append(callback)
-
-    def set_callback(self, event: str, callback):
-        """
-        overrides the existing callbacks with the given callback
-        """
-        self.callbacks[event] = [callback]
 
     def run_callbacks(self, event: str):
         for callback in self.callbacks.get(event, []):

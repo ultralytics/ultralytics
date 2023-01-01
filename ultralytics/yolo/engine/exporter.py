@@ -71,8 +71,7 @@ from ultralytics.nn.tasks import ClassificationModel, DetectionModel, Segmentati
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages
 from ultralytics.yolo.data.utils import check_dataset
-from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, colorstr, get_default_args, yaml_save
-from ultralytics.yolo.utils.callbacks import default_callbacks
+from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, callbacks, colorstr, get_default_args, yaml_save
 from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version, check_yaml
 from ultralytics.yolo.utils.files import file_size, increment_path
 from ultralytics.yolo.utils.ops import Profile
@@ -138,16 +137,15 @@ class Exporter:
         """
         if overrides is None:
             overrides = {}
+        if 'batch_size' not in overrides:
+            overrides['batch_size'] = 1  # set default export batch size
         self.args = get_config(config, overrides)
         project = self.args.project or f"runs/{self.args.task}"
         name = self.args.name or "exp"  # hardcode mode as export doesn't require it
         self.save_dir = increment_path(Path(project) / name, exist_ok=self.args.exist_ok)
         self.save_dir.mkdir(parents=True, exist_ok=True)
-
-        # callbacks
-        self.callbacks = defaultdict([])
-        for callback, func in default_callbacks.items():
-            self.add_callback(callback, func)
+        self.callbacks = defaultdict(list, {k: [v] for k, v in callbacks.default_callbacks.items()})  # add callbacks
+        callbacks.add_integration_callbacks(self)
 
     @smart_inference_mode()
     def __call__(self, model=None):
@@ -173,7 +171,6 @@ class Exporter:
             assert self.device.type == 'cpu', '--optimize not compatible with cuda devices, i.e. use --device cpu'
 
         # Input
-        self.args.batch_size = 1  # TODO: resolve this issue, default 16 not fit for export
         im = torch.zeros(self.args.batch_size, 3, *self.imgsz).to(self.device)
         file = Path(getattr(model, 'yaml_file', None) or Path(model.yaml['yaml_file']).name)
 
@@ -764,18 +761,6 @@ class Exporter:
         model.output_description['coordinates'] = 'Boxes × [x, y, width, height] (relative to image size)'
         LOGGER.info(f'{prefix} pipeline success')
         return model
-
-    def add_callback(self, event: str, callback):
-        """
-        appends the given callback
-        """
-        self.callbacks[event].append(callback)
-
-    def set_callback(self, event: str, callback):
-        """
-        overrides the existing callbacks with the given callback
-        """
-        self.callbacks[event] = [callback]
 
     def run_callbacks(self, event: str):
         for callback in self.callbacks.get(event, []):

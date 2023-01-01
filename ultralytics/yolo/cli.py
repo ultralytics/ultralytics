@@ -4,7 +4,7 @@ from pathlib import Path
 import hydra
 
 import ultralytics
-from ultralytics import yolo
+from ultralytics import hub, yolo
 from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, colorstr
 
 DIR = Path(__file__).parent
@@ -18,7 +18,7 @@ def cli(cfg):
     Args:
         cfg (DictConfig): Configuration for the task and mode.
     """
-    LOGGER.info(f"{colorstr(f'Ultralytics YOLO v{ultralytics.__version__}')}")
+    # LOGGER.info(f"{colorstr(f'Ultralytics YOLO v{ultralytics.__version__}')}")
     task, mode = cfg.task.lower(), cfg.mode.lower()
 
     # Special case for initializing the configuration
@@ -45,7 +45,8 @@ def cli(cfg):
         "train": module.train,
         "val": module.val,
         "predict": module.predict,
-        "export": yolo.engine.exporter.export}
+        "export": yolo.engine.exporter.export,
+        "checks": hub.checks}
     func = mode_func_map.get(mode)
     if not func:
         raise SyntaxError(f"mode not recognized. Choices are {', '.join(mode_func_map.keys())}")

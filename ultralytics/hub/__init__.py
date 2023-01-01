@@ -33,9 +33,6 @@ def checks(verbose=True):
 
 def start(key=''):
     # Start training models with Ultralytics HUB. Usage: from src.ultralytics import start; start('API_KEY')
-    def split_key(key: str) -> list:
-        return (key.split('_')) if '_' in key else (key, None)
-
     def request_api_key(attempts=0):
         """Prompt the user to input their API key"""
         import getpass
@@ -44,8 +41,8 @@ def start(key=''):
         tries = f"Attempt {str(attempts + 1)} of {max_attempts}" if attempts > 0 else ""
         LOGGER.info(f"{PREFIX}Login. {tries}")
         input_key = getpass.getpass("Enter your Ultralytics HUB API key:\n")
-        authCtrl.api_key, model_id = split_key(input_key)
-        if not authCtrl.authenticate():
+        auth.api_key, model_id = split_key(input_key)
+        if not auth.authenticate():
             attempts += 1
             LOGGER.warning(emojis(f"{PREFIX}Invalid API key ⚠️\n"))
             if attempts < max_attempts:
@@ -56,19 +53,19 @@ def start(key=''):
 
     try:
         api_key, model_id = split_key(key)
-        authCtrl = Auth(api_key)  # attempts cookie login if no api key is present
+        auth = Auth(api_key)  # attempts cookie login if no api key is present
         attempts = 1 if len(key) else 0
-        if not authCtrl.get_state():
+        if not auth.get_state():
             if len(key):
                 LOGGER.warning(emojis(f"{PREFIX}Invalid API key ⚠️\n"))
             model_id = request_api_key(attempts)
         LOGGER.info(emojis(f"{PREFIX}Authenticated ✅"))
         if not model_id:
             raise ConnectionError(emojis('Connecting with global API key is not currently supported. ❌'))
-        session = HubTrainingSession(model_id=model_id, auth=authCtrl)
+        session = HubTrainingSession(model_id=model_id, auth=auth)
         session.check_disk_space()
 
-        # TODO: refactor. Hardcoding for v8
+        # TODO: refactor, hardcoded for v8
         args = session.model.copy()
         args.pop("id")
         args.pop("status")

@@ -14,7 +14,7 @@ def on_pretrain_routine_start(trainer):
                config=dict(trainer.args)) if not wandb.run else wandb.run
 
 
-def on_val_end(trainer):
+def on_fit_epoch_end(trainer):
     wandb.run.log(trainer.metrics, step=trainer.epoch + 1)
     if trainer.epoch == 0:
         model_info = {
@@ -42,5 +42,5 @@ def on_train_end(trainer):
 callbacks = {
     "on_pretrain_routine_start": on_pretrain_routine_start,
     "on_train_epoch_end": on_train_epoch_end,
-    "on_val_end": on_val_end,
+    "on_fit_epoch_end": on_fit_epoch_end,
     "on_train_end": on_train_end} if wandb else {}

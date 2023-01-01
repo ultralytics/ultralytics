@@ -32,7 +32,7 @@ def on_train_epoch_end(trainer):
         _log_images({f.stem: str(f) for f in trainer.save_dir.glob('train_batch*.jpg')}, "Mosaic", trainer.epoch)
 
 
-def on_val_end(trainer):
+def on_fit_epoch_end(trainer):
     if trainer.epoch == 0:
         model_info = {
             "Parameters": get_num_params(trainer.model),
@@ -50,5 +50,5 @@ def on_train_end(trainer):
 callbacks = {
     "on_pretrain_routine_start": on_pretrain_routine_start,
     "on_train_epoch_end": on_train_epoch_end,
-    "on_val_end": on_val_end,
+    "on_fit_epoch_end": on_fit_epoch_end,
     "on_train_end": on_train_end} if clearml else {}

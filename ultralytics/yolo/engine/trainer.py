@@ -299,12 +299,10 @@ class BaseTrainer:
 
             if rank in {-1, 0}:
                 # validation
-                self.trigger_callbacks('on_val_start')
                 self.ema.update_attr(self.model, include=['yaml', 'nc', 'args', 'names', 'stride', 'class_weights'])
                 final_epoch = (epoch + 1 == self.epochs)
                 if not self.args.noval or final_epoch:
                     self.metrics, self.fitness = self.validate()
-                self.trigger_callbacks('on_val_end')
                 self.save_metrics(metrics={**self.label_loss_items(self.tloss), **self.metrics, **lr})
 
                 # save model
@@ -315,7 +313,7 @@ class BaseTrainer:
             tnow = time.time()
             self.epoch_time = tnow - self.epoch_time_start
             self.epoch_time_start = tnow
-
+            self.trigger_callbacks("on_fit_epoch_end")
             # TODO: termination condition
 
         if rank in {-1, 0}:

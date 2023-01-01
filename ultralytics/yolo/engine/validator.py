@@ -67,7 +67,6 @@ class BaseValidator:
 
         self.callbacks = defaultdict(list, {k: [v] for k, v in callbacks.default_callbacks.items()})  # add callbacks
 
-
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
         """

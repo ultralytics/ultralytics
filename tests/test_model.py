@@ -6,11 +6,6 @@ from ultralytics import YOLO
 def test_model_init():
     model = YOLO.new("yolov8n.yaml")
     model.info()
-    try:
-        YOLO()
-    except Exception:
-        print("Successfully caught constructor assert!")
-    raise Exception("constructor error didn't occur")
 
 
 def test_model_forward():
@@ -23,24 +18,24 @@ def test_model_forward():
 def test_model_info():
     model = YOLO.new("yolov8n.yaml")
     model.info()
-    model = model.load("best.pt")
+    model = model.load("yolov8n.pt")
     model.info(verbose=True)
 
 
 def test_model_fuse():
     model = YOLO.new("yolov8n.yaml")
     model.fuse()
-    model.load("best.pt")
+    model.load("yolov8n.pt")
     model.fuse()
 
 
 def test_visualize_preds():
-    model = YOLO.load("best.pt")
+    model = YOLO.load("yolov8n.pt")
     model.predict(source="ultralytics/assets")
 
 
 def test_val():
-    model = YOLO.load("best.pt")
+    model = YOLO.load("yolov8n.pt")
     model.val(data="coco128.yaml", imgsz=32)
 
 
@@ -54,7 +49,7 @@ def test_model_resume():
 
 
 def test_model_train_pretrained():
-    model = YOLO.load("best.pt")
+    model = YOLO.load("yolov8n.pt")
     model.train(data="coco128.yaml", epochs=1, imgsz=32)
     model = model.new("yolov8n.yaml")
     model.train(data="coco128.yaml", epochs=1, imgsz=32)

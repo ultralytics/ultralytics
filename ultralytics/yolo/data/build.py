@@ -5,10 +5,10 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader, dataloader, distributed
 
-from .dataset import ClassificationDataset, YOLODataset
-from .utils import PIN_MEMORY, RANK
 from ..utils import LOGGER, colorstr
 from ..utils.torch_utils import torch_distributed_zero_first
+from .dataset import ClassificationDataset, YOLODataset
+from .utils import PIN_MEMORY, RANK
 
 
 class InfiniteDataLoader(dataloader.DataLoader):

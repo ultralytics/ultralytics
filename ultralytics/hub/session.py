@@ -42,18 +42,17 @@ class HubTrainingSession:
         self.metrics_queue = {}  # metrics queue
         self.alive = True  # for heartbeats
         self.model = self._get_model()
-
         self._heartbeats()  # start heartbeats
 
     def __del__(self):
         # Class destructor
         self.alive = False
 
-    def _upload_metrics(self):
+    def upload_metrics(self):
         payload = {"metrics": self.metrics_queue.copy(), "type": "metrics"}
         smart_request(f'{self.api_url}', json=payload, headers=self.auth_header, code=2)
 
-    def _upload_model(self, epoch, weights, is_best=False, map=0.0, final=False):
+    def upload_model(self, epoch, weights, is_best=False, map=0.0, final=False):
         # Upload a model to HUB
         file = None
         if Path(weights).is_file():

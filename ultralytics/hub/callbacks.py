@@ -25,7 +25,7 @@ def on_fit_epoch_end(trainer):
 
     session.metrics_queue[trainer.epoch] = json.dumps(metrics)  # json string
     if time() - session.t['metrics'] > session.rate_limits['metrics']:
-        session._upload_metrics()
+        session.upload_metrics()
         session.t['metrics'] = time()  # reset timer
         session.metrics_queue = {}  # reset queue
 
@@ -36,7 +36,7 @@ def on_model_save(trainer):
     is_best = trainer.best_fitness == trainer.fitness
     if time() - session.t['ckpt'] > session.rate_limits['ckpt']:
         LOGGER.info(f"{PREFIX}Uploading checkpoint {session.model_id}")
-        session._upload_model(trainer.epoch, trainer.last, is_best)
+        session.upload_model(trainer.epoch, trainer.last, is_best)
         session.t['ckpt'] = time()  # reset timer
 
 
@@ -45,8 +45,8 @@ def on_train_end(trainer):
     session = trainer.hub_session
     LOGGER.info(f"{PREFIX}Training completed successfully ✅")
     LOGGER.info(f"{PREFIX}Uploading final {session.model_id}")
-    session._upload_model(trainer.epoch, trainer.best, map=trainer.metrics['metrics/mAP50(B)'],
-                          final=True)  # results[3] is mAP0.5:0.95
+    session.upload_model(trainer.epoch, trainer.best, map=trainer.metrics['metrics/mAP50(B)'],
+                         final=True)  # results[3] is mAP0.5:0.95
     session.alive = False  # stop heartbeats
     LOGGER.info(f"{PREFIX}View model at https://hub.ultralytics.com/models/{session.model_id} 🚀")
 

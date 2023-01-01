@@ -5,22 +5,27 @@ import hydra
 
 import ultralytics
 from ultralytics import yolo
+from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, colorstr
 
-from .utils import DEFAULT_CONFIG, LOGGER, colorstr
+DIR = Path(__file__).parent
 
 
-@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
+@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent.relative_to(DIR)), config_name=DEFAULT_CONFIG.name)
 def cli(cfg):
+    """
+    Run a specified task and mode with the given configuration.
 
-    print('CLI RUNNING')
-    cwd = Path().cwd()
+    Args:
+        cfg (DictConfig): Configuration for the task and mode.
+    """
     LOGGER.info(f"{colorstr(f'Ultralytics YOLO v{ultralytics.__version__}')}")
     task, mode = cfg.task.lower(), cfg.mode.lower()
 
-    if task == "init":  # special case
-        shutil.copy2(DEFAULT_CONFIG, cwd)
+    # Special case for initializing the configuration
+    if task == "init":
+        shutil.copy2(DEFAULT_CONFIG, Path().cwd())
         LOGGER.info(f"""
-        {colorstr("YOLO:")} configuration saved to {cwd / DEFAULT_CONFIG.name}.
+        {colorstr("YOLO:")} configuration saved to {Path().cwd() / DEFAULT_CONFIG.name}.
         To run experiments using custom configuration:
         yolo task='task' mode='mode' --config-name config_file.yaml
                     """)

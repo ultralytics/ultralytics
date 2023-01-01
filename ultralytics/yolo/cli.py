@@ -9,8 +9,10 @@ from ultralytics import yolo
 from .utils import DEFAULT_CONFIG, LOGGER, colorstr
 
 
-@hydra.main(version_base=None, config_path="configs", config_name="default")
+@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def cli(cfg):
+
+    print('CLI RUNNING')
     cwd = Path().cwd()
     LOGGER.info(f"{colorstr(f'Ultralytics YOLO v{ultralytics.__version__}')}")
     task, mode = cfg.task.lower(), cfg.mode.lower()

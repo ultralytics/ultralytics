@@ -49,7 +49,6 @@ class HubTrainingSession:
         # Class destructor
         self.alive = False
 
-    # Internal functions ---
     def _upload_metrics(self):
         payload = {"metrics": self.metrics_queue.copy(), "type": "metrics"}
         smart_request(f'{self.api_url}', json=payload, headers=self.auth_header, code=2)
@@ -96,13 +95,14 @@ class HubTrainingSession:
 
             return data
         except requests.exceptions.ConnectionError as e:
-            raise Exception('ERROR: The HUB server is not online. Please try again later.') from e
+            raise ConnectionRefusedError('ERROR: The HUB server is not online. Please try again later.') from e
 
     def check_disk_space(self):
         if not check_dataset_disk_space(self.model['data']):
-            raise Exception("Not enough disk space")
+            raise MemoryError("Not enough disk space")
 
-    def register_callbacks(self, trainer):
+    @staticmethod
+    def register_callbacks(trainer):
         for k, v in callbacks.items():
             trainer.add_callback(k, v)
 

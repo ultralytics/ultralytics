@@ -1,39 +1,34 @@
-import requests
+import os
+import shutil
 
-from ultralytics import __version__
+import psutil
+import requests
+from IPython import display  # to display images and clear console output
+
 from ultralytics.hub.auth import Auth
 from ultralytics.hub.session import HubTrainingSession
 from ultralytics.hub.utils import PREFIX, split_key
 from ultralytics.yolo.utils import LOGGER, emojis, is_colab
-from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils.torch_utils import select_device
 from ultralytics.yolo.v8.detect import DetectionTrainer
 
 
 def checks(verbose=True):
-    import os
-    import shutil
-
-    check_requirements(('psutil', 'IPython'))
-    import psutil
-    from IPython import display  # to display images and clear console output
-
     if is_colab():
         shutil.rmtree('sample_data', ignore_errors=True)  # remove colab /sample_data directory
 
     if verbose:
         # System info
-        # gb = 1 / 1000 ** 3  # bytes to GB
-        gib = 1 / 1024 ** 3  # bytes to GiB
+        gib = 1 << 30  # bytes per GiB
         ram = psutil.virtual_memory().total
         total, used, free = shutil.disk_usage("/")
         display.clear_output()
-        s = f'({os.cpu_count()} CPUs, {ram * gib:.1f} GB RAM, {(total - free) * gib:.1f}/{total * gib:.1f} GB disk)'
+        s = f'({os.cpu_count()} CPUs, {ram / gib:.1f} GB RAM, {(total - free) / gib:.1f}/{total / gib:.1f} GB disk)'
     else:
         s = ''
 
-    select_device(newline=False, version=__version__)
-    print(emojis(f'Setup complete ✅ {s}'))
+    select_device(newline=False)
+    LOGGER.info(emojis(f'Setup complete ✅ {s}'))
 
 
 def start(key=''):
@@ -55,7 +50,7 @@ def start(key=''):
             LOGGER.warning(emojis(f"{PREFIX}Invalid API key ⚠️\n"))
             if attempts < max_attempts:
                 return request_api_key(attempts)
-            raise Exception(emojis(f"{PREFIX}Failed to authenticate ❌"))
+            raise ConnectionError(emojis(f"{PREFIX}Failed to authenticate ❌"))
         else:
             return model_id
 
@@ -69,7 +64,7 @@ def start(key=''):
             model_id = request_api_key(attempts)
         LOGGER.info(emojis(f"{PREFIX}Authenticated ✅"))
         if not model_id:
-            raise Exception(emojis('Connecting with global API key is not currently supported. ❌'))
+            raise ConnectionError(emojis('Connecting with global API key is not currently supported. ❌'))
         session = HubTrainingSession(model_id=model_id, auth=authCtrl)
         session.check_disk_space()
 

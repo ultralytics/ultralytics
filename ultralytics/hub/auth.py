@@ -1,6 +1,3 @@
-import getpass
-import json
-
 import requests
 
 from ultralytics.hub.config import HUB_API_ROOT
@@ -17,7 +14,8 @@ class Auth:
         self.api_key = self._clean_api_key(api_key)
         self.authenticate() if self.api_key else self.auth_with_cookies()
 
-    def _clean_api_key(self, key: str) -> str:
+    @staticmethod
+    def _clean_api_key(key: str) -> str:
         """Strip model from key if present"""
         separator = "_"
         return key.split(separator)[0] if separator in key else key
@@ -29,10 +27,10 @@ class Auth:
             if header:
                 r = requests.post(f"{HUB_API_ROOT}/v1/auth", headers=header)
                 if not r.json().get('success', False):
-                    raise Exception("Unable to authenticate.")
+                    raise ConnectionError("Unable to authenticate.")
                 return True
-            raise Exception("User has not authenticated locally.")
-        except Exception:
+            raise ConnectionError("User has not authenticated locally.")
+        except ConnectionError:
             self.id_token = self.api_key = False  # reset invalid
             return False
 
@@ -49,8 +47,8 @@ class Auth:
                 self.id_token = authn.get("data", {}).get("idToken", None)
                 self.authenticate()
                 return True
-            raise Exception("Unable to fetch browser authentication details.")
-        except Exception:
+            raise ConnectionError("Unable to fetch browser authentication details.")
+        except ConnectionError:
             self.id_token = False  # reset invalid
             return False
 
@@ -66,6 +64,6 @@ class Auth:
         """Get the authentication state"""
         return self.id_token or self.api_key
 
-    def set_api_key(self, key: str) -> bool:
+    def set_api_key(self, key: str):
         """Get the authentication state"""
         self.api_key = key

@@ -282,7 +282,7 @@ def yaml_load(file='data.yaml'):
     """
     with open(file, errors='ignore') as f:
         # Add YAML filename to dict and return
-        return {**yaml.safe_load(f), 'yaml_file': file}
+        return {**yaml.safe_load(f), 'yaml_file': str(file)}
 
 
 def get_settings(file=USER_CONFIG_DIR / 'settings.yaml'):
@@ -299,6 +299,7 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml'):
             settings = {
                 'datasets_dir': None,  # default datasets directory. If None, current working directory is used.
                 'weights_dir': None,  # default weights directory. If None, current working directory is used.
+                'runs_dir': None,  # default runs directory. If None, current working directory is used.
                 'sync': True}  # sync analytics to help with YOLO development
             yaml_save(file, settings)
 

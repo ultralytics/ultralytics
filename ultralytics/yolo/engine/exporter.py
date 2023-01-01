@@ -56,9 +56,9 @@ import re
 import subprocess
 import time
 import warnings
+from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
-from collections import defaultdict
 
 import hydra
 import numpy as np
@@ -72,11 +72,11 @@ from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages
 from ultralytics.yolo.data.utils import check_dataset
 from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, colorstr, get_default_args, yaml_save
+from ultralytics.yolo.utils.callbacks import default_callbacks
 from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version, check_yaml
 from ultralytics.yolo.utils.files import file_size, increment_path
 from ultralytics.yolo.utils.ops import Profile
 from ultralytics.yolo.utils.torch_utils import guess_task_from_head, select_device, smart_inference_mode
-from ultralytics.yolo.utils.callbacks import default_callbacks
 
 MACOS = platform.system() == 'Darwin'  # macOS environment
 
@@ -253,7 +253,7 @@ class Exporter:
                         f"\nPredict:         yolo task={task} mode=predict model={f[-1]} {s}"
                         f"\nValidate:        yolo task={task} mode=val model={f[-1]} {s}"
                         f"\nVisualize:       https://netron.app")
-        
+
         self.trigger_callbacks("on_export_end")
         return f  # return list of exported files/dirs
 

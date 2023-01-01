@@ -53,6 +53,7 @@ def on_params_update(trainer):
 def teardown(trainer):
     pass
 
+
 # validator callbacks
 def on_val_start(trainer):
     pass
@@ -78,21 +79,27 @@ def on_val_end(trainer):
 def on_pred_start(predictor):
     pass
 
+
 def on_pred_batch_start(predictor):
     pass
+
 
 def on_pred_image_end(predictor):
     pass
 
+
 def on_pred_batch_end(predictor):
     pass
+
 
 def on_pred_end(predictor):
     pass
 
+
 # exporter callbacks
 def on_export_start(exporter):
     pass
+
 
 def on_export_end(exporter):
     pass
@@ -129,8 +136,7 @@ default_callbacks = {
 
     # triggered in exporter
     'on_export_start': on_export_start,
-    'on_export_end': on_export_end
-}
+    'on_export_end': on_export_end}
 
 
 def add_integration_callbacks(trainer):

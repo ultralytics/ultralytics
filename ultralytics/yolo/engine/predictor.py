@@ -26,8 +26,8 @@ Usage - formats:
                                     yolov8n_paddle_model       # PaddlePaddle
     """
 import platform
-from pathlib import Path
 from collections import defaultdict
+from pathlib import Path
 
 import cv2
 
@@ -36,10 +36,11 @@ from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages, LoadScreenshots, LoadStreams
 from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS
 from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, colorstr, ops
+from ultralytics.yolo.utils.callbacks import default_callbacks
 from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_imshow
 from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode
-from ultralytics.yolo.utils.callbacks import default_callbacks
+
 
 class BasePredictor:
     """
@@ -193,7 +194,7 @@ class BasePredictor:
         if self.args.save_txt or self.save_img:
             s = f"\n{len(list(self.save_dir.glob('labels/*.txt')))} labels saved to {self.save_dir / 'labels'}" if self.args.save_txt else ''
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
-        
+
         self.trigger_callbacks("on_pred_end")
 
     def show(self, p):

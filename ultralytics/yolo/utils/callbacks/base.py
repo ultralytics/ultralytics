@@ -102,7 +102,7 @@ def on_export_end(exporter):
 
 
 default_callbacks = {
-    # triggered in trainer
+    # Run in trainer
     'on_pretrain_routine_start': on_pretrain_routine_start,
     'on_pretrain_routine_end': on_pretrain_routine_end,
     'on_train_start': on_train_start,
@@ -118,19 +118,19 @@ default_callbacks = {
     'on_params_update': on_params_update,
     'teardown': teardown,
 
-    # triggered in validator
+    # Run in validator
     'on_val_start': on_val_start,
     'on_val_batch_start': on_val_batch_start,
     'on_val_batch_end': on_val_batch_end,
     'on_val_end': on_val_end,
 
-    # triggered in predictor
+    # Run in predictor
     'on_predict_start': on_predict_start,
     'on_predict_batch_start': on_predict_batch_start,
     'on_predict_batch_end': on_predict_batch_end,
     'on_predict_end': on_predict_end,
 
-    # triggered in exporter
+    # Run in exporter
     'on_export_start': on_export_start,
     'on_export_end': on_export_end}
 

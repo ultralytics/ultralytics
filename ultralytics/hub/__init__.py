@@ -28,7 +28,7 @@ def checks(verbose=True):
         s = ''
 
     select_device(newline=False)
-    LOGGER.info(emojis(f'Setup complete ✅ {s}'))
+    LOGGER.info(f'Setup complete ✅ {s}')
 
 
 def start(key=''):
@@ -44,7 +44,7 @@ def start(key=''):
         auth.api_key, model_id = split_key(input_key)
         if not auth.authenticate():
             attempts += 1
-            LOGGER.warning(emojis(f"{PREFIX}Invalid API key ⚠️\n"))
+            LOGGER.warning(f"{PREFIX}Invalid API key ⚠️\n")
             if attempts < max_attempts:
                 return request_api_key(attempts)
             raise ConnectionError(emojis(f"{PREFIX}Failed to authenticate ❌"))
@@ -57,9 +57,9 @@ def start(key=''):
         attempts = 1 if len(key) else 0
         if not auth.get_state():
             if len(key):
-                LOGGER.warning(emojis(f"{PREFIX}Invalid API key ⚠️\n"))
+                LOGGER.warning(f"{PREFIX}Invalid API key ⚠️\n")
             model_id = request_api_key(attempts)
-        LOGGER.info(emojis(f"{PREFIX}Authenticated ✅"))
+        LOGGER.info(f"{PREFIX}Authenticated ✅")
         if not model_id:
             raise ConnectionError(emojis('Connecting with global API key is not currently supported. ❌'))
         session = HubTrainingSession(model_id=model_id, auth=auth)

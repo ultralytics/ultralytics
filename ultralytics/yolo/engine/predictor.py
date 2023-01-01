@@ -30,7 +30,6 @@ from pathlib import Path
 
 import cv2
 
-from ultralytics import hub
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages, LoadScreenshots, LoadStreams
@@ -145,7 +144,6 @@ class BasePredictor:
 
     @smart_inference_mode()
     def __call__(self, source=None, model=None):
-        hub.utils.sync_analytics(self.args)  # sync analytics if enabled in the global settings
         model = self.model if self.done_setup else self.setup(source, model)
         self.seen, self.windows, self.dt = 0, [], (ops.Profile(), ops.Profile(), ops.Profile())
         for batch in self.dataset:

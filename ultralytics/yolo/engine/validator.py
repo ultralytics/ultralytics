@@ -5,7 +5,6 @@ import torch
 from omegaconf import OmegaConf  # noqa
 from tqdm import tqdm
 
-from ultralytics import hub
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
 from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, RANK, TQDM_BAR_FORMAT
@@ -82,7 +81,6 @@ class BaseValidator:
             self.loss = torch.zeros_like(trainer.loss_items, device=trainer.device)
             self.args.plots = trainer.epoch == trainer.epochs - 1  # always plot final epoch
         else:
-            hub.utils.sync_analytics(self.args)  # sync analytics if enabled in the global settings
             assert model is not None, "Either trainer or model is needed for validation"
             self.device = select_device(self.args.device, self.args.batch_size)
             self.args.half &= self.device.type != 'cpu'

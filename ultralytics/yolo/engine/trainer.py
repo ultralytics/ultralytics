@@ -22,7 +22,7 @@ from tqdm import tqdm
 
 import ultralytics.yolo.utils as utils
 import ultralytics.yolo.utils.callbacks as callbacks
-from ultralytics import __version__, hub
+from ultralytics import __version__
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
 from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, RANK, TQDM_BAR_FORMAT, colorstr, yaml_save
@@ -153,7 +153,6 @@ class BaseTrainer:
             callback(self)
 
     def train(self):
-        hub.utils.sync_analytics(self.args)  # sync analytics if enabled in the global settings
         world_size = torch.cuda.device_count()
         if world_size > 1 and "LOCAL_RANK" not in os.environ:
             command = generate_ddp_command(world_size, self)

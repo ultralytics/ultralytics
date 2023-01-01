@@ -65,7 +65,6 @@ import pandas as pd
 import torch
 
 import ultralytics
-from ultralytics import hub
 from ultralytics.nn.modules import Detect, Segment
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, attempt_load_weights
 from ultralytics.yolo.configs import get_config
@@ -145,7 +144,6 @@ class Exporter:
 
     @smart_inference_mode()
     def __call__(self, model=None):
-        hub.utils.sync_analytics(self.args)  # sync analytics if enabled in the global settings
         t = time.time()
         format = self.args.format.lower()  # to lowercase
         fmts = tuple(export_formats()['Argument'][1:])  # available export formats

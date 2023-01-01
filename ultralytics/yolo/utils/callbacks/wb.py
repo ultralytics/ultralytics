@@ -9,9 +9,8 @@ except (ImportError, AssertionError):
 
 
 def on_pretrain_routine_start(trainer):
-    wandb.init(project=trainer.args.project or "YOLOv8",
-               name=trainer.args.name,
-               config=dict(trainer.args)) if not wandb.run else wandb.run
+    wandb.init(project=trainer.args.project or "YOLOv8", name=trainer.args.name, config=dict(
+        trainer.args)) if not wandb.run else wandb.run
 
 
 def on_fit_epoch_end(trainer):

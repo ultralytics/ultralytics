@@ -53,7 +53,7 @@ def test_model_train_pretrained():
     model.train(data="coco128.yaml", epochs=1, imgsz=32)
     model = YOLO.new("yolov8n.yaml")
     model.train(data="coco128.yaml", epochs=1, imgsz=32)
-    img = torch.rand(1, 3, 512, 512)
+    img = torch.rand(1, 3, 320, 320)
     model(img)
 
 

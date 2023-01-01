@@ -21,11 +21,10 @@ from torch.optim import lr_scheduler
 from tqdm import tqdm
 
 import ultralytics.yolo.utils as utils
-import ultralytics.yolo.utils.callbacks as callbacks
 from ultralytics import __version__
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
-from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, RANK, TQDM_BAR_FORMAT, colorstr, yaml_save
+from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, RANK, TQDM_BAR_FORMAT, callbacks, colorstr, yaml_save
 from ultralytics.yolo.utils.checks import check_file, print_args
 from ultralytics.yolo.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.yolo.utils.files import get_latest_run, increment_path
@@ -88,7 +87,7 @@ class BaseTrainer:
         self.model = None
         self.callbacks = defaultdict(list)
 
-        # dirs
+        # Dirs
         project = self.args.project or f"runs/{self.args.task}"
         name = self.args.name or f"{self.args.mode}"
         self.save_dir = increment_path(Path(project) / name, exist_ok=self.args.exist_ok if RANK in {-1, 0} else True)
@@ -104,7 +103,7 @@ class BaseTrainer:
         if RANK == -1:
             print_args(dict(self.args))
 
-        # device
+        # Device
         self.device = utils.torch_utils.select_device(self.args.device, self.batch_size)
         self.amp = self.device.type != 'cpu'
         self.scaler = amp.GradScaler(enabled=self.amp)
@@ -123,7 +122,7 @@ class BaseTrainer:
         self.lf = None
         self.scheduler = None
 
-        # epoch level metrics
+        # Epoch level metrics
         self.best_fitness = None
         self.fitness = None
         self.loss = None
@@ -131,20 +130,20 @@ class BaseTrainer:
         self.loss_names = None
         self.csv = self.save_dir / 'results.csv'
 
-        for callback, func in callbacks.default_callbacks.items():
-            self.add_callback(callback, func)
+        # Callbacks
+        self.callbacks = defaultdict(list, {k: [v] for k, v in callbacks.default_callbacks.items()})  # add callbacks
         if RANK in {0, -1}:
             callbacks.add_integration_callbacks(self)
 
     def add_callback(self, event: str, callback):
         """
-        appends the given callback
+        Appends the given callback. TODO: unused, consider removing
         """
         self.callbacks[event].append(callback)
 
     def set_callback(self, event: str, callback):
         """
-        overrides the existing callbacks with the given callback
+        Overrides the existing callbacks with the given callback.  TODO: unused, consider removing
         """
         self.callbacks[event] = [callback]
 
@@ -469,7 +468,7 @@ class BaseTrainer:
                     self.validator.args.save_json = True
                     self.metrics = self.validator(model=f)
                     self.metrics.pop('fitness', None)
-                    self.run_callbacks('on_val_end')
+                    self.run_callbacks('on_fit_epoch_end')
 
     def check_resume(self):
         resume = self.args.resume

@@ -8,6 +8,7 @@ mode: "train" # choices=['train', 'val', 'predict'] # mode to run task in.
 model: null # i.e. yolov5s.pt, yolo.yaml. Path to model file
 data: null # i.e. coco128.yaml. Path to data file
 epochs: 100 # number of epochs to train for
+patience: 50  # TODO: epochs to wait for no observable improvement for early stopping of training
 batch_size: 16 # number of images per batch
 imgsz: 640 # size of input images
 save: True # save checkpoints

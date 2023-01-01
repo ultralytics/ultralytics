@@ -8,8 +8,7 @@ from tqdm import tqdm
 
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
-from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, RANK, TQDM_BAR_FORMAT
-from ultralytics.yolo.utils.callbacks import default_callbacks
+from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, RANK, TQDM_BAR_FORMAT, callbacks
 from ultralytics.yolo.utils.checks import check_imgsz
 from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.ops import Profile
@@ -66,10 +65,7 @@ class BaseValidator:
                                                    exist_ok=self.args.exist_ok if RANK in {-1, 0} else True)
         (self.save_dir / 'labels' if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
 
-        # callbacks
-        self.callbacks = defaultdict(list)
-        for callback, func in default_callbacks.items():
-            self.add_callback(callback, func)
+        self.callbacks = defaultdict(list, {k: [v] for k, v in callbacks.default_callbacks.items()})  # add callbacks
 
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
@@ -77,7 +73,6 @@ class BaseValidator:
         Supports validation of a pre-trained model if passed or a model being trained
         if trainer is passed (trainer gets priority).
         """
-        self.run_callbacks('on_val_start')
         self.training = trainer is not None
         if self.training:
             self.device = trainer.device
@@ -89,6 +84,8 @@ class BaseValidator:
             self.loss = torch.zeros_like(trainer.loss_items, device=trainer.device)
             self.args.plots = trainer.epoch == trainer.epochs - 1  # always plot final epoch
         else:
+            callbacks.add_integration_callbacks(self)
+            self.run_callbacks('on_val_start')
             assert model is not None, "Either trainer or model is needed for validation"
             self.device = select_device(self.args.device, self.args.batch_size)
             self.args.half &= self.device.type != 'cpu'
@@ -166,18 +163,6 @@ class BaseValidator:
                     json.dump(self.jdict, f)  # flatten and save
                 stats = self.eval_json(stats)  # update stats
             return stats
-
-    def add_callback(self, event: str, callback):
-        """
-        appends the given callback
-        """
-        self.callbacks[event].append(callback)
-
-    def set_callback(self, event: str, callback):
-        """
-        overrides the existing callbacks with the given callback
-        """
-        self.callbacks[event] = [callback]
 
     def run_callbacks(self, event: str):
         for callback in self.callbacks.get(event, []):

@@ -10,7 +10,7 @@ def test_model_init():
 
 def test_model_forward():
     model = YOLO.new("yolov8n.yaml")
-    img = torch.rand(512 * 512 * 3).view(1, 3, 512, 512)
+    img = torch.rand(1, 3, 320, 320)
     model.forward(img)
     model(img)
 
@@ -18,14 +18,14 @@ def test_model_forward():
 def test_model_info():
     model = YOLO.new("yolov8n.yaml")
     model.info()
-    model = model.load("yolov8n.pt")
+    model = YOLO.load("yolov8n.pt")
     model.info(verbose=True)
 
 
 def test_model_fuse():
     model = YOLO.new("yolov8n.yaml")
     model.fuse()
-    model.load("yolov8n.pt")
+    model = YOLO.load("yolov8n.pt")
     model.fuse()
 
 
@@ -51,7 +51,7 @@ def test_model_resume():
 def test_model_train_pretrained():
     model = YOLO.load("yolov8n.pt")
     model.train(data="coco128.yaml", epochs=1, imgsz=32)
-    model = model.new("yolov8n.yaml")
+    model = YOLO.new("yolov8n.yaml")
     model.train(data="coco128.yaml", epochs=1, imgsz=32)
     img = torch.rand(512 * 512 * 3).view(1, 3, 512, 512)
     model(img)

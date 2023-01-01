@@ -77,7 +77,7 @@ class BaseValidator:
         Supports validation of a pre-trained model if passed or a model being trained
         if trainer is passed (trainer gets priority).
         """
-        self.trigger_callbacks('on_val_start')
+        self.run_callbacks('on_val_start')
         self.training = trainer is not None
         if self.training:
             self.device = trainer.device
@@ -124,7 +124,7 @@ class BaseValidator:
         self.init_metrics(de_parallel(model))
         self.jdict = []  # empty before each val
         for batch_i, batch in enumerate(bar):
-            self.trigger_callbacks('on_val_batch_start')
+            self.run_callbacks('on_val_batch_start')
             self.batch_i = batch_i
             # pre-process
             with dt[0]:
@@ -148,12 +148,12 @@ class BaseValidator:
                 self.plot_val_samples(batch, batch_i)
                 self.plot_predictions(batch, preds, batch_i)
 
-            self.trigger_callbacks('on_val_batch_end')
+            self.run_callbacks('on_val_batch_end')
         stats = self.get_stats()
         self.check_stats(stats)
         self.print_results()
         self.speed = tuple(x.t / len(self.dataloader.dataset) * 1E3 for x in dt)  # speeds per image
-        self.trigger_callbacks('on_val_end')
+        self.run_callbacks('on_val_end')
         if self.training:
             model.float()
             return {**stats, **trainer.label_loss_items(self.loss.cpu() / len(self.dataloader), prefix="val")}
@@ -167,20 +167,20 @@ class BaseValidator:
                 stats = self.eval_json(stats)  # update stats
             return stats
 
-    def add_callback(self, onevent: str, callback):
+    def add_callback(self, event: str, callback):
         """
         appends the given callback
         """
-        self.callbacks[onevent].append(callback)
+        self.callbacks[event].append(callback)
 
-    def set_callback(self, onevent: str, callback):
+    def set_callback(self, event: str, callback):
         """
         overrides the existing callbacks with the given callback
         """
-        self.callbacks[onevent] = [callback]
+        self.callbacks[event] = [callback]
 
-    def trigger_callbacks(self, onevent: str):
-        for callback in self.callbacks.get(onevent, []):
+    def run_callbacks(self, event: str):
+        for callback in self.callbacks.get(event, []):
             callback(self)
 
     def get_dataloader(self, dataset_path, batch_size):

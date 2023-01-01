@@ -1,3 +1,6 @@
+# Ultralytics YOLO base callbacks
+
+# Trainer callbacks ----------------------------------------------------------------------------------------------------
 def on_pretrain_routine_start(trainer):
     pass
 
@@ -54,7 +57,7 @@ def teardown(trainer):
     pass
 
 
-# validator callbacks
+# Validator callbacks --------------------------------------------------------------------------------------------------
 def on_val_start(validator):
     pass
 
@@ -75,7 +78,7 @@ def on_val_end(validator):
     pass
 
 
-# predictor callbacks
+# Predictor callbacks --------------------------------------------------------------------------------------------------
 def on_pred_start(predictor):
     pass
 
@@ -96,7 +99,7 @@ def on_pred_end(predictor):
     pass
 
 
-# exporter callbacks
+# Exporter callbacks ---------------------------------------------------------------------------------------------------
 def on_export_start(exporter):
     pass
 

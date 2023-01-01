@@ -150,7 +150,7 @@ class BasePredictor:
 
     @smart_inference_mode()
     def __call__(self, source=None, model=None):
-        self.trigger_callbacks("on_pred_start")
+        self.run_callbacks("on_pred_start")
         model = self.model if self.done_setup else self.setup(source, model)
         self.seen, self.windows, self.dt = 0, [], (ops.Profile(), ops.Profile(), ops.Profile())
         for batch in self.dataset:
@@ -180,7 +180,7 @@ class BasePredictor:
 
                 if self.args.save:
                     self.save_preds(vid_cap, i, str(self.save_dir / p.name))
-            self.trigger_callbacks("on_pred_image_end")
+            self.run_callbacks("on_pred_image_end")
 
             # Print time (inference-only)
             LOGGER.info(f"{s}{'' if len(preds) else '(no detections), '}{self.dt[1].dt * 1E3:.1f}ms")
@@ -194,7 +194,7 @@ class BasePredictor:
             s = f"\n{len(list(self.save_dir.glob('labels/*.txt')))} labels saved to {self.save_dir / 'labels'}" if self.args.save_txt else ''
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
 
-        self.trigger_callbacks("on_pred_end")
+        self.run_callbacks("on_pred_end")
 
     def show(self, p):
         im0 = self.annotator.result()
@@ -225,18 +225,18 @@ class BasePredictor:
                 self.vid_writer[idx] = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
             self.vid_writer[idx].write(im0)
 
-    def add_callback(self, onevent: str, callback):
+    def add_callback(self, event: str, callback):
         """
         appends the given callback
         """
-        self.callbacks[onevent].append(callback)
+        self.callbacks[event].append(callback)
 
-    def set_callback(self, onevent: str, callback):
+    def set_callback(self, event: str, callback):
         """
         overrides the existing callbacks with the given callback
         """
-        self.callbacks[onevent] = [callback]
+        self.callbacks[event] = [callback]
 
-    def trigger_callbacks(self, onevent: str):
-        for callback in self.callbacks.get(onevent, []):
+    def run_callbacks(self, event: str):
+        for callback in self.callbacks.get(event, []):
             callback(self)

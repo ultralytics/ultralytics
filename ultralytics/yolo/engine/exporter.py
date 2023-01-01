@@ -151,7 +151,7 @@ class Exporter:
 
     @smart_inference_mode()
     def __call__(self, model=None):
-        self.trigger_callbacks("on_export_start")
+        self.run_callbacks("on_export_start")
         t = time.time()
         format = self.args.format.lower()  # to lowercase
         fmts = tuple(export_formats()['Argument'][1:])  # available export formats
@@ -254,7 +254,7 @@ class Exporter:
                         f"\nValidate:        yolo task={task} mode=val model={f[-1]} {s}"
                         f"\nVisualize:       https://netron.app")
 
-        self.trigger_callbacks("on_export_end")
+        self.run_callbacks("on_export_end")
         return f  # return list of exported files/dirs
 
     @try_export
@@ -765,20 +765,20 @@ class Exporter:
         LOGGER.info(f'{prefix} pipeline success')
         return model
 
-    def add_callback(self, onevent: str, callback):
+    def add_callback(self, event: str, callback):
         """
         appends the given callback
         """
-        self.callbacks[onevent].append(callback)
+        self.callbacks[event].append(callback)
 
-    def set_callback(self, onevent: str, callback):
+    def set_callback(self, event: str, callback):
         """
         overrides the existing callbacks with the given callback
         """
-        self.callbacks[onevent] = [callback]
+        self.callbacks[event] = [callback]
 
-    def trigger_callbacks(self, onevent: str):
-        for callback in self.callbacks.get(onevent, []):
+    def run_callbacks(self, event: str):
+        for callback in self.callbacks.get(event, []):
             callback(self)
 
 

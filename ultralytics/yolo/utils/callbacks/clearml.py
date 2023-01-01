@@ -18,7 +18,7 @@ def _log_images(imgs_dict, group="", step=0):
 
 def on_pretrain_routine_start(trainer):
     # TODO: reuse existing task
-    task = Task.init(project_name=trainer.args.project if trainer.args.project else "YOLOv8",
+    task = Task.init(project_name=trainer.args.project or "YOLOv8",
                      task_name=trainer.args.name,
                      tags=['YOLOv8'],
                      output_uri=True,

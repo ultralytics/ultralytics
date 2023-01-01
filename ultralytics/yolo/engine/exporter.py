@@ -145,7 +145,7 @@ class Exporter:
         self.save_dir.mkdir(parents=True, exist_ok=True)
 
         # callbacks
-        self.callbacks = defaultdict([])
+        self.callbacks = defaultdict(list)
         for callback, func in default_callbacks.items():
             self.add_callback(callback, func)
 

@@ -92,7 +92,7 @@ class BasePredictor:
         self.data_path = None
 
         # callbacks
-        self.callbacks = defaultdict([])
+        self.callbacks = defaultdict(list)
         for callback, func in default_callbacks.items():
             self.add_callback(callback, func)
 

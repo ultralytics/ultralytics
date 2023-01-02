@@ -303,7 +303,8 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml'):
         'weights_dir': None,  # default weights directory. If None, current working directory is used.
         'runs_dir': None,  # default runs directory. If None, current working directory is used.
         'sync': True,  # sync analytics to help with YOLO development
-        'uuid': uuid.getnode()}  # device UUID to align analytics
+        'uuid': uuid.getnode(),  # device UUID to align analytics
+        'yaml_file': str(file)}  # setting YAML file path
 
     with torch_distributed_zero_first(RANK):
         if not file.exists():

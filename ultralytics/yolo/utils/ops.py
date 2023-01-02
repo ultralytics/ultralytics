@@ -389,10 +389,10 @@ def xyn2xy(x, w=640, h=640, padw=0, padh=0):
 def xywh2ltwh(x):
     """
     It converts the bounding box from [x, y, w, h] to [x1, y1, w, h] where xy1=top-left
-    
+
     Args:
       x: the x coordinate of the center of the bounding box
-    
+
     Returns:
       the top left x and y coordinates of the bounding box.
     """
@@ -405,10 +405,10 @@ def xywh2ltwh(x):
 def xyxy2ltwh(x):
     """
     Convert nx4 boxes from [x1, y1, x2, y2] to [x1, y1, w, h] where xy1=top-left, xy2=bottom-right
-    
+
     Args:
       x: the input tensor
-    
+
     Returns:
       the xyxy2ltwh function.
     """
@@ -421,7 +421,7 @@ def xyxy2ltwh(x):
 def ltwh2xywh(x):
     """
     Convert nx4 boxes from [x1, y1, w, h] to [x, y, w, h] where xy1=top-left, xy=center
-    
+
     Args:
       x: the input tensor
     """
@@ -435,10 +435,10 @@ def ltwh2xyxy(x):
     """
     It converts the bounding box from [x1, y1, w, h] to [x1, y1, x2, y2] where xy1=top-left,
     xy2=bottom-right
-    
+
     Args:
       x: the input image
-    
+
     Returns:
       the xyxy coordinates of the bounding boxes.
     """
@@ -451,11 +451,11 @@ def ltwh2xyxy(x):
 def segments2boxes(segments):
     """
     It converts segment labels to box labels, i.e. (cls, xy1, xy2, ...) to (cls, xywh)
-    
+
     Args:
       segments: list of segments, each segment is a list of points, each point is a list of x, y
     coordinates
-    
+
     Returns:
       the xywh coordinates of the bounding boxes.
     """

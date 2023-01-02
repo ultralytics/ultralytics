@@ -2,7 +2,7 @@ import hydra
 import torch
 
 from ultralytics.yolo.engine.predictor import BasePredictor
-from ultralytics.yolo.utils import DEFAULT_CONFIG, ops
+from ultralytics.yolo.utils import DEFAULT_CONFIG, ROOT, ops
 from ultralytics.yolo.utils.checks import check_imgsz
 from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
 
@@ -83,8 +83,9 @@ class DetectionPredictor(BasePredictor):
 
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def predict(cfg):
-    cfg.model = cfg.model or "n.pt"
+    cfg.model = cfg.model or "yolov8n.pt"
     cfg.imgsz = check_imgsz(cfg.imgsz, min_dim=2)  # check image size
+    cfg.source = cfg.source or ROOT / "assets"
     predictor = DetectionPredictor(cfg)
     predictor()
 

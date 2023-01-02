@@ -84,7 +84,7 @@ nav:
       - Detection: tasks/detection.md
       - Segmentation: tasks/segmentation.md
       - Classification: tasks/classification.md
-  - Customization Tutorials:
+  - Advanced Tutorials:
       - Customize Trainer: customize/train.md
       - Customize Validator: customize/val.md
       - Customize Predictor: customize/predict.md
@@ -95,3 +95,5 @@ nav:
           - Validator: reference/base_val.md
           - Predictor: reference/base_pred.md
           - Exporter: reference/exporter.md
+      - nn Module: reference/nn.md
+      - operations: reference/ops.md

@@ -33,7 +33,7 @@ CLI requires no customization or code. You can simply run all tasks from the ter
         ```bash
         yolo task=detect mode=train model=s.yaml device=\'0,1,2,3\'
         ```
-[CLI Guide](#){ .md-button .md-button--primary}
+[CLI Guide](cli.md){ .md-button .md-button--primary}
 
 ## Python API
 Ultralytics YOLO comes with pythonic Model and Trainer interface. 
@@ -48,4 +48,4 @@ Ultralytics YOLO comes with pythonic Model and Trainer interface.
     model.train(data="coco128-segments", epochs=1, lr0=0.01, ...)
     model.train(data="coco128-segments", epochs=1, lr0=0.01, device="0,1,2,3") # DDP mode
     ```
-[API Guide](#){ .md-button .md-button--primary}
+[API Guide](sdk.md){ .md-button .md-button--primary}

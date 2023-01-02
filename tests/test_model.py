@@ -86,7 +86,7 @@ def test_exports():
     model.export(format='paddle')
 
 
-def test():
+def run_all_tests():  # do not name function test_...
     test_model_forward()
     test_model_info()
     test_model_fuse()
@@ -97,4 +97,4 @@ def test():
 
 
 if __name__ == "__main__":
-    test()
+    run_all_tests()

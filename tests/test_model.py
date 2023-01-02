@@ -4,10 +4,6 @@ from ultralytics import YOLO
 from ultralytics.yolo.utils import ROOT
 
 
-def test_model_init():
-    model = YOLO("yolov8n.yaml")
-    model.info()
-
 
 def test_model_forward():
     model = YOLO("yolov8n.yaml")
@@ -30,7 +26,7 @@ def test_model_fuse():
     model.fuse()
 
 
-def test_visualize_preds():
+def test_predict_dir():
     model = YOLO("yolov8n.pt")
     model.predict(source=ROOT / "assets")
 
@@ -40,7 +36,7 @@ def test_val():
     model.val(data="coco128.yaml", imgsz=32)
 
 
-def test_model_resume():
+def test_train_resume():
     model = YOLO("yolov8n.yaml")
     model.train(epochs=1, imgsz=32, data="coco128.yaml")
     try:

@@ -145,7 +145,6 @@ class YOLO:
         overrides = self.overrides.copy()
         overrides.update(kwargs)
         overrides["mode"] = "val"
-        overrides["task"] = self.task
         args = get_config(config=DEFAULT_CONFIG, overrides=overrides)
         args.data = data or args.data
         args.task = self.task

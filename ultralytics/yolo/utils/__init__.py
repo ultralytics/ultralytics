@@ -271,19 +271,20 @@ def yaml_save(file='data.yaml', data=None):
         yaml.safe_dump({k: str(v) if isinstance(v, Path) else v for k, v in data.items()}, f, sort_keys=False)
 
 
-def yaml_load(file='data.yaml'):
+def yaml_load(file='data.yaml', append_filename=True):
     """
     Load YAML data from a file.
 
     Args:
         file (str, optional): File name. Default is 'data.yaml'.
+        append_filename (bool): Add the YAML filename to the YAML dictionary. Default is True.
 
     Returns:
         dict: YAML data and file name.
     """
     with open(file, errors='ignore') as f:
         # Add YAML filename to dict and return
-        return {**yaml.safe_load(f), 'yaml_file': str(file)}
+        return {**yaml.safe_load(f), 'yaml_file': str(file)} if append_filename else yaml.safe_load(f)
 
 
 def get_settings(file=USER_CONFIG_DIR / 'settings.yaml'):

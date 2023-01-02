@@ -17,7 +17,7 @@ from ultralytics.yolo.utils.torch_utils import de_parallel
 class SegmentationTrainer(v8.detect.DetectionTrainer):
 
     def load_model(self, model_cfg=None, weights=None, verbose=True):
-        model = SegmentationModel(model_cfg or weights["model"].yaml, ch=3, nc=self.data["nc"], verbose=verbose)
+        model = SegmentationModel(model_cfg or weights.yaml, ch=3, nc=self.data["nc"], verbose=verbose)
         if weights:
             model.load(weights, verbose)
         return model

@@ -6,6 +6,7 @@ import platform
 import sys
 import tempfile
 import threading
+import uuid
 from pathlib import Path
 
 import cv2
@@ -160,7 +161,7 @@ def get_user_config_dir(sub_dir='Ultralytics'):
         raise ValueError(f'Unsupported operating system: {os_name}')
 
     # GCP and AWS lambda fix, only /tmp is writeable
-    if not is_dir_writeable(path.parent):
+    if not is_dir_writeable(str(path.parent)):
         path = Path('/tmp') / sub_dir
 
     # Create the subdirectory if it does not exist
@@ -172,9 +173,9 @@ def get_user_config_dir(sub_dir='Ultralytics'):
 USER_CONFIG_DIR = get_user_config_dir()  # Ultralytics settings dir
 
 
-def emojis(str=''):
+def emojis(string=''):
     # Return platform-dependent emoji-safe version of string
-    return str.encode().decode('ascii', 'ignore') if platform.system() == 'Windows' else str
+    return string.encode().decode('ascii', 'ignore') if platform.system() == 'Windows' else string
 
 
 def colorstr(*input):
@@ -282,27 +283,39 @@ def yaml_load(file='data.yaml'):
     """
     with open(file, errors='ignore') as f:
         # Add YAML filename to dict and return
-        return {**yaml.safe_load(f), 'yaml_file': file}
+        return {**yaml.safe_load(f), 'yaml_file': str(file)}
 
 
 def get_settings(file=USER_CONFIG_DIR / 'settings.yaml'):
     """
-    Function that loads a global settings YAML, or creates it and populates it with default values if it does not exist.
+    Loads a global settings YAML file or creates one with default values if it does not exist.
 
-    If the datasets or weights directories are set to None, the current working directory will be used.
-    The 'sync' setting determines whether analytics will be synced to help with YOLO development.
+    Args:
+        file (Path): Path to the settings YAML file. Defaults to 'settings.yaml' in the USER_CONFIG_DIR.
+
+    Returns:
+        dict: Dictionary of settings key-value pairs.
     """
     from ultralytics.yolo.utils.torch_utils import torch_distributed_zero_first
 
+    defaults = {
+        'datasets_dir': None,  # default datasets directory. If None, current working directory is used.
+        'weights_dir': None,  # default weights directory. If None, current working directory is used.
+        'runs_dir': None,  # default runs directory. If None, current working directory is used.
+        'sync': True,  # sync analytics to help with YOLO development
+        'uuid': uuid.getnode(),  # device UUID to align analytics
+        'yaml_file': str(file)}  # setting YAML file path
+
     with torch_distributed_zero_first(RANK):
         if not file.exists():
-            settings = {
-                'datasets_dir': None,  # default datasets directory. If None, current working directory is used.
-                'weights_dir': None,  # default weights directory. If None, current working directory is used.
-                'sync': True}  # sync analytics to help with YOLO development
-            yaml_save(file, settings)
+            yaml_save(file, defaults)
 
-    return yaml_load(file)
+        settings = yaml_load(file)
+        if settings.keys() != defaults.keys():
+            settings = {**defaults, **settings}  # merge **defaults with **settings (prefer **settings)
+            yaml_save(file, settings)  # save updated defaults
+
+        return settings
 
 
 # Run below code on utils init -----------------------------------------------------------------------------------------

@@ -1,5 +1,6 @@
-import torch
 from pathlib import Path
+
+import torch
 
 from ultralytics import yolo  # noqa
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, attempt_load_weights

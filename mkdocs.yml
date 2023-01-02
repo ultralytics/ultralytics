@@ -51,6 +51,7 @@ markdown_extensions:
   - pymdownx.superfences
   - tables
   - attr_list
+  - def_list
   # Syntax highlight
   - pymdownx.highlight:
       anchor_linenums: true
@@ -84,14 +85,16 @@ nav:
       - Detection: tasks/detection.md
       - Segmentation: tasks/segmentation.md
       - Classification: tasks/classification.md
-  - Customization Tutorials:
+  - Advanced Tutorials:
       - Customize Trainer: customize/train.md
       - Customize Validator: customize/val.md
       - Customize Predictor: customize/predict.md
   - Reference:
-      - YOLO Models: reference/model.md
+      - Python Model interface: reference/model.md
       - Engine:
           - Trainer: reference/base_trainer.md
           - Validator: reference/base_val.md
           - Predictor: reference/base_pred.md
           - Exporter: reference/exporter.md
+      - nn Module: reference/nn.md
+      - operations: reference/ops.md

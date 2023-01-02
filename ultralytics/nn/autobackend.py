@@ -17,22 +17,36 @@ from ultralytics.yolo.utils.ops import xywh2xyxy
 
 
 class AutoBackend(nn.Module):
-    # YOLOv5 MultiBackend class for python inference on various backends
-    def __init__(self, weights='yolov8n.pt', device=torch.device('cpu'), dnn=False, data=None, fp16=False, fuse=True):
-        # Usage:
-        #   PyTorch:              weights = *.pt
-        #   TorchScript:                    *.torchscript
-        #   ONNX Runtime:                   *.onnx
-        #   ONNX OpenCV DNN:                *.onnx --dnn
-        #   OpenVINO:                       *.xml
-        #   CoreML:                         *.mlmodel
-        #   TensorRT:                       *.engine
-        #   TensorFlow SavedModel:          *_saved_model
-        #   TensorFlow GraphDef:            *.pb
-        #   TensorFlow Lite:                *.tflite
-        #   TensorFlow Edge TPU:            *_edgetpu.tflite
-        #   PaddlePaddle:                   *_paddle_model
 
+    def __init__(self, weights='yolov8n.pt', device=torch.device('cpu'), dnn=False, data=None, fp16=False, fuse=True):
+        """
+        Ultralytics YOLO MultiBackend class for python inference on various backends
+
+        Args:
+          weights: the path to the weights file. Defaults to yolov8n.pt
+          device: The device to run the model on.
+          dnn: If you want to use OpenCV's DNN module to run the inference, set this to True. Defaults to
+        False
+          data: a dictionary containing the following keys:
+          fp16: If true, will use half precision. Defaults to False
+          fuse: whether to fuse the model or not. Defaults to True
+
+        Supported format and their usage:
+            | Platform              | weights          |
+            |-----------------------|------------------|
+            | PyTorch               | *.pt             |
+            | TorchScript           | *.torchscript    |
+            | ONNX Runtime          | *.onnx           |
+            | ONNX OpenCV DNN       | *.onnx --dnn     |
+            | OpenVINO              | *.xml            |
+            | CoreML                | *.mlmodel        |
+            | TensorRT              | *.engine         |
+            | TensorFlow SavedModel | *_saved_model    |
+            | TensorFlow GraphDef   | *.pb             |
+            | TensorFlow Lite       | *.tflite         |
+            | TensorFlow Edge TPU   | *_edgetpu.tflite |
+            | PaddlePaddle          | *_paddle_model   |
+        """
         super().__init__()
         w = str(weights[0] if isinstance(weights, list) else weights)
         nn_module = isinstance(weights, torch.nn.Module)
@@ -215,6 +229,15 @@ class AutoBackend(nn.Module):
         self.__dict__.update(locals())  # assign all variables to self
 
     def forward(self, im, augment=False, visualize=False):
+        """
+        Runs inference on the given model
+
+        Args:
+          im: the image tensor
+          augment: whether to augment the image. Defaults to False
+          visualize: if True, then the network will output the feature maps of the last convolutional layer.
+        Defaults to False
+        """
         # YOLOv5 MultiBackend inference
         b, ch, h, w = im.shape  # batch, channel, height, width
         if self.fp16 and im.dtype != torch.float16:
@@ -297,10 +320,21 @@ class AutoBackend(nn.Module):
             return self.from_numpy(y)
 
     def from_numpy(self, x):
+        """
+        `from_numpy` converts a numpy array to a tensor
+
+        Args:
+          x: the numpy array to convert
+        """
         return torch.from_numpy(x).to(self.device) if isinstance(x, np.ndarray) else x
 
     def warmup(self, imgsz=(1, 3, 640, 640)):
-        # Warmup model by running inference once
+        """
+        Warmup model by running inference once
+
+        Args:
+          imgsz: the size of the image you want to run inference on.
+        """
         warmup_types = self.pt, self.jit, self.onnx, self.engine, self.saved_model, self.pb, self.triton, self.nn_module
         if any(warmup_types) and (self.device.type != 'cpu' or self.triton):
             im = torch.empty(*imgsz, dtype=torch.half if self.fp16 else torch.float, device=self.device)  # input
@@ -309,6 +343,12 @@ class AutoBackend(nn.Module):
 
     @staticmethod
     def _model_type(p='path/to/model.pt'):
+        """
+        This function takes a path to a model file and returns the model type
+
+        Args:
+          p: path to the model file. Defaults to path/to/model.pt
+        """
         # Return model type from model path, i.e. path='path/to/model.onnx' -> type=onnx
         # types = [pt, jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle]
         from ultralytics.yolo.engine.exporter import export_formats
@@ -323,6 +363,12 @@ class AutoBackend(nn.Module):
 
     @staticmethod
     def _load_metadata(f=Path('path/to/meta.yaml')):
+        """
+        > Loads the metadata from a yaml file
+
+        Args:
+          f: The path to the metadata file.
+        """
         from ultralytics.yolo.utils.files import yaml_load
 
         # Load metadata from meta.yaml if it exists

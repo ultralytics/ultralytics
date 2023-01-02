@@ -367,7 +367,7 @@ class BaseTrainer:
         if not pretrained:
             model = check_file(model)
         ckpt = self.load_ckpt(model) if pretrained else None
-        self.model = self.load_model(model_cfg=None if pretrained else model, weights=ckpt)  # model
+        self.model = self.load_model(model_cfg=None if pretrained else model, weights=ckpt["model"])  # model
         return ckpt
 
     def load_ckpt(self, ckpt):

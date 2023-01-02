@@ -54,7 +54,6 @@ class DetectionTrainer(BaseTrainer):
         self.model.names = self.data["names"]
 
     def load_model(self, model_cfg=None, weights=None, verbose=True):
-        print(weights)
         model = DetectionModel(model_cfg or getattr(weights, 'yaml', None) or weights['model'].yaml,
                                ch=3,
                                nc=self.data["nc"],

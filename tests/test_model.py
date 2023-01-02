@@ -1,6 +1,7 @@
 import torch
 
 from ultralytics import YOLO
+from ultralytics.yolo.utils import ROOT
 
 
 def test_model_init():
@@ -31,7 +32,7 @@ def test_model_fuse():
 
 def test_visualize_preds():
     model = YOLO("yolov8n.pt")
-    model.predict(source="ultralytics/assets")
+    model.predict(source=ROOT / "assets")
 
 
 def test_val():

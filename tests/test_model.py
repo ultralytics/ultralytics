@@ -4,7 +4,6 @@ from ultralytics import YOLO
 from ultralytics.yolo.utils import ROOT
 
 
-
 def test_model_forward():
     model = YOLO("yolov8n.yaml")
     img = torch.rand(1, 3, 320, 320)
@@ -59,7 +58,7 @@ def test_train_pretrained():
     model(img)
 
 
-def test_exports():
+def test_export_torchscript():
     """
                        Format     Argument           Suffix    CPU    GPU
     0                 PyTorch            -              .pt   True   True
@@ -76,14 +75,29 @@ def test_exports():
     11           PaddlePaddle       paddle    _paddle_model   True   True
     """
     from ultralytics.yolo.engine.exporter import export_formats
-
     print(export_formats())
 
     model = YOLO("yolov8n.yaml")
     model.export(format='torchscript')
+
+
+def test_export_onnx():
+    model = YOLO("yolov8n.yaml")
     model.export(format='onnx')
+
+
+def test_export_openvino():
+    model = YOLO("yolov8n.yaml")
     model.export(format='openvino')
+
+
+def test_export_coreml():
+    model = YOLO("yolov8n.yaml")
     model.export(format='coreml')
+
+
+def test_export_paddle():
+    model = YOLO("yolov8n.yaml")
     model.export(format='paddle')
 
 

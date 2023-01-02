@@ -1,7 +1,6 @@
 import shutil
 import threading
 import time
-import uuid
 
 import requests
 
@@ -27,7 +26,7 @@ def check_dataset_disk_space(url='https://github.com/ultralytics/yolov5/releases
 
 
 def request_with_credentials(url: str) -> any:
-    """ Make a ajax request with cookies attached """
+    """ Make an ajax request with cookies attached """
     from google.colab import output  # noqa
     from IPython import display  # noqa
     display.display(
@@ -93,17 +92,18 @@ def smart_request(*args, retry=3, timeout=30, thread=True, code=-1, method="post
     retry_codes = (408, 500)  # retry only these codes
     methods = {'post': requests.post, 'get': requests.get}  # request methods
 
-    def fcn(*args, **kwargs):
-        t0 = time.time()
+    def func(*func_args, **func_kwargs):
+        r = None  # response
+        t0 = time.time()  # initial time for timer
         for i in range(retry + 1):
             if (time.time() - t0) > timeout:
                 break
-            r = methods[method](*args, **kwargs)  # i.e. post(url, data, json, files)
+            r = methods[method](*func_args, **func_kwargs)  # i.e. post(url, data, json, files)
             if r.status_code == 200:
                 break
             try:
                 m = r.json().get('message', 'No JSON message.')
-            except Exception:
+            except AttributeError:
                 m = 'Unable to read JSON.'
             if i == 0:
                 if r.status_code in retry_codes:
@@ -119,12 +119,12 @@ def smart_request(*args, retry=3, timeout=30, thread=True, code=-1, method="post
         return r
 
     if thread:
-        threading.Thread(target=fcn, args=args, kwargs=kwargs, daemon=True).start()
+        threading.Thread(target=func, args=args, kwargs=kwargs, daemon=True).start()
     else:
-        return fcn(*args, **kwargs)
+        return func(*args, **kwargs)
 
 
-def sync_analytics(cfg, all_keys=False, enabled=False):
+def sync_analytics(cfg, all_keys=False, enabled=True):
     """
    Sync analytics data if enabled in the global settings
 

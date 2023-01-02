@@ -51,6 +51,7 @@ markdown_extensions:
   - pymdownx.superfences
   - tables
   - attr_list
+  - def_list
   # Syntax highlight
   - pymdownx.highlight:
       anchor_linenums: true

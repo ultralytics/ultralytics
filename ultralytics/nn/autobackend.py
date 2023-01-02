@@ -31,18 +31,20 @@ class AutoBackend(nn.Module):
           fuse: whether to fuse the model or not. Defaults to True
         
         Supported format and their usage:
-           PyTorch:              weights = *.pt
-           TorchScript:                    *.torchscript
-           ONNX Runtime:                   *.onnx
-           ONNX OpenCV DNN:                *.onnx --dnn
-           OpenVINO:                       *.xml
-           CoreML:                         *.mlmodel
-           TensorRT:                       *.engine
-           TensorFlow SavedModel:          *_saved_model
-           TensorFlow GraphDef:            *.pb
-           TensorFlow Lite:                *.tflite
-           TensorFlow Edge TPU:            *_edgetpu.tflite
-           PaddlePaddle:                   *_paddle_model
+            | Platform              | weights          |
+            |-----------------------|------------------|
+            | PyTorch               | *.pt             |
+            | TorchScript           | *.torchscript    |
+            | ONNX Runtime          | *.onnx           |
+            | ONNX OpenCV DNN       | *.onnx --dnn     |
+            | OpenVINO              | *.xml            |
+            | CoreML                | *.mlmodel        |
+            | TensorRT              | *.engine         |
+            | TensorFlow SavedModel | *_saved_model    |
+            | TensorFlow GraphDef   | *.pb             |
+            | TensorFlow Lite       | *.tflite         |
+            | TensorFlow Edge TPU   | *_edgetpu.tflite |
+            | PaddlePaddle          | *_paddle_model   |
         """
         super().__init__()
         w = str(weights[0] if isinstance(weights, list) else weights)

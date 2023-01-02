@@ -19,16 +19,7 @@ from ultralytics.yolo.utils.torch_utils import (fuse_conv_and_bn, initialize_wei
 
 class BaseModel(nn.Module):
     '''
-     The BaseModel class is a base class for all the models in the YOLOv5 family. 
-     
-    It contains:
-        forward(): function which is used to run the model on a given input. 
-        _forward_once(): function which is used to run the model on a given input. 
-        _profile_one_layer():function which is used to profile the model. 
-        fuse(): function which is used to fuse the model Conv2d() + BatchNorm2d()layers. 
-        info(): function which is used to print model information. 
-        _apply(): function which is used to apply to(), cpu(), cuda(), half() to model tensors that are not parameters or registered buffers. 
-        load(): function which is used to load the model weights.
+     The BaseModel class is a base class for all the models in the Ultralytics YOLO family. 
     '''
     def forward(self, x, profile=False, visualize=False):
         """

@@ -137,8 +137,6 @@ class Exporter:
         """
         if overrides is None:
             overrides = {}
-        if 'batch_size' not in overrides:
-            overrides['batch_size'] = 1  # set default export batch size
         self.args = get_config(config, overrides)
         project = self.args.project or f"runs/{self.args.task}"
         name = self.args.name or "exp"  # hardcode mode as export doesn't require it
@@ -166,6 +164,8 @@ class Exporter:
             assert not self.args.dynamic, '--half not compatible with --dynamic, i.e. use either --half or --dynamic'
 
         # Checks
+        if self.args.batch_size == 16:
+            self.args.batch_size = 1  # TODO: resolve batch_size 16 default in config.yaml
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
         if self.args.optimize:
             assert self.device.type == 'cpu', '--optimize not compatible with cuda devices, i.e. use --device cpu'

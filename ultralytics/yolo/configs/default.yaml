@@ -1,11 +1,11 @@
 # YOLO 🚀 by Ultralytics, GPL-3.0 license
 # Default training settings and hyperparameters for medium-augmentation COCO training
 
-task: "classify" # choices=['detect', 'segment', 'classify', 'init'] # init is a special case. Specify task to run.
+task: "detect" # choices=['detect', 'segment', 'classify', 'init'] # init is a special case. Specify task to run.
 mode: "train" # choices=['train', 'val', 'predict'] # mode to run task in.
 
 # Train settings -------------------------------------------------------------------------------------------------------
-model: null # i.e. yolov5s.pt, yolo.yaml. Path to model file
+model: null # i.e. yolov8n.pt, yolov8n.yaml. Path to model file
 data: null # i.e. coco128.yaml. Path to data file
 epochs: 100 # number of epochs to train for
 patience: 50  # TODO: epochs to wait for no observable improvement for early stopping of training

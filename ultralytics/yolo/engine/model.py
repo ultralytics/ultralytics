@@ -222,6 +222,7 @@ class YOLO:
 
     @staticmethod
     def _reset_ckpt_args(args):
-        args["device"] = ''
-        args["project"] = None
-        args["name"] = None
+        args.pop("device", None)
+        args.pop("project", None)
+        args.pop("name", None)
+        args.pop("batch_size", None)

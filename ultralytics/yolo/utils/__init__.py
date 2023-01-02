@@ -63,6 +63,11 @@ pd.options.display.max_columns = 10
 cv2.setNumThreads(0)  # prevent OpenCV from multithreading (incompatible with PyTorch DataLoader)
 os.environ['NUMEXPR_MAX_THREADS'] = str(NUM_THREADS)  # NumExpr max threads
 
+# Default config dictionary
+with open(DEFAULT_CONFIG, errors='ignore') as f:
+    DEFAULT_CONFIG_DICT = yaml.safe_load(f)
+DEFAULT_CONFIG_KEYS = DEFAULT_CONFIG_DICT.keys()
+
 
 def is_colab():
     """
@@ -340,8 +345,3 @@ def set_settings(kwargs, file=USER_CONFIG_DIR / 'settings.yaml'):
     SETTINGS.update(kwargs)
 
     yaml_save(file, SETTINGS)
-
-
-# Default config dictionary
-DEFAULT_CONFIG_DICT = yaml_load(DEFAULT_CONFIG, append_filename=False)
-DEFAULT_CONFIG_KEYS = DEFAULT_CONFIG_DICT.keys()

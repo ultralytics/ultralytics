@@ -91,7 +91,13 @@ This module contains optimized deep learning related operations used in the Ultr
         show_source: false
         show_root_toc_entry: false
 ---
-
+## segment2box
+:::ultralytics.ops.segment2box
+    handler: python
+    options:
+        show_source: false
+        show_root_toc_entry: false
+---
 # Mask Operations
 ## resample_segments
 :::ultralytics.ops.resample_segments

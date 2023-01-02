@@ -4,7 +4,7 @@ from ultralytics.yolo.utils import ROOT
 if __name__ == "__main__":
     for m in list((ROOT / 'yolo/v8/models').rglob('*.yaml')):
         try:
-            YOLO.new(m.name, verbose=True)
+            YOLO(m.name, verbose=True)
         except Exception as e:
             print(f'ERROR for {m}: {e}')
 

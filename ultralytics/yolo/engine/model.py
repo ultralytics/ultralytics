@@ -55,7 +55,6 @@ class YOLO:
         # Load or create new YOLO model
         {'.pt': self._load, '.yaml': self._new}[Path(model).suffix](model)
 
-
     def _new(self, cfg: str, verbose=True):
         """
         Initializes a new model and infers the task type from the model definitions.
@@ -195,7 +194,7 @@ class YOLO:
         self.trainer = self.TrainerClass(overrides=overrides)
         if not overrides.get("resume"):
             self.trainer.model = self.trainer.load_model(weights=self.model,
-                                                        model_cfg=self.model.yaml if self.task != "classify" else None)
+                                                         model_cfg=self.model.yaml if self.task != "classify" else None)
             self.model = self.trainer.model  # override here to save memory
 
         self.trainer.train()

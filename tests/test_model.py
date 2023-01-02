@@ -101,15 +101,9 @@ def test_export_paddle():
     model.export(format='paddle')
 
 
-def run_all_tests():  # do not name function test_...
-    test_model_forward()
-    test_model_info()
-    test_model_fuse()
-    test_visualize_preds()
-    test_val()
-    test_model_resume()
-    test_model_train_pretrained()
-
-
-if __name__ == "__main__":
-    run_all_tests()
+# def run_all_tests():  # do not name function test_...
+#     pass
+#
+#
+# if __name__ == "__main__":
+#     run_all_tests()

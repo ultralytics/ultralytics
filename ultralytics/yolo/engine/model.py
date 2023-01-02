@@ -82,7 +82,7 @@ class YOLO:
         self.ckpt_path = weights
         self.task = self.model.args["task"]
         self.overrides = self.model.args
-        self.overrides["device"] = ''  # reset device
+        self._reset_ckpt_args(self.overrides)
         self.ModelClass, self.TrainerClass, self.ValidatorClass, self.PredictorClass = \
             self._guess_ops_from_task(self.task)
 
@@ -145,6 +145,7 @@ class YOLO:
         overrides = self.overrides.copy()
         overrides.update(kwargs)
         overrides["mode"] = "val"
+        overrides["task"] = self.task
         args = get_config(config=DEFAULT_CONFIG, overrides=overrides)
         args.data = data or args.data
         args.task = self.task
@@ -219,3 +220,9 @@ class YOLO:
 
     def forward(self, imgs):
         return self.__call__(imgs)
+
+    @staticmethod
+    def _reset_ckpt_args(args):
+        args["device"] = ''
+        args["project"] = None
+        args["name"] = None

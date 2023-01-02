@@ -61,7 +61,7 @@ This is the simplest way of simply using yolo models in a python environment. It
 
 To know more about using `YOLO` models, refer Model class refernce
 
-[Model reference](#){ .md-button .md-button--primary}
+[Model reference](reference/model.md){ .md-button .md-button--primary}
 
 ---
 ### Customizing Tasks with Trainers

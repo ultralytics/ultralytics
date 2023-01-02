@@ -4,7 +4,6 @@ from ultralytics import YOLO
 from ultralytics.yolo.utils import ROOT
 
 
-
 def test_model_forward():
     model = YOLO("yolov8n.yaml")
     img = torch.rand(1, 3, 320, 320)

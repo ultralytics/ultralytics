@@ -778,7 +778,7 @@ def export(cfg):
         if Path(cfg.model).suffix == '.yaml':
             model = DetectionModel(cfg.model)
         elif Path(cfg.model).suffix == '.pt':
-            model = attempt_load_weights(cfg.model)
+            model = attempt_load_weights(cfg.model, fuse=True)
         else:
             TypeError(f'Unsupported model type {cfg.model}')
     exporter(model=model)

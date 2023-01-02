@@ -3,7 +3,7 @@ from pathlib import Path
 
 import hydra
 
-from ultralytics import yolo
+from ultralytics import hub, yolo
 from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, colorstr
 
 DIR = Path(__file__).parent
@@ -41,8 +41,8 @@ def cli(cfg):
         "train": module.train,
         "val": module.val,
         "predict": module.predict,
-        "export": yolo.engine.exporter.export}
-    # "checks": hub.checks}
+        "export": yolo.engine.exporter.export,
+        "checks": hub.checks}
     func = mode_func_map.get(mode)
     if not func:
         raise SyntaxError(f"mode not recognized. Choices are {', '.join(mode_func_map.keys())}")

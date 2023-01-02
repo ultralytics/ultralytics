@@ -54,9 +54,12 @@ class DetectionTrainer(BaseTrainer):
         self.model.names = self.data["names"]
 
     def load_model(self, model_cfg=None, weights=None, verbose=True):
-        model = DetectionModel(model_cfg or weights.yaml, ch=3, nc=self.data["nc"], verbose=verbose)
+        model = DetectionModel(model_cfg or getattr(weights, 'yaml', None) or weights['model'].yaml,
+                               ch=3,
+                               nc=self.data["nc"],
+                               verbose=verbose)
         if weights:
-            model.load(weights, verbose)
+            model.load(weights['model'] if isinstance(weights, dict) else weights, verbose)
         return model
 
     def get_validator(self):

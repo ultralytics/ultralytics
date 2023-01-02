@@ -200,7 +200,7 @@ def colorstr(*input):
         "bright_white": "\033[97m",
         "end": "\033[0m",  # misc
         "bold": "\033[1m",
-        "underline": "\033[4m",}
+        "underline": "\033[4m", }
     return "".join(colors[x] for x in args) + f"{string}" + colors["end"]
 
 
@@ -218,12 +218,12 @@ def set_logging(name=LOGGING_NAME, verbose=True):
             name: {
                 "class": "logging.StreamHandler",
                 "formatter": name,
-                "level": level,}},
+                "level": level, }},
         "loggers": {
             name: {
                 "level": level,
                 "handlers": [name],
-                "propagate": False,}}})
+                "propagate": False, }}})
 
 
 class TryExcept(contextlib.ContextDecorator):
@@ -340,3 +340,8 @@ def set_settings(kwargs, file=USER_CONFIG_DIR / 'settings.yaml'):
     SETTINGS.update(kwargs)
 
     yaml_save(file, SETTINGS)
+
+
+# Default config dictionary
+DEFAULT_CONFIG_DICT = yaml_load(DEFAULT_CONFIG, append_filename=False)
+DEFAULT_CONFIG_KEYS = DEFAULT_CONFIG_DICT.keys()

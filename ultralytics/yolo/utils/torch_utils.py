@@ -28,12 +28,12 @@ WORLD_SIZE = int(os.getenv('WORLD_SIZE', 1))
 @contextmanager
 def torch_distributed_zero_first(local_rank: int):
     # Decorator to make all processes in distributed training wait for each local_master to do something
-    if torch.distributed.is_initialized():
-        if local_rank not in {-1, 0}:
-            dist.barrier(device_ids=[local_rank])
-        yield
-        if local_rank == 0:
-            dist.barrier(device_ids=[0])
+    initialized = torch.distributed.is_initialized()
+    if initialized and local_rank not in {-1, 0}:
+        dist.barrier(device_ids=[local_rank])
+    yield
+    if initialized and local_rank == 0:
+        dist.barrier(device_ids=[0])
 
 
 def smart_inference_mode(torch_1_9=check_version(torch.__version__, '1.9.0')):

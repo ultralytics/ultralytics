@@ -5,7 +5,7 @@ import time
 import requests
 
 from ultralytics.hub.config import HUB_API_ROOT
-from ultralytics.yolo.utils import DEFAULT_CONFIG_DICT, LOGGER, RANK, SETTINGS, colorstr, emojis, yaml_load
+from ultralytics.yolo.utils import DEFAULT_CONFIG_DICT, LOGGER, RANK, SETTINGS, colorstr, emojis
 
 PREFIX = colorstr('Ultralytics: ')
 HELP_MSG = 'If this issue persists please visit https://github.com/ultralytics/hub/issues for assistance.'
@@ -49,7 +49,7 @@ def request_with_credentials(url: str) -> any:
 
 
 # Deprecated TODO: eliminate this function?
-def split_key(key: str = '') -> tuple[str, str]:
+def split_key(key=''):
     """
     Verify and split a 'api_key[sep]model_id' string, sep is one of '.' or '_'
 

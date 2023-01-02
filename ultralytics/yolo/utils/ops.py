@@ -389,10 +389,10 @@ def xyn2xy(x, w=640, h=640, padw=0, padh=0):
 def xywh2ltwh(x):
     """
     It converts the bounding box from [x, y, w, h] to [x1, y1, w, h] where xy1=top-left
-
+    
     Args:
       x: the x coordinate of the center of the bounding box
-
+    
     Returns:
       the top left x and y coordinates of the bounding box.
     """
@@ -405,10 +405,10 @@ def xywh2ltwh(x):
 def xyxy2ltwh(x):
     """
     Convert nx4 boxes from [x1, y1, x2, y2] to [x1, y1, w, h] where xy1=top-left, xy2=bottom-right
-
+    
     Args:
       x: the input tensor
-
+    
     Returns:
       the xyxy2ltwh function.
     """
@@ -421,7 +421,7 @@ def xyxy2ltwh(x):
 def ltwh2xywh(x):
     """
     Convert nx4 boxes from [x1, y1, w, h] to [x, y, w, h] where xy1=top-left, xy=center
-
+    
     Args:
       x: the input tensor
     """
@@ -435,10 +435,10 @@ def ltwh2xyxy(x):
     """
     It converts the bounding box from [x1, y1, w, h] to [x1, y1, x2, y2] where xy1=top-left,
     xy2=bottom-right
-
+    
     Args:
       x: the input image
-
+    
     Returns:
       the xyxy coordinates of the bounding boxes.
     """
@@ -451,11 +451,11 @@ def ltwh2xyxy(x):
 def segments2boxes(segments):
     """
     It converts segment labels to box labels, i.e. (cls, xy1, xy2, ...) to (cls, xywh)
-
+    
     Args:
       segments: list of segments, each segment is a list of points, each point is a list of x, y
     coordinates
-
+    
     Returns:
       the xywh coordinates of the bounding boxes.
     """
@@ -467,7 +467,17 @@ def segments2boxes(segments):
 
 
 def resample_segments(segments, n=1000):
-    # Up-sample an (n,2) segment
+    """
+    It takes a list of segments (n,2) and returns a list of segments (n,2) where each segment has been
+    up-sampled to n points
+    
+    Args:
+      segments: a list of (n,2) arrays, where n is the number of points in the segment.
+      n: number of points to resample the segment to. Defaults to 1000
+    
+    Returns:
+      the resampled segments.
+    """
     for i, s in enumerate(segments):
         s = np.concatenate((s, s[0:1, :]), axis=0)
         x = np.linspace(0, len(s) - 1, n)
@@ -478,13 +488,15 @@ def resample_segments(segments, n=1000):
 
 def crop_mask(masks, boxes):
     """
-    "Crop" predicted masks by zeroing out everything not in the predicted bbox.
-    Vectorized by Chong (thanks Chong).
+    It takes a mask and a bounding box, and returns a mask that is cropped to the bounding box
+    
     Args:
-        - masks should be a size [h, w, n] tensor of masks
-        - boxes should be a size [n, 4] tensor of bbox coords in relative point form
+      masks: [h, w, n] tensor of masks
+      boxes: [n, 4] tensor of bbox coords in relative point form
+    
+    Returns:
+      The masks are being cropped to the bounding box.
     """
-
     n, h, w = masks.shape
     x1, y1, x2, y2 = torch.chunk(boxes[:, :, None], 4, 1)  # x1 shape(1,1,n)
     r = torch.arange(w, device=masks.device, dtype=x1.dtype)[None, None, :]  # rows shape(1,w,1)
@@ -495,14 +507,18 @@ def crop_mask(masks, boxes):
 
 def process_mask_upsample(protos, masks_in, bboxes, shape):
     """
-    Crop after upsample.
-    proto_out: [mask_dim, mask_h, mask_w]
-    out_masks: [n, mask_dim], n is number of masks after nms
-    bboxes: [n, 4], n is number of masks after nms
-    shape:input_image_size, (h, w)
-    return: h, w, n
+    It takes the output of the mask head, and applies the mask to the bounding boxes. This produces masks of higher
+    quality but is slower.
+    
+    Args:
+      protos: [mask_dim, mask_h, mask_w]
+      masks_in: [n, mask_dim], n is number of masks after nms
+      bboxes: [n, 4], n is number of masks after nms
+      shape: the size of the input image
+    
+    Returns:
+      mask
     """
-
     c, mh, mw = protos.shape  # CHW
     masks = (masks_in @ protos.float().view(c, -1)).sigmoid().view(-1, mh, mw)
     masks = F.interpolate(masks[None], shape, mode='bilinear', align_corners=False)[0]  # CHW
@@ -512,12 +528,17 @@ def process_mask_upsample(protos, masks_in, bboxes, shape):
 
 def process_mask(protos, masks_in, bboxes, shape, upsample=False):
     """
-    Crop before upsample.
-    proto_out: [mask_dim, mask_h, mask_w]
-    out_masks: [n, mask_dim], n is number of masks after nms
-    bboxes: [n, 4], n is number of masks after nms
-    shape:input_image_size, (h, w)
-    return: h, w, n
+    It takes the output of the mask head, and applies the mask to the bounding boxes. This is faster but produces 
+    downsampled quality of mask
+    
+    Args:
+      protos: [mask_dim, mask_h, mask_w]
+      masks_in: [n, mask_dim], n is number of masks after nms
+      bboxes: [n, 4], n is number of masks after nms
+      shape: the size of the input image
+    
+    Returns:
+      mask
     """
 
     c, mh, mw = protos.shape  # CHW
@@ -538,12 +559,16 @@ def process_mask(protos, masks_in, bboxes, shape, upsample=False):
 
 def process_mask_native(protos, masks_in, bboxes, shape):
     """
-    Crop after upsample.
-    protos: [mask_dim, mask_h, mask_w]
-    masks_in: [n, mask_dim], n is number of masks after nms
-    bboxes: [n, 4], n is number of masks after nms
-    shape: input_image_size, (h, w)
-    return: h, w, n
+    > It takes the output of the mask head, and crops it after upsampling to the bounding boxes.
+    
+    Args:
+      protos: [mask_dim, mask_h, mask_w]
+      masks_in: [n, mask_dim], n is number of masks after nms
+      bboxes: [n, 4], n is number of masks after nms
+      shape: input_image_size, (h, w)
+    
+    Returns:
+      masks: [h, w, n]
     """
     c, mh, mw = protos.shape  # CHW
     masks = (masks_in @ protos.float().view(c, -1)).sigmoid().view(-1, mh, mw)
@@ -559,7 +584,19 @@ def process_mask_native(protos, masks_in, bboxes, shape):
 
 
 def scale_segments(img1_shape, segments, img0_shape, ratio_pad=None, normalize=False):
-    # Rescale coords (xyxy) from img1_shape to img0_shape
+    """
+    Rescale segment coords (xyxy) from img1_shape to img0_shape
+
+    Args:
+      img1_shape: The shape of the image that the segments are from.
+      segments: the segments to be scaled
+      img0_shape: the shape of the image that the segmentation is being applied to
+      ratio_pad: the ratio of the image size to the padded image size.
+      normalize: If True, the coordinates will be normalized to the range [0, 1]. Defaults to False
+    
+    Returns:
+      the segmented image.
+    """
     if ratio_pad is None:  # calculate from img0_shape
         gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
         pad = (img1_shape[1] - img0_shape[1] * gain) / 2, (img1_shape[0] - img0_shape[0] * gain) / 2  # wh padding
@@ -578,7 +615,16 @@ def scale_segments(img1_shape, segments, img0_shape, ratio_pad=None, normalize=F
 
 
 def masks2segments(masks, strategy='largest'):
-    # Convert masks(n,160,160) into segments(n,xy)
+    """
+    It takes a list of masks(n,h,w) and returns a list of segments(n,xy)
+    
+    Args:
+      masks: the output of the model, which is a tensor of shape (batch_size, 160, 160)
+      strategy: 'concat' or 'largest'. Defaults to largest
+    
+    Returns:
+      segments (List): list of segment masks
+    """
     segments = []
     for x in masks.int().cpu().numpy().astype('uint8'):
         c = cv2.findContours(x, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[0]
@@ -594,7 +640,14 @@ def masks2segments(masks, strategy='largest'):
 
 
 def clip_segments(segments, shape):
-    # Clip segments (xy1,xy2,...) to image shape (height, width)
+    """
+    It takes a list of line segments (x1,y1,x2,y2) and clips them to the image shape (height, width)
+    
+    Args:
+      segments: a list of segments, each segment is a list of points, each point is a list of x,y
+    coordinates
+      shape: the shape of the image
+    """
     if isinstance(segments, torch.Tensor):  # faster individually
         segments[:, 0].clamp_(0, shape[1])  # x
         segments[:, 1].clamp_(0, shape[0])  # y

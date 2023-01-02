@@ -12,8 +12,8 @@ from ultralytics.nn.modules import (C1, C2, C3, C3TR, SPP, SPPF, Bottleneck, Bot
                                     GhostBottleneck, GhostConv, Segment)
 from ultralytics.yolo.utils import LOGGER, colorstr, yaml_load
 from ultralytics.yolo.utils.checks import check_yaml
-from ultralytics.yolo.utils.torch_utils import (fuse_conv_and_bn, initialize_weights, intersect_state_dicts,
-                                                make_divisible, model_info, scale_img, time_sync)
+from ultralytics.yolo.utils.torch_utils import (fuse_conv_and_bn, initialize_weights, intersect_dicts, make_divisible,
+                                                model_info, scale_img, time_sync)
 
 
 class BaseModel(nn.Module):
@@ -150,7 +150,7 @@ class DetectionModel(BaseModel):
 
     def load(self, weights, verbose=True):
         csd = weights['model'].float().state_dict()  # checkpoint state_dict as FP32
-        csd = intersect_state_dicts(csd, self.state_dict())  # intersect
+        csd = intersect_dicts(csd, self.state_dict())  # intersect
         self.load_state_dict(csd, strict=False)  # load
         if verbose:
             LOGGER.info(f'Transferred {len(csd)}/{len(self.model.state_dict())} items from pretrained weights')
@@ -191,7 +191,7 @@ class ClassificationModel(BaseModel):
     def load(self, weights):
         model = weights["model"] if isinstance(weights, dict) else weights  # torchvision models are not dicts
         csd = model.float().state_dict()
-        csd = intersect_state_dicts(csd, self.state_dict())  # intersect
+        csd = intersect_dicts(csd, self.state_dict())  # intersect
         self.load_state_dict(csd, strict=False)  # load
 
     @staticmethod

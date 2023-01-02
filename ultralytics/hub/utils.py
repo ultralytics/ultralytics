@@ -1,15 +1,15 @@
 import shutil
 import threading
 import time
-import uuid
 
 import requests
 
 from ultralytics.hub.config import HUB_API_ROOT
-from ultralytics.yolo.utils import LOGGER, RANK, SETTINGS, colorstr, emojis
+from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, RANK, SETTINGS, colorstr, emojis, yaml_load
 
 PREFIX = colorstr('Ultralytics: ')
 HELP_MSG = 'If this issue persists please visit https://github.com/ultralytics/hub/issues for assistance.'
+DEFAULT_CONFIG_DICT = yaml_load(DEFAULT_CONFIG)
 
 
 def check_dataset_disk_space(url='https://github.com/ultralytics/yolov5/releases/download/v1.0/coco128.zip', sf=2.0):
@@ -26,7 +26,7 @@ def check_dataset_disk_space(url='https://github.com/ultralytics/yolov5/releases
 
 
 def request_with_credentials(url: str) -> any:
-    """ Make a ajax request with cookies attached """
+    """ Make an ajax request with cookies attached """
     from google.colab import output  # noqa
     from IPython import display  # noqa
     display.display(
@@ -92,17 +92,18 @@ def smart_request(*args, retry=3, timeout=30, thread=True, code=-1, method="post
     retry_codes = (408, 500)  # retry only these codes
     methods = {'post': requests.post, 'get': requests.get}  # request methods
 
-    def fcn(*args, **kwargs):
-        t0 = time.time()
+    def func(*func_args, **func_kwargs):
+        r = None  # response
+        t0 = time.time()  # initial time for timer
         for i in range(retry + 1):
             if (time.time() - t0) > timeout:
                 break
-            r = methods[method](*args, **kwargs)  # i.e. post(url, data, json, files)
+            r = methods[method](*func_args, **func_kwargs)  # i.e. post(url, data, json, files)
             if r.status_code == 200:
                 break
             try:
                 m = r.json().get('message', 'No JSON message.')
-            except Exception:
+            except AttributeError:
                 m = 'Unable to read JSON.'
             if i == 0:
                 if r.status_code in retry_codes:
@@ -118,22 +119,25 @@ def smart_request(*args, retry=3, timeout=30, thread=True, code=-1, method="post
         return r
 
     if thread:
-        threading.Thread(target=fcn, args=args, kwargs=kwargs, daemon=True).start()
+        threading.Thread(target=func, args=args, kwargs=kwargs, daemon=True).start()
     else:
-        return fcn(*args, **kwargs)
+        return func(*args, **kwargs)
 
 
-def sync_analytics(cfg, enabled=False):
+def sync_analytics(cfg, all_keys=False, enabled=True):
     """
    Sync analytics data if enabled in the global settings
 
     Args:
         cfg (DictConfig): Configuration for the task and mode.
+        all_keys (bool): Sync all items, not just non-default values.
         enabled (bool): For debugging.
     """
     if SETTINGS['sync'] and RANK in {-1, 0} and enabled:
         cfg = dict(cfg)  # convert type from DictConfig to dict
-        cfg['uuid'] = uuid.getnode()  # add the device UUID to the configuration data
+        if not all_keys:
+            cfg = {k: v for k, v in cfg.items() if v != DEFAULT_CONFIG_DICT[k]}  # retain only non-default values
+        cfg['uuid'] = SETTINGS['uuid']  # add the device UUID to the configuration data
 
         # Send a request to the HUB API to sync the analytics data
-        smart_request(f'{HUB_API_ROOT}/analytics', data=cfg, headers=None, code=3, retry=0)
+        smart_request(f'{HUB_API_ROOT}/v1/usage/anonymous', data=cfg, headers=None, code=3, retry=0)

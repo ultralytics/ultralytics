@@ -48,7 +48,7 @@ def on_train_end(trainer):
         # Upload final model and metrics with exponential standoff
         LOGGER.info(f"{PREFIX}Training completed successfully ✅\n"
                     f"{PREFIX}Uploading final {session.model_id}")
-        session.upload_model(trainer.epoch, trainer.best, map=trainer.metrics['metrics/mAP50(B)'], final=True)
+        session.upload_model(trainer.epoch, trainer.best, map=trainer.metrics['metrics/mAP50-95(B)'], final=True)
         session.alive = False  # stop heartbeats
         LOGGER.info(f"{PREFIX}View model at https://hub.ultralytics.com/models/{session.model_id} 🚀")
 

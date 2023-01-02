@@ -45,11 +45,12 @@ def is_url(url, check=True):
         return False
 
 
-def attempt_download(file, repo='ultralytics/yolov5', release='v6.2'):
+def attempt_download(file, repo='ultralytics/assets', release='v0.0.0'):
     # Attempt file download from GitHub release assets if not found locally. release = 'latest', 'v6.2', etc.
 
     def github_assets(repository, version='latest'):
         # Return GitHub repo tag and assets (i.e. ['yolov8n.pt', 'yolov5m.pt', ...])
+        # Return GitHub repo tag and assets (i.e. ['yolov8n.pt', 'yolov8s.pt', ...])
         if version != 'latest':
             version = f'tags/{version}'  # i.e. tags/v6.2
         response = requests.get(f'https://api.github.com/repos/{repository}/releases/{version}').json()  # github api
@@ -70,6 +71,7 @@ def attempt_download(file, repo='ultralytics/yolov5', release='v6.2'):
 
         # GitHub assets
         assets = [f'yolov5{size}{suffix}.pt' for size in 'nsmlx' for suffix in ('', '6', '-cls', '-seg')]  # default
+        assets = [f'yolov8{size}{suffix}.pt' for size in 'nsmlx' for suffix in ('', '6', '-cls', '-seg')]  # default
         try:
             tag, assets = github_assets(repo, release)
         except Exception:

@@ -23,7 +23,7 @@ Requirements:
 
 Python:
     from ultralytics import YOLO
-    model = YOLO.new('yolov8n.yaml')
+    model = YOLO('yolov8n.yaml')
     results = model.export(format='onnx')
 
 CLI:

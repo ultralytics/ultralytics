@@ -1,11 +1,7 @@
 import torch
 
 from ultralytics import YOLO
-
-
-def test_model_init():
-    model = YOLO("yolov8n.yaml")
-    model.info()
+from ultralytics.yolo.utils import ROOT
 
 
 def test_model_forward():
@@ -29,9 +25,9 @@ def test_model_fuse():
     model.fuse()
 
 
-def test_visualize_preds():
+def test_predict_dir():
     model = YOLO("yolov8n.pt")
-    model.predict(source="ultralytics/assets")
+    model.predict(source=ROOT / "assets")
 
 
 def test_val():
@@ -39,7 +35,7 @@ def test_val():
     model.val(data="coco128.yaml", imgsz=32)
 
 
-def test_model_resume():
+def test_train_resume():
     model = YOLO("yolov8n.yaml")
     model.train(epochs=1, imgsz=32, data="coco128.yaml")
     try:
@@ -48,16 +44,21 @@ def test_model_resume():
         print("Successfully caught resume assert!")
 
 
-def test_model_train_pretrained():
-    model = YOLO("yolov8n.pt")
-    model.train(data="coco128.yaml", epochs=1, imgsz=32)
+def test_train_scratch():
     model = YOLO("yolov8n.yaml")
     model.train(data="coco128.yaml", epochs=1, imgsz=32)
     img = torch.rand(1, 3, 320, 320)
     model(img)
 
 
-def test_exports():
+def test_train_pretrained():
+    model = YOLO("yolov8n.pt")
+    model.train(data="coco128.yaml", epochs=1, imgsz=32)
+    img = torch.rand(1, 3, 320, 320)
+    model(img)
+
+
+def test_export_torchscript():
     """
                        Format     Argument           Suffix    CPU    GPU
     0                 PyTorch            -              .pt   True   True
@@ -74,26 +75,35 @@ def test_exports():
     11           PaddlePaddle       paddle    _paddle_model   True   True
     """
     from ultralytics.yolo.engine.exporter import export_formats
-
     print(export_formats())
 
     model = YOLO("yolov8n.yaml")
     model.export(format='torchscript')
+
+
+def test_export_onnx():
+    model = YOLO("yolov8n.yaml")
     model.export(format='onnx')
+
+
+def test_export_openvino():
+    model = YOLO("yolov8n.yaml")
     model.export(format='openvino')
+
+
+def test_export_coreml():
+    model = YOLO("yolov8n.yaml")
     model.export(format='coreml')
+
+
+def test_export_paddle():
+    model = YOLO("yolov8n.yaml")
     model.export(format='paddle')
 
 
-def test():
-    test_model_forward()
-    test_model_info()
-    test_model_fuse()
-    test_visualize_preds()
-    test_val()
-    test_model_resume()
-    test_model_train_pretrained()
-
-
-if __name__ == "__main__":
-    test()
+# def run_all_tests():  # do not name function test_...
+#     pass
+#
+#
+# if __name__ == "__main__":
+#     run_all_tests()

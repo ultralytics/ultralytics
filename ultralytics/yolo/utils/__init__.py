@@ -36,8 +36,8 @@ HELP_MSG = \
 
         from ultralytics import YOLO
 
-        model = YOLO.new('yolov8n.yaml')            # create a new model from scratch
-        model = YOLO.load('yolov8n.pt')             # load a pretrained model (recommended for best training results)
+        model = YOLO('yolov8n.yaml')                # build a new model from scratch
+        model = YOLO('yolov8n.pt')                  # load a pretrained model (recommended for best training results)
         results = model.train(data='coco128.yaml')  # train the model
         results = model.val()                       # evaluate model performance on the validation set
         results = model.predict(source='bus.jpg')   # predict on an image

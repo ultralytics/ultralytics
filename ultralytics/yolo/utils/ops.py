@@ -62,11 +62,11 @@ def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None):
       boxes: the bounding boxes of the objects in the image
       img0_shape: the shape of the original image
       ratio_pad: a tuple of (ratio, pad)
-    
+
     Returns:
       The boxes are being returned.
     """
-    # 
+    #
     if ratio_pad is None:  # calculate from img0_shape
         gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
         pad = (img1_shape[1] - img0_shape[1] * gain) / 2, (img1_shape[0] - img0_shape[0] * gain) / 2  # wh padding
@@ -220,7 +220,7 @@ def clip_boxes(boxes, shape):
     """
     It takes a list of bounding boxes and a shape (height, width) and clips the bounding boxes to the
     shape
-    
+
     Args:
       boxes: the bounding boxes to clip
       shape: the shape of the image
@@ -250,13 +250,13 @@ def clip_coords(boxes, shape):
 def scale_image(im1_shape, masks, im0_shape, ratio_pad=None):
     """
     It takes a mask, and resizes it to the original image size
-    
+
     Args:
       im1_shape: model input shape, [h, w]
       masks: [h, w, num]
       im0_shape: the original image shape
       ratio_pad: the ratio of the padding to the original image.
-    
+
     Returns:
       The masks are being returned.
     """
@@ -286,10 +286,10 @@ def xyxy2xywh(x):
     """
     It takes a list of bounding boxes, and converts them from the format [x1, y1, x2, y2] to [x, y, w,
     h]  where xy1=top-left, xy2=bottom-right
-    
+
     Args:
       x: the input tensor
-    
+
     Returns:
       the center of the box, the width and the height of the box.
     """
@@ -304,10 +304,10 @@ def xyxy2xywh(x):
 def xywh2xyxy(x):
     """
     It converts the bounding box from x,y,w,h to x1,y1,x2,y2 where xy1=top-left, xy2=bottom-right
-    
+
     Args:
       x: the input tensor
-    
+
     Returns:
       the top left and bottom right coordinates of the bounding box.
     """
@@ -322,14 +322,14 @@ def xywh2xyxy(x):
 def xywhn2xyxy(x, w=640, h=640, padw=0, padh=0):
     """
     It converts the normalized coordinates to the actual coordinates [x1, y1, x2, y2] where xy1=top-left, xy2=bottom-right
-    
+
     Args:
       x: the bounding box coordinates
       w: width of the image. Defaults to 640
       h: height of the image. Defaults to 640
       padw: padding width. Defaults to 0
       padh: height of the padding. Defaults to 0
-    
+
     Returns:
       the xyxy coordinates of the bounding box.
     """
@@ -345,14 +345,14 @@ def xyxy2xywhn(x, w=640, h=640, clip=False, eps=0.0):
     """
     It takes in a list of bounding boxes, and returns a list of bounding boxes, but with the x and y
     coordinates normalized to the width and height of the image
-    
+
     Args:
       x: the bounding box coordinates
       w: width of the image. Defaults to 640
       h: height of the image. Defaults to 640
       clip: If True, the boxes will be clipped to the image boundaries. Defaults to False
       eps: the minimum value of the box's width and height.
-    
+
     Returns:
       the xywhn format of the bounding boxes.
     """
@@ -369,14 +369,14 @@ def xyxy2xywhn(x, w=640, h=640, clip=False, eps=0.0):
 def xyn2xy(x, w=640, h=640, padw=0, padh=0):
     """
     It converts normalized segments into pixel segments of shape (n,2)
-    
+
     Args:
       x: the normalized coordinates of the bounding box
       w: width of the image. Defaults to 640
       h: height of the image. Defaults to 640
       padw: padding width. Defaults to 0
       padh: padding height. Defaults to 0
-    
+
     Returns:
       the x and y coordinates of the top left corner of the bounding box.
     """

@@ -140,4 +140,4 @@ def sync_analytics(cfg, all_keys=False, enabled=True):
         cfg['uuid'] = SETTINGS['uuid']  # add the device UUID to the configuration data
 
         # Send a request to the HUB API to sync the analytics data
-        smart_request(f'{HUB_API_ROOT}/analytics', data=cfg, headers=None, code=3, retry=0)
+        smart_request(f'{HUB_API_ROOT}/v1/usage/anonymous', data=cfg, headers=None, code=3, retry=0)

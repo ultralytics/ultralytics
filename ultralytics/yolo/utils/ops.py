@@ -387,7 +387,15 @@ def xyn2xy(x, w=640, h=640, padw=0, padh=0):
 
 
 def xywh2ltwh(x):
-    # Convert nx4 boxes from [x, y, w, h] to [x1, y1, w, h] where xy1=top-left
+    """
+    It converts the bounding box from [x, y, w, h] to [x1, y1, w, h] where xy1=top-left
+    
+    Args:
+      x: the x coordinate of the center of the bounding box
+    
+    Returns:
+      the top left x and y coordinates of the bounding box.
+    """
     y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
     y[:, 0] = x[:, 0] - x[:, 2] / 2  # top left x
     y[:, 1] = x[:, 1] - x[:, 3] / 2  # top left y
@@ -395,7 +403,15 @@ def xywh2ltwh(x):
 
 
 def xyxy2ltwh(x):
-    # Convert nx4 boxes from [x1, y1, x2, y2] to [x1, y1, w, h] where xy1=top-left, xy2=bottom-right
+    """
+    Convert nx4 boxes from [x1, y1, x2, y2] to [x1, y1, w, h] where xy1=top-left, xy2=bottom-right
+    
+    Args:
+      x: the input tensor
+    
+    Returns:
+      the xyxy2ltwh function.
+    """
     y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
     y[:, 2] = x[:, 2] - x[:, 0]  # width
     y[:, 3] = x[:, 3] - x[:, 1]  # height
@@ -403,7 +419,12 @@ def xyxy2ltwh(x):
 
 
 def ltwh2xywh(x):
-    # Convert nx4 boxes from [x1, y1, w, h] to [x, y, w, h] where xy1=top-left, xy=center
+    """
+    Convert nx4 boxes from [x1, y1, w, h] to [x, y, w, h] where xy1=top-left, xy=center
+    
+    Args:
+      x: the input tensor
+    """
     y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
     y[:, 0] = x[:, 0] + x[:, 2] / 2  # center x
     y[:, 1] = x[:, 1] + x[:, 3] / 2  # center y
@@ -411,7 +432,16 @@ def ltwh2xywh(x):
 
 
 def ltwh2xyxy(x):
-    # Convert nx4 boxes from [x1, y1, w, h] to [x1, y1, x2, y2] where xy1=top-left, xy2=bottom-right
+    """
+    It converts the bounding box from [x1, y1, w, h] to [x1, y1, x2, y2] where xy1=top-left,
+    xy2=bottom-right
+    
+    Args:
+      x: the input image
+    
+    Returns:
+      the xyxy coordinates of the bounding boxes.
+    """
     y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
     y[:, 2] = x[:, 2] + x[:, 0]  # width
     y[:, 3] = x[:, 3] + x[:, 1]  # height
@@ -419,7 +449,16 @@ def ltwh2xyxy(x):
 
 
 def segments2boxes(segments):
-    # Convert segment labels to box labels, i.e. (cls, xy1, xy2, ...) to (cls, xywh)
+    """
+    It converts segment labels to box labels, i.e. (cls, xy1, xy2, ...) to (cls, xywh)
+    
+    Args:
+      segments: list of segments, each segment is a list of points, each point is a list of x, y
+    coordinates
+    
+    Returns:
+      the xywh coordinates of the bounding boxes.
+    """
     boxes = []
     for s in segments:
         x, y = s.T  # segment xy

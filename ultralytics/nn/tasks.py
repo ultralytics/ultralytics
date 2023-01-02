@@ -16,20 +16,20 @@ from ultralytics.yolo.utils.torch_utils import (fuse_conv_and_bn, initialize_wei
                                                 make_divisible, model_info, scale_img, time_sync)
 
 
-
 class BaseModel(nn.Module):
     '''
-     The BaseModel class is a base class for all the models in the Ultralytics YOLO family. 
+     The BaseModel class is a base class for all the models in the Ultralytics YOLO family.
     '''
+
     def forward(self, x, profile=False, visualize=False):
         """
         > `forward` is a wrapper for `_forward_once` that runs the model on a single scale
-        
+
         Args:
           x: the input image
           profile: whether to profile the model. Defaults to False
           visualize: if True, will return the intermediate feature maps. Defaults to False
-        
+
         Returns:
           The output of the network.
         """
@@ -38,12 +38,12 @@ class BaseModel(nn.Module):
     def _forward_once(self, x, profile=False, visualize=False):
         """
         > Forward pass of the network
-        
+
         Args:
           x: input to the model
           profile: if True, the time taken for each layer will be printed. Defaults to False
           visualize: If True, it will save the feature maps of the model. Defaults to False
-        
+
         Returns:
           The last layer of the model.
         """
@@ -64,7 +64,7 @@ class BaseModel(nn.Module):
         """
         It takes a model, an input, and a list of times, and it profiles the model on the input, appending
         the time to the list
-        
+
         Args:
           m: the model
           x: the input image
@@ -85,7 +85,7 @@ class BaseModel(nn.Module):
     def fuse(self):
         """
         > It takes a model and fuses the Conv2d() and BatchNorm2d() layers into a single layer
-        
+
         Returns:
           The model is being returned.
         """
@@ -101,7 +101,7 @@ class BaseModel(nn.Module):
     def info(self, verbose=False, imgsz=640):
         """
         Prints model information
-        
+
         Args:
           verbose: if True, prints out the model information. Defaults to False
           imgsz: the size of the image that the model will be trained on. Defaults to 640
@@ -112,10 +112,10 @@ class BaseModel(nn.Module):
         """
         `_apply()` is a function that applies a function to all the tensors in the model that are not
         parameters or registered buffers
-        
+
         Args:
           fn: the function to apply to the model
-        
+
         Returns:
           A model that is a Detect() object.
         """
@@ -130,7 +130,7 @@ class BaseModel(nn.Module):
     def load(self, weights):
         """
         > This function loads the weights of the model from a file
-        
+
         Args:
           weights: The weights to load into the model.
         """

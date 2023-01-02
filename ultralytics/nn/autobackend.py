@@ -16,7 +16,8 @@ from ultralytics.yolo.utils.downloads import attempt_download, is_url
 from ultralytics.yolo.utils.ops import xywh2xyxy
 
 
-class AutoBackend(nn.Module): 
+class AutoBackend(nn.Module):
+
     def __init__(self, weights='yolov8n.pt', device=torch.device('cpu'), dnn=False, data=None, fp16=False, fuse=True):
         """
         Ultralytics YOLO MultiBackend class for python inference on various backends
@@ -29,7 +30,7 @@ class AutoBackend(nn.Module):
           data: a dictionary containing the following keys:
           fp16: If true, will use half precision. Defaults to False
           fuse: whether to fuse the model or not. Defaults to True
-        
+
         Supported format and their usage:
             | Platform              | weights          |
             |-----------------------|------------------|
@@ -230,7 +231,7 @@ class AutoBackend(nn.Module):
     def forward(self, im, augment=False, visualize=False):
         """
         Runs inference on the given model
-        
+
         Args:
           im: the image tensor
           augment: whether to augment the image. Defaults to False
@@ -321,7 +322,7 @@ class AutoBackend(nn.Module):
     def from_numpy(self, x):
         """
         `from_numpy` converts a numpy array to a tensor
-        
+
         Args:
           x: the numpy array to convert
         """
@@ -330,7 +331,7 @@ class AutoBackend(nn.Module):
     def warmup(self, imgsz=(1, 3, 640, 640)):
         """
         Warmup model by running inference once
-        
+
         Args:
           imgsz: the size of the image you want to run inference on.
         """
@@ -344,7 +345,7 @@ class AutoBackend(nn.Module):
     def _model_type(p='path/to/model.pt'):
         """
         This function takes a path to a model file and returns the model type
-        
+
         Args:
           p: path to the model file. Defaults to path/to/model.pt
         """
@@ -364,7 +365,7 @@ class AutoBackend(nn.Module):
     def _load_metadata(f=Path('path/to/meta.yaml')):
         """
         > Loads the metadata from a yaml file
-        
+
         Args:
           f: The path to the metadata file.
         """

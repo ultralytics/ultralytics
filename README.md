@@ -35,7 +35,9 @@ To use pythonic interface of Ultralytics YOLO model
 from ultralytics import YOLO
 
 model = YOLO("yolov8n.yaml")  # create a new model from scratch
-model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for best training results)
+model = YOLO(
+    "yolov8n.pt"
+)  # load a pretrained model (recommended for best training results)
 results = model.train(data="coco128.yaml", epochs=100, imgsz=640, ...)
 results = model.val()
 results = model.predict(source="bus.jpg")

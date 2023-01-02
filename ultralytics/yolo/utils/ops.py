@@ -49,12 +49,12 @@ def coco80_to_coco91_class():  # converts 80-index (val2014) to 91-index (paper)
 def segment2box(segment, width=640, height=640):
     """
     > Convert 1 segment label to 1 box label, applying inside-image constraint, i.e. (xy1, xy2, ...) to
-    (xyxy)    
+    (xyxy)
     Args:
       segment: the segment label
       width: the width of the image. Defaults to 640
       height: The height of the image. Defaults to 640
-    
+
     Returns:
       the minimum and maximum x and y values of the segment.
     """

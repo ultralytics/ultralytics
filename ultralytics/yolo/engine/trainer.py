@@ -362,7 +362,7 @@ class BaseTrainer:
             return
             # We should improve the code flow here. This function looks hacky
         model = self.model
-        pretrained = not (str(model).endswith(".yaml"))
+        pretrained = not str(model).endswith(".yaml")
         # config
         if not pretrained:
             model = check_file(model)

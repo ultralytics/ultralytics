@@ -6,10 +6,11 @@ import uuid
 import requests
 
 from ultralytics.hub.config import HUB_API_ROOT
-from ultralytics.yolo.utils import LOGGER, RANK, SETTINGS, colorstr, emojis
+from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, RANK, SETTINGS, colorstr, emojis, yaml_load
 
 PREFIX = colorstr('Ultralytics: ')
 HELP_MSG = 'If this issue persists please visit https://github.com/ultralytics/hub/issues for assistance.'
+DEFAULT_CONFIG_DICT = yaml_load(DEFAULT_CONFIG)
 
 
 def check_dataset_disk_space(url='https://github.com/ultralytics/yolov5/releases/download/v1.0/coco128.zip', sf=2.0):
@@ -123,16 +124,19 @@ def smart_request(*args, retry=3, timeout=30, thread=True, code=-1, method="post
         return fcn(*args, **kwargs)
 
 
-def sync_analytics(cfg, enabled=False):
+def sync_analytics(cfg, all_keys=False, enabled=False):
     """
    Sync analytics data if enabled in the global settings
 
     Args:
         cfg (DictConfig): Configuration for the task and mode.
+        all_keys (bool): Sync all items, not just non-default values.
         enabled (bool): For debugging.
     """
     if SETTINGS['sync'] and RANK in {-1, 0} and enabled:
         cfg = dict(cfg)  # convert type from DictConfig to dict
+        if not all_keys:
+            cfg = {k: v for k, v in cfg.items() if v != DEFAULT_CONFIG_DICT[k]}  # retain only non-default values
         cfg['uuid'] = uuid.getnode()  # add the device UUID to the configuration data
 
         # Send a request to the HUB API to sync the analytics data

@@ -18,7 +18,6 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 import ultralytics
 from ultralytics.yolo.utils import DEFAULT_CONFIG_DICT, DEFAULT_CONFIG_KEYS, LOGGER
 from ultralytics.yolo.utils.checks import git_describe
-
 from .checks import check_version
 
 LOCAL_RANK = int(os.getenv('LOCAL_RANK', -1))  # https://pytorch.org/docs/stable/elastic/run.html
@@ -29,11 +28,12 @@ WORLD_SIZE = int(os.getenv('WORLD_SIZE', 1))
 @contextmanager
 def torch_distributed_zero_first(local_rank: int):
     # Decorator to make all processes in distributed training wait for each local_master to do something
-    if local_rank not in {-1, 0}:
-        dist.barrier(device_ids=[local_rank])
-    yield
-    if local_rank == 0:
-        dist.barrier(device_ids=[0])
+    if torch.distributed.is_initialized():
+        if local_rank not in {-1, 0}:
+            dist.barrier(device_ids=[local_rank])
+        yield
+        if local_rank == 0:
+            dist.barrier(device_ids=[0])
 
 
 def smart_inference_mode(torch_1_9=check_version(torch.__version__, '1.9.0')):

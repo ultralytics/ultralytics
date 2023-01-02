@@ -213,7 +213,7 @@ class DetectionModel(BaseModel):
         return y
 
     def load(self, weights, verbose=True):
-        csd = weights['model'].float().state_dict()  # checkpoint state_dict as FP32
+        csd = weights.float().state_dict()  # checkpoint state_dict as FP32
         csd = intersect_dicts(csd, self.state_dict())  # intersect
         self.load_state_dict(csd, strict=False)  # load
         if verbose:

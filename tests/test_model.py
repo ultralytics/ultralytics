@@ -49,10 +49,15 @@ def test_model_resume():
         print("Successfully caught resume assert!")
 
 
-def test_model_train_pretrained():
-    model = YOLO("yolov8n.pt")
-    model.train(data="coco128.yaml", epochs=1, imgsz=32)
+def test_train_scratch():
     model = YOLO("yolov8n.yaml")
+    model.train(data="coco128.yaml", epochs=1, imgsz=32)
+    img = torch.rand(1, 3, 320, 320)
+    model(img)
+
+
+def test_train_pretrained():
+    model = YOLO("yolov8n.pt")
     model.train(data="coco128.yaml", epochs=1, imgsz=32)
     img = torch.rand(1, 3, 320, 320)
     model(img)

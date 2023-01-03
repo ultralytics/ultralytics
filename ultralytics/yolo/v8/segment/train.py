@@ -182,6 +182,7 @@ def train(cfg):
     model = YOLO(cfg.model)
     model.train(**cfg)
 
+
 if __name__ == "__main__":
     """
     CLI usage:

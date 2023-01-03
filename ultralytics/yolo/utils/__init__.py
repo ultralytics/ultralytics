@@ -62,6 +62,7 @@ HELP_MSG = \
 pd.options.display.max_columns = 10
 cv2.setNumThreads(0)  # prevent OpenCV from multithreading (incompatible with PyTorch DataLoader)
 os.environ['NUMEXPR_MAX_THREADS'] = str(NUM_THREADS)  # NumExpr max threads
+os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':4096:8'  # for deterministic training
 
 # Default config dictionary
 with open(DEFAULT_CONFIG, errors='ignore') as f:

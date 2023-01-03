@@ -292,7 +292,8 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
         ckpt = (ckpt.get('ema') or ckpt['model']).to(device).float()  # FP32 model
 
         # Model compatibility updates
-        ckpt.args = {k: v for k, v in args.items() if k in DEFAULT_CONFIG_KEYS}
+        ckpt.args = {k: v for k, v in args.items() if k in DEFAULT_CONFIG_KEYS}  # attach args to model
+        ckpt.pt_path = weights  # attach *.pt file path to model
         if not hasattr(ckpt, 'stride'):
             ckpt.stride = torch.tensor([32.])
 

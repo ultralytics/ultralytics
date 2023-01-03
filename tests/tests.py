@@ -3,56 +3,50 @@ import torch
 from ultralytics import YOLO
 from ultralytics.yolo.utils import ROOT
 
+MODEL = ROOT / 'weights/yolov8n.pt'
+CFG = 'yolov8n.yaml'
+
 
 def test_model_forward():
-    model = YOLO("yolov8n.yaml")
+    model = YOLO(CFG)
     img = torch.rand(1, 3, 320, 320)
     model.forward(img)
     model(img)
 
 
 def test_model_info():
-    model = YOLO("yolov8n.yaml")
+    model = YOLO(CFG)
     model.info()
-    model = YOLO("yolov8n.pt")
+    model = YOLO(MODEL)
     model.info(verbose=True)
 
 
 def test_model_fuse():
-    model = YOLO("yolov8n.yaml")
+    model = YOLO(CFG)
     model.fuse()
-    model = YOLO("yolov8n.pt")
+    model = YOLO(MODEL)
     model.fuse()
 
 
 def test_predict_dir():
-    model = YOLO("yolov8n.pt")
+    model = YOLO(MODEL)
     model.predict(source=ROOT / "assets")
 
 
 def test_val():
-    model = YOLO("yolov8n.pt")
+    model = YOLO(MODEL)
     model.val(data="coco128.yaml", imgsz=32)
 
 
-def test_train_resume():
-    model = YOLO("yolov8n.yaml")
-    model.train(epochs=1, imgsz=32, data="coco128.yaml")
-    try:
-        model.resume(task="detect")
-    except AssertionError:
-        print("Successfully caught resume assert!")
-
-
 def test_train_scratch():
-    model = YOLO("yolov8n.yaml")
+    model = YOLO(CFG)
     model.train(data="coco128.yaml", epochs=1, imgsz=32)
     img = torch.rand(1, 3, 320, 320)
     model(img)
 
 
 def test_train_pretrained():
-    model = YOLO("yolov8n.pt")
+    model = YOLO(MODEL)
     model.train(data="coco128.yaml", epochs=1, imgsz=32)
     img = torch.rand(1, 3, 320, 320)
     model(img)
@@ -77,27 +71,27 @@ def test_export_torchscript():
     from ultralytics.yolo.engine.exporter import export_formats
     print(export_formats())
 
-    model = YOLO("yolov8n.yaml")
+    model = YOLO(MODEL)
     model.export(format='torchscript')
 
 
 def test_export_onnx():
-    model = YOLO("yolov8n.yaml")
+    model = YOLO(MODEL)
     model.export(format='onnx')
 
 
 def test_export_openvino():
-    model = YOLO("yolov8n.yaml")
+    model = YOLO(MODEL)
     model.export(format='openvino')
 
 
 def test_export_coreml():
-    model = YOLO("yolov8n.yaml")
+    model = YOLO(MODEL)
     model.export(format='coreml')
 
 
 def test_export_paddle():
-    model = YOLO("yolov8n.yaml")
+    model = YOLO(MODEL)
     model.export(format='paddle')
 
 

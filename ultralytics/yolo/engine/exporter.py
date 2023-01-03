@@ -156,7 +156,7 @@ class Exporter:
         jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle = flags  # export booleans
 
         # Load PyTorch model
-        self.device = select_device(self.args.device)
+        self.device = select_device(self.args.device or 'cpu')
         if self.args.half:
             if self.device.type == 'cpu' or not coreml:
                 LOGGER.info('half=True only compatible with GPU or CoreML export, i.e. use device=0 or format=coreml')
@@ -172,7 +172,9 @@ class Exporter:
 
         # Input
         im = torch.zeros(self.args.batch_size, 3, *self.imgsz).to(self.device)
-        file = Path(getattr(model, 'yaml_file', None) or Path(model.yaml['yaml_file']).name)
+        file = Path(getattr(model, 'pt_path', None) or model.yaml['yaml_file'])
+        if file.suffix == '.yaml':
+            file = Path(file.name)
 
         # Update model
         model = deepcopy(model)

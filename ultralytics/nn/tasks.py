@@ -376,15 +376,3 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         ch.append(c2)
     return nn.Sequential(*layers), sorted(save)
 
-
-def get_model(model='s.pt', pretrained=True):
-    # Load a YOLO model locally, from torchvision, or from Ultralytics assets
-    if model.endswith(".pt"):
-        model = model.split(".")[0]
-
-    if Path(f"{model}.pt").is_file():  # local file
-        return attempt_load_weights(f"{model}.pt", device='cpu')
-    elif model in torchvision.models.__dict__:  # TorchVision models i.e. resnet50, efficientnet_b0
-        return torchvision.models.__dict__[model](weights='IMAGENET1K_V1' if pretrained else None)
-    else:  # Ultralytics assets
-        return attempt_load_weights(f"{model}.pt", device='cpu')

@@ -30,7 +30,7 @@ from ultralytics.yolo.utils.checks import check_file, print_args
 from ultralytics.yolo.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.yolo.utils.files import get_latest_run, increment_path
 from ultralytics.yolo.utils.torch_utils import ModelEMA, de_parallel, init_seeds, one_cycle, strip_optimizer
-
+from ultralytics.nn.tasks import attempt_load_weights
 
 class BaseTrainer:
     """
@@ -369,21 +369,17 @@ class BaseTrainer:
         """
         load/create/download model for any task
         """
-        if isinstance(self.model, torch.nn.Module):  # if loaded model is passed
+        if isinstance(self.model, torch.nn.Module):  # if model is loaded beforehand. No setup needed
             return
-            # We should improve the code flow here. This function looks hacky
-        model = self.model
-        pretrained = not str(model).endswith(".yaml")
-        # config
-        if not pretrained:
-            model = check_file(model)
-        ckpt = self.load_ckpt(model) if pretrained else None
-        weights = ckpt["model"] if isinstance(ckpt, dict) else ckpt  # torchvision weights are not dicts
-        self.model = self.load_model(model_cfg=None if pretrained else model, weights=weights)
-        return ckpt
 
-    def load_ckpt(self, ckpt):
-        return torch.load(ckpt, map_location='cpu')
+        model = self.model
+        ckpt = None
+        if str(model).endswith(".pt"):
+            self.model = attempt_load_weights(model)
+            ckpt = torch.load(model) # necessary to load ckpt used for resuming. 
+        else:
+            self.model = self.init_model(check_file(model))
+        return ckpt
 
     def optimizer_step(self):
         self.scaler.unscale_(self.optimizer)  # unscale gradients

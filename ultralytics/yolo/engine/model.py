@@ -224,4 +224,5 @@ class YOLO:
         args.pop("device", None)
         args.pop("project", None)
         args.pop("name", None)
-        args.pop("batch_size", None)
+        args.pop("batch", None)
+        args.pop("epochs", None)

@@ -46,13 +46,12 @@ success = model.export(format="onnx")
 
 ## Models
 
-
 | Model                                                                                            | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU<br>(ms) | Speed<br><sup>T4 GPU<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
-|--------------------------------------------------------------------------------------------------|-----------------------|----------------------|---------------------------|------------------------------|--------------------|-------------------|
+| ------------------------------------------------------------------------------------------------ | --------------------- | -------------------- | ------------------------- | ---------------------------- | ------------------ | ----------------- |
 | [YOLOv5n](https://github.com/ultralytics/yolov5/releases/download/v6.2/yolov5n.pt)               | 640                   | 28.0                 | -                         | -                            | **1.9**            | **4.5**           |
 | [YOLOv6n](url)                                                                                   | 640                   | 35.9                 | -                         | -                            | 4.3                | 11.1              |
 | **[YOLOv8n](url)**                                                                               | 640                   | **37.3**             | -                         | -                            | 3.2                | 8.9               |
-|                                                                                                  |                       |                      |                           |                              |                    |                   |                        |
+|                                                                                                  |                       |                      |                           |                              |                    |                   |
 | [YOLOv5s](https://github.com/ultralytics/yolov5/releases/download/v6.2/yolov5s.pt)               | 640                   | 37.4                 | -                         | -                            | 7.2                | 16.5              |
 | [YOLOv6s](url)                                                                                   | 640                   | 43.5                 | -                         | -                            | 17.2               | 44.2              |
 | **[YOLOv8s](url)**                                                                               | 640                   | **44.8**             | -                         | -                            | 11.2               | 28.8              |
@@ -73,8 +72,6 @@ success = model.export(format="onnx")
 | [YOLOv5x6](https://github.com/ultralytics/yolov5/releases/download/v6.2/yolov5x6.pt)             | 1280                  | 55.0                 | -                         | -                            | 140.7              | 839.2             |
 | [YOLOv7-E6E](url)                                                                                | 1280                  | 56.8                 | -                         | -                            | 151.7              | 843.2             |
 | **[YOLOv8x6](https://github.com/ultralytics/yolov5/releases/download/v6.2/yolov5x6.pt)**<br>+TTA | 1280                  | -<br>-               | -<br>-                    | -<br>-                       | 97.4               | 1047.2<br>-       |
-=======
+| =======                                                                                          |                       |                      |                           |                              |                    |                   |
 
-
-If you're looking to modify YOLO for R&D or to build on top of it, refer to [Using Trainer]() Guide on our docs.
-
+If you're looking to modify YOLO for R&D or to build on top of it, refer to [Using Trainer](<>) Guide on our docs.

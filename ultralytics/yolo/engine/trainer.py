@@ -81,12 +81,11 @@ class BaseTrainer:
             overrides = {}
         self.args = get_config(config, overrides)
         self.check_resume()
-        init_seeds(self.args.seed + 1 + RANK, deterministic=self.args.deterministic)
-
         self.console = LOGGER
         self.validator = None
         self.model = None
         self.callbacks = defaultdict(list)
+        init_seeds(self.args.seed + 1 + RANK, deterministic=self.args.deterministic)
 
         # Dirs
         project = self.args.project or f"runs/{self.args.task}"

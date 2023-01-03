@@ -60,8 +60,8 @@ class SegmentationValidator(DetectionValidator):
 
     def postprocess(self, preds):
         p = ops.non_max_suppression(preds[0],
-                                    self.args.conf_thres,
-                                    self.args.iou_thres,
+                                    self.args.conf,
+                                    self.args.iou,
                                     labels=self.lb,
                                     multi_label=True,
                                     agnostic=self.args.single_cls,

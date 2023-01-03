@@ -47,7 +47,7 @@ dnn: False # use OpenCV DNN for ONNX inference
 plots: True # show plots during training
 
 # Prediction settings --------------------------------------------------------------------------------------------------
-source: "ultralytics/assets" # source directory for images or videos
+source: null # source directory for images or videos
 show: False # show results if possible
 save_txt: False # save results as .txt file
 save_conf: False # save results with confidence scores

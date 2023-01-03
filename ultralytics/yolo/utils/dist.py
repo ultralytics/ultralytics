@@ -26,10 +26,10 @@ def generate_ddp_file(trainer):
 
     if not trainer.args.resume:
         shutil.rmtree(trainer.save_dir)  # remove the save_dir
-    content = f'''overrides = {dict(trainer.args)} \nif __name__ == "__main__":
+    content = f'''config = {dict(trainer.args)} \nif __name__ == "__main__":
     from ultralytics.{import_path} import {trainer.__class__.__name__}
 
-    trainer = {trainer.__class__.__name__}(overrides=overrides)
+    trainer = {trainer.__class__.__name__}(config=config)
     trainer.train()'''
     (USER_CONFIG_DIR / 'DDP').mkdir(exist_ok=True)
     with tempfile.NamedTemporaryFile(prefix="_temp_",

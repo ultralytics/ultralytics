@@ -492,8 +492,9 @@ class BaseTrainer:
             args_yaml = last.parent.parent / 'args.yaml'  # train options yaml
             if args_yaml.is_file():
                 args = get_config(args_yaml)  # replace
-            args.model, args.resume = str(last), True  # reinstate
+            args.model, resume = str(last), True  # reinstate
             self.args = args
+        self.resume = resume
 
     def resume_training(self, ckpt):
         if ckpt is None:
@@ -506,7 +507,7 @@ class BaseTrainer:
         if self.ema and ckpt.get('ema'):
             self.ema.ema.load_state_dict(ckpt['ema'].float().state_dict())  # EMA
             self.ema.updates = ckpt['updates']
-        if self.args.resume:
+        if self.resume:
             assert start_epoch > 0, \
                 f'{self.args.model} training to {self.epochs} epochs is finished, nothing to resume.\n' \
                 f"Start a new training without --resume, i.e. 'yolo task=... mode=train model={self.args.model}'"

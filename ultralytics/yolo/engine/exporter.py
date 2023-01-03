@@ -156,7 +156,7 @@ class Exporter:
         jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle = flags  # export booleans
 
         # Load PyTorch model
-        self.device = select_device(self.args.device)
+        self.device = select_device(self.args.device or 'cpu')
         if self.args.half:
             if self.device.type == 'cpu' or not coreml:
                 LOGGER.info('half=True only compatible with GPU or CoreML export, i.e. use device=0 or format=coreml')

@@ -111,6 +111,7 @@ class BaseValidator:
                 self.args.workers = 0  # faster CPU val as time dominated by inference, not dataloading
             self.dataloader = self.dataloader or \
                               self.get_dataloader(data.get("val") or data.set("test"), self.args.batch_size)
+            self.data = data
 
         model.eval()
 

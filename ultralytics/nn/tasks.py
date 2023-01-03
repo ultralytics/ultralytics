@@ -293,6 +293,8 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
 
         # Model compatibility updates
         ckpt.args = {k: v for k, v in args.items() if k in DEFAULT_CONFIG_KEYS}
+        if not hasattr(ckpt, 'stride'):
+            ckpt.stride = torch.tensor([32.])
 
         # Append
         model.append(ckpt.fuse().eval() if fuse and hasattr(ckpt, 'fuse') else ckpt.eval())  # model in eval mode

@@ -1,3 +1,5 @@
+from copy import copy
+
 import hydra
 import torch
 import torch.nn as nn
@@ -64,7 +66,7 @@ class DetectionTrainer(BaseTrainer):
         return v8.detect.DetectionValidator(self.test_loader,
                                             save_dir=self.save_dir,
                                             logger=self.console,
-                                            args=self.args)
+                                            args=copy(self.args))
 
     def criterion(self, preds, batch):
         if not hasattr(self, 'compute_loss'):

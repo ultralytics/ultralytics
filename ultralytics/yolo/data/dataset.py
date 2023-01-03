@@ -136,6 +136,15 @@ class YOLODataset(BaseDataset):
                    batch_idx=True))
         return transforms
 
+    def close_mosaic(self, hyp):
+        self.transforms = affine_transforms(self.imgsz, hyp)
+        self.transforms.append(
+            Format(bbox_format="xywh",
+                   normalize=True,
+                   return_mask=self.use_segments,
+                   return_keypoint=self.use_keypoints,
+                   batch_idx=True))
+
     def update_labels_info(self, label):
         """custom your label format here"""
         # NOTE: cls is not with bboxes now, classification and semantic segmentation need an independent cls label

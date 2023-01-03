@@ -24,7 +24,8 @@ def find_free_network_port() -> int:
 def generate_ddp_file(trainer):
     import_path = '.'.join(str(trainer.__class__).split(".")[1:-1])
 
-    shutil.rmtree(trainer.save_dir)  # remove the save_dir
+    if not trainer.resume:
+        shutil.rmtree(trainer.save_dir)  # remove the save_dir
     content = f'''overrides = {dict(trainer.args)} \nif __name__ == "__main__":
     from ultralytics.{import_path} import {trainer.__class__.__name__}
 

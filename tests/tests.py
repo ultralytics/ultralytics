@@ -3,7 +3,7 @@ import torch
 from ultralytics import YOLO
 from ultralytics.yolo.utils import ROOT
 
-MODEL = 'weights/yolov8n.pt'
+MODEL = ROOT / 'weights/yolov8n.pt'
 CFG = 'yolov8n.yaml'
 
 
@@ -80,27 +80,27 @@ def test_export_torchscript():
     from ultralytics.yolo.engine.exporter import export_formats
     print(export_formats())
 
-    model = YOLO(CFG)
+    model = YOLO(MODEL)
     model.export(format='torchscript')
 
 
 def test_export_onnx():
-    model = YOLO(CFG)
+    model = YOLO(MODEL)
     model.export(format='onnx')
 
 
 def test_export_openvino():
-    model = YOLO(CFG)
+    model = YOLO(MODEL)
     model.export(format='openvino')
 
 
 def test_export_coreml():
-    model = YOLO(CFG)
+    model = YOLO(MODEL)
     model.export(format='coreml')
 
 
 def test_export_paddle():
-    model = YOLO(CFG)
+    model = YOLO(MODEL)
     model.export(format='paddle')
 
 # def run_all_tests():  # do not name function test_...

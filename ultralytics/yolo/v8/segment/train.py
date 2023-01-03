@@ -2,6 +2,7 @@ import hydra
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from copy import copy
 
 from ultralytics.nn.tasks import SegmentationModel
 from ultralytics.yolo import v8
@@ -27,7 +28,7 @@ class SegmentationTrainer(v8.detect.DetectionTrainer):
         return v8.segment.SegmentationValidator(self.test_loader,
                                                 save_dir=self.save_dir,
                                                 logger=self.console,
-                                                args=self.args)
+                                                args=copy(self.args))
 
     def criterion(self, preds, batch):
         if not hasattr(self, 'compute_loss'):

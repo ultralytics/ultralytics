@@ -1,6 +1,7 @@
 import hydra
 import torch
 import torch.nn as nn
+from copy import copy
 
 from ultralytics.nn.tasks import DetectionModel
 from ultralytics.yolo import v8
@@ -64,7 +65,7 @@ class DetectionTrainer(BaseTrainer):
         return v8.detect.DetectionValidator(self.test_loader,
                                             save_dir=self.save_dir,
                                             logger=self.console,
-                                            args=self.args)
+                                            args=copy(self.args))
 
     def criterion(self, preds, batch):
         if not hasattr(self, 'compute_loss'):

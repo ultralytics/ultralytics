@@ -91,7 +91,7 @@ class BaseTrainer:
         # Dirs
         project = self.args.project or f"runs/{self.args.task}"
         name = self.args.name or f"{self.args.mode}"
-        self.save_dir = self.args.get("save_dir", increment_path(Path(project) / name, exist_ok=self.args.exist_ok if RANK in {-1, 0} else True))
+        self.save_dir = Path(self.args.get("save_dir", increment_path(Path(project) / name, exist_ok=self.args.exist_ok if RANK in {-1, 0} else True)))
         self.wdir = self.save_dir / 'weights'  # weights dir
         if RANK in {-1, 0}:
             self.wdir.mkdir(parents=True, exist_ok=True)  # make dir

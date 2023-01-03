@@ -85,6 +85,7 @@ class BaseTrainer:
         self.validator = None
         self.model = None
         self.callbacks = defaultdict(list)
+        init_seeds(self.args.seed + 1 + RANK, deterministic=self.args.deterministic)
 
         # Dirs
         project = self.args.project or f"runs/{self.args.task}"
@@ -111,7 +112,6 @@ class BaseTrainer:
         self.device = utils.torch_utils.select_device(self.args.device, self.batch_size)
         self.amp = self.device.type != 'cpu'
         self.scaler = amp.GradScaler(enabled=self.amp)
-        init_seeds(self.args.seed + 1 + RANK, deterministic=self.args.deterministic)
         if self.device.type == 'cpu':
             self.args.workers = 0  # faster CPU training as time dominated by inference, not dataloading
 

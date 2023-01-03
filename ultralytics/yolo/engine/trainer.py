@@ -379,7 +379,7 @@ class BaseTrainer:
         if not pretrained:
             model = check_file(model)
         ckpt = self.load_ckpt(model) if pretrained else None
-        weights = ckpt["model"] if isinstance(ckpt, dict) else ckpt # torchvision weights are not dicts
+        weights = ckpt["model"] if isinstance(ckpt, dict) else ckpt  # torchvision weights are not dicts
         self.model = self.load_model(model_cfg=None if pretrained else model, weights=weights)
         return ckpt
 

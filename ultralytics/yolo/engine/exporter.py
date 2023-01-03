@@ -164,14 +164,14 @@ class Exporter:
             assert not self.args.dynamic, '--half not compatible with --dynamic, i.e. use either --half or --dynamic'
 
         # Checks
-        # if self.args.batch_size == model.args['batch_size']:  # user has not modified training batch_size
-        self.args.batch_size = 1
+        # if self.args.batch == model.args['batch_size']:  # user has not modified training batch_size
+        self.args.batch = 1
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
         if self.args.optimize:
             assert self.device.type == 'cpu', '--optimize not compatible with cuda devices, i.e. use --device cpu'
 
         # Input
-        im = torch.zeros(self.args.batch_size, 3, *self.imgsz).to(self.device)
+        im = torch.zeros(self.args.batch, 3, *self.imgsz).to(self.device)
         file = Path(getattr(model, 'pt_path', None) or model.yaml['yaml_file'])
         if file.suffix == '.yaml':
             file = Path(file.name)

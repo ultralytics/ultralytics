@@ -60,7 +60,7 @@ task.
 | device          | ''      | cuda device, i.e. 0 or 0,1,2,3 or cpu. `''` selects available cuda 0 device |
 | epochs          | 100     | Number of epochs to train                                                   |
 | workers         | 8       | Number of cpu workers used per process. Scales automatically with DDP       |
-| batch_size      | 16      | Batch size of the dataloader                                                |
+| batch           | 16      | Batch size of the dataloader                                                |
 | imgsz           | 640     | Image size of data in dataloader                                            |
 | optimizer       | SGD     | Optimizer used. Supported optimizer are: `Adam`, `SGD`, `RMSProp`           |
 | single_cls      | False   | Train on multi-class data as single-class                                   |
@@ -129,8 +129,8 @@ validation dataset and to detect and prevent overfitting.
 | noval       | `False` | ???                               |
 | save_json   | `False` |                                   |
 | save_hybrid | `False` |                                   |
-| conf_thres  | `0.001` | Confidence threshold              |
-| iou_thres   | `0.6`   | IoU threshold                     |
+| conf        | `0.001` | Confidence threshold              |
+| iou         | `0.6`   | IoU threshold                     |
 | max_det     | `300`   | Maximum number of detections      |
 | half        | `True`  | Use .half() mode.                 |
 | dnn         | `False` | Use OpenCV DNN for ONNX inference |

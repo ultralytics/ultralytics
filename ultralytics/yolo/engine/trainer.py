@@ -199,7 +199,6 @@ class BaseTrainer:
         else:
             self.lf = lambda x: (1 - x / self.epochs) * (1.0 - self.args.lrf) + self.args.lrf  # linear
         self.scheduler = lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
-        self.resume_training(ckpt)
         self.scheduler.last_epoch = self.start_epoch - 1  # do not move
 
         # dataloaders
@@ -211,6 +210,7 @@ class BaseTrainer:
             metric_keys = self.validator.metric_keys + self.label_loss_items(prefix="val")
             self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))  # TODO: init metrics for plot_results()?
             self.ema = ModelEMA(self.model)
+        self.resume_training(ckpt)
         self.run_callbacks("on_pretrain_routine_end")
 
     def _do_train(self, rank=-1, world_size=1):

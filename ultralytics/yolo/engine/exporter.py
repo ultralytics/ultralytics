@@ -172,8 +172,9 @@ class Exporter:
 
         # Input
         im = torch.zeros(self.args.batch_size, 3, *self.imgsz).to(self.device)
-        file = getattr(model, 'pt_path', None) or getattr(model, 'yaml_file', None) or model.yaml['yaml_file']
-        file = Path(file).name if Path(file).suffix == '.yaml' else Path(file)
+        file = Path(getattr(model, 'pt_path', None) or model.yaml['yaml_file'])
+        if file.suffix == '.yaml':
+            file = Path(file.name)
 
         # Update model
         model = deepcopy(model)

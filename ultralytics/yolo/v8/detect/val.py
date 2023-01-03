@@ -42,10 +42,9 @@ class DetectionValidator(BaseValidator):
 
     def init_metrics(self, model):
         head = model.model[-1] if self.training else model.model.model[-1]
-        if self.data:
-            self.is_coco = self.data.get('val', '').endswith(f'coco{os.sep}val2017.txt')  # is COCO dataset
-            self.class_map = ops.coco80_to_coco91_class() if self.is_coco else list(range(1000))
-            self.args.save_json |= self.is_coco and not self.training  # run on final val if training COCO
+        self.is_coco = self.data.get('val', '').endswith(f'coco{os.sep}val2017.txt')  # is COCO dataset
+        self.class_map = ops.coco80_to_coco91_class() if self.is_coco else list(range(1000))
+        self.args.save_json |= self.is_coco and not self.training  # run on final val if training COCO
         self.nc = head.nc
         self.names = model.names
         self.metrics.names = self.names

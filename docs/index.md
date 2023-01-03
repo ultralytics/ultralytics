@@ -1,6 +1,16 @@
-# Welcome to Ultralytics YOLO
+<div align="center">
+  <a href="https://ultralytics.com/yolov5" target="_blank">
+    <img width="1024" src="https://user-images.githubusercontent.com/26833433/210431393-39c997b8-92a7-4957-864f-1f312004eb54.png"></a>
+<br>
+  <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a>
+  <a href="https://colab.research.google.com/github/glenn-jocher/glenn-jocher.github.io/blob/main/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
+  <a href="https://www.kaggle.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
+<br>
+</div>
 
-Welcome to the Ultralytics YOLO documentation landing page! Ultralytics YOLOv8 is the latest version of the YOLO (You
+# Welcome to Ultralytics YOLOv8
+
+Welcome to the Ultralytics YOLOv8 documentation landing page! Ultralytics YOLOv8 is the latest version of the YOLO (You
 Only Look Once) object detection and image segmentation model developed by Ultralytics. This page serves as the starting
 point for exploring the various resources available to help you get started with YOLOv8 and understand its features and
 capabilities.

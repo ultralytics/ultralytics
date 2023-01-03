@@ -1,3 +1,5 @@
+from copy import copy
+
 import hydra
 import torch
 import torch.nn as nn
@@ -54,7 +56,7 @@ class DetectionTrainer(BaseTrainer):
         self.model.names = self.data["names"]
 
     def load_model(self, model_cfg=None, weights=None, verbose=True):
-        model = DetectionModel(model_cfg or weights["model"].yaml, ch=3, nc=self.data["nc"], verbose=verbose)
+        model = DetectionModel(model_cfg or weights.yaml, ch=3, nc=self.data["nc"], verbose=verbose)
         if weights:
             model.load(weights, verbose)
         return model
@@ -64,7 +66,7 @@ class DetectionTrainer(BaseTrainer):
         return v8.detect.DetectionValidator(self.test_loader,
                                             save_dir=self.save_dir,
                                             logger=self.console,
-                                            args=self.args)
+                                            args=copy(self.args))
 
     def criterion(self, preds, batch):
         if not hasattr(self, 'compute_loss'):

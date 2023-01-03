@@ -3,46 +3,48 @@ from pathlib import Path
 
 import hydra
 
-import ultralytics
-from ultralytics import yolo
+from ultralytics import hub, yolo
+from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, colorstr
 
-from .utils import DEFAULT_CONFIG, LOGGER, colorstr
+DIR = Path(__file__).parent
 
 
-@hydra.main(version_base=None, config_path="configs", config_name="default")
+@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent.relative_to(DIR)), config_name=DEFAULT_CONFIG.name)
 def cli(cfg):
-    cwd = Path().cwd()
-    LOGGER.info(f"{colorstr(f'Ultralytics YOLO v{ultralytics.__version__}')}")
+    """
+    Run a specified task and mode with the given configuration.
+
+    Args:
+        cfg (DictConfig): Configuration for the task and mode.
+    """
+    # LOGGER.info(f"{colorstr(f'Ultralytics YOLO v{ultralytics.__version__}')}")
     task, mode = cfg.task.lower(), cfg.mode.lower()
 
-    if task == "init":  # special case
-        shutil.copy2(DEFAULT_CONFIG, cwd)
+    # Special case for initializing the configuration
+    if task == "init":
+        shutil.copy2(DEFAULT_CONFIG, Path.cwd())
         LOGGER.info(f"""
-        {colorstr("YOLO:")} configuration saved to {cwd / DEFAULT_CONFIG.name}.
+        {colorstr("YOLO:")} configuration saved to {Path.cwd() / DEFAULT_CONFIG.name}.
         To run experiments using custom configuration:
         yolo task='task' mode='mode' --config-name config_file.yaml
                     """)
         return
 
-    elif task == "detect":
-        module = yolo.v8.detect
-    elif task == "segment":
-        module = yolo.v8.segment
-    elif task == "classify":
-        module = yolo.v8.classify
-    elif task == "export":
-        func = yolo.engine.exporter.export
-    else:
-        raise SyntaxError("task not recognized. Choices are `'detect', 'segment', 'classify'`")
+    # Mapping from task to module
+    task_module_map = {"detect": yolo.v8.detect, "segment": yolo.v8.segment, "classify": yolo.v8.classify}
+    module = task_module_map.get(task)
+    if not module:
+        raise SyntaxError(f"task not recognized. Choices are {', '.join(task_module_map.keys())}")
 
-    if mode == "train":
-        func = module.train
-    elif mode == "val":
-        func = module.val
-    elif mode == "predict":
-        func = module.predict
-    elif mode == "export":
-        func = yolo.engine.exporter.export
-    else:
-        raise SyntaxError("mode not recognized. Choices are `'train', 'val', 'predict', 'export'`")
+    # Mapping from mode to function
+    mode_func_map = {
+        "train": module.train,
+        "val": module.val,
+        "predict": module.predict,
+        "export": yolo.engine.exporter.export,
+        "checks": hub.checks}
+    func = mode_func_map.get(mode)
+    if not func:
+        raise SyntaxError(f"mode not recognized. Choices are {', '.join(mode_func_map.keys())}")
+
     func(cfg)

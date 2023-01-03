@@ -10,19 +10,43 @@ import torchvision
 from ultralytics.nn.modules import (C1, C2, C3, C3TR, SPP, SPPF, Bottleneck, BottleneckCSP, C2f, C3Ghost, C3x, Classify,
                                     Concat, Conv, ConvTranspose, Detect, DWConv, DWConvTranspose2d, Ensemble, Focus,
                                     GhostBottleneck, GhostConv, Segment)
-from ultralytics.yolo.utils import LOGGER, colorstr
+from ultralytics.yolo.utils import DEFAULT_CONFIG_DICT, DEFAULT_CONFIG_KEYS, LOGGER, colorstr, yaml_load
 from ultralytics.yolo.utils.checks import check_yaml
-from ultralytics.yolo.utils.files import yaml_load
-from ultralytics.yolo.utils.torch_utils import (fuse_conv_and_bn, initialize_weights, intersect_state_dicts,
-                                                make_divisible, model_info, scale_img, time_sync)
+from ultralytics.yolo.utils.torch_utils import (fuse_conv_and_bn, initialize_weights, intersect_dicts, make_divisible,
+                                                model_info, scale_img, time_sync)
 
 
 class BaseModel(nn.Module):
-    # YOLOv5 base model
+    '''
+     The BaseModel class is a base class for all the models in the Ultralytics YOLO family.
+    '''
+
     def forward(self, x, profile=False, visualize=False):
-        return self._forward_once(x, profile, visualize)  # single-scale inference, train
+        """
+        > `forward` is a wrapper for `_forward_once` that runs the model on a single scale
+
+        Args:
+          x: the input image
+          profile: whether to profile the model. Defaults to False
+          visualize: if True, will return the intermediate feature maps. Defaults to False
+
+        Returns:
+          The output of the network.
+        """
+        return self._forward_once(x, profile, visualize)
 
     def _forward_once(self, x, profile=False, visualize=False):
+        """
+        > Forward pass of the network
+
+        Args:
+          x: input to the model
+          profile: if True, the time taken for each layer will be printed. Defaults to False
+          visualize: If True, it will save the feature maps of the model. Defaults to False
+
+        Returns:
+          The last layer of the model.
+        """
         y, dt = [], []  # outputs
         for m in self.model:
             if m.f != -1:  # if not from previous layer
@@ -37,6 +61,15 @@ class BaseModel(nn.Module):
         return x
 
     def _profile_one_layer(self, m, x, dt):
+        """
+        It takes a model, an input, and a list of times, and it profiles the model on the input, appending
+        the time to the list
+
+        Args:
+          m: the model
+          x: the input image
+          dt: list of time taken for each layer
+        """
         c = m == self.model[-1]  # is final layer, copy input as inplace fix
         o = thop.profile(m, inputs=(x.copy() if c else x,), verbose=False)[0] / 1E9 * 2 if thop else 0  # FLOPs
         t = time_sync()
@@ -49,7 +82,13 @@ class BaseModel(nn.Module):
         if c:
             LOGGER.info(f"{sum(dt):10.2f} {'-':>10s} {'-':>10s}  Total")
 
-    def fuse(self):  # fuse model Conv2d() + BatchNorm2d() layers
+    def fuse(self):
+        """
+        > It takes a model and fuses the Conv2d() and BatchNorm2d() layers into a single layer
+
+        Returns:
+          The model is being returned.
+        """
         LOGGER.info('Fusing layers... ')
         for m in self.model.modules():
             if isinstance(m, (Conv, DWConv)) and hasattr(m, 'bn'):
@@ -59,11 +98,27 @@ class BaseModel(nn.Module):
         self.info()
         return self
 
-    def info(self, verbose=False, imgsz=640):  # print model information
+    def info(self, verbose=False, imgsz=640):
+        """
+        Prints model information
+
+        Args:
+          verbose: if True, prints out the model information. Defaults to False
+          imgsz: the size of the image that the model will be trained on. Defaults to 640
+        """
         model_info(self, verbose, imgsz)
 
     def _apply(self, fn):
-        # Apply to(), cpu(), cuda(), half() to model tensors that are not parameters or registered buffers
+        """
+        `_apply()` is a function that applies a function to all the tensors in the model that are not
+        parameters or registered buffers
+
+        Args:
+          fn: the function to apply to the model
+
+        Returns:
+          A model that is a Detect() object.
+        """
         self = super()._apply(fn)
         m = self.model[-1]  # Detect()
         if isinstance(m, (Detect, Segment)):
@@ -73,6 +128,12 @@ class BaseModel(nn.Module):
         return self
 
     def load(self, weights):
+        """
+        > This function loads the weights of the model from a file
+
+        Args:
+          weights: The weights to load into the model.
+        """
         # Force all tasks to implement this function
         raise NotImplementedError("This function needs to be implemented by derived classes!")
 
@@ -89,7 +150,7 @@ class DetectionModel(BaseModel):
             LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
             self.yaml['nc'] = nc  # override yaml value
         self.model, self.save = parse_model(deepcopy(self.yaml), ch=[ch], verbose=verbose)  # model, savelist
-        self.names = [str(i) for i in range(self.yaml['nc'])]  # default names
+        self.names = {i: f'{i}' for i in range(self.yaml['nc'])}  # default names dict
         self.inplace = self.yaml.get('inplace', True)
 
         # Build strides
@@ -150,8 +211,8 @@ class DetectionModel(BaseModel):
         return y
 
     def load(self, weights, verbose=True):
-        csd = weights['model'].float().state_dict()  # checkpoint state_dict as FP32
-        csd = intersect_state_dicts(csd, self.state_dict())  # intersect
+        csd = weights.float().state_dict()  # checkpoint state_dict as FP32
+        csd = intersect_dicts(csd, self.state_dict())  # intersect
         self.load_state_dict(csd, strict=False)  # load
         if verbose:
             LOGGER.info(f'Transferred {len(csd)}/{len(self.model.state_dict())} items from pretrained weights')
@@ -192,7 +253,7 @@ class ClassificationModel(BaseModel):
     def load(self, weights):
         model = weights["model"] if isinstance(weights, dict) else weights  # torchvision models are not dicts
         csd = model.float().state_dict()
-        csd = intersect_state_dicts(csd, self.state_dict())  # intersect
+        csd = intersect_dicts(csd, self.state_dict())  # intersect
         self.load_state_dict(csd, strict=False)  # load
 
     @staticmethod
@@ -220,21 +281,22 @@ class ClassificationModel(BaseModel):
 # Functions ------------------------------------------------------------------------------------------------------------
 
 
-def attempt_load_weights(weights, device=None, inplace=True, fuse=True):
+def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
     # Loads an ensemble of models weights=[a,b,c] or a single model weights=[a] or weights=a
     from ultralytics.yolo.utils.downloads import attempt_download
 
     model = Ensemble()
     for w in weights if isinstance(weights, list) else [weights]:
         ckpt = torch.load(attempt_download(w), map_location='cpu')  # load
+        args = {**DEFAULT_CONFIG_DICT, **ckpt['train_args']}  # combine model and default args, preferring model args
         ckpt = (ckpt.get('ema') or ckpt['model']).to(device).float()  # FP32 model
 
         # Model compatibility updates
+        ckpt.args = {k: v for k, v in args.items() if k in DEFAULT_CONFIG_KEYS}
         if not hasattr(ckpt, 'stride'):
             ckpt.stride = torch.tensor([32.])
-        if hasattr(ckpt, 'names') and isinstance(ckpt.names, (list, tuple)):
-            ckpt.names = dict(enumerate(ckpt.names))  # convert to dict
 
+        # Append
         model.append(ckpt.fuse().eval() if fuse and hasattr(ckpt, 'fuse') else ckpt.eval())  # model in eval mode
 
     # Module compatibility updates
@@ -249,7 +311,7 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=True):
     if len(model) == 1:
         return model[-1]
 
-    # Return detection ensemble
+    # Return ensemble
     print(f'Ensemble created with {weights}\n')
     for k in 'names', 'nc', 'yaml':
         setattr(model, k, getattr(model[0], k))

@@ -12,7 +12,7 @@ import pkg_resources as pkg
 import torch
 
 from ultralytics.yolo.utils import (AUTOINSTALL, FONT, LOGGER, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, emojis,
-                                    is_docker, is_notebook)
+                                    is_docker, is_jupyter_notebook)
 from ultralytics.yolo.utils.ops import make_divisible
 
 
@@ -22,16 +22,26 @@ def is_ascii(s=''):
     return len(s.encode().decode('ascii', 'ignore')) == len(s)
 
 
-def check_imgsz(imgsz, s=32, floor=0):
+def check_imgsz(imgsz, stride=32, min_dim=1, floor=0):
     # Verify image size is a multiple of stride s in each dimension
-    if isinstance(imgsz, int):  # integer i.e. img_size=640
-        new_size = max(make_divisible(imgsz, int(s)), floor)
-    else:  # list i.e. img_size=[640, 480]
+
+    stride = int(stride.max() if isinstance(stride, torch.Tensor) else stride)
+    if isinstance(imgsz, int):  # integer i.e. imgsz=640
+        sz = max(make_divisible(imgsz, stride), floor)
+    else:  # list i.e. imgsz=[640, 480]
         imgsz = list(imgsz)  # convert to list if tuple
-        new_size = [max(make_divisible(x, int(s)), floor) for x in imgsz]
-    if new_size != imgsz:
-        LOGGER.warning(f'WARNING ⚠️ --img-size {imgsz} must be multiple of max stride {s}, updating to {new_size}')
-    return new_size
+        sz = [max(make_divisible(x, stride), floor) for x in imgsz]
+    if sz != imgsz:
+        LOGGER.warning(f'WARNING ⚠️ --img-size {imgsz} must be multiple of max stride {stride}, updating to {sz}')
+
+    # Check dims
+    if min_dim == 2:
+        if isinstance(imgsz, int):
+            sz = [sz, sz]
+        elif len(sz) == 1:
+            sz = [sz[0], sz[0]]
+
+    return sz
 
 
 def check_version(current="0.0.0", minimum="0.0.0", name="version ", pinned=False, hard=False, verbose=False):
@@ -150,7 +160,7 @@ def check_yaml(file, suffix=('.yaml', '.yml')):
 def check_imshow(warn=False):
     # Check if environment supports image displays
     try:
-        assert not is_notebook()
+        assert not is_jupyter_notebook()
         assert not is_docker()
         cv2.imshow('test', np.zeros((1, 1, 3)))
         cv2.waitKey(1)

@@ -1,24 +1,52 @@
 import json
+from collections import defaultdict
 from pathlib import Path
 
 import torch
-from omegaconf import OmegaConf
+from omegaconf import OmegaConf  # noqa
 from tqdm import tqdm
 
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
-from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, RANK, TQDM_BAR_FORMAT
+from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, RANK, TQDM_BAR_FORMAT, callbacks
+from ultralytics.yolo.utils.checks import check_imgsz
 from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.ops import Profile
-from ultralytics.yolo.utils.torch_utils import check_imgsz, de_parallel, select_device, smart_inference_mode
+from ultralytics.yolo.utils.torch_utils import de_parallel, select_device, smart_inference_mode
 
 
 class BaseValidator:
     """
-    Base validator class.
+    BaseValidator
+
+    A base class for creating validators.
+
+    Attributes:
+        dataloader (DataLoader): Dataloader to use for validation.
+        pbar (tqdm): Progress bar to update during validation.
+        logger (logging.Logger): Logger to use for validation.
+        args (OmegaConf): Configuration for the validator.
+        model (nn.Module): Model to validate.
+        data (dict): Data dictionary.
+        device (torch.device): Device to use for validation.
+        batch_i (int): Current batch index.
+        training (bool): Whether the model is in training mode.
+        speed (float): Batch processing speed in seconds.
+        jdict (dict): Dictionary to store validation results.
+        save_dir (Path): Directory to save results.
     """
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, logger=None, args=None):
+        """
+        Initializes a BaseValidator instance.
+
+        Args:
+            dataloader (torch.utils.data.DataLoader): Dataloader to be used for validation.
+            save_dir (Path): Directory to save results.
+            pbar (tqdm.tqdm): Progress bar for displaying progress.
+            logger (logging.Logger): Logger to log messages.
+            args (OmegaConf): Configuration for the validator.
+        """
         self.dataloader = dataloader
         self.pbar = pbar
         self.logger = logger or LOGGER
@@ -37,6 +65,8 @@ class BaseValidator:
                                                    exist_ok=self.args.exist_ok if RANK in {-1, 0} else True)
         (self.save_dir / 'labels' if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
 
+        self.callbacks = defaultdict(list, {k: [v] for k, v in callbacks.default_callbacks.items()})  # add callbacks
+
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
         """
@@ -54,13 +84,15 @@ class BaseValidator:
             self.loss = torch.zeros_like(trainer.loss_items, device=trainer.device)
             self.args.plots = trainer.epoch == trainer.epochs - 1  # always plot final epoch
         else:
+            callbacks.add_integration_callbacks(self)
+            self.run_callbacks('on_val_start')
             assert model is not None, "Either trainer or model is needed for validation"
             self.device = select_device(self.args.device, self.args.batch_size)
             self.args.half &= self.device.type != 'cpu'
             model = AutoBackend(model, device=self.device, dnn=self.args.dnn, fp16=self.args.half)
             self.model = model
             stride, pt, jit, engine = model.stride, model.pt, model.jit, model.engine
-            imgsz = check_imgsz(self.args.imgsz, s=stride)
+            imgsz = check_imgsz(self.args.imgsz, stride=stride)
             if engine:
                 self.args.batch_size = model.batch_size
             else:
@@ -74,8 +106,12 @@ class BaseValidator:
                 data = check_dataset_yaml(self.args.data)
             else:
                 data = check_dataset(self.args.data)
+
+            if self.device.type == 'cpu':
+                self.args.workers = 0  # faster CPU val as time dominated by inference, not dataloading
             self.dataloader = self.dataloader or \
                               self.get_dataloader(data.get("val") or data.set("test"), self.args.batch_size)
+            self.data = data
 
         model.eval()
 
@@ -89,6 +125,7 @@ class BaseValidator:
         self.init_metrics(de_parallel(model))
         self.jdict = []  # empty before each val
         for batch_i, batch in enumerate(bar):
+            self.run_callbacks('on_val_batch_start')
             self.batch_i = batch_i
             # pre-process
             with dt[0]:
@@ -112,10 +149,12 @@ class BaseValidator:
                 self.plot_val_samples(batch, batch_i)
                 self.plot_predictions(batch, preds, batch_i)
 
+            self.run_callbacks('on_val_batch_end')
         stats = self.get_stats()
         self.check_stats(stats)
         self.print_results()
         self.speed = tuple(x.t / len(self.dataloader.dataset) * 1E3 for x in dt)  # speeds per image
+        self.run_callbacks('on_val_end')
         if self.training:
             model.float()
             return {**stats, **trainer.label_loss_items(self.loss.cpu() / len(self.dataloader), prefix="val")}
@@ -128,6 +167,10 @@ class BaseValidator:
                     json.dump(self.jdict, f)  # flatten and save
                 stats = self.eval_json(stats)  # update stats
             return stats
+
+    def run_callbacks(self, event: str):
+        for callback in self.callbacks.get(event, []):
+            callback(self)
 
     def get_dataloader(self, dataset_path, batch_size):
         raise NotImplementedError("get_dataloader function not implemented for this validator")

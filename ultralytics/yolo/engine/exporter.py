@@ -2,20 +2,20 @@
 """
 Export a YOLOv5 PyTorch model to other formats. TensorFlow exports authored by https://github.com/zldrobit
 
-Format                      | `format=argument`             | Model
----                         | ---                           | ---
-PyTorch                     | -                             | yolov8n.pt
-TorchScript                 | `torchscript`                 | yolov8n.torchscript
-ONNX                        | `onnx`                        | yolov8n.onnx
-OpenVINO                    | `openvino`                    | yolov8n_openvino_model/
-TensorRT                    | `engine`                      | yolov8n.engine
-CoreML                      | `coreml`                      | yolov8n.mlmodel
-TensorFlow SavedModel       | `saved_model`                 | yolov8n_saved_model/
-TensorFlow GraphDef         | `pb`                          | yolov8n.pb
-TensorFlow Lite             | `tflite`                      | yolov8n.tflite
-TensorFlow Edge TPU         | `edgetpu`                     | yolov8n_edgetpu.tflite
-TensorFlow.js               | `tfjs`                        | yolov8n_web_model/
-PaddlePaddle                | `paddle`                      | yolov8n_paddle_model/
+Format                  | `format=argument`         | Model
+---                     | ---                       | ---
+PyTorch                 | -                         | yolov8n.pt
+TorchScript             | `torchscript`             | yolov8n.torchscript
+ONNX                    | `onnx`                    | yolov8n.onnx
+OpenVINO                | `openvino`                | yolov8n_openvino_model/
+TensorRT                | `engine`                  | yolov8n.engine
+CoreML                  | `coreml`                  | yolov8n.mlmodel
+TensorFlow SavedModel   | `saved_model`             | yolov8n_saved_model/
+TensorFlow GraphDef     | `pb`                      | yolov8n.pb
+TensorFlow Lite         | `tflite`                  | yolov8n.tflite
+TensorFlow Edge TPU     | `edgetpu`                 | yolov8n_edgetpu.tflite
+TensorFlow.js           | `tfjs`                    | yolov8n_web_model/
+PaddlePaddle            | `paddle`                  | yolov8n_paddle_model/
 
 Requirements:
     $ pip install -r requirements.txt coremltools onnx onnx-simplifier onnxruntime openvino-dev tensorflow-cpu  # CPU
@@ -23,7 +23,7 @@ Requirements:
 
 Python:
     from ultralytics import YOLO
-    model = YOLO.new('yolov8n.yaml')
+    model = YOLO('yolov8n.yaml')
     results = model.export(format='onnx')
 
 CLI:
@@ -56,6 +56,7 @@ import re
 import subprocess
 import time
 import warnings
+from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
 
@@ -64,16 +65,17 @@ import numpy as np
 import pandas as pd
 import torch
 
+import ultralytics
 from ultralytics.nn.modules import Detect, Segment
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, attempt_load_weights
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages
 from ultralytics.yolo.data.utils import check_dataset
-from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, colorstr, get_default_args
+from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, callbacks, colorstr, get_default_args, yaml_save
 from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version, check_yaml
-from ultralytics.yolo.utils.files import file_size, increment_path, yaml_save
+from ultralytics.yolo.utils.files import file_size, increment_path
 from ultralytics.yolo.utils.ops import Profile
-from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode
+from ultralytics.yolo.utils.torch_utils import guess_task_from_head, select_device, smart_inference_mode
 
 MACOS = platform.system() == 'Darwin'  # macOS environment
 
@@ -115,17 +117,37 @@ def try_export(inner_func):
 
 
 class Exporter:
+    """
+    Exporter
 
-    def __init__(self, config=DEFAULT_CONFIG, overrides={}):
+    A class for exporting a model.
+
+    Attributes:
+        args (OmegaConf): Configuration for the exporter.
+        save_dir (Path): Directory to save results.
+    """
+
+    def __init__(self, config=DEFAULT_CONFIG, overrides=None):
+        """
+        Initializes the Exporter class.
+
+        Args:
+            config (str, optional): Path to a configuration file. Defaults to DEFAULT_CONFIG.
+            overrides (dict, optional): Configuration overrides. Defaults to None.
+        """
+        if overrides is None:
+            overrides = {}
         self.args = get_config(config, overrides)
         project = self.args.project or f"runs/{self.args.task}"
-        name = self.args.name or f"{self.args.mode}"
+        name = self.args.name or "exp"  # hardcode mode as export doesn't require it
         self.save_dir = increment_path(Path(project) / name, exist_ok=self.args.exist_ok)
         self.save_dir.mkdir(parents=True, exist_ok=True)
-        self.imgsz = self.args.imgsz
+        self.callbacks = defaultdict(list, {k: [v] for k, v in callbacks.default_callbacks.items()})  # add callbacks
+        callbacks.add_integration_callbacks(self)
 
     @smart_inference_mode()
     def __call__(self, model=None):
+        self.run_callbacks("on_export_start")
         t = time.time()
         format = self.args.format.lower()  # to lowercase
         fmts = tuple(export_formats()['Argument'][1:])  # available export formats
@@ -136,22 +158,21 @@ class Exporter:
         # Load PyTorch model
         self.device = select_device(self.args.device)
         if self.args.half:
-            assert self.device.type != 'cpu' or coreml, '--half only compatible with GPU export, i.e. use --device 0'
+            if self.device.type == 'cpu' or not coreml:
+                LOGGER.info('half=True only compatible with GPU or CoreML export, i.e. use device=0 or format=coreml')
+                self.args.half = False
             assert not self.args.dynamic, '--half not compatible with --dynamic, i.e. use either --half or --dynamic'
 
         # Checks
-        if isinstance(self.imgsz, int):
-            self.imgsz = [self.imgsz]
-        self.imgsz *= 2 if len(self.imgsz) == 1 else 1  # expand
+        # if self.args.batch_size == model.args['batch_size']:  # user has not modified training batch_size
+        self.args.batch_size = 1
+        self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
         if self.args.optimize:
             assert self.device.type == 'cpu', '--optimize not compatible with cuda devices, i.e. use --device cpu'
 
         # Input
-        self.args.batch_size = 1  # TODO: resolve this issue, default 16 not fit for export
-        gs = int(max(model.stride))  # grid size (max stride)
-        imgsz = [check_imgsz(x, gs) for x in self.imgsz]  # verify img_size are gs-multiples
-        im = torch.zeros(self.args.batch_size, 3, *imgsz).to(self.device)  # image size(1,3,320,192) BCHW iDetection
-        file = Path(Path(model.yaml['yaml_file']).name)
+        im = torch.zeros(self.args.batch_size, 3, *self.imgsz).to(self.device)
+        file = Path(getattr(model, 'yaml_file', None) or Path(model.yaml['yaml_file']).name)
 
         # Update model
         model = deepcopy(model)
@@ -182,7 +203,9 @@ class Exporter:
         self.im = im
         self.model = model
         self.file = file
+        self.output_shape = tuple(y.shape) if isinstance(y, torch.Tensor) else (x.shape for x in y)
         self.metadata = {'stride': int(max(model.stride)), 'names': model.names}  # model metadata
+        self.pretty_name = self.file.stem.replace('yolo', 'YOLO')
 
         # Exports
         f = [''] * len(fmts)  # exported filenames
@@ -202,7 +225,7 @@ class Exporter:
             f[5], s_model = self._export_saved_model(nms=nms or self.args.agnostic_nms or tfjs,
                                                      agnostic_nms=self.args.agnostic_nms or tfjs)
             if pb or tfjs:  # pb prerequisite to tfjs
-                f[6], _ = self._export_pb(s_model,)
+                f[6], _ = self._export_pb(s_model)
             if tflite or edgetpu:
                 f[7], _ = self._export_tflite(s_model,
                                               int8=self.args.int8 or edgetpu,
@@ -220,16 +243,15 @@ class Exporter:
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
         if any(f):
-            cls, det, seg = (isinstance(model, x)
-                             for x in (ClassificationModel, DetectionModel, SegmentationModel))  # type
-            det &= not seg  # segmentation models inherit from SegmentationModel(DetectionModel)
+            task = guess_task_from_head(model.yaml["head"][-1][-2])
             s = "-WARNING ⚠️ not yet supported for YOLOv8 exported models"
-            task = 'detect' if det else 'segment' if seg else 'classify' if cls else ''
             LOGGER.info(f'\nExport complete ({time.time() - t:.1f}s)'
                         f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
                         f"\nPredict:         yolo task={task} mode=predict model={f[-1]} {s}"
                         f"\nValidate:        yolo task={task} mode=val model={f[-1]} {s}"
                         f"\nVisualize:       https://netron.app")
+
+        self.run_callbacks("on_export_end")
         return f  # return list of exported files/dirs
 
     @try_export
@@ -337,13 +359,30 @@ class Exporter:
     @try_export
     def _export_coreml(self, prefix=colorstr('CoreML:')):
         # YOLOv5 CoreML export
-        check_requirements('coremltools')
+        check_requirements('coremltools>=6.0')
         import coremltools as ct  # noqa
+
+        class iOSModel(torch.nn.Module):
+            # Wrap an Ultralytics YOLO model for iOS export
+            def __init__(self, model, im):
+                super().__init__()
+                b, c, h, w = im.shape  # batch, channel, height, width
+                self.model = model
+                self.nc = len(model.names)  # number of classes
+                if w == h:
+                    self.normalize = 1.0 / w  # scalar
+                else:
+                    self.normalize = torch.tensor([1.0 / w, 1.0 / h, 1.0 / w, 1.0 / h])  # broadcast (slower, smaller)
+
+            def forward(self, x):
+                xywh, cls = self.model(x)[0].transpose(0, 1).split((4, self.nc), 1)
+                return cls, xywh * self.normalize  # confidence (3780, 80), coordinates (3780, 4)
 
         LOGGER.info(f'\n{prefix} starting export with coremltools {ct.__version__}...')
         f = self.file.with_suffix('.mlmodel')
 
-        ts = torch.jit.trace(self.model, self.im, strict=False)  # TorchScript model
+        model = iOSModel(self.model, self.im) if self.args.nms else self.model
+        ts = torch.jit.trace(model, self.im, strict=False)  # TorchScript model
         ct_model = ct.convert(ts, inputs=[ct.ImageType('image', shape=self.im.shape, scale=1 / 255, bias=[0, 0, 0])])
         bits, mode = (8, 'kmeans_lut') if self.args.int8 else (16, 'linear') if self.args.half else (32, None)
         if bits < 32:
@@ -351,6 +390,9 @@ class Exporter:
                 ct_model = ct.models.neural_network.quantization_utils.quantize_weights(ct_model, bits, mode)
             else:
                 LOGGER.info(f'{prefix} quantization only supported on macOS, skipping...')
+        if self.args.nms:
+            ct_model = self._pipeline_coreml(ct_model)
+
         ct_model.save(str(f))
         return f, ct_model
 
@@ -525,8 +567,10 @@ class Exporter:
             sudo = subprocess.run('sudo --version >/dev/null', shell=True).returncode == 0  # sudo installed on system
             for c in (
                     'curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -',
-                    'echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | sudo tee /etc/apt/sources.list.d/coral-edgetpu.list',
-                    'sudo apt-get update', 'sudo apt-get install edgetpu-compiler'):
+                    'echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | '  # no comma
+                    'sudo tee /etc/apt/sources.list.d/coral-edgetpu.list',
+                    'sudo apt-get update',
+                    'sudo apt-get install edgetpu-compiler'):
                 subprocess.run(c if sudo else c.replace('sudo ', ''), shell=True, check=True)
         ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().split()[-1]
 
@@ -597,6 +641,131 @@ class Exporter:
             populator.populate()
             tmp_file.unlink()
 
+    def _pipeline_coreml(self, model, prefix=colorstr('CoreML Pipeline:')):
+        # YOLOv5 CoreML pipeline
+        import coremltools as ct  # noqa
+
+        LOGGER.info(f'{prefix} starting pipeline with coremltools {ct.__version__}...')
+        batch_size, ch, h, w = list(self.im.shape)  # BCHW
+
+        # Output shapes
+        spec = model.get_spec()
+        out0, out1 = iter(spec.description.output)
+        if MACOS:
+            from PIL import Image
+            img = Image.new('RGB', (w, h))  # img(192 width, 320 height)
+            # img = torch.zeros((*opt.img_size, 3)).numpy()  # img size(320,192,3) iDetection
+            out = model.predict({'image': img})
+            out0_shape = out[out0.name].shape
+            out1_shape = out[out1.name].shape
+        else:  # linux and windows can not run model.predict(), get sizes from pytorch output y
+            out0_shape = self.output_shape[1], self.output_shape[2] - 5  # (3780, 80)
+            out1_shape = self.output_shape[1], 4  # (3780, 4)
+
+        # Checks
+        names = self.metadata['names']
+        nx, ny = spec.description.input[0].type.imageType.width, spec.description.input[0].type.imageType.height
+        na, nc = out0_shape
+        # na, nc = out0.type.multiArrayType.shape  # number anchors, classes
+        assert len(names) == nc, f'{len(names)} names found for nc={nc}'  # check
+
+        # Define output shapes (missing)
+        out0.type.multiArrayType.shape[:] = out0_shape  # (3780, 80)
+        out1.type.multiArrayType.shape[:] = out1_shape  # (3780, 4)
+        # spec.neuralNetwork.preprocessing[0].featureName = '0'
+
+        # Flexible input shapes
+        # from coremltools.models.neural_network import flexible_shape_utils
+        # s = [] # shapes
+        # s.append(flexible_shape_utils.NeuralNetworkImageSize(320, 192))
+        # s.append(flexible_shape_utils.NeuralNetworkImageSize(640, 384))  # (height, width)
+        # flexible_shape_utils.add_enumerated_image_sizes(spec, feature_name='image', sizes=s)
+        # r = flexible_shape_utils.NeuralNetworkImageSizeRange()  # shape ranges
+        # r.add_height_range((192, 640))
+        # r.add_width_range((192, 640))
+        # flexible_shape_utils.update_image_size_range(spec, feature_name='image', size_range=r)
+
+        # Print
+        print(spec.description)
+
+        # Model from spec
+        model = ct.models.MLModel(spec)
+
+        # 3. Create NMS protobuf
+        nms_spec = ct.proto.Model_pb2.Model()
+        nms_spec.specificationVersion = 5
+        for i in range(2):
+            decoder_output = model._spec.description.output[i].SerializeToString()
+            nms_spec.description.input.add()
+            nms_spec.description.input[i].ParseFromString(decoder_output)
+            nms_spec.description.output.add()
+            nms_spec.description.output[i].ParseFromString(decoder_output)
+
+        nms_spec.description.output[0].name = 'confidence'
+        nms_spec.description.output[1].name = 'coordinates'
+
+        output_sizes = [nc, 4]
+        for i in range(2):
+            ma_type = nms_spec.description.output[i].type.multiArrayType
+            ma_type.shapeRange.sizeRanges.add()
+            ma_type.shapeRange.sizeRanges[0].lowerBound = 0
+            ma_type.shapeRange.sizeRanges[0].upperBound = -1
+            ma_type.shapeRange.sizeRanges.add()
+            ma_type.shapeRange.sizeRanges[1].lowerBound = output_sizes[i]
+            ma_type.shapeRange.sizeRanges[1].upperBound = output_sizes[i]
+            del ma_type.shape[:]
+
+        nms = nms_spec.nonMaximumSuppression
+        nms.confidenceInputFeatureName = out0.name  # 1x507x80
+        nms.coordinatesInputFeatureName = out1.name  # 1x507x4
+        nms.confidenceOutputFeatureName = 'confidence'
+        nms.coordinatesOutputFeatureName = 'coordinates'
+        nms.iouThresholdInputFeatureName = 'iouThreshold'
+        nms.confidenceThresholdInputFeatureName = 'confidenceThreshold'
+        nms.iouThreshold = 0.45
+        nms.confidenceThreshold = 0.25
+        nms.pickTop.perClass = True
+        nms.stringClassLabels.vector.extend(names.values())
+        nms_model = ct.models.MLModel(nms_spec)
+
+        # 4. Pipeline models together
+        pipeline = ct.models.pipeline.Pipeline(input_features=[('image', ct.models.datatypes.Array(3, ny, nx)),
+                                                               ('iouThreshold', ct.models.datatypes.Double()),
+                                                               ('confidenceThreshold', ct.models.datatypes.Double())],
+                                               output_features=['confidence', 'coordinates'])
+        pipeline.add_model(model)
+        pipeline.add_model(nms_model)
+
+        # Correct datatypes
+        pipeline.spec.description.input[0].ParseFromString(model._spec.description.input[0].SerializeToString())
+        pipeline.spec.description.output[0].ParseFromString(nms_model._spec.description.output[0].SerializeToString())
+        pipeline.spec.description.output[1].ParseFromString(nms_model._spec.description.output[1].SerializeToString())
+
+        # Update metadata
+        pipeline.spec.specificationVersion = 5
+        pipeline.spec.description.metadata.versionString = f'Ultralytics YOLOv{ultralytics.__version__}'
+        pipeline.spec.description.metadata.shortDescription = f'Ultralytics {self.pretty_name} CoreML model'
+        pipeline.spec.description.metadata.author = 'Ultralytics (https://ultralytics.com)'
+        pipeline.spec.description.metadata.license = 'GPL-3.0 license (https://ultralytics.com/license)'
+        pipeline.spec.description.metadata.userDefined.update({
+            'IoU threshold': str(nms.iouThreshold),
+            'Confidence threshold': str(nms.confidenceThreshold)})
+
+        # Save the model
+        model = ct.models.MLModel(pipeline.spec)
+        model.input_description['image'] = 'Input image'
+        model.input_description['iouThreshold'] = f'(optional) IOU threshold override (default: {nms.iouThreshold})'
+        model.input_description['confidenceThreshold'] = \
+            f'(optional) Confidence threshold override (default: {nms.confidenceThreshold})'
+        model.output_description['confidence'] = 'Boxes × Class confidence (see user-defined metadata "classes")'
+        model.output_description['coordinates'] = 'Boxes × [x, y, width, height] (relative to image size)'
+        LOGGER.info(f'{prefix} pipeline success')
+        return model
+
+    def run_callbacks(self, event: str):
+        for callback in self.callbacks.get(event, []):
+            callback(self)
+
 
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def export(cfg):
@@ -609,7 +778,7 @@ def export(cfg):
         if Path(cfg.model).suffix == '.yaml':
             model = DetectionModel(cfg.model)
         elif Path(cfg.model).suffix == '.pt':
-            model = attempt_load_weights(cfg.model)
+            model = attempt_load_weights(cfg.model, fuse=True)
         else:
             TypeError(f'Unsupported model type {cfg.model}')
     exporter(model=model)

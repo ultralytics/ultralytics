@@ -16,7 +16,7 @@ import torch.nn.functional as F
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 import ultralytics
-from ultralytics.yolo.utils import LOGGER
+from ultralytics.yolo.utils import DEFAULT_CONFIG_DICT, DEFAULT_CONFIG_KEYS, LOGGER
 from ultralytics.yolo.utils.checks import git_describe
 
 from .checks import check_version
@@ -29,10 +29,11 @@ WORLD_SIZE = int(os.getenv('WORLD_SIZE', 1))
 @contextmanager
 def torch_distributed_zero_first(local_rank: int):
     # Decorator to make all processes in distributed training wait for each local_master to do something
-    if local_rank not in {-1, 0}:
+    initialized = torch.distributed.is_initialized()  # prevent 'Default process group has not been initialized' errors
+    if initialized and local_rank not in {-1, 0}:
         dist.barrier(device_ids=[local_rank])
     yield
-    if local_rank == 0:
+    if initialized and local_rank == 0:
         dist.barrier(device_ids=[0])
 
 
@@ -185,18 +186,6 @@ def scale_img(img, ratio=1.0, same_shape=False, gs=32):  # img(16,3,256,416)
     return F.pad(img, [0, w - s[1], 0, h - s[0]], value=0.447)  # value = imagenet mean
 
 
-def check_imgsz(imgsz, s=32, floor=0):
-    # Verify image size is a multiple of stride s in each dimension
-    if isinstance(imgsz, int):  # integer i.e. imgsz=640
-        new_size = max(make_divisible(imgsz, int(s)), floor)
-    else:  # list i.e. imgsz=[640, 480]
-        imgsz = list(imgsz)  # convert to list if tuple
-        new_size = [max(make_divisible(x, int(s)), floor) for x in imgsz]
-    if new_size != imgsz:
-        LOGGER.warning(f'WARNING ⚠️ --img-size {imgsz} must be multiple of max stride {s}, updating to {new_size}')
-    return new_size
-
-
 def make_divisible(x, divisor):
     # Returns nearest x divisible by divisor
     if isinstance(divisor, torch.Tensor):
@@ -213,7 +202,7 @@ def copy_attr(a, b, include=(), exclude=()):
             setattr(a, k, v)
 
 
-def intersect_state_dicts(da, db, exclude=()):
+def intersect_dicts(da, db, exclude=()):
     # Dictionary intersection of matching keys and shapes, omitting 'exclude' keys, using da values
     return {k: v for k, v in da.items() if k in db and all(x not in k for x in exclude) and v.shape == db[k].shape}
 
@@ -282,6 +271,7 @@ class ModelEMA:
 def strip_optimizer(f='best.pt', s=''):  # from utils.general import *; strip_optimizer()
     # Strip optimizer from 'f' to finalize training, optionally save as 's'
     x = torch.load(f, map_location=torch.device('cpu'))
+    args = {**DEFAULT_CONFIG_DICT, **x['train_args']}  # combine model args with default args, preferring model args
     if x.get('ema'):
         x['model'] = x['ema']  # replace model with ema
     for k in 'optimizer', 'best_fitness', 'ema', 'updates':  # keys
@@ -290,6 +280,22 @@ def strip_optimizer(f='best.pt', s=''):  # from utils.general import *; strip_op
     x['model'].half()  # to FP16
     for p in x['model'].parameters():
         p.requires_grad = False
+    x['train_args'] = {k: v for k, v in args.items() if k in DEFAULT_CONFIG_KEYS}  # strip non-default keys
     torch.save(x, s or f)
     mb = os.path.getsize(s or f) / 1E6  # filesize
     LOGGER.info(f"Optimizer stripped from {f},{f' saved as {s},' if s else ''} {mb:.1f}MB")
+
+
+def guess_task_from_head(head):
+    task = None
+    if head.lower() in ["classify", "classifier", "cls", "fc"]:
+        task = "classify"
+    if head.lower() in ["detect"]:
+        task = "detect"
+    if head.lower() in ["segment"]:
+        task = "segment"
+
+    if not task:
+        raise SyntaxError("task or model not recognized! Please refer the docs at : ")  # TODO: add docs links
+
+    return task

@@ -3,6 +3,7 @@ import torch
 
 from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.utils import DEFAULT_CONFIG
+from ultralytics.yolo.utils.checks import check_imgsz
 from ultralytics.yolo.utils.plotting import Annotator
 
 
@@ -42,7 +43,7 @@ class ClassificationPredictor(BasePredictor):
 
         # write
         text = '\n'.join(f'{prob[j]:.2f} {self.model.names[j]}' for j in top5i)
-        if self.save_img or self.args.view_img:  # Add bbox to image
+        if self.args.save or self.args.show:  # Add bbox to image
             self.annotator.text((32, 32), text, txt_color=(255, 255, 255))
         if self.args.save_txt:  # Write to file
             with open(f'{self.txt_path}.txt', 'a') as f:
@@ -54,11 +55,7 @@ class ClassificationPredictor(BasePredictor):
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def predict(cfg):
     cfg.model = cfg.model or "squeezenet1_0"
-    sz = cfg.imgsz
-    if type(sz) != int:  # received listConfig
-        cfg.imgsz = [sz[0], sz[0]] if len(cfg.imgsz) == 1 else [sz[0], sz[1]]  # expand
-    else:
-        cfg.imgsz = [sz, sz]
+    cfg.imgsz = check_imgsz(cfg.imgsz, min_dim=2)  # check image size
     predictor = ClassificationPredictor(cfg)
     predictor()
 

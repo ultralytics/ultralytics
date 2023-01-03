@@ -51,21 +51,22 @@ markdown_extensions:
   - pymdownx.superfences
   - tables
   - attr_list
+  - def_list
   # Syntax highlight
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.inlinehilite
   - pymdownx.snippets
 
-  # button
+  # Button
   - attr_list
 
-  # content tabs
+  # Content tabs
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
 
-  # highlight
+  # Highlight
   - pymdownx.critic
   - pymdownx.caret
   - pymdownx.keys
@@ -74,22 +75,26 @@ markdown_extensions:
 plugins:
   - mkdocstrings
 
-# primary navigation
+# Primary navigation
 nav:
   - Quickstart: quickstart.md
   - CLI: cli.md
   - Python Interface: sdk.md
-  - Configuration: conf.md
+  - Configuration: config.md
   - Tasks:
       - Detection: tasks/detection.md
       - Segmentation: tasks/segmentation.md
       - Classification: tasks/classification.md
-  - Customization Tutorials:
+  - Advanced Tutorials:
       - Customize Trainer: customize/train.md
       - Customize Validator: customize/val.md
       - Customize Predictor: customize/predict.md
   - Reference:
-      - YOLO Models: reference/model.md
-      - Trainer :
-          - BaseTrainer: reference/base_trainer.md
-
+      - Python Model interface: reference/model.md
+      - Engine:
+          - Trainer: reference/base_trainer.md
+          - Validator: reference/base_val.md
+          - Predictor: reference/base_pred.md
+          - Exporter: reference/exporter.md
+      - nn Module: reference/nn.md
+      - operations: reference/ops.md

@@ -2,6 +2,7 @@ import hydra
 import torch
 
 from ultralytics.yolo.utils import DEFAULT_CONFIG, ops
+from ultralytics.yolo.utils.checks import check_imgsz
 from ultralytics.yolo.utils.plotting import colors, save_one_box
 
 from ..detect.predict import DetectionPredictor
@@ -80,7 +81,7 @@ class SegmentationPredictor(DetectionPredictor):
                 with open(f'{self.txt_path}.txt', 'a') as f:
                     f.write(('%g ' * len(line)).rstrip() % line + '\n')
 
-            if self.save_img or self.args.save_crop or self.args.view_img:
+            if self.args.save or self.args.save_crop or self.args.show:
                 c = int(cls)  # integer class
                 label = None if self.args.hide_labels else (
                     self.model.names[c] if self.args.hide_conf else f'{self.model.names[c]} {conf:.2f}')
@@ -96,11 +97,7 @@ class SegmentationPredictor(DetectionPredictor):
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def predict(cfg):
     cfg.model = cfg.model or "n.pt"
-    sz = cfg.imgsz
-    if type(sz) != int:  # received listConfig
-        cfg.imgsz = [sz[0], sz[0]] if len(cfg.imgsz) == 1 else [sz[0], sz[1]]  # expand
-    else:
-        cfg.imgsz = [sz, sz]
+    cfg.imgsz = check_imgsz(cfg.imgsz, min_dim=2)  # check image size
     predictor = SegmentationPredictor(cfg)
     predictor()
 

@@ -6,8 +6,7 @@ This is the simplest way of simply using yolo models in a python environment. It
         ```python
         from ultralytics import YOLO
 
-        model = YOLO()
-        model.new("n.yaml") # pass any model type
+        model = YOLO("yolov8n.yaml")
         model(img_tensor) # Or model.forward(). inference.
         model.train(data="coco128.yaml", epochs=5)
         ```
@@ -16,10 +15,9 @@ This is the simplest way of simply using yolo models in a python environment. It
         ```python
         from ultralytics import YOLO
 
-        model = YOLO()
-        model.load("n.pt") # pass any model type
+        model = YOLO("yolov8n.pt") # pass any model type
         model(...) # inference
-        model.train(data="coco128.yaml", epochs=5)
+        model.train(epochs=5)
         ```
 
     === "Resume Training"
@@ -35,8 +33,7 @@ This is the simplest way of simply using yolo models in a python environment. It
     ```python
     from ultralytics import YOLO
 
-    model = YOLO()
-    model.load("model.pt")
+    model = YOLO("model.pt")
     model.predict(source="0") # accepts all formats - img/folder/vid.*(mp4/format). 0 for webcam
     model.predict(source="folder", view_img=True) # Display preds. Accepts all yolo predict arguments
 
@@ -48,7 +45,7 @@ This is the simplest way of simply using yolo models in a python environment. It
         ```python
         from ultralytics import YOLO
 
-        model = YOLO()
+        model = YOLO("model.pt")
         model.fuse()  
         model.info(verbose=True)  # Print model information
         model.export(format=)  # TODO: 
@@ -61,7 +58,7 @@ This is the simplest way of simply using yolo models in a python environment. It
 
 To know more about using `YOLO` models, refer Model class refernce
 
-[Model reference](#){ .md-button .md-button--primary}
+[Model reference](reference/model.md){ .md-button .md-button--primary}
 
 ---
 ### Customizing Tasks with Trainers

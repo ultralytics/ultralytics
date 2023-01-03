@@ -249,22 +249,6 @@ def git_describe(path=ROOT):  # path must be a directory
         return ''
 
 
-def is_git_directory() -> bool:
-    """
-    Check if the current working directory is inside a git repository.
-
-    Returns:
-        bool: True if the current working directory is inside a git repository, False otherwise.
-    """
-    from git import Repo
-    try:
-        # Check if the current working directory is a git repository
-        Repo(search_parent_directories=True)
-        return True
-    except Exception:
-        return False
-
-
 def print_args(args: Optional[dict] = None, show_file=True, show_func=False):
     # Print function arguments (optional args dict)
     x = inspect.currentframe().f_back  # previous frame

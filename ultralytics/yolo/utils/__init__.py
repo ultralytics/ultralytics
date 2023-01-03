@@ -119,6 +119,22 @@ def is_docker() -> bool:
         return 'docker' in f.read()
 
 
+def is_git_directory() -> bool:
+    """
+    Check if the current working directory is inside a git repository.
+
+    Returns:
+        bool: True if the current working directory is inside a git repository, False otherwise.
+    """
+    from git import Repo
+    try:
+        # Check if the current working directory is a git repository
+        Repo(search_parent_directories=True)
+        return True
+    except Exception:
+        return False
+
+
 def is_dir_writeable(dir_path: str) -> bool:
     """
     Check if a directory is writeable.
@@ -305,10 +321,11 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml'):
     """
     from ultralytics.yolo.utils.torch_utils import torch_distributed_zero_first
 
+    git = is_git_directory()
     defaults = {
-        'datasets_dir': None,  # default datasets directory. If None, current working directory is used.
-        'weights_dir': None,  # default weights directory. If None, current working directory is used.
-        'runs_dir': None,  # default runs directory. If None, current working directory is used.
+        'datasets_dir': ROOT / 'datasets' if git else None,  # default datasets directory. If None, Path.cwd() is used.
+        'weights_dir': ROOT / 'weights' if git else None,  # default weights directory. If None, Path.cwd() is used.
+        'runs_dir': ROOT if git else None,  # default runs directory. If None, Path.cwd() is used.
         'sync': True,  # sync analytics to help with YOLO development
         'uuid': uuid.getnode(),  # device UUID to align analytics
         'yaml_file': str(file)}  # setting YAML file path

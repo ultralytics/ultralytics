@@ -134,6 +134,7 @@ class BaseTrainer:
         self.tloss = None
         self.loss_names = None
         self.csv = self.save_dir / 'results.csv'
+        self.plot_idx = [0, 1, 2]
 
         # Callbacks
         self.callbacks = defaultdict(list, {k: [v] for k, v in callbacks.default_callbacks.items()})  # add callbacks
@@ -233,6 +234,9 @@ class BaseTrainer:
                  f'Using {self.train_loader.num_workers * (world_size or 1)} dataloader workers\n'
                  f"Logging results to {colorstr('bold', self.save_dir)}\n"
                  f"Starting training for {self.epochs} epochs...")
+        if self.args.close_mosaic:
+            base_idx = (self.epochs - self.args.close_mosaic) * nb
+            self.plot_idx.extend([base_idx, base_idx + 1, base_idx + 2])
         for epoch in range(self.start_epoch, self.epochs):
             self.epoch = epoch
             self.run_callbacks("on_train_epoch_start")
@@ -240,19 +244,21 @@ class BaseTrainer:
             if rank != -1:
                 self.train_loader.sampler.set_epoch(epoch)
             pbar = enumerate(self.train_loader)
+            # Update dataloader attributes (optional)
+            if epoch == (self.epochs - self.args.close_mosaic):
+                self.console.info("Closing dataloader mosaic")
+                if hasattr(self.train_loader.dataset, 'mosaic'):
+                    self.train_loader.dataset.mosaic = False
+                if hasattr(self.train_loader.dataset, 'close_mosaic'):
+                    self.train_loader.dataset.close_mosaic(hyp=self.args)
+
             if rank in {-1, 0}:
                 self.console.info(self.progress_string())
-                pbar = tqdm(enumerate(self.train_loader), total=len(self.train_loader), bar_format=TQDM_BAR_FORMAT)
+                pbar = tqdm(enumerate(self.train_loader), total=nb, bar_format=TQDM_BAR_FORMAT)
             self.tloss = None
             self.optimizer.zero_grad()
             for i, batch in pbar:
                 self.run_callbacks("on_train_batch_start")
-
-                # Update dataloader attributes (optional)
-                if epoch == (self.epochs - self.args.close_mosaic) and hasattr(self.train_loader.dataset, 'mosaic'):
-                    LOGGER.info("Closing dataloader mosaic")
-                    self.train_loader.dataset.mosaic = False
-
                 # Warmup
                 ni = i + nb * epoch
                 if ni <= nw:
@@ -292,7 +298,7 @@ class BaseTrainer:
                         ('%11s' * 2 + '%11.4g' * (2 + loss_len)) %
                         (f'{epoch + 1}/{self.epochs}', mem, *losses, batch["cls"].shape[0], batch["img"].shape[-1]))
                     self.run_callbacks('on_batch_end')
-                    if self.args.plots and ni < 3:
+                    if self.args.plots and ni in self.plot_idx:
                         self.plot_training_samples(batch, ni)
 
                 self.run_callbacks("on_train_batch_end")

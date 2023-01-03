@@ -94,6 +94,7 @@ def test_export_paddle():
     model = YOLO(MODEL)
     model.export(format='paddle')
 
+
 # def run_all_tests():  # do not name function test_...
 #     pass
 #

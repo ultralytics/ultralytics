@@ -1,8 +1,9 @@
+from copy import copy
+
 import hydra
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from copy import copy
 
 from ultralytics.nn.tasks import SegmentationModel
 from ultralytics.yolo import v8

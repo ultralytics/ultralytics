@@ -1,7 +1,8 @@
+from copy import copy
+
 import hydra
 import torch
 import torch.nn as nn
-from copy import copy
 
 from ultralytics.nn.tasks import DetectionModel
 from ultralytics.yolo import v8

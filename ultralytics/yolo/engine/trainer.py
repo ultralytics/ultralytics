@@ -6,7 +6,6 @@ import os
 import subprocess
 import time
 from collections import defaultdict
-from omegaconf import open_dict
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
@@ -16,6 +15,7 @@ import torch
 import torch.distributed as dist
 import torch.nn as nn
 from omegaconf import OmegaConf  # noqa
+from omegaconf import open_dict
 from torch.cuda import amp
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.optim import lr_scheduler
@@ -91,7 +91,10 @@ class BaseTrainer:
         # Dirs
         project = self.args.project or f"runs/{self.args.task}"
         name = self.args.name or f"{self.args.mode}"
-        self.save_dir = Path(self.args.get("save_dir", increment_path(Path(project) / name, exist_ok=self.args.exist_ok if RANK in {-1, 0} else True)))
+        self.save_dir = Path(
+            self.args.get(
+                "save_dir",
+                increment_path(Path(project) / name, exist_ok=self.args.exist_ok if RANK in {-1, 0} else True)))
         self.wdir = self.save_dir / 'weights'  # weights dir
         if RANK in {-1, 0}:
             self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
@@ -376,7 +379,8 @@ class BaseTrainer:
         if not pretrained:
             model = check_file(model)
         ckpt = self.load_ckpt(model) if pretrained else None
-        self.model = self.load_model(model_cfg=None if pretrained else model, weights=ckpt["model"] if pretrained else ckpt)  # model
+        self.model = self.load_model(model_cfg=None if pretrained else model,
+                                     weights=ckpt["model"] if pretrained else ckpt)  # model
         return ckpt
 
     def load_ckpt(self, ckpt):

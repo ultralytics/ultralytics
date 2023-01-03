@@ -29,7 +29,6 @@ rect: False # support rectangular training
 cos_lr: False # use cosine learning rate scheduler
 close_mosaic: 10 # disable mosaic augmentation for final 10 epochs
 resume: False # resume training from last checkpoint
-local_rank: -1 # local rank for distributed training (do not modify)
 # Segmentation
 overlap_mask: True # masks should overlap during training
 mask_ratio: 4 # mask downsample ratio

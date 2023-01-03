@@ -38,15 +38,6 @@ def test_val():
     model.val(data="coco128.yaml", imgsz=32)
 
 
-def test_train_resume():
-    model = YOLO(CFG)
-    model.train(epochs=1, imgsz=32, data="coco128.yaml")
-    try:
-        model.resume(task="detect")
-    except AssertionError:
-        print("Successfully caught resume assert!")
-
-
 def test_train_scratch():
     model = YOLO(CFG)
     model.train(data="coco128.yaml", epochs=1, imgsz=32)

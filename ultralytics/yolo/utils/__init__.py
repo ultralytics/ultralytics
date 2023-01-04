@@ -323,9 +323,9 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml'):
 
     git = is_git_directory()
     defaults = {
-        'datasets_dir': ROOT / 'datasets' if git else None,  # default datasets directory. If None, Path.cwd() is used.
-        'weights_dir': ROOT / 'weights' if git else None,  # default weights directory. If None, Path.cwd() is used.
-        'runs_dir': ROOT if git else None,  # default runs directory. If None, Path.cwd() is used.
+        'datasets_dir': str(ROOT / 'datasets') if git else '',  # default datasets directory.
+        'weights_dir': str(ROOT / 'weights') if git else '',  # default weights directory.
+        'runs_dir': str(ROOT / 'runs') if git else '',  # default runs directory.
         'sync': True,  # sync analytics to help with YOLO development
         'uuid': uuid.getnode(),  # device UUID to align analytics
         'yaml_file': str(file)}  # setting YAML file path

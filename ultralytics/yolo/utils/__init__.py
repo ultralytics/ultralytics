@@ -18,7 +18,6 @@ FILE = Path(__file__).resolve()
 ROOT = FILE.parents[2]  # YOLO
 DEFAULT_CONFIG = ROOT / "yolo/configs/default.yaml"
 RANK = int(os.getenv('RANK', -1))
-DATASETS_DIR = Path(os.getenv('YOLOv5_DATASETS_DIR', ROOT.parent / 'datasets'))  # global datasets directory
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLOv5 multiprocessing threads
 AUTOINSTALL = str(os.getenv('YOLOv5_AUTOINSTALL', True)).lower() == 'true'  # global auto-install mode
 FONT = 'Arial.ttf'  # https://ultralytics.com/assets/Arial.ttf
@@ -353,6 +352,7 @@ if platform.system() == 'Windows':
 
 # Check first-install steps
 SETTINGS = get_settings()
+DATASETS_DIR = Path(SETTINGS['datasets_dir'])  # global datasets directory
 
 
 def set_settings(kwargs, file=USER_CONFIG_DIR / 'settings.yaml'):

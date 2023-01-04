@@ -341,9 +341,9 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml'):
 
     git_install = not is_pip_package()
     defaults = {
-        'datasets_dir': str(ROOT / 'datasets') if git_install else 'datasets',  # default datasets directory.
-        'weights_dir': str(ROOT / 'weights') if git_install else 'weights',  # default weights directory.
-        'runs_dir': str(ROOT / 'runs') if git_install else 'runs',  # default runs directory.
+        'datasets_dir': str(ROOT.parent / 'datasets') if git_install else 'datasets',  # default datasets directory.
+        'weights_dir': str(ROOT.parent / 'weights') if git_install else 'weights',  # default weights directory.
+        'runs_dir': str(ROOT.parent / 'runs') if git_install else 'runs',  # default runs directory.
         'sync': True,  # sync analytics to help with YOLO development
         'uuid': uuid.getnode(),  # device UUID to align analytics
         'yaml_file': str(file)}  # setting YAML file path

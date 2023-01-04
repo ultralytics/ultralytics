@@ -22,7 +22,7 @@ jobs:
         python-version: [ '3.10' ]
         model: [ yolov8n ]
         torch: [ latest ]
-        include:
+#        include:
 #          - os: ubuntu-latest
 #            python-version: '3.7'  # '3.6.8' min
 #            model: yolov8n
@@ -106,4 +106,4 @@ jobs:
         shell: bash
         run:
           pip install pytest
-          pytest ../tests/*.py
+          pytest ../tests

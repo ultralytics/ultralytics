@@ -18,13 +18,7 @@ def on_pretrain_routine_end(trainer):
 def on_fit_epoch_end(trainer):
     session = getattr(trainer, 'hub_session', None)
     if session:
-        # Upload metrics after val end
-        metrics = trainer.metrics
-        for k, v in metrics.items():
-            if isinstance(v, torch.Tensor):
-                metrics[k] = v.item()
-
-        session.metrics_queue[trainer.epoch] = json.dumps(metrics)  # json string
+        session.metrics_queue[trainer.epoch] = json.dumps(trainer.metrics)  # json string
         if time() - session.t['metrics'] > session.rate_limits['metrics']:
             session.upload_metrics()
             session.t['metrics'] = time()  # reset timer

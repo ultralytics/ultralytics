@@ -201,7 +201,7 @@ def check_dataset_yaml(data, autodownload=True):
         extract_dir, autodownload = data.parent, False
     # Read yaml (optional)
     if isinstance(data, (str, Path)):
-        data = yaml_load(data)  # dictionary
+        data = yaml_load(data, append_filename=True)  # dictionary
 
     # Checks
     for k in 'train', 'val', 'names':

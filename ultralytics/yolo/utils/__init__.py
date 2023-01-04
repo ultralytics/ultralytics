@@ -324,13 +324,13 @@ def yaml_save(file='data.yaml', data=None):
         yaml.safe_dump({k: str(v) if isinstance(v, Path) else v for k, v in data.items()}, f, sort_keys=False)
 
 
-def yaml_load(file='data.yaml', append_filename=True):
+def yaml_load(file='data.yaml', append_filename=False):
     """
     Load YAML data from a file.
 
     Args:
         file (str, optional): File name. Default is 'data.yaml'.
-        append_filename (bool): Add the YAML filename to the YAML dictionary. Default is True.
+        append_filename (bool): Add the YAML filename to the YAML dictionary. Default is False.
 
     Returns:
         dict: YAML data and file name.

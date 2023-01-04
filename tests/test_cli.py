@@ -1,6 +1,10 @@
 import os
+from pathlib import Path
 
-from ultralytics.yolo.utils import ROOT
+from ultralytics.yolo.utils import ROOT, SETTINGS
+
+MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n.pt'
+CFG = 'yolov8n.yaml'
 
 
 def test_checks():
@@ -9,7 +13,7 @@ def test_checks():
 
 # Train checks ---------------------------------------------------------------------------------------------------------
 def test_train_detect():
-    os.system('yolo mode=train task=detect model=yolov8n.yaml data=coco128.yaml imgsz=32 epochs=1')
+    os.system(f'yolo mode=train task=detect model={MODEL} data=coco128.yaml imgsz=32 epochs=1')
 
 
 def test_train_segment():
@@ -22,7 +26,7 @@ def test_train_classify():
 
 # Val checks -----------------------------------------------------------------------------------------------------------
 def test_val_detect():
-    os.system('yolo mode=val task=detect model=yolov8n.pt data=coco128.yaml imgsz=32 epochs=1')
+    os.system(f'yolo mode=val task=detect model={MODEL} data=coco128.yaml imgsz=32 epochs=1')
 
 
 def test_val_segment():
@@ -35,7 +39,7 @@ def test_val_classify():
 
 # Predict checks -------------------------------------------------------------------------------------------------------
 def test_predict_detect():
-    os.system(f"yolo mode=predict model=yolov8n.pt source={ROOT / 'assets'}")
+    os.system(f"yolo mode=predict model={MODEL} source={ROOT / 'assets'}")
 
 
 def test_predict_segment():
@@ -48,7 +52,7 @@ def test_predict_classify():
 
 # Export checks --------------------------------------------------------------------------------------------------------
 def test_export_detect_torchscript():
-    os.system('yolo mode=export model=yolov8n.pt format=torchscript')
+    os.system(f'yolo mode=export model={MODEL} format=torchscript')
 
 
 def test_export_segment_torchscript():

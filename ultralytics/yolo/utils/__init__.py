@@ -18,7 +18,6 @@ FILE = Path(__file__).resolve()
 ROOT = FILE.parents[2]  # YOLO
 DEFAULT_CONFIG = ROOT / "yolo/configs/default.yaml"
 RANK = int(os.getenv('RANK', -1))
-DATASETS_DIR = Path(os.getenv('YOLOv5_DATASETS_DIR', ROOT.parent / 'datasets'))  # global datasets directory
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLOv5 multiprocessing threads
 AUTOINSTALL = str(os.getenv('YOLOv5_AUTOINSTALL', True)).lower() == 'true'  # global auto-install mode
 FONT = 'Arial.ttf'  # https://ultralytics.com/assets/Arial.ttf
@@ -117,6 +116,41 @@ def is_docker() -> bool:
     """
     with open('/proc/self/cgroup') as f:
         return 'docker' in f.read()
+
+
+def is_git_directory() -> bool:
+    """
+    Check if the current working directory is inside a git repository.
+
+    Returns:
+        bool: True if the current working directory is inside a git repository, False otherwise.
+    """
+    from git import Repo
+    try:
+        # Check if the current working directory is a git repository
+        Repo(search_parent_directories=True)
+        return True
+    except Exception:
+        return False
+
+
+def is_pip_package(filepath: str = __name__) -> bool:
+    """
+    Determines if the file at the given filepath is part of a pip package.
+
+    Args:
+        filepath (str): The filepath to check.
+
+    Returns:
+        bool: True if the file is part of a pip package, False otherwise.
+    """
+    import importlib.util
+
+    # Get the spec for the module
+    spec = importlib.util.find_spec(filepath)
+
+    # Return whether the spec is not None and the origin is not None (indicating it is a package)
+    return spec is not None and spec.origin is not None
 
 
 def is_dir_writeable(dir_path: str) -> bool:
@@ -305,10 +339,11 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml'):
     """
     from ultralytics.yolo.utils.torch_utils import torch_distributed_zero_first
 
+    git_install = not is_pip_package()
     defaults = {
-        'datasets_dir': None,  # default datasets directory. If None, current working directory is used.
-        'weights_dir': None,  # default weights directory. If None, current working directory is used.
-        'runs_dir': None,  # default runs directory. If None, current working directory is used.
+        'datasets_dir': str(ROOT / 'datasets') if git_install else 'datasets',  # default datasets directory.
+        'weights_dir': str(ROOT / 'weights') if git_install else 'weights',  # default weights directory.
+        'runs_dir': str(ROOT / 'runs') if git_install else 'runs',  # default runs directory.
         'sync': True,  # sync analytics to help with YOLO development
         'uuid': uuid.getnode(),  # device UUID to align analytics
         'yaml_file': str(file)}  # setting YAML file path
@@ -336,6 +371,7 @@ if platform.system() == 'Windows':
 
 # Check first-install steps
 SETTINGS = get_settings()
+DATASETS_DIR = Path(SETTINGS['datasets_dir'])  # global datasets directory
 
 
 def set_settings(kwargs, file=USER_CONFIG_DIR / 'settings.yaml'):

@@ -469,7 +469,7 @@ class Metric:
 
     def mean_results(self):
         """Mean of results, return mp, mr, map50, map"""
-        return self.mp, self.mr, self.map50, self.map
+        return [self.mp, self.mr, self.map50, self.map]
 
     def class_result(self, i):
         """class-aware result, return p[i], r[i], ap50[i], ap[i]"""
@@ -530,7 +530,7 @@ class DetMetrics:
 
     @property
     def results_dict(self):
-        return dict(zip(self.metrics.keys + ["fitness"], self.metrics.mean_results() + [self.fitness]))
+        return dict(zip(self.keys + ["fitness"], self.mean_results() + [self.fitness]))
 
 
 class SegmentMetrics:
@@ -594,7 +594,7 @@ class SegmentMetrics:
 
     @property
     def results_dict(self):
-        return dict(zip(self.metrics.keys + ["fitness"], self.metrics.mean_results() + [self.fitness]))
+        return dict(zip(self.keys + ["fitness"], self.mean_results() + [self.fitness]))
 
 
 class ClassifyMetrics:

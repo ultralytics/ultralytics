@@ -70,7 +70,7 @@ class DetectionValidator(BaseValidator):
         for si, pred in enumerate(preds):
             idx = batch["batch_idx"] == si
             cls = batch["cls"][idx]
-            bbox = batch["cls"][idx]
+            bbox = batch["bboxes"][idx]
             nl, npr = cls.shape[0], pred.shape[0]  # number of labels, predictions
             shape = batch["ori_shape"][si]
             correct_bboxes = torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device)  # init

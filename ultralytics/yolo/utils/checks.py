@@ -139,7 +139,7 @@ def check_online() -> bool:
         return False
 
 
-def check_python(minimum: str = '3.7.0') -> None:
+def check_python(minimum: str = '3.7.0') -> bool:
     """
     Check current python version against the required minimum version.
 

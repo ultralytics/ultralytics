@@ -58,8 +58,8 @@ class DetectionValidator(BaseValidator):
 
     def postprocess(self, preds):
         preds = ops.non_max_suppression(preds,
-                                        self.args.conf_thres,
-                                        self.args.iou_thres,
+                                        self.args.conf,
+                                        self.args.iou,
                                         labels=self.lb,
                                         multi_label=True,
                                         agnostic=self.args.single_cls,

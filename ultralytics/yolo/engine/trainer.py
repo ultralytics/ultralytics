@@ -25,7 +25,8 @@ import ultralytics.yolo.utils as utils
 from ultralytics import __version__
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
-from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, RANK, TQDM_BAR_FORMAT, callbacks, colorstr, yaml_save
+from ultralytics.yolo.utils import (DEFAULT_CONFIG, LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, callbacks, colorstr,
+                                    yaml_save)
 from ultralytics.yolo.utils.checks import check_file, print_args
 from ultralytics.yolo.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.yolo.utils.files import get_latest_run, increment_path
@@ -81,15 +82,14 @@ class BaseTrainer:
             overrides = {}
         self.args = get_config(config, overrides)
         self.check_resume()
-        init_seeds(self.args.seed + 1 + RANK, deterministic=self.args.deterministic)
-
         self.console = LOGGER
         self.validator = None
         self.model = None
         self.callbacks = defaultdict(list)
+        init_seeds(self.args.seed + 1 + RANK, deterministic=self.args.deterministic)
 
         # Dirs
-        project = self.args.project or f"runs/{self.args.task}"
+        project = self.args.project or Path(SETTINGS['runs_dir']) / self.args.task
         name = self.args.name or f"{self.args.mode}"
         self.save_dir = Path(
             self.args.get(
@@ -103,7 +103,7 @@ class BaseTrainer:
             yaml_save(self.save_dir / 'args.yaml', OmegaConf.to_container(self.args, resolve=True))  # save run args
         self.last, self.best = self.wdir / 'last.pt', self.wdir / 'best.pt'  # checkpoint paths
 
-        self.batch_size = self.args.batch_size
+        self.batch_size = self.args.batch
         self.epochs = self.args.epochs
         self.start_epoch = 0
         if RANK == -1:

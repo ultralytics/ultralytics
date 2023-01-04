@@ -213,9 +213,8 @@ class YOLO:
 
     @smart_inference_mode()
     def __call__(self, imgs):
-        if not self.model:
-            LOGGER.info("model not initialized!")
-        return self.model(imgs)
+        device = next(self.model.parameters()).device  # get model device
+        return self.model(imgs.to(device))
 
     def forward(self, imgs):
         return self.__call__(imgs)
@@ -225,4 +224,5 @@ class YOLO:
         args.pop("device", None)
         args.pop("project", None)
         args.pop("name", None)
-        args.pop("batch_size", None)
+        args.pop("batch", None)
+        args.pop("epochs", None)

@@ -67,13 +67,13 @@ import torch
 
 import ultralytics
 from ultralytics.nn.modules import Detect, Segment
-from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, attempt_load_weights
+from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages
 from ultralytics.yolo.data.utils import check_dataset
 from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, callbacks, colorstr, get_default_args, yaml_save
 from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version, check_yaml
-from ultralytics.yolo.utils.files import file_size, increment_path
+from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.ops import Profile
 from ultralytics.yolo.utils.torch_utils import guess_task_from_head, select_device, smart_inference_mode
 
@@ -138,10 +138,6 @@ class Exporter:
         if overrides is None:
             overrides = {}
         self.args = get_config(config, overrides)
-        project = self.args.project or f"runs/{self.args.task}"
-        name = self.args.name or "exp"  # hardcode mode as export doesn't require it
-        self.save_dir = increment_path(Path(project) / name, exist_ok=self.args.exist_ok)
-        self.save_dir.mkdir(parents=True, exist_ok=True)
         self.callbacks = defaultdict(list, {k: [v] for k, v in callbacks.default_callbacks.items()})  # add callbacks
         callbacks.add_integration_callbacks(self)
 
@@ -156,23 +152,25 @@ class Exporter:
         jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle = flags  # export booleans
 
         # Load PyTorch model
-        self.device = select_device(self.args.device)
+        self.device = select_device(self.args.device or 'cpu')
         if self.args.half:
-            if self.device.type == 'cpu' or not coreml:
+            if self.device.type == 'cpu' and not coreml:
                 LOGGER.info('half=True only compatible with GPU or CoreML export, i.e. use device=0 or format=coreml')
                 self.args.half = False
             assert not self.args.dynamic, '--half not compatible with --dynamic, i.e. use either --half or --dynamic'
 
         # Checks
-        # if self.args.batch_size == model.args['batch_size']:  # user has not modified training batch_size
-        self.args.batch_size = 1
+        # if self.args.batch == model.args['batch_size']:  # user has not modified training batch_size
+        self.args.batch = 1
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
         if self.args.optimize:
             assert self.device.type == 'cpu', '--optimize not compatible with cuda devices, i.e. use --device cpu'
 
         # Input
-        im = torch.zeros(self.args.batch_size, 3, *self.imgsz).to(self.device)
-        file = Path(getattr(model, 'yaml_file', None) or Path(model.yaml['yaml_file']).name)
+        im = torch.zeros(self.args.batch, 3, *self.imgsz).to(self.device)
+        file = Path(getattr(model, 'pt_path', None) or model.yaml['yaml_file'])
+        if file.suffix == '.yaml':
+            file = Path(file.name)
 
         # Update model
         model = deepcopy(model)
@@ -771,17 +769,22 @@ class Exporter:
 def export(cfg):
     cfg.model = cfg.model or "yolov8n.yaml"
     cfg.format = cfg.format or "torchscript"
-    exporter = Exporter(cfg)
 
-    model = None
-    if isinstance(cfg.model, (str, Path)):
-        if Path(cfg.model).suffix == '.yaml':
-            model = DetectionModel(cfg.model)
-        elif Path(cfg.model).suffix == '.pt':
-            model = attempt_load_weights(cfg.model, fuse=True)
-        else:
-            TypeError(f'Unsupported model type {cfg.model}')
-    exporter(model=model)
+    # exporter = Exporter(cfg)
+    #
+    # model = None
+    # if isinstance(cfg.model, (str, Path)):
+    #     if Path(cfg.model).suffix == '.yaml':
+    #         model = DetectionModel(cfg.model)
+    #     elif Path(cfg.model).suffix == '.pt':
+    #         model = attempt_load_weights(cfg.model, fuse=True)
+    #     else:
+    #         TypeError(f'Unsupported model type {cfg.model}')
+    # exporter(model=model)
+
+    from ultralytics import YOLO
+    model = YOLO(cfg.model)
+    model.export(**cfg)
 
 
 if __name__ == "__main__":

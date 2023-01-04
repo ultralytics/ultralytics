@@ -23,9 +23,9 @@ jobs:
         model: [ yolov8n ]
         torch: [ latest ]
         include:
-          - os: ubuntu-latest
-            python-version: '3.7'  # '3.6.8' min
-            model: yolov8n
+#          - os: ubuntu-latest
+#            python-version: '3.7'  # '3.6.8' min
+#            model: yolov8n
 #          - os: ubuntu-latest
 #            python-version: '3.8'
 #            model: yolov8n
@@ -106,4 +106,4 @@ jobs:
         shell: bash
         run:
           pip install pytest
-          pytest ultralytics/tests/*.py
+          pytest ../tests/*.py

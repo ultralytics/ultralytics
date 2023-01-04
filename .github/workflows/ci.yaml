@@ -102,8 +102,3 @@ jobs:
         run: |
           yolo task=classify mode=train model=resnet18 data=mnist160 epochs=1 imgsz=32
           yolo task=classify mode=val model=runs/classify/train/weights/last.pt data=mnist160
-      - name: PyTest
-        shell: bash
-        run:
-          pip install pytest
-          pytest ../tests

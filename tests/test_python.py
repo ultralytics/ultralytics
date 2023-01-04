@@ -1,9 +1,11 @@
+from pathlib import Path
+
 import torch
 
 from ultralytics import YOLO
-from ultralytics.yolo.utils import ROOT
+from ultralytics.yolo.utils import ROOT, SETTINGS
 
-MODEL = ROOT / 'weights/yolov8n.pt'
+MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n.pt'
 CFG = 'yolov8n.yaml'
 
 

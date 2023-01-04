@@ -22,7 +22,6 @@ class DetectionValidator(BaseValidator):
         self.data_dict = yaml_load(check_file(self.args.data)) if self.args.data else None
         self.is_coco = False
         self.class_map = None
-        self.targets = None
         self.metrics = DetMetrics(save_dir=self.save_dir, plot=self.args.plots)
         self.iouv = torch.linspace(0.5, 0.95, 10)  # iou vector for mAP@0.5:0.95
         self.niou = self.iouv.numel()
@@ -30,13 +29,13 @@ class DetectionValidator(BaseValidator):
     def preprocess(self, batch):
         batch["img"] = batch["img"].to(self.device, non_blocking=True)
         batch["img"] = (batch["img"].half() if self.args.half else batch["img"].float()) / 255
-        self.nb, _, self.height, self.width = batch["img"].shape  # batch size, channels, height, width
-        self.targets = torch.cat((batch["batch_idx"].view(-1, 1), batch["cls"].view(-1, 1), batch["bboxes"]), 1)
-        self.targets = self.targets.to(self.device)
-        height, width = batch["img"].shape[2:]
-        self.targets[:, 2:] *= torch.tensor((width, height, width, height), device=self.device)  # to pixels
-        self.lb = [self.targets[self.targets[:, 0] == i, 1:]
-                   for i in range(self.nb)] if self.args.save_hybrid else []  # for autolabelling
+        for k in ["batch_idx", "cls", "bboxes"]:
+            batch[k] = batch[k].to(self.device)
+
+        nb, _, height, width = batch["img"].shape
+        batch["bboxes"] *= torch.tensor((width, height, width, height), device=self.device)  # to pixels
+        self.lb = [torch.cat([batch["cls"], batch["bboxes"]], dim=-1)[batch["batch_idx"] == i]
+                   for i in range(nb)] if self.args.save_hybrid else []  # for autolabelling
 
         return batch
 
@@ -69,18 +68,19 @@ class DetectionValidator(BaseValidator):
     def update_metrics(self, preds, batch):
         # Metrics
         for si, pred in enumerate(preds):
-            labels = self.targets[self.targets[:, 0] == si, 1:]
-            nl, npr = labels.shape[0], pred.shape[0]  # number of labels, predictions
+            idx = batch["batch_idx"] == si
+            cls = batch["cls"][idx]
+            bbox = batch["cls"][idx]
+            nl, npr = cls.shape[0], pred.shape[0]  # number of labels, predictions
             shape = batch["ori_shape"][si]
-            # path = batch["shape"][si][0]
             correct_bboxes = torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device)  # init
             self.seen += 1
 
             if npr == 0:
                 if nl:
-                    self.stats.append((correct_bboxes, *torch.zeros((2, 0), device=self.device), labels[:, 0]))
+                    self.stats.append((correct_bboxes, *torch.zeros((2, 0), device=self.device), cls.squeeze(-1)))
                     if self.args.plots:
-                        self.confusion_matrix.process_batch(detections=None, labels=labels[:, 0])
+                        self.confusion_matrix.process_batch(detections=None, labels=cls.squeeze(-1))
                 continue
 
             # Predictions
@@ -91,14 +91,14 @@ class DetectionValidator(BaseValidator):
 
             # Evaluate
             if nl:
-                tbox = ops.xywh2xyxy(labels[:, 1:5])  # target boxes
+                tbox = ops.xywh2xyxy(bbox)  # target boxes
                 ops.scale_boxes(batch["img"][si].shape[1:], tbox, shape)  # native-space labels
-                labelsn = torch.cat((labels[:, 0:1], tbox), 1)  # native-space labels
+                labelsn = torch.cat((cls, tbox), 1)  # native-space labels
                 correct_bboxes = self._process_batch(predn, labelsn)
                 # TODO: maybe remove these `self.` arguments as they already are member variable
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, labelsn)
-            self.stats.append((correct_bboxes, pred[:, 4], pred[:, 5], labels[:, 0]))  # (conf, pcls, tcls)
+            self.stats.append((correct_bboxes, pred[:, 4], pred[:, 5], cls.squeeze(-1)))  # (conf, pcls, tcls)
 
             # Save
             if self.args.save_json:

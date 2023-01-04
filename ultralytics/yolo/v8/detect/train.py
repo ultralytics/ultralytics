@@ -55,8 +55,12 @@ class DetectionTrainer(BaseTrainer):
         # TODO: self.model.class_weights = labels_to_class_weights(dataset.labels, nc).to(device) * nc
         self.model.names = self.data["names"]
 
-    def init_model(self, cfg=None, verbose=True):
-        return DetectionModel(cfg, ch=3, nc=self.data["nc"], verbose=verbose)
+    def get_model(self, cfg=None, weights=None, verbose=True):
+        model = DetectionModel(cfg, ch=3, nc=self.data["nc"], verbose=verbose)
+        if weights:
+            model.load(model)
+        
+        return model
 
     def get_validator(self):
         self.loss_names = 'box_loss', 'cls_loss', 'dfl_loss'

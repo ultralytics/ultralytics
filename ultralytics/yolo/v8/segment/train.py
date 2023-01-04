@@ -18,8 +18,12 @@ from ultralytics.yolo.utils.torch_utils import de_parallel
 # BaseTrainer python usage
 class SegmentationTrainer(v8.detect.DetectionTrainer):
 
-    def init_model(self, cfg=None, verbose=True):
-        return SegmentationModel(cfg, ch=3, nc=self.data["nc"], verbose=verbose)
+    def get_model(self, cfg=None, weights=None, verbose=True):
+        model = SegmentationModel(cfg, ch=3, nc=self.data["nc"], verbose=verbose)
+        if weights:
+            model.load(weights)
+        
+        return model
 
     def get_validator(self):
         self.loss_names = 'box_loss', 'seg_loss', 'cls_loss', 'dfl_loss'

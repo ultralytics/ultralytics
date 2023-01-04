@@ -16,8 +16,12 @@ class ClassificationTrainer(BaseTrainer):
     def set_model_attributes(self):
         self.model.names = self.data["names"]
 
-    def init_model(self, cfg=None):
-        return ClassificationModel(cfg, nc=self.data["nc"])
+    def get_model(self, cfg=None, weights=None):
+        model = ClassificationModel(cfg, nc=self.data["nc"])
+        if weights:
+            model.load(weights)
+            
+        return model
 
     def setup_model(self):
         """
@@ -35,7 +39,7 @@ class ClassificationTrainer(BaseTrainer):
             model = model.split(".")[0]
             pretrained = True
         else:
-            self.model = self.init_model(cfg=model)
+            self.model = self.get_model(cfg=model)
 
         # order: check local file -> torchvision assets -> ultralytics asset
         if Path(f"{model}.pt").is_file():  # local file

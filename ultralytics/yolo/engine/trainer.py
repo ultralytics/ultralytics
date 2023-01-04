@@ -30,7 +30,7 @@ from ultralytics.yolo.utils.checks import check_file, print_args
 from ultralytics.yolo.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.yolo.utils.files import get_latest_run, increment_path
 from ultralytics.yolo.utils.torch_utils import ModelEMA, de_parallel, init_seeds, one_cycle, strip_optimizer
-from ultralytics.nn.tasks import attempt_load_weights
+from ultralytics.nn.tasks import attempt_load_one_weight
 
 class BaseTrainer:
     """
@@ -210,6 +210,7 @@ class BaseTrainer:
         # dataloaders
         batch_size = self.batch_size // world_size if world_size > 1 else self.batch_size
         self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=rank, mode="train")
+        import pdb;pdb.set_trace()
         if rank in {0, -1}:
             self.test_loader = self.get_dataloader(self.testset, batch_size=batch_size * 2, rank=-1, mode="val")
             self.validator = self.get_validator()
@@ -372,13 +373,15 @@ class BaseTrainer:
         if isinstance(self.model, torch.nn.Module):  # if model is loaded beforehand. No setup needed
             return
 
-        model = self.model
+        model, weights = self.model, None
         ckpt = None
         if str(model).endswith(".pt"):
-            self.model = attempt_load_weights(model)
-            ckpt = torch.load(model) # necessary to load ckpt used for resuming. 
+            weights, ckpt = attempt_load_one_weight(model)
+            cfg = ckpt["model"].yaml
         else:
-            self.model = self.init_model(check_file(model))
+            cfg = model
+        
+        self.model = self.get_model(cfg=cfg, weights=weights) # calls Model(cfg, weights)
         return ckpt
 
     def optimizer_step(self):
@@ -418,7 +421,7 @@ class BaseTrainer:
         if rank in {-1, 0}:
             self.console.info(text)
 
-    def load_model(self, model_cfg=None, weights=None, verbose=True):
+    def get_model(self, cfg=None, weights=None, verbose=True):
         raise NotImplementedError("This task trainer doesn't support loading cfg files")
 
     def get_validator(self):

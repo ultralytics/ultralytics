@@ -320,6 +320,33 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
     assert all(model[0].nc == m.nc for m in model), f'Models have different class counts: {[m.nc for m in model]}'
     return model
 
+def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
+    # Loads a single model weights
+    from ultralytics.yolo.utils.downloads import attempt_download
+
+    ckpt = torch.load(attempt_download(weight), map_location='cpu')  # load
+    args = {**DEFAULT_CONFIG_DICT, **ckpt['train_args']}  # combine model and default args, preferring model args
+    model = (ckpt.get('ema') or ckpt['model']).to(device).float()  # FP32 model
+
+    # Model compatibility updates
+    model.args = {k: v for k, v in args.items() if k in DEFAULT_CONFIG_KEYS}  # attach args to model
+    model.pt_path = weight  # attach *.pt file path to model
+    if not hasattr(model, 'stride'):
+        model.stride = torch.tensor([32.])
+
+    model = model.fuse().eval() if fuse and hasattr(model, 'fuse') else model.eval()  # model in eval mode
+
+    # Module compatibility updates
+    for m in model.modules():
+        t = type(m)
+        if t in (nn.Hardswish, nn.LeakyReLU, nn.ReLU, nn.ReLU6, nn.SiLU, Detect, Segment):
+            m.inplace = inplace  # torch 1.7.0 compatibility
+        elif t is nn.Upsample and not hasattr(m, 'recompute_scale_factor'):
+            m.recompute_scale_factor = None  # torch 1.11.0 compatibility
+
+    # Return model and ckpt
+    return model, ckpt
+
 
 def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
     # Parse a YOLOv5 model.yaml dictionary

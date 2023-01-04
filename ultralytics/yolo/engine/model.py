@@ -1,9 +1,7 @@
 from pathlib import Path
 
-import torch
-
 from ultralytics import yolo  # noqa
-from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, attempt_load_weights
+from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, attempt_load_one_weight
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import DEFAULT_CONFIG, HELP_MSG, LOGGER, yaml_load
@@ -47,8 +45,8 @@ class YOLO:
         self.trainer = None  # trainer object
         self.task = None  # task type
         self.ckpt = None  # if loaded from *.pt
-        self.ckpt_path = None
         self.cfg = None  # if loaded from *.yaml
+        self.ckpt_path = None
         self.overrides = {}  # overrides for trainer object
         self.init_disabled = False  # disable model initialization
 
@@ -78,7 +76,7 @@ class YOLO:
         Args:
             weights (str): model checkpoint to be loaded
         """
-        self.model = attempt_load_weights(weights)
+        self.model, self.ckpt = attempt_load_one_weight(weights)
         self.ckpt_path = weights
         self.task = self.model.args["task"]
         self.overrides = self.model.args
@@ -189,13 +187,12 @@ class YOLO:
         if not overrides.get("data"):
             raise AttributeError("dataset not provided! Please define `data` in config.yaml or pass as an argument.")
 
-        if overrides.get("resume"):
-            overrides["resume"] = self.ckpt_path
+        overrides["resume"] = self.ckpt_path or overrides.get("resume", None)
         self.trainer = self.TrainerClass(overrides=overrides)
-        if not overrides.get("resume"):
-            self.trainer.model = self.trainer.load_model(weights=self.model,
-                                                         model_cfg=self.model.yaml if self.task != "classify" else None)
-            self.model = self.trainer.model  # override here to save memory
+        if not overrides.get("resume"): # manually set model only if not resuming
+            self.trainer.model = self.trainer.get_model(weights=self.model,
+                                                        cfg=self.model.yaml if self.task != "classify" else None)
+            self.model = self.trainer.model
 
         self.trainer.train()
 

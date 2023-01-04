@@ -68,8 +68,12 @@ def check_imgsz(imgsz, stride=32, min_dim=1, floor=0):
     return sz
 
 
-def check_version(current: str = "0.0.0", minimum: str = "0.0.0", name: str = "version ", pinned: bool = False,
-                  hard: bool = False, verbose: bool = False) -> bool:
+def check_version(current: str = "0.0.0",
+                  minimum: str = "0.0.0",
+                  name: str = "version ",
+                  pinned: bool = False,
+                  hard: bool = False,
+                  verbose: bool = False) -> bool:
     """
     Check current version against the required minimum version.
 

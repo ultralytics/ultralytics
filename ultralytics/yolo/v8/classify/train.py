@@ -39,6 +39,14 @@ class ClassificationTrainer(BaseTrainer):
             model = model.split(".")[0]
             pretrained = True
         else:
+            self.model = self.get_model(cfg=model)
+
+        # order: check local file -> torchvision assets -> ultralytics asset
+        if Path(f"{model}.pt").is_file():  # local file
+            self.model = attempt_load_weights(f"{model}.pt", device='cpu')
+        elif model in torchvision.models.__dict__: 
+            self.model = torchvision.models.__dict__[model](weights='IMAGENET1K_V1' if pretrained else None)
+        else:
             self.model = attempt_load_weights(f"{model}.pt", device='cpu')
 
         return # dont return ckpt. Classification doesn't support resume

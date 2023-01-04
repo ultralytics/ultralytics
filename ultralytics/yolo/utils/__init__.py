@@ -134,6 +134,18 @@ def is_git_directory() -> bool:
         return False
 
 
+def is_pip_package():
+    """
+    Returns True if the calling function is part of a pip package, False otherwise.
+    """
+    # Get the calling frame
+    calling_frame = inspect.currentframe().f_back
+    # Get the module name for the calling frame
+    module_name = inspect.getmodule(calling_frame).name
+    # Check if the module name starts with 'pip.', which indicates that it is part of the pip package
+    return module_name.startswith('pip.')
+
+
 def is_dir_writeable(dir_path: str) -> bool:
     """
     Check if a directory is writeable.
@@ -221,7 +233,7 @@ def colorstr(*input):
         "bright_white": "\033[97m",
         "end": "\033[0m",  # misc
         "bold": "\033[1m",
-        "underline": "\033[4m",}
+        "underline": "\033[4m", }
     return "".join(colors[x] for x in args) + f"{string}" + colors["end"]
 
 
@@ -239,12 +251,12 @@ def set_logging(name=LOGGING_NAME, verbose=True):
             name: {
                 "class": "logging.StreamHandler",
                 "formatter": name,
-                "level": level,}},
+                "level": level, }},
         "loggers": {
             name: {
                 "level": level,
                 "handlers": [name],
-                "propagate": False,}}})
+                "propagate": False, }}})
 
 
 class TryExcept(contextlib.ContextDecorator):
@@ -320,7 +332,7 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml'):
     """
     from ultralytics.yolo.utils.torch_utils import torch_distributed_zero_first
 
-    git = is_git_directory()
+    git = not is_pip_package()  # is_git_directory()
     defaults = {
         'datasets_dir': str(ROOT / 'datasets') if git else '',  # default datasets directory.
         'weights_dir': str(ROOT / 'weights') if git else '',  # default weights directory.

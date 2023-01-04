@@ -111,12 +111,10 @@ class DetectionValidator(BaseValidator):
         if len(stats) and stats[0].any():
             self.metrics.process(*stats)
         self.nt_per_class = np.bincount(stats[-1].astype(int), minlength=self.nc)  # number of targets per class
-        fitness = {"fitness": self.metrics.fitness()}
-        metrics = dict(zip(self.metric_keys, self.metrics.mean_results()))
-        return {**metrics, **fitness}
+        return self.metrics.results_dict
 
     def print_results(self):
-        pf = '%22s' + '%11i' * 2 + '%11.3g' * len(self.metric_keys)  # print format
+        pf = '%22s' + '%11i' * 2 + '%11.3g' * len(self.metrics.keys)  # print format
         self.logger.info(pf % ("all", self.seen, self.nt_per_class.sum(), *self.metrics.mean_results()))
         if self.nt_per_class.sum() == 0:
             self.logger.warning(
@@ -173,11 +171,6 @@ class DetectionValidator(BaseValidator):
                                  seed=self.args.seed)[0] if self.args.v5loader else \
             build_dataloader(self.args, batch_size, img_path=dataset_path, stride=gs, mode="val")[0]
 
-    # TODO: align with train loss metrics
-    @property
-    def metric_keys(self):
-        return ["metrics/precision(B)", "metrics/recall(B)", "metrics/mAP50(B)", "metrics/mAP50-95(B)"]
-
     def plot_val_samples(self, batch, ni):
         plot_images(batch["img"],
                     batch["batch_idx"],
@@ -226,7 +219,7 @@ class DetectionValidator(BaseValidator):
                 eval.evaluate()
                 eval.accumulate()
                 eval.summarize()
-                stats[self.metric_keys[-1]], stats[self.metric_keys[-2]] = eval.stats[:2]  # update mAP50-95 and mAP50
+                stats[self.metrics.keys[-1]], stats[self.metrics.keys[-2]] = eval.stats[:2]  # update mAP50-95 and mAP50
             except Exception as e:
                 self.logger.warning(f'pycocotools unable to run: {e}')
         return stats

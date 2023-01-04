@@ -165,19 +165,6 @@ class SegmentationValidator(DetectionValidator):
                 correct[matches[:, 1].astype(int), i] = True
         return torch.tensor(correct, dtype=torch.bool, device=detections.device)
 
-    # TODO: probably add this to class Metrics
-    @property
-    def metric_keys(self):
-        return [
-            "metrics/precision(B)",
-            "metrics/recall(B)",
-            "metrics/mAP50(B)",
-            "metrics/mAP50-95(B)",  # metrics
-            "metrics/precision(M)",
-            "metrics/recall(M)",
-            "metrics/mAP50(M)",
-            "metrics/mAP50-95(M)",]
-
     def plot_val_samples(self, batch, ni):
         plot_images(batch["img"],
                     batch["batch_idx"],
@@ -243,8 +230,8 @@ class SegmentationValidator(DetectionValidator):
                     eval.accumulate()
                     eval.summarize()
                     idx = i * 4 + 2
-                    stats[self.metric_keys[idx + 1]], stats[
-                        self.metric_keys[idx]] = eval.stats[:2]  # update mAP50-95 and mAP50
+                    stats[self.metrics.keys[idx + 1]], stats[
+                        self.metrics.keys[idx]] = eval.stats[:2]  # update mAP50-95 and mAP50
             except Exception as e:
                 self.logger.warning(f'pycocotools unable to run: {e}')
         return stats

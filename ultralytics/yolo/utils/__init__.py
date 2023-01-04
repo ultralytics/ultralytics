@@ -341,11 +341,11 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml'):
     """
     from ultralytics.yolo.utils.torch_utils import torch_distributed_zero_first
 
-    git = not is_pip_package()  # is_git_directory()
+    git_install = not is_pip_package()
     defaults = {
-        'datasets_dir': str(ROOT / 'datasets') if git else '',  # default datasets directory.
-        'weights_dir': str(ROOT / 'weights') if git else '',  # default weights directory.
-        'runs_dir': str(ROOT / 'runs') if git else '',  # default runs directory.
+        'datasets_dir': str(ROOT / 'datasets') if git_install else 'datasets',  # default datasets directory.
+        'weights_dir': str(ROOT / 'weights') if git_install else 'weights',  # default weights directory.
+        'runs_dir': str(ROOT / 'runs') if git_install else 'runs',  # default runs directory.
         'sync': True,  # sync analytics to help with YOLO development
         'uuid': uuid.getnode(),  # device UUID to align analytics
         'yaml_file': str(file)}  # setting YAML file path

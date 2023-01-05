@@ -9,9 +9,7 @@ except (ModuleNotFoundError, ImportError):
 
 
 def on_pretrain_routine_start(trainer):
-    experiment = comet_ml.Experiment(
-        project_name=trainer.args.project or "YOLOv8",
-    )
+    experiment = comet_ml.Experiment(project_name=trainer.args.project or "YOLOv8",)
     experiment.log_parameters(dict(trainer.args))
 
 
@@ -25,12 +23,14 @@ def on_fit_epoch_end(trainer):
             "model/speed(ms)": round(trainer.validator.speed[1], 3)}
         experiment.log_metrics(model_info, step=trainer.epoch + 1)
 
+
 def on_train_epoch_end(trainer):
     experiment = comet_ml.get_global_experiment()
     experiment.log_metrics(trainer.label_loss_items(trainer.tloss, prefix="train"), step=trainer.epoch + 1)
     if trainer.epoch == 1:
         for f in trainer.save_dir.glob('train_batch*.jpg'):
             experiment.log_image(f, name=f.stem, step=trainer.epoch + 1)
+
 
 def on_train_end(trainer):
     experiment = comet_ml.get_global_experiment()

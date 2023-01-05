@@ -5,7 +5,6 @@ try:
 
 except (ModuleNotFoundError, ImportError):
     comet_ml = None
-    COMET_PROJECT_NAME = None
 
 
 def on_pretrain_routine_start(trainer):

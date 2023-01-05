@@ -87,12 +87,14 @@ class DetectionValidator(BaseValidator):
             if self.args.single_cls:
                 pred[:, 5] = 0
             predn = pred.clone()
-            ops.scale_boxes(batch["img"][si].shape[1:], predn[:, :4], shape, ratio_pad=batch["ratio_pad"][si])  # native-space pred
+            ops.scale_boxes(batch["img"][si].shape[1:], predn[:, :4], shape,
+                            ratio_pad=batch["ratio_pad"][si])  # native-space pred
 
             # Evaluate
             if nl:
                 tbox = ops.xywh2xyxy(bbox)  # target boxes
-                ops.scale_boxes(batch["img"][si].shape[1:], tbox, shape, ratio_pad=batch["ratio_pad"][si])  # native-space labels
+                ops.scale_boxes(batch["img"][si].shape[1:], tbox, shape,
+                                ratio_pad=batch["ratio_pad"][si])  # native-space labels
                 labelsn = torch.cat((cls, tbox), 1)  # native-space labels
                 correct_bboxes = self._process_batch(predn, labelsn)
                 # TODO: maybe remove these `self.` arguments as they already are member variable

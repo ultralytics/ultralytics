@@ -8,6 +8,7 @@ from ultralytics.yolo.utils.metrics import ClassifyMetrics
 
 
 class ClassificationValidator(BaseValidator):
+
     def __init__(self, dataloader=None, save_dir=None, pbar=None, logger=None, args=None):
         super().__init__(dataloader, save_dir, pbar, logger, args)
         self.metrics = ClassifyMetrics()

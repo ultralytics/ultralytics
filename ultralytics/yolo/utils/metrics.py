@@ -598,6 +598,7 @@ class SegmentMetrics:
 
 
 class ClassifyMetrics:
+
     def __init__(self) -> None:
         self.top1 = 0
         self.top5 = 0

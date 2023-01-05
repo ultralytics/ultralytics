@@ -1,6 +1,7 @@
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.utils import DEFAULT_CONFIG, ROOT
 from ultralytics.yolo.v8 import classify, detect, segment
+from ultralytics import YOLO
 
 CFG_DET = 'yolov8n.yaml'
 CFG_SEG = 'yolov8n-seg.yaml'
@@ -27,9 +28,11 @@ def test_detect():
 
 
 def test_segment():
-    overrides = {"data": "coco128-seg.yaml", "model": CFG_SEG, "imgsz": 32, "epochs": 1, "save": False}
+    overrides = {"data": "coco128-seg.yaml", "imgsz": 32, "epochs": 1, "save": False}
     CFG.data = "coco128-seg.yaml"
     CFG.v5loader = False
+
+    # YOLO(CFG_SEG).train(**overrides) # This works
     # trainer
     trainer = segment.SegmentationTrainer(overrides=overrides)
     trainer.train()

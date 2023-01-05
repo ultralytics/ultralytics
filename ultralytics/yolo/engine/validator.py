@@ -65,6 +65,9 @@ class BaseValidator:
                                                    exist_ok=self.args.exist_ok if RANK in {-1, 0} else True)
         (self.save_dir / 'labels' if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
 
+        if self.args.conf is None:
+            self.args.conf = 0.001  # default conf=0.001
+
         self.callbacks = defaultdict(list, {k: [v] for k, v in callbacks.default_callbacks.items()})  # add callbacks
 
     @smart_inference_mode()

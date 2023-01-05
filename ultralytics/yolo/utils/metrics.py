@@ -469,7 +469,7 @@ class Metric:
 
     def mean_results(self):
         """Mean of results, return mp, mr, map50, map"""
-        return self.mp, self.mr, self.map50, self.map
+        return [self.mp, self.mr, self.map50, self.map]
 
     def class_result(self, i):
         """class-aware result, return p[i], r[i], ap50[i], ap[i]"""
@@ -520,12 +520,17 @@ class DetMetrics:
     def get_maps(self, nc):
         return self.metric.get_maps(nc)
 
+    @property
     def fitness(self):
         return self.metric.fitness()
 
     @property
     def ap_class_index(self):
         return self.metric.ap_class_index
+
+    @property
+    def results_dict(self):
+        return dict(zip(self.keys + ["fitness"], self.mean_results() + [self.fitness]))
 
 
 class SegmentMetrics:
@@ -578,6 +583,7 @@ class SegmentMetrics:
     def get_maps(self, nc):
         return self.metric_box.get_maps(nc) + self.metric_mask.get_maps(nc)
 
+    @property
     def fitness(self):
         return self.metric_mask.fitness() + self.metric_box.fitness()
 
@@ -585,3 +591,30 @@ class SegmentMetrics:
     def ap_class_index(self):
         # boxes and masks have the same ap_class_index
         return self.metric_box.ap_class_index
+
+    @property
+    def results_dict(self):
+        return dict(zip(self.keys + ["fitness"], self.mean_results() + [self.fitness]))
+
+
+class ClassifyMetrics:
+
+    def __init__(self) -> None:
+        self.top1 = 0
+        self.top5 = 0
+
+    def process(self, correct):
+        acc = torch.stack((correct[:, 0], correct.max(1).values), dim=1)  # (top1, top5) accuracy
+        self.top1, self.top5 = acc.mean(0).tolist()
+
+    @property
+    def fitness(self):
+        return self.top5
+
+    @property
+    def results_dict(self):
+        return dict(zip(self.keys + ["fitness"], [self.top1, self.top5, self.fitness]))
+
+    @property
+    def keys(self):
+        return ["top1", "top5"]

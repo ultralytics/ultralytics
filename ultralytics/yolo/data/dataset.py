@@ -127,7 +127,7 @@ class YOLODataset(BaseDataset):
             mosaic = self.augment and not self.rect
             transforms = mosaic_transforms(self, self.imgsz, hyp) if mosaic else affine_transforms(self.imgsz, hyp)
         else:
-            transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz))])
+            transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), scaleup=False)])
         transforms.append(
             Format(bbox_format="xywh",
                    normalize=True,

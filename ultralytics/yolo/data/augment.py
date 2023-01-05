@@ -463,6 +463,8 @@ class LetterBox:
 
         dw /= 2  # divide padding into 2 sides
         dh /= 2
+        if labels.get("ratio_pad"):
+            labels["ratio_pad"] = (labels["ratio_pad"], (dw, dh))  # for evaluation
 
         if shape[::-1] != new_unpad:  # resize
             img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)

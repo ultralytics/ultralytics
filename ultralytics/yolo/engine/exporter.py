@@ -458,7 +458,12 @@ class Exporter:
                             conf_thres=0.25,
                             prefix=colorstr('TensorFlow SavedModel:')):
 
-        check_requirements(f"tensorflow{'' if torch.cuda.is_available() else '-macos' if MACOS else '-cpu'}")
+        # YOLOv5 TensorFlow SavedModel export
+        try:
+            import tensorflow as tf  # noqa
+        except ImportError:
+            check_requirements(f"tensorflow{'' if torch.cuda.is_available() else '-macos' if MACOS else '-cpu'}")
+            import tensorflow as tf  # noqa
         check_requirements(("onnx", "onnx2tf", "sng4onnx", "onnxsim", "onnx_graphsurgeon"),
                            cmds="--extra-index-url https://pypi.ngc.nvidia.com ")
 

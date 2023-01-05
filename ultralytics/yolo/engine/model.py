@@ -64,7 +64,7 @@ class YOLO:
             verbose (bool): display model info on load
         """
         cfg = check_yaml(cfg)  # check YAML
-        cfg_dict = yaml_load(cfg)  # model dict
+        cfg_dict = yaml_load(cfg, append_filename=True)  # model dict
         self.task = guess_task_from_head(cfg_dict["head"][-1][-2])
         self.ModelClass, self.TrainerClass, self.ValidatorClass, self.PredictorClass = \
             self._guess_ops_from_task(self.task)
@@ -183,7 +183,7 @@ class YOLO:
         overrides.update(kwargs)
         if kwargs.get("cfg"):
             LOGGER.info(f"cfg file passed. Overriding default params with {kwargs['cfg']}.")
-            overrides = yaml_load(check_yaml(kwargs["cfg"]))
+            overrides = yaml_load(check_yaml(kwargs["cfg"]), append_filename=True)
         overrides["task"] = self.task
         overrides["mode"] = "train"
         if not overrides.get("data"):

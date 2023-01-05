@@ -3,6 +3,7 @@ import inspect
 import logging.config
 import os
 import platform
+import subprocess
 import sys
 import tempfile
 import threading
@@ -18,7 +19,6 @@ FILE = Path(__file__).resolve()
 ROOT = FILE.parents[2]  # YOLO
 DEFAULT_CONFIG = ROOT / "yolo/configs/default.yaml"
 RANK = int(os.getenv('RANK', -1))
-DATASETS_DIR = Path(os.getenv('YOLOv5_DATASETS_DIR', ROOT.parent / 'datasets'))  # global datasets directory
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLOv5 multiprocessing threads
 AUTOINSTALL = str(os.getenv('YOLOv5_AUTOINSTALL', True)).lower() == 'true'  # global auto-install mode
 FONT = 'Arial.ttf'  # https://ultralytics.com/assets/Arial.ttf
@@ -119,6 +119,41 @@ def is_docker() -> bool:
         return 'docker' in f.read()
 
 
+def is_git_directory() -> bool:
+    """
+    Check if the current working directory is inside a git repository.
+
+    Returns:
+        bool: True if the current working directory is inside a git repository, False otherwise.
+    """
+    from git import Repo
+    try:
+        # Check if the current working directory is a git repository
+        Repo(search_parent_directories=True)
+        return True
+    except Exception:
+        return False
+
+
+def is_pip_package(filepath: str = __name__) -> bool:
+    """
+    Determines if the file at the given filepath is part of a pip package.
+
+    Args:
+        filepath (str): The filepath to check.
+
+    Returns:
+        bool: True if the file is part of a pip package, False otherwise.
+    """
+    import importlib.util
+
+    # Get the spec for the module
+    spec = importlib.util.find_spec(filepath)
+
+    # Return whether the spec is not None and the origin is not None (indicating it is a package)
+    return spec is not None and spec.origin is not None
+
+
 def is_dir_writeable(dir_path: str) -> bool:
     """
     Check if a directory is writeable.
@@ -135,6 +170,18 @@ def is_dir_writeable(dir_path: str) -> bool:
         return True
     except OSError:
         return False
+
+
+def get_git_root_dir():
+    """
+    Determines whether the current file is part of a git repository and if so, returns the repository root directory.
+    If the current file is not part of a git repository, returns None.
+    """
+    try:
+        output = subprocess.run(["git", "rev-parse", "--git-dir"], capture_output=True, check=True)
+        return Path(output.stdout.strip().decode('utf-8')).parent  # parent/.git
+    except subprocess.CalledProcessError:
+        return None
 
 
 def get_default_args(func):
@@ -277,13 +324,13 @@ def yaml_save(file='data.yaml', data=None):
         yaml.safe_dump({k: str(v) if isinstance(v, Path) else v for k, v in data.items()}, f, sort_keys=False)
 
 
-def yaml_load(file='data.yaml', append_filename=True):
+def yaml_load(file='data.yaml', append_filename=False):
     """
     Load YAML data from a file.
 
     Args:
         file (str, optional): File name. Default is 'data.yaml'.
-        append_filename (bool): Add the YAML filename to the YAML dictionary. Default is True.
+        append_filename (bool): Add the YAML filename to the YAML dictionary. Default is False.
 
     Returns:
         dict: YAML data and file name.
@@ -305,13 +352,13 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml'):
     """
     from ultralytics.yolo.utils.torch_utils import torch_distributed_zero_first
 
+    root = get_git_root_dir() or Path('')  # not is_pip_package()
     defaults = {
-        'datasets_dir': None,  # default datasets directory. If None, current working directory is used.
-        'weights_dir': None,  # default weights directory. If None, current working directory is used.
-        'runs_dir': None,  # default runs directory. If None, current working directory is used.
+        'datasets_dir': str(root / 'datasets'),  # default datasets directory.
+        'weights_dir': str(root / 'weights'),  # default weights directory.
+        'runs_dir': str(root / 'runs'),  # default runs directory.
         'sync': True,  # sync analytics to help with YOLO development
-        'uuid': uuid.getnode(),  # device UUID to align analytics
-        'yaml_file': str(file)}  # setting YAML file path
+        'uuid': uuid.getnode()}  # device UUID to align analytics
 
     with torch_distributed_zero_first(RANK):
         if not file.exists():
@@ -336,6 +383,7 @@ if platform.system() == 'Windows':
 
 # Check first-install steps
 SETTINGS = get_settings()
+DATASETS_DIR = Path(SETTINGS['datasets_dir'])  # global datasets directory
 
 
 def set_settings(kwargs, file=USER_CONFIG_DIR / 'settings.yaml'):

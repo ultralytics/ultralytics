@@ -190,7 +190,7 @@ class YOLO:
         overrides["resume"] = self.ckpt_path or overrides.get("resume", None)
         self.trainer = self.TrainerClass(overrides=overrides)
         if not overrides.get("resume"): # manually set model only if not resuming
-            self.trainer.model = self.trainer.get_model(weights=self.model,
+            self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None,
                                                         cfg=self.model.yaml if self.task != "classify" else None)
             self.model = self.trainer.model
 

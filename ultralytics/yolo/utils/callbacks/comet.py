@@ -34,11 +34,7 @@ def on_fit_epoch_end(trainer):
 
 def on_train_end(trainer):
     experiment = comet_ml.get_global_experiment()
-    experiment.log_model(
-        "YOLOv8",
-        file_or_folder=trainer.best,
-        file_name="best.pt",
-        overwrite=True)
+    experiment.log_model("YOLOv8", file_or_folder=trainer.best, file_name="best.pt", overwrite=True)
 
 
 callbacks = {

@@ -268,8 +268,23 @@ class ModelEMA:
         copy_attr(self.ema, model, include, exclude)
 
 
-def strip_optimizer(f='best.pt', s=''):  # from utils.general import *; strip_optimizer()
-    # Strip optimizer from 'f' to finalize training, optionally save as 's'
+def strip_optimizer(f='best.pt', s=''):
+    """
+    Strip optimizer from 'f' to finalize training, optionally save as 's'.
+
+    Usage:
+        from ultralytics.yolo.utils.torch_utils import strip_optimizer
+        from pathlib import Path
+        for f in Path('/Users/glennjocher/Downloads/weights').glob('*.pt'):
+            strip_optimizer(f)
+
+    Args:
+        f (str): file path to model state to strip the optimizer from. Default is 'best.pt'.
+        s (str): file path to save the model with stripped optimizer to. Default is ''. If not provided, the original file will be overwritten.
+
+    Returns:
+        None
+    """
     x = torch.load(f, map_location=torch.device('cpu'))
     args = {**DEFAULT_CONFIG_DICT, **x['train_args']}  # combine model args with default args, preferring model args
     if x.get('ema'):

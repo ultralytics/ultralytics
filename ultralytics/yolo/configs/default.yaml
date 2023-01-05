@@ -39,7 +39,7 @@ dropout: False # use dropout regularization
 val: True # validate/test during training
 save_json: False # save results to JSON file
 save_hybrid: False # save hybrid version of labels (labels + additional predictions)
-conf: 0.001 # object confidence threshold for detection
+conf: null # object confidence threshold for detection (default 0.25 predict, 0.001 val)
 iou: 0.7 # intersection over union (IoU) threshold for NMS
 max_det: 300 # maximum number of detections per image
 half: False # use half precision (FP16)

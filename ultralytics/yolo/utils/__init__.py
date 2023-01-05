@@ -365,8 +365,15 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml'):
             yaml_save(file, defaults)
 
         settings = yaml_load(file)
-        if settings.keys() != defaults.keys():
-            settings = {**defaults, **settings}  # merge **defaults with **settings (prefer **settings)
+
+        # Check that settings keys and types match defaults
+        correct = settings.keys() == defaults.keys() and \
+                  all(type(a) == type(b) for a, b in zip(settings.values(), defaults.values()))
+        if not correct:
+            LOGGER.warning('WARNING ⚠️ Different global settings detected, resetting to defaults. '
+                           'This may be due to an ultralytics package update. '
+                           f'View and update your global settings directly in {file}')
+            settings = defaults  # merge **defaults with **settings (prefer **settings)
             yaml_save(file, settings)  # save updated defaults
 
         return settings

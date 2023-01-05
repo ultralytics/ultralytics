@@ -92,9 +92,9 @@ class DetectionValidator(BaseValidator):
 
             # Evaluate
             if nl:
-                tbox = ops.xywh2xyxy(labels[:, 1:5])  # target boxes
+                tbox = ops.xywh2xyxy(bbox)  # target boxes
                 ops.scale_boxes(batch["img"][si].shape[1:], tbox, shape, ratio_pad=batch["ratio_pad"][si])  # native-space labels
-                labelsn = torch.cat((labels[:, 0:1], tbox), 1)  # native-space labels
+                labelsn = torch.cat((cls, tbox), 1)  # native-space labels
                 correct_bboxes = self._process_batch(predn, labelsn)
                 # TODO: maybe remove these `self.` arguments as they already are member variable
                 if self.args.plots:

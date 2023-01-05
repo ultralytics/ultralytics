@@ -195,8 +195,12 @@ class BaseTrainer:
             self.model = DDP(self.model, device_ids=[rank])
 
         # Batch size
-        if RANK == -1 and self.batch_size == -1:  # single-GPU only, estimate best batch size
-            self.batch_size = check_train_batch_size(self.model, self.args.imgsz, self.amp)
+        if self.batch_size == -1:
+            if RANK == -1:  # single-GPU only, estimate best batch size
+                self.batch_size = check_train_batch_size(self.model, self.args.imgsz, self.amp)
+            else:
+                SyntaxError('batch=-1 to use AutoBatch is only available in Single-GPU training. '
+                            'Please pass a valid batch size value for Multi-GPU DDP training, i.e. batch=16')
 
         # Optimizer
         self.accumulate = max(round(self.args.nbs / self.batch_size), 1)  # accumulate loss before optimizing

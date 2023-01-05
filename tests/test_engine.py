@@ -1,7 +1,7 @@
+from ultralytics import YOLO
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.utils import DEFAULT_CONFIG, ROOT
 from ultralytics.yolo.v8 import classify, detect, segment
-from ultralytics import YOLO
 
 CFG_DET = 'yolov8n.yaml'
 CFG_SEG = 'yolov8n-seg.yaml'

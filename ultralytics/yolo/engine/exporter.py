@@ -313,14 +313,11 @@ class Exporter:
         # Simplify
         if self.args.simplify:
             try:
-                cuda = torch.cuda.is_available()
-                check_requirements(('onnxruntime-gpu' if cuda else 'onnxruntime', 'onnx-simplifier>=0.4.1'))
-                import onnxsim  # noqa
+                check_requirements('onnxsim')
+                import onnxsim
 
                 LOGGER.info(f'{prefix} simplifying with onnx-simplifier {onnxsim.__version__}...')
-                model_onnx, check = onnxsim.simplify(model_onnx)
-                assert check, 'assert check failed'
-                onnx.save(model_onnx, f)
+                subprocess.run(f'onnxsim {f} {f}', shell=True)
             except Exception as e:
                 LOGGER.info(f'{prefix} simplifier failure: {e}')
         return f, model_onnx

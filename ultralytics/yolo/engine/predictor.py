@@ -77,7 +77,8 @@ class BasePredictor:
         name = self.args.name or f"{self.args.mode}"
         self.save_dir = increment_path(Path(project) / name, exist_ok=self.args.exist_ok)
         (self.save_dir / 'labels' if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
-
+        if self.args.conf is None:
+            self.args.conf = 0.25  # default conf=0.25
         self.done_setup = False
 
         # Usable if setup is done

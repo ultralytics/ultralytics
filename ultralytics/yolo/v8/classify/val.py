@@ -4,9 +4,14 @@ import torch
 from ultralytics.yolo.data import build_classification_dataloader
 from ultralytics.yolo.engine.validator import BaseValidator
 from ultralytics.yolo.utils import DEFAULT_CONFIG
+from ultralytics.yolo.utils.metrics import ClassifyMetrics
 
 
 class ClassificationValidator(BaseValidator):
+
+    def __init__(self, dataloader=None, save_dir=None, pbar=None, logger=None, args=None):
+        super().__init__(dataloader, save_dir, pbar, logger, args)
+        self.metrics = ClassifyMetrics()
 
     def init_metrics(self, model):
         self.correct = torch.tensor([], device=next(model.parameters()).device)
@@ -23,16 +28,11 @@ class ClassificationValidator(BaseValidator):
         self.correct = torch.cat((self.correct, correct_in_batch))
 
     def get_stats(self):
-        acc = torch.stack((self.correct[:, 0], self.correct.max(1).values), dim=1)  # (top1, top5) accuracy
-        top1, top5 = acc.mean(0).tolist()
-        return {"top1": top1, "top5": top5, "fitness": top5}
+        self.metrics.process(self.correct)
+        return self.metrics.results_dict
 
     def get_dataloader(self, dataset_path, batch_size):
         return build_classification_dataloader(path=dataset_path, imgsz=self.args.imgsz, batch_size=batch_size)
-
-    @property
-    def metric_keys(self):
-        return ["top1", "top5"]
 
 
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)

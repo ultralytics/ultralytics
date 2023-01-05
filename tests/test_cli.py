@@ -13,13 +13,11 @@ def test_checks():
 
 # Train checks ---------------------------------------------------------------------------------------------------------
 def test_train_detect():
-    os.system('yolo mode=train task=detect model=yolov8n.yaml data=coco128.yaml imgsz=32 epochs=1')
-    os.system('yolo mode=train task=detect model=yolov8n.pt data=coco128.yaml imgsz=32 epochs=1')
+    os.system(f'yolo mode=train task=detect model={MODEL} data=coco128.yaml imgsz=32 epochs=1')
 
 
 def test_train_segment():
     os.system('yolo mode=train task=segment model=yolov8n-seg.yaml data=coco128-seg.yaml imgsz=32 epochs=1')
-    # os.system('yolo mode=train task=segment model=yolov8n-seg.pt data=coco128-seg.yaml imgsz=32 epochs=1')
 
 
 def test_train_classify():

@@ -48,7 +48,6 @@ class YOLO:
         self.ckpt_path = None
         self.cfg = None  # if loaded from *.yaml
         self.overrides = {}  # overrides for trainer object
-        self.init_disabled = False  # disable model initialization
 
         # Load or create new YOLO model
         {'.pt': self._load, '.yaml': self._new}[Path(model).suffix](model)

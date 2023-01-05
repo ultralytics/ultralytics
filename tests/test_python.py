@@ -97,6 +97,7 @@ def test_all_model_yamls():
     for m in list((ROOT / 'yolo/v8/models').rglob('*.yaml')):
         YOLO(m.name)
 
+
 # def run_all_tests():  # do not name function test_...
 #     pass
 #

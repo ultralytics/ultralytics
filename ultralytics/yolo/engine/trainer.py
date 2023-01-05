@@ -136,7 +136,7 @@ class BaseTrainer:
         self.fitness = None
         self.loss = None
         self.tloss = None
-        self.loss_names = None
+        self.loss_names = ['Loss']
         self.csv = self.save_dir / 'results.csv'
         self.plot_idx = [0, 1, 2]
 

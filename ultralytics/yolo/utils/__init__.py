@@ -3,6 +3,7 @@ import inspect
 import logging.config
 import os
 import platform
+import subprocess
 import sys
 import tempfile
 import threading
@@ -171,6 +172,18 @@ def is_dir_writeable(dir_path: str) -> bool:
         return False
 
 
+def get_git_root_dir():
+    """
+    Determines whether the current file is part of a git repository and if so, returns the repository root directory.
+    If the current file is not part of a git repository, returns None.
+    """
+    try:
+        output = subprocess.run(["git", "rev-parse", "--git-dir"], capture_output=True, check=True)
+        return Path(output.stdout.strip().decode('utf-8')).parent  # parent/.git
+    except subprocess.CalledProcessError:
+        return None
+
+
 def get_default_args(func):
     # Get func() default arguments
     signature = inspect.signature(func)
@@ -311,13 +324,13 @@ def yaml_save(file='data.yaml', data=None):
         yaml.safe_dump({k: str(v) if isinstance(v, Path) else v for k, v in data.items()}, f, sort_keys=False)
 
 
-def yaml_load(file='data.yaml', append_filename=True):
+def yaml_load(file='data.yaml', append_filename=False):
     """
     Load YAML data from a file.
 
     Args:
         file (str, optional): File name. Default is 'data.yaml'.
-        append_filename (bool): Add the YAML filename to the YAML dictionary. Default is True.
+        append_filename (bool): Add the YAML filename to the YAML dictionary. Default is False.
 
     Returns:
         dict: YAML data and file name.
@@ -339,14 +352,13 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml'):
     """
     from ultralytics.yolo.utils.torch_utils import torch_distributed_zero_first
 
-    git_install = not is_pip_package()
+    root = get_git_root_dir() or Path('')  # not is_pip_package()
     defaults = {
-        'datasets_dir': str(ROOT / 'datasets') if git_install else 'datasets',  # default datasets directory.
-        'weights_dir': str(ROOT / 'weights') if git_install else 'weights',  # default weights directory.
-        'runs_dir': str(ROOT / 'runs') if git_install else 'runs',  # default runs directory.
+        'datasets_dir': str(root / 'datasets'),  # default datasets directory.
+        'weights_dir': str(root / 'weights'),  # default weights directory.
+        'runs_dir': str(root / 'runs'),  # default runs directory.
         'sync': True,  # sync analytics to help with YOLO development
-        'uuid': uuid.getnode(),  # device UUID to align analytics
-        'yaml_file': str(file)}  # setting YAML file path
+        'uuid': uuid.getnode()}  # device UUID to align analytics
 
     with torch_distributed_zero_first(RANK):
         if not file.exists():

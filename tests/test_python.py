@@ -1,9 +1,11 @@
+from pathlib import Path
+
 import torch
 
 from ultralytics import YOLO
-from ultralytics.yolo.utils import ROOT
+from ultralytics.yolo.utils import ROOT, SETTINGS
 
-MODEL = ROOT / 'weights/yolov8n.pt'
+MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n.pt'
 CFG = 'yolov8n.yaml'
 
 
@@ -93,6 +95,11 @@ def test_export_coreml():
 def test_export_paddle():
     model = YOLO(MODEL)
     model.export(format='paddle')
+
+
+def test_all_model_yamls():
+    for m in list((ROOT / 'yolo/v8/models').rglob('*.yaml')):
+        YOLO(m.name)
 
 
 # def run_all_tests():  # do not name function test_...

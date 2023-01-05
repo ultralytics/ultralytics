@@ -25,9 +25,8 @@ def test_detect():
     pred(source=SOURCE, model=trained_model)
 
 def test_segment():
-    overrides = {"data":"coco128-seg.yaml", "model":CFG_SEG, "imgsz":32, "epochs":1, "save":False}
+    overrides = {"data":"coco128-seg.yaml", "model":"yolov8n-seg.yaml", "imgsz":32, "epochs":1, "save":False}
     CFG.data = "coco128-seg.yaml"
-    CFG.v5loader = False
     # trainer
     trainer = segment.SegmentationTrainer(overrides=overrides)
     trainer.train()

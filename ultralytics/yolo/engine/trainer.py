@@ -210,7 +210,6 @@ class BaseTrainer:
         # dataloaders
         batch_size = self.batch_size // world_size if world_size > 1 else self.batch_size
         self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=rank, mode="train")
-        import pdb;pdb.set_trace()
         if rank in {0, -1}:
             self.test_loader = self.get_dataloader(self.testset, batch_size=batch_size * 2, rank=-1, mode="val")
             self.validator = self.get_validator()
@@ -380,7 +379,6 @@ class BaseTrainer:
             cfg = ckpt["model"].yaml
         else:
             cfg = model
-        
         self.model = self.get_model(cfg=cfg, weights=weights) # calls Model(cfg, weights)
         return ckpt
 

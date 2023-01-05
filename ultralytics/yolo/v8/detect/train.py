@@ -74,9 +74,16 @@ class DetectionTrainer(BaseTrainer):
         return self.compute_loss(preds, batch)
 
     def label_loss_items(self, loss_items=None, prefix="train"):
-        # We should just use named tensors here in future
+        """
+        Returns a loss dict with labelled training loss items tensor
+        """
+        # Not needed for classification but necessary for segmentation & detection
         keys = [f"{prefix}/{x}" for x in self.loss_names]
-        return dict(zip(keys, loss_items)) if loss_items is not None else keys
+        if loss_items is not None:
+            loss_items = [round(float(x), 5) for x in loss_items]  # convert tensors to 5 decimal place floats
+            return dict(zip(keys, loss_items))
+        else:
+            return keys
 
     def progress_string(self):
         return ('\n' + '%11s' *

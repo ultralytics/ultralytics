@@ -22,7 +22,7 @@ class SegmentationTrainer(v8.detect.DetectionTrainer):
         model = SegmentationModel(cfg, ch=3, nc=self.data["nc"], verbose=verbose)
         if weights:
             model.load(weights)
-        
+
         return model
 
     def get_validator(self):

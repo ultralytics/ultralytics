@@ -23,6 +23,7 @@ from tqdm import tqdm
 
 import ultralytics.yolo.utils as utils
 from ultralytics import __version__
+from ultralytics.nn.tasks import attempt_load_one_weight
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
 from ultralytics.yolo.utils import (DEFAULT_CONFIG, LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, callbacks, colorstr,
@@ -32,7 +33,7 @@ from ultralytics.yolo.utils.checks import check_file, print_args
 from ultralytics.yolo.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.yolo.utils.files import get_latest_run, increment_path
 from ultralytics.yolo.utils.torch_utils import ModelEMA, de_parallel, init_seeds, one_cycle, strip_optimizer
-from ultralytics.nn.tasks import attempt_load_one_weight
+
 
 class BaseTrainer:
     """
@@ -221,7 +222,8 @@ class BaseTrainer:
         # dataloaders
         batch_size = self.batch_size // world_size if world_size > 1 else self.batch_size
         self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=rank, mode="train")
-        import pdb;pdb.set_trace()
+        import pdb
+        pdb.set_trace()
         if rank in {0, -1}:
             self.test_loader = self.get_dataloader(self.testset, batch_size=batch_size * 2, rank=-1, mode="val")
             self.validator = self.get_validator()
@@ -391,7 +393,7 @@ class BaseTrainer:
             cfg = ckpt["model"].yaml
         else:
             cfg = model
-        self.model = self.get_model(cfg=cfg, weights=weights) # calls Model(cfg, weights)
+        self.model = self.get_model(cfg=cfg, weights=weights)  # calls Model(cfg, weights)
         return ckpt
 
     def optimizer_step(self):

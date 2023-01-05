@@ -4,12 +4,12 @@ import hydra
 import torch
 import torchvision
 
-from ultralytics.nn.tasks import ClassificationModel
+from ultralytics.nn.tasks import ClassificationModel, attempt_load_weights
 from ultralytics.yolo import v8
 from ultralytics.yolo.data import build_classification_dataloader
 from ultralytics.yolo.engine.trainer import BaseTrainer
 from ultralytics.yolo.utils import DEFAULT_CONFIG
-from ultralytics.nn.tasks import attempt_load_weights
+
 
 class ClassificationTrainer(BaseTrainer):
 
@@ -20,7 +20,7 @@ class ClassificationTrainer(BaseTrainer):
         model = ClassificationModel(cfg, nc=self.data["nc"])
         if weights:
             model.load(weights)
-            
+
         return model
 
     def setup_model(self):
@@ -44,12 +44,12 @@ class ClassificationTrainer(BaseTrainer):
         # order: check local file -> torchvision assets -> ultralytics asset
         if Path(f"{model}.pt").is_file():  # local file
             self.model = attempt_load_weights(f"{model}.pt", device='cpu')
-        elif model in torchvision.models.__dict__: 
+        elif model in torchvision.models.__dict__:
             self.model = torchvision.models.__dict__[model](weights='IMAGENET1K_V1' if pretrained else None)
         else:
             self.model = attempt_load_weights(f"{model}.pt", device='cpu')
 
-        return # dont return ckpt. Classification doesn't support resume
+        return  # dont return ckpt. Classification doesn't support resume
 
     def get_dataloader(self, dataset_path, batch_size, rank=0, mode="train"):
         return build_classification_dataloader(path=dataset_path,

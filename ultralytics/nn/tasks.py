@@ -320,6 +320,7 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
     assert all(model[0].nc == m.nc for m in model), f'Models have different class counts: {[m.nc for m in model]}'
     return model
 
+
 def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
     # Loads a single model weights
     from ultralytics.yolo.utils.downloads import attempt_download
@@ -402,4 +403,3 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             ch = []
         ch.append(c2)
     return nn.Sequential(*layers), sorted(save)
-

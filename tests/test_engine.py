@@ -1,15 +1,16 @@
-from ultralytics.yolo.v8 import detect, segment, classify
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.utils import DEFAULT_CONFIG, ROOT
+from ultralytics.yolo.v8 import classify, detect, segment
 
 CFG_DET = 'yolov8n.yaml'
 CFG_SEG = 'yolov8n-seg.yaml'
 CFG_CLS = 'squeezenet1_0'
 CFG = get_config(DEFAULT_CONFIG)
-SOURCE = ROOT/ "assets"
+SOURCE = ROOT / "assets"
+
 
 def test_detect():
-    overrides = {"data":"coco128.yaml", "model":CFG_DET, "imgsz":32, "epochs":1, "save":False}
+    overrides = {"data": "coco128.yaml", "model": CFG_DET, "imgsz": 32, "epochs": 1, "save": False}
     CFG.data = "coco128.yaml"
     # trainer
     trainer = detect.DetectionTrainer(overrides=overrides)
@@ -21,11 +22,12 @@ def test_detect():
     val(model=trained_model)
 
     # predictor
-    pred = detect.DetectionPredictor(overrides={"imgsz":[640,640]})
+    pred = detect.DetectionPredictor(overrides={"imgsz": [640, 640]})
     pred(source=SOURCE, model=trained_model)
 
+
 def test_segment():
-    overrides = {"data":"coco128-seg.yaml", "model":CFG_SEG, "imgsz":32, "epochs":1, "save":False}
+    overrides = {"data": "coco128-seg.yaml", "model": CFG_SEG, "imgsz": 32, "epochs": 1, "save": False}
     CFG.data = "coco128-seg.yaml"
     CFG.v5loader = False
     # trainer
@@ -38,7 +40,7 @@ def test_segment():
     val(model=trained_model)
 
     # predictor
-    pred = segment.SegmentationPredictor(overrides={"imgsz":[640,640]})
+    pred = segment.SegmentationPredictor(overrides={"imgsz": [640, 640]})
     pred(source=SOURCE, model=trained_model)
 
 

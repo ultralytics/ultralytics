@@ -59,7 +59,7 @@ class DetectionTrainer(BaseTrainer):
         model = DetectionModel(cfg, ch=3, nc=self.data["nc"], verbose=verbose)
         if weights:
             model.load(model)
-        
+
         return model
 
     def get_validator(self):

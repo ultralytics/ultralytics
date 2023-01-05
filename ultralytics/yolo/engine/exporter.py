@@ -476,7 +476,7 @@ class Exporter:
         onnx = self.file.with_suffix('.onnx')
 
         # Export to TF SavedModel
-        subprocess.run(f'onnx2tf - i {onnx} --output_signaturedefs -o {f}', shell=True)
+        subprocess.run(f'onnx2tf -i {onnx} --output_signaturedefs -o {f}', shell=True)
 
         # Load saved_model
         keras_model = tf.saved_model.load(f, tags=None, options=None)

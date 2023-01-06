@@ -57,13 +57,19 @@ def test_segment():
         trainer.train()
     except Exception as e:
         print(f"Expected exception caught: {e}")
-        return 
+        return
 
     Exception("Resume test failed!")
 
 
 def test_classify():
-    overrides = {"data": "imagenette160", "model": "squeezenet1_0", "imgsz": 32, "epochs": 1, "batch":64, "save": False}
+    overrides = {
+        "data": "imagenette160",
+        "model": "squeezenet1_0",
+        "imgsz": 32,
+        "epochs": 1,
+        "batch": 64,
+        "save": False}
     CFG.data = "imagenette160"
     CFG.imgsz = 32
     CFG.batch = 64

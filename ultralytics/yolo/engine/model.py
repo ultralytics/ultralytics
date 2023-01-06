@@ -188,8 +188,9 @@ class YOLO:
         overrides["mode"] = "train"
         if not overrides.get("data"):
             raise AttributeError("dataset not provided! Please define `data` in config.yaml or pass as an argument.")
+        if overrides.get("resume"):
+            overrides["resume"] = self.ckpt_path
 
-        overrides["resume"] = self.ckpt_path or overrides.get("resume", None)
         self.trainer = self.TrainerClass(overrides=overrides)
         if not overrides.get("resume"):  # manually set model only if not resuming
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None,

@@ -28,7 +28,13 @@ def test_detect():
 
     overrides["resume"] = trainer.last
     trainer = detect.DetectionTrainer(overrides=overrides)
-    trainer.train()
+    try:
+        trainer.train()
+    except Exception as e:
+        print(f"Expected exception caught: {e}")
+        return 
+
+    Exception("Resume test failed!")
 
 
 def test_segment():

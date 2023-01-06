@@ -218,3 +218,4 @@ class YOLO:
         args.pop("name", None)
         args.pop("batch", None)
         args.pop("epochs", None)
+        args.pop("cache", None)

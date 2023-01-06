@@ -12,6 +12,9 @@ from ultralytics.yolo.utils import DEFAULT_CONFIG
 
 
 class ClassificationTrainer(BaseTrainer):
+    def __init__(self, config=DEFAULT_CONFIG, overrides={}):
+        overrides["task"] = "classify"
+        super().__init__(config, overrides)
 
     def set_model_attributes(self):
         self.model.names = self.data["names"]

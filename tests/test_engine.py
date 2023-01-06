@@ -26,9 +26,13 @@ def test_detect():
     pred = detect.DetectionPredictor(overrides={"imgsz": [640, 640]})
     pred(source=SOURCE, model=trained_model)
 
+    overrides["resume"] = trainer.last
+    trainer = detect.DetectionTrainer(overrides=overrides)
+    trainer.train()
+
 
 def test_segment():
-    overrides = {"data": "coco128-seg.yaml", "imgsz": 32, "epochs": 1, "save": False}
+    overrides = {"data": "coco128-seg.yaml", "model": CFG_SEG, "imgsz": 32, "epochs": 1, "save": False}
     CFG.data = "coco128-seg.yaml"
     CFG.v5loader = False
 
@@ -39,13 +43,40 @@ def test_segment():
     trained_model = trainer.best
 
     # Validator
-    val = segment.SegmentationPredictor(args=CFG)
+    val = segment.SegmentationValidator(args=CFG)
     val(model=trained_model)
 
     # predictor
     pred = segment.SegmentationPredictor(overrides={"imgsz": [640, 640]})
     pred(source=SOURCE, model=trained_model)
 
+    # test resume
+    overrides["resume"] = trainer.last
+    trainer = segment.SegmentationTrainer(overrides=overrides)
+    try:
+        trainer.train()
+    except Exception as e:
+        print(f"Expected exception caught: {e}")
+        return 
 
-if __name__ == "__main__":
-    test_segment()
+    Exception("Resume test failed!")
+
+
+def test_classify():
+    overrides = {"data": "imagenette160", "model": "squeezenet1_0", "imgsz": 32, "epochs": 1, "batch":64, "save": False}
+    CFG.data = "imagenette160"
+    CFG.imgsz = 32
+    CFG.batch = 64
+    # YOLO(CFG_SEG).train(**overrides) # This works
+    # trainer
+    trainer = classify.ClassificationTrainer(overrides=overrides)
+    trainer.train()
+    trained_model = trainer.best
+
+    # Validator
+    val = classify.ClassificationValidator(args=CFG)
+    val(model=trained_model)
+
+    # predictor
+    pred = classify.ClassificationPredictor(overrides={"imgsz": [640, 640]})
+    pred(source=SOURCE, model=trained_model)

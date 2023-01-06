@@ -32,7 +32,7 @@ def test_detect():
         trainer.train()
     except Exception as e:
         print(f"Expected exception caught: {e}")
-        return 
+        return
 
     Exception("Resume test failed!")
 

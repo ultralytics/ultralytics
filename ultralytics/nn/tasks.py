@@ -226,9 +226,9 @@ class SegmentationModel(DetectionModel):
 
 class ClassificationModel(BaseModel):
     # YOLOv5 classification model
-    def __init__(self, cfg=None, model=None, nc=1000, cutoff=10):  # yaml, model, number of classes, cutoff index
+    def __init__(self, cfg=None, model=None, ch=3, nc=1000, cutoff=10, verbose=True):  # yaml, model, number of classes, cutoff index
         super().__init__()
-        self._from_detection_model(model, nc, cutoff) if model is not None else self._from_yaml(cfg)
+        self._from_detection_model(model, nc, cutoff) if model is not None else self._from_yaml(cfg, ch, nc, verbose)
 
     def _from_detection_model(self, model, nc=1000, cutoff=10):
         # Create a YOLOv5 classification model from a YOLOv5 detection model
@@ -246,9 +246,16 @@ class ClassificationModel(BaseModel):
         self.save = []
         self.nc = nc
 
-    def _from_yaml(self, cfg):
-        # TODO: Create a YOLOv5 classification model from a *.yaml file
-        self.model = None
+    def _from_yaml(self, cfg, ch, nc, verbose):
+        self.yaml = cfg if isinstance(cfg, dict) else yaml_load(check_yaml(cfg), append_filename=True)  # cfg dict        
+        # Define model
+        ch = self.yaml['ch'] = self.yaml.get('ch', ch)  # input channels
+        if nc and nc != self.yaml['nc']:
+            LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
+            self.yaml['nc'] = nc  # override yaml value
+        self.model, self.save = parse_model(deepcopy(self.yaml), ch=[ch], verbose=verbose)  # model, savelist
+        self.names = {i: f'{i}' for i in range(self.yaml['nc'])}  # default names dict
+
 
     def load(self, weights):
         model = weights["model"] if isinstance(weights, dict) else weights  # torchvision models are not dicts
@@ -322,7 +329,7 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
 
 
 def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
-    # Parse a YOLOv5 model.yaml dictionary
+    # Parse a YOLO model.yaml dictionary
     if verbose:
         LOGGER.info(f"\n{'':>3}{'from':>20}{'n':>3}{'params':>10}  {'module':<45}{'arguments':<30}")
     nc, gd, gw, act = d['nc'], d['depth_multiple'], d['width_multiple'], d.get('activation')

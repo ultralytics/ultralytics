@@ -71,7 +71,7 @@ def test_segment():
 def test_classify():
     overrides = {
         "data": "imagenette160",
-        "model": "squeezenet1_0",
+        "model": "yolov8n-cls.yaml",
         "imgsz": 32,
         "epochs": 1,
         "batch": 64,

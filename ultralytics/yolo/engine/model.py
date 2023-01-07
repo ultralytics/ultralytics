@@ -52,8 +52,8 @@ class YOLO:
         # Load or create new YOLO model
         {'.pt': self._load, '.yaml': self._new}[Path(model).suffix](model)
 
-    def __call__(self, source):
-        return self.predict(source)
+    def __call__(self, source, **kwargs):
+        return self.predict(source, **kwargs)
 
     def _new(self, cfg: str, verbose=True):
         """
@@ -218,3 +218,4 @@ class YOLO:
         args.pop("name", None)
         args.pop("batch", None)
         args.pop("epochs", None)
+        args.pop("cache", None)

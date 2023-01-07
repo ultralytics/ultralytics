@@ -64,10 +64,13 @@ class ClassificationTrainer(BaseTrainer):
 
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def train(cfg):
-    cfg.model = cfg.model or "resnet18"
+    cfg.model = cfg.model or "yolov8n-cls.yaml"  # or "resnet18"
     cfg.data = cfg.data or "imagenette160"  # or yolo.ClassificationDataset("mnist")
-    trainer = ClassificationTrainer(cfg)
-    trainer.train()
+    # trainer = ClassificationTrainer(cfg)
+    # trainer.train()
+    from ultralytics import YOLO
+    model = YOLO(cfg.model)
+    model.train(**cfg)
 
 
 if __name__ == "__main__":

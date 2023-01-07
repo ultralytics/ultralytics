@@ -11,7 +11,9 @@ from ultralytics.yolo.utils import DEFAULT_CONFIG
 
 class ClassificationTrainer(BaseTrainer):
 
-    def __init__(self, config=DEFAULT_CONFIG, overrides={}):
+    def __init__(self, config=DEFAULT_CONFIG, overrides=None):
+        if overrides is None:
+            overrides = {}
         overrides["task"] = "classify"
         super().__init__(config, overrides)
 

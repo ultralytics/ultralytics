@@ -255,8 +255,26 @@ def check_dataset_yaml(data, autodownload=True):
 
 
 def check_dataset(dataset: str):
+    """
+    Check a classification dataset such as Imagenet.
+
+    Copy code
+    This function takes a `dataset` name as input and returns a dictionary containing information about the dataset.
+    If the dataset is not found, it attempts to download the dataset from the internet and save it to the local file system.
+
+    Args:
+        dataset (str): Name of the dataset.
+
+    Returns:
+        data (dict): A dictionary containing the following keys and values:
+            'train': Path object for the directory containing the training set of the dataset
+            'val': Path object for the directory containing the validation set of the dataset
+            'nc': Number of classes in the dataset
+            'names': List of class names in the dataset
+    """
     data = Path.cwd() / "datasets" / dataset
     data_dir = data if data.is_dir() else (Path.cwd() / data)
+    data_dir = data_dir.resolve()
     if not data_dir.is_dir():
         LOGGER.info(f'\nDataset not found ⚠️, missing path {data_dir}, attempting download...')
         t = time.time()

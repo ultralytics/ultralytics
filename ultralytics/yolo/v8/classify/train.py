@@ -1,7 +1,10 @@
+from pathlib import Path
+
 import hydra
 import torch
+import torchvision
 
-from ultralytics.nn.tasks import ClassificationModel, get_model
+from ultralytics.nn.tasks import ClassificationModel, attempt_load_weights
 from ultralytics.yolo import v8
 from ultralytics.yolo.data import build_classification_dataloader
 from ultralytics.yolo.engine.trainer import BaseTrainer
@@ -10,29 +13,47 @@ from ultralytics.yolo.utils import DEFAULT_CONFIG
 
 class ClassificationTrainer(BaseTrainer):
 
+    def __init__(self, config=DEFAULT_CONFIG, overrides={}):
+        overrides["task"] = "classify"
+        super().__init__(config, overrides)
+
     def set_model_attributes(self):
         self.model.names = self.data["names"]
 
-    def load_model(self, model_cfg=None, weights=None, verbose=True):
-        # TODO: why treat clf models as unique. We should have clf yamls? YES WE SHOULD!
-        if isinstance(weights, dict):  # yolo ckpt
-            weights = weights["model"]
-        if weights and not weights.__class__.__name__.startswith("yolo"):  # torchvision
-            model = weights
-        else:
-            model = ClassificationModel(model_cfg, weights, self.data["nc"])
-        ClassificationModel.reshape_outputs(model, self.data["nc"])
-        for m in model.modules():
-            if not weights and hasattr(m, 'reset_parameters'):
-                m.reset_parameters()
-            if isinstance(m, torch.nn.Dropout) and self.args.dropout is not None:
-                m.p = self.args.dropout  # set dropout
-        for p in model.parameters():
-            p.requires_grad = True  # for training
+    def get_model(self, cfg=None, weights=None):
+        model = ClassificationModel(cfg, nc=self.data["nc"])
+        if weights:
+            model.load(weights)
+
         return model
 
-    def load_ckpt(self, ckpt):
-        return get_model(ckpt)
+    def setup_model(self):
+        """
+        load/create/download model for any task
+        """
+        # classification models require special handling
+
+        if isinstance(self.model, torch.nn.Module):  # if model is loaded beforehand. No setup needed
+            return
+
+        model = self.model
+        pretrained = False
+        # Load a YOLO model locally, from torchvision, or from Ultralytics assets
+        if model.endswith(".pt"):
+            model = model.split(".")[0]
+            pretrained = True
+        else:
+            self.model = self.get_model(cfg=model)
+
+        # order: check local file -> torchvision assets -> ultralytics asset
+        if Path(f"{model}.pt").is_file():  # local file
+            self.model = attempt_load_weights(f"{model}.pt", device='cpu')
+        elif model in torchvision.models.__dict__:
+            self.model = torchvision.models.__dict__[model](weights='IMAGENET1K_V1' if pretrained else None)
+        else:
+            self.model = attempt_load_weights(f"{model}.pt", device='cpu')
+
+        return  # dont return ckpt. Classification doesn't support resume
 
     def get_dataloader(self, dataset_path, batch_size, rank=0, mode="train"):
         return build_classification_dataloader(path=dataset_path,

@@ -3,8 +3,8 @@ from pathlib import Path
 from ultralytics import YOLO
 from ultralytics.yolo.utils import ROOT, SETTINGS
 
-CFG = 'yolov8n.yaml'
 MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n.pt'
+CFG = 'yolov8n.yaml'
 SOURCE = ROOT / 'assets/bus.jpg'
 
 

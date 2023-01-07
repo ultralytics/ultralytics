@@ -55,10 +55,11 @@ class DetectionTrainer(BaseTrainer):
         # TODO: self.model.class_weights = labels_to_class_weights(dataset.labels, nc).to(device) * nc
         self.model.names = self.data["names"]
 
-    def load_model(self, model_cfg=None, weights=None, verbose=True):
-        model = DetectionModel(model_cfg or weights.yaml, ch=3, nc=self.data["nc"], verbose=verbose)
+    def get_model(self, cfg=None, weights=None, verbose=True):
+        model = DetectionModel(cfg, ch=3, nc=self.data["nc"], verbose=verbose)
         if weights:
-            model.load(weights, verbose)
+            model.load(model)
+
         return model
 
     def get_validator(self):

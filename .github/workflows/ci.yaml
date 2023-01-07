@@ -100,5 +100,5 @@ jobs:
       - name: Test classification
         shell: bash  # for Windows compatibility
         run: |
-          yolo task=classify mode=train model=resnet18 data=mnist160 epochs=1 imgsz=32
+          yolo task=classify mode=train model=yolov8n-cls.yaml data=mnist160 epochs=1 imgsz=32
           yolo task=classify mode=val model=runs/classify/train/weights/last.pt data=mnist160

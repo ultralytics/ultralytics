@@ -20,4 +20,4 @@ backbone:
 
 # YOLOv8.0n head
 head:
-  - [-1, 1, Classify, [1024,nc]]
+  - [-1, 1, Classify, [nc]]

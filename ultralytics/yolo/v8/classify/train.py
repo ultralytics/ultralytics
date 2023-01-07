@@ -14,7 +14,6 @@ class ClassificationTrainer(BaseTrainer):
         self.model.names = self.data["names"]
 
     def load_model(self, model_cfg=None, weights=None, verbose=True):
-        # TODO: why treat clf models as unique. We should have clf yamls? YES WE SHOULD!
         if isinstance(weights, dict):  # yolo ckpt
             weights = weights["model"]
         if weights and not weights.__class__.__name__.startswith("yolo"):  # torchvision
@@ -29,6 +28,10 @@ class ClassificationTrainer(BaseTrainer):
                 m.p = self.args.dropout  # set dropout
         for p in model.parameters():
             p.requires_grad = True  # for training
+
+        # Update defaults
+        if self.args.imgsz == 640:
+            self.args.imgsz = 224
         return model
 
     def load_ckpt(self, ckpt):
@@ -44,6 +47,10 @@ class ClassificationTrainer(BaseTrainer):
         batch["img"] = batch["img"].to(self.device)
         batch["cls"] = batch["cls"].to(self.device)
         return batch
+
+    def progress_string(self):
+        return ('\n' + '%11s' *
+                (4 + len(self.loss_names))) % ('Epoch', 'GPU_mem', *self.loss_names, 'Instances', 'Size')
 
     def get_validator(self):
         return v8.classify.ClassificationValidator(self.test_loader, self.save_dir, logger=self.console)

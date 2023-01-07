@@ -103,13 +103,9 @@ class YOLO:
         Args:
             verbose (bool): Controls verbosity.
         """
-        if not self.model:
-            LOGGER.info("model not initialized!")
         self.model.info(verbose=verbose)
 
     def fuse(self):
-        if not self.model:
-            LOGGER.info("model not initialized!")
         self.model.fuse()
 
     @smart_inference_mode()
@@ -139,9 +135,6 @@ class YOLO:
             data (str): The dataset to validate on. Accepts all formats accepted by yolo
             **kwargs : Any other args accepted by the validators. To see all args check 'configuration' section in docs
         """
-        if not self.model:
-            raise ModuleNotFoundError("model not initialized!")
-
         overrides = self.overrides.copy()
         overrides.update(kwargs)
         overrides["mode"] = "val"
@@ -177,8 +170,6 @@ class YOLO:
             **kwargs (Any): Any number of arguments representing the training configuration. List of all args can be found in 'config' section.
                             You can pass all arguments as a yaml file in `cfg`. Other args are ignored if `cfg` file is passed
         """
-        if not self.model:
-            raise AttributeError("model not initialized. Use .new() or .load()")
         overrides = self.overrides.copy()
         overrides.update(kwargs)
         if kwargs.get("cfg"):

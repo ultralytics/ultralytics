@@ -76,9 +76,6 @@ class ClassificationTrainer(BaseTrainer):
         loss = torch.nn.functional.cross_entropy(preds, batch["cls"])
         return loss, loss
 
-    def check_resume(self):
-        pass
-
     def resume_training(self, ckpt):
         pass
 

@@ -28,7 +28,7 @@ class ClassificationTrainer(BaseTrainer):
         # Update defaults
         if self.args.imgsz == 640:
             self.args.imgsz = 224
-            
+
         return model
 
     def setup_model(self):

@@ -89,7 +89,7 @@ class ClassificationTrainer(BaseTrainer):
         return v8.classify.ClassificationValidator(self.test_loader, self.save_dir, logger=self.console)
 
     def criterion(self, preds, batch):
-        loss = torch.nn.functional.cross_entropy(preds, batch["cls"]) / WORLD_SIZE
+        loss = torch.nn.functional.cross_entropy(preds, batch["cls"], reduction='sum') / self.args.nbs
         loss_items = loss.detach()
         return loss, loss_items
 

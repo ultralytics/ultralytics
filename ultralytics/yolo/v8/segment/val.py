@@ -30,7 +30,6 @@ class SegmentationValidator(DetectionValidator):
     def init_metrics(self, model):
         head = model.model[-1] if self.training else model.model.model[-1]
         self.is_coco = self.data.get('val', '').endswith(f'coco{os.sep}val2017.txt')  # is COCO dataset
-        self.is_coco = True
         self.class_map = ops.coco80_to_coco91_class() if self.is_coco else list(range(1000))
         self.args.save_json |= self.is_coco and not self.training  # run on final val if training COCO
         self.nc = head.nc
@@ -208,8 +207,7 @@ class SegmentationValidator(DetectionValidator):
 
     def eval_json(self, stats):
         if self.args.save_json and self.is_coco and len(self.jdict):
-            # anno_json = self.data['path'] / "annotations/instances_val2017.json"  # annotations
-            anno_json = Path("/d/dataset/COCO/annotations/instances_val2017.json")
+            anno_json = self.data['path'] / "annotations/instances_val2017.json"  # annotations
             pred_json = self.save_dir / "predictions.json"  # predictions
             self.logger.info(f'\nEvaluating pycocotools mAP using {pred_json} and {anno_json}...')
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb

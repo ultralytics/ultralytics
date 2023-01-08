@@ -1,5 +1,5 @@
 <div align="center">
-  <a href="https://ultralytics.com/yolov5" target="_blank">
+  <a href="https://github.com/ultralytics/ultralytics" target="_blank">
     <img width="1024" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png"></a>
 <br>
   <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a>

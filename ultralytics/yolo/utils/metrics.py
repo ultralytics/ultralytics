@@ -568,7 +568,7 @@ class SegmentMetrics:
             "metrics/precision(B)",
             "metrics/recall(B)",
             "metrics/mAP50(B)",
-            "metrics/mAP50-95(B)",  # metrics
+            "metrics/mAP50-95(B)",
             "metrics/precision(M)",
             "metrics/recall(M)",
             "metrics/mAP50(M)",
@@ -617,4 +617,4 @@ class ClassifyMetrics:
 
     @property
     def keys(self):
-        return ["top1", "top5"]
+        return ["metrics/accuracy_top1", "metrics/accuracy_top5"]

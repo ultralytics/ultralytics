@@ -12,7 +12,7 @@
 # Welcome to Ultralytics YOLOv8
 
 Welcome to the Ultralytics YOLOv8 documentation landing page! Ultralytics YOLOv8 is the latest version of the YOLO (You
-Only Look Once) object detection and image segmentation model developed by Ultralytics. This page serves as the starting
+Only Look Once) object detection and image segmentation model developed by [Ultralytics](https://ultralytics.com). This page serves as the starting
 point for exploring the various resources available to help you get started with YOLOv8 and understand its features and
 capabilities.
 

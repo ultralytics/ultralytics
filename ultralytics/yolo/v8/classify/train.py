@@ -76,6 +76,18 @@ class ClassificationTrainer(BaseTrainer):
         loss = torch.nn.functional.cross_entropy(preds, batch["cls"])
         return loss, loss
 
+    def label_loss_items(self, loss_items=None, prefix="train"):
+        """
+        Returns a loss dict with labelled training loss items tensor
+        """
+        # Not needed for classification but necessary for segmentation & detection
+        keys = [f"{prefix}/{x}" for x in self.loss_names]
+        if loss_items is not None:
+            loss_items = [round(float(loss_items), 5)]
+            return dict(zip(keys, loss_items))
+        else:
+            return keys
+
     def resume_training(self, ckpt):
         pass
 

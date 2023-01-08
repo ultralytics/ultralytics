@@ -20,8 +20,18 @@ class ClassificationTrainer(BaseTrainer):
     def set_model_attributes(self):
         self.model.names = self.data["names"]
 
-    def get_model(self, cfg=None, weights=None):
+    def get_model(self, cfg=None, weights=None, verbose=True):
         model = ClassificationModel(cfg, nc=self.data["nc"])
+
+        pretrained=False
+        for m in model.modules():
+            if not pretrained and hasattr(m, 'reset_parameters'):
+                m.reset_parameters()
+            if isinstance(m, torch.nn.Dropout) and self.args.dropout:
+                m.p = self.args.dropout  # set dropout
+        for p in model.parameters():
+            p.requires_grad = True  # for training
+
         if weights:
             model.load(weights)
 
@@ -77,17 +87,17 @@ class ClassificationTrainer(BaseTrainer):
         loss = torch.nn.functional.cross_entropy(preds, batch["cls"])
         return loss, loss
 
-    def label_loss_items(self, loss_items=None, prefix="train"):
-        """
-        Returns a loss dict with labelled training loss items tensor
-        """
-        # Not needed for classification but necessary for segmentation & detection
-        keys = [f"{prefix}/{x}" for x in self.loss_names]
-        if loss_items is not None:
-            loss_items = [round(float(x), 5) for x in loss_items]  # convert tensors to 5 decimal place floats
-            return dict(zip(keys, loss_items))
-        else:
-            return keys
+    # def label_loss_items(self, loss_items=None, prefix="train"):
+    #     """
+    #     Returns a loss dict with labelled training loss items tensor
+    #     """
+    #     # Not needed for classification but necessary for segmentation & detection
+    #     keys = [f"{prefix}/{x}" for x in self.loss_names]
+    #     if loss_items is not None:
+    #         loss_items = [round(float(x), 5) for x in loss_items]  # convert tensors to 5 decimal place floats
+    #         return dict(zip(keys, loss_items))
+    #     else:
+    #         return keys
 
     def resume_training(self, ckpt):
         pass

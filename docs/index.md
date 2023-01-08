@@ -49,7 +49,7 @@ For more information about the history and development of YOLO, you can refer to
   conference on computer vision and pattern recognition (pp. 779-788).
 - Redmon, J., & Farhadi, A. (2016). YOLO9000: Better, faster, stronger. In Proceedings
 
-### YOLOv8 by Ultralytics
+### Ultralytics YOLOv8
 
 YOLOv8 is the latest version of the YOLO object detection and image segmentation model developed by
 Ultralytics. YOLOv8 is a cutting-edge, state-of-the-art (SOTA) model that builds upon the success of previous YOLO

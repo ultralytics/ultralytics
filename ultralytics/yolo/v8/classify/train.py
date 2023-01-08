@@ -111,6 +111,9 @@ class ClassificationTrainer(BaseTrainer):
 def train(cfg):
     cfg.model = cfg.model or "yolov8n-cls.yaml"  # or "resnet18"
     cfg.data = cfg.data or "mnist160"  # or yolo.ClassificationDataset("mnist")
+    cfg.lr0 = 0.1
+    cfg.weight_decay = 5e-5
+    cfg.label_smoothing = 0.1
     trainer = ClassificationTrainer(cfg)
     trainer.train()
     # from ultralytics import YOLO

@@ -123,7 +123,7 @@ class ClassificationTrainer(BaseTrainer):
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def train(cfg):
     cfg.model = cfg.model or "yolov8n-cls.yaml"  # or "resnet18"
-    cfg.data = cfg.data or "imagenette160"  # or yolo.ClassificationDataset("mnist")
+    cfg.data = cfg.data or "mnist160"  # or yolo.ClassificationDataset("mnist")
     cfg.lr0 = 0.1
     cfg.weight_decay = 5e-5
     cfg.label_smoothing = 0.1

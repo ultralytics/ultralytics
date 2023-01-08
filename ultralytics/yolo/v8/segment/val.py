@@ -30,6 +30,7 @@ class SegmentationValidator(DetectionValidator):
     def init_metrics(self, model):
         head = model.model[-1] if self.training else model.model.model[-1]
         self.is_coco = self.data.get('val', '').endswith(f'coco{os.sep}val2017.txt')  # is COCO dataset
+        self.is_coco = True
         self.class_map = ops.coco80_to_coco91_class() if self.is_coco else list(range(1000))
         self.args.save_json |= self.is_coco and not self.training  # run on final val if training COCO
         self.nc = head.nc
@@ -90,12 +91,14 @@ class SegmentationValidator(DetectionValidator):
             if self.args.single_cls:
                 pred[:, 5] = 0
             predn = pred.clone()
-            ops.scale_boxes(batch["img"][si].shape[1:], predn[:, :4], shape)  # native-space pred
+            ops.scale_boxes(batch["img"][si].shape[1:], predn[:, :4], shape,
+                            ratio_pad=batch["ratio_pad"][si])  # native-space pred
 
             # Evaluate
             if nl:
                 tbox = ops.xywh2xyxy(bbox)  # target boxes
-                ops.scale_boxes(batch["img"][si].shape[1:], tbox, shape)  # native-space labels
+                ops.scale_boxes(batch["img"][si].shape[1:], tbox, shape,
+                                ratio_pad=batch["ratio_pad"][si])  # native-space labels
                 labelsn = torch.cat((cls, tbox), 1)  # native-space labels
                 correct_bboxes = self._process_batch(predn, labelsn)
                 # TODO: maybe remove these `self.` arguments as they already are member variable
@@ -117,7 +120,8 @@ class SegmentationValidator(DetectionValidator):
             # Save
             if self.args.save_json:
                 pred_masks = ops.scale_image(batch["img"][si].shape[1:],
-                                             pred_masks.permute(1, 2, 0).contiguous().cpu().numpy(), shape)
+                                             pred_masks.permute(1, 2, 0).contiguous().cpu().numpy(), shape, 
+                                             ratio_pad=batch["ratio_pad"][si])
                 self.pred_to_json(predn, batch["im_file"][si], pred_masks)
             # if self.args.save_txt:
             #    save_one_txt(predn, save_conf, shape, file=save_dir / 'labels' / f'{path.stem}.txt')
@@ -204,7 +208,8 @@ class SegmentationValidator(DetectionValidator):
 
     def eval_json(self, stats):
         if self.args.save_json and self.is_coco and len(self.jdict):
-            anno_json = self.data['path'] / "annotations/instances_val2017.json"  # annotations
+            # anno_json = self.data['path'] / "annotations/instances_val2017.json"  # annotations
+            anno_json = Path("/d/dataset/COCO/annotations/instances_val2017.json")
             pred_json = self.save_dir / "predictions.json"  # predictions
             self.logger.info(f'\nEvaluating pycocotools mAP using {pred_json} and {anno_json}...')
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb

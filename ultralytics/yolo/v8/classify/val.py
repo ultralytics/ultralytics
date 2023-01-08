@@ -13,6 +13,9 @@ class ClassificationValidator(BaseValidator):
         super().__init__(dataloader, save_dir, pbar, logger, args)
         self.metrics = ClassifyMetrics()
 
+    def get_desc(self):
+        return ('%11s' * 2) % ('Top1', 'Top5')
+
     def init_metrics(self, model):
         self.correct = torch.tensor([], device=next(model.parameters()).device)
 

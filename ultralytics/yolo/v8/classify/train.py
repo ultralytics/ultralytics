@@ -113,9 +113,9 @@ def train(cfg):
     cfg.data = cfg.data or "mnist160"  # or yolo.ClassificationDataset("mnist")
     trainer = ClassificationTrainer(cfg)
     trainer.train()
-    #from ultralytics import YOLO
-    #model = YOLO(cfg.model)
-    #model.train(**cfg)
+    # from ultralytics import YOLO
+    # model = YOLO(cfg.model)
+    # model.train(**cfg)
 
 
 if __name__ == "__main__":

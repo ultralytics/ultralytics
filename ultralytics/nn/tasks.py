@@ -292,7 +292,6 @@ class ClassificationModel(BaseModel):
 
 
 def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
-    LOGGER.info("WARNING: Deprecated in favor of attempt_load_one_weight()")
     # Loads an ensemble of models weights=[a,b,c] or a single model weights=[a] or weights=a
     from ultralytics.yolo.utils.downloads import attempt_download
 

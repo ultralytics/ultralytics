@@ -66,8 +66,8 @@ class AutoBackend(nn.Module):
             model.half() if fp16 else model.float()
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
         elif pt:  # PyTorch
-            from ultralytics.nn.tasks import attempt_load_one_weight
-            model, _ = attempt_load_one_weight(weights if isinstance(weights, list) else w,
+            from ultralytics.nn.tasks import attempt_load_weights
+            model = attempt_load_weights(weights if isinstance(weights, list) else w,
                                                device=device,
                                                inplace=True,
                                                fuse=fuse)

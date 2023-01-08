@@ -1,5 +1,4 @@
 import hydra
-import torch
 
 from ultralytics.yolo.data import build_classification_dataloader
 from ultralytics.yolo.engine.validator import BaseValidator
@@ -17,7 +16,8 @@ class ClassificationValidator(BaseValidator):
         return ('%22s' + '%11s' * 2) % ('classes', 'top1_acc', 'top5_acc')
 
     def init_metrics(self, model):
-        self.correct = torch.tensor([], device=next(model.parameters()).device)
+        self.pred = []
+        self.targets = []
 
     def preprocess(self, batch):
         batch["img"] = batch["img"].to(self.device, non_blocking=True)
@@ -26,12 +26,11 @@ class ClassificationValidator(BaseValidator):
         return batch
 
     def update_metrics(self, preds, batch):
-        targets = batch["cls"]
-        correct_in_batch = (targets == preds.argmax(1)).view(-1, 1).float()
-        self.correct = torch.cat((self.correct, correct_in_batch))
+        self.pred.append(preds.argsort(1, descending=True)[:, :5])
+        self.targets.append(batch["cls"])
 
     def get_stats(self):
-        self.metrics.process(self.correct)
+        self.metrics.process(self.targets, self.pred)
         return self.metrics.results_dict
 
     def get_dataloader(self, dataset_path, batch_size):

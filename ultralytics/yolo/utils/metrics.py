@@ -597,7 +597,10 @@ class ClassifyMetrics:
         self.top1 = 0
         self.top5 = 0
 
-    def process(self, correct):
+    def process(self, targets, pred):
+        # target classes and predicted classes
+        pred, targets = torch.cat(pred), torch.cat(targets)
+        correct = (targets[:, None] == pred).float()
         acc = torch.stack((correct[:, 0], correct.max(1).values), dim=1)  # (top1, top5) accuracy
         self.top1, self.top5 = acc.mean(0).tolist()
 

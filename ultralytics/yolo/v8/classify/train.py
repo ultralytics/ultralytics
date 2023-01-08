@@ -2,7 +2,7 @@ import hydra
 import torch
 import torchvision
 
-from ultralytics.nn.tasks import ClassificationModel, attempt_load_weights
+from ultralytics.nn.tasks import ClassificationModel, attempt_load_one_weight
 from ultralytics.yolo import v8
 from ultralytics.yolo.data import build_classification_dataloader
 from ultralytics.yolo.engine.trainer import BaseTrainer
@@ -53,7 +53,7 @@ class ClassificationTrainer(BaseTrainer):
         model = str(self.model)
         # Load a YOLO model locally, from torchvision, or from Ultralytics assets
         if model.endswith(".pt"):
-            self.model = attempt_load_weights(model, device='cpu')
+            self.model, _ = attempt_load_one_weight(model, device='cpu')
         elif model.endswith(".yaml"):
             self.model = self.get_model(cfg=model)
         elif model in torchvision.models.__dict__:
@@ -100,6 +100,18 @@ class ClassificationTrainer(BaseTrainer):
     #         return dict(zip(keys, loss_items))
     #     else:
     #         return keys
+
+    def label_loss_items(self, loss_items=None, prefix="train"):
+        """
+        Returns a loss dict with labelled training loss items tensor
+        """
+        # Not needed for classification but necessary for segmentation & detection
+        keys = [f"{prefix}/{x}" for x in self.loss_names]
+        if loss_items is not None:
+            loss_items = [round(float(loss_items), 5)]
+            return dict(zip(keys, loss_items))
+        else:
+            return keys
 
     def resume_training(self, ckpt):
         pass

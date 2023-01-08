@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://ultralytics.com/yolov5" target="_blank">
-    <img width="1024" src="https://user-images.githubusercontent.com/26833433/210431393-39c997b8-92a7-4957-864f-1f312004eb54.png"></a>
+    <img width="1024" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png"></a>
 <br>
   <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a>
   <a href="https://colab.research.google.com/github/glenn-jocher/glenn-jocher.github.io/blob/main/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>

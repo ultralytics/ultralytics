@@ -56,42 +56,36 @@ This is the simplest way of simply using yolo models in a python environment. It
 
     More functionality coming soon
 
-To know more about using `YOLO` models, refer Model class refernce
+To know more about using `YOLO` models, refer Model class Reference
 
 [Model reference](reference/model.md){ .md-button .md-button--primary}
 
 ---
-### Customizing Tasks with Trainers
+### Using Trainers
 `YOLO` model class is a high-level wrapper on the Trainer classes. Each YOLO task has its own trainer that inherits from `BaseTrainer`. 
-You can easily cusotmize Trainers to support custom tasks or explore R&D ideas.
-
-!!! tip "Trainer Examples"
-    === "DetectionTrainer"
+!!! tip "Detection Trainer Example"
         ```python
-        from ultralytics import yolo
+        from ultralytics.yolo import v8 import DetectionTrainer, DetectionValidator, DetectionPredictor
 
-        trainer = yolo.DetectionTrainer(data=..., epochs=1) # override default configs
-        trainer = yolo.DetectionTrainer(data=..., epochs=1, device="1,2,3,4") # DDP
+        # trainer
+        trainer = DetectionTrainer(overrides={})
         trainer.train()
+        trained_model = trainer.best
+
+        # Validator
+        val = DetectionValidator(args=...)
+        val(model=trained_model)
+
+        # predictor
+        pred = DetectionPredictor(overrides={})
+        pred(source=SOURCE, model=trained_model)
+
+        # resume from last weight
+        overrides["resume"] = trainer.last
+        trainer = detect.DetectionTrainer(overrides=overrides)
+
         ```
+You can easily customize Trainers to support custom tasks or explore R&D ideas.
+Learn more about Customizing `Trainers`, `Validators` and `Predictors` to suit your project needs in the Customization Section.
 
-    === "SegmentationTrainer"
-        ```python
-        from ultralytics import yolo
-
-        trainer = yolo.SegmentationTrainer(data=..., epochs=1) # override default configs
-        trainer = yolo.SegmentationTrainer(data=..., epochs=1, device="0,1,2,3") # DDP
-        trainer.train()
-        ```
-    === "ClassificationTrainer"
-        ```python
-        from ultralytics import yolo
-
-        trainer = yolo.ClassificationTrainer(data=..., epochs=1) # override default configs
-        trainer = yolo.ClassificationTrainer(data=..., epochs=1, device="0,1,2,3") # DDP
-        trainer.train()
-        ```
-
-Learn more about Customizing `Trainers`, `Validators` and `Predictors` to suit your project needs in the Customization Section. More details about the base engine classes is available in the reference section.
-
-[Customization tutorials](#){ .md-button .md-button--primary}
+[Customization tutorials](engine.md){ .md-button .md-button--primary}

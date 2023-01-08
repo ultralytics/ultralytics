@@ -81,14 +81,7 @@ nav:
   - CLI: cli.md
   - Python Interface: sdk.md
   - Configuration: config.md
-  - Tasks:
-      - Detection: tasks/detection.md
-      - Segmentation: tasks/segmentation.md
-      - Classification: tasks/classification.md
-  - Advanced Tutorials:
-      - Customize Trainer: customize/train.md
-      - Customize Validator: customize/val.md
-      - Customize Predictor: customize/predict.md
+  - Customization Guide: engine.md
   - Reference:
       - Python Model interface: reference/model.md
       - Engine:

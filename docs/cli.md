@@ -3,10 +3,10 @@ If you want to train, validate or run inference on models and don't need to make
 
 !!! tip "Syntax"
     ```bash
-    yolo task=detect    mode=train  model=s.yaml    epochs=1 ...
+    yolo task=detect    mode=train    model=yolov8n.yaml    epochs=1 ...
                 ...           ...           ...
-              segment        infer        s-cls.pt
-              classify        val         s-seg.pt
+              segment        predict        yolov8n-seg.pt
+              classify        val           yolov8n-cls.pt
     ```
 
 The experiment arguments can be overridden directly by pass `arg=val` covered in the next section. You can run any supported task by setting `task` and `mode` in cli.
@@ -18,13 +18,13 @@ The experiment arguments can be overridden directly by pass `arg=val` covered in
 |  Instance Segment  |  `segment`  | <pre><code>yolo task=segment mode=train      </code></pre>  |
 |  Classification|  `classify` | <pre><code>yolo task=classify mode=train    </code></pre>   |
 
-=== "Inference"
+=== "Prediction"
 
 |                | `task`      | snippet                                                  |
 | -----------    | -------------   | ------------------------------------------------------------ |
-|  Detection     |  `detect`   | <pre><code>yolo task=detect mode=infer       </code></pre>   |
-|  Instance Segment  |  `segment`  | <pre><code>yolo task=segment mode=infer     </code></pre>|
-|  Classification|  `classify` | <pre><code>yolo task=classify mode=infer    </code></pre>|
+|  Detection     |  `detect`   | <pre><code>yolo task=detect mode=predict       </code></pre>   |
+|  Instance Segment  |  `segment`  | <pre><code>yolo task=segment mode=predict     </code></pre>|
+|  Classification|  `classify` | <pre><code>yolo task=classify mode=predict    </code></pre>|
 
 === "Validation"
 

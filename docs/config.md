@@ -46,7 +46,7 @@ include train, val, and predict.
 | model  | null     | Set the model. Format can differ for task type. Supports `model_name`, `model.yaml` & `model.pt`                                                                                                      |
 | data   | null     | Set the data. Format can differ for task type. Supports `data.yaml`, `data_folder`, `dataset_name`                                                                                                    |
 
-### Training settings
+### Training
 
 Training settings for YOLO models refer to the various hyperparameters and configurations used to train the model on a
 dataset. These settings can affect the model's performance, speed, and accuracy. Some common YOLO training settings
@@ -88,7 +88,7 @@ task.
 | mask_ratio      | 4       | **Segmentation**: Set mask downsampling                                     |
 | dropout         | `False` | **Classification**: Use dropout while training                              |
 
-### Prediction Settings
+### Prediction
 
 Prediction settings for YOLO models refer to the various hyperparameters and configurations used to make predictions
 with the model on new data. These settings can affect the model's performance, speed, and accuracy. Some common YOLO
@@ -114,7 +114,7 @@ given task.
 | agnostic_nms   | `False`              | Class-agnostic NMS                              |
 | retina_masks   | `False`              | **Segmentation:** High resolution masks         |
 
-### Validation settings
+### Validation
 
 Validation settings for YOLO models refer to the various hyperparameters and configurations used to
 evaluate the model's performance on a validation dataset. These settings can affect the model's performance, speed, and
@@ -147,7 +147,7 @@ the specific task the model is being used for and the requirements or constraint
 It is important to carefully consider and configure these settings to ensure that the exported model is optimized for
 the intended use case and can be used effectively in the target environment.
 
-### Augmentation settings
+### Augmentation
 
 Augmentation settings for YOLO models refer to the various transformations and modifications
 applied to the training data to increase the diversity and size of the dataset. These settings can affect the model's

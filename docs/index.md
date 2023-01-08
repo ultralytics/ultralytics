@@ -6,6 +6,7 @@
   <a href="https://colab.research.google.com/github/glenn-jocher/glenn-jocher.github.io/blob/main/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
   <a href="https://www.kaggle.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 <br>
+<br>
 </div>
 
 # Welcome to Ultralytics YOLOv8
@@ -23,7 +24,7 @@ Whether you are a seasoned machine learning practitioner or new to the field, we
 will help you get the most out of YOLOv8. Please feel free to browse the documentation and reach out to us with any
 questions or feedback.
 
-### A Brief History of YOLO
+## A Brief History of YOLO
 
 YOLO (You Only Look Once) is a popular object detection and image segmentation model developed by Joseph Redmon and Ali
 Farhadi at the University of Washington. The first version of YOLO was released in 2015 and quickly gained popularity
@@ -49,7 +50,7 @@ For more information about the history and development of YOLO, you can refer to
   conference on computer vision and pattern recognition (pp. 779-788).
 - Redmon, J., & Farhadi, A. (2016). YOLO9000: Better, faster, stronger. In Proceedings
 
-### Ultralytics YOLOv8
+## Ultralytics YOLOv8
 
 YOLOv8 is the latest version of the YOLO object detection and image segmentation model developed by
 Ultralytics. YOLOv8 is a cutting-edge, state-of-the-art (SOTA) model that builds upon the success of previous YOLO

@@ -85,7 +85,8 @@ class ClassificationTrainer(BaseTrainer):
 
     def criterion(self, preds, batch):
         loss = torch.nn.functional.cross_entropy(preds, batch["cls"])
-        return loss, loss
+        loss_items = loss.detach()
+        return loss, loss_items
 
     # def label_loss_items(self, loss_items=None, prefix="train"):
     #     """
@@ -109,12 +110,12 @@ class ClassificationTrainer(BaseTrainer):
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def train(cfg):
     cfg.model = cfg.model or "yolov8n-cls.yaml"  # or "resnet18"
-    cfg.data = cfg.data or "imagenette160"  # or yolo.ClassificationDataset("mnist")
-    # trainer = ClassificationTrainer(cfg)
-    # trainer.train()
-    from ultralytics import YOLO
-    model = YOLO(cfg.model)
-    model.train(**cfg)
+    cfg.data = cfg.data or "mnist160"  # or yolo.ClassificationDataset("mnist")
+    trainer = ClassificationTrainer(cfg)
+    trainer.train()
+    #from ultralytics import YOLO
+    #model = YOLO(cfg.model)
+    #model.train(**cfg)
 
 
 if __name__ == "__main__":

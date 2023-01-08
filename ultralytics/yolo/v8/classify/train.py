@@ -1,3 +1,5 @@
+import os
+
 import hydra
 import torch
 import torchvision
@@ -7,6 +9,8 @@ from ultralytics.yolo import v8
 from ultralytics.yolo.data import build_classification_dataloader
 from ultralytics.yolo.engine.trainer import BaseTrainer
 from ultralytics.yolo.utils import DEFAULT_CONFIG
+
+WORLD_SIZE = int(os.getenv('WORLD_SIZE', 1))
 
 
 class ClassificationTrainer(BaseTrainer):
@@ -85,7 +89,7 @@ class ClassificationTrainer(BaseTrainer):
         return v8.classify.ClassificationValidator(self.test_loader, self.save_dir, logger=self.console)
 
     def criterion(self, preds, batch):
-        loss = torch.nn.functional.cross_entropy(preds, batch["cls"])
+        loss = torch.nn.functional.cross_entropy(preds, batch["cls"]) / WORLD_SIZE
         loss_items = loss.detach()
         return loss, loss_items
 

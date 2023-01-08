@@ -73,7 +73,7 @@ class ClassificationTrainer(BaseTrainer):
                                                imgsz=self.args.imgsz,
                                                batch_size=batch_size if mode == "train" else (batch_size * 2),
                                                augment=mode == "train",
-                                               rank=rank if mode == "train" else -1)
+                                               rank=rank)
 
     def preprocess_batch(self, batch):
         batch["img"] = batch["img"].to(self.device)

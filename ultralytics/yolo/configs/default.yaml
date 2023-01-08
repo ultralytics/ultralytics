@@ -33,7 +33,7 @@ resume: False # resume training from last checkpoint
 overlap_mask: True # masks should overlap during training
 mask_ratio: 4 # mask downsample ratio
 # Classification
-dropout: False # use dropout regularization
+dropout: 0.0  # use dropout regularization
 
 # Val/Test settings ----------------------------------------------------------------------------------------------------
 val: True # validate/test during training

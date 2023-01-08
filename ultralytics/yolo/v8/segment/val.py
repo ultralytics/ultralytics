@@ -119,7 +119,8 @@ class SegmentationValidator(DetectionValidator):
             # Save
             if self.args.save_json:
                 pred_masks = ops.scale_image(batch["img"][si].shape[1:],
-                                             pred_masks.permute(1, 2, 0).contiguous().cpu().numpy(), shape, 
+                                             pred_masks.permute(1, 2, 0).contiguous().cpu().numpy(),
+                                             shape,
                                              ratio_pad=batch["ratio_pad"][si])
                 self.pred_to_json(predn, batch["im_file"][si], pred_masks)
             # if self.args.save_txt:

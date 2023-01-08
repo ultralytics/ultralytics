@@ -27,7 +27,7 @@ class ClassificationValidator(BaseValidator):
 
     def update_metrics(self, preds, batch):
         targets = batch["cls"]
-        correct_in_batch = (targets[:, None] == preds).float()
+        correct_in_batch = (targets == preds.argmax(1)).view(-1, 1).float()
         self.correct = torch.cat((self.correct, correct_in_batch))
 
     def get_stats(self):

@@ -68,9 +68,9 @@ class AutoBackend(nn.Module):
         elif pt:  # PyTorch
             from ultralytics.nn.tasks import attempt_load_weights
             model = attempt_load_weights(weights if isinstance(weights, list) else w,
-                                               device=device,
-                                               inplace=True,
-                                               fuse=fuse)
+                                         device=device,
+                                         inplace=True,
+                                         fuse=fuse)
             stride = max(int(model.stride.max()), 32)  # model stride
             names = model.module.names if hasattr(model, 'module') else model.names  # get class names
             model.half() if fp16 else model.float()

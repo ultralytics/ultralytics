@@ -317,7 +317,8 @@ class BaseTrainer:
 
                 self.run_callbacks("on_train_batch_end")
 
-            lr = {f"lr{ir}": x['lr'] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers
+            self.lr = {f"lr/pg{ir}": x['lr'] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers
+
             self.scheduler.step()
             self.run_callbacks("on_train_epoch_end")
 
@@ -328,7 +329,7 @@ class BaseTrainer:
                 final_epoch = (epoch + 1 == self.epochs)
                 if self.args.val or final_epoch:
                     self.metrics, self.fitness = self.validate()
-                self.save_metrics(metrics={**self.label_loss_items(self.tloss), **self.metrics, **lr})
+                self.save_metrics(metrics={**self.label_loss_items(self.tloss), **self.metrics, **self.lr})
 
                 # Save model
                 if self.args.save or (epoch + 1 == self.epochs):

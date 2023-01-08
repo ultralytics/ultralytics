@@ -25,6 +25,7 @@ def on_fit_epoch_end(trainer):
 
 def on_train_epoch_end(trainer):
     wandb.run.log(trainer.label_loss_items(trainer.tloss, prefix="train"), step=trainer.epoch + 1)
+    wandb.run.log(trainer.lr, step=trainer.epoch + 1)
     if trainer.epoch == 1:
         wandb.run.log({f.stem: wandb.Image(str(f))
                        for f in trainer.save_dir.glob('train_batch*.jpg')},

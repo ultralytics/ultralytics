@@ -1,7 +1,8 @@
 import hydra
 import torch
+import torchvision
 
-from ultralytics.nn.tasks import ClassificationModel, get_model
+from ultralytics.nn.tasks import ClassificationModel, attempt_load_weights
 from ultralytics.yolo import v8
 from ultralytics.yolo.data import build_classification_dataloader
 from ultralytics.yolo.engine.trainer import BaseTrainer
@@ -10,29 +11,48 @@ from ultralytics.yolo.utils import DEFAULT_CONFIG
 
 class ClassificationTrainer(BaseTrainer):
 
+    def __init__(self, config=DEFAULT_CONFIG, overrides=None):
+        if overrides is None:
+            overrides = {}
+        overrides["task"] = "classify"
+        super().__init__(config, overrides)
+
     def set_model_attributes(self):
         self.model.names = self.data["names"]
 
-    def load_model(self, model_cfg=None, weights=None, verbose=True):
-        # TODO: why treat clf models as unique. We should have clf yamls? YES WE SHOULD!
-        if isinstance(weights, dict):  # yolo ckpt
-            weights = weights["model"]
-        if weights and not weights.__class__.__name__.startswith("yolo"):  # torchvision
-            model = weights
-        else:
-            model = ClassificationModel(model_cfg, weights, self.data["nc"])
-        ClassificationModel.reshape_outputs(model, self.data["nc"])
-        for m in model.modules():
-            if not weights and hasattr(m, 'reset_parameters'):
-                m.reset_parameters()
-            if isinstance(m, torch.nn.Dropout) and self.args.dropout is not None:
-                m.p = self.args.dropout  # set dropout
-        for p in model.parameters():
-            p.requires_grad = True  # for training
+    def get_model(self, cfg=None, weights=None):
+        model = ClassificationModel(cfg, nc=self.data["nc"])
+        if weights:
+            model.load(weights)
+
+        # Update defaults
+        if self.args.imgsz == 640:
+            self.args.imgsz = 224
+
         return model
 
-    def load_ckpt(self, ckpt):
-        return get_model(ckpt)
+    def setup_model(self):
+        """
+        load/create/download model for any task
+        """
+        # classification models require special handling
+
+        if isinstance(self.model, torch.nn.Module):  # if model is loaded beforehand. No setup needed
+            return
+
+        model = str(self.model)
+        # Load a YOLO model locally, from torchvision, or from Ultralytics assets
+        if model.endswith(".pt"):
+            self.model = attempt_load_weights(model, device='cpu')
+        elif model.endswith(".yaml"):
+            self.model = self.get_model(cfg=model)
+        elif model in torchvision.models.__dict__:
+            pretrained = True
+            self.model = torchvision.models.__dict__[model](weights='IMAGENET1K_V1' if pretrained else None)
+        else:
+            FileNotFoundError(f'ERROR: model={model} not found locally or online. Please check model name.')
+
+        return  # dont return ckpt. Classification doesn't support resume
 
     def get_dataloader(self, dataset_path, batch_size, rank=0, mode="train"):
         return build_classification_dataloader(path=dataset_path,
@@ -45,15 +65,16 @@ class ClassificationTrainer(BaseTrainer):
         batch["cls"] = batch["cls"].to(self.device)
         return batch
 
+    def progress_string(self):
+        return ('\n' + '%11s' *
+                (4 + len(self.loss_names))) % ('Epoch', 'GPU_mem', *self.loss_names, 'Instances', 'Size')
+
     def get_validator(self):
         return v8.classify.ClassificationValidator(self.test_loader, self.save_dir, logger=self.console)
 
     def criterion(self, preds, batch):
         loss = torch.nn.functional.cross_entropy(preds, batch["cls"])
         return loss, loss
-
-    def check_resume(self):
-        pass
 
     def resume_training(self, ckpt):
         pass
@@ -64,10 +85,13 @@ class ClassificationTrainer(BaseTrainer):
 
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def train(cfg):
-    cfg.model = cfg.model or "resnet18"
+    cfg.model = cfg.model or "yolov8n-cls.yaml"  # or "resnet18"
     cfg.data = cfg.data or "imagenette160"  # or yolo.ClassificationDataset("mnist")
-    trainer = ClassificationTrainer(cfg)
-    trainer.train()
+    # trainer = ClassificationTrainer(cfg)
+    # trainer.train()
+    from ultralytics import YOLO
+    model = YOLO(cfg.model)
+    model.train(**cfg)
 
 
 if __name__ == "__main__":

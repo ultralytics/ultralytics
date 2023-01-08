@@ -76,8 +76,8 @@ class ClassificationTrainer(BaseTrainer):
         return batch
 
     def progress_string(self):
-        return ('\n' + '%11s' *
-                (4 + len(self.loss_names))) % ('Epoch', 'GPU_mem', *self.loss_names, 'Instances', 'Size')
+        return ('\n' + '%11s' * (4 + len(self.loss_names))) % \
+            ('Epoch', 'GPU_mem', *self.loss_names, 'Instances', 'Size')
 
     def get_validator(self):
         self.loss_names = ['loss']
@@ -114,6 +114,7 @@ def train(cfg):
     cfg.lr0 = 0.1
     cfg.weight_decay = 5e-5
     cfg.label_smoothing = 0.1
+    cfg.warmup_epochs = 0.0
     trainer = ClassificationTrainer(cfg)
     trainer.train()
     # from ultralytics import YOLO

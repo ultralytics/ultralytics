@@ -23,7 +23,7 @@ class ClassificationTrainer(BaseTrainer):
     def get_model(self, cfg=None, weights=None, verbose=True):
         model = ClassificationModel(cfg, nc=self.data["nc"])
 
-        pretrained=False
+        pretrained = False
         for m in model.modules():
             if not pretrained and hasattr(m, 'reset_parameters'):
                 m.reset_parameters()

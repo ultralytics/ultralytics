@@ -20,6 +20,10 @@
 
 [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) is the latest version of the YOLO object detection and image segmentation model developed by [Ultralytics](https://ultralytics.com). YOLOv8 is a cutting-edge, state-of-the-art (SOTA) model that builds upon the success of previous YOLO versions and introduces new features and improvements to further boost performance and flexibility.
 
+The YOLOv8 models are designed to be fast, accurate, and easy to use, making them an excellent choice for a wide range of object detection, image segmentation and image classification tasks.
+
+Whether you are a seasoned machine learning practitioner or new to the field, we hope that the resources on this page will help you get the most out of YOLOv8.
+
 <div align="center">
     <a href="https://github.com/ultralytics" style="text-decoration:none;">
       <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-github.png" width="2%" alt="" /></a>
@@ -93,6 +97,13 @@ Ultralytics [release](https://github.com/ultralytics/ultralytics/releases).
 
 ## <div align="center">Checkpoints</div>
 
+All YOLOv8 pretrained models are available here. Detection and Segmentation models are pretrained on the COCO dataset, while Classification models are pretrained on the ImageNet dataset. 
+
+[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/yolo/v8/models) download automatically from the latest
+Ultralytics [release](https://github.com/ultralytics/ultralytics/releases) on first use.
+
+### Detection
+
 | Model                                                                                     | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU<br>(ms) | Speed<br><sup>T4 GPU<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 | ----------------------------------------------------------------------------------------- | --------------------- | -------------------- | ------------------------- | ---------------------------- | ------------------ | ----------------- |
 | [YOLOv8n](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8n.pt) | 640                   | 37.3                 | -                         | -                            | 3.2                | 8.9               |
@@ -106,17 +117,21 @@ Ultralytics [release](https://github.com/ultralytics/ultralytics/releases).
 
 - To reproduce these results:
   ```commandline
-  sleep 0 && yolo task=detect mode=train device=0 model=yolov8n.yaml data=coco.yaml epochs=500 batch=128 project=YOLOv8 name=yolov8n v5loader=True cache=disk > /dev/null 2>&1 &
-  sleep 2 && yolo task=detect mode=train device=1 model=yolov8s.yaml data=coco.yaml epochs=500 batch=128 project=YOLOv8 name=yolov8s v5loader=True cache=disk > /dev/null 2>&1 &
-  sleep 4 && yolo task=detect mode=train device=2 model=yolov8m.yaml data=coco.yaml epochs=500 batch=128 project=YOLOv8 name=yolov8m v5loader=True cache=disk scale=0.9 mixup=0.1 copy_paste=0.1 > /dev/null 2>&1 &
-  sleep 6 && yolo task=detect mode=train device=\'3,4\' model=yolov8l.yaml data=coco.yaml epochs=300 batch=128 project=YOLOv8 name=yolov8l v5loader=True cache=disk scale=0.9 mixup=0.15 copy_paste=0.3 > /dev/null 2>&1 &
-  sleep 8 && yolo task=detect mode=train device=\'5,6,7\' model=yolov8x.yaml data=coco.yaml epochs=300 batch=129 project=YOLOv8 name=yolov8x v5loader=True cache=disk scale=0.9 mixup=0.15 copy_paste=0.3 > /dev/null 2>&1 &
-  sleep 0 && yolo task=detect mode=train device=\'0,1,2,3,4,5,6,7\' model=yolov8x6.yaml data=coco.yaml epochs=300 batch=128 project=YOLOv8 name=yolov8x6 v5loader=True cache=disk scale=0.9 mixup=0.15 copy_paste=0.3 imgsz=1280 > /dev/null 2>&1 &
+  yolo task=detect mode=train device=0 model=yolov8n.yaml data=coco.yaml epochs=500 batch=128 project=YOLOv8 name=yolov8n v5loader=True cache=disk > /dev/null 2>&1 &
+  yolo task=detect mode=train device=1 model=yolov8s.yaml data=coco.yaml epochs=500 batch=128 project=YOLOv8 name=yolov8s v5loader=True cache=disk > /dev/null 2>&1 &
+  yolo task=detect mode=train device=2 model=yolov8m.yaml data=coco.yaml epochs=500 batch=128 project=YOLOv8 name=yolov8m v5loader=True cache=disk scale=0.9 mixup=0.1 copy_paste=0.1 > /dev/null 2>&1 &
+  yolo task=detect mode=train device=\'3,4\' model=yolov8l.yaml data=coco.yaml epochs=300 batch=128 project=YOLOv8 name=yolov8l v5loader=True cache=disk scale=0.9 mixup=0.15 copy_paste=0.3 > /dev/null 2>&1 &
+  yolo task=detect mode=train device=\'5,6,7\' model=yolov8x.yaml data=coco.yaml epochs=300 batch=129 project=YOLOv8 name=yolov8x v5loader=True cache=disk scale=0.9 mixup=0.15 copy_paste=0.3 > /dev/null 2>&1 &
   ```
 - **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](http://cocodataset.org) dataset.<br>Reproduce by `python val.py --data coco.yaml --img 640 --conf 0.001 --iou 0.65`
 - **Speed** averaged over COCO val images using a [AWS p3.2xlarge](https://aws.amazon.com/ec2/instance-types/p3/) instance. NMS times (~1 ms/img) not included.<br>Reproduce by `python val.py --data coco.yaml --img 640 --task speed --batch 1`
 
 </details>
+
+### Segmentation
+
+### Classification
+
 
 ## <div align="center">Integrations</div>
 

@@ -118,6 +118,7 @@ class YOLO:
             **kwargs : Any other args accepted by the predictors. To see all args check 'configuration' section in docs
         """
         overrides = self.overrides.copy()
+        overrides["conf"] = 0.25
         overrides.update(kwargs)
         overrides["mode"] = "predict"
         predictor = self.PredictorClass(overrides=overrides)

@@ -138,7 +138,7 @@ Ultralytics [release](https://github.com/ultralytics/ultralytics/releases) on fi
 
 <details><summary>Classification</summary>
 
-| Model                                                                                         | size<br><sup>(pixels) | acc<br><sup>top1 | acc<br><sup>top5 | Speed<br><sup>CPU<br>(ms) | Speed<br><sup>T4 GPU<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B at 640) |
+| Model                                                                                         | size<br><sup>(pixels) | acc<br><sup>top1 | acc<br><sup>top5 | Speed<br><sup>CPU<br>(ms) | Speed<br><sup>T4 GPU<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
 | --------------------------------------------------------------------------------------------- | --------------------- | ---------------- | ---------------- | ------------------------- | ---------------------------- | ------------------ | ------------------------ |
 | [YOLOv8n](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8n-cls.pt) | 224                   |                  |                  | -                         | -                            | 2.7                | 4.3                      |
 | [YOLOv8s](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8s-cls.pt) | 224                   |                  |                  | -                         | -                            | 6.4                | 13.5                     |

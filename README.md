@@ -49,7 +49,7 @@
 See below for quickstart intallation and usage example, and see the [YOLOv8 Docs](https://docs.ultralytics.com) for full documentation on training, validation, prediction and deployment.
 
 <details open>
-<summary>Quickstart</summary>
+<summary>Install</summary>
 
 Pip install the ultralytics package including all [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) in a
 [**Python>=3.7.0**](https://www.python.org/) environment, including

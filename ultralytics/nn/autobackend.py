@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license
+
 import json
 import platform
 from collections import OrderedDict, namedtuple

@@ -1,4 +1,4 @@
-# YOLOv5 🚀 by Ultralytics, GPL-3.0 license
+# Ultralytics YOLO 🚀, GPL-3.0 license
 # COCO 2017 dataset http://cocodataset.org by Microsoft
 # Example usage: python train.py --data coco.yaml
 # parent

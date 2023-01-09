@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license
+
 __version__ = "8.0.0"
 
 from ultralytics.hub import checks

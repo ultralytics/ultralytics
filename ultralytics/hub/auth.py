@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license
+
 import requests
 
 from ultralytics.hub.utils import HUB_API_ROOT, request_with_credentials

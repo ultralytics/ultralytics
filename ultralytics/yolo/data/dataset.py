@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license
+
 from itertools import repeat
 from multiprocessing.pool import Pool
 from pathlib import Path

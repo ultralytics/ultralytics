@@ -7,6 +7,7 @@ from ultralytics.yolo import v8
 from ultralytics.yolo.data import build_classification_dataloader
 from ultralytics.yolo.engine.trainer import BaseTrainer
 from ultralytics.yolo.utils import DEFAULT_CONFIG
+from ultralytics.yolo.utils.torch_utils import strip_optimizer
 
 
 class ClassificationTrainer(BaseTrainer):
@@ -117,7 +118,16 @@ class ClassificationTrainer(BaseTrainer):
         pass
 
     def final_eval(self):
-        pass
+        for f in self.last, self.best:
+            if f.exists():
+                strip_optimizer(f)  # strip optimizers
+                # TODO: validate best.pt after training completes
+                # if f is self.best:
+                #     self.console.info(f'\nValidating {f}...')
+                #     self.validator.args.save_json = True
+                #     self.metrics = self.validator(model=f)
+                #     self.metrics.pop('fitness', None)
+                #     self.run_callbacks('on_fit_epoch_end')
 
 
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)

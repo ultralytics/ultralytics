@@ -35,7 +35,7 @@ This is the simplest way of simply using yolo models in a python environment. It
 
     model = YOLO("model.pt")
     model.predict(source="0") # accepts all formats - img/folder/vid.*(mp4/format). 0 for webcam
-    model.predict(source="folder", view_img=True) # Display preds. Accepts all yolo predict arguments
+    model.predict(source="folder", show=True) # Display preds. Accepts all yolo predict arguments
 
     ```
 

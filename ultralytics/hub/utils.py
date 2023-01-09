@@ -5,7 +5,7 @@ import time
 import requests
 
 from ultralytics.hub.config import HUB_API_ROOT
-from ultralytics.yolo.utils import DEFAULT_CONFIG_DICT, LOGGER, RANK, SETTINGS, colorstr, emojis
+from ultralytics.yolo.utils import DEFAULT_CONFIG_DICT, LOGGER, RANK, SETTINGS, TryExcept, colorstr, emojis
 
 PREFIX = colorstr('Ultralytics: ')
 HELP_MSG = 'If this issue persists please visit https://github.com/ultralytics/hub/issues for assistance.'
@@ -125,7 +125,8 @@ def smart_request(*args, retry=3, timeout=30, thread=True, code=-1, method="post
         return func(*args, **kwargs)
 
 
-def sync_analytics(cfg, all_keys=False, enabled=False):
+@TryExcept()
+def sync_analytics(cfg, all_keys=False, enabled=True):
     """
    Sync analytics data if enabled in the global settings
 

@@ -72,7 +72,7 @@ def split_key(key=''):
     return api_key, model_id
 
 
-def smart_request(*args, retry=3, timeout=30, thread=True, code=-1, method="post", **kwargs):
+def smart_request(*args, retry=3, timeout=30, thread=True, code=-1, method="post", verbose=True, **kwargs):
     """
     Makes an HTTP request using the 'requests' library, with exponential backoff retries up to a specified timeout.
 
@@ -83,6 +83,7 @@ def smart_request(*args, retry=3, timeout=30, thread=True, code=-1, method="post
         thread (bool, optional): Whether to execute the request in a separate daemon thread. Default is True.
         code (int, optional): An identifier for the request, used for logging purposes. Default is -1.
         method (str, optional): The HTTP method to use for the request. Choices are 'post' and 'get'. Default is 'post'.
+        verbose (bool, optional): A flag to determine whether to print out to console or not. Default is True.
         **kwargs: Keyword arguments to be passed to the requests function specified in method.
 
     Returns:
@@ -111,7 +112,8 @@ def smart_request(*args, retry=3, timeout=30, thread=True, code=-1, method="post
                     h = r.headers  # response headers
                     m = f"Rate limit reached ({h['X-RateLimit-Remaining']}/{h['X-RateLimit-Limit']}). " \
                         f"Please retry after {h['Retry-After']}s."
-                LOGGER.warning(f"{PREFIX}{m} {HELP_MSG} ({r.status_code} #{code})")
+                if verbose:
+                    LOGGER.warning(f"{PREFIX}{m} {HELP_MSG} ({r.status_code} #{code})")
                 if r.status_code not in retry_codes:
                     return r
             time.sleep(2 ** i)  # exponential standoff
@@ -139,4 +141,4 @@ def sync_analytics(cfg, all_keys=False, enabled=False):
         cfg['uuid'] = SETTINGS['uuid']  # add the device UUID to the configuration data
 
         # Send a request to the HUB API to sync the analytics data
-        smart_request(f'{HUB_API_ROOT}/v1/usage/anonymous', data=cfg, headers=None, code=3, retry=0)
+        smart_request(f'{HUB_API_ROOT}/v1/usage/anonymous', data=cfg, headers=None, code=3, retry=0, verbose=False)

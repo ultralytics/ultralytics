@@ -216,7 +216,7 @@ def check_file(file, suffix=''):
         return file
     else:  # search
         files = []
-        for d in 'data', 'v8', 'utils':  # search directories
+        for d in 'data', 'v8', 'utils', '../models':  # search directories
             files.extend(glob.glob(str(ROOT / "yolo" / d / '**' / file), recursive=True))  # find file
         assert len(files), f'File not found: {file}'  # assert file was found
         assert len(files) == 1, f"Multiple files match '{file}', specify exact path: {files}"  # assert unique

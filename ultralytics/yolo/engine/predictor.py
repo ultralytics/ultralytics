@@ -167,7 +167,7 @@ class BasePredictor:
             # postprocess
             with self.dt[2]:
                 preds = self.postprocess(preds, im, im0s)
-                
+
             for i in range(len(im)):
                 if self.webcam:
                     path, im0s = path[i], im0s[i]

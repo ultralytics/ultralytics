@@ -101,6 +101,8 @@ Ultralytics [release](https://github.com/ultralytics/ultralytics/releases).
 
 ### Known Issues / TODOs
 
+We are still working on several parts of YOLOv8! We aim to have these completed soon to bring the YOLOv8 feature set up to par with YOLOv5, including export and inference to all the same formats. We are also writing a YOLOv8 paper which we will submit to [arxiv.org](https://arxiv.org) once complete.
+
 - [ ] TensorFlow exports
 - [ ] DDP resume
 - [ ] [arxiv.org](https://arxiv.org) paper

@@ -59,7 +59,7 @@ class SegLoss(Loss):
 
     def __init__(self, model, overlap=True):  # model must be de-paralleled
         super().__init__(model)
-        self.nm = model.model[-1]  # number of masks
+        self.nm = model.model[-1].nm  # number of masks
         self.overlap = overlap
 
     def __call__(self, preds, batch):
@@ -126,8 +126,8 @@ class SegLoss(Loss):
 
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.box / batch_size  # seg gain
-        loss[1] *= self.hyp.cls  # cls gain
-        loss[2] *= self.hyp.dfl  # dfl gain
+        loss[2] *= self.hyp.cls  # cls gain
+        loss[3] *= self.hyp.dfl  # dfl gain
 
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
 

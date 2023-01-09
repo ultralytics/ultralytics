@@ -86,7 +86,7 @@ yolo task=detect    mode=train    model=yolov8n.pt        args...
                          export         yolov8n.pt        format=onnx  args...
 ```
 
-[Models](https://github.com/ultralytics/yolov5/tree/master/models) download automatically from the latest
+[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/yolo/v8/models) download automatically from the latest
 Ultralytics [release](https://github.com/ultralytics/ultralytics/releases).
 
 </details>
@@ -160,7 +160,7 @@ Run YOLOv8 models on your iOS or Android device by downloading the [Ultralytics 
 
 ## <div align="center">Contribute</div>
 
-We love your input! We want to make contributing to YOLOv8 as easy and transparent as possible. Please see our [Contributing Guide](ONTRIBUTING.md) to get started, and fill out our [Survey](https://ultralytics.com/survey?utm_source=github&utm_medium=social&utm_campaign=Survey) to send us feedback on your experience. Thank you to all our contributors!
+We love your input! We want to make contributing to YOLOv8 as easy and transparent as possible. Please see our [Contributing Guide](CONTRIBUTING.md) to get started, and fill out our [Survey](https://ultralytics.com/survey?utm_source=github&utm_medium=social&utm_campaign=Survey) to send us feedback on your experience. Thank you to all our contributors!
 
 <!-- SVG image from https://opencollective.com/ultralytics/contributors.svg?width=990 -->
 
@@ -175,7 +175,7 @@ YOLOv8 is available under two different licenses:
 
 ## <div align="center">Contact</div>
 
-For YOLOv8 bugs and feature requests please visit [GitHub Issues](https://github.com/ultralytics/yolov5/issues). For professional support please [Contact Us](https://ultralytics.com/contact).
+For YOLOv8 bugs and feature requests please visit [GitHub Issues](https://github.com/ultralytics/ultralytics/issues). For professional support please [Contact Us](https://ultralytics.com/contact).
 
 <br>
 <div align="center">

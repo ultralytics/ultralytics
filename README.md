@@ -22,8 +22,6 @@
 
 The YOLOv8 models are designed to be fast, accurate, and easy to use, making them an excellent choice for a wide range of object detection, image segmentation and image classification tasks.
 
-Whether you are a seasoned machine learning practitioner or new to the field, we hope that the resources on this page will help you get the most out of YOLOv8.
-
 <div align="center">
     <a href="https://github.com/ultralytics" style="text-decoration:none;">
       <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-github.png" width="2%" alt="" /></a>

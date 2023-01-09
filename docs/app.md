@@ -10,6 +10,8 @@ Welcome to the Ultralytics HUB app for demonstrating YOLOv5 and YOLOv8 models! I
 Store and the Google Play Store, you will be able to see the power and capabilities of YOLOv5, a state-of-the-art object
 detection model developed by Ultralytics.
 
+The App currently features YOLOv5 models, with YOLOv8 models coming soon.
+
 With YOLOv5, you can detect and classify objects in images and videos with high accuracy and speed. The model has been
 trained on a large dataset and is able to detect a wide range of objects, including cars, pedestrians, and traffic
 signs.

@@ -218,6 +218,8 @@ class Exporter:
         if coreml:  # CoreML
             f[4], _ = self._export_coreml()
         if any((saved_model, pb, tflite, edgetpu, tfjs)):  # TensorFlow formats
+            raise NotImplementedError('YOLOv8 TensorFlow export support is still under development. '
+                                      'Please consider contributing to the effort if you have TF expertise. Thank you!')
             assert not isinstance(model, ClassificationModel), 'ClassificationModel TF exports not yet supported.'
             nms = False
             f[5], s_model = self._export_saved_model(nms=nms or self.args.agnostic_nms or tfjs,

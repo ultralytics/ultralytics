@@ -93,6 +93,13 @@ yolo task=detect    mode=train    model=yolov8n.pt        args...
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/yolo/v8/models) download automatically from the latest
 Ultralytics [release](https://github.com/ultralytics/ultralytics/releases).
 
+### Known Issues / TODOs
+
+- [ ] TensorFlow exports
+- [ ] GPU exports
+- [ ] DDP resume
+
+
 </details>
 
 ## <div align="center">Checkpoints</div>

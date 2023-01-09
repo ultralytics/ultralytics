@@ -50,7 +50,7 @@ class BaseDataset(Dataset):
         if self.single_cls:
             self.update_labels(include_class=[])
 
-        self.ni = len(self.im_files)
+        self.ni = len(self.labels)
 
         # rect stuff
         self.rect = rect

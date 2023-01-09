@@ -2,7 +2,7 @@
 
 Install YOLOv8 via the `ultralytics` pip package for the latest stable release or by cloning the [https://github.com/ultralytics/ultralytics](https://github.com/ultralytics/ultralytics) repository for the most up-to-date version.
 
-!!! note "pip install"
+!!! note "pip install (recommended)"
     ```
     pip install ultralytics
     ```

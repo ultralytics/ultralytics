@@ -67,14 +67,14 @@ class SegmentationPredictor(DetectionPredictor):
             log_string += f"{n} {self.model.names[int(c)]}{'s' * (n > 1)}, "  # add to string
 
         # Mask plotting
-        mcs = self.annotator.masks(
+        self.annotator.masks(
             mask,
             colors=[colors(x, True) for x in det[:, 5]],
             im_gpu=torch.as_tensor(im0, dtype=torch.float16).to(self.device).permute(2, 0, 1).flip(0).contiguous() /
             255 if self.args.retina_masks else im[idx])
 
         det = reversed(det[:, :6])
-        self.all_outputs.append([det, mcs])
+        self.all_outputs.append([det, mask])
 
         # Write results
         for j, (*xyxy, conf, cls) in enumerate(reversed(det[:, :6])):

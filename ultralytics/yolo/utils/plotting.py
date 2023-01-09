@@ -113,6 +113,7 @@ class Annotator:
         if self.pil:
             # convert im back to PIL and update draw
             self.fromarray(self.im)
+        return mcs
 
     def rectangle(self, xy, fill=None, outline=None, width=1):
         # Add rectangle to image (PIL-only)

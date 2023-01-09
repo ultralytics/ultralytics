@@ -150,6 +150,7 @@ class BasePredictor:
         self.run_callbacks("on_predict_start")
         model = self.model if self.done_setup else self.setup(source, model)
         self.seen, self.windows, self.dt = 0, [], (ops.Profile(), ops.Profile(), ops.Profile())
+        self.all_outputs = []
         for batch in self.dataset:
             self.run_callbacks("on_predict_batch_start")
             path, im, im0s, vid_cap, s = batch
@@ -166,7 +167,7 @@ class BasePredictor:
             # postprocess
             with self.dt[2]:
                 preds = self.postprocess(preds, im, im0s)
-
+                
             for i in range(len(im)):
                 if self.webcam:
                     path, im0s = path[i], im0s[i]
@@ -194,6 +195,7 @@ class BasePredictor:
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
 
         self.run_callbacks("on_predict_end")
+        return self.all_outputs
 
     def show(self, p):
         im0 = self.annotator.result()

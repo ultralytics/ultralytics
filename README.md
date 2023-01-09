@@ -68,13 +68,13 @@ pip install ultralytics
 <details open>
 <summary>Usage</summary>
 
-YOLOv8 may be used directly in the Command Line Interface with a `yolo` command:
+YOLOv8 may be used directly in the Command Line Interface (CLI) with a `yolo` command:
 
 ```bash
 yolo task=detect mode=predict model=yolov8n.pt source="https://ultralytics.com/images/bus.jpg"
 ```
 
-`yolo` can be used for a variety of tasks and modes and can pass additional arguments, i.e. `imgsz=640`. For the [full list of available arguments](https://v8docs.ultralytics.com/config/) in the YOLOv8 Docs.
+`yolo` can be used for a variety of tasks and modes and accepts additional arguments, i.e. `imgsz=640`. See a full list of available `yolo` [arguments](https://docs.ultralytics.com/config/) in the YOLOv8 [Docs](https://docs.ultralytics.com).
 
 ```bash
 yolo task=detect    mode=train    model=yolov8n.pt        args...
@@ -83,7 +83,7 @@ yolo task=detect    mode=train    model=yolov8n.pt        args...
                          export         yolov8n.pt        format=onnx  args...
 ```
 
-YOLOv8 may also be used directly in a python environment:
+YOLOv8 may also be used directly in a Python environment, and accepts the same [arguments](https://docs.ultralytics.com/config/) as in the CLI example above:
 
 ```python
 from ultralytics import YOLO

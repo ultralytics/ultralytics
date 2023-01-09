@@ -105,7 +105,7 @@ Ultralytics [release](https://github.com/ultralytics/ultralytics/releases) on fi
 <details open><summary>Detection</summary>
 
 | Model                                                                                     | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU<br>(ms) | Speed<br><sup>T4 GPU<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
-|-------------------------------------------------------------------------------------------|-----------------------|----------------------|---------------------------|------------------------------|--------------------|-------------------|
+| ----------------------------------------------------------------------------------------- | --------------------- | -------------------- | ------------------------- | ---------------------------- | ------------------ | ----------------- |
 | [YOLOv8n](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8n.pt) | 640                   | 37.3                 | -                         | -                            | 3.2                | 8.7               |
 | [YOLOv8s](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8s.pt) | 640                   | 44.9                 | -                         | -                            | 11.2               | 28.6              |
 | [YOLOv8m](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8m.pt) | 640                   | 50.2                 | -                         | -                            | 25.9               | 78.9              |
@@ -122,7 +122,7 @@ Ultralytics [release](https://github.com/ultralytics/ultralytics/releases) on fi
 <details><summary>Segmentation</summary>
 
 | Model                                                                                         | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | Speed<br><sup>CPU<br>(ms) | Speed<br><sup>T4 GPU<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
-|-----------------------------------------------------------------------------------------------|-----------------------|----------------------|-----------------------|---------------------------|------------------------------|--------------------|-------------------|
+| --------------------------------------------------------------------------------------------- | --------------------- | -------------------- | --------------------- | ------------------------- | ---------------------------- | ------------------ | ----------------- |
 | [YOLOv8n](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8n-seg.pt) | 640                   | 36.7                 | 30.5                  | -                         | -                            | 3.4                | 12.6              |
 | [YOLOv8s](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8s-seg.pt) | 640                   | 44.6                 | 36.8                  | -                         | -                            | 11.8               | 42.6              |
 | [YOLOv8m](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8m-seg.pt) | 640                   | 49.9                 | 40.8                  | -                         | -                            | 27.3               | 110.2             |
@@ -139,7 +139,7 @@ Ultralytics [release](https://github.com/ultralytics/ultralytics/releases) on fi
 <details><summary>Classification</summary>
 
 | Model                                                                                         | size<br><sup>(pixels) | acc<br><sup>top1 | acc<br><sup>top5 | Speed<br><sup>CPU<br>(ms) | Speed<br><sup>T4 GPU<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B at 640) |
-|-----------------------------------------------------------------------------------------------|-----------------------|------------------|------------------|---------------------------|------------------------------|--------------------|--------------------------|
+| --------------------------------------------------------------------------------------------- | --------------------- | ---------------- | ---------------- | ------------------------- | ---------------------------- | ------------------ | ------------------------ |
 | [YOLOv8n](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8n-cls.pt) | 224                   |                  |                  | -                         | -                            | 2.7                | 4.3                      |
 | [YOLOv8s](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8s-cls.pt) | 224                   |                  |                  | -                         | -                            | 6.4                | 13.5                     |
 | [YOLOv8m](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8m-cls.pt) | 224                   |                  |                  | -                         | -                            | 17.0               | 42.7                     |

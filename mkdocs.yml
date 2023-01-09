@@ -4,7 +4,7 @@ repo_name: Ultralytics
 
 theme:
   name: "material"
-  logo: assets/logo.png
+  logo: https://github.com/ultralytics/assets/raw/main/logo/Ultralytics-logomark-white.png
   icon:
     repo: fontawesome/brands/github
     admonition:
@@ -82,6 +82,7 @@ nav:
   - Python Interface: sdk.md
   - Configuration: config.md
   - Customization Guide: engine.md
+  - iOS and Android App: app.md
   - Reference:
       - Python Model interface: reference/model.md
       - Engine:

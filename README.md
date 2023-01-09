@@ -100,7 +100,6 @@ Ultralytics [release](https://github.com/ultralytics/ultralytics/releases).
 - [ ] DDP resume
 - [ ] [arxiv.org](https://arxiv.org) paper
 
-
 </details>
 
 ## <div align="center">Checkpoints</div>

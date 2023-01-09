@@ -93,7 +93,6 @@ def smart_request(*args, retry=3, timeout=30, thread=True, code=-1, method="post
         requests.Response: The HTTP response object. If the request is executed in a separate thread, returns None.
     """
     retry_codes = (408, 500)  # retry only these codes
-    methods = {'post': requests.post, 'get': requests.get}  # request methods
 
     def func(*func_args, **func_kwargs):
         r = None  # response
@@ -101,7 +100,10 @@ def smart_request(*args, retry=3, timeout=30, thread=True, code=-1, method="post
         for i in range(retry + 1):
             if (time.time() - t0) > timeout:
                 break
-            r = methods[method](*func_args, **func_kwargs)  # i.e. post(url, data, json, files)
+            if method == 'post':
+                r = requests.post(*func_args, **func_kwargs)  # i.e. post(url, data, json, files)
+            elif method == 'get':
+                r = requests.get(*func_args, **func_kwargs)  # i.e. get(url, data, json, files)
             if r.status_code == 200:
                 break
             try:
@@ -145,4 +147,4 @@ def sync_analytics(cfg, all_keys=False, enabled=True):
         cfg['uuid'] = SETTINGS['uuid']  # add the device UUID to the configuration data
 
         # Send a request to the HUB API to sync analytics
-        smart_request(f'{HUB_API_ROOT}/v1/usage/anonymous', data=cfg, headers=None, code=3, retry=0, verbose=False)
+        smart_request(f'{HUB_API_ROOT}/v1/usage/anonymous', json=cfg, headers=None, code=3, retry=0, verbose=False)

@@ -102,7 +102,6 @@ Ultralytics [release](https://github.com/ultralytics/ultralytics/releases).
 ### Known Issues / TODOs
 
 - [ ] TensorFlow exports
-- [ ] GPU exports
 - [ ] DDP resume
 - [ ] [arxiv.org](https://arxiv.org) paper
 

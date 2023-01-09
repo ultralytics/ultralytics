@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license
+
 import json
 from collections import defaultdict
 from pathlib import Path

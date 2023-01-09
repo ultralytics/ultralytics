@@ -1,5 +1,7 @@
-# Ultralytics YOLO base callbacks
-
+# Ultralytics YOLO 🚀, GPL-3.0 license
+"""
+Base callbacks
+"""
 
 # Trainer callbacks ----------------------------------------------------------------------------------------------------
 def on_pretrain_routine_start(trainer):

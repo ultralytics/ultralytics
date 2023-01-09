@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license
+
 import sys
 from difflib import get_close_matches
 from textwrap import dedent

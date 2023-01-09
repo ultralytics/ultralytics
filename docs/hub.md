@@ -77,4 +77,4 @@ Export your model to 13 different formats, including TensorFlow, ONNX, OpenVINO,
 
 ## ❓ Issues
 
-If you are a new [Ultralytics HUB](https://bit.ly/ultralytics_hub) user and have questions or comments, you are in the right place! Please click the [New Issue](https://github.com/ultralytics/hub/issues/new/choose) button in the [Issues](https://github.com/ultralytics/hub/issues) tab in this repo and let us know what we can do to make your life better 😃!
+If you are a new [Ultralytics HUB](https://bit.ly/ultralytics_hub) user and have questions or comments, you are in the right place! Please raise a [New Issue](https://github.com/ultralytics/hub/issues/new/choose) and let us know what we can do to make your life better 😃!

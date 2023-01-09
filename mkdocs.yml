@@ -1,5 +1,5 @@
-site_name: Ultralytics YOLO Docs
-repo_url: https://github.com/ultralytics/yolov5
+site_name: Ultralytics Docs
+repo_url: https://github.com/ultralytics/ultralytics
 repo_name: Ultralytics
 
 theme:

@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license
+
 from collections import abc
 from itertools import repeat
 from numbers import Number

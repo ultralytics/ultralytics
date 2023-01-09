@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license
+
 from pathlib import Path
 from typing import Dict, Union
 

@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license
+
 from torch.utils.tensorboard import SummaryWriter
 
 writer = None  # TensorBoard SummaryWriter instance

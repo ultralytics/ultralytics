@@ -2,7 +2,6 @@
 # Usage: pip install -r requirements.txt
 
 # Base ----------------------------------------
-fire>=0.4.0
 hydra-core>=1.2.0
 matplotlib>=3.2.2
 numpy>=1.18.5

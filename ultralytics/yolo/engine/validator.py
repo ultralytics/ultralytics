@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license
+
 import json
 from collections import defaultdict
 from pathlib import Path
@@ -86,6 +88,7 @@ class BaseValidator:
             self.model = model
             self.loss = torch.zeros_like(trainer.loss_items, device=trainer.device)
             self.args.plots = trainer.epoch == trainer.epochs - 1  # always plot final epoch
+            model.eval()
         else:
             callbacks.add_integration_callbacks(self)
             self.run_callbacks('on_val_start')
@@ -106,17 +109,17 @@ class BaseValidator:
                         f'Forcing --batch-size 1 square inference (1,3,{imgsz},{imgsz}) for non-PyTorch models')
 
             if isinstance(self.args.data, str) and self.args.data.endswith(".yaml"):
-                data = check_dataset_yaml(self.args.data)
+                self.data = check_dataset_yaml(self.args.data)
             else:
-                data = check_dataset(self.args.data)
+                self.data = check_dataset(self.args.data)
 
             if self.device.type == 'cpu':
                 self.args.workers = 0  # faster CPU val as time dominated by inference, not dataloading
             self.dataloader = self.dataloader or \
-                              self.get_dataloader(data.get("val") or data.set("test"), self.args.batch)
-            self.data = data
+                              self.get_dataloader(self.data.get("val") or self.data.set("test"), self.args.batch)
 
-        model.eval()
+            model.eval()
+            model.warmup(imgsz=(1 if pt else self.args.batch, 3, imgsz, imgsz))  # warmup
 
         dt = Profile(), Profile(), Profile(), Profile()
         n_batches = len(self.dataloader)

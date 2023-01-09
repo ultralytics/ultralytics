@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license
+
 import glob
 import inspect
 import math
@@ -62,8 +64,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, floor=0):
         LOGGER.warning(f'WARNING ⚠️ --img-size {imgsz} must be multiple of max stride {stride}, updating to {sz}')
 
     # Add missing dimensions if necessary
-    if min_dim == 2 and len(sz) == 1:
-        sz = [sz[0], sz[0]]
+    sz = [sz[0], sz[0]] if min_dim == 2 and len(sz) == 1 else sz[0] if min_dim == 1 and len(sz) == 1 else sz
 
     return sz
 

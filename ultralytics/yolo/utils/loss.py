@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

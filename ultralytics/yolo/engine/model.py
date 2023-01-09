@@ -121,11 +121,12 @@ class YOLO:
         overrides["conf"] = 0.25
         overrides.update(kwargs)
         overrides["mode"] = "predict"
+        overrides["save"] = kwargs.get("save", False)  # not save files by default
         predictor = self.PredictorClass(overrides=overrides)
 
         predictor.args.imgsz = check_imgsz(predictor.args.imgsz, min_dim=2)  # check image size
         predictor.setup(model=self.model, source=source)
-        predictor()
+        return predictor()
 
     @smart_inference_mode()
     def val(self, data=None, **kwargs):

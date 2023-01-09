@@ -98,6 +98,7 @@ Ultralytics [release](https://github.com/ultralytics/ultralytics/releases).
 - [ ] TensorFlow exports
 - [ ] GPU exports
 - [ ] DDP resume
+- [ ] [arxiv.org](https://arxiv.org) paper
 
 
 </details>

@@ -51,12 +51,12 @@ class DetectionPredictor(BasePredictor):
         self.annotator = self.get_annotator(im0)
 
         det = preds[idx]
+        self.all_outputs.append(det)
         if len(det) == 0:
             return log_string
         for c in det[:, 5].unique():
             n = (det[:, 5] == c).sum()  # detections per class
             log_string += f"{n} {self.model.names[int(c)]}{'s' * (n > 1)}, "
-
         # write
         gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
         for *xyxy, conf, cls in reversed(det):

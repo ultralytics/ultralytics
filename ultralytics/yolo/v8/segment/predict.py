@@ -58,7 +58,7 @@ class SegmentationPredictor(DetectionPredictor):
         mask = masks[idx]
         if self.args.save_txt:
             segments = [
-                ops.scale_segments(im0.shape if self.arg.retina_masks else im.shape[2:], x, im0.shape, normalize=True)
+                ops.scale_segments(im0.shape if self.args.retina_masks else im.shape[2:], x, im0.shape, normalize=True)
                 for x in reversed(ops.masks2segments(mask))]
 
         # Print results
@@ -72,6 +72,9 @@ class SegmentationPredictor(DetectionPredictor):
             colors=[colors(x, True) for x in det[:, 5]],
             im_gpu=torch.as_tensor(im0, dtype=torch.float16).to(self.device).permute(2, 0, 1).flip(0).contiguous() /
             255 if self.args.retina_masks else im[idx])
+
+        det = reversed(det[:, :6])
+        self.all_outputs.append([det, mask])
 
         # Write results
         for j, (*xyxy, conf, cls) in enumerate(reversed(det[:, :6])):
@@ -96,7 +99,7 @@ class SegmentationPredictor(DetectionPredictor):
 
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def predict(cfg):
-    cfg.model = cfg.model or "n.pt"
+    cfg.model = cfg.model or "yolov8n-seg.pt"
     cfg.imgsz = check_imgsz(cfg.imgsz, min_dim=2)  # check image size
     predictor = SegmentationPredictor(cfg)
     predictor()

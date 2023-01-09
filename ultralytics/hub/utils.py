@@ -93,7 +93,6 @@ def smart_request(*args, retry=3, timeout=30, thread=True, code=-1, method="post
         requests.Response: The HTTP response object. If the request is executed in a separate thread, returns None.
     """
     retry_codes = (408, 500)  # retry only these codes
-    methods = {'post': requests.post, 'get': requests.get}  # request methods
 
     def func(*func_args, **func_kwargs):
         r = None  # response

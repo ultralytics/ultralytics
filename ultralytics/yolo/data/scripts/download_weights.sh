@@ -1,5 +1,5 @@
 #!/bin/bash
-# YOLOv5 🚀 by Ultralytics, GPL-3.0 license
+# Ultralytics YOLO 🚀, GPL-3.0 license
 # Download latest models from https://github.com/ultralytics/yolov5/releases
 # Example usage: bash data/scripts/download_weights.sh
 # parent

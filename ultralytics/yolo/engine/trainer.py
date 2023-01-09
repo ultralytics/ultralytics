@@ -1,3 +1,4 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license
 """
 Simple training loop; Boilerplate that could apply to any arbitrary neural network,
 """

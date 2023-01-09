@@ -1,0 +1,26 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license
+# README translation action to translate README.md to Chinese as README.zh-CN.md on any change to README.md
+
+name: Translate README
+
+on:
+  push:
+    branches:
+      - translate_readme  # replace with 'main' to enable action
+    paths:
+      - README.md
+
+jobs:
+  Translate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      # ISO Language Codes: https://cloud.google.com/translate/docs/languages
+      - name: Adding README - Chinese Simplified
+        uses: dephraiim/translate-readme@main
+        with:
+          LANG: zh-CN

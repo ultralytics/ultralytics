@@ -3,6 +3,7 @@
 Base callbacks
 """
 
+
 # Trainer callbacks ----------------------------------------------------------------------------------------------------
 def on_pretrain_routine_start(trainer):
     pass

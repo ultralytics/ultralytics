@@ -56,13 +56,13 @@ To allow your work to be integrated as seamlessly as possible, we advise you to:
 
 - ✅ Reduce changes to the absolute **minimum** required for your bug fix or feature addition. _"It is not daily increase
   but daily decrease, hack away the unessential. The closer to the source, the less wastage there is."_  — Bruce Lee
-  
+
 ### Docstrings
 
 Not all functions or classes require docstrings but when they do, we follow [google-stlye docstrings format](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings). Here is an example:
 
 ```python
-'''
+"""
    What the function does - performs nms on given detection predictions
 
     Args:
@@ -74,7 +74,7 @@ Not all functions or classes require docstrings but when they do, we follow [goo
 
     Raises:
         Exception Class: When and why this exception can be raised by the function.
-'''
+"""
 ```
 
 ## Submitting a Bug Report 🐛

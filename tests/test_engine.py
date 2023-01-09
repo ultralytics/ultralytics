@@ -55,7 +55,7 @@ def test_segment():
 
     # predictor
     pred = segment.SegmentationPredictor(overrides={"imgsz": [640, 640]})
-    p = pred(source=SOURCE, model="yolov8n-seg.pt")
+    p =  pred(source=SOURCE, model="yolov8n-seg.pt")
     assert len(p) == 2, "predictor test failed"
 
     # test resume

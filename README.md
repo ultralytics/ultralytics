@@ -68,7 +68,22 @@ pip install ultralytics
 <details open>
 <summary>Usage</summary>
 
-YOLOv8 may be used in a python environment:
+YOLOv8 may be used directly in the Command Line Interface with a `yolo` command:
+
+```bash
+yolo task=detect mode=predict model=yolov8n.pt source="https://ultralytics.com/images/bus.jpg"
+```
+
+`yolo` can be used for a variety of tasks and modes and can pass additional arguments, i.e. `imgsz=640`. For the [full list of available arguments](https://v8docs.ultralytics.com/config/) in the YOLOv8 Docs.
+
+```bash
+yolo task=detect    mode=train    model=yolov8n.pt        args...
+          classify       predict        yolov8n-cls.yaml  args...
+          segment        val            yolov8n-seg.yaml  args...
+                         export         yolov8n.pt        format=onnx  args...
+```
+
+YOLOv8 may also be used directly in a python environment:
 
 ```python
 from ultralytics import YOLO
@@ -79,15 +94,6 @@ model.train(data="coco128.yaml")  # train the model
 model.val()  # evaluate model performance on the validation set
 model.predict(source="https://ultralytics.com/images/bus.jpg")  # predict on an image
 model.export(format="onnx")  # export the model to ONNX format
-```
-
-Or with CLI `yolo` commands:
-
-```bash
-yolo task=detect    mode=train    model=yolov8n.pt        args...
-          classify       predict        yolov8n-cls.yaml  args...
-          segment        val            yolov8n-seg.yaml  args...
-                         export         yolov8n.pt        format=onnx  args...
 ```
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/yolo/v8/models) download automatically from the latest

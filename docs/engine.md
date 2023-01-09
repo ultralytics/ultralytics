@@ -10,7 +10,7 @@ More details and source code can be found in [`BaseTrainer` Reference](../refere
 ## DetectionTrainer
 Here's how you can use the YOLOv8 `DetectionTrainer` and customize it.
 ```python
-from Ultrlaytics.yolo.v8 import DetectionTrainer
+from ultralytics.yolo.v8 import DetectionTrainer
 
 trainer = DetectionTrainer(overrides={...})
 trainer.train()
@@ -20,7 +20,7 @@ trained_model = trainer.best # get best model
 ### Customizing the DetectionTrainer
 Let's customize the trainer **to train a custom detection model** that is not supported directly. You can do this by simply overloading the existing the `get_model` functionality:
 ```python
-from Ultrlaytics.yolo.v8 import DetectionTrainer
+from ultralytics.yolo.v8 import DetectionTrainer
 
 class CustomTrainer(DetectionTrainer):
     def get_model(self, cfg, weights):
@@ -36,7 +36,7 @@ You now realize that you need to customize the trainer further to:
 Here's how you can do it:
 
 ```python
-from Ultrlaytics.yolo.v8 import DetectionTrainer
+from ultralytics.yolo.v8 import DetectionTrainer
 
 class CustomTrainer(DetectionTrainer):
     def get_model(self, cfg, weights):

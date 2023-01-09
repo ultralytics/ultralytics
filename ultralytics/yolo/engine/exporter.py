@@ -173,7 +173,7 @@ class Exporter:
             file = Path(file.name)
 
         # Update model
-        model = deepcopy(model)
+        model = deepcopy(model).to(self.device)
         for p in model.parameters():
             p.requires_grad = False
         model.eval()

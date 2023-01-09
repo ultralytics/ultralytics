@@ -4,9 +4,10 @@
       <img width="850" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png"></a>
   </p>
 
-  [English](README.md) | [简体中文](README.zh-CN.md)
-  <br>
-  <div>
+[English](README.md) | [简体中文](README.zh-CN.md)
+<br>
+
+<div>
     <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml/badge.svg" alt="Ultralytics CI"></a>
     <a href="https://zenodo.org/badge/latestdoi/264818686"><img src="https://zenodo.org/badge/264818686.svg" alt="YOLOv5 Citation"></a>
     <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
@@ -19,8 +20,7 @@
 
 [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) is the latest version of the YOLO object detection and image segmentation model developed by [Ultralytics](https://ultralytics.com). YOLOv8 is a cutting-edge, state-of-the-art (SOTA) model that builds upon the success of previous YOLO versions and introduces new features and improvements to further boost performance and flexibility.
 
-
-  <div align="center">
+<div align="center">
     <a href="https://github.com/ultralytics" style="text-decoration:none;">
       <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-github.png" width="2%" alt="" /></a>
     <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="2%" alt="" />
@@ -44,7 +44,6 @@
   </div>
 </div>
 
-
 ## <div align="center">Documentation</div>
 
 See below for quickstart intallation and usage example, and see the [YOLOv8 Docs](https://docs.ultralytics.com) for full documentation on training, validation, prediction and deployment.
@@ -66,18 +65,20 @@ pip install ultralytics
 <summary>Usage</summary>
 
 YOLOv8 may be used in a python environment:
+
 ```python
 from ultralytics import YOLO
 
-model = YOLO('yolov8n.pt')        # load a pretrained YOLOv8n model
+model = YOLO("yolov8n.pt")  # load a pretrained YOLOv8n model
 
-model.train(data='coco128.yaml')  # train the model
-model.val()                       # evaluate model performance on the validation set
-model.predict(source='https://ultralytics.com/images/bus.jpg')  # predict on an image
-model.export(format='onnx')       # export the model to ONNX format
+model.train(data="coco128.yaml")  # train the model
+model.val()  # evaluate model performance on the validation set
+model.predict(source="https://ultralytics.com/images/bus.jpg")  # predict on an image
+model.export(format="onnx")  # export the model to ONNX format
 ```
 
 Or with CLI `yolo` commands:
+
 ```bash
 yolo task=detect    mode=train    model=yolov8n.pt        args...
           classify       predict        yolov8n-cls.yaml  args...
@@ -90,17 +91,15 @@ Ultralytics [release](https://github.com/ultralytics/ultralytics/releases).
 
 </details>
 
-
 ## <div align="center">Checkpoints</div>
 
 | Model                                                                                     | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU<br>(ms) | Speed<br><sup>T4 GPU<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
-|-------------------------------------------------------------------------------------------|-----------------------|----------------------|---------------------------|------------------------------|--------------------|-------------------|
+| ----------------------------------------------------------------------------------------- | --------------------- | -------------------- | ------------------------- | ---------------------------- | ------------------ | ----------------- |
 | [YOLOv8n](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8n.pt) | 640                   | 37.3                 | -                         | -                            | 3.2                | 8.9               |
 | [YOLOv8s](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8s.pt) | 640                   | 44.9                 | -                         | -                            | 11.2               | 28.8              |
 | [YOLOv8m](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8m.pt) | 640                   | 50.2                 | -                         | -                            | 25.9               | 79.3              |
 | [YOLOv8l](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8l.pt) | 640                   | 52.9                 | -                         | -                            | 43.7               | 165.7             |
 | [YOLOv8x](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8x.pt) | 640                   | 53.9                 | -                         | -                            | 68.2               | 258.5             |
-
 
 <details>
   <summary>Table Notes</summary>
@@ -113,12 +112,11 @@ Ultralytics [release](https://github.com/ultralytics/ultralytics/releases).
   sleep 6 && yolo task=detect mode=train device=\'3,4\' model=yolov8l.yaml data=coco.yaml epochs=300 batch=128 project=YOLOv8 name=yolov8l v5loader=True cache=disk scale=0.9 mixup=0.15 copy_paste=0.3 > /dev/null 2>&1 &
   sleep 8 && yolo task=detect mode=train device=\'5,6,7\' model=yolov8x.yaml data=coco.yaml epochs=300 batch=129 project=YOLOv8 name=yolov8x v5loader=True cache=disk scale=0.9 mixup=0.15 copy_paste=0.3 > /dev/null 2>&1 &
   sleep 0 && yolo task=detect mode=train device=\'0,1,2,3,4,5,6,7\' model=yolov8x6.yaml data=coco.yaml epochs=300 batch=128 project=YOLOv8 name=yolov8x6 v5loader=True cache=disk scale=0.9 mixup=0.15 copy_paste=0.3 imgsz=1280 > /dev/null 2>&1 &
-  ````
+  ```
 - **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](http://cocodataset.org) dataset.<br>Reproduce by `python val.py --data coco.yaml --img 640 --conf 0.001 --iou 0.65`
 - **Speed** averaged over COCO val images using a [AWS p3.2xlarge](https://aws.amazon.com/ec2/instance-types/p3/) instance. NMS times (~1 ms/img) not included.<br>Reproduce by `python val.py --data coco.yaml --img 640 --task speed --batch 1`
 
 </details>
-
 
 ## <div align="center">Integrations</div>
 
@@ -142,10 +140,9 @@ Ultralytics [release](https://github.com/ultralytics/ultralytics/releases).
     <img src="https://github.com/ultralytics/yolov5/releases/download/v1.0/logo-neuralmagic.png" width="10%" /></a>
 </div>
 
-|Roboflow|ClearML ⭐ NEW|Comet ⭐ NEW|Neural Magic ⭐ NEW|
-|:-:|:-:|:-:|:-:|
-|Label and export your custom datasets directly to YOLOv5 for training with [Roboflow](https://roboflow.com/?ref=ultralytics)|Automatically track, visualize and even remotely train YOLOv5 using [ClearML](https://cutt.ly/yolov5-readme-clearml) (open-source!)|Free forever, [Comet](https://bit.ly/yolov5-readme-comet2) lets you save YOLOv5 models, resume training, and interactively visualise and debug predictions|Run YOLOv5 inference up to 6x faster with [Neural Magic DeepSparse](https://bit.ly/yolov5-neuralmagic)|
-
+|                                                           Roboflow                                                           |                                                            ClearML ⭐ NEW                                                            |                                                                        Comet ⭐ NEW                                                                         |                                           Neural Magic ⭐ NEW                                           |
+| :--------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------: |
+| Label and export your custom datasets directly to YOLOv5 for training with [Roboflow](https://roboflow.com/?ref=ultralytics) | Automatically track, visualize and even remotely train YOLOv5 using [ClearML](https://cutt.ly/yolov5-readme-clearml) (open-source!) | Free forever, [Comet](https://bit.ly/yolov5-readme-comet2) lets you save YOLOv5 models, resume training, and interactively visualise and debug predictions | Run YOLOv5 inference up to 6x faster with [Neural Magic DeepSparse](https://bit.ly/yolov5-neuralmagic) |
 
 ## <div align="center">Ultralytics HUB</div>
 
@@ -154,7 +151,6 @@ Ultralytics [release](https://github.com/ultralytics/ultralytics/releases).
 <a align="center" href="https://bit.ly/ultralytics_hub" target="_blank">
 <img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/ultralytics-hub.png"></a>
 
-
 ## <div align="center">App</div>
 
 Run YOLOv5 models on your iOS or Android device by downloading the [Ultralytics App](https://ultralytics.com/app_install)!
@@ -162,14 +158,13 @@ Run YOLOv5 models on your iOS or Android device by downloading the [Ultralytics 
 <a align="center" href="https://ultralytics.com/app_install" target="_blank">
 <img width="100%" alt="Ultralytics mobile app" src="https://github.com/ultralytics/assets/raw/main/im/ultralytics-app.png">
 
-
 ## <div align="center">Contribute</div>
 
 We love your input! We want to make contributing to YOLOv5 as easy and transparent as possible. Please see our [Contributing Guide](ONTRIBUTING.md) to get started, and fill out the [YOLOv5 Survey](https://ultralytics.com/survey?utm_source=github&utm_medium=social&utm_campaign=Survey) to send us feedback on your experiences. Thank you to all our contributors!
 
 <!-- SVG image from https://opencollective.com/ultralytics/contributors.svg?width=990 -->
-<a href="https://github.com/ultralytics/yolov5/graphs/contributors"><img src="https://github.com/ultralytics/yolov5/releases/download/v1.0/image-contributors-1280.png"/></a>
 
+<a href="https://github.com/ultralytics/yolov5/graphs/contributors"><img src="https://github.com/ultralytics/yolov5/releases/download/v1.0/image-contributors-1280.png"/></a>
 
 ## <div align="center">License</div>
 
@@ -177,7 +172,6 @@ YOLOv5 is available under two different licenses:
 
 - **GPL-3.0 License**: See [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file for details.
 - **Enterprise License**: Provides greater flexibility for commercial product development without the open-source requirements of GPL-3.0. Typical use cases are embedding Ultralytics software and AI models in commercial products and applications. Request an Enterprise License at [Ultralytics Licensing](https://ultralytics.com/license).
-
 
 ## <div align="center">Contact</div>
 
@@ -206,5 +200,3 @@ For YOLOv5 bugs and feature requests please visit [GitHub Issues](https://github
   <a href="https://www.instagram.com/ultralytics/" style="text-decoration:none;">
     <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-instagram.png" width="3%" alt="" /></a>
 </div>
-
-[tta]: https://github.com/ultralytics/yolov5/issues/303

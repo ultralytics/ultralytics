@@ -99,7 +99,6 @@ Ultralytics [release](https://github.com/ultralytics/ultralytics/releases).
 - [ ] GPU exports
 - [ ] DDP resume
 
-
 </details>
 
 ## <div align="center">Checkpoints</div>

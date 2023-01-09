@@ -93,4 +93,5 @@ def test_classify():
 
     # predictor
     pred = classify.ClassificationPredictor(overrides={"imgsz": [640, 640]})
-    pred(source=SOURCE, model=trained_model)
+    p = pred(source=SOURCE, model=trained_model)
+    assert len(p) == 2, "Predictor test failed!"

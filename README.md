@@ -4,7 +4,7 @@
       <img width="850" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png"></a>
   </p>
 
-[English](README.md) | [简体中文](README.zh-CN.md)
+  [English](README.md) | [简体中文](README.zh-CN.md)
 <br>
 
 <div>

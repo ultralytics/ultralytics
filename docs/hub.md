@@ -18,5 +18,5 @@ trained, it can be easily deployed and used for real-time object detection and i
 Ultralytics HUB is an essential tool for anyone looking to use YOLOv5 for their object detection and image segmentation
 projects.
 
-[Get started now](https://hub.ultralytics.com) and experience the power and simplicity of Ultralytics HUB for yourself. Sign up for a free account and
+**[Get started now](https://hub.ultralytics.com)** and experience the power and simplicity of Ultralytics HUB for yourself. Sign up for a free account and
 start building, training, and deploying YOLOv5 and YOLOv8 models today.

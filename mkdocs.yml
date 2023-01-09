@@ -82,6 +82,7 @@ nav:
   - Python Interface: sdk.md
   - Configuration: config.md
   - Customization Guide: engine.md
+  - iOS and Android App: app.md
   - Reference:
       - Python Model interface: reference/model.md
       - Engine:

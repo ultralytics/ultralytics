@@ -139,7 +139,7 @@ def sync_analytics(cfg, all_keys=False, enabled=True):
     if SETTINGS['sync'] and RANK in {-1, 0} and enabled:
         cfg = dict(cfg)  # convert type from DictConfig to dict
         if not all_keys:
-            cfg = {k: v for k, v in cfg.items() if v != DEFAULT_CONFIG_DICT[k]}  # retain only non-default values
+            cfg = {k: v for k, v in cfg.items() if v != DEFAULT_CONFIG_DICT.get(k, None)}
         cfg['uuid'] = SETTINGS['uuid']  # add the device UUID to the configuration data
 
         # Send a request to the HUB API to sync analytics

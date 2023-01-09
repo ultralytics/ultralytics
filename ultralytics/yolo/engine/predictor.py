@@ -1,4 +1,4 @@
-# predictor engine by Ultralytics
+# Ultralytics YOLO 🚀, GPL-3.0 license
 """
 Run prediction on images, videos, directories, globs, YouTube, webcam, streams, etc.
 Usage - sources:

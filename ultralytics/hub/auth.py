@@ -1,7 +1,8 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license
+
 import requests
 
-from ultralytics.hub.config import HUB_API_ROOT
-from ultralytics.hub.utils import request_with_credentials
+from ultralytics.hub.utils import HUB_API_ROOT, request_with_credentials
 from ultralytics.yolo.utils import is_colab
 
 API_KEY_PATH = "https://hub.ultralytics.com/settings?tab=api+keys"

@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license
+
 import signal
 import sys
 from pathlib import Path
@@ -6,8 +8,7 @@ from time import sleep
 import requests
 
 from ultralytics import __version__
-from ultralytics.hub.config import HUB_API_ROOT
-from ultralytics.hub.utils import check_dataset_disk_space, smart_request
+from ultralytics.hub.utils import HUB_API_ROOT, check_dataset_disk_space, smart_request
 from ultralytics.yolo.utils import LOGGER, is_colab, threaded
 
 AGENT_NAME = f'python-{__version__}-colab' if is_colab() else f'python-{__version__}-local'

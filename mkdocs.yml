@@ -1,5 +1,5 @@
-site_name: Ultralytics YOLO Docs
-repo_url: https://github.com/ultralytics/yolov5
+site_name: Ultralytics Docs
+repo_url: https://github.com/ultralytics/ultralytics
 repo_name: Ultralytics
 
 theme:
@@ -82,6 +82,7 @@ nav:
   - Python Interface: sdk.md
   - Configuration: config.md
   - Customization Guide: engine.md
+  - Ultralytics HUB: hub.md
   - iOS and Android App: app.md
   - Reference:
       - Python Model interface: reference/model.md

@@ -101,7 +101,7 @@ given task.
 | Key            | Value                | Description                                     |
 |----------------|----------------------|-------------------------------------------------|
 | source         | `ultralytics/assets` | Input source. Accepts image, folder, video, url |
-| view_img       | `False`              | View the prediction images                      |
+| show           | `False`              | View the prediction images                      |
 | save_txt       | `False`              | Save the results in a txt file                  |
 | save_conf      | `False`              | Save the condidence scores                      |
 | save_crop      | `Fasle`              |                                                 |
@@ -136,7 +136,7 @@ validation dataset and to detect and prevent overfitting.
 | dnn         | `False` | Use OpenCV DNN for ONNX inference |
 | plots       | `False` |                                   |
 
-### Export settings
+### Export
 
 Export settings for YOLO models refer to the various configurations and options used to save or
 export the model for use in other environments or platforms. These settings can affect the model's performance, size,

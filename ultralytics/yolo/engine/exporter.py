@@ -218,23 +218,20 @@ class Exporter:
         if coreml:  # CoreML
             f[4], _ = self._export_coreml()
         if any((saved_model, pb, tflite, edgetpu, tfjs)):  # TensorFlow formats
-            raise NotImplementedError('YOLOv8 TensorFlow export support is still under development. '
-                                      'Please consider contributing to the effort if you have TF expertise. Thank you!')
+            
             assert not isinstance(model, ClassificationModel), 'ClassificationModel TF exports not yet supported.'
             nms = False
-            f[5], s_model = self._export_saved_model(nms=nms or self.args.agnostic_nms or tfjs,
-                                                     agnostic_nms=self.args.agnostic_nms or tfjs)
+            s_model = None
+            if saved_model:
+                f[5], s_model = self._export_tensorflow_model(keras=pb, int8=self.args.int8 or edgetpu)
             if pb or tfjs:  # pb prerequisite to tfjs
-                f[6], _ = self._export_pb(s_model)
+                f[6], s_model = self._export_tensorflow_model(pb=pb, int8=False)
             if tflite or edgetpu:
-                f[7], _ = self._export_tflite(s_model,
-                                              int8=self.args.int8 or edgetpu,
-                                              data=self.args.data,
-                                              nms=nms,
-                                              agnostic_nms=self.args.agnostic_nms)
+                f[7], s_model = self._export_tensorflow_model(pb=False, int8=self.args.int8 or edgetpu)
                 if edgetpu:
+                    raise NotImplementedError('YOLOv8 Edgetpu export support is still under development. ')
                     f[8], _ = self._export_edgetpu()
-                self._add_tflite_metadata(f[8] or f[7], num_outputs=len(s_model.outputs))
+                    self._add_tflite_metadata(f[8] or f[7], num_outputs=len(s_model.outputs))
             if tfjs:
                 f[9], _ = self._export_tfjs()
         if paddle:  # PaddlePaddle
@@ -451,22 +448,18 @@ class Exporter:
         return f, None
 
     @try_export
-    def _export_saved_model(self,
-                            nms=False,
-                            agnostic_nms=False,
-                            topk_per_class=100,
-                            topk_all=100,
-                            iou_thres=0.45,
-                            conf_thres=0.25,
+    def _export_tensorflow_model(self,
+                                pb=False,
+                                int8=False,
                             prefix=colorstr('TensorFlow SavedModel:')):
 
-        # YOLOv5 TensorFlow SavedModel export
+        # YOLOv8 TensorFlow models export
         try:
             import tensorflow as tf  # noqa
         except ImportError:
             check_requirements(f"tensorflow{'' if torch.cuda.is_available() else '-macos' if MACOS else '-cpu'}")
             import tensorflow as tf  # noqa
-        check_requirements(("onnx", "onnx2tf", "sng4onnx", "onnxsim", "onnx_graphsurgeon"),
+        check_requirements(("onnx", "sng4onnx", "onnxsim", "nvidia-pyindex", "onnx_graphsurgeon", "simple_onnx_processing_tools", "onnx2tf", "protobuf"),
                            cmds="--extra-index-url https://pypi.ngc.nvidia.com ")
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')

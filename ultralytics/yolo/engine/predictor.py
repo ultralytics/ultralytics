@@ -124,9 +124,8 @@ class BasePredictor:
 
         # Dataloader
         bs = 1  # batch_size
-        if self.args.show:
-            self.args.show = check_imshow(warn=True)
         if webcam:
+            self.args.show = check_imshow(warn=True)
             self.dataset = LoadStreams(source,
                                        imgsz=imgsz,
                                        stride=stride,

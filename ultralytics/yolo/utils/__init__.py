@@ -119,8 +119,12 @@ def is_docker() -> bool:
     Returns:
         bool: True if the script is running inside a Docker container, False otherwise.
     """
-    with open('/proc/self/cgroup') as f:
-        return 'docker' in f.read()
+    file = Path('/proc/self/cgroup')
+    if file.exists():
+        with open(file) as f:
+            return 'docker' in f.read()
+    else:
+        return False
 
 
 def is_git_directory() -> bool:

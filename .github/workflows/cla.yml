@@ -16,12 +16,14 @@ jobs:
         uses: contributor-assistant/github-action@v2.2.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}  # must be repository secret token
+          # must be repository secret token
+          PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         with:
           path-to-signatures: 'signatures/version1/cla.json'
           path-to-document: 'https://github.com/ultralytics/assets/blob/main/documents/CLA.md' # CLA document
-          branch: 'main'  # branch should not be protected
-          allowlist: [pre-commit.ci],bot*
+          # branch should not be protected
+          branch: 'main'
+          allowlist: pre-commit*,bot*
 
           remote-organization-name: ultralytics
           remote-repository-name: cla

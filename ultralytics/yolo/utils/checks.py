@@ -217,7 +217,7 @@ def check_file(file, suffix=''):
         return file
     else:  # search
         files = []
-        for d in 'models', 'yolo/data', 'yolo/utils':  # search directories
+        for d in 'models', 'yolo/data':  # search directories
             files.extend(glob.glob(str(ROOT / d / '**' / file), recursive=True))  # find file
         assert len(files), f'File not found: {file}'  # assert file was found
         assert len(files) == 1, f"Multiple files match '{file}', specify exact path: {files}"  # assert unique

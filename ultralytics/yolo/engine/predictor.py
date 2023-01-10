@@ -57,7 +57,7 @@ class BasePredictor:
         dataset (Dataset): Dataset used for prediction.
         vid_path (str): Path to video file.
         vid_writer (cv2.VideoWriter): Video writer for saving video output.
-        view_img (bool): Whether to view image output.
+        show (bool): Whether to view image output.
         annotator (Annotator): Annotator used for prediction.
         data_path (str): Path to data.
     """
@@ -88,7 +88,7 @@ class BasePredictor:
         self.device = None
         self.dataset = None
         self.vid_path, self.vid_writer = None, None
-        self.view_img = None
+        self.show = None
         self.annotator = None
         self.data_path = None
         self.callbacks = defaultdict(list, {k: [v] for k, v in callbacks.default_callbacks.items()})  # add callbacks
@@ -127,7 +127,7 @@ class BasePredictor:
         # Dataloader
         bs = 1  # batch_size
         if webcam:
-            self.view_img = check_imshow(warn=True)
+            self.show = check_imshow(warn=True)
             self.dataset = LoadStreams(source, imgsz=imgsz, stride=stride, auto=pt, vid_stride=self.args.vid_stride)
             bs = len(self.dataset)
         elif screenshot:

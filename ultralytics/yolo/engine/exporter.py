@@ -218,7 +218,7 @@ class Exporter:
         if coreml:  # CoreML
             f[4], _ = self._export_coreml()
         if any((saved_model, pb, tflite, edgetpu, tfjs)):  # TensorFlow formats
-            
+
             assert not isinstance(model, ClassificationModel), 'ClassificationModel TF exports not yet supported.'
             nms = False
             s_model = None
@@ -448,10 +448,7 @@ class Exporter:
         return f, None
 
     @try_export
-    def _export_tensorflow_model(self,
-                                pb=False,
-                                int8=False,
-                            prefix=colorstr('TensorFlow SavedModel:')):
+    def _export_tensorflow_model(self, pb=False, int8=False, prefix=colorstr('TensorFlow SavedModel:')):
 
         # YOLOv8 TensorFlow models export
         try:
@@ -459,7 +456,8 @@ class Exporter:
         except ImportError:
             check_requirements(f"tensorflow{'' if torch.cuda.is_available() else '-macos' if MACOS else '-cpu'}")
             import tensorflow as tf  # noqa
-        check_requirements(("onnx", "sng4onnx", "onnxsim", "nvidia-pyindex", "onnx_graphsurgeon", "simple_onnx_processing_tools", "onnx2tf", "protobuf"),
+        check_requirements(("onnx", "sng4onnx", "onnxsim", "nvidia-pyindex", "onnx_graphsurgeon",
+                            "simple_onnx_processing_tools", "onnx2tf", "protobuf"),
                            cmds="--extra-index-url https://pypi.ngc.nvidia.com ")
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')

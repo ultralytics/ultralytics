@@ -127,13 +127,26 @@ class BasePredictor:
         if self.args.show:
             self.args.show = check_imshow(warn=True)
         if webcam:
-            self.args.show = check_imshow(warn=True)
-            self.dataset = LoadStreams(source, imgsz=imgsz, stride=stride, auto=pt, vid_stride=self.args.vid_stride)
+            self.dataset = LoadStreams(source,
+                                       imgsz=imgsz,
+                                       stride=stride,
+                                       auto=pt,
+                                       transforms=getattr(model.model, 'transforms', None),
+                                       vid_stride=self.args.vid_stride)
             bs = len(self.dataset)
         elif screenshot:
-            self.dataset = LoadScreenshots(source, imgsz=imgsz, stride=stride, auto=pt)
+            self.dataset = LoadScreenshots(source,
+                                           imgsz=imgsz,
+                                           stride=stride,
+                                           auto=pt,
+                                           transforms=getattr(model.model, 'transforms', None))
         else:
-            self.dataset = LoadImages(source, imgsz=imgsz, stride=stride, auto=pt, vid_stride=self.args.vid_stride)
+            self.dataset = LoadImages(source,
+                                      imgsz=imgsz,
+                                      stride=stride,
+                                      auto=pt,
+                                      transforms=getattr(model.model, 'transforms', None),
+                                      vid_stride=self.args.vid_stride)
         self.vid_path, self.vid_writer = [None] * bs, [None] * bs
         model.warmup(imgsz=(1 if pt or model.triton else bs, 3, *imgsz))  # warmup
 

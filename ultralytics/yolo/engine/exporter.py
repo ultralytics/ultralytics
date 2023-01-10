@@ -253,7 +253,7 @@ class Exporter:
 
     @try_export
     def _export_torchscript(self, prefix=colorstr('TorchScript:')):
-        # YOLOv5 TorchScript model export
+        # YOLOv8 TorchScript model export
         LOGGER.info(f'\n{prefix} starting export with torch {torch.__version__}...')
         f = self.file.with_suffix('.torchscript')
 
@@ -270,7 +270,7 @@ class Exporter:
 
     @try_export
     def _export_onnx(self, prefix=colorstr('ONNX:')):
-        # YOLOv5 ONNX export
+        # YOLOv8 ONNX export
         check_requirements('onnx>=1.12.0')
         import onnx  # noqa
 
@@ -323,7 +323,7 @@ class Exporter:
 
     @try_export
     def _export_openvino(self, prefix=colorstr('OpenVINO:')):
-        # YOLOv5 OpenVINO export
+        # YOLOv8 OpenVINO export
         check_requirements('openvino-dev')  # requires openvino-dev: https://pypi.org/project/openvino-dev/
         import openvino.inference_engine as ie  # noqa
 
@@ -338,7 +338,7 @@ class Exporter:
 
     @try_export
     def _export_paddle(self, prefix=colorstr('PaddlePaddle:')):
-        # YOLOv5 Paddle export
+        # YOLOv8 Paddle export
         check_requirements(('paddlepaddle', 'x2paddle'))
         import x2paddle  # noqa
         from x2paddle.convert import pytorch2paddle  # noqa
@@ -352,7 +352,7 @@ class Exporter:
 
     @try_export
     def _export_coreml(self, prefix=colorstr('CoreML:')):
-        # YOLOv5 CoreML export
+        # YOLOv8 CoreML export
         check_requirements('coremltools>=6.0')
         import coremltools as ct  # noqa
 
@@ -392,7 +392,7 @@ class Exporter:
 
     @try_export
     def _export_engine(self, workspace=4, verbose=False, prefix=colorstr('TensorRT:')):
-        # YOLOv5 TensorRT export https://developer.nvidia.com/tensorrt
+        # YOLOv8 TensorRT export https://developer.nvidia.com/tensorrt
         assert self.im.device.type != 'cpu', 'export running on CPU but must be on GPU, i.e. `device==0`'
         try:
             import tensorrt as trt  # noqa
@@ -484,7 +484,7 @@ class Exporter:
                                 iou_thres=0.45,
                                 conf_thres=0.25,
                                 prefix=colorstr('TensorFlow SavedModel:')):
-        # YOLOv5 TensorFlow SavedModel export
+        # YOLOv8 TensorFlow SavedModel export
         try:
             import tensorflow as tf  # noqa
         except ImportError:
@@ -524,7 +524,7 @@ class Exporter:
 
     @try_export
     def _export_pb(self, keras_model, file, prefix=colorstr('TensorFlow GraphDef:')):
-        # YOLOv5 TensorFlow GraphDef *.pb export https://github.com/leimao/Frozen_Graph_TensorFlow
+        # YOLOv8 TensorFlow GraphDef *.pb export https://github.com/leimao/Frozen_Graph_TensorFlow
         import tensorflow as tf  # noqa
         from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2  # noqa
 
@@ -540,7 +540,7 @@ class Exporter:
 
     @try_export
     def _export_tflite(self, keras_model, int8, data, nms, agnostic_nms, prefix=colorstr('TensorFlow Lite:')):
-        # YOLOv5 TensorFlow Lite export
+        # YOLOv8 TensorFlow Lite export
         import tensorflow as tf  # noqa
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
@@ -580,7 +580,7 @@ class Exporter:
 
     @try_export
     def _export_edgetpu(self, prefix=colorstr('Edge TPU:')):
-        # YOLOv5 Edge TPU export https://coral.ai/docs/edgetpu/models-intro/
+        # YOLOv8 Edge TPU export https://coral.ai/docs/edgetpu/models-intro/
         cmd = 'edgetpu_compiler --version'
         help_url = 'https://coral.ai/docs/edgetpu/compiler/'
         assert platform.system() == 'Linux', f'export only supported on Linux. See {help_url}'
@@ -606,7 +606,7 @@ class Exporter:
 
     @try_export
     def _export_tfjs(self, prefix=colorstr('TensorFlow.js:')):
-        # YOLOv5 TensorFlow.js export
+        # YOLOv8 TensorFlow.js export
         check_requirements('tensorflowjs')
         import tensorflowjs as tfjs  # noqa
 
@@ -664,7 +664,7 @@ class Exporter:
             tmp_file.unlink()
 
     def _pipeline_coreml(self, model, prefix=colorstr('CoreML Pipeline:')):
-        # YOLOv5 CoreML pipeline
+        # YOLOv8 CoreML pipeline
         import coremltools as ct  # noqa
 
         LOGGER.info(f'{prefix} starting pipeline with coremltools {ct.__version__}...')

@@ -220,7 +220,7 @@ class Exporter:
         if any((saved_model, pb, tflite, edgetpu, tfjs)):  # TensorFlow formats
 
             assert not isinstance(model, ClassificationModel), 'ClassificationModel TF exports not yet supported.'
-            
+
             s_model = None
             if saved_model:
                 f[5], s_model = self._export_tensorflow_model(keras=pb, int8=self.args.int8 or edgetpu)

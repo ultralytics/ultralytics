@@ -204,7 +204,7 @@ class C2f(nn.Module):
 
     def forward(self, x):
         y = [self.cv1(x)]
-        y.extend(m(y[-1][:, self.c:, ...]) for m in self.m)
+        y.extend(list(m(y[-1][:, self.c:, ...]) for m in self.m))
         return self.cv2(torch.cat(y, 1))
 
 

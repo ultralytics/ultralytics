@@ -378,7 +378,7 @@ class Exporter:
         LOGGER.info(f'\n{prefix} starting export with coremltools {ct.__version__}...')
         f = self.file.with_suffix('.mlmodel')
 
-        model = iOSModel(self.model, self.im) if self.args.nms else self.model
+        model = iOSModel(self.model, self.im).eval() if self.args.nms else self.model
         ts = torch.jit.trace(model, self.im, strict=False)  # TorchScript model
         ct_model = ct.convert(ts, inputs=[ct.ImageType('image', shape=self.im.shape, scale=1 / 255, bias=[0, 0, 0])])
         bits, mode = (8, 'kmeans_lut') if self.args.int8 else (16, 'linear') if self.args.half else (32, None)

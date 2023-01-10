@@ -18,7 +18,6 @@ from ultralytics.yolo.utils import LOGGER, ROOT, colorstr, yaml_load
 from ultralytics.yolo.utils.checks import check_file, check_font, is_ascii
 from ultralytics.yolo.utils.downloads import download
 from ultralytics.yolo.utils.files import unzip_file
-
 from ..utils.ops import segments2boxes
 
 HELP_URL = "See https://github.com/ultralytics/yolov5/wiki/Train-Custom-Data"
@@ -288,5 +287,5 @@ def check_dataset(dataset: str):
     train_set = data_dir / "train"
     test_set = data_dir / 'test' if (data_dir / 'test').exists() else data_dir / 'val'  # data/test or data/val
     nc = len([x for x in (data_dir / 'train').glob('*') if x.is_dir()])  # number of classes
-    names = [x.name for x in sorted((data_dir / 'train').iterdir()) if x.is_dir()]  # class names
+    names = {i: x.name for i, x in enumerate(sorted((data_dir / 'train').iterdir())) if x.is_dir()}  # class names
     return {"train": train_set, "val": test_set, "nc": nc, "names": names}

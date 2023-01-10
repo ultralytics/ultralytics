@@ -25,6 +25,8 @@ class ClassificationTrainer(BaseTrainer):
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         model = ClassificationModel(cfg, nc=self.data["nc"])
+        if weights:
+            model.load(weights)
 
         pretrained = False
         for m in model.modules():
@@ -34,9 +36,6 @@ class ClassificationTrainer(BaseTrainer):
                 m.p = self.args.dropout  # set dropout
         for p in model.parameters():
             p.requires_grad = True  # for training
-
-        if weights:
-            model.load(weights)
 
         # Update defaults
         if self.args.imgsz == 640:
@@ -150,10 +149,9 @@ def train(cfg):
 
 if __name__ == "__main__":
     """
-    CLI usage:
-    python ultralytics/yolo/v8/classify/train.py model=resnet18 data=imagenette160 epochs=1 imgsz=224
-
-    TODO:
-    Direct cli support, i.e, yolov8 classify_train args.epochs 10
+    yolo task=classify mode=train model=yolov8n-cls.pt data=mnist160 epochs=10 imgsz=32
+    yolo task=classify mode=val model=runs/classify/train/weights/last.pt data=mnist160 imgsz=32
+    yolo task=classify mode=predict model=runs/classify/train/weights/last.pt imgsz=32 source=ultralytics/assets/bus.jpg
+    yolo mode=export model=runs/classify/train/weights/last.pt imgsz=32 format=torchscript      
     """
     train()

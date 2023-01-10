@@ -143,8 +143,7 @@ def add_integration_callbacks(instance):
     from .comet import callbacks as comet_callbacks
     from .hub import callbacks as hub_callbacks
     from .tensorboard import callbacks as tb_callbacks
-    from .wb import callbacks as wb_callbacks
 
-    for x in clearml_callbacks, comet_callbacks, hub_callbacks, tb_callbacks, wb_callbacks:
+    for x in clearml_callbacks, comet_callbacks, hub_callbacks, tb_callbacks:
         for k, v in x.items():
             instance.callbacks[k].append(v)  # callback[name].append(func)

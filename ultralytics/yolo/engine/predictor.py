@@ -108,7 +108,7 @@ class BasePredictor:
 
     def setup(self, source=None, model=None):
         # source
-        source = str(source or self.args.source)
+        source = str(source if source is not None else self.args.source)
         is_file = Path(source).suffix[1:] in (IMG_FORMATS + VID_FORMATS)
         is_url = source.lower().startswith(('rtsp://', 'rtmp://', 'http://', 'https://'))
         webcam = source.isnumeric() or source.endswith('.streams') or (is_url and not is_file)

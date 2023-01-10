@@ -92,9 +92,9 @@ model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
 # Model usage
 model.train(data="coco128.yaml")  # train the model
-model.val(data="coco128.yaml")  # evaluate model performance on the validation set
+model.val()  # evaluate model performance on the validation set (saved to the model)
 model.predict(source="https://ultralytics.com/images/bus.jpg")  # predict on an image
-YOLO("yolov8n.pt").export(format="onnx")  # export a model to torchscript format
+YOLO("yolov8n.pt").export(format="onnx")  # export a model to ONNX format
 ```
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/yolo/v8/models) download automatically from the latest

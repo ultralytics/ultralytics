@@ -203,8 +203,8 @@ class C2f(nn.Module):
         self.m = nn.ModuleList(Bottleneck(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0) for _ in range(n))
 
     def forward(self, x):
-        y = list(self.cv1(x).split((self.c, self.c), 1))
-        y.extend(m(y[-1]) for m in self.m)
+        y = [self.cv1(x)]
+        y.extend(m(y[-1][:, self.c:, ...]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
 
 

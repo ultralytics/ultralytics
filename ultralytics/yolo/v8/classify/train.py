@@ -140,11 +140,11 @@ def train(cfg):
     cfg.weight_decay = 5e-5
     cfg.label_smoothing = 0.1
     cfg.warmup_epochs = 0.0
-    trainer = ClassificationTrainer(cfg)
-    trainer.train()
-    # from ultralytics import YOLO
-    # model = YOLO(cfg.model)
-    # model.train(**cfg)
+    # trainer = ClassificationTrainer(cfg)
+    # trainer.train()
+    from ultralytics import YOLO
+    model = YOLO(cfg.model)
+    model.train(**cfg)
 
 
 if __name__ == "__main__":

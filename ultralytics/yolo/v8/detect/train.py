@@ -60,7 +60,7 @@ class DetectionTrainer(BaseTrainer):
     def get_model(self, cfg=None, weights=None, verbose=True):
         model = DetectionModel(cfg, ch=3, nc=self.data["nc"], verbose=verbose)
         if weights:
-            model.load(model)
+            model.load(weights)
 
         return model
 

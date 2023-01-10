@@ -152,6 +152,6 @@ if __name__ == "__main__":
     yolo task=classify mode=train model=yolov8n-cls.pt data=mnist160 epochs=10 imgsz=32
     yolo task=classify mode=val model=runs/classify/train/weights/last.pt data=mnist160 imgsz=32
     yolo task=classify mode=predict model=runs/classify/train/weights/last.pt imgsz=32 source=ultralytics/assets/bus.jpg
-    yolo mode=export model=runs/classify/train/weights/last.pt imgsz=32 format=torchscript      
+    yolo mode=export model=runs/classify/train/weights/last.pt imgsz=32 format=torchscript
     """
     train()

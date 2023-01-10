@@ -38,7 +38,7 @@ class ClassificationPredictor(BasePredictor):
         log_string += '%gx%g ' % im.shape[2:]  # print string
         self.annotator = self.get_annotator(im0)
 
-        prob = preds[idx]
+        prob = preds[idx].softmax(0)
         self.all_outputs.append(prob)
         # Print results
         top5i = prob.argsort(0, descending=True)[:5].tolist()  # top 5 indices

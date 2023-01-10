@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 # Builds ultralytics/ultralytics:latest image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
-# Image is CUDA-optimized for YOLOv5 single/multi-GPU training and inference
+# Image is CUDA-optimized for YOLOv8 single/multi-GPU training and inference
 
 # Start FROM NVIDIA PyTorch image https://ngc.nvidia.com/catalog/containers/nvidia:pytorch
 FROM nvcr.io/nvidia/pytorch:22.12-py3
@@ -22,7 +22,7 @@ RUN git clone https://github.com/ultralytics/ultralytics /usr/src/ultralytics
 
 # Install pip packages
 RUN python -m pip install --upgrade pip wheel
-RUN pip uninstall -y Pillow torchtext  # torch torchvision
+RUN pip uninstall -y Pillow torchtext torch torchvision
 RUN pip install --no-cache ultralytics albumentations comet gsutil notebook Pillow>=9.1.0 \
     'opencv-python<4.6.0.66' \
     --extra-index-url https://download.pytorch.org/whl/cu113

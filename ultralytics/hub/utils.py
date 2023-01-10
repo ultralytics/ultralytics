@@ -131,7 +131,7 @@ def smart_request(*args, retry=3, timeout=30, thread=True, code=-1, method="post
 
 
 @TryExcept()
-def sync_analytics(cfg, all_keys=False, enabled=True):
+def sync_analytics(cfg, all_keys=False, enabled=False):
     """
    Sync analytics data if enabled in the global settings
 

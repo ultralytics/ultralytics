@@ -36,7 +36,10 @@ class ClassificationValidator(BaseValidator):
         return self.metrics.results_dict
 
     def get_dataloader(self, dataset_path, batch_size):
-        return build_classification_dataloader(path=dataset_path, imgsz=self.args.imgsz, batch_size=batch_size)
+        return build_classification_dataloader(path=dataset_path,
+                                               imgsz=self.args.imgsz,
+                                               batch_size=batch_size,
+                                               workers=self.args.workers)
 
     def print_results(self):
         pf = '%22s' + '%11.3g' * len(self.metrics.keys)  # print format

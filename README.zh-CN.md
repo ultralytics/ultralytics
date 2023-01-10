@@ -20,7 +20,7 @@
 
 [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) 是由 [Ultralytics](https://ultralytics.com) 开发的一个前沿 SOTA 模型。它在以前 YOLO 版本的成功基础上，引入了新的功能和改进，进一步提升了性能和灵活性。YOLOv8 基于快速、准确和易于使用的理念设计，使其成为广泛的物体检测、图像分割和图像分类任务的绝佳选择。
 
-如如要申请企业许可证，请填写 [Ultralytics 许可](https://ultralytics.com/license)。
+如果要申请企业许可证，请填写 [Ultralytics 许可](https://ultralytics.com/license)。
 
 <div align="center">
     <a href="https://github.com/ultralytics" style="text-decoration:none;">
@@ -210,7 +210,7 @@ model.export(format="onnx")  # export the model to ONNX format
 
 ## <div align="center">联系我们</div>
 
-若发现 YOLOv8 的 bug 或有功能需求，请访问 [GitHub 问题](https://github.com/ultralytics/ultralytics/issues)。如需专业支持，请 [联系我们](https://ultralytics.com/contact).
+若发现 YOLOv8 的 bug 或有功能需求，请访问 [GitHub 问题](https://github.com/ultralytics/ultralytics/issues)。如需专业支持，请 [联系我们](https://ultralytics.com/contact)。
 
 <br>
 <div align="center">

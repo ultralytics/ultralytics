@@ -152,7 +152,7 @@ class Exporter:
         jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle = flags  # export booleans
 
         # Load PyTorch model
-        self.device = select_device(self.args.device or 'cpu')
+        self.device = select_device('cpu' if self.args.device is None else self.args.device)
         if self.args.half:
             if self.device.type == 'cpu' and not coreml:
                 LOGGER.info('half=True only compatible with GPU or CoreML export, i.e. use device=0 or format=coreml')
@@ -173,7 +173,7 @@ class Exporter:
             file = Path(file.name)
 
         # Update model
-        model = deepcopy(model)
+        model = deepcopy(model).to(self.device)
         for p in model.parameters():
             p.requires_grad = False
         model.eval()
@@ -218,6 +218,8 @@ class Exporter:
         if coreml:  # CoreML
             f[4], _ = self._export_coreml()
         if any((saved_model, pb, tflite, edgetpu, tfjs)):  # TensorFlow formats
+            raise NotImplementedError('YOLOv8 TensorFlow export support is still under development. '
+                                      'Please consider contributing to the effort if you have TF expertise. Thank you!')
             assert not isinstance(model, ClassificationModel), 'ClassificationModel TF exports not yet supported.'
             nms = False
             f[5], s_model = self._export_saved_model(nms=nms or self.args.agnostic_nms or tfjs,

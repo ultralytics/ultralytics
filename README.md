@@ -87,14 +87,14 @@ YOLOv8 may also be used directly in a Python environment, and accepts the same [
 from ultralytics import YOLO
 
 # Load a model
-model = YOLO("yolov8n.yaml")  # build a new model from scratch
-model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+model = YOLO('yolov8n.yaml')  # build a new model from scratch
+model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
 
 # Use the model
-results = model.train(data="coco128.yaml", epochs=3)  # train the model
+results = model.train(data='coco128.yaml', epochs=3)  # train the model
 results = model.val()  # evaluate model performance on the validation set
-results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
-success = YOLO("yolov8n.pt").export(format="onnx")  # export a model to ONNX format
+results = model('https://ultralytics.com/images/bus.jpg')  # predict on an image
+success = YOLO('yolov8n.pt').export(format='onnx')  # export a model to ONNX format
 ```
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/yolo/v8/models) download automatically from the latest
@@ -207,9 +207,7 @@ We love your input! YOLOv5 and YOLOv8 would not be possible without help from ou
 
 <!-- SVG image from https://opencollective.com/ultralytics/contributors.svg?width=990 -->
 
-<a href = "https://github.com/ultralytics/ultralytics/graphs/contributors">
-  <img src = "https://contrib.rocks/image?repo=ultralytics/ultralytics"/>
-</a>
+<a href="https://github.com/ultralytics/ultralytics/graphs/contributors"><img src="https://github.com/ultralytics/yolov5/releases/download/v1.0/image-contributors-1280.png"/></a>
 
 ## <div align="center">License</div>
 

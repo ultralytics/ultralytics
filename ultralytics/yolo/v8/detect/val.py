@@ -231,7 +231,8 @@ class DetectionValidator(BaseValidator):
 
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def val(cfg):
-    cfg.data = cfg.data or "coco128.yaml"
+    cfg.data = cfg.data or "coco.yaml"
+    cfg.model = 'yolov8n.pt'
     validator = DetectionValidator(args=cfg)
     validator(model=cfg.model)
 

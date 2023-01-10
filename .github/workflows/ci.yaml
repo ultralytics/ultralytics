@@ -5,9 +5,9 @@ name: Ultralytics CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   # schedule:
   #   - cron: '0 0 * * *'  # runs at 00:00 UTC every day
 
@@ -18,24 +18,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest ]
-        python-version: [ '3.10' ]
-        model: [ yolov8n ]
-        torch: [ latest ]
-#        include:
-#          - os: ubuntu-latest
-#            python-version: '3.7'  # '3.6.8' min
-#            model: yolov8n
-#          - os: ubuntu-latest
-#            python-version: '3.8'
-#            model: yolov8n
-#          - os: ubuntu-latest
-#            python-version: '3.9'
-#            model: yolov8n
-#          - os: ubuntu-latest
-#            python-version: '3.8'  # torch 1.7.0 requires python >=3.6, <=3.8
-#            model: yolov8n
-#            torch: '1.7.0'  # min torch version CI https://pypi.org/project/torchvision/
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.10']
+        model: [yolov8n]
+        torch: [latest]
+        include:
+          - os: ubuntu-latest
+            python-version: '3.7'  # '3.6.8' min
+            model: yolov8n
+          - os: ubuntu-latest
+            python-version: '3.8'  # torch 1.7.0 requires python >=3.6, <=3.8
+            model: yolov8n
+            torch: '1.7.0'  # min torch version CI https://pypi.org/project/torchvision/
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -92,13 +86,16 @@ jobs:
         run: |
           yolo task=detect mode=train model=yolov8n.yaml data=coco128.yaml epochs=1 imgsz=64
           yolo task=detect mode=val model=runs/detect/train/weights/last.pt imgsz=64
+          yolo task=detect mode=predict model=runs/detect/train/weights/last.pt imgsz=64 source=ultralytics/assets/bus.jpg
       - name: Test segmentation
         shell: bash  # for Windows compatibility
         run: |
           yolo task=segment mode=train model=yolov8n-seg.yaml data=coco128-seg.yaml epochs=1 imgsz=64
           yolo task=segment mode=val model=runs/segment/train/weights/last.pt data=coco128-seg.yaml imgsz=64
+          yolo task=segment mode=predict model=runs/segment/train/weights/last.pt imgsz=64 source=ultralytics/assets/bus.jpg
       - name: Test classification
         shell: bash  # for Windows compatibility
         run: |
           yolo task=classify mode=train model=yolov8n-cls.yaml data=mnist160 epochs=1 imgsz=32
-          yolo task=classify mode=val model=runs/classify/train/weights/last.pt data=mnist160
+          yolo task=classify mode=val model=runs/classify/train/weights/last.pt data=mnist160 imgsz=32
+          yolo task=classify mode=predict model=runs/classify/train/weights/last.pt imgsz=32 source=ultralytics/assets/bus.jpg

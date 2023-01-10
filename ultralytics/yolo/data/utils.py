@@ -288,5 +288,6 @@ def check_dataset(dataset: str):
     train_set = data_dir / "train"
     test_set = data_dir / 'test' if (data_dir / 'test').exists() else data_dir / 'val'  # data/test or data/val
     nc = len([x for x in (data_dir / 'train').glob('*') if x.is_dir()])  # number of classes
-    names = [name for name in os.listdir(data_dir / 'train') if os.path.isdir(data_dir / 'train' / name)]
+    names = [x.name for x in (data_dir / 'train').iterdir() if x.is_dir()]  # class names list
+    names = dict(enumerate(sorted(names)))
     return {"train": train_set, "val": test_set, "nc": nc, "names": names}

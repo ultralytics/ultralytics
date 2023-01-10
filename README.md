@@ -18,11 +18,9 @@
   </div>
   <br>
 
-[Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) is the latest version of the YOLO object detection and image segmentation model developed by [Ultralytics](https://ultralytics.com). YOLOv8 is a cutting-edge, state-of-the-art (SOTA) model that builds upon the success of previous YOLO versions and introduces new features and improvements to further boost performance and flexibility.
+[Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics), developed by [Ultralytics](https://ultralytics.com), is a cutting-edge, state-of-the-art (SOTA) model that builds upon the success of previous YOLO versions and introduces new features and improvements to further boost performance and flexibility. YOLOv8 is designed to be fast, accurate, and easy to use, making it an excellent choice for a wide range of object detection, image segmentation and image classification tasks.
 
-The YOLOv8 models are designed to be fast, accurate, and easy to use, making them an excellent choice for a wide range of object detection, image segmentation and image classification tasks.
-
-Whether you are a seasoned machine learning practitioner or new to the field, we hope that the resources on this page will help you get the most out of YOLOv8.
+To request an Enterprise License please complete the form at [Ultralytics Licensing](https://ultralytics.com/license).
 
 <div align="center">
     <a href="https://github.com/ultralytics" style="text-decoration:none;">
@@ -101,8 +99,9 @@ Ultralytics [release](https://github.com/ultralytics/ultralytics/releases).
 
 ### Known Issues / TODOs
 
+We are still working on several parts of YOLOv8! We aim to have these completed soon to bring the YOLOv8 feature set up to par with YOLOv5, including export and inference to all the same formats. We are also writing a YOLOv8 paper which we will submit to [arxiv.org](https://arxiv.org) once complete.
+
 - [ ] TensorFlow exports
-- [ ] GPU exports
 - [ ] DDP resume
 - [ ] [arxiv.org](https://arxiv.org) paper
 
@@ -170,7 +169,7 @@ Ultralytics [release](https://github.com/ultralytics/ultralytics/releases) on fi
 
 <br>
 <a align="center" href="https://bit.ly/ultralytics_hub" target="_blank">
-<img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/integrations-loop.png"></a>
+<img width="100%" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png"></a>
 <br>
 <br>
 

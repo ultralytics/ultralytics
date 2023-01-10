@@ -3,9 +3,13 @@
 name: "CLA Assistant"
 on:
   issue_comment:
-    types: [created]
+    types:
+      - created
   pull_request_target:
-    types: [opened,closed,synchronize]
+    types:
+      - reopened
+      - opened
+      - synchronize
 
 jobs:
   CLA:
@@ -23,7 +27,7 @@ jobs:
           path-to-document: 'https://github.com/ultralytics/assets/blob/main/documents/CLA.md' # CLA document
           # branch should not be protected
           branch: 'main'
-          allowlist: pre-commit*,bot*
+          allowlist: dependabot[bot],github-actions,[pre-commit*,pre-commit*,bot*
 
           remote-organization-name: ultralytics
           remote-repository-name: cla

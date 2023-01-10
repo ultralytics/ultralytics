@@ -1,9 +1,9 @@
-# YOLOv5 🚀 by Ultralytics, GPL-3.0 license
+# Ultralytics YOLO 🚀, GPL-3.0 license
 
 # Parameters
 nc: 80  # number of classes
-depth_multiple: 0.33  # model depth multiple
-width_multiple: 0.25  # layer channel multiple
+depth_multiple: 0.67  # model depth multiple
+width_multiple: 0.75  # layer channel multiple
 
 # YOLOv5 v6.0 backbone
 backbone:

@@ -5,7 +5,7 @@ name: Publish Docker Images
 
 on:
   push:
-    branches: [none]  # TODO: replace with main
+    branches: [main]
 
 jobs:
   docker:

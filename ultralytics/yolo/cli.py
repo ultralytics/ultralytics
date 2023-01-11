@@ -7,6 +7,7 @@ import hydra
 
 from ultralytics import hub, yolo
 from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, colorstr
+from ultralytics.yolo.configs import get_config
 
 DIR = Path(__file__).parent
 
@@ -20,6 +21,9 @@ def cli(cfg):
         cfg (DictConfig): Configuration for the task and mode.
     """
     # LOGGER.info(f"{colorstr(f'Ultralytics YOLO v{ultralytics.__version__}')}")
+    if cfg.cfg:
+        LOGGER.info(f"Overriding default config with {cfg.cfg}")
+        cfg = get_config(cfg.cfg)
     task, mode = cfg.task.lower(), cfg.mode.lower()
 
     # Special case for initializing the configuration

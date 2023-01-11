@@ -218,6 +218,6 @@ class YOLO:
         args.pop("epochs", None)
         args.pop("cache", None)
         args.pop("save_json", None)
-        
+
         # set device to '' to prevent from auto DDP usage
         args.device = ''

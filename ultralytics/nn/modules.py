@@ -134,7 +134,7 @@ class TransformerBlock(nn.Module):
 
 class Bottleneck(nn.Module):
     # Standard bottleneck
-    def __init__(self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5):  # ch_in, ch_out, shortcut, kernels, groups, expand
+    def __init__(self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5):  # ch_in, ch_out, shortcut, groups, kernels, expand
         super().__init__()
         c_ = int(c2 * e)  # hidden channels
         self.cv1 = Conv(c1, c_, k[0], 1)
@@ -234,8 +234,8 @@ class SpatialAttention(nn.Module):
 
 
 class CBAM(nn.Module):
-    # CSP Bottleneck with 3 convolutions
-    def __init__(self, c1, ratio=16, kernel_size=7):  # ch_in, ch_out, number, shortcut, groups, expansion
+    # Convolutional Block Attention Module
+    def __init__(self, c1, kernel_size=7):  # ch_in, kernels
         super().__init__()
         self.channel_attention = ChannelAttention(c1)
         self.spatial_attention = SpatialAttention(kernel_size)
@@ -245,8 +245,8 @@ class CBAM(nn.Module):
 
 
 class C1(nn.Module):
-    # CSP Bottleneck with 3 convolutions
-    def __init__(self, c1, c2, n=1):  # ch_in, ch_out, number, shortcut, groups, expansion
+    # CSP Bottleneck with 1 convolution
+    def __init__(self, c1, c2, n=1):  # ch_in, ch_out, number
         super().__init__()
         self.cv1 = Conv(c1, c2, 1, 1)
         self.m = nn.Sequential(*(Conv(c2, c2, 3) for _ in range(n)))

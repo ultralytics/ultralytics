@@ -50,7 +50,7 @@ def coco80_to_coco91_class():  # converts 80-index (val2014) to 91-index (paper)
 
 def segment2box(segment, width=640, height=640):
     """
-    > Convert 1 segment label to 1 box label, applying inside-image constraint, i.e. (xy1, xy2, ...) to
+    Convert 1 segment label to 1 box label, applying inside-image constraint, i.e. (xy1, xy2, ...) to
     (xyxy)
     Args:
       segment: the segment label
@@ -69,7 +69,7 @@ def segment2box(segment, width=640, height=640):
 
 def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None):
     """
-    > Rescale boxes (xyxy) from img1_shape to img0_shape
+    Rescale boxes (xyxy) from img1_shape to img0_shape
     Args:
       img1_shape: The shape of the image that the bounding boxes are for.
       boxes: the bounding boxes of the objects in the image
@@ -113,7 +113,7 @@ def non_max_suppression(
         nm=0,  # number of masks
 ):
     """
-    > Perform non-maximum suppression (NMS) on a set of boxes, with support for masks and multiple labels per box.
+    Perform non-maximum suppression (NMS) on a set of boxes, with support for masks and multiple labels per box.
 
     Arguments:
         prediction (torch.Tensor): A tensor of shape (batch_size, num_boxes, num_classes + 4 + num_masks)
@@ -231,7 +231,7 @@ def non_max_suppression(
 
 def clip_boxes(boxes, shape):
     """
-    > It takes a list of bounding boxes and a shape (height, width) and clips the bounding boxes to the
+    It takes a list of bounding boxes and a shape (height, width) and clips the bounding boxes to the
     shape
 
     Args:
@@ -262,7 +262,7 @@ def clip_coords(boxes, shape):
 
 def scale_image(im1_shape, masks, im0_shape, ratio_pad=None):
     """
-    > It takes a mask, and resizes it to the original image size
+    It takes a mask, and resizes it to the original image size
 
     Args:
       im1_shape: model input shape, [h, w]
@@ -297,7 +297,7 @@ def scale_image(im1_shape, masks, im0_shape, ratio_pad=None):
 
 def xyxy2xywh(x):
     """
-    > It takes a list of bounding boxes, and converts them from the format [x1, y1, x2, y2] to [x, y, w,
+    It takes a list of bounding boxes, and converts them from the format [x1, y1, x2, y2] to [x, y, w,
     h]  where xy1=top-left, xy2=bottom-right
 
     Args:
@@ -316,7 +316,7 @@ def xyxy2xywh(x):
 
 def xywh2xyxy(x):
     """
-    > It converts the bounding box from x,y,w,h to x1,y1,x2,y2 where xy1=top-left, xy2=bottom-right
+    It converts the bounding box from x,y,w,h to x1,y1,x2,y2 where xy1=top-left, xy2=bottom-right
 
     Args:
       x: the input tensor
@@ -334,7 +334,7 @@ def xywh2xyxy(x):
 
 def xywhn2xyxy(x, w=640, h=640, padw=0, padh=0):
     """
-    > It converts the normalized coordinates to the actual coordinates [x1, y1, x2, y2] where xy1=top-left, xy2=bottom-right
+    It converts the normalized coordinates to the actual coordinates [x1, y1, x2, y2] where xy1=top-left, xy2=bottom-right
 
     Args:
       x: the bounding box coordinates
@@ -356,7 +356,7 @@ def xywhn2xyxy(x, w=640, h=640, padw=0, padh=0):
 
 def xyxy2xywhn(x, w=640, h=640, clip=False, eps=0.0):
     """
-    > It takes in a list of bounding boxes, and returns a list of bounding boxes, but with the x and y
+    It takes in a list of bounding boxes, and returns a list of bounding boxes, but with the x and y
     coordinates normalized to the width and height of the image
 
     Args:
@@ -381,7 +381,7 @@ def xyxy2xywhn(x, w=640, h=640, clip=False, eps=0.0):
 
 def xyn2xy(x, w=640, h=640, padw=0, padh=0):
     """
-    > It converts normalized segments into pixel segments of shape (n,2)
+    It converts normalized segments into pixel segments of shape (n,2)
 
     Args:
       x: the normalized coordinates of the bounding box
@@ -401,7 +401,7 @@ def xyn2xy(x, w=640, h=640, padw=0, padh=0):
 
 def xywh2ltwh(x):
     """
-    > It converts the bounding box from [x, y, w, h] to [x1, y1, w, h] where xy1=top-left
+    It converts the bounding box from [x, y, w, h] to [x1, y1, w, h] where xy1=top-left
 
     Args:
       x: the x coordinate of the center of the bounding box
@@ -417,7 +417,7 @@ def xywh2ltwh(x):
 
 def xyxy2ltwh(x):
     """
-    > Convert nx4 boxes from [x1, y1, x2, y2] to [x1, y1, w, h] where xy1=top-left, xy2=bottom-right
+    Convert nx4 boxes from [x1, y1, x2, y2] to [x1, y1, w, h] where xy1=top-left, xy2=bottom-right
 
     Args:
       x: the input tensor
@@ -433,7 +433,7 @@ def xyxy2ltwh(x):
 
 def ltwh2xywh(x):
     """
-    > Convert nx4 boxes from [x1, y1, w, h] to [x, y, w, h] where xy1=top-left, xy=center
+    Convert nx4 boxes from [x1, y1, w, h] to [x, y, w, h] where xy1=top-left, xy=center
 
     Args:
       x: the input tensor
@@ -446,7 +446,7 @@ def ltwh2xywh(x):
 
 def ltwh2xyxy(x):
     """
-    > It converts the bounding box from [x1, y1, w, h] to [x1, y1, x2, y2] where xy1=top-left,
+    It converts the bounding box from [x1, y1, w, h] to [x1, y1, x2, y2] where xy1=top-left,
     xy2=bottom-right
 
     Args:
@@ -463,7 +463,7 @@ def ltwh2xyxy(x):
 
 def segments2boxes(segments):
     """
-    > It converts segment labels to box labels, i.e. (cls, xy1, xy2, ...) to (cls, xywh)
+    It converts segment labels to box labels, i.e. (cls, xy1, xy2, ...) to (cls, xywh)
 
     Args:
       segments: list of segments, each segment is a list of points, each point is a list of x, y
@@ -481,7 +481,7 @@ def segments2boxes(segments):
 
 def resample_segments(segments, n=1000):
     """
-    > It takes a list of segments (n,2) and returns a list of segments (n,2) where each segment has been
+    It takes a list of segments (n,2) and returns a list of segments (n,2) where each segment has been
     up-sampled to n points
 
     Args:
@@ -501,7 +501,7 @@ def resample_segments(segments, n=1000):
 
 def crop_mask(masks, boxes):
     """
-    > It takes a mask and a bounding box, and returns a mask that is cropped to the bounding box
+    It takes a mask and a bounding box, and returns a mask that is cropped to the bounding box
 
     Args:
       masks: [h, w, n] tensor of masks
@@ -520,7 +520,7 @@ def crop_mask(masks, boxes):
 
 def process_mask_upsample(protos, masks_in, bboxes, shape):
     """
-    > It takes the output of the mask head, and applies the mask to the bounding boxes. This produces masks of higher
+    It takes the output of the mask head, and applies the mask to the bounding boxes. This produces masks of higher
     quality but is slower.
 
     Args:
@@ -541,7 +541,7 @@ def process_mask_upsample(protos, masks_in, bboxes, shape):
 
 def process_mask(protos, masks_in, bboxes, shape, upsample=False):
     """
-    > It takes the output of the mask head, and applies the mask to the bounding boxes. This is faster but produces
+    It takes the output of the mask head, and applies the mask to the bounding boxes. This is faster but produces
     downsampled quality of mask
 
     Args:
@@ -572,7 +572,7 @@ def process_mask(protos, masks_in, bboxes, shape, upsample=False):
 
 def process_mask_native(protos, masks_in, bboxes, shape):
     """
-    > It takes the output of the mask head, and crops it after upsampling to the bounding boxes.
+    It takes the output of the mask head, and crops it after upsampling to the bounding boxes.
 
     Args:
       protos: [mask_dim, mask_h, mask_w]
@@ -598,7 +598,7 @@ def process_mask_native(protos, masks_in, bboxes, shape):
 
 def scale_segments(img1_shape, segments, img0_shape, ratio_pad=None, normalize=False):
     """
-    > Rescale segment coords (xyxy) from img1_shape to img0_shape
+    Rescale segment coords (xyxy) from img1_shape to img0_shape
 
     Args:
       img1_shape: The shape of the image that the segments are from.
@@ -629,7 +629,7 @@ def scale_segments(img1_shape, segments, img0_shape, ratio_pad=None, normalize=F
 
 def masks2segments(masks, strategy='largest'):
     """
-    > It takes a list of masks(n,h,w) and returns a list of segments(n,xy)
+    It takes a list of masks(n,h,w) and returns a list of segments(n,xy)
 
     Args:
       masks: the output of the model, which is a tensor of shape (batch_size, 160, 160)
@@ -654,7 +654,7 @@ def masks2segments(masks, strategy='largest'):
 
 def clip_segments(segments, shape):
     """
-    > It takes a list of line segments (x1,y1,x2,y2) and clips them to the image shape (height, width)
+    It takes a list of line segments (x1,y1,x2,y2) and clips them to the image shape (height, width)
 
     Args:
       segments: a list of segments, each segment is a list of points, each point is a list of x,y

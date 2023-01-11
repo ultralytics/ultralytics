@@ -32,21 +32,21 @@ class BaseModel(nn.Module):
             visualize (bool): Whether to return the intermediate feature maps, defaults to False
 
         Returns:
-            torch.tensor: The output of the network.
+            (torch.tensor): The output of the network.
         """
         return self._forward_once(x, profile, visualize)
 
     def _forward_once(self, x, profile=False, visualize=False):
         """
-        > Forward pass of the network
+        Perform a forward pass through the network.
 
         Args:
-          x: input to the model
-          profile: if True, the time taken for each layer will be printed. Defaults to False
-          visualize: If True, it will save the feature maps of the model. Defaults to False
+            x (torch.tensor): The input tensor to the model
+            profile (bool):  Print the computation time of each layer if True, defaults to False.
+            visualize (bool): Save the feature maps of the model if True, defaults to False
 
         Returns:
-          The last layer of the model.
+            (torch.tensor): The last output of the model.
         """
         y, dt = [], []  # outputs
         for m in self.model:
@@ -87,10 +87,10 @@ class BaseModel(nn.Module):
 
     def fuse(self):
         """
-        Takes a model and fuses the Conv2d() and BatchNorm2d() layers into a single layer
+        Fuse the `Conv2d()` and `BatchNorm2d()` layers of the model into a single layer, in order to improve the computation efficiency.
 
         Returns:
-          The model is being returned.
+            (nn.Module): The fused model is returned.
         """
         LOGGER.info('Fusing layers... ')
         for m in self.model.modules():
@@ -106,8 +106,8 @@ class BaseModel(nn.Module):
         Prints model information
 
         Args:
-          verbose: if True, prints out the model information. Defaults to False
-          imgsz: the size of the image that the model will be trained on. Defaults to 640
+          verbose (bool): if True, prints out the model information. Defaults to False
+          imgsz (int): the size of the image that the model will be trained on. Defaults to 640
         """
         model_info(self, verbose, imgsz)
 
@@ -132,10 +132,10 @@ class BaseModel(nn.Module):
 
     def load(self, weights):
         """
-        > This function loads the weights of the model from a file
+        This function loads the weights of the model from a file
 
         Args:
-          weights: The weights to load into the model.
+          weights (str): The weights to load into the model.
         """
         # Force all tasks to implement this function
         raise NotImplementedError("This function needs to be implemented by derived classes!")

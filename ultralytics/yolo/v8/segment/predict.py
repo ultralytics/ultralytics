@@ -60,7 +60,8 @@ class SegmentationPredictor(DetectionPredictor):
         mask = masks[idx]
         if self.args.save_txt or self.return_outputs:
             shape = im0.shape if self.args.retina_masks else im.shape[2:]
-            segments = [ops.scale_segments(shape, x, im0.shape, normalize=False) for x in reversed(ops.masks2segments(mask))]
+            segments = [
+                ops.scale_segments(shape, x, im0.shape, normalize=False) for x in reversed(ops.masks2segments(mask))]
 
         # Print results
         for c in det[:, 5].unique():

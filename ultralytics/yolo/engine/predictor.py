@@ -215,6 +215,10 @@ class BasePredictor:
 
         self.run_callbacks("on_predict_end")
 
+    def predict_cli(self):
+        for _ in (self.__call__(return_outputs=False)):
+            pass
+
     def show(self, p):
         im0 = self.annotator.result()
         if platform.system() == 'Linux' and p not in self.windows:

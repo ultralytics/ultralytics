@@ -99,8 +99,8 @@ results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
 success = YOLO("yolov8n.pt").export(format="onnx")  # export a model to ONNX format
 ```
 
-[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/yolo/v8/models) download automatically from the latest
-Ultralytics [release](https://github.com/ultralytics/ultralytics/releases).
+[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) download automatically from the latest
+Ultralytics [release](https://github.com/ultralytics/assets/releases).
 
 ### Known Issues / TODOs
 
@@ -116,18 +116,18 @@ We are still working on several parts of YOLOv8! We aim to have these completed 
 
 All YOLOv8 pretrained models are available here. Detection and Segmentation models are pretrained on the COCO dataset, while Classification models are pretrained on the ImageNet dataset.
 
-[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/yolo/v8/models) download automatically from the latest
+[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) download automatically from the latest
 Ultralytics [release](https://github.com/ultralytics/ultralytics/releases) on first use.
 
 <details open><summary>Detection</summary>
 
-| Model                                                                                     | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU<br>(ms) | Speed<br><sup>T4 GPU<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
-| ----------------------------------------------------------------------------------------- | --------------------- | -------------------- | ------------------------- | ---------------------------- | ------------------ | ----------------- |
-| [YOLOv8n](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8n.pt) | 640                   | 37.3                 | -                         | -                            | 3.2                | 8.7               |
-| [YOLOv8s](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8s.pt) | 640                   | 44.9                 | -                         | -                            | 11.2               | 28.6              |
-| [YOLOv8m](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8m.pt) | 640                   | 50.2                 | -                         | -                            | 25.9               | 78.9              |
-| [YOLOv8l](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8l.pt) | 640                   | 52.9                 | -                         | -                            | 43.7               | 165.2             |
-| [YOLOv8x](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8x.pt) | 640                   | 53.9                 | -                         | -                            | 68.2               | 257.8             |
+| Model                                                                                | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU<br>(ms) | Speed<br><sup>T4 GPU<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+| ------------------------------------------------------------------------------------ | --------------------- | -------------------- | ------------------------- | ---------------------------- | ------------------ | ----------------- |
+| [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt) | 640                   | 37.3                 | -                         | -                            | 3.2                | 8.7               |
+| [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt) | 640                   | 44.9                 | -                         | -                            | 11.2               | 28.6              |
+| [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m.pt) | 640                   | 50.2                 | -                         | -                            | 25.9               | 78.9              |
+| [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l.pt) | 640                   | 52.9                 | -                         | -                            | 43.7               | 165.2             |
+| [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x.pt) | 640                   | 53.9                 | -                         | -                            | 68.2               | 257.8             |
 
 - **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](http://cocodataset.org) dataset.
   <br>Reproduce by `yolo mode=val task=detect data=coco.yaml device=0`
@@ -138,13 +138,13 @@ Ultralytics [release](https://github.com/ultralytics/ultralytics/releases) on fi
 
 <details><summary>Segmentation</summary>
 
-| Model                                                                                         | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | Speed<br><sup>CPU<br>(ms) | Speed<br><sup>T4 GPU<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
-| --------------------------------------------------------------------------------------------- | --------------------- | -------------------- | --------------------- | ------------------------- | ---------------------------- | ------------------ | ----------------- |
-| [YOLOv8n](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8n-seg.pt) | 640                   | 36.7                 | 30.5                  | -                         | -                            | 3.4                | 12.6              |
-| [YOLOv8s](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8s-seg.pt) | 640                   | 44.6                 | 36.8                  | -                         | -                            | 11.8               | 42.6              |
-| [YOLOv8m](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8m-seg.pt) | 640                   | 49.9                 | 40.8                  | -                         | -                            | 27.3               | 110.2             |
-| [YOLOv8l](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8l-seg.pt) | 640                   | 52.3                 | 42.6                  | -                         | -                            | 46.0               | 220.5             |
-| [YOLOv8x](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8x-seg.pt) | 640                   | 53.4                 | 43.4                  | -                         | -                            | 71.8               | 344.1             |
+| Model                                                                                    | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | Speed<br><sup>CPU<br>(ms) | Speed<br><sup>T4 GPU<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+| ---------------------------------------------------------------------------------------- | --------------------- | -------------------- | --------------------- | ------------------------- | ---------------------------- | ------------------ | ----------------- |
+| [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-seg.pt) | 640                   | 36.7                 | 30.5                  | -                         | -                            | 3.4                | 12.6              |
+| [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-seg.pt) | 640                   | 44.6                 | 36.8                  | -                         | -                            | 11.8               | 42.6              |
+| [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-seg.pt) | 640                   | 49.9                 | 40.8                  | -                         | -                            | 27.3               | 110.2             |
+| [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-seg.pt) | 640                   | 52.3                 | 42.6                  | -                         | -                            | 46.0               | 220.5             |
+| [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-seg.pt) | 640                   | 53.4                 | 43.4                  | -                         | -                            | 71.8               | 344.1             |
 
 - **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](http://cocodataset.org) dataset.
   <br>Reproduce by `yolo mode=val task=detect data=coco.yaml device=0`
@@ -155,13 +155,13 @@ Ultralytics [release](https://github.com/ultralytics/ultralytics/releases) on fi
 
 <details><summary>Classification</summary>
 
-| Model                                                                                         | size<br><sup>(pixels) | acc<br><sup>top1 | acc<br><sup>top5 | Speed<br><sup>CPU<br>(ms) | Speed<br><sup>T4 GPU<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
-| --------------------------------------------------------------------------------------------- | --------------------- | ---------------- | ---------------- | ------------------------- | ---------------------------- | ------------------ | ------------------------ |
-| [YOLOv8n](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8n-cls.pt) | 224                   | 66.6             | 87.0             | -                         | -                            | 2.7                | 4.3                      |
-| [YOLOv8s](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8s-cls.pt) | 224                   | 72.3             | 91.1             | -                         | -                            | 6.4                | 13.5                     |
-| [YOLOv8m](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8m-cls.pt) | 224                   | 76.4             | 93.2             | -                         | -                            | 17.0               | 42.7                     |
-| [YOLOv8l](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8l-cls.pt) | 224                   | 78.0             | 94.1             | -                         | -                            | 37.5               | 99.7                     |
-| [YOLOv8x](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8x-cls.pt) | 224                   | 78.4             | 94.3             | -                         | -                            | 57.4               | 154.8                    |
+| Model                                                                                    | size<br><sup>(pixels) | acc<br><sup>top1 | acc<br><sup>top5 | Speed<br><sup>CPU<br>(ms) | Speed<br><sup>T4 GPU<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
+| ---------------------------------------------------------------------------------------- | --------------------- | ---------------- | ---------------- | ------------------------- | ---------------------------- | ------------------ | ------------------------ |
+| [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-cls.pt) | 224                   | 66.6             | 87.0             | -                         | -                            | 2.7                | 4.3                      |
+| [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-cls.pt) | 224                   | 72.3             | 91.1             | -                         | -                            | 6.4                | 13.5                     |
+| [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-cls.pt) | 224                   | 76.4             | 93.2             | -                         | -                            | 17.0               | 42.7                     |
+| [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-cls.pt) | 224                   | 78.0             | 94.1             | -                         | -                            | 37.5               | 99.7                     |
+| [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-cls.pt) | 224                   | 78.4             | 94.3             | -                         | -                            | 57.4               | 154.8                    |
 
 - **mAP<sup>val</sup>** values are for single-model single-scale on [ImageNet](https://www.image-net.org/) dataset.
   <br>Reproduce by `yolo mode=val task=detect data=coco.yaml device=0`

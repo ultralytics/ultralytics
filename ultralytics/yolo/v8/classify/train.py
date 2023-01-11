@@ -143,6 +143,7 @@ def train(cfg):
     cfg.weight_decay = 5e-5
     cfg.label_smoothing = 0.1
     cfg.warmup_epochs = 0.0
+    cfg.device = cfg.device if cfg.device is not None else ''
     # trainer = ClassificationTrainer(cfg)
     # trainer.train()
     from ultralytics import YOLO

@@ -166,10 +166,10 @@ class BaseTrainer:
     def train(self):
         print('DEVICE', self.device, 'ARGS DEVICE:', self.args.device)
 
-        if len(self.args.device) or isinstance(self.args.device, int):  # i.e. device=0 or device=[0,1,2,3]
+        if isinstance(self.args.device, int) or self.args.device:  # i.e. device=0 or device=[0,1,2,3]
             world_size = torch.cuda.device_count()
-        elif not self.args.device and torch.cuda.is_available():  # i.e. device=None or device=''
-            world_size = 1
+        elif torch.cuda.is_available():  # i.e. device=None or device=''
+            world_size = 1  # default to device 0
         else:  # i.e. device='cpu' or 'mps'
             world_size = 0
 

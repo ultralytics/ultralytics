@@ -111,7 +111,7 @@ class YOLO:
         self.model.fuse()
 
     @smart_inference_mode()
-    def predict(self, source, **kwargs):
+    def predict(self, source, return_outputs=True, **kwargs):
         """
         Visualize prediction.
 
@@ -127,7 +127,7 @@ class YOLO:
         predictor = self.PredictorClass(overrides=overrides)
 
         predictor.args.imgsz = check_imgsz(predictor.args.imgsz, min_dim=2)  # check image size
-        predictor.setup(model=self.model, source=source)
+        predictor.setup(model=self.model, source=source, return_outputs=return_outputs)
         return predictor()
 
     @smart_inference_mode()

@@ -215,8 +215,9 @@ class BasePredictor:
 
         self.run_callbacks("on_predict_end")
 
-    def predict_cli(self):
-        for _ in (self.__call__(return_outputs=False)):
+    def predict_cli(self, source=None, model=None, return_outputs=False):
+        # as __call__ is a genertor now so have to treat it like a genertor
+        for _ in (self.__call__(source, model, return_outputs)):
             pass
 
     def show(self, p):

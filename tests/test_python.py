@@ -32,7 +32,8 @@ def test_model_fuse():
 
 def test_predict_dir():
     model = YOLO(MODEL)
-    model.predict(source=ROOT / "assets")
+    for _ in model.predict(source=ROOT / "assets"):
+        pass
 
 
 def test_val():

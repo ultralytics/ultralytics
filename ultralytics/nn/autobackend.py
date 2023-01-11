@@ -22,32 +22,31 @@ class AutoBackend(nn.Module):
 
     def __init__(self, weights='yolov8n.pt', device=torch.device('cpu'), dnn=False, data=None, fp16=False, fuse=True):
         """
-        Ultralytics YOLO MultiBackend class for python inference on various backends
+        MultiBackend class for python inference on various platforms using Ultralytics YOLO.
 
         Args:
-          weights: the path to the weights file. Defaults to yolov8n.pt
-          device: The device to run the model on.
-          dnn: If you want to use OpenCV's DNN module to run the inference, set this to True. Defaults to
-        False
-          data: a dictionary containing the following keys:
-          fp16: If true, will use half precision. Defaults to False
-          fuse: whether to fuse the model or not. Defaults to True
+            weights (str): The path to the weights file. Default: 'yolov8n.pt'
+            device (torch.device): The device to run the model on.
+            dnn (bool): Use OpenCV's DNN module for inference if True, defaults to False.
+            data (dict): Additional data, optional
+            fp16 (bool): If True, use half precision. Default: False
+            fuse (bool): Whether to fuse the model or not. Default: True
 
-        Supported format and their usage:
-            | Platform              | weights          |
-            |-----------------------|------------------|
-            | PyTorch               | *.pt             |
-            | TorchScript           | *.torchscript    |
-            | ONNX Runtime          | *.onnx           |
-            | ONNX OpenCV DNN       | *.onnx --dnn     |
-            | OpenVINO              | *.xml            |
-            | CoreML                | *.mlmodel        |
-            | TensorRT              | *.engine         |
-            | TensorFlow SavedModel | *_saved_model    |
-            | TensorFlow GraphDef   | *.pb             |
-            | TensorFlow Lite       | *.tflite         |
-            | TensorFlow Edge TPU   | *_edgetpu.tflite |
-            | PaddlePaddle          | *_paddle_model   |
+        Supported formats and their usage:
+            Platform              | Weights Format
+            -----------------------|------------------
+            PyTorch               | *.pt
+            TorchScript           | *.torchscript
+            ONNX Runtime          | *.onnx
+            ONNX OpenCV DNN       | *.onnx --dnn
+            OpenVINO              | *.xml
+            CoreML                | *.mlmodel
+            TensorRT              | *.engine
+            TensorFlow SavedModel | *_saved_model
+            TensorFlow GraphDef   | *.pb
+            TensorFlow Lite       | *.tflite
+            TensorFlow Edge TPU   | *_edgetpu.tflite
+            PaddlePaddle          | *_paddle_model
         """
         super().__init__()
         w = str(weights[0] if isinstance(weights, list) else weights)
@@ -234,15 +233,16 @@ class AutoBackend(nn.Module):
 
     def forward(self, im, augment=False, visualize=False):
         """
-        Runs inference on the given model
+        Runs inference on the YOLOv8 MultiBackend model.
 
         Args:
-          im: the image tensor
-          augment: whether to augment the image. Defaults to False
-          visualize: if True, then the network will output the feature maps of the last convolutional layer.
-        Defaults to False
+            im (torch.tensor): The image tensor to perform inference on.
+            augment (bool): whether to perform data augmentation during inference, defaults to False
+            visualize (bool): whether to visualize the output predictions, defaults to False
+
+        Returns:
+            (tuple): Tuple containing the raw output tensor, and the processed output for visualization (if visualize=True)
         """
-        # YOLOv5 MultiBackend inference
         b, ch, h, w = im.shape  # batch, channel, height, width
         if self.fp16 and im.dtype != torch.float16:
             im = im.half()  # to FP16
@@ -325,19 +325,25 @@ class AutoBackend(nn.Module):
 
     def from_numpy(self, x):
         """
-        `from_numpy` converts a numpy array to a tensor
+         Convert a numpy array to a tensor.
 
-        Args:
-          x: the numpy array to convert
-        """
+         Args:
+             x (numpy.ndarray): The array to be converted.
+
+         Returns:
+             (torch.tensor): The converted tensor
+         """
         return torch.from_numpy(x).to(self.device) if isinstance(x, np.ndarray) else x
 
     def warmup(self, imgsz=(1, 3, 640, 640)):
         """
-        Warmup model by running inference once
+        Warm up the model by running one forward pass with a dummy input.
 
         Args:
-          imgsz: the size of the image you want to run inference on.
+            imgsz (tuple): The shape of the dummy input tensor in the format (batch_size, channels, height, width)
+
+        Returns:
+            (None): This method runs the forward pass and don't return any value
         """
         warmup_types = self.pt, self.jit, self.onnx, self.engine, self.saved_model, self.pb, self.triton, self.nn_module
         if any(warmup_types) and (self.device.type != 'cpu' or self.triton):

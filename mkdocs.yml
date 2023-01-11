@@ -35,6 +35,7 @@ theme:
         icon: material/brightness-4
         name: Switch to light mode
   features:
+    - content.action.edit
     - content.code.annotate
     - content.tooltips
     - search.highlight
@@ -75,6 +76,7 @@ markdown_extensions:
   - pymdownx.tilde
 plugins:
   - mkdocstrings
+  - search
 
 # Primary navigation
 nav:

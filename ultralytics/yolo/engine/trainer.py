@@ -84,6 +84,7 @@ class BaseTrainer:
         if overrides is None:
             overrides = {}
         self.args = get_config(config, overrides)
+        self.device = utils.torch_utils.select_device(self.args.device, self.args.batch)
         self.check_resume()
         self.console = LOGGER
         self.validator = None
@@ -113,7 +114,6 @@ class BaseTrainer:
             print_args(dict(self.args))
 
         # Device
-        self.device = utils.torch_utils.select_device(self.args.device, self.batch_size)
         self.amp = self.device.type != 'cpu'
         self.scaler = amp.GradScaler(enabled=self.amp)
         if self.device.type == 'cpu':

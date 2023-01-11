@@ -110,7 +110,7 @@ class BaseDataset(Dataset):
                 if segments:
                     self.labels[i]["segments"] = segments[j]
             if self.single_cls:
-                self.labels[i]["cls"] = 0
+                self.labels[i]["cls"][:, 0] = 0
 
     def load_image(self, i):
         # Loads 1 image from dataset index 'i', returns (im, resized hw)

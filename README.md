@@ -147,9 +147,9 @@ Ultralytics [release](https://github.com/ultralytics/ultralytics/releases) on fi
 | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-seg.pt) | 640                   | 53.4                 | 43.4                  | -                              | -                                   | 71.8               | 344.1             |
 
 - **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](http://cocodataset.org) dataset.
-  <br>Reproduce by `yolo mode=val task=detect data=coco.yaml device=0`
+  <br>Reproduce by `yolo mode=val task=segment data=coco.yaml device=0`
 - **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance.
-  <br>Reproduce by `yolo mode=val task=detect data=coco128.yaml batch=1 device=0/cpu`
+  <br>Reproduce by `yolo mode=val task=segment data=coco128-seg.yaml batch=1 device=0/cpu`
 
 </details>
 
@@ -163,10 +163,10 @@ Ultralytics [release](https://github.com/ultralytics/ultralytics/releases) on fi
 | [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-cls.pt) | 224                   | 78.0             | 94.1             | -                              | -                                   | 37.5               | 99.7                     |
 | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-cls.pt) | 224                   | 78.4             | 94.3             | -                              | -                                   | 57.4               | 154.8                    |
 
-- **mAP<sup>val</sup>** values are for single-model single-scale on [ImageNet](https://www.image-net.org/) dataset.
-  <br>Reproduce by `yolo mode=val task=detect data=coco.yaml device=0`
+- **acc** values are model accuracies on the [ImageNet](https://www.image-net.org/) dataset validation set.
+  <br>Reproduce by `yolo mode=val task=classify data=path/to/ImageNet device=0`
 - **Speed** averaged over ImageNet val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance.
-  <br>Reproduce by `yolo mode=val task=detect data=coco128.yaml batch=1 device=0/cpu`
+  <br>Reproduce by `yolo mode=val task=classify data=path/to/ImageNet batch=1 device=0/cpu`
 
 </details>
 

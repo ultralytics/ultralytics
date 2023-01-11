@@ -119,8 +119,8 @@ Ultralytics [release](https://github.com/ultralytics/ultralytics/releases) on fi
 
 <details open><summary>Detection</summary>
 
-| Model                                                                                     | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU<br>(ms) | Speed<br><sup>T4 GPU<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
-| ----------------------------------------------------------------------------------------- | --------------------- | -------------------- | ------------------------- | ---------------------------- | ------------------ | ----------------- |
+| Model                                                                                | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU<br>(ms) | Speed<br><sup>T4 GPU<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+| ------------------------------------------------------------------------------------ | --------------------- | -------------------- | ------------------------- | ---------------------------- | ------------------ | ----------------- |
 | [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt) | 640                   | 37.3                 | -                         | -                            | 3.2                | 8.7               |
 | [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt) | 640                   | 44.9                 | -                         | -                            | 11.2               | 28.6              |
 | [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m.pt) | 640                   | 50.2                 | -                         | -                            | 25.9               | 78.9              |

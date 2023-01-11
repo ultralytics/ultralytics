@@ -84,12 +84,15 @@ YOLOv8 也可以在 Python 环境中直接使用，并接受与上面 CLI 例子
 ```python
 from ultralytics import YOLO
 
-model = YOLO("yolov8n.pt")  # load a pretrained YOLOv8n model
+# 加载模型
+model = YOLO("yolov8n.yaml")  # 从头开始构建新模型
+model = YOLO("yolov8n.pt")  # 加载预训练模型（推荐用于训练）
 
-model.train(data="coco128.yaml")  # train the model
-model.val()  # evaluate model performance on the validation set
-model.predict(source="https://ultralytics.com/images/bus.jpg")  # predict on an image
-model.export(format="onnx")  # export the model to ONNX format
+# Use the model
+results = model.train(data="coco128.yaml", epochs=3)  # 训练模型
+results = model.val()  # 在验证集上评估模型性能
+results = model("https://ultralytics.com/images/bus.jpg")  # 预测图像
+success = YOLO("yolov8n.pt").export(format="onnx")  # 将模型导出为 ONNX 格式
 ```
 
 [模型](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/yolo/v8/models) 会从 Ultralytics [发布页](https://github.com/ultralytics/ultralytics/releases) 自动下载。
@@ -200,7 +203,7 @@ model.export(format="onnx")  # export the model to ONNX format
 
 <!-- SVG image from https://opencollective.com/ultralytics/contributors.svg?width=990 -->
 
-<a href="https://github.com/ultralytics/yolov5/graphs/contributors"><img src="https://github.com/ultralytics/yolov5/releases/download/v1.0/image-contributors-1280.png"/></a>
+<a href="https://github.com/ultralytics/ultralytics/graphs/contributors"><img src="https://github.com/ultralytics/yolov5/releases/download/v1.0/image-contributors-1280.png"/></a>
 
 ## <div align="center">License</div>
 

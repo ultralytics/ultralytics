@@ -101,6 +101,7 @@ mixup: 0.0  # image mixup (probability)
 copy_paste: 0.0  # segment copy-paste (probability)
 
 # Hydra configs --------------------------------------------------------------------------------------------------------
+cfg: null # for overriding defaults.yaml
 hydra:
   output_subdir: null  # disable hydra directory creation
   run:

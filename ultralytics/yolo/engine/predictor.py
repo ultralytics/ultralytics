@@ -89,6 +89,7 @@ class BasePredictor:
         self.vid_path, self.vid_writer = None, None
         self.annotator = None
         self.data_path = None
+        self.output = dict()
         self.callbacks = defaultdict(list, {k: [v] for k, v in callbacks.default_callbacks.items()})  # add callbacks
         callbacks.add_integration_callbacks(self)
 
@@ -104,7 +105,7 @@ class BasePredictor:
     def postprocess(self, preds, img, orig_img):
         return preds
 
-    def setup(self, source=None, model=None):
+    def setup(self, source=None, model=None, return_outputs=True):
         # source
         source = str(source if source is not None else self.args.source)
         is_file = Path(source).suffix[1:] in (IMG_FORMATS + VID_FORMATS)
@@ -155,16 +156,16 @@ class BasePredictor:
         self.imgsz = imgsz
         self.done_setup = True
         self.device = device
+        self.return_outputs = return_outputs
 
         return model
 
     @smart_inference_mode()
-    def __call__(self, source=None, model=None):
+    def __call__(self, source=None, model=None, return_outputs=True):
         self.run_callbacks("on_predict_start")
-        model = self.model if self.done_setup else self.setup(source, model)
+        model = self.model if self.done_setup else self.setup(source, model, return_outputs)
         model.eval()
         self.seen, self.windows, self.dt = 0, [], (ops.Profile(), ops.Profile(), ops.Profile())
-        self.all_outputs = []
         for batch in self.dataset:
             self.run_callbacks("on_predict_batch_start")
             path, im, im0s, vid_cap, s = batch
@@ -194,6 +195,10 @@ class BasePredictor:
                 if self.args.save:
                     self.save_preds(vid_cap, i, str(self.save_dir / p.name))
 
+            if self.return_outputs:
+                yield self.output
+                self.output.clear()
+
             # Print time (inference-only)
             LOGGER.info(f"{s}{'' if len(preds) else '(no detections), '}{self.dt[1].dt * 1E3:.1f}ms")
 
@@ -209,7 +214,11 @@ class BasePredictor:
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
 
         self.run_callbacks("on_predict_end")
-        return self.all_outputs
+
+    def predict_cli(self, source=None, model=None, return_outputs=False):
+        # as __call__ is a genertor now so have to treat it like a genertor
+        for _ in (self.__call__(source, model, return_outputs)):
+            pass
 
     def show(self, p):
         im0 = self.annotator.result()

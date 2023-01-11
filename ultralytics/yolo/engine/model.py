@@ -220,4 +220,4 @@ class YOLO:
         args.pop("save_json", None)
 
         # set device to '' to prevent from auto DDP usage
-        args.device = ''
+        args["device"] = ''

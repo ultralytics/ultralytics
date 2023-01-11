@@ -74,13 +74,13 @@ def test_segment():
 
 def test_classify():
     overrides = {
-        "data": "imagenette160",
+        "data": "mnist160",
         "model": "yolov8n-cls.yaml",
         "imgsz": 32,
         "epochs": 1,
         "batch": 64,
         "save": False}
-    CFG.data = "imagenette160"
+    CFG.data = "mnist160"
     CFG.imgsz = 32
     CFG.batch = 64
     # YOLO(CFG_SEG).train(**overrides) # This works

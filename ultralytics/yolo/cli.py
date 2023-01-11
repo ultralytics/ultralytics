@@ -6,8 +6,8 @@ from pathlib import Path
 import hydra
 
 from ultralytics import hub, yolo
-from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, colorstr
 from ultralytics.yolo.configs import get_config
+from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, colorstr
 
 DIR = Path(__file__).parent
 

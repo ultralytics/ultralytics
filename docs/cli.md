@@ -57,14 +57,14 @@ yolo task=init
 ```
 You can then use `cfg=name.yaml` command to pass the new config file
 ```bash
-yolo task=detect mode=train {++ cfg=default.yaml ++}
+yolo cfg=default.yaml
 ```
 
 ??? example
     === "Command"
         ```
         yolo task=init
-        yolo task=detect mode=train cfg=default.yaml
+        yolo cfg=default.yaml
         ```
     === "Result"
         TODO: add terminal output

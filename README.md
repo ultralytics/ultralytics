@@ -99,7 +99,7 @@ results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
 success = YOLO("yolov8n.pt").export(format="onnx")  # export a model to ONNX format
 ```
 
-[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/yolo/v8/models) download automatically from the latest
+[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) download automatically from the latest
 Ultralytics [release](https://github.com/ultralytics/ultralytics/releases).
 
 ### Known Issues / TODOs
@@ -116,7 +116,7 @@ We are still working on several parts of YOLOv8! We aim to have these completed 
 
 All YOLOv8 pretrained models are available here. Detection and Segmentation models are pretrained on the COCO dataset, while Classification models are pretrained on the ImageNet dataset.
 
-[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/yolo/v8/models) download automatically from the latest
+[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) download automatically from the latest
 Ultralytics [release](https://github.com/ultralytics/ultralytics/releases) on first use.
 
 <details open><summary>Detection</summary>

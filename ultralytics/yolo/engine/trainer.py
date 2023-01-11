@@ -164,8 +164,7 @@ class BaseTrainer:
             callback(self)
 
     def train(self):
-        print('DEVICE', self.device, 'ARGS DEVICE:', self.args.device)
-
+        # Allow device='', device=None on Multi-GPU systems to default to device=0
         if isinstance(self.args.device, int) or self.args.device:  # i.e. device=0 or device=[0,1,2,3]
             world_size = torch.cuda.device_count()
         elif torch.cuda.is_available():  # i.e. device=None or device=''
@@ -173,6 +172,7 @@ class BaseTrainer:
         else:  # i.e. device='cpu' or 'mps'
             world_size = 0
 
+        # Run subprocess if DDP training, else train normally
         if world_size > 1 and "LOCAL_RANK" not in os.environ:
             command = generate_ddp_command(world_size, self)
             try:

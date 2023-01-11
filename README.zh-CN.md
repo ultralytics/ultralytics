@@ -18,7 +18,7 @@
   </div>
   <br>
 
-[Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) 是由 [Ultralytics](https://ultralytics.com) 开发的一个前沿的SOTA模型。它在以前成功的YOLO版本基础上，引入了新的功能和改进，进一步提升了其性能和灵活性。YOLOv8 基于快速、准确和易于使用的设计理念，使其成为广泛的目标检测、图像分割和图像分类任务的绝佳选择。
+[Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) 是由 [Ultralytics](https://ultralytics.com) 开发的一个前沿的 SOTA 模型。它在以前成功的 YOLO 版本基础上，引入了新的功能和改进，进一步提升了其性能和灵活性。YOLOv8 基于快速、准确和易于使用的设计理念，使其成为广泛的目标检测、图像分割和图像分类任务的绝佳选择。
 
 如果要申请企业许可证，请填写 [Ultralytics 许可](https://ultralytics.com/license)。
 

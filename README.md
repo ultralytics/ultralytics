@@ -1,7 +1,7 @@
 <div align="center">
   <p>
     <a align="center" href="https://ultralytics.com/yolov8" target="_blank">
-      <img width="850" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png"></a>
+      <img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png"></a>
   </p>
 
 [English](README.md) | [简体中文](README.zh-CN.md)
@@ -21,6 +21,8 @@
 [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics), developed by [Ultralytics](https://ultralytics.com), is a cutting-edge, state-of-the-art (SOTA) model that builds upon the success of previous YOLO versions and introduces new features and improvements to further boost performance and flexibility. YOLOv8 is designed to be fast, accurate, and easy to use, making it an excellent choice for a wide range of object detection, image segmentation and image classification tasks.
 
 To request an Enterprise License please complete the form at [Ultralytics Licensing](https://ultralytics.com/license).
+
+<img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/yolo-comparison-plots.png"></a>
 
 <div align="center">
     <a href="https://github.com/ultralytics" style="text-decoration:none;">

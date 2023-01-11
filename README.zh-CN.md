@@ -95,7 +95,7 @@ results = model("https://ultralytics.com/images/bus.jpg")  # 预测图像
 success = YOLO("yolov8n.pt").export(format="onnx")  # 将模型导出为 ONNX 格式
 ```
 
-[模型](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/yolo/v8/models) 会从 Ultralytics [发布页](https://github.com/ultralytics/ultralytics/releases) 自动下载。
+[模型](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) 会从 Ultralytics [发布页](https://github.com/ultralytics/ultralytics/releases) 自动下载。
 
 ### 已知问题 / 待办事项
 
@@ -111,7 +111,7 @@ success = YOLO("yolov8n.pt").export(format="onnx")  # 将模型导出为 ONNX �
 
 所有 YOLOv8 的预训练模型都可以在这里找到。目标检测和分割模型是在 COCO 数据集上预训练的，而分类模型是在 ImageNet 数据集上预训练的。
 
-第一次使用时，[模型](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/yolo/v8/models) 会从 Ultralytics [发布页](https://github.com/ultralytics/ultralytics/releases) 自动下载。
+第一次使用时，[模型](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) 会从 Ultralytics [发布页](https://github.com/ultralytics/ultralytics/releases) 自动下载。
 
 <details open><summary>目标检测</summary>
 

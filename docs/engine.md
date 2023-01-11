@@ -5,7 +5,7 @@ BaseTrainer contains the generic boilerplate training routine. It can be customi
 
 * `get_model(cfg, weights)` - The function that builds a the model to be trained
 * `get_dataloder()` - The function that builds the dataloder
-More details and source code can be found in [`BaseTrainer` Reference](../reference/base_trainer.md)
+More details and source code can be found in [`BaseTrainer` Reference](reference/base_trainer.md)
 
 ## DetectionTrainer
 Here's how you can use the YOLOv8 `DetectionTrainer` and customize it.

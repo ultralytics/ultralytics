@@ -32,7 +32,7 @@ def cli(cfg):
         LOGGER.info(f"""
         {colorstr("YOLO:")} configuration saved to {Path.cwd() / DEFAULT_CONFIG.name}.
         To run experiments using custom configuration:
-        yolo task='task' mode='mode' --config-name config_file.yaml
+        yolo cfg=config_file.yaml
                     """)
         return
 

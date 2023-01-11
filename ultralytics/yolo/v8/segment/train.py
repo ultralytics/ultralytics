@@ -144,6 +144,7 @@ class SegLoss(Loss):
 def train(cfg):
     cfg.model = cfg.model or "yolov8n-seg.yaml"
     cfg.data = cfg.data or "coco128-seg.yaml"  # or yolo.ClassificationDataset("mnist")
+    cfg.device = cfg.device if cfg.device is not None else ''
     # trainer = SegmentationTrainer(cfg)
     # trainer.train()
     from ultralytics import YOLO

@@ -1,25 +1,14 @@
 site_name: Ultralytics Docs
 repo_url: https://github.com/ultralytics/ultralytics
-repo_name: Ultralytics
+edit_uri: https://github.com/ultralytics/ultralytics/tree/main/docs
+repo_name: ultralytics/ultralytics
 
 theme:
   name: "material"
   logo: https://github.com/ultralytics/assets/raw/main/logo/Ultralytics-logomark-white.png
-  icon:
-    repo: fontawesome/brands/github
-    admonition:
-      note: octicons/tag-16
-      abstract: octicons/checklist-16
-      info: octicons/info-16
-      tip: octicons/squirrel-16
-      success: octicons/check-16
-      question: octicons/question-16
-      warning: octicons/alert-16
-      failure: octicons/x-circle-16
-      danger: octicons/zap-16
-      bug: octicons/bug-16
-      example: octicons/beaker-16
-      quote: octicons/quote-16
+  favicon: assets/favicon.ico
+  font:
+    text: Roboto
 
   palette:
     # Palette toggle for light mode
@@ -34,12 +23,16 @@ theme:
         icon: material/brightness-4
         name: Switch to light mode
   features:
+    - content.action.edit
     - content.code.annotate
     - content.tooltips
     - search.highlight
     - search.share
     - search.suggest
     - toc.follow
+    - navigation.top
+    - navigation.expand
+    - navigation.footer
 
 extra_css:
   - stylesheets/style.css
@@ -72,8 +65,10 @@ markdown_extensions:
   - pymdownx.keys
   - pymdownx.mark
   - pymdownx.tilde
+
 plugins:
   - mkdocstrings
+  - search
 
 # Primary navigation
 nav:

@@ -63,7 +63,8 @@ def predict(cfg):
     cfg.source = cfg.source if cfg.source is not None else ROOT / "assets"
 
     predictor = ClassificationPredictor(cfg)
-    predictor()
+    for _ in (predictor(return_outputs=False)):
+        pass
 
 
 if __name__ == "__main__":

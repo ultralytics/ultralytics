@@ -92,7 +92,8 @@ def predict(cfg):
     cfg.imgsz = check_imgsz(cfg.imgsz, min_dim=2)  # check image size
     cfg.source = cfg.source if cfg.source is not None else ROOT / "assets"
     predictor = DetectionPredictor(cfg)
-    predictor(return_outputs=False)
+    for _ in (predictor(return_outputs=False)):
+        pass
 
 
 if __name__ == "__main__":

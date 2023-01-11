@@ -5,6 +5,7 @@ repo_name: Ultralytics
 theme:
   name: "material"
   logo: https://github.com/ultralytics/assets/raw/main/logo/Ultralytics-logomark-white.png
+  favicon: https://raw.githubusercontent.com/ultralytics/assets/main/logo/favicon.ico
   icon:
     repo: fontawesome/brands/github
     admonition:

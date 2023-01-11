@@ -166,7 +166,7 @@ class BaseTrainer:
     def train(self):
         print('DEVICE', self.device, 'ARGS DEVICE:', self.args.device)
 
-        world_size = torch.cuda.device_count()
+        world_size = torch.cuda.device_count() if len(self.args.device) else 1 if torch.cuda.is_available() else 0
         if world_size > 1 and "LOCAL_RANK" not in os.environ:
             command = generate_ddp_command(world_size, self)
             try:

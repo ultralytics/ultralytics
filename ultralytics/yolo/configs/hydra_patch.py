@@ -71,7 +71,7 @@ def check_config_mismatch(overrides, cfg):
     for option in mismatched:
         LOGGER.info(f"{colorstr(option)} is not a valid key. Similar keys: {get_close_matches(option, cfg, 3, 0.6)}")
     if mismatched:
-        exit()
+        sys.exit()
 
 
 hydra._internal.config_loader_impl.ConfigLoaderImpl._apply_overrides_to_config = override_config

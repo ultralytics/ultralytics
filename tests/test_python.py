@@ -34,6 +34,7 @@ def test_predict_dir():
     model = YOLO(MODEL)
     model.predict(source=ROOT / "assets", return_outputs=False)
 
+
 def test_val():
     model = YOLO(MODEL)
     model.val(data="coco128.yaml", imgsz=32)

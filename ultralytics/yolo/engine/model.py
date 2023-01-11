@@ -212,10 +212,12 @@ class YOLO:
 
     @staticmethod
     def _reset_ckpt_args(args):
-        args.pop("device", None)
         args.pop("project", None)
         args.pop("name", None)
         args.pop("batch", None)
         args.pop("epochs", None)
         args.pop("cache", None)
         args.pop("save_json", None)
+
+        # set device to '' to prevent from auto DDP usage
+        args["device"] = ''

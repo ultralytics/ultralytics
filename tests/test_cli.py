@@ -23,7 +23,7 @@ def test_train_seg():
 
 
 def test_train_cls():
-    os.system(f'yolo mode=train task=classify model={CFG}-cls.yaml data=imagenette160 imgsz=32 epochs=1')
+    os.system(f'yolo mode=train task=classify model={CFG}-cls.yaml data=mnist160 imgsz=32 epochs=1')
 
 
 # Val checks -----------------------------------------------------------------------------------------------------------

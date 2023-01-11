@@ -39,7 +39,8 @@ class ClassificationPredictor(BasePredictor):
         self.annotator = self.get_annotator(im0)
 
         prob = preds[idx].softmax(0)
-        self.all_outputs.append(prob)
+        if self.return_outputs:
+            self.output["prob"] = prob.cpu().numpy()
         # Print results
         top5i = prob.argsort(0, descending=True)[:5].tolist()  # top 5 indices
         log_string += f"{', '.join(f'{self.model.names[j]} {prob[j]:.2f}' for j in top5i)}, "
@@ -62,7 +63,7 @@ def predict(cfg):
     cfg.source = cfg.source if cfg.source is not None else ROOT / "assets"
 
     predictor = ClassificationPredictor(cfg)
-    predictor()
+    predictor.predict_cli()
 
 
 if __name__ == "__main__":

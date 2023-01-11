@@ -55,16 +55,16 @@ You can override config file entirely by passing a new file. You can create a co
 ```bash
 yolo task=init
 ```
-You can then use special `--cfg name.yaml` command to pass the new config file
+You can then use `cfg=name.yaml` command to pass the new config file
 ```bash
-yolo task=detect mode=train {++ --cfg default.yaml ++}
+yolo cfg=default.yaml
 ```
 
 ??? example
     === "Command"
         ```
         yolo task=init
-        yolo task=detect mode=train --cfg default.yaml
+        yolo cfg=default.yaml
         ```
     === "Result"
         TODO: add terminal output

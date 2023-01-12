@@ -54,7 +54,7 @@ jobs:
               pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu
           fi
           # pip install ultralytics (production)
-          pip install .
+          pip install -e . pytest
         shell: bash  # for Windows compatibility
       - name: Check environment
         run: |
@@ -78,7 +78,7 @@ jobs:
           from ultralytics import hub, yolo
           key = os.environ['APIKEY']
           print(ultralytics.__version__)
-          # ultralytics.checks()
+          ultralytics.checks()
           # ultralytics.reset_model(key)  # reset trained model
           # ultralytics.start(key)  # train model
       - name: Test detection
@@ -102,3 +102,6 @@ jobs:
           yolo task=classify mode=val model=runs/classify/train/weights/last.pt data=mnist160 imgsz=32
           yolo task=classify mode=predict model=runs/classify/train/weights/last.pt imgsz=32 source=ultralytics/assets/bus.jpg
           yolo mode=export model=runs/classify/train/weights/last.pt imgsz=32 format=torchscript
+      - name: Pytest tests
+        shell: bash  # for Windows compatibility
+        run: pytest tests

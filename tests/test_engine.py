@@ -12,8 +12,8 @@ SOURCE = ROOT / "assets"
 
 
 def test_detect():
-    overrides = {"data": "coco128.yaml", "model": CFG_DET, "imgsz": 32, "epochs": 1, "save": False}
-    CFG.data = "coco128.yaml"
+    overrides = {"data": "coco8.yaml", "model": CFG_DET, "imgsz": 32, "epochs": 1, "save": False}
+    CFG.data = "coco8.yaml"
 
     # Trainer
     trainer = detect.DetectionTrainer(overrides=overrides)
@@ -41,8 +41,8 @@ def test_detect():
 
 
 def test_segment():
-    overrides = {"data": "coco128-seg.yaml", "model": CFG_SEG, "imgsz": 32, "epochs": 1, "save": False}
-    CFG.data = "coco128-seg.yaml"
+    overrides = {"data": "coco8-seg.yaml", "model": CFG_SEG, "imgsz": 32, "epochs": 1, "save": False}
+    CFG.data = "coco8-seg.yaml"
     CFG.v5loader = False
     # YOLO(CFG_SEG).train(**overrides)  # works
 

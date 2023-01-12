@@ -123,7 +123,7 @@ will submit to [arxiv.org](https://arxiv.org) once complete.
 
 </details>
 
-## <div align="center">Checkpoints</div>
+## <div align="center">Models</div>
 
 All YOLOv8 pretrained models are available here. Detection and Segmentation models are pretrained on the COCO dataset,
 while Classification models are pretrained on the ImageNet dataset.

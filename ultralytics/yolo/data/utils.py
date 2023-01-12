@@ -330,5 +330,4 @@ def check_dataset_roboflow(data: str, roboflow_api_key: str, task: str) -> str:
     dataset = project.version(int(project_version)).download(model_format=model_format, overwrite=False)
     if task == "classify":
         return dataset.location
-    else:
-        return f"{dataset.location}/data.yaml"
+    return f"{dataset.location}/data.yaml"

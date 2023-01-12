@@ -1,4 +1,4 @@
-## Installation
+## Install
 
 Install YOLOv8 via the `ultralytics` pip package for the latest stable release or by cloning
 the [https://github.com/ultralytics/ultralytics](https://github.com/ultralytics/ultralytics) repository for the most
@@ -19,7 +19,7 @@ up-to-date version.
     ```
     See contributing section to know more about contributing to the project
 
-## CLI
+## Use with CLI
 
 The YOLO command line interface (CLI) lets you simply train, validate or infer models on various tasks and versions.
 CLI requires no customization or code. You can simply run all tasks from the terminal with the `yolo` command.
@@ -45,11 +45,11 @@ CLI requires no customization or code. You can simply run all tasks from the ter
 
 [CLI Guide](cli.md){ .md-button .md-button--primary}
 
-## Python API
+## Use with Python
 
-The Python API allows users to easily use YOLOv8 in their Python projects. It provides functions for loading and running
-the model, as well as for processing the model's output. The interface is designed to be easy to use, so that users can
-quickly implement object detection in their projects.
+Python usage allows users to easily use YOLOv8 inside their Python projects. It provides functions for loading and
+running the model, as well as for processing the model's output. The interface is designed to be easy to use, so that
+users can quickly implement object detection in their projects.
 
 Overall, the Python interface is a useful tool for anyone looking to incorporate object detection, segmentation or
 classification into their Python projects using YOLOv8.
@@ -70,4 +70,4 @@ classification into their Python projects using YOLOv8.
     success = YOLO("yolov8n.pt").export(format="onnx")  # export a model to ONNX format
     ```
 
-[API Guide](sdk.md){ .md-button .md-button--primary}
+[Python Guide](python.md){.md-button .md-button--primary}

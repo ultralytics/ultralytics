@@ -1,4 +1,4 @@
-This is the simplest way of simply using YOLOv8 models in a python environment. It can be imported from
+This is the simplest way of simply using YOLOv8 models in a Python environment. It can be imported from
 the `ultralytics` module.
 
 !!! example "Train"
@@ -21,11 +21,7 @@ the `ultralytics` module.
 
     === "Resume"
         ```python
-        from ultralytics import YOLO
-
-        model = YOLO()
-        model.resume(task="detect") # resume last detection training
-        model.resume(model="last.pt") # resume from a given model/run
+        TODO: Resume feature is under development and should be released soon.
         ```
 
 !!! example "Val"
@@ -73,7 +69,7 @@ the `ultralytics` module.
         from ultralytics import YOLO
 
         model = YOLO("model.pt")
-        outputs = model.predict(source="0", return_outputs=True) # treat predict as a python generator
+        outputs = model.predict(source="0", return_outputs=True) # treat predict as a Python generator
         for output in outputs:
           # each output here is a dict.
           # for detection

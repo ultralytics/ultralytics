@@ -72,7 +72,7 @@ class BaseValidator:
 
         self.callbacks = defaultdict(list, {k: [v] for k, v in callbacks.default_callbacks.items()})  # add callbacks
 
-        if "roboflow.com" in self.args.data:
+        if self.args.data is not None and "roboflow.com" in self.args.data:
             self.args.data = check_dataset_roboflow(
                 data=self.args.data,
                 roboflow_api_key=self.args.roboflow_api_key,

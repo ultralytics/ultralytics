@@ -5,6 +5,7 @@ from pathlib import Path
 from ultralytics import yolo  # noqa
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, attempt_load_one_weight
 from ultralytics.yolo.configs import get_config
+from ultralytics.yolo.data.utils import check_dataset_roboflow
 from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, yaml_load
 from ultralytics.yolo.utils.checks import check_imgsz, check_yaml
@@ -183,6 +184,11 @@ class YOLO:
         overrides["mode"] = "train"
         if not overrides.get("data"):
             raise AttributeError("dataset not provided! Please define `data` in config.yaml or pass as an argument.")
+        if "roboflow.com" in overrides.get("data"):
+            overrides["data"] = check_dataset_roboflow(
+                data=overrides.get("data"),
+                roboflow_api_key=overrides.get("roboflow_api_key"),
+                task=overrides.get("task"))
         if overrides.get("resume"):
             overrides["resume"] = self.ckpt_path
 

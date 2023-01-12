@@ -3,6 +3,7 @@
 import contextlib
 import hashlib
 import os
+import re
 import subprocess
 import time
 from pathlib import Path
@@ -15,7 +16,7 @@ import torch
 from PIL import ExifTags, Image, ImageOps
 
 from ultralytics.yolo.utils import LOGGER, ROOT, colorstr, yaml_load
-from ultralytics.yolo.utils.checks import check_file, check_font, is_ascii
+from ultralytics.yolo.utils.checks import check_file, check_font, is_ascii, check_requirements
 from ultralytics.yolo.utils.downloads import download
 from ultralytics.yolo.utils.files import unzip_file
 
@@ -291,3 +292,43 @@ def check_dataset(dataset: str):
     names = [x.name for x in (data_dir / 'train').iterdir() if x.is_dir()]  # class names list
     names = dict(enumerate(sorted(names)))
     return {"train": train_set, "val": test_set, "nc": nc, "names": names}
+
+
+def extract_roboflow_metadata(url: str) -> tuple:
+    match = re.search(r'https://(?:app|universe)\.roboflow\.com/([^/]+)/([^/]+)(?:/dataset)?/([^/]+)', url)
+    if match:
+        workspace_name = match.group(1)
+        project_name = match.group(2)
+        project_version = match.group(3)
+        return workspace_name, project_name, project_version
+    else:
+        raise ValueError(f"Invalid Roboflow dataset url ❌ "
+                         f"Expected: https://universe.roboflow.com/workspace_name/project_name/project_version. "
+                         f"Given: {url}")
+
+
+def resolve_roboflow_model_format(task: str) -> str:
+    task_format_mapping = {
+        "detect": "yolov8",
+        "segment": "yolov5",
+        "classify": "folder"
+    }
+    return task_format_mapping.get(task)
+
+
+def check_dataset_roboflow(data: str, roboflow_api_key: str, task: str) -> str:
+    if roboflow_api_key is None:
+        raise ValueError("roboflow_api_key not found ❌")
+
+    check_requirements("roboflow>=0.2.24")
+    from roboflow import Roboflow
+
+    workspace_name, project_name, project_version = extract_roboflow_metadata(url=data)
+    rf = Roboflow(api_key=roboflow_api_key)
+    project = rf.workspace(workspace_name).project(project_name)
+    model_format = resolve_roboflow_model_format(task=task)
+    dataset = project.version(int(project_version)).download(model_format=model_format, overwrite=False)
+    if task == "classify":
+        return dataset.location
+    else:
+        return f"{dataset.location}/data.yaml"

@@ -28,7 +28,6 @@ theme:
     - content.action.edit
     - content.code.annotate
     - content.tooltips
-    - content.tabs.link
     - search.highlight
     - search.share
     - search.suggest
@@ -36,6 +35,7 @@ theme:
     - navigation.top
     - navigation.expand
     - navigation.footer
+    - content.tabs.link  # all code tabs change simultaneously
 
 extra_css:
   - stylesheets/style.css

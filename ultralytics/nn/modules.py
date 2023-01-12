@@ -366,7 +366,7 @@ class Concat(nn.Module):
 
 
 class AutoShape(nn.Module):
-    # YOLOv5 input-robust model wrapper for passing cv2/np/PIL/torch inputs. Includes preprocessing, inference and NMS
+    # YOLOv8 input-robust model wrapper for passing cv2/np/PIL/torch inputs. Includes preprocessing, inference and NMS
     conf = 0.25  # NMS confidence threshold
     iou = 0.45  # NMS IoU threshold
     agnostic = False  # NMS class-agnostic
@@ -465,7 +465,7 @@ class AutoShape(nn.Module):
 
 
 class Detections:
-    # YOLOv5 detections class for inference results
+    # YOLOv8 detections class for inference results
     def __init__(self, ims, pred, files, times=(0, 0, 0), names=None, shape=None):
         super().__init__()
         d = pred[0].device  # device
@@ -572,7 +572,7 @@ class Detections:
         return self._run(pprint=True)  # print results
 
     def __repr__(self):
-        return f'YOLOv5 {self.__class__} instance\n' + self.__str__()
+        return f'YOLOv8 {self.__class__} instance\n' + self.__str__()
 
 
 class Proto(nn.Module):
@@ -603,7 +603,7 @@ class Ensemble(nn.ModuleList):
 
 # heads
 class Detect(nn.Module):
-    # YOLOv5 Detect head for detection models
+    # YOLOv8 Detect head for detection models
     dynamic = False  # force grid reconstruction
     export = False  # export mode
     shape = None
@@ -650,7 +650,7 @@ class Detect(nn.Module):
 
 
 class Segment(Detect):
-    # YOLOv5 Segment head for segmentation models
+    # YOLOv8 Segment head for segmentation models
     def __init__(self, nc=80, nm=32, npr=256, ch=()):
         super().__init__(nc, ch)
         self.nm = nm  # number of masks
@@ -673,7 +673,7 @@ class Segment(Detect):
 
 
 class Classify(nn.Module):
-    # YOLOv5 classification head, i.e. x(b,c1,20,20) to x(b,c2)
+    # YOLOv8 classification head, i.e. x(b,c1,20,20) to x(b,c2)
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1):  # ch_in, ch_out, kernel, stride, padding, groups
         super().__init__()
         c_ = 1280  # efficientnet_b0 size

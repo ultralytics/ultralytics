@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from ultralytics import yolo  # noqa
+from ultralytics import yolo
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, attempt_load_one_weight
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.engine.exporter import Exporter

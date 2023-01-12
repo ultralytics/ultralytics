@@ -5,7 +5,7 @@ from collections import defaultdict
 from pathlib import Path
 
 import torch
-from omegaconf import OmegaConf  # noqa
+from omegaconf import OmegaConf
 from tqdm import tqdm
 
 from ultralytics.nn.autobackend import AutoBackend

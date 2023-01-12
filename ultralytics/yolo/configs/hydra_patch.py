@@ -6,8 +6,8 @@ from textwrap import dedent
 
 import hydra
 from hydra.errors import ConfigCompositionException
-from omegaconf import OmegaConf, open_dict  # noqa
-from omegaconf.errors import ConfigAttributeError, ConfigKeyError, OmegaConfBaseException  # noqa
+from omegaconf import OmegaConf, open_dict
+from omegaconf.errors import ConfigAttributeError, ConfigKeyError, OmegaConfBaseException
 
 from ultralytics.yolo.utils import LOGGER, colorstr
 

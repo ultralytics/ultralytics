@@ -275,7 +275,7 @@ class Exporter:
     def _export_onnx(self, prefix=colorstr('ONNX:')):
         # YOLOv8 ONNX export
         check_requirements('onnx>=1.12.0')
-        import onnx  # noqa
+        import onnx
 
         LOGGER.info(f'\n{prefix} starting export with onnx {onnx.__version__}...')
         f = str(self.file.with_suffix('.onnx'))
@@ -328,7 +328,7 @@ class Exporter:
     def _export_openvino(self, prefix=colorstr('OpenVINO:')):
         # YOLOv8 OpenVINO export
         check_requirements('openvino-dev')  # requires openvino-dev: https://pypi.org/project/openvino-dev/
-        import openvino.inference_engine as ie  # noqa
+        import openvino.inference_engine as ie
 
         LOGGER.info(f'\n{prefix} starting export with openvino {ie.__version__}...')
         f = str(self.file).replace(self.file.suffix, f'_openvino_model{os.sep}')
@@ -343,8 +343,8 @@ class Exporter:
     def _export_paddle(self, prefix=colorstr('PaddlePaddle:')):
         # YOLOv8 Paddle export
         check_requirements(('paddlepaddle', 'x2paddle'))
-        import x2paddle  # noqa
-        from x2paddle.convert import pytorch2paddle  # noqa
+        import x2paddle
+        from x2paddle.convert import pytorch2paddle
 
         LOGGER.info(f'\n{prefix} starting export with X2Paddle {x2paddle.__version__}...')
         f = str(self.file).replace(self.file.suffix, f'_paddle_model{os.sep}')
@@ -357,7 +357,7 @@ class Exporter:
     def _export_coreml(self, prefix=colorstr('CoreML:')):
         # YOLOv8 CoreML export
         check_requirements('coremltools>=6.0')
-        import coremltools as ct  # noqa
+        import coremltools as ct
 
         class iOSModel(torch.nn.Module):
             # Wrap an Ultralytics YOLO model for iOS export
@@ -398,11 +398,11 @@ class Exporter:
         # YOLOv8 TensorRT export https://developer.nvidia.com/tensorrt
         assert self.im.device.type != 'cpu', 'export running on CPU but must be on GPU, i.e. `device==0`'
         try:
-            import tensorrt as trt  # noqa
+            import tensorrt as trt
         except ImportError:
             if platform.system() == 'Linux':
                 check_requirements('nvidia-tensorrt', cmds='-U --index-url https://pypi.ngc.nvidia.com')
-            import tensorrt as trt  # noqa
+            import tensorrt as trt
 
         check_version(trt.__version__, '7.0.0', hard=True)  # require tensorrt>=8.0.0
         self._export_onnx()
@@ -462,10 +462,10 @@ class Exporter:
 
         # YOLOv8 TensorFlow SavedModel export
         try:
-            import tensorflow as tf  # noqa
+            import tensorflow as tf
         except ImportError:
             check_requirements(f"tensorflow{'' if torch.cuda.is_available() else '-macos' if MACOS else '-cpu'}")
-            import tensorflow as tf  # noqa
+            import tensorflow as tf
         check_requirements(("onnx", "onnx2tf", "sng4onnx", "onnxsim", "onnx_graphsurgeon"),
                            cmds="--extra-index-url https://pypi.ngc.nvidia.com ")
 
@@ -495,12 +495,12 @@ class Exporter:
                                 prefix=colorstr('TensorFlow SavedModel:')):
         # YOLOv8 TensorFlow SavedModel export
         try:
-            import tensorflow as tf  # noqa
+            import tensorflow as tf
         except ImportError:
             check_requirements(f"tensorflow{'' if torch.cuda.is_available() else '-macos' if MACOS else '-cpu'}")
-            import tensorflow as tf  # noqa
+            import tensorflow as tf
         # from models.tf import TFModel
-        from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2  # noqa
+        from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
         f = str(self.file).replace(self.file.suffix, '_saved_model')
@@ -534,8 +534,8 @@ class Exporter:
     @try_export
     def _export_pb(self, keras_model, file, prefix=colorstr('TensorFlow GraphDef:')):
         # YOLOv8 TensorFlow GraphDef *.pb export https://github.com/leimao/Frozen_Graph_TensorFlow
-        import tensorflow as tf  # noqa
-        from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2  # noqa
+        import tensorflow as tf
+        from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
         f = file.with_suffix('.pb')
@@ -550,7 +550,7 @@ class Exporter:
     @try_export
     def _export_tflite(self, keras_model, int8, data, nms, agnostic_nms, prefix=colorstr('TensorFlow Lite:')):
         # YOLOv8 TensorFlow Lite export
-        import tensorflow as tf  # noqa
+        import tensorflow as tf
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
         batch_size, ch, *imgsz = list(self.im.shape)  # BCHW
@@ -617,7 +617,7 @@ class Exporter:
     def _export_tfjs(self, prefix=colorstr('TensorFlow.js:')):
         # YOLOv8 TensorFlow.js export
         check_requirements('tensorflowjs')
-        import tensorflowjs as tfjs  # noqa
+        import tensorflowjs as tfjs
 
         LOGGER.info(f'\n{prefix} starting export with tensorflowjs {tfjs.__version__}...')
         f = str(self.file).replace(self.file.suffix, '_web_model')  # js dir
@@ -644,9 +644,9 @@ class Exporter:
         # Add metadata to *.tflite models per https://www.tensorflow.org/lite/models/convert/metadata
         with contextlib.suppress(ImportError):
             # check_requirements('tflite_support')
-            from tflite_support import flatbuffers  # noqa
-            from tflite_support import metadata as _metadata  # noqa
-            from tflite_support import metadata_schema_py_generated as _metadata_fb  # noqa
+            from tflite_support import flatbuffers
+            from tflite_support import metadata as _metadata
+            from tflite_support import metadata_schema_py_generated as _metadata_fb
 
             tmp_file = Path('/tmp/meta.txt')
             with open(tmp_file, 'w') as meta_f:
@@ -674,7 +674,7 @@ class Exporter:
 
     def _pipeline_coreml(self, model, prefix=colorstr('CoreML Pipeline:')):
         # YOLOv8 CoreML pipeline
-        import coremltools as ct  # noqa
+        import coremltools as ct
 
         LOGGER.info(f'{prefix} starting pipeline with coremltools {ct.__version__}...')
         batch_size, ch, h, w = list(self.im.shape)  # BCHW

@@ -29,8 +29,8 @@ def check_dataset_disk_space(url='https://github.com/ultralytics/yolov5/releases
 
 def request_with_credentials(url: str) -> any:
     """ Make an ajax request with cookies attached """
-    from google.colab import output  # noqa
-    from IPython import display  # noqa
+    from google.colab import output
+    from IPython import display
     display.display(
         display.Javascript("""
             window._hub_tmp = new Promise((resolve, reject) => {

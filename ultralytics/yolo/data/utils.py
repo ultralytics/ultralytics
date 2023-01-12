@@ -16,7 +16,7 @@ import torch
 from PIL import ExifTags, Image, ImageOps
 
 from ultralytics.yolo.utils import LOGGER, ROOT, colorstr, yaml_load
-from ultralytics.yolo.utils.checks import check_file, check_font, is_ascii, check_requirements
+from ultralytics.yolo.utils.checks import check_file, check_font, check_requirements, is_ascii
 from ultralytics.yolo.utils.downloads import download
 from ultralytics.yolo.utils.files import unzip_file
 

@@ -13,6 +13,7 @@ import torch
 from PIL import Image, ImageDraw, ImageFont
 
 from ultralytics.yolo.utils import FONT, USER_CONFIG_DIR, threaded
+
 from .checks import check_font, check_requirements, is_ascii
 from .files import increment_path
 from .ops import clip_coords, scale_image, xywh2xyxy, xyxy2xywh
@@ -44,7 +45,7 @@ class Annotator:
     def __init__(self, im, line_width=None, font_size=None, font='Arial.ttf', pil=False, example='abc'):
         assert im.data.contiguous, 'Image not contiguous. Apply np.ascontiguousarray(im) to Annotator() input images.'
         non_ascii = not is_ascii(example)  # non-latin labels, i.e. asian, arabic, cyrillic
-        self.pil = True
+        self.pil = pil or non_ascii
         if self.pil:  # use PIL
             self.im = im if isinstance(im, Image.Image) else Image.fromarray(im)
             self.draw = ImageDraw.Draw(self.im)

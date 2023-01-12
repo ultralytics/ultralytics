@@ -55,12 +55,12 @@ class Result:
     def __repr__(self):
         repr =  f'Ultralytics YOLO {self.__class__} instance\n'
         if self.boxes:
-            repr + self.boxes.__repr__() + '\n'
+            repr = repr + self.boxes.__repr__() + '\n'
         if self.masks:
-            repr + self.masks.__repr__() + '\n'
-        if self.probs
-            repr + self.probs.__repr__()
-
+            repr = repr + self.masks.__repr__() + '\n'
+        if self.probs:
+            repr = repr + self.probs.__repr__()
+        
         return repr
 
 
@@ -134,7 +134,7 @@ class Masks:
         return self.boxes.shape
 
     def __len__(self):  # override len(results)
-        return len(self.boxes)
+        return len(self.masks)
 
     def __str__(self):
         return self.__repr__()

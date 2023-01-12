@@ -32,7 +32,7 @@ def test_model_fuse():
 
 def test_predict_dir():
     model = YOLO(MODEL)
-    model.predict(source=ROOT / "assets", return_outputs=False)
+    model.predict(source=ROOT / "assets")
 
 
 def test_val():
@@ -98,3 +98,11 @@ def test_export_paddle():
 def test_all_model_yamls():
     for m in list((ROOT / 'models').rglob('*.yaml')):
         YOLO(m.name)
+
+
+def test_workflow():
+    model = YOLO(MODEL)
+    model.train(data="coco128.yaml", epochs=1, imgsz=32)
+    model.val()
+    model.predict(SOURCE)
+    model.export(format="onnx", opset=12)  # export a model to ONNX format

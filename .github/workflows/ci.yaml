@@ -68,6 +68,7 @@ jobs:
           python --version
           pip --version
           pip list
+          ls
       - name: Test pip package
         shell: python
         env:

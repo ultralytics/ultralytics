@@ -92,7 +92,7 @@ def check_version(current: str = "0.0.0",
     from pkg_resources import parse_version
     current, minimum = (parse_version(x) for x in (current, minimum))
     result = (current == minimum) if pinned else (current >= minimum)  # bool
-    warning_message = f"WARNING ⚠️ {name}{minimum} is required by YOLOv5, but {name}{current} is currently installed"
+    warning_message = f"WARNING ⚠️ {name}{minimum} is required by YOLOv8, but {name}{current} is currently installed"
     if hard:
         assert result, emojis(warning_message)  # assert min requirements met
     if verbose and not result:
@@ -176,7 +176,7 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
             n += 1
 
     if s and install and AUTOINSTALL:  # check environment variable
-        LOGGER.info(f"{prefix} YOLOv5 requirement{'s' * (n > 1)} {s}not found, attempting AutoUpdate...")
+        LOGGER.info(f"{prefix} YOLOv8 requirement{'s' * (n > 1)} {s}not found, attempting AutoUpdate...")
         try:
             assert check_online(), "AutoUpdate skipped (offline)"
             LOGGER.info(check_output(f'pip install {s} {cmds}', shell=True).decode())

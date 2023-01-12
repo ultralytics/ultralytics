@@ -24,11 +24,11 @@ ROOT = FILE.parents[2]  # YOLO
 DEFAULT_CONFIG = ROOT / "yolo/configs/default.yaml"
 RANK = int(os.getenv('RANK', -1))
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLOv5 multiprocessing threads
-AUTOINSTALL = str(os.getenv('YOLOv5_AUTOINSTALL', True)).lower() == 'true'  # global auto-install mode
+AUTOINSTALL = str(os.getenv('YOLO_AUTOINSTALL', True)).lower() == 'true'  # global auto-install mode
 FONT = 'Arial.ttf'  # https://ultralytics.com/assets/Arial.ttf
-VERBOSE = str(os.getenv('YOLOv5_VERBOSE', True)).lower() == 'true'  # global verbose mode
+VERBOSE = str(os.getenv('YOLO_VERBOSE', True)).lower() == 'true'  # global verbose mode
 TQDM_BAR_FORMAT = '{l_bar}{bar:10}{r_bar}'  # tqdm bar format
-LOGGING_NAME = 'yolov5'
+LOGGING_NAME = 'ultralytics'
 HELP_MSG = \
     """
     Usage examples for running YOLOv8:
@@ -288,7 +288,7 @@ def set_logging(name=LOGGING_NAME, verbose=True):
 
 
 class TryExcept(contextlib.ContextDecorator):
-    # YOLOv5 TryExcept class. Usage: @TryExcept() decorator or 'with TryExcept():' context manager
+    # YOLOv8 TryExcept class. Usage: @TryExcept() decorator or 'with TryExcept():' context manager
     def __init__(self, msg=''):
         self.msg = msg
 

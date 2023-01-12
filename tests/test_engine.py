@@ -27,7 +27,7 @@ def test_detect():
     # predictor
     pred = detect.DetectionPredictor(overrides={"imgsz": [640, 640]})
     i = 0
-    for _ in pred(source=SOURCE, model="yolov8n.pt"):
+    for _ in pred(source=SOURCE, model="yolov8n.pt", return_outputs=True):
         i += 1
     assert i == 2, "predictor test failed"
 
@@ -60,7 +60,7 @@ def test_segment():
     # predictor
     pred = segment.SegmentationPredictor(overrides={"imgsz": [640, 640]})
     i = 0
-    for _ in pred(source=SOURCE, model="yolov8n-seg.pt"):
+    for _ in pred(source=SOURCE, model="yolov8n-seg.pt", return_outputs=True):
         i += 1
     assert i == 2, "predictor test failed"
 
@@ -94,6 +94,6 @@ def test_classify():
     # predictor
     pred = classify.ClassificationPredictor(overrides={"imgsz": [640, 640]})
     i = 0
-    for _ in pred(source=SOURCE, model=trained_model):
+    for _ in pred(source=SOURCE, model=trained_model, return_outputs=True):
         i += 1
     assert i == 2, "predictor test failed"

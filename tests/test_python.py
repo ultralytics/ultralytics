@@ -12,7 +12,7 @@ SOURCE = ROOT / 'assets/bus.jpg'
 
 def test_model_forward():
     model = YOLO(CFG)
-    model.predict(SOURCE, return_outputs=False)
+    model.predict(SOURCE)
     model(SOURCE)
 
 
@@ -32,7 +32,7 @@ def test_model_fuse():
 
 def test_predict_dir():
     model = YOLO(MODEL)
-    model.predict(source=ROOT / "assets", return_outputs=False)
+    model.predict(source=ROOT / "assets")
 
 
 def test_val():
@@ -103,5 +103,5 @@ def test_workflow():
     model = YOLO(MODEL)
     model.train(data="coco128.yaml", epochs=1, imgsz=32)
     model.val()
-    model.predict(SOURCE, return_outputs=False)
+    model.predict(SOURCE)
     model.export(format="onnx", opset=12)  # export a model to ONNX format

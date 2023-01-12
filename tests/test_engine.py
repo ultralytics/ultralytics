@@ -25,7 +25,7 @@ def test_detect():
     val(model=trained_model)
 
     # Predictor
-    pred = detect.DetectionPredictor(overrides={"imgsz": [640, 640]})
+    pred = detect.DetectionPredictor(overrides={"imgsz": [64, 64]})
     result = pred(source=SOURCE, model="yolov8n.pt", return_outputs=True)
     assert len(list(result)), "predictor test failed"
 
@@ -56,7 +56,7 @@ def test_segment():
     val(model=trained_model)
 
     # Predictor
-    pred = segment.SegmentationPredictor(overrides={"imgsz": [640, 640]})
+    pred = segment.SegmentationPredictor(overrides={"imgsz": [64, 64]})
     result = pred(source=SOURCE, model="yolov8n-seg.pt", return_outputs=True)
     assert len(list(result)) == 2, "predictor test failed"
 
@@ -89,6 +89,6 @@ def test_classify():
     val(model=trained_model)
 
     # Predictor
-    pred = classify.ClassificationPredictor(overrides={"imgsz": [640, 640]})
+    pred = classify.ClassificationPredictor(overrides={"imgsz": [64, 64]})
     result = pred(source=SOURCE, model=trained_model, return_outputs=True)
     assert len(list(result)) == 2, "predictor test failed"

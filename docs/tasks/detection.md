@@ -1,21 +1,22 @@
-Object detection is a task that involves identifying the location and class of objects in an image or video stream. The
-output of an object detector is a set of bounding boxes that enclose the objects in the image, along with class labels
+Object detection is a task that involves identifying the location and class of objects in an image or video stream.
+
+<img width="1024" src="https://user-images.githubusercontent.com/26833433/212053258-b6948968-4797-4a2b-9247-bfdda77521de.png">
+
+The output of an object detector is a set of bounding boxes that enclose the objects in the image, along with class
+labels
 and confidence scores for each box. Object detection is a good choice when you need to identify objects of interest in a
 scene, but don't need to know exactly where the object is or its exact shape.
 
 !!! tip "Tip"
+
     YOLOv8 _detection_ models have no suffix and are the default YOLOv8 models, i.e. `yolov8n.pt` and are pretrained on COCO.
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models/v8){ .md-button .md-button--primary}
 
-<img width="1024" src="https://user-images.githubusercontent.com/26833433/212053258-b6948968-4797-4a2b-9247-bfdda77521de.png">
-
-
 ## Usage examples
 
-
 !!! example "1. Train"
-    Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640.
+Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640.
 
     === "Python"
     
@@ -36,7 +37,8 @@ scene, but don't need to know exactly where the object is or its exact shape.
         ```
 
 !!! example "2. Val"
-    Validate trained YOLOv8n model accuracy on the COCO128 dataset. No argument need to passed as the `model` retains it's training `data` and arguments as model attributes.
+Validate trained YOLOv8n model accuracy on the COCO128 dataset. No argument need to passed as the `model` retains it's
+training `data` and arguments as model attributes.
 
     === "Python"
     
@@ -58,7 +60,7 @@ scene, but don't need to know exactly where the object is or its exact shape.
         ```
 
 !!! example "3. Predict"
-    Use a trained YOLOv8n model to run predictions on images.
+Use a trained YOLOv8n model to run predictions on images.
 
     === "Python"
     
@@ -80,7 +82,7 @@ scene, but don't need to know exactly where the object is or its exact shape.
         ```
 
 !!! example "4. Export"
-    Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
+Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
 
     === "Python"
     

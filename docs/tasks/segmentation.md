@@ -1,21 +1,22 @@
 Instance segmentation goes a step further than object detection and involves identifying individual objects in an image
-and segmenting them from the rest of the image. The output of an instance segmentation model is a set of masks or
+and segmenting them from the rest of the image.
+
+<img width="1024" src="https://user-images.githubusercontent.com/26833433/212053258-b6948968-4797-4a2b-9247-bfdda77521de.png">
+
+The output of an instance segmentation model is a set of masks or
 contours that outline each object in the image, along with class labels and confidence scores for each object. Instance
 segmentation is useful when you need to know not only where objects are in an image, but also what their exact shape is.
 
 !!! tip "Tip"
+
     YOLOv8 _segmentation_ models use the `-seg` suffix, i.e. `yolov8n-seg.pt` and are pretrained on COCO.
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models/v8/seg){.md-button .md-button--primary}
 
-<img width="1024" src="https://user-images.githubusercontent.com/26833433/212053258-b6948968-4797-4a2b-9247-bfdda77521de.png">
-
-
 ## Usage examples
 
-
 !!! example "1. Train"
-    Train YOLOv8n-seg on the COCO128-seg dataset for 100 epochs at image size 640.
+Train YOLOv8n-seg on the COCO128-seg dataset for 100 epochs at image size 640.
 
     === "Python"
     
@@ -36,7 +37,8 @@ segmentation is useful when you need to know not only where objects are in an im
         ```
 
 !!! example "2. Val"
-    Validate trained YOLOv8n-seg model accuracy on the COCO128-seg dataset. No argument need to passed as the `model` retains it's training `data` and arguments as model attributes.
+Validate trained YOLOv8n-seg model accuracy on the COCO128-seg dataset. No argument need to passed as the `model`
+retains it's training `data` and arguments as model attributes.
 
     === "Python"
     
@@ -58,7 +60,7 @@ segmentation is useful when you need to know not only where objects are in an im
         ```
 
 !!! example "3. Predict"
-    Use a trained YOLOv8n-seg model to run predictions on images.
+Use a trained YOLOv8n-seg model to run predictions on images.
 
     === "Python"
     
@@ -80,7 +82,7 @@ segmentation is useful when you need to know not only where objects are in an im
         ```
 
 !!! example "4. Export"
-    Export a YOLOv8n-seg model to a different format like ONNX, CoreML, etc.
+Export a YOLOv8n-seg model to a different format like ONNX, CoreML, etc.
 
     === "Python"
     

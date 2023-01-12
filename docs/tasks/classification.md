@@ -1,21 +1,22 @@
 Image classification is the simplest of the three tasks and involves classifying an entire image into one of a set of
-predefined classes. The output of an image classifier is a single class label and a confidence score. Image
+predefined classes.
+
+<img width="1024" src="https://user-images.githubusercontent.com/26833433/212053258-b6948968-4797-4a2b-9247-bfdda77521de.png">
+
+The output of an image classifier is a single class label and a confidence score. Image
 classification is useful when you need to know only what class an image belongs to and don't need to know where objects
 of that class are located or what their exact shape is.
 
 !!! tip "Tip"
+
     YOLOv8 _classification_ models use the `-cls` suffix, i.e. `yolov8n-cls.pt` and are pretrained on ImageNet.
 
-[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models/v8/cls){ .md-button .md-button--primary}
-
-<img width="1024" src="https://user-images.githubusercontent.com/26833433/212053258-b6948968-4797-4a2b-9247-bfdda77521de.png">
-
+[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models/v8/cls){.md-button .md-button--primary}
 
 ## Usage examples
 
-
 !!! example "1. Train"
-    Train YOLOv8n-cls on the MNIST160 dataset for 100 epochs at image size 64.
+Train YOLOv8n-cls on the MNIST160 dataset for 100 epochs at image size 64.
 
     === "Python"
     
@@ -36,7 +37,8 @@ of that class are located or what their exact shape is.
         ```
 
 !!! example "2. Val"
-    Validate trained YOLOv8n-cls model accuracy on the MNIST160 dataset. No argument need to passed as the `model` retains it's training `data` and arguments as model attributes.
+Validate trained YOLOv8n-cls model accuracy on the MNIST160 dataset. No argument need to passed as the `model` retains
+it's training `data` and arguments as model attributes.
 
     === "Python"
     
@@ -58,7 +60,7 @@ of that class are located or what their exact shape is.
         ```
 
 !!! example "3. Predict"
-    Use a trained YOLOv8n-cls model to run predictions on images.
+Use a trained YOLOv8n-cls model to run predictions on images.
 
     === "Python"
     
@@ -80,7 +82,7 @@ of that class are located or what their exact shape is.
         ```
 
 !!! example "4. Export"
-    Export a YOLOv8n-cls model to a different format like ONNX, CoreML, etc.
+Export a YOLOv8n-cls model to a different format like ONNX, CoreML, etc.
 
     === "Python"
     

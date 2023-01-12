@@ -1,26 +1,24 @@
 ## Using YOLO models
 This is the simplest way of simply using yolo models in a python environment. It can be imported from the `ultralytics` module.
 
-!!! example "Usage"
-    === "Training"
-        ```python
-        from ultralytics import YOLO
-
-        model = YOLO("yolov8n.yaml")
-        model(img_tensor) # Or model.forward(). inference.
-        model.train(data="coco128.yaml", epochs=5)
-        ```
-
-    === "Training pretrained"
+!!! example "Train"
+    === "From pretrained(recommanded)"
         ```python
         from ultralytics import YOLO
 
         model = YOLO("yolov8n.pt") # pass any model type
-        model(...) # inference
         model.train(epochs=5)
         ```
 
-    === "Resume Training"
+    === "From scratch"
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolov8n.yaml")
+        model.train(data="coco128.yaml", epochs=5)
+        ```
+
+    === "Resume"
         ```python
         from ultralytics import YOLO
 
@@ -29,15 +27,64 @@ This is the simplest way of simply using yolo models in a python environment. It
         model.resume(model="last.pt") # resume from a given model/run
         ```
     
-    === "Visualize/save Predictions"
-    ```python
-    from ultralytics import YOLO
 
-    model = YOLO("model.pt")
-    model.predict(source="0") # accepts all formats - img/folder/vid.*(mp4/format). 0 for webcam
-    model.predict(source="folder", show=True) # Display preds. Accepts all yolo predict arguments
+!!! example "Val"
+    === "Val after training"
+        ```python
+          from ultralytics import YOLO
 
-    ```
+          model = YOLO("yolov8n.yaml")
+          model.train(data="coco128.yaml", epochs=5)
+          model.val()  # It'll automatically evaluate the data you trained.
+        ```
+
+    === "Val independently"
+        ```python
+          from ultralytics import YOLO
+
+          model = YOLO("model.pt")
+          # It'll use the data yaml file in model.pt if you don't set data.
+          model.val()
+          # or you can set the data you want to val
+          model.val(data="coco128.yaml")
+        ```
+
+
+!!! example "Predict"
+    === "From source"
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("model.pt")
+        model.predict(source="0") # accepts all formats - img/folder/vid.*(mp4/format). 0 for webcam
+        model.predict(source="folder", show=True) # Display preds. Accepts all yolo predict arguments
+
+        ```
+
+    === "From image/ndarray/tensor"
+        ```python
+        # TODO, still working on it.
+        ```
+
+
+    === "Return outputs"
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("model.pt")
+        outputs = model.predict(source="0", return_outputs=True) # treat predict as a python generator
+        for output in outputs:
+          # each output here is a dict.
+          # for detection
+          print(output["det"])  # np.ndarray, (N, 6), xyxy, score, cls
+          # for segmentation
+          print(output["det"])  # np.ndarray, (N, 6), xyxy, score, cls
+          print(output["segment"])  # List[np.ndarray] * N, bounding coordinates of masks
+          # for classify
+          print(output["prob"]) # np.ndarray, (num_class, ), cls prob
+
+        ```
+
 
 !!! note "Export and Deployment"
 

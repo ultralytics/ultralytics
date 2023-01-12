@@ -1,6 +1,6 @@
 Object detection is a task that involves identifying the location and class of objects in an image or video stream.
 
-<img width="1024" src="https://user-images.githubusercontent.com/26833433/212053258-b6948968-4797-4a2b-9247-bfdda77521de.png">
+<img width="1024" src="https://user-images.githubusercontent.com/26833433/212094133-6bb8c21c-3d47-41df-a512-81c5931054ae.png">
 
 The output of an object detector is a set of bounding boxes that enclose the objects in the image, along with class
 labels

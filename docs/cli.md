@@ -21,7 +21,7 @@ supported task by setting `task` and `mode` in cli.
     | Classification   | `classify` | <pre><code>yolo task=classify mode=train    </code></pre>  |
 
 === "Prediction"
-    
+
     |                  | `task`     | snippet                                                      |
     |------------------|------------|--------------------------------------------------------------|
     | Detection        | `detect`   | <pre><code>yolo task=detect mode=predict       </code></pre> |

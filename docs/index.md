@@ -15,17 +15,20 @@
 
 # Welcome to Ultralytics YOLOv8
 
-Welcome to the Ultralytics YOLOv8 documentation landing page! [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) is the latest version of the YOLO (You
-Only Look Once) object detection and image segmentation model developed by [Ultralytics](https://ultralytics.com). This page serves as the starting
-point for exploring the various resources available to help you get started with YOLOv8 and understand its features and
-capabilities.
+Welcome to the Ultralytics YOLOv8 documentation landing
+page! [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) is the latest version of the YOLO (You Only Look
+Once) object detection and image segmentation model developed by [Ultralytics](https://ultralytics.com). This page
+serves as the starting point for exploring the various resources available to help you get started with YOLOv8 and
+understand its features and capabilities.
 
 The YOLOv8 model is designed to be fast, accurate, and easy to use, making it an excellent choice for a wide range of
 object detection and image segmentation tasks. It can be trained on large datasets and is capable of running on a
 variety of hardware platforms, from CPUs to GPUs.
 
 Whether you are a seasoned machine learning practitioner or new to the field, we hope that the resources on this page
-will help you get the most out of YOLOv8. For any bugs and feature requests please visit [GitHub Issues](https://github.com/ultralytics/ultralytics/issues). For professional support please [Contact Us](https://ultralytics.com/contact).
+will help you get the most out of YOLOv8. For any bugs and feature requests please
+visit [GitHub Issues](https://github.com/ultralytics/ultralytics/issues). For professional support
+please [Contact Us](https://ultralytics.com/contact).
 
 ## A Brief History of YOLO
 
@@ -40,8 +43,8 @@ backbone network, adding a feature pyramid, and making use of focal loss.
 In 2020, YOLOv4 was released which introduced a number of innovations such as the use of Mosaic data augmentation, a new
 anchor-free detection head, and a new loss function.
 
-In 2021, Ultralytics released [YOLOv5](https://github.com/ultralytics/yolov5), which further improved the model's performance and added new features such as
-support for panoptic segmentation and object tracking.
+In 2021, Ultralytics released [YOLOv5](https://github.com/ultralytics/yolov5), which further improved the model's
+performance and added new features such as support for panoptic segmentation and object tracking.
 
 YOLO has been widely used in a variety of applications, including autonomous vehicles, security and surveillance, and
 medical imaging. It has also been used to win several competitions, such as the COCO Object Detection Challenge and the
@@ -55,9 +58,10 @@ For more information about the history and development of YOLO, you can refer to
 
 ## Ultralytics YOLOv8
 
-[Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) is the latest version of the YOLO object detection and image segmentation model developed by
-Ultralytics. YOLOv8 is a cutting-edge, state-of-the-art (SOTA) model that builds upon the success of previous YOLO
-versions and introduces new features and improvements to further boost performance and flexibility.
+[Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) is the latest version of the YOLO object detection and
+image segmentation model developed by Ultralytics. YOLOv8 is a cutting-edge, state-of-the-art (SOTA) model that builds
+upon the success of previous YOLO versions and introduces new features and improvements to further boost performance and
+flexibility.
 
 One key feature of YOLOv8 is its extensibility. It is designed as a framework that supports all previous versions of
 YOLO, making it easy to switch between different versions and compare their performance. This makes YOLOv8 an ideal

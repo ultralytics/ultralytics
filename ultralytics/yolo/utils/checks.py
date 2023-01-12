@@ -14,8 +14,8 @@ import numpy as np
 import pkg_resources as pkg
 import torch
 
-from ultralytics.yolo.utils import AUTOINSTALL, FONT, LOGGER, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, emojis, \
-    is_docker, is_jupyter_notebook
+from ultralytics.yolo.utils import (AUTOINSTALL, FONT, LOGGER, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, emojis,
+                                    is_docker, is_jupyter_notebook)
 
 
 def is_ascii(s) -> bool:

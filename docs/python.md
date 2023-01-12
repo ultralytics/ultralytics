@@ -1,7 +1,8 @@
-## Using YOLO models
-This is the simplest way of simply using yolo models in a python environment. It can be imported from the `ultralytics` module.
+This is the simplest way of simply using YOLOv8 models in a Python environment. It can be imported from
+the `ultralytics` module.
 
 !!! example "Train"
+
     === "From pretrained(recommanded)"
         ```python
         from ultralytics import YOLO
@@ -20,15 +21,11 @@ This is the simplest way of simply using yolo models in a python environment. It
 
     === "Resume"
         ```python
-        from ultralytics import YOLO
-
-        model = YOLO()
-        model.resume(task="detect") # resume last detection training
-        model.resume(model="last.pt") # resume from a given model/run
+        TODO: Resume feature is under development and should be released soon.
         ```
-    
 
 !!! example "Val"
+
     === "Val after training"
         ```python
           from ultralytics import YOLO
@@ -49,8 +46,8 @@ This is the simplest way of simply using yolo models in a python environment. It
           model.val(data="coco128.yaml")
         ```
 
-
 !!! example "Predict"
+
     === "From source"
         ```python
         from ultralytics import YOLO
@@ -72,7 +69,7 @@ This is the simplest way of simply using yolo models in a python environment. It
         from ultralytics import YOLO
 
         model = YOLO("model.pt")
-        outputs = model.predict(source="0", return_outputs=True) # treat predict as a python generator
+        outputs = model.predict(source="0", return_outputs=True) # treat predict as a Python generator
         for output in outputs:
           # each output here is a dict.
           # for detection
@@ -84,7 +81,6 @@ This is the simplest way of simply using yolo models in a python environment. It
           print(output["prob"]) # np.ndarray, (num_class, ), cls prob
 
         ```
-
 
 !!! note "Export and Deployment"
 
@@ -108,9 +104,14 @@ To know more about using `YOLO` models, refer Model class Reference
 [Model reference](reference/model.md){ .md-button .md-button--primary}
 
 ---
+
 ### Using Trainers
-`YOLO` model class is a high-level wrapper on the Trainer classes. Each YOLO task has its own trainer that inherits from `BaseTrainer`. 
+
+`YOLO` model class is a high-level wrapper on the Trainer classes. Each YOLO task has its own trainer that inherits
+from `BaseTrainer`.
+
 !!! tip "Detection Trainer Example"
+
         ```python
         from ultralytics.yolo import v8 import DetectionTrainer, DetectionValidator, DetectionPredictor
 
@@ -130,9 +131,10 @@ To know more about using `YOLO` models, refer Model class Reference
         # resume from last weight
         overrides["resume"] = trainer.last
         trainer = detect.DetectionTrainer(overrides=overrides)
-
         ```
+
 You can easily customize Trainers to support custom tasks or explore R&D ideas.
-Learn more about Customizing `Trainers`, `Validators` and `Predictors` to suit your project needs in the Customization Section.
+Learn more about Customizing `Trainers`, `Validators` and `Predictors` to suit your project needs in the Customization
+Section.
 
 [Customization tutorials](engine.md){ .md-button .md-button--primary}

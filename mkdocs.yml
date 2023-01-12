@@ -76,16 +76,16 @@ plugins:
 # Primary navigation
 nav:
   - Quickstart: quickstart.md
+  - Tasks:
+      - Detection: tasks/detection.md
+      - Segmentation: tasks/segmentation.md
+      - Classification: tasks/classification.md
   - CLI: cli.md
   - Python Interface: sdk.md
   - Configuration: config.md
   - Customization Guide: engine.md
   - Ultralytics HUB: hub.md
   - iOS and Android App: app.md
-  - Tasks:
-      - Detection: tasks/detection.md
-      - Segmentation: tasks/segmentation.md
-      - Classification: tasks/classification.md
   - Reference:
       - Python Model interface: reference/model.md
       - Engine:

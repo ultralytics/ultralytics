@@ -80,10 +80,11 @@ nav:
       - Detection: tasks/detection.md
       - Segmentation: tasks/segmentation.md
       - Classification: tasks/classification.md
-  - CLI: cli.md
-  - Python: python.md
-  - Configuration: config.md
-  - Customization Guide: engine.md
+  - Usage:
+    - CLI: cli.md
+    - Python: python.md
+    - Configuration: config.md
+    - Customization Guide: engine.md
   - Ultralytics HUB: hub.md
   - iOS and Android App: app.md
   - Reference:

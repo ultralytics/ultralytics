@@ -75,6 +75,7 @@ plugins:
 
 # Primary navigation
 nav:
+  - Home: index.md
   - Quickstart: quickstart.md
   - Tasks:
       - Detection: tasks/detection.md

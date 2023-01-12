@@ -320,7 +320,7 @@ def check_dataset_roboflow(data: str, roboflow_api_key: str, task: str) -> str:
     if roboflow_api_key is None:
         raise ValueError("roboflow_api_key not found ❌")
 
-    check_requirements("roboflow>=0.2.24")
+    check_requirements("roboflow>=0.2.25")
     from roboflow import Roboflow
 
     workspace_name, project_name, project_version = extract_roboflow_metadata(url=data)

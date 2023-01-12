@@ -15,7 +15,7 @@ from .metrics import box_iou
 
 
 class Profile(contextlib.ContextDecorator):
-    # YOLOv5 Profile class. Usage: @Profile() decorator or 'with Profile():' context manager
+    # YOLOv8 Profile class. Usage: @Profile() decorator or 'with Profile():' context manager
     def __init__(self, t=0.0):
         self.t = t
         self.cuda = torch.cuda.is_available()
@@ -139,7 +139,7 @@ def non_max_suppression(
     # Checks
     assert 0 <= conf_thres <= 1, f'Invalid Confidence threshold {conf_thres}, valid values are between 0.0 and 1.0'
     assert 0 <= iou_thres <= 1, f'Invalid IoU {iou_thres}, valid values are between 0.0 and 1.0'
-    if isinstance(prediction, (list, tuple)):  # YOLOv5 model in validation model, output = (inference_out, loss_out)
+    if isinstance(prediction, (list, tuple)):  # YOLOv8 model in validation model, output = (inference_out, loss_out)
         prediction = prediction[0]  # select only inference output
 
     device = prediction.device

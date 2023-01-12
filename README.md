@@ -108,21 +108,6 @@ results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
 success = model.export(format="onnx")  # export a model to ONNX format
 ```
 
-| Format                | `format=argument` | Model                   |
-| --------------------- | ----------------- | ----------------------- |
-| PyTorch               | -                 | yolov8n.pt              |
-| TorchScript           | `torchscript`     | yolov8n.torchscript     |
-| ONNX                  | `onnx`            | yolov8n.onnx            |
-| OpenVINO              | `openvino`        | yolov8n_openvino_model/ |
-| TensorRT              | `engine`          | yolov8n.engine          |
-| CoreML                | `coreml`          | yolov8n.mlmodel         |
-| TensorFlow SavedModel | `saved_model`     | yolov8n_saved_model/    |
-| TensorFlow GraphDef   | `pb`              | yolov8n.pb              |
-| TensorFlow Lite       | `tflite`          | yolov8n.tflite          |
-| TensorFlow Edge TPU   | `edgetpu`         | yolov8n_edgetpu.tflite  |
-| TensorFlow.js         | `tfjs`            | yolov8n_web_model/      |
-| PaddlePaddle          | `paddle`          | yolov8n_paddle_model/   |
-
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) download automatically from the latest
 Ultralytics [release](https://github.com/ultralytics/assets/releases).
 

@@ -111,19 +111,18 @@ of that class are located or what their exact shape is.
 
     Available YOLOv8-cls export formats include:
 
-    | Format                | `format=argument` | Model                       |
-    |-----------------------|-------------------|-----------------------------|
-    | PyTorch               | -                 | yolov8n-cls.pt              |
-    | TorchScript           | `torchscript`     | yolov8n-cls.torchscript     |
-    | ONNX                  | `onnx`            | yolov8n-cls.onnx            |
-    | OpenVINO              | `openvino`        | yolov8n-cls_openvino_model/ |
-    | TensorRT              | `engine`          | yolov8n-cls.engine          |
-    | CoreML                | `coreml`          | yolov8n-cls.mlmodel         |
-    | TensorFlow SavedModel | `saved_model`     | yolov8n-cls_saved_model/    |
-    | TensorFlow GraphDef   | `pb`              | yolov8n-cls.pb              |
-    | TensorFlow Lite       | `tflite`          | yolov8n-cls.tflite          |
-    | TensorFlow Edge TPU   | `edgetpu`         | yolov8n-cls_edgetpu.tflite  |
-    | TensorFlow.js         | `tfjs`            | yolov8n-cls_web_model/      |
-    | PaddlePaddle          | `paddle`          | yolov8n-cls_paddle_model/   |
-
-
+    | Format                                                                     | `format=`     | Model                         |
+    |----------------------------------------------------------------------------|---------------|-------------------------------|
+    | [PyTorch](https://pytorch.org/)                                            | -             | `yolov8n-cls.pt`              |
+    | [TorchScript](https://pytorch.org/docs/stable/jit.html)                    | `torchscript` | `yolov8n-cls.torchscript`     |
+    | [ONNX](https://onnx.ai/)                                                   | `onnx`        | `yolov8n-cls.onnx`            |
+    | [OpenVINO](https://docs.openvino.ai/latest/index.html)                     | `openvino`    | `yolov8n-cls_openvino_model/` |
+    | [TensorRT](https://developer.nvidia.com/tensorrt)                          | `engine`      | `yolov8n-cls.engine`          |
+    | [CoreML](https://github.com/apple/coremltools)                             | `coreml`      | `yolov8n-cls.mlmodel`         |
+    | [TensorFlow SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model` | `yolov8n-cls_saved_model/`    |
+    | [TensorFlow GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`          | `yolov8n-cls.pb`              |
+    | [TensorFlow Lite](https://www.tensorflow.org/lite)                         | `tflite`      | `yolov8n-cls.tflite`          |
+    | [TensorFlow Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`     | `yolov8n-cls_edgetpu.tflite`  |
+    | [TensorFlow.js](https://www.tensorflow.org/js)                             | `tfjs`        | `yolov8n-cls_web_model/`      |
+    | [PaddlePaddle](https://github.com/PaddlePaddle)                            | `paddle`      | `yolov8n-cls_paddle_model/`   |
+    

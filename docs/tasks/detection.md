@@ -13,12 +13,12 @@ scene, but don't need to know exactly where the object is or its exact shape.
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models/v8){ .md-button .md-button--primary}
 
-## Usage examples
+## Train
 
-!!! example "1. Train"
+Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. For a full list of available arguments see
+the [Configuration](../config.md) page.
 
-    Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. For a full list of available arguments see 
-    the [Configuration](../config.md) page.
+!!! example ""
 
     === "Python"
     
@@ -38,10 +38,12 @@ scene, but don't need to know exactly where the object is or its exact shape.
         yolo task=detect mode=train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640
         ```
 
-!!! example "2. Val"
+## Val
 
-    Validate trained YOLOv8n model accuracy on the COCO128 dataset. No argument need to passed as the `model` retains it's
-    training `data` and arguments as model attributes.
+Validate trained YOLOv8n model accuracy on the COCO128 dataset. No argument need to passed as the `model` retains it's
+training `data` and arguments as model attributes.
+
+!!! example ""
 
     === "Python"
     
@@ -62,9 +64,11 @@ scene, but don't need to know exactly where the object is or its exact shape.
         yolo task=detect mode=val model=path/to/best.pt  # val custom model
         ```
 
-!!! example "3. Predict"
+## Predict
 
-    Use a trained YOLOv8n model to run predictions on images.
+Use a trained YOLOv8n model to run predictions on images.
+
+!!! example "3. Predict"
 
     === "Python"
     
@@ -85,9 +89,11 @@ scene, but don't need to know exactly where the object is or its exact shape.
         yolo task=detect mode=predict model=path/to/best.pt source="https://ultralytics.com/images/bus.jpg"  # predict with custom model
         ```
 
-!!! example "4. Export"
+## Export
 
-    Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
+Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
+
+!!! example ""
 
     === "Python"
     
@@ -109,18 +115,18 @@ scene, but don't need to know exactly where the object is or its exact shape.
         ```
 
     Available YOLOv8 export formats include:
-
-    | Format                | `format=argument` | Model                   |
-    |-----------------------|-------------------|-------------------------|
-    | PyTorch               | -                 | yolov8n.pt              |
-    | TorchScript           | `torchscript`     | yolov8n.torchscript     |
-    | ONNX                  | `onnx`            | yolov8n.onnx            |
-    | OpenVINO              | `openvino`        | yolov8n_openvino_model/ |
-    | TensorRT              | `engine`          | yolov8n.engine          |
-    | CoreML                | `coreml`          | yolov8n.mlmodel         |
-    | TensorFlow SavedModel | `saved_model`     | yolov8n_saved_model/    |
-    | TensorFlow GraphDef   | `pb`              | yolov8n.pb              |
-    | TensorFlow Lite       | `tflite`          | yolov8n.tflite          |
-    | TensorFlow Edge TPU   | `edgetpu`         | yolov8n_edgetpu.tflite  |
-    | TensorFlow.js         | `tfjs`            | yolov8n_web_model/      |
-    | PaddlePaddle          | `paddle`          | yolov8n_paddle_model/   |
+    
+    | Format                                                                     | `format=`          | Model                     |
+    |----------------------------------------------------------------------------|--------------------|---------------------------|
+    | [PyTorch](https://pytorch.org/)                                            | -                  | `yolov8n.pt`              |
+    | [TorchScript](https://pytorch.org/docs/stable/jit.html)                    | `torchscript`      | `yolov8n.torchscript`     |
+    | [ONNX](https://onnx.ai/)                                                   | `onnx`             | `yolov8n.onnx`            |
+    | [OpenVINO](https://docs.openvino.ai/latest/index.html)                     | `openvino`         | `yolov8n_openvino_model/` |
+    | [TensorRT](https://developer.nvidia.com/tensorrt)                          | `engine`           | `yolov8n.engine`          |
+    | [CoreML](https://github.com/apple/coremltools)                             | `coreml`           | `yolov8n.mlmodel`         |
+    | [TensorFlow SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`      | `yolov8n_saved_model/`    |
+    | [TensorFlow GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`               | `yolov8n.pb`              |
+    | [TensorFlow Lite](https://www.tensorflow.org/lite)                         | `tflite`           | `yolov8n.tflite`          |
+    | [TensorFlow Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`          | `yolov8n_edgetpu.tflite`  |
+    | [TensorFlow.js](https://www.tensorflow.org/js)                             | `tfjs`             | `yolov8n_web_model/`      |
+    | [PaddlePaddle](https://github.com/PaddlePaddle)                            | `paddle`           | `yolov8n_paddle_model/`   |

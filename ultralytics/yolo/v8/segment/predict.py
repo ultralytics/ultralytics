@@ -3,7 +3,7 @@
 import hydra
 import torch
 
-from ultralytics.yolo.utils import DEFAULT_CONFIG, ops
+from ultralytics.yolo.utils import DEFAULT_CONFIG, ROOT, ops
 from ultralytics.yolo.utils.checks import check_imgsz
 from ultralytics.yolo.utils.plotting import colors, save_one_box
 
@@ -58,10 +58,10 @@ class SegmentationPredictor(DetectionPredictor):
             return log_string
         # Segments
         mask = masks[idx]
-        if self.args.save_txt:
+        if self.args.save_txt or self.return_outputs:
+            shape = im0.shape if self.args.retina_masks else im.shape[2:]
             segments = [
-                ops.scale_segments(im0.shape if self.args.retina_masks else im.shape[2:], x, im0.shape, normalize=True)
-                for x in reversed(ops.masks2segments(mask))]
+                ops.scale_segments(shape, x, im0.shape, normalize=False) for x in reversed(ops.masks2segments(mask))]
 
         # Print results
         for c in det[:, 5].unique():
@@ -76,12 +76,17 @@ class SegmentationPredictor(DetectionPredictor):
             255 if self.args.retina_masks else im[idx])
 
         det = reversed(det[:, :6])
-        self.all_outputs.append([det, mask])
+        if self.return_outputs:
+            self.output["det"] = det.cpu().numpy()
+            self.output["segment"] = segments
 
         # Write results
-        for j, (*xyxy, conf, cls) in enumerate(reversed(det[:, :6])):
+        for j, (*xyxy, conf, cls) in enumerate(det):
             if self.args.save_txt:  # Write to file
-                seg = segments[j].reshape(-1)  # (n,2) to (n*2)
+                seg = segments[j].copy()
+                seg[:, 0] /= shape[1]  # width
+                seg[:, 1] /= shape[0]  # height
+                seg = seg.reshape(-1)  # (n,2) to (n*2)
                 line = (cls, *seg, conf) if self.args.save_conf else (cls, *seg)  # label format
                 with open(f'{self.txt_path}.txt', 'a') as f:
                     f.write(('%g ' * len(line)).rstrip() % line + '\n')
@@ -103,8 +108,10 @@ class SegmentationPredictor(DetectionPredictor):
 def predict(cfg):
     cfg.model = cfg.model or "yolov8n-seg.pt"
     cfg.imgsz = check_imgsz(cfg.imgsz, min_dim=2)  # check image size
+    cfg.source = cfg.source if cfg.source is not None else ROOT / "assets"
+
     predictor = SegmentationPredictor(cfg)
-    predictor()
+    predictor.predict_cli()
 
 
 if __name__ == "__main__":

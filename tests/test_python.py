@@ -32,7 +32,7 @@ def test_model_fuse():
 
 def test_predict_dir():
     model = YOLO(MODEL)
-    model.predict(source=ROOT / "assets")
+    model.predict(source=ROOT / "assets", return_outputs=False)
 
 
 def test_val():
@@ -96,5 +96,5 @@ def test_export_paddle():
 
 
 def test_all_model_yamls():
-    for m in list((ROOT / 'yolo/v8/models').rglob('*.yaml')):
+    for m in list((ROOT / 'models').rglob('*.yaml')):
         YOLO(m.name)

@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 """
-Export a YOLOv5 PyTorch model to other formats. TensorFlow exports authored by https://github.com/zldrobit
+Export a YOLOv8 PyTorch model to other formats. TensorFlow exports authored by https://github.com/zldrobit
 
 Format                  | `format=argument`         | Model
 ---                     | ---                       | ---
@@ -81,7 +81,7 @@ MACOS = platform.system() == 'Darwin'  # macOS environment
 
 
 def export_formats():
-    # YOLOv5 export formats
+    # YOLOv8 export formats
     x = [
         ['PyTorch', '-', '.pt', True, True],
         ['TorchScript', 'torchscript', '.torchscript', True, True],
@@ -99,7 +99,7 @@ def export_formats():
 
 
 def try_export(inner_func):
-    # YOLOv5 export decorator, i..e @try_export
+    # YOLOv8 export decorator, i..e @try_export
     inner_args = get_default_args(inner_func)
 
     def outer_func(*args, **kwargs):
@@ -168,7 +168,7 @@ class Exporter:
 
         # Input
         im = torch.zeros(self.args.batch, 3, *self.imgsz).to(self.device)
-        file = Path(getattr(model, 'pt_path', None) or model.yaml['yaml_file'])
+        file = Path(getattr(model, 'pt_path', None) or getattr(model, 'yaml_file', None) or model.yaml['yaml_file'])
         if file.suffix == '.yaml':
             file = Path(file.name)
 
@@ -256,7 +256,7 @@ class Exporter:
 
     @try_export
     def _export_torchscript(self, prefix=colorstr('TorchScript:')):
-        # YOLOv5 TorchScript model export
+        # YOLOv8 TorchScript model export
         LOGGER.info(f'\n{prefix} starting export with torch {torch.__version__}...')
         f = self.file.with_suffix('.torchscript')
 
@@ -273,7 +273,7 @@ class Exporter:
 
     @try_export
     def _export_onnx(self, prefix=colorstr('ONNX:')):
-        # YOLOv5 ONNX export
+        # YOLOv8 ONNX export
         check_requirements('onnx>=1.12.0')
         import onnx  # noqa
 
@@ -326,7 +326,7 @@ class Exporter:
 
     @try_export
     def _export_openvino(self, prefix=colorstr('OpenVINO:')):
-        # YOLOv5 OpenVINO export
+        # YOLOv8 OpenVINO export
         check_requirements('openvino-dev')  # requires openvino-dev: https://pypi.org/project/openvino-dev/
         import openvino.inference_engine as ie  # noqa
 
@@ -341,7 +341,7 @@ class Exporter:
 
     @try_export
     def _export_paddle(self, prefix=colorstr('PaddlePaddle:')):
-        # YOLOv5 Paddle export
+        # YOLOv8 Paddle export
         check_requirements(('paddlepaddle', 'x2paddle'))
         import x2paddle  # noqa
         from x2paddle.convert import pytorch2paddle  # noqa
@@ -355,7 +355,7 @@ class Exporter:
 
     @try_export
     def _export_coreml(self, prefix=colorstr('CoreML:')):
-        # YOLOv5 CoreML export
+        # YOLOv8 CoreML export
         check_requirements('coremltools>=6.0')
         import coremltools as ct  # noqa
 
@@ -378,7 +378,7 @@ class Exporter:
         LOGGER.info(f'\n{prefix} starting export with coremltools {ct.__version__}...')
         f = self.file.with_suffix('.mlmodel')
 
-        model = iOSModel(self.model, self.im) if self.args.nms else self.model
+        model = iOSModel(self.model, self.im).eval() if self.args.nms else self.model
         ts = torch.jit.trace(model, self.im, strict=False)  # TorchScript model
         ct_model = ct.convert(ts, inputs=[ct.ImageType('image', shape=self.im.shape, scale=1 / 255, bias=[0, 0, 0])])
         bits, mode = (8, 'kmeans_lut') if self.args.int8 else (16, 'linear') if self.args.half else (32, None)
@@ -395,7 +395,7 @@ class Exporter:
 
     @try_export
     def _export_engine(self, workspace=4, verbose=False, prefix=colorstr('TensorRT:')):
-        # YOLOv5 TensorRT export https://developer.nvidia.com/tensorrt
+        # YOLOv8 TensorRT export https://developer.nvidia.com/tensorrt
         assert self.im.device.type != 'cpu', 'export running on CPU but must be on GPU, i.e. `device==0`'
         try:
             import tensorrt as trt  # noqa
@@ -460,7 +460,7 @@ class Exporter:
                             conf_thres=0.25,
                             prefix=colorstr('TensorFlow SavedModel:')):
 
-        # YOLOv5 TensorFlow SavedModel export
+        # YOLOv8 TensorFlow SavedModel export
         try:
             import tensorflow as tf  # noqa
         except ImportError:
@@ -493,7 +493,7 @@ class Exporter:
                                 iou_thres=0.45,
                                 conf_thres=0.25,
                                 prefix=colorstr('TensorFlow SavedModel:')):
-        # YOLOv5 TensorFlow SavedModel export
+        # YOLOv8 TensorFlow SavedModel export
         try:
             import tensorflow as tf  # noqa
         except ImportError:
@@ -533,7 +533,7 @@ class Exporter:
 
     @try_export
     def _export_pb(self, keras_model, file, prefix=colorstr('TensorFlow GraphDef:')):
-        # YOLOv5 TensorFlow GraphDef *.pb export https://github.com/leimao/Frozen_Graph_TensorFlow
+        # YOLOv8 TensorFlow GraphDef *.pb export https://github.com/leimao/Frozen_Graph_TensorFlow
         import tensorflow as tf  # noqa
         from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2  # noqa
 
@@ -549,7 +549,7 @@ class Exporter:
 
     @try_export
     def _export_tflite(self, keras_model, int8, data, nms, agnostic_nms, prefix=colorstr('TensorFlow Lite:')):
-        # YOLOv5 TensorFlow Lite export
+        # YOLOv8 TensorFlow Lite export
         import tensorflow as tf  # noqa
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
@@ -589,7 +589,7 @@ class Exporter:
 
     @try_export
     def _export_edgetpu(self, prefix=colorstr('Edge TPU:')):
-        # YOLOv5 Edge TPU export https://coral.ai/docs/edgetpu/models-intro/
+        # YOLOv8 Edge TPU export https://coral.ai/docs/edgetpu/models-intro/
         cmd = 'edgetpu_compiler --version'
         help_url = 'https://coral.ai/docs/edgetpu/compiler/'
         assert platform.system() == 'Linux', f'export only supported on Linux. See {help_url}'
@@ -615,7 +615,7 @@ class Exporter:
 
     @try_export
     def _export_tfjs(self, prefix=colorstr('TensorFlow.js:')):
-        # YOLOv5 TensorFlow.js export
+        # YOLOv8 TensorFlow.js export
         check_requirements('tensorflowjs')
         import tensorflowjs as tfjs  # noqa
 
@@ -673,7 +673,7 @@ class Exporter:
             tmp_file.unlink()
 
     def _pipeline_coreml(self, model, prefix=colorstr('CoreML Pipeline:')):
-        # YOLOv5 CoreML pipeline
+        # YOLOv8 CoreML pipeline
         import coremltools as ct  # noqa
 
         LOGGER.info(f'{prefix} starting pipeline with coremltools {ct.__version__}...')

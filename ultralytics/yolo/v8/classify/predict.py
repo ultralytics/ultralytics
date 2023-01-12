@@ -4,7 +4,7 @@ import hydra
 import torch
 
 from ultralytics.yolo.engine.predictor import BasePredictor
-from ultralytics.yolo.utils import DEFAULT_CONFIG
+from ultralytics.yolo.utils import DEFAULT_CONFIG, ROOT
 from ultralytics.yolo.utils.checks import check_imgsz
 from ultralytics.yolo.utils.plotting import Annotator
 
@@ -38,8 +38,9 @@ class ClassificationPredictor(BasePredictor):
         log_string += '%gx%g ' % im.shape[2:]  # print string
         self.annotator = self.get_annotator(im0)
 
-        prob = preds[idx]
-        self.all_outputs.append(prob)
+        prob = preds[idx].softmax(0)
+        if self.return_outputs:
+            self.output["prob"] = prob.cpu().numpy()
         # Print results
         top5i = prob.argsort(0, descending=True)[:5].tolist()  # top 5 indices
         log_string += f"{', '.join(f'{self.model.names[j]} {prob[j]:.2f}' for j in top5i)}, "
@@ -59,8 +60,10 @@ class ClassificationPredictor(BasePredictor):
 def predict(cfg):
     cfg.model = cfg.model or "squeezenet1_0"
     cfg.imgsz = check_imgsz(cfg.imgsz, min_dim=2)  # check image size
+    cfg.source = cfg.source if cfg.source is not None else ROOT / "assets"
+
     predictor = ClassificationPredictor(cfg)
-    predictor()
+    predictor.predict_cli()
 
 
 if __name__ == "__main__":

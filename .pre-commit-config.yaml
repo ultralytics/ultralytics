@@ -53,13 +53,13 @@ repos:
           - mdformat-black
         # exclude: "README.md|README.zh-CN.md|CONTRIBUTING.md"
 
+  - repo: https://github.com/asottile/yesqa
+    rev: v1.4.0
+    hooks:
+      - id: yesqa
+
   - repo: https://github.com/PyCQA/flake8
     rev: 5.0.4
     hooks:
       - id: flake8
         name: PEP8
-
-  - repo: https://github.com/asottile/yesqa
-    rev: v1.4.0
-    hooks:
-      - id: yesqa

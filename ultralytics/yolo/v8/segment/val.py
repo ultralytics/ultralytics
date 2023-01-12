@@ -22,7 +22,7 @@ class SegmentationValidator(DetectionValidator):
     def __init__(self, dataloader=None, save_dir=None, pbar=None, logger=None, args=None):
         super().__init__(dataloader, save_dir, pbar, logger, args)
         self.args.task = "segment"
-        self.metrics = SegmentMetrics(save_dir=self.save_dir, plot=self.args.plots)
+        self.metrics = SegmentMetrics(save_dir=self.save_dir)
 
     def preprocess(self, batch):
         batch = super().preprocess(batch)
@@ -31,13 +31,15 @@ class SegmentationValidator(DetectionValidator):
 
     def init_metrics(self, model):
         head = model.model[-1] if self.training else model.model.model[-1]
-        self.is_coco = self.data.get('val', '').endswith(f'coco{os.sep}val2017.txt')  # is COCO dataset
+        val = self.data.get('val', '')  # validation path
+        self.is_coco = isinstance(val, str) and val.endswith(f'coco{os.sep}val2017.txt')  # is COCO dataset
         self.class_map = ops.coco80_to_coco91_class() if self.is_coco else list(range(1000))
         self.args.save_json |= self.is_coco and not self.training  # run on final val if training COCO
         self.nc = head.nc
         self.nm = head.nm if hasattr(head, "nm") else 32
         self.names = model.names
         self.metrics.names = self.names
+        self.metrics.plot = self.args.plots
         self.confusion_matrix = ConfusionMatrix(nc=self.nc)
         self.plot_masks = []
         self.seen = 0
@@ -97,7 +99,9 @@ class SegmentationValidator(DetectionValidator):
 
             # Evaluate
             if nl:
-                tbox = ops.xywh2xyxy(bbox)  # target boxes
+                height, width = batch["img"].shape[2:]
+                tbox = ops.xywh2xyxy(bbox) * torch.tensor(
+                    (width, height, width, height), device=self.device)  # target boxes
                 ops.scale_boxes(batch["img"][si].shape[1:], tbox, shape,
                                 ratio_pad=batch["ratio_pad"][si])  # native-space labels
                 labelsn = torch.cat((cls, tbox), 1)  # native-space labels

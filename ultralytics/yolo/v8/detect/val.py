@@ -24,7 +24,7 @@ class DetectionValidator(BaseValidator):
         self.data_dict = yaml_load(check_file(self.args.data), append_filename=True) if self.args.data else None
         self.is_coco = False
         self.class_map = None
-        self.metrics = DetMetrics(save_dir=self.save_dir, plot=self.args.plots)
+        self.metrics = DetMetrics(save_dir=self.save_dir)
         self.iouv = torch.linspace(0.5, 0.95, 10)  # iou vector for mAP@0.5:0.95
         self.niou = self.iouv.numel()
 
@@ -34,8 +34,7 @@ class DetectionValidator(BaseValidator):
         for k in ["batch_idx", "cls", "bboxes"]:
             batch[k] = batch[k].to(self.device)
 
-        nb, _, height, width = batch["img"].shape
-        batch["bboxes"] *= torch.tensor((width, height, width, height), device=self.device)  # to pixels
+        nb = len(batch["img"])
         self.lb = [torch.cat([batch["cls"], batch["bboxes"]], dim=-1)[batch["batch_idx"] == i]
                    for i in range(nb)] if self.args.save_hybrid else []  # for autolabelling
 
@@ -50,6 +49,7 @@ class DetectionValidator(BaseValidator):
         self.nc = head.nc
         self.names = model.names
         self.metrics.names = self.names
+        self.metrics.plot = self.args.plots
         self.confusion_matrix = ConfusionMatrix(nc=self.nc)
         self.seen = 0
         self.jdict = []
@@ -95,7 +95,9 @@ class DetectionValidator(BaseValidator):
 
             # Evaluate
             if nl:
-                tbox = ops.xywh2xyxy(bbox)  # target boxes
+                height, width = batch["img"].shape[2:]
+                tbox = ops.xywh2xyxy(bbox) * torch.tensor(
+                    (width, height, width, height), device=self.device)  # target boxes
                 ops.scale_boxes(batch["img"][si].shape[1:], tbox, shape,
                                 ratio_pad=batch["ratio_pad"][si])  # native-space labels
                 labelsn = torch.cat((cls, tbox), 1)  # native-space labels

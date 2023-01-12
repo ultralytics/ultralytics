@@ -97,7 +97,7 @@ In addition to the above requirements, for [Ultralytics](https://ultralytics.com
 should be:
 
 - ✅ **Current** – Verify that your code is up-to-date with current
-  GitHub [main](https://github.com/ultralytics/ultralytics/tree/main) branch, and if necessary `git pull` or `git clone` 
+  GitHub [main](https://github.com/ultralytics/ultralytics/tree/main) branch, and if necessary `git pull` or `git clone`
   a new copy to ensure your problem has not already been resolved by previous commits.
 - ✅ **Unmodified** – Your problem must be reproducible without any modifications to the codebase in this
   repository. [Ultralytics](https://ultralytics.com/) does not provide support for custom code ⚠️.

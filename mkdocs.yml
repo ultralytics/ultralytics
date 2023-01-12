@@ -81,7 +81,7 @@ nav:
       - Segmentation: tasks/segmentation.md
       - Classification: tasks/classification.md
   - CLI: cli.md
-  - Python Interface: sdk.md
+  - Python: python.md
   - Configuration: config.md
   - Customization Guide: engine.md
   - Ultralytics HUB: hub.md

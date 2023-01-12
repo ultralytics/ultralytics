@@ -92,7 +92,7 @@ model = YOLO("yolov8n.pt")  # 加载预训练模型（推荐用于训练）
 results = model.train(data="coco128.yaml", epochs=3)  # 训练模型
 results = model.val()  # 在验证集上评估模型性能
 results = model("https://ultralytics.com/images/bus.jpg")  # 预测图像
-success = YOLO("yolov8n.pt").export(format="onnx")  # 将模型导出为 ONNX 格式
+success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 ```
 
 [模型](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) 会从 Ultralytics [发布页](https://github.com/ultralytics/ultralytics/releases) 自动下载。

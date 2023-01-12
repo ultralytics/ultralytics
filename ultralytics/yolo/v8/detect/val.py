@@ -34,8 +34,7 @@ class DetectionValidator(BaseValidator):
         for k in ["batch_idx", "cls", "bboxes"]:
             batch[k] = batch[k].to(self.device)
 
-        nb, _, height, width = batch["img"].shape
-        batch["bboxes"] *= torch.tensor((width, height, width, height), device=self.device)  # to pixels
+        nb = len(batch["img"])
         self.lb = [torch.cat([batch["cls"], batch["bboxes"]], dim=-1)[batch["batch_idx"] == i]
                    for i in range(nb)] if self.args.save_hybrid else []  # for autolabelling
 
@@ -95,7 +94,8 @@ class DetectionValidator(BaseValidator):
 
             # Evaluate
             if nl:
-                tbox = ops.xywh2xyxy(bbox)  # target boxes
+                height, width = batch["img"].shape[2:]
+                tbox = ops.xywh2xyxy(bbox) * torch.tensor((width, height, width, height), device=self.device)  # target boxes
                 ops.scale_boxes(batch["img"][si].shape[1:], tbox, shape,
                                 ratio_pad=batch["ratio_pad"][si])  # native-space labels
                 labelsn = torch.cat((cls, tbox), 1)  # native-space labels

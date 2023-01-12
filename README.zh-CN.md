@@ -141,9 +141,9 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-seg.pt) | 640             | 53.4                 | 43.4                  | 712.1                         | 4.02                               | 71.8            | 344.1             |
 
 - **mAP<sup>val</sup>**  结果都在 [COCO val2017](http://cocodataset.org) 数据集上，使用单模型单尺度测试得到。
-  <br>复现命令 `yolo mode=val task=detect data=coco.yaml device=0`
+  <br>复现命令 `yolo mode=val task=segment data=coco.yaml device=0`
 - **推理速度**使用 COCO 验证集图片推理时间进行平均得到，测试环境使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例。
-  <br>复现命令 `yolo mode=val task=detect data=coco128.yaml batch=1 device=0/cpu`
+  <br>复现命令 `yolo mode=val task=segment data=coco128-seg.yaml batch=1 device=0/cpu`
 
 </details>
 
@@ -158,9 +158,9 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-cls.pt) | 224             | 78.4             | 94.3             | 232.0                         | 1.01                               | 57.4            | 154.8                    |
 
 - **acc** 都在 [ImageNet](https://www.image-net.org/) 数据集上，使用单模型单尺度测试得到。
-  <br>复现命令 `yolo mode=val task=detect data=coco.yaml device=0`
+  <br>复现命令 `yolo mode=val task=classify data=path/to/ImageNet device=0`
 - **推理速度**使用 ImageNet 验证集图片推理时间进行平均得到，测试环境使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例。
-  <br>复现命令 `yolo mode=val task=detect data=coco128.yaml batch=1 device=0/cpu`
+  <br>复现命令 `yolo mode=val task=classify data=path/to/ImageNet batch=1 device=0/cpu`
 
 </details>
 

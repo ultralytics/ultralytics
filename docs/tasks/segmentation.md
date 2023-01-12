@@ -13,13 +13,12 @@ segmentation is useful when you need to know not only where objects are in an im
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models/v8/seg){.md-button .md-button--primary}
 
-## Usage examples
+## Train
 
-!!! example "1. Train"
+Train YOLOv8n-seg on the COCO128-seg dataset for 100 epochs at image size 640. For a full list of available
+arguments see the [Configuration](../config.md) page.
 
-    Train YOLOv8n-seg on the COCO128-seg dataset for 100 epochs at image size 640. For a full list of available 
-    arguments see the [Configuration](../config.md) page.
-
+!!! example ""
 
     === "Python"
     
@@ -39,10 +38,12 @@ segmentation is useful when you need to know not only where objects are in an im
         yolo task=segment mode=train data=coco128-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
         ```
 
-!!! example "2. Val"
+## Val
 
-    Validate trained YOLOv8n-seg model accuracy on the COCO128-seg dataset. No argument need to passed as the `model`
-    retains it's training `data` and arguments as model attributes.
+Validate trained YOLOv8n-seg model accuracy on the COCO128-seg dataset. No argument need to passed as the `model`
+retains it's training `data` and arguments as model attributes.
+
+!!! example ""
 
     === "Python"
     
@@ -63,9 +64,11 @@ segmentation is useful when you need to know not only where objects are in an im
         yolo task=segment mode=val model=path/to/best.pt  # val custom model
         ```
 
-!!! example "3. Predict"
+## Predict
 
-    Use a trained YOLOv8n-seg model to run predictions on images.
+Use a trained YOLOv8n-seg model to run predictions on images.
+
+!!! example ""
 
     === "Python"
     
@@ -86,9 +89,11 @@ segmentation is useful when you need to know not only where objects are in an im
         yolo task=segment mode=predict model=path/to/best.pt source="https://ultralytics.com/images/bus.jpg"  # predict with custom model
         ```
 
-!!! example "4. Export"
+## Export
 
-    Export a YOLOv8n-seg model to a different format like ONNX, CoreML, etc.
+Export a YOLOv8n-seg model to a different format like ONNX, CoreML, etc.
+
+!!! example ""
 
     === "Python"
     
@@ -114,17 +119,17 @@ segmentation is useful when you need to know not only where objects are in an im
     | Format                                                                     | `format=`     | Model                         |
     |----------------------------------------------------------------------------|---------------|-------------------------------|
     | [PyTorch](https://pytorch.org/)                                            | -             | `yolov8n-seg.pt`              |
-    | [TorchScript](https://pytorch.org/docs/stable/jit.html)                    | `torchscript` | `yolov8n-cls.torchscript`     |
-    | [ONNX](https://onnx.ai/)                                                   | `onnx`        | `yolov8n-cls.onnx`            |
-    | [OpenVINO](https://docs.openvino.ai/latest/index.html)                     | `openvino`    | `yolov8n-cls_openvino_model/` |
-    | [TensorRT](https://developer.nvidia.com/tensorrt)                          | `engine`      | `yolov8n-cls.engine`          |
-    | [CoreML](https://github.com/apple/coremltools)                             | `coreml`      | `yolov8n-cls.mlmodel`         |
-    | [TensorFlow SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model` | `yolov8n-cls_saved_model/`    |
-    | [TensorFlow GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`          | `yolov8n-cls.pb`              |
-    | [TensorFlow Lite](https://www.tensorflow.org/lite)                         | `tflite`      | `yolov8n-cls.tflite`          |
-    | [TensorFlow Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`     | `yolov8n-cls_edgetpu.tflite`  |
-    | [TensorFlow.js](https://www.tensorflow.org/js)                             | `tfjs`        | `yolov8n-cls_web_model/`      |
-    | [PaddlePaddle](https://github.com/PaddlePaddle)                            | `paddle`      | `yolov8n-cls_paddle_model/`   |
+    | [TorchScript](https://pytorch.org/docs/stable/jit.html)                    | `torchscript` | `yolov8n-seg.torchscript`     |
+    | [ONNX](https://onnx.ai/)                                                   | `onnx`        | `yolov8n-seg.onnx`            |
+    | [OpenVINO](https://docs.openvino.ai/latest/index.html)                     | `openvino`    | `yolov8n-seg_openvino_model/` |
+    | [TensorRT](https://developer.nvidia.com/tensorrt)                          | `engine`      | `yolov8n-seg.engine`          |
+    | [CoreML](https://github.com/apple/coremltools)                             | `coreml`      | `yolov8n-seg.mlmodel`         |
+    | [TensorFlow SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model` | `yolov8n-seg_saved_model/`    |
+    | [TensorFlow GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`          | `yolov8n-seg.pb`              |
+    | [TensorFlow Lite](https://www.tensorflow.org/lite)                         | `tflite`      | `yolov8n-seg.tflite`          |
+    | [TensorFlow Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`     | `yolov8n-seg_edgetpu.tflite`  |
+    | [TensorFlow.js](https://www.tensorflow.org/js)                             | `tfjs`        | `yolov8n-seg_web_model/`      |
+    | [PaddlePaddle](https://github.com/PaddlePaddle)                            | `paddle`      | `yolov8n-seg_paddle_model/`   |
 
 
 

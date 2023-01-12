@@ -68,7 +68,7 @@ training `data` and arguments as model attributes.
 
 Use a trained YOLOv8n model to run predictions on images.
 
-!!! example "3. Predict"
+!!! example ""
 
     === "Python"
     

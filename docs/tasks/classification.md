@@ -13,13 +13,12 @@ of that class are located or what their exact shape is.
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models/v8/cls){.md-button .md-button--primary}
 
-## Usage examples
+## Train
 
-!!! example "1. Train"
+Train YOLOv8n-cls on the MNIST160 dataset for 100 epochs at image size 64. For a full list of available arguments
+see the [Configuration](../config.md) page.
 
-    Train YOLOv8n-cls on the MNIST160 dataset for 100 epochs at image size 64. For a full list of available arguments 
-    see the [Configuration](../config.md) page.
-
+!!! example ""
 
     === "Python"
     
@@ -39,10 +38,12 @@ of that class are located or what their exact shape is.
         yolo task=classify mode=train data=mnist160 model=yolov8n-cls.pt epochs=100 imgsz=64
         ```
 
-!!! example "2. Val"
+## Val
 
-    Validate trained YOLOv8n-cls model accuracy on the MNIST160 dataset. No argument need to passed as the `model` retains
-    it's training `data` and arguments as model attributes.
+Validate trained YOLOv8n-cls model accuracy on the MNIST160 dataset. No argument need to passed as the `model` retains
+it's training `data` and arguments as model attributes.
+
+!!! example ""
 
     === "Python"
     
@@ -63,9 +64,11 @@ of that class are located or what their exact shape is.
         yolo task=classify mode=val model=path/to/best.pt  # val custom model
         ```
 
-!!! example "3. Predict"
+## Predict
 
-    Use a trained YOLOv8n-cls model to run predictions on images.
+Use a trained YOLOv8n-cls model to run predictions on images.
+
+!!! example ""
 
     === "Python"
     
@@ -86,9 +89,11 @@ of that class are located or what their exact shape is.
         yolo task=classify mode=predict model=path/to/best.pt source="https://ultralytics.com/images/bus.jpg"  # predict with custom model
         ```
 
-!!! example "4. Export"
+## Export
 
-    Export a YOLOv8n-cls model to a different format like ONNX, CoreML, etc.
+Export a YOLOv8n-cls model to a different format like ONNX, CoreML, etc.
+
+!!! example ""
 
     === "Python"
     

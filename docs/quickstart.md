@@ -67,7 +67,7 @@ classification into their Python projects using YOLOv8.
     results = model.train(data="coco128.yaml", epochs=3)  # train the model
     results = model.val()  # evaluate model performance on the validation set
     results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
-    success = model.export(format="onnx")  # export a model to ONNX format
+    success = model.export(format="onnx")  # export the model to ONNX format
     ```
 
 [Python Guide](python.md){.md-button .md-button--primary}

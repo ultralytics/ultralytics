@@ -105,7 +105,7 @@ model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 results = model.train(data="coco128.yaml", epochs=3)  # train the model
 results = model.val()  # evaluate model performance on the validation set
 results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
-success = model.export(format="onnx")  # export a model to ONNX format
+success = model.export(format="onnx")  # export the model to ONNX format
 ```
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) download automatically from the latest

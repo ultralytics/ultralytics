@@ -12,7 +12,7 @@ SOURCE = ROOT / 'assets/bus.jpg'
 
 def test_model_forward():
     model = YOLO(CFG)
-    model.predict(SOURCE)
+    model.predict(SOURCE, return_outputs=False)
     model(SOURCE)
 
 
@@ -98,3 +98,10 @@ def test_export_paddle():
 def test_all_model_yamls():
     for m in list((ROOT / 'models').rglob('*.yaml')):
         YOLO(m.name)
+
+def test_workflow():
+    model = YOLO(MODEL)
+    model.train(data="coco128.yaml", epochs=1, imgsz=32)
+    model.val()
+    model.predict(SOURCE, return_outputs=False)
+    model.export(format="onnx", opset=12)  # export a model to ONNX format

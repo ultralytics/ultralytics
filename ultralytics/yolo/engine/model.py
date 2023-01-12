@@ -191,6 +191,9 @@ class YOLO:
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
             self.model = self.trainer.model
         self.trainer.train()
+        # update model and configs after training
+        self.model, _ = attempt_load_one_weight(str(self.trainer.best))
+        self.overrides = self.model.args
 
     def to(self, device):
         """

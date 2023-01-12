@@ -99,6 +99,7 @@ def test_all_model_yamls():
     for m in list((ROOT / 'models').rglob('*.yaml')):
         YOLO(m.name)
 
+
 def test_workflow():
     model = YOLO(MODEL)
     model.train(data="coco128.yaml", epochs=1, imgsz=32)

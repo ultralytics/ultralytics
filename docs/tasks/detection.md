@@ -17,7 +17,8 @@ scene, but don't need to know exactly where the object is or its exact shape.
 
 !!! example "1. Train"
 
-    Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640.
+    Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. For a full list of available arguments see 
+    the [Configuration](../config.md) page.
 
     === "Python"
     

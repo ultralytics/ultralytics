@@ -17,7 +17,9 @@ of that class are located or what their exact shape is.
 
 !!! example "1. Train"
 
-    Train YOLOv8n-cls on the MNIST160 dataset for 100 epochs at image size 64.
+    Train YOLOv8n-cls on the MNIST160 dataset for 100 epochs at image size 64. For a full list of available arguments 
+    see the [Configuration](../config.md) page.
+
 
     === "Python"
     

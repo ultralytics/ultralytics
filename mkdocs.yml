@@ -28,6 +28,7 @@ theme:
     - content.action.edit
     - content.code.annotate
     - content.tooltips
+    - content.tabs.link
     - search.highlight
     - search.share
     - search.suggest
@@ -81,6 +82,10 @@ nav:
   - Customization Guide: engine.md
   - Ultralytics HUB: hub.md
   - iOS and Android App: app.md
+  - Tasks:
+      - Detection: tasks/detection.md
+      - Segmentation: tasks/segmentation.md
+      - Classification: tasks/classification.md
   - Reference:
       - Python Model interface: reference/model.md
       - Engine:

@@ -24,7 +24,7 @@ class DetectionValidator(BaseValidator):
         self.data_dict = yaml_load(check_file(self.args.data), append_filename=True) if self.args.data else None
         self.is_coco = False
         self.class_map = None
-        self.metrics = DetMetrics(save_dir=self.save_dir, plot=self.args.plots)
+        self.metrics = DetMetrics(save_dir=self.save_dir)
         self.iouv = torch.linspace(0.5, 0.95, 10)  # iou vector for mAP@0.5:0.95
         self.niou = self.iouv.numel()
 
@@ -49,6 +49,7 @@ class DetectionValidator(BaseValidator):
         self.nc = head.nc
         self.names = model.names
         self.metrics.names = self.names
+        self.metrics.plot = self.args.plots
         self.confusion_matrix = ConfusionMatrix(nc=self.nc)
         self.seen = 0
         self.jdict = []

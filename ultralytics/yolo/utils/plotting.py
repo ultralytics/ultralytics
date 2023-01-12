@@ -41,7 +41,7 @@ colors = Colors()  # create instance for 'from utils.plots import colors'
 
 
 class Annotator:
-    # YOLOv5 Annotator for train/val mosaics and jpgs and detect/hub inference annotations
+    # YOLOv8 Annotator for train/val mosaics and jpgs and detect/hub inference annotations
     def __init__(self, im, line_width=None, font_size=None, font='Arial.ttf', pil=False, example='abc'):
         assert im.data.contiguous, 'Image not contiguous. Apply np.ascontiguousarray(im) to Annotator() input images.'
         non_ascii = not is_ascii(example)  # non-latin labels, i.e. asian, arabic, cyrillic

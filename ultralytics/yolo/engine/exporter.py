@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 """
-Export a YOLOv5 PyTorch model to other formats. TensorFlow exports authored by https://github.com/zldrobit
+Export a YOLOv8 PyTorch model to other formats. TensorFlow exports authored by https://github.com/zldrobit
 
 Format                  | `format=argument`         | Model
 ---                     | ---                       | ---
@@ -81,7 +81,7 @@ MACOS = platform.system() == 'Darwin'  # macOS environment
 
 
 def export_formats():
-    # YOLOv5 export formats
+    # YOLOv8 export formats
     x = [
         ['PyTorch', '-', '.pt', True, True],
         ['TorchScript', 'torchscript', '.torchscript', True, True],
@@ -99,7 +99,7 @@ def export_formats():
 
 
 def try_export(inner_func):
-    # YOLOv5 export decorator, i..e @try_export
+    # YOLOv8 export decorator, i..e @try_export
     inner_args = get_default_args(inner_func)
 
     def outer_func(*args, **kwargs):

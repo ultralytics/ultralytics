@@ -16,7 +16,8 @@ scene, but don't need to know exactly where the object is or its exact shape.
 ## Usage examples
 
 !!! example "1. Train"
-Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640.
+
+    Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640.
 
     === "Python"
     
@@ -37,8 +38,9 @@ Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640.
         ```
 
 !!! example "2. Val"
-Validate trained YOLOv8n model accuracy on the COCO128 dataset. No argument need to passed as the `model` retains it's
-training `data` and arguments as model attributes.
+
+    Validate trained YOLOv8n model accuracy on the COCO128 dataset. No argument need to passed as the `model` retains it's
+    training `data` and arguments as model attributes.
 
     === "Python"
     
@@ -60,7 +62,8 @@ training `data` and arguments as model attributes.
         ```
 
 !!! example "3. Predict"
-Use a trained YOLOv8n model to run predictions on images.
+
+    Use a trained YOLOv8n model to run predictions on images.
 
     === "Python"
     
@@ -82,7 +85,8 @@ Use a trained YOLOv8n model to run predictions on images.
         ```
 
 !!! example "4. Export"
-Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
+
+    Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
 
     === "Python"
     

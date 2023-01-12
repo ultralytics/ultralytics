@@ -59,9 +59,6 @@ class DetectionPredictor(BasePredictor):
             n = (det[:, 5] == c).sum()  # detections per class
             log_string += f"{n} {self.model.names[int(c)]}{'s' * (n > 1)}, "
 
-        if self.return_outputs:
-            self.output["det"] = det.cpu().numpy()
-
         # write
         gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
         for *xyxy, conf, cls in reversed(det):

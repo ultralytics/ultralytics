@@ -76,9 +76,6 @@ class SegmentationPredictor(DetectionPredictor):
             255 if self.args.retina_masks else im[idx])
 
         det = reversed(det[:, :6])
-        if self.return_outputs:
-            self.output["det"] = det.cpu().numpy()
-            self.output["segment"] = segments
 
         # Write results
         for j, (*xyxy, conf, cls) in enumerate(det):

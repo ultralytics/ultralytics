@@ -39,8 +39,6 @@ class ClassificationPredictor(BasePredictor):
         self.annotator = self.get_annotator(im0)
 
         prob = preds[idx].softmax(0)
-        if self.return_outputs:
-            self.output["prob"] = prob.cpu().numpy()
         # Print results
         top5i = prob.argsort(0, descending=True)[:5].tolist()  # top 5 indices
         log_string += f"{', '.join(f'{self.model.names[j]} {prob[j]:.2f}' for j in top5i)}, "

@@ -39,7 +39,7 @@ from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, SETTINGS, callbacks, 
 from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_imshow
 from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode
-
+from ultralytics.yolo.engine.result import Result
 
 class BasePredictor:
     """
@@ -89,7 +89,6 @@ class BasePredictor:
         self.vid_path, self.vid_writer = None, None
         self.annotator = None
         self.data_path = None
-        self.output = dict()
         self.callbacks = defaultdict(list, {k: [v] for k, v in callbacks.default_callbacks.items()})  # add callbacks
         callbacks.add_integration_callbacks(self)
 
@@ -196,8 +195,7 @@ class BasePredictor:
                     self.save_preds(vid_cap, i, str(self.save_dir / p.name))
 
             if self.return_outputs:
-                yield self.output
-                self.output.clear()
+                yield Result(preds, batch, i, self.args.task, self.args, self.save_dir)
 
             # Print time (inference-only)
             LOGGER.info(f"{s}{'' if len(preds) else '(no detections), '}{self.dt[1].dt * 1E3:.1f}ms")

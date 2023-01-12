@@ -10,6 +10,7 @@ from ultralytics.yolo.utils.files import increment_path
 
 
 class Result:
+
     def __init__(self, preds, batch, idx, task, args, save_dir=None) -> None:
         path, im, im0s, vid_cap, s = batch
         self.args = args
@@ -20,9 +21,9 @@ class Result:
             self.save_dir = increment_path(Path(project) / name, exist_ok=self.args.exist_ok)
 
         # outputs
-        self.preds = None # raw tensors
+        self.preds = None  # raw tensors
         self.boxes = []  # Bbox object. eg-> boxes.convert('xyxy')
-        self.segments = [] # Instances object. eg-> segments.clip()
+        self.segments = []  # Instances object. eg-> segments.clip()
         self.probs = []
 
         if task == "detect":
@@ -53,24 +54,25 @@ class Result:
         return self.__repr__()
 
     def __repr__(self):
-        repr =  f'Ultralytics YOLO {self.__class__} instance\n'
+        repr = f'Ultralytics YOLO {self.__class__} instance\n'
         if self.boxes:
             repr = repr + self.boxes.__repr__() + '\n'
         if self.masks:
             repr = repr + self.masks.__repr__() + '\n'
         if self.probs:
             repr = repr + self.probs.__repr__()
-        
+
         return repr
 
 
 class Boxes:
+
     def __init__(self, boxes, ims) -> None:
         self.boxes = boxes
         self.gn = [torch.tensor([*(im.shape[i] for i in [1, 0, 1, 0]), 1, 1], device=self.boxes.device) for im in ims]
 
     @property
-    @lru_cache(maxsize=4) # maxsize 1 should suffice
+    @lru_cache(maxsize=4)  # maxsize 1 should suffice
     def xywh(self):
         return torch.tensor([ops.xyxy2xywh(x) for x in self.boxes], device=self.boxes.device)
 
@@ -115,8 +117,10 @@ class Boxes:
     def __getitem__(self, idx):
         return self.boxes[idx]
 
+
 class Masks:
-    def __init__(self,  masks, im_shape, orig_shape) -> None:
+
+    def __init__(self, masks, im_shape, orig_shape) -> None:
         self.masks = masks
 
     @property

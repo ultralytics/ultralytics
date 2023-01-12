@@ -98,7 +98,8 @@ class SegmentationValidator(DetectionValidator):
             # Evaluate
             if nl:
                 height, width = batch["img"].shape[2:]
-                tbox = ops.xywh2xyxy(bbox) * torch.tensor((width, height, width, height), device=self.device)  # target boxes
+                tbox = ops.xywh2xyxy(bbox) * torch.tensor(
+                    (width, height, width, height), device=self.device)  # target boxes
                 ops.scale_boxes(batch["img"][si].shape[1:], tbox, shape,
                                 ratio_pad=batch["ratio_pad"][si])  # native-space labels
                 labelsn = torch.cat((cls, tbox), 1)  # native-space labels

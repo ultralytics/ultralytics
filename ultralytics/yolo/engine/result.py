@@ -1,11 +1,13 @@
-from pathlib import Path
-from functools import lru_cache
 from copy import copy
+from functools import lru_cache
+from pathlib import Path
 
 import pandas as pd
 import torch
+
 from ultralytics.yolo.utils import SETTINGS, ops
 from ultralytics.yolo.utils.files import increment_path
+
 
 class Result:
     def __init__(self, preds, batch, idx, task, args, save_dir=None) -> None:
@@ -20,7 +22,7 @@ class Result:
         # outputs
         self.preds = None # raw tensors
         self.boxes = []  # Bbox object. eg-> boxes.convert('xyxy')
-        self.segments = [] # Instances object. eg-> segments.clip() 
+        self.segments = [] # Instances object. eg-> segments.clip()
         self.probs = []
 
         if task == "detect":
@@ -40,10 +42,10 @@ class Result:
     def pandas():
         pass
         # TODO masks.pandas + boxes.pandas + cls.pandas
-    
+
     def __getitem__(self, idx):
         return self.preds[idx]
-    
+
     def __len__(self):
         return len(self.preds)
 
@@ -58,7 +60,7 @@ class Result:
             repr + self.masks.__repr__() + '\n'
         if self.probs
             repr + self.probs.__repr__()
-        
+
         return repr
 
 
@@ -66,17 +68,17 @@ class Boxes:
     def __init__(self, boxes, ims) -> None:
         self.boxes = boxes
         self.gn = [torch.tensor([*(im.shape[i] for i in [1, 0, 1, 0]), 1, 1], device=self.boxes.device) for im in ims]
-    
+
     @property
     @lru_cache(maxsize=4) # maxsize 1 should suffice
     def xywh(self):
         return torch.tensor([ops.xyxy2xywh(x) for x in self.boxes], device=self.boxes.device)
-    
+
     @property
     @lru_cache(maxsize=4)
     def xyxyn(self):
         return torch.tensor([x / g for x, g in zip(self.boxes, self.gn)], device=self.boxes.device)
-    
+
     @property
     @lru_cache(maxsize=4)
     def xywhn(self):
@@ -116,7 +118,7 @@ class Boxes:
 class Masks:
     def __init__(self,  masks, im_shape, orig_shape) -> None:
         self.masks = masks
-    
+
     @property
     @lru_cache(maxsize=1)
     def segments(self):

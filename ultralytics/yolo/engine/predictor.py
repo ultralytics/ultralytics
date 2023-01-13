@@ -30,11 +30,14 @@ from collections import defaultdict
 from pathlib import Path
 
 import cv2
+from PIL import Image
+import numpy as np
 
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages, LoadScreenshots, LoadStreams
 from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS
+from ultralytics.yolo.data.augment import LetterBox
 from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, SETTINGS, callbacks, colorstr, ops
 from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_imshow
 from ultralytics.yolo.utils.files import increment_path
@@ -116,11 +119,7 @@ class BasePredictor:
             source = check_file(source)  # download
 
         # model
-        device = select_device(self.args.device)
-        model = model or self.args.model
-        self.args.half &= device.type != 'cpu'  # half precision only supported on CUDA
-        model = AutoBackend(model, device=device, dnn=self.args.dnn, fp16=self.args.half)
-        stride, pt = model.stride, model.pt
+        stride, pt = self.setup_model(model)
         imgsz = check_imgsz(self.args.imgsz, stride=stride)  # check image size
 
         # Dataloader
@@ -131,7 +130,7 @@ class BasePredictor:
                                        imgsz=imgsz,
                                        stride=stride,
                                        auto=pt,
-                                       transforms=getattr(model.model, 'transforms', None),
+                                       transforms=getattr(self.model.model, 'transforms', None),
                                        vid_stride=self.args.vid_stride)
             bs = len(self.dataset)
         elif screenshot:
@@ -139,23 +138,21 @@ class BasePredictor:
                                            imgsz=imgsz,
                                            stride=stride,
                                            auto=pt,
-                                           transforms=getattr(model.model, 'transforms', None))
+                                           transforms=getattr(self.model.model, 'transforms', None))
         else:
             self.dataset = LoadImages(source,
                                       imgsz=imgsz,
                                       stride=stride,
                                       auto=pt,
-                                      transforms=getattr(model.model, 'transforms', None),
+                                      transforms=getattr(self.model.model, 'transforms', None),
                                       vid_stride=self.args.vid_stride)
         self.vid_path, self.vid_writer = [None] * bs, [None] * bs
-        model.warmup(imgsz=(1 if pt or model.triton else bs, 3, *imgsz))  # warmup
+        self.model.warmup(imgsz=(1 if pt or self.model.triton else bs, 3, *imgsz))  # warmup
 
-        self.model = model
         self.webcam = webcam
         self.screenshot = screenshot
         self.imgsz = imgsz
         self.done_setup = True
-        self.device = device
         self.return_outputs = return_outputs
 
         return model
@@ -163,8 +160,8 @@ class BasePredictor:
     @smart_inference_mode()
     def __call__(self, source=None, model=None, return_outputs=False):
         self.run_callbacks("on_predict_start")
-        model = self.model if self.done_setup else self.setup(source, model, return_outputs)
-        model.eval()
+        if not self.done_setup:
+            self.setup(source, model, return_outputs)
         self.seen, self.windows, self.dt = 0, [], (ops.Profile(), ops.Profile(), ops.Profile())
         for batch in self.dataset:
             self.run_callbacks("on_predict_batch_start")
@@ -177,7 +174,7 @@ class BasePredictor:
 
             # Inference
             with self.dt[1]:
-                preds = model(im, augment=self.args.augment, visualize=visualize)
+                preds = self.model(im, augment=self.args.augment, visualize=visualize)
 
             # postprocess
             with self.dt[2]:
@@ -219,6 +216,48 @@ class BasePredictor:
         # as __call__ is a genertor now so have to treat it like a genertor
         for _ in (self.__call__(source, model, return_outputs)):
             pass
+
+    def setup_model(self, model):
+        device = select_device(self.args.device)
+        model = model or self.args.model
+        self.args.half &= device.type != 'cpu'  # half precision only supported on CUDA
+        model = AutoBackend(model, device=device, dnn=self.args.dnn, fp16=self.args.half)
+        self.model = model
+        self.device = device
+        self.model.eval()
+        return model.stride, model.pt
+
+    def inference(self, img):
+        # minimal inference demo for python interface
+        # supporting PIL/ndarray/tensor
+        if not isinstance(img, list):
+            img = [img]
+        img = [self._single_check(im) for im in img]
+        auto = all(x.shape == img[0].shape for x in img) and self.model.pt
+        im = [self._single_preprocess(im, self.model.stride, auto) for im in img]
+        im = np.stack(im, 0) if len(im) > 1 else im[0]
+
+        im = self.preprocess(im)
+        if len(im.shape) == 3:
+            im = im[None]  # expand for batch dim
+        preds = self.model(im)
+        preds = self.postprocess(preds, im, img)
+        return preds
+
+    def _single_check(self, img):
+        assert isinstance(img, (Image.Image, np.ndarray)), \
+                f"Expected img type to be PIL/np.ndarray, but got {type(img)}"
+        if isinstance(img, Image.Image):
+            img = np.asarray(img)
+        return img
+
+    def _single_preprocess(self, img, stride, auto=True):
+        imgsz = check_imgsz(self.args.imgsz, stride=stride)  # check image size
+        # TODO: considering adding this part into self.preprocess
+        im = LetterBox(imgsz, auto=auto, stride=stride)(image=img)
+        im = im.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
+        im = np.ascontiguousarray(im)  # contiguous
+        return im
 
     def show(self, p):
         im0 = self.annotator.result()

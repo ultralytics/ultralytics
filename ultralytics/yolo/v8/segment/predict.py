@@ -23,7 +23,7 @@ class SegmentationPredictor(DetectionPredictor):
                                     nm=32)
         proto = preds[1][-1]
         for i, pred in enumerate(p):
-            shape = orig_img[i].shape if self.webcam else orig_img.shape
+            shape = orig_img[i].shape if isinstance(orig_img, list) else orig_img.shape
             if not len(pred):
                 continue
             if self.args.retina_masks:

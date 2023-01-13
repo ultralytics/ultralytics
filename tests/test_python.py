@@ -4,6 +4,8 @@ from pathlib import Path
 
 from ultralytics import YOLO
 from ultralytics.yolo.utils import ROOT, SETTINGS
+import cv2
+from PIL import Image
 
 MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n.pt'
 CFG = 'yolov8n.yaml'
@@ -34,6 +36,16 @@ def test_predict_dir():
     model = YOLO(MODEL)
     model.predict(source=ROOT / "assets")
 
+def test_predict_img():
+    model = YOLO(MODEL)
+    img = Image.open(str(SOURCE))
+    output = model(img=img)  # PIL
+    assert len(output) == 1, "predict test failed"
+    img = cv2.imread(str(SOURCE))
+    output = model(img=img)  # ndarray
+    assert len(output) == 1, "predict test failed"
+    output = model(img=[img, img])  # batch
+    assert len(output) == 2, "predict test failed"
 
 def test_val():
     model = YOLO(MODEL)

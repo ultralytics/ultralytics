@@ -10,10 +10,7 @@
     <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
     <a href="https://www.kaggle.com/ultralytics/yolov8"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 <br>
-<br>
 </div>
-
-# Welcome to Ultralytics YOLOv8
 
 Welcome to the Ultralytics YOLOv8 documentation landing
 page! [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) is the latest version of the YOLO (You Only Look

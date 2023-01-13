@@ -3,7 +3,6 @@
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.utils import DEFAULT_CONFIG, ROOT
 from ultralytics.yolo.v8 import classify, detect, segment
-
 CFG_DET = 'yolov8n.yaml'
 CFG_SEG = 'yolov8n-seg.yaml'
 CFG_CLS = 'squeezenet1_0'
@@ -26,8 +25,8 @@ def test_detect():
 
     # Predictor
     pred = detect.DetectionPredictor(overrides={"imgsz": [64, 64]})
-    result = pred(source=SOURCE, model="yolov8n.pt", return_outputs=True)
-    assert len(list(result)), "predictor test failed"
+    result = pred(source=SOURCE, model="yolov8n.pt")
+    assert len(result), "predictor test failed"
 
     overrides["resume"] = trainer.last
     trainer = detect.DetectionTrainer(overrides=overrides)
@@ -57,8 +56,8 @@ def test_segment():
 
     # Predictor
     pred = segment.SegmentationPredictor(overrides={"imgsz": [64, 64]})
-    result = pred(source=SOURCE, model="yolov8n-seg.pt", return_outputs=True)
-    assert len(list(result)) == 2, "predictor test failed"
+    result = pred(source=SOURCE, model="yolov8n-seg.pt")
+    assert len(result) == 2, "predictor test failed"
 
     # Test resume
     overrides["resume"] = trainer.last
@@ -90,5 +89,5 @@ def test_classify():
 
     # Predictor
     pred = classify.ClassificationPredictor(overrides={"imgsz": [64, 64]})
-    result = pred(source=SOURCE, model=trained_model, return_outputs=True)
-    assert len(list(result)) == 2, "predictor test failed"
+    result = pred(source=SOURCE, model=trained_model)
+    assert len(result) == 2, "predictor test failed"

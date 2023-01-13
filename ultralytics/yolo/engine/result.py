@@ -11,14 +11,10 @@ from ultralytics.yolo.utils.files import increment_path
 
 class Result:
 
-    def __init__(self, preds, batch, idx, task, args, save_dir=None) -> None:
+    def __init__(self, preds, batch, idx, task, args, device) -> None:
         path, im, im0s, vid_cap, s = batch
         self.args = args
-        self.save_dir = save_dir
-        if not save_dir:
-            project = self.args.project or Path(SETTINGS['runs_dir']) / self.args.task
-            name = self.args.name or f"{self.args.mode}"
-            self.save_dir = increment_path(Path(project) / name, exist_ok=self.args.exist_ok)
+        self.device = device
 
         # outputs
         self.preds = None  # raw tensors
@@ -27,14 +23,14 @@ class Result:
         self.probs = []
 
         if task == "detect":
-            self.boxes = Boxes(preds[idx][0], im)
+            self.boxes = Boxes(preds[idx][0] if len(preds[idx]) else [], im, device)
             self.preds = self.boxes
         elif task == "segment":
             # preds, masks = preds
-            self.boxes = Boxes(preds[0][idx], im)
-            masks = preds[1][idx]
+            self.boxes = Boxes(preds[0][idx], im, device)
+            masks = preds[1][idx] if len(preds[1]) else []
             shape = im0s.shape if args.retina_masks else im.shape[2:]
-            self.masks = Masks(masks, shape, im0s.shape)
+            self.masks = Masks(masks, shape, im0s.shape, device)
             self.preds = [self.boxes, self.masks]
         elif task == "classify":
             self.probs = preds[idx].softmax(0)
@@ -67,24 +63,25 @@ class Result:
 
 class Boxes:
 
-    def __init__(self, boxes, ims) -> None:
+    def __init__(self, boxes, ims, device) -> None:
         self.boxes = boxes
-        self.gn = [torch.tensor([*(im.shape[i] for i in [1, 0, 1, 0]), 1, 1], device=self.boxes.device) for im in ims]
+        self.device = device
+        self.gn = [torch.tensor([*(im.shape[i] for i in [1, 0, 1, 0]), 1, 1], device=self.device) for im in ims]
 
     @property
     @lru_cache(maxsize=4)  # maxsize 1 should suffice
     def xywh(self):
-        return torch.tensor([ops.xyxy2xywh(x) for x in self.boxes], device=self.boxes.device)
+        return torch.tensor([ops.xyxy2xywh(x) for x in self.boxes], device=self.device)
 
     @property
     @lru_cache(maxsize=4)
     def xyxyn(self):
-        return torch.tensor([x / g for x, g in zip(self.boxes, self.gn)], device=self.boxes.device)
+        return torch.tensor([x / g for x, g in zip(self.boxes, self.gn)], device=self.device)
 
     @property
     @lru_cache(maxsize=4)
     def xywhn(self):
-        return torch.tensor([x / g for x, g in zip(self.xywh, self.gn)], device=self.boxes)
+        return torch.tensor([x / g for x, g in zip(self.xywh, self.gn)], device=self.device)
 
     def pandas(self):
         '''
@@ -120,10 +117,11 @@ class Boxes:
 
 class Masks:
 
-    def __init__(self, masks, im_shape, orig_shape) -> None:
+    def __init__(self, masks, im_shape, orig_shape, device) -> None:
         self.masks = masks
         self.im_shape = im_shape
         self.orig_shape = orig_shape
+        self.device = device
 
     @property
     @lru_cache(maxsize=1)

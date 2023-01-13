@@ -162,11 +162,12 @@ class BasePredictor:
         return model
 
     @smart_inference_mode()
-    def __call__(self, source=None, model=None, return_outputs=True, verbose=False):
+    def __call__(self, source=None, model=None, return_outputs=True, verbose=False, stream=False):
         self.run_callbacks("on_predict_start")
         model = self.model if self.done_setup else self.setup(source, model, return_outputs)
         model.eval()
         self.seen, self.windows, self.dt = 0, [], (ops.Profile(), ops.Profile(), ops.Profile())
+        self.results = []
         for batch in self.dataset:
             self.run_callbacks("on_predict_batch_start")
             path, im, im0s, vid_cap, s = batch
@@ -197,9 +198,12 @@ class BasePredictor:
 
                 if self.args.save:
                     self.save_preds(vid_cap, i, str(self.save_dir / p.name))
-
             if self.return_outputs:
-                yield Result(preds, batch, i, self.task, self.args, self.save_dir)
+                result = Result(preds, batch, i, self.task, self.args, self.device)
+                if stream:
+                    return self._yield(result)
+                else:
+                    self.results.append(result)
 
             # Print time (inference-only)
             if verbose:
@@ -218,14 +222,11 @@ class BasePredictor:
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
 
         self.run_callbacks("on_predict_end")
-
         if return_outputs and not stream:
             return self.results
-
-    def predict_cli(self, source=None, model=None, return_outputs=False, verbose=True):
-        # as __call__ is a genertor now so have to treat it like a genertor
-        for _ in (self.__call__(source, model, return_outputs, verbose)):
-            pass
+    
+    def _yield(self, result):
+        yield result
 
     def show(self, p):
         im0 = self.annotator.result()

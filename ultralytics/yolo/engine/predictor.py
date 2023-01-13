@@ -201,7 +201,7 @@ class BasePredictor:
 
             if self.return_output:
                 result = Result(preds, batch, i, self.task, self.args, self.save_dir)
-                if stream: # if user is wants a generator [Memory efficient]
+                if stream:  # if user is wants a generator [Memory efficient]
                     yield
                 else:
                     self.results.append(result)
@@ -223,7 +223,7 @@ class BasePredictor:
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
 
         self.run_callbacks("on_predict_end")
-        
+
         if return_outputs and not stream:
             return self.results
 

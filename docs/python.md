@@ -85,7 +85,7 @@ the `ultralytics` module.
         outputs = model.predict(img=img)  # accepts PIL
 
         # also accepts multiple images(batch)
-        outputs = model.predict(img=[img, img])  # accepts PIL
+        outputs = model.predict(img=[img, img])  # accepts List
         ```
 
 !!! note "Export and Deployment"

@@ -72,8 +72,8 @@ the `ultralytics` module.
         ```
 
     === "From PIL/ndarray"
-        # from PIL/ndarray, we just purely return outputs, no image/video saving and showing.
         ```python
+        # from PIL/ndarray, we just purely return outputs, no image/video saving and showing.
         from ultralytics import YOLO
         from PIL import Image
         import cv2

@@ -224,7 +224,7 @@ class BasePredictor:
         self.run_callbacks("on_predict_end")
         if return_outputs and not stream:
             return self.results
-    
+
     def _yield(self, result):
         yield result
 

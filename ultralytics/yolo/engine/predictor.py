@@ -105,7 +105,7 @@ class BasePredictor:
     def postprocess(self, preds, img, orig_img):
         return preds
 
-    def setup(self, source=None, model=None, return_outputs=True):
+    def setup(self, source=None, model=None, return_outputs=False):
         # source
         source = str(source if source is not None else self.args.source)
         is_file = Path(source).suffix[1:] in (IMG_FORMATS + VID_FORMATS)
@@ -161,7 +161,7 @@ class BasePredictor:
         return model
 
     @smart_inference_mode()
-    def __call__(self, source=None, model=None, return_outputs=True):
+    def __call__(self, source=None, model=None, return_outputs=False):
         self.run_callbacks("on_predict_start")
         model = self.model if self.done_setup else self.setup(source, model, return_outputs)
         model.eval()

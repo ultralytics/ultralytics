@@ -39,7 +39,7 @@ from ultralytics.yolo.engine.result import Result
 from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, SETTINGS, callbacks, colorstr, ops
 from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_imshow
 from ultralytics.yolo.utils.files import increment_path
-from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode
+from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode, guess_task_from_head
 
 
 class BasePredictor:
@@ -120,7 +120,7 @@ class BasePredictor:
         model = model or self.args.model
         self.args.half &= device.type != 'cpu'  # half precision only supported on CUDA
         model = AutoBackend(model, device=device, dnn=self.args.dnn, fp16=self.args.half)
-        self.task = model.model.args["task"]
+        self.task = guess_task_from_head(model.model.yaml["head"][-1][-2])
         stride, pt = model.stride, model.pt
         imgsz = check_imgsz(self.args.imgsz, stride=stride)  # check image size
 

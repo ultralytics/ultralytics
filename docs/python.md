@@ -84,8 +84,9 @@ the `ultralytics` module.
         img = Image.open("path/img")
         outputs = model.predict(img=img)  # accepts PIL
 
-        # also accepts multiple images(batch)
-        outputs = model.predict(img=[img, img])  # accepts List
+        # also accepts multiple images(batch inference)
+        # support different resolution images in one list(pt model only).
+        outputs = model.predict(img=[img, img])  # accepts List, 
         ```
 
 !!! note "Export and Deployment"

@@ -161,7 +161,7 @@ class BasePredictor:
         return model
 
     @smart_inference_mode()
-    def __call__(self, source=None, model=None, return_outputs=False):
+    def __call__(self, source=None, model=None, return_outputs=True, verbose=False):
         self.run_callbacks("on_predict_start")
         model = self.model if self.done_setup else self.setup(source, model, return_outputs)
         model.eval()
@@ -187,7 +187,9 @@ class BasePredictor:
                 if self.webcam:
                     path, im0s = path[i], im0s[i]
                 p = Path(path)
-                s += self.write_results(i, preds, (p, im, im0s))
+
+                if verbose or self.args.save or self.args.save_txt:
+                    s += self.write_results(i, preds, (p, im, im0s))
 
                 if self.args.show:
                     self.show(p)
@@ -199,24 +201,26 @@ class BasePredictor:
                 yield Result(preds, batch, i, self.args.task, self.args, self.save_dir)
 
             # Print time (inference-only)
-            LOGGER.info(f"{s}{'' if len(preds) else '(no detections), '}{self.dt[1].dt * 1E3:.1f}ms")
+            if verbose:
+                LOGGER.info(f"{s}{'' if len(preds) else '(no detections), '}{self.dt[1].dt * 1E3:.1f}ms")
 
             self.run_callbacks("on_predict_batch_end")
 
         # Print results
-        t = tuple(x.t / self.seen * 1E3 for x in self.dt)  # speeds per image
-        LOGGER.info(
-            f'Speed: %.1fms pre-process, %.1fms inference, %.1fms postprocess per image at shape {(1, 3, *self.imgsz)}'
-            % t)
+        if verbose:
+            t = tuple(x.t / self.seen * 1E3 for x in self.dt)  # speeds per image
+            LOGGER.info(
+                f'Speed: %.1fms pre-process, %.1fms inference, %.1fms postprocess per image at shape {(1, 3, *self.imgsz)}'
+                % t)
         if self.args.save_txt or self.args.save:
             s = f"\n{len(list(self.save_dir.glob('labels/*.txt')))} labels saved to {self.save_dir / 'labels'}" if self.args.save_txt else ''
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
 
         self.run_callbacks("on_predict_end")
 
-    def predict_cli(self, source=None, model=None, return_outputs=False):
+    def predict_cli(self, source=None, model=None, return_outputs=False, verbose=True):
         # as __call__ is a genertor now so have to treat it like a genertor
-        for _ in (self.__call__(source, model, return_outputs)):
+        for _ in (self.__call__(source, model, return_outputs, verbose)):
             pass
 
     def show(self, p):

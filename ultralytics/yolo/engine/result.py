@@ -122,6 +122,8 @@ class Masks:
 
     def __init__(self, masks, im_shape, orig_shape) -> None:
         self.masks = masks
+        self.im_shape = im_shape
+        self.orig_shape = orig_shape
 
     @property
     @lru_cache(maxsize=1)

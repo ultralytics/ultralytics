@@ -252,11 +252,14 @@ class BasePredictor:
         return img
 
     def _single_preprocess(self, img, stride, auto=True):
-        imgsz = check_imgsz(self.args.imgsz, stride=stride)  # check image size
         # TODO: considering adding this part into self.preprocess
-        im = LetterBox(imgsz, auto=auto, stride=stride)(image=img)
-        im = im.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
-        im = np.ascontiguousarray(im)  # contiguous
+        if getattr(self.model.model, 'transforms', None):
+            im = self.model.model.transforms(img)  # transforms
+        else:
+            imgsz = check_imgsz(self.args.imgsz, stride=stride)  # check image size
+            im = LetterBox(imgsz, auto=auto, stride=stride)(image=img)
+            im = im.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
+            im = np.ascontiguousarray(im)  # contiguous
         return im
 
     def show(self, p):

@@ -1,4 +1,4 @@
-site_name: Ultralytics Docs
+site_name: Ultralytics YOLOv8 Docs
 repo_url: https://github.com/ultralytics/ultralytics
 edit_uri: https://github.com/ultralytics/ultralytics/tree/main/docs
 repo_name: ultralytics/ultralytics
@@ -6,7 +6,7 @@ repo_name: ultralytics/ultralytics
 theme:
   name: "material"
   logo: https://github.com/ultralytics/assets/raw/main/logo/Ultralytics-logomark-white.png
-  favicon: assets/favicon.ico
+  favicon: https://github.com/ultralytics/assets/raw/main/logo/favicon-yolo.ico
   font:
     text: Roboto
 
@@ -75,6 +75,7 @@ plugins:
 
 # Primary navigation
 nav:
+  - Home: index.md
   - Quickstart: quickstart.md
   - Tasks:
       - Detection: tasks/detection.md

@@ -245,8 +245,7 @@ class BasePredictor:
         return preds
 
     def _single_check(self, img):
-        assert isinstance(img, (Image.Image, np.ndarray)), \
-                f"Expected img type to be PIL/np.ndarray, but got {type(img)}"
+        assert isinstance(img, (Image.Image, np.ndarray)), f"Expected PIL/np.ndarray image type, but got {type(img)}"
         if isinstance(img, Image.Image):
             img = np.asarray(img)
         return img

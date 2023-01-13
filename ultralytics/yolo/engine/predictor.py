@@ -120,6 +120,7 @@ class BasePredictor:
         model = model or self.args.model
         self.args.half &= device.type != 'cpu'  # half precision only supported on CUDA
         model = AutoBackend(model, device=device, dnn=self.args.dnn, fp16=self.args.half)
+        self.task = model.model.args["task"]
         stride, pt = model.stride, model.pt
         imgsz = check_imgsz(self.args.imgsz, stride=stride)  # check image size
 
@@ -198,7 +199,7 @@ class BasePredictor:
                     self.save_preds(vid_cap, i, str(self.save_dir / p.name))
 
             if self.return_outputs:
-                yield Result(preds, batch, i, self.args.task, self.args, self.save_dir)
+                yield Result(preds, batch, i, self.task, self.args, self.save_dir)
 
             # Print time (inference-only)
             if verbose:

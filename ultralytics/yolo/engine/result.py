@@ -10,7 +10,6 @@ from ultralytics.yolo.utils.files import increment_path
 
 
 class Result:
-
     def __init__(self, preds, batch, idx, task, args, save_dir=None) -> None:
         path, im, im0s, vid_cap, s = batch
         self.args = args
@@ -27,7 +26,7 @@ class Result:
         self.probs = []
 
         if task == "detect":
-            self.boxes = Boxes(preds[idx], im)
+            self.boxes = Boxes(preds[idx][0], im)
             self.preds = self.boxes
         elif task == "segment":
             # preds, masks = preds

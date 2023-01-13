@@ -39,7 +39,7 @@ from ultralytics.yolo.engine.result import Result
 from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, SETTINGS, callbacks, colorstr, ops
 from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_imshow
 from ultralytics.yolo.utils.files import increment_path
-from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode, guess_task_from_head
+from ultralytics.yolo.utils.torch_utils import guess_task_from_head, select_device, smart_inference_mode
 
 
 class BasePredictor:

@@ -120,7 +120,7 @@ class BasePredictor:
         model = model or self.args.model
         self.args.half &= device.type != 'cpu'  # half precision only supported on CUDA
         model = AutoBackend(model, device=device, dnn=self.args.dnn, fp16=self.args.half)
-        self.task = guess_task_from_head(model.model.yaml["head"][-1][-2])
+        self.args.task = guess_task_from_head(model.model.yaml["head"][-1][-2])
         stride, pt = model.stride, model.pt
         imgsz = check_imgsz(self.args.imgsz, stride=stride)  # check image size
 

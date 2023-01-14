@@ -3,10 +3,10 @@
 import hydra
 import torch
 
+from ultralytics.yolo.engine.result import Result
 from ultralytics.yolo.utils import DEFAULT_CONFIG, ROOT, ops
 from ultralytics.yolo.utils.checks import check_imgsz
 from ultralytics.yolo.utils.plotting import colors, save_one_box
-from ultralytics.yolo.engine.result import Result
 
 from ..detect.predict import DetectionPredictor
 

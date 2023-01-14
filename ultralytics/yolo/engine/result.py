@@ -10,6 +10,7 @@ from ultralytics.yolo.utils.files import increment_path
 
 
 class Result:
+
     def __init__(self, preds, im_shape, orig_shape, args, device) -> None:
         self.im_shape = im_shape
         self.orig_shape = orig_shape

@@ -134,12 +134,13 @@ def is_git_directory() -> bool:
     Returns:
         bool: True if the current working directory is inside a git repository, False otherwise.
     """
+    import git
     try:
-        # from git import Repo
-        # Repo(search_parent_directories=True)
-        subprocess.run(["git", "rev-parse", "--git-dir"], capture_output=True, check=True)
+        from git import Repo
+        Repo(search_parent_directories=True)
+        # subprocess.run(["git", "rev-parse", "--git-dir"], capture_output=True, check=True)
         return True
-    except subprocess.CalledProcessError:
+    except git.exc.InvalidGitRepositoryError:  # subprocess.CalledProcessError:
         return False
 
 
@@ -261,7 +262,7 @@ def colorstr(*input):
         "bright_white": "\033[97m",
         "end": "\033[0m",  # misc
         "bold": "\033[1m",
-        "underline": "\033[4m",}
+        "underline": "\033[4m", }
     return "".join(colors[x] for x in args) + f"{string}" + colors["end"]
 
 
@@ -279,12 +280,12 @@ def set_logging(name=LOGGING_NAME, verbose=True):
             name: {
                 "class": "logging.StreamHandler",
                 "formatter": name,
-                "level": level,}},
+                "level": level, }},
         "loggers": {
             name: {
                 "level": level,
                 "handlers": [name],
-                "propagate": False,}}})
+                "propagate": False, }}})
 
 
 class TryExcept(contextlib.ContextDecorator):

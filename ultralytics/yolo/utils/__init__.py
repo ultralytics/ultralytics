@@ -368,7 +368,8 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.1'):
         'weights_dir': str(root / 'weights'),  # default weights directory.
         'runs_dir': str(root / 'runs'),  # default runs directory.
         'sync': True,  # sync analytics to help with YOLO development
-        'uuid': uuid.getnode()}  # device UUID to align analytics
+        'uuid': uuid.getnode(),  # device UUID to align analytics
+        'version': version}  # Ultralytics settings version
 
     with torch_distributed_zero_first(RANK):
         if not file.exists():
@@ -382,9 +383,9 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.1'):
                   and check_version(settings['version'], version)
         if not correct:
             LOGGER.warning('WARNING ⚠️ Ultralytics settings reset to defaults. '
-                           'This is normal and may be due to a recent ultralytics package update, '
-                           'but may have overwritten custom saved settings. '
-                           f'View and update your global settings directly in {file}')
+                           '\nThis is normal and may be due to a recent ultralytics package update, '
+                           'but may have overwritten previous settings. '
+                           f"\nYou may view and update settings directly in '{file}'")
             settings = defaults  # merge **defaults with **settings (prefer **settings)
             yaml_save(file, settings)  # save updated defaults
 

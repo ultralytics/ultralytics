@@ -45,14 +45,13 @@ class DetectionPredictor(BasePredictor):
             frame = self.dataset.count
         else:
             frame = getattr(self.dataset, 'frame', 0)
-
         self.data_path = p
         # save_path = str(self.save_dir / p.name)  # im.jpg
         self.txt_path = str(self.save_dir / 'labels' / p.stem) + ('' if self.dataset.mode == 'image' else f'_{frame}')
         log_string += '%gx%g ' % im.shape[2:]  # print string
         self.annotator = self.get_annotator(im0)
 
-        det = results[idx].boxes.boxes  # TODO: make boxes inherit from tensors
+        det = results[idx].boxes  # TODO: make boxes inherit from tensors
         if len(det) == 0:
             return log_string
         for c in det[:, 5].unique():

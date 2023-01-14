@@ -21,15 +21,15 @@ class Result:
         # outputs
         self.preds = None  # raw tensors
         self.boxes = []  # Bbox object. eg-> boxes.convert('xyxy')
-        self.segments = []  # Instances object. eg-> segments.clip()
+        self.masks = []  # Instances object. eg-> segments.clip()
         self.probs = []
 
         if task == "detect":
-            self.boxes = Boxes(preds if len(preds) else torch.tensor([], device=device), im_shape, device)
+            self.boxes = Boxes(preds if len(preds) else torch.tensor([], device=device), orig_shape, device)
             self.preds = self.boxes
         elif task == "segment":
             # preds, masks = preds
-            self.boxes = Boxes(preds[0] if len(preds) else torch.tensor([], device=device), im_shape, device)
+            self.boxes = Boxes(preds[0] if len(preds) else torch.tensor([], device=device), orig_shape, device)
             masks = preds[1] if len(preds[1]) else []
             shape = orig_shape if args.retina_masks else im_shape
             self.masks = Masks(masks, shape, orig_shape, device)
@@ -65,26 +65,26 @@ class Result:
 
 class Boxes:
 
-    def __init__(self, boxes, im_shape, device) -> None:
+    def __init__(self, boxes, orig_shape, device) -> None:
         self.boxes = boxes
         self.device = device
-        self.im_shape = im_shape
-        # self.gn = [torch.tensor([*(im.shape[i] for i in [1, 0, 1, 0]), 1, 1], device=self.device) for im in im_shape]
+        self.orig_shape = orig_shape
+        self.gn = torch.tensor(orig_shape)[[1, 0, 1, 0]]
 
     @property
-    @lru_cache(maxsize=4)  # maxsize 1 should suffice
+    @lru_cache(maxsize=2)  # maxsize 1 should suffice
     def xywh(self):
-        return torch.tensor([ops.xyxy2xywh(x) for x in self.boxes], device=self.device)
+        return [ops.xyxy2xywh(x) for x in self.boxes]
 
     @property
-    @lru_cache(maxsize=4)
+    @lru_cache(maxsize=2)
     def xyxyn(self):
-        return torch.tensor([x / g for x, g in zip(self.boxes, self.gn)], device=self.device)
+        return [x / g for x, g in zip(self.boxes, self.gn)]
 
     @property
-    @lru_cache(maxsize=4)
+    @lru_cache(maxsize=2)
     def xywhn(self):
-        return torch.tensor([x / g for x, g in zip(self.xywh, self.gn)], device=self.device)
+        return [x / g for x, g in zip(self.xywh, self.gn)]
 
     def pandas(self):
         '''

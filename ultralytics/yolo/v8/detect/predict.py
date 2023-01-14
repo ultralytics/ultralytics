@@ -31,8 +31,7 @@ class DetectionPredictor(BasePredictor):
         for i, pred in enumerate(preds):
             shape = orig_img[i].shape if self.webcam else orig_img.shape
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
-
-        return [Result(preds[i], img.shape, orig_img.shape, self.args, self.device) for i in enumerate(preds)]
+        return [Result(preds[i], img.shape, orig_img.shape, self.args, self.device) for i, _ in enumerate(preds)]
 
     def write_results(self, idx, results, batch):
         p, im, im0 = batch
@@ -53,7 +52,7 @@ class DetectionPredictor(BasePredictor):
         log_string += '%gx%g ' % im.shape[2:]  # print string
         self.annotator = self.get_annotator(im0)
 
-        det = results[idx].boxes
+        det = results[idx].boxes.boxes # TODO: make boxes inherit from tensors
         if len(det) == 0:
             return log_string
         for c in det[:, 5].unique():

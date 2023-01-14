@@ -25,11 +25,11 @@ class Result:
         self.probs = []
 
         if task == "detect":
-            self.boxes = Boxes(preds[0] if len(preds) else [], im_shape, device)
+            self.boxes = Boxes(preds if len(preds) else torch.tensor([], device=device), im_shape, device)
             self.preds = self.boxes
         elif task == "segment":
             # preds, masks = preds
-            self.boxes = Boxes(preds[0] if len(preds) else [], im_shape, device)
+            self.boxes = Boxes(preds[0] if len(preds) else torch.tensor([], device=device), im_shape, device)
             masks = preds[1] if len(preds[1]) else []
             shape = orig_shape if args.retina_masks else im_shape
             self.masks = Masks(masks, shape, orig_shape, device)

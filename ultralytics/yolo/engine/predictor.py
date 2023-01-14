@@ -202,7 +202,7 @@ class BasePredictor:
                 if stream:
                     return self._yield(result)
                 else:
-                    self.results.append(*result)
+                    self.results.extend(result)
 
             # Print time (inference-only)
             if verbose:

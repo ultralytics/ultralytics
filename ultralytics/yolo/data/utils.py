@@ -191,13 +191,14 @@ def polygons2masks_overlap(imgsz, segments, downsample_ratio=1):
 def check_dataset_yaml(data, autodownload=True):
     # Download, check and/or unzip dataset if not found locally
     data = check_file(data)
-    DATASETS_DIR = (Path.cwd() / "../datasets").resolve()  # TODO: handle global dataset dir
+
     # Download (optional)
     extract_dir = ''
     if isinstance(data, (str, Path)) and (is_zipfile(data) or is_tarfile(data)):
         download(data, dir=f'{DATASETS_DIR}/{Path(data).stem}', unzip=True, delete=False, curl=False, threads=1)
         data = next((DATASETS_DIR / Path(data).stem).rglob('*.yaml'))
         extract_dir, autodownload = data.parent, False
+
     # Read yaml (optional)
     if isinstance(data, (str, Path)):
         data = yaml_load(data, append_filename=True)  # dictionary
@@ -212,7 +213,7 @@ def check_dataset_yaml(data, autodownload=True):
     # Resolve paths
     path = Path(extract_dir or data.get('path') or '')  # optional 'path' default to '.'
     if not path.is_absolute():
-        path = (Path.cwd() / path).resolve()
+        path = (DATASETS_DIR / path).resolve()
         data['path'] = path  # download scripts
     for k in 'train', 'val', 'test':
         if data.get(k):  # prepend path
@@ -250,6 +251,7 @@ def check_dataset_yaml(data, autodownload=True):
             s = f"success ✅ {dt}, saved to {colorstr('bold', DATASETS_DIR)}" if r in (0, None) else f"failure {dt} ❌"
             LOGGER.info(f"Dataset download {s}")
     check_font('Arial.ttf' if is_ascii(data['names']) else 'Arial.Unicode.ttf', progress=True)  # download fonts
+
     return data  # dictionary
 
 

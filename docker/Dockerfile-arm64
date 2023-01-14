@@ -27,8 +27,10 @@ RUN git clone https://github.com/ultralytics/ultralytics /usr/src/ultralytics
 COPY requirements.txt .
 RUN python3 -m pip install --upgrade pip wheel
 RUN pip install --no-cache ultralytics gsutil notebook \
-    tensorflow-aarch64 onnx onnx-simplifier onnxruntime coremltools openvino-dev
+    tensorflow-aarch64
     # tensorflowjs \
+    # onnx onnx-simplifier onnxruntime \
+    # coremltools openvino-dev \
 
 # Cleanup
 ENV DEBIAN_FRONTEND teletype
@@ -37,7 +39,7 @@ ENV DEBIAN_FRONTEND teletype
 # Usage Examples -------------------------------------------------------------------------------------------------------
 
 # Build and Push
-# t=ultralytics/ultralytics:latest-arm64 && sudo docker build --platform linux/arm64 -f utils/docker/Dockerfile-arm64 -t $t . && sudo docker push $t
+# t=ultralytics/ultralytics:latest-arm64 && sudo docker build --platform linux/arm64 -f docker/Dockerfile-arm64 -t $t . && sudo docker push $t
 
 # Pull and Run
 # t=ultralytics/ultralytics:latest-arm64 && sudo docker pull $t && sudo docker run -it --ipc=host -v "$(pwd)"/datasets:/usr/src/datasets $t

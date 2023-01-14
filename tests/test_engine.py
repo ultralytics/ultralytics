@@ -1,13 +1,16 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
+from pathlib import Path
+
 from ultralytics.yolo.configs import get_config
-from ultralytics.yolo.utils import DEFAULT_CONFIG, ROOT
+from ultralytics.yolo.utils import DEFAULT_CONFIG, ROOT, SETTINGS
 from ultralytics.yolo.v8 import classify, detect, segment
 
 CFG_DET = 'yolov8n.yaml'
 CFG_SEG = 'yolov8n-seg.yaml'
 CFG_CLS = 'squeezenet1_0'
 CFG = get_config(DEFAULT_CONFIG)
+MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n'
 SOURCE = ROOT / "assets"
 
 
@@ -26,7 +29,7 @@ def test_detect():
 
     # Predictor
     pred = detect.DetectionPredictor(overrides={"imgsz": [64, 64]})
-    result = pred(source=SOURCE, model="yolov8n.pt", return_outputs=True)
+    result = pred(source=SOURCE, model=f"{MODEL}.pt", return_outputs=True)
     assert len(list(result)), "predictor test failed"
 
     overrides["resume"] = trainer.last
@@ -57,7 +60,7 @@ def test_segment():
 
     # Predictor
     pred = segment.SegmentationPredictor(overrides={"imgsz": [64, 64]})
-    result = pred(source=SOURCE, model="yolov8n-seg.pt", return_outputs=True)
+    result = pred(source=SOURCE, model=f"{MODEL}-seg.pt", return_outputs=True)
     assert len(list(result)) == 2, "predictor test failed"
 
     # Test resume

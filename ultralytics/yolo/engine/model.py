@@ -111,7 +111,7 @@ class YOLO:
         self.model.fuse()
 
     @smart_inference_mode()
-    def predict(self, source, **kwargs):
+    def predict(self, source, return_outputs=False, **kwargs):
         """
         Visualize prediction.
 
@@ -127,8 +127,8 @@ class YOLO:
         predictor = self.PredictorClass(overrides=overrides)
 
         predictor.args.imgsz = check_imgsz(predictor.args.imgsz, min_dim=2)  # check image size
-        predictor.setup(model=self.model, source=source)
-        return predictor()
+        predictor.setup(model=self.model, source=source, return_outputs=return_outputs)
+        return predictor() if return_outputs else predictor.predict_cli()
 
     @smart_inference_mode()
     def val(self, data=None, **kwargs):
@@ -191,6 +191,9 @@ class YOLO:
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
             self.model = self.trainer.model
         self.trainer.train()
+        # update model and configs after training
+        self.model, _ = attempt_load_one_weight(str(self.trainer.best))
+        self.overrides = self.model.args
 
     def to(self, device):
         """
@@ -212,10 +215,12 @@ class YOLO:
 
     @staticmethod
     def _reset_ckpt_args(args):
-        args.pop("device", None)
         args.pop("project", None)
         args.pop("name", None)
         args.pop("batch", None)
         args.pop("epochs", None)
         args.pop("cache", None)
         args.pop("save_json", None)
+
+        # set device to '' to prevent from auto DDP usage
+        args["device"] = ''

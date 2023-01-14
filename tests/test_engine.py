@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
-from ultralytics import YOLO
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.utils import DEFAULT_CONFIG, ROOT
 from ultralytics.yolo.v8 import classify, detect, segment
@@ -13,9 +12,10 @@ SOURCE = ROOT / "assets"
 
 
 def test_detect():
-    overrides = {"data": "coco128.yaml", "model": CFG_DET, "imgsz": 32, "epochs": 1, "save": False}
-    CFG.data = "coco128.yaml"
-    # trainer
+    overrides = {"data": "coco8.yaml", "model": CFG_DET, "imgsz": 32, "epochs": 1, "save": False}
+    CFG.data = "coco8.yaml"
+
+    # Trainer
     trainer = detect.DetectionTrainer(overrides=overrides)
     trainer.train()
     trained_model = trainer.best
@@ -24,10 +24,10 @@ def test_detect():
     val = detect.DetectionValidator(args=CFG)
     val(model=trained_model)
 
-    # predictor
-    pred = detect.DetectionPredictor(overrides={"imgsz": [640, 640]})
-    p = pred(source=SOURCE, model="yolov8n.pt")
-    assert len(p) == 2, "predictor test failed"
+    # Predictor
+    pred = detect.DetectionPredictor(overrides={"imgsz": [64, 64]})
+    result = pred(source=SOURCE, model="yolov8n.pt", return_outputs=True)
+    assert len(list(result)), "predictor test failed"
 
     overrides["resume"] = trainer.last
     trainer = detect.DetectionTrainer(overrides=overrides)
@@ -41,11 +41,11 @@ def test_detect():
 
 
 def test_segment():
-    overrides = {"data": "coco128-seg.yaml", "model": CFG_SEG, "imgsz": 32, "epochs": 1, "save": False}
-    CFG.data = "coco128-seg.yaml"
+    overrides = {"data": "coco8-seg.yaml", "model": CFG_SEG, "imgsz": 32, "epochs": 1, "save": False}
+    CFG.data = "coco8-seg.yaml"
     CFG.v5loader = False
+    # YOLO(CFG_SEG).train(**overrides)  # works
 
-    # YOLO(CFG_SEG).train(**overrides) # This works
     # trainer
     trainer = segment.SegmentationTrainer(overrides=overrides)
     trainer.train()
@@ -55,12 +55,12 @@ def test_segment():
     val = segment.SegmentationValidator(args=CFG)
     val(model=trained_model)
 
-    # predictor
-    pred = segment.SegmentationPredictor(overrides={"imgsz": [640, 640]})
-    p = pred(source=SOURCE, model="yolov8n-seg.pt")
-    assert len(p) == 2, "predictor test failed"
+    # Predictor
+    pred = segment.SegmentationPredictor(overrides={"imgsz": [64, 64]})
+    result = pred(source=SOURCE, model="yolov8n-seg.pt", return_outputs=True)
+    assert len(list(result)) == 2, "predictor test failed"
 
-    # test resume
+    # Test resume
     overrides["resume"] = trainer.last
     trainer = segment.SegmentationTrainer(overrides=overrides)
     try:
@@ -73,18 +73,13 @@ def test_segment():
 
 
 def test_classify():
-    overrides = {
-        "data": "imagenette160",
-        "model": "yolov8n-cls.yaml",
-        "imgsz": 32,
-        "epochs": 1,
-        "batch": 64,
-        "save": False}
-    CFG.data = "imagenette160"
+    overrides = {"data": "mnist160", "model": "yolov8n-cls.yaml", "imgsz": 32, "epochs": 1, "batch": 64, "save": False}
+    CFG.data = "mnist160"
     CFG.imgsz = 32
     CFG.batch = 64
-    # YOLO(CFG_SEG).train(**overrides) # This works
-    # trainer
+    # YOLO(CFG_SEG).train(**overrides)  # works
+
+    # Trainer
     trainer = classify.ClassificationTrainer(overrides=overrides)
     trainer.train()
     trained_model = trainer.best
@@ -93,7 +88,7 @@ def test_classify():
     val = classify.ClassificationValidator(args=CFG)
     val(model=trained_model)
 
-    # predictor
-    pred = classify.ClassificationPredictor(overrides={"imgsz": [640, 640]})
-    p = pred(source=SOURCE, model=trained_model)
-    assert len(p) == 2, "Predictor test failed!"
+    # Predictor
+    pred = classify.ClassificationPredictor(overrides={"imgsz": [64, 64]})
+    result = pred(source=SOURCE, model=trained_model, return_outputs=True)
+    assert len(list(result)) == 2, "predictor test failed"

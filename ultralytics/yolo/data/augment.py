@@ -531,7 +531,7 @@ class CopyPaste:
 
 
 class Albumentations:
-    # YOLOv5 Albumentations class (optional, only used if package is installed)
+    # YOLOv8 Albumentations class (optional, only used if package is installed)
     def __init__(self, p=1.0):
         self.p = p
         self.transform = None
@@ -699,7 +699,7 @@ def classify_albumentations(
         std=IMAGENET_STD,
         auto_aug=False,
 ):
-    # YOLOv5 classification Albumentations (optional, only used if package is installed)
+    # YOLOv8 classification Albumentations (optional, only used if package is installed)
     prefix = colorstr("albumentations: ")
     try:
         import albumentations as A
@@ -732,7 +732,7 @@ def classify_albumentations(
 
 
 class ClassifyLetterBox:
-    # YOLOv5 LetterBox class for image preprocessing, i.e. T.Compose([LetterBox(size), ToTensor()])
+    # YOLOv8 LetterBox class for image preprocessing, i.e. T.Compose([LetterBox(size), ToTensor()])
     def __init__(self, size=(640, 640), auto=False, stride=32):
         super().__init__()
         self.h, self.w = (size, size) if isinstance(size, int) else size
@@ -751,7 +751,7 @@ class ClassifyLetterBox:
 
 
 class CenterCrop:
-    # YOLOv5 CenterCrop class for image preprocessing, i.e. T.Compose([CenterCrop(size), ToTensor()])
+    # YOLOv8 CenterCrop class for image preprocessing, i.e. T.Compose([CenterCrop(size), ToTensor()])
     def __init__(self, size=640):
         super().__init__()
         self.h, self.w = (size, size) if isinstance(size, int) else size
@@ -764,7 +764,7 @@ class CenterCrop:
 
 
 class ToTensor:
-    # YOLOv5 ToTensor class for image preprocessing, i.e. T.Compose([LetterBox(size), ToTensor()])
+    # YOLOv8 ToTensor class for image preprocessing, i.e. T.Compose([LetterBox(size), ToTensor()])
     def __init__(self, half=False):
         super().__init__()
         self.half = half

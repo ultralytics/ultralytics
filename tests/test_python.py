@@ -37,18 +37,18 @@ def test_predict_dir():
 
 def test_val():
     model = YOLO(MODEL)
-    model.val(data="coco128.yaml", imgsz=32)
+    model.val(data="coco8.yaml", imgsz=32)
 
 
 def test_train_scratch():
     model = YOLO(CFG)
-    model.train(data="coco128.yaml", epochs=1, imgsz=32)
+    model.train(data="coco8.yaml", epochs=1, imgsz=32)
     model(SOURCE)
 
 
 def test_train_pretrained():
     model = YOLO(MODEL)
-    model.train(data="coco128.yaml", epochs=1, imgsz=32)
+    model.train(data="coco8.yaml", epochs=1, imgsz=32)
     model(SOURCE)
 
 
@@ -98,3 +98,11 @@ def test_export_paddle():
 def test_all_model_yamls():
     for m in list((ROOT / 'models').rglob('*.yaml')):
         YOLO(m.name)
+
+
+def test_workflow():
+    model = YOLO(MODEL)
+    model.train(data="coco8.yaml", epochs=1, imgsz=32)
+    model.val()
+    model.predict(SOURCE)
+    model.export(format="onnx", opset=12)  # export a model to ONNX format

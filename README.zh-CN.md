@@ -18,7 +18,7 @@
   </div>
   <br>
 
-[Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) 是由 [Ultralytics](https://ultralytics.com) 开发的一个前沿 SOTA 模型。它在以前 YOLO 版本的成功基础上，引入了新的功能和改进，进一步提升了性能和灵活性。YOLOv8 基于快速、准确和易于使用的理念设计，使其成为广泛的物体检测、图像分割和图像分类任务的绝佳选择。
+[Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) 是由 [Ultralytics](https://ultralytics.com) 开发的一个前沿的 SOTA 模型。它在以前成功的 YOLO 版本基础上，引入了新的功能和改进，进一步提升了其性能和灵活性。YOLOv8 基于快速、准确和易于使用的设计理念，使其成为广泛的目标检测、图像分割和图像分类任务的绝佳选择。
 
 如果要申请企业许可证，请填写 [Ultralytics 许可](https://ultralytics.com/license)。
 
@@ -84,15 +84,18 @@ YOLOv8 也可以在 Python 环境中直接使用，并接受与上面 CLI 例子
 ```python
 from ultralytics import YOLO
 
-model = YOLO("yolov8n.pt")  # load a pretrained YOLOv8n model
+# 加载模型
+model = YOLO("yolov8n.yaml")  # 从头开始构建新模型
+model = YOLO("yolov8n.pt")  # 加载预训练模型（推荐用于训练）
 
-model.train(data="coco128.yaml")  # train the model
-model.val()  # evaluate model performance on the validation set
-model.predict(source="https://ultralytics.com/images/bus.jpg")  # predict on an image
-model.export(format="onnx")  # export the model to ONNX format
+# Use the model
+results = model.train(data="coco128.yaml", epochs=3)  # 训练模型
+results = model.val()  # 在验证集上评估模型性能
+results = model("https://ultralytics.com/images/bus.jpg")  # 预测图像
+success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 ```
 
-[模型](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/yolo/v8/models) 会从 Ultralytics [发布页](https://github.com/ultralytics/ultralytics/releases) 自动下载。
+[模型](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) 会从 Ultralytics [发布页](https://github.com/ultralytics/ultralytics/releases) 自动下载。
 
 ### 已知问题 / 待办事项
 
@@ -108,17 +111,17 @@ model.export(format="onnx")  # export the model to ONNX format
 
 所有 YOLOv8 的预训练模型都可以在这里找到。目标检测和分割模型是在 COCO 数据集上预训练的，而分类模型是在 ImageNet 数据集上预训练的。
 
-第一次使用时，[模型](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/yolo/v8/models) 会从 Ultralytics [发布页](https://github.com/ultralytics/ultralytics/releases) 自动下载。
+第一次使用时，[模型](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) 会从 Ultralytics [发布页](https://github.com/ultralytics/ultralytics/releases) 自动下载。
 
 <details open><summary>目标检测</summary>
 
-| 模型                                                                                        | 尺寸<br><sup>（像素） | mAP<sup>val<br>50-95 | 推理速度<br><sup>CPU<br>(ms) | 推理速度<br><sup>T4 GPU<br>(ms) | 参数量<br><sup>(M) | FLOPs<br><sup>(B) |
-| ----------------------------------------------------------------------------------------- | --------------- | -------------------- | ------------------------ | --------------------------- | --------------- | ----------------- |
-| [YOLOv8n](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8n.pt) | 640             | 37.3                 | -                        | -                           | 3.2             | 8.7               |
-| [YOLOv8s](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8s.pt) | 640             | 44.9                 | -                        | -                           | 11.2            | 28.6              |
-| [YOLOv8m](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8m.pt) | 640             | 50.2                 | -                        | -                           | 25.9            | 78.9              |
-| [YOLOv8l](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8l.pt) | 640             | 52.9                 | -                        | -                           | 43.7            | 165.2             |
-| [YOLOv8x](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8x.pt) | 640             | 53.9                 | -                        | -                           | 68.2            | 257.8             |
+| 模型                                                                                   | 尺寸<br><sup>（像素） | mAP<sup>val<br>50-95 | 推理速度<br><sup>CPU ONNX<br>(ms) | 推理速度<br><sup>A100 TensorRT<br>(ms) | 参数量<br><sup>(M) | FLOPs<br><sup>(B) |
+| ------------------------------------------------------------------------------------ | --------------- | -------------------- | ----------------------------- | ---------------------------------- | --------------- | ----------------- |
+| [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt) | 640             | 37.3                 | 80.4                          | 0.99                               | 3.2             | 8.7               |
+| [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt) | 640             | 44.9                 | 128.4                         | 1.20                               | 11.2            | 28.6              |
+| [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m.pt) | 640             | 50.2                 | 234.7                         | 1.83                               | 25.9            | 78.9              |
+| [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l.pt) | 640             | 52.9                 | 375.2                         | 2.39                               | 43.7            | 165.2             |
+| [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x.pt) | 640             | 53.9                 | 479.1                         | 3.53                               | 68.2            | 257.8             |
 
 - **mAP<sup>val</sup>** 结果都在 [COCO val2017](http://cocodataset.org) 数据集上，使用单模型单尺度测试得到。
   <br>复现命令 `yolo mode=val task=detect data=coco.yaml device=0`
@@ -129,35 +132,35 @@ model.export(format="onnx")  # export the model to ONNX format
 
 <details><summary>实例分割</summary>
 
-| 模型                                                                                            | 尺寸<br><sup>（像素） | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | 推理速度<br><sup>CPU<br>(ms) | 推理速度<br><sup>T4 GPU<br>(ms) | 参数量<br><sup>(M) | FLOPs<br><sup>(B) |
-| --------------------------------------------------------------------------------------------- | --------------- | -------------------- | --------------------- | ------------------------ | --------------------------- | --------------- | ----------------- |
-| [YOLOv8n](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8n-seg.pt) | 640             | 36.7                 | 30.5                  | -                        | -                           | 3.4             | 12.6              |
-| [YOLOv8s](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8s-seg.pt) | 640             | 44.6                 | 36.8                  | -                        | -                           | 11.8            | 42.6              |
-| [YOLOv8m](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8m-seg.pt) | 640             | 49.9                 | 40.8                  | -                        | -                           | 27.3            | 110.2             |
-| [YOLOv8l](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8l-seg.pt) | 640             | 52.3                 | 42.6                  | -                        | -                           | 46.0            | 220.5             |
-| [YOLOv8x](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8x-seg.pt) | 640             | 53.4                 | 43.4                  | -                        | -                           | 71.8            | 344.1             |
+| 模型                                                                                       | 尺寸<br><sup>（像素） | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | 推理速度<br><sup>CPU ONNX<br>(ms) | 推理速度<br><sup>A100 TensorRT<br>(ms) | 参数量<br><sup>(M) | FLOPs<br><sup>(B) |
+| ---------------------------------------------------------------------------------------- | --------------- | -------------------- | --------------------- | ----------------------------- | ---------------------------------- | --------------- | ----------------- |
+| [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-seg.pt) | 640             | 36.7                 | 30.5                  | 96.1                          | 1.21                               | 3.4             | 12.6              |
+| [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-seg.pt) | 640             | 44.6                 | 36.8                  | 155.7                         | 1.47                               | 11.8            | 42.6              |
+| [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-seg.pt) | 640             | 49.9                 | 40.8                  | 317.0                         | 2.18                               | 27.3            | 110.2             |
+| [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-seg.pt) | 640             | 52.3                 | 42.6                  | 572.4                         | 2.79                               | 46.0            | 220.5             |
+| [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-seg.pt) | 640             | 53.4                 | 43.4                  | 712.1                         | 4.02                               | 71.8            | 344.1             |
 
 - **mAP<sup>val</sup>**  结果都在 [COCO val2017](http://cocodataset.org) 数据集上，使用单模型单尺度测试得到。
-  <br>复现命令 `yolo mode=val task=detect data=coco.yaml device=0`
+  <br>复现命令 `yolo mode=val task=segment data=coco.yaml device=0`
 - **推理速度**使用 COCO 验证集图片推理时间进行平均得到，测试环境使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例。
-  <br>复现命令 `yolo mode=val task=detect data=coco128.yaml batch=1 device=0/cpu`
+  <br>复现命令 `yolo mode=val task=segment data=coco128-seg.yaml batch=1 device=0/cpu`
 
 </details>
 
 <details><summary>分类</summary>
 
-| 模型                                                                                            | 尺寸<br><sup>（像素） | acc<br><sup>top1 | acc<br><sup>top5 | 推理速度<br><sup>CPU<br>(ms) | 推理速度<br><sup>T4 GPU<br>(ms) | 参数量<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
-| --------------------------------------------------------------------------------------------- | --------------- | ---------------- | ---------------- | ------------------------ | --------------------------- | --------------- | ------------------------ |
-| [YOLOv8n](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8n-cls.pt) | 224             | 66.6             | 87.0             | -                        | -                           | 2.7             | 4.3                      |
-| [YOLOv8s](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8s-cls.pt) | 224             | 72.3             | 91.1             | -                        | -                           | 6.4             | 13.5                     |
-| [YOLOv8m](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8m-cls.pt) | 224             | 76.4             | 93.2             | -                        | -                           | 17.0            | 42.7                     |
-| [YOLOv8l](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8l-cls.pt) | 224             | 78.0             | 94.1             | -                        | -                           | 37.5            | 99.7                     |
-| [YOLOv8x](https://github.com/ultralytics/ultralytics/releases/download/v8.0.0/yolov8x-cls.pt) | 224             | 78.4             | 94.3             | -                        | -                           | 57.4            | 154.8                    |
+| 模型                                                                                       | 尺寸<br><sup>（像素） | acc<br><sup>top1 | acc<br><sup>top5 | 推理速度<br><sup>CPU ONNX<br>(ms) | 推理速度<br><sup>A100 TensorRT<br>(ms) | 参数量<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
+| ---------------------------------------------------------------------------------------- | --------------- | ---------------- | ---------------- | ----------------------------- | ---------------------------------- | --------------- | ------------------------ |
+| [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-cls.pt) | 224             | 66.6             | 87.0             | 12.9                          | 0.31                               | 2.7             | 4.3                      |
+| [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-cls.pt) | 224             | 72.3             | 91.1             | 23.4                          | 0.35                               | 6.4             | 13.5                     |
+| [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-cls.pt) | 224             | 76.4             | 93.2             | 85.4                          | 0.62                               | 17.0            | 42.7                     |
+| [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-cls.pt) | 224             | 78.0             | 94.1             | 163.0                         | 0.87                               | 37.5            | 99.7                     |
+| [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-cls.pt) | 224             | 78.4             | 94.3             | 232.0                         | 1.01                               | 57.4            | 154.8                    |
 
-- **mAP<sup>val</sup>** 都在 [ImageNet](https://www.image-net.org/) 数据集上，使用单模型单尺度测试得到。
-  <br>复现命令 `yolo mode=val task=detect data=coco.yaml device=0`
+- **acc** 都在 [ImageNet](https://www.image-net.org/) 数据集上，使用单模型单尺度测试得到。
+  <br>复现命令 `yolo mode=val task=classify data=path/to/ImageNet device=0`
 - **推理速度**使用 ImageNet 验证集图片推理时间进行平均得到，测试环境使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例。
-  <br>复现命令 `yolo mode=val task=detect data=coco128.yaml batch=1 device=0/cpu`
+  <br>复现命令 `yolo mode=val task=classify data=path/to/ImageNet batch=1 device=0/cpu`
 
 </details>
 
@@ -200,17 +203,17 @@ model.export(format="onnx")  # export the model to ONNX format
 
 <!-- SVG image from https://opencollective.com/ultralytics/contributors.svg?width=990 -->
 
-<a href="https://github.com/ultralytics/yolov5/graphs/contributors"><img src="https://github.com/ultralytics/yolov5/releases/download/v1.0/image-contributors-1280.png"/></a>
+<a href="https://github.com/ultralytics/ultralytics/graphs/contributors"><img src="https://github.com/ultralytics/yolov5/releases/download/v1.0/image-contributors-1280.png"/></a>
 
 ## <div align="center">License</div>
 
 - YOLOv8 在两种不同的 License 下可用：
-  - **GPL-3.0 License**： 查看 [License](https://github.com/ultralytics/yolov5/blob/master/LICENSE) 文件的详细信息。
+  - **GPL-3.0 License**： 查看 [License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) 文件的详细信息。
   - **企业License**：在没有 GPL-3.0 开源要求的情况下为商业产品开发提供更大的灵活性。典型用例是将 Ultralytics 软件和 AI 模型嵌入到商业产品和应用程序中。在以下位置申请企业许可证 [Ultralytics 许可](https://ultralytics.com/license) 。
 
 ## <div align="center">联系我们</div>
 
-若发现 YOLOv8 的 bug 或有功能需求，请访问 [GitHub 问题](https://github.com/ultralytics/ultralytics/issues)。如需专业支持，请 [联系我们](https://ultralytics.com/contact)。
+若发现 YOLOv8 的 Bug 或有功能需求，请访问 [GitHub 问题](https://github.com/ultralytics/ultralytics/issues)。如需专业支持，请 [联系我们](https://ultralytics.com/contact)。
 
 <br>
 <div align="center">

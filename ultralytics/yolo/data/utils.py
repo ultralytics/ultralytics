@@ -14,7 +14,7 @@ import numpy as np
 import torch
 from PIL import ExifTags, Image, ImageOps
 
-from ultralytics.yolo.utils import LOGGER, ROOT, colorstr, yaml_load
+from ultralytics.yolo.utils import DATASETS_DIR, LOGGER, ROOT, colorstr, yaml_load
 from ultralytics.yolo.utils.checks import check_file, check_font, is_ascii
 from ultralytics.yolo.utils.downloads import download
 from ultralytics.yolo.utils.files import unzip_file
@@ -274,12 +274,12 @@ def check_dataset(dataset: str):
             'nc': Number of classes in the dataset
             'names': List of class names in the dataset
     """
-    data_dir = (Path.cwd() / "datasets" / dataset).resolve()
+    data_dir = (DATASETS_DIR / dataset).resolve()
     if not data_dir.is_dir():
         LOGGER.info(f'\nDataset not found ⚠️, missing path {data_dir}, attempting download...')
         t = time.time()
         if dataset == 'imagenet':
-            subprocess.run(f"bash {ROOT / 'data/scripts/get_imagenet.sh'}", shell=True, check=True)
+            subprocess.run(f"bash {ROOT / 'yolo/data/scripts/get_imagenet.sh'}", shell=True, check=True)
         else:
             url = f'https://github.com/ultralytics/yolov5/releases/download/v1.0/{dataset}.zip'
             download(url, dir=data_dir.parent)

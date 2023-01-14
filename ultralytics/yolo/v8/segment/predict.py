@@ -33,10 +33,9 @@ class SegmentationPredictor(DetectionPredictor):
             else:
                 masks.append(ops.process_mask(proto[i], pred[:, 6:], pred[:, :4], img.shape[2:], upsample=True))  # HWC
                 pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
+        return [Result((p[i], masks[i]), img.shape, orig_img.shape, self.args, self.device) for i, _ in enumerate(p)]
 
-        return Result((p, masks), img.shape, orig_img.shape, self.args, self.device)
-
-    def write_results(self, idx, preds, batch):
+    def write_results(self, idx, results, batch):
         p, im, im0 = batch
         log_string = ""
         if len(im.shape) == 3:
@@ -53,12 +52,10 @@ class SegmentationPredictor(DetectionPredictor):
         log_string += '%gx%g ' % im.shape[2:]  # print string
         self.annotator = self.get_annotator(im0)
 
-        preds, masks = preds
-        det = preds[idx]
+        det, mask = results[idx].boxes, results[idx].masks
         if len(det) == 0:
             return log_string
         # Segments
-        mask = masks[idx]
         if self.args.save_txt or self.return_outputs:
             shape = im0.shape if self.args.retina_masks else im.shape[2:]
             segments = [

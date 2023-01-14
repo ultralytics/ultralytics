@@ -32,9 +32,10 @@ class DetectionPredictor(BasePredictor):
             shape = orig_img[i].shape if self.webcam else orig_img.shape
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
 
-        return Result(preds, img.shape, orig_img.shape, self.args, self.device)
+        return [Result(preds[i], img.shape, orig_img.shape, self.args, self.device) for i in enumerate(preds)]
+        
 
-    def write_results(self, idx, preds, batch):
+    def write_results(self, idx, results, batch):
         p, im, im0 = batch
         log_string = ""
         if len(im.shape) == 3:
@@ -53,7 +54,7 @@ class DetectionPredictor(BasePredictor):
         log_string += '%gx%g ' % im.shape[2:]  # print string
         self.annotator = self.get_annotator(im0)
 
-        det = preds[idx]
+        det = results[idx].boxes
         if len(det) == 0:
             return log_string
         for c in det[:, 5].unique():

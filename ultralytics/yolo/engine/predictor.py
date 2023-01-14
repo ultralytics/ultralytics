@@ -99,7 +99,7 @@ class BasePredictor:
     def get_annotator(self, img):
         raise NotImplementedError("get_annotator function needs to be implemented")
 
-    def write_results(self, pred, batch, print_string):
+    def write_results(self, results, batch, print_string):
         raise NotImplementedError("print_results function needs to be implemented")
 
     def postprocess(self, preds, img, orig_img):
@@ -183,16 +183,14 @@ class BasePredictor:
 
             # postprocess
             with self.dt[2]:
-                result = self.postprocess(preds, im, im0s)
-            import pdb
-            pdb.set_trace()
+                results = self.postprocess(preds, im, im0s)
             for i in range(len(im)):
                 if self.webcam:
                     path, im0s = path[i], im0s[i]
                 p = Path(path)
 
                 if verbose or self.args.save or self.args.save_txt:
-                    s += self.write_results(i, preds, (p, im, im0s))
+                    s += self.write_results(i, results, (p, im, im0s))
 
                 if self.args.show:
                     self.show(p)

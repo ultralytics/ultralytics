@@ -138,7 +138,7 @@ def is_git_directory() -> bool:
     try:
         from git import Repo
         Repo(search_parent_directories=True)
-        # subprocess.run(["git", "rev-parse", "--git-dir"], capture_output=True, check=True)
+        # subprocess.run(["git", "rev-parse", "--git-dir"], capture_output=True, check=True)  # CLI alternative
         return True
     except git.exc.InvalidGitRepositoryError:  # subprocess.CalledProcessError:
         return False

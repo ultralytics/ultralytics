@@ -107,5 +107,6 @@ def test_workflow():
     model.predict(SOURCE)
     model.export(format="onnx", opset=12)  # export a model to ONNX format
 
+
 if __name__ == "__main__":
     test_model_forward()

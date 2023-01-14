@@ -1,4 +1,4 @@
-site_name: Ultralytics Docs
+site_name: Ultralytics YOLOv8 Docs
 repo_url: https://github.com/ultralytics/ultralytics
 edit_uri: https://github.com/ultralytics/ultralytics/tree/main/docs
 repo_name: ultralytics/ultralytics
@@ -6,21 +6,21 @@ repo_name: ultralytics/ultralytics
 theme:
   name: "material"
   logo: https://github.com/ultralytics/assets/raw/main/logo/Ultralytics-logomark-white.png
-  favicon: assets/favicon.ico
+  favicon: https://github.com/ultralytics/assets/raw/main/logo/favicon-yolo.ico
   font:
     text: Roboto
 
   palette:
     # Palette toggle for light mode
     - scheme: default
-      primary: grey
+      # primary: grey
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
 
     # Palette toggle for dark mode
     - scheme: slate
-      primary: black
+      # primary: black
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
@@ -35,6 +35,7 @@ theme:
     - navigation.top
     - navigation.expand
     - navigation.footer
+    - content.tabs.link  # all code tabs change simultaneously
 
 extra_css:
   - stylesheets/style.css
@@ -74,11 +75,17 @@ plugins:
 
 # Primary navigation
 nav:
+  - Home: index.md
   - Quickstart: quickstart.md
-  - CLI: cli.md
-  - Python Interface: sdk.md
-  - Configuration: config.md
-  - Customization Guide: engine.md
+  - Tasks:
+      - Detection: tasks/detection.md
+      - Segmentation: tasks/segmentation.md
+      - Classification: tasks/classification.md
+  - Usage:
+    - CLI: cli.md
+    - Python: python.md
+    - Configuration: config.md
+    - Customization Guide: engine.md
   - Ultralytics HUB: hub.md
   - iOS and Android App: app.md
   - Reference:

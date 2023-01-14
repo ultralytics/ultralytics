@@ -177,6 +177,7 @@ class Exporter:
         for p in model.parameters():
             p.requires_grad = False
         model.eval()
+        model.float()
         model = model.fuse()
         for k, m in model.named_modules():
             if isinstance(m, (Detect, Segment)):

@@ -21,11 +21,10 @@ def test_detect():
     # Trainer
     trainer = detect.DetectionTrainer(overrides=overrides)
     trainer.train()
-    trained_model = trainer.best
 
     # Validator
     val = detect.DetectionValidator(args=CFG)
-    val(model=trained_model)
+    val(model=trainer.best)  # validate best.pt
 
     # Predictor
     pred = detect.DetectionPredictor(overrides={"imgsz": [64, 64]})
@@ -52,11 +51,10 @@ def test_segment():
     # trainer
     trainer = segment.SegmentationTrainer(overrides=overrides)
     trainer.train()
-    trained_model = trainer.best
 
     # Validator
     val = segment.SegmentationValidator(args=CFG)
-    val(model=trained_model)
+    val(model=trainer.best)  # validate best.pt
 
     # Predictor
     pred = segment.SegmentationPredictor(overrides={"imgsz": [64, 64]})
@@ -85,13 +83,12 @@ def test_classify():
     # Trainer
     trainer = classify.ClassificationTrainer(overrides=overrides)
     trainer.train()
-    trained_model = trainer.best
 
     # Validator
     val = classify.ClassificationValidator(args=CFG)
-    val(model=trained_model)
+    val(model=trainer.best)
 
     # Predictor
     pred = classify.ClassificationPredictor(overrides={"imgsz": [64, 64]})
-    result = pred(source=SOURCE, model=trained_model, return_outputs=True)
+    result = pred(source=SOURCE, model=trainer.best, return_outputs=True)
     assert len(list(result)) == 2, "predictor test failed"

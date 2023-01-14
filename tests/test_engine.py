@@ -61,7 +61,6 @@ def test_segment():
     result = pred(source=SOURCE, model=f"{MODEL}-seg.pt")
     assert len(result) == 2, "predictor test failed"
 
-
     # Test resume
     overrides["resume"] = trainer.last
     trainer = segment.SegmentationTrainer(overrides=overrides)

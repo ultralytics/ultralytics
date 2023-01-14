@@ -163,7 +163,7 @@ class BasePredictor:
     @smart_inference_mode()
     def __call__(self, source=None, model=None, verbose=False, stream=False):
         self.run_callbacks("on_predict_start")
-        model = self.model if self.done_setup else self.setup(source, model, return_outputs)
+        model = self.model if self.done_setup else self.setup(source, model)
         model.eval()
         self.seen, self.windows, self.dt = 0, [], (ops.Profile(), ops.Profile(), ops.Profile())
         self.results = []

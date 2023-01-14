@@ -107,7 +107,7 @@ def predict(cfg):
     cfg.source = cfg.source if cfg.source is not None else ROOT / "assets"
 
     predictor = SegmentationPredictor(cfg)
-    predictor(return_outputs=False, verbose=True)
+    predictor(verbose=True)
 
 
 if __name__ == "__main__":

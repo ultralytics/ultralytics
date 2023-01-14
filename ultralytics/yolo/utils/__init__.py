@@ -134,12 +134,13 @@ def is_git_directory() -> bool:
     Returns:
         bool: True if the current working directory is inside a git repository, False otherwise.
     """
-    from git import Repo
+    import git
     try:
-        # Check if the current working directory is a git repository
+        from git import Repo
         Repo(search_parent_directories=True)
+        # subprocess.run(["git", "rev-parse", "--git-dir"], capture_output=True, check=True)  # CLI alternative
         return True
-    except Exception:
+    except git.exc.InvalidGitRepositoryError:  # subprocess.CalledProcessError:
         return False
 
 
@@ -348,7 +349,7 @@ def yaml_load(file='data.yaml', append_filename=False):
         return {**yaml.safe_load(f), 'yaml_file': str(file)} if append_filename else yaml.safe_load(f)
 
 
-def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.0'):
+def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.1'):
     """
     Loads a global Ultralytics settings YAML file or creates one with default values if it does not exist.
 
@@ -362,9 +363,10 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.0'):
     from ultralytics.yolo.utils.checks import check_version
     from ultralytics.yolo.utils.torch_utils import torch_distributed_zero_first
 
-    root = get_git_root_dir() or Path('')  # not is_pip_package()
+    is_git = is_git_directory()  # True if ultralytics installed via git
+    root = get_git_root_dir() if is_git else Path()
     defaults = {
-        'datasets_dir': str(root / 'datasets'),  # default datasets directory.
+        'datasets_dir': str((root.parent if is_git else root) / 'datasets'),  # default datasets directory.
         'weights_dir': str(root / 'weights'),  # default weights directory.
         'runs_dir': str(root / 'runs'),  # default runs directory.
         'sync': True,  # sync analytics to help with YOLO development

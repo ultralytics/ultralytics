@@ -10,11 +10,12 @@ from ultralytics.yolo.utils.files import increment_path
 
 
 class Result:
-
-    def __init__(self, preds, batch, idx, task, args, device) -> None:
-        path, im, im0s, vid_cap, s = batch
-        self.args = args
+    def __init__(self, preds, im_shape, orig_shape, args, device) -> None:
+        self.im_shape = im_shape
+        self.orig_shape = orig_shape
         self.device = device
+        self.args = args
+        task = self.args.task
 
         # outputs
         self.preds = None  # raw tensors
@@ -23,17 +24,17 @@ class Result:
         self.probs = []
 
         if task == "detect":
-            self.boxes = Boxes(preds[idx][0] if len(preds[idx]) else [], im, device)
+            self.boxes = Boxes(preds[0] if len(preds) else [], im_shape, device)
             self.preds = self.boxes
         elif task == "segment":
             # preds, masks = preds
-            self.boxes = Boxes(preds[0][idx], im, device)
-            masks = preds[1][idx] if len(preds[1]) else []
-            shape = im0s.shape if args.retina_masks else im.shape[2:]
-            self.masks = Masks(masks, shape, im0s.shape, device)
+            self.boxes = Boxes(preds[0] if len(preds) else [], im_shape, device)
+            masks = preds[1] if len(preds[1]) else []
+            shape = orig_shape if args.retina_masks else im_shape
+            self.masks = Masks(masks, shape, orig_shape, device)
             self.preds = [self.boxes, self.masks]
         elif task == "classify":
-            self.probs = preds[idx].softmax(0)
+            self.probs = preds.softmax(0)
             self.preds = self.probs
 
     def pandas():
@@ -63,10 +64,11 @@ class Result:
 
 class Boxes:
 
-    def __init__(self, boxes, ims, device) -> None:
+    def __init__(self, boxes, im_shape, device) -> None:
         self.boxes = boxes
         self.device = device
-        self.gn = [torch.tensor([*(im.shape[i] for i in [1, 0, 1, 0]), 1, 1], device=self.device) for im in ims]
+        self.im_shape = im_shape
+        # self.gn = [torch.tensor([*(im.shape[i] for i in [1, 0, 1, 0]), 1, 1], device=self.device) for im in im_shape]
 
     @property
     @lru_cache(maxsize=4)  # maxsize 1 should suffice

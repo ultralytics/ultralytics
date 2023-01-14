@@ -7,7 +7,7 @@ from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.utils import DEFAULT_CONFIG, ROOT, ops
 from ultralytics.yolo.utils.checks import check_imgsz
 from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
-
+from ultralytics.yolo.engine.result import Result
 
 class DetectionPredictor(BasePredictor):
 
@@ -31,7 +31,8 @@ class DetectionPredictor(BasePredictor):
             shape = orig_img[i].shape if self.webcam else orig_img.shape
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
 
-        return preds
+        return Result(preds, img.shape, orig_img.shape, self.args, self.device)
+        
 
     def write_results(self, idx, preds, batch):
         p, im, im0 = batch

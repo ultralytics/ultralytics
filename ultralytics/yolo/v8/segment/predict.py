@@ -6,6 +6,7 @@ import torch
 from ultralytics.yolo.utils import DEFAULT_CONFIG, ROOT, ops
 from ultralytics.yolo.utils.checks import check_imgsz
 from ultralytics.yolo.utils.plotting import colors, save_one_box
+from ultralytics.yolo.engine.result import Result
 
 from ..detect.predict import DetectionPredictor
 
@@ -33,7 +34,7 @@ class SegmentationPredictor(DetectionPredictor):
                 masks.append(ops.process_mask(proto[i], pred[:, 6:], pred[:, :4], img.shape[2:], upsample=True))  # HWC
                 pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
 
-        return (p, masks)
+        return Result((p, masks), img.shape, orig_img.shape, self.args, self.device)
 
     def write_results(self, idx, preds, batch):
         p, im, im0 = batch

@@ -223,7 +223,7 @@ class BasePredictor:
             return self.results
 
     def _yield(self, result):
-        yield result[0] # return individual result
+        yield result[0]  # return individual result
 
     def show(self, p):
         im0 = self.annotator.result()

@@ -359,8 +359,8 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.1'):
     Returns:
         dict: Dictionary of settings key-value pairs.
     """
-    from ultralytics.yolo.utils.torch_utils import torch_distributed_zero_first
     from ultralytics.yolo.utils.checks import check_version
+    from ultralytics.yolo.utils.torch_utils import torch_distributed_zero_first
 
     root = get_git_root_dir() or Path('')  # not is_pip_package()
     defaults = {

@@ -49,7 +49,7 @@ class DetectionTrainer(BaseTrainer):
 
     def set_model_attributes(self):
         nl = de_parallel(self.model).model[-1].nl  # number of detection layers (to scale hyps)
-        self.args.box *= 3 / nl  # scale to layers
+        # self.args.box *= 3 / nl  # scale to layers
         # self.args.cls *= self.data["nc"] / 80 * 3 / nl  # scale to classes and layers
         # self.args.cls *= (self.args.imgsz / 640) ** 2 * 3 / nl  # scale to image size and layers
         self.model.nc = self.data["nc"]  # attach number of classes to model

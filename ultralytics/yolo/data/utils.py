@@ -18,8 +18,7 @@ from ultralytics.yolo.utils import DATASETS_DIR, LOGGER, ROOT, colorstr, yaml_lo
 from ultralytics.yolo.utils.checks import check_file, check_font, is_ascii
 from ultralytics.yolo.utils.downloads import download
 from ultralytics.yolo.utils.files import unzip_file
-
-from ..utils.ops import segments2boxes
+from ultralytics.yolo.utils.ops import segments2boxes
 
 HELP_URL = "See https://github.com/ultralytics/yolov5/wiki/Train-Custom-Data"
 IMG_FORMATS = "bmp", "dng", "jpeg", "jpg", "mpo", "png", "tif", "tiff", "webp", "pfm"  # include image suffixes
@@ -173,12 +172,10 @@ def polygons2masks_overlap(imgsz, segments, downsample_ratio=1):
     areas = []
     ms = []
     for si in range(len(segments)):
-        mask = polygon2mask(
-            imgsz,
-            [segments[si].reshape(-1)],
-            downsample_ratio=downsample_ratio,
-            color=1,
-        )
+        mask = polygon2mask(imgsz,
+                            [segments[si].reshape(-1)],
+                            downsample_ratio=downsample_ratio,
+                            color=1)
         ms.append(mask)
         areas.append(mask.sum())
     areas = np.asarray(areas)

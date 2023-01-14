@@ -33,7 +33,9 @@ class SegmentationPredictor(DetectionPredictor):
             else:
                 masks.append(ops.process_mask(proto[i], pred[:, 6:], pred[:, :4], img.shape[2:], upsample=True))  # HWC
                 pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
-        return [Result((p[i] if len(p) else [], masks[i] if len(masks) else []), img.shape, orig_img.shape, self.args, self.device) for i, _ in enumerate(p)]
+        return [
+            Result((p[i] if len(p) else [], masks[i] if len(masks) else []), img.shape, orig_img.shape, self.args,
+                   self.device) for i, _ in enumerate(p)]
 
     def write_results(self, idx, results, batch):
         p, im, im0 = batch

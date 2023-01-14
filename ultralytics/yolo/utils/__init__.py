@@ -187,7 +187,7 @@ def get_git_root_dir():
     """
     try:
         output = subprocess.run(["git", "rev-parse", "--git-dir"], capture_output=True, check=True)
-        return Path(output.stdout.strip().decode('utf-8')).parent  # parent/.git
+        return Path(output.stdout.strip().decode('utf-8')).parent.resolve()  # parent/.git
     except subprocess.CalledProcessError:
         return None
 

@@ -36,7 +36,7 @@ ENV OMP_NUM_THREADS=1
 # Usage Examples -------------------------------------------------------------------------------------------------------
 
 # Build and Push
-# t=ultralytics/ultralytics:latest && sudo docker build -f utils/docker/Dockerfile -t $t . && sudo docker push $t
+# t=ultralytics/ultralytics:latest && sudo docker build -f ./docker/Dockerfile -t $t . && sudo docker push $t
 
 # Pull and Run
 # t=ultralytics/ultralytics:latest && sudo docker pull $t && sudo docker run -it --ipc=host --gpus all $t

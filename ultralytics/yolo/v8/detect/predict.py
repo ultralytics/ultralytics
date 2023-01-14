@@ -33,7 +33,6 @@ class DetectionPredictor(BasePredictor):
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
 
         return [Result(preds[i], img.shape, orig_img.shape, self.args, self.device) for i in enumerate(preds)]
-        
 
     def write_results(self, idx, results, batch):
         p, im, im0 = batch

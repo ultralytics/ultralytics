@@ -113,11 +113,10 @@ class ClassificationTrainer(BaseTrainer):
         """
         # Not needed for classification but necessary for segmentation & detection
         keys = [f"{prefix}/{x}" for x in self.loss_names]
-        if loss_items is not None:
-            loss_items = [round(float(loss_items), 5)]
-            return dict(zip(keys, loss_items))
-        else:
+        if loss_items is None:
             return keys
+        loss_items = [round(float(loss_items), 5)]
+        return dict(zip(keys, loss_items))
 
     def resume_training(self, ckpt):
         pass

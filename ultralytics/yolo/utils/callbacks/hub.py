@@ -3,8 +3,6 @@
 import json
 from time import time
 
-import torch
-
 from ultralytics.hub.utils import PREFIX, sync_analytics
 from ultralytics.yolo.utils import LOGGER
 

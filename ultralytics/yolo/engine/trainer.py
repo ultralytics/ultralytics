@@ -506,10 +506,12 @@ class BaseTrainer:
     def check_resume(self):
         resume = self.args.resume
         if resume:
-            last = Path(check_file(resume) if isinstance(resume, str) else get_latest_run())
+            last = Path(check_file(resume) if isinstance(resume, (str, Path)) else get_latest_run())
             args_yaml = last.parent.parent / 'args.yaml'  # train options yaml
-            if args_yaml.is_file():
-                args = get_config(args_yaml)  # replace
+            assert args_yaml.is_file(), \
+                FileNotFoundError('Resume checkpoint f{last} not found. '
+                                  'Please pass a valid checkpoint to resume from, i.e. yolo resume=path/to/last.pt')
+            args = get_config(args_yaml)  # replace
             args.model, resume = str(last), True  # reinstate
             self.args = args
         self.resume = resume

@@ -14,12 +14,11 @@ import numpy as np
 import torch
 from PIL import ExifTags, Image, ImageOps
 
-from ultralytics.yolo.utils import LOGGER, ROOT, colorstr, yaml_load
+from ultralytics.yolo.utils import DATASETS_DIR, LOGGER, ROOT, colorstr, yaml_load
 from ultralytics.yolo.utils.checks import check_file, check_font, is_ascii
 from ultralytics.yolo.utils.downloads import download
 from ultralytics.yolo.utils.files import unzip_file
-
-from ..utils.ops import segments2boxes
+from ultralytics.yolo.utils.ops import segments2boxes
 
 HELP_URL = "See https://github.com/ultralytics/yolov5/wiki/Train-Custom-Data"
 IMG_FORMATS = "bmp", "dng", "jpeg", "jpg", "mpo", "png", "tif", "tiff", "webp", "pfm"  # include image suffixes
@@ -173,12 +172,7 @@ def polygons2masks_overlap(imgsz, segments, downsample_ratio=1):
     areas = []
     ms = []
     for si in range(len(segments)):
-        mask = polygon2mask(
-            imgsz,
-            [segments[si].reshape(-1)],
-            downsample_ratio=downsample_ratio,
-            color=1,
-        )
+        mask = polygon2mask(imgsz, [segments[si].reshape(-1)], downsample_ratio=downsample_ratio, color=1)
         ms.append(mask)
         areas.append(mask.sum())
     areas = np.asarray(areas)
@@ -194,13 +188,14 @@ def polygons2masks_overlap(imgsz, segments, downsample_ratio=1):
 def check_dataset_yaml(data, autodownload=True):
     # Download, check and/or unzip dataset if not found locally
     data = check_file(data)
-    DATASETS_DIR = (Path.cwd() / "../datasets").resolve()  # TODO: handle global dataset dir
+
     # Download (optional)
     extract_dir = ''
     if isinstance(data, (str, Path)) and (is_zipfile(data) or is_tarfile(data)):
         download(data, dir=f'{DATASETS_DIR}/{Path(data).stem}', unzip=True, delete=False, curl=False, threads=1)
         data = next((DATASETS_DIR / Path(data).stem).rglob('*.yaml'))
         extract_dir, autodownload = data.parent, False
+
     # Read yaml (optional)
     if isinstance(data, (str, Path)):
         data = yaml_load(data, append_filename=True)  # dictionary
@@ -215,7 +210,7 @@ def check_dataset_yaml(data, autodownload=True):
     # Resolve paths
     path = Path(extract_dir or data.get('path') or '')  # optional 'path' default to '.'
     if not path.is_absolute():
-        path = (Path.cwd() / path).resolve()
+        path = (DATASETS_DIR / path).resolve()
         data['path'] = path  # download scripts
     for k in 'train', 'val', 'test':
         if data.get(k):  # prepend path
@@ -253,6 +248,7 @@ def check_dataset_yaml(data, autodownload=True):
             s = f"success ✅ {dt}, saved to {colorstr('bold', DATASETS_DIR)}" if r in (0, None) else f"failure {dt} ❌"
             LOGGER.info(f"Dataset download {s}")
     check_font('Arial.ttf' if is_ascii(data['names']) else 'Arial.Unicode.ttf', progress=True)  # download fonts
+
     return data  # dictionary
 
 
@@ -274,12 +270,12 @@ def check_dataset(dataset: str):
             'nc': Number of classes in the dataset
             'names': List of class names in the dataset
     """
-    data_dir = (Path.cwd() / "datasets" / dataset).resolve()
+    data_dir = (DATASETS_DIR / dataset).resolve()
     if not data_dir.is_dir():
         LOGGER.info(f'\nDataset not found ⚠️, missing path {data_dir}, attempting download...')
         t = time.time()
         if dataset == 'imagenet':
-            subprocess.run(f"bash {ROOT / 'data/scripts/get_imagenet.sh'}", shell=True, check=True)
+            subprocess.run(f"bash {ROOT / 'yolo/data/scripts/get_imagenet.sh'}", shell=True, check=True)
         else:
             url = f'https://github.com/ultralytics/yolov5/releases/download/v1.0/{dataset}.zip'
             download(url, dir=data_dir.parent)

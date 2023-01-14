@@ -4,7 +4,12 @@
 
 # Start FROM NVIDIA PyTorch image https://ngc.nvidia.com/catalog/containers/nvidia:pytorch
 FROM nvcr.io/nvidia/pytorch:22.12-py3
+
+# Remove torch nightly and install torch stable
 RUN rm -rf /opt/pytorch  # remove 1.2GB dir
+RUN pip uninstall -y torchtext torch torchvision
+RUN pip cache purge
+RUN pip install --no-cache torch torchvision
 
 # Downloads to user config dir
 ADD https://ultralytics.com/assets/Arial.ttf https://ultralytics.com/assets/Arial.Unicode.ttf /root/.config/Ultralytics/
@@ -22,10 +27,7 @@ RUN git clone https://github.com/ultralytics/ultralytics /usr/src/ultralytics
 
 # Install pip packages
 RUN python -m pip install --upgrade pip wheel
-RUN pip uninstall -y Pillow torchtext torch torchvision
-RUN pip install --no-cache ultralytics albumentations comet gsutil notebook Pillow>=9.1.0 \
-    'opencv-python<4.6.0.66' \
-    --extra-index-url https://download.pytorch.org/whl/cu113
+RUN pip install --no-cache ultralytics albumentations comet gsutil notebook 'opencv-python<4.6.0.66'
 
 # Set environment variables
 ENV OMP_NUM_THREADS=1

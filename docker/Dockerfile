@@ -8,7 +8,6 @@ FROM nvcr.io/nvidia/pytorch:22.12-py3
 # Remove torch nightly and install torch stable
 RUN rm -rf /opt/pytorch  # remove 1.2GB dir
 RUN pip uninstall -y torchtext torch torchvision
-RUN pip cache purge
 RUN pip install --no-cache torch torchvision
 
 # Downloads to user config dir

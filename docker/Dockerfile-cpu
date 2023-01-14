@@ -28,8 +28,7 @@ COPY requirements.txt .
 RUN python3 -m pip install --upgrade pip wheel
 RUN pip install --no-cache ultralytics albumentations gsutil notebook \
     coremltools onnx onnx-simplifier onnxruntime tensorflow-cpu tensorflowjs \
-    openvino-dev \
-    # tensorflowjs \
+    # openvino-dev \
     --extra-index-url https://download.pytorch.org/whl/cpu
 
 # Cleanup

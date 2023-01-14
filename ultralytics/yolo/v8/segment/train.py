@@ -13,14 +13,15 @@ from ultralytics.yolo.utils.ops import crop_mask, xyxy2xywh
 from ultralytics.yolo.utils.plotting import plot_images, plot_results
 from ultralytics.yolo.utils.tal import make_anchors
 from ultralytics.yolo.utils.torch_utils import de_parallel
-
-from ..detect.train import Loss
+from ultralytics.yolo.v8.detect.train import Loss
 
 
 # BaseTrainer python usage
 class SegmentationTrainer(v8.detect.DetectionTrainer):
 
-    def __init__(self, config=DEFAULT_CONFIG, overrides={}):
+    def __init__(self, config=DEFAULT_CONFIG, overrides=None):
+        if overrides is None:
+            overrides = {}
         overrides["task"] = "segment"
         super().__init__(config, overrides)
 

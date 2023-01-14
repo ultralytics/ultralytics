@@ -172,10 +172,7 @@ def polygons2masks_overlap(imgsz, segments, downsample_ratio=1):
     areas = []
     ms = []
     for si in range(len(segments)):
-        mask = polygon2mask(imgsz,
-                            [segments[si].reshape(-1)],
-                            downsample_ratio=downsample_ratio,
-                            color=1)
+        mask = polygon2mask(imgsz, [segments[si].reshape(-1)], downsample_ratio=downsample_ratio, color=1)
         ms.append(mask)
         areas.append(mask.sum())
     areas = np.asarray(areas)

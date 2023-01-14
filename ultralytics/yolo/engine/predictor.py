@@ -105,7 +105,7 @@ class BasePredictor:
     def postprocess(self, preds, img, orig_img):
         return Result(preds, img.shape, orig_img.shape, self.args, self.device)
 
-    def setup(self, source=None, model=None, return_outputs=False):
+    def setup(self, source=None, model=None):
         # source
         source = str(source if source is not None else self.args.source)
         is_file = Path(source).suffix[1:] in (IMG_FORMATS + VID_FORMATS)
@@ -157,12 +157,11 @@ class BasePredictor:
         self.imgsz = imgsz
         self.done_setup = True
         self.device = device
-        self.return_outputs = return_outputs
 
         return model
 
     @smart_inference_mode()
-    def __call__(self, source=None, model=None, return_outputs=True, verbose=False, stream=False):
+    def __call__(self, source=None, model=None, verbose=False, stream=False):
         self.run_callbacks("on_predict_start")
         model = self.model if self.done_setup else self.setup(source, model, return_outputs)
         model.eval()
@@ -197,12 +196,11 @@ class BasePredictor:
 
                 if self.args.save:
                     self.save_preds(vid_cap, i, str(self.save_dir / p.name))
-            if self.return_outputs:
-                result = Result(preds, batch, i, self.task, self.args, self.device)
-                if stream:
-                    return self._yield(result)
-                else:
-                    self.results.extend(result)
+
+            if stream:
+                return self._yield(results)
+            else:
+                self.results.extend(results)
 
             # Print time (inference-only)
             if verbose:
@@ -221,7 +219,7 @@ class BasePredictor:
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
 
         self.run_callbacks("on_predict_end")
-        if return_outputs and not stream:
+        if not stream:
             return self.results
 
     def _yield(self, result):

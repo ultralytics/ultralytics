@@ -348,12 +348,12 @@ def yaml_load(file='data.yaml', append_filename=False):
         return {**yaml.safe_load(f), 'yaml_file': str(file)} if append_filename else yaml.safe_load(f)
 
 
-def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.1'):
+def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.0'):
     """
-    Loads a global settings YAML file or creates one with default values if it does not exist.
+    Loads a global Ultralytics settings YAML file or creates one with default values if it does not exist.
 
     Args:
-        file (Path): Path to the settings YAML file. Defaults to 'settings.yaml' in the USER_CONFIG_DIR.
+        file (Path): Path to the Ultralytics settings YAML file. Defaults to 'settings.yaml' in the USER_CONFIG_DIR.
         version (str): Settings version. If min settings version not met, new default settings will be saved.
 
     Returns:
@@ -369,7 +369,7 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.1'):
         'runs_dir': str(root / 'runs'),  # default runs directory.
         'sync': True,  # sync analytics to help with YOLO development
         'uuid': uuid.getnode(),  # device UUID to align analytics
-        'version': version}  # Ultralytics settings version
+        'settings_version': version}  # Ultralytics settings version
 
     with torch_distributed_zero_first(RANK):
         if not file.exists():
@@ -380,7 +380,7 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.1'):
         # Check that settings keys and types match defaults
         correct = settings.keys() == defaults.keys() \
                   and all(type(a) == type(b) for a, b in zip(settings.values(), defaults.values())) \
-                  and check_version(settings['version'], version)
+                  and check_version(settings['settings_version'], version)
         if not correct:
             LOGGER.warning('WARNING ⚠️ Ultralytics settings reset to defaults. '
                            '\nThis is normal and may be due to a recent ultralytics package update, '

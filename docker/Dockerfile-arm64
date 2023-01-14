@@ -31,6 +31,7 @@ RUN pip install --no-cache ultralytics gsutil notebook \
     # tensorflowjs \
     # onnx onnx-simplifier onnxruntime \
     # coremltools openvino-dev \
+
 # Cleanup
 ENV DEBIAN_FRONTEND teletype
 

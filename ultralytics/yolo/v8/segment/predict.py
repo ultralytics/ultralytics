@@ -58,7 +58,7 @@ class SegmentationPredictor(DetectionPredictor):
         if len(det) == 0:
             return log_string
         # Segments
-        if self.args.save_txt or self.return_outputs:
+        if self.args.save_txt:
             shape = im0.shape if self.args.retina_masks else im.shape[2:]
             segments = [
                 ops.scale_segments(shape, x, im0.shape, normalize=False) for x in reversed(ops.masks2segments(mask))]

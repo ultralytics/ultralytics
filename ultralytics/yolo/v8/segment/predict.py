@@ -25,7 +25,7 @@ class SegmentationPredictor(DetectionPredictor):
         for i, pred in enumerate(p):
             shape = orig_img[i].shape if self.webcam else orig_img.shape
             if not len(pred):
-                results.append(Result(boxes=pred[:, :6], img_shape=img.shape[2:], orig_shape=shape[:2]))  # save empty boxes
+                results.append(Result(boxes=pred[:, :6], orig_shape=shape[:2]))  # save empty boxes
                 continue
             if self.args.retina_masks:
                 pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
@@ -33,7 +33,7 @@ class SegmentationPredictor(DetectionPredictor):
             else:
                 masks = ops.process_mask(proto[i], pred[:, 6:], pred[:, :4], img.shape[2:], upsample=True)  # HWC
                 pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
-            results.append(Result(boxes=pred[:, :6], masks=masks, img_shape=img.shape[2:], orig_shape=shape[:2]))
+            results.append(Result(boxes=pred[:, :6], masks=masks, orig_shape=shape[:2]))
         return results
 
     def write_results(self, idx, results, batch):
@@ -56,47 +56,45 @@ class SegmentationPredictor(DetectionPredictor):
         result = results[idx]
         if len(result) == 0:
             return log_string
-        det, mask = result.boxes.boxes, result.masks.masks  # getting tensors TODO: mask mask,box inherit for tensor
-        # Segments
-        if self.args.save_txt:
-            shape = im0.shape if self.args.retina_masks else im.shape[2:]
-            segments = [
-                ops.scale_segments(shape, x, im0.shape, normalize=False) for x in reversed(ops.masks2segments(mask))]
+        det, mask = result.boxes, result.masks  # getting tensors TODO: mask mask,box inherit for tensor
 
         # Print results
-        for c in det[:, 5].unique():
-            n = (det[:, 5] == c).sum()  # detections per class
-            log_string += f"{n} {self.model.names[int(c)]}{'s' * (n > 1)}, "  # add to string
+        for c in det.cls.unique():
+            n = (det.cls == c).sum()  # detections per class
+            log_string += f"{n} {self.model.names[int(c)]}{'s' * (n > 1)}, "
 
         # Mask plotting
         self.annotator.masks(
-            mask,
-            colors=[colors(x, True) for x in det[:, 5]],
+            mask.masks,
+            colors=[colors(x, True) for x in det.cls],
             im_gpu=torch.as_tensor(im0, dtype=torch.float16).to(self.device).permute(2, 0, 1).flip(0).contiguous() /
             255 if self.args.retina_masks else im[idx])
 
-        det = reversed(det[:, :6])
+        # Segments
+        if self.args.save_txt:
+            segments = mask.segments
 
         # Write results
-        for j, (*xyxy, conf, cls) in enumerate(det):
+        for j, d in enumerate(reversed(det)):
+            cls, conf = d.cls.squeeze(), d.conf.squeeze()
             if self.args.save_txt:  # Write to file
                 seg = segments[j].copy()
-                seg[:, 0] /= shape[1]  # width
-                seg[:, 1] /= shape[0]  # height
                 seg = seg.reshape(-1)  # (n,2) to (n*2)
                 line = (cls, *seg, conf) if self.args.save_conf else (cls, *seg)  # label format
                 with open(f'{self.txt_path}.txt', 'a') as f:
                     f.write(('%g ' * len(line)).rstrip() % line + '\n')
 
-            if self.args.save or self.args.save_crop or self.args.show:
+            if self.args.save or self.args.save_crop or self.args.show:  # Add bbox to image
                 c = int(cls)  # integer class
                 label = None if self.args.hide_labels else (
                     self.model.names[c] if self.args.hide_conf else f'{self.model.names[c]} {conf:.2f}')
-                self.annotator.box_label(xyxy, label, color=colors(c, True))
-                # annotator.draw.polygon(segments[j], outline=colors(c, True), width=3)
+                self.annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
             if self.args.save_crop:
                 imc = im0.copy()
-                save_one_box(xyxy, imc, file=self.save_dir / 'crops' / self.model.names[c] / f'{p.stem}.jpg', BGR=True)
+                save_one_box(d.xyxy,
+                             imc,
+                             file=self.save_dir / 'crops' / self.model.model.names[c] / f'{self.data_path.stem}.jpg',
+                             BGR=True)
 
         return log_string
 

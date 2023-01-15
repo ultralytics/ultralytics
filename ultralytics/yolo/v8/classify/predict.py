@@ -24,7 +24,7 @@ class ClassificationPredictor(BasePredictor):
         results = []
         for i, pred in enumerate(preds):
             shape = orig_img[i].shape if self.webcam else orig_img.shape
-            results.append(Result(probs=pred.softmax(0), img_shape=img.shape[2:], orig_shape=shape[:2]))
+            results.append(Result(probs=pred.softmax(0), orig_shape=shape[:2]))
         return results
 
     def write_results(self, idx, results, batch):

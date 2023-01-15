@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 import torch
+import numpy as np
 
 from ultralytics.yolo.utils import SETTINGS, ops
 from ultralytics.yolo.utils.files import increment_path
@@ -11,11 +12,10 @@ from ultralytics.yolo.utils.files import increment_path
 
 class Result:
 
-    def __init__(self, boxes=None, masks=None, probs=None, img_shape=None, orig_shape=None) -> None:
+    def __init__(self, boxes=None, masks=None, probs=None, orig_shape=None) -> None:
         self.boxes = Boxes(boxes, orig_shape) if boxes is not None else None  # native size boxes
-        self.masks = Masks(masks, img_shape, orig_shape) if masks is not None else None  # native size or imgsz masks
+        self.masks = Masks(masks, orig_shape) if masks is not None else None  # native size or imgsz masks
         self.probs = probs.softmax(0) if probs is not None else None
-        self.img_shape = img_shape
         self.orig_shape = orig_shape
 
     def pandas(self):
@@ -23,7 +23,7 @@ class Result:
         # TODO masks.pandas + boxes.pandas + cls.pandas
 
     def __getitem__(self, idx):
-        new_result = Result(img_shape=self.img_shape, orig_shape=self.orig_shape)
+        new_result = Result(orig_shape=self.orig_shape)
         for item in ["boxes", "masks", "probs"]:
             if getattr(self, item) is None:
                 continue
@@ -31,7 +31,7 @@ class Result:
         return new_result
 
     def cpu(self):
-        new_result = Result(img_shape=self.img_shape, orig_shape=self.orig_shape)
+        new_result = Result(orig_shape=self.orig_shape)
         for item in ["boxes", "masks", "probs"]:
             if getattr(self, item) is None:
                 continue
@@ -39,7 +39,7 @@ class Result:
         return new_result
 
     def numpy(self):
-        new_result = Result(img_shape=self.img_shape, orig_shape=self.orig_shape)
+        new_result = Result(orig_shape=self.orig_shape)
         for item in ["boxes", "masks", "probs"]:
             if getattr(self, item) is None:
                 continue
@@ -47,11 +47,19 @@ class Result:
         return new_result
 
     def cuda(self):
-        new_result = Result(img_shape=self.img_shape, orig_shape=self.orig_shape)
+        new_result = Result(orig_shape=self.orig_shape)
         for item in ["boxes", "masks", "probs"]:
             if getattr(self, item) is None:
                 continue
             setattr(new_result, item, getattr(self, item).cuda())
+        return new_result
+
+    def to(self, *args, **kwargs):
+        new_result = Result(orig_shape=self.orig_shape)
+        for item in ["boxes", "masks", "probs"]:
+            if getattr(self, item) is None:
+                continue
+            setattr(new_result, item, getattr(self, item).to(*args, **kwargs))
         return new_result
 
     def __len__(self):
@@ -71,7 +79,6 @@ class Result:
             repr = repr + self.masks.__repr__() + '\n'
         if self.probs:
             repr = repr + self.probs.__repr__()
-        repr += f'imgsz: {self.img_shape}\n'
         repr += f'original size: {self.orig_shape}\n'
 
         return repr
@@ -84,8 +91,8 @@ class Boxes:
             boxes = boxes[None, :]
         assert boxes.shape[-1] == 6  # xyxy, conf, cls
         self.boxes = boxes
-        self.orig_shape = orig_shape
-        self.gn = torch.tensor(orig_shape, device=boxes.device)[[1, 0, 1, 0]] if orig_shape else []
+        self.orig_shape = torch.as_tensor(orig_shape, device=boxes.device) \
+                if isinstance(boxes, torch.Tensor) else np.asarray(orig_shape)
 
     @property
     def xyxy(self):
@@ -107,12 +114,12 @@ class Boxes:
     @property
     @lru_cache(maxsize=2)
     def xyxyn(self):
-        return self.xyxy / self.gn
+        return self.xyxy / self.orig_shape[[1, 0, 1, 0]]
 
     @property
     @lru_cache(maxsize=2)
     def xywhn(self):
-        return self.xywh / self.gn
+        return self.xywh / self.orig_shape[[1, 0, 1, 0]]
 
     def cpu(self):
         boxes = self.boxes.cpu()
@@ -166,16 +173,15 @@ class Boxes:
 
 class Masks:
 
-    def __init__(self, masks, im_shape, orig_shape) -> None:
+    def __init__(self, masks, orig_shape) -> None:
         self.masks = masks  # N, h, w
-        self.im_shape = im_shape
         self.orig_shape = orig_shape
 
     @property
     @lru_cache(maxsize=1)
     def segments(self):
         return [
-            ops.scale_segments(self.im_shape, x, self.orig_shape, normalize=False)
+                ops.scale_segments(self.masks.shape[1:], x, self.orig_shape, normalize=True)
             for x in reversed(ops.masks2segments(self.masks))]
 
     @property
@@ -184,19 +190,19 @@ class Masks:
 
     def cpu(self):
         masks = self.masks.cpu()
-        return Masks(masks, self.im_shape, self.orig_shape)
+        return Masks(masks, self.orig_shape)
 
     def numpy(self):
         masks = self.masks.numpy()
-        return Masks(masks, self.im_shape, self.orig_shape)
+        return Masks(masks, self.orig_shape)
 
     def cuda(self):
         masks = self.masks.cuda()
-        return Masks(masks, self.im_shape, self.orig_shape)
+        return Masks(masks, self.orig_shape)
 
     def to(self, *args, **kwargs):
         masks = self.masks.to(*args, **kwargs)
-        return Masks(masks, self.im_shape, self.orig_shape)
+        return Masks(masks, self.orig_shape)
 
     def __len__(self):  # override len(results)
         return len(self.masks)
@@ -212,8 +218,21 @@ class Masks:
         return Masks(masks, self.im_shape, self.orig_shape)
 
 if __name__ == "__main__":
-    box = Boxes(boxes=torch.randn((2, 6)), orig_shape=[5, 5])
-    for b in box:
-        print(b)
-    for b in reversed(box):
-        print(b)
+    # test examples
+    results = Result(boxes=torch.randn((2, 6)), masks=torch.randn((2, 160, 160)), orig_shape=[640, 640])
+    results = results.cuda()
+    print("--cuda--pass--")
+    results = results.cpu()
+    print("--cpu--pass--")
+    results = results.to("cuda:0")
+    print("--to-cuda--pass--")
+    results = results.to("cpu")
+    print("--to-cpu--pass--")
+    results = results.numpy()
+    print("--numpy--pass--")
+    # box = Boxes(boxes=torch.randn((2, 6)), orig_shape=[5, 5])
+    # box = box.cuda()
+    # box = box.cpu()
+    # box = box.numpy()
+    # for b in box:
+    #     print(b)

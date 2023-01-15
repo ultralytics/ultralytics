@@ -32,21 +32,21 @@ class AutoBackend(nn.Module):
             fp16 (bool): If True, use half precision. Default: False
             fuse (bool): Whether to fuse the model or not. Default: True
 
-        Supported formats and their usage:
-            Platform              | Weights Format
-            -----------------------|------------------
-            PyTorch               | *.pt
-            TorchScript           | *.torchscript
-            ONNX Runtime          | *.onnx
-            ONNX OpenCV DNN       | *.onnx --dnn
-            OpenVINO              | *.xml
-            CoreML                | *.mlmodel
-            TensorRT              | *.engine
-            TensorFlow SavedModel | *_saved_model
-            TensorFlow GraphDef   | *.pb
-            TensorFlow Lite       | *.tflite
-            TensorFlow Edge TPU   | *_edgetpu.tflite
-            PaddlePaddle          | *_paddle_model
+        Supported formats and their naming conventions:
+            | Format                | Suffix           |
+            |-----------------------|------------------|
+            | PyTorch               | *.pt             |
+            | TorchScript           | *.torchscript    |
+            | ONNX Runtime          | *.onnx           |
+            | ONNX OpenCV DNN       | *.onnx --dnn     |
+            | OpenVINO              | *.xml            |
+            | CoreML                | *.mlmodel        |
+            | TensorRT              | *.engine         |
+            | TensorFlow SavedModel | *_saved_model    |
+            | TensorFlow GraphDef   | *.pb             |
+            | TensorFlow Lite       | *.tflite         |
+            | TensorFlow Edge TPU   | *_edgetpu.tflite |
+            | PaddlePaddle          | *_paddle_model   |
         """
         super().__init__()
         w = str(weights[0] if isinstance(weights, list) else weights)
@@ -357,7 +357,7 @@ class AutoBackend(nn.Module):
         This function takes a path to a model file and returns the model type
 
         Args:
-          p: path to the model file. Defaults to path/to/model.pt
+            p: path to the model file. Defaults to path/to/model.pt
         """
         # Return model type from model path, i.e. path='path/to/model.onnx' -> type=onnx
         # types = [pt, jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle]
@@ -374,12 +374,11 @@ class AutoBackend(nn.Module):
     @staticmethod
     def _load_metadata(f=Path('path/to/meta.yaml')):
         """
-        > Loads the metadata from a yaml file
+        Loads the metadata from a yaml file
 
         Args:
-          f: The path to the metadata file.
+            f: The path to the metadata file.
         """
-        from ultralytics.yolo.utils.files import yaml_load
 
         # Load metadata from meta.yaml if it exists
         if f.exists():

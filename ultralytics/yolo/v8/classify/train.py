@@ -136,7 +136,7 @@ class ClassificationTrainer(BaseTrainer):
 
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def train(cfg):
-    cfg.model = cfg.model or "yolov8n-cls.yaml"  # or "resnet18"
+    cfg.model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
     cfg.data = cfg.data or "mnist160"  # or yolo.ClassificationDataset("mnist")
     cfg.lr0 = 0.1
     cfg.weight_decay = 5e-5
@@ -151,10 +151,4 @@ def train(cfg):
 
 
 if __name__ == "__main__":
-    """
-    yolo task=classify mode=train model=yolov8n-cls.pt data=mnist160 epochs=10 imgsz=32
-    yolo task=classify mode=val model=runs/classify/train/weights/last.pt data=mnist160 imgsz=32
-    yolo task=classify mode=predict model=runs/classify/train/weights/last.pt imgsz=32 source=ultralytics/assets/bus.jpg
-    yolo mode=export model=runs/classify/train/weights/last.pt imgsz=32 format=torchscript
-    """
     train()

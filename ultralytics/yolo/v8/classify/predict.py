@@ -58,10 +58,9 @@ class ClassificationPredictor(BasePredictor):
 
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def predict(cfg):
-    cfg.model = cfg.model or "squeezenet1_0"
+    cfg.model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
     cfg.imgsz = check_imgsz(cfg.imgsz, min_dim=2)  # check image size
     cfg.source = cfg.source if cfg.source is not None else ROOT / "assets"
-
     predictor = ClassificationPredictor(cfg)
     predictor.predict_cli()
 

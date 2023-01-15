@@ -12,7 +12,7 @@ from zipfile import ZipFile
 import requests
 import torch
 
-from ultralytics.yolo.utils import LOGGER
+from ultralytics.yolo.utils import LOGGER, SETTINGS
 
 
 def safe_download(file, url, url2=None, min_bytes=1E0, error_msg=''):
@@ -59,7 +59,11 @@ def attempt_download(file, repo='ultralytics/assets', release='v0.0.0'):
         return response['tag_name'], [x['name'] for x in response['assets']]  # tag, assets
 
     file = Path(str(file).strip().replace("'", ''))
-    if not file.exists():
+    if file.exists():
+        return str(file)
+    elif (SETTINGS['weights_dir'] / file).exists():
+        return str(SETTINGS['weights_dir'] / file)
+    else:
         # URL specified
         name = Path(urllib.parse.unquote(str(file))).name  # decode '%2F' to '/' etc.
         if str(file).startswith(('http:/', 'https:/')):  # download
@@ -94,7 +98,7 @@ def attempt_download(file, repo='ultralytics/assets', release='v0.0.0'):
                 min_bytes=1E5,
                 error_msg=f'{file} missing, try downloading from https://github.com/{repo}/releases/{tag} or {url3}')
 
-    return str(file)
+        return str(file)
 
 
 def download(url, dir=Path.cwd(), unzip=True, delete=True, curl=False, threads=1, retry=3):

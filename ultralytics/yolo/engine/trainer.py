@@ -40,7 +40,7 @@ class BaseTrainer:
     """
     BaseTrainer
 
-    > A base class for creating trainers.
+    A base class for creating trainers.
 
     Attributes:
         args (OmegaConf): Configuration for the trainer.

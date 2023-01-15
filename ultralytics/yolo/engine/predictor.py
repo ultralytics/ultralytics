@@ -103,7 +103,7 @@ class BasePredictor:
         raise NotImplementedError("print_results function needs to be implemented")
 
     def postprocess(self, preds, img, orig_img):
-        return Result(preds, img.shape, orig_img.shape, self.args, self.device)
+        return preds
 
     def setup(self, source=None, model=None):
         # source

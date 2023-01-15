@@ -167,23 +167,35 @@ class Boxes:
 class Masks:
 
     def __init__(self, masks, im_shape, orig_shape) -> None:
-        self.masks = masks
+        self.masks = masks  # N, h, w
         self.im_shape = im_shape
         self.orig_shape = orig_shape
 
     @property
     @lru_cache(maxsize=1)
     def segments(self):
-        # TODO: convert masks to segments
-        pass
-        '''
-        self.segments = [
-        ops.scale_segments(shape, x, im0s.shape, normalize=False) for x in reversed(ops.masks2segments(mask))]
-        '''
+        return [ops.scale_segments(self.im_shape, x, self.orig_shape, normalize=False)
+                for x in reversed(ops.masks2segments(self.masks))]
 
     @property
     def shape(self):
-        return self.boxes.shape
+        return self.masks.shape
+
+    def cpu(self):
+        masks = self.masks.cpu()
+        return Masks(masks, self.im_shape, self.orig_shape)
+
+    def numpy(self):
+        masks = self.masks.numpy()
+        return Masks(masks, self.im_shape, self.orig_shape)
+
+    def cuda(self):
+        masks = self.masks.cuda()
+        return Masks(masks, self.im_shape, self.orig_shape)
+
+    def to(self, *args, **kwargs):
+        masks = self.masks.to(*args, **kwargs)
+        return Masks(masks, self.im_shape, self.orig_shape)
 
     def __len__(self):  # override len(results)
         return len(self.masks)
@@ -195,4 +207,5 @@ class Masks:
         return f'Ultralytics YOLO {self.__class__} instance\n' + self.masks.__repr__()
 
     def __getitem__(self, idx):
-        return self.masks[idx]
+        masks = self.masks[idx]
+        return Masks(masks, self.im_shape, self.orig_shape)

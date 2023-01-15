@@ -2,9 +2,9 @@ from copy import copy
 from functools import lru_cache
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import torch
-import numpy as np
 
 from ultralytics.yolo.utils import SETTINGS, ops
 from ultralytics.yolo.utils.files import increment_path
@@ -181,7 +181,7 @@ class Masks:
     @lru_cache(maxsize=1)
     def segments(self):
         return [
-                ops.scale_segments(self.masks.shape[1:], x, self.orig_shape, normalize=True)
+            ops.scale_segments(self.masks.shape[1:], x, self.orig_shape, normalize=True)
             for x in reversed(ops.masks2segments(self.masks))]
 
     @property
@@ -216,6 +216,7 @@ class Masks:
     def __getitem__(self, idx):
         masks = self.masks[idx]
         return Masks(masks, self.im_shape, self.orig_shape)
+
 
 if __name__ == "__main__":
     # test examples

@@ -7,7 +7,7 @@ import requests
 
 from ultralytics import __version__
 from ultralytics.hub.utils import HUB_API_ROOT, check_dataset_disk_space, smart_request
-from ultralytics.yolo.utils import LOGGER, is_colab, threaded
+from ultralytics.yolo.utils import is_colab, threaded
 
 AGENT_NAME = f'python-{__version__}-colab' if is_colab() else f'python-{__version__}-local'
 

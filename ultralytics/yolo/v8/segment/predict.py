@@ -6,8 +6,7 @@ import torch
 from ultralytics.yolo.utils import DEFAULT_CONFIG, ROOT, ops
 from ultralytics.yolo.utils.checks import check_imgsz
 from ultralytics.yolo.utils.plotting import colors, save_one_box
-
-from ..detect.predict import DetectionPredictor
+from ultralytics.yolo.v8.detect.predict import DetectionPredictor
 
 
 class SegmentationPredictor(DetectionPredictor):

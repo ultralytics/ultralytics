@@ -134,12 +134,13 @@ def is_git_directory() -> bool:
     Returns:
         bool: True if the current working directory is inside a git repository, False otherwise.
     """
-    from git import Repo
+    import git
     try:
-        # Check if the current working directory is a git repository
+        from git import Repo
         Repo(search_parent_directories=True)
+        # subprocess.run(["git", "rev-parse", "--git-dir"], capture_output=True, check=True)  # CLI alternative
         return True
-    except Exception:
+    except git.exc.InvalidGitRepositoryError:  # subprocess.CalledProcessError:
         return False
 
 
@@ -187,7 +188,7 @@ def get_git_root_dir():
     """
     try:
         output = subprocess.run(["git", "rev-parse", "--git-dir"], capture_output=True, check=True)
-        return Path(output.stdout.strip().decode('utf-8')).parent  # parent/.git
+        return Path(output.stdout.strip().decode('utf-8')).parent.resolve()  # parent/.git
     except subprocess.CalledProcessError:
         return None
 
@@ -348,25 +349,29 @@ def yaml_load(file='data.yaml', append_filename=False):
         return {**yaml.safe_load(f), 'yaml_file': str(file)} if append_filename else yaml.safe_load(f)
 
 
-def get_settings(file=USER_CONFIG_DIR / 'settings.yaml'):
+def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.1'):
     """
-    Loads a global settings YAML file or creates one with default values if it does not exist.
+    Loads a global Ultralytics settings YAML file or creates one with default values if it does not exist.
 
     Args:
-        file (Path): Path to the settings YAML file. Defaults to 'settings.yaml' in the USER_CONFIG_DIR.
+        file (Path): Path to the Ultralytics settings YAML file. Defaults to 'settings.yaml' in the USER_CONFIG_DIR.
+        version (str): Settings version. If min settings version not met, new default settings will be saved.
 
     Returns:
         dict: Dictionary of settings key-value pairs.
     """
+    from ultralytics.yolo.utils.checks import check_version
     from ultralytics.yolo.utils.torch_utils import torch_distributed_zero_first
 
-    root = get_git_root_dir() or Path('')  # not is_pip_package()
+    is_git = is_git_directory()  # True if ultralytics installed via git
+    root = get_git_root_dir() if is_git else Path()
     defaults = {
-        'datasets_dir': str(root / 'datasets'),  # default datasets directory.
+        'datasets_dir': str((root.parent if is_git else root) / 'datasets'),  # default datasets directory.
         'weights_dir': str(root / 'weights'),  # default weights directory.
         'runs_dir': str(root / 'runs'),  # default runs directory.
         'sync': True,  # sync analytics to help with YOLO development
-        'uuid': uuid.getnode()}  # device UUID to align analytics
+        'uuid': uuid.getnode(),  # device UUID to align analytics
+        'settings_version': version}  # Ultralytics settings version
 
     with torch_distributed_zero_first(RANK):
         if not file.exists():
@@ -375,12 +380,14 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml'):
         settings = yaml_load(file)
 
         # Check that settings keys and types match defaults
-        correct = settings.keys() == defaults.keys() and \
-                  all(type(a) == type(b) for a, b in zip(settings.values(), defaults.values()))
+        correct = settings.keys() == defaults.keys() \
+                  and all(type(a) == type(b) for a, b in zip(settings.values(), defaults.values())) \
+                  and check_version(settings['settings_version'], version)
         if not correct:
-            LOGGER.warning('WARNING ⚠️ Different global settings detected, resetting to defaults. '
-                           'This may be due to an ultralytics package update. '
-                           f'View and update your global settings directly in {file}')
+            LOGGER.warning('WARNING ⚠️ Ultralytics settings reset to defaults. '
+                           '\nThis is normal and may be due to a recent ultralytics package update, '
+                           'but may have overwritten previous settings. '
+                           f"\nYou may view and update settings directly in '{file}'")
             settings = defaults  # merge **defaults with **settings (prefer **settings)
             yaml_save(file, settings)  # save updated defaults
 

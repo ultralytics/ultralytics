@@ -1,13 +1,16 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
+from pathlib import Path
+
 from ultralytics.yolo.configs import get_config
-from ultralytics.yolo.utils import DEFAULT_CONFIG, ROOT
+from ultralytics.yolo.utils import DEFAULT_CONFIG, ROOT, SETTINGS
 from ultralytics.yolo.v8 import classify, detect, segment
 
 CFG_DET = 'yolov8n.yaml'
 CFG_SEG = 'yolov8n-seg.yaml'
 CFG_CLS = 'squeezenet1_0'
 CFG = get_config(DEFAULT_CONFIG)
+MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n'
 SOURCE = ROOT / "assets"
 
 
@@ -18,15 +21,14 @@ def test_detect():
     # Trainer
     trainer = detect.DetectionTrainer(overrides=overrides)
     trainer.train()
-    trained_model = trainer.best
 
     # Validator
     val = detect.DetectionValidator(args=CFG)
-    val(model=trained_model)
+    val(model=trainer.best)  # validate best.pt
 
     # Predictor
     pred = detect.DetectionPredictor(overrides={"imgsz": [64, 64]})
-    result = pred(source=SOURCE, model="yolov8n.pt", return_outputs=True)
+    result = pred(source=SOURCE, model=f"{MODEL}.pt", return_outputs=True)
     assert len(list(result)), "predictor test failed"
 
     overrides["resume"] = trainer.last
@@ -49,15 +51,14 @@ def test_segment():
     # trainer
     trainer = segment.SegmentationTrainer(overrides=overrides)
     trainer.train()
-    trained_model = trainer.best
 
     # Validator
     val = segment.SegmentationValidator(args=CFG)
-    val(model=trained_model)
+    val(model=trainer.best)  # validate best.pt
 
     # Predictor
     pred = segment.SegmentationPredictor(overrides={"imgsz": [64, 64]})
-    result = pred(source=SOURCE, model="yolov8n-seg.pt", return_outputs=True)
+    result = pred(source=SOURCE, model=f"{MODEL}-seg.pt", return_outputs=True)
     assert len(list(result)) == 2, "predictor test failed"
 
     # Test resume
@@ -82,13 +83,12 @@ def test_classify():
     # Trainer
     trainer = classify.ClassificationTrainer(overrides=overrides)
     trainer.train()
-    trained_model = trainer.best
 
     # Validator
     val = classify.ClassificationValidator(args=CFG)
-    val(model=trained_model)
+    val(model=trainer.best)
 
     # Predictor
     pred = classify.ClassificationPredictor(overrides={"imgsz": [64, 64]})
-    result = pred(source=SOURCE, model=trained_model, return_outputs=True)
+    result = pred(source=SOURCE, model=trainer.best, return_outputs=True)
     assert len(list(result)) == 2, "predictor test failed"

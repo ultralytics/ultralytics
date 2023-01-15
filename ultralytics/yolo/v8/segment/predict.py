@@ -72,7 +72,7 @@ class SegmentationPredictor(DetectionPredictor):
             mask,
             colors=[colors(x, True) for x in det[:, 5]],
             im_gpu=torch.as_tensor(im0, dtype=torch.float16).to(self.device).permute(2, 0, 1).flip(0).contiguous() /
-            255 if self.args.retina_masks else im[idx])
+                   255 if self.args.retina_masks else im[idx])
 
         det = reversed(det[:, :6])
         if self.return_outputs:

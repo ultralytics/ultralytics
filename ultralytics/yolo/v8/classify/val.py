@@ -48,7 +48,7 @@ class ClassificationValidator(BaseValidator):
 
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def val(cfg):
-    cfg.model = cfg.model or "yolov8n-cls.pt"   # or "resnet18"
+    cfg.model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
     cfg.data = cfg.data or "imagenette160"
     validator = ClassificationValidator(args=cfg)
     validator(model=cfg.model)

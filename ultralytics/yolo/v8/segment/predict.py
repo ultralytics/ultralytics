@@ -52,10 +52,10 @@ class SegmentationPredictor(DetectionPredictor):
         log_string += '%gx%g ' % im.shape[2:]  # print string
         self.annotator = self.get_annotator(im0)
 
-        det, mask = results[idx].boxes.boxes, results[
-            idx].masks.masks  # getting tensors TODO: mask mask,box inherit for tensor
-        if len(det) == 0:
+        result = results[idx]
+        if len(result) == 0:
             return log_string
+        det, mask = result.boxes.boxes, result.masks.masks  # getting tensors TODO: mask mask,box inherit for tensor
         # Segments
         if self.args.save_txt:
             shape = im0.shape if self.args.retina_masks else im.shape[2:]

@@ -52,7 +52,6 @@ To request an Enterprise License please complete the form at [Ultralytics Licens
   </div>
 </div>
 
-
 ## <div align="center">Ultralytics Live Session</div>
 
 <div align="center">
@@ -66,7 +65,6 @@ Don't miss out on this opportunity! To join the webinar, visit our YouTube Chann
 <a align="center" href="https://youtu.be/IPcpYO5ITa8" target="_blank">
 <img width="800" src="https://user-images.githubusercontent.com/26833433/212472119-7de539c1-5022-41cf-ae28-37b69158fbbe.png"></a>
 </div>
-
 
 ## <div align="center">Documentation</div>
 

@@ -82,7 +82,7 @@ class Boxes:
     def __init__(self, boxes, orig_shape) -> None:
         if boxes.ndim == 1:
             boxes = boxes[None, :]
-        assert boxes.shape[-1] == 6  # xyxy, score, cls
+        assert boxes.shape[-1] == 6  # xyxy, conf, cls
         self.boxes = boxes
         self.orig_shape = orig_shape
         self.gn = torch.tensor(orig_shape, device=boxes.device)[[1, 0, 1, 0]] if orig_shape else []
@@ -92,7 +92,7 @@ class Boxes:
         return self.boxes[:, :4]
 
     @property
-    def score(self):
+    def conf(self):
         return self.boxes[:, -2]
 
     @property
@@ -160,7 +160,8 @@ class Boxes:
         return f'Ultralytics YOLO {self.__class__} instance\n' + self.boxes.__repr__()
 
     def __getitem__(self, idx):
-        return self.boxes[idx]
+        boxes = self.boxes[idx] 
+        return Boxes(boxes, self.orig_shape)
 
 
 class Masks:

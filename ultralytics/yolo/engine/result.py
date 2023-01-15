@@ -11,32 +11,10 @@ from ultralytics.yolo.utils.files import increment_path
 
 class Result:
 
-    def __init__(self, preds, im_shape, orig_shape, args, device) -> None:
-        self.im_shape = im_shape
-        self.orig_shape = orig_shape
-        self.device = device
-        self.args = args
-        task = self.args.task
-
-        # outputs
-        self.preds = None  # raw tensors
-        self.boxes = []  # Bbox object. eg-> boxes.convert('xyxy')
-        self.masks = []  # Instances object. eg-> segments.clip()
-        self.probs = []
-
-        if task == "detect":
-            self.boxes = Boxes(preds if len(preds) else torch.tensor([], device=device), orig_shape, device)
-            self.preds = self.boxes
-        elif task == "segment":
-            # preds, masks = preds
-            self.boxes = Boxes(preds[0] if len(preds) else torch.tensor([], device=device), orig_shape, device)
-            masks = preds[1] if len(preds[1]) else []
-            shape = orig_shape if args.retina_masks else im_shape
-            self.masks = Masks(masks, shape, orig_shape, device)
-            self.preds = [self.boxes, self.masks]
-        elif task == "classify":
-            self.probs = preds.softmax(0)
-            self.preds = self.probs
+    def __init__(self, boxes=None, masks=None, probs=None, img_shape=None, orig_shape=None) -> None:
+        self.boxes = Boxes(boxes, orig_shape) if boxes is not None else []  # native size boxes
+        self.masks = Masks(masks, img_shape, orig_shape) if masks is not None else [] # native size or imgsz masks
+        self.prob = probs.softmax(0) if probs is not None else []
 
     def pandas():
         pass
@@ -65,26 +43,56 @@ class Result:
 
 class Boxes:
 
-    def __init__(self, boxes, orig_shape, device) -> None:
+    def __init__(self, boxes, orig_shape) -> None:
+        if boxes.ndim == 1:
+            boxes = boxes[None, :]
+        assert boxes.shape[-1] == 6  # xyxy, score, cls
         self.boxes = boxes
-        self.device = device
         self.orig_shape = orig_shape
-        self.gn = torch.tensor(orig_shape)[[1, 0, 1, 0]]
+        self.gn = torch.tensor(orig_shape, device=boxes.device)[[1, 0, 1, 0]] if orig_shape else []
+
+    @property
+    def xyxy(self):
+        return self.boxes[:, :4]
+
+    @property
+    def score(self):
+        return self.boxes[:, -2]
+
+    @property
+    def cls(self):
+        return self.boxes[:, -1]
 
     @property
     @lru_cache(maxsize=2)  # maxsize 1 should suffice
     def xywh(self):
-        return [ops.xyxy2xywh(x) for x in self.boxes]
+        return [ops.xyxy2xywh(x) for x in self.xyxy]
 
     @property
     @lru_cache(maxsize=2)
     def xyxyn(self):
-        return [x / g for x, g in zip(self.boxes, self.gn)]
+        return [x / g for x, g in zip(self.xyxy, self.gn)]
 
     @property
     @lru_cache(maxsize=2)
     def xywhn(self):
         return [x / g for x, g in zip(self.xywh, self.gn)]
+
+    def cpu(self):
+        boxes = self.boxes.cpu()
+        return Boxes(boxes, self.orig_shape)
+
+    def numpy(self):
+        boxes = self.boxes.numpy()
+        return Boxes(boxes, self.orig_shape)
+
+    def cuda(self):
+        boxes = self.boxes.cuda()
+        return Boxes(boxes, self.orig_shape)
+
+    def to(self, *args, **kwargs):
+        boxes = self.boxes.to(*args, **kwargs)
+        return Boxes(boxes, self.orig_shape)
 
     def pandas(self):
         '''
@@ -112,6 +120,7 @@ class Boxes:
         return self.__repr__()
 
     def __repr__(self):
+        # TODO: update __repr__
         return f'Ultralytics YOLO {self.__class__} instance\n' + self.boxes.__repr__()
 
     def __getitem__(self, idx):
@@ -120,11 +129,10 @@ class Boxes:
 
 class Masks:
 
-    def __init__(self, masks, im_shape, orig_shape, device) -> None:
+    def __init__(self, masks, im_shape, orig_shape) -> None:
         self.masks = masks
         self.im_shape = im_shape
         self.orig_shape = orig_shape
-        self.device = device
 
     @property
     @lru_cache(maxsize=1)

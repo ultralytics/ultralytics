@@ -28,10 +28,12 @@ class DetectionPredictor(BasePredictor):
                                         agnostic=self.args.agnostic_nms,
                                         max_det=self.args.max_det)
 
+        results = []
         for i, pred in enumerate(preds):
             shape = orig_img[i].shape if self.webcam else orig_img.shape
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
-        return [Result(preds[i], img.shape, orig_img.shape, self.args, self.device) for i, _ in enumerate(preds)]
+            results.append(Result(boxes=pred, img_shape=img.shape[2:], orig_shape=shape))
+        return results
 
     def write_results(self, idx, results, batch):
         p, im, im0 = batch

@@ -57,7 +57,7 @@ class BaseModel(nn.Module):
             x = m(x)  # run
             y.append(x if m.i in self.save else None)  # save output
             if visualize:
-                pass
+                LOGGER.info('visualize feature not yet supported')
                 # TODO: feature_visualization(x, m.type, m.i, save_dir=visualize)
         return x
 

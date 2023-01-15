@@ -197,7 +197,7 @@ class AutoBackend(nn.Module):
             input_details = interpreter.get_input_details()  # inputs
             output_details = interpreter.get_output_details()  # outputs
         elif tfjs:  # TF.js
-            raise NotImplementedError('ERROR: YOLOv5 TF.js inference is not supported')
+            raise NotImplementedError('ERROR: YOLOv8 TF.js inference is not supported')
         elif paddle:  # PaddlePaddle
             LOGGER.info(f'Loading {w} for PaddlePaddle inference...')
             check_requirements('paddlepaddle-gpu' if cuda else 'paddlepaddle')

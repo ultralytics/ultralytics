@@ -142,7 +142,7 @@ class BaseModel(nn.Module):
 
 
 class DetectionModel(BaseModel):
-    # YOLOv5 detection model
+    # YOLOv8 detection model
     def __init__(self, cfg='yolov8n.yaml', ch=3, nc=None, verbose=True):  # model, input channels, number of classes
         super().__init__()
         self.yaml = cfg if isinstance(cfg, dict) else yaml_load(check_yaml(cfg), append_filename=True)  # cfg dict
@@ -222,13 +222,13 @@ class DetectionModel(BaseModel):
 
 
 class SegmentationModel(DetectionModel):
-    # YOLOv5 segmentation model
+    # YOLOv8 segmentation model
     def __init__(self, cfg='yolov8n-seg.yaml', ch=3, nc=None, verbose=True):
         super().__init__(cfg, ch, nc, verbose)
 
 
 class ClassificationModel(BaseModel):
-    # YOLOv5 classification model
+    # YOLOv8 classification model
     def __init__(self,
                  cfg=None,
                  model=None,

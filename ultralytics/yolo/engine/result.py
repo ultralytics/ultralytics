@@ -13,7 +13,7 @@ class Result:
 
     def __init__(self, boxes=None, masks=None, probs=None, img_shape=None, orig_shape=None) -> None:
         self.boxes = Boxes(boxes, orig_shape) if boxes is not None else []  # native size boxes
-        self.masks = Masks(masks, img_shape, orig_shape) if masks is not None else [] # native size or imgsz masks
+        self.masks = Masks(masks, img_shape, orig_shape) if masks is not None else []  # native size or imgsz masks
         self.prob = probs.softmax(0) if probs is not None else []
 
     def pandas():

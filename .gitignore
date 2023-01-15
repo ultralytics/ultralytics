@@ -149,3 +149,5 @@ wandb/
 *_web_model/
 *_openvino_model/
 *_paddle_model/
+
+.env3.9.16/

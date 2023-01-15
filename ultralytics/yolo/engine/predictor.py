@@ -90,7 +90,6 @@ class BasePredictor:
         self.vid_path, self.vid_writer = None, None
         self.annotator = None
         self.data_path = None
-        self.output = {}
         self.callbacks = defaultdict(list, {k: [v] for k, v in callbacks.default_callbacks.items()})  # add callbacks
         callbacks.add_integration_callbacks(self)
 

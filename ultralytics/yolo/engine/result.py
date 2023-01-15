@@ -12,19 +12,53 @@ from ultralytics.yolo.utils.files import increment_path
 class Result:
 
     def __init__(self, boxes=None, masks=None, probs=None, img_shape=None, orig_shape=None) -> None:
-        self.boxes = Boxes(boxes, orig_shape) if boxes is not None else []  # native size boxes
-        self.masks = Masks(masks, img_shape, orig_shape) if masks is not None else []  # native size or imgsz masks
-        self.prob = probs.softmax(0) if probs is not None else []
+        self.boxes = Boxes(boxes, orig_shape) if boxes is not None else None  # native size boxes
+        self.masks = Masks(masks, img_shape, orig_shape) if masks is not None else None  # native size or imgsz masks
+        self.probs = probs.softmax(0) if probs is not None else None
+        self.img_shape = img_shape
+        self.orig_shape = orig_shape
 
-    def pandas():
+    def pandas(self):
         pass
         # TODO masks.pandas + boxes.pandas + cls.pandas
 
     def __getitem__(self, idx):
-        return self.preds[idx]
+        new_result = Result(img_shape=self.img_shape, orig_shape=self.orig_shape)
+        for item in ["boxes", "masks", "probs"]:
+            if getattr(self, item) is None:
+                continue
+            setattr(new_result, item, getattr(self, item)[idx])
+        return new_result
+
+    def cpu(self):
+        new_result = Result(img_shape=self.img_shape, orig_shape=self.orig_shape)
+        for item in ["boxes", "masks", "probs"]:
+            if getattr(self, item) is None:
+                continue
+            setattr(new_result, item, getattr(self, item).cpu())
+        return new_result
+
+    def numpy(self):
+        new_result = Result(img_shape=self.img_shape, orig_shape=self.orig_shape)
+        for item in ["boxes", "masks", "probs"]:
+            if getattr(self, item) is None:
+                continue
+            setattr(new_result, item, getattr(self, item).numpy())
+        return new_result
+
+    def cuda(self):
+        new_result = Result(img_shape=self.img_shape, orig_shape=self.orig_shape)
+        for item in ["boxes", "masks", "probs"]:
+            if getattr(self, item) is None:
+                continue
+            setattr(new_result, item, getattr(self, item).cuda())
+        return new_result
 
     def __len__(self):
-        return len(self.preds)
+        for item in ["boxes", "masks", "probs"]:
+            if getattr(self, item) is None:
+                continue
+            return len(getattr(self, item))
 
     def __str__(self):
         return self.__repr__()
@@ -37,6 +71,8 @@ class Result:
             repr = repr + self.masks.__repr__() + '\n'
         if self.probs:
             repr = repr + self.probs.__repr__()
+        repr += f'imgsz: {self.img_shape}\n'
+        repr += f'original size: {self.orig_shape}\n'
 
         return repr
 

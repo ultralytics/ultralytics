@@ -32,7 +32,7 @@ class DetectionPredictor(BasePredictor):
         for i, pred in enumerate(preds):
             shape = orig_img[i].shape if self.webcam else orig_img.shape
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
-            results.append(Result(boxes=pred, img_shape=img.shape[2:], orig_shape=shape))
+            results.append(Result(boxes=pred, img_shape=img.shape[2:], orig_shape=shape[:2]))
         return results
 
     def write_results(self, idx, results, batch):

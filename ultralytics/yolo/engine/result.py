@@ -13,6 +13,7 @@ class Result:
         self.masks = Masks(masks, orig_shape) if masks is not None else None  # native size or imgsz masks
         self.probs = probs.softmax(0) if probs is not None else None
         self.orig_shape = orig_shape
+        self.comp = ["boxes", "masks", "probs"]
 
     def pandas(self):
         pass
@@ -20,7 +21,7 @@ class Result:
 
     def __getitem__(self, idx):
         new_result = Result(orig_shape=self.orig_shape)
-        for item in ["boxes", "masks", "probs"]:
+        for item in self.comp:
             if getattr(self, item) is None:
                 continue
             setattr(new_result, item, getattr(self, item)[idx])
@@ -28,7 +29,7 @@ class Result:
 
     def cpu(self):
         new_result = Result(orig_shape=self.orig_shape)
-        for item in ["boxes", "masks", "probs"]:
+        for item in self.comp:
             if getattr(self, item) is None:
                 continue
             setattr(new_result, item, getattr(self, item).cpu())
@@ -36,7 +37,7 @@ class Result:
 
     def numpy(self):
         new_result = Result(orig_shape=self.orig_shape)
-        for item in ["boxes", "masks", "probs"]:
+        for item in self.comp:
             if getattr(self, item) is None:
                 continue
             setattr(new_result, item, getattr(self, item).numpy())
@@ -44,7 +45,7 @@ class Result:
 
     def cuda(self):
         new_result = Result(orig_shape=self.orig_shape)
-        for item in ["boxes", "masks", "probs"]:
+        for item in self.comp:
             if getattr(self, item) is None:
                 continue
             setattr(new_result, item, getattr(self, item).cuda())
@@ -52,14 +53,14 @@ class Result:
 
     def to(self, *args, **kwargs):
         new_result = Result(orig_shape=self.orig_shape)
-        for item in ["boxes", "masks", "probs"]:
+        for item in self.comp:
             if getattr(self, item) is None:
                 continue
             setattr(new_result, item, getattr(self, item).to(*args, **kwargs))
         return new_result
 
     def __len__(self):
-        for item in ["boxes", "masks", "probs"]:
+        for item in self.comp:
             if getattr(self, item) is None:
                 continue
             return len(getattr(self, item))

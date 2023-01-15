@@ -160,7 +160,7 @@ class Boxes:
         return f'Ultralytics YOLO {self.__class__} instance\n' + self.boxes.__repr__()
 
     def __getitem__(self, idx):
-        boxes = self.boxes[idx] 
+        boxes = self.boxes[idx]
         return Boxes(boxes, self.orig_shape)
 
 
@@ -174,8 +174,9 @@ class Masks:
     @property
     @lru_cache(maxsize=1)
     def segments(self):
-        return [ops.scale_segments(self.im_shape, x, self.orig_shape, normalize=False)
-                for x in reversed(ops.masks2segments(self.masks))]
+        return [
+            ops.scale_segments(self.im_shape, x, self.orig_shape, normalize=False)
+            for x in reversed(ops.masks2segments(self.masks))]
 
     @property
     def shape(self):

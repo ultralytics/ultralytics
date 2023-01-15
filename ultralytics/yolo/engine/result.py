@@ -1,13 +1,9 @@
-from copy import copy
 from functools import lru_cache
-from pathlib import Path
 
 import numpy as np
-import pandas as pd
 import torch
 
-from ultralytics.yolo.utils import SETTINGS, ops
-from ultralytics.yolo.utils.files import increment_path
+from ultralytics.yolo.utils import ops
 
 
 class Result:

@@ -102,17 +102,17 @@ class Boxes:
     @property
     @lru_cache(maxsize=2)  # maxsize 1 should suffice
     def xywh(self):
-        return [ops.xyxy2xywh(x) for x in self.xyxy]
+        return ops.xyxy2xywh(self.xyxy)
 
     @property
     @lru_cache(maxsize=2)
     def xyxyn(self):
-        return [x / g for x, g in zip(self.xyxy, self.gn)]
+        return self.xyxy / self.gn
 
     @property
     @lru_cache(maxsize=2)
     def xywhn(self):
-        return [x / g for x, g in zip(self.xywh, self.gn)]
+        return self.xywh / self.gn
 
     def cpu(self):
         boxes = self.boxes.cpu()
@@ -210,3 +210,10 @@ class Masks:
     def __getitem__(self, idx):
         masks = self.masks[idx]
         return Masks(masks, self.im_shape, self.orig_shape)
+
+if __name__ == "__main__":
+    box = Boxes(boxes=torch.randn((2, 6)), orig_shape=[5, 5])
+    for b in box:
+        print(b)
+    for b in reversed(box):
+        print(b)

@@ -13,7 +13,6 @@ from ultralytics.yolo.v8.detect.predict import DetectionPredictor
 class SegmentationPredictor(DetectionPredictor):
 
     def postprocess(self, preds, img, orig_img):
-        masks = []
         # TODO: filter by classes
         p = ops.non_max_suppression(preds[0],
                                     self.args.conf,
@@ -29,11 +28,11 @@ class SegmentationPredictor(DetectionPredictor):
                 continue
             if self.args.retina_masks:
                 pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
-                masks.append(ops.process_mask_native(proto[i], pred[:, 6:], pred[:, :4], shape[:2]))  # HWC
+                masks = ops.process_mask_native(proto[i], pred[:, 6:], pred[:, :4], shape[:2])  # HWC
             else:
-                masks.append(ops.process_mask(proto[i], pred[:, 6:], pred[:, :4], img.shape[2:], upsample=True))  # HWC
+                masks = ops.process_mask(proto[i], pred[:, 6:], pred[:, :4], img.shape[2:], upsample=True)  # HWC
                 pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
-            results.append(Result(boxes=pred, masks=masks, img_shape=img.shape[2:], orig_shape=shape[:2]))
+            results.append(Result(boxes=pred[:, :6], masks=masks, img_shape=img.shape[2:], orig_shape=shape[:2]))
         return results
 
     def write_results(self, idx, results, batch):

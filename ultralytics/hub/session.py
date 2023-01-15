@@ -13,7 +13,6 @@ AGENT_NAME = f'python-{__version__}-colab' if is_colab() else f'python-{__versio
 
 session = None
 
-
 # Causing problems in tests (non-authenticated)
 # import signal
 # import sys

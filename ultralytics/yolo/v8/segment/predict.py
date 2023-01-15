@@ -25,6 +25,7 @@ class SegmentationPredictor(DetectionPredictor):
         for i, pred in enumerate(p):
             shape = orig_img[i].shape if self.webcam else orig_img.shape
             if not len(pred):
+                results.append(Result(boxes=pred[:, :6]))  # save empty boxes
                 continue
             if self.args.retina_masks:
                 pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()

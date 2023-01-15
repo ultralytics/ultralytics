@@ -63,7 +63,7 @@ In addition to learning about the exciting new features and improvements of Ultr
 Don't miss out on this opportunity! To join the webinar, visit our YouTube Channel and turn on your notifications! https://youtu.be/IPcpYO5ITa8
 
 <a align="center" href="https://youtu.be/IPcpYO5ITa8" target="_blank">
-<img width="800" src="https://user-images.githubusercontent.com/26833433/212472119-7de539c1-5022-41cf-ae28-37b69158fbbe.png"></a>
+<img width="80%" src="https://user-images.githubusercontent.com/26833433/212472119-7de539c1-5022-41cf-ae28-37b69158fbbe.png"></a>
 </div>
 
 ## <div align="center">Documentation</div>

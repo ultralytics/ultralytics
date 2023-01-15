@@ -34,7 +34,7 @@ class AutoBackend(nn.Module):
 
         Supported formats and their usage:
             Platform              | Weights Format
-            -----------------------|------------------
+            ----------------------|------------------
             PyTorch               | *.pt
             TorchScript           | *.torchscript
             ONNX Runtime          | *.onnx
@@ -357,7 +357,7 @@ class AutoBackend(nn.Module):
         This function takes a path to a model file and returns the model type
 
         Args:
-          p: path to the model file. Defaults to path/to/model.pt
+            p: path to the model file. Defaults to path/to/model.pt
         """
         # Return model type from model path, i.e. path='path/to/model.onnx' -> type=onnx
         # types = [pt, jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle]
@@ -374,12 +374,11 @@ class AutoBackend(nn.Module):
     @staticmethod
     def _load_metadata(f=Path('path/to/meta.yaml')):
         """
-        > Loads the metadata from a yaml file
+        Loads the metadata from a yaml file
 
         Args:
-          f: The path to the metadata file.
+            f: The path to the metadata file.
         """
-        from ultralytics.yolo.utils.files import yaml_load
 
         # Load metadata from meta.yaml if it exists
         if f.exists():

@@ -10,7 +10,7 @@ except (ModuleNotFoundError, ImportError):
 
 
 def on_pretrain_routine_start(trainer):
-    experiment = comet_ml.Experiment(project_name=trainer.args.project or "YOLOv8",)
+    experiment = comet_ml.Experiment(project_name=trainer.args.project or "YOLOv8")
     experiment.log_parameters(dict(trainer.args))
 
 

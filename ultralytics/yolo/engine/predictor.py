@@ -39,11 +39,10 @@ from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.data.augment import LetterBox
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages, LoadScreenshots, LoadStreams
 from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS
-from ultralytics.yolo.engine.result import Result
 from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, SETTINGS, callbacks, colorstr, ops
 from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_imshow
 from ultralytics.yolo.utils.files import increment_path
-from ultralytics.yolo.utils.torch_utils import guess_task_from_head, select_device, smart_inference_mode
+from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode
 
 
 class BasePredictor:
@@ -158,10 +157,10 @@ class BasePredictor:
 
     @smart_inference_mode()
     def __call__(self, source=None, model=None, verbose=False, stream=False):
-        if not stream:
-            # merge all the list of Result into one
-            return list(chain(*list(self.stream_inference(source, model, verbose))))
-        return self.stream_inference(source, model, verbose)
+        if stream:
+            return self.stream_inference(source, model, verbose)
+        else:
+            return list(chain(*list(self.stream_inference(source, model, verbose))))  # merge list of Result into one
 
     def stream_inference(self, source=None, model=None, verbose=False):
         self.run_callbacks("on_predict_start")
@@ -209,11 +208,11 @@ class BasePredictor:
         # Print results
         if verbose:
             t = tuple(x.t / self.seen * 1E3 for x in self.dt)  # speeds per image
-            LOGGER.info(
-                f'Speed: %.1fms pre-process, %.1fms inference, %.1fms postprocess per image at shape {(1, 3, *self.imgsz)}'
-                % t)
+            LOGGER.info(f'Speed: %.1fms pre-process, %.1fms inference, %.1fms postprocess per image at shape '
+                        f'{(1, 3, *self.imgsz)}' % t)
         if self.args.save_txt or self.args.save:
-            s = f"\n{len(list(self.save_dir.glob('labels/*.txt')))} labels saved to {self.save_dir / 'labels'}" if self.args.save_txt else ''
+            s = f"\n{len(list(self.save_dir.glob('labels/*.txt')))} labels saved to {self.save_dir / 'labels'}" \
+                if self.args.save_txt else ''
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
 
         self.run_callbacks("on_predict_end")
@@ -242,10 +241,10 @@ class BasePredictor:
         if len(im.shape) == 3:
             im = im[None]  # expand for batch dim
         preds = self.model(im)
-        results = self.postprocess(preds, im, img)
-        return results
+        return self.postprocess(preds, im, img)  # merge all the list of Result into one
 
-    def _single_check(self, img):
+    @staticmethod
+    def _single_check(img):
         assert isinstance(img, (Image.Image, np.ndarray)), f"Expected PIL/np.ndarray image type, but got {type(img)}"
         if isinstance(img, Image.Image):
             img = np.asarray(img)

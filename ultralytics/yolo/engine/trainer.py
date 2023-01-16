@@ -204,8 +204,8 @@ class BaseTrainer:
         if world_size > 1:
             self.model = DDP(self.model, device_ids=[rank])
         # Check imgsz
-        gs = max(int(self.model.stride.max()), 32)  # grid size (max stride)
-        self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs * 2)
+        gs = max(int(self.model.stride.max() if hasattr(self.model, 'stride') else 32), 32)  # grid size (max stride)
+        self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs*2)
         # Batch size
         if self.batch_size == -1:
             if RANK == -1:  # single-GPU only, estimate best batch size

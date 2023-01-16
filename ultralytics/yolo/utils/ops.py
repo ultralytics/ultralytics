@@ -15,20 +15,39 @@ from .metrics import box_iou
 
 
 class Profile(contextlib.ContextDecorator):
-    # YOLOv8 Profile class. Usage: @Profile() decorator or 'with Profile():' context manager
+    """
+    YOLOv8 Profile class.
+    Usage: as a decorator with @Profile() or as a context manager with 'with Profile():'
+    """
+
     def __init__(self, t=0.0):
+        """
+        Initialize the Profile class.
+
+        Args:
+            t (float): Initial time. Defaults to 0.0.
+        """
         self.t = t
         self.cuda = torch.cuda.is_available()
 
     def __enter__(self):
+        """
+        Start timing.
+        """
         self.start = self.time()
         return self
 
     def __exit__(self, type, value, traceback):
+        """
+        Stop timing.
+        """
         self.dt = self.time() - self.start  # delta-time
         self.t += self.dt  # accumulate dt
 
     def time(self):
+        """
+        Get current time.
+        """
         if self.cuda:
             torch.cuda.synchronize()
         return time.time()
@@ -48,8 +67,8 @@ def coco80_to_coco91_class():  # converts 80-index (val2014) to 91-index (paper)
 
 def segment2box(segment, width=640, height=640):
     """
-    Convert 1 segment label to 1 box label, applying inside-image constraint, i.e. (xy1, xy2, ...) to
-    (xyxy)
+    Convert 1 segment label to 1 box label, applying inside-image constraint, i.e. (xy1, xy2, ...) to (xyxy)
+
     Args:
       segment (torch.Tensor): the segment label
       width (int): the width of the image. Defaults to 640
@@ -95,7 +114,16 @@ def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None):
 
 
 def make_divisible(x, divisor):
-    # Returns nearest x divisible by divisor
+    """
+    Returns the nearest number that is divisible by the given divisor.
+
+    Args:
+        x (int): The number to make divisible.
+        divisor (int or torch.Tensor): The divisor.
+
+    Returns:
+        int: The nearest number divisible by the divisor.
+    """
     if isinstance(divisor, torch.Tensor):
         divisor = int(divisor.max())  # to int
     return math.ceil(x / divisor) * divisor
@@ -249,7 +277,19 @@ def clip_boxes(boxes, shape):
 
 
 def clip_coords(boxes, shape):
-    # Clip bounding xyxy bounding boxes to image shape (height, width)
+    """
+    Clip bounding xyxy bounding boxes to image shape (height, width).
+
+    Args:
+        boxes (torch.Tensor or numpy.ndarray): Bounding boxes to be clipped.
+        shape (tuple): The shape of the image. (height, width)
+
+    Returns:
+        None
+
+    Note:
+        The input `boxes` is modified in-place, there is no return value.
+    """
     if isinstance(boxes, torch.Tensor):  # faster individually
         boxes[:, 0].clamp_(0, shape[1])  # x1
         boxes[:, 1].clamp_(0, shape[0])  # y1
@@ -342,7 +382,7 @@ def xywhn2xyxy(x, w=640, h=640, padw=0, padh=0):
         padh (int): Padding height. Defaults to 0
     Returns:
         y (np.ndarray) or (torch.Tensor): The coordinates of the bounding box in the format [x1, y1, x2, y2] where
-        x1,y1 is the top-left corner, x2,y2 is the bottom-right corner of the bounding box.
+            x1,y1 is the top-left corner, x2,y2 is the bottom-right corner of the bounding box.
     """
     y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
     y[..., 0] = w * (x[..., 0] - x[..., 2] / 2) + padw  # top left x

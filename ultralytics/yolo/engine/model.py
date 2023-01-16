@@ -111,7 +111,7 @@ class YOLO:
         self.model.fuse()
 
     @smart_inference_mode()
-    def predict(self, source, img=None, stream=False, verbose=False, **kwargs):
+    def predict(self, source=None, img=None, stream=False, verbose=False, **kwargs):
         """
         Visualize prediction.
 

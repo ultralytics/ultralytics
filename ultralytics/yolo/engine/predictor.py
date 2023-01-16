@@ -27,8 +27,8 @@ Usage - formats:
     """
 import platform
 from collections import defaultdict
-from pathlib import Path
 from itertools import chain
+from pathlib import Path
 
 import cv2
 
@@ -222,7 +222,6 @@ class BasePredictor:
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
 
         self.run_callbacks("on_predict_end")
-
 
     def show(self, p):
         im0 = self.annotator.result()

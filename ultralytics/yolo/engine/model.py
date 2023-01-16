@@ -7,7 +7,7 @@ from ultralytics.nn.tasks import ClassificationModel, DetectionModel, Segmentati
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, yaml_load
-from ultralytics.yolo.utils.checks import check_yaml
+from ultralytics.yolo.utils.checks import check_yaml, check_imgsz
 from ultralytics.yolo.utils.torch_utils import guess_task_from_head, smart_inference_mode
 
 # Map head to model, trainer, validator, and predictor classes
@@ -113,11 +113,19 @@ class YOLO:
     @smart_inference_mode()
     def predict(self, source=None, img=None, stream=False, verbose=False, **kwargs):
         """
-        Visualize prediction.
+        Perform prediction using the YOLO model.
 
         Args:
-            source (str): Accepts all source types accepted by yolo
-            **kwargs : Any other args accepted by the predictors. To see all args check 'configuration' section in docs
+            source (str): The source of the image to make predictions on.
+                          Accepts all source types accepted by the YOLO model.
+            img (torch.Tensor): The image tensor to make predictions on.
+            stream (bool): Whether to stream the predictions or not. Defaults to False.
+            verbose (bool): Whether to print verbose information or not. Defaults to False.
+            **kwargs : Additional keyword arguments passed to the predictor.
+                       Check the 'configuration' section in the documentation for all available options.
+
+        Returns:
+            (dict): The prediction results.
         """
         assert (source is None) ^ (img is None), "Input should be either `source` or `img`."
         overrides = self.overrides.copy()

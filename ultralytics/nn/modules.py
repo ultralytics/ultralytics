@@ -529,8 +529,9 @@ class ShuffleV2Block(nn.Module):
 
 
 class StemBlock(nn.Module):
+
     def __init__(self, c1, c2, k=3, s=2, p=None, g=1):
-        super(StemBlock, self).__init__()
+        super().__init__()
         self.stem_1 = Conv(c1, c2, k, s, p, g, act=nn.ReLU(inplace=True))
         self.stem_2a = Conv(c2, c2 // 2, 1, 1, 0, act=nn.ReLU(inplace=True))
         self.stem_2b = Conv(c2 // 2, c2, 3, 2, 1, act=nn.ReLU(inplace=True))

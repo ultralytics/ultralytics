@@ -50,26 +50,15 @@ the `ultralytics` module.
 
     === "From source"
         ```python
+        # from source, including image/video visualizing, saving and showing.
         from ultralytics import YOLO
 
         model = YOLO("model.pt")
         model.predict(source="0") # accepts all formats - img/folder/vid.*(mp4/format). 0 for webcam
         model.predict(source="folder", show=True) # Display preds. Accepts all yolo predict arguments
 
-        ```
-
-    === "From image/ndarray/tensor"
-        ```python
-        # TODO, still working on it.
-        ```
-
-
-    === "Return outputs"
-        ```python
-        from ultralytics import YOLO
-
-        model = YOLO("model.pt")
-        outputs = model.predict(source="0", return_outputs=True) # treat predict as a Python generator
+        # we also support treating predict as a Python generator and return outputs
+        outputs = model.predict(source="0", return_outputs=True)
         for output in outputs:
           # each output here is a dict.
           # for detection
@@ -80,6 +69,24 @@ the `ultralytics` module.
           # for classify
           print(output["prob"]) # np.ndarray, (num_class, ), cls prob
 
+        ```
+
+    === "From PIL/ndarray"
+        ```python
+        # from PIL/ndarray, we just purely return outputs, no image/video saving and showing.
+        from ultralytics import YOLO
+        from PIL import Image
+        import cv2
+
+        model = YOLO("model.pt")
+        img = cv2.imread("path/img")
+        outputs = model.predict(img=img)  # accepts opencv/ndarray
+        img = Image.open("path/img")
+        outputs = model.predict(img=img)  # accepts PIL
+
+        # also accepts multiple images(batch inference)
+        # support different resolution images in one list(pt model only).
+        outputs = model.predict(img=[img, img])  # accepts List, 
         ```
 
 !!! note "Export and Deployment"

@@ -56,6 +56,8 @@ class ClassificationTrainer(BaseTrainer):
         # Load a YOLO model locally, from torchvision, or from Ultralytics assets
         if model.endswith(".pt"):
             self.model, _ = attempt_load_one_weight(model, device='cpu')
+            for p in model.parameters():
+                p.requires_grad = True  # for training
         elif model.endswith(".yaml"):
             self.model = self.get_model(cfg=model)
         elif model in torchvision.models.__dict__:

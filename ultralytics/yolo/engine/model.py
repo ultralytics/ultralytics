@@ -126,7 +126,6 @@ class YOLO:
         overrides["save"] = kwargs.get("save", False)  # not save files by default
         predictor = self.PredictorClass(overrides=overrides)
 
-        predictor.args.imgsz = check_imgsz(predictor.args.imgsz, min_dim=2)  # check image size
         predictor.setup(model=self.model, source=source, return_outputs=return_outputs)
         return predictor() if return_outputs else predictor.predict_cli()
 

@@ -121,7 +121,7 @@ class BasePredictor:
 
         # model
         stride, pt = self.setup_model(model)
-        imgsz = check_imgsz(self.args.imgsz, stride=stride)  # check image size
+        imgsz = check_imgsz(self.args.imgsz, stride=stride, min_dim=2)  # check image size
 
         # Dataloader
         bs = 1  # batch_size

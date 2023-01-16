@@ -6,7 +6,6 @@ import torch
 from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.engine.result import Result
 from ultralytics.yolo.utils import DEFAULT_CONFIG, ROOT
-from ultralytics.yolo.utils.checks import check_imgsz
 from ultralytics.yolo.utils.plotting import Annotator
 
 
@@ -68,7 +67,6 @@ class ClassificationPredictor(BasePredictor):
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def predict(cfg):
     cfg.model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
-    cfg.imgsz = check_imgsz(cfg.imgsz, min_dim=2)  # check image size
     cfg.source = cfg.source if cfg.source is not None else ROOT / "assets"
     predictor = ClassificationPredictor(cfg)
     predictor(verbose=True)

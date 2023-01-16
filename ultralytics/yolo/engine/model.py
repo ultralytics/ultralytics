@@ -7,7 +7,7 @@ from ultralytics.nn.tasks import ClassificationModel, DetectionModel, Segmentati
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, yaml_load
-from ultralytics.yolo.utils.checks import check_imgsz, check_yaml
+from ultralytics.yolo.utils.checks import check_yaml
 from ultralytics.yolo.utils.torch_utils import guess_task_from_head, smart_inference_mode
 
 # Map head to model, trainer, validator, and predictor classes
@@ -126,6 +126,7 @@ class YOLO:
         overrides["mode"] = "predict"
         overrides["save"] = kwargs.get("save", False)  # not save files by default
         predictor = self.PredictorClass(overrides=overrides)
+
         predictor.args.imgsz = check_imgsz(predictor.args.imgsz, min_dim=2)  # check image size
         if img is not None:
             predictor.setup_model(self.model)

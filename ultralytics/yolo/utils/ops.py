@@ -51,7 +51,7 @@ def segment2box(segment, width=640, height=640):
     Convert 1 segment label to 1 box label, applying inside-image constraint, i.e. (xy1, xy2, ...) to
     (xyxy)
     Args:
-      segment (torch.tensor): the segment label
+      segment (torch.Tensor): the segment label
       width (int): the width of the image. Defaults to 640
       height (int): The height of the image. Defaults to 640
 
@@ -70,12 +70,12 @@ def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None):
     Rescales bounding boxes (in the format of xyxy) from the shape of the image they were originally specified in (img1_shape) to the shape of a different image (img0_shape).
     Args:
       img1_shape (tuple): The shape of the image that the bounding boxes are for, in the format of (height, width).
-      boxes (torch.tensor): the bounding boxes of the objects in the image, in the format of (x1, y1, x2, y2)
+      boxes (torch.Tensor): the bounding boxes of the objects in the image, in the format of (x1, y1, x2, y2)
       img0_shape (tuple): the shape of the target image, in the format of (height, width).
       ratio_pad (tuple): a tuple of (ratio, pad) for scaling the boxes. If not provided, the ratio and pad will be calculated based on the size difference between the two images.
 
     Returns:
-      boxes (torch.tensor): The scaled bounding boxes, in the format of (x1, y1, x2, y2)
+      boxes (torch.Tensor): The scaled bounding boxes, in the format of (x1, y1, x2, y2)
     """
     if ratio_pad is None:  # calculate from img0_shape
         gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
@@ -232,7 +232,7 @@ def clip_boxes(boxes, shape):
     shape
 
     Args:
-      boxes (torch.tensor): the bounding boxes to clip
+      boxes (torch.Tensor): the bounding boxes to clip
       shape (tuple): the shape of the image
     """
     if isinstance(boxes, torch.Tensor):  # faster individually
@@ -263,12 +263,12 @@ def scale_image(im1_shape, masks, im0_shape, ratio_pad=None):
 
     Args:
       im1_shape (tuple): model input shape, [h, w]
-      masks (torch.tensor): [h, w, num]
+      masks (torch.Tensor): [h, w, num]
       im0_shape (tuple): the original image shape
       ratio_pad (tuple): the ratio of the padding to the original image.
 
     Returns:
-      masks (torch.tensor): The masks that are being returned.
+      masks (torch.Tensor): The masks that are being returned.
     """
     # Rescale coordinates (xyxy) from im1_shape to im0_shape
     if ratio_pad is None:  # calculate from im0_shape
@@ -424,7 +424,7 @@ def ltwh2xywh(x):
     Convert nx4 boxes from [x1, y1, w, h] to [x, y, w, h] where xy1=top-left, xy=center
 
     Args:
-      x (torch.tensor): the input tensor
+      x (torch.Tensor): the input tensor
     """
     y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
     y[:, 0] = x[:, 0] + x[:, 2] / 2  # center x
@@ -489,11 +489,11 @@ def crop_mask(masks, boxes):
     It takes a mask and a bounding box, and returns a mask that is cropped to the bounding box
 
     Args:
-      masks (torch.tensor): [h, w, n] tensor of masks
-      boxes (torch.tensor): [n, 4] tensor of bbox coordinates in relative point form
+      masks (torch.Tensor): [h, w, n] tensor of masks
+      boxes (torch.Tensor): [n, 4] tensor of bbox coordinates in relative point form
 
     Returns:
-      (torch.tensor): The masks are being cropped to the bounding box.
+      (torch.Tensor): The masks are being cropped to the bounding box.
     """
     n, h, w = masks.shape
     x1, y1, x2, y2 = torch.chunk(boxes[:, :, None], 4, 1)  # x1 shape(1,1,n)
@@ -509,13 +509,13 @@ def process_mask_upsample(protos, masks_in, bboxes, shape):
     quality but is slower.
 
     Args:
-      protos (torch.tensor): [mask_dim, mask_h, mask_w]
-      masks_in (torch.tensor): [n, mask_dim], n is number of masks after nms
-      bboxes (torch.tensor): [n, 4], n is number of masks after nms
+      protos (torch.Tensor): [mask_dim, mask_h, mask_w]
+      masks_in (torch.Tensor): [n, mask_dim], n is number of masks after nms
+      bboxes (torch.Tensor): [n, 4], n is number of masks after nms
       shape (tuple): the size of the input image (h,w)
 
     Returns:
-      (torch.tensor): The upsampled masks.
+      (torch.Tensor): The upsampled masks.
     """
     c, mh, mw = protos.shape  # CHW
     masks = (masks_in @ protos.float().view(c, -1)).sigmoid().view(-1, mh, mw)
@@ -530,13 +530,13 @@ def process_mask(protos, masks_in, bboxes, shape, upsample=False):
     downsampled quality of mask
 
     Args:
-      protos (torch.tensor): [mask_dim, mask_h, mask_w]
-      masks_in (torch.tensor): [n, mask_dim], n is number of masks after nms
-      bboxes (torch.tensor): [n, 4], n is number of masks after nms
+      protos (torch.Tensor): [mask_dim, mask_h, mask_w]
+      masks_in (torch.Tensor): [n, mask_dim], n is number of masks after nms
+      bboxes (torch.Tensor): [n, 4], n is number of masks after nms
       shape (tuple): the size of the input image (h,w)
 
     Returns:
-      (torch.tensor): The processed masks.
+      (torch.Tensor): The processed masks.
     """
 
     c, mh, mw = protos.shape  # CHW
@@ -560,13 +560,13 @@ def process_mask_native(protos, masks_in, bboxes, shape):
     It takes the output of the mask head, and crops it after upsampling to the bounding boxes.
 
     Args:
-      protos (torch.tensor): [mask_dim, mask_h, mask_w]
-      masks_in (torch.tensor): [n, mask_dim], n is number of masks after nms
-      bboxes (torch.tensor): [n, 4], n is number of masks after nms
+      protos (torch.Tensor): [mask_dim, mask_h, mask_w]
+      masks_in (torch.Tensor): [n, mask_dim], n is number of masks after nms
+      bboxes (torch.Tensor): [n, 4], n is number of masks after nms
       shape (tuple): the size of the input image (h,w)
 
     Returns:
-      masks (torch.tensor): The returned masks with dimensions [h, w, n]
+      masks (torch.Tensor): The returned masks with dimensions [h, w, n]
     """
     c, mh, mw = protos.shape  # CHW
     masks = (masks_in @ protos.float().view(c, -1)).sigmoid().view(-1, mh, mw)
@@ -587,13 +587,13 @@ def scale_segments(img1_shape, segments, img0_shape, ratio_pad=None, normalize=F
 
     Args:
       img1_shape (tuple): The shape of the image that the segments are from.
-      segments (torch.tensor): the segments to be scaled
+      segments (torch.Tensor): the segments to be scaled
       img0_shape (tuple): the shape of the image that the segmentation is being applied to
       ratio_pad (tuple): the ratio of the image size to the padded image size.
       normalize (bool): If True, the coordinates will be normalized to the range [0, 1]. Defaults to False
 
     Returns:
-      segments (torch.tensor): the segmented image.
+      segments (torch.Tensor): the segmented image.
     """
     if ratio_pad is None:  # calculate from img0_shape
         gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
@@ -617,7 +617,7 @@ def masks2segments(masks, strategy='largest'):
     It takes a list of masks(n,h,w) and returns a list of segments(n,xy)
 
     Args:
-      masks (torch.tensor): the output of the model, which is a tensor of shape (batch_size, 160, 160)
+      masks (torch.Tensor): the output of the model, which is a tensor of shape (batch_size, 160, 160)
       strategy (str): 'concat' or 'largest'. Defaults to largest
 
     Returns:

@@ -461,7 +461,6 @@ class Classify(nn.Module):
         return self.linear(self.drop(self.pool(self.conv(x)).flatten(1)))
 
 
-<<<<<<< Updated upstream
 def channel_shuffle(x, groups):
     batchsize, num_channels, height, width = x.data.size()
     channels_per_group = num_channels // groups
@@ -479,11 +478,6 @@ class ShuffleV2Block(nn.Module):
 
     def __init__(self, inp, oup, stride):
         super().__init__()
-=======
-class ShuffleV2Block(nn.Module):
-    def __init__(self, inp, oup, stride):
-        super(ShuffleV2Block, self).__init__()
->>>>>>> Stashed changes
 
         if not (1 <= stride <= 3):
             raise ValueError('illegal stride value')
@@ -504,7 +498,6 @@ class ShuffleV2Block(nn.Module):
             self.branch1 = nn.Sequential()
 
         self.branch2 = nn.Sequential(
-<<<<<<< Updated upstream
             nn.Conv2d(inp if (self.stride > 1) else branch_features,
                       branch_features,
                       kernel_size=1,
@@ -516,16 +509,6 @@ class ShuffleV2Block(nn.Module):
             self.depthwise_conv(branch_features, branch_features, kernel_size=3, stride=self.stride, padding=1),
             nn.BatchNorm2d(branch_features),
             # ReLU
-=======
-            nn.Conv2d(inp if (self.stride > 1) else branch_features, branch_features, kernel_size=1, stride=1, padding=0, bias=False),
-            nn.BatchNorm2d(branch_features),
-            nn.ReLU(inplace=True),
-
-            self.depthwise_conv(branch_features, branch_features, kernel_size=3, stride=self.stride, padding=1),
-            nn.BatchNorm2d(branch_features),
-            # ReLU
-
->>>>>>> Stashed changes
             nn.Conv2d(branch_features, branch_features, kernel_size=1, stride=1, padding=0, bias=False),
             nn.BatchNorm2d(branch_features),
             nn.ReLU(inplace=True),
@@ -542,8 +525,22 @@ class ShuffleV2Block(nn.Module):
         else:
             out = torch.cat((self.branch1(x), self.branch2(x)), dim=1)
         out = channel_shuffle(out, 2)
-<<<<<<< Updated upstream
         return out
-=======
+
+
+class StemBlock(nn.Module):
+    def __init__(self, c1, c2, k=3, s=2, p=None, g=1):
+        super(StemBlock, self).__init__()
+        self.stem_1 = Conv(c1, c2, k, s, p, g, act=nn.ReLU(inplace=True))
+        self.stem_2a = Conv(c2, c2 // 2, 1, 1, 0, act=nn.ReLU(inplace=True))
+        self.stem_2b = Conv(c2 // 2, c2, 3, 2, 1, act=nn.ReLU(inplace=True))
+        self.stem_2p = nn.MaxPool2d(kernel_size=2, stride=2, ceil_mode=True)
+        self.stem_3 = Conv(c2 * 2, c2, 1, 1, 0, act=nn.ReLU(inplace=True))
+
+    def forward(self, x):
+        stem_1_out = self.stem_1(x)
+        stem_2a_out = self.stem_2a(stem_1_out)
+        stem_2b_out = self.stem_2b(stem_2a_out)
+        stem_2p_out = self.stem_2p(stem_1_out)
+        out = self.stem_3(torch.cat((stem_2b_out, stem_2p_out), 1))
         return out
->>>>>>> Stashed changes

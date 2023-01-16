@@ -30,7 +30,7 @@ from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
 from ultralytics.yolo.utils import (DEFAULT_CONFIG, LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, callbacks, colorstr,
                                     yaml_save)
 from ultralytics.yolo.utils.autobatch import check_train_batch_size
-from ultralytics.yolo.utils.checks import check_file, print_args, check_imgsz
+from ultralytics.yolo.utils.checks import check_file, check_imgsz, print_args
 from ultralytics.yolo.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.yolo.utils.files import get_latest_run, increment_path
 from ultralytics.yolo.utils.torch_utils import ModelEMA, de_parallel, init_seeds, one_cycle, strip_optimizer
@@ -205,7 +205,7 @@ class BaseTrainer:
             self.model = DDP(self.model, device_ids=[rank])
         # Check imgsz
         gs = max(int(self.model.stride.max()), 32)  # grid size (max stride)
-        self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs*2)
+        self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs * 2)
         # Batch size
         if self.batch_size == -1:
             if RANK == -1:  # single-GPU only, estimate best batch size

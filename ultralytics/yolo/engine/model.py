@@ -7,7 +7,7 @@ from ultralytics.nn.tasks import ClassificationModel, DetectionModel, Segmentati
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, yaml_load
-from ultralytics.yolo.utils.checks import check_imgsz, check_yaml
+from ultralytics.yolo.utils.checks import check_yaml
 from ultralytics.yolo.utils.torch_utils import guess_task_from_head, smart_inference_mode
 
 # Map head to model, trainer, validator, and predictor classes
@@ -54,8 +54,8 @@ class YOLO:
         # Load or create new YOLO model
         {'.pt': self._load, '.yaml': self._new}[Path(model).suffix](model)
 
-    def __call__(self, source, **kwargs):
-        return self.predict(source, **kwargs)
+    def __call__(self, source=None, img=None, return_outputs=False, **kwargs):
+        return self.predict(source, img, return_outputs, **kwargs)
 
     def _new(self, cfg: str, verbose=True):
         """
@@ -111,7 +111,7 @@ class YOLO:
         self.model.fuse()
 
     @smart_inference_mode()
-    def predict(self, source, return_outputs=False, **kwargs):
+    def predict(self, source=None, img=None, stream=False, verbose=False, **kwargs):
         """
         Visualize prediction.
 
@@ -119,6 +119,7 @@ class YOLO:
             source (str): Accepts all source types accepted by yolo
             **kwargs : Any other args accepted by the predictors. To see all args check 'configuration' section in docs
         """
+        assert (source is None) ^ (img is None), "Input should be either `source` or `img`."
         overrides = self.overrides.copy()
         overrides["conf"] = 0.25
         overrides.update(kwargs)
@@ -127,8 +128,12 @@ class YOLO:
         predictor = self.PredictorClass(overrides=overrides)
 
         predictor.args.imgsz = check_imgsz(predictor.args.imgsz, min_dim=2)  # check image size
-        predictor.setup(model=self.model, source=source, return_outputs=return_outputs)
-        return predictor() if return_outputs else predictor.predict_cli()
+        if img is not None:
+            predictor.setup_model(self.model)
+            return predictor.inference(img)
+
+        predictor.setup(model=self.model, source=source)
+        return predictor(stream=stream, verbose=verbose)
 
     @smart_inference_mode()
     def val(self, data=None, **kwargs):

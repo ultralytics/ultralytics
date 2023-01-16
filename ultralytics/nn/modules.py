@@ -528,6 +528,7 @@ class ShuffleV2Block(nn.Module):
         return out
 
 
+# the stem block
 class StemBlock(nn.Module):
 
     def __init__(self, c1, c2, k=3, s=2, p=None, g=1):

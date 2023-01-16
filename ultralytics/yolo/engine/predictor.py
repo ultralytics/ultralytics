@@ -31,9 +31,12 @@ from itertools import chain
 from pathlib import Path
 
 import cv2
+import numpy as np
+from PIL import Image
 
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.yolo.configs import get_config
+from ultralytics.yolo.data.augment import LetterBox
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages, LoadScreenshots, LoadStreams
 from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS
 from ultralytics.yolo.engine.result import Result
@@ -117,12 +120,7 @@ class BasePredictor:
             source = check_file(source)  # download
 
         # model
-        device = select_device(self.args.device)
-        model = model or self.args.model
-        self.args.half &= device.type != 'cpu'  # half precision only supported on CUDA
-        model = AutoBackend(model, device=device, dnn=self.args.dnn, fp16=self.args.half)
-        self.args.task = guess_task_from_head(model.model.yaml["head"][-1][-2])
-        stride, pt = model.stride, model.pt
+        stride, pt = self.setup_model(model)
         imgsz = check_imgsz(self.args.imgsz, stride=stride)  # check image size
 
         # Dataloader
@@ -133,7 +131,7 @@ class BasePredictor:
                                        imgsz=imgsz,
                                        stride=stride,
                                        auto=pt,
-                                       transforms=getattr(model.model, 'transforms', None),
+                                       transforms=getattr(self.model.model, 'transforms', None),
                                        vid_stride=self.args.vid_stride)
             bs = len(self.dataset)
         elif screenshot:
@@ -141,37 +139,34 @@ class BasePredictor:
                                            imgsz=imgsz,
                                            stride=stride,
                                            auto=pt,
-                                           transforms=getattr(model.model, 'transforms', None))
+                                           transforms=getattr(self.model.model, 'transforms', None))
         else:
             self.dataset = LoadImages(source,
                                       imgsz=imgsz,
                                       stride=stride,
                                       auto=pt,
-                                      transforms=getattr(model.model, 'transforms', None),
+                                      transforms=getattr(self.model.model, 'transforms', None),
                                       vid_stride=self.args.vid_stride)
         self.vid_path, self.vid_writer = [None] * bs, [None] * bs
-        model.warmup(imgsz=(1 if pt or model.triton else bs, 3, *imgsz))  # warmup
+        self.model.warmup(imgsz=(1 if pt or self.model.triton else bs, 3, *imgsz))  # warmup
 
-        self.model = model
         self.webcam = webcam
         self.screenshot = screenshot
         self.imgsz = imgsz
         self.done_setup = True
-        self.device = device
-
         return model
 
     @smart_inference_mode()
     def __call__(self, source=None, model=None, verbose=False, stream=False):
         if not stream:
             # merge all the list of Result into one
-            return list(chain(*list(self._inference(source, model, verbose))))
-        return self._inference(source, model, verbose)
+            return list(chain(*list(self.stream_inference(source, model, verbose))))
+        return self.stream_inference(source, model, verbose)
 
-    def _inference(self, source=None, model=None, verbose=False):
+    def stream_inference(self, source=None, model=None, verbose=False):
         self.run_callbacks("on_predict_start")
-        model = self.model if self.done_setup else self.setup(source, model)
-        model.eval()
+        if not self.done_setup:
+            self.setup(source, model)
         self.seen, self.windows, self.dt = 0, [], (ops.Profile(), ops.Profile(), ops.Profile())
         for batch in self.dataset:
             self.run_callbacks("on_predict_batch_start")
@@ -184,7 +179,7 @@ class BasePredictor:
 
             # Inference
             with self.dt[1]:
-                preds = model(im, augment=self.args.augment, visualize=visualize)
+                preds = self.model(im, augment=self.args.augment, visualize=visualize)
 
             # postprocess
             with self.dt[2]:
@@ -222,6 +217,50 @@ class BasePredictor:
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
 
         self.run_callbacks("on_predict_end")
+
+    def setup_model(self, model):
+        device = select_device(self.args.device)
+        model = model or self.args.model
+        self.args.half &= device.type != 'cpu'  # half precision only supported on CUDA
+        model = AutoBackend(model, device=device, dnn=self.args.dnn, fp16=self.args.half)
+        self.model = model
+        self.device = device
+        self.model.eval()
+        return model.stride, model.pt
+
+    def inference(self, img):
+        # minimal inference demo for python interface
+        # supporting PIL/ndarray/tensor
+        if not isinstance(img, list):
+            img = [img]
+        img = [self._single_check(im) for im in img]
+        auto = all(x.shape == img[0].shape for x in img) and self.model.pt
+        im = [self._single_preprocess(im, self.model.stride, auto) for im in img]
+        im = np.stack(im, 0) if len(im) > 1 else im[0]
+
+        im = self.preprocess(im)
+        if len(im.shape) == 3:
+            im = im[None]  # expand for batch dim
+        preds = self.model(im)
+        results = self.postprocess(preds, im, img)
+        return results
+
+    def _single_check(self, img):
+        assert isinstance(img, (Image.Image, np.ndarray)), f"Expected PIL/np.ndarray image type, but got {type(img)}"
+        if isinstance(img, Image.Image):
+            img = np.asarray(img)
+        return img
+
+    def _single_preprocess(self, img, stride, auto=True):
+        # TODO: considering adding this part into self.preprocess
+        if getattr(self.model.model, 'transforms', None):
+            im = self.model.model.transforms(img)  # transforms
+        else:
+            imgsz = check_imgsz(self.args.imgsz, stride=stride)  # check image size
+            im = LetterBox(imgsz, auto=auto, stride=stride)(image=img)
+            im = im.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
+            im = np.ascontiguousarray(im)  # contiguous
+        return im
 
     def show(self, p):
         im0 = self.annotator.result()

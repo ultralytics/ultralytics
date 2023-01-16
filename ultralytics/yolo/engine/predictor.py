@@ -27,18 +27,23 @@ Usage - formats:
     """
 import platform
 from collections import defaultdict
+from itertools import chain
 from pathlib import Path
 
 import cv2
+import numpy as np
+from PIL import Image
 
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.yolo.configs import get_config
+from ultralytics.yolo.data.augment import LetterBox
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages, LoadScreenshots, LoadStreams
 from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS
+from ultralytics.yolo.engine.result import Result
 from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, SETTINGS, callbacks, colorstr, ops
 from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_imshow
 from ultralytics.yolo.utils.files import increment_path
-from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode
+from ultralytics.yolo.utils.torch_utils import guess_task_from_head, select_device, smart_inference_mode
 
 
 class BasePredictor:
@@ -89,7 +94,6 @@ class BasePredictor:
         self.vid_path, self.vid_writer = None, None
         self.annotator = None
         self.data_path = None
-        self.output = {}
         self.callbacks = defaultdict(list, {k: [v] for k, v in callbacks.default_callbacks.items()})  # add callbacks
         callbacks.add_integration_callbacks(self)
 
@@ -99,13 +103,13 @@ class BasePredictor:
     def get_annotator(self, img):
         raise NotImplementedError("get_annotator function needs to be implemented")
 
-    def write_results(self, pred, batch, print_string):
+    def write_results(self, results, batch, print_string):
         raise NotImplementedError("print_results function needs to be implemented")
 
     def postprocess(self, preds, img, orig_img):
         return preds
 
-    def setup(self, source=None, model=None, return_outputs=False):
+    def setup(self, source=None, model=None):
         # source
         source = str(source if source is not None else self.args.source)
         is_file = Path(source).suffix[1:] in (IMG_FORMATS + VID_FORMATS)
@@ -116,11 +120,7 @@ class BasePredictor:
             source = check_file(source)  # download
 
         # model
-        device = select_device(self.args.device)
-        model = model or self.args.model
-        self.args.half &= device.type != 'cpu'  # half precision only supported on CUDA
-        model = AutoBackend(model, device=device, dnn=self.args.dnn, fp16=self.args.half)
-        stride, pt = model.stride, model.pt
+        stride, pt = self.setup_model(model)
         imgsz = check_imgsz(self.args.imgsz, stride=stride, min_dim=2)  # check image size
 
         # Dataloader
@@ -131,7 +131,7 @@ class BasePredictor:
                                        imgsz=imgsz,
                                        stride=stride,
                                        auto=pt,
-                                       transforms=getattr(model.model, 'transforms', None),
+                                       transforms=getattr(self.model.model, 'transforms', None),
                                        vid_stride=self.args.vid_stride)
             bs = len(self.dataset)
         elif screenshot:
@@ -139,32 +139,34 @@ class BasePredictor:
                                            imgsz=imgsz,
                                            stride=stride,
                                            auto=pt,
-                                           transforms=getattr(model.model, 'transforms', None))
+                                           transforms=getattr(self.model.model, 'transforms', None))
         else:
             self.dataset = LoadImages(source,
                                       imgsz=imgsz,
                                       stride=stride,
                                       auto=pt,
-                                      transforms=getattr(model.model, 'transforms', None),
+                                      transforms=getattr(self.model.model, 'transforms', None),
                                       vid_stride=self.args.vid_stride)
         self.vid_path, self.vid_writer = [None] * bs, [None] * bs
-        model.warmup(imgsz=(1 if pt or model.triton else bs, 3, *imgsz))  # warmup
+        self.model.warmup(imgsz=(1 if pt or self.model.triton else bs, 3, *imgsz))  # warmup
 
-        self.model = model
         self.webcam = webcam
         self.screenshot = screenshot
         self.imgsz = imgsz
         self.done_setup = True
-        self.device = device
-        self.return_outputs = return_outputs
-
         return model
 
     @smart_inference_mode()
-    def __call__(self, source=None, model=None, return_outputs=False):
+    def __call__(self, source=None, model=None, verbose=False, stream=False):
+        if not stream:
+            # merge all the list of Result into one
+            return list(chain(*list(self.stream_inference(source, model, verbose))))
+        return self.stream_inference(source, model, verbose)
+
+    def stream_inference(self, source=None, model=None, verbose=False):
         self.run_callbacks("on_predict_start")
-        model = self.model if self.done_setup else self.setup(source, model, return_outputs)
-        model.eval()
+        if not self.done_setup:
+            self.setup(source, model)
         self.seen, self.windows, self.dt = 0, [], (ops.Profile(), ops.Profile(), ops.Profile())
         for batch in self.dataset:
             self.run_callbacks("on_predict_batch_start")
@@ -177,17 +179,18 @@ class BasePredictor:
 
             # Inference
             with self.dt[1]:
-                preds = model(im, augment=self.args.augment, visualize=visualize)
+                preds = self.model(im, augment=self.args.augment, visualize=visualize)
 
             # postprocess
             with self.dt[2]:
-                preds = self.postprocess(preds, im, im0s)
-
+                results = self.postprocess(preds, im, im0s)
             for i in range(len(im)):
                 if self.webcam:
                     path, im0s = path[i], im0s[i]
                 p = Path(path)
-                s += self.write_results(i, preds, (p, im, im0s))
+
+                if verbose or self.args.save or self.args.save_txt:
+                    s += self.write_results(i, results, (p, im, im0s))
 
                 if self.args.show:
                     self.show(p)
@@ -195,30 +198,69 @@ class BasePredictor:
                 if self.args.save:
                     self.save_preds(vid_cap, i, str(self.save_dir / p.name))
 
-            if self.return_outputs:
-                yield self.output
-                self.output.clear()
+            yield results
 
             # Print time (inference-only)
-            LOGGER.info(f"{s}{'' if len(preds) else '(no detections), '}{self.dt[1].dt * 1E3:.1f}ms")
+            if verbose:
+                LOGGER.info(f"{s}{'' if len(preds) else '(no detections), '}{self.dt[1].dt * 1E3:.1f}ms")
 
             self.run_callbacks("on_predict_batch_end")
 
         # Print results
-        t = tuple(x.t / self.seen * 1E3 for x in self.dt)  # speeds per image
-        LOGGER.info(
-            f'Speed: %.1fms pre-process, %.1fms inference, %.1fms postprocess per image at shape {(1, 3, *self.imgsz)}'
-            % t)
+        if verbose:
+            t = tuple(x.t / self.seen * 1E3 for x in self.dt)  # speeds per image
+            LOGGER.info(
+                f'Speed: %.1fms pre-process, %.1fms inference, %.1fms postprocess per image at shape {(1, 3, *self.imgsz)}'
+                % t)
         if self.args.save_txt or self.args.save:
             s = f"\n{len(list(self.save_dir.glob('labels/*.txt')))} labels saved to {self.save_dir / 'labels'}" if self.args.save_txt else ''
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
 
         self.run_callbacks("on_predict_end")
 
-    def predict_cli(self, source=None, model=None, return_outputs=False):
-        # as __call__ is a generator now so have to treat it like a generator
-        for _ in (self.__call__(source, model, return_outputs)):
-            pass
+    def setup_model(self, model):
+        device = select_device(self.args.device)
+        model = model or self.args.model
+        self.args.half &= device.type != 'cpu'  # half precision only supported on CUDA
+        model = AutoBackend(model, device=device, dnn=self.args.dnn, fp16=self.args.half)
+        self.model = model
+        self.device = device
+        self.model.eval()
+        return model.stride, model.pt
+
+    def inference(self, img):
+        # minimal inference demo for python interface
+        # supporting PIL/ndarray/tensor
+        if not isinstance(img, list):
+            img = [img]
+        img = [self._single_check(im) for im in img]
+        auto = all(x.shape == img[0].shape for x in img) and self.model.pt
+        im = [self._single_preprocess(im, self.model.stride, auto) for im in img]
+        im = np.stack(im, 0) if len(im) > 1 else im[0]
+
+        im = self.preprocess(im)
+        if len(im.shape) == 3:
+            im = im[None]  # expand for batch dim
+        preds = self.model(im)
+        results = self.postprocess(preds, im, img)
+        return results
+
+    def _single_check(self, img):
+        assert isinstance(img, (Image.Image, np.ndarray)), f"Expected PIL/np.ndarray image type, but got {type(img)}"
+        if isinstance(img, Image.Image):
+            img = np.asarray(img)
+        return img
+
+    def _single_preprocess(self, img, stride, auto=True):
+        # TODO: considering adding this part into self.preprocess
+        if getattr(self.model.model, 'transforms', None):
+            im = self.model.model.transforms(img)  # transforms
+        else:
+            imgsz = check_imgsz(self.args.imgsz, stride=stride)  # check image size
+            im = LetterBox(imgsz, auto=auto, stride=stride)(image=img)
+            im = im.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
+            im = np.ascontiguousarray(im)  # contiguous
+        return im
 
     def show(self, p):
         im0 = self.annotator.result()

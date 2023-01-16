@@ -54,8 +54,8 @@ class YOLO:
         # Load or create new YOLO model
         {'.pt': self._load, '.yaml': self._new}[Path(model).suffix](model)
 
-    def __call__(self, source, **kwargs):
-        return self.predict(source, **kwargs)
+    def __call__(self, source=None, img=None, return_outputs=False, **kwargs):
+        return self.predict(source, img, return_outputs, **kwargs)
 
     def _new(self, cfg: str, verbose=True):
         """
@@ -111,7 +111,7 @@ class YOLO:
         self.model.fuse()
 
     @smart_inference_mode()
-    def predict(self, source, return_outputs=False, **kwargs):
+    def predict(self, source=None, img=None, stream=False, verbose=False, **kwargs):
         """
         Visualize prediction.
 
@@ -119,6 +119,7 @@ class YOLO:
             source (str): Accepts all source types accepted by yolo
             **kwargs : Any other args accepted by the predictors. To see all args check 'configuration' section in docs
         """
+        assert (source is None) ^ (img is None), "Input should be either `source` or `img`."
         overrides = self.overrides.copy()
         overrides["conf"] = 0.25
         overrides.update(kwargs)
@@ -126,8 +127,13 @@ class YOLO:
         overrides["save"] = kwargs.get("save", False)  # not save files by default
         predictor = self.PredictorClass(overrides=overrides)
 
-        predictor.setup(model=self.model, source=source, return_outputs=return_outputs)
-        return predictor() if return_outputs else predictor.predict_cli()
+        predictor.args.imgsz = check_imgsz(predictor.args.imgsz, min_dim=2)  # check image size
+        if img is not None:
+            predictor.setup_model(self.model)
+            return predictor.inference(img)
+
+        predictor.setup(model=self.model, source=source)
+        return predictor(stream=stream, verbose=verbose)
 
     @smart_inference_mode()
     def val(self, data=None, **kwargs):

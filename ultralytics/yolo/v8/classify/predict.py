@@ -4,6 +4,7 @@ import hydra
 import torch
 
 from ultralytics.yolo.engine.predictor import BasePredictor
+from ultralytics.yolo.engine.result import Result
 from ultralytics.yolo.utils import DEFAULT_CONFIG, ROOT
 from ultralytics.yolo.utils.checks import check_imgsz
 from ultralytics.yolo.utils.plotting import Annotator
@@ -15,11 +16,18 @@ class ClassificationPredictor(BasePredictor):
         return Annotator(img, example=str(self.model.names), pil=True)
 
     def preprocess(self, img):
-        img = torch.Tensor(img).to(self.model.device)
+        img = (img if isinstance(img, torch.Tensor) else torch.Tensor(img)).to(self.model.device)
         img = img.half() if self.model.fp16 else img.float()  # uint8 to fp16/32
         return img
 
-    def write_results(self, idx, preds, batch):
+    def postprocess(self, preds, img, orig_img):
+        results = []
+        for i, pred in enumerate(preds):
+            shape = orig_img[i].shape if self.webcam else orig_img.shape
+            results.append(Result(probs=pred.softmax(0), orig_shape=shape[:2]))
+        return results
+
+    def write_results(self, idx, results, batch):
         p, im, im0 = batch
         log_string = ""
         if len(im.shape) == 3:
@@ -38,9 +46,10 @@ class ClassificationPredictor(BasePredictor):
         log_string += '%gx%g ' % im.shape[2:]  # print string
         self.annotator = self.get_annotator(im0)
 
-        prob = preds[idx].softmax(0)
-        if self.return_outputs:
-            self.output["prob"] = prob.cpu().numpy()
+        result = results[idx]
+        if len(result) == 0:
+            return log_string
+        prob = result.probs
         # Print results
         top5i = prob.argsort(0, descending=True)[:5].tolist()  # top 5 indices
         log_string += f"{', '.join(f'{self.model.names[j]} {prob[j]:.2f}' for j in top5i)}, "
@@ -62,7 +71,7 @@ def predict(cfg):
     cfg.imgsz = check_imgsz(cfg.imgsz, min_dim=2)  # check image size
     cfg.source = cfg.source if cfg.source is not None else ROOT / "assets"
     predictor = ClassificationPredictor(cfg)
-    predictor.predict_cli()
+    predictor(verbose=True)
 
 
 if __name__ == "__main__":

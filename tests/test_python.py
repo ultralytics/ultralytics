@@ -2,6 +2,9 @@
 
 from pathlib import Path
 
+import cv2
+from PIL import Image
+
 from ultralytics import YOLO
 from ultralytics.yolo.utils import ROOT, SETTINGS
 
@@ -33,6 +36,18 @@ def test_model_fuse():
 def test_predict_dir():
     model = YOLO(MODEL)
     model.predict(source=ROOT / "assets")
+
+
+def test_predict_img():
+    model = YOLO(MODEL)
+    img = Image.open(str(SOURCE))
+    output = model(img=img)  # PIL
+    assert len(output) == 1, "predict test failed"
+    img = cv2.imread(str(SOURCE))
+    output = model(img=img)  # ndarray
+    assert len(output) == 1, "predict test failed"
+    output = model(img=[img, img])  # batch
+    assert len(output) == 2, "predict test failed"
 
 
 def test_val():
@@ -106,3 +121,7 @@ def test_workflow():
     model.val()
     model.predict(SOURCE)
     model.export(format="onnx", opset=12)  # export a model to ONNX format
+
+
+if __name__ == "__main__":
+    test_model_forward()

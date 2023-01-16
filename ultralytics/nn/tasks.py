@@ -27,12 +27,12 @@ class BaseModel(nn.Module):
         Wrapper for `_forward_once` method.
 
         Args:
-            x (torch.tensor): The input image tensor
+            x (torch.Tensor): The input image tensor
             profile (bool): Whether to profile the model, defaults to False
             visualize (bool): Whether to return the intermediate feature maps, defaults to False
 
         Returns:
-            (torch.tensor): The output of the network.
+            (torch.Tensor): The output of the network.
         """
         return self._forward_once(x, profile, visualize)
 
@@ -41,12 +41,12 @@ class BaseModel(nn.Module):
         Perform a forward pass through the network.
 
         Args:
-            x (torch.tensor): The input tensor to the model
+            x (torch.Tensor): The input tensor to the model
             profile (bool):  Print the computation time of each layer if True, defaults to False.
             visualize (bool): Save the feature maps of the model if True, defaults to False
 
         Returns:
-            (torch.tensor): The last output of the model.
+            (torch.Tensor): The last output of the model.
         """
         y, dt = [], []  # outputs
         for m in self.model:

@@ -3,3 +3,4 @@ include requirements.txt
 include LICENSE
 include setup.py
 recursive-include ultralytics *.yaml
+recursive-exclude __pycache__ *

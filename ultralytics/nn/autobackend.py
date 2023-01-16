@@ -328,7 +328,7 @@ class AutoBackend(nn.Module):
          Convert a numpy array to a tensor.
 
          Args:
-             x (numpy.ndarray): The array to be converted.
+             x (np.ndarray): The array to be converted.
 
          Returns:
              (torch.Tensor): The converted tensor

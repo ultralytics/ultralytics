@@ -28,6 +28,7 @@ Usage - formats:
 import platform
 from collections import defaultdict
 from pathlib import Path
+from itertools import chain
 
 import cv2
 
@@ -162,11 +163,16 @@ class BasePredictor:
 
     @smart_inference_mode()
     def __call__(self, source=None, model=None, verbose=False, stream=False):
+        if not stream:
+            # merge all the list of Result into one
+            return list(chain(*list(self._inference(source, model, verbose))))
+        return self._inference(source, model, verbose)
+
+    def _inference(self, source=None, model=None, verbose=False):
         self.run_callbacks("on_predict_start")
         model = self.model if self.done_setup else self.setup(source, model)
         model.eval()
         self.seen, self.windows, self.dt = 0, [], (ops.Profile(), ops.Profile(), ops.Profile())
-        self.results = []
         for batch in self.dataset:
             self.run_callbacks("on_predict_batch_start")
             path, im, im0s, vid_cap, s = batch
@@ -197,10 +203,7 @@ class BasePredictor:
                 if self.args.save:
                     self.save_preds(vid_cap, i, str(self.save_dir / p.name))
 
-            if stream:
-                return self._yield(results)
-            else:
-                self.results.extend(results)
+            yield results
 
             # Print time (inference-only)
             if verbose:
@@ -219,11 +222,7 @@ class BasePredictor:
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
 
         self.run_callbacks("on_predict_end")
-        if not stream:
-            return self.results
 
-    def _yield(self, result):
-        yield result[0]  # return individual result
 
     def show(self, p):
         im0 = self.annotator.result()

@@ -52,6 +52,20 @@ To request an Enterprise License please complete the form at [Ultralytics Licens
   </div>
 </div>
 
+## <div align="center">Ultralytics Live Session</div>
+
+<div align="center">
+
+[Ultralytics Live Session 3](https://youtu.be/IPcpYO5ITa8) ✨ is here! Join us on January 18th at 18 CET as we dive into the latest advancements in YOLOv8, and demonstrate how to use this cutting-edge, SOTA model to improve your object detection, instance segmentation, and image classification projects. See firsthand how YOLOv8's speed, accuracy, and ease of use make it a top choice for professionals and researchers alike.
+
+In addition to learning about the exciting new features and improvements of Ultralytics YOLOv8, you will also have the opportunity to ask questions and interact with our team during the live Q&A session. We encourage all of you to come prepared with any questions you may have.
+
+Don't miss out on this opportunity! To join the webinar, visit our YouTube [Channel](https://www.youtube.com/@Ultralytics/streams) and turn on your notifications!
+
+<a align="center" href="https://youtu.be/IPcpYO5ITa8" target="_blank">
+<img width="80%" src="https://user-images.githubusercontent.com/26833433/212472119-7de539c1-5022-41cf-ae28-37b69158fbbe.png"></a>
+</div>
+
 ## <div align="center">Documentation</div>
 
 See below for a quickstart installation and usage example, and see the [YOLOv8 Docs](https://docs.ultralytics.com) for full

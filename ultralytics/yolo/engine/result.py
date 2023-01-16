@@ -160,8 +160,12 @@ class Boxes:
         return self.__repr__()
 
     def __repr__(self):
-        # TODO: update __repr__
-        return f'Ultralytics YOLO {self.__class__} instance\n' + self.boxes.__repr__()
+        return (
+            f"Ultralytics YOLO {self.__class__} masks\n"
+            + f"type: {type(self.boxes)}\n"
+            + f"shape: {self.boxes.shape}\n"
+            + f"dtype: {self.boxes.dtype}"
+        )
 
     def __getitem__(self, idx):
         boxes = self.boxes[idx]
@@ -208,7 +212,12 @@ class Masks:
         return self.__repr__()
 
     def __repr__(self):
-        return f'Ultralytics YOLO {self.__class__} instance\n' + self.masks.__repr__()
+        return (
+            f"Ultralytics YOLO {self.__class__} masks\n"
+            + f"type: {type(self.masks)}\n"
+            + f"shape: {self.masks.shape}\n"
+            + f"dtype: {self.masks.dtype}"
+        )
 
     def __getitem__(self, idx):
         masks = self.masks[idx]

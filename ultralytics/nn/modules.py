@@ -545,5 +545,3 @@ class StemBlock(nn.Module):
         stem_2p_out = self.stem_2p(stem_1_out)
         out = self.stem_3(torch.cat((stem_2b_out, stem_2p_out), 1))
         return out
-
-    

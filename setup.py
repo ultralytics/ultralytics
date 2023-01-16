@@ -21,9 +21,9 @@ def get_version():
 setup(
     name="ultralytics",  # name of pypi package
     version=get_version(),  # version of pypi package
-    python_requires=">=3.7.0",
+    python_requires=">=3.7,<3.10",
     license='GPL-3.0',
-    description='Ultralytics YOLOv8 and HUB',
+    description='Ultralytics YOLOv8',
     long_description=README,
     long_description_content_type="text/markdown",
     url="https://github.com/ultralytics/ultralytics",

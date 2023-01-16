@@ -462,8 +462,9 @@ class Classify(nn.Module):
 
 
 class ShuffleV2Block(nn.Module):
+
     def __init__(self, inp, oup, stride):
-        super(ShuffleV2Block, self).__init__()
+        super().__init__()
 
         if not (1 <= stride <= 3):
             raise ValueError('illegal stride value')
@@ -484,14 +485,17 @@ class ShuffleV2Block(nn.Module):
             self.branch1 = nn.Sequential()
 
         self.branch2 = nn.Sequential(
-            nn.Conv2d(inp if (self.stride > 1) else branch_features, branch_features, kernel_size=1, stride=1, padding=0, bias=False),
+            nn.Conv2d(inp if (self.stride > 1) else branch_features,
+                      branch_features,
+                      kernel_size=1,
+                      stride=1,
+                      padding=0,
+                      bias=False),
             nn.BatchNorm2d(branch_features),
             nn.ReLU(inplace=True),
-
             self.depthwise_conv(branch_features, branch_features, kernel_size=3, stride=self.stride, padding=1),
             nn.BatchNorm2d(branch_features),
             # ReLU
-
             nn.Conv2d(branch_features, branch_features, kernel_size=1, stride=1, padding=0, bias=False),
             nn.BatchNorm2d(branch_features),
             nn.ReLU(inplace=True),

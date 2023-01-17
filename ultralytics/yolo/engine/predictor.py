@@ -186,6 +186,8 @@ class BasePredictor:
             for i in range(len(im)):
                 if self.webcam or self.from_img:
                     p, im0 = path[i], im0s[i]
+                else:
+                    p, im0 = path, im0s
                 p = Path(p)
 
                 if verbose or self.args.save or self.args.save_txt:

@@ -11,6 +11,7 @@ FILE = Path(__file__).resolve()
 PARENT = FILE.parent  # root directory
 README = (PARENT / "README.md").read_text(encoding="utf-8")
 REQUIREMENTS = [f'{x.name}{x.specifier}' for x in pkg.parse_requirements((PARENT / 'requirements.txt').read_text())]
+PKG_REQUIREMENTS = ['sentry_sdk']  # pip-only requirements
 
 
 def get_version():
@@ -35,7 +36,7 @@ setup(
     author_email='hello@ultralytics.com',
     packages=find_packages(),  # required
     include_package_data=True,
-    install_requires=REQUIREMENTS,
+    install_requires=REQUIREMENTS + PKG_REQUIREMENTS,
     extras_require={
         'dev':
         ['check-manifest', 'pytest', 'pytest-cov', 'coverage', 'mkdocs', 'mkdocstrings[python]', 'mkdocs-material']},
@@ -49,4 +50,5 @@ setup(
         "Topic :: Scientific/Engineering :: Image Recognition", "Operating System :: POSIX :: Linux",
         "Operating System :: MacOS", "Operating System :: Microsoft :: Windows"],
     keywords="machine-learning, deep-learning, vision, ML, DL, AI, YOLO, YOLOv3, YOLOv5, YOLOv8, HUB, Ultralytics",
-    entry_points={'console_scripts': ['yolo = ultralytics.yolo.cli:cli', 'ultralytics = ultralytics.yolo.cli:cli']})
+    entry_points={
+        'console_scripts': ['yolo = ultralytics.yolo.cli:entrypoint', 'ultralytics = ultralytics.yolo.cli:entrypoint']})

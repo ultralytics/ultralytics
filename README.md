@@ -91,7 +91,7 @@ pip install ultralytics
 YOLOv8 may be used directly in the Command Line Interface (CLI) with a `yolo` command:
 
 ```bash
-yolo task=detect mode=predict model=yolov8n.pt source="https://ultralytics.com/images/bus.jpg"
+yolo predict model=yolov8n.pt source="https://ultralytics.com/images/bus.jpg"
 ```
 
 `yolo` can be used for a variety of tasks and modes and accepts additional arguments, i.e. `imgsz=640`. See a full list
@@ -158,10 +158,10 @@ See [Detection Docs](https://docs.ultralytics.com/tasks/detection/) for usage ex
 | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x.pt) | 640                   | 53.9                 | 479.1                          | 3.53                                | 68.2               | 257.8             |
 
 - **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](http://cocodataset.org) dataset.
-  <br>Reproduce by `yolo mode=val task=detect data=coco.yaml device=0`
+  <br>Reproduce by `yolo val detect data=coco.yaml device=0`
 - **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)
   instance.
-  <br>Reproduce by `yolo mode=val task=detect data=coco128.yaml batch=1 device=0/cpu`
+  <br>Reproduce by `yolo val detect data=coco128.yaml batch=1 device=0/cpu`
 
 </details>
 
@@ -178,10 +178,10 @@ See [Segmentation Docs](https://docs.ultralytics.com/tasks/segmentation/) for us
 | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-seg.pt) | 640                   | 53.4                 | 43.4                  | 712.1                          | 4.02                                | 71.8               | 344.1             |
 
 - **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](http://cocodataset.org) dataset.
-  <br>Reproduce by `yolo mode=val task=segment data=coco.yaml device=0`
+  <br>Reproduce by `yolo val segment data=coco.yaml device=0`
 - **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)
   instance.
-  <br>Reproduce by `yolo mode=val task=segment data=coco128-seg.yaml batch=1 device=0/cpu`
+  <br>Reproduce by `yolo val segment data=coco128-seg.yaml batch=1 device=0/cpu`
 
 </details>
 
@@ -198,10 +198,10 @@ See [Classification Docs](https://docs.ultralytics.com/tasks/classification/) fo
 | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-cls.pt) | 224                   | 78.4             | 94.3             | 232.0                          | 1.01                                | 57.4               | 154.8                    |
 
 - **acc** values are model accuracies on the [ImageNet](https://www.image-net.org/) dataset validation set.
-  <br>Reproduce by `yolo mode=val task=classify data=path/to/ImageNet device=0`
+  <br>Reproduce by `yolo val classify data=path/to/ImageNet device=0`
 - **Speed** averaged over ImageNet val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)
   instance.
-  <br>Reproduce by `yolo mode=val task=classify data=path/to/ImageNet batch=1 device=0/cpu`
+  <br>Reproduce by `yolo val classify data=path/to/ImageNet batch=1 device=0/cpu`
 
 </details>
 

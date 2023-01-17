@@ -35,7 +35,7 @@ the [Configuration](../config.md) page.
     === "CLI"
     
         ```bash
-        yolo task=detect mode=train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640
         ```
 
 ## Val
@@ -60,8 +60,8 @@ training `data` and arguments as model attributes.
     === "CLI"
     
         ```bash
-        yolo task=detect mode=val model=yolov8n.pt  # val official model
-        yolo task=detect mode=val model=path/to/best.pt  # val custom model
+        yolo detect val model=yolov8n.pt  # val official model
+        yolo detect val model=path/to/best.pt  # val custom model
         ```
 
 ## Predict
@@ -85,8 +85,8 @@ Use a trained YOLOv8n model to run predictions on images.
     === "CLI"
     
         ```bash
-        yolo task=detect mode=predict model=yolov8n.pt source="https://ultralytics.com/images/bus.jpg"  # predict with official model
-        yolo task=detect mode=predict model=path/to/best.pt source="https://ultralytics.com/images/bus.jpg"  # predict with custom model
+        yolo detect predict model=yolov8n.pt source="https://ultralytics.com/images/bus.jpg"  # predict with official model
+        yolo detect predict model=path/to/best.pt source="https://ultralytics.com/images/bus.jpg"  # predict with custom model
         ```
 
 ## Export
@@ -110,8 +110,8 @@ Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
     === "CLI"
     
         ```bash
-        yolo mode=export model=yolov8n.pt format=onnx  # export official model
-        yolo mode=export model=path/to/best.pt format=onnx  # export custom trained model
+        yolo export model=yolov8n.pt format=onnx  # export official model
+        yolo export model=path/to/best.pt format=onnx  # export custom trained model
         ```
 
     Available YOLOv8 export formats include:

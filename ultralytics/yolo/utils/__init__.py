@@ -41,13 +41,16 @@ HELP_MSG = \
     2. Use the Python SDK:
 
         from ultralytics import YOLO
-
-        model = YOLO('yolov8n.yaml')                # build a new model from scratch
-        model = YOLO('yolov8n.pt')                  # load a pretrained model (recommended for best training results)
-        results = model.train(data='coco128.yaml')  # train the model
-        results = model.val()                       # evaluate model performance on the validation set
-        results = model.predict(source='bus.jpg')   # predict on an image
-        success = model.export(format='onnx')       # export the model to ONNX format
+        
+        # Load a model
+        model = YOLO("yolov8n.yaml")  # build a new model from scratch
+        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        
+        # Use the model
+        results = model.train(data="coco128.yaml", epochs=3)  # train the model
+        results = model.val()  # evaluate model performance on the validation set
+        results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
+        success = model.export(format="onnx")  # export the model to ONNX format
 
     3. Use the command line interface (CLI):
 
@@ -396,6 +399,7 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.1'):
 
 
 # Run below code on utils init -----------------------------------------------------------------------------------------
+PREFIX = colorstr("Ultralytics: ")
 
 # Set logger
 set_logging(LOGGING_NAME)  # run before defining LOGGER
@@ -423,7 +427,7 @@ def print_settings():
     Function that prints Ultralytics settings
     """
     import json
-    s = '\nSettings:\n'
+    s = f'\n{PREFIX}Settings:\n'
     s += json.dumps(SETTINGS, indent=2)
     s += f"\n\nUpdate settings at {USER_CONFIG_DIR / 'settings.yaml'}"
     LOGGER.info(s)

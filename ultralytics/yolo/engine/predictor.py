@@ -214,7 +214,7 @@ class BasePredictor:
                         f'{(1, 3, *self.imgsz)}' % t)
         if self.args.save_txt or self.args.save:
             s = f"\n{len(list(self.save_dir.glob('labels/*.txt')))} labels saved to {self.save_dir / 'labels'}" \
-                    if self.args.save_txt else ''
+                if self.args.save_txt else ''
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
 
         self.run_callbacks("on_predict_end")

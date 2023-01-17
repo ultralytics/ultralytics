@@ -413,5 +413,15 @@ def set_settings(kwargs, file=USER_CONFIG_DIR / 'settings.yaml'):
     directories.
     """
     SETTINGS.update(kwargs)
-
     yaml_save(file, SETTINGS)
+
+
+def print_settings():
+    """
+    Function that prints Ultralytics settings
+    """
+    import json
+    s = '\nSettings:\n'
+    s += json.dumps(SETTINGS, indent=2)
+    s += f"\n\nUpdate settings at {USER_CONFIG_DIR / 'settings.yaml'}"
+    LOGGER.info(s)

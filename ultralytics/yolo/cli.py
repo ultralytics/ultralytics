@@ -7,8 +7,7 @@ from pathlib import Path
 from hydra import compose, initialize
 
 from ultralytics import hub, yolo
-from ultralytics.yolo.configs import get_config
-from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, colorstr
+from ultralytics.yolo.utils import DEFAULT_CONFIG, HELP_MSG, LOGGER, colorstr
 
 DIR = Path(__file__).parent
 
@@ -21,6 +20,8 @@ def cli(cfg):
         cfg (DictConfig): Configuration for the task and mode.
     """
     # LOGGER.info(f"{colorstr(f'Ultralytics YOLO v{ultralytics.__version__}')}")
+    from ultralytics.yolo.configs import get_config
+
     if cfg.cfg:
         LOGGER.info(f"Overriding default config with {cfg.cfg}")
         cfg = get_config(cfg.cfg)
@@ -47,8 +48,7 @@ def cli(cfg):
         "train": module.train,
         "val": module.val,
         "predict": module.predict,
-        "export": yolo.engine.exporter.export,
-        "checks": hub.checks}
+        "export": yolo.engine.exporter.export}
     func = mode_func_map.get(mode)
     if not func:
         raise SyntaxError(f"mode not recognized. Choices are {', '.join(mode_func_map.keys())}")
@@ -75,19 +75,24 @@ def entrypoint():
     parser.add_argument('args', type=str, nargs='+', help='mandatory YOLO args')
     args = parser.parse_args().args
 
-    tasks = 'detect', 'segment', 'classify', 'export'
-    modes = 'train', 'val', 'test', 'predict'
-    special_modes = {'checks': hub.checks}
+    tasks = 'detect', 'segment', 'classify'
+    modes = 'train', 'val', 'predict', 'export'
+    special_modes = {
+        'checks': hub.checks,
+        'help': lambda: print(HELP_MSG)}
 
     overrides = [x for x in args if '=' in x]  # basic overrides, i.e. imgsz=320
     for a in args:
-        if a in tasks:
-            overrides.append(f'task={a}')
-        elif a in modes:
-            overrides.append(f'mode={a}')
-        elif a in special_modes:
-            special_modes[a]()
-            return
+        if '=' not in a:
+            if a in tasks:
+                overrides.append(f'task={a}')
+            elif a in modes:
+                overrides.append(f'mode={a}')
+            elif a in special_modes:
+                special_modes[a]()
+                return
+            else:
+                raise (SyntaxError(f"'{a}' is not a valid yolo argument\n{HELP_MSG}"))
 
     with initialize(version_base=None, config_path=str(DEFAULT_CONFIG.parent.relative_to(DIR)), job_name="YOLO"):
         cfg = compose(config_name=DEFAULT_CONFIG.name, overrides=overrides)

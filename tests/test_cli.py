@@ -41,11 +41,11 @@ def test_val_classify():
 
 # Predict checks -------------------------------------------------------------------------------------------------------
 def test_predict_detect():
-    os.system(f"yolo mode=predict model={MODEL}.pt source={ROOT / 'assets'}")
+    os.system(f"yolo mode=predict task=detect model={MODEL}.pt source={ROOT / 'assets'}")
 
 
 def test_predict_segment():
-    os.system(f"yolo mode=predict model={MODEL}-seg.pt source={ROOT / 'assets'}")
+    os.system(f"yolo mode=predict task=segment model={MODEL}-seg.pt source={ROOT / 'assets'}")
 
 
 def test_predict_classify():

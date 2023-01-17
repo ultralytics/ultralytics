@@ -10,8 +10,8 @@ YOLO command line interface is the easiest way to get started.
                              export         yolov8n.pt        format=onnx  args...
     ```
 
-The default arguments can be overridden directly by passing custom `arg=val` covered in the next section. You can run any
-supported task by setting `task` and `mode` in CLI.
+The default arguments can be overridden directly by passing custom `arg=val` covered in the next section. You can run
+any supported task by setting `task` and `mode` in CLI.
 === "Training"
 
     |                  | `task`     | snippet                                                    |
@@ -67,23 +67,19 @@ You can override config file entirely by passing a new file. You can create a co
 current working dir as follows:
 
 ```bash
-yolo task=init
+yolo copy-config
 ```
 
-You can then use `cfg=name.yaml` command to pass the new config file
+You can then use `cfg=default_copy.yaml` command to pass the new config file along with any addition args:
 
 ```bash
-yolo cfg=default.yaml
+yolo cfg=default_copy.yaml args...
 ```
 
 ??? example
 
     === "Command"
         ```bash
-        yolo task=init
-        yolo cfg=default.yaml
+        yolo copy-config
+        yolo cfg=default_copy.yaml args...
         ```
-    === "Results"
-        TODO: add terminal output
-
-

@@ -8,7 +8,7 @@ from ultralytics.yolo.utils import ops, LOGGER
 
 class Results:
     """
-        A class for storing and manipulating detection results.
+        A class for storing and manipulating inference results.
 
         Args:
             boxes (Boxes, optional): A Boxes object containing the detection bounding boxes.
@@ -101,20 +101,20 @@ class Boxes:
     A class for storing and manipulating detection boxes.
 
     Args:
-        boxes (torch.Tensor or numpy.ndarray): A tensor or numpy array containing the detection boxes, with shape (num_boxes, 6). The last two columns should contain confidence and class values.
+        boxes (torch.Tensor) or (numpy.ndarray): A tensor or numpy array containing the detection boxes, with shape (num_boxes, 6). The last two columns should contain confidence and class values.
         orig_shape (tuple): Original image size, in the format (height, width).
 
     Attributes:
-        boxes (torch.Tensor or numpy.ndarray): A tensor or numpy array containing the detection boxes, with shape (num_boxes, 6).
-        orig_shape (torch.Tensor or numpy.ndarray): Original image size, in the format (height, width).
+        boxes (torch.Tensor) or (numpy.ndarray): A tensor or numpy array containing the detection boxes, with shape (num_boxes, 6).
+        orig_shape (torch.Tensor) or (numpy.ndarray): Original image size, in the format (height, width).
 
     Properties:
-        xyxy (torch.Tensor or numpy.ndarray): The boxes in xyxy format.
-        conf (torch.Tensor or numpy.ndarray): The confidence values of the boxes.
-        cls (torch.Tensor or numpy.ndarray): The class values of the boxes.
-        xywh (torch.Tensor or numpy.ndarray): The boxes in xywh format.
-        xyxyn (torch.Tensor or numpy.ndarray): The boxes in xyxy format normalized by original image size.
-        xywhn (torch.Tensor or numpy.ndarray): The boxes in xywh format normalized by original image size.
+        xyxy (torch.Tensor) or (numpy.ndarray): The boxes in xyxy format.
+        conf (torch.Tensor) or (numpy.ndarray): The confidence values of the boxes.
+        cls (torch.Tensor) or (numpy.ndarray): The class values of the boxes.
+        xywh (torch.Tensor) or (numpy.ndarray): The boxes in xywh format.
+        xyxyn (torch.Tensor) or (numpy.ndarray): The boxes in xyxy format normalized by original image size.
+        xywhn (torch.Tensor) or (numpy.ndarray): The boxes in xywh format normalized by original image size.
     """
 
     def __init__(self, boxes, orig_shape) -> None:

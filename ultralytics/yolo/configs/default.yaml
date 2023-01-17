@@ -106,6 +106,10 @@ hydra:
   output_subdir: null  # disable hydra directory creation
   run:
     dir: .
-
+defaults:  
+  - _self_  
+  - override hydra/hydra_logging: disabled  
+  - override hydra/job_logging: disabled  
+  
 # Debug, do not modify -------------------------------------------------------------------------------------------------
 v5loader: False  # use legacy YOLOv5 dataloader

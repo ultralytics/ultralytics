@@ -75,7 +75,7 @@ the `ultralytics` module.
         ```python
         # results would be a list of Result object including all the predictions by default
         # but be careful as it could occupy a lot memory when there're many images, 
-        # especially using segmentation.
+        # especially the task is segmentation.
         # 1. return as a list
         results = model.predict(source="folder")
 

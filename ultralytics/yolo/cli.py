@@ -3,12 +3,11 @@
 import argparse
 import shutil
 from pathlib import Path
-from pprint import pprint
 
 from hydra import compose, initialize
 
 from ultralytics import hub, yolo
-from ultralytics.yolo.utils import DEFAULT_CONFIG, HELP_MSG, LOGGER, colorstr, print_settings
+from ultralytics.yolo.utils import DEFAULT_CONFIG, HELP_MSG, LOGGER, colorstr, print_settings, yaml_load
 
 DIR = Path(__file__).parent
 
@@ -80,18 +79,22 @@ def entrypoint():
     modes = 'train', 'val', 'predict', 'export'
     special_modes = {'checks': hub.checks, 'help': lambda: LOGGER.info(HELP_MSG), 'settings': print_settings}
 
-    overrides = [x for x in args if '=' in x]  # basic overrides, i.e. imgsz=320
+    overrides = []  # basic overrides, i.e. imgsz=320
+    defaults = yaml_load(DEFAULT_CONFIG)
     for a in args:
-        if '=' not in a:
-            if a in tasks:
-                overrides.append(f'task={a}')
-            elif a in modes:
-                overrides.append(f'mode={a}')
-            elif a in special_modes:
-                special_modes[a]()
-                return
-            else:
-                raise (SyntaxError(f"'{a}' is not a valid yolo argument\n{HELP_MSG}"))
+        if '=' in a:
+            overrides.append(a)
+        elif a in tasks:
+            overrides.append(f'task={a}')
+        elif a in modes:
+            overrides.append(f'mode={a}')
+        elif a in special_modes:
+            special_modes[a]()
+            return
+        elif a in defaults and defaults[a] is False:
+            overrides.append(f'{a}=True')  # auto-True for default False args, i.e. yolo show
+        else:
+            raise (SyntaxError(f"'{a}' is not a valid yolo argument\n{HELP_MSG}"))
 
     with initialize(version_base=None, config_path=str(DEFAULT_CONFIG.parent.relative_to(DIR)), job_name="YOLO"):
         cfg = compose(config_name=DEFAULT_CONFIG.name, overrides=overrides)

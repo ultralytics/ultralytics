@@ -33,9 +33,9 @@ class ClassificationPredictor(BasePredictor):
             im = im[None]  # expand for batch dim
         self.seen += 1
         im0 = im0.copy()
-        if self.webcam:  # batch_size >= 1
+        if self.webcam or self.from_img:  # batch_size >= 1
             log_string += f'{idx}: '
-            frame = self.dataset.cound
+            frame = self.dataset.count
         else:
             frame = getattr(self.dataset, 'frame', 0)
 

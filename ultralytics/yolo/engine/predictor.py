@@ -37,7 +37,7 @@ from PIL import Image
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.data.augment import LetterBox
-from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages, LoadScreenshots, LoadStreams
+from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages, LoadScreenshots, LoadStreams, LoadPilAndNumpy
 from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS
 from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, SETTINGS, callbacks, colorstr, ops
 from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_imshow
@@ -110,14 +110,7 @@ class BasePredictor:
 
     def setup(self, source=None, model=None):
         # source
-        source = str(source if source is not None else self.args.source)
-        is_file = Path(source).suffix[1:] in (IMG_FORMATS + VID_FORMATS)
-        is_url = source.lower().startswith(('rtsp://', 'rtmp://', 'http://', 'https://'))
-        webcam = source.isnumeric() or source.endswith('.streams') or (is_url and not is_file)
-        screenshot = source.lower().startswith('screen')
-        if is_url and is_file:
-            source = check_file(source)  # download
-
+        source, webcam, screenshot, from_img = self.check_source(source)
         # model
         stride, pt = self.setup_model(model)
         imgsz = check_imgsz(self.args.imgsz, stride=stride, min_dim=2)  # check image size
@@ -139,6 +132,12 @@ class BasePredictor:
                                            stride=stride,
                                            auto=pt,
                                            transforms=getattr(self.model.model, 'transforms', None))
+        elif from_img:
+            self.dataset = LoadPilAndNumpy(source,
+                                            imgsz=imgsz,
+                                            stride=stride,
+                                            auto=pt,
+                                            transforms=getattr(self.model.model, 'transforms', None))
         else:
             self.dataset = LoadImages(source,
                                       imgsz=imgsz,
@@ -151,6 +150,7 @@ class BasePredictor:
 
         self.webcam = webcam
         self.screenshot = screenshot
+        self.from_img = from_img
         self.imgsz = imgsz
         self.done_setup = True
         return model
@@ -184,12 +184,12 @@ class BasePredictor:
             with self.dt[2]:
                 results = self.postprocess(preds, im, im0s)
             for i in range(len(im)):
-                if self.webcam:
-                    path, im0s = path[i], im0s[i]
-                p = Path(path)
+                if self.webcam or self.from_img:
+                    p, im0 = path[i], im0s[i]
+                p = Path(p)
 
                 if verbose or self.args.save or self.args.save_txt:
-                    s += self.write_results(i, results, (p, im, im0s))
+                    s += self.write_results(i, results, (p, im, im0))
 
                 if self.args.show:
                     self.show(p)
@@ -227,6 +227,21 @@ class BasePredictor:
         self.model.eval()
         return model.stride, model.pt
 
+    def check_source(self, source):
+        source = source if source is not None else self.args.source
+        webcam, screenshot, from_img = False, False, False
+        if isinstance(source, (str, int, Path)):  # int for local usb carame
+            source = str(source)
+            is_file = Path(source).suffix[1:] in (IMG_FORMATS + VID_FORMATS)
+            is_url = source.lower().startswith(('rtsp://', 'rtmp://', 'http://', 'https://'))
+            webcam = source.isnumeric() or source.endswith('.streams') or (is_url and not is_file)
+            screenshot = source.lower().startswith('screen')
+            if is_url and is_file:
+                source = check_file(source)  # download
+        else:
+            from_img = True
+        return source, webcam, screenshot, from_img
+
     def inference(self, img):
         # minimal inference demo for python interface
         # supporting PIL/ndarray/tensor
@@ -240,24 +255,6 @@ class BasePredictor:
         im = self.preprocess(im)
         preds = self.model(im)
         return self.postprocess(preds, im, img)  # merge all the list of Result into one
-
-    @staticmethod
-    def _single_check(img):
-        assert isinstance(img, (Image.Image, np.ndarray)), f"Expected PIL/np.ndarray image type, but got {type(img)}"
-        if isinstance(img, Image.Image):
-            img = np.asarray(img)
-        return img
-
-    def _single_preprocess(self, img, stride, auto=True):
-        # TODO: considering adding this part into self.preprocess
-        if getattr(self.model.model, 'transforms', None):
-            im = self.model.model.transforms(img)  # transforms
-        else:
-            imgsz = check_imgsz(self.args.imgsz, stride=stride)  # check image size
-            im = LetterBox(imgsz, auto=auto, stride=stride)(image=img)
-            im = im.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
-            im = np.ascontiguousarray(im)  # contiguous
-        return im
 
     def show(self, p):
         im0 = self.annotator.result()

@@ -7,6 +7,7 @@ import time
 from pathlib import Path
 from threading import Thread
 from urllib.parse import urlparse
+from PIL import Image
 
 import cv2
 import numpy as np
@@ -254,3 +255,55 @@ class LoadImages:
 
     def __len__(self):
         return self.nf  # number of files
+
+
+class LoadPilAndNumpy:
+    def __init__(self, im0, imgsz=640, stride=32, auto=True, transforms=None):
+        if not isinstance(im0, list):
+            im0 = [im0]
+        self.im0 = [self._single_check(im) for im in im0]
+        self.imgsz = imgsz
+        self.stride = stride
+        self.auto = auto
+        self.transforms = transforms
+        self.mode = 'image'
+        # generate fake paths
+        self.paths = [f"image{i}.jpg" for i in range(len(self.im0))]
+
+    @staticmethod
+    def _single_check(img):
+        assert isinstance(img, (Image.Image, np.ndarray)), f"Expected PIL/np.ndarray image type, but got {type(img)}"
+        if isinstance(img, Image.Image):
+            img = np.asarray(img)[:, :, ::-1]
+        return img
+
+    def _single_preprocess(self, img, auto):
+        if self.transforms:
+            im = self.transforms(img)  # transforms
+        else:
+            im = LetterBox(self.imgsz, auto=auto, stride=self.stride)(image=img)
+            im = im.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
+            im = np.ascontiguousarray(im)  # contiguous
+        return im
+
+    def __len__(self):
+        return len(self.im0)
+
+    def __next__(self):
+        if self.count == 1:  # loop only once as it's batch inference
+            raise StopIteration
+        auto = all(x.shape == self.im0[0].shape for x in self.im0) and self.auto
+        im = [self._single_preprocess(im, auto) for im in self.im0]
+        im = np.stack(im, 0) if len(im) > 1 else im[0][None]
+        self.count += 1
+        return self.paths, im, self.im0, None, ''
+
+    def __iter__(self):
+        self.count = 0
+        return self
+
+if __name__ == "__main__":
+    img = cv2.imread("/home/laughing/codes/ultralytics/ultralytics/assets/bus.jpg")
+    dataset = LoadPilAndNumpy(im0=img)
+    for d in dataset:
+        print(d[0])

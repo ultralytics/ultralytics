@@ -54,8 +54,8 @@ class YOLO:
         # Load or create new YOLO model
         {'.pt': self._load, '.yaml': self._new}[Path(model).suffix](model)
 
-    def __call__(self, source=None, img=None, return_outputs=False, **kwargs):
-        return self.predict(source, img, return_outputs, **kwargs)
+    def __call__(self, source=None, stream=False, verbose=False, **kwargs):
+        return self.predict(source, stream, verbose, **kwargs)
 
     def _new(self, cfg: str, verbose=True):
         """
@@ -134,12 +134,12 @@ class YOLO:
         predictor = self.PredictorClass(overrides=overrides)
 
         predictor.args.imgsz = check_imgsz(predictor.args.imgsz, min_dim=2)  # check image size
-        if isinstance(source, (str, int, Path)):  # int for local usb carame
-            predictor.setup(model=self.model, source=source)
-            return predictor(stream=stream, verbose=verbose)
-        else:
-            predictor.setup_model(self.model)
-            return predictor.inference(source)
+        # if isinstance(source, (str, int, Path)):  # int for local usb carame
+        predictor.setup(model=self.model, source=source)
+        return predictor(stream=stream, verbose=verbose)
+        # else:
+        #     predictor.setup_model(self.model)
+        #     return predictor.inference(source)
 
     @smart_inference_mode()
     def val(self, data=None, **kwargs):

@@ -53,7 +53,7 @@
 <details open>
 <summary>安装</summary>
 
-Pip 安装包含所有 [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) 的 ultralytics 包，环境要求 [**Python>=3.7.0**](https://www.python.org/)，且 [**PyTorch>=1.7**](https://pytorch.org/get-started/locally/)。
+Pip 安装包含所有 [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) 的 ultralytics 包，环境要求 [**3.10>=Python>=3.7**](https://www.python.org/)，且 [**PyTorch>=1.7**](https://pytorch.org/get-started/locally/)。
 
 ```bash
 pip install ultralytics

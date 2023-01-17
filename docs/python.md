@@ -1,5 +1,4 @@
-This is the simplest way of simply using YOLOv8 models in a Python environment. It can be imported from
-the `ultralytics` module.
+The simplest way of simply using YOLOv8 directly in a Python environment.
 
 !!! example "Train"
 
@@ -51,35 +50,60 @@ the `ultralytics` module.
     === "From source"
         ```python
         from ultralytics import YOLO
+        from PIL import Image
+        import cv2
 
         model = YOLO("model.pt")
-        model.predict(source="0") # accepts all formats - img/folder/vid.*(mp4/format). 0 for webcam
-        model.predict(source="folder", show=True) # Display preds. Accepts all yolo predict arguments
+        # accepts all formats - image/dir/Path/URL/video/PIL/ndarray. 0 for webcam
+        results = model.predict(source="0")
+        results = model.predict(source="folder", show=True) # Display preds. Accepts all YOLO predict arguments
 
+        # from PIL
+        im1 = Image.open("bus.jpg")
+        results = model.predict(source=im1, save=True)  # save plotted images
+
+        # from ndarray
+        im2 = cv2.imread("bus.jpg")
+        results = model.predict(source=im2, save=True, save_txt=True)  # save predictions as labels
+
+        # from list of PIL/ndarray
+        results = model.predict(source=[im1, im2])
         ```
 
-    === "From image/ndarray/tensor"
+    === "Results usage"
         ```python
-        # TODO, still working on it.
-        ```
+        # results would be a list of Results object including all the predictions by default
+        # but be careful as it could occupy a lot memory when there're many images, 
+        # especially the task is segmentation.
+        # 1. return as a list
+        results = model.predict(source="folder")
 
+        # results would be a generator which is more friendly to memory by setting stream=True
+        # 2. return as a generator
+        results = model.predict(source=0, stream=True)
 
-    === "Return outputs"
-        ```python
-        from ultralytics import YOLO
+        for result in results:
+            # detection
+            result.boxes.xyxy   # box with xyxy format, (N, 4)
+            result.boxes.xywh   # box with xywh format, (N, 4)
+            result.boxes.xyxyn  # box with xyxy format but normalized, (N, 4)
+            result.boxes.xywhn  # box with xywh format but normalized, (N, 4)
+            result.boxes.conf   # confidence score, (N, 1)
+            result.boxes.cls    # cls, (N, 1)
 
-        model = YOLO("model.pt")
-        outputs = model.predict(source="0", return_outputs=True) # treat predict as a Python generator
-        for output in outputs:
-          # each output here is a dict.
-          # for detection
-          print(output["det"])  # np.ndarray, (N, 6), xyxy, score, cls
-          # for segmentation
-          print(output["det"])  # np.ndarray, (N, 6), xyxy, score, cls
-          print(output["segment"])  # List[np.ndarray] * N, bounding coordinates of masks
-          # for classify
-          print(output["prob"]) # np.ndarray, (num_class, ), cls prob
+            # segmentation
+            result.masks.masks     # masks, (N, H, W)
+            result.masks.segments  # bounding coordinates of masks, List[segment] * N
 
+            # classification
+            result.probs     # cls prob, (num_class, )
+
+        # Each result is composed of torch.Tensor by default, 
+        # in which you can easily use following functionality:
+        result = result.cuda()
+        result = result.cpu()
+        result = result.to("cpu")
+        result = result.numpy()
         ```
 
 !!! note "Export and Deployment"

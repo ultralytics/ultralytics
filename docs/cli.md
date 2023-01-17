@@ -83,7 +83,7 @@ yolo cfg=default.yaml
         yolo task=init
         yolo cfg=default.yaml
         ```
-    === "Result"
+    === "Results"
         TODO: add terminal output
 
 

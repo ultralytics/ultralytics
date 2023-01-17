@@ -3,10 +3,25 @@ from functools import lru_cache
 import numpy as np
 import torch
 
-from ultralytics.yolo.utils import ops
+from ultralytics.yolo.utils import ops, LOGGER
 
 
 class Results:
+    """
+        A class for storing and manipulating detection results.
+
+        Args:
+            boxes (Boxes, optional): A Boxes object containing the detection bounding boxes.
+            masks (Masks, optional): A Masks object containing the detection masks.
+            probs (torch.Tensor, optional): A tensor containing the detection class probabilities.
+            orig_shape (tuple, optional): Original image size.
+
+        Attributes:
+            boxes (Boxes, optional): A Boxes object containing the detection bounding boxes.
+            masks (Masks, optional): A Masks object containing the detection masks.
+            probs (torch.Tensor, optional): A tensor containing the detection class probabilities.
+            orig_shape (tuple, optional): Original image size.
+        """
 
     def __init__(self, boxes=None, masks=None, probs=None, orig_shape=None) -> None:
         self.boxes = Boxes(boxes, orig_shape) if boxes is not None else None  # native size boxes
@@ -82,14 +97,33 @@ class Results:
 
 
 class Boxes:
+    """
+    A class for storing and manipulating detection boxes.
+
+    Args:
+        boxes (torch.Tensor or numpy.ndarray): A tensor or numpy array containing the detection boxes, with shape (num_boxes, 6). The last two columns should contain confidence and class values.
+        orig_shape (tuple): Original image size, in the format (height, width).
+
+    Attributes:
+        boxes (torch.Tensor or numpy.ndarray): A tensor or numpy array containing the detection boxes, with shape (num_boxes, 6).
+        orig_shape (torch.Tensor or numpy.ndarray): Original image size, in the format (height, width).
+
+    Properties:
+        xyxy (torch.Tensor or numpy.ndarray): The boxes in xyxy format.
+        conf (torch.Tensor or numpy.ndarray): The confidence values of the boxes.
+        cls (torch.Tensor or numpy.ndarray): The class values of the boxes.
+        xywh (torch.Tensor or numpy.ndarray): The boxes in xywh format.
+        xyxyn (torch.Tensor or numpy.ndarray): The boxes in xyxy format normalized by original image size.
+        xywhn (torch.Tensor or numpy.ndarray): The boxes in xywh format normalized by original image size.
+    """
 
     def __init__(self, boxes, orig_shape) -> None:
         if boxes.ndim == 1:
             boxes = boxes[None, :]
         assert boxes.shape[-1] == 6  # xyxy, conf, cls
         self.boxes = boxes
-        self.orig_shape = torch.as_tensor(orig_shape, device=boxes.device) \
-                if isinstance(boxes, torch.Tensor) else np.asarray(orig_shape)
+        self.orig_shape = torch.as_tensor(orig_shape, device=boxes.device) if isinstance(boxes, torch.Tensor) \
+            else np.asarray(orig_shape)
 
     @property
     def xyxy(self):
@@ -135,10 +169,7 @@ class Boxes:
         return Boxes(boxes, self.orig_shape)
 
     def pandas(self):
-        '''
-        TODO: Placeholder. I don't understant this code. Need to look deeper.
-        '''
-        pass
+        LOGGER.info('results.pandas() method not yet implemented')
         '''
         new = copy(self)  # return copy
         ca = 'xmin', 'ymin', 'xmax', 'ymax', 'confidence', 'class', 'name'  # xyxy columns
@@ -169,6 +200,20 @@ class Boxes:
 
 
 class Masks:
+    """
+    A class for storing and manipulating detection masks.
+
+    Args:
+        masks (torch.Tensor): A tensor containing the detection masks, with shape (num_masks, height, width).
+        orig_shape (tuple): Original image size, in the format (height, width).
+
+    Attributes:
+        masks (torch.Tensor): A tensor containing the detection masks, with shape (num_masks, height, width).
+        orig_shape (tuple): Original image size, in the format (height, width).
+
+    Properties:
+        segments (list): A list of segments which includes x,y,w,h,label,confidence, and mask of each detection masks.
+    """
 
     def __init__(self, masks, orig_shape) -> None:
         self.masks = masks  # N, h, w

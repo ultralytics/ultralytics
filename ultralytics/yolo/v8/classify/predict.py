@@ -69,7 +69,7 @@ def predict(cfg):
     cfg.model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
     cfg.source = cfg.source if cfg.source is not None else ROOT / "assets"
     predictor = ClassificationPredictor(cfg)
-    predictor(verbose=True)
+    predictor.predict_cli()
 
 
 if __name__ == "__main__":

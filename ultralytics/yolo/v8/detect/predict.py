@@ -86,7 +86,7 @@ def predict(cfg):
     cfg.model = cfg.model or "yolov8n.pt"
     cfg.source = cfg.source if cfg.source is not None else ROOT / "assets"
     predictor = DetectionPredictor(cfg)
-    predictor(verbose=True)
+    predictor.predict_cli()
 
 
 if __name__ == "__main__":

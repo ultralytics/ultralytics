@@ -3,7 +3,7 @@
 import hydra
 import torch
 
-from ultralytics.yolo.engine.result import Result
+from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils import DEFAULT_CONFIG, ROOT, ops
 from ultralytics.yolo.utils.plotting import colors, save_one_box
 from ultralytics.yolo.v8.detect.predict import DetectionPredictor
@@ -24,7 +24,7 @@ class SegmentationPredictor(DetectionPredictor):
         for i, pred in enumerate(p):
             shape = orig_img[i].shape if isinstance(orig_img, list) else orig_img.shape
             if not len(pred):
-                results.append(Result(boxes=pred[:, :6], orig_shape=shape[:2]))  # save empty boxes
+                results.append(Results(boxes=pred[:, :6], orig_shape=shape[:2]))  # save empty boxes
                 continue
             if self.args.retina_masks:
                 pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
@@ -32,7 +32,7 @@ class SegmentationPredictor(DetectionPredictor):
             else:
                 masks = ops.process_mask(proto[i], pred[:, 6:], pred[:, :4], img.shape[2:], upsample=True)  # HWC
                 pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
-            results.append(Result(boxes=pred[:, :6], masks=masks, orig_shape=shape[:2]))
+            results.append(Results(boxes=pred[:, :6], masks=masks, orig_shape=shape[:2]))
         return results
 
     def write_results(self, idx, results, batch):

@@ -1,6 +1,6 @@
-### Result API Reference
+### Results API Reference
 
-:::ultralytics.yolo.engine.result.Result
+:::ultralytics.yolo.engine.result.Results
 --
 ### Boxes API Reference
 

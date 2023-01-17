@@ -4,7 +4,7 @@ import hydra
 import torch
 
 from ultralytics.yolo.engine.predictor import BasePredictor
-from ultralytics.yolo.engine.result import Result
+from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils import DEFAULT_CONFIG, ROOT, ops
 from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
 
@@ -31,7 +31,7 @@ class DetectionPredictor(BasePredictor):
         for i, pred in enumerate(preds):
             shape = orig_img[i].shape if isinstance(orig_img, list) else orig_img.shape
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
-            results.append(Result(boxes=pred, orig_shape=shape[:2]))
+            results.append(Results(boxes=pred, orig_shape=shape[:2]))
         return results
 
     def write_results(self, idx, results, batch):

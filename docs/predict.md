@@ -23,7 +23,7 @@ Inference or prediction of a task returns a list of `Results` objects. Alternati
         ```
 
 ## Working with Results
-Result object consists of these component objects:
+Results object consists of these component objects:
 
 - `result.boxes` : It is an object of class `Boxes`. It has properties and methods for manipulating bboxes
 - `result.masks` : It is an object of class `Masks`. It can be used to index masks or to get segment coordinates.
@@ -68,4 +68,4 @@ result.masks.segments  # bounding coordinates of masks, List[segment] * N
 result.probs     # cls prob, (num_class, )
 ```
 
-Class reference documentation for `Result` module and its componenets can be found [here](reference/result.md)
+Class reference documentation for `Results` module and its componenets can be found [here](reference/results.md)

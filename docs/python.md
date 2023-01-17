@@ -72,7 +72,7 @@ The simplest way of simply using YOLOv8 directly in a Python environment.
 
     === "Results usage"
         ```python
-        # results would be a list of Result object including all the predictions by default
+        # results would be a list of Results object including all the predictions by default
         # but be careful as it could occupy a lot memory when there're many images, 
         # especially the task is segmentation.
         # 1. return as a list

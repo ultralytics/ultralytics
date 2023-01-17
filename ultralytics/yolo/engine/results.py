@@ -6,7 +6,7 @@ import torch
 from ultralytics.yolo.utils import ops
 
 
-class Result:
+class Results:
 
     def __init__(self, boxes=None, masks=None, probs=None, orig_shape=None) -> None:
         self.boxes = Boxes(boxes, orig_shape) if boxes is not None else None  # native size boxes
@@ -20,44 +20,44 @@ class Result:
         # TODO masks.pandas + boxes.pandas + cls.pandas
 
     def __getitem__(self, idx):
-        new_result = Result(orig_shape=self.orig_shape)
+        r = Results(orig_shape=self.orig_shape)
         for item in self.comp:
             if getattr(self, item) is None:
                 continue
-            setattr(new_result, item, getattr(self, item)[idx])
-        return new_result
+            setattr(r, item, getattr(self, item)[idx])
+        return r
 
     def cpu(self):
-        new_result = Result(orig_shape=self.orig_shape)
+        r = Results(orig_shape=self.orig_shape)
         for item in self.comp:
             if getattr(self, item) is None:
                 continue
-            setattr(new_result, item, getattr(self, item).cpu())
-        return new_result
+            setattr(r, item, getattr(self, item).cpu())
+        return r
 
     def numpy(self):
-        new_result = Result(orig_shape=self.orig_shape)
+        r = Results(orig_shape=self.orig_shape)
         for item in self.comp:
             if getattr(self, item) is None:
                 continue
-            setattr(new_result, item, getattr(self, item).numpy())
-        return new_result
+            setattr(r, item, getattr(self, item).numpy())
+        return r
 
     def cuda(self):
-        new_result = Result(orig_shape=self.orig_shape)
+        r = Results(orig_shape=self.orig_shape)
         for item in self.comp:
             if getattr(self, item) is None:
                 continue
-            setattr(new_result, item, getattr(self, item).cuda())
-        return new_result
+            setattr(r, item, getattr(self, item).cuda())
+        return r
 
     def to(self, *args, **kwargs):
-        new_result = Result(orig_shape=self.orig_shape)
+        r = Results(orig_shape=self.orig_shape)
         for item in self.comp:
             if getattr(self, item) is None:
                 continue
-            setattr(new_result, item, getattr(self, item).to(*args, **kwargs))
-        return new_result
+            setattr(r, item, getattr(self, item).to(*args, **kwargs))
+        return r
 
     def __len__(self):
         for item in self.comp:
@@ -218,7 +218,7 @@ class Masks:
 
 if __name__ == "__main__":
     # test examples
-    results = Result(boxes=torch.randn((2, 6)), masks=torch.randn((2, 160, 160)), orig_shape=[640, 640])
+    results = Results(boxes=torch.randn((2, 6)), masks=torch.randn((2, 160, 160)), orig_shape=[640, 640])
     results = results.cuda()
     print("--cuda--pass--")
     results = results.cpu()

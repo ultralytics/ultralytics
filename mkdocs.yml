@@ -84,7 +84,7 @@ nav:
   - Usage:
     - CLI: cli.md
     - Python: python.md
-    - Inference: predict.md
+    - Predict: predict.md
     - Configuration: config.md
     - Customization Guide: engine.md
   - Ultralytics HUB: hub.md
@@ -96,7 +96,7 @@ nav:
           - Validator: reference/base_val.md
           - Predictor: reference/base_pred.md
           - Exporter: reference/exporter.md
-          - Result: reference/result.md
-      - nn Module: reference/nn.md
-      - operations: reference/ops.md
+          - Results: reference/results.md
+      - ultralytics.nn: reference/nn.md
+      - Operations: reference/ops.md
       - Docs: README.md

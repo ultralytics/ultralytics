@@ -1,5 +1,4 @@
-This is the simplest way of simply using YOLOv8 models in a Python environment. It can be imported from
-the `ultralytics` module.
+The simplest way of simply using YOLOv8 directly in a Python environment.
 
 !!! example "Train"
 
@@ -55,20 +54,20 @@ the `ultralytics` module.
         import cv2
 
         model = YOLO("model.pt")
-        # accepts all formats - img/folder/vid.*(mp4/format)/PIL/ndarray. 0 for webcam
-        # from img/folder/vid.*(mp4/format)
+        # accepts all formats - image/dir/Path/URL/video/PIL/ndarray. 0 for webcam
         results = model.predict(source="0")
-        results = model.predict(source="folder", show=True) # Display preds. Accepts all yolo predict arguments
+        results = model.predict(source="folder", show=True) # Display preds. Accepts all YOLO predict arguments
 
         # from PIL
-        img = Image.open("bus.jpg")
-        results = model.predict(source=img, save=True)  # save plotted images
-        # from ndarray
-        img = cv2.imread("bus.jpg")
-        results = model.predict(source=img, save=True, save_txt=True)  # save predictions as labels
-        # from list of PIL/ndarray
-        results = model.predict(source=[img, img])
+        im1 = Image.open("bus.jpg")
+        results = model.predict(source=im1, save=True)  # save plotted images
 
+        # from ndarray
+        im2 = cv2.imread("bus.jpg")
+        results = model.predict(source=im2, save=True, save_txt=True)  # save predictions as labels
+
+        # from list of PIL/ndarray
+        results = model.predict(source=[im1, im2])
         ```
 
     === "Results usage"

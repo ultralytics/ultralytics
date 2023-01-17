@@ -1,6 +1,6 @@
 # Ultralytics Docs
 
-Deployed to https://docs.ultralytics.com
+Ultralytics Docs are deployed to [https://docs.ultralytics.com](https://docs.ultralytics.com).
 
 ### Install Ultralytics package
 

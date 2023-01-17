@@ -22,7 +22,7 @@ class ClassificationPredictor(BasePredictor):
     def postprocess(self, preds, img, orig_img):
         results = []
         for i, pred in enumerate(preds):
-            shape = orig_img[i].shape if self.webcam else orig_img.shape
+            shape = orig_img[i].shape if isinstance(orig_img, list) else orig_img.shape
             results.append(Result(probs=pred.softmax(0), orig_shape=shape[:2]))
         return results
 

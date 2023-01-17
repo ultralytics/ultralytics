@@ -276,6 +276,7 @@ class LoadPilAndNumpy:
         assert isinstance(img, (Image.Image, np.ndarray)), f"Expected PIL/np.ndarray image type, but got {type(img)}"
         if isinstance(img, Image.Image):
             img = np.asarray(img)[:, :, ::-1]
+            img = np.ascontiguousarray(img)  # contiguous
         return img
 
     def _single_preprocess(self, img, auto):

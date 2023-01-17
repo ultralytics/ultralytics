@@ -1,11 +1,11 @@
 ### Results API Reference
 
-:::ultralytics.yolo.engine.result.Results
---
+:::ultralytics.yolo.engine.results.Results
+
 ### Boxes API Reference
 
-:::ultralytics.yolo.engine.result.Boxes
---
+:::ultralytics.yolo.engine.results.Boxes
+
 ### Masks API Reference
 
-:::ultralytics.yolo.engine.result.Masks
+:::ultralytics.yolo.engine.results.Masks

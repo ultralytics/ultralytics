@@ -76,8 +76,11 @@ the `ultralytics` module.
         # results would be a list of Result object including all the predictions by default
         # but be careful as it could occupy a lot memory when there're many images, 
         # especially using segmentation.
+        # 1. return as a list
         results = model.predict(source="folder")
+
         # results would be a generator which is more friendly to memory by setting stream=True
+        # 2. return as a generator
         results = model.predict(source=0, stream=True)
 
         for result in results:

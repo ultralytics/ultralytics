@@ -98,6 +98,6 @@ def entrypoint():
 # Special modes --------------------------------------------------------------------------------------------------------
 def copy_default_config():
     new_file = Path.cwd() / DEFAULT_CONFIG.name.replace('.yaml', '_copy.yaml')
-    shutil.copy2(DEFAULT_CONFIG, Path.cwd())
+    shutil.copy2(DEFAULT_CONFIG, new_file)
     LOGGER.info(f"{PREFIX}{DEFAULT_CONFIG} copied to {new_file}\n"
                 f"Usage for running YOLO with this new custom config:\nyolo cfg={new_file} args...")

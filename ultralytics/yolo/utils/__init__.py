@@ -183,6 +183,18 @@ def is_dir_writeable(dir_path: Union[str, Path]) -> bool:
         return False
 
 
+def is_pytest_running():
+    """
+    Returns a boolean indicating if pytest is currently running or not
+    :return: True if pytest is running, False otherwise
+    """
+    try:
+        import sys
+        return "pytest" in sys.modules
+    except ImportError:
+        return False
+
+
 def get_git_root_dir():
     """
     Determines whether the current file is part of a git repository and if so, returns the repository root directory.
@@ -352,6 +364,21 @@ def yaml_load(file='data.yaml', append_filename=False):
         return {**yaml.safe_load(f), 'yaml_file': str(file)} if append_filename else yaml.safe_load(f)
 
 
+def set_sentry(dsn=None):
+    """
+    Initialize the Sentry SDK for error tracking and reporting if pytest is not currently running.
+    """
+    if dsn and not is_pytest_running():
+        import sentry_sdk
+        import ultralytics
+
+        sentry_sdk.init(
+            dsn=dsn,
+            traces_sample_rate=1.0,
+            release=ultralytics.__version__,
+            debug=False)
+
+
 def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.1'):
     """
     Loads a global Ultralytics settings YAML file or creates one with default values if it does not exist.
@@ -398,21 +425,6 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.1'):
         return settings
 
 
-# Run below code on utils init -----------------------------------------------------------------------------------------
-PREFIX = colorstr("Ultralytics: ")
-
-# Set logger
-set_logging(LOGGING_NAME)  # run before defining LOGGER
-LOGGER = logging.getLogger(LOGGING_NAME)  # define globally (used in train.py, val.py, detect.py, etc.)
-if platform.system() == 'Windows':
-    for fn in LOGGER.info, LOGGER.warning:
-        setattr(LOGGER, fn.__name__, lambda x: fn(emojis(x)))  # emoji safe logging
-
-# Check first-install steps
-SETTINGS = get_settings()
-DATASETS_DIR = Path(SETTINGS['datasets_dir'])  # global datasets directory
-
-
 def set_settings(kwargs, file=USER_CONFIG_DIR / 'settings.yaml'):
     """
     Function that runs on a first-time ultralytics package installation to set up global settings and create necessary
@@ -431,3 +443,19 @@ def print_settings():
     s += json.dumps(SETTINGS, indent=2)
     s += f"\n\nUpdate settings at {USER_CONFIG_DIR / 'settings.yaml'}"
     LOGGER.info(s)
+
+
+# Run below code on utils init -----------------------------------------------------------------------------------------
+
+# Set logger
+set_logging(LOGGING_NAME)  # run before defining LOGGER
+LOGGER = logging.getLogger(LOGGING_NAME)  # define globally (used in train.py, val.py, detect.py, etc.)
+if platform.system() == 'Windows':
+    for fn in LOGGER.info, LOGGER.warning:
+        setattr(LOGGER, fn.__name__, lambda x: fn(emojis(x)))  # emoji safe logging
+
+# Check first-install steps
+PREFIX = colorstr("Ultralytics: ")
+SETTINGS = get_settings()
+DATASETS_DIR = Path(SETTINGS['datasets_dir'])  # global datasets directory
+set_sentry()

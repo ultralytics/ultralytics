@@ -16,25 +16,25 @@ supported task by setting `task` and `mode` in CLI.
 
     |                  | `task`     | snippet                                                    |
     |------------------|------------|------------------------------------------------------------|
-    | Detection        | `detect`   | <pre><code>yolo task=detect mode=train       </code></pre> |
-    | Instance Segment | `segment`  | <pre><code>yolo task=segment mode=train      </code></pre> |
-    | Classification   | `classify` | <pre><code>yolo task=classify mode=train    </code></pre>  |
+    | Detection        | `detect`   | <pre><code>yolo detect train       </code></pre> |
+    | Instance Segment | `segment`  | <pre><code>yolo segment train      </code></pre> |
+    | Classification   | `classify` | <pre><code>yolo classify train    </code></pre>  |
 
 === "Prediction"
 
     |                  | `task`     | snippet                                                      |
     |------------------|------------|--------------------------------------------------------------|
-    | Detection        | `detect`   | <pre><code>yolo task=detect mode=predict       </code></pre> |
-    | Instance Segment | `segment`  | <pre><code>yolo task=segment mode=predict     </code></pre>  |
-    | Classification   | `classify` | <pre><code>yolo task=classify mode=predict    </code></pre>  |
+    | Detection        | `detect`   | <pre><code>yolo detect predict       </code></pre> |
+    | Instance Segment | `segment`  | <pre><code>yolo segment predict     </code></pre>  |
+    | Classification   | `classify` | <pre><code>yolo classify predict    </code></pre>  |
 
 === "Validation"
 
     |                  | `task`     | snippet                                                   |
     |------------------|------------|-----------------------------------------------------------|
-    | Detection        | `detect`   | <pre><code>yolo task=detect mode=val        </code></pre> |
-    | Instance Segment | `segment`  | <pre><code>yolo task=segment mode=val       </code></pre> |
-    | Classification   | `classify` | <pre><code>yolo task=classify mode=val      </code></pre> |
+    | Detection        | `detect`   | <pre><code>yolo detect val        </code></pre> |
+    | Instance Segment | `segment`  | <pre><code>yolo segment val       </code></pre> |
+    | Classification   | `classify` | <pre><code>yolo classify val      </code></pre> |
 
 !!! note ""
 
@@ -44,19 +44,19 @@ supported task by setting `task` and `mode` in CLI.
 
 ## Overriding default config arguments
 
-All global default arguments can be overriden by simply passing them as arguments in the CLI.
+Default arguments can be overriden by simply passing them as arguments in the CLI.
 
 !!! tip ""
 
     === "Syntax"
         ```bash
-        yolo task= ... mode= ... {++ arg=val ++}
+        yolo task mode arg=val...
         ```
 
     === "Example"
         Perform detection training for `10 epochs` with `learning_rate` of `0.01`
         ```bash
-        yolo task=detect mode=train {++ epochs=10 lr0=0.01 ++}
+        yolo detect train epochs=10 lr0=0.01
         ```
 
 ---

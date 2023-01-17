@@ -67,10 +67,11 @@ def entrypoint():
 
     tasks = 'detect', 'segment', 'classify'
     modes = 'train', 'val', 'predict', 'export'
-    special_modes = {'checks': hub.checks,
-                     'help': lambda: LOGGER.info(HELP_MSG),
-                     'settings': print_settings,
-                     'copy-config': copy_default_config}
+    special_modes = {
+        'checks': hub.checks,
+        'help': lambda: LOGGER.info(HELP_MSG),
+        'settings': print_settings,
+        'copy-config': copy_default_config}
 
     overrides = []  # basic overrides, i.e. imgsz=320
     defaults = yaml_load(DEFAULT_CONFIG)

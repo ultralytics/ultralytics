@@ -111,14 +111,13 @@ class YOLO:
         self.model.fuse()
 
     @smart_inference_mode()
-    def predict(self, source=None, img=None, stream=False, verbose=False, **kwargs):
+    def predict(self, source=None, stream=False, verbose=False, **kwargs):
         """
         Perform prediction using the YOLO model.
 
         Args:
-            source (str): The source of the image to make predictions on.
+            source (str | int | PIL | np.ndarray): The source of the image to make predictions on.
                           Accepts all source types accepted by the YOLO model.
-            img (torch.Tensor): The image tensor to make predictions on.
             stream (bool): Whether to stream the predictions or not. Defaults to False.
             verbose (bool): Whether to print verbose information or not. Defaults to False.
             **kwargs : Additional keyword arguments passed to the predictor.
@@ -127,7 +126,6 @@ class YOLO:
         Returns:
             (dict): The prediction results.
         """
-        assert (source is None) ^ (img is None), "Input should be either `source` or `img`."
         overrides = self.overrides.copy()
         overrides["conf"] = 0.25
         overrides.update(kwargs)
@@ -136,12 +134,13 @@ class YOLO:
         predictor = self.PredictorClass(overrides=overrides)
 
         predictor.args.imgsz = check_imgsz(predictor.args.imgsz, min_dim=2)  # check image size
-        if img is not None:
+        if isinstance(source, (str, int)): # int for local usb carame
+            predictor.setup(model=self.model, source=source)
+            return predictor(stream=stream, verbose=verbose)
+        else:
             predictor.setup_model(self.model)
-            return predictor.inference(img)
+            return predictor.inference(source)
 
-        predictor.setup(model=self.model, source=source)
-        return predictor(stream=stream, verbose=verbose)
 
     @smart_inference_mode()
     def val(self, data=None, **kwargs):

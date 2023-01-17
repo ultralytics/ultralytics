@@ -41,12 +41,12 @@ def test_predict_dir():
 def test_predict_img():
     model = YOLO(MODEL)
     img = Image.open(str(SOURCE))
-    output = model(img=img)  # PIL
+    output = model(source=img)  # PIL
     assert len(output) == 1, "predict test failed"
     img = cv2.imread(str(SOURCE))
-    output = model(img=img)  # ndarray
+    output = model(source=img)  # ndarray
     assert len(output) == 1, "predict test failed"
-    output = model(img=[img, img])  # batch
+    output = model(source=[img, img])  # batch
     assert len(output) == 2, "predict test failed"
 
 

@@ -370,13 +370,10 @@ def set_sentry(dsn=None):
     """
     if dsn and not is_pytest_running():
         import sentry_sdk
+
         import ultralytics
 
-        sentry_sdk.init(
-            dsn=dsn,
-            traces_sample_rate=1.0,
-            release=ultralytics.__version__,
-            debug=False)
+        sentry_sdk.init(dsn=dsn, traces_sample_rate=1.0, release=ultralytics.__version__, debug=False)
 
 
 def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.1'):

@@ -60,7 +60,7 @@ To request an Enterprise License please complete the form at [Ultralytics Licens
 
 In addition to learning about the exciting new features and improvements of Ultralytics YOLOv8, you will also have the opportunity to ask questions and interact with our team during the live Q&A session. We encourage you to come prepared with any questions you may have.
 
-To join the webinar, visit our YouTube Channel and turn on your notifications! https://youtu.be/IPcpYO5ITa8
+To join the webinar, visit our YouTube [Channel](https://www.youtube.com/@Ultralytics/streams) and turn on your notifications!
 
 <a align="center" href="https://youtu.be/IPcpYO5ITa8" target="_blank">
 <img width="80%" src="https://user-images.githubusercontent.com/107626595/212887899-e94b006c-5192-40fa-8b24-7b5428e065e8.png"></a>

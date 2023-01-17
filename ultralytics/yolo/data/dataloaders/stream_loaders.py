@@ -15,7 +15,7 @@ from PIL import Image
 
 from ultralytics.yolo.data.augment import LetterBox
 from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS
-from ultralytics.yolo.utils import LOGGER, is_colab, is_kaggle, ops
+from ultralytics.yolo.utils import LOGGER, ROOT, is_colab, is_kaggle, ops
 from ultralytics.yolo.utils.checks import check_requirements
 
 
@@ -272,18 +272,18 @@ class LoadPilAndNumpy:
         self.paths = [f"image{i}.jpg" for i in range(len(self.im0))]
 
     @staticmethod
-    def _single_check(img):
-        assert isinstance(img, (Image.Image, np.ndarray)), f"Expected PIL/np.ndarray image type, but got {type(img)}"
-        if isinstance(img, Image.Image):
-            img = np.asarray(img)[:, :, ::-1]
-            img = np.ascontiguousarray(img)  # contiguous
-        return img
+    def _single_check(im):
+        assert isinstance(im, (Image.Image, np.ndarray)), f"Expected PIL/np.ndarray image type, but got {type(im)}"
+        if isinstance(im, Image.Image):
+            im = np.asarray(im)[:, :, ::-1]
+            im = np.ascontiguousarray(im)  # contiguous
+        return im
 
-    def _single_preprocess(self, img, auto):
+    def _single_preprocess(self, im, auto):
         if self.transforms:
-            im = self.transforms(img)  # transforms
+            im = self.transforms(im)  # transforms
         else:
-            im = LetterBox(self.imgsz, auto=auto, stride=self.stride)(image=img)
+            im = LetterBox(self.imgsz, auto=auto, stride=self.stride)(image=im)
             im = im.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
             im = np.ascontiguousarray(im)  # contiguous
         return im
@@ -306,7 +306,7 @@ class LoadPilAndNumpy:
 
 
 if __name__ == "__main__":
-    img = cv2.imread("/home/laughing/codes/ultralytics/ultralytics/assets/bus.jpg")
+    img = cv2.imread(str(ROOT / "assets/bus.jpg"))
     dataset = LoadPilAndNumpy(im0=img)
     for d in dataset:
         print(d[0])

@@ -159,7 +159,7 @@ class BasePredictor:
         else:
             return list(chain(*list(self.stream_inference(source, model, verbose))))  # merge list of Result into one
 
-    def predict_cli(self):
+    def predict_stream(self):
         # Method used for cli prediction. It uses always generator as outputs as not required by cli mode
         gen = self.stream_inference(verbose=True)
         for _ in gen:  # running CLI inference without accumulating any outputs (do not modify)
@@ -190,7 +190,7 @@ class BasePredictor:
                 p, im0 = (path[i], im0s[i]) if self.webcam or self.from_img else (path, im0s)
                 p = Path(p)
 
-                if verbose or self.args.save or self.args.save_txt:
+                if verbose or self.args.save or self.args.save_txt or self.args.show:
                     s += self.write_results(i, results, (p, im, im0))
 
                 if self.args.show:

@@ -187,7 +187,7 @@ def get_git_root_dir():
     try:
         # output = subprocess.run(["git", "rev-parse", "--git-dir"], capture_output=True, check=True)
         # return Path(output.stdout.strip().decode('utf-8')).parent.resolve()  # CLI alternative
-        return git.Repo(search_parent_directories=True).working_tree_dir
+        return Path(git.Repo(search_parent_directories=True).working_tree_dir)
     except git.exc.InvalidGitRepositoryError:  # (subprocess.CalledProcessError, FileNotFoundError):
         return None
 

@@ -242,20 +242,6 @@ class BasePredictor:
             from_img = True
         return source, webcam, screenshot, from_img
 
-    def inference(self, img):
-        # minimal inference demo for python interface
-        # supporting PIL/ndarray/tensor
-        if not isinstance(img, list):
-            img = [img]
-        img = [self._single_check(im) for im in img]
-        auto = all(x.shape == img[0].shape for x in img) and self.model.pt
-        im = [self._single_preprocess(im, self.model.stride, auto) for im in img]
-        im = np.stack(im, 0) if len(im) > 1 else im[0][None]
-
-        im = self.preprocess(im)
-        preds = self.model(im)
-        return self.postprocess(preds, im, img)  # merge all the list of Result into one
-
     def show(self, p):
         im0 = self.annotator.result()
         if platform.system() == 'Linux' and p not in self.windows:

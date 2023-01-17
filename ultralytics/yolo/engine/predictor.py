@@ -190,10 +190,7 @@ class BasePredictor:
             with self.dt[2]:
                 results = self.postprocess(preds, im, im0s)
             for i in range(len(im)):
-                if self.webcam or self.from_img:
-                    p, im0 = path[i], im0s[i]
-                else:
-                    p, im0 = path, im0s
+                p, im0 = (path[i], im0s[i]) if self.webcam or self.from_img else (path, im0s)
                 p = Path(p)
 
                 if verbose or self.args.save or self.args.save_txt:
@@ -220,7 +217,7 @@ class BasePredictor:
                         f'{(1, 3, *self.imgsz)}' % t)
         if self.args.save_txt or self.args.save:
             s = f"\n{len(list(self.save_dir.glob('labels/*.txt')))} labels saved to {self.save_dir / 'labels'}" \
-                if self.args.save_txt else ''
+                    if self.args.save_txt else ''
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
 
         self.run_callbacks("on_predict_end")

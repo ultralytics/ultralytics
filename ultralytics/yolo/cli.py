@@ -8,7 +8,7 @@ from pprint import pprint
 from hydra import compose, initialize
 
 from ultralytics import hub, yolo
-from ultralytics.yolo.utils import DEFAULT_CONFIG, HELP_MSG, LOGGER, print_settings, colorstr
+from ultralytics.yolo.utils import DEFAULT_CONFIG, HELP_MSG, LOGGER, colorstr, print_settings
 
 DIR = Path(__file__).parent
 
@@ -78,10 +78,7 @@ def entrypoint():
 
     tasks = 'detect', 'segment', 'classify'
     modes = 'train', 'val', 'predict', 'export'
-    special_modes = {
-        'checks': hub.checks,
-        'help': lambda: LOGGER.info(HELP_MSG),
-        'settings': print_settings}
+    special_modes = {'checks': hub.checks, 'help': lambda: LOGGER.info(HELP_MSG), 'settings': print_settings}
 
     overrides = [x for x in args if '=' in x]  # basic overrides, i.e. imgsz=320
     for a in args:

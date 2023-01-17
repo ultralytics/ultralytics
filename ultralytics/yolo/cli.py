@@ -77,9 +77,7 @@ def entrypoint():
 
     tasks = 'detect', 'segment', 'classify'
     modes = 'train', 'val', 'predict', 'export'
-    special_modes = {
-        'checks': hub.checks,
-        'help': lambda: print(HELP_MSG)}
+    special_modes = {'checks': hub.checks, 'help': lambda: print(HELP_MSG)}
 
     overrides = [x for x in args if '=' in x]  # basic overrides, i.e. imgsz=320
     for a in args:

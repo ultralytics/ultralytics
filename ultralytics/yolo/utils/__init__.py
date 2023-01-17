@@ -369,7 +369,7 @@ def set_sentry(dsn=None):
     Initialize the Sentry SDK for error tracking and reporting if pytest is not currently running.
     """
     if dsn and not is_pytest_running():
-        import sentry_sdk
+        import sentry_sdk  # noqa
         import ultralytics
 
         sentry_sdk.init(

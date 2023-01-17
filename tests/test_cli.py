@@ -67,4 +67,4 @@ def test_export_segment_torchscript():
 
 
 def test_export_classify_torchscript():
-    pass
+    run(f'yolo mode=export model={MODEL}-cls.pt format=torchscript')

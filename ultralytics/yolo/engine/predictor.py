@@ -190,7 +190,7 @@ class BasePredictor:
                 p, im0 = (path[i], im0s[i]) if self.webcam or self.from_img else (path, im0s)
                 p = Path(p)
 
-                if verbose or self.args.save or self.args.save_txt:
+                if verbose or self.args.save or self.args.save_txt or self.args.show:
                     s += self.write_results(i, results, (p, im, im0))
 
                 if self.args.show:

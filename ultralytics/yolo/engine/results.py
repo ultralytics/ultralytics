@@ -101,11 +101,13 @@ class Boxes:
     A class for storing and manipulating detection boxes.
 
     Args:
-        boxes (torch.Tensor) or (numpy.ndarray): A tensor or numpy array containing the detection boxes, with shape (num_boxes, 6). The last two columns should contain confidence and class values.
+        boxes (torch.Tensor) or (numpy.ndarray): A tensor or numpy array containing the detection boxes,
+        with shape (num_boxes, 6). The last two columns should contain confidence and class values.
         orig_shape (tuple): Original image size, in the format (height, width).
 
     Attributes:
-        boxes (torch.Tensor) or (numpy.ndarray): A tensor or numpy array containing the detection boxes, with shape (num_boxes, 6).
+        boxes (torch.Tensor) or (numpy.ndarray): A tensor or numpy array containing the detection boxes,
+        with shape (num_boxes, 6).
         orig_shape (torch.Tensor) or (numpy.ndarray): Original image size, in the format (height, width).
 
     Properties:

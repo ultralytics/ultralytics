@@ -475,7 +475,7 @@ def channel_shuffle(x, groups):
 
 
 class ShuffleV2Block(nn.Module):
-
+    # ShuffleNetV2 building block
     def __init__(self, inp, oup, stride):
         super().__init__()
 
@@ -528,9 +528,8 @@ class ShuffleV2Block(nn.Module):
         return out
 
 
-# the stem block
 class StemBlock(nn.Module):
-
+    # StemBlock https://github.com/deepcam-cn/yolov5-face
     def __init__(self, c1, c2, k=3, s=2, p=None, g=1):
         super().__init__()
         self.stem_1 = Conv(c1, c2, k, s, p, g, act=nn.ReLU(inplace=True))

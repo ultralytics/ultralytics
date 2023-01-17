@@ -7,11 +7,11 @@ import time
 from pathlib import Path
 from threading import Thread
 from urllib.parse import urlparse
-from PIL import Image
 
 import cv2
 import numpy as np
 import torch
+from PIL import Image
 
 from ultralytics.yolo.data.augment import LetterBox
 from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS
@@ -258,6 +258,7 @@ class LoadImages:
 
 
 class LoadPilAndNumpy:
+
     def __init__(self, im0, imgsz=640, stride=32, auto=True, transforms=None):
         if not isinstance(im0, list):
             im0 = [im0]
@@ -301,6 +302,7 @@ class LoadPilAndNumpy:
     def __iter__(self):
         self.count = 0
         return self
+
 
 if __name__ == "__main__":
     img = cv2.imread("/home/laughing/codes/ultralytics/ultralytics/assets/bus.jpg")

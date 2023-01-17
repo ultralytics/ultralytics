@@ -50,43 +50,58 @@ the `ultralytics` module.
 
     === "From source"
         ```python
-        # from source, including image/video visualizing, saving and showing.
-        from ultralytics import YOLO
-
-        model = YOLO("model.pt")
-        model.predict(source="0") # accepts all formats - img/folder/vid.*(mp4/format). 0 for webcam
-        model.predict(source="folder", show=True) # Display preds. Accepts all yolo predict arguments
-
-        # we also support treating predict as a Python generator and return outputs
-        outputs = model.predict(source="0", return_outputs=True)
-        for output in outputs:
-          # each output here is a dict.
-          # for detection
-          print(output["det"])  # np.ndarray, (N, 6), xyxy, score, cls
-          # for segmentation
-          print(output["det"])  # np.ndarray, (N, 6), xyxy, score, cls
-          print(output["segment"])  # List[np.ndarray] * N, bounding coordinates of masks
-          # for classify
-          print(output["prob"]) # np.ndarray, (num_class, ), cls prob
-
-        ```
-
-    === "From PIL/ndarray"
-        ```python
-        # from PIL/ndarray, we just purely return outputs, no image/video saving and showing.
         from ultralytics import YOLO
         from PIL import Image
         import cv2
 
         model = YOLO("model.pt")
-        img = cv2.imread("path/img")
-        outputs = model.predict(img=img)  # accepts opencv/ndarray
-        img = Image.open("path/img")
-        outputs = model.predict(img=img)  # accepts PIL
+        # accepts all formats - img/folder/vid.*(mp4/format)/PIL/ndarray. 0 for webcam
+        # from img/folder/vid.*(mp4/format)
+        results = model.predict(source="0")
+        results = model.predict(source="folder", show=True) # Display preds. Accepts all yolo predict arguments
 
-        # also accepts multiple images(batch inference)
-        # support different resolution images in one list(pt model only).
-        outputs = model.predict(img=[img, img])  # accepts List, 
+        # from PIL
+        img = Image.open("bus.jpg")
+        results = model.predict(source=img, save=True)  # save plotted images
+        # from ndarray
+        img = cv2.imread("bus.jpg")
+        results = model.predict(source=img, save=True, save_txt=True)  # save predictions as labels
+        # from list of PIL/ndarray
+        results = model.predict(source=[img, img])
+
+        ```
+
+    === "Results usage"
+        ```python
+        # results would be a list of Result object including all the predictions by default
+        # but be careful as it could occupy a lot memory when there're many images, 
+        # especially using segmentation.
+        results = model.predict(source="folder")
+        # results would be a generator which is more friendly to memory by setting stream=True
+        results = model.predict(source=0, stream=True)
+
+        for result in results:
+            # detection
+            result.boxes.xyxy   # box with xyxy format, (N, 4)
+            result.boxes.xywh   # box with xywh format, (N, 4)
+            result.boxes.xyxyn  # box with xyxy format but normalized, (N, 4)
+            result.boxes.xywhn  # box with xywh format but normalized, (N, 4)
+            result.boxes.conf   # confidence score, (N, 1)
+            result.boxes.cls    # cls, (N, 1)
+
+            # segmentation
+            result.masks.masks     # masks, (N, H, W)
+            result.masks.segments  # bounding coordinates of masks, List[segment] * N
+
+            # classification
+            result.probs     # cls prob, (num_class, )
+
+        # Each result is composed of torch.Tensor by default, 
+        # in which you can easily use following functionality:
+        result = result.cuda()
+        result = result.cpu()
+        result = result.to("cpu")
+        result = result.numpy()
         ```
 
 !!! note "Export and Deployment"

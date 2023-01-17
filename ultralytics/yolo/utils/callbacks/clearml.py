@@ -79,12 +79,6 @@ def on_val_end(validator):
 
 def on_train_end(trainer):
     # Log final results, CM matrix + PR plots
-    Task.current_task().get_logger().report_confusion_matrix(title="Confusion Matrix",
-                                                             series="",
-                                                             matrix=trainer.validator.confusion_matrix.matrix,
-                                                             xlabels=trainer.validator.names.values(),
-                                                             ylabels=trainer.validator.names.values(),
-                                                             yaxis_reversed=True)
     files = ['results.png', 'confusion_matrix.png', *(f'{x}_curve.png' for x in ('F1', 'PR', 'P', 'R'))]
     files = [(trainer.save_dir / f) for f in files if (trainer.save_dir / f).exists()]  # filter
     [_log_plot(title=f.stem, plot_path=f) for f in files]

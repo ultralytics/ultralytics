@@ -31,12 +31,9 @@ from itertools import chain
 from pathlib import Path
 
 import cv2
-import numpy as np
-from PIL import Image
 
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.yolo.configs import get_config
-from ultralytics.yolo.data.augment import LetterBox
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages, LoadPilAndNumpy, LoadScreenshots, LoadStreams
 from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS
 from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, SETTINGS, callbacks, colorstr, ops
@@ -165,7 +162,7 @@ class BasePredictor:
     def predict_cli(self):
         # Method used for cli prediction. It uses always generator as outputs as not required by cli mode
         gen = self.stream_inference(verbose=True)
-        for _ in gen:
+        for _ in gen:  # running CLI inference without accumulating any outputs (do not modify)
             pass
 
     def stream_inference(self, source=None, model=None, verbose=False):

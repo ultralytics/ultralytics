@@ -3,7 +3,7 @@ from functools import lru_cache
 import numpy as np
 import torch
 
-from ultralytics.yolo.utils import ops, LOGGER
+from ultralytics.yolo.utils import LOGGER, ops
 
 
 class Results:

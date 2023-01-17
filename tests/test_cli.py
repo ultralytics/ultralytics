@@ -1,12 +1,17 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
+import subprocess
 from pathlib import Path
-from subprocess import run
 
 from ultralytics.yolo.utils import ROOT, SETTINGS
 
 MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n'
 CFG = 'yolov8n'
+
+
+def run(cmd):
+    # Run a subprocess command with check=True
+    subprocess.run(cmd.split(), check=True)
 
 
 def test_checks():

@@ -10,6 +10,7 @@ import tempfile
 import threading
 import uuid
 from pathlib import Path
+from typing import Union
 
 import cv2
 import git
@@ -161,12 +162,12 @@ def is_pip_package(filepath: str = __name__) -> bool:
     return spec is not None and spec.origin is not None
 
 
-def is_dir_writeable(dir_path: str) -> bool:
+def is_dir_writeable(dir_path: Union[str, Path]) -> bool:
     """
     Check if a directory is writeable.
 
     Args:
-        dir_path (str): The path to the directory.
+        dir_path (str) or (Path): The path to the directory.
 
     Returns:
         bool: True if the directory is writeable, False otherwise.
@@ -364,8 +365,9 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.1'):
 
     is_git = is_git_directory()  # True if ultralytics installed via git
     root = get_git_root_dir() if is_git else Path()
+    datasets_root = (root.parent if (is_git and is_dir_writeable(root.parent)) else root).resolve()
     defaults = {
-        'datasets_dir': str((root.parent if is_git else root) / 'datasets'),  # default datasets directory.
+        'datasets_dir': str(datasets_root / 'datasets'),  # default datasets directory.
         'weights_dir': str(root / 'weights'),  # default weights directory.
         'runs_dir': str(root / 'runs'),  # default runs directory.
         'sync': True,  # sync analytics to help with YOLO development

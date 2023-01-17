@@ -277,7 +277,7 @@ def colorstr(*input):
         "bright_white": "\033[97m",
         "end": "\033[0m",  # misc
         "bold": "\033[1m",
-        "underline": "\033[4m",}
+        "underline": "\033[4m", }
     return "".join(colors[x] for x in args) + f"{string}" + colors["end"]
 
 
@@ -295,12 +295,12 @@ def set_logging(name=LOGGING_NAME, verbose=True):
             name: {
                 "class": "logging.StreamHandler",
                 "formatter": name,
-                "level": level,}},
+                "level": level, }},
         "loggers": {
             name: {
                 "level": level,
                 "handlers": [name],
-                "propagate": False,}}})
+                "propagate": False, }}})
 
 
 class TryExcept(contextlib.ContextDecorator):
@@ -371,7 +371,6 @@ def set_sentry(dsn=None):
     if dsn and not is_pytest_running():
         import sentry_sdk  # noqa
         import ultralytics
-
         sentry_sdk.init(dsn=dsn, traces_sample_rate=1.0, release=ultralytics.__version__, debug=False)
 
 

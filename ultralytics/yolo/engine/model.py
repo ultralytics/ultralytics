@@ -54,8 +54,8 @@ class YOLO:
         # Load or create new YOLO model
         {'.pt': self._load, '.yaml': self._new}[Path(model).suffix](model)
 
-    def __call__(self, source, **kwargs):
-        return self.predict(source, **kwargs)
+    def __call__(self, source=None, stream=False, verbose=False, **kwargs):
+        return self.predict(source, stream, verbose, **kwargs)
 
     def _new(self, cfg: str, verbose=True):
         """
@@ -111,13 +111,20 @@ class YOLO:
         self.model.fuse()
 
     @smart_inference_mode()
-    def predict(self, source, return_outputs=False, **kwargs):
+    def predict(self, source=None, stream=False, verbose=False, **kwargs):
         """
-        Visualize prediction.
+        Perform prediction using the YOLO model.
 
         Args:
-            source (str): Accepts all source types accepted by yolo
-            **kwargs : Any other args accepted by the predictors. To see all args check 'configuration' section in docs
+            source (str | int | PIL | np.ndarray): The source of the image to make predictions on.
+                          Accepts all source types accepted by the YOLO model.
+            stream (bool): Whether to stream the predictions or not. Defaults to False.
+            verbose (bool): Whether to print verbose information or not. Defaults to False.
+            **kwargs : Additional keyword arguments passed to the predictor.
+                       Check the 'configuration' section in the documentation for all available options.
+
+        Returns:
+            (dict): The prediction results.
         """
         overrides = self.overrides.copy()
         overrides["conf"] = 0.25
@@ -127,8 +134,8 @@ class YOLO:
         predictor = self.PredictorClass(overrides=overrides)
 
         predictor.args.imgsz = check_imgsz(predictor.args.imgsz, min_dim=2)  # check image size
-        predictor.setup(model=self.model, source=source, return_outputs=return_outputs)
-        return predictor() if return_outputs else predictor.predict_cli()
+        predictor.setup(model=self.model, source=source)
+        return predictor(stream=stream, verbose=verbose)
 
     @smart_inference_mode()
     def val(self, data=None, **kwargs):

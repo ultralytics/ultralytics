@@ -134,13 +134,12 @@ class YOLO:
         predictor = self.PredictorClass(overrides=overrides)
 
         predictor.args.imgsz = check_imgsz(predictor.args.imgsz, min_dim=2)  # check image size
-        if isinstance(source, (str, int)): # int for local usb carame
+        if isinstance(source, (str, int)):  # int for local usb carame
             predictor.setup(model=self.model, source=source)
             return predictor(stream=stream, verbose=verbose)
         else:
             predictor.setup_model(self.model)
             return predictor.inference(source)
-
 
     @smart_inference_mode()
     def val(self, data=None, **kwargs):

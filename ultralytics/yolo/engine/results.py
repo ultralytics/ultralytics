@@ -84,16 +84,16 @@ class Results:
         return self.__repr__()
 
     def __repr__(self):
-        repr = f'Ultralytics YOLO {self.__class__} instance\n'
+        s = f'Ultralytics YOLO {self.__class__} instance\n'  # string
         if self.boxes:
-            repr = repr + self.boxes.__repr__() + '\n'
+            s = s + self.boxes.__repr__() + '\n'
         if self.masks:
-            repr = repr + self.masks.__repr__() + '\n'
+            s = s + self.masks.__repr__() + '\n'
         if self.probs:
-            repr = repr + self.probs.__repr__()
-        repr += f'original size: {self.orig_shape}\n'
+            s = s + self.probs.__repr__()
+        s += f'original size: {self.orig_shape}\n'
 
-        return repr
+        return s
 
 
 class Boxes:

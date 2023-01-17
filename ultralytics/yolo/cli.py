@@ -58,8 +58,8 @@ def cli(cfg):
 
 def entrypoint():
     """
-    This function is the entrypoint of a package, it's responsible for parsing the command line arguments passed to the
-    package, it's a combination of argparse and hydra.
+    This function is the ultralytics package entrypoint, it's responsible for parsing the command line arguments passed
+    to the package. It's a combination of argparse and hydra.
 
     This function allows for:
     - passing mandatory YOLO args as a list of strings
@@ -69,7 +69,7 @@ def entrypoint():
     - passing overrides to the package's configuration
 
     It uses the package's default config and initializes it using the passed overrides.
-    Then it calls the cli function with the composed config
+    Then it calls the CLI function with the composed config
     """
     parser = argparse.ArgumentParser(description='YOLO parser')
     parser.add_argument('args', type=str, nargs='+', help='mandatory YOLO args')

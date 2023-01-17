@@ -11,7 +11,7 @@ YOLO command line interface is the easiest way to get started.
     ```
 
 The experiment arguments can be overridden directly by pass `arg=val` covered in the next section. You can run any
-supported task by setting `task` and `mode` in cli.
+supported task by setting `task` and `mode` in CLI.
 === "Training"
 
     |                  | `task`     | snippet                                                    |
@@ -44,7 +44,7 @@ supported task by setting `task` and `mode` in cli.
 
 ## Overriding default config arguments
 
-All global default arguments can be overriden by simply passing them as arguments in the cli.
+All global default arguments can be overriden by simply passing them as arguments in the CLI.
 
 !!! tip ""
 

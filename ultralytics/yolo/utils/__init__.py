@@ -5,7 +5,6 @@ import inspect
 import logging.config
 import os
 import platform
-import subprocess
 import sys
 import tempfile
 import threading
@@ -13,6 +12,7 @@ import uuid
 from pathlib import Path
 
 import cv2
+import git
 import numpy as np
 import pandas as pd
 import torch
@@ -134,10 +134,8 @@ def is_git_directory() -> bool:
     Returns:
         bool: True if the current working directory is inside a git repository, False otherwise.
     """
-    import git
     try:
-        from git import Repo
-        Repo(search_parent_directories=True)
+        git.Repo(search_parent_directories=True)
         # subprocess.run(["git", "rev-parse", "--git-dir"], capture_output=True, check=True)  # CLI alternative
         return True
     except git.exc.InvalidGitRepositoryError:  # subprocess.CalledProcessError:
@@ -187,9 +185,10 @@ def get_git_root_dir():
     If the current file is not part of a git repository, returns None.
     """
     try:
-        output = subprocess.run(["git", "rev-parse", "--git-dir"], capture_output=True, check=True)
-        return Path(output.stdout.strip().decode('utf-8')).parent.resolve()  # parent/.git
-    except subprocess.CalledProcessError:
+        # output = subprocess.run(["git", "rev-parse", "--git-dir"], capture_output=True, check=True)
+        # return Path(output.stdout.strip().decode('utf-8')).parent.resolve()  # CLI alternative
+        return Path(git.Repo(search_parent_directories=True).working_tree_dir)
+    except git.exc.InvalidGitRepositoryError:  # (subprocess.CalledProcessError, FileNotFoundError):
         return None
 
 

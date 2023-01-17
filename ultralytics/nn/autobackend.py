@@ -65,6 +65,7 @@ class AutoBackend(nn.Module):
             model = weights.to(device)
             model = model.fuse() if fuse else model
             names = model.module.names if hasattr(model, 'module') else model.names  # get class names
+            stride = max(int(model.stride.max()), 32)  # model stride
             model.half() if fp16 else model.float()
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
             pt = True
@@ -236,7 +237,7 @@ class AutoBackend(nn.Module):
         Runs inference on the YOLOv8 MultiBackend model.
 
         Args:
-            im (torch.tensor): The image tensor to perform inference on.
+            im (torch.Tensor): The image tensor to perform inference on.
             augment (bool): whether to perform data augmentation during inference, defaults to False
             visualize (bool): whether to visualize the output predictions, defaults to False
 
@@ -328,10 +329,10 @@ class AutoBackend(nn.Module):
          Convert a numpy array to a tensor.
 
          Args:
-             x (numpy.ndarray): The array to be converted.
+             x (np.ndarray): The array to be converted.
 
          Returns:
-             (torch.tensor): The converted tensor
+             (torch.Tensor): The converted tensor
          """
         return torch.from_numpy(x).to(self.device) if isinstance(x, np.ndarray) else x
 

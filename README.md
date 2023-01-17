@@ -56,14 +56,14 @@ To request an Enterprise License please complete the form at [Ultralytics Licens
 
 <div align="center">
 
-[Ultralytics Live Session 3](https://youtu.be/IPcpYO5ITa8) ✨ is here! Join us on January 18th at 18 CET as we dive into the latest advancements in YOLOv8, and demonstrate how to use this cutting-edge, SOTA model to improve your object detection, instance segmentation, and image classification projects. See firsthand how YOLOv8's speed, accuracy, and ease of use make it a top choice for professionals and researchers alike.
+[Ultralytics Live Session 3](https://youtu.be/IPcpYO5ITa8) ✨ is here! Join us on January 24th at 18 CET as we dive into the latest advancements in YOLOv8, and demonstrate how to use this cutting-edge, SOTA model to improve your object detection, instance segmentation, and image classification projects. See firsthand how YOLOv8's speed, accuracy, and ease of use make it a top choice for professionals and researchers alike.
 
-In addition to learning about the exciting new features and improvements of Ultralytics YOLOv8, you will also have the opportunity to ask questions and interact with our team during the live Q&A session. We encourage all of you to come prepared with any questions you may have.
+In addition to learning about the exciting new features and improvements of Ultralytics YOLOv8, you will also have the opportunity to ask questions and interact with our team during the live Q&A session. We encourage you to come prepared with any questions you may have.
 
-Don't miss out on this opportunity! To join the webinar, visit our YouTube [Channel](https://www.youtube.com/@Ultralytics/streams) and turn on your notifications!
+To join the webinar, visit our YouTube [Channel](https://www.youtube.com/@Ultralytics/streams) and turn on your notifications!
 
 <a align="center" href="https://youtu.be/IPcpYO5ITa8" target="_blank">
-<img width="80%" src="https://user-images.githubusercontent.com/26833433/212472119-7de539c1-5022-41cf-ae28-37b69158fbbe.png"></a>
+<img width="80%" src="https://user-images.githubusercontent.com/107626595/212887899-e94b006c-5192-40fa-8b24-7b5428e065e8.png"></a>
 </div>
 
 ## <div align="center">Documentation</div>
@@ -76,7 +76,7 @@ documentation on training, validation, prediction and deployment.
 
 Pip install the ultralytics package including
 all [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) in a
-[**Python>=3.7.0**](https://www.python.org/) environment, including
+[**3.10>=Python>=3.7**](https://www.python.org/) environment, including
 [**PyTorch>=1.7**](https://pytorch.org/get-started/locally/).
 
 ```bash

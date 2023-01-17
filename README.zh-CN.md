@@ -67,7 +67,7 @@ pip install ultralytics
 YOLOv8 可以直接在命令行界面（CLI）中使用 `yolo` 命令运行：
 
 ```bash
-yolo task=detect mode=predict model=yolov8n.pt source="https://ultralytics.com/images/bus.jpg"
+yolo predict model=yolov8n.pt source="https://ultralytics.com/images/bus.jpg"
 ```
 
 `yolo`可以用于各种任务和模式，并接受额外的参数，例如 `imgsz=640`。参见 YOLOv8 [文档](https://docs.ultralytics.com)中可用`yolo`[参数](https://docs.ultralytics.com/config/)的完整列表。
@@ -124,9 +124,9 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x.pt) | 640             | 53.9                 | 479.1                         | 3.53                               | 68.2            | 257.8             |
 
 - **mAP<sup>val</sup>** 结果都在 [COCO val2017](http://cocodataset.org) 数据集上，使用单模型单尺度测试得到。
-  <br>复现命令 `yolo mode=val task=detect data=coco.yaml device=0`
+  <br>复现命令 `yolo val detect data=coco.yaml device=0`
 - **推理速度**使用 COCO 验证集图片推理时间进行平均得到，测试环境使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例。
-  <br>复现命令 `yolo mode=val task=detect data=coco128.yaml batch=1 device=0/cpu`
+  <br>复现命令 `yolo val detect data=coco128.yaml batch=1 device=0/cpu`
 
 </details>
 
@@ -141,9 +141,9 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-seg.pt) | 640             | 53.4                 | 43.4                  | 712.1                         | 4.02                               | 71.8            | 344.1             |
 
 - **mAP<sup>val</sup>**  结果都在 [COCO val2017](http://cocodataset.org) 数据集上，使用单模型单尺度测试得到。
-  <br>复现命令 `yolo mode=val task=segment data=coco.yaml device=0`
+  <br>复现命令 `yolo val segment data=coco.yaml device=0`
 - **推理速度**使用 COCO 验证集图片推理时间进行平均得到，测试环境使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例。
-  <br>复现命令 `yolo mode=val task=segment data=coco128-seg.yaml batch=1 device=0/cpu`
+  <br>复现命令 `yolo val segment data=coco128-seg.yaml batch=1 device=0/cpu`
 
 </details>
 
@@ -158,9 +158,9 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 | [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-cls.pt) | 224             | 78.4             | 94.3             | 232.0                         | 1.01                               | 57.4            | 154.8                    |
 
 - **acc** 都在 [ImageNet](https://www.image-net.org/) 数据集上，使用单模型单尺度测试得到。
-  <br>复现命令 `yolo mode=val task=classify data=path/to/ImageNet device=0`
+  <br>复现命令 `yolo val classify data=path/to/ImageNet device=0`
 - **推理速度**使用 ImageNet 验证集图片推理时间进行平均得到，测试环境使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例。
-  <br>复现命令 `yolo mode=val task=classify data=path/to/ImageNet batch=1 device=0/cpu`
+  <br>复现命令 `yolo val classify data=path/to/ImageNet batch=1 device=0/cpu`
 
 </details>
 

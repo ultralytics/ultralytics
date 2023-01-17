@@ -38,13 +38,13 @@ include train, val, and predict.
 - Predict: The predict mode is used to make predictions with the model on new data. This mode is typically used in
   production or when deploying the model to users.
 
-| Key    | Value    | Description                                                                                                                                                                                           |
-|--------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| task   | `detect` | Set the task via CLI. See Tasks for all supported tasks like - `detect`, `segment`, `classify`.<br> - `init` is a special case that creates a copy of default.yaml configs to the current working dir |
-| mode   | `train`  | Set the mode via CLI. It can be `train`, `val`, `predict`                                                                                                                                             |
-| resume | `False`  | Resume last given task when set to `True`. <br> Resume from a given checkpoint is `model.pt` is passed                                                                                                |
-| model  | null     | Set the model. Format can differ for task type. Supports `model_name`, `model.yaml` & `model.pt`                                                                                                      |
-| data   | null     | Set the data. Format can differ for task type. Supports `data.yaml`, `data_folder`, `dataset_name`                                                                                                    |
+| Key    | Value    | Description                                                                                            |
+|--------|----------|--------------------------------------------------------------------------------------------------------|
+| task   | `detect` | Set the task via CLI. See Tasks for all supported tasks like - `detect`, `segment`, `classify`         |
+| mode   | `train`  | Set the mode via CLI. It can be `train`, `val`, `predict`, `export`                                    |
+| resume | `False`  | Resume last given task when set to `True`. <br> Resume from a given checkpoint is `model.pt` is passed |
+| model  | null     | Set the model. Format can differ for task type. Supports `model_name`, `model.yaml` & `model.pt`       |
+| data   | null     | Set the data. Format can differ for task type. Supports `data.yaml`, `data_folder`, `dataset_name`     |
 
 ### Training
 
@@ -197,6 +197,6 @@ it easier to debug and optimize the training process.
 |-----------|---------|---------------------------------------------------------------------------------------------|
 | project:  | 'runs'  | The project name                                                                            |
 | name:     | 'exp'   | The run name. `exp` gets automatically incremented if not specified, i.e, `exp`, `exp2` ... |
-| exist_ok: | `False` | ???                                                                                         |
+| exist_ok: | `False` | Will replace current directory contents if set to True and output directory exists.         |
 | plots     | `False` | **Validation**: Save plots while validation                                                 |
-| nosave    | `False` | Don't save any plots, models or files                                                       |
+| save      | `False` | Save any plots, models or files                                                             |

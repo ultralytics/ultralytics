@@ -75,18 +75,18 @@ plugins:
 
 # Primary navigation
 nav:
-  - Home: home.md
+  - Home: index.md
   - Quickstart: quickstart.md
   - Tasks:
       - Detection: tasks/detection.md
       - Segmentation: tasks/segmentation.md
       - Classification: tasks/classification.md
   - Usage:
-    - CLI: cli.md
-    - Python: python.md
-    - Predict: predict.md
-    - Configuration: config.md
-    - Customization Guide: engine.md
+      - CLI: cli.md
+      - Python: python.md
+      - Predict: predict.md
+      - Configuration: config.md
+      - Customization Guide: engine.md
   - Ultralytics HUB: hub.md
   - iOS and Android App: app.md
   - Reference:
@@ -99,4 +99,3 @@ nav:
           - Results: reference/results.md
       - ultralytics.nn: reference/nn.md
       - Operations: reference/ops.md
-      - Docs: README.md

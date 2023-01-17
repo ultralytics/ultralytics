@@ -1,4 +1,4 @@
-Inference or prediction of a task returns a list of `Result` objects. Alternatively, in the streaming mode, it returns a generator of `Result` objects which is memory efficient. Streaming mode can be enabled by passing `stream=True` in predictor's call method.
+Inference or prediction of a task returns a list of `Results` objects. Alternatively, in the streaming mode, it returns a generator of `Results` objects which is memory efficient. Streaming mode can be enabled by passing `stream=True` in predictor's call method.
 
 !!! example "Predict"
     === "Getting a List"

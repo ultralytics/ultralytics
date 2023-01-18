@@ -105,7 +105,7 @@ class BaseModel(nn.Module):
 
         return self
 
-    def is_fused(self, thresh=5):
+    def is_fused(self, thresh=10):
         """
         Check if the model has less than a certain threshold of BatchNorm layers.
 

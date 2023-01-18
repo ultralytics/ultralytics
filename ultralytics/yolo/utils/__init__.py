@@ -374,8 +374,10 @@ def set_sentry(dsn=None):
         import ultralytics
         sentry_sdk.init(dsn=dsn,
                         debug=False,
-                        traces_sample_rate=0.1,
+                        traces_sample_rate=1.0,
                         release=ultralytics.__version__,
+                        send_default_pii=True,
+                        environment='production',  # 'dev' or 'production'
                         ignore_errors=[KeyboardInterrupt, torch.cuda.OutOfMemoryError])
 
 

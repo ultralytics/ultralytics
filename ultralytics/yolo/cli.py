@@ -4,10 +4,8 @@ import argparse
 import shutil
 from pathlib import Path
 
-from hydra import compose, initialize
-
-from ultralytics import hub, yolo
-from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, PREFIX, print_settings, yaml_load
+from ultralytics import yolo, __version__
+from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, PREFIX, checks, print_settings, yaml_load
 
 DIR = Path(__file__).parent
 
@@ -42,8 +40,9 @@ CLI_HELP_MSG = \
 
     3. Run special commands:
 
-        yolo checks
         yolo help
+        yolo checks
+        yolo version
         yolo settings
         yolo copy-config
 
@@ -105,8 +104,9 @@ def entrypoint():
     tasks = 'detect', 'segment', 'classify'
     modes = 'train', 'val', 'predict', 'export'
     special_modes = {
-        'checks': hub.checks,
         'help': lambda: LOGGER.info(CLI_HELP_MSG),
+        'checks': checks.check_yolo,
+        'version': lambda: LOGGER.info(__version__),
         'settings': print_settings,
         'copy-config': copy_default_config}
 
@@ -126,6 +126,8 @@ def entrypoint():
             overrides.append(f'{a}=True')  # auto-True for default False args, i.e. yolo show
         else:
             raise (SyntaxError(f"'{a}' is not a valid yolo argument\n{CLI_HELP_MSG}"))
+
+    from hydra import compose, initialize
 
     with initialize(version_base=None, config_path=str(DEFAULT_CONFIG.parent.relative_to(DIR)), job_name="YOLO"):
         cfg = compose(config_name=DEFAULT_CONFIG.name, overrides=overrides)

@@ -386,7 +386,12 @@ names:
 download: |
   from tqdm import tqdm
 
-  from utils.general import Path, check_requirements, download, np, xyxy2xywhn
+  from ultralytics.yolo.utils.checks import check_requirements
+  from ultralytics.yolo.utils.downloads import download
+  from ultralytics.yolo.utils.ops import xyxy2xywhn
+
+  import numpy as np
+  from pathlib import Path
 
   check_requirements(('pycocotools>=2.0',))
   from pycocotools.coco import COCO

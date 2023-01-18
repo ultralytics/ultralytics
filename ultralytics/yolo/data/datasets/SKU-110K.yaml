@@ -21,9 +21,14 @@ names:
 # Download script/URL (optional) ---------------------------------------------------------------------------------------
 download: |
   import shutil
-  from tqdm import tqdm
-  from utils.general import np, pd, Path, download, xyxy2xywh
+  from pathlib import Path
 
+  import numpy as np
+  import pandas as pd
+  from tqdm import tqdm
+
+  from ultralytics.yolo.utils.downloads import download
+  from ultralytics.yolo.utils.ops import xyxy2xywh
 
   # Download
   dir = Path(yaml['path'])  # dataset root dir

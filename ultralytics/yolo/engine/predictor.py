@@ -78,7 +78,6 @@ class BasePredictor:
         self.save_dir = increment_path(Path(project) / name, exist_ok=self.args.exist_ok)
         if self.args.conf is None:
             self.args.conf = 0.25  # default conf=0.25
-        self.done_source_setup = False
         self.done_warmup = False
 
         # Usable if setup is done

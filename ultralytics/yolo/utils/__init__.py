@@ -277,7 +277,7 @@ def colorstr(*input):
         "bright_white": "\033[97m",
         "end": "\033[0m",  # misc
         "bold": "\033[1m",
-        "underline": "\033[4m",}
+        "underline": "\033[4m", }
     return "".join(colors[x] for x in args) + f"{string}" + colors["end"]
 
 
@@ -295,12 +295,12 @@ def set_logging(name=LOGGING_NAME, verbose=True):
             name: {
                 "class": "logging.StreamHandler",
                 "formatter": name,
-                "level": level,}},
+                "level": level, }},
         "loggers": {
             name: {
                 "level": level,
                 "handlers": [name],
-                "propagate": False,}}})
+                "propagate": False, }}})
 
 
 class TryExcept(contextlib.ContextDecorator):
@@ -364,7 +364,7 @@ def yaml_load(file='data.yaml', append_filename=False):
         return {**yaml.safe_load(f), 'yaml_file': str(file)} if append_filename else yaml.safe_load(f)
 
 
-def set_sentry(dsn=None):
+def set_sentry(dsn="https://1f331c322109416595df20a91f4005d3@o4504521589325824.ingest.sentry.io/4504521592406016"):
     """
     Initialize the Sentry SDK for error tracking and reporting if pytest is not currently running.
     """
@@ -372,7 +372,11 @@ def set_sentry(dsn=None):
         import sentry_sdk  # noqa
 
         import ultralytics
-        sentry_sdk.init(dsn=dsn, traces_sample_rate=1.0, release=ultralytics.__version__, debug=False)
+        sentry_sdk.init(dsn=dsn,
+                        debug=False,
+                        traces_sample_rate=0.1,
+                        release=ultralytics.__version__,
+                        ignore_errors=[KeyboardInterrupt])
 
 
 def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.1'):

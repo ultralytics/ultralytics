@@ -56,11 +56,17 @@ To request an Enterprise License please complete the form at [Ultralytics Licens
 
 <div align="center">
 
-[Ultralytics Live Session 3](https://youtu.be/IPcpYO5ITa8) ✨ is here! Join us on January 24th at 18 CET as we dive into the latest advancements in YOLOv8, and demonstrate how to use this cutting-edge, SOTA model to improve your object detection, instance segmentation, and image classification projects. See firsthand how YOLOv8's speed, accuracy, and ease of use make it a top choice for professionals and researchers alike.
+[Ultralytics Live Session 3](https://youtu.be/IPcpYO5ITa8) ✨ is here! Join us on January 24th at 18 CET as we dive into
+the latest advancements in YOLOv8, and demonstrate how to use this cutting-edge, SOTA model to improve your object
+detection, instance segmentation, and image classification projects. See firsthand how YOLOv8's speed, accuracy, and
+ease of use make it a top choice for professionals and researchers alike.
 
-In addition to learning about the exciting new features and improvements of Ultralytics YOLOv8, you will also have the opportunity to ask questions and interact with our team during the live Q&A session. We encourage you to come prepared with any questions you may have.
+In addition to learning about the exciting new features and improvements of Ultralytics YOLOv8, you will also have the
+opportunity to ask questions and interact with our team during the live Q&A session. We encourage you to come prepared
+with any questions you may have.
 
-To join the webinar, visit our YouTube [Channel](https://www.youtube.com/@Ultralytics/streams) and turn on your notifications!
+To join the webinar, visit our YouTube [Channel](https://www.youtube.com/@Ultralytics/streams) and turn on your
+notifications!
 
 <a align="center" href="https://youtu.be/IPcpYO5ITa8" target="_blank">
 <img width="80%" src="https://user-images.githubusercontent.com/107626595/212887899-e94b006c-5192-40fa-8b24-7b5428e065e8.png"></a>
@@ -68,8 +74,8 @@ To join the webinar, visit our YouTube [Channel](https://www.youtube.com/@Ultral
 
 ## <div align="center">Documentation</div>
 
-See below for a quickstart installation and usage example, and see the [YOLOv8 Docs](https://docs.ultralytics.com) for full
-documentation on training, validation, prediction and deployment.
+See below for a quickstart installation and usage example, and see the [YOLOv8 Docs](https://docs.ultralytics.com) for
+full documentation on training, validation, prediction and deployment.
 
 <details open>
 <summary>Install</summary>
@@ -88,22 +94,18 @@ pip install ultralytics
 <details open>
 <summary>Usage</summary>
 
+#### CLI
+
 YOLOv8 may be used directly in the Command Line Interface (CLI) with a `yolo` command:
 
 ```bash
 yolo predict model=yolov8n.pt source="https://ultralytics.com/images/bus.jpg"
 ```
 
-`yolo` can be used for a variety of tasks and modes and accepts additional arguments, i.e. `imgsz=640`. See a full list
-of available `yolo` [arguments](https://docs.ultralytics.com/config/) in the
-YOLOv8 [Docs](https://docs.ultralytics.com).
+`yolo` can be used for a variety of tasks and modes and accepts additional arguments, i.e. `imgsz=640`. See the YOLOv8
+[CLI Docs](https://docs.ultralytics.com/cli) for examples.
 
-```bash
-yolo task=detect    mode=train    model=yolov8n.pt        args...
-          classify       predict        yolov8n-cls.yaml  args...
-          segment        val            yolov8n-seg.yaml  args...
-                         export         yolov8n.pt        format=onnx  args...
-```
+#### Python
 
 YOLOv8 may also be used directly in a Python environment, and accepts the
 same [arguments](https://docs.ultralytics.com/config/) as in the CLI example above:
@@ -123,9 +125,10 @@ success = model.export(format="onnx")  # export the model to ONNX format
 ```
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) download automatically from the latest
-Ultralytics [release](https://github.com/ultralytics/assets/releases).
+Ultralytics [release](https://github.com/ultralytics/assets/releases). See
+YOLOv8 [Python Docs](https://docs.ultralytics.com/python) for more examples.
 
-### Known Issues / TODOs
+#### Known Issues / TODOs
 
 We are still working on several parts of YOLOv8! We aim to have these completed soon to bring the YOLOv8 feature set up
 to par with YOLOv5, including export and inference to all the same formats. We are also writing a YOLOv8 paper which we
@@ -150,7 +153,7 @@ Ultralytics [release](https://github.com/ultralytics/assets/releases) on first u
 See [Detection Docs](https://docs.ultralytics.com/tasks/detection/) for usage examples with these models.
 
 | Model                                                                                | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
-| ------------------------------------------------------------------------------------ | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
+|--------------------------------------------------------------------------------------|-----------------------|----------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
 | [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt) | 640                   | 37.3                 | 80.4                           | 0.99                                | 3.2                | 8.7               |
 | [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt) | 640                   | 44.9                 | 128.4                          | 1.20                                | 11.2               | 28.6              |
 | [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m.pt) | 640                   | 50.2                 | 234.7                          | 1.83                                | 25.9               | 78.9              |
@@ -170,7 +173,7 @@ See [Detection Docs](https://docs.ultralytics.com/tasks/detection/) for usage ex
 See [Segmentation Docs](https://docs.ultralytics.com/tasks/segmentation/) for usage examples with these models.
 
 | Model                                                                                    | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
-| ---------------------------------------------------------------------------------------- | --------------------- | -------------------- | --------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
+|------------------------------------------------------------------------------------------|-----------------------|----------------------|-----------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
 | [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-seg.pt) | 640                   | 36.7                 | 30.5                  | 96.1                           | 1.21                                | 3.4                | 12.6              |
 | [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-seg.pt) | 640                   | 44.6                 | 36.8                  | 155.7                          | 1.47                                | 11.8               | 42.6              |
 | [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-seg.pt) | 640                   | 49.9                 | 40.8                  | 317.0                          | 2.18                                | 27.3               | 110.2             |
@@ -190,7 +193,7 @@ See [Segmentation Docs](https://docs.ultralytics.com/tasks/segmentation/) for us
 See [Classification Docs](https://docs.ultralytics.com/tasks/classification/) for usage examples with these models.
 
 | Model                                                                                    | size<br><sup>(pixels) | acc<br><sup>top1 | acc<br><sup>top5 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
-| ---------------------------------------------------------------------------------------- | --------------------- | ---------------- | ---------------- | ------------------------------ | ----------------------------------- | ------------------ | ------------------------ |
+|------------------------------------------------------------------------------------------|-----------------------|------------------|------------------|--------------------------------|-------------------------------------|--------------------|--------------------------|
 | [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-cls.pt) | 224                   | 66.6             | 87.0             | 12.9                           | 0.31                                | 2.7                | 4.3                      |
 | [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-cls.pt) | 224                   | 72.3             | 91.1             | 23.4                           | 0.35                                | 6.4                | 13.5                     |
 | [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-cls.pt) | 224                   | 76.4             | 93.2             | 85.4                           | 0.62                                | 17.0               | 42.7                     |
@@ -228,7 +231,7 @@ See [Classification Docs](https://docs.ultralytics.com/tasks/classification/) fo
 </div>
 
 |                                                           Roboflow                                                           |                                                            ClearML ⭐ NEW                                                            |                                                                        Comet ⭐ NEW                                                                         |                                           Neural Magic ⭐ NEW                                           |
-| :--------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------: |
+|:----------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------:|
 | Label and export your custom datasets directly to YOLOv8 for training with [Roboflow](https://roboflow.com/?ref=ultralytics) | Automatically track, visualize and even remotely train YOLOv8 using [ClearML](https://cutt.ly/yolov5-readme-clearml) (open-source!) | Free forever, [Comet](https://bit.ly/yolov5-readme-comet2) lets you save YOLOv8 models, resume training, and interactively visualize and debug predictions | Run YOLOv8 inference up to 6x faster with [Neural Magic DeepSparse](https://bit.ly/yolov5-neuralmagic) |
 
 ## <div align="center">Ultralytics HUB</div>

@@ -34,7 +34,6 @@ download: |
   
   from ultralytics.yolo.utils.downloads import download
   
-  
   def visdrone2yolo(dir):
       from PIL import Image
       from tqdm import tqdm

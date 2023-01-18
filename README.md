@@ -56,11 +56,17 @@ To request an Enterprise License please complete the form at [Ultralytics Licens
 
 <div align="center">
 
-[Ultralytics Live Session 3](https://youtu.be/IPcpYO5ITa8) ✨ is here! Join us on January 24th at 18 CET as we dive into the latest advancements in YOLOv8, and demonstrate how to use this cutting-edge, SOTA model to improve your object detection, instance segmentation, and image classification projects. See firsthand how YOLOv8's speed, accuracy, and ease of use make it a top choice for professionals and researchers alike.
+[Ultralytics Live Session 3](https://youtu.be/IPcpYO5ITa8) ✨ is here! Join us on January 24th at 18 CET as we dive into
+the latest advancements in YOLOv8, and demonstrate how to use this cutting-edge, SOTA model to improve your object
+detection, instance segmentation, and image classification projects. See firsthand how YOLOv8's speed, accuracy, and
+ease of use make it a top choice for professionals and researchers alike.
 
-In addition to learning about the exciting new features and improvements of Ultralytics YOLOv8, you will also have the opportunity to ask questions and interact with our team during the live Q&A session. We encourage you to come prepared with any questions you may have.
+In addition to learning about the exciting new features and improvements of Ultralytics YOLOv8, you will also have the
+opportunity to ask questions and interact with our team during the live Q&A session. We encourage you to come prepared
+with any questions you may have.
 
-To join the webinar, visit our YouTube [Channel](https://www.youtube.com/@Ultralytics/streams) and turn on your notifications!
+To join the webinar, visit our YouTube [Channel](https://www.youtube.com/@Ultralytics/streams) and turn on your
+notifications!
 
 <a align="center" href="https://youtu.be/IPcpYO5ITa8" target="_blank">
 <img width="80%" src="https://user-images.githubusercontent.com/107626595/212887899-e94b006c-5192-40fa-8b24-7b5428e065e8.png"></a>
@@ -68,8 +74,8 @@ To join the webinar, visit our YouTube [Channel](https://www.youtube.com/@Ultral
 
 ## <div align="center">Documentation</div>
 
-See below for a quickstart installation and usage example, and see the [YOLOv8 Docs](https://docs.ultralytics.com) for full
-documentation on training, validation, prediction and deployment.
+See below for a quickstart installation and usage example, and see the [YOLOv8 Docs](https://docs.ultralytics.com) for
+full documentation on training, validation, prediction and deployment.
 
 <details open>
 <summary>Install</summary>
@@ -88,22 +94,18 @@ pip install ultralytics
 <details open>
 <summary>Usage</summary>
 
+#### CLI
+
 YOLOv8 may be used directly in the Command Line Interface (CLI) with a `yolo` command:
 
 ```bash
 yolo predict model=yolov8n.pt source="https://ultralytics.com/images/bus.jpg"
 ```
 
-`yolo` can be used for a variety of tasks and modes and accepts additional arguments, i.e. `imgsz=640`. See a full list
-of available `yolo` [arguments](https://docs.ultralytics.com/config/) in the
-YOLOv8 [Docs](https://docs.ultralytics.com).
+`yolo` can be used for a variety of tasks and modes and accepts additional arguments, i.e. `imgsz=640`. See the YOLOv8
+[CLI Docs](https://docs.ultralytics.com/cli) for examples.
 
-```bash
-yolo task=detect    mode=train    model=yolov8n.pt        args...
-          classify       predict        yolov8n-cls.yaml  args...
-          segment        val            yolov8n-seg.yaml  args...
-                         export         yolov8n.pt        format=onnx  args...
-```
+#### Python
 
 YOLOv8 may also be used directly in a Python environment, and accepts the
 same [arguments](https://docs.ultralytics.com/config/) as in the CLI example above:
@@ -123,9 +125,10 @@ success = model.export(format="onnx")  # export the model to ONNX format
 ```
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) download automatically from the latest
-Ultralytics [release](https://github.com/ultralytics/assets/releases).
+Ultralytics [release](https://github.com/ultralytics/assets/releases). See
+YOLOv8 [Python Docs](https://docs.ultralytics.com/python) for more examples.
 
-### Known Issues / TODOs
+#### Known Issues / TODOs
 
 We are still working on several parts of YOLOv8! We aim to have these completed soon to bring the YOLOv8 feature set up
 to par with YOLOv5, including export and inference to all the same formats. We are also writing a YOLOv8 paper which we

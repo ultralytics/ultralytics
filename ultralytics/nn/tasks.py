@@ -23,7 +23,6 @@ class BaseModel(nn.Module):
 
     def __init__(self) -> None:
         super().__init__()
-        self.is_fused = False
 
     def forward(self, x, profile=False, visualize=False):
         """
@@ -96,8 +95,6 @@ class BaseModel(nn.Module):
         Returns:
             (nn.Module): The fused model is returned.
         """
-        if self.is_fused:
-            return self
         LOGGER.info('Fusing layers... ')
         for m in self.model.modules():
             if isinstance(m, (Conv, DWConv)) and hasattr(m, 'bn'):

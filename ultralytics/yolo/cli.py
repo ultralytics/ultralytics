@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
 import argparse
+import re
 import shutil
 from pathlib import Path
 
@@ -17,7 +18,7 @@ CLI_HELP_MSG = \
 
         pip install ultralytics
 
-    2. Train, Val, Predict and Export using 'yolo' commands of the form:
+    2. Train, Val, Predict and Export using 'yolo' commands:
 
             yolo TASK MODE ARGS
 
@@ -100,6 +101,7 @@ def entrypoint():
     parser = argparse.ArgumentParser(description='YOLO parser')
     parser.add_argument('args', type=str, nargs='+', help='YOLO args')
     args = parser.parse_args().args
+    args = re.sub(r'\s*=\s*', '=', ' '.join(args)).split(' ')  # remove whitespaces around = sign
 
     tasks = 'detect', 'segment', 'classify'
     modes = 'train', 'val', 'predict', 'export'

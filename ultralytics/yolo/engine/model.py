@@ -32,7 +32,7 @@ class YOLO:
 
     def __init__(self, model='yolov8n.yaml', type="v8") -> None:
         """
-        > Initializes the YOLO object.
+        Initializes the YOLO object.
 
         Args:
             model (str, Path): model to load or create
@@ -54,12 +54,12 @@ class YOLO:
         # Load or create new YOLO model
         {'.pt': self._load, '.yaml': self._new}[Path(model).suffix](model)
 
-    def __call__(self, source, **kwargs):
-        return self.predict(source, **kwargs)
+    def __call__(self, source=None, stream=False, verbose=False, **kwargs):
+        return self.predict(source, stream, verbose, **kwargs)
 
     def _new(self, cfg: str, verbose=True):
         """
-        > Initializes a new model and infers the task type from the model definitions.
+        Initializes a new model and infers the task type from the model definitions.
 
         Args:
             cfg (str): model configuration file
@@ -75,7 +75,7 @@ class YOLO:
 
     def _load(self, weights: str):
         """
-        > Initializes a new model and infers the task type from the model head.
+        Initializes a new model and infers the task type from the model head.
 
         Args:
             weights (str): model checkpoint to be loaded
@@ -90,7 +90,7 @@ class YOLO:
 
     def reset(self):
         """
-        > Resets the model modules.
+        Resets the model modules.
         """
         for m in self.model.modules():
             if hasattr(m, 'reset_parameters'):
@@ -100,7 +100,7 @@ class YOLO:
 
     def info(self, verbose=False):
         """
-        > Logs model info.
+        Logs model info.
 
         Args:
             verbose (bool): Controls verbosity.
@@ -111,13 +111,20 @@ class YOLO:
         self.model.fuse()
 
     @smart_inference_mode()
-    def predict(self, source, return_outputs=False, **kwargs):
+    def predict(self, source=None, stream=False, verbose=False, **kwargs):
         """
-        Visualize prediction.
+        Perform prediction using the YOLO model.
 
         Args:
-            source (str): Accepts all source types accepted by yolo
-            **kwargs : Any other args accepted by the predictors. To see all args check 'configuration' section in docs
+            source (str | int | PIL | np.ndarray): The source of the image to make predictions on.
+                          Accepts all source types accepted by the YOLO model.
+            stream (bool): Whether to stream the predictions or not. Defaults to False.
+            verbose (bool): Whether to print verbose information or not. Defaults to False.
+            **kwargs : Additional keyword arguments passed to the predictor.
+                       Check the 'configuration' section in the documentation for all available options.
+
+        Returns:
+            (dict): The prediction results.
         """
         overrides = self.overrides.copy()
         overrides["conf"] = 0.25
@@ -127,13 +134,13 @@ class YOLO:
         predictor = self.PredictorClass(overrides=overrides)
 
         predictor.args.imgsz = check_imgsz(predictor.args.imgsz, min_dim=2)  # check image size
-        predictor.setup(model=self.model, source=source, return_outputs=return_outputs)
-        return predictor() if return_outputs else predictor.predict_cli()
+        predictor.setup(model=self.model, source=source)
+        return predictor(stream=stream, verbose=verbose)
 
     @smart_inference_mode()
     def val(self, data=None, **kwargs):
         """
-        > Validate a model on a given dataset .
+        Validate a model on a given dataset .
 
         Args:
             data (str): The dataset to validate on. Accepts all formats accepted by yolo
@@ -152,7 +159,7 @@ class YOLO:
     @smart_inference_mode()
     def export(self, **kwargs):
         """
-        > Export model.
+        Export model.
 
         Args:
             **kwargs : Any other args accepted by the predictors. To see all args check 'configuration' section in docs
@@ -168,7 +175,7 @@ class YOLO:
 
     def train(self, **kwargs):
         """
-        > Trains the model on a given dataset.
+        Trains the model on a given dataset.
 
         Args:
             **kwargs (Any): Any number of arguments representing the training configuration. List of all args can be found in 'config' section.
@@ -197,7 +204,7 @@ class YOLO:
 
     def to(self, device):
         """
-        > Sends the model to the given device.
+        Sends the model to the given device.
 
         Args:
             device (str): device

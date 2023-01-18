@@ -32,21 +32,21 @@ class AutoBackend(nn.Module):
             fp16 (bool): If True, use half precision. Default: False
             fuse (bool): Whether to fuse the model or not. Default: True
 
-        Supported formats and their usage:
-            Platform              | Weights Format
-            -----------------------|------------------
-            PyTorch               | *.pt
-            TorchScript           | *.torchscript
-            ONNX Runtime          | *.onnx
-            ONNX OpenCV DNN       | *.onnx --dnn
-            OpenVINO              | *.xml
-            CoreML                | *.mlmodel
-            TensorRT              | *.engine
-            TensorFlow SavedModel | *_saved_model
-            TensorFlow GraphDef   | *.pb
-            TensorFlow Lite       | *.tflite
-            TensorFlow Edge TPU   | *_edgetpu.tflite
-            PaddlePaddle          | *_paddle_model
+        Supported formats and their naming conventions:
+            | Format                | Suffix           |
+            |-----------------------|------------------|
+            | PyTorch               | *.pt             |
+            | TorchScript           | *.torchscript    |
+            | ONNX Runtime          | *.onnx           |
+            | ONNX OpenCV DNN       | *.onnx --dnn     |
+            | OpenVINO              | *.xml            |
+            | CoreML                | *.mlmodel        |
+            | TensorRT              | *.engine         |
+            | TensorFlow SavedModel | *_saved_model    |
+            | TensorFlow GraphDef   | *.pb             |
+            | TensorFlow Lite       | *.tflite         |
+            | TensorFlow Edge TPU   | *_edgetpu.tflite |
+            | PaddlePaddle          | *_paddle_model   |
         """
         super().__init__()
         w = str(weights[0] if isinstance(weights, list) else weights)
@@ -65,6 +65,7 @@ class AutoBackend(nn.Module):
             model = weights.to(device)
             model = model.fuse() if fuse else model
             names = model.module.names if hasattr(model, 'module') else model.names  # get class names
+            stride = max(int(model.stride.max()), 32)  # model stride
             model.half() if fp16 else model.float()
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
             pt = True
@@ -236,7 +237,7 @@ class AutoBackend(nn.Module):
         Runs inference on the YOLOv8 MultiBackend model.
 
         Args:
-            im (torch.tensor): The image tensor to perform inference on.
+            im (torch.Tensor): The image tensor to perform inference on.
             augment (bool): whether to perform data augmentation during inference, defaults to False
             visualize (bool): whether to visualize the output predictions, defaults to False
 
@@ -328,10 +329,10 @@ class AutoBackend(nn.Module):
          Convert a numpy array to a tensor.
 
          Args:
-             x (numpy.ndarray): The array to be converted.
+             x (np.ndarray): The array to be converted.
 
          Returns:
-             (torch.tensor): The converted tensor
+             (torch.Tensor): The converted tensor
          """
         return torch.from_numpy(x).to(self.device) if isinstance(x, np.ndarray) else x
 
@@ -357,7 +358,7 @@ class AutoBackend(nn.Module):
         This function takes a path to a model file and returns the model type
 
         Args:
-          p: path to the model file. Defaults to path/to/model.pt
+            p: path to the model file. Defaults to path/to/model.pt
         """
         # Return model type from model path, i.e. path='path/to/model.onnx' -> type=onnx
         # types = [pt, jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle]
@@ -374,12 +375,11 @@ class AutoBackend(nn.Module):
     @staticmethod
     def _load_metadata(f=Path('path/to/meta.yaml')):
         """
-        > Loads the metadata from a yaml file
+        Loads the metadata from a yaml file
 
         Args:
-          f: The path to the metadata file.
+            f: The path to the metadata file.
         """
-        from ultralytics.yolo.utils.files import yaml_load
 
         # Load metadata from meta.yaml if it exists
         if f.exists():

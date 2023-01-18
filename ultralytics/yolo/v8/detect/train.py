@@ -48,14 +48,14 @@ class DetectionTrainer(BaseTrainer):
         return batch
 
     def set_model_attributes(self):
-        nl = de_parallel(self.model).model[-1].nl  # number of detection layers (to scale hyps)
-        self.args.box *= 3 / nl  # scale to layers
+        # nl = de_parallel(self.model).model[-1].nl  # number of detection layers (to scale hyps)
+        # self.args.box *= 3 / nl  # scale to layers
         # self.args.cls *= self.data["nc"] / 80 * 3 / nl  # scale to classes and layers
-        self.args.cls *= (self.args.imgsz / 640) ** 2 * 3 / nl  # scale to image size and layers
+        # self.args.cls *= (self.args.imgsz / 640) ** 2 * 3 / nl  # scale to image size and layers
         self.model.nc = self.data["nc"]  # attach number of classes to model
+        self.model.names = self.data["names"]  # attach class names to model
         self.model.args = self.args  # attach hyperparameters to model
         # TODO: self.model.class_weights = labels_to_class_weights(dataset.labels, nc).to(device) * nc
-        self.model.names = self.data["names"]
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         model = DetectionModel(cfg, ch=3, nc=self.data["nc"], verbose=verbose)
@@ -197,7 +197,7 @@ class Loss:
 
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def train(cfg):
-    cfg.model = cfg.model or "yolov8n.yaml"
+    cfg.model = cfg.model or "yolov8n.pt"
     cfg.data = cfg.data or "coco128.yaml"  # or yolo.ClassificationDataset("mnist")
     cfg.device = cfg.device if cfg.device is not None else ''
     # trainer = DetectionTrainer(cfg)
@@ -208,11 +208,4 @@ def train(cfg):
 
 
 if __name__ == "__main__":
-    """
-    CLI usage:
-    python ultralytics/yolo/v8/detect/train.py model=yolov8n.yaml data=coco128 epochs=100 imgsz=640
-
-    TODO:
-    yolo task=detect mode=train model=yolov8n.yaml data=coco128.yaml epochs=100
-    """
     train()

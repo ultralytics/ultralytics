@@ -13,8 +13,7 @@ from ultralytics.yolo.utils import DEFAULT_CONFIG, NUM_THREADS, ops
 from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils.metrics import ConfusionMatrix, SegmentMetrics, box_iou, mask_iou
 from ultralytics.yolo.utils.plotting import output_to_target, plot_images
-
-from ..detect import DetectionValidator
+from ultralytics.yolo.v8.detect import DetectionValidator
 
 
 class SegmentationValidator(DetectionValidator):
@@ -115,8 +114,9 @@ class SegmentationValidator(DetectionValidator):
                                                     masks=True)
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, labelsn)
-            self.stats.append((correct_masks, correct_bboxes, pred[:, 4], pred[:,
-                                                                               5], cls.squeeze(-1)))  # conf, pcls, tcls
+
+            # Append correct_masks, correct_boxes, pconf, pcls, tcls
+            self.stats.append((correct_masks, correct_bboxes, pred[:, 4], pred[:, 5], cls.squeeze(-1)))
 
             pred_masks = torch.as_tensor(pred_masks, dtype=torch.uint8)
             if self.args.plots and self.batch_i < 3:

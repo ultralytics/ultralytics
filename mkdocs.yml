@@ -82,10 +82,11 @@ nav:
       - Segmentation: tasks/segmentation.md
       - Classification: tasks/classification.md
   - Usage:
-    - CLI: cli.md
-    - Python: python.md
-    - Configuration: config.md
-    - Customization Guide: engine.md
+      - CLI: cli.md
+      - Python: python.md
+      - Predict: predict.md
+      - Configuration: config.md
+      - Customization Guide: engine.md
   - Ultralytics HUB: hub.md
   - iOS and Android App: app.md
   - Reference:
@@ -95,5 +96,6 @@ nav:
           - Validator: reference/base_val.md
           - Predictor: reference/base_pred.md
           - Exporter: reference/exporter.md
-      - nn Module: reference/nn.md
-      - operations: reference/ops.md
+          - Results: reference/results.md
+      - ultralytics.nn: reference/nn.md
+      - Operations: reference/ops.md

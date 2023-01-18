@@ -13,14 +13,15 @@ from ultralytics.yolo.utils.ops import crop_mask, xyxy2xywh
 from ultralytics.yolo.utils.plotting import plot_images, plot_results
 from ultralytics.yolo.utils.tal import make_anchors
 from ultralytics.yolo.utils.torch_utils import de_parallel
-
-from ..detect.train import Loss
+from ultralytics.yolo.v8.detect.train import Loss
 
 
 # BaseTrainer python usage
 class SegmentationTrainer(v8.detect.DetectionTrainer):
 
-    def __init__(self, config=DEFAULT_CONFIG, overrides={}):
+    def __init__(self, config=DEFAULT_CONFIG, overrides=None):
+        if overrides is None:
+            overrides = {}
         overrides["task"] = "segment"
         super().__init__(config, overrides)
 
@@ -142,7 +143,7 @@ class SegLoss(Loss):
 
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def train(cfg):
-    cfg.model = cfg.model or "yolov8n-seg.yaml"
+    cfg.model = cfg.model or "yolov8n-seg.pt"
     cfg.data = cfg.data or "coco128-seg.yaml"  # or yolo.ClassificationDataset("mnist")
     cfg.device = cfg.device if cfg.device is not None else ''
     # trainer = SegmentationTrainer(cfg)
@@ -153,11 +154,4 @@ def train(cfg):
 
 
 if __name__ == "__main__":
-    """
-    CLI usage:
-    python ultralytics/yolo/v8/segment/train.py model=yolov8n-seg.yaml data=coco128-segments epochs=100 imgsz=640
-
-    TODO:
-    Direct cli support, i.e, yolov8 classify_train args.epochs 10
-    """
     train()

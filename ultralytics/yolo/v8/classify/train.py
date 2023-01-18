@@ -56,6 +56,8 @@ class ClassificationTrainer(BaseTrainer):
         # Load a YOLO model locally, from torchvision, or from Ultralytics assets
         if model.endswith(".pt"):
             self.model, _ = attempt_load_one_weight(model, device='cpu')
+            for p in model.parameters():
+                p.requires_grad = True  # for training
         elif model.endswith(".yaml"):
             self.model = self.get_model(cfg=model)
         elif model in torchvision.models.__dict__:
@@ -113,11 +115,10 @@ class ClassificationTrainer(BaseTrainer):
         """
         # Not needed for classification but necessary for segmentation & detection
         keys = [f"{prefix}/{x}" for x in self.loss_names]
-        if loss_items is not None:
-            loss_items = [round(float(loss_items), 5)]
-            return dict(zip(keys, loss_items))
-        else:
+        if loss_items is None:
             return keys
+        loss_items = [round(float(loss_items), 5)]
+        return dict(zip(keys, loss_items))
 
     def resume_training(self, ckpt):
         pass
@@ -137,7 +138,7 @@ class ClassificationTrainer(BaseTrainer):
 
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def train(cfg):
-    cfg.model = cfg.model or "yolov8n-cls.yaml"  # or "resnet18"
+    cfg.model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
     cfg.data = cfg.data or "mnist160"  # or yolo.ClassificationDataset("mnist")
     cfg.lr0 = 0.1
     cfg.weight_decay = 5e-5
@@ -152,10 +153,4 @@ def train(cfg):
 
 
 if __name__ == "__main__":
-    """
-    yolo task=classify mode=train model=yolov8n-cls.pt data=mnist160 epochs=10 imgsz=32
-    yolo task=classify mode=val model=runs/classify/train/weights/last.pt data=mnist160 imgsz=32
-    yolo task=classify mode=predict model=runs/classify/train/weights/last.pt imgsz=32 source=ultralytics/assets/bus.jpg
-    yolo mode=export model=runs/classify/train/weights/last.pt imgsz=32 format=torchscript
-    """
     train()

@@ -3,7 +3,9 @@
 import glob
 import inspect
 import math
+import os
 import platform
+import shutil
 import urllib
 from pathlib import Path
 from subprocess import check_output
@@ -12,10 +14,12 @@ from typing import Optional
 import cv2
 import numpy as np
 import pkg_resources as pkg
+import psutil
 import torch
+from IPython import display
 
 from ultralytics.yolo.utils import (AUTOINSTALL, FONT, LOGGER, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, emojis,
-                                    is_docker, is_jupyter_notebook)
+                                    is_colab, is_docker, is_jupyter_notebook)
 
 
 def is_ascii(s) -> bool:
@@ -243,6 +247,26 @@ def check_imshow(warn=False):
         if warn:
             LOGGER.warning(f'WARNING ⚠️ Environment does not support cv2.imshow() or PIL Image.show()\n{e}')
         return False
+
+
+def check_yolo(verbose=True):
+    from ultralytics.yolo.utils.torch_utils import select_device
+
+    if is_colab():
+        shutil.rmtree('sample_data', ignore_errors=True)  # remove colab /sample_data directory
+
+    if verbose:
+        # System info
+        gib = 1 << 30  # bytes per GiB
+        ram = psutil.virtual_memory().total
+        total, used, free = shutil.disk_usage("/")
+        display.clear_output()
+        s = f'({os.cpu_count()} CPUs, {ram / gib:.1f} GB RAM, {(total - free) / gib:.1f}/{total / gib:.1f} GB disk)'
+    else:
+        s = ''
+
+    select_device(newline=False)
+    LOGGER.info(f'Setup complete ✅ {s}')
 
 
 def git_describe(path=ROOT):  # path must be a directory

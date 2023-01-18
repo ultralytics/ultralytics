@@ -1,7 +1,5 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
-import signal
-import sys
 from pathlib import Path
 from time import sleep
 
@@ -9,25 +7,27 @@ import requests
 
 from ultralytics import __version__
 from ultralytics.hub.utils import HUB_API_ROOT, check_dataset_disk_space, smart_request
-from ultralytics.yolo.utils import LOGGER, is_colab, threaded
+from ultralytics.yolo.utils import is_colab, threaded
 
 AGENT_NAME = f'python-{__version__}-colab' if is_colab() else f'python-{__version__}-local'
 
 session = None
 
-
-def signal_handler(signum, frame):
-    """ Confirm exit """
-    global hub_logger
-    LOGGER.info(f'Signal received. {signum} {frame}')
-    if isinstance(session, HubTrainingSession):
-        hub_logger.alive = False
-        del hub_logger
-    sys.exit(signum)
-
-
-signal.signal(signal.SIGTERM, signal_handler)
-signal.signal(signal.SIGINT, signal_handler)
+# Causing problems in tests (non-authenticated)
+# import signal
+# import sys
+# def signal_handler(signum, frame):
+#     """ Confirm exit """
+#     global hub_logger
+#     LOGGER.info(f'Signal received. {signum} {frame}')
+#     if isinstance(session, HubTrainingSession):
+#         hub_logger.alive = False
+#         del hub_logger
+#     sys.exit(signum)
+#
+#
+# signal.signal(signal.SIGTERM, signal_handler)
+# signal.signal(signal.SIGINT, signal_handler)
 
 
 class HubTrainingSession:

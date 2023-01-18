@@ -134,7 +134,7 @@ class YOLO:
         predictor = self.PredictorClass(overrides=overrides)
 
         predictor.args.imgsz = check_imgsz(predictor.args.imgsz, min_dim=2)  # check image size
-        predictor.setup(model=self.model, source=source)
+        predictor.setup(model=self.model, source=source) if not predictor.done_setup else None
         return predictor(stream=stream, verbose=verbose)
 
     @smart_inference_mode()

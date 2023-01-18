@@ -45,6 +45,7 @@ class SegmentationValidator(DetectionValidator):
         self.jdict = []
         self.stats = []
         if self.args.save_json:
+            check_requirements('pycocotools>=2.0.6')
             self.process = ops.process_mask_upsample  # more accurate
         else:
             self.process = ops.process_mask  # faster
@@ -189,8 +190,9 @@ class SegmentationValidator(DetectionValidator):
         self.plot_masks.clear()
 
     def pred_to_json(self, predn, filename, pred_masks):
-        # Save one JSON result {"image_id": 42, "category_id": 18, "bbox": [258.15, 41.29, 348.26, 243.78], "score": 0.236}
-        from pycocotools.mask import encode
+        # Save one JSON result
+        # Example result = {"image_id": 42, "category_id": 18, "bbox": [258.15, 41.29, 348.26, 243.78], "score": 0.236}
+        from pycocotools.mask import encode  # noqa
 
         def single_encode(x):
             rle = encode(np.asarray(x[:, :, None], order="F", dtype="uint8"))[0]

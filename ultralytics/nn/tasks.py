@@ -21,9 +21,6 @@ class BaseModel(nn.Module):
     The BaseModel class serves as a base class for all the models in the Ultralytics YOLO family.
     """
 
-    def __init__(self) -> None:
-        super().__init__()
-
     def forward(self, x, profile=False, visualize=False):
         """
         Forward pass of the model on a single scale.

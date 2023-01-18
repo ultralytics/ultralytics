@@ -376,7 +376,7 @@ def set_sentry(dsn=None):
                         debug=False,
                         traces_sample_rate=0.1,
                         release=ultralytics.__version__,
-                        ignore_errors=[KeyboardInterrupt])
+                        ignore_errors=[KeyboardInterrupt, torch.cuda.OutOfMemoryError])
 
 
 def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.1'):

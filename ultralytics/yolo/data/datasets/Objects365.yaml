@@ -385,11 +385,11 @@ names:
 # Download script/URL (optional) ---------------------------------------------------------------------------------------
 download: |
   from tqdm import tqdm
-  
+
   from ultralytics.yolo.utils.checks import check_requirements
   from ultralytics.yolo.utils.downloads import download
   from ultralytics.yolo.utils.ops import xyxy2xywhn
-  
+
   import numpy as np
   from pathlib import Path
 

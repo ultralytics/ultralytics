@@ -14,27 +14,29 @@ The default arguments can be overridden directly by passing custom `arg=val` cov
 any supported task by setting `task` and `mode` in CLI.
 === "Training"
 
-    |                  | `task`     | snippet                                                    |
-    |------------------|------------|------------------------------------------------------------|
-    | Detection        | `detect`   | <pre><code>yolo detect train       </code></pre> |
-    | Instance Segment | `segment`  | <pre><code>yolo segment train      </code></pre> |
-    | Classification   | `classify` | <pre><code>yolo classify train    </code></pre>  |
+    |                  | task       | example                                                           |
+    |------------------|------------|-------------------------------------------------------------------|
+    | Detection        | `detect`   | `yolo detect train data=coco128.yaml model=yolov8n.pt`            |
+    | Segmentation     | `segment`  | `yolo segment train data=coco128-seg.yaml model=yolov8n-seg.pt`   |
+    | Classification   | `classify` | `yolo classify train data=mnist160 model=yolov8n-cls.pt`          |
 
 === "Prediction"
 
-    |                  | `task`     | snippet                                                      |
-    |------------------|------------|--------------------------------------------------------------|
-    | Detection        | `detect`   | <pre><code>yolo detect predict       </code></pre> |
-    | Instance Segment | `segment`  | <pre><code>yolo segment predict     </code></pre>  |
-    | Classification   | `classify` | <pre><code>yolo classify predict    </code></pre>  |
+    |                  | task       | example                                                           |
+    |------------------|------------|-------------------------------------------------------------------|
+    | Detection        | `detect`   | `yolo detect predict data=coco128.yaml model=yolov8n.pt`          |
+    | Segmentation     | `segment`  | `yolo segment predict data=coco128-seg.yaml model=yolov8n-seg.pt` |
+    | Classification   | `classify` | `yolo classify predict data=mnist160 model=yolov8n-cls.pt`        |
+
 
 === "Validation"
 
-    |                  | `task`     | snippet                                                   |
-    |------------------|------------|-----------------------------------------------------------|
-    | Detection        | `detect`   | <pre><code>yolo detect val        </code></pre> |
-    | Instance Segment | `segment`  | <pre><code>yolo segment val       </code></pre> |
-    | Classification   | `classify` | <pre><code>yolo classify val      </code></pre> |
+    |                  | task       | example                                                         |
+    |------------------|------------|-----------------------------------------------------------------|
+    | Detection        | `detect`   | `yolo detect val data=coco128.yaml model=yolov8n.pt`            |
+    | Segmentation     | `segment`  | `yolo segment val data=coco128-seg.yaml model=yolov8n-seg.pt`   |
+    | Classification   | `classify` | `yolo classify val data=mnist160 model=yolov8n-cls.pt`          |
+
 
 !!! note ""
 
@@ -48,15 +50,22 @@ Default arguments can be overriden by simply passing them as arguments in the CL
 
 !!! tip ""
 
-    === "Syntax"
+    === "Example 1"
+        Train a detection model for `10 epochs` with `learning_rate` of `0.01`
         ```bash
-        yolo task mode arg=val...
+        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01
         ```
 
-    === "Example"
-        Perform detection training for `10 epochs` with `learning_rate` of `0.01`
+    === "Example 2"
+        Predict a YouTube video using a pretrained segmentation model at image size 320:
         ```bash
-        yolo detect train epochs=10 lr0=0.01
+        yolo segment predict model=yolov8n-seg.pt source=https://youtu.be/Zgi9g1ksQHc imgsz=320
+        ```
+
+    === "Example 3"
+        Validate a pretrained detection model at batch-size 1 and image size 640:
+        ```bash
+        yolo detect val model=yolov8n.pt data=coco128.yaml batch=1 imgsz=640
         ```
 
 ---

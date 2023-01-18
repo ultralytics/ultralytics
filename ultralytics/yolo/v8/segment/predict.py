@@ -4,7 +4,7 @@ import hydra
 import torch
 
 from ultralytics.yolo.engine.results import Results
-from ultralytics.yolo.utils import DEFAULT_CONFIG, ROOT, ops
+from ultralytics.yolo.utils import DEFAULT_CONFIG, ROOT, ops, is_git_directory
 from ultralytics.yolo.utils.plotting import colors, save_one_box
 from ultralytics.yolo.v8.detect.predict import DetectionPredictor
 
@@ -67,7 +67,7 @@ class SegmentationPredictor(DetectionPredictor):
             mask.masks,
             colors=[colors(x, True) for x in det.cls],
             im_gpu=torch.as_tensor(im0, dtype=torch.float16).to(self.device).permute(2, 0, 1).flip(0).contiguous() /
-            255 if self.args.retina_masks else im[idx])
+                   255 if self.args.retina_masks else im[idx])
 
         # Segments
         if self.args.save_txt:
@@ -101,8 +101,8 @@ class SegmentationPredictor(DetectionPredictor):
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def predict(cfg):
     cfg.model = cfg.model or "yolov8n-seg.pt"
-    cfg.source = cfg.source if cfg.source is not None else ROOT / "assets"
-
+    cfg.source = cfg.source if cfg.source is not None else ROOT / "assets" if is_git_directory() \
+        else "https://ultralytics.com/images/bus.jpg"
     predictor = SegmentationPredictor(cfg)
     predictor.predict_cli()
 

@@ -172,6 +172,7 @@ class YOLO:
         args = get_config(config=DEFAULT_CONFIG, overrides=overrides)
         args.task = self.task
 
+        print(args)
         exporter = Exporter(overrides=args)
         exporter(model=self.model)
 
@@ -230,6 +231,8 @@ class YOLO:
         args.pop("epochs", None)
         args.pop("cache", None)
         args.pop("save_json", None)
+        args.pop("half", None)
+        args.pop("v5loader", None)
 
         # set device to '' to prevent from auto DDP usage
         args["device"] = ''

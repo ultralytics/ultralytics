@@ -28,10 +28,9 @@ names:
 # Download script/URL (optional) ---------------------------------------------------------------------------------------
 download: |
   import json
-
   from tqdm import tqdm
-  from utils.general import download, Path
-
+  from ultralytics.yolo.utils.downloads import download
+  from pathlib import Path
 
   def argoverse2yolo(set):
       labels = {}

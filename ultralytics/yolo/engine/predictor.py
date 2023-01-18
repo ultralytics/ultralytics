@@ -169,7 +169,7 @@ class BasePredictor:
         self.run_callbacks("on_predict_start")
 
         # setup model
-        if not self.model: 
+        if not self.model:
             self.setup_model(model)
         # setup source. Run every time predict is called
         self.setup_source(source)
@@ -238,7 +238,6 @@ class BasePredictor:
         self.model = AutoBackend(model, device=device, dnn=self.args.dnn, fp16=self.args.half)
         self.device = device
         self.model.eval()
-        
 
     def check_source(self, source):
         source = source if source is not None else self.args.source

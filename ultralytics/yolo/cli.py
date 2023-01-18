@@ -125,10 +125,9 @@ def entrypoint():
         elif a in defaults and defaults[a] is False:
             overrides.append(f'{a}=True')  # auto-True for default False args, i.e. yolo show
         elif a in defaults:
-            raise SyntaxError(
-                f"'{a}' is a valid YOLO argument but is missing an '=' sign to set its value, "
-                f"i.e. try '{a}={defaults[a]}'"
-                f"\n{CLI_HELP_MSG}")
+            raise SyntaxError(f"'{a}' is a valid YOLO argument but is missing an '=' sign to set its value, "
+                              f"i.e. try '{a}={defaults[a]}'"
+                              f"\n{CLI_HELP_MSG}")
         else:
             raise SyntaxError(
                 f"'{a}' is not a valid YOLO argument. For a full list of valid arguments see "

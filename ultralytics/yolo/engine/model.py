@@ -43,6 +43,7 @@ class YOLO:
         self.TrainerClass = None  # trainer class
         self.ValidatorClass = None  # validator class
         self.PredictorClass = None  # predictor class
+        self.predictor = None # reuse predictor 
         self.model = None  # model object
         self.trainer = None  # trainer object
         self.task = None  # task type
@@ -131,11 +132,12 @@ class YOLO:
         overrides.update(kwargs)
         overrides["mode"] = "predict"
         overrides["save"] = kwargs.get("save", False)  # not save files by default
-        predictor = self.PredictorClass(overrides=overrides)
-
-        predictor.args.imgsz = check_imgsz(predictor.args.imgsz, min_dim=2)  # check image size
-        predictor.setup(model=self.model, source=source) if not predictor.done_setup else None
-        return predictor(stream=stream, verbose=verbose)
+        if not self.predictor:
+            self.predictor = self.PredictorClass(overrides=overrides) 
+            self.predictor.setup_model(model=self.model)
+        else: # only update args if predictor is arleady setup
+            self.predictor.args = get_config(self.predictor.args, overrides)
+        return self.predictor(source=source, stream=stream, verbose=verbose)
 
     @smart_inference_mode()
     def val(self, data=None, **kwargs):

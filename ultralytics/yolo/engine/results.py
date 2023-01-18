@@ -85,11 +85,11 @@ class Results:
 
     def __repr__(self):
         s = f'Ultralytics YOLO {self.__class__} instance\n'  # string
-        if self.boxes:
+        if self.boxes is not None:
             s = s + self.boxes.__repr__() + '\n'
-        if self.masks:
+        if self.masks is not None:
             s = s + self.masks.__repr__() + '\n'
-        if self.probs:
+        if self.probs is not None:
             s = s + self.probs.__repr__()
         s += f'original size: {self.orig_shape}\n'
 

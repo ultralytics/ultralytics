@@ -5,7 +5,7 @@ import torch
 
 from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.engine.results import Results
-from ultralytics.yolo.utils import DEFAULT_CONFIG, ROOT, ops
+from ultralytics.yolo.utils import DEFAULT_CONFIG, ROOT, is_git_directory, ops
 from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
 
 
@@ -84,7 +84,8 @@ class DetectionPredictor(BasePredictor):
 @hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def predict(cfg):
     cfg.model = cfg.model or "yolov8n.pt"
-    cfg.source = cfg.source if cfg.source is not None else ROOT / "assets"
+    cfg.source = cfg.source if cfg.source is not None else ROOT / "assets" if is_git_directory() \
+        else "https://ultralytics.com/images/bus.jpg"
     predictor = DetectionPredictor(cfg)
     predictor.predict_cli()
 

@@ -29,7 +29,10 @@ names:
 
 # Download script/URL (optional) ---------------------------------------------------------------------------------------
 download: |
-  from utils.general import download, os, Path
+  import os
+  from pathlib import Path
+
+  from ultralytics.yolo.utils.downloads import download
 
   def visdrone2yolo(dir):
       from PIL import Image

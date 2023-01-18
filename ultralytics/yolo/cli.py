@@ -20,28 +20,28 @@ CLI_HELP_MSG = \
         pip install ultralytics
 
     2. Train, Val, Predict and Export. In general all yolo commands are of the form:
-            
+
             yolo TASK MODE ARGS
-            
+
             Where   TASK is one of [detect, segment, classify]
                     MODE is one of [train, val, predict, export]
-                    ARGS are any number of custom arguments like 'imgsz=320' that override config.yaml defaults. 
-                        For a full list of available ARGS see https://docs.ultralytics.com/config. 
-        
+                    ARGS are any number of custom arguments like 'imgsz=320' that override config.yaml defaults.
+                        For a full list of available ARGS see https://docs.ultralytics.com/config.
+
         Train a detection model for 10 epochs with an initial learning_rate of 0.01
             yolo detect train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01
-        
+
         Predict a YouTube video using a pretrained segmentation model at image size 320:
             yolo segment predict model=yolov8n-seg.pt source=https://youtu.be/Zgi9g1ksQHc imgsz=320
-            
+
         Validate a pretrained detection model at batch-size 1 and image size 640:
             yolo detect val model=yolov8n.pt data=coco128.yaml batch=1 imgsz=640
-            
+
         Export a YOLOv8n classification model to ONNX format at image size 224 by 128 (no TASK required)
             yolo export model=yolov8n-cls.pt format=onnx imgsz=224,128
-        
+
     3. Run special commands:
-    
+
         yolo checks
         yolo help
         yolo settings
@@ -75,11 +75,7 @@ def cli(cfg):
         raise SyntaxError(f"yolo task={task} is invalid. Valid tasks are: {', '.join(tasks.keys())}\n{CLI_HELP_MSG}")
 
     # Mapping from mode to function
-    modes = {
-        "train": module.train,
-        "val": module.val,
-        "predict": module.predict,
-        "export": yolo.engine.exporter.export}
+    modes = {"train": module.train, "val": module.val, "predict": module.predict, "export": yolo.engine.exporter.export}
     func = modes.get(mode)
     if not func:
         raise SyntaxError(f"yolo mode={mode} is invalid. Valid modes are: {', '.join(modes.keys())}\n{CLI_HELP_MSG}")

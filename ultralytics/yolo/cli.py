@@ -3,6 +3,7 @@
 import argparse
 import re
 import shutil
+import sys
 from pathlib import Path
 
 from ultralytics import __version__, yolo
@@ -98,6 +99,10 @@ def entrypoint():
     It uses the package's default config and initializes it using the passed overrides.
     Then it calls the CLI function with the composed config
     """
+    if len(sys.argv) == 1:  # no arguments passed
+        LOGGER.info(CLI_HELP_MSG)
+        return
+
     parser = argparse.ArgumentParser(description='YOLO parser')
     parser.add_argument('args', type=str, nargs='+', help='YOLO args')
     args = parser.parse_args().args

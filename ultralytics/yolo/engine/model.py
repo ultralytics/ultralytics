@@ -227,6 +227,8 @@ class YOLO:
     def _reset_ckpt_args(args):
         args.pop("project", None)
         args.pop("name", None)
+        args.pop("exist_ok", None)
+        args.pop("resume", None)
         args.pop("batch", None)
         args.pop("epochs", None)
         args.pop("cache", None)

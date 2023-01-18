@@ -23,7 +23,7 @@ CLI_HELP_MSG = \
 
             Where   TASK (optional) is one of [detect, segment, classify]
                     MODE (required) is one of [train, val, predict, export]
-                    ARGS (optional) are any number of custom arguments like 'imgsz=320' that override config.yaml defaults.
+                    ARGS (optional) are any number of custom 'arg=value' pairs like 'imgsz=320' that override defaults.
                         For a full list of available ARGS see https://docs.ultralytics.com/config.
 
         Train a detection model for 10 epochs with an initial learning_rate of 0.01

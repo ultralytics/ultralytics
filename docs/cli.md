@@ -16,8 +16,8 @@ Where:
 - `TASK` (optional) is one of `[detect, segment, classify]`. If it is not passed explicitly YOLOv8 will try to guess
   the `TASK` from the model type.
 - `MODE` (required) is one of `[train, val, predict, export]`
-- `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` to set the image size to 320. `ARGS`
-  override `config.yaml defaults`. For a full list of available `ARGS` see the [Configuration](config.md) page.
+- `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults. 
+  For a full list of available `ARGS` see the [Configuration](config.md) page.
 
 !!! note ""
 

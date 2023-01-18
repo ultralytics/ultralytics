@@ -21,9 +21,9 @@ CLI_HELP_MSG = \
 
             yolo TASK MODE ARGS
 
-            Where   TASK is one of [detect, segment, classify]
-                    MODE is one of [train, val, predict, export]
-                    ARGS are any number of custom arguments like 'imgsz=320' that override config.yaml defaults.
+            Where   TASK (optional) is one of [detect, segment, classify]
+                    MODE (required) is one of [train, val, predict, export]
+                    ARGS (optional) are any number of custom arguments like 'imgsz=320' that override config.yaml defaults.
                         For a full list of available ARGS see https://docs.ultralytics.com/config.
 
         Train a detection model for 10 epochs with an initial learning_rate of 0.01
@@ -46,7 +46,7 @@ CLI_HELP_MSG = \
         yolo settings
         yolo copy-config
 
-    Docs: https://docs.ultralytics.com
+    Docs: https://docs.ultralytics.com/cli
     Community: https://community.ultralytics.com
     GitHub: https://github.com/ultralytics/ultralytics
     """

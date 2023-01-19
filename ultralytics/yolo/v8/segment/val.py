@@ -204,8 +204,7 @@ class SegmentationValidator(DetectionValidator):
         box = ops.xyxy2xywh(predn[:, :4])  # xywh
         box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
         pred_masks = np.transpose(pred_masks, (2, 0, 1))
-        with ThreadPool(NUM_THREADS) as pool:
-            rles = pool.map(single_encode, pred_masks)
+        rles = ThreadPool(NUM_THREADS).imap(single_encode, pred_masks)
         for i, (p, b) in enumerate(zip(predn.tolist(), box.tolist())):
             self.jdict.append({
                 'image_id': image_id,

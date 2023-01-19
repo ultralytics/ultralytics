@@ -613,21 +613,18 @@ class LoadImagesAndLabels(Dataset):
         x = {}  # dict
         nm, nf, ne, nc, msgs = 0, 0, 0, 0, []  # number missing, found, empty, corrupt, messages
         desc = f"{prefix}Scanning {path.parent / path.stem}..."
-        with Pool(NUM_THREADS) as pool:
-            pbar = tqdm(pool.imap(verify_image_label, zip(self.im_files, self.label_files, repeat(prefix))),
-                        desc=desc,
-                        total=len(self.im_files),
-                        bar_format=TQDM_BAR_FORMAT)
-            for im_file, lb, shape, segments, nm_f, nf_f, ne_f, nc_f, msg in pbar:
-                nm += nm_f
-                nf += nf_f
-                ne += ne_f
-                nc += nc_f
-                if im_file:
-                    x[im_file] = [lb, shape, segments]
-                if msg:
-                    msgs.append(msg)
-                pbar.desc = f"{desc} {nf} images, {nm + ne} backgrounds, {nc} corrupt"
+        results = ThreadPool(NUM_THREADS).imap(verify_image_label, zip(self.im_files, self.label_files, repeat(prefix)))
+        pbar = tqdm(results, desc=desc, total=len(self.im_files), bar_format=TQDM_BAR_FORMAT)
+        for im_file, lb, shape, segments, nm_f, nf_f, ne_f, nc_f, msg in pbar:
+            nm += nm_f
+            nf += nf_f
+            ne += ne_f
+            nc += nc_f
+            if im_file:
+                x[im_file] = [lb, shape, segments]
+            if msg:
+                msgs.append(msg)
+            pbar.desc = f"{desc} {nf} images, {nm + ne} backgrounds, {nc} corrupt"
 
         pbar.close()
         if msgs:

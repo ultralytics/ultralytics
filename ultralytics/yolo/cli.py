@@ -6,6 +6,8 @@ import shutil
 import sys
 from pathlib import Path
 
+from hydra import compose, initialize
+
 from ultralytics import __version__, yolo
 from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, PREFIX, checks, print_settings, yaml_load
 
@@ -62,11 +64,6 @@ def cli(cfg):
         cfg (DictConfig): Configuration for the task and mode.
     """
     # LOGGER.info(f"{colorstr(f'Ultralytics YOLO v{ultralytics.__version__}')}")
-    from ultralytics.yolo.configs import get_config
-
-    if cfg.cfg:
-        LOGGER.info(f"{PREFIX}Overriding default config with {cfg.cfg}")
-        cfg = get_config(cfg.cfg)
     task, mode = cfg.task.lower(), cfg.mode.lower()
 
     # Mapping from task to module
@@ -121,7 +118,12 @@ def entrypoint():
     defaults = yaml_load(DEFAULT_CONFIG)
     for a in args:
         if '=' in a:
-            overrides.append(a)
+            if a.startswith('cfg='):  # custom.yaml passed
+                custom_config = Path(a.split('=')[-1])
+                LOGGER.info(f"{PREFIX}Overriding {DEFAULT_CONFIG} with {custom_config}")
+                overrides.extend(f"{k}={v}" for k, v in yaml_load(custom_config).items() if k not in ['cfg', 'hydra'])
+            else:
+                overrides.append(a)
         elif a in tasks:
             overrides.append(f'task={a}')
         elif a in modes:
@@ -140,8 +142,6 @@ def entrypoint():
                 f"'{a}' is not a valid YOLO argument. For a full list of valid arguments see "
                 f"https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/configs/default.yaml"
                 f"\n{CLI_HELP_MSG}")
-
-    from hydra import compose, initialize
 
     with initialize(version_base=None, config_path=str(DEFAULT_CONFIG.parent.relative_to(DIR)), job_name="YOLO"):
         cfg = compose(config_name=DEFAULT_CONFIG.name, overrides=overrides)

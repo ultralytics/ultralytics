@@ -291,3 +291,36 @@ For professional support please [Contact Us](https://ultralytics.com/contact).
   <a href="https://www.instagram.com/ultralytics/" style="text-decoration:none;">
     <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-instagram.png" width="3%" alt="" /></a>
 </div>
+
+# <div align="center">Appendix</div>
+## Model Architectures
+Ultralytics supports many model architectures. Visit [models](#) page to view detailed information and usage.
+Any of these models can be used by loading their configs or pretrained checkpoints if available.
+```bash
+> yolo model=model.yaml ..
+            model.pt
+```
+```python
+from ultralytics import YOLO
+model = YOLO("model.yaml") # model.pt
+```
+<b>What to add your model architecture?</b> [Here's](#) how you can contribute
+### 1. YOLOv8
+About - <br>
+Available Models and tasks:
+- Detection - `yolov8n`, `yolov8s`, `yolov8m`, `yolov8l`, `yolov8x`
+- Instance Segmenetation - `yolov8n-seg`, `yolov8s-seg`, `yolov8m-seg`, `yolov8l-seg`, `yolov8x-seg`
+- Classification - `yolov8n-cls`, `yolov8s-cls`, `yolov8m-cls`, `yolov8l-cls`, `yolov8x-cls`
+
+### 2. YOLOv5
+About - <br>
+Available Models:
+- Detection - `yolov5n`, `yolov5s`, `yolov5m`, `yolov5l`, `yolov5x`
+- Instance Segmentation - `yolov5n-seg`, `yolov5s-seg`, `yolov5m-seg`, `yolov5l-seg`, `yolov5x-seg`
+
+### 3. RTMdet
+
+### 4. YOLOv3
+About - <br>
+Available Models:
+- Detection - `yolov3`, `yolov3-spp`, `yolov3-tiny`

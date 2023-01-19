@@ -140,10 +140,13 @@ class ClassificationTrainer(BaseTrainer):
 def train(cfg):
     cfg.model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
     cfg.data = cfg.data or "mnist160"  # or yolo.ClassificationDataset("mnist")
-    cfg.lr0 = 0.1
-    cfg.weight_decay = 5e-5
-    cfg.label_smoothing = 0.1
-    cfg.warmup_epochs = 0.0
+
+    # Reproduce ImageNet results
+    # cfg.lr0 = 0.1
+    # cfg.weight_decay = 5e-5
+    # cfg.label_smoothing = 0.1
+    # cfg.warmup_epochs = 0.0
+
     cfg.device = cfg.device if cfg.device is not None else ''
     # trainer = ClassificationTrainer(cfg)
     # trainer.train()

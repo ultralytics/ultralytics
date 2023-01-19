@@ -312,14 +312,17 @@ model = YOLO("model.yaml")  # model.pt
 
 <b>What to add your model architecture?</b> [Here's](#) how you can contribute
 
-### 1. YOLOv8
-
+### 1. YOLOv8 [Default achitecture]
 About - <br>
-Available Models and tasks:
-
+Available Models:
 - Detection - `yolov8n`, `yolov8s`, `yolov8m`, `yolov8l`, `yolov8x`
 - Instance Segmenetation - `yolov8n-seg`, `yolov8s-seg`, `yolov8m-seg`, `yolov8l-seg`, `yolov8x-seg`
 - Classification - `yolov8n-cls`, `yolov8s-cls`, `yolov8m-cls`, `yolov8l-cls`, `yolov8x-cls`
+
+### 2. YOLOv6
+About - YOLOv6 [[Paper](#)] developed by [Meituan](#) Vision department is a single-stage object detection framework dedicated to industrial applications. <br>
+Available Models: 
+- Detection - `yolov6n`, `yolov6s`, `yolov6m`, `yolov6l`
 
 ### 2. YOLOv5
 

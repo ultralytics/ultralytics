@@ -50,9 +50,9 @@ class YOLODataset(BaseDataset):
         x = {"labels": []}
         nm, nf, ne, nc, msgs = 0, 0, 0, 0, []  # number missing, found, empty, corrupt, messages
         desc = f"{self.prefix}Scanning {path.parent / path.stem}..."
-        results = ThreadPool(NUM_THREADS).imap(
-            func=verify_image_label,
-            iterable=zip(self.im_files, self.label_files, repeat(self.prefix), repeat(self.use_keypoints)))
+        results = ThreadPool(NUM_THREADS).imap(func=verify_image_label,
+                                               iterable=zip(self.im_files, self.label_files, repeat(self.prefix),
+                                                            repeat(self.use_keypoints)))
         pbar = tqdm(results, desc=desc, total=len(self.im_files), bar_format=TQDM_BAR_FORMAT)
         for im_file, lb, shape, segments, keypoint, nm_f, nf_f, ne_f, nc_f, msg in pbar:
             nm += nm_f
@@ -60,15 +60,16 @@ class YOLODataset(BaseDataset):
             ne += ne_f
             nc += nc_f
             if im_file:
-                x["labels"].append(dict(
-                    im_file=im_file,
-                    shape=shape,
-                    cls=lb[:, 0:1],  # n, 1
-                    bboxes=lb[:, 1:],  # n, 4
-                    segments=segments,
-                    keypoints=keypoint,
-                    normalized=True,
-                    bbox_format="xywh"))
+                x["labels"].append(
+                    dict(
+                        im_file=im_file,
+                        shape=shape,
+                        cls=lb[:, 0:1],  # n, 1
+                        bboxes=lb[:, 1:],  # n, 4
+                        segments=segments,
+                        keypoints=keypoint,
+                        normalized=True,
+                        bbox_format="xywh"))
             if msg:
                 msgs.append(msg)
             pbar.desc = f"{desc} {nf} images, {nm + ne} backgrounds, {nc} corrupt"

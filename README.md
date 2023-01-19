@@ -312,7 +312,7 @@ model = YOLO("model.yaml")  # model.pt
 
 <b>What to add your model architecture?</b> [Here's](#) how you can contribute
 
-### 1. YOLOv8 [Default achitecture]
+### 1. YOLOv8
 About - <br>
 Available Models:
 - Detection - `yolov8n`, `yolov8s`, `yolov8m`, `yolov8l`, `yolov8x`

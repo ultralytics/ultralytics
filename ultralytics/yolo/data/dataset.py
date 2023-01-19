@@ -105,7 +105,7 @@ class YOLODataset(BaseDataset):
             cache, exists = np.load(str(cache_path), allow_pickle=True).item(), True  # load dict
             assert cache["version"] == self.cache_version  # matches current version
             assert cache["hash"] == get_hash(self.label_files + self.im_files)  # identical hash
-        except Exception:
+        except (FileNotFoundError, AssertionError):
             cache, exists = self.cache_labels(cache_path), False  # run cache ops
 
         # Display cache

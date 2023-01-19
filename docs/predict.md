@@ -14,7 +14,7 @@ Inference or prediction of a task returns a list of `Results` objects. Alternati
     === "Getting a Generator"
         ```python
         inputs = [img, img] # list of np arrays
-        results = model(inputs, stream="True") # Generator of Results objects
+        results = model(inputs, stream=True) # Generator of Results objects
         for result in results:
             boxes = results.boxes # Boxes object for bbox outputs
             masks = results.masks # Masks object for segmenation masks outputs

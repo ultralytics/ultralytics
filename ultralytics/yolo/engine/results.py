@@ -95,6 +95,18 @@ class Results:
 
         return s
 
+    def __getattr__(self, attr):
+        name = self.__class__.__name__
+        raise AttributeError(f"""
+            '{name}' object has no attribute '{attr}'. Valid '{name}' object attributes and properties are:
+
+            Attributes:
+                boxes (Boxes, optional): A Boxes object containing the detection bounding boxes.
+                masks (Masks, optional): A Masks object containing the detection masks.
+                probs (torch.Tensor, optional): A tensor containing the detection class probabilities.
+                orig_shape (tuple, optional): Original image size.
+            """)
+
 
 class Boxes:
     """
@@ -200,6 +212,25 @@ class Boxes:
         boxes = self.boxes[idx]
         return Boxes(boxes, self.orig_shape)
 
+    def __getattr__(self, attr):
+        name = self.__class__.__name__
+        raise AttributeError(f"""
+            '{name}' object has no attribute '{attr}'. Valid '{name}' object attributes and properties are:
+
+            Attributes:
+                boxes (torch.Tensor) or (numpy.ndarray): A tensor or numpy array containing the detection boxes,
+                    with shape (num_boxes, 6).
+                orig_shape (torch.Tensor) or (numpy.ndarray): Original image size, in the format (height, width).
+
+            Properties:
+                xyxy (torch.Tensor) or (numpy.ndarray): The boxes in xyxy format.
+                conf (torch.Tensor) or (numpy.ndarray): The confidence values of the boxes.
+                cls (torch.Tensor) or (numpy.ndarray): The class values of the boxes.
+                xywh (torch.Tensor) or (numpy.ndarray): The boxes in xywh format.
+                xyxyn (torch.Tensor) or (numpy.ndarray): The boxes in xyxy format normalized by original image size.
+                xywhn (torch.Tensor) or (numpy.ndarray): The boxes in xywh format normalized by original image size.
+            """)
+
 
 class Masks:
     """
@@ -261,6 +292,19 @@ class Masks:
     def __getitem__(self, idx):
         masks = self.masks[idx]
         return Masks(masks, self.im_shape, self.orig_shape)
+
+    def __getattr__(self, attr):
+        name = self.__class__.__name__
+        raise AttributeError(f"""
+            '{name}' object has no attribute '{attr}'. Valid '{name}' object attributes and properties are:
+
+            Attributes:
+                masks (torch.Tensor): A tensor containing the detection masks, with shape (num_masks, height, width).
+                orig_shape (tuple): Original image size, in the format (height, width).
+
+            Properties:
+                segments (list): A list of segments which includes x,y,w,h,label,confidence, and mask of each detection masks.
+            """)
 
 
 if __name__ == "__main__":

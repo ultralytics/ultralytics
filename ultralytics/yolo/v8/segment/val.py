@@ -192,7 +192,7 @@ class SegmentationValidator(DetectionValidator):
     def pred_to_json(self, predn, filename, pred_masks):
         # Save one JSON result
         # Example result = {"image_id": 42, "category_id": 18, "bbox": [258.15, 41.29, 348.26, 243.78], "score": 0.236}
-        from pycocotools.mask import encode  # noqa
+        from pycocotools.mask import encode
 
         def single_encode(x):
             rle = encode(np.asarray(x[:, :, None], order="F", dtype="uint8"))[0]

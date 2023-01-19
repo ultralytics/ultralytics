@@ -96,7 +96,7 @@ class Results:
         return s
 
     def __getattr__(self, attr):
-        LOGGER.info(f"""
+        raise AttributeError(f"""
             {attr} is not a valid attribute of Results object. These are the valid attributes:
 
             boxes (Boxes, optional): A Boxes object containing the detection bounding boxes.
@@ -211,7 +211,7 @@ class Boxes:
         return Boxes(boxes, self.orig_shape)
 
     def __getattr__(self, attr):
-        LOGGER.info(f"""
+        raise AttributeError(f"""
             {attr} is not a valid attribute of Boxes object. These are the valid attributes and properties:
 
             Attributes:
@@ -291,7 +291,7 @@ class Masks:
         return Masks(masks, self.im_shape, self.orig_shape)
 
     def __getattr__(self, attr):
-        LOGGER.info(f"""
+        raise AttributeError(f"""
             {attr} is not a valid attribute of Masks object. These are the valid attributes and properties:
 
             Attributes:

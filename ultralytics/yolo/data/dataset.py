@@ -7,7 +7,7 @@ from pathlib import Path
 import torchvision
 from tqdm import tqdm
 
-from ..utils import NUM_THREADS, TQDM_BAR_FORMAT
+from ..utils import NUM_THREADS, TQDM_BAR_FORMAT, is_dir_writeable
 from .augment import *
 from .base import BaseDataset
 from .utils import HELP_URL, LOCAL_RANK, get_hash, img2label_paths, verify_image_label
@@ -89,13 +89,12 @@ class YOLODataset(BaseDataset):
         x["msgs"] = msgs  # warnings
         x["version"] = self.cache_version  # cache version
         self.im_files = [lb["im_file"] for lb in x["labels"]]
-        try:
-            np.save(path, x)  # save cache for next time
+        if is_dir_writeable(path.parent):
+            np.save(str(path), x)  # save cache for next time
             path.with_suffix(".cache.npy").rename(path)  # remove .npy suffix
             LOGGER.info(f"{self.prefix}New cache created: {path}")
-        except Exception as e:
-            LOGGER.warning(
-                f"{self.prefix}WARNING ⚠️ Cache directory {path.parent} is not writeable: {e}")  # not writeable
+        else:
+            LOGGER.warning(f"{self.prefix}WARNING ⚠️ Cache directory {path.parent} is not writeable")  # not writeable
         return x
 
     def get_labels(self):

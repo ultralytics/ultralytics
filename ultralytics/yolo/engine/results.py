@@ -96,8 +96,9 @@ class Results:
         return s
 
     def __getattr__(self, attr):
-        LOGGER.info(f"""
-            {attr} is not a valid attribute of Results object. These are the valid attributes:
+        name = self.__class__.__name__
+        raise AttributeError(f"""
+            '{name}' object has no attribute '{attr}'. Valid '{name}' object attributes and properties are:
 
             boxes (Boxes, optional): A Boxes object containing the detection bounding boxes.
             masks (Masks, optional): A Masks object containing the detection masks.
@@ -211,8 +212,9 @@ class Boxes:
         return Boxes(boxes, self.orig_shape)
 
     def __getattr__(self, attr):
-        LOGGER.info(f"""
-            {attr} is not a valid attribute of Boxes object. These are the valid attributes and properties:
+        name = self.__class__.__name__
+        raise AttributeError(f"""
+            '{name}' object has no attribute '{attr}'. Valid '{name}' object attributes and properties are:
 
             Attributes:
                 boxes (torch.Tensor) or (numpy.ndarray): A tensor or numpy array containing the detection boxes,
@@ -291,8 +293,9 @@ class Masks:
         return Masks(masks, self.im_shape, self.orig_shape)
 
     def __getattr__(self, attr):
-        LOGGER.info(f"""
-            {attr} is not a valid attribute of Masks object. These are the valid attributes and properties:
+        name = self.__class__.__name__
+        raise AttributeError(f"""
+            '{name}' object has no attribute '{attr}'. Valid '{name}' object attributes and properties are:
 
             Attributes:
                 masks (torch.Tensor): A tensor containing the detection masks, with shape (num_masks, height, width).

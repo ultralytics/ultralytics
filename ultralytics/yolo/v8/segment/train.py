@@ -99,7 +99,7 @@ class SegLoss(Loss):
             pred_scores.detach().sigmoid(), (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),
             anchor_points * stride_tensor, gt_labels, gt_bboxes, mask_gt)
 
-        target_scores_sum = target_scores.sum()
+        target_scores_sum = max(target_scores.sum(), 1)
 
         # cls loss
         # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way

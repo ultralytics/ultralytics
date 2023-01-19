@@ -98,12 +98,13 @@ class Results:
     def __getattr__(self, attr):
         LOGGER.info(f"""
             {attr} is not a valid attribute of Results object. These are the valid attributes:
-        
+
             boxes (Boxes, optional): A Boxes object containing the detection bounding boxes.
             masks (Masks, optional): A Masks object containing the detection masks.
             probs (torch.Tensor, optional): A tensor containing the detection class probabilities.
             orig_shape (tuple, optional): Original image size.
             """)
+
 
 class Boxes:
     """
@@ -212,7 +213,7 @@ class Boxes:
     def __getattr__(self, attr):
         LOGGER.info(f"""
             {attr} is not a valid attribute of Boxes object. These are the valid attributes and properties:
-        
+
             Attributes:
                 boxes (torch.Tensor) or (numpy.ndarray): A tensor or numpy array containing the detection boxes,
                     with shape (num_boxes, 6).
@@ -226,6 +227,7 @@ class Boxes:
                 xyxyn (torch.Tensor) or (numpy.ndarray): The boxes in xyxy format normalized by original image size.
                 xywhn (torch.Tensor) or (numpy.ndarray): The boxes in xywh format normalized by original image size.
             """)
+
 
 class Masks:
     """
@@ -287,10 +289,11 @@ class Masks:
     def __getitem__(self, idx):
         masks = self.masks[idx]
         return Masks(masks, self.im_shape, self.orig_shape)
+
     def __getattr__(self, attr):
         LOGGER.info(f"""
             {attr} is not a valid attribute of Masks object. These are the valid attributes and properties:
-        
+
             Attributes:
                 masks (torch.Tensor): A tensor containing the detection masks, with shape (num_masks, height, width).
                 orig_shape (tuple): Original image size, in the format (height, width).
@@ -298,6 +301,7 @@ class Masks:
             Properties:
                 segments (list): A list of segments which includes x,y,w,h,label,confidence, and mask of each detection masks.
             """)
+
 
 if __name__ == "__main__":
     # test examples

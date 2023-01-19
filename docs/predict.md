@@ -6,9 +6,9 @@ Inference or prediction of a task returns a list of `Results` objects. Alternati
         inputs = [img, img] # list of np arrays
         results = model(inputs) # List of Results objects
         for result in results:
-            boxes = results.boxes # Boxes object for bbox outputs
-            masks = results.masks # Masks object for segmenation masks outputs
-            probs = results.probs # Class probabilities for classification outputs
+            boxes = result.boxes # Boxes object for bbox outputs
+            masks = result.masks # Masks object for segmenation masks outputs
+            probs = result.probs # Class probabilities for classification outputs
             ...
         ```
     === "Getting a Generator"
@@ -16,9 +16,9 @@ Inference or prediction of a task returns a list of `Results` objects. Alternati
         inputs = [img, img] # list of np arrays
         results = model(inputs, stream=True) # Generator of Results objects
         for result in results:
-            boxes = results.boxes # Boxes object for bbox outputs
-            masks = results.masks # Masks object for segmenation masks outputs
-            probs = results.probs # Class probabilities for classification outputs
+            boxes = result.boxes # Boxes object for bbox outputs
+            masks = result.masks # Masks object for segmenation masks outputs
+            probs = result.probs # Class probabilities for classification outputs
             ...
         ```
 

@@ -13,7 +13,7 @@ import random
 import shutil
 import time
 from itertools import repeat
-from multiprocessing.pool import Pool, ThreadPool
+from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from threading import Thread
 from urllib.parse import urlparse
@@ -580,16 +580,17 @@ class LoadImagesAndLabels(Dataset):
             b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
             self.im_hw0, self.im_hw = [None] * n, [None] * n
             fcn = self.cache_images_to_disk if cache_images == 'disk' else self.load_image
-            results = ThreadPool(NUM_THREADS).imap(fcn, range(n))
-            pbar = tqdm(enumerate(results), total=n, bar_format=TQDM_BAR_FORMAT, disable=LOCAL_RANK > 0)
-            for i, x in pbar:
-                if cache_images == 'disk':
-                    b += self.npy_files[i].stat().st_size
-                else:  # 'ram'
-                    self.ims[i], self.im_hw0[i], self.im_hw[i] = x  # im, hw_orig, hw_resized = load_image(self, i)
-                    b += self.ims[i].nbytes
-                pbar.desc = f'{prefix}Caching images ({b / gb:.1f}GB {cache_images})'
-            pbar.close()
+            with ThreadPool(NUM_THREADS) as pool:
+                results = pool.imap(fcn, range(n))
+                pbar = tqdm(enumerate(results), total=n, bar_format=TQDM_BAR_FORMAT, disable=LOCAL_RANK > 0)
+                for i, x in pbar:
+                    if cache_images == 'disk':
+                        b += self.npy_files[i].stat().st_size
+                    else:  # 'ram'
+                        self.ims[i], self.im_hw0[i], self.im_hw[i] = x  # im, hw_orig, hw_resized = load_image(self, i)
+                        b += self.ims[i].nbytes
+                    pbar.desc = f'{prefix}Caching images ({b / gb:.1f}GB {cache_images})'
+                pbar.close()
 
     def check_cache_ram(self, safety_margin=0.1, prefix=''):
         # Check image caching requirements vs available memory
@@ -613,20 +614,21 @@ class LoadImagesAndLabels(Dataset):
         x = {}  # dict
         nm, nf, ne, nc, msgs = 0, 0, 0, 0, []  # number missing, found, empty, corrupt, messages
         desc = f"{prefix}Scanning {path.parent / path.stem}..."
-        results = ThreadPool(NUM_THREADS).imap(verify_image_label, zip(self.im_files, self.label_files, repeat(prefix)))
-        pbar = tqdm(results, desc=desc, total=len(self.im_files), bar_format=TQDM_BAR_FORMAT)
-        for im_file, lb, shape, segments, nm_f, nf_f, ne_f, nc_f, msg in pbar:
-            nm += nm_f
-            nf += nf_f
-            ne += ne_f
-            nc += nc_f
-            if im_file:
-                x[im_file] = [lb, shape, segments]
-            if msg:
-                msgs.append(msg)
-            pbar.desc = f"{desc} {nf} images, {nm + ne} backgrounds, {nc} corrupt"
+        with ThreadPool(NUM_THREADS) as pool:
+            results = pool.imap(verify_image_label, zip(self.im_files, self.label_files, repeat(prefix)))
+            pbar = tqdm(results, desc=desc, total=len(self.im_files), bar_format=TQDM_BAR_FORMAT)
+            for im_file, lb, shape, segments, nm_f, nf_f, ne_f, nc_f, msg in pbar:
+                nm += nm_f
+                nf += nf_f
+                ne += ne_f
+                nc += nc_f
+                if im_file:
+                    x[im_file] = [lb, shape, segments]
+                if msg:
+                    msgs.append(msg)
+                pbar.desc = f"{desc} {nf} images, {nm + ne} backgrounds, {nc} corrupt"
+            pbar.close()
 
-        pbar.close()
         if msgs:
             LOGGER.info('\n'.join(msgs))
         if nf == 0:
@@ -1146,8 +1148,9 @@ class HUBDatasetStats():
                 continue
             dataset = LoadImagesAndLabels(self.data[split])  # load dataset
             desc = f'{split} images'
-            for _ in tqdm(ThreadPool(NUM_THREADS).imap(self._hub_ops, dataset.im_files), total=dataset.n, desc=desc):
-                pass
+            with ThreadPool(NUM_THREADS) as pool:
+                for _ in tqdm(pool.imap(self._hub_ops, dataset.im_files), total=dataset.n, desc=desc):
+                    pass
         print(f'Done. All images saved to {self.im_dir}')
         return self.im_dir
 

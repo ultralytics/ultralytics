@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
 from itertools import repeat
-from multiprocessing.pool import ThreadPool, Pool
+from multiprocessing.pool import Pool, ThreadPool
 from pathlib import Path
 
 import torchvision

@@ -141,7 +141,6 @@ class SegLoss(Loss):
         return (crop_mask(loss, xyxy).mean(dim=(1, 2)) / area).mean()
 
 
-@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def train(cfg):
     cfg.model = cfg.model or "yolov8n-seg.pt"
     cfg.data = cfg.data or "coco128-seg.yaml"  # or yolo.ClassificationDataset("mnist")

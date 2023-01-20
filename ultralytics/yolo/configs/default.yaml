@@ -100,12 +100,8 @@ mosaic: 1.0  # image mosaic (probability)
 mixup: 0.0  # image mixup (probability)
 copy_paste: 0.0  # segment copy-paste (probability)
 
-# Hydra configs --------------------------------------------------------------------------------------------------------
+# Custom config.yaml ---------------------------------------------------------------------------------------------------
 cfg: null # for overriding defaults.yaml
-hydra:
-  output_subdir: null  # disable hydra directory creation
-  run:
-    dir: .
 
 # Debug, do not modify -------------------------------------------------------------------------------------------------
 v5loader: False  # use legacy YOLOv5 dataloader

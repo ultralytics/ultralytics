@@ -5,7 +5,7 @@ from collections import defaultdict
 from pathlib import Path
 
 import torch
-from omegaconf import OmegaConf  # noqa
+from omegaconf import OmegaConf
 from tqdm import tqdm
 
 from ultralytics.nn.autobackend import AutoBackend
@@ -27,7 +27,7 @@ class BaseValidator:
         dataloader (DataLoader): Dataloader to use for validation.
         pbar (tqdm): Progress bar to update during validation.
         logger (logging.Logger): Logger to use for validation.
-        args (OmegaConf): Configuration for the validator.
+        args (SimpleNamespace): Configuration for the validator.
         model (nn.Module): Model to validate.
         data (dict): Data dictionary.
         device (torch.device): Device to use for validation.
@@ -47,7 +47,7 @@ class BaseValidator:
             save_dir (Path): Directory to save results.
             pbar (tqdm.tqdm): Progress bar for displaying progress.
             logger (logging.Logger): Logger to log messages.
-            args (OmegaConf): Configuration for the validator.
+            args (SimpleNamespace): Configuration for the validator.
         """
         self.dataloader = dataloader
         self.pbar = pbar

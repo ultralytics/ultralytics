@@ -15,8 +15,6 @@ import numpy as np
 import torch
 import torch.distributed as dist
 import torch.nn as nn
-from omegaconf import OmegaConf  # noqa
-from omegaconf import open_dict
 from torch.cuda import amp
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.optim import lr_scheduler
@@ -43,7 +41,7 @@ class BaseTrainer:
     A base class for creating trainers.
 
     Attributes:
-        args (OmegaConf): Configuration for the trainer.
+        args (SimpleNamespace): Configuration for the trainer.
         check_resume (method): Method to check if training should be resumed from a saved checkpoint.
         console (logging.Logger): Logger instance.
         validator (BaseValidator): Validator instance.
@@ -95,23 +93,23 @@ class BaseTrainer:
         # Dirs
         project = self.args.project or Path(SETTINGS['runs_dir']) / self.args.task
         name = self.args.name or f"{self.args.mode}"
-        self.save_dir = Path(
-            self.args.get(
-                "save_dir",
-                increment_path(Path(project) / name, exist_ok=self.args.exist_ok if RANK in {-1, 0} else True)))
+        if hasattr(self.args, 'save_dir'):
+            self.save_dir = Path(self.args.save_dir)
+        else:
+            self.save_dir = Path(
+                increment_path(Path(project) / name, exist_ok=self.args.exist_ok if RANK in {-1, 0} else True))
         self.wdir = self.save_dir / 'weights'  # weights dir
         if RANK in {-1, 0}:
             self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
-            with open_dict(self.args):
-                self.args.save_dir = str(self.save_dir)
-            yaml_save(self.save_dir / 'args.yaml', OmegaConf.to_container(self.args, resolve=True))  # save run args
+            self.args.save_dir = str(self.save_dir)
+            yaml_save(self.save_dir / 'args.yaml', vars(self.args))  # save run args
         self.last, self.best = self.wdir / 'last.pt', self.wdir / 'best.pt'  # checkpoint paths
 
         self.batch_size = self.args.batch
         self.epochs = self.args.epochs
         self.start_epoch = 0
         if RANK == -1:
-            print_args(dict(self.args))
+            print_args(vars(self.args))
 
         # Device
         self.amp = self.device.type != 'cpu'

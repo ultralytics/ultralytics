@@ -64,7 +64,6 @@ class ClassificationPredictor(BasePredictor):
         return log_string
 
 
-@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def predict(cfg):
     cfg.model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
     cfg.source = cfg.source if cfg.source is not None else ROOT / "assets" if is_git_directory() \

@@ -136,7 +136,6 @@ class ClassificationTrainer(BaseTrainer):
                 #     self.run_callbacks('on_fit_epoch_end')
 
 
-@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def train(cfg):
     cfg.model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
     cfg.data = cfg.data or "mnist160"  # or yolo.ClassificationDataset("mnist")

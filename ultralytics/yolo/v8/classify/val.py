@@ -46,7 +46,6 @@ class ClassificationValidator(BaseValidator):
         self.logger.info(pf % ("all", self.metrics.top1, self.metrics.top5))
 
 
-@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def val(cfg):
     cfg.model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
     cfg.data = cfg.data or "imagenette160"

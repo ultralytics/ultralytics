@@ -123,7 +123,7 @@ class Exporter:
     A class for exporting a model.
 
     Attributes:
-        args (OmegaConf): Configuration for the exporter.
+        args (SimpleNamespace): Configuration for the exporter.
         save_dir (Path): Directory to save results.
     """
 
@@ -799,7 +799,6 @@ class Exporter:
             callback(self)
 
 
-@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def export(cfg):
     cfg.model = cfg.model or "yolov8n.yaml"
     cfg.format = cfg.format or "torchscript"

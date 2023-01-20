@@ -49,7 +49,7 @@ class BasePredictor:
     A base class for creating predictors.
 
     Attributes:
-        args (OmegaConf): Configuration for the predictor.
+        args (SimpleNamespace): Configuration for the predictor.
         save_dir (Path): Directory to save results.
         done_setup (bool): Whether the predictor has finished setup.
         model (nn.Module): Model used for prediction.

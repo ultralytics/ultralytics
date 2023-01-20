@@ -168,7 +168,7 @@ class DetectionValidator(BaseValidator):
                                  imgsz=self.args.imgsz,
                                  batch_size=batch_size,
                                  stride=gs,
-                                 hyp=dict(self.args),
+                                 hyp=vars(self.args),
                                  cache=False,
                                  pad=0.5,
                                  rect=True,
@@ -232,7 +232,6 @@ class DetectionValidator(BaseValidator):
         return stats
 
 
-@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def val(cfg):
     cfg.model = cfg.model or "yolov8n.pt"
     cfg.data = cfg.data or "coco128.yaml"

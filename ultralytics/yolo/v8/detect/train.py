@@ -30,7 +30,7 @@ class DetectionTrainer(BaseTrainer):
                                  imgsz=self.args.imgsz,
                                  batch_size=batch_size,
                                  stride=gs,
-                                 hyp=dict(self.args),
+                                 hyp=vars(self.args),
                                  augment=mode == "train",
                                  cache=self.args.cache,
                                  pad=0 if mode == "train" else 0.5,
@@ -195,7 +195,6 @@ class Loss:
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
 
 
-@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
 def train(cfg):
     cfg.model = cfg.model or "yolov8n.pt"
     cfg.data = cfg.data or "coco128.yaml"  # or yolo.ClassificationDataset("mnist")
@@ -204,7 +203,7 @@ def train(cfg):
     # trainer.train()
     from ultralytics import YOLO
     model = YOLO(cfg.model)
-    model.train(**cfg)
+    model.train(**vars(cfg))
 
 
 if __name__ == "__main__":

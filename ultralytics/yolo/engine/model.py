@@ -51,12 +51,13 @@ class YOLO:
         self.cfg = None  # if loaded from *.yaml
         self.ckpt_path = None
         self.overrides = {}  # overrides for trainer object
+        self.classes = None  # classes
 
         # Load or create new YOLO model
         {'.pt': self._load, '.yaml': self._new}[Path(model).suffix](model)
 
-    def __call__(self, source=None, stream=False, verbose=False, **kwargs):
-        return self.predict(source, stream, verbose, **kwargs)
+    def __call__(self, source=None, stream=False, verbose=False, classes=None, **kwargs):
+        return self.predict(source, stream, verbose, classes, **kwargs)
 
     def _new(self, cfg: str, verbose=True):
         """
@@ -121,6 +122,7 @@ class YOLO:
                           Accepts all source types accepted by the YOLO model.
             stream (bool): Whether to stream the predictions or not. Defaults to False.
             verbose (bool): Whether to print verbose information or not. Defaults to False.
+            classes (list): List of classes to filter predictions by. Defaults to None.
             **kwargs : Additional keyword arguments passed to the predictor.
                        Check the 'configuration' section in the documentation for all available options.
 
@@ -235,7 +237,6 @@ class YOLO:
         args.pop("save_json", None)
         args.pop("half", None)
         args.pop("v5loader", None)
-        args.pop("classes", None)
 
         # set device to '' to prevent from auto DDP usage
         args["device"] = ''

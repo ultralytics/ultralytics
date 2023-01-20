@@ -1,4 +1,6 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
+import argparse
+import re
 import shutil
 import sys
 import types
@@ -54,7 +56,7 @@ CLI_HELP_MSG = \
     """
 
 
-def get_config(config: Union[str, Path, Dict], overrides: Dict):
+def get_config(config: Union[str, Path, Dict], overrides: Dict = None):
     """
     Load and merge configuration data from a file or dictionary.
 
@@ -65,18 +67,16 @@ def get_config(config: Union[str, Path, Dict], overrides: Dict):
     Returns:
         (SimpleNamespace): Training arguments namespace.
     """
-    assert isinstance(overrides, dict), f'overrides is not dict! {type(overrides)}'
     if isinstance(config, (str, Path)):
         config = yaml_load(config)
-    check_config_mismatch(config, overrides)
-    merged = {**config, **overrides}  # merge config and overrides dicts (prefer overrides)
 
-    # --- namedtuple method ---
-    # from collections import namedtuple
-    # CFG = namedtuple('CFG', config.keys())  # CFG class
-    # return CFG(**merged)  # instance of CFG class
+    # Merge overrides
+    if overrides:
+        check_config_mismatch(config, overrides)
+        config = {**config, **overrides}  # merge config and overrides dicts (prefer overrides)
 
-    return types.SimpleNamespace(**merged)
+    # Return instance
+    return types.SimpleNamespace(**config)
 
 
 def check_config_mismatch(base: Dict, custom: Dict):
@@ -111,16 +111,14 @@ def entrypoint():
     It uses the package's default config and initializes it using the passed overrides.
     Then it calls the CLI function with the composed config
     """
-    if len(sys.argv) == -1:  # no arguments passed
+    if len(sys.argv) == 1:  # no arguments passed
         LOGGER.info(CLI_HELP_MSG)
         return
 
-    # parser = argparse.ArgumentParser(description='YOLO parser')
-    # parser.add_argument('args', type=str, nargs='+', help='YOLO args')
-    # args = parser.parse_args().args
-    # args = re.sub(r'\s*=\s*', '=', ' '.join(args)).split(' ')  # remove whitespaces around = sign
-
-    args = ['train']
+    parser = argparse.ArgumentParser(description='YOLO parser')
+    parser.add_argument('args', type=str, nargs='+', help='YOLO args')
+    args = parser.parse_args().args
+    args = re.sub(r'\s*=\s*', '=', ' '.join(args)).split(' ')  # remove whitespaces around = sign
 
     tasks = 'detect', 'segment', 'classify'
     modes = 'train', 'val', 'predict', 'export'
@@ -161,24 +159,24 @@ def entrypoint():
                 f"https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/configs/default.yaml"
                 f"\n{CLI_HELP_MSG}")
 
-        cfg = get_config(defaults, overrides)  # create CFG instance
+    cfg = get_config(defaults, overrides)  # create CFG instance
 
-        # Mapping from task to module
-        module = {"detect": yolo.v8.detect,
-                  "segment": yolo.v8.segment,
-                  "classify": yolo.v8.classify}.get(cfg.task)
-        if not module:
-            raise SyntaxError(f"yolo task={cfg.task} is invalid. Valid tasks are: {', '.join(tasks)}\n{CLI_HELP_MSG}")
+    # Mapping from task to module
+    module = {"detect": yolo.v8.detect,
+              "segment": yolo.v8.segment,
+              "classify": yolo.v8.classify}.get(cfg.task)
+    if not module:
+        raise SyntaxError(f"yolo task={cfg.task} is invalid. Valid tasks are: {', '.join(tasks)}\n{CLI_HELP_MSG}")
 
-        # Mapping from mode to function
-        func = {"train": module.train,
-                "val": module.val,
-                "predict": module.predict,
-                "export": yolo.engine.exporter.export}.get(cfg.mode)
-        if not func:
-            raise SyntaxError(f"yolo mode={cfg.mode} is invalid. Valid modes are: {', '.join(modes)}\n{CLI_HELP_MSG}")
+    # Mapping from mode to function
+    func = {"train": module.train,
+            "val": module.val,
+            "predict": module.predict,
+            "export": yolo.engine.exporter.export}.get(cfg.mode)
+    if not func:
+        raise SyntaxError(f"yolo mode={cfg.mode} is invalid. Valid modes are: {', '.join(modes)}\n{CLI_HELP_MSG}")
 
-        func(cfg)
+    func(cfg)
 
 
 # Special modes --------------------------------------------------------------------------------------------------------

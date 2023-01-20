@@ -89,6 +89,7 @@ class BasePredictor:
         self.dataset = None
         self.vid_path, self.vid_writer = None, None
         self.annotator = None
+        self.classes = None
         self.data_path = None
         self.callbacks = defaultdict(list, {k: [v] for k, v in callbacks.default_callbacks.items()})  # add callbacks
         callbacks.add_integration_callbacks(self)
@@ -102,7 +103,7 @@ class BasePredictor:
     def write_results(self, results, batch, print_string):
         raise NotImplementedError("print_results function needs to be implemented")
 
-    def postprocess(self, preds, img, orig_img):
+    def postprocess(self, preds, img, orig_img, classes):
         return preds
 
     def setup_source(self, source=None):
@@ -153,7 +154,8 @@ class BasePredictor:
         self.bs = bs
 
     @smart_inference_mode()
-    def __call__(self, source=None, model=None, verbose=False, stream=False):
+    def __call__(self, source=None, model=None, verbose=False, stream=False, classes=None):
+        self.classes = classes
         if stream:
             return self.stream_inference(source, model, verbose)
         else:
@@ -197,7 +199,7 @@ class BasePredictor:
 
             # postprocess
             with self.dt[2]:
-                results = self.postprocess(preds, im, im0s)
+                results = self.postprocess(preds, im, im0s,classes=self.classes)
             for i in range(len(im)):
                 p, im0 = (path[i], im0s[i]) if self.webcam or self.from_img else (path, im0s)
                 p = Path(p)

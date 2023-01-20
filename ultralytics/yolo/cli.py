@@ -56,31 +56,6 @@ CLI_HELP_MSG = \
     """
 
 
-def cli(cfg):
-    """
-    Run a specified task and mode with the given configuration.
-
-    Args:
-        cfg (DictConfig): Configuration for the task and mode.
-    """
-    # LOGGER.info(f"{colorstr(f'Ultralytics YOLO v{ultralytics.__version__}')}")
-    task, mode = cfg.task.lower(), cfg.mode.lower()
-
-    # Mapping from task to module
-    tasks = {"detect": yolo.v8.detect, "segment": yolo.v8.segment, "classify": yolo.v8.classify}
-    module = tasks.get(task)
-    if not module:
-        raise SyntaxError(f"yolo task={task} is invalid. Valid tasks are: {', '.join(tasks.keys())}\n{CLI_HELP_MSG}")
-
-    # Mapping from mode to function
-    modes = {"train": module.train, "val": module.val, "predict": module.predict, "export": yolo.engine.exporter.export}
-    func = modes.get(mode)
-    if not func:
-        raise SyntaxError(f"yolo mode={mode} is invalid. Valid modes are: {', '.join(modes.keys())}\n{CLI_HELP_MSG}")
-
-    func(cfg)
-
-
 def entrypoint():
     """
     This function is the ultralytics package entrypoint, it's responsible for parsing the command line arguments passed
@@ -145,7 +120,23 @@ def entrypoint():
 
     with initialize(version_base=None, config_path=str(DEFAULT_CONFIG.parent.relative_to(DIR)), job_name="YOLO"):
         cfg = compose(config_name=DEFAULT_CONFIG.name, overrides=overrides)
-        cli(cfg)
+
+        # Mapping from task to module
+        tasks = {"detect": yolo.v8.detect, "segment": yolo.v8.segment, "classify": yolo.v8.classify}
+        module = tasks.get(cfg.task)
+        if not module:
+            raise SyntaxError(
+                f"yolo task={cfg.task} is invalid. Valid tasks are: {', '.join(tasks.keys())}\n{CLI_HELP_MSG}")
+
+        # Mapping from mode to function
+        modes = {"train": module.train, "val": module.val, "predict": module.predict,
+                 "export": yolo.engine.exporter.export}
+        func = modes.get(cfg.mode)
+        if not func:
+            raise SyntaxError(
+                f"yolo mode={cfg.mode} is invalid. Valid modes are: {', '.join(modes.keys())}\n{CLI_HELP_MSG}")
+
+        func(cfg)
 
 
 # Special modes --------------------------------------------------------------------------------------------------------

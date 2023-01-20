@@ -18,7 +18,7 @@ import torch.nn.functional as F
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 import ultralytics
-from ultralytics.yolo.utils import DEFAULT_CONFIG_DICT, DEFAULT_CONFIG_KEYS, LOGGER
+from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER
 from ultralytics.yolo.utils.checks import git_describe
 
 from .checks import check_version
@@ -288,7 +288,7 @@ def strip_optimizer(f='best.pt', s=''):
         None
     """
     x = torch.load(f, map_location=torch.device('cpu'))
-    args = {**DEFAULT_CONFIG_DICT, **x['train_args']}  # combine model args with default args, preferring model args
+    args = {**DEFAULT_CFG_DICT, **x['train_args']}  # combine model args with default args, preferring model args
     if x.get('ema'):
         x['model'] = x['ema']  # replace model with ema
     for k in 'optimizer', 'best_fitness', 'ema', 'updates':  # keys
@@ -297,7 +297,8 @@ def strip_optimizer(f='best.pt', s=''):
     x['model'].half()  # to FP16
     for p in x['model'].parameters():
         p.requires_grad = False
-    x['train_args'] = {k: v for k, v in args.items() if k in DEFAULT_CONFIG_KEYS}  # strip non-default keys
+    x['train_args'] = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # strip non-default keys
+    # x['model'].args = x['train_args']
     torch.save(x, s or f)
     mb = os.path.getsize(s or f) / 1E6  # filesize
     LOGGER.info(f"Optimizer stripped from {f},{f' saved as {s},' if s else ''} {mb:.1f}MB")

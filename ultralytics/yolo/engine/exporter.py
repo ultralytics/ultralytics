@@ -60,7 +60,6 @@ from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
 
-import hydra
 import numpy as np
 import pandas as pd
 import torch
@@ -71,7 +70,7 @@ from ultralytics.nn.tasks import ClassificationModel, DetectionModel, Segmentati
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages
 from ultralytics.yolo.data.utils import check_dataset
-from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, callbacks, colorstr, get_default_args, yaml_save
+from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, callbacks, colorstr, get_default_args, yaml_save
 from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version, check_yaml
 from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.ops import Profile
@@ -123,11 +122,11 @@ class Exporter:
     A class for exporting a model.
 
     Attributes:
-        args (OmegaConf): Configuration for the exporter.
+        args (SimpleNamespace): Configuration for the exporter.
         save_dir (Path): Directory to save results.
     """
 
-    def __init__(self, config=DEFAULT_CONFIG, overrides=None):
+    def __init__(self, config=DEFAULT_CFG, overrides=None):
         """
         Initializes the Exporter class.
 
@@ -135,8 +134,6 @@ class Exporter:
             config (str, optional): Path to a configuration file. Defaults to DEFAULT_CONFIG.
             overrides (dict, optional): Configuration overrides. Defaults to None.
         """
-        if overrides is None:
-            overrides = {}
         self.args = get_config(config, overrides)
         self.callbacks = defaultdict(list, {k: [v] for k, v in callbacks.default_callbacks.items()})  # add callbacks
         callbacks.add_integration_callbacks(self)
@@ -799,8 +796,7 @@ class Exporter:
             callback(self)
 
 
-@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
-def export(cfg):
+def export(cfg=DEFAULT_CFG):
     cfg.model = cfg.model or "yolov8n.yaml"
     cfg.format = cfg.format or "torchscript"
 
@@ -818,7 +814,7 @@ def export(cfg):
 
     from ultralytics import YOLO
     model = YOLO(cfg.model)
-    model.export(**cfg)
+    model.export(**vars(cfg))
 
 
 if __name__ == "__main__":

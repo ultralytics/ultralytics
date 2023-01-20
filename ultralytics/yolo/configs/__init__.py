@@ -9,7 +9,7 @@ from types import SimpleNamespace
 from typing import Dict, Union
 
 from ultralytics import __version__, yolo
-from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, PREFIX, checks, colorstr, print_settings, yaml_load
+from ultralytics.yolo.utils import DEFAULT_CFG_PATH, LOGGER, PREFIX, checks, colorstr, print_settings, yaml_load
 
 DIR = Path(__file__).parent
 
@@ -153,12 +153,12 @@ def entrypoint():
         'copy-config': copy_default_config}
 
     overrides = {}  # basic overrides, i.e. imgsz=320
-    defaults = yaml_load(DEFAULT_CONFIG)
+    defaults = yaml_load(DEFAULT_CFG_PATH)
     for a in args:
         if '=' in a:
             if a.startswith('cfg='):  # custom.yaml passed
                 custom_config = Path(a.split('=')[-1])
-                LOGGER.info(f"{PREFIX}Overriding {DEFAULT_CONFIG} with {custom_config}")
+                LOGGER.info(f"{PREFIX}Overriding {DEFAULT_CFG_PATH} with {custom_config}")
                 overrides = {k: v for k, v in yaml_load(custom_config).items() if k not in {'cfg'}}
             else:
                 k, v = a.split('=')
@@ -208,9 +208,9 @@ def entrypoint():
 
 # Special modes --------------------------------------------------------------------------------------------------------
 def copy_default_config():
-    new_file = Path.cwd() / DEFAULT_CONFIG.name.replace('.yaml', '_copy.yaml')
-    shutil.copy2(DEFAULT_CONFIG, new_file)
-    LOGGER.info(f"{PREFIX}{DEFAULT_CONFIG} copied to {new_file}\n"
+    new_file = Path.cwd() / DEFAULT_CFG_PATH.name.replace('.yaml', '_copy.yaml')
+    shutil.copy2(DEFAULT_CFG_PATH, new_file)
+    LOGGER.info(f"{PREFIX}{DEFAULT_CFG_PATH} copied to {new_file}\n"
                 f"Usage for running YOLO with this new custom config:\nyolo cfg={new_file} args...")
 
 

@@ -9,7 +9,7 @@ import torch
 from ultralytics.yolo.data import build_dataloader
 from ultralytics.yolo.data.dataloaders.v5loader import create_dataloader
 from ultralytics.yolo.engine.validator import BaseValidator
-from ultralytics.yolo.utils import colorstr, ops, yaml_load
+from ultralytics.yolo.utils import colorstr, ops, yaml_load, DEFAULT_CFG
 from ultralytics.yolo.utils.checks import check_file, check_requirements
 from ultralytics.yolo.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
 from ultralytics.yolo.utils.plotting import output_to_target, plot_images
@@ -231,7 +231,7 @@ class DetectionValidator(BaseValidator):
         return stats
 
 
-def val(cfg):
+def val(cfg=DEFAULT_CFG):
     cfg.model = cfg.model or "yolov8n.pt"
     cfg.data = cfg.data or "coco128.yaml"
     validator = DetectionValidator(args=cfg)

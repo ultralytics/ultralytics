@@ -2,6 +2,7 @@
 
 from ultralytics.yolo.data import build_classification_dataloader
 from ultralytics.yolo.engine.validator import BaseValidator
+from ultralytics.yolo.utils import DEFAULT_CFG
 from ultralytics.yolo.utils.metrics import ClassifyMetrics
 
 
@@ -43,7 +44,7 @@ class ClassificationValidator(BaseValidator):
         self.logger.info(pf % ("all", self.metrics.top1, self.metrics.top5))
 
 
-def val(cfg):
+def val(cfg=DEFAULT_CFG):
     cfg.model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
     cfg.data = cfg.data or "imagenette160"
     validator = ClassificationValidator(args=cfg)

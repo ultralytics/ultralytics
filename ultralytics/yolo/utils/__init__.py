@@ -8,6 +8,7 @@ import platform
 import sys
 import tempfile
 import threading
+import types
 import uuid
 from pathlib import Path
 from typing import Union
@@ -22,7 +23,7 @@ import yaml
 # Constants
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[2]  # YOLO
-DEFAULT_CONFIG = ROOT / "yolo/configs/default.yaml"
+DEFAULT_CFG_PATH = ROOT / "yolo/configs/default.yaml"
 RANK = int(os.getenv('RANK', -1))
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLOv5 multiprocessing threads
 AUTOINSTALL = str(os.getenv('YOLO_AUTOINSTALL', True)).lower() == 'true'  # global auto-install mode
@@ -73,9 +74,10 @@ os.environ['NUMEXPR_MAX_THREADS'] = str(NUM_THREADS)  # NumExpr max threads
 os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':4096:8'  # for deterministic training
 
 # Default config dictionary
-with open(DEFAULT_CONFIG, errors='ignore') as f:
-    DEFAULT_CONFIG_DICT = yaml.safe_load(f)
-DEFAULT_CONFIG_KEYS = DEFAULT_CONFIG_DICT.keys()
+with open(DEFAULT_CFG_PATH, errors='ignore') as f:
+    DEFAULT_CFG_DICT = yaml.safe_load(f)
+DEFAULT_CFG_KEYS = DEFAULT_CFG_DICT.keys()
+DEFAULT_CFG = types.SimpleNamespace(**DEFAULT_CFG_DICT)
 
 
 def is_colab():
@@ -277,7 +279,7 @@ def colorstr(*input):
         "bright_white": "\033[97m",
         "end": "\033[0m",  # misc
         "bold": "\033[1m",
-        "underline": "\033[4m",}
+        "underline": "\033[4m", }
     return "".join(colors[x] for x in args) + f"{string}" + colors["end"]
 
 
@@ -295,12 +297,12 @@ def set_logging(name=LOGGING_NAME, verbose=True):
             name: {
                 "class": "logging.StreamHandler",
                 "formatter": name,
-                "level": level,}},
+                "level": level, }},
         "loggers": {
             name: {
                 "level": level,
                 "handlers": [name],
-                "propagate": False,}}})
+                "propagate": False, }}})
 
 
 class TryExcept(contextlib.ContextDecorator):

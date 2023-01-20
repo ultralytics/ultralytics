@@ -10,7 +10,7 @@ from tqdm import tqdm
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
-from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, callbacks
+from ultralytics.yolo.utils import DEFAULT_CFG_PATH, LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, callbacks
 from ultralytics.yolo.utils.checks import check_imgsz
 from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.ops import Profile
@@ -52,7 +52,7 @@ class BaseValidator:
         self.dataloader = dataloader
         self.pbar = pbar
         self.logger = logger or LOGGER
-        self.args = args or get_config(DEFAULT_CONFIG)
+        self.args = args or get_config(DEFAULT_CFG_PATH)
         self.model = None
         self.data = None
         self.device = None

@@ -185,7 +185,6 @@ def entrypoint():
                 f"https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/configs/default.yaml"
                 f"\n{CLI_HELP_MSG}")
 
-    print(overrides)
     cfg = get_config(defaults, overrides)  # create CFG instance
 
     # Mapping from task to module

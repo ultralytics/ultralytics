@@ -5,12 +5,12 @@ from collections import defaultdict
 from pathlib import Path
 
 import torch
-from omegaconf import OmegaConf  # noqa
 from tqdm import tqdm
 
 from ultralytics.nn.autobackend import AutoBackend
+from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
-from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, callbacks
+from ultralytics.yolo.utils import DEFAULT_CFG_PATH, LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, callbacks
 from ultralytics.yolo.utils.checks import check_imgsz
 from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.ops import Profile
@@ -27,7 +27,7 @@ class BaseValidator:
         dataloader (DataLoader): Dataloader to use for validation.
         pbar (tqdm): Progress bar to update during validation.
         logger (logging.Logger): Logger to use for validation.
-        args (OmegaConf): Configuration for the validator.
+        args (SimpleNamespace): Configuration for the validator.
         model (nn.Module): Model to validate.
         data (dict): Data dictionary.
         device (torch.device): Device to use for validation.
@@ -47,12 +47,12 @@ class BaseValidator:
             save_dir (Path): Directory to save results.
             pbar (tqdm.tqdm): Progress bar for displaying progress.
             logger (logging.Logger): Logger to log messages.
-            args (OmegaConf): Configuration for the validator.
+            args (SimpleNamespace): Configuration for the validator.
         """
         self.dataloader = dataloader
         self.pbar = pbar
         self.logger = logger or LOGGER
-        self.args = args or OmegaConf.load(DEFAULT_CONFIG)
+        self.args = args or get_config(DEFAULT_CFG_PATH)
         self.model = None
         self.data = None
         self.device = None

@@ -6,7 +6,7 @@ from ultralytics import yolo  # noqa
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, attempt_load_one_weight
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.engine.exporter import Exporter
-from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, yaml_load
+from ultralytics.yolo.utils import DEFAULT_CFG_PATH, LOGGER, yaml_load
 from ultralytics.yolo.utils.checks import check_yaml
 from ultralytics.yolo.utils.torch_utils import guess_task_from_head, smart_inference_mode
 
@@ -151,7 +151,7 @@ class YOLO:
         overrides = self.overrides.copy()
         overrides.update(kwargs)
         overrides["mode"] = "val"
-        args = get_config(config=DEFAULT_CONFIG, overrides=overrides)
+        args = get_config(config=DEFAULT_CFG_PATH, overrides=overrides)
         args.data = data or args.data
         args.task = self.task
 
@@ -169,7 +169,7 @@ class YOLO:
 
         overrides = self.overrides.copy()
         overrides.update(kwargs)
-        args = get_config(config=DEFAULT_CONFIG, overrides=overrides)
+        args = get_config(config=DEFAULT_CFG_PATH, overrides=overrides)
         args.task = self.task
 
         print(args)

@@ -155,19 +155,18 @@ class BasePredictor:
 
     @smart_inference_mode()
     def __call__(self, source=None, model=None, verbose=False, stream=False, classes=None):
-        self.classes = classes
         if stream:
-            return self.stream_inference(source, model, verbose)
+            return self.stream_inference(source, model, verbose, classes)
         else:
-            return list(chain(*list(self.stream_inference(source, model, verbose))))  # merge list of Result into one
+            return list(chain(*list(self.stream_inference(source, model, verbose, classes))))  # merge list of Result into one
 
     def predict_cli(self):
         # Method used for CLI prediction. It uses always generator as outputs as not required by CLI mode
-        gen = self.stream_inference(verbose=True)
+        gen = self.stream_inference(verbose=True, classes=None)
         for _ in gen:  # running CLI inference without accumulating any outputs (do not modify)
             pass
 
-    def stream_inference(self, source=None, model=None, verbose=False):
+    def stream_inference(self, source=None, model=None, verbose=False, classes=None):
         self.run_callbacks("on_predict_start")
 
         # setup model
@@ -199,7 +198,7 @@ class BasePredictor:
 
             # postprocess
             with self.dt[2]:
-                results = self.postprocess(preds, im, im0s,classes=self.classes)
+                results = self.postprocess(preds, im, im0s,classes)
             for i in range(len(im)):
                 p, im0 = (path[i], im0s[i]) if self.webcam or self.from_img else (path, im0s)
                 p = Path(p)

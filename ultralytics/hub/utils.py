@@ -7,7 +7,7 @@ import time
 
 import requests
 
-from ultralytics.yolo.utils import DEFAULT_CONFIG_DICT, LOGGER, RANK, SETTINGS, TryExcept, colorstr, emojis
+from ultralytics.yolo.utils import DEFAULT_CFG_DICT, LOGGER, RANK, SETTINGS, TryExcept, colorstr, emojis
 
 PREFIX = colorstr('Ultralytics: ')
 HELP_MSG = 'If this issue persists please visit https://github.com/ultralytics/hub/issues for assistance.'
@@ -143,7 +143,7 @@ def sync_analytics(cfg, all_keys=False, enabled=False):
     if SETTINGS['sync'] and RANK in {-1, 0} and enabled:
         cfg = dict(cfg)  # convert type from DictConfig to dict
         if not all_keys:
-            cfg = {k: v for k, v in cfg.items() if v != DEFAULT_CONFIG_DICT.get(k, None)}  # retain non-default values
+            cfg = {k: v for k, v in cfg.items() if v != DEFAULT_CFG_DICT.get(k, None)}  # retain non-default values
         cfg['uuid'] = SETTINGS['uuid']  # add the device UUID to the configuration data
 
         # Send a request to the HUB API to sync analytics

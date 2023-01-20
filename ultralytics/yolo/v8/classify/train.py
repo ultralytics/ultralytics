@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
-import hydra
 import torch
 import torchvision
 
@@ -8,13 +7,13 @@ from ultralytics.nn.tasks import ClassificationModel, attempt_load_one_weight
 from ultralytics.yolo import v8
 from ultralytics.yolo.data import build_classification_dataloader
 from ultralytics.yolo.engine.trainer import BaseTrainer
-from ultralytics.yolo.utils import DEFAULT_CONFIG
+from ultralytics.yolo.utils import DEFAULT_CFG
 from ultralytics.yolo.utils.torch_utils import strip_optimizer
 
 
 class ClassificationTrainer(BaseTrainer):
 
-    def __init__(self, config=DEFAULT_CONFIG, overrides=None):
+    def __init__(self, config=DEFAULT_CFG, overrides=None):
         if overrides is None:
             overrides = {}
         overrides["task"] = "classify"
@@ -136,8 +135,7 @@ class ClassificationTrainer(BaseTrainer):
                 #     self.run_callbacks('on_fit_epoch_end')
 
 
-@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
-def train(cfg):
+def train(cfg=DEFAULT_CFG):
     cfg.model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
     cfg.data = cfg.data or "mnist160"  # or yolo.ClassificationDataset("mnist")
 
@@ -152,7 +150,7 @@ def train(cfg):
     # trainer.train()
     from ultralytics import YOLO
     model = YOLO(cfg.model)
-    model.train(**cfg)
+    model.train(**vars(cfg))
 
 
 if __name__ == "__main__":

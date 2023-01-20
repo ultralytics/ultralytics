@@ -4,12 +4,11 @@ import os
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 
-import hydra
 import numpy as np
 import torch
 import torch.nn.functional as F
 
-from ultralytics.yolo.utils import DEFAULT_CONFIG, NUM_THREADS, ops
+from ultralytics.yolo.utils import DEFAULT_CFG, NUM_THREADS, ops
 from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils.metrics import ConfusionMatrix, SegmentMetrics, box_iou, mask_iou
 from ultralytics.yolo.utils.plotting import output_to_target, plot_images
@@ -243,8 +242,7 @@ class SegmentationValidator(DetectionValidator):
         return stats
 
 
-@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
-def val(cfg):
+def val(cfg=DEFAULT_CFG):
     cfg.data = cfg.data or "coco128-seg.yaml"
     validator = SegmentationValidator(args=cfg)
     validator(model=cfg.model)

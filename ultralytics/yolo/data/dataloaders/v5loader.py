@@ -29,7 +29,8 @@ from torch.utils.data import DataLoader, Dataset, dataloader, distributed
 from tqdm import tqdm
 
 from ultralytics.yolo.data.utils import check_dataset, unzip_file
-from ultralytics.yolo.utils import DATASETS_DIR, LOGGER, NUM_THREADS, TQDM_BAR_FORMAT, is_colab, is_kaggle
+from ultralytics.yolo.utils import (DATASETS_DIR, LOGGER, NUM_THREADS, TQDM_BAR_FORMAT, is_colab, is_dir_writeable,
+                                    is_kaggle)
 from ultralytics.yolo.utils.checks import check_requirements, check_yaml
 from ultralytics.yolo.utils.ops import clean_str, segments2boxes, xyn2xy, xywh2xyxy, xywhn2xyxy, xyxy2xywhn
 from ultralytics.yolo.utils.torch_utils import torch_distributed_zero_first
@@ -493,7 +494,7 @@ class LoadImagesAndLabels(Dataset):
             cache, exists = np.load(cache_path, allow_pickle=True).item(), True  # load dict
             assert cache['version'] == self.cache_version  # matches current version
             assert cache['hash'] == get_hash(self.label_files + self.im_files)  # identical hash
-        except (FileNotFoundError, AssertionError):
+        except (FileNotFoundError, AssertionError, AttributeError):
             cache, exists = self.cache_labels(cache_path, prefix), False  # run cache ops
 
         # Display cache
@@ -579,16 +580,17 @@ class LoadImagesAndLabels(Dataset):
             b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
             self.im_hw0, self.im_hw = [None] * n, [None] * n
             fcn = self.cache_images_to_disk if cache_images == 'disk' else self.load_image
-            results = ThreadPool(NUM_THREADS).imap(fcn, range(n))
-            pbar = tqdm(enumerate(results), total=n, bar_format=TQDM_BAR_FORMAT, disable=LOCAL_RANK > 0)
-            for i, x in pbar:
-                if cache_images == 'disk':
-                    b += self.npy_files[i].stat().st_size
-                else:  # 'ram'
-                    self.ims[i], self.im_hw0[i], self.im_hw[i] = x  # im, hw_orig, hw_resized = load_image(self, i)
-                    b += self.ims[i].nbytes
-                pbar.desc = f'{prefix}Caching images ({b / gb:.1f}GB {cache_images})'
-            pbar.close()
+            with (Pool if n > 10000 else ThreadPool)(NUM_THREADS) as pool:
+                results = pool.imap(fcn, range(n))
+                pbar = tqdm(enumerate(results), total=n, bar_format=TQDM_BAR_FORMAT, disable=LOCAL_RANK > 0)
+                for i, x in pbar:
+                    if cache_images == 'disk':
+                        b += self.npy_files[i].stat().st_size
+                    else:  # 'ram'
+                        self.ims[i], self.im_hw0[i], self.im_hw[i] = x  # im, hw_orig, hw_resized = load_image(self, i)
+                        b += self.ims[i].nbytes
+                    pbar.desc = f'{prefix}Caching images ({b / gb:.1f}GB {cache_images})'
+                pbar.close()
 
     def check_cache_ram(self, safety_margin=0.1, prefix=''):
         # Check image caching requirements vs available memory
@@ -612,11 +614,10 @@ class LoadImagesAndLabels(Dataset):
         x = {}  # dict
         nm, nf, ne, nc, msgs = 0, 0, 0, 0, []  # number missing, found, empty, corrupt, messages
         desc = f"{prefix}Scanning {path.parent / path.stem}..."
-        with Pool(NUM_THREADS) as pool:
-            pbar = tqdm(pool.imap(verify_image_label, zip(self.im_files, self.label_files, repeat(prefix))),
-                        desc=desc,
-                        total=len(self.im_files),
-                        bar_format=TQDM_BAR_FORMAT)
+        total = len(self.im_files)
+        with (Pool if total > 10000 else ThreadPool)(NUM_THREADS) as pool:
+            results = pool.imap(verify_image_label, zip(self.im_files, self.label_files, repeat(prefix)))
+            pbar = tqdm(results, desc=desc, total=total, bar_format=TQDM_BAR_FORMAT)
             for im_file, lb, shape, segments, nm_f, nf_f, ne_f, nc_f, msg in pbar:
                 nm += nm_f
                 nf += nf_f
@@ -627,8 +628,8 @@ class LoadImagesAndLabels(Dataset):
                 if msg:
                     msgs.append(msg)
                 pbar.desc = f"{desc} {nf} images, {nm + ne} backgrounds, {nc} corrupt"
+            pbar.close()
 
-        pbar.close()
         if msgs:
             LOGGER.info('\n'.join(msgs))
         if nf == 0:
@@ -637,12 +638,12 @@ class LoadImagesAndLabels(Dataset):
         x['results'] = nf, nm, ne, nc, len(self.im_files)
         x['msgs'] = msgs  # warnings
         x['version'] = self.cache_version  # cache version
-        try:
-            np.save(path, x)  # save cache for next time
+        if is_dir_writeable(path.parent):
+            np.save(str(path), x)  # save cache for next time
             path.with_suffix('.cache.npy').rename(path)  # remove .npy suffix
             LOGGER.info(f'{prefix}New cache created: {path}')
-        except Exception as e:
-            LOGGER.warning(f'{prefix}WARNING ⚠️ Cache directory {path.parent} is not writeable: {e}')  # not writeable
+        else:
+            LOGGER.warning(f'{prefix}WARNING ⚠️ Cache directory {path.parent} is not writeable')  # not writeable
         return x
 
     def __len__(self):
@@ -1148,8 +1149,10 @@ class HUBDatasetStats():
                 continue
             dataset = LoadImagesAndLabels(self.data[split])  # load dataset
             desc = f'{split} images'
-            for _ in tqdm(ThreadPool(NUM_THREADS).imap(self._hub_ops, dataset.im_files), total=dataset.n, desc=desc):
-                pass
+            total = dataset.n
+            with (Pool if total > 10000 else ThreadPool)(NUM_THREADS) as pool:
+                for _ in tqdm(pool.imap(self._hub_ops, dataset.im_files), total=total, desc=desc):
+                    pass
         print(f'Done. All images saved to {self.im_dir}')
         return self.im_dir
 

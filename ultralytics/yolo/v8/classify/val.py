@@ -1,10 +1,8 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
-import hydra
-
 from ultralytics.yolo.data import build_classification_dataloader
 from ultralytics.yolo.engine.validator import BaseValidator
-from ultralytics.yolo.utils import DEFAULT_CONFIG
+from ultralytics.yolo.utils import DEFAULT_CFG
 from ultralytics.yolo.utils.metrics import ClassifyMetrics
 
 
@@ -46,8 +44,7 @@ class ClassificationValidator(BaseValidator):
         self.logger.info(pf % ("all", self.metrics.top1, self.metrics.top5))
 
 
-@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
-def val(cfg):
+def val(cfg=DEFAULT_CFG):
     cfg.model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
     cfg.data = cfg.data or "imagenette160"
     validator = ClassificationValidator(args=cfg)

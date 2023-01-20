@@ -15,8 +15,6 @@ import numpy as np
 import torch
 import torch.distributed as dist
 import torch.nn as nn
-from omegaconf import OmegaConf  # noqa
-from omegaconf import open_dict
 from torch.cuda import amp
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.optim import lr_scheduler
@@ -27,7 +25,7 @@ from ultralytics import __version__
 from ultralytics.nn.tasks import attempt_load_one_weight
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
-from ultralytics.yolo.utils import (DEFAULT_CONFIG, LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, callbacks, colorstr,
+from ultralytics.yolo.utils import (DEFAULT_CFG_PATH, LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, callbacks, colorstr,
                                     yaml_save)
 from ultralytics.yolo.utils.autobatch import check_train_batch_size
 from ultralytics.yolo.utils.checks import check_file, check_imgsz, print_args
@@ -43,7 +41,7 @@ class BaseTrainer:
     A base class for creating trainers.
 
     Attributes:
-        args (OmegaConf): Configuration for the trainer.
+        args (SimpleNamespace): Configuration for the trainer.
         check_resume (method): Method to check if training should be resumed from a saved checkpoint.
         console (logging.Logger): Logger instance.
         validator (BaseValidator): Validator instance.
@@ -73,7 +71,7 @@ class BaseTrainer:
         csv (Path): Path to results CSV file.
     """
 
-    def __init__(self, config=DEFAULT_CONFIG, overrides=None):
+    def __init__(self, config=DEFAULT_CFG_PATH, overrides=None):
         """
         Initializes the BaseTrainer class.
 
@@ -81,8 +79,6 @@ class BaseTrainer:
             config (str, optional): Path to a configuration file. Defaults to DEFAULT_CONFIG.
             overrides (dict, optional): Configuration overrides. Defaults to None.
         """
-        if overrides is None:
-            overrides = {}
         self.args = get_config(config, overrides)
         self.device = utils.torch_utils.select_device(self.args.device, self.args.batch)
         self.check_resume()
@@ -95,23 +91,23 @@ class BaseTrainer:
         # Dirs
         project = self.args.project or Path(SETTINGS['runs_dir']) / self.args.task
         name = self.args.name or f"{self.args.mode}"
-        self.save_dir = Path(
-            self.args.get(
-                "save_dir",
-                increment_path(Path(project) / name, exist_ok=self.args.exist_ok if RANK in {-1, 0} else True)))
+        if hasattr(self.args, 'save_dir'):
+            self.save_dir = Path(self.args.save_dir)
+        else:
+            self.save_dir = Path(
+                increment_path(Path(project) / name, exist_ok=self.args.exist_ok if RANK in {-1, 0} else True))
         self.wdir = self.save_dir / 'weights'  # weights dir
         if RANK in {-1, 0}:
             self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
-            with open_dict(self.args):
-                self.args.save_dir = str(self.save_dir)
-            yaml_save(self.save_dir / 'args.yaml', OmegaConf.to_container(self.args, resolve=True))  # save run args
+            self.args.save_dir = str(self.save_dir)
+            yaml_save(self.save_dir / 'args.yaml', vars(self.args))  # save run args
         self.last, self.best = self.wdir / 'last.pt', self.wdir / 'best.pt'  # checkpoint paths
 
         self.batch_size = self.args.batch
         self.epochs = self.args.epochs
         self.start_epoch = 0
         if RANK == -1:
-            print_args(dict(self.args))
+            print_args(vars(self.args))
 
         # Device
         self.amp = self.device.type != 'cpu'
@@ -373,7 +369,7 @@ class BaseTrainer:
             'ema': deepcopy(self.ema.ema).half(),
             'updates': self.ema.updates,
             'optimizer': self.optimizer.state_dict(),
-            'train_args': self.args,
+            'train_args': vars(self.args),  # save as dict
             'date': datetime.now().isoformat(),
             'version': __version__}
 

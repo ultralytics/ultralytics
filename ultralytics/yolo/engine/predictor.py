@@ -210,7 +210,7 @@ class BasePredictor:
 
                 if self.args.save:
                     self.save_preds(vid_cap, i, str(self.save_dir / p.name))
-            
+
             yield from results
 
             # Print time (inference-only)

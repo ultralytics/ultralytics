@@ -115,7 +115,7 @@ def check_config_mismatch(base: Dict, custom: Dict):
         sys.exit()
 
 
-def entrypoint():
+def entrypoint(debug=True):
     """
     This function is the ultralytics package entrypoint, it's responsible for parsing the command line arguments passed
     to the package.
@@ -130,8 +130,9 @@ def entrypoint():
     It uses the package's default config and initializes it using the passed overrides.
     Then it calls the CLI function with the composed config
     """
-    debug = False
-    if not debug:
+    if debug:
+        args = ['train', 'predict', 'model=yolov8n.pt']  # for testing
+    else:
         if len(sys.argv) == 1:  # no arguments passed
             LOGGER.info(CLI_HELP_MSG)
             return
@@ -140,8 +141,6 @@ def entrypoint():
         parser.add_argument('args', type=str, nargs='+', help='YOLO args')
         args = parser.parse_args().args
         args = re.sub(r'\s*=\s*', '=', ' '.join(args)).split(' ')  # remove whitespaces around = sign
-    else:
-        args = ['train', 'predict', 'model=yolov8n.pt']
 
     tasks = 'detect', 'segment', 'classify'
     modes = 'train', 'val', 'predict', 'export'

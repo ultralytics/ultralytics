@@ -107,7 +107,7 @@ def check_config_mismatch(base: Dict, custom: Dict):
         - custom (Dict): a dictionary of custom configuration options
         - base (Dict): a dictionary of base configuration options
     """
-    base, custom = [set(x.keys()) for x in (base, custom)]
+    base, custom = (set(x.keys()) for x in (base, custom))
     mismatched = [x for x in custom if x not in base]
     for option in mismatched:
         LOGGER.info(f"{colorstr(option)} is not a valid key. Similar keys: {get_close_matches(option, base, 3, 0.6)}")
@@ -189,17 +189,16 @@ def entrypoint():
     cfg = get_config(defaults, overrides)  # create CFG instance
 
     # Mapping from task to module
-    module = {"detect": yolo.v8.detect,
-              "segment": yolo.v8.segment,
-              "classify": yolo.v8.classify}.get(cfg.task)
+    module = {"detect": yolo.v8.detect, "segment": yolo.v8.segment, "classify": yolo.v8.classify}.get(cfg.task)
     if not module:
         raise SyntaxError(f"yolo task={cfg.task} is invalid. Valid tasks are: {', '.join(tasks)}\n{CLI_HELP_MSG}")
 
     # Mapping from mode to function
-    func = {"train": module.train,
-            "val": module.val,
-            "predict": module.predict,
-            "export": yolo.engine.exporter.export}.get(cfg.mode)
+    func = {
+        "train": module.train,
+        "val": module.val,
+        "predict": module.predict,
+        "export": yolo.engine.exporter.export}.get(cfg.mode)
     if not func:
         raise SyntaxError(f"yolo mode={cfg.mode} is invalid. Valid modes are: {', '.join(modes)}\n{CLI_HELP_MSG}")
 

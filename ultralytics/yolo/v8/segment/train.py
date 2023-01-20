@@ -7,7 +7,7 @@ import torch.nn.functional as F
 
 from ultralytics.nn.tasks import SegmentationModel
 from ultralytics.yolo import v8
-from ultralytics.yolo.utils import DEFAULT_CFG_PATH, DEFAULT_CFG
+from ultralytics.yolo.utils import DEFAULT_CFG, DEFAULT_CFG_PATH
 from ultralytics.yolo.utils.ops import crop_mask, xyxy2xywh
 from ultralytics.yolo.utils.plotting import plot_images, plot_results
 from ultralytics.yolo.utils.tal import make_anchors

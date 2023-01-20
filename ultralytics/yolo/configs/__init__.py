@@ -56,21 +56,37 @@ CLI_HELP_MSG = \
     """
 
 
+def cfg2dict(cfg):
+    """
+    Convert a configuration object to a dictionary.
+
+    This function converts a configuration object to a dictionary, whether it is a file path, a string, or a SimpleNamespace object.
+
+    Inputs:
+        cfg (str) or (Path) or (SimpleNamespace): Configuration object to be converted to a dictionary.
+
+    Returns:
+        cfg (dict): Configuration object in dictionary format.
+    """
+    if isinstance(cfg, (str, Path)):
+        cfg = yaml_load(cfg)  # load dict
+    elif isinstance(cfg, SimpleNamespace):
+        cfg = vars(cfg)  # convert to dict
+    return cfg
+
+
 def get_config(config: Union[str, Path, Dict, SimpleNamespace], overrides: Dict = None):
     """
     Load and merge configuration data from a file or dictionary.
 
     Args:
-        config (str) or (Path) or (Dict): Configuration data in the form of a file name or a Dict object.
+        config (str) or (Path) or (Dict) or (SimpleNamespace): Configuration data.
         overrides (str) or (Dict), optional: Overrides in the form of a file name or a dictionary. Default is None.
 
     Returns:
         (SimpleNamespace): Training arguments namespace.
     """
-    if isinstance(config, (str, Path)):
-        config = yaml_load(config)  # load dict
-    elif isinstance(config, SimpleNamespace):
-        config = vars(config)  # convert to dict
+    config = cfg2dict(config)
 
     # Merge overrides
     if overrides:
@@ -147,7 +163,7 @@ def entrypoint():
                 k, v = a.split('=')
                 try:
                     overrides[k] = eval(v)  # convert strings to integers, floats, bools, etc.
-                except NameError:
+                except (NameError, SyntaxError):
                     overrides[k] = v
         elif a in tasks:
             overrides['task'] = a

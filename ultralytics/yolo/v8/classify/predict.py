@@ -1,11 +1,10 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
-import hydra
 import torch
 
 from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.engine.results import Results
-from ultralytics.yolo.utils import DEFAULT_CONFIG, ROOT, is_git_directory
+from ultralytics.yolo.utils import DEFAULT_CFG, ROOT, is_git_directory
 from ultralytics.yolo.utils.plotting import Annotator
 
 
@@ -64,8 +63,7 @@ class ClassificationPredictor(BasePredictor):
         return log_string
 
 
-@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
-def predict(cfg):
+def predict(cfg=DEFAULT_CFG):
     cfg.model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
     cfg.source = cfg.source if cfg.source is not None else ROOT / "assets" if is_git_directory() \
         else "https://ultralytics.com/images/bus.jpg"

@@ -36,7 +36,7 @@ from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.yolo.configs import get_config
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages, LoadPilAndNumpy, LoadScreenshots, LoadStreams
 from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS
-from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, SETTINGS, callbacks, colorstr, ops
+from ultralytics.yolo.utils import DEFAULT_CFG_PATH, LOGGER, SETTINGS, callbacks, colorstr, ops
 from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_imshow
 from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode
@@ -49,7 +49,7 @@ class BasePredictor:
     A base class for creating predictors.
 
     Attributes:
-        args (OmegaConf): Configuration for the predictor.
+        args (SimpleNamespace): Configuration for the predictor.
         save_dir (Path): Directory to save results.
         done_setup (bool): Whether the predictor has finished setup.
         model (nn.Module): Model used for prediction.
@@ -62,7 +62,7 @@ class BasePredictor:
         data_path (str): Path to data.
     """
 
-    def __init__(self, config=DEFAULT_CONFIG, overrides=None):
+    def __init__(self, config=DEFAULT_CFG_PATH, overrides=None):
         """
         Initializes the BasePredictor class.
 
@@ -70,8 +70,6 @@ class BasePredictor:
             config (str, optional): Path to a configuration file. Defaults to DEFAULT_CONFIG.
             overrides (dict, optional): Configuration overrides. Defaults to None.
         """
-        if overrides is None:
-            overrides = {}
         self.args = get_config(config, overrides)
         project = self.args.project or Path(SETTINGS['runs_dir']) / self.args.task
         name = self.args.name or f"{self.args.mode}"
@@ -157,7 +155,7 @@ class BasePredictor:
         if stream:
             return self.stream_inference(source, model, verbose)
         else:
-            return list(chain(*list(self.stream_inference(source, model, verbose))))  # merge list of Result into one
+            return list(self.stream_inference(source, model, verbose))  # merge list of Result into one
 
     def predict_cli(self):
         # Method used for CLI prediction. It uses always generator as outputs as not required by CLI mode
@@ -211,7 +209,7 @@ class BasePredictor:
                 if self.args.save:
                     self.save_preds(vid_cap, i, str(self.save_dir / p.name))
 
-            yield results
+            yield from results
 
             # Print time (inference-only)
             if verbose:

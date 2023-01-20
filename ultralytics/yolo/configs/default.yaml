@@ -34,6 +34,7 @@ overlap_mask: True # masks should overlap during training
 mask_ratio: 4 # mask downsample ratio
 # Classification
 dropout: 0.0  # use dropout regularization
+classes: None
 
 # Val/Test settings ----------------------------------------------------------------------------------------------------
 val: True # validate/test during training
@@ -45,6 +46,7 @@ max_det: 300 # maximum number of detections per image
 half: False # use half precision (FP16)
 dnn: False # use OpenCV DNN for ONNX inference
 plots: True # show plots during training
+classes: None
 
 # Prediction settings --------------------------------------------------------------------------------------------------
 source: null # source directory for images or videos
@@ -60,6 +62,7 @@ visualize: False # visualize results
 augment: False # apply data augmentation to images
 agnostic_nms: False # class-agnostic NMS
 retina_masks: False # use retina masks for object detection
+classes: None
 
 # Export settings ------------------------------------------------------------------------------------------------------
 format: torchscript # format to export to

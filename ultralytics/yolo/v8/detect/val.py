@@ -3,7 +3,6 @@
 import os
 from pathlib import Path
 
-import hydra
 import numpy as np
 import torch
 

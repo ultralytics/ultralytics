@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
-import hydra
 import torch
 
 from ultralytics.yolo.engine.results import Results

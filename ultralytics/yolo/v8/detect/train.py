@@ -2,7 +2,6 @@
 
 from copy import copy
 
-import hydra
 import torch
 import torch.nn as nn
 

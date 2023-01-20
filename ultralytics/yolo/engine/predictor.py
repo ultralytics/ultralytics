@@ -155,7 +155,7 @@ class BasePredictor:
         if stream:
             return self.stream_inference(source, model, verbose)
         else:
-            return list(chain(*list(self.stream_inference(source, model, verbose))))  # merge list of Result into one
+            return list(self.stream_inference(source, model, verbose))  # merge list of Result into one
 
     def predict_cli(self):
         # Method used for CLI prediction. It uses always generator as outputs as not required by CLI mode
@@ -209,7 +209,7 @@ class BasePredictor:
                 if self.args.save:
                     self.save_preds(vid_cap, i, str(self.save_dir / p.name))
 
-            yield results
+            yield from results
 
             # Print time (inference-only)
             if verbose:

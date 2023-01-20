@@ -129,8 +129,11 @@ def entrypoint():
                 f"yolo task={cfg.task} is invalid. Valid tasks are: {', '.join(tasks.keys())}\n{CLI_HELP_MSG}")
 
         # Mapping from mode to function
-        modes = {"train": module.train, "val": module.val, "predict": module.predict,
-                 "export": yolo.engine.exporter.export}
+        modes = {
+            "train": module.train,
+            "val": module.val,
+            "predict": module.predict,
+            "export": yolo.engine.exporter.export}
         func = modes.get(cfg.mode)
         if not func:
             raise SyntaxError(

@@ -3,9 +3,9 @@ import argparse
 import re
 import shutil
 import sys
-import types
 from difflib import get_close_matches
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Dict, Union
 
 from ultralytics import __version__, yolo
@@ -56,7 +56,7 @@ CLI_HELP_MSG = \
     """
 
 
-def get_config(config: Union[str, Path, Dict], overrides: Dict = None):
+def get_config(config: Union[str, Path, Dict, SimpleNamespace], overrides: Dict = None):
     """
     Load and merge configuration data from a file or dictionary.
 
@@ -68,7 +68,9 @@ def get_config(config: Union[str, Path, Dict], overrides: Dict = None):
         (SimpleNamespace): Training arguments namespace.
     """
     if isinstance(config, (str, Path)):
-        config = yaml_load(config)
+        config = yaml_load(config)  # load dict
+    elif isinstance(config, SimpleNamespace):
+        config = vars(config)  # convert to dict
 
     # Merge overrides
     if overrides:
@@ -76,7 +78,7 @@ def get_config(config: Union[str, Path, Dict], overrides: Dict = None):
         config = {**config, **overrides}  # merge config and overrides dicts (prefer overrides)
 
     # Return instance
-    return types.SimpleNamespace(**config)
+    return SimpleNamespace(**config)
 
 
 def check_config_mismatch(base: Dict, custom: Dict):
@@ -122,7 +124,7 @@ def entrypoint():
         args = parser.parse_args().args
         args = re.sub(r'\s*=\s*', '=', ' '.join(args)).split(' ')  # remove whitespaces around = sign
     else:
-        args=['train', 'detect', 'model=yolov8n.yaml', 'data=coco8.yaml', 'imgsz=32', 'epochs=1']
+        args = ['train', 'predict', 'model=yolov8n.pt']
 
     tasks = 'detect', 'segment', 'classify'
     modes = 'train', 'val', 'predict', 'export'

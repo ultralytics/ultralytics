@@ -1,10 +1,7 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
-import hydra
-
 from ultralytics.yolo.data import build_classification_dataloader
 from ultralytics.yolo.engine.validator import BaseValidator
-from ultralytics.yolo.utils import DEFAULT_CONFIG
 from ultralytics.yolo.utils.metrics import ClassifyMetrics
 
 

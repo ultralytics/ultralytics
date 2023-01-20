@@ -104,7 +104,7 @@ class BasePredictor:
     def write_results(self, results, batch, print_string):
         raise NotImplementedError("print_results function needs to be implemented")
 
-    def postprocess(self, preds, img, orig_img,classes):
+    def postprocess(self, preds, img, orig_img, classes):
         return preds
 
     def setup_source(self, source=None):
@@ -155,11 +155,11 @@ class BasePredictor:
         self.bs = bs
 
     @smart_inference_mode()
-    def __call__(self, source=None, model=None, verbose=False, stream=False):
+    def __call__(self, source=None, model=None, verbose=False, stream=False, classes=None, **kwargs):
         if stream:
-            return self.stream_inference(source, model, verbose)
+            return self.stream_inference(source, model, verbose, classes)
         else:
-            return list(chain(*list(self.stream_inference(source, model, verbose))))  # merge list of Result into one
+            return list(chain(*list(self.stream_inference(source, model, verbose, classes))))  # merge list of Result into one
 
     def predict_cli(self,classes=None):
         # Method used for CLI prediction. It uses always generator as outputs as not required by CLI mode
@@ -199,7 +199,7 @@ class BasePredictor:
 
             # postprocess
             with self.dt[2]:
-                results = self.postprocess(preds, im, im0s,classes)
+                results = self.postprocess(preds, im, im0s, classes)
             for i in range(len(im)):
                 p, im0 = (path[i], im0s[i]) if self.webcam or self.from_img else (path, im0s)
                 p = Path(p)

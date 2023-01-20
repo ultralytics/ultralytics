@@ -79,8 +79,6 @@ class BaseTrainer:
             config (str, optional): Path to a configuration file. Defaults to DEFAULT_CONFIG.
             overrides (dict, optional): Configuration overrides. Defaults to None.
         """
-        if overrides is None:
-            overrides = {}
         self.args = get_config(config, overrides)
         self.device = utils.torch_utils.select_device(self.args.device, self.args.batch)
         self.check_resume()

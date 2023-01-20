@@ -90,6 +90,7 @@ def get_config(config: Union[str, Path, Dict, SimpleNamespace], overrides: Dict 
 
     # Merge overrides
     if overrides:
+        overrides = cfg2dict(overrides)
         check_config_mismatch(config, overrides)
         config = {**config, **overrides}  # merge config and overrides dicts (prefer overrides)
 

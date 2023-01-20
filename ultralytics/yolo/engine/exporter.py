@@ -816,7 +816,7 @@ def export(cfg):
 
     from ultralytics import YOLO
     model = YOLO(cfg.model)
-    model.export(**cfg)
+    model.export(**vars(cfg))
 
 
 if __name__ == "__main__":

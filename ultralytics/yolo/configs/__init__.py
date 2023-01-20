@@ -111,14 +111,18 @@ def entrypoint():
     It uses the package's default config and initializes it using the passed overrides.
     Then it calls the CLI function with the composed config
     """
-    if len(sys.argv) == 1:  # no arguments passed
-        LOGGER.info(CLI_HELP_MSG)
-        return
+    debug = False
+    if not debug:
+        if len(sys.argv) == 1:  # no arguments passed
+            LOGGER.info(CLI_HELP_MSG)
+            return
 
-    parser = argparse.ArgumentParser(description='YOLO parser')
-    parser.add_argument('args', type=str, nargs='+', help='YOLO args')
-    args = parser.parse_args().args
-    args = re.sub(r'\s*=\s*', '=', ' '.join(args)).split(' ')  # remove whitespaces around = sign
+        parser = argparse.ArgumentParser(description='YOLO parser')
+        parser.add_argument('args', type=str, nargs='+', help='YOLO args')
+        args = parser.parse_args().args
+        args = re.sub(r'\s*=\s*', '=', ' '.join(args)).split(' ')  # remove whitespaces around = sign
+    else:
+        args=['train', 'detect', 'model=yolov8n.yaml', 'data=coco8.yaml', 'imgsz=32', 'epochs=1']
 
     tasks = 'detect', 'segment', 'classify'
     modes = 'train', 'val', 'predict', 'export'
@@ -139,7 +143,10 @@ def entrypoint():
                 overrides = {k: v for k, v in yaml_load(custom_config).items() if k not in {'cfg'}}
             else:
                 k, v = a.split('=')
-                overrides[k] = v
+                try:
+                    overrides[k] = eval(v)  # convert strings to integers, floats, bools, etc.
+                except NameError:
+                    overrides[k] = v
         elif a in tasks:
             overrides['task'] = a
         elif a in modes:
@@ -159,6 +166,7 @@ def entrypoint():
                 f"https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/configs/default.yaml"
                 f"\n{CLI_HELP_MSG}")
 
+    print(overrides)
     cfg = get_config(defaults, overrides)  # create CFG instance
 
     # Mapping from task to module

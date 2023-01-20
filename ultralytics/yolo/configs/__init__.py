@@ -163,7 +163,11 @@ def entrypoint():
             else:
                 k, v = a.split('=')
                 try:
-                    overrides[k] = eval(v)  # convert strings to integers, floats, bools, etc.
+                    if k == 'device':  # special handling for multiple GPUs: '0,1,2,3'
+                        v = v.replace('[', '').replace(']', '').replace(" ", "")
+                        overrides[k] = v
+                    else:
+                        overrides[k] = eval(v)  # convert strings to integers, floats, bools, etc.
                 except (NameError, SyntaxError):
                     overrides[k] = v
         elif a in tasks:

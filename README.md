@@ -186,7 +186,7 @@ See [Segmentation Docs](https://docs.ultralytics.com/tasks/segmentation/) for us
   instance.
   <br>Reproduce by `yolo val segment data=coco128-seg.yaml batch=1 device=0/cpu`
 - You can try this colab <a href="https://colab.research.google.com/drive/1GbC5LNxh_BuV-zEl6UBcSdSZvtC48PUJ?usp=sharing"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> for experimenting `yolov5m-seg` vs `yolov7-seg` vs `yolov8m-seg`
-  
+
 </details>
 
 <details><summary>Classification</summary>

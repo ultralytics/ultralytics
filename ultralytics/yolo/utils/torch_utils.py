@@ -298,7 +298,7 @@ def strip_optimizer(f='best.pt', s=''):
     for p in x['model'].parameters():
         p.requires_grad = False
     x['train_args'] = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # strip non-default keys
-    x['model'].args = x['train_args']  # TODO: remove once models have DictConfig removed
+    # x['model'].args = x['train_args']
     torch.save(x, s or f)
     mb = os.path.getsize(s or f) / 1E6  # filesize
     LOGGER.info(f"Optimizer stripped from {f},{f' saved as {s},' if s else ''} {mb:.1f}MB")

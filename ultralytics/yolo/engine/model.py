@@ -30,7 +30,7 @@ class YOLO:
     A python interface which emulates a model-like behaviour by wrapping trainers.
     """
 
-    def __init__(self, model='yolov8n.yaml', type="v8",classes='None') -> None:
+    def __init__(self, model='yolov8n.yaml', type="v8") -> None:
         """
         Initializes the YOLO object.
 
@@ -51,7 +51,6 @@ class YOLO:
         self.cfg = None  # if loaded from *.yaml
         self.ckpt_path = None
         self.overrides = {}  # overrides for trainer object
-        self.classes = classes
 
         # Load or create new YOLO model
         {'.pt': self._load, '.yaml': self._new}[Path(model).suffix](model)
@@ -113,7 +112,7 @@ class YOLO:
         self.model.fuse()
 
     @smart_inference_mode()
-    def predict(self, source=None, stream=False, verbose=False, **kwargs):
+    def predict(self, source=None, stream=False, verbose=False, classes=None, **kwargs):
         """
         Perform prediction using the YOLO model.
 
@@ -138,7 +137,7 @@ class YOLO:
             self.predictor.setup_model(model=self.model)
         else:  # only update args if predictor is already setup
             self.predictor.args = get_config(self.predictor.args, overrides)
-        return self.predictor(source=source, stream=stream, verbose=verbose, classes=self.classes)
+        return self.predictor(source=source, stream=stream, verbose=verbose, classes=classes)
 
     @smart_inference_mode()
     def val(self, data=None, **kwargs):
@@ -236,6 +235,7 @@ class YOLO:
         args.pop("save_json", None)
         args.pop("half", None)
         args.pop("v5loader", None)
+        args.pop("classes", None)
 
         # set device to '' to prevent from auto DDP usage
         args["device"] = ''

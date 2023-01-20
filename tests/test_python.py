@@ -49,6 +49,8 @@ def test_predict_img():
     assert len(output) == 1, "predict test failed"
     output = model(source=[img, img], save=True, save_txt=True)  # batch
     assert len(output) == 2, "predict test failed"
+    output = model(source=[img, img], save=True, stream=True)  # stream
+    assert len(list(output)) == 2, "predict test failed"
     tens = torch.zeros(320, 640, 3)
     output = model(tens.numpy())
     assert len(output) == 1, "predict test failed"

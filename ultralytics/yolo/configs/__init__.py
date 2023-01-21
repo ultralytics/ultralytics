@@ -56,6 +56,15 @@ CLI_HELP_MSG = \
     """
 
 
+class UltralyticsCFG(SimpleNamespace):
+    """
+    UltralyticsCFG iterable SimpleNamespace class to allow SimpleNamespace to be used with dict() and in for loops
+    """
+
+    def __iter__(self):
+        return iter(vars(self).items())
+
+
 def cfg2dict(cfg):
     """
     Convert a configuration object to a dictionary.
@@ -95,7 +104,7 @@ def get_config(config: Union[str, Path, Dict, SimpleNamespace], overrides: Dict 
         config = {**config, **overrides}  # merge config and overrides dicts (prefer overrides)
 
     # Return instance
-    return SimpleNamespace(**config)
+    return UltralyticsCFG(**config)
 
 
 def check_config_mismatch(base: Dict, custom: Dict):

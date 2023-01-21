@@ -4,7 +4,7 @@ from pathlib import Path
 
 from ultralytics import yolo  # noqa
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, attempt_load_one_weight
-from ultralytics.yolo.configs import get_cfg
+from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import DEFAULT_CFG_PATH, LOGGER, yaml_load
 from ultralytics.yolo.utils.checks import check_yaml
@@ -201,7 +201,7 @@ class YOLO:
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
             self.model = self.trainer.model
         self.trainer.train()
-        # update model and configs after training
+        # update model and cfg after training
         self.model, _ = attempt_load_one_weight(str(self.trainer.best))
         self.overrides = self.model.args
 

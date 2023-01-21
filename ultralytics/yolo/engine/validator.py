@@ -8,7 +8,7 @@ import torch
 from tqdm import tqdm
 
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.yolo.configs import get_cfg
+from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
 from ultralytics.yolo.utils import DEFAULT_CFG_PATH, LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, callbacks
 from ultralytics.yolo.utils.checks import check_imgsz

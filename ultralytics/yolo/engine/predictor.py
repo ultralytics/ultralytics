@@ -33,7 +33,7 @@ from pathlib import Path
 import cv2
 
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.yolo.configs import get_cfg
+from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages, LoadPilAndNumpy, LoadScreenshots, LoadStreams
 from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS
 from ultralytics.yolo.utils import DEFAULT_CFG_PATH, LOGGER, SETTINGS, callbacks, colorstr, ops

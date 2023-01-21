@@ -23,7 +23,7 @@ from tqdm import tqdm
 import ultralytics.yolo.utils as utils
 from ultralytics import __version__
 from ultralytics.nn.tasks import attempt_load_one_weight
-from ultralytics.yolo.configs import get_cfg
+from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
 from ultralytics.yolo.utils import (DEFAULT_CFG_PATH, LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, callbacks, colorstr,
                                     yaml_save)

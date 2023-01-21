@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from ultralytics.yolo.configs import get_cfg
+from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.utils import DEFAULT_CFG_PATH, ROOT, SETTINGS
 from ultralytics.yolo.v8 import classify, detect, segment
 

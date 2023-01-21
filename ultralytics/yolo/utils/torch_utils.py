@@ -137,9 +137,10 @@ def model_info(model, verbose=False, imgsz=640):
                   (i, name, p.requires_grad, p.numel(), list(p.shape), p.mean(), p.std()))
 
     flops = get_flops(model, imgsz)
+    fused = ' (fused)' if model.is_fused() else ''
     fs = f', {flops:.1f} GFLOPs' if flops else ''
     m = Path(getattr(model, 'yaml_file', '') or model.yaml.get('yaml_file', '')).stem.replace('yolo', 'YOLO') or 'Model'
-    LOGGER.info(f"{m} summary: {len(list(model.modules()))} layers, {n_p} parameters, {n_g} gradients{fs}")
+    LOGGER.info(f"{m} summary{fused}: {len(list(model.modules()))} layers, {n_p} parameters, {n_g} gradients{fs}")
 
 
 def get_num_params(model):

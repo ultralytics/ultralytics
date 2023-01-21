@@ -16,9 +16,9 @@ DIR = Path(__file__).parent
 CLI_HELP_MSG = \
     """
     YOLOv8 'yolo' CLI commands use the following syntax:
-    
+
         yolo TASK MODE ARGS
-        
+
         Where   TASK (optional) is one of [detect, segment, classify]
                 MODE (required) is one of [train, val, predict, export]
                 ARGS (optional) are any number of custom 'arg=value' pairs like 'imgsz=320' that override defaults.

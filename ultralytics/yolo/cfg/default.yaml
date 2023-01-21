@@ -1,20 +1,20 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 # Default training settings and hyperparameters for medium-augmentation COCO training
 
-task: "detect"  # choices=['detect', 'segment', 'classify', 'init']  # init is a special case. Specify task to run.
-mode: "train"  # choices=['train', 'val', 'predict']  # mode to run task in.
+task: "detect"  # inference task, i.e. detect, segment, classify
+mode: "train"  # YOLO mode, i.e. train, val, predict, export
 
 # Train settings -------------------------------------------------------------------------------------------------------
-model: null  # i.e. yolov8n.pt, yolov8n.yaml. Path to model file
-data: null  # i.e. coco128.yaml. Path to data file
+model: null  # path to model file, i.e. yolov8n.pt, yolov8n.yaml
+data: null  # path to data file, i.e. i.e. coco128.yaml
 epochs: 100  # number of epochs to train for
 patience: 50  # epochs to wait for no observable improvement for early stopping of training
-batch: 16  # number of images per batch
-imgsz: 640  # size of input images
-save: True  # save checkpoints
+batch: 16  # number of images per batch (-1 for AutoBatch)
+imgsz: 640  # size of input images as integer or w,h
+save: True  # save train checkpoints and predict results
 cache: False  # True/ram, disk or False. Use cache for data loading
-device: null  # cuda device, i.e. 0 or 0,1,2,3 or cpu. Device to run on
-workers: 8  # number of worker threads for data loading
+device: null  # device to run on, i.e. cuda device=0 or device=0,1,2,3 or device=cpu
+workers: 8  # number of worker threads for data loading (per RANK if DDP)
 project: null  # project name
 name: null  # experiment name
 exist_ok: False  # whether to overwrite existing experiment
@@ -30,10 +30,10 @@ cos_lr: False  # use cosine learning rate scheduler
 close_mosaic: 10  # disable mosaic augmentation for final 10 epochs
 resume: False  # resume training from last checkpoint
 # Segmentation
-overlap_mask: True  # masks should overlap during training
-mask_ratio: 4  # mask downsample ratio
+overlap_mask: True  # masks should overlap during training (segment train only)
+mask_ratio: 4  # mask downsample ratio (segment train only)
 # Classification
-dropout: 0.0  # use dropout regularization
+dropout: 0.0  # use dropout regularization (classify train only)
 
 # Val/Test settings ----------------------------------------------------------------------------------------------------
 val: True  # validate/test during training
@@ -44,7 +44,7 @@ iou: 0.7  # intersection over union (IoU) threshold for NMS
 max_det: 300  # maximum number of detections per image
 half: False  # use half precision (FP16)
 dnn: False  # use OpenCV DNN for ONNX inference
-plots: True  # show plots during training
+plots: True  # save plots during train/val
 
 # Prediction settings --------------------------------------------------------------------------------------------------
 source: null  # source directory for images or videos
@@ -56,10 +56,11 @@ hide_labels: False  # hide labels
 hide_conf: False  # hide confidence scores
 vid_stride: 1  # video frame-rate stride
 line_thickness: 3  # bounding box thickness (pixels)
-visualize: False  # visualize results
-augment: False  # apply data augmentation to images
+visualize: False  # visualize model features
+augment: False  # apply image augmentation to prediction sources
 agnostic_nms: False  # class-agnostic NMS
-retina_masks: False  # use retina masks for object detection
+retina_masks: False  # use high-resolution segmentation masks
+classes: null  # filter results by class, i.e. class=0, or class=[0,2,3]
 
 # Export settings ------------------------------------------------------------------------------------------------------
 format: torchscript  # format to export to
@@ -73,8 +74,8 @@ workspace: 4  # TensorRT: workspace size (GB)
 nms: False  # CoreML: add NMS
 
 # Hyperparameters ------------------------------------------------------------------------------------------------------
-lr0: 0.01  # initial learning rate (SGD=1E-2, Adam=1E-3)
-lrf: 0.01  # final OneCycleLR learning rate (lr0 * lrf)
+lr0: 0.01  # initial learning rate (i.e. SGD=1E-2, Adam=1E-3)
+lrf: 0.01  # final learning rate (lr0 * lrf)
 momentum: 0.937  # SGD momentum/Adam beta1
 weight_decay: 0.0005  # optimizer weight decay 5e-4
 warmup_epochs: 3.0  # warmup epochs (fractions ok)
@@ -84,7 +85,7 @@ box: 7.5  # box loss gain
 cls: 0.5  # cls loss gain (scale with pixels)
 dfl: 1.5  # dfl loss gain
 fl_gamma: 0.0  # focal loss gamma (efficientDet default gamma=1.5)
-label_smoothing: 0.0
+label_smoothing: 0.0  # label smoothing (fraction)
 nbs: 64  # nominal batch size
 hsv_h: 0.015  # image HSV-Hue augmentation (fraction)
 hsv_s: 0.7  # image HSV-Saturation augmentation (fraction)

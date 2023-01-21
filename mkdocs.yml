@@ -85,7 +85,7 @@ nav:
       - CLI: cli.md
       - Python: python.md
       - Predict: predict.md
-      - Configuration: config.md
+      - Configuration: cfg.md
       - Customization Guide: engine.md
   - Ultralytics HUB: hub.md
   - iOS and Android App: app.md

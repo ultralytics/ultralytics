@@ -28,7 +28,7 @@ CLI_HELP_MSG = \
             Where   TASK (optional) is one of [detect, segment, classify]
                     MODE (required) is one of [train, val, predict, export]
                     ARGS (optional) are any number of custom 'arg=value' pairs like 'imgsz=320' that override defaults.
-                        For a full list of available ARGS see https://docs.ultralytics.com/config.
+                        For a full list of available ARGS see https://docs.ultralytics.com/cfg.
 
         Train a detection model for 10 epochs with an initial learning_rate of 0.01
             yolo detect train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01
@@ -48,12 +48,21 @@ CLI_HELP_MSG = \
         yolo checks
         yolo version
         yolo settings
-        yolo copy-config
+        yolo copy-cfg
 
     Docs: https://docs.ultralytics.com/cli
     Community: https://community.ultralytics.com
     GitHub: https://github.com/ultralytics/ultralytics
     """
+
+
+class UltralyticsCFG(SimpleNamespace):
+    """
+    UltralyticsCFG iterable SimpleNamespace class to allow SimpleNamespace to be used with dict() and in for loops
+    """
+
+    def __iter__(self):
+        return iter(vars(self).items())
 
 
 def cfg2dict(cfg):
@@ -75,30 +84,30 @@ def cfg2dict(cfg):
     return cfg
 
 
-def get_config(config: Union[str, Path, Dict, SimpleNamespace], overrides: Dict = None):
+def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace], overrides: Dict = None):
     """
     Load and merge configuration data from a file or dictionary.
 
     Args:
-        config (str) or (Path) or (Dict) or (SimpleNamespace): Configuration data.
+        cfg (str) or (Path) or (Dict) or (SimpleNamespace): Configuration data.
         overrides (str) or (Dict), optional: Overrides in the form of a file name or a dictionary. Default is None.
 
     Returns:
         (SimpleNamespace): Training arguments namespace.
     """
-    config = cfg2dict(config)
+    cfg = cfg2dict(cfg)
 
     # Merge overrides
     if overrides:
         overrides = cfg2dict(overrides)
-        check_config_mismatch(config, overrides)
-        config = {**config, **overrides}  # merge config and overrides dicts (prefer overrides)
+        check_cfg_mismatch(cfg, overrides)
+        cfg = {**cfg, **overrides}  # merge cfg and overrides dicts (prefer overrides)
 
     # Return instance
-    return SimpleNamespace(**config)
+    return UltralyticsCFG(**cfg)
 
 
-def check_config_mismatch(base: Dict, custom: Dict):
+def check_cfg_mismatch(base: Dict, custom: Dict):
     """
     This function checks for any mismatched keys between a custom configuration list and a base configuration list.
     If any mismatched keys are found, the function prints out similar keys from the base list and exits the program.
@@ -127,8 +136,8 @@ def entrypoint(debug=False):
     - running special modes like 'checks'
     - passing overrides to the package's configuration
 
-    It uses the package's default config and initializes it using the passed overrides.
-    Then it calls the CLI function with the composed config
+    It uses the package's default cfg and initializes it using the passed overrides.
+    Then it calls the CLI function with the composed cfg
     """
     if debug:
         args = ['train', 'predict', 'model=yolov8n.pt']  # for testing
@@ -149,7 +158,7 @@ def entrypoint(debug=False):
         'checks': checks.check_yolo,
         'version': lambda: LOGGER.info(__version__),
         'settings': print_settings,
-        'copy-config': copy_default_config}
+        'copy-cfg': copy_default_config}
 
     overrides = {}  # basic overrides, i.e. imgsz=320
     defaults = yaml_load(DEFAULT_CFG_PATH)
@@ -190,7 +199,7 @@ def entrypoint(debug=False):
                 f"https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/configs/default.yaml"
                 f"\n{CLI_HELP_MSG}")
 
-    cfg = get_config(defaults, overrides)  # create CFG instance
+    cfg = get_cfg(defaults, overrides)  # create CFG instance
 
     # Mapping from task to module
     module = {"detect": yolo.v8.detect, "segment": yolo.v8.segment, "classify": yolo.v8.classify}.get(cfg.task)
@@ -214,7 +223,7 @@ def copy_default_config():
     new_file = Path.cwd() / DEFAULT_CFG_PATH.name.replace('.yaml', '_copy.yaml')
     shutil.copy2(DEFAULT_CFG_PATH, new_file)
     LOGGER.info(f"{PREFIX}{DEFAULT_CFG_PATH} copied to {new_file}\n"
-                f"Usage for running YOLO with this new custom config:\nyolo cfg={new_file} args...")
+                f"Usage for running YOLO with this new custom cfg:\nyolo cfg={new_file} args...")
 
 
 if __name__ == '__main__':

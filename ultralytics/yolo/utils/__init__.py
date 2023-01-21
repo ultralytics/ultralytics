@@ -23,7 +23,7 @@ import yaml
 # Constants
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[2]  # YOLO
-DEFAULT_CFG_PATH = ROOT / "yolo/configs/default.yaml"
+DEFAULT_CFG_PATH = ROOT / "yolo/cfg/default.yaml"
 RANK = int(os.getenv('RANK', -1))
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLOv5 multiprocessing threads
 AUTOINSTALL = str(os.getenv('YOLO_AUTOINSTALL', True)).lower() == 'true'  # global auto-install mode

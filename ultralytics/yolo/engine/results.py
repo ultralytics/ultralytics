@@ -21,6 +21,8 @@ class Results:
             masks (Masks, optional): A Masks object containing the detection masks.
             probs (torch.Tensor, optional): A tensor containing the detection class probabilities.
             orig_shape (tuple, optional): Original image size.
+            data (torch.Tensor): The raw masks tensor
+
         """
 
     def __init__(self, boxes=None, masks=None, probs=None, orig_shape=None) -> None:
@@ -81,19 +83,20 @@ class Results:
             return len(getattr(self, item))
 
     def __str__(self):
-        return self.__repr__()
+        str_out = ""
+        for item in self.comp:
+            if getattr(self, item) is None:
+                continue
+            str_out = str_out + getattr(self, item).__str__()
+        return str_out
 
     def __repr__(self):
-        s = f'Ultralytics YOLO {self.__class__} instance\n'  # string
-        if self.boxes is not None:
-            s = s + self.boxes.__repr__() + '\n'
-        if self.masks is not None:
-            s = s + self.masks.__repr__() + '\n'
-        if self.probs is not None:
-            s = s + self.probs.__repr__()
-        s += f'original size: {self.orig_shape}\n'
-
-        return s
+        str_out = ""
+        for item in self.comp:
+            if getattr(self, item) is None:
+                continue
+            str_out = str_out + getattr(self, item).__repr__()
+        return str_out
 
     def __getattr__(self, attr):
         name = self.__class__.__name__
@@ -129,6 +132,7 @@ class Boxes:
         xywh (torch.Tensor) or (numpy.ndarray): The boxes in xywh format.
         xyxyn (torch.Tensor) or (numpy.ndarray): The boxes in xyxy format normalized by original image size.
         xywhn (torch.Tensor) or (numpy.ndarray): The boxes in xywh format normalized by original image size.
+        data (torch.Tensor): The raw bboxes tensor
     """
 
     def __init__(self, boxes, orig_shape) -> None:
@@ -198,15 +202,19 @@ class Boxes:
     def shape(self):
         return self.boxes.shape
 
+    @property
+    def data(self):
+        return self.boxes
+
     def __len__(self):  # override len(results)
         return len(self.boxes)
 
     def __str__(self):
-        return self.__repr__()
+        return self.boxes.__str__()
 
     def __repr__(self):
         return (f"Ultralytics YOLO {self.__class__} masks\n" + f"type: {type(self.boxes)}\n" +
-                f"shape: {self.boxes.shape}\n" + f"dtype: {self.boxes.dtype}")
+                f"shape: {self.boxes.shape}\n" + f"dtype: {self.boxes.dtype}\n + {self.boxes.__repr__()}")
 
     def __getitem__(self, idx):
         boxes = self.boxes[idx]
@@ -257,11 +265,15 @@ class Masks:
     def segments(self):
         return [
             ops.scale_segments(self.masks.shape[1:], x, self.orig_shape, normalize=True)
-            for x in reversed(ops.masks2segments(self.masks))]
+            for x in ops.masks2segments(self.masks)]
 
     @property
     def shape(self):
         return self.masks.shape
+
+    @property
+    def data(self):
+        return self.masks
 
     def cpu(self):
         masks = self.masks.cpu()
@@ -283,11 +295,11 @@ class Masks:
         return len(self.masks)
 
     def __str__(self):
-        return self.__repr__()
+        return self.masks.__str__()
 
     def __repr__(self):
         return (f"Ultralytics YOLO {self.__class__} masks\n" + f"type: {type(self.masks)}\n" +
-                f"shape: {self.masks.shape}\n" + f"dtype: {self.masks.dtype}")
+                f"shape: {self.masks.shape}\n" + f"dtype: {self.masks.dtype}\n + {self.masks.__repr__()}")
 
     def __getitem__(self, idx):
         masks = self.masks[idx]

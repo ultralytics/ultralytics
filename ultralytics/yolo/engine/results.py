@@ -21,7 +21,7 @@ class Results:
             masks (Masks, optional): A Masks object containing the detection masks.
             probs (torch.Tensor, optional): A tensor containing the detection class probabilities.
             orig_shape (tuple, optional): Original image size.
-            data (torch.Tensor): The raw masks tensor 
+            data (torch.Tensor): The raw masks tensor
 
         """
 
@@ -132,7 +132,7 @@ class Boxes:
         xywh (torch.Tensor) or (numpy.ndarray): The boxes in xywh format.
         xyxyn (torch.Tensor) or (numpy.ndarray): The boxes in xyxy format normalized by original image size.
         xywhn (torch.Tensor) or (numpy.ndarray): The boxes in xywh format normalized by original image size.
-        data (torch.Tensor): The raw bboxes tensor 
+        data (torch.Tensor): The raw bboxes tensor
     """
 
     def __init__(self, boxes, orig_shape) -> None:
@@ -270,7 +270,7 @@ class Masks:
     @property
     def shape(self):
         return self.masks.shape
-    
+
     @property
     def data(self):
         return self.masks

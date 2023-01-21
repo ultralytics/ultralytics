@@ -22,7 +22,6 @@ class Results:
             probs (torch.Tensor, optional): A tensor containing the detection class probabilities.
             orig_shape (tuple, optional): Original image size.
             data (torch.Tensor): The raw masks tensor
-
         """
 
     def __init__(self, boxes=None, masks=None, probs=None, orig_shape=None) -> None:

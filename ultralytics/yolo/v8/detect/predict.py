@@ -1,7 +1,8 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
-import torch
 import cv2
+import torch
+
 from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils import DEFAULT_CFG, ROOT, is_git_directory, ops
@@ -56,16 +57,15 @@ class DetectionPredictor(BasePredictor):
         found_class = {}  #create a dictionary to store the items
         for c in det.cls.unique():
             n = (det.cls == c).sum()  # detections per class
-            found_class[self.model.names[int(c)]] = int(n) #add the items and number into dict
-            align = im0.shape 
+            found_class[self.model.names[int(c)]] = int(n)  #add the items and number into dict
+            align = im0.shape
             align_bottom = align[0]
-            align_left = (align[1]/8) #Text allignment (align left,(int(align bottom))
-            for i, (k,v) in enumerate(found_class.items()): 
+            align_left = (align[1] / 8)  #Text allignment (align left,(int(align bottom))
+            for i, (k, v) in enumerate(found_class.items()):
                 a = f"{k} - {v}"
                 align_bottom -= 110
                 font = cv2.FONT_HERSHEY_SIMPLEX
-                cv2.putText(im0, str(a), (int(align_left),align_bottom), font, 
-                   3, (0, 255, 1), 5, cv2.LINE_AA)
+                cv2.putText(im0, str(a), (int(align_left), align_bottom), font, 3, (0, 255, 1), 5, cv2.LINE_AA)
             log_string += f"{n} {self.model.names[int(c)]}{'s' * (n > 1)}, "
 
         # write

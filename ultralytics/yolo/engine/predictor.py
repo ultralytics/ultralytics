@@ -60,6 +60,7 @@ class BasePredictor:
         vid_writer (cv2.VideoWriter): Video writer for saving video output.
         annotator (Annotator): Annotator used for prediction.
         data_path (str): Path to data.
+        classes (list): List of desired classes.
     """
 
     def __init__(self, config=DEFAULT_CFG_PATH, overrides=None):
@@ -87,6 +88,7 @@ class BasePredictor:
         self.dataset = None
         self.vid_path, self.vid_writer = None, None
         self.annotator = None
+        self.classes = None
         self.data_path = None
         self.callbacks = defaultdict(list, {k: [v] for k, v in callbacks.default_callbacks.items()})  # add callbacks
         callbacks.add_integration_callbacks(self)
@@ -100,7 +102,7 @@ class BasePredictor:
     def write_results(self, results, batch, print_string):
         raise NotImplementedError("print_results function needs to be implemented")
 
-    def postprocess(self, preds, img, orig_img):
+    def postprocess(self, preds, img, orig_img, classes):
         return preds
 
     def setup_source(self, source=None):
@@ -151,19 +153,20 @@ class BasePredictor:
         self.bs = bs
 
     @smart_inference_mode()
-    def __call__(self, source=None, model=None, verbose=False, stream=False):
+    def __call__(self, source=None, model=None, verbose=False, stream=False, classes=None, **kwargs):
         if stream:
-            return self.stream_inference(source, model, verbose)
+            return self.stream_inference(source, model, verbose, classes)
         else:
-            return list(self.stream_inference(source, model, verbose))  # merge list of Result into one
+            return list(
+                chain(*list(self.stream_inference(source, model, verbose, classes))))  # merge list of Result into one
 
-    def predict_cli(self):
+    def predict_cli(self, classes=None):
         # Method used for CLI prediction. It uses always generator as outputs as not required by CLI mode
-        gen = self.stream_inference(verbose=True)
+        gen = self.stream_inference(verbose=True, classes=classes)
         for _ in gen:  # running CLI inference without accumulating any outputs (do not modify)
             pass
 
-    def stream_inference(self, source=None, model=None, verbose=False):
+    def stream_inference(self, source=None, model=None, verbose=False, classes=None):
         self.run_callbacks("on_predict_start")
 
         # setup model
@@ -195,7 +198,7 @@ class BasePredictor:
 
             # postprocess
             with self.dt[2]:
-                results = self.postprocess(preds, im, im0s)
+                results = self.postprocess(preds, im, im0s, classes)
             for i in range(len(im)):
                 p, im0 = (path[i], im0s[i]) if self.webcam or self.from_img else (path, im0s)
                 p = Path(p)

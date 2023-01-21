@@ -63,7 +63,6 @@ boxes.data   # raw bboxes tensor, (N, 6) or boxes.boxes .
 masks = results.masks # Masks object
 masks.segments  # bounding coordinates of masks, List[segment] * N
 masks.data      # raw masks tensor, (N, H, W) or masks.masks 
-
 ```
 
 ### probs

@@ -20,14 +20,12 @@ class DetectionPredictor(BasePredictor):
         return img
 
     def postprocess(self, preds, img, orig_img, classes=None):
-        if classes == None:
-            classes = self.args.classes
         preds = ops.non_max_suppression(preds,
                                         self.args.conf,
                                         self.args.iou,
                                         agnostic=self.args.agnostic_nms,
                                         max_det=self.args.max_det,
-                                        classes=classes)
+                                        classes=self.args.classes)
 
         results = []
         for i, pred in enumerate(preds):

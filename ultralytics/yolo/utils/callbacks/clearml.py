@@ -26,7 +26,7 @@ def on_pretrain_routine_start(trainer):
                      output_uri=True,
                      reuse_last_task_id=False,
                      auto_connect_frameworks={'pytorch': False})
-    task.connect(dict(trainer.args), name='General')
+    task.connect(vars(trainer.args), name='General')
 
 
 def on_train_epoch_end(trainer):

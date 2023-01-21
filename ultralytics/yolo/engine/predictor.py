@@ -84,6 +84,7 @@ class BasePredictor:
         self.bs = None
         self.imgsz = None
         self.device = None
+        self.classes = self.args.classes
         self.dataset = None
         self.vid_path, self.vid_writer = None, None
         self.annotator = None
@@ -100,7 +101,7 @@ class BasePredictor:
     def write_results(self, results, batch, print_string):
         raise NotImplementedError("print_results function needs to be implemented")
 
-    def postprocess(self, preds, img, orig_img):
+    def postprocess(self, preds, img, orig_img,classes=None):
         return preds
 
     def setup_source(self, source=None):
@@ -195,7 +196,7 @@ class BasePredictor:
 
             # postprocess
             with self.dt[2]:
-                results = self.postprocess(preds, im, im0s)
+                results = self.postprocess(preds, im, im0s, self.classes)
             for i in range(len(im)):
                 p, im0 = (path[i], im0s[i]) if self.webcam or self.from_img else (path, im0s)
                 p = Path(p)

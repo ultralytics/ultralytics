@@ -141,10 +141,14 @@ def download(url, dir=Path.cwd(), unzip=True, delete=True, curl=False, threads=1
     dir = Path(dir)
     dir.mkdir(parents=True, exist_ok=True)  # make directory
     if threads > 1:
-        pool = ThreadPool(threads)
-        pool.imap(lambda x: download_one(*x), zip(url, repeat(dir)))  # multithreaded
-        pool.close()
-        pool.join()
+        # pool = ThreadPool(threads)
+        # pool.imap(lambda x: download_one(*x), zip(url, repeat(dir)))  # multithreaded
+        # pool.close()
+        # pool.join()
+        with ThreadPool(threads) as pool:
+            pool.imap(lambda x: download_one(*x), zip(url, repeat(dir)))  # multithreaded
+            pool.close()
+            pool.join()
     else:
         for u in [url] if isinstance(url, (str, Path)) else url:
             download_one(u, dir)

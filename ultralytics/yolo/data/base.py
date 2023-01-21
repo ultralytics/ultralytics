@@ -134,16 +134,17 @@ class BaseDataset(Dataset):
         gb = 0  # Gigabytes of cached images
         self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni
         fcn = self.cache_images_to_disk if cache == "disk" else self.load_image
-        results = ThreadPool(NUM_THREADS).imap(fcn, range(self.ni))
-        pbar = tqdm(enumerate(results), total=self.ni, bar_format=TQDM_BAR_FORMAT, disable=LOCAL_RANK > 0)
-        for i, x in pbar:
-            if cache == "disk":
-                gb += self.npy_files[i].stat().st_size
-            else:  # 'ram'
-                self.ims[i], self.im_hw0[i], self.im_hw[i] = x  # im, hw_orig, hw_resized = load_image(self, i)
-                gb += self.ims[i].nbytes
-            pbar.desc = f"{self.prefix}Caching images ({gb / 1E9:.1f}GB {cache})"
-        pbar.close()
+        with ThreadPool(NUM_THREADS) as pool:
+            results = pool.imap(fcn, range(self.ni))
+            pbar = tqdm(enumerate(results), total=self.ni, bar_format=TQDM_BAR_FORMAT, disable=LOCAL_RANK > 0)
+            for i, x in pbar:
+                if cache == "disk":
+                    gb += self.npy_files[i].stat().st_size
+                else:  # 'ram'
+                    self.ims[i], self.im_hw0[i], self.im_hw[i] = x  # im, hw_orig, hw_resized = load_image(self, i)
+                    gb += self.ims[i].nbytes
+                pbar.desc = f"{self.prefix}Caching images ({gb / 1E9:.1f}GB {cache})"
+            pbar.close()
 
     def cache_images_to_disk(self, i):
         # Saves an image as an *.npy file for faster loading

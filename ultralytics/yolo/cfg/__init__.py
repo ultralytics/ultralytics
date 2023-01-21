@@ -176,7 +176,7 @@ def entrypoint(debug=False):
                     if k == 'device':  # special DDP handling, i.e. device='0,1,2,3'
                         v = v.replace('[', '').replace(']', '')  # handle device=[0,1,2,3]
                         v = v.replace(" ", "")  # handle device=[0, 1, 2, 3]
-                        v = v.replace('\\', '')  # handle device=\'0,1,2,3\'
+                        v = v.replace("\\'", '')  # handle device=\'0,1,2,3\'
                         overrides[k] = v
                     else:
                         overrides[k] = eval(v)  # convert strings to integers, floats, bools, etc.

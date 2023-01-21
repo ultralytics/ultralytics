@@ -54,13 +54,13 @@ class DetectionPredictor(BasePredictor):
         det = results[idx].boxes  # TODO: make boxes inherit from tensors
         if len(det) == 0:
             return log_string
-        found_class = {}          # create a dictionary to store the items
+        found_class = {}  # create a dictionary to store the items
         for c in det.cls.unique():
             n = (det.cls == c).sum()  # detections per class
-            found_class[self.model.names[int(c)]] = int(n)   # add the items and number into dict
+            found_class[self.model.names[int(c)]] = int(n)  # add the items and number into dict
             align = im0.shape
             align_bottom = align[0]
-            align_left = (align[1] / 8)    # Text allignment (align left,(int(align bottom))
+            align_left = (align[1] / 8)  # Text allignment (align left,(int(align bottom))
             for i, (k, v) in enumerate(found_class.items()):
                 a = f"{k} - {v}"
                 align_bottom -= 110

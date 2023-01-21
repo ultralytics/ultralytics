@@ -9,42 +9,34 @@ from types import SimpleNamespace
 from typing import Dict, Union
 
 from ultralytics import __version__, yolo
-from ultralytics.yolo.utils import DEFAULT_CFG_PATH, LOGGER, PREFIX, checks, colorstr, print_settings, yaml_load, \
-    TryExcept
+from ultralytics.yolo.utils import DEFAULT_CFG_PATH, LOGGER, PREFIX, checks, colorstr, print_settings, yaml_load
 
 DIR = Path(__file__).parent
 
 CLI_HELP_MSG = \
     """
-    YOLOv8 CLI Usage examples:
+    YOLOv8 'yolo' CLI commands use the following syntax:
+    
+        yolo TASK MODE ARGS
+        
+        Where   TASK (optional) is one of [detect, segment, classify]
+                MODE (required) is one of [train, val, predict, export]
+                ARGS (optional) are any number of custom 'arg=value' pairs like 'imgsz=320' that override defaults.
+                    For a full list of available ARGS see https://docs.ultralytics.com/cfg.
 
-    1. Install the ultralytics package:
+    1. Train a detection model for 10 epochs with an initial learning_rate of 0.01
+        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01
 
-        pip install ultralytics
+    2. Predict a YouTube video using a pretrained segmentation model at image size 320:
+        yolo segment predict model=yolov8n-seg.pt source=https://youtu.be/Zgi9g1ksQHc imgsz=320
 
-    2. Train, Val, Predict and Export using 'yolo' commands:
+    3. Val a pretrained detection model at batch-size 1 and image size 640:
+        yolo detect val model=yolov8n.pt data=coco128.yaml batch=1 imgsz=640
 
-            yolo TASK MODE ARGS
+    4. Export a YOLOv8n classification model to ONNX format at image size 224 by 128 (no TASK required)
+        yolo export model=yolov8n-cls.pt format=onnx imgsz=224,128
 
-            Where   TASK (optional) is one of [detect, segment, classify]
-                    MODE (required) is one of [train, val, predict, export]
-                    ARGS (optional) are any number of custom 'arg=value' pairs like 'imgsz=320' that override defaults.
-                        For a full list of available ARGS see https://docs.ultralytics.com/cfg.
-
-        Train a detection model for 10 epochs with an initial learning_rate of 0.01
-            yolo detect train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01
-
-        Predict a YouTube video using a pretrained segmentation model at image size 320:
-            yolo segment predict model=yolov8n-seg.pt source=https://youtu.be/Zgi9g1ksQHc imgsz=320
-
-        Validate a pretrained detection model at batch-size 1 and image size 640:
-            yolo detect val model=yolov8n.pt data=coco128.yaml batch=1 imgsz=640
-
-        Export a YOLOv8n classification model to ONNX format at image size 224 by 128 (no TASK required)
-            yolo export model=yolov8n-cls.pt format=onnx imgsz=224,128
-
-    3. Run special commands:
-
+    5. Run special commands:
         yolo help
         yolo checks
         yolo version
@@ -125,7 +117,12 @@ def check_cfg_mismatch(base: Dict, custom: Dict):
         sys.exit()
 
 
-@TryExcept(CLI_HELP_MSG)
+def argument_error(arg):
+    return SyntaxError(f"'{arg}' is not a valid YOLO argument. For a full list of valid arguments see "
+                       f"https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/configs/default.yaml"
+                       f"\n{CLI_HELP_MSG}")
+
+
 def entrypoint(debug=False):
     """
     This function is the ultralytics package entrypoint, it's responsible for parsing the command line arguments passed
@@ -171,7 +168,10 @@ def entrypoint(debug=False):
                 LOGGER.info(f"{PREFIX}Overriding {DEFAULT_CFG_PATH} with {custom_config}")
                 overrides = {k: v for k, v in yaml_load(custom_config).items() if k not in {'cfg'}}
             else:
-                k, v = a.split('=')
+                try:
+                    k, v = a.split('=')
+                except ValueError as e:
+                    raise argument_error(a) from e
                 try:
                     if k == 'device':  # special DDP handling, i.e. device='0,1,2,3'
                         v = v.replace('[', '').replace(']', '')  # handle device=[0,1,2,3]
@@ -196,10 +196,7 @@ def entrypoint(debug=False):
                               f"i.e. try '{a}={defaults[a]}'"
                               f"\n{CLI_HELP_MSG}")
         else:
-            raise SyntaxError(
-                f"'{a}' is not a valid YOLO argument. For a full list of valid arguments see "
-                f"https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/configs/default.yaml"
-                f"\n{CLI_HELP_MSG}")
+            raise argument_error(a)
 
     cfg = get_cfg(defaults, overrides)  # create CFG instance
 

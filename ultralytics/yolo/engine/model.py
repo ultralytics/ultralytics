@@ -151,7 +151,7 @@ class YOLO:
         overrides = self.overrides.copy()
         overrides.update(kwargs)
         overrides["mode"] = "val"
-        args = get_cfg(config=DEFAULT_CFG_PATH, overrides=overrides)
+        args = get_cfg(cfg=DEFAULT_CFG_PATH, overrides=overrides)
         args.data = data or args.data
         args.task = self.task
 
@@ -169,7 +169,7 @@ class YOLO:
 
         overrides = self.overrides.copy()
         overrides.update(kwargs)
-        args = get_cfg(config=DEFAULT_CFG_PATH, overrides=overrides)
+        args = get_cfg(cfg=DEFAULT_CFG_PATH, overrides=overrides)
         args.task = self.task
 
         print(args)

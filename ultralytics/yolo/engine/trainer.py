@@ -23,7 +23,7 @@ from tqdm import tqdm
 import ultralytics.yolo.utils as utils
 from ultralytics import __version__
 from ultralytics.nn.tasks import attempt_load_one_weight
-from ultralytics.yolo.configs import get_config
+from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
 from ultralytics.yolo.utils import (DEFAULT_CFG_PATH, LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, callbacks, colorstr,
                                     yaml_save)
@@ -79,7 +79,7 @@ class BaseTrainer:
             config (str, optional): Path to a configuration file. Defaults to DEFAULT_CONFIG.
             overrides (dict, optional): Configuration overrides. Defaults to None.
         """
-        self.args = get_config(config, overrides)
+        self.args = get_cfg(config, overrides)
         self.device = utils.torch_utils.select_device(self.args.device, self.args.batch)
         self.check_resume()
         self.console = LOGGER
@@ -509,7 +509,7 @@ class BaseTrainer:
             assert args_yaml.is_file(), \
                 FileNotFoundError('Resume checkpoint f{last} not found. '
                                   'Please pass a valid checkpoint to resume from, i.e. yolo resume=path/to/last.pt')
-            args = get_config(args_yaml)  # replace
+            args = get_cfg(args_yaml)  # replace
             args.model, resume = str(last), True  # reinstate
             self.args = args
         self.resume = resume

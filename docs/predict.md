@@ -48,19 +48,21 @@ box.xyxy
 ```
 - Properties and conversions
 ```
-results.boxes.xyxy   # box with xyxy format, (N, 4)
-results.boxes.xywh   # box with xywh format, (N, 4)
-results.boxes.xyxyn  # box with xyxy format but normalized, (N, 4)
-results.boxes.xywhn  # box with xywh format but normalized, (N, 4)
-results.boxes.conf   # confidence score, (N, 1)
-results.boxes.cls    # cls, (N, 1)
+boxes.xyxy   # box with xyxy format, (N, 4)
+boxes.xywh   # box with xywh format, (N, 4)
+boxes.xyxyn  # box with xyxy format but normalized, (N, 4)
+boxes.xywhn  # box with xywh format but normalized, (N, 4)
+boxes.conf   # confidence score, (N, 1)
+boxes.cls    # cls, (N, 1)
+boxes.data   # raw bboxes tensor, (N, 6) or boxes.boxes .
 ```
 ### Masks
 `Masks` object can be used index, manipulate and convert masks to segments. The segment conversion operation is cached.
 
 ```python
-results.masks.masks     # masks, (N, H, W)
-results.masks.segments  # bounding coordinates of masks, List[segment] * N
+masks = results.masks # Masks object
+masks.segments  # bounding coordinates of masks, List[segment] * N
+masks.data      # raw masks tensor, (N, H, W) or masks.masks 
 ```
 
 ### probs

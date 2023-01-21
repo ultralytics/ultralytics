@@ -136,12 +136,12 @@ def sync_analytics(cfg, all_keys=False, enabled=False):
    Sync analytics data if enabled in the global settings
 
     Args:
-        cfg (DictConfig): Configuration for the task and mode.
+        cfg (UltralyticsCFG): Configuration for the task and mode.
         all_keys (bool): Sync all items, not just non-default values.
         enabled (bool): For debugging.
     """
     if SETTINGS['sync'] and RANK in {-1, 0} and enabled:
-        cfg = dict(cfg)  # convert type from DictConfig to dict
+        cfg = dict(cfg)  # convert type from UltralyticsCFG to dict
         if not all_keys:
             cfg = {k: v for k, v in cfg.items() if v != DEFAULT_CFG_DICT.get(k, None)}  # retain non-default values
         cfg['uuid'] = SETTINGS['uuid']  # add the device UUID to the configuration data

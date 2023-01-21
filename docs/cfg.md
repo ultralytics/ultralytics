@@ -38,13 +38,13 @@ include train, val, and predict.
 - Predict: The predict mode is used to make predictions with the model on new data. This mode is typically used in
   production or when deploying the model to users.
 
-| Key    | Value    | Description                                                                                            |
-|--------|----------|--------------------------------------------------------------------------------------------------------|
-| task   | 'detect' | Set the task via CLI. See Tasks for all supported tasks like - `detect`, `segment`, `classify`         |
-| mode   | 'train'  | Set the mode via CLI. It can be `train`, `val`, `predict`, `export`                                    |
-| resume | False    | Resume last given task when set to `True`. <br> Resume from a given checkpoint is `model.pt` is passed |
-| model  | null     | Set the model. Format can differ for task type. Supports `model_name`, `model.yaml` & `model.pt`       |
-| data   | null     | Set the data. Format can differ for task type. Supports `data.yaml`, `data_folder`, `dataset_name`     |
+| Key    | Value    | Description                                                                                   |
+|--------|----------|-----------------------------------------------------------------------------------------------|
+| task   | 'detect' | inference task, i.e. detect, segment, or classify                                             |
+| mode   | 'train'  | YOLO mode, i.e. train, val, predict, or export                                                |
+| resume | False    | resume training from last checkpoint or custom checkpoint if passed as resume=path/to/best.pt |
+| model  | null     | path to model file, i.e. yolov8n.pt, yolov8n.yaml                                             |
+| data   | null     | path to data file, i.e. i.e. coco128.yaml                                                     |
 
 ### Training
 
@@ -57,36 +57,46 @@ task.
 
 | Key             | Value  | Description                                                                 |
 |-----------------|--------|-----------------------------------------------------------------------------|
-| device          | ''     | cuda device, i.e. 0 or 0,1,2,3 or cpu. `''` selects available cuda 0 device |
-| epochs          | 100    | Number of epochs to train                                                   |
-| workers         | 8      | Number of cpu workers used per process. Scales automatically with DDP       |
-| batch           | 16     | Batch size of the dataloader                                                |
-| imgsz           | 640    | Image size of data in dataloader                                            |
-| optimizer       | SGD    | Optimizer used. Supported optimizer are: `Adam`, `SGD`, `RMSProp`           |
-| single_cls      | False  | Train on multi-class data as single-class                                   |
-| image_weights   | False  | Use weighted image selection for training                                   |
-| rect            | False  | Enable rectangular training                                                 |
-| cos_lr          | False  | Use cosine LR scheduler                                                     |
-| lr0             | 0.01   | Initial learning rate                                                       |
-| lrf             | 0.01   | Final OneCycleLR learning rate                                              |
-| momentum        | 0.937  | Use as `momentum` for SGD and `beta1` for Adam                              |
-| weight_decay    | 0.0005 | Optimizer weight decay                                                      |
-| warmup_epochs   | 3.0    | Warmup epochs. Fractions are ok.                                            |
-| warmup_momentum | 0.8    | Warmup initial momentum                                                     |
-| warmup_bias_lr  | 0.1    | Warmup initial bias lr                                                      |
-| box             | 0.05   | Box loss gain                                                               |
-| cls             | 0.5    | cls loss gain                                                               |
-| cls_pw          | 1.0    | cls BCELoss positive_weight                                                 |
-| obj             | 1.0    | bj loss gain (scale with pixels)                                            |
-| obj_pw          | 1.0    | obj BCELoss positive_weight                                                 |
-| iou_t           | 0.20   | IOU training threshold                                                      |
-| anchor_t        | 4.0    | anchor-multiple threshold                                                   |
-| fl_gamma        | 0.0    | focal loss gamma                                                            |
-| label_smoothing | 0.0    |                                                                             |
+| model           | null   | path to model file, i.e. yolov8n.pt, yolov8n.yaml                           |
+| data            | null   | path to data file, i.e. i.e. coco128.yaml                                   |
+| epochs          | 100    | number of epochs to train for                                               |
+| patience        | 50     | epochs to wait for no observable improvement for early stopping of training |
+| batch           | 16     | number of images per batch (-1 for AutoBatch)                               |
+| imgsz           | 640    | size of input images as integer or w,h                                      |
+| save            | True   | save train checkpoints and predict results                                  |
+| cache           | False  | True/ram, disk or False. Use cache for data loading                         |
+| device          | null   | device to run on, i.e. cuda device=0 or device=0,1,2,3 or device=cpu        |
+| workers         | 8      | number of worker threads for data loading (per RANK if DDP)                 |
+| project         | null   | project name                                                                |
+| name            | null   | experiment name                                                             |
+| exist_ok        | False  | whether to overwrite existing experiment                                    |
+| pretrained      | False  | whether to use a pretrained model                                           |
+| optimizer       | 'SGD'  | optimizer to use, choices=['SGD', 'Adam', 'AdamW', 'RMSProp']               |
+| verbose         | False  | whether to print verbose output                                             |
+| seed            | 0      | random seed for reproducibility                                             |
+| deterministic   | True   | whether to enable deterministic mode                                        |
+| single_cls      | False  | train multi-class data as single-class                                      |
+| image_weights   | False  | use weighted image selection for training                                   |
+| rect            | False  | support rectangular training                                                |
+| cos_lr          | False  | use cosine learning rate scheduler                                          |
+| close_mosaic    | 10     | disable mosaic augmentation for final 10 epochs                             |
+| resume          | False  | resume training from last checkpoint                                        |
+| lr0             | 0.01   | initial learning rate (i.e. SGD=1E-2, Adam=1E-3)                            |
+| lrf             | 0.01   | final learning rate (lr0 * lrf)                                             |
+| momentum        | 0.937  | SGD momentum/Adam beta1                                                     |
+| weight_decay    | 0.0005 | optimizer weight decay 5e-4                                                 |
+| warmup_epochs   | 3.0    | warmup epochs (fractions ok)                                                |
+| warmup_momentum | 0.8    | warmup initial momentum                                                     |
+| warmup_bias_lr  | 0.1    | warmup initial bias lr                                                      |
+| box             | 7.5    | box loss gain                                                               |
+| cls             | 0.5    | cls loss gain (scale with pixels)                                           |
+| dfl             | 1.5    | dfl loss gain                                                               |
+| fl_gamma        | 0.0    | focal loss gamma (efficientDet default gamma=1.5)                           |
+| label_smoothing | 0.0    | label smoothing (fraction)                                                  |
 | nbs             | 64     | nominal batch size                                                          |
-| overlap_mask    | True   | **Segmentation**: Use mask overlapping during training                      |
-| mask_ratio      | 4      | **Segmentation**: Set mask downsampling                                     |
-| dropout         | False  | **Classification**: Use dropout while training                              |
+| overlap_mask    | True   | masks should overlap during training (segment train only)                   |
+| mask_ratio      | 4      | mask downsample ratio (segment train only)                                  |
+| dropout         | 0.0    | use dropout regularization (classify train only)                            |
 
 ### Prediction
 
@@ -98,21 +108,22 @@ presence of additional features such as masks or multiple labels per box, and th
 for. It is important to carefully tune and experiment with these settings to achieve the best possible performance for a
 given task.
 
-| Key            | Value                | Description                                     |
-|----------------|----------------------|-------------------------------------------------|
-| source         | 'ultralytics/assets' | Input source. Accepts image, folder, video, url |
-| show           | False                | View the prediction images                      |
-| save_txt       | False                | Save the results in a txt file                  |
-| save_conf      | False                | Save the condidence scores                      |
-| save_crop      | Fasle                |                                                 |
-| hide_labels    | False                | Hide the labels                                 |
-| hide_conf      | False                | Hide the confidence scores                      |
-| vid_stride     | False                | Input video frame-rate stride                   |
-| line_thickness | 3                    | Bounding-box thickness (pixels)                 |
-| visualize      | False                | Visualize model features                        |
-| augment        | False                | Augmented inference                             |
-| agnostic_nms   | False                | Class-agnostic NMS                              |
-| retina_masks   | False                | **Segmentation:** High resolution masks         |
+| Key            | Value                | Description                                             |
+|----------------|----------------------|---------------------------------------------------------|
+| source         | 'ultralytics/assets' | source directory for images or videos                   |
+| show           | False                | show results if possible                                |
+| save_txt       | False                | save results as .txt file                               |
+| save_conf      | False                | save results with confidence scores                     |
+| save_crop      | Fasle                | save cropped images with results                        |
+| hide_labels    | False                | hide labels                                             |
+| hide_conf      | False                | hide confidence scores                                  |
+| vid_stride     | False                | video frame-rate stride                                 |
+| line_thickness | 3                    | bounding box thickness (pixels)                         |
+| visualize      | False                | visualize model features                                |
+| augment        | False                | apply image augmentation to prediction sources          |
+| agnostic_nms   | False                | class-agnostic NMS                                      |
+| retina_masks   | False                | use high-resolution segmentation masks                  |
+| classes        | null                 | filter results by class, i.e. class=0, or class=[0,2,3] |
 
 ### Validation
 
@@ -124,17 +135,17 @@ process include the size and composition of the validation dataset and the speci
 is important to carefully tune and experiment with these settings to ensure that the model is performing well on the
 validation dataset and to detect and prevent overfitting.
 
-| Key         | Value | Description                       |
-|-------------|-------|-----------------------------------|
-| noval       | False | ???                               |
-| save_json   | False |                                   |
-| save_hybrid | False |                                   |
-| conf        | 0.001 | Confidence threshold              |
-| iou         | 0.6   | IoU threshold                     |
-| max_det     | 300   | Maximum number of detections      |
-| half        | True  | Use .half() mode.                 |
-| dnn         | False | Use OpenCV DNN for ONNX inference |
-| plots       | False |                                   |
+| Key         | Value | Description                                                                 |
+|-------------|-------|-----------------------------------------------------------------------------|
+| val         | True  | validate/test during training                                               |
+| save_json   | False | save results to JSON file                                                   |
+| save_hybrid | False | save hybrid version of labels (labels + additional predictions)             |
+| conf        | 0.001 | object confidence threshold for detection (default 0.25 predict, 0.001 val) |
+| iou         | 0.6   | intersection over union (IoU) threshold for NMS                             |
+| max_det     | 300   | maximum number of detections per image                                      |
+| half        | True  | use half precision (FP16)                                                   |
+| dnn         | False | use OpenCV DNN for ONNX inference                                           |
+| plots       | False | show plots during training                                                  |
 
 ### Export
 
@@ -160,19 +171,19 @@ ensure that the augmented dataset is diverse and representative enough to train 
 
 | Key         | Value | Description                                     |
 |-------------|-------|-------------------------------------------------|
-| hsv_h       | 0.015 | Image HSV-Hue augmentation (fraction)           |
-| hsv_s       | 0.7   | Image HSV-Saturation augmentation (fraction)    |
-| hsv_v       | 0.4   | Image HSV-Value augmentation (fraction)         |
-| degrees     | 0.0   | Image rotation (+/- deg)                        |
-| translate   | 0.1   | Image translation (+/- fraction)                |
-| scale       | 0.5   | Image scale (+/- gain)                          |
-| shear       | 0.0   | Image shear (+/- deg)                           |
-| perspective | 0.0   | Image perspective (+/- fraction), range 0-0.001 |
-| flipud      | 0.0   | Image flip up-down (probability)                |
-| fliplr      | 0.5   | Image flip left-right (probability)             |
-| mosaic      | 1.0   | Image mosaic (probability)                      |
-| mixup       | 0.0   | Image mixup (probability)                       |
-| copy_paste  | 0.0   | Segment copy-paste (probability)                |
+| hsv_h       | 0.015 | image HSV-Hue augmentation (fraction)           |
+| hsv_s       | 0.7   | image HSV-Saturation augmentation (fraction)    |
+| hsv_v       | 0.4   | image HSV-Value augmentation (fraction)         |
+| degrees     | 0.0   | image rotation (+/- deg)                        |
+| translate   | 0.1   | image translation (+/- fraction)                |
+| scale       | 0.5   | image scale (+/- gain)                          |
+| shear       | 0.0   | image shear (+/- deg)                           |
+| perspective | 0.0   | image perspective (+/- fraction), range 0-0.001 |
+| flipud      | 0.0   | image flip up-down (probability)                |
+| fliplr      | 0.5   | image flip left-right (probability)             |
+| mosaic      | 1.0   | image mosaic (probability)                      |
+| mixup       | 0.0   | image mixup (probability)                       |
+| copy_paste  | 0.0   | segment copy-paste (probability)                |
 
 ### Logging, checkpoints, plotting and file management
 
@@ -194,10 +205,10 @@ Logging, checkpoints, plotting, and file management are important considerations
 Effective logging, checkpointing, plotting, and file management can help you keep track of the model's progress and make
 it easier to debug and optimize the training process.
 
-| Key      | Value  | Description                                                                                 |
-|----------|--------|---------------------------------------------------------------------------------------------|
-| project  | 'runs' | The project name                                                                            |
-| name     | 'exp'  | The run name. `exp` gets automatically incremented if not specified, i.e, `exp`, `exp2` ... |
-| exist_ok | False  | Will replace current directory contents if set to True and output directory exists.         |
-| plots    | False  | **Validation**: Save plots while validation                                                 |
-| save     | False  | Save any plots, models or files                                                             |
+| Key      | Value  | Description                                                                                    |
+|----------|--------|------------------------------------------------------------------------------------------------|
+| project  | 'runs' | project name                                                                                   |
+| name     | 'exp'  | experiment name. `exp` gets automatically incremented if not specified, i.e, `exp`, `exp2` ... |
+| exist_ok | False  | whether to overwrite existing experiment                                                       |
+| plots    | False  | save plots during train/val                                                                    |
+| save     | False  | save train checkpoints and predict results                                                     |

@@ -60,6 +60,7 @@ visualize: False  # visualize results
 augment: False  # apply data augmentation to images
 agnostic_nms: False  # class-agnostic NMS
 retina_masks: False  # use retina masks for object detection
+classes: null  # filter results by class, i.e. class=0, or class=[0,2,3]
 
 # Export settings ------------------------------------------------------------------------------------------------------
 format: torchscript  # format to export to

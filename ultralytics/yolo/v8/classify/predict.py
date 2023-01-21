@@ -18,7 +18,7 @@ class ClassificationPredictor(BasePredictor):
         img = img.half() if self.model.fp16 else img.float()  # uint8 to fp16/32
         return img
 
-    def postprocess(self, preds, img, orig_img):
+    def postprocess(self, preds, img, orig_img, classes=None):
         results = []
         for i, pred in enumerate(preds):
             shape = orig_img[i].shape if isinstance(orig_img, list) else orig_img.shape

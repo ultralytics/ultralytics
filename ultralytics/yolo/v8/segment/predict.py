@@ -10,14 +10,15 @@ from ultralytics.yolo.v8.detect.predict import DetectionPredictor
 
 class SegmentationPredictor(DetectionPredictor):
 
-    def postprocess(self, preds, img, orig_img):
+    def postprocess(self, preds, img, orig_img, classes=None):
         # TODO: filter by classes
         p = ops.non_max_suppression(preds[0],
                                     self.args.conf,
                                     self.args.iou,
                                     agnostic=self.args.agnostic_nms,
                                     max_det=self.args.max_det,
-                                    nm=32)
+                                    nm=32,
+                                    classes=self.args.classes)
         results = []
         proto = preds[1][-1]
         for i, pred in enumerate(p):

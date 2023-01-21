@@ -115,7 +115,7 @@ def check_config_mismatch(base: Dict, custom: Dict):
         sys.exit()
 
 
-def entrypoint(debug=True):
+def entrypoint(debug=False):
     """
     This function is the ultralytics package entrypoint, it's responsible for parsing the command line arguments passed
     to the package.

@@ -18,7 +18,7 @@ class ClassificationPredictor(BasePredictor):
         img = img.half() if self.model.fp16 else img.float()  # uint8 to fp16/32
         return img
 
-    def postprocess(self, preds, img, orig_img):
+    def postprocess(self, preds, img, orig_img,classes=None):
         results = []
         for i, pred in enumerate(preds):
             shape = orig_img[i].shape if isinstance(orig_img, list) else orig_img.shape
@@ -67,6 +67,7 @@ def predict(cfg=DEFAULT_CFG):
     cfg.model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
     cfg.source = cfg.source if cfg.source is not None else ROOT / "assets" if is_git_directory() \
         else "https://ultralytics.com/images/bus.jpg"
+    cfg.classes = cfg.classes or None
     predictor = ClassificationPredictor(cfg)
     predictor.predict_cli()
 

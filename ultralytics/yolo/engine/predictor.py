@@ -101,7 +101,7 @@ class BasePredictor:
     def write_results(self, results, batch, print_string):
         raise NotImplementedError("print_results function needs to be implemented")
 
-    def postprocess(self, preds, img, orig_img,classes=None):
+    def postprocess(self, preds, img, orig_img, classes=None):
         return preds
 
     def setup_source(self, source=None):

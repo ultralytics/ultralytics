@@ -102,7 +102,7 @@ def predict(cfg=DEFAULT_CFG):
     cfg.model = cfg.model or "yolov8n-seg.pt"
     cfg.source = cfg.source if cfg.source is not None else ROOT / "assets" if is_git_directory() \
         else "https://ultralytics.com/images/bus.jpg"
-    cfg.classes = cfg.classes or or cfg.model.classes or None
+    cfg.classes = cfg.classes or cfg.model.classes or None
     predictor = SegmentationPredictor(cfg)
     predictor.predict_cli()
 

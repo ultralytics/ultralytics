@@ -67,7 +67,7 @@ def predict(cfg=DEFAULT_CFG):
     cfg.model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
     cfg.source = cfg.source if cfg.source is not None else ROOT / "assets" if is_git_directory() \
         else "https://ultralytics.com/images/bus.jpg"
-    cfg.classes = cfg.classes or None
+    cfg.classes = cfg.classes or cfg.nc or None
     predictor = ClassificationPredictor(cfg)
     predictor.predict_cli()
 

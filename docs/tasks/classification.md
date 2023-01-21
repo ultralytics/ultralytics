@@ -16,7 +16,7 @@ of that class are located or what their exact shape is.
 ## Train
 
 Train YOLOv8n-cls on the MNIST160 dataset for 100 epochs at image size 64. For a full list of available arguments
-see the [Configuration](../config.md) page.
+see the [Configuration](../cfg.md) page.
 
 !!! example ""
 

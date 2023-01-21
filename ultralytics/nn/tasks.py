@@ -10,7 +10,7 @@ import torch.nn as nn
 from ultralytics.nn.modules import (C1, C2, C3, C3TR, SPP, SPPF, Bottleneck, BottleneckCSP, C2f, C3Ghost, C3x, Classify,
                                     Concat, Conv, ConvTranspose, Detect, DWConv, DWConvTranspose2d, Ensemble, Focus,
                                     GhostBottleneck, GhostConv, Segment)
-from ultralytics.yolo.utils import DEFAULT_CONFIG_DICT, DEFAULT_CONFIG_KEYS, LOGGER, colorstr, yaml_load
+from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, yaml_load
 from ultralytics.yolo.utils.checks import check_yaml
 from ultralytics.yolo.utils.torch_utils import (fuse_conv_and_bn, initialize_weights, intersect_dicts, make_divisible,
                                                 model_info, scale_img, time_sync)
@@ -113,7 +113,7 @@ class BaseModel(nn.Module):
             thresh (int, optional): The threshold number of BatchNorm layers. Default is 10.
 
         Returns:
-            bool: True if the number of BatchNorm layers in the model is less than the threshold, False otherwise.
+            (bool): True if the number of BatchNorm layers in the model is less than the threshold, False otherwise.
         """
         bn = tuple(v for k, v in nn.__dict__.items() if 'Norm' in k)  # normalization layers, i.e. BatchNorm2d()
         return sum(isinstance(v, bn) for v in self.modules()) < thresh  # True if < 'thresh' BatchNorm layers in model
@@ -321,11 +321,11 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
     model = Ensemble()
     for w in weights if isinstance(weights, list) else [weights]:
         ckpt = torch.load(attempt_download(w), map_location='cpu')  # load
-        args = {**DEFAULT_CONFIG_DICT, **ckpt['train_args']}  # combine model and default args, preferring model args
+        args = {**DEFAULT_CFG_DICT, **ckpt['train_args']}  # combine model and default args, preferring model args
         ckpt = (ckpt.get('ema') or ckpt['model']).to(device).float()  # FP32 model
 
         # Model compatibility updates
-        ckpt.args = {k: v for k, v in args.items() if k in DEFAULT_CONFIG_KEYS}  # attach args to model
+        ckpt.args = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # attach args to model
         ckpt.pt_path = weights  # attach *.pt file path to model
         if not hasattr(ckpt, 'stride'):
             ckpt.stride = torch.tensor([32.])
@@ -359,11 +359,11 @@ def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
     from ultralytics.yolo.utils.downloads import attempt_download
 
     ckpt = torch.load(attempt_download(weight), map_location='cpu')  # load
-    args = {**DEFAULT_CONFIG_DICT, **ckpt['train_args']}  # combine model and default args, preferring model args
+    args = {**DEFAULT_CFG_DICT, **ckpt['train_args']}  # combine model and default args, preferring model args
     model = (ckpt.get('ema') or ckpt['model']).to(device).float()  # FP32 model
 
     # Model compatibility updates
-    model.args = {k: v for k, v in args.items() if k in DEFAULT_CONFIG_KEYS}  # attach args to model
+    model.args = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # attach args to model
     model.pt_path = weight  # attach *.pt file path to model
     if not hasattr(model, 'stride'):
         model.stride = torch.tensor([32.])

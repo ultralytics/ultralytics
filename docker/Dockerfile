@@ -10,7 +10,7 @@ ADD https://ultralytics.com/assets/Arial.ttf https://ultralytics.com/assets/Aria
 
 # Remove torch nightly and install torch stable
 RUN rm -rf /opt/pytorch  # remove 1.2GB dir
-RUN pip uninstall -y torchtext torch torchvision
+RUN pip uninstall -y torchtext pillow torch torchvision
 RUN pip install --no-cache torch torchvision
 
 # Install linux packages

@@ -164,7 +164,7 @@ def entrypoint(debug=False):
                 try:
                     if k == 'device':  # special DDP handling, i.e. device='0,1,2,3'
                         v = v.replace('[', '').replace(']', '')  # handle device=[0,1,2,3]
-                        v = v.replace(" ", "").replace('')  # handle device=[0, 1, 2, 3]
+                        v = v.replace(" ", "")  # handle device=[0, 1, 2, 3]
                         v = v.replace('\\', '')  # handle device=\'0,1,2,3\'
                         overrides[k] = v
                     else:

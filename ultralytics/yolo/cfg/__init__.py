@@ -9,7 +9,8 @@ from types import SimpleNamespace
 from typing import Dict, Union
 
 from ultralytics import __version__, yolo
-from ultralytics.yolo.utils import DEFAULT_CFG_PATH, LOGGER, PREFIX, checks, colorstr, print_settings, yaml_load
+from ultralytics.yolo.utils import DEFAULT_CFG_PATH, LOGGER, PREFIX, checks, colorstr, print_settings, yaml_load, \
+    TryExcept
 
 DIR = Path(__file__).parent
 
@@ -124,6 +125,7 @@ def check_cfg_mismatch(base: Dict, custom: Dict):
         sys.exit()
 
 
+@TryExcept(CLI_HELP_MSG)
 def entrypoint(debug=False):
     """
     This function is the ultralytics package entrypoint, it's responsible for parsing the command line arguments passed
@@ -149,7 +151,7 @@ def entrypoint(debug=False):
         parser = argparse.ArgumentParser(description='YOLO parser')
         parser.add_argument('args', type=str, nargs='+', help='YOLO args')
         args = parser.parse_args().args
-        args = re.sub(r'\s*=\s*', '=', ' '.join(args)).split(' ')  # remove whitespaces around = sign
+        args = re.sub(r' *= *', '=', ' '.join(args)).split(' ')  # remove whitespaces around '=' sign
 
     tasks = 'detect', 'segment', 'classify'
     modes = 'train', 'val', 'predict', 'export'

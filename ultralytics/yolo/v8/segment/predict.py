@@ -10,14 +10,14 @@ from ultralytics.yolo.v8.detect.predict import DetectionPredictor
 
 class SegmentationPredictor(DetectionPredictor):
 
-    def postprocess(self, preds, img, orig_img):
+    def postprocess(self, preds, img, orig_img,classes=None):
         # TODO: filter by classes
         p = ops.non_max_suppression(preds[0],
                                     self.args.conf,
                                     self.args.iou,
                                     agnostic=self.args.agnostic_nms,
                                     max_det=self.args.max_det,
-                                    nm=32)
+                                    nm=32,classes=classes)
         results = []
         proto = preds[1][-1]
         for i, pred in enumerate(p):
@@ -101,6 +101,7 @@ def predict(cfg=DEFAULT_CFG):
     cfg.model = cfg.model or "yolov8n-seg.pt"
     cfg.source = cfg.source if cfg.source is not None else ROOT / "assets" if is_git_directory() \
         else "https://ultralytics.com/images/bus.jpg"
+    cfg.classes = cfg.classes or None
     predictor = SegmentationPredictor(cfg)
     predictor.predict_cli()
 

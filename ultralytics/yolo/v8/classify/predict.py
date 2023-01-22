@@ -4,7 +4,7 @@ import torch
 
 from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.engine.results import Results
-from ultralytics.yolo.utils import DEFAULT_CFG, ROOT, is_git_directory
+from ultralytics.yolo.utils import DEFAULT_CFG, ROOT
 from ultralytics.yolo.utils.plotting import Annotator
 
 
@@ -65,7 +65,7 @@ class ClassificationPredictor(BasePredictor):
 
 def predict(cfg=DEFAULT_CFG):
     cfg.model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
-    cfg.source = cfg.source if cfg.source is not None else ROOT / "assets" if is_git_directory() \
+    cfg.source = cfg.source if cfg.source is not None else ROOT / "assets" if (ROOT / "assets").exists() \
         else "https://ultralytics.com/images/bus.jpg"
     predictor = ClassificationPredictor(cfg)
     predictor.predict_cli()

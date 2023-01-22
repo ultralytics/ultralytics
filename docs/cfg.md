@@ -2,40 +2,51 @@ YOLO settings and hyperparameters play a critical role in the model's performanc
 and hyperparameters can affect the model's behavior at various stages of the model development process, including
 training, validation, and prediction.
 
-Properly setting and tuning these parameters can have a significant impact on the model's ability to learn effectively
-from the training data and generalize to new data. For example, choosing an appropriate learning rate, batch size, and
-optimization algorithm can greatly affect the model's convergence speed and accuracy. Similarly, setting the correct
-confidence threshold and non-maximum suppression (NMS) threshold can affect the model's performance on detection tasks.
+YOLOv8 'yolo' CLI commands use the following syntax:
 
-It is important to carefully consider and experiment with these settings and hyperparameters to achieve the best
-possible performance for a given task. This can involve trial and error, as well as using techniques such as
-hyperparameter optimization to search for the optimal set of parameters.
+!!! example ""
 
-In summary, YOLO settings and hyperparameters are a key factor in the success of a YOLO model, and it is important to
-pay careful attention to them to achieve the desired results.
+    === "CLI"
+    
+        ```bash
+        yolo TASK MODE ARGS
+        ```
 
-### Setting the operation type
+Where:
+
+- `TASK` (optional) is one of `[detect, segment, classify]`. If it is not passed explicitly YOLOv8 will try to guess
+  the `TASK` from the model type.
+- `MODE` (required) is one of `[train, val, predict, export]`
+- `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults.
+  For a full list of available `ARGS` see the [Configuration](cfg.md) page and `defaults.yaml`
+  GitHub [source](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/cfg/default.yaml).
+
+#### Tasks
 
 YOLO models can be used for a variety of tasks, including detection, segmentation, and classification. These tasks
 differ in the type of output they produce and the specific problem they are designed to solve.
 
-- Detection: Detection tasks involve identifying and localizing objects or regions of interest in an image or video.
+- **Detect**: Detection tasks involve identifying and localizing objects or regions of interest in an image or video.
   YOLO models can be used for object detection tasks by predicting the bounding boxes and class labels of objects in an
   image.
-- Segmentation: Segmentation tasks involve dividing an image or video into regions or pixels that correspond to
+- **Segment**: Segmentation tasks involve dividing an image or video into regions or pixels that correspond to
   different objects or classes. YOLO models can be used for image segmentation tasks by predicting a mask or label for
   each pixel in an image.
-- Classification: Classification tasks involve assigning a class label to an input, such as an image or text. YOLO
+- **Classify**: Classification tasks involve assigning a class label to an input, such as an image or text. YOLO
   models can be used for image classification tasks by predicting the class label of an input image.
+
+#### Modes
 
 YOLO models can be used in different modes depending on the specific problem you are trying to solve. These modes
 include train, val, and predict.
 
-- Train: The train mode is used to train the model on a dataset. This mode is typically used during the development and
+- **Train**: The train mode is used to train the model on a dataset. This mode is typically used during the development
+  and
   testing phase of a model.
-- Val: The val mode is used to evaluate the model's performance on a validation dataset. This mode is typically used to
+- **Val**: The val mode is used to evaluate the model's performance on a validation dataset. This mode is typically used
+  to
   tune the model's hyperparameters and detect overfitting.
-- Predict: The predict mode is used to make predictions with the model on new data. This mode is typically used in
+- **Predict**: The predict mode is used to make predictions with the model on new data. This mode is typically used in
   production or when deploying the model to users.
 
 | Key    | Value    | Description                                                                                   |

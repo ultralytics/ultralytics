@@ -3,7 +3,7 @@
 import json
 from time import time
 
-from ultralytics.hub.utils import PREFIX, sync_analytics
+from ultralytics.hub.utils import PREFIX, traces
 from ultralytics.yolo.utils import LOGGER
 
 
@@ -43,24 +43,24 @@ def on_train_end(trainer):
         LOGGER.info(f"{PREFIX}Training completed successfully ✅\n"
                     f"{PREFIX}Uploading final {session.model_id}")
         session.upload_model(trainer.epoch, trainer.best, map=trainer.metrics['metrics/mAP50-95(B)'], final=True)
-        session.alive = False  # stop heartbeats
+        session.shutdown()  # stop heartbeats
         LOGGER.info(f"{PREFIX}View model at https://hub.ultralytics.com/models/{session.model_id} 🚀")
 
 
 def on_train_start(trainer):
-    sync_analytics(trainer.args)
+    traces(trainer.args, traces_sample_rate=0.0)
 
 
 def on_val_start(validator):
-    sync_analytics(validator.args)
+    traces(validator.args, traces_sample_rate=0.0)
 
 
 def on_predict_start(predictor):
-    sync_analytics(predictor.args)
+    traces(predictor.args, traces_sample_rate=0.0)
 
 
 def on_export_start(exporter):
-    sync_analytics(exporter.args)
+    traces(exporter.args, traces_sample_rate=0.0)
 
 
 callbacks = {

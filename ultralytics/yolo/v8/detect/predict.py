@@ -1,14 +1,16 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
 import torch
-
+import cv2
 from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils import DEFAULT_CFG, ROOT, ops
 from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
+global count
 
 
 class DetectionPredictor(BasePredictor):
+    count = 0
 
     def get_annotator(self, img):
         return Annotator(img, line_width=self.args.line_thickness, example=str(self.model.names))
@@ -50,12 +52,26 @@ class DetectionPredictor(BasePredictor):
         self.txt_path = str(self.save_dir / 'labels' / p.stem) + ('' if self.dataset.mode == 'image' else f'_{frame}')
         log_string += '%gx%g ' % im.shape[2:]  # print string
         self.annotator = self.get_annotator(im0)
+        if len(self.annotator.ans()) > 0:
+            (cx, cy) = self.annotator.ans()[0]
+        else:
+            cy = 0
+        self.annotator = self.get_annotator(im0)
 
         det = results[idx].boxes  # TODO: make boxes inherit from tensors
         if len(det) == 0:
             return log_string
         for c in det.cls.unique():
             n = (det.cls == c).sum()  # detections per class
+            if cy < (400) and cy > 385 :
+                DetectionPredictor.count  +=1
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            align = im0.shape 
+            align_bottom = align[0]
+            align_bottom -= 110
+            align_left = (align[1]/8) # Text allignment (align left,(int(align bottom))
+            cv2.putText(im0, f'{self.model.names[int(c)]} : {str(DetectionPredictor.count)}', (int(align_left),align_bottom), font, 
+                   3, (0, 255, 1), 5, cv2.LINE_AA)
             log_string += f"{n} {self.model.names[int(c)]}{'s' * (n > 1)}, "
 
         # write

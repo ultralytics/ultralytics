@@ -56,26 +56,26 @@ HELP_MSG = \
     3. Use the command line interface (CLI):
 
         YOLOv8 'yolo' CLI commands use the following syntax:
-    
+
             yolo TASK MODE ARGS
-    
+
             Where   TASK (optional) is one of [detect, segment, classify]
                     MODE (required) is one of [train, val, predict, export]
                     ARGS (optional) are any number of custom 'arg=value' pairs like 'imgsz=320' that override defaults.
                         See all ARGS at https://docs.ultralytics.com/cfg or with 'yolo cfg'
-    
+
         - Train a detection model for 10 epochs with an initial learning_rate of 0.01
             yolo detect train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01
-    
+
         - Predict a YouTube video using a pretrained segmentation model at image size 320:
             yolo segment predict model=yolov8n-seg.pt source=https://youtu.be/Zgi9g1ksQHc imgsz=320
-    
+
         - Val a pretrained detection model at batch-size 1 and image size 640:
             yolo detect val model=yolov8n.pt data=coco128.yaml batch=1 imgsz=640
-    
+
         - Export a YOLOv8n classification model to ONNX format at image size 224 by 128 (no TASK required)
             yolo export model=yolov8n-cls.pt format=onnx imgsz=224,128
-    
+
         - Run special commands:
             yolo help
             yolo checks
@@ -316,7 +316,7 @@ def colorstr(*input):
         "bright_white": "\033[97m",
         "end": "\033[0m",  # misc
         "bold": "\033[1m",
-        "underline": "\033[4m", }
+        "underline": "\033[4m",}
     return "".join(colors[x] for x in args) + f"{string}" + colors["end"]
 
 
@@ -334,12 +334,12 @@ def set_logging(name=LOGGING_NAME, verbose=True):
             name: {
                 "class": "logging.StreamHandler",
                 "formatter": name,
-                "level": level, }},
+                "level": level,}},
         "loggers": {
             name: {
                 "level": level,
                 "handlers": [name],
-                "propagate": False, }}})
+                "propagate": False,}}})
 
 
 class TryExcept(contextlib.ContextDecorator):
@@ -427,12 +427,13 @@ def set_sentry(dsn=None):
         import sentry_sdk  # noqa
 
         import ultralytics
-        sentry_sdk.init(dsn=dsn,
-                        debug=False,
-                        traces_sample_rate=1.0,
-                        release=ultralytics.__version__,
-                        environment='production',  # 'dev' or 'production'
-                        ignore_errors=[KeyboardInterrupt])
+        sentry_sdk.init(
+            dsn=dsn,
+            debug=False,
+            traces_sample_rate=1.0,
+            release=ultralytics.__version__,
+            environment='production',  # 'dev' or 'production'
+            ignore_errors=[KeyboardInterrupt])
 
 
 def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.1'):

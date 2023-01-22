@@ -227,9 +227,11 @@ def check_dataset_yaml(dataset, autodownload=True):
     if val:
         val = [Path(x).resolve() for x in (val if isinstance(val, list) else [val])]  # val path
         if not all(x.exists() for x in val):
-            LOGGER.info('\nDataset not found ⚠️, missing paths %s' % [str(x) for x in val if not x.exists()])
-            if not s or not autodownload:
-                raise FileNotFoundError(f'Dataset '{dataset}' not found  ❌\nDataset path(s) do not exist: {val}')
+            msg = f"\nDataset '{dataset}' not found ⚠️, missing paths %s" % [str(x) for x in val if not x.exists()]
+            if s and autodownload:
+                LOGGER.warning(msg)
+            else:
+                raise FileNotFoundError(s)
             t = time.time()
             if s.startswith('http') and s.endswith('.zip'):  # URL
                 f = Path(s).name  # filename

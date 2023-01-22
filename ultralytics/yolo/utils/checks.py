@@ -154,7 +154,7 @@ def check_python(minimum: str = '3.7.0') -> bool:
     Returns:
         None
     """
-    check_version(platform.python_version(), minimum, name='Python ', hard=True)
+    return check_version(platform.python_version(), minimum, name='Python ', hard=True)
 
 
 @TryExcept()

@@ -83,7 +83,7 @@ class DetectionPredictor(BasePredictor):
 
 def predict(cfg=DEFAULT_CFG):
     cfg.model = cfg.model or "yolov8n.pt"
-    cfg.source = cfg.source if cfg.source is not None else ROOT / "assets" if is_git_directory() \
+    cfg.source = cfg.source if cfg.source is not None else ROOT / "assets" if (ROOT / "assets").exists() \
         else "https://ultralytics.com/images/bus.jpg"
     predictor = DetectionPredictor(cfg)
     predictor.predict_cli()

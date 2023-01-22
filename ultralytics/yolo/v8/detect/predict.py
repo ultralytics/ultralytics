@@ -1,15 +1,17 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
-import cv2
 import torch
+import cv2
 
 from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils import DEFAULT_CFG, ROOT, is_git_directory, ops
 from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
+global count
 
 
 class DetectionPredictor(BasePredictor):
+    count = 0
 
     def get_annotator(self, img):
         return Annotator(img, line_width=self.args.line_thickness, example=str(self.model.names))
@@ -20,7 +22,7 @@ class DetectionPredictor(BasePredictor):
         img /= 255  # 0 - 255 to 0.0 - 1.0
         return img
 
-    def postprocess(self, preds, img, orig_img, classes=None):
+    def postprocess(self, preds, img, orig_img,classes=None):
         preds = ops.non_max_suppression(preds,
                                         self.args.conf,
                                         self.args.iou,
@@ -51,24 +53,26 @@ class DetectionPredictor(BasePredictor):
         self.txt_path = str(self.save_dir / 'labels' / p.stem) + ('' if self.dataset.mode == 'image' else f'_{frame}')
         log_string += '%gx%g ' % im.shape[2:]  # print string
         self.annotator = self.get_annotator(im0)
+        if len(self.annotator.ans()) > 0:
+            (cx, cy) = self.annotator.ans()[0]
+        else:
+            cy = 0
 
         det = results[idx].boxes  # TODO: make boxes inherit from tensors
         if len(det) == 0:
             return log_string
-        found_class = {}  # create a dictionary to store the items
         for c in det.cls.unique():
             n = (det.cls == c).sum()  # detections per class
-            found_class[self.model.names[int(c)]] = int(n)  # add the items and number into dict
-            align = im0.shape
+            if cy < (400) and cy > 385 :
+                DetectionPredictor.count  +=1
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            align = im0.shape 
             align_bottom = align[0]
-            align_left = (align[1] / 8)  # Text allignment (align left,(int(align bottom))
-            for i, (k, v) in enumerate(found_class.items()):
-                a = f"{k} - {v}"
-                align_bottom -= 110
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                cv2.putText(im0, str(a), (int(align_left), align_bottom), font, 3, (0, 255, 1), 5, cv2.LINE_AA)
-            log_string += f"{n} {self.model.names[int(c)]}{'s' * (n > 1)}, "
-
+            align_bottom -= 110
+            align_left = (align[1]/8) # Text allignment (align left,(int(align bottom))
+            cv2.putText(im0, f'{self.model.names[int(c)]} : {str(DetectionPredictor.count)}', (int(align_left),align_bottom), font, 
+                   3, (0, 255, 1), 5, cv2.LINE_AA)
+            log_string += f"{n} {self.model.names[int(c)]}{'s' * (n > 1)},"
         # write
         for d in reversed(det):
             cls, conf = d.cls.squeeze(), d.conf.squeeze()
@@ -81,7 +85,7 @@ class DetectionPredictor(BasePredictor):
                 c = int(cls)  # integer class
                 label = None if self.args.hide_labels else (
                     self.model.names[c] if self.args.hide_conf else f'{self.model.names[c]} {conf:.2f}')
-                self.annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
+                self.annotator.box_label(d.xyxy.squeeze(), f"{label}", color=colors(c, True))
             if self.args.save_crop:
                 imc = im0.copy()
                 save_one_box(d.xyxy,

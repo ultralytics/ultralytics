@@ -372,6 +372,7 @@ def profile(input, ops, n=10, device=None):
             torch.cuda.empty_cache()
     return results
 
+
 class EarlyStopping:
     # early stopper
     def __init__(self, patience=30):

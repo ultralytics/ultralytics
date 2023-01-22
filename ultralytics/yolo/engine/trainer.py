@@ -31,7 +31,8 @@ from ultralytics.yolo.utils.autobatch import check_train_batch_size
 from ultralytics.yolo.utils.checks import check_file, check_imgsz, print_args
 from ultralytics.yolo.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.yolo.utils.files import get_latest_run, increment_path
-from ultralytics.yolo.utils.torch_utils import ModelEMA, de_parallel, init_seeds, one_cycle, strip_optimizer, EarlyStopping
+from ultralytics.yolo.utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel, init_seeds, one_cycle,
+                                                strip_optimizer)
 
 
 class BaseTrainer:
@@ -227,7 +228,6 @@ class BaseTrainer:
         self.scheduler.last_epoch = self.start_epoch - 1  # do not move
         self.stopper, self.stop = EarlyStopping(patience=self.args.patience), False
 
-
         # dataloaders
         batch_size = self.batch_size // world_size if world_size > 1 else self.batch_size
         self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=rank, mode="train")
@@ -335,12 +335,12 @@ class BaseTrainer:
 
                 # Validation
                 self.ema.update_attr(self.model, include=['yaml', 'nc', 'args', 'names', 'stride', 'class_weights'])
-                final_epoch = (epoch + 1 == self.epochs)  or self.stopper.possible_stop
+                final_epoch = (epoch + 1 == self.epochs) or self.stopper.possible_stop
 
                 if self.args.val or final_epoch:
                     self.metrics, self.fitness = self.validate()
                 self.save_metrics(metrics={**self.label_loss_items(self.tloss), **self.metrics, **self.lr})
-                self.stop = self.stopper(epoch+1, self.fitness)
+                self.stop = self.stopper(epoch + 1, self.fitness)
 
                 # Save model
                 if self.args.save or (epoch + 1 == self.epochs):

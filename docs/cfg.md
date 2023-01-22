@@ -2,8 +2,24 @@ YOLO settings and hyperparameters play a critical role in the model's performanc
 and hyperparameters can affect the model's behavior at various stages of the model development process, including
 training, validation, and prediction.
 
-All YOLO cfg values are set by the default cfg YAML file at
-[https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/cfg/default.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/cfg/default.yaml)
+YOLOv8 'yolo' CLI commands use the following syntax:
+
+!!! example ""
+
+    === "CLI"
+    
+        ```bash
+        yolo TASK MODE ARGS
+        ```
+
+Where:
+
+- `TASK` (optional) is one of `[detect, segment, classify]`. If it is not passed explicitly YOLOv8 will try to guess
+  the `TASK` from the model type.
+- `MODE` (required) is one of `[train, val, predict, export]`
+- `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults.
+  For a full list of available `ARGS` see the [Configuration](cfg.md) page and `defaults.yaml`
+  GitHub [source]([https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/cfg/default.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/cfg/default.yaml).
 
 #### Tasks
 

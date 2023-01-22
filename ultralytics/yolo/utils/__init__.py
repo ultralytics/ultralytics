@@ -8,9 +8,9 @@ import platform
 import sys
 import tempfile
 import threading
-import types
 import uuid
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Union
 
 import cv2
@@ -55,10 +55,34 @@ HELP_MSG = \
 
     3. Use the command line interface (CLI):
 
-        yolo task=detect    mode=train    model=yolov8n.yaml      args...
-                  classify       predict        yolov8n-cls.yaml  args...
-                  segment        val            yolov8n-seg.yaml  args...
-                                 export         yolov8n.pt        format=onnx  args...
+        YOLOv8 'yolo' CLI commands use the following syntax:
+
+            yolo TASK MODE ARGS
+
+            Where   TASK (optional) is one of [detect, segment, classify]
+                    MODE (required) is one of [train, val, predict, export]
+                    ARGS (optional) are any number of custom 'arg=value' pairs like 'imgsz=320' that override defaults.
+                        See all ARGS at https://docs.ultralytics.com/cfg or with 'yolo cfg'
+
+        - Train a detection model for 10 epochs with an initial learning_rate of 0.01
+            yolo detect train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01
+
+        - Predict a YouTube video using a pretrained segmentation model at image size 320:
+            yolo segment predict model=yolov8n-seg.pt source=https://youtu.be/Zgi9g1ksQHc imgsz=320
+
+        - Val a pretrained detection model at batch-size 1 and image size 640:
+            yolo detect val model=yolov8n.pt data=coco128.yaml batch=1 imgsz=640
+
+        - Export a YOLOv8n classification model to ONNX format at image size 224 by 128 (no TASK required)
+            yolo export model=yolov8n-cls.pt format=onnx imgsz=224,128
+
+        - Run special commands:
+            yolo help
+            yolo checks
+            yolo version
+            yolo settings
+            yolo copy-cfg
+            yolo cfg
 
     Docs: https://docs.ultralytics.com
     Community: https://community.ultralytics.com
@@ -73,11 +97,24 @@ cv2.setNumThreads(0)  # prevent OpenCV from multithreading (incompatible with Py
 os.environ['NUMEXPR_MAX_THREADS'] = str(NUM_THREADS)  # NumExpr max threads
 os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':4096:8'  # for deterministic training
 
-# Default config dictionary
+
+class IterableSimpleNamespace(SimpleNamespace):
+    """
+    Iterable SimpleNamespace class to allow SimpleNamespace to be used with dict() and in for loops
+    """
+
+    def __iter__(self):
+        return iter(vars(self).items())
+
+    def __str__(self):
+        return '\n'.join(f"{k}={v}" for k, v in vars(self).items())
+
+
+# Default configuration
 with open(DEFAULT_CFG_PATH, errors='ignore') as f:
     DEFAULT_CFG_DICT = yaml.safe_load(f)
 DEFAULT_CFG_KEYS = DEFAULT_CFG_DICT.keys()
-DEFAULT_CFG = types.SimpleNamespace(**DEFAULT_CFG_DICT)
+DEFAULT_CFG = IterableSimpleNamespace(**DEFAULT_CFG_DICT)
 
 
 def is_colab():
@@ -307,14 +344,15 @@ def set_logging(name=LOGGING_NAME, verbose=True):
 
 class TryExcept(contextlib.ContextDecorator):
     # YOLOv8 TryExcept class. Usage: @TryExcept() decorator or 'with TryExcept():' context manager
-    def __init__(self, msg=''):
+    def __init__(self, msg='', verbose=True):
         self.msg = msg
+        self.verbose = verbose
 
     def __enter__(self):
         pass
 
     def __exit__(self, exc_type, value, traceback):
-        if value:
+        if self.verbose and value:
             print(emojis(f"{self.msg}{': ' if self.msg else ''}{value}"))
         return True
 
@@ -366,6 +404,21 @@ def yaml_load(file='data.yaml', append_filename=False):
         return {**yaml.safe_load(f), 'yaml_file': str(file)} if append_filename else yaml.safe_load(f)
 
 
+def yaml_print(yaml_file: Union[str, Path, dict]) -> None:
+    """
+    Pretty prints a yaml file or a yaml-formatted dictionary.
+
+    Args:
+        yaml_file: The file path of the yaml file or a yaml-formatted dictionary.
+
+    Returns:
+        None
+    """
+    yaml_dict = yaml_load(yaml_file) if isinstance(yaml_file, (str, Path)) else yaml_file
+    dump = yaml.dump(yaml_dict, default_flow_style=False)
+    LOGGER.info(f"Printing '{colorstr('bold', 'black', yaml_file)}'\n\n{dump}")
+
+
 def set_sentry(dsn=None):
     """
     Initialize the Sentry SDK for error tracking and reporting if pytest is not currently running.
@@ -379,7 +432,6 @@ def set_sentry(dsn=None):
             debug=False,
             traces_sample_rate=1.0,
             release=ultralytics.__version__,
-            send_default_pii=True,
             environment='production',  # 'dev' or 'production'
             ignore_errors=[KeyboardInterrupt])
 
@@ -437,17 +489,6 @@ def set_settings(kwargs, file=USER_CONFIG_DIR / 'settings.yaml'):
     """
     SETTINGS.update(kwargs)
     yaml_save(file, SETTINGS)
-
-
-def print_settings():
-    """
-    Function that prints Ultralytics settings
-    """
-    import json
-    s = f'\n{PREFIX}Settings:\n'
-    s += json.dumps(SETTINGS, indent=2)
-    s += f"\n\nUpdate settings at {USER_CONFIG_DIR / 'settings.yaml'}"
-    LOGGER.info(s)
 
 
 # Run below code on utils init -----------------------------------------------------------------------------------------

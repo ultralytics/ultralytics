@@ -4,7 +4,7 @@ import torch
 
 from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.engine.results import Results
-from ultralytics.yolo.utils import DEFAULT_CFG, ROOT, is_git_directory, ops
+from ultralytics.yolo.utils import DEFAULT_CFG, ROOT, ops
 from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
 
 
@@ -83,7 +83,7 @@ class DetectionPredictor(BasePredictor):
 
 def predict(cfg=DEFAULT_CFG):
     cfg.model = cfg.model or "yolov8n.pt"
-    cfg.source = cfg.source if cfg.source is not None else ROOT / "assets" if is_git_directory() \
+    cfg.source = cfg.source if cfg.source is not None else ROOT / "assets" if (ROOT / "assets").exists() \
         else "https://ultralytics.com/images/bus.jpg"
     predictor = DetectionPredictor(cfg)
     predictor.predict_cli()

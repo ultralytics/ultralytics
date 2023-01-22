@@ -41,7 +41,8 @@ colors = Colors()  # create instance for 'from utils.plots import colors'
 
 
 class Annotator:
-    out = [] # Initialize an empty list to store the centre of rectangle box
+    out = []  # Initialize an empty list to store the centre of rectangle box
+
     # YOLOv8 Annotator for train/val mosaics and jpgs and detect/hub inference annotations
     def __init__(self, im, line_width=None, font_size=None, font='Arial.ttf', pil=False, example='abc'):
         assert im.data.contiguous, 'Image not contiguous. Apply np.ascontiguousarray(im) to Annotator() input images.'
@@ -74,14 +75,14 @@ class Annotator:
         else:  # cv2
             p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
             cv2.rectangle(self.im, p1, p2, color, thickness=self.lw, lineType=cv2.LINE_AA)
-            cv2.line(self.im ,(0,305),(1266,297),(0,0,255),2) # draw a threshold line
-            rect1, rect2 = ((p1[0] + p2[0])/2, (p1[1] + p2[1])/2) # find the center of rectangle
+            cv2.line(self.im, (0, 305), (1266, 297), (0, 0, 255), 2)  # draw a threshold line
+            rect1, rect2 = ((p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2)  # find the center of rectangle
             recenter = (int(rect1), int(rect2))
-            cx = recenter[0]  # x - cordinate of centre 
+            cx = recenter[0]  # x - cordinate of centre
             cy = recenter[1]  # y - cordinate of centre
-            cv2.circle(self.im,(cx,cy),3, (0,255,0),2)  # Mark a centre of bounding box
-            Annotator.out.clear() # clear the previous value 
-            Annotator.out.append((cx,cy)) # append the current value 
+            cv2.circle(self.im, (cx, cy), 3, (0, 255, 0), 2)  # Mark a centre of bounding box
+            Annotator.out.clear()  # clear the previous value
+            Annotator.out.append((cx, cy))  # append the current value
             if label:
                 tf = max(self.lw - 1, 1)  # font thickness
                 w, h = cv2.getTextSize(label, 0, fontScale=self.lw / 3, thickness=tf)[0]  # text width, height
@@ -146,9 +147,9 @@ class Annotator:
     def result(self):
         # Return annotated image as array
         return np.asarray(self.im)
- 
-    def ans(self): 
-        # Return annotator.out 
+
+    def ans(self):
+        # Return annotator.out
         return Annotator.out
 
 

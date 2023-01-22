@@ -14,7 +14,7 @@ HELP_MSG = 'If this issue persists please visit https://github.com/ultralytics/h
 HUB_API_ROOT = os.environ.get("ULTRALYTICS_HUB_API", "https://api.ultralytics.com")
 
 
-def check_dataset_disk_space(url='https://github.com/ultralytics/yolov5/releases/download/v1.0/coco128.zip', sf=2.0):
+def check_dataset_disk_space(url='https://ultralytics.com/assets/coco128.zip', sf=2.0):
     # Check that url fits on disk with safety factor sf, i.e. require 2GB free if url size is 1GB with sf=2.0
     gib = 1 << 30  # bytes per GiB
     data = int(requests.head(url).headers['Content-Length']) / gib  # dataset size (GB)

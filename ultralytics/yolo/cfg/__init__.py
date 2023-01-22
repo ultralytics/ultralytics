@@ -131,7 +131,7 @@ def entrypoint(debug=False):
     It uses the package's default cfg and initializes it using the passed overrides.
     Then it calls the CLI function with the composed cfg
     """
-    args = ['train', 'predict', 'model=yolov8n.pt'] if debug else sys.argv[1:]
+    args = ['train', 'model=yolov8n.pt', 'data=coco128.yaml', 'imgsz=32', 'epochs=1'] if debug else sys.argv[1:]
     if not args:  # no arguments passed
         LOGGER.info(CLI_HELP_MSG)
         return

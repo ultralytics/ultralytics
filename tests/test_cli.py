@@ -48,7 +48,7 @@ def test_val_classify():
 
 # Predict checks -------------------------------------------------------------------------------------------------------
 def test_predict_detect():
-    run(f"yolo predict detect model={MODEL}.pt source={ROOT / 'assets'}")
+    run(f"yolo predict detect model={MODEL}.pt source={ROOT / 'assets'} imgsz=320 conf=0.25")
 
 
 def test_predict_segment():

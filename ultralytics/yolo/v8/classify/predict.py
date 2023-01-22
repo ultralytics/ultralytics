@@ -4,7 +4,7 @@ import torch
 
 from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.engine.results import Results
-from ultralytics.yolo.utils import DEFAULT_CFG, ROOT, is_git_directory
+from ultralytics.yolo.utils import DEFAULT_CFG, ROOT
 from ultralytics.yolo.utils.plotting import Annotator
 
 

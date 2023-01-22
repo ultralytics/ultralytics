@@ -318,14 +318,15 @@ def set_logging(name=LOGGING_NAME, verbose=True):
 
 class TryExcept(contextlib.ContextDecorator):
     # YOLOv8 TryExcept class. Usage: @TryExcept() decorator or 'with TryExcept():' context manager
-    def __init__(self, msg=''):
+    def __init__(self, msg='', verbose=True):
         self.msg = msg
+        self.verbose = verbose
 
     def __enter__(self):
         pass
 
     def __exit__(self, exc_type, value, traceback):
-        if value:
+        if self.verbose and value:
             print(emojis(f"{self.msg}{': ' if self.msg else ''}{value}"))
         return True
 

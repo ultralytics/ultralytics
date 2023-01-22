@@ -10,7 +10,8 @@ from typing import Dict, Union
 
 from ultralytics import __version__, yolo
 from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, PREFIX, USER_CONFIG_DIR,
-                                    IterableSimpleNamespace, checks, colorstr, yaml_load, yaml_print)
+                                    IterableSimpleNamespace, colorstr, yaml_load, yaml_print)
+from ultralytics.yolo.utils.checks import check_yolo
 
 CLI_HELP_MSG = \
     """
@@ -139,7 +140,7 @@ def entrypoint(debug=False):
     modes = 'train', 'val', 'predict', 'export'
     special = {
         'help': lambda: LOGGER.info(CLI_HELP_MSG),
-        'checks': checks.check_yolo,
+        'checks': check_yolo,
         'version': lambda: LOGGER.info(__version__),
         'settings': lambda: yaml_print(USER_CONFIG_DIR / 'settings.yaml'),
         'cfg': lambda: yaml_print(DEFAULT_CFG_PATH),
@@ -184,6 +185,13 @@ def entrypoint(debug=False):
             raise argument_error(a)
 
     cfg = get_cfg(DEFAULT_CFG_DICT, overrides)  # create CFG instance
+
+    # Checks error catch
+    if cfg.mode == 'checks':
+        LOGGER.warning(
+            "WARNING: 'yolo mode=checks' is deprecated and will be removed in the future. Use'yolo checks' instead.")
+        check_yolo()
+        return
 
     # Mapping from task to module
     module = {"detect": yolo.v8.detect, "segment": yolo.v8.segment, "classify": yolo.v8.classify}.get(cfg.task)

@@ -37,6 +37,11 @@ theme:
     - navigation.footer
     - content.tabs.link  # all code tabs change simultaneously
 
+# Version drop-down menu
+# extra:
+#   version:
+#     provider: mike
+
 extra_css:
   - stylesheets/style.css
 

@@ -163,7 +163,7 @@ def entrypoint(debug=False):
                     elif ',' in v:
                         v = eval(v)
                     overrides[k] = v
-            except (NameError, SyntaxError, ValueError):
+            except (NameError, SyntaxError, ValueError) as e:
                 raise argument_error(a) from e
 
         elif a in tasks:

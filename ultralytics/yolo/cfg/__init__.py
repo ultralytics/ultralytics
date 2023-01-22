@@ -6,7 +6,7 @@ import sys
 from difflib import get_close_matches
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Dict, Union
+from typing import Dict, Union, List
 
 from ultralytics import __version__, yolo
 from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, PREFIX, USER_CONFIG_DIR,
@@ -112,6 +112,33 @@ def check_cfg_mismatch(base: Dict, custom: Dict):
         sys.exit()
 
 
+def merge_equals_args(args: List[str]) -> List[str]:
+    """
+    Merges arguments around isolated '=' args in a list of strings.
+    The function considers cases where the first argument ends with '=' or the second starts with '=',
+    as well as when the middle one is an equals sign.
+
+    Args:
+        args (List[str]): A list of strings where each element is an argument.
+
+    Returns:
+        List[str]: A list of strings where the arguments around isolated '=' are merged.
+    """
+    new_args = []
+    for i, arg in enumerate(args):
+        if arg == '=' and 0 < i < len(args) - 1:
+            new_args[-1] += f"={args[i + 1]}"
+            del args[i + 1]
+        elif arg.endswith('=') and i < len(args) - 1:
+            new_args.append(f"{arg}{args[i + 1]}")
+            del args[i + 1]
+        elif arg.startswith('=') and i > 0:
+            new_args[-1] += arg
+        else:
+            new_args.append(arg)
+    return new_args
+
+
 def argument_error(arg):
     return SyntaxError(f"'{arg}' is not a valid YOLO argument.\n{CLI_HELP_MSG}")
 
@@ -147,7 +174,7 @@ def entrypoint(debug=False):
         'copy-cfg': copy_default_config}
 
     overrides = {}  # basic overrides, i.e. imgsz=320
-    for a in args:
+    for a in merge_equals_args(args):  # merge spaces around '=' sign
         if '=' in a:
             try:
                 re.sub(r' *= *', '=', a)  # remove spaces around equals sign

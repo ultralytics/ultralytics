@@ -181,8 +181,7 @@ class YOLO:
         Trains the model on a given dataset.
 
         Args:
-            **kwargs (Any): Any number of arguments representing the training configuration. List of all args can be found in 'config' section.
-                            You can pass all arguments as a yaml file in `cfg`. Other args are ignored if `cfg` file is passed
+            **kwargs (Any): Any number of arguments representing the training configuration.
         """
         overrides = self.overrides.copy()
         overrides.update(kwargs)
@@ -192,7 +191,7 @@ class YOLO:
         overrides["task"] = self.task
         overrides["mode"] = "train"
         if not overrides.get("data"):
-            raise AttributeError("dataset not provided! Please define `data` in config.yaml or pass as an argument.")
+            raise AttributeError("Dataset required but missing, i.e. pass 'data=coco128.yaml'")
         if overrides.get("resume"):
             overrides["resume"] = self.ckpt_path
 

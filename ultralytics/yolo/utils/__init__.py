@@ -83,6 +83,9 @@ class IterableSimpleNamespace(SimpleNamespace):
     def __iter__(self):
         return iter(vars(self).items())
 
+    def __str__(self):
+        return '\n'.join(f"{k}={v}" for k, v in vars(self).items())
+
 
 # Default configuration
 with open(DEFAULT_CFG_PATH, errors='ignore') as f:
@@ -290,7 +293,7 @@ def colorstr(*input):
         "bright_white": "\033[97m",
         "end": "\033[0m",  # misc
         "bold": "\033[1m",
-        "underline": "\033[4m",}
+        "underline": "\033[4m", }
     return "".join(colors[x] for x in args) + f"{string}" + colors["end"]
 
 
@@ -308,12 +311,12 @@ def set_logging(name=LOGGING_NAME, verbose=True):
             name: {
                 "class": "logging.StreamHandler",
                 "formatter": name,
-                "level": level,}},
+                "level": level, }},
         "loggers": {
             name: {
                 "level": level,
                 "handlers": [name],
-                "propagate": False,}}})
+                "propagate": False, }}})
 
 
 class TryExcept(contextlib.ContextDecorator):
@@ -376,6 +379,21 @@ def yaml_load(file='data.yaml', append_filename=False):
     with open(file, errors='ignore') as f:
         # Add YAML filename to dict and return
         return {**yaml.safe_load(f), 'yaml_file': str(file)} if append_filename else yaml.safe_load(f)
+
+
+def yaml_print(yaml_file: Union[str, Path, dict]) -> None:
+    """
+    Pretty prints a yaml file or a yaml-formatted dictionary.
+
+    Args:
+        yaml_file: The file path of the yaml file or a yaml-formatted dictionary.
+
+    Returns:
+        None
+    """
+    yaml_dict = yaml_load(yaml_file) if isinstance(yaml_file, (str, Path)) else yaml_file
+    dump = yaml.dump(yaml_dict, default_flow_style=False)
+    LOGGER.info(f"Printing '{colorstr('bold', 'black', yaml_file)}'\n\n{dump}")
 
 
 def set_sentry(dsn=None):
@@ -449,17 +467,6 @@ def set_settings(kwargs, file=USER_CONFIG_DIR / 'settings.yaml'):
     """
     SETTINGS.update(kwargs)
     yaml_save(file, SETTINGS)
-
-
-def print_settings():
-    """
-    Function that prints Ultralytics settings
-    """
-    import json
-    s = f'\n{PREFIX}Settings:\n'
-    s += json.dumps(SETTINGS, indent=2)
-    s += f"\n\nUpdate settings at {USER_CONFIG_DIR / 'settings.yaml'}"
-    LOGGER.info(s)
 
 
 # Run below code on utils init -----------------------------------------------------------------------------------------

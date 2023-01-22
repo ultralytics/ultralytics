@@ -392,5 +392,5 @@ class EarlyStopping:
             LOGGER.info(f'Stopping training early as no improvement observed in last {self.patience} epochs. '
                         f'Best results observed at epoch {self.best_epoch}, best model saved as best.pt.\n'
                         f'To update EarlyStopping(patience={self.patience}) pass a new patience value, '
-                        f'i.e. `python train.py --patience 300` or use `--patience 0` to disable EarlyStopping.')
+                        f'i.e. `patience=300` or use `patience=0` to disable EarlyStopping.')
         return stop

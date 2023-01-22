@@ -185,9 +185,9 @@ def polygons2masks_overlap(imgsz, segments, downsample_ratio=1):
     return masks, index
 
 
-def check_dataset_yaml(data, autodownload=True):
+def check_dataset_yaml(dataset, autodownload=True):
     # Download, check and/or unzip dataset if not found locally
-    data = check_file(data)
+    data = check_file(dataset)
 
     # Download (optional)
     extract_dir = ''
@@ -229,7 +229,7 @@ def check_dataset_yaml(data, autodownload=True):
         if not all(x.exists() for x in val):
             LOGGER.info('\nDataset not found ⚠️, missing paths %s' % [str(x) for x in val if not x.exists()])
             if not s or not autodownload:
-                raise FileNotFoundError('Dataset not found ❌')
+                raise FileNotFoundError(f'Dataset '{dataset}' not found  ❌\nDataset path(s) do not exist: {val}')
             t = time.time()
             if s.startswith('http') and s.endswith('.zip'):  # URL
                 f = Path(s).name  # filename

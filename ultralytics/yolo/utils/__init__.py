@@ -404,7 +404,7 @@ def yaml_print(yaml_file: Union[str, Path, dict]) -> None:
     LOGGER.info(f"Printing '{colorstr('bold', 'black', yaml_file)}'\n\n{dump}")
 
 
-def set_sentry(dsn="https://1f331c322109416595df20a91f4005d3@o4504521589325824.ingest.sentry.io/4504521592406016"):
+def set_sentry(dsn=None):
     """
     Initialize the Sentry SDK for error tracking and reporting if pytest is not currently running.
     """

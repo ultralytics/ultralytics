@@ -5,6 +5,7 @@ import inspect
 import logging.config
 import os
 import platform
+import subprocess
 import sys
 import tempfile
 import threading
@@ -14,7 +15,6 @@ from types import SimpleNamespace
 from typing import Union
 
 import cv2
-import git
 import numpy as np
 import pandas as pd
 import torch
@@ -170,19 +170,24 @@ def is_docker() -> bool:
         return False
 
 
-def is_git_directory() -> bool:
+def is_git_directory(use_cli=False) -> bool:
     """
     Check if the current working directory is inside a git repository.
+
+    Args:
+        use_cli (bool): Run command with CLI or with gitpython package.
 
     Returns:
         bool: True if the current working directory is inside a git repository, False otherwise.
     """
-    try:
-        git.Repo(search_parent_directories=True)
-        # subprocess.run(["git", "rev-parse", "--git-dir"], capture_output=True, check=True)  # CLI alternative
+    with contextlib.suppress(Exception):
+        if use_cli:  # subprocess.CalledProcessError if not git repo
+            subprocess.run(["git", "rev-parse", "--git-dir"], capture_output=True, check=True)
+        else:  # git.exc.InvalidGitRepositoryError if not git repo
+            import git
+            git.Repo(search_parent_directories=True)
         return True
-    except git.exc.InvalidGitRepositoryError:  # subprocess.CalledProcessError:
-        return False
+    return False  # error return value
 
 
 def is_pip_package(filepath: str = __name__) -> bool:
@@ -234,17 +239,25 @@ def is_pytest_running():
         return False
 
 
-def get_git_root_dir():
+def get_git_root_dir(use_cli=False):
     """
     Determines whether the current file is part of a git repository and if so, returns the repository root directory.
     If the current file is not part of a git repository, returns None.
+
+    Args:
+        use_cli (bool): Run command with CLI or with gitpython package.
+
+    Returns:
+        (Path) or (None): Git root directory if found or None if not found.
     """
-    try:
-        # output = subprocess.run(["git", "rev-parse", "--git-dir"], capture_output=True, check=True)
-        # return Path(output.stdout.strip().decode('utf-8')).parent.resolve()  # CLI alternative
-        return Path(git.Repo(search_parent_directories=True).working_tree_dir)
-    except git.exc.InvalidGitRepositoryError:  # (subprocess.CalledProcessError, FileNotFoundError):
-        return None
+    with contextlib.suppress(Exception):
+        if use_cli:  # may raise subprocess.CalledProcessError, FileNotFoundError
+            output = subprocess.run(["git", "rev-parse", "--git-dir"], capture_output=True, check=True)
+            return Path(output.stdout.strip().decode('utf-8')).parent.resolve()
+        else:  # may raise git.exc.InvalidGitRepositoryError
+            import git
+            return Path(git.Repo(search_parent_directories=True).working_tree_dir)
+    return None  # error return value
 
 
 def get_default_args(func):
@@ -316,7 +329,7 @@ def colorstr(*input):
         "bright_white": "\033[97m",
         "end": "\033[0m",  # misc
         "bold": "\033[1m",
-        "underline": "\033[4m",}
+        "underline": "\033[4m", }
     return "".join(colors[x] for x in args) + f"{string}" + colors["end"]
 
 
@@ -334,12 +347,12 @@ def set_logging(name=LOGGING_NAME, verbose=True):
             name: {
                 "class": "logging.StreamHandler",
                 "formatter": name,
-                "level": level,}},
+                "level": level, }},
         "loggers": {
             name: {
                 "level": level,
                 "handlers": [name],
-                "propagate": False,}}})
+                "propagate": False, }}})
 
 
 class TryExcept(contextlib.ContextDecorator):
@@ -419,7 +432,7 @@ def yaml_print(yaml_file: Union[str, Path, dict]) -> None:
     LOGGER.info(f"Printing '{colorstr('bold', 'black', yaml_file)}'\n\n{dump}")
 
 
-def set_sentry(dsn=None):
+def set_sentry(dsn="https://1f331c322109416595df20a91f4005d3@o4504521589325824.ingest.sentry.io/4504521592406016"):
     """
     Initialize the Sentry SDK for error tracking and reporting if pytest is not currently running.
     """

@@ -5,7 +5,6 @@ import inspect
 import logging.config
 import os
 import platform
-import subprocess
 import sys
 import tempfile
 import threading
@@ -170,26 +169,6 @@ def is_docker() -> bool:
         return False
 
 
-def is_git_directory(use_cli=False) -> bool:
-    """
-    Check if the current working directory is inside a git repository.
-
-    Args:
-        use_cli (bool): Run command with CLI or with gitpython package.
-
-    Returns:
-        bool: True if the current working directory is inside a git repository, False otherwise.
-    """
-    with contextlib.suppress(Exception):
-        if use_cli:  # subprocess.CalledProcessError if not git repo
-            subprocess.run(["git", "rev-parse", "--git-dir"], capture_output=True, check=True)
-        else:  # git.exc.InvalidGitRepositoryError if not git repo
-            import git
-            git.Repo(search_parent_directories=True)
-        return True
-    return False  # error return value
-
-
 def is_pip_package(filepath: str = __name__) -> bool:
     """
     Determines if the file at the given filepath is part of a pip package.
@@ -239,25 +218,18 @@ def is_pytest_running():
         return False
 
 
-def get_git_root_dir(use_cli=False):
+def get_git_dir():  # sourcery skip: use-next
     """
     Determines whether the current file is part of a git repository and if so, returns the repository root directory.
     If the current file is not part of a git repository, returns None.
 
-    Args:
-        use_cli (bool): Run command with CLI or with gitpython package.
-
     Returns:
         (Path) or (None): Git root directory if found or None if not found.
     """
-    with contextlib.suppress(Exception):
-        if use_cli:  # may raise subprocess.CalledProcessError, FileNotFoundError
-            output = subprocess.run(["git", "rev-parse", "--git-dir"], capture_output=True, check=True)
-            return Path(output.stdout.strip().decode('utf-8')).parent.resolve()
-        else:  # may raise git.exc.InvalidGitRepositoryError
-            import git
-            return Path(git.Repo(search_parent_directories=True).working_tree_dir)
-    return None  # error return value
+    for d in Path(__file__).parents:
+        if (d / '.git').is_dir():
+            return d
+    return None  # no .git dir found
 
 
 def get_default_args(func):
@@ -463,9 +435,9 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.1'):
     from ultralytics.yolo.utils.checks import check_version
     from ultralytics.yolo.utils.torch_utils import torch_distributed_zero_first
 
-    is_git = is_git_directory()  # True if ultralytics installed via git
-    root = get_git_root_dir() if is_git else Path()
-    datasets_root = (root.parent if (is_git and is_dir_writeable(root.parent)) else root).resolve()
+    git_dir = get_git_dir()
+    root = git_dir or Path()
+    datasets_root = (root.parent if git_dir and is_dir_writeable(root.parent) else root).resolve()
     defaults = {
         'datasets_dir': str(datasets_root / 'datasets'),  # default datasets directory.
         'weights_dir': str(root / 'weights'),  # default weights directory.

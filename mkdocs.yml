@@ -90,8 +90,8 @@ nav:
   - Ultralytics HUB: hub.md
   - iOS and Android App: app.md
   - Reference:
-      - Python Model interface: reference/model.md
       - Engine:
+          - Model: reference/model.md
           - Trainer: reference/base_trainer.md
           - Validator: reference/base_val.md
           - Predictor: reference/base_pred.md

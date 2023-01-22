@@ -72,15 +72,15 @@ class BaseTrainer:
         csv (Path): Path to results CSV file.
     """
 
-    def __init__(self, config=DEFAULT_CFG_PATH, overrides=None):
+    def __init__(self, cfg=DEFAULT_CFG_PATH, overrides=None):
         """
         Initializes the BaseTrainer class.
 
         Args:
-            config (str, optional): Path to a configuration file. Defaults to DEFAULT_CONFIG.
+            cfg (str, optional): Path to a configuration file. Defaults to DEFAULT_CONFIG.
             overrides (dict, optional): Configuration overrides. Defaults to None.
         """
-        self.args = get_cfg(config, overrides)
+        self.args = get_cfg(cfg, overrides)
         self.device = utils.torch_utils.select_device(self.args.device, self.args.batch)
         self.check_resume()
         self.console = LOGGER

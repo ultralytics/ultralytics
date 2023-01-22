@@ -408,7 +408,6 @@ def set_sentry(dsn=None):
             debug=False,
             traces_sample_rate=1.0,
             release=ultralytics.__version__,
-            send_default_pii=True,
             environment='production',  # 'dev' or 'production'
             ignore_errors=[KeyboardInterrupt])
 

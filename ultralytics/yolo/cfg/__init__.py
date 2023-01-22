@@ -1,4 +1,5 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
+import contextlib
 import re
 import shutil
 import sys
@@ -154,16 +155,15 @@ def entrypoint(debug=False):
                     LOGGER.info(f"{PREFIX}Overriding {DEFAULT_CFG_PATH} with {v}")
                     overrides = {k: val for k, val in yaml_load(v).items() if k != 'cfg'}
                 else:
-                    if v.isnumeric():
-                        v = eval(v)
-                    elif v.lower() == 'none':
+                    if v.lower() == 'none':
                         v = None
                     elif v.lower() == 'true':
                         v = True
                     elif v.lower() == 'false':
                         v = False
-                    elif ',' in v:
-                        v = eval(v)
+                    else:
+                        with contextlib.suppress(Exception):
+                            v = eval(v)
                     overrides[k] = v
             except (NameError, SyntaxError, ValueError) as e:
                 raise argument_error(a) from e

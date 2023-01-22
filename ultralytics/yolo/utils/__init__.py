@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
+import atexit
 import contextlib
 import inspect
 import logging.config

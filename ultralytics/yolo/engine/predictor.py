@@ -27,7 +27,6 @@ Usage - formats:
     """
 import platform
 from collections import defaultdict
-from itertools import chain
 from pathlib import Path
 
 import cv2
@@ -219,7 +218,7 @@ class BasePredictor:
             self.run_callbacks("on_predict_batch_end")
 
         # Print results
-        if verbose:
+        if verbose and self.seen:
             t = tuple(x.t / self.seen * 1E3 for x in self.dt)  # speeds per image
             LOGGER.info(f'Speed: %.1fms pre-process, %.1fms inference, %.1fms postprocess per image at shape '
                         f'{(1, 3, *self.imgsz)}' % t)

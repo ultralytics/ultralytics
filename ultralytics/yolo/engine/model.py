@@ -222,6 +222,13 @@ class YOLO:
 
         return model_class, trainer_class, validator_class, predictor_class
 
+    @property
+    def names(self):
+        """
+         Returns class names of the loaded model.
+        """
+        return self.model.names
+
     @staticmethod
     def _reset_ckpt_args(args):
         args.pop("project", None)

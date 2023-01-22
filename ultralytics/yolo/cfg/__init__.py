@@ -9,8 +9,8 @@ from types import SimpleNamespace
 from typing import Dict, Union
 
 from ultralytics import __version__, yolo
-from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, PREFIX, IterableSimpleNamespace, checks, \
-    colorstr, print_settings, yaml_load
+from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, PREFIX, IterableSimpleNamespace, checks,
+                                    colorstr, print_settings, yaml_load)
 
 DIR = Path(__file__).parent
 

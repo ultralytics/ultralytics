@@ -172,7 +172,6 @@ class YOLO:
         args = get_cfg(cfg=DEFAULT_CFG, overrides=overrides)
         args.task = self.task
 
-        print(args)
         exporter = Exporter(overrides=args)
         exporter(model=self.model)
 

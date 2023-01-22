@@ -1,12 +1,13 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
-import torch
 import cv2
+import torch
 
 from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils import DEFAULT_CFG, ROOT, is_git_directory, ops
 from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
+
 global count
 
 
@@ -22,7 +23,7 @@ class DetectionPredictor(BasePredictor):
         img /= 255  # 0 - 255 to 0.0 - 1.0
         return img
 
-    def postprocess(self, preds, img, orig_img,classes=None):
+    def postprocess(self, preds, img, orig_img, classes=None):
         preds = ops.non_max_suppression(preds,
                                         self.args.conf,
                                         self.args.iou,
@@ -63,15 +64,15 @@ class DetectionPredictor(BasePredictor):
             return log_string
         for c in det.cls.unique():
             n = (det.cls == c).sum()  # detections per class
-            if cy < (400) and cy > 385 :
-                DetectionPredictor.count  +=1
+            if cy < (400) and cy > 385:
+                DetectionPredictor.count += 1
             font = cv2.FONT_HERSHEY_SIMPLEX
-            align = im0.shape 
+            align = im0.shape
             align_bottom = align[0]
             align_bottom -= 110
-            align_left = (align[1]/8) # Text allignment (align left,(int(align bottom))
-            cv2.putText(im0, f'{self.model.names[int(c)]} : {str(DetectionPredictor.count)}', (int(align_left),align_bottom), font, 
-                   3, (0, 255, 1), 5, cv2.LINE_AA)
+            align_left = (align[1] / 8)  # Text allignment (align left,(int(align bottom))
+            cv2.putText(im0, f'{self.model.names[int(c)]} : {str(DetectionPredictor.count)}',
+                        (int(align_left), align_bottom), font, 3, (0, 255, 1), 5, cv2.LINE_AA)
             log_string += f"{n} {self.model.names[int(c)]}{'s' * (n > 1)},"
         # write
         for d in reversed(det):

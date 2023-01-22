@@ -100,16 +100,17 @@ def check_cfg_mismatch(base: Dict, custom: Dict):
     """
     base, custom = (set(x.keys()) for x in (base, custom))
     mismatched = [x for x in custom if x not in base]
-    for option in mismatched:
-        LOGGER.info(f"{colorstr(option)} is not a valid key. Similar keys: {get_close_matches(option, base, 3, 0.6)}")
     if mismatched:
+        for x in mismatched:
+            matches = get_close_matches(x, base, 3, 0.6)
+            match_str = f"Similar arguments are {matches}." if matches else 'There are no similar arguments.'
+            LOGGER.warning(f"'{colorstr('red', 'bold', x)}' is not a valid YOLO argument. {match_str}")
+        LOGGER.warning(CLI_HELP_MSG)
         sys.exit()
 
 
 def argument_error(arg):
-    return SyntaxError(f"'{arg}' is not a valid YOLO argument. For a full list of valid arguments see "
-                       f"https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/configs/default.yaml"
-                       f"\n{CLI_HELP_MSG}")
+    return SyntaxError(f"'{arg}' is not a valid YOLO argument.\n{CLI_HELP_MSG}")
 
 
 def entrypoint(debug=False):
@@ -176,9 +177,8 @@ def entrypoint(debug=False):
         elif a in DEFAULT_CFG_DICT and DEFAULT_CFG_DICT[a] is False:
             overrides[a] = True  # auto-True for default False args, i.e. 'yolo show' sets show=True
         elif a in DEFAULT_CFG_DICT:
-            raise SyntaxError(f"'{a}' is a valid YOLO argument but is missing an '=' sign to set its value, "
-                              f"i.e. try '{a}={DEFAULT_CFG_DICT[a]}'"
-                              f"\n{CLI_HELP_MSG}")
+            raise SyntaxError(f"'{colorstr('red', 'bold', a)}' is a valid YOLO argument but is missing an '=' sign "
+                              f"to set its value, i.e. try '{a}={DEFAULT_CFG_DICT[a]}'\n{CLI_HELP_MSG}")
         else:
             raise argument_error(a)
 

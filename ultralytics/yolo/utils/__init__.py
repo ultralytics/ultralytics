@@ -11,8 +11,8 @@ import threading
 import types
 import uuid
 from pathlib import Path
-from typing import Union
 from types import SimpleNamespace
+from typing import Union
 
 import cv2
 import git
@@ -290,7 +290,7 @@ def colorstr(*input):
         "bright_white": "\033[97m",
         "end": "\033[0m",  # misc
         "bold": "\033[1m",
-        "underline": "\033[4m", }
+        "underline": "\033[4m",}
     return "".join(colors[x] for x in args) + f"{string}" + colors["end"]
 
 
@@ -308,12 +308,12 @@ def set_logging(name=LOGGING_NAME, verbose=True):
             name: {
                 "class": "logging.StreamHandler",
                 "formatter": name,
-                "level": level, }},
+                "level": level,}},
         "loggers": {
             name: {
                 "level": level,
                 "handlers": [name],
-                "propagate": False, }}})
+                "propagate": False,}}})
 
 
 class TryExcept(contextlib.ContextDecorator):

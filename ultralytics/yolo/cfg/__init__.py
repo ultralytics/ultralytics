@@ -8,9 +8,8 @@ from types import SimpleNamespace
 from typing import Dict, Union
 
 from ultralytics import __version__, yolo
-from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, PREFIX,
-                                    IterableSimpleNamespace, checks,
-                                    colorstr, yaml_print, yaml_load, USER_CONFIG_DIR)
+from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, PREFIX, USER_CONFIG_DIR,
+                                    IterableSimpleNamespace, checks, colorstr, yaml_load, yaml_print)
 
 CLI_HELP_MSG = \
     """

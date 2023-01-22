@@ -216,7 +216,7 @@ def entrypoint(debug=False):
     # Checks error catch
     if cfg.mode == 'checks':
         LOGGER.warning(
-            "WARNING: 'yolo mode=checks' is deprecated and will be removed in the future. Use'yolo checks' instead.")
+            "WARNING ⚠️ 'yolo mode=checks' is deprecated and will be removed in the future. Use 'yolo checks' instead.")
         check_yolo()
         return
 

@@ -17,7 +17,7 @@ Where:
   the `TASK` from the model type.
 - `MODE` (required) is one of `[train, val, predict, export]`
 - `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults. 
-  For a full list of available `ARGS` see the [Configuration](config.md) page.
+  For a full list of available `ARGS` see the [Configuration](cfg.md) page.
 
 !!! note ""
 
@@ -30,7 +30,7 @@ Where:
 ## Train
 
 Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. For a full list of available arguments see
-the [Configuration](config.md) page.
+the [Configuration](cfg.md) page.
 
 !!! example ""
 

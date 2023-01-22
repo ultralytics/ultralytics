@@ -95,7 +95,6 @@ class BaseModel(nn.Module):
             (nn.Module): The fused model is returned.
         """
         if not self.is_fused():
-            LOGGER.info('Fusing... ')
             for m in self.model.modules():
                 if isinstance(m, (Conv, DWConv)) and hasattr(m, 'bn'):
                     m.conv = fuse_conv_and_bn(m.conv, m.bn)  # update conv

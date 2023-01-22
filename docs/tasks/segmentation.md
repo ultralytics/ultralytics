@@ -16,7 +16,7 @@ segmentation is useful when you need to know not only where objects are in an im
 ## Train
 
 Train YOLOv8n-seg on the COCO128-seg dataset for 100 epochs at image size 640. For a full list of available
-arguments see the [Configuration](../config.md) page.
+arguments see the [Configuration](../cfg.md) page.
 
 !!! example ""
 

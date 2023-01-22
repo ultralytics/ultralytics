@@ -4,7 +4,7 @@ from pathlib import Path
 
 from ultralytics import yolo  # noqa
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, attempt_load_one_weight
-from ultralytics.yolo.configs import get_config
+from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import DEFAULT_CFG_PATH, LOGGER, yaml_load
 from ultralytics.yolo.utils.checks import check_yaml
@@ -136,7 +136,7 @@ class YOLO:
             self.predictor = self.PredictorClass(overrides=overrides)
             self.predictor.setup_model(model=self.model)
         else:  # only update args if predictor is already setup
-            self.predictor.args = get_config(self.predictor.args, overrides)
+            self.predictor.args = get_cfg(self.predictor.args, overrides)
         return self.predictor(source=source, stream=stream, verbose=verbose)
 
     @smart_inference_mode()
@@ -151,7 +151,7 @@ class YOLO:
         overrides = self.overrides.copy()
         overrides.update(kwargs)
         overrides["mode"] = "val"
-        args = get_config(config=DEFAULT_CFG_PATH, overrides=overrides)
+        args = get_cfg(cfg=DEFAULT_CFG_PATH, overrides=overrides)
         args.data = data or args.data
         args.task = self.task
 
@@ -169,7 +169,7 @@ class YOLO:
 
         overrides = self.overrides.copy()
         overrides.update(kwargs)
-        args = get_config(config=DEFAULT_CFG_PATH, overrides=overrides)
+        args = get_cfg(cfg=DEFAULT_CFG_PATH, overrides=overrides)
         args.task = self.task
 
         print(args)
@@ -201,7 +201,7 @@ class YOLO:
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
             self.model = self.trainer.model
         self.trainer.train()
-        # update model and configs after training
+        # update model and cfg after training
         self.model, _ = attempt_load_one_weight(str(self.trainer.best))
         self.overrides = self.model.args
 

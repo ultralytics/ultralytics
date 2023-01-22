@@ -67,7 +67,7 @@ import torch
 import ultralytics
 from ultralytics.nn.modules import Detect, Segment
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel
-from ultralytics.yolo.configs import get_config
+from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages
 from ultralytics.yolo.data.utils import check_dataset
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, callbacks, colorstr, get_default_args, yaml_save
@@ -134,7 +134,7 @@ class Exporter:
             config (str, optional): Path to a configuration file. Defaults to DEFAULT_CONFIG.
             overrides (dict, optional): Configuration overrides. Defaults to None.
         """
-        self.args = get_config(config, overrides)
+        self.args = get_cfg(config, overrides)
         self.callbacks = defaultdict(list, {k: [v] for k, v in callbacks.default_callbacks.items()})  # add callbacks
         callbacks.add_integration_callbacks(self)
 

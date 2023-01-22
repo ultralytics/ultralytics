@@ -131,7 +131,7 @@ def smart_request(*args, retry=3, timeout=30, thread=True, code=-1, method="post
         return func(*args, **kwargs)
 
 
-@TryExcept()
+@TryExcept(verbose=False)
 def traces(cfg, all_keys=False, traces_sample_rate=0.0):
     """
    Sync traces data if enabled in the global settings

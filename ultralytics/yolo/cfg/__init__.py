@@ -6,7 +6,7 @@ import sys
 from difflib import get_close_matches
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Dict, Union, List
+from typing import Dict, List, Union
 
 from ultralytics import __version__, yolo
 from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, PREFIX, USER_CONFIG_DIR,

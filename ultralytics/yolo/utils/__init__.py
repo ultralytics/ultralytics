@@ -218,7 +218,7 @@ def is_pytest_running():
         return False
 
 
-def get_git_dir():  # sourcery skip: use-next
+def get_git_dir():
     """
     Determines whether the current file is part of a git repository and if so, returns the repository root directory.
     If the current file is not part of a git repository, returns None.
@@ -449,7 +449,6 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.1'):
     with torch_distributed_zero_first(RANK):
         if not file.exists():
             yaml_save(file, defaults)
-
         settings = yaml_load(file)
 
         # Check that settings keys and types match defaults

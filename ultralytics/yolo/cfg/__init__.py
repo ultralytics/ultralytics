@@ -8,8 +8,9 @@ from types import SimpleNamespace
 from typing import Dict, Union
 
 from ultralytics import __version__, yolo
-from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, PREFIX, IterableSimpleNamespace, checks,
-                                    colorstr, print_settings, yaml_load)
+from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, PREFIX,
+                                    IterableSimpleNamespace, checks,
+                                    colorstr, yaml_print, yaml_load, USER_CONFIG_DIR)
 
 CLI_HELP_MSG = \
     """
@@ -20,7 +21,7 @@ CLI_HELP_MSG = \
         Where   TASK (optional) is one of [detect, segment, classify]
                 MODE (required) is one of [train, val, predict, export]
                 ARGS (optional) are any number of custom 'arg=value' pairs like 'imgsz=320' that override defaults.
-                    For a full list of available ARGS see https://docs.ultralytics.com/cfg.
+                    See all ARGS at https://docs.ultralytics.com/cfg or with 'yolo cfg'
 
     1. Train a detection model for 10 epochs with an initial learning_rate of 0.01
         yolo detect train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01
@@ -40,6 +41,7 @@ CLI_HELP_MSG = \
         yolo version
         yolo settings
         yolo copy-cfg
+        yolo cfg
 
     Docs: https://docs.ultralytics.com/cli
     Community: https://community.ultralytics.com
@@ -135,13 +137,13 @@ def entrypoint(debug=False):
 
     tasks = 'detect', 'segment', 'classify'
     modes = 'train', 'val', 'predict', 'export'
-    special_modes = {
+    special = {
         'help': lambda: LOGGER.info(CLI_HELP_MSG),
         'checks': checks.check_yolo,
         'version': lambda: LOGGER.info(__version__),
-        'settings': print_settings,
-        'copy-cfg': copy_default_config,
-        'cfg-copy': copy_default_config}
+        'settings': lambda: yaml_print(USER_CONFIG_DIR / 'settings.yaml'),
+        'cfg': lambda: yaml_print(DEFAULT_CFG_PATH),
+        'copy-cfg': copy_default_config}
 
     overrides = {}  # basic overrides, i.e. imgsz=320
     for a in args:
@@ -171,8 +173,8 @@ def entrypoint(debug=False):
             overrides['task'] = a
         elif a in modes:
             overrides['mode'] = a
-        elif a in special_modes:
-            special_modes[a]()
+        elif a in special:
+            special[a]()
             return
         elif a in DEFAULT_CFG_DICT and DEFAULT_CFG_DICT[a] is False:
             overrides[a] = True  # auto-True for default False args, i.e. 'yolo show' sets show=True

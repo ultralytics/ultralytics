@@ -9,7 +9,8 @@ from types import SimpleNamespace
 from typing import Dict, Union
 
 from ultralytics import __version__, yolo
-from ultralytics.yolo.utils import DEFAULT_CFG_PATH, LOGGER, PREFIX, checks, colorstr, print_settings, yaml_load
+from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, PREFIX, IterableSimpleNamespace, checks, \
+    colorstr, print_settings, yaml_load
 
 DIR = Path(__file__).parent
 
@@ -47,15 +48,6 @@ CLI_HELP_MSG = \
     Community: https://community.ultralytics.com
     GitHub: https://github.com/ultralytics/ultralytics
     """
-
-
-class UltralyticsCFG(SimpleNamespace):
-    """
-    UltralyticsCFG iterable SimpleNamespace class to allow SimpleNamespace to be used with dict() and in for loops
-    """
-
-    def __iter__(self):
-        return iter(vars(self).items())
 
 
 def cfg2dict(cfg):
@@ -97,7 +89,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace], overrides: Dict = None
         cfg = {**cfg, **overrides}  # merge cfg and overrides dicts (prefer overrides)
 
     # Return instance
-    return UltralyticsCFG(**cfg)
+    return IterableSimpleNamespace(**cfg)
 
 
 def check_cfg_mismatch(base: Dict, custom: Dict):
@@ -160,7 +152,6 @@ def entrypoint(debug=False):
         'copy-cfg': copy_default_config}
 
     overrides = {}  # basic overrides, i.e. imgsz=320
-    defaults = yaml_load(DEFAULT_CFG_PATH)
     for a in args:
         if '=' in a:
             if a.startswith('cfg='):  # custom.yaml passed
@@ -189,16 +180,16 @@ def entrypoint(debug=False):
         elif a in special_modes:
             special_modes[a]()
             return
-        elif a in defaults and defaults[a] is False:
+        elif a in DEFAULT_CFG_DICT and DEFAULT_CFG_DICT[a] is False:
             overrides[a] = True  # auto-True for default False args, i.e. 'yolo show' sets show=True
-        elif a in defaults:
+        elif a in DEFAULT_CFG_DICT:
             raise SyntaxError(f"'{a}' is a valid YOLO argument but is missing an '=' sign to set its value, "
-                              f"i.e. try '{a}={defaults[a]}'"
+                              f"i.e. try '{a}={DEFAULT_CFG_DICT[a]}'"
                               f"\n{CLI_HELP_MSG}")
         else:
             raise argument_error(a)
 
-    cfg = get_cfg(defaults, overrides)  # create CFG instance
+    cfg = get_cfg(DEFAULT_CFG_DICT, overrides)  # create CFG instance
 
     # Mapping from task to module
     module = {"detect": yolo.v8.detect, "segment": yolo.v8.segment, "classify": yolo.v8.classify}.get(cfg.task)

@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
-import atexit
 import contextlib
 import inspect
 import logging.config
@@ -13,6 +12,7 @@ import types
 import uuid
 from pathlib import Path
 from typing import Union
+from types import SimpleNamespace
 
 import cv2
 import git
@@ -74,11 +74,21 @@ cv2.setNumThreads(0)  # prevent OpenCV from multithreading (incompatible with Py
 os.environ['NUMEXPR_MAX_THREADS'] = str(NUM_THREADS)  # NumExpr max threads
 os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':4096:8'  # for deterministic training
 
-# Default config dictionary
+
+class IterableSimpleNamespace(SimpleNamespace):
+    """
+    Iterable SimpleNamespace class to allow SimpleNamespace to be used with dict() and in for loops
+    """
+
+    def __iter__(self):
+        return iter(vars(self).items())
+
+
+# Default configuration
 with open(DEFAULT_CFG_PATH, errors='ignore') as f:
     DEFAULT_CFG_DICT = yaml.safe_load(f)
 DEFAULT_CFG_KEYS = DEFAULT_CFG_DICT.keys()
-DEFAULT_CFG = types.SimpleNamespace(**DEFAULT_CFG_DICT)
+DEFAULT_CFG = IterableSimpleNamespace(**DEFAULT_CFG_DICT)
 
 
 def is_colab():
@@ -280,7 +290,7 @@ def colorstr(*input):
         "bright_white": "\033[97m",
         "end": "\033[0m",  # misc
         "bold": "\033[1m",
-        "underline": "\033[4m",}
+        "underline": "\033[4m", }
     return "".join(colors[x] for x in args) + f"{string}" + colors["end"]
 
 
@@ -298,12 +308,12 @@ def set_logging(name=LOGGING_NAME, verbose=True):
             name: {
                 "class": "logging.StreamHandler",
                 "formatter": name,
-                "level": level,}},
+                "level": level, }},
         "loggers": {
             name: {
                 "level": level,
                 "handlers": [name],
-                "propagate": False,}}})
+                "propagate": False, }}})
 
 
 class TryExcept(contextlib.ContextDecorator):

@@ -12,8 +12,6 @@ from ultralytics import __version__, yolo
 from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, PREFIX, IterableSimpleNamespace, checks,
                                     colorstr, print_settings, yaml_load)
 
-DIR = Path(__file__).parent
-
 CLI_HELP_MSG = \
     """
     YOLOv8 'yolo' CLI commands use the following syntax:

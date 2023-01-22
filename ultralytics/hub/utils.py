@@ -4,6 +4,7 @@ import os
 import shutil
 import threading
 import time
+from random import random
 
 import requests
 
@@ -131,16 +132,16 @@ def smart_request(*args, retry=3, timeout=30, thread=True, code=-1, method="post
 
 
 @TryExcept()
-def sync_analytics(cfg, all_keys=False, enabled=False):
+def traces(cfg, all_keys=False, traces_sample_rate=0.0):
     """
-   Sync analytics data if enabled in the global settings
+   Sync traces data if enabled in the global settings
 
     Args:
         cfg (IterableSimpleNamespace): Configuration for the task and mode.
         all_keys (bool): Sync all items, not just non-default values.
-        enabled (bool): For debugging.
+        traces_sample_rate (float): Fraction of traces captured from 0.0 to 1.0
     """
-    if SETTINGS['sync'] and RANK in {-1, 0} and enabled:
+    if SETTINGS['sync'] and RANK in {-1, 0} and (random() < traces_sample_rate):
         cfg = vars(cfg)  # convert type from IterableSimpleNamespace to dict
         if not all_keys:
             cfg = {k: v for k, v in cfg.items() if v != DEFAULT_CFG_DICT.get(k, None)}  # retain non-default values

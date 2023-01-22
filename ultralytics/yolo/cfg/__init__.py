@@ -147,7 +147,8 @@ def entrypoint(debug=False):
         'checks': checks.check_yolo,
         'version': lambda: LOGGER.info(__version__),
         'settings': print_settings,
-        'copy-cfg': copy_default_config}
+        'copy-cfg': copy_default_config,
+        'cfg-copy': copy_default_config}
 
     overrides = {}  # basic overrides, i.e. imgsz=320
     for a in args:
@@ -211,7 +212,7 @@ def copy_default_config():
     new_file = Path.cwd() / DEFAULT_CFG_PATH.name.replace('.yaml', '_copy.yaml')
     shutil.copy2(DEFAULT_CFG_PATH, new_file)
     LOGGER.info(f"{PREFIX}{DEFAULT_CFG_PATH} copied to {new_file}\n"
-                f"Usage for running YOLO with this new custom cfg:\nyolo cfg={new_file} args...")
+                f"Example YOLO command with this new custom cfg:\n    yolo cfg='{new_file}' imgsz=320 batch=8")
 
 
 if __name__ == '__main__':

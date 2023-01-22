@@ -3,7 +3,7 @@
 import json
 from time import time
 
-from ultralytics.hub.utils import PREFIX, sync_analytics
+from ultralytics.hub.utils import PREFIX, traces
 from ultralytics.yolo.utils import LOGGER
 
 
@@ -48,19 +48,19 @@ def on_train_end(trainer):
 
 
 def on_train_start(trainer):
-    sync_analytics(trainer.args)
+    traces(trainer.args, traces_sample_rate=0.0)
 
 
 def on_val_start(validator):
-    sync_analytics(validator.args)
+    traces(validator.args, traces_sample_rate=0.0)
 
 
 def on_predict_start(predictor):
-    sync_analytics(predictor.args)
+    traces(predictor.args, traces_sample_rate=0.0)
 
 
 def on_export_start(exporter):
-    sync_analytics(exporter.args)
+    traces(exporter.args, traces_sample_rate=0.0)
 
 
 callbacks = {

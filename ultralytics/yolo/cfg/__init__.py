@@ -1,5 +1,4 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
-import argparse
 import re
 import shutil
 import sys
@@ -128,17 +127,10 @@ def entrypoint(debug=False):
     It uses the package's default cfg and initializes it using the passed overrides.
     Then it calls the CLI function with the composed cfg
     """
-    if debug:
-        args = ['train', 'predict', 'model=yolov8n.pt']  # for testing
-    else:
-        if len(sys.argv) == 1:  # no arguments passed
-            LOGGER.info(CLI_HELP_MSG)
-            return
-
-        parser = argparse.ArgumentParser(description='YOLO parser')
-        parser.add_argument('args', type=str, nargs='+', help='YOLO args')
-        args = parser.parse_args().args
-        args = re.sub(r' *= *', '=', ' '.join(args)).split(' ')  # remove whitespaces around '=' sign
+    args = ['train', 'predict', 'model=yolov8n.pt'] if debug else sys.argv[1:]
+    if not args:  # no arguments passed
+        LOGGER.info(CLI_HELP_MSG)
+        return
 
     tasks = 'detect', 'segment', 'classify'
     modes = 'train', 'val', 'predict', 'export'
@@ -153,25 +145,27 @@ def entrypoint(debug=False):
     overrides = {}  # basic overrides, i.e. imgsz=320
     for a in args:
         if '=' in a:
-            if a.startswith('cfg='):  # custom.yaml passed
-                custom_config = Path(a.split('=')[-1])
-                LOGGER.info(f"{PREFIX}Overriding {DEFAULT_CFG_PATH} with {custom_config}")
-                overrides = {k: v for k, v in yaml_load(custom_config).items() if k not in {'cfg'}}
-            else:
-                try:
-                    k, v = a.split('=')
-                except ValueError as e:
-                    raise argument_error(a) from e
-                try:
-                    if k == 'device':  # special DDP handling, i.e. device='0,1,2,3'
-                        v = v.replace('[', '').replace(']', '')  # handle device=[0,1,2,3]
-                        v = v.replace(" ", "")  # handle device=[0, 1, 2, 3]
-                        v = v.replace("\\'", '')  # handle device=\'0,1,2,3\'
-                        overrides[k] = v
-                    else:
-                        overrides[k] = eval(v)  # convert strings to integers, floats, bools, etc.
-                except (NameError, SyntaxError):
+            try:
+                re.sub(r' *= *', '=', a)  # remove spaces around equals sign
+                k, v = a.split('=')
+                if k == 'cfg':  # custom.yaml passed
+                    LOGGER.info(f"{PREFIX}Overriding {DEFAULT_CFG_PATH} with {v}")
+                    overrides = {k: val for k, val in yaml_load(v).items() if k != 'cfg'}
+                else:
+                    if v.isnumeric():
+                        v = eval(v)
+                    elif v.lower() == 'none':
+                        v = None
+                    elif v.lower() == 'true':
+                        v = True
+                    elif v.lower() == 'false':
+                        v = False
+                    elif ',' in v:
+                        v = eval(v)
                     overrides[k] = v
+            except (NameError, SyntaxError, ValueError):
+                raise argument_error(a) from e
+
         elif a in tasks:
             overrides['task'] = a
         elif a in modes:
@@ -216,4 +210,4 @@ def copy_default_config():
 
 
 if __name__ == '__main__':
-    entrypoint()
+    entrypoint(debug=True)

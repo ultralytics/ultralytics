@@ -307,18 +307,20 @@ def strip_optimizer(f='best.pt', s=''):
     LOGGER.info(f"Optimizer stripped from {f},{f' saved as {s},' if s else ''} {mb:.1f}MB")
 
 
-def guess_task_from_head(head):
-    task = None
-    if head.lower() in ["classify", "classifier", "cls", "fc"]:
-        task = "classify"
-    if head.lower() in ["detect"]:
-        task = "detect"
-    if head.lower() in ["segment"]:
-        task = "segment"
-
-    if not task:
-        raise SyntaxError("task or model not recognized! Please refer the docs at : ")  # TODO: add docs links
-
+def guess_task_from_model_yaml(model):
+    try:
+        cfg = model if isinstance(model, dict) else model.yaml  # model cfg dict
+        m = cfg["head"][-1][-2].lower()  # output module name
+        task = None
+        if m in ["classify", "classifier", "cls", "fc"]:
+            task = "classify"
+        if m in ["detect"]:
+            task = "detect"
+        if m in ["segment"]:
+            task = "segment"
+    except Exception as e:
+        raise SyntaxError('Unknown task. Define task explicitly, i.e. task=detect when running your command. '
+                          'Valid tasks are detect, segment, classify.') from e
     return task
 
 

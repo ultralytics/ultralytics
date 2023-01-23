@@ -74,7 +74,7 @@ from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, callbacks, colorstr, get
 from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version, check_yaml
 from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.ops import Profile
-from ultralytics.yolo.utils.torch_utils import guess_task_from_head, select_device, smart_inference_mode
+from ultralytics.yolo.utils.torch_utils import guess_task_from_model_yaml, select_device, smart_inference_mode
 
 MACOS = platform.system() == 'Darwin'  # macOS environment
 
@@ -93,7 +93,7 @@ def export_formats():
         ['TensorFlow Lite', 'tflite', '.tflite', True, False],
         ['TensorFlow Edge TPU', 'edgetpu', '_edgetpu.tflite', False, False],
         ['TensorFlow.js', 'tfjs', '_web_model', False, False],
-        ['PaddlePaddle', 'paddle', '_paddle_model', True, True],]
+        ['PaddlePaddle', 'paddle', '_paddle_model', True, True]]
     return pd.DataFrame(x, columns=['Format', 'Argument', 'Suffix', 'CPU', 'GPU'])
 
 
@@ -241,7 +241,7 @@ class Exporter:
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
         if any(f):
-            task = guess_task_from_head(model.yaml["head"][-1][-2])
+            task = guess_task_from_model_yaml(model)
             s = "-WARNING ⚠️ not yet supported for YOLOv8 exported models"
             LOGGER.info(f'\nExport complete ({time.time() - t:.1f}s)'
                         f"\nResults saved to {colorstr('bold', file.parent.resolve())}"

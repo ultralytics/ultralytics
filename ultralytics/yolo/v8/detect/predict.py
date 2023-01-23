@@ -61,7 +61,7 @@ class DetectionPredictor(BasePredictor):
             return log_string
         for c in det.cls.unique():
             n = (det.cls == c).sum()  # detections per class
-            if results[-1] == True:
+            if results[-1]:
                 if len(self.annotator.ans()) > 0:
                     (cx, cy) = self.annotator.ans()[0]
                 else:

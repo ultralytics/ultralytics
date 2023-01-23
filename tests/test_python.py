@@ -128,6 +128,15 @@ def test_workflow():
     model.predict(SOURCE)
     model.export(format="onnx", opset=12)  # export a model to ONNX format
 
+def test_callback():
+    def on_predict_batch_end(predictor):
+       predictor.results[0].foo = "bar"
+
+    model = YOLO(MODEL)
+    model.add_callback("on_predict_batch_end", on_predict_batch_end)
+    result = model.predict(SOURCE)
+
+    assert result[0].foo == "bar", "Callback test_failed"
 
 if __name__ == "__main__":
-    test_predict_img()
+    test_callback()

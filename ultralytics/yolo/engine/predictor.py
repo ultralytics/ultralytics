@@ -88,9 +88,9 @@ class BasePredictor:
         self.vid_path, self.vid_writer = None, None
         self.annotator = None
         self.data_path = None
-        self.callbacks = defaultdict(list, {k: [v] for k, v in callbacks.default_callbacks.items()})  # add callbacks
+        self.callbacks = defaultdict(list, {k: v for k, v in callbacks.default_callbacks.items()})  # add callbacks
         callbacks.add_integration_callbacks(self)
-
+        
     def preprocess(self, img):
         pass
 
@@ -179,9 +179,10 @@ class BasePredictor:
             self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.bs, 3, *self.imgsz))
             self.done_warmup = True
 
-        self.seen, self.windows, self.dt = 0, [], (ops.Profile(), ops.Profile(), ops.Profile())
+        self.seen, self.windows, self.dt, self.batch = 0, [], (ops.Profile(), ops.Profile(), ops.Profile()), None
         for batch in self.dataset:
             self.run_callbacks("on_predict_batch_start")
+            self.batch = batch
             path, im, im0s, vid_cap, s = batch
             visualize = increment_path(self.save_dir / Path(path).stem, mkdir=True) if self.args.visualize else False
             with self.dt[0]:
@@ -195,27 +196,27 @@ class BasePredictor:
 
             # postprocess
             with self.dt[2]:
-                results = self.postprocess(preds, im, im0s, self.classes)
+                self.results = self.postprocess(preds, im, im0s, self.classes)
             for i in range(len(im)):
                 p, im0 = (path[i], im0s[i]) if self.webcam or self.from_img else (path, im0s)
                 p = Path(p)
 
                 if verbose or self.args.save or self.args.save_txt or self.args.show:
-                    s += self.write_results(i, results, (p, im, im0))
+                    s += self.write_results(i, self.results, (p, im, im0))
 
                 if self.args.show:
                     self.show(p)
 
                 if self.args.save:
                     self.save_preds(vid_cap, i, str(self.save_dir / p.name))
-
-            yield from results
+                    
+            self.run_callbacks("on_predict_batch_end")
+            yield from self.results
 
             # Print time (inference-only)
             if verbose:
                 LOGGER.info(f"{s}{'' if len(preds) else '(no detections), '}{self.dt[1].dt * 1E3:.1f}ms")
 
-            self.run_callbacks("on_predict_batch_end")
 
         # Print results
         if verbose and self.seen:

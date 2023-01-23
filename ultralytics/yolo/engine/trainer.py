@@ -141,7 +141,7 @@ class BaseTrainer:
         self.plot_idx = [0, 1, 2]
 
         # Callbacks
-        self.callbacks = defaultdict(list, {k: [v] for k, v in callbacks.default_callbacks.items()})  # add callbacks
+        self.callbacks = defaultdict(list, {k: v for k, v in callbacks.default_callbacks.items()})  # add callbacks
         if RANK in {0, -1}:
             callbacks.add_integration_callbacks(self)
 

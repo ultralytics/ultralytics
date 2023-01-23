@@ -28,7 +28,7 @@ CLI_HELP_MSG = \
         yolo detect train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01
 
     2. Predict a YouTube video using a pretrained segmentation model at image size 320:
-        yolo segment predict model=yolov8n-seg.pt source=https://youtu.be/Zgi9g1ksQHc imgsz=320
+        yolo segment predict model=yolov8n-seg.pt source='https://youtu.be/Zgi9g1ksQHc' imgsz=320
 
     3. Val a pretrained detection model at batch-size 1 and image size 640:
         yolo detect val model=yolov8n.pt data=coco128.yaml batch=1 imgsz=640
@@ -126,13 +126,13 @@ def merge_equals_args(args: List[str]) -> List[str]:
     """
     new_args = []
     for i, arg in enumerate(args):
-        if arg == '=' and 0 < i < len(args) - 1:
+        if arg == '=' and 0 < i < len(args) - 1:  # merge ['arg', '=', 'val']
             new_args[-1] += f"={args[i + 1]}"
             del args[i + 1]
-        elif arg.endswith('=') and i < len(args) - 1:
+        elif arg.endswith('=') and i < len(args) - 1 and '=' not in args[i + 1]:  # merge ['arg=', 'val']
             new_args.append(f"{arg}{args[i + 1]}")
             del args[i + 1]
-        elif arg.startswith('=') and i > 0:
+        elif arg.startswith('=') and i > 0:  # merge ['arg', '=val']
             new_args[-1] += arg
         else:
             new_args.append(arg)
@@ -178,7 +178,7 @@ def entrypoint(debug=False):
         if '=' in a:
             try:
                 re.sub(r' *= *', '=', a)  # remove spaces around equals sign
-                k, v = a.split('=')
+                k, v = a.split('=', 1)  # split on first '=' sign
                 if k == 'cfg':  # custom.yaml passed
                     LOGGER.info(f"{PREFIX}Overriding {DEFAULT_CFG_PATH} with {v}")
                     overrides = {k: val for k, val in yaml_load(v).items() if k != 'cfg'}

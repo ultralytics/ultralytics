@@ -126,13 +126,13 @@ def merge_equals_args(args: List[str]) -> List[str]:
     """
     new_args = []
     for i, arg in enumerate(args):
-        if arg == '=' and 0 < i < len(args) - 1:
+        if arg == '=' and 0 < i < len(args) - 1:  # merge ['arg', '=', 'val']
             new_args[-1] += f"={args[i + 1]}"
             del args[i + 1]
-        elif arg.endswith('=') and i < len(args) - 1:
+        elif arg.endswith('=') and i < len(args) - 1 and '=' not in args[i + 1]:  # merge ['arg=', 'val']
             new_args.append(f"{arg}{args[i + 1]}")
             del args[i + 1]
-        elif arg.startswith('=') and i > 0:
+        elif arg.startswith('=') and i > 0:  # merge ['arg', '=val']
             new_args[-1] += arg
         else:
             new_args.append(arg)

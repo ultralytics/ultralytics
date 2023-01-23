@@ -9,8 +9,8 @@ from tqdm import tqdm
 
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.yolo.cfg import get_cfg
-from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
-from ultralytics.yolo.utils import DEFAULT_CFG_PATH, LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, callbacks
+from ultralytics.yolo.data.utils import check_cls_dataset, check_det_dataset
+from ultralytics.yolo.utils import DEFAULT_CFG_PATH, LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, callbacks, emojis
 from ultralytics.yolo.utils.checks import check_imgsz
 from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.ops import Profile
@@ -70,7 +70,7 @@ class BaseValidator:
         if self.args.conf is None:
             self.args.conf = 0.001  # default conf=0.001
 
-        self.callbacks = defaultdict(list, {k: [v] for k, v in callbacks.default_callbacks.items()})  # add callbacks
+        self.callbacks = defaultdict(list, {k: v for k, v in callbacks.default_callbacks.items()})  # add callbacks
 
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
@@ -109,9 +109,11 @@ class BaseValidator:
                         f'Forcing --batch-size 1 square inference (1,3,{imgsz},{imgsz}) for non-PyTorch models')
 
             if isinstance(self.args.data, str) and self.args.data.endswith(".yaml"):
-                self.data = check_dataset_yaml(self.args.data)
+                self.data = check_det_dataset(self.args.data)
+            elif self.args.task == 'classify':
+                self.data = check_cls_dataset(self.args.data)
             else:
-                self.data = check_dataset(self.args.data)
+                raise FileNotFoundError(emojis(f"Dataset '{self.args.data}' not found ❌"))
 
             if self.device.type == 'cpu':
                 self.args.workers = 0  # faster CPU val as time dominated by inference, not dataloading

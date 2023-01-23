@@ -10,6 +10,7 @@ class ClassificationValidator(BaseValidator):
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, logger=None, args=None):
         super().__init__(dataloader, save_dir, pbar, logger, args)
+        self.args.task = 'classify'
         self.metrics = ClassifyMetrics()
 
     def get_desc(self):

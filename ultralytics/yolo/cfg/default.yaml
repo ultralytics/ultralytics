@@ -59,8 +59,9 @@ line_thickness: 3  # bounding box thickness (pixels)
 visualize: False  # visualize model features
 augment: False  # apply image augmentation to prediction sources
 agnostic_nms: False  # class-agnostic NMS
-retina_masks: False  # use high-resolution segmentation masks
 classes: null  # filter results by class, i.e. class=0, or class=[0,2,3]
+retina_masks: False  # use high-resolution segmentation masks
+boxes: True # Show boxes in segmentation predictions
 
 # Export settings ------------------------------------------------------------------------------------------------------
 format: torchscript  # format to export to

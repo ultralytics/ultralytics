@@ -5,6 +5,7 @@ import inspect
 import logging.config
 import os
 import platform
+import subprocess
 import sys
 import tempfile
 import threading
@@ -137,7 +138,7 @@ def is_kaggle():
     return os.environ.get('PWD') == '/kaggle/working' and os.environ.get('KAGGLE_URL_BASE') == 'https://www.kaggle.com'
 
 
-def is_jupyter_notebook():
+def is_jupyter():
     """
     Check if the current script is running inside a Jupyter Notebook.
     Verified on Colab, Jupyterlab, Kaggle, Paperspace.
@@ -145,8 +146,6 @@ def is_jupyter_notebook():
     Returns:
         bool: True if running inside a Jupyter Notebook, False otherwise.
     """
-    # Check if the get_ipython function exists
-    # (it does not exist when running as a standalone script)
     try:
         from IPython import get_ipython
         return get_ipython() is not None
@@ -208,14 +207,37 @@ def is_dir_writeable(dir_path: Union[str, Path]) -> bool:
 
 def is_pytest_running():
     """
-    Returns a boolean indicating if pytest is currently running or not
-    :return: True if pytest is running, False otherwise
+    Determines whether pytest is currently running or not.
+
+    Returns:
+        (bool): True if pytest is running, False otherwise.
     """
     try:
         import sys
         return "pytest" in sys.modules
     except ImportError:
         return False
+
+
+def is_github_actions_ci() -> bool:
+    """
+    Determine if the current environment is a GitHub Actions CI Python runner.
+
+    Returns:
+        (bool): True if the current environment is a GitHub Actions CI Python runner, False otherwise.
+    """
+    return 'GITHUB_ACTIONS' in os.environ and 'RUNNER_OS' in os.environ and 'RUNNER_TOOL_CACHE' in os.environ
+
+
+def is_git_dir():
+    """
+    Determines whether the current file is part of a git repository.
+    If the current file is not part of a git repository, returns None.
+
+    Returns:
+        (bool): True if current file is part of a git repository.
+    """
+    return get_git_dir() is not None
 
 
 def get_git_dir():
@@ -230,6 +252,20 @@ def get_git_dir():
         if (d / '.git').is_dir():
             return d
     return None  # no .git dir found
+
+
+def get_git_origin_url():
+    """
+    Retrieves the origin URL of a git repository.
+
+    Returns:
+        (str) or (None): The origin URL of the git repository.
+    """
+    if is_git_dir():
+        with contextlib.suppress(subprocess.CalledProcessError):
+            origin = subprocess.check_output(["git", "config", "--get", "remote.origin.url"])
+            return origin.decode().strip()
+    return None  # if not git dir or on error
 
 
 def get_default_args(func):
@@ -404,25 +440,31 @@ def yaml_print(yaml_file: Union[str, Path, dict]) -> None:
     LOGGER.info(f"Printing '{colorstr('bold', 'black', yaml_file)}'\n\n{dump}")
 
 
-def set_sentry(dsn=None):
+def set_sentry():
     """
     Initialize the Sentry SDK for error tracking and reporting if pytest is not currently running.
     """
 
     def before_send(event, hint):
+        if is_git_dir() and get_git_origin_url() != "https://github.com/ultralytics/ultralytics.git":
+            return None  # filter 3rd party repositories
+
         event['tags'] = {
             "sys_argv": sys.argv[0],
             "sys_argv_name": Path(sys.argv[0]).name,
-            "is_git": get_git_dir() is not None,
-            "os": platform.system()}
+            "install": 'git' if is_git_dir() else 'pip' if is_pip_package() else 'other',
+            "os": 'colab' if is_colab() else 'kaggle' if is_kaggle() else 'jupyter' if is_jupyter() else
+            'docker' if is_docker() else platform.system()}
+
+        print(event['tags'])
         return event
 
-    if dsn and not is_pytest_running():
+    if SETTINGS['sync'] and not is_pytest_running() or is_github_actions_ci():
         import sentry_sdk  # noqa
 
         import ultralytics
         sentry_sdk.init(
-            dsn=dsn,
+            dsn="https://1f331c322109416595df20a91f4005d3@o4504521589325824.ingest.sentry.io/4504521592406016",
             debug=False,
             traces_sample_rate=1.0,
             release=ultralytics.__version__,

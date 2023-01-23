@@ -7,6 +7,7 @@ from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils import DEFAULT_CFG, ROOT, ops
 from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
+
 global val
 
 
@@ -29,7 +30,7 @@ class DetectionPredictor(BasePredictor):
                                         agnostic=self.args.agnostic_nms,
                                         max_det=self.args.max_det,
                                         classes=self.args.classes,
-                                        count = self.args.count)
+                                        count=self.args.count)
 
         results = []
         for i, pred in enumerate(preds):
@@ -65,15 +66,15 @@ class DetectionPredictor(BasePredictor):
                     (cx, cy) = self.annotator.ans()[0]
                 else:
                     cy = 0
-                if cy < (400) and cy > 385 :
-                    DetectionPredictor.val  +=1
+                if cy < (400) and cy > 385:
+                    DetectionPredictor.val += 1
                 font = cv2.FONT_HERSHEY_SIMPLEX
-                align = im0.shape 
+                align = im0.shape
                 align_bottom = align[0]
                 align_bottom -= 110
-                align_left = (align[1]/8) # Text allignment (align left,(int(align bottom))
-                cv2.putText(im0, f'{self.model.names[int(c)]} : {str(DetectionPredictor.val)}', (int(align_left),align_bottom), font, 
-                    3, (0, 255, 1), 5, cv2.LINE_AA)
+                align_left = (align[1] / 8)  # Text allignment (align left,(int(align bottom))
+                cv2.putText(im0, f'{self.model.names[int(c)]} : {str(DetectionPredictor.val)}',
+                            (int(align_left), align_bottom), font, 3, (0, 255, 1), 5, cv2.LINE_AA)
             else:
                 pass
             log_string += f"{n} {self.model.names[int(c)]}{'s' * (n > 1)}, "

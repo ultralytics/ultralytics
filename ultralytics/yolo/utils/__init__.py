@@ -109,6 +109,9 @@ class IterableSimpleNamespace(SimpleNamespace):
     def __str__(self):
         return '\n'.join(f"{k}={v}" for k, v in vars(self).items())
 
+    def get(self, key, default=None):
+        return getattr(self, key, default)
+
 
 # Default configuration
 with open(DEFAULT_CFG_PATH, errors='ignore') as f:

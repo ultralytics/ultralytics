@@ -19,7 +19,7 @@ import torch
 from IPython import display
 
 from ultralytics.yolo.utils import (AUTOINSTALL, FONT, LOGGER, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, emojis,
-                                    is_colab, is_docker, is_jupyter_notebook)
+                                    is_colab, is_docker, is_jupyter)
 
 
 def is_ascii(s) -> bool:
@@ -238,7 +238,7 @@ def check_yaml(file, suffix=('.yaml', '.yml')):
 def check_imshow(warn=False):
     # Check if environment supports image displays
     try:
-        assert not is_jupyter_notebook()
+        assert not is_jupyter()
         assert not is_docker()
         cv2.imshow('test', np.zeros((1, 1, 3)))
         cv2.waitKey(1)

@@ -5,6 +5,7 @@ import inspect
 import logging.config
 import os
 import platform
+import subprocess
 import sys
 import tempfile
 import threading
@@ -14,7 +15,6 @@ from types import SimpleNamespace
 from typing import Union
 
 import cv2
-import git
 import numpy as np
 import pandas as pd
 import torch
@@ -124,7 +124,7 @@ def is_colab():
     Returns:
         bool: True if running inside a Colab notebook, False otherwise.
     """
-    # Check if the google.colab module is present in sys.modules
+    # Check if the 'google.colab' module is present in sys.modules
     return 'google.colab' in sys.modules
 
 
@@ -138,7 +138,7 @@ def is_kaggle():
     return os.environ.get('PWD') == '/kaggle/working' and os.environ.get('KAGGLE_URL_BASE') == 'https://www.kaggle.com'
 
 
-def is_jupyter_notebook():
+def is_jupyter():
     """
     Check if the current script is running inside a Jupyter Notebook.
     Verified on Colab, Jupyterlab, Kaggle, Paperspace.
@@ -146,8 +146,6 @@ def is_jupyter_notebook():
     Returns:
         bool: True if running inside a Jupyter Notebook, False otherwise.
     """
-    # Check if the get_ipython function exists
-    # (it does not exist when running as a standalone script)
     try:
         from IPython import get_ipython
         return get_ipython() is not None
@@ -167,21 +165,6 @@ def is_docker() -> bool:
         with open(file) as f:
             return 'docker' in f.read()
     else:
-        return False
-
-
-def is_git_directory() -> bool:
-    """
-    Check if the current working directory is inside a git repository.
-
-    Returns:
-        bool: True if the current working directory is inside a git repository, False otherwise.
-    """
-    try:
-        git.Repo(search_parent_directories=True)
-        # subprocess.run(["git", "rev-parse", "--git-dir"], capture_output=True, check=True)  # CLI alternative
-        return True
-    except git.exc.InvalidGitRepositoryError:  # subprocess.CalledProcessError:
         return False
 
 
@@ -224,8 +207,10 @@ def is_dir_writeable(dir_path: Union[str, Path]) -> bool:
 
 def is_pytest_running():
     """
-    Returns a boolean indicating if pytest is currently running or not
-    :return: True if pytest is running, False otherwise
+    Determines whether pytest is currently running or not.
+
+    Returns:
+        (bool): True if pytest is running, False otherwise.
     """
     try:
         import sys
@@ -234,17 +219,53 @@ def is_pytest_running():
         return False
 
 
-def get_git_root_dir():
+def is_github_actions_ci() -> bool:
+    """
+    Determine if the current environment is a GitHub Actions CI Python runner.
+
+    Returns:
+        (bool): True if the current environment is a GitHub Actions CI Python runner, False otherwise.
+    """
+    return 'GITHUB_ACTIONS' in os.environ and 'RUNNER_OS' in os.environ and 'RUNNER_TOOL_CACHE' in os.environ
+
+
+def is_git_dir():
+    """
+    Determines whether the current file is part of a git repository.
+    If the current file is not part of a git repository, returns None.
+
+    Returns:
+        (bool): True if current file is part of a git repository.
+    """
+    return get_git_dir() is not None
+
+
+def get_git_dir():
     """
     Determines whether the current file is part of a git repository and if so, returns the repository root directory.
     If the current file is not part of a git repository, returns None.
+
+    Returns:
+        (Path) or (None): Git root directory if found or None if not found.
     """
-    try:
-        # output = subprocess.run(["git", "rev-parse", "--git-dir"], capture_output=True, check=True)
-        # return Path(output.stdout.strip().decode('utf-8')).parent.resolve()  # CLI alternative
-        return Path(git.Repo(search_parent_directories=True).working_tree_dir)
-    except git.exc.InvalidGitRepositoryError:  # (subprocess.CalledProcessError, FileNotFoundError):
-        return None
+    for d in Path(__file__).parents:
+        if (d / '.git').is_dir():
+            return d
+    return None  # no .git dir found
+
+
+def get_git_origin_url():
+    """
+    Retrieves the origin URL of a git repository.
+
+    Returns:
+        (str) or (None): The origin URL of the git repository.
+    """
+    if is_git_dir():
+        with contextlib.suppress(subprocess.CalledProcessError):
+            origin = subprocess.check_output(["git", "config", "--get", "remote.origin.url"])
+            return origin.decode().strip()
+    return None  # if not git dir or on error
 
 
 def get_default_args(func):
@@ -316,7 +337,7 @@ def colorstr(*input):
         "bright_white": "\033[97m",
         "end": "\033[0m",  # misc
         "bold": "\033[1m",
-        "underline": "\033[4m",}
+        "underline": "\033[4m"}
     return "".join(colors[x] for x in args) + f"{string}" + colors["end"]
 
 
@@ -334,12 +355,12 @@ def set_logging(name=LOGGING_NAME, verbose=True):
             name: {
                 "class": "logging.StreamHandler",
                 "formatter": name,
-                "level": level,}},
+                "level": level}},
         "loggers": {
             name: {
                 "level": level,
                 "handlers": [name],
-                "propagate": False,}}})
+                "propagate": False}}})
 
 
 class TryExcept(contextlib.ContextDecorator):
@@ -419,20 +440,34 @@ def yaml_print(yaml_file: Union[str, Path, dict]) -> None:
     LOGGER.info(f"Printing '{colorstr('bold', 'black', yaml_file)}'\n\n{dump}")
 
 
-def set_sentry(dsn=None):
+def set_sentry():
     """
     Initialize the Sentry SDK for error tracking and reporting if pytest is not currently running.
     """
-    if dsn and not is_pytest_running():
+
+    def before_send(event, hint):
+        if is_git_dir() and get_git_origin_url() != "https://github.com/ultralytics/ultralytics.git":
+            return None
+        event_os = 'colab' if is_colab() else 'kaggle' if is_kaggle() else 'jupyter' if is_jupyter() else \
+            'docker' if is_docker() else platform.system()
+        event['tags'] = {
+            "sys_argv": sys.argv[0],
+            "sys_argv_name": Path(sys.argv[0]).name,
+            "install": 'git' if is_git_dir() else 'pip' if is_pip_package() else 'other',
+            "os": event_os}
+        return event
+
+    if SETTINGS['sync'] and not is_pytest_running() or is_github_actions_ci():
         import sentry_sdk  # noqa
 
         import ultralytics
         sentry_sdk.init(
-            dsn=dsn,
+            dsn="https://1f331c322109416595df20a91f4005d3@o4504521589325824.ingest.sentry.io/4504521592406016",
             debug=False,
             traces_sample_rate=1.0,
             release=ultralytics.__version__,
             environment='production',  # 'dev' or 'production'
+            before_send=before_send,
             ignore_errors=[KeyboardInterrupt])
 
 
@@ -450,9 +485,9 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.1'):
     from ultralytics.yolo.utils.checks import check_version
     from ultralytics.yolo.utils.torch_utils import torch_distributed_zero_first
 
-    is_git = is_git_directory()  # True if ultralytics installed via git
-    root = get_git_root_dir() if is_git else Path()
-    datasets_root = (root.parent if (is_git and is_dir_writeable(root.parent)) else root).resolve()
+    git_dir = get_git_dir()
+    root = git_dir or Path()
+    datasets_root = (root.parent if git_dir and is_dir_writeable(root.parent) else root).resolve()
     defaults = {
         'datasets_dir': str(datasets_root / 'datasets'),  # default datasets directory.
         'weights_dir': str(root / 'weights'),  # default weights directory.
@@ -464,13 +499,13 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.1'):
     with torch_distributed_zero_first(RANK):
         if not file.exists():
             yaml_save(file, defaults)
-
         settings = yaml_load(file)
 
         # Check that settings keys and types match defaults
-        correct = settings.keys() == defaults.keys() \
-                  and all(type(a) == type(b) for a, b in zip(settings.values(), defaults.values())) \
-                  and check_version(settings['settings_version'], version)
+        correct = \
+            settings.keys() == defaults.keys() \
+            and all(type(a) == type(b) for a, b in zip(settings.values(), defaults.values())) \
+            and check_version(settings['settings_version'], version)
         if not correct:
             LOGGER.warning('WARNING ⚠️ Ultralytics settings reset to defaults. '
                            '\nThis is normal and may be due to a recent ultralytics package update, '

@@ -410,7 +410,11 @@ def set_sentry(dsn=None):
     """
 
     def before_send(event, hint):
-        event['tags'] = {"sys_argv": sys.argv[0], "sys_argv_name": Path(sys.argv[0]).name}
+        event['tags'] = {
+            "sys_argv": sys.argv[0],
+            "sys_argv_name": Path(sys.argv[0]).name,
+            "is_git": get_git_dir() is not None,
+            "os": platform.system()}
         return event
 
     if dsn and not is_pytest_running():

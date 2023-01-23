@@ -123,7 +123,7 @@ def is_colab():
     Returns:
         bool: True if running inside a Colab notebook, False otherwise.
     """
-    # Check if the google.colab module is present in sys.modules
+    # Check if the 'google.colab' module is present in sys.modules
     return 'google.colab' in sys.modules
 
 
@@ -301,7 +301,7 @@ def colorstr(*input):
         "bright_white": "\033[97m",
         "end": "\033[0m",  # misc
         "bold": "\033[1m",
-        "underline": "\033[4m",}
+        "underline": "\033[4m"}
     return "".join(colors[x] for x in args) + f"{string}" + colors["end"]
 
 
@@ -319,12 +319,12 @@ def set_logging(name=LOGGING_NAME, verbose=True):
             name: {
                 "class": "logging.StreamHandler",
                 "formatter": name,
-                "level": level,}},
+                "level": level}},
         "loggers": {
             name: {
                 "level": level,
                 "handlers": [name],
-                "propagate": False,}}})
+                "propagate": False}}})
 
 
 class TryExcept(contextlib.ContextDecorator):
@@ -408,6 +408,13 @@ def set_sentry(dsn=None):
     """
     Initialize the Sentry SDK for error tracking and reporting if pytest is not currently running.
     """
+
+    def before_send(event, hint):
+        event['tags'] = {
+            "sys_argv": sys.argv[0],
+            "sys_argv_name": Path(sys.argv[0]).name}
+        return event
+
     if dsn and not is_pytest_running():
         import sentry_sdk  # noqa
 
@@ -418,6 +425,7 @@ def set_sentry(dsn=None):
             traces_sample_rate=1.0,
             release=ultralytics.__version__,
             environment='production',  # 'dev' or 'production'
+            before_send=before_send,
             ignore_errors=[KeyboardInterrupt])
 
 
@@ -452,9 +460,10 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.1'):
         settings = yaml_load(file)
 
         # Check that settings keys and types match defaults
-        correct = settings.keys() == defaults.keys() \
-                  and all(type(a) == type(b) for a, b in zip(settings.values(), defaults.values())) \
-                  and check_version(settings['settings_version'], version)
+        correct = \
+            settings.keys() == defaults.keys() \
+            and all(type(a) == type(b) for a, b in zip(settings.values(), defaults.values())) \
+            and check_version(settings['settings_version'], version)
         if not correct:
             LOGGER.warning('WARNING ⚠️ Ultralytics settings reset to defaults. '
                            '\nThis is normal and may be due to a recent ultralytics package update, '

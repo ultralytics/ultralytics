@@ -410,9 +410,7 @@ def set_sentry(dsn=None):
     """
 
     def before_send(event, hint):
-        event['tags'] = {
-            "sys_argv": sys.argv[0],
-            "sys_argv_name": Path(sys.argv[0]).name}
+        event['tags'] = {"sys_argv": sys.argv[0], "sys_argv_name": Path(sys.argv[0]).name}
         return event
 
     if dsn and not is_pytest_running():

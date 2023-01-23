@@ -28,7 +28,7 @@ from PIL import ExifTags, Image, ImageOps
 from torch.utils.data import DataLoader, Dataset, dataloader, distributed
 from tqdm import tqdm
 
-from ultralytics.yolo.data.utils import check_dataset, unzip_file
+from ultralytics.yolo.data.utils import check_det_dataset, unzip_file
 from ultralytics.yolo.utils import (DATASETS_DIR, LOGGER, NUM_THREADS, TQDM_BAR_FORMAT, is_colab, is_dir_writeable,
                                     is_kaggle)
 from ultralytics.yolo.utils.checks import check_requirements, check_yaml
@@ -1061,7 +1061,7 @@ class HUBDatasetStats():
         except Exception as e:
             raise Exception("error/HUB/dataset_stats/yaml_load") from e
 
-        check_dataset(data, autodownload)  # download dataset if missing
+        check_det_dataset(data, autodownload)  # download dataset if missing
         self.hub_dir = Path(data['path'] + '-hub')
         self.im_dir = self.hub_dir / 'images'
         self.im_dir.mkdir(parents=True, exist_ok=True)  # makes /images

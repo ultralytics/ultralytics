@@ -88,7 +88,7 @@ class BasePredictor:
         self.vid_path, self.vid_writer = None, None
         self.annotator = None
         self.data_path = None
-        self.callbacks = defaultdict(list, {k: [v] for k, v in callbacks.default_callbacks.items()})  # add callbacks
+        self.callbacks = defaultdict(list, {k: v for k, v in callbacks.default_callbacks.items()})  # add callbacks
         callbacks.add_integration_callbacks(self)
 
     def preprocess(self, img):
@@ -172,16 +172,17 @@ class BasePredictor:
         # setup source. Run every time predict is called
         self.setup_source(source)
         # check if save_dir/ label file exists
-        if self.args.save:
+        if self.args.save or self.args.save_txt:
             (self.save_dir / 'labels' if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
         # warmup model
         if not self.done_warmup:
             self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.bs, 3, *self.imgsz))
             self.done_warmup = True
 
-        self.seen, self.windows, self.dt = 0, [], (ops.Profile(), ops.Profile(), ops.Profile())
+        self.seen, self.windows, self.dt, self.batch = 0, [], (ops.Profile(), ops.Profile(), ops.Profile()), None
         for batch in self.dataset:
             self.run_callbacks("on_predict_batch_start")
+            self.batch = batch
             path, im, im0s, vid_cap, s = batch
             visualize = increment_path(self.save_dir / Path(path).stem, mkdir=True) if self.args.visualize else False
             with self.dt[0]:
@@ -195,13 +196,13 @@ class BasePredictor:
 
             # postprocess
             with self.dt[2]:
-                results = self.postprocess(preds, im, im0s, self.classes)
+                self.results = self.postprocess(preds, im, im0s, self.classes)
             for i in range(len(im)):
                 p, im0 = (path[i], im0s[i]) if self.webcam or self.from_img else (path, im0s)
                 p = Path(p)
 
                 if verbose or self.args.save or self.args.save_txt or self.args.show:
-                    s += self.write_results(i, results, (p, im, im0))
+                    s += self.write_results(i, self.results, (p, im, im0))
 
                 if self.args.show:
                     self.show(p)
@@ -209,13 +210,12 @@ class BasePredictor:
                 if self.args.save:
                     self.save_preds(vid_cap, i, str(self.save_dir / p.name))
 
-            yield from results
+            self.run_callbacks("on_predict_batch_end")
+            yield from self.results
 
             # Print time (inference-only)
             if verbose:
                 LOGGER.info(f"{s}{'' if len(preds) else '(no detections), '}{self.dt[1].dt * 1E3:.1f}ms")
-
-            self.run_callbacks("on_predict_batch_end")
 
         # Print results
         if verbose and self.seen:
@@ -223,8 +223,8 @@ class BasePredictor:
             LOGGER.info(f'Speed: %.1fms pre-process, %.1fms inference, %.1fms postprocess per image at shape '
                         f'{(1, 3, *self.imgsz)}' % t)
         if self.args.save_txt or self.args.save:
-            s = f"\n{len(list(self.save_dir.glob('labels/*.txt')))} labels saved to {self.save_dir / 'labels'}" \
-                if self.args.save_txt else ''
+            nl = len(list(self.save_dir.glob('labels/*.txt')))  # number of labels
+            s = f"\n{nl} label{'s' * (nl > 1)} saved to {self.save_dir / 'labels'}" if self.args.save_txt else ''
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
 
         self.run_callbacks("on_predict_end")

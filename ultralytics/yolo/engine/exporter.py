@@ -69,31 +69,25 @@ from ultralytics.nn.modules import Detect, Segment
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages
-from ultralytics.yolo.data.utils import check_dataset
+from ultralytics.yolo.data.utils import check_det_dataset
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, callbacks, colorstr, get_default_args, yaml_save
 from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version, check_yaml
 from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.ops import Profile
-from ultralytics.yolo.utils.torch_utils import guess_task_from_head, select_device, smart_inference_mode
+from ultralytics.yolo.utils.torch_utils import guess_task_from_model_yaml, select_device, smart_inference_mode
 
 MACOS = platform.system() == 'Darwin'  # macOS environment
 
 
 def export_formats():
     # YOLOv8 export formats
-    x = [
-        ['PyTorch', '-', '.pt', True, True],
-        ['TorchScript', 'torchscript', '.torchscript', True, True],
-        ['ONNX', 'onnx', '.onnx', True, True],
-        ['OpenVINO', 'openvino', '_openvino_model', True, False],
-        ['TensorRT', 'engine', '.engine', False, True],
-        ['CoreML', 'coreml', '.mlmodel', True, False],
-        ['TensorFlow SavedModel', 'saved_model', '_saved_model', True, True],
-        ['TensorFlow GraphDef', 'pb', '.pb', True, True],
-        ['TensorFlow Lite', 'tflite', '.tflite', True, False],
-        ['TensorFlow Edge TPU', 'edgetpu', '_edgetpu.tflite', False, False],
-        ['TensorFlow.js', 'tfjs', '_web_model', False, False],
-        ['PaddlePaddle', 'paddle', '_paddle_model', True, True],]
+    x = [['PyTorch', '-', '.pt', True, True], ['TorchScript', 'torchscript', '.torchscript', True, True],
+         ['ONNX', 'onnx', '.onnx', True, True], ['OpenVINO', 'openvino', '_openvino_model', True, False],
+         ['TensorRT', 'engine', '.engine', False, True], ['CoreML', 'coreml', '.mlmodel', True, False],
+         ['TensorFlow SavedModel', 'saved_model', '_saved_model', True, True],
+         ['TensorFlow GraphDef', 'pb', '.pb', True, True], ['TensorFlow Lite', 'tflite', '.tflite', True, False],
+         ['TensorFlow Edge TPU', 'edgetpu', '_edgetpu.tflite', False, False],
+         ['TensorFlow.js', 'tfjs', '_web_model', False, False], ['PaddlePaddle', 'paddle', '_paddle_model', True, True]]
     return pd.DataFrame(x, columns=['Format', 'Argument', 'Suffix', 'CPU', 'GPU'])
 
 
@@ -135,7 +129,7 @@ class Exporter:
             overrides (dict, optional): Configuration overrides. Defaults to None.
         """
         self.args = get_cfg(cfg, overrides)
-        self.callbacks = defaultdict(list, {k: [v] for k, v in callbacks.default_callbacks.items()})  # add callbacks
+        self.callbacks = defaultdict(list, {k: v for k, v in callbacks.default_callbacks.items()})  # add callbacks
         callbacks.add_integration_callbacks(self)
 
     @smart_inference_mode()
@@ -241,7 +235,7 @@ class Exporter:
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
         if any(f):
-            task = guess_task_from_head(model.yaml["head"][-1][-2])
+            task = guess_task_from_model_yaml(model)
             s = "-WARNING ⚠️ not yet supported for YOLOv8 exported models"
             LOGGER.info(f'\nExport complete ({time.time() - t:.1f}s)'
                         f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
@@ -570,7 +564,7 @@ class Exporter:
                     if n >= n_images:
                         break
 
-            dataset = LoadImages(check_dataset(check_yaml(data))['train'], imgsz=imgsz, auto=False)
+            dataset = LoadImages(check_det_dataset(check_yaml(data))['train'], imgsz=imgsz, auto=False)
             converter.representative_dataset = lambda: representative_dataset_gen(dataset, n_images=100)
             converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
             converter.target_spec.supported_types = []

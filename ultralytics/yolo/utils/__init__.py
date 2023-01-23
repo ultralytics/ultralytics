@@ -68,7 +68,7 @@ HELP_MSG = \
             yolo detect train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01
 
         - Predict a YouTube video using a pretrained segmentation model at image size 320:
-            yolo segment predict model=yolov8n-seg.pt source=https://youtu.be/Zgi9g1ksQHc imgsz=320
+            yolo segment predict model=yolov8n-seg.pt source='https://youtu.be/Zgi9g1ksQHc' imgsz=320
 
         - Val a pretrained detection model at batch-size 1 and image size 640:
             yolo detect val model=yolov8n.pt data=coco128.yaml batch=1 imgsz=640
@@ -108,6 +108,9 @@ class IterableSimpleNamespace(SimpleNamespace):
 
     def __str__(self):
         return '\n'.join(f"{k}={v}" for k, v in vars(self).items())
+
+    def get(self, key, default=None):
+        return getattr(self, key, default)
 
 
 # Default configuration

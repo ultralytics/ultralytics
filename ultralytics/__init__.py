@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
-__version__ = "8.0.17"
+__version__ = "8.0.18"
 
 from ultralytics.yolo.engine.model import YOLO
 from ultralytics.yolo.utils import ops

@@ -222,7 +222,8 @@ class AutoBackend(nn.Module):
             nhwc = model.runtime.startswith("tensorflow")
             '''
         else:
-            raise NotImplementedError(f'ERROR: {w} is not a supported format')
+            raise NotImplementedError(f"ERROR: '{w}' is not a supported format. For supported formats see "
+                                      f"https://docs.ultralytics.com/reference/nn/")
 
         # class names
         if 'names' not in locals():

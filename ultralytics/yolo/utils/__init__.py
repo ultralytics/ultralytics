@@ -459,8 +459,9 @@ def set_sentry():
             not is_pytest_running() and \
             not is_github_actions_ci() and \
             (is_pip_package() or get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git"):
-        import ultralytics
         import sentry_sdk  # noqa
+
+        import ultralytics
         sentry_sdk.init(
             dsn="https://1f331c322109416595df20a91f4005d3@o4504521589325824.ingest.sentry.io/4504521592406016",
             debug=False,

@@ -90,7 +90,7 @@ class BasePredictor:
         self.data_path = None
         self.callbacks = defaultdict(list, {k: v for k, v in callbacks.default_callbacks.items()})  # add callbacks
         callbacks.add_integration_callbacks(self)
-        
+
     def preprocess(self, img):
         pass
 
@@ -209,14 +209,13 @@ class BasePredictor:
 
                 if self.args.save:
                     self.save_preds(vid_cap, i, str(self.save_dir / p.name))
-                    
+
             self.run_callbacks("on_predict_batch_end")
             yield from self.results
 
             # Print time (inference-only)
             if verbose:
                 LOGGER.info(f"{s}{'' if len(preds) else '(no detections), '}{self.dt[1].dt * 1E3:.1f}ms")
-
 
         # Print results
         if verbose and self.seen:

@@ -372,6 +372,7 @@ def profile(input, ops, n=10, device=None):
             torch.cuda.empty_cache()
     return results
 
+
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
 import math

@@ -134,7 +134,7 @@ def non_max_suppression(
         conf_thres=0.25,
         iou_thres=0.45,
         classes=None,
-        count = None,
+        count=None,
         agnostic=False,
         multi_label=False,
         labels=(),

@@ -172,7 +172,7 @@ class BasePredictor:
         # setup source. Run every time predict is called
         self.setup_source(source)
         # check if save_dir/ label file exists
-        if self.args.save:
+        if self.args.save or self.args.save_txt:
             (self.save_dir / 'labels' if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
         # warmup model
         if not self.done_warmup:
@@ -223,8 +223,8 @@ class BasePredictor:
             LOGGER.info(f'Speed: %.1fms pre-process, %.1fms inference, %.1fms postprocess per image at shape '
                         f'{(1, 3, *self.imgsz)}' % t)
         if self.args.save_txt or self.args.save:
-            s = f"\n{len(list(self.save_dir.glob('labels/*.txt')))} labels saved to {self.save_dir / 'labels'}" \
-                if self.args.save_txt else ''
+            nl = len(list(self.save_dir.glob('labels/*.txt')))  # number of labels
+            s = f"\n{nl} label{'s' * (nl > 1)} saved to {self.save_dir / 'labels'}" if self.args.save_txt else ''
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
 
         self.run_callbacks("on_predict_end")

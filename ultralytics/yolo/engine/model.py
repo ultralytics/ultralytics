@@ -6,7 +6,7 @@ from ultralytics import yolo  # noqa
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, attempt_load_one_weight
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
-from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, yaml_load
+from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, callbacks, yaml_load
 from ultralytics.yolo.utils.checks import check_yaml
 from ultralytics.yolo.utils.torch_utils import guess_task_from_head, smart_inference_mode
 
@@ -227,6 +227,12 @@ class YOLO:
          Returns class names of the loaded model.
         """
         return self.model.names
+
+    def add_callback(self, event: str, func):
+        """
+        Add callback
+        """
+        callbacks.default_callbacks[event].append(func)
 
     @staticmethod
     def _reset_ckpt_args(args):

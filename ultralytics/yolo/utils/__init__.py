@@ -446,21 +446,21 @@ def set_sentry():
     """
 
     def before_send(event, hint):
-        if is_git_dir() and get_git_origin_url() != "https://github.com/ultralytics/ultralytics.git":
-            return None
-        event_os = 'colab' if is_colab() else 'kaggle' if is_kaggle() else 'jupyter' if is_jupyter() else \
+        oss = 'colab' if is_colab() else 'kaggle' if is_kaggle() else 'jupyter' if is_jupyter() else \
             'docker' if is_docker() else platform.system()
         event['tags'] = {
             "sys_argv": sys.argv[0],
             "sys_argv_name": Path(sys.argv[0]).name,
             "install": 'git' if is_git_dir() else 'pip' if is_pip_package() else 'other',
-            "os": event_os}
+            "os": oss}
         return event
 
-    if SETTINGS['sync'] and not is_pytest_running() or is_github_actions_ci():
-        import sentry_sdk  # noqa
-
+    if SETTINGS['sync'] and \
+            not is_pytest_running() and \
+            not is_github_actions_ci() and \
+            (is_pip_package() or get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git"):
         import ultralytics
+        import sentry_sdk  # noqa
         sentry_sdk.init(
             dsn="https://1f331c322109416595df20a91f4005d3@o4504521589325824.ingest.sentry.io/4504521592406016",
             debug=False,

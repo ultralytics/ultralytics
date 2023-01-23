@@ -13,6 +13,7 @@ global val
 
 class DetectionPredictor(BasePredictor):
     val = 0
+    count = None
 
     def get_annotator(self, img):
         return Annotator(img, line_width=self.args.line_thickness, example=str(self.model.names))
@@ -37,7 +38,7 @@ class DetectionPredictor(BasePredictor):
             shape = orig_img[i].shape if isinstance(orig_img, list) else orig_img.shape
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
             results.append(Results(boxes=pred, orig_shape=shape[:2]))
-        results.append(count)
+        DetectionPredictor.count = count
         return results
 
     def write_results(self, idx, results, batch):
@@ -61,7 +62,7 @@ class DetectionPredictor(BasePredictor):
             return log_string
         for c in det.cls.unique():
             n = (det.cls == c).sum()  # detections per class
-            if results[-1]:
+            if DetectionPredictor.count:
                 if len(self.annotator.ans()) > 0:
                     (cx, cy) = self.annotator.ans()[0]
                 else:

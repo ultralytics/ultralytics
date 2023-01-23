@@ -8,7 +8,7 @@ from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, callbacks, yaml_load
 from ultralytics.yolo.utils.checks import check_yaml
-from ultralytics.yolo.utils.torch_utils import guess_task_from_head, smart_inference_mode
+from ultralytics.yolo.utils.torch_utils import guess_task_from_model_yaml, smart_inference_mode
 
 # Map head to model, trainer, validator, and predictor classes
 MODEL_MAP = {
@@ -68,7 +68,7 @@ class YOLO:
         """
         cfg = check_yaml(cfg)  # check YAML
         cfg_dict = yaml_load(cfg, append_filename=True)  # model dict
-        self.task = guess_task_from_head(cfg_dict["head"][-1][-2])
+        self.task = guess_task_from_model_yaml(cfg_dict)
         self.ModelClass, self.TrainerClass, self.ValidatorClass, self.PredictorClass = \
             self._guess_ops_from_task(self.task)
         self.model = self.ModelClass(cfg_dict, verbose=verbose)  # initialize

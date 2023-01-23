@@ -447,16 +447,13 @@ def set_sentry():
 
     def before_send(event, hint):
         if is_git_dir() and get_git_origin_url() != "https://github.com/ultralytics/ultralytics.git":
-            return None  # filter 3rd party repositories
-
+            return None
         event['tags'] = {
             "sys_argv": sys.argv[0],
             "sys_argv_name": Path(sys.argv[0]).name,
             "install": 'git' if is_git_dir() else 'pip' if is_pip_package() else 'other',
             "os": 'colab' if is_colab() else 'kaggle' if is_kaggle() else 'jupyter' if is_jupyter() else
             'docker' if is_docker() else platform.system()}
-
-        print(event['tags'])
         return event
 
     if SETTINGS['sync'] and not is_pytest_running() or is_github_actions_ci():

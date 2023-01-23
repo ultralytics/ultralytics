@@ -312,6 +312,7 @@ class ClassificationModel(BaseModel):
 
 # Functions ------------------------------------------------------------------------------------------------------------
 
+
 def torch_safe_load(weight):
     """
     This function attempts to load a PyTorch model with the torch.load() function. If a ModuleNotFoundError is raised, it

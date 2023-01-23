@@ -10,7 +10,7 @@ from tqdm import tqdm
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.data.utils import check_cls_dataset, check_det_dataset
-from ultralytics.yolo.utils import DEFAULT_CFG_PATH, LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, callbacks
+from ultralytics.yolo.utils import DEFAULT_CFG_PATH, LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, callbacks, emojis
 from ultralytics.yolo.utils.checks import check_imgsz
 from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.ops import Profile
@@ -113,7 +113,7 @@ class BaseValidator:
             elif self.args.task == 'classify':
                 self.data = check_cls_dataset(self.args.data)
             else:
-                raise FileNotFoundError(f"Dataset '{self.args.data}' not found ❌")
+                raise FileNotFoundError(emojis(f"Dataset '{self.args.data}' not found ❌"))
 
             if self.device.type == 'cpu':
                 self.args.workers = 0  # faster CPU val as time dominated by inference, not dataloading

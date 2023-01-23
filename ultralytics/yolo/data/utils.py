@@ -231,7 +231,7 @@ def check_dataset_yaml(dataset, autodownload=True):
             if s and autodownload:
                 LOGGER.warning(msg)
             else:
-                raise FileNotFoundError(s)
+                raise FileNotFoundError(msg)
             t = time.time()
             if s.startswith('http') and s.endswith('.zip'):  # URL
                 f = Path(s).name  # filename

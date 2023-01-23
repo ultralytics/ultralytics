@@ -6,11 +6,12 @@ import sys
 from difflib import get_close_matches
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Dict, Union
+from typing import Dict, List, Union
 
 from ultralytics import __version__, yolo
 from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, PREFIX, USER_CONFIG_DIR,
-                                    IterableSimpleNamespace, checks, colorstr, yaml_load, yaml_print)
+                                    IterableSimpleNamespace, colorstr, yaml_load, yaml_print)
+from ultralytics.yolo.utils.checks import check_yolo
 
 CLI_HELP_MSG = \
     """
@@ -111,6 +112,33 @@ def check_cfg_mismatch(base: Dict, custom: Dict):
         sys.exit()
 
 
+def merge_equals_args(args: List[str]) -> List[str]:
+    """
+    Merges arguments around isolated '=' args in a list of strings.
+    The function considers cases where the first argument ends with '=' or the second starts with '=',
+    as well as when the middle one is an equals sign.
+
+    Args:
+        args (List[str]): A list of strings where each element is an argument.
+
+    Returns:
+        List[str]: A list of strings where the arguments around isolated '=' are merged.
+    """
+    new_args = []
+    for i, arg in enumerate(args):
+        if arg == '=' and 0 < i < len(args) - 1:
+            new_args[-1] += f"={args[i + 1]}"
+            del args[i + 1]
+        elif arg.endswith('=') and i < len(args) - 1:
+            new_args.append(f"{arg}{args[i + 1]}")
+            del args[i + 1]
+        elif arg.startswith('=') and i > 0:
+            new_args[-1] += arg
+        else:
+            new_args.append(arg)
+    return new_args
+
+
 def argument_error(arg):
     return SyntaxError(f"'{arg}' is not a valid YOLO argument.\n{CLI_HELP_MSG}")
 
@@ -130,7 +158,7 @@ def entrypoint(debug=False):
     It uses the package's default cfg and initializes it using the passed overrides.
     Then it calls the CLI function with the composed cfg
     """
-    args = ['train', 'predict', 'model=yolov8n.pt'] if debug else sys.argv[1:]
+    args = ['train', 'model=yolov8n.pt', 'data=coco128.yaml', 'imgsz=32', 'epochs=1'] if debug else sys.argv[1:]
     if not args:  # no arguments passed
         LOGGER.info(CLI_HELP_MSG)
         return
@@ -139,14 +167,14 @@ def entrypoint(debug=False):
     modes = 'train', 'val', 'predict', 'export'
     special = {
         'help': lambda: LOGGER.info(CLI_HELP_MSG),
-        'checks': checks.check_yolo,
+        'checks': check_yolo,
         'version': lambda: LOGGER.info(__version__),
         'settings': lambda: yaml_print(USER_CONFIG_DIR / 'settings.yaml'),
         'cfg': lambda: yaml_print(DEFAULT_CFG_PATH),
         'copy-cfg': copy_default_config}
 
     overrides = {}  # basic overrides, i.e. imgsz=320
-    for a in args:
+    for a in merge_equals_args(args):  # merge spaces around '=' sign
         if '=' in a:
             try:
                 re.sub(r' *= *', '=', a)  # remove spaces around equals sign
@@ -184,6 +212,13 @@ def entrypoint(debug=False):
             raise argument_error(a)
 
     cfg = get_cfg(DEFAULT_CFG_DICT, overrides)  # create CFG instance
+
+    # Checks error catch
+    if cfg.mode == 'checks':
+        LOGGER.warning(
+            "WARNING ⚠️ 'yolo mode=checks' is deprecated and will be removed in the future. Use 'yolo checks' instead.")
+        check_yolo()
+        return
 
     # Mapping from task to module
     module = {"detect": yolo.v8.detect, "segment": yolo.v8.segment, "classify": yolo.v8.classify}.get(cfg.task)

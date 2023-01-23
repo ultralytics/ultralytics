@@ -128,15 +128,10 @@ def test_workflow():
     model.predict(SOURCE)
     model.export(format="onnx", opset=12)  # export a model to ONNX format
 
-        
-        
+
 def test_callback():
     model = YOLO("yolov8n-seg.pt")
     results = model.predict(source="https://youtu.be/Zgi9g1ksQHc", show=True, verbose=True, boxes=False)
-
-    
-
-
 
 
 if __name__ == "__main__":

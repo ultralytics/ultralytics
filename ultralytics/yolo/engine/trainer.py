@@ -20,19 +20,18 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.optim import lr_scheduler
 from tqdm import tqdm
 
-import ultralytics.yolo.utils as utils
 from ultralytics import __version__
 from ultralytics.nn.tasks import attempt_load_one_weight
 from ultralytics.yolo.cfg import get_cfg
-from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
+from ultralytics.yolo.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.yolo.utils import (DEFAULT_CFG_PATH, LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, callbacks, colorstr,
-                                    yaml_save)
+                                    emojis, yaml_save)
 from ultralytics.yolo.utils.autobatch import check_train_batch_size
 from ultralytics.yolo.utils.checks import check_file, check_imgsz, print_args
 from ultralytics.yolo.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.yolo.utils.files import get_latest_run, increment_path
 from ultralytics.yolo.utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel, init_seeds, one_cycle,
-                                                strip_optimizer)
+                                                select_device, strip_optimizer)
 
 
 class BaseTrainer:
@@ -81,7 +80,7 @@ class BaseTrainer:
             overrides (dict, optional): Configuration overrides. Defaults to None.
         """
         self.args = get_cfg(cfg, overrides)
-        self.device = utils.torch_utils.select_device(self.args.device, self.args.batch)
+        self.device = select_device(self.args.device, self.args.batch)
         self.check_resume()
         self.console = LOGGER
         self.validator = None
@@ -120,9 +119,11 @@ class BaseTrainer:
         self.model = self.args.model
         self.data = self.args.data
         if self.data.endswith(".yaml"):
-            self.data = check_dataset_yaml(self.data)
+            self.data = check_det_dataset(self.data)
+        elif self.args.task == 'classify':
+            self.data = check_cls_dataset(self.data)
         else:
-            self.data = check_dataset(self.data)
+            raise FileNotFoundError(emojis(f"Dataset '{self.args.data}' not found ❌"))
         self.trainset, self.testset = self.get_dataset(self.data)
         self.ema = None
 
@@ -140,7 +141,7 @@ class BaseTrainer:
         self.plot_idx = [0, 1, 2]
 
         # Callbacks
-        self.callbacks = defaultdict(list, {k: [v] for k, v in callbacks.default_callbacks.items()})  # add callbacks
+        self.callbacks = defaultdict(list, {k: v for k, v in callbacks.default_callbacks.items()})  # add callbacks
         if RANK in {0, -1}:
             callbacks.add_integration_callbacks(self)
 

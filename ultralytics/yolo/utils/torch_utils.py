@@ -391,7 +391,7 @@ class EarlyStopping:
         self.best_epoch = 0
         self.patience = patience or float('inf')  # epochs to wait after fitness stops improving to stop
         self.possible_stop = False  # possible stop may occur next epoch
-        LOGGER.info(f"early stopping initalized, patience: {self.patience}")
+        LOGGER.info(f"early stopping initialized, patience: {self.patience}")
 
     def __call__(self, epoch, fitness):
         """

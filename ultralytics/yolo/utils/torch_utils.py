@@ -380,14 +380,27 @@ class EarlyStopping:
         self.best_epoch = 0
         self.patience = patience or float('inf')  # epochs to wait after fitness stops improving to stop
         self.possible_stop = False  # possible stop may occur next epoch
+        LOGGER.info(f"early stopping initalized, patience: {self.patience}")
 
     def __call__(self, epoch, fitness):
+        improvement = False
         if fitness >= self.best_fitness:  # >= 0 to allow for early zero-fitness stage of training
+            improvement = True
+            LOGGER.info(f"fitness improves from {self.best_fitness} to {fitness}!")
             self.best_epoch = epoch
             self.best_fitness = fitness
         delta = epoch - self.best_epoch  # epochs without improvement
         self.possible_stop = delta >= (self.patience - 1)  # possible stop may occur next epoch
         stop = delta >= self.patience  # stop training if patience exceeded
+        
+        if not improvement:
+            if delta == 1:
+                ep = "epoch"
+            else:
+                ep = "epochs"
+            
+            LOGGER.info(f"fitness does not improve for {delta} {ep}. patience: {self.patience}") 
+        
         if stop:
             LOGGER.info(f'Stopping training early as no improvement observed in last {self.patience} epochs. '
                         f'Best results observed at epoch {self.best_epoch}, best model saved as best.pt.\n'

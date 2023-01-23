@@ -185,7 +185,7 @@ def polygons2masks_overlap(imgsz, segments, downsample_ratio=1):
     return masks, index
 
 
-def check_dataset_yaml(dataset, autodownload=True):
+def check_det_dataset(dataset, autodownload=True):
     # Download, check and/or unzip dataset if not found locally
     data = check_file(dataset)
 
@@ -254,7 +254,7 @@ def check_dataset_yaml(dataset, autodownload=True):
     return data  # dictionary
 
 
-def check_dataset(dataset: str):
+def check_cls_dataset(dataset: str):
     """
     Check a classification dataset such as Imagenet.
 

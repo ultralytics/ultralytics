@@ -24,7 +24,7 @@ import ultralytics.yolo.utils as utils
 from ultralytics import __version__
 from ultralytics.nn.tasks import attempt_load_one_weight
 from ultralytics.yolo.cfg import get_cfg
-from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
+from ultralytics.yolo.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.yolo.utils import (DEFAULT_CFG_PATH, LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, callbacks, colorstr,
                                     yaml_save)
 from ultralytics.yolo.utils.autobatch import check_train_batch_size
@@ -120,9 +120,11 @@ class BaseTrainer:
         self.model = self.args.model
         self.data = self.args.data
         if self.data.endswith(".yaml"):
-            self.data = check_dataset_yaml(self.data)
+            self.data = check_det_dataset(self.data)
+        elif self.args.task == 'classify':
+            self.data = check_cls_dataset(self.data)
         else:
-            self.data = check_dataset(self.data)
+            raise FileNotFoundError(f"Dataset '{self.args.data}' not found ❌")
         self.trainset, self.testset = self.get_dataset(self.data)
         self.ema = None
 

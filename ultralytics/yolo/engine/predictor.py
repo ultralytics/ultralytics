@@ -172,7 +172,7 @@ class BasePredictor:
         # setup source. Run every time predict is called
         self.setup_source(source)
         # check if save_dir/ label file exists
-        if self.args.save:
+        if self.args.save or self.args.save_txt:
             (self.save_dir / 'labels' if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
         # warmup model
         if not self.done_warmup:

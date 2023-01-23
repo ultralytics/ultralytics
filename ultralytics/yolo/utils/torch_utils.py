@@ -392,15 +392,15 @@ class EarlyStopping:
         delta = epoch - self.best_epoch  # epochs without improvement
         self.possible_stop = delta >= (self.patience - 1)  # possible stop may occur next epoch
         stop = delta >= self.patience  # stop training if patience exceeded
-        
+
         if not improvement:
             if delta == 1:
                 ep = "epoch"
             else:
                 ep = "epochs"
-            
-            LOGGER.info(f"fitness does not improve for {delta} {ep}. patience: {self.patience}") 
-        
+
+            LOGGER.info(f"fitness does not improve for {delta} {ep}. patience: {self.patience}")
+
         if stop:
             LOGGER.info(f'Stopping training early as no improvement observed in last {self.patience} epochs. '
                         f'Best results observed at epoch {self.best_epoch}, best model saved as best.pt.\n'

@@ -11,7 +11,7 @@ from ultralytics.nn.modules import (C1, C2, C3, C3TR, SPP, SPPF, Bottleneck, Bot
                                     Concat, Conv, ConvTranspose, Detect, DWConv, DWConvTranspose2d, Ensemble, Focus,
                                     GhostBottleneck, GhostConv, Segment)
 from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, yaml_load
-from ultralytics.yolo.utils.checks import check_yaml
+from ultralytics.yolo.utils.checks import check_requirements, check_yaml
 from ultralytics.yolo.utils.torch_utils import (fuse_conv_and_bn, initialize_weights, intersect_dicts, make_divisible,
                                                 model_info, scale_img, time_sync)
 
@@ -357,7 +357,16 @@ def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
     # Loads a single model weights
     from ultralytics.yolo.utils.downloads import attempt_download
 
-    ckpt = torch.load(attempt_download(weight), map_location='cpu')  # load
+    weight = attempt_download(weight)
+    try:
+        ckpt = torch.load(weight, map_location='cpu')  # load
+    except ModuleNotFoundError:
+        LOGGER.warning(f"WARNING ⚠️ {weight} is deprecated as it requires omegaconf, which is now removed from "
+                       "ultralytics requirements.\nAutoInstall will occur now but this feature will be removed for "
+                       "omegaconf models in the future.\nPlease train a new model or download updated models "
+                       "from https://github.com/ultralytics/assets/releases/tag/v0.0.0")
+        check_requirements('omegaconf')
+        ckpt = torch.load(weight, map_location='cpu')  # load
     args = {**DEFAULT_CFG_DICT, **ckpt['train_args']}  # combine model and default args, preferring model args
     model = (ckpt.get('ema') or ckpt['model']).to(device).float()  # FP32 model
 

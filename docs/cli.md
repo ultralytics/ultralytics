@@ -167,7 +167,7 @@ Default arguments can be overriden by simply passing them as arguments in the CL
     === "Example 2"
         Predict a YouTube video using a pretrained segmentation model at image size 320:
         ```bash
-        yolo segment predict model=yolov8n-seg.pt source=https://youtu.be/Zgi9g1ksQHc imgsz=320
+        yolo segment predict model=yolov8n-seg.pt source='https://youtu.be/Zgi9g1ksQHc' imgsz=320
         ```
 
     === "Example 3"

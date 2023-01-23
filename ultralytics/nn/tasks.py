@@ -326,17 +326,17 @@ def torch_safe_load(weight):
     """
     from ultralytics.yolo.utils.downloads import attempt_download
 
-    weight = attempt_download(weight)  # search online if missing locally
+    file = attempt_download(weight)  # search online if missing locally
     try:
-        return torch.load(weight, map_location='cpu')  # load
+        return torch.load(file, map_location='cpu')  # load
     except ModuleNotFoundError as e:
         if e.name == 'omegaconf':  # e.name is missing module name
-            LOGGER.warning(f"WARNING ⚠️ {e.name} is deprecated as it requires omegaconf, which is now removed from "
-                           "ultralytics requirements.\nAutoInstall will occur now but this feature will be removed for "
-                           "omegaconf models in the future.\nPlease train a new model or download updated models "
-                           "from https://github.com/ultralytics/assets/releases/tag/v0.0.0")
+            LOGGER.warning(f"WARNING ⚠️ {weight} requires {e.name}, which is not in ultralytics requirements."
+                           f"\nAutoInstall will run now for {e.name} but this feature will be removed in the future."
+                           f"\nRecommend fixes are to train a new model using updated ultraltyics package or to "
+                           f"download updated models from https://github.com/ultralytics/assets/releases/tag/v0.0.0")
         check_requirements(e.name)  # install missing module
-        return torch.load(weight, map_location='cpu')  # load
+        return torch.load(file, map_location='cpu')  # load
 
 
 def attempt_load_weights(weights, device=None, inplace=True, fuse=False):

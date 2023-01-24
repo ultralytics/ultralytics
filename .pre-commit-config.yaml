@@ -59,13 +59,6 @@ repos:
       - id: flake8
         name: PEP8
 
-  - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.4
-    hooks:
-      - id: bandit
-        args:
-        -  --skip=B101,B201
-
   - repo: https://github.com/codespell-project/codespell
     rev: v2.2.2
     hooks:

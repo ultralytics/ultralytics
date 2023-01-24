@@ -127,8 +127,7 @@ def is_colab():
     Returns:
         bool: True if running inside a Colab notebook, False otherwise.
     """
-    # Check if the 'google.colab' module is present in sys.modules
-    return 'google.colab' in sys.modules
+    return 'COLAB_RELEASE_TAG' in os.environ or 'COLAB_BACKEND_VERSION' in os.environ
 
 
 def is_kaggle():

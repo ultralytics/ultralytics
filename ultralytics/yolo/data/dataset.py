@@ -47,6 +47,8 @@ class YOLODataset(BaseDataset):
 
     def cache_labels(self, path=Path("./labels.cache")):
         # Cache dataset labels, check images and read shapes
+        if path.exists():
+            path.unlink()  # remove *.cache file if exists
         x = {"labels": []}
         nm, nf, ne, nc, msgs = 0, 0, 0, 0, []  # number missing, found, empty, corrupt, messages
         desc = f"{self.prefix}Scanning {path.parent / path.stem}..."
@@ -85,7 +87,7 @@ class YOLODataset(BaseDataset):
         x["results"] = nf, nm, ne, nc, len(self.im_files)
         x["msgs"] = msgs  # warnings
         x["version"] = self.cache_version  # cache version
-        self.im_files = [lb["im_file"] for lb in x["labels"]]
+        self.im_files = [lb["im_file"] for lb in x["labels"]]  # update im_files
         if is_dir_writeable(path.parent):
             np.save(str(path), x)  # save cache for next time
             path.with_suffix(".cache.npy").rename(path)  # remove .npy suffix
@@ -116,6 +118,17 @@ class YOLODataset(BaseDataset):
         # Read cache
         [cache.pop(k) for k in ("hash", "version", "msgs")]  # remove items
         labels = cache["labels"]
+
+        # Check if the dataset is all boxes or all segments
+        len_boxes = sum(len(lb["bboxes"]) for lb in labels)
+        len_segments = sum(len(lb["segments"]) for lb in labels)
+        if len_segments and len_boxes != len_segments:
+            LOGGER.warning(
+                f"WARNING ⚠️ Box and segment counts should be equal, but got len(segments) = {len_segments}, "
+                f"len(boxes) = {len_boxes}. To resolve this only boxes will be used and all segments will be removed. "
+                "To avoid this please supply either a detect or segment dataset, not a detect-segment mixed dataset.")
+            for lb in labels:
+                lb["segments"] = []
         nl = len(np.concatenate([label["cls"] for label in labels], 0))  # number of labels
         assert nl > 0, f"{self.prefix}All labels empty in {cache_path}, can not start training. {HELP_URL}"
         return labels

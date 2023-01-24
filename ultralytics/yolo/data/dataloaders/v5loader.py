@@ -611,6 +611,8 @@ class LoadImagesAndLabels(Dataset):
 
     def cache_labels(self, path=Path('./labels.cache'), prefix=''):
         # Cache dataset labels, check images and read shapes
+        if path.exists():
+            path.unlink()  # remove *.cache file if exists
         x = {}  # dict
         nm, nf, ne, nc, msgs = 0, 0, 0, 0, []  # number missing, found, empty, corrupt, messages
         desc = f"{prefix}Scanning {path.parent / path.stem}..."

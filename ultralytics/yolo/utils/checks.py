@@ -224,7 +224,7 @@ def check_file(file, suffix=''):
         for d in 'models', 'yolo/data':  # search directories
             files.extend(glob.glob(str(ROOT / d / '**' / file), recursive=True))  # find file
         if not files:
-            raise FileNotFoundError(f"{file} does not exist")
+            raise FileNotFoundError(f"'{file}' does not exist")
         elif len(files) > 1:
             raise FileNotFoundError(f"Multiple files match '{file}', specify exact path: {files}")
         return files[0]  # return file

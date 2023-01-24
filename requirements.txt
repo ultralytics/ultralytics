@@ -7,6 +7,7 @@ numpy>=1.18.5
 opencv-python>=4.6.0
 Pillow>=7.1.2
 PyYAML>=5.3.1
+omegaconf>=2.3.0
 requests>=2.23.0
 scipy>=1.4.1
 torch>=1.7.0

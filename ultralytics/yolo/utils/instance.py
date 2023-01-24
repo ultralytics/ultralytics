@@ -7,8 +7,6 @@ from typing import List
 
 import numpy as np
 
-from ultralytics.yolo.utils import LOGGER
-
 from .ops import ltwh2xywh, ltwh2xyxy, resample_segments, xywh2ltwh, xywh2xyxy, xyxy2ltwh, xyxy2xywh
 
 

@@ -1,7 +1,8 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
-import torch
 import sys
+
+import torch
 
 from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils import DEFAULT_CFG, ROOT, ops
@@ -68,7 +69,7 @@ class SegmentationPredictor(DetectionPredictor):
             mask.masks,
             colors=[colors(x, True) for x in det.cls],
             im_gpu=torch.as_tensor(im0, dtype=torch.float16).to(self.device).permute(2, 0, 1).flip(0).contiguous() /
-                   255 if self.args.retina_masks else im[idx])
+            255 if self.args.retina_masks else im[idx])
 
         # Segments
         if self.args.save_txt:

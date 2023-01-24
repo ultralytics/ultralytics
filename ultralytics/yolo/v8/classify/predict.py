@@ -71,7 +71,7 @@ def predict(cfg=DEFAULT_CFG):
 
     if sys.argv[0].endswith('yolo'):  # CLI command
         from ultralytics import YOLO
-        cfg.verbose=True
+        cfg.verbose = True
         YOLO(cfg.model)(**vars(cfg))
     else:
         predictor = ClassificationPredictor(cfg)

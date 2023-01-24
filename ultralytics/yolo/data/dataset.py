@@ -118,15 +118,14 @@ class YOLODataset(BaseDataset):
         # Read cache
         [cache.pop(k) for k in ("hash", "version", "msgs")]  # remove items
         labels = cache["labels"]
-        # check if the dataset is pure
+        # Check if the dataset is all boxes or all segments
         lenb = sum(len(lb["bboxes"]) for lb in labels)
         lens = sum(len(lb["segments"]) for lb in labels)
         if lens and lenb != lens:
-            LOGGER.warning("WARNING ⚠️ the length of segments and boxes should be the same, "\
-                    f"but got len(segments):{lens}, len(boxes):{lenb}, "\
-                    "force to use boxes only and remove all segments. "\
-                    "This usually happens when your dataset is not pure, "
-                    "Please clean up your datasets to make sure it's pure detection labels or segmentation labels.")
+            LOGGER.warning(
+                "WARNING ⚠️ The length of segments and boxes should be the same, but got len(segments) = {lens}, "
+                "len(boxes) = {lenb}. To resolve this only boxes will be used and all segments will be removed. "
+                "To avoid this please supply either a detect or segment dataset, not a detect-segment mixed dataset.")
             for lb in labels:
                 lb["segments"] = []
         nl = len(np.concatenate([label["cls"] for label in labels], 0))  # number of labels

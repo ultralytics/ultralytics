@@ -63,7 +63,7 @@ repos:
     rev: v2.2.2
     hooks:
       - id: codespell
-        args: 
+        args:
           - --ignore-words=crate
 
   #- repo: https://github.com/asottile/yesqa

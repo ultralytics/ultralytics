@@ -346,7 +346,7 @@ class RandomPerspective:
         segments = instances.segments
         keypoints = instances.keypoints
         # update bboxes if there are all segments.
-        if len(segments) and len(segments) == len(bboxes):
+        if len(segments):
             bboxes, segments = self.apply_segments(segments, M)
 
         if keypoints is not None:

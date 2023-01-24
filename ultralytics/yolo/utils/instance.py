@@ -7,6 +7,7 @@ from typing import List
 
 import numpy as np
 
+from ultralytics.yolo.utils import LOGGER
 from .ops import ltwh2xywh, ltwh2xyxy, resample_segments, xywh2ltwh, xywh2xyxy, xyxy2ltwh, xyxy2xywh
 
 
@@ -178,10 +179,18 @@ class Instances:
         self.normalized = normalized
 
         if len(segments) > 0:
-            # list[np.array(1000, 2)] * num_samples
-            segments = resample_segments(segments)
-            # (N, 1000, 2)
-            segments = np.stack(segments, axis=0)
+            if len(segments) == len(self._bboxes):
+                # list[np.array(1000, 2)] * num_samples
+                segments = resample_segments(segments)
+                # (N, 1000, 2)
+                segments = np.stack(segments, axis=0)
+            else:
+            # check if len(segments) == len(boxes)
+                LOGGER.warning("WARNING ⚠️ the length of segments and boxes should be the same, "\
+                        f"but got len(segments):{len(segments)}, len(boxes):{len(self._bboxes)}, "\
+                        "force to use boxes only and remove segments. "\
+                        "This usually happens when your dataset is not pure, "
+                        "Please clean up your datasets to make sure it's pure detection labels or segmentation labels.")
         else:
             segments = np.zeros((0, 1000, 2), dtype=np.float32)
         self.segments = segments

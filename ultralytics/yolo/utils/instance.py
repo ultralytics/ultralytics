@@ -185,12 +185,13 @@ class Instances:
                 # (N, 1000, 2)
                 segments = np.stack(segments, axis=0)
             else:
-            # check if len(segments) == len(boxes)
+                # check if len(segments) == len(boxes)
                 LOGGER.warning("WARNING ⚠️ the length of segments and boxes should be the same, "\
                         f"but got len(segments):{len(segments)}, len(boxes):{len(self._bboxes)}, "\
                         "force to use boxes only and remove segments. "\
                         "This usually happens when your dataset is not pure, "
                         "Please clean up your datasets to make sure it's pure detection labels or segmentation labels.")
+                segments = np.zeros((0, 1000, 2), dtype=np.float32)
         else:
             segments = np.zeros((0, 1000, 2), dtype=np.float32)
         self.segments = segments

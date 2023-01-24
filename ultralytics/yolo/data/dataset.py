@@ -85,13 +85,14 @@ class YOLODataset(BaseDataset):
         x["results"] = nf, nm, ne, nc, len(self.im_files)
         x["msgs"] = msgs  # warnings
         x["version"] = self.cache_version  # cache version
+        # update im_files
         self.im_files = [lb["im_file"] for lb in x["labels"]]
         # check if the dataset is pure
-        bboxes = np.concatenate([lb["bboxes"] for lb in x["labels"]], 0)
-        segments = np.concatenate([lb["segments"] for lb in x["labels"]], 0)
-        if len(segments) and len(bboxes) != len(segments):
+        lenb = sum([len(lb["bboxes"]) for lb in x["labels"]])
+        lens = sum([len(lb["segments"]) for lb in x["labels"]])
+        if lens and lenb != lens:
             LOGGER.warning("WARNING ⚠️ the length of segments and boxes should be the same, "\
-                    f"but got len(segments):{len(segments)}, len(boxes):{len(self._bboxes)}, "\
+                    f"but got len(segments):{lens}, len(boxes):{lenb}, "\
                     "force to use boxes only and remove all segments. "\
                     "This usually happens when your dataset is not pure, "
                     "Please clean up your datasets to make sure it's pure detection labels or segmentation labels.")

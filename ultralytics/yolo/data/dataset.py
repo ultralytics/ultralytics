@@ -85,9 +85,7 @@ class YOLODataset(BaseDataset):
         x["results"] = nf, nm, ne, nc, len(self.im_files)
         x["msgs"] = msgs  # warnings
         x["version"] = self.cache_version  # cache version
-        # update im_files
-        self.im_files = [lb["im_file"] for lb in x["labels"]]
-
+        self.im_files = [lb["im_file"] for lb in x["labels"]]         # update im_files
         if is_dir_writeable(path.parent):
             np.save(str(path), x)  # save cache for next time
             path.with_suffix(".cache.npy").rename(path)  # remove .npy suffix

@@ -86,6 +86,18 @@ class YOLODataset(BaseDataset):
         x["msgs"] = msgs  # warnings
         x["version"] = self.cache_version  # cache version
         self.im_files = [lb["im_file"] for lb in x["labels"]]
+        # check if the dataset is pure
+        bboxes = np.concatenate([lb["bboxes"] for lb in x["labels"]], 0)
+        segments = np.concatenate([lb["segments"] for lb in x["labels"]], 0)
+        if len(segments) and len(bboxes) != len(segments):
+            LOGGER.warning("WARNING ⚠️ the length of segments and boxes should be the same, "\
+                    f"but got len(segments):{len(segments)}, len(boxes):{len(self._bboxes)}, "\
+                    "force to use boxes only and remove all segments. "\
+                    "This usually happens when your dataset is not pure, "
+                    "Please clean up your datasets to make sure it's pure detection labels or segmentation labels.")
+            for lb in x["labels"]:
+                lb["segments"] = []
+
         if is_dir_writeable(path.parent):
             np.save(str(path), x)  # save cache for next time
             path.with_suffix(".cache.npy").rename(path)  # remove .npy suffix

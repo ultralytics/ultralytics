@@ -149,6 +149,7 @@ class BasePredictor:
         self.from_img = from_img
         self.imgsz = imgsz
         self.bs = bs
+        self.source = source
 
     @smart_inference_mode()
     def __call__(self, source=None, model=None, verbose=False, stream=False):

@@ -87,17 +87,6 @@ class YOLODataset(BaseDataset):
         x["version"] = self.cache_version  # cache version
         # update im_files
         self.im_files = [lb["im_file"] for lb in x["labels"]]
-        # check if the dataset is pure
-        lenb = sum([len(lb["bboxes"]) for lb in x["labels"]])
-        lens = sum([len(lb["segments"]) for lb in x["labels"]])
-        if lens and lenb != lens:
-            LOGGER.warning("WARNING ⚠️ the length of segments and boxes should be the same, "\
-                    f"but got len(segments):{lens}, len(boxes):{lenb}, "\
-                    "force to use boxes only and remove all segments. "\
-                    "This usually happens when your dataset is not pure, "
-                    "Please clean up your datasets to make sure it's pure detection labels or segmentation labels.")
-            for lb in x["labels"]:
-                lb["segments"] = []
 
         if is_dir_writeable(path.parent):
             np.save(str(path), x)  # save cache for next time
@@ -129,6 +118,17 @@ class YOLODataset(BaseDataset):
         # Read cache
         [cache.pop(k) for k in ("hash", "version", "msgs")]  # remove items
         labels = cache["labels"]
+        # check if the dataset is pure
+        lenb = sum([len(lb["bboxes"]) for lb in labels])
+        lens = sum([len(lb["segments"]) for lb in labels])
+        if lens and lenb != lens:
+            LOGGER.warning("WARNING ⚠️ the length of segments and boxes should be the same, "\
+                    f"but got len(segments):{lens}, len(boxes):{lenb}, "\
+                    "force to use boxes only and remove all segments. "\
+                    "This usually happens when your dataset is not pure, "
+                    "Please clean up your datasets to make sure it's pure detection labels or segmentation labels.")
+            for lb in labels:
+                lb["segments"] = []
         nl = len(np.concatenate([label["cls"] for label in labels], 0))  # number of labels
         assert nl > 0, f"{self.prefix}All labels empty in {cache_path}, can not start training. {HELP_URL}"
         return labels

@@ -23,21 +23,21 @@ class YOLODataset(BaseDataset):
     """
 
     def __init__(
-        self,
-        img_path,
-        imgsz=640,
-        label_path=None,
-        cache=False,
-        augment=True,
-        hyp=None,
-        prefix="",
-        rect=False,
-        batch_size=None,
-        stride=32,
-        pad=0.0,
-        single_cls=False,
-        use_segments=False,
-        use_keypoints=False,
+            self,
+            img_path,
+            imgsz=640,
+            label_path=None,
+            cache=False,
+            augment=True,
+            hyp=None,
+            prefix="",
+            rect=False,
+            batch_size=None,
+            stride=32,
+            pad=0.0,
+            single_cls=False,
+            use_segments=False,
+            use_keypoints=False,
     ):
         self.use_segments = use_segments
         self.use_keypoints = use_keypoints
@@ -118,13 +118,14 @@ class YOLODataset(BaseDataset):
         # Read cache
         [cache.pop(k) for k in ("hash", "version", "msgs")]  # remove items
         labels = cache["labels"]
+
         # Check if the dataset is all boxes or all segments
-        lenb = sum(len(lb["bboxes"]) for lb in labels)
-        lens = sum(len(lb["segments"]) for lb in labels)
-        if lens and lenb != lens:
+        len_boxes = sum(len(lb["bboxes"]) for lb in labels)
+        len_segments = sum(len(lb["segments"]) for lb in labels)
+        if len_segments and len_boxes != len_segments:
             LOGGER.warning(
-                "WARNING ⚠️ The length of segments and boxes should be the same, but got len(segments) = {lens}, "
-                "len(boxes) = {lenb}. To resolve this only boxes will be used and all segments will be removed. "
+                f"WARNING ⚠️ Box and segment counts should be equal, but got len(segments) = {len_segments}, "
+                f"len(boxes) = {len_boxes}. To resolve this only boxes will be used and all segments will be removed. "
                 "To avoid this please supply either a detect or segment dataset, not a detect-segment mixed dataset.")
             for lb in labels:
                 lb["segments"] = []

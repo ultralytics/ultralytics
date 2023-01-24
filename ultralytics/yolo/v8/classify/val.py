@@ -47,7 +47,7 @@ class ClassificationValidator(BaseValidator):
 
 def val(cfg=DEFAULT_CFG):
     cfg.model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
-    cfg.data = cfg.data or "imagenette160"
+    cfg.data = cfg.data or "mnist160"
     validator = ClassificationValidator(args=cfg)
     validator(model=cfg.model)
 

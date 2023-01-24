@@ -183,7 +183,7 @@ Default arguments can be overriden by simply passing them as arguments in the CL
 You can override the `default.yaml` config file entirely by passing a new file with the `cfg` arguments,
 i.e. `cfg=custom.yaml`.
 
-To do this first create a copy of `default.yaml` in your current working dir with the `yolo copy-config` command.
+To do this first create a copy of `default.yaml` in your current working dir with the `yolo copy-cfg` command.
 
 This will create `default_copy.yaml`, which you can then pass as `cfg=default_copy.yaml` along with any additional args,
 like `imgsz=320` in this example:
@@ -192,6 +192,6 @@ like `imgsz=320` in this example:
 
     === "CLI"
         ```bash
-        yolo copy-config
+        yolo copy-cfg
         yolo cfg=default_copy.yaml imgsz=320
         ```

@@ -3,13 +3,13 @@
 from pathlib import Path
 
 from ultralytics.yolo.cfg import get_cfg
-from ultralytics.yolo.utils import DEFAULT_CFG_PATH, ROOT, SETTINGS
+from ultralytics.yolo.utils import DEFAULT_CFG, ROOT, SETTINGS
 from ultralytics.yolo.v8 import classify, detect, segment
 
 CFG_DET = 'yolov8n.yaml'
 CFG_SEG = 'yolov8n-seg.yaml'
 CFG_CLS = 'squeezenet1_0'
-CFG = get_cfg(DEFAULT_CFG_PATH)
+CFG = get_cfg(DEFAULT_CFG)
 MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n'
 SOURCE = ROOT / "assets"
 

@@ -18,11 +18,11 @@ from ultralytics.yolo.v8.detect.train import Loss
 # BaseTrainer python usage
 class SegmentationTrainer(v8.detect.DetectionTrainer):
 
-    def __init__(self, config=DEFAULT_CFG, overrides=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None):
         if overrides is None:
             overrides = {}
         overrides["task"] = "segment"
-        super().__init__(config, overrides)
+        super().__init__(cfg, overrides)
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         model = SegmentationModel(cfg, ch=3, nc=self.data["nc"], verbose=verbose)

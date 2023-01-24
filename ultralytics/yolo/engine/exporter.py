@@ -388,7 +388,7 @@ class Exporter:
     @try_export
     def _export_engine(self, workspace=4, verbose=False, prefix=colorstr('TensorRT:')):
         # YOLOv8 TensorRT export https://developer.nvidia.com/tensorrt
-        assert self.im.device.type != 'cpu', 'export running on CPU but must be on GPU, i.e. `device==0`'
+        assert self.im.device.type != 'cpu', "export running on CPU but must be on GPU, i.e. use 'device=0'"
         try:
             import tensorrt as trt  # noqa
         except ImportError:

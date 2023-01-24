@@ -14,7 +14,7 @@ import numpy as np
 import torch
 from PIL import ExifTags, Image, ImageOps
 
-from ultralytics.yolo.utils import DATASETS_DIR, LOGGER, ROOT, colorstr, yaml_load
+from ultralytics.yolo.utils import DATASETS_DIR, LOGGER, ROOT, colorstr, emojis, yaml_load
 from ultralytics.yolo.utils.checks import check_file, check_font, is_ascii
 from ultralytics.yolo.utils.downloads import download
 from ultralytics.yolo.utils.files import unzip_file
@@ -202,7 +202,10 @@ def check_det_dataset(dataset, autodownload=True):
 
     # Checks
     for k in 'train', 'val', 'names':
-        assert k in data, f"data.yaml '{k}:' field missing ❌"
+        if k not in data:
+            raise SyntaxError(
+                emojis(f"{dataset} '{k}:' key missing ❌.\n"
+                       f"'train', 'val' and 'names' are required in data.yaml files."))
     if isinstance(data['names'], (list, tuple)):  # old array format
         data['names'] = dict(enumerate(data['names']))  # convert to dict
     data['nc'] = len(data['names'])

@@ -53,7 +53,12 @@ class YOLO:
         self.overrides = {}  # overrides for trainer object
 
         # Load or create new YOLO model
-        {'.pt': self._load, '.yaml': self._new}[Path(model).suffix](model)
+        load_methods = {'.pt': self._load, '.yaml': self._new}
+        suffix = Path(model).suffix
+        if suffix in load_methods:
+            {'.pt': self._load, '.yaml': self._new}[suffix](model)
+        else:
+            raise NotImplementedError(f"'{suffix}' model loading not implemented")
 
     def __call__(self, source=None, stream=False, verbose=False, **kwargs):
         return self.predict(source, stream, verbose, **kwargs)

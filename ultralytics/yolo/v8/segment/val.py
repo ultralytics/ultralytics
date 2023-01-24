@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
 import os
+import sys
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 
@@ -246,6 +247,14 @@ def val(cfg=DEFAULT_CFG):
     cfg.data = cfg.data or "coco128-seg.yaml"
     validator = SegmentationValidator(args=cfg)
     validator(model=cfg.model)
+
+    if sys.argv[0].endswith('yolo'):  # CLI command
+        from ultralytics import YOLO
+        cfg.verbose = True
+        YOLO(cfg.model).val(**vars(cfg))
+    else:
+        validator = SegmentationValidator(args=cfg)
+        validator(model=cfg.model)
 
 
 if __name__ == "__main__":

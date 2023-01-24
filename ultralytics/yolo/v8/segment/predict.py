@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
 import torch
+import sys
 
 from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils import DEFAULT_CFG, ROOT, ops
@@ -67,7 +68,7 @@ class SegmentationPredictor(DetectionPredictor):
             mask.masks,
             colors=[colors(x, True) for x in det.cls],
             im_gpu=torch.as_tensor(im0, dtype=torch.float16).to(self.device).permute(2, 0, 1).flip(0).contiguous() /
-            255 if self.args.retina_masks else im[idx])
+                   255 if self.args.retina_masks else im[idx])
 
         # Segments
         if self.args.save_txt:
@@ -102,8 +103,14 @@ def predict(cfg=DEFAULT_CFG):
     cfg.model = cfg.model or "yolov8n-seg.pt"
     cfg.source = cfg.source if cfg.source is not None else ROOT / "assets" if (ROOT / "assets").exists() \
         else "https://ultralytics.com/images/bus.jpg"
-    predictor = SegmentationPredictor(cfg)
-    predictor.predict_cli()
+
+    if sys.argv[0].endswith('yolo'):  # CLI command
+        from ultralytics import YOLO
+        cfg.verbose = True
+        YOLO(cfg.model)(**vars(cfg))
+    else:
+        predictor = SegmentationPredictor(cfg)
+        predictor.predict_cli()
 
 
 if __name__ == "__main__":

@@ -1,4 +1,5 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
+import sys
 
 import torch
 
@@ -67,8 +68,14 @@ def predict(cfg=DEFAULT_CFG):
     cfg.model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
     cfg.source = cfg.source if cfg.source is not None else ROOT / "assets" if (ROOT / "assets").exists() \
         else "https://ultralytics.com/images/bus.jpg"
-    predictor = ClassificationPredictor(cfg)
-    predictor.predict_cli()
+
+    if sys.argv[0].endswith('yolo'):  # CLI command
+        from ultralytics import YOLO
+        cfg.verbose=True
+        YOLO(cfg.model)(**vars(cfg))
+    else:
+        predictor = ClassificationPredictor(cfg)
+        predictor.predict_cli()
 
 
 if __name__ == "__main__":

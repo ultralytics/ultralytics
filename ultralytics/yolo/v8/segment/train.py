@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
-
+import sys
 from copy import copy
 
 import torch
@@ -144,11 +144,14 @@ def train(cfg=DEFAULT_CFG):
     cfg.model = cfg.model or "yolov8n-seg.pt"
     cfg.data = cfg.data or "coco128-seg.yaml"  # or yolo.ClassificationDataset("mnist")
     cfg.device = cfg.device if cfg.device is not None else ''
-    # trainer = SegmentationTrainer(cfg)
-    # trainer.train()
-    from ultralytics import YOLO
-    model = YOLO(cfg.model)
-    model.train(**vars(cfg))
+
+    if sys.argv[0].endswith('yolo'):  # CLI command
+        from ultralytics import YOLO
+        cfg.verbose = True
+        YOLO(cfg.model).train(**vars(cfg))
+    else:
+        trainer = SegmentationTrainer(cfg)
+        trainer.train()
 
 
 if __name__ == "__main__":

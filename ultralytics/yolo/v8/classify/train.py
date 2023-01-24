@@ -1,4 +1,5 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
+import sys
 
 import torch
 import torchvision
@@ -138,19 +139,15 @@ class ClassificationTrainer(BaseTrainer):
 def train(cfg=DEFAULT_CFG):
     cfg.model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
     cfg.data = cfg.data or "mnist160"  # or yolo.ClassificationDataset("mnist")
-
-    # Reproduce ImageNet results
-    # cfg.lr0 = 0.1
-    # cfg.weight_decay = 5e-5
-    # cfg.label_smoothing = 0.1
-    # cfg.warmup_epochs = 0.0
-
     cfg.device = cfg.device if cfg.device is not None else ''
-    # trainer = ClassificationTrainer(cfg)
-    # trainer.train()
-    from ultralytics import YOLO
-    model = YOLO(cfg.model)
-    model.train(**vars(cfg))
+
+    if sys.argv[0].endswith('yolo'):  # CLI command
+        from ultralytics import YOLO
+        cfg.verbose = True
+        YOLO(cfg.model).train(**vars(cfg))
+    else:
+        trainer = ClassificationTrainer(cfg)
+        trainer.train()
 
 
 if __name__ == "__main__":

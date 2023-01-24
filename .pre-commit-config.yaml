@@ -70,7 +70,7 @@ repos:
     rev: v2.2.2
     hooks:
       - id: codespell
-  
+
   #- repo: https://github.com/asottile/yesqa
   #  rev: v1.4.0
   #  hooks:

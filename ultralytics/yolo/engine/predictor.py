@@ -164,8 +164,6 @@ class BasePredictor:
             pass
 
     def stream_inference(self, source=None, model=None, verbose=False):
-        self.run_callbacks("on_predict_start")
-
         # setup model
         if not self.model:
             self.setup_model(model)
@@ -174,6 +172,8 @@ class BasePredictor:
         # check if save_dir/ label file exists
         if self.args.save or self.args.save_txt:
             (self.save_dir / 'labels' if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
+        
+        self.run_callbacks("on_predict_start")
         # warmup model
         if not self.done_warmup:
             self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.bs, 3, *self.imgsz))

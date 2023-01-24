@@ -119,8 +119,8 @@ class YOLODataset(BaseDataset):
         [cache.pop(k) for k in ("hash", "version", "msgs")]  # remove items
         labels = cache["labels"]
         # check if the dataset is pure
-        lenb = sum([len(lb["bboxes"]) for lb in labels])
-        lens = sum([len(lb["segments"]) for lb in labels])
+        lenb = sum(len(lb["bboxes"]) for lb in labels)
+        lens = sum(len(lb["segments"]) for lb in labels)
         if lens and lenb != lens:
             LOGGER.warning("WARNING ⚠️ the length of segments and boxes should be the same, "\
                     f"but got len(segments):{lens}, len(boxes):{lenb}, "\

@@ -13,11 +13,11 @@ from ultralytics.yolo.utils.torch_utils import strip_optimizer
 
 class ClassificationTrainer(BaseTrainer):
 
-    def __init__(self, config=DEFAULT_CFG, overrides=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None):
         if overrides is None:
             overrides = {}
         overrides["task"] = "classify"
-        super().__init__(config, overrides)
+        super().__init__(cfg, overrides)
 
     def set_model_attributes(self):
         self.model.names = self.data["names"]

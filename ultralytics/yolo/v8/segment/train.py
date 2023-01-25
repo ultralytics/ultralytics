@@ -140,13 +140,13 @@ class SegLoss(Loss):
         return (crop_mask(loss, xyxy).mean(dim=(1, 2)) / area).mean()
 
 
-def train(cfg=DEFAULT_CFG):
+def train(cfg=DEFAULT_CFG, use_python=False):
     model = cfg.model or "yolov8n-seg.pt"
     data = cfg.data or "coco128-seg.yaml"  # or yolo.ClassificationDataset("mnist")
     device = cfg.device if cfg.device is not None else ''
 
     args = dict(model=model, data=data, device=device, verbose=True)
-    if sys.argv[0].endswith('yolo'):  # CLI command
+    if use_python:
         from ultralytics import YOLO
         YOLO(model).train(**args)
     else:

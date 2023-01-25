@@ -194,13 +194,13 @@ class Loss:
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
 
 
-def train(cfg=DEFAULT_CFG):
+def train(cfg=DEFAULT_CFG, use_python=False):
     model = cfg.model or "yolov8n.pt"
     data = cfg.data or "coco128.yaml"  # or yolo.ClassificationDataset("mnist")
     device = cfg.device if cfg.device is not None else ''
 
     args = dict(model=model, data=data, device=device, verbose=True)
-    if sys.argv[0].endswith('yolo'):  # CLI command
+    if use_python:
         from ultralytics import YOLO
         YOLO(model).train(**args)
     else:

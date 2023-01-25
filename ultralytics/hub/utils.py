@@ -176,10 +176,11 @@ class Traces:
             if not all_keys:  # filter cfg
                 include_keys = {'task', 'mode'}  # always include
                 cfg = {k: v for k, v in cfg.items() if v != DEFAULT_CFG_DICT.get(k, None) or k in include_keys}
+            trace={'uuid': SETTINGS['uuid'], 'cfg': cfg, 'metadata': self.metadata}
 
             # Send a request to the HUB API to sync analytics
             smart_request(f'{HUB_API_ROOT}/v1/usage/anonymous',
-                          json={'uuid': SETTINGS['uuid'], 'cfg': cfg, 'metadata': self.metadata},
+                          json=trace,
                           headers=None,
                           code=3,
                           retry=0,

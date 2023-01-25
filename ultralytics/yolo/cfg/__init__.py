@@ -228,7 +228,7 @@ def entrypoint(debug=False):
     if 'source' not in overrides:
         overrides['source'] = DEFAULT_CFG_DICT['source'] or ROOT / "assets" if (ROOT / "assets").exists() \
             else "https://ultralytics.com/images/bus.jpg"
-        LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using default 'model={overrides['source']}'.")
+        LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using default 'source={overrides['source']}'.")
 
     # Run command in python
     from ultralytics.yolo.engine.model import YOLO

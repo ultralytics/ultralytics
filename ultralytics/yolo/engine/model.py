@@ -76,7 +76,7 @@ class YOLO:
         cfg_dict = yaml_load(cfg, append_filename=True)  # model dict
         self.task = guess_model_task(cfg_dict)
         self.ModelClass, self.TrainerClass, self.ValidatorClass, self.PredictorClass = \
-            self._guess_ops_from_task(self.task)
+            self._assign_ops_from_task(self.task)
         self.model = self.ModelClass(cfg_dict, verbose=verbose)  # initialize
         self.cfg = cfg
 
@@ -93,7 +93,7 @@ class YOLO:
         self.overrides = self.model.args
         self._reset_ckpt_args(self.overrides)
         self.ModelClass, self.TrainerClass, self.ValidatorClass, self.PredictorClass = \
-            self._guess_ops_from_task(self.task)
+            self._assign_ops_from_task(self.task)
 
     def reset(self):
         """
@@ -218,7 +218,7 @@ class YOLO:
         """
         self.model.to(device)
 
-    def _guess_ops_from_task(self, task):
+    def _assign_ops_from_task(self, task):
         model_class, train_lit, val_lit, pred_lit = MODEL_MAP[task]
         # warning: eval is unsafe. Use with caution
         trainer_class = eval(train_lit.replace("TYPE", f"{self.type}"))

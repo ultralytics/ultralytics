@@ -179,7 +179,10 @@ class Traces:
 
             # Send a request to the HUB API to sync analytics
             smart_request(f'{HUB_API_ROOT}/v1/usage/anonymous',
-                          json={'uuid': SETTINGS['uuid'], 'cfg': cfg, 'metadata': self.metadata},
+                          json={
+                              'uuid': SETTINGS['uuid'],
+                              'cfg': cfg,
+                              'metadata': self.metadata},
                           headers=None,
                           code=3,
                           retry=0,

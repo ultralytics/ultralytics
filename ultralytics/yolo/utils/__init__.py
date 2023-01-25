@@ -116,6 +116,9 @@ class IterableSimpleNamespace(SimpleNamespace):
 # Default configuration
 with open(DEFAULT_CFG_PATH, errors='ignore') as f:
     DEFAULT_CFG_DICT = yaml.safe_load(f)
+    for k, v in DEFAULT_CFG_DICT.items():
+        if isinstance(v, str) and v.lower() == 'none':
+            DEFAULT_CFG_DICT[k] = None
 DEFAULT_CFG_KEYS = DEFAULT_CFG_DICT.keys()
 DEFAULT_CFG = IterableSimpleNamespace(**DEFAULT_CFG_DICT)
 

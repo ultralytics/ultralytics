@@ -11,9 +11,9 @@ from random import random
 
 import requests
 
-from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, LOGGER, RANK, SETTINGS, TryExcept, colorstr, emojis,
-                                    get_git_origin_url, is_colab, is_docker, is_git_dir, is_github_actions_ci,
-                                    is_jupyter, is_kaggle, is_pip_package, is_pytest_running)
+from ultralytics.yolo.utils import DEFAULT_CFG_DICT, LOGGER, RANK, SETTINGS, TryExcept, colorstr, emojis, is_colab, \
+    is_kaggle, is_jupyter, is_docker, is_git_dir, is_pip_package, is_pytest_running, is_github_actions_ci, \
+    get_git_origin_url
 
 PREFIX = colorstr('Ultralytics: ')
 HELP_MSG = 'If this issue persists please visit https://github.com/ultralytics/hub/issues for assistance.'
@@ -143,20 +143,15 @@ class Traces():
         Initialize Traces for error tracking and reporting if tests are not currently running.
         """
         import ultralytics
+        env = 'Colab' if is_colab() else 'Kaggle' if is_kaggle() else 'Jupyter' if is_jupyter() else \
+            'Docker' if is_docker() else platform.system()
         self.metadata = {
-            "sys_argv_name":
-            Path(sys.argv[0]).name,
-            "install":
-            'git' if is_git_dir() else 'pip' if is_pip_package() else 'other',
-            "python":
-            platform.python_version(),
-            "release":
-            ultralytics.__version__,
-            "uuid":
-            SETTINGS['uuid'],
-            "environment":
-            'colab' if is_colab() else
-            'kaggle' if is_kaggle() else 'jupyter' if is_jupyter() else 'docker' if is_docker() else platform.system()}
+            "sys_argv_name": Path(sys.argv[0]).name,
+            "install": 'git' if is_git_dir() else 'pip' if is_pip_package() else 'other',
+            "python": platform.python_version(),
+            "release": ultralytics.__version__,
+            "uuid": SETTINGS['uuid'],
+            "environment": env}
         self.enabled = SETTINGS['sync'] and \
                        RANK in {-1, 0} and \
                        not is_pytest_running() and \

@@ -448,13 +448,13 @@ def set_sentry():
     """
 
     def before_send(event, hint):
-        oss = 'colab' if is_colab() else 'kaggle' if is_kaggle() else 'jupyter' if is_jupyter() else \
-            'docker' if is_docker() else platform.system()
+        env = 'Colab' if is_colab() else 'Kaggle' if is_kaggle() else 'Jupyter' if is_jupyter() else \
+            'Docker' if is_docker() else platform.system()
         event['tags'] = {
             "sys_argv": sys.argv[0],
             "sys_argv_name": Path(sys.argv[0]).name,
             "install": 'git' if is_git_dir() else 'pip' if is_pip_package() else 'other',
-            "os": oss}
+            "os": env}
         return event
 
     if SETTINGS['sync'] and \

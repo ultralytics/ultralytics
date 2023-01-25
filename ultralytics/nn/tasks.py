@@ -424,8 +424,8 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
 
         n = n_ = max(round(n * gd), 1) if n > 1 else n  # depth gain
         if m in {
-                Classify, Conv, ConvTranspose, GhostConv, Bottleneck, GhostBottleneck, SPP, SPPF, DWConv, Focus,
-                BottleneckCSP, C1, C2, C2f, C3, C3TR, C3Ghost, nn.ConvTranspose2d, DWConvTranspose2d, C3x}:
+            Classify, Conv, ConvTranspose, GhostConv, Bottleneck, GhostBottleneck, SPP, SPPF, DWConv, Focus,
+            BottleneckCSP, C1, C2, C2f, C3, C3TR, C3Ghost, nn.ConvTranspose2d, DWConvTranspose2d, C3x}:
             c1, c2 = ch[f], args[0]
             if c2 != nc:  # if c2 not equal to number of classes (i.e. for Classify() output)
                 c2 = make_divisible(c2 * gw, 8)
@@ -472,10 +472,13 @@ def guess_model_task(model):
     Raises:
         SyntaxError: If the task of the model could not be determined.
     """
-    cfg, task = None, None
+    cfg = None
     if isinstance(model, dict):
         cfg = model
     elif isinstance(model, nn.Module):  # PyTorch model
+        for x in 'model.args', 'model.model.args', 'model.model.model.args':
+            with contextlib.suppress(Exception):
+                return eval(x)['task']
         for x in 'model.yaml', 'model.model.yaml', 'model.model.model.yaml':
             with contextlib.suppress(Exception):
                 cfg = eval(x)
@@ -485,25 +488,22 @@ def guess_model_task(model):
     if cfg:
         m = cfg["head"][-1][-2].lower()  # output module name
         if m in ["classify", "classifier", "cls", "fc"]:
-            task = "classify"
+            return "classify"
         if m in ["detect"]:
-            task = "detect"
+            return "detect"
         if m in ["segment"]:
-            task = "segment"
+            return "segment"
 
     # Guess from PyTorch model
-    if task is None and isinstance(model, nn.Module):
+    if isinstance(model, nn.Module):
         for m in model.modules():
             if isinstance(m, Detect):
-                task = "detect"
+                return "detect"
             elif isinstance(m, Segment):
-                task = "segment"
+                return "segment"
             elif isinstance(m, Classify):
-                task = "classify"
+                return "classify"
 
     # Unable to determine task from model
-    if task is None:
-        raise SyntaxError("YOLO is unable to automatically guess model task. Explicitly define task for your model, "
-                          "i.e. 'task=detect', 'task=segment' or 'task=classify'.")
-    else:
-        return task
+    raise SyntaxError("YOLO is unable to automatically guess model task. Explicitly define task for your model, "
+                      "i.e. 'task=detect', 'task=segment' or 'task=classify'.")

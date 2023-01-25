@@ -11,9 +11,9 @@ from random import random
 
 import requests
 
-from ultralytics.yolo.utils import DEFAULT_CFG_DICT, LOGGER, RANK, SETTINGS, TryExcept, colorstr, emojis, is_colab, \
-    is_kaggle, is_jupyter, is_docker, is_git_dir, is_pip_package, is_pytest_running, is_github_actions_ci, \
-    get_git_origin_url
+from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, LOGGER, RANK, SETTINGS, TryExcept, colorstr, emojis,
+                                    get_git_origin_url, is_colab, is_docker, is_git_dir, is_github_actions_ci,
+                                    is_jupyter, is_kaggle, is_pip_package, is_pytest_running)
 
 PREFIX = colorstr('Ultralytics: ')
 HELP_MSG = 'If this issue persists please visit https://github.com/ultralytics/hub/issues for assistance.'

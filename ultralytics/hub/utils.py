@@ -152,7 +152,6 @@ class Traces:
             "install": 'git' if is_git_dir() else 'pip' if is_pip_package() else 'other',
             "python": platform.python_version(),
             "release": __version__,
-            "uuid": SETTINGS['uuid'],
             "environment": env}
         self.enabled = SETTINGS['sync'] and \
                        RANK in {-1, 0} and \
@@ -177,10 +176,14 @@ class Traces:
             if not all_keys:  # filter cfg
                 include_keys = {'task', 'mode'}  # always include
                 cfg = {k: v for k, v in cfg.items() if v != DEFAULT_CFG_DICT.get(k, None) or k in include_keys}
-                cfg.pop('save_dir')
 
             # Send a request to the HUB API to sync analytics
-            smart_request(f'{HUB_API_ROOT}/v1/usage/anonymous', json=cfg, headers=None, code=3, retry=0, verbose=False)
+            smart_request(f'{HUB_API_ROOT}/v1/usage/anonymous',
+                          json={'uuid': SETTINGS['uuid'], 'cfg': cfg, 'metadata': self.metadata},
+                          headers=None,
+                          code=3,
+                          retry=0,
+                          verbose=False)
 
 
 # Run below code on hub/utils init -------------------------------------------------------------------------------------

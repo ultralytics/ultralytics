@@ -251,7 +251,7 @@ class ClassificationModel(BaseModel):
                  ch=3,
                  nc=1000,
                  cutoff=10,
-                 verbose=True):  # yaml, model, number of classes, cutoff index
+                 verbose=True):  # yaml, model, channels, number of classes, cutoff index, verbose flag
         super().__init__()
         self._from_detection_model(model, nc, cutoff) if model is not None else self._from_yaml(cfg, ch, nc, verbose)
 
@@ -460,11 +460,23 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
 
 
 def guess_model_task(model):
+    """
+    Guess the task of a PyTorch model from its architecture or configuration.
+
+    Args:
+        model (nn.Module) or (dict): PyTorch model or model configuration in YAML format.
+
+    Returns:
+        str: Task of the model ('detect', 'segment', 'classify').
+
+    Raises:
+        SyntaxError: If the task of the model could not be determined.
+    """
     cfg, task = None, None
     if isinstance(model, dict):
         cfg = model
     elif isinstance(model, nn.Module):  # PyTorch model
-        for x in 'model.yaml', 'model.model.yaml', 'model.model.yaml':
+        for x in 'model.yaml', 'model.model.yaml', 'model.model.model.yaml':
             with contextlib.suppress(Exception):
                 cfg = eval(x)
                 break
@@ -481,7 +493,7 @@ def guess_model_task(model):
 
     # Guess from PyTorch model
     if task is None and isinstance(model, nn.Module):
-        for k, m in model.named_modules():
+        for m in model.modules():
             if isinstance(m, Detect):
                 task = "detect"
             elif isinstance(m, Segment):

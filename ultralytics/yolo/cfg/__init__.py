@@ -8,7 +8,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, List, Union
 
-from ultralytics import __version__, yolo
+from ultralytics import __version__
 from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, PREFIX, USER_CONFIG_DIR,
                                     IterableSimpleNamespace, colorstr, yaml_load, yaml_print)
 from ultralytics.yolo.utils.checks import check_yolo
@@ -211,30 +211,25 @@ def entrypoint(debug=False):
         else:
             raise argument_error(a)
 
-    cfg = get_cfg(DEFAULT_CFG_DICT, overrides)  # create CFG instance
-
     # Checks error catch
-    if cfg.mode == 'checks':
+    if overrides['mode'] == 'checks':
         LOGGER.warning(
             "WARNING ⚠️ 'yolo mode=checks' is deprecated and will be removed in the future. Use 'yolo checks' instead.")
         check_yolo()
         return
 
-    # Mapping from task to module
-    module = {"detect": yolo.v8.detect, "segment": yolo.v8.segment, "classify": yolo.v8.classify}.get(cfg.task)
-    if not module:
-        raise SyntaxError(f"yolo task={cfg.task} is invalid. Valid tasks are: {', '.join(tasks)}\n{CLI_HELP_MSG}")
-
-    # Mapping from mode to function
-    func = {
-        "train": module.train,
-        "val": module.val,
-        "predict": module.predict,
-        "export": yolo.engine.exporter.export}.get(cfg.mode)
-    if not func:
-        raise SyntaxError(f"yolo mode={cfg.mode} is invalid. Valid modes are: {', '.join(modes)}\n{CLI_HELP_MSG}")
-
-    func(cfg)
+    # Run command in python
+    mode = overrides['mode']
+    from ultralytics import YOLO
+    model = YOLO(overrides['model'])
+    if mode == 'train':
+        model.train(**overrides)
+    if mode == 'val':
+        model.val(**overrides)
+    if mode == 'predict':
+        model.predict(**overrides)
+    if mode == 'export':
+        model.export(**overrides)
 
 
 # Special modes --------------------------------------------------------------------------------------------------------

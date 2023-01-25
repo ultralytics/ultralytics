@@ -245,7 +245,13 @@ class SegmentationModel(DetectionModel):
 
 class ClassificationModel(BaseModel):
     # YOLOv8 classification model
-    def __init__(self, cfg=None, model=None, ch=3, nc=1000, cutoff=10, verbose=True):  # yaml, model, number of classes, cutoff index
+    def __init__(self,
+                 cfg=None,
+                 model=None,
+                 ch=3,
+                 nc=1000,
+                 cutoff=10,
+                 verbose=True):  # yaml, model, number of classes, cutoff index
         super().__init__()
         self._from_detection_model(model, nc, cutoff) if model is not None else self._from_yaml(cfg, ch, nc, verbose)
 
@@ -417,8 +423,9 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 args[j] = eval(a) if isinstance(a, str) else a  # eval strings
 
         n = n_ = max(round(n * gd), 1) if n > 1 else n  # depth gain
-        if m in {Classify, Conv, ConvTranspose, GhostConv, Bottleneck, GhostBottleneck, SPP, SPPF, DWConv, Focus,
-                 BottleneckCSP, C1, C2, C2f, C3, C3TR, C3Ghost, nn.ConvTranspose2d, DWConvTranspose2d, C3x}:
+        if m in {
+                Classify, Conv, ConvTranspose, GhostConv, Bottleneck, GhostBottleneck, SPP, SPPF, DWConv, Focus,
+                BottleneckCSP, C1, C2, C2f, C3, C3TR, C3Ghost, nn.ConvTranspose2d, DWConvTranspose2d, C3x}:
             c1, c2 = ch[f], args[0]
             if c2 != nc:  # if c2 not equal to number of classes (i.e. for Classify() output)
                 c2 = make_divisible(c2 * gw, 8)

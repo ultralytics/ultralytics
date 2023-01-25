@@ -3,8 +3,8 @@
 from pathlib import Path
 
 from ultralytics import yolo  # noqa
-from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, attempt_load_one_weight, \
-    guess_model_task
+from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, SegmentationModel, attempt_load_one_weight,
+                                  guess_model_task)
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, callbacks, yaml_load

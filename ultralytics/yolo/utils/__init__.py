@@ -529,7 +529,7 @@ def set_settings(kwargs, file=USER_CONFIG_DIR / 'settings.yaml'):
     yaml_save(file, SETTINGS)
 
 
-# Run below code on utils init -----------------------------------------------------------------------------------------
+# Run below code on yolo/utils init ------------------------------------------------------------------------------------
 
 # Set logger
 set_logging(LOGGING_NAME)  # run before defining LOGGER

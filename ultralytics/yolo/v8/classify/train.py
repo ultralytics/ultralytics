@@ -144,7 +144,7 @@ def train(cfg=DEFAULT_CFG):
     args = dict(model=model, data=data, device=device, verbose=True)
     if sys.argv[0].endswith('yolo'):  # CLI command
         from ultralytics import YOLO
-        YOLO(cfg.model).train(**args)
+        YOLO(model).train(**args)
     else:
         trainer = ClassificationTrainer(args)
         trainer.train()

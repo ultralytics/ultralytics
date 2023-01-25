@@ -90,7 +90,7 @@ def predict(cfg=DEFAULT_CFG):
     args = dict(model=model, source=source, verbose=True)
     if sys.argv[0].endswith('yolo'):  # CLI command
         from ultralytics import YOLO
-        YOLO(cfg.model)(**args)
+        YOLO(model)(**args)
     else:
         predictor = DetectionPredictor(args)
         predictor.predict_cli()

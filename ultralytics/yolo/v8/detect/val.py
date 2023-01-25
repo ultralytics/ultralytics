@@ -240,7 +240,7 @@ def val(cfg=DEFAULT_CFG):
     args = dict(model=model, data=data, verbose=True)
     if sys.argv[0].endswith('yolo'):  # CLI command
         from ultralytics import YOLO
-        YOLO(cfg.model).val(**args)
+        YOLO(model).val(**args)
     else:
         validator = DetectionValidator(args=args)
         validator(model=args['model'])

@@ -65,16 +65,16 @@ class ClassificationPredictor(BasePredictor):
 
 
 def predict(cfg=DEFAULT_CFG):
-    cfg.model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
-    cfg.source = cfg.source if cfg.source is not None else ROOT / "assets" if (ROOT / "assets").exists() \
+    model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
+    source = cfg.source if cfg.source is not None else ROOT / "assets" if (ROOT / "assets").exists() \
         else "https://ultralytics.com/images/bus.jpg"
 
+    args = dict(model=model, source=source, verbose=True)
     if sys.argv[0].endswith('yolo'):  # CLI command
         from ultralytics import YOLO
-        cfg.verbose = True
-        YOLO(cfg.model)(**vars(cfg))
+        YOLO(cfg.model)(**args)
     else:
-        predictor = ClassificationPredictor(cfg)
+        predictor = ClassificationPredictor(args)
         predictor.predict_cli()
 
 

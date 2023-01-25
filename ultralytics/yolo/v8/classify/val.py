@@ -47,16 +47,16 @@ class ClassificationValidator(BaseValidator):
 
 
 def val(cfg=DEFAULT_CFG):
-    cfg.model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
-    cfg.data = cfg.data or "mnist160"
+    model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
+    data = cfg.data or "mnist160"
 
+    args = dict(model=model, data=data, verbose=True)
     if sys.argv[0].endswith('yolo'):  # CLI command
         from ultralytics import YOLO
-        cfg.verbose = True
-        YOLO(cfg.model).val(**vars(cfg))
+        YOLO(cfg.model).val(**args)
     else:
-        validator = ClassificationValidator(args=cfg)
-        validator(model=cfg.model)
+        validator = ClassificationValidator(args=args)
+        validator(model=args['model'])
 
 
 if __name__ == "__main__":

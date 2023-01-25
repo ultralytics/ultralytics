@@ -137,16 +137,16 @@ class ClassificationTrainer(BaseTrainer):
 
 
 def train(cfg=DEFAULT_CFG):
-    cfg.model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
-    cfg.data = cfg.data or "mnist160"  # or yolo.ClassificationDataset("mnist")
-    cfg.device = cfg.device if cfg.device is not None else ''
+    model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
+    data = cfg.data or "mnist160"  # or yolo.ClassificationDataset("mnist")
+    device = cfg.device if cfg.device is not None else ''
 
+    args = dict(model=model, data=data, device=device, verbose=True)
     if sys.argv[0].endswith('yolo'):  # CLI command
         from ultralytics import YOLO
-        cfg.verbose = True
-        YOLO(cfg.model).train(**vars(cfg))
+        YOLO(cfg.model).train(**args)
     else:
-        trainer = ClassificationTrainer(cfg)
+        trainer = ClassificationTrainer(args)
         trainer.train()
 
 

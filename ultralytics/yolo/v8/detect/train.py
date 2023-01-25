@@ -195,16 +195,16 @@ class Loss:
 
 
 def train(cfg=DEFAULT_CFG):
-    cfg.model = cfg.model or "yolov8n.pt"
-    cfg.data = cfg.data or "coco128.yaml"  # or yolo.ClassificationDataset("mnist")
-    cfg.device = cfg.device if cfg.device is not None else ''
+    model = cfg.model or "yolov8n.pt"
+    data = cfg.data or "coco128.yaml"  # or yolo.ClassificationDataset("mnist")
+    device = cfg.device if cfg.device is not None else ''
 
+    args = dict(model=model, data=data, device=device, verbose=True)
     if sys.argv[0].endswith('yolo'):  # CLI command
         from ultralytics import YOLO
-        cfg.verbose = True
-        YOLO(cfg.model).train(**vars(cfg))
+        YOLO(cfg.model).train(**args)
     else:
-        trainer = DetectionTrainer(cfg)
+        trainer = DetectionTrainer(args)
         trainer.train()
 
 

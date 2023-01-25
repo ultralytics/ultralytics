@@ -234,16 +234,16 @@ class DetectionValidator(BaseValidator):
 
 
 def val(cfg=DEFAULT_CFG):
-    cfg.model = cfg.model or "yolov8n.pt"
-    cfg.data = cfg.data or "coco128.yaml"
+    model = cfg.model or "yolov8n.pt"
+    data = cfg.data or "coco128.yaml"
 
+    args = dict(model=model, data=data, verbose=True)
     if sys.argv[0].endswith('yolo'):  # CLI command
         from ultralytics import YOLO
-        cfg.verbose = True
-        YOLO(cfg.model).val(**vars(cfg))
+        YOLO(cfg.model).val(**args)
     else:
-        validator = DetectionValidator(args=cfg)
-        validator(model=cfg.model)
+        validator = DetectionValidator(args=args)
+        validator(model=args['model'])
 
 
 if __name__ == "__main__":

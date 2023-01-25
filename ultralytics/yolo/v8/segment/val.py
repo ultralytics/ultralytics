@@ -244,17 +244,16 @@ class SegmentationValidator(DetectionValidator):
 
 
 def val(cfg=DEFAULT_CFG):
-    cfg.data = cfg.data or "coco128-seg.yaml"
-    validator = SegmentationValidator(args=cfg)
-    validator(model=cfg.model)
+    model = cfg.model or "yolov8n-seg.pt"
+    data = cfg.data or "coco128-seg.yaml"
 
+    args = dict(model=model, data=data, verbose=True)
     if sys.argv[0].endswith('yolo'):  # CLI command
         from ultralytics import YOLO
-        cfg.verbose = True
-        YOLO(cfg.model).val(**vars(cfg))
+        YOLO(cfg.model).val(**args)
     else:
-        validator = SegmentationValidator(args=cfg)
-        validator(model=cfg.model)
+        validator = SegmentationValidator(args=args)
+        validator(model=args['model'])
 
 
 if __name__ == "__main__":

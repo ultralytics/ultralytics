@@ -245,13 +245,7 @@ class SegmentationModel(DetectionModel):
 
 class ClassificationModel(BaseModel):
     # YOLOv8 classification model
-    def __init__(self,
-                 cfg=None,
-                 model=None,
-                 ch=3,
-                 nc=1000,
-                 cutoff=10,
-                 verbose=True):  # yaml, model, number of classes, cutoff index
+    def __init__(self, cfg=None, model=None, ch=3, nc=1000, cutoff=10, verbose=True):  # yaml, model, number of classes, cutoff index
         super().__init__()
         self._from_detection_model(model, nc, cutoff) if model is not None else self._from_yaml(cfg, ch, nc, verbose)
 
@@ -423,9 +417,8 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 args[j] = eval(a) if isinstance(a, str) else a  # eval strings
 
         n = n_ = max(round(n * gd), 1) if n > 1 else n  # depth gain
-        if m in {
-                Classify, Conv, ConvTranspose, GhostConv, Bottleneck, GhostBottleneck, SPP, SPPF, DWConv, Focus,
-                BottleneckCSP, C1, C2, C2f, C3, C3TR, C3Ghost, nn.ConvTranspose2d, DWConvTranspose2d, C3x}:
+        if m in {Classify, Conv, ConvTranspose, GhostConv, Bottleneck, GhostBottleneck, SPP, SPPF, DWConv, Focus,
+                 BottleneckCSP, C1, C2, C2f, C3, C3TR, C3Ghost, nn.ConvTranspose2d, DWConvTranspose2d, C3x}:
             c1, c2 = ch[f], args[0]
             if c2 != nc:  # if c2 not equal to number of classes (i.e. for Classify() output)
                 c2 = make_divisible(c2 * gw, 8)
@@ -457,3 +450,41 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             ch = []
         ch.append(c2)
     return nn.Sequential(*layers), sorted(save)
+
+
+def guess_model_task(model):
+    cfg, task = None, None
+    if isinstance(model, dict):
+        cfg = model
+    elif isinstance(model, nn.Module):  # PyTorch model
+        for x in 'model.yaml', 'model.model.yaml', 'model.model.yaml':
+            with contextlib.suppress(Exception):
+                cfg = eval(x)
+                break
+
+    # Guess from YAML dictionary
+    if cfg:
+        m = cfg["head"][-1][-2].lower()  # output module name
+        if m in ["classify", "classifier", "cls", "fc"]:
+            task = "classify"
+        if m in ["detect"]:
+            task = "detect"
+        if m in ["segment"]:
+            task = "segment"
+
+    # Guess from PyTorch model
+    if task is None and isinstance(model, nn.Module):
+        for k, m in model.named_modules():
+            if isinstance(m, Detect):
+                task = "detect"
+            elif isinstance(m, Segment):
+                task = "segment"
+            elif isinstance(m, Classify):
+                task = "classify"
+
+    # Unable to determine task from model
+    if task is None:
+        raise SyntaxError('Unknown task. Define task explicitly, i.e. task=detect when running your command. '
+                          'Valid tasks are detect, segment, classify.')
+    else:
+        return task

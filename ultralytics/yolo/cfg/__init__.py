@@ -10,7 +10,7 @@ from typing import Dict, List, Union
 
 from ultralytics import __version__
 from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, PREFIX, USER_CONFIG_DIR,
-                                    IterableSimpleNamespace, colorstr, yaml_load, yaml_print)
+                                    IterableSimpleNamespace, colorstr, yaml_load, yaml_print, ROOT)
 from ultralytics.yolo.utils.checks import check_yolo
 
 CLI_HELP_MSG = \
@@ -211,25 +211,29 @@ def entrypoint(debug=False):
         else:
             raise argument_error(a)
 
-    # Checks error catch
-    if overrides['mode'] == 'checks':
+    # Checks
+    overrides['verbose'] = True
+    if 'mode' not in overrides:
+        overrides['mode'] = DEFAULT_CFG_DICT['mode'] or 'predict'
+        LOGGER.warning(
+            f"WARNING ⚠️ 'mode' is missing. Valid modes are {modes}. Using default 'mode={overrides['mode']}'.")
+    elif overrides['mode'] == 'checks':
         LOGGER.warning(
             "WARNING ⚠️ 'yolo mode=checks' is deprecated and will be removed in the future. Use 'yolo checks' instead.")
         check_yolo()
         return
+    if 'model' not in overrides:
+        overrides['model'] = DEFAULT_CFG_DICT['model'] or 'yolov8n.pt'
+        LOGGER.warning(f"WARNING ⚠️ 'model' is missing. Using default 'model={overrides['model']}'.")
+    if 'source' not in overrides:
+        overrides['source'] = DEFAULT_CFG_DICT['source'] or ROOT / "assets" if (ROOT / "assets").exists() \
+            else "https://ultralytics.com/images/bus.jpg"
+        LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using default 'model={overrides['source']}'.")
 
     # Run command in python
-    mode = overrides['mode']
-    from ultralytics import YOLO
+    from ultralytics.yolo.engine.model import YOLO
     model = YOLO(overrides['model'])
-    if mode == 'train':
-        model.train(**overrides)
-    if mode == 'val':
-        model.val(**overrides)
-    if mode == 'predict':
-        model.predict(**overrides)
-    if mode == 'export':
-        model.export(**overrides)
+    getattr(model, overrides['mode'])(**overrides)
 
 
 # Special modes --------------------------------------------------------------------------------------------------------

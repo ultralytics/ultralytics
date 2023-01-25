@@ -142,14 +142,14 @@ class Traces():
         """
         Initialize Traces for error tracking and reporting if tests are not currently running.
         """
-        import ultralytics
+        from ultralytics import __version__
         env = 'Colab' if is_colab() else 'Kaggle' if is_kaggle() else 'Jupyter' if is_jupyter() else \
             'Docker' if is_docker() else platform.system()
         self.metadata = {
             "sys_argv_name": Path(sys.argv[0]).name,
             "install": 'git' if is_git_dir() else 'pip' if is_pip_package() else 'other',
             "python": platform.python_version(),
-            "release": ultralytics.__version__,
+            "release": __version__,
             "uuid": SETTINGS['uuid'],
             "environment": env}
         self.enabled = SETTINGS['sync'] and \

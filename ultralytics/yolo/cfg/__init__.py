@@ -8,8 +8,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, List, Union
 
-from ultralytics import __version__, yolo
-from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, PREFIX, USER_CONFIG_DIR,
+from ultralytics import __version__
+from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, PREFIX, ROOT, USER_CONFIG_DIR,
                                     IterableSimpleNamespace, colorstr, yaml_load, yaml_print)
 from ultralytics.yolo.utils.checks import check_yolo
 
@@ -211,30 +211,42 @@ def entrypoint(debug=False):
         else:
             raise argument_error(a)
 
-    cfg = get_cfg(DEFAULT_CFG_DICT, overrides)  # create CFG instance
-
-    # Checks error catch
-    if cfg.mode == 'checks':
-        LOGGER.warning(
-            "WARNING ⚠️ 'yolo mode=checks' is deprecated and will be removed in the future. Use 'yolo checks' instead.")
+    # Mode
+    mode = overrides.pop('mode', None)
+    model = overrides.pop('model', None)
+    if mode == 'checks':
+        LOGGER.warning("WARNING ⚠️ 'yolo mode=checks' is deprecated. Use 'yolo checks' instead.")
         check_yolo()
         return
+    elif mode is None:
+        mode = DEFAULT_CFG_DICT['mode'] or 'predict'
+        LOGGER.warning(f"WARNING ⚠️ 'mode' is missing. Valid modes are {modes}. Using default 'mode={mode}'.")
 
-    # Mapping from task to module
-    module = {"detect": yolo.v8.detect, "segment": yolo.v8.segment, "classify": yolo.v8.classify}.get(cfg.task)
-    if not module:
-        raise SyntaxError(f"yolo task={cfg.task} is invalid. Valid tasks are: {', '.join(tasks)}\n{CLI_HELP_MSG}")
+    # Model
+    if model is None:
+        model = DEFAULT_CFG_DICT['model'] or 'yolov8n.pt'
+        LOGGER.warning(f"WARNING ⚠️ 'model' is missing. Using default 'model={model}'.")
+    from ultralytics.yolo.engine.model import YOLO
+    model = YOLO(model)
+    task = model.task
 
-    # Mapping from mode to function
-    func = {
-        "train": module.train,
-        "val": module.val,
-        "predict": module.predict,
-        "export": yolo.engine.exporter.export}.get(cfg.mode)
-    if not func:
-        raise SyntaxError(f"yolo mode={cfg.mode} is invalid. Valid modes are: {', '.join(modes)}\n{CLI_HELP_MSG}")
+    # Task
+    if mode == 'predict' and 'source' not in overrides:
+        overrides['source'] = DEFAULT_CFG_DICT['source'] or ROOT / "assets" if (ROOT / "assets").exists() \
+            else "https://ultralytics.com/images/bus.jpg"
+        LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using default 'source={overrides['source']}'.")
+    elif mode in ('train', 'val'):
+        if 'data' not in overrides:
+            overrides['data'] = DEFAULT_CFG_DICT['data'] or 'mnist160' if task == 'classify' \
+                else 'coco128-seg.yaml' if task == 'segment' else 'coco128.yaml'
+            LOGGER.warning(f"WARNING ⚠️ 'data' is missing. Using default 'data={overrides['data']}'.")
+    elif mode == 'export':
+        if 'format' not in overrides:
+            overrides['format'] = DEFAULT_CFG_DICT['format'] or 'torchscript'
+            LOGGER.warning(f"WARNING ⚠️ 'format' is missing. Using default 'format={overrides['format']}'.")
 
-    func(cfg)
+    # Run command in python
+    getattr(model, mode)(verbose=True, **overrides)
 
 
 # Special modes --------------------------------------------------------------------------------------------------------

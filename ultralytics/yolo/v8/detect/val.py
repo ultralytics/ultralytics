@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
 import os
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -233,10 +234,16 @@ class DetectionValidator(BaseValidator):
 
 
 def val(cfg=DEFAULT_CFG):
-    cfg.model = cfg.model or "yolov8n.pt"
-    cfg.data = cfg.data or "coco128.yaml"
-    validator = DetectionValidator(args=cfg)
-    validator(model=cfg.model)
+    model = cfg.model or "yolov8n.pt"
+    data = cfg.data or "coco128.yaml"
+
+    args = dict(model=model, data=data, verbose=True)
+    if sys.argv[0].endswith('yolo'):  # CLI command
+        from ultralytics import YOLO
+        YOLO(model).val(**args)
+    else:
+        validator = DetectionValidator(args=args)
+        validator(model=args['model'])
 
 
 if __name__ == "__main__":

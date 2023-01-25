@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
 import os
+import sys
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 
@@ -243,9 +244,16 @@ class SegmentationValidator(DetectionValidator):
 
 
 def val(cfg=DEFAULT_CFG):
-    cfg.data = cfg.data or "coco128-seg.yaml"
-    validator = SegmentationValidator(args=cfg)
-    validator(model=cfg.model)
+    model = cfg.model or "yolov8n-seg.pt"
+    data = cfg.data or "coco128-seg.yaml"
+
+    args = dict(model=model, data=data, verbose=True)
+    if sys.argv[0].endswith('yolo'):  # CLI command
+        from ultralytics import YOLO
+        YOLO(model).val(**args)
+    else:
+        validator = SegmentationValidator(args=args)
+        validator(model=args['model'])
 
 
 if __name__ == "__main__":

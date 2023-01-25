@@ -503,7 +503,7 @@ def guess_model_task(model):
 
     # Unable to determine task from model
     if task is None:
-        raise SyntaxError('Unknown task. Define task explicitly, i.e. task=detect when running your command. '
-                          'Valid tasks are detect, segment, classify.')
+        raise SyntaxError("YOLO is unable to automatically guess model task. Explicitly define task for your model, "
+                          "i.e. 'task=detect', 'task=segment' or 'task=classify'.")
     else:
         return task

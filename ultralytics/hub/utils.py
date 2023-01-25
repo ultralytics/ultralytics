@@ -136,7 +136,7 @@ def smart_request(*args, retry=3, timeout=30, thread=True, code=-1, method="post
         return func(*args, **kwargs)
 
 
-class Traces():
+class Traces:
 
     def __init__(self):
         """
@@ -145,6 +145,8 @@ class Traces():
         from ultralytics import __version__
         env = 'Colab' if is_colab() else 'Kaggle' if is_kaggle() else 'Jupyter' if is_jupyter() else \
             'Docker' if is_docker() else platform.system()
+        self.rate_limit = 3.0  # rate limit (seconds)
+        self.t = time.time()  # rate limit timer (seconds)
         self.metadata = {
             "sys_argv_name": Path(sys.argv[0]).name,
             "install": 'git' if is_git_dir() else 'pip' if is_pip_package() else 'other',
@@ -168,7 +170,9 @@ class Traces():
             all_keys (bool): Sync all items, not just non-default values.
             traces_sample_rate (float): Fraction of traces captured from 0.0 to 1.0
         """
-        if self.enabled and random() < traces_sample_rate:
+        t = time.time()  # current time
+        if self.enabled and random() < traces_sample_rate and (t - self.t) > self.rate_limit:
+            self.t = t  # reset rate limit timer
             cfg = vars(cfg)  # convert type from IterableSimpleNamespace to dict
             if not all_keys:  # filter cfg
                 include_keys = {'task', 'mode'}  # always include

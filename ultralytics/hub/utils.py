@@ -143,8 +143,9 @@ def traces(cfg, all_keys=False, traces_sample_rate=0.0):
     """
     if SETTINGS['sync'] and RANK in {-1, 0} and (random() < traces_sample_rate):
         cfg = vars(cfg)  # convert type from IterableSimpleNamespace to dict
-        if not all_keys:
-            cfg = {k: v for k, v in cfg.items() if v != DEFAULT_CFG_DICT.get(k, None)}  # retain non-default values
+        if not all_keys:  # filter cfg
+            include = {'task', 'mode'}  # always include
+            cfg = {k: v for k, v in cfg.items() if v != DEFAULT_CFG_DICT.get(k, None) or k in include}
         cfg['uuid'] = SETTINGS['uuid']  # add the device UUID to the configuration data
 
         # Send a request to the HUB API to sync analytics

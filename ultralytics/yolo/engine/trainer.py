@@ -89,17 +89,12 @@ class BaseTrainer:
         init_seeds(self.args.seed + 1 + RANK, deterministic=self.args.deterministic)
 
         # Dirs
-        project = self.args.project or Path(SETTINGS['runs_dir']) / self.args.task
+        project = Path(self.args.project) or Path(SETTINGS['runs_dir']) / self.args.task
         name = self.args.name or f"{self.args.mode}"
-        if hasattr(self.args, 'save_dir'):
-            self.save_dir = Path(self.args.save_dir)
-        else:
-            self.save_dir = Path(
-                increment_path(Path(project) / name, exist_ok=self.args.exist_ok if RANK in {-1, 0} else True))
+        self.save_dir = Path(increment_path(project / name, exist_ok=self.args.exist_ok if RANK in {-1, 0} else True))
         self.wdir = self.save_dir / 'weights'  # weights dir
         if RANK in {-1, 0}:
             self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
-            self.args.save_dir = str(self.save_dir)
             yaml_save(self.save_dir / 'args.yaml', vars(self.args))  # save run args
         self.last, self.best = self.wdir / 'last.pt', self.wdir / 'best.pt'  # checkpoint paths
 

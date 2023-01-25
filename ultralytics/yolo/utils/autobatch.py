@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 """
-Auto-batch utils
+AutoBatch utils
 """
 
 from copy import deepcopy

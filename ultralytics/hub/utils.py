@@ -177,3 +177,8 @@ class Traces():
 
             # Send a request to the HUB API to sync analytics
             smart_request(f'{HUB_API_ROOT}/v1/usage/anonymous', json=cfg, headers=None, code=3, retry=0, verbose=False)
+
+
+# Run below code on hub/utils init -------------------------------------------------------------------------------------
+
+traces = Traces()

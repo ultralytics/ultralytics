@@ -17,9 +17,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-import ultralytics
 from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER
-from ultralytics.yolo.utils.checks import check_version, git_describe
+from ultralytics.yolo.utils.checks import check_version
 
 LOCAL_RANK = int(os.getenv('LOCAL_RANK', -1))  # https://pytorch.org/docs/stable/elastic/run.html
 RANK = int(os.getenv('RANK', -1))
@@ -58,8 +57,8 @@ def DDP_model(model):
 
 def select_device(device='', batch=0, newline=False):
     # device = None or 'cpu' or 0 or '0' or '0,1,2,3'
-    ver = git_describe() or ultralytics.__version__  # git commit or pip package version
-    s = f'Ultralytics YOLOv{ver} 🚀 Python-{platform.python_version()} torch-{torch.__version__} '
+    from ultralytics import __version__
+    s = f'Ultralytics YOLOv{__version__} 🚀 Python-{platform.python_version()} torch-{torch.__version__} '
     device = str(device).lower()
     for remove in 'cuda:', 'none', '(', ')', '[', ']', "'", ' ':
         device = device.replace(remove, '')  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'

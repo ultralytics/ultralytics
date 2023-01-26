@@ -246,7 +246,7 @@ def entrypoint(debug=False):
             LOGGER.warning(f"WARNING ⚠️ 'format' is missing. Using default 'format={overrides['format']}'.")
 
     # Run command in python
-    getattr(model, mode)(verbose=True, **overrides)
+    getattr(model, mode)(**overrides)
 
 
 # Special modes --------------------------------------------------------------------------------------------------------

@@ -151,19 +151,19 @@ class BasePredictor:
         self.bs = bs
 
     @smart_inference_mode()
-    def __call__(self, source=None, model=None, verbose=False, stream=False):
+    def __call__(self, source=None, model=None, stream=False):
         if stream:
-            return self.stream_inference(source, model, verbose)
+            return self.stream_inference(source, model)
         else:
-            return list(self.stream_inference(source, model, verbose))  # merge list of Result into one
+            return list(self.stream_inference(source, model))  # merge list of Result into one
 
     def predict_cli(self):
         # Method used for CLI prediction. It uses always generator as outputs as not required by CLI mode
-        gen = self.stream_inference(verbose=True)
+        gen = self.stream_inference()
         for _ in gen:  # running CLI inference without accumulating any outputs (do not modify)
             pass
 
-    def stream_inference(self, source=None, model=None, verbose=False):
+    def stream_inference(self, source=None, model=None):
         self.run_callbacks("on_predict_start")
 
         # setup model
@@ -201,7 +201,7 @@ class BasePredictor:
                 p, im0 = (path[i], im0s[i]) if self.webcam or self.from_img else (path, im0s)
                 p = Path(p)
 
-                if verbose or self.args.save or self.args.save_txt or self.args.show:
+                if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
                     s += self.write_results(i, self.results, (p, im, im0))
 
                 if self.args.show:
@@ -214,11 +214,11 @@ class BasePredictor:
             yield from self.results
 
             # Print time (inference-only)
-            if verbose:
+            if self.args.verbose:
                 LOGGER.info(f"{s}{'' if len(preds) else '(no detections), '}{self.dt[1].dt * 1E3:.1f}ms")
 
         # Print results
-        if verbose and self.seen:
+        if self.args.verbose and self.seen:
             t = tuple(x.t / self.seen * 1E3 for x in self.dt)  # speeds per image
             LOGGER.info(f'Speed: %.1fms pre-process, %.1fms inference, %.1fms postprocess per image at shape '
                         f'{(1, 3, *self.imgsz)}' % t)

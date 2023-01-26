@@ -46,18 +46,18 @@ class Compose:
     def __call__(self, data):
         mosaic_p = None
         mosaic_imgsz = None
-        
+
         for t in self.transforms:
             if isinstance(t, Mosaic):
                 temp = t(data)
                 mosaic_p = False if temp == data else True
-                mosaic_imgsz = t.imgsz          
+                mosaic_imgsz = t.imgsz
                 data = temp
             else:
                 if isinstance(t, RandomPerspective):
-                    t.border = [-mosaic_imgsz // 2, -mosaic_imgsz // 2] if mosaic_p else [0,0]
+                    t.border = [-mosaic_imgsz // 2, -mosaic_imgsz // 2] if mosaic_p else [0, 0]
                 data = t(data)
-                
+
         return data
 
     def append(self, transform):

@@ -35,28 +35,29 @@ def test_train_cls():
 
 # Val checks -----------------------------------------------------------------------------------------------------------
 def test_val_detect():
-    run(f'yolo val detect model={MODEL}.pt data=coco8.yaml imgsz=32 epochs=1')
+    run(f'yolo val detect model={MODEL}.pt data=coco8.yaml imgsz=32')
 
 
 def test_val_segment():
-    run(f'yolo val segment model={MODEL}-seg.pt data=coco8-seg.yaml imgsz=32 epochs=1')
+    run(f'yolo val segment model={MODEL}-seg.pt data=coco8-seg.yaml imgsz=32')
 
 
 def test_val_classify():
-    pass
+    run(f'yolo val classify model={MODEL}-cls.pt data=mnist160 imgsz=32')
 
 
 # Predict checks -------------------------------------------------------------------------------------------------------
 def test_predict_detect():
-    run(f"yolo predict detect model={MODEL}.pt source={ROOT / 'assets'} imgsz=320 conf=0.25")
+    run(f"yolo predict detect model={MODEL}.pt source={ROOT / 'assets'} imgsz=32")
+    run(f"yolo predict detect model={MODEL}.pt source=https://ultralytics.com/images/bus.jpg imgsz=32")
 
 
 def test_predict_segment():
-    run(f"yolo predict segment model={MODEL}-seg.pt source={ROOT / 'assets'}")
+    run(f"yolo predict segment model={MODEL}-seg.pt source={ROOT / 'assets'} imgsz=32")
 
 
 def test_predict_classify():
-    pass
+    run(f"yolo predict segment model={MODEL}-cls.pt source={ROOT / 'assets'} imgsz=32")
 
 
 # Export checks --------------------------------------------------------------------------------------------------------

@@ -104,7 +104,7 @@ def download(url, dir=Path.cwd(), unzip=True, delete=True, curl=False, threads=1
     def download_one(url, dir):
         # Download 1 file
         success = True
-        if Path(url).is_file():
+        if '://' not in str(url) and Path(url).is_file():  # exists ('://' check required in Windows Python<3.10)
             f = Path(url)  # filename
         else:  # does not exist
             f = dir / Path(url).name

@@ -5,6 +5,7 @@ import inspect
 import logging.config
 import os
 import platform
+import re
 import subprocess
 import sys
 import tempfile
@@ -113,12 +114,66 @@ class IterableSimpleNamespace(SimpleNamespace):
         return getattr(self, key, default)
 
 
+def yaml_save(file='data.yaml', data=None):
+    """
+    Save YAML data to a file.
+
+    Args:
+        file (str, optional): File name. Default is 'data.yaml'.
+        data (dict, optional): Data to save in YAML format. Default is None.
+
+    Returns:
+        None: Data is saved to the specified file.
+    """
+    file = Path(file)
+    if not file.parent.exists():
+        # Create parent directories if they don't exist
+        file.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(file, 'w') as f:
+        # Dump data to file in YAML format, converting Path objects to strings
+        yaml.safe_dump({k: str(v) if isinstance(v, Path) else v for k, v in data.items()}, f, sort_keys=False)
+
+
+def yaml_load(file='data.yaml', append_filename=False):
+    """
+    Load YAML data from a file.
+
+    Args:
+        file (str, optional): File name. Default is 'data.yaml'.
+        append_filename (bool): Add the YAML filename to the YAML dictionary. Default is False.
+
+    Returns:
+        dict: YAML data and file name.
+    """
+    with open(file, errors='ignore', encoding='utf-8') as f:
+        # Add YAML filename to dict and return
+        s = f.read()  # string
+        if not s.isprintable():  # remove special characters
+            s = re.sub(r'[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD\U00010000-\U0010ffff]+', '', s)
+        return {**yaml.safe_load(s), 'yaml_file': str(file)} if append_filename else yaml.safe_load(s)
+
+
+def yaml_print(yaml_file: Union[str, Path, dict]) -> None:
+    """
+    Pretty prints a yaml file or a yaml-formatted dictionary.
+
+    Args:
+        yaml_file: The file path of the yaml file or a yaml-formatted dictionary.
+
+    Returns:
+        None
+    """
+    yaml_dict = yaml_load(yaml_file) if isinstance(yaml_file, (str, Path)) else yaml_file
+    dump = yaml.dump(yaml_dict, default_flow_style=False)
+    LOGGER.info(f"Printing '{colorstr('bold', 'black', yaml_file)}'\n\n{dump}")
+
+
 # Default configuration
-with open(DEFAULT_CFG_PATH, errors='ignore') as f:
-    DEFAULT_CFG_DICT = yaml.safe_load(f)
-    for k, v in DEFAULT_CFG_DICT.items():
-        if isinstance(v, str) and v.lower() == 'none':
-            DEFAULT_CFG_DICT[k] = None
+DEFAULT_CFG_DICT = yaml_load(DEFAULT_CFG_PATH)
+for k, v in DEFAULT_CFG_DICT.items():
+    if isinstance(v, str) and v.lower() == 'none':
+        DEFAULT_CFG_DICT[k] = None
 DEFAULT_CFG_KEYS = DEFAULT_CFG_DICT.keys()
 DEFAULT_CFG = IterableSimpleNamespace(**DEFAULT_CFG_DICT)
 
@@ -391,58 +446,6 @@ def threaded(func):
         return thread
 
     return wrapper
-
-
-def yaml_save(file='data.yaml', data=None):
-    """
-    Save YAML data to a file.
-
-    Args:
-        file (str, optional): File name. Default is 'data.yaml'.
-        data (dict, optional): Data to save in YAML format. Default is None.
-
-    Returns:
-        None: Data is saved to the specified file.
-    """
-    file = Path(file)
-    if not file.parent.exists():
-        # Create parent directories if they don't exist
-        file.parent.mkdir(parents=True, exist_ok=True)
-
-    with open(file, 'w') as f:
-        # Dump data to file in YAML format, converting Path objects to strings
-        yaml.safe_dump({k: str(v) if isinstance(v, Path) else v for k, v in data.items()}, f, sort_keys=False)
-
-
-def yaml_load(file='data.yaml', append_filename=False):
-    """
-    Load YAML data from a file.
-
-    Args:
-        file (str, optional): File name. Default is 'data.yaml'.
-        append_filename (bool): Add the YAML filename to the YAML dictionary. Default is False.
-
-    Returns:
-        dict: YAML data and file name.
-    """
-    with open(file, errors='ignore') as f:
-        # Add YAML filename to dict and return
-        return {**yaml.safe_load(f), 'yaml_file': str(file)} if append_filename else yaml.safe_load(f)
-
-
-def yaml_print(yaml_file: Union[str, Path, dict]) -> None:
-    """
-    Pretty prints a yaml file or a yaml-formatted dictionary.
-
-    Args:
-        yaml_file: The file path of the yaml file or a yaml-formatted dictionary.
-
-    Returns:
-        None
-    """
-    yaml_dict = yaml_load(yaml_file) if isinstance(yaml_file, (str, Path)) else yaml_file
-    dump = yaml.dump(yaml_dict, default_flow_style=False)
-    LOGGER.info(f"Printing '{colorstr('bold', 'black', yaml_file)}'\n\n{dump}")
 
 
 def set_sentry():

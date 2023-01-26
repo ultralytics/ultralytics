@@ -70,7 +70,7 @@ class BaseValidator:
         if self.args.conf is None:
             self.args.conf = 0.001  # default conf=0.001
 
-        self.callbacks = defaultdict(list, {k: v for k, v in callbacks.default_callbacks.items()})  # add callbacks
+        self.callbacks = defaultdict(list, callbacks.default_callbacks)  # add callbacks
 
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):

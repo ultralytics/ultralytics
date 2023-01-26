@@ -9,8 +9,8 @@ from types import SimpleNamespace
 from typing import Dict, List, Union
 
 from ultralytics import __version__
-from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, PREFIX, ROOT, USER_CONFIG_DIR,
-                                    IterableSimpleNamespace, colorstr, yaml_load, yaml_print)
+from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, PREFIX, ROOT,
+                                    USER_CONFIG_DIR, IterableSimpleNamespace, colorstr, emojis, yaml_load, yaml_print)
 from ultralytics.yolo.utils.checks import check_yolo
 
 CLI_HELP_MSG = \
@@ -69,7 +69,7 @@ def cfg2dict(cfg):
     return cfg
 
 
-def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace], overrides: Dict = None):
+def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG, overrides: Dict = None):
     """
     Load and merge configuration data from a file or dictionary.
 
@@ -214,17 +214,19 @@ def entrypoint(debug=False):
     # Mode
     mode = overrides.pop('mode', None)
     model = overrides.pop('model', None)
-    if mode == 'checks':
+    if mode is None:
+        mode = DEFAULT_CFG.mode or 'predict'
+        LOGGER.warning(f"WARNING ⚠️ 'mode' is missing. Valid modes are {modes}. Using default 'mode={mode}'.")
+    elif mode not in modes:
+        if mode != 'checks':
+            raise ValueError(emojis(f"ERROR ❌ Invalid 'mode={mode}'. Valid modes are {modes}."))
         LOGGER.warning("WARNING ⚠️ 'yolo mode=checks' is deprecated. Use 'yolo checks' instead.")
         check_yolo()
         return
-    elif mode is None:
-        mode = DEFAULT_CFG_DICT['mode'] or 'predict'
-        LOGGER.warning(f"WARNING ⚠️ 'mode' is missing. Valid modes are {modes}. Using default 'mode={mode}'.")
 
     # Model
     if model is None:
-        model = DEFAULT_CFG_DICT['model'] or 'yolov8n.pt'
+        model = DEFAULT_CFG.model or 'yolov8n.pt'
         LOGGER.warning(f"WARNING ⚠️ 'model' is missing. Using default 'model={model}'.")
     from ultralytics.yolo.engine.model import YOLO
     model = YOLO(model)
@@ -232,21 +234,21 @@ def entrypoint(debug=False):
 
     # Task
     if mode == 'predict' and 'source' not in overrides:
-        overrides['source'] = DEFAULT_CFG_DICT['source'] or ROOT / "assets" if (ROOT / "assets").exists() \
+        overrides['source'] = DEFAULT_CFG.source or ROOT / "assets" if (ROOT / "assets").exists() \
             else "https://ultralytics.com/images/bus.jpg"
         LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using default 'source={overrides['source']}'.")
     elif mode in ('train', 'val'):
         if 'data' not in overrides:
-            overrides['data'] = DEFAULT_CFG_DICT['data'] or 'mnist160' if task == 'classify' \
+            overrides['data'] = DEFAULT_CFG.data or 'mnist160' if task == 'classify' \
                 else 'coco128-seg.yaml' if task == 'segment' else 'coco128.yaml'
             LOGGER.warning(f"WARNING ⚠️ 'data' is missing. Using default 'data={overrides['data']}'.")
     elif mode == 'export':
         if 'format' not in overrides:
-            overrides['format'] = DEFAULT_CFG_DICT['format'] or 'torchscript'
+            overrides['format'] = DEFAULT_CFG.format or 'torchscript'
             LOGGER.warning(f"WARNING ⚠️ 'format' is missing. Using default 'format={overrides['format']}'.")
 
     # Run command in python
-    getattr(model, mode)(verbose=True, **overrides)
+    getattr(model, mode)(**overrides)
 
 
 # Special modes --------------------------------------------------------------------------------------------------------

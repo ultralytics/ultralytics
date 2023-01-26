@@ -1,5 +1,7 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
+import sys
+
 import torch
 
 from ultralytics.yolo.engine.results import Results
@@ -98,12 +100,18 @@ class SegmentationPredictor(DetectionPredictor):
         return log_string
 
 
-def predict(cfg=DEFAULT_CFG):
-    cfg.model = cfg.model or "yolov8n-seg.pt"
-    cfg.source = cfg.source if cfg.source is not None else ROOT / "assets" if (ROOT / "assets").exists() \
+def predict(cfg=DEFAULT_CFG, use_python=False):
+    model = cfg.model or "yolov8n-seg.pt"
+    source = cfg.source if cfg.source is not None else ROOT / "assets" if (ROOT / "assets").exists() \
         else "https://ultralytics.com/images/bus.jpg"
-    predictor = SegmentationPredictor(cfg)
-    predictor.predict_cli()
+
+    args = dict(model=model, source=source, verbose=True)
+    if use_python:
+        from ultralytics import YOLO
+        YOLO(model)(**args)
+    else:
+        predictor = SegmentationPredictor(args)
+        predictor.predict_cli()
 
 
 if __name__ == "__main__":

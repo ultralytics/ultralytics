@@ -472,10 +472,13 @@ def guess_model_task(model):
     Raises:
         SyntaxError: If the task of the model could not be determined.
     """
-    cfg, task = None, None
+    cfg = None
     if isinstance(model, dict):
         cfg = model
     elif isinstance(model, nn.Module):  # PyTorch model
+        for x in 'model.args', 'model.model.args', 'model.model.model.args':
+            with contextlib.suppress(Exception):
+                return eval(x)['task']
         for x in 'model.yaml', 'model.model.yaml', 'model.model.model.yaml':
             with contextlib.suppress(Exception):
                 cfg = eval(x)
@@ -485,25 +488,22 @@ def guess_model_task(model):
     if cfg:
         m = cfg["head"][-1][-2].lower()  # output module name
         if m in ["classify", "classifier", "cls", "fc"]:
-            task = "classify"
+            return "classify"
         if m in ["detect"]:
-            task = "detect"
+            return "detect"
         if m in ["segment"]:
-            task = "segment"
+            return "segment"
 
     # Guess from PyTorch model
-    if task is None and isinstance(model, nn.Module):
+    if isinstance(model, nn.Module):
         for m in model.modules():
             if isinstance(m, Detect):
-                task = "detect"
+                return "detect"
             elif isinstance(m, Segment):
-                task = "segment"
+                return "segment"
             elif isinstance(m, Classify):
-                task = "classify"
+                return "classify"
 
     # Unable to determine task from model
-    if task is None:
-        raise SyntaxError("YOLO is unable to automatically guess model task. Explicitly define task for your model, "
-                          "i.e. 'task=detect', 'task=segment' or 'task=classify'.")
-    else:
-        return task
+    raise SyntaxError("YOLO is unable to automatically guess model task. Explicitly define task for your model, "
+                      "i.e. 'task=detect', 'task=segment' or 'task=classify'.")

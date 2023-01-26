@@ -137,7 +137,6 @@ class YOLO:
         overrides = self.overrides.copy()
         overrides["conf"] = 0.25
         overrides.update(kwargs)
-        overrides["mode"] = "predict"
         overrides["save"] = kwargs.get("save", False)  # not save files by default
 
         self.predictor.args = get_cfg(self.predictor.args, overrides)
@@ -236,7 +235,7 @@ class YOLO:
         """
         Used to initialize and setup predictor when model is loaded. Makes predictor accessible to the user.
         """
-        self.predictor = self.PredictorClass()
+        self.predictor = self.PredictorClass(overrides={"mode": "predict"})
         self.predictor.setup_model(model=self.model)
 
     def add_callback(self, event: str, func):

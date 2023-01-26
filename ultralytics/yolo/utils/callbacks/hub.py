@@ -48,19 +48,19 @@ def on_train_end(trainer):
 
 
 def on_train_start(trainer):
-    traces(trainer.args, traces_sample_rate=0.0)
+    traces(trainer.args, traces_sample_rate=1.0)
 
 
 def on_val_start(validator):
-    traces(validator.args, traces_sample_rate=0.0)
+    traces(validator.args, traces_sample_rate=1.0)
 
 
 def on_predict_start(predictor):
-    traces(predictor.args, traces_sample_rate=0.0)
+    traces(predictor.args, traces_sample_rate=1.0)
 
 
 def on_export_start(exporter):
-    traces(exporter.args, traces_sample_rate=0.0)
+    traces(exporter.args, traces_sample_rate=1.0)
 
 
 callbacks = {

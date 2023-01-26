@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
-
+import sys
 from copy import copy
 
 import torch
@@ -194,15 +194,18 @@ class Loss:
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
 
 
-def train(cfg=DEFAULT_CFG):
-    cfg.model = cfg.model or "yolov8n.pt"
-    cfg.data = cfg.data or "coco128.yaml"  # or yolo.ClassificationDataset("mnist")
-    cfg.device = cfg.device if cfg.device is not None else ''
-    # trainer = DetectionTrainer(cfg)
-    # trainer.train()
-    from ultralytics import YOLO
-    model = YOLO(cfg.model)
-    model.train(**vars(cfg))
+def train(cfg=DEFAULT_CFG, use_python=False):
+    model = cfg.model or "yolov8n.pt"
+    data = cfg.data or "coco128.yaml"  # or yolo.ClassificationDataset("mnist")
+    device = cfg.device if cfg.device is not None else ''
+
+    args = dict(model=model, data=data, device=device, verbose=True)
+    if use_python:
+        from ultralytics import YOLO
+        YOLO(model).train(**args)
+    else:
+        trainer = DetectionTrainer(args)
+        trainer.train()
 
 
 if __name__ == "__main__":

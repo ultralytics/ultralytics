@@ -1,4 +1,5 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
+import sys
 
 import torch
 
@@ -63,12 +64,18 @@ class ClassificationPredictor(BasePredictor):
         return log_string
 
 
-def predict(cfg=DEFAULT_CFG):
-    cfg.model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
-    cfg.source = cfg.source if cfg.source is not None else ROOT / "assets" if (ROOT / "assets").exists() \
+def predict(cfg=DEFAULT_CFG, use_python=False):
+    model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
+    source = cfg.source if cfg.source is not None else ROOT / "assets" if (ROOT / "assets").exists() \
         else "https://ultralytics.com/images/bus.jpg"
-    predictor = ClassificationPredictor(cfg)
-    predictor.predict_cli()
+
+    args = dict(model=model, source=source, verbose=True)
+    if use_python:
+        from ultralytics import YOLO
+        YOLO(model)(**args)
+    else:
+        predictor = ClassificationPredictor(args)
+        predictor.predict_cli()
 
 
 if __name__ == "__main__":

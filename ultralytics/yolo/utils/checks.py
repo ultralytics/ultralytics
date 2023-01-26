@@ -209,7 +209,7 @@ def check_file(file, suffix=''):
     file = str(file)  # convert to str()
     if Path(file).is_file() or not file:  # exists
         return file
-    elif file.startswith(('http:/', 'https:/')):  # download
+    elif file.lower().startswith(('https://', 'http://', 'rtsp://', 'rtmp://')):  # download
         url = file  # warning: Pathlib turns :// -> :/
         file = Path(urllib.parse.unquote(file).split('?')[0]).name  # '%2F' to '/', split https://url.com/file.txt?auth
         if Path(file).is_file():

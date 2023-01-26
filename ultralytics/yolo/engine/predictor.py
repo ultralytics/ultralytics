@@ -88,7 +88,7 @@ class BasePredictor:
         self.vid_path, self.vid_writer = None, None
         self.annotator = None
         self.data_path = None
-        self.callbacks = defaultdict(list, {k: v for k, v in callbacks.default_callbacks.items()})  # add callbacks
+        self.callbacks = defaultdict(list, callbacks.default_callbacks)  # add callbacks
         callbacks.add_integration_callbacks(self)
 
     def preprocess(self, img):
@@ -243,7 +243,7 @@ class BasePredictor:
         if isinstance(source, (str, int, Path)):  # int for local usb carame
             source = str(source)
             is_file = Path(source).suffix[1:] in (IMG_FORMATS + VID_FORMATS)
-            is_url = source.lower().startswith(('rtsp://', 'rtmp://', 'http://', 'https://'))
+            is_url = source.lower().startswith(('https://', 'http://', 'rtsp://', 'rtmp://'))
             webcam = source.isnumeric() or source.endswith('.streams') or (is_url and not is_file)
             screenshot = source.lower().startswith('screen')
             if is_url and is_file:

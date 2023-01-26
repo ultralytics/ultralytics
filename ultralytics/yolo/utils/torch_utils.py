@@ -67,9 +67,14 @@ def select_device(device='', batch=0, newline=False):
     if cpu or mps:
         os.environ['CUDA_VISIBLE_DEVICES'] = '-1'  # force torch.cuda.is_available() = False
     elif device:  # non-cpu device requested
+        visible = os.environ.get('CUDA_VISIBLE_DEVICES', None)
         os.environ['CUDA_VISIBLE_DEVICES'] = device  # set environment variable - must be before assert is_available()
         if not (torch.cuda.is_available() and torch.cuda.device_count() >= len(device.replace(',', ''))):
-            raise ValueError(f"Invalid CUDA 'device={device}' requested, use 'device=cpu' or pass valid CUDA device(s)")
+            LOGGER.info(s)
+            raise ValueError(f"Invalid CUDA 'device={device}' requested, use 'device=cpu' or pass valid CUDA device(s):"
+                             f"\ntorch.cuda.is_available(): {torch.cuda.is_available()}"
+                             f"\ntorch.cuda.device_count(): {torch.cuda.device_count()}"
+                             f"\nos.environ['CUDA_VISIBLE_DEVICES']: {visible}")
 
     if not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
         devices = device.split(',') if device else '0'  # range(torch.cuda.device_count())  # i.e. 0,1,6,7

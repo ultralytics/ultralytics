@@ -51,6 +51,7 @@ def test_predict_detect():
     run(f"yolo predict detect model={MODEL}.pt source={ROOT / 'assets'} imgsz=32")
     run(f"yolo predict detect model={MODEL}.pt source=https://ultralytics.com/images/bus.jpg imgsz=32")
 
+
 def test_predict_segment():
     run(f"yolo predict segment model={MODEL}-seg.pt source={ROOT / 'assets'} imgsz=32")
 

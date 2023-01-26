@@ -58,6 +58,7 @@ class YOLO:
         suffix = Path(model).suffix
         if suffix in load_methods:
             {'.pt': self._load, '.yaml': self._new}[suffix](model)
+            self._init_predictor() # Initialize & setup predictor
         else:
             raise NotImplementedError(f"'{suffix}' model loading not implemented")
 
@@ -138,11 +139,8 @@ class YOLO:
         overrides.update(kwargs)
         overrides["mode"] = "predict"
         overrides["save"] = kwargs.get("save", False)  # not save files by default
-        if not self.predictor:
-            self.predictor = self.PredictorClass(overrides=overrides)
-            self.predictor.setup_model(model=self.model)
-        else:  # only update args if predictor is already setup
-            self.predictor.args = get_cfg(self.predictor.args, overrides)
+    
+        self.predictor.args = get_cfg(self.predictor.args, overrides)
         return self.predictor(source=source, stream=stream, verbose=verbose)
 
     @smart_inference_mode()
@@ -233,6 +231,14 @@ class YOLO:
          Returns class names of the loaded model.
         """
         return self.model.names
+    
+    def _init_predictor(self):
+        """
+        Used to initialize and setup predictor when model is loaded. Makes predictor accessible to the user.
+        """
+        self.predictor = self.PredictorClass()
+        self.predictor.setup_model(model=self.model)
+    
 
     def add_callback(self, event: str, func):
         """

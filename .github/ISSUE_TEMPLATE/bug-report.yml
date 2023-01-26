@@ -53,7 +53,7 @@ body:
       placeholder: |
         - YOLO: Ultralytics YOLOv8.0.21 🚀 Python-3.8.10 torch-1.13.1+cu117 CUDA:0 (A100-SXM-80GB, 81251MiB)
         - OS: Ubuntu 20.04
-        - Python: 3.9.0
+        - Python: 3.8.10
     validations:
       required: false
 

@@ -247,6 +247,8 @@ class ModelEMA:
     """ Updated Exponential Moving Average (EMA) from https://github.com/rwightman/pytorch-image-models
     Keeps a moving average of everything in the model state_dict (parameters and buffers)
     For EMA details see https://www.tensorflow.org/api_docs/python/tf/train/ExponentialMovingAverage
+    
+    To disable this after creation, set the `enabled` attribute to `False`.
     """
 
     def __init__(self, model, decay=0.9999, tau=2000, updates=0):
@@ -256,8 +258,12 @@ class ModelEMA:
         self.decay = lambda x: decay * (1 - math.exp(-x / tau))  # decay exponential ramp (to help early epochs)
         for p in self.ema.parameters():
             p.requires_grad_(False)
+        self.enabled = True
 
     def update(self, model):
+        if not self.enabled:
+            return
+
         # Update EMA parameters
         self.updates += 1
         d = self.decay(self.updates)
@@ -270,6 +276,9 @@ class ModelEMA:
         # assert v.dtype == msd[k].dtype == torch.float32, f'{k}: EMA {v.dtype} and model {msd[k].dtype} must be FP32'
 
     def update_attr(self, model, include=(), exclude=('process_group', 'reducer')):
+        if not self.enabled:
+            return
+
         # Update EMA attributes
         copy_attr(self.ema, model, include, exclude)
 

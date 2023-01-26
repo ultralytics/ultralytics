@@ -5,6 +5,7 @@ import inspect
 import logging.config
 import os
 import platform
+import re
 import subprocess
 import sys
 import tempfile
@@ -145,9 +146,12 @@ def yaml_load(file='data.yaml', append_filename=False):
     Returns:
         dict: YAML data and file name.
     """
-    with open(file, errors='ignore', encoding='ascii') as f:
+    with open(file, errors='ignore', encoding='utf-8') as f:
         # Add YAML filename to dict and return
-        return {**yaml.safe_load(f), 'yaml_file': str(file)} if append_filename else yaml.safe_load(f)
+        s = f.read()  # string
+        if not s.isprintable():  # remove special characters
+            s = re.sub(r'[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD\U00010000-\U0010ffff]+', '', s)
+        return {**yaml.safe_load(s), 'yaml_file': str(file)} if append_filename else yaml.safe_load(s)
 
 
 def yaml_print(yaml_file: Union[str, Path, dict]) -> None:

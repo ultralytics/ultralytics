@@ -10,7 +10,7 @@ from typing import Dict, List, Union
 
 from ultralytics import __version__
 from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, PREFIX, ROOT,
-                                    USER_CONFIG_DIR, IterableSimpleNamespace, colorstr, yaml_load, yaml_print, emojis)
+                                    USER_CONFIG_DIR, IterableSimpleNamespace, colorstr, emojis, yaml_load, yaml_print)
 from ultralytics.yolo.utils.checks import check_yolo
 
 CLI_HELP_MSG = \

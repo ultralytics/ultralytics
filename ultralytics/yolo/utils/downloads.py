@@ -12,16 +12,16 @@ from zipfile import ZipFile
 import requests
 import torch
 
-from ultralytics.yolo.utils import LOGGER, SETTINGS
+from ultralytics.yolo.utils import LOGGER
 
 
-def safe_download(file, url, url2=None, min_bytes=1E0, error_msg=''):
+def safe_download(file, url, url2=None, min_bytes=1E0, error_msg='', progress=True):
     # Attempts to download file from url or url2, checks and removes incomplete downloads < min_bytes
     file = Path(file)
     assert_msg = f"Downloaded file '{file}' does not exist or size is < min_bytes={min_bytes}"
     try:  # url1
         LOGGER.info(f'Downloading {url} to {file}...')
-        torch.hub.download_url_to_file(url, str(file), progress=LOGGER.level <= logging.INFO)
+        torch.hub.download_url_to_file(url, str(file), progress=progress and LOGGER.level <= logging.INFO)
         assert file.exists() and file.stat().st_size > min_bytes, assert_msg  # check
     except Exception as e:  # url2
         if file.exists():
@@ -49,6 +49,7 @@ def is_url(url, check=True):
 
 def attempt_download(file, repo='ultralytics/assets', release='v0.0.0'):
     # Attempt file download from GitHub release assets if not found locally. release = 'latest', 'v6.2', etc.
+    from ultralytics.yolo.utils import SETTINGS
 
     def github_assets(repository, version='latest'):
         # Return GitHub repo tag and assets (i.e. ['yolov8n.pt', 'yolov5m.pt', ...])

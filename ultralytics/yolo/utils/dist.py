@@ -23,6 +23,7 @@ def find_free_network_port() -> int:
 def generate_ddp_file(trainer):
     import_path = '.'.join(str(trainer.__class__).split(".")[1:-1])
 
+    print('GENERATE_DDP_FILE TRAINER RESUME', trainer.resume)
     if not trainer.resume:
         shutil.rmtree(trainer.save_dir)  # remove the save_dir
     content = f'''cfg = {vars(trainer.args)} \nif __name__ == "__main__":
@@ -40,6 +41,7 @@ def generate_ddp_file(trainer):
         file.write(content)
 
     print('GENERATE_DDP_FILE', file.name)
+    print('CONTENT', content)
     return file.name
 
 

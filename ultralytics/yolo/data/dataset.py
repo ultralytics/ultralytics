@@ -145,7 +145,9 @@ class YOLODataset(BaseDataset):
                    normalize=True,
                    return_mask=self.use_segments,
                    return_keypoint=self.use_keypoints,
-                   batch_idx=True))
+                   batch_idx=True,
+                   mask_ratio=hyp.mask_ratio,
+                   mask_overlap=hyp.overlap_mask))
         return transforms
 
     def close_mosaic(self, hyp):
@@ -155,7 +157,9 @@ class YOLODataset(BaseDataset):
                    normalize=True,
                    return_mask=self.use_segments,
                    return_keypoint=self.use_keypoints,
-                   batch_idx=True))
+                   batch_idx=True,
+                   mask_ratio=hyp.mask_ratio,
+                   mask_overlap=hyp.overlap_mask))
 
     def update_labels_info(self, label):
         """custom your label format here"""

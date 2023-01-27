@@ -23,14 +23,13 @@ import numpy as np
 import psutil
 import torch
 import torchvision
-import yaml
 from PIL import ExifTags, Image, ImageOps
 from torch.utils.data import DataLoader, Dataset, dataloader, distributed
 from tqdm import tqdm
 
 from ultralytics.yolo.data.utils import check_det_dataset, unzip_file
 from ultralytics.yolo.utils import (DATASETS_DIR, LOGGER, NUM_THREADS, TQDM_BAR_FORMAT, is_colab, is_dir_writeable,
-                                    is_kaggle)
+                                    is_kaggle, yaml_load)
 from ultralytics.yolo.utils.checks import check_requirements, check_yaml
 from ultralytics.yolo.utils.ops import clean_str, segments2boxes, xyn2xy, xywh2xyxy, xywhn2xyxy, xyxy2xywhn
 from ultralytics.yolo.utils.torch_utils import torch_distributed_zero_first
@@ -1056,10 +1055,9 @@ class HUBDatasetStats():
         # Initialize class
         zipped, data_dir, yaml_path = self._unzip(Path(path))
         try:
-            with open(check_yaml(yaml_path), errors='ignore') as f:
-                data = yaml.safe_load(f)  # data dict
-                if zipped:
-                    data['path'] = data_dir
+            data = yaml_load(check_yaml(yaml_path))  # data dict
+            if zipped:
+                data['path'] = data_dir
         except Exception as e:
             raise Exception("error/HUB/dataset_stats/yaml_load") from e
 

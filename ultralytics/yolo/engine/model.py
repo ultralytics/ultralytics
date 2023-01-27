@@ -139,12 +139,6 @@ class YOLO:
         overrides["save"] = kwargs.get("save", False)  # not save files by default
 
         self.predictor.args = get_cfg(self.predictor.args, overrides)
-        return self.predictor(source=source, stream=stream, verbose=verbose)
-        if not self.predictor:
-            self.predictor = self.PredictorClass(overrides=overrides)
-            self.predictor.setup_model(model=self.model)
-        else:  # only update args if predictor is already setup
-            self.predictor.args = get_cfg(self.predictor.args, overrides)
         return self.predictor(source=source, stream=stream)
 
     @smart_inference_mode()

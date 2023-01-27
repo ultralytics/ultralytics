@@ -16,8 +16,7 @@ def find_free_network_port() -> int:
     `MASTER_PORT` environment variable.
     """
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        # s.bind(('127.0.0.1', 0))
-        s.bind(('', 0))
+        s.bind(('127.0.0.1', 0))
         return s.getsockname()[1]  # port
 
 
@@ -29,7 +28,7 @@ def generate_ddp_file(trainer):
     content = f'''cfg = {vars(trainer.args)} \nif __name__ == "__main__":
     from ultralytics.{import_path} import {trainer.__class__.__name__}
 
-    trainer = {trainer.__class__.__name__}(overrides=cfg)
+    trainer = {trainer.__class__.__name__}(cfg=cfg)
     trainer.train()'''
     (USER_CONFIG_DIR / 'DDP').mkdir(exist_ok=True)
     with tempfile.NamedTemporaryFile(prefix="_temp_",
@@ -39,18 +38,24 @@ def generate_ddp_file(trainer):
                                      dir=USER_CONFIG_DIR / 'DDP',
                                      delete=False) as file:
         file.write(content)
+
+    print('GENERATE_DDP_FILE', file.name)
     return file.name
 
 
 def generate_ddp_command(world_size, trainer):
     import __main__  # noqa local import to avoid https://github.com/Lightning-AI/lightning/issues/15218
     file_name = os.path.abspath(sys.argv[0])
+    print('GENERATE_DDP_COMMAND1', file_name)
     using_cli = not file_name.endswith(".py")
     if using_cli:
         file_name = generate_ddp_file(trainer)
-    return [
+        print('GENERATE_DDP_COMMAND2', file_name)
+    cmd = [
         sys.executable, "-m", "torch.distributed.run", "--nproc_per_node", f"{world_size}", "--master_port",
         f"{find_free_network_port()}", file_name] + sys.argv[1:]
+    print('GENERATE_DDP_COMMAND3', cmd)
+    return cmd
 
 
 def ddp_cleanup(command, trainer):

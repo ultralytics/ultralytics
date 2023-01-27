@@ -135,19 +135,18 @@ def test_predict_callback_and_setup():
 
     def on_predict_batch_end(predictor):
         # results -> List[batch_size]
-        path, im, im0s, vid_cap, s = predictor.batch
-        #print('on_predict_batch_end', im0s[0].shape)
+        path, _, im0s, _, _ = predictor.batch
+        # print('on_predict_batch_end', im0s[0].shape)
         bs = [predictor.bs for i in range(0, len(path))]
         predictor.results = zip(predictor.results, im0s, bs)
 
     model = YOLO("yolov8n.pt")
     model.add_callback("on_predict_batch_end", on_predict_batch_end)
     model.predictor.setup_source(SOURCE)
-    bs, source = model.predictor.bs, model.predictor.source  # access predictor properties
+    bs = model.predictor.bs # access predictor properties
     results = model.predict(stream=True)  # source already setup
-    for i, (result, im0, bs) in enumerate(results):
+    for _, (result, im0, bs) in enumerate(results):
         print('test_callback', im0.shape)
         print('test_callback', bs)
         boxes = result.boxes  # Boxes object for bbox outputs
-        masks = result.masks  # Masks object for segmenation masks outputs
-        probs = result.probs  # Class probabilities for classification outputs
+        print(boxes)

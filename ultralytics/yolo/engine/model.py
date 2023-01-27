@@ -137,18 +137,15 @@ class YOLO:
         overrides["conf"] = 0.25
         overrides.update(kwargs)
         overrides["save"] = kwargs.get("save", False)  # not save files by default
-<<<<<<< pred_update
 
         self.predictor.args = get_cfg(self.predictor.args, overrides)
         return self.predictor(source=source, stream=stream, verbose=verbose)
-=======
         if not self.predictor:
             self.predictor = self.PredictorClass(overrides=overrides)
             self.predictor.setup_model(model=self.model)
         else:  # only update args if predictor is already setup
             self.predictor.args = get_cfg(self.predictor.args, overrides)
         return self.predictor(source=source, stream=stream)
->>>>>>> main
 
     @smart_inference_mode()
     def val(self, data=None, **kwargs):
@@ -222,7 +219,13 @@ class YOLO:
             device (str): device
         """
         self.model.to(device)
-
+        
+    def _init_predictor(self):
+        """
+        Used to initialize and setup predictor when model is loaded. Makes predictor accessible to the user.
+        """
+        self.predictor = self.PredictorClass(overrides={"mode": "predict"})
+        self.predictor.setup_model(model=self.model)
     def _assign_ops_from_task(self, task):
         model_class, train_lit, val_lit, pred_lit = MODEL_MAP[task]
         # warning: eval is unsafe. Use with caution
@@ -239,19 +242,8 @@ class YOLO:
         """
         return self.model.names
 
-<<<<<<< pred_update
-    def _init_predictor(self):
-        """
-        Used to initialize and setup predictor when model is loaded. Makes predictor accessible to the user.
-        """
-        self.predictor = self.PredictorClass(overrides={"mode": "predict"})
-        self.predictor.setup_model(model=self.model)
-
-    def add_callback(self, event: str, func):
-=======
     @staticmethod
     def add_callback(event: str, func):
->>>>>>> main
         """
         Add callback
         """

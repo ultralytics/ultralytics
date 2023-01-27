@@ -144,6 +144,7 @@ def argument_error(arg):
 
 
 def entrypoint(debug=False):
+    print('SYS_ARGV:', sys.argv)
     """
     This function is the ultralytics package entrypoint, it's responsible for parsing the command line arguments passed
     to the package.

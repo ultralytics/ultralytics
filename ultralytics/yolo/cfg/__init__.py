@@ -211,11 +211,15 @@ def entrypoint(debug=False):
         else:
             raise argument_error(a)
 
+    # Defaults
+    task2model = dict(detect='yolov8n.pt', segment='yolov8n-seg.pt', classify='yolov8n-cls.pt')
+    task2data = dict(detect='coco128.yaml', segment='coco128-seg.yaml', classify='mnist160')
+
     # Mode
     mode = overrides['mode']
     if mode is None:
         mode = DEFAULT_CFG.mode or 'predict'
-        LOGGER.warning(f"WARNING ⚠️ 'mode' is missing. Valid modes are {modes}. Using default 'mode={mode}'.")
+        LOGGER.warning(f"WARNING ⚠️ 'mode=' is missing. Valid modes are {modes}. Using default 'mode={mode}'.")
     elif mode not in modes:
         if mode != 'checks':
             raise ValueError(emojis(f"ERROR ❌ Invalid 'mode={mode}'. Valid modes are {modes}."))
@@ -225,29 +229,29 @@ def entrypoint(debug=False):
 
     # Model
     model = overrides.pop('model', None)
+    task = overrides.pop('task', None)
     if model is None:
-        model = DEFAULT_CFG.model or 'yolov8n.pt'
-        LOGGER.warning(f"WARNING ⚠️ 'model' is missing. Using default 'model={model}'.")
+        model = task2model.get(task, DEFAULT_CFG.model)
+        LOGGER.warning(f"WARNING ⚠️ 'model=' is missing. Using default 'model={model}'.")
     from ultralytics.yolo.engine.model import YOLO
     overrides['model'] = model
     model = YOLO(model)
 
     # Task
     task = model.task
-    overrides.update(task=task)
+    overrides['task'] = task
     if mode == 'predict' and 'source' not in overrides:
         overrides['source'] = DEFAULT_CFG.source or ROOT / "assets" if (ROOT / "assets").exists() \
             else "https://ultralytics.com/images/bus.jpg"
-        LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using default 'source={overrides['source']}'.")
+        LOGGER.warning(f"WARNING ⚠️ 'source=' is missing. Using default 'source={overrides['source']}'.")
     elif mode in ('train', 'val'):
         if 'data' not in overrides:
-            overrides['data'] = DEFAULT_CFG.data or 'mnist160' if task == 'classify' \
-                else 'coco128-seg.yaml' if task == 'segment' else 'coco128.yaml'
-            LOGGER.warning(f"WARNING ⚠️ 'data' is missing. Using default 'data={overrides['data']}'.")
+            overrides['data'] = task2data.get(task, DEFAULT_CFG.data)
+            LOGGER.warning(f"WARNING ⚠️ 'data=' is missing. Using default 'data={overrides['data']}'.")
     elif mode == 'export':
         if 'format' not in overrides:
             overrides['format'] = DEFAULT_CFG.format or 'torchscript'
-            LOGGER.warning(f"WARNING ⚠️ 'format' is missing. Using default 'format={overrides['format']}'.")
+            LOGGER.warning(f"WARNING ⚠️ 'format=' is missing. Using default 'format={overrides['format']}'.")
 
     # Run command in python
     getattr(model, mode)(**overrides)

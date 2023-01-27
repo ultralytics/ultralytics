@@ -247,7 +247,7 @@ def val(cfg=DEFAULT_CFG, use_python=False):
     model = cfg.model or "yolov8n-seg.pt"
     data = cfg.data or "coco128-seg.yaml"
 
-    args = dict(model=model, data=data, verbose=True)
+    args = dict(model=model, data=data)
     if use_python:
         from ultralytics import YOLO
         YOLO(model).val(**args)

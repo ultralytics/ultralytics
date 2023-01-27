@@ -238,7 +238,10 @@ def entrypoint(debug=False):
     model = YOLO(model)
 
     # Task
-    task = model.task
+    if task and task != model.task:
+        LOGGER.warning(f"WARNING ⚠️ 'task={task}' conflicts with {model.task} model {overrides['model']}. "
+                       f"Inheriting 'task={model.task}' from {overrides['model']} and ignoring 'task={task}'.")
+        task = model.task
     overrides['task'] = task
     if mode == 'predict' and 'source' not in overrides:
         overrides['source'] = DEFAULT_CFG.source or ROOT / "assets" if (ROOT / "assets").exists() \
@@ -247,7 +250,7 @@ def entrypoint(debug=False):
     elif mode in ('train', 'val'):
         if 'data' not in overrides:
             overrides['data'] = task2data.get(task, DEFAULT_CFG.data)
-            LOGGER.warning(f"WARNING ⚠️ 'data=' is missing. Using default 'data={overrides['data']}'.")
+            LOGGER.warning(f"WARNING ⚠️ 'data=' is missing. Using {model.task} default 'data={overrides['data']}'.")
     elif mode == 'export':
         if 'format' not in overrides:
             overrides['format'] = DEFAULT_CFG.format or 'torchscript'

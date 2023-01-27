@@ -71,8 +71,8 @@ def select_device(device='', batch=0, newline=False):
         os.environ['CUDA_VISIBLE_DEVICES'] = device  # set environment variable - must be before assert is_available()
         if not (torch.cuda.is_available() and torch.cuda.device_count() >= len(device.replace(',', ''))):
             LOGGER.info(s)
-            install = f"See https://pytorch.org/get-started/locally/ for up-to-date torch install instructions if no " \
-                      f"CUDA devices are seen by torch.\n" if torch.cuda.device_count() == 0 else ""
+            install = "See https://pytorch.org/get-started/locally/ for up-to-date torch install instructions if no " \
+                      "CUDA devices are seen by torch.\n" if torch.cuda.device_count() == 0 else ""
             raise ValueError(f"Invalid CUDA 'device={device}' requested."
                              f" Use 'device=cpu' or pass valid CUDA device(s) if available,"
                              f" i.e. 'device=0' or 'device=0,1,2,3' for Multi-GPU.\n"

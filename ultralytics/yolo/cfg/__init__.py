@@ -88,6 +88,10 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG, override
         check_cfg_mismatch(cfg, overrides)
         cfg = {**cfg, **overrides}  # merge cfg and overrides dicts (prefer overrides)
 
+    # Type checks
+    for k in 'project', 'name':
+        cfg[k] = str(cfg[k])
+
     # Return instance
     return IterableSimpleNamespace(**cfg)
 
@@ -144,7 +148,6 @@ def argument_error(arg):
 
 
 def entrypoint(debug=False):
-    print('SYS_ARGV:', sys.argv)
     """
     This function is the ultralytics package entrypoint, it's responsible for parsing the command line arguments passed
     to the package.
@@ -229,10 +232,10 @@ def entrypoint(debug=False):
         return
 
     # Model
-    model = overrides.pop('model', None)
+    model = overrides.pop('model', DEFAULT_CFG.model)
     task = overrides.pop('task', None)
     if model is None:
-        model = task2model.get(task, DEFAULT_CFG.model)
+        model = task2model.get(task, 'yolov8n.pt')
         LOGGER.warning(f"WARNING ⚠️ 'model=' is missing. Using default 'model={model}'.")
     from ultralytics.yolo.engine.model import YOLO
     overrides['model'] = model
@@ -242,7 +245,7 @@ def entrypoint(debug=False):
     if task and task != model.task:
         LOGGER.warning(f"WARNING ⚠️ 'task={task}' conflicts with {model.task} model {overrides['model']}. "
                        f"Inheriting 'task={model.task}' from {overrides['model']} and ignoring 'task={task}'.")
-        task = model.task
+    task = model.task
     overrides['task'] = task
     if mode == 'predict' and 'source' not in overrides:
         overrides['source'] = DEFAULT_CFG.source or ROOT / "assets" if (ROOT / "assets").exists() \

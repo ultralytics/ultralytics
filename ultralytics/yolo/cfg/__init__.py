@@ -90,7 +90,8 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG, override
 
     # Type checks
     for k in 'project', 'name':
-        cfg[k] = str(cfg[k])
+        if k in cfg:
+            cfg[k] = str(cfg[k])
 
     # Return instance
     return IterableSimpleNamespace(**cfg)

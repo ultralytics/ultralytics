@@ -231,9 +231,10 @@ def entrypoint(debug=False):
     from ultralytics.yolo.engine.model import YOLO
     overrides['model'] = model
     model = YOLO(model)
-    task = model.task
 
     # Task
+    task = model.task
+    overrides.update(task=task)
     if mode == 'predict' and 'source' not in overrides:
         overrides['source'] = DEFAULT_CFG.source or ROOT / "assets" if (ROOT / "assets").exists() \
             else "https://ultralytics.com/images/bus.jpg"
@@ -249,7 +250,6 @@ def entrypoint(debug=False):
             LOGGER.warning(f"WARNING ⚠️ 'format' is missing. Using default 'format={overrides['format']}'.")
 
     # Run command in python
-    overrides.update(model=model, task=task)
     getattr(model, mode)(**overrides)
 
 

@@ -212,8 +212,7 @@ def entrypoint(debug=False):
             raise argument_error(a)
 
     # Mode
-    mode = overrides.pop('mode', None)
-    model = overrides.pop('model', None)
+    mode = overrides['mode']
     if mode is None:
         mode = DEFAULT_CFG.mode or 'predict'
         LOGGER.warning(f"WARNING ⚠️ 'mode' is missing. Valid modes are {modes}. Using default 'mode={mode}'.")
@@ -225,10 +224,12 @@ def entrypoint(debug=False):
         return
 
     # Model
+    model = overrides.pop('model', None)
     if model is None:
         model = DEFAULT_CFG.model or 'yolov8n.pt'
         LOGGER.warning(f"WARNING ⚠️ 'model' is missing. Using default 'model={model}'.")
     from ultralytics.yolo.engine.model import YOLO
+    overrides['model'] = model
     model = YOLO(model)
     task = model.task
 
@@ -248,6 +249,7 @@ def entrypoint(debug=False):
             LOGGER.warning(f"WARNING ⚠️ 'format' is missing. Using default 'format={overrides['format']}'.")
 
     # Run command in python
+    overrides.update(model=model, task=task)
     getattr(model, mode)(**overrides)
 
 

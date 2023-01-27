@@ -5,7 +5,7 @@ from ultralytics.yolo.utils.torch_utils import get_flops, get_num_params
 try:
     import comet_ml
 
-except (ModuleNotFoundError, ImportError):
+except ImportError:
     comet_ml = None
 
 
@@ -35,7 +35,7 @@ def on_fit_epoch_end(trainer):
 
 def on_train_end(trainer):
     experiment = comet_ml.get_global_experiment()
-    experiment.log_model("YOLOv8", file_or_folder=trainer.best, file_name="best.pt", overwrite=True)
+    experiment.log_model("YOLOv8", file_or_folder=str(trainer.best), file_name="best.pt", overwrite=True)
 
 
 callbacks = {

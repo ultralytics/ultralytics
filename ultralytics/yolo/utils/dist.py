@@ -23,7 +23,6 @@ def find_free_network_port() -> int:
 def generate_ddp_file(trainer):
     import_path = '.'.join(str(trainer.__class__).split(".")[1:-1])
 
-    print('GENERATE_DDP_FILE TRAINER RESUME', trainer.resume)
     if not trainer.resume:
         shutil.rmtree(trainer.save_dir)  # remove the save_dir
     content = f'''cfg = {vars(trainer.args)} \nif __name__ == "__main__":
@@ -39,29 +38,21 @@ def generate_ddp_file(trainer):
                                      dir=USER_CONFIG_DIR / 'DDP',
                                      delete=False) as file:
         file.write(content)
-
-    print('GENERATE_DDP_FILE', file.name)
-    print('CONTENT', content)
     return file.name
 
 
 def generate_ddp_command(world_size, trainer):
     import __main__  # noqa local import to avoid https://github.com/Lightning-AI/lightning/issues/15218
     file_name = os.path.abspath(sys.argv[0])
-    print('GENERATE_DDP_COMMAND1', file_name)
     using_cli = not file_name.endswith(".py")
     if using_cli:
         file_name = generate_ddp_file(trainer)
-        print('GENERATE_DDP_COMMAND2', file_name)
-    cmd = [
+    return [
         sys.executable, "-m", "torch.distributed.run", "--nproc_per_node", f"{world_size}", "--master_port",
         f"{find_free_network_port()}", file_name] + sys.argv[1:]
-    print('GENERATE_DDP_COMMAND3', cmd)
-    return cmd
 
 
 def ddp_cleanup(command, trainer):
-    return
     # delete temp file if created
     tempfile_suffix = f"{id(trainer)}.py"
     if tempfile_suffix in "".join(command):

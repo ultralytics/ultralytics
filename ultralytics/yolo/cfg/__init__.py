@@ -90,7 +90,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG, override
 
     # Type checks
     for k in 'project', 'name':
-        if k in cfg:
+        if isinstance(cfg[k], (int, float)):
             cfg[k] = str(cfg[k])
 
     # Return instance

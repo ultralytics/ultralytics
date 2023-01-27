@@ -229,8 +229,8 @@ def entrypoint(debug=False):
         model = DEFAULT_CFG.model or 'yolov8n.pt'
         LOGGER.warning(f"WARNING ⚠️ 'model' is missing. Using default 'model={model}'.")
     from ultralytics.yolo.engine.model import YOLO
-    model = YOLO(model)
-    task = model.task
+    m = YOLO(model)
+    task = m.task
 
     # Task
     if mode == 'predict' and 'source' not in overrides:
@@ -249,7 +249,7 @@ def entrypoint(debug=False):
 
     # Run command in python
     overrides.update(mode=mode, model=model, task=task)
-    getattr(model, mode)(**overrides)
+    getattr(m, mode)(**overrides)
 
 
 # Special modes --------------------------------------------------------------------------------------------------------

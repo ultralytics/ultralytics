@@ -199,7 +199,7 @@ def train(cfg=DEFAULT_CFG, use_python=False):
     data = cfg.data or "coco128.yaml"  # or yolo.ClassificationDataset("mnist")
     device = cfg.device if cfg.device is not None else ''
 
-    args = dict(model=model, data=data, device=device, verbose=True)
+    args = dict(model=model, data=data, device=device)
     if use_python:
         from ultralytics import YOLO
         YOLO(model).train(**args)

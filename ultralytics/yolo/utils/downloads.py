@@ -32,7 +32,7 @@ def safe_download(file, url, url2=None, min_bytes=1E0, error_msg='', progress=Tr
         if not file.exists() or file.stat().st_size < min_bytes:  # check
             if file.exists():
                 file.unlink()  # remove partial downloads
-            LOGGER.info(f"ERROR: {assert_msg}\n{error_msg}")
+            LOGGER.warning(f"ERROR: {assert_msg}\n{error_msg}")
         LOGGER.info('')
 
 
@@ -111,13 +111,12 @@ def download(url, dir=Path.cwd(), unzip=True, delete=True, curl=False, threads=1
             f = dir / Path(url).name
             LOGGER.info(f'Downloading {url} to {f}...')
             for i in range(retry + 1):
-                if curl:
-                    s = 'sS' if threads > 1 else ''  # silent
-                    r = os.system(
-                        f'curl -# -{s}L "{url}" -o "{f}" --retry 9 -C -')  # curl download with retry, continue
+                if curl:  # curl download with retry, continue
+                    s = 'sS' * (threads > 1)  # silent
+                    r = os.system(f'curl -# -{s}L "{url}" -o "{f}" --retry 9 -C -')
                     success = r == 0
-                else:
-                    torch.hub.download_url_to_file(url, f, progress=threads == 1)  # torch download
+                else:  # torch download
+                    torch.hub.download_url_to_file(url, f, progress=threads == 1)
                     success = f.is_file()
                 if success:
                     break

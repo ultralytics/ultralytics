@@ -61,6 +61,7 @@ def generate_ddp_command(world_size, trainer):
 
 
 def ddp_cleanup(command, trainer):
+    pass
     # delete temp file if created
     tempfile_suffix = f"{id(trainer)}.py"
     if tempfile_suffix in "".join(command):

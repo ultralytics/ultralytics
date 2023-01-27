@@ -29,7 +29,7 @@ def generate_ddp_file(trainer):
     content = f'''cfg = {vars(trainer.args)} \nif __name__ == "__main__":
     from ultralytics.{import_path} import {trainer.__class__.__name__}
 
-    trainer = {trainer.__class__.__name__}(cfg=cfg)
+    trainer = {trainer.__class__.__name__}(overrides=cfg)
     trainer.train()'''
     (USER_CONFIG_DIR / 'DDP').mkdir(exist_ok=True)
     with tempfile.NamedTemporaryFile(prefix="_temp_",

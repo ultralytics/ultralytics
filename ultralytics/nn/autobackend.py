@@ -65,7 +65,7 @@ class AutoBackend(nn.Module):
             model = weights.to(device)
             model = model.fuse() if fuse else model
             names = model.module.names if hasattr(model, 'module') else model.names  # get class names
-            stride = max(int(model.stride.max()), 32)  # model stride
+            stride = max(int(model.stride.max() if hasattr(model, 'stride') else 0), 32)  # model stride
             model.half() if fp16 else model.float()
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
             pt = True
@@ -75,7 +75,7 @@ class AutoBackend(nn.Module):
                                          device=device,
                                          inplace=True,
                                          fuse=fuse)
-            stride = max(int(model.stride.max()), 32)  # model stride
+            stride = max(int(model.stride.max() if hasattr(model, 'stride') else 0), 32)  # model stride
             names = model.module.names if hasattr(model, 'module') else model.names  # get class names
             model.half() if fp16 else model.float()
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()

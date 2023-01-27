@@ -143,7 +143,7 @@ def test_predict_callback_and_setup():
     model = YOLO("yolov8n.pt")
     model.add_callback("on_predict_batch_end", on_predict_batch_end)
     model.predictor.setup_source(SOURCE)
-    bs = model.predictor.bs # access predictor properties
+    bs = model.predictor.bs  # access predictor properties
     results = model.predict(stream=True)  # source already setup
     for _, (result, im0, bs) in enumerate(results):
         print('test_callback', im0.shape)

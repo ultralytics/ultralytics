@@ -143,7 +143,7 @@ def argument_error(arg):
     return SyntaxError(f"'{arg}' is not a valid YOLO argument.\n{CLI_HELP_MSG}")
 
 
-def entrypoint(debug=True):
+def entrypoint(debug=False):
     """
     This function is the ultralytics package entrypoint, it's responsible for parsing the command line arguments passed
     to the package.

@@ -62,8 +62,8 @@ class YOLO:
         else:
             raise NotImplementedError(f"'{suffix}' model loading not implemented")
 
-    def __call__(self, source=None, stream=False, verbose=False, **kwargs):
-        return self.predict(source, stream, verbose, **kwargs)
+    def __call__(self, source=None, stream=False, **kwargs):
+        return self.predict(source, stream, **kwargs)
 
     def _new(self, cfg: str, verbose=True):
         """
@@ -119,7 +119,7 @@ class YOLO:
         self.model.fuse()
 
     @smart_inference_mode()
-    def predict(self, source=None, stream=False, verbose=False, **kwargs):
+    def predict(self, source=None, stream=False, **kwargs):
         """
         Perform prediction using the YOLO model.
 
@@ -127,7 +127,6 @@ class YOLO:
             source (str | int | PIL | np.ndarray): The source of the image to make predictions on.
                           Accepts all source types accepted by the YOLO model.
             stream (bool): Whether to stream the predictions or not. Defaults to False.
-            verbose (bool): Whether to print verbose information or not. Defaults to False.
             **kwargs : Additional keyword arguments passed to the predictor.
                        Check the 'configuration' section in the documentation for all available options.
 
@@ -138,9 +137,18 @@ class YOLO:
         overrides["conf"] = 0.25
         overrides.update(kwargs)
         overrides["save"] = kwargs.get("save", False)  # not save files by default
+<<<<<<< pred_update
 
         self.predictor.args = get_cfg(self.predictor.args, overrides)
         return self.predictor(source=source, stream=stream, verbose=verbose)
+=======
+        if not self.predictor:
+            self.predictor = self.PredictorClass(overrides=overrides)
+            self.predictor.setup_model(model=self.model)
+        else:  # only update args if predictor is already setup
+            self.predictor.args = get_cfg(self.predictor.args, overrides)
+        return self.predictor(source=source, stream=stream)
+>>>>>>> main
 
     @smart_inference_mode()
     def val(self, data=None, **kwargs):
@@ -231,6 +239,7 @@ class YOLO:
         """
         return self.model.names
 
+<<<<<<< pred_update
     def _init_predictor(self):
         """
         Used to initialize and setup predictor when model is loaded. Makes predictor accessible to the user.
@@ -239,6 +248,10 @@ class YOLO:
         self.predictor.setup_model(model=self.model)
 
     def add_callback(self, event: str, func):
+=======
+    @staticmethod
+    def add_callback(event: str, func):
+>>>>>>> main
         """
         Add callback
         """
@@ -246,16 +259,8 @@ class YOLO:
 
     @staticmethod
     def _reset_ckpt_args(args):
-        args.pop("project", None)
-        args.pop("name", None)
-        args.pop("exist_ok", None)
-        args.pop("resume", None)
-        args.pop("batch", None)
-        args.pop("epochs", None)
-        args.pop("cache", None)
-        args.pop("save_json", None)
-        args.pop("half", None)
-        args.pop("v5loader", None)
+        for arg in 'verbose', 'project', 'name', 'exist_ok', 'resume', 'batch', 'epochs', 'cache', 'save_json', \
+                'half', 'v5loader':
+            args.pop(arg, None)
 
-        # set device to '' to prevent from auto DDP usage
-        args["device"] = ''
+        args["device"] = ''  # set device to '' to prevent auto-DDP usage

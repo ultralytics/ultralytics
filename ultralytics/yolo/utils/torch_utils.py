@@ -17,11 +17,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-import ultralytics
 from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER
-from ultralytics.yolo.utils.checks import git_describe
-
-from .checks import check_version
+from ultralytics.yolo.utils.checks import check_version
 
 LOCAL_RANK = int(os.getenv('LOCAL_RANK', -1))  # https://pytorch.org/docs/stable/elastic/run.html
 RANK = int(os.getenv('RANK', -1))
@@ -60,8 +57,8 @@ def DDP_model(model):
 
 def select_device(device='', batch=0, newline=False):
     # device = None or 'cpu' or 0 or '0' or '0,1,2,3'
-    ver = git_describe() or ultralytics.__version__  # git commit or pip package version
-    s = f'Ultralytics YOLOv{ver} 🚀 Python-{platform.python_version()} torch-{torch.__version__} '
+    from ultralytics import __version__
+    s = f'Ultralytics YOLOv{__version__} 🚀 Python-{platform.python_version()} torch-{torch.__version__} '
     device = str(device).lower()
     for remove in 'cuda:', 'none', '(', ')', '[', ']', "'", ' ':
         device = device.replace(remove, '')  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
@@ -247,6 +244,7 @@ class ModelEMA:
     """ Updated Exponential Moving Average (EMA) from https://github.com/rwightman/pytorch-image-models
     Keeps a moving average of everything in the model state_dict (parameters and buffers)
     For EMA details see https://www.tensorflow.org/api_docs/python/tf/train/ExponentialMovingAverage
+    To disable EMA set the `enabled` attribute to `False`.
     """
 
     def __init__(self, model, decay=0.9999, tau=2000, updates=0):
@@ -256,22 +254,25 @@ class ModelEMA:
         self.decay = lambda x: decay * (1 - math.exp(-x / tau))  # decay exponential ramp (to help early epochs)
         for p in self.ema.parameters():
             p.requires_grad_(False)
+        self.enabled = True
 
     def update(self, model):
         # Update EMA parameters
-        self.updates += 1
-        d = self.decay(self.updates)
+        if self.enabled:
+            self.updates += 1
+            d = self.decay(self.updates)
 
-        msd = de_parallel(model).state_dict()  # model state_dict
-        for k, v in self.ema.state_dict().items():
-            if v.dtype.is_floating_point:  # true for FP16 and FP32
-                v *= d
-                v += (1 - d) * msd[k].detach()
-        # assert v.dtype == msd[k].dtype == torch.float32, f'{k}: EMA {v.dtype} and model {msd[k].dtype} must be FP32'
+            msd = de_parallel(model).state_dict()  # model state_dict
+            for k, v in self.ema.state_dict().items():
+                if v.dtype.is_floating_point:  # true for FP16 and FP32
+                    v *= d
+                    v += (1 - d) * msd[k].detach()
+                    # assert v.dtype == msd[k].dtype == torch.float32, f'{k}: EMA {v.dtype},  model {msd[k].dtype}'
 
     def update_attr(self, model, include=(), exclude=('process_group', 'reducer')):
         # Update EMA attributes
-        copy_attr(self.ema, model, include, exclude)
+        if self.enabled:
+            copy_attr(self.ema, model, include, exclude)
 
 
 def strip_optimizer(f='best.pt', s=''):
@@ -285,8 +286,8 @@ def strip_optimizer(f='best.pt', s=''):
             strip_optimizer(f)
 
     Args:
-        f (str): file path to model state to strip the optimizer from. Default is 'best.pt'.
-        s (str): file path to save the model with stripped optimizer to. Default is ''. If not provided, the original file will be overwritten.
+        f (str): file path to model to strip the optimizer from. Default is 'best.pt'.
+        s (str): file path to save the model with stripped optimizer to. If not provided, 'f' will be overwritten.
 
     Returns:
         None
@@ -364,12 +365,12 @@ class EarlyStopping:
     Early stopping class that stops training when a specified number of epochs have passed without improvement.
     """
 
-    def __init__(self, patience=30):
+    def __init__(self, patience=50):
         """
         Initialize early stopping object
 
         Args:
-            patience (int, optional): Number of epochs to wait after fitness stops improving before stopping. Default is 30.
+            patience (int, optional): Number of epochs to wait after fitness stops improving before stopping.
         """
         self.best_fitness = 0.0  # i.e. mAP
         self.best_epoch = 0

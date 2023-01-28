@@ -137,7 +137,9 @@ class YOLO:
         overrides["conf"] = 0.25
         overrides.update(kwargs)
         overrides["save"] = kwargs.get("save", False)  # not save files by default
-
+        
+        if not self.predictor.model:
+            self.predictor.setup_model(model=self.model)
         self.predictor.args = get_cfg(self.predictor.args, overrides)
         return self.predictor(source=source, stream=stream)
 
@@ -219,7 +221,6 @@ class YOLO:
         Used to initialize and setup predictor when model is loaded. Makes predictor accessible to the user.
         """
         self.predictor = self.PredictorClass(overrides={"mode": "predict"})
-        self.predictor.setup_model(model=self.model)
 
     def _assign_ops_from_task(self, task):
         model_class, train_lit, val_lit, pred_lit = MODEL_MAP[task]

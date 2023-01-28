@@ -146,7 +146,7 @@ def train(cfg=DEFAULT_CFG, use_python=False):
         from ultralytics import YOLO
         YOLO(model).train(**args)
     else:
-        trainer = ClassificationTrainer(args)
+        trainer = ClassificationTrainer(overrides=args)
         trainer.train()
 
 

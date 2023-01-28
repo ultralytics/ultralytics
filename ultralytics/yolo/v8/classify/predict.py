@@ -74,7 +74,7 @@ def predict(cfg=DEFAULT_CFG, use_python=False):
         from ultralytics import YOLO
         YOLO(model)(**args)
     else:
-        predictor = ClassificationPredictor(args)
+        predictor = ClassificationPredictor(overrides=args)
         predictor.predict_cli()
 
 

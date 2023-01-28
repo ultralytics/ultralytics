@@ -92,7 +92,7 @@ def predict(cfg=DEFAULT_CFG, use_python=False):
         from ultralytics import YOLO
         YOLO(model)(**args)
     else:
-        predictor = DetectionPredictor(args)
+        predictor = DetectionPredictor(overrides=args)
         predictor.predict_cli()
 
 

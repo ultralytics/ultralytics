@@ -79,7 +79,6 @@ class BasePredictor:
 
         # Usable if setup is done
         self.model = None
-        self.source = None
         self.data = self.args.data  # data_dict
         self.bs = None
         self.imgsz = None
@@ -108,14 +107,14 @@ class BasePredictor:
         if not self.model:
             raise Exception("setup model before setting up source!")
         # source
-        source, self.webcam, self.screenshot, self.from_img = self.check_source(source)
+        source, webcam, screenshot, from_img = self.check_source(source)
         # model
         stride, pt = self.model.stride, self.model.pt
         imgsz = check_imgsz(self.args.imgsz, stride=stride, min_dim=2)  # check image size
 
         # Dataloader
         bs = 1  # batch_size
-        if self.webcam:
+        if webcam:
             self.args.show = check_imshow(warn=True)
             self.dataset = LoadStreams(source,
                                        imgsz=imgsz,
@@ -124,13 +123,13 @@ class BasePredictor:
                                        transforms=getattr(self.model.model, 'transforms', None),
                                        vid_stride=self.args.vid_stride)
             bs = len(self.dataset)
-        elif self.screenshot:
+        elif screenshot:
             self.dataset = LoadScreenshots(source,
                                            imgsz=imgsz,
                                            stride=stride,
                                            auto=pt,
                                            transforms=getattr(self.model.model, 'transforms', None))
-        elif self.from_img:
+        elif from_img:
             self.dataset = LoadPilAndNumpy(source,
                                            imgsz=imgsz,
                                            stride=stride,
@@ -145,9 +144,11 @@ class BasePredictor:
                                       vid_stride=self.args.vid_stride)
         self.vid_path, self.vid_writer = [None] * bs, [None] * bs
 
+        self.webcam = webcam
+        self.screenshot = screenshot
+        self.from_img = from_img
         self.imgsz = imgsz
         self.bs = bs
-        self.source = source
 
     @smart_inference_mode()
     def __call__(self, source=None, model=None, stream=False):
@@ -163,17 +164,16 @@ class BasePredictor:
             pass
 
     def stream_inference(self, source=None, model=None):
-        # setup model. Run only if model is not initialized
+        self.run_callbacks("on_predict_start")
+
+        # setup model
         if not self.model:
             self.setup_model(model)
-        # setup source. Run if self.source isn't initialized or a new source is passed
-        if source is not None or self.source is None:
-            self.setup_source(source)
+        # setup source. Run every time predict is called
+        self.setup_source(source)
         # check if save_dir/ label file exists
         if self.args.save or self.args.save_txt:
             (self.save_dir / 'labels' if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
-
-        self.run_callbacks("on_predict_start")
         # warmup model
         if not self.done_warmup:
             self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.bs, 3, *self.imgsz))

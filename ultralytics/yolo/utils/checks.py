@@ -17,8 +17,9 @@ import pkg_resources as pkg
 import psutil
 import torch
 from IPython import display
+from matplotlib import font_manager
 
-from ultralytics.yolo.utils import (AUTOINSTALL, FONT, LOGGER, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, downloads,
+from ultralytics.yolo.utils import (AUTOINSTALL, LOGGER, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, downloads,
                                     emojis, is_colab, is_docker, is_jupyter)
 
 
@@ -103,26 +104,25 @@ def check_version(current: str = "0.0.0",
     return result
 
 
-def check_font(font: str = FONT, progress: bool = False) -> None:
-    """
-    Download font file to the user's configuration directory if it does not already exist.
+def check_font(font='Arial.ttf'):
+    # Return a local font path, downloading to USER_CONFIG_DIR if required
+    name = Path(font).name
 
-    Args:
-        font (str): Path to font file.
-        progress (bool): If True, display a progress bar during the download.
+    # Check USER_CONFIG_DIR
+    file = USER_CONFIG_DIR / name
+    if file.exists():
+        return file
 
-    Returns:
-        None
-    """
-    font = Path(font)
+    # Check system fonts
+    matches = [s for s in font_manager.findSystemFonts() if font in s]
+    if any(matches):
+        return matches[0]
 
-    # Destination path for the font file
-    file = USER_CONFIG_DIR / font.name
-
-    # Check if font file exists at the source or destination path
-    if not font.exists() and not file.exists():
-        # Download font file
-        downloads.safe_download(file=file, url=f'https://ultralytics.com/assets/{font.name}', progress=progress)
+    # Download to USER_CONFIG_DIR if missing
+    url = f'https://ultralytics.com/assets/{name}'
+    if downloads.is_url(url):
+        downloads.safe_download(file=file, url=url)
+        return file
 
 
 def check_online() -> bool:

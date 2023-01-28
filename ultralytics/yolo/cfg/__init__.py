@@ -221,7 +221,7 @@ def entrypoint(debug=False):
     task2data = dict(detect='coco128.yaml', segment='coco128-seg.yaml', classify='mnist160')
 
     # Mode
-    mode = overrides['mode']
+    mode = overrides.get('mode', None)
     if mode is None:
         mode = DEFAULT_CFG.mode or 'predict'
         LOGGER.warning(f"WARNING ⚠️ 'mode=' is missing. Valid modes are {modes}. Using default 'mode={mode}'.")

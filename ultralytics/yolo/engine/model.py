@@ -232,7 +232,7 @@ class YOLO:
          Returns class names of the loaded model.
         """
         return self.model.names
-    
+
     @property
     def transforms(self):
         """

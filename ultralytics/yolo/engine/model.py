@@ -140,7 +140,7 @@ class YOLO:
         self.predictor.args = get_cfg(self.predictor.args, overrides)
         if not self.predictor.model:
             self.predictor.setup_model(model=self.model)
-            
+
         return self.predictor(source=source, stream=stream)
 
     @smart_inference_mode()

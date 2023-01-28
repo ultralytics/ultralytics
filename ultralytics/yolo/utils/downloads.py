@@ -26,7 +26,15 @@ def is_url(url, check=True):
         return False
 
 
-def safe_download(url, file=None, dir=None, unzip=True, delete=False, curl=False, retry=3, min_bytes=1E0, progress=True):
+def safe_download(url,
+                  file=None,
+                  dir=None,
+                  unzip=True,
+                  delete=False,
+                  curl=False,
+                  retry=3,
+                  min_bytes=1E0,
+                  progress=True):
     # Download 1 file
     success = True
     if '://' not in str(url) and Path(url).is_file():  # exists ('://' check required in Windows Python<3.10)
@@ -111,9 +119,7 @@ def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
 
         file.parent.mkdir(parents=True, exist_ok=True)  # make parent dir (if required)
         if name in assets:
-            safe_download(url=f'https://github.com/{repo}/releases/download/{tag}/{name}',
-                          file=file,
-                          min_bytes=1E5)
+            safe_download(url=f'https://github.com/{repo}/releases/download/{tag}/{name}', file=file, min_bytes=1E5)
 
         return str(file)
 
@@ -124,15 +130,10 @@ def download(url, dir=Path.cwd(), unzip=True, delete=False, curl=False, threads=
     dir.mkdir(parents=True, exist_ok=True)  # make directory
     if threads > 1:
         with ThreadPool(threads) as pool:
-            pool.map(lambda x:
-                     safe_download(url=x[0],
-                                   dir=x[1],
-                                   unzip=unzip,
-                                   delete=delete,
-                                   curl=curl,
-                                   retry=retry,
-                                   progress=threads<=1),
-                     zip(url, repeat(dir)))
+            pool.map(
+                lambda x: safe_download(
+                    url=x[0], dir=x[1], unzip=unzip, delete=delete, curl=curl, retry=retry, progress=threads <= 1),
+                zip(url, repeat(dir)))
             pool.close()
             pool.join()
     else:

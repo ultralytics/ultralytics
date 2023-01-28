@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
-import logging
+import contextlib
 import os
 import subprocess
 import urllib
@@ -35,8 +35,23 @@ def safe_download(url,
                   retry=3,
                   min_bytes=1E0,
                   progress=True):
-    # Download 1 file
-    success = True
+    """
+    Function for downloading files from a URL, with options for retrying, unzipping, and deleting the downloaded file.
+
+    Args:
+        url: str: The URL of the file to be downloaded.
+        file: str, optional: The filename of the downloaded file.
+            If not provided, the file will be saved with the same name as the URL.
+        dir: str, optional: The directory to save the downloaded file.
+            If not provided, the file will be saved in the current working directory.
+        unzip: bool, optional: Whether to unzip the downloaded file. Default: True.
+        delete: bool, optional: Whether to delete the downloaded file after unzipping. Default: False.
+        curl: bool, optional: Whether to use curl command line tool for downloading. Default: False.
+        retry: int, optional: The number of times to retry the download in case of failure. Default: 3.
+        min_bytes: float, optional: The minimum number of bytes that the downloaded file should have, to be considered
+            a successful download. Default: 1E0.
+        progress: bool, optional: Whether to display a progress bar during the download. Default: True.
+    """
     if '://' not in str(url) and Path(url).is_file():  # exists ('://' check required in Windows Python<3.10)
         f = Path(url)  # filename
     else:  # does not exist
@@ -48,22 +63,21 @@ def safe_download(url,
                 if curl or i > 0:  # curl download with retry, continue
                     s = 'sS' * (not progress)  # silent
                     r = os.system(f'curl -# -{s}L "{url}" -o "{f}" --retry 9 -C -')
-                    success = r == 0
                 else:  # torch download
-                    torch.hub.download_url_to_file(url, f, progress=progress)
-                    success = f.is_file()
-            except Exception:
-                success = False
-            if success and f.stat().st_size > min_bytes:
-                break
-            if f.exists():
-                f.unlink()  # remove partial downloads
-            if i < retry:
+                    r = torch.hub.download_url_to_file(url, f, progress=progress)
+                assert r in {0, None}
+            except Exception as e:
+                if i >= retry:
+                    raise ConnectionError(f'❌  Download failure for {url}') from e
                 LOGGER.warning(f'⚠️ Download failure, retrying {i + 1}/{retry} {url}...')
-            else:
-                LOGGER.warning(f'❌ Failed to download {url}...')
+                continue
 
-    if unzip and success and f.suffix in ('.zip', '.tar', '.gz'):
+            if f.exists():
+                if f.stat().st_size > min_bytes:
+                    break  # success
+                f.unlink()  # remove partial downloads
+
+    if unzip and f.exists() and f.suffix in {'.zip', '.tar', '.gz'}:
         LOGGER.info(f'Unzipping {f}...')
         if f.suffix == '.zip':
             ZipFile(f).extractall(path=f.parent)  # unzip

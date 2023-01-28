@@ -155,7 +155,7 @@ def test_predict_callback_and_setup():
     model = YOLO("yolov8n.pt")
     model.add_callback("on_predict_batch_end", on_predict_batch_end)
     
-    dataset = load_inference_source(model.model, source=SOURCE)
+    dataset = load_inference_source(source=SOURCE, transforms=model.model.transforms)
     bs = dataset.bs  # access predictor properties
     results = model.predict(dataset, stream=True)  # source already setup
     for _, (result, im0, bs) in enumerate(results):

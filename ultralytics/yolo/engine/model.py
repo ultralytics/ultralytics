@@ -236,7 +236,7 @@ class YOLO:
     @property
     def transforms(self):
         """
-         Returns transforme of the loaded model.
+         Returns transform of the loaded model.
         """
         return self.model.transforms if hasattr(self.model, 'transforms') else None
 

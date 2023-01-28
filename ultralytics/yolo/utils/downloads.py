@@ -12,16 +12,16 @@ from zipfile import ZipFile
 import requests
 import torch
 
-from ultralytics.yolo.utils import LOGGER, SETTINGS
+from ultralytics.yolo.utils import LOGGER
 
 
-def safe_download(file, url, url2=None, min_bytes=1E0, error_msg=''):
+def safe_download(file, url, url2=None, min_bytes=1E0, error_msg='', progress=True):
     # Attempts to download file from url or url2, checks and removes incomplete downloads < min_bytes
     file = Path(file)
     assert_msg = f"Downloaded file '{file}' does not exist or size is < min_bytes={min_bytes}"
     try:  # url1
         LOGGER.info(f'Downloading {url} to {file}...')
-        torch.hub.download_url_to_file(url, str(file), progress=LOGGER.level <= logging.INFO)
+        torch.hub.download_url_to_file(url, str(file), progress=progress and LOGGER.level <= logging.INFO)
         assert file.exists() and file.stat().st_size > min_bytes, assert_msg  # check
     except Exception as e:  # url2
         if file.exists():
@@ -32,7 +32,7 @@ def safe_download(file, url, url2=None, min_bytes=1E0, error_msg=''):
         if not file.exists() or file.stat().st_size < min_bytes:  # check
             if file.exists():
                 file.unlink()  # remove partial downloads
-            LOGGER.info(f"ERROR: {assert_msg}\n{error_msg}")
+            LOGGER.warning(f"ERROR: {assert_msg}\n{error_msg}")
         LOGGER.info('')
 
 
@@ -49,6 +49,7 @@ def is_url(url, check=True):
 
 def attempt_download(file, repo='ultralytics/assets', release='v0.0.0'):
     # Attempt file download from GitHub release assets if not found locally. release = 'latest', 'v6.2', etc.
+    from ultralytics.yolo.utils import SETTINGS
 
     def github_assets(repository, version='latest'):
         # Return GitHub repo tag and assets (i.e. ['yolov8n.pt', 'yolov5m.pt', ...])
@@ -76,7 +77,6 @@ def attempt_download(file, repo='ultralytics/assets', release='v0.0.0'):
             return file
 
         # GitHub assets
-        assets = [f'yolov5{size}{suffix}.pt' for size in 'nsmlx' for suffix in ('', '6', '-cls', '-seg')]  # default
         assets = [f'yolov8{size}{suffix}.pt' for size in 'nsmlx' for suffix in ('', '6', '-cls', '-seg')]  # default
         try:
             tag, assets = github_assets(repo, release)
@@ -110,13 +110,12 @@ def download(url, dir=Path.cwd(), unzip=True, delete=True, curl=False, threads=1
             f = dir / Path(url).name
             LOGGER.info(f'Downloading {url} to {f}...')
             for i in range(retry + 1):
-                if curl:
-                    s = 'sS' if threads > 1 else ''  # silent
-                    r = os.system(
-                        f'curl -# -{s}L "{url}" -o "{f}" --retry 9 -C -')  # curl download with retry, continue
+                if curl:  # curl download with retry, continue
+                    s = 'sS' * (threads > 1)  # silent
+                    r = os.system(f'curl -# -{s}L "{url}" -o "{f}" --retry 9 -C -')
                     success = r == 0
-                else:
-                    torch.hub.download_url_to_file(url, f, progress=threads == 1)  # torch download
+                else:  # torch download
+                    torch.hub.download_url_to_file(url, f, progress=threads == 1)
                     success = f.is_file()
                 if success:
                     break

@@ -105,7 +105,7 @@ def predict(cfg=DEFAULT_CFG, use_python=False):
     source = cfg.source if cfg.source is not None else ROOT / "assets" if (ROOT / "assets").exists() \
         else "https://ultralytics.com/images/bus.jpg"
 
-    args = dict(model=model, source=source, verbose=True)
+    args = dict(model=model, source=source)
     if use_python:
         from ultralytics import YOLO
         YOLO(model)(**args)

@@ -4,13 +4,15 @@ import os
 import random
 from pathlib import Path
 
-from PIL import Image
 import numpy as np
 import torch
+from PIL import Image
 from torch.utils.data import DataLoader, dataloader, distributed
-from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages, LoadPilAndNumpy, LoadScreenshots, LoadStreams, SourceTypes, autocast_list, LOADERS
-from ultralytics.yolo.utils.checks import check_file
+
+from ultralytics.yolo.data.dataloaders.stream_loaders import (LOADERS, LoadImages, LoadPilAndNumpy, LoadScreenshots,
+                                                              LoadStreams, SourceTypes, autocast_list)
 from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS
+from ultralytics.yolo.utils.checks import check_file
 
 from ..utils import LOGGER, colorstr
 from ..utils.torch_utils import torch_distributed_zero_first
@@ -129,6 +131,7 @@ def build_classification_dataloader(path,
                               worker_init_fn=seed_worker,
                               generator=generator)  # or DataLoader(persistent_workers=True)
 
+
 def check_source(source):
     webcam, screenshot, from_img, in_memory = False, False, False, False
     if isinstance(source, (str, int, Path)):  # int for local usb carame
@@ -142,14 +145,16 @@ def check_source(source):
     elif isinstance(source, tuple(LOADERS)):
         in_memory = True
     elif isinstance(source, (list, tuple)):
-        source = autocast_list(source) # convert all list elements to PIL or np arrays
+        source = autocast_list(source)  # convert all list elements to PIL or np arrays
         from_img = True
     elif isinstance(source, ((Image.Image, np.ndarray))):
         from_img = True
     else:
-        raise Exception("Unsupported type encountered! See docs for supported types https://docs.ultralytics.com/predict")
+        raise Exception(
+            "Unsupported type encountered! See docs for supported types https://docs.ultralytics.com/predict")
 
     return source, webcam, screenshot, from_img, in_memory
+
 
 def load_inference_source(source=None, transforms=None, imgsz=640, vid_stride=1, stride=32, auto=True):
     """
@@ -164,32 +169,24 @@ def load_inference_source(source=None, transforms=None, imgsz=640, vid_stride=1,
         dataset = source
     elif webcam:
         dataset = LoadStreams(source,
-                                    imgsz=imgsz,
-                                    stride=stride,
-                                    auto=auto,
-                                    transforms=transforms,
-                                    vid_stride=vid_stride)
+                              imgsz=imgsz,
+                              stride=stride,
+                              auto=auto,
+                              transforms=transforms,
+                              vid_stride=vid_stride)
 
     elif screenshot:
-        dataset = LoadScreenshots(source,
-                                        imgsz=imgsz,
-                                        stride=stride,
-                                        auto=auto,
-                                        transforms=transforms)
+        dataset = LoadScreenshots(source, imgsz=imgsz, stride=stride, auto=auto, transforms=transforms)
     elif from_img:
-        dataset = LoadPilAndNumpy(source,
-                                        imgsz=imgsz,
-                                        stride=stride,
-                                        auto=auto,
-                                        transforms=transforms)
+        dataset = LoadPilAndNumpy(source, imgsz=imgsz, stride=stride, auto=auto, transforms=transforms)
     else:
         dataset = LoadImages(source,
-                                    imgsz=imgsz,
-                                    stride=stride,
-                                    auto=auto,
-                                    transforms=transforms,
-                                    vid_stride=vid_stride)
+                             imgsz=imgsz,
+                             stride=stride,
+                             auto=auto,
+                             transforms=transforms,
+                             vid_stride=vid_stride)
 
-    setattr(dataset, 'source_type', source_type) # attach source types
+    setattr(dataset, 'source_type', source_type)  # attach source types
 
     return dataset

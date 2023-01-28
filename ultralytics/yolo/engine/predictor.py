@@ -34,11 +34,12 @@ import torch
 
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.yolo.cfg import get_cfg
+from ultralytics.yolo.data import load_inference_source
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, SETTINGS, callbacks, colorstr, ops
+from ultralytics.yolo.utils.checks import check_imgsz, check_imshow
 from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode
-from ultralytics.yolo.utils.checks import check_imshow, check_imgsz
-from ultralytics.yolo.data import load_inference_source
+
 
 class BasePredictor:
     """
@@ -104,7 +105,6 @@ class BasePredictor:
     def postprocess(self, preds, img, orig_img, classes=None):
         return preds
 
- 
     @smart_inference_mode()
     def __call__(self, source=None, model=None, stream=False):
         if stream:
@@ -117,16 +117,20 @@ class BasePredictor:
         gen = self.stream_inference()
         for _ in gen:  # running CLI inference without accumulating any outputs (do not modify)
             pass
-    
+
     def setup_source(self, source):
         if not self.model:
             raise Exception("Model not initialized!")
 
         self.imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)  # check image size
-        self.dataset = load_inference_source(source=source,transforms=getattr(self.model.model, 'transforms', None), imgsz=self.imgsz, vid_stride=self.args.vid_stride, stride=self.model.stride, auto=self.model.pt)
+        self.dataset = load_inference_source(source=source,
+                                             transforms=getattr(self.model.model, 'transforms', None),
+                                             imgsz=self.imgsz,
+                                             vid_stride=self.args.vid_stride,
+                                             stride=self.model.stride,
+                                             auto=self.model.pt)
         self.source_type = self.dataset.source_type
         self.vid_path, self.vid_writer = [None] * self.dataset.bs, [None] * self.dataset.bs
-        
 
     def stream_inference(self, source=None, model=None):
         self.run_callbacks("on_predict_start")

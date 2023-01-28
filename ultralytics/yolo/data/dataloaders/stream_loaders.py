@@ -4,14 +4,14 @@ import glob
 import math
 import os
 import time
-import requests
+from dataclasses import dataclass
 from pathlib import Path
 from threading import Thread
 from urllib.parse import urlparse
-from dataclasses import dataclass
 
 import cv2
 import numpy as np
+import requests
 import torch
 from PIL import Image, ImageOps
 
@@ -20,11 +20,13 @@ from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS
 from ultralytics.yolo.utils import LOGGER, ROOT, is_colab, is_kaggle, ops
 from ultralytics.yolo.utils.checks import check_requirements
 
+
 @dataclass
 class SourceTypes:
     webcam: bool = False
     screenshot: bool = False
     from_img: bool = False
+
 
 class LoadStreams:
     # YOLOv8 streamloader, i.e. `python detect.py --source 'rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP streams`
@@ -322,6 +324,7 @@ class LoadPilAndNumpy:
         self.count = 0
         return self
 
+
 def autocast_list(source):
     """
     Merges a list of source of different types into a list of numpy arrays or PIL images
@@ -333,9 +336,11 @@ def autocast_list(source):
         elif isinstance(im, (Image.Image, np.ndarray)):  # PIL or np Image
             files.append(im)
         else:
-            raise Exception("Unsupported type encountered! See docs for supported types https://docs.ultralytics.com/predict")
-    
+            raise Exception(
+                "Unsupported type encountered! See docs for supported types https://docs.ultralytics.com/predict")
+
     return files
+
 
 LOADERS = [LoadStreams, LoadPilAndNumpy, LoadImages, LoadScreenshots]
 

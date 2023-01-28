@@ -3,13 +3,13 @@
 from pathlib import Path
 
 import cv2
+import numpy as np
 import torch
 from PIL import Image
-import numpy as np
 
 from ultralytics import YOLO
-from ultralytics.yolo.utils import ROOT, SETTINGS
 from ultralytics.yolo.data.build import load_inference_source
+from ultralytics.yolo.utils import ROOT, SETTINGS
 
 MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n.pt'
 CFG = 'yolov8n.yaml'
@@ -143,6 +143,7 @@ def test_workflow():
     model.predict(SOURCE)
     model.export(format="onnx", opset=12)  # export a model to ONNX format
 
+
 def test_predict_callback_and_setup():
 
     def on_predict_batch_end(predictor):
@@ -154,7 +155,7 @@ def test_predict_callback_and_setup():
 
     model = YOLO("yolov8n.pt")
     model.add_callback("on_predict_batch_end", on_predict_batch_end)
-    
+
     dataset = load_inference_source(source=SOURCE, transforms=model.model.transforms)
     bs = dataset.bs  # access predictor properties
     results = model.predict(dataset, stream=True)  # source already setup
@@ -163,5 +164,6 @@ def test_predict_callback_and_setup():
         print('test_callback', bs)
         boxes = result.boxes  # Boxes object for bbox outputs
         print(boxes)
+
 
 test_predict_img()

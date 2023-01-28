@@ -28,7 +28,7 @@ def autobatch(model, imgsz=640, fraction=0.7, batch_size=16):
 
     # Check device
     prefix = colorstr('AutoBatch: ')
-    LOGGER.info(f'{prefix}Computing optimal batch size for --imgsz {imgsz}')
+    LOGGER.info(f'{prefix}Computing optimal batch size for imgsz={imgsz}')
     device = next(model.parameters()).device  # get model device
     if device.type == 'cpu':
         LOGGER.info(f'{prefix}CUDA not detected, using default CPU batch-size {batch_size}')

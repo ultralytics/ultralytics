@@ -4,7 +4,6 @@ Common modules
 """
 
 import math
-import warnings
 
 import torch
 import torch.nn as nn
@@ -274,9 +273,7 @@ class SPP(nn.Module):
 
     def forward(self, x):
         x = self.cv1(x)
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore')  # suppress torch 1.9.0 max_pool2d() warning
-            return self.cv2(torch.cat([x] + [m(x) for m in self.m], 1))
+        return self.cv2(torch.cat([x] + [m(x) for m in self.m], 1))
 
 
 class SPPF(nn.Module):
@@ -290,11 +287,9 @@ class SPPF(nn.Module):
 
     def forward(self, x):
         x = self.cv1(x)
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore')  # suppress torch 1.9.0 max_pool2d() warning
-            y1 = self.m(x)
-            y2 = self.m(y1)
-            return self.cv2(torch.cat((x, y1, y2, self.m(y2)), 1))
+        y1 = self.m(x)
+        y2 = self.m(y1)
+        return self.cv2(torch.cat((x, y1, y2, self.m(y2)), 1))
 
 
 class Focus(nn.Module):

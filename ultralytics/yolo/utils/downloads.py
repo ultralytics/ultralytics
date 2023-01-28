@@ -111,9 +111,7 @@ def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
 
         file.parent.mkdir(parents=True, exist_ok=True)  # make parent dir (if required)
         if name in assets:
-            safe_download(url=f'https://github.com/{repo}/releases/download/{tag}/{name}',
-                          file=file,
-                          min_bytes=1E5)
+            safe_download(url=f'https://github.com/{repo}/releases/download/{tag}/{name}', file=file, min_bytes=1E5)
 
         return str(file)
 
@@ -124,8 +122,7 @@ def download(url, dir=Path.cwd(), unzip=True, delete=True, curl=False, threads=1
     dir.mkdir(parents=True, exist_ok=True)  # make directory
     if threads > 1:
         with ThreadPool(threads) as pool:
-            pool.map(lambda x:
-                     safe_download(url=x[0], dir=x[1], unzip=unzip, delete=delete, curl=curl, retry=retry),
+            pool.map(lambda x: safe_download(url=x[0], dir=x[1], unzip=unzip, delete=delete, curl=curl, retry=retry),
                      zip(url, repeat(dir)))
             pool.close()
             pool.join()

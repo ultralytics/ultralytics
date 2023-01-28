@@ -138,7 +138,7 @@ download: |
   # urls = ['https://d307kc0mrhucc3.cloudfront.net/train_labels.zip',  # train labels
   #         'https://d307kc0mrhucc3.cloudfront.net/train_images.zip',  # 15G, 847 train images
   #         'https://d307kc0mrhucc3.cloudfront.net/val_images.zip']  # 5G, 282 val images (no labels)
-  # download(urls, dir=dir, delete=False)
+  # download(urls, dir=dir)
 
   # Convert labels
   convert_labels(dir / 'xView_train.geojson')

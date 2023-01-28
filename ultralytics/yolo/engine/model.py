@@ -58,7 +58,6 @@ class YOLO:
         suffix = Path(model).suffix
         if suffix in load_methods:
             {'.pt': self._load, '.yaml': self._new}[suffix](model)
-            self._init_predictor()  # Initialize & setup predictor
         else:
             raise NotImplementedError(f"'{suffix}' model loading not implemented")
 

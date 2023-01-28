@@ -6,7 +6,7 @@ try:
     import clearml
     from clearml import Task
 
-    assert hasattr(clearml, '__version__')
+    assert clearml.__version__  # verify package is not directory
 except (ImportError, AssertionError):
     clearml = None
 

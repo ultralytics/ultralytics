@@ -16,7 +16,7 @@ from PIL import ExifTags, Image, ImageOps
 
 from ultralytics.yolo.utils import DATASETS_DIR, LOGGER, ROOT, colorstr, emojis, yaml_load
 from ultralytics.yolo.utils.checks import check_file, check_font, is_ascii
-from ultralytics.yolo.utils.downloads import download
+from ultralytics.yolo.utils.downloads import download, safe_download
 from ultralytics.yolo.utils.files import unzip_file
 from ultralytics.yolo.utils.ops import segments2boxes
 
@@ -238,8 +238,7 @@ def check_det_dataset(dataset, autodownload=True):
             t = time.time()
             if s.startswith('http') and s.endswith('.zip'):  # URL
                 f = Path(s).name  # filename
-                LOGGER.info(f'Downloading {s} to {f}...')
-                torch.hub.download_url_to_file(s, f)
+                safe_download(file=f, url=s)
                 Path(DATASETS_DIR).mkdir(parents=True, exist_ok=True)  # create root
                 unzip_file(f, path=DATASETS_DIR)  # unzip
                 Path(f).unlink()  # remove zip

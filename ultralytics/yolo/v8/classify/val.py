@@ -50,7 +50,7 @@ def val(cfg=DEFAULT_CFG, use_python=False):
     model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
     data = cfg.data or "mnist160"
 
-    args = dict(model=model, data=data, verbose=True)
+    args = dict(model=model, data=data)
     if use_python:
         from ultralytics import YOLO
         YOLO(model).val(**args)

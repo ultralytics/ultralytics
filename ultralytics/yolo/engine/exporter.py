@@ -125,7 +125,7 @@ class Exporter:
         Initializes the Exporter class.
 
         Args:
-            cfg (str, optional): Path to a configuration file. Defaults to DEFAULT_CONFIG.
+            cfg (str, optional): Path to a configuration file. Defaults to DEFAULT_CFG.
             overrides (dict, optional): Configuration overrides. Defaults to None.
         """
         self.args = get_cfg(cfg, overrides)

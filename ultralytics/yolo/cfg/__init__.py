@@ -176,7 +176,7 @@ def entrypoint(debug=False):
         'version': lambda: LOGGER.info(__version__),
         'settings': lambda: yaml_print(USER_CONFIG_DIR / 'settings.yaml'),
         'cfg': lambda: yaml_print(DEFAULT_CFG_PATH),
-        'copy-cfg': copy_default_config}
+        'copy-cfg': copy_default_cfg}
 
     overrides = {}  # basic overrides, i.e. imgsz=320
     for a in merge_equals_args(args):  # merge spaces around '=' sign
@@ -266,7 +266,7 @@ def entrypoint(debug=False):
 
 
 # Special modes --------------------------------------------------------------------------------------------------------
-def copy_default_config():
+def copy_default_cfg():
     new_file = Path.cwd() / DEFAULT_CFG_PATH.name.replace('.yaml', '_copy.yaml')
     shutil.copy2(DEFAULT_CFG_PATH, new_file)
     LOGGER.info(f"{PREFIX}{DEFAULT_CFG_PATH} copied to {new_file}\n"

@@ -129,7 +129,7 @@ def check_font(font='Arial.ttf'):
     # Download to USER_CONFIG_DIR if missing
     url = f'https://ultralytics.com/assets/{name}'
     if downloads.is_url(url):
-        downloads.safe_download(file=file, url=url)
+        downloads.safe_download(url=url, file=file)
         return file
 
 
@@ -220,7 +220,7 @@ def check_file(file, suffix=''):
         if Path(file).is_file():
             LOGGER.info(f'Found {url} locally at {file}')  # file already exists
         else:
-            downloads.safe_download(file=file, url=url)
+            downloads.safe_download(url=url, file=file)
         return file
     else:  # search
         files = []

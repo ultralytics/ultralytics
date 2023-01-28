@@ -238,7 +238,7 @@ def check_det_dataset(dataset, autodownload=True):
             t = time.time()
             if s.startswith('http') and s.endswith('.zip'):  # URL
                 f = Path(s).name  # filename
-                safe_download(file=f, url=s)
+                safe_download(url=s, file=f)
                 Path(DATASETS_DIR).mkdir(parents=True, exist_ok=True)  # create root
                 unzip_file(f, path=DATASETS_DIR)  # unzip
                 Path(f).unlink()  # remove zip

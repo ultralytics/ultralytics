@@ -239,6 +239,15 @@ class BaseTrainer:
             self.ema = ModelEMA(self.model)
         self.resume_training(ckpt)
         self.run_callbacks("on_pretrain_routine_end")
+		
+		# Freeze layers
+        freeze = [f'model.{x}.' for x in (self.args.freeze if type(self.args.freeze) is list else range(self.args.freeze))]  # layers to freeze
+        for k, v in self.model.named_parameters():
+            v.requires_grad = True  # train all layers
+            # v.register_hook(lambda x: torch.nan_to_num(x))  # NaN to 0 (commented for erratic training results)
+            if any(x in k for x in freeze):
+                LOGGER.info(f'freezing {k}')
+                v.requires_grad = False
 
     def _do_train(self, rank=-1, world_size=1):
         if world_size > 1:

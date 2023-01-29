@@ -100,6 +100,7 @@ def smart_request(*args, retry=3, timeout=30, thread=True, code=-1, method="post
     """
     retry_codes = (408, 500)  # retry only these codes
 
+    @TryExcept(verbose=verbose)
     def func(*func_args, **func_kwargs):
         r = None  # response
         t0 = time.time()  # initial time for timer
@@ -146,7 +147,7 @@ class Traces:
         env = 'Colab' if is_colab() else 'Kaggle' if is_kaggle() else 'Jupyter' if is_jupyter() else \
             'Docker' if is_docker() else platform.system()
         self.rate_limit = 3.0  # rate limit (seconds)
-        self.t = time.time()  # rate limit timer (seconds)
+        self.t = 0.0  # rate limit timer (seconds)
         self.metadata = {
             "sys_argv_name": Path(sys.argv[0]).name,
             "install": 'git' if is_git_dir() else 'pip' if is_pip_package() else 'other',
@@ -159,7 +160,6 @@ class Traces:
                        not is_github_actions_ci() and \
                        (is_pip_package() or get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git")
 
-    @TryExcept(verbose=False)
     def __call__(self, cfg, all_keys=False, traces_sample_rate=1.0):
         """
        Sync traces data if enabled in the global settings

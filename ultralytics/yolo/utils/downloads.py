@@ -9,7 +9,7 @@ from urllib import parse, request
 from zipfile import ZipFile
 
 import requests
-import torch
+from tqdm import tqdm
 
 from ultralytics.yolo.utils import LOGGER
 
@@ -55,16 +55,31 @@ def safe_download(url,
     else:  # does not exist
         assert dir or file, 'dir or file required for download'
         f = dir / Path(url).name if dir else Path(file)
-        LOGGER.info(f'Downloading {url} to {f}...')
+        desc = f'Downloading {url} to {f}'
         f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
         for i in range(retry + 1):
             try:
                 if curl or i > 0:  # curl download with retry, continue
+                    if i == 0:
+                        LOGGER.info(f'{desc}...')
                     s = 'sS' * (not progress)  # silent
                     r = subprocess.run(['curl', '-#', f'-{s}L', url, '-o', f, '--retry', '9', '-C', '-']).returncode
                     assert r == 0, f'Curl return value {r}'
-                else:  # torch download
-                    torch.hub.download_url_to_file(url, f, progress=progress)
+                else:  # urllib download
+                    # torch.hub.download_url_to_file(url, f, progress=progress)
+                    from ultralytics.yolo.utils import TQDM_BAR_FORMAT
+                    with request.urlopen(url) as response, tqdm(total=int(response.getheader("Content-Length", 0)),
+                                                                desc=desc,
+                                                                disable=not progress,
+                                                                unit='B',
+                                                                unit_scale=True,
+                                                                unit_divisor=1024,
+                                                                bar_format=TQDM_BAR_FORMAT) as pbar:
+                        with open(f, "wb") as f_opened:
+                            for data in response:
+                                f_opened.write(data)
+                                pbar.update(len(data))
+
                 if f.exists():
                     if f.stat().st_size > min_bytes:
                         break  # success

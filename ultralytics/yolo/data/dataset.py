@@ -177,12 +177,6 @@ class YOLODataset(BaseDataset):
     def collate_fn(batch):
         new_batch = {}
         keys = batch[0].keys()
-        for b in batch:
-            print(b.keys())
-            v = b["img"]
-            if isinstance(v, tuple):
-                print("----", v)
-            print(v.shape)
         values = list(zip(*[list(b.values()) for b in batch]))
         for i, k in enumerate(keys):
             value = values[i]

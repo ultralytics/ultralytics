@@ -44,7 +44,7 @@ extra:
   #   provider: mike  #  version drop-down menu
   analytics:
     provider: google
-    property: !ENV GOOGLE_ANALYTICS_MEASUREMENT_ID
+    property: G-2M5EHKC0BH
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/ultralytics

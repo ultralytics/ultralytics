@@ -56,8 +56,6 @@ def test_val_classify():
     run(f'yolo val classify model={MODEL}-cls.pt data=mnist160 val_split={VAL_SPLIT_VAL} imgsz=32')
 
 
-
-
 # Predict checks -------------------------------------------------------------------------------------------------------
 def test_predict_detect():
     run(f"yolo predict detect model={MODEL}.pt source={ROOT / 'assets'} imgsz=32")

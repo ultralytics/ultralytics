@@ -479,7 +479,7 @@ def set_sentry():
     if SETTINGS['sync'] and \
             not is_pytest_running() and \
             not is_github_actions_ci() and \
-            ((is_pip_package() and is_git_dir()) or
+            ((is_pip_package() and not is_git_dir()) or
              (get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git" and get_git_branch() == "main")):
         import sentry_sdk  # noqa
 

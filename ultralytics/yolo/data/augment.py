@@ -128,7 +128,7 @@ class Mosaic(BaseMixTransform):
             labels_patch = (labels if i == 0 else labels["mix_labels"][i - 1]).copy()
             # Load image
             img = labels_patch["img"]
-            h, w = labels_patch["resized_shape"]
+            h, w = labels_patch.pop("resized_shape")
 
             # place img in img4
             if i == 0:  # top left
@@ -172,9 +172,9 @@ class Mosaic(BaseMixTransform):
             cls.append(labels["cls"])
             instances.append(labels["instances"])
         final_labels = {
+            "im_file": mosaic_labels[0]["im_file"],
             "ori_shape": mosaic_labels[0]["ori_shape"],
             "resized_shape": (self.imgsz * 2, self.imgsz * 2),
-            "im_file": mosaic_labels[0]["im_file"],
             "cls": np.concatenate(cls, 0),
             "instances": Instances.concatenate(instances, axis=0),
             "mosaic_border": self.border}
@@ -600,7 +600,7 @@ class Format:
         self.batch_idx = batch_idx  # keep the batch indexes
 
     def __call__(self, labels):
-        img = labels["img"]
+        img = labels.pop("img")
         h, w = img.shape[:2]
         cls = labels.pop("cls")
         instances = labels.pop("instances")

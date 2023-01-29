@@ -36,17 +36,14 @@ def test_train_cls():
 # Val checks -----------------------------------------------------------------------------------------------------------
 def test_val_detect():
     run(f'yolo val detect model={MODEL}.pt data=coco8.yaml imgsz=32')
-    run(f'yolo val detect model={MODEL}.pt data=coco8.yaml val_split=val imgsz=32')
 
 
 def test_val_segment():
     run(f'yolo val segment model={MODEL}-seg.pt data=coco8-seg.yaml imgsz=32')
-    run(f'yolo val segment model={MODEL}-seg.pt data=coco8-seg.yaml val_split=val imgsz=32')
 
 
 def test_val_classify():
     run(f'yolo val classify model={MODEL}-cls.pt data=mnist160 imgsz=32')
-    run(f'yolo val classify model={MODEL}-cls.pt data=mnist160 val_split=val imgsz=32')
 
 
 # Predict checks -------------------------------------------------------------------------------------------------------

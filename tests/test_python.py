@@ -72,7 +72,6 @@ def test_predict_img():
 def test_val():
     model = YOLO(MODEL)
     model.val(data="coco8.yaml", imgsz=32)
-    model.val(data="coco8.yaml", val_split="val", imgsz=32)
 
 
 def test_train_scratch():

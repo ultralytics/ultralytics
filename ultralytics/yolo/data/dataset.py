@@ -136,8 +136,9 @@ class YOLODataset(BaseDataset):
     # TODO: use hyp config to set all these augmentations
     def build_transforms(self, hyp=None):
         if self.augment:
-            mosaic = self.augment and not self.rect
-            transforms = mosaic_transforms(self, self.imgsz, hyp) if mosaic else affine_transforms(self.imgsz, hyp)
+            hyp.mosaic = hyp.mosaic if self.augment and not self.rect else 0.0
+            hyp.mixup = hyp.mixup if self.augment and not self.rect else 0.0
+            transforms = v8_transforms(self, self.imgsz, hyp)
         else:
             transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), scaleup=False)])
         transforms.append(
@@ -151,15 +152,10 @@ class YOLODataset(BaseDataset):
         return transforms
 
     def close_mosaic(self, hyp):
-        self.transforms = affine_transforms(self.imgsz, hyp)
-        self.transforms.append(
-            Format(bbox_format="xywh",
-                   normalize=True,
-                   return_mask=self.use_segments,
-                   return_keypoint=self.use_keypoints,
-                   batch_idx=True,
-                   mask_ratio=hyp.mask_ratio,
-                   mask_overlap=hyp.overlap_mask))
+        hyp.mosaic = 0.0  # set mosaic ratio=0.0
+        hyp.copy_paste = 0.0  # keep the same behavior as previous v8 close-mosaic
+        hyp.mixup = 0.0  # keep the same behavior as previous v8 close-mosaic
+        self.transforms = self.build_transforms(hyp)
 
     def update_labels_info(self, label):
         """custom your label format here"""
@@ -175,8 +171,6 @@ class YOLODataset(BaseDataset):
 
     @staticmethod
     def collate_fn(batch):
-        # TODO: returning a dict can make thing easier and cleaner when using dataset in training
-        # but I don't know if this will slow down a little bit.
         new_batch = {}
         keys = batch[0].keys()
         values = list(zip(*[list(b.values()) for b in batch]))

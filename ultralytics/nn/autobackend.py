@@ -226,9 +226,11 @@ class AutoBackend(nn.Module):
                                       f"https://docs.ultralytics.com/reference/nn/")
 
         # class names
-        if 'names' not in locals():
-            names = yaml_load(data)['names'] if data else {i: f'class{i}' for i in range(999)}
-        elif isinstance(names[0], str) and names[0].startswith('n0'):  # imagenet class codes, i.e. 'n01440764'
+        if 'names' not in locals():  # names missing
+            names = yaml_load(data)['names'] if data else {i: f'class{i}' for i in range(999)}  # assign default
+        elif isinstance(names, list):  # names is a list
+            names = dict(enumerate(names))  # convert to dict
+        if isinstance(names[0], str) and names[0].startswith('n0'):  # imagenet class codes, i.e. 'n01440764'
             map = yaml_load(ROOT / 'yolo/data/datasets/ImageNet.yaml')['map']  # human-readable names
             names = {k: map[v] for k, v in names.items()}
 

@@ -8,6 +8,7 @@ from ultralytics.yolo.utils import ROOT, SETTINGS
 MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n'
 CFG = 'yolov8n'
 
+VAL_SPLIT_TRAIN = 'train'
 VAL_SPLIT_VAL = 'val'
 VAL_SPLIT_TEST = 'test'
 
@@ -52,7 +53,9 @@ def test_val_segment():
 def test_val_classify():
     run(f'yolo val classify model={MODEL}-cls.pt data=mnist160 imgsz=32')
     run(f'yolo val classify model={MODEL}-cls.pt data=mnist160 val_split={VAL_SPLIT_VAL} imgsz=32')
-    run(f'yolo val classify model={MODEL}-cls.pt data=mnist160 val_split={VAL_SPLIT_TEST} imgsz=32')
+
+    # mnist160 has no test split, so we use train split
+    run(f'yolo val classify model={MODEL}-cls.pt data=mnist160 val_split={VAL_SPLIT_TRAIN} imgsz=32')
 
 
 # Predict checks -------------------------------------------------------------------------------------------------------

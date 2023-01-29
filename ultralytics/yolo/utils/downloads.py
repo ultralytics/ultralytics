@@ -64,19 +64,17 @@ def safe_download(url,
                 if curl or i > 0:  # curl download with retry, continue
                     s = 'sS' * (not progress)  # silent
                     r = os.system(f'curl -# -{s}L "{url}" -o "{f}" --retry 9 -C -')
+                    assert r == 0, f'Curl return value {r}'
                 else:  # torch download
-                    r = torch.hub.download_url_to_file(url, f, progress=progress)
-                assert r in {0, None}
+                    torch.hub.download_url_to_file(url, f, progress=progress)
+                if f.exists():
+                    if f.stat().st_size > min_bytes:
+                        break  # success
+                    f.unlink()  # remove partial downloads
             except Exception as e:
                 if i >= retry:
                     raise ConnectionError(f'❌  Download failure for {url}') from e
                 LOGGER.warning(f'⚠️ Download failure, retrying {i + 1}/{retry} {url}...')
-                continue
-
-            if f.exists():
-                if f.stat().st_size > min_bytes:
-                    break  # success
-                f.unlink()  # remove partial downloads
 
     if unzip and f.exists() and f.suffix in {'.zip', '.tar', '.gz'}:
         LOGGER.info(f'Unzipping {f}...')

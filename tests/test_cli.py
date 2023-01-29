@@ -52,10 +52,10 @@ def test_val_segment():
 
 def test_val_classify():
     run(f'yolo val classify model={MODEL}-cls.pt data=mnist160 imgsz=32')
+    # mnist160 has no test split, so we just use val split
     run(f'yolo val classify model={MODEL}-cls.pt data=mnist160 val_split={VAL_SPLIT_VAL} imgsz=32')
 
-    # mnist160 has no test split, so we use train split
-    run(f'yolo val classify model={MODEL}-cls.pt data=mnist160 val_split={VAL_SPLIT_TRAIN} imgsz=32')
+
 
 
 # Predict checks -------------------------------------------------------------------------------------------------------

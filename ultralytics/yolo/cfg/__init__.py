@@ -32,7 +32,7 @@ CLI_HELP_MSG = \
 
     3. Val a pretrained detection model at batch-size 1 and image size 640:
         yolo detect val model=yolov8n.pt data=coco128.yaml batch=1 imgsz=640
-    
+
     4. Val a pretrained classification model at batch-size 1 and image size 640 with test dataset:
         yolo classify val model=yolov8n-cls.pt data=coco128.yaml batch=1 imgsz=640 val_split=test
 

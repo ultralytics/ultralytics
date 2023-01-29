@@ -20,7 +20,10 @@ def is_url(url, check=True):
         url = str(url)
         result = parse.urlparse(url)
         assert all([result.scheme, result.netloc])  # check if is url
-        return (request.urlopen(url).getcode() == 200) if check else True  # check if exists online
+        if check:
+            with request.urlopen(url) as response:
+                return response.getcode() == 200  # check if exists online
+        return True
     return False
 
 

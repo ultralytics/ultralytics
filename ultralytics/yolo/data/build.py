@@ -2,10 +2,17 @@
 
 import os
 import random
+from pathlib import Path
 
 import numpy as np
 import torch
+from PIL import Image
 from torch.utils.data import DataLoader, dataloader, distributed
+
+from ultralytics.yolo.data.dataloaders.stream_loaders import (LOADERS, LoadImages, LoadPilAndNumpy, LoadScreenshots,
+                                                              LoadStreams, SourceTypes, autocast_list)
+from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS
+from ultralytics.yolo.utils.checks import check_file
 
 from ..utils import LOGGER, colorstr
 from ..utils.torch_utils import torch_distributed_zero_first
@@ -58,7 +65,7 @@ def build_dataloader(cfg, batch_size, img_path, stride=32, label_path=None, rank
     assert mode in ["train", "val"]
     shuffle = mode == "train"
     if cfg.rect and shuffle:
-        LOGGER.warning("WARNING ⚠️ --rect is incompatible with DataLoader shuffle, setting shuffle=False")
+        LOGGER.warning("WARNING ⚠️ 'rect=True' is incompatible with DataLoader shuffle, setting shuffle=False")
         shuffle = False
     with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
         dataset = YOLODataset(
@@ -123,3 +130,63 @@ def build_classification_dataloader(path,
                               pin_memory=PIN_MEMORY,
                               worker_init_fn=seed_worker,
                               generator=generator)  # or DataLoader(persistent_workers=True)
+
+
+def check_source(source):
+    webcam, screenshot, from_img, in_memory = False, False, False, False
+    if isinstance(source, (str, int, Path)):  # int for local usb carame
+        source = str(source)
+        is_file = Path(source).suffix[1:] in (IMG_FORMATS + VID_FORMATS)
+        is_url = source.lower().startswith(('https://', 'http://', 'rtsp://', 'rtmp://'))
+        webcam = source.isnumeric() or source.endswith('.streams') or (is_url and not is_file)
+        screenshot = source.lower().startswith('screen')
+        if is_url and is_file:
+            source = check_file(source)  # download
+    elif isinstance(source, tuple(LOADERS)):
+        in_memory = True
+    elif isinstance(source, (list, tuple)):
+        source = autocast_list(source)  # convert all list elements to PIL or np arrays
+        from_img = True
+    elif isinstance(source, ((Image.Image, np.ndarray))):
+        from_img = True
+    else:
+        raise Exception(
+            "Unsupported type encountered! See docs for supported types https://docs.ultralytics.com/predict")
+
+    return source, webcam, screenshot, from_img, in_memory
+
+
+def load_inference_source(source=None, transforms=None, imgsz=640, vid_stride=1, stride=32, auto=True):
+    """
+    TODO: docs
+    """
+    # source
+    source, webcam, screenshot, from_img, in_memory = check_source(source)
+    source_type = SourceTypes(webcam, screenshot, from_img) if not in_memory else source.source_type
+
+    # Dataloader
+    if in_memory:
+        dataset = source
+    elif webcam:
+        dataset = LoadStreams(source,
+                              imgsz=imgsz,
+                              stride=stride,
+                              auto=auto,
+                              transforms=transforms,
+                              vid_stride=vid_stride)
+
+    elif screenshot:
+        dataset = LoadScreenshots(source, imgsz=imgsz, stride=stride, auto=auto, transforms=transforms)
+    elif from_img:
+        dataset = LoadPilAndNumpy(source, imgsz=imgsz, stride=stride, auto=auto, transforms=transforms)
+    else:
+        dataset = LoadImages(source,
+                             imgsz=imgsz,
+                             stride=stride,
+                             auto=auto,
+                             transforms=transforms,
+                             vid_stride=vid_stride)
+
+    setattr(dataset, 'source_type', source_type)  # attach source types
+
+    return dataset

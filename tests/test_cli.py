@@ -50,6 +50,8 @@ def test_val_classify():
 def test_predict_detect():
     run(f"yolo predict detect model={MODEL}.pt source={ROOT / 'assets'} imgsz=32")
     run(f"yolo predict detect model={MODEL}.pt source=https://ultralytics.com/images/bus.jpg imgsz=32")
+    run(f"yolo predict detect model={MODEL}.pt source=https://ultralytics.com/assets/decelera_landscape.mov imgsz=32")
+    run(f"yolo predict detect model={MODEL}.pt source=https://ultralytics.com/assets/decelera_portrait.mov imgsz=32")
 
 
 def test_predict_segment():

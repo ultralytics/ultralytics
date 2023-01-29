@@ -34,7 +34,7 @@ download: |
   dir = Path(yaml['path'])  # dataset root dir
   parent = Path(dir.parent)  # download dir
   urls = ['http://trax-geometry.s3.amazonaws.com/cvpr_challenge/SKU110K_fixed.tar.gz']
-  download(urls, dir=parent, delete=False)
+  download(urls, dir=parent)
 
   # Rename directories
   if dir.exists():

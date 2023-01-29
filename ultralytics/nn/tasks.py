@@ -325,9 +325,9 @@ def torch_safe_load(weight):
     Returns:
         The loaded PyTorch model.
     """
-    from ultralytics.yolo.utils.downloads import attempt_download
+    from ultralytics.yolo.utils.downloads import attempt_download_asset
 
-    file = attempt_download(weight)  # search online if missing locally
+    file = attempt_download_asset(weight)  # search online if missing locally
     try:
         return torch.load(file, map_location='cpu')  # load
     except ModuleNotFoundError as e:

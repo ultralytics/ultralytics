@@ -8,10 +8,6 @@ from ultralytics.yolo.utils import ROOT, SETTINGS
 MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n'
 CFG = 'yolov8n'
 
-VAL_SPLIT_TRAIN = 'train'
-VAL_SPLIT_VAL = 'val'
-VAL_SPLIT_TEST = 'test'
-
 
 def run(cmd):
     # Run a subprocess command with check=True
@@ -40,20 +36,17 @@ def test_train_cls():
 # Val checks -----------------------------------------------------------------------------------------------------------
 def test_val_detect():
     run(f'yolo val detect model={MODEL}.pt data=coco8.yaml imgsz=32')
-    run(f'yolo val detect model={MODEL}.pt data=coco8.yaml val_split={VAL_SPLIT_VAL} imgsz=32')
-    run(f'yolo val detect model={MODEL}.pt data=coco8-with-test.yaml val_split={VAL_SPLIT_TEST} imgsz=32')
+    run(f'yolo val detect model={MODEL}.pt data=coco8.yaml val_split=val imgsz=32')
 
 
 def test_val_segment():
     run(f'yolo val segment model={MODEL}-seg.pt data=coco8-seg.yaml imgsz=32')
-    run(f'yolo val segment model={MODEL}-seg.pt data=coco8-seg.yaml val_split={VAL_SPLIT_VAL} imgsz=32')
-    run(f'yolo val segment model={MODEL}-seg.pt data=coco8-seg-with-test.yaml val_split={VAL_SPLIT_TEST} imgsz=32')
+    run(f'yolo val segment model={MODEL}-seg.pt data=coco8-seg.yaml val_split=val imgsz=32')
 
 
 def test_val_classify():
     run(f'yolo val classify model={MODEL}-cls.pt data=mnist160 imgsz=32')
-    # mnist160 has no test split, so we just use val split
-    run(f'yolo val classify model={MODEL}-cls.pt data=mnist160 val_split={VAL_SPLIT_VAL} imgsz=32')
+    run(f'yolo val classify model={MODEL}-cls.pt data=mnist160 val_split=val imgsz=32')
 
 
 # Predict checks -------------------------------------------------------------------------------------------------------

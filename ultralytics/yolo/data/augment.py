@@ -202,7 +202,14 @@ class MixUp(BaseMixTransform):
 
 class RandomPerspective:
 
-    def __init__(self, degrees=0.0, translate=0.1, scale=0.5, shear=0.0, perspective=0.0, border=(0, 0), pre_transform=None):
+    def __init__(self,
+                 degrees=0.0,
+                 translate=0.1,
+                 scale=0.5,
+                 shear=0.0,
+                 perspective=0.0,
+                 border=(0, 0),
+                 pre_transform=None):
         self.degrees = degrees
         self.translate = translate
         self.scale = scale
@@ -670,6 +677,7 @@ def v8_transforms(dataset, imgsz, hyp):
         RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
         RandomFlip(direction="vertical", p=hyp.flipud),
         RandomFlip(direction="horizontal", p=hyp.fliplr),])  # transforms
+
 
 # Classification augmentations -----------------------------------------------------------------------------------------
 def classify_transforms(size=224):

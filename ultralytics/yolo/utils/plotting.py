@@ -9,10 +9,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import torch
-from PIL import Image, ImageDraw, ImageFont, __version__ as pil_version
+from PIL import Image, ImageDraw, ImageFont
+from PIL import __version__ as pil_version
 
 from ultralytics.yolo.utils import threaded
-from .checks import check_font, is_ascii, check_version
+
+from .checks import check_font, check_version, is_ascii
 from .files import increment_path
 from .ops import clip_coords, scale_image, xywh2xyxy, xyxy2xywh
 

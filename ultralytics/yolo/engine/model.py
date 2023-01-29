@@ -145,17 +145,19 @@ class YOLO:
         return self.predictor(source=source, stream=stream)
 
     @smart_inference_mode()
-    def val(self, data=None, **kwargs):
+    def val(self, data=None, method=None, **kwargs):
         """
         Validate a model on a given dataset .
 
         Args:
             data (str): The dataset to validate on. Accepts all formats accepted by yolo
+            method (str): The mode to run the validation in. Defaults to None.
             **kwargs : Any other args accepted by the validators. To see all args check 'configuration' section in docs
         """
         overrides = self.overrides.copy()
         overrides.update(kwargs)
         overrides["mode"] = "val"
+        overrides["method"] = "test" if method == "test" else "val"
         args = get_cfg(cfg=DEFAULT_CFG, overrides=overrides)
         args.data = data or args.data
         args.task = self.task

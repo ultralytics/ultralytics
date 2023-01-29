@@ -10,6 +10,7 @@ CFG = 'yolov8n'
 VAL_MODE_VAL = 'val'
 VAL_MODE_TEST = 'test'
 
+
 def run(cmd):
     # Run a subprocess command with check=True
     subprocess.run(cmd.split(), check=True)

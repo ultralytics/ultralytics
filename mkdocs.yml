@@ -37,10 +37,27 @@ theme:
     - navigation.footer
     - content.tabs.link  # all code tabs change simultaneously
 
-# Version drop-down menu
-# extra:
-#   version:
-#     provider: mike
+# Customization
+copyright: Ultralytics 2023. All rights reserved.
+extra:
+  # version:
+  #   provider: mike  #  version drop-down menu
+  analytics:
+    provider: google
+    property: G-2M5EHKC0BH
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/ultralytics
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/company/ultralytics
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/ultralytics
+    - icon: fontawesome/brands/youtube
+      link: https://www.youtube.com/ultralytics
+    - icon: fontawesome/brands/docker
+      link: https://hub.docker.com/r/ultralytics/ultralytics/
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/ultralytics/
 
 extra_css:
   - stylesheets/style.css

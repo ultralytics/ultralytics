@@ -135,6 +135,8 @@ class BasePredictor:
 
     def stream_inference(self, source=None, model=None):
         self.run_callbacks("on_predict_start")
+        if self.args.verbose:
+            LOGGER.info("")
 
         # setup model
         if not self.model:

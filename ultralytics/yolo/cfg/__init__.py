@@ -208,8 +208,8 @@ def entrypoint(debug=False):
         elif a in special:
             special[a]()
             return
-        elif a in DEFAULT_CFG_DICT and DEFAULT_CFG_DICT[a] is False:
-            overrides[a] = True  # auto-True for default False args, i.e. 'yolo show' sets show=True
+        elif a in DEFAULT_CFG_DICT and isinstance(DEFAULT_CFG_DICT[a], bool):
+            overrides[a] = True  # auto-True for default bool args, i.e. 'yolo show' sets show=True
         elif a in DEFAULT_CFG_DICT:
             raise SyntaxError(f"'{colorstr('red', 'bold', a)}' is a valid YOLO argument but is missing an '=' sign "
                               f"to set its value, i.e. try '{a}={DEFAULT_CFG_DICT[a]}'\n{CLI_HELP_MSG}")
@@ -262,7 +262,8 @@ def entrypoint(debug=False):
             LOGGER.warning(f"WARNING ⚠️ 'format=' is missing. Using default 'format={overrides['format']}'.")
 
     # Run command in python
-    getattr(model, mode)(**overrides)
+    cfg = get_cfg(overrides=overrides)
+    getattr(model, mode)(**vars(cfg))
 
 
 # Special modes --------------------------------------------------------------------------------------------------------

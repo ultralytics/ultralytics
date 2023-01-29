@@ -1,29 +1,31 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
 import contextlib
-import os
 import subprocess
-import urllib
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
+from urllib import parse, request
 from zipfile import ZipFile
 
 import requests
 import torch
+from tqdm import tqdm
 
 from ultralytics.yolo.utils import LOGGER
 
 
 def is_url(url, check=True):
     # Check if string is URL and check if URL exists
-    try:
+    with contextlib.suppress(Exception):
         url = str(url)
-        result = urllib.parse.urlparse(url)
+        result = parse.urlparse(url)
         assert all([result.scheme, result.netloc])  # check if is url
-        return (urllib.request.urlopen(url).getcode() == 200) if check else True  # check if exists online
-    except (AssertionError, urllib.request.HTTPError):
-        return False
+        if check:
+            with request.urlopen(url) as response:
+                return response.getcode() == 200  # check if exists online
+        return True
+    return False
 
 
 def safe_download(url,
@@ -57,35 +59,50 @@ def safe_download(url,
     else:  # does not exist
         assert dir or file, 'dir or file required for download'
         f = dir / Path(url).name if dir else Path(file)
-        LOGGER.info(f'Downloading {url} to {f}...')
+        desc = f'Downloading {url} to {f}'
+        LOGGER.info(f'{desc}...')
         f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
         for i in range(retry + 1):
             try:
                 if curl or i > 0:  # curl download with retry, continue
                     s = 'sS' * (not progress)  # silent
-                    r = os.system(f'curl -# -{s}L "{url}" -o "{f}" --retry 9 -C -')
-                else:  # torch download
-                    r = torch.hub.download_url_to_file(url, f, progress=progress)
-                assert r in {0, None}
+                    r = subprocess.run(['curl', '-#', f'-{s}L', url, '-o', f, '--retry', '9', '-C', '-']).returncode
+                    assert r == 0, f'Curl return value {r}'
+                else:  # urllib download
+                    method = 'torch'
+                    if method == 'torch':
+                        torch.hub.download_url_to_file(url, f, progress=progress)
+                    else:
+                        from ultralytics.yolo.utils import TQDM_BAR_FORMAT
+                        with request.urlopen(url) as response, tqdm(total=int(response.getheader("Content-Length", 0)),
+                                                                    desc=desc,
+                                                                    disable=not progress,
+                                                                    unit='B',
+                                                                    unit_scale=True,
+                                                                    unit_divisor=1024,
+                                                                    bar_format=TQDM_BAR_FORMAT) as pbar:
+                            with open(f, "wb") as f_opened:
+                                for data in response:
+                                    f_opened.write(data)
+                                    pbar.update(len(data))
+
+                if f.exists():
+                    if f.stat().st_size > min_bytes:
+                        break  # success
+                    f.unlink()  # remove partial downloads
             except Exception as e:
                 if i >= retry:
                     raise ConnectionError(f'❌  Download failure for {url}') from e
                 LOGGER.warning(f'⚠️ Download failure, retrying {i + 1}/{retry} {url}...')
-                continue
-
-            if f.exists():
-                if f.stat().st_size > min_bytes:
-                    break  # success
-                f.unlink()  # remove partial downloads
 
     if unzip and f.exists() and f.suffix in {'.zip', '.tar', '.gz'}:
         LOGGER.info(f'Unzipping {f}...')
         if f.suffix == '.zip':
             ZipFile(f).extractall(path=f.parent)  # unzip
         elif f.suffix == '.tar':
-            os.system(f'tar xf {f} --directory {f.parent}')  # unzip
+            subprocess.run(['tar', 'xf', f, '--directory', f.parent], check=True)  # unzip
         elif f.suffix == '.gz':
-            os.system(f'tar xfz {f} --directory {f.parent}')  # unzip
+            subprocess.run(['tar', 'xfz', f, '--directory', f.parent], check=True)  # unzip
         if delete:
             f.unlink()  # remove zip
 
@@ -95,7 +112,6 @@ def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
     from ultralytics.yolo.utils import SETTINGS
 
     def github_assets(repository, version='latest'):
-        # Return GitHub repo tag and assets (i.e. ['yolov8n.pt', 'yolov5m.pt', ...])
         # Return GitHub repo tag and assets (i.e. ['yolov8n.pt', 'yolov8s.pt', ...])
         if version != 'latest':
             version = f'tags/{version}'  # i.e. tags/v6.2
@@ -109,7 +125,7 @@ def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
         return str(SETTINGS['weights_dir'] / file)
     else:
         # URL specified
-        name = Path(urllib.parse.unquote(str(file))).name  # decode '%2F' to '/' etc.
+        name = Path(parse.unquote(str(file))).name  # decode '%2F' to '/' etc.
         if str(file).startswith(('http:/', 'https:/')):  # download
             url = str(file).replace(':/', '://')  # Pathlib turns :// -> :/
             file = name.split('?')[0]  # parse authentication https://url.com/file.txt?auth...
@@ -128,7 +144,7 @@ def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
                 tag, assets = github_assets(repo)  # latest release
             except Exception:
                 try:
-                    tag = subprocess.check_output('git tag', shell=True, stderr=subprocess.STDOUT).decode().split()[-1]
+                    tag = subprocess.check_output(["git", "tag"]).decode().split()[-1]
                 except Exception:
                     tag = release
 

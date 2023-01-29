@@ -32,7 +32,6 @@ The simplest way of simply using YOLOv8 directly in a Python environment.
           model = YOLO("yolov8n.yaml")
           model.train(data="coco128.yaml", epochs=5)
           model.val()  # It'll automatically evaluate the data you trained.
-          model.val(val_split="test") # It'll evaluate the test split.
         ```
 
     === "Val independently"
@@ -44,8 +43,6 @@ The simplest way of simply using YOLOv8 directly in a Python environment.
           model.val()
           # or you can set the data you want to val
           model.val(data="coco128.yaml")
-          # or you can set the data you want to val and the split you want to val
-          model.val(data="coco128.yaml", val_split="test")
         ```
 
 !!! example "Predict"

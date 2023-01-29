@@ -79,8 +79,7 @@ training `data` and arguments as model attributes.
         model = YOLO("path/to/best.pt")  # load a custom model
         
         # Validate the model
-        results_val = model.val()  # no arguments needed, dataset and settings remembered
-        results_test = model.val(val_split="test")  # val on test split
+        results = model.val()  # no arguments needed, dataset and settings remembered
         ```
 
 ## Predict

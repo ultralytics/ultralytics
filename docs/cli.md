@@ -66,6 +66,7 @@ training `data` and arguments as model attributes.
         ```bash
         yolo detect val model=yolov8n.pt  # val official model
         yolo detect val model=path/to/best.pt  # val custom model
+        yolo detect val model=path/to/best.pt val_split=test  # val custom model on test split
         ```
 
     === "Python"
@@ -78,7 +79,8 @@ training `data` and arguments as model attributes.
         model = YOLO("path/to/best.pt")  # load a custom model
         
         # Validate the model
-        results = model.val()  # no arguments needed, dataset and settings remembered
+        results_val = model.val()  # no arguments needed, dataset and settings remembered
+        results_test = model.val(val_split="test")  # val on test split
         ```
 
 ## Predict

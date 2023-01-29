@@ -56,12 +56,14 @@ training `data` and arguments as model attributes.
         
         # Validate the model
         results = model.val()  # no arguments needed, dataset and settings remembered
+        results = model.val(val_split="test") # validate on test split
         ```
     === "CLI"
     
         ```bash
         yolo detect val model=yolov8n.pt  # val official model
         yolo detect val model=path/to/best.pt  # val custom model
+        yolo detect val model=path/to/best.pt val_split=test  # val custom model on test split
         ```
 
 ## Predict

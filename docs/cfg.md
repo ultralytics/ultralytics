@@ -149,6 +149,7 @@ validation dataset and to detect and prevent overfitting.
 | Key         | Value | Description                                                                 |
 |-------------|-------|-----------------------------------------------------------------------------|
 | val         | True  | validate/test during training                                               |
+| val_split   | val   | change validation split, i.e. val, test, train                              |
 | save_json   | False | save results to JSON file                                                   |
 | save_hybrid | False | save hybrid version of labels (labels + additional predictions)             |
 | conf        | 0.001 | object confidence threshold for detection (default 0.25 predict, 0.001 val) |

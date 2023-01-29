@@ -56,12 +56,14 @@ it's training `data` and arguments as model attributes.
         
         # Validate the model
         results = model.val()  # no arguments needed, dataset and settings remembered
+        results = model.val(val_split="test") # validate on test split
         ```
     === "CLI"
     
         ```bash
         yolo classify val model=yolov8n-cls.pt  # val official model
         yolo classify val model=path/to/best.pt  # val custom model
+        yolo classify val model=path/to/best.pt val_split=test  # val custom model on test split
         ```
 
 ## Predict

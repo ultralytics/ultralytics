@@ -66,7 +66,6 @@ training `data` and arguments as model attributes.
         ```bash
         yolo detect val model=yolov8n.pt  # val official model
         yolo detect val model=path/to/best.pt  # val custom model
-        yolo detect val model=path/to/best.pt val_split=test  # val custom model on test split
         ```
 
     === "Python"

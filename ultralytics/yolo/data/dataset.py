@@ -136,8 +136,8 @@ class YOLODataset(BaseDataset):
     # TODO: use hyp config to set all these augmentations
     def build_transforms(self, hyp=None):
         if self.augment:
-            mosaic = self.augment and not self.rect
-            transforms = mosaic_transforms(self, self.imgsz, hyp) if mosaic else affine_transforms(self.imgsz, hyp)
+            hyp.mosaic = hyp.mosaic if self.augment and not self.rect else 0.0
+            transforms = v8_transforms(self, self.imgsz, hyp)
         else:
             transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), scaleup=False)])
         transforms.append(
@@ -175,10 +175,14 @@ class YOLODataset(BaseDataset):
 
     @staticmethod
     def collate_fn(batch):
-        # TODO: returning a dict can make thing easier and cleaner when using dataset in training
-        # but I don't know if this will slow down a little bit.
         new_batch = {}
         keys = batch[0].keys()
+        for b in batch:
+            print(b.keys())
+            v = b["img"]
+            if isinstance(v, tuple):
+                print("----", v)
+            print(v.shape)
         values = list(zip(*[list(b.values()) for b in batch]))
         for i, k in enumerate(keys):
             value = values[i]

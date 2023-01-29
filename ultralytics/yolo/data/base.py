@@ -182,6 +182,7 @@ class BaseDataset(Dataset):
 
     def get_label_info(self, index):
         label = self.labels[index].copy()
+        label.pop("shape")
         label["img"], label["ori_shape"], label["resized_shape"] = self.load_image(index)
         label["ratio_pad"] = (
             label["resized_shape"][0] / label["ori_shape"][0],

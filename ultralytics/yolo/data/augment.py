@@ -44,20 +44,8 @@ class Compose:
         self.transforms = transforms
 
     def __call__(self, data):
-        mosaic_p = None
-        mosaic_imgsz = None
-
         for t in self.transforms:
-            if isinstance(t, Mosaic):
-                temp = t(data)
-                mosaic_p = False if temp == data else True
-                mosaic_imgsz = t.imgsz
-                data = temp
-            else:
-                if isinstance(t, RandomPerspective):
-                    t.border = [-mosaic_imgsz // 2, -mosaic_imgsz // 2] if mosaic_p else [0, 0]
-                data = t(data)
-
+            data = t(data)
         return data
 
     def append(self, transform):
@@ -188,7 +176,8 @@ class Mosaic(BaseMixTransform):
             "resized_shape": (self.imgsz * 2, self.imgsz * 2),
             "im_file": mosaic_labels[0]["im_file"],
             "cls": np.concatenate(cls, 0),
-            "instances": Instances.concatenate(instances, axis=0)}
+            "instances": Instances.concatenate(instances, axis=0),
+            "mosaic_border": self.border}
         final_labels["instances"].clip(self.imgsz * 2, self.imgsz * 2)
         return final_labels
 
@@ -213,7 +202,7 @@ class MixUp(BaseMixTransform):
 
 class RandomPerspective:
 
-    def __init__(self, degrees=0.0, translate=0.1, scale=0.5, shear=0.0, perspective=0.0, border=(0, 0)):
+    def __init__(self, degrees=0.0, translate=0.1, scale=0.5, shear=0.0, perspective=0.0, border=(0, 0), pre_transform=None):
         self.degrees = degrees
         self.translate = translate
         self.scale = scale
@@ -221,8 +210,9 @@ class RandomPerspective:
         self.perspective = perspective
         # mosaic border
         self.border = border
+        self.pre_transform = pre_transform
 
-    def affine_transform(self, img):
+    def affine_transform(self, img, border):
         # Center
         C = np.eye(3)
 
@@ -255,7 +245,7 @@ class RandomPerspective:
         # Combined rotation matrix
         M = T @ S @ R @ P @ C  # order of operations (right to left) is IMPORTANT
         # affine image
-        if (self.border[0] != 0) or (self.border[1] != 0) or (M != np.eye(3)).any():  # image changed
+        if (border[0] != 0) or (border[1] != 0) or (M != np.eye(3)).any():  # image changed
             if self.perspective:
                 img = cv2.warpPerspective(img, M, dsize=self.size, borderValue=(114, 114, 114))
             else:  # affine
@@ -341,6 +331,10 @@ class RandomPerspective:
         Args:
             labels(Dict): a dict of `bboxes`, `segments`, `keypoints`.
         """
+        if self.pre_transform and "mosaic_border" not in labels:
+            labels = self.pre_transform(labels)
+            labels.pop("ratio_pad")  # do not need ratio pad
+
         img = labels["img"]
         cls = labels["cls"]
         instances = labels.pop("instances")
@@ -348,10 +342,11 @@ class RandomPerspective:
         instances.convert_bbox(format="xyxy")
         instances.denormalize(*img.shape[:2][::-1])
 
-        self.size = img.shape[1] + self.border[1] * 2, img.shape[0] + self.border[0] * 2  # w, h
+        border = labels.pop("mosaic_border", self.border)
+        self.size = img.shape[1] + border[1] * 2, img.shape[0] + border[0] * 2  # w, h
         # M is affine matrix
         # scale for func:`box_candidates`
-        img, M, scale = self.affine_transform(img)
+        img, M, scale = self.affine_transform(img, border)
 
         bboxes = self.apply_bboxes(instances.bboxes, M)
 
@@ -654,7 +649,7 @@ class Format:
         return masks, instances, cls
 
 
-def mosaic_transforms(dataset, imgsz, hyp):
+def v8_transforms(dataset, imgsz, hyp):
     pre_transform = Compose([
         Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic, border=[-imgsz // 2, -imgsz // 2]),
         CopyPaste(p=hyp.copy_paste),
@@ -664,7 +659,7 @@ def mosaic_transforms(dataset, imgsz, hyp):
             scale=hyp.scale,
             shear=hyp.shear,
             perspective=hyp.perspective,
-            border=[-imgsz // 2, -imgsz // 2],
+            pre_transform=LetterBox(new_shape=(imgsz, imgsz)),
         ),])
     return Compose([
         pre_transform,

@@ -327,6 +327,20 @@ def get_git_origin_url():
     return None  # if not git dir or on error
 
 
+def get_git_branch():
+    """
+    Returns the current git branch name. If not in a git repository, returns None.
+
+    Returns:
+        (str) or (None): The current git branch name.
+    """
+    if is_git_dir():
+        with contextlib.suppress(subprocess.CalledProcessError):
+            origin = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"])
+            return origin.decode().strip()
+    return None  # if not git dir or on error
+
+
 def get_default_args(func):
     # Get func() default arguments
     signature = inspect.signature(func)
@@ -465,7 +479,8 @@ def set_sentry():
     if SETTINGS['sync'] and \
             not is_pytest_running() and \
             not is_github_actions_ci() and \
-            (is_pip_package() or get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git"):
+            (is_pip_package() or
+             (get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git" and get_git_branch() == "main")):
         import sentry_sdk  # noqa
 
         import ultralytics

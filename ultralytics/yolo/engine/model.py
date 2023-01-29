@@ -233,6 +233,13 @@ class YOLO:
         """
         return self.model.names
 
+    @property
+    def transforms(self):
+        """
+         Returns transform of the loaded model.
+        """
+        return self.model.transforms if hasattr(self.model, 'transforms') else None
+
     @staticmethod
     def add_callback(event: str, func):
         """

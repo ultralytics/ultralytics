@@ -110,7 +110,7 @@ def predict(cfg=DEFAULT_CFG, use_python=False):
         from ultralytics import YOLO
         YOLO(model)(**args)
     else:
-        predictor = SegmentationPredictor(args)
+        predictor = SegmentationPredictor(overrides=args)
         predictor.predict_cli()
 
 

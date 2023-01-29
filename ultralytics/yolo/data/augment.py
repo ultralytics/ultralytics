@@ -508,8 +508,10 @@ class CopyPaste:
         # Implement Copy-Paste augmentation https://arxiv.org/abs/2012.07177, labels as nx5 np.array(cls, xyxy)
         im = labels["img"]
         cls = labels["cls"]
+        h, w = im.shape[:2]
         instances = labels.pop("instances")
         instances.convert_bbox(format="xyxy")
+        instances.denormalize(w, h)
         if self.p and len(instances.segments):
             n = len(instances)
             _, w, _ = im.shape  # height, width, channels
@@ -668,24 +670,6 @@ def v8_transforms(dataset, imgsz, hyp):
         RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
         RandomFlip(direction="vertical", p=hyp.flipud),
         RandomFlip(direction="horizontal", p=hyp.fliplr),])  # transforms
-
-
-def affine_transforms(imgsz, hyp):
-    return Compose([
-        LetterBox(new_shape=(imgsz, imgsz)),
-        RandomPerspective(
-            degrees=hyp.degrees,
-            translate=hyp.translate,
-            scale=hyp.scale,
-            shear=hyp.shear,
-            perspective=hyp.perspective,
-            border=[0, 0],
-        ),
-        Albumentations(p=1.0),
-        RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
-        RandomFlip(direction="vertical", p=hyp.flipud),
-        RandomFlip(direction="horizontal", p=hyp.fliplr),])  # transforms
-
 
 # Classification augmentations -----------------------------------------------------------------------------------------
 def classify_transforms(size=224):

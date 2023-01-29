@@ -151,15 +151,8 @@ class YOLODataset(BaseDataset):
         return transforms
 
     def close_mosaic(self, hyp):
-        self.transforms = affine_transforms(self.imgsz, hyp)
-        self.transforms.append(
-            Format(bbox_format="xywh",
-                   normalize=True,
-                   return_mask=self.use_segments,
-                   return_keypoint=self.use_keypoints,
-                   batch_idx=True,
-                   mask_ratio=hyp.mask_ratio,
-                   mask_overlap=hyp.overlap_mask))
+        hyp.mosaic = 0.0   # set mosaic ratio=0.0
+        self.build_transforms(hyp)
 
     def update_labels_info(self, label):
         """custom your label format here"""

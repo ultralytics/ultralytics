@@ -5,7 +5,7 @@ import subprocess
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
-from urllib import request, parse
+from urllib import parse, request
 from zipfile import ZipFile
 
 import requests

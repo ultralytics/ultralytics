@@ -150,7 +150,7 @@ def train(cfg=DEFAULT_CFG, use_python=False):
         from ultralytics import YOLO
         YOLO(model).train(**args)
     else:
-        trainer = SegmentationTrainer(args)
+        trainer = SegmentationTrainer(overrides=args)
         trainer.train()
 
 

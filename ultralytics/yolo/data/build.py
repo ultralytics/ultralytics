@@ -65,7 +65,7 @@ def build_dataloader(cfg, batch_size, img_path, stride=32, label_path=None, rank
     assert mode in ["train", "val"]
     shuffle = mode == "train"
     if cfg.rect and shuffle:
-        LOGGER.warning("WARNING ⚠️ --rect is incompatible with DataLoader shuffle, setting shuffle=False")
+        LOGGER.warning("WARNING ⚠️ 'rect=True' is incompatible with DataLoader shuffle, setting shuffle=False")
         shuffle = False
     with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
         dataset = YOLODataset(

@@ -14,7 +14,7 @@ from PIL import Image
 
 from ultralytics.yolo.utils import LOGGER, ROOT, yaml_load
 from ultralytics.yolo.utils.checks import check_requirements, check_suffix, check_version
-from ultralytics.yolo.utils.downloads import attempt_download, is_url
+from ultralytics.yolo.utils.downloads import attempt_download_asset, is_url
 from ultralytics.yolo.utils.ops import xywh2xyxy
 
 
@@ -58,7 +58,7 @@ class AutoBackend(nn.Module):
         model = None  # TODO: resolves ONNX inference, verify effect on other backends
         cuda = torch.cuda.is_available() and device.type != 'cpu'  # use CUDA
         if not (pt or triton or nn_module):
-            w = attempt_download(w)  # download if not local
+            w = attempt_download_asset(w)  # download if not local
 
         # NOTE: special case: in-memory pytorch model
         if nn_module:

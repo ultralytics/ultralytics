@@ -85,8 +85,8 @@ def select_device(device='', batch=0, newline=False):
         devices = device.split(',') if device else '0'  # range(torch.cuda.device_count())  # i.e. 0,1,6,7
         n = len(devices)  # device count
         if n > 1 and batch > 0 and batch % n != 0:  # check batch_size is divisible by device_count
-            raise ValueError(f'batch={batch} is not multiple of GPU count {n}.\n'
-                             f'Try batch={batch // n} or batch={batch // n + 1}')
+            raise ValueError(f"'batch={batch}' must be a multiple of GPU count {n}. Try 'batch={batch // n * n}' or "
+                             f"'batch={batch // n * n + n}', the nearest batch sizes evenly divisible by {n}.")
         space = ' ' * (len(s) + 1)
         for i, d in enumerate(devices):
             p = torch.cuda.get_device_properties(i)

@@ -64,7 +64,7 @@ download: |
   # Download
   dir = Path(yaml['path'])  # dataset root dir
   urls = ['https://argoverse-hd.s3.us-east-2.amazonaws.com/Argoverse-HD-Full.zip']
-  download(urls, dir=dir, delete=False)
+  download(urls, dir=dir)
 
   # Convert
   annotations_dir = 'Argoverse-HD/annotations/'

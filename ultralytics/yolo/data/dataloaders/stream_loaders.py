@@ -29,7 +29,7 @@ class SourceTypes:
 
 
 class LoadStreams:
-    # YOLOv8 streamloader, i.e. `python detect.py --source 'rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP streams`
+    # YOLOv8 streamloader, i.e. `yolo predict source='rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP streams`
     def __init__(self, sources='file.streams', imgsz=640, stride=32, auto=True, transforms=None, vid_stride=1):
         torch.backends.cudnn.benchmark = True  # faster for fixed-size inference
         self.mode = 'stream'
@@ -49,9 +49,9 @@ class LoadStreams:
                 import pafy  # noqa
                 s = pafy.new(s).getbest(preftype="mp4").url  # YouTube URL
             s = eval(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
-            if s == 0:
-                assert not is_colab(), '--source 0 webcam unsupported on Colab. Rerun command in a local environment.'
-                assert not is_kaggle(), '--source 0 webcam unsupported on Kaggle. Rerun command in a local environment.'
+            if s == 0 and (is_colab() or is_kaggle()):
+                raise NotImplementedError("'source=0' webcam not supported in Colab and Kaggle notebooks."
+                                          "Try running 'source=0' in a local environment.")
             cap = cv2.VideoCapture(s)
             if not cap.isOpened():
                 raise ConnectionError(f'{st}Failed to open {s}')
@@ -118,7 +118,7 @@ class LoadStreams:
 
 
 class LoadScreenshots:
-    # YOLOv8 screenshot dataloader, i.e. `python detect.py --source "screen 0 100 100 512 256"`
+    # YOLOv8 screenshot dataloader, i.e. `yolo predict source=screen`
     def __init__(self, source, imgsz=640, stride=32, auto=True, transforms=None):
         # source = [screen_number left top width height] (pixels)
         check_requirements('mss')
@@ -168,7 +168,7 @@ class LoadScreenshots:
 
 
 class LoadImages:
-    # YOLOv8 image/video dataloader, i.e. `python detect.py --source image.jpg/vid.mp4`
+    # YOLOv8 image/video dataloader, i.e. `yolo predict source=image.jpg/vid.mp4`
     def __init__(self, path, imgsz=640, stride=32, auto=True, transforms=None, vid_stride=1):
         if isinstance(path, str) and Path(path).suffix == ".txt":  # *.txt file with img/vid/dir on each line
             path = Path(path).read_text().rsplit()

@@ -479,7 +479,7 @@ def set_sentry():
     if SETTINGS['sync'] and \
             not is_pytest_running() and \
             not is_github_actions_ci() and \
-            (is_pip_package() or
+            ((is_pip_package() and not is_git_dir()) or
              (get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git" and get_git_branch() == "main")):
         import sentry_sdk  # noqa
 
@@ -492,6 +492,10 @@ def set_sentry():
             environment='production',  # 'dev' or 'production'
             before_send=before_send,
             ignore_errors=[KeyboardInterrupt])
+
+        # Disable all sentry logging
+        for logger in "sentry_sdk", "sentry_sdk.errors":
+            logging.getLogger(logger).setLevel(logging.CRITICAL)
 
 
 def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.1'):

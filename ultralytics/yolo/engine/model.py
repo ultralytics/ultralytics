@@ -143,7 +143,7 @@ class YOLO:
             self.predictor.setup_model(model=self.model)
         else:  # only update args if predictor is already setup
             self.predictor.args = get_cfg(self.predictor.args, overrides)
-        is_cli = sys.argv[0].endswith('yolo')
+        is_cli = sys.argv[0].endswith('yolo') or sys.argv[0].endswith('ultralytics')
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
 
     @smart_inference_mode()

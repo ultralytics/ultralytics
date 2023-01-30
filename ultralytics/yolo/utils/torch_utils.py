@@ -17,11 +17,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-import ultralytics
-from ultralytics.yolo.utils import DEFAULT_CONFIG_DICT, DEFAULT_CONFIG_KEYS, LOGGER
-from ultralytics.yolo.utils.checks import git_describe
-
-from .checks import check_version
+from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER
+from ultralytics.yolo.utils.checks import check_version
 
 LOCAL_RANK = int(os.getenv('LOCAL_RANK', -1))  # https://pytorch.org/docs/stable/elastic/run.html
 RANK = int(os.getenv('RANK', -1))
@@ -31,7 +28,7 @@ WORLD_SIZE = int(os.getenv('WORLD_SIZE', 1))
 @contextmanager
 def torch_distributed_zero_first(local_rank: int):
     # Decorator to make all processes in distributed training wait for each local_master to do something
-    initialized = torch.distributed.is_initialized()  # prevent 'Default process group has not been initialized' errors
+    initialized = torch.distributed.is_available() and torch.distributed.is_initialized()
     if initialized and local_rank not in {-1, 0}:
         dist.barrier(device_ids=[local_rank])
     yield
@@ -58,25 +55,38 @@ def DDP_model(model):
         return DDP(model, device_ids=[LOCAL_RANK], output_device=LOCAL_RANK)
 
 
-def select_device(device='', batch_size=0, newline=False):
+def select_device(device='', batch=0, newline=False):
     # device = None or 'cpu' or 0 or '0' or '0,1,2,3'
-    ver = git_describe() or ultralytics.__version__  # git commit or pip package version
-    s = f'Ultralytics YOLOv{ver} 🚀 Python-{platform.python_version()} torch-{torch.__version__} '
-    device = str(device).strip().lower().replace('cuda:', '').replace('none', '')  # to string, 'cuda:0' to '0'
+    from ultralytics import __version__
+    s = f"Ultralytics YOLOv{__version__} 🚀 Python-{platform.python_version()} torch-{torch.__version__} "
+    device = str(device).lower()
+    for remove in 'cuda:', 'none', '(', ')', '[', ']', "'", ' ':
+        device = device.replace(remove, '')  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
     cpu = device == 'cpu'
     mps = device == 'mps'  # Apple Metal Performance Shaders (MPS)
     if cpu or mps:
         os.environ['CUDA_VISIBLE_DEVICES'] = '-1'  # force torch.cuda.is_available() = False
     elif device:  # non-cpu device requested
+        visible = os.environ.get('CUDA_VISIBLE_DEVICES', None)
         os.environ['CUDA_VISIBLE_DEVICES'] = device  # set environment variable - must be before assert is_available()
-        assert torch.cuda.is_available() and torch.cuda.device_count() >= len(device.replace(',', '')), \
-            f"Invalid CUDA 'device={device}' requested, use 'device=cpu' or pass valid CUDA device(s)"
+        if not (torch.cuda.is_available() and torch.cuda.device_count() >= len(device.replace(',', ''))):
+            LOGGER.info(s)
+            install = "See https://pytorch.org/get-started/locally/ for up-to-date torch install instructions if no " \
+                      "CUDA devices are seen by torch.\n" if torch.cuda.device_count() == 0 else ""
+            raise ValueError(f"Invalid CUDA 'device={device}' requested."
+                             f" Use 'device=cpu' or pass valid CUDA device(s) if available,"
+                             f" i.e. 'device=0' or 'device=0,1,2,3' for Multi-GPU.\n"
+                             f"\ntorch.cuda.is_available(): {torch.cuda.is_available()}"
+                             f"\ntorch.cuda.device_count(): {torch.cuda.device_count()}"
+                             f"\nos.environ['CUDA_VISIBLE_DEVICES']: {visible}\n"
+                             f"{install}")
 
     if not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
         devices = device.split(',') if device else '0'  # range(torch.cuda.device_count())  # i.e. 0,1,6,7
         n = len(devices)  # device count
-        if n > 1 and batch_size > 0:  # check batch_size is divisible by device_count
-            assert batch_size % n == 0, f'batch-size {batch_size} not multiple of GPU count {n}'
+        if n > 1 and batch > 0 and batch % n != 0:  # check batch_size is divisible by device_count
+            raise ValueError(f"'batch={batch}' must be a multiple of GPU count {n}. Try 'batch={batch // n * n}' or "
+                             f"'batch={batch // n * n + n}', the nearest batch sizes evenly divisible by {n}.")
         space = ' ' * (len(s) + 1)
         for i, d in enumerate(devices):
             p = torch.cuda.get_device_properties(i)
@@ -137,9 +147,10 @@ def model_info(model, verbose=False, imgsz=640):
                   (i, name, p.requires_grad, p.numel(), list(p.shape), p.mean(), p.std()))
 
     flops = get_flops(model, imgsz)
+    fused = ' (fused)' if model.is_fused() else ''
     fs = f', {flops:.1f} GFLOPs' if flops else ''
     m = Path(getattr(model, 'yaml_file', '') or model.yaml.get('yaml_file', '')).stem.replace('yolo', 'YOLO') or 'Model'
-    LOGGER.info(f"{m} summary: {len(list(model.modules()))} layers, {n_p} parameters, {n_g} gradients{fs}")
+    LOGGER.info(f"{m} summary{fused}: {len(list(model.modules()))} layers, {n_p} parameters, {n_g} gradients{fs}")
 
 
 def get_num_params(model):
@@ -243,6 +254,7 @@ class ModelEMA:
     """ Updated Exponential Moving Average (EMA) from https://github.com/rwightman/pytorch-image-models
     Keeps a moving average of everything in the model state_dict (parameters and buffers)
     For EMA details see https://www.tensorflow.org/api_docs/python/tf/train/ExponentialMovingAverage
+    To disable EMA set the `enabled` attribute to `False`.
     """
 
     def __init__(self, model, decay=0.9999, tau=2000, updates=0):
@@ -252,22 +264,25 @@ class ModelEMA:
         self.decay = lambda x: decay * (1 - math.exp(-x / tau))  # decay exponential ramp (to help early epochs)
         for p in self.ema.parameters():
             p.requires_grad_(False)
+        self.enabled = True
 
     def update(self, model):
         # Update EMA parameters
-        self.updates += 1
-        d = self.decay(self.updates)
+        if self.enabled:
+            self.updates += 1
+            d = self.decay(self.updates)
 
-        msd = de_parallel(model).state_dict()  # model state_dict
-        for k, v in self.ema.state_dict().items():
-            if v.dtype.is_floating_point:  # true for FP16 and FP32
-                v *= d
-                v += (1 - d) * msd[k].detach()
-        # assert v.dtype == msd[k].dtype == torch.float32, f'{k}: EMA {v.dtype} and model {msd[k].dtype} must be FP32'
+            msd = de_parallel(model).state_dict()  # model state_dict
+            for k, v in self.ema.state_dict().items():
+                if v.dtype.is_floating_point:  # true for FP16 and FP32
+                    v *= d
+                    v += (1 - d) * msd[k].detach()
+                    # assert v.dtype == msd[k].dtype == torch.float32, f'{k}: EMA {v.dtype},  model {msd[k].dtype}'
 
     def update_attr(self, model, include=(), exclude=('process_group', 'reducer')):
         # Update EMA attributes
-        copy_attr(self.ema, model, include, exclude)
+        if self.enabled:
+            copy_attr(self.ema, model, include, exclude)
 
 
 def strip_optimizer(f='best.pt', s=''):
@@ -281,14 +296,14 @@ def strip_optimizer(f='best.pt', s=''):
             strip_optimizer(f)
 
     Args:
-        f (str): file path to model state to strip the optimizer from. Default is 'best.pt'.
-        s (str): file path to save the model with stripped optimizer to. Default is ''. If not provided, the original file will be overwritten.
+        f (str): file path to model to strip the optimizer from. Default is 'best.pt'.
+        s (str): file path to save the model with stripped optimizer to. If not provided, 'f' will be overwritten.
 
     Returns:
         None
     """
     x = torch.load(f, map_location=torch.device('cpu'))
-    args = {**DEFAULT_CONFIG_DICT, **x['train_args']}  # combine model args with default args, preferring model args
+    args = {**DEFAULT_CFG_DICT, **x['train_args']}  # combine model args with default args, preferring model args
     if x.get('ema'):
         x['model'] = x['ema']  # replace model with ema
     for k in 'optimizer', 'best_fitness', 'ema', 'updates':  # keys
@@ -297,25 +312,11 @@ def strip_optimizer(f='best.pt', s=''):
     x['model'].half()  # to FP16
     for p in x['model'].parameters():
         p.requires_grad = False
-    x['train_args'] = {k: v for k, v in args.items() if k in DEFAULT_CONFIG_KEYS}  # strip non-default keys
+    x['train_args'] = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # strip non-default keys
+    # x['model'].args = x['train_args']
     torch.save(x, s or f)
     mb = os.path.getsize(s or f) / 1E6  # filesize
     LOGGER.info(f"Optimizer stripped from {f},{f' saved as {s},' if s else ''} {mb:.1f}MB")
-
-
-def guess_task_from_head(head):
-    task = None
-    if head.lower() in ["classify", "classifier", "cls", "fc"]:
-        task = "classify"
-    if head.lower() in ["detect"]:
-        task = "detect"
-    if head.lower() in ["segment"]:
-        task = "segment"
-
-    if not task:
-        raise SyntaxError("task or model not recognized! Please refer the docs at : ")  # TODO: add docs links
-
-    return task
 
 
 def profile(input, ops, n=10, device=None):
@@ -367,3 +368,48 @@ def profile(input, ops, n=10, device=None):
                 results.append(None)
             torch.cuda.empty_cache()
     return results
+
+
+class EarlyStopping:
+    """
+    Early stopping class that stops training when a specified number of epochs have passed without improvement.
+    """
+
+    def __init__(self, patience=50):
+        """
+        Initialize early stopping object
+
+        Args:
+            patience (int, optional): Number of epochs to wait after fitness stops improving before stopping.
+        """
+        self.best_fitness = 0.0  # i.e. mAP
+        self.best_epoch = 0
+        self.patience = patience or float('inf')  # epochs to wait after fitness stops improving to stop
+        self.possible_stop = False  # possible stop may occur next epoch
+
+    def __call__(self, epoch, fitness):
+        """
+        Check whether to stop training
+
+        Args:
+            epoch (int): Current epoch of training
+            fitness (float): Fitness value of current epoch
+
+        Returns:
+            bool: True if training should stop, False otherwise
+        """
+        if fitness is None:  # check if fitness=None (happens when val=False)
+            return False
+
+        if fitness >= self.best_fitness:  # >= 0 to allow for early zero-fitness stage of training
+            self.best_epoch = epoch
+            self.best_fitness = fitness
+        delta = epoch - self.best_epoch  # epochs without improvement
+        self.possible_stop = delta >= (self.patience - 1)  # possible stop may occur next epoch
+        stop = delta >= self.patience  # stop training if patience exceeded
+        if stop:
+            LOGGER.info(f'Stopping training early as no improvement observed in last {self.patience} epochs. '
+                        f'Best results observed at epoch {self.best_epoch}, best model saved as best.pt.\n'
+                        f'To update EarlyStopping(patience={self.patience}) pass a new patience value, '
+                        f'i.e. `patience=300` or use `patience=0` to disable EarlyStopping.')
+        return stop

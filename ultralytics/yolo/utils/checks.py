@@ -3,7 +3,9 @@
 import glob
 import inspect
 import math
+import os
 import platform
+import shutil
 import urllib
 from pathlib import Path
 from subprocess import check_output
@@ -12,10 +14,13 @@ from typing import Optional
 import cv2
 import numpy as np
 import pkg_resources as pkg
+import psutil
 import torch
+from IPython import display
+from matplotlib import font_manager
 
-from ultralytics.yolo.utils import (AUTOINSTALL, FONT, LOGGER, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, emojis,
-                                    is_docker, is_jupyter_notebook)
+from ultralytics.yolo.utils import (AUTOINSTALL, LOGGER, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, downloads, emojis,
+                                    is_colab, is_docker, is_jupyter)
 
 
 def is_ascii(s) -> bool:
@@ -53,15 +58,14 @@ def check_imgsz(imgsz, stride=32, min_dim=1, floor=0):
     stride = int(stride.max() if isinstance(stride, torch.Tensor) else stride)
 
     # Convert image size to list if it is an integer
-    if isinstance(imgsz, int):
-        imgsz = [imgsz]
+    imgsz = [imgsz] if isinstance(imgsz, int) else list(imgsz)
 
     # Make image size a multiple of the stride
     sz = [max(math.ceil(x / stride) * stride, floor) for x in imgsz]
 
     # Print warning message if image size was updated
     if sz != imgsz:
-        LOGGER.warning(f'WARNING ⚠️ --img-size {imgsz} must be multiple of max stride {stride}, updating to {sz}')
+        LOGGER.warning(f'WARNING ⚠️ imgsz={imgsz} must be multiple of max stride {stride}, updating to {sz}')
 
     # Add missing dimensions if necessary
     sz = [sz[0], sz[0]] if min_dim == 2 and len(sz) == 1 else sz[0] if min_dim == 1 and len(sz) == 1 else sz
@@ -89,8 +93,7 @@ def check_version(current: str = "0.0.0",
     Returns:
         bool: True if minimum version is met, False otherwise.
     """
-    from pkg_resources import parse_version
-    current, minimum = (parse_version(x) for x in (current, minimum))
+    current, minimum = (pkg.parse_version(x) for x in (current, minimum))
     result = (current == minimum) if pinned else (current >= minimum)  # bool
     warning_message = f"WARNING ⚠️ {name}{minimum} is required by YOLOv8, but {name}{current} is currently installed"
     if hard:
@@ -100,28 +103,33 @@ def check_version(current: str = "0.0.0",
     return result
 
 
-def check_font(font: str = FONT, progress: bool = False) -> None:
+def check_font(font='Arial.ttf'):
     """
-    Download font file to the user's configuration directory if it does not already exist.
+    Find font locally or download to user's configuration directory if it does not already exist.
 
     Args:
-        font (str): Path to font file.
-        progress (bool): If True, display a progress bar during the download.
+        font (str): Path or name of font.
 
     Returns:
-        None
+        file (Path): Resolved font file path.
     """
-    font = Path(font)
+    name = Path(font).name
 
-    # Destination path for the font file
-    file = USER_CONFIG_DIR / font.name
+    # Check USER_CONFIG_DIR
+    file = USER_CONFIG_DIR / name
+    if file.exists():
+        return file
 
-    # Check if font file exists at the source or destination path
-    if not font.exists() and not file.exists():
-        # Download font file
-        url = f'https://ultralytics.com/assets/{font.name}'
-        LOGGER.info(f'Downloading {url} to {file}...')
-        torch.hub.download_url_to_file(url, str(file), progress=progress)
+    # Check system fonts
+    matches = [s for s in font_manager.findSystemFonts() if font in s]
+    if any(matches):
+        return matches[0]
+
+    # Download to USER_CONFIG_DIR if missing
+    url = f'https://ultralytics.com/assets/{name}'
+    if downloads.is_url(url):
+        downloads.safe_download(url=url, file=file)
+        return file
 
 
 def check_online() -> bool:
@@ -150,7 +158,7 @@ def check_python(minimum: str = '3.7.0') -> bool:
     Returns:
         None
     """
-    check_version(platform.python_version(), minimum, name='Python ', hard=True)
+    return check_version(platform.python_version(), minimum, name='Python ', hard=True)
 
 
 @TryExcept()
@@ -203,24 +211,24 @@ def check_file(file, suffix=''):
     # Search/download file (if necessary) and return path
     check_suffix(file, suffix)  # optional
     file = str(file)  # convert to str()
-    if Path(file).is_file() or not file:  # exists
+    if not file or ('://' not in file and Path(file).is_file()):  # exists ('://' check required in Windows Python<3.10)
         return file
-    elif file.startswith(('http:/', 'https:/')):  # download
+    elif file.lower().startswith(('https://', 'http://', 'rtsp://', 'rtmp://')):  # download
         url = file  # warning: Pathlib turns :// -> :/
         file = Path(urllib.parse.unquote(file).split('?')[0]).name  # '%2F' to '/', split https://url.com/file.txt?auth
         if Path(file).is_file():
             LOGGER.info(f'Found {url} locally at {file}')  # file already exists
         else:
-            LOGGER.info(f'Downloading {url} to {file}...')
-            torch.hub.download_url_to_file(url, file)
-            assert Path(file).exists() and Path(file).stat().st_size > 0, f'File download failed: {url}'  # check
+            downloads.safe_download(url=url, file=file)
         return file
     else:  # search
         files = []
         for d in 'models', 'yolo/data':  # search directories
             files.extend(glob.glob(str(ROOT / d / '**' / file), recursive=True))  # find file
-        assert len(files), f'File not found: {file}'  # assert file was found
-        assert len(files) == 1, f"Multiple files match '{file}', specify exact path: {files}"  # assert unique
+        if not files:
+            raise FileNotFoundError(f"'{file}' does not exist")
+        elif len(files) > 1:
+            raise FileNotFoundError(f"Multiple files match '{file}', specify exact path: {files}")
         return files[0]  # return file
 
 
@@ -232,7 +240,7 @@ def check_yaml(file, suffix=('.yaml', '.yml')):
 def check_imshow(warn=False):
     # Check if environment supports image displays
     try:
-        assert not is_jupyter_notebook()
+        assert not is_jupyter()
         assert not is_docker()
         cv2.imshow('test', np.zeros((1, 1, 3)))
         cv2.waitKey(1)
@@ -245,12 +253,32 @@ def check_imshow(warn=False):
         return False
 
 
+def check_yolo(verbose=True):
+    from ultralytics.yolo.utils.torch_utils import select_device
+
+    if is_colab():
+        shutil.rmtree('sample_data', ignore_errors=True)  # remove colab /sample_data directory
+
+    if verbose:
+        # System info
+        gib = 1 << 30  # bytes per GiB
+        ram = psutil.virtual_memory().total
+        total, used, free = shutil.disk_usage("/")
+        display.clear_output()
+        s = f'({os.cpu_count()} CPUs, {ram / gib:.1f} GB RAM, {(total - free) / gib:.1f}/{total / gib:.1f} GB disk)'
+    else:
+        s = ''
+
+    select_device(newline=False)
+    LOGGER.info(f'Setup complete ✅ {s}')
+
+
 def git_describe(path=ROOT):  # path must be a directory
     # Return human-readable git description, i.e. v5.0-5-g3e25f1e https://git-scm.com/docs/git-describe
     try:
         assert (Path(path) / '.git').is_dir()
         return check_output(f'git -C {path} describe --tags --long --always', shell=True).decode()[:-1]
-    except Exception:
+    except AssertionError:
         return ''
 
 

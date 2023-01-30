@@ -1,15 +1,15 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
 import os
+import sys
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 
-import hydra
 import numpy as np
 import torch
 import torch.nn.functional as F
 
-from ultralytics.yolo.utils import DEFAULT_CONFIG, NUM_THREADS, ops
+from ultralytics.yolo.utils import DEFAULT_CFG, NUM_THREADS, ops
 from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils.metrics import ConfusionMatrix, SegmentMetrics, box_iou, mask_iou
 from ultralytics.yolo.utils.plotting import output_to_target, plot_images
@@ -20,7 +20,7 @@ class SegmentationValidator(DetectionValidator):
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, logger=None, args=None):
         super().__init__(dataloader, save_dir, pbar, logger, args)
-        self.args.task = "segment"
+        self.args.task = 'segment'
         self.metrics = SegmentMetrics(save_dir=self.save_dir)
 
     def preprocess(self, batch):
@@ -45,6 +45,7 @@ class SegmentationValidator(DetectionValidator):
         self.jdict = []
         self.stats = []
         if self.args.save_json:
+            check_requirements('pycocotools>=2.0.6')
             self.process = ops.process_mask_upsample  # more accurate
         else:
             self.process = ops.process_mask  # faster
@@ -189,8 +190,9 @@ class SegmentationValidator(DetectionValidator):
         self.plot_masks.clear()
 
     def pred_to_json(self, predn, filename, pred_masks):
-        # Save one JSON result {"image_id": 42, "category_id": 18, "bbox": [258.15, 41.29, 348.26, 243.78], "score": 0.236}
-        from pycocotools.mask import encode
+        # Save one JSON result
+        # Example result = {"image_id": 42, "category_id": 18, "bbox": [258.15, 41.29, 348.26, 243.78], "score": 0.236}
+        from pycocotools.mask import encode  # noqa
 
         def single_encode(x):
             rle = encode(np.asarray(x[:, :, None], order="F", dtype="uint8"))[0]
@@ -241,11 +243,17 @@ class SegmentationValidator(DetectionValidator):
         return stats
 
 
-@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
-def val(cfg):
-    cfg.data = cfg.data or "coco128-seg.yaml"
-    validator = SegmentationValidator(args=cfg)
-    validator(model=cfg.model)
+def val(cfg=DEFAULT_CFG, use_python=False):
+    model = cfg.model or "yolov8n-seg.pt"
+    data = cfg.data or "coco128-seg.yaml"
+
+    args = dict(model=model, data=data)
+    if use_python:
+        from ultralytics import YOLO
+        YOLO(model).val(**args)
+    else:
+        validator = SegmentationValidator(args=args)
+        validator(model=args['model'])
 
 
 if __name__ == "__main__":

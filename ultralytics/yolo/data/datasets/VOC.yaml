@@ -48,8 +48,8 @@ download: |
   import xml.etree.ElementTree as ET
 
   from tqdm import tqdm
-  from utils.general import download, Path
-
+  from ultralytics.yolo.utils.downloads import download
+  from pathlib import Path
 
   def convert_label(path, lb_path, year, image_id):
       def convert_box(size, box):
@@ -81,7 +81,7 @@ download: |
   urls = [f'{url}VOCtrainval_06-Nov-2007.zip',  # 446MB, 5012 images
           f'{url}VOCtest_06-Nov-2007.zip',  # 438MB, 4953 images
           f'{url}VOCtrainval_11-May-2012.zip']  # 1.95GB, 17126 images
-  download(urls, dir=dir / 'images', delete=False, curl=True, threads=3)
+  download(urls, dir=dir / 'images', curl=True, threads=3)
 
   # Convert
   path = dir / 'images/VOCdevkit'

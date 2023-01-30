@@ -14,7 +14,7 @@ from PIL import Image
 
 from ultralytics.yolo.utils import LOGGER, ROOT, yaml_load
 from ultralytics.yolo.utils.checks import check_requirements, check_suffix, check_version
-from ultralytics.yolo.utils.downloads import attempt_download, is_url
+from ultralytics.yolo.utils.downloads import attempt_download_asset, is_url
 from ultralytics.yolo.utils.ops import xywh2xyxy
 
 
@@ -58,13 +58,14 @@ class AutoBackend(nn.Module):
         model = None  # TODO: resolves ONNX inference, verify effect on other backends
         cuda = torch.cuda.is_available() and device.type != 'cpu'  # use CUDA
         if not (pt or triton or nn_module):
-            w = attempt_download(w)  # download if not local
+            w = attempt_download_asset(w)  # download if not local
 
         # NOTE: special case: in-memory pytorch model
         if nn_module:
             model = weights.to(device)
             model = model.fuse() if fuse else model
             names = model.module.names if hasattr(model, 'module') else model.names  # get class names
+            stride = max(int(model.stride.max()), 32)  # model stride
             model.half() if fp16 else model.float()
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
             pt = True
@@ -221,7 +222,8 @@ class AutoBackend(nn.Module):
             nhwc = model.runtime.startswith("tensorflow")
             '''
         else:
-            raise NotImplementedError(f'ERROR: {w} is not a supported format')
+            raise NotImplementedError(f"ERROR: '{w}' is not a supported format. For supported formats see "
+                                      f"https://docs.ultralytics.com/reference/nn/")
 
         # class names
         if 'names' not in locals():
@@ -236,7 +238,7 @@ class AutoBackend(nn.Module):
         Runs inference on the YOLOv8 MultiBackend model.
 
         Args:
-            im (torch.tensor): The image tensor to perform inference on.
+            im (torch.Tensor): The image tensor to perform inference on.
             augment (bool): whether to perform data augmentation during inference, defaults to False
             visualize (bool): whether to visualize the output predictions, defaults to False
 
@@ -328,10 +330,10 @@ class AutoBackend(nn.Module):
          Convert a numpy array to a tensor.
 
          Args:
-             x (numpy.ndarray): The array to be converted.
+             x (np.ndarray): The array to be converted.
 
          Returns:
-             (torch.tensor): The converted tensor
+             (torch.Tensor): The converted tensor
          """
         return torch.from_numpy(x).to(self.device) if isinstance(x, np.ndarray) else x
 

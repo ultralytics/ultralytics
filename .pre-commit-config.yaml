@@ -14,7 +14,7 @@ ci:
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.3.0
+    rev: v4.4.0
     hooks:
       # - id: end-of-file-fixer
       - id: trailing-whitespace
@@ -25,14 +25,14 @@ repos:
       - id: check-docstring-first
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v2.37.3
+    rev: v3.3.1
     hooks:
       - id: pyupgrade
         name: Upgrade code
         args: [ --py37-plus ]
 
   - repo: https://github.com/PyCQA/isort
-    rev: 5.10.1
+    rev: 5.11.4
     hooks:
       - id: isort
         name: Sort imports
@@ -58,6 +58,13 @@ repos:
     hooks:
       - id: flake8
         name: PEP8
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.2.2
+    hooks:
+      - id: codespell
+        args:
+          - --ignore-words-list=crate,nd
 
   #- repo: https://github.com/asottile/yesqa
   #  rev: v1.4.0

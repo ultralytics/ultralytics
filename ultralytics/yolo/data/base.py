@@ -93,7 +93,7 @@ class BaseDataset(Dataset):
             # self.img_files = sorted([x for x in f if x.suffix[1:].lower() in IMG_FORMATS])  # pathlib
             assert im_files, f"{self.prefix}No images found"
         except Exception as e:
-            raise FileNotFoundError(f"{self.prefix}Error loading data from {img_path}: {e}\n{HELP_URL}") from e
+            raise FileNotFoundError(f"{self.prefix}Error loading data from {img_path}\n{HELP_URL}") from e
         return im_files
 
     def update_labels(self, include_class: Optional[list]):
@@ -120,7 +120,8 @@ class BaseDataset(Dataset):
                 im = np.load(fn)
             else:  # read image
                 im = cv2.imread(f)  # BGR
-                assert im is not None, f"Image Not Found {f}"
+                if im is None:
+                    raise FileNotFoundError(f"Image Not Found {f}")
             h0, w0 = im.shape[:2]  # orig hw
             r = self.imgsz / max(h0, w0)  # ratio
             if r != 1:  # if sizes are not equal
@@ -134,16 +135,17 @@ class BaseDataset(Dataset):
         gb = 0  # Gigabytes of cached images
         self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni
         fcn = self.cache_images_to_disk if cache == "disk" else self.load_image
-        results = ThreadPool(NUM_THREADS).imap(fcn, range(self.ni))
-        pbar = tqdm(enumerate(results), total=self.ni, bar_format=TQDM_BAR_FORMAT, disable=LOCAL_RANK > 0)
-        for i, x in pbar:
-            if cache == "disk":
-                gb += self.npy_files[i].stat().st_size
-            else:  # 'ram'
-                self.ims[i], self.im_hw0[i], self.im_hw[i] = x  # im, hw_orig, hw_resized = load_image(self, i)
-                gb += self.ims[i].nbytes
-            pbar.desc = f"{self.prefix}Caching images ({gb / 1E9:.1f}GB {cache})"
-        pbar.close()
+        with ThreadPool(NUM_THREADS) as pool:
+            results = pool.imap(fcn, range(self.ni))
+            pbar = tqdm(enumerate(results), total=self.ni, bar_format=TQDM_BAR_FORMAT, disable=LOCAL_RANK > 0)
+            for i, x in pbar:
+                if cache == "disk":
+                    gb += self.npy_files[i].stat().st_size
+                else:  # 'ram'
+                    self.ims[i], self.im_hw0[i], self.im_hw[i] = x  # im, hw_orig, hw_resized = load_image(self, i)
+                    gb += self.ims[i].nbytes
+                pbar.desc = f"{self.prefix}Caching images ({gb / 1E9:.1f}GB {cache})"
+            pbar.close()
 
     def cache_images_to_disk(self, i):
         # Saves an image as an *.npy file for faster loading
@@ -180,6 +182,7 @@ class BaseDataset(Dataset):
 
     def get_label_info(self, index):
         label = self.labels[index].copy()
+        label.pop("shape", None)  # shape is for rect, remove it
         label["img"], label["ori_shape"], label["resized_shape"] = self.load_image(index)
         label["ratio_pad"] = (
             label["resized_shape"][0] / label["ori_shape"][0],

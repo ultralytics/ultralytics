@@ -60,41 +60,34 @@ from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
 
-import hydra
 import numpy as np
 import pandas as pd
 import torch
 
 import ultralytics
 from ultralytics.nn.modules import Detect, Segment
-from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel
-from ultralytics.yolo.configs import get_config
+from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, guess_model_task
+from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages
-from ultralytics.yolo.data.utils import check_dataset
-from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, callbacks, colorstr, get_default_args, yaml_save
+from ultralytics.yolo.data.utils import check_det_dataset
+from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, callbacks, colorstr, get_default_args, yaml_save
 from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version, check_yaml
 from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.ops import Profile
-from ultralytics.yolo.utils.torch_utils import guess_task_from_head, select_device, smart_inference_mode
+from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode
 
 MACOS = platform.system() == 'Darwin'  # macOS environment
 
 
 def export_formats():
     # YOLOv8 export formats
-    x = [
-        ['PyTorch', '-', '.pt', True, True],
-        ['TorchScript', 'torchscript', '.torchscript', True, True],
-        ['ONNX', 'onnx', '.onnx', True, True],
-        ['OpenVINO', 'openvino', '_openvino_model', True, False],
-        ['TensorRT', 'engine', '.engine', False, True],
-        ['CoreML', 'coreml', '.mlmodel', True, False],
-        ['TensorFlow SavedModel', 'saved_model', '_saved_model', True, True],
-        ['TensorFlow GraphDef', 'pb', '.pb', True, True],
-        ['TensorFlow Lite', 'tflite', '.tflite', True, False],
-        ['TensorFlow Edge TPU', 'edgetpu', '_edgetpu.tflite', False, False],
-        ['TensorFlow.js', 'tfjs', '_web_model', False, False],
-        ['PaddlePaddle', 'paddle', '_paddle_model', True, True],]
+    x = [['PyTorch', '-', '.pt', True, True], ['TorchScript', 'torchscript', '.torchscript', True, True],
+         ['ONNX', 'onnx', '.onnx', True, True], ['OpenVINO', 'openvino', '_openvino_model', True, False],
+         ['TensorRT', 'engine', '.engine', False, True], ['CoreML', 'coreml', '.mlmodel', True, False],
+         ['TensorFlow SavedModel', 'saved_model', '_saved_model', True, True],
+         ['TensorFlow GraphDef', 'pb', '.pb', True, True], ['TensorFlow Lite', 'tflite', '.tflite', True, False],
+         ['TensorFlow Edge TPU', 'edgetpu', '_edgetpu.tflite', False, False],
+         ['TensorFlow.js', 'tfjs', '_web_model', False, False], ['PaddlePaddle', 'paddle', '_paddle_model', True, True]]
     return pd.DataFrame(x, columns=['Format', 'Argument', 'Suffix', 'CPU', 'GPU'])
 
 
@@ -123,22 +116,20 @@ class Exporter:
     A class for exporting a model.
 
     Attributes:
-        args (OmegaConf): Configuration for the exporter.
+        args (SimpleNamespace): Configuration for the exporter.
         save_dir (Path): Directory to save results.
     """
 
-    def __init__(self, config=DEFAULT_CONFIG, overrides=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None):
         """
         Initializes the Exporter class.
 
         Args:
-            config (str, optional): Path to a configuration file. Defaults to DEFAULT_CONFIG.
+            cfg (str, optional): Path to a configuration file. Defaults to DEFAULT_CFG.
             overrides (dict, optional): Configuration overrides. Defaults to None.
         """
-        if overrides is None:
-            overrides = {}
-        self.args = get_config(config, overrides)
-        self.callbacks = defaultdict(list, {k: [v] for k, v in callbacks.default_callbacks.items()})  # add callbacks
+        self.args = get_cfg(cfg, overrides)
+        self.callbacks = defaultdict(list, callbacks.default_callbacks)  # add callbacks
         callbacks.add_integration_callbacks(self)
 
     @smart_inference_mode()
@@ -154,7 +145,7 @@ class Exporter:
         # Load PyTorch model
         self.device = select_device('cpu' if self.args.device is None else self.args.device)
         if self.args.half:
-            if self.device.type == 'cpu' and not coreml:
+            if self.device.type == 'cpu' and not coreml and not xml:
                 LOGGER.info('half=True only compatible with GPU or CoreML export, i.e. use device=0 or format=coreml')
                 self.args.half = False
             assert not self.args.dynamic, '--half not compatible with --dynamic, i.e. use either --half or --dynamic'
@@ -187,7 +178,7 @@ class Exporter:
         y = None
         for _ in range(2):
             y = model(im)  # dry runs
-        if self.args.half and not coreml:
+        if self.args.half and not coreml and not xml:
             im, model = im.half(), model.half()  # to FP16
         shape = tuple((y[0] if isinstance(y, tuple) else y).shape)  # model output shape
         LOGGER.info(
@@ -244,7 +235,7 @@ class Exporter:
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
         if any(f):
-            task = guess_task_from_head(model.yaml["head"][-1][-2])
+            task = guess_model_task(model)
             s = "-WARNING ⚠️ not yet supported for YOLOv8 exported models"
             LOGGER.info(f'\nExport complete ({time.time() - t:.1f}s)'
                         f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
@@ -335,7 +326,7 @@ class Exporter:
         f = str(self.file).replace(self.file.suffix, f'_openvino_model{os.sep}')
         f_onnx = self.file.with_suffix('.onnx')
 
-        cmd = f"mo --input_model {f_onnx} --output_dir {f} --data_type {'FP16' if self.args.half else 'FP32'}"
+        cmd = f"mo --input_model {f_onnx} --output_dir {f} {'--compress_to_fp16' * self.args.half}"
         subprocess.run(cmd.split(), check=True, env=os.environ)  # export
         yaml_save(Path(f) / self.file.with_suffix('.yaml').name, self.metadata)  # add metadata.yaml
         return f, None
@@ -397,7 +388,7 @@ class Exporter:
     @try_export
     def _export_engine(self, workspace=4, verbose=False, prefix=colorstr('TensorRT:')):
         # YOLOv8 TensorRT export https://developer.nvidia.com/tensorrt
-        assert self.im.device.type != 'cpu', 'export running on CPU but must be on GPU, i.e. `device==0`'
+        assert self.im.device.type != 'cpu', "export running on CPU but must be on GPU, i.e. use 'device=0'"
         try:
             import tensorrt as trt  # noqa
         except ImportError:
@@ -573,7 +564,7 @@ class Exporter:
                     if n >= n_images:
                         break
 
-            dataset = LoadImages(check_dataset(check_yaml(data))['train'], imgsz=imgsz, auto=False)
+            dataset = LoadImages(check_det_dataset(check_yaml(data))['train'], imgsz=imgsz, auto=False)
             converter.representative_dataset = lambda: representative_dataset_gen(dataset, n_images=100)
             converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
             converter.target_spec.supported_types = []
@@ -799,8 +790,7 @@ class Exporter:
             callback(self)
 
 
-@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
-def export(cfg):
+def export(cfg=DEFAULT_CFG):
     cfg.model = cfg.model or "yolov8n.yaml"
     cfg.format = cfg.format or "torchscript"
 
@@ -818,7 +808,7 @@ def export(cfg):
 
     from ultralytics import YOLO
     model = YOLO(cfg.model)
-    model.export(**cfg)
+    model.export(**vars(cfg))
 
 
 if __name__ == "__main__":

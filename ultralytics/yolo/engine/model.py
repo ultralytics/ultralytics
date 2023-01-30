@@ -3,12 +3,13 @@
 from pathlib import Path
 
 from ultralytics import yolo  # noqa
-from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, attempt_load_one_weight
-from ultralytics.yolo.configs import get_config
+from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, SegmentationModel, attempt_load_one_weight,
+                                  guess_model_task)
+from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
-from ultralytics.yolo.utils import DEFAULT_CONFIG, LOGGER, yaml_load
-from ultralytics.yolo.utils.checks import check_imgsz, check_yaml
-from ultralytics.yolo.utils.torch_utils import guess_task_from_head, smart_inference_mode
+from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, RANK, callbacks, yaml_load
+from ultralytics.yolo.utils.checks import check_yaml
+from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 
 # Map head to model, trainer, validator, and predictor classes
 MODEL_MAP = {
@@ -43,6 +44,7 @@ class YOLO:
         self.TrainerClass = None  # trainer class
         self.ValidatorClass = None  # validator class
         self.PredictorClass = None  # predictor class
+        self.predictor = None  # reuse predictor
         self.model = None  # model object
         self.trainer = None  # trainer object
         self.task = None  # task type
@@ -52,10 +54,15 @@ class YOLO:
         self.overrides = {}  # overrides for trainer object
 
         # Load or create new YOLO model
-        {'.pt': self._load, '.yaml': self._new}[Path(model).suffix](model)
+        load_methods = {'.pt': self._load, '.yaml': self._new}
+        suffix = Path(model).suffix
+        if suffix in load_methods:
+            {'.pt': self._load, '.yaml': self._new}[suffix](model)
+        else:
+            raise NotImplementedError(f"'{suffix}' model loading not implemented")
 
-    def __call__(self, source, **kwargs):
-        return self.predict(source, **kwargs)
+    def __call__(self, source=None, stream=False, **kwargs):
+        return self.predict(source, stream, **kwargs)
 
     def _new(self, cfg: str, verbose=True):
         """
@@ -67,9 +74,9 @@ class YOLO:
         """
         cfg = check_yaml(cfg)  # check YAML
         cfg_dict = yaml_load(cfg, append_filename=True)  # model dict
-        self.task = guess_task_from_head(cfg_dict["head"][-1][-2])
+        self.task = guess_model_task(cfg_dict)
         self.ModelClass, self.TrainerClass, self.ValidatorClass, self.PredictorClass = \
-            self._guess_ops_from_task(self.task)
+            self._assign_ops_from_task(self.task)
         self.model = self.ModelClass(cfg_dict, verbose=verbose)  # initialize
         self.cfg = cfg
 
@@ -86,7 +93,7 @@ class YOLO:
         self.overrides = self.model.args
         self._reset_ckpt_args(self.overrides)
         self.ModelClass, self.TrainerClass, self.ValidatorClass, self.PredictorClass = \
-            self._guess_ops_from_task(self.task)
+            self._assign_ops_from_task(self.task)
 
     def reset(self):
         """
@@ -111,24 +118,31 @@ class YOLO:
         self.model.fuse()
 
     @smart_inference_mode()
-    def predict(self, source, return_outputs=False, **kwargs):
+    def predict(self, source=None, stream=False, **kwargs):
         """
-        Visualize prediction.
+        Perform prediction using the YOLO model.
 
         Args:
-            source (str): Accepts all source types accepted by yolo
-            **kwargs : Any other args accepted by the predictors. To see all args check 'configuration' section in docs
+            source (str | int | PIL | np.ndarray): The source of the image to make predictions on.
+                          Accepts all source types accepted by the YOLO model.
+            stream (bool): Whether to stream the predictions or not. Defaults to False.
+            **kwargs : Additional keyword arguments passed to the predictor.
+                       Check the 'configuration' section in the documentation for all available options.
+
+        Returns:
+            (dict): The prediction results.
         """
         overrides = self.overrides.copy()
         overrides["conf"] = 0.25
         overrides.update(kwargs)
         overrides["mode"] = "predict"
         overrides["save"] = kwargs.get("save", False)  # not save files by default
-        predictor = self.PredictorClass(overrides=overrides)
-
-        predictor.args.imgsz = check_imgsz(predictor.args.imgsz, min_dim=2)  # check image size
-        predictor.setup(model=self.model, source=source, return_outputs=return_outputs)
-        return predictor() if return_outputs else predictor.predict_cli()
+        if not self.predictor:
+            self.predictor = self.PredictorClass(overrides=overrides)
+            self.predictor.setup_model(model=self.model)
+        else:  # only update args if predictor is already setup
+            self.predictor.args = get_cfg(self.predictor.args, overrides)
+        return self.predictor(source=source, stream=stream)
 
     @smart_inference_mode()
     def val(self, data=None, **kwargs):
@@ -142,7 +156,7 @@ class YOLO:
         overrides = self.overrides.copy()
         overrides.update(kwargs)
         overrides["mode"] = "val"
-        args = get_config(config=DEFAULT_CONFIG, overrides=overrides)
+        args = get_cfg(cfg=DEFAULT_CFG, overrides=overrides)
         args.data = data or args.data
         args.task = self.task
 
@@ -160,7 +174,7 @@ class YOLO:
 
         overrides = self.overrides.copy()
         overrides.update(kwargs)
-        args = get_config(config=DEFAULT_CONFIG, overrides=overrides)
+        args = get_cfg(cfg=DEFAULT_CFG, overrides=overrides)
         args.task = self.task
 
         exporter = Exporter(overrides=args)
@@ -171,8 +185,7 @@ class YOLO:
         Trains the model on a given dataset.
 
         Args:
-            **kwargs (Any): Any number of arguments representing the training configuration. List of all args can be found in 'config' section.
-                            You can pass all arguments as a yaml file in `cfg`. Other args are ignored if `cfg` file is passed
+            **kwargs (Any): Any number of arguments representing the training configuration.
         """
         overrides = self.overrides.copy()
         overrides.update(kwargs)
@@ -182,7 +195,7 @@ class YOLO:
         overrides["task"] = self.task
         overrides["mode"] = "train"
         if not overrides.get("data"):
-            raise AttributeError("dataset not provided! Please define `data` in config.yaml or pass as an argument.")
+            raise AttributeError("Dataset required but missing, i.e. pass 'data=coco128.yaml'")
         if overrides.get("resume"):
             overrides["resume"] = self.ckpt_path
 
@@ -191,9 +204,10 @@ class YOLO:
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
             self.model = self.trainer.model
         self.trainer.train()
-        # update model and configs after training
-        self.model, _ = attempt_load_one_weight(str(self.trainer.best))
-        self.overrides = self.model.args
+        # update model and cfg after training
+        if RANK in {0, -1}:
+            self.model, _ = attempt_load_one_weight(str(self.trainer.best))
+            self.overrides = self.model.args
 
     def to(self, device):
         """
@@ -204,7 +218,7 @@ class YOLO:
         """
         self.model.to(device)
 
-    def _guess_ops_from_task(self, task):
+    def _assign_ops_from_task(self, task):
         model_class, train_lit, val_lit, pred_lit = MODEL_MAP[task]
         # warning: eval is unsafe. Use with caution
         trainer_class = eval(train_lit.replace("TYPE", f"{self.type}"))
@@ -213,14 +227,31 @@ class YOLO:
 
         return model_class, trainer_class, validator_class, predictor_class
 
+    @property
+    def names(self):
+        """
+         Returns class names of the loaded model.
+        """
+        return self.model.names
+
+    @property
+    def transforms(self):
+        """
+         Returns transform of the loaded model.
+        """
+        return self.model.transforms if hasattr(self.model, 'transforms') else None
+
+    @staticmethod
+    def add_callback(event: str, func):
+        """
+        Add callback
+        """
+        callbacks.default_callbacks[event].append(func)
+
     @staticmethod
     def _reset_ckpt_args(args):
-        args.pop("project", None)
-        args.pop("name", None)
-        args.pop("batch", None)
-        args.pop("epochs", None)
-        args.pop("cache", None)
-        args.pop("save_json", None)
+        for arg in 'verbose', 'project', 'name', 'exist_ok', 'resume', 'batch', 'epochs', 'cache', 'save_json', \
+                'half', 'v5loader':
+            args.pop(arg, None)
 
-        # set device to '' to prevent from auto DDP usage
-        args["device"] = ''
+        args["device"] = ''  # set device to '' to prevent auto-DDP usage

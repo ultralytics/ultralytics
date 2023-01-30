@@ -3,7 +3,6 @@
 import contextlib
 import math
 from pathlib import Path
-from urllib.error import URLError
 
 import cv2
 import matplotlib.pyplot as plt
@@ -11,10 +10,11 @@ import numpy as np
 import pandas as pd
 import torch
 from PIL import Image, ImageDraw, ImageFont
+from PIL import __version__ as pil_version
 
-from ultralytics.yolo.utils import FONT, USER_CONFIG_DIR, threaded
+from ultralytics.yolo.utils import threaded
 
-from .checks import check_font, check_requirements, is_ascii
+from .checks import check_font, check_version, is_ascii
 from .files import increment_path
 from .ops import clip_coords, scale_image, xywh2xyxy, xyxy2xywh
 
@@ -47,21 +47,30 @@ class Annotator:
         non_ascii = not is_ascii(example)  # non-latin labels, i.e. asian, arabic, cyrillic
         self.pil = pil or non_ascii
         if self.pil:  # use PIL
+            self.pil_9_2_0_check = check_version(pil_version, '9.2.0')  # deprecation check
             self.im = im if isinstance(im, Image.Image) else Image.fromarray(im)
             self.draw = ImageDraw.Draw(self.im)
-            self.font = check_pil_font(font='Arial.Unicode.ttf' if non_ascii else font,
-                                       size=font_size or max(round(sum(self.im.size) / 2 * 0.035), 12))
+            try:
+                font = check_font('Arial.Unicode.ttf' if non_ascii else font)
+                size = font_size or max(round(sum(self.im.size) / 2 * 0.035), 12)
+                self.font = ImageFont.truetype(str(font), size)
+            except Exception:
+                self.font = ImageFont.load_default()
         else:  # use cv2
             self.im = im
         self.lw = line_width or max(round(sum(im.shape) / 2 * 0.003), 2)  # line width
 
     def box_label(self, box, label='', color=(128, 128, 128), txt_color=(255, 255, 255)):
         # Add one xyxy box to image with label
+        if isinstance(box, torch.Tensor):
+            box = box.tolist()
         if self.pil or not is_ascii(label):
             self.draw.rectangle(box, width=self.lw, outline=color)  # box
             if label:
-                w, h = self.font.getsize(label)  # text width, height (WARNING: deprecated) in 9.2.0
-                # _, _, w, h = self.font.getbbox(label)  # text width, height (New)
+                if self.pil_9_2_0_check:
+                    _, _, w, h = self.font.getbbox(label)  # text width, height (New)
+                else:
+                    w, h = self.font.getsize(label)  # text width, height (Old, deprecated in 9.2.0)
                 outside = box[1] - h >= 0  # label fits outside box
                 self.draw.rectangle(
                     (box[0], box[1] - h if outside else box[1], box[0] + w + 1,
@@ -137,22 +146,6 @@ class Annotator:
     def result(self):
         # Return annotated image as array
         return np.asarray(self.im)
-
-
-def check_pil_font(font=FONT, size=10):
-    # Return a PIL TrueType Font, downloading to CONFIG_DIR if necessary
-    font = Path(font)
-    font = font if font.exists() else (USER_CONFIG_DIR / font.name)
-    try:
-        return ImageFont.truetype(str(font) if font.exists() else font.name, size)
-    except Exception:  # download if missing
-        try:
-            check_font(font)
-            return ImageFont.truetype(str(font), size)
-        except TypeError:
-            check_requirements('Pillow>=8.4.0')  # known issue https://github.com/ultralytics/yolov5/issues/5374
-        except URLError:  # not online
-            return ImageFont.load_default()
 
 
 def save_one_box(xyxy, im, file=Path('im.jpg'), gain=1.02, pad=10, square=False, BGR=False, save=True):

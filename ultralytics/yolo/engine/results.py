@@ -28,7 +28,7 @@ class Results:
     def __init__(self, boxes=None, masks=None, probs=None, orig_shape=None) -> None:
         self.boxes = Boxes(boxes, orig_shape) if boxes is not None else None  # native size boxes
         self.masks = Masks(masks, orig_shape) if masks is not None else None  # native size or imgsz masks
-        self.probs = probs.softmax(0) if probs is not None else None
+        self.probs = probs if probs is not None else None
         self.orig_shape = orig_shape
         self.comp = ["boxes", "masks", "probs"]
 

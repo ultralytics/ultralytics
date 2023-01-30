@@ -516,8 +516,9 @@ class BaseTrainer:
         resume = self.args.resume
         if resume:
             try:
-                last = Path(check_file(resume) if isinstance(resume, (str, Path)) and Path(resume).exists()
-                            else get_latest_run())
+                last = Path(
+                    check_file(resume) if isinstance(resume, (str,
+                                                              Path)) and Path(resume).exists() else get_latest_run())
                 self.args = get_cfg(attempt_load_weights(last).args)
                 self.args.model, resume = str(last), True  # reinstate
             except Exception as e:

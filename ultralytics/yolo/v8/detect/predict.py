@@ -41,7 +41,7 @@ class DetectionPredictor(BasePredictor):
         if len(im.shape) == 3:
             im = im[None]  # expand for batch dim
         self.seen += 1
-        im0 = im0.copy()
+        imc = im0.copy() if self.args.save_crop else im0
         if self.source_type.webcam or self.source_type.from_img:  # batch_size >= 1
             log_string += f'{idx}: '
             frame = self.dataset.count
@@ -73,7 +73,6 @@ class DetectionPredictor(BasePredictor):
                     self.model.names[c] if self.args.hide_conf else f'{self.model.names[c]} {conf:.2f}')
                 self.annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
             if self.args.save_crop:
-                imc = im0.copy()
                 save_one_box(d.xyxy,
                              imc,
                              file=self.save_dir / 'crops' / self.model.model.names[c] / f'{self.data_path.stem}.jpg',

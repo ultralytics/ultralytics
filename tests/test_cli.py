@@ -59,7 +59,7 @@ def test_predict_segment():
 
 
 def test_predict_classify():
-    run(f"yolo predict segment model={MODEL}-cls.pt source={ROOT / 'assets'} imgsz=32")
+    run(f"yolo predict classify model={MODEL}-cls.pt source={ROOT / 'assets'} imgsz=32")
 
 
 # Export checks --------------------------------------------------------------------------------------------------------

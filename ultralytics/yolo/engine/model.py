@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+import sys
 from ultralytics import yolo  # noqa
 from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, SegmentationModel, attempt_load_one_weight,
                                   guess_model_task)
@@ -142,7 +143,8 @@ class YOLO:
             self.predictor.setup_model(model=self.model)
         else:  # only update args if predictor is already setup
             self.predictor.args = get_cfg(self.predictor.args, overrides)
-        return self.predictor(source=source, stream=stream)
+        is_cli = sys.argv[0].endswith('yolo') or sys.argv[0].endswith('ultralytics')
+        return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
 
     @smart_inference_mode()
     def val(self, data=None, **kwargs):

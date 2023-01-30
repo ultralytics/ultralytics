@@ -156,7 +156,6 @@ class YOLO:
         overrides = self.overrides.copy()
         overrides.update(kwargs)
         overrides["mode"] = "val"
-        overrides["val_split"] = overrides.get("val_split", "val") or "val"
         args = get_cfg(cfg=DEFAULT_CFG, overrides=overrides)
         args.data = data or args.data
         args.task = self.task

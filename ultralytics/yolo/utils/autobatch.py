@@ -52,21 +52,22 @@ def autobatch(model, imgsz=640, fraction=0.7, batch_size=16):
     try:
         img = [torch.empty(b, 3, imgsz, imgsz) for b in batch_sizes]
         results = profile(img, model, n=3, device=device)
+
+        # Fit a solution
+        y = [x[2] for x in results if x]  # memory [2]
+        p = np.polyfit(batch_sizes[:len(y)], y, deg=1)  # first degree polynomial fit
+        b = int((f * fraction - p[1]) / p[0])  # y intercept (optimal batch size)
+        if None in results:  # some sizes failed
+            i = results.index(None)  # first fail index
+            if b >= batch_sizes[i]:  # y intercept above failure point
+                b = batch_sizes[max(i - 1, 0)]  # select prior safe point
+        if b < 1 or b > 1024:  # b outside of safe range
+            b = batch_size
+            LOGGER.info(f'{prefix}WARNING ⚠️ CUDA anomaly detected, using default batch-size {batch_size}.')
+
+        fraction = (np.polyval(p, b) + r + a) / t  # actual fraction predicted
+        LOGGER.info(f'{prefix}Using batch-size {b} for {d} {t * fraction:.2f}G/{t:.2f}G ({fraction * 100:.0f}%) ✅')
+        return b
     except Exception as e:
-        LOGGER.warning(f'{prefix}{e}')
-
-    # Fit a solution
-    y = [x[2] for x in results if x]  # memory [2]
-    p = np.polyfit(batch_sizes[:len(y)], y, deg=1)  # first degree polynomial fit
-    b = int((f * fraction - p[1]) / p[0])  # y intercept (optimal batch size)
-    if None in results:  # some sizes failed
-        i = results.index(None)  # first fail index
-        if b >= batch_sizes[i]:  # y intercept above failure point
-            b = batch_sizes[max(i - 1, 0)]  # select prior safe point
-    if b < 1 or b > 1024:  # b outside of safe range
-        b = batch_size
-        LOGGER.warning(f'{prefix}WARNING ⚠️ CUDA anomaly detected, recommend restart environment and retry command.')
-
-    fraction = (np.polyval(p, b) + r + a) / t  # actual fraction predicted
-    LOGGER.info(f'{prefix}Using batch-size {b} for {d} {t * fraction:.2f}G/{t:.2f}G ({fraction * 100:.0f}%) ✅')
-    return b
+        LOGGER.warning(f'{prefix}WARNING ⚠️ error detected: {e},  using default batch-size {batch_size}.')
+        return batch_size

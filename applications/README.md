@@ -1,4 +1,4 @@
-This is a list of real-world applications and walkthroughs. These can either be python files or notebooks.
+This is a list of real-world applications and walkthroughs. These can be folders of either python files or notebooks .
 ## Ultralytics YOLO example applications
 | Title                                          | Format          | Contributor                               |
 |------------------------------------------------|-----------------|-------------------------------------------|

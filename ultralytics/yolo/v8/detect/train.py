@@ -106,7 +106,7 @@ class DetectionTrainer(BaseTrainer):
 # Criterion class for computing training losses
 class Loss:
 
-    def __init__(self, model):  # model must be de-paralleled
+    def __init__(self, model, roll_out_thr=64):  # model must be de-paralleled
 
         device = next(model.parameters()).device  # get model device
         h = model.args  # hyperparameters
@@ -121,7 +121,7 @@ class Loss:
         self.device = device
 
         self.use_dfl = m.reg_max > 1
-        self.assigner = TaskAlignedAssigner(topk=10, num_classes=self.nc, alpha=0.5, beta=6.0)
+        self.assigner = TaskAlignedAssigner(topk=10, num_classes=self.nc, alpha=0.5, beta=6.0, roll_out_thr=roll_out_thr)
         self.bbox_loss = BboxLoss(m.reg_max - 1, use_dfl=self.use_dfl).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
 

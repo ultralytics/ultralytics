@@ -34,7 +34,7 @@ def visualize(img,
       font_size (Float): The font size of . Automatically scaled to img size if not provided
     """
     img = deepcopy(img)
-    if isinstance(img, Image.Image): # handle PILLOW image
+    if isinstance(img, Image.Image):  # handle PILLOW image
         img = np.asarray(img)[:, :, ::-1]
         img = np.ascontiguousarray(img)
 

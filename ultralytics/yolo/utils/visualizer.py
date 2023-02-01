@@ -1,4 +1,7 @@
 import torch
+import torchvision.transforms.functional as F
+from PIL import Image
+import numpy as np
 
 from ultralytics.yolo.utils import LOGGER
 from ultralytics.yolo.engine.results import Results
@@ -38,17 +41,22 @@ def visualize(img,
         LOGGER.info("Both model and labels not provided! Class indeces will be used to identify predictions.")
     names = labels or model.names
 
-    for d in reversed(boxes):
-        print("box")
-        cls, conf = d.cls.squeeze(), d.conf.squeeze()
-        c = int(cls)
-        label = f'{names[int(cls)]}' + (f'{conf:.2f}' if show_conf else '')
-        annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
+    if boxes is not None:
+        for d in reversed(boxes):
+            cls, conf = d.cls.squeeze(), d.conf.squeeze()
+            c = int(cls)
+            label = f'{names[int(cls)]}' + (f'{conf:.2f}' if show_conf else '')
+            annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
 
-    annotator.masks(masks.data,
-                    colors=[colors(x, True) for x in boxes.cls],
-                    im_gpu=torch.as_tensor(img, dtype=torch.float16).permute(2, 0, 1).flip(0).contiguous() / 255)
+    if masks is not None:
+        im_gpu = torch.as_tensor(img, dtype=torch.float16).to(device).permute(2, 0, 1).flip(0).contiguous()
+        im_gpu = F.resize(im_gpu, masks.data.shape[1:]) / 255
+        annotator.masks(
+                masks.data,
+                colors=[colors(x, True) for x in boxes.cls],
+                im_gpu=im_gpu)
     return img
+
 
 
 if __name__ == "__main__":
@@ -57,9 +65,10 @@ if __name__ == "__main__":
     import cv2
 
     model = YOLO("yolov8n-seg.pt")
-    img = cv2.imread(str(ROOT / "assets/bus.jpg"))
-    res = model(img)
-    resimg = visualize(img, res[0], model)
+    source = str(ROOT / "assets/bus.jpg")
+    img_cv = cv2.imread(source)
+    res = model(img_cv)
+    resimg = visualize(img_cv, res[0], model)
 
     cv2.imshow("res", resimg)
     cv2.waitKey(0)

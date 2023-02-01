@@ -34,16 +34,15 @@ def track():
     model.add_callback("on_predict_batch_end", on_predict_batch_end)
     results = model.predict(source="/home/laughing/Videos/test.mp4", show=False, stream=True, half=True)
     for _, track_result, im0 in results:
+        annotator = Annotator(im0, line_width=2)
         if track_result is not None:
-            annotator = Annotator(im0, line_width=2)
             for track in track_result:
                 xyxy = track.tlbr
                 id = track.track_id
                 c = int(track.cls)
                 label = f'id:{id} {model.names[c]}'
                 annotator.box_label(xyxy, label, color=colors(c, True))
-                im0 = annotator.result()
-        cv2.imshow('p', im0)
+        cv2.imshow('p', annotator.result())
         if cv2.waitKey(1) == ord('q'):
             break
 

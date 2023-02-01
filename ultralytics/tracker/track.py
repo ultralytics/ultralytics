@@ -1,36 +1,52 @@
 from ultralytics.yolo.engine.model import YOLO
 from ultralytics.tracker import BYTETracker
+from ultralytics.yolo.utils.plotting import Annotator, colors
+from ultralytics.yolo.utils import ROOT
 from omegaconf import OmegaConf
-
-cfg = OmegaConf.load("/home/laughing/codes/ultralytics-lq/ultralytics/tracker/cfg/bytetrack.yaml")
+import cv2
 
 
 def on_predict_start(predictor):
     trackers = []
-    for i in range(predictor.dataset.bs):
+    cfg = OmegaConf.load(ROOT / "tracker/cfg/bytetrack.yaml")
+    for _ in range(predictor.dataset.bs):
         tracker = BYTETracker(args=cfg, frame_rate=cfg.frame_rate)
         trackers.append(tracker)
     predictor.trackers = trackers
 
 
 def on_predict_batch_end(predictor):
-    # results -> List[batch_size]
-    path, im, im0s, vid_cap, s = predictor.batch
-    for i in range(predictor.dataset.bs):
+    bs = predictor.dataset.bs 
+    track_results = [None] * bs
+    im0s = predictor.batch[2]
+    im0s = im0s if bs > 1 else [im0s]
+    for i in range(bs):
         det = predictor.results[i].boxes.cpu().numpy()
         if len(det) == 0:
             continue
-        track_result = predictor.trackers[i].update(det)
+        track_results[i] = predictor.trackers[i].update(det)
+    predictor.results = zip(predictor.results, track_results, im0s)
 
 
-def test_callback():
-    model = YOLO("weights/yolov8n.pt")
+def track():
+    model = YOLO("weights/yolov8l.pt")
     model.add_callback("on_predict_start", on_predict_start)
     model.add_callback("on_predict_batch_end", on_predict_batch_end)
-    results = model.predict(source="/home/laughing/Videos/test.mp4", show=False, stream=True)
-    for i, result in enumerate(results):
-        boxes = result.boxes  # Boxes object for bbox outputs
-        # masks = result.masks  # Masks object for segmenation masks outputs
+    results = model.predict(source="/home/laughing/Videos/test.mp4", show=False, stream=True, half=True)
+    for _, track_result, im0 in results:
+        if track_result is not None:
+            annotator = Annotator(im0, line_width=2)
+            for track in track_result:
+                xyxy = track.tlbr
+                id = track.track_id
+                c = int(track.cls)
+                label = f'id:{id} {model.names[c]}'
+                annotator.box_label(xyxy, label, color=colors(c, True))
+                im0 = annotator.result()
+        cv2.imshow('p', im0)
+        if cv2.waitKey(1) == ord('q'):
+            break
 
+if __name__ == "__main__":
+    track()
 
-test_callback()

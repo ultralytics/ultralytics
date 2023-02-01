@@ -6,7 +6,17 @@ from ultralytics.yolo.utils.plotting import Annotator, colors
 
 from copy import deepcopy
 
-def visualize(img, results: Results, model=None, labels=None, show_conf=True, line_width=None, font_size=None, font='Arial.ttf', pil=False, example='abc'):
+
+def visualize(img,
+              results: Results,
+              model=None,
+              labels=None,
+              show_conf=True,
+              line_width=None,
+              font_size=None,
+              font='Arial.ttf',
+              pil=False,
+              example='abc'):
     """
     Plots the given result on an input RGB image.
 
@@ -34,13 +44,12 @@ def visualize(img, results: Results, model=None, labels=None, show_conf=True, li
         c = int(cls)
         label = f'{names[int(cls)]}' + (f'{conf:.2f}' if show_conf else '')
         annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
-    
-    annotator.masks(
-            masks.data,
-            colors=[colors(x, True) for x in boxes.cls],
-            im_gpu=torch.as_tensor(img, dtype=torch.float16).permute(2, 0, 1).flip(0).contiguous() /
-            255)
+
+    annotator.masks(masks.data,
+                    colors=[colors(x, True) for x in boxes.cls],
+                    im_gpu=torch.as_tensor(img, dtype=torch.float16).permute(2, 0, 1).flip(0).contiguous() / 255)
     return img
+
 
 if __name__ == "__main__":
     from ultralytics import YOLO
@@ -54,7 +63,3 @@ if __name__ == "__main__":
 
     cv2.imshow("res", resimg)
     cv2.waitKey(0)
-
-
-
-

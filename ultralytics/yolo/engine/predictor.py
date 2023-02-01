@@ -82,7 +82,6 @@ class BasePredictor:
         # Usable if setup is done
         self.model = None
         self.data = self.args.data  # data_dict
-        self.bs = None
         self.imgsz = None
         self.device = None
         self.classes = self.args.classes
@@ -134,7 +133,6 @@ class BasePredictor:
         self.vid_path, self.vid_writer = [None] * self.dataset.bs, [None] * self.dataset.bs
 
     def stream_inference(self, source=None, model=None):
-        self.run_callbacks("on_predict_start")
         if self.args.verbose:
             LOGGER.info("")
 
@@ -149,10 +147,11 @@ class BasePredictor:
             (self.save_dir / 'labels' if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
         # warmup model
         if not self.done_warmup:
-            self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.bs, 3, *self.imgsz))
+            self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, 3, *self.imgsz))
             self.done_warmup = True
 
         self.seen, self.windows, self.dt, self.batch = 0, [], (ops.Profile(), ops.Profile(), ops.Profile()), None
+        self.run_callbacks("on_predict_start")
         for batch in self.dataset:
             self.run_callbacks("on_predict_batch_start")
             self.batch = batch

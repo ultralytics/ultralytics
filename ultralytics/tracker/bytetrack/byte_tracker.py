@@ -154,23 +154,16 @@ class BYTETracker(object):
         self.max_time_lost = self.buffer_size
         self.kalman_filter = KalmanFilter()
 
-    def update(self, output_results, img_info, img_size):
+    def update(self, results):
         self.frame_id += 1
         activated_starcks = []
         refind_stracks = []
         lost_stracks = []
         removed_stracks = []
 
-        if output_results.shape[1] == 5:
-            scores = output_results[:, 4]
-            bboxes = output_results[:, :4]
-        else:
-            output_results = output_results.cpu().numpy()
-            scores = output_results[:, 4] * output_results[:, 5]
-            bboxes = output_results[:, :4]  # x1y1x2y2
-        img_h, img_w = img_info[0], img_info[1]
-        scale = min(img_size[0] / float(img_h), img_size[1] / float(img_w))
-        bboxes /= scale
+        scores = results.conf
+        bboxes = results.xyxy
+        cls = results.cls
 
         remain_inds = scores > self.args.track_thresh
         inds_low = scores > 0.1
@@ -181,10 +174,14 @@ class BYTETracker(object):
         dets = bboxes[remain_inds]
         scores_keep = scores[remain_inds]
         scores_second = scores[inds_second]
+        cls_keep = cls[remain_inds]
+        cls_second = cls[inds_second]
 
         if len(dets) > 0:
             """Detections"""
-            detections = [STrack(STrack.tlbr_to_tlwh(tlbr), s) for (tlbr, s) in zip(dets, scores_keep)]
+            detections = [
+                STrack(STrack.tlbr_to_tlwh(tlbr), s, c) for (tlbr, s, c) in zip(dets, scores_keep, cls_keep)
+            ]
         else:
             detections = []
 
@@ -221,7 +218,8 @@ class BYTETracker(object):
         if len(dets_second) > 0:
             """Detections"""
             detections_second = [
-                STrack(STrack.tlbr_to_tlwh(tlbr), s) for (tlbr, s) in zip(dets_second, scores_second)
+                STrack(STrack.tlbr_to_tlwh(tlbr), s, c)
+                for (tlbr, s, c) in zip(dets_second, scores_second, cls_second)
             ]
         else:
             detections_second = []

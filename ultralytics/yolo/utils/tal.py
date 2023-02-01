@@ -25,7 +25,8 @@ def select_candidates_in_gts(xy_centers, gt_bboxes, eps=1e-9, roll_out=False):
         bbox_deltas = torch.empty((bs, n_boxes, n_anchors), device=gt_bboxes.device)
         for b in range(bs):
             lt, rb = gt_bboxes[b].view(-1, 1, 4).chunk(2, 2)  # left-top, right-bottom
-            bbox_deltas[b] = torch.cat((xy_centers[None] - lt, rb - xy_centers[None]), dim=2).view(n_boxes, n_anchors, -1).amin(2).gt_(eps)
+            bbox_deltas[b] = torch.cat((xy_centers[None] - lt, rb - xy_centers[None]),
+                                       dim=2).view(n_boxes, n_anchors, -1).amin(2).gt_(eps)
         return bbox_deltas
     else:
         lt, rb = gt_bboxes.view(-1, 1, 4).chunk(2, 2)  # left-top, right-bottom
@@ -139,7 +140,8 @@ class TaskAlignedAssigner(nn.Module):
                 ind_0[:], ind_2 = b, gt_labels[b].squeeze(-1).long()
                 # get the scores of each grid for each gt cls
                 bbox_scores = pd_scores[ind_0, :, ind_2]  # b, max_num_obj, h*w
-                overlaps[b] = bbox_iou(gt_bboxes[b].unsqueeze(1), pd_bboxes[b].unsqueeze(0), xywh=False, CIoU=True).squeeze(2).clamp(0)
+                overlaps[b] = bbox_iou(gt_bboxes[b].unsqueeze(1), pd_bboxes[b].unsqueeze(0), xywh=False,
+                                       CIoU=True).squeeze(2).clamp(0)
                 align_metric[b] = bbox_scores.pow(self.alpha) * overlaps[b].pow(self.beta)
         else:
             ind = torch.zeros([2, self.bs, self.n_max_boxes], dtype=torch.long)  # 2, b, max_num_obj
@@ -148,7 +150,8 @@ class TaskAlignedAssigner(nn.Module):
             # get the scores of each grid for each gt cls
             bbox_scores = pd_scores[ind[0], :, ind[1]]  # b, max_num_obj, h*w
 
-            overlaps = bbox_iou(gt_bboxes.unsqueeze(2), pd_bboxes.unsqueeze(1), xywh=False, CIoU=True).squeeze(3).clamp(0)
+            overlaps = bbox_iou(gt_bboxes.unsqueeze(2), pd_bboxes.unsqueeze(1), xywh=False,
+                                CIoU=True).squeeze(3).clamp(0)
             align_metric = bbox_scores.pow(self.alpha) * overlaps.pow(self.beta)
         return align_metric, overlaps
 

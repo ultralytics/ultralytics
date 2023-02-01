@@ -14,6 +14,7 @@ def visualize(img,
               results: Results,
               model=None,
               labels=None,
+              device='cpu',
               show_conf=True,
               line_width=None,
               font_size=None,
@@ -33,6 +34,10 @@ def visualize(img,
       font_size (Float): The font size of . Automatically scaled to img size if not provided
     """
     img = deepcopy(img)
+    if isinstance(img, Image.Image): # handle PILLOW image
+        img = np.asarray(img)[:, :, ::-1]
+        img = np.ascontiguousarray(img)
+
     annotator = Annotator(img, line_width, font_size, font, pil, example)
     boxes = results.boxes
     masks = results.masks
@@ -63,8 +68,9 @@ if __name__ == "__main__":
     model = YOLO("yolov8n-seg.pt")
     source = str(ROOT / "assets/bus.jpg")
     img_cv = cv2.imread(source)
+    img_pil = Image.open(source)
     res = model(img_cv)
-    resimg = visualize(img_cv, res[0], model)
+    resimg = visualize(img_pil, res[0], model)
 
     cv2.imshow("res", resimg)
     cv2.waitKey(0)

@@ -51,12 +51,8 @@ def visualize(img,
     if masks is not None:
         im_gpu = torch.as_tensor(img, dtype=torch.float16).to(device).permute(2, 0, 1).flip(0).contiguous()
         im_gpu = F.resize(im_gpu, masks.data.shape[1:]) / 255
-        annotator.masks(
-                masks.data,
-                colors=[colors(x, True) for x in boxes.cls],
-                im_gpu=im_gpu)
+        annotator.masks(masks.data, colors=[colors(x, True) for x in boxes.cls], im_gpu=im_gpu)
     return img
-
 
 
 if __name__ == "__main__":

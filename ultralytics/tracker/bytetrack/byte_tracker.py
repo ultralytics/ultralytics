@@ -7,7 +7,7 @@ from .basetrack import BaseTrack, TrackState
 class STrack(BaseTrack):
     shared_kalman = KalmanFilter()
 
-    def __init__(self, tlwh, score):
+    def __init__(self, tlwh, score, cls):
 
         # wait activate
         self._tlwh = np.asarray(tlwh, dtype=np.float)
@@ -17,6 +17,7 @@ class STrack(BaseTrack):
 
         self.score = score
         self.tracklet_len = 0
+        self.cls = cls
 
     def predict(self):
         mean_state = self.mean.copy()
@@ -62,6 +63,7 @@ class STrack(BaseTrack):
         if new_id:
             self.track_id = self.next_id()
         self.score = new_track.score
+        self.cls = new_track.cls
 
     def update(self, new_track, frame_id):
         """

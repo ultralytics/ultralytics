@@ -77,7 +77,7 @@ class SegmentationPredictor(DetectionPredictor):
             segments = mask.segments
 
         # Write results
-        for j, d in enumerate(reversed(det)):
+        for j, d in enumerate(det):
             cls, conf = d.cls.squeeze(), d.conf.squeeze()
             if self.args.save_txt:  # Write to file
                 seg = segments[j].copy()

@@ -1,24 +1,21 @@
 from ultralytics.yolo.engine.model import YOLO
 from ultralytics.tracker import BYTETracker, BOTSORT
 from ultralytics.yolo.utils.plotting import Annotator, colors
+from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils import ROOT
 from omegaconf import OmegaConf
 import cv2
 
-
-# def on_predict_start(predictor):
-#     trackers = []
-#     cfg = OmegaConf.load(ROOT / "tracker/cfg/bytetrack.yaml")
-#     for _ in range(predictor.dataset.bs):
-#         tracker = BYTETracker(args=cfg, frame_rate=30)
-#         trackers.append(tracker)
-#     predictor.trackers = trackers
+TRACKER_MAP = {"bypetrack": BYTETracker, "botsort": BOTSORT}
+check_requirements('lap')  # for linear_assignment
 
 def on_predict_start(predictor):
+    tracker_type = getattr(predictor, "tracker_type", "botsort")
+    assert tracker_type in ["bytetrack", "botsort"]
     trackers = []
-    cfg = OmegaConf.load(ROOT / "tracker/cfg/botsort.yaml")
+    cfg = OmegaConf.load(ROOT / f"tracker/cfg/{tracker_type}.yaml")
     for _ in range(predictor.dataset.bs):
-        tracker = BOTSORT(args=cfg, frame_rate=30)
+        tracker = TRACKER_MAP[tracker_type](args=cfg, frame_rate=30)
         trackers.append(tracker)
     predictor.trackers = trackers
 

@@ -177,7 +177,7 @@ def fuse_score(cost_matrix, detections):
     fuse_cost = 1 - fuse_sim
     return fuse_cost
 
-def bbox_ious_(box1, box2, eps=1e-7):
+def bbox_ious(box1, box2, eps=1e-7):
     """Boxes are x1y1x2y2
     box1:       np.array of shape(nx4)
     box2:       np.array of shape(mx4)

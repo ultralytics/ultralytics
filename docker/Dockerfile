@@ -3,7 +3,7 @@
 # Image is CUDA-optimized for YOLOv8 single/multi-GPU training and inference
 
 # Start FROM NVIDIA PyTorch image https://ngc.nvidia.com/catalog/containers/nvidia:pytorch
-FROM nvcr.io/nvidia/pytorch:22.12-py3
+FROM nvcr.io/nvidia/pytorch:23.01-py3
 
 # Downloads to user config dir
 ADD https://ultralytics.com/assets/Arial.ttf https://ultralytics.com/assets/Arial.Unicode.ttf /root/.config/Ultralytics/
@@ -26,7 +26,7 @@ RUN git clone https://github.com/ultralytics/ultralytics /usr/src/ultralytics
 
 # Install pip packages
 RUN python -m pip install --upgrade pip wheel
-RUN pip install --no-cache ultralytics albumentations comet gsutil notebook 'opencv-python<4.6.0.66'
+RUN pip install --no-cache ultralytics albumentations comet gsutil notebook
 
 # Set environment variables
 ENV OMP_NUM_THREADS=1

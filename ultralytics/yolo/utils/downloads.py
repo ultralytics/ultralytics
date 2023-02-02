@@ -120,6 +120,7 @@ def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
         return response['tag_name'], [x['name'] for x in response['assets']]  # tag, assets
 
     # YOLOv3/5u updates
+    file = str(file)
     if 'yolov3' in file or 'yolov5' in file and 'u' not in file:
         original_file = file
         file = re.sub("^yolov5([nsmlx])\.", "yolov5\\1u.", file)  # i.e. yolov5n.pt -> yolov5nu.pt
@@ -127,7 +128,7 @@ def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
         if file != original_file:
             LOGGER.info(f"Pro tip 💡 Replace 'model={original_file}' with new and improved 'model={file}'")
 
-    file = Path(str(file).strip().replace("'", ''))
+    file = Path(file.strip().replace("'", ''))
     if file.exists():
         return str(file)
     elif (SETTINGS['weights_dir'] / file).exists():

@@ -328,7 +328,10 @@ class Exporter:
         f_onnx = self.file.with_suffix('.onnx')
         f_ov = str(Path(f) / self.file.with_suffix('.xml').name)
 
-        ov_model = mo.convert_model(f_onnx, model_name=self.pretty_name, framework="onnx", compress_to_fp16=self.args.half)  # export
+        ov_model = mo.convert_model(f_onnx,
+                                    model_name=self.pretty_name,
+                                    framework="onnx",
+                                    compress_to_fp16=self.args.half)  # export
         ov.serialize(ov_model, f_ov)  # save
         yaml_save(Path(f) / self.file.with_suffix('.yaml').name, self.metadata)  # add metadata.yaml
         return f, None

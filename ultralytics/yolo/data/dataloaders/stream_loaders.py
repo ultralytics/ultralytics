@@ -13,7 +13,7 @@ import cv2
 import numpy as np
 import requests
 import torch
-from PIL import Image, ImageOps
+from PIL import Image
 
 from ultralytics.yolo.data.augment import LetterBox
 from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS
@@ -62,8 +62,10 @@ class LoadStreams:
             self.fps[i] = max((fps if math.isfinite(fps) else 0) % 100, 0) or 30  # 30 FPS fallback
 
             _, self.imgs[i] = cap.read()  # guarantee first frame
+            if self.imgs[i] is None:
+                raise ConnectionError(f'{st}Failed to read images from {s}')
             self.threads[i] = Thread(target=self.update, args=([i, cap, s]), daemon=True)
-            LOGGER.info(f"{st} Success ({self.frames[i]} frames {w}x{h} at {self.fps[i]:.2f} FPS)")
+            LOGGER.info(f"{st}Success ({self.frames[i]} frames {w}x{h} at {self.fps[i]:.2f} FPS)")
             self.threads[i].start()
         LOGGER.info('')  # newline
 
@@ -330,14 +332,14 @@ def autocast_list(source):
     Merges a list of source of different types into a list of numpy arrays or PIL images
     """
     files = []
-    for _, im in enumerate(source):
+    for im in source:
         if isinstance(im, (str, Path)):  # filename or uri
             files.append(Image.open(requests.get(im, stream=True).raw if str(im).startswith('http') else im))
         elif isinstance(im, (Image.Image, np.ndarray)):  # PIL or np Image
             files.append(im)
         else:
-            raise Exception(
-                "Unsupported type encountered! See docs for supported types https://docs.ultralytics.com/predict")
+            raise TypeError(f"type {type(im).__name__} is not a supported Ultralytics prediction source type. \n"
+                            f"See https://docs.ultralytics.com/predict for supported source types.")
 
     return files
 

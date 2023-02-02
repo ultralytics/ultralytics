@@ -153,6 +153,7 @@ class KalmanFilterXYAH(object):
             self._update_mat, covariance, self._update_mat.T))
         return mean, covariance + innovation_cov
 
+    @staticmethod
     def multi_predict(self, mean, covariance):
         """Run Kalman filter prediction step (Vectorized version).
         Parameters
@@ -402,6 +403,7 @@ class KalmanFilterXYWH(object):
             self._update_mat, covariance, self._update_mat.T))
         return mean, covariance + innovation_cov
 
+    @staticmethod
     def multi_predict(self, mean, covariance):
         """Run Kalman filter prediction step (Vectorized version).
         Parameters

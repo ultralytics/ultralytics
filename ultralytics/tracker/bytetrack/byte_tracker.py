@@ -5,8 +5,6 @@ from .basetrack import BaseTrack, TrackState
 
 
 class STrack(BaseTrack):
-    shared_kalman = KalmanFilterXYAH()
-
     def __init__(self, tlwh, score, cls):
 
         # wait activate
@@ -33,7 +31,7 @@ class STrack(BaseTrack):
             for i, st in enumerate(stracks):
                 if st.state != TrackState.Tracked:
                     multi_mean[i][7] = 0
-            multi_mean, multi_covariance = STrack.shared_kalman.multi_predict(multi_mean, multi_covariance)
+            multi_mean, multi_covariance = KalmanFilterXYAH.multi_predict(multi_mean, multi_covariance)
             for i, (mean, cov) in enumerate(zip(multi_mean, multi_covariance)):
                 stracks[i].mean = mean
                 stracks[i].covariance = cov
@@ -85,8 +83,10 @@ class STrack(BaseTrack):
 
         self.score = new_track.score
 
+    def convert_coords(self):
+        pass
+
     @property
-    # @jit(nopython=True)
     def tlwh(self):
         """Get current position in bounding box format `(top left x, top left y,
         width, height)`.
@@ -99,7 +99,6 @@ class STrack(BaseTrack):
         return ret
 
     @property
-    # @jit(nopython=True)
     def tlbr(self):
         """Convert bounding box to format `(min x, min y, max x, max y)`, i.e.,
         `(top left, bottom right)`.
@@ -109,7 +108,6 @@ class STrack(BaseTrack):
         return ret
 
     @staticmethod
-    # @jit(nopython=True)
     def tlwh_to_xyah(tlwh):
         """Convert bounding box to format `(center x, center y, aspect ratio,
         height)`, where the aspect ratio is `width / height`.
@@ -121,6 +119,18 @@ class STrack(BaseTrack):
 
     def to_xyah(self):
         return self.tlwh_to_xyah(self.tlwh)
+
+    @staticmethod
+    def tlwh_to_xywh(tlwh):
+        """Convert bounding box to format `(center x, center y, width,
+        height)`.
+        """
+        ret = np.asarray(tlwh).copy()
+        ret[:2] += ret[2:] / 2
+        return ret
+
+    def to_xywh(self):
+        return self.tlwh_to_xywh(self.tlwh)
 
     @staticmethod
     # @jit(nopython=True)
@@ -164,7 +174,7 @@ class BYTETracker(object):
         cls = results.cls
 
         remain_inds = scores > self.args.track_high_thresh
-        inds_low = scores > 0.1
+        inds_low = scores > self.args.track_low_thresh
         inds_high = scores < self.args.track_high_thresh
 
         inds_second = np.logical_and(inds_low, inds_high)
@@ -210,6 +220,7 @@ class BYTETracker(object):
         # association the untrack to the low score detections
         detections_second = self.init_track(dets_second, scores_second, cls_second, img)
         r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
+        # TODO
         dists = matching.iou_distance(r_tracked_stracks, detections_second)
         matches, u_track, u_detection_second = matching.linear_assignment(dists, thresh=0.5)
         for itracked, idet in matches:
@@ -252,8 +263,6 @@ class BYTETracker(object):
             if self.frame_id - track.end_frame > self.max_time_lost:
                 track.mark_removed()
                 removed_stracks.append(track)
-
-        # print('Ramained match {} s'.format(t4-t3))
 
         self.tracked_stracks = [t for t in self.tracked_stracks if t.state == TrackState.Tracked]
         self.tracked_stracks = self.joint_stracks(self.tracked_stracks, activated_starcks)

@@ -22,7 +22,7 @@ def visualize(img,
               pil=False,
               example='abc'):
     """
-    Plots the given result on an input RGB image.
+    Plots the given result on an input RGB image. Accepts cv2(numpy) or PIL Image
 
     Args:
       img (): Image
@@ -50,13 +50,19 @@ def visualize(img,
         for d in reversed(boxes):
             cls, conf = d.cls.squeeze(), d.conf.squeeze()
             c = int(cls)
-            label = f'{names[int(cls)]}' + (f'{conf:.2f}' if show_conf else '')
+            label = (f'{names[c]}' if names else f'{c}') + (f'{conf:.2f}' if show_conf else '')
             annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
 
     if masks is not None:
         im_gpu = torch.as_tensor(img, dtype=torch.float16).to(device).permute(2, 0, 1).flip(0).contiguous()
         im_gpu = F.resize(im_gpu, masks.data.shape[1:]) / 255
         annotator.masks(masks.data, colors=[colors(x, True) for x in boxes.cls], im_gpu=im_gpu)
+    
+    if logits is not None:
+        top5i = logits.argsort(0, descending=True)[:5].tolist()  # top 5 indices
+        text = f"{', '.join(f'{names[j] if names else j} {logits[j]:.2f}' for j in top5i)}, "
+        annotator.text((32, 32), text, txt_color=(255, 255, 255)) # TODO: allow setting colors
+
     return img
 
 
@@ -65,12 +71,13 @@ if __name__ == "__main__":
     from ultralytics.yolo.utils import ROOT
     import cv2
 
-    model = YOLO("yolov8n-seg.pt")
+    model = YOLO("yolov8n-cls.pt")
     source = str(ROOT / "assets/bus.jpg")
     img_cv = cv2.imread(source)
     img_pil = Image.open(source)
+
     res = model(img_cv)
-    resimg = visualize(img_pil, res[0], model)
+    resimg = visualize(img_cv, res[0], model)
 
     cv2.imshow("res", resimg)
     cv2.waitKey(0)

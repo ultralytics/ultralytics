@@ -74,7 +74,7 @@ class BOTrack(STrack):
         return ret
 
 
-class BOTSOTR(BYTETracker):
+class BOTSORT(BYTETracker):
     def __init__(self, args, frame_rate=30):
         super().__init__(args, frame_rate)
         # ReID module

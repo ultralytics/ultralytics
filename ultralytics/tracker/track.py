@@ -10,7 +10,7 @@ def on_predict_start(predictor):
     trackers = []
     cfg = OmegaConf.load(ROOT / "tracker/cfg/bytetrack.yaml")
     for _ in range(predictor.dataset.bs):
-        tracker = BYTETracker(args=cfg, frame_rate=cfg.frame_rate)
+        tracker = BYTETracker(args=cfg, frame_rate=30)
         trackers.append(tracker)
     predictor.trackers = trackers
 

@@ -26,7 +26,7 @@ RUN git clone https://github.com/ultralytics/ultralytics /usr/src/ultralytics
 
 # Install pip packages
 RUN python -m pip install --upgrade pip wheel
-RUN pip install --no-cache ultralytics albumentations comet gsutil notebook 'opencv-python<4.6.0.66'
+RUN pip install --no-cache ultralytics albumentations comet gsutil notebook
 
 # Set environment variables
 ENV OMP_NUM_THREADS=1

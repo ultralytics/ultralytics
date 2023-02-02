@@ -50,7 +50,7 @@ class LoadStreams:
                 s = pafy.new(s).getbest(preftype="mp4").url  # YouTube URL
             s = eval(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
             if s == 0 and (is_colab() or is_kaggle()):
-                raise NotImplementedError("'source=0' webcam not supported in Colab and Kaggle notebooks."
+                raise NotImplementedError("'source=0' webcam not supported in Colab and Kaggle notebooks. "
                                           "Try running 'source=0' in a local environment.")
             cap = cv2.VideoCapture(s)
             if not cap.isOpened():

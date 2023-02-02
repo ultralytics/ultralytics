@@ -6,21 +6,21 @@ from omegaconf import OmegaConf
 import cv2
 
 
-def on_predict_start(predictor):
-    trackers = []
-    cfg = OmegaConf.load(ROOT / "tracker/cfg/bytetrack.yaml")
-    for _ in range(predictor.dataset.bs):
-        tracker = BYTETracker(args=cfg, frame_rate=30)
-        trackers.append(tracker)
-    predictor.trackers = trackers
-
 # def on_predict_start(predictor):
 #     trackers = []
-#     cfg = OmegaConf.load(ROOT / "tracker/cfg/botsort.yaml")
+#     cfg = OmegaConf.load(ROOT / "tracker/cfg/bytetrack.yaml")
 #     for _ in range(predictor.dataset.bs):
-#         tracker = BOTSORT(args=cfg, frame_rate=30)
+#         tracker = BYTETracker(args=cfg, frame_rate=30)
 #         trackers.append(tracker)
 #     predictor.trackers = trackers
+
+def on_predict_start(predictor):
+    trackers = []
+    cfg = OmegaConf.load(ROOT / "tracker/cfg/botsort.yaml")
+    for _ in range(predictor.dataset.bs):
+        tracker = BOTSORT(args=cfg, frame_rate=30)
+        trackers.append(tracker)
+    predictor.trackers = trackers
 
 
 def on_predict_batch_end(predictor):

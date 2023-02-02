@@ -7,7 +7,8 @@ min_box_area: 10
 mot20: False
 
 # gmc related
-cmc_method: "orb"
+cmc_method: "sparseOptFlow"
+
 # ReID model related thresh(have not suppported yet)
 proximity_thresh: 0.5
 appearance_thresh: 0.25

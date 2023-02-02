@@ -57,11 +57,11 @@ def visualize(img,
         im_gpu = torch.as_tensor(img, dtype=torch.float16).to(device).permute(2, 0, 1).flip(0).contiguous()
         im_gpu = F.resize(im_gpu, masks.data.shape[1:]) / 255
         annotator.masks(masks.data, colors=[colors(x, True) for x in boxes.cls], im_gpu=im_gpu)
-    
+
     if logits is not None:
         top5i = logits.argsort(0, descending=True)[:5].tolist()  # top 5 indices
         text = f"{', '.join(f'{names[j] if names else j} {logits[j]:.2f}' for j in top5i)}, "
-        annotator.text((32, 32), text, txt_color=(255, 255, 255)) # TODO: allow setting colors
+        annotator.text((32, 32), text, txt_color=(255, 255, 255))  # TODO: allow setting colors
 
     return img
 

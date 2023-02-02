@@ -140,13 +140,7 @@ class Annotator:
             self.draw.text(xy, text, fill=txt_color, font=self.font)
         else:
             tf = max(self.lw - 1, 1)  # font thickness
-            cv2.putText(self.im,
-                        text, xy,
-                        0,
-                        self.lw / 3,
-                        txt_color,
-                        thickness=tf,
-                        lineType=cv2.LINE_AA)
+            cv2.putText(self.im, text, xy, 0, self.lw / 3, txt_color, thickness=tf, lineType=cv2.LINE_AA)
 
     def fromarray(self, im):
         # Update self.im from a numpy array

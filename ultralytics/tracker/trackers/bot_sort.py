@@ -118,8 +118,8 @@ class BOTSORT(BYTETracker):
         dists_mask = (dists > self.proximity_thresh)
 
         # TODO: mot20
-        if not self.args.mot20:
-            dists = matching.fuse_score(dists, detections)
+        # if not self.args.mot20:
+        dists = matching.fuse_score(dists, detections)
 
         if self.args.with_reid and self.encoder is not None:
             emb_dists = matching.embedding_distance(tracks, detections) / 2.0

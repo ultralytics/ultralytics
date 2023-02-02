@@ -148,7 +148,7 @@ def argument_error(arg):
     return SyntaxError(f"'{arg}' is not a valid YOLO argument.\n{CLI_HELP_MSG}")
 
 
-def entrypoint(debug=False):
+def entrypoint(debug=''):
     """
     This function is the ultralytics package entrypoint, it's responsible for parsing the command line arguments passed
     to the package.
@@ -163,7 +163,7 @@ def entrypoint(debug=False):
     It uses the package's default cfg and initializes it using the passed overrides.
     Then it calls the CLI function with the composed cfg
     """
-    args = ['train', 'model=yolov8n.pt', 'data=coco128.yaml', 'imgsz=32', 'epochs=1'] if debug else sys.argv[1:]
+    args = (debug.split(' ') if debug else sys.argv)[1:]
     if not args:  # no arguments passed
         LOGGER.info(CLI_HELP_MSG)
         return
@@ -275,4 +275,5 @@ def copy_default_cfg():
 
 
 if __name__ == '__main__':
-    entrypoint(debug=True)
+    # entrypoint(debug='yolo predict model=yolov8n.pt')
+    entrypoint(debug='')

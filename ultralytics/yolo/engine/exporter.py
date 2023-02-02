@@ -319,15 +319,20 @@ class Exporter:
     @try_export
     def _export_openvino(self, prefix=colorstr('OpenVINO:')):
         # YOLOv8 OpenVINO export
-        check_requirements('openvino-dev')  # requires openvino-dev: https://pypi.org/project/openvino-dev/
+        check_requirements('openvino-dev>=2022.3')  # requires openvino-dev: https://pypi.org/project/openvino-dev/
         import openvino.runtime as ov  # noqa
+        from openvino.tools import mo  # noqa
 
         LOGGER.info(f'\n{prefix} starting export with openvino {ov.__version__}...')
         f = str(self.file).replace(self.file.suffix, f'_openvino_model{os.sep}')
         f_onnx = self.file.with_suffix('.onnx')
+        f_ov = str(Path(f) / self.file.with_suffix('.xml').name)
 
-        cmd = f"mo --input_model {f_onnx} --output_dir {f} {'--compress_to_fp16' * self.args.half}"
-        subprocess.run(cmd.split(), check=True, env=os.environ)  # export
+        ov_model = mo.convert_model(f_onnx,
+                                    model_name=self.pretty_name,
+                                    framework="onnx",
+                                    compress_to_fp16=self.args.half)  # export
+        ov.serialize(ov_model, f_ov)  # save
         yaml_save(Path(f) / self.file.with_suffix('.yaml').name, self.metadata)  # add metadata.yaml
         return f, None
 

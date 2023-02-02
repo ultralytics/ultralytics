@@ -320,9 +320,9 @@ class Exporter:
     def _export_openvino(self, prefix=colorstr('OpenVINO:')):
         # YOLOv8 OpenVINO export
         check_requirements('openvino-dev')  # requires openvino-dev: https://pypi.org/project/openvino-dev/
-        import openvino.inference_engine as ie  # noqa
+        import openvino.runtime as ov  # noqa
 
-        LOGGER.info(f'\n{prefix} starting export with openvino {ie.__version__}...')
+        LOGGER.info(f'\n{prefix} starting export with openvino {ov.__version__}...')
         f = str(self.file).replace(self.file.suffix, f'_openvino_model{os.sep}')
         f_onnx = self.file.with_suffix('.onnx')
 

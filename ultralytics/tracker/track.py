@@ -1,5 +1,5 @@
 from ultralytics.yolo.engine.model import YOLO
-from ultralytics.tracker import BYTETracker
+from ultralytics.tracker import BYTETracker, BOTSORT
 from ultralytics.yolo.utils.plotting import Annotator, colors
 from ultralytics.yolo.utils import ROOT
 from omegaconf import OmegaConf
@@ -14,6 +14,14 @@ def on_predict_start(predictor):
         trackers.append(tracker)
     predictor.trackers = trackers
 
+# def on_predict_start(predictor):
+#     trackers = []
+#     cfg = OmegaConf.load(ROOT / "tracker/cfg/botsort.yaml")
+#     for _ in range(predictor.dataset.bs):
+#         tracker = BOTSORT(args=cfg, frame_rate=30)
+#         trackers.append(tracker)
+#     predictor.trackers = trackers
+
 
 def on_predict_batch_end(predictor):
     bs = predictor.dataset.bs 
@@ -24,7 +32,7 @@ def on_predict_batch_end(predictor):
         det = predictor.results[i].boxes.cpu().numpy()
         if len(det) == 0:
             continue
-        track_results[i] = predictor.trackers[i].update(det)
+        track_results[i] = predictor.trackers[i].update(det, im0s[i])
     predictor.results = zip(predictor.results, track_results, im0s)
 
 

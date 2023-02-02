@@ -5,6 +5,7 @@ from .basetrack import BaseTrack, TrackState
 
 
 class STrack(BaseTrack):
+    shared_kalman = KalmanFilterXYAH()
     def __init__(self, tlwh, score, cls):
 
         # wait activate
@@ -31,8 +32,26 @@ class STrack(BaseTrack):
             for i, st in enumerate(stracks):
                 if st.state != TrackState.Tracked:
                     multi_mean[i][7] = 0
-            multi_mean, multi_covariance = KalmanFilterXYAH.multi_predict(multi_mean, multi_covariance)
+            multi_mean, multi_covariance = STrack.shared_kalman.multi_predict(multi_mean, multi_covariance)
             for i, (mean, cov) in enumerate(zip(multi_mean, multi_covariance)):
+                stracks[i].mean = mean
+                stracks[i].covariance = cov
+
+    @staticmethod
+    def multi_gmc(stracks, H=np.eye(2, 3)):
+        if len(stracks) > 0:
+            multi_mean = np.asarray([st.mean.copy() for st in stracks])
+            multi_covariance = np.asarray([st.covariance for st in stracks])
+
+            R = H[:2, :2]
+            R8x8 = np.kron(np.eye(4, dtype=float), R)
+            t = H[:2, 2]
+
+            for i, (mean, cov) in enumerate(zip(multi_mean, multi_covariance)):
+                mean = R8x8.dot(mean)
+                mean[:2] += t
+                cov = R8x8.dot(cov).dot(R8x8.transpose())
+
                 stracks[i].mean = mean
                 stracks[i].covariance = cov
 
@@ -40,19 +59,18 @@ class STrack(BaseTrack):
         """Start a new tracklet"""
         self.kalman_filter = kalman_filter
         self.track_id = self.next_id()
-        self.mean, self.covariance = self.kalman_filter.initiate(self.tlwh_to_xyah(self._tlwh))
+        self.mean, self.covariance = self.kalman_filter.initiate(self.convert_coords(self._tlwh))
 
         self.tracklet_len = 0
         self.state = TrackState.Tracked
         if frame_id == 1:
             self.is_activated = True
-        # self.is_activated = True
         self.frame_id = frame_id
         self.start_frame = frame_id
 
     def re_activate(self, new_track, frame_id, new_id=False):
         self.mean, self.covariance = self.kalman_filter.update(
-            self.mean, self.covariance, self.tlwh_to_xyah(new_track.tlwh)
+            self.mean, self.covariance, self.convert_coords(new_track.tlwh)
         )
         self.tracklet_len = 0
         self.state = TrackState.Tracked
@@ -76,15 +94,15 @@ class STrack(BaseTrack):
 
         new_tlwh = new_track.tlwh
         self.mean, self.covariance = self.kalman_filter.update(
-            self.mean, self.covariance, self.tlwh_to_xyah(new_tlwh)
+            self.mean, self.covariance, self.convert_coords(new_tlwh)
         )
         self.state = TrackState.Tracked
         self.is_activated = True
 
         self.score = new_track.score
 
-    def convert_coords(self):
-        pass
+    def convert_coords(self, tlwh):
+        return self.tlwh_to_xyah(tlwh)
 
     @property
     def tlwh(self):
@@ -117,30 +135,13 @@ class STrack(BaseTrack):
         ret[2] /= ret[3]
         return ret
 
-    def to_xyah(self):
-        return self.tlwh_to_xyah(self.tlwh)
-
     @staticmethod
-    def tlwh_to_xywh(tlwh):
-        """Convert bounding box to format `(center x, center y, width,
-        height)`.
-        """
-        ret = np.asarray(tlwh).copy()
-        ret[:2] += ret[2:] / 2
-        return ret
-
-    def to_xywh(self):
-        return self.tlwh_to_xywh(self.tlwh)
-
-    @staticmethod
-    # @jit(nopython=True)
     def tlbr_to_tlwh(tlbr):
         ret = np.asarray(tlbr).copy()
         ret[2:] -= ret[:2]
         return ret
 
     @staticmethod
-    # @jit(nopython=True)
     def tlwh_to_tlbr(tlwh):
         ret = np.asarray(tlwh).copy()
         ret[2:] += ret[:2]
@@ -199,9 +200,11 @@ class BYTETracker(object):
         """ Step 2: First association, with high score detection boxes"""
         strack_pool = self.joint_stracks(tracked_stracks, self.lost_stracks)
         # Predict the current location with KF
-        STrack.multi_predict(strack_pool)
-
-        self.fix_camera_motion()
+        self.multi_predict(strack_pool)
+        if hasattr(self, "gmc"):
+            warp = self.gmc.apply(img, dets)
+            STrack.multi_gmc(strack_pool, warp)
+            STrack.multi_gmc(unconfirmed, warp)
 
         dists = self.get_dists(strack_pool, detections)
         matches, u_track, u_detection = matching.linear_assignment(dists, thresh=self.args.match_thresh)
@@ -295,13 +298,8 @@ class BYTETracker(object):
             dists = matching.fuse_score(dists, detections)
         return dists
 
-    def fix_camera_motion(self):
-        pass
-        # bot-sort
-        # # Fix camera motion
-        # warp = self.gmc.apply(img, dets)
-        # STrack.multi_gmc(strack_pool, warp)
-        # STrack.multi_gmc(unconfirmed, warp)
+    def multi_predict(self, tracks):
+        STrack.multi_predict(tracks)
 
     @staticmethod
     def joint_stracks(tlista, tlistb):

@@ -3,7 +3,6 @@ import scipy
 import lap
 from scipy.spatial.distance import cdist
 
-from cython_bbox import bbox_overlaps as bbox_ious
 from .kalman_filter import chi2inv95
 
 def merge_matches(m1, m2, shape):
@@ -56,13 +55,13 @@ def ious(atlbrs, btlbrs):
 
     :rtype ious np.ndarray
     """
-    ious = np.zeros((len(atlbrs), len(btlbrs)), dtype=np.float)
+    ious = np.zeros((len(atlbrs), len(btlbrs)), dtype=np.float32)
     if ious.size == 0:
         return ious
 
     ious = bbox_ious(
-        np.ascontiguousarray(atlbrs, dtype=np.float),
-        np.ascontiguousarray(btlbrs, dtype=np.float)
+        np.ascontiguousarray(atlbrs, dtype=np.float32),
+        np.ascontiguousarray(btlbrs, dtype=np.float32)
     )
 
     return ious
@@ -116,13 +115,13 @@ def embedding_distance(tracks, detections, metric='cosine'):
     :return: cost_matrix np.ndarray
     """
 
-    cost_matrix = np.zeros((len(tracks), len(detections)), dtype=np.float)
+    cost_matrix = np.zeros((len(tracks), len(detections)), dtype=np.float32)
     if cost_matrix.size == 0:
         return cost_matrix
-    det_features = np.asarray([track.curr_feat for track in detections], dtype=np.float)
+    det_features = np.asarray([track.curr_feat for track in detections], dtype=np.float32)
     #for i, track in enumerate(tracks):
         #cost_matrix[i, :] = np.maximum(0.0, cdist(track.smooth_feat.reshape(1,-1), det_features, metric))
-    track_features = np.asarray([track.smooth_feat for track in tracks], dtype=np.float)
+    track_features = np.asarray([track.smooth_feat for track in tracks], dtype=np.float32)
     cost_matrix = np.maximum(0.0, cdist(track_features, det_features, metric))  # Nomalized features
     return cost_matrix
 
@@ -177,3 +176,22 @@ def fuse_score(cost_matrix, detections):
     fuse_sim = iou_sim * det_scores
     fuse_cost = 1 - fuse_sim
     return fuse_cost
+
+def bbox_ious_(box1, box2, eps=1e-7):
+    """Boxes are x1y1x2y2
+    box1:       np.array of shape(nx4)
+    box2:       np.array of shape(mx4)
+    returns:    np.array of shape(nxm)
+    """
+    # Get the coordinates of bounding boxes
+    b1_x1, b1_y1, b1_x2, b1_y2 = box1.T
+    b2_x1, b2_y1, b2_x2, b2_y2 = box2.T
+
+    # Intersection area
+    inter_area = (np.minimum(b1_x2[:, None], b2_x2) - np.maximum(b1_x1[:, None], b2_x1)).clip(0) * \
+                 (np.minimum(b1_y2[:, None], b2_y2) - np.maximum(b1_y1[:, None], b2_y1)).clip(0)
+
+    # box2 area
+    box1_area = (b1_x2 - b1_x1) * (b1_y2 - b1_y1)
+    box2_area = (b2_x2 - b2_x1) * (b2_y2 - b2_y1)
+    return inter_area / (box2_area + box1_area[:, None] - inter_area + eps)

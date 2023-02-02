@@ -61,11 +61,11 @@ class LoadStreams:
             self.frames[i] = max(int(cap.get(cv2.CAP_PROP_FRAME_COUNT)), 0) or float('inf')  # infinite stream fallback
             self.fps[i] = max((fps if math.isfinite(fps) else 0) % 100, 0) or 30  # 30 FPS fallback
 
-            _, self.imgs[i] = cap.read()  # guarantee first frame
-            if self.imgs[i] is None:
+            success, self.imgs[i] = cap.read()  # guarantee first frame
+            if not success or self.imgs[i] is None:
                 raise ConnectionError(f'{st}Failed to read images from {s}')
             self.threads[i] = Thread(target=self.update, args=([i, cap, s]), daemon=True)
-            LOGGER.info(f"{st}Success ({self.frames[i]} frames {w}x{h} at {self.fps[i]:.2f} FPS)")
+            LOGGER.info(f"{st}Success ✅ ({self.frames[i]} frames {w}x{h} at {self.fps[i]:.2f} FPS)")
             self.threads[i].start()
         LOGGER.info('')  # newline
 
@@ -223,15 +223,15 @@ class LoadImages:
             self.mode = 'video'
             for _ in range(self.vid_stride):
                 self.cap.grab()
-            ret_val, im0 = self.cap.retrieve()
-            while not ret_val:
+            success, im0 = self.cap.retrieve()
+            while not success:
                 self.count += 1
                 self.cap.release()
                 if self.count == self.nf:  # last video
                     raise StopIteration
                 path = self.files[self.count]
                 self._new_video(path)
-                ret_val, im0 = self.cap.read()
+                success, im0 = self.cap.read()
 
             self.frame += 1
             # im0 = self._cv2_rotate(im0)  # for use if cv2 autorotation is False

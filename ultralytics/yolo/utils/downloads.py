@@ -123,8 +123,8 @@ def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
     file = str(file)
     if 'yolov3' in file or 'yolov5' in file and 'u' not in file:
         original_file = file
-        file = re.sub(r"^yolov5([nsmlx])\.", "yolov5\\1u.", file)  # i.e. yolov5n.pt -> yolov5nu.pt
-        file = re.sub(r"^yolov3(-tiny|-spp)?\.", "yolov3\\1u.", file)  # i.e. yolov3-spp.pt -> yolov3-sppu.pt
+        file = re.sub(r"(.*yolov5([nsmlx]))\.pt", "\\1u.pt", file)  # i.e. yolov5n.pt -> yolov5nu.pt
+        file = re.sub(r"(.*yolov3(|-tiny|-spp))\.pt", "\\1u.pt", file)  # i.e. yolov3-spp.pt -> yolov3-sppu.pt
         if file != original_file:
             LOGGER.info(f"Pro tip 💡 Replace 'model={original_file}' with new and improved 'model={file}'")
 

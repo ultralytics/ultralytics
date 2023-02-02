@@ -29,7 +29,7 @@ repos:
     hooks:
       - id: pyupgrade
         name: Upgrade code
-        args: [ --py37-plus ]
+        args: [--py37-plus]
 
   # - repo: https://github.com/PyCQA/isort
   #   rev: 5.11.4

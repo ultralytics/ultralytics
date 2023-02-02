@@ -319,7 +319,7 @@ class Exporter:
     @try_export
     def _export_openvino(self, prefix=colorstr('OpenVINO:')):
         # YOLOv8 OpenVINO export
-        check_requirements('openvino-dev')  # requires openvino-dev: https://pypi.org/project/openvino-dev/
+        check_requirements('openvino-dev>=2022.1')  # requires openvino-dev: https://pypi.org/project/openvino-dev/
         import openvino.inference_engine as ie  # noqa
 
         LOGGER.info(f'\n{prefix} starting export with openvino {ie.__version__}...')

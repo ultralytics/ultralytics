@@ -148,13 +148,11 @@ class BYTETracker(object):
 
         self.frame_id = 0
         self.args = args
-        # self.det_thresh = args.track_thresh
-        self.det_thresh = args.track_thresh + 0.1
         self.buffer_size = int(frame_rate / 30.0 * args.track_buffer)
         self.max_time_lost = self.buffer_size
-        self.kalman_filter = KalmanFilterXYAH()
+        self.kalman_filter = self.get_kalmanfilter()
 
-    def update(self, results):
+    def update(self, results, img=None):
         self.frame_id += 1
         activated_starcks = []
         refind_stracks = []
@@ -165,9 +163,9 @@ class BYTETracker(object):
         bboxes = results.xyxy
         cls = results.cls
 
-        remain_inds = scores > self.args.track_thresh
+        remain_inds = scores > self.args.track_high_thresh
         inds_low = scores > 0.1
-        inds_high = scores < self.args.track_thresh
+        inds_high = scores < self.args.track_high_thresh
 
         inds_second = np.logical_and(inds_low, inds_high)
         dets_second = bboxes[inds_second]
@@ -177,13 +175,7 @@ class BYTETracker(object):
         cls_keep = cls[remain_inds]
         cls_second = cls[inds_second]
 
-        if len(dets) > 0:
-            """Detections"""
-            detections = [
-                STrack(STrack.tlbr_to_tlwh(tlbr), s, c) for (tlbr, s, c) in zip(dets, scores_keep, cls_keep)
-            ]
-        else:
-            detections = []
+        detections = self.init_track(dets, scores_keep, cls_keep, img)
 
         """ Add newly detected tracklets to tracked_stracks"""
         unconfirmed = []
@@ -195,19 +187,13 @@ class BYTETracker(object):
                 tracked_stracks.append(track)
 
         """ Step 2: First association, with high score detection boxes"""
-        strack_pool = joint_stracks(tracked_stracks, self.lost_stracks)
+        strack_pool = self.joint_stracks(tracked_stracks, self.lost_stracks)
         # Predict the current location with KF
         STrack.multi_predict(strack_pool)
 
-        # bot-sort
-        # # Fix camera motion
-        # warp = self.gmc.apply(img, dets)
-        # STrack.multi_gmc(strack_pool, warp)
-        # STrack.multi_gmc(unconfirmed, warp)
+        self.fix_camera_motion()
 
-        dists = matching.iou_distance(strack_pool, detections)
-        if not self.args.mot20:
-            dists = matching.fuse_score(dists, detections)
+        dists = self.get_dists(strack_pool, detections)
         matches, u_track, u_detection = matching.linear_assignment(dists, thresh=self.args.match_thresh)
 
         for itracked, idet in matches:
@@ -222,14 +208,7 @@ class BYTETracker(object):
 
         """ Step 3: Second association, with low score detection boxes"""
         # association the untrack to the low score detections
-        if len(dets_second) > 0:
-            """Detections"""
-            detections_second = [
-                STrack(STrack.tlbr_to_tlwh(tlbr), s, c)
-                for (tlbr, s, c) in zip(dets_second, scores_second, cls_second)
-            ]
-        else:
-            detections_second = []
+        detections_second = self.init_track(dets_second, scores_second, cls_second, img)
         r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
         dists = matching.iou_distance(r_tracked_stracks, detections_second)
         matches, u_track, u_detection_second = matching.linear_assignment(dists, thresh=0.5)
@@ -251,9 +230,7 @@ class BYTETracker(object):
 
         """Deal with unconfirmed tracks, usually tracks with only one beginning frame"""
         detections = [detections[i] for i in u_detection]
-        dists = matching.iou_distance(unconfirmed, detections)
-        if not self.args.mot20:
-            dists = matching.fuse_score(dists, detections)
+        dists = self.get_dists(unconfirmed, detections)
         matches, u_unconfirmed, u_detection = matching.linear_assignment(dists, thresh=0.7)
         for itracked, idet in matches:
             unconfirmed[itracked].update(detections[idet], self.frame_id)
@@ -266,7 +243,7 @@ class BYTETracker(object):
         """ Step 4: Init new stracks"""
         for inew in u_detection:
             track = detections[inew]
-            if track.score < self.det_thresh:
+            if track.score < self.args.new_track_thresh:
                 continue
             track.activate(self.kalman_filter, self.frame_id)
             activated_starcks.append(track)
@@ -279,13 +256,13 @@ class BYTETracker(object):
         # print('Ramained match {} s'.format(t4-t3))
 
         self.tracked_stracks = [t for t in self.tracked_stracks if t.state == TrackState.Tracked]
-        self.tracked_stracks = joint_stracks(self.tracked_stracks, activated_starcks)
-        self.tracked_stracks = joint_stracks(self.tracked_stracks, refind_stracks)
-        self.lost_stracks = sub_stracks(self.lost_stracks, self.tracked_stracks)
+        self.tracked_stracks = self.joint_stracks(self.tracked_stracks, activated_starcks)
+        self.tracked_stracks = self.joint_stracks(self.tracked_stracks, refind_stracks)
+        self.lost_stracks = self.sub_stracks(self.lost_stracks, self.tracked_stracks)
         self.lost_stracks.extend(lost_stracks)
-        self.lost_stracks = sub_stracks(self.lost_stracks, self.removed_stracks)
+        self.lost_stracks = self.sub_stracks(self.lost_stracks, self.removed_stracks)
         self.removed_stracks.extend(removed_stracks)
-        self.tracked_stracks, self.lost_stracks = remove_duplicate_stracks(
+        self.tracked_stracks, self.lost_stracks = self.remove_duplicate_stracks(
             self.tracked_stracks, self.lost_stracks
         )
         # get scores of lost tracks
@@ -293,43 +270,67 @@ class BYTETracker(object):
 
         return output_stracks
 
+    def get_kalmanfilter(self):
+        return KalmanFilterXYAH() 
 
-def joint_stracks(tlista, tlistb):
-    exists = {}
-    res = []
-    for t in tlista:
-        exists[t.track_id] = 1
-        res.append(t)
-    for t in tlistb:
-        tid = t.track_id
-        if not exists.get(tid, 0):
-            exists[tid] = 1
+    def init_track(self, dets, scores, cls, img=None):
+        detections = [
+            STrack(STrack.tlbr_to_tlwh(tlbr), s, c) for (tlbr, s, c) in zip(dets, scores, cls)
+        ] if len(dets) else []
+        return detections
+
+    def get_dists(self, tracks, detections):
+        dists = matching.distance(tracks, detections)
+        # TODO: mot20
+        if not self.args.mot20:
+            dists = matching.fuse_score(dists, detections)
+        return dists
+
+    def fix_camera_motion(self):
+        pass
+        # bot-sort
+        # # Fix camera motion
+        # warp = self.gmc.apply(img, dets)
+        # STrack.multi_gmc(strack_pool, warp)
+        # STrack.multi_gmc(unconfirmed, warp)
+
+    @staticmethod
+    def joint_stracks(tlista, tlistb):
+        exists = {}
+        res = []
+        for t in tlista:
+            exists[t.track_id] = 1
             res.append(t)
-    return res
+        for t in tlistb:
+            tid = t.track_id
+            if not exists.get(tid, 0):
+                exists[tid] = 1
+                res.append(t)
+        return res
 
+    @staticmethod
+    def sub_stracks(tlista, tlistb):
+        stracks = {}
+        for t in tlista:
+            stracks[t.track_id] = t
+        for t in tlistb:
+            tid = t.track_id
+            if stracks.get(tid, 0):
+                del stracks[tid]
+        return list(stracks.values())
 
-def sub_stracks(tlista, tlistb):
-    stracks = {}
-    for t in tlista:
-        stracks[t.track_id] = t
-    for t in tlistb:
-        tid = t.track_id
-        if stracks.get(tid, 0):
-            del stracks[tid]
-    return list(stracks.values())
-
-
-def remove_duplicate_stracks(stracksa, stracksb):
-    pdist = matching.iou_distance(stracksa, stracksb)
-    pairs = np.where(pdist < 0.15)
-    dupa, dupb = list(), list()
-    for p, q in zip(*pairs):
-        timep = stracksa[p].frame_id - stracksa[p].start_frame
-        timeq = stracksb[q].frame_id - stracksb[q].start_frame
-        if timep > timeq:
-            dupb.append(q)
-        else:
-            dupa.append(p)
-    resa = [t for i, t in enumerate(stracksa) if not i in dupa]
-    resb = [t for i, t in enumerate(stracksb) if not i in dupb]
-    return resa, resb
+    @staticmethod
+    def remove_duplicate_stracks(stracksa, stracksb):
+        pdist = matching.iou_distance(stracksa, stracksb)
+        pairs = np.where(pdist < 0.15)
+        dupa, dupb = list(), list()
+        for p, q in zip(*pairs):
+            timep = stracksa[p].frame_id - stracksa[p].start_frame
+            timeq = stracksb[q].frame_id - stracksb[q].start_frame
+            if timep > timeq:
+                dupb.append(q)
+            else:
+                dupa.append(p)
+        resa = [t for i, t in enumerate(stracksa) if not i in dupa]
+        resb = [t for i, t in enumerate(stracksb) if not i in dupb]
+        return resa, resb

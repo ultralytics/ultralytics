@@ -65,6 +65,7 @@ import pandas as pd
 import torch
 
 import ultralytics
+from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import Detect, Segment
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, guess_model_task
 from ultralytics.yolo.cfg import get_cfg
@@ -141,7 +142,6 @@ class Exporter:
         flags = [x == format for x in fmts]
         assert sum(flags), f'ERROR: Invalid format={format}, valid formats are {fmts}'
         jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle = flags  # export booleans
-        task = guess_model_task(model)
 
         # Load PyTorch model
         self.device = select_device('cpu' if self.args.device is None else self.args.device)
@@ -152,10 +152,11 @@ class Exporter:
             assert not self.args.dynamic, '--half not compatible with --dynamic, i.e. use either --half or --dynamic'
 
         # Checks
+        model.names = check_class_names(model.names)
         # if self.args.batch == model.args['batch_size']:  # user has not modified training batch_size
         self.args.batch = 1
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
-        if task == 'classify':
+        if model.task == 'classify':
             self.args.nms = self.args.agnostic_nms = False
         if self.args.optimize:
             assert self.device.type == 'cpu', '--optimize not compatible with cuda devices, i.e. use --device cpu'
@@ -241,8 +242,8 @@ class Exporter:
             s = "-WARNING ⚠️ not yet supported for YOLOv8 exported models"
             LOGGER.info(f'\nExport complete ({time.time() - t:.1f}s)'
                         f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
-                        f"\nPredict:         yolo task={task} mode=predict model={f[-1]} {s}"
-                        f"\nValidate:        yolo task={task} mode=val model={f[-1]} {s}"
+                        f"\nPredict:         yolo task={model.task} mode=predict model={f[-1]} {s}"
+                        f"\nValidate:        yolo task={model.task} mode=val model={f[-1]} {s}"
                         f"\nVisualize:       https://netron.app")
 
         self.run_callbacks("on_export_end")
@@ -379,7 +380,10 @@ class Exporter:
 
         model = iOSModel(self.model, self.im).eval() if self.args.nms else self.model
         ts = torch.jit.trace(model, self.im, strict=False)  # TorchScript model
-        ct_model = ct.convert(ts, inputs=[ct.ImageType('image', shape=self.im.shape, scale=1 / 255, bias=[0, 0, 0])])
+        classifier_config = ct.ClassifierConfig(list(model.names.values())) if model.task == 'classify' else None
+        ct_model = ct.convert(ts,
+                              inputs=[ct.ImageType('image', shape=self.im.shape, scale=1 / 255, bias=[0, 0, 0])],
+                              classifier_config=classifier_config)
         bits, mode = (8, 'kmeans_lut') if self.args.int8 else (16, 'linear') if self.args.half else (32, None)
         if bits < 32:
             if MACOS:  # quantization only supported on macOS
@@ -389,6 +393,10 @@ class Exporter:
         if self.args.nms:
             ct_model = self._pipeline_coreml(ct_model)
 
+        ct_model.short_description = f'Ultralytics {self.pretty_name} CoreML Model'
+        ct_model.author = 'Ultralytics'
+        ct_model.license = 'GPL-3.0  https://ultralytics.com/license'
+        ct_model.version = ultralytics.__version__
         ct_model.save(str(f))
         return f, ct_model
 
@@ -773,10 +781,6 @@ class Exporter:
 
         # Update metadata
         pipeline.spec.specificationVersion = 5
-        pipeline.spec.description.metadata.versionString = f'Ultralytics YOLOv{ultralytics.__version__}'
-        pipeline.spec.description.metadata.shortDescription = f'Ultralytics {self.pretty_name} CoreML model'
-        pipeline.spec.description.metadata.author = 'Ultralytics (https://ultralytics.com)'
-        pipeline.spec.description.metadata.license = 'GPL-3.0 license (https://ultralytics.com/license)'
         pipeline.spec.description.metadata.userDefined.update({
             'IoU threshold': str(nms.iouThreshold),
             'Confidence threshold': str(nms.confidenceThreshold)})

@@ -3,15 +3,15 @@
 # Image is CUDA-optimized for YOLOv8 single/multi-GPU training and inference
 
 # Start FROM NVIDIA PyTorch image https://ngc.nvidia.com/catalog/containers/nvidia:pytorch
-FROM nvcr.io/nvidia/pytorch:23.01-py3
+FROM docker.io/pytorch/pytorch:latest
 
 # Downloads to user config dir
 ADD https://ultralytics.com/assets/Arial.ttf https://ultralytics.com/assets/Arial.Unicode.ttf /root/.config/Ultralytics/
 
 # Remove torch nightly and install torch stable
-RUN rm -rf /opt/pytorch  # remove 1.2GB dir
-RUN pip uninstall -y torchtext pillow torch torchvision
-RUN pip install --no-cache torch torchvision
+#RUN rm -rf /opt/pytorch  # remove 1.2GB dir
+#RUN pip uninstall -y torchtext pillow torch torchvision
+#RUN pip install --no-cache torch torchvision
 
 # Install linux packages
 RUN apt update && apt install --no-install-recommends -y zip htop screen libgl1-mesa-glx
@@ -35,7 +35,7 @@ ENV OMP_NUM_THREADS=1
 # Usage Examples -------------------------------------------------------------------------------------------------------
 
 # Build and Push
-# t=ultralytics/ultralytics:latest && sudo docker build -f docker/Dockerfile -t $t . && sudo docker push $t
+# t=ultralytics/ultralytics:latest-torch && sudo docker build -f docker/Dockerfile -t $t . && sudo docker push $t
 
 # Pull and Run
 # t=ultralytics/ultralytics:latest && sudo docker pull $t && sudo docker run -it --ipc=host --gpus all $t

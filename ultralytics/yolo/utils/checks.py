@@ -68,7 +68,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
 
     # Apply max_dim
     if max_dim == 1:
-        LOGGER.warning(f"WARNING ⚠️ 'train' imgsz type must be an integer, updating to 'imgsz={max(imgsz)}'. "
+        LOGGER.warning(f"WARNING ⚠️ 'train' and 'val' imgsz types must be integer, updating to 'imgsz={max(imgsz)}'. "
                        f"'predict' and 'export' imgsz may be list or integer, "
                        f"i.e. 'yolo export imgsz=640,480' or 'yolo export imgsz=640'")
         imgsz = [max(imgsz)]

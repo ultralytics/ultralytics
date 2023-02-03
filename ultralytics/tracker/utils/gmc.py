@@ -38,7 +38,7 @@ class GMC:
                                        k=0.04)
             # self.gmc_file = open('GMC_results.txt', 'w')
 
-        elif self.method == 'file' or self.method == 'files':
+        elif self.method in ['file', 'files']:
             seqName = verbose[0]
             ablation = verbose[1]
             if ablation:
@@ -48,19 +48,16 @@ class GMC:
 
             if '-FRCNN' in seqName:
                 seqName = seqName[:-6]
-            elif '-DPM' in seqName:
+            elif '-DPM' in seqName or '-SDP' in seqName:
                 seqName = seqName[:-4]
-            elif '-SDP' in seqName:
-                seqName = seqName[:-4]
-
-            self.gmcFile = open(filePath + "/GMC-" + seqName + ".txt")
+            self.gmcFile = open(f"{filePath}/GMC-{seqName}.txt")
 
             if self.gmcFile is None:
-                raise ValueError("Error: Unable to open GMC file in directory:" + filePath)
-        elif self.method == 'none' or self.method == 'None':
+                raise ValueError(f"Error: Unable to open GMC file in directory:{filePath}")
+        elif self.method in ['none', 'None']:
             self.method = 'none'
         else:
-            raise ValueError("Error: Unknown CMC method:" + method)
+            raise ValueError(f"Error: Unknown CMC method:{method}")
 
         self.prevFrame = None
         self.prevKeyPoints = None
@@ -69,7 +66,7 @@ class GMC:
         self.initializedFirstFrame = False
 
     def apply(self, raw_frame, detections=None):
-        if self.method == 'orb' or self.method == 'sift':
+        if self.method in ['orb', 'sift']:
             return self.applyFeaures(raw_frame, detections)
         elif self.method == 'ecc':
             return self.applyEcc(raw_frame, detections)
@@ -110,8 +107,8 @@ class GMC:
         # (cc, H) = cv2.findTransformECC(self.prevFrame, frame, H, self.warp_mode, self.criteria)
         try:
             (cc, H) = cv2.findTransformECC(self.prevFrame, frame, H, self.warp_mode, self.criteria, None, 1)
-        except:
-            print('Warning: find transform failed. Set warp as identity')
+        except Exception as e:
+            print(f'Warning: find transform failed. Set warp as identity {e}')
 
         return H
 

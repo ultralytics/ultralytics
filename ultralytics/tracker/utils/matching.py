@@ -39,9 +39,7 @@ def linear_assignment(cost_matrix, thresh):
         return np.empty((0, 2), dtype=int), tuple(range(cost_matrix.shape[0])), tuple(range(cost_matrix.shape[1]))
     matches, unmatched_a, unmatched_b = [], [], []
     cost, x, y = lap.lapjv(cost_matrix, extend_cost=True, cost_limit=thresh)
-    for ix, mx in enumerate(x):
-        if mx >= 0:
-            matches.append([ix, mx])
+    matches.extend([ix, mx] for ix, mx in enumerate(x) if mx >= 0)
     unmatched_a = np.where(x < 0)[0]
     unmatched_b = np.where(y < 0)[0]
     matches = np.asarray(matches)
@@ -61,7 +59,6 @@ def ious(atlbrs, btlbrs):
         return ious
 
     ious = bbox_ious(np.ascontiguousarray(atlbrs, dtype=np.float32), np.ascontiguousarray(btlbrs, dtype=np.float32))
-
     return ious
 
 
@@ -82,9 +79,7 @@ def iou_distance(atracks, btracks):
         atlbrs = [track.tlbr for track in atracks]
         btlbrs = [track.tlbr for track in btracks]
     _ious = ious(atlbrs, btlbrs)
-    cost_matrix = 1 - _ious
-
-    return cost_matrix
+    return 1 - _ious  # cost matrix
 
 
 def v_iou_distance(atracks, btracks):
@@ -104,9 +99,7 @@ def v_iou_distance(atracks, btracks):
         atlbrs = [track.tlwh_to_tlbr(track.pred_bbox) for track in atracks]
         btlbrs = [track.tlwh_to_tlbr(track.pred_bbox) for track in btracks]
     _ious = ious(atlbrs, btlbrs)
-    cost_matrix = 1 - _ious
-
-    return cost_matrix
+    return 1 - _ious  # cost matrix
 
 
 def embedding_distance(tracks, detections, metric='cosine'):
@@ -121,8 +114,8 @@ def embedding_distance(tracks, detections, metric='cosine'):
     if cost_matrix.size == 0:
         return cost_matrix
     det_features = np.asarray([track.curr_feat for track in detections], dtype=np.float32)
-    #for i, track in enumerate(tracks):
-    #cost_matrix[i, :] = np.maximum(0.0, cdist(track.smooth_feat.reshape(1,-1), det_features, metric))
+    # for i, track in enumerate(tracks):
+    # cost_matrix[i, :] = np.maximum(0.0, cdist(track.smooth_feat.reshape(1,-1), det_features, metric))
     track_features = np.asarray([track.smooth_feat for track in tracks], dtype=np.float32)
     cost_matrix = np.maximum(0.0, cdist(track_features, det_features, metric))  # Nomalized features
     return cost_matrix
@@ -160,11 +153,9 @@ def fuse_iou(cost_matrix, tracks, detections):
     iou_dist = iou_distance(tracks, detections)
     iou_sim = 1 - iou_dist
     fuse_sim = reid_sim * (1 + iou_sim) / 2
-    det_scores = np.array([det.score for det in detections])
-    det_scores = np.expand_dims(det_scores, axis=0).repeat(cost_matrix.shape[0], axis=0)
-    #fuse_sim = fuse_sim * (1 + det_scores) / 2
-    fuse_cost = 1 - fuse_sim
-    return fuse_cost
+    # det_scores = np.array([det.score for det in detections])
+    # det_scores = np.expand_dims(det_scores, axis=0).repeat(cost_matrix.shape[0], axis=0)
+    return 1 - fuse_sim  # fuse cost
 
 
 def fuse_score(cost_matrix, detections):
@@ -174,8 +165,7 @@ def fuse_score(cost_matrix, detections):
     det_scores = np.array([det.score for det in detections])
     det_scores = np.expand_dims(det_scores, axis=0).repeat(cost_matrix.shape[0], axis=0)
     fuse_sim = iou_sim * det_scores
-    fuse_cost = 1 - fuse_sim
-    return fuse_cost
+    return 1 - fuse_sim  # fuse_cost
 
 
 def bbox_ious(box1, box2, eps=1e-7):

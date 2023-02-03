@@ -87,6 +87,7 @@ all [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requ
 
 ```bash
 pip install ultralytics
+
 ```
 
 </details>
@@ -99,7 +100,7 @@ pip install ultralytics
 YOLOv8 may be used directly in the Command Line Interface (CLI) with a `yolo` command:
 
 ```bash
-yolo predict model=yolov8n.pt source="https://ultralytics.com/images/bus.jpg"
+yolo predict model=yolov8n.pt source="video.mp4" count = True show = True
 ```
 
 `yolo` can be used for a variety of tasks and modes and accepts additional arguments, i.e. `imgsz=640`. See the YOLOv8
@@ -114,14 +115,10 @@ same [arguments](https://docs.ultralytics.com/cfg/) as in the CLI example above:
 from ultralytics import YOLO
 
 # Load a model
-model = YOLO("yolov8n.yaml")  # build a new model from scratch
 model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
-# Use the model
-results = model.train(data="coco128.yaml", epochs=3)  # train the model
-results = model.val()  # evaluate model performance on the validation set
-results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
-success = model.export(format="onnx")  # export the model to ONNX format
+# Use the model 
+results = model.predict(source="tvid.mp4", classes= 2, show= True, count = False)
 ```
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) download automatically from the latest

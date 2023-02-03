@@ -687,8 +687,8 @@ class Exporter:
             out0_shape = out[out0.name].shape
             out1_shape = out[out1.name].shape
         else:  # linux and windows can not run model.predict(), get sizes from pytorch output y
-            out0_shape = self.output_shape[1], self.output_shape[2] - 5  # (3780, 80)
-            out1_shape = self.output_shape[1], 4  # (3780, 4)
+            out0_shape = self.output_shape[2], self.output_shape[1] - 4  # (3780, 80)
+            out1_shape = self.output_shape[2], 4  # (3780, 4)
 
         # Checks
         names = self.metadata['names']
@@ -714,7 +714,7 @@ class Exporter:
         # flexible_shape_utils.update_image_size_range(spec, feature_name='image', size_range=r)
 
         # Print
-        print(spec.description)
+        # print(spec.description)
 
         # Model from spec
         model = ct.models.MLModel(spec)

@@ -277,8 +277,9 @@ class BYTETracker:
         self.lost_stracks = self.sub_stracks(self.lost_stracks, self.removed_stracks)
         self.removed_stracks.extend(removed_stracks)
         self.tracked_stracks, self.lost_stracks = self.remove_duplicate_stracks(self.tracked_stracks, self.lost_stracks)
-        output = [track.tlbr.tolist() + [track.track_id, track.score, track.cls, track.idx]
-                  for track in self.tracked_stracks if track.is_activated]
+        output = [
+            track.tlbr.tolist() + [track.track_id, track.score, track.cls, track.idx] for track in self.tracked_stracks
+            if track.is_activated]
         return np.asarray(output, dtype=np.float32)
 
     def get_kalmanfilter(self):

@@ -141,6 +141,7 @@ class Exporter:
         flags = [x == format for x in fmts]
         assert sum(flags), f'ERROR: Invalid format={format}, valid formats are {fmts}'
         jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle = flags  # export booleans
+        task = guess_model_task(model)
 
         # Load PyTorch model
         self.device = select_device('cpu' if self.args.device is None else self.args.device)
@@ -154,6 +155,8 @@ class Exporter:
         # if self.args.batch == model.args['batch_size']:  # user has not modified training batch_size
         self.args.batch = 1
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
+        if task == 'classify':
+            self.args.nms = self.args.agnostic_nms = False
         if self.args.optimize:
             assert self.device.type == 'cpu', '--optimize not compatible with cuda devices, i.e. use --device cpu'
 
@@ -235,7 +238,6 @@ class Exporter:
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
         if any(f):
-            task = guess_model_task(model)
             s = "-WARNING ⚠️ not yet supported for YOLOv8 exported models"
             LOGGER.info(f'\nExport complete ({time.time() - t:.1f}s)'
                         f"\nResults saved to {colorstr('bold', file.parent.resolve())}"

@@ -1,11 +1,8 @@
-# vim: expandtab:ts=4:sw=4
 import numpy as np
 import scipy.linalg
-"""
-Table for the 0.95 quantile of the chi-square distribution with N degrees of
-freedom (contains values for N=1, ..., 9). Taken from MATLAB/Octave's chi2inv
-function and used as Mahalanobis gating threshold.
-"""
+
+# Table for the 0.95 quantile of the chi-square distribution with N degrees of freedom (contains values for N=1, ..., 9)
+# Taken from MATLAB/Octave's chi2inv function and used as Mahalanobis gating threshold.
 chi2inv95 = {1: 3.8415, 2: 5.9915, 3: 7.8147, 4: 9.4877, 5: 11.070, 6: 12.592, 7: 14.067, 8: 15.507, 9: 16.919}
 
 
@@ -97,7 +94,7 @@ class KalmanFilterXYAH:
             self._std_weight_velocity * mean[3]]
         motion_cov = np.diag(np.square(np.r_[std_pos, std_vel]))
 
-        #mean = np.dot(self._motion_mat, mean)
+        # mean = np.dot(self._motion_mat, mean)
         mean = np.dot(mean, self._motion_mat.T)
         covariance = np.linalg.multi_dot((self._motion_mat, covariance, self._motion_mat.T)) + motion_cov
 
@@ -153,9 +150,7 @@ class KalmanFilterXYAH:
             1e-5 * np.ones_like(mean[:, 3]), self._std_weight_velocity * mean[:, 3]]
         sqr = np.square(np.r_[std_pos, std_vel]).T
 
-        motion_cov = []
-        for i in range(len(mean)):
-            motion_cov.append(np.diag(sqr[i]))
+        motion_cov = [np.diag(sqr[i]) for i in range(len(mean))]
         motion_cov = np.asarray(motion_cov)
 
         mean = np.dot(mean, self._motion_mat.T)
@@ -232,8 +227,7 @@ class KalmanFilterXYAH:
         elif metric == 'maha':
             cholesky_factor = np.linalg.cholesky(covariance)
             z = scipy.linalg.solve_triangular(cholesky_factor, d.T, lower=True, check_finite=False, overwrite_b=True)
-            squared_maha = np.sum(z * z, axis=0)
-            return squared_maha
+            return np.sum(z * z, axis=0)  # square maha
         else:
             raise ValueError('invalid distance metric')
 
@@ -382,9 +376,7 @@ class KalmanFilterXYWH:
             self._std_weight_velocity * mean[:, 2], self._std_weight_velocity * mean[:, 3]]
         sqr = np.square(np.r_[std_pos, std_vel]).T
 
-        motion_cov = []
-        for i in range(len(mean)):
-            motion_cov.append(np.diag(sqr[i]))
+        motion_cov = [np.diag(sqr[i]) for i in range(len(mean))]
         motion_cov = np.asarray(motion_cov)
 
         mean = np.dot(mean, self._motion_mat.T)
@@ -461,7 +453,6 @@ class KalmanFilterXYWH:
         elif metric == 'maha':
             cholesky_factor = np.linalg.cholesky(covariance)
             z = scipy.linalg.solve_triangular(cholesky_factor, d.T, lower=True, check_finite=False, overwrite_b=True)
-            squared_maha = np.sum(z * z, axis=0)
-            return squared_maha
+            return np.sum(z * z, axis=0)  # square maha
         else:
             raise ValueError('invalid distance metric')

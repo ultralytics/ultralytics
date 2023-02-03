@@ -9,7 +9,7 @@ class STrack(BaseTrack):
     def __init__(self, tlwh, score, cls):
 
         # wait activate
-        self._tlwh = np.asarray(tlwh, dtype=np.float)
+        self._tlwh = np.asarray(self.tlbr_to_tlwh(tlwh[:-1]), dtype=np.float)
         self.kalman_filter = None
         self.mean, self.covariance = None, None
         self.is_activated = False
@@ -17,6 +17,7 @@ class STrack(BaseTrack):
         self.score = score
         self.tracklet_len = 0
         self.cls = cls
+        self.idx = tlwh[-1]
 
     def predict(self):
         mean_state = self.mean.copy()
@@ -80,6 +81,7 @@ class STrack(BaseTrack):
             self.track_id = self.next_id()
         self.score = new_track.score
         self.cls = new_track.cls
+        self.idx = new_track.idx
 
     def update(self, new_track, frame_id):
         """
@@ -100,6 +102,8 @@ class STrack(BaseTrack):
         self.is_activated = True
 
         self.score = new_track.score
+        self.cls = new_track.cls
+        self.idx = new_track.idx
 
     def convert_coords(self, tlwh):
         return self.tlwh_to_xyah(tlwh)
@@ -172,6 +176,8 @@ class BYTETracker(object):
 
         scores = results.conf
         bboxes = results.xyxy
+        # add index
+        bboxes = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
         cls = results.cls
 
         remain_inds = scores > self.args.track_high_thresh
@@ -283,7 +289,7 @@ class BYTETracker(object):
         for track in self.tracked_stracks:
             if not track.is_activated:
                 continue
-            output.append(track.tlbr.tolist() + [track.track_id, track.score, track.cls])
+            output.append(track.tlbr.tolist() + [track.track_id, track.score, track.cls, track.idx])
 
         return np.asarray(output)
 
@@ -292,7 +298,7 @@ class BYTETracker(object):
 
     def init_track(self, dets, scores, cls, img=None):
         detections = [
-            STrack(STrack.tlbr_to_tlwh(tlbr), s, c) for (tlbr, s, c) in zip(dets, scores, cls)
+            STrack(xyxy, s, c) for (xyxy, s, c) in zip(dets, scores, cls)
         ] if len(dets) else []
         return detections
 

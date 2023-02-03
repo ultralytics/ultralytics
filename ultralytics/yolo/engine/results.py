@@ -318,7 +318,7 @@ class Masks:
 
     def __getitem__(self, idx):
         masks = self.masks[idx]
-        return Masks(masks, self.im_shape, self.orig_shape)
+        return Masks(masks, self.orig_shape)
 
     def __getattr__(self, attr):
         name = self.__class__.__name__

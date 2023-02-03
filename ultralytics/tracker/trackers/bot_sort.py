@@ -106,11 +106,11 @@ class BOTSORT(BYTETracker):
             return []
         if self.args.with_reid and self.encoder is not None:
             features_keep = self.encoder.inference(img, dets)
-            detections = [BOTrack(BOTrack.tlbr_to_tlwh(tlbr), s, c, f) for
-                          (tlbr, s, c, f) in zip(dets, scores, cls, features_keep)]
+            detections = [BOTrack(xyxy, s, c, f) for
+                          (xyxy, s, c, f) in zip(dets, scores, cls, features_keep)]
         else:
-            detections = [BOTrack(BOTrack.tlbr_to_tlwh(tlbr), s, c) for
-                          (tlbr, s, c) in zip(dets, scores, cls)]
+            detections = [BOTrack(xyxy, s, c) for
+                          (xyxy, s, c) in zip(dets, scores, cls)]
         return detections
 
     def get_dists(self, tracks, detections):

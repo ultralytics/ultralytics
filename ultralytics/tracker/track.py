@@ -7,7 +7,7 @@ from omegaconf import OmegaConf
 import torch
 import cv2
 
-TRACKER_MAP = {"bypetrack": BYTETracker, "botsort": BOTSORT}
+TRACKER_MAP = {"bytetrack": BYTETracker, "botsort": BOTSORT}
 check_requirements('lap')  # for linear_assignment
 
 def on_predict_start(predictor):
@@ -31,7 +31,10 @@ def on_predict_batch_end(predictor):
             continue
         tracks = predictor.trackers[i].update(det, im0s[i])
         if len(tracks):
-            predictor.results[i].update(boxes=torch.as_tensor(tracks))
+            predictor.results[i].update(boxes=torch.as_tensor(tracks[:, :-1]))
+            if predictor.results[i].masks is not None:
+                idx = tracks[:, -1].tolist()
+                predictor.results[i].masks = predictor.results[i].masks[idx]
 
 def register_tracker(model):
     model.add_callback("on_predict_start", on_predict_start)

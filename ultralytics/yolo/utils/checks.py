@@ -221,7 +221,7 @@ def check_suffix(file='yolov8n.pt', suffix=('.pt',), msg=''):
                 assert s in suffix, f"{msg}{f} acceptable suffix is {suffix}"
 
 
-def check_yolov5u_filename(file):
+def check_yolov5u_filename(file: str):
     # Replace legacy YOLOv5 filenames with updated YOLOv5u filenames
     if 'yolov3' in file or 'yolov5' in file and 'u' not in file:
         original_file = file

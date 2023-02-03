@@ -199,12 +199,13 @@ class Exporter:
         self.file = file
         self.output_shape = tuple(y.shape) if isinstance(y, torch.Tensor) else (x.shape for x in y)
         self.pretty_name = self.file.stem.replace('yolo', 'YOLO')
-        self.metadata = {'description': f"Ultralytics {self.pretty_name} model trained on {self.model.args['data']}",
-                         'author': 'Ultralytics',
-                         'license': 'GPL-3.0 https://ultralytics.com/license',
-                         'version': ultralytics.__version__,
-                         'stride': int(max(model.stride)),
-                         'names': model.names}  # model metadata
+        self.metadata = {
+            'description': f"Ultralytics {self.pretty_name} model trained on {self.model.args['data']}",
+            'author': 'Ultralytics',
+            'license': 'GPL-3.0 https://ultralytics.com/license',
+            'version': ultralytics.__version__,
+            'stride': int(max(model.stride)),
+            'names': model.names}  # model metadata
 
         # Exports
         f = [''] * len(fmts)  # exported filenames
@@ -400,7 +401,7 @@ class Exporter:
             ct_model = self._pipeline_coreml(ct_model)
 
         ct_model.short_description = self.metadata['description']
-        ct_model.author =  self.metadata['author']
+        ct_model.author = self.metadata['author']
         ct_model.license = self.metadata['license']
         ct_model.version = self.metadata['version']
         ct_model.save(str(f))

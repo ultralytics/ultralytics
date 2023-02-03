@@ -117,8 +117,8 @@ from ultralytics import YOLO
 # Load a model
 model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
-# Use the model 
-results = model.predict(source="tvid.mp4", classes= 2, show= True, count = False)
+# Use the model
+results = model.predict(source="tvid.mp4", classes=2, show=True, count=False)
 ```
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) download automatically from the latest

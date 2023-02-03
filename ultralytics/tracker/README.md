@@ -14,6 +14,6 @@ model.track(source="test.mp4", stream=True)
 
 ### Coming soon
 - [ ] cli support
-- [ ] save/show videos and write results like `model.predict()`
+- [X] save/show videos and write results like `model.predict()`
 - [ ] add tracker related config .i.e `match_thres`, `track_type`
 

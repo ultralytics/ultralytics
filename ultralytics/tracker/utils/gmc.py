@@ -6,8 +6,9 @@ import time
 
 
 class GMC:
+
     def __init__(self, method='sparseOptFlow', downscale=2, verbose=None):
-        super(GMC, self).__init__()
+        super().__init__()
 
         self.method = method
         self.downscale = max(1, int(downscale))
@@ -29,8 +30,12 @@ class GMC:
             self.criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, number_of_iterations, termination_eps)
 
         elif self.method == 'sparseOptFlow':
-            self.feature_params = dict(maxCorners=1000, qualityLevel=0.01, minDistance=1, blockSize=3,
-                                       useHarrisDetector=False, k=0.04)
+            self.feature_params = dict(maxCorners=1000,
+                                       qualityLevel=0.01,
+                                       minDistance=1,
+                                       blockSize=3,
+                                       useHarrisDetector=False,
+                                       k=0.04)
             # self.gmc_file = open('GMC_results.txt', 'w')
 
         elif self.method == 'file' or self.method == 'files':
@@ -48,7 +53,7 @@ class GMC:
             elif '-SDP' in seqName:
                 seqName = seqName[:-4]
 
-            self.gmcFile = open(filePath + "/GMC-" + seqName + ".txt", 'r')
+            self.gmcFile = open(filePath + "/GMC-" + seqName + ".txt")
 
             if self.gmcFile is None:
                 raise ValueError("Error: Unable to open GMC file in directory:" + filePath)
@@ -127,7 +132,7 @@ class GMC:
         # find the keypoints
         mask = np.zeros_like(frame)
         # mask[int(0.05 * height): int(0.95 * height), int(0.05 * width): int(0.95 * width)] = 255
-        mask[int(0.02 * height): int(0.98 * height), int(0.02 * width): int(0.98 * width)] = 255
+        mask[int(0.02 * height):int(0.98 * height), int(0.02 * width):int(0.98 * width)] = 255
         if detections is not None:
             for det in detections:
                 tlbr = (det[:4] / self.downscale).astype(np.int_)

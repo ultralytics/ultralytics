@@ -2,14 +2,14 @@ import numpy as np
 from collections import OrderedDict
 
 
-class TrackState(object):
+class TrackState:
     New = 0
     Tracked = 1
     Lost = 2
     Removed = 3
 
 
-class BaseTrack(object):
+class BaseTrack:
     _count = 0
 
     track_id = 0

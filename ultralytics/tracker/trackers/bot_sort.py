@@ -9,6 +9,7 @@ from .basetrack import TrackState
 
 class BOTrack(STrack):
     shared_kalman = KalmanFilterXYWH()
+
     def __init__(self, tlwh, score, cls, feat=None, feat_history=50):
         super().__init__(tlwh, score, cls)
 
@@ -86,6 +87,7 @@ class BOTrack(STrack):
 
 
 class BOTSORT(BYTETracker):
+
     def __init__(self, args, frame_rate=30):
         super().__init__(args, frame_rate)
         # ReID module
@@ -99,18 +101,16 @@ class BOTSORT(BYTETracker):
         self.gmc = GMC(method=args.cmc_method)
 
     def get_kalmanfilter(self):
-        return KalmanFilterXYWH() 
+        return KalmanFilterXYWH()
 
     def init_track(self, dets, scores, cls, img=None):
         if len(dets) == 0:
             return []
         if self.args.with_reid and self.encoder is not None:
             features_keep = self.encoder.inference(img, dets)
-            detections = [BOTrack(xyxy, s, c, f) for
-                          (xyxy, s, c, f) in zip(dets, scores, cls, features_keep)]
+            detections = [BOTrack(xyxy, s, c, f) for (xyxy, s, c, f) in zip(dets, scores, cls, features_keep)]
         else:
-            detections = [BOTrack(xyxy, s, c) for
-                          (xyxy, s, c) in zip(dets, scores, cls)]
+            detections = [BOTrack(xyxy, s, c) for (xyxy, s, c) in zip(dets, scores, cls)]
         return detections
 
     def get_dists(self, tracks, detections):

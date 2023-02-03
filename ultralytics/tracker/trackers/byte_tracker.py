@@ -6,6 +6,7 @@ from .basetrack import BaseTrack, TrackState
 
 class STrack(BaseTrack):
     shared_kalman = KalmanFilterXYAH()
+
     def __init__(self, tlwh, score, cls):
 
         # wait activate
@@ -70,9 +71,8 @@ class STrack(BaseTrack):
         self.start_frame = frame_id
 
     def re_activate(self, new_track, frame_id, new_id=False):
-        self.mean, self.covariance = self.kalman_filter.update(
-            self.mean, self.covariance, self.convert_coords(new_track.tlwh)
-        )
+        self.mean, self.covariance = self.kalman_filter.update(self.mean, self.covariance,
+                                                               self.convert_coords(new_track.tlwh))
         self.tracklet_len = 0
         self.state = TrackState.Tracked
         self.is_activated = True
@@ -95,9 +95,8 @@ class STrack(BaseTrack):
         self.tracklet_len += 1
 
         new_tlwh = new_track.tlwh
-        self.mean, self.covariance = self.kalman_filter.update(
-            self.mean, self.covariance, self.convert_coords(new_tlwh)
-        )
+        self.mean, self.covariance = self.kalman_filter.update(self.mean, self.covariance,
+                                                               self.convert_coords(new_tlwh))
         self.state = TrackState.Tracked
         self.is_activated = True
 
@@ -152,10 +151,11 @@ class STrack(BaseTrack):
         return ret
 
     def __repr__(self):
-        return "OT_{}_({}-{})".format(self.track_id, self.start_frame, self.end_frame)
+        return f"OT_{self.track_id}_({self.start_frame}-{self.end_frame})"
 
 
-class BYTETracker(object):
+class BYTETracker:
+
     def __init__(self, args, frame_rate=30):
         self.tracked_stracks = []  # type: list[STrack]
         self.lost_stracks = []  # type: list[STrack]
@@ -192,7 +192,6 @@ class BYTETracker(object):
         cls_second = cls[inds_second]
 
         detections = self.init_track(dets, scores_keep, cls_keep, img)
-
         """ Add newly detected tracklets to tracked_stracks"""
         unconfirmed = []
         tracked_stracks = []  # type: list[STrack]
@@ -201,7 +200,6 @@ class BYTETracker(object):
                 unconfirmed.append(track)
             else:
                 tracked_stracks.append(track)
-
         """ Step 2: First association, with high score detection boxes"""
         strack_pool = self.joint_stracks(tracked_stracks, self.lost_stracks)
         # Predict the current location with KF
@@ -223,7 +221,6 @@ class BYTETracker(object):
             else:
                 track.re_activate(det, self.frame_id, new_id=False)
                 refind_stracks.append(track)
-
         """ Step 3: Second association, with low score detection boxes"""
         # association the untrack to the low score detections
         detections_second = self.init_track(dets_second, scores_second, cls_second, img)
@@ -246,7 +243,6 @@ class BYTETracker(object):
             if not track.state == TrackState.Lost:
                 track.mark_lost()
                 lost_stracks.append(track)
-
         """Deal with unconfirmed tracks, usually tracks with only one beginning frame"""
         detections = [detections[i] for i in u_detection]
         dists = self.get_dists(unconfirmed, detections)
@@ -258,7 +254,6 @@ class BYTETracker(object):
             track = unconfirmed[it]
             track.mark_removed()
             removed_stracks.append(track)
-
         """ Step 4: Init new stracks"""
         for inew in u_detection:
             track = detections[inew]
@@ -279,9 +274,7 @@ class BYTETracker(object):
         self.lost_stracks.extend(lost_stracks)
         self.lost_stracks = self.sub_stracks(self.lost_stracks, self.removed_stracks)
         self.removed_stracks.extend(removed_stracks)
-        self.tracked_stracks, self.lost_stracks = self.remove_duplicate_stracks(
-            self.tracked_stracks, self.lost_stracks
-        )
+        self.tracked_stracks, self.lost_stracks = self.remove_duplicate_stracks(self.tracked_stracks, self.lost_stracks)
         # get scores of lost tracks
         # output_stracks = [track for track in self.tracked_stracks if track.is_activated]
         output = []
@@ -293,12 +286,10 @@ class BYTETracker(object):
         return np.asarray(output, dtype=np.float32)
 
     def get_kalmanfilter(self):
-        return KalmanFilterXYAH() 
+        return KalmanFilterXYAH()
 
     def init_track(self, dets, scores, cls, img=None):
-        detections = [
-            STrack(xyxy, s, c) for (xyxy, s, c) in zip(dets, scores, cls)
-        ] if len(dets) else []
+        detections = [STrack(xyxy, s, c) for (xyxy, s, c) in zip(dets, scores, cls)] if len(dets) else []
         return detections
 
     def get_dists(self, tracks, detections):

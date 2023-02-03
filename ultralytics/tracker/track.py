@@ -5,6 +5,7 @@ import torch
 TRACKER_MAP = {"bytetrack": BYTETracker, "botsort": BOTSORT}
 check_requirements('lap')  # for linear_assignment
 
+
 def on_predict_start(predictor):
     assert predictor.args.tracker in ["bytetrack", "botsort"]
     trackers = []
@@ -13,8 +14,9 @@ def on_predict_start(predictor):
         trackers.append(tracker)
     predictor.trackers = trackers
 
+
 def on_predict_batch_end(predictor):
-    bs = predictor.dataset.bs 
+    bs = predictor.dataset.bs
     im0s = predictor.batch[2]
     im0s = im0s if isinstance(im0s, list) else [im0s]
     for i in range(bs):
@@ -28,6 +30,7 @@ def on_predict_batch_end(predictor):
         if predictor.results[i].masks is not None:
             idx = tracks[:, -1].tolist()
             predictor.results[i].masks = predictor.results[i].masks[idx]
+
 
 def register_tracker(model):
     model.add_callback("on_predict_start", on_predict_start)

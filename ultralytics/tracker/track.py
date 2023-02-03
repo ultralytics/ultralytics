@@ -4,6 +4,7 @@ from ultralytics.yolo.utils.plotting import Annotator, colors
 from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils import ROOT
 from omegaconf import OmegaConf
+import torch
 import cv2
 
 TRACKER_MAP = {"bypetrack": BYTETracker, "botsort": BOTSORT}
@@ -22,15 +23,15 @@ def on_predict_start(predictor):
 
 def on_predict_batch_end(predictor):
     bs = predictor.dataset.bs 
-    track_results = [None] * bs
     im0s = predictor.batch[2]
     im0s = im0s if isinstance(im0s, list) else [im0s]
     for i in range(bs):
         det = predictor.results[i].boxes.cpu().numpy()
         if len(det) == 0:
             continue
-        track_results[i] = predictor.trackers[i].update(det, im0s[i])
-    predictor.results = zip(predictor.results, track_results, im0s)
+        tracks = predictor.trackers[i].update(det, im0s[i])
+        if len(tracks):
+            predictor.results[i].update(boxes=torch.as_tensor(tracks))
 
 def register_tracker(model):
     model.add_callback("on_predict_start", on_predict_start)

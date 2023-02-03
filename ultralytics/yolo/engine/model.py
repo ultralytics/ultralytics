@@ -148,11 +148,9 @@ class YOLO:
 
     @smart_inference_mode()
     def track(self, source=None, stream=False, **kwargs):
-        from ultralytics.tracker.track import register_tracker, show_preds
+        from ultralytics.tracker.track import register_tracker
         register_tracker(self)
-        results = self.predict(source=source, stream=stream, **kwargs)
-        # TODO
-        show_preds(self, results)
+        return self.predict(source=source, stream=stream, **kwargs)
 
     @smart_inference_mode()
     def val(self, data=None, **kwargs):

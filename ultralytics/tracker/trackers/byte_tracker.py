@@ -278,10 +278,14 @@ class BYTETracker(object):
             self.tracked_stracks, self.lost_stracks
         )
         # get scores of lost tracks
-        output_stracks = [track for track in self.tracked_stracks if track.is_activated]
-        # output_stracks = [track for track in self.tracked_stracks]
+        # output_stracks = [track for track in self.tracked_stracks if track.is_activated]
+        output = []
+        for track in self.tracked_stracks:
+            if not track.is_activated:
+                continue
+            output.append(track.tlbr.tolist() + [track.track_id, track.score, track.cls])
 
-        return output_stracks
+        return np.asarray(output)
 
     def get_kalmanfilter(self):
         return KalmanFilterXYAH() 

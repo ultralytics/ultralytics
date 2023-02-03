@@ -169,6 +169,9 @@ class BasePredictor:
             # postprocess
             with self.dt[2]:
                 self.results = self.postprocess(preds, im, im0s, self.classes)
+            self.run_callbacks("on_predict_batch_end")
+
+            # visualize, save, write results
             for i in range(len(im)):
                 p, im0 = (path[i], im0s[i]) if self.source_type.webcam or self.source_type.from_img else (path, im0s)
                 p = Path(p)
@@ -181,8 +184,6 @@ class BasePredictor:
 
                 if self.args.save:
                     self.save_preds(vid_cap, i, str(self.save_dir / p.name))
-
-            self.run_callbacks("on_predict_batch_end")
             yield from self.results
 
             # Print time (inference-only)

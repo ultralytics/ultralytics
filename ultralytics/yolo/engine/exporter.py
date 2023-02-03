@@ -378,9 +378,10 @@ class Exporter:
         LOGGER.info(f'\n{prefix} starting export with coremltools {ct.__version__}...')
         f = self.file.with_suffix('.mlmodel')
 
+        task = self.model.task
         model = iOSModel(self.model, self.im).eval() if self.args.nms else self.model
         ts = torch.jit.trace(model, self.im, strict=False)  # TorchScript model
-        classifier_config = ct.ClassifierConfig(list(model.names.values())) if model.task == 'classify' else None
+        classifier_config = ct.ClassifierConfig(list(model.names.values())) if task == 'classify' else None
         ct_model = ct.convert(ts,
                               inputs=[ct.ImageType('image', shape=self.im.shape, scale=1 / 255, bias=[0, 0, 0])],
                               classifier_config=classifier_config)

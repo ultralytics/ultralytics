@@ -12,8 +12,8 @@ model = YOLO("yolov8n.pt")
 model.track(source="test.mp4", stream=True)
 ```
 
-### Coming soon
-- [ ] cli support
+### TODO
+- [X] cli support
 - [X] save/show videos and write results like `model.predict()`
 - [ ] add tracker related config .i.e `match_thres`, `track_type`
 

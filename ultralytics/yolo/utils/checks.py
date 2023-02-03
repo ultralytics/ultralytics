@@ -58,7 +58,13 @@ def check_imgsz(imgsz, stride=32, min_dim=1, floor=0):
     stride = int(stride.max() if isinstance(stride, torch.Tensor) else stride)
 
     # Convert image size to list if it is an integer
-    imgsz = [imgsz] if isinstance(imgsz, int) else list(imgsz)
+    if isinstance(imgsz, int):
+        imgsz = [imgsz]
+    elif isinstance(imgsz, (list, tuple)):
+        imgsz = list(imgsz)
+    else:
+        raise TypeError(f"'imgsz={imgsz}' is of invalid type {type(imgsz).__name__}. "
+                        f"Valid imgsz types are int i.e. 'imgsz=640' or list i.e. 'imgsz=[640,640]'")
 
     # Make image size a multiple of the stride
     sz = [max(math.ceil(x / stride) * stride, floor) for x in imgsz]

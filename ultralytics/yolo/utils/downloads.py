@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
 import contextlib
+import re
 import subprocess
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
@@ -118,7 +119,18 @@ def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
         response = requests.get(f'https://api.github.com/repos/{repository}/releases/{version}').json()  # github api
         return response['tag_name'], [x['name'] for x in response['assets']]  # tag, assets
 
-    file = Path(str(file).strip().replace("'", ''))
+    # YOLOv3/5u updates
+    file = str(file)
+    if 'yolov3' in file or 'yolov5' in file and 'u' not in file:
+        original_file = file
+        file = re.sub(r"(.*yolov5([nsmlx]))\.pt", "\\1u.pt", file)  # i.e. yolov5n.pt -> yolov5nu.pt
+        file = re.sub(r"(.*yolov3(|-tiny|-spp))\.pt", "\\1u.pt", file)  # i.e. yolov3-spp.pt -> yolov3-sppu.pt
+        if file != original_file:
+            LOGGER.info(f"PRO TIP 💡 Replace 'model={original_file}' with new 'model={file}'.\nYOLOv5 'u' models are "
+                        f"trained with https://github.com/ultralytics/ultralytics and feature improved performance vs "
+                        f"standard YOLOv5 models trained with https://github.com/ultralytics/yolov5.\n")
+
+    file = Path(file.strip().replace("'", ''))
     if file.exists():
         return str(file)
     elif (SETTINGS['weights_dir'] / file).exists():
@@ -136,7 +148,9 @@ def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
             return file
 
         # GitHub assets
-        assets = [f'yolov8{size}{suffix}.pt' for size in 'nsmlx' for suffix in ('', '6', '-cls', '-seg')]  # default
+        assets = [f'yolov8{size}{suffix}.pt' for size in 'nsmlx' for suffix in ('', '6', '-cls', '-seg')] + \
+                 [f'yolov5{size}u.pt' for size in 'nsmlx'] + \
+                 [f'yolov3{size}u.pt' for size in ('', '-spp', '-tiny')]
         try:
             tag, assets = github_assets(repo, release)
         except Exception:

@@ -90,8 +90,10 @@ def on_predict_batch_start(predictor):
 def on_predict_batch_end(predictor):
     pass
 
+
 def on_predict_postprocess_end(predictor):
     pass
+
 
 def on_predict_end(predictor):
     pass

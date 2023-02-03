@@ -5,6 +5,7 @@ import inspect
 import math
 import os
 import platform
+import re
 import shutil
 import urllib
 from pathlib import Path
@@ -220,9 +221,23 @@ def check_suffix(file='yolov8n.pt', suffix=('.pt',), msg=''):
                 assert s in suffix, f"{msg}{f} acceptable suffix is {suffix}"
 
 
+def check_yolov5u_filename(file):
+    # Replace legacy YOLOv5 filenames with updated YOLOv5u filenames
+    if 'yolov3' in file or 'yolov5' in file and 'u' not in file:
+        original_file = file
+        file = re.sub(r"(.*yolov5([nsmlx]))\.", "\\1u.", file)  # i.e. yolov5n.pt -> yolov5nu.pt
+        file = re.sub(r"(.*yolov3(|-tiny|-spp))\.", "\\1u.", file)  # i.e. yolov3-spp.pt -> yolov3-sppu.pt
+        if file != original_file:
+            LOGGER.info(f"PRO TIP 💡 Replace 'model={original_file}' with new 'model={file}'.\nYOLOv5 'u' models are "
+                        f"trained with https://github.com/ultralytics/ultralytics and feature improved performance vs "
+                        f"standard YOLOv5 models trained with https://github.com/ultralytics/yolov5.\n")
+    return file
+
+
 def check_file(file, suffix=''):
     # Search/download file (if necessary) and return path
     check_suffix(file, suffix)  # optional
+    file = check_yolov5u_filename(file)  # yolov5n -> yolov5nu
     file = str(file)  # convert to str()
     if not file or ('://' not in file and Path(file).is_file()):  # exists ('://' check required in Windows Python<3.10)
         return file

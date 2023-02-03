@@ -6,10 +6,16 @@
 - [ ] SMILEtrack
 
 ### Usage
+python interface:
 ```python
 from ultralytics import YOLO
 model = YOLO("yolov8n.pt")
 model.track(source="test.mp4", stream=True)
+```
+
+cli:
+```bash
+yolo detect track source=...
 ```
 
 ### TODO

@@ -52,26 +52,6 @@ To request an Enterprise License please complete the form at [Ultralytics Licens
   </div>
 </div>
 
-## <div align="center">Ultralytics Live Session</div>
-
-<div align="center">
-
-[Ultralytics Live Session 3](https://youtu.be/IPcpYO5ITa8) ✨ is here! Join us on January 24th at 18 CET as we dive into
-the latest advancements in YOLOv8, and demonstrate how to use this cutting-edge, SOTA model to improve your object
-detection, instance segmentation, and image classification projects. See firsthand how YOLOv8's speed, accuracy, and
-ease of use make it a top choice for professionals and researchers alike.
-
-In addition to learning about the exciting new features and improvements of Ultralytics YOLOv8, you will also have the
-opportunity to ask questions and interact with our team during the live Q&A session. We encourage you to come prepared
-with any questions you may have.
-
-To join the webinar, visit our YouTube [Channel](https://www.youtube.com/@Ultralytics/streams) and turn on your
-notifications!
-
-<a align="center" href="https://youtu.be/IPcpYO5ITa8" target="_blank">
-<img width="80%" src="https://user-images.githubusercontent.com/107626595/212887899-e94b006c-5192-40fa-8b24-7b5428e065e8.png"></a>
-</div>
-
 ## <div align="center">Documentation</div>
 
 See below for a quickstart installation and usage example, and see the [YOLOv8 Docs](https://docs.ultralytics.com) for
@@ -87,7 +67,6 @@ all [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requ
 
 ```bash
 pip install ultralytics
-
 ```
 
 </details>
@@ -100,7 +79,7 @@ pip install ultralytics
 YOLOv8 may be used directly in the Command Line Interface (CLI) with a `yolo` command:
 
 ```bash
-yolo predict model=yolov8n.pt source="video.mp4" count = True show = True
+yolo predict model=yolov8n.pt source="https://ultralytics.com/images/bus.jpg" count = True
 ```
 
 `yolo` can be used for a variety of tasks and modes and accepts additional arguments, i.e. `imgsz=640`. See the YOLOv8
@@ -115,10 +94,14 @@ same [arguments](https://docs.ultralytics.com/cfg/) as in the CLI example above:
 from ultralytics import YOLO
 
 # Load a model
+model = YOLO("yolov8n.yaml")  # build a new model from scratch
 model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
 
 # Use the model
-results = model.predict(source="tvid.mp4", classes=2, show=True, count=False)
+results = model.train(data="coco128.yaml", epochs=3)  # train the model
+results = model.val()  # evaluate model performance on the validation set
+results = model("video.mp4", count = True)  # predict on an image
+success = model.export(format="onnx")  # export the model to ONNX format
 ```
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) download automatically from the latest

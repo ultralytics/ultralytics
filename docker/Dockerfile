@@ -31,11 +31,11 @@ RUN pip install --no-cache ultralytics albumentations comet gsutil notebook \
     coremltools onnx onnx-simplifier onnxruntime openvino-dev>=2022.3
     # tensorflow tensorflowjs \
 
-# Cleanup
-ENV DEBIAN_FRONTEND teletype
-
 # Set environment variables
 ENV OMP_NUM_THREADS=1
+
+# Cleanup
+ENV DEBIAN_FRONTEND teletype
 
 
 # Usage Examples -------------------------------------------------------------------------------------------------------

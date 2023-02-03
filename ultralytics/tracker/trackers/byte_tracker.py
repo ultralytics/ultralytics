@@ -1,7 +1,8 @@
 import numpy as np
-from ..utils.kalman_filter import KalmanFilterXYAH
-from ..utils import matching
+
 from .basetrack import BaseTrack, TrackState
+from ..utils import matching
+from ..utils.kalman_filter import KalmanFilterXYAH
 
 
 class STrack(BaseTrack):
@@ -28,16 +29,17 @@ class STrack(BaseTrack):
 
     @staticmethod
     def multi_predict(stracks):
-        if len(stracks) > 0:
-            multi_mean = np.asarray([st.mean.copy() for st in stracks])
-            multi_covariance = np.asarray([st.covariance for st in stracks])
-            for i, st in enumerate(stracks):
-                if st.state != TrackState.Tracked:
-                    multi_mean[i][7] = 0
-            multi_mean, multi_covariance = STrack.shared_kalman.multi_predict(multi_mean, multi_covariance)
-            for i, (mean, cov) in enumerate(zip(multi_mean, multi_covariance)):
-                stracks[i].mean = mean
-                stracks[i].covariance = cov
+        if len(stracks) <= 0:
+            return
+        multi_mean = np.asarray([st.mean.copy() for st in stracks])
+        multi_covariance = np.asarray([st.covariance for st in stracks])
+        for i, st in enumerate(stracks):
+            if st.state != TrackState.Tracked:
+                multi_mean[i][7] = 0
+        multi_mean, multi_covariance = STrack.shared_kalman.multi_predict(multi_mean, multi_covariance)
+        for i, (mean, cov) in enumerate(zip(multi_mean, multi_covariance)):
+            stracks[i].mean = mean
+            stracks[i].covariance = cov
 
     @staticmethod
     def multi_gmc(stracks, H=np.eye(2, 3)):
@@ -216,7 +218,7 @@ class BYTETracker:
             track = strack_pool[itracked]
             det = detections[idet]
             if track.state == TrackState.Tracked:
-                track.update(detections[idet], self.frame_id)
+                track.update(det, self.frame_id)
                 activated_starcks.append(track)
             else:
                 track.re_activate(det, self.frame_id, new_id=False)
@@ -240,7 +242,7 @@ class BYTETracker:
 
         for it in u_track:
             track = r_tracked_stracks[it]
-            if not track.state == TrackState.Lost:
+            if track.state != TrackState.Lost:
                 track.mark_lost()
                 lost_stracks.append(track)
         """Deal with unconfirmed tracks, usually tracks with only one beginning frame"""
@@ -275,22 +277,15 @@ class BYTETracker:
         self.lost_stracks = self.sub_stracks(self.lost_stracks, self.removed_stracks)
         self.removed_stracks.extend(removed_stracks)
         self.tracked_stracks, self.lost_stracks = self.remove_duplicate_stracks(self.tracked_stracks, self.lost_stracks)
-        # get scores of lost tracks
-        # output_stracks = [track for track in self.tracked_stracks if track.is_activated]
-        output = []
-        for track in self.tracked_stracks:
-            if not track.is_activated:
-                continue
-            output.append(track.tlbr.tolist() + [track.track_id, track.score, track.cls, track.idx])
-
+        output = [track.tlbr.tolist() + [track.track_id, track.score, track.cls, track.idx]
+                  for track in self.tracked_stracks if track.is_activated]
         return np.asarray(output, dtype=np.float32)
 
     def get_kalmanfilter(self):
         return KalmanFilterXYAH()
 
     def init_track(self, dets, scores, cls, img=None):
-        detections = [STrack(xyxy, s, c) for (xyxy, s, c) in zip(dets, scores, cls)] if len(dets) else []
-        return detections
+        return [STrack(xyxy, s, c) for (xyxy, s, c) in zip(dets, scores, cls)] if len(dets) else []  # detections
 
     def get_dists(self, tracks, detections):
         dists = matching.iou_distance(tracks, detections)
@@ -318,9 +313,7 @@ class BYTETracker:
 
     @staticmethod
     def sub_stracks(tlista, tlistb):
-        stracks = {}
-        for t in tlista:
-            stracks[t.track_id] = t
+        stracks = {t.track_id: t for t in tlista}
         for t in tlistb:
             tid = t.track_id
             if stracks.get(tid, 0):
@@ -331,7 +324,7 @@ class BYTETracker:
     def remove_duplicate_stracks(stracksa, stracksb):
         pdist = matching.iou_distance(stracksa, stracksb)
         pairs = np.where(pdist < 0.15)
-        dupa, dupb = list(), list()
+        dupa, dupb = [], []
         for p, q in zip(*pairs):
             timep = stracksa[p].frame_id - stracksa[p].start_frame
             timeq = stracksb[q].frame_id - stracksb[q].start_frame
@@ -339,6 +332,6 @@ class BYTETracker:
                 dupb.append(q)
             else:
                 dupa.append(p)
-        resa = [t for i, t in enumerate(stracksa) if not i in dupa]
-        resb = [t for i, t in enumerate(stracksb) if not i in dupb]
+        resa = [t for i, t in enumerate(stracksa) if i not in dupa]
+        resb = [t for i, t in enumerate(stracksb) if i not in dupb]
         return resa, resb

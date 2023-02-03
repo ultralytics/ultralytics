@@ -32,8 +32,25 @@ def on_predict_batch_end(predictor):
         track_results[i] = predictor.trackers[i].update(det, im0s[i])
     predictor.results = zip(predictor.results, track_results, im0s)
 
+def register_tracker(model):
+    model.add_callback("on_predict_start", on_predict_start)
+    model.add_callback("on_predict_batch_end", on_predict_batch_end)
 
-def track():
+def show_preds(model, results):
+    for _, track_result, im0 in results:
+        annotator = Annotator(im0, line_width=2)
+        if track_result is not None:
+            for track in track_result:
+                xyxy = track.tlbr
+                id = track.track_id
+                c = int(track.cls)
+                label = f'id:{id} {model.names[c]}'
+                annotator.box_label(xyxy, label, color=colors(c, True))
+        cv2.imshow('p', annotator.result())
+        if cv2.waitKey(1) == ord('q'):
+            break
+
+def test_track():
     model = YOLO("weights/yolov8l.pt")
     model.add_callback("on_predict_start", on_predict_start)
     model.add_callback("on_predict_batch_end", on_predict_batch_end)
@@ -52,5 +69,5 @@ def track():
             break
 
 if __name__ == "__main__":
-    track()
+    test_track()
 

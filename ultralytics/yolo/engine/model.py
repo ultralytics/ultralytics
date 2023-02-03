@@ -148,24 +148,11 @@ class YOLO:
 
     @smart_inference_mode()
     def track(self, source=None, stream=False, **kwargs):
-        from ultralytics.tracker import on_predict_start, on_predict_batch_end
-        from ultralytics.yolo.utils.plotting import Annotator, colors
-        import cv2
-        self.add_callback("on_predict_start", on_predict_start)
-        self.add_callback("on_predict_batch_end", on_predict_batch_end)
+        from ultralytics.tracker.track import register_tracker, show_preds
+        register_tracker(self)
         results = self.predict(source=source, stream=stream, **kwargs)
-        for _, track_result, im0 in results:
-            annotator = Annotator(im0, line_width=2)
-            if track_result is not None:
-                for track in track_result:
-                    xyxy = track.tlbr
-                    id = track.track_id
-                    c = int(track.cls)
-                    label = f'id:{id} {self.names[c]}'
-                    annotator.box_label(xyxy, label, color=colors(c, True))
-            cv2.imshow('p', annotator.result())
-            if cv2.waitKey(1) == ord('q'):
-                break
+        # TODO
+        show_preds(self, results)
 
     @smart_inference_mode()
     def val(self, data=None, **kwargs):

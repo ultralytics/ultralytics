@@ -1,22 +1,17 @@
 from ultralytics.tracker import BYTETracker, BOTSORT
 from ultralytics.yolo.utils.checks import check_requirements
-from ultralytics.yolo.utils import ROOT
-from omegaconf import OmegaConf
 import torch
 
 TRACKER_MAP = {"bytetrack": BYTETracker, "botsort": BOTSORT}
 check_requirements('lap')  # for linear_assignment
 
 def on_predict_start(predictor):
-    tracker_type = getattr(predictor, "tracker_type", "botsort")
-    assert tracker_type in ["bytetrack", "botsort"]
+    assert predictor.args.tracker in ["bytetrack", "botsort"]
     trackers = []
-    cfg = OmegaConf.load(ROOT / f"tracker/cfg/{tracker_type}.yaml")
     for _ in range(predictor.dataset.bs):
-        tracker = TRACKER_MAP[tracker_type](args=cfg, frame_rate=30)
+        tracker = TRACKER_MAP[predictor.args.tracker](args=predictor.args, frame_rate=30)
         trackers.append(tracker)
     predictor.trackers = trackers
-
 
 def on_predict_batch_end(predictor):
     bs = predictor.dataset.bs 

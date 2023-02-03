@@ -163,8 +163,7 @@ class BYTETracker(object):
 
         self.frame_id = 0
         self.args = args
-        self.buffer_size = int(frame_rate / 30.0 * args.track_buffer)
-        self.max_time_lost = self.buffer_size
+        self.max_time_lost = int(frame_rate / 30.0 * args.track_buffer)
         self.kalman_filter = self.get_kalmanfilter()
 
     def update(self, results, img=None):

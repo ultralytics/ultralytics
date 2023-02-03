@@ -40,7 +40,7 @@ def is_ascii(s) -> bool:
     return all(ord(c) < 128 for c in s)
 
 
-def check_imgsz(imgsz, stride=32, min_dim=1, floor=0):
+def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
     """
     Verify image size is a multiple of the given stride in each dimension. If the image size is not a multiple of the
     stride, update it to the nearest multiple of the stride that is greater than or equal to the given floor value.
@@ -65,6 +65,13 @@ def check_imgsz(imgsz, stride=32, min_dim=1, floor=0):
     else:
         raise TypeError(f"'imgsz={imgsz}' is of invalid type {type(imgsz).__name__}. "
                         f"Valid imgsz types are int i.e. 'imgsz=640' or list i.e. 'imgsz=[640,640]'")
+
+    # Apply max_dim
+    if max_dim == 1:
+        LOGGER.warning(f"WARNING ⚠️ 'train' and 'val' imgsz types must be integer, updating to 'imgsz={max(imgsz)}'. "
+                       f"'predict' and 'export' imgsz may be list or integer, "
+                       f"i.e. 'yolo export imgsz=640,480' or 'yolo export imgsz=640'")
+        imgsz = [max(imgsz)]
 
     # Make image size a multiple of the stride
     sz = [max(math.ceil(x / stride) * stride, floor) for x in imgsz]

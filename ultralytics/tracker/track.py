@@ -15,7 +15,7 @@ def on_predict_start(predictor):
     predictor.trackers = trackers
 
 
-def on_predict_batch_end(predictor):
+def on_predict_postprocess_end(predictor):
     bs = predictor.dataset.bs
     im0s = predictor.batch[2]
     im0s = im0s if isinstance(im0s, list) else [im0s]
@@ -34,4 +34,4 @@ def on_predict_batch_end(predictor):
 
 def register_tracker(model):
     model.add_callback("on_predict_start", on_predict_start)
-    model.add_callback("on_predict_batch_end", on_predict_batch_end)
+    model.add_callback("on_predict_postprocess_end", on_predict_postprocess_end)

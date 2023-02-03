@@ -90,6 +90,8 @@ def on_predict_batch_start(predictor):
 def on_predict_batch_end(predictor):
     pass
 
+def on_predict_postprocess_end(predictor):
+    pass
 
 def on_predict_end(predictor):
     pass
@@ -130,6 +132,7 @@ default_callbacks = {
     # Run in predictor
     'on_predict_start': [on_predict_start],
     'on_predict_batch_start': [on_predict_batch_start],
+    'on_predict_postprocess_end': [on_predict_postprocess_end],
     'on_predict_batch_end': [on_predict_batch_end],
     'on_predict_end': [on_predict_end],
 

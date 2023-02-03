@@ -1153,7 +1153,7 @@ map:
   n02009229: little_blue_heron
   n02009912: American_egret
   n02011460: bittern
-  n02012849: crane
+  n02012849: crane_(bird)
   n02013706: limpkin
   n02017213: European_gallinule
   n02018207: American_coot
@@ -1536,7 +1536,7 @@ map:
   n03124043: cowboy_boot
   n03124170: cowboy_hat
   n03125729: cradle
-  n03126707: crane
+  n03126707: crane_(machine)
   n03127747: crash_helmet
   n03127925: crate
   n03131574: crib
@@ -1657,8 +1657,8 @@ map:
   n03706229: magnetic_compass
   n03709823: mailbag
   n03710193: mailbox
-  n03710637: maillot
-  n03710721: maillot
+  n03710637: maillot_(tights)
+  n03710721: maillot_(tank_suit)
   n03717622: manhole_cover
   n03720891: maraca
   n03721384: marimba

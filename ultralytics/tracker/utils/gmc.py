@@ -1,8 +1,8 @@
+import copy
+
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-import copy
-import time
 
 
 class GMC:
@@ -239,10 +239,8 @@ class GMC:
         return H
 
     def applySparseOptFlow(self, raw_frame, detections=None):
-
-        t0 = time.time()
-
         # Initialize
+        # t0 = time.time()
         height, width, _ = raw_frame.shape
         frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY)
         H = np.eye(2, 3)
@@ -296,9 +294,7 @@ class GMC:
         self.prevFrame = frame.copy()
         self.prevKeyPoints = copy.copy(keypoints)
 
-        t1 = time.time()
-
-        # gmc_line = str(1000 * (t1 - t0)) + "\t" + str(H[0, 0]) + "\t" + str(H[0, 1]) + "\t" + str(
+        # gmc_line = str(1000 * (time.time() - t0)) + "\t" + str(H[0, 0]) + "\t" + str(H[0, 1]) + "\t" + str(
         #     H[0, 2]) + "\t" + str(H[1, 0]) + "\t" + str(H[1, 1]) + "\t" + str(H[1, 2]) + "\n"
         # self.gmc_file.write(gmc_line)
 

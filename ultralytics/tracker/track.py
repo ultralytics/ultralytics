@@ -24,7 +24,7 @@ def on_predict_batch_end(predictor):
     bs = predictor.dataset.bs 
     track_results = [None] * bs
     im0s = predictor.batch[2]
-    im0s = im0s if bs > 1 else [im0s]
+    im0s = im0s if isinstance(im0s, list) else [im0s]
     for i in range(bs):
         det = predictor.results[i].boxes.cpu().numpy()
         if len(det) == 0:

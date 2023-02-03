@@ -237,8 +237,8 @@ def check_yolov5u_filename(file: str):
 def check_file(file, suffix=''):
     # Search/download file (if necessary) and return path
     check_suffix(file, suffix)  # optional
+    file = str(file)  # convert to string
     file = check_yolov5u_filename(file)  # yolov5n -> yolov5nu
-    file = str(file)  # convert to str()
     if not file or ('://' not in file and Path(file).is_file()):  # exists ('://' check required in Windows Python<3.10)
         return file
     elif file.lower().startswith(('https://', 'http://', 'rtsp://', 'rtmp://')):  # download

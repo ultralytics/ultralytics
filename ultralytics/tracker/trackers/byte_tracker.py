@@ -9,7 +9,7 @@ class STrack(BaseTrack):
     def __init__(self, tlwh, score, cls):
 
         # wait activate
-        self._tlwh = np.asarray(self.tlbr_to_tlwh(tlwh[:-1]), dtype=np.float)
+        self._tlwh = np.asarray(self.tlbr_to_tlwh(tlwh[:-1]), dtype=np.float32)
         self.kalman_filter = None
         self.mean, self.covariance = None, None
         self.is_activated = False
@@ -291,7 +291,7 @@ class BYTETracker(object):
                 continue
             output.append(track.tlbr.tolist() + [track.track_id, track.score, track.cls, track.idx])
 
-        return np.asarray(output)
+        return np.asarray(output, dtype=np.float32)
 
     def get_kalmanfilter(self):
         return KalmanFilterXYAH() 

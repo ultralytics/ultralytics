@@ -64,7 +64,7 @@ repos:
     hooks:
       - id: codespell
         args:
-          - --ignore-words-list=crate,nd,STrack
+          - --ignore-words-list=crate,nd,STrack,list[STrack]
 
   #- repo: https://github.com/asottile/yesqa
   #  rev: v1.4.0

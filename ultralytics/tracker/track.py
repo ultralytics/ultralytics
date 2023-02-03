@@ -1,11 +1,8 @@
-from ultralytics.yolo.engine.model import YOLO
 from ultralytics.tracker import BYTETracker, BOTSORT
-from ultralytics.yolo.utils.plotting import Annotator, colors
 from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils import ROOT
 from omegaconf import OmegaConf
 import torch
-import cv2
 
 TRACKER_MAP = {"bytetrack": BYTETracker, "botsort": BOTSORT}
 check_requirements('lap')  # for linear_assignment

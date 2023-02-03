@@ -352,7 +352,7 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
         # Model compatibility updates
         ckpt.args = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # attach args to model
         ckpt.pt_path = weights  # attach *.pt file path to model
-        ckpt.task = guess_model_task(model)
+        ckpt.task = guess_model_task(ckpt)
         if not hasattr(ckpt, 'stride'):
             ckpt.stride = torch.tensor([32.])
 

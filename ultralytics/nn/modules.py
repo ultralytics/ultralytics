@@ -62,6 +62,9 @@ class ConvTranspose(nn.Module):
     def forward(self, x):
         return self.act(self.bn(self.conv_transpose(x)))
 
+    def forward_fuse(self, x):
+        return self.act(self.conv_transpose(x))
+
 
 class DFL(nn.Module):
     # Integral module of Distribution Focal Loss (DFL) proposed in Generalized Focal Loss https://ieeexplore.ieee.org/document/9792391

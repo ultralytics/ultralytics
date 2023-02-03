@@ -484,6 +484,7 @@ def set_sentry():
         return event
 
     if SETTINGS['sync'] and \
+            RANK in {-1, 0} and \
             not is_pytest_running() and \
             not is_github_actions_ci() and \
             ((is_pip_package() and not is_git_dir()) or

@@ -27,9 +27,9 @@ RUN git clone https://github.com/ultralytics/ultralytics /usr/src/ultralytics
 # Install pip packages
 COPY requirements.txt .
 RUN python3 -m pip install --upgrade pip wheel
-RUN pip install --no-cache ultralytics albumentations gsutil notebook \
-    # coremltools onnx onnx-simplifier onnxruntime tensorflow-cpu \
-    # openvino-dev>=2022.3 tensorflowjs \
+RUN pip install --no-cache ultralytics albumentations comet gsutil notebook \
+    coremltools onnx onnx-simplifier onnxruntime openvino-dev>=2022.3 \
+    # tensorflow tensorflowjs \
     --extra-index-url https://download.pytorch.org/whl/cpu
 
 # Cleanup
@@ -42,10 +42,10 @@ ENV OMP_NUM_THREADS=1
 # Usage Examples -------------------------------------------------------------------------------------------------------
 
 # Build and Push
-# t=ultralytics/ultralytics:latest-torch && sudo docker build -f docker/Dockerfile -t $t . && sudo docker push $t
+# t=ultralytics/ultralytics:latest && sudo docker build -f docker/Dockerfile -t $t . && sudo docker push $t
 
 # Pull and Run
-# t=docker.io/pytorch/pytorch:latest && sudo docker pull $t && sudo docker run -it --ipc=host $t
+# t=ultralytics/ultralytics:latest && sudo docker pull $t && sudo docker run -it --ipc=host --gpus all $t
 
 # Pull and Run with local directory access
 # t=ultralytics/ultralytics:latest && sudo docker pull $t && sudo docker run -it --ipc=host --gpus all -v "$(pwd)"/datasets:/usr/src/datasets $t

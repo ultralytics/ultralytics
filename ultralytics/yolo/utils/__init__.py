@@ -467,6 +467,13 @@ def set_sentry():
     """
 
     def before_send(event, hint):
+        if 'exc_info' in hint:
+            exc_type, exc_value, tb = hint['exc_info']
+            if exc_type in (KeyboardInterrupt, FileNotFoundError) \
+                    or 'out of memory' in str(exc_value) \
+                    or not sys.argv[0].endswith('yolo'):
+                return None  # do not send event
+
         env = 'Colab' if is_colab() else 'Kaggle' if is_kaggle() else 'Jupyter' if is_jupyter() else \
             'Docker' if is_docker() else platform.system()
         event['tags'] = {
@@ -477,6 +484,7 @@ def set_sentry():
         return event
 
     if SETTINGS['sync'] and \
+            RANK in {-1, 0} and \
             not is_pytest_running() and \
             not is_github_actions_ci() and \
             ((is_pip_package() and not is_git_dir()) or
@@ -491,7 +499,7 @@ def set_sentry():
             release=ultralytics.__version__,
             environment='production',  # 'dev' or 'production'
             before_send=before_send,
-            ignore_errors=[KeyboardInterrupt])
+            ignore_errors=[KeyboardInterrupt, FileNotFoundError])
 
         # Disable all sentry logging
         for logger in "sentry_sdk", "sentry_sdk.errors":

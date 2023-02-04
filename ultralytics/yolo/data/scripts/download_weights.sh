@@ -1,22 +1,18 @@
 #!/bin/bash
 # Ultralytics YOLO 🚀, GPL-3.0 license
-# Download latest models from https://github.com/ultralytics/yolov5/releases
-# Example usage: bash data/scripts/download_weights.sh
+# Download latest models from https://github.com/ultralytics/assets/releases
+# Example usage: bash ultralytics/yolo/data/scripts/download_weights.sh
 # parent
-# └── yolov5
-#     ├── yolov5s.pt  ← downloads here
-#     ├── yolov5m.pt
+# └── weights
+#     ├── yolov8n.pt  ← downloads here
+#     ├── yolov8s.pt
 #     └── ...
 
 python - <<EOF
-from utils.downloads import attempt_download
+from ultralytics.yolo.utils.downloads import attempt_download_asset
 
-p5 = list('nsmlx')  # P5 models
-p6 = [f'{x}6' for x in p5]  # P6 models
-cls = [f'{x}-cls' for x in p5]  # classification models
-seg = [f'{x}-seg' for x in p5]  # classification models
-
-for x in p5 + p6 + cls + seg:
-    attempt_download(f'weights/yolov5{x}.pt')
+assets = [f'yolov8{size}{suffix}.pt' for size in 'nsmlx' for suffix in ('', '-cls', '-seg')]
+for x in assets:
+    attempt_download_asset(f'weights/{x}')
 
 EOF

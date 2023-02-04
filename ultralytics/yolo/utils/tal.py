@@ -168,14 +168,14 @@ class TaskAlignedAssigner(nn.Module):
         if topk_mask is None:
             topk_mask = (topk_metrics.max(-1, keepdim=True) > self.eps).tile([1, 1, self.topk])
         # (b, max_num_obj, topk)
+        topk_idxs[~topk_mask] = 0
+        # (b, max_num_obj, topk, h*w) -> (b, max_num_obj, h*w)
         if self.roll_out:
-            is_in_topk = metrics  # reuse mem metrics
+            is_in_topk = torch.empty(metrics.shape, dtype=torch.long, device=metrics.device)
             for b in range(len(topk_idxs)):
                 is_in_topk[b] = F.one_hot(topk_idxs[b], num_anchors).sum(-2)
         else:
-            topk_idxs = torch.where(topk_mask, topk_idxs, 0)
-        # (b, max_num_obj, topk, h*w) -> (b, max_num_obj, h*w)
-        is_in_topk = F.one_hot(topk_idxs, num_anchors).sum(-2)
+            is_in_topk = F.one_hot(topk_idxs, num_anchors).sum(-2)
         # filter invalid bboxes
         is_in_topk = torch.where(is_in_topk > 1, 0, is_in_topk)
         return is_in_topk.to(metrics.dtype)

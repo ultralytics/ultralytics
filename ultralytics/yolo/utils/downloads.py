@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
 import contextlib
-import re
 import subprocess
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
@@ -111,6 +110,7 @@ def safe_download(url,
 def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
     # Attempt file download from GitHub release assets if not found locally. release = 'latest', 'v6.2', etc.
     from ultralytics.yolo.utils import SETTINGS
+    from ultralytics.yolo.utils.checks import check_yolov5u_filename
 
     def github_assets(repository, version='latest'):
         # Return GitHub repo tag and assets (i.e. ['yolov8n.pt', 'yolov8s.pt', ...])
@@ -121,15 +121,7 @@ def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
 
     # YOLOv3/5u updates
     file = str(file)
-    if 'yolov3' in file or 'yolov5' in file and 'u' not in file:
-        original_file = file
-        file = re.sub(r"(.*yolov5([nsmlx]))\.pt", "\\1u.pt", file)  # i.e. yolov5n.pt -> yolov5nu.pt
-        file = re.sub(r"(.*yolov3(|-tiny|-spp))\.pt", "\\1u.pt", file)  # i.e. yolov3-spp.pt -> yolov3-sppu.pt
-        if file != original_file:
-            LOGGER.info(f"PRO TIP 💡 Replace 'model={original_file}' with new 'model={file}'.\nYOLOv5 'u' models are "
-                        f"trained with https://github.com/ultralytics/ultralytics and feature improved performance vs "
-                        f"standard YOLOv5 models trained with https://github.com/ultralytics/yolov5.\n")
-
+    file = check_yolov5u_filename(file)
     file = Path(file.strip().replace("'", ''))
     if file.exists():
         return str(file)

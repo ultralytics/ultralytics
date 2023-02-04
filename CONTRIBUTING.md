@@ -59,18 +59,18 @@ To allow your work to be integrated as seamlessly as possible, we advise you to:
 
 ### Docstrings
 
-Not all functions or classes require docstrings but when they do, we follow [google-stlye docstrings format](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings). Here is an example:
+Not all functions or classes require docstrings but when they do, we follow [google-style docstrings format](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings). Here is an example:
 
 ```python
 """
-   What the function does - performs nms on given detection predictions
+   What the function does. Performs NMS on given detection predictions.
 
     Args:
         arg1: The description of the 1st argument
         arg2: The description of the 2nd argument
 
     Returns:
-        What the function returns. Empty if nothing is returned
+        What the function returns. Empty if nothing is returned.
 
     Raises:
         Exception Class: When and why this exception can be raised by the function.

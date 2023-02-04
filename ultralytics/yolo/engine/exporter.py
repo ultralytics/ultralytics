@@ -70,7 +70,7 @@ from ultralytics.nn.modules import Detect, Segment
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, guess_model_task
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages
-from ultralytics.yolo.data.utils import check_det_dataset
+from ultralytics.yolo.data.utils import check_det_dataset, IMAGENET_MEAN
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, callbacks, colorstr, get_default_args, yaml_save
 from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version, check_yaml
 from ultralytics.yolo.utils.files import file_size
@@ -186,7 +186,8 @@ class Exporter:
             im, model = im.half(), model.half()  # to FP16
         shape = tuple((y[0] if isinstance(y, tuple) else y).shape)  # model output shape
         LOGGER.info(
-            f"\n{colorstr('PyTorch:')} starting from {file} with output shape {shape} ({file_size(file):.1f} MB)")
+            f"\n{colorstr('PyTorch:')} starting from {file} with input shape {tuple(im.shape)} and "
+            f"output shape {shape} ({file_size(file):.1f} MB)")
 
         # Warnings
         warnings.filterwarnings('ignore', category=torch.jit.TracerWarning)  # suppress TracerWarning
@@ -384,12 +385,16 @@ class Exporter:
         LOGGER.info(f'\n{prefix} starting export with coremltools {ct.__version__}...')
         f = self.file.with_suffix('.mlmodel')
 
-        task = self.model.task
+        if self.model.task == 'classify':
+            classifier_config = ct.ClassifierConfig(list(self.model.names.values()))
+            bias = [-x for x in IMAGENET_MEAN]
+        else:
+            classifier_config = None
+            bias = [0.0, 0.0, 0.0]
         model = iOSModel(self.model, self.im).eval() if self.args.nms else self.model
         ts = torch.jit.trace(model, self.im, strict=False)  # TorchScript model
-        classifier_config = ct.ClassifierConfig(list(model.names.values())) if task == 'classify' else None
         ct_model = ct.convert(ts,
-                              inputs=[ct.ImageType('image', shape=self.im.shape, scale=1 / 255, bias=[0, 0, 0])],
+                              inputs=[ct.ImageType('image', shape=self.im.shape, scale=1 / 255, bias=bias)],
                               classifier_config=classifier_config)
         bits, mode = (8, 'kmeans_lut') if self.args.int8 else (16, 'linear') if self.args.half else (32, None)
         if bits < 32:

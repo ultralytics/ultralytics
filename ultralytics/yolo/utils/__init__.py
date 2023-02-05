@@ -18,6 +18,7 @@ from typing import Union
 import cv2
 import numpy as np
 import pandas as pd
+import pkg_resources as pkg
 import torch
 import yaml
 
@@ -465,6 +466,7 @@ def set_sentry():
     """
     Initialize the Sentry SDK for error tracking and reporting if pytest is not currently running.
     """
+    from ultralytics import __version__
 
     def before_send(event, hint):
         if 'exc_info' in hint:
@@ -484,6 +486,7 @@ def set_sentry():
         return event
 
     if SETTINGS['sync'] and \
+            pkg.parse_version(__version__) >= pkg.parse_version('8.0.29') and \
             RANK in {-1, 0} and \
             sys.argv[0].endswith('yolo') and \
             not is_pytest_running() and \
@@ -492,12 +495,11 @@ def set_sentry():
              (get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git" and get_git_branch() == "main")):
         import sentry_sdk  # noqa
 
-        import ultralytics
         sentry_sdk.init(
             dsn="https://1f331c322109416595df20a91f4005d3@o4504521589325824.ingest.sentry.io/4504521592406016",
             debug=False,
             traces_sample_rate=1.0,
-            release=ultralytics.__version__,
+            release=__version__,
             environment='production',  # 'dev' or 'production'
             before_send=before_send,
             ignore_errors=[KeyboardInterrupt, FileNotFoundError])

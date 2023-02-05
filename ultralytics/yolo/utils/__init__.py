@@ -485,18 +485,20 @@ def set_sentry():
 
     if SETTINGS['sync'] and \
             RANK in {-1, 0} and \
+            sys.argv[0].endswith('yolo') and \
             not is_pytest_running() and \
             not is_github_actions_ci() and \
             ((is_pip_package() and not is_git_dir()) or
              (get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git" and get_git_branch() == "main")):
-        import sentry_sdk  # noqa
 
-        import ultralytics
+        import sentry_sdk  # noqa
+        from ultralytics import __version__
+
         sentry_sdk.init(
-            dsn="https://1f331c322109416595df20a91f4005d3@o4504521589325824.ingest.sentry.io/4504521592406016",
+            dsn="https://f805855f03bb4363bc1e16cb7d87b654@o4504521589325824.ingest.sentry.io/4504521592406016",
             debug=False,
             traces_sample_rate=1.0,
-            release=ultralytics.__version__,
+            release=__version__,
             environment='production',  # 'dev' or 'production'
             before_send=before_send,
             ignore_errors=[KeyboardInterrupt, FileNotFoundError])

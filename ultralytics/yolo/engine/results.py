@@ -116,7 +116,6 @@ class Results:
 
     def visualize(self,
                 img,
-                results,
                 show_conf=True,
                 line_width=None,
                 font_size=None,
@@ -128,7 +127,6 @@ class Results:
 
         Args:
         img (): Image
-        results (Results): The result/prediction of a model
         show_conf (bool): Show confidence
         line_width (Float): The line width of boxes. Automatically scaled to img size if not provided
         font_size (Float): The font size of . Automatically scaled to img size if not provided
@@ -139,9 +137,9 @@ class Results:
             img = np.ascontiguousarray(img)
 
         annotator = Annotator(img, line_width, font_size, font, pil, example)
-        boxes = results.boxes
-        masks = results.masks
-        logits = results.probs
+        boxes = self.boxes
+        masks = self.masks
+        logits = self.probs
         names = self.names
 
         if boxes is not None:

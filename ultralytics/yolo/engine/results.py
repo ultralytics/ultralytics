@@ -1,10 +1,13 @@
 from functools import lru_cache
+from copy import deepcopy
+from PIL import Image
 
 import numpy as np
 import torch
+import torchvision.transforms.functional as F
 
 from ultralytics.yolo.utils import LOGGER, ops
-
+from ultralytics.yolo.utils.plotting import Annotator, colors
 
 class Results:
     """
@@ -25,11 +28,12 @@ class Results:
 
         """
 
-    def __init__(self, boxes=None, masks=None, probs=None, orig_shape=None) -> None:
+    def __init__(self, boxes=None, masks=None, probs=None, orig_shape=None, names=None) -> None:
         self.boxes = Boxes(boxes, orig_shape) if boxes is not None else None  # native size boxes
         self.masks = Masks(masks, orig_shape) if masks is not None else None  # native size or imgsz masks
         self.probs = probs if probs is not None else None
         self.orig_shape = orig_shape
+        self.names = names
         self.comp = ["boxes", "masks", "probs"]
 
     def pandas(self):
@@ -110,6 +114,54 @@ class Results:
                 orig_shape (tuple, optional): Original image size.
             """)
 
+    def visualize(self,
+                img,
+                results,
+                show_conf=True,
+                line_width=None,
+                font_size=None,
+                font='Arial.ttf',
+                pil=False,
+                example='abc'):
+        """
+        Plots the given result on an input RGB image. Accepts cv2(numpy) or PIL Image
+
+        Args:
+        img (): Image
+        results (Results): The result/prediction of a model
+        show_conf (bool): Show confidence
+        line_width (Float): The line width of boxes. Automatically scaled to img size if not provided
+        font_size (Float): The font size of . Automatically scaled to img size if not provided
+        """
+        img = deepcopy(img)
+        if isinstance(img, Image.Image):  # handle PILLOW image
+            img = np.asarray(img)[:, :, ::-1]
+            img = np.ascontiguousarray(img)
+
+        annotator = Annotator(img, line_width, font_size, font, pil, example)
+        boxes = results.boxes
+        masks = results.masks
+        logits = results.probs
+        names = self.names
+
+        if boxes is not None:
+            for d in reversed(boxes):
+                cls, conf = d.cls.squeeze(), d.conf.squeeze()
+                c = int(cls)
+                label = (f'{names[c]}' if names else f'{c}') + (f'{conf:.2f}' if show_conf else '')
+                annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
+
+        if masks is not None:
+            im_gpu = torch.as_tensor(img, dtype=torch.float16).permute(2, 0, 1).flip(0).contiguous()
+            im_gpu = F.resize(im_gpu, masks.data.shape[1:]) / 255
+            annotator.masks(masks.data, colors=[colors(x, True) for x in boxes.cls], im_gpu=im_gpu)
+
+        if logits is not None:
+            top5i = logits.argsort(0, descending=True)[:5].tolist()  # top 5 indices
+            text = f"{', '.join(f'{names[j] if names else j} {logits[j]:.2f}' for j in top5i)}, "
+            annotator.text((32, 32), text, txt_color=(255, 255, 255))  # TODO: allow setting colors
+
+        return img
 
 class Boxes:
     """

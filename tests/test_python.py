@@ -166,4 +166,20 @@ def test_predict_callback_and_setup():
         print(boxes)
 
 
-test_predict_img()
+def test_visulizer():
+    from ultralytics import YOLO
+    from ultralytics.yolo.utils import ROOT
+    import cv2
+
+    model = YOLO("yolov8n-seg.pt")
+    source = str(ROOT / "assets/bus.jpg")
+    img_cv = cv2.imread(source)
+    img_pil = Image.open(source)
+
+    res = model(img_cv)
+    resimg = res[0].visualize(img_cv, res[0], show_conf=False)
+
+    cv2.imshow("res", resimg)
+    cv2.waitKey(0)
+
+test_visulizer()

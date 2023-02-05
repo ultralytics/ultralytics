@@ -9,6 +9,7 @@ import torchvision.transforms.functional as F
 from ultralytics.yolo.utils import LOGGER, ops
 from ultralytics.yolo.utils.plotting import Annotator, colors
 
+
 class Results:
     """
         A class for storing and manipulating inference results.
@@ -115,13 +116,13 @@ class Results:
             """)
 
     def visualize(self,
-                img,
-                show_conf=True,
-                line_width=None,
-                font_size=None,
-                font='Arial.ttf',
-                pil=False,
-                example='abc'):
+                  img,
+                  show_conf=True,
+                  line_width=None,
+                  font_size=None,
+                  font='Arial.ttf',
+                  pil=False,
+                  example='abc'):
         """
         Plots the given result on an input RGB image. Accepts cv2(numpy) or PIL Image
 
@@ -160,6 +161,7 @@ class Results:
             annotator.text((32, 32), text, txt_color=(255, 255, 255))  # TODO: allow setting colors
 
         return img
+
 
 class Boxes:
     """

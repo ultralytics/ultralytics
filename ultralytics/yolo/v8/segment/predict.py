@@ -26,7 +26,8 @@ class SegmentationPredictor(DetectionPredictor):
         for i, pred in enumerate(p):
             shape = orig_img[i].shape if isinstance(orig_img, list) else orig_img.shape
             if not len(pred):
-                results.append(Results(boxes=pred[:, :6], orig_shape=shape[:2], names=self.model.names))  # save empty boxes
+                results.append(Results(boxes=pred[:, :6], orig_shape=shape[:2],
+                                       names=self.model.names))  # save empty boxes
                 continue
             if self.args.retina_masks:
                 pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()

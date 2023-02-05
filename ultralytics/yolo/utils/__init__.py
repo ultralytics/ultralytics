@@ -495,7 +495,7 @@ def set_sentry():
         from ultralytics import __version__
 
         sentry_sdk.init(
-            dsn="https://1f331c322109416595df20a91f4005d3@o4504521589325824.ingest.sentry.io/4504521592406016",
+            dsn="https://f805855f03bb4363bc1e16cb7d87b654@o4504521589325824.ingest.sentry.io/4504521592406016",
             debug=False,
             traces_sample_rate=1.0,
             release=__version__,

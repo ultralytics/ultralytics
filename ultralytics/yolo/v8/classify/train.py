@@ -1,5 +1,4 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
-import sys
 
 import torch
 import torchvision
@@ -9,7 +8,7 @@ from ultralytics.yolo import v8
 from ultralytics.yolo.data import build_classification_dataloader
 from ultralytics.yolo.engine.trainer import BaseTrainer
 from ultralytics.yolo.utils import DEFAULT_CFG
-from ultralytics.yolo.utils.torch_utils import strip_optimizer
+from ultralytics.yolo.utils.torch_utils import strip_optimizer, is_parallel
 
 
 class ClassificationTrainer(BaseTrainer):
@@ -75,8 +74,12 @@ class ClassificationTrainer(BaseTrainer):
                                                  augment=mode == "train",
                                                  rank=rank,
                                                  workers=self.args.workers)
+        # Attach inference transforms
         if mode != "train":
-            self.model.transforms = loader.dataset.torch_transforms  # attach inference transforms
+            if is_parallel(self.model):
+                self.model.module.transforms = loader.dataset.torch_transforms
+            else:
+                self.model.transforms = loader.dataset.torch_transforms
         return loader
 
     def preprocess_batch(self, batch):
@@ -136,7 +139,7 @@ class ClassificationTrainer(BaseTrainer):
                 #     self.run_callbacks('on_fit_epoch_end')
 
 
-def train(cfg=DEFAULT_CFG, use_python=False):
+def train(cfg=DEFAULT_CFG, use_python=True):
     model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
     data = cfg.data or "mnist160"  # or yolo.ClassificationDataset("mnist")
     device = cfg.device if cfg.device is not None else ''

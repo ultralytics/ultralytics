@@ -5,6 +5,7 @@ import inspect
 import math
 import os
 import platform
+import re
 import shutil
 import urllib
 from pathlib import Path
@@ -40,7 +41,7 @@ def is_ascii(s) -> bool:
     return all(ord(c) < 128 for c in s)
 
 
-def check_imgsz(imgsz, stride=32, min_dim=1, floor=0):
+def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
     """
     Verify image size is a multiple of the given stride in each dimension. If the image size is not a multiple of the
     stride, update it to the nearest multiple of the stride that is greater than or equal to the given floor value.
@@ -58,8 +59,22 @@ def check_imgsz(imgsz, stride=32, min_dim=1, floor=0):
     stride = int(stride.max() if isinstance(stride, torch.Tensor) else stride)
 
     # Convert image size to list if it is an integer
-    imgsz = [imgsz] if isinstance(imgsz, int) else list(imgsz)
+    if isinstance(imgsz, int):
+        imgsz = [imgsz]
+    elif isinstance(imgsz, (list, tuple)):
+        imgsz = list(imgsz)
+    else:
+        raise TypeError(f"'imgsz={imgsz}' is of invalid type {type(imgsz).__name__}. "
+                        f"Valid imgsz types are int i.e. 'imgsz=640' or list i.e. 'imgsz=[640,640]'")
 
+    # Apply max_dim
+    if len(imgsz) > max_dim:
+        msg = "'train' and 'val' imgsz must be an integer, while 'predict' and 'export' imgsz may be a [h, w] list " \
+              "or an integer, i.e. 'yolo export imgsz=640,480' or 'yolo export imgsz=640'"
+        if max_dim != 1:
+            raise ValueError(f"imgsz={imgsz} is not a valid image size. {msg}")
+        LOGGER.warning(f"WARNING ⚠️ updating to 'imgsz={max(imgsz)}'. {msg}")
+        imgsz = [max(imgsz)]
     # Make image size a multiple of the stride
     sz = [max(math.ceil(x / stride) * stride, floor) for x in imgsz]
 
@@ -207,10 +222,24 @@ def check_suffix(file='yolov8n.pt', suffix=('.pt',), msg=''):
                 assert s in suffix, f"{msg}{f} acceptable suffix is {suffix}"
 
 
+def check_yolov5u_filename(file: str):
+    # Replace legacy YOLOv5 filenames with updated YOLOv5u filenames
+    if 'yolov3' in file or 'yolov5' in file and 'u' not in file:
+        original_file = file
+        file = re.sub(r"(.*yolov5([nsmlx]))\.", "\\1u.", file)  # i.e. yolov5n.pt -> yolov5nu.pt
+        file = re.sub(r"(.*yolov3(|-tiny|-spp))\.", "\\1u.", file)  # i.e. yolov3-spp.pt -> yolov3-sppu.pt
+        if file != original_file:
+            LOGGER.info(f"PRO TIP 💡 Replace 'model={original_file}' with new 'model={file}'.\nYOLOv5 'u' models are "
+                        f"trained with https://github.com/ultralytics/ultralytics and feature improved performance vs "
+                        f"standard YOLOv5 models trained with https://github.com/ultralytics/yolov5.\n")
+    return file
+
+
 def check_file(file, suffix=''):
     # Search/download file (if necessary) and return path
     check_suffix(file, suffix)  # optional
-    file = str(file)  # convert to str()
+    file = str(file)  # convert to string
+    file = check_yolov5u_filename(file)  # yolov5n -> yolov5nu
     if not file or ('://' not in file and Path(file).is_file()):  # exists ('://' check required in Windows Python<3.10)
         return file
     elif file.lower().startswith(('https://', 'http://', 'rtsp://', 'rtmp://')):  # download

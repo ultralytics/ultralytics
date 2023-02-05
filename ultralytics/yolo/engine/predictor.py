@@ -120,9 +120,6 @@ class BasePredictor:
             pass
 
     def setup_source(self, source):
-        if not self.model:
-            raise Exception("Model not initialized!")
-
         self.imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)  # check image size
         self.dataset = load_inference_source(source=source,
                                              transforms=getattr(self.model.model, 'transforms', None),
@@ -189,6 +186,10 @@ class BasePredictor:
             # Print time (inference-only)
             if self.args.verbose:
                 LOGGER.info(f"{s}{'' if len(preds) else '(no detections), '}{self.dt[1].dt * 1E3:.1f}ms")
+
+        # Release assets
+        if isinstance(self.vid_writer[-1], cv2.VideoWriter):
+            self.vid_writer[-1].release()  # release final video writer
 
         # Print results
         if self.args.verbose and self.seen:

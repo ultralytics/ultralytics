@@ -24,6 +24,7 @@ class ClassificationPredictor(BasePredictor):
         for i, pred in enumerate(preds):
             shape = orig_img[i].shape if isinstance(orig_img, list) else orig_img.shape
             results.append(Results(probs=pred.softmax(0), orig_shape=shape[:2], names=self.model.names))
+
         return results
 
     def write_results(self, idx, results, batch):

@@ -150,14 +150,14 @@ def test_predict_callback_and_setup():
         # results -> List[batch_size]
         path, _, im0s, _, _ = predictor.batch
         # print('on_predict_batch_end', im0s[0].shape)
-        bs = [predictor.bs for i in range(0, len(path))]
+        bs = [predictor.bs for _ in range(len(path))]
         predictor.results = zip(predictor.results, im0s, bs)
 
     model = YOLO("yolov8n.pt")
     model.add_callback("on_predict_batch_end", on_predict_batch_end)
 
     dataset = load_inference_source(source=SOURCE, transforms=model.transforms)
-    bs = dataset.bs  # access predictor properties
+    bs = dataset.bs  # noqa access predictor properties
     results = model.predict(dataset, stream=True)  # source already setup
     for _, (result, im0, bs) in enumerate(results):
         print('test_callback', im0.shape)

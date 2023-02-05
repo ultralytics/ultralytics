@@ -72,15 +72,11 @@ class SegmentationPredictor(DetectionPredictor):
             im_gpu=torch.as_tensor(im0, dtype=torch.float16).to(self.device).permute(2, 0, 1).flip(0).contiguous() /
             255 if self.args.retina_masks else im[idx])
 
-        # Segments
-        if self.args.save_txt:
-            segments = mask.segments
-
         # Write results
         for j, d in enumerate(reversed(det)):
             cls, conf = d.cls.squeeze(), d.conf.squeeze()
             if self.args.save_txt:  # Write to file
-                seg = segments[j].copy()
+                seg = mask.segments[len(det) - j - 1].copy()  # reversed mask.segments
                 seg = seg.reshape(-1)  # (n,2) to (n*2)
                 line = (cls, *seg, conf) if self.args.save_conf else (cls, *seg)  # label format
                 with open(f'{self.txt_path}.txt', 'a') as f:

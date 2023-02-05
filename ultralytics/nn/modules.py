@@ -62,6 +62,9 @@ class ConvTranspose(nn.Module):
     def forward(self, x):
         return self.act(self.bn(self.conv_transpose(x)))
 
+    def forward_fuse(self, x):
+        return self.act(self.conv_transpose(x))
+
 
 class DFL(nn.Module):
     # Integral module of Distribution Focal Loss (DFL) proposed in Generalized Focal Loss https://ieeexplore.ieee.org/document/9792391
@@ -453,4 +456,5 @@ class Classify(nn.Module):
     def forward(self, x):
         if isinstance(x, list):
             x = torch.cat(x, 1)
-        return self.linear(self.drop(self.pool(self.conv(x)).flatten(1)))
+        x = self.linear(self.drop(self.pool(self.conv(x)).flatten(1)))
+        return x if self.training else x.softmax(1)

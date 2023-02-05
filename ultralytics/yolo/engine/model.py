@@ -119,7 +119,6 @@ class YOLO:
     def fuse(self):
         self.model.fuse()
 
-    @smart_inference_mode()
     def predict(self, source=None, stream=False, **kwargs):
         """
         Perform prediction using the YOLO model.

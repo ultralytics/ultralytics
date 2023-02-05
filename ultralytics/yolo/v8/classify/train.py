@@ -139,7 +139,7 @@ class ClassificationTrainer(BaseTrainer):
                 #     self.run_callbacks('on_fit_epoch_end')
 
 
-def train(cfg=DEFAULT_CFG, use_python=True):
+def train(cfg=DEFAULT_CFG, use_python=False):
     model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
     data = cfg.data or "mnist160"  # or yolo.ClassificationDataset("mnist")
     device = cfg.device if cfg.device is not None else ''

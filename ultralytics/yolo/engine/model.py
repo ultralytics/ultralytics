@@ -119,7 +119,6 @@ class YOLO:
     def fuse(self):
         self.model.fuse()
 
-    @smart_inference_mode()
     def predict(self, source=None, stream=False, **kwargs):
         """
         Perform prediction using the YOLO model.
@@ -258,8 +257,6 @@ class YOLO:
 
     @staticmethod
     def _reset_ckpt_args(args):
-        for arg in 'verbose', 'project', 'name', 'exist_ok', 'resume', 'batch', 'epochs', 'cache', 'save_json', \
-                'half', 'v5loader':
+        for arg in 'augment', 'verbose', 'project', 'name', 'exist_ok', 'resume', 'batch', 'epochs', 'cache', \
+                'save_json', 'half', 'v5loader', 'device', 'cfg', 'save', 'rect', 'plots':
             args.pop(arg, None)
-
-        args["device"] = ''  # set device to '' to prevent auto-DDP usage

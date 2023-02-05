@@ -258,8 +258,8 @@ class YOLO:
 
     @staticmethod
     def _reset_ckpt_args(args):
-        for arg in 'verbose', 'project', 'name', 'exist_ok', 'resume', 'batch', 'epochs', 'cache', 'save_json', \
-                'half', 'v5loader':
+        for arg in 'augment', 'verbose', 'project', 'name', 'exist_ok', 'resume', 'batch', 'epochs', 'cache', \
+                'save_json', 'half', 'v5loader':
             args.pop(arg, None)
 
         args["device"] = ''  # set device to '' to prevent auto-DDP usage

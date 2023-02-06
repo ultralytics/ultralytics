@@ -28,6 +28,19 @@ def is_url(url, check=True):
     return False
 
 
+def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX')):
+    """
+    Unzip a *.zip file to path/, excluding files containing strings in exclude list
+    Replaces: ZipFile(file).extractall(path=path)
+    """
+    if path is None:
+        path = Path(file).parent  # default path
+    with ZipFile(file) as zipObj:
+        for f in zipObj.namelist():  # list all archived filenames in the zip
+            if all(x not in f for x in exclude):
+                zipObj.extract(f, path=path)
+
+
 def safe_download(url,
                   file=None,
                   dir=None,
@@ -96,13 +109,14 @@ def safe_download(url,
                 LOGGER.warning(f'⚠️ Download failure, retrying {i + 1}/{retry} {url}...')
 
     if unzip and f.exists() and f.suffix in {'.zip', '.tar', '.gz'}:
-        LOGGER.info(f'Unzipping {f}...')
+        unzip_dir = dir or f.parent  # unzip to dir if provided else unzip in place
+        LOGGER.info(f'Unzipping {f} to {unzip_dir}...')
         if f.suffix == '.zip':
-            ZipFile(f).extractall(path=f.parent)  # unzip
+            unzip_file(file=f, path=unzip_dir)  # unzip
         elif f.suffix == '.tar':
-            subprocess.run(['tar', 'xf', f, '--directory', f.parent], check=True)  # unzip
+            subprocess.run(['tar', 'xf', f, '--directory', unzip_dir], check=True)  # unzip
         elif f.suffix == '.gz':
-            subprocess.run(['tar', 'xfz', f, '--directory', f.parent], check=True)  # unzip
+            subprocess.run(['tar', 'xfz', f, '--directory', unzip_dir], check=True)  # unzip
         if delete:
             f.unlink()  # remove zip
 

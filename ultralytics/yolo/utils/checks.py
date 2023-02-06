@@ -247,7 +247,7 @@ def check_file(file, suffix=''):
         if Path(file).is_file():
             LOGGER.info(f'Found {url} locally at {file}')  # file already exists
         else:
-            downloads.safe_download(url=url, file=file)
+            downloads.safe_download(url=url, file=file, unzip=False)
         return file
     else:  # search
         files = []

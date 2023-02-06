@@ -156,6 +156,7 @@ class YOLO:
             **kwargs : Any other args accepted by the validators. To see all args check 'configuration' section in docs
         """
         overrides = self.overrides.copy()
+        overrides["rect"] = True  # rect batches as default
         overrides.update(kwargs)
         overrides["mode"] = "val"
         args = get_cfg(cfg=DEFAULT_CFG, overrides=overrides)

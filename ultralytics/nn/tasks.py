@@ -12,8 +12,8 @@ from ultralytics.nn.modules import (C1, C2, C3, C3TR, SPP, SPPF, Bottleneck, Bot
                                     GhostBottleneck, GhostConv, Segment)
 from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, yaml_load
 from ultralytics.yolo.utils.checks import check_requirements, check_yaml
-from ultralytics.yolo.utils.torch_utils import (fuse_conv_and_bn, initialize_weights, intersect_dicts, make_divisible,
-                                                model_info, scale_img, time_sync)
+from ultralytics.yolo.utils.torch_utils import (fuse_conv_and_bn, fuse_deconv_and_bn, initialize_weights,
+                                                intersect_dicts, make_divisible, model_info, scale_img, time_sync)
 
 
 class BaseModel(nn.Module):
@@ -98,6 +98,10 @@ class BaseModel(nn.Module):
             for m in self.model.modules():
                 if isinstance(m, (Conv, DWConv)) and hasattr(m, 'bn'):
                     m.conv = fuse_conv_and_bn(m.conv, m.bn)  # update conv
+                    delattr(m, 'bn')  # remove batchnorm
+                    m.forward = m.forward_fuse  # update forward
+                if isinstance(m, ConvTranspose) and hasattr(m, 'bn'):
+                    m.conv_transpose = fuse_deconv_and_bn(m.conv_transpose, m.bn)
                     delattr(m, 'bn')  # remove batchnorm
                     m.forward = m.forward_fuse  # update forward
             self.info()
@@ -251,7 +255,7 @@ class ClassificationModel(BaseModel):
                  ch=3,
                  nc=1000,
                  cutoff=10,
-                 verbose=True):  # yaml, model, number of classes, cutoff index
+                 verbose=True):  # yaml, model, channels, number of classes, cutoff index, verbose flag
         super().__init__()
         self._from_detection_model(model, nc, cutoff) if model is not None else self._from_yaml(cfg, ch, nc, verbose)
 
@@ -313,27 +317,54 @@ class ClassificationModel(BaseModel):
 # Functions ------------------------------------------------------------------------------------------------------------
 
 
+def torch_safe_load(weight):
+    """
+    This function attempts to load a PyTorch model with the torch.load() function. If a ModuleNotFoundError is raised, it
+    catches the error, logs a warning message, and attempts to install the missing module via the check_requirements()
+    function. After installation, the function again attempts to load the model using torch.load().
+
+    Args:
+        weight (str): The file path of the PyTorch model.
+
+    Returns:
+        The loaded PyTorch model.
+    """
+    from ultralytics.yolo.utils.downloads import attempt_download_asset
+
+    file = attempt_download_asset(weight)  # search online if missing locally
+    try:
+        return torch.load(file, map_location='cpu')  # load
+    except ModuleNotFoundError as e:
+        if e.name == 'omegaconf':  # e.name is missing module name
+            LOGGER.warning(f"WARNING ⚠️ {weight} requires {e.name}, which is not in ultralytics requirements."
+                           f"\nAutoInstall will run now for {e.name} but this feature will be removed in the future."
+                           f"\nRecommend fixes are to train a new model using updated ultraltyics package or to "
+                           f"download updated models from https://github.com/ultralytics/assets/releases/tag/v0.0.0")
+        check_requirements(e.name)  # install missing module
+        return torch.load(file, map_location='cpu')  # load
+
+
 def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
     # Loads an ensemble of models weights=[a,b,c] or a single model weights=[a] or weights=a
-    from ultralytics.yolo.utils.downloads import attempt_download
 
-    model = Ensemble()
+    ensemble = Ensemble()
     for w in weights if isinstance(weights, list) else [weights]:
-        ckpt = torch.load(attempt_download(w), map_location='cpu')  # load
+        ckpt = torch_safe_load(w)  # load ckpt
         args = {**DEFAULT_CFG_DICT, **ckpt['train_args']}  # combine model and default args, preferring model args
-        ckpt = (ckpt.get('ema') or ckpt['model']).to(device).float()  # FP32 model
+        model = (ckpt.get('ema') or ckpt['model']).to(device).float()  # FP32 model
 
         # Model compatibility updates
-        ckpt.args = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # attach args to model
-        ckpt.pt_path = weights  # attach *.pt file path to model
-        if not hasattr(ckpt, 'stride'):
-            ckpt.stride = torch.tensor([32.])
+        model.args = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # attach args to model
+        model.pt_path = weights  # attach *.pt file path to model
+        model.task = guess_model_task(model)
+        if not hasattr(model, 'stride'):
+            model.stride = torch.tensor([32.])
 
         # Append
-        model.append(ckpt.fuse().eval() if fuse and hasattr(ckpt, 'fuse') else ckpt.eval())  # model in eval mode
+        ensemble.append(model.fuse().eval() if fuse and hasattr(model, 'fuse') else model.eval())  # model in eval mode
 
     # Module compatibility updates
-    for m in model.modules():
+    for m in ensemble.modules():
         t = type(m)
         if t in (nn.Hardswish, nn.LeakyReLU, nn.ReLU, nn.ReLU6, nn.SiLU, Detect, Segment):
             m.inplace = inplace  # torch 1.7.0 compatibility
@@ -341,38 +372,28 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
             m.recompute_scale_factor = None  # torch 1.11.0 compatibility
 
     # Return model
-    if len(model) == 1:
-        return model[-1]
+    if len(ensemble) == 1:
+        return ensemble[-1]
 
     # Return ensemble
     print(f'Ensemble created with {weights}\n')
     for k in 'names', 'nc', 'yaml':
-        setattr(model, k, getattr(model[0], k))
-    model.stride = model[torch.argmax(torch.tensor([m.stride.max() for m in model])).int()].stride  # max stride
-    assert all(model[0].nc == m.nc for m in model), f'Models have different class counts: {[m.nc for m in model]}'
-    return model
+        setattr(ensemble, k, getattr(ensemble[0], k))
+    ensemble.stride = ensemble[torch.argmax(torch.tensor([m.stride.max() for m in ensemble])).int()].stride
+    assert all(ensemble[0].nc == m.nc for m in ensemble), f'Models differ in class counts: {[m.nc for m in ensemble]}'
+    return ensemble
 
 
 def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
     # Loads a single model weights
-    from ultralytics.yolo.utils.downloads import attempt_download
-
-    weight = attempt_download(weight)
-    try:
-        ckpt = torch.load(weight, map_location='cpu')  # load
-    except ModuleNotFoundError:
-        LOGGER.warning(f"WARNING ⚠️ {weight} is deprecated as it requires omegaconf, which is now removed from "
-                       "ultralytics requirements.\nAutoInstall will occur now but this feature will be removed for "
-                       "omegaconf models in the future.\nPlease train a new model or download updated models "
-                       "from https://github.com/ultralytics/assets/releases/tag/v0.0.0")
-        check_requirements('omegaconf')
-        ckpt = torch.load(weight, map_location='cpu')  # load
+    ckpt = torch_safe_load(weight)  # load ckpt
     args = {**DEFAULT_CFG_DICT, **ckpt['train_args']}  # combine model and default args, preferring model args
     model = (ckpt.get('ema') or ckpt['model']).to(device).float()  # FP32 model
 
     # Model compatibility updates
     model.args = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # attach args to model
     model.pt_path = weight  # attach *.pt file path to model
+    model.task = guess_model_task(model)
     if not hasattr(model, 'stride'):
         model.stride = torch.tensor([32.])
 
@@ -442,3 +463,53 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             ch = []
         ch.append(c2)
     return nn.Sequential(*layers), sorted(save)
+
+
+def guess_model_task(model):
+    """
+    Guess the task of a PyTorch model from its architecture or configuration.
+
+    Args:
+        model (nn.Module) or (dict): PyTorch model or model configuration in YAML format.
+
+    Returns:
+        str: Task of the model ('detect', 'segment', 'classify').
+
+    Raises:
+        SyntaxError: If the task of the model could not be determined.
+    """
+    cfg = None
+    if isinstance(model, dict):
+        cfg = model
+    elif isinstance(model, nn.Module):  # PyTorch model
+        for x in 'model.args', 'model.model.args', 'model.model.model.args':
+            with contextlib.suppress(Exception):
+                return eval(x)['task']
+        for x in 'model.yaml', 'model.model.yaml', 'model.model.model.yaml':
+            with contextlib.suppress(Exception):
+                cfg = eval(x)
+                break
+
+    # Guess from YAML dictionary
+    if cfg:
+        m = cfg["head"][-1][-2].lower()  # output module name
+        if m in ["classify", "classifier", "cls", "fc"]:
+            return "classify"
+        if m in ["detect"]:
+            return "detect"
+        if m in ["segment"]:
+            return "segment"
+
+    # Guess from PyTorch model
+    if isinstance(model, nn.Module):
+        for m in model.modules():
+            if isinstance(m, Detect):
+                return "detect"
+            elif isinstance(m, Segment):
+                return "segment"
+            elif isinstance(m, Classify):
+                return "classify"
+
+    # Unable to determine task from model
+    raise SyntaxError("YOLO is unable to automatically guess model task. Explicitly define task for your model, "
+                      "i.e. 'task=detect', 'task=segment' or 'task=classify'.")

@@ -120,7 +120,8 @@ class BaseDataset(Dataset):
                 im = np.load(fn)
             else:  # read image
                 im = cv2.imread(f)  # BGR
-                assert im is not None, f"Image Not Found {f}"
+                if im is None:
+                    raise FileNotFoundError(f"Image Not Found {f}")
             h0, w0 = im.shape[:2]  # orig hw
             r = self.imgsz / max(h0, w0)  # ratio
             if r != 1:  # if sizes are not equal
@@ -181,6 +182,7 @@ class BaseDataset(Dataset):
 
     def get_label_info(self, index):
         label = self.labels[index].copy()
+        label.pop("shape", None)  # shape is for rect, remove it
         label["img"], label["ori_shape"], label["resized_shape"] = self.load_image(index)
         label["ratio_pad"] = (
             label["resized_shape"][0] / label["ori_shape"][0],

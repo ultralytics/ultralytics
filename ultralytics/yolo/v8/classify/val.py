@@ -1,4 +1,5 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
+import sys
 
 from ultralytics.yolo.data import build_classification_dataloader
 from ultralytics.yolo.engine.validator import BaseValidator
@@ -45,11 +46,17 @@ class ClassificationValidator(BaseValidator):
         self.logger.info(pf % ("all", self.metrics.top1, self.metrics.top5))
 
 
-def val(cfg=DEFAULT_CFG):
-    cfg.model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
-    cfg.data = cfg.data or "imagenette160"
-    validator = ClassificationValidator(args=cfg)
-    validator(model=cfg.model)
+def val(cfg=DEFAULT_CFG, use_python=False):
+    model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
+    data = cfg.data or "mnist160"
+
+    args = dict(model=model, data=data)
+    if use_python:
+        from ultralytics import YOLO
+        YOLO(model).val(**args)
+    else:
+        validator = ClassificationValidator(args=args)
+        validator(model=args['model'])
 
 
 if __name__ == "__main__":

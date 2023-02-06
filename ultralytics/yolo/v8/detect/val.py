@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
 import os
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -128,7 +129,7 @@ class DetectionValidator(BaseValidator):
                 f'WARNING ⚠️ no labels found in {self.args.task} set, can not compute metrics without labels')
 
         # Print results per class
-        if (self.args.verbose or not self.training) and self.nc > 1 and len(self.stats):
+        if self.args.verbose and not self.training and self.nc > 1 and len(self.stats):
             for i, c in enumerate(self.metrics.ap_class_index):
                 self.logger.info(pf % (self.names[c], self.seen, self.nt_per_class[c], *self.metrics.class_result(i)))
 
@@ -232,11 +233,17 @@ class DetectionValidator(BaseValidator):
         return stats
 
 
-def val(cfg=DEFAULT_CFG):
-    cfg.model = cfg.model or "yolov8n.pt"
-    cfg.data = cfg.data or "coco128.yaml"
-    validator = DetectionValidator(args=cfg)
-    validator(model=cfg.model)
+def val(cfg=DEFAULT_CFG, use_python=False):
+    model = cfg.model or "yolov8n.pt"
+    data = cfg.data or "coco128.yaml"
+
+    args = dict(model=model, data=data)
+    if use_python:
+        from ultralytics import YOLO
+        YOLO(model).val(**args)
+    else:
+        validator = DetectionValidator(args=args)
+        validator(model=args['model'])
 
 
 if __name__ == "__main__":

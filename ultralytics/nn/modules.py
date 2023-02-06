@@ -4,7 +4,6 @@ Common modules
 """
 
 import math
-import warnings
 
 import torch
 import torch.nn as nn
@@ -62,6 +61,9 @@ class ConvTranspose(nn.Module):
 
     def forward(self, x):
         return self.act(self.bn(self.conv_transpose(x)))
+
+    def forward_fuse(self, x):
+        return self.act(self.conv_transpose(x))
 
 
 class DFL(nn.Module):
@@ -155,7 +157,7 @@ class C3(nn.Module):
         self.cv1 = Conv(c1, c_, 1, 1)
         self.cv2 = Conv(c1, c_, 1, 1)
         self.cv3 = Conv(2 * c_, c2, 1)  # optional act=FReLU(c2)
-        self.m = nn.Sequential(*(Bottleneck(c_, c_, shortcut, g, e=1.0) for _ in range(n)))
+        self.m = nn.Sequential(*(Bottleneck(c_, c_, shortcut, g, k=((1, 1), (3, 3)), e=1.0) for _ in range(n)))
 
     def forward(self, x):
         return self.cv3(torch.cat((self.m(self.cv1(x)), self.cv2(x)), 1))
@@ -274,9 +276,7 @@ class SPP(nn.Module):
 
     def forward(self, x):
         x = self.cv1(x)
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore')  # suppress torch 1.9.0 max_pool2d() warning
-            return self.cv2(torch.cat([x] + [m(x) for m in self.m], 1))
+        return self.cv2(torch.cat([x] + [m(x) for m in self.m], 1))
 
 
 class SPPF(nn.Module):
@@ -290,11 +290,9 @@ class SPPF(nn.Module):
 
     def forward(self, x):
         x = self.cv1(x)
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore')  # suppress torch 1.9.0 max_pool2d() warning
-            y1 = self.m(x)
-            y2 = self.m(y1)
-            return self.cv2(torch.cat((x, y1, y2, self.m(y2)), 1))
+        y1 = self.m(x)
+        y2 = self.m(y1)
+        return self.cv2(torch.cat((x, y1, y2, self.m(y2)), 1))
 
 
 class Focus(nn.Module):
@@ -458,4 +456,5 @@ class Classify(nn.Module):
     def forward(self, x):
         if isinstance(x, list):
             x = torch.cat(x, 1)
-        return self.linear(self.drop(self.pool(self.conv(x)).flatten(1)))
+        x = self.linear(self.drop(self.pool(self.conv(x)).flatten(1)))
+        return x if self.training else x.softmax(1)

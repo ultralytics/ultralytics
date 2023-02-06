@@ -65,16 +65,17 @@ import pandas as pd
 import torch
 
 import ultralytics
+from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import Detect, Segment
-from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel
+from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, guess_model_task
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages
-from ultralytics.yolo.data.utils import check_det_dataset
+from ultralytics.yolo.data.utils import check_det_dataset, IMAGENET_MEAN, IMAGENET_STD
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, callbacks, colorstr, get_default_args, yaml_save
 from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version, check_yaml
 from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.ops import Profile
-from ultralytics.yolo.utils.torch_utils import guess_task_from_model_yaml, select_device, smart_inference_mode
+from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode
 
 MACOS = platform.system() == 'Darwin'  # macOS environment
 
@@ -125,11 +126,11 @@ class Exporter:
         Initializes the Exporter class.
 
         Args:
-            cfg (str, optional): Path to a configuration file. Defaults to DEFAULT_CONFIG.
+            cfg (str, optional): Path to a configuration file. Defaults to DEFAULT_CFG.
             overrides (dict, optional): Configuration overrides. Defaults to None.
         """
         self.args = get_cfg(cfg, overrides)
-        self.callbacks = defaultdict(list, {k: v for k, v in callbacks.default_callbacks.items()})  # add callbacks
+        self.callbacks = defaultdict(list, callbacks.default_callbacks)  # add callbacks
         callbacks.add_integration_callbacks(self)
 
     @smart_inference_mode()
@@ -151,9 +152,12 @@ class Exporter:
             assert not self.args.dynamic, '--half not compatible with --dynamic, i.e. use either --half or --dynamic'
 
         # Checks
+        model.names = check_class_names(model.names)
         # if self.args.batch == model.args['batch_size']:  # user has not modified training batch_size
         self.args.batch = 1
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
+        if model.task == 'classify':
+            self.args.nms = self.args.agnostic_nms = False
         if self.args.optimize:
             assert self.device.type == 'cpu', '--optimize not compatible with cuda devices, i.e. use --device cpu'
 
@@ -180,9 +184,6 @@ class Exporter:
             y = model(im)  # dry runs
         if self.args.half and not coreml and not xml:
             im, model = im.half(), model.half()  # to FP16
-        shape = tuple((y[0] if isinstance(y, tuple) else y).shape)  # model output shape
-        LOGGER.info(
-            f"\n{colorstr('PyTorch:')} starting from {file} with output shape {shape} ({file_size(file):.1f} MB)")
 
         # Warnings
         warnings.filterwarnings('ignore', category=torch.jit.TracerWarning)  # suppress TracerWarning
@@ -194,8 +195,17 @@ class Exporter:
         self.model = model
         self.file = file
         self.output_shape = tuple(y.shape) if isinstance(y, torch.Tensor) else (x.shape for x in y)
-        self.metadata = {'stride': int(max(model.stride)), 'names': model.names}  # model metadata
         self.pretty_name = self.file.stem.replace('yolo', 'YOLO')
+        self.metadata = {
+            'description': f"Ultralytics {self.pretty_name} model trained on {self.model.args['data']}",
+            'author': 'Ultralytics',
+            'license': 'GPL-3.0 https://ultralytics.com/license',
+            'version': ultralytics.__version__,
+            'stride': int(max(model.stride)),
+            'names': model.names}  # model metadata
+
+        LOGGER.info(f"\n{colorstr('PyTorch:')} starting from {file} with input shape {tuple(im.shape)} and "
+                    f"output shape {self.output_shape} ({file_size(file):.1f} MB)")
 
         # Exports
         f = [''] * len(fmts)  # exported filenames
@@ -210,9 +220,8 @@ class Exporter:
         if coreml:  # CoreML
             f[4], _ = self._export_coreml()
         if any((saved_model, pb, tflite, edgetpu, tfjs)):  # TensorFlow formats
-            raise NotImplementedError('YOLOv8 TensorFlow export support is still under development. '
-                                      'Please consider contributing to the effort if you have TF expertise. Thank you!')
-            assert not isinstance(model, ClassificationModel), 'ClassificationModel TF exports not yet supported.'
+            LOGGER.warning('WARNING ⚠️ YOLOv8 TensorFlow export support is still under development. '
+                           'Please consider contributing to the effort if you have TF expertise. Thank you!')
             nms = False
             f[5], s_model = self._export_saved_model(nms=nms or self.args.agnostic_nms or tfjs,
                                                      agnostic_nms=self.args.agnostic_nms or tfjs)
@@ -226,7 +235,7 @@ class Exporter:
                                               agnostic_nms=self.args.agnostic_nms)
                 if edgetpu:
                     f[8], _ = self._export_edgetpu()
-                self._add_tflite_metadata(f[8] or f[7], num_outputs=len(s_model.outputs))
+                self._add_tflite_metadata(f[8] or f[7], num_outputs=len(self.output_shape))
             if tfjs:
                 f[9], _ = self._export_tfjs()
         if paddle:  # PaddlePaddle
@@ -235,12 +244,11 @@ class Exporter:
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
         if any(f):
-            task = guess_task_from_model_yaml(model)
             s = "-WARNING ⚠️ not yet supported for YOLOv8 exported models"
             LOGGER.info(f'\nExport complete ({time.time() - t:.1f}s)'
                         f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
-                        f"\nPredict:         yolo task={task} mode=predict model={f[-1]} {s}"
-                        f"\nValidate:        yolo task={task} mode=val model={f[-1]} {s}"
+                        f"\nPredict:         yolo task={model.task} mode=predict model={f[-1]} {s}"
+                        f"\nValidate:        yolo task={model.task} mode=val model={f[-1]} {s}"
                         f"\nVisualize:       https://netron.app")
 
         self.run_callbacks("on_export_end")
@@ -319,15 +327,20 @@ class Exporter:
     @try_export
     def _export_openvino(self, prefix=colorstr('OpenVINO:')):
         # YOLOv8 OpenVINO export
-        check_requirements('openvino-dev')  # requires openvino-dev: https://pypi.org/project/openvino-dev/
-        import openvino.inference_engine as ie  # noqa
+        check_requirements('openvino-dev>=2022.3')  # requires openvino-dev: https://pypi.org/project/openvino-dev/
+        import openvino.runtime as ov  # noqa
+        from openvino.tools import mo  # noqa
 
-        LOGGER.info(f'\n{prefix} starting export with openvino {ie.__version__}...')
+        LOGGER.info(f'\n{prefix} starting export with openvino {ov.__version__}...')
         f = str(self.file).replace(self.file.suffix, f'_openvino_model{os.sep}')
         f_onnx = self.file.with_suffix('.onnx')
+        f_ov = str(Path(f) / self.file.with_suffix('.xml').name)
 
-        cmd = f"mo --input_model {f_onnx} --output_dir {f} {'--compress_to_fp16' * self.args.half}"
-        subprocess.run(cmd.split(), check=True, env=os.environ)  # export
+        ov_model = mo.convert_model(f_onnx,
+                                    model_name=self.pretty_name,
+                                    framework="onnx",
+                                    compress_to_fp16=self.args.half)  # export
+        ov.serialize(ov_model, f_ov)  # save
         yaml_save(Path(f) / self.file.with_suffix('.yaml').name, self.metadata)  # add metadata.yaml
         return f, None
 
@@ -370,9 +383,19 @@ class Exporter:
         LOGGER.info(f'\n{prefix} starting export with coremltools {ct.__version__}...')
         f = self.file.with_suffix('.mlmodel')
 
+        if self.model.task == 'classify':
+            bias = [-x for x in IMAGENET_MEAN]
+            scale = 1 / 255 / (sum(IMAGENET_STD) / 3)
+            classifier_config = ct.ClassifierConfig(list(self.model.names.values()))
+        else:
+            bias = [0.0, 0.0, 0.0]
+            scale = 1 / 255
+            classifier_config = None
         model = iOSModel(self.model, self.im).eval() if self.args.nms else self.model
         ts = torch.jit.trace(model, self.im, strict=False)  # TorchScript model
-        ct_model = ct.convert(ts, inputs=[ct.ImageType('image', shape=self.im.shape, scale=1 / 255, bias=[0, 0, 0])])
+        ct_model = ct.convert(ts,
+                              inputs=[ct.ImageType('image', shape=self.im.shape, scale=scale, bias=bias)],
+                              classifier_config=classifier_config)
         bits, mode = (8, 'kmeans_lut') if self.args.int8 else (16, 'linear') if self.args.half else (32, None)
         if bits < 32:
             if MACOS:  # quantization only supported on macOS
@@ -382,13 +405,17 @@ class Exporter:
         if self.args.nms:
             ct_model = self._pipeline_coreml(ct_model)
 
+        ct_model.short_description = self.metadata['description']
+        ct_model.author = self.metadata['author']
+        ct_model.license = self.metadata['license']
+        ct_model.version = self.metadata['version']
         ct_model.save(str(f))
         return f, ct_model
 
     @try_export
     def _export_engine(self, workspace=4, verbose=False, prefix=colorstr('TensorRT:')):
         # YOLOv8 TensorRT export https://developer.nvidia.com/tensorrt
-        assert self.im.device.type != 'cpu', 'export running on CPU but must be on GPU, i.e. `device==0`'
+        assert self.im.device.type != 'cpu', "export running on CPU but must be on GPU, i.e. use 'device=0'"
         try:
             import tensorrt as trt  # noqa
         except ImportError:
@@ -524,13 +551,13 @@ class Exporter:
         return f, keras_model
 
     @try_export
-    def _export_pb(self, keras_model, file, prefix=colorstr('TensorFlow GraphDef:')):
+    def _export_pb(self, keras_model, prefix=colorstr('TensorFlow GraphDef:')):
         # YOLOv8 TensorFlow GraphDef *.pb export https://github.com/leimao/Frozen_Graph_TensorFlow
         import tensorflow as tf  # noqa
         from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2  # noqa
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
-        f = file.with_suffix('.pb')
+        f = self.file.with_suffix('.pb')
 
         m = tf.function(lambda x: keras_model(x))  # full model
         m = m.get_concrete_function(tf.TensorSpec(keras_model.inputs[0].shape, keras_model.inputs[0].dtype))
@@ -682,8 +709,8 @@ class Exporter:
             out0_shape = out[out0.name].shape
             out1_shape = out[out1.name].shape
         else:  # linux and windows can not run model.predict(), get sizes from pytorch output y
-            out0_shape = self.output_shape[1], self.output_shape[2] - 5  # (3780, 80)
-            out1_shape = self.output_shape[1], 4  # (3780, 4)
+            out0_shape = self.output_shape[2], self.output_shape[1] - 4  # (3780, 80)
+            out1_shape = self.output_shape[2], 4  # (3780, 4)
 
         # Checks
         names = self.metadata['names']
@@ -709,7 +736,7 @@ class Exporter:
         # flexible_shape_utils.update_image_size_range(spec, feature_name='image', size_range=r)
 
         # Print
-        print(spec.description)
+        # print(spec.description)
 
         # Model from spec
         model = ct.models.MLModel(spec)
@@ -766,10 +793,6 @@ class Exporter:
 
         # Update metadata
         pipeline.spec.specificationVersion = 5
-        pipeline.spec.description.metadata.versionString = f'Ultralytics YOLOv{ultralytics.__version__}'
-        pipeline.spec.description.metadata.shortDescription = f'Ultralytics {self.pretty_name} CoreML model'
-        pipeline.spec.description.metadata.author = 'Ultralytics (https://ultralytics.com)'
-        pipeline.spec.description.metadata.license = 'GPL-3.0 license (https://ultralytics.com/license)'
         pipeline.spec.description.metadata.userDefined.update({
             'IoU threshold': str(nms.iouThreshold),
             'Confidence threshold': str(nms.confidenceThreshold)})

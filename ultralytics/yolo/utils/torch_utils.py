@@ -17,11 +17,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-import ultralytics
 from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER
-from ultralytics.yolo.utils.checks import git_describe
-
-from .checks import check_version
+from ultralytics.yolo.utils.checks import check_version
 
 LOCAL_RANK = int(os.getenv('LOCAL_RANK', -1))  # https://pytorch.org/docs/stable/elastic/run.html
 RANK = int(os.getenv('RANK', -1))
@@ -31,7 +28,7 @@ WORLD_SIZE = int(os.getenv('WORLD_SIZE', 1))
 @contextmanager
 def torch_distributed_zero_first(local_rank: int):
     # Decorator to make all processes in distributed training wait for each local_master to do something
-    initialized = torch.distributed.is_initialized()  # prevent 'Default process group has not been initialized' errors
+    initialized = torch.distributed.is_available() and torch.distributed.is_initialized()
     if initialized and local_rank not in {-1, 0}:
         dist.barrier(device_ids=[local_rank])
     yield
@@ -58,10 +55,10 @@ def DDP_model(model):
         return DDP(model, device_ids=[LOCAL_RANK], output_device=LOCAL_RANK)
 
 
-def select_device(device='', batch_size=0, newline=False):
+def select_device(device='', batch=0, newline=False):
     # device = None or 'cpu' or 0 or '0' or '0,1,2,3'
-    ver = git_describe() or ultralytics.__version__  # git commit or pip package version
-    s = f'Ultralytics YOLOv{ver} 🚀 Python-{platform.python_version()} torch-{torch.__version__} '
+    from ultralytics import __version__
+    s = f"Ultralytics YOLOv{__version__} 🚀 Python-{platform.python_version()} torch-{torch.__version__} "
     device = str(device).lower()
     for remove in 'cuda:', 'none', '(', ')', '[', ']', "'", ' ':
         device = device.replace(remove, '')  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
@@ -70,15 +67,26 @@ def select_device(device='', batch_size=0, newline=False):
     if cpu or mps:
         os.environ['CUDA_VISIBLE_DEVICES'] = '-1'  # force torch.cuda.is_available() = False
     elif device:  # non-cpu device requested
+        visible = os.environ.get('CUDA_VISIBLE_DEVICES', None)
         os.environ['CUDA_VISIBLE_DEVICES'] = device  # set environment variable - must be before assert is_available()
-        assert torch.cuda.is_available() and torch.cuda.device_count() >= len(device.replace(',', '')), \
-            f"Invalid CUDA 'device={device}' requested, use 'device=cpu' or pass valid CUDA device(s)"
+        if not (torch.cuda.is_available() and torch.cuda.device_count() >= len(device.replace(',', ''))):
+            LOGGER.info(s)
+            install = "See https://pytorch.org/get-started/locally/ for up-to-date torch install instructions if no " \
+                      "CUDA devices are seen by torch.\n" if torch.cuda.device_count() == 0 else ""
+            raise ValueError(f"Invalid CUDA 'device={device}' requested."
+                             f" Use 'device=cpu' or pass valid CUDA device(s) if available,"
+                             f" i.e. 'device=0' or 'device=0,1,2,3' for Multi-GPU.\n"
+                             f"\ntorch.cuda.is_available(): {torch.cuda.is_available()}"
+                             f"\ntorch.cuda.device_count(): {torch.cuda.device_count()}"
+                             f"\nos.environ['CUDA_VISIBLE_DEVICES']: {visible}\n"
+                             f"{install}")
 
     if not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
         devices = device.split(',') if device else '0'  # range(torch.cuda.device_count())  # i.e. 0,1,6,7
         n = len(devices)  # device count
-        if n > 1 and batch_size > 0:  # check batch_size is divisible by device_count
-            assert batch_size % n == 0, f'batch-size {batch_size} not multiple of GPU count {n}'
+        if n > 1 and batch > 0 and batch % n != 0:  # check batch_size is divisible by device_count
+            raise ValueError(f"'batch={batch}' must be a multiple of GPU count {n}. Try 'batch={batch // n * n}' or "
+                             f"'batch={batch // n * n + n}', the nearest batch sizes evenly divisible by {n}.")
         space = ' ' * (len(s) + 1)
         for i, d in enumerate(devices):
             p = torch.cuda.get_device_properties(i)
@@ -125,6 +133,30 @@ def fuse_conv_and_bn(conv, bn):
     fusedconv.bias.copy_(torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn)
 
     return fusedconv
+
+
+def fuse_deconv_and_bn(deconv, bn):
+    fuseddconv = nn.ConvTranspose2d(deconv.in_channels,
+                                    deconv.out_channels,
+                                    kernel_size=deconv.kernel_size,
+                                    stride=deconv.stride,
+                                    padding=deconv.padding,
+                                    output_padding=deconv.output_padding,
+                                    dilation=deconv.dilation,
+                                    groups=deconv.groups,
+                                    bias=True).requires_grad_(False).to(deconv.weight.device)
+
+    # prepare filters
+    w_deconv = deconv.weight.clone().view(deconv.out_channels, -1)
+    w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
+    fuseddconv.weight.copy_(torch.mm(w_bn, w_deconv).view(fuseddconv.weight.shape))
+
+    # Prepare spatial bias
+    b_conv = torch.zeros(deconv.weight.size(1), device=deconv.weight.device) if deconv.bias is None else deconv.bias
+    b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
+    fuseddconv.bias.copy_(torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn)
+
+    return fuseddconv
 
 
 def model_info(model, verbose=False, imgsz=640):
@@ -214,7 +246,7 @@ def intersect_dicts(da, db, exclude=()):
 
 def is_parallel(model):
     # Returns True if model is of type DP or DDP
-    return type(model) in (nn.parallel.DataParallel, nn.parallel.DistributedDataParallel)
+    return isinstance(model, (nn.parallel.DataParallel, nn.parallel.DistributedDataParallel))
 
 
 def de_parallel(model):
@@ -246,6 +278,7 @@ class ModelEMA:
     """ Updated Exponential Moving Average (EMA) from https://github.com/rwightman/pytorch-image-models
     Keeps a moving average of everything in the model state_dict (parameters and buffers)
     For EMA details see https://www.tensorflow.org/api_docs/python/tf/train/ExponentialMovingAverage
+    To disable EMA set the `enabled` attribute to `False`.
     """
 
     def __init__(self, model, decay=0.9999, tau=2000, updates=0):
@@ -255,22 +288,25 @@ class ModelEMA:
         self.decay = lambda x: decay * (1 - math.exp(-x / tau))  # decay exponential ramp (to help early epochs)
         for p in self.ema.parameters():
             p.requires_grad_(False)
+        self.enabled = True
 
     def update(self, model):
         # Update EMA parameters
-        self.updates += 1
-        d = self.decay(self.updates)
+        if self.enabled:
+            self.updates += 1
+            d = self.decay(self.updates)
 
-        msd = de_parallel(model).state_dict()  # model state_dict
-        for k, v in self.ema.state_dict().items():
-            if v.dtype.is_floating_point:  # true for FP16 and FP32
-                v *= d
-                v += (1 - d) * msd[k].detach()
-        # assert v.dtype == msd[k].dtype == torch.float32, f'{k}: EMA {v.dtype} and model {msd[k].dtype} must be FP32'
+            msd = de_parallel(model).state_dict()  # model state_dict
+            for k, v in self.ema.state_dict().items():
+                if v.dtype.is_floating_point:  # true for FP16 and FP32
+                    v *= d
+                    v += (1 - d) * msd[k].detach()
+                    # assert v.dtype == msd[k].dtype == torch.float32, f'{k}: EMA {v.dtype},  model {msd[k].dtype}'
 
     def update_attr(self, model, include=(), exclude=('process_group', 'reducer')):
         # Update EMA attributes
-        copy_attr(self.ema, model, include, exclude)
+        if self.enabled:
+            copy_attr(self.ema, model, include, exclude)
 
 
 def strip_optimizer(f='best.pt', s=''):
@@ -284,8 +320,8 @@ def strip_optimizer(f='best.pt', s=''):
             strip_optimizer(f)
 
     Args:
-        f (str): file path to model state to strip the optimizer from. Default is 'best.pt'.
-        s (str): file path to save the model with stripped optimizer to. Default is ''. If not provided, the original file will be overwritten.
+        f (str): file path to model to strip the optimizer from. Default is 'best.pt'.
+        s (str): file path to save the model with stripped optimizer to. If not provided, 'f' will be overwritten.
 
     Returns:
         None
@@ -305,23 +341,6 @@ def strip_optimizer(f='best.pt', s=''):
     torch.save(x, s or f)
     mb = os.path.getsize(s or f) / 1E6  # filesize
     LOGGER.info(f"Optimizer stripped from {f},{f' saved as {s},' if s else ''} {mb:.1f}MB")
-
-
-def guess_task_from_model_yaml(model):
-    try:
-        cfg = model if isinstance(model, dict) else model.yaml  # model cfg dict
-        m = cfg["head"][-1][-2].lower()  # output module name
-        task = None
-        if m in ["classify", "classifier", "cls", "fc"]:
-            task = "classify"
-        if m in ["detect"]:
-            task = "detect"
-        if m in ["segment"]:
-            task = "segment"
-    except Exception as e:
-        raise SyntaxError('Unknown task. Define task explicitly, i.e. task=detect when running your command. '
-                          'Valid tasks are detect, segment, classify.') from e
-    return task
 
 
 def profile(input, ops, n=10, device=None):
@@ -380,12 +399,12 @@ class EarlyStopping:
     Early stopping class that stops training when a specified number of epochs have passed without improvement.
     """
 
-    def __init__(self, patience=30):
+    def __init__(self, patience=50):
         """
         Initialize early stopping object
 
         Args:
-            patience (int, optional): Number of epochs to wait after fitness stops improving before stopping. Default is 30.
+            patience (int, optional): Number of epochs to wait after fitness stops improving before stopping.
         """
         self.best_fitness = 0.0  # i.e. mAP
         self.best_epoch = 0

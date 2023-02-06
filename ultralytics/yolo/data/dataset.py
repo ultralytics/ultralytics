@@ -47,6 +47,8 @@ class YOLODataset(BaseDataset):
 
     def cache_labels(self, path=Path("./labels.cache")):
         # Cache dataset labels, check images and read shapes
+        if path.exists():
+            path.unlink()  # remove *.cache file if exists
         x = {"labels": []}
         nm, nf, ne, nc, msgs = 0, 0, 0, 0, []  # number missing, found, empty, corrupt, messages
         desc = f"{self.prefix}Scanning {path.parent / path.stem}..."
@@ -85,7 +87,7 @@ class YOLODataset(BaseDataset):
         x["results"] = nf, nm, ne, nc, len(self.im_files)
         x["msgs"] = msgs  # warnings
         x["version"] = self.cache_version  # cache version
-        self.im_files = [lb["im_file"] for lb in x["labels"]]
+        self.im_files = [lb["im_file"] for lb in x["labels"]]  # update im_files
         if is_dir_writeable(path.parent):
             np.save(str(path), x)  # save cache for next time
             path.with_suffix(".cache.npy").rename(path)  # remove .npy suffix
@@ -116,6 +118,17 @@ class YOLODataset(BaseDataset):
         # Read cache
         [cache.pop(k) for k in ("hash", "version", "msgs")]  # remove items
         labels = cache["labels"]
+
+        # Check if the dataset is all boxes or all segments
+        len_boxes = sum(len(lb["bboxes"]) for lb in labels)
+        len_segments = sum(len(lb["segments"]) for lb in labels)
+        if len_segments and len_boxes != len_segments:
+            LOGGER.warning(
+                f"WARNING ⚠️ Box and segment counts should be equal, but got len(segments) = {len_segments}, "
+                f"len(boxes) = {len_boxes}. To resolve this only boxes will be used and all segments will be removed. "
+                "To avoid this please supply either a detect or segment dataset, not a detect-segment mixed dataset.")
+            for lb in labels:
+                lb["segments"] = []
         nl = len(np.concatenate([label["cls"] for label in labels], 0))  # number of labels
         assert nl > 0, f"{self.prefix}All labels empty in {cache_path}, can not start training. {HELP_URL}"
         return labels
@@ -123,8 +136,9 @@ class YOLODataset(BaseDataset):
     # TODO: use hyp config to set all these augmentations
     def build_transforms(self, hyp=None):
         if self.augment:
-            mosaic = self.augment and not self.rect
-            transforms = mosaic_transforms(self, self.imgsz, hyp) if mosaic else affine_transforms(self.imgsz, hyp)
+            hyp.mosaic = hyp.mosaic if self.augment and not self.rect else 0.0
+            hyp.mixup = hyp.mixup if self.augment and not self.rect else 0.0
+            transforms = v8_transforms(self, self.imgsz, hyp)
         else:
             transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), scaleup=False)])
         transforms.append(
@@ -132,17 +146,16 @@ class YOLODataset(BaseDataset):
                    normalize=True,
                    return_mask=self.use_segments,
                    return_keypoint=self.use_keypoints,
-                   batch_idx=True))
+                   batch_idx=True,
+                   mask_ratio=hyp.mask_ratio,
+                   mask_overlap=hyp.overlap_mask))
         return transforms
 
     def close_mosaic(self, hyp):
-        self.transforms = affine_transforms(self.imgsz, hyp)
-        self.transforms.append(
-            Format(bbox_format="xywh",
-                   normalize=True,
-                   return_mask=self.use_segments,
-                   return_keypoint=self.use_keypoints,
-                   batch_idx=True))
+        hyp.mosaic = 0.0  # set mosaic ratio=0.0
+        hyp.copy_paste = 0.0  # keep the same behavior as previous v8 close-mosaic
+        hyp.mixup = 0.0  # keep the same behavior as previous v8 close-mosaic
+        self.transforms = self.build_transforms(hyp)
 
     def update_labels_info(self, label):
         """custom your label format here"""
@@ -158,8 +171,6 @@ class YOLODataset(BaseDataset):
 
     @staticmethod
     def collate_fn(batch):
-        # TODO: returning a dict can make thing easier and cleaner when using dataset in training
-        # but I don't know if this will slow down a little bit.
         new_batch = {}
         keys = batch[0].keys()
         values = list(zip(*[list(b.values()) for b in batch]))

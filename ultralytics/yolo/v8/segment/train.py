@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
-
+import sys
 from copy import copy
 
 import torch
@@ -18,11 +18,11 @@ from ultralytics.yolo.v8.detect.train import Loss
 # BaseTrainer python usage
 class SegmentationTrainer(v8.detect.DetectionTrainer):
 
-    def __init__(self, config=DEFAULT_CFG, overrides=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None):
         if overrides is None:
             overrides = {}
         overrides["task"] = "segment"
-        super().__init__(config, overrides)
+        super().__init__(cfg, overrides)
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         model = SegmentationModel(cfg, ch=3, nc=self.data["nc"], verbose=verbose)
@@ -110,11 +110,11 @@ class SegLoss(Loss):
                                               target_scores, target_scores_sum, fg_mask)
             for i in range(batch_size):
                 if fg_mask[i].sum():
-                    mask_idx = target_gt_idx[i][fg_mask[i]] + 1
+                    mask_idx = target_gt_idx[i][fg_mask[i]]
                     if self.overlap:
-                        gt_mask = torch.where(masks[[i]] == mask_idx.view(-1, 1, 1), 1.0, 0.0)
+                        gt_mask = torch.where(masks[[i]] == (mask_idx + 1).view(-1, 1, 1), 1.0, 0.0)
                     else:
-                        gt_mask = masks[batch_idx == i][mask_idx]
+                        gt_mask = masks[batch_idx.view(-1) == i][mask_idx]
                     xyxyn = target_bboxes[i][fg_mask[i]] / imgsz[[1, 0, 1, 0]]
                     marea = xyxy2xywh(xyxyn)[:, 2:].prod(1)
                     mxyxy = xyxyn * torch.tensor([mask_w, mask_h, mask_w, mask_h], device=self.device)
@@ -140,15 +140,18 @@ class SegLoss(Loss):
         return (crop_mask(loss, xyxy).mean(dim=(1, 2)) / area).mean()
 
 
-def train(cfg=DEFAULT_CFG):
-    cfg.model = cfg.model or "yolov8n-seg.pt"
-    cfg.data = cfg.data or "coco128-seg.yaml"  # or yolo.ClassificationDataset("mnist")
-    cfg.device = cfg.device if cfg.device is not None else ''
-    # trainer = SegmentationTrainer(cfg)
-    # trainer.train()
-    from ultralytics import YOLO
-    model = YOLO(cfg.model)
-    model.train(**vars(cfg))
+def train(cfg=DEFAULT_CFG, use_python=False):
+    model = cfg.model or "yolov8n-seg.pt"
+    data = cfg.data or "coco128-seg.yaml"  # or yolo.ClassificationDataset("mnist")
+    device = cfg.device if cfg.device is not None else ''
+
+    args = dict(model=model, data=data, device=device)
+    if use_python:
+        from ultralytics import YOLO
+        YOLO(model).train(**args)
+    else:
+        trainer = SegmentationTrainer(overrides=args)
+        trainer.train()
 
 
 if __name__ == "__main__":

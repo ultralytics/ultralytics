@@ -1,4 +1,5 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
+import sys
 
 import torch
 
@@ -22,7 +23,7 @@ class ClassificationPredictor(BasePredictor):
         results = []
         for i, pred in enumerate(preds):
             shape = orig_img[i].shape if isinstance(orig_img, list) else orig_img.shape
-            results.append(Results(probs=pred.softmax(0), orig_shape=shape[:2]))
+            results.append(Results(probs=pred, orig_shape=shape[:2]))
         return results
 
     def write_results(self, idx, results, batch):
@@ -32,7 +33,7 @@ class ClassificationPredictor(BasePredictor):
             im = im[None]  # expand for batch dim
         self.seen += 1
         im0 = im0.copy()
-        if self.webcam or self.from_img:  # batch_size >= 1
+        if self.source_type.webcam or self.source_type.from_img:  # batch_size >= 1
             log_string += f'{idx}: '
             frame = self.dataset.count
         else:
@@ -63,12 +64,18 @@ class ClassificationPredictor(BasePredictor):
         return log_string
 
 
-def predict(cfg=DEFAULT_CFG):
-    cfg.model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
-    cfg.source = cfg.source if cfg.source is not None else ROOT / "assets" if (ROOT / "assets").exists() \
+def predict(cfg=DEFAULT_CFG, use_python=False):
+    model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
+    source = cfg.source if cfg.source is not None else ROOT / "assets" if (ROOT / "assets").exists() \
         else "https://ultralytics.com/images/bus.jpg"
-    predictor = ClassificationPredictor(cfg)
-    predictor.predict_cli()
+
+    args = dict(model=model, source=source)
+    if use_python:
+        from ultralytics import YOLO
+        YOLO(model)(**args)
+    else:
+        predictor = ClassificationPredictor(overrides=args)
+        predictor.predict_cli()
 
 
 if __name__ == "__main__":

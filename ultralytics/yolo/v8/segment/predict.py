@@ -1,5 +1,7 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
+import sys
+
 import torch
 
 from ultralytics.yolo.engine.results import Results
@@ -41,7 +43,8 @@ class SegmentationPredictor(DetectionPredictor):
         if len(im.shape) == 3:
             im = im[None]  # expand for batch dim
         self.seen += 1
-        if self.webcam or self.from_img:  # batch_size >= 1
+        imc = im0.copy() if self.args.save_crop else im0
+        if self.source_type.webcam or self.source_type.from_img:  # batch_size >= 1
             log_string += f'{idx}: '
             frame = self.dataset.count
         else:
@@ -69,15 +72,11 @@ class SegmentationPredictor(DetectionPredictor):
             im_gpu=torch.as_tensor(im0, dtype=torch.float16).to(self.device).permute(2, 0, 1).flip(0).contiguous() /
             255 if self.args.retina_masks else im[idx])
 
-        # Segments
-        if self.args.save_txt:
-            segments = mask.segments
-
         # Write results
         for j, d in enumerate(reversed(det)):
             cls, conf = d.cls.squeeze(), d.conf.squeeze()
             if self.args.save_txt:  # Write to file
-                seg = segments[j].copy()
+                seg = mask.segments[len(det) - j - 1].copy()  # reversed mask.segments
                 seg = seg.reshape(-1)  # (n,2) to (n*2)
                 line = (cls, *seg, conf) if self.args.save_conf else (cls, *seg)  # label format
                 with open(f'{self.txt_path}.txt', 'a') as f:
@@ -89,7 +88,6 @@ class SegmentationPredictor(DetectionPredictor):
                     self.model.names[c] if self.args.hide_conf else f'{self.model.names[c]} {conf:.2f}')
                 self.annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True)) if self.args.boxes else None
             if self.args.save_crop:
-                imc = im0.copy()
                 save_one_box(d.xyxy,
                              imc,
                              file=self.save_dir / 'crops' / self.model.model.names[c] / f'{self.data_path.stem}.jpg',
@@ -98,12 +96,18 @@ class SegmentationPredictor(DetectionPredictor):
         return log_string
 
 
-def predict(cfg=DEFAULT_CFG):
-    cfg.model = cfg.model or "yolov8n-seg.pt"
-    cfg.source = cfg.source if cfg.source is not None else ROOT / "assets" if (ROOT / "assets").exists() \
+def predict(cfg=DEFAULT_CFG, use_python=False):
+    model = cfg.model or "yolov8n-seg.pt"
+    source = cfg.source if cfg.source is not None else ROOT / "assets" if (ROOT / "assets").exists() \
         else "https://ultralytics.com/images/bus.jpg"
-    predictor = SegmentationPredictor(cfg)
-    predictor.predict_cli()
+
+    args = dict(model=model, source=source)
+    if use_python:
+        from ultralytics import YOLO
+        YOLO(model)(**args)
+    else:
+        predictor = SegmentationPredictor(overrides=args)
+        predictor.predict_cli()
 
 
 if __name__ == "__main__":

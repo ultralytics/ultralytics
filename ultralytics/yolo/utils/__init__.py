@@ -5,6 +5,7 @@ import inspect
 import logging.config
 import os
 import platform
+import re
 import subprocess
 import sys
 import tempfile
@@ -27,7 +28,6 @@ DEFAULT_CFG_PATH = ROOT / "yolo/cfg/default.yaml"
 RANK = int(os.getenv('RANK', -1))
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLOv5 multiprocessing threads
 AUTOINSTALL = str(os.getenv('YOLO_AUTOINSTALL', True)).lower() == 'true'  # global auto-install mode
-FONT = 'Arial.ttf'  # https://ultralytics.com/assets/Arial.ttf
 VERBOSE = str(os.getenv('YOLO_VERBOSE', True)).lower() == 'true'  # global verbose mode
 TQDM_BAR_FORMAT = '{l_bar}{bar:10}{r_bar}'  # tqdm bar format
 LOGGING_NAME = 'ultralytics'
@@ -113,9 +113,66 @@ class IterableSimpleNamespace(SimpleNamespace):
         return getattr(self, key, default)
 
 
+def yaml_save(file='data.yaml', data=None):
+    """
+    Save YAML data to a file.
+
+    Args:
+        file (str, optional): File name. Default is 'data.yaml'.
+        data (dict, optional): Data to save in YAML format. Default is None.
+
+    Returns:
+        None: Data is saved to the specified file.
+    """
+    file = Path(file)
+    if not file.parent.exists():
+        # Create parent directories if they don't exist
+        file.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(file, 'w') as f:
+        # Dump data to file in YAML format, converting Path objects to strings
+        yaml.safe_dump({k: str(v) if isinstance(v, Path) else v for k, v in data.items()}, f, sort_keys=False)
+
+
+def yaml_load(file='data.yaml', append_filename=False):
+    """
+    Load YAML data from a file.
+
+    Args:
+        file (str, optional): File name. Default is 'data.yaml'.
+        append_filename (bool): Add the YAML filename to the YAML dictionary. Default is False.
+
+    Returns:
+        dict: YAML data and file name.
+    """
+    with open(file, errors='ignore', encoding='utf-8') as f:
+        # Add YAML filename to dict and return
+        s = f.read()  # string
+        if not s.isprintable():  # remove special characters
+            s = re.sub(r'[^\x09\x0A\x0D\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD\U00010000-\U0010ffff]+', '', s)
+        return {**yaml.safe_load(s), 'yaml_file': str(file)} if append_filename else yaml.safe_load(s)
+
+
+def yaml_print(yaml_file: Union[str, Path, dict]) -> None:
+    """
+    Pretty prints a yaml file or a yaml-formatted dictionary.
+
+    Args:
+        yaml_file: The file path of the yaml file or a yaml-formatted dictionary.
+
+    Returns:
+        None
+    """
+    yaml_dict = yaml_load(yaml_file) if isinstance(yaml_file, (str, Path)) else yaml_file
+    dump = yaml.dump(yaml_dict, default_flow_style=False)
+    LOGGER.info(f"Printing '{colorstr('bold', 'black', yaml_file)}'\n\n{dump}")
+
+
 # Default configuration
-with open(DEFAULT_CFG_PATH, errors='ignore') as f:
-    DEFAULT_CFG_DICT = yaml.safe_load(f)
+DEFAULT_CFG_DICT = yaml_load(DEFAULT_CFG_PATH)
+for k, v in DEFAULT_CFG_DICT.items():
+    if isinstance(v, str) and v.lower() == 'none':
+        DEFAULT_CFG_DICT[k] = None
 DEFAULT_CFG_KEYS = DEFAULT_CFG_DICT.keys()
 DEFAULT_CFG = IterableSimpleNamespace(**DEFAULT_CFG_DICT)
 
@@ -127,8 +184,7 @@ def is_colab():
     Returns:
         bool: True if running inside a Colab notebook, False otherwise.
     """
-    # Check if the 'google.colab' module is present in sys.modules
-    return 'google.colab' in sys.modules
+    return 'COLAB_RELEASE_TAG' in os.environ or 'COLAB_BACKEND_VERSION' in os.environ
 
 
 def is_kaggle():
@@ -271,6 +327,20 @@ def get_git_origin_url():
     return None  # if not git dir or on error
 
 
+def get_git_branch():
+    """
+    Returns the current git branch name. If not in a git repository, returns None.
+
+    Returns:
+        (str) or (None): The current git branch name.
+    """
+    if is_git_dir():
+        with contextlib.suppress(subprocess.CalledProcessError):
+            origin = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"])
+            return origin.decode().strip()
+    return None  # if not git dir or on error
+
+
 def get_default_args(func):
     # Get func() default arguments
     signature = inspect.signature(func)
@@ -391,88 +461,51 @@ def threaded(func):
     return wrapper
 
 
-def yaml_save(file='data.yaml', data=None):
-    """
-    Save YAML data to a file.
-
-    Args:
-        file (str, optional): File name. Default is 'data.yaml'.
-        data (dict, optional): Data to save in YAML format. Default is None.
-
-    Returns:
-        None: Data is saved to the specified file.
-    """
-    file = Path(file)
-    if not file.parent.exists():
-        # Create parent directories if they don't exist
-        file.parent.mkdir(parents=True, exist_ok=True)
-
-    with open(file, 'w') as f:
-        # Dump data to file in YAML format, converting Path objects to strings
-        yaml.safe_dump({k: str(v) if isinstance(v, Path) else v for k, v in data.items()}, f, sort_keys=False)
-
-
-def yaml_load(file='data.yaml', append_filename=False):
-    """
-    Load YAML data from a file.
-
-    Args:
-        file (str, optional): File name. Default is 'data.yaml'.
-        append_filename (bool): Add the YAML filename to the YAML dictionary. Default is False.
-
-    Returns:
-        dict: YAML data and file name.
-    """
-    with open(file, errors='ignore') as f:
-        # Add YAML filename to dict and return
-        return {**yaml.safe_load(f), 'yaml_file': str(file)} if append_filename else yaml.safe_load(f)
-
-
-def yaml_print(yaml_file: Union[str, Path, dict]) -> None:
-    """
-    Pretty prints a yaml file or a yaml-formatted dictionary.
-
-    Args:
-        yaml_file: The file path of the yaml file or a yaml-formatted dictionary.
-
-    Returns:
-        None
-    """
-    yaml_dict = yaml_load(yaml_file) if isinstance(yaml_file, (str, Path)) else yaml_file
-    dump = yaml.dump(yaml_dict, default_flow_style=False)
-    LOGGER.info(f"Printing '{colorstr('bold', 'black', yaml_file)}'\n\n{dump}")
-
-
 def set_sentry():
     """
     Initialize the Sentry SDK for error tracking and reporting if pytest is not currently running.
     """
 
     def before_send(event, hint):
-        oss = 'colab' if is_colab() else 'kaggle' if is_kaggle() else 'jupyter' if is_jupyter() else \
-            'docker' if is_docker() else platform.system()
+        if 'exc_info' in hint:
+            exc_type, exc_value, tb = hint['exc_info']
+            if exc_type in (KeyboardInterrupt, FileNotFoundError) \
+                    or 'out of memory' in str(exc_value) \
+                    or not sys.argv[0].endswith('yolo'):
+                return None  # do not send event
+
+        env = 'Colab' if is_colab() else 'Kaggle' if is_kaggle() else 'Jupyter' if is_jupyter() else \
+            'Docker' if is_docker() else platform.system()
         event['tags'] = {
             "sys_argv": sys.argv[0],
             "sys_argv_name": Path(sys.argv[0]).name,
             "install": 'git' if is_git_dir() else 'pip' if is_pip_package() else 'other',
-            "os": oss}
+            "os": env}
         return event
 
     if SETTINGS['sync'] and \
+            RANK in {-1, 0} and \
+            sys.argv[0].endswith('yolo') and \
             not is_pytest_running() and \
             not is_github_actions_ci() and \
-            (is_pip_package() or get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git"):
-        import sentry_sdk  # noqa
+            ((is_pip_package() and not is_git_dir()) or
+             (get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git" and get_git_branch() == "main")):
 
-        import ultralytics
+        import sentry_sdk  # noqa
+        from ultralytics import __version__
+
         sentry_sdk.init(
-            dsn="https://1f331c322109416595df20a91f4005d3@o4504521589325824.ingest.sentry.io/4504521592406016",
+            dsn="https://f805855f03bb4363bc1e16cb7d87b654@o4504521589325824.ingest.sentry.io/4504521592406016",
             debug=False,
             traces_sample_rate=1.0,
-            release=ultralytics.__version__,
+            release=__version__,
             environment='production',  # 'dev' or 'production'
             before_send=before_send,
-            ignore_errors=[KeyboardInterrupt])
+            ignore_errors=[KeyboardInterrupt, FileNotFoundError])
+
+        # Disable all sentry logging
+        for logger in "sentry_sdk", "sentry_sdk.errors":
+            logging.getLogger(logger).setLevel(logging.CRITICAL)
 
 
 def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.1'):
@@ -530,7 +563,7 @@ def set_settings(kwargs, file=USER_CONFIG_DIR / 'settings.yaml'):
     yaml_save(file, SETTINGS)
 
 
-# Run below code on utils init -----------------------------------------------------------------------------------------
+# Run below code on yolo/utils init ------------------------------------------------------------------------------------
 
 # Set logger
 set_logging(LOGGING_NAME)  # run before defining LOGGER

@@ -1,14 +1,17 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
 from pathlib import Path
+from typing import List
 
+import sys
 from ultralytics import yolo  # noqa
-from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, attempt_load_one_weight
+from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, SegmentationModel, attempt_load_one_weight,
+                                  guess_model_task)
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
-from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, callbacks, yaml_load
-from ultralytics.yolo.utils.checks import check_yaml
-from ultralytics.yolo.utils.torch_utils import guess_task_from_model_yaml, smart_inference_mode
+from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, RANK, callbacks, yaml_load
+from ultralytics.yolo.utils.checks import check_yaml, check_imgsz
+from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 
 # Map head to model, trainer, validator, and predictor classes
 MODEL_MAP = {
@@ -53,10 +56,15 @@ class YOLO:
         self.overrides = {}  # overrides for trainer object
 
         # Load or create new YOLO model
-        {'.pt': self._load, '.yaml': self._new}[Path(model).suffix](model)
+        load_methods = {'.pt': self._load, '.yaml': self._new}
+        suffix = Path(model).suffix
+        if suffix in load_methods:
+            {'.pt': self._load, '.yaml': self._new}[suffix](model)
+        else:
+            raise NotImplementedError(f"'{suffix}' model loading not implemented")
 
-    def __call__(self, source=None, stream=False, verbose=False, **kwargs):
-        return self.predict(source, stream, verbose, **kwargs)
+    def __call__(self, source=None, stream=False, **kwargs):
+        return self.predict(source, stream, **kwargs)
 
     def _new(self, cfg: str, verbose=True):
         """
@@ -68,9 +76,9 @@ class YOLO:
         """
         cfg = check_yaml(cfg)  # check YAML
         cfg_dict = yaml_load(cfg, append_filename=True)  # model dict
-        self.task = guess_task_from_model_yaml(cfg_dict)
+        self.task = guess_model_task(cfg_dict)
         self.ModelClass, self.TrainerClass, self.ValidatorClass, self.PredictorClass = \
-            self._guess_ops_from_task(self.task)
+            self._assign_ops_from_task(self.task)
         self.model = self.ModelClass(cfg_dict, verbose=verbose)  # initialize
         self.cfg = cfg
 
@@ -87,7 +95,7 @@ class YOLO:
         self.overrides = self.model.args
         self._reset_ckpt_args(self.overrides)
         self.ModelClass, self.TrainerClass, self.ValidatorClass, self.PredictorClass = \
-            self._guess_ops_from_task(self.task)
+            self._assign_ops_from_task(self.task)
 
     def reset(self):
         """
@@ -111,8 +119,7 @@ class YOLO:
     def fuse(self):
         self.model.fuse()
 
-    @smart_inference_mode()
-    def predict(self, source=None, stream=False, verbose=False, **kwargs):
+    def predict(self, source=None, stream=False, **kwargs):
         """
         Perform prediction using the YOLO model.
 
@@ -120,12 +127,11 @@ class YOLO:
             source (str | int | PIL | np.ndarray): The source of the image to make predictions on.
                           Accepts all source types accepted by the YOLO model.
             stream (bool): Whether to stream the predictions or not. Defaults to False.
-            verbose (bool): Whether to print verbose information or not. Defaults to False.
             **kwargs : Additional keyword arguments passed to the predictor.
                        Check the 'configuration' section in the documentation for all available options.
 
         Returns:
-            (dict): The prediction results.
+            (List[ultralytics.yolo.engine.results.Results]): The prediction results.
         """
         overrides = self.overrides.copy()
         overrides["conf"] = 0.25
@@ -137,7 +143,8 @@ class YOLO:
             self.predictor.setup_model(model=self.model)
         else:  # only update args if predictor is already setup
             self.predictor.args = get_cfg(self.predictor.args, overrides)
-        return self.predictor(source=source, stream=stream, verbose=verbose)
+        is_cli = sys.argv[0].endswith('yolo') or sys.argv[0].endswith('ultralytics')
+        return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
 
     @smart_inference_mode()
     def val(self, data=None, **kwargs):
@@ -154,6 +161,9 @@ class YOLO:
         args = get_cfg(cfg=DEFAULT_CFG, overrides=overrides)
         args.data = data or args.data
         args.task = self.task
+        if args.imgsz == DEFAULT_CFG.imgsz:
+            args.imgsz = self.model.args['imgsz']  # use trained imgsz unless custom value is passed
+        args.imgsz = check_imgsz(args.imgsz, max_dim=1)
 
         validator = self.ValidatorClass(args=args)
         validator(model=self.model)
@@ -171,6 +181,8 @@ class YOLO:
         overrides.update(kwargs)
         args = get_cfg(cfg=DEFAULT_CFG, overrides=overrides)
         args.task = self.task
+        if args.imgsz == DEFAULT_CFG.imgsz:
+            args.imgsz = self.model.args['imgsz']  # use trained imgsz unless custom value is passed
 
         exporter = Exporter(overrides=args)
         exporter(model=self.model)
@@ -200,8 +212,9 @@ class YOLO:
             self.model = self.trainer.model
         self.trainer.train()
         # update model and cfg after training
-        self.model, _ = attempt_load_one_weight(str(self.trainer.best))
-        self.overrides = self.model.args
+        if RANK in {0, -1}:
+            self.model, _ = attempt_load_one_weight(str(self.trainer.best))
+            self.overrides = self.model.args
 
     def to(self, device):
         """
@@ -212,7 +225,7 @@ class YOLO:
         """
         self.model.to(device)
 
-    def _guess_ops_from_task(self, task):
+    def _assign_ops_from_task(self, task):
         model_class, train_lit, val_lit, pred_lit = MODEL_MAP[task]
         # warning: eval is unsafe. Use with caution
         trainer_class = eval(train_lit.replace("TYPE", f"{self.type}"))
@@ -228,7 +241,15 @@ class YOLO:
         """
         return self.model.names
 
-    def add_callback(self, event: str, func):
+    @property
+    def transforms(self):
+        """
+         Returns transform of the loaded model.
+        """
+        return self.model.transforms if hasattr(self.model, 'transforms') else None
+
+    @staticmethod
+    def add_callback(event: str, func):
         """
         Add callback
         """
@@ -236,16 +257,6 @@ class YOLO:
 
     @staticmethod
     def _reset_ckpt_args(args):
-        args.pop("project", None)
-        args.pop("name", None)
-        args.pop("exist_ok", None)
-        args.pop("resume", None)
-        args.pop("batch", None)
-        args.pop("epochs", None)
-        args.pop("cache", None)
-        args.pop("save_json", None)
-        args.pop("half", None)
-        args.pop("v5loader", None)
-
-        # set device to '' to prevent from auto DDP usage
-        args["device"] = ''
+        for arg in 'augment', 'verbose', 'project', 'name', 'exist_ok', 'resume', 'batch', 'epochs', 'cache', \
+                'save_json', 'half', 'v5loader', 'device', 'cfg', 'save', 'rect', 'plots':
+            args.pop(arg, None)

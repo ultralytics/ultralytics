@@ -125,7 +125,7 @@ given task.
 | show           | False                | show results if possible                                |
 | save_txt       | False                | save results as .txt file                               |
 | save_conf      | False                | save results with confidence scores                     |
-| save_crop      | Fasle                | save cropped images with results                        |
+| save_crop      | False                | save cropped images with results                        |
 | hide_labels    | False                | hide labels                                             |
 | hide_conf      | False                | hide confidence scores                                  |
 | vid_stride     | False                | video frame-rate stride                                 |

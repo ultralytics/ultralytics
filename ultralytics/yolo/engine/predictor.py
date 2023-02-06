@@ -30,13 +30,13 @@ from collections import defaultdict
 from pathlib import Path
 
 import cv2
+import torch
 
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.yolo.cfg import get_cfg
-from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages, LoadPilAndNumpy, LoadScreenshots, LoadStreams
-from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS
-from ultralytics.yolo.utils import DEFAULT_CFG_PATH, LOGGER, SETTINGS, callbacks, colorstr, ops
-from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_imshow
+from ultralytics.yolo.data import load_inference_source
+from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, SETTINGS, callbacks, colorstr, ops
+from ultralytics.yolo.utils.checks import check_imgsz, check_imshow
 from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode
 
@@ -61,12 +61,12 @@ class BasePredictor:
         data_path (str): Path to data.
     """
 
-    def __init__(self, cfg=DEFAULT_CFG_PATH, overrides=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None):
         """
         Initializes the BasePredictor class.
 
         Args:
-            cfg (str, optional): Path to a configuration file. Defaults to DEFAULT_CONFIG.
+            cfg (str, optional): Path to a configuration file. Defaults to DEFAULT_CFG.
             overrides (dict, optional): Configuration overrides. Defaults to None.
         """
         self.args = get_cfg(cfg, overrides)
@@ -76,6 +76,8 @@ class BasePredictor:
         if self.args.conf is None:
             self.args.conf = 0.25  # default conf=0.25
         self.done_warmup = False
+        if self.args.show:
+            self.args.show = check_imshow(warn=True)
 
         # Usable if setup is done
         self.model = None
@@ -89,7 +91,8 @@ class BasePredictor:
         self.vid_path, self.vid_writer = None, None
         self.annotator = None
         self.data_path = None
-        self.callbacks = defaultdict(list, {k: v for k, v in callbacks.default_callbacks.items()})  # add callbacks
+        self.source_type = None
+        self.callbacks = defaultdict(list, callbacks.default_callbacks)  # add callbacks
         callbacks.add_integration_callbacks(self)
 
     def preprocess(self, img):
@@ -104,74 +107,41 @@ class BasePredictor:
     def postprocess(self, preds, img, orig_img, classes=None):
         return preds
 
-    def setup_source(self, source=None):
-        if not self.model:
-            raise Exception("setup model before setting up source!")
-        # source
-        source, webcam, screenshot, from_img = self.check_source(source)
-        # model
-        stride, pt = self.model.stride, self.model.pt
-        imgsz = check_imgsz(self.args.imgsz, stride=stride, min_dim=2)  # check image size
-
-        # Dataloader
-        bs = 1  # batch_size
-        if webcam:
-            self.args.show = check_imshow(warn=True)
-            self.dataset = LoadStreams(source,
-                                       imgsz=imgsz,
-                                       stride=stride,
-                                       auto=pt,
-                                       transforms=getattr(self.model.model, 'transforms', None),
-                                       vid_stride=self.args.vid_stride)
-            bs = len(self.dataset)
-        elif screenshot:
-            self.dataset = LoadScreenshots(source,
-                                           imgsz=imgsz,
-                                           stride=stride,
-                                           auto=pt,
-                                           transforms=getattr(self.model.model, 'transforms', None))
-        elif from_img:
-            self.dataset = LoadPilAndNumpy(source,
-                                           imgsz=imgsz,
-                                           stride=stride,
-                                           auto=pt,
-                                           transforms=getattr(self.model.model, 'transforms', None))
-        else:
-            self.dataset = LoadImages(source,
-                                      imgsz=imgsz,
-                                      stride=stride,
-                                      auto=pt,
-                                      transforms=getattr(self.model.model, 'transforms', None),
-                                      vid_stride=self.args.vid_stride)
-        self.vid_path, self.vid_writer = [None] * bs, [None] * bs
-
-        self.webcam = webcam
-        self.screenshot = screenshot
-        self.from_img = from_img
-        self.imgsz = imgsz
-        self.bs = bs
-
     @smart_inference_mode()
-    def __call__(self, source=None, model=None, verbose=False, stream=False):
+    def __call__(self, source=None, model=None, stream=False):
         if stream:
-            return self.stream_inference(source, model, verbose)
+            return self.stream_inference(source, model)
         else:
-            return list(self.stream_inference(source, model, verbose))  # merge list of Result into one
+            return list(self.stream_inference(source, model))  # merge list of Result into one
 
-    def predict_cli(self):
+    def predict_cli(self, source=None, model=None):
         # Method used for CLI prediction. It uses always generator as outputs as not required by CLI mode
-        gen = self.stream_inference(verbose=True)
+        gen = self.stream_inference(source, model)
         for _ in gen:  # running CLI inference without accumulating any outputs (do not modify)
             pass
 
-    def stream_inference(self, source=None, model=None, verbose=False):
+    def setup_source(self, source):
+        self.imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)  # check image size
+        self.dataset = load_inference_source(source=source,
+                                             transforms=getattr(self.model.model, 'transforms', None),
+                                             imgsz=self.imgsz,
+                                             vid_stride=self.args.vid_stride,
+                                             stride=self.model.stride,
+                                             auto=self.model.pt)
+        self.source_type = self.dataset.source_type
+        self.vid_path, self.vid_writer = [None] * self.dataset.bs, [None] * self.dataset.bs
+
+    def stream_inference(self, source=None, model=None):
         self.run_callbacks("on_predict_start")
+        if self.args.verbose:
+            LOGGER.info("")
 
         # setup model
         if not self.model:
             self.setup_model(model)
-        # setup source. Run every time predict is called
-        self.setup_source(source)
+        # setup source every time predict is called
+        self.setup_source(source if source is not None else self.args.source)
+
         # check if save_dir/ label file exists
         if self.args.save or self.args.save_txt:
             (self.save_dir / 'labels' if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
@@ -199,10 +169,10 @@ class BasePredictor:
             with self.dt[2]:
                 self.results = self.postprocess(preds, im, im0s, self.classes)
             for i in range(len(im)):
-                p, im0 = (path[i], im0s[i]) if self.webcam or self.from_img else (path, im0s)
+                p, im0 = (path[i], im0s[i]) if self.source_type.webcam or self.source_type.from_img else (path, im0s)
                 p = Path(p)
 
-                if verbose or self.args.save or self.args.save_txt or self.args.show:
+                if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
                     s += self.write_results(i, self.results, (p, im, im0))
 
                 if self.args.show:
@@ -215,11 +185,15 @@ class BasePredictor:
             yield from self.results
 
             # Print time (inference-only)
-            if verbose:
+            if self.args.verbose:
                 LOGGER.info(f"{s}{'' if len(preds) else '(no detections), '}{self.dt[1].dt * 1E3:.1f}ms")
 
+        # Release assets
+        if isinstance(self.vid_writer[-1], cv2.VideoWriter):
+            self.vid_writer[-1].release()  # release final video writer
+
         # Print results
-        if verbose and self.seen:
+        if self.args.verbose and self.seen:
             t = tuple(x.t / self.seen * 1E3 for x in self.dt)  # speeds per image
             LOGGER.info(f'Speed: %.1fms pre-process, %.1fms inference, %.1fms postprocess per image at shape '
                         f'{(1, 3, *self.imgsz)}' % t)
@@ -234,24 +208,9 @@ class BasePredictor:
         device = select_device(self.args.device)
         model = model or self.args.model
         self.args.half &= device.type != 'cpu'  # half precision only supported on CUDA
-        self.model = AutoBackend(model, device=device, dnn=self.args.dnn, fp16=self.args.half)
+        self.model = AutoBackend(model, device=device, dnn=self.args.dnn, data=self.args.data, fp16=self.args.half)
         self.device = device
         self.model.eval()
-
-    def check_source(self, source):
-        source = source if source is not None else self.args.source
-        webcam, screenshot, from_img = False, False, False
-        if isinstance(source, (str, int, Path)):  # int for local usb carame
-            source = str(source)
-            is_file = Path(source).suffix[1:] in (IMG_FORMATS + VID_FORMATS)
-            is_url = source.lower().startswith(('rtsp://', 'rtmp://', 'http://', 'https://'))
-            webcam = source.isnumeric() or source.endswith('.streams') or (is_url and not is_file)
-            screenshot = source.lower().startswith('screen')
-            if is_url and is_file:
-                source = check_file(source)  # download
-        else:
-            from_img = True
-        return source, webcam, screenshot, from_img
 
     def show(self, p):
         im0 = self.annotator.result()

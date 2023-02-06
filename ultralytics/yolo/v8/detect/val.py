@@ -172,7 +172,7 @@ class DetectionValidator(BaseValidator):
                                  hyp=vars(self.args),
                                  cache=False,
                                  pad=0.5,
-                                 rect=True,
+                                 rect=self.args.rect,
                                  workers=self.args.workers,
                                  prefix=colorstr(f'{self.args.mode}: '),
                                  shuffle=False,

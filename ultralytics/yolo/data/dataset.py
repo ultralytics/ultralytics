@@ -113,13 +113,15 @@ class YOLODataset(BaseDataset):
             tqdm(None, desc=self.prefix + d, total=n, initial=n, bar_format=TQDM_BAR_FORMAT)  # display cache results
             if cache["msgs"]:
                 LOGGER.info("\n".join(cache["msgs"]))  # display warnings
-        assert nf > 0, f"{self.prefix}No labels found in {cache_path}, can not start training. {HELP_URL}"
+        if nf == 0:  # number of labels found
+            raise FileNotFoundError(f"{self.prefix}No labels found in {cache_path}, can not start training. {HELP_URL}")
 
         # Read cache
         [cache.pop(k) for k in ("hash", "version", "msgs")]  # remove items
         labels = cache["labels"]
 
         # Check if the dataset is all boxes or all segments
+        len_cls = sum(len(lb["cls"]) for lb in labels)
         len_boxes = sum(len(lb["bboxes"]) for lb in labels)
         len_segments = sum(len(lb["segments"]) for lb in labels)
         if len_segments and len_boxes != len_segments:
@@ -129,8 +131,8 @@ class YOLODataset(BaseDataset):
                 "To avoid this please supply either a detect or segment dataset, not a detect-segment mixed dataset.")
             for lb in labels:
                 lb["segments"] = []
-        nl = len(np.concatenate([label["cls"] for label in labels], 0))  # number of labels
-        assert nl > 0, f"{self.prefix}All labels empty in {cache_path}, can not start training. {HELP_URL}"
+        if len_cls == 0:
+            raise ValueError(f"{self.prefix}All labels empty in {cache_path}, can not start training. {HELP_URL}")
         return labels
 
     # TODO: use hyp config to set all these augmentations

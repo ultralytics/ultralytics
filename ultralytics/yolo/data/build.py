@@ -162,7 +162,7 @@ def load_inference_source(source=None, transforms=None, imgsz=640, vid_stride=1,
     """
     # source
     source, webcam, screenshot, from_img, in_memory = check_source(source)
-    source_type = SourceTypes(webcam, screenshot, from_img) if not in_memory else source.source_type
+    source_type = source.source_type if in_memory else SourceTypes(webcam, screenshot, from_img)
 
     # Dataloader
     if in_memory:

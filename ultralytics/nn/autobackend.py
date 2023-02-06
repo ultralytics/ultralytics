@@ -18,6 +18,16 @@ from ultralytics.yolo.utils.downloads import attempt_download_asset, is_url
 from ultralytics.yolo.utils.ops import xywh2xyxy
 
 
+def check_class_names(names):
+    # Check class names. Map imagenet class codes to human-readable names if required. Convert lists to dicts.
+    if isinstance(names, list):  # names is a list
+        names = dict(enumerate(names))  # convert to dict
+    if isinstance(names[0], str) and names[0].startswith('n0'):  # imagenet class codes, i.e. 'n01440764'
+        map = yaml_load(ROOT / 'yolo/data/datasets/ImageNet.yaml')['map']  # human-readable names
+        names = {k: map[v] for k, v in names.items()}
+    return names
+
+
 class AutoBackend(nn.Module):
 
     def __init__(self, weights='yolov8n.pt', device=torch.device('cpu'), dnn=False, data=None, fp16=False, fuse=True):
@@ -226,10 +236,9 @@ class AutoBackend(nn.Module):
                                       f"https://docs.ultralytics.com/reference/nn/")
 
         # class names
-        if 'names' not in locals():
-            names = yaml_load(data)['names'] if data else {i: f'class{i}' for i in range(999)}
-        if names[0] == 'n01440764' and len(names) == 1000:  # ImageNet
-            names = yaml_load(ROOT / 'yolo/data/datasets/ImageNet.yaml')['names']  # human-readable names
+        if 'names' not in locals():  # names missing
+            names = yaml_load(data)['names'] if data else {i: f'class{i}' for i in range(999)}  # assign default
+        names = check_class_names(names)
 
         self.__dict__.update(locals())  # assign all variables to self
 

@@ -135,6 +135,30 @@ def fuse_conv_and_bn(conv, bn):
     return fusedconv
 
 
+def fuse_deconv_and_bn(deconv, bn):
+    fuseddconv = nn.ConvTranspose2d(deconv.in_channels,
+                                    deconv.out_channels,
+                                    kernel_size=deconv.kernel_size,
+                                    stride=deconv.stride,
+                                    padding=deconv.padding,
+                                    output_padding=deconv.output_padding,
+                                    dilation=deconv.dilation,
+                                    groups=deconv.groups,
+                                    bias=True).requires_grad_(False).to(deconv.weight.device)
+
+    # prepare filters
+    w_deconv = deconv.weight.clone().view(deconv.out_channels, -1)
+    w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
+    fuseddconv.weight.copy_(torch.mm(w_bn, w_deconv).view(fuseddconv.weight.shape))
+
+    # Prepare spatial bias
+    b_conv = torch.zeros(deconv.weight.size(1), device=deconv.weight.device) if deconv.bias is None else deconv.bias
+    b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
+    fuseddconv.bias.copy_(torch.mm(w_bn, b_conv.reshape(-1, 1)).reshape(-1) + b_bn)
+
+    return fuseddconv
+
+
 def model_info(model, verbose=False, imgsz=640):
     # Model information. imgsz may be int or list, i.e. imgsz=640 or imgsz=[640, 320]
     n_p = get_num_params(model)
@@ -222,7 +246,7 @@ def intersect_dicts(da, db, exclude=()):
 
 def is_parallel(model):
     # Returns True if model is of type DP or DDP
-    return type(model) in (nn.parallel.DataParallel, nn.parallel.DistributedDataParallel)
+    return isinstance(model, (nn.parallel.DataParallel, nn.parallel.DistributedDataParallel))
 
 
 def de_parallel(model):

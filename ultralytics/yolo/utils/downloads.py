@@ -110,6 +110,7 @@ def safe_download(url,
 def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
     # Attempt file download from GitHub release assets if not found locally. release = 'latest', 'v6.2', etc.
     from ultralytics.yolo.utils import SETTINGS
+    from ultralytics.yolo.utils.checks import check_yolov5u_filename
 
     def github_assets(repository, version='latest'):
         # Return GitHub repo tag and assets (i.e. ['yolov8n.pt', 'yolov8s.pt', ...])
@@ -118,7 +119,10 @@ def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
         response = requests.get(f'https://api.github.com/repos/{repository}/releases/{version}').json()  # github api
         return response['tag_name'], [x['name'] for x in response['assets']]  # tag, assets
 
-    file = Path(str(file).strip().replace("'", ''))
+    # YOLOv3/5u updates
+    file = str(file)
+    file = check_yolov5u_filename(file)
+    file = Path(file.strip().replace("'", ''))
     if file.exists():
         return str(file)
     elif (SETTINGS['weights_dir'] / file).exists():
@@ -136,7 +140,9 @@ def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
             return file
 
         # GitHub assets
-        assets = [f'yolov8{size}{suffix}.pt' for size in 'nsmlx' for suffix in ('', '6', '-cls', '-seg')]  # default
+        assets = [f'yolov8{size}{suffix}.pt' for size in 'nsmlx' for suffix in ('', '6', '-cls', '-seg')] + \
+                 [f'yolov5{size}u.pt' for size in 'nsmlx'] + \
+                 [f'yolov3{size}u.pt' for size in ('', '-spp', '-tiny')]
         try:
             tag, assets = github_assets(repo, release)
         except Exception:

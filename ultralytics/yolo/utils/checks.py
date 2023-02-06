@@ -1,14 +1,15 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
-
+import contextlib
 import glob
 import inspect
 import math
 import os
 import platform
+import re
 import shutil
+import subprocess
 import urllib
 from pathlib import Path
-from subprocess import check_output
 from typing import Optional
 
 import cv2
@@ -67,12 +68,13 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
                         f"Valid imgsz types are int i.e. 'imgsz=640' or list i.e. 'imgsz=[640,640]'")
 
     # Apply max_dim
-    if max_dim == 1:
-        LOGGER.warning(f"WARNING ⚠️ 'train' and 'val' imgsz types must be integer, updating to 'imgsz={max(imgsz)}'. "
-                       f"'predict' and 'export' imgsz may be list or integer, "
-                       f"i.e. 'yolo export imgsz=640,480' or 'yolo export imgsz=640'")
+    if len(imgsz) > max_dim:
+        msg = "'train' and 'val' imgsz must be an integer, while 'predict' and 'export' imgsz may be a [h, w] list " \
+              "or an integer, i.e. 'yolo export imgsz=640,480' or 'yolo export imgsz=640'"
+        if max_dim != 1:
+            raise ValueError(f"imgsz={imgsz} is not a valid image size. {msg}")
+        LOGGER.warning(f"WARNING ⚠️ updating to 'imgsz={max(imgsz)}'. {msg}")
         imgsz = [max(imgsz)]
-
     # Make image size a multiple of the stride
     sz = [max(math.ceil(x / stride) * stride, floor) for x in imgsz]
 
@@ -153,12 +155,11 @@ def check_online() -> bool:
         bool: True if connection is successful, False otherwise.
     """
     import socket
-    try:
-        # Check host accessibility by attempting to establish a connection
-        socket.create_connection(("1.1.1.1", 443), timeout=5)
+    with contextlib.suppress(subprocess.CalledProcessError):
+        host = socket.gethostbyname("www.github.com")
+        socket.create_connection((host, 80), timeout=2)
         return True
-    except OSError:
-        return False
+    return False
 
 
 def check_python(minimum: str = '3.7.0') -> bool:
@@ -179,6 +180,7 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
     # Check installed dependencies meet YOLOv5 requirements (pass *.txt file or list of packages or single package str)
     prefix = colorstr('red', 'bold', 'requirements:')
     check_python()  # check python version
+    file = None
     if isinstance(requirements, Path):  # requirements.txt file
         file = requirements.resolve()
         assert file.exists(), f"{prefix} {file} not found, check failed."
@@ -200,9 +202,8 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
         LOGGER.info(f"{prefix} YOLOv8 requirement{'s' * (n > 1)} {s}not found, attempting AutoUpdate...")
         try:
             assert check_online(), "AutoUpdate skipped (offline)"
-            LOGGER.info(check_output(f'pip install {s} {cmds}', shell=True).decode())
-            source = file if 'file' in locals() else requirements
-            s = f"{prefix} {n} package{'s' * (n > 1)} updated per {source}\n" \
+            LOGGER.info(subprocess.check_output(f'pip install {s} {cmds}', shell=True).decode())
+            s = f"{prefix} {n} package{'s' * (n > 1)} updated per {file or requirements}\n" \
                 f"{prefix} ⚠️ {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n"
             LOGGER.info(s)
         except Exception as e:
@@ -220,10 +221,24 @@ def check_suffix(file='yolov8n.pt', suffix=('.pt',), msg=''):
                 assert s in suffix, f"{msg}{f} acceptable suffix is {suffix}"
 
 
+def check_yolov5u_filename(file: str):
+    # Replace legacy YOLOv5 filenames with updated YOLOv5u filenames
+    if 'yolov3' in file or 'yolov5' in file and 'u' not in file:
+        original_file = file
+        file = re.sub(r"(.*yolov5([nsmlx]))\.", "\\1u.", file)  # i.e. yolov5n.pt -> yolov5nu.pt
+        file = re.sub(r"(.*yolov3(|-tiny|-spp))\.", "\\1u.", file)  # i.e. yolov3-spp.pt -> yolov3-sppu.pt
+        if file != original_file:
+            LOGGER.info(f"PRO TIP 💡 Replace 'model={original_file}' with new 'model={file}'.\nYOLOv5 'u' models are "
+                        f"trained with https://github.com/ultralytics/ultralytics and feature improved performance vs "
+                        f"standard YOLOv5 models trained with https://github.com/ultralytics/yolov5.\n")
+    return file
+
+
 def check_file(file, suffix=''):
     # Search/download file (if necessary) and return path
     check_suffix(file, suffix)  # optional
-    file = str(file)  # convert to str()
+    file = str(file)  # convert to string
+    file = check_yolov5u_filename(file)  # yolov5n -> yolov5nu
     if not file or ('://' not in file and Path(file).is_file()):  # exists ('://' check required in Windows Python<3.10)
         return file
     elif file.lower().startswith(('https://', 'http://', 'rtsp://', 'rtmp://')):  # download
@@ -290,7 +305,7 @@ def git_describe(path=ROOT):  # path must be a directory
     # Return human-readable git description, i.e. v5.0-5-g3e25f1e https://git-scm.com/docs/git-describe
     try:
         assert (Path(path) / '.git').is_dir()
-        return check_output(f'git -C {path} describe --tags --long --always', shell=True).decode()[:-1]
+        return subprocess.check_output(f'git -C {path} describe --tags --long --always', shell=True).decode()[:-1]
     except AssertionError:
         return ''
 

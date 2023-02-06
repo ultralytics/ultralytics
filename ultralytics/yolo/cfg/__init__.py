@@ -262,8 +262,8 @@ def entrypoint(debug=''):
             LOGGER.warning(f"WARNING ⚠️ 'format=' is missing. Using default 'format={overrides['format']}'.")
 
     # Run command in python
-    cfg = get_cfg(overrides=overrides)
-    getattr(model, mode)(**vars(cfg))
+    # getattr(model, mode)(**vars(get_cfg(overrides=overrides)))  # default args using default.yaml
+    getattr(model, mode)(**overrides)  # default args from model
 
 
 # Special modes --------------------------------------------------------------------------------------------------------

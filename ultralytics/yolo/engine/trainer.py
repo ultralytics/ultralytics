@@ -235,8 +235,7 @@ class BaseTrainer:
             self.test_loader = self.get_dataloader(self.testset,
                                                    batch_size=batch_size * 2,
                                                    rank=-1,
-                                                   mode="val",
-                                                   rect=True)
+                                                   mode="val")
             self.validator = self.get_validator()
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix="val")
             self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))  # TODO: init metrics for plot_results()?
@@ -461,7 +460,7 @@ class BaseTrainer:
     def get_validator(self):
         raise NotImplementedError("get_validator function not implemented in trainer")
 
-    def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode="train", rect=False):
+    def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode="train"):
         """
         Returns dataloader derived from torch.data.Dataloader.
         """

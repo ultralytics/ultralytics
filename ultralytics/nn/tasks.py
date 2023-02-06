@@ -338,9 +338,10 @@ def torch_safe_load(weight):
         if e.name == 'omegaconf':  # e.name is missing module name
             LOGGER.warning(f"WARNING ⚠️ {weight} requires {e.name}, which is not in ultralytics requirements."
                            f"\nAutoInstall will run now for {e.name} but this feature will be removed in the future."
-                           f"\nRecommend fixes are to train a new model using updated ultraltyics package or to "
+                           f"\nRecommend fixes are to train a new model using updated ultralytics package or to "
                            f"download updated models from https://github.com/ultralytics/assets/releases/tag/v0.0.0")
-        check_requirements(e.name)  # install missing module
+        if e.name != 'models':
+            check_requirements(e.name)  # install missing module
         return torch.load(file, map_location='cpu')  # load
 
 

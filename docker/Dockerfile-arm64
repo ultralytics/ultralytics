@@ -27,7 +27,7 @@ RUN git clone https://github.com/ultralytics/ultralytics /usr/src/ultralytics
 COPY requirements.txt .
 RUN python3 -m pip install --upgrade pip wheel
 RUN pip install --no-cache ultralytics albumentations gsutil notebook \
-    coremltools onnx onnx-simplifier onnxruntime openvino-dev>=2022.3
+    coremltools onnx onnxruntime
     # tensorflow-aarch64 tensorflowjs \
 
 # Cleanup

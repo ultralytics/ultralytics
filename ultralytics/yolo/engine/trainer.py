@@ -117,7 +117,7 @@ class BaseTrainer:
         # Model and Dataloaders.
         self.model = self.args.model
         self.data = self.args.data
-            
+
         if self.args.task == 'classify':
             self.data = check_cls_dataset(self.data)
         else:

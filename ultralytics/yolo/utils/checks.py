@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
-
+import contextlib
 import glob
 import inspect
 import math
@@ -7,9 +7,9 @@ import os
 import platform
 import re
 import shutil
+import subprocess
 import urllib
 from pathlib import Path
-from subprocess import check_output
 from typing import Optional
 
 import cv2
@@ -155,12 +155,11 @@ def check_online() -> bool:
         bool: True if connection is successful, False otherwise.
     """
     import socket
-    try:
-        # Check host accessibility by attempting to establish a connection
-        socket.create_connection(("1.1.1.1", 443), timeout=5)
+    with contextlib.suppress(subprocess.CalledProcessError):
+        host = socket.gethostbyname("www.github.com")
+        socket.create_connection((host, 80), timeout=2)
         return True
-    except OSError:
-        return False
+    return False
 
 
 def check_python(minimum: str = '3.7.0') -> bool:
@@ -181,6 +180,7 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
     # Check installed dependencies meet YOLOv5 requirements (pass *.txt file or list of packages or single package str)
     prefix = colorstr('red', 'bold', 'requirements:')
     check_python()  # check python version
+    file = None
     if isinstance(requirements, Path):  # requirements.txt file
         file = requirements.resolve()
         assert file.exists(), f"{prefix} {file} not found, check failed."
@@ -202,9 +202,8 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
         LOGGER.info(f"{prefix} YOLOv8 requirement{'s' * (n > 1)} {s}not found, attempting AutoUpdate...")
         try:
             assert check_online(), "AutoUpdate skipped (offline)"
-            LOGGER.info(check_output(f'pip install {s} {cmds}', shell=True).decode())
-            source = file if 'file' in locals() else requirements
-            s = f"{prefix} {n} package{'s' * (n > 1)} updated per {source}\n" \
+            LOGGER.info(subprocess.check_output(f'pip install {s} {cmds}', shell=True).decode())
+            s = f"{prefix} {n} package{'s' * (n > 1)} updated per {file or requirements}\n" \
                 f"{prefix} ⚠️ {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n"
             LOGGER.info(s)
         except Exception as e:
@@ -306,7 +305,7 @@ def git_describe(path=ROOT):  # path must be a directory
     # Return human-readable git description, i.e. v5.0-5-g3e25f1e https://git-scm.com/docs/git-describe
     try:
         assert (Path(path) / '.git').is_dir()
-        return check_output(f'git -C {path} describe --tags --long --always', shell=True).decode()[:-1]
+        return subprocess.check_output(f'git -C {path} describe --tags --long --always', shell=True).decode()[:-1]
     except AssertionError:
         return ''
 

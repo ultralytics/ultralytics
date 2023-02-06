@@ -61,7 +61,7 @@ def seed_worker(worker_id):
     random.seed(worker_seed)
 
 
-def build_dataloader(cfg, batch_size, img_path, stride=32, label_path=None, rank=-1, mode="train"):
+def build_dataloader(cfg, batch_size, img_path, stride=32, rect=False, label_path=None, rank=-1, mode="train"):
     assert mode in ["train", "val"]
     shuffle = mode == "train"
     if cfg.rect and shuffle:
@@ -75,7 +75,7 @@ def build_dataloader(cfg, batch_size, img_path, stride=32, label_path=None, rank
             batch_size=batch_size,
             augment=mode == "train",  # augmentation
             hyp=cfg,  # TODO: probably add a get_hyps_from_cfg function
-            rect=cfg.rect if mode == "train" else True,  # rectangular batches
+            rect=cfg.rect or rect,  # rectangular batches
             cache=cfg.cache or None,
             single_cls=cfg.single_cls or False,
             stride=int(stride),

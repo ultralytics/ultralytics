@@ -33,14 +33,14 @@ class DetectionTrainer(BaseTrainer):
                                  augment=mode == "train",
                                  cache=self.args.cache,
                                  pad=0 if mode == "train" else 0.5,
-                                 rect=self.args.rect,
+                                 rect=self.args.rect or mode=="val",
                                  rank=rank,
                                  workers=self.args.workers,
                                  close_mosaic=self.args.close_mosaic != 0,
                                  prefix=colorstr(f'{mode}: '),
                                  shuffle=mode == "train",
                                  seed=self.args.seed)[0] if self.args.v5loader else \
-            build_dataloader(self.args, batch_size, img_path=dataset_path, stride=gs, rank=rank, mode=mode)[0]
+            build_dataloader(self.args, batch_size, img_path=dataset_path, stride=gs, rank=rank, mode=mode, rect=mode=="val")[0]
 
     def preprocess_batch(self, batch):
         batch["img"] = batch["img"].to(self.device, non_blocking=True).float() / 255

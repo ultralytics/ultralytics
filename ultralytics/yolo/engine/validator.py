@@ -117,6 +117,8 @@ class BaseValidator:
 
             if self.device.type == 'cpu':
                 self.args.workers = 0  # faster CPU val as time dominated by inference, not dataloading
+            if not pt:
+                self.args.rect = False
             self.dataloader = self.dataloader or \
                               self.get_dataloader(self.data.get("val") or self.data.set("test"), self.args.batch)
 

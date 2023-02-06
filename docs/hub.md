@@ -80,7 +80,7 @@ training! <a href="https://colab.research.google.com/github/ultralytics/hub/blob
 Export your model to 13 different formats, including TensorFlow, ONNX, OpenVINO, CoreML, Paddle and many others. Run
 models directly on your mobile device by downloading the [Ultralytics App](https://ultralytics.com/app_install)!
 
-<a align="center" href="https://ultralytics.com/app_install" target="_blank">
+<a href="https://ultralytics.com/app_install" target="_blank">
 <img width="100%" alt="Ultralytics mobile app" src="https://github.com/ultralytics/assets/raw/main/im/ultralytics-app.png"></a>
 
 ## ❓ Issues

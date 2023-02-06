@@ -1,14 +1,16 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
 from pathlib import Path
+from typing import List
 
+import sys
 from ultralytics import yolo  # noqa
 from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, SegmentationModel, attempt_load_one_weight,
                                   guess_model_task)
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, RANK, callbacks, yaml_load
-from ultralytics.yolo.utils.checks import check_yaml
+from ultralytics.yolo.utils.checks import check_yaml, check_imgsz
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 
 # Map head to model, trainer, validator, and predictor classes
@@ -117,7 +119,6 @@ class YOLO:
     def fuse(self):
         self.model.fuse()
 
-    @smart_inference_mode()
     def predict(self, source=None, stream=False, **kwargs):
         """
         Perform prediction using the YOLO model.
@@ -130,7 +131,7 @@ class YOLO:
                        Check the 'configuration' section in the documentation for all available options.
 
         Returns:
-            (dict): The prediction results.
+            (List[ultralytics.yolo.engine.results.Results]): The prediction results.
         """
         overrides = self.overrides.copy()
         overrides["conf"] = 0.25
@@ -142,7 +143,8 @@ class YOLO:
             self.predictor.setup_model(model=self.model)
         else:  # only update args if predictor is already setup
             self.predictor.args = get_cfg(self.predictor.args, overrides)
-        return self.predictor(source=source, stream=stream)
+        is_cli = sys.argv[0].endswith('yolo') or sys.argv[0].endswith('ultralytics')
+        return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
 
     @smart_inference_mode()
     def val(self, data=None, **kwargs):
@@ -159,6 +161,9 @@ class YOLO:
         args = get_cfg(cfg=DEFAULT_CFG, overrides=overrides)
         args.data = data or args.data
         args.task = self.task
+        if args.imgsz == DEFAULT_CFG.imgsz:
+            args.imgsz = self.model.args['imgsz']  # use trained imgsz unless custom value is passed
+        args.imgsz = check_imgsz(args.imgsz, max_dim=1)
 
         validator = self.ValidatorClass(args=args)
         validator(model=self.model)
@@ -176,6 +181,8 @@ class YOLO:
         overrides.update(kwargs)
         args = get_cfg(cfg=DEFAULT_CFG, overrides=overrides)
         args.task = self.task
+        if args.imgsz == DEFAULT_CFG.imgsz:
+            args.imgsz = self.model.args['imgsz']  # use trained imgsz unless custom value is passed
 
         exporter = Exporter(overrides=args)
         exporter(model=self.model)
@@ -250,8 +257,6 @@ class YOLO:
 
     @staticmethod
     def _reset_ckpt_args(args):
-        for arg in 'verbose', 'project', 'name', 'exist_ok', 'resume', 'batch', 'epochs', 'cache', 'save_json', \
-                'half', 'v5loader':
+        for arg in 'augment', 'verbose', 'project', 'name', 'exist_ok', 'resume', 'batch', 'epochs', 'cache', \
+                'save_json', 'half', 'v5loader', 'device', 'cfg', 'save', 'rect', 'plots':
             args.pop(arg, None)
-
-        args["device"] = ''  # set device to '' to prevent auto-DDP usage

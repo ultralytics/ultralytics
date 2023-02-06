@@ -467,6 +467,13 @@ def set_sentry():
     """
 
     def before_send(event, hint):
+        if 'exc_info' in hint:
+            exc_type, exc_value, tb = hint['exc_info']
+            if exc_type in (KeyboardInterrupt, FileNotFoundError) \
+                    or 'out of memory' in str(exc_value) \
+                    or not sys.argv[0].endswith('yolo'):
+                return None  # do not send event
+
         env = 'Colab' if is_colab() else 'Kaggle' if is_kaggle() else 'Jupyter' if is_jupyter() else \
             'Docker' if is_docker() else platform.system()
         event['tags'] = {
@@ -477,21 +484,28 @@ def set_sentry():
         return event
 
     if SETTINGS['sync'] and \
+            RANK in {-1, 0} and \
+            sys.argv[0].endswith('yolo') and \
             not is_pytest_running() and \
             not is_github_actions_ci() and \
-            (is_pip_package() or
+            ((is_pip_package() and not is_git_dir()) or
              (get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git" and get_git_branch() == "main")):
-        import sentry_sdk  # noqa
 
-        import ultralytics
+        import sentry_sdk  # noqa
+        from ultralytics import __version__
+
         sentry_sdk.init(
-            dsn="https://1f331c322109416595df20a91f4005d3@o4504521589325824.ingest.sentry.io/4504521592406016",
+            dsn="https://f805855f03bb4363bc1e16cb7d87b654@o4504521589325824.ingest.sentry.io/4504521592406016",
             debug=False,
             traces_sample_rate=1.0,
-            release=ultralytics.__version__,
+            release=__version__,
             environment='production',  # 'dev' or 'production'
             before_send=before_send,
-            ignore_errors=[KeyboardInterrupt])
+            ignore_errors=[KeyboardInterrupt, FileNotFoundError])
+
+        # Disable all sentry logging
+        for logger in "sentry_sdk", "sentry_sdk.errors":
+            logging.getLogger(logger).setLevel(logging.CRITICAL)
 
 
 def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.1'):

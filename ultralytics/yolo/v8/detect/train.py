@@ -106,7 +106,7 @@ class DetectionTrainer(BaseTrainer):
 # Criterion class for computing training losses
 class Loss:
 
-    def __init__(self, model, roll_out_thr=64):  # model must be de-paralleled
+    def __init__(self, model):  # model must be de-paralleled
 
         device = next(model.parameters()).device  # get model device
         h = model.args  # hyperparameters
@@ -121,6 +121,8 @@ class Loss:
         self.device = device
 
         self.use_dfl = m.reg_max > 1
+        roll_out_thr = h.min_memory if h.min_memory > 1 else 64 if h.min_memory else 0  # 64 is default
+
         self.assigner = TaskAlignedAssigner(topk=10,
                                             num_classes=self.nc,
                                             alpha=0.5,

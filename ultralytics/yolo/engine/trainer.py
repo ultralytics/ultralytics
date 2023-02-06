@@ -232,7 +232,11 @@ class BaseTrainer:
         batch_size = self.batch_size // world_size if world_size > 1 else self.batch_size
         self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=rank, mode="train")
         if rank in {0, -1}:
-            self.test_loader = self.get_dataloader(self.testset, batch_size=batch_size * 2, rank=-1, mode="val", rect=True)
+            self.test_loader = self.get_dataloader(self.testset,
+                                                   batch_size=batch_size * 2,
+                                                   rank=-1,
+                                                   mode="val",
+                                                   rect=True)
             self.validator = self.get_validator()
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix="val")
             self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))  # TODO: init metrics for plot_results()?

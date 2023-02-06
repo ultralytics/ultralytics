@@ -6,6 +6,7 @@ import torch
 TRACKER_MAP = {"bytetrack": BYTETracker, "botsort": BOTSORT}
 check_requirements('lap')  # for linear_assignment
 
+
 def on_predict_start(predictor):
     tracker_type = predictor.args.tracker
     assert tracker_type in ["bytetrack", "botsort"], \

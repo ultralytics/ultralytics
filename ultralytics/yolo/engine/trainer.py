@@ -117,12 +117,11 @@ class BaseTrainer:
         # Model and Dataloaders.
         self.model = self.args.model
         self.data = self.args.data
-        if self.data.endswith(".yaml"):
-            self.data = check_det_dataset(self.data)
-        elif self.args.task == 'classify':
+            
+        if self.args.task == 'classify':
             self.data = check_cls_dataset(self.data)
         else:
-            raise FileNotFoundError(emojis(f"Dataset '{self.args.data}' not found ❌"))
+            self.data = check_det_dataset(self.data)
         self.trainset, self.testset = self.get_dataset(self.data)
         self.ema = None
 

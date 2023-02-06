@@ -121,7 +121,8 @@ class BaseTrainer:
                 self.data = check_cls_dataset(self.args.data)
             elif self.args.data.endswith(".yaml") or self.args.task in ('detect', 'segment'):
                 self.data = check_det_dataset(self.args.data)
-                self.args.data = self.data
+                if 'yaml_file' in self.data:
+                    self.args.data = self.data['yaml_file']  # for validating 'yolo train data=url.zip' usage
         except Exception as e:
             raise FileNotFoundError(emojis(f"Dataset '{self.args.data}' error ❌ {e}")) from e
 

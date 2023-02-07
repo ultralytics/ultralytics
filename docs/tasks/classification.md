@@ -30,7 +30,9 @@ see the [Configuration](../cfg.md) page.
         model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
         
         # Train the model
-        results = model.train(data="mnist160", epochs=100, imgsz=64)
+        metrics = model.train(data="mnist160", epochs=100, imgsz=64)
+        metrics.top1   # top1 accuracy
+        metrics.top5   # top5 accuracy
         ```
     === "CLI"
     

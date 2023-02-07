@@ -59,10 +59,7 @@ def request_api_key(auth, max_attempts=3):
 def reset_model(key=""):
     # Reset a trained model to an untrained state
     api_key, model_id = split_key(key)
-    r = requests.post(
-        "https://api.ultralytics.com/model-reset",
-        json={"apiKey": api_key,
-              "modelId": model_id})
+    r = requests.post("https://api.ultralytics.com/model-reset", json={"apiKey": api_key, "modelId": model_id})
 
     if r.status_code == 200:
         LOGGER.info(f"{PREFIX}model reset successfully")
@@ -75,9 +72,10 @@ def export_model(key="", format="torchscript"):
     assert format in EXPORT_FORMATS, f"Unsupported export format '{format}' passed, valid formats are {EXPORT_FORMATS}"
     api_key, model_id = split_key(key)
     r = requests.post("https://api.ultralytics.com/export",
-                      json={"apiKey": api_key,
-                            "modelId": model_id,
-                            "format": format})
+                      json={
+                          "apiKey": api_key,
+                          "modelId": model_id,
+                          "format": format})
     assert (r.status_code == 200), f"{PREFIX}{format} export failure {r.status_code} {r.reason}"
     LOGGER.info(f"{PREFIX}{format} export started ✅")
 
@@ -87,9 +85,10 @@ def get_export(key="", format="torchscript"):
     assert format in EXPORT_FORMATS, f"Unsupported export format '{format}' passed, valid formats are {EXPORT_FORMATS}"
     api_key, model_id = split_key(key)
     r = requests.post("https://api.ultralytics.com/get-export",
-                      json={"apiKey": api_key,
-                            "modelId": model_id,
-                            "format": format})
+                      json={
+                          "apiKey": api_key,
+                          "modelId": model_id,
+                          "format": format})
     assert (r.status_code == 200), f"{PREFIX}{format} get_export failure {r.status_code} {r.reason}"
     return r.json()
 

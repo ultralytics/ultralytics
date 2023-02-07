@@ -24,9 +24,7 @@ class HubTrainingSession:
         self.model_id = model_id
         self.api_url = f"{HUB_API_ROOT}/v1/models/{model_id}"
         self.auth_header = auth.get_auth_header()
-        self._rate_limits = {"metrics": 3.0,
-                             "ckpt": 900.0,
-                             "heartbeat": 300.0}  # rate limits (seconds)
+        self._rate_limits = {"metrics": 3.0, "ckpt": 900.0, "heartbeat": 300.0}  # rate limits (seconds)
         self._timers = {}  # rate limit timers (seconds)
         self._metrics_queue = {}  # metrics queue
         self.model = self._get_model()
@@ -106,13 +104,14 @@ class HubTrainingSession:
 
             # TODO: restore when server keys when dataset URL and GPU train is working
 
-            self.train_args = {"batch": data["batch_size"],
-                               "epochs": data["epochs"],
-                               "imgsz": data["imgsz"],
-                               "patience": data["patience"],
-                               "device": data["device"],
-                               "cache": data["cache"],
-                               "data": data["data"]}
+            self.train_args = {
+                "batch": data["batch_size"],
+                "epochs": data["epochs"],
+                "imgsz": data["imgsz"],
+                "patience": data["patience"],
+                "device": data["device"],
+                "cache": data["cache"],
+                "data": data["data"]}
 
             self.input_file = data.get("cfg", data["weights"])
 
@@ -145,19 +144,19 @@ class HubTrainingSession:
         LOGGER.info(f"{PREFIX}View model at https://hub.ultralytics.com/models/{self.model_id} 🚀")
         self._timers = {
             "metrics": time(),
-            "ckpt": time(), }  # start timer on self.rate_limit
+            "ckpt": time(),}  # start timer on self.rate_limit
 
     def on_fit_epoch_end(self, trainer):
         # Upload metrics after val end
         all_plots = {
             **trainer.label_loss_items(trainer.tloss, prefix="train"),
-            **trainer.metrics, }
+            **trainer.metrics,}
 
         if trainer.epoch == 0:
             model_info = {
                 "model/parameters": get_num_params(trainer.model),
                 "model/GFLOPs": round(get_flops(trainer.model), 3),
-                "model/speed(ms)": round(trainer.validator.speed[1], 3), }
+                "model/speed(ms)": round(trainer.validator.speed[1], 3),}
             all_plots = {**all_plots, **model_info}
         self._metrics_queue[trainer.epoch] = json.dumps(all_plots)
         if time() - self._timers["metrics"] > self._rate_limits["metrics"]:

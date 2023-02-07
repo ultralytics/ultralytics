@@ -1,16 +1,15 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
+import json
 import signal
+import sys
 from pathlib import Path
 from time import sleep, time
 
 import requests
-import json
-import sys
 
 from ultralytics import __version__
 from ultralytics.hub.utils import HUB_API_ROOT, check_dataset_disk_space, smart_request
 from ultralytics.yolo.utils import is_colab, threaded, LOGGER, emojis, PREFIX
-
 from ultralytics.yolo.utils.torch_utils import get_flops, get_num_params
 
 AGENT_NAME = (f"python-{__version__}-colab" if is_colab() else f"python-{__version__}-local")
@@ -25,10 +24,9 @@ class HubTrainingSession:
         self.model_id = model_id
         self.api_url = f"{HUB_API_ROOT}/v1/models/{model_id}"
         self.auth_header = auth.get_auth_header()
-        self._rate_limits = {
-            "metrics": 3.0,
-            "ckpt": 900.0,
-            "heartbeat": 300.0,}  # rate limits (seconds)
+        self._rate_limits = {"metrics": 3.0,
+                             "ckpt": 900.0,
+                             "heartbeat": 300.0}  # rate limits (seconds)
         self._timers = {}  # rate limit timers (seconds)
         self._metrics_queue = {}  # metrics queue
         self.model = self._get_model()
@@ -46,7 +44,7 @@ class HubTrainingSession:
         passed by signal.
         """
         if self.alive is True:
-            LOGGER.info(emojis(f"{PREFIX}Kill signal received! ❌"))
+            LOGGER.info(f"{PREFIX}Kill signal received! ❌")
             self._stop_heartbeat()
             sys.exit(signum)
 
@@ -99,23 +97,22 @@ class HubTrainingSession:
             data = response.json().get("data", None)
 
             if data.get("status", None) == "trained":
-                raise ValueError(f"Model trained. View model at https://hub.ultralytics.com/models/{self.model_id} 🚀")
+                raise ValueError(
+                    emojis(f"Model trained. View model at https://hub.ultralytics.com/models/{self.model_id} 🚀"))
 
             if not data.get("data", None):
-                raise ValueError(
-                    "ERROR: Dataset may still be processing. Please wait a minute and try again.")  # RF fix
+                raise ValueError("Dataset may still be processing. Please wait a minute and try again.")  # RF fix
             self.model_id = data["id"]
 
             # TODO: restore when server keys when dataset URL and GPU train is working
 
-            self.train_args = {
-                "batch": data["batch_size"],
-                "epochs": data["epochs"],
-                "imgsz": data["imgsz"],
-                "patience": data["patience"],
-                "device": data["device"],
-                "cache": data["cache"],
-                "data": data["data"],}
+            self.train_args = {"batch": data["batch_size"],
+                               "epochs": data["epochs"],
+                               "imgsz": data["imgsz"],
+                               "patience": data["patience"],
+                               "device": data["device"],
+                               "cache": data["cache"],
+                               "data": data["data"]}
 
             self.input_file = data.get("cfg", data["weights"])
 
@@ -145,22 +142,22 @@ class HubTrainingSession:
         This method does not use trainer. It is passed to all callbacks by default.
         """
         # Start timer for upload rate limit
-        LOGGER.info(emojis(f"{PREFIX}View model at https://hub.ultralytics.com/models/{self.model_id} 🚀"))
+        LOGGER.info(f"{PREFIX}View model at https://hub.ultralytics.com/models/{self.model_id} 🚀")
         self._timers = {
             "metrics": time(),
-            "ckpt": time(),}  # start timer on self.rate_limit
+            "ckpt": time(), }  # start timer on self.rate_limit
 
     def on_fit_epoch_end(self, trainer):
         # Upload metrics after val end
         all_plots = {
             **trainer.label_loss_items(trainer.tloss, prefix="train"),
-            **trainer.metrics,}
+            **trainer.metrics, }
 
         if trainer.epoch == 0:
             model_info = {
                 "model/parameters": get_num_params(trainer.model),
                 "model/GFLOPs": round(get_flops(trainer.model), 3),
-                "model/speed(ms)": round(trainer.validator.speed[1], 3),}
+                "model/speed(ms)": round(trainer.validator.speed[1], 3), }
             all_plots = {**all_plots, **model_info}
         self._metrics_queue[trainer.epoch] = json.dumps(all_plots)
         if time() - self._timers["metrics"] > self._rate_limits["metrics"]:
@@ -178,14 +175,14 @@ class HubTrainingSession:
 
     def on_train_end(self, trainer):
         # Upload final model and metrics with exponential standoff
-        LOGGER.info(emojis(f"{PREFIX}Training completed successfully ✅"))
+        LOGGER.info(f"{PREFIX}Training completed successfully ✅")
         LOGGER.info(f"{PREFIX}Uploading final {self.model_id}")
 
         # hack for fetching mAP
         mAP = trainer.metrics.get("metrics/mAP50-95(B)", 0)
         self._upload_model(trainer.epoch, trainer.best, map=mAP, final=True)  # results[3] is mAP0.5:0.95
         self.alive = False  # stop heartbeats
-        LOGGER.info(emojis(f"{PREFIX}View model at https://hub.ultralytics.com/models/{self.model_id} 🚀"))
+        LOGGER.info(f"{PREFIX}View model at https://hub.ultralytics.com/models/{self.model_id} 🚀")
 
     def _upload_model(self, epoch, weights, is_best=False, map=0.0, final=False):
         # Upload a model to HUB

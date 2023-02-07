@@ -5,8 +5,12 @@ import requests
 from ultralytics.hub.auth import Auth
 from ultralytics.hub.session import HubTrainingSession
 from ultralytics.hub.utils import split_key
-from ultralytics.yolo.utils import LOGGER, emojis, PREFIX
+from ultralytics.yolo.engine.exporter import export_formats
 from ultralytics.yolo.engine.model import YOLO
+from ultralytics.yolo.utils import LOGGER, emojis, PREFIX
+
+# Define all export formats
+EXPORT_FORMATS = list(export_formats()['Argument'][1:]) + ["ultralytics_tflite", "ultralytics_coreml"]
 
 
 def start(key=""):
@@ -33,21 +37,18 @@ def start(key=""):
         LOGGER.warning(f"{PREFIX}{e}")
 
 
-def request_api_key(auth):
+def request_api_key(auth, max_attempts=3):
     """
     Prompt the user to input their API key. Returns the model ID.
     """
     import getpass
-
-    max_attempts = 3
-
     for attempts in range(max_attempts):
         LOGGER.info(f"{PREFIX}Login. Attempt {attempts + 1} of {max_attempts}")
         input_key = getpass.getpass("Enter your Ultralytics HUB API key:\n")
         auth.api_key, model_id = split_key(input_key)
 
         if auth.authenticate():
-            LOGGER.info(emojis(f"{PREFIX}Authenticated ✅"))
+            LOGGER.info(f"{PREFIX}Authenticated ✅")
             return model_id
 
         LOGGER.warning(f"{PREFIX}Invalid API key ⚠️\n")
@@ -60,10 +61,8 @@ def reset_model(key=""):
     api_key, model_id = split_key(key)
     r = requests.post(
         "https://api.ultralytics.com/model-reset",
-        json={
-            "apiKey": api_key,
-            "modelId": model_id},
-    )
+        json={"apiKey": api_key,
+              "modelId": model_id})
 
     if r.status_code == 200:
         LOGGER.info(f"{PREFIX}model reset successfully")
@@ -73,60 +72,24 @@ def reset_model(key=""):
 
 def export_model(key="", format="torchscript"):
     # Export a model to all formats
+    assert format in EXPORT_FORMATS, f"Unsupported export format '{format}' passed, valid formats are {EXPORT_FORMATS}"
     api_key, model_id = split_key(key)
-    formats = (
-        "torchscript",
-        "onnx",
-        "openvino",
-        "engine",
-        "coreml",
-        "saved_model",
-        "pb",
-        "tflite",
-        "edgetpu",
-        "tfjs",
-        "ultralytics_tflite",
-        "ultralytics_coreml",
-    )
-    assert (format in formats), f"ERROR: Unsupported export format '{format}' passed, valid formats are {formats}"
-
-    r = requests.post(
-        "https://api.ultralytics.com/export",
-        json={
-            "apiKey": api_key,
-            "modelId": model_id,
-            "format": format},
-    )
+    r = requests.post("https://api.ultralytics.com/export",
+                      json={"apiKey": api_key,
+                            "modelId": model_id,
+                            "format": format})
     assert (r.status_code == 200), f"{PREFIX}{format} export failure {r.status_code} {r.reason}"
-    LOGGER.info(emojis(f"{PREFIX}{format} export started ✅"))
+    LOGGER.info(f"{PREFIX}{format} export started ✅")
 
 
 def get_export(key="", format="torchscript"):
     # Get an exported model dictionary with download URL
+    assert format in EXPORT_FORMATS, f"Unsupported export format '{format}' passed, valid formats are {EXPORT_FORMATS}"
     api_key, model_id = split_key(key)
-    formats = (
-        "torchscript",
-        "onnx",
-        "openvino",
-        "engine",
-        "coreml",
-        "saved_model",
-        "pb",
-        "tflite",
-        "edgetpu",
-        "tfjs",
-        "ultralytics_tflite",
-        "ultralytics_coreml",
-    )
-    assert (format in formats), f"ERROR: Unsupported export format '{format}' passed, valid formats are {formats}"
-
-    r = requests.post(
-        "https://api.ultralytics.com/get-export",
-        json={
-            "apiKey": api_key,
-            "modelId": model_id,
-            "format": format},
-    )
+    r = requests.post("https://api.ultralytics.com/get-export",
+                      json={"apiKey": api_key,
+                            "modelId": model_id,
+                            "format": format})
     assert (r.status_code == 200), f"{PREFIX}{format} get_export failure {r.status_code} {r.reason}"
     return r.json()
 

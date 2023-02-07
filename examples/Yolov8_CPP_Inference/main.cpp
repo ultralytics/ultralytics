@@ -12,7 +12,7 @@ using namespace cv;
 int main(int argc, char **argv)
 {
     std::string projectBasePath = "/home/.../yolov8_CPP_Inference_OpenCV_ONNX";
-    
+
     bool runOnGPU = true;
 
     //
@@ -24,7 +24,7 @@ int main(int argc, char **argv)
     //
     // To run Inference with yolov8/yolov5 (ONNX)
     //
-    
+
     Inference inf(projectBasePath + "/source/models/yolov8s.onnx", cv::Size(640, 480),
                   projectBasePath + "/source/classes/classes.txt", runOnGPU);
 

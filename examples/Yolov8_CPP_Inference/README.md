@@ -1,11 +1,14 @@
 # yolov8/yolov5 Inference C++
 
 Usage:
+
 ```
 git clone https://github.com/JustasBart/yolov8_CPP_Inference_OpenCV_ONNX
 cd yolov8_CPP_Inference_OpenCV_ONNX
 ```
+
 Edit the **main.cpp** to change the **projectBasePath** to match your user.
+
 ```
 mkdir build
 cd build

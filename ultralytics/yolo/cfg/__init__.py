@@ -184,6 +184,7 @@ def entrypoint(debug=''):
             try:
                 re.sub(r' *= *', '=', a)  # remove spaces around equals sign
                 k, v = a.split('=', 1)  # split on first '=' sign
+                assert v, f"missing '{k}' value"
                 if k == 'cfg':  # custom.yaml passed
                     LOGGER.info(f"{PREFIX}Overriding {DEFAULT_CFG_PATH} with {v}")
                     overrides = {k: val for k, val in yaml_load(v).items() if k != 'cfg'}
@@ -198,7 +199,7 @@ def entrypoint(debug=''):
                         with contextlib.suppress(Exception):
                             v = eval(v)
                     overrides[k] = v
-            except (NameError, SyntaxError, ValueError) as e:
+            except (NameError, SyntaxError, ValueError, AssertionError) as e:
                 raise argument_error(a) from e
 
         elif a in tasks:
@@ -224,7 +225,7 @@ def entrypoint(debug=''):
     mode = overrides.get('mode', None)
     if mode is None:
         mode = DEFAULT_CFG.mode or 'predict'
-        LOGGER.warning(f"WARNING ⚠️ 'mode=' is missing. Valid modes are {modes}. Using default 'mode={mode}'.")
+        LOGGER.warning(f"WARNING ⚠️ 'mode' is missing. Valid modes are {modes}. Using default 'mode={mode}'.")
     elif mode not in modes:
         if mode != 'checks':
             raise ValueError(emojis(f"ERROR ❌ Invalid 'mode={mode}'. Valid modes are {modes}."))
@@ -237,7 +238,7 @@ def entrypoint(debug=''):
     task = overrides.pop('task', None)
     if model is None:
         model = task2model.get(task, 'yolov8n.pt')
-        LOGGER.warning(f"WARNING ⚠️ 'model=' is missing. Using default 'model={model}'.")
+        LOGGER.warning(f"WARNING ⚠️ 'model' is missing. Using default 'model={model}'.")
     from ultralytics.yolo.engine.model import YOLO
     overrides['model'] = model
     model = YOLO(model)
@@ -251,15 +252,15 @@ def entrypoint(debug=''):
     if mode == 'predict' and 'source' not in overrides:
         overrides['source'] = DEFAULT_CFG.source or ROOT / "assets" if (ROOT / "assets").exists() \
             else "https://ultralytics.com/images/bus.jpg"
-        LOGGER.warning(f"WARNING ⚠️ 'source=' is missing. Using default 'source={overrides['source']}'.")
+        LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using default 'source={overrides['source']}'.")
     elif mode in ('train', 'val'):
         if 'data' not in overrides:
             overrides['data'] = task2data.get(task, DEFAULT_CFG.data)
-            LOGGER.warning(f"WARNING ⚠️ 'data=' is missing. Using {model.task} default 'data={overrides['data']}'.")
+            LOGGER.warning(f"WARNING ⚠️ 'data' is missing. Using {model.task} default 'data={overrides['data']}'.")
     elif mode == 'export':
         if 'format' not in overrides:
             overrides['format'] = DEFAULT_CFG.format or 'torchscript'
-            LOGGER.warning(f"WARNING ⚠️ 'format=' is missing. Using default 'format={overrides['format']}'.")
+            LOGGER.warning(f"WARNING ⚠️ 'format' is missing. Using default 'format={overrides['format']}'.")
 
     # Run command in python
     # getattr(model, mode)(**vars(get_cfg(overrides=overrides)))  # default args using default.yaml

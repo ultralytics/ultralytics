@@ -4,7 +4,7 @@ import requests
 
 from ultralytics.hub.auth import Auth
 from ultralytics.hub.session import HubTrainingSession
-from ultralytics.hub.utils import PREFIX, split_key
+from ultralytics.hub.utils import split_key
 from ultralytics.yolo.utils import LOGGER, emojis, PREFIX
 from ultralytics.yolo.engine.model import YOLO
 

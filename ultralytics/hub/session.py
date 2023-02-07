@@ -45,7 +45,7 @@ class HubTrainingSession:
         This method does not use frame, it is included as it is
         passed by signal.
         """
-        if self.alive == True:
+        if self.alive is True:
             LOGGER.info(emojis(f"{PREFIX}Kill signal received! ❌"))
             self._stop_heartbeat()
             sys.exit(signum)
@@ -125,8 +125,10 @@ class HubTrainingSession:
 
             return data
         except requests.exceptions.ConnectionError as e:
-            raise ConnectionRefusedError("ERROR: The HUB server is not online. Please try again later.") from e
-        except Exception as e:
+            raise ConnectionRefusedError(
+                "ERROR: The HUB server is not online. Please try again later."
+            ) from e
+        except Exception:
             raise
 
     def check_disk_space(self):

@@ -109,22 +109,23 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG, override
 
     # Type and Value checks
     for k, v in cfg.items():
-        if k in CFG_FLOAT_KEYS and not isinstance(v, (int, float)):
-            raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. "
-                            f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')")
-        elif k in CFG_FRACTION_KEYS:
-            if not isinstance(v, (int, float)):
+        if v is not None:  # None values may be from optional args
+            if k in CFG_FLOAT_KEYS and not isinstance(v, (int, float)):
                 raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. "
                                 f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')")
-            if not (0.0 <= v <= 1.0):
-                raise ValueError(f"'{k}={v}' is an invalid value. "
-                                 f"Valid '{k}' values are between 0.0 and 1.0.")
-        elif k in CFG_INT_KEYS and not isinstance(v, int):
-            raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. "
-                            f"'{k}' must be an int (i.e. '{k}=0')")
-        elif k in CFG_BOOL_KEYS and not isinstance(v, bool):
-            raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. "
-                            f"'{k}' must be a bool (i.e. '{k}=True' or '{k}=False')")
+            elif k in CFG_FRACTION_KEYS:
+                if not isinstance(v, (int, float)) :
+                    raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                                    f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')")
+                if not (0.0 <= v <= 1.0):
+                    raise ValueError(f"'{k}={v}' is an invalid value. "
+                                     f"Valid '{k}' values are between 0.0 and 1.0.")
+            elif k in CFG_INT_KEYS and not isinstance(v, int):
+                raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                                f"'{k}' must be an int (i.e. '{k}=0')")
+            elif k in CFG_BOOL_KEYS and not isinstance(v, bool):
+                raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                                f"'{k}' must be a bool (i.e. '{k}=True' or '{k}=False')")
 
     # Return instance
     return IterableSimpleNamespace(**cfg)

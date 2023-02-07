@@ -461,6 +461,14 @@ class Metric:
         return self.all_ap[:, 0].mean() if len(self.all_ap) else 0.0
 
     @property
+    def map75(self):
+        """Mean AP@0.75 of all classes.
+        Return:
+            float.
+        """
+        return self.all_ap[:, 5].mean() if len(self.all_ap) else 0.0
+
+    @property
     def map(self):
         """Mean AP@0.5:0.95 of all classes.
         Return:
@@ -524,14 +532,6 @@ class DetMetrics:
     @property
     def maps(self):
         return self.box.maps
-
-    @property
-    def map(self):
-        return self.box.map
-
-    @property
-    def map50(self):
-        return self.box.map50
 
     @property
     def fitness(self):

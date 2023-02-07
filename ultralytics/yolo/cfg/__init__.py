@@ -114,7 +114,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG, override
                 raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. "
                                 f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')")
             elif k in CFG_FRACTION_KEYS:
-                if not isinstance(v, (int, float)) :
+                if not isinstance(v, (int, float)):
                     raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. "
                                     f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')")
                 if not (0.0 <= v <= 1.0):

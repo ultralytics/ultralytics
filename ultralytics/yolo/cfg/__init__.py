@@ -49,6 +49,20 @@ CLI_HELP_MSG = \
     GitHub: https://github.com/ultralytics/ultralytics
     """
 
+CFG_FLOAT_KEYS = {'warmup_epochs', 'box', 'cls', 'dfl'}
+CFG_FRACTION_KEYS = {
+    'dropout', 'iou', 'lr0', 'lrf', 'momentum', 'weight_decay', 'warmup_momentum', 'warmup_bias_lr', 'fl_gamma',
+    'label_smoothing', 'hsv_h', 'hsv_s', 'hsv_v', 'degrees', 'translate', 'scale', 'shear', 'perspective', 'flipud',
+    'fliplr', 'mosaic', 'mixup', 'copy_paste', 'conf', 'iou'}
+CFG_INT_KEYS = {
+    'epochs', 'patience', 'batch', 'workers', 'seed', 'close_mosaic', 'mask_ratio', 'max_det', 'vid_stride',
+    'line_thickness', 'workspace', 'nbs'}
+CFG_BOOL_KEYS = {
+    'save', 'cache', 'exist_ok', 'pretrained', 'verbose', 'deterministic', 'single_cls', 'image_weights', 'rect',
+    'cos_lr', 'overlap_mask', 'val', 'save_json', 'save_hybrid', 'half', 'dnn', 'plots', 'show', 'save_txt',
+    'save_conf', 'save_crop', 'hide_labels', 'hide_conf', 'visualize', 'augment', 'agnostic_nms', 'retina_masks',
+    'boxes', 'keras', 'optimize', 'int8', 'dynamic', 'simplify', 'nms', 'v5loader'}
+
 
 def cfg2dict(cfg):
     """
@@ -88,10 +102,30 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG, override
         check_cfg_mismatch(cfg, overrides)
         cfg = {**cfg, **overrides}  # merge cfg and overrides dicts (prefer overrides)
 
-    # Type checks
+    # Special handling for numeric project/names
     for k in 'project', 'name':
         if k in cfg and isinstance(cfg[k], (int, float)):
             cfg[k] = str(cfg[k])
+
+    # Type and Value checks
+    for k, v in cfg.items():
+        if v is not None:  # None values may be from optional args
+            if k in CFG_FLOAT_KEYS and not isinstance(v, (int, float)):
+                raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                                f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')")
+            elif k in CFG_FRACTION_KEYS:
+                if not isinstance(v, (int, float)):
+                    raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                                    f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')")
+                if not (0.0 <= v <= 1.0):
+                    raise ValueError(f"'{k}={v}' is an invalid value. "
+                                     f"Valid '{k}' values are between 0.0 and 1.0.")
+            elif k in CFG_INT_KEYS and not isinstance(v, int):
+                raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                                f"'{k}' must be an int (i.e. '{k}=0')")
+            elif k in CFG_BOOL_KEYS and not isinstance(v, bool):
+                raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                                f"'{k}' must be a bool (i.e. '{k}=True' or '{k}=False')")
 
     # Return instance
     return IterableSimpleNamespace(**cfg)
@@ -184,6 +218,7 @@ def entrypoint(debug=''):
             try:
                 re.sub(r' *= *', '=', a)  # remove spaces around equals sign
                 k, v = a.split('=', 1)  # split on first '=' sign
+                assert v, f"missing '{k}' value"
                 if k == 'cfg':  # custom.yaml passed
                     LOGGER.info(f"{PREFIX}Overriding {DEFAULT_CFG_PATH} with {v}")
                     overrides = {k: val for k, val in yaml_load(v).items() if k != 'cfg'}
@@ -198,7 +233,7 @@ def entrypoint(debug=''):
                         with contextlib.suppress(Exception):
                             v = eval(v)
                     overrides[k] = v
-            except (NameError, SyntaxError, ValueError) as e:
+            except (NameError, SyntaxError, ValueError, AssertionError) as e:
                 raise argument_error(a) from e
 
         elif a in tasks:
@@ -224,7 +259,7 @@ def entrypoint(debug=''):
     mode = overrides.get('mode', None)
     if mode is None:
         mode = DEFAULT_CFG.mode or 'predict'
-        LOGGER.warning(f"WARNING ⚠️ 'mode=' is missing. Valid modes are {modes}. Using default 'mode={mode}'.")
+        LOGGER.warning(f"WARNING ⚠️ 'mode' is missing. Valid modes are {modes}. Using default 'mode={mode}'.")
     elif mode not in modes:
         if mode != 'checks':
             raise ValueError(emojis(f"ERROR ❌ Invalid 'mode={mode}'. Valid modes are {modes}."))
@@ -237,7 +272,7 @@ def entrypoint(debug=''):
     task = overrides.pop('task', None)
     if model is None:
         model = task2model.get(task, 'yolov8n.pt')
-        LOGGER.warning(f"WARNING ⚠️ 'model=' is missing. Using default 'model={model}'.")
+        LOGGER.warning(f"WARNING ⚠️ 'model' is missing. Using default 'model={model}'.")
     from ultralytics.yolo.engine.model import YOLO
     overrides['model'] = model
     model = YOLO(model)
@@ -251,15 +286,15 @@ def entrypoint(debug=''):
     if mode == 'predict' and 'source' not in overrides:
         overrides['source'] = DEFAULT_CFG.source or ROOT / "assets" if (ROOT / "assets").exists() \
             else "https://ultralytics.com/images/bus.jpg"
-        LOGGER.warning(f"WARNING ⚠️ 'source=' is missing. Using default 'source={overrides['source']}'.")
+        LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using default 'source={overrides['source']}'.")
     elif mode in ('train', 'val'):
         if 'data' not in overrides:
             overrides['data'] = task2data.get(task, DEFAULT_CFG.data)
-            LOGGER.warning(f"WARNING ⚠️ 'data=' is missing. Using {model.task} default 'data={overrides['data']}'.")
+            LOGGER.warning(f"WARNING ⚠️ 'data' is missing. Using {model.task} default 'data={overrides['data']}'.")
     elif mode == 'export':
         if 'format' not in overrides:
             overrides['format'] = DEFAULT_CFG.format or 'torchscript'
-            LOGGER.warning(f"WARNING ⚠️ 'format=' is missing. Using default 'format={overrides['format']}'.")
+            LOGGER.warning(f"WARNING ⚠️ 'format' is missing. Using default 'format={overrides['format']}'.")
 
     # Run command in python
     # getattr(model, mode)(**vars(get_cfg(overrides=overrides)))  # default args using default.yaml

@@ -127,7 +127,8 @@ success = model.export(format="onnx")  # export the model to ONNX format
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) download automatically from the latest
 Ultralytics [release](https://github.com/ultralytics/assets/releases). See
 YOLOv8 [Python Docs](https://docs.ultralytics.com/python) for more examples.
-
+### Model Architectures
+All supported model architectures can be found in the [Appendix](#Appendix) section of the README
 #### Known Issues / TODOs
 
 We are still working on several parts of YOLOv8! We aim to have these completed soon to bring the YOLOv8 feature set up
@@ -313,28 +314,57 @@ model = YOLO("model.yaml")  # model.pt
 <b>What to add your model architecture?</b> [Here's](#) how you can contribute
 
 ### 1. YOLOv8
-About - <br>
+**About** - Cutting edge Detection, Segmentation and Classification models developed by Ultralytics. </br>
+**Citation** - 
 Available Models:
 - Detection - `yolov8n`, `yolov8s`, `yolov8m`, `yolov8l`, `yolov8x`
 - Instance Segmenetation - `yolov8n-seg`, `yolov8s-seg`, `yolov8m-seg`, `yolov8l-seg`, `yolov8x-seg`
 - Classification - `yolov8n-cls`, `yolov8s-cls`, `yolov8m-cls`, `yolov8l-cls`, `yolov8x-cls`
+<details><summary>Performance</summary>
 
-### 2. YOLOv6
-About - YOLOv6 [[Paper](#)] developed by [Meituan](#) Vision department is a single-stage object detection framework dedicated to industrial applications. <br>
-Available Models: 
-- Detection - `yolov6n`, `yolov6s`, `yolov6m`, `yolov6l`
+### Detection
+| Model                                                                                | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+| ------------------------------------------------------------------------------------ | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
+| [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt) | 640                   | 37.3                 | 80.4                           | 0.99                                | 3.2                | 8.7               |
+| [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s.pt) | 640                   | 44.9                 | 128.4                          | 1.20                                | 11.2               | 28.6              |
+| [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m.pt) | 640                   | 50.2                 | 234.7                          | 1.83                                | 25.9               | 78.9              |
+| [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l.pt) | 640                   | 52.9                 | 375.2                          | 2.39                                | 43.7               | 165.2             |
+| [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x.pt) | 640                   | 53.9                 | 479.1                          | 3.53                                | 68.2               | 257.8             |
 
-### 2. YOLOv5
+### Segmentation
 
-About - <br>
+| Model                                                                                    | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+| ---------------------------------------------------------------------------------------- | --------------------- | -------------------- | --------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
+| [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-seg.pt) | 640                   | 36.7                 | 30.5                  | 96.1                           | 1.21                                | 3.4                | 12.6              |
+| [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-seg.pt) | 640                   | 44.6                 | 36.8                  | 155.7                          | 1.47                                | 11.8               | 42.6              |
+| [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-seg.pt) | 640                   | 49.9                 | 40.8                  | 317.0                          | 2.18                                | 27.3               | 110.2             |
+| [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-seg.pt) | 640                   | 52.3                 | 42.6                  | 572.4                          | 2.79                                | 46.0               | 220.5             |
+| [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-seg.pt) | 640                   | 53.4                 | 43.4                  | 712.1                          | 4.02                                | 71.8               | 344.1             |
+
+### Classification
+
+| Model                                                                                    | size<br><sup>(pixels) | acc<br><sup>top1 | acc<br><sup>top5 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
+| ---------------------------------------------------------------------------------------- | --------------------- | ---------------- | ---------------- | ------------------------------ | ----------------------------------- | ------------------ | ------------------------ |
+| [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-cls.pt) | 224                   | 66.6             | 87.0             | 12.9                           | 0.31                                | 2.7                | 4.3                      |
+| [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-cls.pt) | 224                   | 72.3             | 91.1             | 23.4                           | 0.35                                | 6.4                | 13.5                     |
+| [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-cls.pt) | 224                   | 76.4             | 93.2             | 85.4                           | 0.62                                | 17.0               | 42.7                     |
+| [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-cls.pt) | 224                   | 78.0             | 94.1             | 163.0                          | 0.87                                | 37.5               | 99.7                     |
+| [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-cls.pt) | 224                   | 78.4             | 94.3             | 232.0                          | 1.01                                | 57.4               | 154.8                    |
+</details>
+
+### 2. YOLOv5u
+**About** - Anchor-free YOLOv5 models with new detection head and better speed-accuracy tradeoff </br>
+**Citation** - 
 Available Models:
+- Detection - `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`
+<details><summary>Performance</summary>
+### Detection
 
-- Detection - `yolov5n`, `yolov5s`, `yolov5m`, `yolov5l`, `yolov5x`
-- Instance Segmentation - `yolov5n-seg`, `yolov5s-seg`, `yolov5m-seg`, `yolov5l-seg`, `yolov5x-seg`
+| Model                                                                                  | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+|----------------------------------------------------------------------------------------| --------------------- |----------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
+| [YOLOv5nu](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5nu.pt) | 640                   | 34.3                 | 73.6                           | 1.06                                | 2.6                | 7.7               |
+| [YOLOv5su](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5su.pt) | 640                   | 43.0                 | 120.7                          | 1.27                                | 9.1                | 24.0              |
+| [YOLOv5mu](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5mu.pt) | 640                   | 49.0                 | 233.9                          | 1.86                                | 25.1               | 64.2              |
+| [YOLOv5lu](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5lu.pt) | 640                   | 52.2                 | 408.4                          | 2.50                                | 53.2               | 135.0             |
+| [YOLOv5xu](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5xu.pt) | 640                   | 53.2                 | 763.2                          | 3.81                                | 97.2               | 246.4             |
 
-### 3. YOLOv3
-
-About - <br>
-Available Models:
-
-- Detection - `yolov3`, `yolov3-spp`, `yolov3-tiny`

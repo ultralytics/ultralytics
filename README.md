@@ -285,8 +285,8 @@ Ultralytics supports many model architectures. Visit [models](#) page to view de
 Any of these models can be used by loading their configs or pretrained checkpoints if available.
 
 ```bash
-> yolo model=model.yaml ..
-            model.pt
+ yolo model=model.pt ..
+            model.yaml
 ```
 
 ```python
@@ -350,6 +350,7 @@ Available Models:
 - Detection - `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`
 
 <details><summary>Performance</summary>
+
 ### Detection
 
 | Model                                                                                  | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |

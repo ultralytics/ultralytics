@@ -1,6 +1,6 @@
 <div align="center">
   <p>
-    <a align="center" href="https://ultralytics.com/yolov8" target="_blank">
+    <a href="https://ultralytics.com/yolov8" target="_blank">
       <img width="850" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png"></a>
   </p>
 
@@ -70,7 +70,7 @@ YOLOv8 可以直接在命令行界面（CLI）中使用 `yolo` 命令运行：
 yolo predict model=yolov8n.pt source="https://ultralytics.com/images/bus.jpg"
 ```
 
-`yolo`可以用于各种任务和模式，并接受额外的参数，例如 `imgsz=640`。参见 YOLOv8 [文档](https://docs.ultralytics.com)中可用`yolo`[参数](https://docs.ultralytics.com/config/)的完整列表。
+`yolo`可以用于各种任务和模式，并接受额外的参数，例如 `imgsz=640`。参见 YOLOv8 [文档](https://docs.ultralytics.com)中可用`yolo`[参数](https://docs.ultralytics.com/cfg/)的完整列表。
 
 ```bash
 yolo task=detect    mode=train    model=yolov8n.pt        args...
@@ -79,7 +79,7 @@ yolo task=detect    mode=train    model=yolov8n.pt        args...
                          export         yolov8n.pt        format=onnx  args...
 ```
 
-YOLOv8 也可以在 Python 环境中直接使用，并接受与上面 CLI 例子中相同的[参数](https://docs.ultralytics.com/config/)：
+YOLOv8 也可以在 Python 环境中直接使用，并接受与上面 CLI 例子中相同的[参数](https://docs.ultralytics.com/cfg/)：
 
 ```python
 from ultralytics import YOLO
@@ -167,7 +167,7 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 ## <div align="center">模块集成</div>
 
 <br>
-<a align="center" href="https://bit.ly/ultralytics_hub" target="_blank">
+<a href="https://bit.ly/ultralytics_hub" target="_blank">
 <img width="100%" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png"></a>
 <br>
 <br>
@@ -194,7 +194,7 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 
 [Ultralytics HUB](https://bit.ly/ultralytics_hub) 是我们⭐ **新**的无代码解决方案，用于可视化数据集，训练 YOLOv8🚀 模型，并以无缝体验方式部署到现实世界。现在开始**免费**! 还可以通过下载 [Ultralytics App](https://ultralytics.com/app_install) 在你的 iOS 或 Android 设备上运行 YOLOv8 模型!
 
-<a align="center" href="https://bit.ly/ultralytics_hub" target="_blank">
+<a href="https://bit.ly/ultralytics_hub" target="_blank">
 <img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/ultralytics-hub.png"></a>
 
 ## <div align="center">贡献</div>

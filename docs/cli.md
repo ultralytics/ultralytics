@@ -16,8 +16,9 @@ Where:
 - `TASK` (optional) is one of `[detect, segment, classify]`. If it is not passed explicitly YOLOv8 will try to guess
   the `TASK` from the model type.
 - `MODE` (required) is one of `[train, val, predict, export]`
-- `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults. 
-  For a full list of available `ARGS` see the [Configuration](config.md) page.
+- `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults.
+  For a full list of available `ARGS` see the [Configuration](cfg.md) page and `defaults.yaml`
+  GitHub [source](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/cfg/default.yaml).
 
 !!! note ""
 
@@ -30,7 +31,7 @@ Where:
 ## Train
 
 Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. For a full list of available arguments see
-the [Configuration](config.md) page.
+the [Configuration](cfg.md) page.
 
 !!! example ""
 
@@ -166,7 +167,7 @@ Default arguments can be overriden by simply passing them as arguments in the CL
     === "Example 2"
         Predict a YouTube video using a pretrained segmentation model at image size 320:
         ```bash
-        yolo segment predict model=yolov8n-seg.pt source=https://youtu.be/Zgi9g1ksQHc imgsz=320
+        yolo segment predict model=yolov8n-seg.pt source='https://youtu.be/Zgi9g1ksQHc' imgsz=320
         ```
 
     === "Example 3"
@@ -182,7 +183,7 @@ Default arguments can be overriden by simply passing them as arguments in the CL
 You can override the `default.yaml` config file entirely by passing a new file with the `cfg` arguments,
 i.e. `cfg=custom.yaml`.
 
-To do this first create a copy of `default.yaml` in your current working dir with the `yolo copy-config` command.
+To do this first create a copy of `default.yaml` in your current working dir with the `yolo copy-cfg` command.
 
 This will create `default_copy.yaml`, which you can then pass as `cfg=default_copy.yaml` along with any additional args,
 like `imgsz=320` in this example:
@@ -191,6 +192,6 @@ like `imgsz=320` in this example:
 
     === "CLI"
         ```bash
-        yolo copy-config
+        yolo copy-cfg
         yolo cfg=default_copy.yaml imgsz=320
         ```

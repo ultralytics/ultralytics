@@ -85,6 +85,7 @@ jobs:
         shell: bash  # for Windows compatibility
         run: |
           yolo task=detect mode=train data=coco8.yaml model=yolov8n.yaml epochs=1 imgsz=32
+          yolo task=detect mode=train data=coco8.yaml model=yolov8n.pt epochs=1 imgsz=32
           yolo task=detect mode=val data=coco8.yaml model=runs/detect/train/weights/last.pt imgsz=32
           yolo task=detect mode=predict model=runs/detect/train/weights/last.pt imgsz=32 source=ultralytics/assets/bus.jpg
           yolo mode=export model=runs/detect/train/weights/last.pt imgsz=32 format=torchscript
@@ -92,6 +93,7 @@ jobs:
         shell: bash  # for Windows compatibility
         run: |
           yolo task=segment mode=train data=coco8-seg.yaml model=yolov8n-seg.yaml epochs=1 imgsz=32
+          yolo task=segment mode=train data=coco8-seg.yaml model=yolov8n-seg.pt epochs=1 imgsz=32
           yolo task=segment mode=val data=coco8-seg.yaml model=runs/segment/train/weights/last.pt imgsz=32
           yolo task=segment mode=predict model=runs/segment/train/weights/last.pt imgsz=32 source=ultralytics/assets/bus.jpg
           yolo mode=export model=runs/segment/train/weights/last.pt imgsz=32 format=torchscript
@@ -99,6 +101,7 @@ jobs:
         shell: bash  # for Windows compatibility
         run: |
           yolo task=classify mode=train data=mnist160 model=yolov8n-cls.yaml epochs=1 imgsz=32
+          yolo task=classify mode=train data=mnist160 model=yolov8n-cls.pt epochs=1 imgsz=32
           yolo task=classify mode=val data=mnist160 model=runs/classify/train/weights/last.pt imgsz=32
           yolo task=classify mode=predict model=runs/classify/train/weights/last.pt imgsz=32 source=ultralytics/assets/bus.jpg
           yolo mode=export model=runs/classify/train/weights/last.pt imgsz=32 format=torchscript

@@ -1,11 +1,11 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
+import sys
 
-import hydra
 import torch
 
 from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.engine.results import Results
-from ultralytics.yolo.utils import DEFAULT_CONFIG, ROOT, ops
+from ultralytics.yolo.utils import DEFAULT_CFG, ROOT, ops
 from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
 
 
@@ -20,12 +20,13 @@ class DetectionPredictor(BasePredictor):
         img /= 255  # 0 - 255 to 0.0 - 1.0
         return img
 
-    def postprocess(self, preds, img, orig_img):
+    def postprocess(self, preds, img, orig_img, classes=None):
         preds = ops.non_max_suppression(preds,
                                         self.args.conf,
                                         self.args.iou,
                                         agnostic=self.args.agnostic_nms,
-                                        max_det=self.args.max_det)
+                                        max_det=self.args.max_det,
+                                        classes=self.args.classes)
 
         results = []
         for i, pred in enumerate(preds):
@@ -40,8 +41,8 @@ class DetectionPredictor(BasePredictor):
         if len(im.shape) == 3:
             im = im[None]  # expand for batch dim
         self.seen += 1
-        im0 = im0.copy()
-        if self.webcam or self.from_img:  # batch_size >= 1
+        imc = im0.copy() if self.args.save_crop else im0
+        if self.source_type.webcam or self.source_type.from_img:  # batch_size >= 1
             log_string += f'{idx}: '
             frame = self.dataset.count
         else:
@@ -72,7 +73,6 @@ class DetectionPredictor(BasePredictor):
                     self.model.names[c] if self.args.hide_conf else f'{self.model.names[c]} {conf:.2f}')
                 self.annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
             if self.args.save_crop:
-                imc = im0.copy()
                 save_one_box(d.xyxy,
                              imc,
                              file=self.save_dir / 'crops' / self.model.model.names[c] / f'{self.data_path.stem}.jpg',
@@ -81,12 +81,18 @@ class DetectionPredictor(BasePredictor):
         return log_string
 
 
-@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
-def predict(cfg):
-    cfg.model = cfg.model or "yolov8n.pt"
-    cfg.source = cfg.source if cfg.source is not None else ROOT / "assets"
-    predictor = DetectionPredictor(cfg)
-    predictor.predict_cli()
+def predict(cfg=DEFAULT_CFG, use_python=False):
+    model = cfg.model or "yolov8n.pt"
+    source = cfg.source if cfg.source is not None else ROOT / "assets" if (ROOT / "assets").exists() \
+        else "https://ultralytics.com/images/bus.jpg"
+
+    args = dict(model=model, source=source)
+    if use_python:
+        from ultralytics import YOLO
+        YOLO(model)(**args)
+    else:
+        predictor = DetectionPredictor(overrides=args)
+        predictor.predict_cli()
 
 
 if __name__ == "__main__":

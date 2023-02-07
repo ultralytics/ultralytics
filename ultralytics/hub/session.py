@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
-
+import signal
 from pathlib import Path
 from time import sleep
 
@@ -12,22 +12,6 @@ from ultralytics.yolo.utils import is_colab, threaded
 AGENT_NAME = f'python-{__version__}-colab' if is_colab() else f'python-{__version__}-local'
 
 session = None
-
-# Causing problems in tests (non-authenticated)
-# import signal
-# import sys
-# def signal_handler(signum, frame):
-#     """ Confirm exit """
-#     global hub_logger
-#     LOGGER.info(f'Signal received. {signum} {frame}')
-#     if isinstance(session, HubTrainingSession):
-#         hub_logger.alive = False
-#         del hub_logger
-#     sys.exit(signum)
-#
-#
-# signal.signal(signal.SIGTERM, signal_handler)
-# signal.signal(signal.SIGINT, signal_handler)
 
 
 class HubTrainingSession:
@@ -43,10 +27,11 @@ class HubTrainingSession:
         self.alive = True  # for heartbeats
         self.model = self._get_model()
         self._heartbeats()  # start heartbeats
+        signal.signal(signal.SIGTERM, self.shutdown)  # register the shutdown function to be called on exit
+        signal.signal(signal.SIGINT, self.shutdown)
 
-    def __del__(self):
-        # Class destructor
-        self.alive = False
+    def shutdown(self, *args):  # noqa
+        self.alive = False  # stop heartbeats
 
     def upload_metrics(self):
         payload = {"metrics": self.metrics_queue.copy(), "type": "metrics"}
@@ -99,13 +84,6 @@ class HubTrainingSession:
     def check_disk_space(self):
         if not check_dataset_disk_space(self.model['data']):
             raise MemoryError("Not enough disk space")
-
-    # COMMENT: Should not be needed as HUB is now considered an integration and is in integrations_callbacks
-    # import ultralytics.yolo.utils.callbacks.hub as hub_callbacks
-    # @staticmethod
-    # def register_callbacks(trainer):
-    #     for k, v in hub_callbacks.callbacks.items():
-    #         trainer.add_callback(k, v)
 
     @threaded
     def _heartbeats(self):

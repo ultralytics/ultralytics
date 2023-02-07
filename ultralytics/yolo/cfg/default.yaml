@@ -1,0 +1,110 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license
+# Default training settings and hyperparameters for medium-augmentation COCO training
+
+task: detect  # inference task, i.e. detect, segment, classify
+mode: train  # YOLO mode, i.e. train, val, predict, export
+
+# Train settings -------------------------------------------------------------------------------------------------------
+model:  # path to model file, i.e. yolov8n.pt, yolov8n.yaml
+data:  # path to data file, i.e. i.e. coco128.yaml
+epochs: 100  # number of epochs to train for
+patience: 50  # epochs to wait for no observable improvement for early stopping of training
+batch: 16  # number of images per batch (-1 for AutoBatch)
+imgsz: 640  # size of input images as integer or w,h
+save: True  # save train checkpoints and predict results
+cache: False  # True/ram, disk or False. Use cache for data loading
+device:  # device to run on, i.e. cuda device=0 or device=0,1,2,3 or device=cpu
+workers: 8  # number of worker threads for data loading (per RANK if DDP)
+project:  # project name
+name:  # experiment name
+exist_ok: False  # whether to overwrite existing experiment
+pretrained: False  # whether to use a pretrained model
+optimizer: SGD  # optimizer to use, choices=['SGD', 'Adam', 'AdamW', 'RMSProp']
+verbose: True  # whether to print verbose output
+seed: 0  # random seed for reproducibility
+deterministic: True  # whether to enable deterministic mode
+single_cls: False  # train multi-class data as single-class
+image_weights: False  # use weighted image selection for training
+rect: False  # support rectangular training if mode='train', support rectangular evaluation if mode='val'
+cos_lr: False  # use cosine learning rate scheduler
+close_mosaic: 10  # disable mosaic augmentation for final 10 epochs
+resume: False  # resume training from last checkpoint
+min_memory: False  # minimize memory footprint loss function, choices=[False, True, <roll_out_thr>]
+# Segmentation
+overlap_mask: True  # masks should overlap during training (segment train only)
+mask_ratio: 4  # mask downsample ratio (segment train only)
+# Classification
+dropout: 0.0  # use dropout regularization (classify train only)
+
+# Val/Test settings ----------------------------------------------------------------------------------------------------
+val: True  # validate/test during training
+save_json: False  # save results to JSON file
+save_hybrid: False  # save hybrid version of labels (labels + additional predictions)
+conf:  # object confidence threshold for detection (default 0.25 predict, 0.001 val)
+iou: 0.7  # intersection over union (IoU) threshold for NMS
+max_det: 300  # maximum number of detections per image
+half: False  # use half precision (FP16)
+dnn: False  # use OpenCV DNN for ONNX inference
+plots: True  # save plots during train/val
+
+# Prediction settings --------------------------------------------------------------------------------------------------
+source:  # source directory for images or videos
+show: False  # show results if possible
+save_txt: False  # save results as .txt file
+save_conf: False  # save results with confidence scores
+save_crop: False  # save cropped images with results
+hide_labels: False  # hide labels
+hide_conf: False  # hide confidence scores
+vid_stride: 1  # video frame-rate stride
+line_thickness: 3  # bounding box thickness (pixels)
+visualize: False  # visualize model features
+augment: False  # apply image augmentation to prediction sources
+agnostic_nms: False  # class-agnostic NMS
+classes:  # filter results by class, i.e. class=0, or class=[0,2,3]
+retina_masks: False  # use high-resolution segmentation masks
+boxes: True # Show boxes in segmentation predictions
+
+# Export settings ------------------------------------------------------------------------------------------------------
+format: torchscript  # format to export to
+keras: False  # use Keras
+optimize: False  # TorchScript: optimize for mobile
+int8: False  # CoreML/TF INT8 quantization
+dynamic: False  # ONNX/TF/TensorRT: dynamic axes
+simplify: False  # ONNX: simplify model
+opset:  # ONNX: opset version (optional)
+workspace: 4  # TensorRT: workspace size (GB)
+nms: False  # CoreML: add NMS
+
+# Hyperparameters ------------------------------------------------------------------------------------------------------
+lr0: 0.01  # initial learning rate (i.e. SGD=1E-2, Adam=1E-3)
+lrf: 0.01  # final learning rate (lr0 * lrf)
+momentum: 0.937  # SGD momentum/Adam beta1
+weight_decay: 0.0005  # optimizer weight decay 5e-4
+warmup_epochs: 3.0  # warmup epochs (fractions ok)
+warmup_momentum: 0.8  # warmup initial momentum
+warmup_bias_lr: 0.1  # warmup initial bias lr
+box: 7.5  # box loss gain
+cls: 0.5  # cls loss gain (scale with pixels)
+dfl: 1.5  # dfl loss gain
+fl_gamma: 0.0  # focal loss gamma (efficientDet default gamma=1.5)
+label_smoothing: 0.0  # label smoothing (fraction)
+nbs: 64  # nominal batch size
+hsv_h: 0.015  # image HSV-Hue augmentation (fraction)
+hsv_s: 0.7  # image HSV-Saturation augmentation (fraction)
+hsv_v: 0.4  # image HSV-Value augmentation (fraction)
+degrees: 0.0  # image rotation (+/- deg)
+translate: 0.1  # image translation (+/- fraction)
+scale: 0.5  # image scale (+/- gain)
+shear: 0.0  # image shear (+/- deg)
+perspective: 0.0  # image perspective (+/- fraction), range 0-0.001
+flipud: 0.0  # image flip up-down (probability)
+fliplr: 0.5  # image flip left-right (probability)
+mosaic: 1.0  # image mosaic (probability)
+mixup: 0.0  # image mixup (probability)
+copy_paste: 0.0  # segment copy-paste (probability)
+
+# Custom config.yaml ---------------------------------------------------------------------------------------------------
+cfg:  # for overriding defaults.yaml
+
+# Debug, do not modify -------------------------------------------------------------------------------------------------
+v5loader: False  # use legacy YOLOv5 dataloader

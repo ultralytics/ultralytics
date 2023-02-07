@@ -1,14 +1,15 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
-
+import contextlib
 import glob
 import inspect
 import math
 import os
 import platform
+import re
 import shutil
+import subprocess
 import urllib
 from pathlib import Path
-from subprocess import check_output
 from typing import Optional
 
 import cv2
@@ -17,9 +18,10 @@ import pkg_resources as pkg
 import psutil
 import torch
 from IPython import display
+from matplotlib import font_manager
 
-from ultralytics.yolo.utils import (AUTOINSTALL, FONT, LOGGER, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, emojis,
-                                    is_colab, is_docker, is_jupyter_notebook)
+from ultralytics.yolo.utils import (AUTOINSTALL, LOGGER, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, downloads, emojis,
+                                    is_colab, is_docker, is_jupyter)
 
 
 def is_ascii(s) -> bool:
@@ -39,7 +41,7 @@ def is_ascii(s) -> bool:
     return all(ord(c) < 128 for c in s)
 
 
-def check_imgsz(imgsz, stride=32, min_dim=1, floor=0):
+def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
     """
     Verify image size is a multiple of the given stride in each dimension. If the image size is not a multiple of the
     stride, update it to the nearest multiple of the stride that is greater than or equal to the given floor value.
@@ -59,13 +61,26 @@ def check_imgsz(imgsz, stride=32, min_dim=1, floor=0):
     # Convert image size to list if it is an integer
     if isinstance(imgsz, int):
         imgsz = [imgsz]
+    elif isinstance(imgsz, (list, tuple)):
+        imgsz = list(imgsz)
+    else:
+        raise TypeError(f"'imgsz={imgsz}' is of invalid type {type(imgsz).__name__}. "
+                        f"Valid imgsz types are int i.e. 'imgsz=640' or list i.e. 'imgsz=[640,640]'")
 
+    # Apply max_dim
+    if len(imgsz) > max_dim:
+        msg = "'train' and 'val' imgsz must be an integer, while 'predict' and 'export' imgsz may be a [h, w] list " \
+              "or an integer, i.e. 'yolo export imgsz=640,480' or 'yolo export imgsz=640'"
+        if max_dim != 1:
+            raise ValueError(f"imgsz={imgsz} is not a valid image size. {msg}")
+        LOGGER.warning(f"WARNING ⚠️ updating to 'imgsz={max(imgsz)}'. {msg}")
+        imgsz = [max(imgsz)]
     # Make image size a multiple of the stride
     sz = [max(math.ceil(x / stride) * stride, floor) for x in imgsz]
 
     # Print warning message if image size was updated
     if sz != imgsz:
-        LOGGER.warning(f'WARNING ⚠️ --img-size {imgsz} must be multiple of max stride {stride}, updating to {sz}')
+        LOGGER.warning(f'WARNING ⚠️ imgsz={imgsz} must be multiple of max stride {stride}, updating to {sz}')
 
     # Add missing dimensions if necessary
     sz = [sz[0], sz[0]] if min_dim == 2 and len(sz) == 1 else sz[0] if min_dim == 1 and len(sz) == 1 else sz
@@ -93,8 +108,7 @@ def check_version(current: str = "0.0.0",
     Returns:
         bool: True if minimum version is met, False otherwise.
     """
-    from pkg_resources import parse_version
-    current, minimum = (parse_version(x) for x in (current, minimum))
+    current, minimum = (pkg.parse_version(x) for x in (current, minimum))
     result = (current == minimum) if pinned else (current >= minimum)  # bool
     warning_message = f"WARNING ⚠️ {name}{minimum} is required by YOLOv8, but {name}{current} is currently installed"
     if hard:
@@ -104,28 +118,33 @@ def check_version(current: str = "0.0.0",
     return result
 
 
-def check_font(font: str = FONT, progress: bool = False) -> None:
+def check_font(font='Arial.ttf'):
     """
-    Download font file to the user's configuration directory if it does not already exist.
+    Find font locally or download to user's configuration directory if it does not already exist.
 
     Args:
-        font (str): Path to font file.
-        progress (bool): If True, display a progress bar during the download.
+        font (str): Path or name of font.
 
     Returns:
-        None
+        file (Path): Resolved font file path.
     """
-    font = Path(font)
+    name = Path(font).name
 
-    # Destination path for the font file
-    file = USER_CONFIG_DIR / font.name
+    # Check USER_CONFIG_DIR
+    file = USER_CONFIG_DIR / name
+    if file.exists():
+        return file
 
-    # Check if font file exists at the source or destination path
-    if not font.exists() and not file.exists():
-        # Download font file
-        url = f'https://ultralytics.com/assets/{font.name}'
-        LOGGER.info(f'Downloading {url} to {file}...')
-        torch.hub.download_url_to_file(url, str(file), progress=progress)
+    # Check system fonts
+    matches = [s for s in font_manager.findSystemFonts() if font in s]
+    if any(matches):
+        return matches[0]
+
+    # Download to USER_CONFIG_DIR if missing
+    url = f'https://ultralytics.com/assets/{name}'
+    if downloads.is_url(url):
+        downloads.safe_download(url=url, file=file)
+        return file
 
 
 def check_online() -> bool:
@@ -136,12 +155,11 @@ def check_online() -> bool:
         bool: True if connection is successful, False otherwise.
     """
     import socket
-    try:
-        # Check host accessibility by attempting to establish a connection
-        socket.create_connection(("1.1.1.1", 443), timeout=5)
+    with contextlib.suppress(subprocess.CalledProcessError):
+        host = socket.gethostbyname("www.github.com")
+        socket.create_connection((host, 80), timeout=2)
         return True
-    except OSError:
-        return False
+    return False
 
 
 def check_python(minimum: str = '3.7.0') -> bool:
@@ -154,7 +172,7 @@ def check_python(minimum: str = '3.7.0') -> bool:
     Returns:
         None
     """
-    check_version(platform.python_version(), minimum, name='Python ', hard=True)
+    return check_version(platform.python_version(), minimum, name='Python ', hard=True)
 
 
 @TryExcept()
@@ -162,6 +180,7 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
     # Check installed dependencies meet YOLOv5 requirements (pass *.txt file or list of packages or single package str)
     prefix = colorstr('red', 'bold', 'requirements:')
     check_python()  # check python version
+    file = None
     if isinstance(requirements, Path):  # requirements.txt file
         file = requirements.resolve()
         assert file.exists(), f"{prefix} {file} not found, check failed."
@@ -183,9 +202,8 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
         LOGGER.info(f"{prefix} YOLOv8 requirement{'s' * (n > 1)} {s}not found, attempting AutoUpdate...")
         try:
             assert check_online(), "AutoUpdate skipped (offline)"
-            LOGGER.info(check_output(f'pip install {s} {cmds}', shell=True).decode())
-            source = file if 'file' in locals() else requirements
-            s = f"{prefix} {n} package{'s' * (n > 1)} updated per {source}\n" \
+            LOGGER.info(subprocess.check_output(f'pip install {s} {cmds}', shell=True).decode())
+            s = f"{prefix} {n} package{'s' * (n > 1)} updated per {file or requirements}\n" \
                 f"{prefix} ⚠️ {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n"
             LOGGER.info(s)
         except Exception as e:
@@ -203,28 +221,42 @@ def check_suffix(file='yolov8n.pt', suffix=('.pt',), msg=''):
                 assert s in suffix, f"{msg}{f} acceptable suffix is {suffix}"
 
 
+def check_yolov5u_filename(file: str):
+    # Replace legacy YOLOv5 filenames with updated YOLOv5u filenames
+    if 'yolov3' in file or 'yolov5' in file and 'u' not in file:
+        original_file = file
+        file = re.sub(r"(.*yolov5([nsmlx]))\.", "\\1u.", file)  # i.e. yolov5n.pt -> yolov5nu.pt
+        file = re.sub(r"(.*yolov3(|-tiny|-spp))\.", "\\1u.", file)  # i.e. yolov3-spp.pt -> yolov3-sppu.pt
+        if file != original_file:
+            LOGGER.info(f"PRO TIP 💡 Replace 'model={original_file}' with new 'model={file}'.\nYOLOv5 'u' models are "
+                        f"trained with https://github.com/ultralytics/ultralytics and feature improved performance vs "
+                        f"standard YOLOv5 models trained with https://github.com/ultralytics/yolov5.\n")
+    return file
+
+
 def check_file(file, suffix=''):
     # Search/download file (if necessary) and return path
     check_suffix(file, suffix)  # optional
-    file = str(file)  # convert to str()
-    if Path(file).is_file() or not file:  # exists
+    file = str(file)  # convert to string
+    file = check_yolov5u_filename(file)  # yolov5n -> yolov5nu
+    if not file or ('://' not in file and Path(file).is_file()):  # exists ('://' check required in Windows Python<3.10)
         return file
-    elif file.startswith(('http:/', 'https:/')):  # download
+    elif file.lower().startswith(('https://', 'http://', 'rtsp://', 'rtmp://')):  # download
         url = file  # warning: Pathlib turns :// -> :/
         file = Path(urllib.parse.unquote(file).split('?')[0]).name  # '%2F' to '/', split https://url.com/file.txt?auth
         if Path(file).is_file():
             LOGGER.info(f'Found {url} locally at {file}')  # file already exists
         else:
-            LOGGER.info(f'Downloading {url} to {file}...')
-            torch.hub.download_url_to_file(url, file)
-            assert Path(file).exists() and Path(file).stat().st_size > 0, f'File download failed: {url}'  # check
+            downloads.safe_download(url=url, file=file, unzip=False)
         return file
     else:  # search
         files = []
         for d in 'models', 'yolo/data':  # search directories
             files.extend(glob.glob(str(ROOT / d / '**' / file), recursive=True))  # find file
-        assert len(files), f'File not found: {file}'  # assert file was found
-        assert len(files) == 1, f"Multiple files match '{file}', specify exact path: {files}"  # assert unique
+        if not files:
+            raise FileNotFoundError(f"'{file}' does not exist")
+        elif len(files) > 1:
+            raise FileNotFoundError(f"Multiple files match '{file}', specify exact path: {files}")
         return files[0]  # return file
 
 
@@ -236,7 +268,7 @@ def check_yaml(file, suffix=('.yaml', '.yml')):
 def check_imshow(warn=False):
     # Check if environment supports image displays
     try:
-        assert not is_jupyter_notebook()
+        assert not is_jupyter()
         assert not is_docker()
         cv2.imshow('test', np.zeros((1, 1, 3)))
         cv2.waitKey(1)
@@ -273,8 +305,8 @@ def git_describe(path=ROOT):  # path must be a directory
     # Return human-readable git description, i.e. v5.0-5-g3e25f1e https://git-scm.com/docs/git-describe
     try:
         assert (Path(path) / '.git').is_dir()
-        return check_output(f'git -C {path} describe --tags --long --always', shell=True).decode()[:-1]
-    except Exception:
+        return subprocess.check_output(f'git -C {path} describe --tags --long --always', shell=True).decode()[:-1]
+    except AssertionError:
         return ''
 
 

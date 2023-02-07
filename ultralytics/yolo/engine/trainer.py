@@ -15,25 +15,23 @@ import numpy as np
 import torch
 import torch.distributed as dist
 import torch.nn as nn
-from omegaconf import OmegaConf  # noqa
-from omegaconf import open_dict
 from torch.cuda import amp
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.optim import lr_scheduler
 from tqdm import tqdm
 
-import ultralytics.yolo.utils as utils
 from ultralytics import __version__
-from ultralytics.nn.tasks import attempt_load_one_weight
-from ultralytics.yolo.configs import get_config
-from ultralytics.yolo.data.utils import check_dataset, check_dataset_yaml
-from ultralytics.yolo.utils import (DEFAULT_CONFIG, LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, callbacks, colorstr,
+from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
+from ultralytics.yolo.cfg import get_cfg
+from ultralytics.yolo.data.utils import check_cls_dataset, check_det_dataset
+from ultralytics.yolo.utils import (DEFAULT_CFG, LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, callbacks, colorstr, emojis,
                                     yaml_save)
 from ultralytics.yolo.utils.autobatch import check_train_batch_size
 from ultralytics.yolo.utils.checks import check_file, check_imgsz, print_args
 from ultralytics.yolo.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.yolo.utils.files import get_latest_run, increment_path
-from ultralytics.yolo.utils.torch_utils import ModelEMA, de_parallel, init_seeds, one_cycle, strip_optimizer
+from ultralytics.yolo.utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel, init_seeds, one_cycle,
+                                                select_device, strip_optimizer)
 
 
 class BaseTrainer:
@@ -43,7 +41,7 @@ class BaseTrainer:
     A base class for creating trainers.
 
     Attributes:
-        args (OmegaConf): Configuration for the trainer.
+        args (SimpleNamespace): Configuration for the trainer.
         check_resume (method): Method to check if training should be resumed from a saved checkpoint.
         console (logging.Logger): Logger instance.
         validator (BaseValidator): Validator instance.
@@ -73,45 +71,42 @@ class BaseTrainer:
         csv (Path): Path to results CSV file.
     """
 
-    def __init__(self, config=DEFAULT_CONFIG, overrides=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None):
         """
         Initializes the BaseTrainer class.
 
         Args:
-            config (str, optional): Path to a configuration file. Defaults to DEFAULT_CONFIG.
+            cfg (str, optional): Path to a configuration file. Defaults to DEFAULT_CFG.
             overrides (dict, optional): Configuration overrides. Defaults to None.
         """
-        if overrides is None:
-            overrides = {}
-        self.args = get_config(config, overrides)
-        self.device = utils.torch_utils.select_device(self.args.device, self.args.batch)
+        self.args = get_cfg(cfg, overrides)
+        self.device = select_device(self.args.device, self.args.batch)
         self.check_resume()
         self.console = LOGGER
         self.validator = None
         self.model = None
-        self.callbacks = defaultdict(list)
         init_seeds(self.args.seed + 1 + RANK, deterministic=self.args.deterministic)
 
         # Dirs
         project = self.args.project or Path(SETTINGS['runs_dir']) / self.args.task
         name = self.args.name or f"{self.args.mode}"
-        self.save_dir = Path(
-            self.args.get(
-                "save_dir",
-                increment_path(Path(project) / name, exist_ok=self.args.exist_ok if RANK in {-1, 0} else True)))
+        if hasattr(self.args, 'save_dir'):
+            self.save_dir = Path(self.args.save_dir)
+        else:
+            self.save_dir = Path(
+                increment_path(Path(project) / name, exist_ok=self.args.exist_ok if RANK in {-1, 0} else True))
         self.wdir = self.save_dir / 'weights'  # weights dir
         if RANK in {-1, 0}:
             self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
-            with open_dict(self.args):
-                self.args.save_dir = str(self.save_dir)
-            yaml_save(self.save_dir / 'args.yaml', OmegaConf.to_container(self.args, resolve=True))  # save run args
+            self.args.save_dir = str(self.save_dir)
+            yaml_save(self.save_dir / 'args.yaml', vars(self.args))  # save run args
         self.last, self.best = self.wdir / 'last.pt', self.wdir / 'best.pt'  # checkpoint paths
 
         self.batch_size = self.args.batch
         self.epochs = self.args.epochs
         self.start_epoch = 0
         if RANK == -1:
-            print_args(dict(self.args))
+            print_args(vars(self.args))
 
         # Device
         self.amp = self.device.type != 'cpu'
@@ -121,11 +116,16 @@ class BaseTrainer:
 
         # Model and Dataloaders.
         self.model = self.args.model
-        self.data = self.args.data
-        if self.data.endswith(".yaml"):
-            self.data = check_dataset_yaml(self.data)
-        else:
-            self.data = check_dataset(self.data)
+        try:
+            if self.args.task == 'classify':
+                self.data = check_cls_dataset(self.args.data)
+            elif self.args.data.endswith(".yaml") or self.args.task in ('detect', 'segment'):
+                self.data = check_det_dataset(self.args.data)
+                if 'yaml_file' in self.data:
+                    self.args.data = self.data['yaml_file']  # for validating 'yolo train data=url.zip' usage
+        except Exception as e:
+            raise FileNotFoundError(emojis(f"Dataset '{self.args.data}' error ❌ {e}")) from e
+
         self.trainset, self.testset = self.get_dataset(self.data)
         self.ema = None
 
@@ -143,7 +143,7 @@ class BaseTrainer:
         self.plot_idx = [0, 1, 2]
 
         # Callbacks
-        self.callbacks = defaultdict(list, {k: [v] for k, v in callbacks.default_callbacks.items()})  # add callbacks
+        self.callbacks = defaultdict(list, callbacks.default_callbacks)  # add callbacks
         if RANK in {0, -1}:
             callbacks.add_integration_callbacks(self)
 
@@ -205,7 +205,7 @@ class BaseTrainer:
             self.model = DDP(self.model, device_ids=[rank])
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, 'stride') else 32), 32)  # grid size (max stride)
-        self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs * 2)
+        self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
         # Batch size
         if self.batch_size == -1:
             if RANK == -1:  # single-GPU only, estimate best batch size
@@ -229,6 +229,7 @@ class BaseTrainer:
             self.lf = lambda x: (1 - x / self.epochs) * (1.0 - self.args.lrf) + self.args.lrf  # linear
         self.scheduler = lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
         self.scheduler.last_epoch = self.start_epoch - 1  # do not move
+        self.stopper, self.stop = EarlyStopping(patience=self.args.patience), False
 
         # dataloaders
         batch_size = self.batch_size // world_size if world_size > 1 else self.batch_size
@@ -337,10 +338,12 @@ class BaseTrainer:
 
                 # Validation
                 self.ema.update_attr(self.model, include=['yaml', 'nc', 'args', 'names', 'stride', 'class_weights'])
-                final_epoch = (epoch + 1 == self.epochs)
+                final_epoch = (epoch + 1 == self.epochs) or self.stopper.possible_stop
+
                 if self.args.val or final_epoch:
                     self.metrics, self.fitness = self.validate()
                 self.save_metrics(metrics={**self.label_loss_items(self.tloss), **self.metrics, **self.lr})
+                self.stop = self.stopper(epoch + 1, self.fitness)
 
                 # Save model
                 if self.args.save or (epoch + 1 == self.epochs):
@@ -351,7 +354,15 @@ class BaseTrainer:
             self.epoch_time = tnow - self.epoch_time_start
             self.epoch_time_start = tnow
             self.run_callbacks("on_fit_epoch_end")
-            # TODO: termination condition
+
+            # Early Stopping
+            if RANK != -1:  # if DDP training
+                broadcast_list = [self.stop if RANK == 0 else None]
+                dist.broadcast_object_list(broadcast_list, 0)  # broadcast 'stop' to all ranks
+                if RANK != 0:
+                    self.stop = broadcast_list[0]
+            if self.stop:
+                break  # must break all DDP ranks
 
         if rank in {-1, 0}:
             # Do final val with best.pt
@@ -373,7 +384,7 @@ class BaseTrainer:
             'ema': deepcopy(self.ema.ema).half(),
             'updates': self.ema.updates,
             'optimizer': self.optimizer.state_dict(),
-            'train_args': self.args,
+            'train_args': vars(self.args),  # save as dict
             'date': datetime.now().isoformat(),
             'version': __version__}
 
@@ -449,7 +460,7 @@ class BaseTrainer:
     def get_validator(self):
         raise NotImplementedError("get_validator function not implemented in trainer")
 
-    def get_dataloader(self, dataset_path, batch_size=16, rank=0):
+    def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode="train"):
         """
         Returns dataloader derived from torch.data.Dataloader.
         """
@@ -500,7 +511,6 @@ class BaseTrainer:
                 strip_optimizer(f)  # strip optimizers
                 if f is self.best:
                     self.console.info(f'\nValidating {f}...')
-                    self.validator.args.save_json = True
                     self.metrics = self.validator(model=f)
                     self.metrics.pop('fitness', None)
                     self.run_callbacks('on_fit_epoch_end')
@@ -508,14 +518,15 @@ class BaseTrainer:
     def check_resume(self):
         resume = self.args.resume
         if resume:
-            last = Path(check_file(resume) if isinstance(resume, (str, Path)) else get_latest_run())
-            args_yaml = last.parent.parent / 'args.yaml'  # train options yaml
-            assert args_yaml.is_file(), \
-                FileNotFoundError('Resume checkpoint f{last} not found. '
-                                  'Please pass a valid checkpoint to resume from, i.e. yolo resume=path/to/last.pt')
-            args = get_config(args_yaml)  # replace
-            args.model, resume = str(last), True  # reinstate
-            self.args = args
+            try:
+                last = Path(
+                    check_file(resume) if isinstance(resume, (str,
+                                                              Path)) and Path(resume).exists() else get_latest_run())
+                self.args = get_cfg(attempt_load_weights(last).args)
+                self.args.model, resume = str(last), True  # reinstate
+            except Exception as e:
+                raise FileNotFoundError("Resume checkpoint not found. Please pass a valid checkpoint to resume from, "
+                                        "i.e. 'yolo train resume model=path/to/last.pt'") from e
         self.resume = resume
 
     def resume_training(self, ckpt):
@@ -534,7 +545,7 @@ class BaseTrainer:
                 f'{self.args.model} training to {self.epochs} epochs is finished, nothing to resume.\n' \
                 f"Start a new training without --resume, i.e. 'yolo task=... mode=train model={self.args.model}'"
             LOGGER.info(
-                f'Resuming training from {self.args.model} from epoch {start_epoch} to {self.epochs} total epochs')
+                f'Resuming training from {self.args.model} from epoch {start_epoch + 1} to {self.epochs} total epochs')
         if self.epochs < start_epoch:
             LOGGER.info(
                 f"{self.model} has been trained for {ckpt['epoch']} epochs. Fine-tuning for {self.epochs} more epochs.")

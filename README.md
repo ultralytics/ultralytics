@@ -1,6 +1,6 @@
 <div align="center">
   <p>
-    <a align="center" href="https://ultralytics.com/yolov8" target="_blank">
+    <a href="https://ultralytics.com/yolov8" target="_blank">
       <img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png"></a>
   </p>
 
@@ -52,26 +52,6 @@ To request an Enterprise License please complete the form at [Ultralytics Licens
   </div>
 </div>
 
-## <div align="center">Ultralytics Live Session</div>
-
-<div align="center">
-
-[Ultralytics Live Session 3](https://youtu.be/IPcpYO5ITa8) ✨ is here! Join us on January 24th at 18 CET as we dive into
-the latest advancements in YOLOv8, and demonstrate how to use this cutting-edge, SOTA model to improve your object
-detection, instance segmentation, and image classification projects. See firsthand how YOLOv8's speed, accuracy, and
-ease of use make it a top choice for professionals and researchers alike.
-
-In addition to learning about the exciting new features and improvements of Ultralytics YOLOv8, you will also have the
-opportunity to ask questions and interact with our team during the live Q&A session. We encourage you to come prepared
-with any questions you may have.
-
-To join the webinar, visit our YouTube [Channel](https://www.youtube.com/@Ultralytics/streams) and turn on your
-notifications!
-
-<a align="center" href="https://youtu.be/IPcpYO5ITa8" target="_blank">
-<img width="80%" src="https://user-images.githubusercontent.com/107626595/212887899-e94b006c-5192-40fa-8b24-7b5428e065e8.png"></a>
-</div>
-
 ## <div align="center">Documentation</div>
 
 See below for a quickstart installation and usage example, and see the [YOLOv8 Docs](https://docs.ultralytics.com) for
@@ -108,7 +88,7 @@ yolo predict model=yolov8n.pt source="https://ultralytics.com/images/bus.jpg"
 #### Python
 
 YOLOv8 may also be used directly in a Python environment, and accepts the
-same [arguments](https://docs.ultralytics.com/config/) as in the CLI example above:
+same [arguments](https://docs.ultralytics.com/cfg/) as in the CLI example above:
 
 ```python
 from ultralytics import YOLO
@@ -212,7 +192,7 @@ See [Classification Docs](https://docs.ultralytics.com/tasks/classification/) fo
 ## <div align="center">Integrations</div>
 
 <br>
-<a align="center" href="https://bit.ly/ultralytics_hub" target="_blank">
+<a href="https://bit.ly/ultralytics_hub" target="_blank">
 <img width="100%" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png"></a>
 <br>
 <br>
@@ -241,7 +221,7 @@ See [Classification Docs](https://docs.ultralytics.com/tasks/classification/) fo
 🚀 models, and deploy to the real world in a seamless experience. Get started for **Free** now! Also run YOLOv8 models on
 your iOS or Android device by downloading the [Ultralytics App](https://ultralytics.com/app_install)!
 
-<a align="center" href="https://bit.ly/ultralytics_hub" target="_blank">
+<a href="https://bit.ly/ultralytics_hub" target="_blank">
 <img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/ultralytics-hub.png"></a>
 
 ## <div align="center">Contribute</div>

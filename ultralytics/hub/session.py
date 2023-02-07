@@ -95,11 +95,16 @@ class HubTrainingSession:
                 api_url, method="get", headers=headers, thread=False, code=0
             )
             data = response.json().get("data", None)
-            if not data:
-                return
-            assert data[
-                "data"
-            ], "ERROR: Dataset may still be processing. Please wait a minute and try again."  # RF fix
+
+            if data.get("status", None) == "trained":
+                raise ValueError(
+                    f"Model trained. View model at https://hub.ultralytics.com/models/{self.model_id} 🚀"
+                )
+
+            if not data.get("data", None):
+                raise ValueError(
+                    "ERROR: Dataset may still be processing. Please wait a minute and try again."
+                )  # RF fix
             self.model_id = data["id"]
 
             # TODO: restore when server keys when dataset URL and GPU train is working
@@ -125,6 +130,8 @@ class HubTrainingSession:
             raise ConnectionRefusedError(
                 "ERROR: The HUB server is not online. Please try again later."
             ) from e
+        except Exception as e:
+            raise
 
     def check_disk_space(self):
         if not check_dataset_disk_space(self.model["data"]):

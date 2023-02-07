@@ -82,13 +82,19 @@ MACOS = platform.system() == 'Darwin'  # macOS environment
 
 def export_formats():
     # YOLOv8 export formats
-    x = [['PyTorch', '-', '.pt', True, True], ['TorchScript', 'torchscript', '.torchscript', True, True],
-         ['ONNX', 'onnx', '.onnx', True, True], ['OpenVINO', 'openvino', '_openvino_model', True, False],
-         ['TensorRT', 'engine', '.engine', False, True], ['CoreML', 'coreml', '.mlmodel', True, False],
-         ['TensorFlow SavedModel', 'saved_model', '_saved_model', True, True],
-         ['TensorFlow GraphDef', 'pb', '.pb', True, True], ['TensorFlow Lite', 'tflite', '.tflite', True, False],
-         ['TensorFlow Edge TPU', 'edgetpu', '_edgetpu.tflite', False, False],
-         ['TensorFlow.js', 'tfjs', '_web_model', False, False], ['PaddlePaddle', 'paddle', '_paddle_model', True, True]]
+    x = [
+        ['PyTorch', '-', '.pt', True, True],
+        ['TorchScript', 'torchscript', '.torchscript', True, True],
+        ['ONNX', 'onnx', '.onnx', True, True],
+        ['OpenVINO', 'openvino', '_openvino_model', True, False],
+        ['TensorRT', 'engine', '.engine', False, True],
+        ['CoreML', 'coreml', '.mlmodel', True, False],
+        ['TensorFlow SavedModel', 'saved_model', '_saved_model', True, True],
+        ['TensorFlow GraphDef', 'pb', '.pb', True, True],
+        ['TensorFlow Lite', 'tflite', '.tflite', True, False],
+        ['TensorFlow Edge TPU', 'edgetpu', '_edgetpu.tflite', False, False],
+        ['TensorFlow.js', 'tfjs', '_web_model', False, False],
+        ['PaddlePaddle', 'paddle', '_paddle_model', True, True],]
     return pd.DataFrame(x, columns=['Format', 'Argument', 'Suffix', 'CPU', 'GPU'])
 
 
@@ -138,9 +144,12 @@ class Exporter:
         self.run_callbacks("on_export_start")
         t = time.time()
         format = self.args.format.lower()  # to lowercase
+        if format in {'tensorrt', 'trt'}:  # engine aliases
+            format = 'engine'
         fmts = tuple(export_formats()['Argument'][1:])  # available export formats
         flags = [x == format for x in fmts]
-        assert sum(flags), f'ERROR: Invalid format={format}, valid formats are {fmts}'
+        if sum(flags) != 1:
+            raise ValueError(f"Invalid export format='{format}'. Valid formats are {fmts}")
         jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle = flags  # export booleans
 
         # Load PyTorch model

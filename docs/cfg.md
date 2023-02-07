@@ -108,6 +108,7 @@ task.
 | overlap_mask    | True   | masks should overlap during training (segment train only)                   |
 | mask_ratio      | 4      | mask downsample ratio (segment train only)                                  |
 | dropout         | 0.0    | use dropout regularization (classify train only)                            |
+| val             | True   | validate/test during training                                               |
 
 ### Prediction
 
@@ -148,7 +149,6 @@ validation dataset and to detect and prevent overfitting.
 
 | Key         | Value | Description                                                                 |
 |-------------|-------|-----------------------------------------------------------------------------|
-| val         | True  | validate/test during training                                               |
 | val_split   | val   | change validation split, i.e. val, test, train                              |
 | save_json   | False | save results to JSON file                                                   |
 | save_hybrid | False | save hybrid version of labels (labels + additional predictions)             |
@@ -158,6 +158,7 @@ validation dataset and to detect and prevent overfitting.
 | half        | True  | use half precision (FP16)                                                   |
 | dnn         | False | use OpenCV DNN for ONNX inference                                           |
 | plots       | False | show plots during training                                                  |
+| rect        | False | support rectangular evaluation                                              |
 
 ### Export
 

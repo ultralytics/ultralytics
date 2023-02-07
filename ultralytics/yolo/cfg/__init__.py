@@ -55,7 +55,7 @@ CFG_FRACTION_KEYS = {
     'label_smoothing', 'hsv_h', 'hsv_s', 'hsv_v', 'degrees', 'translate', 'scale', 'shear', 'perspective', 'flipud',
     'fliplr', 'mosaic', 'mixup', 'copy_paste', 'conf', 'iou'}
 CFG_INT_KEYS = {
-    'epochs', 'patience', 'batch', 'imgsz', 'workers', 'seed', 'close_mosaic', 'mask_ratio', 'max_det', 'vid_stride',
+    'epochs', 'patience', 'batch', 'workers', 'seed', 'close_mosaic', 'mask_ratio', 'max_det', 'vid_stride',
     'line_thickness', 'workspace', 'nbs'}
 CFG_BOOL_KEYS = {
     'save', 'cache', 'exist_ok', 'pretrained', 'verbose', 'deterministic', 'single_cls', 'image_weights', 'rect',

@@ -132,7 +132,7 @@ class YOLODataset(BaseDataset):
             for lb in labels:
                 lb["segments"] = []
         if len_cls == 0:
-            raise ValueError(f"{self.prefix}All labels empty in {cache_path}, can not start training. {HELP_URL}")
+            raise ValueError(f"All labels empty in {cache_path}, can not start training without labels. {HELP_URL}")
         return labels
 
     # TODO: use hyp config to set all these augmentations

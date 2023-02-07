@@ -49,6 +49,19 @@ CLI_HELP_MSG = \
     GitHub: https://github.com/ultralytics/ultralytics
     """
 
+CFG_FLOAT_KEYS = {'warmup_epochs', 'box', 'cls', 'dfl'}
+CFG_FRACTION_KEYS = {'dropout', 'iou', 'lr0', 'lrf', 'momentum', 'weight_decay', 'warmup_momentum',
+                     'warmup_bias_lr', 'fl_gamma', 'label_smoothing', 'hsv_h', 'hsv_s', 'hsv_v',
+                     'degrees', 'translate', 'scale', 'shear', 'perspective', 'flipud', 'fliplr', 'mosaic', 'mixup',
+                     'copy_paste', 'conf', 'iou'}
+CFG_INT_KEYS = {'epochs', 'patience', 'batch', 'imgsz', 'workers', 'seed', 'close_mosaic', 'mask_ratio', 'max_det',
+                'vid_stride', 'line_thickness', 'workspace', 'nbs'}
+CFG_BOOL_KEYS = {'save', 'cache', 'exist_ok', 'pretrained', 'verbose', 'deterministic', 'single_cls', 'image_weights',
+                 'rect', 'cos_lr', 'overlap_mask', 'val', 'save_json', 'save_hybrid', 'half', 'dnn', 'plots', 'show',
+                 'save_txt', 'save_conf', 'save_crop', 'hide_labels', 'hide_conf', 'visualize', 'augment',
+                 'agnostic_nms', 'retina_masks', 'boxes', 'keras', 'optimize', 'int8', 'dynamic', 'simplify', 'nms',
+                 'v5loader'}
+
 
 def cfg2dict(cfg):
     """
@@ -88,10 +101,29 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG, override
         check_cfg_mismatch(cfg, overrides)
         cfg = {**cfg, **overrides}  # merge cfg and overrides dicts (prefer overrides)
 
-    # Type checks
+    # Special handling for numeric project/names
     for k in 'project', 'name':
         if k in cfg and isinstance(cfg[k], (int, float)):
             cfg[k] = str(cfg[k])
+
+    # Type and Value checks
+    for k, v in cfg.items():
+        if k in CFG_FLOAT_KEYS and not isinstance(v, (int, float)):
+            raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                            f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')")
+        elif k in CFG_FRACTION_KEYS:
+            if not isinstance(v, (int, float)):
+                raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                                f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')")
+            if not (0.0 <= v <= 1.0):
+                raise ValueError(f"'{k}={v}' is an invalid value. "
+                                 f"Valid '{k}' values are between 0.0 and 1.0.")
+        elif k in CFG_INT_KEYS and not isinstance(v, int):
+            raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                            f"'{k}' must be an int (i.e. '{k}=0')")
+        elif k in CFG_BOOL_KEYS and not isinstance(v, bool):
+            raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                            f"'{k}' must be a bool (i.e. '{k}=True' or '{k}=False')")
 
     # Return instance
     return IterableSimpleNamespace(**cfg)

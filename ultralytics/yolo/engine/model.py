@@ -177,6 +177,7 @@ class YOLO:
 
         validator = self.ValidatorClass(args=args)
         validator(model=self.model)
+        return validator.metrics
 
     @smart_inference_mode()
     def export(self, **kwargs):

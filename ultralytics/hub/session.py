@@ -125,9 +125,7 @@ class HubTrainingSession:
 
             return data
         except requests.exceptions.ConnectionError as e:
-            raise ConnectionRefusedError(
-                "ERROR: The HUB server is not online. Please try again later."
-            ) from e
+            raise ConnectionRefusedError("ERROR: The HUB server is not online. Please try again later.") from e
         except Exception:
             raise
 

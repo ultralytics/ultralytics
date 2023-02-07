@@ -13,14 +13,13 @@ from ultralytics.yolo.utils import is_colab, threaded, LOGGER, emojis, PREFIX
 
 from ultralytics.yolo.utils.torch_utils import get_flops, get_num_params
 
-AGENT_NAME = (
-    f"python-{__version__}-colab" if is_colab() else f"python-{__version__}-local"
-)
+AGENT_NAME = (f"python-{__version__}-colab" if is_colab() else f"python-{__version__}-local")
 
 session = None
 
 
 class HubTrainingSession:
+
     def __init__(self, model_id, auth):
         self.agent_id = None  # identifies which instance is communicating with server
         self.model_id = model_id
@@ -29,8 +28,7 @@ class HubTrainingSession:
         self._rate_limits = {
             "metrics": 3.0,
             "ckpt": 900.0,
-            "heartbeat": 300.0,
-        }  # rate limits (seconds)
+            "heartbeat": 300.0,}  # rate limits (seconds)
         self._timers = {}  # rate limit timers (seconds)
         self._metrics_queue = {}  # metrics queue
         self.model = self._get_model()
@@ -69,7 +67,10 @@ class HubTrainingSession:
         if final:
             smart_request(
                 f"{self.api_url}/upload",
-                data={"epoch": epoch, "type": "final", "map": map},
+                data={
+                    "epoch": epoch,
+                    "type": "final",
+                    "map": map},
                 files={"best.pt": file},
                 headers=self.auth_header,
                 retry=10,
@@ -79,7 +80,10 @@ class HubTrainingSession:
         else:
             smart_request(
                 f"{self.api_url}/upload",
-                data={"epoch": epoch, "type": "epoch", "isBest": bool(is_best)},
+                data={
+                    "epoch": epoch,
+                    "type": "epoch",
+                    "isBest": bool(is_best)},
                 headers=self.auth_header,
                 files={"last.pt": file},
                 code=3,
@@ -91,20 +95,15 @@ class HubTrainingSession:
         headers = self.auth_header
 
         try:
-            response = smart_request(
-                api_url, method="get", headers=headers, thread=False, code=0
-            )
+            response = smart_request(api_url, method="get", headers=headers, thread=False, code=0)
             data = response.json().get("data", None)
 
             if data.get("status", None) == "trained":
-                raise ValueError(
-                    f"Model trained. View model at https://hub.ultralytics.com/models/{self.model_id} 🚀"
-                )
+                raise ValueError(f"Model trained. View model at https://hub.ultralytics.com/models/{self.model_id} 🚀")
 
             if not data.get("data", None):
                 raise ValueError(
-                    "ERROR: Dataset may still be processing. Please wait a minute and try again."
-                )  # RF fix
+                    "ERROR: Dataset may still be processing. Please wait a minute and try again.")  # RF fix
             self.model_id = data["id"]
 
             # TODO: restore when server keys when dataset URL and GPU train is working
@@ -116,8 +115,7 @@ class HubTrainingSession:
                 "patience": data["patience"],
                 "device": data["device"],
                 "cache": data["cache"],
-                "data": data["data"],
-            }
+                "data": data["data"],}
 
             self.input_file = data.get("cfg", data["weights"])
 
@@ -127,9 +125,7 @@ class HubTrainingSession:
 
             return data
         except requests.exceptions.ConnectionError as e:
-            raise ConnectionRefusedError(
-                "ERROR: The HUB server is not online. Please try again later."
-            ) from e
+            raise ConnectionRefusedError("ERROR: The HUB server is not online. Please try again later.") from e
         except Exception as e:
             raise
 
@@ -149,29 +145,22 @@ class HubTrainingSession:
         This method does not use trainer. It is passed to all callbacks by default.
         """
         # Start timer for upload rate limit
-        LOGGER.info(
-            emojis(
-                f"{PREFIX}View model at https://hub.ultralytics.com/models/{self.model_id} 🚀"
-            )
-        )
+        LOGGER.info(emojis(f"{PREFIX}View model at https://hub.ultralytics.com/models/{self.model_id} 🚀"))
         self._timers = {
             "metrics": time(),
-            "ckpt": time(),
-        }  # start timer on self.rate_limit
+            "ckpt": time(),}  # start timer on self.rate_limit
 
     def on_fit_epoch_end(self, trainer):
         # Upload metrics after val end
         all_plots = {
             **trainer.label_loss_items(trainer.tloss, prefix="train"),
-            **trainer.metrics,
-        }
+            **trainer.metrics,}
 
         if trainer.epoch == 0:
             model_info = {
                 "model/parameters": get_num_params(trainer.model),
                 "model/GFLOPs": round(get_flops(trainer.model), 3),
-                "model/speed(ms)": round(trainer.validator.speed[1], 3),
-            }
+                "model/speed(ms)": round(trainer.validator.speed[1], 3),}
             all_plots = {**all_plots, **model_info}
         self._metrics_queue[trainer.epoch] = json.dumps(all_plots)
         if time() - self._timers["metrics"] > self._rate_limits["metrics"]:
@@ -194,15 +183,9 @@ class HubTrainingSession:
 
         # hack for fetching mAP
         mAP = trainer.metrics.get("metrics/mAP50-95(B)", 0)
-        self._upload_model(
-            trainer.epoch, trainer.best, map=mAP, final=True
-        )  # results[3] is mAP0.5:0.95
+        self._upload_model(trainer.epoch, trainer.best, map=mAP, final=True)  # results[3] is mAP0.5:0.95
         self.alive = False  # stop heartbeats
-        LOGGER.info(
-            emojis(
-                f"{PREFIX}View model at https://hub.ultralytics.com/models/{self.model_id} 🚀"
-            )
-        )
+        LOGGER.info(emojis(f"{PREFIX}View model at https://hub.ultralytics.com/models/{self.model_id} 🚀"))
 
     def _upload_model(self, epoch, weights, is_best=False, map=0.0, final=False):
         # Upload a model to HUB
@@ -234,7 +217,9 @@ class HubTrainingSession:
         while self.alive:
             r = smart_request(
                 f"{HUB_API_ROOT}/v1/agent/heartbeat/models/{self.model_id}",
-                json={"agent": AGENT_NAME, "agentId": self.agent_id},
+                json={
+                    "agent": AGENT_NAME,
+                    "agentId": self.agent_id},
                 headers=self.auth_header,
                 retry=0,
                 code=5,

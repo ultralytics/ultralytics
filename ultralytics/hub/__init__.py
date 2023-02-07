@@ -21,9 +21,7 @@ def start(key=""):
             _, model_id = split_key(key)
 
         if not model_id:
-            raise ConnectionError(
-                "Connecting with global API key is not currently supported."
-            )
+            raise ConnectionError("Connecting with global API key is not currently supported.")
 
         session = HubTrainingSession(model_id=model_id, auth=auth)
         session.check_disk_space()
@@ -62,7 +60,9 @@ def reset_model(key=""):
     api_key, model_id = split_key(key)
     r = requests.post(
         "https://api.ultralytics.com/model-reset",
-        json={"apiKey": api_key, "modelId": model_id},
+        json={
+            "apiKey": api_key,
+            "modelId": model_id},
     )
 
     if r.status_code == 200:
@@ -88,17 +88,16 @@ def export_model(key="", format="torchscript"):
         "ultralytics_tflite",
         "ultralytics_coreml",
     )
-    assert (
-        format in formats
-    ), f"ERROR: Unsupported export format '{format}' passed, valid formats are {formats}"
+    assert (format in formats), f"ERROR: Unsupported export format '{format}' passed, valid formats are {formats}"
 
     r = requests.post(
         "https://api.ultralytics.com/export",
-        json={"apiKey": api_key, "modelId": model_id, "format": format},
+        json={
+            "apiKey": api_key,
+            "modelId": model_id,
+            "format": format},
     )
-    assert (
-        r.status_code == 200
-    ), f"{PREFIX}{format} export failure {r.status_code} {r.reason}"
+    assert (r.status_code == 200), f"{PREFIX}{format} export failure {r.status_code} {r.reason}"
     LOGGER.info(emojis(f"{PREFIX}{format} export started ✅"))
 
 
@@ -119,17 +118,16 @@ def get_export(key="", format="torchscript"):
         "ultralytics_tflite",
         "ultralytics_coreml",
     )
-    assert (
-        format in formats
-    ), f"ERROR: Unsupported export format '{format}' passed, valid formats are {formats}"
+    assert (format in formats), f"ERROR: Unsupported export format '{format}' passed, valid formats are {formats}"
 
     r = requests.post(
         "https://api.ultralytics.com/get-export",
-        json={"apiKey": api_key, "modelId": model_id, "format": format},
+        json={
+            "apiKey": api_key,
+            "modelId": model_id,
+            "format": format},
     )
-    assert (
-        r.status_code == 200
-    ), f"{PREFIX}{format} get_export failure {r.status_code} {r.reason}"
+    assert (r.status_code == 200), f"{PREFIX}{format} get_export failure {r.status_code} {r.reason}"
     return r.json()
 
 

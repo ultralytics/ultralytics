@@ -21,7 +21,7 @@ def start(key=""):
             _, model_id = split_key(key)
 
         if not model_id:
-            raise ConnectionError("Connecting with global API key is not currently supported.")
+            raise ConnectionError(emojis('Connecting with global API key is not currently supported. ❌'))
 
         session = HubTrainingSession(model_id=model_id, auth=auth)
         session.check_disk_space()

@@ -491,6 +491,7 @@ def set_sentry():
             ((is_pip_package() and not is_git_dir()) or
              (get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git" and get_git_branch() == "main")):
 
+        import hashlib
         import sentry_sdk  # noqa
         from ultralytics import __version__
 
@@ -502,13 +503,14 @@ def set_sentry():
             environment='production',  # 'dev' or 'production'
             before_send=before_send,
             ignore_errors=[KeyboardInterrupt, FileNotFoundError])
+        sentry_sdk.set_user({"id": SETTINGS['uuid']})
 
         # Disable all sentry logging
         for logger in "sentry_sdk", "sentry_sdk.errors":
             logging.getLogger(logger).setLevel(logging.CRITICAL)
 
 
-def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.1'):
+def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.2'):
     """
     Loads a global Ultralytics settings YAML file or creates one with default values if it does not exist.
 
@@ -519,6 +521,7 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.1'):
     Returns:
         dict: Dictionary of settings key-value pairs.
     """
+    import hashlib
     from ultralytics.yolo.utils.checks import check_version
     from ultralytics.yolo.utils.torch_utils import torch_distributed_zero_first
 
@@ -530,7 +533,7 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.1'):
         'weights_dir': str(root / 'weights'),  # default weights directory.
         'runs_dir': str(root / 'runs'),  # default runs directory.
         'sync': True,  # sync analytics to help with YOLO development
-        'uuid': uuid.getnode(),  # device UUID to align analytics
+        'uuid': hashlib.sha256(str(uuid.getnode()).encode()).hexdigest(),  # anonymized uuid hash
         'settings_version': version}  # Ultralytics settings version
 
     with torch_distributed_zero_first(RANK):
@@ -544,10 +547,9 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.1'):
             and all(type(a) == type(b) for a, b in zip(settings.values(), defaults.values())) \
             and check_version(settings['settings_version'], version)
         if not correct:
-            LOGGER.warning('WARNING ⚠️ Ultralytics settings reset to defaults. '
-                           '\nThis is normal and may be due to a recent ultralytics package update, '
-                           'but may have overwritten previous settings. '
-                           f"\nYou may view and update settings directly in '{file}'")
+            LOGGER.warning('WARNING ⚠️ Ultralytics settings reset to defaults. This is normal and may be due to a '
+                           'recent ultralytics package update, but may have overwritten previous settings. '
+                           f"\nView and update settings with 'yolo settings' or at '{file}'")
             settings = defaults  # merge **defaults with **settings (prefer **settings)
             yaml_save(file, settings)  # save updated defaults
 

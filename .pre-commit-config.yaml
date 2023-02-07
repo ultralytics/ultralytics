@@ -37,7 +37,7 @@ repos:
   #     - id: isort
   #       name: Sort imports
 
-  - repo: https://github.com/pre-commit/mirrors-yapf
+  - repo: https://github.com/google/yapf
     rev: v0.32.0
     hooks:
       - id: yapf
@@ -54,7 +54,7 @@ repos:
         # exclude: "README.md|README.zh-CN.md|CONTRIBUTING.md"
 
   - repo: https://github.com/PyCQA/flake8
-    rev: 5.0.4
+    rev: 6.0.0
     hooks:
       - id: flake8
         name: PEP8

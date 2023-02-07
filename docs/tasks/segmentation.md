@@ -30,7 +30,7 @@ arguments see the [Configuration](../cfg.md) page.
         model = YOLO("yolov8n-seg.pt")  # load a pretrained model (recommended for training)
         
         # Train the model
-        results = model.train(data="coco128-seg.yaml", epochs=100, imgsz=640)
+        model.train(data="coco128-seg.yaml", epochs=100, imgsz=640)
         ```
     === "CLI"
     
@@ -96,6 +96,7 @@ Use a trained YOLOv8n-seg model to run predictions on images.
         yolo segment predict model=yolov8n-seg.pt source="https://ultralytics.com/images/bus.jpg"  # predict with official model
         yolo segment predict model=path/to/best.pt source="https://ultralytics.com/images/bus.jpg"  # predict with custom model
         ```
+Read more details of `predict` in our [Predict](https://docs.ultralytics.com/predict/) page.
 
 ## Export
 

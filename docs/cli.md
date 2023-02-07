@@ -37,6 +37,7 @@ the [Configuration](cfg.md) page.
 
       ```bash
       yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640
+      yolo detect train resume model=last.pt  # resume training
       ```
 ## Val
 

@@ -66,49 +66,50 @@ include the choice of optimizer, the choice of loss function, and the size and c
 is important to carefully tune and experiment with these settings to achieve the best possible performance for a given
 task.
 
-| Key             | Value  | Description                                                                 |
-|-----------------|--------|-----------------------------------------------------------------------------|
-| model           | null   | path to model file, i.e. yolov8n.pt, yolov8n.yaml                           |
-| data            | null   | path to data file, i.e. i.e. coco128.yaml                                   |
-| epochs          | 100    | number of epochs to train for                                               |
-| patience        | 50     | epochs to wait for no observable improvement for early stopping of training |
-| batch           | 16     | number of images per batch (-1 for AutoBatch)                               |
-| imgsz           | 640    | size of input images as integer or w,h                                      |
-| save            | True   | save train checkpoints and predict results                                  |
-| cache           | False  | True/ram, disk or False. Use cache for data loading                         |
-| device          | null   | device to run on, i.e. cuda device=0 or device=0,1,2,3 or device=cpu        |
-| workers         | 8      | number of worker threads for data loading (per RANK if DDP)                 |
-| project         | null   | project name                                                                |
-| name            | null   | experiment name                                                             |
-| exist_ok        | False  | whether to overwrite existing experiment                                    |
-| pretrained      | False  | whether to use a pretrained model                                           |
-| optimizer       | 'SGD'  | optimizer to use, choices=['SGD', 'Adam', 'AdamW', 'RMSProp']               |
-| verbose         | False  | whether to print verbose output                                             |
-| seed            | 0      | random seed for reproducibility                                             |
-| deterministic   | True   | whether to enable deterministic mode                                        |
-| single_cls      | False  | train multi-class data as single-class                                      |
-| image_weights   | False  | use weighted image selection for training                                   |
-| rect            | False  | support rectangular training                                                |
-| cos_lr          | False  | use cosine learning rate scheduler                                          |
-| close_mosaic    | 10     | disable mosaic augmentation for final 10 epochs                             |
-| resume          | False  | resume training from last checkpoint                                        |
-| lr0             | 0.01   | initial learning rate (i.e. SGD=1E-2, Adam=1E-3)                            |
-| lrf             | 0.01   | final learning rate (lr0 * lrf)                                             |
-| momentum        | 0.937  | SGD momentum/Adam beta1                                                     |
-| weight_decay    | 0.0005 | optimizer weight decay 5e-4                                                 |
-| warmup_epochs   | 3.0    | warmup epochs (fractions ok)                                                |
-| warmup_momentum | 0.8    | warmup initial momentum                                                     |
-| warmup_bias_lr  | 0.1    | warmup initial bias lr                                                      |
-| box             | 7.5    | box loss gain                                                               |
-| cls             | 0.5    | cls loss gain (scale with pixels)                                           |
-| dfl             | 1.5    | dfl loss gain                                                               |
-| fl_gamma        | 0.0    | focal loss gamma (efficientDet default gamma=1.5)                           |
-| label_smoothing | 0.0    | label smoothing (fraction)                                                  |
-| nbs             | 64     | nominal batch size                                                          |
-| overlap_mask    | True   | masks should overlap during training (segment train only)                   |
-| mask_ratio      | 4      | mask downsample ratio (segment train only)                                  |
-| dropout         | 0.0    | use dropout regularization (classify train only)                            |
-| val             | True   | validate/test during training                                               |
+| Key             | Value  | Description                                                                    |
+|-----------------|--------|--------------------------------------------------------------------------------|
+| model           | null   | path to model file, i.e. yolov8n.pt, yolov8n.yaml                              |
+| data            | null   | path to data file, i.e. i.e. coco128.yaml                                      |
+| epochs          | 100    | number of epochs to train for                                                  |
+| patience        | 50     | epochs to wait for no observable improvement for early stopping of training    |
+| batch           | 16     | number of images per batch (-1 for AutoBatch)                                  |
+| imgsz           | 640    | size of input images as integer or w,h                                         |
+| save            | True   | save train checkpoints and predict results                                     |
+| cache           | False  | True/ram, disk or False. Use cache for data loading                            |
+| device          | null   | device to run on, i.e. cuda device=0 or device=0,1,2,3 or device=cpu           |
+| workers         | 8      | number of worker threads for data loading (per RANK if DDP)                    |
+| project         | null   | project name                                                                   |
+| name            | null   | experiment name                                                                |
+| exist_ok        | False  | whether to overwrite existing experiment                                       |
+| pretrained      | False  | whether to use a pretrained model                                              |
+| optimizer       | 'SGD'  | optimizer to use, choices=['SGD', 'Adam', 'AdamW', 'RMSProp']                  |
+| verbose         | False  | whether to print verbose output                                                |
+| seed            | 0      | random seed for reproducibility                                                |
+| deterministic   | True   | whether to enable deterministic mode                                           |
+| single_cls      | False  | train multi-class data as single-class                                         |
+| image_weights   | False  | use weighted image selection for training                                      |
+| rect            | False  | support rectangular training                                                   |
+| cos_lr          | False  | use cosine learning rate scheduler                                             |
+| close_mosaic    | 10     | disable mosaic augmentation for final 10 epochs                                |
+| resume          | False  | resume training from last checkpoint                                           |
+| lr0             | 0.01   | initial learning rate (i.e. SGD=1E-2, Adam=1E-3)                               |
+| lrf             | 0.01   | final learning rate (lr0 * lrf)                                                |
+| momentum        | 0.937  | SGD momentum/Adam beta1                                                        |
+| weight_decay    | 0.0005 | optimizer weight decay 5e-4                                                    |
+| warmup_epochs   | 3.0    | warmup epochs (fractions ok)                                                   |
+| warmup_momentum | 0.8    | warmup initial momentum                                                        |
+| warmup_bias_lr  | 0.1    | warmup initial bias lr                                                         |
+| box             | 7.5    | box loss gain                                                                  |
+| cls             | 0.5    | cls loss gain (scale with pixels)                                              |
+| dfl             | 1.5    | dfl loss gain                                                                  |
+| fl_gamma        | 0.0    | focal loss gamma (efficientDet default gamma=1.5)                              |
+| label_smoothing | 0.0    | label smoothing (fraction)                                                     |
+| nbs             | 64     | nominal batch size                                                             |
+| overlap_mask    | True   | masks should overlap during training (segment train only)                      |
+| mask_ratio      | 4      | mask downsample ratio (segment train only)                                     |
+| dropout         | 0.0    | use dropout regularization (classify train only)                               |
+| val             | True   | validate/test during training                                                  |
+| min_memory      | False  | minimize memory footprint loss function, choices=[False, True, <roll_out_thr>] |
 
 ### Prediction
 
@@ -120,22 +121,28 @@ presence of additional features such as masks or multiple labels per box, and th
 for. It is important to carefully tune and experiment with these settings to achieve the best possible performance for a
 given task.
 
-| Key            | Value                | Description                                             |
-|----------------|----------------------|---------------------------------------------------------|
-| source         | 'ultralytics/assets' | source directory for images or videos                   |
-| show           | False                | show results if possible                                |
-| save_txt       | False                | save results as .txt file                               |
-| save_conf      | False                | save results with confidence scores                     |
-| save_crop      | False                | save cropped images with results                        |
-| hide_labels    | False                | hide labels                                             |
-| hide_conf      | False                | hide confidence scores                                  |
-| vid_stride     | False                | video frame-rate stride                                 |
-| line_thickness | 3                    | bounding box thickness (pixels)                         |
-| visualize      | False                | visualize model features                                |
-| augment        | False                | apply image augmentation to prediction sources          |
-| agnostic_nms   | False                | class-agnostic NMS                                      |
-| retina_masks   | False                | use high-resolution segmentation masks                  |
-| classes        | null                 | filter results by class, i.e. class=0, or class=[0,2,3] |
+| Key            | Value                | Description                                              |
+|----------------|----------------------|----------------------------------------------------------|
+| source         | 'ultralytics/assets' | source directory for images or videos                    |
+| conf           | 0.25                 | object confidence threshold for detection                |
+| iou            | 0.7                  | intersection over union (IoU) threshold for NMS          |
+| half           | False                | use half precision (FP16)                                |
+| device         | null                 | device to run on, i.e. cuda device=0/1/2/3 or device=cpu |
+| show           | False                | show results if possible                                 |
+| save_txt       | False                | save results as .txt file                                |
+| save_conf      | False                | save results with confidence scores                      |
+| save_crop      | False                | save cropped images with results                         |
+| hide_labels    | False                | hide labels                                              |
+| hide_conf      | False                | hide confidence scores                                   |
+| max_det        | 300                  | maximum number of detections per image                   |
+| vid_stride     | False                | video frame-rate stride                                  |
+| line_thickness | 3                    | bounding box thickness (pixels)                          |
+| visualize      | False                | visualize model features                                 |
+| augment        | False                | apply image augmentation to prediction sources           |
+| agnostic_nms   | False                | class-agnostic NMS                                       |
+| retina_masks   | False                | use high-resolution segmentation masks                   |
+| classes        | null                 | filter results by class, i.e. class=0, or class=[0,2,3]  |
+| box            | True                 | Show boxes in segmentation predictions                   |
 
 ### Validation
 
@@ -147,17 +154,18 @@ process include the size and composition of the validation dataset and the speci
 is important to carefully tune and experiment with these settings to ensure that the model is performing well on the
 validation dataset and to detect and prevent overfitting.
 
-| Key         | Value | Description                                                                 |
-|-------------|-------|-----------------------------------------------------------------------------|
-| save_json   | False | save results to JSON file                                                   |
-| save_hybrid | False | save hybrid version of labels (labels + additional predictions)             |
-| conf        | 0.001 | object confidence threshold for detection (default 0.25 predict, 0.001 val) |
-| iou         | 0.6   | intersection over union (IoU) threshold for NMS                             |
-| max_det     | 300   | maximum number of detections per image                                      |
-| half        | True  | use half precision (FP16)                                                   |
-| dnn         | False | use OpenCV DNN for ONNX inference                                           |
-| plots       | False | show plots during training                                                  |
-| rect        | False | support rectangular evaluation                                              |
+| Key         | Value | Description                                                     |
+|-------------|-------|-----------------------------------------------------------------|
+| save_json   | False | save results to JSON file                                       |
+| save_hybrid | False | save hybrid version of labels (labels + additional predictions) |
+| conf        | 0.001 | object confidence threshold for detection                       |
+| iou         | 0.6   | intersection over union (IoU) threshold for NMS                 |
+| max_det     | 300   | maximum number of detections per image                          |
+| half        | True  | use half precision (FP16)                                       |
+| device      | null  | device to run on, i.e. cuda device=0/1/2/3 or device=cpu        |
+| dnn         | False | use OpenCV DNN for ONNX inference                               |
+| plots       | False | show plots during training                                      |
+| rect        | False | support rectangular evaluation                                  |
 
 ### Export
 

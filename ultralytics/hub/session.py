@@ -62,7 +62,10 @@ class HubTrainingSession:
         if final:
             smart_request(
                 f"{self.api_url}/upload",
-                data={"epoch": epoch, "type": "final", "map": map},
+                data={
+                    "epoch": epoch,
+                    "type": "final",
+                    "map": map},
                 files={"best.pt": file},
                 headers=self.auth_header,
                 retry=10,
@@ -72,7 +75,10 @@ class HubTrainingSession:
         else:
             smart_request(
                 f"{self.api_url}/upload",
-                data={"epoch": epoch, "type": "epoch", "isBest": bool(is_best)},
+                data={
+                    "epoch": epoch,
+                    "type": "epoch",
+                    "isBest": bool(is_best)},
                 headers=self.auth_header,
                 files={"last.pt": file},
                 code=3,
@@ -139,9 +145,7 @@ class HubTrainingSession:
 
     def on_fit_epoch_end(self, trainer):
         # Upload metrics after val end
-        all_plots = {
-            **trainer.label_loss_items(trainer.tloss, prefix="train"),
-            **trainer.metrics}
+        all_plots = {**trainer.label_loss_items(trainer.tloss, prefix="train"), **trainer.metrics}
 
         if trainer.epoch == 0:
             model_info = {
@@ -204,7 +208,9 @@ class HubTrainingSession:
         while self.alive:
             r = smart_request(
                 f"{HUB_API_ROOT}/v1/agent/heartbeat/models/{self.model_id}",
-                json={"agent": AGENT_NAME, "agentId": self.agent_id},
+                json={
+                    "agent": AGENT_NAME,
+                    "agentId": self.agent_id},
                 headers=self.auth_header,
                 retry=0,
                 code=5,

@@ -94,8 +94,9 @@ class HubTrainingSession:
             data = response.json().get("data", None)
 
             if data.get("status", None) == "trained":
-                raise ValueError(emojis(f"Model is already trained and uploaded to "
-                                        f"https://hub.ultralytics.com/models/{self.model_id} 🚀"))
+                raise ValueError(
+                    emojis(f"Model is already trained and uploaded to "
+                           f"https://hub.ultralytics.com/models/{self.model_id} 🚀"))
 
             if not data.get("data", None):
                 raise ValueError("Dataset may still be processing. Please wait a minute and try again.")  # RF fix

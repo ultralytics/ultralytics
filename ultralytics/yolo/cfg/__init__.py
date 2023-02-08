@@ -49,10 +49,10 @@ CLI_HELP_MSG = \
     GitHub: https://github.com/ultralytics/ultralytics
     """
 
-CFG_FLOAT_KEYS = {'warmup_epochs', 'box', 'cls', 'dfl'}
+CFG_FLOAT_KEYS = {'warmup_epochs', 'box', 'cls', 'dfl', 'degrees', 'shear'}
 CFG_FRACTION_KEYS = {
     'dropout', 'iou', 'lr0', 'lrf', 'momentum', 'weight_decay', 'warmup_momentum', 'warmup_bias_lr', 'fl_gamma',
-    'label_smoothing', 'hsv_h', 'hsv_s', 'hsv_v', 'degrees', 'translate', 'scale', 'shear', 'perspective', 'flipud',
+    'label_smoothing', 'hsv_h', 'hsv_s', 'hsv_v', 'translate', 'scale', 'perspective', 'flipud',
     'fliplr', 'mosaic', 'mixup', 'copy_paste', 'conf', 'iou'}
 CFG_INT_KEYS = {
     'epochs', 'patience', 'batch', 'workers', 'seed', 'close_mosaic', 'mask_ratio', 'max_det', 'vid_stride',

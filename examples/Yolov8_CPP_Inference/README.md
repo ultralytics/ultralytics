@@ -7,7 +7,7 @@ git clone https://github.com/JustasBart/yolov8_CPP_Inference_OpenCV_ONNX
 cd yolov8_CPP_Inference_OpenCV_ONNX
 ```
 
-Add a **yolov8_.onnx** and/or **yolov5_.onnx** model(s) to the ultralytics folder.
+Add a **yolov8\_.onnx** and/or **yolov5\_.onnx** model(s) to the ultralytics folder.
 Edit the **main.cpp** to change the **projectBasePath** to match your user.
 
 ```

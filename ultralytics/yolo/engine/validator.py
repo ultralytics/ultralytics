@@ -120,7 +120,7 @@ class BaseValidator:
             if not pt:
                 self.args.rect = False
             self.dataloader = self.dataloader or \
-                              self.get_dataloader(self.data.get("val") or self.data.set("test"), self.args.batch)
+                              self.get_dataloader(self.data.get("val") or self.data.get("test"), self.args.batch)
 
             model.eval()
             model.warmup(imgsz=(1 if pt else self.args.batch, 3, imgsz, imgsz))  # warmup

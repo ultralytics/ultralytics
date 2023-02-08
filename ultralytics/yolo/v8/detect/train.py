@@ -41,7 +41,7 @@ class DetectionTrainer(BaseTrainer):
                                  shuffle=mode == "train",
                                  seed=self.args.seed)[0] if self.args.v5loader else \
             build_dataloader(self.args, batch_size, img_path=dataset_path, stride=gs, rank=rank, mode=mode,
-                             rect=mode == "val")[0]
+                             rect=mode == "val", names=self.data['names'])[0]
 
     def preprocess_batch(self, batch):
         batch["img"] = batch["img"].to(self.device, non_blocking=True).float() / 255

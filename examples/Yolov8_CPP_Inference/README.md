@@ -10,6 +10,9 @@ cd yolov8_CPP_Inference_OpenCV_ONNX
 Add a **yolov8_.onnx** and/or **yolov5_.onnx** model(s) to the ultralytics folder.
 Edit the **main.cpp** to change the **projectBasePath** to match your user.
 
+Note that by default the CMake file will try and import the CUDA library to be used with the OpenCVs dnn (cuDNN) GPU Inference.
+If your OpenCV build does not use CUDA/cuDNN you can remove that import call and run the example on CPU.
+
 ```
 mkdir build
 cd build

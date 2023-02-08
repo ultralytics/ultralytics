@@ -11,7 +11,7 @@ using namespace cv;
 
 int main(int argc, char **argv)
 {
-    std::string projectBasePath = "/home/.../.../"; // Set your ultralytics base path
+    std::string projectBasePath = "/home/user/ultralytics"; // Set your ultralytics base path
 
     bool runOnGPU = true;
 
@@ -23,12 +23,12 @@ int main(int argc, char **argv)
     // To run Inference with yolov8/yolov5 (ONNX)
     //
 
-    Inference inf(projectBasePath + "/yolov8s.onnx", cv::Size(640, 480),
-                  projectBasePath + "/source/classes/classes.txt", runOnGPU);
+    // Note that in this example the classes are hard-coded and 'classes.txt' is a place holder.
+    Inference inf(projectBasePath + "/yolov8s.onnx", cv::Size(640, 480), "classes.txt", runOnGPU);
 
     std::vector<std::string> imageNames;
-    imageNames.push_back(projectBasePath + "/ultralytics/ultralytics/assets/bus.jpg");
-    imageNames.push_back(projectBasePath + "/ultralytics/ultralytics/assets/zidane.jpg");
+    imageNames.push_back(projectBasePath + "/ultralytics/assets/bus.jpg");
+    imageNames.push_back(projectBasePath + "/ultralytics/assets/zidane.jpg");
 
     for (int i = 0; i < imageNames.size(); ++i)
     {

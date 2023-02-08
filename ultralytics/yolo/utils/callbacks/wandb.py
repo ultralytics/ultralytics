@@ -15,7 +15,7 @@ def on_pretrain_routine_start(trainer: BaseTrainer):
         Starts a new wandb run to track the training process and log to Weights & Biases.
 
         Args:
-            trainer: A task trainer that's inherited from `:class:ultralytics.yolo.engine.trainer.BaseTrainer` 
+            trainer: A task trainer that's inherited from `:class:ultralytics.yolo.engine.trainer.BaseTrainer`
                      that contains the model training and optimization routine.
     """
     wandb.init(

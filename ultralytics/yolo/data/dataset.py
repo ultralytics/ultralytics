@@ -22,23 +22,21 @@ class YOLODataset(BaseDataset):
         prefix (str): prefix.
     """
 
-    def __init__(
-        self,
-        img_path,
-        imgsz=640,
-        cache=False,
-        augment=True,
-        hyp=None,
-        prefix="",
-        rect=False,
-        batch_size=None,
-        stride=32,
-        pad=0.0,
-        single_cls=False,
-        use_segments=False,
-        use_keypoints=False,
-        names=None
-    ):
+    def __init__(self,
+                 img_path,
+                 imgsz=640,
+                 cache=False,
+                 augment=True,
+                 hyp=None,
+                 prefix="",
+                 rect=False,
+                 batch_size=None,
+                 stride=32,
+                 pad=0.0,
+                 single_cls=False,
+                 use_segments=False,
+                 use_keypoints=False,
+                 names=None):
         self.use_segments = use_segments
         self.use_keypoints = use_keypoints
         self.names = names

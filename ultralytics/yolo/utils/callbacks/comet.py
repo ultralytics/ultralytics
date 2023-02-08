@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
 from ultralytics.yolo.utils.torch_utils import get_flops, get_num_params
+from ultralytics.yolo.engine.trainer import BaseTrainer
 
 try:
     import comet_ml
@@ -9,12 +10,12 @@ except ImportError:
     comet_ml = None
 
 
-def on_pretrain_routine_start(trainer):
+def on_pretrain_routine_start(trainer: BaseTrainer):
     experiment = comet_ml.Experiment(project_name=trainer.args.project or "YOLOv8")
     experiment.log_parameters(vars(trainer.args))
 
 
-def on_train_epoch_end(trainer):
+def on_train_epoch_end(trainer: BaseTrainer):
     experiment = comet_ml.get_global_experiment()
     experiment.log_metrics(trainer.label_loss_items(trainer.tloss, prefix="train"), step=trainer.epoch + 1)
     if trainer.epoch == 1:
@@ -22,7 +23,7 @@ def on_train_epoch_end(trainer):
             experiment.log_image(f, name=f.stem, step=trainer.epoch + 1)
 
 
-def on_fit_epoch_end(trainer):
+def on_fit_epoch_end(trainer: BaseTrainer):
     experiment = comet_ml.get_global_experiment()
     experiment.log_metrics(trainer.metrics, step=trainer.epoch + 1)
     if trainer.epoch == 0:
@@ -33,7 +34,7 @@ def on_fit_epoch_end(trainer):
         experiment.log_metrics(model_info, step=trainer.epoch + 1)
 
 
-def on_train_end(trainer):
+def on_train_end(trainer: BaseTrainer):
     experiment = comet_ml.get_global_experiment()
     experiment.log_model("YOLOv8", file_or_folder=str(trainer.best), file_name="best.pt", overwrite=True)
 

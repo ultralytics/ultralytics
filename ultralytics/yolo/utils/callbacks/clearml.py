@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
 from ultralytics.yolo.utils.torch_utils import get_flops, get_num_params
+from ultralytics.yolo.engine.trainer import BaseTrainer
 
 try:
     import clearml
@@ -18,7 +19,7 @@ def _log_images(imgs_dict, group="", step=0):
             task.get_logger().report_image(group, k, step, v)
 
 
-def on_pretrain_routine_start(trainer):
+def on_pretrain_routine_start(trainer: BaseTrainer):
     # TODO: reuse existing task
     task = Task.init(project_name=trainer.args.project or "YOLOv8",
                      task_name=trainer.args.name,
@@ -29,12 +30,12 @@ def on_pretrain_routine_start(trainer):
     task.connect(vars(trainer.args), name='General')
 
 
-def on_train_epoch_end(trainer):
+def on_train_epoch_end(trainer: BaseTrainer):
     if trainer.epoch == 1:
         _log_images({f.stem: str(f) for f in trainer.save_dir.glob('train_batch*.jpg')}, "Mosaic", trainer.epoch)
 
 
-def on_fit_epoch_end(trainer):
+def on_fit_epoch_end(trainer: BaseTrainer):
     if trainer.epoch == 0:
         model_info = {
             "Parameters": get_num_params(trainer.model),
@@ -43,7 +44,7 @@ def on_fit_epoch_end(trainer):
         Task.current_task().connect(model_info, name='Model')
 
 
-def on_train_end(trainer):
+def on_train_end(trainer: BaseTrainer):
     Task.current_task().update_output_model(model_path=str(trainer.best),
                                             model_name=trainer.args.name,
                                             auto_delete_file=False)

@@ -5,9 +5,13 @@ from time import time
 
 from ultralytics.hub.utils import PREFIX, traces
 from ultralytics.yolo.utils import LOGGER
+from ultralytics.yolo.engine.trainer import BaseTrainer
+from ultralytics.yolo.engine.validator import BaseValidator
+from ultralytics.yolo.engine.predictor import BasePredictor
+from ultralytics.yolo.engine.exporter import Exporter
 
 
-def on_pretrain_routine_end(trainer):
+def on_pretrain_routine_end(trainer: BaseTrainer):
     session = getattr(trainer, 'hub_session', None)
     if session:
         # Start timer for upload rate limit
@@ -15,7 +19,7 @@ def on_pretrain_routine_end(trainer):
         session.t = {'metrics': time(), 'ckpt': time()}  # start timer on self.rate_limit
 
 
-def on_fit_epoch_end(trainer):
+def on_fit_epoch_end(trainer: BaseTrainer):
     session = getattr(trainer, 'hub_session', None)
     if session:
         session.metrics_queue[trainer.epoch] = json.dumps(trainer.metrics)  # json string
@@ -25,7 +29,7 @@ def on_fit_epoch_end(trainer):
             session.metrics_queue = {}  # reset queue
 
 
-def on_model_save(trainer):
+def on_model_save(trainer: BaseTrainer):
     session = getattr(trainer, 'hub_session', None)
     if session:
         # Upload checkpoints with rate limiting
@@ -36,7 +40,7 @@ def on_model_save(trainer):
             session.t['ckpt'] = time()  # reset timer
 
 
-def on_train_end(trainer):
+def on_train_end(trainer: BaseTrainer):
     session = getattr(trainer, 'hub_session', None)
     if session:
         # Upload final model and metrics with exponential standoff
@@ -47,19 +51,19 @@ def on_train_end(trainer):
         LOGGER.info(f"{PREFIX}View model at https://hub.ultralytics.com/models/{session.model_id} 🚀")
 
 
-def on_train_start(trainer):
+def on_train_start(trainer: BaseTrainer):
     traces(trainer.args, traces_sample_rate=1.0)
 
 
-def on_val_start(validator):
+def on_val_start(validator: BaseValidator):
     traces(validator.args, traces_sample_rate=1.0)
 
 
-def on_predict_start(predictor):
+def on_predict_start(predictor: BasePredictor):
     traces(predictor.args, traces_sample_rate=1.0)
 
 
-def on_export_start(exporter):
+def on_export_start(exporter: Exporter):
     traces(exporter.args, traces_sample_rate=1.0)
 
 

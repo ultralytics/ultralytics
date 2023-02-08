@@ -58,23 +58,35 @@ def on_train_epoch_end(trainer):
 
 
 def on_fit_epoch_end(trainer):
-    wandb.log(
-        {
+    if trainer.epoch == 0:
+        wandb.summary.update({
             **trainer.metrics,
             "model/parameters": get_num_params(trainer.model),
             "model/GFLOPs": round(get_flops(trainer.model), 3),
-            "model/speed(ms)": round(trainer.validator.speed[1], 3),},
-        step=trainer.epoch + 1,
-    )
+            "model/speed(ms/img)": round(trainer.validator.speed[1], 3),})
+
+    if trainer.best_fitness == trainer.fitness:
+        wandb.run.summary.update({
+            "best/epoch": trainer.epoch + 1,
+            **{f"best/{key}": val
+               for key, val in trainer.metrics.items()}})
 
 
 def on_train_end(trainer):
     wandb.log(
         {
-            "results":
-            [wandb.Image(str(image_path), caption=image_path.stem) for image_path in trainer.save_dir.glob("*.png")]},
+            "results": [
+                wandb.Image(str(image_path), caption=image_path.stem) for image_path in trainer.save_dir.glob("*.png")],
+            "validation_images": [
+                wandb.Image(str(image_path), caption=image_path.stem)
+                for image_path in trainer.validator.save_dir.glob("val*.jpg")]},
         step=trainer.epoch + 1,
     )
+
+    wandb.log_artifact(str(trainer.last), type="model", name="last.pt", aliases=["last"])
+
+    if trainer.best.exists():
+        wandb.log_artifact(str(trainer.best), type="model", name="best.pt", aliases=["best"])
 
 
 def teardown(_trainer):

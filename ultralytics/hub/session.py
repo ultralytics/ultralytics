@@ -12,7 +12,7 @@ from ultralytics.hub.utils import HUB_API_ROOT, check_dataset_disk_space, smart_
 from ultralytics.yolo.utils import is_colab, threaded, LOGGER, emojis, PREFIX
 from ultralytics.yolo.utils.torch_utils import get_flops, get_num_params
 
-AGENT_NAME = (f"python-{__version__}-colab" if is_colab() else f"python-{__version__}-local")
+AGENT_NAME = f"python-{__version__}-colab" if is_colab() else f"python-{__version__}-local"
 session = None
 
 
@@ -95,7 +95,8 @@ class HubTrainingSession:
 
             if data.get("status", None) == "trained":
                 raise ValueError(
-                    emojis(f"Model trained. View model at https://hub.ultralytics.com/models/{self.model_id} 🚀"))
+                    emojis(f"Model is already trained and uploaded to "
+                           f"https://hub.ultralytics.com/models/{self.model_id} 🚀"))
 
             if not data.get("data", None):
                 raise ValueError("Dataset may still be processing. Please wait a minute and try again.")  # RF fix

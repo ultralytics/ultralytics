@@ -61,7 +61,7 @@ def exif_size(img):
 
 def verify_image_label(args):
     # Verify one image-label pair
-    im_file, lb_file, prefix, keypoint = args
+    im_file, lb_file, prefix, keypoint, num_cls = args
     # number (missing, found, empty, corrupt), message, segments, keypoints
     nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, "", [], None
     try:
@@ -97,16 +97,20 @@ def verify_image_label(args):
                     assert (lb[:, 6::3] <= 1).all(), "non-normalized or out of bounds coordinate labels"
                     kpts = np.zeros((lb.shape[0], 39))
                     for i in range(len(lb)):
-                        kpt = np.delete(lb[i, 5:], np.arange(2, lb.shape[1] - 5,
-                                                             3))  # remove the occlusion parameter from the GT
+                        kpt = np.delete(lb[i, 5:], np.arange(2, lb.shape[1] - 5, 3))  # remove occlusion param from GT
                         kpts[i] = np.hstack((lb[i, :5], kpt))
                     lb = kpts
                     assert lb.shape[1] == 39, "labels require 39 columns each after removing occlusion parameter"
                 else:
                     assert lb.shape[1] == 5, f"labels require 5 columns, {lb.shape[1]} columns detected"
-                    assert (lb >= 0).all(), f"negative label values {lb[lb < 0]}"
-                    assert (lb[:, 1:] <=
-                            1).all(), f"non-normalized or out of bounds coordinates {lb[:, 1:][lb[:, 1:] > 1]}"
+                    assert (lb[:, 1:] <= 1).all(), \
+                        f"non-normalized or out of bounds coordinates {lb[:, 1:][lb[:, 1:] > 1]}"
+                # All labels
+                max_cls = int(lb[:, 0].max())  # max label count
+                assert max_cls <= num_cls, \
+                    f'Label class {max_cls} exceeds dataset class count {num_cls}. ' \
+                    f'Possible class labels are 0-{num_cls - 1}'
+                assert (lb >= 0).all(), f"negative label values {lb[lb < 0]}"
                 _, i = np.unique(lb, axis=0, return_index=True)
                 if len(i) < nl:  # duplicate row check
                     lb = lb[i]  # remove duplicates
@@ -192,8 +196,8 @@ def check_det_dataset(dataset, autodownload=True):
     # Download (optional)
     extract_dir = ''
     if isinstance(data, (str, Path)) and (is_zipfile(data) or is_tarfile(data)):
-        download(data, dir=DATASETS_DIR, unzip=True, delete=False, curl=False, threads=1)
-        data = next((DATASETS_DIR / Path(data).stem).rglob('*.yaml'))
+        new_dir = safe_download(data, dir=DATASETS_DIR, unzip=True, delete=False, curl=False)
+        data = next((DATASETS_DIR / new_dir).rglob('*.yaml'))
         extract_dir, autodownload = data.parent, False
 
     # Read yaml (optional)

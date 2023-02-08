@@ -12,7 +12,7 @@ from ultralytics.hub.utils import HUB_API_ROOT, check_dataset_disk_space, smart_
 from ultralytics.yolo.utils import is_colab, threaded, LOGGER, emojis, PREFIX
 from ultralytics.yolo.utils.torch_utils import get_flops, get_num_params
 
-AGENT_NAME = (f"python-{__version__}-colab" if is_colab() else f"python-{__version__}-local")
+AGENT_NAME = f"python-{__version__}-colab" if is_colab() else f"python-{__version__}-local"
 session = None
 
 

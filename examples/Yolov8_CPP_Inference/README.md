@@ -17,6 +17,23 @@ mak
 ./Yolov8CPPInference
 ```
 
+To export yolov8 models:
+```
+yolo export \
+model=yolov8s.pt \
+imgsz=[480,640] \
+format=onnx \
+opset=12
+```
+To export yolov5 models:
+```
+python3 export.py \
+--weights yolov5s.pt \
+--img 480 640 \
+--include onnx \
+--opset 12
+```
+
 yolov8s.onnx:
 
 ![image](https://user-images.githubusercontent.com/40023722/217356132-a4cecf2e-2729-4acb-b80a-6559022d7707.png)

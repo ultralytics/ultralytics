@@ -11,26 +11,24 @@ using namespace cv;
 
 int main(int argc, char **argv)
 {
-    std::string projectBasePath = "/home/.../yolov8_CPP_Inference_OpenCV_ONNX";
+    std::string projectBasePath = "/home/.../.../"; // Set your ultralytics base path
 
     bool runOnGPU = true;
 
     //
     // Pass in either:
     //
-    // "/source/models/yolov8s.onnx"
-    // or
-    // "/source/models/yolov5s.onnx"
+    // "yolov8s.onnx" or "yolov5s.onnx"
     //
     // To run Inference with yolov8/yolov5 (ONNX)
     //
 
-    Inference inf(projectBasePath + "/source/models/yolov8s.onnx", cv::Size(640, 480),
+    Inference inf(projectBasePath + "/yolov8s.onnx", cv::Size(640, 480),
                   projectBasePath + "/source/classes/classes.txt", runOnGPU);
 
     std::vector<std::string> imageNames;
-    imageNames.push_back(projectBasePath + "/source/data/bus.jpg");
-    imageNames.push_back(projectBasePath + "/source/data/zidane.jpg");
+    imageNames.push_back(projectBasePath + "/ultralytics/ultralytics/assets/bus.jpg");
+    imageNames.push_back(projectBasePath + "/ultralytics/ultralytics/assets/zidane.jpg");
 
     for (int i = 0; i < imageNames.size(); ++i)
     {

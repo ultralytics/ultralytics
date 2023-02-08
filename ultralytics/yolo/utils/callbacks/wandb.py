@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
 from ultralytics.yolo.utils.torch_utils import get_flops, get_num_params
-from ultralytics.yolo.engine.trainer import BaseTrainer
 
 try:
     import wandb
@@ -10,7 +9,7 @@ except ImportError:
     wandb = None
 
 
-def on_pretrain_routine_start(trainer: BaseTrainer):
+def on_pretrain_routine_start(trainer):
     """
         Starts a new wandb run to track the training process and log to Weights & Biases.
 
@@ -29,7 +28,7 @@ def on_pretrain_routine_start(trainer: BaseTrainer):
     wandb.run.log_code(include_fn=lambda path: path.endswith(".ipynb"))
 
 
-def on_train_epoch_start(trainer: BaseTrainer):
+def on_train_epoch_start(trainer):
     # We emit the epoch number here to force wandb to commit the previous step when the new one starts,
     # reducing the delay between the end of the epoch and metrics for it appearing.
     wandb.log(
@@ -38,7 +37,7 @@ def on_train_epoch_start(trainer: BaseTrainer):
     )
 
 
-def on_train_epoch_end(trainer: BaseTrainer):
+def on_train_epoch_end(trainer):
     wandb.log(
         {
             **trainer.metrics,
@@ -58,7 +57,7 @@ def on_train_epoch_end(trainer: BaseTrainer):
     )
 
 
-def on_fit_epoch_end(trainer: BaseTrainer):
+def on_fit_epoch_end(trainer):
     wandb.log(
         {
             **trainer.metrics,
@@ -69,7 +68,7 @@ def on_fit_epoch_end(trainer: BaseTrainer):
     )
 
 
-def on_train_end(trainer: BaseTrainer):
+def on_train_end(trainer):
     wandb.log(
         {
             "results":
@@ -78,7 +77,7 @@ def on_train_end(trainer: BaseTrainer):
     )
 
 
-def teardown(_trainer: BaseTrainer):
+def teardown(_trainer):
     wandb.finish()
 
 

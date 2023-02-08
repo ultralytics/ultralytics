@@ -1,6 +1,6 @@
 #include "inference.h"
 
-Inference::Inference(const std::string &onnxModelPath, const cv::Size2f &modelInputShape, const std::string &classesTxtFile, const bool &runWithCuda)
+Inference::Inference(const std::string &onnxModelPath, const cv::Size &modelInputShape, const std::string &classesTxtFile, const bool &runWithCuda)
 {
     modelPath = onnxModelPath;
     modelShape = modelInputShape;
@@ -8,7 +8,7 @@ Inference::Inference(const std::string &onnxModelPath, const cv::Size2f &modelIn
     cudaEnabled = runWithCuda;
 
     loadOnnxNetwork();
-    loadClassesFromFile();
+    // loadClassesFromFile(); The classes are hard-coded for this example
 }
 
 std::vector<Detection> Inference::runInference(const cv::Mat &input)

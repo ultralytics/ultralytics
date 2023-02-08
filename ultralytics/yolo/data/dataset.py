@@ -37,6 +37,7 @@ class YOLODataset(BaseDataset):
         single_cls=False,
         use_segments=False,
         use_keypoints=False,
+        names=None
     ):
         self.use_segments = use_segments
         self.use_keypoints = use_keypoints

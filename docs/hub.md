@@ -1,6 +1,6 @@
 # Ultralytics HUB
 
-<a align="center" href="https://bit.ly/ultralytics_hub" target="_blank">
+<a href="https://bit.ly/ultralytics_hub" target="_blank">
 <img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/ultralytics-hub.png"></a>
 <br>
 <br>

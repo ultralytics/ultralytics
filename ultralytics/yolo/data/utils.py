@@ -103,13 +103,14 @@ def verify_image_label(args):
                     assert lb.shape[1] == 39, "labels require 39 columns each after removing occlusion parameter"
                 else:
                     assert lb.shape[1] == 5, f"labels require 5 columns, {lb.shape[1]} columns detected"
-                    assert (lb >= 0).all(), f"negative label values {lb[lb < 0]}"
                     assert (lb[:, 1:] <= 1).all(), \
                         f"non-normalized or out of bounds coordinates {lb[:, 1:][lb[:, 1:] > 1]}"
-                    max_cls = int(lb[:, 0].max())  # max label count
-                    assert max_cls <= num_cls, \
-                        f'Label class {max_cls} exceeds dataset class count {num_cls}. ' \
-                        f'Possible class labels are 0-{num_cls - 1}'
+                # All labels
+                max_cls = int(lb[:, 0].max())  # max label count
+                assert max_cls <= num_cls, \
+                    f'Label class {max_cls} exceeds dataset class count {num_cls}. ' \
+                    f'Possible class labels are 0-{num_cls - 1}'
+                assert (lb >= 0).all(), f"negative label values {lb[lb < 0]}"
                 _, i = np.unique(lb, axis=0, return_index=True)
                 if len(i) < nl:  # duplicate row check
                     lb = lb[i]  # remove duplicates

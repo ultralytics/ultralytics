@@ -61,7 +61,7 @@ def seed_worker(worker_id):
     random.seed(worker_seed)
 
 
-def build_dataloader(cfg, batch, img_path, stride=32, rect=False, rank=-1, mode="train"):
+def build_dataloader(cfg, batch, img_path, stride=32, rect=False, names=None, rank=-1, mode="train"):
     assert mode in ["train", "val"]
     shuffle = mode == "train"
     if cfg.rect and shuffle:
@@ -81,7 +81,8 @@ def build_dataloader(cfg, batch, img_path, stride=32, rect=False, rank=-1, mode=
             pad=0.0 if mode == "train" else 0.5,
             prefix=colorstr(f"{mode}: "),
             use_segments=cfg.task == "segment",
-            use_keypoints=cfg.task == "keypoint")
+            use_keypoints=cfg.task == "keypoint",
+            names=names)
 
     batch = min(batch, len(dataset))
     nd = torch.cuda.device_count()  # number of CUDA devices

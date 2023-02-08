@@ -40,6 +40,7 @@ class YOLODataset(BaseDataset):
     ):
         self.use_segments = use_segments
         self.use_keypoints = use_keypoints
+        self.names = names
         assert not (self.use_segments and self.use_keypoints), "Can not use both segments and keypoints."
         super().__init__(img_path, imgsz, cache, augment, hyp, prefix, rect, batch_size, stride, pad, single_cls)
 
@@ -53,8 +54,11 @@ class YOLODataset(BaseDataset):
         total = len(self.im_files)
         with ThreadPool(NUM_THREADS) as pool:
             results = pool.imap(func=verify_image_label,
-                                iterable=zip(self.im_files, self.label_files, repeat(self.prefix),
-                                             repeat(self.use_keypoints)))
+                                iterable=zip(self.im_files,
+                                             self.label_files,
+                                             repeat(self.prefix),
+                                             repeat(self.use_keypoints),
+                                             repeat(len(self.names))))
             pbar = tqdm(results, desc=desc, total=total, bar_format=TQDM_BAR_FORMAT)
             for im_file, lb, shape, segments, keypoint, nm_f, nf_f, ne_f, nc_f, msg in pbar:
                 nm += nm_f

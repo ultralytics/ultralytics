@@ -18,6 +18,7 @@ mak
 ```
 
 To export yolov8 models:
+
 ```
 yolo export \
 model=yolov8s.pt \
@@ -25,7 +26,9 @@ imgsz=[480,640] \
 format=onnx \
 opset=12
 ```
+
 To export yolov5 models:
+
 ```
 python3 export.py \
 --weights yolov5s.pt \

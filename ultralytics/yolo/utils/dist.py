@@ -7,6 +7,7 @@ import sys
 import tempfile
 
 from . import USER_CONFIG_DIR
+from .torch_utils import TORCH_1_9
 
 
 def find_free_network_port() -> int:
@@ -47,8 +48,9 @@ def generate_ddp_command(world_size, trainer):
     using_cli = not file_name.endswith(".py")
     if using_cli:
         file_name = generate_ddp_file(trainer)
+    torch_distributed_cmd = "torch.distributed.run" if TORCH_1_9 else "torch.distributed.launch"
     return [
-        sys.executable, "-m", "torch.distributed.run", "--nproc_per_node", f"{world_size}", "--master_port",
+        sys.executable, "-m", torch_distributed_cmd, "--nproc_per_node", f"{world_size}", "--master_port",
         f"{find_free_network_port()}", file_name] + sys.argv[1:]
 
 

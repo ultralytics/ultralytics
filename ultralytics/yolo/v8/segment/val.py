@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
 import os
-import sys
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 

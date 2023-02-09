@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
 import os
-import sys
 from pathlib import Path
 
 import numpy as np
@@ -10,8 +9,8 @@ import torch
 from ultralytics.yolo.data import build_dataloader
 from ultralytics.yolo.data.dataloaders.v5loader import create_dataloader
 from ultralytics.yolo.engine.validator import BaseValidator
-from ultralytics.yolo.utils import DEFAULT_CFG, colorstr, ops, yaml_load
-from ultralytics.yolo.utils.checks import check_file, check_requirements
+from ultralytics.yolo.utils import DEFAULT_CFG, colorstr, ops
+from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
 from ultralytics.yolo.utils.plotting import output_to_target, plot_images
 from ultralytics.yolo.utils.torch_utils import de_parallel
@@ -42,7 +41,7 @@ class DetectionValidator(BaseValidator):
 
     def init_metrics(self, model):
         head = model.model[-1] if self.training else model.model.model[-1]
-        val = self.data.get('val', '')  # validation path
+        val = self.data.get(self.args.split, '')  # validation path
         self.is_coco = isinstance(val, str) and val.endswith(f'coco{os.sep}val2017.txt')  # is COCO dataset
         self.class_map = ops.coco80_to_coco91_class() if self.is_coco else list(range(1000))
         self.args.save_json |= self.is_coco and not self.training  # run on final val if training COCO

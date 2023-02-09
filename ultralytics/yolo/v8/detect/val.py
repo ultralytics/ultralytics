@@ -176,7 +176,8 @@ class DetectionValidator(BaseValidator):
                                  prefix=colorstr(f'{self.args.mode}: '),
                                  shuffle=False,
                                  seed=self.args.seed)[0] if self.args.v5loader else \
-            build_dataloader(self.args, batch_size, img_path=dataset_path, stride=gs, mode="val")[0]
+            build_dataloader(self.args, batch_size, img_path=dataset_path, stride=gs, names=self.data['names'],
+                             mode="val")[0]
 
     def plot_val_samples(self, batch, ni):
         plot_images(batch["img"],

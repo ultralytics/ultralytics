@@ -110,6 +110,15 @@ class IterableSimpleNamespace(SimpleNamespace):
     def __str__(self):
         return '\n'.join(f"{k}={v}" for k, v in vars(self).items())
 
+    def __getattr__(self, attr):
+        name = self.__class__.__name__
+        raise AttributeError(f"""
+            '{name}' object has no attribute '{attr}'. This may be caused by a modified or out of date ultralytics
+            'default.yaml' file.\nPlease update your code with 'pip install -U ultralytics' and if necessary replace
+            {DEFAULT_CFG_PATH} with the latest version from 
+            https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/cfg/default.yaml
+            """)
+
     def get(self, key, default=None):
         return getattr(self, key, default)
 

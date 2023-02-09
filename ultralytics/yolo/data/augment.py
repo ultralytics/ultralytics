@@ -8,6 +8,7 @@ import cv2
 import numpy as np
 import torch
 import torchvision.transforms as T
+import imgaug.augmenters as iaa
 
 from ..utils import LOGGER, colorstr
 from ..utils.checks import check_version
@@ -558,8 +559,8 @@ class Albumentations:
             check_version(A.__version__, "1.0.3", hard=True)  # version requirement
 
             T = [
-                A.Blur(p=0.01),
-                A.MedianBlur(p=0.01),
+#                 A.Blur(p=0.01),
+#                 A.MedianBlur(p=0.01),
                 A.ToGray(p=0.01),
                 A.CLAHE(p=0.01),
                 A.RandomBrightnessContrast(p=0.0),
@@ -656,10 +657,53 @@ class Format:
             masks = polygons2masks((h, w), segments, color=1, downsample_ratio=self.mask_ratio)
 
         return masks, instances, cls
+    
+
+class Miscellanium:
+    def __init__(self, p=0.4):
+        self.transforms = iaa.Sequential([
+            iaa.OneOf([
+                iaa.OneOf([
+                    iaa.Sometimes(p, iaa.AdditiveGaussianNoise(scale=0.2 * 255)),
+                    iaa.Sometimes(p, iaa.AdditiveGaussianNoise(scale=0.2 * 255, per_channel=0.5)),
+                ]),
+                iaa.OneOf([
+                    iaa.Sometimes(p, iaa.AdditiveLaplaceNoise(scale=0.2 * 255)),
+                    iaa.Sometimes(p, iaa.AdditiveLaplaceNoise(scale=0.2 * 255, per_channel=0.5)),
+                ]),
+                iaa.OneOf([
+                    iaa.Sometimes(p, iaa.AddElementwise((-40, -40))),
+                    iaa.Sometimes(p, iaa.AddElementwise((-40, -40), per_channel=0.5))
+                ]),
+                iaa.OneOf([
+                    iaa.Sometimes(p, iaa.MultiplyElementwise((0.5, 1.5))),
+                    iaa.Sometimes(p, iaa.MultiplyElementwise((0.5, 1.5), per_channel=0.5))
+                ]),
+                iaa.OneOf([
+                    iaa.Sometimes(p, iaa.AdditivePoissonNoise(40)),
+                    iaa.Sometimes(p, iaa.AdditivePoissonNoise(40, per_channel=0.5)),
+                ]),
+                iaa.OneOf([
+                    iaa.Sometimes(p, iaa.SaltAndPepper(0.15)),
+                    iaa.Sometimes(p, iaa.SaltAndPepper(0.15, per_channel=0.5)),
+                ])
+            ]),
+            iaa.OneOf([
+                iaa.Sometimes(p, iaa.GaussianBlur(sigma=(0.0, 3.0))),
+                iaa.Sometimes(p, iaa.AverageBlur(k=((3, 7), (3, 7)))),
+                iaa.Sometimes(p, iaa.MedianBlur(k=(3, 7))),
+                iaa.Sometimes(p, iaa.MotionBlur(k=11, angle=[-45, 45])),
+            ])
+        ])
+    
+    def __call__(self, labels):
+        labels["img"] = self.transforms(image=labels["img"])
+        return labels
 
 
 def v8_transforms(dataset, imgsz, hyp):
     pre_transform = Compose([
+        Miscellanium(),
         Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic, border=[-imgsz // 2, -imgsz // 2]),
         CopyPaste(p=hyp.copy_paste),
         RandomPerspective(

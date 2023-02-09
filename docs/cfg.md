@@ -154,7 +154,6 @@ process include the size and composition of the validation dataset and the speci
 is important to carefully tune and experiment with these settings to ensure that the model is performing well on the
 validation dataset and to detect and prevent overfitting.
 
-
 | Key         | Value | Description                                                     |
 |-------------|-------|-----------------------------------------------------------------|
 | save_json   | False | save results to JSON file                                       |

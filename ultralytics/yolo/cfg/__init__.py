@@ -122,7 +122,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG, override
                                      f"Valid '{k}' values are between 0.0 and 1.0.")
             elif k in CFG_INT_KEYS and not isinstance(v, int):
                 raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. "
-                                f"'{k}' must be an int (i.e. '{k}=0')")
+                                f"'{k}' must be an int (i.e. '{k}=8')")
             elif k in CFG_BOOL_KEYS and not isinstance(v, bool):
                 raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. "
                                 f"'{k}' must be a bool (i.e. '{k}=True' or '{k}=False')")

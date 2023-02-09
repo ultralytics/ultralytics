@@ -111,6 +111,7 @@ YOLOv8 [Python Docs](https://docs.ultralytics.com/python) for more examples.
 ### Model Architectures
 
 ⭐ **NEW** YOLOv5u anchor free models are now available.
+
 All supported model architectures can be found in the [Appendix](#Appendix) section of the README
 
 #### Known Issues / TODOs

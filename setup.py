@@ -37,9 +37,9 @@ setup(
     packages=find_packages(),  # required
     include_package_data=True,
     install_requires=REQUIREMENTS + PKG_REQUIREMENTS,
-    extras_require={'dev':
-                        ['check-manifest', 'pytest', 'pytest-cov', 'coverage', 'mkdocs', 'mkdocstrings[python]',
-                         'mkdocs-material']},
+    extras_require={
+        'dev':
+        ['check-manifest', 'pytest', 'pytest-cov', 'coverage', 'mkdocs', 'mkdocstrings[python]', 'mkdocs-material']},
     classifiers=[
         "Intended Audience :: Developers",
         "Intended Audience :: Science/Research",
@@ -49,13 +49,14 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
-        "Topic :: Software Development", "Topic :: Scientific/Engineering",
+        "Topic :: Software Development",
+        "Topic :: Scientific/Engineering",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
         "Topic :: Scientific/Engineering :: Image Recognition",
         "Operating System :: POSIX :: Linux",
         "Operating System :: MacOS",
         "Operating System :: Microsoft :: Windows",
-        "Development Status :: 4 - Beta", ],
+        "Development Status :: 4 - Beta",],
     keywords="machine-learning, deep-learning, vision, ML, DL, AI, YOLO, YOLOv3, YOLOv5, YOLOv8, HUB, Ultralytics",
     entry_points={
         'console_scripts': ['yolo = ultralytics.yolo.cfg:entrypoint', 'ultralytics = ultralytics.yolo.cfg:entrypoint']})

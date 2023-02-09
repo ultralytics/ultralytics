@@ -176,7 +176,7 @@ class BaseTrainer:
         if world_size > 1 and "LOCAL_RANK" not in os.environ:
             cmd, file = generate_ddp_command(world_size, self)
             try:
-                subprocess.run(cmd, shell=True)
+                subprocess.run(cmd)
             except Exception as e:
                 self.console.warning(e)
             finally:

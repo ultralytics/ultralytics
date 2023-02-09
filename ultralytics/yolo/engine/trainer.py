@@ -5,7 +5,6 @@ Simple training loop; Boilerplate that could apply to any arbitrary neural netwo
 
 import os
 import subprocess
-import sys
 import time
 from collections import defaultdict
 from copy import deepcopy
@@ -29,10 +28,10 @@ from ultralytics.yolo.utils import (DEFAULT_CFG, LOGGER, RANK, SETTINGS, TQDM_BA
                                     yaml_save)
 from ultralytics.yolo.utils.autobatch import check_train_batch_size
 from ultralytics.yolo.utils.checks import check_file, check_imgsz, print_args
-from ultralytics.yolo.utils.dist import ddp_cleanup, generate_ddp_file, find_free_network_port
+from ultralytics.yolo.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.yolo.utils.files import get_latest_run, increment_path
 from ultralytics.yolo.utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel, init_seeds, one_cycle,
-                                                select_device, strip_optimizer, TORCH_1_9)
+                                                select_device, strip_optimizer)
 
 
 class BaseTrainer:
@@ -175,12 +174,7 @@ class BaseTrainer:
 
         # Run subprocess if DDP training, else train normally
         if world_size > 1 and "LOCAL_RANK" not in os.environ:
-            # cmd, file = generate_ddp_command(world_size, self)  # security vulnerability in Snyk scans
-            file = generate_ddp_file(self) if sys.argv[0].endswith('yolo') else os.path.abspath(sys.argv[0])
-            torch_distributed_cmd = "torch.distributed.run" if TORCH_1_9 else "torch.distributed.launch"
-            cmd = [
-                sys.executable, "-m", torch_distributed_cmd, "--nproc_per_node", f"{world_size}", "--master_port",
-                f"{find_free_network_port()}", file] + sys.argv[1:]
+            cmd, file = generate_ddp_command(world_size, self)  # security vulnerability in Snyk scans
             try:
                 subprocess.run(cmd, check=True)
             except Exception as e:

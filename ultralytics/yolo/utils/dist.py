@@ -44,10 +44,7 @@ def generate_ddp_file(trainer):
 
 def generate_ddp_command(world_size, trainer):
     import __main__  # noqa local import to avoid https://github.com/Lightning-AI/lightning/issues/15218
-    file = os.path.abspath(sys.argv[0])
-    using_cli = not file.endswith(".py")
-    if using_cli:
-        file = generate_ddp_file(trainer)  # temporary file
+    file = generate_ddp_file(trainer) if sys.argv[0].endswith('yolo') else os.path.abspath(sys.argv[0])
     torch_distributed_cmd = "torch.distributed.run" if TORCH_1_9 else "torch.distributed.launch"
     cmd = [sys.executable, "-m", torch_distributed_cmd, "--nproc_per_node", f"{world_size}", "--master_port",
            f"{find_free_network_port()}", file] + sys.argv[1:]

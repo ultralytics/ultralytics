@@ -18,6 +18,7 @@ from typing import Union
 import cv2
 import numpy as np
 import pandas as pd
+import requests
 import torch
 import yaml
 
@@ -131,7 +132,11 @@ def yaml_save(file='data.yaml', data=None):
 
     with open(file, 'w') as f:
         # Dump data to file in YAML format, converting Path objects to strings
-        yaml.safe_dump({k: str(v) if isinstance(v, Path) else v for k, v in data.items()}, f, sort_keys=False)
+        yaml.safe_dump({k: str(v) if isinstance(v, Path) else v
+                        for k, v in data.items()},
+                       f,
+                       sort_keys=False,
+                       allow_unicode=True)
 
 
 def yaml_load(file='data.yaml', append_filename=False):
@@ -164,7 +169,7 @@ def yaml_print(yaml_file: Union[str, Path, dict]) -> None:
         None
     """
     yaml_dict = yaml_load(yaml_file) if isinstance(yaml_file, (str, Path)) else yaml_file
-    dump = yaml.dump(yaml_dict, default_flow_style=False)
+    dump = yaml.dump(yaml_dict, sort_keys=False, allow_unicode=True)
     LOGGER.info(f"Printing '{colorstr('bold', 'black', yaml_file)}'\n\n{dump}")
 
 
@@ -341,8 +346,31 @@ def get_git_branch():
     return None  # if not git dir or on error
 
 
+def get_latest_pypi_version(package_name='ultralytics'):
+    """
+    Returns the latest version of a PyPI package without downloading or installing it.
+
+    Parameters:
+        package_name (str): The name of the package to find the latest version for.
+
+    Returns:
+        str: The latest version of the package.
+    """
+    response = requests.get(f"https://pypi.org/pypi/{package_name}/json")
+    if response.status_code == 200:
+        return response.json()["info"]["version"]
+    return None
+
+
 def get_default_args(func):
-    # Get func() default arguments
+    """Returns a dictionary of default arguments for a function.
+
+    Args:
+        func (callable): The function to inspect.
+
+    Returns:
+        dict: A dictionary where each key is a parameter name, and each value is the default value of that parameter.
+    """
     signature = inspect.signature(func)
     return {k: v.default for k, v in signature.parameters.items() if v.default is not inspect.Parameter.empty}
 

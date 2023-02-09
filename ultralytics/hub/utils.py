@@ -190,5 +190,4 @@ class Traces:
 
 
 # Run below code on hub/utils init -------------------------------------------------------------------------------------
-
 traces = Traces()

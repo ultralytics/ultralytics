@@ -39,6 +39,7 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX')):
         for f in zipObj.namelist():  # list all archived filenames in the zip
             if all(x not in f for x in exclude):
                 zipObj.extract(f, path=path)
+        return zipObj.namelist()[0]  # return unzip dir
 
 
 def safe_download(url,
@@ -112,13 +113,14 @@ def safe_download(url,
         unzip_dir = dir or f.parent  # unzip to dir if provided else unzip in place
         LOGGER.info(f'Unzipping {f} to {unzip_dir}...')
         if f.suffix == '.zip':
-            unzip_file(file=f, path=unzip_dir)  # unzip
+            unzip_dir = unzip_file(file=f, path=unzip_dir)  # unzip
         elif f.suffix == '.tar':
             subprocess.run(['tar', 'xf', f, '--directory', unzip_dir], check=True)  # unzip
         elif f.suffix == '.gz':
             subprocess.run(['tar', 'xfz', f, '--directory', unzip_dir], check=True)  # unzip
         if delete:
             f.unlink()  # remove zip
+        return unzip_dir
 
 
 def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):

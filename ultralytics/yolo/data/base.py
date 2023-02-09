@@ -28,7 +28,6 @@ class BaseDataset(Dataset):
         self,
         img_path,
         imgsz=640,
-        label_path=None,
         cache=False,
         augment=True,
         hyp=None,
@@ -42,7 +41,6 @@ class BaseDataset(Dataset):
         super().__init__()
         self.img_path = img_path
         self.imgsz = imgsz
-        self.label_path = label_path
         self.augment = augment
         self.single_cls = single_cls
         self.prefix = prefix

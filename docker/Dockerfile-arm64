@@ -3,7 +3,7 @@
 # Image is aarch64-compatible for Apple M1 and other ARM architectures i.e. Jetson Nano and Raspberry Pi
 
 # Start FROM Ubuntu image https://hub.docker.com/_/ubuntu
-FROM arm64v8/ubuntu:20.04
+FROM arm64v8/ubuntu:latest
 
 # Downloads to user config dir
 ADD https://ultralytics.com/assets/Arial.ttf https://ultralytics.com/assets/Arial.Unicode.ttf /root/.config/Ultralytics/

@@ -38,6 +38,7 @@ dropout: 0.0  # use dropout regularization (classify train only)
 
 # Val/Test settings ----------------------------------------------------------------------------------------------------
 val: True  # validate/test during training
+split: val  # dataset split to use for validation, i.e. 'val', 'test' or 'train'
 save_json: False  # save results to JSON file
 save_hybrid: False  # save hybrid version of labels (labels + additional predictions)
 conf:  # object confidence threshold for detection (default 0.25 predict, 0.001 val)

@@ -167,7 +167,7 @@ validation dataset and to detect and prevent overfitting.
 | dnn         | False | use OpenCV DNN for ONNX inference                               |
 | plots       | False | show plots during training                                      |
 | rect        | False | support rectangular evaluation                                  |
-| val_split   | val   | change validation split, i.e. val, test, train                  |
+| split       | val   | change validation split, i.e. val, test, train                  |
 
 
 ### Export

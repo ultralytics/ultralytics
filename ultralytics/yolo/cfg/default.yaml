@@ -47,6 +47,7 @@ max_det: 300  # maximum number of detections per image
 half: False  # use half precision (FP16)
 dnn: False  # use OpenCV DNN for ONNX inference
 plots: True  # save plots during train/val
+fuse: True  # Fuse model before validation
 
 # Prediction settings --------------------------------------------------------------------------------------------------
 source:  # source directory for images or videos

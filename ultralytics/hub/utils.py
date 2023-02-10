@@ -11,7 +11,7 @@ from random import random
 
 import requests
 
-from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, LOGGER, RANK, SETTINGS, TryExcept, colorstr, emojis,
+from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, LOGGER, RANK, SETTINGS, TryExcept, __version__, colorstr, emojis,
                                     get_git_origin_url, is_colab, is_docker, is_git_dir, is_github_actions_ci,
                                     is_jupyter, is_kaggle, is_pip_package, is_pytest_running)
 
@@ -143,7 +143,6 @@ class Traces:
         """
         Initialize Traces for error tracking and reporting if tests are not currently running.
         """
-        from ultralytics import __version__
         env = 'Colab' if is_colab() else 'Kaggle' if is_kaggle() else 'Jupyter' if is_jupyter() else \
             'Docker' if is_docker() else platform.system()
         self.rate_limit = 3.0  # rate limit (seconds)

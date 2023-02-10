@@ -22,6 +22,8 @@ import requests
 import torch
 import yaml
 
+from ultralytics import __version__
+
 # Constants
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[2]  # YOLO
@@ -520,8 +522,7 @@ def set_sentry():
         if 'exc_info' in hint:
             exc_type, exc_value, tb = hint['exc_info']
             if exc_type in (KeyboardInterrupt, FileNotFoundError) \
-                    or 'out of memory' in str(exc_value) \
-                    or not sys.argv[0].endswith('yolo'):
+                    or 'out of memory' in str(exc_value):
                 return None  # do not send event
 
         env = 'Colab' if is_colab() else 'Kaggle' if is_kaggle() else 'Jupyter' if is_jupyter() else \
@@ -535,7 +536,7 @@ def set_sentry():
 
     if SETTINGS['sync'] and \
             RANK in {-1, 0} and \
-            sys.argv[0].endswith('yolo') and \
+            sys.argv[0].endswith(os.sep + 'yolo') and \
             not is_pytest_running() and \
             not is_github_actions_ci() and \
             ((is_pip_package() and not is_git_dir()) or
@@ -543,7 +544,6 @@ def set_sentry():
 
         import hashlib
         import sentry_sdk  # noqa
-        from ultralytics import __version__
 
         sentry_sdk.init(
             dsn="https://f805855f03bb4363bc1e16cb7d87b654@o4504521589325824.ingest.sentry.io/4504521592406016",

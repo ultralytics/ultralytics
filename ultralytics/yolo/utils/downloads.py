@@ -6,7 +6,7 @@ from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from urllib import parse, request
-from zipfile import ZipFile, is_zipfile, BadZipFile
+from zipfile import BadZipFile, ZipFile, is_zipfile
 
 import requests
 import torch

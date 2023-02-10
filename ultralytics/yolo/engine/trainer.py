@@ -34,12 +34,6 @@ from ultralytics.yolo.utils.files import get_latest_run, increment_path
 from ultralytics.yolo.utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel, init_seeds, one_cycle,
                                                 select_device, strip_optimizer)
 
-
-# TODO: Move the function to the correct places
-def string_to_transform(transform):
-    return None if transform is None else eval(transform)
-
-
 class BaseTrainer:
     """
     BaseTrainer

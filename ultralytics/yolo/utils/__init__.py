@@ -525,18 +525,16 @@ def set_sentry():
                     or 'out of memory' in str(exc_value):
                 return None  # do not send event
 
-        env = 'Colab' if is_colab() else 'Kaggle' if is_kaggle() else 'Jupyter' if is_jupyter() else \
-            'Docker' if is_docker() else platform.system()
         event['tags'] = {
             "sys_argv": sys.argv[0],
             "sys_argv_name": Path(sys.argv[0]).name,
             "install": 'git' if is_git_dir() else 'pip' if is_pip_package() else 'other',
-            "os": env}
+            "os": ENVIRONMENT}
         return event
 
     if SETTINGS['sync'] and \
             RANK in {-1, 0} and \
-            sys.argv[0].endswith(os.sep + 'yolo') and \
+            Path(sys.argv[0]).name == 'yolo' and \
             not is_pytest_running() and \
             not is_github_actions_ci() and \
             ((is_pip_package() and not is_git_dir()) or
@@ -630,4 +628,6 @@ if platform.system() == 'Windows':
 PREFIX = colorstr("Ultralytics: ")
 SETTINGS = get_settings()
 DATASETS_DIR = Path(SETTINGS['datasets_dir'])  # global datasets directory
+ENVIRONMENT = 'Colab' if is_colab() else 'Kaggle' if is_kaggle() else 'Jupyter' if is_jupyter() else \
+    'Docker' if is_docker() else platform.system()
 set_sentry()

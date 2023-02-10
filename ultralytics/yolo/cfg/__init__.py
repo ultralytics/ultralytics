@@ -25,13 +25,13 @@ CLI_HELP_MSG = \
                     See all ARGS at https://docs.ultralytics.com/cfg or with 'yolo cfg'
 
     1. Train a detection model for 10 epochs with an initial learning_rate of 0.01
-        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01
+        yolo train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01
 
     2. Predict a YouTube video using a pretrained segmentation model at image size 320:
-        yolo segment predict model=yolov8n-seg.pt source='https://youtu.be/Zgi9g1ksQHc' imgsz=320
+        yolo predict model=yolov8n-seg.pt source='https://youtu.be/Zgi9g1ksQHc' imgsz=320
 
     3. Val a pretrained detection model at batch-size 1 and image size 640:
-        yolo detect val model=yolov8n.pt data=coco128.yaml batch=1 imgsz=640
+        yolo val model=yolov8n.pt data=coco128.yaml batch=1 imgsz=640
 
     4. Export a YOLOv8n classification model to ONNX format at image size 224 by 128 (no TASK required)
         yolo export model=yolov8n-cls.pt format=onnx imgsz=224,128
@@ -144,8 +144,8 @@ def check_cfg_mismatch(base: Dict, custom: Dict):
     mismatched = [x for x in custom if x not in base]
     if mismatched:
         for x in mismatched:
-            matches = get_close_matches(x, base, 3, 0.6)
-            match_str = f"Similar arguments are {matches}." if matches else 'There are no similar arguments.'
+            matches = get_close_matches(x, base)
+            match_str = f"Similar arguments are {matches}." if matches else ''
             LOGGER.warning(f"'{colorstr('red', 'bold', x)}' is not a valid YOLO argument. {match_str}")
         LOGGER.warning(CLI_HELP_MSG)
         sys.exit()
@@ -176,10 +176,6 @@ def merge_equals_args(args: List[str]) -> List[str]:
         else:
             new_args.append(arg)
     return new_args
-
-
-def argument_error(arg):
-    return SyntaxError(f"'{arg}' is not a valid YOLO argument.\n{CLI_HELP_MSG}")
 
 
 def entrypoint(debug=''):
@@ -236,7 +232,7 @@ def entrypoint(debug=''):
                             v = eval(v)
                     overrides[k] = v
             except (NameError, SyntaxError, ValueError, AssertionError) as e:
-                raise argument_error(a) from e
+                check_cfg_mismatch(DEFAULT_CFG_DICT, {a: ""})
 
         elif a in tasks:
             overrides['task'] = a
@@ -251,7 +247,7 @@ def entrypoint(debug=''):
             raise SyntaxError(f"'{colorstr('red', 'bold', a)}' is a valid YOLO argument but is missing an '=' sign "
                               f"to set its value, i.e. try '{a}={DEFAULT_CFG_DICT[a]}'\n{CLI_HELP_MSG}")
         else:
-            raise argument_error(a)
+            check_cfg_mismatch(DEFAULT_CFG_DICT, {a: ""})
 
     # Defaults
     task2model = dict(detect='yolov8n.pt', segment='yolov8n-seg.pt', classify='yolov8n-cls.pt')

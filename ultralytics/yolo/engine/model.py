@@ -1,16 +1,17 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
+import sys
 from pathlib import Path
 from typing import List
 
-import sys
 from ultralytics import yolo  # noqa
 from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, SegmentationModel, attempt_load_one_weight,
                                   guess_model_task)
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, RANK, callbacks, yaml_load
-from ultralytics.yolo.utils.checks import check_yaml, check_imgsz
+from ultralytics.yolo.utils.checks import check_imgsz, check_yaml
+from ultralytics.yolo.utils.downloads import GITHUB_ASSET_STEMS
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 
 # Map head to model, trainer, validator, and predictor classes
@@ -58,10 +59,13 @@ class YOLO:
         # Load or create new YOLO model
         load_methods = {'.pt': self._load, '.yaml': self._new}
         suffix = Path(model).suffix
+        if not suffix and Path(model).stem in GITHUB_ASSET_STEMS:
+            model, suffix = Path(model).with_suffix('.pt'), '.pt'  # add suffix, i.e. yolov8n -> yolov8n.pt
         if suffix in load_methods:
             {'.pt': self._load, '.yaml': self._new}[suffix](model)
         else:
-            raise NotImplementedError(f"'{suffix}' model loading not implemented")
+            raise NotImplementedError(f"'{suffix}' models not supported. Try a *.pt and *.yaml model, "
+                                      "i.e. model='yolov8n.pt' or model='yolov8n.yaml'")
 
     def __call__(self, source=None, stream=False, **kwargs):
         return self.predict(source, stream, **kwargs)

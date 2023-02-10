@@ -131,7 +131,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG, override
     return IterableSimpleNamespace(**cfg)
 
 
-def check_cfg_mismatch(base: Dict, custom: Dict):
+def check_cfg_mismatch(base: Dict, custom: Dict, e=None):
     """
     This function checks for any mismatched keys between a custom configuration list and a base configuration list.
     If any mismatched keys are found, the function prints out similar keys from the base list and exits the program.
@@ -143,12 +143,12 @@ def check_cfg_mismatch(base: Dict, custom: Dict):
     base, custom = (set(x.keys()) for x in (base, custom))
     mismatched = [x for x in custom if x not in base]
     if mismatched:
+        string = ''
         for x in mismatched:
             matches = get_close_matches(x, base)
             match_str = f"Similar arguments are {matches}." if matches else ''
-            LOGGER.warning(f"'{colorstr('red', 'bold', x)}' is not a valid YOLO argument. {match_str}")
-        LOGGER.warning(CLI_HELP_MSG)
-        sys.exit()
+            string += f"'{colorstr('red', 'bold', x)}' is not a valid YOLO argument. {match_str}\n"
+        raise SyntaxError(string + CLI_HELP_MSG) from e
 
 
 def merge_equals_args(args: List[str]) -> List[str]:
@@ -208,6 +208,7 @@ def entrypoint(debug=''):
         'settings': lambda: yaml_print(USER_CONFIG_DIR / 'settings.yaml'),
         'cfg': lambda: yaml_print(DEFAULT_CFG_PATH),
         'copy-cfg': copy_default_cfg}
+    FULL_ARGS_DICT = {**DEFAULT_CFG_DICT, **{k: None for k in tasks}, **{k: None for k in modes}, **special}
     special = {**special, **{f'-{k}': v for k, v in special.items()}, **{f'--{k}': v for k, v in special.items()}}
 
     overrides = {}  # basic overrides, i.e. imgsz=320
@@ -232,7 +233,7 @@ def entrypoint(debug=''):
                             v = eval(v)
                     overrides[k] = v
             except (NameError, SyntaxError, ValueError, AssertionError) as e:
-                check_cfg_mismatch(DEFAULT_CFG_DICT, {a: ""})
+                check_cfg_mismatch(FULL_ARGS_DICT, {a: ""}, e)
 
         elif a in tasks:
             overrides['task'] = a
@@ -247,7 +248,7 @@ def entrypoint(debug=''):
             raise SyntaxError(f"'{colorstr('red', 'bold', a)}' is a valid YOLO argument but is missing an '=' sign "
                               f"to set its value, i.e. try '{a}={DEFAULT_CFG_DICT[a]}'\n{CLI_HELP_MSG}")
         else:
-            check_cfg_mismatch(DEFAULT_CFG_DICT, {a: ""})
+            check_cfg_mismatch(FULL_ARGS_DICT, {a: ""})
 
     # Defaults
     task2model = dict(detect='yolov8n.pt', segment='yolov8n-seg.pt', classify='yolov8n-cls.pt')

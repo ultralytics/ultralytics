@@ -6,7 +6,7 @@ from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from urllib import parse, request
-from zipfile import ZipFile
+from zipfile import ZipFile, is_zipfile, BadZipFile
 
 import requests
 import torch
@@ -33,6 +33,8 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX')):
     Unzip a *.zip file to path/, excluding files containing strings in exclude list
     Replaces: ZipFile(file).extractall(path=path)
     """
+    if not (Path(file).exists() and is_zipfile(file)):
+        raise BadZipFile(f"File '{file}' does not exist or is a bad zip file.")
     if path is None:
         path = Path(file).parent  # default path
     with ZipFile(file) as zipObj:

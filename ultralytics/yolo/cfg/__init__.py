@@ -202,6 +202,7 @@ def entrypoint(debug=''):
         LOGGER.info(CLI_HELP_MSG)
         return
 
+    # Add tasks, modes, special, and special with dash keys, i.e. -help, --help
     tasks = 'detect', 'segment', 'classify'
     modes = 'train', 'val', 'predict', 'export'
     special = {
@@ -211,6 +212,7 @@ def entrypoint(debug=''):
         'settings': lambda: yaml_print(USER_CONFIG_DIR / 'settings.yaml'),
         'cfg': lambda: yaml_print(DEFAULT_CFG_PATH),
         'copy-cfg': copy_default_cfg}
+    special = {**special, **{f'-{k}': v for k, v in special.items()}, **{f'--{k}': v for k, v in special.items()}}
 
     overrides = {}  # basic overrides, i.e. imgsz=320
     for a in merge_equals_args(args):  # merge spaces around '=' sign

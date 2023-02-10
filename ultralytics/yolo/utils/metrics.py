@@ -418,6 +418,7 @@ class Metric:
         self.f1 = []  # (nc, )
         self.all_ap = []  # (nc, 10)
         self.ap_class_index = []  # (nc, )
+        self.nc = 0
 
     @property
     def ap50(self):
@@ -460,6 +461,14 @@ class Metric:
         return self.all_ap[:, 0].mean() if len(self.all_ap) else 0.0
 
     @property
+    def map75(self):
+        """Mean AP@0.75 of all classes.
+        Return:
+            float.
+        """
+        return self.all_ap[:, 5].mean() if len(self.all_ap) else 0.0
+
+    @property
     def map(self):
         """Mean AP@0.5:0.95 of all classes.
         Return:
@@ -475,8 +484,10 @@ class Metric:
         """class-aware result, return p[i], r[i], ap50[i], ap[i]"""
         return self.p[i], self.r[i], self.ap50[i], self.ap[i]
 
-    def get_maps(self, nc):
-        maps = np.zeros(nc) + self.map
+    @property
+    def maps(self):
+        """mAP of each class"""
+        maps = np.zeros(self.nc) + self.map
         for i, c in enumerate(self.ap_class_index):
             maps[c] = self.ap[i]
         return maps
@@ -500,33 +511,35 @@ class DetMetrics:
         self.save_dir = save_dir
         self.plot = plot
         self.names = names
-        self.metric = Metric()
+        self.box = Metric()
 
     def process(self, tp, conf, pred_cls, target_cls):
         results = ap_per_class(tp, conf, pred_cls, target_cls, plot=self.plot, save_dir=self.save_dir,
                                names=self.names)[2:]
-        self.metric.update(results)
+        self.box.nc = len(self.names)
+        self.box.update(results)
 
     @property
     def keys(self):
         return ["metrics/precision(B)", "metrics/recall(B)", "metrics/mAP50(B)", "metrics/mAP50-95(B)"]
 
     def mean_results(self):
-        return self.metric.mean_results()
+        return self.box.mean_results()
 
     def class_result(self, i):
-        return self.metric.class_result(i)
+        return self.box.class_result(i)
 
-    def get_maps(self, nc):
-        return self.metric.get_maps(nc)
+    @property
+    def maps(self):
+        return self.box.maps
 
     @property
     def fitness(self):
-        return self.metric.fitness()
+        return self.box.fitness()
 
     @property
     def ap_class_index(self):
-        return self.metric.ap_class_index
+        return self.box.ap_class_index
 
     @property
     def results_dict(self):
@@ -539,8 +552,8 @@ class SegmentMetrics:
         self.save_dir = save_dir
         self.plot = plot
         self.names = names
-        self.metric_box = Metric()
-        self.metric_mask = Metric()
+        self.box = Metric()
+        self.seg = Metric()
 
     def process(self, tp_m, tp_b, conf, pred_cls, target_cls):
         results_mask = ap_per_class(tp_m,
@@ -551,7 +564,8 @@ class SegmentMetrics:
                                     save_dir=self.save_dir,
                                     names=self.names,
                                     prefix="Mask")[2:]
-        self.metric_mask.update(results_mask)
+        self.seg.nc = len(self.names)
+        self.seg.update(results_mask)
         results_box = ap_per_class(tp_b,
                                    conf,
                                    pred_cls,
@@ -560,7 +574,8 @@ class SegmentMetrics:
                                    save_dir=self.save_dir,
                                    names=self.names,
                                    prefix="Box")[2:]
-        self.metric_box.update(results_box)
+        self.box.nc = len(self.names)
+        self.box.update(results_box)
 
     @property
     def keys(self):
@@ -569,22 +584,23 @@ class SegmentMetrics:
             "metrics/precision(M)", "metrics/recall(M)", "metrics/mAP50(M)", "metrics/mAP50-95(M)"]
 
     def mean_results(self):
-        return self.metric_box.mean_results() + self.metric_mask.mean_results()
+        return self.box.mean_results() + self.seg.mean_results()
 
     def class_result(self, i):
-        return self.metric_box.class_result(i) + self.metric_mask.class_result(i)
+        return self.box.class_result(i) + self.seg.class_result(i)
 
-    def get_maps(self, nc):
-        return self.metric_box.get_maps(nc) + self.metric_mask.get_maps(nc)
+    @property
+    def maps(self):
+        return self.box.maps + self.seg.maps
 
     @property
     def fitness(self):
-        return self.metric_mask.fitness() + self.metric_box.fitness()
+        return self.seg.fitness() + self.box.fitness()
 
     @property
     def ap_class_index(self):
         # boxes and masks have the same ap_class_index
-        return self.metric_box.ap_class_index
+        return self.box.ap_class_index
 
     @property
     def results_dict(self):

@@ -174,13 +174,13 @@ class BaseTrainer:
 
         # Run subprocess if DDP training, else train normally
         if world_size > 1 and "LOCAL_RANK" not in os.environ:
-            command = generate_ddp_command(world_size, self)
+            cmd, file = generate_ddp_command(world_size, self)  # security vulnerability in Snyk scans
             try:
-                subprocess.run(command)
+                subprocess.run(cmd, check=True)
             except Exception as e:
-                self.console(e)
+                self.console.warning(e)
             finally:
-                ddp_cleanup(command, self)
+                ddp_cleanup(self, file)
         else:
             self._do_train(int(os.getenv("RANK", -1)), world_size)
 

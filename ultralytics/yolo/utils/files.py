@@ -6,7 +6,6 @@ import os
 import urllib
 from datetime import datetime
 from pathlib import Path
-from zipfile import ZipFile
 
 
 class WorkingDirectory(contextlib.ContextDecorator):
@@ -55,16 +54,6 @@ def increment_path(path, exist_ok=False, sep='', mkdir=False):
         path.mkdir(parents=True, exist_ok=True)  # make directory
 
     return path
-
-
-def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX')):
-    # Unzip a *.zip file to path/, excluding files containing strings in exclude list
-    if path is None:
-        path = Path(file).parent  # default path
-    with ZipFile(file) as zipObj:
-        for f in zipObj.namelist():  # list all archived filenames in the zip
-            if all(x not in f for x in exclude):
-                zipObj.extract(f, path=path)
 
 
 def file_age(path=__file__):

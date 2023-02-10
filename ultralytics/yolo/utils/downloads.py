@@ -6,7 +6,7 @@ from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from urllib import parse, request
-from zipfile import ZipFile
+from zipfile import ZipFile, is_zipfile, BadZipFile
 
 import requests
 import torch
@@ -33,12 +33,15 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX')):
     Unzip a *.zip file to path/, excluding files containing strings in exclude list
     Replaces: ZipFile(file).extractall(path=path)
     """
+    if not (Path(file).exists() and is_zipfile(file)):
+        raise BadZipFile(f"File '{file}' does not exist or is a bad zip file.")
     if path is None:
         path = Path(file).parent  # default path
     with ZipFile(file) as zipObj:
         for f in zipObj.namelist():  # list all archived filenames in the zip
             if all(x not in f for x in exclude):
                 zipObj.extract(f, path=path)
+        return zipObj.namelist()[0]  # return unzip dir
 
 
 def safe_download(url,
@@ -112,13 +115,14 @@ def safe_download(url,
         unzip_dir = dir or f.parent  # unzip to dir if provided else unzip in place
         LOGGER.info(f'Unzipping {f} to {unzip_dir}...')
         if f.suffix == '.zip':
-            unzip_file(file=f, path=unzip_dir)  # unzip
+            unzip_dir = unzip_file(file=f, path=unzip_dir)  # unzip
         elif f.suffix == '.tar':
             subprocess.run(['tar', 'xf', f, '--directory', unzip_dir], check=True)  # unzip
         elif f.suffix == '.gz':
             subprocess.run(['tar', 'xfz', f, '--directory', unzip_dir], check=True)  # unzip
         if delete:
             f.unlink()  # remove zip
+        return unzip_dir
 
 
 def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):

@@ -33,7 +33,7 @@ class YOLO:
     A python interface which emulates a model-like behaviour by wrapping trainers.
     """
 
-    def __init__(self, model='yolov8n.yaml', type="v8") -> None:
+    def __init__(self, model='yolov8n.pt', type="v8") -> None:
         """
         Initializes the YOLO object.
 
@@ -168,6 +168,7 @@ class YOLO:
 
         validator = self.ValidatorClass(args=args)
         validator(model=self.model)
+        return validator.metrics
 
     @smart_inference_mode()
     def export(self, **kwargs):

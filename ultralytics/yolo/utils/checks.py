@@ -155,7 +155,7 @@ def check_online() -> bool:
         bool: True if connection is successful, False otherwise.
     """
     import socket
-    with contextlib.suppress(subprocess.CalledProcessError):
+    with contextlib.suppress(Exception):
         host = socket.gethostbyname("www.github.com")
         socket.create_connection((host, 80), timeout=2)
         return True

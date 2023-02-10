@@ -56,7 +56,7 @@ CFG_FRACTION_KEYS = {
     'mixup', 'copy_paste', 'conf', 'iou'}
 CFG_INT_KEYS = {
     'epochs', 'patience', 'batch', 'workers', 'seed', 'close_mosaic', 'mask_ratio', 'max_det', 'vid_stride',
-    'line_thickness', 'workspace', 'nbs'}
+    'line_thickness', 'workspace', 'nbs', 'save_period'}
 CFG_BOOL_KEYS = {
     'save', 'exist_ok', 'pretrained', 'verbose', 'deterministic', 'single_cls', 'image_weights', 'rect', 'cos_lr',
     'overlap_mask', 'val', 'save_json', 'save_hybrid', 'half', 'dnn', 'plots', 'show', 'save_txt', 'save_conf',

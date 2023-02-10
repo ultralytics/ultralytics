@@ -18,6 +18,7 @@ import torch.nn as nn
 from torch.cuda import amp
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.optim import lr_scheduler
+from torchvision import transforms
 from tqdm import tqdm
 
 from ultralytics import __version__
@@ -32,6 +33,11 @@ from ultralytics.yolo.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.yolo.utils.files import get_latest_run, increment_path
 from ultralytics.yolo.utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel, init_seeds, one_cycle,
                                                 select_device, strip_optimizer)
+
+
+# TODO: Move the function to the correct places
+def string_to_transform(transform):
+    return None if transform is None else eval(transform)
 
 
 class BaseTrainer:
@@ -233,9 +239,9 @@ class BaseTrainer:
 
         # dataloaders
         batch_size = self.batch_size // world_size if world_size > 1 else self.batch_size
-        self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=rank, mode="train")
+        self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=rank, mode="train", transforms=string_to_transform(self.args.train_transform))
         if rank in {0, -1}:
-            self.test_loader = self.get_dataloader(self.testset, batch_size=batch_size * 2, rank=-1, mode="val")
+            self.test_loader = self.get_dataloader(self.testset, batch_size=batch_size * 2, rank=-1, mode="val", transforms=string_to_transform(self.args.test_transform))
             self.validator = self.get_validator()
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix="val")
             self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))  # TODO: init metrics for plot_results()?
@@ -460,7 +466,7 @@ class BaseTrainer:
     def get_validator(self):
         raise NotImplementedError("get_validator function not implemented in trainer")
 
-    def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode="train"):
+    def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode="train", transform=None):
         """
         Returns dataloader derived from torch.data.Dataloader.
         """

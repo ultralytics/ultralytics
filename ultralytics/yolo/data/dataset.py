@@ -27,6 +27,7 @@ class YOLODataset(BaseDataset):
                  imgsz=640,
                  cache=False,
                  augment=True,
+                 transforms=None,
                  hyp=None,
                  prefix="",
                  rect=False,
@@ -41,7 +42,7 @@ class YOLODataset(BaseDataset):
         self.use_keypoints = use_keypoints
         self.names = names
         assert not (self.use_segments and self.use_keypoints), "Can not use both segments and keypoints."
-        super().__init__(img_path, imgsz, cache, augment, hyp, prefix, rect, batch_size, stride, pad, single_cls)
+        super().__init__(img_path, imgsz, cache, augment, transforms, hyp, prefix, rect, batch_size, stride, pad, single_cls)
 
     def cache_labels(self, path=Path("./labels.cache")):
         # Cache dataset labels, check images and read shapes

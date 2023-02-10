@@ -8,6 +8,7 @@ mode: train  # YOLO mode, i.e. train, val, predict, export
 model:  # path to model file, i.e. yolov8n.pt, yolov8n.yaml
 data:  # path to data file, i.e. i.e. coco128.yaml
 epochs: 100  # number of epochs to train for
+train_transform: None  # data augmentation used in transform. "None" will use the default augmentation 
 patience: 50  # epochs to wait for no observable improvement for early stopping of training
 batch: 16  # number of images per batch (-1 for AutoBatch)
 imgsz: 640  # size of input images as integer or w,h
@@ -38,7 +39,11 @@ dropout: 0.0  # use dropout regularization (classify train only)
 
 # Val/Test settings ----------------------------------------------------------------------------------------------------
 val: True  # validate/test during training
+<<<<<<< HEAD
 split: val  # dataset split to use for validation, i.e. 'val', 'test' or 'train'
+=======
+test_transform: None  # data augmentation used for validation phase
+>>>>>>> 98bc503 (Follow up Issue #913 for enhancement)
 save_json: False  # save results to JSON file
 save_hybrid: False  # save hybrid version of labels (labels + additional predictions)
 conf:  # object confidence threshold for detection (default 0.25 predict, 0.001 val)

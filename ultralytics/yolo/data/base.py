@@ -6,6 +6,7 @@ import os
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from typing import Optional
+from ultralytics.yolo.utils import LOGGER
 
 import cv2
 import numpy as np
@@ -30,6 +31,7 @@ class BaseDataset(Dataset):
         imgsz=640,
         cache=False,
         augment=True,
+        transforms=None,
         hyp=None,
         prefix="",
         rect=False,
@@ -68,7 +70,11 @@ class BaseDataset(Dataset):
             self.cache_images(cache)
 
         # transforms
-        self.transforms = self.build_transforms(hyp=hyp)
+        if transforms is not None:
+            LOGGER.info(f"Using custom transform")
+            self.transforms = transforms
+        else:
+            self.transforms = self.build_transforms(hyp=hyp)
 
     def get_img_files(self, img_path):
         """Read image files."""

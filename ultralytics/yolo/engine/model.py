@@ -59,8 +59,8 @@ class YOLO:
         # Load or create new YOLO model
         load_methods = {'.pt': self._load, '.yaml': self._new}
         suffix = Path(model).suffix
-        if suffix == and Path(model).stem in GITHUB_ASSET_STEMS:
-                model, suffix = Path(model).with_suffix('.pt'), '.pt'
+        if not suffix and Path(model).stem in GITHUB_ASSET_STEMS:
+            model, suffix = Path(model).with_suffix('.pt'), '.pt'  # add suffix, i.e. yolov8n -> yolov8n.pt
         if suffix in load_methods:
             {'.pt': self._load, '.yaml': self._new}[suffix](model)
         else:

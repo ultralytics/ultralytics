@@ -7,7 +7,7 @@ from ultralytics.hub.session import HubTrainingSession
 from ultralytics.hub.utils import split_key
 from ultralytics.yolo.engine.exporter import export_formats
 from ultralytics.yolo.engine.model import YOLO
-from ultralytics.yolo.utils import LOGGER, emojis, PREFIX
+from ultralytics.yolo.utils import LOGGER, PREFIX, emojis
 
 # Define all export formats
 EXPORT_FORMATS = list(export_formats()['Argument'][1:]) + ["ultralytics_tflite", "ultralytics_coreml"]

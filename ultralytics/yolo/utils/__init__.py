@@ -543,6 +543,7 @@ def set_sentry():
              (get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git" and get_git_branch() == "main")):
 
         import hashlib
+
         import sentry_sdk  # noqa
 
         sentry_sdk.init(
@@ -572,6 +573,7 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.2'):
         dict: Dictionary of settings key-value pairs.
     """
     import hashlib
+
     from ultralytics.yolo.utils.checks import check_version
     from ultralytics.yolo.utils.torch_utils import torch_distributed_zero_first
 

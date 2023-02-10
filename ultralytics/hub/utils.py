@@ -174,9 +174,8 @@ class Traces:
             cfg = vars(cfg)  # convert type from IterableSimpleNamespace to dict
             if not all_keys:  # filter cfg
                 include_keys = {'task', 'mode'}  # always include
-                cfg = {
-                    k: (v.split(os.sep)[-1] if isinstance(v, str) and os.sep in v else v)
-                    for k, v in cfg.items() if v != DEFAULT_CFG_DICT.get(k, None) or k in include_keys}
+                cfg = {k: (v.split(os.sep)[-1] if isinstance(v, str) and os.sep in v else v)
+                       for k, v in cfg.items() if v != DEFAULT_CFG_DICT.get(k, None) or k in include_keys}
             trace = {'uuid': SETTINGS['uuid'], 'cfg': cfg, 'metadata': self.metadata}
 
             # Send a request to the HUB API to sync analytics
@@ -185,6 +184,7 @@ class Traces:
                           headers=None,
                           code=3,
                           retry=0,
+                          timeout=1.0,
                           verbose=False)
 
 

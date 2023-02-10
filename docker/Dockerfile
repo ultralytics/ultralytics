@@ -15,7 +15,8 @@ RUN apt update
 RUN TZ=Etc/UTC apt install -y tzdata
 RUN apt install --no-install-recommends -y gcc git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg \
     # Security updates
-    openssl  # https://security.snyk.io/vuln/SNYK-UBUNTU1804-OPENSSL-3314796
+    # https://security.snyk.io/vuln/SNYK-UBUNTU1804-OPENSSL-3314796
+    openssl
 # RUN alias python=python3
 
 # Create working directory

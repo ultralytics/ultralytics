@@ -8,8 +8,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, List, Union
 
-from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, PREFIX, ROOT,
-                                    USER_CONFIG_DIR, IterableSimpleNamespace, __version__, colorstr, emojis, yaml_load,
+from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, ROOT,
+                                    USER_CONFIG_DIR, IterableSimpleNamespace, __version__, colorstr, yaml_load,
                                     yaml_print)
 from ultralytics.yolo.utils.checks import check_yolo
 
@@ -83,7 +83,7 @@ def cfg2dict(cfg):
     return cfg
 
 
-def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG, overrides: Dict = None):
+def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, overrides: Dict = None):
     """
     Load and merge configuration data from a file or dictionary.
 
@@ -208,7 +208,7 @@ def entrypoint(debug=''):
         'settings': lambda: yaml_print(USER_CONFIG_DIR / 'settings.yaml'),
         'cfg': lambda: yaml_print(DEFAULT_CFG_PATH),
         'copy-cfg': copy_default_cfg}
-    FULL_ARGS_DICT = {**DEFAULT_CFG_DICT, **{k: None for k in tasks}, **{k: None for k in modes}, **special}
+    full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in tasks}, **{k: None for k in modes}, **special}
     special = {**special, **{f'-{k}': v for k, v in special.items()}, **{f'--{k}': v for k, v in special.items()}}
 
     overrides = {}  # basic overrides, i.e. imgsz=320
@@ -219,7 +219,7 @@ def entrypoint(debug=''):
                 k, v = a.split('=', 1)  # split on first '=' sign
                 assert v, f"missing '{k}' value"
                 if k == 'cfg':  # custom.yaml passed
-                    LOGGER.info(f"{PREFIX}Overriding {DEFAULT_CFG_PATH} with {v}")
+                    LOGGER.info(f"Overriding {DEFAULT_CFG_PATH} with {v}")
                     overrides = {k: val for k, val in yaml_load(v).items() if k != 'cfg'}
                 else:
                     if v.lower() == 'none':
@@ -233,7 +233,7 @@ def entrypoint(debug=''):
                             v = eval(v)
                     overrides[k] = v
             except (NameError, SyntaxError, ValueError, AssertionError) as e:
-                check_cfg_mismatch(FULL_ARGS_DICT, {a: ""}, e)
+                check_cfg_mismatch(full_args_dict, {a: ""}, e)
 
         elif a in tasks:
             overrides['task'] = a
@@ -248,7 +248,7 @@ def entrypoint(debug=''):
             raise SyntaxError(f"'{colorstr('red', 'bold', a)}' is a valid YOLO argument but is missing an '=' sign "
                               f"to set its value, i.e. try '{a}={DEFAULT_CFG_DICT[a]}'\n{CLI_HELP_MSG}")
         else:
-            check_cfg_mismatch(FULL_ARGS_DICT, {a: ""})
+            check_cfg_mismatch(full_args_dict, {a: ""})
 
     # Defaults
     task2model = dict(detect='yolov8n.pt', segment='yolov8n-seg.pt', classify='yolov8n-cls.pt')
@@ -261,7 +261,7 @@ def entrypoint(debug=''):
         LOGGER.warning(f"WARNING ⚠️ 'mode' is missing. Valid modes are {modes}. Using default 'mode={mode}'.")
     elif mode not in modes:
         if mode != 'checks':
-            raise ValueError(emojis(f"ERROR ❌ Invalid 'mode={mode}'. Valid modes are {modes}."))
+            raise ValueError(f"Invalid 'mode={mode}'. Valid modes are {modes}.")
         LOGGER.warning("WARNING ⚠️ 'yolo mode=checks' is deprecated. Use 'yolo checks' instead.")
         check_yolo()
         return
@@ -304,7 +304,7 @@ def entrypoint(debug=''):
 def copy_default_cfg():
     new_file = Path.cwd() / DEFAULT_CFG_PATH.name.replace('.yaml', '_copy.yaml')
     shutil.copy2(DEFAULT_CFG_PATH, new_file)
-    LOGGER.info(f"{PREFIX}{DEFAULT_CFG_PATH} copied to {new_file}\n"
+    LOGGER.info(f"{DEFAULT_CFG_PATH} copied to {new_file}\n"
                 f"Example YOLO command with this new custom cfg:\n    yolo cfg='{new_file}' imgsz=320 batch=8")
 
 

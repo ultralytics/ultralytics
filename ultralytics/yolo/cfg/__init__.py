@@ -122,7 +122,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG, override
                                      f"Valid '{k}' values are between 0.0 and 1.0.")
             elif k in CFG_INT_KEYS and not isinstance(v, int):
                 raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. "
-                                f"'{k}' must be an int (i.e. '{k}=0')")
+                                f"'{k}' must be an int (i.e. '{k}=8')")
             elif k in CFG_BOOL_KEYS and not isinstance(v, bool):
                 raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. "
                                 f"'{k}' must be a bool (i.e. '{k}=True' or '{k}=False')")
@@ -202,6 +202,7 @@ def entrypoint(debug=''):
         LOGGER.info(CLI_HELP_MSG)
         return
 
+    # Add tasks, modes, special, and special with dash keys, i.e. -help, --help
     tasks = 'detect', 'segment', 'classify'
     modes = 'train', 'val', 'predict', 'export'
     special = {
@@ -211,6 +212,7 @@ def entrypoint(debug=''):
         'settings': lambda: yaml_print(USER_CONFIG_DIR / 'settings.yaml'),
         'cfg': lambda: yaml_print(DEFAULT_CFG_PATH),
         'copy-cfg': copy_default_cfg}
+    special = {**special, **{f'-{k}': v for k, v in special.items()}, **{f'--{k}': v for k, v in special.items()}}
 
     overrides = {}  # basic overrides, i.e. imgsz=320
     for a in merge_equals_args(args):  # merge spaces around '=' sign

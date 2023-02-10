@@ -154,18 +154,19 @@ process include the size and composition of the validation dataset and the speci
 is important to carefully tune and experiment with these settings to ensure that the model is performing well on the
 validation dataset and to detect and prevent overfitting.
 
-| Key         | Value | Description                                                     |
-|-------------|-------|-----------------------------------------------------------------|
-| save_json   | False | save results to JSON file                                       |
-| save_hybrid | False | save hybrid version of labels (labels + additional predictions) |
-| conf        | 0.001 | object confidence threshold for detection                       |
-| iou         | 0.6   | intersection over union (IoU) threshold for NMS                 |
-| max_det     | 300   | maximum number of detections per image                          |
-| half        | True  | use half precision (FP16)                                       |
-| device      | null  | device to run on, i.e. cuda device=0/1/2/3 or device=cpu        |
-| dnn         | False | use OpenCV DNN for ONNX inference                               |
-| plots       | False | show plots during training                                      |
-| rect        | False | support rectangular evaluation                                  |
+| Key         | Value | Description                                                        |
+|-------------|-------|--------------------------------------------------------------------|
+| save_json   | False | save results to JSON file                                          |
+| save_hybrid | False | save hybrid version of labels (labels + additional predictions)    |
+| conf        | 0.001 | object confidence threshold for detection                          |
+| iou         | 0.6   | intersection over union (IoU) threshold for NMS                    |
+| max_det     | 300   | maximum number of detections per image                             |
+| half        | True  | use half precision (FP16)                                          |
+| device      | null  | device to run on, i.e. cuda device=0/1/2/3 or device=cpu           |
+| dnn         | False | use OpenCV DNN for ONNX inference                                  |
+| plots       | False | show plots during training                                         |
+| rect        | False | support rectangular evaluation                                     |
+| split       | val   | dataset split to use for validation, i.e. 'val', 'test' or 'train' |
 
 ### Export
 

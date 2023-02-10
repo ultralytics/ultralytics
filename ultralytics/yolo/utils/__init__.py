@@ -18,6 +18,7 @@ from typing import Union
 import cv2
 import numpy as np
 import pandas as pd
+import requests
 import torch
 import yaml
 
@@ -108,6 +109,15 @@ class IterableSimpleNamespace(SimpleNamespace):
 
     def __str__(self):
         return '\n'.join(f"{k}={v}" for k, v in vars(self).items())
+
+    def __getattr__(self, attr):
+        name = self.__class__.__name__
+        raise AttributeError(f"""
+            '{name}' object has no attribute '{attr}'. This may be caused by a modified or out of date ultralytics
+            'default.yaml' file.\nPlease update your code with 'pip install -U ultralytics' and if necessary replace
+            {DEFAULT_CFG_PATH} with the latest version from
+            https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/cfg/default.yaml
+            """)
 
     def get(self, key, default=None):
         return getattr(self, key, default)
@@ -345,8 +355,31 @@ def get_git_branch():
     return None  # if not git dir or on error
 
 
+def get_latest_pypi_version(package_name='ultralytics'):
+    """
+    Returns the latest version of a PyPI package without downloading or installing it.
+
+    Parameters:
+        package_name (str): The name of the package to find the latest version for.
+
+    Returns:
+        str: The latest version of the package.
+    """
+    response = requests.get(f"https://pypi.org/pypi/{package_name}/json")
+    if response.status_code == 200:
+        return response.json()["info"]["version"]
+    return None
+
+
 def get_default_args(func):
-    # Get func() default arguments
+    """Returns a dictionary of default arguments for a function.
+
+    Args:
+        func (callable): The function to inspect.
+
+    Returns:
+        dict: A dictionary where each key is a parameter name, and each value is the default value of that parameter.
+    """
     signature = inspect.signature(func)
     return {k: v.default for k, v in signature.parameters.items() if v.default is not inspect.Parameter.empty}
 
@@ -416,6 +449,19 @@ def colorstr(*input):
         "bold": "\033[1m",
         "underline": "\033[4m"}
     return "".join(colors[x] for x in args) + f"{string}" + colors["end"]
+
+
+def remove_ansi_codes(string):
+    """
+    Remove ANSI escape sequences from a string.
+
+    Args:
+        string (str): The input string that may contain ANSI escape sequences.
+
+    Returns:
+        str: The input string with ANSI escape sequences removed.
+    """
+    return re.sub(r'\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]', '', string)
 
 
 def set_logging(name=LOGGING_NAME, verbose=True):

@@ -57,7 +57,6 @@ class YOLO:
         self.overrides = {}  # overrides for trainer object
 
         # Load or create new YOLO model
-        load_methods = {'.pt': self._load, '.yaml': self._new}
         suffix = Path(model).suffix
         if not suffix and Path(model).stem in GITHUB_ASSET_STEMS:
             model, suffix = Path(model).with_suffix('.pt'), '.pt'  # add suffix, i.e. yolov8n -> yolov8n.pt
@@ -67,8 +66,8 @@ class YOLO:
             else:
                 self._load(model)
         except Exception as e:
-            raise NotImplementedError(f"model '{suffix}' is invalid. Try a *.pt and *.yaml model, "
-                                      "i.e. model='yolov8n.pt' or model='yolov8n.yaml'") from e
+            raise NotImplementedError(f"model '{model}' is invalid. "
+                                      f"Try i.e. model='yolov8n.pt' or model='yolov8n.yaml'") from e
 
     def __call__(self, source=None, stream=False, **kwargs):
         return self.predict(source, stream, **kwargs)

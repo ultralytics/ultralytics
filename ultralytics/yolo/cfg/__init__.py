@@ -196,9 +196,11 @@ def entrypoint(debug=''):
         LOGGER.info(CLI_HELP_MSG)
         return
 
-    # Add tasks, modes, special, and special with dash keys, i.e. -help, --help
+    # Define tasks and modes
     tasks = 'detect', 'segment', 'classify'
     modes = 'train', 'val', 'predict', 'export'
+
+    # Define special commands
     special = {
         'help': lambda: LOGGER.info(CLI_HELP_MSG),
         'checks': checks.check_yolo,
@@ -207,6 +209,10 @@ def entrypoint(debug=''):
         'cfg': lambda: yaml_print(DEFAULT_CFG_PATH),
         'copy-cfg': copy_default_cfg}
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in tasks}, **{k: None for k in modes}, **special}
+
+    # Define common mis-uses of special commands, i.e. -h, -help, --help
+    special.update({k[0]: v for k, v in special.items()})  # singular
+    special.update({k[:-1]: v for k, v in special.items() if len(k) > 1 and k.endswith('s')})  # singular
     special = {**special, **{f'-{k}': v for k, v in special.items()}, **{f'--{k}': v for k, v in special.items()}}
 
     overrides = {}  # basic overrides, i.e. imgsz=320

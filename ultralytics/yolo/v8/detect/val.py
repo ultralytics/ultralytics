@@ -40,13 +40,12 @@ class DetectionValidator(BaseValidator):
         return batch
 
     def init_metrics(self, model):
-        head = model.model[-1] if self.training else model.model.model[-1]
         val = self.data.get(self.args.split, '')  # validation path
         self.is_coco = isinstance(val, str) and val.endswith(f'coco{os.sep}val2017.txt')  # is COCO dataset
         self.class_map = ops.coco80_to_coco91_class() if self.is_coco else list(range(1000))
         self.args.save_json |= self.is_coco and not self.training  # run on final val if training COCO
-        self.nc = head.nc
         self.names = model.names
+        self.nc = len(model.names)
         self.metrics.names = self.names
         self.metrics.plot = self.args.plots
         self.confusion_matrix = ConfusionMatrix(nc=self.nc)

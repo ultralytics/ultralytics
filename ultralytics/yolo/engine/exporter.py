@@ -161,8 +161,6 @@ class Exporter:
 
         # Checks
         model.names = check_class_names(model.names)
-        # if self.args.batch == model.args['batch_size']:  # user has not modified training batch_size
-        self.args.batch = 1
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
         if model.task == 'classify':
             self.args.nms = self.args.agnostic_nms = False

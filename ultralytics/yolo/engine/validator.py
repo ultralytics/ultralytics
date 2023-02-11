@@ -95,7 +95,7 @@ class BaseValidator:
             assert model is not None, "Either trainer or model is needed for validation"
             self.device = select_device(self.args.device, self.args.batch)
             self.args.half &= self.device.type != 'cpu'
-            model = AutoBackend(model, device=self.device, dnn=self.args.dnn, fp16=self.args.half)
+            model = AutoBackend(model, device=self.device, dnn=self.args.dnn, data=self.args.data, fp16=self.args.half)
             self.model = model
             stride, pt, jit, engine = model.stride, model.pt, model.jit, model.engine
             imgsz = check_imgsz(self.args.imgsz, stride=stride)

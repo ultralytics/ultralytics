@@ -8,10 +8,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, List, Union
 
-from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, ROOT,
-                                    USER_CONFIG_DIR, IterableSimpleNamespace, __version__, colorstr, yaml_load,
-                                    yaml_print)
-from ultralytics.yolo.utils.checks import check_yolo
+from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, ROOT, USER_CONFIG_DIR,
+                                    IterableSimpleNamespace, __version__, checks, colorstr, yaml_load, yaml_print)
 
 CLI_HELP_MSG = \
     """
@@ -203,7 +201,7 @@ def entrypoint(debug=''):
     modes = 'train', 'val', 'predict', 'export'
     special = {
         'help': lambda: LOGGER.info(CLI_HELP_MSG),
-        'checks': check_yolo,
+        'checks': checks.check_yolo,
         'version': lambda: LOGGER.info(__version__),
         'settings': lambda: yaml_print(USER_CONFIG_DIR / 'settings.yaml'),
         'cfg': lambda: yaml_print(DEFAULT_CFG_PATH),
@@ -263,7 +261,7 @@ def entrypoint(debug=''):
         if mode != 'checks':
             raise ValueError(f"Invalid 'mode={mode}'. Valid modes are {modes}.")
         LOGGER.warning("WARNING ⚠️ 'yolo mode=checks' is deprecated. Use 'yolo checks' instead.")
-        check_yolo()
+        checks.check_yolo()
         return
 
     # Model

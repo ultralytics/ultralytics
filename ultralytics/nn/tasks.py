@@ -2,6 +2,7 @@
 
 import contextlib
 from copy import deepcopy
+from pathlib import Path
 
 import thop
 import torch
@@ -431,8 +432,8 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
 
         n = n_ = max(round(n * gd), 1) if n > 1 else n  # depth gain
         if m in {
-                Classify, Conv, ConvTranspose, GhostConv, Bottleneck, GhostBottleneck, SPP, SPPF, DWConv, Focus,
-                BottleneckCSP, C1, C2, C2f, C3, C3TR, C3Ghost, nn.ConvTranspose2d, DWConvTranspose2d, C3x}:
+            Classify, Conv, ConvTranspose, GhostConv, Bottleneck, GhostBottleneck, SPP, SPPF, DWConv, Focus,
+            BottleneckCSP, C1, C2, C2f, C3, C3TR, C3Ghost, nn.ConvTranspose2d, DWConvTranspose2d, C3x}:
             c1, c2 = ch[f], args[0]
             if c2 != nc:  # if c2 not equal to number of classes (i.e. for Classify() output)
                 c2 = make_divisible(c2 * gw, 8)
@@ -490,6 +491,14 @@ def guess_model_task(model):
             with contextlib.suppress(Exception):
                 cfg = eval(x)
                 break
+    elif isinstance(model, (str, Path)):
+        model = str(model)
+        if '-seg' in model:
+            return "segment"
+        elif '-cls' in model:
+            return "classify"
+        else:
+            return "detect"
 
     # Guess from YAML dictionary
     if cfg:

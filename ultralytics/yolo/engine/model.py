@@ -102,7 +102,7 @@ class YOLO:
             self._reset_ckpt_args(self.overrides)
         else:
             self.model, self.ckpt = weights, None
-            self.task = 'detect'
+            self.task = guess_model_task(weights)
         self.ckpt_path = weights
         self.ModelClass, self.TrainerClass, self.ValidatorClass, self.PredictorClass = self._assign_ops_from_task()
 
@@ -171,7 +171,7 @@ class YOLO:
         args = get_cfg(cfg=DEFAULT_CFG, overrides=overrides)
         args.data = data or args.data
         args.task = self.task
-        if args.imgsz == DEFAULT_CFG.imgsz:
+        if args.imgsz == DEFAULT_CFG.imgsz and not isinstance(self.model, (str, Path)):
             args.imgsz = self.model.args['imgsz']  # use trained imgsz unless custom value is passed
         args.imgsz = check_imgsz(args.imgsz, max_dim=1)
 

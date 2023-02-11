@@ -193,7 +193,8 @@ class YOLO:
         args.task = self.task
         if args.imgsz == DEFAULT_CFG.imgsz:
             args.imgsz = self.model.args['imgsz']  # use trained imgsz unless custom value is passed
-
+        if args.batch == DEFAULT_CFG.batch:
+            args.batch = 1  # default to 1 if not modified
         exporter = Exporter(overrides=args)
         exporter(model=self.model)
 

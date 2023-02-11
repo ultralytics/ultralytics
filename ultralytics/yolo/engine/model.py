@@ -66,8 +66,8 @@ class YOLO:
             else:
                 self._load(model)
         except Exception as e:
-            raise NotImplementedError(f"model '{model}' is invalid. "
-                                      f"Try i.e. model='yolov8n.pt' or model='yolov8n.yaml'") from e
+            raise NotImplementedError(f"Unable to load model='{model}'. "
+                                      f"As an example try model='yolov8n.pt' or model='yolov8n.yaml'") from e
 
     def __call__(self, source=None, stream=False, **kwargs):
         return self.predict(source, stream, **kwargs)

@@ -17,10 +17,10 @@ class SegmentationPredictor(DetectionPredictor):
                                     self.args.iou,
                                     agnostic=self.args.agnostic_nms,
                                     max_det=self.args.max_det,
-                                    nm=32,
+                                    nc=len(self.model.names),
                                     classes=self.args.classes)
         results = []
-        proto = preds[1][-1]
+        proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
         for i, pred in enumerate(p):
             shape = orig_img[i].shape if isinstance(orig_img, list) else orig_img.shape
             if not len(pred):

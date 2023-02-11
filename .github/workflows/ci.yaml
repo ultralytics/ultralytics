@@ -23,8 +23,6 @@ jobs:
         model: [yolov8n]
         torch: [latest]
         include:
-          - os: self-hosted
-            model: yolov8n
           - os: ubuntu-latest
             python-version: '3.7'  # '3.6.8' min
             model: yolov8n

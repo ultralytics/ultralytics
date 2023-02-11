@@ -2,6 +2,7 @@
 
 import contextlib
 from copy import deepcopy
+from pathlib import Path
 
 import thop
 import torch
@@ -490,6 +491,14 @@ def guess_model_task(model):
             with contextlib.suppress(Exception):
                 cfg = eval(x)
                 break
+    elif isinstance(model, (str, Path)):
+        model = str(model)
+        if '-seg' in model:
+            return "segment"
+        elif '-cls' in model:
+            return "classify"
+        else:
+            return "detect"
 
     # Guess from YAML dictionary
     if cfg:

@@ -253,7 +253,7 @@ class Exporter:
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
         if any(f):
-            f = f[-1]
+            f = str(Path(f[-1]))
             LOGGER.info(f'\nExport complete ({time.time() - t:.1f}s)'
                         f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
                         f"\nPredict:         yolo task={model.task} mode=predict model={f}"

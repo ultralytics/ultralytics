@@ -143,7 +143,7 @@ def check_cfg_mismatch(base: Dict, custom: Dict, e=None):
         for x in mismatched:
             matches = get_close_matches(x, base)  # key list
             matches = [f"{k}={DEFAULT_CFG_DICT[k]}" if DEFAULT_CFG_DICT[k] is not None else k for k in matches]  # k=v
-            match_str = f"Similar arguments are {matches}." if matches else ''
+            match_str = f"Similar arguments are i.e. {matches}." if matches else ''
             string += f"'{colorstr('red', 'bold', x)}' is not a valid YOLO argument. {match_str}\n"
         raise SyntaxError(string + CLI_HELP_MSG) from e
 
@@ -312,5 +312,9 @@ def copy_default_cfg():
 
 
 if __name__ == '__main__':
-    # entrypoint(debug='yolo predict model=yolov8n.pt')
-    entrypoint(debug='')
+    cmd = ['yolo',
+           'task=detect',
+           'mode=predict',
+           'model=yolov8n.pt  source=https://ultralytics.com/images/bus.jpg']
+    entrypoint(debug=' '.join(cmd))
+    # entrypoint(debug='')

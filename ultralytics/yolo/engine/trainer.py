@@ -555,6 +555,12 @@ class BaseTrainer:
             self.epochs += ckpt['epoch']  # finetune additional epochs
         self.best_fitness = best_fitness
         self.start_epoch = start_epoch
+        if start_epoch > (self.epochs - self.args.close_mosaic):
+            self.console.info("Closing dataloader mosaic")
+            if hasattr(self.train_loader.dataset, 'mosaic'):
+                self.train_loader.dataset.mosaic = False
+            if hasattr(self.train_loader.dataset, 'close_mosaic'):
+                self.train_loader.dataset.close_mosaic(hyp=self.args)
 
     @staticmethod
     def build_optimizer(model, name='Adam', lr=0.001, momentum=0.9, decay=1e-5):

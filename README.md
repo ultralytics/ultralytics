@@ -246,7 +246,7 @@ YOLOv8 is available under two different licenses:
 
 ## <div align="center">Contact</div>
 
-For YOLOv8 bug reports and feature requests please visit [GitHub Issues](https://github.com/ultralytics/yolov5/issues) or the [Ultralytics Community Forum](https://community.ultralytics.com/).
+For YOLOv8 bug reports and feature requests please visit [GitHub Issues](https://github.com/ultralytics/ultralytics/issues) or the [Ultralytics Community Forum](https://community.ultralytics.com/).
 
 <br>
 <div align="center">

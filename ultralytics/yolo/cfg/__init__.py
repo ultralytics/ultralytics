@@ -64,9 +64,7 @@ CFG_BOOL_KEYS = {
 
 def cfg2dict(cfg):
     """
-    Convert a configuration object to a dictionary.
-
-    This function converts a configuration object to a dictionary, whether it is a file path, a string, or a SimpleNamespace object.
+    Convert a configuration object to a dictionary, whether it is a file path, a string, or a SimpleNamespace object.
 
     Inputs:
         cfg (str) or (Path) or (SimpleNamespace): Configuration object to be converted to a dictionary.

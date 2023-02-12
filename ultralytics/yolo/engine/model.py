@@ -206,7 +206,7 @@ class YOLO:
         if args.batch == DEFAULT_CFG.batch:
             args.batch = 1  # default to 1 if not modified
         exporter = Exporter(overrides=args)
-        exporter(model=self.model)
+        return exporter(model=self.model)
 
     def train(self, **kwargs):
         """

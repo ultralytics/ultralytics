@@ -93,7 +93,7 @@ def export_formats():
         ['TensorFlow Lite', 'tflite', '.tflite', True, False],
         ['TensorFlow Edge TPU', 'edgetpu', '_edgetpu.tflite', False, False],
         ['TensorFlow.js', 'tfjs', '_web_model', False, False],
-        ['PaddlePaddle', 'paddle', '_paddle_model', True, True],]
+        ['PaddlePaddle', 'paddle', '_paddle_model', True, True], ]
     return pd.DataFrame(x, columns=['Format', 'Argument', 'Suffix', 'CPU', 'GPU'])
 
 
@@ -253,10 +253,11 @@ class Exporter:
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
         if any(f):
+            f = f[-1]
             LOGGER.info(f'\nExport complete ({time.time() - t:.1f}s)'
                         f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
-                        f"\nPredict:         yolo task={model.task} mode=predict model={f[-1]}"
-                        f"\nValidate:        yolo task={model.task} mode=val model={f[-1]}"
+                        f"\nPredict:         yolo task={model.task} mode=predict model={f}"
+                        f"\nValidate:        yolo task={model.task} mode=val model={f}"
                         f"\nVisualize:       https://netron.app")
 
         self.run_callbacks("on_export_end")
@@ -661,9 +662,10 @@ class Exporter:
                 r'"Identity.?.?": {"name": "Identity.?.?"}, '
                 r'"Identity.?.?": {"name": "Identity.?.?"}, '
                 r'"Identity.?.?": {"name": "Identity.?.?"}}}', r'{"outputs": {"Identity": {"name": "Identity"}, '
-                r'"Identity_1": {"name": "Identity_1"}, '
-                r'"Identity_2": {"name": "Identity_2"}, '
-                r'"Identity_3": {"name": "Identity_3"}}}', f_json.read_text())
+                                                               r'"Identity_1": {"name": "Identity_1"}, '
+                                                               r'"Identity_2": {"name": "Identity_2"}, '
+                                                               r'"Identity_3": {"name": "Identity_3"}}}',
+                f_json.read_text())
             j.write(subst)
         return f, None
 

@@ -13,9 +13,7 @@ from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_P
 
 CLI_HELP_MSG = \
     f"""
-    Arguments: {str(['yolo'] + sys.argv[1:])}
-    
-    Note that YOLOv8 'yolo' CLI commands use the following syntax:
+    Arguments received: {str(['yolo'] + sys.argv[1:])}. Note that Ultralytics 'yolo' commands use the following syntax:
     
         yolo TASK MODE ARGS
         
@@ -145,7 +143,8 @@ def check_cfg_mismatch(base: Dict, custom: Dict, e=None):
     if mismatched:
         string = ''
         for x in mismatched:
-            matches = get_close_matches(x, base)
+            matches = get_close_matches(x, base)  # key list
+            matches = [f"{k}={DEFAULT_CFG_DICT[k]}" for k in matches]  # key=value list
             match_str = f"Similar arguments are {matches}." if matches else ''
             string += f"'{colorstr('red', 'bold', x)}' is not a valid YOLO argument. {match_str}\n"
         raise SyntaxError(string + CLI_HELP_MSG) from e

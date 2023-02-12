@@ -10,7 +10,7 @@ from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, Segmentat
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, RANK, callbacks, yaml_load
-from ultralytics.yolo.utils.checks import check_imgsz, check_yaml
+from ultralytics.yolo.utils.checks import check_imgsz, check_yaml, check_file
 from ultralytics.yolo.utils.downloads import GITHUB_ASSET_STEMS
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 
@@ -60,14 +60,10 @@ class YOLO:
         suffix = Path(model).suffix
         if not suffix and Path(model).stem in GITHUB_ASSET_STEMS:
             model, suffix = Path(model).with_suffix('.pt'), '.pt'  # add suffix, i.e. yolov8n -> yolov8n.pt
-        try:
-            if suffix == '.yaml':
-                self._new(model)
-            else:
-                self._load(model)
-        except Exception as e:
-            raise NotImplementedError(f"Unable to load model='{model}'. "
-                                      f"As an example try model='yolov8n.pt' or model='yolov8n.yaml'") from e
+        if suffix == '.yaml':
+            self._new(model)
+        else:
+            self._load(model)
 
     def __call__(self, source=None, stream=False, **kwargs):
         return self.predict(source, stream, **kwargs)
@@ -100,6 +96,7 @@ class YOLO:
             self.overrides = self.model.args
             self._reset_ckpt_args(self.overrides)
         else:
+            check_file(weights)
             self.model, self.ckpt = weights, None
             self.task = guess_model_task(weights)
         self.ckpt_path = weights

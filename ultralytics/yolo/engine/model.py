@@ -6,11 +6,11 @@ from typing import List
 
 from ultralytics import yolo  # noqa
 from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, SegmentationModel, attempt_load_one_weight,
-                                  guess_model_task)
+                                  guess_model_task, nn)
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, RANK, callbacks, yaml_load
-from ultralytics.yolo.utils.checks import check_imgsz, check_yaml, check_file
+from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_yaml
 from ultralytics.yolo.utils.downloads import GITHUB_ASSET_STEMS
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 
@@ -102,10 +102,20 @@ class YOLO:
         self.ckpt_path = weights
         self.ModelClass, self.TrainerClass, self.ValidatorClass, self.PredictorClass = self._assign_ops_from_task()
 
+    def _check_is_pytorch_model(self):
+        """
+        Raises TypeError is model is not a PyTorch model
+        """
+        if not isinstance(self.model, nn.Module):
+            raise TypeError(f"model='{self.model}' must be a PyTorch model, but is a different type. Other model "
+                            "formats, i.e. ONNX, TensorRT etc. are not supported by this operation. "
+                            "Try i.e. model='yolov8n.pt' instead.")
+
     def reset(self):
         """
         Resets the model modules.
         """
+        self._check_is_pytorch_model()
         for m in self.model.modules():
             if hasattr(m, 'reset_parameters'):
                 m.reset_parameters()
@@ -119,9 +129,11 @@ class YOLO:
         Args:
             verbose (bool): Controls verbosity.
         """
+        self._check_is_pytorch_model()
         self.model.info(verbose=verbose)
 
     def fuse(self):
+        self._check_is_pytorch_model()
         self.model.fuse()
 
     def predict(self, source=None, stream=False, **kwargs):
@@ -183,7 +195,7 @@ class YOLO:
         Args:
             **kwargs : Any other args accepted by the predictors. To see all args check 'configuration' section in docs
         """
-
+        self._check_is_pytorch_model()
         overrides = self.overrides.copy()
         overrides.update(kwargs)
         args = get_cfg(cfg=DEFAULT_CFG, overrides=overrides)
@@ -202,6 +214,7 @@ class YOLO:
         Args:
             **kwargs (Any): Any number of arguments representing the training configuration.
         """
+        self._check_is_pytorch_model()
         overrides = self.overrides.copy()
         overrides.update(kwargs)
         if kwargs.get("cfg"):
@@ -231,15 +244,14 @@ class YOLO:
         Args:
             device (str): device
         """
+        self._check_is_pytorch_model()
         self.model.to(device)
 
     def _assign_ops_from_task(self):
         model_class, train_lit, val_lit, pred_lit = MODEL_MAP[self.task]
-        # warning: eval is unsafe. Use with caution
         trainer_class = eval(train_lit.replace("TYPE", f"{self.type}"))
         validator_class = eval(val_lit.replace("TYPE", f"{self.type}"))
         predictor_class = eval(pred_lit.replace("TYPE", f"{self.type}"))
-
         return model_class, trainer_class, validator_class, predictor_class
 
     @property
@@ -247,7 +259,7 @@ class YOLO:
         """
          Returns class names of the loaded model.
         """
-        return self.model.names
+        return self.model.names if hasattr(self.model, 'names') else None
 
     @property
     def transforms(self):

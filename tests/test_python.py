@@ -106,22 +106,26 @@ def test_export_torchscript():
     print(export_formats())
 
     model = YOLO(MODEL)
-    model.export(format='torchscript')
+    f = model.export(format='torchscript')
+    YOLO(f)(SOURCE)  # exported model inference
 
 
 def test_export_onnx():
     model = YOLO(MODEL)
-    model.export(format='onnx')
+    f = model.export(format='onnx')
+    YOLO(f)(SOURCE)  # exported model inference
 
 
 def test_export_openvino():
     model = YOLO(MODEL)
-    model.export(format='openvino')
+    f = model.export(format='openvino')
+    YOLO(f)(SOURCE)  # exported model inference
 
 
 def test_export_coreml():
     model = YOLO(MODEL)
-    model.export(format='coreml')
+    f = model.export(format='coreml')
+    YOLO(f)(SOURCE)  # exported model inference
 
 
 def test_export_paddle(enabled=False):

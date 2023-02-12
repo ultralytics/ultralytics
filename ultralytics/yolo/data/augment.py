@@ -564,7 +564,7 @@ class Albumentations:
                 A.CLAHE(p=0.01),
                 A.RandomBrightnessContrast(p=0.0),
                 A.RandomGamma(p=0.0),
-                A.ImageCompression(quality_lower=75, p=0.0),]  # transforms
+                A.ImageCompression(quality_lower=75, p=0.0), ]  # transforms
             self.transform = A.Compose(T, bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"]))
 
             LOGGER.info(prefix + ", ".join(f"{x}".replace("always_apply=False, ", "") for x in T if x.p))
@@ -669,20 +669,21 @@ def v8_transforms(dataset, imgsz, hyp):
             shear=hyp.shear,
             perspective=hyp.perspective,
             pre_transform=LetterBox(new_shape=(imgsz, imgsz)),
-        ),])
+        ), ])
     return Compose([
         pre_transform,
         MixUp(dataset, pre_transform=pre_transform, p=hyp.mixup),
         Albumentations(p=1.0),
         RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
         RandomFlip(direction="vertical", p=hyp.flipud),
-        RandomFlip(direction="horizontal", p=hyp.fliplr),])  # transforms
+        RandomFlip(direction="horizontal", p=hyp.fliplr), ])  # transforms
 
 
 # Classification augmentations -----------------------------------------------------------------------------------------
 def classify_transforms(size=224):
     # Transforms to apply if albumentations not installed
-    assert isinstance(size, int), f"ERROR: classify_transforms size {size} must be integer, not (list, tuple)"
+    if not isinstance(size, int):
+        raise TypeError(f"classify_transforms() size {size} must be integer, not (list, tuple)")
     # T.Compose([T.ToTensor(), T.Resize(size), T.CenterCrop(size), T.Normalize(IMAGENET_MEAN, IMAGENET_STD)])
     return T.Compose([CenterCrop(size), ToTensor(), T.Normalize(IMAGENET_MEAN, IMAGENET_STD)])
 

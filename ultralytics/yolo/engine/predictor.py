@@ -35,6 +35,7 @@ import torch
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.data import load_inference_source
+from ultralytics.yolo.data.augment import classify_transforms
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, SETTINGS, callbacks, colorstr, ops
 from ultralytics.yolo.utils.checks import check_imgsz, check_imshow
 from ultralytics.yolo.utils.files import increment_path
@@ -121,8 +122,12 @@ class BasePredictor:
 
     def setup_source(self, source):
         self.imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)  # check image size
+        if self.args.task == 'classify':
+            transforms = getattr(self.model.model, 'transforms', classify_transforms(self.imgsz[0]))
+        else:  # predict, segment
+            transforms = None
         self.dataset = load_inference_source(source=source,
-                                             transforms=getattr(self.model.model, 'transforms', None),
+                                             transforms=transforms,
                                              imgsz=self.imgsz,
                                              vid_stride=self.args.vid_stride,
                                              stride=self.model.stride,

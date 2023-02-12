@@ -253,11 +253,10 @@ class Exporter:
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
         if any(f):
-            s = "-WARNING ⚠️ not yet supported for YOLOv8 exported models"
             LOGGER.info(f'\nExport complete ({time.time() - t:.1f}s)'
                         f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
-                        f"\nPredict:         yolo task={model.task} mode=predict model={f[-1]} {s}"
-                        f"\nValidate:        yolo task={model.task} mode=val model={f[-1]} {s}"
+                        f"\nPredict:         yolo task={model.task} mode=predict model={f[-1]}"
+                        f"\nValidate:        yolo task={model.task} mode=val model={f[-1]}"
                         f"\nVisualize:       https://netron.app")
 
         self.run_callbacks("on_export_end")

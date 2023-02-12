@@ -14,11 +14,11 @@ from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_P
 CLI_HELP_MSG = \
     f"""
     Arguments: {str(['yolo'] + sys.argv[1:])}
-    
+
     Note that YOLOv8 'yolo' CLI commands use the following syntax:
-    
+
         yolo TASK MODE ARGS
-        
+
         Where   TASK (optional) is one of [detect, segment, classify]
                 MODE (required) is one of [train, val, predict, export]
                 ARGS (optional) are any number of custom 'arg=value' pairs like 'imgsz=320' that override defaults.

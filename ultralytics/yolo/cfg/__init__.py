@@ -312,6 +312,5 @@ def copy_default_cfg():
 
 
 if __name__ == '__main__':
-    cmd = ['yolo', 'task=detect', 'mode=predict', 'model=yolov8n.pt  source=https://ultralytics.com/images/bus.jpg']
-    entrypoint(debug=' '.join(cmd))
-    # entrypoint(debug='')
+    # entrypoint(debug='yolo predict model=yolov8n.pt')
+    entrypoint(debug='')

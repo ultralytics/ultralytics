@@ -18,7 +18,6 @@ SOURCE = ROOT / 'assets/bus.jpg'
 
 def test_model_forward():
     model = YOLO(CFG)
-    model.predict(SOURCE)
     model(SOURCE)
 
 
@@ -38,11 +37,10 @@ def test_model_fuse():
 
 def test_predict_dir():
     model = YOLO(MODEL)
-    model.predict(source=ROOT / "assets")
+    model(source=ROOT / "assets")
 
 
 def test_predict_img():
-
     model = YOLO(MODEL)
     img = Image.open(str(SOURCE))
     output = model(source=img, save=True, verbose=True)  # PIL
@@ -149,7 +147,6 @@ def test_workflow():
 
 
 def test_predict_callback_and_setup():
-
     def on_predict_batch_end(predictor):
         # results -> List[batch_size]
         path, _, im0s, _, _ = predictor.batch

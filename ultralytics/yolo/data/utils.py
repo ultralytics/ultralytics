@@ -11,13 +11,11 @@ from zipfile import is_zipfile
 
 import cv2
 import numpy as np
-import torch
 from PIL import ExifTags, Image, ImageOps
 
 from ultralytics.yolo.utils import DATASETS_DIR, LOGGER, ROOT, colorstr, emojis, yaml_load
 from ultralytics.yolo.utils.checks import check_file, check_font, is_ascii
 from ultralytics.yolo.utils.downloads import download, safe_download
-from ultralytics.yolo.utils.files import unzip_file
 from ultralytics.yolo.utils.ops import segments2boxes
 
 HELP_URL = "See https://github.com/ultralytics/yolov5/wiki/Train-Custom-Data"

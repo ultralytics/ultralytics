@@ -7,9 +7,8 @@ from time import sleep, time
 
 import requests
 
-from ultralytics import __version__
 from ultralytics.hub.utils import HUB_API_ROOT, check_dataset_disk_space, smart_request
-from ultralytics.yolo.utils import is_colab, threaded, LOGGER, emojis, PREFIX
+from ultralytics.yolo.utils import LOGGER, PREFIX, __version__, emojis, is_colab, threaded
 from ultralytics.yolo.utils.torch_utils import get_flops, get_num_params
 
 AGENT_NAME = f"python-{__version__}-colab" if is_colab() else f"python-{__version__}-local"

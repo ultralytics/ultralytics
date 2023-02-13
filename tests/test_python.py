@@ -123,7 +123,7 @@ def test_export_openvino():
 def test_export_coreml():
     model = YOLO(MODEL)
     f = model.export(format='coreml')
-    YOLO(f)(SOURCE)  # exported model inference
+    # YOLO(f)(SOURCE)  # model prediction only supported on macOS
 
 
 def test_export_paddle(enabled=False):

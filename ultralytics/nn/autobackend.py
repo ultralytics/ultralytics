@@ -193,7 +193,7 @@ class AutoBackend(nn.Module):
                 from tflite_runtime.interpreter import Interpreter, load_delegate
             except ImportError:
                 import tensorflow as tf
-                Interpreter, load_delegate = tf.lite.Interpreter, tf.lite.experimental.load_delegate,
+                Interpreter, load_delegate = tf.lite.Interpreter, tf.lite.experimental.load_delegate
             if edgetpu:  # TF Edge TPU https://coral.ai/software/#edgetpu-runtime
                 LOGGER.info(f'Loading {w} for TensorFlow Lite Edge TPU inference...')
                 delegate = {
@@ -232,8 +232,10 @@ class AutoBackend(nn.Module):
             nhwc = model.runtime.startswith("tensorflow")
             '''
         else:
-            raise NotImplementedError(f"ERROR: '{w}' is not a supported format. For supported formats see "
-                                      f"https://docs.ultralytics.com/reference/nn/")
+            from ultralytics.yolo.engine.exporter import EXPORT_FORMATS_TABLE
+            raise TypeError(f"model='{w}' is not a supported model format. "
+                            "See https://docs.ultralytics.com/tasks/detection/#export for help."
+                            f"\n\n{EXPORT_FORMATS_TABLE}")
 
         # class names
         if 'names' not in locals():  # names missing

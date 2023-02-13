@@ -291,7 +291,7 @@ class LoadPilAndNumpy:
         self.mode = 'image'
         # generate fake paths
         self.paths = [f"image{i}.jpg" for i in range(len(self.im0))]
-        self.bs = 1
+        self.bs = len(self.im0)
 
     @staticmethod
     def _single_check(im):

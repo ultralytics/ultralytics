@@ -122,3 +122,4 @@ nav:
           - Results: reference/results.md
       - ultralytics.nn: reference/nn.md
       - Operations: reference/ops.md
+  - Security: SECURITY.md

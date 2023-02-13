@@ -139,10 +139,11 @@ def yaml_save(file='data.yaml', data=None):
         # Create parent directories if they don't exist
         file.parent.mkdir(parents=True, exist_ok=True)
 
+    # TODO: Write a customized YAMLObject for transform
     with open(file, 'w') as f:
         # Dump data to file in YAML format, converting Path objects to strings
         yaml.safe_dump({k: str(v) if isinstance(v, Path) else v
-                        for k, v in data.items()},
+                        for k, v in data.items() if k not in ('train_transform', 'test_transform')},
                        f,
                        sort_keys=False,
                        allow_unicode=True)

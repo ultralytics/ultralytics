@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 import contextlib
-import importlib.import_module
+import importlib
 import re
 import shutil
 import sys
@@ -77,13 +77,13 @@ def str_to_augment(transforms_str):
     Returns:
         transform (list): List of transformed packed by Compose class
     """
-    transforms_str = eval(transforms_str)
-    compose_transform = Compose()
+    compose_transform = Compose(transforms=[])
     
-    for transform_str in transforms_str:
+    for transform_str, transform_args in transforms_str:
+        print(transform_args)
         try:
-            module_name, cls_name = transform_in_str.rsplit(".", 1)
-            compose_transform.append(getattr(importlib.import_module(module_name), cls_name))
+            module_name, cls_name = transform_str.rsplit(".", 1)
+            compose_transform.append(getattr(importlib.import_module(module_name), cls_name)(**transform_args))
         except ImportError as e:
             raise ImportError(f"Fail to import the module when instantiated the string from augmentation: {str(e)}")
     
@@ -135,7 +135,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG, override
 
     # Special handling for customized augmentation
     for k in 'train_transform', 'test_transform':
-        if k in cfg: and isinstance(cfg[k], str):
+        if k in cfg and isinstance(cfg[k], list):
             cfg[k] = str_to_augment(cfg[k])
     
     # Type and Value checks

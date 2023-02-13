@@ -10,6 +10,7 @@ CFG_DET = 'yolov8n.yaml'
 CFG_SEG = 'yolov8n-seg.yaml'
 CFG_CLS = 'squeezenet1_0'
 CFG = get_cfg(DEFAULT_CFG)
+TRANSFORM = ["ultralytics.yolo.data.augment.Albumentations", {}]
 MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n'
 SOURCE = ROOT / "assets"
 
@@ -21,6 +22,12 @@ def test_detect():
     # Trainer
     trainer = detect.DetectionTrainer(overrides=overrides)
     trainer.train()
+    
+    # Trainer with transform
+    trainer_transform = detect.DetectionTrainer(
+        overrides=dict({"train_transform": TRANSFORM}, **overrides)
+    )
+    trainer_transform.train()
 
     # Validator
     val = detect.DetectionValidator(args=CFG)
@@ -48,9 +55,15 @@ def test_segment():
     CFG.v5loader = False
     # YOLO(CFG_SEG).train(**overrides)  # works
 
-    # trainer
+    # Trainer
     trainer = segment.SegmentationTrainer(overrides=overrides)
     trainer.train()
+    
+    # Trainer with transform
+    trainer_transform = detect.SegmentationTrainer(
+        overrides=dict({"train_transform": TRANSFORM}, **overrides)
+    )
+    trainer_transform.train()
 
     # Validator
     val = segment.SegmentationValidator(args=CFG)

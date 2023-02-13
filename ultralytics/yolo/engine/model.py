@@ -55,6 +55,7 @@ class YOLO:
         self.cfg = None  # if loaded from *.yaml
         self.ckpt_path = None
         self.overrides = {}  # overrides for trainer object
+        self.metrics_data = None
 
         # Load or create new YOLO model
         suffix = Path(model).suffix
@@ -186,6 +187,8 @@ class YOLO:
 
         validator = self.ValidatorClass(args=args)
         validator(model=self.model)
+        self.metrics_data = validator.metrics
+
         return validator.metrics
 
     @smart_inference_mode()
@@ -237,6 +240,7 @@ class YOLO:
         if RANK in {0, -1}:
             self.model, _ = attempt_load_one_weight(str(self.trainer.best))
             self.overrides = self.model.args
+        self.metrics_data = self.trainer.validator.metrics
 
     def to(self, device):
         """
@@ -268,6 +272,16 @@ class YOLO:
          Returns transform of the loaded model.
         """
         return self.model.transforms if hasattr(self.model, 'transforms') else None
+
+    @property
+    def metrics(self):
+        """
+        Returns metrics if computed
+        """
+        if not self.metrics_data:
+            LOGGER.info("No metrics data found! Run training or validation operation first.")
+
+        return self.metrics_data
 
     @staticmethod
     def add_callback(event: str, func):

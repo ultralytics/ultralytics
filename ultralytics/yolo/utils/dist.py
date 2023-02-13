@@ -52,8 +52,9 @@ def generate_ddp_command(world_size, trainer):
 
     # Build command
     torch_distributed_cmd = "torch.distributed.run" if TORCH_1_9 else "torch.distributed.launch"
-    cmd = [sys.executable, "-m", torch_distributed_cmd, "--nproc_per_node", f"{world_size}", "--master_port",
-           f"{find_free_network_port()}", file] + args
+    cmd = [
+        sys.executable, "-m", torch_distributed_cmd, "--nproc_per_node", f"{world_size}", "--master_port",
+        f"{find_free_network_port()}", file] + args
     return cmd, file
 
 

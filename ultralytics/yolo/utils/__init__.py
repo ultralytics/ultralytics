@@ -22,6 +22,8 @@ import requests
 import torch
 import yaml
 
+from ultralytics import __version__
+
 # Constants
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[2]  # YOLO

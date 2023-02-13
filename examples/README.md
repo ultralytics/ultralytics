@@ -4,7 +4,7 @@ This is a list of real-world applications and walkthroughs. These can be folders
 
 | Title                                                              | Format          | Contributor                               |
 | ------------------------------------------------------------------ | --------------- | ----------------------------------------- |
-| \[Dummy\] [Inventory managenet using YOLO](./inventory-management) | python/notebook | [AyushExel](https://github.com/AyushExel) |
+| [Yolov8/yolov5 Inference with C++](./Yolov8_CPP_Inference) | C++/ONNX | [Justas Bartnykas](https://github.com/JustasBart) |
 
 ## How can you contribute ?
 

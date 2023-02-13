@@ -64,14 +64,13 @@ import numpy as np
 import pandas as pd
 import torch
 
-import ultralytics
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import Detect, Segment
-from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, guess_model_task
+from ultralytics.nn.tasks import DetectionModel, SegmentationModel
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages
-from ultralytics.yolo.data.utils import check_det_dataset, IMAGENET_MEAN, IMAGENET_STD
-from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, callbacks, colorstr, get_default_args, yaml_save
+from ultralytics.yolo.data.utils import IMAGENET_MEAN, IMAGENET_STD, check_det_dataset
+from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, __version__, callbacks, colorstr, get_default_args, yaml_save
 from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version, check_yaml
 from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.ops import Profile
@@ -162,8 +161,6 @@ class Exporter:
 
         # Checks
         model.names = check_class_names(model.names)
-        # if self.args.batch == model.args['batch_size']:  # user has not modified training batch_size
-        self.args.batch = 1
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
         if model.task == 'classify':
             self.args.nms = self.args.agnostic_nms = False
@@ -203,18 +200,18 @@ class Exporter:
         self.im = im
         self.model = model
         self.file = file
-        self.output_shape = tuple(y.shape) if isinstance(y, torch.Tensor) else (x.shape for x in y)
+        self.output_shape = tuple(y.shape) if isinstance(y, torch.Tensor) else tuple(tuple(x.shape) for x in y)
         self.pretty_name = self.file.stem.replace('yolo', 'YOLO')
         self.metadata = {
             'description': f"Ultralytics {self.pretty_name} model trained on {self.model.args['data']}",
             'author': 'Ultralytics',
             'license': 'GPL-3.0 https://ultralytics.com/license',
-            'version': ultralytics.__version__,
+            'version': __version__,
             'stride': int(max(model.stride)),
             'names': model.names}  # model metadata
 
-        LOGGER.info(f"\n{colorstr('PyTorch:')} starting from {file} with input shape {tuple(im.shape)} and "
-                    f"output shape {self.output_shape} ({file_size(file):.1f} MB)")
+        LOGGER.info(f"\n{colorstr('PyTorch:')} starting from {file} with input shape {tuple(im.shape)} BCHW and "
+                    f"output shape(s) {self.output_shape} ({file_size(file):.1f} MB)")
 
         # Exports
         f = [''] * len(fmts)  # exported filenames
@@ -234,19 +231,22 @@ class Exporter:
             nms = False
             f[5], s_model = self._export_saved_model(nms=nms or self.args.agnostic_nms or tfjs,
                                                      agnostic_nms=self.args.agnostic_nms or tfjs)
-            if pb or tfjs:  # pb prerequisite to tfjs
-                f[6], _ = self._export_pb(s_model)
-            if tflite or edgetpu:
-                f[7], _ = self._export_tflite(s_model,
-                                              int8=self.args.int8 or edgetpu,
-                                              data=self.args.data,
-                                              nms=nms,
-                                              agnostic_nms=self.args.agnostic_nms)
-                if edgetpu:
-                    f[8], _ = self._export_edgetpu()
-                self._add_tflite_metadata(f[8] or f[7], num_outputs=len(self.output_shape))
-            if tfjs:
-                f[9], _ = self._export_tfjs()
+
+            debug = False
+            if debug:
+                if pb or tfjs:  # pb prerequisite to tfjs
+                    f[6], _ = self._export_pb(s_model)
+                if tflite or edgetpu:
+                    f[7], _ = self._export_tflite(s_model,
+                                                  int8=self.args.int8 or edgetpu,
+                                                  data=self.args.data,
+                                                  nms=nms,
+                                                  agnostic_nms=self.args.agnostic_nms)
+                    if edgetpu:
+                        f[8], _ = self._export_edgetpu()
+                    self._add_tflite_metadata(f[8] or f[7], num_outputs=len(self.output_shape))
+                if tfjs:
+                    f[9], _ = self._export_tfjs()
         if paddle:  # PaddlePaddle
             f[10], _ = self._export_paddle()
 

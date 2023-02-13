@@ -1,5 +1,4 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
-import sys
 
 from ultralytics.yolo.data import build_classification_dataloader
 from ultralytics.yolo.engine.validator import BaseValidator

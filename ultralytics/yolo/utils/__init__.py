@@ -18,8 +18,11 @@ from typing import Union
 import cv2
 import numpy as np
 import pandas as pd
+import requests
 import torch
 import yaml
+
+from ultralytics import __version__
 
 # Constants
 FILE = Path(__file__).resolve()
@@ -109,6 +112,15 @@ class IterableSimpleNamespace(SimpleNamespace):
     def __str__(self):
         return '\n'.join(f"{k}={v}" for k, v in vars(self).items())
 
+    def __getattr__(self, attr):
+        name = self.__class__.__name__
+        raise AttributeError(f"""
+            '{name}' object has no attribute '{attr}'. This may be caused by a modified or out of date ultralytics
+            'default.yaml' file.\nPlease update your code with 'pip install -U ultralytics' and if necessary replace
+            {DEFAULT_CFG_PATH} with the latest version from
+            https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/cfg/default.yaml
+            """)
+
     def get(self, key, default=None):
         return getattr(self, key, default)
 
@@ -131,7 +143,11 @@ def yaml_save(file='data.yaml', data=None):
 
     with open(file, 'w') as f:
         # Dump data to file in YAML format, converting Path objects to strings
-        yaml.safe_dump({k: str(v) if isinstance(v, Path) else v for k, v in data.items()}, f, sort_keys=False)
+        yaml.safe_dump({k: str(v) if isinstance(v, Path) else v
+                        for k, v in data.items()},
+                       f,
+                       sort_keys=False,
+                       allow_unicode=True)
 
 
 def yaml_load(file='data.yaml', append_filename=False):
@@ -164,7 +180,7 @@ def yaml_print(yaml_file: Union[str, Path, dict]) -> None:
         None
     """
     yaml_dict = yaml_load(yaml_file) if isinstance(yaml_file, (str, Path)) else yaml_file
-    dump = yaml.dump(yaml_dict, default_flow_style=False)
+    dump = yaml.dump(yaml_dict, sort_keys=False, allow_unicode=True)
     LOGGER.info(f"Printing '{colorstr('bold', 'black', yaml_file)}'\n\n{dump}")
 
 
@@ -341,8 +357,31 @@ def get_git_branch():
     return None  # if not git dir or on error
 
 
+def get_latest_pypi_version(package_name='ultralytics'):
+    """
+    Returns the latest version of a PyPI package without downloading or installing it.
+
+    Parameters:
+        package_name (str): The name of the package to find the latest version for.
+
+    Returns:
+        str: The latest version of the package.
+    """
+    response = requests.get(f"https://pypi.org/pypi/{package_name}/json")
+    if response.status_code == 200:
+        return response.json()["info"]["version"]
+    return None
+
+
 def get_default_args(func):
-    # Get func() default arguments
+    """Returns a dictionary of default arguments for a function.
+
+    Args:
+        func (callable): The function to inspect.
+
+    Returns:
+        dict: A dictionary where each key is a parameter name, and each value is the default value of that parameter.
+    """
     signature = inspect.signature(func)
     return {k: v.default for k, v in signature.parameters.items() if v.default is not inspect.Parameter.empty}
 
@@ -414,6 +453,19 @@ def colorstr(*input):
     return "".join(colors[x] for x in args) + f"{string}" + colors["end"]
 
 
+def remove_ansi_codes(string):
+    """
+    Remove ANSI escape sequences from a string.
+
+    Args:
+        string (str): The input string that may contain ANSI escape sequences.
+
+    Returns:
+        str: The input string with ANSI escape sequences removed.
+    """
+    return re.sub(r'\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]', '', string)
+
+
 def set_logging(name=LOGGING_NAME, verbose=True):
     # sets up logging for the given name
     rank = int(os.getenv('RANK', -1))  # rank in world for Multi-GPU trainings
@@ -470,30 +522,27 @@ def set_sentry():
         if 'exc_info' in hint:
             exc_type, exc_value, tb = hint['exc_info']
             if exc_type in (KeyboardInterrupt, FileNotFoundError) \
-                    or 'out of memory' in str(exc_value) \
-                    or not sys.argv[0].endswith('yolo'):
+                    or 'out of memory' in str(exc_value):
                 return None  # do not send event
 
-        env = 'Colab' if is_colab() else 'Kaggle' if is_kaggle() else 'Jupyter' if is_jupyter() else \
-            'Docker' if is_docker() else platform.system()
         event['tags'] = {
             "sys_argv": sys.argv[0],
             "sys_argv_name": Path(sys.argv[0]).name,
             "install": 'git' if is_git_dir() else 'pip' if is_pip_package() else 'other',
-            "os": env}
+            "os": ENVIRONMENT}
         return event
 
     if SETTINGS['sync'] and \
             RANK in {-1, 0} and \
-            sys.argv[0].endswith('yolo') and \
+            Path(sys.argv[0]).name == 'yolo' and \
             not is_pytest_running() and \
             not is_github_actions_ci() and \
             ((is_pip_package() and not is_git_dir()) or
              (get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git" and get_git_branch() == "main")):
 
         import hashlib
+
         import sentry_sdk  # noqa
-        from ultralytics import __version__
 
         sentry_sdk.init(
             dsn="https://f805855f03bb4363bc1e16cb7d87b654@o4504521589325824.ingest.sentry.io/4504521592406016",
@@ -522,6 +571,7 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.2'):
         dict: Dictionary of settings key-value pairs.
     """
     import hashlib
+
     from ultralytics.yolo.utils.checks import check_version
     from ultralytics.yolo.utils.torch_utils import torch_distributed_zero_first
 
@@ -578,4 +628,6 @@ if platform.system() == 'Windows':
 PREFIX = colorstr("Ultralytics: ")
 SETTINGS = get_settings()
 DATASETS_DIR = Path(SETTINGS['datasets_dir'])  # global datasets directory
+ENVIRONMENT = 'Colab' if is_colab() else 'Kaggle' if is_kaggle() else 'Jupyter' if is_jupyter() else \
+    'Docker' if is_docker() else platform.system()
 set_sentry()

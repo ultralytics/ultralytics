@@ -23,18 +23,18 @@ backbone:
 head:
   - [-1, 1, nn.Upsample, [None, 2, 'nearest']]
   - [[-1, 6], 1, Concat, [1]]  # cat backbone P4
-  - [-1, 3, C2f, [512]]  # 13
+  - [-1, 3, C2f, [512]]  # 12
 
   - [-1, 1, nn.Upsample, [None, 2, 'nearest']]
   - [[-1, 4], 1, Concat, [1]]  # cat backbone P3
-  - [-1, 3, C2f, [256]]  # 17 (P3/8-small)
+  - [-1, 3, C2f, [256]]  # 15 (P3/8-small)
 
   - [-1, 1, Conv, [256, 3, 2]]
   - [[-1, 12], 1, Concat, [1]]  # cat head P4
-  - [-1, 3, C2f, [512]]  # 20 (P4/16-medium)
+  - [-1, 3, C2f, [512]]  # 18 (P4/16-medium)
 
   - [-1, 1, Conv, [512, 3, 2]]
   - [[-1, 9], 1, Concat, [1]]  # cat head P5
-  - [-1, 3, C2f, [768]]  # 23 (P5/32-large)
+  - [-1, 3, C2f, [768]]  # 21 (P5/32-large)
 
   - [[15, 18, 21], 1, Detect, [nc]]  # Detect(P3, P4, P5)

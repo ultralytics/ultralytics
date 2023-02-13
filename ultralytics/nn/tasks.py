@@ -2,6 +2,7 @@
 
 import contextlib
 from copy import deepcopy
+from pathlib import Path
 
 import thop
 import torch
@@ -172,7 +173,7 @@ class DetectionModel(BaseModel):
         if nc and nc != self.yaml['nc']:
             LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
             self.yaml['nc'] = nc  # override yaml value
-        self.model, self.save = parse_model(deepcopy(self.yaml), ch=[ch], verbose=verbose)  # model, savelist
+        self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose)  # model, savelist
         self.names = {i: f'{i}' for i in range(self.yaml['nc'])}  # default names dict
         self.inplace = self.yaml.get('inplace', True)
 
@@ -282,7 +283,7 @@ class ClassificationModel(BaseModel):
         if nc and nc != self.yaml['nc']:
             LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
             self.yaml['nc'] = nc  # override yaml value
-        self.model, self.save = parse_model(deepcopy(self.yaml), ch=[ch], verbose=verbose)  # model, savelist
+        self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose)  # model, savelist
         self.names = {i: f'{i}' for i in range(self.yaml['nc'])}  # default names dict
         self.info()
 
@@ -421,7 +422,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         Conv.default_act = eval(act)  # redefine default activation, i.e. Conv.default_act = nn.SiLU()
         if verbose:
             LOGGER.info(f"{colorstr('activation:')} {act}")  # print
-
+    ch = [ch]
     layers, save, c2 = [], [], ch[-1]  # layers, savelist, ch out
     for i, (f, n, m, args) in enumerate(d['backbone'] + d['head']):  # from, number, module, args
         m = eval(m) if isinstance(m, str) else m  # eval strings
@@ -490,6 +491,14 @@ def guess_model_task(model):
             with contextlib.suppress(Exception):
                 cfg = eval(x)
                 break
+    elif isinstance(model, (str, Path)):
+        model = str(model)
+        if '-seg' in model:
+            return "segment"
+        elif '-cls' in model:
+            return "classify"
+        else:
+            return "detect"
 
     # Guess from YAML dictionary
     if cfg:

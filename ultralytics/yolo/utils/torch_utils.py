@@ -17,12 +17,16 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER
+from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, __version__
 from ultralytics.yolo.utils.checks import check_version
 
 LOCAL_RANK = int(os.getenv('LOCAL_RANK', -1))  # https://pytorch.org/docs/stable/elastic/run.html
 RANK = int(os.getenv('RANK', -1))
 WORLD_SIZE = int(os.getenv('WORLD_SIZE', 1))
+
+TORCH_1_9 = check_version(torch.__version__, '1.9.0')
+TORCH_1_11 = check_version(torch.__version__, '1.11.0')
+TORCH_1_12 = check_version(torch.__version__, '1.12.0')
 
 
 @contextmanager
@@ -36,10 +40,10 @@ def torch_distributed_zero_first(local_rank: int):
         dist.barrier(device_ids=[0])
 
 
-def smart_inference_mode(torch_1_9=check_version(torch.__version__, '1.9.0')):
+def smart_inference_mode():
     # Applies torch.inference_mode() decorator if torch>=1.9.0 else torch.no_grad() decorator
     def decorate(fn):
-        return (torch.inference_mode if torch_1_9 else torch.no_grad)()(fn)
+        return (torch.inference_mode if TORCH_1_9 else torch.no_grad)()(fn)
 
     return decorate
 
@@ -49,7 +53,7 @@ def DDP_model(model):
     assert not check_version(torch.__version__, '1.12.0', pinned=True), \
         'torch==1.12.0 torchvision==0.13.0 DDP training is not supported due to a known issue. ' \
         'Please upgrade or downgrade torch to use DDP. See https://github.com/ultralytics/yolov5/issues/8395'
-    if check_version(torch.__version__, '1.11.0'):
+    if TORCH_1_11:
         return DDP(model, device_ids=[LOCAL_RANK], output_device=LOCAL_RANK, static_graph=True)
     else:
         return DDP(model, device_ids=[LOCAL_RANK], output_device=LOCAL_RANK)
@@ -57,7 +61,6 @@ def DDP_model(model):
 
 def select_device(device='', batch=0, newline=False):
     # device = None or 'cpu' or 0 or '0' or '0,1,2,3'
-    from ultralytics import __version__
     s = f"Ultralytics YOLOv{__version__} 🚀 Python-{platform.python_version()} torch-{torch.__version__} "
     device = str(device).lower()
     for remove in 'cuda:', 'none', '(', ')', '[', ']', "'", ' ':
@@ -267,7 +270,7 @@ def init_seeds(seed=0, deterministic=False):
     torch.cuda.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)  # for Multi-GPU, exception safe
     # torch.backends.cudnn.benchmark = True  # AutoBatch problem https://github.com/ultralytics/yolov5/issues/9287
-    if deterministic and check_version(torch.__version__, '1.12.0'):  # https://github.com/ultralytics/yolov5/pull/8213
+    if deterministic and TORCH_1_12:  # https://github.com/ultralytics/yolov5/pull/8213
         torch.use_deterministic_algorithms(True)
         torch.backends.cudnn.deterministic = True
         os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':4096:8'

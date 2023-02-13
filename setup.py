@@ -22,7 +22,7 @@ def get_version():
 setup(
     name="ultralytics",  # name of pypi package
     version=get_version(),  # version of pypi package
-    python_requires=">=3.7,<=3.11",
+    python_requires=">=3.7",
     license='GPL-3.0',
     description='Ultralytics YOLOv8',
     long_description=README,
@@ -41,14 +41,24 @@ setup(
         'dev':
         ['check-manifest', 'pytest', 'pytest-cov', 'coverage', 'mkdocs', 'mkdocstrings[python]', 'mkdocs-material']},
     classifiers=[
-        "Intended Audience :: Developers", "Intended Audience :: Science/Research",
-        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)", "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7", "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9", "Programming Language :: Python :: 3.10",
-        "Topic :: Software Development", "Topic :: Scientific/Engineering",
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Education",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Topic :: Software Development",
+        "Topic :: Scientific/Engineering",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
-        "Topic :: Scientific/Engineering :: Image Recognition", "Operating System :: POSIX :: Linux",
-        "Operating System :: MacOS", "Operating System :: Microsoft :: Windows"],
+        "Topic :: Scientific/Engineering :: Image Recognition",
+        "Operating System :: POSIX :: Linux",
+        "Operating System :: MacOS",
+        "Operating System :: Microsoft :: Windows",],
     keywords="machine-learning, deep-learning, vision, ML, DL, AI, YOLO, YOLOv3, YOLOv5, YOLOv8, HUB, Ultralytics",
     entry_points={
         'console_scripts': ['yolo = ultralytics.yolo.cfg:entrypoint', 'ultralytics = ultralytics.yolo.cfg:entrypoint']})

@@ -336,6 +336,9 @@ class AutoBackend(nn.Module):
                         scale, zero_point = output['quantization']
                         x = (x.astype(np.float32) - zero_point) * scale  # re-scale
                     y.append(x)
+                # TF segment fixes: export is reversed vs ONNX export and protos are transposed
+                if len(self.output_details) == 2:  # segment
+                    y = [y[1], np.transpose(y[0], (0, 3, 1, 2))]
             y = [x if isinstance(x, np.ndarray) else x.numpy() for x in y]
             y[0][..., :4] *= [w, h, w, h]  # xywh normalized to pixels
 

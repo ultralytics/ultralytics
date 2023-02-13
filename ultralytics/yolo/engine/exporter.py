@@ -508,7 +508,7 @@ class Exporter:
         onnx = self.file.with_suffix('.onnx')
 
         # Export to TF SavedModel
-        subprocess.run(f'onnx2tf -i {onnx} --output_signaturedefs -o {f}', shell=True)
+        subprocess.run(f'onnx2tf -i {onnx} -o {f} --non_verbose', shell=True)
 
         # Add TFLite metadata
         for tflite_file in Path(f).rglob('*.tflite'):

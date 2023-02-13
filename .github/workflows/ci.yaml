@@ -49,12 +49,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip wheel
           if [ "${{ matrix.torch }}" == "1.7.0" ]; then
-              pip install -r requirements.txt torch==1.7.0 torchvision==0.8.1 --extra-index-url https://download.pytorch.org/whl/cpu
+              pip install -e . torch==1.7.0 torchvision==0.8.1 onnx pytest --extra-index-url https://download.pytorch.org/whl/cpu
           else
-              pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu
+              pip install -e . onnx pytest --extra-index-url https://download.pytorch.org/whl/cpu
           fi
           # pip install ultralytics (production)
-          pip install -e . pytest
         shell: bash  # for Windows compatibility
       - name: Check environment
         run: |

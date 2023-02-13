@@ -37,7 +37,7 @@ def check_dataset_disk_space(url='https://ultralytics.com/assets/coco128.zip', s
 def request_with_credentials(url: str) -> any:
     """ Make an ajax request with cookies attached """
     if not is_colab():
-        raise EnvironmentError('request_with_credentials() must run in a Colab environment')
+        raise OSError('request_with_credentials() must run in a Colab environment')
     from google.colab import output  # noqa
     from IPython import display  # noqa
     display.display(

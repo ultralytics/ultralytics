@@ -3,9 +3,9 @@
 Usage:
 
 ```
-git clone https://github.com/JustasBart/yolov8_CPP_Inference_OpenCV_ONNX
-cd yolov8_CPP_Inference_OpenCV_ONNX
-```
+# git clone ultralytics
+pip install .
+cd examples/cpp_
 
 Add a **yolov8\_.onnx** and/or **yolov5\_.onnx** model(s) to the ultralytics folder.
 Edit the **main.cpp** to change the **projectBasePath** to match your user.
@@ -13,11 +13,10 @@ Edit the **main.cpp** to change the **projectBasePath** to match your user.
 Note that by default the CMake file will try and import the CUDA library to be used with the OpenCVs dnn (cuDNN) GPU Inference.
 If your OpenCV build does not use CUDA/cuDNN you can remove that import call and run the example on CPU.
 
-```
 mkdir build
 cd build
 cmake ..
-mak
+make
 ./Yolov8CPPInference
 ```
 

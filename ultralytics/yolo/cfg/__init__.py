@@ -9,15 +9,14 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, List, Union
 
-from ultralytics import __version__
-from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, PREFIX, ROOT,
-                                    USER_CONFIG_DIR, IterableSimpleNamespace, colorstr, emojis, yaml_load, yaml_print)
-from ultralytics.yolo.utils.checks import check_yolo
+from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, ROOT, USER_CONFIG_DIR,
+                                    IterableSimpleNamespace, __version__, checks, colorstr, yaml_load, yaml_print)
 from ultralytics.yolo.data.augment import Compose
 
+
 CLI_HELP_MSG = \
-    """
-    YOLOv8 'yolo' CLI commands use the following syntax:
+    f"""
+    Arguments received: {str(['yolo'] + sys.argv[1:])}. Note that Ultralytics 'yolo' commands use the following syntax:
 
         yolo TASK MODE ARGS
 
@@ -27,13 +26,13 @@ CLI_HELP_MSG = \
                     See all ARGS at https://docs.ultralytics.com/cfg or with 'yolo cfg'
 
     1. Train a detection model for 10 epochs with an initial learning_rate of 0.01
-        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01
+        yolo train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01
 
     2. Predict a YouTube video using a pretrained segmentation model at image size 320:
-        yolo segment predict model=yolov8n-seg.pt source='https://youtu.be/Zgi9g1ksQHc' imgsz=320
+        yolo predict model=yolov8n-seg.pt source='https://youtu.be/Zgi9g1ksQHc' imgsz=320
 
     3. Val a pretrained detection model at batch-size 1 and image size 640:
-        yolo detect val model=yolov8n.pt data=coco128.yaml batch=1 imgsz=640
+        yolo val model=yolov8n.pt data=coco128.yaml batch=1 imgsz=640
 
     4. Export a YOLOv8n classification model to ONNX format at image size 224 by 128 (no TASK required)
         yolo export model=yolov8n-cls.pt format=onnx imgsz=224,128
@@ -58,7 +57,7 @@ CFG_FRACTION_KEYS = {
     'mixup', 'copy_paste', 'conf', 'iou'}
 CFG_INT_KEYS = {
     'epochs', 'patience', 'batch', 'workers', 'seed', 'close_mosaic', 'mask_ratio', 'max_det', 'vid_stride',
-    'line_thickness', 'workspace', 'nbs'}
+    'line_thickness', 'workspace', 'nbs', 'save_period'}
 CFG_BOOL_KEYS = {
     'save', 'exist_ok', 'pretrained', 'verbose', 'deterministic', 'single_cls', 'image_weights', 'rect', 'cos_lr',
     'overlap_mask', 'val', 'save_json', 'save_hybrid', 'half', 'dnn', 'plots', 'show', 'save_txt', 'save_conf',
@@ -80,7 +79,6 @@ def str_to_augment(transforms_str):
     compose_transform = Compose(transforms=[])
     
     for transform_str, transform_args in transforms_str:
-        print(transform_args)
         try:
             module_name, cls_name = transform_str.rsplit(".", 1)
             compose_transform.append(getattr(importlib.import_module(module_name), cls_name)(**transform_args))
@@ -92,9 +90,7 @@ def str_to_augment(transforms_str):
 
 def cfg2dict(cfg):
     """
-    Convert a configuration object to a dictionary.
-
-    This function converts a configuration object to a dictionary, whether it is a file path, a string, or a SimpleNamespace object.
+    Convert a configuration object to a dictionary, whether it is a file path, a string, or a SimpleNamespace object.
 
     Inputs:
         cfg (str) or (Path) or (SimpleNamespace): Configuration object to be converted to a dictionary.
@@ -109,7 +105,7 @@ def cfg2dict(cfg):
     return cfg
 
 
-def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG, overrides: Dict = None):
+def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, overrides: Dict = None):
     """
     Load and merge configuration data from a file or dictionary.
 
@@ -165,7 +161,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG, override
     return IterableSimpleNamespace(**cfg)
 
 
-def check_cfg_mismatch(base: Dict, custom: Dict):
+def check_cfg_mismatch(base: Dict, custom: Dict, e=None):
     """
     This function checks for any mismatched keys between a custom configuration list and a base configuration list.
     If any mismatched keys are found, the function prints out similar keys from the base list and exits the program.
@@ -177,12 +173,13 @@ def check_cfg_mismatch(base: Dict, custom: Dict):
     base, custom = (set(x.keys()) for x in (base, custom))
     mismatched = [x for x in custom if x not in base]
     if mismatched:
+        string = ''
         for x in mismatched:
-            matches = get_close_matches(x, base, 3, 0.6)
-            match_str = f"Similar arguments are {matches}." if matches else 'There are no similar arguments.'
-            LOGGER.warning(f"'{colorstr('red', 'bold', x)}' is not a valid YOLO argument. {match_str}")
-        LOGGER.warning(CLI_HELP_MSG)
-        sys.exit()
+            matches = get_close_matches(x, base)  # key list
+            matches = [f"{k}={DEFAULT_CFG_DICT[k]}" if DEFAULT_CFG_DICT[k] is not None else k for k in matches]  # k=v
+            match_str = f"Similar arguments are i.e. {matches}." if matches else ''
+            string += f"'{colorstr('red', 'bold', x)}' is not a valid YOLO argument. {match_str}\n"
+        raise SyntaxError(string + CLI_HELP_MSG) from e
 
 
 def merge_equals_args(args: List[str]) -> List[str]:
@@ -212,10 +209,6 @@ def merge_equals_args(args: List[str]) -> List[str]:
     return new_args
 
 
-def argument_error(arg):
-    return SyntaxError(f"'{arg}' is not a valid YOLO argument.\n{CLI_HELP_MSG}")
-
-
 def entrypoint(debug=''):
     """
     This function is the ultralytics package entrypoint, it's responsible for parsing the command line arguments passed
@@ -236,16 +229,23 @@ def entrypoint(debug=''):
         LOGGER.info(CLI_HELP_MSG)
         return
 
-    # Add tasks, modes, special, and special with dash keys, i.e. -help, --help
+    # Define tasks and modes
     tasks = 'detect', 'segment', 'classify'
     modes = 'train', 'val', 'predict', 'export'
+
+    # Define special commands
     special = {
         'help': lambda: LOGGER.info(CLI_HELP_MSG),
-        'checks': check_yolo,
+        'checks': checks.check_yolo,
         'version': lambda: LOGGER.info(__version__),
         'settings': lambda: yaml_print(USER_CONFIG_DIR / 'settings.yaml'),
         'cfg': lambda: yaml_print(DEFAULT_CFG_PATH),
         'copy-cfg': copy_default_cfg}
+    full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in tasks}, **{k: None for k in modes}, **special}
+
+    # Define common mis-uses of special commands, i.e. -h, -help, --help
+    special.update({k[0]: v for k, v in special.items()})  # singular
+    special.update({k[:-1]: v for k, v in special.items() if len(k) > 1 and k.endswith('s')})  # singular
     special = {**special, **{f'-{k}': v for k, v in special.items()}, **{f'--{k}': v for k, v in special.items()}}
 
     overrides = {}  # basic overrides, i.e. imgsz=320
@@ -256,7 +256,7 @@ def entrypoint(debug=''):
                 k, v = a.split('=', 1)  # split on first '=' sign
                 assert v, f"missing '{k}' value"
                 if k == 'cfg':  # custom.yaml passed
-                    LOGGER.info(f"{PREFIX}Overriding {DEFAULT_CFG_PATH} with {v}")
+                    LOGGER.info(f"Overriding {DEFAULT_CFG_PATH} with {v}")
                     overrides = {k: val for k, val in yaml_load(v).items() if k != 'cfg'}
                 else:
                     if v.lower() == 'none':
@@ -270,7 +270,7 @@ def entrypoint(debug=''):
                             v = eval(v)
                     overrides[k] = v
             except (NameError, SyntaxError, ValueError, AssertionError) as e:
-                raise argument_error(a) from e
+                check_cfg_mismatch(full_args_dict, {a: ""}, e)
 
         elif a in tasks:
             overrides['task'] = a
@@ -285,7 +285,7 @@ def entrypoint(debug=''):
             raise SyntaxError(f"'{colorstr('red', 'bold', a)}' is a valid YOLO argument but is missing an '=' sign "
                               f"to set its value, i.e. try '{a}={DEFAULT_CFG_DICT[a]}'\n{CLI_HELP_MSG}")
         else:
-            raise argument_error(a)
+            check_cfg_mismatch(full_args_dict, {a: ""})
 
     # Defaults
     task2model = dict(detect='yolov8n.pt', segment='yolov8n-seg.pt', classify='yolov8n-cls.pt')
@@ -298,9 +298,9 @@ def entrypoint(debug=''):
         LOGGER.warning(f"WARNING ⚠️ 'mode' is missing. Valid modes are {modes}. Using default 'mode={mode}'.")
     elif mode not in modes:
         if mode != 'checks':
-            raise ValueError(emojis(f"ERROR ❌ Invalid 'mode={mode}'. Valid modes are {modes}."))
+            raise ValueError(f"Invalid 'mode={mode}'. Valid modes are {modes}.\n{CLI_HELP_MSG}")
         LOGGER.warning("WARNING ⚠️ 'yolo mode=checks' is deprecated. Use 'yolo checks' instead.")
-        check_yolo()
+        checks.check_yolo()
         return
 
     # Model
@@ -341,7 +341,7 @@ def entrypoint(debug=''):
 def copy_default_cfg():
     new_file = Path.cwd() / DEFAULT_CFG_PATH.name.replace('.yaml', '_copy.yaml')
     shutil.copy2(DEFAULT_CFG_PATH, new_file)
-    LOGGER.info(f"{PREFIX}{DEFAULT_CFG_PATH} copied to {new_file}\n"
+    LOGGER.info(f"{DEFAULT_CFG_PATH} copied to {new_file}\n"
                 f"Example YOLO command with this new custom cfg:\n    yolo cfg='{new_file}' imgsz=320 batch=8")
 
 

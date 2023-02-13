@@ -27,10 +27,11 @@ from PIL import ExifTags, Image, ImageOps
 from torch.utils.data import DataLoader, Dataset, dataloader, distributed
 from tqdm import tqdm
 
-from ultralytics.yolo.data.utils import check_det_dataset, unzip_file
+from ultralytics.yolo.data.utils import check_det_dataset
 from ultralytics.yolo.utils import (DATASETS_DIR, LOGGER, NUM_THREADS, TQDM_BAR_FORMAT, is_colab, is_dir_writeable,
                                     is_kaggle, yaml_load)
 from ultralytics.yolo.utils.checks import check_requirements, check_yaml
+from ultralytics.yolo.utils.downloads import unzip_file
 from ultralytics.yolo.utils.ops import clean_str, segments2boxes, xyn2xy, xywh2xyxy, xywhn2xyxy, xyxy2xywhn
 from ultralytics.yolo.utils.torch_utils import torch_distributed_zero_first
 
@@ -54,7 +55,7 @@ for orientation in ExifTags.TAGS.keys():
 def get_hash(paths):
     # Returns a single hash value of a list of paths (files or dirs)
     size = sum(os.path.getsize(p) for p in paths if os.path.exists(p))  # sizes
-    h = hashlib.md5(str(size).encode())  # hash sizes
+    h = hashlib.sha256(str(size).encode())  # hash sizes
     h.update(''.join(paths).encode())  # hash paths
     return h.hexdigest()  # return hash
 

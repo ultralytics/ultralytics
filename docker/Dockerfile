@@ -16,6 +16,10 @@ RUN TZ=Etc/UTC apt install -y tzdata
 RUN apt install --no-install-recommends -y gcc git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg
 # RUN alias python=python3
 
+# Security updates
+# https://security.snyk.io/vuln/SNYK-UBUNTU1804-OPENSSL-3314796
+RUN apt upgrade --no-install-recommends -y openssl
+
 # Create working directory
 RUN mkdir -p /usr/src/ultralytics
 WORKDIR /usr/src/ultralytics

@@ -138,7 +138,7 @@ def non_max_suppression(
         multi_label=False,
         labels=(),
         max_det=300,
-        nm=0,  # number of masks
+        nc=0,  # number of classes (optional)
 ):
     """
     Perform non-maximum suppression (NMS) on a set of boxes, with support for masks and multiple labels per box.
@@ -159,7 +159,7 @@ def non_max_suppression(
             list contains the apriori labels for a given image. The list should be in the format
             output by a dataloader, with each label being a tuple of (class_index, x1, y1, x2, y2).
         max_det (int): The maximum number of boxes to keep after NMS.
-        nm (int): The number of masks output by the model.
+        nc (int): (optional) The number of classes output by the model. Any indices after this will be considered masks.
 
     Returns:
         (List[torch.Tensor]): A list of length batch_size, where each element is a tensor of
@@ -178,7 +178,8 @@ def non_max_suppression(
     if mps:  # MPS not fully supported yet, convert tensors to CPU before NMS
         prediction = prediction.cpu()
     bs = prediction.shape[0]  # batch size
-    nc = prediction.shape[1] - nm - 4  # number of classes
+    nc = nc or (prediction.shape[1] - 4)  # number of classes
+    nm = prediction.shape[1] - nc - 4
     mi = 4 + nc  # mask start index
     xc = prediction[:, 4:mi].amax(1) > conf_thres  # candidates
 

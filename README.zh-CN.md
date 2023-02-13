@@ -101,8 +101,8 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 
 我们仍在努力完善 YOLOv8 的几个部分！我们的目标是尽快完成这些工作，使 YOLOv8 的功能设置达到YOLOv5 的水平，包括对所有相同格式的导出和推理。我们还在写一篇 YOLOv8 的论文，一旦完成，我们将提交给 [arxiv.org](https://arxiv.org)。
 
-- [ ] TensorFlow 导出
-- [ ] DDP 恢复训练
+- [x] TensorFlow 导出
+- [x] DDP 恢复训练
 - [ ] [arxiv.org](https://arxiv.org) 论文
 
 </details>
@@ -214,7 +214,7 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 
 ## <div align="center">联系我们</div>
 
-若发现 YOLOv8 的 Bug 或有功能需求，请访问 [GitHub 问题](https://github.com/ultralytics/ultralytics/issues)。如需专业支持，请 [联系我们](https://ultralytics.com/contact)。
+请访问 [GitHub Issues](https://github.com/ultralytics/ultralytics/issues) 或 [Ultralytics Community Forum](https://community.ultralytis.com) 以报告 YOLOv8 错误和请求功能。
 
 <br>
 <div align="center">

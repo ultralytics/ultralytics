@@ -48,18 +48,18 @@ def test_val_classify():
 
 # Predict checks -------------------------------------------------------------------------------------------------------
 def test_predict_detect():
-    run(f"yolo predict detect model={MODEL}.pt source={ROOT / 'assets'} imgsz=32")
-    run(f"yolo predict detect model={MODEL}.pt source=https://ultralytics.com/images/bus.jpg imgsz=32")
-    run(f"yolo predict detect model={MODEL}.pt source=https://ultralytics.com/assets/decelera_landscape.mov imgsz=32")
-    run(f"yolo predict detect model={MODEL}.pt source=https://ultralytics.com/assets/decelera_portrait.mov imgsz=32")
+    run(f"yolo predict model={MODEL}.pt source={ROOT / 'assets'} imgsz=32")
+    run(f"yolo predict model={MODEL}.pt source=https://ultralytics.com/images/bus.jpg imgsz=32")
+    run(f"yolo predict model={MODEL}.pt source=https://ultralytics.com/assets/decelera_landscape_min.mov imgsz=32")
+    run(f"yolo predict model={MODEL}.pt source=https://ultralytics.com/assets/decelera_portrait_min.mov imgsz=32")
 
 
 def test_predict_segment():
-    run(f"yolo predict segment model={MODEL}-seg.pt source={ROOT / 'assets'} imgsz=32")
+    run(f"yolo predict model={MODEL}-seg.pt source={ROOT / 'assets'} imgsz=32")
 
 
 def test_predict_classify():
-    run(f"yolo predict classify model={MODEL}-cls.pt source={ROOT / 'assets'} imgsz=32")
+    run(f"yolo predict model={MODEL}-cls.pt source={ROOT / 'assets'} imgsz=32")
 
 
 # Export checks --------------------------------------------------------------------------------------------------------

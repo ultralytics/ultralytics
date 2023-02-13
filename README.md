@@ -114,8 +114,8 @@ We are still working on several parts of YOLOv8! We aim to have these completed 
 to par with YOLOv5, including export and inference to all the same formats. We are also writing a YOLOv8 paper which we
 will submit to [arxiv.org](https://arxiv.org) once complete.
 
-- [ ] TensorFlow exports
-- [ ] DDP resume
+- [x] TensorFlow exports
+- [x] DDP resume
 - [ ] [arxiv.org](https://arxiv.org) paper
 
 </details>
@@ -246,8 +246,7 @@ YOLOv8 is available under two different licenses:
 
 ## <div align="center">Contact</div>
 
-For YOLOv8 bugs and feature requests please visit [GitHub Issues](https://github.com/ultralytics/ultralytics/issues).
-For professional support please [Contact Us](https://ultralytics.com/contact).
+For YOLOv8 bug reports and feature requests please visit [GitHub Issues](https://github.com/ultralytics/ultralytics/issues) or the [Ultralytics Community Forum](https://community.ultralytics.com/).
 
 <br>
 <div align="center">

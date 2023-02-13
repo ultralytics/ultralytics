@@ -48,7 +48,6 @@ TensorFlow.js:
     $ ln -s ../../yolov5/yolov8n_web_model public/yolov8n_web_model
     $ npm start
 """
-import contextlib
 import json
 import os
 import platform
@@ -482,6 +481,7 @@ class Exporter:
             t.write(engine.serialize())
         return f, None
 
+    @try_export
     def _export_saved_model(self,
                             nms=False,
                             agnostic_nms=False,
@@ -680,35 +680,35 @@ class Exporter:
 
     def _add_tflite_metadata(self, file):
         # Add metadata to *.tflite models per https://www.tensorflow.org/lite/models/convert/metadata
-        with contextlib.suppress(ImportError):
-            # check_requirements('tflite_support')
-            from tflite_support import flatbuffers  # noqa
-            from tflite_support import metadata as _metadata  # noqa
-            from tflite_support import metadata_schema_py_generated as _metadata_fb  # noqa
+        check_requirements('tflite_support')
 
-            tmp_file = Path('/tmp/meta.txt')
-            with open(tmp_file, 'w') as meta_f:
-                meta_f.write(str(self.metadata))
+        from tflite_support import flatbuffers  # noqa
+        from tflite_support import metadata as _metadata  # noqa
+        from tflite_support import metadata_schema_py_generated as _metadata_fb  # noqa
 
-            model_meta = _metadata_fb.ModelMetadataT()
-            label_file = _metadata_fb.AssociatedFileT()
-            label_file.name = tmp_file.name
-            model_meta.associatedFiles = [label_file]
+        tmp_file = Path('/tmp/meta.txt')
+        with open(tmp_file, 'w') as meta_f:
+            meta_f.write(str(self.metadata))
 
-            subgraph = _metadata_fb.SubGraphMetadataT()
-            subgraph.inputTensorMetadata = [_metadata_fb.TensorMetadataT()]
-            subgraph.outputTensorMetadata = [_metadata_fb.TensorMetadataT()] * len(self.output_shape)
-            model_meta.subgraphMetadata = [subgraph]
+        model_meta = _metadata_fb.ModelMetadataT()
+        label_file = _metadata_fb.AssociatedFileT()
+        label_file.name = tmp_file.name
+        model_meta.associatedFiles = [label_file]
 
-            b = flatbuffers.Builder(0)
-            b.Finish(model_meta.Pack(b), _metadata.MetadataPopulator.METADATA_FILE_IDENTIFIER)
-            metadata_buf = b.Output()
+        subgraph = _metadata_fb.SubGraphMetadataT()
+        subgraph.inputTensorMetadata = [_metadata_fb.TensorMetadataT()]
+        subgraph.outputTensorMetadata = [_metadata_fb.TensorMetadataT()] * len(self.output_shape)
+        model_meta.subgraphMetadata = [subgraph]
 
-            populator = _metadata.MetadataPopulator.with_model_file(file)
-            populator.load_metadata_buffer(metadata_buf)
-            populator.load_associated_files([str(tmp_file)])
-            populator.populate()
-            tmp_file.unlink()
+        b = flatbuffers.Builder(0)
+        b.Finish(model_meta.Pack(b), _metadata.MetadataPopulator.METADATA_FILE_IDENTIFIER)
+        metadata_buf = b.Output()
+
+        populator = _metadata.MetadataPopulator.with_model_file(file)
+        populator.load_metadata_buffer(metadata_buf)
+        populator.load_associated_files([str(tmp_file)])
+        populator.populate()
+        tmp_file.unlink()
 
     def _pipeline_coreml(self, model, prefix=colorstr('CoreML Pipeline:')):
         # YOLOv8 CoreML pipeline

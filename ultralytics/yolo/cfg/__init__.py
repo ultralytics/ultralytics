@@ -62,9 +62,8 @@ CFG_BOOL_KEYS = {
     'overlap_mask', 'val', 'save_json', 'save_hybrid', 'half', 'dnn', 'plots', 'show', 'save_txt', 'save_conf',
     'save_crop', 'hide_labels', 'hide_conf', 'visualize', 'augment', 'agnostic_nms', 'retina_masks', 'boxes', 'keras',
     'optimize', 'int8', 'dynamic', 'simplify', 'nms', 'v5loader'}
-CFG_TRANSFORM_KEYS = {
-    "train_transform", "test_transform"
-}
+CFG_TRANSFORM_KEYS = {"train_transform", "test_transform"}
+
 
 def str_to_augment(transforms_str):
     """
@@ -76,14 +75,14 @@ def str_to_augment(transforms_str):
         transform (list): List of transformed packed by Compose class
     """
     compose_transform = Compose(transforms=[])
-    
+
     for transform_str, transform_args in transforms_str:
         try:
             module_name, cls_name = transform_str.rsplit(".", 1)
             compose_transform.append(getattr(importlib.import_module(module_name), cls_name)(**transform_args))
         except ImportError as e:
             raise ImportError(f"Fail to import the module when instantiated the string from augmentation: {str(e)}")
-    
+
     return compose_transform
 
 
@@ -132,7 +131,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
     for k in 'train_transform', 'test_transform':
         if k in cfg and isinstance(cfg[k], list):
             cfg[k] = str_to_augment(cfg[k])
-    
+
     # Type and Value checks
     for k, v in cfg.items():
         if v is not None:  # None values may be from optional args
@@ -155,7 +154,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
             elif k in CFG_TRANSFORM_KEYS and not isinstance(v, Compose):
                 raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. "
                                 f"'{k}' must be a list in str (i.e. '{k}=\"[transform1, transform2]\"'")
-                
+
     # Return instance
     return IterableSimpleNamespace(**cfg)
 

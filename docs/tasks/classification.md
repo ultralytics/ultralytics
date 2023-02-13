@@ -30,7 +30,7 @@ see the [Configuration](../cfg.md) page.
         model = YOLO("yolov8n-cls.pt")  # load a pretrained model (recommended for training)
         
         # Train the model
-        results = model.train(data="mnist160", epochs=100, imgsz=64)
+        model.train(data="mnist160", epochs=100, imgsz=64)
         ```
     === "CLI"
     
@@ -55,7 +55,9 @@ it's training `data` and arguments as model attributes.
         model = YOLO("path/to/best.pt")  # load a custom model
         
         # Validate the model
-        results = model.val()  # no arguments needed, dataset and settings remembered
+        metrics = model.val()  # no arguments needed, dataset and settings remembered
+        metrics.top1   # top1 accuracy
+        metrics.top5   # top5 accuracy
         ```
     === "CLI"
     
@@ -88,6 +90,7 @@ Use a trained YOLOv8n-cls model to run predictions on images.
         yolo classify predict model=yolov8n-cls.pt source="https://ultralytics.com/images/bus.jpg"  # predict with official model
         yolo classify predict model=path/to/best.pt source="https://ultralytics.com/images/bus.jpg"  # predict with custom model
         ```
+Read more details of `predict` in our [Predict](https://docs.ultralytics.com/predict/) page.
 
 ## Export
 

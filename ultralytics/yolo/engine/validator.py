@@ -95,7 +95,7 @@ class BaseValidator:
             assert model is not None, "Either trainer or model is needed for validation"
             self.device = select_device(self.args.device, self.args.batch)
             self.args.half &= self.device.type != 'cpu'
-            model = AutoBackend(model, device=self.device, dnn=self.args.dnn, fp16=self.args.half)
+            model = AutoBackend(model, device=self.device, dnn=self.args.dnn, data=self.args.data, fp16=self.args.half)
             self.model = model
             stride, pt, jit, engine = model.stride, model.pt, model.jit, model.engine
             imgsz = check_imgsz(self.args.imgsz, stride=stride)
@@ -117,8 +117,9 @@ class BaseValidator:
 
             if self.device.type == 'cpu':
                 self.args.workers = 0  # faster CPU val as time dominated by inference, not dataloading
-            self.dataloader = self.dataloader or \
-                              self.get_dataloader(self.data.get("val") or self.data.set("test"), self.args.batch)
+            if not pt:
+                self.args.rect = False
+            self.dataloader = self.dataloader or self.get_dataloader(self.data.get(self.args.split), self.args.batch)
 
             model.eval()
             model.warmup(imgsz=(1 if pt else self.args.batch, 3, imgsz, imgsz))  # warmup

@@ -20,12 +20,11 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.optim import lr_scheduler
 from tqdm import tqdm
 
-from ultralytics import __version__
 from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.data.utils import check_cls_dataset, check_det_dataset
-from ultralytics.yolo.utils import (DEFAULT_CFG, LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, callbacks, colorstr, emojis,
-                                    yaml_save)
+from ultralytics.yolo.utils import (DEFAULT_CFG, LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, __version__, callbacks,
+                                    colorstr, emojis, yaml_save)
 from ultralytics.yolo.utils.autobatch import check_train_batch_size
 from ultralytics.yolo.utils.checks import check_file, check_imgsz, print_args
 from ultralytics.yolo.utils.dist import ddp_cleanup, generate_ddp_command
@@ -51,6 +50,7 @@ class BaseTrainer:
         wdir (Path): Directory to save weights.
         last (Path): Path to last checkpoint.
         best (Path): Path to best checkpoint.
+        save_period (int): Save checkpoint every x epochs (disabled if < 1).
         batch_size (int): Batch size for training.
         epochs (int): Number of epochs to train for.
         start_epoch (int): Starting epoch for training.
@@ -101,6 +101,7 @@ class BaseTrainer:
             self.args.save_dir = str(self.save_dir)
             yaml_save(self.save_dir / 'args.yaml', vars(self.args))  # save run args
         self.last, self.best = self.wdir / 'last.pt', self.wdir / 'best.pt'  # checkpoint paths
+        self.save_period = self.args.save_period
 
         self.batch_size = self.args.batch
         self.epochs = self.args.epochs
@@ -116,13 +117,16 @@ class BaseTrainer:
 
         # Model and Dataloaders.
         self.model = self.args.model
-        self.data = self.args.data
-        if self.data.endswith(".yaml"):
-            self.data = check_det_dataset(self.data)
-        elif self.args.task == 'classify':
-            self.data = check_cls_dataset(self.data)
-        else:
-            raise FileNotFoundError(emojis(f"Dataset '{self.args.data}' not found ❌"))
+        try:
+            if self.args.task == 'classify':
+                self.data = check_cls_dataset(self.args.data)
+            elif self.args.data.endswith(".yaml") or self.args.task in ('detect', 'segment'):
+                self.data = check_det_dataset(self.args.data)
+                if 'yaml_file' in self.data:
+                    self.args.data = self.data['yaml_file']  # for validating 'yolo train data=url.zip' usage
+        except Exception as e:
+            raise FileNotFoundError(emojis(f"Dataset '{self.args.data}' error ❌ {e}")) from e
+
         self.trainset, self.testset = self.get_dataset(self.data)
         self.ema = None
 
@@ -171,13 +175,13 @@ class BaseTrainer:
 
         # Run subprocess if DDP training, else train normally
         if world_size > 1 and "LOCAL_RANK" not in os.environ:
-            command = generate_ddp_command(world_size, self)
+            cmd, file = generate_ddp_command(world_size, self)  # security vulnerability in Snyk scans
             try:
-                subprocess.run(command)
+                subprocess.run(cmd, check=True)
             except Exception as e:
-                self.console(e)
+                self.console.warning(e)
             finally:
-                ddp_cleanup(command, self)
+                ddp_cleanup(self, file)
         else:
             self._do_train(int(os.getenv("RANK", -1)), world_size)
 
@@ -389,6 +393,8 @@ class BaseTrainer:
         torch.save(ckpt, self.last)
         if self.best_fitness == self.fitness:
             torch.save(ckpt, self.best)
+        if (self.epoch > 0) and (self.save_period > 0) and (self.epoch % self.save_period == 0):
+            torch.save(ckpt, self.wdir / f'epoch{self.epoch}.pt')
         del ckpt
 
     def get_dataset(self, data):
@@ -457,7 +463,7 @@ class BaseTrainer:
     def get_validator(self):
         raise NotImplementedError("get_validator function not implemented in trainer")
 
-    def get_dataloader(self, dataset_path, batch_size=16, rank=0):
+    def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode="train"):
         """
         Returns dataloader derived from torch.data.Dataloader.
         """

@@ -1,5 +1,4 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
-import sys
 from copy import copy
 
 import torch
@@ -33,14 +32,15 @@ class DetectionTrainer(BaseTrainer):
                                  augment=mode == "train",
                                  cache=self.args.cache,
                                  pad=0 if mode == "train" else 0.5,
-                                 rect=self.args.rect,
+                                 rect=self.args.rect or mode == "val",
                                  rank=rank,
                                  workers=self.args.workers,
                                  close_mosaic=self.args.close_mosaic != 0,
                                  prefix=colorstr(f'{mode}: '),
                                  shuffle=mode == "train",
                                  seed=self.args.seed)[0] if self.args.v5loader else \
-            build_dataloader(self.args, batch_size, img_path=dataset_path, stride=gs, rank=rank, mode=mode)[0]
+            build_dataloader(self.args, batch_size, img_path=dataset_path, stride=gs, rank=rank, mode=mode,
+                             rect=mode == "val", names=self.data['names'])[0]
 
     def preprocess_batch(self, batch):
         batch["img"] = batch["img"].to(self.device, non_blocking=True).float() / 255
@@ -121,7 +121,13 @@ class Loss:
         self.device = device
 
         self.use_dfl = m.reg_max > 1
-        self.assigner = TaskAlignedAssigner(topk=10, num_classes=self.nc, alpha=0.5, beta=6.0)
+        roll_out_thr = h.min_memory if h.min_memory > 1 else 64 if h.min_memory else 0  # 64 is default
+
+        self.assigner = TaskAlignedAssigner(topk=10,
+                                            num_classes=self.nc,
+                                            alpha=0.5,
+                                            beta=6.0,
+                                            roll_out_thr=roll_out_thr)
         self.bbox_loss = BboxLoss(m.reg_max - 1, use_dfl=self.use_dfl).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
 

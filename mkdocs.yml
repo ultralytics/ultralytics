@@ -1,11 +1,12 @@
-site_name: Ultralytics YOLOv8 Docs
+site_name: YOLOv8 Docs
 repo_url: https://github.com/ultralytics/ultralytics
 edit_uri: https://github.com/ultralytics/ultralytics/tree/main/docs
 repo_name: ultralytics/ultralytics
+remote_name: https://github.com/ultralytics/docs
 
 theme:
   name: "material"
-  logo: https://github.com/ultralytics/assets/raw/main/logo/Ultralytics-logomark-white.png
+  logo: https://github.com/ultralytics/assets/raw/main/logo/Ultralytics_Logotype_Reverse.svg
   favicon: https://github.com/ultralytics/assets/raw/main/logo/favicon-yolo.ico
   font:
     text: Roboto

@@ -12,6 +12,7 @@ patience: 50  # epochs to wait for no observable improvement for early stopping 
 batch: 16  # number of images per batch (-1 for AutoBatch)
 imgsz: 640  # size of input images as integer or w,h
 save: True  # save train checkpoints and predict results
+save_period: -1 # Save checkpoint every x epochs (disabled if < 1)
 cache: False  # True/ram, disk or False. Use cache for data loading
 device:  # device to run on, i.e. cuda device=0 or device=0,1,2,3 or device=cpu
 workers: 8  # number of worker threads for data loading (per RANK if DDP)
@@ -25,10 +26,11 @@ seed: 0  # random seed for reproducibility
 deterministic: True  # whether to enable deterministic mode
 single_cls: False  # train multi-class data as single-class
 image_weights: False  # use weighted image selection for training
-rect: False  # support rectangular training
+rect: False  # support rectangular training if mode='train', support rectangular evaluation if mode='val'
 cos_lr: False  # use cosine learning rate scheduler
 close_mosaic: 10  # disable mosaic augmentation for final 10 epochs
 resume: False  # resume training from last checkpoint
+min_memory: False  # minimize memory footprint loss function, choices=[False, True, <roll_out_thr>]
 # Segmentation
 overlap_mask: True  # masks should overlap during training (segment train only)
 mask_ratio: 4  # mask downsample ratio (segment train only)
@@ -37,6 +39,7 @@ dropout: 0.0  # use dropout regularization (classify train only)
 
 # Val/Test settings ----------------------------------------------------------------------------------------------------
 val: True  # validate/test during training
+split: val  # dataset split to use for validation, i.e. 'val', 'test' or 'train'
 save_json: False  # save results to JSON file
 save_hybrid: False  # save hybrid version of labels (labels + additional predictions)
 conf:  # object confidence threshold for detection (default 0.25 predict, 0.001 val)

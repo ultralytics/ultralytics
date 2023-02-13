@@ -20,7 +20,9 @@ The simplest way of simply using YOLOv8 directly in a Python environment.
 
     === "Resume"
         ```python
-        TODO: Resume feature is under development and should be released soon.
+        # TODO: Resume feature is under development and should be released soon.
+        model = YOLO("last.pt")
+        model.train(resume=True)
         ```
 
 !!! example "Val"

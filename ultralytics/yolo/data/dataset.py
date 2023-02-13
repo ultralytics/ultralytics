@@ -14,7 +14,7 @@ from .utils import HELP_URL, LOCAL_RANK, get_hash, img2label_paths, verify_image
 
 
 class YOLODataset(BaseDataset):
-    cache_version = 1.0  # dataset labels *.cache version, >= 1.0 for YOLOv8
+    cache_version = '1.0.1'  # dataset labels *.cache version, >= 1.0.0 for YOLOv8
     rand_interp_methods = [cv2.INTER_NEAREST, cv2.INTER_LINEAR, cv2.INTER_CUBIC, cv2.INTER_AREA, cv2.INTER_LANCZOS4]
     """YOLO Dataset.
     Args:
@@ -22,28 +22,26 @@ class YOLODataset(BaseDataset):
         prefix (str): prefix.
     """
 
-    def __init__(
-        self,
-        img_path,
-        imgsz=640,
-        label_path=None,
-        cache=False,
-        augment=True,
-        hyp=None,
-        prefix="",
-        rect=False,
-        batch_size=None,
-        stride=32,
-        pad=0.0,
-        single_cls=False,
-        use_segments=False,
-        use_keypoints=False,
-    ):
+    def __init__(self,
+                 img_path,
+                 imgsz=640,
+                 cache=False,
+                 augment=True,
+                 hyp=None,
+                 prefix="",
+                 rect=False,
+                 batch_size=None,
+                 stride=32,
+                 pad=0.0,
+                 single_cls=False,
+                 use_segments=False,
+                 use_keypoints=False,
+                 names=None):
         self.use_segments = use_segments
         self.use_keypoints = use_keypoints
+        self.names = names
         assert not (self.use_segments and self.use_keypoints), "Can not use both segments and keypoints."
-        super().__init__(img_path, imgsz, label_path, cache, augment, hyp, prefix, rect, batch_size, stride, pad,
-                         single_cls)
+        super().__init__(img_path, imgsz, cache, augment, hyp, prefix, rect, batch_size, stride, pad, single_cls)
 
     def cache_labels(self, path=Path("./labels.cache")):
         # Cache dataset labels, check images and read shapes
@@ -56,7 +54,7 @@ class YOLODataset(BaseDataset):
         with ThreadPool(NUM_THREADS) as pool:
             results = pool.imap(func=verify_image_label,
                                 iterable=zip(self.im_files, self.label_files, repeat(self.prefix),
-                                             repeat(self.use_keypoints)))
+                                             repeat(self.use_keypoints), repeat(len(self.names))))
             pbar = tqdm(results, desc=desc, total=total, bar_format=TQDM_BAR_FORMAT)
             for im_file, lb, shape, segments, keypoint, nm_f, nf_f, ne_f, nc_f, msg in pbar:
                 nm += nm_f
@@ -87,7 +85,6 @@ class YOLODataset(BaseDataset):
         x["results"] = nf, nm, ne, nc, len(self.im_files)
         x["msgs"] = msgs  # warnings
         x["version"] = self.cache_version  # cache version
-        self.im_files = [lb["im_file"] for lb in x["labels"]]  # update im_files
         if is_dir_writeable(path.parent):
             np.save(str(path), x)  # save cache for next time
             path.with_suffix(".cache.npy").rename(path)  # remove .npy suffix
@@ -113,13 +110,16 @@ class YOLODataset(BaseDataset):
             tqdm(None, desc=self.prefix + d, total=n, initial=n, bar_format=TQDM_BAR_FORMAT)  # display cache results
             if cache["msgs"]:
                 LOGGER.info("\n".join(cache["msgs"]))  # display warnings
-        assert nf > 0, f"{self.prefix}No labels found in {cache_path}, can not start training. {HELP_URL}"
+        if nf == 0:  # number of labels found
+            raise FileNotFoundError(f"{self.prefix}No labels found in {cache_path}, can not start training. {HELP_URL}")
 
         # Read cache
         [cache.pop(k) for k in ("hash", "version", "msgs")]  # remove items
         labels = cache["labels"]
+        self.im_files = [lb["im_file"] for lb in labels]  # update im_files
 
         # Check if the dataset is all boxes or all segments
+        len_cls = sum(len(lb["cls"]) for lb in labels)
         len_boxes = sum(len(lb["bboxes"]) for lb in labels)
         len_segments = sum(len(lb["segments"]) for lb in labels)
         if len_segments and len_boxes != len_segments:
@@ -129,8 +129,8 @@ class YOLODataset(BaseDataset):
                 "To avoid this please supply either a detect or segment dataset, not a detect-segment mixed dataset.")
             for lb in labels:
                 lb["segments"] = []
-        nl = len(np.concatenate([label["cls"] for label in labels], 0))  # number of labels
-        assert nl > 0, f"{self.prefix}All labels empty in {cache_path}, can not start training. {HELP_URL}"
+        if len_cls == 0:
+            raise ValueError(f"All labels empty in {cache_path}, can not start training without labels. {HELP_URL}")
         return labels
 
     # TODO: use hyp config to set all these augmentations

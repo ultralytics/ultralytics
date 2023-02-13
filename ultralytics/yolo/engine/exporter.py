@@ -97,6 +97,10 @@ def export_formats():
     return pd.DataFrame(x, columns=['Format', 'Argument', 'Suffix', 'CPU', 'GPU'])
 
 
+EXPORT_FORMATS_LIST = list(export_formats()['Argument'][1:])
+EXPORT_FORMATS_TABLE = str(export_formats())
+
+
 def try_export(inner_func):
     # YOLOv8 export decorator, i..e @try_export
     inner_args = get_default_args(inner_func)
@@ -657,14 +661,15 @@ class Exporter:
         subprocess.run(cmd.split())
 
         with open(f_json, 'w') as j:  # sort JSON Identity_* in ascending order
-            subst = re.sub(
-                r'{"outputs": {"Identity.?.?": {"name": "Identity.?.?"}, '
-                r'"Identity.?.?": {"name": "Identity.?.?"}, '
-                r'"Identity.?.?": {"name": "Identity.?.?"}, '
-                r'"Identity.?.?": {"name": "Identity.?.?"}}}', r'{"outputs": {"Identity": {"name": "Identity"}, '
-                r'"Identity_1": {"name": "Identity_1"}, '
-                r'"Identity_2": {"name": "Identity_2"}, '
-                r'"Identity_3": {"name": "Identity_3"}}}', f_json.read_text())
+            subst = re.sub(r'{"outputs": {"Identity.?.?": {"name": "Identity.?.?"}, '
+                           r'"Identity.?.?": {"name": "Identity.?.?"}, '
+                           r'"Identity.?.?": {"name": "Identity.?.?"}, '
+                           r'"Identity.?.?": {"name": "Identity.?.?"}}}',
+                           r'{"outputs": {"Identity": {"name": "Identity"}, '
+                           r'"Identity_1": {"name": "Identity_1"}, '
+                           r'"Identity_2": {"name": "Identity_2"}, '
+                           r'"Identity_3": {"name": "Identity_3"}}}',
+                           f_json.read_text(), )
             j.write(subst)
         return f, None
 

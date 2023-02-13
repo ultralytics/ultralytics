@@ -234,17 +234,17 @@ def check_yolov5u_filename(file: str):
     return file
 
 
-def check_file(file, suffix=''):
+def check_file(file, suffix='', download=True):
     # Search/download file (if necessary) and return path
     check_suffix(file, suffix)  # optional
     file = str(file)  # convert to string
     file = check_yolov5u_filename(file)  # yolov5n -> yolov5nu
-    if not file or ('://' not in file and Path(file).is_file()):  # exists ('://' check required in Windows Python<3.10)
+    if not file or ('://' not in file and Path(file).exists()):  # exists ('://' check required in Windows Python<3.10)
         return file
-    elif file.lower().startswith(('https://', 'http://', 'rtsp://', 'rtmp://')):  # download
+    elif download and file.lower().startswith(('https://', 'http://', 'rtsp://', 'rtmp://')):  # download
         url = file  # warning: Pathlib turns :// -> :/
         file = Path(urllib.parse.unquote(file).split('?')[0]).name  # '%2F' to '/', split https://url.com/file.txt?auth
-        if Path(file).is_file():
+        if Path(file).exists():
             LOGGER.info(f'Found {url} locally at {file}')  # file already exists
         else:
             downloads.safe_download(url=url, file=file, unzip=False)

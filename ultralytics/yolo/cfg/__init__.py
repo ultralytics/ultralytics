@@ -12,8 +12,8 @@ from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_P
                                     IterableSimpleNamespace, __version__, checks, colorstr, yaml_load, yaml_print)
 
 CLI_HELP_MSG = \
-    """
-    YOLOv8 'yolo' CLI commands use the following syntax:
+    f"""
+    Arguments received: {str(['yolo'] + sys.argv[1:])}. Note that Ultralytics 'yolo' commands use the following syntax:
 
         yolo TASK MODE ARGS
 
@@ -64,9 +64,7 @@ CFG_BOOL_KEYS = {
 
 def cfg2dict(cfg):
     """
-    Convert a configuration object to a dictionary.
-
-    This function converts a configuration object to a dictionary, whether it is a file path, a string, or a SimpleNamespace object.
+    Convert a configuration object to a dictionary, whether it is a file path, a string, or a SimpleNamespace object.
 
     Inputs:
         cfg (str) or (Path) or (SimpleNamespace): Configuration object to be converted to a dictionary.
@@ -143,8 +141,9 @@ def check_cfg_mismatch(base: Dict, custom: Dict, e=None):
     if mismatched:
         string = ''
         for x in mismatched:
-            matches = get_close_matches(x, base)
-            match_str = f"Similar arguments are {matches}." if matches else ''
+            matches = get_close_matches(x, base)  # key list
+            matches = [f"{k}={DEFAULT_CFG_DICT[k]}" if DEFAULT_CFG_DICT[k] is not None else k for k in matches]  # k=v
+            match_str = f"Similar arguments are i.e. {matches}." if matches else ''
             string += f"'{colorstr('red', 'bold', x)}' is not a valid YOLO argument. {match_str}\n"
         raise SyntaxError(string + CLI_HELP_MSG) from e
 
@@ -265,7 +264,7 @@ def entrypoint(debug=''):
         LOGGER.warning(f"WARNING ⚠️ 'mode' is missing. Valid modes are {modes}. Using default 'mode={mode}'.")
     elif mode not in modes:
         if mode != 'checks':
-            raise ValueError(f"Invalid 'mode={mode}'. Valid modes are {modes}.")
+            raise ValueError(f"Invalid 'mode={mode}'. Valid modes are {modes}.\n{CLI_HELP_MSG}")
         LOGGER.warning("WARNING ⚠️ 'yolo mode=checks' is deprecated. Use 'yolo checks' instead.")
         checks.check_yolo()
         return

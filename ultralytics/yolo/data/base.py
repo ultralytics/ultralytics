@@ -71,7 +71,7 @@ class BaseDataset(Dataset):
 
         # transforms
         if transforms is not None:
-            LOGGER.info(f"Using custom transform")
+            LOGGER.info("Using custom transform")
             self.transforms = transforms
         else:
             self.transforms = self.build_transforms(hyp=hyp)

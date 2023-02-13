@@ -101,8 +101,8 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 
 我们仍在努力完善 YOLOv8 的几个部分！我们的目标是尽快完成这些工作，使 YOLOv8 的功能设置达到YOLOv5 的水平，包括对所有相同格式的导出和推理。我们还在写一篇 YOLOv8 的论文，一旦完成，我们将提交给 [arxiv.org](https://arxiv.org)。
 
-- [ ] TensorFlow 导出
-- [ ] DDP 恢复训练
+- [x] TensorFlow 导出
+- [x] DDP 恢复训练
 - [ ] [arxiv.org](https://arxiv.org) 论文
 
 </details>

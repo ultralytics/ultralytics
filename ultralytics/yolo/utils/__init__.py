@@ -144,11 +144,13 @@ def yaml_save(file='data.yaml', data=None):
     # TODO: Write a customized YAMLObject for transform
     with open(file, 'w') as f:
         # Dump data to file in YAML format, converting Path objects to strings
-        yaml.safe_dump({k: str(v) if isinstance(v, Path) else v
-                        for k, v in data.items() if k not in ('train_transform', 'test_transform')},
-                       f,
-                       sort_keys=False,
-                       allow_unicode=True)
+        yaml.safe_dump(
+            {
+                k: str(v) if isinstance(v, Path) else v
+                for k, v in data.items() if k not in ('train_transform', 'test_transform')},
+            f,
+            sort_keys=False,
+            allow_unicode=True)
 
 
 def yaml_load(file='data.yaml', append_filename=False):

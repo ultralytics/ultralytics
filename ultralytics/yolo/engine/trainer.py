@@ -33,6 +33,7 @@ from ultralytics.yolo.utils.files import get_latest_run, increment_path
 from ultralytics.yolo.utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel, init_seeds, one_cycle,
                                                 select_device, strip_optimizer)
 
+
 class BaseTrainer:
     """
     BaseTrainer
@@ -233,9 +234,17 @@ class BaseTrainer:
 
         # dataloaders
         batch_size = self.batch_size // world_size if world_size > 1 else self.batch_size
-        self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=rank, mode="train", transforms=self.args.train_transform)
+        self.train_loader = self.get_dataloader(self.trainset,
+                                                batch_size=batch_size,
+                                                rank=rank,
+                                                mode="train",
+                                                transforms=self.args.train_transform)
         if rank in {0, -1}:
-            self.test_loader = self.get_dataloader(self.testset, batch_size=batch_size * 2, rank=-1, mode="val", transforms=self.args.test_transform)
+            self.test_loader = self.get_dataloader(self.testset,
+                                                   batch_size=batch_size * 2,
+                                                   rank=-1,
+                                                   mode="val",
+                                                   transforms=self.args.test_transform)
             self.validator = self.get_validator()
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix="val")
             self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))  # TODO: init metrics for plot_results()?

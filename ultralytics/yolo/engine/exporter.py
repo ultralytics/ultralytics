@@ -248,7 +248,7 @@ class Exporter:
                                                   agnostic_nms=self.args.agnostic_nms)
                     if edgetpu:
                         f[8], _ = self._export_edgetpu()
-                    self._add_tflite_metadata(f[8] or f[7], num_outputs=len(self.output_shape))
+                    self._add_tflite_metadata(f[8] or f[7])
                 if tfjs:
                     f[9], _ = self._export_tfjs()
         if paddle:  # PaddlePaddle
@@ -482,7 +482,6 @@ class Exporter:
             t.write(engine.serialize())
         return f, None
 
-    @try_export
     def _export_saved_model(self,
                             nms=False,
                             agnostic_nms=False,
@@ -510,6 +509,10 @@ class Exporter:
 
         # Export to TF SavedModel
         subprocess.run(f'onnx2tf -i {onnx} --output_signaturedefs -o {f}', shell=True)
+
+        # Add TFLite metadata
+        for tflite_file in Path(f).rglob('*.tflite'):
+            self._add_tflite_metadata(tflite_file)
 
         # Load saved_model
         keras_model = tf.saved_model.load(f, tags=None, options=None)
@@ -675,7 +678,7 @@ class Exporter:
             j.write(subst)
         return f, None
 
-    def _add_tflite_metadata(self, file, num_outputs):
+    def _add_tflite_metadata(self, file):
         # Add metadata to *.tflite models per https://www.tensorflow.org/lite/models/convert/metadata
         with contextlib.suppress(ImportError):
             # check_requirements('tflite_support')
@@ -694,7 +697,7 @@ class Exporter:
 
             subgraph = _metadata_fb.SubGraphMetadataT()
             subgraph.inputTensorMetadata = [_metadata_fb.TensorMetadataT()]
-            subgraph.outputTensorMetadata = [_metadata_fb.TensorMetadataT()] * num_outputs
+            subgraph.outputTensorMetadata = [_metadata_fb.TensorMetadataT()] * len(self.output_shape)
             model_meta.subgraphMetadata = [subgraph]
 
             b = flatbuffers.Builder(0)

@@ -18,7 +18,6 @@ SOURCE = ROOT / 'assets/bus.jpg'
 
 def test_model_forward():
     model = YOLO(CFG)
-    model.predict(SOURCE)
     model(SOURCE)
 
 
@@ -38,11 +37,10 @@ def test_model_fuse():
 
 def test_predict_dir():
     model = YOLO(MODEL)
-    model.predict(source=ROOT / "assets")
+    model(source=ROOT / "assets")
 
 
 def test_predict_img():
-
     model = YOLO(MODEL)
     img = Image.open(str(SOURCE))
     output = model(source=img, save=True, verbose=True)  # PIL
@@ -106,22 +104,26 @@ def test_export_torchscript():
     print(export_formats())
 
     model = YOLO(MODEL)
-    model.export(format='torchscript')
+    f = model.export(format='torchscript')
+    YOLO(f)(SOURCE)  # exported model inference
 
 
 def test_export_onnx():
     model = YOLO(MODEL)
-    model.export(format='onnx')
+    f = model.export(format='onnx')
+    YOLO(f)(SOURCE)  # exported model inference
 
 
 def test_export_openvino():
     model = YOLO(MODEL)
-    model.export(format='openvino')
+    f = model.export(format='openvino')
+    YOLO(f)(SOURCE)  # exported model inference
 
 
 def test_export_coreml():
     model = YOLO(MODEL)
     model.export(format='coreml')
+    # YOLO(f)(SOURCE)  # model prediction only supported on macOS
 
 
 def test_export_paddle(enabled=False):
@@ -140,6 +142,7 @@ def test_workflow():
     model = YOLO(MODEL)
     model.train(data="coco8.yaml", epochs=1, imgsz=32)
     model.val()
+    print(model.metrics)
     model.predict(SOURCE)
     model.export(format="onnx", opset=12)  # export a model to ONNX format
 
@@ -164,6 +167,3 @@ def test_predict_callback_and_setup():
         print('test_callback', bs)
         boxes = result.boxes  # Boxes object for bbox outputs
         print(boxes)
-
-
-test_predict_img()

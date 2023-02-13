@@ -13,7 +13,6 @@ from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_P
                                     IterableSimpleNamespace, __version__, checks, colorstr, yaml_load, yaml_print)
 from ultralytics.yolo.data.augment import Compose
 
-
 CLI_HELP_MSG = \
     f"""
     Arguments received: {str(['yolo'] + sys.argv[1:])}. Note that Ultralytics 'yolo' commands use the following syntax:

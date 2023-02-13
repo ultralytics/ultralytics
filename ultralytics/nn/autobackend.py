@@ -13,7 +13,7 @@ import torch.nn as nn
 from PIL import Image
 
 from ultralytics.yolo.utils import LOGGER, ROOT, yaml_load
-from ultralytics.yolo.utils.checks import check_requirements, check_suffix, check_version
+from ultralytics.yolo.utils.checks import check_requirements, check_suffix, check_version, check_yaml
 from ultralytics.yolo.utils.downloads import attempt_download_asset, is_url
 from ultralytics.yolo.utils.ops import xywh2xyxy
 
@@ -38,7 +38,7 @@ class AutoBackend(nn.Module):
             weights (str): The path to the weights file. Default: 'yolov8n.pt'
             device (torch.device): The device to run the model on.
             dnn (bool): Use OpenCV's DNN module for inference if True, defaults to False.
-            data (dict): Additional data, optional
+            data (str), (Path): Additional data.yaml file for class names, optional
             fp16 (bool): If True, use half precision. Default: False
             fuse (bool): Whether to fuse the model or not. Default: True
 
@@ -193,7 +193,7 @@ class AutoBackend(nn.Module):
                 from tflite_runtime.interpreter import Interpreter, load_delegate
             except ImportError:
                 import tensorflow as tf
-                Interpreter, load_delegate = tf.lite.Interpreter, tf.lite.experimental.load_delegate,
+                Interpreter, load_delegate = tf.lite.Interpreter, tf.lite.experimental.load_delegate
             if edgetpu:  # TF Edge TPU https://coral.ai/software/#edgetpu-runtime
                 LOGGER.info(f'Loading {w} for TensorFlow Lite Edge TPU inference...')
                 delegate = {
@@ -232,12 +232,14 @@ class AutoBackend(nn.Module):
             nhwc = model.runtime.startswith("tensorflow")
             '''
         else:
-            raise NotImplementedError(f"ERROR: '{w}' is not a supported format. For supported formats see "
-                                      f"https://docs.ultralytics.com/reference/nn/")
+            from ultralytics.yolo.engine.exporter import EXPORT_FORMATS_TABLE
+            raise TypeError(f"model='{w}' is not a supported model format. "
+                            "See https://docs.ultralytics.com/tasks/detection/#export for help."
+                            f"\n\n{EXPORT_FORMATS_TABLE}")
 
         # class names
         if 'names' not in locals():  # names missing
-            names = yaml_load(data)['names'] if data else {i: f'class{i}' for i in range(999)}  # assign default
+            names = yaml_load(check_yaml(data))['names'] if data else {i: f'class{i}' for i in range(999)}  # assign
         names = check_class_names(names)
 
         self.__dict__.update(locals())  # assign all variables to self

@@ -682,7 +682,8 @@ def v8_transforms(dataset, imgsz, hyp):
 # Classification augmentations -----------------------------------------------------------------------------------------
 def classify_transforms(size=224):
     # Transforms to apply if albumentations not installed
-    assert isinstance(size, int), f"ERROR: classify_transforms size {size} must be integer, not (list, tuple)"
+    if not isinstance(size, int):
+        raise TypeError(f"classify_transforms() size {size} must be integer, not (list, tuple)")
     # T.Compose([T.ToTensor(), T.Resize(size), T.CenterCrop(size), T.Normalize(IMAGENET_MEAN, IMAGENET_STD)])
     return T.Compose([CenterCrop(size), ToTensor(), T.Normalize(IMAGENET_MEAN, IMAGENET_STD)])
 

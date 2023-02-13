@@ -35,6 +35,7 @@ import torch
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.data import load_inference_source
+from ultralytics.yolo.data.augment import classify_transforms
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, SETTINGS, callbacks, colorstr, ops
 from ultralytics.yolo.utils.checks import check_imgsz, check_imshow
 from ultralytics.yolo.utils.files import increment_path
@@ -121,8 +122,12 @@ class BasePredictor:
 
     def setup_source(self, source):
         self.imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)  # check image size
+        if self.args.task == 'classify':
+            transforms = getattr(self.model.model, 'transforms', classify_transforms(self.imgsz[0]))
+        else:  # predict, segment
+            transforms = None
         self.dataset = load_inference_source(source=source,
-                                             transforms=getattr(self.model.model, 'transforms', None),
+                                             transforms=transforms,
                                              imgsz=self.imgsz,
                                              vid_stride=self.args.vid_stride,
                                              stride=self.model.stride,
@@ -146,7 +151,7 @@ class BasePredictor:
             (self.save_dir / 'labels' if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
         # warmup model
         if not self.done_warmup:
-            self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.bs, 3, *self.imgsz))
+            self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, 3, *self.imgsz))
             self.done_warmup = True
 
         self.seen, self.windows, self.dt, self.batch = 0, [], (ops.Profile(), ops.Profile(), ops.Profile()), None
@@ -218,7 +223,7 @@ class BasePredictor:
             cv2.namedWindow(str(p), cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
             cv2.resizeWindow(str(p), im0.shape[1], im0.shape[0])
         cv2.imshow(str(p), im0)
-        cv2.waitKey(1)  # 1 millisecond
+        cv2.waitKey(500 if self.batch[4].startswith('image') else 1)  # 1 millisecond
 
     def save_preds(self, vid_cap, idx, save_path):
         im0 = self.annotator.result()

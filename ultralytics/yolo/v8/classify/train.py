@@ -8,7 +8,7 @@ from ultralytics.yolo import v8
 from ultralytics.yolo.data import build_classification_dataloader
 from ultralytics.yolo.engine.trainer import BaseTrainer
 from ultralytics.yolo.utils import DEFAULT_CFG
-from ultralytics.yolo.utils.torch_utils import strip_optimizer, is_parallel
+from ultralytics.yolo.utils.torch_utils import is_parallel, strip_optimizer
 
 
 class ClassificationTrainer(BaseTrainer):

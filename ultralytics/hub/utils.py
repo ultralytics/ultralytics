@@ -11,9 +11,10 @@ from random import random
 
 import requests
 
-from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, LOGGER, RANK, SETTINGS, TryExcept, colorstr, emojis,
-                                    get_git_origin_url, is_colab, is_docker, is_git_dir, is_github_actions_ci,
-                                    is_jupyter, is_kaggle, is_pip_package, is_pytest_running)
+from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, ENVIRONMENT, LOGGER, RANK, SETTINGS, TryExcept, __version__,
+                                    colorstr, emojis, get_git_origin_url, is_git_dir, is_github_actions_ci,
+                                    is_pip_package, is_pytest_running)
+from ultralytics.yolo.utils.checks import check_online
 
 PREFIX = colorstr('Ultralytics: ')
 HELP_MSG = 'If this issue persists please visit https://github.com/ultralytics/hub/issues for assistance.'
@@ -143,9 +144,6 @@ class Traces:
         """
         Initialize Traces for error tracking and reporting if tests are not currently running.
         """
-        from ultralytics import __version__
-        env = 'Colab' if is_colab() else 'Kaggle' if is_kaggle() else 'Jupyter' if is_jupyter() else \
-            'Docker' if is_docker() else platform.system()
         self.rate_limit = 3.0  # rate limit (seconds)
         self.t = 0.0  # rate limit timer (seconds)
         self.metadata = {
@@ -153,9 +151,10 @@ class Traces:
             "install": 'git' if is_git_dir() else 'pip' if is_pip_package() else 'other',
             "python": platform.python_version(),
             "release": __version__,
-            "environment": env}
+            "environment": ENVIRONMENT}
         self.enabled = SETTINGS['sync'] and \
                        RANK in {-1, 0} and \
+                       check_online() and \
                        not is_pytest_running() and \
                        not is_github_actions_ci() and \
                        (is_pip_package() or get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git")
@@ -186,6 +185,7 @@ class Traces:
                           headers=None,
                           code=3,
                           retry=0,
+                          timeout=1.0,
                           verbose=False)
 
 

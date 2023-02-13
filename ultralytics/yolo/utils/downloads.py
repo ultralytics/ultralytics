@@ -6,13 +6,18 @@ from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from urllib import parse, request
-from zipfile import ZipFile, is_zipfile, BadZipFile
+from zipfile import BadZipFile, ZipFile, is_zipfile
 
 import requests
 import torch
 from tqdm import tqdm
 
 from ultralytics.yolo.utils import LOGGER
+
+GITHUB_ASSET_NAMES = [f'yolov8{size}{suffix}.pt' for size in 'nsmlx' for suffix in ('', '6', '-cls', '-seg')] + \
+                     [f'yolov5{size}u.pt' for size in 'nsmlx'] + \
+                     [f'yolov3{size}u.pt' for size in ('', '-spp', '-tiny')]
+GITHUB_ASSET_STEMS = [Path(k).stem for k in GITHUB_ASSET_NAMES]
 
 
 def is_url(url, check=True):
@@ -158,9 +163,7 @@ def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
             return file
 
         # GitHub assets
-        assets = [f'yolov8{size}{suffix}.pt' for size in 'nsmlx' for suffix in ('', '6', '-cls', '-seg')] + \
-                 [f'yolov5{size}u.pt' for size in 'nsmlx'] + \
-                 [f'yolov3{size}u.pt' for size in ('', '-spp', '-tiny')]
+        assets = GITHUB_ASSET_NAMES
         try:
             tag, assets = github_assets(repo, release)
         except Exception:

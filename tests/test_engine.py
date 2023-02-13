@@ -10,7 +10,21 @@ CFG_DET = 'yolov8n.yaml'
 CFG_SEG = 'yolov8n-seg.yaml'
 CFG_CLS = 'squeezenet1_0'
 CFG = get_cfg(DEFAULT_CFG)
-TRANSFORM = ["ultralytics.yolo.data.augment.Albumentations", {}]
+TRANSFORM = [
+    ["ultralytics.yolo.data.augment.LetterBox", dict(new_shape=(640, 640), scaleup=False)],
+    [
+        "ultralytics.yolo.data.augment.Format",
+        dict(
+            bbox_format="xywh",
+            normalize=True,
+            return_mask=False,
+            return_keypoint=False,
+            batch_idx=True,
+            mask_ratio=4,
+            mask_overlap=True
+        )
+    ]
+]
 MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n'
 SOURCE = ROOT / "assets"
 
@@ -60,7 +74,8 @@ def test_segment():
     trainer.train()
     
     # Trainer with transform
-    trainer_transform = detect.SegmentationTrainer(
+    TRANSFORM[1][1]["return_mask"] = True
+    trainer_transform = segment.SegmentationTrainer(
         overrides=dict({"train_transform": TRANSFORM}, **overrides)
     )
     trainer_transform.train()

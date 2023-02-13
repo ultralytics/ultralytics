@@ -165,5 +165,3 @@ def test_predict_callback_and_setup():
         print('test_callback', bs)
         boxes = result.boxes  # Boxes object for bbox outputs
         print(boxes)
-
-

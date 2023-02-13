@@ -270,7 +270,7 @@ class YOLO:
         """
         if not self.metrics_data:
             LOGGER.info("No metrics data found! Run training or validation operation first.")
-        
+
         return self.metrics_data
 
     @staticmethod

@@ -356,7 +356,7 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
         model = (ckpt.get('ema') or ckpt['model']).to(device).float()  # FP32 model
 
         # Model compatibility updates
-        model.args = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # attach args to model
+        model.args = args  # attach args to model
         model.pt_path = weights  # attach *.pt file path to model
         model.task = guess_model_task(model)
         if not hasattr(model, 'stride'):

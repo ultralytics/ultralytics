@@ -24,7 +24,7 @@ class SegmentationTrainer(v8.detect.DetectionTrainer):
         super().__init__(cfg, overrides)
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        model = SegmentationModel(cfg, ch=3, nc=self.data["nc"], verbose=verbose and RANK == 0)
+        model = SegmentationModel(cfg, ch=3, nc=self.data["nc"], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
 

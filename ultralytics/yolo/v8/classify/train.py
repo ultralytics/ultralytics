@@ -23,7 +23,7 @@ class ClassificationTrainer(BaseTrainer):
         self.model.names = self.data["names"]
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        model = ClassificationModel(cfg, nc=self.data["nc"], verbose=verbose and RANK == 0)
+        model = ClassificationModel(cfg, nc=self.data["nc"], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
 

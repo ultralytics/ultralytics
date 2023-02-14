@@ -684,18 +684,42 @@ class Exporter:
         from tflite_support import metadata as _metadata  # noqa
         from tflite_support import metadata_schema_py_generated as _metadata_fb  # noqa
 
+        # Creates model info.
+        model_meta = _metadata_fb.ModelMetadataT()
+        model_meta.name = "YOLOv8 model"
+        model_meta.version = "v1"
+        model_meta.author = "Ultralytics Inc."
+        model_meta.license = ("GNU General Public License v3.0 "
+                              "https://github.com/ultralytics/ultralytics/blob/main/LICENSE.")
+        # Creates input info.
+        input_meta = _metadata_fb.TensorMetadataT()
+        input_meta.name = "image"
+        input_meta.description = "Input image to be detected."
+        input_meta.content = _metadata_fb.ContentT()
+        input_meta.content.contentProperties = _metadata_fb.ImagePropertiesT()
+        input_meta.content.contentProperties.colorSpace = _metadata_fb.ColorSpaceType.RGB
+        input_meta.content.contentPropertiesType = _metadata_fb.ContentProperties.ImageProperties
+
+        # Creates output info.
+        output_meta = _metadata_fb.TensorMetadataT()
+
+        output_meta.name = "output"
+        output_meta.description = "Coordinates of detected objects, class labels, and confidence score."
+
+        # Label file
         tmp_file = Path('/tmp/meta.txt')
         with open(tmp_file, 'w') as meta_f:
             meta_f.write(str(self.metadata))
 
-        model_meta = _metadata_fb.ModelMetadataT()
         label_file = _metadata_fb.AssociatedFileT()
         label_file.name = tmp_file.name
-        model_meta.associatedFiles = [label_file]
+        label_file.type = _metadata_fb.AssociatedFileType.TENSOR_AXIS_LABELS
+        output_meta.associatedFiles = [label_file]
 
+        # Creates subgraph info.
         subgraph = _metadata_fb.SubGraphMetadataT()
-        subgraph.inputTensorMetadata = [_metadata_fb.TensorMetadataT()]
-        subgraph.outputTensorMetadata = [_metadata_fb.TensorMetadataT()] * len(self.output_shape)
+        subgraph.inputTensorMetadata = [input_meta]
+        subgraph.outputTensorMetadata = [output_meta]
         model_meta.subgraphMetadata = [subgraph]
 
         b = flatbuffers.Builder(0)

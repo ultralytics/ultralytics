@@ -85,6 +85,7 @@ class BaseTrainer:
         self.console = LOGGER
         self.validator = None
         self.model = None
+        self.metrics = None
         init_seeds(self.args.seed + 1 + RANK, deterministic=self.args.deterministic)
 
         # Dirs
@@ -417,7 +418,7 @@ class BaseTrainer:
             cfg = ckpt["model"].yaml
         else:
             cfg = model
-        self.model = self.get_model(cfg=cfg, weights=weights)  # calls Model(cfg, weights)
+        self.model = self.get_model(cfg=cfg, weights=weights, verbose=RANK == -1)  # calls Model(cfg, weights)
         return ckpt
 
     def optimizer_step(self):

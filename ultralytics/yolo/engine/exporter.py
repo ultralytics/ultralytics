@@ -73,7 +73,7 @@ from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, __version__, callbacks, 
 from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version, check_yaml
 from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.ops import Profile
-from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode, get_latest_opset
+from ultralytics.yolo.utils.torch_utils import get_latest_opset, select_device, smart_inference_mode
 
 MACOS = platform.system() == 'Darwin'  # macOS environment
 
@@ -508,7 +508,7 @@ class Exporter:
         onnx = self.file.with_suffix('.onnx')
 
         # Export to TF SavedModel
-        subprocess.run(f'onnx2tf -i {onnx} --output_signaturedefs -o {f}', shell=True)
+        subprocess.run(f'onnx2tf -i {onnx} -o {f} --non_verbose', shell=True)
 
         # Add TFLite metadata
         for tflite_file in Path(f).rglob('*.tflite'):

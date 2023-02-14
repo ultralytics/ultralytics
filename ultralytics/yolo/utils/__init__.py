@@ -221,11 +221,10 @@ def is_jupyter():
     Returns:
         bool: True if running inside a Jupyter Notebook, False otherwise.
     """
-    try:
+    with contextlib.suppress(Exception):
         from IPython import get_ipython
         return get_ipython() is not None
-    except ImportError:
-        return False
+    return False
 
 
 def is_docker() -> bool:
@@ -287,11 +286,9 @@ def is_pytest_running():
     Returns:
         (bool): True if pytest is running, False otherwise.
     """
-    try:
-        import sys
+    with contextlib.suppress(Exception):
         return "pytest" in sys.modules
-    except ImportError:
-        return False
+    return False
 
 
 def is_github_actions_ci() -> bool:

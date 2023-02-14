@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
+import ast
 import contextlib
-import keyword
 from copy import deepcopy
 from pathlib import Path
 

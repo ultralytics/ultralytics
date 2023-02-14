@@ -81,6 +81,9 @@ target/
 profile_default/
 ipython_config.py
 
+# Profiling
+*.pclprof
+
 # pyenv
 .python-version
 

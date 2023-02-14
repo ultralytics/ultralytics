@@ -85,6 +85,7 @@ class BaseTrainer:
         self.console = LOGGER
         self.validator = None
         self.model = None
+        self.metrics = None
         init_seeds(self.args.seed + 1 + RANK, deterministic=self.args.deterministic)
 
         # Dirs

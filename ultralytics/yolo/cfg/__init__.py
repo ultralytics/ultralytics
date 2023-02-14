@@ -81,7 +81,8 @@ def str_to_augment(transforms_str):
         try:
             module_name, cls_name = transform_str.rsplit(".", 1)
             instance = getattr(importlib.import_module(module_name), cls_name)
-            assert inspect.isclass(instance) and "__call__" in instance.__dict__, f"Augmentation {transform_str} must be a callable class"
+            assert inspect.isclass(
+                instance) and "__call__" in instance.__dict__, f"Augmentation {transform_str} must be a callable class"
             compose_transform.append(instance(**transform_args))
         except ImportError as e:
             raise ImportError(f"Fail to import the module when instantiated the string from augmentation: {str(e)}")

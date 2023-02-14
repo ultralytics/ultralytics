@@ -31,7 +31,6 @@ class BaseDataset(Dataset):
         imgsz=640,
         cache=False,
         augment=True,
-        transforms=None,
         hyp=None,
         prefix="",
         rect=False,
@@ -39,6 +38,8 @@ class BaseDataset(Dataset):
         stride=32,
         pad=0.5,
         single_cls=False,
+        *,
+        transforms=None
     ):
         super().__init__()
         self.img_path = img_path

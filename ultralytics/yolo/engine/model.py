@@ -137,11 +137,11 @@ class YOLO:
     def fuse(self):
         self._check_is_pytorch_model()
         self.model.fuse()
-    
+
     def preload(self, **kwargs):
         """
         Preloads the model for inference.
-        
+
         Args:
              **kwargs : Additional keyword arguments passed to the predictor.
                        Check the 'configuration' section in the documentation for all available options.

@@ -263,7 +263,7 @@ def entrypoint(debug=''):
         mode = DEFAULT_CFG.mode or 'predict'
         LOGGER.warning(f"WARNING ⚠️ 'mode' is missing. Valid modes are {modes}. Using default 'mode={mode}'.")
     elif mode not in modes:
-        if mode != 'checks':
+        if mode not in ('checks', checks.check_yolo):
             raise ValueError(f"Invalid 'mode={mode}'. Valid modes are {modes}.\n{CLI_HELP_MSG}")
         LOGGER.warning("WARNING ⚠️ 'yolo mode=checks' is deprecated. Use 'yolo checks' instead.")
         checks.check_yolo()

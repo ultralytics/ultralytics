@@ -62,7 +62,7 @@ full documentation on training, validation, prediction and deployment.
 
 Pip install the ultralytics package including
 all [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) in a
-[**3.10>=Python>=3.7**](https://www.python.org/) environment, including
+[**Python>=3.7**](https://www.python.org/) environment with
 [**PyTorch>=1.7**](https://pytorch.org/get-started/locally/).
 
 ```bash

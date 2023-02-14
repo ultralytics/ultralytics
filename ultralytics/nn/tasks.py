@@ -480,6 +480,7 @@ def guess_model_task(model):
     Raises:
         SyntaxError: If the task of the model could not be determined.
     """
+
     def cfg2task(cfg):
         # Guess from YAML dictionary
         m = cfg["head"][-1][-2].lower()  # output module name

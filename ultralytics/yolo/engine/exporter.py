@@ -257,7 +257,7 @@ class Exporter:
         f = [str(x) for x in f if x]  # filter out '' and None
         if any(f):
             f = str(Path(f[-1]))
-            square =  self.imgsz[0] == self.imgsz[1]
+            square = self.imgsz[0] == self.imgsz[1]
             s = f"WARNING ⚠️ non-PyTorch val requires square images, 'imgsz={self.imgsz}' will not work. Use " \
                 f"export 'imgsz={max(self.imgsz)}' if val is required." if not square else ''
             imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(' ', '')
@@ -691,11 +691,11 @@ class Exporter:
 
         # Creates model info.
         model_meta = _metadata_fb.ModelMetadataT()
-        model_meta.name = "YOLOv8 model"
-        model_meta.version = "v1"
-        model_meta.author = "Ultralytics Inc."
-        model_meta.license = ("GNU General Public License v3.0 "
-                              "https://github.com/ultralytics/ultralytics/blob/main/LICENSE.")
+        model_meta.name = self.metadata['description']
+        model_meta.version = self.metadata['version']
+        model_meta.author = self.metadata['author']
+        model_meta.license = self.metadata['license']
+
         # Creates input info.
         input_meta = _metadata_fb.TensorMetadataT()
         input_meta.name = "image"
@@ -707,7 +707,6 @@ class Exporter:
 
         # Creates output info.
         output_meta = _metadata_fb.TensorMetadataT()
-
         output_meta.name = "output"
         output_meta.description = "Coordinates of detected objects, class labels, and confidence score."
 
@@ -736,6 +735,14 @@ class Exporter:
         populator.load_associated_files([str(tmp_file)])
         populator.populate()
         tmp_file.unlink()
+
+    # TODO Rename this here and in `_add_tflite_metadata`
+    def _extracted_from__add_tflite_metadata_15(self, _metadata_fb, arg1, arg2):
+        # Creates input info.
+        result = _metadata_fb.TensorMetadataT()
+        result.name = arg1
+        result.description = arg2
+        return result
 
     def _pipeline_coreml(self, model, prefix=colorstr('CoreML Pipeline:')):
         # YOLOv8 CoreML pipeline

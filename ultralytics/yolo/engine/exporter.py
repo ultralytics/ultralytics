@@ -497,7 +497,7 @@ class Exporter:
         except ImportError:
             check_requirements(f"tensorflow{'' if torch.cuda.is_available() else '-macos' if MACOS else '-cpu'}")
             import tensorflow as tf  # noqa
-        check_requirements(("onnx", "onnx2tf", "sng4onnx", "onnxsim", "onnx_graphsurgeon"),
+        check_requirements(("onnx", "onnx2tf", "sng4onnx", "onnxsim", "onnx_graphsurgeon", "tflite_support"),
                            cmds="--extra-index-url https://pypi.ngc.nvidia.com ")
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
@@ -680,8 +680,6 @@ class Exporter:
 
     def _add_tflite_metadata(self, file):
         # Add metadata to *.tflite models per https://www.tensorflow.org/lite/models/convert/metadata
-        check_requirements('tflite_support')
-
         from tflite_support import flatbuffers  # noqa
         from tflite_support import metadata as _metadata  # noqa
         from tflite_support import metadata_schema_py_generated as _metadata_fb  # noqa

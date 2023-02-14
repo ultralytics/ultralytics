@@ -257,11 +257,15 @@ class Exporter:
         f = [str(x) for x in f if x]  # filter out '' and None
         if any(f):
             f = str(Path(f[-1]))
-            LOGGER.info(f'\nExport complete ({time.time() - t:.1f}s)'
-                        f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
-                        f"\nPredict:         yolo task={model.task} mode=predict model={f}"
-                        f"\nValidate:        yolo task={model.task} mode=val model={f}"
-                        f"\nVisualize:       https://netron.app")
+            s = f"WARNING ⚠️ non-PyTorch val requires square images, 'imgsz={self.imgsz}' will not work. Use 'yolo " \
+                f"export imgsz={max(self.imgsz)}' if val is required." if self.imgsz[0] != self.imgsz[1] else ''
+            imgsz = str(self.imgsz)[1:-1].replace(' ', '')
+            LOGGER.info(
+                f'\nExport complete ({time.time() - t:.1f}s)'
+                f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
+                f"\nPredict:         yolo task={model.task} mode=predict model={f} imgsz={imgsz}"
+                f"\nValidate:        yolo task={model.task} mode=val model={f} imgsz={imgsz} data={self.args.data} {s}"
+                f"\nVisualize:       https://netron.app")
 
         self.run_callbacks("on_export_end")
         return f  # return list of exported files/dirs

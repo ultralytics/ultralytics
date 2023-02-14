@@ -418,7 +418,7 @@ class BaseTrainer:
             cfg = ckpt["model"].yaml
         else:
             cfg = model
-        self.model = self.get_model(cfg=cfg, weights=weights)  # calls Model(cfg, weights)
+        self.model = self.get_model(cfg=cfg, weights=weights, verbose=RANK == -1)  # calls Model(cfg, weights)
         return ckpt
 
     def optimizer_step(self):

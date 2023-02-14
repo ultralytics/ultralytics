@@ -240,7 +240,7 @@ class YOLO:
         if RANK in {0, -1}:
             self.model, _ = attempt_load_one_weight(str(self.trainer.best))
             self.overrides = self.model.args
-        self.metrics_data = self.trainer.validator.metrics
+            self.metrics_data = self.trainer.validator.metrics
 
     def to(self, device):
         """

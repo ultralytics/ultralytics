@@ -17,7 +17,6 @@ import numpy as np
 import pkg_resources as pkg
 import psutil
 import torch
-from IPython import display
 from matplotlib import font_manager
 
 from ultralytics.yolo.utils import (AUTOINSTALL, LOGGER, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, downloads, emojis,
@@ -292,8 +291,10 @@ def check_yolo(verbose=True):
         gib = 1 << 30  # bytes per GiB
         ram = psutil.virtual_memory().total
         total, used, free = shutil.disk_usage("/")
-        display.clear_output()
         s = f'({os.cpu_count()} CPUs, {ram / gib:.1f} GB RAM, {(total - free) / gib:.1f}/{total / gib:.1f} GB disk)'
+        with contextlib.suppress(Exception):  # clear display if ipython is installed
+            from IPython import display
+            display.clear_output()
     else:
         s = ''
 

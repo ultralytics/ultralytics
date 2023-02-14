@@ -137,6 +137,26 @@ class YOLO:
     def fuse(self):
         self._check_is_pytorch_model()
         self.model.fuse()
+    
+    def preload(self, **kwargs):
+        """
+        Preloads the model for inference.
+        
+        Args:
+             **kwargs : Additional keyword arguments passed to the predictor.
+                       Check the 'configuration' section in the documentation for all available options.
+
+        Returns:
+            None
+        """
+        overrides = self.overrides.copy()
+        overrides["conf"] = 0.25
+        overrides.update(kwargs)
+        overrides["mode"] = "predict"
+        overrides["save"] = kwargs.get("save", False)  # not save files by default
+        if not self.predictor:
+            self.predictor = self.PredictorClass(overrides=overrides)
+            self.predictor.setup_model(model=self.model)
 
     def predict(self, source=None, stream=False, **kwargs):
         """

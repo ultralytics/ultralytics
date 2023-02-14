@@ -257,7 +257,7 @@ class Exporter:
         f = [str(x) for x in f if x]  # filter out '' and None
         if any(f):
             f = str(Path(f[-1]))
-            square =  self.imgsz[0] == self.imgsz[1]
+            square = self.imgsz[0] == self.imgsz[1]
             s = f"WARNING ⚠️ non-PyTorch val requires square images, 'imgsz={self.imgsz}' will not work. Use " \
                 f"export 'imgsz={max(self.imgsz)}' if val is required." if not square else ''
             imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(' ', '')

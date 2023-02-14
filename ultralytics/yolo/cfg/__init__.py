@@ -142,7 +142,7 @@ def check_cfg_mismatch(base: Dict, custom: Dict, e=None):
         string = ''
         for x in mismatched:
             matches = get_close_matches(x, base)  # key list
-            matches = [f"{k}={DEFAULT_CFG_DICT[k]}" if DEFAULT_CFG_DICT[k] is not None else k for k in matches]  # k=v
+            matches = [f"{k}={DEFAULT_CFG_DICT[k]}" if DEFAULT_CFG_DICT.get(k) is not None else k for k in matches]
             match_str = f"Similar arguments are i.e. {matches}." if matches else ''
             string += f"'{colorstr('red', 'bold', x)}' is not a valid YOLO argument. {match_str}\n"
         raise SyntaxError(string + CLI_HELP_MSG) from e

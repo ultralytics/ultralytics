@@ -12,7 +12,7 @@ from random import random
 import requests
 
 from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, ENVIRONMENT, LOGGER, RANK, SETTINGS, TryExcept, __version__,
-                                    colorstr, emojis, get_git_origin_url, is_git_dir, is_github_actions_ci,
+                                    colorstr, emojis, get_git_origin_url, is_colab, is_git_dir, is_github_actions_ci,
                                     is_pip_package, is_pytest_running)
 from ultralytics.yolo.utils.checks import check_online
 
@@ -36,6 +36,8 @@ def check_dataset_disk_space(url='https://ultralytics.com/assets/coco128.zip', s
 
 def request_with_credentials(url: str) -> any:
     """ Make an ajax request with cookies attached """
+    if not is_colab():
+        raise OSError('request_with_credentials() must run in a Colab environment')
     from google.colab import output  # noqa
     from IPython import display  # noqa
     display.display(

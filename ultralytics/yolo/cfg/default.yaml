@@ -64,7 +64,7 @@ augment: False  # apply image augmentation to prediction sources
 agnostic_nms: False  # class-agnostic NMS
 classes:  # filter results by class, i.e. class=0, or class=[0,2,3]
 retina_masks: False  # use high-resolution segmentation masks
-boxes: True # Show boxes in segmentation predictions
+boxes: True  # Show boxes in segmentation predictions
 
 # Export settings ------------------------------------------------------------------------------------------------------
 format: torchscript  # format to export to
@@ -110,3 +110,7 @@ cfg:  # for overriding defaults.yaml
 
 # Debug, do not modify -------------------------------------------------------------------------------------------------
 v5loader: False  # use legacy YOLOv5 dataloader
+
+# Tracker settings ------------------------------------------------------------------------------------------------------
+tracker: botsort  # tracker type, ['botsort', 'bytetrack']
+tracker_cfg: null  # path to tracker config file

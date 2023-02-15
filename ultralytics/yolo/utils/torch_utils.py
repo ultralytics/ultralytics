@@ -447,21 +447,18 @@ class EarlyStopping:
                         f'i.e. `patience=300` or use `patience=0` to disable EarlyStopping.')
         return stop
 
+
 class Lion(Optimizer):
     # Based on - https://github.com/lucidrains/lion-pytorch/blob/main/lion_pytorch/lion_pytorch.py
-    def __init__(self, params, lr = 1e-4, betas = (0.9, 0.99), weight_decay = 0.0):
+    def __init__(self, params, lr=1e-4, betas=(0.9, 0.99), weight_decay=0.0):
         assert lr > 0.
         assert all([0. <= beta <= 1. for beta in betas])
-        defaults = dict(
-            lr = lr,
-            betas = betas,
-            weight_decay = weight_decay
-        )
+        defaults = dict(lr=lr, betas=betas, weight_decay=weight_decay)
 
         super().__init__(params, defaults)
 
     @torch.no_grad()
-    def step(self, closure = None):
+    def step(self, closure=None):
         loss = None
         if closure is not None:
             with torch.enable_grad():
@@ -488,7 +485,7 @@ class Lion(Optimizer):
 
                 # weight update
                 update = exp_avg.clone().lerp_(grad, 1 - beta1)
-                p.add_(torch.sign(update), alpha = -lr)
+                p.add_(torch.sign(update), alpha=-lr)
 
                 exp_avg.lerp_(grad, 1 - beta2)
 

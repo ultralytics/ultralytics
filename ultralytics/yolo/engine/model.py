@@ -155,7 +155,8 @@ class YOLO:
         overrides = self.overrides.copy()
         overrides["conf"] = 0.25
         overrides.update(kwargs)
-        overrides["mode"] = "predict"
+        overrides["mode"] = kwargs.get("mode", "predict")
+        assert overrides["mode"] in ['track', 'predict']
         overrides["save"] = kwargs.get("save", False)  # not save files by default
         if not self.predictor:
             self.predictor = self.PredictorClass(overrides=overrides)
@@ -172,6 +173,7 @@ class YOLO:
         # bytetrack-based method needs low confidence predictions as input
         conf = kwargs.get("conf") or 0.1
         kwargs['conf'] = conf
+        kwargs['mode'] = 'track'
         return self.predict(source=source, stream=stream, **kwargs)
 
     @smart_inference_mode()

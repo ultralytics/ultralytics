@@ -87,6 +87,7 @@ class BasePredictor:
         self.imgsz = None
         self.device = None
         self.classes = self.args.classes
+        self.count = self.args.count
         self.dataset = None
         self.vid_path, self.vid_writer = None, None
         self.annotator = None

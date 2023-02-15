@@ -250,7 +250,7 @@ def check_file(file, suffix='', download=True):
         return file
     else:  # search
         files = []
-        for d in 'models', 'yolo/data':  # search directories
+        for d in 'models', 'yolo/data', 'tracker/cfg':  # search directories
             files.extend(glob.glob(str(ROOT / d / '**' / file), recursive=True))  # find file
         if not files:
             raise FileNotFoundError(f"'{file}' does not exist")

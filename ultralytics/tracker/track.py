@@ -1,6 +1,6 @@
 from ultralytics.tracker import BYTETracker, BOTSORT
-from ultralytics.yolo.utils.checks import check_requirements
-from ultralytics.yolo.utils import ROOT, IterableSimpleNamespace, yaml_load
+from ultralytics.yolo.utils.checks import check_requirements, check_yaml
+from ultralytics.yolo.utils import IterableSimpleNamespace, yaml_load
 import torch
 
 TRACKER_MAP = {"bytetrack": BYTETracker, "botsort": BOTSORT}
@@ -8,14 +8,13 @@ check_requirements('lap')  # for linear_assignment
 
 
 def on_predict_start(predictor):
-    tracker_type = predictor.args.tracker
-    assert tracker_type in ["bytetrack", "botsort"], \
-            f"Only support 'bytetrack' and 'botsort' for now, but got {tracker_type}"
+    tracker = check_yaml(predictor.args.tracker)
+    cfg = IterableSimpleNamespace(**yaml_load(tracker))
+    assert cfg.tracker_type in ["bytetrack", "botsort"], \
+            f"Only support 'bytetrack' and 'botsort' for now, but got {cfg.tracker_type}"
     trackers = []
-    tracker_cfg = predictor.args.tracker_cfg or ROOT / f"tracker/cfg/{tracker_type}.yaml"
-    cfg = IterableSimpleNamespace(**yaml_load(tracker_cfg))
     for _ in range(predictor.dataset.bs):
-        tracker = TRACKER_MAP[tracker_type](args=cfg, frame_rate=30)
+        tracker = TRACKER_MAP[cfg.tracker_type](args=cfg, frame_rate=30)
         trackers.append(tracker)
     predictor.trackers = trackers
 

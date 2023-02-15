@@ -197,9 +197,7 @@ def entrypoint(debug=''):
 
     # Define tasks and modes
     tasks = 'detect', 'segment', 'classify'
-    modes = 'train', 'val', 'predict', 'export'
-
-    # Define special commands
+    modes = 'train', 'val', 'predict', 'export', 'track'
     special = {
         'help': lambda: LOGGER.info(CLI_HELP_MSG),
         'checks': checks.check_yolo,
@@ -288,7 +286,7 @@ def entrypoint(debug=''):
                        f"Inheriting 'task={model.task}' from {overrides['model']} and ignoring 'task={task}'.")
     task = model.task
     overrides['task'] = task
-    if mode == 'predict' and 'source' not in overrides:
+    if mode in {'predict', 'track'} and 'source' not in overrides:
         overrides['source'] = DEFAULT_CFG.source or ROOT / "assets" if (ROOT / "assets").exists() \
             else "https://ultralytics.com/images/bus.jpg"
         LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using default 'source={overrides['source']}'.")

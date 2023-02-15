@@ -83,7 +83,7 @@ task.
 | name            | null   | experiment name                                                                |
 | exist_ok        | False  | whether to overwrite existing experiment                                       |
 | pretrained      | False  | whether to use a pretrained model                                              |
-| optimizer       | 'SGD'  | optimizer to use, choices=['SGD', 'Adam', 'AdamW', 'RMSProp']                  |
+| optimizer       | 'SGD'  | optimizer to use, choices=['SGD', 'Adam', 'AdamW', 'RMSProp', 'Lion']          |
 | verbose         | False  | whether to print verbose output                                                |
 | seed            | 0      | random seed for reproducibility                                                |
 | deterministic   | True   | whether to enable deterministic mode                                           |

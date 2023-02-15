@@ -184,7 +184,7 @@ class BaseTrainer:
             finally:
                 ddp_cleanup(self, file)
         else:
-            self._do_train(int(os.getenv("RANK", -1)), world_size)
+            self._do_train(RANK, world_size)
 
     def _setup_ddp(self, rank, world_size):
         # os.environ['MASTER_ADDR'] = 'localhost'
@@ -523,9 +523,8 @@ class BaseTrainer:
         resume = self.args.resume
         if resume:
             try:
-                last = Path(
-                    check_file(resume) if isinstance(resume, (str,
-                                                              Path)) and Path(resume).exists() else get_latest_run())
+                last = Path(check_file(resume) if isinstance(resume, (str, Path)) and Path(resume).exists()
+                            else get_latest_run())
                 self.args = get_cfg(attempt_load_weights(last).args)
                 self.args.model, resume = str(last), True  # reinstate
             except Exception as e:

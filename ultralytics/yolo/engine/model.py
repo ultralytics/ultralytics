@@ -101,6 +101,7 @@ class YOLO:
             self.model, self.ckpt = weights, None
             self.task = guess_model_task(weights)
         self.ckpt_path = weights
+        self.overrides['model'] = weights
         self.ModelClass, self.TrainerClass, self.ValidatorClass, self.PredictorClass = self._assign_ops_from_task()
 
     def _check_is_pytorch_model(self):

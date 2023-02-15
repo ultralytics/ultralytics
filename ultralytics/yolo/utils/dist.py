@@ -48,7 +48,7 @@ def generate_ddp_command(world_size, trainer):
     # Get file and args (do not use sys.argv due to security vulnerability)
     exclude_args = ['save_dir']
     args = [f"{k}={v}" for k, v in vars(trainer.args).items() if k not in exclude_args]
-    file = generate_ddp_file(trainer) if sys.argv[0].endswith('yolo') else os.path.abspath(sys.argv[0])
+    file = generate_ddp_file(trainer)  # if argv[0].endswith('yolo') else os.path.abspath(argv[0])
 
     # Build command
     torch_distributed_cmd = "torch.distributed.run" if TORCH_1_9 else "torch.distributed.launch"

@@ -55,9 +55,6 @@ def generate_ddp_command(world_size, trainer):
     cmd = [
         sys.executable, "-m", torch_distributed_cmd, "--nproc_per_node", f"{world_size}", "--master_port",
         f"{find_free_network_port()}", file] + args
-
-    print(cmd)
-    print(file)
     return cmd, file
 
 

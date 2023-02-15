@@ -156,7 +156,7 @@ def test_predict_callback_and_setup():
         # results -> List[batch_size]
         path, _, im0s, _, _ = predictor.batch
         # print('on_predict_batch_end', im0s[0].shape)
-        bs = [predictor.bs for _ in range(len(path))]
+        bs = [predictor.dataset.bs for _ in range(len(path))]
         predictor.results = zip(predictor.results, im0s, bs)
 
     model = YOLO("yolov8n.pt")

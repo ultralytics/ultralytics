@@ -155,7 +155,8 @@ class YOLO:
         overrides = self.overrides.copy()
         overrides["conf"] = 0.25
         overrides.update(kwargs)
-        overrides["mode"] = "predict"
+        overrides["mode"] = kwargs.get("mode", "predict")
+        assert overrides["mode"] in ['track', 'predict']
         overrides["save"] = kwargs.get("save", False)  # not save files by default
         if not self.predictor:
             self.predictor = self.PredictorClass(overrides=overrides)
@@ -164,6 +165,16 @@ class YOLO:
             self.predictor.args = get_cfg(self.predictor.args, overrides)
         is_cli = sys.argv[0].endswith('yolo') or sys.argv[0].endswith('ultralytics')
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
+
+    @smart_inference_mode()
+    def track(self, source=None, stream=False, **kwargs):
+        from ultralytics.tracker.track import register_tracker
+        register_tracker(self)
+        # bytetrack-based method needs low confidence predictions as input
+        conf = kwargs.get("conf") or 0.1
+        kwargs['conf'] = conf
+        kwargs['mode'] = 'track'
+        return self.predict(source=source, stream=stream, **kwargs)
 
     @smart_inference_mode()
     def val(self, data=None, **kwargs):

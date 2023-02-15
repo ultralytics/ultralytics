@@ -184,7 +184,7 @@ class BaseTrainer:
             finally:
                 ddp_cleanup(self, file)
         else:
-            self._do_train(int(os.getenv("RANK", -1)), world_size)
+            self._do_train(RANK, world_size)
 
     def _setup_ddp(self, rank, world_size):
         # os.environ['MASTER_ADDR'] = 'localhost'

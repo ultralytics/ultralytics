@@ -171,6 +171,7 @@ def test_predict_callback_and_setup():
         boxes = result.boxes  # Boxes object for bbox outputs
         print(boxes)
 
+
 def test_visulizer():
     from ultralytics import YOLO
     from ultralytics.yolo.utils import ROOT
@@ -186,4 +187,3 @@ def test_visulizer():
 
     cv2.imshow("res", resimg)
     cv2.waitKey(0)
-    

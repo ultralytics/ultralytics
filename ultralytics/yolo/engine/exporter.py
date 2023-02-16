@@ -79,6 +79,7 @@ MACOS = platform.system() == 'Darwin'
 LINUX = platform.system() == 'Linux'
 CUDA = torch.cuda.is_available()
 
+
 def export_formats():
     # YOLOv8 export formats
     x = [

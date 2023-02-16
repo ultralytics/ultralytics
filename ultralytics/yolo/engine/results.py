@@ -139,8 +139,6 @@ class Results:
         masks = self.masks.data
         logits = self.probs
         names = self.names
-        import pdb
-        pdb.set_trace()
         if boxes is not None:
             for d in reversed(boxes):
                 cls, conf = d.cls.squeeze(), d.conf.squeeze()

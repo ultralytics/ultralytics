@@ -216,7 +216,7 @@ class AutoBackend(nn.Module):
                     meta = ast.literal_eval(model.read(meta_file).decode("utf-8"))
                     stride, names = int(meta['stride']), meta['names']
         elif tfjs:  # TF.js
-            raise NotImplementedError('ERROR: YOLOv8 TF.js inference is not supported')
+            raise NotImplementedError('YOLOv8 TF.js inference is not supported')
         elif paddle:  # PaddlePaddle
             LOGGER.info(f'Loading {w} for PaddlePaddle inference...')
             check_requirements('paddlepaddle-gpu' if cuda else 'paddlepaddle')
@@ -340,7 +340,7 @@ class AutoBackend(nn.Module):
                 if len(self.output_details) == 2:  # segment
                     y = [y[1], np.transpose(y[0], (0, 3, 1, 2))]
             y = [x if isinstance(x, np.ndarray) else x.numpy() for x in y]
-            y[0][..., :4] *= [w, h, w, h]  # xywh normalized to pixels
+            # y[0][..., :4] *= [w, h, w, h]  # xywh normalized to pixels
 
         if isinstance(y, (list, tuple)):
             return self.from_numpy(y[0]) if len(y) == 1 else [self.from_numpy(x) for x in y]

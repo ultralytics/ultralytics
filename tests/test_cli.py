@@ -8,7 +8,7 @@ from ultralytics.yolo.utils import ROOT, SETTINGS
 
 MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n'
 CFG = 'yolov8n'
-LINUX = platform.system() == 'Linux'  # macOS environment
+MACOS, LINUX, WINDOWS = (platform.system() == x for x in ['Darwin', 'Linux', 'Windows'])  # environment booleans
 
 
 def run(cmd):
@@ -77,6 +77,6 @@ def test_export_classify_torchscript():
     run(f'yolo export model={MODEL}-cls.pt format=torchscript')
 
 
-def test_export_detect_edgetpu():
-    if LINUX:
+def test_export_detect_edgetpu(enabled=LINUX):
+    if enabled:
         run(f'yolo export model={MODEL}.pt format=edgetpu')

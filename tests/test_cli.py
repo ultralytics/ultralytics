@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
+import platform
 import subprocess
 from pathlib import Path
 
@@ -7,6 +8,7 @@ from ultralytics.yolo.utils import ROOT, SETTINGS
 
 MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n'
 CFG = 'yolov8n'
+LINUX = platform.system() == 'Linux'  # macOS environment
 
 
 def run(cmd):
@@ -73,3 +75,8 @@ def test_export_segment_torchscript():
 
 def test_export_classify_torchscript():
     run(f'yolo export model={MODEL}-cls.pt format=torchscript')
+
+
+def test_export_detect_edgetpu():
+    if LINUX:
+        run(f'yolo export model={MODEL}.pt format=edgetpu')

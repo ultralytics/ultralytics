@@ -246,10 +246,7 @@ class Exporter:
                 #                               nms=nms,
                 #                               agnostic_nms=self.args.agnostic_nms)
                 if edgetpu:
-                    LOGGER.warning('WARNING ⚠️ YOLOv8 Edge TPU exports still under development. '
-                                   'Please consider contributing to the effort if you have TF expertise. Thank you!')
-                    return
-                    # f[8], _ = self._export_edgetpu()
+                    f[8], _ = self._export_edgetpu(tflite_model=f[7])
                 self._add_tflite_metadata(f[8] or f[7])
             if tfjs:
                 f[9], _ = self._export_tfjs()
@@ -627,7 +624,7 @@ class Exporter:
         return f, None
 
     @try_export
-    def _export_edgetpu(self, prefix=colorstr('Edge TPU:')):
+    def _export_edgetpu(self, tflite_model='', prefix=colorstr('Edge TPU:')):
         # YOLOv8 Edge TPU export https://coral.ai/docs/edgetpu/models-intro/
         cmd = 'edgetpu_compiler --version'
         help_url = 'https://coral.ai/docs/edgetpu/compiler/'
@@ -645,10 +642,9 @@ class Exporter:
         ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().split()[-1]
 
         LOGGER.info(f'\n{prefix} starting export with Edge TPU compiler {ver}...')
-        f = str(self.file).replace(self.file.suffix, '-int8_edgetpu.tflite')  # Edge TPU model
-        f_tfl = str(self.file).replace(self.file.suffix, '-int8.tflite')  # TFLite model
+        f = str(tflite_model).replace('.tflite', '_edgetpu.tflite')  # Edge TPU model
 
-        cmd = f"edgetpu_compiler -s -d -k 10 --out_dir {self.file.parent} {f_tfl}"
+        cmd = f"edgetpu_compiler -s -d -k 10 --out_dir {self.file.parent} {tflite_model}"
         subprocess.run(cmd.split(), check=True)
         return f, None
 

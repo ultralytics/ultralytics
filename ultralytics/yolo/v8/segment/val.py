@@ -37,10 +37,10 @@ class SegmentationValidator(DetectionValidator):
         self.metrics.names = self.names
         self.metrics.plot = self.args.plots
         self.confusion_matrix = ConfusionMatrix(nc=self.nc)
-        self.plot_masks = []
         self.seen = 0
         self.jdict = []
         self.stats = []
+        self.plot_masks = []
         if self.args.save_json:
             check_requirements('pycocotools>=2.0.6')
             self.process = ops.process_mask_upsample  # more accurate

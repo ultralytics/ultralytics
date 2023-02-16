@@ -46,6 +46,15 @@ jobs:
           python --version
           pip --version
           pip list
+      - name: TF Lite export
+        run: |
+          yolo export model=${{ matrix.model }}.pt format=tflite
+      - name: TF *.pb export
+        run: |
+          yolo export model=${{ matrix.model }}.pt format=pb
+      - name: TF Lite Edge TPU export
+        run: |
+          yolo export model=${{ matrix.model }}.pt format=edgetpu
       - name: Benchmark DetectionModel
         run: |
           # yolo benchmark model=${{ matrix.model }}.pt imgsz=320 min_metric=0.29

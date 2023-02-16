@@ -77,6 +77,6 @@ def test_export_classify_torchscript():
     run(f'yolo export model={MODEL}-cls.pt format=torchscript')
 
 
-def test_export_detect_edgetpu(enabled=LINUX):
-    if enabled:
+def test_export_detect_edgetpu(enabled=False):
+    if enabled and LINUX:
         run(f'yolo export model={MODEL}.pt format=edgetpu')

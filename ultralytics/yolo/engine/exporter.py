@@ -94,7 +94,7 @@ def export_formats():
         ['TensorFlow Lite', 'tflite', '.tflite', True, False],
         ['TensorFlow Edge TPU', 'edgetpu', '_edgetpu.tflite', False, False],
         ['TensorFlow.js', 'tfjs', '_web_model', False, False],
-        ['PaddlePaddle', 'paddle', '_paddle_model', True, True],]
+        ['PaddlePaddle', 'paddle', '_paddle_model', True, True], ]
     return pd.DataFrame(x, columns=['Format', 'Argument', 'Suffix', 'CPU', 'GPU'])
 
 
@@ -245,9 +245,8 @@ class Exporter:
                 #                               data=self.args.data,
                 #                               nms=nms,
                 #                               agnostic_nms=self.args.agnostic_nms)
-                if edgetpu:
-                    f[8], _ = self._export_edgetpu(tflite_model=f[7])
-                self._add_tflite_metadata(f[8] or f[7])
+            if edgetpu:
+                f[8], _ = self._export_edgetpu(tflite_model=f[7])
             if tfjs:
                 f[9], _ = self._export_tfjs()
         if paddle:  # PaddlePaddle
@@ -258,13 +257,14 @@ class Exporter:
         if any(f):
             f = str(Path(f[-1]))
             square = self.imgsz[0] == self.imgsz[1]
-            s = f"WARNING ⚠️ non-PyTorch val requires square images, 'imgsz={self.imgsz}' will not work. Use " \
-                f"export 'imgsz={max(self.imgsz)}' if val is required." if not square else ''
+            s = '' if square else f"WARNING ⚠️ non-PyTorch val requires square images, 'imgsz={self.imgsz}' will not " \
+                                  f"work. Use export 'imgsz={max(self.imgsz)}' if val is required."
             imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(' ', '')
+            data = f"data={self.args.data}" if model.task == 'segment' and format in ('pb', 'engine') else ''
             LOGGER.info(
                 f'\nExport complete ({time.time() - t:.1f}s)'
                 f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
-                f"\nPredict:         yolo task={model.task} mode=predict model={f} imgsz={imgsz}"
+                f"\nPredict:         yolo task={model.task} mode=predict model={f} imgsz={imgsz} {data}"
                 f"\nValidate:        yolo task={model.task} mode=val model={f} imgsz={imgsz} data={self.args.data} {s}"
                 f"\nVisualize:       https://netron.app")
 
@@ -515,6 +515,10 @@ class Exporter:
         # Export to TF SavedModel
         subprocess.run(f'onnx2tf -i {onnx} -o {f} --non_verbose', shell=True)
 
+        # Add TFLite metadata
+        for file in Path(f).rglob('*.tflite'):
+            self._add_tflite_metadata(file)
+
         # Load saved_model
         keras_model = tf.saved_model.load(f, tags=None, options=None)
 
@@ -646,6 +650,7 @@ class Exporter:
 
         cmd = f"edgetpu_compiler -s -d -k 10 --out_dir {self.file.parent} {tflite_model}"
         subprocess.run(cmd.split(), check=True)
+        self._add_tflite_metadata(f)
         return f, None
 
     @try_export

@@ -53,7 +53,7 @@
 <details open>
 <summary>安装</summary>
 
-Pip 安装包含所有 [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) 的 ultralytics 包，环境要求 [**3.10>=Python>=3.7**](https://www.python.org/)，且 [**PyTorch>=1.7**](https://pytorch.org/get-started/locally/)。
+Pip 安装包含所有 [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) 的 ultralytics 包，环境要求 [**Python>=3.7**](https://www.python.org/)，且 [**PyTorch>=1.7**](https://pytorch.org/get-started/locally/)。
 
 ```bash
 pip install ultralytics
@@ -101,8 +101,8 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 
 我们仍在努力完善 YOLOv8 的几个部分！我们的目标是尽快完成这些工作，使 YOLOv8 的功能设置达到YOLOv5 的水平，包括对所有相同格式的导出和推理。我们还在写一篇 YOLOv8 的论文，一旦完成，我们将提交给 [arxiv.org](https://arxiv.org)。
 
-- [ ] TensorFlow 导出
-- [ ] DDP 恢复训练
+- [x] TensorFlow 导出
+- [x] DDP 恢复训练
 - [ ] [arxiv.org](https://arxiv.org) 论文
 
 </details>
@@ -174,21 +174,21 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 
 <div align="center">
   <a href="https://roboflow.com/?ref=ultralytics">
-    <img src="https://github.com/ultralytics/yolov5/releases/download/v1.0/logo-roboflow.png" width="10%" /></a>
+    <img src="https://github.com/ultralytics/assets/raw/main/partners/logo-roboflow.png" width="10%" /></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="15%" height="0" alt="" />
   <a href="https://cutt.ly/yolov5-readme-clearml">
-    <img src="https://github.com/ultralytics/yolov5/releases/download/v1.0/logo-clearml.png" width="10%" /></a>
+    <img src="https://github.com/ultralytics/assets/raw/main/partners/logo-clearml.png" width="10%" /></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="15%" height="0" alt="" />
-  <a href="https://bit.ly/yolov5-readme-comet">
-    <img src="https://github.com/ultralytics/yolov5/releases/download/v1.0/logo-comet.png" width="10%" /></a>
+  <a href="https://bit.ly/yolov5-readme-comet2">
+    <img src="https://github.com/ultralytics/assets/raw/main/partners/logo-comet.png" width="10%" /></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="15%" height="0" alt="" />
   <a href="https://bit.ly/yolov5-neuralmagic">
-    <img src="https://github.com/ultralytics/yolov5/releases/download/v1.0/logo-neuralmagic.png" width="10%" /></a>
+    <img src="https://github.com/ultralytics/assets/raw/main/partners/logo-neuralmagic.png" width="10%" /></a>
 </div>
 
-|                                      Roboflow                                      |                                 ClearML ⭐ 新                                 |                                     Comet ⭐ 新                                     |                                    Neural Magic ⭐ 新                                    |
-| :--------------------------------------------------------------------------------: | :-------------------------------------------------------------------------: | :-------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------: |
-| 将您的自定义数据集进行标注并直接导出到 YOLOv8 以进行训练 [Roboflow](https://roboflow.com/?ref=ultralytics) | 自动跟踪、可视化甚至远程训练 YOLOv8 [ClearML](https://cutt.ly/yolov5-readme-clearml)（开源！） | 永远免费，[Comet](https://bit.ly/yolov5-readme-comet)可让您保存 YOLOv8 模型、恢复训练以及交互式可视化和调试预测 | 使用 [Neural Magic DeepSparse](https://bit.ly/yolov5-neuralmagic)，运行 YOLOv8 推理的速度最高可提高6倍 |
+|                                      Roboflow                                      |                                 ClearML ⭐ 新                                 |                                     Comet ⭐ 新                                      |                                    Neural Magic ⭐ 新                                    |
+| :--------------------------------------------------------------------------------: | :-------------------------------------------------------------------------: | :--------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------: |
+| 将您的自定义数据集进行标注并直接导出到 YOLOv8 以进行训练 [Roboflow](https://roboflow.com/?ref=ultralytics) | 自动跟踪、可视化甚至远程训练 YOLOv8 [ClearML](https://cutt.ly/yolov5-readme-clearml)（开源！） | 永远免费，[Comet](https://bit.ly/yolov5-readme-comet2)可让您保存 YOLOv8 模型、恢复训练以及交互式可视化和调试预测 | 使用 [Neural Magic DeepSparse](https://bit.ly/yolov5-neuralmagic)，运行 YOLOv8 推理的速度最高可提高6倍 |
 
 ## <div align="center">Ultralytics HUB</div>
 
@@ -203,7 +203,8 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 
 <!-- SVG image from https://opencollective.com/ultralytics/contributors.svg?width=990 -->
 
-<a href="https://github.com/ultralytics/ultralytics/graphs/contributors"><img src="https://github.com/ultralytics/yolov5/releases/download/v1.0/image-contributors-1280.png"/></a>
+<a href="https://github.com/ultralytics/yolov5/graphs/contributors">
+<img src="https://github.com/ultralytics/assets/raw/main/im/image-contributors.png" /></a>
 
 ## <div align="center">License</div>
 
@@ -213,7 +214,7 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 
 ## <div align="center">联系我们</div>
 
-若发现 YOLOv8 的 Bug 或有功能需求，请访问 [GitHub 问题](https://github.com/ultralytics/ultralytics/issues)。如需专业支持，请 [联系我们](https://ultralytics.com/contact)。
+请访问 [GitHub Issues](https://github.com/ultralytics/ultralytics/issues) 或 [Ultralytics Community Forum](https://community.ultralytis.com) 以报告 YOLOv8 错误和请求功能。
 
 <br>
 <div align="center">

@@ -75,6 +75,7 @@ task.
 | batch           | 16     | number of images per batch (-1 for AutoBatch)                                  |
 | imgsz           | 640    | size of input images as integer or w,h                                         |
 | save            | True   | save train checkpoints and predict results                                     |
+| save_period     | -1     | Save checkpoint every x epochs (disabled if < 1)                               |
 | cache           | False  | True/ram, disk or False. Use cache for data loading                            |
 | device          | null   | device to run on, i.e. cuda device=0 or device=0,1,2,3 or device=cpu           |
 | workers         | 8      | number of worker threads for data loading (per RANK if DDP)                    |

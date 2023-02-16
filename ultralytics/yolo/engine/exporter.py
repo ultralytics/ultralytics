@@ -48,7 +48,6 @@ TensorFlow.js:
     $ ln -s ../../yolov5/yolov8n_web_model public/yolov8n_web_model
     $ npm start
 """
-import contextlib
 import json
 import os
 import platform
@@ -64,18 +63,17 @@ import numpy as np
 import pandas as pd
 import torch
 
-import ultralytics
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import Detect, Segment
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages
-from ultralytics.yolo.data.utils import check_det_dataset, IMAGENET_MEAN, IMAGENET_STD
-from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, callbacks, colorstr, get_default_args, yaml_save
+from ultralytics.yolo.data.utils import IMAGENET_MEAN, IMAGENET_STD, check_det_dataset
+from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, __version__, callbacks, colorstr, get_default_args, yaml_save
 from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version, check_yaml
 from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.ops import Profile
-from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode
+from ultralytics.yolo.utils.torch_utils import get_latest_opset, select_device, smart_inference_mode
 
 MACOS = platform.system() == 'Darwin'  # macOS environment
 
@@ -96,6 +94,10 @@ def export_formats():
         ['TensorFlow.js', 'tfjs', '_web_model', False, False],
         ['PaddlePaddle', 'paddle', '_paddle_model', True, True],]
     return pd.DataFrame(x, columns=['Format', 'Argument', 'Suffix', 'CPU', 'GPU'])
+
+
+EXPORT_FORMATS_LIST = list(export_formats()['Argument'][1:])
+EXPORT_FORMATS_TABLE = str(export_formats())
 
 
 def try_export(inner_func):
@@ -162,8 +164,6 @@ class Exporter:
 
         # Checks
         model.names = check_class_names(model.names)
-        # if self.args.batch == model.args['batch_size']:  # user has not modified training batch_size
-        self.args.batch = 1
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
         if model.task == 'classify':
             self.args.nms = self.args.agnostic_nms = False
@@ -206,10 +206,10 @@ class Exporter:
         self.output_shape = tuple(y.shape) if isinstance(y, torch.Tensor) else tuple(tuple(x.shape) for x in y)
         self.pretty_name = self.file.stem.replace('yolo', 'YOLO')
         self.metadata = {
-            'description': f"Ultralytics {self.pretty_name} model trained on {self.model.args['data']}",
+            'description': f"Ultralytics {self.pretty_name} model trained on {self.args.data}",
             'author': 'Ultralytics',
             'license': 'GPL-3.0 https://ultralytics.com/license',
-            'version': ultralytics.__version__,
+            'version': __version__,
             'stride': int(max(model.stride)),
             'names': model.names}  # model metadata
 
@@ -247,7 +247,7 @@ class Exporter:
                                                   agnostic_nms=self.args.agnostic_nms)
                     if edgetpu:
                         f[8], _ = self._export_edgetpu()
-                    self._add_tflite_metadata(f[8] or f[7], num_outputs=len(self.output_shape))
+                    self._add_tflite_metadata(f[8] or f[7])
                 if tfjs:
                     f[9], _ = self._export_tfjs()
         if paddle:  # PaddlePaddle
@@ -256,12 +256,17 @@ class Exporter:
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
         if any(f):
-            s = "-WARNING ⚠️ not yet supported for YOLOv8 exported models"
-            LOGGER.info(f'\nExport complete ({time.time() - t:.1f}s)'
-                        f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
-                        f"\nPredict:         yolo task={model.task} mode=predict model={f[-1]} {s}"
-                        f"\nValidate:        yolo task={model.task} mode=val model={f[-1]} {s}"
-                        f"\nVisualize:       https://netron.app")
+            f = str(Path(f[-1]))
+            square = self.imgsz[0] == self.imgsz[1]
+            s = f"WARNING ⚠️ non-PyTorch val requires square images, 'imgsz={self.imgsz}' will not work. Use " \
+                f"export 'imgsz={max(self.imgsz)}' if val is required." if not square else ''
+            imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(' ', '')
+            LOGGER.info(
+                f'\nExport complete ({time.time() - t:.1f}s)'
+                f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
+                f"\nPredict:         yolo task={model.task} mode=predict model={f} imgsz={imgsz}"
+                f"\nValidate:        yolo task={model.task} mode=val model={f} imgsz={imgsz} data={self.args.data} {s}"
+                f"\nVisualize:       https://netron.app")
 
         self.run_callbacks("on_export_end")
         return f  # return list of exported files/dirs
@@ -307,7 +312,7 @@ class Exporter:
             self.im.cpu() if dynamic else self.im,
             f,
             verbose=False,
-            opset_version=self.args.opset,
+            opset_version=self.args.opset or get_latest_opset(),
             do_constant_folding=True,  # WARNING: DNN inference with torch>=1.12 may require do_constant_folding=False
             input_names=['images'],
             output_names=output_names,
@@ -497,7 +502,7 @@ class Exporter:
         except ImportError:
             check_requirements(f"tensorflow{'' if torch.cuda.is_available() else '-macos' if MACOS else '-cpu'}")
             import tensorflow as tf  # noqa
-        check_requirements(("onnx", "onnx2tf", "sng4onnx", "onnxsim", "onnx_graphsurgeon"),
+        check_requirements(("onnx", "onnx2tf", "sng4onnx", "onnxsim", "onnx_graphsurgeon", "tflite_support"),
                            cmds="--extra-index-url https://pypi.ngc.nvidia.com ")
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
@@ -508,7 +513,11 @@ class Exporter:
         onnx = self.file.with_suffix('.onnx')
 
         # Export to TF SavedModel
-        subprocess.run(f'onnx2tf -i {onnx} --output_signaturedefs -o {f}', shell=True)
+        subprocess.run(f'onnx2tf -i {onnx} -o {f} --non_verbose', shell=True)
+
+        # Add TFLite metadata
+        for tflite_file in Path(f).rglob('*.tflite'):
+            self._add_tflite_metadata(tflite_file)
 
         # Load saved_model
         keras_model = tf.saved_model.load(f, tags=None, options=None)
@@ -664,44 +673,76 @@ class Exporter:
                 r'{"outputs": {"Identity.?.?": {"name": "Identity.?.?"}, '
                 r'"Identity.?.?": {"name": "Identity.?.?"}, '
                 r'"Identity.?.?": {"name": "Identity.?.?"}, '
-                r'"Identity.?.?": {"name": "Identity.?.?"}}}', r'{"outputs": {"Identity": {"name": "Identity"}, '
+                r'"Identity.?.?": {"name": "Identity.?.?"}}}',
+                r'{"outputs": {"Identity": {"name": "Identity"}, '
                 r'"Identity_1": {"name": "Identity_1"}, '
                 r'"Identity_2": {"name": "Identity_2"}, '
-                r'"Identity_3": {"name": "Identity_3"}}}', f_json.read_text())
+                r'"Identity_3": {"name": "Identity_3"}}}',
+                f_json.read_text(),
+            )
             j.write(subst)
         return f, None
 
-    def _add_tflite_metadata(self, file, num_outputs):
+    def _add_tflite_metadata(self, file):
         # Add metadata to *.tflite models per https://www.tensorflow.org/lite/models/convert/metadata
-        with contextlib.suppress(ImportError):
-            # check_requirements('tflite_support')
-            from tflite_support import flatbuffers  # noqa
-            from tflite_support import metadata as _metadata  # noqa
-            from tflite_support import metadata_schema_py_generated as _metadata_fb  # noqa
+        from tflite_support import flatbuffers  # noqa
+        from tflite_support import metadata as _metadata  # noqa
+        from tflite_support import metadata_schema_py_generated as _metadata_fb  # noqa
 
-            tmp_file = Path('/tmp/meta.txt')
-            with open(tmp_file, 'w') as meta_f:
-                meta_f.write(str(self.metadata))
+        # Creates model info.
+        model_meta = _metadata_fb.ModelMetadataT()
+        model_meta.name = self.metadata['description']
+        model_meta.version = self.metadata['version']
+        model_meta.author = self.metadata['author']
+        model_meta.license = self.metadata['license']
 
-            model_meta = _metadata_fb.ModelMetadataT()
-            label_file = _metadata_fb.AssociatedFileT()
-            label_file.name = tmp_file.name
-            model_meta.associatedFiles = [label_file]
+        # Creates input info.
+        input_meta = _metadata_fb.TensorMetadataT()
+        input_meta.name = "image"
+        input_meta.description = "Input image to be detected."
+        input_meta.content = _metadata_fb.ContentT()
+        input_meta.content.contentProperties = _metadata_fb.ImagePropertiesT()
+        input_meta.content.contentProperties.colorSpace = _metadata_fb.ColorSpaceType.RGB
+        input_meta.content.contentPropertiesType = _metadata_fb.ContentProperties.ImageProperties
 
-            subgraph = _metadata_fb.SubGraphMetadataT()
-            subgraph.inputTensorMetadata = [_metadata_fb.TensorMetadataT()]
-            subgraph.outputTensorMetadata = [_metadata_fb.TensorMetadataT()] * num_outputs
-            model_meta.subgraphMetadata = [subgraph]
+        # Creates output info.
+        output_meta = _metadata_fb.TensorMetadataT()
+        output_meta.name = "output"
+        output_meta.description = "Coordinates of detected objects, class labels, and confidence score."
 
-            b = flatbuffers.Builder(0)
-            b.Finish(model_meta.Pack(b), _metadata.MetadataPopulator.METADATA_FILE_IDENTIFIER)
-            metadata_buf = b.Output()
+        # Label file
+        tmp_file = Path('/tmp/meta.txt')
+        with open(tmp_file, 'w') as meta_f:
+            meta_f.write(str(self.metadata))
 
-            populator = _metadata.MetadataPopulator.with_model_file(file)
-            populator.load_metadata_buffer(metadata_buf)
-            populator.load_associated_files([str(tmp_file)])
-            populator.populate()
-            tmp_file.unlink()
+        label_file = _metadata_fb.AssociatedFileT()
+        label_file.name = tmp_file.name
+        label_file.type = _metadata_fb.AssociatedFileType.TENSOR_AXIS_LABELS
+        output_meta.associatedFiles = [label_file]
+
+        # Creates subgraph info.
+        subgraph = _metadata_fb.SubGraphMetadataT()
+        subgraph.inputTensorMetadata = [input_meta]
+        subgraph.outputTensorMetadata = [output_meta]
+        model_meta.subgraphMetadata = [subgraph]
+
+        b = flatbuffers.Builder(0)
+        b.Finish(model_meta.Pack(b), _metadata.MetadataPopulator.METADATA_FILE_IDENTIFIER)
+        metadata_buf = b.Output()
+
+        populator = _metadata.MetadataPopulator.with_model_file(file)
+        populator.load_metadata_buffer(metadata_buf)
+        populator.load_associated_files([str(tmp_file)])
+        populator.populate()
+        tmp_file.unlink()
+
+    # TODO Rename this here and in `_add_tflite_metadata`
+    def _extracted_from__add_tflite_metadata_15(self, _metadata_fb, arg1, arg2):
+        # Creates input info.
+        result = _metadata_fb.TensorMetadataT()
+        result.name = arg1
+        result.description = arg2
+        return result
 
     def _pipeline_coreml(self, model, prefix=colorstr('CoreML Pipeline:')):
         # YOLOv8 CoreML pipeline

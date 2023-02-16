@@ -17,10 +17,10 @@ class SegmentationPredictor(DetectionPredictor):
                                     self.args.iou,
                                     agnostic=self.args.agnostic_nms,
                                     max_det=self.args.max_det,
-                                    nm=32,
+                                    nc=len(self.model.names),
                                     classes=self.args.classes)
         results = []
-        proto = preds[1][-1]
+        proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
         for i, pred in enumerate(p):
             shape = orig_img[i].shape if isinstance(orig_img, list) else orig_img.shape
             if not len(pred):
@@ -82,8 +82,8 @@ class SegmentationPredictor(DetectionPredictor):
 
             if self.args.save or self.args.save_crop or self.args.show:  # Add bbox to image
                 c = int(cls)  # integer class
-                label = None if self.args.hide_labels else (
-                    self.model.names[c] if self.args.hide_conf else f'{self.model.names[c]} {conf:.2f}')
+                name = f"id:{int(d.id.item())} {self.model.names[c]}" if d.id is not None else self.model.names[c]
+                label = None if self.args.hide_labels else (name if self.args.hide_conf else f'{name} {conf:.2f}')
                 self.annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True)) if self.args.boxes else None
             if self.args.save_crop:
                 save_one_box(d.xyxy,

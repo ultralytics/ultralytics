@@ -251,6 +251,7 @@ class SegmentationModel(DetectionModel):
     def _forward_augment(self, x):
         raise NotImplementedError("WARNING ⚠️ SegmentationModel has not supported augment inference yet!")
 
+
 class ClassificationModel(BaseModel):
     # YOLOv8 classification model
     def __init__(self,

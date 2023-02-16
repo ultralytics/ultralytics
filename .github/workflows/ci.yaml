@@ -49,9 +49,11 @@ jobs:
       - name: TF Lite export
         run: |
           yolo export model=${{ matrix.model }}.pt format=tflite
+          yolo task=detect mode=predict model=yolov8n_saved_model/yolov8n_float16.tflite imgsz=640
       - name: TF *.pb export
         run: |
           yolo export model=${{ matrix.model }}.pt format=pb
+          yolo task=detect mode=predict model=yolov8n.pb imgsz=640
       - name: TF Lite Edge TPU export
         run: |
           yolo export model=${{ matrix.model }}.pt format=edgetpu

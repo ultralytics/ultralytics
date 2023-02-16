@@ -234,22 +234,23 @@ class Exporter:
             nms = False
             f[5], s_model = self._export_saved_model(nms=nms or self.args.agnostic_nms or tfjs,
                                                      agnostic_nms=self.args.agnostic_nms or tfjs)
-
-            debug = False
-            if debug:
-                if pb or tfjs:  # pb prerequisite to tfjs
-                    f[6], _ = self._export_pb(s_model)
-                if tflite or edgetpu:
-                    f[7], _ = self._export_tflite(s_model,
-                                                  int8=self.args.int8 or edgetpu,
-                                                  data=self.args.data,
-                                                  nms=nms,
-                                                  agnostic_nms=self.args.agnostic_nms)
-                    if edgetpu:
-                        f[8], _ = self._export_edgetpu()
-                    self._add_tflite_metadata(f[8] or f[7])
-                if tfjs:
-                    f[9], _ = self._export_tfjs()
+            if pb or tfjs:  # pb prerequisite to tfjs
+                f[6], _ = self._export_pb(s_model)
+            if tflite or edgetpu:
+                f[7] = str(Path(f[5]) / (self.file.stem + '_float16.tflite'))
+                # f[7], _ = self._export_tflite(s_model,
+                #                               int8=self.args.int8 or edgetpu,
+                #                               data=self.args.data,
+                #                               nms=nms,
+                #                               agnostic_nms=self.args.agnostic_nms)
+                if edgetpu:
+                    LOGGER.warning('WARNING ⚠️ YOLOv8 Edge TPU exports still under development. '
+                                   'Please consider contributing to the effort if you have TF expertise. Thank you!')
+                    return
+                    # f[8], _ = self._export_edgetpu()
+                self._add_tflite_metadata(f[8] or f[7])
+            if tfjs:
+                f[9], _ = self._export_tfjs()
         if paddle:  # PaddlePaddle
             f[10], _ = self._export_paddle()
 
@@ -516,8 +517,8 @@ class Exporter:
         subprocess.run(f'onnx2tf -i {onnx} -o {f} --non_verbose', shell=True)
 
         # Add TFLite metadata
-        for tflite_file in Path(f).rglob('*.tflite'):
-            self._add_tflite_metadata(tflite_file)
+        # for tflite_file in Path(f).rglob('*.tflite'):
+        #    self._add_tflite_metadata(tflite_file)
 
         # Load saved_model
         keras_model = tf.saved_model.load(f, tags=None, options=None)

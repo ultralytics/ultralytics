@@ -545,26 +545,26 @@ class CopyPaste:
         labels["instances"] = instances
         return labels
 
+
 class Albumentations:
     # YOLOv8 Albumentations class (optional, only used if package is installed)
     def __init__(self, p=1.0, aug_ids=None):
         self.p = p
         self.transform = None
-        self.aug_ids=None
+        self.aug_ids = None
         self.aug_ids = aug_ids or [0, 1]  # IDs to apply augmentation to by default
         prefix = colorstr("albumentations: ")
         try:
             import albumentations as A
-            
+
             check_version(A.__version__, "1.0.3", hard=True)  # version requirement
 
-            # Define different sets of augmentations for different classes 
+            # Define different sets of augmentations for different classes
             T_0_1 = [
                 A.Blur(p=0.2),
                 A.MedianBlur(p=0.4),
                 A.ToGray(p=0.5),
-                A.CLAHE(p=0.01),
-            ]
+                A.CLAHE(p=0.01),]
             #default albumentation parameters
             T_other = [
                 A.Blur(p=0.01),
@@ -576,8 +576,10 @@ class Albumentations:
                 A.ImageCompression(quality_lower=75, p=0.0),]
 
             # Combine the augmentations for all classes
-            self.transform_0_1 = A.Compose(T_0_1, bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"]))
-            self.transform_other = A.Compose(T_other, bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"]))
+            self.transform_0_1 = A.Compose(T_0_1,
+                                           bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"]))
+            self.transform_other = A.Compose(T_other,
+                                             bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"]))
 
             LOGGER.info(prefix + ", ".join(f"{x}".replace("always_apply=False, ", "") for x in T_0_1 if x.p))
             LOGGER.info(prefix + ", ".join(f"{x}".replace("always_apply=False, ", "") for x in T_other if x.p))
@@ -594,7 +596,7 @@ class Albumentations:
             labels["instances"].normalize(*im.shape[:2][::-1])
             bboxes = labels["instances"].bboxes
             # TODO: add supports of segments and keypoints
-            
+
             # Apply different augmentations depending on the class labels
             if any(i in self.aug_ids for i in cls):
                 T = [t for t in self.transform.transforms if any(i in t.class_labels for i in self.aug_ids)]
@@ -605,11 +607,9 @@ class Albumentations:
                 new = self.transform(image=im, bboxes=bboxes, class_labels=cls)  # transformed
                 labels["img"] = new["image"]
                 labels["cls"] = np.array(new["class_labels"])
-                    
+
             labels["instances"].update(bboxes=bboxes)
         return labels
-
-
 
     def __call__(self, labels):
         im = labels["img"]

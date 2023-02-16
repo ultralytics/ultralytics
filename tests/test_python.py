@@ -129,10 +129,12 @@ def test_export_coreml():  # sourcery skip: move-assign
         YOLO(f)(SOURCE)  # model prediction only supported on macOS
 
 
-def test_export_tflite():
-    model = YOLO(MODEL)
-    f = model.export(format='tflite')
-    YOLO(f)(SOURCE)
+def test_export_tflite(enabled=False):
+    # TF suffers from install conflicts on Windows and macOS
+    if enabled:
+        model = YOLO(MODEL)
+        f = model.export(format='tflite')
+        YOLO(f)(SOURCE)
 
 
 def test_export_paddle(enabled=False):

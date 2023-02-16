@@ -45,8 +45,6 @@ class YOLODataset(BaseDataset):
 
     def cache_labels(self, path=Path("./labels.cache")):
         # Cache dataset labels, check images and read shapes
-        if path.exists():
-            path.unlink()  # remove *.cache file if exists
         x = {"labels": []}
         nm, nf, ne, nc, msgs = 0, 0, 0, 0, []  # number missing, found, empty, corrupt, messages
         desc = f"{self.prefix}Scanning {path.parent / path.stem}..."
@@ -86,11 +84,13 @@ class YOLODataset(BaseDataset):
         x["msgs"] = msgs  # warnings
         x["version"] = self.cache_version  # cache version
         if is_dir_writeable(path.parent):
+            if path.exists():
+                path.unlink()  # remove *.cache file if exists
             np.save(str(path), x)  # save cache for next time
             path.with_suffix(".cache.npy").rename(path)  # remove .npy suffix
             LOGGER.info(f"{self.prefix}New cache created: {path}")
         else:
-            LOGGER.warning(f"{self.prefix}WARNING ⚠️ Cache directory {path.parent} is not writeable")  # not writeable
+            LOGGER.warning(f"{self.prefix}WARNING ⚠️ Cache directory {path.parent} is not writeable, cache not saved.")
         return x
 
     def get_labels(self):

@@ -184,9 +184,4 @@ def test_visulizer():
 
     res = model.predict(img_cv)
     resimg = res[0].visualize(show_conf=False)
-
-    cv2.imshow("res", resimg)
-    cv2.waitKey(0)
-
-
-test_visulizer()
+    print(resimg)

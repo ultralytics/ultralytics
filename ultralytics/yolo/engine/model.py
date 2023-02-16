@@ -81,7 +81,7 @@ class YOLO:
         cfg_dict = yaml_load(self.cfg, append_filename=True)  # model dict
         self.task = guess_model_task(cfg_dict)
         self.ModelClass, self.TrainerClass, self.ValidatorClass, self.PredictorClass = self._assign_ops_from_task()
-        self.model = self.ModelClass(cfg_dict, verbose=verbose)  # initialize
+        self.model = self.ModelClass(cfg_dict, verbose=verbose and RANK == -1)  # initialize
 
     def _load(self, weights: str):
         """
@@ -101,6 +101,7 @@ class YOLO:
             self.model, self.ckpt = weights, None
             self.task = guess_model_task(weights)
         self.ckpt_path = weights
+        self.overrides['model'] = weights
         self.ModelClass, self.TrainerClass, self.ValidatorClass, self.PredictorClass = self._assign_ops_from_task()
 
     def _check_is_pytorch_model(self):
@@ -108,8 +109,8 @@ class YOLO:
         Raises TypeError is model is not a PyTorch model
         """
         if not isinstance(self.model, nn.Module):
-            raise TypeError(f"model='{self.model}' must be a PyTorch model, but is a different type. PyTorch models "
-                            f"can be used to train, val, predict and export, i.e. "
+            raise TypeError(f"model='{self.model}' must be a *.pt PyTorch model, but is a different type. "
+                            f"PyTorch models can be used to train, val, predict and export, i.e. "
                             f"'yolo export model=yolov8n.pt', but exported formats like ONNX, TensorRT etc. only "
                             f"support 'predict' and 'val' modes, i.e. 'yolo predict model=yolov8n.onnx'.")
 
@@ -155,7 +156,8 @@ class YOLO:
         overrides = self.overrides.copy()
         overrides["conf"] = 0.25
         overrides.update(kwargs)
-        overrides["mode"] = "predict"
+        overrides["mode"] = kwargs.get("mode", "predict")
+        assert overrides["mode"] in ['track', 'predict']
         overrides["save"] = kwargs.get("save", False)  # not save files by default
         if not self.predictor:
             self.predictor = self.PredictorClass(overrides=overrides)
@@ -164,6 +166,16 @@ class YOLO:
             self.predictor.args = get_cfg(self.predictor.args, overrides)
         is_cli = sys.argv[0].endswith('yolo') or sys.argv[0].endswith('ultralytics')
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
+
+    @smart_inference_mode()
+    def track(self, source=None, stream=False, **kwargs):
+        from ultralytics.tracker.track import register_tracker
+        register_tracker(self)
+        # bytetrack-based method needs low confidence predictions as input
+        conf = kwargs.get("conf") or 0.1
+        kwargs['conf'] = conf
+        kwargs['mode'] = 'track'
+        return self.predict(source=source, stream=stream, **kwargs)
 
     @smart_inference_mode()
     def val(self, data=None, **kwargs):
@@ -240,7 +252,7 @@ class YOLO:
         if RANK in {0, -1}:
             self.model, _ = attempt_load_one_weight(str(self.trainer.best))
             self.overrides = self.model.args
-        self.metrics_data = self.trainer.validator.metrics
+            self.metrics_data = getattr(self.trainer.validator, 'metrics', None)  # TODO: no metrics returned by DDP
 
     def to(self, device):
         """

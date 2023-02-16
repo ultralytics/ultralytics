@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
+import platform
 from pathlib import Path
 
 import cv2
@@ -14,6 +15,7 @@ from ultralytics.yolo.utils import ROOT, SETTINGS
 MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n.pt'
 CFG = 'yolov8n.yaml'
 SOURCE = ROOT / 'assets/bus.jpg'
+MACOS = platform.system() == 'Darwin'  # macOS environment
 
 
 def test_model_forward():
@@ -120,10 +122,11 @@ def test_export_openvino():
     YOLO(f)(SOURCE)  # exported model inference
 
 
-def test_export_coreml():
+def test_export_coreml():  # sourcery skip: move-assign
     model = YOLO(MODEL)
-    model.export(format='coreml')
-    # YOLO(f)(SOURCE)  # model prediction only supported on macOS
+    f = model.export(format='coreml')
+    if MACOS:
+        YOLO(f)(SOURCE)  # model prediction only supported on macOS
 
 
 def test_export_paddle(enabled=False):
@@ -153,7 +156,7 @@ def test_predict_callback_and_setup():
         # results -> List[batch_size]
         path, _, im0s, _, _ = predictor.batch
         # print('on_predict_batch_end', im0s[0].shape)
-        bs = [predictor.bs for _ in range(len(path))]
+        bs = [predictor.dataset.bs for _ in range(len(path))]
         predictor.results = zip(predictor.results, im0s, bs)
 
     model = YOLO("yolov8n.pt")

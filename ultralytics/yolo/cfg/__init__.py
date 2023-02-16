@@ -178,7 +178,7 @@ def check_cfg_mismatch(base: Dict, custom: Dict, e=None):
         string = ''
         for x in mismatched:
             matches = get_close_matches(x, base)  # key list
-            matches = [f"{k}={DEFAULT_CFG_DICT[k]}" if DEFAULT_CFG_DICT[k] is not None else k for k in matches]  # k=v
+            matches = [f"{k}={DEFAULT_CFG_DICT[k]}" if DEFAULT_CFG_DICT.get(k) is not None else k for k in matches]
             match_str = f"Similar arguments are i.e. {matches}." if matches else ''
             string += f"'{colorstr('red', 'bold', x)}' is not a valid YOLO argument. {match_str}\n"
         raise SyntaxError(string + CLI_HELP_MSG) from e
@@ -233,9 +233,7 @@ def entrypoint(debug=''):
 
     # Define tasks and modes
     tasks = 'detect', 'segment', 'classify'
-    modes = 'train', 'val', 'predict', 'export'
-
-    # Define special commands
+    modes = 'train', 'val', 'predict', 'export', 'track'
     special = {
         'help': lambda: LOGGER.info(CLI_HELP_MSG),
         'checks': checks.check_yolo,
@@ -252,6 +250,9 @@ def entrypoint(debug=''):
 
     overrides = {}  # basic overrides, i.e. imgsz=320
     for a in merge_equals_args(args):  # merge spaces around '=' sign
+        if a.startswith('--'):
+            LOGGER.warning(f"WARNING ⚠️ '{a}' does not require leading dashes '--', updating to '{a[2:]}'.")
+            a = a[2:]
         if '=' in a:
             try:
                 re.sub(r' *= *', '=', a)  # remove spaces around equals sign
@@ -299,7 +300,7 @@ def entrypoint(debug=''):
         mode = DEFAULT_CFG.mode or 'predict'
         LOGGER.warning(f"WARNING ⚠️ 'mode' is missing. Valid modes are {modes}. Using default 'mode={mode}'.")
     elif mode not in modes:
-        if mode != 'checks':
+        if mode not in ('checks', checks):
             raise ValueError(f"Invalid 'mode={mode}'. Valid modes are {modes}.\n{CLI_HELP_MSG}")
         LOGGER.warning("WARNING ⚠️ 'yolo mode=checks' is deprecated. Use 'yolo checks' instead.")
         checks.check_yolo()
@@ -321,7 +322,7 @@ def entrypoint(debug=''):
                        f"Inheriting 'task={model.task}' from {overrides['model']} and ignoring 'task={task}'.")
     task = model.task
     overrides['task'] = task
-    if mode == 'predict' and 'source' not in overrides:
+    if mode in {'predict', 'track'} and 'source' not in overrides:
         overrides['source'] = DEFAULT_CFG.source or ROOT / "assets" if (ROOT / "assets").exists() \
             else "https://ultralytics.com/images/bus.jpg"
         LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using default 'source={overrides['source']}'.")

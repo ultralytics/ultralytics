@@ -6,7 +6,7 @@ import torch.nn.functional as F
 
 from ultralytics.nn.tasks import SegmentationModel
 from ultralytics.yolo import v8
-from ultralytics.yolo.utils import DEFAULT_CFG
+from ultralytics.yolo.utils import DEFAULT_CFG, RANK
 from ultralytics.yolo.utils.ops import crop_mask, xyxy2xywh
 from ultralytics.yolo.utils.plotting import plot_images, plot_results
 from ultralytics.yolo.utils.tal import make_anchors
@@ -24,7 +24,7 @@ class SegmentationTrainer(v8.detect.DetectionTrainer):
         super().__init__(cfg, overrides)
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        model = SegmentationModel(cfg, ch=3, nc=self.data["nc"], verbose=verbose)
+        model = SegmentationModel(cfg, ch=3, nc=self.data["nc"], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
 

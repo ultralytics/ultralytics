@@ -86,6 +86,7 @@ class BaseTrainer:
         self.console = LOGGER
         self.validator = None
         self.model = None
+        self.metrics = None
         init_seeds(self.args.seed + 1 + RANK, deterministic=self.args.deterministic)
 
         # Dirs
@@ -184,7 +185,7 @@ class BaseTrainer:
             finally:
                 ddp_cleanup(self, file)
         else:
-            self._do_train(int(os.getenv("RANK", -1)), world_size)
+            self._do_train(RANK, world_size)
 
     def _setup_ddp(self, rank, world_size):
         # os.environ['MASTER_ADDR'] = 'localhost'
@@ -426,7 +427,7 @@ class BaseTrainer:
             cfg = ckpt["model"].yaml
         else:
             cfg = model
-        self.model = self.get_model(cfg=cfg, weights=weights)  # calls Model(cfg, weights)
+        self.model = self.get_model(cfg=cfg, weights=weights, verbose=RANK == -1)  # calls Model(cfg, weights)
         return ckpt
 
     def optimizer_step(self):

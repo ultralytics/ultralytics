@@ -57,6 +57,9 @@ jobs:
       - name: TF Lite Edge TPU export
         run: |
           yolo export model=${{ matrix.model }}.pt format=edgetpu
+      - name: TF.js export
+        run: |
+          yolo export model=${{ matrix.model }}.pt format=tfjs
       - name: Benchmark DetectionModel
         run: |
           # yolo benchmark model=${{ matrix.model }}.pt imgsz=320 min_metric=0.29

@@ -75,8 +75,9 @@ from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.ops import Profile
 from ultralytics.yolo.utils.torch_utils import get_latest_opset, select_device, smart_inference_mode
 
-MACOS = platform.system() == 'Darwin'  # macOS environment
-
+MACOS = platform.system() == 'Darwin'
+LINUX = platform.system() == 'Linux'
+CUDA = torch.cuda.is_available()
 
 def export_formats():
     # YOLOv8 export formats
@@ -501,7 +502,7 @@ class Exporter:
         try:
             import tensorflow as tf  # noqa
         except ImportError:
-            check_requirements(f"tensorflow{'' if torch.cuda.is_available() else '-macos' if MACOS else '-cpu'}")
+            check_requirements(f"tensorflow{'' if CUDA else '-macos' if MACOS else '-cpu' if LINUX else ''}")
             import tensorflow as tf  # noqa
         check_requirements(("onnx", "onnx2tf", "sng4onnx", "onnxsim", "onnx_graphsurgeon", "tflite_support"),
                            cmds="--extra-index-url https://pypi.ngc.nvidia.com ")
@@ -515,10 +516,6 @@ class Exporter:
 
         # Export to TF SavedModel
         subprocess.run(f'onnx2tf -i {onnx} -o {f} --non_verbose', shell=True)
-
-        # Add TFLite metadata
-        # for tflite_file in Path(f).rglob('*.tflite'):
-        #    self._add_tflite_metadata(tflite_file)
 
         # Load saved_model
         keras_model = tf.saved_model.load(f, tags=None, options=None)
@@ -538,7 +535,7 @@ class Exporter:
         try:
             import tensorflow as tf  # noqa
         except ImportError:
-            check_requirements(f"tensorflow{'' if torch.cuda.is_available() else '-macos' if MACOS else '-cpu'}")
+            check_requirements(f"tensorflow{'' if CUDA else '-macos' if MACOS else '-cpu' if LINUX else ''}")
             import tensorflow as tf  # noqa
         # from models.tf import TFModel
         from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2  # noqa

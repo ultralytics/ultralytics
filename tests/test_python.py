@@ -182,7 +182,7 @@ def test_visulizer():
     img_cv = cv2.imread(source)
     # img_pil = Image.open(source)
 
-    res = model(img_cv)
+    res = model.predict(img_cv)
     resimg = res[0].visualize(img_cv, show_conf=False)
 
     cv2.imshow("res", resimg)

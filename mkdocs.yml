@@ -109,7 +109,8 @@ nav:
       - Python: python.md
       - Predict: predict.md
       - Configuration: cfg.md
-      - Customization Guide: engine.md
+      - Customization using callbacks: callbacks.md
+      - Advanced customization: engine.md
   - Ultralytics HUB: hub.md
   - iOS and Android App: app.md
   - Reference:

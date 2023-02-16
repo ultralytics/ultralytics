@@ -545,6 +545,7 @@ class CopyPaste:
         labels["instances"] = instances
         return labels
 
+
 class Albumentations:
     # YOLOv8 Albumentations class (optional, only used if package is installed)
     def __init__(self, p=1.0):
@@ -581,17 +582,16 @@ class Albumentations:
             labels["instances"].normalize(*im.shape[:2][::-1])
             bboxes = labels["instances"].bboxes
             # TODO: add supports of segments and keypoints
-            
+
             # Check if any of the label IDs are in the list of IDs to apply augmentation to
             if any(i in self.ids for i in cls):
                 if self.transform and random.random() < self.p:
                     new = self.transform(image=im, bboxes=bboxes, class_labels=cls)  # transformed
                     labels["img"] = new["image"]
                     labels["cls"] = np.array(new["class_labels"])
-                    
+
             labels["instances"].update(bboxes=bboxes)
         return labels
-
 
     def __call__(self, labels):
         im = labels["img"]

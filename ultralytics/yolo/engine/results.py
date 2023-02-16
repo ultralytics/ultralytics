@@ -18,13 +18,13 @@ class Results:
             boxes (Boxes, optional): A Boxes object containing the detection bounding boxes.
             masks (Masks, optional): A Masks object containing the detection masks.
             probs (torch.Tensor, optional): A tensor containing the detection class probabilities.
-            orig_shape (tuple, optional): Original image size.
+            orig_img (tuple, optional): Original image size.
 
         Attributes:
             boxes (Boxes, optional): A Boxes object containing the detection bounding boxes.
             masks (Masks, optional): A Masks object containing the detection masks.
             probs (torch.Tensor, optional): A tensor containing the detection class probabilities.
-            orig_shape (tuple, optional): Original image size.
+            orig_img (tuple, optional): Original image size.
             data (torch.Tensor): The raw masks tensor
 
         """

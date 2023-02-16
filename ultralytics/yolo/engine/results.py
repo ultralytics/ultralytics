@@ -29,11 +29,12 @@ class Results:
 
         """
 
-    def __init__(self, boxes=None, masks=None, probs=None, orig_shape=None, names=None) -> None:
-        self.boxes = Boxes(boxes, orig_shape) if boxes is not None else None  # native size boxes
-        self.masks = Masks(masks, orig_shape) if masks is not None else None  # native size or imgsz masks
+    def __init__(self, boxes=None, masks=None, probs=None, orig_img=None, names=None) -> None:
+        self.orig_img = orig_img
+        self.orig_shape = orig_img.shape[:2]
+        self.boxes = Boxes(boxes, self.orig_shape) if boxes is not None else None  # native size boxes
+        self.masks = Masks(masks, self.orig_shape) if masks is not None else None  # native size or imgsz masks
         self.probs = probs if probs is not None else None
-        self.orig_shape = orig_shape
         self.names = names
         self.comp = ["boxes", "masks", "probs"]
 
@@ -124,7 +125,6 @@ class Results:
             """)
 
     def visualize(self,
-                  img,
                   show_conf=True,
                   line_width=None,
                   font_size=None,
@@ -135,22 +135,17 @@ class Results:
         Plots the given result on an input RGB image. Accepts cv2(numpy) or PIL Image
 
         Args:
-        img (): Image
         show_conf (bool): Show confidence
         line_width (Float): The line width of boxes. Automatically scaled to img size if not provided
         font_size (Float): The font size of . Automatically scaled to img size if not provided
         """
-        img = deepcopy(img)
-        if isinstance(img, Image.Image):  # handle PILLOW image
-            img = np.asarray(img)[:, :, ::-1]
-            img = np.ascontiguousarray(img)
-
+        img = deepcopy(self.orig_img)
         annotator = Annotator(img, line_width, font_size, font, pil, example)
         boxes = self.boxes
-        masks = self.masks
+        masks = self.masks.data
         logits = self.probs
         names = self.names
-
+        import pdb;pdb.set_trace()
         if boxes is not None:
             for d in reversed(boxes):
                 cls, conf = d.cls.squeeze(), d.conf.squeeze()

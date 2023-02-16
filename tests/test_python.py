@@ -183,7 +183,8 @@ def test_visulizer():
     # img_pil = Image.open(source)
 
     res = model.predict(img_cv)
-    resimg = res[0].visualize(img_cv, show_conf=False)
+    resimg = res[0].visualize(show_conf=False)
 
     cv2.imshow("res", resimg)
     cv2.waitKey(0)
+test_visulizer()

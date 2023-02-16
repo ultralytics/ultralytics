@@ -29,9 +29,10 @@ class DetectionPredictor(BasePredictor):
 
         results = []
         for i, pred in enumerate(preds):
-            shape = orig_img[i].shape if isinstance(orig_img, list) else orig_img.shape
+            orig_img = orig_img[i] if isinstance(orig_img, list) else orig_img
+            shape = orig_img.shape
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
-            results.append(Results(boxes=pred, orig_shape=shape[:2], names=self.model.names))
+            results.append(Results(boxes=pred, orig_img=orig_img, names=self.model.names))
         return results
 
     def write_results(self, idx, results, batch):

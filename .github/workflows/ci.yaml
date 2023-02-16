@@ -34,7 +34,7 @@ jobs:
       - name: Install requirements
         run: |
           python -m pip install --upgrade pip wheel
-          pip install -e . onnx coremltools openvino-dev>=2022.3 tensorflow-cpu --extra-index-url https://download.pytorch.org/whl/cpu
+          pip install -e . onnx onnxruntime coremltools openvino-dev>=2022.3 tensorflow-cpu --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check environment
         run: |
           echo "RUNNER_OS is ${{ runner.os }}"
@@ -93,9 +93,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip wheel
           if [ "${{ matrix.torch }}" == "1.8.0" ]; then
-              pip install -e . torch==1.8.0 torchvision==0.9.0 onnx openvino-dev>=2022.3 pytest --extra-index-url https://download.pytorch.org/whl/cpu
+              pip install -e . torch==1.8.0 torchvision==0.9.0 onnx onnxruntime openvino-dev>=2022.3 pytest --extra-index-url https://download.pytorch.org/whl/cpu
           else
-              pip install -e . onnx openvino-dev>=2022.3 pytest --extra-index-url https://download.pytorch.org/whl/cpu
+              pip install -e . onnx onnxruntime openvino-dev>=2022.3 pytest --extra-index-url https://download.pytorch.org/whl/cpu
           fi
           # pip install ultralytics (production)
         shell: bash  # for Windows compatibility

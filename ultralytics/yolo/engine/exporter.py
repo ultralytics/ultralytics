@@ -737,14 +737,6 @@ class Exporter:
         populator.populate()
         tmp_file.unlink()
 
-    # TODO Rename this here and in `_add_tflite_metadata`
-    def _extracted_from__add_tflite_metadata_15(self, _metadata_fb, arg1, arg2):
-        # Creates input info.
-        result = _metadata_fb.TensorMetadataT()
-        result.name = arg1
-        result.description = arg2
-        return result
-
     def _pipeline_coreml(self, model, prefix=colorstr('CoreML Pipeline:')):
         # YOLOv8 CoreML pipeline
         import coremltools as ct  # noqa

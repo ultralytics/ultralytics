@@ -308,7 +308,7 @@ class YOLO:
         for arg in 'augment', 'verbose', 'project', 'name', 'exist_ok', 'resume', 'batch', 'epochs', 'cache', \
                 'save_json', 'half', 'v5loader', 'device', 'cfg', 'save', 'rect', 'plots', 'opset':
             args.pop(arg, None)
-    
+
     @staticmethod
     def _reset_callbacks():
         for event in callbacks.default_callbacks.keys():

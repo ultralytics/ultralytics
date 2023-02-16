@@ -124,13 +124,7 @@ class Results:
                 orig_shape (tuple, optional): Original image size.
             """)
 
-    def visualize(self,
-                  show_conf=True,
-                  line_width=None,
-                  font_size=None,
-                  font='Arial.ttf',
-                  pil=False,
-                  example='abc'):
+    def visualize(self, show_conf=True, line_width=None, font_size=None, font='Arial.ttf', pil=False, example='abc'):
         """
         Plots the given result on an input RGB image. Accepts cv2(numpy) or PIL Image
 
@@ -145,7 +139,8 @@ class Results:
         masks = self.masks.data
         logits = self.probs
         names = self.names
-        import pdb;pdb.set_trace()
+        import pdb
+        pdb.set_trace()
         if boxes is not None:
             for d in reversed(boxes):
                 cls, conf = d.cls.squeeze(), d.conf.squeeze()

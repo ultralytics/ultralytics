@@ -28,19 +28,8 @@ class SegmentationValidator(DetectionValidator):
         return batch
 
     def init_metrics(self, model):
-        val = self.data.get(self.args.split, '')  # validation path
-        self.is_coco = isinstance(val, str) and val.endswith(f'coco{os.sep}val2017.txt')  # is COCO dataset
-        self.class_map = ops.coco80_to_coco91_class() if self.is_coco else list(range(1000))
-        self.args.save_json |= self.is_coco and not self.training  # run on final val if training COCO
-        self.names = model.names
-        self.nc = len(model.names)
-        self.metrics.names = self.names
-        self.metrics.plot = self.args.plots
-        self.confusion_matrix = ConfusionMatrix(nc=self.nc)
+        super().init_metrics(model)
         self.plot_masks = []
-        self.seen = 0
-        self.jdict = []
-        self.stats = []
         if self.args.save_json:
             check_requirements('pycocotools>=2.0.6')
             self.process = ops.process_mask_upsample  # more accurate

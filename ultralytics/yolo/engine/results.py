@@ -1,9 +1,13 @@
+from copy import deepcopy
 from functools import lru_cache
 
 import numpy as np
 import torch
+import torchvision.transforms.functional as F
+from PIL import Image
 
 from ultralytics.yolo.utils import LOGGER, ops
+from ultralytics.yolo.utils.plotting import Annotator, colors
 
 
 class Results:
@@ -14,22 +18,24 @@ class Results:
             boxes (Boxes, optional): A Boxes object containing the detection bounding boxes.
             masks (Masks, optional): A Masks object containing the detection masks.
             probs (torch.Tensor, optional): A tensor containing the detection class probabilities.
-            orig_shape (tuple, optional): Original image size.
+            orig_img (tuple, optional): Original image size.
 
         Attributes:
             boxes (Boxes, optional): A Boxes object containing the detection bounding boxes.
             masks (Masks, optional): A Masks object containing the detection masks.
             probs (torch.Tensor, optional): A tensor containing the detection class probabilities.
-            orig_shape (tuple, optional): Original image size.
+            orig_img (tuple, optional): Original image size.
             data (torch.Tensor): The raw masks tensor
 
         """
 
-    def __init__(self, boxes=None, masks=None, probs=None, orig_shape=None) -> None:
-        self.boxes = Boxes(boxes, orig_shape) if boxes is not None else None  # native size boxes
-        self.masks = Masks(masks, orig_shape) if masks is not None else None  # native size or imgsz masks
+    def __init__(self, boxes=None, masks=None, probs=None, orig_img=None, names=None) -> None:
+        self.orig_img = orig_img
+        self.orig_shape = orig_img.shape[:2]
+        self.boxes = Boxes(boxes, self.orig_shape) if boxes is not None else None  # native size boxes
+        self.masks = Masks(masks, self.orig_shape) if masks is not None else None  # native size or imgsz masks
         self.probs = probs if probs is not None else None
-        self.orig_shape = orig_shape
+        self.names = names
         self.comp = ["boxes", "masks", "probs"]
 
     def pandas(self):
@@ -37,7 +43,7 @@ class Results:
         # TODO masks.pandas + boxes.pandas + cls.pandas
 
     def __getitem__(self, idx):
-        r = Results(orig_shape=self.orig_shape)
+        r = Results(orig_img=self.orig_img)
         for item in self.comp:
             if getattr(self, item) is None:
                 continue
@@ -53,7 +59,7 @@ class Results:
             self.probs = probs
 
     def cpu(self):
-        r = Results(orig_shape=self.orig_shape)
+        r = Results(orig_img=self.orig_img)
         for item in self.comp:
             if getattr(self, item) is None:
                 continue
@@ -61,7 +67,7 @@ class Results:
         return r
 
     def numpy(self):
-        r = Results(orig_shape=self.orig_shape)
+        r = Results(orig_img=self.orig_img)
         for item in self.comp:
             if getattr(self, item) is None:
                 continue
@@ -69,7 +75,7 @@ class Results:
         return r
 
     def cuda(self):
-        r = Results(orig_shape=self.orig_shape)
+        r = Results(orig_img=self.orig_img)
         for item in self.comp:
             if getattr(self, item) is None:
                 continue
@@ -77,7 +83,7 @@ class Results:
         return r
 
     def to(self, *args, **kwargs):
-        r = Results(orig_shape=self.orig_shape)
+        r = Results(orig_img=self.orig_img)
         for item in self.comp:
             if getattr(self, item) is None:
                 continue
@@ -117,6 +123,40 @@ class Results:
                 probs (torch.Tensor, optional): A tensor containing the detection class probabilities.
                 orig_shape (tuple, optional): Original image size.
             """)
+
+    def visualize(self, show_conf=True, line_width=None, font_size=None, font='Arial.ttf', pil=False, example='abc'):
+        """
+        Plots the given result on an input RGB image. Accepts cv2(numpy) or PIL Image
+
+        Args:
+            show_conf (bool): Show confidence
+            line_width (Float): The line width of boxes. Automatically scaled to img size if not provided
+            font_size (Float): The font size of . Automatically scaled to img size if not provided
+        """
+        img = deepcopy(self.orig_img)
+        annotator = Annotator(img, line_width, font_size, font, pil, example)
+        boxes = self.boxes
+        masks = self.masks.data
+        logits = self.probs
+        names = self.names
+        if boxes is not None:
+            for d in reversed(boxes):
+                cls, conf = d.cls.squeeze(), d.conf.squeeze()
+                c = int(cls)
+                label = (f'{names[c]}' if names else f'{c}') + (f'{conf:.2f}' if show_conf else '')
+                annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
+
+        if masks is not None:
+            im_gpu = torch.as_tensor(img, dtype=torch.float16).permute(2, 0, 1).flip(0).contiguous()
+            im_gpu = F.resize(im_gpu, masks.data.shape[1:]) / 255
+            annotator.masks(masks.data, colors=[colors(x, True) for x in boxes.cls], im_gpu=im_gpu)
+
+        if logits is not None:
+            top5i = logits.argsort(0, descending=True)[:5].tolist()  # top 5 indices
+            text = f"{', '.join(f'{names[j] if names else j} {logits[j]:.2f}' for j in top5i)}, "
+            annotator.text((32, 32), text, txt_color=(255, 255, 255))  # TODO: allow setting colors
+
+        return img
 
 
 class Boxes:

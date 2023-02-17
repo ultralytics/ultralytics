@@ -18,8 +18,8 @@ TensorFlow.js           | `tfjs`                    | yolov8n_web_model/
 PaddlePaddle            | `paddle`                  | yolov8n_paddle_model/
 
 Requirements:
-    $ pip install -r requirements.txt coremltools onnx onnx-simplifier onnxruntime openvino-dev tensorflow-cpu  # CPU
-    $ pip install -r requirements.txt coremltools onnx onnx-simplifier onnxruntime-gpu openvino-dev tensorflow  # GPU
+    $ pip install -r requirements.txt coremltools onnx onnxsim onnxruntime openvino-dev tensorflow-cpu  # CPU
+    $ pip install -r requirements.txt coremltools onnx onnxsim onnxruntime-gpu openvino-dev tensorflow  # GPU
 
 Python:
     from ultralytics import YOLO
@@ -69,13 +69,14 @@ from ultralytics.nn.tasks import DetectionModel, SegmentationModel
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages
 from ultralytics.yolo.data.utils import IMAGENET_MEAN, IMAGENET_STD, check_det_dataset
-from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, __version__, callbacks, colorstr, get_default_args, yaml_save
+from ultralytics.yolo.utils import (DEFAULT_CFG, LINUX, LOGGER, MACOS, WINDOWS, __version__, callbacks, colorstr,
+                                    get_default_args, yaml_save)
 from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version, check_yaml
 from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.ops import Profile
 from ultralytics.yolo.utils.torch_utils import get_latest_opset, select_device, smart_inference_mode
 
-MACOS = platform.system() == 'Darwin'  # macOS environment
+CUDA = torch.cuda.is_available()
 
 
 def export_formats():
@@ -229,27 +230,24 @@ class Exporter:
         if coreml:  # CoreML
             f[4], _ = self._export_coreml()
         if any((saved_model, pb, tflite, edgetpu, tfjs)):  # TensorFlow formats
-            LOGGER.warning('WARNING ⚠️ YOLOv8 TensorFlow export support is still under development. '
+            LOGGER.warning('WARNING ⚠️ YOLOv8 TensorFlow export is still under development. '
                            'Please consider contributing to the effort if you have TF expertise. Thank you!')
             nms = False
             f[5], s_model = self._export_saved_model(nms=nms or self.args.agnostic_nms or tfjs,
                                                      agnostic_nms=self.args.agnostic_nms or tfjs)
-
-            debug = False
-            if debug:
-                if pb or tfjs:  # pb prerequisite to tfjs
-                    f[6], _ = self._export_pb(s_model)
-                if tflite or edgetpu:
-                    f[7], _ = self._export_tflite(s_model,
-                                                  int8=self.args.int8 or edgetpu,
-                                                  data=self.args.data,
-                                                  nms=nms,
-                                                  agnostic_nms=self.args.agnostic_nms)
-                    if edgetpu:
-                        f[8], _ = self._export_edgetpu()
-                    self._add_tflite_metadata(f[8] or f[7])
-                if tfjs:
-                    f[9], _ = self._export_tfjs()
+            if pb or tfjs:  # pb prerequisite to tfjs
+                f[6], _ = self._export_pb(s_model)
+            if tflite or edgetpu:
+                f[7] = str(Path(f[5]) / (self.file.stem + '_float16.tflite'))
+                # f[7], _ = self._export_tflite(s_model,
+                #                               int8=self.args.int8 or edgetpu,
+                #                               data=self.args.data,
+                #                               nms=nms,
+                #                               agnostic_nms=self.args.agnostic_nms)
+            if edgetpu:
+                f[8], _ = self._export_edgetpu(tflite_model=f[7])
+            if tfjs:
+                f[9], _ = self._export_tfjs()
         if paddle:  # PaddlePaddle
             f[10], _ = self._export_paddle()
 
@@ -258,13 +256,14 @@ class Exporter:
         if any(f):
             f = str(Path(f[-1]))
             square = self.imgsz[0] == self.imgsz[1]
-            s = f"WARNING ⚠️ non-PyTorch val requires square images, 'imgsz={self.imgsz}' will not work. Use " \
-                f"export 'imgsz={max(self.imgsz)}' if val is required." if not square else ''
+            s = '' if square else f"WARNING ⚠️ non-PyTorch val requires square images, 'imgsz={self.imgsz}' will not " \
+                                  f"work. Use export 'imgsz={max(self.imgsz)}' if val is required."
             imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(' ', '')
+            data = f"data={self.args.data}" if model.task == 'segment' and format == 'pb' else ''
             LOGGER.info(
                 f'\nExport complete ({time.time() - t:.1f}s)'
                 f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
-                f"\nPredict:         yolo task={model.task} mode=predict model={f} imgsz={imgsz}"
+                f"\nPredict:         yolo task={model.task} mode=predict model={f} imgsz={imgsz} {data}"
                 f"\nValidate:        yolo task={model.task} mode=val model={f} imgsz={imgsz} data={self.args.data} {s}"
                 f"\nVisualize:       https://netron.app")
 
@@ -335,7 +334,7 @@ class Exporter:
                 check_requirements('onnxsim')
                 import onnxsim
 
-                LOGGER.info(f'{prefix} simplifying with onnx-simplifier {onnxsim.__version__}...')
+                LOGGER.info(f'{prefix} simplifying with onnxsim {onnxsim.__version__}...')
                 subprocess.run(f'onnxsim {f} {f}', shell=True)
             except Exception as e:
                 LOGGER.info(f'{prefix} simplifier failure: {e}')
@@ -358,7 +357,7 @@ class Exporter:
                                     framework="onnx",
                                     compress_to_fp16=self.args.half)  # export
         ov.serialize(ov_model, f_ov)  # save
-        yaml_save(Path(f) / self.file.with_suffix('.yaml').name, self.metadata)  # add metadata.yaml
+        yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml
         return f, None
 
     @try_export
@@ -372,7 +371,7 @@ class Exporter:
         f = str(self.file).replace(self.file.suffix, f'_paddle_model{os.sep}')
 
         pytorch2paddle(module=self.model, save_dir=f, jit_type='trace', input_examples=[self.im])  # export
-        yaml_save(Path(f) / self.file.with_suffix('.yaml').name, self.metadata)  # add metadata.yaml
+        yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml
         return f, None
 
     @try_export
@@ -436,7 +435,7 @@ class Exporter:
         try:
             import tensorrt as trt  # noqa
         except ImportError:
-            if platform.system() == 'Linux':
+            if LINUX:
                 check_requirements('nvidia-tensorrt', cmds='-U --index-url https://pypi.ngc.nvidia.com')
             import tensorrt as trt  # noqa
 
@@ -482,8 +481,16 @@ class Exporter:
             f'{prefix} building FP{16 if builder.platform_has_fast_fp16 and self.args.half else 32} engine as {f}')
         if builder.platform_has_fast_fp16 and self.args.half:
             config.set_flag(trt.BuilderFlag.FP16)
+
+        # Write file
         with builder.build_engine(network, config) as engine, open(f, 'wb') as t:
+            # Metadata
+            meta = json.dumps(self.metadata)
+            t.write(len(meta).to_bytes(4, byteorder='little', signed=True))
+            t.write(meta.encode())
+            # Model
             t.write(engine.serialize())
+
         return f, None
 
     @try_export
@@ -500,10 +507,10 @@ class Exporter:
         try:
             import tensorflow as tf  # noqa
         except ImportError:
-            check_requirements(f"tensorflow{'' if torch.cuda.is_available() else '-macos' if MACOS else '-cpu'}")
+            check_requirements(f"tensorflow{'' if CUDA else '-macos' if MACOS else '-cpu' if LINUX else ''}")
             import tensorflow as tf  # noqa
         check_requirements(("onnx", "onnx2tf", "sng4onnx", "onnxsim", "onnx_graphsurgeon", "tflite_support"),
-                           cmds="--extra-index-url https://pypi.ngc.nvidia.com ")
+                           cmds="--extra-index-url https://pypi.ngc.nvidia.com")
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
         f = str(self.file).replace(self.file.suffix, '_saved_model')
@@ -514,10 +521,11 @@ class Exporter:
 
         # Export to TF SavedModel
         subprocess.run(f'onnx2tf -i {onnx} -o {f} --non_verbose', shell=True)
+        yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml
 
         # Add TFLite metadata
-        for tflite_file in Path(f).rglob('*.tflite'):
-            self._add_tflite_metadata(tflite_file)
+        for file in Path(f).rglob('*.tflite'):
+            self._add_tflite_metadata(file)
 
         # Load saved_model
         keras_model = tf.saved_model.load(f, tags=None, options=None)
@@ -537,7 +545,7 @@ class Exporter:
         try:
             import tensorflow as tf  # noqa
         except ImportError:
-            check_requirements(f"tensorflow{'' if torch.cuda.is_available() else '-macos' if MACOS else '-cpu'}")
+            check_requirements(f"tensorflow{'' if CUDA else '-macos' if MACOS else '-cpu' if LINUX else ''}")
             import tensorflow as tf  # noqa
         # from models.tf import TFModel
         from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2  # noqa
@@ -628,11 +636,11 @@ class Exporter:
         return f, None
 
     @try_export
-    def _export_edgetpu(self, prefix=colorstr('Edge TPU:')):
+    def _export_edgetpu(self, tflite_model='', prefix=colorstr('Edge TPU:')):
         # YOLOv8 Edge TPU export https://coral.ai/docs/edgetpu/models-intro/
         cmd = 'edgetpu_compiler --version'
         help_url = 'https://coral.ai/docs/edgetpu/compiler/'
-        assert platform.system() == 'Linux', f'export only supported on Linux. See {help_url}'
+        assert LINUX, f'export only supported on Linux. See {help_url}'
         if subprocess.run(f'{cmd} >/dev/null', shell=True).returncode != 0:
             LOGGER.info(f'\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}')
             sudo = subprocess.run('sudo --version >/dev/null', shell=True).returncode == 0  # sudo installed on system
@@ -646,11 +654,11 @@ class Exporter:
         ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().split()[-1]
 
         LOGGER.info(f'\n{prefix} starting export with Edge TPU compiler {ver}...')
-        f = str(self.file).replace(self.file.suffix, '-int8_edgetpu.tflite')  # Edge TPU model
-        f_tfl = str(self.file).replace(self.file.suffix, '-int8.tflite')  # TFLite model
+        f = str(tflite_model).replace('.tflite', '_edgetpu.tflite')  # Edge TPU model
 
-        cmd = f"edgetpu_compiler -s -d -k 10 --out_dir {self.file.parent} {f_tfl}"
+        cmd = f"edgetpu_compiler -s -d -k 10 --out_dir {self.file.parent} {tflite_model}"
         subprocess.run(cmd.split(), check=True)
+        self._add_tflite_metadata(f)
         return f, None
 
     @try_export
@@ -681,6 +689,7 @@ class Exporter:
                 f_json.read_text(),
             )
             j.write(subst)
+        yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml
         return f, None
 
     def _add_tflite_metadata(self, file):
@@ -735,14 +744,6 @@ class Exporter:
         populator.load_associated_files([str(tmp_file)])
         populator.populate()
         tmp_file.unlink()
-
-    # TODO Rename this here and in `_add_tflite_metadata`
-    def _extracted_from__add_tflite_metadata_15(self, _metadata_fb, arg1, arg2):
-        # Creates input info.
-        result = _metadata_fb.TensorMetadataT()
-        result.name = arg1
-        result.description = arg2
-        return result
 
     def _pipeline_coreml(self, model, prefix=colorstr('CoreML Pipeline:')):
         # YOLOv8 CoreML pipeline

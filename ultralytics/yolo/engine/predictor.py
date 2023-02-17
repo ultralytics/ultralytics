@@ -174,7 +174,7 @@ class BasePredictor:
 
             # visualize, save, write results
             for i in range(len(im)):
-                p, im0 = (path[i], im0s[i].copy()) if self.source_type.webcam or self.source_type.from_img 
+                p, im0 = (path[i], im0s[i].copy()) if self.source_type.webcam or self.source_type.from_img
                             else (path, im0s.copy())
                 p = Path(p)
 

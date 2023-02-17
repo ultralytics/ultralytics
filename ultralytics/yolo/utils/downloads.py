@@ -95,14 +95,14 @@ def safe_download(url,
                         torch.hub.download_url_to_file(url, f, progress=progress)
                     else:
                         from ultralytics.yolo.utils import TQDM_BAR_FORMAT
-                        with request.urlopen(url) as response, tqdm(total=int(response.getheader("Content-Length", 0)),
+                        with request.urlopen(url) as response, tqdm(total=int(response.getheader('Content-Length', 0)),
                                                                     desc=desc,
                                                                     disable=not progress,
                                                                     unit='B',
                                                                     unit_scale=True,
                                                                     unit_divisor=1024,
                                                                     bar_format=TQDM_BAR_FORMAT) as pbar:
-                            with open(f, "wb") as f_opened:
+                            with open(f, 'wb') as f_opened:
                                 for data in response:
                                     f_opened.write(data)
                                     pbar.update(len(data))
@@ -171,7 +171,7 @@ def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
                 tag, assets = github_assets(repo)  # latest release
             except Exception:
                 try:
-                    tag = subprocess.check_output(["git", "tag"]).decode().split()[-1]
+                    tag = subprocess.check_output(['git', 'tag']).decode().split()[-1]
                 except Exception:
                     tag = release
 

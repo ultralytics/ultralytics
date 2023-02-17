@@ -61,7 +61,7 @@ def DDP_model(model):
 
 def select_device(device='', batch=0, newline=False):
     # device = None or 'cpu' or 0 or '0' or '0,1,2,3'
-    s = f"Ultralytics YOLOv{__version__} 🚀 Python-{platform.python_version()} torch-{torch.__version__} "
+    s = f'Ultralytics YOLOv{__version__} 🚀 Python-{platform.python_version()} torch-{torch.__version__} '
     device = str(device).lower()
     for remove in 'cuda:', 'none', '(', ')', '[', ']', "'", ' ':
         device = device.replace(remove, '')  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
@@ -74,15 +74,15 @@ def select_device(device='', batch=0, newline=False):
         os.environ['CUDA_VISIBLE_DEVICES'] = device  # set environment variable - must be before assert is_available()
         if not (torch.cuda.is_available() and torch.cuda.device_count() >= len(device.replace(',', ''))):
             LOGGER.info(s)
-            install = "See https://pytorch.org/get-started/locally/ for up-to-date torch install instructions if no " \
-                      "CUDA devices are seen by torch.\n" if torch.cuda.device_count() == 0 else ""
+            install = 'See https://pytorch.org/get-started/locally/ for up-to-date torch install instructions if no ' \
+                      'CUDA devices are seen by torch.\n' if torch.cuda.device_count() == 0 else ''
             raise ValueError(f"Invalid CUDA 'device={device}' requested."
                              f" Use 'device=cpu' or pass valid CUDA device(s) if available,"
                              f" i.e. 'device=0' or 'device=0,1,2,3' for Multi-GPU.\n"
-                             f"\ntorch.cuda.is_available(): {torch.cuda.is_available()}"
-                             f"\ntorch.cuda.device_count(): {torch.cuda.device_count()}"
+                             f'\ntorch.cuda.is_available(): {torch.cuda.is_available()}'
+                             f'\ntorch.cuda.device_count(): {torch.cuda.device_count()}'
                              f"\nos.environ['CUDA_VISIBLE_DEVICES']: {visible}\n"
-                             f"{install}")
+                             f'{install}')
 
     if not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
         devices = device.split(',') if device else '0'  # range(torch.cuda.device_count())  # i.e. 0,1,6,7
@@ -177,7 +177,7 @@ def model_info(model, verbose=False, imgsz=640):
     fused = ' (fused)' if model.is_fused() else ''
     fs = f', {flops:.1f} GFLOPs' if flops else ''
     m = Path(getattr(model, 'yaml_file', '') or model.yaml.get('yaml_file', '')).stem.replace('yolo', 'YOLO') or 'Model'
-    LOGGER.info(f"{m} summary{fused}: {len(list(model.modules()))} layers, {n_p} parameters, {n_g} gradients{fs}")
+    LOGGER.info(f'{m} summary{fused}: {len(list(model.modules()))} layers, {n_p} parameters, {n_g} gradients{fs}')
 
 
 def get_num_params(model):

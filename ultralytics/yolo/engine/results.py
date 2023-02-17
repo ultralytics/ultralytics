@@ -36,7 +36,7 @@ class Results:
         self.masks = Masks(masks, self.orig_shape) if masks is not None else None  # native size or imgsz masks
         self.probs = probs if probs is not None else None
         self.names = names
-        self.comp = ["boxes", "masks", "probs"]
+        self.comp = ['boxes', 'masks', 'probs']
 
     def pandas(self):
         pass
@@ -97,7 +97,7 @@ class Results:
             return len(getattr(self, item))
 
     def __str__(self):
-        str_out = ""
+        str_out = ''
         for item in self.comp:
             if getattr(self, item) is None:
                 continue
@@ -105,7 +105,7 @@ class Results:
         return str_out
 
     def __repr__(self):
-        str_out = ""
+        str_out = ''
         for item in self.comp:
             if getattr(self, item) is None:
                 continue
@@ -187,7 +187,7 @@ class Boxes:
         if boxes.ndim == 1:
             boxes = boxes[None, :]
         n = boxes.shape[-1]
-        assert n in {6, 7}, f"expected `n` in [6, 7], but got {n}"  # xyxy, (track_id), conf, cls
+        assert n in {6, 7}, f'expected `n` in [6, 7], but got {n}'  # xyxy, (track_id), conf, cls
         # TODO
         self.is_track = n == 7
         self.boxes = boxes
@@ -268,8 +268,8 @@ class Boxes:
         return self.boxes.__str__()
 
     def __repr__(self):
-        return (f"Ultralytics YOLO {self.__class__} masks\n" + f"type: {type(self.boxes)}\n" +
-                f"shape: {self.boxes.shape}\n" + f"dtype: {self.boxes.dtype}\n + {self.boxes.__repr__()}")
+        return (f'Ultralytics YOLO {self.__class__} masks\n' + f'type: {type(self.boxes)}\n' +
+                f'shape: {self.boxes.shape}\n' + f'dtype: {self.boxes.dtype}\n + {self.boxes.__repr__()}')
 
     def __getitem__(self, idx):
         boxes = self.boxes[idx]
@@ -353,8 +353,8 @@ class Masks:
         return self.masks.__str__()
 
     def __repr__(self):
-        return (f"Ultralytics YOLO {self.__class__} masks\n" + f"type: {type(self.masks)}\n" +
-                f"shape: {self.masks.shape}\n" + f"dtype: {self.masks.dtype}\n + {self.masks.__repr__()}")
+        return (f'Ultralytics YOLO {self.__class__} masks\n' + f'type: {type(self.masks)}\n' +
+                f'shape: {self.masks.shape}\n' + f'dtype: {self.masks.dtype}\n + {self.masks.__repr__()}')
 
     def __getitem__(self, idx):
         masks = self.masks[idx]
@@ -374,19 +374,19 @@ class Masks:
             """)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     # test examples
     results = Results(boxes=torch.randn((2, 6)), masks=torch.randn((2, 160, 160)), orig_shape=[640, 640])
     results = results.cuda()
-    print("--cuda--pass--")
+    print('--cuda--pass--')
     results = results.cpu()
-    print("--cpu--pass--")
-    results = results.to("cuda:0")
-    print("--to-cuda--pass--")
-    results = results.to("cpu")
-    print("--to-cpu--pass--")
+    print('--cpu--pass--')
+    results = results.to('cuda:0')
+    print('--to-cuda--pass--')
+    results = results.to('cpu')
+    print('--to-cpu--pass--')
     results = results.numpy()
-    print("--numpy--pass--")
+    print('--numpy--pass--')
     # box = Boxes(boxes=torch.randn((2, 6)), orig_shape=[5, 5])
     # box = box.cuda()
     # box = box.cpu()

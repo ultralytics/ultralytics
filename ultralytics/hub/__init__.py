@@ -10,10 +10,10 @@ from ultralytics.yolo.engine.model import YOLO
 from ultralytics.yolo.utils import LOGGER, PREFIX, emojis
 
 # Define all export formats
-EXPORT_FORMATS_HUB = EXPORT_FORMATS_LIST + ["ultralytics_tflite", "ultralytics_coreml"]
+EXPORT_FORMATS_HUB = EXPORT_FORMATS_LIST + ['ultralytics_tflite', 'ultralytics_coreml']
 
 
-def start(key=""):
+def start(key=''):
     """
     Start training models with Ultralytics HUB. Usage: from src.ultralytics import start; start('API_KEY')
     """
@@ -34,7 +34,7 @@ def start(key=""):
         session.register_callbacks(trainer)
         trainer.train(**session.train_args)
     except Exception as e:
-        LOGGER.warning(f"{PREFIX}{e}")
+        LOGGER.warning(f'{PREFIX}{e}')
 
 
 def request_api_key(auth, max_attempts=3):
@@ -43,56 +43,56 @@ def request_api_key(auth, max_attempts=3):
     """
     import getpass
     for attempts in range(max_attempts):
-        LOGGER.info(f"{PREFIX}Login. Attempt {attempts + 1} of {max_attempts}")
-        input_key = getpass.getpass("Enter your Ultralytics HUB API key:\n")
+        LOGGER.info(f'{PREFIX}Login. Attempt {attempts + 1} of {max_attempts}')
+        input_key = getpass.getpass('Enter your Ultralytics HUB API key:\n')
         auth.api_key, model_id = split_key(input_key)
 
         if auth.authenticate():
-            LOGGER.info(f"{PREFIX}Authenticated ✅")
+            LOGGER.info(f'{PREFIX}Authenticated ✅')
             return model_id
 
-        LOGGER.warning(f"{PREFIX}Invalid API key ⚠️\n")
+        LOGGER.warning(f'{PREFIX}Invalid API key ⚠️\n')
 
-    raise ConnectionError(emojis(f"{PREFIX}Failed to authenticate ❌"))
+    raise ConnectionError(emojis(f'{PREFIX}Failed to authenticate ❌'))
 
 
-def reset_model(key=""):
+def reset_model(key=''):
     # Reset a trained model to an untrained state
     api_key, model_id = split_key(key)
-    r = requests.post("https://api.ultralytics.com/model-reset", json={"apiKey": api_key, "modelId": model_id})
+    r = requests.post('https://api.ultralytics.com/model-reset', json={'apiKey': api_key, 'modelId': model_id})
 
     if r.status_code == 200:
-        LOGGER.info(f"{PREFIX}model reset successfully")
+        LOGGER.info(f'{PREFIX}model reset successfully')
         return
-    LOGGER.warning(f"{PREFIX}model reset failure {r.status_code} {r.reason}")
+    LOGGER.warning(f'{PREFIX}model reset failure {r.status_code} {r.reason}')
 
 
-def export_model(key="", format="torchscript"):
+def export_model(key='', format='torchscript'):
     # Export a model to all formats
     assert format in EXPORT_FORMATS_HUB, f"Unsupported export format '{format}', valid formats are {EXPORT_FORMATS_HUB}"
     api_key, model_id = split_key(key)
-    r = requests.post("https://api.ultralytics.com/export",
+    r = requests.post('https://api.ultralytics.com/export',
                       json={
-                          "apiKey": api_key,
-                          "modelId": model_id,
-                          "format": format})
-    assert (r.status_code == 200), f"{PREFIX}{format} export failure {r.status_code} {r.reason}"
-    LOGGER.info(f"{PREFIX}{format} export started ✅")
+                          'apiKey': api_key,
+                          'modelId': model_id,
+                          'format': format})
+    assert (r.status_code == 200), f'{PREFIX}{format} export failure {r.status_code} {r.reason}'
+    LOGGER.info(f'{PREFIX}{format} export started ✅')
 
 
-def get_export(key="", format="torchscript"):
+def get_export(key='', format='torchscript'):
     # Get an exported model dictionary with download URL
     assert format in EXPORT_FORMATS_HUB, f"Unsupported export format '{format}', valid formats are {EXPORT_FORMATS_HUB}"
     api_key, model_id = split_key(key)
-    r = requests.post("https://api.ultralytics.com/get-export",
+    r = requests.post('https://api.ultralytics.com/get-export',
                       json={
-                          "apiKey": api_key,
-                          "modelId": model_id,
-                          "format": format})
-    assert (r.status_code == 200), f"{PREFIX}{format} get_export failure {r.status_code} {r.reason}"
+                          'apiKey': api_key,
+                          'modelId': model_id,
+                          'format': format})
+    assert (r.status_code == 200), f'{PREFIX}{format} get_export failure {r.status_code} {r.reason}'
     return r.json()
 
 
 # temp. For checking
-if __name__ == "__main__":
+if __name__ == '__main__':
     start()

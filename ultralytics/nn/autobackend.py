@@ -24,13 +24,12 @@ def check_class_names(names):
     # Check class names. Map imagenet class codes to human-readable names if required. Convert lists to dicts.
     if isinstance(names, list):  # names is a list
         names = dict(enumerate(names))  # convert to dict
-    if not isinstance(names, dict):
-        raise TypeError("model class names must be a dict, i.e. names={0: 'person', 1: 'bicycle', 2: 'car'}")
-    if not all(isinstance(k, int) for k in names.keys()):  # convert string keys to int, i.e. '0' to 0
-        names = {int(k): v for k, v in names.items()}
-    if isinstance(names[0], str) and names[0].startswith('n0'):  # imagenet class codes, i.e. 'n01440764'
-        map = yaml_load(ROOT / 'yolo/data/datasets/ImageNet.yaml')['map']  # human-readable names
-        names = {k: map[v] for k, v in names.items()}
+    if isinstance(names, dict):
+        if not all(isinstance(k, int) for k in names.keys()):  # convert string keys to int, i.e. '0' to 0
+            names = {int(k): v for k, v in names.items()}
+        if isinstance(names[0], str) and names[0].startswith('n0'):  # imagenet class codes, i.e. 'n01440764'
+            map = yaml_load(ROOT / 'yolo/data/datasets/ImageNet.yaml')['map']  # human-readable names
+            names = {k: map[v] for k, v in names.items()}
     return names
 
 
@@ -133,7 +132,6 @@ class AutoBackend(nn.Module):
             if batch_dim.is_static:
                 batch_size = batch_dim.get_length()
             executable_network = ie.compile_model(network, device_name="CPU")  # device_name="MYRIAD" for Intel NCS2
-            stride, names = self._load_metadata(Path(w).with_suffix('.yaml'))  # load metadata
         elif engine:  # TensorRT
             LOGGER.info(f'Loading {w} for TensorRT inference...')
             import tensorrt as trt  # https://developer.nvidia.com/nvidia-tensorrt-download
@@ -256,7 +254,16 @@ class AutoBackend(nn.Module):
                             "See https://docs.ultralytics.com/tasks/detection/#export for help."
                             f"\n\n{EXPORT_FORMATS_TABLE}")
 
-        # class names
+        # Load external metadata YAML
+        if xml or saved_model or paddle:
+            metadata = Path(w).parent / 'metadata.yaml'
+            if metadata.exists():
+                metadata = yaml_load(metadata)
+                stride, names = int(metadata['stride']), metadata['names']  # load metadata
+            else:
+                LOGGER.warning(f"WARNING ⚠️ Metadata not found at '{metadata}'")
+
+        # Check names
         if 'names' not in locals():  # names missing
             names = yaml_load(check_yaml(data))['names'] if data else {i: f'class{i}' for i in range(999)}  # assign
         names = check_class_names(names)
@@ -405,18 +412,3 @@ class AutoBackend(nn.Module):
         types[8] &= not types[9]  # tflite &= not edgetpu
         triton = not any(types) and all([any(s in url.scheme for s in ["http", "grpc"]), url.netloc])
         return types + [triton]
-
-    @staticmethod
-    def _load_metadata(f=Path('path/to/meta.yaml')):
-        """
-        Loads the metadata from a yaml file
-
-        Args:
-            f: The path to the metadata file.
-        """
-
-        # Load metadata from meta.yaml if it exists
-        if f.exists():
-            d = yaml_load(f)
-            return d['stride'], d['names']  # assign stride, names
-        return None, None

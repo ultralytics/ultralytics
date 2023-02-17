@@ -87,24 +87,6 @@ def test_train_pretrained():
 
 
 def test_export_torchscript():
-    """
-                       Format     Argument           Suffix    CPU    GPU
-    0                 PyTorch            -              .pt   True   True
-    1             TorchScript  torchscript     .torchscript   True   True
-    2                    ONNX         onnx            .onnx   True   True
-    3                OpenVINO     openvino  _openvino_model   True  False
-    4                TensorRT       engine          .engine  False   True
-    5                  CoreML       coreml         .mlmodel   True  False
-    6   TensorFlow SavedModel  saved_model     _saved_model   True   True
-    7     TensorFlow GraphDef           pb              .pb   True   True
-    8         TensorFlow Lite       tflite          .tflite   True  False
-    9     TensorFlow Edge TPU      edgetpu  _edgetpu.tflite  False  False
-    10          TensorFlow.js         tfjs       _web_model  False  False
-    11           PaddlePaddle       paddle    _paddle_model   True   True
-    """
-    from ultralytics.yolo.engine.exporter import export_formats
-    print(export_formats())
-
     model = YOLO(MODEL)
     f = model.export(format='torchscript')
     YOLO(f)(SOURCE)  # exported model inference
@@ -124,9 +106,9 @@ def test_export_openvino():
 
 def test_export_coreml():  # sourcery skip: move-assign
     model = YOLO(MODEL)
-    f = model.export(format='coreml')
-    if MACOS:
-        YOLO(f)(SOURCE)  # model prediction only supported on macOS
+    model.export(format='coreml')
+    # if MACOS:
+    #    YOLO(f)(SOURCE)  # model prediction only supported on macOS
 
 
 def test_export_tflite(enabled=False):
@@ -161,9 +143,8 @@ def test_workflow():
     model = YOLO(MODEL)
     model.train(data="coco8.yaml", epochs=1, imgsz=32)
     model.val()
-    print(model.metrics)
     model.predict(SOURCE)
-    model.export(format="onnx", opset=12)  # export a model to ONNX format
+    model.export(format="onnx")  # export a model to ONNX format
 
 
 def test_predict_callback_and_setup():

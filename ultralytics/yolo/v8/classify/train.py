@@ -7,7 +7,7 @@ from ultralytics.nn.tasks import ClassificationModel, attempt_load_one_weight
 from ultralytics.yolo import v8
 from ultralytics.yolo.data import build_classification_dataloader
 from ultralytics.yolo.engine.trainer import BaseTrainer
-from ultralytics.yolo.utils import DEFAULT_CFG
+from ultralytics.yolo.utils import DEFAULT_CFG, RANK
 from ultralytics.yolo.utils.torch_utils import is_parallel, strip_optimizer
 
 
@@ -23,7 +23,7 @@ class ClassificationTrainer(BaseTrainer):
         self.model.names = self.data["names"]
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        model = ClassificationModel(cfg, nc=self.data["nc"])
+        model = ClassificationModel(cfg, nc=self.data["nc"], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
 

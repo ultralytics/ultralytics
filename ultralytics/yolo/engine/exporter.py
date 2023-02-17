@@ -75,8 +75,7 @@ from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.ops import Profile
 from ultralytics.yolo.utils.torch_utils import get_latest_opset, select_device, smart_inference_mode
 
-MACOS = platform.system() == 'Darwin'
-LINUX = platform.system() == 'Linux'
+MACOS, LINUX, WINDOWS = (platform.system() == x for x in ['Darwin', 'Linux', 'Windows'])  # environment booleans
 CUDA = torch.cuda.is_available()
 
 

@@ -148,10 +148,7 @@ class AutoBackend(nn.Module):
                 meta_len = int.from_bytes(f.read(4), byteorder='little')
                 # Read metadata
                 meta = json.loads(f.read(meta_len).decode('utf-8'))
-                print(meta)
                 stride, names = int(meta['stride']), meta['names']
-                print(stride)
-                print(names)
                 # Read engine
                 model = runtime.deserialize_cuda_engine(f.read())
             context = model.create_execution_context()

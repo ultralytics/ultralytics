@@ -690,6 +690,7 @@ class Exporter:
                 f_json.read_text(),
             )
             j.write(subst)
+        yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml
         return f, None
 
     def _add_tflite_metadata(self, file):

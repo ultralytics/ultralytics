@@ -24,6 +24,10 @@ def check_class_names(names):
     # Check class names. Map imagenet class codes to human-readable names if required. Convert lists to dicts.
     if isinstance(names, list):  # names is a list
         names = dict(enumerate(names))  # convert to dict
+    if not isinstance(names, dict):
+        raise TypeError("model class names must be a dict, i.e. names={0: 'person', 1: 'bicycle', 2: 'car'}")
+    if not all(isinstance(k, int) for k in names.keys()):  # convert string keys to int, i.e. '0' to 0
+        names = {int(k): v for k, v in names.items()}
     if isinstance(names[0], str) and names[0].startswith('n0'):  # imagenet class codes, i.e. 'n01440764'
         map = yaml_load(ROOT / 'yolo/data/datasets/ImageNet.yaml')['map']  # human-readable names
         names = {k: map[v] for k, v in names.items()}
@@ -144,7 +148,10 @@ class AutoBackend(nn.Module):
                 meta_len = int.from_bytes(f.read(4), byteorder='little')
                 # Read metadata
                 meta = json.loads(f.read(meta_len).decode('utf-8'))
+                print(meta)
                 stride, names = int(meta['stride']), meta['names']
+                print(stride)
+                print(names)
                 # Read engine
                 model = runtime.deserialize_cuda_engine(f.read())
             context = model.create_execution_context()

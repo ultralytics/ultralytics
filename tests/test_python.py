@@ -171,6 +171,7 @@ def test_predict_callback_and_setup():
         boxes = result.boxes  # Boxes object for bbox outputs
         print(boxes)
 
+
 def test_result():
     model = YOLO("yolov8n-seg.pt")
     img = str(ROOT / "assets/bus.jpg")
@@ -179,4 +180,3 @@ def test_result():
     res[0].cpu().numpy()
     resimg = res[0].visualize(show_conf=False)
     print(resimg)
-    

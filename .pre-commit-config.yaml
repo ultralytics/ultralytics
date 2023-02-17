@@ -1,8 +1,6 @@
-# Define hooks for code formations
-# Will be applied on any updated commit files if a user has installed and linked commit hook
+# Ultralytics YOLO 🚀, GPL-3.0 license
+# Precommit hooks. For more information see https://github.com/pre-commit/pre-commit-hooks/blob/main/README.md
 
-default_language_version:
-  python: python3.8
 
 exclude: 'docs/'
 # Define bot property if installed via https://github.com/marketplace/pre-commit-ci

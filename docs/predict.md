@@ -96,7 +96,7 @@ Class reference documentation for `Results` module and its components can be fou
 
 ## Visualizing results
 
-You can use `visualize()` function of `Result` object to get a visualization. It plots all componenets(boxes, masks, classification logits, etc) found in the results object
+You can use `visualize()` function of `Result` object to get a visualization. It plots all components(boxes, masks, classification logits, etc) found in the results object
 ```python
     res = model(img)
     res_plotted = res[0].visualize()

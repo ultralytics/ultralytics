@@ -18,14 +18,14 @@ from ultralytics.yolo.utils.checks import check_online
 
 PREFIX = colorstr('Ultralytics: ')
 HELP_MSG = 'If this issue persists please visit https://github.com/ultralytics/hub/issues for assistance.'
-HUB_API_ROOT = os.environ.get("ULTRALYTICS_HUB_API", "https://api.ultralytics.com")
+HUB_API_ROOT = os.environ.get('ULTRALYTICS_HUB_API', 'https://api.ultralytics.com')
 
 
 def check_dataset_disk_space(url='https://ultralytics.com/assets/coco128.zip', sf=2.0):
     # Check that url fits on disk with safety factor sf, i.e. require 2GB free if url size is 1GB with sf=2.0
     gib = 1 << 30  # bytes per GiB
     data = int(requests.head(url).headers['Content-Length']) / gib  # dataset size (GB)
-    total, used, free = (x / gib for x in shutil.disk_usage("/"))  # bytes
+    total, used, free = (x / gib for x in shutil.disk_usage('/'))  # bytes
     LOGGER.info(f'{PREFIX}{data:.3f} GB dataset, {free:.1f}/{total:.1f} GB free disk space')
     if data * sf < free:
         return True  # sufficient space
@@ -57,7 +57,7 @@ def request_with_credentials(url: str) -> any:
                 });
             });
             """ % url))
-    return output.eval_js("_hub_tmp")
+    return output.eval_js('_hub_tmp')
 
 
 # Deprecated TODO: eliminate this function?
@@ -84,7 +84,7 @@ def split_key(key=''):
     return api_key, model_id
 
 
-def smart_request(*args, retry=3, timeout=30, thread=True, code=-1, method="post", verbose=True, **kwargs):
+def smart_request(*args, retry=3, timeout=30, thread=True, code=-1, method='post', verbose=True, **kwargs):
     """
     Makes an HTTP request using the 'requests' library, with exponential backoff retries up to a specified timeout.
 
@@ -128,7 +128,7 @@ def smart_request(*args, retry=3, timeout=30, thread=True, code=-1, method="post
                     m = f"Rate limit reached ({h['X-RateLimit-Remaining']}/{h['X-RateLimit-Limit']}). " \
                         f"Please retry after {h['Retry-After']}s."
                 if verbose:
-                    LOGGER.warning(f"{PREFIX}{m} {HELP_MSG} ({r.status_code} #{code})")
+                    LOGGER.warning(f'{PREFIX}{m} {HELP_MSG} ({r.status_code} #{code})')
                 if r.status_code not in retry_codes:
                     return r
             time.sleep(2 ** i)  # exponential standoff
@@ -149,17 +149,17 @@ class Traces:
         self.rate_limit = 3.0  # rate limit (seconds)
         self.t = 0.0  # rate limit timer (seconds)
         self.metadata = {
-            "sys_argv_name": Path(sys.argv[0]).name,
-            "install": 'git' if is_git_dir() else 'pip' if is_pip_package() else 'other',
-            "python": platform.python_version(),
-            "release": __version__,
-            "environment": ENVIRONMENT}
+            'sys_argv_name': Path(sys.argv[0]).name,
+            'install': 'git' if is_git_dir() else 'pip' if is_pip_package() else 'other',
+            'python': platform.python_version(),
+            'release': __version__,
+            'environment': ENVIRONMENT}
         self.enabled = SETTINGS['sync'] and \
                        RANK in {-1, 0} and \
                        check_online() and \
                        not is_pytest_running() and \
                        not is_github_actions_ci() and \
-                       (is_pip_package() or get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git")
+                       (is_pip_package() or get_git_origin_url() == 'https://github.com/ultralytics/ultralytics.git')
 
     def __call__(self, cfg, all_keys=False, traces_sample_rate=1.0):
         """

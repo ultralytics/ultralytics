@@ -90,7 +90,7 @@ class BaseTrainer:
 
         # Dirs
         project = self.args.project or Path(SETTINGS['runs_dir']) / self.args.task
-        name = self.args.name or f"{self.args.mode}"
+        name = self.args.name or f'{self.args.mode}'
         if hasattr(self.args, 'save_dir'):
             self.save_dir = Path(self.args.save_dir)
         else:
@@ -121,7 +121,7 @@ class BaseTrainer:
         try:
             if self.args.task == 'classify':
                 self.data = check_cls_dataset(self.args.data)
-            elif self.args.data.endswith(".yaml") or self.args.task in ('detect', 'segment'):
+            elif self.args.data.endswith('.yaml') or self.args.task in ('detect', 'segment'):
                 self.data = check_det_dataset(self.args.data)
                 if 'yaml_file' in self.data:
                     self.args.data = self.data['yaml_file']  # for validating 'yolo train data=url.zip' usage
@@ -175,7 +175,7 @@ class BaseTrainer:
             world_size = 0
 
         # Run subprocess if DDP training, else train normally
-        if world_size > 1 and "LOCAL_RANK" not in os.environ:
+        if world_size > 1 and 'LOCAL_RANK' not in os.environ:
             cmd, file = generate_ddp_command(world_size, self)  # security vulnerability in Snyk scans
             try:
                 subprocess.run(cmd, check=True)
@@ -191,15 +191,15 @@ class BaseTrainer:
         # os.environ['MASTER_PORT'] = '9020'
         torch.cuda.set_device(rank)
         self.device = torch.device('cuda', rank)
-        self.console.info(f"DDP settings: RANK {rank}, WORLD_SIZE {world_size}, DEVICE {self.device}")
-        dist.init_process_group("nccl" if dist.is_nccl_available() else "gloo", rank=rank, world_size=world_size)
+        self.console.info(f'DDP settings: RANK {rank}, WORLD_SIZE {world_size}, DEVICE {self.device}')
+        dist.init_process_group('nccl' if dist.is_nccl_available() else 'gloo', rank=rank, world_size=world_size)
 
     def _setup_train(self, rank, world_size):
         """
         Builds dataloaders and optimizer on correct rank process.
         """
         # model
-        self.run_callbacks("on_pretrain_routine_start")
+        self.run_callbacks('on_pretrain_routine_start')
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
         self.set_model_attributes()
@@ -234,16 +234,16 @@ class BaseTrainer:
 
         # dataloaders
         batch_size = self.batch_size // world_size if world_size > 1 else self.batch_size
-        self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=rank, mode="train")
+        self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=rank, mode='train')
         if rank in {0, -1}:
-            self.test_loader = self.get_dataloader(self.testset, batch_size=batch_size * 2, rank=-1, mode="val")
+            self.test_loader = self.get_dataloader(self.testset, batch_size=batch_size * 2, rank=-1, mode='val')
             self.validator = self.get_validator()
-            metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix="val")
+            metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix='val')
             self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))  # TODO: init metrics for plot_results()?
             self.ema = ModelEMA(self.model)
         self.resume_training(ckpt)
         self.scheduler.last_epoch = self.start_epoch - 1  # do not move
-        self.run_callbacks("on_pretrain_routine_end")
+        self.run_callbacks('on_pretrain_routine_end')
 
     def _do_train(self, rank=-1, world_size=1):
         if world_size > 1:
@@ -257,24 +257,24 @@ class BaseTrainer:
         nb = len(self.train_loader)  # number of batches
         nw = max(round(self.args.warmup_epochs * nb), 100)  # number of warmup iterations
         last_opt_step = -1
-        self.run_callbacks("on_train_start")
-        self.log(f"Image sizes {self.args.imgsz} train, {self.args.imgsz} val\n"
+        self.run_callbacks('on_train_start')
+        self.log(f'Image sizes {self.args.imgsz} train, {self.args.imgsz} val\n'
                  f'Using {self.train_loader.num_workers * (world_size or 1)} dataloader workers\n'
                  f"Logging results to {colorstr('bold', self.save_dir)}\n"
-                 f"Starting training for {self.epochs} epochs...")
+                 f'Starting training for {self.epochs} epochs...')
         if self.args.close_mosaic:
             base_idx = (self.epochs - self.args.close_mosaic) * nb
             self.plot_idx.extend([base_idx, base_idx + 1, base_idx + 2])
         for epoch in range(self.start_epoch, self.epochs):
             self.epoch = epoch
-            self.run_callbacks("on_train_epoch_start")
+            self.run_callbacks('on_train_epoch_start')
             self.model.train()
             if rank != -1:
                 self.train_loader.sampler.set_epoch(epoch)
             pbar = enumerate(self.train_loader)
             # Update dataloader attributes (optional)
             if epoch == (self.epochs - self.args.close_mosaic):
-                self.console.info("Closing dataloader mosaic")
+                self.console.info('Closing dataloader mosaic')
                 if hasattr(self.train_loader.dataset, 'mosaic'):
                     self.train_loader.dataset.mosaic = False
                 if hasattr(self.train_loader.dataset, 'close_mosaic'):
@@ -286,7 +286,7 @@ class BaseTrainer:
             self.tloss = None
             self.optimizer.zero_grad()
             for i, batch in pbar:
-                self.run_callbacks("on_train_batch_start")
+                self.run_callbacks('on_train_batch_start')
                 # Warmup
                 ni = i + nb * epoch
                 if ni <= nw:
@@ -302,7 +302,7 @@ class BaseTrainer:
                 # Forward
                 with torch.cuda.amp.autocast(self.amp):
                     batch = self.preprocess_batch(batch)
-                    preds = self.model(batch["img"])
+                    preds = self.model(batch['img'])
                     self.loss, self.loss_items = self.criterion(preds, batch)
                     if rank != -1:
                         self.loss *= world_size
@@ -324,17 +324,17 @@ class BaseTrainer:
                 if rank in {-1, 0}:
                     pbar.set_description(
                         ('%11s' * 2 + '%11.4g' * (2 + loss_len)) %
-                        (f'{epoch + 1}/{self.epochs}', mem, *losses, batch["cls"].shape[0], batch["img"].shape[-1]))
+                        (f'{epoch + 1}/{self.epochs}', mem, *losses, batch['cls'].shape[0], batch['img'].shape[-1]))
                     self.run_callbacks('on_batch_end')
                     if self.args.plots and ni in self.plot_idx:
                         self.plot_training_samples(batch, ni)
 
-                self.run_callbacks("on_train_batch_end")
+                self.run_callbacks('on_train_batch_end')
 
-            self.lr = {f"lr/pg{ir}": x['lr'] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers
+            self.lr = {f'lr/pg{ir}': x['lr'] for ir, x in enumerate(self.optimizer.param_groups)}  # for loggers
 
             self.scheduler.step()
-            self.run_callbacks("on_train_epoch_end")
+            self.run_callbacks('on_train_epoch_end')
 
             if rank in {-1, 0}:
 
@@ -355,7 +355,7 @@ class BaseTrainer:
             tnow = time.time()
             self.epoch_time = tnow - self.epoch_time_start
             self.epoch_time_start = tnow
-            self.run_callbacks("on_fit_epoch_end")
+            self.run_callbacks('on_fit_epoch_end')
 
             # Early Stopping
             if RANK != -1:  # if DDP training
@@ -402,7 +402,7 @@ class BaseTrainer:
         """
         Get train, val path from data dict if it exists. Returns None if data format is not recognized.
         """
-        return data["train"], data.get("val") or data.get("test")
+        return data['train'], data.get('val') or data.get('test')
 
     def setup_model(self):
         """
@@ -413,9 +413,9 @@ class BaseTrainer:
 
         model, weights = self.model, None
         ckpt = None
-        if str(model).endswith(".pt"):
+        if str(model).endswith('.pt'):
             weights, ckpt = attempt_load_one_weight(model)
-            cfg = ckpt["model"].yaml
+            cfg = ckpt['model'].yaml
         else:
             cfg = model
         self.model = self.get_model(cfg=cfg, weights=weights, verbose=RANK == -1)  # calls Model(cfg, weights)
@@ -441,7 +441,7 @@ class BaseTrainer:
         Runs validation on test set using self.validator. The returned dict is expected to contain "fitness" key.
         """
         metrics = self.validator(self)
-        fitness = metrics.pop("fitness", -self.loss.detach().cpu().numpy())  # use loss as fitness measure if not found
+        fitness = metrics.pop('fitness', -self.loss.detach().cpu().numpy())  # use loss as fitness measure if not found
         if not self.best_fitness or self.best_fitness < fitness:
             self.best_fitness = fitness
         return metrics, fitness
@@ -462,38 +462,38 @@ class BaseTrainer:
         raise NotImplementedError("This task trainer doesn't support loading cfg files")
 
     def get_validator(self):
-        raise NotImplementedError("get_validator function not implemented in trainer")
+        raise NotImplementedError('get_validator function not implemented in trainer')
 
-    def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode="train"):
+    def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode='train'):
         """
         Returns dataloader derived from torch.data.Dataloader.
         """
-        raise NotImplementedError("get_dataloader function not implemented in trainer")
+        raise NotImplementedError('get_dataloader function not implemented in trainer')
 
     def criterion(self, preds, batch):
         """
         Returns loss and individual loss items as Tensor.
         """
-        raise NotImplementedError("criterion function not implemented in trainer")
+        raise NotImplementedError('criterion function not implemented in trainer')
 
-    def label_loss_items(self, loss_items=None, prefix="train"):
+    def label_loss_items(self, loss_items=None, prefix='train'):
         """
         Returns a loss dict with labelled training loss items tensor
         """
         # Not needed for classification but necessary for segmentation & detection
-        return {"loss": loss_items} if loss_items is not None else ["loss"]
+        return {'loss': loss_items} if loss_items is not None else ['loss']
 
     def set_model_attributes(self):
         """
         To set or update model parameters before training.
         """
-        self.model.names = self.data["names"]
+        self.model.names = self.data['names']
 
     def build_targets(self, preds, targets):
         pass
 
     def progress_string(self):
-        return ""
+        return ''
 
     # TODO: may need to put these following functions into callback
     def plot_training_samples(self, batch, ni):
@@ -529,7 +529,7 @@ class BaseTrainer:
                 self.args = get_cfg(attempt_load_weights(last).args)
                 self.args.model, resume = str(last), True  # reinstate
             except Exception as e:
-                raise FileNotFoundError("Resume checkpoint not found. Please pass a valid checkpoint to resume from, "
+                raise FileNotFoundError('Resume checkpoint not found. Please pass a valid checkpoint to resume from, '
                                         "i.e. 'yolo train resume model=path/to/last.pt'") from e
         self.resume = resume
 
@@ -557,7 +557,7 @@ class BaseTrainer:
         self.best_fitness = best_fitness
         self.start_epoch = start_epoch
         if start_epoch > (self.epochs - self.args.close_mosaic):
-            self.console.info("Closing dataloader mosaic")
+            self.console.info('Closing dataloader mosaic')
             if hasattr(self.train_loader.dataset, 'mosaic'):
                 self.train_loader.dataset.mosaic = False
             if hasattr(self.train_loader.dataset, 'close_mosaic'):
@@ -602,5 +602,5 @@ class BaseTrainer:
         optimizer.add_param_group({'params': g[0], 'weight_decay': decay})  # add g0 with weight_decay
         optimizer.add_param_group({'params': g[1], 'weight_decay': 0.0})  # add g1 (BatchNorm2d weights)
         LOGGER.info(f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}) with parameter groups "
-                    f"{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias")
+                    f'{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias')
         return optimizer

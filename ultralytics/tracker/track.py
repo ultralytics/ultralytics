@@ -4,14 +4,14 @@ from ultralytics.tracker import BOTSORT, BYTETracker
 from ultralytics.yolo.utils import IterableSimpleNamespace, yaml_load
 from ultralytics.yolo.utils.checks import check_requirements, check_yaml
 
-TRACKER_MAP = {"bytetrack": BYTETracker, "botsort": BOTSORT}
+TRACKER_MAP = {'bytetrack': BYTETracker, 'botsort': BOTSORT}
 check_requirements('lap')  # for linear_assignment
 
 
 def on_predict_start(predictor):
     tracker = check_yaml(predictor.args.tracker)
     cfg = IterableSimpleNamespace(**yaml_load(tracker))
-    assert cfg.tracker_type in ["bytetrack", "botsort"], \
+    assert cfg.tracker_type in ['bytetrack', 'botsort'], \
             f"Only support 'bytetrack' and 'botsort' for now, but got '{cfg.tracker_type}'"
     trackers = []
     for _ in range(predictor.dataset.bs):
@@ -38,5 +38,5 @@ def on_predict_postprocess_end(predictor):
 
 
 def register_tracker(model):
-    model.add_callback("on_predict_start", on_predict_start)
-    model.add_callback("on_predict_postprocess_end", on_predict_postprocess_end)
+    model.add_callback('on_predict_start', on_predict_start)
+    model.add_callback('on_predict_postprocess_end', on_predict_postprocess_end)

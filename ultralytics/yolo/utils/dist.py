@@ -22,7 +22,7 @@ def find_free_network_port() -> int:
 
 
 def generate_ddp_file(trainer):
-    import_path = '.'.join(str(trainer.__class__).split(".")[1:-1])
+    import_path = '.'.join(str(trainer.__class__).split('.')[1:-1])
 
     if not trainer.resume:
         shutil.rmtree(trainer.save_dir)  # remove the save_dir
@@ -32,9 +32,9 @@ def generate_ddp_file(trainer):
     trainer = {trainer.__class__.__name__}(cfg=cfg)
     trainer.train()'''
     (USER_CONFIG_DIR / 'DDP').mkdir(exist_ok=True)
-    with tempfile.NamedTemporaryFile(prefix="_temp_",
-                                     suffix=f"{id(trainer)}.py",
-                                     mode="w+",
+    with tempfile.NamedTemporaryFile(prefix='_temp_',
+                                     suffix=f'{id(trainer)}.py',
+                                     mode='w+',
                                      encoding='utf-8',
                                      dir=USER_CONFIG_DIR / 'DDP',
                                      delete=False) as file:
@@ -47,18 +47,18 @@ def generate_ddp_command(world_size, trainer):
 
     # Get file and args (do not use sys.argv due to security vulnerability)
     exclude_args = ['save_dir']
-    args = [f"{k}={v}" for k, v in vars(trainer.args).items() if k not in exclude_args]
+    args = [f'{k}={v}' for k, v in vars(trainer.args).items() if k not in exclude_args]
     file = generate_ddp_file(trainer)  # if argv[0].endswith('yolo') else os.path.abspath(argv[0])
 
     # Build command
-    torch_distributed_cmd = "torch.distributed.run" if TORCH_1_9 else "torch.distributed.launch"
+    torch_distributed_cmd = 'torch.distributed.run' if TORCH_1_9 else 'torch.distributed.launch'
     cmd = [
-        sys.executable, "-m", torch_distributed_cmd, "--nproc_per_node", f"{world_size}", "--master_port",
-        f"{find_free_network_port()}", file] + args
+        sys.executable, '-m', torch_distributed_cmd, '--nproc_per_node', f'{world_size}', '--master_port',
+        f'{find_free_network_port()}', file] + args
     return cmd, file
 
 
 def ddp_cleanup(trainer, file):
     # delete temp file if created
-    if f"{id(trainer)}.py" in file:  # if temp_file suffix in file
+    if f'{id(trainer)}.py' in file:  # if temp_file suffix in file
         os.remove(file)

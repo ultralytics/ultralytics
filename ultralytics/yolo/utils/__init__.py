@@ -27,7 +27,7 @@ from ultralytics import __version__
 # Constants
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[2]  # YOLO
-DEFAULT_CFG_PATH = ROOT / "yolo/cfg/default.yaml"
+DEFAULT_CFG_PATH = ROOT / 'yolo/cfg/default.yaml'
 RANK = int(os.getenv('RANK', -1))
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLOv5 multiprocessing threads
 AUTOINSTALL = str(os.getenv('YOLO_AUTOINSTALL', True)).lower() == 'true'  # global auto-install mode
@@ -111,7 +111,7 @@ class IterableSimpleNamespace(SimpleNamespace):
         return iter(vars(self).items())
 
     def __str__(self):
-        return '\n'.join(f"{k}={v}" for k, v in vars(self).items())
+        return '\n'.join(f'{k}={v}' for k, v in vars(self).items())
 
     def __getattr__(self, attr):
         name = self.__class__.__name__
@@ -288,7 +288,7 @@ def is_pytest_running():
         (bool): True if pytest is running, False otherwise.
     """
     with contextlib.suppress(Exception):
-        return "pytest" in sys.modules
+        return 'pytest' in sys.modules
     return False
 
 
@@ -336,7 +336,7 @@ def get_git_origin_url():
     """
     if is_git_dir():
         with contextlib.suppress(subprocess.CalledProcessError):
-            origin = subprocess.check_output(["git", "config", "--get", "remote.origin.url"])
+            origin = subprocess.check_output(['git', 'config', '--get', 'remote.origin.url'])
             return origin.decode().strip()
     return None  # if not git dir or on error
 
@@ -350,7 +350,7 @@ def get_git_branch():
     """
     if is_git_dir():
         with contextlib.suppress(subprocess.CalledProcessError):
-            origin = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"])
+            origin = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD'])
             return origin.decode().strip()
     return None  # if not git dir or on error
 
@@ -365,9 +365,9 @@ def get_latest_pypi_version(package_name='ultralytics'):
     Returns:
         str: The latest version of the package.
     """
-    response = requests.get(f"https://pypi.org/pypi/{package_name}/json")
+    response = requests.get(f'https://pypi.org/pypi/{package_name}/json')
     if response.status_code == 200:
-        return response.json()["info"]["version"]
+        return response.json()['info']['version']
     return None
 
 
@@ -424,28 +424,28 @@ def emojis(string=''):
 
 def colorstr(*input):
     # Colors a string https://en.wikipedia.org/wiki/ANSI_escape_code, i.e.  colorstr('blue', 'hello world')
-    *args, string = input if len(input) > 1 else ("blue", "bold", input[0])  # color arguments, string
+    *args, string = input if len(input) > 1 else ('blue', 'bold', input[0])  # color arguments, string
     colors = {
-        "black": "\033[30m",  # basic colors
-        "red": "\033[31m",
-        "green": "\033[32m",
-        "yellow": "\033[33m",
-        "blue": "\033[34m",
-        "magenta": "\033[35m",
-        "cyan": "\033[36m",
-        "white": "\033[37m",
-        "bright_black": "\033[90m",  # bright colors
-        "bright_red": "\033[91m",
-        "bright_green": "\033[92m",
-        "bright_yellow": "\033[93m",
-        "bright_blue": "\033[94m",
-        "bright_magenta": "\033[95m",
-        "bright_cyan": "\033[96m",
-        "bright_white": "\033[97m",
-        "end": "\033[0m",  # misc
-        "bold": "\033[1m",
-        "underline": "\033[4m"}
-    return "".join(colors[x] for x in args) + f"{string}" + colors["end"]
+        'black': '\033[30m',  # basic colors
+        'red': '\033[31m',
+        'green': '\033[32m',
+        'yellow': '\033[33m',
+        'blue': '\033[34m',
+        'magenta': '\033[35m',
+        'cyan': '\033[36m',
+        'white': '\033[37m',
+        'bright_black': '\033[90m',  # bright colors
+        'bright_red': '\033[91m',
+        'bright_green': '\033[92m',
+        'bright_yellow': '\033[93m',
+        'bright_blue': '\033[94m',
+        'bright_magenta': '\033[95m',
+        'bright_cyan': '\033[96m',
+        'bright_white': '\033[97m',
+        'end': '\033[0m',  # misc
+        'bold': '\033[1m',
+        'underline': '\033[4m'}
+    return ''.join(colors[x] for x in args) + f'{string}' + colors['end']
 
 
 def remove_ansi_codes(string):
@@ -466,21 +466,21 @@ def set_logging(name=LOGGING_NAME, verbose=True):
     rank = int(os.getenv('RANK', -1))  # rank in world for Multi-GPU trainings
     level = logging.INFO if verbose and rank in {-1, 0} else logging.ERROR
     logging.config.dictConfig({
-        "version": 1,
-        "disable_existing_loggers": False,
-        "formatters": {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
             name: {
-                "format": "%(message)s"}},
-        "handlers": {
+                'format': '%(message)s'}},
+        'handlers': {
             name: {
-                "class": "logging.StreamHandler",
-                "formatter": name,
-                "level": level}},
-        "loggers": {
+                'class': 'logging.StreamHandler',
+                'formatter': name,
+                'level': level}},
+        'loggers': {
             name: {
-                "level": level,
-                "handlers": [name],
-                "propagate": False}}})
+                'level': level,
+                'handlers': [name],
+                'propagate': False}}})
 
 
 class TryExcept(contextlib.ContextDecorator):
@@ -521,10 +521,10 @@ def set_sentry():
                 return None  # do not send event
 
         event['tags'] = {
-            "sys_argv": sys.argv[0],
-            "sys_argv_name": Path(sys.argv[0]).name,
-            "install": 'git' if is_git_dir() else 'pip' if is_pip_package() else 'other',
-            "os": ENVIRONMENT}
+            'sys_argv': sys.argv[0],
+            'sys_argv_name': Path(sys.argv[0]).name,
+            'install': 'git' if is_git_dir() else 'pip' if is_pip_package() else 'other',
+            'os': ENVIRONMENT}
         return event
 
     if SETTINGS['sync'] and \
@@ -533,24 +533,24 @@ def set_sentry():
             not is_pytest_running() and \
             not is_github_actions_ci() and \
             ((is_pip_package() and not is_git_dir()) or
-             (get_git_origin_url() == "https://github.com/ultralytics/ultralytics.git" and get_git_branch() == "main")):
+             (get_git_origin_url() == 'https://github.com/ultralytics/ultralytics.git' and get_git_branch() == 'main')):
 
         import hashlib
 
         import sentry_sdk  # noqa
 
         sentry_sdk.init(
-            dsn="https://f805855f03bb4363bc1e16cb7d87b654@o4504521589325824.ingest.sentry.io/4504521592406016",
+            dsn='https://f805855f03bb4363bc1e16cb7d87b654@o4504521589325824.ingest.sentry.io/4504521592406016',
             debug=False,
             traces_sample_rate=1.0,
             release=__version__,
             environment='production',  # 'dev' or 'production'
             before_send=before_send,
             ignore_errors=[KeyboardInterrupt, FileNotFoundError])
-        sentry_sdk.set_user({"id": SETTINGS['uuid']})
+        sentry_sdk.set_user({'id': SETTINGS['uuid']})
 
         # Disable all sentry logging
-        for logger in "sentry_sdk", "sentry_sdk.errors":
+        for logger in 'sentry_sdk', 'sentry_sdk.errors':
             logging.getLogger(logger).setLevel(logging.CRITICAL)
 
 
@@ -620,7 +620,7 @@ if WINDOWS:
         setattr(LOGGER, fn.__name__, lambda x: fn(emojis(x)))  # emoji safe logging
 
 # Check first-install steps
-PREFIX = colorstr("Ultralytics: ")
+PREFIX = colorstr('Ultralytics: ')
 SETTINGS = get_settings()
 DATASETS_DIR = Path(SETTINGS['datasets_dir'])  # global datasets directory
 ENVIRONMENT = 'Colab' if is_colab() else 'Kaggle' if is_kaggle() else 'Jupyter' if is_jupyter() else \

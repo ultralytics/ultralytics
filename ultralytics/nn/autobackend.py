@@ -1,7 +1,9 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
-
+import ast
+import contextlib
 import json
 import platform
+import zipfile
 from collections import OrderedDict, namedtuple
 from pathlib import Path
 from urllib.parse import urlparse
@@ -13,7 +15,7 @@ import torch.nn as nn
 from PIL import Image
 
 from ultralytics.yolo.utils import LOGGER, ROOT, yaml_load
-from ultralytics.yolo.utils.checks import check_requirements, check_suffix, check_version
+from ultralytics.yolo.utils.checks import check_requirements, check_suffix, check_version, check_yaml
 from ultralytics.yolo.utils.downloads import attempt_download_asset, is_url
 from ultralytics.yolo.utils.ops import xywh2xyxy
 
@@ -38,7 +40,7 @@ class AutoBackend(nn.Module):
             weights (str): The path to the weights file. Default: 'yolov8n.pt'
             device (torch.device): The device to run the model on.
             dnn (bool): Use OpenCV's DNN module for inference if True, defaults to False.
-            data (dict): Additional data, optional
+            data (str), (Path): Additional data.yaml file for class names, optional
             fp16 (bool): If True, use half precision. Default: False
             fuse (bool): Whether to fuse the model or not. Default: True
 
@@ -193,7 +195,7 @@ class AutoBackend(nn.Module):
                 from tflite_runtime.interpreter import Interpreter, load_delegate
             except ImportError:
                 import tensorflow as tf
-                Interpreter, load_delegate = tf.lite.Interpreter, tf.lite.experimental.load_delegate,
+                Interpreter, load_delegate = tf.lite.Interpreter, tf.lite.experimental.load_delegate
             if edgetpu:  # TF Edge TPU https://coral.ai/software/#edgetpu-runtime
                 LOGGER.info(f'Loading {w} for TensorFlow Lite Edge TPU inference...')
                 delegate = {
@@ -207,6 +209,12 @@ class AutoBackend(nn.Module):
             interpreter.allocate_tensors()  # allocate
             input_details = interpreter.get_input_details()  # inputs
             output_details = interpreter.get_output_details()  # outputs
+            # load metadata
+            with contextlib.suppress(zipfile.BadZipFile):
+                with zipfile.ZipFile(w, "r") as model:
+                    meta_file = model.namelist()[0]
+                    meta = ast.literal_eval(model.read(meta_file).decode("utf-8"))
+                    stride, names = int(meta['stride']), meta['names']
         elif tfjs:  # TF.js
             raise NotImplementedError('ERROR: YOLOv8 TF.js inference is not supported')
         elif paddle:  # PaddlePaddle
@@ -214,7 +222,7 @@ class AutoBackend(nn.Module):
             check_requirements('paddlepaddle-gpu' if cuda else 'paddlepaddle')
             import paddle.inference as pdi
             if not Path(w).is_file():  # if not *.pdmodel
-                w = next(Path(w).rglob('*.pdmodel'))  # get *.xml file from *_openvino_model dir
+                w = next(Path(w).rglob('*.pdmodel'))  # get *.pdmodel file from *_paddle_model dir
             weights = Path(w).with_suffix('.pdiparams')
             config = pdi.Config(str(w), str(weights))
             if cuda:
@@ -232,12 +240,14 @@ class AutoBackend(nn.Module):
             nhwc = model.runtime.startswith("tensorflow")
             '''
         else:
-            raise NotImplementedError(f"ERROR: '{w}' is not a supported format. For supported formats see "
-                                      f"https://docs.ultralytics.com/reference/nn/")
+            from ultralytics.yolo.engine.exporter import EXPORT_FORMATS_TABLE
+            raise TypeError(f"model='{w}' is not a supported model format. "
+                            "See https://docs.ultralytics.com/tasks/detection/#export for help."
+                            f"\n\n{EXPORT_FORMATS_TABLE}")
 
         # class names
         if 'names' not in locals():  # names missing
-            names = yaml_load(data)['names'] if data else {i: f'class{i}' for i in range(999)}  # assign default
+            names = yaml_load(check_yaml(data))['names'] if data else {i: f'class{i}' for i in range(999)}  # assign
         names = check_class_names(names)
 
         self.__dict__.update(locals())  # assign all variables to self
@@ -326,6 +336,9 @@ class AutoBackend(nn.Module):
                         scale, zero_point = output['quantization']
                         x = (x.astype(np.float32) - zero_point) * scale  # re-scale
                     y.append(x)
+                # TF segment fixes: export is reversed vs ONNX export and protos are transposed
+                if len(self.output_details) == 2:  # segment
+                    y = [y[1], np.transpose(y[0], (0, 3, 1, 2))]
             y = [x if isinstance(x, np.ndarray) else x.numpy() for x in y]
             y[0][..., :4] *= [w, h, w, h]  # xywh normalized to pixels
 

@@ -30,13 +30,15 @@ seaborn>=0.11.0
 # nvidia-tensorrt  # TensorRT export
 # scikit-learn==0.19.2  # CoreML quantization
 # tensorflow>=2.4.1  # TF exports (-cpu, -aarch64, -macos)
+# tflite-support
 # tensorflowjs>=3.9.0  # TF.js export
 # openvino-dev>=2022.3  # OpenVINO export
 
 # Extras --------------------------------------
-ipython  # interactive notebook
 psutil  # system utilization
 thop>=0.1.1  # FLOPs computation
+wheel>=0.38.0  # Snyk vulnerability fix
+# ipython  # interactive notebook
 # albumentations>=1.0.3
 # pycocotools>=2.0.6  # COCO mAP
 # roboflow

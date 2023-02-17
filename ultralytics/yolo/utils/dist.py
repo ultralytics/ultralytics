@@ -44,21 +44,21 @@ def generate_ddp_file(trainer):
 
 def generate_ddp_command(world_size, trainer):
     import __main__  # noqa local import to avoid https://github.com/Lightning-AI/lightning/issues/15218
-    file_name = os.path.abspath(sys.argv[0])
-    using_cli = not file_name.endswith(".py")
-    if using_cli:
-        file_name = generate_ddp_file(trainer)
+
+    # Get file and args (do not use sys.argv due to security vulnerability)
+    exclude_args = ['save_dir']
+    args = [f"{k}={v}" for k, v in vars(trainer.args).items() if k not in exclude_args]
+    file = generate_ddp_file(trainer)  # if argv[0].endswith('yolo') else os.path.abspath(argv[0])
+
+    # Build command
     torch_distributed_cmd = "torch.distributed.run" if TORCH_1_9 else "torch.distributed.launch"
-    return [
+    cmd = [
         sys.executable, "-m", torch_distributed_cmd, "--nproc_per_node", f"{world_size}", "--master_port",
-        f"{find_free_network_port()}", file_name] + sys.argv[1:]
+        f"{find_free_network_port()}", file] + args
+    return cmd, file
 
 
-def ddp_cleanup(command, trainer):
+def ddp_cleanup(trainer, file):
     # delete temp file if created
-    tempfile_suffix = f"{id(trainer)}.py"
-    if tempfile_suffix in "".join(command):
-        for chunk in command:
-            if tempfile_suffix in chunk:
-                os.remove(chunk)
-                break
+    if f"{id(trainer)}.py" in file:  # if temp_file suffix in file
+        os.remove(file)

@@ -17,7 +17,6 @@ import numpy as np
 import pkg_resources as pkg
 import psutil
 import torch
-from IPython import display
 from matplotlib import font_manager
 
 from ultralytics.yolo.utils import (AUTOINSTALL, LOGGER, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, downloads, emojis,
@@ -155,7 +154,7 @@ def check_online() -> bool:
         bool: True if connection is successful, False otherwise.
     """
     import socket
-    with contextlib.suppress(subprocess.CalledProcessError):
+    with contextlib.suppress(Exception):
         host = socket.gethostbyname("www.github.com")
         socket.create_connection((host, 80), timeout=2)
         return True
@@ -234,17 +233,17 @@ def check_yolov5u_filename(file: str):
     return file
 
 
-def check_file(file, suffix=''):
+def check_file(file, suffix='', download=True):
     # Search/download file (if necessary) and return path
     check_suffix(file, suffix)  # optional
     file = str(file)  # convert to string
     file = check_yolov5u_filename(file)  # yolov5n -> yolov5nu
-    if not file or ('://' not in file and Path(file).is_file()):  # exists ('://' check required in Windows Python<3.10)
+    if not file or ('://' not in file and Path(file).exists()):  # exists ('://' check required in Windows Python<3.10)
         return file
-    elif file.lower().startswith(('https://', 'http://', 'rtsp://', 'rtmp://')):  # download
+    elif download and file.lower().startswith(('https://', 'http://', 'rtsp://', 'rtmp://')):  # download
         url = file  # warning: Pathlib turns :// -> :/
         file = Path(urllib.parse.unquote(file).split('?')[0]).name  # '%2F' to '/', split https://url.com/file.txt?auth
-        if Path(file).is_file():
+        if Path(file).exists():
             LOGGER.info(f'Found {url} locally at {file}')  # file already exists
         else:
             downloads.safe_download(url=url, file=file, unzip=False)
@@ -292,8 +291,10 @@ def check_yolo(verbose=True):
         gib = 1 << 30  # bytes per GiB
         ram = psutil.virtual_memory().total
         total, used, free = shutil.disk_usage("/")
-        display.clear_output()
         s = f'({os.cpu_count()} CPUs, {ram / gib:.1f} GB RAM, {(total - free) / gib:.1f}/{total / gib:.1f} GB disk)'
+        with contextlib.suppress(Exception):  # clear display if ipython is installed
+            from IPython import display
+            display.clear_output()
     else:
         s = ''
 

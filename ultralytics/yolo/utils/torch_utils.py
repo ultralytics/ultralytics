@@ -13,10 +13,10 @@ import numpy as np
 import thop
 import torch
 import torch.distributed as dist
-from torch.optim.optimizer import Optimizer
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.optim.optimizer import Optimizer
 
 from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, __version__
 from ultralytics.yolo.utils.checks import check_version

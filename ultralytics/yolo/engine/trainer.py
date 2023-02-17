@@ -29,8 +29,8 @@ from ultralytics.yolo.utils.autobatch import check_train_batch_size
 from ultralytics.yolo.utils.checks import check_file, check_imgsz, print_args
 from ultralytics.yolo.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.yolo.utils.files import get_latest_run, increment_path
-from ultralytics.yolo.utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel, init_seeds, one_cycle,
-                                                select_device, strip_optimizer, Lion)
+from ultralytics.yolo.utils.torch_utils import (EarlyStopping, Lion, ModelEMA, de_parallel, init_seeds, one_cycle,
+                                                select_device, strip_optimizer)
 
 
 class BaseTrainer:

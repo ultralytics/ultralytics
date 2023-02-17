@@ -30,10 +30,11 @@ They may also be used directly in a Python environment, and accepts the same
 from ultralytics import YOLO
 
 model = YOLO("model.yaml")  # build a YOLOv8n model from scratch
-      # YOLO("model.pt")  use pre-trained model if available
+# YOLO("model.pt")  use pre-trained model if available
 model.info()  # display model information
 model.train(data="coco128.yaml", epochs=100)  # train the model
 ```
+
 ## Pre-trained Model Architectures
 
 Ultralytics supports many model architectures. Visit [models](#) page to view detailed information and usage.

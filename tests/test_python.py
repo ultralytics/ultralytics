@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
-import platform
 from pathlib import Path
 
 import cv2
@@ -10,12 +9,11 @@ from PIL import Image
 
 from ultralytics import YOLO
 from ultralytics.yolo.data.build import load_inference_source
-from ultralytics.yolo.utils import ROOT, SETTINGS
+from ultralytics.yolo.utils import LINUX, ROOT, SETTINGS
 
 MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n.pt'
 CFG = 'yolov8n.yaml'
 SOURCE = ROOT / 'assets/bus.jpg'
-MACOS, LINUX, WINDOWS = (platform.system() == x for x in ['Darwin', 'Linux', 'Windows'])  # environment booleans
 
 
 def test_model_forward():
@@ -148,7 +146,6 @@ def test_workflow():
 
 
 def test_predict_callback_and_setup():
-
     def on_predict_batch_end(predictor):
         # results -> List[batch_size]
         path, _, im0s, _, _ = predictor.batch

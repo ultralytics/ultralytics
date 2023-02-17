@@ -1,14 +1,12 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
-import platform
 import subprocess
 from pathlib import Path
 
-from ultralytics.yolo.utils import ROOT, SETTINGS
+from ultralytics.yolo.utils import LINUX, ROOT, SETTINGS
 
 MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n'
 CFG = 'yolov8n'
-MACOS, LINUX, WINDOWS = (platform.system() == x for x in ['Darwin', 'Linux', 'Windows'])  # environment booleans
 
 
 def run(cmd):

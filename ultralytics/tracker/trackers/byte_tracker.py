@@ -1,8 +1,8 @@
 import numpy as np
 
-from .basetrack import BaseTrack, TrackState
 from ..utils import matching
 from ..utils.kalman_filter import KalmanFilterXYAH
+from .basetrack import BaseTrack, TrackState
 
 
 class STrack(BaseTrack):

@@ -1,10 +1,10 @@
-from functools import lru_cache
 from copy import deepcopy
-from PIL import Image
+from functools import lru_cache
 
 import numpy as np
 import torch
 import torchvision.transforms.functional as F
+from PIL import Image
 
 from ultralytics.yolo.utils import LOGGER, ops
 from ultralytics.yolo.utils.plotting import Annotator, colors

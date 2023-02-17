@@ -12,6 +12,64 @@ on:
     - cron: '0 0 * * *'  # runs at 00:00 UTC every day
 
 jobs:
+  Benchmarks:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ['3.10']  # requires python<=3.9
+        model: [yolov8n]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      #- name: Cache pip
+      #  uses: actions/cache@v3
+      #  with:
+      #    path: ~/.cache/pip
+      #    key: ${{ runner.os }}-Benchmarks-${{ hashFiles('requirements.txt') }}
+      #    restore-keys: ${{ runner.os }}-Benchmarks-
+      - name: Install requirements
+        run: |
+          python -m pip install --upgrade pip wheel
+          pip install -e '.[export]' --extra-index-url https://download.pytorch.org/whl/cpu
+      - name: Check environment
+        run: |
+          echo "RUNNER_OS is ${{ runner.os }}"
+          echo "GITHUB_EVENT_NAME is ${{ github.event_name }}"
+          echo "GITHUB_WORKFLOW is ${{ github.workflow }}"
+          echo "GITHUB_ACTOR is ${{ github.actor }}"
+          echo "GITHUB_REPOSITORY is ${{ github.repository }}"
+          echo "GITHUB_REPOSITORY_OWNER is ${{ github.repository_owner }}"
+          python --version
+          pip --version
+          pip list
+      - name: TF Lite export
+        run: |
+          yolo export model=${{ matrix.model }}.pt format=tflite
+          yolo task=detect mode=predict model=yolov8n_saved_model/yolov8n_float16.tflite imgsz=640
+      - name: TF *.pb export
+        run: |
+          yolo export model=${{ matrix.model }}.pt format=pb
+          yolo task=detect mode=predict model=yolov8n.pb imgsz=640
+      - name: TF Lite Edge TPU export
+        run: |
+          yolo export model=${{ matrix.model }}.pt format=edgetpu
+      - name: TF.js export
+        run: |
+          yolo export model=${{ matrix.model }}.pt format=tfjs
+      - name: Benchmark DetectionModel
+        run: |
+          # yolo benchmark model=${{ matrix.model }}.pt imgsz=320 min_metric=0.29
+      - name: Benchmark SegmentationModel
+        run: |
+          # yolo benchmark model=${{ matrix.model }}-seg.pt imgsz=320 min_metric=0.29
+      - name: Benchmark ClassificationModel
+        run: |
+          # yolo benchmark model=${{ matrix.model }}-cls.pt imgsz=224 min_metric=0.29
+
   Tests:
     timeout-minutes: 60
     runs-on: ${{ matrix.os }}
@@ -49,15 +107,13 @@ jobs:
         run: |
           python -m pip install --upgrade pip wheel
           if [ "${{ matrix.torch }}" == "1.8.0" ]; then
-              pip install -e . torch==1.8.0 torchvision==0.9.0 onnx openvino-dev>=2022.3 pytest --extra-index-url https://download.pytorch.org/whl/cpu
+              pip install -e '.[export]' torch==1.8.0 torchvision==0.9.0 pytest --extra-index-url https://download.pytorch.org/whl/cpu
           else
-              pip install -e . onnx openvino-dev>=2022.3 pytest --extra-index-url https://download.pytorch.org/whl/cpu
+              pip install -e '.[export]' pytest --extra-index-url https://download.pytorch.org/whl/cpu
           fi
-          # pip install ultralytics (production)
         shell: bash  # for Windows compatibility
       - name: Check environment
         run: |
-          # python -c "import utils; utils.notebook_init()"
           echo "RUNNER_OS is ${{ runner.os }}"
           echo "GITHUB_EVENT_NAME is ${{ github.event_name }}"
           echo "GITHUB_WORKFLOW is ${{ github.workflow }}"

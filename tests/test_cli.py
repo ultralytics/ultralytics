@@ -3,7 +3,7 @@
 import subprocess
 from pathlib import Path
 
-from ultralytics.yolo.utils import ROOT, SETTINGS
+from ultralytics.yolo.utils import LINUX, ROOT, SETTINGS
 
 MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n'
 CFG = 'yolov8n'
@@ -73,3 +73,8 @@ def test_export_segment_torchscript():
 
 def test_export_classify_torchscript():
     run(f'yolo export model={MODEL}-cls.pt format=torchscript')
+
+
+def test_export_detect_edgetpu(enabled=False):
+    if enabled and LINUX:
+        run(f'yolo export model={MODEL}.pt format=edgetpu')

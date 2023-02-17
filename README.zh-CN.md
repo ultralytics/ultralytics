@@ -132,13 +132,13 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 
 <details><summary>实例分割</summary>
 
-| 模型                                                                                       | 尺寸<br><sup>（像素） | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | 推理速度<br><sup>CPU ONNX<br>(ms) | 推理速度<br><sup>A100 TensorRT<br>(ms) | 参数量<br><sup>(M) | FLOPs<br><sup>(B) |
-| ---------------------------------------------------------------------------------------- | --------------- | -------------------- | --------------------- | ----------------------------- | ---------------------------------- | --------------- | ----------------- |
-| [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-seg.pt) | 640             | 36.7                 | 30.5                  | 96.1                          | 1.21                               | 3.4             | 12.6              |
-| [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-seg.pt) | 640             | 44.6                 | 36.8                  | 155.7                         | 1.47                               | 11.8            | 42.6              |
-| [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-seg.pt) | 640             | 49.9                 | 40.8                  | 317.0                         | 2.18                               | 27.3            | 110.2             |
-| [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-seg.pt) | 640             | 52.3                 | 42.6                  | 572.4                         | 2.79                               | 46.0            | 220.5             |
-| [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-seg.pt) | 640             | 53.4                 | 43.4                  | 712.1                         | 4.02                               | 71.8            | 344.1             |
+| 模型                                                                                           | 尺寸<br><sup>（像素） | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | 推理速度<br><sup>CPU ONNX<br>(ms) | 推理速度<br><sup>A100 TensorRT<br>(ms) | 参数量<br><sup>(M) | FLOPs<br><sup>(B) |
+| -------------------------------------------------------------------------------------------- | --------------- | -------------------- | --------------------- | ----------------------------- | ---------------------------------- | --------------- | ----------------- |
+| [YOLOv8n-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-seg.pt) | 640             | 36.7                 | 30.5                  | 96.1                          | 1.21                               | 3.4             | 12.6              |
+| [YOLOv8s-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-seg.pt) | 640             | 44.6                 | 36.8                  | 155.7                         | 1.47                               | 11.8            | 42.6              |
+| [YOLOv8m-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-seg.pt) | 640             | 49.9                 | 40.8                  | 317.0                         | 2.18                               | 27.3            | 110.2             |
+| [YOLOv8l-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-seg.pt) | 640             | 52.3                 | 42.6                  | 572.4                         | 2.79                               | 46.0            | 220.5             |
+| [YOLOv8x-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-seg.pt) | 640             | 53.4                 | 43.4                  | 712.1                         | 4.02                               | 71.8            | 344.1             |
 
 - **mAP<sup>val</sup>**  结果都在 [COCO val2017](http://cocodataset.org) 数据集上，使用单模型单尺度测试得到。
   <br>复现命令 `yolo val segment data=coco.yaml device=0`
@@ -149,13 +149,13 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 
 <details><summary>分类</summary>
 
-| 模型                                                                                       | 尺寸<br><sup>（像素） | acc<br><sup>top1 | acc<br><sup>top5 | 推理速度<br><sup>CPU ONNX<br>(ms) | 推理速度<br><sup>A100 TensorRT<br>(ms) | 参数量<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
-| ---------------------------------------------------------------------------------------- | --------------- | ---------------- | ---------------- | ----------------------------- | ---------------------------------- | --------------- | ------------------------ |
-| [YOLOv8n](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-cls.pt) | 224             | 66.6             | 87.0             | 12.9                          | 0.31                               | 2.7             | 4.3                      |
-| [YOLOv8s](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-cls.pt) | 224             | 72.3             | 91.1             | 23.4                          | 0.35                               | 6.4             | 13.5                     |
-| [YOLOv8m](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-cls.pt) | 224             | 76.4             | 93.2             | 85.4                          | 0.62                               | 17.0            | 42.7                     |
-| [YOLOv8l](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-cls.pt) | 224             | 78.0             | 94.1             | 163.0                         | 0.87                               | 37.5            | 99.7                     |
-| [YOLOv8x](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-cls.pt) | 224             | 78.4             | 94.3             | 232.0                         | 1.01                               | 57.4            | 154.8                    |
+| 模型                                                                                           | 尺寸<br><sup>（像素） | acc<br><sup>top1 | acc<br><sup>top5 | 推理速度<br><sup>CPU ONNX<br>(ms) | 推理速度<br><sup>A100 TensorRT<br>(ms) | 参数量<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
+| -------------------------------------------------------------------------------------------- | --------------- | ---------------- | ---------------- | ----------------------------- | ---------------------------------- | --------------- | ------------------------ |
+| [YOLOv8n-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-cls.pt) | 224             | 66.6             | 87.0             | 12.9                          | 0.31                               | 2.7             | 4.3                      |
+| [YOLOv8s-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-cls.pt) | 224             | 72.3             | 91.1             | 23.4                          | 0.35                               | 6.4             | 13.5                     |
+| [YOLOv8m-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-cls.pt) | 224             | 76.4             | 93.2             | 85.4                          | 0.62                               | 17.0            | 42.7                     |
+| [YOLOv8l-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-cls.pt) | 224             | 78.0             | 94.1             | 163.0                         | 0.87                               | 37.5            | 99.7                     |
+| [YOLOv8x-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-cls.pt) | 224             | 78.4             | 94.3             | 232.0                         | 1.01                               | 57.4            | 154.8                    |
 
 - **acc** 都在 [ImageNet](https://www.image-net.org/) 数据集上，使用单模型单尺度测试得到。
   <br>复现命令 `yolo val classify data=path/to/ImageNet device=0`

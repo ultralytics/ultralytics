@@ -35,6 +35,7 @@ import torch
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.data import load_inference_source
+from ultralytics.yolo.data.augment import classify_transforms
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, SETTINGS, callbacks, colorstr, ops
 from ultralytics.yolo.utils.checks import check_imgsz, check_imshow
 from ultralytics.yolo.utils.files import increment_path
@@ -82,7 +83,6 @@ class BasePredictor:
         # Usable if setup is done
         self.model = None
         self.data = self.args.data  # data_dict
-        self.bs = None
         self.imgsz = None
         self.device = None
         self.classes = self.args.classes
@@ -121,8 +121,12 @@ class BasePredictor:
 
     def setup_source(self, source):
         self.imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)  # check image size
+        if self.args.task == 'classify':
+            transforms = getattr(self.model.model, 'transforms', classify_transforms(self.imgsz[0]))
+        else:  # predict, segment
+            transforms = None
         self.dataset = load_inference_source(source=source,
-                                             transforms=getattr(self.model.model, 'transforms', None),
+                                             transforms=transforms,
                                              imgsz=self.imgsz,
                                              vid_stride=self.args.vid_stride,
                                              stride=self.model.stride,
@@ -131,7 +135,6 @@ class BasePredictor:
         self.vid_path, self.vid_writer = [None] * self.dataset.bs, [None] * self.dataset.bs
 
     def stream_inference(self, source=None, model=None):
-        self.run_callbacks("on_predict_start")
         if self.args.verbose:
             LOGGER.info("")
 
@@ -150,6 +153,7 @@ class BasePredictor:
             self.done_warmup = True
 
         self.seen, self.windows, self.dt, self.batch = 0, [], (ops.Profile(), ops.Profile(), ops.Profile()), None
+        self.run_callbacks("on_predict_start")
         for batch in self.dataset:
             self.run_callbacks("on_predict_batch_start")
             self.batch = batch
@@ -167,8 +171,12 @@ class BasePredictor:
             # postprocess
             with self.dt[2]:
                 self.results = self.postprocess(preds, im, im0s, self.classes)
+            self.run_callbacks("on_predict_postprocess_end")
+
+            # visualize, save, write results
             for i in range(len(im)):
-                p, im0 = (path[i], im0s[i]) if self.source_type.webcam or self.source_type.from_img else (path, im0s)
+                p, im0 = (path[i], im0s[i].copy()) if self.source_type.webcam or self.source_type.from_img else (path,
+                                                                                                                 im0s)
                 p = Path(p)
 
                 if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
@@ -179,7 +187,6 @@ class BasePredictor:
 
                 if self.args.save:
                     self.save_preds(vid_cap, i, str(self.save_dir / p.name))
-
             self.run_callbacks("on_predict_batch_end")
             yield from self.results
 

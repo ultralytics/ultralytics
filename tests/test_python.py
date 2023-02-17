@@ -171,17 +171,12 @@ def test_predict_callback_and_setup():
         boxes = result.boxes  # Boxes object for bbox outputs
         print(boxes)
 
-
-def test_visulizer():
-    from ultralytics import YOLO
-    from ultralytics.yolo.utils import ROOT
-    import cv2
-
+def test_result():
     model = YOLO("yolov8n-seg.pt")
-    source = str(ROOT / "assets/bus.jpg")
-    img_cv = cv2.imread(source)
-    # img_pil = Image.open(source)
-
-    res = model.predict(img_cv)
+    img = str(ROOT / "assets/bus.jpg")
+    res = model([img, img])
+    res[0].numpy()
+    res[0].cpu().numpy()
     resimg = res[0].visualize(show_conf=False)
     print(resimg)
+    

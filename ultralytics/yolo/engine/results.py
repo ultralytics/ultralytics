@@ -43,7 +43,7 @@ class Results:
         # TODO masks.pandas + boxes.pandas + cls.pandas
 
     def __getitem__(self, idx):
-        r = Results(orig_shape=self.orig_shape)
+        r = Results(orig_img=self.orig_img)
         for item in self.comp:
             if getattr(self, item) is None:
                 continue
@@ -59,7 +59,7 @@ class Results:
             self.probs = probs
 
     def cpu(self):
-        r = Results(orig_shape=self.orig_shape)
+        r = Results(orig_img=self.orig_img)
         for item in self.comp:
             if getattr(self, item) is None:
                 continue
@@ -67,7 +67,7 @@ class Results:
         return r
 
     def numpy(self):
-        r = Results(orig_shape=self.orig_shape)
+        r = Results(orig_img=self.orig_img)
         for item in self.comp:
             if getattr(self, item) is None:
                 continue
@@ -75,7 +75,7 @@ class Results:
         return r
 
     def cuda(self):
-        r = Results(orig_shape=self.orig_shape)
+        r = Results(orig_img=self.orig_img)
         for item in self.comp:
             if getattr(self, item) is None:
                 continue
@@ -83,7 +83,7 @@ class Results:
         return r
 
     def to(self, *args, **kwargs):
-        r = Results(orig_shape=self.orig_shape)
+        r = Results(orig_img=self.orig_img)
         for item in self.comp:
             if getattr(self, item) is None:
                 continue

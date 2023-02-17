@@ -34,7 +34,8 @@ Results object consists of these component objects:
 
 - `Results.boxes` : `Boxes` object with properties and methods for manipulating bboxes
 - `Results.masks` : `Masks` object used to index masks or to get segment coordinates.
-- `Results.prob`  : `torch.Tensor` containing the class probabilities/logits.
+- `Results.probs` : `torch.Tensor` containing the class probabilities/logits.
+- `Results.orig_shape` : `tuple` containing the original image size as (height, width).
 
 Each result is composed of torch.Tensor by default, in which you can easily use following functionality:
 

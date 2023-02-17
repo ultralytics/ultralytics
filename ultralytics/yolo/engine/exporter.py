@@ -435,7 +435,7 @@ class Exporter:
         try:
             import tensorrt as trt  # noqa
         except ImportError:
-            if platform.system() == 'Linux':
+            if LINUX:
                 check_requirements('nvidia-tensorrt', cmds='-U --index-url https://pypi.ngc.nvidia.com')
             import tensorrt as trt  # noqa
 
@@ -640,7 +640,7 @@ class Exporter:
         # YOLOv8 Edge TPU export https://coral.ai/docs/edgetpu/models-intro/
         cmd = 'edgetpu_compiler --version'
         help_url = 'https://coral.ai/docs/edgetpu/compiler/'
-        assert platform.system() == 'Linux', f'export only supported on Linux. See {help_url}'
+        assert LINUX, f'export only supported on Linux. See {help_url}'
         if subprocess.run(f'{cmd} >/dev/null', shell=True).returncode != 0:
             LOGGER.info(f'\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}')
             sudo = subprocess.run('sudo --version >/dev/null', shell=True).returncode == 0  # sudo installed on system

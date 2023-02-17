@@ -186,3 +186,13 @@ def test_predict_callback_and_setup():
         print('test_callback', bs)
         boxes = result.boxes  # Boxes object for bbox outputs
         print(boxes)
+
+
+def test_result():
+    model = YOLO("yolov8n-seg.pt")
+    img = str(ROOT / "assets/bus.jpg")
+    res = model([img, img])
+    res[0].numpy()
+    res[0].cpu().numpy()
+    resimg = res[0].visualize(show_conf=False)
+    print(resimg)

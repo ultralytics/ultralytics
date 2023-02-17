@@ -136,7 +136,11 @@ class Annotator:
         if anchor == 'bottom':  # start y from font bottom
             w, h = self.font.getsize(text)  # text width, height
             xy[1] += 1 - h
-        self.draw.text(xy, text, fill=txt_color, font=self.font)
+        if self.pil:
+            self.draw.text(xy, text, fill=txt_color, font=self.font)
+        else:
+            tf = max(self.lw - 1, 1)  # font thickness
+            cv2.putText(self.im, text, xy, 0, self.lw / 3, txt_color, thickness=tf, lineType=cv2.LINE_AA)
 
     def fromarray(self, im):
         # Update self.im from a numpy array

@@ -21,8 +21,9 @@ class ClassificationPredictor(BasePredictor):
     def postprocess(self, preds, img, orig_img):
         results = []
         for i, pred in enumerate(preds):
-            shape = orig_img[i].shape if isinstance(orig_img, list) else orig_img.shape
-            results.append(Results(probs=pred, orig_shape=shape[:2]))
+            orig_img = orig_img[i] if isinstance(orig_img, list) else orig_img
+            results.append(Results(probs=pred.softmax(0), orig_img=orig_img, names=self.model.names))
+
         return results
 
     def write_results(self, idx, results, batch):

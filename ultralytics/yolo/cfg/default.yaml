@@ -112,4 +112,4 @@ cfg:  # for overriding defaults.yaml
 v5loader: False  # use legacy YOLOv5 dataloader
 
 # Tracker settings ------------------------------------------------------------------------------------------------------
-tracker: botsort.yaml  # tracker type, ['botsort', 'bytetrack']
+tracker: botsort.yaml  # tracker type, ['botsort.yaml', 'bytetrack.yaml']

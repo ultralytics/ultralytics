@@ -50,14 +50,14 @@ class GMC:
                 seqName = seqName[:-6]
             elif '-DPM' in seqName or '-SDP' in seqName:
                 seqName = seqName[:-4]
-            self.gmcFile = open(f"{filePath}/GMC-{seqName}.txt")
+            self.gmcFile = open(f'{filePath}/GMC-{seqName}.txt')
 
             if self.gmcFile is None:
-                raise ValueError(f"Error: Unable to open GMC file in directory:{filePath}")
+                raise ValueError(f'Error: Unable to open GMC file in directory:{filePath}')
         elif self.method in ['none', 'None']:
             self.method = 'none'
         else:
-            raise ValueError(f"Error: Unknown CMC method:{method}")
+            raise ValueError(f'Error: Unknown CMC method:{method}')
 
         self.prevFrame = None
         self.prevKeyPoints = None
@@ -302,7 +302,7 @@ class GMC:
 
     def applyFile(self, raw_frame, detections=None):
         line = self.gmcFile.readline()
-        tokens = line.split("\t")
+        tokens = line.split('\t')
         H = np.eye(2, 3, dtype=np.float_)
         H[0, 0] = float(tokens[1])
         H[0, 1] = float(tokens[2])

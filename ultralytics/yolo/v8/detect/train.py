@@ -20,7 +20,7 @@ from ultralytics.yolo.utils.torch_utils import de_parallel
 # BaseTrainer python usage
 class DetectionTrainer(BaseTrainer):
 
-    def get_dataloader(self, dataset_path, batch_size, mode="train", rank=0):
+    def get_dataloader(self, dataset_path, batch_size, mode='train', rank=0):
         # TODO: manage splits differently
         # calculate stride - check if model is initialized
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
@@ -29,21 +29,21 @@ class DetectionTrainer(BaseTrainer):
                                  batch_size=batch_size,
                                  stride=gs,
                                  hyp=vars(self.args),
-                                 augment=mode == "train",
+                                 augment=mode == 'train',
                                  cache=self.args.cache,
-                                 pad=0 if mode == "train" else 0.5,
-                                 rect=self.args.rect or mode == "val",
+                                 pad=0 if mode == 'train' else 0.5,
+                                 rect=self.args.rect or mode == 'val',
                                  rank=rank,
                                  workers=self.args.workers,
                                  close_mosaic=self.args.close_mosaic != 0,
                                  prefix=colorstr(f'{mode}: '),
-                                 shuffle=mode == "train",
+                                 shuffle=mode == 'train',
                                  seed=self.args.seed)[0] if self.args.v5loader else \
             build_dataloader(self.args, batch_size, img_path=dataset_path, stride=gs, rank=rank, mode=mode,
-                             rect=mode == "val", names=self.data['names'])[0]
+                             rect=mode == 'val', names=self.data['names'])[0]
 
     def preprocess_batch(self, batch):
-        batch["img"] = batch["img"].to(self.device, non_blocking=True).float() / 255
+        batch['img'] = batch['img'].to(self.device, non_blocking=True).float() / 255
         return batch
 
     def set_model_attributes(self):
@@ -51,13 +51,13 @@ class DetectionTrainer(BaseTrainer):
         # self.args.box *= 3 / nl  # scale to layers
         # self.args.cls *= self.data["nc"] / 80 * 3 / nl  # scale to classes and layers
         # self.args.cls *= (self.args.imgsz / 640) ** 2 * 3 / nl  # scale to image size and layers
-        self.model.nc = self.data["nc"]  # attach number of classes to model
-        self.model.names = self.data["names"]  # attach class names to model
+        self.model.nc = self.data['nc']  # attach number of classes to model
+        self.model.names = self.data['names']  # attach class names to model
         self.model.args = self.args  # attach hyperparameters to model
         # TODO: self.model.class_weights = labels_to_class_weights(dataset.labels, nc).to(device) * nc
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        model = DetectionModel(cfg, ch=3, nc=self.data["nc"], verbose=verbose and RANK == -1)
+        model = DetectionModel(cfg, ch=3, nc=self.data['nc'], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
 
@@ -75,12 +75,12 @@ class DetectionTrainer(BaseTrainer):
             self.compute_loss = Loss(de_parallel(self.model))
         return self.compute_loss(preds, batch)
 
-    def label_loss_items(self, loss_items=None, prefix="train"):
+    def label_loss_items(self, loss_items=None, prefix='train'):
         """
         Returns a loss dict with labelled training loss items tensor
         """
         # Not needed for classification but necessary for segmentation & detection
-        keys = [f"{prefix}/{x}" for x in self.loss_names]
+        keys = [f'{prefix}/{x}' for x in self.loss_names]
         if loss_items is not None:
             loss_items = [round(float(x), 5) for x in loss_items]  # convert tensors to 5 decimal place floats
             return dict(zip(keys, loss_items))
@@ -92,12 +92,12 @@ class DetectionTrainer(BaseTrainer):
                 (4 + len(self.loss_names))) % ('Epoch', 'GPU_mem', *self.loss_names, 'Instances', 'Size')
 
     def plot_training_samples(self, batch, ni):
-        plot_images(images=batch["img"],
-                    batch_idx=batch["batch_idx"],
-                    cls=batch["cls"].squeeze(-1),
-                    bboxes=batch["bboxes"],
-                    paths=batch["im_file"],
-                    fname=self.save_dir / f"train_batch{ni}.jpg")
+        plot_images(images=batch['img'],
+                    batch_idx=batch['batch_idx'],
+                    cls=batch['cls'].squeeze(-1),
+                    bboxes=batch['bboxes'],
+                    paths=batch['im_file'],
+                    fname=self.save_dir / f'train_batch{ni}.jpg')
 
     def plot_metrics(self):
         plot_results(file=self.csv)  # save results.png
@@ -169,7 +169,7 @@ class Loss:
         anchor_points, stride_tensor = make_anchors(feats, self.stride, 0.5)
 
         # targets
-        targets = torch.cat((batch["batch_idx"].view(-1, 1), batch["cls"].view(-1, 1), batch["bboxes"]), 1)
+        targets = torch.cat((batch['batch_idx'].view(-1, 1), batch['cls'].view(-1, 1), batch['bboxes']), 1)
         targets = self.preprocess(targets.to(self.device), batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
         gt_labels, gt_bboxes = targets.split((1, 4), 2)  # cls, xyxy
         mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0)
@@ -201,8 +201,8 @@ class Loss:
 
 
 def train(cfg=DEFAULT_CFG, use_python=False):
-    model = cfg.model or "yolov8n.pt"
-    data = cfg.data or "coco128.yaml"  # or yolo.ClassificationDataset("mnist")
+    model = cfg.model or 'yolov8n.pt'
+    data = cfg.data or 'coco128.yaml'  # or yolo.ClassificationDataset("mnist")
     device = cfg.device if cfg.device is not None else ''
 
     args = dict(model=model, data=data, device=device)
@@ -214,5 +214,5 @@ def train(cfg=DEFAULT_CFG, use_python=False):
         trainer.train()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     train()

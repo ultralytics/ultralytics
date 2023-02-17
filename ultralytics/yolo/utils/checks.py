@@ -71,7 +71,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
         msg = "'train' and 'val' imgsz must be an integer, while 'predict' and 'export' imgsz may be a [h, w] list " \
               "or an integer, i.e. 'yolo export imgsz=640,480' or 'yolo export imgsz=640'"
         if max_dim != 1:
-            raise ValueError(f"imgsz={imgsz} is not a valid image size. {msg}")
+            raise ValueError(f'imgsz={imgsz} is not a valid image size. {msg}')
         LOGGER.warning(f"WARNING ⚠️ updating to 'imgsz={max(imgsz)}'. {msg}")
         imgsz = [max(imgsz)]
     # Make image size a multiple of the stride
@@ -87,9 +87,9 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
     return sz
 
 
-def check_version(current: str = "0.0.0",
-                  minimum: str = "0.0.0",
-                  name: str = "version ",
+def check_version(current: str = '0.0.0',
+                  minimum: str = '0.0.0',
+                  name: str = 'version ',
                   pinned: bool = False,
                   hard: bool = False,
                   verbose: bool = False) -> bool:
@@ -109,7 +109,7 @@ def check_version(current: str = "0.0.0",
     """
     current, minimum = (pkg.parse_version(x) for x in (current, minimum))
     result = (current == minimum) if pinned else (current >= minimum)  # bool
-    warning_message = f"WARNING ⚠️ {name}{minimum} is required by YOLOv8, but {name}{current} is currently installed"
+    warning_message = f'WARNING ⚠️ {name}{minimum} is required by YOLOv8, but {name}{current} is currently installed'
     if hard:
         assert result, emojis(warning_message)  # assert min requirements met
     if verbose and not result:
@@ -155,7 +155,7 @@ def check_online() -> bool:
     """
     import socket
     with contextlib.suppress(Exception):
-        host = socket.gethostbyname("www.github.com")
+        host = socket.gethostbyname('www.github.com')
         socket.create_connection((host, 80), timeout=2)
         return True
     return False
@@ -182,7 +182,7 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
     file = None
     if isinstance(requirements, Path):  # requirements.txt file
         file = requirements.resolve()
-        assert file.exists(), f"{prefix} {file} not found, check failed."
+        assert file.exists(), f'{prefix} {file} not found, check failed.'
         with file.open() as f:
             requirements = [f'{x.name}{x.specifier}' for x in pkg.parse_requirements(f) if x.name not in exclude]
     elif isinstance(requirements, str):
@@ -200,7 +200,7 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
     if s and install and AUTOINSTALL:  # check environment variable
         LOGGER.info(f"{prefix} YOLOv8 requirement{'s' * (n > 1)} {s}not found, attempting AutoUpdate...")
         try:
-            assert check_online(), "AutoUpdate skipped (offline)"
+            assert check_online(), 'AutoUpdate skipped (offline)'
             LOGGER.info(subprocess.check_output(f'pip install {s} {cmds}', shell=True).decode())
             s = f"{prefix} {n} package{'s' * (n > 1)} updated per {file or requirements}\n" \
                 f"{prefix} ⚠️ {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n"
@@ -217,19 +217,19 @@ def check_suffix(file='yolov8n.pt', suffix=('.pt',), msg=''):
         for f in file if isinstance(file, (list, tuple)) else [file]:
             s = Path(f).suffix.lower()  # file suffix
             if len(s):
-                assert s in suffix, f"{msg}{f} acceptable suffix is {suffix}"
+                assert s in suffix, f'{msg}{f} acceptable suffix is {suffix}'
 
 
 def check_yolov5u_filename(file: str):
     # Replace legacy YOLOv5 filenames with updated YOLOv5u filenames
     if 'yolov3' in file or 'yolov5' in file and 'u' not in file:
         original_file = file
-        file = re.sub(r"(.*yolov5([nsmlx]))\.", "\\1u.", file)  # i.e. yolov5n.pt -> yolov5nu.pt
-        file = re.sub(r"(.*yolov3(|-tiny|-spp))\.", "\\1u.", file)  # i.e. yolov3-spp.pt -> yolov3-sppu.pt
+        file = re.sub(r'(.*yolov5([nsmlx]))\.', '\\1u.', file)  # i.e. yolov5n.pt -> yolov5nu.pt
+        file = re.sub(r'(.*yolov3(|-tiny|-spp))\.', '\\1u.', file)  # i.e. yolov3-spp.pt -> yolov3-sppu.pt
         if file != original_file:
             LOGGER.info(f"PRO TIP 💡 Replace 'model={original_file}' with new 'model={file}'.\nYOLOv5 'u' models are "
-                        f"trained with https://github.com/ultralytics/ultralytics and feature improved performance vs "
-                        f"standard YOLOv5 models trained with https://github.com/ultralytics/yolov5.\n")
+                        f'trained with https://github.com/ultralytics/ultralytics and feature improved performance vs '
+                        f'standard YOLOv5 models trained with https://github.com/ultralytics/yolov5.\n')
     return file
 
 
@@ -290,7 +290,7 @@ def check_yolo(verbose=True):
         # System info
         gib = 1 << 30  # bytes per GiB
         ram = psutil.virtual_memory().total
-        total, used, free = shutil.disk_usage("/")
+        total, used, free = shutil.disk_usage('/')
         s = f'({os.cpu_count()} CPUs, {ram / gib:.1f} GB RAM, {(total - free) / gib:.1f}/{total / gib:.1f} GB disk)'
         with contextlib.suppress(Exception):  # clear display if ipython is installed
             from IPython import display

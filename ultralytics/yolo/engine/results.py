@@ -129,9 +129,9 @@ class Results:
         Plots the given result on an input RGB image. Accepts cv2(numpy) or PIL Image
 
         Args:
-        show_conf (bool): Show confidence
-        line_width (Float): The line width of boxes. Automatically scaled to img size if not provided
-        font_size (Float): The font size of . Automatically scaled to img size if not provided
+            show_conf (bool): Show confidence
+            line_width (Float): The line width of boxes. Automatically scaled to img size if not provided
+            font_size (Float): The font size of . Automatically scaled to img size if not provided
         """
         img = deepcopy(self.orig_img)
         annotator = Annotator(img, line_width, font_size, font, pil, example)

@@ -1,1 +1,1 @@
-from .trackers import BYTETracker, BOTSORT
+from .trackers import BOTSORT, BYTETracker

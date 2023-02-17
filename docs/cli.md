@@ -92,7 +92,7 @@ Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
 
 ## Overriding default arguments
 
-Default arguments can be overriden by simply passing them as arguments in the CLI in `arg=value` pairs.
+Default arguments can be overridden by simply passing them as arguments in the CLI in `arg=value` pairs.
 
 !!! tip ""
 

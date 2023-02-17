@@ -1,10 +1,12 @@
 from collections import deque
+
 import numpy as np
+
 from ..utils import matching
 from ..utils.gmc import GMC
 from ..utils.kalman_filter import KalmanFilterXYWH
-from .byte_tracker import STrack, BYTETracker
 from .basetrack import TrackState
+from .byte_tracker import BYTETracker, STrack
 
 
 class BOTrack(STrack):

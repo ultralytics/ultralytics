@@ -19,7 +19,7 @@ class DetectionPredictor(BasePredictor):
         img /= 255  # 0 - 255 to 0.0 - 1.0
         return img
 
-    def postprocess(self, preds, img, orig_img, classes=None):
+    def postprocess(self, preds, img, orig_img):
         preds = ops.non_max_suppression(preds,
                                         self.args.conf,
                                         self.args.iou,
@@ -29,14 +29,15 @@ class DetectionPredictor(BasePredictor):
 
         results = []
         for i, pred in enumerate(preds):
-            shape = orig_img[i].shape if isinstance(orig_img, list) else orig_img.shape
+            orig_img = orig_img[i] if isinstance(orig_img, list) else orig_img
+            shape = orig_img.shape
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
-            results.append(Results(boxes=pred, orig_shape=shape[:2]))
+            results.append(Results(boxes=pred, orig_img=orig_img, names=self.model.names))
         return results
 
     def write_results(self, idx, results, batch):
         p, im, im0 = batch
-        log_string = ""
+        log_string = ''
         if len(im.shape) == 3:
             im = im[None]  # expand for batch dim
         self.seen += 1
@@ -68,7 +69,7 @@ class DetectionPredictor(BasePredictor):
                     f.write(('%g ' * len(line)).rstrip() % line + '\n')
             if self.args.save or self.args.save_crop or self.args.show:  # Add bbox to image
                 c = int(cls)  # integer class
-                name = f"id:{int(d.id.item())} {self.model.names[c]}" if d.id is not None else self.model.names[c]
+                name = f'id:{int(d.id.item())} {self.model.names[c]}' if d.id is not None else self.model.names[c]
                 label = None if self.args.hide_labels else (name if self.args.hide_conf else f'{name} {conf:.2f}')
                 self.annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
             if self.args.save_crop:
@@ -81,9 +82,9 @@ class DetectionPredictor(BasePredictor):
 
 
 def predict(cfg=DEFAULT_CFG, use_python=False):
-    model = cfg.model or "yolov8n.pt"
-    source = cfg.source if cfg.source is not None else ROOT / "assets" if (ROOT / "assets").exists() \
-        else "https://ultralytics.com/images/bus.jpg"
+    model = cfg.model or 'yolov8n.pt'
+    source = cfg.source if cfg.source is not None else ROOT / 'assets' if (ROOT / 'assets').exists() \
+        else 'https://ultralytics.com/images/bus.jpg'
 
     args = dict(model=model, source=source)
     if use_python:
@@ -94,5 +95,5 @@ def predict(cfg=DEFAULT_CFG, use_python=False):
         predictor.predict_cli()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     predict()

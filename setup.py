@@ -16,7 +16,7 @@ PKG_REQUIREMENTS = ['sentry_sdk']  # pip-only requirements
 
 def get_version():
     file = PARENT / 'ultralytics/__init__.py'
-    return re.search(r'^__version__ = [\'"]([^\'"]*)[\'"]', file.read_text(encoding="utf-8"), re.M)[1]
+    return re.search(r'^__version__ = [\'"]([^\'"]*)[\'"]', file.read_text(encoding='utf-8'), re.M)[1]
 
 
 setup(

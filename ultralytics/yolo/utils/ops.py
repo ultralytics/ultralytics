@@ -715,4 +715,4 @@ def clean_str(s):
     Returns:
       (str): a string with special characters replaced by an underscore _
     """
-    return re.sub(pattern="[|@#!¡·$€%&()=?¿^*;:,¨´><+]", repl="_", string=s)
+    return re.sub(pattern='[|@#!¡·$€%&()=?¿^*;:,¨´><+]', repl='_', string=s)

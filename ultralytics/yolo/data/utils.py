@@ -18,32 +18,32 @@ from ultralytics.yolo.utils.checks import check_file, check_font, is_ascii
 from ultralytics.yolo.utils.downloads import download, safe_download
 from ultralytics.yolo.utils.ops import segments2boxes
 
-HELP_URL = "See https://github.com/ultralytics/yolov5/wiki/Train-Custom-Data"
-IMG_FORMATS = "bmp", "dng", "jpeg", "jpg", "mpo", "png", "tif", "tiff", "webp", "pfm"  # include image suffixes
-VID_FORMATS = "asf", "avi", "gif", "m4v", "mkv", "mov", "mp4", "mpeg", "mpg", "ts", "wmv"  # include video suffixes
-LOCAL_RANK = int(os.getenv("LOCAL_RANK", -1))  # https://pytorch.org/docs/stable/elastic/run.html
+HELP_URL = 'See https://github.com/ultralytics/yolov5/wiki/Train-Custom-Data'
+IMG_FORMATS = 'bmp', 'dng', 'jpeg', 'jpg', 'mpo', 'png', 'tif', 'tiff', 'webp', 'pfm'  # include image suffixes
+VID_FORMATS = 'asf', 'avi', 'gif', 'm4v', 'mkv', 'mov', 'mp4', 'mpeg', 'mpg', 'ts', 'wmv'  # include video suffixes
+LOCAL_RANK = int(os.getenv('LOCAL_RANK', -1))  # https://pytorch.org/docs/stable/elastic/run.html
 RANK = int(os.getenv('RANK', -1))
-PIN_MEMORY = str(os.getenv("PIN_MEMORY", True)).lower() == "true"  # global pin_memory for dataloaders
+PIN_MEMORY = str(os.getenv('PIN_MEMORY', True)).lower() == 'true'  # global pin_memory for dataloaders
 IMAGENET_MEAN = 0.485, 0.456, 0.406  # RGB mean
 IMAGENET_STD = 0.229, 0.224, 0.225  # RGB standard deviation
 
 # Get orientation exif tag
 for orientation in ExifTags.TAGS.keys():
-    if ExifTags.TAGS[orientation] == "Orientation":
+    if ExifTags.TAGS[orientation] == 'Orientation':
         break
 
 
 def img2label_paths(img_paths):
     # Define label paths as a function of image paths
-    sa, sb = f"{os.sep}images{os.sep}", f"{os.sep}labels{os.sep}"  # /images/, /labels/ substrings
-    return [sb.join(x.rsplit(sa, 1)).rsplit(".", 1)[0] + ".txt" for x in img_paths]
+    sa, sb = f'{os.sep}images{os.sep}', f'{os.sep}labels{os.sep}'  # /images/, /labels/ substrings
+    return [sb.join(x.rsplit(sa, 1)).rsplit('.', 1)[0] + '.txt' for x in img_paths]
 
 
 def get_hash(paths):
     # Returns a single hash value of a list of paths (files or dirs)
     size = sum(os.path.getsize(p) for p in paths if os.path.exists(p))  # sizes
     h = hashlib.sha256(str(size).encode())  # hash sizes
-    h.update("".join(paths).encode())  # hash paths
+    h.update(''.join(paths).encode())  # hash paths
     return h.hexdigest()  # return hash
 
 
@@ -61,21 +61,21 @@ def verify_image_label(args):
     # Verify one image-label pair
     im_file, lb_file, prefix, keypoint, num_cls = args
     # number (missing, found, empty, corrupt), message, segments, keypoints
-    nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, "", [], None
+    nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, '', [], None
     try:
         # verify images
         im = Image.open(im_file)
         im.verify()  # PIL verify
         shape = exif_size(im)  # image size
         shape = (shape[1], shape[0])  # hw
-        assert (shape[0] > 9) & (shape[1] > 9), f"image size {shape} <10 pixels"
-        assert im.format.lower() in IMG_FORMATS, f"invalid image format {im.format}"
-        if im.format.lower() in ("jpg", "jpeg"):
-            with open(im_file, "rb") as f:
+        assert (shape[0] > 9) & (shape[1] > 9), f'image size {shape} <10 pixels'
+        assert im.format.lower() in IMG_FORMATS, f'invalid image format {im.format}'
+        if im.format.lower() in ('jpg', 'jpeg'):
+            with open(im_file, 'rb') as f:
                 f.seek(-2, 2)
-                if f.read() != b"\xff\xd9":  # corrupt JPEG
-                    ImageOps.exif_transpose(Image.open(im_file)).save(im_file, "JPEG", subsampling=0, quality=100)
-                    msg = f"{prefix}WARNING ⚠️ {im_file}: corrupt JPEG restored and saved"
+                if f.read() != b'\xff\xd9':  # corrupt JPEG
+                    ImageOps.exif_transpose(Image.open(im_file)).save(im_file, 'JPEG', subsampling=0, quality=100)
+                    msg = f'{prefix}WARNING ⚠️ {im_file}: corrupt JPEG restored and saved'
 
         # verify labels
         if os.path.isfile(lb_file):
@@ -90,31 +90,31 @@ def verify_image_label(args):
             nl = len(lb)
             if nl:
                 if keypoint:
-                    assert lb.shape[1] == 56, "labels require 56 columns each"
-                    assert (lb[:, 5::3] <= 1).all(), "non-normalized or out of bounds coordinate labels"
-                    assert (lb[:, 6::3] <= 1).all(), "non-normalized or out of bounds coordinate labels"
+                    assert lb.shape[1] == 56, 'labels require 56 columns each'
+                    assert (lb[:, 5::3] <= 1).all(), 'non-normalized or out of bounds coordinate labels'
+                    assert (lb[:, 6::3] <= 1).all(), 'non-normalized or out of bounds coordinate labels'
                     kpts = np.zeros((lb.shape[0], 39))
                     for i in range(len(lb)):
                         kpt = np.delete(lb[i, 5:], np.arange(2, lb.shape[1] - 5, 3))  # remove occlusion param from GT
                         kpts[i] = np.hstack((lb[i, :5], kpt))
                     lb = kpts
-                    assert lb.shape[1] == 39, "labels require 39 columns each after removing occlusion parameter"
+                    assert lb.shape[1] == 39, 'labels require 39 columns each after removing occlusion parameter'
                 else:
-                    assert lb.shape[1] == 5, f"labels require 5 columns, {lb.shape[1]} columns detected"
+                    assert lb.shape[1] == 5, f'labels require 5 columns, {lb.shape[1]} columns detected'
                     assert (lb[:, 1:] <= 1).all(), \
-                        f"non-normalized or out of bounds coordinates {lb[:, 1:][lb[:, 1:] > 1]}"
+                        f'non-normalized or out of bounds coordinates {lb[:, 1:][lb[:, 1:] > 1]}'
                 # All labels
                 max_cls = int(lb[:, 0].max())  # max label count
                 assert max_cls <= num_cls, \
                     f'Label class {max_cls} exceeds dataset class count {num_cls}. ' \
                     f'Possible class labels are 0-{num_cls - 1}'
-                assert (lb >= 0).all(), f"negative label values {lb[lb < 0]}"
+                assert (lb >= 0).all(), f'negative label values {lb[lb < 0]}'
                 _, i = np.unique(lb, axis=0, return_index=True)
                 if len(i) < nl:  # duplicate row check
                     lb = lb[i]  # remove duplicates
                     if segments:
                         segments = [segments[x] for x in i]
-                    msg = f"{prefix}WARNING ⚠️ {im_file}: {nl - len(i)} duplicate labels removed"
+                    msg = f'{prefix}WARNING ⚠️ {im_file}: {nl - len(i)} duplicate labels removed'
             else:
                 ne = 1  # label empty
                 lb = np.zeros((0, 39), dtype=np.float32) if keypoint else np.zeros((0, 5), dtype=np.float32)
@@ -127,7 +127,7 @@ def verify_image_label(args):
         return im_file, lb, shape, segments, keypoints, nm, nf, ne, nc, msg
     except Exception as e:
         nc = 1
-        msg = f"{prefix}WARNING ⚠️ {im_file}: ignoring corrupt image/label: {e}"
+        msg = f'{prefix}WARNING ⚠️ {im_file}: ignoring corrupt image/label: {e}'
         return [None, None, None, None, None, nm, nf, ne, nc, msg]
 
 
@@ -248,8 +248,8 @@ def check_det_dataset(dataset, autodownload=True):
             else:  # python script
                 r = exec(s, {'yaml': data})  # return None
             dt = f'({round(time.time() - t, 1)}s)'
-            s = f"success ✅ {dt}, saved to {colorstr('bold', DATASETS_DIR)}" if r in (0, None) else f"failure {dt} ❌"
-            LOGGER.info(f"Dataset download {s}\n")
+            s = f"success ✅ {dt}, saved to {colorstr('bold', DATASETS_DIR)}" if r in (0, None) else f'failure {dt} ❌'
+            LOGGER.info(f'Dataset download {s}\n')
     check_font('Arial.ttf' if is_ascii(data['names']) else 'Arial.Unicode.ttf')  # download fonts
 
     return data  # dictionary
@@ -284,9 +284,9 @@ def check_cls_dataset(dataset: str):
             download(url, dir=data_dir.parent)
         s = f"Dataset download success ✅ ({time.time() - t:.1f}s), saved to {colorstr('bold', data_dir)}\n"
         LOGGER.info(s)
-    train_set = data_dir / "train"
+    train_set = data_dir / 'train'
     test_set = data_dir / 'test' if (data_dir / 'test').exists() else data_dir / 'val'  # data/test or data/val
     nc = len([x for x in (data_dir / 'train').glob('*') if x.is_dir()])  # number of classes
     names = [x.name for x in (data_dir / 'train').iterdir() if x.is_dir()]  # class names list
     names = dict(enumerate(sorted(names)))
-    return {"train": train_set, "val": test_set, "nc": nc, "names": names}
+    return {'train': train_set, 'val': test_set, 'nc': nc, 'names': names}

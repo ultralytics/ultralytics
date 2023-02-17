@@ -486,11 +486,8 @@ class Exporter:
         # Write file
         with builder.build_engine(network, config) as engine, open(f, 'wb') as t:
             # Metadata
-            # tags = "My Custom Tag"
-            # t.write(bytes(len(tags)))
-            # t.write(tags.encode())
-            meta = str(self.metadata)
-            t.write(bytes(len(meta)))
+            meta = json.dumps(self.metadata)
+            t.write(len(meta).to_bytes(4, byteorder='little', signed=True))
             t.write(meta.encode())
             # Model
             t.write(engine.serialize())

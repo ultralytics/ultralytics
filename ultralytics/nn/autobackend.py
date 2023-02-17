@@ -138,7 +138,15 @@ class AutoBackend(nn.Module):
                 device = torch.device('cuda:0')
             Binding = namedtuple('Binding', ('name', 'dtype', 'shape', 'data', 'ptr'))
             logger = trt.Logger(trt.Logger.INFO)
+            # Read file
             with open(w, 'rb') as f, trt.Runtime(logger) as runtime:
+                # Read metadata length
+                meta_len = int.from_bytes(f.read(4), byteorder='little')
+                print(meta_len)
+                # Read metadata
+                meta = json.loads(f.read(meta_len).decode('utf-8'))
+                print(meta)
+                # Read engine
                 model = runtime.deserialize_cuda_engine(f.read())
             context = model.create_execution_context()
             bindings = OrderedDict()

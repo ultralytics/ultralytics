@@ -31,8 +31,7 @@ RUN git clone https://github.com/ultralytics/ultralytics /usr/src/ultralytics
 # Install pip packages
 COPY requirements.txt .
 RUN python3 -m pip install --upgrade pip wheel
-RUN pip install --no-cache ultralytics albumentations comet gsutil notebook \
-    coremltools onnx onnx-simplifier onnxruntime openvino-dev>=2022.3
+RUN pip install --no-cache ultralytics[export] albumentations comet gsutil notebook \
     # tensorflow tensorflowjs \
 
 # Set environment variables

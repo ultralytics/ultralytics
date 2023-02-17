@@ -18,8 +18,8 @@ TensorFlow.js           | `tfjs`                    | yolov8n_web_model/
 PaddlePaddle            | `paddle`                  | yolov8n_paddle_model/
 
 Requirements:
-    $ pip install -r requirements.txt coremltools onnx onnx-simplifier onnxruntime openvino-dev tensorflow-cpu  # CPU
-    $ pip install -r requirements.txt coremltools onnx onnx-simplifier onnxruntime-gpu openvino-dev tensorflow  # GPU
+    $ pip install -r requirements.txt coremltools onnx onnxsim onnxruntime openvino-dev tensorflow-cpu  # CPU
+    $ pip install -r requirements.txt coremltools onnx onnxsim onnxruntime-gpu openvino-dev tensorflow  # GPU
 
 Python:
     from ultralytics import YOLO
@@ -335,7 +335,7 @@ class Exporter:
                 check_requirements('onnxsim')
                 import onnxsim
 
-                LOGGER.info(f'{prefix} simplifying with onnx-simplifier {onnxsim.__version__}...')
+                LOGGER.info(f'{prefix} simplifying with onnxsim {onnxsim.__version__}...')
                 subprocess.run(f'onnxsim {f} {f}', shell=True)
             except Exception as e:
                 LOGGER.info(f'{prefix} simplifier failure: {e}')

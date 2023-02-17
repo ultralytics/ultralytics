@@ -34,7 +34,8 @@ Results object consists of these component objects:
 
 - `Results.boxes` : `Boxes` object with properties and methods for manipulating bboxes
 - `Results.masks` : `Masks` object used to index masks or to get segment coordinates.
-- `Results.prob`  : `torch.Tensor` containing the class probabilities/logits.
+- `Results.probs` : `torch.Tensor` containing the class probabilities/logits.
+- `Results.orig_shape` : `tuple` containing the original image size as (height, width).
 
 Each result is composed of torch.Tensor by default, in which you can easily use following functionality:
 
@@ -92,3 +93,19 @@ results[0].probs  # cls prob, (num_class, )
 ```
 
 Class reference documentation for `Results` module and its components can be found [here](reference/results.md)
+
+## Visualizing results
+
+You can use `visualize()` function of `Result` object to get a visualization. It plots all componenets(boxes, masks, classification logits, etc) found in the results object
+```python
+    res = model(img)
+    res_plotted = res[0].visualize()
+    cv2.imshow("result", res_plotted)
+```
+!!! example "`visualize()` arguments"
+
+    `show_conf (bool)`: Show confidence
+
+    `line_width (Float)`: The line width of boxes. Automatically scaled to img size if not provided
+
+    `font_size (Float)`: The font size of . Automatically scaled to img size if not provided

@@ -85,7 +85,6 @@ class BasePredictor:
         self.data = self.args.data  # data_dict
         self.imgsz = None
         self.device = None
-        self.classes = self.args.classes
         self.dataset = None
         self.vid_path, self.vid_writer = None, None
         self.annotator = None
@@ -103,7 +102,7 @@ class BasePredictor:
     def write_results(self, results, batch, print_string):
         raise NotImplementedError("print_results function needs to be implemented")
 
-    def postprocess(self, preds, img, orig_img, classes=None):
+    def postprocess(self, preds, img, orig_img):
         return preds
 
     @smart_inference_mode()
@@ -170,13 +169,13 @@ class BasePredictor:
 
             # postprocess
             with self.dt[2]:
-                self.results = self.postprocess(preds, im, im0s, self.classes)
+                self.results = self.postprocess(preds, im, im0s)
             self.run_callbacks("on_predict_postprocess_end")
 
             # visualize, save, write results
             for i in range(len(im)):
-                p, im0 = (path[i], im0s[i].copy()) if self.source_type.webcam or self.source_type.from_img else (path,
-                                                                                                                 im0s)
+                p, im0 = (path[i], im0s[i].copy()) if self.source_type.webcam or self.source_type.from_img \
+                    else (path, im0s.copy())
                 p = Path(p)
 
                 if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:

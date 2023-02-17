@@ -34,6 +34,7 @@ AUTOINSTALL = str(os.getenv('YOLO_AUTOINSTALL', True)).lower() == 'true'  # glob
 VERBOSE = str(os.getenv('YOLO_VERBOSE', True)).lower() == 'true'  # global verbose mode
 TQDM_BAR_FORMAT = '{l_bar}{bar:10}{r_bar}'  # tqdm bar format
 LOGGING_NAME = 'ultralytics'
+MACOS, LINUX, WINDOWS = (platform.system() == x for x in ['Darwin', 'Linux', 'Windows'])  # environment booleans
 HELP_MSG = \
     """
     Usage examples for running YOLOv8:
@@ -393,18 +394,15 @@ def get_user_config_dir(sub_dir='Ultralytics'):
     Returns:
         Path: The path to the user config directory.
     """
-    # Get the operating system name
-    os_name = platform.system()
-
     # Return the appropriate config directory for each operating system
-    if os_name == 'Windows':
+    if WINDOWS:
         path = Path.home() / 'AppData' / 'Roaming' / sub_dir
-    elif os_name == 'Darwin':  # macOS
+    elif MACOS:  # macOS
         path = Path.home() / 'Library' / 'Application Support' / sub_dir
-    elif os_name == 'Linux':
+    elif LINUX:
         path = Path.home() / '.config' / sub_dir
     else:
-        raise ValueError(f'Unsupported operating system: {os_name}')
+        raise ValueError(f'Unsupported operating system: {platform.system()}')
 
     # GCP and AWS lambda fix, only /tmp is writeable
     if not is_dir_writeable(str(path.parent)):
@@ -421,7 +419,7 @@ USER_CONFIG_DIR = get_user_config_dir()  # Ultralytics settings dir
 
 def emojis(string=''):
     # Return platform-dependent emoji-safe version of string
-    return string.encode().decode('ascii', 'ignore') if platform.system() == 'Windows' else string
+    return string.encode().decode('ascii', 'ignore') if WINDOWS else string
 
 
 def colorstr(*input):
@@ -617,7 +615,7 @@ def set_settings(kwargs, file=USER_CONFIG_DIR / 'settings.yaml'):
 # Set logger
 set_logging(LOGGING_NAME)  # run before defining LOGGER
 LOGGER = logging.getLogger(LOGGING_NAME)  # define globally (used in train.py, val.py, detect.py, etc.)
-if platform.system() == 'Windows':
+if WINDOWS:
     for fn in LOGGER.info, LOGGER.warning:
         setattr(LOGGER, fn.__name__, lambda x: fn(emojis(x)))  # emoji safe logging
 

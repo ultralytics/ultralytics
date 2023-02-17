@@ -15,7 +15,7 @@ from ultralytics.yolo.utils import ROOT, SETTINGS
 MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n.pt'
 CFG = 'yolov8n.yaml'
 SOURCE = ROOT / 'assets/bus.jpg'
-MACOS = platform.system() == 'Darwin'  # macOS environment
+MACOS, LINUX, WINDOWS = (platform.system() == x for x in ['Darwin', 'Linux', 'Windows'])  # environment booleans
 
 
 def test_model_forward():
@@ -127,6 +127,22 @@ def test_export_coreml():  # sourcery skip: move-assign
     f = model.export(format='coreml')
     if MACOS:
         YOLO(f)(SOURCE)  # model prediction only supported on macOS
+
+
+def test_export_tflite(enabled=False):
+    # TF suffers from install conflicts on Windows and macOS
+    if enabled and LINUX:
+        model = YOLO(MODEL)
+        f = model.export(format='tflite')
+        YOLO(f)(SOURCE)
+
+
+def test_export_pb(enabled=False):
+    # TF suffers from install conflicts on Windows and macOS
+    if enabled and LINUX:
+        model = YOLO(MODEL)
+        f = model.export(format='pb')
+        YOLO(f)(SOURCE)
 
 
 def test_export_paddle(enabled=False):

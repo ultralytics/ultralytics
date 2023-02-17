@@ -1,14 +1,14 @@
 import cv2.dnn
 import numpy as np
 
-with open("classes.txt") as f:
-    classes = f.read().split("\n")
+with open('classes.txt') as f:
+    classes = f.read().split('\n')
 
 colors = np.random.uniform(0, 255, size=(len(classes), 3))
 
 
 def draw_bounding_box(img, class_id, confidence, x, y, x_plus_w, y_plus_h):
-    label = f"{classes[class_id]} ({confidence:.2f})"
+    label = f'{classes[class_id]} ({confidence:.2f})'
     color = colors[class_id]
     cv2.rectangle(img, (x, y), (x_plus_w, y_plus_h), color, 2)
     cv2.putText(img, label, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)

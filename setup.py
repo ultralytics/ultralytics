@@ -39,8 +39,7 @@ setup(
     install_requires=REQUIREMENTS + PKG_REQUIREMENTS,
     extras_require={
         'dev': ['check-manifest', 'pytest', 'pytest-cov', 'coverage', 'mkdocs-material', 'mkdocstrings[python]'],
-        'export': ['coremltools>=6.0', 'onnx', 'onnxsim', 'onnxruntime', 'openvino-dev>=2022.3', 'paddlepaddle',
-                   'x2paddle'],
+        'export': ['coremltools>=6.0', 'onnx', 'onnxsim', 'onnxruntime', 'openvino-dev>=2022.3'],
         'tf': ['tensorflow', "onnx2tf", "sng4onnx", "tflite_support"]},
     classifiers=[
         "Development Status :: 4 - Beta",

@@ -20,9 +20,9 @@ repos:
       - id: trailing-whitespace
       - id: check-case-conflict
       - id: check-yaml
-      - id: check-toml
-      - id: pretty-format-json
       - id: check-docstring-first
+      - id: double-quote-string-fixer
+      - id: detect-private-key
 
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.3.1

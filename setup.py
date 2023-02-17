@@ -41,7 +41,7 @@ setup(
         'dev': ['check-manifest', 'pytest', 'pytest-cov', 'coverage', 'mkdocs-material', 'mkdocstrings[python]'],
         'export': ['coremltools>=6.0', 'onnx', 'onnxsim', 'onnxruntime', 'openvino-dev>=2022.3', 'paddlepaddle',
                    'x2paddle'],
-        'tf': ['tensorflow', "onnx2tf", "sng4onnx", "onnx_graphsurgeon", "tflite_support"]},
+        'tf': ['tensorflow', "onnx2tf", "sng4onnx", "tflite_support"]},
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
@@ -60,7 +60,7 @@ setup(
         "Topic :: Scientific/Engineering :: Image Recognition",
         "Operating System :: POSIX :: Linux",
         "Operating System :: MacOS",
-        "Operating System :: Microsoft :: Windows",],
+        "Operating System :: Microsoft :: Windows", ],
     keywords="machine-learning, deep-learning, vision, ML, DL, AI, YOLO, YOLOv3, YOLOv5, YOLOv8, HUB, Ultralytics",
     entry_points={
         'console_scripts': ['yolo = ultralytics.yolo.cfg:entrypoint', 'ultralytics = ultralytics.yolo.cfg:entrypoint']})

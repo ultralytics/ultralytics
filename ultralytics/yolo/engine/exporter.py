@@ -511,7 +511,7 @@ class Exporter:
             check_requirements(f"tensorflow{'' if CUDA else '-macos' if MACOS else '-cpu' if LINUX else ''}")
             import tensorflow as tf  # noqa
         check_requirements(("onnx", "onnx2tf", "sng4onnx", "onnxsim", "onnx_graphsurgeon", "tflite_support"),
-                           cmds="--extra-index-url https://pypi.ngc.nvidia.com ")
+                           cmds="--extra-index-url https://pypi.ngc.nvidia.com")
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
         f = str(self.file).replace(self.file.suffix, '_saved_model')

@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
-# Precommit hooks. For more information see https://github.com/pre-commit/pre-commit-hooks/blob/main/README.md
-
+# Pre-commit hooks. For more information see https://github.com/pre-commit/pre-commit-hooks/blob/main/README.md
 
 exclude: 'docs/'
 # Define bot property if installed via https://github.com/marketplace/pre-commit-ci

@@ -482,8 +482,19 @@ class Exporter:
             f'{prefix} building FP{16 if builder.platform_has_fast_fp16 and self.args.half else 32} engine as {f}')
         if builder.platform_has_fast_fp16 and self.args.half:
             config.set_flag(trt.BuilderFlag.FP16)
+
+        # Write file
         with builder.build_engine(network, config) as engine, open(f, 'wb') as t:
+            # Metadata
+            # tags = "My Custom Tag"
+            # t.write(bytes(len(tags)))
+            # t.write(tags.encode())
+            meta = str(self.metadata)
+            t.write(bytes(len(meta)))
+            t.write(meta.encode())
+            # Model
             t.write(engine.serialize())
+
         return f, None
 
     @try_export

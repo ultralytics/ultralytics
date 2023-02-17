@@ -40,7 +40,7 @@ setup(
     extras_require={
         'dev': ['check-manifest', 'pytest', 'pytest-cov', 'coverage', 'mkdocs-material', 'mkdocstrings[python]'],
         'export': ['coremltools>=6.0', 'onnx', 'onnxsim', 'onnxruntime', 'openvino-dev>=2022.3'],
-        'tf': ["onnx2tf", "sng4onnx", "tflite_support", "tensorflowjs", "tensorflow"]},
+        'tf': ["onnx2tf", "sng4onnx", "tflite_support", "tensorflow"]},
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",

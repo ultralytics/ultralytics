@@ -38,8 +38,9 @@ setup(
     include_package_data=True,
     install_requires=REQUIREMENTS + PKG_REQUIREMENTS,
     extras_require={
-        'dev':
-        ['check-manifest', 'pytest', 'pytest-cov', 'coverage', 'mkdocs', 'mkdocstrings[python]', 'mkdocs-material']},
+        'dev': ['check-manifest', 'pytest', 'pytest-cov', 'coverage', 'mkdocs-material', 'mkdocstrings[python]'],
+        'mintorch': ['torch==1.8.0', 'torchvision==0.9.0'],
+        'export': ['coremltools>=6.0', 'onnx', 'onnxruntime', 'openvino-dev>=2022.3']},
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",

@@ -24,6 +24,10 @@ def check_class_names(names):
     # Check class names. Map imagenet class codes to human-readable names if required. Convert lists to dicts.
     if isinstance(names, list):  # names is a list
         names = dict(enumerate(names))  # convert to dict
+    if not isinstance(names, dict):
+        raise TypeError("model class names must be a dict, i.e. names={0: 'person', 1: 'bicycle', 2: 'car'}")
+    if not all(isinstance(k, int) for k in names.keys()):  # convert string keys to int, i.e. '0' to 0
+        names = {int(k): v for k, v in names.items()}
     if isinstance(names[0], str) and names[0].startswith('n0'):  # imagenet class codes, i.e. 'n01440764'
         map = yaml_load(ROOT / 'yolo/data/datasets/ImageNet.yaml')['map']  # human-readable names
         names = {k: map[v] for k, v in names.items()}
@@ -138,7 +142,14 @@ class AutoBackend(nn.Module):
                 device = torch.device('cuda:0')
             Binding = namedtuple('Binding', ('name', 'dtype', 'shape', 'data', 'ptr'))
             logger = trt.Logger(trt.Logger.INFO)
+            # Read file
             with open(w, 'rb') as f, trt.Runtime(logger) as runtime:
+                # Read metadata length
+                meta_len = int.from_bytes(f.read(4), byteorder='little')
+                # Read metadata
+                meta = json.loads(f.read(meta_len).decode('utf-8'))
+                stride, names = int(meta['stride']), meta['names']
+                # Read engine
                 model = runtime.deserialize_cuda_engine(f.read())
             context = model.create_execution_context()
             bindings = OrderedDict()
@@ -216,7 +227,7 @@ class AutoBackend(nn.Module):
                     meta = ast.literal_eval(model.read(meta_file).decode("utf-8"))
                     stride, names = int(meta['stride']), meta['names']
         elif tfjs:  # TF.js
-            raise NotImplementedError('ERROR: YOLOv8 TF.js inference is not supported')
+            raise NotImplementedError('YOLOv8 TF.js inference is not supported')
         elif paddle:  # PaddlePaddle
             LOGGER.info(f'Loading {w} for PaddlePaddle inference...')
             check_requirements('paddlepaddle-gpu' if cuda else 'paddlepaddle')
@@ -340,7 +351,7 @@ class AutoBackend(nn.Module):
                 if len(self.output_details) == 2:  # segment
                     y = [y[1], np.transpose(y[0], (0, 3, 1, 2))]
             y = [x if isinstance(x, np.ndarray) else x.numpy() for x in y]
-            y[0][..., :4] *= [w, h, w, h]  # xywh normalized to pixels
+            # y[0][..., :4] *= [w, h, w, h]  # xywh normalized to pixels
 
         if isinstance(y, (list, tuple)):
             return self.from_numpy(y[0]) if len(y) == 1 else [self.from_numpy(x) for x in y]

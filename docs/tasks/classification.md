@@ -90,6 +90,7 @@ Use a trained YOLOv8n-cls model to run predictions on images.
         yolo classify predict model=yolov8n-cls.pt source="https://ultralytics.com/images/bus.jpg"  # predict with official model
         yolo classify predict model=path/to/best.pt source="https://ultralytics.com/images/bus.jpg"  # predict with custom model
         ```
+
 Read more details of `predict` in our [Predict](https://docs.ultralytics.com/predict/) page.
 
 ## Export
@@ -117,20 +118,20 @@ Export a YOLOv8n-cls model to a different format like ONNX, CoreML, etc.
         yolo export model=path/to/best.pt format=onnx  # export custom trained model
         ```
 
-    Available YOLOv8-cls export formats include:
+Available YOLOv8-cls export formats include:
 
-    | Format                                                                     | `format=`     | Model                         |
-    |----------------------------------------------------------------------------|---------------|-------------------------------|
-    | [PyTorch](https://pytorch.org/)                                            | -             | `yolov8n-cls.pt`              |
-    | [TorchScript](https://pytorch.org/docs/stable/jit.html)                    | `torchscript` | `yolov8n-cls.torchscript`     |
-    | [ONNX](https://onnx.ai/)                                                   | `onnx`        | `yolov8n-cls.onnx`            |
-    | [OpenVINO](https://docs.openvino.ai/latest/index.html)                     | `openvino`    | `yolov8n-cls_openvino_model/` |
-    | [TensorRT](https://developer.nvidia.com/tensorrt)                          | `engine`      | `yolov8n-cls.engine`          |
-    | [CoreML](https://github.com/apple/coremltools)                             | `coreml`      | `yolov8n-cls.mlmodel`         |
-    | [TensorFlow SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model` | `yolov8n-cls_saved_model/`    |
-    | [TensorFlow GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`          | `yolov8n-cls.pb`              |
-    | [TensorFlow Lite](https://www.tensorflow.org/lite)                         | `tflite`      | `yolov8n-cls.tflite`          |
-    | [TensorFlow Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`     | `yolov8n-cls_edgetpu.tflite`  |
-    | [TensorFlow.js](https://www.tensorflow.org/js)                             | `tfjs`        | `yolov8n-cls_web_model/`      |
-    | [PaddlePaddle](https://github.com/PaddlePaddle)                            | `paddle`      | `yolov8n-cls_paddle_model/`   |
-    
+| Format                                                             | `format=`     | Model                         | Metadata |
+|--------------------------------------------------------------------|---------------|-------------------------------|----------|
+| [PyTorch](https://pytorch.org/)                                    | -             | `yolov8n-cls.pt`              | ✅        |
+| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript` | `yolov8n-cls.torchscript`     | ✅        |
+| [ONNX](https://onnx.ai/)                                           | `onnx`        | `yolov8n-cls.onnx`            | ✅        |
+| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`    | `yolov8n-cls_openvino_model/` | ✅        |
+| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`      | `yolov8n-cls.engine`          | ✅        |
+| [CoreML](https://github.com/apple/coremltools)                     | `coreml`      | `yolov8n-cls.mlmodel`         | ✅        |
+| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model` | `yolov8n-cls_saved_model/`    | ✅        |
+| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`          | `yolov8n-cls.pb`              | ❌        |
+| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`      | `yolov8n-cls.tflite`          | ✅        |
+| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`     | `yolov8n-cls_edgetpu.tflite`  | ✅        |
+| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`        | `yolov8n-cls_web_model/`      | ✅        |
+| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`      | `yolov8n-cls_paddle_model/`   | ✅        |
+

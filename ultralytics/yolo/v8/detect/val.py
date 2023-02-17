@@ -28,13 +28,13 @@ class DetectionValidator(BaseValidator):
         self.niou = self.iouv.numel()
 
     def preprocess(self, batch):
-        batch["img"] = batch["img"].to(self.device, non_blocking=True)
-        batch["img"] = (batch["img"].half() if self.args.half else batch["img"].float()) / 255
-        for k in ["batch_idx", "cls", "bboxes"]:
+        batch['img'] = batch['img'].to(self.device, non_blocking=True)
+        batch['img'] = (batch['img'].half() if self.args.half else batch['img'].float()) / 255
+        for k in ['batch_idx', 'cls', 'bboxes']:
             batch[k] = batch[k].to(self.device)
 
-        nb = len(batch["img"])
-        self.lb = [torch.cat([batch["cls"], batch["bboxes"]], dim=-1)[batch["batch_idx"] == i]
+        nb = len(batch['img'])
+        self.lb = [torch.cat([batch['cls'], batch['bboxes']], dim=-1)[batch['batch_idx'] == i]
                    for i in range(nb)] if self.args.save_hybrid else []  # for autolabelling
 
         return batch
@@ -54,7 +54,7 @@ class DetectionValidator(BaseValidator):
         self.stats = []
 
     def get_desc(self):
-        return ('%22s' + '%11s' * 6) % ('Class', 'Images', 'Instances', 'Box(P', "R", "mAP50", "mAP50-95)")
+        return ('%22s' + '%11s' * 6) % ('Class', 'Images', 'Instances', 'Box(P', 'R', 'mAP50', 'mAP50-95)')
 
     def postprocess(self, preds):
         preds = ops.non_max_suppression(preds,
@@ -69,11 +69,11 @@ class DetectionValidator(BaseValidator):
     def update_metrics(self, preds, batch):
         # Metrics
         for si, pred in enumerate(preds):
-            idx = batch["batch_idx"] == si
-            cls = batch["cls"][idx]
-            bbox = batch["bboxes"][idx]
+            idx = batch['batch_idx'] == si
+            cls = batch['cls'][idx]
+            bbox = batch['bboxes'][idx]
             nl, npr = cls.shape[0], pred.shape[0]  # number of labels, predictions
-            shape = batch["ori_shape"][si]
+            shape = batch['ori_shape'][si]
             correct_bboxes = torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device)  # init
             self.seen += 1
 
@@ -88,16 +88,16 @@ class DetectionValidator(BaseValidator):
             if self.args.single_cls:
                 pred[:, 5] = 0
             predn = pred.clone()
-            ops.scale_boxes(batch["img"][si].shape[1:], predn[:, :4], shape,
-                            ratio_pad=batch["ratio_pad"][si])  # native-space pred
+            ops.scale_boxes(batch['img'][si].shape[1:], predn[:, :4], shape,
+                            ratio_pad=batch['ratio_pad'][si])  # native-space pred
 
             # Evaluate
             if nl:
-                height, width = batch["img"].shape[2:]
+                height, width = batch['img'].shape[2:]
                 tbox = ops.xywh2xyxy(bbox) * torch.tensor(
                     (width, height, width, height), device=self.device)  # target boxes
-                ops.scale_boxes(batch["img"][si].shape[1:], tbox, shape,
-                                ratio_pad=batch["ratio_pad"][si])  # native-space labels
+                ops.scale_boxes(batch['img'][si].shape[1:], tbox, shape,
+                                ratio_pad=batch['ratio_pad'][si])  # native-space labels
                 labelsn = torch.cat((cls, tbox), 1)  # native-space labels
                 correct_bboxes = self._process_batch(predn, labelsn)
                 # TODO: maybe remove these `self.` arguments as they already are member variable
@@ -107,7 +107,7 @@ class DetectionValidator(BaseValidator):
 
             # Save
             if self.args.save_json:
-                self.pred_to_json(predn, batch["im_file"][si])
+                self.pred_to_json(predn, batch['im_file'][si])
             # if self.args.save_txt:
             #    save_one_txt(predn, save_conf, shape, file=save_dir / 'labels' / f'{path.stem}.txt')
 
@@ -120,7 +120,7 @@ class DetectionValidator(BaseValidator):
 
     def print_results(self):
         pf = '%22s' + '%11i' * 2 + '%11.3g' * len(self.metrics.keys)  # print format
-        self.logger.info(pf % ("all", self.seen, self.nt_per_class.sum(), *self.metrics.mean_results()))
+        self.logger.info(pf % ('all', self.seen, self.nt_per_class.sum(), *self.metrics.mean_results()))
         if self.nt_per_class.sum() == 0:
             self.logger.warning(
                 f'WARNING ⚠️ no labels found in {self.args.task} set, can not compute metrics without labels')
@@ -175,21 +175,21 @@ class DetectionValidator(BaseValidator):
                                  shuffle=False,
                                  seed=self.args.seed)[0] if self.args.v5loader else \
             build_dataloader(self.args, batch_size, img_path=dataset_path, stride=gs, names=self.data['names'],
-                             mode="val")[0]
+                             mode='val')[0]
 
     def plot_val_samples(self, batch, ni):
-        plot_images(batch["img"],
-                    batch["batch_idx"],
-                    batch["cls"].squeeze(-1),
-                    batch["bboxes"],
-                    paths=batch["im_file"],
-                    fname=self.save_dir / f"val_batch{ni}_labels.jpg",
+        plot_images(batch['img'],
+                    batch['batch_idx'],
+                    batch['cls'].squeeze(-1),
+                    batch['bboxes'],
+                    paths=batch['im_file'],
+                    fname=self.save_dir / f'val_batch{ni}_labels.jpg',
                     names=self.names)
 
     def plot_predictions(self, batch, preds, ni):
-        plot_images(batch["img"],
+        plot_images(batch['img'],
                     *output_to_target(preds, max_det=15),
-                    paths=batch["im_file"],
+                    paths=batch['im_file'],
                     fname=self.save_dir / f'val_batch{ni}_pred.jpg',
                     names=self.names)  # pred
 
@@ -207,8 +207,8 @@ class DetectionValidator(BaseValidator):
 
     def eval_json(self, stats):
         if self.args.save_json and self.is_coco and len(self.jdict):
-            anno_json = self.data['path'] / "annotations/instances_val2017.json"  # annotations
-            pred_json = self.save_dir / "predictions.json"  # predictions
+            anno_json = self.data['path'] / 'annotations/instances_val2017.json'  # annotations
+            pred_json = self.save_dir / 'predictions.json'  # predictions
             self.logger.info(f'\nEvaluating pycocotools mAP using {pred_json} and {anno_json}...')
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
                 check_requirements('pycocotools>=2.0.6')
@@ -216,7 +216,7 @@ class DetectionValidator(BaseValidator):
                 from pycocotools.cocoeval import COCOeval  # noqa
 
                 for x in anno_json, pred_json:
-                    assert x.is_file(), f"{x} file not found"
+                    assert x.is_file(), f'{x} file not found'
                 anno = COCO(str(anno_json))  # init annotations api
                 pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
                 eval = COCOeval(anno, pred, 'bbox')
@@ -232,8 +232,8 @@ class DetectionValidator(BaseValidator):
 
 
 def val(cfg=DEFAULT_CFG, use_python=False):
-    model = cfg.model or "yolov8n.pt"
-    data = cfg.data or "coco128.yaml"
+    model = cfg.model or 'yolov8n.pt'
+    data = cfg.data or 'coco128.yaml'
 
     args = dict(model=model, data=data)
     if use_python:
@@ -244,5 +244,5 @@ def val(cfg=DEFAULT_CFG, use_python=False):
         validator(model=args['model'])
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     val()

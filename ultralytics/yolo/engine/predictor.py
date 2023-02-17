@@ -72,7 +72,7 @@ class BasePredictor:
         """
         self.args = get_cfg(cfg, overrides)
         project = self.args.project or Path(SETTINGS['runs_dir']) / self.args.task
-        name = self.args.name or f"{self.args.mode}"
+        name = self.args.name or f'{self.args.mode}'
         self.save_dir = increment_path(Path(project) / name, exist_ok=self.args.exist_ok)
         if self.args.conf is None:
             self.args.conf = 0.25  # default conf=0.25
@@ -85,7 +85,6 @@ class BasePredictor:
         self.data = self.args.data  # data_dict
         self.imgsz = None
         self.device = None
-        self.classes = self.args.classes
         self.dataset = None
         self.vid_path, self.vid_writer = None, None
         self.annotator = None
@@ -98,12 +97,12 @@ class BasePredictor:
         pass
 
     def get_annotator(self, img):
-        raise NotImplementedError("get_annotator function needs to be implemented")
+        raise NotImplementedError('get_annotator function needs to be implemented')
 
     def write_results(self, results, batch, print_string):
-        raise NotImplementedError("print_results function needs to be implemented")
+        raise NotImplementedError('print_results function needs to be implemented')
 
-    def postprocess(self, preds, img, orig_img, classes=None):
+    def postprocess(self, preds, img, orig_img):
         return preds
 
     @smart_inference_mode()
@@ -136,7 +135,7 @@ class BasePredictor:
 
     def stream_inference(self, source=None, model=None):
         if self.args.verbose:
-            LOGGER.info("")
+            LOGGER.info('')
 
         # setup model
         if not self.model:
@@ -153,9 +152,9 @@ class BasePredictor:
             self.done_warmup = True
 
         self.seen, self.windows, self.dt, self.batch = 0, [], (ops.Profile(), ops.Profile(), ops.Profile()), None
-        self.run_callbacks("on_predict_start")
+        self.run_callbacks('on_predict_start')
         for batch in self.dataset:
-            self.run_callbacks("on_predict_batch_start")
+            self.run_callbacks('on_predict_batch_start')
             self.batch = batch
             path, im, im0s, vid_cap, s = batch
             visualize = increment_path(self.save_dir / Path(path).stem, mkdir=True) if self.args.visualize else False
@@ -170,13 +169,13 @@ class BasePredictor:
 
             # postprocess
             with self.dt[2]:
-                self.results = self.postprocess(preds, im, im0s, self.classes)
-            self.run_callbacks("on_predict_postprocess_end")
+                self.results = self.postprocess(preds, im, im0s)
+            self.run_callbacks('on_predict_postprocess_end')
 
             # visualize, save, write results
             for i in range(len(im)):
-                p, im0 = (path[i], im0s[i].copy()) if self.source_type.webcam or self.source_type.from_img else (path,
-                                                                                                                 im0s)
+                p, im0 = (path[i], im0s[i].copy()) if self.source_type.webcam or self.source_type.from_img \
+                    else (path, im0s.copy())
                 p = Path(p)
 
                 if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
@@ -187,7 +186,7 @@ class BasePredictor:
 
                 if self.args.save:
                     self.save_preds(vid_cap, i, str(self.save_dir / p.name))
-            self.run_callbacks("on_predict_batch_end")
+            self.run_callbacks('on_predict_batch_end')
             yield from self.results
 
             # Print time (inference-only)
@@ -208,7 +207,7 @@ class BasePredictor:
             s = f"\n{nl} label{'s' * (nl > 1)} saved to {self.save_dir / 'labels'}" if self.args.save_txt else ''
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
 
-        self.run_callbacks("on_predict_end")
+        self.run_callbacks('on_predict_end')
 
     def setup_model(self, model):
         device = select_device(self.args.device)

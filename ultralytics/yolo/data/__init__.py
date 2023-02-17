@@ -6,11 +6,11 @@ from .dataset import ClassificationDataset, SemanticDataset, YOLODataset
 from .dataset_wrappers import MixAndRectDataset
 
 __all__ = [
-    "BaseDataset",
-    "ClassificationDataset",
-    "MixAndRectDataset",
-    "SemanticDataset",
-    "YOLODataset",
-    "build_classification_dataloader",
-    "build_dataloader",
-    "load_inference_source",]
+    'BaseDataset',
+    'ClassificationDataset',
+    'MixAndRectDataset',
+    'SemanticDataset',
+    'YOLODataset',
+    'build_classification_dataloader',
+    'build_dataloader',
+    'load_inference_source',]

@@ -238,14 +238,14 @@ class ConfusionMatrix:
         nc, nn = self.nc, len(names)  # number of classes, names
         sn.set(font_scale=1.0 if nc < 50 else 0.8)  # for label size
         labels = (0 < nn < 99) and (nn == nc)  # apply names to ticklabels
-        ticklabels = (names + ['background']) if labels else "auto"
+        ticklabels = (names + ['background']) if labels else 'auto'
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')  # suppress empty matrix RuntimeWarning: All-NaN slice encountered
             sn.heatmap(array,
                        ax=ax,
                        annot=nc < 30,
                        annot_kws={
-                           "size": 8},
+                           'size': 8},
                        cmap='Blues',
                        fmt='.2f',
                        square=True,
@@ -287,7 +287,7 @@ def plot_pr_curve(px, py, ap, save_dir=Path('pr_curve.png'), names=()):
     ax.set_ylabel('Precision')
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
-    ax.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
+    ax.legend(bbox_to_anchor=(1.04, 1), loc='upper left')
     ax.set_title('Precision-Recall Curve')
     fig.savefig(save_dir, dpi=250)
     plt.close(fig)
@@ -309,7 +309,7 @@ def plot_mc_curve(px, py, save_dir=Path('mc_curve.png'), names=(), xlabel='Confi
     ax.set_ylabel(ylabel)
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
-    ax.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
+    ax.legend(bbox_to_anchor=(1.04, 1), loc='upper left')
     ax.set_title(f'{ylabel}-Confidence Curve')
     fig.savefig(save_dir, dpi=250)
     plt.close(fig)
@@ -343,7 +343,7 @@ def compute_ap(recall, precision):
     return ap, mpre, mrec
 
 
-def ap_per_class(tp, conf, pred_cls, target_cls, plot=False, save_dir=Path(), names=(), eps=1e-16, prefix=""):
+def ap_per_class(tp, conf, pred_cls, target_cls, plot=False, save_dir=Path(), names=(), eps=1e-16, prefix=''):
     """ Compute the average precision, given the recall and precision curves.
     Source: https://github.com/rafaelpadilla/Object-Detection-Metrics.
     # Arguments
@@ -507,7 +507,7 @@ class Metric:
 
 class DetMetrics:
 
-    def __init__(self, save_dir=Path("."), plot=False, names=()) -> None:
+    def __init__(self, save_dir=Path('.'), plot=False, names=()) -> None:
         self.save_dir = save_dir
         self.plot = plot
         self.names = names
@@ -521,7 +521,7 @@ class DetMetrics:
 
     @property
     def keys(self):
-        return ["metrics/precision(B)", "metrics/recall(B)", "metrics/mAP50(B)", "metrics/mAP50-95(B)"]
+        return ['metrics/precision(B)', 'metrics/recall(B)', 'metrics/mAP50(B)', 'metrics/mAP50-95(B)']
 
     def mean_results(self):
         return self.box.mean_results()
@@ -543,12 +543,12 @@ class DetMetrics:
 
     @property
     def results_dict(self):
-        return dict(zip(self.keys + ["fitness"], self.mean_results() + [self.fitness]))
+        return dict(zip(self.keys + ['fitness'], self.mean_results() + [self.fitness]))
 
 
 class SegmentMetrics:
 
-    def __init__(self, save_dir=Path("."), plot=False, names=()) -> None:
+    def __init__(self, save_dir=Path('.'), plot=False, names=()) -> None:
         self.save_dir = save_dir
         self.plot = plot
         self.names = names
@@ -563,7 +563,7 @@ class SegmentMetrics:
                                     plot=self.plot,
                                     save_dir=self.save_dir,
                                     names=self.names,
-                                    prefix="Mask")[2:]
+                                    prefix='Mask')[2:]
         self.seg.nc = len(self.names)
         self.seg.update(results_mask)
         results_box = ap_per_class(tp_b,
@@ -573,15 +573,15 @@ class SegmentMetrics:
                                    plot=self.plot,
                                    save_dir=self.save_dir,
                                    names=self.names,
-                                   prefix="Box")[2:]
+                                   prefix='Box')[2:]
         self.box.nc = len(self.names)
         self.box.update(results_box)
 
     @property
     def keys(self):
         return [
-            "metrics/precision(B)", "metrics/recall(B)", "metrics/mAP50(B)", "metrics/mAP50-95(B)",
-            "metrics/precision(M)", "metrics/recall(M)", "metrics/mAP50(M)", "metrics/mAP50-95(M)"]
+            'metrics/precision(B)', 'metrics/recall(B)', 'metrics/mAP50(B)', 'metrics/mAP50-95(B)',
+            'metrics/precision(M)', 'metrics/recall(M)', 'metrics/mAP50(M)', 'metrics/mAP50-95(M)']
 
     def mean_results(self):
         return self.box.mean_results() + self.seg.mean_results()
@@ -604,7 +604,7 @@ class SegmentMetrics:
 
     @property
     def results_dict(self):
-        return dict(zip(self.keys + ["fitness"], self.mean_results() + [self.fitness]))
+        return dict(zip(self.keys + ['fitness'], self.mean_results() + [self.fitness]))
 
 
 class ClassifyMetrics:
@@ -626,8 +626,8 @@ class ClassifyMetrics:
 
     @property
     def results_dict(self):
-        return dict(zip(self.keys + ["fitness"], [self.top1, self.top5, self.fitness]))
+        return dict(zip(self.keys + ['fitness'], [self.top1, self.top5, self.fitness]))
 
     @property
     def keys(self):
-        return ["metrics/accuracy_top1", "metrics/accuracy_top5"]
+        return ['metrics/accuracy_top1', 'metrics/accuracy_top5']

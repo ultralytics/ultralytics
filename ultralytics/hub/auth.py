@@ -5,7 +5,7 @@ import requests
 from ultralytics.hub.utils import HUB_API_ROOT, request_with_credentials
 from ultralytics.yolo.utils import is_colab
 
-API_KEY_PATH = "https://hub.ultralytics.com/settings?tab=api+keys"
+API_KEY_PATH = 'https://hub.ultralytics.com/settings?tab=api+keys'
 
 
 class Auth:
@@ -18,7 +18,7 @@ class Auth:
     @staticmethod
     def _clean_api_key(key: str) -> str:
         """Strip model from key if present"""
-        separator = "_"
+        separator = '_'
         return key.split(separator)[0] if separator in key else key
 
     def authenticate(self) -> bool:
@@ -26,11 +26,11 @@ class Auth:
         try:
             header = self.get_auth_header()
             if header:
-                r = requests.post(f"{HUB_API_ROOT}/v1/auth", headers=header)
+                r = requests.post(f'{HUB_API_ROOT}/v1/auth', headers=header)
                 if not r.json().get('success', False):
-                    raise ConnectionError("Unable to authenticate.")
+                    raise ConnectionError('Unable to authenticate.')
                 return True
-            raise ConnectionError("User has not authenticated locally.")
+            raise ConnectionError('User has not authenticated locally.')
         except ConnectionError:
             self.id_token = self.api_key = False  # reset invalid
             return False
@@ -43,21 +43,21 @@ class Auth:
         if not is_colab():
             return False  # Currently only works with Colab
         try:
-            authn = request_with_credentials(f"{HUB_API_ROOT}/v1/auth/auto")
-            if authn.get("success", False):
-                self.id_token = authn.get("data", {}).get("idToken", None)
+            authn = request_with_credentials(f'{HUB_API_ROOT}/v1/auth/auto')
+            if authn.get('success', False):
+                self.id_token = authn.get('data', {}).get('idToken', None)
                 self.authenticate()
                 return True
-            raise ConnectionError("Unable to fetch browser authentication details.")
+            raise ConnectionError('Unable to fetch browser authentication details.')
         except ConnectionError:
             self.id_token = False  # reset invalid
             return False
 
     def get_auth_header(self):
         if self.id_token:
-            return {"authorization": f"Bearer {self.id_token}"}
+            return {'authorization': f'Bearer {self.id_token}'}
         elif self.api_key:
-            return {"x-api-key": self.api_key}
+            return {'x-api-key': self.api_key}
         else:
             return None
 

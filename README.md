@@ -108,6 +108,12 @@ success = model.export(format="onnx")  # export the model to ONNX format
 Ultralytics [release](https://github.com/ultralytics/assets/releases). See
 YOLOv8 [Python Docs](https://docs.ultralytics.com/python) for more examples.
 
+### Model Architectures
+
+⭐ **NEW** YOLOv5u anchor free models are now available.
+
+All supported model architectures can be found in the [Models](./ultralytics/models/) section.
+
 #### Known Issues / TODOs
 
 We are still working on several parts of YOLOv8! We aim to have these completed soon to bring the YOLOv8 feature set up

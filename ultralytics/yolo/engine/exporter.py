@@ -158,11 +158,10 @@ class Exporter:
 
         # Load PyTorch model
         self.device = select_device('cpu' if self.args.device is None else self.args.device)
-        if self.args.half:
-            if self.device.type == 'cpu' and not coreml and not xml:
-                LOGGER.info('half=True only compatible with GPU or CoreML export, i.e. use device=0 or format=coreml')
-                self.args.half = False
-            assert not self.args.dynamic, '--half not compatible with --dynamic, i.e. use either --half or --dynamic'
+        if self.args.half and onnx and self.device.type == 'cpu':
+            LOGGER.warning('WARNING ⚠️ half=True only compatible with GPU export, i.e. use device=0')
+            self.args.half = False
+            assert not self.args.dynamic, 'half=True not compatible with dynamic=True, i.e. use only one.'
 
         # Checks
         model.names = check_class_names(model.names)
@@ -194,7 +193,7 @@ class Exporter:
         y = None
         for _ in range(2):
             y = model(im)  # dry runs
-        if self.args.half and not coreml and not xml:
+        if self.args.half and (engine or onnx) and self.device.type != 'cpu':
             im, model = im.half(), model.half()  # to FP16
 
         # Warnings
@@ -242,8 +241,6 @@ class Exporter:
                 f[6], _ = self._export_pb(s_model)
             if tflite:
                 f[7], _ = self._export_tflite(s_model,
-                                              int8=self.args.int8 or edgetpu,
-                                              data=self.args.data,
                                               nms=nms,
                                               agnostic_nms=self.args.agnostic_nms)
             if edgetpu:
@@ -558,7 +555,7 @@ class Exporter:
         return f, None
 
     @try_export
-    def _export_tflite(self, keras_model, int8, data, nms, agnostic_nms, prefix=colorstr('TensorFlow Lite:')):
+    def _export_tflite(self, keras_model, nms, agnostic_nms, prefix=colorstr('TensorFlow Lite:')):
         # YOLOv8 TensorFlow Lite export
         saved_model = Path(str(self.file).replace(self.file.suffix, '_saved_model'))
         if self.args.int8:
@@ -580,7 +577,7 @@ class Exporter:
         converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS]
         converter.target_spec.supported_types = [tf.float16]
         converter.optimizations = [tf.lite.Optimize.DEFAULT]
-        if int8:
+        if self.args.int8:
 
             def representative_dataset_gen(dataset, n_images=100):
                 # Dataset generator for use with converter.representative_dataset, returns a generator of np arrays
@@ -592,7 +589,7 @@ class Exporter:
                     if n >= n_images:
                         break
 
-            dataset = LoadImages(check_det_dataset(check_yaml(data))['train'], imgsz=imgsz, auto=False)
+            dataset = LoadImages(check_det_dataset(check_yaml(self.args.data))['train'], imgsz=imgsz, auto=False)
             converter.representative_dataset = lambda: representative_dataset_gen(dataset, n_images=100)
             converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
             converter.target_spec.supported_types = []

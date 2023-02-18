@@ -2022,4 +2022,4 @@ map:
 
 
 # Download script/URL (optional)
-download: data/scripts/get_imagenet.sh
+download: yolo/data/scripts/get_imagenet.sh

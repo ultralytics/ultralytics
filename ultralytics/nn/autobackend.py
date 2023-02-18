@@ -28,7 +28,7 @@ def check_class_names(names):
         if not all(isinstance(k, int) for k in names.keys()):  # convert string keys to int, i.e. '0' to 0
             names = {int(k): v for k, v in names.items()}
         if isinstance(names[0], str) and names[0].startswith('n0'):  # imagenet class codes, i.e. 'n01440764'
-            map = yaml_load(ROOT / 'yolo/data/datasets/ImageNet.yaml')['map']  # human-readable names
+            map = yaml_load(ROOT / 'datasets/ImageNet.yaml')['map']  # human-readable names
             names = {k: map[v] for k, v in names.items()}
     return names
 

@@ -29,9 +29,7 @@ MODEL_MAP = {
 
 class YOLO:
     """
-    YOLO
-
-    A python interface which emulates a model-like behaviour by wrapping trainers.
+    YOLO model.
     """
 
     def __init__(self, model='yolov8n.pt', type='v8') -> None:
@@ -306,7 +304,7 @@ class YOLO:
     @staticmethod
     def _reset_ckpt_args(args):
         for arg in 'augment', 'verbose', 'project', 'name', 'exist_ok', 'resume', 'batch', 'epochs', 'cache', \
-                'save_json', 'half', 'v5loader', 'device', 'cfg', 'save', 'rect', 'plots', 'opset':
+                'save_json', 'half', 'v5loader', 'device', 'cfg', 'save', 'rect', 'plots', 'opset', 'simplify':
             args.pop(arg, None)
 
     @staticmethod

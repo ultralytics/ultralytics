@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 # SKU-110K retail items dataset https://github.com/eg4000/SKU110K_CVPR19 by Trax Retail
-# Example usage: python train.py --data SKU-110K.yaml
+# Example usage: yolo train data=SKU-110K.yaml
 # parent
 # ├── yolov5
 # └── datasets

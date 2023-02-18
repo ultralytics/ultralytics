@@ -29,12 +29,45 @@ MODEL_MAP = {
 
 class YOLO:
     """
-    YOLO model.
-    """
+        YOLO (You Only Look Once) object detection model.
+
+        Args:
+            model (str or Path): Path to the model file to load or create.
+            type (str): Type/version of models to use. Defaults to "v8".
+
+        Attributes:
+            type (str): Type/version of models being used.
+            ModelClass (Any): Model class.
+            TrainerClass (Any): Trainer class.
+            ValidatorClass (Any): Validator class.
+            PredictorClass (Any): Predictor class.
+            predictor (Any): Predictor object.
+            model (Any): Model object.
+            trainer (Any): Trainer object.
+            task (str): Type of model task.
+            ckpt (Any): Checkpoint object if model loaded from *.pt file.
+            cfg (str): Model configuration if loaded from *.yaml file.
+            ckpt_path (str): Checkpoint file path.
+            overrides (dict): Overrides for trainer object.
+            metrics_data (Any): Data for metrics.
+
+        Methods:
+            __call__(): Alias for predict method.
+            _new(cfg, verbose=True): Initializes a new model and infers the task type from the model definitions.
+            _load(weights): Initializes a new model and infers the task type from the model head.
+            _check_is_pytorch_model(): Raises TypeError if model is not a PyTorch model.
+            reset(): Resets the model modules.
+            info(verbose=False): Logs model info.
+            fuse(): Fuse model for faster inference.
+            predict(source=None, stream=False, **kwargs): Perform prediction using the YOLO model.
+
+        Returns:
+            List[ultralytics.yolo.engine.results.Results]: The prediction results.
+        """
 
     def __init__(self, model='yolov8n.pt', type='v8') -> None:
         """
-        Initializes the YOLO object.
+        Initializes the YOLO model.
 
         Args:
             model (str, Path): model to load or create

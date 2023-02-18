@@ -325,13 +325,13 @@ class Exporter:
         # Simplify
         if self.args.simplify:
             try:
-                check_requirements('onnxsim')
+                check_requirements(('onnxsim', 'onnxruntime-gpu' if CUDA else 'onnxruntime'))
                 import onnxsim
 
                 LOGGER.info(f'{prefix} simplifying with onnxsim {onnxsim.__version__}...')
-                subprocess.run(f'onnxsim {f} {f}', shell=True)
-                # model_onnx, check = onnxsim.simplify(model_onnx)
-                # assert check, "Simplified ONNX model could not be validated"
+                # subprocess.run(f'onnxsim {f} {f}', shell=True)
+                model_onnx, check = onnxsim.simplify(model_onnx)
+                assert check, "Simplified ONNX model could not be validated"
             except Exception as e:
                 LOGGER.info(f'{prefix} simplifier failure: {e}')
 

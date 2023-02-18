@@ -287,9 +287,7 @@ def is_pytest_running():
     Returns:
         (bool): True if pytest is running, False otherwise.
     """
-    with contextlib.suppress(Exception):
-        return 'pytest' in sys.modules
-    return False
+    return ('PYTEST_CURRENT_TEST' in os.environ) or ('pytest' in sys.modules) or ('pytest' in Path(sys.argv[0]).stem)
 
 
 def is_github_actions_ci() -> bool:
@@ -530,8 +528,7 @@ def set_sentry():
     if SETTINGS['sync'] and \
             RANK in {-1, 0} and \
             Path(sys.argv[0]).name == 'yolo' and \
-            not is_pytest_running() and \
-            not is_github_actions_ci() and \
+            not TESTS_RUNNING and \
             ((is_pip_package() and not is_git_dir()) or
              (get_git_origin_url() == 'https://github.com/ultralytics/ultralytics.git' and get_git_branch() == 'main')):
 
@@ -625,4 +622,5 @@ SETTINGS = get_settings()
 DATASETS_DIR = Path(SETTINGS['datasets_dir'])  # global datasets directory
 ENVIRONMENT = 'Colab' if is_colab() else 'Kaggle' if is_kaggle() else 'Jupyter' if is_jupyter() else \
     'Docker' if is_docker() else platform.system()
+TESTS_RUNNING = is_pytest_running() or is_github_actions_ci()
 set_sentry()

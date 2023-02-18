@@ -4,11 +4,11 @@ import json
 from time import time
 
 from ultralytics.hub.utils import PREFIX, traces
-from ultralytics.yolo.utils import LOGGER
+from ultralytics.yolo.utils import LOGGER, TESTS_RUNNING
 
 
 def on_pretrain_routine_end(trainer):
-    session = getattr(trainer, 'hub_session', None)
+    session = not TESTS_RUNNING and getattr(trainer, 'hub_session', None)
     if session:
         # Start timer for upload rate limit
         LOGGER.info(f'{PREFIX}View model at https://hub.ultralytics.com/models/{session.model_id} 🚀')

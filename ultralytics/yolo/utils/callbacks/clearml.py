@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
-from ultralytics.yolo.utils import is_pytest_running
+from ultralytics.yolo.utils import TESTS_RUNNING
 from ultralytics.yolo.utils.torch_utils import get_flops, get_num_params
 
 try:
@@ -7,7 +7,7 @@ try:
     from clearml import Task
 
     assert clearml.__version__  # verify package is not directory
-    assert not is_pytest_running()  # do not log pytest
+    assert not TESTS_RUNNING  # do not log pytest
 except (ImportError, AssertionError):
     clearml = None
 

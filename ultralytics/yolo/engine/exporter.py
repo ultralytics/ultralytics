@@ -519,7 +519,8 @@ class Exporter:
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
         f = Path(str(self.file).replace(self.file.suffix, '_saved_model'))
         if f.is_dir():
-            f.unlink()
+            import shutil
+            shutil.rmtree(f)  # delete output folder
 
         # Export to ONNX
         self.args.simplify = True

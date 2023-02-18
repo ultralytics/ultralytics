@@ -325,13 +325,13 @@ class Exporter:
         # Simplify
         if self.args.simplify:
             try:
-                check_requirements(('onnxsim', 'onnxruntime-gpu' if CUDA else 'onnxruntime'))
+                check_requirements('onnxsim')
                 import onnxsim
 
                 LOGGER.info(f'{prefix} simplifying with onnxsim {onnxsim.__version__}...')
-                # subprocess.run(f'onnxsim {f} {f}', shell=True)
-                model_onnx, check = onnxsim.simplify(model_onnx)
-                assert check, "Simplified ONNX model could not be validated"
+                subprocess.run(f'onnxsim {f} {f}', shell=True)
+                # model_onnx, check = onnxsim.simplify(model_onnx)
+                # assert check, "Simplified ONNX model could not be validated"
             except Exception as e:
                 LOGGER.info(f'{prefix} simplifier failure: {e}')
 
@@ -443,6 +443,7 @@ class Exporter:
             import tensorrt as trt  # noqa
 
         check_version(trt.__version__, '7.0.0', hard=True)  # require tensorrt>=8.0.0
+        self.args.simplify = True
         f_onnx, _ = self._export_onnx()
 
         LOGGER.info(f'\n{prefix} starting export with TensorRT {trt.__version__}...')
@@ -518,6 +519,7 @@ class Exporter:
         f = str(self.file).replace(self.file.suffix, '_saved_model')
 
         # Export to ONNX
+        self.args.simplify = True
         f_onnx, _ = self._export_onnx()
 
         # Export to TF SavedModel

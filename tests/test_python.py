@@ -182,4 +182,3 @@ def test_result():
     model = YOLO('yolov8n-cls.pt')
     res = model(SOURCE)
     res[0].visualize()
-

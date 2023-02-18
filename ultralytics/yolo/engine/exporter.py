@@ -241,15 +241,14 @@ class Exporter:
             if pb or tfjs:  # pb prerequisite to tfjs
                 f[6], _ = self._export_pb(s_model)
             if tflite:
-                f[7] = str(Path(f[5]) / (self.file.stem + '_float16.tflite'))
-                # f[7], _ = self._export_tflite(s_model,
-                #                               int8=self.args.int8 or edgetpu,
-                #                               data=self.args.data,
-                #                               nms=nms,
-                #                               agnostic_nms=self.args.agnostic_nms)
+                f[7], _ = self._export_tflite(s_model,
+                                              int8=self.args.int8 or edgetpu,
+                                              data=self.args.data,
+                                              nms=nms,
+                                              agnostic_nms=self.args.agnostic_nms)
             if edgetpu:
                 f[8], _ = self._export_edgetpu(
-                    tflite_model=str(Path(f[5]) / (self.file.stem + '_full_integer_quant.tflite')))
+                    tflite_model=str(Path(f[5]) / (self.file.stem + '_full_integer_quant.tflite')))  # int8 in/out
             if tfjs:
                 f[9], _ = self._export_tfjs()
         if paddle:  # PaddlePaddle
@@ -561,6 +560,16 @@ class Exporter:
     @try_export
     def _export_tflite(self, keras_model, int8, data, nms, agnostic_nms, prefix=colorstr('TensorFlow Lite:')):
         # YOLOv8 TensorFlow Lite export
+        saved_model = Path(str(self.file).replace(self.file.suffix, '_saved_model'))
+        if self.args.int8:
+            f = saved_model / (self.file.stem + 'yolov8n_integer_quant.tflite')  # fp32 in/out
+        elif self.args.half:
+            f = saved_model / (self.file.stem + '_float16.tflite')
+        else:
+            f = saved_model / (self.file.stem + '_float32.tflite')
+        return str(f), None  # noqa
+
+        # OLD VERSION BELOW ---------------------------------------------------------------
         import tensorflow as tf  # noqa
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')

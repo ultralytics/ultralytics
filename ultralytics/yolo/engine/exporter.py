@@ -94,7 +94,7 @@ def export_formats():
         ['TensorFlow Lite', 'tflite', '.tflite', True, False],
         ['TensorFlow Edge TPU', 'edgetpu', '_edgetpu.tflite', False, False],
         ['TensorFlow.js', 'tfjs', '_web_model', False, False],
-        ['PaddlePaddle', 'paddle', '_paddle_model', True, True],]
+        ['PaddlePaddle', 'paddle', '_paddle_model', True, True], ]
     return pd.DataFrame(x, columns=['Format', 'Argument', 'Suffix', 'CPU', 'GPU'])
 
 
@@ -323,8 +323,7 @@ class Exporter:
         onnx.checker.check_model(model_onnx)  # check onnx model
 
         # Metadata
-        d = {'stride': int(max(self.model.stride)), 'names': self.model.names}
-        for k, v in d.items():
+        for k, v in self.metadata.items():
             meta = model_onnx.metadata_props.add()
             meta.key, meta.value = k, str(v)
         onnx.save(model_onnx, f)
@@ -441,11 +440,10 @@ class Exporter:
             import tensorrt as trt  # noqa
 
         check_version(trt.__version__, '7.0.0', hard=True)  # require tensorrt>=8.0.0
-        self._export_onnx()
-        onnx = self.file.with_suffix('.onnx')
+        f_onnx, _ = self._export_onnx()
 
         LOGGER.info(f'\n{prefix} starting export with TensorRT {trt.__version__}...')
-        assert onnx.exists(), f'failed to export ONNX file: {onnx}'
+        assert Path(f_onnx).exists(), f'failed to export ONNX file: {f_onnx}'
         f = self.file.with_suffix('.engine')  # TensorRT engine file
         logger = trt.Logger(trt.Logger.INFO)
         if verbose:
@@ -459,8 +457,8 @@ class Exporter:
         flag = (1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH))
         network = builder.create_network(flag)
         parser = trt.OnnxParser(network, logger)
-        if not parser.parse_from_file(str(onnx)):
-            raise RuntimeError(f'failed to load ONNX file: {onnx}')
+        if not parser.parse_from_file(f_onnx):
+            raise RuntimeError(f'failed to load ONNX file: {f_onnx}')
 
         inputs = [network.get_input(i) for i in range(network.num_inputs)]
         outputs = [network.get_output(i) for i in range(network.num_outputs)]
@@ -517,11 +515,10 @@ class Exporter:
         f = str(self.file).replace(self.file.suffix, '_saved_model')
 
         # Export to ONNX
-        self._export_onnx()
-        onnx = self.file.with_suffix('.onnx')
+        f_onnx, _ = self._export_onnx()
 
         # Export to TF SavedModel
-        subprocess.run(f'onnx2tf -i {onnx} -o {f} --non_verbose', shell=True)
+        subprocess.run(f'onnx2tf -i {f_onnx} -o {f} --non_verbose', shell=True)
         yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml
 
         # Add TFLite metadata

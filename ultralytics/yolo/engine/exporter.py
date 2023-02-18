@@ -264,8 +264,8 @@ class Exporter:
             LOGGER.info(
                 f'\nExport complete ({time.time() - t:.1f}s)'
                 f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
-                f'\nPredict:         yolo task={model.task} mode=predict model={f} imgsz={imgsz} {data}'
-                f'\nValidate:        yolo task={model.task} mode=val model={f} imgsz={imgsz} data={self.args.data} {s}'
+                f'\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {data}'
+                f'\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={self.args.data} {s}'
                 f'\nVisualize:       https://netron.app')
 
         self.run_callbacks('on_export_end')
@@ -417,10 +417,7 @@ class Exporter:
                               classifier_config=classifier_config)
         bits, mode = (8, 'kmeans_lut') if self.args.int8 else (16, 'linear') if self.args.half else (32, None)
         if bits < 32:
-            if MACOS:  # quantization only supported on macOS
-                ct_model = ct.models.neural_network.quantization_utils.quantize_weights(ct_model, bits, mode)
-            else:
-                LOGGER.info(f'{prefix} quantization only supported on macOS, skipping...')
+            ct_model = ct.models.neural_network.quantization_utils.quantize_weights(ct_model, bits, mode)
         if self.args.nms:
             ct_model = self._pipeline_coreml(ct_model)
 
@@ -524,7 +521,7 @@ class Exporter:
         f_onnx, _ = self._export_onnx()
 
         # Export to TF SavedModel
-        subprocess.run(f'onnx2tf -i {f_onnx} -o {f} --non_verbose -nuo', shell=True)
+        subprocess.run(f'onnx2tf -i {f_onnx} -o {f} --non_verbose -nuo && rm {f_onnx}', shell=True)
         yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml
 
         # Add TFLite metadata
@@ -534,53 +531,6 @@ class Exporter:
         # Load saved_model
         keras_model = tf.saved_model.load(f, tags=None, options=None)
 
-        return f, keras_model
-
-    @try_export
-    def _export_saved_model_OLD(self,
-                                nms=False,
-                                agnostic_nms=False,
-                                topk_per_class=100,
-                                topk_all=100,
-                                iou_thres=0.45,
-                                conf_thres=0.25,
-                                prefix=colorstr('TensorFlow SavedModel:')):
-        # YOLOv8 TensorFlow SavedModel export
-        try:
-            import tensorflow as tf  # noqa
-        except ImportError:
-            check_requirements(f"tensorflow{'' if CUDA else '-macos' if MACOS else '-cpu' if LINUX else ''}")
-            import tensorflow as tf  # noqa
-        # from models.tf import TFModel
-        from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2  # noqa
-
-        LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
-        f = str(self.file).replace(self.file.suffix, '_saved_model')
-        batch_size, ch, *imgsz = list(self.im.shape)  # BCHW
-
-        tf_models = None  # TODO: no TF modules available
-        tf_model = tf_models.TFModel(cfg=self.model.yaml, model=self.model.cpu(), nc=self.model.nc, imgsz=imgsz)
-        im = tf.zeros((batch_size, *imgsz, ch))  # BHWC order for TensorFlow
-        _ = tf_model.predict(im, nms, agnostic_nms, topk_per_class, topk_all, iou_thres, conf_thres)
-        inputs = tf.keras.Input(shape=(*imgsz, ch), batch_size=None if self.args.dynamic else batch_size)
-        outputs = tf_model.predict(inputs, nms, agnostic_nms, topk_per_class, topk_all, iou_thres, conf_thres)
-        keras_model = tf.keras.Model(inputs=inputs, outputs=outputs)
-        keras_model.trainable = False
-        keras_model.summary()
-        if self.args.keras:
-            keras_model.save(f, save_format='tf')
-        else:
-            spec = tf.TensorSpec(keras_model.inputs[0].shape, keras_model.inputs[0].dtype)
-            m = tf.function(lambda x: keras_model(x))  # full model
-            m = m.get_concrete_function(spec)
-            frozen_func = convert_variables_to_constants_v2(m)
-            tfm = tf.Module()
-            tfm.__call__ = tf.function(lambda x: frozen_func(x)[:4] if nms else frozen_func(x), [spec])
-            tfm.__call__(im)
-            tf.saved_model.save(tfm,
-                                f,
-                                options=tf.saved_model.SaveOptions(experimental_custom_gradients=False)
-                                if check_version(tf.__version__, '2.6') else tf.saved_model.SaveOptions())
         return f, keras_model
 
     @try_export

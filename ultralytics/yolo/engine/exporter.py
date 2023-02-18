@@ -235,11 +235,12 @@ class Exporter:
             LOGGER.warning('WARNING ⚠️ YOLOv8 TensorFlow export is still under development. '
                            'Please consider contributing to the effort if you have TF expertise. Thank you!')
             nms = False
+            self.args.int8 = edgetpu
             f[5], s_model = self._export_saved_model(nms=nms or self.args.agnostic_nms or tfjs,
                                                      agnostic_nms=self.args.agnostic_nms or tfjs)
             if pb or tfjs:  # pb prerequisite to tfjs
                 f[6], _ = self._export_pb(s_model)
-            if tflite or edgetpu:
+            if tflite:
                 f[7] = self.file.stem + '_float16.tflite'
                 # f[7], _ = self._export_tflite(s_model,
                 #                               int8=self.args.int8 or edgetpu,
@@ -247,7 +248,7 @@ class Exporter:
                 #                               nms=nms,
                 #                               agnostic_nms=self.args.agnostic_nms)
             if edgetpu:
-                f[8], _ = self._export_edgetpu(tflite_model=f[7])
+                f[8], _ = self._export_edgetpu(tflite_model=self.file.stem + '_full_integer_quant.tflite')
             if tfjs:
                 f[9], _ = self._export_tfjs()
         if paddle:  # PaddlePaddle
@@ -522,7 +523,8 @@ class Exporter:
         f_onnx, _ = self._export_onnx()
 
         # Export to TF SavedModel
-        subprocess.run(f'onnx2tf -i {f_onnx} -o {f} --non_verbose -nuo && rm {f_onnx}', shell=True)
+        int8 = '-oiqt -qt per-tensor' if self.args.int8 else ''
+        subprocess.run(f'onnx2tf -i {f_onnx} -o {f} --non_verbose -nuo {int8} && rm {f_onnx}', shell=True)
         yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml
 
         # Add TFLite metadata

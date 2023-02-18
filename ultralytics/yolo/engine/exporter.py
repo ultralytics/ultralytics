@@ -325,7 +325,7 @@ class Exporter:
         # Simplify
         if self.args.simplify:
             try:
-                check_requirements('onnxsim')
+                check_requirements('onnxsim', 'onnxruntime-gpu' if CUDA else 'onnxruntime')
                 import onnxsim
 
                 LOGGER.info(f'{prefix} simplifying with onnxsim {onnxsim.__version__}...')

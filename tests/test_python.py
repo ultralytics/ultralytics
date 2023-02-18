@@ -175,3 +175,11 @@ def test_result():
     res[0].cpu().numpy()
     resimg = res[0].visualize(show_conf=False)
     print(resimg)
+
+    model = YOLO('yolov8n.pt')
+    res = model(img)
+    res[0].visualize()
+
+    model = YOLO('yolov8n-cls.pt')
+    res = model(img)
+    res[0].visualize()

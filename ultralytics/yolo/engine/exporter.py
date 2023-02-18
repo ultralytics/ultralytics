@@ -524,7 +524,7 @@ class Exporter:
 
         # Export to TF
         int8 = '-oiqt -qt per-tensor' if self.args.int8 else ''
-        cmd = f'onnx2tf -i {f_onnx} -o {f} -nuo {int8} --non_verbose'
+        cmd = f'onnx2tf -i {f_onnx} -o {f} -nuo --non_verbose {int8}'
         LOGGER.info(f'\n{prefix} running {cmd}')
         subprocess.run(cmd, shell=True)
         yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml

@@ -1,9 +1,9 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
 import os
+import queue
 import random
 from pathlib import Path
-import queue
 
 import numpy as np
 import torch
@@ -62,7 +62,7 @@ def seed_worker(worker_id):
     random.seed(worker_seed)
 
 
-def build_dataloader(cfg, batch, img_path, stride=32, rect=False, names=None, rank=-1, mode="train"):
+def build_dataloader(cfg, batch, img_path, stride=32, rect=False, names=None, rank=-1, mode='train'):
     assert mode in ['train', 'val']
     shuffle = mode == 'train'
     if cfg.rect and shuffle:
@@ -80,7 +80,7 @@ def build_dataloader(cfg, batch, img_path, stride=32, rect=False, names=None, ra
             single_cls=cfg.single_cls or False,
             stride=int(stride),
             pad=0.0 if mode == 'train' else 0.5,
-            prefix=colorstr(f"{mode}: "),
+            prefix=colorstr(f'{mode}: '),
             use_segments=cfg.task == 'segment',
             use_keypoints=cfg.task == 'keypoint',
             names=names)
@@ -134,32 +134,32 @@ def build_classification_dataloader(path,
 
 
 def check_source(source):
-  is_not_queue = True
-  if isinstance(source, queue.Queue):
-    is_not_queue = False
-  webcam, screenshot, from_img, in_memory = False, False, False, False
-  if isinstance(source, (str, int, Path, queue.Queue)):  # int for local usb carame
-      webcam = (not is_not_queue)
-      if is_not_queue:
-        source = str(source)
-        is_file = Path(source).suffix[1:] in (IMG_FORMATS + VID_FORMATS)
-        is_url = source.lower().startswith(('https://', 'http://', 'rtsp://', 'rtmp://'))
-        webcam = webcam or (source.isnumeric() or source.endswith('.streams') or (is_url and not is_file))
-        screenshot = source.lower().startswith('screen')
-        if is_url and is_file:
-            source = check_file(source)  # download
-  elif isinstance(source, tuple(LOADERS)):
-      in_memory = True
-  elif isinstance(source, (list, tuple)):
-      source = autocast_list(source)  # convert all list elements to PIL or np arrays
-      from_img = True
-  elif isinstance(source, ((Image.Image, np.ndarray))):
-      from_img = True
-  else:
-      raise Exception(
-          "Unsupported type encountered! See docs for supported types https://docs.ultralytics.com/predict")
+    is_not_queue = True
+    if isinstance(source, queue.Queue):
+        is_not_queue = False
+    webcam, screenshot, from_img, in_memory = False, False, False, False
+    if isinstance(source, (str, int, Path, queue.Queue)):  # int for local usb carame
+        webcam = (not is_not_queue)
+        if is_not_queue:
+            source = str(source)
+            is_file = Path(source).suffix[1:] in (IMG_FORMATS + VID_FORMATS)
+            is_url = source.lower().startswith(('https://', 'http://', 'rtsp://', 'rtmp://'))
+            webcam = webcam or (source.isnumeric() or source.endswith('.streams') or (is_url and not is_file))
+            screenshot = source.lower().startswith('screen')
+            if is_url and is_file:
+                source = check_file(source)  # download
+    elif isinstance(source, tuple(LOADERS)):
+        in_memory = True
+    elif isinstance(source, (list, tuple)):
+        source = autocast_list(source)  # convert all list elements to PIL or np arrays
+        from_img = True
+    elif isinstance(source, ((Image.Image, np.ndarray))):
+        from_img = True
+    else:
+        raise Exception(
+            'Unsupported type encountered! See docs for supported types https://docs.ultralytics.com/predict')
 
-  return source, webcam, screenshot, from_img, in_memory
+    return source, webcam, screenshot, from_img, in_memory
 
 
 def load_inference_source(source=None, transforms=None, imgsz=640, vid_stride=1, stride=32, auto=True):

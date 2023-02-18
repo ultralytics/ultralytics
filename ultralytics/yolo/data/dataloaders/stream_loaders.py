@@ -3,6 +3,7 @@
 import glob
 import math
 import os
+import queue
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -12,7 +13,6 @@ from urllib.parse import urlparse
 import cv2
 import numpy as np
 import requests
-import queue
 import torch
 from PIL import Image
 
@@ -20,6 +20,7 @@ from ultralytics.yolo.data.augment import LetterBox
 from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS
 from ultralytics.yolo.utils import LOGGER, ROOT, is_colab, is_kaggle, ops
 from ultralytics.yolo.utils.checks import check_requirements
+
 
 @dataclass
 class SourceTypes:
@@ -33,7 +34,7 @@ class LoadStreams:
     def __init__(self, sources='file.streams', imgsz=640, stride=32, auto=True, transforms=None, vid_stride=1):
         self.is_not_queue = True
         if isinstance(sources, queue.Queue):
-          self.is_not_queue = False
+            self.is_not_queue = False
 
         torch.backends.cudnn.benchmark = True  # faster for fixed-size inference
         self.mode = 'stream'
@@ -41,55 +42,56 @@ class LoadStreams:
         self.stride = stride
         self.vid_stride = vid_stride  # video frame-rate stride
         if self.is_not_queue:
-          sources = Path(sources).read_text().rsplit() if os.path.isfile(sources) else [sources]
-          n = len(sources)
-          self.sources = [ops.clean_str(x) for x in sources]  # clean source names for later
+            sources = Path(sources).read_text().rsplit() if os.path.isfile(sources) else [sources]
+            n = len(sources)
+            self.sources = [ops.clean_str(x) for x in sources]  # clean source names for later
         else:
-          n = 1
-          self.sources = sources
+            n = 1
+            self.sources = sources
 
         self.imgs, self.fps, self.frames, self.threads = [None] * n, [0] * n, [0] * n, [None] * n
         self.user_datas = [None] * n
 
         if self.is_not_queue:
-          for i, s in enumerate(sources):  # index, source
-              # Start thread to read frames from video stream
-              st = f'{i + 1}/{n}: {s}... '
-              if urlparse(s).hostname in ('www.youtube.com', 'youtube.com', 'youtu.be'):  # if source is YouTube video
-                  # YouTube format i.e. 'https://www.youtube.com/watch?v=Zgi9g1ksQHc' or 'https://youtu.be/Zgi9g1ksQHc'
-                  check_requirements(('pafy', 'youtube_dl==2020.12.2'))
-                  import pafy  # noqa
-                  s = pafy.new(s).getbest(preftype="mp4").url  # YouTube URL
-              s = eval(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
-              if s == 0 and (is_colab() or is_kaggle()):
-                  raise NotImplementedError("'source=0' webcam not supported in Colab and Kaggle notebooks. "
-                                            "Try running 'source=0' in a local environment.")
-              cap = cv2.VideoCapture(s)
-              if not cap.isOpened():
-                  raise ConnectionError(f'{st}Failed to open {s}')
-              w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-              h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-              fps = cap.get(cv2.CAP_PROP_FPS)  # warning: may return 0 or nan
-              self.frames[i] = max(int(cap.get(cv2.CAP_PROP_FRAME_COUNT)), 0) or float('inf')  # infinite stream fallback
-              self.fps[i] = max((fps if math.isfinite(fps) else 0) % 100, 0) or 30  # 30 FPS fallback
+            for i, s in enumerate(sources):  # index, source
+                # Start thread to read frames from video stream
+                st = f'{i + 1}/{n}: {s}... '
+                if urlparse(s).hostname in ('www.youtube.com', 'youtube.com', 'youtu.be'):  # if source is YouTube video
+                    # YouTube format i.e. 'https://www.youtube.com/watch?v=Zgi9g1ksQHc' or 'https://youtu.be/Zgi9g1ksQHc'
+                    check_requirements(('pafy', 'youtube_dl==2020.12.2'))
+                    import pafy  # noqa
+                    s = pafy.new(s).getbest(preftype='mp4').url  # YouTube URL
+                s = eval(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
+                if s == 0 and (is_colab() or is_kaggle()):
+                    raise NotImplementedError("'source=0' webcam not supported in Colab and Kaggle notebooks. "
+                                              "Try running 'source=0' in a local environment.")
+                cap = cv2.VideoCapture(s)
+                if not cap.isOpened():
+                    raise ConnectionError(f'{st}Failed to open {s}')
+                w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+                h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+                fps = cap.get(cv2.CAP_PROP_FPS)  # warning: may return 0 or nan
+                self.frames[i] = max(int(cap.get(cv2.CAP_PROP_FRAME_COUNT)), 0) or float(
+                    'inf')  # infinite stream fallback
+                self.fps[i] = max((fps if math.isfinite(fps) else 0) % 100, 0) or 30  # 30 FPS fallback
 
-              success, self.imgs[i] = cap.read()  # guarantee first frame
-              if not success or self.imgs[i] is None:
-                  raise ConnectionError(f'{st}Failed to read images from {s}')
-              self.threads[i] = Thread(target=self.update, args=([i, cap, s]), daemon=True)
-              LOGGER.info(f"{st}Success ✅ ({self.frames[i]} frames of shape {w}x{h} at {self.fps[i]:.2f} FPS)")
-              self.threads[i].start()
+                success, self.imgs[i] = cap.read()  # guarantee first frame
+                if not success or self.imgs[i] is None:
+                    raise ConnectionError(f'{st}Failed to read images from {s}')
+                self.threads[i] = Thread(target=self.update, args=([i, cap, s]), daemon=True)
+                LOGGER.info(f'{st}Success ✅ ({self.frames[i]} frames of shape {w}x{h} at {self.fps[i]:.2f} FPS)')
+                self.threads[i].start()
         else:
-          i = 0
-          self.fps[i] = 25
-          self.frames[i] = float('inf')
-          success, (self.imgs[i], self.user_datas[i]) = True, sources.get()  # guarantee first frame
-          if not success or self.imgs[i] is None:
-              raise ConnectionError(f'{st}Failed to read images from queue')
-          w, h = self.imgs[i].shape[1], self.imgs[i].shape[0]
-          self.threads[i] = Thread(target=self.update, args=([i, None, sources]), daemon=True)
-          LOGGER.info(f"{0}Success ✅ ({self.frames[i]} frames of shape {w}x{h} at {self.fps[i]:.2f} FPS)")
-          self.threads[i].start()
+            i = 0
+            self.fps[i] = 25
+            self.frames[i] = float('inf')
+            success, (self.imgs[i], self.user_datas[i]) = True, sources.get()  # guarantee first frame
+            if not success or self.imgs[i] is None:
+                raise ConnectionError(f'{st}Failed to read images from queue')
+            w, h = self.imgs[i].shape[1], self.imgs[i].shape[0]
+            self.threads[i] = Thread(target=self.update, args=([i, None, sources]), daemon=True)
+            LOGGER.info(f'{0}Success ✅ ({self.frames[i]} frames of shape {w}x{h} at {self.fps[i]:.2f} FPS)')
+            self.threads[i].start()
 
         LOGGER.info('')  # newline
 
@@ -107,33 +109,33 @@ class LoadStreams:
         # Read stream `i` frames in daemon thread
         n, f = 0, self.frames[i]  # frame number, frame array
         if self.is_not_queue:
-          while cap.isOpened() and n < f:
-              n += 1
-              cap.grab()  # .read() = .grab() followed by .retrieve()
-              if n % self.vid_stride == 0:
-                  success, im = cap.retrieve()
-                  if success:
-                      self.imgs[i] = im
-                  else:
-                      LOGGER.warning('WARNING ⚠️ Video stream unresponsive, please check your IP camera connection.')
-                      self.imgs[i] = np.zeros_like(self.imgs[i])
-                      cap.open(stream)  # re-open stream if signal was lost
-              time.sleep(0.0)  # wait time
+            while cap.isOpened() and n < f:
+                n += 1
+                cap.grab()  # .read() = .grab() followed by .retrieve()
+                if n % self.vid_stride == 0:
+                    success, im = cap.retrieve()
+                    if success:
+                        self.imgs[i] = im
+                    else:
+                        LOGGER.warning('WARNING ⚠️ Video stream unresponsive, please check your IP camera connection.')
+                        self.imgs[i] = np.zeros_like(self.imgs[i])
+                        cap.open(stream)  # re-open stream if signal was lost
+                time.sleep(0.0)  # wait time
         else:
-          while True:
-            time.sleep(0.0)  # wait time
-            timer = cv2.getTickCount()
-            try:
-              self.imgs[i], self.user_datas[i] = stream.get()
-              if self.imgs[i] is None:
-                continue
-            except queue.Empty:
-              continue
-              LOGGER.warning('WARNING ⚠️ Video stream unresponsive, please check your IP camera connection.')
-              self.imgs[i] = np.zeros_like(self.imgs[i])
+            while True:
+                time.sleep(0.0)  # wait time
+                timer = cv2.getTickCount()
+                try:
+                    self.imgs[i], self.user_datas[i] = stream.get()
+                    if self.imgs[i] is None:
+                        continue
+                except queue.Empty:
+                    continue
+                    LOGGER.warning('WARNING ⚠️ Video stream unresponsive, please check your IP camera connection.')
+                    self.imgs[i] = np.zeros_like(self.imgs[i])
 
-            fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
-            self.fps[i] = fps
+                fps = cv2.getTickFrequency() / (cv2.getTickCount() - timer)
+                self.fps[i] = fps
 
     def __iter__(self):
         self.count = -1
@@ -156,10 +158,10 @@ class LoadStreams:
         return self.sources, im, im0, None, '', self.user_datas
 
     def __len__(self):
-      if self.is_not_queue:
-        return len(self.sources)  # 1E12 frames = 32 streams at 30 FPS for 30 years
-      else:
-        return 1
+        if self.is_not_queue:
+            return len(self.sources)  # 1E12 frames = 32 streams at 30 FPS for 30 years
+        else:
+            return 1
 
 
 class LoadScreenshots:
@@ -215,7 +217,7 @@ class LoadScreenshots:
 class LoadImages:
     # YOLOv8 image/video dataloader, i.e. `yolo predict source=image.jpg/vid.mp4`
     def __init__(self, path, imgsz=640, stride=32, auto=True, transforms=None, vid_stride=1):
-        if isinstance(path, str) and Path(path).suffix == ".txt":  # *.txt file with img/vid/dir on each line
+        if isinstance(path, str) and Path(path).suffix == '.txt':  # *.txt file with img/vid/dir on each line
             path = Path(path).read_text().rsplit()
         files = []
         for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:
@@ -333,12 +335,12 @@ class LoadPilAndNumpy:
         self.transforms = transforms
         self.mode = 'image'
         # generate fake paths
-        self.paths = [f"image{i}.jpg" for i in range(len(self.im0))]
+        self.paths = [f'image{i}.jpg' for i in range(len(self.im0))]
         self.bs = len(self.im0)
 
     @staticmethod
     def _single_check(im):
-        assert isinstance(im, (Image.Image, np.ndarray)), f"Expected PIL/np.ndarray image type, but got {type(im)}"
+        assert isinstance(im, (Image.Image, np.ndarray)), f'Expected PIL/np.ndarray image type, but got {type(im)}'
         if isinstance(im, Image.Image):
             im = np.asarray(im)[:, :, ::-1]
             im = np.ascontiguousarray(im)  # contiguous
@@ -381,8 +383,8 @@ def autocast_list(source):
         elif isinstance(im, (Image.Image, np.ndarray)):  # PIL or np Image
             files.append(im)
         else:
-            raise TypeError(f"type {type(im).__name__} is not a supported Ultralytics prediction source type. \n"
-                            f"See https://docs.ultralytics.com/predict for supported source types.")
+            raise TypeError(f'type {type(im).__name__} is not a supported Ultralytics prediction source type. \n'
+                            f'See https://docs.ultralytics.com/predict for supported source types.')
 
     return files
 

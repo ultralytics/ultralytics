@@ -26,9 +26,9 @@ Usage - formats:
                                     yolov8n_paddle_model       # PaddlePaddle
     """
 import platform
+import queue
 from collections import defaultdict
 from pathlib import Path
-import queue
 
 import cv2
 import torch
@@ -100,10 +100,10 @@ class BasePredictor:
         pass
 
     def get_annotator(self, img):
-        raise NotImplementedError("get_annotator function needs to be implemented")
+        raise NotImplementedError('get_annotator function needs to be implemented')
 
     def write_results(self, results, batch, print_string):
-        raise NotImplementedError("print_results function needs to be implemented")
+        raise NotImplementedError('print_results function needs to be implemented')
 
     def postprocess(self, preds, img, orig_img):
         return preds
@@ -140,9 +140,9 @@ class BasePredictor:
 
     def stream_inference(self, source=None, model=None):
         if isinstance(source, queue.Queue):
-          self.is_not_queue = False
+            self.is_not_queue = False
         if self.args.verbose:
-            LOGGER.info("")
+            LOGGER.info('')
         # setup model
         if not self.model:
             self.setup_model(model)
@@ -164,9 +164,9 @@ class BasePredictor:
             self.batch = batch
 
             if self.is_not_queue:
-              path, im, im0s, vid_cap, s = batch
+                path, im, im0s, vid_cap, s = batch
             else:
-              path, im, im0s, vid_cap, s, user_datas = batch
+                path, im, im0s, vid_cap, s, user_datas = batch
 
             visualize = increment_path(self.save_dir / Path(path).stem, mkdir=True) if self.args.visualize else False
             with self.dt[0]:
@@ -186,21 +186,21 @@ class BasePredictor:
             # visualize, save, write results
             for i in range(len(im)):
                 if self.is_not_queue:
-                  p, im0 = (path[i], im0s[i].copy()) if self.source_type.webcam or self.source_type.from_img \
-                    else (path, im0s.copy())
+                    p, im0 = (path[i], im0s[i].copy()) if self.source_type.webcam or self.source_type.from_img \
+                      else (path, im0s.copy())
 
-                  p = Path(p)
+                    p = Path(p)
 
-                  if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
-                      s += self.write_results(i, self.results, (p, im, im0))
+                    if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
+                        s += self.write_results(i, self.results, (p, im, im0))
 
-                  if self.args.show:
-                      self.show(p)
+                    if self.args.show:
+                        self.show(p)
 
-                  if self.args.save:
-                      self.save_preds(vid_cap, i, str(self.save_dir / p.name))
+                    if self.args.save:
+                        self.save_preds(vid_cap, i, str(self.save_dir / p.name))
                 else:
-                  im0 = im0s[i].copy() if self.source_type.webcam or self.source_type.from_img else im0s
+                    im0 = im0s[i].copy() if self.source_type.webcam or self.source_type.from_img else im0s
 
             self.run_callbacks('on_predict_batch_end')
             yield from self.results
@@ -223,7 +223,7 @@ class BasePredictor:
             s = f"\n{nl} label{'s' * (nl > 1)} saved to {self.save_dir / 'labels'}" if self.args.save_txt else ''
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
 
-        self.run_callbacks("on_predict_end")
+        self.run_callbacks('on_predict_end')
 
     def setup_model(self, model):
         device = select_device(self.args.device)

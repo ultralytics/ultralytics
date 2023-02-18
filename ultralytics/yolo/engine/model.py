@@ -235,7 +235,6 @@ class YOLO:
 
         return validator.metrics
 
-    @smart_inference_mode()
     def export(self, **kwargs):
         """
         Export model.

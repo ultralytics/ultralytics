@@ -189,6 +189,7 @@ class Exporter:
             if isinstance(m, (Detect, Segment)):
                 m.dynamic = self.args.dynamic
                 m.export = True
+                m.format = self.args.format
 
         y = None
         for _ in range(2):
@@ -239,7 +240,7 @@ class Exporter:
             if pb or tfjs:  # pb prerequisite to tfjs
                 f[6], _ = self._export_pb(s_model)
             if tflite or edgetpu:
-                f[7] = str(Path(f[5]) / (self.file.stem + '_float16.tflite'))
+                f[7] = self.file.stem + '_float16.tflite'
                 # f[7], _ = self._export_tflite(s_model,
                 #                               int8=self.args.int8 or edgetpu,
                 #                               data=self.args.data,
@@ -527,6 +528,7 @@ class Exporter:
         # Add TFLite metadata
         for file in Path(f).rglob('*.tflite'):
             self._add_tflite_metadata(file)
+            file.rename(self.file.parent / file.name)
 
         # Load saved_model
         keras_model = tf.saved_model.load(f, tags=None, options=None)

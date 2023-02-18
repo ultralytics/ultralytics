@@ -405,7 +405,7 @@ class Detect(nn.Module):
             self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.5))
             self.shape = shape
 
-        if self.export:  # EdgeTPU error on FlexSplitV ops
+        if self.export and self.format == 'edge_tpu':  # EdgeTPU error on FlexSplitV ops
             x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2)
             box = x_cat[:, :self.reg_max * 4]
             cls = x_cat[:, self.reg_max * 4:]

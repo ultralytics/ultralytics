@@ -1,11 +1,13 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
-
+from ultralytics.yolo.utils import is_pytest_running
 from ultralytics.yolo.utils.torch_utils import get_flops, get_num_params
 
 try:
     import comet_ml
 
-except ImportError:
+    assert not is_pytest_running()  # do not log pytest
+    assert comet_ml.__version__  # verify package is not directory
+except (ImportError, AssertionError):
     comet_ml = None
 
 

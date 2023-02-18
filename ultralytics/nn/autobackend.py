@@ -53,7 +53,7 @@ class AutoBackend(nn.Module):
             | PyTorch               | *.pt             |
             | TorchScript           | *.torchscript    |
             | ONNX Runtime          | *.onnx           |
-            | ONNX OpenCV DNN       | *.onnx --dnn     |
+            | ONNX OpenCV DNN       | *.onnx dnn=True  |
             | OpenVINO              | *.xml            |
             | CoreML                | *.mlmodel        |
             | TensorRT              | *.engine         |
@@ -179,6 +179,7 @@ class AutoBackend(nn.Module):
             import tensorflow as tf
             keras = False  # assume TF1 saved_model
             model = tf.keras.models.load_model(w) if keras else tf.saved_model.load(w)
+            w = Path(w) / 'metadata.yaml'
         elif pb:  # GraphDef https://www.tensorflow.org/guide/migrate#a_graphpb_or_graphpbtxt
             LOGGER.info(f'Loading {w} for TensorFlow GraphDef inference...')
             import tensorflow as tf
@@ -337,6 +338,8 @@ class AutoBackend(nn.Module):
             im = im.cpu().numpy()
             if self.saved_model:  # SavedModel
                 y = self.model(im, training=False) if self.keras else self.model(im)
+                if not isinstance(y, list):
+                    y = [y]
             elif self.pb:  # GraphDef
                 y = self.frozen_func(x=self.tf.constant(im))
             else:  # Lite or Edge TPU
@@ -354,9 +357,9 @@ class AutoBackend(nn.Module):
                         scale, zero_point = output['quantization']
                         x = (x.astype(np.float32) - zero_point) * scale  # re-scale
                     y.append(x)
-                # TF segment fixes: export is reversed vs ONNX export and protos are transposed
-                if len(self.output_details) == 2:  # segment
-                    y = [y[1], np.transpose(y[0], (0, 3, 1, 2))]
+            # TF segment fixes: export is reversed vs ONNX export and protos are transposed
+            if len(y) == 2:  # segment
+                y = [y[1], np.transpose(y[0], (0, 3, 1, 2))]
             y = [x if isinstance(x, np.ndarray) else x.numpy() for x in y]
             # y[0][..., :4] *= [w, h, w, h]  # xywh normalized to pixels
 
@@ -375,7 +378,7 @@ class AutoBackend(nn.Module):
          Returns:
              (torch.Tensor): The converted tensor
          """
-        return torch.from_numpy(x).to(self.device) if isinstance(x, np.ndarray) else x
+        return torch.tensor(x).to(self.device) if isinstance(x, np.ndarray) else x
 
     def warmup(self, imgsz=(1, 3, 640, 640)):
         """

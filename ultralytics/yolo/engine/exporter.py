@@ -637,7 +637,7 @@ class Exporter:
 
         cmd = f'tensorflowjs_converter --input_format=tf_frozen_model ' \
               f'--output_node_names=Identity,Identity_1,Identity_2,Identity_3 {f_pb} {f}'
-        subprocess.run(cmd.split())
+        subprocess.run(cmd.split(), check=True)
 
         with open(f_json, 'w') as j:  # sort JSON Identity_* in ascending order
             subst = re.sub(

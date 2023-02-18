@@ -306,7 +306,7 @@ class YOLO:
     @staticmethod
     def _reset_ckpt_args(args):
         for arg in 'augment', 'verbose', 'project', 'name', 'exist_ok', 'resume', 'batch', 'epochs', 'cache', \
-                'save_json', 'half', 'v5loader', 'device', 'cfg', 'save', 'rect', 'plots', 'opset':
+                'save_json', 'half', 'v5loader', 'device', 'cfg', 'save', 'rect', 'plots', 'opset', 'simplify':
             args.pop(arg, None)
 
     @staticmethod

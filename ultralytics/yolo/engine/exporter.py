@@ -320,13 +320,7 @@ class Exporter:
 
         # Checks
         model_onnx = onnx.load(f)  # load onnx model
-        onnx.checker.check_model(model_onnx)  # check onnx model
-
-        # Metadata
-        for k, v in self.metadata.items():
-            meta = model_onnx.metadata_props.add()
-            meta.key, meta.value = k, str(v)
-        onnx.save(model_onnx, f)
+        # onnx.checker.check_model(model_onnx)  # check onnx model
 
         # Simplify
         if self.args.simplify:
@@ -335,9 +329,18 @@ class Exporter:
                 import onnxsim
 
                 LOGGER.info(f'{prefix} simplifying with onnxsim {onnxsim.__version__}...')
-                subprocess.run(f'onnxsim {f} {f}', shell=True)
+                # subprocess.run(f'onnxsim {f} {f}', shell=True)
+                model_onnx, check = onnxsim.simplify(model_onnx)
+                assert check, "Simplified ONNX model could not be validated"
             except Exception as e:
                 LOGGER.info(f'{prefix} simplifier failure: {e}')
+
+        # Metadata
+        for k, v in self.metadata.items():
+            meta = model_onnx.metadata_props.add()
+            meta.key, meta.value = k, str(v)
+
+        onnx.save(model_onnx, f)
         return f, model_onnx
 
     @try_export
@@ -518,7 +521,7 @@ class Exporter:
         f_onnx, _ = self._export_onnx()
 
         # Export to TF SavedModel
-        subprocess.run(f'onnx2tf -i {f_onnx} -o {f} --non_verbose', shell=True)
+        subprocess.run(f'onnx2tf -i {f_onnx} -o {f} --non_verbose -nuo', shell=True)
         yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml
 
         # Add TFLite metadata

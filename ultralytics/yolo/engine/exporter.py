@@ -512,7 +512,8 @@ class Exporter:
         except ImportError:
             check_requirements(f"tensorflow{'-macos' if MACOS else '-aarch64' if ARM64 else '' if CUDA else '-cpu'}")
             import tensorflow as tf  # noqa
-        check_requirements(('onnx', 'onnx2tf', 'sng4onnx', 'onnxsim', 'onnx_graphsurgeon', 'tflite_support'),
+        check_requirements(('onnx', 'onnx2tf', 'sng4onnx', 'onnxsim', 'onnx_graphsurgeon', 'tflite_support',
+                            'onnxruntime-gpu' if CUDA else 'onnxruntime'),
                            cmds='--extra-index-url https://pypi.ngc.nvidia.com')
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')

@@ -235,7 +235,7 @@ class Exporter:
             LOGGER.warning('WARNING ⚠️ YOLOv8 TensorFlow export is still under development. '
                            'Please consider contributing to the effort if you have TF expertise. Thank you!')
             nms = False
-            self.args.int8 = edgetpu
+            self.args.int8 |= edgetpu
             f[5], s_model = self._export_saved_model(nms=nms or self.args.agnostic_nms or tfjs,
                                                      agnostic_nms=self.args.agnostic_nms or tfjs)
             if pb or tfjs:  # pb prerequisite to tfjs

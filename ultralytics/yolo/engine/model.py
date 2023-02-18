@@ -15,18 +15,16 @@ from ultralytics.yolo.utils.downloads import GITHUB_ASSET_STEMS
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 
 # Map head to model, trainer, validator, and predictor classes
-MODEL_MAP = {'classify': [ClassificationModel,
-                          'yolo.TYPE.classify.ClassificationTrainer',
-                          'yolo.TYPE.classify.ClassificationValidator',
-                          'yolo.TYPE.classify.ClassificationPredictor'],
-             'detect': [DetectionModel,
-                        'yolo.TYPE.detect.DetectionTrainer',
-                        'yolo.TYPE.detect.DetectionValidator',
-                        'yolo.TYPE.detect.DetectionPredictor'],
-             'segment': [SegmentationModel,
-                         'yolo.TYPE.segment.SegmentationTrainer',
-                         'yolo.TYPE.segment.SegmentationValidator',
-                         'yolo.TYPE.segment.SegmentationPredictor']}
+MODEL_MAP = {
+    'classify': [
+        ClassificationModel, 'yolo.TYPE.classify.ClassificationTrainer', 'yolo.TYPE.classify.ClassificationValidator',
+        'yolo.TYPE.classify.ClassificationPredictor'],
+    'detect': [
+        DetectionModel, 'yolo.TYPE.detect.DetectionTrainer', 'yolo.TYPE.detect.DetectionValidator',
+        'yolo.TYPE.detect.DetectionPredictor'],
+    'segment': [
+        SegmentationModel, 'yolo.TYPE.segment.SegmentationTrainer', 'yolo.TYPE.segment.SegmentationValidator',
+        'yolo.TYPE.segment.SegmentationPredictor']}
 
 
 class YOLO:

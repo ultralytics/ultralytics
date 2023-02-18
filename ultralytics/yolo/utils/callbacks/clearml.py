@@ -50,9 +50,7 @@ def on_fit_epoch_end(trainer):
 def on_train_end(trainer):
     task = Task.current_task()
     if task:
-        task.update_output_model(model_path=str(trainer.best),
-                                 model_name=trainer.args.name,
-                                 auto_delete_file=False)
+        task.update_output_model(model_path=str(trainer.best), model_name=trainer.args.name, auto_delete_file=False)
 
 
 callbacks = {

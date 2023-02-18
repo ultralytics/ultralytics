@@ -241,14 +241,14 @@ class Exporter:
             if pb or tfjs:  # pb prerequisite to tfjs
                 f[6], _ = self._export_pb(s_model)
             if tflite:
-                f[7] = self.file.stem + '_float16.tflite'
+                f[7] = str(Path(f[5]) / (self.file.stem + '_float16.tflite'))
                 # f[7], _ = self._export_tflite(s_model,
                 #                               int8=self.args.int8 or edgetpu,
                 #                               data=self.args.data,
                 #                               nms=nms,
                 #                               agnostic_nms=self.args.agnostic_nms)
             if edgetpu:
-                f[8], _ = self._export_edgetpu(tflite_model=self.file.stem + '_full_integer_quant.tflite')
+                f[8], _ = self._export_edgetpu(tflite_model=str(Path(f[5]) / (self.file.stem + '_full_integer_quant.tflite')))
             if tfjs:
                 f[9], _ = self._export_tfjs()
         if paddle:  # PaddlePaddle
@@ -522,15 +522,16 @@ class Exporter:
         self.args.simplify = True
         f_onnx, _ = self._export_onnx()
 
-        # Export to TF SavedModel
+        # Export to TF
         int8 = '-oiqt -qt per-tensor' if self.args.int8 else ''
-        subprocess.run(f'onnx2tf -i {f_onnx} -o {f} --non_verbose -nuo {int8} && rm {f_onnx}', shell=True)
+        cmd = f'onnx2tf -i {f_onnx} -o {f} -nuo {int8} --non_verbose'
+        LOGGER.info(f'\n{prefix} running {cmd}')
+        subprocess.run(cmd, shell=True)
         yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml
 
         # Add TFLite metadata
         for file in Path(f).rglob('*.tflite'):
             self._add_tflite_metadata(file)
-            file.rename(self.file.parent / file.name)
 
         # Load saved_model
         keras_model = tf.saved_model.load(f, tags=None, options=None)

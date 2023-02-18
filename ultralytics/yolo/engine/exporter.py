@@ -94,7 +94,7 @@ def export_formats():
         ['TensorFlow Lite', 'tflite', '.tflite', True, False],
         ['TensorFlow Edge TPU', 'edgetpu', '_edgetpu.tflite', False, False],
         ['TensorFlow.js', 'tfjs', '_web_model', False, False],
-        ['PaddlePaddle', 'paddle', '_paddle_model', True, True], ]
+        ['PaddlePaddle', 'paddle', '_paddle_model', True, True],]
     return pd.DataFrame(x, columns=['Format', 'Argument', 'Suffix', 'CPU', 'GPU'])
 
 
@@ -331,7 +331,7 @@ class Exporter:
                 LOGGER.info(f'{prefix} simplifying with onnxsim {onnxsim.__version__}...')
                 # subprocess.run(f'onnxsim {f} {f}', shell=True)
                 model_onnx, check = onnxsim.simplify(model_onnx)
-                assert check, "Simplified ONNX model could not be validated"
+                assert check, 'Simplified ONNX model could not be validated'
             except Exception as e:
                 LOGGER.info(f'{prefix} simplifier failure: {e}')
 

@@ -517,7 +517,9 @@ class Exporter:
                            cmds='--extra-index-url https://pypi.ngc.nvidia.com')
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
-        f = str(self.file).replace(self.file.suffix, '_saved_model')
+        f = Path(str(self.file).replace(self.file.suffix, '_saved_model'))
+        if f.is_dir():
+            f.unlink()
 
         # Export to ONNX
         self.args.simplify = True
@@ -528,16 +530,16 @@ class Exporter:
         cmd = f'onnx2tf -i {f_onnx} -o {f} -nuo --non_verbose {int8}'
         LOGGER.info(f'\n{prefix} running {cmd}')
         subprocess.run(cmd, shell=True)
-        yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml
+        yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml
 
         # Add TFLite metadata
-        for file in Path(f).rglob('*.tflite'):
+        for file in f.rglob('*.tflite'):
             self._add_tflite_metadata(file)
 
         # Load saved_model
         keras_model = tf.saved_model.load(f, tags=None, options=None)
 
-        return f, keras_model
+        return str(f), keras_model
 
     @try_export
     def _export_pb(self, keras_model, prefix=colorstr('TensorFlow GraphDef:')):

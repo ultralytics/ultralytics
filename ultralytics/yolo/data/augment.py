@@ -583,9 +583,10 @@ class Albumentations:
             # TODO: add supports of segments and keypoints
             if self.transform and random.random() < self.p:
                 new = self.transform(image=im, bboxes=bboxes, class_labels=cls)  # transformed
-                labels['img'] = new['image']
-                labels['cls'] = np.array(new['class_labels'])
-                bboxes = np.array(new['bboxes'])
+                if len(new['class_labels']) > 0:  # skip update if no bbox in new im
+                    labels['img'] = new['image']
+                    labels['cls'] = np.array(new['class_labels'])
+                    bboxes = np.array(new['bboxes'])
             labels['instances'].update(bboxes=bboxes)
         return labels
 

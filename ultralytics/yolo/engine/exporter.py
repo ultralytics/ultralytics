@@ -239,9 +239,7 @@ class Exporter:
             if pb or tfjs:  # pb prerequisite to tfjs
                 f[6], _ = self._export_pb(s_model)
             if tflite:
-                f[7], _ = self._export_tflite(s_model,
-                                              nms=nms,
-                                              agnostic_nms=self.args.agnostic_nms)
+                f[7], _ = self._export_tflite(s_model, nms=nms, agnostic_nms=self.args.agnostic_nms)
             if edgetpu:
                 f[8], _ = self._export_edgetpu(tflite_model=str(
                     Path(f[5]) / (self.file.stem + '_full_integer_quant.tflite')))  # int8 in/out

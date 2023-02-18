@@ -188,11 +188,11 @@ class LoadScreenshots:
 
         # Parse monitor shape
         monitor = self.sct.monitors[self.screen]
-        self.top = monitor["top"] if top is None else (monitor["top"] + top)
-        self.left = monitor["left"] if left is None else (monitor["left"] + left)
-        self.width = width or monitor["width"]
-        self.height = height or monitor["height"]
-        self.monitor = {"left": self.left, "top": self.top, "width": self.width, "height": self.height}
+        self.top = monitor['top'] if top is None else (monitor['top'] + top)
+        self.left = monitor['left'] if left is None else (monitor['left'] + left)
+        self.width = width or monitor['width']
+        self.height = height or monitor['height']
+        self.monitor = {'left': self.left, 'top': self.top, 'width': self.width, 'height': self.height}
 
     def __iter__(self):
         return self
@@ -200,7 +200,7 @@ class LoadScreenshots:
     def __next__(self):
         # mss screen capture: get raw pixels from the screen as np array
         im0 = np.array(self.sct.grab(self.monitor))[:, :, :3]  # [:, :, :3] BGRA to BGR
-        s = f"screen {self.screen} (LTWH): {self.left},{self.top},{self.width},{self.height}: "
+        s = f'screen {self.screen} (LTWH): {self.left},{self.top},{self.width},{self.height}: '
 
         if self.transforms:
             im = self.transforms(im0)  # transforms
@@ -389,8 +389,8 @@ def autocast_list(source):
 
 LOADERS = [LoadStreams, LoadPilAndNumpy, LoadImages, LoadScreenshots]
 
-if __name__ == "__main__":
-    img = cv2.imread(str(ROOT / "assets/bus.jpg"))
+if __name__ == '__main__':
+    img = cv2.imread(str(ROOT / 'assets/bus.jpg'))
     dataset = LoadPilAndNumpy(im0=img)
     for d in dataset:
         print(d[0])

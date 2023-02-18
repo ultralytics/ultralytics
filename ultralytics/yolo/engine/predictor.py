@@ -74,7 +74,7 @@ class BasePredictor:
 
         self.args = get_cfg(cfg, overrides)
         project = self.args.project or Path(SETTINGS['runs_dir']) / self.args.task
-        name = self.args.name or f"{self.args.mode}"
+        name = self.args.name or f'{self.args.mode}'
         self.save_dir = increment_path(Path(project) / name, exist_ok=self.args.exist_ok)
         if self.args.conf is None:
             self.args.conf = 0.25  # default conf=0.25
@@ -87,7 +87,6 @@ class BasePredictor:
         self.data = self.args.data  # data_dict
         self.imgsz = None
         self.device = None
-        self.classes = self.args.classes
         self.dataset = None
         self.vid_path, self.vid_writer = None, None
         self.annotator = None
@@ -106,7 +105,7 @@ class BasePredictor:
     def write_results(self, results, batch, print_string):
         raise NotImplementedError("print_results function needs to be implemented")
 
-    def postprocess(self, preds, img, orig_img, classes=None):
+    def postprocess(self, preds, img, orig_img):
         return preds
 
     @smart_inference_mode()
@@ -159,9 +158,9 @@ class BasePredictor:
             self.done_warmup = True
 
         self.seen, self.windows, self.dt, self.batch = 0, [], (ops.Profile(), ops.Profile(), ops.Profile()), None
-        self.run_callbacks("on_predict_start")
+        self.run_callbacks('on_predict_start')
         for batch in self.dataset:
-            self.run_callbacks("on_predict_batch_start")
+            self.run_callbacks('on_predict_batch_start')
             self.batch = batch
 
             if self.is_not_queue:
@@ -181,14 +180,15 @@ class BasePredictor:
 
             # postprocess
             with self.dt[2]:
-                self.results = self.postprocess(preds, im, im0s, self.classes)
-            self.run_callbacks("on_predict_postprocess_end")
+                self.results = self.postprocess(preds, im, im0s)
+            self.run_callbacks('on_predict_postprocess_end')
 
             # visualize, save, write results
             for i in range(len(im)):
                 if self.is_not_queue:
-                  p, im0 = (path[i], im0s[i].copy()) if self.source_type.webcam or self.source_type.from_img else (path,
-                                                                                                                  im0s)
+                  p, im0 = (path[i], im0s[i].copy()) if self.source_type.webcam or self.source_type.from_img \
+                    else (path, im0s.copy())
+
                   p = Path(p)
 
                   if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
@@ -202,7 +202,7 @@ class BasePredictor:
                 else:
                   im0 = im0s[i].copy() if self.source_type.webcam or self.source_type.from_img else im0s
 
-            self.run_callbacks("on_predict_batch_end")
+            self.run_callbacks('on_predict_batch_end')
             yield from self.results
 
             # Print time (inference-only)

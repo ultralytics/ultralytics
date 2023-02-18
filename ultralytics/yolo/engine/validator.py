@@ -1,5 +1,23 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
+"""
+Check a model's accuracy on a test or val split of a dataset
 
+Usage:
+    $ yolo mode=val model=yolov8n.pt data=coco128.yaml imgsz=640
+
+Usage - formats:
+    $ yolo mode=val model=yolov8n.pt                 # PyTorch
+                          yolov8n.torchscript        # TorchScript
+                          yolov8n.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
+                          yolov8n_openvino_model     # OpenVINO
+                          yolov8n.engine             # TensorRT
+                          yolov8n.mlmodel            # CoreML (macOS-only)
+                          yolov8n_saved_model        # TensorFlow SavedModel
+                          yolov8n.pb                 # TensorFlow GraphDef
+                          yolov8n.tflite             # TensorFlow Lite
+                          yolov8n_edgetpu.tflite     # TensorFlow Edge TPU
+                          yolov8n_paddle_model       # PaddlePaddle
+"""
 import json
 from collections import defaultdict
 from pathlib import Path
@@ -106,7 +124,7 @@ class BaseValidator:
                 if not pt and not jit:
                     self.args.batch = 1  # export.py models default to batch-size 1
                     self.logger.info(
-                        f'Forcing --batch-size 1 square inference (1,3,{imgsz},{imgsz}) for non-PyTorch models')
+                        f'Forcing batch=1 square inference (1,3,{imgsz},{imgsz}) for non-PyTorch models')
 
             if isinstance(self.args.data, str) and self.args.data.endswith('.yaml'):
                 self.data = check_det_dataset(self.args.data)

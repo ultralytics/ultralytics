@@ -53,7 +53,7 @@ class AutoBackend(nn.Module):
             | PyTorch               | *.pt             |
             | TorchScript           | *.torchscript    |
             | ONNX Runtime          | *.onnx           |
-            | ONNX OpenCV DNN       | *.onnx --dnn     |
+            | ONNX OpenCV DNN       | *.onnx dnn=True  |
             | OpenVINO              | *.xml            |
             | CoreML                | *.mlmodel        |
             | TensorRT              | *.engine         |

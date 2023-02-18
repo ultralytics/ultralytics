@@ -29,9 +29,7 @@ MODEL_MAP = {
 
 class YOLO:
     """
-    YOLO
-
-    A python interface which emulates a model-like behaviour by wrapping trainers.
+    YOLO model.
     """
 
     def __init__(self, model='yolov8n.pt', type='v8') -> None:

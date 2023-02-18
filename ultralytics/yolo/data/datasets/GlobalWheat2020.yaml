@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 # Global Wheat 2020 dataset http://www.global-wheat.com/ by University of Saskatchewan
-# Example usage: python train.py --data GlobalWheat2020.yaml
+# Example usage: yolo train data=GlobalWheat2020.yaml
 # parent
 # ├── yolov5
 # └── datasets

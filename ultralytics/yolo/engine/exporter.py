@@ -18,29 +18,28 @@ TensorFlow.js           | `tfjs`                    | yolov8n_web_model/
 PaddlePaddle            | `paddle`                  | yolov8n_paddle_model/
 
 Requirements:
-    $ pip install -r requirements.txt coremltools onnx onnxsim onnxruntime openvino-dev tensorflow-cpu  # CPU
-    $ pip install -r requirements.txt coremltools onnx onnxsim onnxruntime-gpu openvino-dev tensorflow  # GPU
+    $ pip install ultralytics[export]
 
 Python:
     from ultralytics import YOLO
-    model = YOLO('yolov8n.yaml')
+    model = YOLO('yolov8n.pt')
     results = model.export(format='onnx')
 
 CLI:
     $ yolo mode=export model=yolov8n.pt format=onnx
 
 Inference:
-    $ python detect.py --weights yolov8n.pt                 # PyTorch
-                                 yolov8n.torchscript        # TorchScript
-                                 yolov8n.onnx               # ONNX Runtime or OpenCV DNN with --dnn
-                                 yolov8n_openvino_model     # OpenVINO
-                                 yolov8n.engine             # TensorRT
-                                 yolov8n.mlmodel            # CoreML (macOS-only)
-                                 yolov8n_saved_model        # TensorFlow SavedModel
-                                 yolov8n.pb                 # TensorFlow GraphDef
-                                 yolov8n.tflite             # TensorFlow Lite
-                                 yolov8n_edgetpu.tflite     # TensorFlow Edge TPU
-                                 yolov8n_paddle_model       # PaddlePaddle
+    $ yolo predict model=yolov8n.pt                 # PyTorch
+                         yolov8n.torchscript        # TorchScript
+                         yolov8n.onnx               # ONNX Runtime or OpenCV DNN with --dnn
+                         yolov8n_openvino_model     # OpenVINO
+                         yolov8n.engine             # TensorRT
+                         yolov8n.mlmodel            # CoreML (macOS-only)
+                         yolov8n_saved_model        # TensorFlow SavedModel
+                         yolov8n.pb                 # TensorFlow GraphDef
+                         yolov8n.tflite             # TensorFlow Lite
+                         yolov8n_edgetpu.tflite     # TensorFlow Edge TPU
+                         yolov8n_paddle_model       # PaddlePaddle
 
 TensorFlow.js:
     $ cd .. && git clone https://github.com/zldrobit/tfjs-yolov5-example.git && cd tfjs-yolov5-example
@@ -94,7 +93,7 @@ def export_formats():
         ['TensorFlow Lite', 'tflite', '.tflite', True, False],
         ['TensorFlow Edge TPU', 'edgetpu', '_edgetpu.tflite', False, False],
         ['TensorFlow.js', 'tfjs', '_web_model', False, False],
-        ['PaddlePaddle', 'paddle', '_paddle_model', True, True],]
+        ['PaddlePaddle', 'paddle', '_paddle_model', True, True], ]
     return pd.DataFrame(x, columns=['Format', 'Argument', 'Suffix', 'CPU', 'GPU'])
 
 

@@ -29,4 +29,5 @@ yolo segment track source=... tracker=...
 ```
 
 By default, trackers will use the configuration in `ultralytics/tracker/cfg`.
-We also support using a modified tracker config file. Please refer to the tracker config files in `ultralytics/tracker/cfg`.
+We also support using a modified tracker config file. Please refer to the tracker config files
+in `ultralytics/tracker/cfg`.

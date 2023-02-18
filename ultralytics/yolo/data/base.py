@@ -12,8 +12,8 @@ import numpy as np
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
-from .utils import HELP_URL, IMG_FORMATS, LOCAL_RANK
 from ..utils import NUM_THREADS, TQDM_BAR_FORMAT
+from .utils import HELP_URL, IMG_FORMATS, LOCAL_RANK
 
 
 class BaseDataset(Dataset):
@@ -25,18 +25,18 @@ class BaseDataset(Dataset):
     """
 
     def __init__(
-            self,
-            img_path,
-            imgsz=640,
-            cache=False,
-            augment=True,
-            hyp=None,
-            prefix='',
-            rect=False,
-            batch_size=None,
-            stride=32,
-            pad=0.5,
-            single_cls=False,
+        self,
+        img_path,
+        imgsz=640,
+        cache=False,
+        augment=True,
+        hyp=None,
+        prefix='',
+        rect=False,
+        batch_size=None,
+        stride=32,
+        pad=0.5,
+        single_cls=False,
     ):
         super().__init__()
         self.img_path = img_path

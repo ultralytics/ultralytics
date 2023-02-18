@@ -123,8 +123,7 @@ class BaseValidator:
                 self.device = model.device
                 if not pt and not jit:
                     self.args.batch = 1  # export.py models default to batch-size 1
-                    self.logger.info(
-                        f'Forcing batch=1 square inference (1,3,{imgsz},{imgsz}) for non-PyTorch models')
+                    self.logger.info(f'Forcing batch=1 square inference (1,3,{imgsz},{imgsz}) for non-PyTorch models')
 
             if isinstance(self.args.data, str) and self.args.data.endswith('.yaml'):
                 self.data = check_det_dataset(self.args.data)

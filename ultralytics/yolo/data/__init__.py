@@ -13,4 +13,4 @@ __all__ = [
     'YOLODataset',
     'build_classification_dataloader',
     'build_dataloader',
-    'load_inference_source', ]
+    'load_inference_source',]

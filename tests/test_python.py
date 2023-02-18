@@ -169,7 +169,16 @@ def test_predict_callback_and_setup():
 
 def test_result():
     model = YOLO('yolov8n-seg.pt')
-    result = model([SOURCE, SOURCE])
-    result[0].cpu().numpy()
-    result_img = result[0].visualize(show_conf=False)
-    print(result_img)
+    res = model([SOURCE, SOURCE])
+    res[0].numpy()
+    res[0].cpu().numpy()
+    resimg = res[0].visualize(show_conf=False)
+    print(resimg)
+
+    model = YOLO('yolov8n.pt')
+    res = model(SOURCE)
+    res[0].visualize()
+
+    model = YOLO('yolov8n-cls.pt')
+    res = model(SOURCE)
+    res[0].visualize()

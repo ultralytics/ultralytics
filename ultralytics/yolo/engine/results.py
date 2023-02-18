@@ -135,7 +135,7 @@ class Results:
         img = deepcopy(self.orig_img)
         annotator = Annotator(img, line_width, font_size, font, pil, example)
         boxes = self.boxes
-        masks = self.masks.data
+        masks = self.masks
         logits = self.probs
         names = self.names
         if boxes is not None:

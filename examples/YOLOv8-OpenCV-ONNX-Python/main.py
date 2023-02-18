@@ -1,14 +1,17 @@
 import cv2.dnn
 import numpy as np
 
-with open('classes.txt') as f:
-    classes = f.read().split('\n')
+from ultralytics.yolo.utils import ROOT
+from ultralytics.yolo.utils.checks import check_yaml
+from ultralytics.yolo.utils import yaml_load
 
-colors = np.random.uniform(0, 255, size=(len(classes), 3))
+CLASSES = yaml_load(check_yaml("coco128.yaml"))["names"]
+
+colors = np.random.uniform(0, 255, size=(len(CLASSES), 3))
 
 
 def draw_bounding_box(img, class_id, confidence, x, y, x_plus_w, y_plus_h):
-    label = f'{classes[class_id]} ({confidence:.2f})'
+    label = f'{CLASSES[class_id]} ({confidence:.2f})'
     color = colors[class_id]
     cv2.rectangle(img, (x, y), (x_plus_w, y_plus_h), color, 2)
     cv2.putText(img, label, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
@@ -16,7 +19,7 @@ def draw_bounding_box(img, class_id, confidence, x, y, x_plus_w, y_plus_h):
 
 def main():
     model: cv2.dnn.Net = cv2.dnn.readNetFromONNX('yolov8n.onnx')
-    original_image: np.ndarray = cv2.imread('bus.jpg')
+    original_image: np.ndarray = cv2.imread(str(ROOT / "assets/bus.jpg"))
     [height, width, _] = original_image.shape
     length = max((height, width))
     image = np.zeros((length, length, 3), np.uint8)
@@ -53,7 +56,7 @@ def main():
         box = boxes[index]
         detection = {
             'class_id': class_ids[index],
-            'class_name': classes[class_ids[index]],
+            'class_name': CLASSES[class_ids[index]],
             'confidence': scores[index],
             'box': box,
             'scale': scale}

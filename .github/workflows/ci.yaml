@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ['3.10']  # requires python<=3.9
         model: [yolov8n]
     steps:
@@ -46,17 +46,17 @@ jobs:
           python --version
           pip --version
           pip list
-      - name: Benchmark detection
+      - name: Benchmark DetectionModel
         shell: python
         run: |
           from ultralytics.yolo.utils.benchmarks import run_benchmarks
           run_benchmarks(model='yolov8n.pt', imgsz=160, half=False, hard_fail=False)
-      - name: Benchmark segmentation
+      - name: Benchmark SegmentationModel
         shell: python
         run: |
           from ultralytics.yolo.utils.benchmarks import run_benchmarks
           run_benchmarks(model='yolov8n-seg.pt', imgsz=160, half=False, hard_fail=False)
-      - name: Benchmark classification
+      - name: Benchmark ClassificationModel
         shell: python
         run: |
           from ultralytics.yolo.utils.benchmarks import run_benchmarks

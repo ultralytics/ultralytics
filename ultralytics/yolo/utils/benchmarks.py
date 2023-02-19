@@ -26,12 +26,12 @@ import pandas as pd
 
 from ultralytics import YOLO
 from ultralytics.yolo.engine.exporter import export_formats
-from ultralytics.yolo.utils import LOGGER
+from ultralytics.yolo.utils import LOGGER, SETTINGS
 from ultralytics.yolo.utils.checks import check_yolo
 from ultralytics.yolo.utils.files import file_size
 
 
-def run_benchmarks(model='yolov8n.pt', imgsz=640, half=False, hard_fail=False):
+def run_benchmarks(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=640, half=False, hard_fail=False):
     model = YOLO(model)
     device = model.device
 

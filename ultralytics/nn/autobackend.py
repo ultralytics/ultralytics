@@ -328,7 +328,7 @@ class AutoBackend(nn.Module):
                 conf, cls = y['confidence'].max(1), y['confidence'].argmax(1).astype(np.float)
                 y = np.concatenate((box, conf.reshape(-1, 1), cls.reshape(-1, 1)), 1)
             elif len(y) == 1:  # classification model
-                y = y.values()
+                y = list(y.values())
             elif len(y) == 2:  # segmentation model
                 y = list(reversed(y.values()))  # reversed for segmentation models (pred, proto)
         elif self.paddle:  # PaddlePaddle

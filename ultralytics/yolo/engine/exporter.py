@@ -210,7 +210,7 @@ class Exporter:
         self.output_shape = tuple(y.shape) if isinstance(y, torch.Tensor) else tuple(tuple(x.shape) for x in y)
         self.pretty_name = self.file.stem.replace('yolo', 'YOLO')
         self.metadata = {
-            'description': f'Ultralytics {self.pretty_name} model trained on {self.args.data}',
+            'description': f'Ultralytics {self.pretty_name} model trained on {Path(self.args.data).name}',
             'author': 'Ultralytics',
             'license': 'GPL-3.0 https://ultralytics.com/license',
             'version': __version__,

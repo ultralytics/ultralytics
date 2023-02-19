@@ -12,7 +12,7 @@ def on_predict_start(predictor):
     tracker = check_yaml(predictor.args.tracker)
     cfg = IterableSimpleNamespace(**yaml_load(tracker))
     assert cfg.tracker_type in ['bytetrack', 'botsort'], \
-            f"Only support 'bytetrack' and 'botsort' for now, but got '{cfg.tracker_type}'"
+        f"Only support 'bytetrack' and 'botsort' for now, but got '{cfg.tracker_type}'"
     trackers = []
     for _ in range(predictor.dataset.bs):
         tracker = TRACKER_MAP[cfg.tracker_type](args=cfg, frame_rate=30)

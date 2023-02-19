@@ -11,9 +11,9 @@ from random import random
 
 import requests
 
-from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, ENVIRONMENT, LOGGER, RANK, SETTINGS, TryExcept, __version__,
-                                    colorstr, emojis, get_git_origin_url, is_colab, is_git_dir, is_github_actions_ci,
-                                    is_pip_package, is_pytest_running)
+from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, ENVIRONMENT, LOGGER, RANK, SETTINGS, TESTS_RUNNING, TryExcept,
+                                    __version__, colorstr, emojis, get_git_origin_url, is_colab, is_git_dir,
+                                    is_pip_package)
 from ultralytics.yolo.utils.checks import check_online
 
 PREFIX = colorstr('Ultralytics: ')
@@ -157,8 +157,7 @@ class Traces:
         self.enabled = SETTINGS['sync'] and \
                        RANK in {-1, 0} and \
                        check_online() and \
-                       not is_pytest_running() and \
-                       not is_github_actions_ci() and \
+                       not TESTS_RUNNING and \
                        (is_pip_package() or get_git_origin_url() == 'https://github.com/ultralytics/ultralytics.git')
 
     def __call__(self, cfg, all_keys=False, traces_sample_rate=1.0):

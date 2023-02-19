@@ -4,7 +4,6 @@ from functools import lru_cache
 import numpy as np
 import torch
 import torchvision.transforms.functional as F
-from PIL import Image
 
 from ultralytics.yolo.utils import LOGGER, ops
 from ultralytics.yolo.utils.plotting import Annotator, colors
@@ -136,7 +135,7 @@ class Results:
         img = deepcopy(self.orig_img)
         annotator = Annotator(img, line_width, font_size, font, pil, example)
         boxes = self.boxes
-        masks = self.masks.data
+        masks = self.masks
         logits = self.probs
         names = self.names
         if boxes is not None:

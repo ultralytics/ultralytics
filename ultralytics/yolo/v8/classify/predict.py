@@ -22,7 +22,7 @@ class ClassificationPredictor(BasePredictor):
         results = []
         for i, pred in enumerate(preds):
             orig_img = orig_img[i] if isinstance(orig_img, list) else orig_img
-            results.append(Results(probs=pred.softmax(0), orig_img=orig_img, names=self.model.names))
+            results.append(Results(probs=pred, orig_img=orig_img, names=self.model.names))
 
         return results
 

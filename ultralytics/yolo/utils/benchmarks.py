@@ -27,6 +27,7 @@ import time
 from pathlib import Path
 
 import pandas as pd
+import torch
 
 from ultralytics import YOLO
 from ultralytics.yolo.engine.exporter import export_formats
@@ -35,9 +36,13 @@ from ultralytics.yolo.utils.checks import check_yolo
 from ultralytics.yolo.utils.files import file_size
 
 
-def run_benchmarks(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=640, half=False, hard_fail=False):
+def run_benchmarks(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
+                   imgsz=640,
+                   half=False,
+                   device='cpu',
+                   hard_fail=False):
+    device = torch.device(device)
     model = YOLO(model)
-    device = model.device
 
     y = []
     t0 = time.time()
@@ -56,7 +61,7 @@ def run_benchmarks(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=640
                 filename = model.ckpt_path
                 export = model  # PyTorch format
             else:
-                filename = model.export(imgsz=imgsz, format=format, half=half)  # all others
+                filename = model.export(imgsz=imgsz, format=format, half=half, device=device)  # all others
                 export = YOLO(filename)
             assert suffix in str(filename), 'export failed'
 
@@ -70,8 +75,7 @@ def run_benchmarks(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=640
 
             results = export.val(data=data, batch=1, imgsz=imgsz, plots=False, device=device, half=half, verbose=False)
             metric, speed = results.results_dict[key], results.speed['inference']
-            y.append([name, '✅', round(file_size(filename), 1),
-                      round(metric, 4), round(speed, 2)])  # MB, mAP, t_inference
+            y.append([name, '✅', round(file_size(filename), 1), round(metric, 4), round(speed, 2)])
         except Exception as e:
             if hard_fail:
                 assert type(e) is AssertionError, f'Benchmark --hard-fail for {name}: {e}'
@@ -80,7 +84,7 @@ def run_benchmarks(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=640
 
     # Print results
     LOGGER.info('\n')
-    check_yolo()  # print system info
+    check_yolo(device=device)  # print system info
     c = ['Format', 'Status❔', 'Size (MB)', key, 'Inference time (ms/im)'] if map else ['Format', 'Export', '', '']
     df = pd.DataFrame(y, columns=c)
     LOGGER.info(f'\nBenchmarks complete for {Path(model.ckpt_path).name} on {data} at imgsz={imgsz} '

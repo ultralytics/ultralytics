@@ -365,7 +365,10 @@ class AutoBackend(nn.Module):
                         x = (x.astype(np.float32) - zero_point) * scale  # re-scale
                     y.append(x)
             # TF segment fixes: export is reversed vs ONNX export and protos are transposed
-            if len(y) == 2 and len(y[0].shape) == 4:  # segment with (det, proto) output order reversed
+            if len(y) == 2:  # segment with (det, proto) output order reversed
+                for x in y:
+                    print(type(x), len(x)) if isinstance(x, (list, tuple)) else print(type(x), x.shape)
+
                 y[0] = np.transpose(y[0], (0, 3, 1, 2))
                 y = list(reversed(y))
             y = [x if isinstance(x, np.ndarray) else x.numpy() for x in y]

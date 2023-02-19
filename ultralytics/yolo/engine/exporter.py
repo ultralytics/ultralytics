@@ -404,7 +404,7 @@ class Exporter:
         if self.model.task == 'classify':
             bias = [-x for x in IMAGENET_MEAN]
             scale = 1 / 255 / (sum(IMAGENET_STD) / 3)
-            classifier_config = ct.ClassifierConfig(list(self.model.names.values()))
+            classifier_config = ct.ClassifierConfig(list(self.model.names.values())) if self.args.nms else None
         else:
             bias = [0.0, 0.0, 0.0]
             scale = 1 / 255

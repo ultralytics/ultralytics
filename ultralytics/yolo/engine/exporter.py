@@ -63,7 +63,7 @@ import pandas as pd
 import torch
 
 from ultralytics.nn.autobackend import check_class_names
-from ultralytics.nn.modules import Detect, Segment, C2f
+from ultralytics.nn.modules import C2f, Detect, Segment
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages

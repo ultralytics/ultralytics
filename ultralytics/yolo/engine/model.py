@@ -128,11 +128,12 @@ class YOLO:
             self.task = self.model.args['task']
             self.overrides = self.model.args
             self._reset_ckpt_args(self.overrides)
+            self.ckpt_path = self.model.pt_path
         else:
-            check_file(weights)
+            weights = check_file(weights)
             self.model, self.ckpt = weights, None
             self.task = guess_model_task(weights)
-        self.ckpt_path = weights
+            self.ckpt_path = weights
         self.overrides['model'] = weights
         self.ModelClass, self.TrainerClass, self.ValidatorClass, self.PredictorClass = self._assign_ops_from_task()
 

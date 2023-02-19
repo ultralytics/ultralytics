@@ -67,21 +67,23 @@ def run_benchmarks(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=640
 
             results = export.val(data=data, batch=1, imgsz=imgsz, plots=False, device=device, half=half, verbose=False)
             metric, speed = results.results_dict[key], results.speed['inference']
-            y.append([name, round(file_size(filename), 1), round(metric, 4), round(speed, 2)])  # MB, mAP, t_inference
+            y.append(
+                [name, '✅', round(file_size(filename), 1), round(metric, 4), round(speed, 2)])  # MB, mAP, t_inference
         except Exception as e:
             if hard_fail:
                 assert type(e) is AssertionError, f'Benchmark --hard-fail for {name}: {e}'
-            LOGGER.warning(f'WARNING ⚠️ Benchmark failure for {name}: {e}')
-            y.append([name, None, None, None])  # mAP, t_inference
+            LOGGER.warning(f'ERROR ❌️Benchmark failure for {name}: {e}')
+            y.append([name, '❌', None, None, None])  # mAP, t_inference
 
     # Print results
     LOGGER.info('\n')
     check_yolo()  # print system info
-    c = ['Format', 'Size (MB)', key, 'Inference time (ms/im)'] if map else ['Format', 'Export', '', '']
-    results = pd.DataFrame(y, columns=c)
+    c = ['Format', 'Export', 'Size (MB)', key, 'Inference time (ms/im)'] if map else ['Format', 'Export', '', '']
+    df = pd.DataFrame(y, columns=c)
     LOGGER.info(f'\nBenchmarks complete for {Path(model.ckpt_path).name} on {data} at imgsz={imgsz} '
                 f'({time.time() - t0:.2f}s)')
-    LOGGER.info(str(results if map else results.iloc[:, :2]))
+    LOGGER.info(str(df if map else df.iloc[:, :2]))
+
     if hard_fail and isinstance(hard_fail, str):
         metrics = results['mAP50-95'].array  # values to compare to floor
         floor = eval(hard_fail)  # minimum metric floor to pass, i.e. = 0.29 mAP for YOLOv5n

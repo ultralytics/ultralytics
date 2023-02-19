@@ -366,7 +366,8 @@ class AutoBackend(nn.Module):
                     y.append(x)
             # TF segment fixes: export is reversed vs ONNX export and protos are transposed
             if len(y) == 2 and len(y[0].shape) == 4:  # segment with (det, proto) output order reversed
-                y = [y[1], np.transpose(y[0], (0, 3, 1, 2))]
+                y = list(reversed(y))
+            y[1] = np.transpose(y[1], (0, 3, 1, 2))
             y = [x if isinstance(x, np.ndarray) else x.numpy() for x in y]
             # y[0][..., :4] *= [w, h, w, h]  # xywh normalized to pixels
 

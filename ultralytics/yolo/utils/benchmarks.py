@@ -41,7 +41,7 @@ def run_benchmarks(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
                    half=False,
                    device='cpu',
                    hard_fail=False):
-    device = torch.device(device)
+    device = torch.device(int(device) if device.isnumeric() else device)
     model = YOLO(model)
 
     y = []

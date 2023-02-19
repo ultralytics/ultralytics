@@ -65,7 +65,7 @@ def run_benchmarks(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=640
             elif model.task == 'classify':
                 data, key = 'imagenette160', 'metrics/accuracy_top5'
 
-            results = export.val(data=data, batch=1, imgsz=imgsz, plots=False, device=device, half=half)
+            results = export.val(data=data, batch=1, imgsz=imgsz, plots=False, device=device, half=half, verbose=False)
             metric, speed = results.results_dict[key], results.speed['inference']
             y.append([name, round(file_size(filename), 1), round(metric, 4), round(speed, 2)])  # MB, mAP, t_inference
         except Exception as e:

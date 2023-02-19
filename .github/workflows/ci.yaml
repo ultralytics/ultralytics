@@ -35,6 +35,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip wheel
           pip install -e . coremltools openvino-dev tensorflow-cpu paddlepaddle x2paddle --extra-index-url https://download.pytorch.org/whl/cpu
+          yolo export format=tflite
       - name: Check environment
         run: |
           echo "RUNNER_OS is ${{ runner.os }}"

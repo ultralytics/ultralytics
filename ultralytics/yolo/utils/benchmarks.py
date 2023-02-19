@@ -72,7 +72,7 @@ def run_benchmarks(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=640
         except Exception as e:
             if hard_fail:
                 assert type(e) is AssertionError, f'Benchmark --hard-fail for {name}: {e}'
-            LOGGER.warning(f'ERROR ❌️Benchmark failure for {name}: {e}')
+            LOGGER.warning(f'ERROR ❌️ Benchmark failure for {name}: {e}')
             y.append([name, '❌', None, None, None])  # mAP, t_inference
 
     # Print results

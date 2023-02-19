@@ -71,7 +71,7 @@ def run_benchmarks(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
             elif model.task == 'segment':
                 data, key = 'coco128-seg.yaml', 'metrics/mAP50-95(M)'
             elif model.task == 'classify':
-                data, key = 'imagenette160', 'metrics/accuracy_top5'
+                data, key = 'imagenet100', 'metrics/accuracy_top5'
 
             results = export.val(data=data, batch=1, imgsz=imgsz, plots=False, device=device, half=half, verbose=False)
             metric, speed = results.results_dict[key], results.speed['inference']

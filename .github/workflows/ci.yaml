@@ -148,9 +148,9 @@ jobs:
       - name: Test classification
         shell: bash  # for Windows compatibility
         run: |
-          yolo task=classify mode=train data=mnist160 model=yolov8n-cls.yaml epochs=1 imgsz=32
-          yolo task=classify mode=train data=mnist160 model=yolov8n-cls.pt epochs=1 imgsz=32
-          yolo task=classify mode=val data=mnist160 model=runs/classify/train/weights/last.pt imgsz=32
+          yolo task=classify mode=train data=imagenet10 model=yolov8n-cls.yaml epochs=1 imgsz=32
+          yolo task=classify mode=train data=imagenet10 model=yolov8n-cls.pt epochs=1 imgsz=32
+          yolo task=classify mode=val data=imagenet10 model=runs/classify/train/weights/last.pt imgsz=32
           yolo task=classify mode=predict model=runs/classify/train/weights/last.pt imgsz=32 source=ultralytics/assets/bus.jpg
           yolo mode=export model=runs/classify/train/weights/last.pt imgsz=32 format=torchscript
       - name: Pytest tests

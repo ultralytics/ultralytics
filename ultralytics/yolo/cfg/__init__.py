@@ -256,7 +256,7 @@ def entrypoint(debug=''):
 
     # Defaults
     task2model = dict(detect='yolov8n.pt', segment='yolov8n-seg.pt', classify='yolov8n-cls.pt')
-    task2data = dict(detect='coco128.yaml', segment='coco128-seg.yaml', classify='mnist160')
+    task2data = dict(detect='coco128.yaml', segment='coco128-seg.yaml', classify='imagenet100')
 
     # Mode
     mode = overrides.get('mode', None)

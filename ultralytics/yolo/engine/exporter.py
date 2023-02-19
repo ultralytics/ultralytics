@@ -63,7 +63,7 @@ import pandas as pd
 import torch
 
 from ultralytics.nn.autobackend import check_class_names
-from ultralytics.nn.modules import Detect, Segment
+from ultralytics.nn.modules import Detect, Segment, C2f
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages
@@ -188,6 +188,9 @@ class Exporter:
                 m.dynamic = self.args.dynamic
                 m.export = True
                 m.format = self.args.format
+            elif isinstance(m, C2f) and not edgetpu:
+                # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
+                m.forward = m.forward_split
 
         y = None
         for _ in range(2):

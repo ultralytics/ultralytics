@@ -101,8 +101,7 @@ class AutoBackend(nn.Module):
             model.half() if fp16 else model.float()
             if extra_files['config.txt']:  # load metadata dict
                 d = json.loads(extra_files['config.txt'],
-                               object_hook=lambda d: {int(k) if k.isdigit() else k: v
-                                                      for k, v in d.items()})
+                               object_hook=lambda d: {int(k) if k.isdigit() else k: v for k, v in d.items()})
                 stride, names = int(d['stride']), d['names']
         elif dnn:  # ONNX OpenCV DNN
             LOGGER.info(f'Loading {w} for ONNX OpenCV DNN inference...')
@@ -142,13 +141,9 @@ class AutoBackend(nn.Module):
             logger = trt.Logger(trt.Logger.INFO)
             # Read file
             with open(w, 'rb') as f, trt.Runtime(logger) as runtime:
-                # Read metadata length
-                meta_len = int.from_bytes(f.read(4), byteorder='little')
-                # Read metadata
-                meta = json.loads(f.read(meta_len).decode('utf-8'))
-                stride, names = int(meta['stride']), meta['names']
-                # Read engine
-                model = runtime.deserialize_cuda_engine(f.read())
+                meta_len = int.from_bytes(f.read(4), byteorder='little')  # read metadata length
+                meta = json.loads(f.read(meta_len).decode('utf-8'))  # read metadata
+                model = runtime.deserialize_cuda_engine(f.read())  # read engine
             context = model.create_execution_context()
             bindings = OrderedDict()
             output_names = []
@@ -170,6 +165,7 @@ class AutoBackend(nn.Module):
                 bindings[name] = Binding(name, dtype, shape, im, int(im.data_ptr()))
             binding_addrs = OrderedDict((n, d.ptr) for n, d in bindings.items())
             batch_size = bindings['images'].shape[0]  # if dynamic, this is instead max batch size
+            stride, names = int(meta['stride']), meta['names']
         elif coreml:  # CoreML
             LOGGER.info(f'Loading {w} for CoreML inference...')
             import coremltools as ct
@@ -342,6 +338,9 @@ class AutoBackend(nn.Module):
                     y = [y]
             elif self.pb:  # GraphDef
                 y = self.frozen_func(x=self.tf.constant(im))
+                if len(y) == 2 and len(self.names) == 999:  # segments and names not defined
+                    nc = y[1].shape[1] - y[0].shape[3] - 4  # y = (1, 160, 160, 32), (1, 116, 8400)
+                    self.names = {i: f'class{i}' for i in range(nc)}
             else:  # Lite or Edge TPU
                 input = self.input_details[0]
                 int8 = input['dtype'] == np.uint8  # is TFLite quantized uint8 model
@@ -358,11 +357,13 @@ class AutoBackend(nn.Module):
                         x = (x.astype(np.float32) - zero_point) * scale  # re-scale
                     y.append(x)
             # TF segment fixes: export is reversed vs ONNX export and protos are transposed
-            if len(y) == 2:  # segment
+            if len(y) == 2 and len(y[0].shape) == 4:  # segment with (det, proto) output order reversed
                 y = [y[1], np.transpose(y[0], (0, 3, 1, 2))]
             y = [x if isinstance(x, np.ndarray) else x.numpy() for x in y]
             # y[0][..., :4] *= [w, h, w, h]  # xywh normalized to pixels
 
+        # for x in y:
+        #     print(type(x), len(x)) if isinstance(x, (list, tuple)) else print(type(x), x.shape)  # debug shapes
         if isinstance(y, (list, tuple)):
             return self.from_numpy(y[0]) if len(y) == 1 else [self.from_numpy(x) for x in y]
         else:

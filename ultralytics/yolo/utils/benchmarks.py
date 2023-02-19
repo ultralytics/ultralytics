@@ -26,7 +26,7 @@ import pandas as pd
 
 from ultralytics import YOLO
 from ultralytics.yolo.engine.exporter import export_formats
-from ultralytics.yolo.utils import (LOGGER)
+from ultralytics.yolo.utils import LOGGER
 from ultralytics.yolo.utils.checks import check_yolo
 from ultralytics.yolo.utils.files import file_size
 

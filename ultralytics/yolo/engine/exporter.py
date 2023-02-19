@@ -667,26 +667,12 @@ class Exporter:
         from tflite_support import metadata as _metadata  # noqa
         from tflite_support import metadata_schema_py_generated as _metadata_fb  # noqa
 
-        # Creates model info.
+        # Create model info
         model_meta = _metadata_fb.ModelMetadataT()
         model_meta.name = self.metadata['description']
         model_meta.version = self.metadata['version']
         model_meta.author = self.metadata['author']
         model_meta.license = self.metadata['license']
-
-        # Creates input info.
-        input_meta = _metadata_fb.TensorMetadataT()
-        input_meta.name = 'image'
-        input_meta.description = 'Input image to be detected.'
-        input_meta.content = _metadata_fb.ContentT()
-        input_meta.content.contentProperties = _metadata_fb.ImagePropertiesT()
-        input_meta.content.contentProperties.colorSpace = _metadata_fb.ColorSpaceType.RGB
-        input_meta.content.contentPropertiesType = _metadata_fb.ContentProperties.ImageProperties
-
-        # Creates output info.
-        output_meta = _metadata_fb.TensorMetadataT()
-        output_meta.name = 'output'
-        output_meta.description = 'Coordinates of detected objects, class labels, and confidence score.'
 
         # Label file
         tmp_file = Path('/tmp/meta.txt')
@@ -696,12 +682,31 @@ class Exporter:
         label_file = _metadata_fb.AssociatedFileT()
         label_file.name = tmp_file.name
         label_file.type = _metadata_fb.AssociatedFileType.TENSOR_AXIS_LABELS
-        output_meta.associatedFiles = [label_file]
 
-        # Creates subgraph info.
+        # Create input info
+        input_meta = _metadata_fb.TensorMetadataT()
+        input_meta.name = 'image'
+        input_meta.description = 'Input image to be detected.'
+        input_meta.content = _metadata_fb.ContentT()
+        input_meta.content.contentProperties = _metadata_fb.ImagePropertiesT()
+        input_meta.content.contentProperties.colorSpace = _metadata_fb.ColorSpaceType.RGB
+        input_meta.content.contentPropertiesType = _metadata_fb.ContentProperties.ImageProperties
+
+        # Create output info
+        output1 = _metadata_fb.TensorMetadataT()
+        output1.name = 'output'
+        output1.description = 'Coordinates of detected objects, class labels, and confidence score'
+        output1.associatedFiles = [label_file]
+        if self.model.task == 'segment':
+            output2 = _metadata_fb.TensorMetadataT()
+            output2.name = 'output'
+            output2.description = 'Mask protos'
+            output2.associatedFiles = [label_file]
+
+        # Create subgraph info
         subgraph = _metadata_fb.SubGraphMetadataT()
         subgraph.inputTensorMetadata = [input_meta]
-        subgraph.outputTensorMetadata = [output_meta]
+        subgraph.outputTensorMetadata = [output1, output2] if self.model.task == 'segment' else [output1]
         model_meta.subgraphMetadata = [subgraph]
 
         b = flatbuffers.Builder(0)

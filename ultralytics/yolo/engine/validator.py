@@ -153,7 +153,7 @@ class BaseValidator:
         for batch_i, batch in enumerate(bar):
             self.run_callbacks('on_val_batch_start')
             self.batch_i = batch_i
-            # pre-process
+            # preprocess
             with dt[0]:
                 batch = self.preprocess(batch)
 
@@ -166,7 +166,7 @@ class BaseValidator:
                 if self.training:
                     self.loss += trainer.criterion(preds, batch)[1]
 
-            # pre-process predictions
+            # postprocess
             with dt[3]:
                 preds = self.postprocess(preds)
 
@@ -180,13 +180,14 @@ class BaseValidator:
         self.check_stats(stats)
         self.print_results()
         self.speed = tuple(x.t / len(self.dataloader.dataset) * 1E3 for x in dt)  # speeds per image
+        self.finalize_metrics()
         self.run_callbacks('on_val_end')
         if self.training:
             model.float()
             results = {**stats, **trainer.label_loss_items(self.loss.cpu() / len(self.dataloader), prefix='val')}
             return {k: round(float(v), 5) for k, v in results.items()}  # return results as 5 decimal place floats
         else:
-            self.logger.info('Speed: %.1fms pre-process, %.1fms inference, %.1fms loss, %.1fms post-process per image' %
+            self.logger.info('Speed: %.1fms preprocess, %.1fms inference, %.1fms loss, %.1fms postprocess per image' %
                              self.speed)
             if self.args.save_json and self.jdict:
                 with open(str(self.save_dir / 'predictions.json'), 'w') as f:
@@ -212,6 +213,9 @@ class BaseValidator:
         pass
 
     def update_metrics(self, preds, batch):
+        pass
+
+    def finalize_metrics(self, *args, **kwargs):
         pass
 
     def get_stats(self):

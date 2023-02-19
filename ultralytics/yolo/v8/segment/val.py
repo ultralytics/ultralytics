@@ -119,6 +119,9 @@ class SegmentationValidator(DetectionValidator):
             # if self.args.save_txt:
             #    save_one_txt(predn, save_conf, shape, file=save_dir / 'labels' / f'{path.stem}.txt')
 
+    def finalize_metrics(self, *args, **kwargs):
+        self.metrics.speed = dict(zip(self.metrics.speed.keys(), self.speed))
+
     def _process_batch(self, detections, labels, pred_masks=None, gt_masks=None, overlap=False, masks=False):
         """
         Return correct prediction matrix

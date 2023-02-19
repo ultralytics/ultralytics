@@ -310,6 +310,13 @@ class YOLO:
         return self.model.names if hasattr(self.model, 'names') else None
 
     @property
+    def device(self):
+        """
+        Returns device if PyTorch model
+        """
+        return next(self.model.parameters()).device if isinstance(self.model, nn.Module) else None
+
+    @property
     def transforms(self):
         """
          Returns transform of the loaded model.
@@ -323,7 +330,6 @@ class YOLO:
         """
         if not self.metrics_data:
             LOGGER.info('No metrics data found! Run training or validation operation first.')
-
         return self.metrics_data
 
     @staticmethod

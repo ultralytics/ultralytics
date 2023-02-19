@@ -85,7 +85,7 @@ def run_benchmarks(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=640
     LOGGER.info(str(df if map else df.iloc[:, :2]))
 
     if hard_fail and isinstance(hard_fail, str):
-        metrics = results['mAP50-95'].array  # values to compare to floor
+        metrics = df[key].array  # values to compare to floor
         floor = eval(hard_fail)  # minimum metric floor to pass, i.e. = 0.29 mAP for YOLOv5n
         assert all(x > floor for x in metrics if pd.notna(x)), f'HARD FAIL: metric < floor {floor}'
 

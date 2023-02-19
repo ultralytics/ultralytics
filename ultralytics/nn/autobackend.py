@@ -368,9 +368,9 @@ class AutoBackend(nn.Module):
             if len(y) == 2:  # segment with (det, proto) output order reversed
                 for x in y:
                     print(type(x), len(x)) if isinstance(x, (list, tuple)) else print(type(x), x.shape)
-
+                if len(y[0].shape) == 4:
+                    y = list(reversed(y))
                 y[0] = np.transpose(y[0], (0, 3, 1, 2))
-                y = list(reversed(y))
             y = [x if isinstance(x, np.ndarray) else x.numpy() for x in y]
             # y[0][..., :4] *= [w, h, w, h]  # xywh normalized to pixels
 

@@ -78,7 +78,7 @@ def run_benchmarks(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=640
     # Print results
     LOGGER.info('\n')
     check_yolo()  # print system info
-    c = ['Format', 'Export', 'Size (MB)', key, 'Inference time (ms/im)'] if map else ['Format', 'Export', '', '']
+    c = ['Format', 'Status❔', 'Size (MB)', key, 'Inference time (ms/im)'] if map else ['Format', 'Export', '', '']
     df = pd.DataFrame(y, columns=c)
     LOGGER.info(f'\nBenchmarks complete for {Path(model.ckpt_path).name} on {data} at imgsz={imgsz} '
                 f'({time.time() - t0:.2f}s)')

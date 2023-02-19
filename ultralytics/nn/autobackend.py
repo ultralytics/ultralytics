@@ -366,11 +366,11 @@ class AutoBackend(nn.Module):
                     y.append(x)
             # TF segment fixes: export is reversed vs ONNX export and protos are transposed
             if len(y) == 2:  # segment with (det, proto) output order reversed
+                if len(y[1].shape) != 4:
+                    y = list(reversed(y))  # should be y = (1, 116, 8400), (1, 160, 160, 32)
+                y[1] = np.transpose(y[1], (0, 3, 1, 2))  # should be y = (1, 116, 8400), (1, 32, 160, 160)
                 for x in y:
                     print(type(x), len(x)) if isinstance(x, (list, tuple)) else print(type(x), x.shape)
-                if len(y[0].shape) == 4:
-                    y = list(reversed(y))
-                y[0] = np.transpose(y[0], (0, 3, 1, 2))
             y = [x if isinstance(x, np.ndarray) else x.numpy() for x in y]
             # y[0][..., :4] *= [w, h, w, h]  # xywh normalized to pixels
 

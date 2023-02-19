@@ -675,9 +675,9 @@ class Exporter:
         model_meta.license = self.metadata['license']
 
         # Label file
-        tmp_file = Path('/tmp/meta.txt')
-        with open(tmp_file, 'w') as meta_f:
-            meta_f.write(str(self.metadata))
+        tmp_file = file.parent / 'temp_meta.txt'
+        with open(tmp_file, 'w') as f:
+            f.write(str(self.metadata))
 
         label_file = _metadata_fb.AssociatedFileT()
         label_file.name = tmp_file.name

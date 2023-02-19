@@ -2,6 +2,10 @@
 """
 Benchmark a YOLO model formats for speed and accuracy
 
+Usage:
+    from ultralytics.yolo.utils.benchmarks import run_benchmarks
+    run_benchmarks(model='yolov8n.pt', imgsz=160)
+
 Format                  | `format=argument`         | Model
 ---                     | ---                       | ---
 PyTorch                 | -                         | yolov8n.pt
@@ -57,7 +61,6 @@ def run_benchmarks(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=640
             assert suffix in str(filename), 'export failed'
 
             # Validate
-            metric, speed = 0, 0
             if model.task == 'detect':
                 data, key = 'coco128.yaml', 'metrics/mAP50-95(B)'
             elif model.task == 'segment':

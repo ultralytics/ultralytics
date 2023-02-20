@@ -105,6 +105,7 @@ nav:
   - Tasks:
       - Detection: tasks/detection.md
       - Segmentation: tasks/segmentation.md
+      - Multi-Object Tracking: tasks/tracking.md
       - Classification: tasks/classification.md
   - Usage:
       - CLI: cli.md

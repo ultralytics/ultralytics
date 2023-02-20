@@ -95,6 +95,7 @@ class BasePredictor:
         self.data_path = None
         self.source_type = None
         self.is_not_queue = True
+        self.batch = None
         self.callbacks = defaultdict(list, callbacks.default_callbacks)  # add callbacks
         callbacks.add_integration_callbacks(self)
 

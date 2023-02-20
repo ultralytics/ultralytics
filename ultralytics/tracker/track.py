@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license
+
 import torch
 
 from ultralytics.tracker import BOTSORT, BYTETracker

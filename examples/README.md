@@ -2,10 +2,11 @@ This is a list of real-world applications and walkthroughs. These can be folders
 
 ## Ultralytics YOLO example applications
 
-| Title                                                           | Format             | Contributor                                         |
-| --------------------------------------------------------------- | ------------------ | --------------------------------------------------- |
-| [Yolov8/yolov5 ONNX Inference with C++](./YOLOv8-CPP-Inference) | C++/ONNX           | [Justas Bartnykas](https://github.com/JustasBart)   |
-| [YOLOv8-OpenCV-ONNX-Python](./YOLOv8-OpenCV-ONNX-Python)        | OpenCV/Python/ONNX | [Farid Inawan](https://github.com/frdteknikelektro) |
+| Title                                                                    | Format             | Contributor                                         |
+| ------------------------------------------------------------------------ | ------------------ | --------------------------------------------------- |
+| [YOLO ONNX detection Inference with C++](./YOLOv8_CPP_Inference)         | C++/ONNX           | [Justas Bartnykas](https://github.com/JustasBart)   |
+| [YOLO OpenCV ONNX detection Python](./YOLOv8-OpenCV-ONNX-Python)         | OpenCV/Python/ONNX | [Farid Inawan](https://github.com/frdteknikelektro) |
+| [YOLO .Net ONNX detection C#](https://www.nuget.org/packages/Yolov8.Net) | C# .Net            | [Samuel Stainback](https://github.com/sstainba)     |
 
 ## How can you contribute ?
 

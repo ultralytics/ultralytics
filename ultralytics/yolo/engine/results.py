@@ -147,9 +147,9 @@ class Results:
                 annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
 
         if masks is not None:
-            im_gpu = torch.as_tensor(img, dtype=torch.float16).permute(2, 0, 1).flip(0).contiguous()
-            im_gpu = F.resize(im_gpu, masks.data.shape[1:]) / 255
-            annotator.masks(masks.data, colors=[colors(x, True) for x in boxes.cls], im_gpu=im_gpu)
+            im = torch.as_tensor(img, dtype=torch.float16, device=masks.data.device).permute(2, 0, 1).flip(0)
+            im = F.resize(im.contiguous(), masks.data.shape[1:]) / 255
+            annotator.masks(masks.data, colors=[colors(x, True) for x in boxes.cls], im_gpu=im)
 
         if logits is not None:
             top5i = logits.argsort(0, descending=True)[:5].tolist()  # top 5 indices

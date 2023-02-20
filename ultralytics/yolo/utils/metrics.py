@@ -512,6 +512,7 @@ class DetMetrics:
         self.plot = plot
         self.names = names
         self.box = Metric()
+        self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
 
     def process(self, tp, conf, pred_cls, target_cls):
         results = ap_per_class(tp, conf, pred_cls, target_cls, plot=self.plot, save_dir=self.save_dir,
@@ -554,6 +555,7 @@ class SegmentMetrics:
         self.names = names
         self.box = Metric()
         self.seg = Metric()
+        self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
 
     def process(self, tp_m, tp_b, conf, pred_cls, target_cls):
         results_mask = ap_per_class(tp_m,
@@ -612,6 +614,7 @@ class ClassifyMetrics:
     def __init__(self) -> None:
         self.top1 = 0
         self.top5 = 0
+        self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
 
     def process(self, targets, pred):
         # target classes and predicted classes

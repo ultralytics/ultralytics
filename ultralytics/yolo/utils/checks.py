@@ -194,8 +194,12 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
         try:
             pkg.require(r)
         except (pkg.VersionConflict, pkg.DistributionNotFound):  # exception if requirements not met
-            s += f'"{r}" '
-            n += 1
+            try:  # attempt to import (slower but more accurate)
+                import importlib
+                importlib.import_module(next(pkg.parse_requirements(r)).name)
+            except ImportError:
+                s += f'"{r}" '
+                n += 1
 
     if s and install and AUTOINSTALL:  # check environment variable
         LOGGER.info(f"{prefix} YOLOv8 requirement{'s' * (n > 1)} {s}not found, attempting AutoUpdate...")
@@ -250,7 +254,7 @@ def check_file(file, suffix='', download=True):
         return file
     else:  # search
         files = []
-        for d in 'models', 'yolo/data', 'tracker/cfg':  # search directories
+        for d in 'models', 'datasets', 'tracker/cfg':  # search directories
             files.extend(glob.glob(str(ROOT / d / '**' / file), recursive=True))  # find file
         if not files:
             raise FileNotFoundError(f"'{file}' does not exist")
@@ -280,7 +284,7 @@ def check_imshow(warn=False):
         return False
 
 
-def check_yolo(verbose=True):
+def check_yolo(verbose=True, device=''):
     from ultralytics.yolo.utils.torch_utils import select_device
 
     if is_colab():
@@ -298,7 +302,7 @@ def check_yolo(verbose=True):
     else:
         s = ''
 
-    select_device(newline=False)
+    select_device(device=device, newline=False)
     LOGGER.info(f'Setup complete ✅ {s}')
 
 

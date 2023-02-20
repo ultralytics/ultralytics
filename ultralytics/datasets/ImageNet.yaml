@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 # ImageNet-1k dataset https://www.image-net.org/index.php by Stanford University
 # Simplified class names from https://github.com/anishathalye/imagenet-simple-labels
-# Example usage: python classify/train.py --data imagenet
+# Example usage: yolo train task=classify data=imagenet
 # parent
 # ├── yolov5
 # └── datasets
@@ -2022,4 +2022,4 @@ map:
 
 
 # Download script/URL (optional)
-download: data/scripts/get_imagenet.sh
+download: yolo/data/scripts/get_imagenet.sh

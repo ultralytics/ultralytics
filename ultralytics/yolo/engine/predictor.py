@@ -1,30 +1,32 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 """
 Run prediction on images, videos, directories, globs, YouTube, webcam, streams, etc.
+
 Usage - sources:
-    $ yolo task=... mode=predict  model=s.pt --source 0                         # webcam
-                                                img.jpg                         # image
-                                                vid.mp4                         # video
-                                                screen                          # screenshot
-                                                path/                           # directory
-                                                list.txt                        # list of images
-                                                list.streams                    # list of streams
-                                                'path/*.jpg'                    # glob
-                                                'https://youtu.be/Zgi9g1ksQHc'  # YouTube
-                                                'rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP stream
+    $ yolo mode=predict model=yolov8n.pt --source 0                               # webcam
+                                                  img.jpg                         # image
+                                                  vid.mp4                         # video
+                                                  screen                          # screenshot
+                                                  path/                           # directory
+                                                  list.txt                        # list of images
+                                                  list.streams                    # list of streams
+                                                  'path/*.jpg'                    # glob
+                                                  'https://youtu.be/Zgi9g1ksQHc'  # YouTube
+                                                  'rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP stream
+
 Usage - formats:
-    $ yolo task=... mode=predict --weights yolov8n.pt          # PyTorch
-                                    yolov8n.torchscript        # TorchScript
-                                    yolov8n.onnx               # ONNX Runtime or OpenCV DNN with --dnn
-                                    yolov8n_openvino_model     # OpenVINO
-                                    yolov8n.engine             # TensorRT
-                                    yolov8n.mlmodel            # CoreML (macOS-only)
-                                    yolov8n_saved_model        # TensorFlow SavedModel
-                                    yolov8n.pb                 # TensorFlow GraphDef
-                                    yolov8n.tflite             # TensorFlow Lite
-                                    yolov8n_edgetpu.tflite     # TensorFlow Edge TPU
-                                    yolov8n_paddle_model       # PaddlePaddle
-    """
+    $ yolo mode=predict model=yolov8n.pt                 # PyTorch
+                              yolov8n.torchscript        # TorchScript
+                              yolov8n.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
+                              yolov8n_openvino_model     # OpenVINO
+                              yolov8n.engine             # TensorRT
+                              yolov8n.mlmodel            # CoreML (macOS-only)
+                              yolov8n_saved_model        # TensorFlow SavedModel
+                              yolov8n.pb                 # TensorFlow GraphDef
+                              yolov8n.tflite             # TensorFlow Lite
+                              yolov8n_edgetpu.tflite     # TensorFlow Edge TPU
+                              yolov8n_paddle_model       # PaddlePaddle
+"""
 import platform
 from collections import defaultdict
 from pathlib import Path
@@ -200,9 +202,9 @@ class BasePredictor:
         # Print results
         if self.args.verbose and self.seen:
             t = tuple(x.t / self.seen * 1E3 for x in self.dt)  # speeds per image
-            LOGGER.info(f'Speed: %.1fms pre-process, %.1fms inference, %.1fms postprocess per image at shape '
+            LOGGER.info(f'Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape '
                         f'{(1, 3, *self.imgsz)}' % t)
-        if self.args.save_txt or self.args.save:
+        if self.args.save or self.args.save_txt or self.args.save_crop:
             nl = len(list(self.save_dir.glob('labels/*.txt')))  # number of labels
             s = f"\n{nl} label{'s' * (nl > 1)} saved to {self.save_dir / 'labels'}" if self.args.save_txt else ''
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")

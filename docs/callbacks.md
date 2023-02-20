@@ -1,10 +1,15 @@
 ## Callbacks
-Ultralytics framework supports callbacks as entry points in strategic stages of train, val, export, and predict modes. Each callback accepts a `Trainer`, `Validator`, or `Predictor` object depending on the operation type. All properties of these objects can be found in Reference section of the docs.
+
+Ultralytics framework supports callbacks as entry points in strategic stages of train, val, export, and predict modes.
+Each callback accepts a `Trainer`, `Validator`, or `Predictor` object depending on the operation type. All properties of
+these objects can be found in Reference section of the docs.
 
 ## Examples
 
 ### Returning additional information with Prediction
+
 In this example, we want to return the original frame with each result object. Here's how we can do that
+
 ```python
 def on_predict_batch_end(predictor):
     # results -> List[batch_size]
@@ -19,8 +24,11 @@ for (result, frame) in model.track/predict():
 ```
 
 ## All callbacks
+
 Here are all supported callbacks.
+
 ### Trainer
+
 `on_pretrain_routine_start`
 
 `on_pretrain_routine_end`
@@ -50,6 +58,7 @@ Here are all supported callbacks.
 `teardown`
 
 ### Validator
+
 `on_val_start`
 
 `on_val_batch_start`
@@ -59,6 +68,7 @@ Here are all supported callbacks.
 `on_val_end`
 
 ### Predictor
+
 `on_predict_start`
 
 `on_predict_batch_start`
@@ -70,6 +80,7 @@ Here are all supported callbacks.
 `on_predict_end`
 
 ### Exporter
+
 `on_export_start`
 
 `on_export_end`

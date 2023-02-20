@@ -37,7 +37,6 @@ Results object consists of these component objects:
 - `Results.probs`: `torch.Tensor` containing the class probabilities/logits.
 - `Results.orig_img`: Original image loaded in memory.
 - `Results.path`: `Path` containing the path to input image
-- `Results.names`: `List` containing class labels
 
 Each result is composed of torch.Tensor by default, in which you can easily use following functionality:
 

@@ -1,5 +1,23 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
+"""
+Check a model's accuracy on a test or val split of a dataset
 
+Usage:
+    $ yolo mode=val model=yolov8n.pt data=coco128.yaml imgsz=640
+
+Usage - formats:
+    $ yolo mode=val model=yolov8n.pt                 # PyTorch
+                          yolov8n.torchscript        # TorchScript
+                          yolov8n.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
+                          yolov8n_openvino_model     # OpenVINO
+                          yolov8n.engine             # TensorRT
+                          yolov8n.mlmodel            # CoreML (macOS-only)
+                          yolov8n_saved_model        # TensorFlow SavedModel
+                          yolov8n.pb                 # TensorFlow GraphDef
+                          yolov8n.tflite             # TensorFlow Lite
+                          yolov8n_edgetpu.tflite     # TensorFlow Edge TPU
+                          yolov8n_paddle_model       # PaddlePaddle
+"""
 import json
 from collections import defaultdict
 from pathlib import Path
@@ -105,8 +123,7 @@ class BaseValidator:
                 self.device = model.device
                 if not pt and not jit:
                     self.args.batch = 1  # export.py models default to batch-size 1
-                    self.logger.info(
-                        f'Forcing --batch-size 1 square inference (1,3,{imgsz},{imgsz}) for non-PyTorch models')
+                    self.logger.info(f'Forcing batch=1 square inference (1,3,{imgsz},{imgsz}) for non-PyTorch models')
 
             if isinstance(self.args.data, str) and self.args.data.endswith('.yaml'):
                 self.data = check_det_dataset(self.args.data)
@@ -136,7 +153,7 @@ class BaseValidator:
         for batch_i, batch in enumerate(bar):
             self.run_callbacks('on_val_batch_start')
             self.batch_i = batch_i
-            # pre-process
+            # preprocess
             with dt[0]:
                 batch = self.preprocess(batch)
 
@@ -149,7 +166,7 @@ class BaseValidator:
                 if self.training:
                     self.loss += trainer.criterion(preds, batch)[1]
 
-            # pre-process predictions
+            # postprocess
             with dt[3]:
                 preds = self.postprocess(preds)
 
@@ -163,13 +180,14 @@ class BaseValidator:
         self.check_stats(stats)
         self.print_results()
         self.speed = tuple(x.t / len(self.dataloader.dataset) * 1E3 for x in dt)  # speeds per image
+        self.finalize_metrics()
         self.run_callbacks('on_val_end')
         if self.training:
             model.float()
             results = {**stats, **trainer.label_loss_items(self.loss.cpu() / len(self.dataloader), prefix='val')}
             return {k: round(float(v), 5) for k, v in results.items()}  # return results as 5 decimal place floats
         else:
-            self.logger.info('Speed: %.1fms pre-process, %.1fms inference, %.1fms loss, %.1fms post-process per image' %
+            self.logger.info('Speed: %.1fms preprocess, %.1fms inference, %.1fms loss, %.1fms postprocess per image' %
                              self.speed)
             if self.args.save_json and self.jdict:
                 with open(str(self.save_dir / 'predictions.json'), 'w') as f:
@@ -195,6 +213,9 @@ class BaseValidator:
         pass
 
     def update_metrics(self, preds, batch):
+        pass
+
+    def finalize_metrics(self, *args, **kwargs):
         pass
 
     def get_stats(self):

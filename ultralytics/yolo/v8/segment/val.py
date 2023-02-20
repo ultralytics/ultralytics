@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
-import os
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 
@@ -10,7 +9,7 @@ import torch.nn.functional as F
 
 from ultralytics.yolo.utils import DEFAULT_CFG, NUM_THREADS, ops
 from ultralytics.yolo.utils.checks import check_requirements
-from ultralytics.yolo.utils.metrics import ConfusionMatrix, SegmentMetrics, box_iou, mask_iou
+from ultralytics.yolo.utils.metrics import SegmentMetrics, box_iou, mask_iou
 from ultralytics.yolo.utils.plotting import output_to_target, plot_images
 from ultralytics.yolo.v8.detect import DetectionValidator
 
@@ -119,6 +118,9 @@ class SegmentationValidator(DetectionValidator):
                 self.pred_to_json(predn, batch['im_file'][si], pred_masks)
             # if self.args.save_txt:
             #    save_one_txt(predn, save_conf, shape, file=save_dir / 'labels' / f'{path.stem}.txt')
+
+    def finalize_metrics(self, *args, **kwargs):
+        self.metrics.speed = dict(zip(self.metrics.speed.keys(), self.speed))
 
     def _process_batch(self, detections, labels, pred_masks=None, gt_masks=None, overlap=False, masks=False):
         """

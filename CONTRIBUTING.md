@@ -59,7 +59,9 @@ To allow your work to be integrated as seamlessly as possible, we advise you to:
 
 ### Docstrings
 
-Not all functions or classes require docstrings but when they do, we follow [google-style docstrings format](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings). Here is an example:
+Not all functions or classes require docstrings but when they do, we
+follow [google-style docstrings format](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings).
+Here is an example:
 
 ```python
 """

@@ -30,6 +30,9 @@ class ClassificationValidator(BaseValidator):
         self.pred.append(preds.argsort(1, descending=True)[:, :5])
         self.targets.append(batch['cls'])
 
+    def finalize_metrics(self, *args, **kwargs):
+        self.metrics.speed = dict(zip(self.metrics.speed.keys(), self.speed))
+
     def get_stats(self):
         self.metrics.process(self.targets, self.pred)
         return self.metrics.results_dict

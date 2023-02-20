@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ['3.10']  # requires python<=3.9
         model: [yolov8n]
     steps:
@@ -34,7 +34,8 @@ jobs:
       - name: Install requirements
         run: |
           python -m pip install --upgrade pip wheel
-          pip install -e '.[export]' --extra-index-url https://download.pytorch.org/whl/cpu
+          pip install -e . coremltools openvino-dev tensorflow-cpu paddlepaddle x2paddle --extra-index-url https://download.pytorch.org/whl/cpu
+          yolo export format=tflite
       - name: Check environment
         run: |
           echo "RUNNER_OS is ${{ runner.os }}"
@@ -46,29 +47,21 @@ jobs:
           python --version
           pip --version
           pip list
-      - name: TF Lite export
-        run: |
-          yolo export model=${{ matrix.model }}.pt format=tflite
-          yolo task=detect mode=predict model=yolov8n_saved_model/yolov8n_float16.tflite imgsz=640
-      - name: TF *.pb export
-        run: |
-          yolo export model=${{ matrix.model }}.pt format=pb
-          yolo task=detect mode=predict model=yolov8n.pb imgsz=640
-      - name: TF Lite Edge TPU export
-        run: |
-          yolo export model=${{ matrix.model }}.pt format=edgetpu
-      - name: TF.js export
-        run: |
-          yolo export model=${{ matrix.model }}.pt format=tfjs
       - name: Benchmark DetectionModel
+        shell: python
         run: |
-          # yolo benchmark model=${{ matrix.model }}.pt imgsz=320 min_metric=0.29
+          from ultralytics.yolo.utils.benchmarks import run_benchmarks
+          run_benchmarks(model='yolov8n.pt', imgsz=160, half=False, hard_fail=False)
       - name: Benchmark SegmentationModel
+        shell: python
         run: |
-          # yolo benchmark model=${{ matrix.model }}-seg.pt imgsz=320 min_metric=0.29
+          from ultralytics.yolo.utils.benchmarks import run_benchmarks
+          run_benchmarks(model='yolov8n-seg.pt', imgsz=160, half=False, hard_fail=False)
       - name: Benchmark ClassificationModel
+        shell: python
         run: |
-          # yolo benchmark model=${{ matrix.model }}-cls.pt imgsz=224 min_metric=0.29
+          from ultralytics.yolo.utils.benchmarks import run_benchmarks
+          run_benchmarks(model='yolov8n-cls.pt', imgsz=160, half=False, hard_fail=False)
 
   Tests:
     timeout-minutes: 60
@@ -76,7 +69,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest]
         python-version: ['3.10']
         model: [yolov8n]
         torch: [latest]
@@ -155,9 +148,9 @@ jobs:
       - name: Test classification
         shell: bash  # for Windows compatibility
         run: |
-          yolo task=classify mode=train data=mnist160 model=yolov8n-cls.yaml epochs=1 imgsz=32
-          yolo task=classify mode=train data=mnist160 model=yolov8n-cls.pt epochs=1 imgsz=32
-          yolo task=classify mode=val data=mnist160 model=runs/classify/train/weights/last.pt imgsz=32
+          yolo task=classify mode=train data=imagenet10 model=yolov8n-cls.yaml epochs=1 imgsz=32
+          yolo task=classify mode=train data=imagenet10 model=yolov8n-cls.pt epochs=1 imgsz=32
+          yolo task=classify mode=val data=imagenet10 model=runs/classify/train/weights/last.pt imgsz=32
           yolo task=classify mode=predict model=runs/classify/train/weights/last.pt imgsz=32 source=ultralytics/assets/bus.jpg
           yolo mode=export model=runs/classify/train/weights/last.pt imgsz=32 format=torchscript
       - name: Pytest tests

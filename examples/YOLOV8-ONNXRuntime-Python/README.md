@@ -33,4 +33,3 @@ python yolov8_onnx_inference.py stream /path/to/yolov8n_coco_640.onnx 0 --input_
 ```
 
 Make sure to include **'opset=12'** when exporting onnx model using ultralytics command tool.
-

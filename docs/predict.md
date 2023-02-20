@@ -32,11 +32,11 @@ predictor's call method.
 
 Results object consists of these component objects:
 
-- `Results.boxes` : `Boxes` object with properties and methods for manipulating bboxes
-- `Results.masks` : `Masks` object used to index masks or to get segment coordinates.
-- `Results.probs` : `torch.Tensor` containing the class probabilities/logits.
-- `Results.orig_img` : Original image loaded in memory.
-- `Results.path`:   `Path` containing the path to input image
+- `Results.boxes`: `Boxes` object with properties and methods for manipulating bboxes
+- `Results.masks`: `Masks` object used to index masks or to get segment coordinates.
+- `Results.probs`: `torch.Tensor` containing the class probabilities/logits.
+- `Results.orig_img`: Original image loaded in memory.
+- `Results.path`: `Path` containing the path to input image
 - `Results.names`: `List` containing class labels
 
 Each result is composed of torch.Tensor by default, in which you can easily use following functionality:
@@ -102,9 +102,9 @@ You can use `visualize()` function of `Result` object to get a visualization. It
 classification logits, etc) found in the results object
 
 ```python
-    res = model(img)
-    res_plotted = res[0].visualize()
-    cv2.imshow("result", res_plotted)
+res = model(img)
+res_plotted = res[0].visualize()
+cv2.imshow("result", res_plotted)
 ```
 
 !!! example "`visualize()` arguments"

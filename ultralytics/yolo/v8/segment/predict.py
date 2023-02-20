@@ -24,8 +24,10 @@ class SegmentationPredictor(DetectionPredictor):
         for i, pred in enumerate(p):
             orig_img = orig_img[i] if isinstance(orig_img, list) else orig_img
             shape = orig_img.shape
+            path, _, _, _, _ = self.batch
+            img_path = path[i] if isinstance(path, list) else path
             if not len(pred):
-                results.append(Results(boxes=pred[:, :6], orig_img=orig_img,
+                results.append(Results(boxes=pred[:, :6], orig_img=orig_img, path=img_path,
                                        names=self.model.names))  # save empty boxes
                 continue
             if self.args.retina_masks:
@@ -34,7 +36,7 @@ class SegmentationPredictor(DetectionPredictor):
             else:
                 masks = ops.process_mask(proto[i], pred[:, 6:], pred[:, :4], img.shape[2:], upsample=True)  # HWC
                 pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
-            results.append(Results(boxes=pred[:, :6], masks=masks, orig_img=orig_img, names=self.model.names))
+            results.append(Results(boxes=pred[:, :6], masks=masks, orig_img=orig_img, path=img_path, names=self.model.names))
         return results
 
     def write_results(self, idx, results, batch):

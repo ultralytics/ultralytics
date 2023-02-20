@@ -28,13 +28,14 @@ class Results:
 
         """
 
-    def __init__(self, boxes=None, masks=None, probs=None, orig_img=None, names=None) -> None:
+    def __init__(self, orig_img, path, names, boxes=None, masks=None, probs=None) -> None:
         self.orig_img = orig_img
         self.orig_shape = orig_img.shape[:2]
         self.boxes = Boxes(boxes, self.orig_shape) if boxes is not None else None  # native size boxes
         self.masks = Masks(masks, self.orig_shape) if masks is not None else None  # native size or imgsz masks
         self.probs = probs if probs is not None else None
         self.names = names
+        self.path = path
         self.comp = ['boxes', 'masks', 'probs']
 
     def pandas(self):
@@ -42,7 +43,7 @@ class Results:
         # TODO masks.pandas + boxes.pandas + cls.pandas
 
     def __getitem__(self, idx):
-        r = Results(orig_img=self.orig_img)
+        r = Results(orig_img=self.orig_img, path=self.path, names=self.names)
         for item in self.comp:
             if getattr(self, item) is None:
                 continue
@@ -58,7 +59,7 @@ class Results:
             self.probs = probs
 
     def cpu(self):
-        r = Results(orig_img=self.orig_img)
+        r = Results(orig_img=self.orig_img, path=self.path, names=self.names)
         for item in self.comp:
             if getattr(self, item) is None:
                 continue
@@ -66,7 +67,7 @@ class Results:
         return r
 
     def numpy(self):
-        r = Results(orig_img=self.orig_img)
+        r = Results(orig_img=self.orig_img, path=self.path, names=self.names)
         for item in self.comp:
             if getattr(self, item) is None:
                 continue
@@ -74,7 +75,7 @@ class Results:
         return r
 
     def cuda(self):
-        r = Results(orig_img=self.orig_img)
+        r = Results(orig_img=self.orig_img, path=self.path, names=self.names)
         for item in self.comp:
             if getattr(self, item) is None:
                 continue
@@ -82,7 +83,7 @@ class Results:
         return r
 
     def to(self, *args, **kwargs):
-        r = Results(orig_img=self.orig_img)
+        r = Results(orig_img=self.orig_img, path=self.path, names=self.names)
         for item in self.comp:
             if getattr(self, item) is None:
                 continue
@@ -372,23 +373,3 @@ class Masks:
                 segments (list): A list of segments which includes x,y,w,h,label,confidence, and mask of each detection masks.
             """)
 
-
-if __name__ == '__main__':
-    # test examples
-    results = Results(boxes=torch.randn((2, 6)), masks=torch.randn((2, 160, 160)), orig_shape=[640, 640])
-    results = results.cuda()
-    print('--cuda--pass--')
-    results = results.cpu()
-    print('--cpu--pass--')
-    results = results.to('cuda:0')
-    print('--to-cuda--pass--')
-    results = results.to('cpu')
-    print('--to-cpu--pass--')
-    results = results.numpy()
-    print('--numpy--pass--')
-    # box = Boxes(boxes=torch.randn((2, 6)), orig_shape=[5, 5])
-    # box = box.cuda()
-    # box = box.cpu()
-    # box = box.numpy()
-    # for b in box:
-    #     print(b)

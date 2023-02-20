@@ -1,8 +1,12 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license
+
 import copy
 
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+
+from ultralytics.yolo.utils import LOGGER
 
 
 class GMC:
@@ -108,7 +112,7 @@ class GMC:
         try:
             (cc, H) = cv2.findTransformECC(self.prevFrame, frame, H, self.warp_mode, self.criteria, None, 1)
         except Exception as e:
-            print(f'Warning: find transform failed. Set warp as identity {e}')
+            LOGGER.warning(f'WARNING: find transform failed. Set warp as identity {e}')
 
         return H
 
@@ -229,7 +233,7 @@ class GMC:
                 H[0, 2] *= self.downscale
                 H[1, 2] *= self.downscale
         else:
-            print('Warning: not enough matching points')
+            LOGGER.warning('WARNING: not enough matching points')
 
         # Store to next iteration
         self.prevFrame = frame.copy()
@@ -288,7 +292,7 @@ class GMC:
                 H[0, 2] *= self.downscale
                 H[1, 2] *= self.downscale
         else:
-            print('Warning: not enough matching points')
+            LOGGER.warning('WARNING: not enough matching points')
 
         # Store to next iteration
         self.prevFrame = frame.copy()

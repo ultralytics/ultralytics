@@ -12,7 +12,7 @@ import torch
 from PIL import Image, ImageDraw, ImageFont
 from PIL import __version__ as pil_version
 
-from ultralytics.yolo.utils import threaded
+from ultralytics.yolo.utils import LOGGER, threaded
 
 from .checks import check_font, check_version, is_ascii
 from .files import increment_path
@@ -300,7 +300,7 @@ def plot_results(file='path/to/results.csv', dir='', segment=False):
                 # if j in [8, 9, 10]:  # share train and val loss y axes
                 #     ax[i].get_shared_y_axes().join(ax[i], ax[i - 5])
         except Exception as e:
-            print(f'Warning: Plotting error for {f}: {e}')
+            LOGGER.warning(f'WARNING: Plotting error for {f}: {e}')
     ax[1].legend()
     fig.savefig(save_dir / 'results.png', dpi=200)
     plt.close()

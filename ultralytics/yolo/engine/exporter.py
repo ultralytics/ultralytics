@@ -75,7 +75,6 @@ from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.ops import Profile
 from ultralytics.yolo.utils.torch_utils import get_latest_opset, select_device, smart_inference_mode
 
-CUDA = torch.cuda.is_available()
 ARM64 = platform.machine() in ('arm64', 'aarch64')
 
 
@@ -324,7 +323,7 @@ class Exporter:
         # Simplify
         if self.args.simplify:
             try:
-                check_requirements(('onnxsim', 'onnxruntime-gpu' if CUDA else 'onnxruntime'))
+                check_requirements(('onnxsim', 'onnxruntime-gpu' if torch.cuda.is_available() else 'onnxruntime'))
                 import onnxsim
 
                 LOGGER.info(f'{prefix} simplifying with onnxsim {onnxsim.__version__}...')
@@ -506,10 +505,12 @@ class Exporter:
         try:
             import tensorflow as tf  # noqa
         except ImportError:
-            check_requirements(f"tensorflow{'-macos' if MACOS else '-aarch64' if ARM64 else '' if CUDA else '-cpu'}")
+            check_requirements(
+                f"tensorflow{'-macos' if MACOS else '-aarch64' if ARM64 else '' if torch.cuda.is_available() else '-cpu'}"
+            )
             import tensorflow as tf  # noqa
         check_requirements(('onnx', 'onnx2tf', 'sng4onnx', 'onnxsim', 'onnx_graphsurgeon', 'tflite_support',
-                            'onnxruntime-gpu' if CUDA else 'onnxruntime'),
+                            'onnxruntime-gpu' if torch.cuda.is_available() else 'onnxruntime'),
                            cmds='--extra-index-url https://pypi.ngc.nvidia.com')
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')

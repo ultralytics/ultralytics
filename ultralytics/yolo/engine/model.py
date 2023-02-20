@@ -114,6 +114,7 @@ class YOLO:
         self.task = guess_model_task(cfg_dict)
         self.ModelClass, self.TrainerClass, self.ValidatorClass, self.PredictorClass = self._assign_ops_from_task()
         self.model = self.ModelClass(cfg_dict, verbose=verbose and RANK == -1)  # initialize
+        self.overrides['model'] = self.cfg
 
     def _load(self, weights: str):
         """

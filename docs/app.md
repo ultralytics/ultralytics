@@ -35,7 +35,7 @@
 <br>
 
 Welcome to the Ultralytics HUB app for demonstrating YOLOv5 and YOLOv8 models! In this app, available on the [Apple App
-Store](https://apps.apple.com/xk/app/ultralytics/id1583935240) and the 
+Store](https://apps.apple.com/xk/app/ultralytics/id1583935240) and the
 [Google Play Store](https://play.google.com/store/apps/details?id=com.ultralytics.ultralytics_app), you will be able
 to see the power and capabilities of YOLOv5, a state-of-the-art object detection model developed by Ultralytics.
 

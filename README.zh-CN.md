@@ -18,7 +18,9 @@
   </div>
   <br>
 
-[Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) 是由 [Ultralytics](https://ultralytics.com) 开发的一个前沿的 SOTA 模型。它在以前成功的 YOLO 版本基础上，引入了新的功能和改进，进一步提升了其性能和灵活性。YOLOv8 基于快速、准确和易于使用的设计理念，使其成为广泛的目标检测、图像分割和图像分类任务的绝佳选择。
+[Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) 是由 [Ultralytics](https://ultralytics.com) 开发的一个前沿的
+SOTA 模型。它在以前成功的 YOLO 版本基础上，引入了新的功能和改进，进一步提升了其性能和灵活性。YOLOv8
+基于快速、准确和易于使用的设计理念，使其成为广泛的目标检测、图像分割和图像分类任务的绝佳选择。
 
 如果要申请企业许可证，请填写 [Ultralytics 许可](https://ultralytics.com/license)。
 
@@ -53,7 +55,9 @@
 <details open>
 <summary>安装</summary>
 
-Pip 安装包含所有 [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) 的 ultralytics 包，环境要求 [**Python>=3.7**](https://www.python.org/)，且 [**PyTorch>=1.7**](https://pytorch.org/get-started/locally/)。
+Pip 安装包含所有 [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) 的
+ultralytics 包，环境要求 [**Python>=3.7**](https://www.python.org/)，且 [\*\*PyTorch>=1.7
+\*\*](https://pytorch.org/get-started/locally/)。
 
 ```bash
 pip install ultralytics
@@ -70,7 +74,8 @@ YOLOv8 可以直接在命令行界面（CLI）中使用 `yolo` 命令运行：
 yolo predict model=yolov8n.pt source="https://ultralytics.com/images/bus.jpg"
 ```
 
-`yolo`可以用于各种任务和模式，并接受额外的参数，例如 `imgsz=640`。参见 YOLOv8 [文档](https://docs.ultralytics.com)中可用`yolo`[参数](https://docs.ultralytics.com/cfg/)的完整列表。
+`yolo`可以用于各种任务和模式，并接受额外的参数，例如 `imgsz=640`。参见 YOLOv8 [文档](https://docs.ultralytics.com)
+中可用`yolo`[参数](https://docs.ultralytics.com/cfg/)的完整列表。
 
 ```bash
 yolo task=detect    mode=train    model=yolov8n.pt        args...
@@ -95,11 +100,13 @@ results = model("https://ultralytics.com/images/bus.jpg")  # 预测图像
 success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 ```
 
-[模型](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) 会从 Ultralytics [发布页](https://github.com/ultralytics/ultralytics/releases) 自动下载。
+[模型](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) 会从
+Ultralytics [发布页](https://github.com/ultralytics/ultralytics/releases) 自动下载。
 
 ### 已知问题 / 待办事项
 
-我们仍在努力完善 YOLOv8 的几个部分！我们的目标是尽快完成这些工作，使 YOLOv8 的功能设置达到YOLOv5 的水平，包括对所有相同格式的导出和推理。我们还在写一篇 YOLOv8 的论文，一旦完成，我们将提交给 [arxiv.org](https://arxiv.org)。
+我们仍在努力完善 YOLOv8 的几个部分！我们的目标是尽快完成这些工作，使 YOLOv8 的功能设置达到YOLOv5
+的水平，包括对所有相同格式的导出和推理。我们还在写一篇 YOLOv8 的论文，一旦完成，我们将提交给 [arxiv.org](https://arxiv.org)。
 
 - [x] TensorFlow 导出
 - [x] DDP 恢复训练
@@ -111,7 +118,8 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 
 所有 YOLOv8 的预训练模型都可以在这里找到。目标检测和分割模型是在 COCO 数据集上预训练的，而分类模型是在 ImageNet 数据集上预训练的。
 
-第一次使用时，[模型](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) 会从 Ultralytics [发布页](https://github.com/ultralytics/ultralytics/releases) 自动下载。
+第一次使用时，[模型](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) 会从
+Ultralytics [发布页](https://github.com/ultralytics/ultralytics/releases) 自动下载。
 
 <details open><summary>目标检测</summary>
 
@@ -125,7 +133,8 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 
 - **mAP<sup>val</sup>** 结果都在 [COCO val2017](http://cocodataset.org) 数据集上，使用单模型单尺度测试得到。
   <br>复现命令 `yolo val detect data=coco.yaml device=0`
-- **推理速度**使用 COCO 验证集图片推理时间进行平均得到，测试环境使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例。
+- **推理速度**使用 COCO
+  验证集图片推理时间进行平均得到，测试环境使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例。
   <br>复现命令 `yolo val detect data=coco128.yaml batch=1 device=0/cpu`
 
 </details>
@@ -142,7 +151,8 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 
 - **mAP<sup>val</sup>**  结果都在 [COCO val2017](http://cocodataset.org) 数据集上，使用单模型单尺度测试得到。
   <br>复现命令 `yolo val segment data=coco.yaml device=0`
-- **推理速度**使用 COCO 验证集图片推理时间进行平均得到，测试环境使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例。
+- **推理速度**使用 COCO
+  验证集图片推理时间进行平均得到，测试环境使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例。
   <br>复现命令 `yolo val segment data=coco128-seg.yaml batch=1 device=0/cpu`
 
 </details>
@@ -159,7 +169,8 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 
 - **acc** 都在 [ImageNet](https://www.image-net.org/) 数据集上，使用单模型单尺度测试得到。
   <br>复现命令 `yolo val classify data=path/to/ImageNet device=0`
-- **推理速度**使用 ImageNet 验证集图片推理时间进行平均得到，测试环境使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例。
+- **推理速度**使用 ImageNet
+  验证集图片推理时间进行平均得到，测试环境使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例。
   <br>复现命令 `yolo val classify data=path/to/ImageNet batch=1 device=0/cpu`
 
 </details>
@@ -192,14 +203,18 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 
 ## <div align="center">Ultralytics HUB</div>
 
-[Ultralytics HUB](https://bit.ly/ultralytics_hub) 是我们⭐ **新**的无代码解决方案，用于可视化数据集，训练 YOLOv8🚀 模型，并以无缝体验方式部署到现实世界。现在开始**免费**! 还可以通过下载 [Ultralytics App](https://ultralytics.com/app_install) 在你的 iOS 或 Android 设备上运行 YOLOv8 模型!
+[Ultralytics HUB](https://bit.ly/ultralytics_hub) 是我们⭐ **新**的无代码解决方案，用于可视化数据集，训练 YOLOv8🚀
+模型，并以无缝体验方式部署到现实世界。现在开始**免费**!
+还可以通过下载 [Ultralytics App](https://ultralytics.com/app_install) 在你的 iOS 或 Android 设备上运行 YOLOv8 模型!
 
 <a href="https://bit.ly/ultralytics_hub" target="_blank">
 <img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/ultralytics-hub.png"></a>
 
 ## <div align="center">贡献</div>
 
-我们喜欢您的意见或建议！我们希望尽可能简单和透明地为 YOLOv8 做出贡献。请看我们的 [贡献指南](CONTRIBUTING.md) ，并填写 [调查问卷](https://ultralytics.com/survey?utm_source=github&utm_medium=social&utm_campaign=Survey) 向我们发送您的体验反馈。感谢我们所有的贡献者！
+我们喜欢您的意见或建议！我们希望尽可能简单和透明地为 YOLOv8 做出贡献。请看我们的 [贡献指南](CONTRIBUTING.md)
+，并填写 [调查问卷](https://ultralytics.com/survey?utm_source=github&utm_medium=social&utm_campaign=Survey)
+向我们发送您的体验反馈。感谢我们所有的贡献者！
 
 <!-- SVG image from https://opencollective.com/ultralytics/contributors.svg?width=990 -->
 
@@ -210,11 +225,13 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 
 - YOLOv8 在两种不同的 License 下可用：
   - **GPL-3.0 License**： 查看 [License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) 文件的详细信息。
-  - **企业License**：在没有 GPL-3.0 开源要求的情况下为商业产品开发提供更大的灵活性。典型用例是将 Ultralytics 软件和 AI 模型嵌入到商业产品和应用程序中。在以下位置申请企业许可证 [Ultralytics 许可](https://ultralytics.com/license) 。
+  - **企业License**：在没有 GPL-3.0 开源要求的情况下为商业产品开发提供更大的灵活性。典型用例是将 Ultralytics 软件和 AI
+    模型嵌入到商业产品和应用程序中。在以下位置申请企业许可证 [Ultralytics 许可](https://ultralytics.com/license) 。
 
 ## <div align="center">联系我们</div>
 
-请访问 [GitHub Issues](https://github.com/ultralytics/ultralytics/issues) 或 [Ultralytics Community Forum](https://community.ultralytis.com) 以报告 YOLOv8 错误和请求功能。
+请访问 [GitHub Issues](https://github.com/ultralytics/ultralytics/issues)
+或 [Ultralytics Community Forum](https://community.ultralytis.com) 以报告 YOLOv8 错误和请求功能。
 
 <br>
 <div align="center">

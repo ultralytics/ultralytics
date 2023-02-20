@@ -154,7 +154,7 @@ def test_predict_callback_and_setup():
         bs = [predictor.dataset.bs for _ in range(len(path))]
         predictor.results = zip(predictor.results, im0s, bs)
 
-    model = YOLO('yolov8n.pt')
+    model = YOLO(MODEL)
     model.add_callback('on_predict_batch_end', on_predict_batch_end)
 
     dataset = load_inference_source(source=SOURCE, transforms=model.transforms)
@@ -169,9 +169,16 @@ def test_predict_callback_and_setup():
 
 def test_result():
     model = YOLO('yolov8n-seg.pt')
-    img = str(ROOT / 'assets/bus.jpg')
-    res = model([img, img])
+    res = model([SOURCE, SOURCE])
     res[0].numpy()
     res[0].cpu().numpy()
     resimg = res[0].visualize(show_conf=False)
     print(resimg)
+
+    model = YOLO('yolov8n.pt')
+    res = model(SOURCE)
+    res[0].visualize()
+
+    model = YOLO('yolov8n-cls.pt')
+    res = model(SOURCE)
+    res[0].visualize()

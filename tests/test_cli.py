@@ -30,7 +30,7 @@ def test_train_seg():
 
 
 def test_train_cls():
-    run(f'yolo train classify model={CFG}-cls.yaml data=mnist160 imgsz=32 epochs=1')
+    run(f'yolo train classify model={CFG}-cls.yaml data=imagenet10 imgsz=32 epochs=1')
 
 
 # Val checks -----------------------------------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ def test_val_segment():
 
 
 def test_val_classify():
-    run(f'yolo val classify model={MODEL}-cls.pt data=mnist160 imgsz=32')
+    run(f'yolo val classify model={MODEL}-cls.pt data=imagenet10 imgsz=32')
 
 
 # Predict checks -------------------------------------------------------------------------------------------------------

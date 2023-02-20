@@ -79,7 +79,7 @@ class AutoShape(nn.Module):
                 with amp.autocast(autocast):
                     return self.model(ims.to(p.device).type_as(p), augment=augment)  # inference
 
-            # Pre-process
+            # Preprocess
             n, ims = (len(ims), list(ims)) if isinstance(ims, (list, tuple)) else (1, [ims])  # number, list of images
             shape0, shape1, files = [], [], []  # image and inference shapes, filenames
             for i, im in enumerate(ims):
@@ -108,7 +108,7 @@ class AutoShape(nn.Module):
             with dt[1]:
                 y = self.model(x, augment=augment)  # forward
 
-            # Post-process
+            # Postprocess
             with dt[2]:
                 y = non_max_suppression(y if self.dmb else y[0],
                                         self.conf,
@@ -181,7 +181,7 @@ class Detections:
                 self.ims[i] = np.asarray(im)
         if pprint:
             s = s.lstrip('\n')
-            return f'{s}\nSpeed: %.1fms pre-process, %.1fms inference, %.1fms NMS per image at shape {self.s}' % self.t
+            return f'{s}\nSpeed: %.1fms preprocess, %.1fms inference, %.1fms NMS per image at shape {self.s}' % self.t
         if crop:
             if save:
                 LOGGER.info(f'Saved results to {save_dir}\n')

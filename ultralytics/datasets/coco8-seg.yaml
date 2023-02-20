@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 # COCO8-seg dataset (first 8 images from COCO train2017) by Ultralytics
-# Example usage: python train.py --data coco8-seg.yaml
+# Example usage: yolo train data=coco8-seg.yaml
 # parent
 # ├── yolov5
 # └── datasets

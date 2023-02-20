@@ -205,7 +205,7 @@ class YOLO:
     def track(self, source=None, stream=False, **kwargs):
         from ultralytics.tracker.track import register_tracker
         register_tracker(self)
-        # bytetrack-based method needs low confidence predictions as input
+        # ByteTrack-based method needs low confidence predictions as input
         conf = kwargs.get('conf') or 0.1
         kwargs['conf'] = conf
         kwargs['mode'] = 'track'

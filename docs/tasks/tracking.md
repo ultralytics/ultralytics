@@ -7,10 +7,10 @@ The output of tracker is the same as detection with an added object ID.
 
 The following tracking algorithms have been implemented and can be enabled by passing `tracker=tracker_type.yaml`
 
-* Bot-Sort - `botsort.yaml`
-* ByteTrack - `bytetrack.yaml`
+* [BoT-SORT](https://github.com/NirAharon/BoT-SORT) - `botsort.yaml`
+* [ByteTrack](https://github.com/ifzhang/ByteTrack) - `bytetrack.yaml`
 
-The default tracker is botsort.
+The default tracker is BoT-SORT.
 
 ## Tracking
 

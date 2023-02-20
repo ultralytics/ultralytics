@@ -54,8 +54,6 @@ def test_predict_img():
     assert len(list(output)) == 2, 'predict test failed'
     tens = torch.zeros(320, 640, 3)
     output = model(tens.numpy())
-    import pdb
-    pdb.set_trace()
     assert len(output) == 1, 'predict test failed'
     # test multiple source
     imgs = [

@@ -34,7 +34,7 @@ class DetectionPredictor(BasePredictor):
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
             path, _, _, _, _ = self.batch
             img_path = path[i] if isinstance(path, list) else path
-            results.append(Results(boxes=pred, orig_img=orig_img, path=img_path, names=self.model.names))
+            results.append(Results( orig_img=orig_img, path=img_path, names=self.model.names, boxes=pred))
         return results
 
     def write_results(self, idx, results, batch):

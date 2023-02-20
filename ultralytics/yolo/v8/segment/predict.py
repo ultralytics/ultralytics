@@ -36,7 +36,8 @@ class SegmentationPredictor(DetectionPredictor):
             else:
                 masks = ops.process_mask(proto[i], pred[:, 6:], pred[:, :4], img.shape[2:], upsample=True)  # HWC
                 pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
-            results.append(Results(boxes=pred[:, :6], masks=masks, orig_img=orig_img, path=img_path, names=self.model.names))
+            results.append(
+                Results(boxes=pred[:, :6], masks=masks, orig_img=orig_img, path=img_path, names=self.model.names))
         return results
 
     def write_results(self, idx, results, batch):

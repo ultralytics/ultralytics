@@ -372,4 +372,3 @@ class Masks:
             Properties:
                 segments (list): A list of segments which includes x,y,w,h,label,confidence, and mask of each detection masks.
             """)
-

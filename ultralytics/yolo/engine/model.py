@@ -32,7 +32,7 @@ class YOLO:
         YOLO (You Only Look Once) object detection model.
 
         Args:
-            model (str or Path): Path to the model file to load or create.
+            model (str, Path): Path to the model file to load or create.
             type (str): Type/version of models to use. Defaults to "v8".
 
         Attributes:
@@ -62,7 +62,7 @@ class YOLO:
             predict(source=None, stream=False, **kwargs): Perform prediction using the YOLO model.
 
         Returns:
-            List[ultralytics.yolo.engine.results.Results]: The prediction results.
+            list(ultralytics.yolo.engine.results.Results): The prediction results.
         """
 
     def __init__(self, model='yolov8n.pt', type='v8') -> None:

@@ -284,7 +284,7 @@ def check_imshow(warn=False):
         return False
 
 
-def check_yolo(verbose=True):
+def check_yolo(verbose=True, device=''):
     from ultralytics.yolo.utils.torch_utils import select_device
 
     if is_colab():
@@ -302,7 +302,7 @@ def check_yolo(verbose=True):
     else:
         s = ''
 
-    select_device(newline=False)
+    select_device(device=device, newline=False)
     LOGGER.info(f'Setup complete ✅ {s}')
 
 

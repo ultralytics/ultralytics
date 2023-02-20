@@ -347,7 +347,8 @@ class AutoBackend(nn.Module):
             elif self.pb:  # GraphDef
                 y = self.frozen_func(x=self.tf.constant(im))
                 if len(y) == 2 and len(self.names) == 999:  # segments and names not defined
-                    nc = y[1].shape[1] - y[0].shape[3] - 4  # y = (1, 160, 160, 32), (1, 116, 8400)
+                    ip, ib = (0, 1) if len(y[0].shape) == 4 else (1, 0)  # index of protos, boxes
+                    nc = y[ib].shape[1] - y[ip].shape[3] - 4  # y = (1, 160, 160, 32), (1, 116, 8400)
                     self.names = {i: f'class{i}' for i in range(nc)}
             else:  # Lite or Edge TPU
                 input = self.input_details[0]
@@ -365,9 +366,10 @@ class AutoBackend(nn.Module):
                         x = (x.astype(np.float32) - zero_point) * scale  # re-scale
                     y.append(x)
             # TF segment fixes: export is reversed vs ONNX export and protos are transposed
-            if len(y) == 2 and len(y[0].shape) == 4:  # segment with (det, proto) output order reversed
-                y = list(reversed(y))
-            y[1] = np.transpose(y[1], (0, 3, 1, 2))
+            if len(y) == 2:  # segment with (det, proto) output order reversed
+                if len(y[1].shape) != 4:
+                    y = list(reversed(y))  # should be y = (1, 116, 8400), (1, 160, 160, 32)
+                y[1] = np.transpose(y[1], (0, 3, 1, 2))  # should be y = (1, 116, 8400), (1, 32, 160, 160)
             y = [x if isinstance(x, np.ndarray) else x.numpy() for x in y]
             # y[0][..., :4] *= [w, h, w, h]  # xywh normalized to pixels
 

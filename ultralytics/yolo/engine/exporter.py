@@ -75,7 +75,6 @@ from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.ops import Profile
 from ultralytics.yolo.utils.torch_utils import get_latest_opset, select_device, smart_inference_mode
 
-CUDA = torch.cuda.is_available()
 ARM64 = platform.machine() in ('arm64', 'aarch64')
 
 
@@ -324,7 +323,7 @@ class Exporter:
         # Simplify
         if self.args.simplify:
             try:
-                check_requirements(('onnxsim', 'onnxruntime-gpu' if CUDA else 'onnxruntime'))
+                check_requirements(('onnxsim', 'onnxruntime-gpu' if torch.cuda.is_available() else 'onnxruntime'))
                 import onnxsim
 
                 LOGGER.info(f'{prefix} simplifying with onnxsim {onnxsim.__version__}...')
@@ -506,10 +505,12 @@ class Exporter:
         try:
             import tensorflow as tf  # noqa
         except ImportError:
-            check_requirements(f"tensorflow{'-macos' if MACOS else '-aarch64' if ARM64 else '' if CUDA else '-cpu'}")
+            check_requirements(
+                f"tensorflow{'-macos' if MACOS else '-aarch64' if ARM64 else '' if torch.cuda.is_available() else '-cpu'}"
+            )
             import tensorflow as tf  # noqa
         check_requirements(('onnx', 'onnx2tf', 'sng4onnx', 'onnxsim', 'onnx_graphsurgeon', 'tflite_support',
-                            'onnxruntime-gpu' if CUDA else 'onnxruntime'),
+                            'onnxruntime-gpu' if torch.cuda.is_available() else 'onnxruntime'),
                            cmds='--extra-index-url https://pypi.ngc.nvidia.com')
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
@@ -667,14 +668,23 @@ class Exporter:
         from tflite_support import metadata as _metadata  # noqa
         from tflite_support import metadata_schema_py_generated as _metadata_fb  # noqa
 
-        # Creates model info.
+        # Create model info
         model_meta = _metadata_fb.ModelMetadataT()
         model_meta.name = self.metadata['description']
         model_meta.version = self.metadata['version']
         model_meta.author = self.metadata['author']
         model_meta.license = self.metadata['license']
 
-        # Creates input info.
+        # Label file
+        tmp_file = file.parent / 'temp_meta.txt'
+        with open(tmp_file, 'w') as f:
+            f.write(str(self.metadata))
+
+        label_file = _metadata_fb.AssociatedFileT()
+        label_file.name = tmp_file.name
+        label_file.type = _metadata_fb.AssociatedFileType.TENSOR_AXIS_LABELS
+
+        # Create input info
         input_meta = _metadata_fb.TensorMetadataT()
         input_meta.name = 'image'
         input_meta.description = 'Input image to be detected.'
@@ -683,25 +693,21 @@ class Exporter:
         input_meta.content.contentProperties.colorSpace = _metadata_fb.ColorSpaceType.RGB
         input_meta.content.contentPropertiesType = _metadata_fb.ContentProperties.ImageProperties
 
-        # Creates output info.
-        output_meta = _metadata_fb.TensorMetadataT()
-        output_meta.name = 'output'
-        output_meta.description = 'Coordinates of detected objects, class labels, and confidence score.'
+        # Create output info
+        output1 = _metadata_fb.TensorMetadataT()
+        output1.name = 'output'
+        output1.description = 'Coordinates of detected objects, class labels, and confidence score'
+        output1.associatedFiles = [label_file]
+        if self.model.task == 'segment':
+            output2 = _metadata_fb.TensorMetadataT()
+            output2.name = 'output'
+            output2.description = 'Mask protos'
+            output2.associatedFiles = [label_file]
 
-        # Label file
-        tmp_file = Path('/tmp/meta.txt')
-        with open(tmp_file, 'w') as meta_f:
-            meta_f.write(str(self.metadata))
-
-        label_file = _metadata_fb.AssociatedFileT()
-        label_file.name = tmp_file.name
-        label_file.type = _metadata_fb.AssociatedFileType.TENSOR_AXIS_LABELS
-        output_meta.associatedFiles = [label_file]
-
-        # Creates subgraph info.
+        # Create subgraph info
         subgraph = _metadata_fb.SubGraphMetadataT()
         subgraph.inputTensorMetadata = [input_meta]
-        subgraph.outputTensorMetadata = [output_meta]
+        subgraph.outputTensorMetadata = [output1, output2] if self.model.task == 'segment' else [output1]
         model_meta.subgraphMetadata = [subgraph]
 
         b = flatbuffers.Builder(0)

@@ -232,6 +232,3 @@ class Detections:
 
     def __repr__(self):
         return f'YOLOv8 {self.__class__} instance\n' + self.__str__()
-
-
-print('works')

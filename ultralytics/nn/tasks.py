@@ -381,7 +381,7 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
         return ensemble[-1]
 
     # Return ensemble
-    print(f'Ensemble created with {weights}\n')
+    LOGGER.info(f'Ensemble created with {weights}\n')
     for k in 'names', 'nc', 'yaml':
         setattr(ensemble, k, getattr(ensemble[0], k))
     ensemble.stride = ensemble[torch.argmax(torch.tensor([m.stride.max() for m in ensemble])).int()].stride

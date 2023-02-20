@@ -11,7 +11,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from ultralytics.yolo.utils import TryExcept
+from ultralytics.yolo.utils import LOGGER, TryExcept
 
 
 # boxes
@@ -260,7 +260,7 @@ class ConfusionMatrix:
 
     def print(self):
         for i in range(self.nc + 1):
-            print(' '.join(map(str, self.matrix[i])))
+            LOGGER.info(' '.join(map(str, self.matrix[i])))
 
 
 def smooth(y, f=0.05):

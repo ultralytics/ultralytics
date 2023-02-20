@@ -124,7 +124,7 @@ class Results:
                 orig_shape (tuple, optional): Original image size.
             """)
 
-    def visualize(self, show_conf=True, line_width=None, font_size=None, font='Arial.ttf', pil=False, example='abc'):
+    def plot(self, show_conf=True, line_width=None, font_size=None, font='Arial.ttf', pil=False, example='abc'):
         """
         Plots the given result on an input RGB image. Accepts cv2(numpy) or PIL Image
 

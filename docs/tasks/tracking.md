@@ -42,7 +42,7 @@ Use a trained YOLOv8n/YOLOv8n-seg model to run tracker on video streams.
 
         ```
 
-As in the above usage, we support both the detection and segmentation models for tracking and you only need to do is loading the corresponding(detection or segmentation) model.
+As in the above usage, we support both the detection and segmentation models for tracking and the only thing you need to do is loading the corresponding(detection or segmentation) model.
 
 ## Configuration
 ### Tracking

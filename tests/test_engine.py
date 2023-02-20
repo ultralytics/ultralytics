@@ -74,7 +74,13 @@ def test_segment():
 
 
 def test_classify():
-    overrides = {'data': 'imagenet10', 'model': 'yolov8n-cls.yaml', 'imgsz': 32, 'epochs': 1, 'batch': 64, 'save': False}
+    overrides = {
+        'data': 'imagenet10',
+        'model': 'yolov8n-cls.yaml',
+        'imgsz': 32,
+        'epochs': 1,
+        'batch': 64,
+        'save': False}
     CFG.data = 'imagenet10'
     CFG.imgsz = 32
     CFG.batch = 64

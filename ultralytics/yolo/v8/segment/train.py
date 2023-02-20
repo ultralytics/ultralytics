@@ -1,14 +1,12 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
-
 from copy import copy
 
-import hydra
 import torch
 import torch.nn.functional as F
 
 from ultralytics.nn.tasks import SegmentationModel
 from ultralytics.yolo import v8
-from ultralytics.yolo.utils import DEFAULT_CONFIG
+from ultralytics.yolo.utils import DEFAULT_CFG, RANK
 from ultralytics.yolo.utils.ops import crop_mask, xyxy2xywh
 from ultralytics.yolo.utils.plotting import plot_images, plot_results
 from ultralytics.yolo.utils.tal import make_anchors
@@ -19,14 +17,14 @@ from ultralytics.yolo.v8.detect.train import Loss
 # BaseTrainer python usage
 class SegmentationTrainer(v8.detect.DetectionTrainer):
 
-    def __init__(self, config=DEFAULT_CONFIG, overrides=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None):
         if overrides is None:
             overrides = {}
-        overrides["task"] = "segment"
-        super().__init__(config, overrides)
+        overrides['task'] = 'segment'
+        super().__init__(cfg, overrides)
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        model = SegmentationModel(cfg, ch=3, nc=self.data["nc"], verbose=verbose)
+        model = SegmentationModel(cfg, ch=3, nc=self.data['nc'], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
 
@@ -45,13 +43,13 @@ class SegmentationTrainer(v8.detect.DetectionTrainer):
         return self.compute_loss(preds, batch)
 
     def plot_training_samples(self, batch, ni):
-        images = batch["img"]
-        masks = batch["masks"]
-        cls = batch["cls"].squeeze(-1)
-        bboxes = batch["bboxes"]
-        paths = batch["im_file"]
-        batch_idx = batch["batch_idx"]
-        plot_images(images, batch_idx, cls, bboxes, masks, paths=paths, fname=self.save_dir / f"train_batch{ni}.jpg")
+        images = batch['img']
+        masks = batch['masks']
+        cls = batch['cls'].squeeze(-1)
+        bboxes = batch['bboxes']
+        paths = batch['im_file']
+        batch_idx = batch['batch_idx']
+        plot_images(images, batch_idx, cls, bboxes, masks, paths=paths, fname=self.save_dir / f'train_batch{ni}.jpg')
 
     def plot_metrics(self):
         plot_results(file=self.csv, segment=True)  # save results.png
@@ -82,15 +80,15 @@ class SegLoss(Loss):
         anchor_points, stride_tensor = make_anchors(feats, self.stride, 0.5)
 
         # targets
-        batch_idx = batch["batch_idx"].view(-1, 1)
-        targets = torch.cat((batch_idx, batch["cls"].view(-1, 1), batch["bboxes"]), 1)
+        batch_idx = batch['batch_idx'].view(-1, 1)
+        targets = torch.cat((batch_idx, batch['cls'].view(-1, 1), batch['bboxes']), 1)
         targets = self.preprocess(targets.to(self.device), batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
         gt_labels, gt_bboxes = targets.split((1, 4), 2)  # cls, xyxy
         mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0)
 
-        masks = batch["masks"].to(self.device).float()
+        masks = batch['masks'].to(self.device).float()
         if tuple(masks.shape[-2:]) != (mask_h, mask_w):  # downsample
-            masks = F.interpolate(masks[None], (mask_h, mask_w), mode="nearest")[0]
+            masks = F.interpolate(masks[None], (mask_h, mask_w), mode='nearest')[0]
 
         # pboxes
         pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
@@ -99,7 +97,7 @@ class SegLoss(Loss):
             pred_scores.detach().sigmoid(), (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),
             anchor_points * stride_tensor, gt_labels, gt_bboxes, mask_gt)
 
-        target_scores_sum = target_scores.sum()
+        target_scores_sum = max(target_scores.sum(), 1)
 
         # cls loss
         # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
@@ -111,11 +109,11 @@ class SegLoss(Loss):
                                               target_scores, target_scores_sum, fg_mask)
             for i in range(batch_size):
                 if fg_mask[i].sum():
-                    mask_idx = target_gt_idx[i][fg_mask[i]] + 1
+                    mask_idx = target_gt_idx[i][fg_mask[i]]
                     if self.overlap:
-                        gt_mask = torch.where(masks[[i]] == mask_idx.view(-1, 1, 1), 1.0, 0.0)
+                        gt_mask = torch.where(masks[[i]] == (mask_idx + 1).view(-1, 1, 1), 1.0, 0.0)
                     else:
-                        gt_mask = masks[batch_idx == i][mask_idx]
+                        gt_mask = masks[batch_idx.view(-1) == i][mask_idx]
                     xyxyn = target_bboxes[i][fg_mask[i]] / imgsz[[1, 0, 1, 0]]
                     marea = xyxy2xywh(xyxyn)[:, 2:].prod(1)
                     mxyxy = xyxyn * torch.tensor([mask_w, mask_h, mask_w, mask_h], device=self.device)
@@ -137,21 +135,23 @@ class SegLoss(Loss):
     def single_mask_loss(self, gt_mask, pred, proto, xyxy, area):
         # Mask loss for one image
         pred_mask = (pred @ proto.view(self.nm, -1)).view(-1, *proto.shape[1:])  # (n, 32) @ (32,80,80) -> (n,80,80)
-        loss = F.binary_cross_entropy_with_logits(pred_mask, gt_mask, reduction="none")
+        loss = F.binary_cross_entropy_with_logits(pred_mask, gt_mask, reduction='none')
         return (crop_mask(loss, xyxy).mean(dim=(1, 2)) / area).mean()
 
 
-@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
-def train(cfg):
-    cfg.model = cfg.model or "yolov8n-seg.pt"
-    cfg.data = cfg.data or "coco128-seg.yaml"  # or yolo.ClassificationDataset("mnist")
-    cfg.device = cfg.device if cfg.device is not None else ''
-    # trainer = SegmentationTrainer(cfg)
-    # trainer.train()
-    from ultralytics import YOLO
-    model = YOLO(cfg.model)
-    model.train(**cfg)
+def train(cfg=DEFAULT_CFG, use_python=False):
+    model = cfg.model or 'yolov8n-seg.pt'
+    data = cfg.data or 'coco128-seg.yaml'  # or yolo.ClassificationDataset("mnist")
+    device = cfg.device if cfg.device is not None else ''
+
+    args = dict(model=model, data=data, device=device)
+    if use_python:
+        from ultralytics import YOLO
+        YOLO(model).train(**args)
+    else:
+        trainer = SegmentationTrainer(overrides=args)
+        trainer.train()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     train()

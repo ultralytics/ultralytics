@@ -1,11 +1,14 @@
-site_name: Ultralytics YOLOv8 Docs
+# Ultralytics YOLO 🚀, GPL-3.0 license
+
+site_name: YOLOv8 Docs
 repo_url: https://github.com/ultralytics/ultralytics
 edit_uri: https://github.com/ultralytics/ultralytics/tree/main/docs
 repo_name: ultralytics/ultralytics
+remote_name: https://github.com/ultralytics/docs
 
 theme:
   name: "material"
-  logo: https://github.com/ultralytics/assets/raw/main/logo/Ultralytics-logomark-white.png
+  logo: https://github.com/ultralytics/assets/raw/main/logo/Ultralytics_Logotype_Reverse.svg
   favicon: https://github.com/ultralytics/assets/raw/main/logo/favicon-yolo.ico
   font:
     text: Roboto
@@ -36,6 +39,28 @@ theme:
     - navigation.expand
     - navigation.footer
     - content.tabs.link  # all code tabs change simultaneously
+
+# Customization
+copyright: Ultralytics 2023. All rights reserved.
+extra:
+  # version:
+  #   provider: mike  #  version drop-down menu
+  analytics:
+    provider: google
+    property: G-2M5EHKC0BH
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/ultralytics
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/company/ultralytics
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/ultralytics
+    - icon: fontawesome/brands/youtube
+      link: https://www.youtube.com/ultralytics
+    - icon: fontawesome/brands/docker
+      link: https://hub.docker.com/r/ultralytics/ultralytics/
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/ultralytics/
 
 extra_css:
   - stylesheets/style.css
@@ -80,20 +105,25 @@ nav:
   - Tasks:
       - Detection: tasks/detection.md
       - Segmentation: tasks/segmentation.md
+      - Multi-Object Tracking: tasks/tracking.md
       - Classification: tasks/classification.md
   - Usage:
-    - CLI: cli.md
-    - Python: python.md
-    - Configuration: config.md
-    - Customization Guide: engine.md
+      - CLI: cli.md
+      - Python: python.md
+      - Predict: predict.md
+      - Configuration: cfg.md
+      - Customization using callbacks: callbacks.md
+      - Advanced customization: engine.md
   - Ultralytics HUB: hub.md
   - iOS and Android App: app.md
   - Reference:
-      - Python Model interface: reference/model.md
       - Engine:
+          - Model: reference/model.md
           - Trainer: reference/base_trainer.md
           - Validator: reference/base_val.md
           - Predictor: reference/base_pred.md
           - Exporter: reference/exporter.md
-      - nn Module: reference/nn.md
-      - operations: reference/ops.md
+          - Results: reference/results.md
+      - ultralytics.nn: reference/nn.md
+      - Operations: reference/ops.md
+  - Security: SECURITY.md

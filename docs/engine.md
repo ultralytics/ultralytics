@@ -3,12 +3,12 @@ executors. Let's take a look at the Trainer engine.
 
 ## BaseTrainer
 
-BaseTrainer contains the generic boilerplate training routine. It can be customized for any task based over overidding
+BaseTrainer contains the generic boilerplate training routine. It can be customized for any task based over overriding
 the required functions or operations as long the as correct formats are followed. For example, you can support your own
-custom model and dataloder by just overriding these functions:
+custom model and dataloader by just overriding these functions:
 
 * `get_model(cfg, weights)` - The function that builds the model to be trained
-* `get_dataloder()` - The function that builds the dataloder
+* `get_dataloder()` - The function that builds the dataloader
   More details and source code can be found in [`BaseTrainer` Reference](reference/base_trainer.md)
 
 ## DetectionTrainer
@@ -78,6 +78,6 @@ To know more about Callback triggering events and entry point, checkout our Call
 
 ## Other engine components
 
-There are other componenets that can be customized similarly like `Validators` and `Predictors`
+There are other components that can be customized similarly like `Validators` and `Predictors`
 See Reference section for more information on these.
 

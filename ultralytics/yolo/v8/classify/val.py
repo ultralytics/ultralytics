@@ -1,10 +1,8 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
-import hydra
-
 from ultralytics.yolo.data import build_classification_dataloader
 from ultralytics.yolo.engine.validator import BaseValidator
-from ultralytics.yolo.utils import DEFAULT_CONFIG
+from ultralytics.yolo.utils import DEFAULT_CFG
 from ultralytics.yolo.utils.metrics import ClassifyMetrics
 
 
@@ -12,6 +10,7 @@ class ClassificationValidator(BaseValidator):
 
     def __init__(self, dataloader=None, save_dir=None, pbar=None, logger=None, args=None):
         super().__init__(dataloader, save_dir, pbar, logger, args)
+        self.args.task = 'classify'
         self.metrics = ClassifyMetrics()
 
     def get_desc(self):
@@ -22,14 +21,17 @@ class ClassificationValidator(BaseValidator):
         self.targets = []
 
     def preprocess(self, batch):
-        batch["img"] = batch["img"].to(self.device, non_blocking=True)
-        batch["img"] = batch["img"].half() if self.args.half else batch["img"].float()
-        batch["cls"] = batch["cls"].to(self.device)
+        batch['img'] = batch['img'].to(self.device, non_blocking=True)
+        batch['img'] = batch['img'].half() if self.args.half else batch['img'].float()
+        batch['cls'] = batch['cls'].to(self.device)
         return batch
 
     def update_metrics(self, preds, batch):
         self.pred.append(preds.argsort(1, descending=True)[:, :5])
-        self.targets.append(batch["cls"])
+        self.targets.append(batch['cls'])
+
+    def finalize_metrics(self, *args, **kwargs):
+        self.metrics.speed = dict(zip(self.metrics.speed.keys(), self.speed))
 
     def get_stats(self):
         self.metrics.process(self.targets, self.pred)
@@ -43,16 +45,21 @@ class ClassificationValidator(BaseValidator):
 
     def print_results(self):
         pf = '%22s' + '%11.3g' * len(self.metrics.keys)  # print format
-        self.logger.info(pf % ("all", self.metrics.top1, self.metrics.top5))
+        self.logger.info(pf % ('all', self.metrics.top1, self.metrics.top5))
 
 
-@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
-def val(cfg):
-    cfg.model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
-    cfg.data = cfg.data or "imagenette160"
-    validator = ClassificationValidator(args=cfg)
-    validator(model=cfg.model)
+def val(cfg=DEFAULT_CFG, use_python=False):
+    model = cfg.model or 'yolov8n-cls.pt'  # or "resnet18"
+    data = cfg.data or 'mnist160'
+
+    args = dict(model=model, data=data)
+    if use_python:
+        from ultralytics import YOLO
+        YOLO(model).val(**args)
+    else:
+        validator = ClassificationValidator(args=args)
+        validator(model=args['model'])
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     val()

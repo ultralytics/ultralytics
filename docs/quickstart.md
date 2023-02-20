@@ -36,11 +36,11 @@ CLI requires no customization or code. You can simply run all tasks from the ter
 
     === "Example training"
         ```bash
-        yolo task=detect mode=train model=yolov8n.pt data=coco128.yaml device=0
+        yolo detect train model=yolov8n.pt data=coco128.yaml device=0
         ```
     === "Example Multi-GPU training"
         ```bash
-        yolo task=detect mode=train model=yolov8n.pt data=coco128.yaml device=\'0,1,2,3\'
+        yolo detect train model=yolov8n.pt data=coco128.yaml device=\'0,1,2,3\'
         ```
 
 [CLI Guide](cli.md){ .md-button .md-button--primary}

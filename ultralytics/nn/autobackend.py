@@ -1,7 +1,9 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
-
+import ast
+import contextlib
 import json
 import platform
+import zipfile
 from collections import OrderedDict, namedtuple
 from pathlib import Path
 from urllib.parse import urlparse
@@ -13,12 +15,30 @@ import torch.nn as nn
 from PIL import Image
 
 from ultralytics.yolo.utils import LOGGER, ROOT, yaml_load
-from ultralytics.yolo.utils.checks import check_requirements, check_suffix, check_version
-from ultralytics.yolo.utils.downloads import attempt_download, is_url
+from ultralytics.yolo.utils.checks import check_requirements, check_suffix, check_version, check_yaml
+from ultralytics.yolo.utils.downloads import attempt_download_asset, is_url
 from ultralytics.yolo.utils.ops import xywh2xyxy
 
 
+def check_class_names(names):
+    # Check class names. Map imagenet class codes to human-readable names if required. Convert lists to dicts.
+    if isinstance(names, list):  # names is a list
+        names = dict(enumerate(names))  # convert to dict
+    if isinstance(names, dict):
+        if not all(isinstance(k, int) for k in names.keys()):  # convert string keys to int, i.e. '0' to 0
+            names = {int(k): v for k, v in names.items()}
+        if isinstance(names[0], str) and names[0].startswith('n0'):  # imagenet class codes, i.e. 'n01440764'
+            map = yaml_load(ROOT / 'datasets/ImageNet.yaml')['map']  # human-readable names
+            names = {k: map[v] for k, v in names.items()}
+    return names
+
+
 class AutoBackend(nn.Module):
+
+    def _apply_default_class_names(self, data):
+        with contextlib.suppress(Exception):
+            return yaml_load(check_yaml(data))['names']
+        return {i: f'class{i}' for i in range(999)}  # return default if above errors
 
     def __init__(self, weights='yolov8n.pt', device=torch.device('cpu'), dnn=False, data=None, fp16=False, fuse=True):
         """
@@ -28,7 +48,7 @@ class AutoBackend(nn.Module):
             weights (str): The path to the weights file. Default: 'yolov8n.pt'
             device (torch.device): The device to run the model on.
             dnn (bool): Use OpenCV's DNN module for inference if True, defaults to False.
-            data (dict): Additional data, optional
+            data (str), (Path): Additional data.yaml file for class names, optional
             fp16 (bool): If True, use half precision. Default: False
             fuse (bool): Whether to fuse the model or not. Default: True
 
@@ -38,7 +58,7 @@ class AutoBackend(nn.Module):
             | PyTorch               | *.pt             |
             | TorchScript           | *.torchscript    |
             | ONNX Runtime          | *.onnx           |
-            | ONNX OpenCV DNN       | *.onnx --dnn     |
+            | ONNX OpenCV DNN       | *.onnx dnn=True  |
             | OpenVINO              | *.xml            |
             | CoreML                | *.mlmodel        |
             | TensorRT              | *.engine         |
@@ -58,13 +78,14 @@ class AutoBackend(nn.Module):
         model = None  # TODO: resolves ONNX inference, verify effect on other backends
         cuda = torch.cuda.is_available() and device.type != 'cpu'  # use CUDA
         if not (pt or triton or nn_module):
-            w = attempt_download(w)  # download if not local
+            w = attempt_download_asset(w)  # download if not local
 
         # NOTE: special case: in-memory pytorch model
         if nn_module:
             model = weights.to(device)
             model = model.fuse() if fuse else model
             names = model.module.names if hasattr(model, 'module') else model.names  # get class names
+            stride = max(int(model.stride.max()), 32)  # model stride
             model.half() if fp16 else model.float()
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
             pt = True
@@ -111,12 +132,11 @@ class AutoBackend(nn.Module):
                 w = next(Path(w).glob('*.xml'))  # get *.xml file from *_openvino_model dir
             network = ie.read_model(model=w, weights=Path(w).with_suffix('.bin'))
             if network.get_parameters()[0].get_layout().empty:
-                network.get_parameters()[0].set_layout(Layout("NCHW"))
+                network.get_parameters()[0].set_layout(Layout('NCHW'))
             batch_dim = get_batch(network)
             if batch_dim.is_static:
                 batch_size = batch_dim.get_length()
-            executable_network = ie.compile_model(network, device_name="CPU")  # device_name="MYRIAD" for Intel NCS2
-            stride, names = self._load_metadata(Path(w).with_suffix('.yaml'))  # load metadata
+            executable_network = ie.compile_model(network, device_name='CPU')  # device_name="MYRIAD" for Intel NCS2
         elif engine:  # TensorRT
             LOGGER.info(f'Loading {w} for TensorRT inference...')
             import tensorrt as trt  # https://developer.nvidia.com/nvidia-tensorrt-download
@@ -125,8 +145,11 @@ class AutoBackend(nn.Module):
                 device = torch.device('cuda:0')
             Binding = namedtuple('Binding', ('name', 'dtype', 'shape', 'data', 'ptr'))
             logger = trt.Logger(trt.Logger.INFO)
+            # Read file
             with open(w, 'rb') as f, trt.Runtime(logger) as runtime:
-                model = runtime.deserialize_cuda_engine(f.read())
+                meta_len = int.from_bytes(f.read(4), byteorder='little')  # read metadata length
+                meta = json.loads(f.read(meta_len).decode('utf-8'))  # read metadata
+                model = runtime.deserialize_cuda_engine(f.read())  # read engine
             context = model.create_execution_context()
             bindings = OrderedDict()
             output_names = []
@@ -148,6 +171,7 @@ class AutoBackend(nn.Module):
                 bindings[name] = Binding(name, dtype, shape, im, int(im.data_ptr()))
             binding_addrs = OrderedDict((n, d.ptr) for n, d in bindings.items())
             batch_size = bindings['images'].shape[0]  # if dynamic, this is instead max batch size
+            stride, names = int(meta['stride']), meta['names']
         elif coreml:  # CoreML
             LOGGER.info(f'Loading {w} for CoreML inference...')
             import coremltools as ct
@@ -157,12 +181,13 @@ class AutoBackend(nn.Module):
             import tensorflow as tf
             keras = False  # assume TF1 saved_model
             model = tf.keras.models.load_model(w) if keras else tf.saved_model.load(w)
+            w = Path(w) / 'metadata.yaml'
         elif pb:  # GraphDef https://www.tensorflow.org/guide/migrate#a_graphpb_or_graphpbtxt
             LOGGER.info(f'Loading {w} for TensorFlow GraphDef inference...')
             import tensorflow as tf
 
             def wrap_frozen_graph(gd, inputs, outputs):
-                x = tf.compat.v1.wrap_function(lambda: tf.compat.v1.import_graph_def(gd, name=""), [])  # wrapped
+                x = tf.compat.v1.wrap_function(lambda: tf.compat.v1.import_graph_def(gd, name=''), [])  # wrapped
                 ge = x.graph.as_graph_element
                 return x.prune(tf.nest.map_structure(ge, inputs), tf.nest.map_structure(ge, outputs))
 
@@ -176,13 +201,13 @@ class AutoBackend(nn.Module):
             gd = tf.Graph().as_graph_def()  # TF GraphDef
             with open(w, 'rb') as f:
                 gd.ParseFromString(f.read())
-            frozen_func = wrap_frozen_graph(gd, inputs="x:0", outputs=gd_outputs(gd))
+            frozen_func = wrap_frozen_graph(gd, inputs='x:0', outputs=gd_outputs(gd))
         elif tflite or edgetpu:  # https://www.tensorflow.org/lite/guide/python#install_tensorflow_lite_for_python
             try:  # https://coral.ai/docs/edgetpu/tflite-python/#update-existing-tf-lite-code-for-the-edge-tpu
                 from tflite_runtime.interpreter import Interpreter, load_delegate
             except ImportError:
                 import tensorflow as tf
-                Interpreter, load_delegate = tf.lite.Interpreter, tf.lite.experimental.load_delegate,
+                Interpreter, load_delegate = tf.lite.Interpreter, tf.lite.experimental.load_delegate
             if edgetpu:  # TF Edge TPU https://coral.ai/software/#edgetpu-runtime
                 LOGGER.info(f'Loading {w} for TensorFlow Lite Edge TPU inference...')
                 delegate = {
@@ -196,14 +221,20 @@ class AutoBackend(nn.Module):
             interpreter.allocate_tensors()  # allocate
             input_details = interpreter.get_input_details()  # inputs
             output_details = interpreter.get_output_details()  # outputs
+            # load metadata
+            with contextlib.suppress(zipfile.BadZipFile):
+                with zipfile.ZipFile(w, 'r') as model:
+                    meta_file = model.namelist()[0]
+                    meta = ast.literal_eval(model.read(meta_file).decode('utf-8'))
+                    stride, names = int(meta['stride']), meta['names']
         elif tfjs:  # TF.js
-            raise NotImplementedError('ERROR: YOLOv8 TF.js inference is not supported')
+            raise NotImplementedError('YOLOv8 TF.js inference is not supported')
         elif paddle:  # PaddlePaddle
             LOGGER.info(f'Loading {w} for PaddlePaddle inference...')
             check_requirements('paddlepaddle-gpu' if cuda else 'paddlepaddle')
             import paddle.inference as pdi
             if not Path(w).is_file():  # if not *.pdmodel
-                w = next(Path(w).rglob('*.pdmodel'))  # get *.xml file from *_openvino_model dir
+                w = next(Path(w).rglob('*.pdmodel'))  # get *.pdmodel file from *_paddle_model dir
             weights = Path(w).with_suffix('.pdiparams')
             config = pdi.Config(str(w), str(weights))
             if cuda:
@@ -221,13 +252,24 @@ class AutoBackend(nn.Module):
             nhwc = model.runtime.startswith("tensorflow")
             '''
         else:
-            raise NotImplementedError(f'ERROR: {w} is not a supported format')
+            from ultralytics.yolo.engine.exporter import EXPORT_FORMATS_TABLE
+            raise TypeError(f"model='{w}' is not a supported model format. "
+                            'See https://docs.ultralytics.com/tasks/detection/#export for help.'
+                            f'\n\n{EXPORT_FORMATS_TABLE}')
 
-        # class names
-        if 'names' not in locals():
-            names = yaml_load(data)['names'] if data else {i: f'class{i}' for i in range(999)}
-        if names[0] == 'n01440764' and len(names) == 1000:  # ImageNet
-            names = yaml_load(ROOT / 'yolo/data/datasets/ImageNet.yaml')['names']  # human-readable names
+        # Load external metadata YAML
+        if xml or saved_model or paddle:
+            metadata = Path(w).parent / 'metadata.yaml'
+            if metadata.exists():
+                metadata = yaml_load(metadata)
+                stride, names = int(metadata['stride']), metadata['names']  # load metadata
+            else:
+                LOGGER.warning(f"WARNING ⚠️ Metadata not found at '{metadata}'")
+
+        # Check names
+        if 'names' not in locals():  # names missing
+            names = self._apply_default_class_names(data)
+        names = check_class_names(names)
 
         self.__dict__.update(locals())  # assign all variables to self
 
@@ -236,7 +278,7 @@ class AutoBackend(nn.Module):
         Runs inference on the YOLOv8 MultiBackend model.
 
         Args:
-            im (torch.tensor): The image tensor to perform inference on.
+            im (torch.Tensor): The image tensor to perform inference on.
             augment (bool): whether to perform data augmentation during inference, defaults to False
             visualize (bool): whether to visualize the output predictions, defaults to False
 
@@ -285,7 +327,9 @@ class AutoBackend(nn.Module):
                 box = xywh2xyxy(y['coordinates'] * [[w, h, w, h]])  # xyxy pixels
                 conf, cls = y['confidence'].max(1), y['confidence'].argmax(1).astype(np.float)
                 y = np.concatenate((box, conf.reshape(-1, 1), cls.reshape(-1, 1)), 1)
-            else:
+            elif len(y) == 1:  # classification model
+                y = list(y.values())
+            elif len(y) == 2:  # segmentation model
                 y = list(reversed(y.values()))  # reversed for segmentation models (pred, proto)
         elif self.paddle:  # PaddlePaddle
             im = im.cpu().numpy().astype(np.float32)
@@ -298,8 +342,14 @@ class AutoBackend(nn.Module):
             im = im.cpu().numpy()
             if self.saved_model:  # SavedModel
                 y = self.model(im, training=False) if self.keras else self.model(im)
+                if not isinstance(y, list):
+                    y = [y]
             elif self.pb:  # GraphDef
                 y = self.frozen_func(x=self.tf.constant(im))
+                if len(y) == 2 and len(self.names) == 999:  # segments and names not defined
+                    ip, ib = (0, 1) if len(y[0].shape) == 4 else (1, 0)  # index of protos, boxes
+                    nc = y[ib].shape[1] - y[ip].shape[3] - 4  # y = (1, 160, 160, 32), (1, 116, 8400)
+                    self.names = {i: f'class{i}' for i in range(nc)}
             else:  # Lite or Edge TPU
                 input = self.input_details[0]
                 int8 = input['dtype'] == np.uint8  # is TFLite quantized uint8 model
@@ -315,9 +365,16 @@ class AutoBackend(nn.Module):
                         scale, zero_point = output['quantization']
                         x = (x.astype(np.float32) - zero_point) * scale  # re-scale
                     y.append(x)
+            # TF segment fixes: export is reversed vs ONNX export and protos are transposed
+            if len(y) == 2:  # segment with (det, proto) output order reversed
+                if len(y[1].shape) != 4:
+                    y = list(reversed(y))  # should be y = (1, 116, 8400), (1, 160, 160, 32)
+                y[1] = np.transpose(y[1], (0, 3, 1, 2))  # should be y = (1, 116, 8400), (1, 32, 160, 160)
             y = [x if isinstance(x, np.ndarray) else x.numpy() for x in y]
-            y[0][..., :4] *= [w, h, w, h]  # xywh normalized to pixels
+            # y[0][..., :4] *= [w, h, w, h]  # xywh normalized to pixels
 
+        # for x in y:
+        #     print(type(x), len(x)) if isinstance(x, (list, tuple)) else print(type(x), x.shape)  # debug shapes
         if isinstance(y, (list, tuple)):
             return self.from_numpy(y[0]) if len(y) == 1 else [self.from_numpy(x) for x in y]
         else:
@@ -328,12 +385,12 @@ class AutoBackend(nn.Module):
          Convert a numpy array to a tensor.
 
          Args:
-             x (numpy.ndarray): The array to be converted.
+             x (np.ndarray): The array to be converted.
 
          Returns:
-             (torch.tensor): The converted tensor
+             (torch.Tensor): The converted tensor
          """
-        return torch.from_numpy(x).to(self.device) if isinstance(x, np.ndarray) else x
+        return torch.tensor(x).to(self.device) if isinstance(x, np.ndarray) else x
 
     def warmup(self, imgsz=(1, 3, 640, 640)):
         """
@@ -368,20 +425,5 @@ class AutoBackend(nn.Module):
         url = urlparse(p)  # if url may be Triton inference server
         types = [s in Path(p).name for s in sf]
         types[8] &= not types[9]  # tflite &= not edgetpu
-        triton = not any(types) and all([any(s in url.scheme for s in ["http", "grpc"]), url.netloc])
+        triton = not any(types) and all([any(s in url.scheme for s in ['http', 'grpc']), url.netloc])
         return types + [triton]
-
-    @staticmethod
-    def _load_metadata(f=Path('path/to/meta.yaml')):
-        """
-        Loads the metadata from a yaml file
-
-        Args:
-            f: The path to the metadata file.
-        """
-
-        # Load metadata from meta.yaml if it exists
-        if f.exists():
-            d = yaml_load(f)
-            return d['stride'], d['names']  # assign stride, names
-        return None, None

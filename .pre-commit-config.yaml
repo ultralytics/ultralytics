@@ -1,8 +1,5 @@
-# Define hooks for code formations
-# Will be applied on any updated commit files if a user has installed and linked commit hook
-
-default_language_version:
-  python: python3.8
+# Ultralytics YOLO 🚀, GPL-3.0 license
+# Pre-commit hooks. For more information see https://github.com/pre-commit/pre-commit-hooks/blob/main/README.md
 
 exclude: 'docs/'
 # Define bot property if installed via https://github.com/marketplace/pre-commit-ci
@@ -14,30 +11,30 @@ ci:
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.3.0
+    rev: v4.4.0
     hooks:
-      # - id: end-of-file-fixer
+      - id: end-of-file-fixer
       - id: trailing-whitespace
       - id: check-case-conflict
       - id: check-yaml
-      - id: check-toml
-      - id: pretty-format-json
       - id: check-docstring-first
+      - id: double-quote-string-fixer
+      - id: detect-private-key
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v2.37.3
+    rev: v3.3.1
     hooks:
       - id: pyupgrade
         name: Upgrade code
-        args: [ --py37-plus ]
+        args: [--py37-plus]
 
   - repo: https://github.com/PyCQA/isort
-    rev: 5.10.1
+    rev: 5.12.0
     hooks:
       - id: isort
         name: Sort imports
 
-  - repo: https://github.com/pre-commit/mirrors-yapf
+  - repo: https://github.com/google/yapf
     rev: v0.32.0
     hooks:
       - id: yapf
@@ -54,10 +51,17 @@ repos:
         # exclude: "README.md|README.zh-CN.md|CONTRIBUTING.md"
 
   - repo: https://github.com/PyCQA/flake8
-    rev: 5.0.4
+    rev: 6.0.0
     hooks:
       - id: flake8
         name: PEP8
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.2.2
+    hooks:
+      - id: codespell
+        args:
+          - --ignore-words-list=crate,nd,strack,dota
 
   #- repo: https://github.com/asottile/yesqa
   #  rev: v1.4.0

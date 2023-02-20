@@ -4,13 +4,15 @@ import re
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 
+from ultralytics.yolo.utils import LOGGER, TESTS_RUNNING
 from ultralytics.yolo.utils.torch_utils import get_flops, get_num_params
 
 try:
     import clearml
     from clearml import Task
 
-    assert hasattr(clearml, '__version__')
+    assert clearml.__version__  # verify package is not directory
+    assert not TESTS_RUNNING  # do not log pytest
 except (ImportError, AssertionError):
     clearml = None
 
@@ -50,13 +52,16 @@ def _log_plot(title, plot_path):
 
 def on_pretrain_routine_start(trainer):
     # TODO: reuse existing task
-    task = Task.init(project_name=trainer.args.project or "YOLOv8",
-                     task_name=trainer.args.name,
-                     tags=['YOLOv8'],
-                     output_uri=True,
-                     reuse_last_task_id=False,
-                     auto_connect_frameworks={'pytorch': False, 'matplotlib': False})
-    task.connect(dict(trainer.args), name='General')
+    try:
+        task = Task.init(project_name=trainer.args.project or "YOLOv8",
+                        task_name=trainer.args.name,
+                        tags=['YOLOv8'],
+                        output_uri=True,
+                        reuse_last_task_id=False,
+                        auto_connect_frameworks={'pytorch': False, 'matplotlib': False})
+        task.connect(vars(trainer.args), name='General')
+    except Exception as e:
+        LOGGER.warning(f'WARNING ⚠️ ClearML not initialized correctly, not logging this run. {e}')
 
 
 def on_train_epoch_end(trainer):

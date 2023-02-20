@@ -96,18 +96,18 @@ results[0].probs  # cls prob, (num_class, )
 
 Class reference documentation for `Results` module and its components can be found [here](reference/results.md)
 
-## Visualizing results
+## Plotting results
 
-You can use `visualize()` function of `Result` object to get a visualization. It plots all components(boxes, masks,
+You can use `plot()` function of `Result` object to plot results on in image object. It plots all components(boxes, masks,
 classification logits, etc) found in the results object
 
 ```python
 res = model(img)
-res_plotted = res[0].visualize()
+res_plotted = res[0].plot()
 cv2.imshow("result", res_plotted)
 ```
 
-!!! example "`visualize()` arguments"
+!!! example "`plot()` arguments"
 
     `show_conf (bool)`: Show confidence
 

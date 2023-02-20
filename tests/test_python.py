@@ -172,15 +172,15 @@ def test_result():
     res = model([SOURCE, SOURCE])
     res[0].numpy()
     res[0].cpu().numpy()
-    res[0].visualize(show_conf=False)
+    res[0].plot(show_conf=False)
     print(res[0].path)
 
     model = YOLO('yolov8n.pt')
     res = model(SOURCE)
-    res[0].visualize()
+    res[0].plot()
     print(res[0].path)
 
     model = YOLO('yolov8n-cls.pt')
     res = model(SOURCE)
-    res[0].visualize()
+    res[0].plot()
     print(res[0].path)

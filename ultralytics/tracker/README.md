@@ -16,7 +16,7 @@ model = YOLO("yolov8n.pt")  # or a segmentation model .i.e yolov8n-seg.pt
 model.track(
     source="video/streams",
     stream=True,
-    tracker="botsort.yaml/bytetrack.yaml",
+    tracker="botsort.yaml",  # or 'bytetrack.yaml'
     ...,
 )
 ```

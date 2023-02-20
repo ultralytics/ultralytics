@@ -1136,11 +1136,11 @@ class HUBDatasetStats():
         # Save, print and return
         if save:
             stats_path = self.hub_dir / 'stats.json'
-            print(f'Saving {stats_path.resolve()}...')
+            LOGGER.info(f'Saving {stats_path.resolve()}...')
             with open(stats_path, 'w') as f:
                 json.dump(self.stats, f)  # save stats.json
         if verbose:
-            print(json.dumps(self.stats, indent=2, sort_keys=False))
+            LOGGER.info(json.dumps(self.stats, indent=2, sort_keys=False))
         return self.stats
 
     def process_images(self):
@@ -1154,7 +1154,7 @@ class HUBDatasetStats():
             with ThreadPool(NUM_THREADS) as pool:
                 for _ in tqdm(pool.imap(self._hub_ops, dataset.im_files), total=total, desc=desc):
                     pass
-        print(f'Done. All images saved to {self.im_dir}')
+        LOGGER.info(f'Done. All images saved to {self.im_dir}')
         return self.im_dir
 
 

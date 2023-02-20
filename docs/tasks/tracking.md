@@ -65,7 +65,7 @@ Tracking shares the configuration with predict, i.e `conf`, `iou`, `show`. More 
         ```
 
 ### Tracker
-We also support using a modified tracker config file, just copy a config file i.e `custom_tracker.yaml` from [ultralytics/tracker/cfg](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/tracker/cfg) and modify any configurations(expect the `tracker_type`) you want to.
+We also support using a modified tracker config file, just copy a config file i.e `custom_tracker.yaml` from [ultralytics/tracker/cfg](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/tracker/cfg) and modify any configurations(expect the `tracker_type`) you need to.
 !!! example ""
 
     === "Python"

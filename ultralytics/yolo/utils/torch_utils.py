@@ -59,7 +59,7 @@ def DDP_model(model):
         return DDP(model, device_ids=[LOCAL_RANK], output_device=LOCAL_RANK)
 
 
-def select_device(device='', batch=0, newline=False):
+def select_device(device='', batch=0, newline=False, verbose=True):
     # device = None or 'cpu' or 0 or '0' or '0,1,2,3'
     s = f'Ultralytics YOLOv{__version__} 🚀 Python-{platform.python_version()} torch-{torch.__version__} '
     device = str(device).lower()
@@ -102,7 +102,7 @@ def select_device(device='', batch=0, newline=False):
         s += 'CPU\n'
         arg = 'cpu'
 
-    if RANK == -1:
+    if verbose and RANK == -1:
         LOGGER.info(s if newline else s.rstrip())
     return torch.device(arg)
 

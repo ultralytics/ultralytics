@@ -1,3 +1,10 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license
+"""
+Ultralytics Results, Boxes and Masks classes for handling inference results
+
+Usage: See https://docs.ultralytics.com/predict/
+"""
+
 from copy import deepcopy
 from functools import lru_cache
 
@@ -36,7 +43,7 @@ class Results:
         self.probs = probs if probs is not None else None
         self.names = names
         self.path = path
-        self.comp = ['boxes', 'masks', 'probs']
+        self._keys = (k for k in ('boxes', 'masks', 'probs') if getattr(self, k) is not None)
 
     def pandas(self):
         pass
@@ -44,10 +51,8 @@ class Results:
 
     def __getitem__(self, idx):
         r = Results(orig_img=self.orig_img, path=self.path, names=self.names)
-        for item in self.comp:
-            if getattr(self, item) is None:
-                continue
-            setattr(r, item, getattr(self, item)[idx])
+        for k in self._keys:
+            setattr(r, k, getattr(self, k)[idx])
         return r
 
     def update(self, boxes=None, masks=None, probs=None):
@@ -60,57 +65,37 @@ class Results:
 
     def cpu(self):
         r = Results(orig_img=self.orig_img, path=self.path, names=self.names)
-        for item in self.comp:
-            if getattr(self, item) is None:
-                continue
-            setattr(r, item, getattr(self, item).cpu())
+        for k in self._keys:
+            setattr(r, k, getattr(self, k).cpu())
         return r
 
     def numpy(self):
         r = Results(orig_img=self.orig_img, path=self.path, names=self.names)
-        for item in self.comp:
-            if getattr(self, item) is None:
-                continue
-            setattr(r, item, getattr(self, item).numpy())
+        for k in self._keys:
+            setattr(r, k, getattr(self, k).numpy())
         return r
 
     def cuda(self):
         r = Results(orig_img=self.orig_img, path=self.path, names=self.names)
-        for item in self.comp:
-            if getattr(self, item) is None:
-                continue
-            setattr(r, item, getattr(self, item).cuda())
+        for k in self._keys:
+            setattr(r, k, getattr(self, k).cuda())
         return r
 
     def to(self, *args, **kwargs):
         r = Results(orig_img=self.orig_img, path=self.path, names=self.names)
-        for item in self.comp:
-            if getattr(self, item) is None:
-                continue
-            setattr(r, item, getattr(self, item).to(*args, **kwargs))
+        for k in self._keys:
+            setattr(r, k, getattr(self, k).to(*args, **kwargs))
         return r
 
     def __len__(self):
-        for item in self.comp:
-            if getattr(self, item) is None:
-                continue
-            return len(getattr(self, item))
+        for k in self._keys:
+            return len(getattr(self, k))
 
     def __str__(self):
-        str_out = ''
-        for item in self.comp:
-            if getattr(self, item) is None:
-                continue
-            str_out = str_out + getattr(self, item).__str__()
-        return str_out
+        return ''.join(getattr(self, k).__str__() for k in self._keys)
 
     def __repr__(self):
-        str_out = ''
-        for item in self.comp:
-            if getattr(self, item) is None:
-                continue
-            str_out = str_out + getattr(self, item).__repr__()
-        return str_out
+        return ''.join(getattr(self, k).__repr__() for k in self._keys)
 
     def __getattr__(self, attr):
         name = self.__class__.__name__
@@ -226,20 +211,16 @@ class Boxes:
         return self.xywh / self.orig_shape[[1, 0, 1, 0]]
 
     def cpu(self):
-        boxes = self.boxes.cpu()
-        return Boxes(boxes, self.orig_shape)
+        return Boxes(self.boxes.cpu(), self.orig_shape)
 
     def numpy(self):
-        boxes = self.boxes.numpy()
-        return Boxes(boxes, self.orig_shape)
+        return Boxes(self.boxes.numpy(), self.orig_shape)
 
     def cuda(self):
-        boxes = self.boxes.cuda()
-        return Boxes(boxes, self.orig_shape)
+        return Boxes(self.boxes.cuda(), self.orig_shape)
 
     def to(self, *args, **kwargs):
-        boxes = self.boxes.to(*args, **kwargs)
-        return Boxes(boxes, self.orig_shape)
+        return Boxes(self.boxes.to(*args, **kwargs), self.orig_shape)
 
     def pandas(self):
         LOGGER.info('results.pandas() method not yet implemented')
@@ -272,8 +253,7 @@ class Boxes:
                 f'shape: {self.boxes.shape}\n' + f'dtype: {self.boxes.dtype}\n + {self.boxes.__repr__()}')
 
     def __getitem__(self, idx):
-        boxes = self.boxes[idx]
-        return Boxes(boxes, self.orig_shape)
+        return Boxes(self.boxes[idx], self.orig_shape)
 
     def __getattr__(self, attr):
         name = self.__class__.__name__
@@ -331,20 +311,16 @@ class Masks:
         return self.masks
 
     def cpu(self):
-        masks = self.masks.cpu()
-        return Masks(masks, self.orig_shape)
+        return Masks(self.masks.cpu(), self.orig_shape)
 
     def numpy(self):
-        masks = self.masks.numpy()
-        return Masks(masks, self.orig_shape)
+        return Masks(self.masks.numpy(), self.orig_shape)
 
     def cuda(self):
-        masks = self.masks.cuda()
-        return Masks(masks, self.orig_shape)
+        return Masks(self.masks.cuda(), self.orig_shape)
 
     def to(self, *args, **kwargs):
-        masks = self.masks.to(*args, **kwargs)
-        return Masks(masks, self.orig_shape)
+        return Masks(self.masks.to(*args, **kwargs), self.orig_shape)
 
     def __len__(self):  # override len(results)
         return len(self.masks)
@@ -357,8 +333,7 @@ class Masks:
                 f'shape: {self.masks.shape}\n' + f'dtype: {self.masks.dtype}\n + {self.masks.__repr__()}')
 
     def __getitem__(self, idx):
-        masks = self.masks[idx]
-        return Masks(masks, self.orig_shape)
+        return Masks(self.masks[idx], self.orig_shape)
 
     def __getattr__(self, attr):
         name = self.__class__.__name__

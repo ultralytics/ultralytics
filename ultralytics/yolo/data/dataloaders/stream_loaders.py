@@ -290,7 +290,7 @@ class LoadPilAndNumpy:
         self.transforms = transforms
         self.mode = 'image'
         # generate fake paths
-        self.paths = [im.filename if hasattr(im, 'filename') else type(im).__name__ for im in self.im0]
+        self.paths = [getattr(im, 'filename', f'image{i}.jpg') for i, im in enumerate(self.im0)]
         self.bs = len(self.im0)
 
     @staticmethod

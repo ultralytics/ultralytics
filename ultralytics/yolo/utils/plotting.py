@@ -156,11 +156,11 @@ class Annotator:
         return np.asarray(self.im)
 
 @TryExcept()  # known issue https://github.com/ultralytics/yolov5/issues/5395
-def plot_labels(labels, names=(), save_dir=Path('')):
+def plot_labels(boxes, cls, names=(), save_dir=Path('')):
     # plot dataset labels
     LOGGER.info(f"Plotting labels to {save_dir / 'labels.jpg'}... ")
-    c, b = labels[:, 0], labels[:, 1:].transpose()  # classes, boxes
-    nc = int(c.max() + 1)  # number of classes
+    b = boxes.transpose()  # classes, boxes
+    nc = int(cls.max() + 1)  # number of classes
     x = pd.DataFrame(b.transpose(), columns=['x', 'y', 'width', 'height'])
 
     # seaborn correlogram
@@ -171,7 +171,7 @@ def plot_labels(labels, names=(), save_dir=Path('')):
     # matplotlib labels
     matplotlib.use('svg')  # faster
     ax = plt.subplots(2, 2, figsize=(8, 8), tight_layout=True)[1].ravel()
-    y = ax[0].hist(c, bins=np.linspace(0, nc, nc + 1) - 0.5, rwidth=0.8)
+    y = ax[0].hist(cls, bins=np.linspace(0, nc, nc + 1) - 0.5, rwidth=0.8)
     with contextlib.suppress(Exception):  # color histogram bars by class
         [y[2].patches[i].set_color([x / 255 for x in colors(i)]) for i in range(nc)]  # known issue #3195
     ax[0].set_ylabel('instances')
@@ -184,10 +184,10 @@ def plot_labels(labels, names=(), save_dir=Path('')):
     sn.histplot(x, x='width', y='height', ax=ax[3], bins=50, pmax=0.9)
 
     # rectangles
-    labels[:, 1:3] = 0.5  # center
-    labels[:, 1:] = xywh2xyxy(labels[:, 1:]) * 2000
+    boxes[:, 0:2] = 0.5  # center
+    boxes = xywh2xyxy(boxes) * 2000
     img = Image.fromarray(np.ones((2000, 2000, 3), dtype=np.uint8) * 255)
-    for cls, *box in labels[:1000]:
+    for cls, box in zip(cls[:1000], boxes[:1000]):
         ImageDraw.Draw(img).rectangle(box, width=1, outline=colors(cls))  # plot
     ax[1].imshow(img)
     ax[1].axis('off')

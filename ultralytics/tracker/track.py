@@ -1,11 +1,14 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
 from ultralytics.yolo.utils.checks import check_requirements, check_yaml
+
 check_requirements('lap')  # for linear_assignment
 
-from ultralytics.yolo.utils import IterableSimpleNamespace, yaml_load
-from .trackers import BOTSORT, BYTETracker
 import torch
+
+from ultralytics.yolo.utils import IterableSimpleNamespace, yaml_load
+
+from .trackers import BOTSORT, BYTETracker
 
 TRACKER_MAP = {'bytetrack': BYTETracker, 'botsort': BOTSORT}
 

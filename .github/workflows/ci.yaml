@@ -22,7 +22,7 @@ jobs:
         model: [yolov8n]
         include:
           - if: github.event_name == 'schedule'
-          - os: windows-latest
+            os: windows-latest
           - os: macos-latest
     steps:
       - uses: actions/checkout@v3
@@ -80,6 +80,7 @@ jobs:
         include:
           - os: ubuntu-latest
             python-version: '3.8'  # torch 1.7.0 requires python >=3.6, <=3.8
+            model: yolov8n
             torch: '1.8.0'  # min torch version CI https://pypi.org/project/torchvision/
           - os: windows-latest
             python-version: '3.10'

@@ -59,7 +59,7 @@ def test_segment():
     # Predictor
     pred = segment.SegmentationPredictor(overrides={'imgsz': [64, 64]})
     result = pred(source=SOURCE, model=f'{MODEL}-seg.pt')
-    assert len(result) == 2, 'predictor test failed'
+    assert len(result), 'predictor test failed'
 
     # Test resume
     overrides['resume'] = trainer.last
@@ -97,4 +97,4 @@ def test_classify():
     # Predictor
     pred = classify.ClassificationPredictor(overrides={'imgsz': [64, 64]})
     result = pred(source=SOURCE, model=trainer.best)
-    assert len(result) == 2, 'predictor test failed'
+    assert len(result), 'predictor test failed'

@@ -290,14 +290,16 @@ class LoadPilAndNumpy:
         self.transforms = transforms
         self.mode = 'image'
         # generate fake paths
-        self.paths = [f'image{i}.jpg' for i in range(len(self.im0))]
+        self.paths = [im.filename if hasattr(im, 'filename') else type(im).__name__ for im in self.im0]
         self.bs = len(self.im0)
 
     @staticmethod
     def _single_check(im):
         assert isinstance(im, (Image.Image, np.ndarray)), f'Expected PIL/np.ndarray image type, but got {type(im)}'
         if isinstance(im, Image.Image):
-            im = np.asarray(im.convert('RGB'))[:, :, ::-1]
+            if im.mode != 'RGB':
+                im = im.convert('RGB')
+            im = np.asarray(im)[:, :, ::-1]
             im = np.ascontiguousarray(im)  # contiguous
         return im
 

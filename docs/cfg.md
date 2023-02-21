@@ -130,6 +130,7 @@ given task.
 | half           | False                | use half precision (FP16)                                |
 | device         | null                 | device to run on, i.e. cuda device=0/1/2/3 or device=cpu |
 | show           | False                | show results if possible                                 |
+| save           | False                | save images with results                                 |
 | save_txt       | False                | save results as .txt file                                |
 | save_conf      | False                | save results with confidence scores                      |
 | save_crop      | False                | save cropped images with results                         |

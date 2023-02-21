@@ -14,6 +14,13 @@ from ultralytics.yolo.utils import LINUX, ROOT, SETTINGS
 MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n.pt'
 CFG = 'yolov8n.yaml'
 SOURCE = ROOT / 'assets/bus.jpg'
+SOURCE_GREYSCALE = Path(f'{SOURCE.parent / SOURCE.stem}_greyscale.jpg')
+SOURCE_RGBA = Path(f'{SOURCE.parent / SOURCE.stem}_4ch.png')
+
+# Convert SOURCE to greyscale and 4-ch
+im = Image.open(SOURCE)
+im.convert('L').save(SOURCE_GREYSCALE)  # greyscale
+im.convert('RGBA').save(SOURCE_RGBA)  # 4-ch PNG with alpha
 
 
 def test_model_forward():
@@ -42,8 +49,7 @@ def test_predict_dir():
 
 def test_predict_img():
     model = YOLO(MODEL)
-    img = Image.open(str(SOURCE))
-    output = model(source=img, save=True, verbose=True)  # PIL
+    output = model(source=Image.open(SOURCE), save=True, verbose=True)  # PIL
     assert len(output) == 1, 'predict test failed'
     img = cv2.imread(str(SOURCE))
     output = model(source=img, save=True, save_txt=True)  # ndarray
@@ -65,6 +71,13 @@ def test_predict_img():
         np.zeros((320, 640, 3))]  # numpy
     output = model(imgs)
     assert len(output) == 6, 'predict test failed!'
+
+
+def test_predict_grey_and_4ch():
+    model = YOLO(MODEL)
+    for f in SOURCE_RGBA, SOURCE_GREYSCALE:
+        for source in Image.open(f), cv2.imread(str(f)), f:
+            model(source, save=True, verbose=True)
 
 
 def test_val():
@@ -151,6 +164,7 @@ def test_predict_callback_and_setup():
         # results -> List[batch_size]
         path, _, im0s, _, _ = predictor.batch
         # print('on_predict_batch_end', im0s[0].shape)
+        im0s = im0s if isinstance(im0s, list) else [im0s]
         bs = [predictor.dataset.bs for _ in range(len(path))]
         predictor.results = zip(predictor.results, im0s, bs)
 

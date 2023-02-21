@@ -18,7 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ['3.10']  # requires python<=3.9
+        python-version: ['3.10']
         model: [yolov8n]
     steps:
       - uses: actions/checkout@v3
@@ -51,17 +51,17 @@ jobs:
         shell: python
         run: |
           from ultralytics.yolo.utils.benchmarks import run_benchmarks
-          run_benchmarks(model='yolov8n.pt', imgsz=160, half=False, hard_fail=False)
+          run_benchmarks(model='${{ matrix.model }}.pt', imgsz=160, half=False, hard_fail=False)
       - name: Benchmark SegmentationModel
         shell: python
         run: |
           from ultralytics.yolo.utils.benchmarks import run_benchmarks
-          run_benchmarks(model='yolov8n-seg.pt', imgsz=160, half=False, hard_fail=False)
+          run_benchmarks(model='${{ matrix.model }}-seg.pt', imgsz=160, half=False, hard_fail=False)
       - name: Benchmark ClassificationModel
         shell: python
         run: |
           from ultralytics.yolo.utils.benchmarks import run_benchmarks
-          run_benchmarks(model='yolov8n-cls.pt', imgsz=160, half=False, hard_fail=False)
+          run_benchmarks(model='${{ matrix.model }}-cls.pt', imgsz=160, half=False, hard_fail=False)
 
   Tests:
     timeout-minutes: 60
@@ -70,13 +70,10 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ['3.10']
+        python-version: ['3.7', '3.8', '3.9', '3.10']
         model: [yolov8n]
         torch: [latest]
         include:
-          - os: ubuntu-latest
-            python-version: '3.7'  # '3.6.8' min
-            model: yolov8n
           - os: ubuntu-latest
             python-version: '3.8'  # torch 1.7.0 requires python >=3.6, <=3.8
             model: yolov8n
@@ -123,9 +120,7 @@ jobs:
         run: |
           import os
           import ultralytics
-          from ultralytics import hub, yolo
           key = os.environ['APIKEY']
-          print(ultralytics.__version__)
           ultralytics.checks()
           # ultralytics.reset_model(key)  # reset trained model
           # ultralytics.start(key)  # train model

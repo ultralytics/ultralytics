@@ -243,6 +243,8 @@ class BaseTrainer:
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix='val')
             self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))  # TODO: init metrics for plot_results()?
             self.ema = ModelEMA(self.model)
+            if self.args.plots:
+                self.plot_training_labels()
         self.resume_training(ckpt)
         self.scheduler.last_epoch = self.start_epoch - 1  # do not move
         self.run_callbacks('on_pretrain_routine_end')
@@ -499,6 +501,9 @@ class BaseTrainer:
 
     # TODO: may need to put these following functions into callback
     def plot_training_samples(self, batch, ni):
+        pass
+
+    def plot_training_labels(self):
         pass
 
     def save_metrics(self, metrics):

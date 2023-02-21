@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 from copy import copy
 
+import numpy as np
 import torch
 import torch.nn as nn
 
@@ -12,7 +13,7 @@ from ultralytics.yolo.engine.trainer import BaseTrainer
 from ultralytics.yolo.utils import DEFAULT_CFG, RANK, colorstr
 from ultralytics.yolo.utils.loss import BboxLoss
 from ultralytics.yolo.utils.ops import xywh2xyxy
-from ultralytics.yolo.utils.plotting import plot_images, plot_results
+from ultralytics.yolo.utils.plotting import plot_images, plot_labels, plot_results
 from ultralytics.yolo.utils.tal import TaskAlignedAssigner, dist2bbox, make_anchors
 from ultralytics.yolo.utils.torch_utils import de_parallel
 
@@ -101,6 +102,11 @@ class DetectionTrainer(BaseTrainer):
 
     def plot_metrics(self):
         plot_results(file=self.csv)  # save results.png
+
+    def plot_training_labels(self):
+        boxes = np.concatenate([lb['bboxes'] for lb in self.train_loader.dataset.labels], 0)
+        cls = np.concatenate([lb['cls'] for lb in self.train_loader.dataset.labels], 0)
+        plot_labels(boxes, cls.squeeze(), names=self.data['names'], save_dir=self.save_dir)
 
 
 # Criterion class for computing training losses

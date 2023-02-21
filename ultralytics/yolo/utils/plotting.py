@@ -7,18 +7,19 @@ from pathlib import Path
 import cv2
 import matplotlib
 import matplotlib.pyplot as plt
-import seaborn as sn
 import numpy as np
 import pandas as pd
+import seaborn as sn
 import torch
 from PIL import Image, ImageDraw, ImageFont
 from PIL import __version__ as pil_version
 
-from ultralytics.yolo.utils import LOGGER, threaded, TryExcept
+from ultralytics.yolo.utils import LOGGER, TryExcept, threaded
 
 from .checks import check_font, check_version, is_ascii
 from .files import increment_path
 from .ops import clip_coords, scale_image, xywh2xyxy, xyxy2xywh
+
 matplotlib.rc('font', **{'size': 11})
 matplotlib.use('Agg')  # for writing to files only
 
@@ -154,6 +155,7 @@ class Annotator:
     def result(self):
         # Return annotated image as array
         return np.asarray(self.im)
+
 
 @TryExcept()  # known issue https://github.com/ultralytics/yolov5/issues/5395
 def plot_labels(boxes, cls, names=(), save_dir=Path('')):

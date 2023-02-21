@@ -59,7 +59,7 @@ class SegmentationPredictor(DetectionPredictor):
 
         result = results[idx]
         if len(result) == 0:
-            return log_string
+            return f'{log_string}(no detections), '
         det, mask = result.boxes, result.masks  # getting tensors TODO: mask mask,box inherit for tensor
 
         # Print results

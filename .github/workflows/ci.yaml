@@ -20,8 +20,8 @@ jobs:
         os: [ubuntu-latest]
         python-version: ['3.10']
         model: [yolov8n]
-        if: github.event_name == 'schedule'
         include:
+          - if: github.event_name == 'schedule'
           - os: windows-latest
           - os: macos-latest
     steps:

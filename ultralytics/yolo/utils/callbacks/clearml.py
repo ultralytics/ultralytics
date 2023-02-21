@@ -48,7 +48,7 @@ def _log_plot(title, plot_path):
     ax = fig.add_axes([0, 0, 1, 1], frameon=False, aspect='auto', xticks=[], yticks=[])  # no ticks
     ax.imshow(img)
 
-    Task.current_task().get_logger().report_matplotlib_figure(title, "", figure=fig, report_interactive=False)
+    Task.current_task().get_logger().report_matplotlib_figure(title, '', figure=fig, report_interactive=False)
 
 
 def on_pretrain_routine_start(trainer):
@@ -71,7 +71,7 @@ def on_pretrain_routine_start(trainer):
 
 def on_train_epoch_end(trainer):
     if trainer.epoch == 1:
-        _log_debug_samples(sorted(trainer.save_dir.glob('train_batch*.jpg')), "Mosaic")
+        _log_debug_samples(sorted(trainer.save_dir.glob('train_batch*.jpg')), 'Mosaic')
 
 
 def on_fit_epoch_end(trainer):
@@ -79,15 +79,15 @@ def on_fit_epoch_end(trainer):
     Task.current_task().get_logger().report_scalar("Epoch Time", "Epoch Time", trainer.epoch_time, iteration=trainer.epoch)
     if trainer.epoch == 0:
         model_info = {
-            "Parameters": get_num_params(trainer.model),
-            "GFLOPs": round(get_flops(trainer.model), 3),
-            "Inference speed (ms/img)": round(trainer.validator.speed[1], 3)}
+            'Parameters': get_num_params(trainer.model),
+            'GFLOPs': round(get_flops(trainer.model), 3),
+            'Inference speed (ms/img)': round(trainer.validator.speed[1], 3)}
         [Task.current_task().get_logger().report_single_value(k, v) for k, v in model_info.items()]
 
 
 def on_val_end(validator):
     # Log val_labels and val_pred
-    _log_debug_samples(sorted(validator.save_dir.glob('val*.jpg')), "Validation")
+    _log_debug_samples(sorted(validator.save_dir.glob('val*.jpg')), 'Validation')
 
 
 def on_train_end(trainer):
@@ -106,8 +106,8 @@ def on_train_end(trainer):
 
 
 callbacks = {
-    "on_pretrain_routine_start": on_pretrain_routine_start,
-    "on_train_epoch_end": on_train_epoch_end,
-    "on_fit_epoch_end": on_fit_epoch_end,
-    "on_val_end": on_val_end,
-    "on_train_end": on_train_end} if clearml else {}
+    'on_pretrain_routine_start': on_pretrain_routine_start,
+    'on_train_epoch_end': on_train_epoch_end,
+    'on_fit_epoch_end': on_fit_epoch_end,
+    'on_val_end': on_val_end,
+    'on_train_end': on_train_end} if clearml else {}

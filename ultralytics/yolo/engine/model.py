@@ -203,7 +203,7 @@ class YOLO:
 
     @smart_inference_mode()
     def track(self, source=None, stream=False, **kwargs):
-        from ultralytics.tracker.track import register_tracker
+        from ultralytics.tracker import register_tracker
         register_tracker(self)
         # ByteTrack-based method needs low confidence predictions as input
         conf = kwargs.get('conf') or 0.1

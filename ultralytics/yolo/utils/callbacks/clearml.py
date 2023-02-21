@@ -57,13 +57,17 @@ def on_pretrain_routine_start(trainer):
         if Task.current_task():
             task = Task.current_task()
         else:
-            task = Task.init(project_name=trainer.args.project or "YOLOv8",
+            task = Task.init(project_name=trainer.args.project or 'YOLOv8',
                              task_name=trainer.args.name,
                              tags=['YOLOv8'],
                              output_uri=True,
                              reuse_last_task_id=False,
-                             auto_connect_frameworks={'pytorch': False, 'matplotlib': False})
-            LOGGER.warning(f'ClearML Initialized a new task. If you want to run remotely, please add clearml-init and connect your arguments before initializing YOLO.')
+                             auto_connect_frameworks={
+                                 'pytorch': False,
+                                 'matplotlib': False})
+            LOGGER.warning(
+                f'ClearML Initialized a new task. If you want to run remotely, please add clearml-init and connect your arguments before initializing YOLO.'
+            )
         task.connect(vars(trainer.args), name='General')
     except Exception as e:
         LOGGER.warning(f'WARNING ⚠️ ClearML not initialized correctly, not logging this run. {e}')
@@ -76,7 +80,10 @@ def on_train_epoch_end(trainer):
 
 def on_fit_epoch_end(trainer):
     # You should have access to the validation bboxes under jdict
-    Task.current_task().get_logger().report_scalar("Epoch Time", "Epoch Time", trainer.epoch_time, iteration=trainer.epoch)
+    Task.current_task().get_logger().report_scalar('Epoch Time',
+                                                   'Epoch Time',
+                                                   trainer.epoch_time,
+                                                   iteration=trainer.epoch)
     if trainer.epoch == 0:
         model_info = {
             'Parameters': get_num_params(trainer.model),

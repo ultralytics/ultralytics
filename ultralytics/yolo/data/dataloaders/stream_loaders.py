@@ -297,7 +297,7 @@ class LoadPilAndNumpy:
     def _single_check(im):
         assert isinstance(im, (Image.Image, np.ndarray)), f'Expected PIL/np.ndarray image type, but got {type(im)}'
         if isinstance(im, Image.Image):
-            im = np.asarray(im)[:, :, ::-1]
+            im = np.asarray(im.convert('RGB'))[:, :, ::-1]
             im = np.ascontiguousarray(im)  # contiguous
         return im
 

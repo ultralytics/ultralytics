@@ -29,12 +29,11 @@ from tqdm import tqdm
 
 from ultralytics.yolo.data.utils import check_det_dataset
 from ultralytics.yolo.utils import (DATASETS_DIR, LOGGER, NUM_THREADS, TQDM_BAR_FORMAT, is_colab, is_dir_writeable,
-                                    is_kaggle, yaml_load)
-from ultralytics.yolo.utils.checks import check_requirements, check_yaml
+                                    is_kaggle)
+from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils.downloads import unzip_file
 from ultralytics.yolo.utils.ops import clean_str, segments2boxes, xyn2xy, xywh2xyxy, xywhn2xyxy, xyxy2xywhn
 from ultralytics.yolo.utils.torch_utils import torch_distributed_zero_first
-
 from .v5augmentations import (Albumentations, augment_hsv, classify_albumentations, classify_transforms, copy_paste,
                               letterbox, mixup, random_perspective)
 
@@ -1047,7 +1046,7 @@ class HUBDatasetStats():
     Usage
         from ultralytics.yolo.data.dataloaders.v5loader import HUBDatasetStats
         stats = HUBDatasetStats('coco128.yaml', autodownload=True)  # usage 1
-        stats = HUBDatasetStats('path/to/coco128.zip')  # usage 2
+        stats = HUBDatasetStats('path/to/coco6.zip')  # usage 2
         stats.get_json(save=False)
         stats.process_images()
     """
@@ -1055,18 +1054,18 @@ class HUBDatasetStats():
     def __init__(self, path='coco128.yaml', autodownload=False):
         # Initialize class
         zipped, data_dir, yaml_path = self._unzip(Path(path))
-        # try:
-        #     data = yaml_load(check_yaml(yaml_path))  # data dict
-        #     if zipped:
-        #         data['path'] = data_dir
-        # except Exception as e:
-        #     raise Exception('error/HUB/dataset_stats/yaml_load') from e
+        try:
+            # data = yaml_load(check_yaml(yaml_path))  # data dict
+            data = check_det_dataset(yaml_path, autodownload)  # data dict
+            if zipped:
+                data['path'] = data_dir
+        except Exception as e:
+            raise Exception('error/HUB/dataset_stats/yaml_load') from e
 
-        data = check_det_dataset(yaml_path, autodownload)  # download dataset if missing
         self.hub_dir = Path(str(data['path']) + '-hub')
         self.im_dir = self.hub_dir / 'images'
         self.im_dir.mkdir(parents=True, exist_ok=True)  # makes /images
-        self.stats = {'nc': data['nc'], 'names': list(data['names'].values())}  # statistics dictionary
+        self.stats = {'nc': len(data['names']), 'names': list(data['names'].values())}  # statistics dictionary
         self.data = data
 
     @staticmethod

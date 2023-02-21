@@ -565,7 +565,7 @@ class Albumentations:
                 A.MedianBlur(p=0.4),
                 A.ToGray(p=0.5),
                 A.CLAHE(p=0.01),]
-            #default albumentation parameters
+            # default albumentation parameters
             T_other = [
                 A.Blur(p=0.01),
                 A.MedianBlur(p=0.01),

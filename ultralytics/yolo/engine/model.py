@@ -9,7 +9,7 @@ from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, Segmentat
                                   guess_model_task, nn)
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
-from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, RANK, callbacks, yaml_load
+from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, RANK, callbacks, yaml_load, DEFAULT_CFG_DICT
 from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_yaml
 from ultralytics.yolo.utils.downloads import GITHUB_ASSET_STEMS
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode
@@ -236,6 +236,24 @@ class YOLO:
         self.metrics_data = validator.metrics
 
         return validator.metrics
+
+    @smart_inference_mode()
+    def benchmark(self, **kwargs):
+        """
+        Benchmark a model on all export formats.
+
+        Args:
+            data (str): The dataset to validate on. Accepts all formats accepted by yolo
+            **kwargs : Any other args accepted by the validators. To see all args check 'configuration' section in docs
+        """
+        from ultralytics.yolo.utils.benchmarks import run_benchmarks
+        overrides = self.model.args.copy()
+        overrides.update(kwargs)
+        overrides = {**DEFAULT_CFG_DICT, **overrides}  # fill in missing overrides keys with defaults
+        return run_benchmarks(model=self,
+                              imgsz=overrides['imgsz'],
+                              half=overrides['half'],
+                              device=overrides['device'])
 
     def export(self, **kwargs):
         """

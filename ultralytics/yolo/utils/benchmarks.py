@@ -34,6 +34,7 @@ from ultralytics.yolo.engine.exporter import export_formats
 from ultralytics.yolo.utils import LOGGER, SETTINGS
 from ultralytics.yolo.utils.checks import check_yolo
 from ultralytics.yolo.utils.files import file_size
+from ultralytics.yolo.utils.torch_utils import select_device
 
 
 def run_benchmarks(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
@@ -41,8 +42,9 @@ def run_benchmarks(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
                    half=False,
                    device='cpu',
                    hard_fail=False):
-    device = torch.device(int(device) if device.isnumeric() else device)
-    model = YOLO(model)
+    device = select_device(device, verbose=False)
+    if isinstance(model, (str, Path)):
+        model = YOLO(model)
 
     y = []
     t0 = time.time()
@@ -95,6 +97,8 @@ def run_benchmarks(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
         metrics = df[key].array  # values to compare to floor
         floor = eval(hard_fail)  # minimum metric floor to pass, i.e. = 0.29 mAP for YOLOv5n
         assert all(x > floor for x in metrics if pd.notna(x)), f'HARD FAIL: metric < floor {floor}'
+
+    return df
 
 
 if __name__ == '__main__':

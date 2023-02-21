@@ -243,7 +243,6 @@ class YOLO:
         Benchmark a model on all export formats.
 
         Args:
-            data (str): The dataset to validate on. Accepts all formats accepted by yolo
             **kwargs : Any other args accepted by the validators. To see all args check 'configuration' section in docs
         """
         from ultralytics.yolo.utils.benchmarks import run_benchmarks

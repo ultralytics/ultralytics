@@ -197,7 +197,7 @@ def entrypoint(debug=''):
 
     # Define tasks and modes
     tasks = 'detect', 'segment', 'classify'
-    modes = 'train', 'val', 'predict', 'export', 'track', 'benchmarks'
+    modes = 'train', 'val', 'predict', 'export', 'track', 'benchmark'
     special = {
         'help': lambda: LOGGER.info(CLI_HELP_MSG),
         'checks': checks.check_yolo,

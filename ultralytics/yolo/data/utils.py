@@ -16,7 +16,6 @@ import numpy as np
 from PIL import ExifTags, Image, ImageOps
 from tqdm import tqdm
 
-from ultralytics.yolo.data import YOLODataset
 from ultralytics.yolo.utils import DATASETS_DIR, LOGGER, NUM_THREADS, ROOT, colorstr, emojis, yaml_load
 from ultralytics.yolo.utils.checks import check_file, check_font, is_ascii
 from ultralytics.yolo.utils.downloads import download, safe_download, unzip_file
@@ -369,6 +368,9 @@ class HUBDatasetStats():
 
     def get_json(self, save=False, verbose=False):
         # Return dataset JSON for Ultralytics HUB
+        # from ultralytics.yolo.data import YOLODataset
+        from ultralytics.yolo.data.dataloaders.v5loader import LoadImagesAndLabels
+
         def _round(labels):
             # Update labels to integer class and 6 decimal place floats
             return [[int(c), *(round(x, 4) for x in points)] for c, *points in labels]
@@ -377,16 +379,16 @@ class HUBDatasetStats():
             if self.data.get(split) is None:
                 self.stats[split] = None  # i.e. no test set
                 continue
-            dataset = YOLODataset(self.data[split])  # load dataset
+            dataset = LoadImagesAndLabels(self.data[split])  # load dataset
             x = np.array([
                 np.bincount(label[:, 0].astype(int), minlength=self.data['nc'])
-                for label in tqdm(dataset.labels, total=dataset.n, desc='Statistics')])  # shape(128x80)
+                for label in tqdm(dataset.labels, total=len(dataset), desc='Statistics')])  # shape(128x80)
             self.stats[split] = {
                 'instance_stats': {
                     'total': int(x.sum()),
                     'per_class': x.sum(0).tolist()},
                 'image_stats': {
-                    'total': dataset.n,
+                    'total': len(dataset),
                     'unlabelled': int(np.all(x == 0, 1).sum()),
                     'per_class': (x > 0).sum(0).tolist()},
                 'labels': [{str(Path(k).name): _round(v.tolist())} for k, v in zip(dataset.im_files, dataset.labels)]}
@@ -403,12 +405,15 @@ class HUBDatasetStats():
 
     def process_images(self):
         # Compress images for Ultralytics HUB
+        # from ultralytics.yolo.data import YOLODataset
+        from ultralytics.yolo.data.dataloaders.v5loader import LoadImagesAndLabels
+
         for split in 'train', 'val', 'test':
             if self.data.get(split) is None:
                 continue
-            dataset = YOLODataset(self.data[split])  # load dataset
+            dataset = LoadImagesAndLabels(self.data[split])  # load dataset
             with ThreadPool(NUM_THREADS) as pool:
-                for _ in tqdm(pool.imap(self._hub_ops, dataset.im_files), total=dataset.n, desc=f'{split} images'):
+                for _ in tqdm(pool.imap(self._hub_ops, dataset.im_files), total=len(dataset), desc=f'{split} images'):
                     pass
         LOGGER.info(f'Done. All images saved to {self.im_dir}')
         return self.im_dir

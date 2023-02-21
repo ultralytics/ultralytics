@@ -56,7 +56,7 @@ class DetectionPredictor(BasePredictor):
 
         det = results[idx].boxes  # TODO: make boxes inherit from tensors
         if len(det) == 0:
-            return log_string
+            return f'{log_string}(no detections), '
         for c in det.cls.unique():
             n = (det.cls == c).sum()  # detections per class
             log_string += f"{n} {self.model.names[int(c)]}{'s' * (n > 1)}, "

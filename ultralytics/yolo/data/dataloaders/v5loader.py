@@ -1045,7 +1045,7 @@ class HUBDatasetStats():
         autodownload:   Attempt to download dataset if not found locally
 
     Usage
-        from utils.dataloaders import HUBDatasetStats
+        from ultralytics.yolo.data.dataloaders.v5loader import HUBDatasetStats
         stats = HUBDatasetStats('coco128.yaml', autodownload=True)  # usage 1
         stats = HUBDatasetStats('path/to/coco128.zip')  # usage 2
         stats.get_json(save=False)
@@ -1055,15 +1055,15 @@ class HUBDatasetStats():
     def __init__(self, path='coco128.yaml', autodownload=False):
         # Initialize class
         zipped, data_dir, yaml_path = self._unzip(Path(path))
-        try:
-            data = yaml_load(check_yaml(yaml_path))  # data dict
-            if zipped:
-                data['path'] = data_dir
-        except Exception as e:
-            raise Exception('error/HUB/dataset_stats/yaml_load') from e
+        # try:
+        #     data = yaml_load(check_yaml(yaml_path))  # data dict
+        #     if zipped:
+        #         data['path'] = data_dir
+        # except Exception as e:
+        #     raise Exception('error/HUB/dataset_stats/yaml_load') from e
 
-        check_det_dataset(data, autodownload)  # download dataset if missing
-        self.hub_dir = Path(data['path'] + '-hub')
+        data = check_det_dataset(yaml_path, autodownload)  # download dataset if missing
+        self.hub_dir = Path(str(data['path']) + '-hub')
         self.im_dir = self.hub_dir / 'images'
         self.im_dir.mkdir(parents=True, exist_ok=True)  # makes /images
         self.stats = {'nc': data['nc'], 'names': list(data['names'].values())}  # statistics dictionary

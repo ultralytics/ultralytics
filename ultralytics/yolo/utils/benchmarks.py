@@ -32,6 +32,7 @@ from ultralytics import YOLO
 from ultralytics.yolo.engine.exporter import export_formats
 from ultralytics.yolo.utils import LOGGER, ROOT, SETTINGS
 from ultralytics.yolo.utils.checks import check_yolo
+from ultralytics.yolo.utils.downloads import download
 from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.torch_utils import select_device
 
@@ -67,7 +68,9 @@ def run_benchmarks(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
             assert suffix in str(filename), 'export failed'
 
             # Predict
-            export.predict(ROOT / 'ultralytics/assets/bus.jpg', imgsz=imgsz, device=device, half=half)  # test
+            if not (ROOT / 'assets/bus.jpg').exists():
+                download(url='https://ultralytics.com/images/bus.jpg', dir=ROOT / 'assets')
+            export.predict(ROOT / 'assets/bus.jpg', imgsz=imgsz, device=device, half=half)  # test
 
             # Validate
             if model.task == 'detect':

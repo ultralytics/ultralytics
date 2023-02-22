@@ -108,7 +108,6 @@ class BasePredictor:
     def postprocess(self, preds, img, orig_img):
         return preds
 
-    @smart_inference_mode()
     def __call__(self, source=None, model=None, stream=False):
         if stream:
             return self.stream_inference(source, model)
@@ -136,6 +135,7 @@ class BasePredictor:
         self.source_type = self.dataset.source_type
         self.vid_path, self.vid_writer = [None] * self.dataset.bs, [None] * self.dataset.bs
 
+    @smart_inference_mode()
     def stream_inference(self, source=None, model=None):
         if self.args.verbose:
             LOGGER.info('')

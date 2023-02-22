@@ -70,7 +70,7 @@ def test_predict_img():
         Image.open(SOURCE),  # PIL
         np.zeros((320, 640, 3))]  # numpy
     output = model(imgs)
-    assert len(output) == 6, 'predict test failed!'
+    assert len(output) == len(imgs), 'predict test failed!'
 
 
 def test_predict_grey_and_4ch():

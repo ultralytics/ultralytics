@@ -9,7 +9,7 @@ from PIL import Image
 
 from ultralytics import YOLO
 from ultralytics.yolo.data.build import load_inference_source
-from ultralytics.yolo.utils import LINUX, ROOT, SETTINGS
+from ultralytics.yolo.utils import LINUX, ROOT, SETTINGS, checks
 
 MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n.pt'
 CFG = 'yolov8n.yaml'
@@ -65,7 +65,7 @@ def test_predict_img():
     imgs = [
         SOURCE,  # filename
         Path(SOURCE),  # Path
-        'https://ultralytics.com/images/zidane.jpg',  # URI
+        'https://ultralytics.com/images/zidane.jpg' if checks.check_online() else SOURCE,  # URI
         cv2.imread(str(SOURCE)),  # OpenCV
         Image.open(SOURCE),  # PIL
         np.zeros((320, 640, 3))]  # numpy

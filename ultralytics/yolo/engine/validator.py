@@ -74,7 +74,7 @@ class BaseValidator:
         self.device = None
         self.batch_i = None
         self.training = True
-        self.speed = None
+        self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
         self.jdict = None
 
         project = self.args.project or Path(SETTINGS['runs_dir']) / self.args.task
@@ -177,7 +177,7 @@ class BaseValidator:
         stats = self.get_stats()
         self.check_stats(stats)
         self.print_results()
-        self.speed = tuple(x.t / len(self.dataloader.dataset) * 1E3 for x in dt)  # speeds per image
+        self.speed = dict(zip(self.speed.keys(), (x.t / len(self.dataloader.dataset) * 1E3 for x in dt)))
         self.finalize_metrics()
         self.run_callbacks('on_val_end')
         if self.training:
@@ -185,8 +185,8 @@ class BaseValidator:
             results = {**stats, **trainer.label_loss_items(self.loss.cpu() / len(self.dataloader), prefix='val')}
             return {k: round(float(v), 5) for k, v in results.items()}  # return results as 5 decimal place floats
         else:
-            LOGGER.info(
-                'Speed: %.1fms preprocess, %.1fms inference, %.1fms loss, %.1fms postprocess per image' % self.speed)
+            LOGGER.info('Speed: %.1fms preprocess, %.1fms inference, %.1fms loss, %.1fms postprocess per image' %
+                        tuple(self.speed.values()))
             if self.args.save_json and self.jdict:
                 with open(str(self.save_dir / 'predictions.json'), 'w') as f:
                     LOGGER.info(f'Saving {f.name}...')

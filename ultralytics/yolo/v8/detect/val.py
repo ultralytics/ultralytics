@@ -112,7 +112,7 @@ class DetectionValidator(BaseValidator):
             #    save_one_txt(predn, save_conf, shape, file=save_dir / 'labels' / f'{path.stem}.txt')
 
     def finalize_metrics(self, *args, **kwargs):
-        self.metrics.speed = dict(zip(self.metrics.speed.keys(), self.speed))
+        self.metrics.speed = self.speed
 
     def get_stats(self):
         stats = [torch.cat(x, 0).cpu().numpy() for x in zip(*self.stats)]  # to numpy

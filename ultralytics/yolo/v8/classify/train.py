@@ -93,7 +93,7 @@ class ClassificationTrainer(BaseTrainer):
 
     def get_validator(self):
         self.loss_names = ['loss']
-        return v8.classify.ClassificationValidator(self.test_loader, self.save_dir, logger=self.console)
+        return v8.classify.ClassificationValidator(self.test_loader, self.save_dir)
 
     def criterion(self, preds, batch):
         loss = torch.nn.functional.cross_entropy(preds, batch['cls'], reduction='sum') / self.args.nbs
@@ -132,7 +132,7 @@ class ClassificationTrainer(BaseTrainer):
                 strip_optimizer(f)  # strip optimizers
                 # TODO: validate best.pt after training completes
                 # if f is self.best:
-                #     self.console.info(f'\nValidating {f}...')
+                #     LOGGER.info(f'\nValidating {f}...')
                 #     self.validator.args.save_json = True
                 #     self.metrics = self.validator(model=f)
                 #     self.metrics.pop('fitness', None)

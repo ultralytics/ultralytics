@@ -44,7 +44,6 @@ class BaseTrainer:
     Attributes:
         args (SimpleNamespace): Configuration for the trainer.
         check_resume (method): Method to check if training should be resumed from a saved checkpoint.
-        console (logging.Logger): Logger instance.
         validator (BaseValidator): Validator instance.
         model (nn.Module): Model instance.
         callbacks (defaultdict): Dictionary of callbacks.
@@ -84,7 +83,6 @@ class BaseTrainer:
         self.args = get_cfg(cfg, overrides)
         self.device = select_device(self.args.device, self.args.batch)
         self.check_resume()
-        self.console = LOGGER
         self.validator = None
         self.model = None
         self.metrics = None
@@ -182,7 +180,7 @@ class BaseTrainer:
             try:
                 subprocess.run(cmd, check=True)
             except Exception as e:
-                self.console.warning(e)
+                LOGGER.warning(e)
             finally:
                 ddp_cleanup(self, file)
         else:
@@ -193,7 +191,7 @@ class BaseTrainer:
         # os.environ['MASTER_PORT'] = '9020'
         torch.cuda.set_device(rank)
         self.device = torch.device('cuda', rank)
-        self.console.info(f'DDP settings: RANK {rank}, WORLD_SIZE {world_size}, DEVICE {self.device}')
+        LOGGER.info(f'DDP settings: RANK {rank}, WORLD_SIZE {world_size}, DEVICE {self.device}')
         dist.init_process_group('nccl' if dist.is_nccl_available() else 'gloo', rank=rank, world_size=world_size)
 
     def _setup_train(self, rank, world_size):
@@ -278,14 +276,14 @@ class BaseTrainer:
             pbar = enumerate(self.train_loader)
             # Update dataloader attributes (optional)
             if epoch == (self.epochs - self.args.close_mosaic):
-                self.console.info('Closing dataloader mosaic')
+                LOGGER.info('Closing dataloader mosaic')
                 if hasattr(self.train_loader.dataset, 'mosaic'):
                     self.train_loader.dataset.mosaic = False
                 if hasattr(self.train_loader.dataset, 'close_mosaic'):
                     self.train_loader.dataset.close_mosaic(hyp=self.args)
 
             if rank in {-1, 0}:
-                self.console.info(self.progress_string())
+                LOGGER.info(self.progress_string())
                 pbar = tqdm(enumerate(self.train_loader), total=nb, bar_format=TQDM_BAR_FORMAT)
             self.tloss = None
             self.optimizer.zero_grad()
@@ -460,7 +458,7 @@ class BaseTrainer:
 
         """
         if rank in {-1, 0}:
-            self.console.info(text)
+            LOGGER.info(text)
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         raise NotImplementedError("This task trainer doesn't support loading cfg files")
@@ -521,7 +519,7 @@ class BaseTrainer:
             if f.exists():
                 strip_optimizer(f)  # strip optimizers
                 if f is self.best:
-                    self.console.info(f'\nValidating {f}...')
+                    LOGGER.info(f'\nValidating {f}...')
                     self.metrics = self.validator(model=f)
                     self.metrics.pop('fitness', None)
                     self.run_callbacks('on_fit_epoch_end')
@@ -564,7 +562,7 @@ class BaseTrainer:
         self.best_fitness = best_fitness
         self.start_epoch = start_epoch
         if start_epoch > (self.epochs - self.args.close_mosaic):
-            self.console.info('Closing dataloader mosaic')
+            LOGGER.info('Closing dataloader mosaic')
             if hasattr(self.train_loader.dataset, 'mosaic'):
                 self.train_loader.dataset.mosaic = False
             if hasattr(self.train_loader.dataset, 'close_mosaic'):

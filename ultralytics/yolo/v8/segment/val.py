@@ -7,7 +7,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from ultralytics.yolo.utils import DEFAULT_CFG, NUM_THREADS, ops
+from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, NUM_THREADS, ops
 from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils.metrics import SegmentMetrics, box_iou, mask_iou
 from ultralytics.yolo.utils.plotting import output_to_target, plot_images
@@ -16,8 +16,8 @@ from ultralytics.yolo.v8.detect import DetectionValidator
 
 class SegmentationValidator(DetectionValidator):
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, logger=None, args=None):
-        super().__init__(dataloader, save_dir, pbar, logger, args)
+    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None):
+        super().__init__(dataloader, save_dir, pbar, args)
         self.args.task = 'segment'
         self.metrics = SegmentMetrics(save_dir=self.save_dir)
 

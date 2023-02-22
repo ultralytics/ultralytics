@@ -287,6 +287,7 @@ class ClassificationModel(BaseModel):
             LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
             self.yaml['nc'] = nc  # override yaml value
         self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose)  # model, savelist
+        self.stride = torch.Tensor([1])  # no stride constraints
         self.names = {i: f'{i}' for i in range(self.yaml['nc'])}  # default names dict
         self.info()
 

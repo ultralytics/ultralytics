@@ -26,9 +26,9 @@ class SegmentationPredictor(DetectionPredictor):
             shape = orig_img.shape
 
             if len(self.batch) == 5:
-              path, _, _, _, _ = self.batch
+                path, _, _, _, _ = self.batch
             else:
-              path, _, _, _, _, _ = self.batch
+                path, _, _, _, _, _ = self.batch
 
             img_path = path[i] if isinstance(path, list) else path
             if not len(pred):  # save empty boxes

@@ -207,7 +207,7 @@ class SegmentationValidator(DetectionValidator):
         if self.args.save_json and self.is_coco and len(self.jdict):
             anno_json = self.data['path'] / 'annotations/instances_val2017.json'  # annotations
             pred_json = self.save_dir / 'predictions.json'  # predictions
-            self.logger.info(f'\nEvaluating pycocotools mAP using {pred_json} and {anno_json}...')
+            LOGGER.info(f'\nEvaluating pycocotools mAP using {pred_json} and {anno_json}...')
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
                 check_requirements('pycocotools>=2.0.6')
                 from pycocotools.coco import COCO  # noqa
@@ -228,7 +228,7 @@ class SegmentationValidator(DetectionValidator):
                     stats[self.metrics.keys[idx + 1]], stats[
                         self.metrics.keys[idx]] = eval.stats[:2]  # update mAP50-95 and mAP50
             except Exception as e:
-                self.logger.warning(f'pycocotools unable to run: {e}')
+                LOGGER.warning(f'pycocotools unable to run: {e}')
         return stats
 
 

@@ -61,7 +61,7 @@ def seed_worker(worker_id):
     random.seed(worker_seed)
 
 
-def build_dataloader(cfg, batch, img_path, stride=32, rect=False, transforms=None, names=None, rank=-1, mode="train"):
+def build_dataloader(cfg, batch, img_path, stride=32, rect=False, names=None, rank=-1, mode="train", *, transforms=None):
     assert mode in ["train", "val"]
     shuffle = mode == "train"
     if cfg.rect and shuffle:
@@ -73,7 +73,6 @@ def build_dataloader(cfg, batch, img_path, stride=32, rect=False, transforms=Non
             imgsz=cfg.imgsz,
             batch_size=batch,
             augment=(mode == "train") or ((mode == "val") and (transforms is not None)),  # augmentation
-            transforms=transforms,
             hyp=cfg,  # TODO: probably add a get_hyps_from_cfg function
             rect=cfg.rect or rect,  # rectangular batches
             cache=cfg.cache or None,
@@ -83,7 +82,8 @@ def build_dataloader(cfg, batch, img_path, stride=32, rect=False, transforms=Non
             prefix=colorstr(f"{mode}: "),
             use_segments=cfg.task == "segment",
             use_keypoints=cfg.task == "keypoint",
-            names=names)
+            names=names,
+            transforms=transforms,)
 
     batch = min(batch, len(dataset))
     nd = torch.cuda.device_count()  # number of CUDA devices

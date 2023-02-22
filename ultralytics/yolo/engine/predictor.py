@@ -168,9 +168,9 @@ class BasePredictor:
 
             user_datas = None
             if len(batch) == 5:
-              path, im, im0s, vid_cap, s = batch
+                path, im, im0s, vid_cap, s = batch
             else:
-              path, im, im0s, vid_cap, s, user_datas = batch
+                path, im, im0s, vid_cap, s, user_datas = batch
 
             visualize = increment_path(self.save_dir / Path(path).stem, mkdir=True) if self.args.visualize else False
             with self.dt[0]:

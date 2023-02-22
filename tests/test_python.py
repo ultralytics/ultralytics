@@ -49,28 +49,19 @@ def test_predict_dir():
 
 def test_predict_img():
     model = YOLO(MODEL)
-    output = model(source=Image.open(SOURCE), save=True, verbose=True)  # PIL
-    assert len(output) == 1, 'predict test failed'
-    img = cv2.imread(str(SOURCE))
-    output = model(source=img, save=True, save_txt=True)  # ndarray
-    assert len(output) == 1, 'predict test failed'
-    output = model(source=[img, img], save=True, save_txt=True)  # batch
-    assert len(output) == 2, 'predict test failed'
-    output = model(source=[img, img], save=True, stream=True)  # stream
-    assert len(list(output)) == 2, 'predict test failed'
-    tens = torch.zeros(320, 640, 3)
-    output = model(tens.numpy())
-    assert len(output) == 1, 'predict test failed'
-    # test multiple source
-    imgs = [
-        SOURCE,  # filename
-        Path(SOURCE),  # Path
-        'https://ultralytics.com/images/zidane.jpg' if checks.check_online() else SOURCE,  # URI
-        cv2.imread(str(SOURCE)),  # OpenCV
-        Image.open(SOURCE),  # PIL
-        np.zeros((320, 640, 3))]  # numpy
-    output = model(imgs)
-    assert len(output) == len(imgs), 'predict test failed!'
+    im = cv2.imread(str(SOURCE))
+    assert len(model(source=Image.open(SOURCE), save=True, verbose=True)) == 1  # PIL
+    assert len(model(source=im, save=True, save_txt=True)) == 1  # ndarray
+    assert len(model(source=[im, im], save=True, save_txt=True)) == 2  # batch
+    assert len(list(model(source=[im, im], save=True, stream=True))) == 2  # stream
+    assert len(model(torch.zeros(320, 640, 3).numpy())) == 1  # tensor to numpy
+    batch = [str(SOURCE),  # filename
+             Path(SOURCE),  # Path
+             'https://ultralytics.com/images/zidane.jpg' if checks.check_online() else SOURCE,  # URI
+             cv2.imread(str(SOURCE)),  # OpenCV
+             Image.open(SOURCE),  # PIL
+             np.zeros((320, 640, 3))]  # numpy
+    assert len(model(batch)) == len(batch)  # multiple sources in a batch
 
 
 def test_predict_grey_and_4ch():

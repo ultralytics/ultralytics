@@ -66,51 +66,95 @@ include the choice of optimizer, the choice of loss function, and the size and c
 is important to carefully tune and experiment with these settings to achieve the best possible performance for a given
 task.
 
-| Key             | Value  | Description                                                                    |
-|-----------------|--------|--------------------------------------------------------------------------------|
-| model           | null   | path to model file, i.e. yolov8n.pt, yolov8n.yaml                              |
-| data            | null   | path to data file, i.e. i.e. coco128.yaml                                      |
-| epochs          | 100    | number of epochs to train for                                                  |
-| patience        | 50     | epochs to wait for no observable improvement for early stopping of training    |
-| batch           | 16     | number of images per batch (-1 for AutoBatch)                                  |
-| imgsz           | 640    | size of input images as integer or w,h                                         |
-| save            | True   | save train checkpoints and predict results                                     |
-| save_period     | -1     | Save checkpoint every x epochs (disabled if < 1)                               |
-| cache           | False  | True/ram, disk or False. Use cache for data loading                            |
-| device          | null   | device to run on, i.e. cuda device=0 or device=0,1,2,3 or device=cpu           |
-| workers         | 8      | number of worker threads for data loading (per RANK if DDP)                    |
-| project         | null   | project name                                                                   |
-| name            | null   | experiment name                                                                |
-| exist_ok        | False  | whether to overwrite existing experiment                                       |
-| pretrained      | False  | whether to use a pretrained model                                              |
-| optimizer       | 'SGD'  | optimizer to use, choices=['SGD', 'Adam', 'AdamW', 'RMSProp']                  |
-| verbose         | False  | whether to print verbose output                                                |
-| seed            | 0      | random seed for reproducibility                                                |
-| deterministic   | True   | whether to enable deterministic mode                                           |
-| single_cls      | False  | train multi-class data as single-class                                         |
-| image_weights   | False  | use weighted image selection for training                                      |
-| rect            | False  | support rectangular training                                                   |
-| cos_lr          | False  | use cosine learning rate scheduler                                             |
-| close_mosaic    | 10     | disable mosaic augmentation for final 10 epochs                                |
-| resume          | False  | resume training from last checkpoint                                           |
-| lr0             | 0.01   | initial learning rate (i.e. SGD=1E-2, Adam=1E-3)                               |
-| lrf             | 0.01   | final learning rate (lr0 * lrf)                                                |
-| momentum        | 0.937  | SGD momentum/Adam beta1                                                        |
-| weight_decay    | 0.0005 | optimizer weight decay 5e-4                                                    |
-| warmup_epochs   | 3.0    | warmup epochs (fractions ok)                                                   |
-| warmup_momentum | 0.8    | warmup initial momentum                                                        |
-| warmup_bias_lr  | 0.1    | warmup initial bias lr                                                         |
-| box             | 7.5    | box loss gain                                                                  |
-| cls             | 0.5    | cls loss gain (scale with pixels)                                              |
-| dfl             | 1.5    | dfl loss gain                                                                  |
-| fl_gamma        | 0.0    | focal loss gamma (efficientDet default gamma=1.5)                              |
-| label_smoothing | 0.0    | label smoothing (fraction)                                                     |
-| nbs             | 64     | nominal batch size                                                             |
-| overlap_mask    | True   | masks should overlap during training (segment train only)                      |
-| mask_ratio      | 4      | mask downsample ratio (segment train only)                                     |
-| dropout         | 0.0    | use dropout regularization (classify train only)                               |
-| val             | True   | validate/test during training                                                  |
-| min_memory      | False  | minimize memory footprint loss function, choices=[False, True, <roll_out_thr>] |
+| Key             | Value  | Description                                                                                                                                                    |
+| --------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| model           | null   | path to model file, i.e. yolov8n.pt, yolov8n.yaml                                                                                                              |
+| data            | null   | path to data file, i.e. i.e. coco128.yaml                                                                                                                      |
+| epochs          | 100    | number of epochs to train for                                                                                                                                  |
+| patience        | 50     | epochs to wait for no observable improvement for early stopping of training                                                                                    |
+| batch           | 16     | number of images per batch (-1 for AutoBatch)                                                                                                                  |
+| imgsz           | 640    | size of input images as integer or w,h                                                                                                                         |
+| save            | True   | save train checkpoints and predict results                                                                                                                     |
+| save_period     | -1     | Save checkpoint every x epochs (disabled if < 1)                                                                                                               |
+| cache           | False  | True/ram, disk or False. Use cache for data loading                                                                                                            |
+| device          | null   | device to run on, i.e. cuda device=0 or device=0,1,2,3 or device=cpu                                                                                           |
+| workers         | 8      | number of worker threads for data loading (per RANK if DDP)                                                                                                    |
+| project         | null   | project name                                                                                                                                                   |
+| name            | null   | experiment name                                                                                                                                                |
+| exist_ok        | False  | whether to overwrite existing experiment                                                                                                                       |
+| pretrained      | False  | whether to use a pretrained model                                                                                                                              |
+| optimizer       | 'SGD'  | optimizer to use, choices=['SGD', 'Adam', 'AdamW', 'RMSProp']                                                                                                  |
+| verbose         | False  | whether to print verbose output                                                                                                                                |
+| seed            | 0      | random seed for reproducibility                                                                                                                                |
+| deterministic   | True   | whether to enable deterministic mode                                                                                                                           |
+| single_cls      | False  | train multi-class data as single-class                                                                                                                         |
+| image_weights   | False  | use weighted image selection for training                                                                                                                      |
+| rect            | False  | support rectangular training                                                                                                                                   |
+| cos_lr          | False  | use cosine learning rate scheduler                                                                                                                             |
+| close_mosaic    | 10     | disable mosaic augmentation for final 10 epochs                                                                                                                |
+| resume          | False  | resume training from last checkpoint                                                                                                                           |
+| lr0             | 0.01   | initial learning rate (i.e. SGD=1E-2, Adam=1E-3)                                                                                                               |
+| lrf             | 0.01   | final learning rate (lr0 * lrf)                                                                                                                                |
+| momentum        | 0.937  | SGD momentum/Adam beta1                                                                                                                                        |
+| weight_decay    | 0.0005 | optimizer weight decay 5e-4                                                                                                                                    |
+| warmup_epochs   | 3.0    | warmup epochs (fractions ok)                                                                                                                                   |
+| warmup_momentum | 0.8    | warmup initial momentum                                                                                                                                        |
+| warmup_bias_lr  | 0.1    | warmup initial bias lr                                                                                                                                         |
+| box             | 7.5    | box loss gain                                                                                                                                                  |
+| cls             | 0.5    | cls loss gain (scale with pixels)                                                                                                                              |
+| dfl             | 1.5    | dfl loss gain                                                                                                                                                  |
+| fl_gamma        | 0.0    | focal loss gamma (efficientDet default gamma=1.5)                                                                                                              |
+| label_smoothing | 0.0    | label smoothing (fraction)                                                                                                                                     |
+| nbs             | 64     | nominal batch size                                                                                                                                             |
+| overlap_mask    | True   | masks should overlap during training (segment train only)                                                                                                      |
+| mask_ratio      | 4      | mask downsample ratio (segment train only)                                                                                                                     |
+| dropout         | 0.0    | use dropout regularization (classify train only)                                                                                                               |
+| val             | True   | validate/test during training                                                                                                                                  |
+| min_memory      | False  | minimize memory footprint loss function, choices=[False, True, <roll_out_thr>]                                                                                 |
+| train_transform | None   | user-defined data augmentation during training. Note that this will overwrite the default V8 augmentation. Default to `None` (detection and segmentation only) |
+| test_transform  | None   | user-defined data augmentation during testing. Default to `None` (detection and segmentation only)                                                             |
+
+#### More details for user-defined augmentation
+
+The type of `train_transform` and `test_transform` should be in a list or a tuple. Each entry in a list is another list which contains the name (`str`) of the instance and the arguments (`dict`) to instantiate the object.
+
+```python
+from ultralytics import YOLO
+
+# Load a model
+model = YOLO("yolov8n.yaml")  # build a new model from scratch
+train_transform_for_detect = [
+    ["ultralytics.yolo.data.augment.LetterBox", dict(new_shape=(640, 640), scaleup=False)],
+    [
+        "ultralytics.yolo.data.augment.Format",
+        dict(
+            bbox_format="xywh",
+            normalize=True,
+            return_mask=False,
+            return_keypoint=False,
+            batch_idx=True,
+            mask_ratio=4,
+            mask_overlap=True
+        )
+    ]
+]
+
+# Use the model
+model.train(data="coco128.yaml",  train_transform=train_transform_for_detect, epochs=3) 
+```
+
+Note that for an user-defined class, the input is of type `dict` and includes keys like `"img"` and `"instances"`. The output should be the same type as the input.
+
+```python
+class UserAug:
+    ...
+    def __call__(self, label: dict):
+        # Image
+        label["img"]  = ...
+        # Mask, bboxes, keypoints
+        label["instances"] = ...
+        ...
+```
 
 ### Prediction
 

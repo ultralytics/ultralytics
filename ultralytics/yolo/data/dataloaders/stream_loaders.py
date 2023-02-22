@@ -87,10 +87,10 @@ class LoadStreams:
             self.frames[i] = float('inf')
             source_data = sources.get()
             success = True
-            if len(source_data) == 1:            
-              self.imgs[i] = sources.get()  # guarantee first frame
+            if len(source_data) == 1:
+                self.imgs[i] = sources.get()  # guarantee first frame
             else:
-              self.imgs[i], self.user_datas[i] = sources.get()  # guarantee first frame
+                self.imgs[i], self.user_datas[i] = sources.get()  # guarantee first frame
             if not success or self.imgs[i] is None:
                 raise ConnectionError(f'{st}Failed to read images from queue')
             w, h = self.imgs[i].shape[1], self.imgs[i].shape[0]
@@ -134,9 +134,9 @@ class LoadStreams:
                     self.user_datas[i] = None
                     stream_data = stream.get()
                     if len(stream_data) == 1:
-                      self.imgs[i] = stream_data
+                        self.imgs[i] = stream_data
                     else:
-                      self.imgs[i], self.user_datas[i] = stream_data
+                        self.imgs[i], self.user_datas[i] = stream_data
                     if self.imgs[i] is None:
                         continue
                 except queue.Empty:

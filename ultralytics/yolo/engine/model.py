@@ -29,41 +29,43 @@ TASK_MAP = {
 
 class YOLO:
     """
-        YOLO (You Only Look Once) object detection model.
+    YOLO (You Only Look Once) object detection model.
 
-        Args:
-            model (str, Path): Path to the model file to load or create.
-            type (str): Type/version of models to use. Defaults to "v8".
+    Args:
+        model (str, Path): Path to the model file to load or create.
 
-        Attributes:
-            type (str): Type/version of models being used.
-            ModelClass (Any): Model class.
-            TrainerClass (Any): Trainer class.
-            ValidatorClass (Any): Validator class.
-            PredictorClass (Any): Predictor class.
-            predictor (Any): Predictor object.
-            model (Any): Model object.
-            trainer (Any): Trainer object.
-            task (str): Type of model task.
-            ckpt (Any): Checkpoint object if model loaded from *.pt file.
-            cfg (str): Model configuration if loaded from *.yaml file.
-            ckpt_path (str): Checkpoint file path.
-            overrides (dict): Overrides for trainer object.
-            metrics_data (Any): Data for metrics.
+    Attributes:
+        predictor (Any): The predictor object.
+        model (Any): The model object.
+        trainer (Any): The trainer object.
+        task (str): The type of model task.
+        ckpt (Any): The checkpoint object if the model loaded from *.pt file.
+        cfg (str): The model configuration if loaded from *.yaml file.
+        ckpt_path (str): The checkpoint file path.
+        overrides (dict): Overrides for the trainer object.
+        metrics_data (Any): The data for metrics.
 
-        Methods:
-            __call__(): Alias for predict method.
-            _new(cfg, verbose=True): Initializes a new model and infers the task type from the model definitions.
-            _load(weights): Initializes a new model and infers the task type from the model head.
-            _check_is_pytorch_model(): Raises TypeError if model is not a PyTorch model.
-            reset(): Resets the model modules.
-            info(verbose=False): Logs model info.
-            fuse(): Fuse model for faster inference.
-            predict(source=None, stream=False, **kwargs): Perform prediction using the YOLO model.
+    Methods:
+        __call__(source=None, stream=False, **kwargs):
+            Alias for the predict method.
+        _new(cfg:str, verbose:bool=True) -> None:
+            Initializes a new model and infers the task type from the model definitions.
+        _load(weights:str, task:str='') -> None:
+            Initializes a new model and infers the task type from the model head.
+        _check_is_pytorch_model() -> None:
+            Raises TypeError if the model is not a PyTorch model.
+        reset() -> None:
+            Resets the model modules.
+        info(verbose:bool=False) -> None:
+            Logs the model info.
+        fuse() -> None:
+            Fuses the model for faster inference.
+        predict(source=None, stream=False, **kwargs) -> List[ultralytics.yolo.engine.results.Results]:
+            Performs prediction using the YOLO model.
 
-        Returns:
-            list(ultralytics.yolo.engine.results.Results): The prediction results.
-        """
+    Returns:
+        list[ultralytics.yolo.engine.results.Results]: The prediction results.
+    """
 
     def __init__(self, model='yolov8n.pt') -> None:
         """
@@ -73,9 +75,6 @@ class YOLO:
             model (str, Path): model to load or create
         """
         self._reset_callbacks()
-        self.TrainerClass = None  # trainer class
-        self.ValidatorClass = None  # validator class
-        self.PredictorClass = None  # predictor class
         self.predictor = None  # reuse predictor
         self.model = None  # model object
         self.trainer = None  # trainer object
@@ -98,6 +97,9 @@ class YOLO:
     def __call__(self, source=None, stream=False, **kwargs):
         return self.predict(source, stream, **kwargs)
 
+    def __getattr__(self, attr):
+        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{attr}'.\n{self.__doc__}")
+
     def _new(self, cfg: str, verbose=True):
         """
         Initializes a new model and infers the task type from the model definitions.
@@ -117,7 +119,7 @@ class YOLO:
         self.model.args = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # attach args to model
         self.model.task = self.task
 
-    def _load(self, weights: str):
+    def _load(self, weights: str, task=''):
         """
         Initializes a new model and infers the task type from the model head.
 
@@ -194,8 +196,7 @@ class YOLO:
         overrides['save'] = kwargs.get('save', False)  # not save files by default
         if not self.predictor:
             self.task = overrides.get('task') or self.task
-            self.PredictorClass = TASK_MAP[self.task][3]
-            self.predictor = self.PredictorClass(overrides=overrides)
+            self.predictor = self.TASK_MAP[self.task][3](overrides=overrides)
             self.predictor.setup_model(model=self.model)
         else:  # only update args if predictor is already setup
             self.predictor.args = get_cfg(self.predictor.args, overrides)
@@ -235,8 +236,7 @@ class YOLO:
             args.imgsz = self.model.args['imgsz']  # use trained imgsz unless custom value is passed
         args.imgsz = check_imgsz(args.imgsz, max_dim=1)
 
-        self.ValidatorClass = TASK_MAP[self.task][2]
-        validator = self.ValidatorClass(args=args)
+        validator = TASK_MAP[self.task][2](args=args)
         validator(model=self.model)
         self.metrics_data = validator.metrics
 
@@ -295,7 +295,7 @@ class YOLO:
 
         self.task = overrides.get('task') or self.task
         self.TrainerClass = TASK_MAP[self.task][1]
-        self.trainer = self.TrainerClass(overrides=overrides)
+        self.trainer = TASK_MAP[self.task][1](overrides=overrides)
         if not overrides.get('resume'):  # manually set model only if not resuming
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
             self.model = self.trainer.model

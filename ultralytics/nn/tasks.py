@@ -438,8 +438,8 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
 
         n = n_ = max(round(n * gd), 1) if n > 1 else n  # depth gain
         if m in {
-                Classify, Conv, ConvTranspose, GhostConv, Bottleneck, GhostBottleneck, SPP, SPPF, DWConv, Focus,
-                BottleneckCSP, C1, C2, C2f, C3, C3TR, C3Ghost, nn.ConvTranspose2d, DWConvTranspose2d, C3x}:
+            Classify, Conv, ConvTranspose, GhostConv, Bottleneck, GhostBottleneck, SPP, SPPF, DWConv, Focus,
+            BottleneckCSP, C1, C2, C2f, C3, C3TR, C3Ghost, nn.ConvTranspose2d, DWConvTranspose2d, C3x}:
             c1, c2 = ch[f], args[0]
             if c2 != nc:  # if c2 not equal to number of classes (i.e. for Classify() output)
                 c2 = make_divisible(c2 * gw, 8)
@@ -526,9 +526,10 @@ def guess_model_task(model):
             return 'segment'
         elif '-cls' in model.stem or 'classify' in model.parts:
             return 'classify'
-        else:
+        elif 'detect' in model.parts:
             return 'detect'
 
     # Unable to determine task from model
-    raise TypeError('YOLO is unable to automatically guess model task. Explicitly define task for your model, '
-                    "i.e. 'task=detect', 'task=segment' or 'task=classify'.")
+    LOGGER.warning('WARNING ⚠️ Unable to automatically guess model task. Explicitly define task for your model, '
+                   "i.e. 'task=detect', 'task=segment' or 'task=classify'.")
+    return 'detect'  # assume detect

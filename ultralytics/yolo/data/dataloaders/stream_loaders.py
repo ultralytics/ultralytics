@@ -167,9 +167,9 @@ class LoadStreams:
             im = np.ascontiguousarray(im)  # contiguous
 
         if self.is_not_queue:
-          return self.sources, im, im0, None, ''
+            return self.sources, im, im0, None, ''
         else:
-          return self.sources, im, im0, None, '', self.user_datas
+            return self.sources, im, im0, None, '', self.user_datas
 
     def __len__(self):
         if self.is_not_queue:

@@ -55,12 +55,13 @@ def test_predict_img():
     assert len(model(source=[im, im], save=True, save_txt=True)) == 2  # batch
     assert len(list(model(source=[im, im], save=True, stream=True))) == 2  # stream
     assert len(model(torch.zeros(320, 640, 3).numpy())) == 1  # tensor to numpy
-    batch = [str(SOURCE),  # filename
-             Path(SOURCE),  # Path
-             'https://ultralytics.com/images/zidane.jpg' if checks.check_online() else SOURCE,  # URI
-             cv2.imread(str(SOURCE)),  # OpenCV
-             Image.open(SOURCE),  # PIL
-             np.zeros((320, 640, 3))]  # numpy
+    batch = [
+        str(SOURCE),  # filename
+        Path(SOURCE),  # Path
+        'https://ultralytics.com/images/zidane.jpg' if checks.check_online() else SOURCE,  # URI
+        cv2.imread(str(SOURCE)),  # OpenCV
+        Image.open(SOURCE),  # PIL
+        np.zeros((320, 640, 3))]  # numpy
     assert len(model(batch)) == len(batch)  # multiple sources in a batch
 
 

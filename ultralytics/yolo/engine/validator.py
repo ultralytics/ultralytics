@@ -128,7 +128,7 @@ class BaseValidator:
             elif self.args.task == 'classify':
                 self.data = check_cls_dataset(self.args.data)
             else:
-                raise FileNotFoundError(emojis(f"Dataset '{self.args.data}' not found ❌"))
+                raise FileNotFoundError(emojis(f"Dataset '{self.args.data}' for task={self.args.task} not found ❌"))
 
             if self.device.type == 'cpu':
                 self.args.workers = 0  # faster CPU val as time dominated by inference, not dataloading

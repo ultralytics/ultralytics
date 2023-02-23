@@ -77,6 +77,11 @@ def test_val():
     model.val(data='coco8.yaml', imgsz=32)
 
 
+def test_val_scratch():
+    model = YOLO(CFG)
+    model.val(data='coco8.yaml', imgsz=32)
+
+
 def test_train_scratch():
     model = YOLO(CFG)
     model.train(data='coco8.yaml', epochs=1, imgsz=32)
@@ -91,6 +96,12 @@ def test_train_pretrained():
 
 def test_export_torchscript():
     model = YOLO(MODEL)
+    f = model.export(format='torchscript')
+    YOLO(f)(SOURCE)  # exported model inference
+
+
+def test_export_torchscript_scratch():
+    model = YOLO(CFG)
     f = model.export(format='torchscript')
     YOLO(f)(SOURCE)  # exported model inference
 
@@ -151,7 +162,6 @@ def test_workflow():
 
 
 def test_predict_callback_and_setup():
-
     def on_predict_batch_end(predictor):
         # results -> List[batch_size]
         path, _, im0s, _, _ = predictor.batch

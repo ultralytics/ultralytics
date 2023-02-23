@@ -293,7 +293,7 @@ class YOLO:
         if overrides.get('resume'):
             overrides['resume'] = self.ckpt_path
 
-        self.task = overrides['task']
+        self.task = overrides.get('task') or self.task
         self.TrainerClass = TASK_OPS_MAP[self.task][1]
         self.trainer = self.TrainerClass(overrides=overrides)
         if not overrides.get('resume'):  # manually set model only if not resuming

@@ -208,20 +208,15 @@ class Exporter:
         self.file = file
         self.output_shape = tuple(y.shape) if isinstance(y, torch.Tensor) else tuple(tuple(x.shape) for x in y)
         self.pretty_name = self.file.stem.replace('yolo', 'YOLO')
+        description = f'Ultralytics {self.pretty_name} model' + f'trained on {Path(self.args.data).name}' \
+            if self.args.data else '(untrained)'
         self.metadata = {
-            'description':
-            f'Ultralytics {self.pretty_name} model' +
-            (f'trained on {Path(self.args.data).name}' if self.args.data else '(untrained)'),
-            'author':
-            'Ultralytics',
-            'license':
-            'GPL-3.0 https://ultralytics.com/license',
-            'version':
-            __version__,
-            'stride':
-            int(max(model.stride)),
-            'names':
-            model.names}  # model metadata
+            'description': description,
+            'author': 'Ultralytics',
+            'license': 'GPL-3.0 https://ultralytics.com/license',
+            'version': __version__,
+            'stride': int(max(model.stride)),
+            'names': model.names}  # model metadata
 
         LOGGER.info(f"\n{colorstr('PyTorch:')} starting from {file} with input shape {tuple(im.shape)} BCHW and "
                     f'output shape(s) {self.output_shape} ({file_size(file):.1f} MB)')

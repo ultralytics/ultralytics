@@ -50,6 +50,7 @@ def generate_ddp_command(world_size, trainer):
     exclude_args = {'save_dir'}
     args = [f'{k}={v}' for k, v in vars(trainer.args).items() if k not in exclude_args]
     script_name = Path(sys.argv[0])
+    print('SYSARGV', sys.argv[0])
     file = generate_ddp_file(trainer) if script_name.stem == 'yolo' else script_name
 
     # Build command

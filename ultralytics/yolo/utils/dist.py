@@ -49,7 +49,7 @@ def generate_ddp_command(world_size, trainer):
     # Get file and args (do not use sys.argv due to security vulnerability)
     exclude_args = {'save_dir'}
     args = [f'{k}={v}' for k, v in vars(trainer.args).items() if k not in exclude_args]
-    script_name = Path('').resolve()
+    script_name = os.path.abspath(sys.argv[0])
     os.path.abspath('')
     print('SYSARGV0', sys.argv[0], '\nSYSARGV0', sys.argv)
     file = generate_ddp_file(trainer) if str(script_name).endswith('yolo') else str(script_name)

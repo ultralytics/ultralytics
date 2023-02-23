@@ -287,6 +287,7 @@ class ClassificationModel(BaseModel):
             LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
             self.yaml['nc'] = nc  # override yaml value
         self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose)  # model, savelist
+        self.stride = torch.Tensor([1])  # no stride constraints
         self.names = {i: f'{i}' for i in range(self.yaml['nc'])}  # default names dict
         self.info()
 
@@ -520,10 +521,10 @@ def guess_model_task(model):
 
     # Guess from model filename
     if isinstance(model, (str, Path)):
-        model = Path(model).stem
-        if '-seg' in model:
+        model = Path(model)
+        if '-seg' in model.stem or 'segment' in model.parts:
             return 'segment'
-        elif '-cls' in model:
+        elif '-cls' in model.stem or 'classify' in model.parts:
             return 'classify'
         else:
             return 'detect'

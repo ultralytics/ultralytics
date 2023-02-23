@@ -47,11 +47,12 @@ CLI_HELP_MSG = \
     GitHub: https://github.com/ultralytics/ultralytics
     """
 
-CFG_FLOAT_KEYS = {'warmup_epochs', 'box', 'cls', 'dfl', 'degrees', 'shear'}
+# Define keys for arg type checks
+CFG_FLOAT_KEYS = {'warmup_epochs', 'box', 'cls', 'dfl', 'degrees', 'shear', 'fl_gamma'}
 CFG_FRACTION_KEYS = {
-    'dropout', 'iou', 'lr0', 'lrf', 'momentum', 'weight_decay', 'warmup_momentum', 'warmup_bias_lr', 'fl_gamma',
-    'label_smoothing', 'hsv_h', 'hsv_s', 'hsv_v', 'translate', 'scale', 'perspective', 'flipud', 'fliplr', 'mosaic',
-    'mixup', 'copy_paste', 'conf', 'iou'}
+    'dropout', 'iou', 'lr0', 'lrf', 'momentum', 'weight_decay', 'warmup_momentum', 'warmup_bias_lr', 'label_smoothing',
+    'hsv_h', 'hsv_s', 'hsv_v', 'translate', 'scale', 'perspective', 'flipud', 'fliplr', 'mosaic', 'mixup', 'copy_paste',
+    'conf', 'iou'}  # fractional floats limited to 0.0 - 1.0
 CFG_INT_KEYS = {
     'epochs', 'patience', 'batch', 'workers', 'seed', 'close_mosaic', 'mask_ratio', 'max_det', 'vid_stride',
     'line_thickness', 'workspace', 'nbs', 'save_period'}
@@ -224,7 +225,7 @@ def entrypoint(debug=''):
                 assert v, f"missing '{k}' value"
                 if k == 'cfg':  # custom.yaml passed
                     LOGGER.info(f'Overriding {DEFAULT_CFG_PATH} with {v}')
-                    overrides = {k: val for k, val in yaml_load(v).items() if k != 'cfg'}
+                    overrides = {k: val for k, val in yaml_load(checks.check_yaml(v)).items() if k != 'cfg'}
                 else:
                     if v.lower() == 'none':
                         v = None

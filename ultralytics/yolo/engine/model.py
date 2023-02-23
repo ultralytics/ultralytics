@@ -9,7 +9,7 @@ from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, Segmentat
                                   guess_model_task, nn)
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
-from ultralytics.yolo.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, RANK, callbacks, yaml_load
+from ultralytics.yolo.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, callbacks, yaml_load
 from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_yaml
 from ultralytics.yolo.utils.downloads import GITHUB_ASSET_STEMS
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode
@@ -115,6 +115,11 @@ class YOLO:
         self.ModelClass, self.TrainerClass, self.ValidatorClass, self.PredictorClass = self._assign_ops_from_task()
         self.model = self.ModelClass(cfg_dict, verbose=verbose and RANK == -1)  # initialize
         self.overrides['model'] = self.cfg
+
+        # Below added to allow export from yamls
+        args = {**DEFAULT_CFG_DICT, **self.overrides}  # combine model and default args, preferring model args
+        self.model.args = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # attach args to model
+        self.model.task = self.task
 
     def _load(self, weights: str):
         """
@@ -282,7 +287,7 @@ class YOLO:
         overrides.update(kwargs)
         if kwargs.get('cfg'):
             LOGGER.info(f"cfg file passed. Overriding default params with {kwargs['cfg']}.")
-            overrides = yaml_load(check_yaml(kwargs['cfg']), append_filename=True)
+            overrides = yaml_load(check_yaml(kwargs['cfg']))
         overrides['task'] = self.task
         overrides['mode'] = 'train'
         if not overrides.get('data'):

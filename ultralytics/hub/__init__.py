@@ -15,7 +15,7 @@ EXPORT_FORMATS_HUB = EXPORT_FORMATS_LIST + ['ultralytics_tflite', 'ultralytics_c
 
 def start(key=''):
     """
-    Start training models with Ultralytics HUB. Usage: from src.ultralytics import start; start('API_KEY')
+    Start training models with Ultralytics HUB. Usage: from ultralytics.hub import start; start('API_KEY')
     """
     auth = Auth(key)
     try:
@@ -30,9 +30,9 @@ def start(key=''):
         session = HubTrainingSession(model_id=model_id, auth=auth)
         session.check_disk_space()
 
-        trainer = YOLO(session.input_file)
-        session.register_callbacks(trainer)
-        trainer.train(**session.train_args)
+        model = YOLO(session.input_file)
+        session.register_callbacks(model)
+        model.train(**session.train_args)
     except Exception as e:
         LOGGER.warning(f'{PREFIX}{e}')
 
@@ -93,6 +93,5 @@ def get_export(key='', format='torchscript'):
     return r.json()
 
 
-# temp. For checking
 if __name__ == '__main__':
     start()

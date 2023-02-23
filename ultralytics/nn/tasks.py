@@ -521,10 +521,10 @@ def guess_model_task(model):
 
     # Guess from model filename
     if isinstance(model, (str, Path)):
-        model = Path(model).stem
-        if '-seg' in model:
+        model = Path(model)
+        if '-seg' in model.stem or 'segment' in model.parts:
             return 'segment'
-        elif '-cls' in model:
+        elif '-cls' in model.stem or 'classify' in model.parts:
             return 'classify'
         else:
             return 'detect'

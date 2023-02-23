@@ -7,7 +7,7 @@ from ultralytics.nn.tasks import ClassificationModel, attempt_load_one_weight
 from ultralytics.yolo import v8
 from ultralytics.yolo.data import build_classification_dataloader
 from ultralytics.yolo.engine.trainer import BaseTrainer
-from ultralytics.yolo.utils import DEFAULT_CFG, RANK
+from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, RANK, colorstr
 from ultralytics.yolo.utils.torch_utils import is_parallel, strip_optimizer
 
 
@@ -137,6 +137,7 @@ class ClassificationTrainer(BaseTrainer):
                 #     self.metrics = self.validator(model=f)
                 #     self.metrics.pop('fitness', None)
                 #     self.run_callbacks('on_fit_epoch_end')
+        LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}")
 
 
 def train(cfg=DEFAULT_CFG, use_python=False):

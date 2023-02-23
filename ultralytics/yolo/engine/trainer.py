@@ -182,7 +182,7 @@ class BaseTrainer:
             except Exception as e:
                 LOGGER.warning(e)
             finally:
-                ddp_cleanup(self, file)
+                ddp_cleanup(self, str(file))
         else:
             self._do_train(RANK, world_size)
 

@@ -216,6 +216,7 @@ class Exporter:
             'license': 'GPL-3.0 https://ultralytics.com/license',
             'version': __version__,
             'stride': int(max(model.stride)),
+            'task': model.task,
             'names': model.names}  # model metadata
 
         LOGGER.info(f"\n{colorstr('PyTorch:')} starting from {file} with input shape {tuple(im.shape)} BCHW and "

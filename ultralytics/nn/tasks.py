@@ -530,5 +530,5 @@ def guess_model_task(model):
             return 'detect'
 
     # Unable to determine task from model
-    raise SyntaxError('YOLO is unable to automatically guess model task. Explicitly define task for your model, '
-                      "i.e. 'task=detect', 'task=segment' or 'task=classify'.")
+    raise TypeError('YOLO is unable to automatically guess model task. Explicitly define task for your model, '
+                    "i.e. 'task=detect', 'task=segment' or 'task=classify'.")

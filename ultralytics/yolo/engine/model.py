@@ -15,7 +15,7 @@ from ultralytics.yolo.utils.downloads import GITHUB_ASSET_STEMS
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 
 # Map head to model, trainer, validator, and predictor classes
-TASK_OPS_MAP = {
+TASK_MAP = {
     'classify': [
         ClassificationModel, yolo.v8.classify.ClassificationTrainer, yolo.v8.classify.ClassificationValidator,
         yolo.v8.classify.ClassificationPredictor],
@@ -73,7 +73,6 @@ class YOLO:
             model (str, Path): model to load or create
         """
         self._reset_callbacks()
-        self.ModelClass = None  # model class
         self.TrainerClass = None  # trainer class
         self.ValidatorClass = None  # validator class
         self.PredictorClass = None  # predictor class
@@ -110,8 +109,7 @@ class YOLO:
         self.cfg = check_yaml(cfg)  # check YAML
         cfg_dict = yaml_load(self.cfg, append_filename=True)  # model dict
         self.task = guess_model_task(cfg_dict)
-        self.ModelClass = TASK_OPS_MAP[self.task][0]
-        self.model = self.ModelClass(cfg_dict, verbose=verbose and RANK == -1)  # initialize
+        self.model = TASK_MAP[self.task][0](cfg_dict, verbose=verbose and RANK == -1)  # build model
         self.overrides['model'] = self.cfg
 
         # Below added to allow export from yamls
@@ -138,7 +136,6 @@ class YOLO:
             self.task = guess_model_task(weights)
             self.ckpt_path = weights
         self.overrides['model'] = weights
-        self.ModelClass = TASK_OPS_MAP[self.task][0]
 
     def _check_is_pytorch_model(self):
         """
@@ -197,7 +194,7 @@ class YOLO:
         overrides['save'] = kwargs.get('save', False)  # not save files by default
         if not self.predictor:
             self.task = overrides.get('task') or self.task
-            self.PredictorClass = TASK_OPS_MAP[self.task][3]
+            self.PredictorClass = TASK_MAP[self.task][3]
             self.predictor = self.PredictorClass(overrides=overrides)
             self.predictor.setup_model(model=self.model)
         else:  # only update args if predictor is already setup
@@ -238,7 +235,7 @@ class YOLO:
             args.imgsz = self.model.args['imgsz']  # use trained imgsz unless custom value is passed
         args.imgsz = check_imgsz(args.imgsz, max_dim=1)
 
-        self.ValidatorClass = TASK_OPS_MAP[self.task][2]
+        self.ValidatorClass = TASK_MAP[self.task][2]
         validator = self.ValidatorClass(args=args)
         validator(model=self.model)
         self.metrics_data = validator.metrics
@@ -297,7 +294,7 @@ class YOLO:
             overrides['resume'] = self.ckpt_path
 
         self.task = overrides.get('task') or self.task
-        self.TrainerClass = TASK_OPS_MAP[self.task][1]
+        self.TrainerClass = TASK_MAP[self.task][1]
         self.trainer = self.TrainerClass(overrides=overrides)
         if not overrides.get('resume'):  # manually set model only if not resuming
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)

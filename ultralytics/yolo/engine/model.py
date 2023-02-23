@@ -15,16 +15,16 @@ from ultralytics.yolo.utils.downloads import GITHUB_ASSET_STEMS
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 
 # Map head to model, trainer, validator, and predictor classes
-MODEL_MAP = {
+TASK_OPS_MAP = {
     'classify': [
-        ClassificationModel, 'yolo.TYPE.classify.ClassificationTrainer', 'yolo.TYPE.classify.ClassificationValidator',
-        'yolo.TYPE.classify.ClassificationPredictor'],
+        ClassificationModel, yolo.v8.classify.ClassificationTrainer, yolo.v8.classify.ClassificationValidator,
+        yolo.v8.classify.ClassificationPredictor],
     'detect': [
-        DetectionModel, 'yolo.TYPE.detect.DetectionTrainer', 'yolo.TYPE.detect.DetectionValidator',
-        'yolo.TYPE.detect.DetectionPredictor'],
+        DetectionModel, yolo.v8.detect.DetectionTrainer, yolo.v8.detect.DetectionValidator,
+        yolo.v8.detect.DetectionPredictor],
     'segment': [
-        SegmentationModel, 'yolo.TYPE.segment.SegmentationTrainer', 'yolo.TYPE.segment.SegmentationValidator',
-        'yolo.TYPE.segment.SegmentationPredictor']}
+        SegmentationModel, yolo.v8.segment.SegmentationTrainer, yolo.v8.segment.SegmentationValidator,
+        yolo.v8.segment.SegmentationPredictor]}
 
 
 class YOLO:
@@ -65,16 +65,14 @@ class YOLO:
             list(ultralytics.yolo.engine.results.Results): The prediction results.
         """
 
-    def __init__(self, model='yolov8n.pt', type='v8') -> None:
+    def __init__(self, model='yolov8n.pt') -> None:
         """
         Initializes the YOLO model.
 
         Args:
             model (str, Path): model to load or create
-            type (str): Type/version of models to use. Defaults to "v8".
         """
         self._reset_callbacks()
-        self.type = type
         self.ModelClass = None  # model class
         self.TrainerClass = None  # trainer class
         self.ValidatorClass = None  # validator class
@@ -112,7 +110,7 @@ class YOLO:
         self.cfg = check_yaml(cfg)  # check YAML
         cfg_dict = yaml_load(self.cfg, append_filename=True)  # model dict
         self.task = guess_model_task(cfg_dict)
-        self.ModelClass, self.TrainerClass, self.ValidatorClass, self.PredictorClass = self._assign_ops_from_task()
+        self.ModelClass = TASK_OPS_MAP[self.task][0]
         self.model = self.ModelClass(cfg_dict, verbose=verbose and RANK == -1)  # initialize
         self.overrides['model'] = self.cfg
 
@@ -140,7 +138,7 @@ class YOLO:
             self.task = guess_model_task(weights)
             self.ckpt_path = weights
         self.overrides['model'] = weights
-        self.ModelClass, self.TrainerClass, self.ValidatorClass, self.PredictorClass = self._assign_ops_from_task()
+        self.ModelClass = TASK_OPS_MAP[self.task][0]
 
     def _check_is_pytorch_model(self):
         """
@@ -193,11 +191,13 @@ class YOLO:
         """
         overrides = self.overrides.copy()
         overrides['conf'] = 0.25
-        overrides.update(kwargs)
+        overrides.update(kwargs)  # prefer kwargs
         overrides['mode'] = kwargs.get('mode', 'predict')
         assert overrides['mode'] in ['track', 'predict']
         overrides['save'] = kwargs.get('save', False)  # not save files by default
         if not self.predictor:
+            self.task = overrides['task']
+            self.PredictorClass = TASK_OPS_MAP[self.task][3]
             self.predictor = self.PredictorClass(overrides=overrides)
             self.predictor.setup_model(model=self.model)
         else:  # only update args if predictor is already setup
@@ -230,11 +230,12 @@ class YOLO:
         overrides['mode'] = 'val'
         args = get_cfg(cfg=DEFAULT_CFG, overrides=overrides)
         args.data = data or args.data
-        args.task = self.task
+        self.task = args.task
         if args.imgsz == DEFAULT_CFG.imgsz and not isinstance(self.model, (str, Path)):
             args.imgsz = self.model.args['imgsz']  # use trained imgsz unless custom value is passed
         args.imgsz = check_imgsz(args.imgsz, max_dim=1)
 
+        self.ValidatorClass = TASK_OPS_MAP[self.task][2]
         validator = self.ValidatorClass(args=args)
         validator(model=self.model)
         self.metrics_data = validator.metrics
@@ -271,8 +272,7 @@ class YOLO:
             args.imgsz = self.model.args['imgsz']  # use trained imgsz unless custom value is passed
         if args.batch == DEFAULT_CFG.batch:
             args.batch = 1  # default to 1 if not modified
-        exporter = Exporter(overrides=args)
-        return exporter(model=self.model)
+        return Exporter(overrides=args)(model=self.model)
 
     def train(self, **kwargs):
         """
@@ -287,13 +287,14 @@ class YOLO:
         if kwargs.get('cfg'):
             LOGGER.info(f"cfg file passed. Overriding default params with {kwargs['cfg']}.")
             overrides = yaml_load(check_yaml(kwargs['cfg']))
-        overrides['task'] = self.task
         overrides['mode'] = 'train'
         if not overrides.get('data'):
             raise AttributeError("Dataset required but missing, i.e. pass 'data=coco128.yaml'")
         if overrides.get('resume'):
             overrides['resume'] = self.ckpt_path
 
+        self.task = overrides['task']
+        self.TrainerClass = TASK_OPS_MAP[self.task][1]
         self.trainer = self.TrainerClass(overrides=overrides)
         if not overrides.get('resume'):  # manually set model only if not resuming
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
@@ -314,13 +315,6 @@ class YOLO:
         """
         self._check_is_pytorch_model()
         self.model.to(device)
-
-    def _assign_ops_from_task(self):
-        model_class, train_lit, val_lit, pred_lit = MODEL_MAP[self.task]
-        trainer_class = eval(train_lit.replace('TYPE', f'{self.type}'))
-        validator_class = eval(val_lit.replace('TYPE', f'{self.type}'))
-        predictor_class = eval(pred_lit.replace('TYPE', f'{self.type}'))
-        return model_class, trainer_class, validator_class, predictor_class
 
     @property
     def names(self):

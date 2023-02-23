@@ -16,7 +16,7 @@ def on_pretrain_routine_start(trainer):
         experiment = comet_ml.Experiment(project_name=trainer.args.project or 'YOLOv8')
         experiment.log_parameters(vars(trainer.args))
     except Exception as e:
-        LOGGER.warning(f'WARNING ⚠️ Comet not initialized correctly, not logging this run. {e}')
+        LOGGER.warning(f'WARNING ⚠️ Comet installed but not initialized correctly, not logging this run. {e}')
 
 
 def on_train_epoch_end(trainer):

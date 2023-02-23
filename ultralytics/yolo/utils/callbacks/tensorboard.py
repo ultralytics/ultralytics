@@ -2,17 +2,24 @@
 
 from torch.utils.tensorboard import SummaryWriter
 
+from ultralytics.yolo.utils import LOGGER
+
 writer = None  # TensorBoard SummaryWriter instance
 
 
 def _log_scalars(scalars, step=0):
-    for k, v in scalars.items():
-        writer.add_scalar(k, v, step)
+    if writer:
+        for k, v in scalars.items():
+            writer.add_scalar(k, v, step)
 
 
 def on_pretrain_routine_start(trainer):
     global writer
-    writer = SummaryWriter(str(trainer.save_dir))
+    try:
+        writer = SummaryWriter(str(trainer.save_dir))
+    except Exception as e:
+        writer = None  # TensorBoard SummaryWriter instance
+        LOGGER.warning(f'WARNING ⚠️ TensorBoard not initialized correctly, not logging this run. {e}')
 
 
 def on_batch_end(trainer):

@@ -87,8 +87,8 @@ class LoadStreams:
             self.frames[i] = float('inf')
             source_data = sources.get()
             success = True
-            self.user_datas[i] = None
             if self.is_not_queue:
+                self.user_datas[i] = None
                 self.imgs[i] = source_data  # guarantee first frame
             else:
                 self.imgs[i], self.user_datas[i] = source_data  # guarantee first frame
@@ -132,9 +132,9 @@ class LoadStreams:
                 time.sleep(0.0)  # wait time
                 timer = cv2.getTickCount()
                 try:
-                    self.user_datas[i] = None
                     stream_data = stream.get()
-                    if len(stream_data) == 1:
+                    if self.is_not_queue:
+                        self.user_datas[i] = None
                         self.imgs[i] = stream_data
                     else:
                         self.imgs[i], self.user_datas[i] = stream_data

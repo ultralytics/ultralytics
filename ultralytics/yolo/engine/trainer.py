@@ -178,6 +178,7 @@ class BaseTrainer:
         if world_size > 1 and 'LOCAL_RANK' not in os.environ:
             cmd, file = generate_ddp_command(world_size, self)  # security vulnerability in Snyk scans
             try:
+                LOGGER.info(f'Running DDP command {cmd}')
                 subprocess.run(cmd, check=True)
             except Exception as e:
                 LOGGER.warning(e)

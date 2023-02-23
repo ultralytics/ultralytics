@@ -5,7 +5,6 @@ import shutil
 import socket
 import sys
 import tempfile
-from pathlib import Path
 
 from . import USER_CONFIG_DIR
 from .torch_utils import TORCH_1_9
@@ -45,19 +44,30 @@ def generate_ddp_file(trainer):
 
 def generate_ddp_command(world_size, trainer):
     import __main__  # noqa local import to avoid https://github.com/Lightning-AI/lightning/issues/15218
-    file = Path(sys.argv[0]).resolve()
 
     # Get file and args (do not use sys.argv due to security vulnerability)
     exclude_args = {'save_dir'}
     args = [f'{k}={v}' for k, v in vars(trainer.args).items() if k not in exclude_args]
 
-    print('SYSARGV0', sys.argv[0], '\nSYSARGV0', sys.argv)
-    file = generate_ddp_file(trainer) if file.suffix != '.py' else str(file)
+    # cmd, file = generate_ddp_command(world_size, self)  # security vulnerability in Snyk scans
+    file = generate_ddp_file(trainer) if sys.argv[0].endswith('yolo') else os.path.abspath(sys.argv[0])
+    torch_distributed_cmd = "torch.distributed.run" if TORCH_1_9 else "torch.distributed.launch"
+    cmd = [sys.executable, "-m", torch_distributed_cmd, "--nproc_per_node", f"{world_size}", "--master_port",
+           f"{find_free_network_port()}", file] + args
+
+    # file = Path(sys.argv[0]).resolve()
+    #
+    # # Get file and args (do not use sys.argv due to security vulnerability)
+    # exclude_args = {'save_dir'}
+    # args = [f'{k}={v}' for k, v in vars(trainer.args).items() if k not in exclude_args]
+    #
+    # print('SYSARGV0', sys.argv[0], '\nSYSARGV0', sys.argv)
+    # file = generate_ddp_file(trainer) if file.suffix != '.py' else str(file)
 
     # Build command
-    port = find_free_network_port()
-    dist_cmd = 'torch.distributed.run' if TORCH_1_9 else 'torch.distributed.launch'
-    cmd = [sys.executable, '-m', dist_cmd, '--nproc_per_node', f'{world_size}', '--master_port', f'{port}', file] + args
+    # port = find_free_network_port()
+    # dist_cmd = 'torch.distributed.run' if TORCH_1_9 else 'torch.distributed.launch'
+    # cmd = [sys.executable, '-m', dist_cmd, '--nproc_per_node', f'{world_size}', '--master_port', f'{port}', file] + args
     return cmd, file
 
 

@@ -87,10 +87,11 @@ class LoadStreams:
             self.frames[i] = float('inf')
             source_data = sources.get()
             success = True
-            if len(source_data) == 1:
-                self.imgs[i] = sources.get()  # guarantee first frame
+            self.user_datas[i] = None
+            if self.is_not_queue:
+                self.imgs[i] = source_data  # guarantee first frame
             else:
-                self.imgs[i], self.user_datas[i] = sources.get()  # guarantee first frame
+                self.imgs[i], self.user_datas[i] = source_data  # guarantee first frame
             if not success or self.imgs[i] is None:
                 raise ConnectionError(f'{st}Failed to read images from queue')
             w, h = self.imgs[i].shape[1], self.imgs[i].shape[0]
@@ -165,7 +166,10 @@ class LoadStreams:
             im = im[..., ::-1].transpose((0, 3, 1, 2))  # BGR to RGB, BHWC to BCHW
             im = np.ascontiguousarray(im)  # contiguous
 
-        return self.sources, im, im0, None, '', self.user_datas
+        if self.is_not_queue:
+          return self.sources, im, im0, None, ''
+        else:
+          return self.sources, im, im0, None, '', self.user_datas
 
     def __len__(self):
         if self.is_not_queue:

@@ -26,6 +26,7 @@ class HubTrainingSession:
         self._timers = {}  # rate limit timers (seconds)
         self._metrics_queue = {}  # metrics queue
         self.model = self._get_model()
+        self.alive = True
         self._start_heartbeat()  # start heartbeats
         self._register_signal_handlers()
 
@@ -51,37 +52,6 @@ class HubTrainingSession:
     def upload_metrics(self):
         payload = {'metrics': self._metrics_queue.copy(), 'type': 'metrics'}
         smart_request(f'{self.api_url}', json=payload, headers=self.auth_header, code=2)
-
-    def upload_model(self, epoch, weights, is_best=False, map=0.0, final=False):
-        # Upload a model to HUB
-        file = None
-        if Path(weights).is_file():
-            with open(weights, 'rb') as f:
-                file = f.read()
-        if final:
-            smart_request(
-                f'{self.api_url}/upload',
-                data={
-                    'epoch': epoch,
-                    'type': 'final',
-                    'map': map},
-                files={'best.pt': file},
-                headers=self.auth_header,
-                retry=10,
-                timeout=3600,
-                code=4,
-            )
-        else:
-            smart_request(
-                f'{self.api_url}/upload',
-                data={
-                    'epoch': epoch,
-                    'type': 'epoch',
-                    'isBest': bool(is_best)},
-                headers=self.auth_header,
-                files={'last.pt': file},
-                code=3,
-            )
 
     def _get_model(self):
         # Returns model from database by id
@@ -151,7 +121,7 @@ class HubTrainingSession:
             model_info = {
                 'model/parameters': get_num_params(trainer.model),
                 'model/GFLOPs': round(get_flops(trainer.model), 3),
-                'model/speed(ms)': round(trainer.validator.speed[1], 3)}
+                'model/speed(ms)': round(trainer.validator.speed['inference'], 3)}
             all_plots = {**all_plots, **model_info}
         self._metrics_queue[trainer.epoch] = json.dumps(all_plots)
         if time() - self._timers['metrics'] > self._rate_limits['metrics']:
@@ -169,52 +139,45 @@ class HubTrainingSession:
 
     def on_train_end(self, trainer):
         # Upload final model and metrics with exponential standoff
-        LOGGER.info(f'{PREFIX}Training completed successfully ✅')
-        LOGGER.info(f'{PREFIX}Uploading final {self.model_id}')
+        LOGGER.info(f'{PREFIX}Training completed successfully ✅\n'
+                    f'{PREFIX}Uploading final {self.model_id}')
 
-        # hack for fetching mAP
-        mAP = trainer.metrics.get('metrics/mAP50-95(B)', 0)
-        self._upload_model(trainer.epoch, trainer.best, map=mAP, final=True)  # results[3] is mAP0.5:0.95
+        self._upload_model(trainer.epoch, trainer.best, map=trainer.metrics.get('metrics/mAP50-95(B)', 0), final=True)
         self.alive = False  # stop heartbeats
         LOGGER.info(f'{PREFIX}View model at https://hub.ultralytics.com/models/{self.model_id} 🚀')
 
     def _upload_model(self, epoch, weights, is_best=False, map=0.0, final=False):
         # Upload a model to HUB
-        file = None
         if Path(weights).is_file():
             with open(weights, 'rb') as f:
                 file = f.read()
-        file_param = {'best.pt' if final else 'last.pt': file}
-        endpoint = f'{self.api_url}/upload'
+        else:
+            LOGGER.warning(f'{PREFIX}WARNING ⚠️ Model upload failed. Missing model {weights}.')
+            file = None
         data = {'epoch': epoch}
         if final:
             data.update({'type': 'final', 'map': map})
         else:
             data.update({'type': 'epoch', 'isBest': bool(is_best)})
 
-        smart_request(
-            endpoint,
-            data=data,
-            files=file_param,
-            headers=self.auth_header,
-            retry=10 if final else None,
-            timeout=3600 if final else None,
-            code=4 if final else 3,
-        )
+        smart_request(f'{self.api_url}/upload',
+                      data=data,
+                      files={'best.pt' if final else 'last.pt': file},
+                      headers=self.auth_header,
+                      retry=10 if final else None,
+                      timeout=3600 if final else None,
+                      code=4 if final else 3)
 
     @threaded
     def _start_heartbeat(self):
-        self.alive = True
         while self.alive:
-            r = smart_request(
-                f'{HUB_API_ROOT}/v1/agent/heartbeat/models/{self.model_id}',
-                json={
-                    'agent': AGENT_NAME,
-                    'agentId': self.agent_id},
-                headers=self.auth_header,
-                retry=0,
-                code=5,
-                thread=False,
-            )
+            r = smart_request(f'{HUB_API_ROOT}/v1/agent/heartbeat/models/{self.model_id}',
+                              json={
+                                  'agent': AGENT_NAME,
+                                  'agentId': self.agent_id},
+                              headers=self.auth_header,
+                              retry=0,
+                              code=5,
+                              thread=False)
             self.agent_id = r.json().get('data', {}).get('agentId', None)
             sleep(self._rate_limits['heartbeat'])

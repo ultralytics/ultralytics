@@ -41,9 +41,9 @@ def on_fit_epoch_end(trainer):
     task = Task.current_task()
     if task and trainer.epoch == 0:
         model_info = {
-            'Parameters': get_num_params(trainer.model),
-            'GFLOPs': round(get_flops(trainer.model), 3),
-            'Inference speed (ms/img)': round(trainer.validator.speed[1], 3)}
+            'model/parameters': get_num_params(trainer.model),
+            'model/GFLOPs': round(get_flops(trainer.model), 3),
+            'model/speed(ms)': round(trainer.validator.speed['inference'], 3)}
         task.connect(model_info, name='Model')
 
 

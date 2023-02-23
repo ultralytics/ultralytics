@@ -225,7 +225,7 @@ def entrypoint(debug=''):
                 assert v, f"missing '{k}' value"
                 if k == 'cfg':  # custom.yaml passed
                     LOGGER.info(f'Overriding {DEFAULT_CFG_PATH} with {v}')
-                    overrides = {k: val for k, val in yaml_load(v).items() if k != 'cfg'}
+                    overrides = {k: val for k, val in yaml_load(checks.check_yaml(v)).items() if k != 'cfg'}
                 else:
                     if v.lower() == 'none':
                         v = None

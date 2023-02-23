@@ -132,8 +132,7 @@ class YOLO:
         if suffix == '.pt':
             self.model, self.ckpt = attempt_load_one_weight(weights)
             self.task = self.model.args['task']
-            self.overrides = self.model.args
-            self._reset_ckpt_args(self.overrides)
+            self.overrides = self.model.args = self._reset_ckpt_args(self.model.args)
             self.ckpt_path = self.model.pt_path
         else:
             weights = check_file(weights)
@@ -362,9 +361,8 @@ class YOLO:
 
     @staticmethod
     def _reset_ckpt_args(args):
-        for arg in 'augment', 'verbose', 'project', 'name', 'exist_ok', 'resume', 'batch', 'epochs', 'cache', \
-                'save_json', 'half', 'v5loader', 'device', 'cfg', 'save', 'rect', 'plots', 'opset', 'simplify':
-            args.pop(arg, None)
+        include = {'imgsz', 'data', 'task', 'single_cls'}  # only remember these arguments when loading a PyTorch model
+        return {k: v for k, v in args.items() if k in include}
 
     @staticmethod
     def _reset_callbacks():

@@ -98,7 +98,8 @@ class YOLO:
         return self.predict(source, stream, **kwargs)
 
     def __getattr__(self, attr):
-        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{attr}'.\n{self.__doc__}")
+        name = self.__class__.__name__
+        raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
     def _new(self, cfg: str, verbose=True):
         """

@@ -102,7 +102,8 @@ class Results:
         return ''.join(getattr(self, k).__repr__() for k in self._keys)
 
     def __getattr__(self, attr):
-        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{attr}'.\n{self.__doc__}")
+        name = self.__class__.__name__
+        raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
     def plot(self, show_conf=True, line_width=None, font_size=None, font='Arial.ttf', pil=False, example='abc'):
         """
@@ -266,8 +267,8 @@ class Boxes:
         return Boxes(self.boxes[idx], self.orig_shape)
 
     def __getattr__(self, attr):
-        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{attr}'.\n{self.__doc__}")
-
+        name = self.__class__.__name__
+        raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
 class Masks:
     """
@@ -341,4 +342,5 @@ class Masks:
         return Masks(self.masks[idx], self.orig_shape)
 
     def __getattr__(self, attr):
-        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{attr}'.\n{self.__doc__}")
+        name = self.__class__.__name__
+        raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")

@@ -260,10 +260,10 @@ class BaseTrainer:
         nw = max(round(self.args.warmup_epochs * nb), 100)  # number of warmup iterations
         last_opt_step = -1
         self.run_callbacks('on_train_start')
-        self.log(f'Image sizes {self.args.imgsz} train, {self.args.imgsz} val\n'
-                 f'Using {self.train_loader.num_workers * (world_size or 1)} dataloader workers\n'
-                 f"Logging results to {colorstr('bold', self.save_dir)}\n"
-                 f'Starting training for {self.epochs} epochs...')
+        LOGGER.info(f'Image sizes {self.args.imgsz} train, {self.args.imgsz} val\n'
+                    f'Using {self.train_loader.num_workers * (world_size or 1)} dataloader workers\n'
+                    f"Logging results to {colorstr('bold', self.save_dir)}\n"
+                    f'Starting training for {self.epochs} epochs...')
         if self.args.close_mosaic:
             base_idx = (self.epochs - self.args.close_mosaic) * nb
             self.plot_idx.extend([base_idx, base_idx + 1, base_idx + 2])
@@ -370,12 +370,12 @@ class BaseTrainer:
 
         if rank in {-1, 0}:
             # Do final val with best.pt
-            self.log(f'\n{epoch - self.start_epoch + 1} epochs completed in '
-                     f'{(time.time() - self.train_time_start) / 3600:.3f} hours.')
+            LOGGER.info(f'\n{epoch - self.start_epoch + 1} epochs completed in '
+                        f'{(time.time() - self.train_time_start) / 3600:.3f} hours.')
             self.final_eval()
             if self.args.plots:
                 self.plot_metrics()
-            self.log(f"Results saved to {colorstr('bold', self.save_dir)}")
+            LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}")
             self.run_callbacks('on_train_end')
         torch.cuda.empty_cache()
         self.run_callbacks('teardown')
@@ -447,18 +447,6 @@ class BaseTrainer:
         if not self.best_fitness or self.best_fitness < fitness:
             self.best_fitness = fitness
         return metrics, fitness
-
-    def log(self, text, rank=-1):
-        """
-        Logs the given text to given ranks process if provided, otherwise logs to all ranks.
-
-        Args"
-            text (str): text to log
-            rank (List[Int]): process rank
-
-        """
-        if rank in {-1, 0}:
-            LOGGER.info(text)
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         raise NotImplementedError("This task trainer doesn't support loading cfg files")

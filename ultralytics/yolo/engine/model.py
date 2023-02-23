@@ -196,7 +196,7 @@ class YOLO:
         assert overrides['mode'] in ['track', 'predict']
         overrides['save'] = kwargs.get('save', False)  # not save files by default
         if not self.predictor:
-            self.task = overrides['task']
+            self.task = overrides.get('task') or self.task
             self.PredictorClass = TASK_OPS_MAP[self.task][3]
             self.predictor = self.PredictorClass(overrides=overrides)
             self.predictor.setup_model(model=self.model)

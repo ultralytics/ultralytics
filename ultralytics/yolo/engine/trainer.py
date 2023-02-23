@@ -375,7 +375,6 @@ class BaseTrainer:
             self.final_eval()
             if self.args.plots:
                 self.plot_metrics()
-            LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}")
             self.run_callbacks('on_train_end')
         torch.cuda.empty_cache()
         self.run_callbacks('teardown')

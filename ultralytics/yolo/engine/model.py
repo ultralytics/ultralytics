@@ -287,7 +287,7 @@ class YOLO:
         overrides.update(kwargs)
         if kwargs.get('cfg'):
             LOGGER.info(f"cfg file passed. Overriding default params with {kwargs['cfg']}.")
-            overrides = yaml_load(check_yaml(kwargs['cfg']), append_filename=True)
+            overrides = yaml_load(check_yaml(kwargs['cfg']))
         overrides['task'] = self.task
         overrides['mode'] = 'train'
         if not overrides.get('data'):

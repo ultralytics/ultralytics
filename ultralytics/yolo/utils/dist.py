@@ -45,14 +45,14 @@ def generate_ddp_file(trainer):
 
 def generate_ddp_command(world_size, trainer):
     import __main__  # noqa local import to avoid https://github.com/Lightning-AI/lightning/issues/15218
+    file = Path(sys.argv[0]).resolve()
 
     # Get file and args (do not use sys.argv due to security vulnerability)
     exclude_args = {'save_dir'}
     args = [f'{k}={v}' for k, v in vars(trainer.args).items() if k not in exclude_args]
-    script_name = os.path.abspath(sys.argv[0])
-    os.path.abspath('')
+
     print('SYSARGV0', sys.argv[0], '\nSYSARGV0', sys.argv)
-    file = generate_ddp_file(trainer) if str(script_name).endswith('yolo') else str(script_name)
+    file = generate_ddp_file(trainer) if file.suffix != '.py' else str(file)
 
     # Build command
     port = find_free_network_port()

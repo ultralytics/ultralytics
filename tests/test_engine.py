@@ -10,11 +10,11 @@ CFG_DET = 'yolov8n.yaml'
 CFG_SEG = 'yolov8n-seg.yaml'
 CFG_CLS = 'squeezenet1_0'
 CFG = get_cfg(DEFAULT_CFG)
-TRANSFORM = [["ultralytics.yolo.data.augment.LetterBox",
+TRANSFORM = [['ultralytics.yolo.data.augment.LetterBox',
               dict(new_shape=(640, 640), scaleup=False)],
              [
-                 "ultralytics.yolo.data.augment.Format",
-                 dict(bbox_format="xywh",
+                 'ultralytics.yolo.data.augment.Format',
+                 dict(bbox_format='xywh',
                       normalize=True,
                       return_mask=False,
                       return_keypoint=False,
@@ -34,7 +34,7 @@ def test_detect():
     trainer.train()
 
     # Trainer with transform
-    trainer_transform = detect.DetectionTrainer(overrides=dict({"train_transform": TRANSFORM}, **overrides))
+    trainer_transform = detect.DetectionTrainer(overrides=dict({'train_transform': TRANSFORM}, **overrides))
     trainer_transform.train()
 
     # Validator
@@ -68,8 +68,8 @@ def test_segment():
     trainer.train()
 
     # Trainer with transform
-    TRANSFORM[1][1]["return_mask"] = True
-    trainer_transform = segment.SegmentationTrainer(overrides=dict({"train_transform": TRANSFORM}, **overrides))
+    TRANSFORM[1][1]['return_mask'] = True
+    trainer_transform = segment.SegmentationTrainer(overrides=dict({'train_transform': TRANSFORM}, **overrides))
     trainer_transform.train()
 
     # Validator

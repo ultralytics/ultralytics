@@ -236,9 +236,17 @@ class BaseTrainer:
 
         # dataloaders
         batch_size = self.batch_size // world_size if world_size > 1 else self.batch_size
-        self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=rank, mode='train', transforms=self.args.train_transform)
+        self.train_loader = self.get_dataloader(self.trainset,
+                                                batch_size=batch_size,
+                                                rank=rank,
+                                                mode='train',
+                                                transforms=self.args.train_transform)
         if rank in {0, -1}:
-            self.test_loader = self.get_dataloader(self.testset, batch_size=batch_size * 2, rank=-1, mode='val', transforms=self.args.test_transform)
+            self.test_loader = self.get_dataloader(self.testset,
+                                                   batch_size=batch_size * 2,
+                                                   rank=-1,
+                                                   mode='val',
+                                                   transforms=self.args.test_transform)
             self.validator = self.get_validator()
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix='val')
             self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))  # TODO: init metrics for plot_results()?
@@ -455,7 +463,7 @@ class BaseTrainer:
     def get_validator(self):
         raise NotImplementedError('get_validator function not implemented in trainer')
 
-    def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode="train", transform=None):
+    def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode='train', transform=None):
         """
         Returns dataloader derived from torch.data.Dataloader.
         """

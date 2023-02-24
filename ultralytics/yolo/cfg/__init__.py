@@ -10,9 +10,9 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, List, Union
 
+from ultralytics.yolo.data.augment import Compose
 from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, ROOT, USER_CONFIG_DIR,
                                     IterableSimpleNamespace, __version__, checks, colorstr, yaml_load, yaml_print)
-from ultralytics.yolo.data.augment import Compose
 
 CLI_HELP_MSG = \
     f"""
@@ -64,7 +64,7 @@ CFG_BOOL_KEYS = {
     'overlap_mask', 'val', 'save_json', 'save_hybrid', 'half', 'dnn', 'plots', 'show', 'save_txt', 'save_conf',
     'save_crop', 'hide_labels', 'hide_conf', 'visualize', 'augment', 'agnostic_nms', 'retina_masks', 'boxes', 'keras',
     'optimize', 'int8', 'dynamic', 'simplify', 'nms', 'v5loader'}
-CFG_TRANSFORM_KEYS = {"train_transform", "test_transform"}
+CFG_TRANSFORM_KEYS = {'train_transform', 'test_transform'}
 
 
 def str_to_augment(transforms_str):
@@ -80,13 +80,13 @@ def str_to_augment(transforms_str):
 
     for transform_str, transform_args in transforms_str:
         try:
-            module_name, cls_name = transform_str.rsplit(".", 1)
+            module_name, cls_name = transform_str.rsplit('.', 1)
             instance = getattr(importlib.import_module(module_name), cls_name)
             assert inspect.isclass(
-                instance) and "__call__" in instance.__dict__, f"Augmentation {transform_str} must be a callable class"
+                instance) and '__call__' in instance.__dict__, f'Augmentation {transform_str} must be a callable class'
             compose_transform.append(instance(**transform_args))
         except ImportError as e:
-            raise ImportError(f"Fail to import the module when instantiated the string from augmentation: {str(e)}")
+            raise ImportError(f'Fail to import the module when instantiated the string from augmentation: {str(e)}')
 
     return compose_transform
 

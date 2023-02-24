@@ -6,12 +6,13 @@ import os
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from typing import Optional
-from ultralytics.yolo.utils import LOGGER
 
 import cv2
 import numpy as np
 from torch.utils.data import Dataset
 from tqdm import tqdm
+
+from ultralytics.yolo.utils import LOGGER
 
 from ..utils import NUM_THREADS, TQDM_BAR_FORMAT
 from .utils import HELP_URL, IMG_FORMATS, LOCAL_RANK
@@ -25,22 +26,20 @@ class BaseDataset(Dataset):
         label_path (str): label path, this can also be an ann_file or other custom label path.
     """
 
-    def __init__(
-        self,
-        img_path,
-        imgsz=640,
-        cache=False,
-        augment=True,
-        hyp=None,
-        prefix='',
-        rect=False,
-        batch_size=None,
-        stride=32,
-        pad=0.5,
-        single_cls=False,
-        *,
-        transforms=None
-    ):
+    def __init__(self,
+                 img_path,
+                 imgsz=640,
+                 cache=False,
+                 augment=True,
+                 hyp=None,
+                 prefix='',
+                 rect=False,
+                 batch_size=None,
+                 stride=32,
+                 pad=0.5,
+                 single_cls=False,
+                 *,
+                 transforms=None):
         super().__init__()
         self.img_path = img_path
         self.imgsz = imgsz
@@ -72,7 +71,7 @@ class BaseDataset(Dataset):
 
         # transforms
         if transforms is not None:
-            LOGGER.info("Using custom transform")
+            LOGGER.info('Using custom transform')
             self.transforms = transforms
         else:
             self.transforms = self.build_transforms(hyp=hyp)

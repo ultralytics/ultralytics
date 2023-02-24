@@ -111,7 +111,6 @@ class BasePredictor:
     def postprocess(self, preds, img, orig_img):
         return preds
 
-    @smart_inference_mode()
     def __call__(self, source=None, model=None, stream=False):
         if stream:
             return self.stream_inference(source, model)
@@ -141,6 +140,7 @@ class BasePredictor:
         self.source_type = self.dataset.source_type
         self.vid_path, self.vid_writer = [None] * self.dataset.bs, [None] * self.dataset.bs
 
+    @smart_inference_mode()
     def stream_inference(self, source=None, model=None):
         if isinstance(source, queue.Queue):
             self.is_not_queue = False
@@ -173,12 +173,14 @@ class BasePredictor:
                 path, im, im0s, vid_cap, s, user_datas = batch
 
             visualize = increment_path(self.save_dir / Path(path).stem, mkdir=True) if self.args.visualize else False
+
+            # preprocess
             with self.dt[0]:
                 im = self.preprocess(im)
                 if len(im.shape) == 3:
                     im = im[None]  # expand for batch dim
 
-            # Inference
+            # inference
             with self.dt[1]:
                 preds = self.model(im, augment=self.args.augment, visualize=visualize)
 

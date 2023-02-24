@@ -193,7 +193,7 @@ class YOLO:
         if source is None:
             source = ROOT / 'assets' if is_git_dir() else 'https://ultralytics.com/images/bus.jpg'
             LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using 'source={source}'.")
-        
+
         overrides = self.overrides.copy()
         overrides['conf'] = 0.25
         overrides.update(kwargs)  # prefer kwargs

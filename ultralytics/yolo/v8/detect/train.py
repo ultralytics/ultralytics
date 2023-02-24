@@ -66,10 +66,7 @@ class DetectionTrainer(BaseTrainer):
 
     def get_validator(self):
         self.loss_names = 'box_loss', 'cls_loss', 'dfl_loss'
-        return v8.detect.DetectionValidator(self.test_loader,
-                                            save_dir=self.save_dir,
-                                            logger=self.console,
-                                            args=copy(self.args))
+        return v8.detect.DetectionValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
 
     def criterion(self, preds, batch):
         if not hasattr(self, 'compute_loss'):

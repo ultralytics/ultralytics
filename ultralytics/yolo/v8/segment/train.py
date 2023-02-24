@@ -32,10 +32,7 @@ class SegmentationTrainer(v8.detect.DetectionTrainer):
 
     def get_validator(self):
         self.loss_names = 'box_loss', 'seg_loss', 'cls_loss', 'dfl_loss'
-        return v8.segment.SegmentationValidator(self.test_loader,
-                                                save_dir=self.save_dir,
-                                                logger=self.console,
-                                                args=copy(self.args))
+        return v8.segment.SegmentationValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
 
     def criterion(self, preds, batch):
         if not hasattr(self, 'compute_loss'):
@@ -86,10 +83,6 @@ class SegLoss(Loss):
         gt_labels, gt_bboxes = targets.split((1, 4), 2)  # cls, xyxy
         mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0)
 
-        masks = batch['masks'].to(self.device).float()
-        if tuple(masks.shape[-2:]) != (mask_h, mask_w):  # downsample
-            masks = F.interpolate(masks[None], (mask_h, mask_w), mode='nearest')[0]
-
         # pboxes
         pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
 
@@ -103,10 +96,15 @@ class SegLoss(Loss):
         # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
         loss[2] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
 
-        # bbox loss
         if fg_mask.sum():
+            # bbox loss
             loss[0], loss[3] = self.bbox_loss(pred_distri, pred_bboxes, anchor_points, target_bboxes / stride_tensor,
                                               target_scores, target_scores_sum, fg_mask)
+            # masks loss
+            masks = batch['masks'].to(self.device).float()
+            if tuple(masks.shape[-2:]) != (mask_h, mask_w):  # downsample
+                masks = F.interpolate(masks[None], (mask_h, mask_w), mode='nearest')[0]
+
             for i in range(batch_size):
                 if fg_mask[i].sum():
                     mask_idx = target_gt_idx[i][fg_mask[i]]
@@ -121,9 +119,9 @@ class SegLoss(Loss):
                                                      marea)  # seg loss
         # WARNING: Uncomment lines below in case of Multi-GPU DDP unused gradient errors
         #         else:
-        #             loss[1] += proto.sum() * 0
+        #             loss[1] += proto.sum() * 0 + pred_masks.sum() * 0
         # else:
-        #     loss[1] += proto.sum() * 0
+        #     loss[1] += proto.sum() * 0 + pred_masks.sum() * 0
 
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.box / batch_size  # seg gain

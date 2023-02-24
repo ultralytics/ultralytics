@@ -9,7 +9,7 @@ from PIL import Image
 
 from ultralytics import YOLO
 from ultralytics.yolo.data.build import load_inference_source
-from ultralytics.yolo.utils import LINUX, ROOT, SETTINGS
+from ultralytics.yolo.utils import LINUX, ROOT, SETTINGS, checks
 
 MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n.pt'
 CFG = 'yolov8n.yaml'
@@ -49,28 +49,20 @@ def test_predict_dir():
 
 def test_predict_img():
     model = YOLO(MODEL)
-    output = model(source=Image.open(SOURCE), save=True, verbose=True)  # PIL
-    assert len(output) == 1, 'predict test failed'
-    img = cv2.imread(str(SOURCE))
-    output = model(source=img, save=True, save_txt=True)  # ndarray
-    assert len(output) == 1, 'predict test failed'
-    output = model(source=[img, img], save=True, save_txt=True)  # batch
-    assert len(output) == 2, 'predict test failed'
-    output = model(source=[img, img], save=True, stream=True)  # stream
-    assert len(list(output)) == 2, 'predict test failed'
-    tens = torch.zeros(320, 640, 3)
-    output = model(tens.numpy())
-    assert len(output) == 1, 'predict test failed'
-    # test multiple source
-    imgs = [
-        SOURCE,  # filename
+    im = cv2.imread(str(SOURCE))
+    assert len(model(source=Image.open(SOURCE), save=True, verbose=True)) == 1  # PIL
+    assert len(model(source=im, save=True, save_txt=True)) == 1  # ndarray
+    assert len(model(source=[im, im], save=True, save_txt=True)) == 2  # batch
+    assert len(list(model(source=[im, im], save=True, stream=True))) == 2  # stream
+    assert len(model(torch.zeros(320, 640, 3).numpy())) == 1  # tensor to numpy
+    batch = [
+        str(SOURCE),  # filename
         Path(SOURCE),  # Path
-        'https://ultralytics.com/images/zidane.jpg',  # URI
+        'https://ultralytics.com/images/zidane.jpg' if checks.check_online() else SOURCE,  # URI
         cv2.imread(str(SOURCE)),  # OpenCV
         Image.open(SOURCE),  # PIL
         np.zeros((320, 640, 3))]  # numpy
-    output = model(imgs)
-    assert len(output) == 6, 'predict test failed!'
+    assert len(model(batch)) == len(batch)  # multiple sources in a batch
 
 
 def test_predict_grey_and_4ch():
@@ -82,6 +74,11 @@ def test_predict_grey_and_4ch():
 
 def test_val():
     model = YOLO(MODEL)
+    model.val(data='coco8.yaml', imgsz=32)
+
+
+def test_val_scratch():
+    model = YOLO(CFG)
     model.val(data='coco8.yaml', imgsz=32)
 
 
@@ -99,6 +96,12 @@ def test_train_pretrained():
 
 def test_export_torchscript():
     model = YOLO(MODEL)
+    f = model.export(format='torchscript')
+    YOLO(f)(SOURCE)  # exported model inference
+
+
+def test_export_torchscript_scratch():
+    model = YOLO(CFG)
     f = model.export(format='torchscript')
     YOLO(f)(SOURCE)  # exported model inference
 

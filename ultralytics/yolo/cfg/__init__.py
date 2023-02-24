@@ -47,11 +47,12 @@ CLI_HELP_MSG = \
     GitHub: https://github.com/ultralytics/ultralytics
     """
 
-CFG_FLOAT_KEYS = {'warmup_epochs', 'box', 'cls', 'dfl', 'degrees', 'shear'}
+# Define keys for arg type checks
+CFG_FLOAT_KEYS = {'warmup_epochs', 'box', 'cls', 'dfl', 'degrees', 'shear', 'fl_gamma'}
 CFG_FRACTION_KEYS = {
-    'dropout', 'iou', 'lr0', 'lrf', 'momentum', 'weight_decay', 'warmup_momentum', 'warmup_bias_lr', 'fl_gamma',
-    'label_smoothing', 'hsv_h', 'hsv_s', 'hsv_v', 'translate', 'scale', 'perspective', 'flipud', 'fliplr', 'mosaic',
-    'mixup', 'copy_paste', 'conf', 'iou'}
+    'dropout', 'iou', 'lr0', 'lrf', 'momentum', 'weight_decay', 'warmup_momentum', 'warmup_bias_lr', 'label_smoothing',
+    'hsv_h', 'hsv_s', 'hsv_v', 'translate', 'scale', 'perspective', 'flipud', 'fliplr', 'mosaic', 'mixup', 'copy_paste',
+    'conf', 'iou'}  # fractional floats limited to 0.0 - 1.0
 CFG_INT_KEYS = {
     'epochs', 'patience', 'batch', 'workers', 'seed', 'close_mosaic', 'mask_ratio', 'max_det', 'vid_stride',
     'line_thickness', 'workspace', 'nbs', 'save_period'}
@@ -224,7 +225,7 @@ def entrypoint(debug=''):
                 assert v, f"missing '{k}' value"
                 if k == 'cfg':  # custom.yaml passed
                     LOGGER.info(f'Overriding {DEFAULT_CFG_PATH} with {v}')
-                    overrides = {k: val for k, val in yaml_load(v).items() if k != 'cfg'}
+                    overrides = {k: val for k, val in yaml_load(checks.check_yaml(v)).items() if k != 'cfg'}
                 else:
                     if v.lower() == 'none':
                         v = None
@@ -255,7 +256,6 @@ def entrypoint(debug=''):
             check_cfg_mismatch(full_args_dict, {a: ''})
 
     # Defaults
-    task2model = dict(detect='yolov8n.pt', segment='yolov8n-seg.pt', classify='yolov8n-cls.pt')
     task2data = dict(detect='coco128.yaml', segment='coco128-seg.yaml', classify='imagenet100')
 
     # Mode
@@ -272,27 +272,28 @@ def entrypoint(debug=''):
 
     # Model
     model = overrides.pop('model', DEFAULT_CFG.model)
-    task = overrides.pop('task', None)
     if model is None:
-        model = task2model.get(task, 'yolov8n.pt')
+        model = 'yolov8n.pt'
         LOGGER.warning(f"WARNING ⚠️ 'model' is missing. Using default 'model={model}'.")
     from ultralytics.yolo.engine.model import YOLO
     overrides['model'] = model
     model = YOLO(model)
 
     # Task
-    if task and task != model.task:
-        LOGGER.warning(f"WARNING ⚠️ 'task={task}' conflicts with {model.task} model {overrides['model']}. "
-                       f"Inheriting 'task={model.task}' from {overrides['model']} and ignoring 'task={task}'.")
-    task = model.task
-    overrides['task'] = task
+    # if task and task != model.task:
+    #     LOGGER.warning(f"WARNING ⚠️ 'task={task}' conflicts with {model.task} model {overrides['model']}. "
+    #                    f"Inheriting 'task={model.task}' from {overrides['model']} and ignoring 'task={task}'.")
+    overrides['task'] = overrides.get('task', model.task)
+    model.task = overrides['task']
+
+    # Mode
     if mode in {'predict', 'track'} and 'source' not in overrides:
         overrides['source'] = DEFAULT_CFG.source or ROOT / 'assets' if (ROOT / 'assets').exists() \
             else 'https://ultralytics.com/images/bus.jpg'
         LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using default 'source={overrides['source']}'.")
     elif mode in ('train', 'val'):
         if 'data' not in overrides:
-            overrides['data'] = task2data.get(task, DEFAULT_CFG.data)
+            overrides['data'] = task2data.get(overrides['task'], DEFAULT_CFG.data)
             LOGGER.warning(f"WARNING ⚠️ 'data' is missing. Using {model.task} default 'data={overrides['data']}'.")
     elif mode == 'export':
         if 'format' not in overrides:

@@ -254,8 +254,8 @@ def entrypoint(debug=''):
         else:
             check_cfg_mismatch(full_args_dict, {a: ''})
 
-    # Defaults
-    task2data = dict(detect='coco128.yaml', segment='coco128-seg.yaml', classify='imagenet100')
+    # Check keys
+    check_cfg_mismatch(full_args_dict, overrides)
 
     # Mode
     mode = overrides.get('mode', None)
@@ -280,6 +280,7 @@ def entrypoint(debug=''):
 
     # Task
     task = overrides.get('task', None)
+    task2data = dict(detect='coco128.yaml', segment='coco128-seg.yaml', classify='imagenet100')
     if task is not None and task not in TASKS:
         raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
     else:

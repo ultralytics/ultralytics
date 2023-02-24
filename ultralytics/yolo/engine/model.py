@@ -197,7 +197,7 @@ class YOLO:
         overrides['save'] = kwargs.get('save', False)  # not save files by default
         if not self.predictor:
             self.task = overrides.get('task') or self.task
-            self.predictor = self.TASK_MAP[self.task][3](overrides=overrides)
+            self.predictor = TASK_MAP[self.task][3](overrides=overrides)
             self.predictor.setup_model(model=self.model)
         else:  # only update args if predictor is already setup
             self.predictor.args = get_cfg(self.predictor.args, overrides)
@@ -295,7 +295,6 @@ class YOLO:
             overrides['resume'] = self.ckpt_path
 
         self.task = overrides.get('task') or self.task
-        self.TrainerClass = TASK_MAP[self.task][1]
         self.trainer = TASK_MAP[self.task][1](overrides=overrides)
         if not overrides.get('resume'):  # manually set model only if not resuming
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)

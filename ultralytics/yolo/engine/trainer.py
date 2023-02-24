@@ -181,7 +181,7 @@ class BaseTrainer:
                 LOGGER.info(f'Running DDP command {cmd}')
                 subprocess.run(cmd, check=True)
             except Exception as e:
-                LOGGER.warning(e)
+                raise e
             finally:
                 ddp_cleanup(self, str(file))
         else:

@@ -181,7 +181,6 @@ class AutoBackend(nn.Module):
             import tensorflow as tf
             keras = False  # assume TF1 saved_model
             model = tf.keras.models.load_model(w) if keras else tf.saved_model.load(w)
-            w = Path(w) / 'metadata.yaml'
         elif pb:  # GraphDef https://www.tensorflow.org/guide/migrate#a_graphpb_or_graphpbtxt
             LOGGER.info(f'Loading {w} for TensorFlow GraphDef inference...')
             import tensorflow as tf
@@ -258,8 +257,9 @@ class AutoBackend(nn.Module):
                             f'\n\n{EXPORT_FORMATS_TABLE}')
 
         # Load external metadata YAML
+        w = Path(w)
         if xml or saved_model or paddle:
-            metadata = Path(w).parent / 'metadata.yaml'
+            metadata = (w if saved_model else w.parents[1] if paddle else w.parent) / 'metadata.yaml'
             if metadata.exists():
                 metadata = yaml_load(metadata)
                 stride, names = int(metadata['stride']), metadata['names']  # load metadata

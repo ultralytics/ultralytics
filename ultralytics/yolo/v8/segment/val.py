@@ -7,7 +7,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from ultralytics.yolo.utils import DEFAULT_CFG, NUM_THREADS, ops
+from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, NUM_THREADS, ops
 from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils.metrics import SegmentMetrics, box_iou, mask_iou
 from ultralytics.yolo.utils.plotting import output_to_target, plot_images
@@ -16,8 +16,8 @@ from ultralytics.yolo.v8.detect import DetectionValidator
 
 class SegmentationValidator(DetectionValidator):
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, logger=None, args=None):
-        super().__init__(dataloader, save_dir, pbar, logger, args)
+    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None):
+        super().__init__(dataloader, save_dir, pbar, args)
         self.args.task = 'segment'
         self.metrics = SegmentMetrics(save_dir=self.save_dir)
 
@@ -120,7 +120,7 @@ class SegmentationValidator(DetectionValidator):
             #    save_one_txt(predn, save_conf, shape, file=save_dir / 'labels' / f'{path.stem}.txt')
 
     def finalize_metrics(self, *args, **kwargs):
-        self.metrics.speed = dict(zip(self.metrics.speed.keys(), self.speed))
+        self.metrics.speed = self.speed
 
     def _process_batch(self, detections, labels, pred_masks=None, gt_masks=None, overlap=False, masks=False):
         """
@@ -207,7 +207,7 @@ class SegmentationValidator(DetectionValidator):
         if self.args.save_json and self.is_coco and len(self.jdict):
             anno_json = self.data['path'] / 'annotations/instances_val2017.json'  # annotations
             pred_json = self.save_dir / 'predictions.json'  # predictions
-            self.logger.info(f'\nEvaluating pycocotools mAP using {pred_json} and {anno_json}...')
+            LOGGER.info(f'\nEvaluating pycocotools mAP using {pred_json} and {anno_json}...')
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
                 check_requirements('pycocotools>=2.0.6')
                 from pycocotools.coco import COCO  # noqa
@@ -228,7 +228,7 @@ class SegmentationValidator(DetectionValidator):
                     stats[self.metrics.keys[idx + 1]], stats[
                         self.metrics.keys[idx]] = eval.stats[:2]  # update mAP50-95 and mAP50
             except Exception as e:
-                self.logger.warning(f'pycocotools unable to run: {e}')
+                LOGGER.warning(f'pycocotools unable to run: {e}')
         return stats
 
 

@@ -60,12 +60,12 @@ def run_benchmarks(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
 
             # Export
             if format == '-':
-                filename = model.ckpt_path
+                filename = model.ckpt_path or model.cfg
                 export = model  # PyTorch format
             else:
                 filename = model.export(imgsz=imgsz, format=format, half=half, device=device)  # all others
                 export = YOLO(filename)
-            assert suffix in str(filename), 'export failed'
+                assert suffix in str(filename), 'export failed'
 
             # Predict
             if not (ROOT / 'assets/bus.jpg').exists():

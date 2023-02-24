@@ -22,12 +22,12 @@ def find_free_network_port() -> int:
 
 
 def generate_ddp_file(trainer):
-    import_path = '.'.join(str(trainer.__class__).split('.')[1:-1])
+    module, name = f"{trainer.__class__.__module__}.{trainer.__class__.__name__}".rsplit('.', 1)
 
     content = f'''cfg = {vars(trainer.args)} \nif __name__ == "__main__":
-    from ultralytics.{import_path} import {trainer.__class__.__name__}
+    from {module} import {name}
 
-    trainer = {trainer.__class__.__name__}(cfg=cfg)
+    trainer = {name}(cfg=cfg)
     trainer.train()'''
     (USER_CONFIG_DIR / 'DDP').mkdir(exist_ok=True)
     with tempfile.NamedTemporaryFile(prefix='_temp_',
@@ -41,7 +41,7 @@ def generate_ddp_file(trainer):
 
 
 def generate_ddp_command(world_size, trainer):
-    import __main__  # local import to avoid https://github.com/Lightning-AI/lightning/issues/15218
+    import __main__  # noqa local import to avoid https://github.com/Lightning-AI/lightning/issues/15218
     file = os.path.abspath(sys.argv[0])
     using_cli = not file.endswith('.py')
     if not trainer.resume:

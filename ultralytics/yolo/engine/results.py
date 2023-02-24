@@ -270,6 +270,7 @@ class Boxes:
         name = self.__class__.__name__
         raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
+
 class Masks:
     """
     A class for storing and manipulating detection masks.

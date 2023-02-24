@@ -22,7 +22,7 @@ def find_free_network_port() -> int:
 
 
 def generate_ddp_file(trainer):
-    module, name = f"{trainer.__class__.__module__}.{trainer.__class__.__name__}".rsplit('.', 1)
+    module, name = f'{trainer.__class__.__module__}.{trainer.__class__.__name__}'.rsplit('.', 1)
 
     content = f'''cfg = {vars(trainer.args)} \nif __name__ == "__main__":
     from {module} import {name}

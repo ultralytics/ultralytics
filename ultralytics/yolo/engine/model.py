@@ -64,7 +64,7 @@ class YOLO:
             Performs prediction using the YOLO model.
 
     Returns:
-        list[ultralytics.yolo.engine.results.Results]: The prediction results.
+        list(ultralytics.yolo.engine.results.Results): The prediction results.
     """
 
     def __init__(self, model='yolov8n.pt') -> None:

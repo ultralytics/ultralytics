@@ -292,7 +292,10 @@ class Exporter:
     @try_export
     def _export_onnx(self, prefix=colorstr('ONNX:')):
         # YOLOv8 ONNX export
-        check_requirements('onnx>=1.12.0')
+        requirements = ['onnx>=1.12.0']
+        if self.args.simplify:
+            requirements += ['onnxsim', 'onnxruntime-gpu' if torch.cuda.is_available() else 'onnxruntime']
+        check_requirements(requirements)
         import onnx  # noqa
 
         LOGGER.info(f'\n{prefix} starting export with onnx {onnx.__version__}...')
@@ -326,7 +329,6 @@ class Exporter:
         # Simplify
         if self.args.simplify:
             try:
-                check_requirements(('onnxsim', 'onnxruntime-gpu' if torch.cuda.is_available() else 'onnxruntime'))
                 import onnxsim
 
                 LOGGER.info(f'{prefix} simplifying with onnxsim {onnxsim.__version__}...')
@@ -508,9 +510,8 @@ class Exporter:
         try:
             import tensorflow as tf  # noqa
         except ImportError:
-            check_requirements(
-                f"tensorflow{'-macos' if MACOS else '-aarch64' if ARM64 else '' if torch.cuda.is_available() else '-cpu'}"
-            )
+            cuda = torch.cuda.is_available()
+            check_requirements(f"tensorflow{'-macos' if MACOS else '-aarch64' if ARM64 else '' if cuda else '-cpu'}")
             import tensorflow as tf  # noqa
         check_requirements(('onnx', 'onnx2tf', 'sng4onnx', 'onnxsim', 'onnx_graphsurgeon', 'tflite_support',
                             'onnxruntime-gpu' if torch.cuda.is_available() else 'onnxruntime'),
@@ -618,11 +619,11 @@ class Exporter:
             LOGGER.info(f'\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}')
             sudo = subprocess.run('sudo --version >/dev/null', shell=True).returncode == 0  # sudo installed on system
             for c in (
-                    'curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -',
-                    'echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | '  # no comma
-                    'sudo tee /etc/apt/sources.list.d/coral-edgetpu.list',
-                    'sudo apt-get update',
-                    'sudo apt-get install edgetpu-compiler'):
+                'curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -',
+                'echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | '  # no comma
+                'sudo tee /etc/apt/sources.list.d/coral-edgetpu.list',
+                'sudo apt-get update',
+                'sudo apt-get install edgetpu-compiler'):
                 subprocess.run(c if sudo else c.replace('sudo ', ''), shell=True, check=True)
         ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().split()[-1]
 

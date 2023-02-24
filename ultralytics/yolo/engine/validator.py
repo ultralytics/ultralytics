@@ -63,7 +63,6 @@ class BaseValidator:
             dataloader (torch.utils.data.DataLoader): Dataloader to be used for validation.
             save_dir (Path): Directory to save results.
             pbar (tqdm.tqdm): Progress bar for displaying progress.
-            logger (logging.Logger): Logger to log messages.
             args (SimpleNamespace): Configuration for the validator.
         """
         self.dataloader = dataloader

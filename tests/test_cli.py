@@ -48,7 +48,7 @@ def test_val_classify():
 
 # Predict checks -------------------------------------------------------------------------------------------------------
 def test_predict_detect():
-    run(f"yolo predict model={MODEL}.pt source={ROOT / 'assets'} imgsz=32")
+    run(f"yolo predict model={MODEL}.pt source={ROOT / 'assets'} imgsz=32 save")
     if checks.check_online():
         run(f'yolo predict model={MODEL}.pt source=https://ultralytics.com/images/bus.jpg imgsz=32')
         run(f'yolo predict model={MODEL}.pt source=https://ultralytics.com/assets/decelera_landscape_min.mov imgsz=32')
@@ -56,11 +56,11 @@ def test_predict_detect():
 
 
 def test_predict_segment():
-    run(f"yolo predict model={MODEL}-seg.pt source={ROOT / 'assets'} imgsz=32")
+    run(f"yolo predict model={MODEL}-seg.pt source={ROOT / 'assets'} imgsz=32 save")
 
 
 def test_predict_classify():
-    run(f"yolo predict model={MODEL}-cls.pt source={ROOT / 'assets'} imgsz=32")
+    run(f"yolo predict model={MODEL}-cls.pt source={ROOT / 'assets'} imgsz=32 save")
 
 
 # Export checks --------------------------------------------------------------------------------------------------------

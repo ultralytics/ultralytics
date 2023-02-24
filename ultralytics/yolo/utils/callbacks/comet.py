@@ -31,7 +31,7 @@ def on_train_epoch_end(trainer):
 def on_fit_epoch_end(trainer):
     experiment = comet_ml.get_global_experiment()
     if experiment:
-        experiment.log_metrics(trainer.metrics, step=trainer.epoch + 1)
+        experiment.log_metrics(trainer.metrics, epoch=trainer.epoch + 1)
         if trainer.epoch == 0:
             model_info = {
                 'model/parameters': get_num_params(trainer.model),

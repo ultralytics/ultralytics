@@ -42,9 +42,9 @@ class Results:
     def __init__(self, orig_img, path, names, boxes=None, masks=None, probs=None) -> None:
         self.orig_img = orig_img
         self.orig_shape = orig_img.shape[:2]
-        self.boxes = Boxes(boxes.cpu(), self.orig_shape) if boxes is not None else None  # native size boxes
-        self.masks = Masks(masks.cpu(), self.orig_shape) if masks is not None else None  # native size or imgsz masks
-        self.probs = probs.cpu() if probs is not None else None
+        self.boxes = Boxes(boxes, self.orig_shape) if boxes is not None else None  # native size boxes
+        self.masks = Masks(masks, self.orig_shape) if masks is not None else None  # native size or imgsz masks
+        self.probs = probs if probs is not None else None
         self.names = names
         self.path = path
         self._keys = (k for k in ('boxes', 'masks', 'probs') if getattr(self, k) is not None)

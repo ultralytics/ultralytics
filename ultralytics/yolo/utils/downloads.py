@@ -12,7 +12,7 @@ import requests
 import torch
 from tqdm import tqdm
 
-from ultralytics.yolo.utils import LOGGER
+from ultralytics.yolo.utils import LOGGER, checks
 
 GITHUB_ASSET_NAMES = [f'yolov8{size}{suffix}.pt' for size in 'nsmlx' for suffix in ('', '6', '-cls', '-seg')] + \
                      [f'yolov5{size}u.pt' for size in 'nsmlx'] + \
@@ -87,7 +87,7 @@ def safe_download(url,
             try:
                 if curl or i > 0:  # curl download with retry, continue
                     s = 'sS' * (not progress)  # silent
-                    r = subprocess.run(['curl', '-#', f'-{s}L', url, '-o', f, '--retry', '9', '-C', '-']).returncode
+                    r = subprocess.run(['curl', '-#', f'-{s}L', url, '-o', f, '--retry', '3', '-C', '-']).returncode
                     assert r == 0, f'Curl return value {r}'
                 else:  # urllib download
                     method = 'torch'
@@ -112,8 +112,10 @@ def safe_download(url,
                         break  # success
                     f.unlink()  # remove partial downloads
             except Exception as e:
-                if i >= retry:
-                    raise ConnectionError(f'❌  Download failure for {url}') from e
+                if i == 0 and not checks.check_online():
+                    raise ConnectionError(f'❌  Download failure for {url}. Environment is not online.') from e
+                elif i >= retry:
+                    raise ConnectionError(f'❌  Download failure for {url}. Retry limit reached.') from e
                 LOGGER.warning(f'⚠️ Download failure, retrying {i + 1}/{retry} {url}...')
 
     if unzip and f.exists() and f.suffix in {'.zip', '.tar', '.gz'}:

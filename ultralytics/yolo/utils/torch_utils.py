@@ -59,9 +59,9 @@ def DDP_model(model):
         return DDP(model, device_ids=[LOCAL_RANK], output_device=LOCAL_RANK)
 
 
-def select_device(device='', batch=0, newline=False):
+def select_device(device='', batch=0, newline=False, verbose=True):
     # device = None or 'cpu' or 0 or '0' or '0,1,2,3'
-    s = f"Ultralytics YOLOv{__version__} 🚀 Python-{platform.python_version()} torch-{torch.__version__} "
+    s = f'Ultralytics YOLOv{__version__} 🚀 Python-{platform.python_version()} torch-{torch.__version__} '
     device = str(device).lower()
     for remove in 'cuda:', 'none', '(', ')', '[', ']', "'", ' ':
         device = device.replace(remove, '')  # to string, 'cuda:0' -> '0' and '(0, 1)' -> '0,1'
@@ -74,15 +74,15 @@ def select_device(device='', batch=0, newline=False):
         os.environ['CUDA_VISIBLE_DEVICES'] = device  # set environment variable - must be before assert is_available()
         if not (torch.cuda.is_available() and torch.cuda.device_count() >= len(device.replace(',', ''))):
             LOGGER.info(s)
-            install = "See https://pytorch.org/get-started/locally/ for up-to-date torch install instructions if no " \
-                      "CUDA devices are seen by torch.\n" if torch.cuda.device_count() == 0 else ""
+            install = 'See https://pytorch.org/get-started/locally/ for up-to-date torch install instructions if no ' \
+                      'CUDA devices are seen by torch.\n' if torch.cuda.device_count() == 0 else ''
             raise ValueError(f"Invalid CUDA 'device={device}' requested."
                              f" Use 'device=cpu' or pass valid CUDA device(s) if available,"
                              f" i.e. 'device=0' or 'device=0,1,2,3' for Multi-GPU.\n"
-                             f"\ntorch.cuda.is_available(): {torch.cuda.is_available()}"
-                             f"\ntorch.cuda.device_count(): {torch.cuda.device_count()}"
+                             f'\ntorch.cuda.is_available(): {torch.cuda.is_available()}'
+                             f'\ntorch.cuda.device_count(): {torch.cuda.device_count()}'
                              f"\nos.environ['CUDA_VISIBLE_DEVICES']: {visible}\n"
-                             f"{install}")
+                             f'{install}')
 
     if not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
         devices = device.split(',') if device else '0'  # range(torch.cuda.device_count())  # i.e. 0,1,6,7
@@ -102,7 +102,7 @@ def select_device(device='', batch=0, newline=False):
         s += 'CPU\n'
         arg = 'cpu'
 
-    if RANK == -1:
+    if verbose and RANK == -1:
         LOGGER.info(s if newline else s.rstrip())
     return torch.device(arg)
 
@@ -167,17 +167,18 @@ def model_info(model, verbose=False, imgsz=640):
     n_p = get_num_params(model)
     n_g = get_num_gradients(model)  # number gradients
     if verbose:
-        print(f"{'layer':>5} {'name':>40} {'gradient':>9} {'parameters':>12} {'shape':>20} {'mu':>10} {'sigma':>10}")
+        LOGGER.info(
+            f"{'layer':>5} {'name':>40} {'gradient':>9} {'parameters':>12} {'shape':>20} {'mu':>10} {'sigma':>10}")
         for i, (name, p) in enumerate(model.named_parameters()):
             name = name.replace('module_list.', '')
-            print('%5g %40s %9s %12g %20s %10.3g %10.3g' %
-                  (i, name, p.requires_grad, p.numel(), list(p.shape), p.mean(), p.std()))
+            LOGGER.info('%5g %40s %9s %12g %20s %10.3g %10.3g' %
+                        (i, name, p.requires_grad, p.numel(), list(p.shape), p.mean(), p.std()))
 
     flops = get_flops(model, imgsz)
     fused = ' (fused)' if model.is_fused() else ''
     fs = f', {flops:.1f} GFLOPs' if flops else ''
     m = Path(getattr(model, 'yaml_file', '') or model.yaml.get('yaml_file', '')).stem.replace('yolo', 'YOLO') or 'Model'
-    LOGGER.info(f"{m} summary{fused}: {len(list(model.modules()))} layers, {n_p} parameters, {n_g} gradients{fs}")
+    LOGGER.info(f'{m} summary{fused}: {len(list(model.modules()))} layers, {n_p} parameters, {n_g} gradients{fs}')
 
 
 def get_num_params(model):
@@ -362,8 +363,8 @@ def profile(input, ops, n=10, device=None):
     results = []
     if not isinstance(device, torch.device):
         device = select_device(device)
-    print(f"{'Params':>12s}{'GFLOPs':>12s}{'GPU_mem (GB)':>14s}{'forward (ms)':>14s}{'backward (ms)':>14s}"
-          f"{'input':>24s}{'output':>24s}")
+    LOGGER.info(f"{'Params':>12s}{'GFLOPs':>12s}{'GPU_mem (GB)':>14s}{'forward (ms)':>14s}{'backward (ms)':>14s}"
+                f"{'input':>24s}{'output':>24s}")
 
     for x in input if isinstance(input, list) else [input]:
         x = x.to(device)
@@ -393,10 +394,10 @@ def profile(input, ops, n=10, device=None):
                 mem = torch.cuda.memory_reserved() / 1E9 if torch.cuda.is_available() else 0  # (GB)
                 s_in, s_out = (tuple(x.shape) if isinstance(x, torch.Tensor) else 'list' for x in (x, y))  # shapes
                 p = sum(x.numel() for x in m.parameters()) if isinstance(m, nn.Module) else 0  # parameters
-                print(f'{p:12}{flops:12.4g}{mem:>14.3f}{tf:14.4g}{tb:14.4g}{str(s_in):>24s}{str(s_out):>24s}')
+                LOGGER.info(f'{p:12}{flops:12.4g}{mem:>14.3f}{tf:14.4g}{tb:14.4g}{str(s_in):>24s}{str(s_out):>24s}')
                 results.append([p, flops, mem, tf, tb, s_in, s_out])
             except Exception as e:
-                print(e)
+                LOGGER.info(e)
                 results.append(None)
             torch.cuda.empty_cache()
     return results

@@ -39,17 +39,19 @@ the [Configuration](cfg.md) page.
       yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640
       yolo detect train resume model=last.pt  # resume training
       ```
+
 ## Val
 
 Validate trained YOLOv8n model accuracy on the COCO128 dataset. No argument need to passed as the `model` retains it's
 training `data` and arguments as model attributes.
 
 !!! example ""
-  
+
       ```bash
       yolo detect val model=yolov8n.pt  # val official model
       yolo detect val model=path/to/best.pt  # val custom model
       ```
+
 ## Predict
 
 Use a trained YOLOv8n model to run predictions on images.
@@ -60,12 +62,13 @@ Use a trained YOLOv8n model to run predictions on images.
       yolo detect predict model=yolov8n.pt source="https://ultralytics.com/images/bus.jpg"  # predict with official model
       yolo detect predict model=path/to/best.pt source="https://ultralytics.com/images/bus.jpg"  # predict with custom model
       ```
+
 ## Export
 
 Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
 
 !!! example ""
-    
+
       ```bash
       yolo export model=yolov8n.pt format=onnx  # export official model
       yolo export model=path/to/best.pt format=onnx  # export custom trained model
@@ -92,7 +95,7 @@ Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
 
 ## Overriding default arguments
 
-Default arguments can be overriden by simply passing them as arguments in the CLI in `arg=value` pairs.
+Default arguments can be overridden by simply passing them as arguments in the CLI in `arg=value` pairs.
 
 !!! tip ""
 

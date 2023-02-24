@@ -47,7 +47,7 @@ class LoadStreams:
                 # YouTube format i.e. 'https://www.youtube.com/watch?v=Zgi9g1ksQHc' or 'https://youtu.be/Zgi9g1ksQHc'
                 check_requirements(('pafy', 'youtube_dl==2020.12.2'))
                 import pafy  # noqa
-                s = pafy.new(s).getbest(preftype="mp4").url  # YouTube URL
+                s = pafy.new(s).getbest(preftype='mp4').url  # YouTube URL
             s = eval(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
             if s == 0 and (is_colab() or is_kaggle()):
                 raise NotImplementedError("'source=0' webcam not supported in Colab and Kaggle notebooks. "
@@ -65,7 +65,7 @@ class LoadStreams:
             if not success or self.imgs[i] is None:
                 raise ConnectionError(f'{st}Failed to read images from {s}')
             self.threads[i] = Thread(target=self.update, args=([i, cap, s]), daemon=True)
-            LOGGER.info(f"{st}Success ✅ ({self.frames[i]} frames of shape {w}x{h} at {self.fps[i]:.2f} FPS)")
+            LOGGER.info(f'{st}Success ✅ ({self.frames[i]} frames of shape {w}x{h} at {self.fps[i]:.2f} FPS)')
             self.threads[i].start()
         LOGGER.info('')  # newline
 
@@ -145,11 +145,11 @@ class LoadScreenshots:
 
         # Parse monitor shape
         monitor = self.sct.monitors[self.screen]
-        self.top = monitor["top"] if top is None else (monitor["top"] + top)
-        self.left = monitor["left"] if left is None else (monitor["left"] + left)
-        self.width = width or monitor["width"]
-        self.height = height or monitor["height"]
-        self.monitor = {"left": self.left, "top": self.top, "width": self.width, "height": self.height}
+        self.top = monitor['top'] if top is None else (monitor['top'] + top)
+        self.left = monitor['left'] if left is None else (monitor['left'] + left)
+        self.width = width or monitor['width']
+        self.height = height or monitor['height']
+        self.monitor = {'left': self.left, 'top': self.top, 'width': self.width, 'height': self.height}
 
     def __iter__(self):
         return self
@@ -157,7 +157,7 @@ class LoadScreenshots:
     def __next__(self):
         # mss screen capture: get raw pixels from the screen as np array
         im0 = np.array(self.sct.grab(self.monitor))[:, :, :3]  # [:, :, :3] BGRA to BGR
-        s = f"screen {self.screen} (LTWH): {self.left},{self.top},{self.width},{self.height}: "
+        s = f'screen {self.screen} (LTWH): {self.left},{self.top},{self.width},{self.height}: '
 
         if self.transforms:
             im = self.transforms(im0)  # transforms
@@ -172,7 +172,7 @@ class LoadScreenshots:
 class LoadImages:
     # YOLOv8 image/video dataloader, i.e. `yolo predict source=image.jpg/vid.mp4`
     def __init__(self, path, imgsz=640, stride=32, auto=True, transforms=None, vid_stride=1):
-        if isinstance(path, str) and Path(path).suffix == ".txt":  # *.txt file with img/vid/dir on each line
+        if isinstance(path, str) and Path(path).suffix == '.txt':  # *.txt file with img/vid/dir on each line
             path = Path(path).read_text().rsplit()
         files = []
         for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:
@@ -290,13 +290,15 @@ class LoadPilAndNumpy:
         self.transforms = transforms
         self.mode = 'image'
         # generate fake paths
-        self.paths = [f"image{i}.jpg" for i in range(len(self.im0))]
+        self.paths = [getattr(im, 'filename', f'image{i}.jpg') for i, im in enumerate(self.im0)]
         self.bs = len(self.im0)
 
     @staticmethod
     def _single_check(im):
-        assert isinstance(im, (Image.Image, np.ndarray)), f"Expected PIL/np.ndarray image type, but got {type(im)}"
+        assert isinstance(im, (Image.Image, np.ndarray)), f'Expected PIL/np.ndarray image type, but got {type(im)}'
         if isinstance(im, Image.Image):
+            if im.mode != 'RGB':
+                im = im.convert('RGB')
             im = np.asarray(im)[:, :, ::-1]
             im = np.ascontiguousarray(im)  # contiguous
         return im
@@ -338,16 +340,16 @@ def autocast_list(source):
         elif isinstance(im, (Image.Image, np.ndarray)):  # PIL or np Image
             files.append(im)
         else:
-            raise TypeError(f"type {type(im).__name__} is not a supported Ultralytics prediction source type. \n"
-                            f"See https://docs.ultralytics.com/predict for supported source types.")
+            raise TypeError(f'type {type(im).__name__} is not a supported Ultralytics prediction source type. \n'
+                            f'See https://docs.ultralytics.com/predict for supported source types.')
 
     return files
 
 
 LOADERS = [LoadStreams, LoadPilAndNumpy, LoadImages, LoadScreenshots]
 
-if __name__ == "__main__":
-    img = cv2.imread(str(ROOT / "assets/bus.jpg"))
+if __name__ == '__main__':
+    img = cv2.imread(str(ROOT / 'assets/bus.jpg'))
     dataset = LoadPilAndNumpy(im0=img)
     for d in dataset:
         print(d[0])

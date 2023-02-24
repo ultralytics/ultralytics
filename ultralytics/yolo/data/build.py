@@ -28,7 +28,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        object.__setattr__(self, "batch_sampler", _RepeatSampler(self.batch_sampler))
+        object.__setattr__(self, 'batch_sampler', _RepeatSampler(self.batch_sampler))
         self.iterator = super().__iter__()
 
     def __len__(self):
@@ -83,11 +83,11 @@ def build_dataloader(cfg, batch, img_path, stride=32, rect=False, names=None, ra
             use_segments=cfg.task == "segment",
             use_keypoints=cfg.task == "keypoint",
             names=names,
-            transforms=transforms,)
+            transforms=transforms)
 
     batch = min(batch, len(dataset))
     nd = torch.cuda.device_count()  # number of CUDA devices
-    workers = cfg.workers if mode == "train" else cfg.workers * 2
+    workers = cfg.workers if mode == 'train' else cfg.workers * 2
     nw = min([os.cpu_count() // max(nd, 1), batch if batch > 1 else 0, workers])  # number of workers
     sampler = None if rank == -1 else distributed.DistributedSampler(dataset, shuffle=shuffle)
     loader = DataLoader if cfg.image_weights or cfg.close_mosaic else InfiniteDataLoader  # allow attribute updates
@@ -99,7 +99,7 @@ def build_dataloader(cfg, batch, img_path, stride=32, rect=False, names=None, ra
                   num_workers=nw,
                   sampler=sampler,
                   pin_memory=PIN_MEMORY,
-                  collate_fn=getattr(dataset, "collate_fn", None),
+                  collate_fn=getattr(dataset, 'collate_fn', None),
                   worker_init_fn=seed_worker,
                   generator=generator), dataset
 
@@ -152,7 +152,7 @@ def check_source(source):
         from_img = True
     else:
         raise Exception(
-            "Unsupported type encountered! See docs for supported types https://docs.ultralytics.com/predict")
+            'Unsupported type encountered! See docs for supported types https://docs.ultralytics.com/predict')
 
     return source, webcam, screenshot, from_img, in_memory
 

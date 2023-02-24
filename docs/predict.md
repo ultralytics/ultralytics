@@ -32,9 +32,11 @@ predictor's call method.
 
 Results object consists of these component objects:
 
-- `Results.boxes` : `Boxes` object with properties and methods for manipulating bboxes
-- `Results.masks` : `Masks` object used to index masks or to get segment coordinates.
-- `Results.prob`  : `torch.Tensor` containing the class probabilities/logits.
+- `Results.boxes`: `Boxes` object with properties and methods for manipulating bboxes
+- `Results.masks`: `Masks` object used to index masks or to get segment coordinates.
+- `Results.probs`: `torch.Tensor` containing the class probabilities/logits.
+- `Results.orig_img`: Original image loaded in memory.
+- `Results.path`: `Path` containing the path to input image
 
 Each result is composed of torch.Tensor by default, in which you can easily use following functionality:
 
@@ -92,3 +94,22 @@ results[0].probs  # cls prob, (num_class, )
 ```
 
 Class reference documentation for `Results` module and its components can be found [here](reference/results.md)
+
+## Plotting results
+
+You can use `plot()` function of `Result` object to plot results on in image object. It plots all components(boxes, masks,
+classification logits, etc) found in the results object
+
+```python
+res = model(img)
+res_plotted = res[0].plot()
+cv2.imshow("result", res_plotted)
+```
+
+!!! example "`plot()` arguments"
+
+    `show_conf (bool)`: Show confidence
+
+    `line_width (Float)`: The line width of boxes. Automatically scaled to img size if not provided
+
+    `font_size (Float)`: The font size of . Automatically scaled to img size if not provided

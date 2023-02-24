@@ -13,7 +13,7 @@ ADD https://ultralytics.com/assets/Arial.ttf https://ultralytics.com/assets/Aria
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt update
 RUN TZ=Etc/UTC apt install -y tzdata
-RUN apt install --no-install-recommends -y gcc git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg
+RUN apt install --no-install-recommends -y gcc git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++
 # RUN alias python=python3
 
 # Security updates
@@ -31,9 +31,7 @@ RUN git clone https://github.com/ultralytics/ultralytics /usr/src/ultralytics
 # Install pip packages
 COPY requirements.txt .
 RUN python3 -m pip install --upgrade pip wheel
-RUN pip install --no-cache ultralytics albumentations comet gsutil notebook \
-    coremltools onnx onnx-simplifier onnxruntime openvino-dev>=2022.3
-    # tensorflow tensorflowjs \
+RUN pip install --no-cache ultralytics[export] albumentations comet gsutil notebook
 
 # Set environment variables
 ENV OMP_NUM_THREADS=1

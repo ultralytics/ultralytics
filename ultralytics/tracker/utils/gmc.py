@@ -1,8 +1,12 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license
+
 import copy
 
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+
+from ultralytics.yolo.utils import LOGGER
 
 
 class GMC:
@@ -50,14 +54,14 @@ class GMC:
                 seqName = seqName[:-6]
             elif '-DPM' in seqName or '-SDP' in seqName:
                 seqName = seqName[:-4]
-            self.gmcFile = open(f"{filePath}/GMC-{seqName}.txt")
+            self.gmcFile = open(f'{filePath}/GMC-{seqName}.txt')
 
             if self.gmcFile is None:
-                raise ValueError(f"Error: Unable to open GMC file in directory:{filePath}")
+                raise ValueError(f'Error: Unable to open GMC file in directory:{filePath}')
         elif self.method in ['none', 'None']:
             self.method = 'none'
         else:
-            raise ValueError(f"Error: Unknown CMC method:{method}")
+            raise ValueError(f'Error: Unknown CMC method:{method}')
 
         self.prevFrame = None
         self.prevKeyPoints = None
@@ -108,7 +112,7 @@ class GMC:
         try:
             (cc, H) = cv2.findTransformECC(self.prevFrame, frame, H, self.warp_mode, self.criteria, None, 1)
         except Exception as e:
-            print(f'Warning: find transform failed. Set warp as identity {e}')
+            LOGGER.warning(f'WARNING: find transform failed. Set warp as identity {e}')
 
         return H
 
@@ -229,7 +233,7 @@ class GMC:
                 H[0, 2] *= self.downscale
                 H[1, 2] *= self.downscale
         else:
-            print('Warning: not enough matching points')
+            LOGGER.warning('WARNING: not enough matching points')
 
         # Store to next iteration
         self.prevFrame = frame.copy()
@@ -288,7 +292,7 @@ class GMC:
                 H[0, 2] *= self.downscale
                 H[1, 2] *= self.downscale
         else:
-            print('Warning: not enough matching points')
+            LOGGER.warning('WARNING: not enough matching points')
 
         # Store to next iteration
         self.prevFrame = frame.copy()
@@ -302,7 +306,7 @@ class GMC:
 
     def applyFile(self, raw_frame, detections=None):
         line = self.gmcFile.readline()
-        tokens = line.split("\t")
+        tokens = line.split('\t')
         H = np.eye(2, 3, dtype=np.float_)
         H[0, 0] = float(tokens[1])
         H[0, 1] = float(tokens[2])

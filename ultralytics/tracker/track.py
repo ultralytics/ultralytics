@@ -1,17 +1,23 @@
-from ultralytics.tracker import BYTETracker, BOTSORT
+# Ultralytics YOLO 🚀, GPL-3.0 license
+
 from ultralytics.yolo.utils.checks import check_requirements, check_yaml
-from ultralytics.yolo.utils import IterableSimpleNamespace, yaml_load
+
+check_requirements('lap')  # for linear_assignment
+
 import torch
 
-TRACKER_MAP = {"bytetrack": BYTETracker, "botsort": BOTSORT}
-check_requirements('lap')  # for linear_assignment
+from ultralytics.yolo.utils import IterableSimpleNamespace, yaml_load
+
+from .trackers import BOTSORT, BYTETracker
+
+TRACKER_MAP = {'bytetrack': BYTETracker, 'botsort': BOTSORT}
 
 
 def on_predict_start(predictor):
     tracker = check_yaml(predictor.args.tracker)
     cfg = IterableSimpleNamespace(**yaml_load(tracker))
-    assert cfg.tracker_type in ["bytetrack", "botsort"], \
-            f"Only support 'bytetrack' and 'botsort' for now, but got '{cfg.tracker_type}'"
+    assert cfg.tracker_type in ['bytetrack', 'botsort'], \
+        f"Only support 'bytetrack' and 'botsort' for now, but got '{cfg.tracker_type}'"
     trackers = []
     for _ in range(predictor.dataset.bs):
         tracker = TRACKER_MAP[cfg.tracker_type](args=cfg, frame_rate=30)
@@ -37,5 +43,5 @@ def on_predict_postprocess_end(predictor):
 
 
 def register_tracker(model):
-    model.add_callback("on_predict_start", on_predict_start)
-    model.add_callback("on_predict_postprocess_end", on_predict_postprocess_end)
+    model.add_callback('on_predict_start', on_predict_start)
+    model.add_callback('on_predict_postprocess_end', on_predict_postprocess_end)

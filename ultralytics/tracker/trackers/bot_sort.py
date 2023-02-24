@@ -1,10 +1,14 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license
+
 from collections import deque
+
 import numpy as np
+
 from ..utils import matching
 from ..utils.gmc import GMC
 from ..utils.kalman_filter import KalmanFilterXYWH
-from .byte_tracker import STrack, BYTETracker
 from .basetrack import TrackState
+from .byte_tracker import BYTETracker, STrack
 
 
 class BOTrack(STrack):
@@ -95,7 +99,7 @@ class BOTSORT(BYTETracker):
         self.appearance_thresh = args.appearance_thresh
 
         if args.with_reid:
-            # haven't supported bot-sort(reid) yet
+            # haven't supported BoT-SORT(reid) yet
             self.encoder = None
         # self.gmc = GMC(method=args.cmc_method, verbose=[args.name, args.ablation])
         self.gmc = GMC(method=args.cmc_method)

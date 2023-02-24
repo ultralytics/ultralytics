@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
-
+from ultralytics.yolo.utils import LOGGER, TESTS_RUNNING
 from ultralytics.yolo.utils.torch_utils import get_flops, get_num_params
 
 try:
@@ -7,11 +7,12 @@ try:
     from clearml import Task
 
     assert clearml.__version__  # verify package is not directory
+    assert not TESTS_RUNNING  # do not log pytest
 except (ImportError, AssertionError):
     clearml = None
 
 
-def _log_images(imgs_dict, group="", step=0):
+def _log_images(imgs_dict, group='', step=0):
     task = Task.current_task()
     if task:
         for k, v in imgs_dict.items():
@@ -19,38 +20,41 @@ def _log_images(imgs_dict, group="", step=0):
 
 
 def on_pretrain_routine_start(trainer):
-    # TODO: reuse existing task
-    task = Task.init(project_name=trainer.args.project or "YOLOv8",
-                     task_name=trainer.args.name,
-                     tags=['YOLOv8'],
-                     output_uri=True,
-                     reuse_last_task_id=False,
-                     auto_connect_frameworks={'pytorch': False})
-    task.connect(vars(trainer.args), name='General')
+    try:
+        task = Task.init(project_name=trainer.args.project or 'YOLOv8',
+                         task_name=trainer.args.name,
+                         tags=['YOLOv8'],
+                         output_uri=True,
+                         reuse_last_task_id=False,
+                         auto_connect_frameworks={'pytorch': False})
+        task.connect(vars(trainer.args), name='General')
+    except Exception as e:
+        LOGGER.warning(f'WARNING ⚠️ ClearML installed but not initialized correctly, not logging this run. {e}')
 
 
 def on_train_epoch_end(trainer):
     if trainer.epoch == 1:
-        _log_images({f.stem: str(f) for f in trainer.save_dir.glob('train_batch*.jpg')}, "Mosaic", trainer.epoch)
+        _log_images({f.stem: str(f) for f in trainer.save_dir.glob('train_batch*.jpg')}, 'Mosaic', trainer.epoch)
 
 
 def on_fit_epoch_end(trainer):
-    if trainer.epoch == 0:
+    task = Task.current_task()
+    if task and trainer.epoch == 0:
         model_info = {
-            "Parameters": get_num_params(trainer.model),
-            "GFLOPs": round(get_flops(trainer.model), 3),
-            "Inference speed (ms/img)": round(trainer.validator.speed[1], 3)}
-        Task.current_task().connect(model_info, name='Model')
+            'model/parameters': get_num_params(trainer.model),
+            'model/GFLOPs': round(get_flops(trainer.model), 3),
+            'model/speed(ms)': round(trainer.validator.speed['inference'], 3)}
+        task.connect(model_info, name='Model')
 
 
 def on_train_end(trainer):
-    Task.current_task().update_output_model(model_path=str(trainer.best),
-                                            model_name=trainer.args.name,
-                                            auto_delete_file=False)
+    task = Task.current_task()
+    if task:
+        task.update_output_model(model_path=str(trainer.best), model_name=trainer.args.name, auto_delete_file=False)
 
 
 callbacks = {
-    "on_pretrain_routine_start": on_pretrain_routine_start,
-    "on_train_epoch_end": on_train_epoch_end,
-    "on_fit_epoch_end": on_fit_epoch_end,
-    "on_train_end": on_train_end} if clearml else {}
+    'on_pretrain_routine_start': on_pretrain_routine_start,
+    'on_train_epoch_end': on_train_epoch_end,
+    'on_fit_epoch_end': on_fit_epoch_end,
+    'on_train_end': on_train_end} if clearml else {}

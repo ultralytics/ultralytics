@@ -37,7 +37,7 @@ def on_fit_epoch_end(trainer):
                 'model/parameters': get_num_params(trainer.model),
                 'model/GFLOPs': round(get_flops(trainer.model), 3),
                 'model/speed(ms)': round(trainer.validator.speed['inference'], 3)}
-            experiment.log_metrics(model_info, step=trainer.epoch + 1)
+            experiment.log_metrics(model_info, epoch=trainer.epoch + 1)
 
 
 def on_train_end(trainer):

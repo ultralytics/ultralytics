@@ -16,10 +16,28 @@ from .utils import HELP_URL, LOCAL_RANK, get_hash, img2label_paths, verify_image
 class YOLODataset(BaseDataset):
     cache_version = '1.0.1'  # dataset labels *.cache version, >= 1.0.0 for YOLOv8
     rand_interp_methods = [cv2.INTER_NEAREST, cv2.INTER_LINEAR, cv2.INTER_CUBIC, cv2.INTER_AREA, cv2.INTER_LANCZOS4]
-    """YOLO Dataset.
+    """
+    Dataset class for loading images object detection and/or segmentation labels in YOLO format.
+
     Args:
-        img_path (str): image path.
-        prefix (str): prefix.
+        img_path (str): path to the folder containing images.
+        imgsz (int): image size (default: 640).
+        cache (bool): if True, a cache file of the labels is created to speed up future creation of dataset instances
+        (default: False).
+        augment (bool): if True, data augmentation is applied (default: True).
+        hyp (dict): hyperparameters to apply data augmentation (default: None).
+        prefix (str): prefix to print in log messages (default: '').
+        rect (bool): if True, rectangular training is used (default: False).
+        batch_size (int): size of batches (default: None).
+        stride (int): stride (default: 32).
+        pad (float): padding (default: 0.0).
+        single_cls (bool): if True, single class training is used (default: False).
+        use_segments (bool): if True, segmentation masks are used as labels (default: False).
+        use_keypoints (bool): if True, keypoints are used as labels (default: False).
+        names (list): class names (default: None).
+
+    Returns:
+        A PyTorch dataset object that can be used for training an object detection or segmentation model.
     """
 
     def __init__(self,
@@ -44,7 +62,12 @@ class YOLODataset(BaseDataset):
         super().__init__(img_path, imgsz, cache, augment, hyp, prefix, rect, batch_size, stride, pad, single_cls)
 
     def cache_labels(self, path=Path('./labels.cache')):
-        # Cache dataset labels, check images and read shapes
+        """Cache dataset labels, check images and read shapes.
+        Args:
+            path (Path): path where to save the cache file (default: Path('./labels.cache')).
+        Returns:
+            (dict): labels.
+        """
         x = {'labels': []}
         nm, nf, ne, nc, msgs = 0, 0, 0, 0, []  # number missing, found, empty, corrupt, messages
         desc = f'{self.prefix}Scanning {path.parent / path.stem}...'
@@ -119,9 +142,8 @@ class YOLODataset(BaseDataset):
         self.im_files = [lb['im_file'] for lb in labels]  # update im_files
 
         # Check if the dataset is all boxes or all segments
-        len_cls = sum(len(lb['cls']) for lb in labels)
-        len_boxes = sum(len(lb['bboxes']) for lb in labels)
-        len_segments = sum(len(lb['segments']) for lb in labels)
+        lengths = ((len(lb['cls']), len(lb['bboxes']), len(lb['segments'])) for lb in labels)
+        len_cls, len_boxes, len_segments = (sum(x) for x in zip(*lengths))
         if len_segments and len_boxes != len_segments:
             LOGGER.warning(
                 f'WARNING ⚠️ Box and segment counts should be equal, but got len(segments) = {len_segments}, '

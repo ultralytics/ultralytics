@@ -37,11 +37,7 @@ from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.torch_utils import select_device
 
 
-def run_benchmarks(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
-                   imgsz=640,
-                   half=False,
-                   device='cpu',
-                   hard_fail=False):
+def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, half=False, device='cpu', hard_fail=0.30):
     device = select_device(device, verbose=False)
     if isinstance(model, (str, Path)):
         model = YOLO(model)
@@ -52,6 +48,7 @@ def run_benchmarks(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
         try:
             assert i not in (9, 10), 'inference not supported'  # Edge TPU and TF.js are unsupported
             assert i != 5 or platform.system() == 'Darwin', 'inference only supported on macOS>=10.13'  # CoreML
+            assert i != 11 or model.task != 'classify', 'paddle-classify bug'
 
             if 'cpu' in device.type:
                 assert cpu, 'inference not supported on CPU'
@@ -85,26 +82,28 @@ def run_benchmarks(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
             y.append([name, '✅', round(file_size(filename), 1), round(metric, 4), round(speed, 2)])
         except Exception as e:
             if hard_fail:
-                assert type(e) is AssertionError, f'Benchmark --hard-fail for {name}: {e}'
+                assert type(e) is AssertionError, f'Benchmark hard_fail for {name}: {e}'
             LOGGER.warning(f'ERROR ❌️ Benchmark failure for {name}: {e}')
             y.append([name, '❌', None, None, None])  # mAP, t_inference
 
     # Print results
-    LOGGER.info('\n')
     check_yolo(device=device)  # print system info
-    c = ['Format', 'Status❔', 'Size (MB)', key, 'Inference time (ms/im)'] if map else ['Format', 'Export', '', '']
+    c = ['Format', 'Status❔', 'Size (MB)', key, 'Inference time (ms/im)']
     df = pd.DataFrame(y, columns=c)
-    LOGGER.info(f'\nBenchmarks complete for {Path(model.ckpt_path).name} on {data} at imgsz={imgsz} '
-                f'({time.time() - t0:.2f}s)')
-    LOGGER.info(str(df if map else df.iloc[:, :2]))
 
-    if hard_fail and isinstance(hard_fail, str):
+    name = Path(model.ckpt_path).name
+    s = f'\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({time.time() - t0:.2f}s)\n{df}\n'
+    LOGGER.info(s)
+    with open('benchmarks.log', 'a') as f:
+        f.write(s)
+
+    if hard_fail and isinstance(hard_fail, float):
         metrics = df[key].array  # values to compare to floor
-        floor = eval(hard_fail)  # minimum metric floor to pass, i.e. = 0.29 mAP for YOLOv5n
-        assert all(x > floor for x in metrics if pd.notna(x)), f'HARD FAIL: metric < floor {floor}'
+        floor = hard_fail  # minimum metric floor to pass, i.e. = 0.29 mAP for YOLOv5n
+        assert all(x > floor for x in metrics if pd.notna(x)), f'HARD FAIL: one or more metric(s) < floor {floor}'
 
     return df
 
 
 if __name__ == '__main__':
-    run_benchmarks()
+    benchmark()

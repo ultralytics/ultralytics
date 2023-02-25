@@ -254,8 +254,8 @@ def entrypoint(debug=''):
         else:
             check_cfg_mismatch(full_args_dict, {a: ''})
 
-    # Defaults
-    task2data = dict(detect='coco128.yaml', segment='coco128-seg.yaml', classify='imagenet100')
+    # Check keys
+    check_cfg_mismatch(full_args_dict, overrides)
 
     # Mode
     mode = overrides.get('mode', None)
@@ -279,11 +279,12 @@ def entrypoint(debug=''):
     model = YOLO(model)
 
     # Task
-    task = overrides.get('task', None)
-    if task is not None and task not in TASKS:
-        raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
-    else:
-        model.task = task
+    task = overrides.get('task', model.task)
+    if task is not None:
+        if task not in TASKS:
+            raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
+        else:
+            model.task = task
 
     # Mode
     if mode in {'predict', 'track'} and 'source' not in overrides:
@@ -292,8 +293,9 @@ def entrypoint(debug=''):
         LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using default 'source={overrides['source']}'.")
     elif mode in ('train', 'val'):
         if 'data' not in overrides:
-            overrides['data'] = task2data.get(overrides['task'], DEFAULT_CFG.data)
-            LOGGER.warning(f"WARNING ⚠️ 'data' is missing. Using {model.task} default 'data={overrides['data']}'.")
+            task2data = dict(detect='coco128.yaml', segment='coco128-seg.yaml', classify='imagenet100')
+            overrides['data'] = task2data.get(task or DEFAULT_CFG.task, DEFAULT_CFG.data)
+            LOGGER.warning(f"WARNING ⚠️ 'data' is missing. Using default 'data={overrides['data']}'.")
     elif mode == 'export':
         if 'format' not in overrides:
             overrides['format'] = DEFAULT_CFG.format or 'torchscript'

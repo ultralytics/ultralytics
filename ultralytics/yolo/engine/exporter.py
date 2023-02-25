@@ -294,7 +294,7 @@ class Exporter:
         # YOLOv8 ONNX export
         requirements = ['onnx>=1.12.0']
         if self.args.simplify:
-            requirements += ['onnxsim', 'onnxruntime-gpu' if torch.cuda.is_available() else 'onnxruntime']
+            requirements += ['onnxsim>=0.4.17', 'onnxruntime-gpu' if torch.cuda.is_available() else 'onnxruntime']
         check_requirements(requirements)
         import onnx  # noqa
 
@@ -513,8 +513,8 @@ class Exporter:
             cuda = torch.cuda.is_available()
             check_requirements(f"tensorflow{'-macos' if MACOS else '-aarch64' if ARM64 else '' if cuda else '-cpu'}")
             import tensorflow as tf  # noqa
-        check_requirements(('onnx', 'onnx2tf', 'sng4onnx', 'onnxsim', 'onnx_graphsurgeon', 'tflite_support',
-                            'onnxruntime-gpu' if torch.cuda.is_available() else 'onnxruntime'),
+        check_requirements(('onnx', 'onnx2tf>=1.7.7', 'sng4onnx>=1.0.1', 'onnxsim>=0.4.17', 'onnx_graphsurgeon>=0.3.26',
+                            'tflite_support', 'onnxruntime-gpu' if torch.cuda.is_available() else 'onnxruntime'),
                            cmds='--extra-index-url https://pypi.ngc.nvidia.com')
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
@@ -529,7 +529,7 @@ class Exporter:
 
         # Export to TF
         int8 = '-oiqt -qt per-tensor' if self.args.int8 else ''
-        cmd = f'onnx2tf -i {f_onnx} -o {f} --non_verbose {int8}'
+        cmd = f'onnx2tf -i {f_onnx} -o {f} -nuo --non_verbose {int8}'
         LOGGER.info(f'\n{prefix} running {cmd}')
         subprocess.run(cmd, shell=True)
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml

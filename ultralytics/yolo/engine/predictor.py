@@ -1,30 +1,32 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 """
 Run prediction on images, videos, directories, globs, YouTube, webcam, streams, etc.
+
 Usage - sources:
-    $ yolo task=... mode=predict  model=s.pt --source 0                         # webcam
-                                                img.jpg                         # image
-                                                vid.mp4                         # video
-                                                screen                          # screenshot
-                                                path/                           # directory
-                                                list.txt                        # list of images
-                                                list.streams                    # list of streams
-                                                'path/*.jpg'                    # glob
-                                                'https://youtu.be/Zgi9g1ksQHc'  # YouTube
-                                                'rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP stream
+    $ yolo mode=predict model=yolov8n.pt --source 0                               # webcam
+                                                  img.jpg                         # image
+                                                  vid.mp4                         # video
+                                                  screen                          # screenshot
+                                                  path/                           # directory
+                                                  list.txt                        # list of images
+                                                  list.streams                    # list of streams
+                                                  'path/*.jpg'                    # glob
+                                                  'https://youtu.be/Zgi9g1ksQHc'  # YouTube
+                                                  'rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP stream
+
 Usage - formats:
-    $ yolo task=... mode=predict --weights yolov8n.pt          # PyTorch
-                                    yolov8n.torchscript        # TorchScript
-                                    yolov8n.onnx               # ONNX Runtime or OpenCV DNN with --dnn
-                                    yolov8n_openvino_model     # OpenVINO
-                                    yolov8n.engine             # TensorRT
-                                    yolov8n.mlmodel            # CoreML (macOS-only)
-                                    yolov8n_saved_model        # TensorFlow SavedModel
-                                    yolov8n.pb                 # TensorFlow GraphDef
-                                    yolov8n.tflite             # TensorFlow Lite
-                                    yolov8n_edgetpu.tflite     # TensorFlow Edge TPU
-                                    yolov8n_paddle_model       # PaddlePaddle
-    """
+    $ yolo mode=predict model=yolov8n.pt                 # PyTorch
+                              yolov8n.torchscript        # TorchScript
+                              yolov8n.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
+                              yolov8n_openvino_model     # OpenVINO
+                              yolov8n.engine             # TensorRT
+                              yolov8n.mlmodel            # CoreML (macOS-only)
+                              yolov8n_saved_model        # TensorFlow SavedModel
+                              yolov8n.pb                 # TensorFlow GraphDef
+                              yolov8n.tflite             # TensorFlow Lite
+                              yolov8n_edgetpu.tflite     # TensorFlow Edge TPU
+                              yolov8n_paddle_model       # PaddlePaddle
+"""
 import platform
 from collections import defaultdict
 from pathlib import Path
@@ -90,6 +92,7 @@ class BasePredictor:
         self.annotator = None
         self.data_path = None
         self.source_type = None
+        self.batch = None
         self.callbacks = defaultdict(list, callbacks.default_callbacks)  # add callbacks
         callbacks.add_integration_callbacks(self)
 
@@ -105,7 +108,6 @@ class BasePredictor:
     def postprocess(self, preds, img, orig_img):
         return preds
 
-    @smart_inference_mode()
     def __call__(self, source=None, model=None, stream=False):
         if stream:
             return self.stream_inference(source, model)
@@ -133,6 +135,7 @@ class BasePredictor:
         self.source_type = self.dataset.source_type
         self.vid_path, self.vid_writer = [None] * self.dataset.bs, [None] * self.dataset.bs
 
+    @smart_inference_mode()
     def stream_inference(self, source=None, model=None):
         if self.args.verbose:
             LOGGER.info('')
@@ -158,12 +161,14 @@ class BasePredictor:
             self.batch = batch
             path, im, im0s, vid_cap, s = batch
             visualize = increment_path(self.save_dir / Path(path).stem, mkdir=True) if self.args.visualize else False
+
+            # preprocess
             with self.dt[0]:
                 im = self.preprocess(im)
                 if len(im.shape) == 3:
                     im = im[None]  # expand for batch dim
 
-            # Inference
+            # inference
             with self.dt[1]:
                 preds = self.model(im, augment=self.args.augment, visualize=visualize)
 
@@ -173,7 +178,12 @@ class BasePredictor:
             self.run_callbacks('on_predict_postprocess_end')
 
             # visualize, save, write results
-            for i in range(len(im)):
+            n = len(im)
+            for i in range(n):
+                self.results[i].speed = {
+                    'preprocess': self.dt[0].dt * 1E3 / n,
+                    'inference': self.dt[1].dt * 1E3 / n,
+                    'postprocess': self.dt[2].dt * 1E3 / n}
                 p, im0 = (path[i], im0s[i].copy()) if self.source_type.webcam or self.source_type.from_img \
                     else (path, im0s.copy())
                 p = Path(p)
@@ -191,7 +201,7 @@ class BasePredictor:
 
             # Print time (inference-only)
             if self.args.verbose:
-                LOGGER.info(f"{s}{'' if len(preds) else '(no detections), '}{self.dt[1].dt * 1E3:.1f}ms")
+                LOGGER.info(f'{s}{self.dt[1].dt * 1E3:.1f}ms')
 
         # Release assets
         if isinstance(self.vid_writer[-1], cv2.VideoWriter):
@@ -200,9 +210,9 @@ class BasePredictor:
         # Print results
         if self.args.verbose and self.seen:
             t = tuple(x.t / self.seen * 1E3 for x in self.dt)  # speeds per image
-            LOGGER.info(f'Speed: %.1fms pre-process, %.1fms inference, %.1fms postprocess per image at shape '
+            LOGGER.info(f'Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape '
                         f'{(1, 3, *self.imgsz)}' % t)
-        if self.args.save_txt or self.args.save:
+        if self.args.save or self.args.save_txt or self.args.save_crop:
             nl = len(list(self.save_dir.glob('labels/*.txt')))  # number of labels
             s = f"\n{nl} label{'s' * (nl > 1)} saved to {self.save_dir / 'labels'}" if self.args.save_txt else ''
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")

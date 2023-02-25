@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license
+
 import numpy as np
 import scipy.linalg
 
@@ -234,7 +236,7 @@ class KalmanFilterXYAH:
 
 class KalmanFilterXYWH:
     """
-    For bot-sort
+    For BoT-SORT
     A simple Kalman filter for tracking bounding boxes in image space.
 
     The 8-dimensional state space

@@ -1,8 +1,10 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 """
-Simple training loop; Boilerplate that could apply to any arbitrary neural network,
-"""
+Train a model on a dataset
 
+Usage:
+    $ yolo mode=train model=yolov8n.pt data=coco128.yaml imgsz=640 epochs=100 batch=16
+"""
 import os
 import subprocess
 import time
@@ -42,7 +44,6 @@ class BaseTrainer:
     Attributes:
         args (SimpleNamespace): Configuration for the trainer.
         check_resume (method): Method to check if training should be resumed from a saved checkpoint.
-        console (logging.Logger): Logger instance.
         validator (BaseValidator): Validator instance.
         model (nn.Module): Model instance.
         callbacks (defaultdict): Dictionary of callbacks.
@@ -82,7 +83,6 @@ class BaseTrainer:
         self.args = get_cfg(cfg, overrides)
         self.device = select_device(self.args.device, self.args.batch)
         self.check_resume()
-        self.console = LOGGER
         self.validator = None
         self.model = None
         self.metrics = None
@@ -178,11 +178,12 @@ class BaseTrainer:
         if world_size > 1 and 'LOCAL_RANK' not in os.environ:
             cmd, file = generate_ddp_command(world_size, self)  # security vulnerability in Snyk scans
             try:
+                LOGGER.info(f'Running DDP command {cmd}')
                 subprocess.run(cmd, check=True)
             except Exception as e:
-                self.console.warning(e)
+                raise e
             finally:
-                ddp_cleanup(self, file)
+                ddp_cleanup(self, str(file))
         else:
             self._do_train(RANK, world_size)
 
@@ -191,7 +192,7 @@ class BaseTrainer:
         # os.environ['MASTER_PORT'] = '9020'
         torch.cuda.set_device(rank)
         self.device = torch.device('cuda', rank)
-        self.console.info(f'DDP settings: RANK {rank}, WORLD_SIZE {world_size}, DEVICE {self.device}')
+        LOGGER.info(f'DDP settings: RANK {rank}, WORLD_SIZE {world_size}, DEVICE {self.device}')
         dist.init_process_group('nccl' if dist.is_nccl_available() else 'gloo', rank=rank, world_size=world_size)
 
     def _setup_train(self, rank, world_size):
@@ -241,6 +242,8 @@ class BaseTrainer:
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix='val')
             self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))  # TODO: init metrics for plot_results()?
             self.ema = ModelEMA(self.model)
+            if self.args.plots:
+                self.plot_training_labels()
         self.resume_training(ckpt)
         self.scheduler.last_epoch = self.start_epoch - 1  # do not move
         self.run_callbacks('on_pretrain_routine_end')
@@ -258,10 +261,10 @@ class BaseTrainer:
         nw = max(round(self.args.warmup_epochs * nb), 100)  # number of warmup iterations
         last_opt_step = -1
         self.run_callbacks('on_train_start')
-        self.log(f'Image sizes {self.args.imgsz} train, {self.args.imgsz} val\n'
-                 f'Using {self.train_loader.num_workers * (world_size or 1)} dataloader workers\n'
-                 f"Logging results to {colorstr('bold', self.save_dir)}\n"
-                 f'Starting training for {self.epochs} epochs...')
+        LOGGER.info(f'Image sizes {self.args.imgsz} train, {self.args.imgsz} val\n'
+                    f'Using {self.train_loader.num_workers * (world_size or 1)} dataloader workers\n'
+                    f"Logging results to {colorstr('bold', self.save_dir)}\n"
+                    f'Starting training for {self.epochs} epochs...')
         if self.args.close_mosaic:
             base_idx = (self.epochs - self.args.close_mosaic) * nb
             self.plot_idx.extend([base_idx, base_idx + 1, base_idx + 2])
@@ -274,14 +277,14 @@ class BaseTrainer:
             pbar = enumerate(self.train_loader)
             # Update dataloader attributes (optional)
             if epoch == (self.epochs - self.args.close_mosaic):
-                self.console.info('Closing dataloader mosaic')
+                LOGGER.info('Closing dataloader mosaic')
                 if hasattr(self.train_loader.dataset, 'mosaic'):
                     self.train_loader.dataset.mosaic = False
                 if hasattr(self.train_loader.dataset, 'close_mosaic'):
                     self.train_loader.dataset.close_mosaic(hyp=self.args)
 
             if rank in {-1, 0}:
-                self.console.info(self.progress_string())
+                LOGGER.info(self.progress_string())
                 pbar = tqdm(enumerate(self.train_loader), total=nb, bar_format=TQDM_BAR_FORMAT)
             self.tloss = None
             self.optimizer.zero_grad()
@@ -368,12 +371,11 @@ class BaseTrainer:
 
         if rank in {-1, 0}:
             # Do final val with best.pt
-            self.log(f'\n{epoch - self.start_epoch + 1} epochs completed in '
-                     f'{(time.time() - self.train_time_start) / 3600:.3f} hours.')
+            LOGGER.info(f'\n{epoch - self.start_epoch + 1} epochs completed in '
+                        f'{(time.time() - self.train_time_start) / 3600:.3f} hours.')
             self.final_eval()
             if self.args.plots:
                 self.plot_metrics()
-            self.log(f"Results saved to {colorstr('bold', self.save_dir)}")
             self.run_callbacks('on_train_end')
         torch.cuda.empty_cache()
         self.run_callbacks('teardown')
@@ -446,18 +448,6 @@ class BaseTrainer:
             self.best_fitness = fitness
         return metrics, fitness
 
-    def log(self, text, rank=-1):
-        """
-        Logs the given text to given ranks process if provided, otherwise logs to all ranks.
-
-        Args"
-            text (str): text to log
-            rank (List[Int]): process rank
-
-        """
-        if rank in {-1, 0}:
-            self.console.info(text)
-
     def get_model(self, cfg=None, weights=None, verbose=True):
         raise NotImplementedError("This task trainer doesn't support loading cfg files")
 
@@ -499,6 +489,9 @@ class BaseTrainer:
     def plot_training_samples(self, batch, ni):
         pass
 
+    def plot_training_labels(self):
+        pass
+
     def save_metrics(self, metrics):
         keys, vals = list(metrics.keys()), list(metrics.values())
         n = len(metrics) + 1  # number of cols
@@ -514,7 +507,7 @@ class BaseTrainer:
             if f.exists():
                 strip_optimizer(f)  # strip optimizers
                 if f is self.best:
-                    self.console.info(f'\nValidating {f}...')
+                    LOGGER.info(f'\nValidating {f}...')
                     self.metrics = self.validator(model=f)
                     self.metrics.pop('fitness', None)
                     self.run_callbacks('on_fit_epoch_end')
@@ -557,7 +550,7 @@ class BaseTrainer:
         self.best_fitness = best_fitness
         self.start_epoch = start_epoch
         if start_epoch > (self.epochs - self.args.close_mosaic):
-            self.console.info('Closing dataloader mosaic')
+            LOGGER.info('Closing dataloader mosaic')
             if hasattr(self.train_loader.dataset, 'mosaic'):
                 self.train_loader.dataset.mosaic = False
             if hasattr(self.train_loader.dataset, 'close_mosaic'):

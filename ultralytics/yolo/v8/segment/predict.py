@@ -24,9 +24,10 @@ class SegmentationPredictor(DetectionPredictor):
         for i, pred in enumerate(p):
             orig_img = orig_img[i] if isinstance(orig_img, list) else orig_img
             shape = orig_img.shape
-            if not len(pred):
-                results.append(Results(boxes=pred[:, :6], orig_img=orig_img,
-                                       names=self.model.names))  # save empty boxes
+            path, _, _, _, _ = self.batch
+            img_path = path[i] if isinstance(path, list) else path
+            if not len(pred):  # save empty boxes
+                results.append(Results(orig_img=orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6]))
                 continue
             if self.args.retina_masks:
                 pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
@@ -34,7 +35,8 @@ class SegmentationPredictor(DetectionPredictor):
             else:
                 masks = ops.process_mask(proto[i], pred[:, 6:], pred[:, :4], img.shape[2:], upsample=True)  # HWC
                 pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
-            results.append(Results(boxes=pred[:, :6], masks=masks, orig_img=orig_img, names=self.model.names))
+            results.append(
+                Results(orig_img=orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], masks=masks))
         return results
 
     def write_results(self, idx, results, batch):
@@ -57,7 +59,7 @@ class SegmentationPredictor(DetectionPredictor):
 
         result = results[idx]
         if len(result) == 0:
-            return log_string
+            return f'{log_string}(no detections), '
         det, mask = result.boxes, result.masks  # getting tensors TODO: mask mask,box inherit for tensor
 
         # Print results
@@ -66,11 +68,10 @@ class SegmentationPredictor(DetectionPredictor):
             log_string += f"{n} {self.model.names[int(c)]}{'s' * (n > 1)}, "
 
         # Mask plotting
-        self.annotator.masks(
-            mask.masks,
-            colors=[colors(x, True) for x in det.cls],
-            im_gpu=torch.as_tensor(im0, dtype=torch.float16).to(self.device).permute(2, 0, 1).flip(0).contiguous() /
-            255 if self.args.retina_masks else im[idx])
+        if self.args.save or self.args.show:
+            im_gpu = torch.as_tensor(im0, dtype=torch.float16, device=mask.masks.device).permute(
+                2, 0, 1).flip(0).contiguous() / 255 if self.args.retina_masks else im[idx]
+            self.annotator.masks(masks=mask.masks, colors=[colors(x, True) for x in det.cls], im_gpu=im_gpu)
 
         # Write results
         for j, d in enumerate(reversed(det)):

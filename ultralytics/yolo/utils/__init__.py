@@ -97,6 +97,7 @@ HELP_MSG = \
 torch.set_printoptions(linewidth=320, precision=5, profile='long')
 np.set_printoptions(linewidth=320, formatter={'float_kind': '{:11.5g}'.format})  # format short g, %precision=5
 pd.options.display.max_columns = 10
+pd.options.display.width = 120
 cv2.setNumThreads(0)  # prevent OpenCV from multithreading (incompatible with PyTorch DataLoader)
 os.environ['NUMEXPR_MAX_THREADS'] = str(NUM_THREADS)  # NumExpr max threads
 os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':4096:8'  # for deterministic training
@@ -287,9 +288,7 @@ def is_pytest_running():
     Returns:
         (bool): True if pytest is running, False otherwise.
     """
-    with contextlib.suppress(Exception):
-        return 'pytest' in sys.modules
-    return False
+    return ('PYTEST_CURRENT_TEST' in os.environ) or ('pytest' in sys.modules) or ('pytest' in Path(sys.argv[0]).stem)
 
 
 def is_github_actions_ci() -> bool:
@@ -353,22 +352,6 @@ def get_git_branch():
             origin = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD'])
             return origin.decode().strip()
     return None  # if not git dir or on error
-
-
-def get_latest_pypi_version(package_name='ultralytics'):
-    """
-    Returns the latest version of a PyPI package without downloading or installing it.
-
-    Parameters:
-        package_name (str): The name of the package to find the latest version for.
-
-    Returns:
-        str: The latest version of the package.
-    """
-    response = requests.get(f'https://pypi.org/pypi/{package_name}/json')
-    if response.status_code == 200:
-        return response.json()['info']['version']
-    return None
 
 
 def get_default_args(func):
@@ -530,8 +513,7 @@ def set_sentry():
     if SETTINGS['sync'] and \
             RANK in {-1, 0} and \
             Path(sys.argv[0]).name == 'yolo' and \
-            not is_pytest_running() and \
-            not is_github_actions_ci() and \
+            not TESTS_RUNNING and \
             ((is_pip_package() and not is_git_dir()) or
              (get_git_origin_url() == 'https://github.com/ultralytics/ultralytics.git' and get_git_branch() == 'main')):
 
@@ -613,7 +595,7 @@ def set_settings(kwargs, file=USER_CONFIG_DIR / 'settings.yaml'):
 # Run below code on yolo/utils init ------------------------------------------------------------------------------------
 
 # Set logger
-set_logging(LOGGING_NAME)  # run before defining LOGGER
+set_logging(LOGGING_NAME, verbose=VERBOSE)  # run before defining LOGGER
 LOGGER = logging.getLogger(LOGGING_NAME)  # define globally (used in train.py, val.py, detect.py, etc.)
 if WINDOWS:
     for fn in LOGGER.info, LOGGER.warning:
@@ -625,4 +607,5 @@ SETTINGS = get_settings()
 DATASETS_DIR = Path(SETTINGS['datasets_dir'])  # global datasets directory
 ENVIRONMENT = 'Colab' if is_colab() else 'Kaggle' if is_kaggle() else 'Jupyter' if is_jupyter() else \
     'Docker' if is_docker() else platform.system()
+TESTS_RUNNING = is_pytest_running() or is_github_actions_ci()
 set_sentry()

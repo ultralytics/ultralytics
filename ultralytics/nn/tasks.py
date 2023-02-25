@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
-import ast
 import contextlib
 from copy import deepcopy
 from pathlib import Path
@@ -288,6 +287,7 @@ class ClassificationModel(BaseModel):
             LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
             self.yaml['nc'] = nc  # override yaml value
         self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose)  # model, savelist
+        self.stride = torch.Tensor([1])  # no stride constraints
         self.names = {i: f'{i}' for i in range(self.yaml['nc'])}  # default names dict
         self.info()
 
@@ -338,7 +338,7 @@ def torch_safe_load(weight):
 
     file = attempt_download_asset(weight)  # search online if missing locally
     try:
-        return torch.load(file, map_location='cpu')  # load
+        return torch.load(file, map_location='cpu'), file  # load
     except ModuleNotFoundError as e:
         if e.name == 'omegaconf':  # e.name is missing module name
             LOGGER.warning(f'WARNING ⚠️ {weight} requires {e.name}, which is not in ultralytics requirements.'
@@ -347,7 +347,7 @@ def torch_safe_load(weight):
                            f'download updated models from https://github.com/ultralytics/assets/releases/tag/v0.0.0')
         if e.name != 'models':
             check_requirements(e.name)  # install missing module
-        return torch.load(file, map_location='cpu')  # load
+        return torch.load(file, map_location='cpu'), file  # load
 
 
 def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
@@ -355,13 +355,13 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
 
     ensemble = Ensemble()
     for w in weights if isinstance(weights, list) else [weights]:
-        ckpt = torch_safe_load(w)  # load ckpt
+        ckpt, w = torch_safe_load(w)  # load ckpt
         args = {**DEFAULT_CFG_DICT, **ckpt['train_args']}  # combine model and default args, preferring model args
         model = (ckpt.get('ema') or ckpt['model']).to(device).float()  # FP32 model
 
         # Model compatibility updates
         model.args = args  # attach args to model
-        model.pt_path = weights  # attach *.pt file path to model
+        model.pt_path = w  # attach *.pt file path to model
         model.task = guess_model_task(model)
         if not hasattr(model, 'stride'):
             model.stride = torch.tensor([32.])
@@ -382,7 +382,7 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
         return ensemble[-1]
 
     # Return ensemble
-    print(f'Ensemble created with {weights}\n')
+    LOGGER.info(f'Ensemble created with {weights}\n')
     for k in 'names', 'nc', 'yaml':
         setattr(ensemble, k, getattr(ensemble[0], k))
     ensemble.stride = ensemble[torch.argmax(torch.tensor([m.stride.max() for m in ensemble])).int()].stride
@@ -392,7 +392,7 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
 
 def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
     # Loads a single model weights
-    ckpt = torch_safe_load(weight)  # load ckpt
+    ckpt, weight = torch_safe_load(weight)  # load ckpt
     args = {**DEFAULT_CFG_DICT, **ckpt['train_args']}  # combine model and default args, preferring model args
     model = (ckpt.get('ema') or ckpt['model']).to(device).float()  # FP32 model
 
@@ -521,14 +521,15 @@ def guess_model_task(model):
 
     # Guess from model filename
     if isinstance(model, (str, Path)):
-        model = Path(model).stem
-        if '-seg' in model:
+        model = Path(model)
+        if '-seg' in model.stem or 'segment' in model.parts:
             return 'segment'
-        elif '-cls' in model:
+        elif '-cls' in model.stem or 'classify' in model.parts:
             return 'classify'
-        else:
+        elif 'detect' in model.parts:
             return 'detect'
 
     # Unable to determine task from model
-    raise SyntaxError('YOLO is unable to automatically guess model task. Explicitly define task for your model, '
-                      "i.e. 'task=detect', 'task=segment' or 'task=classify'.")
+    LOGGER.warning("WARNING ⚠️ Unable to automatically guess model task, assuming 'task=detect'. "
+                   "Explicitly define task for your model, i.e. 'task=detect', 'task=segment' or 'task=classify'.")
+    return 'detect'  # assume detect

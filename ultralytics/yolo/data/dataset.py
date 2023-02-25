@@ -119,9 +119,8 @@ class YOLODataset(BaseDataset):
         self.im_files = [lb['im_file'] for lb in labels]  # update im_files
 
         # Check if the dataset is all boxes or all segments
-        len_cls = sum(len(lb['cls']) for lb in labels)
-        len_boxes = sum(len(lb['bboxes']) for lb in labels)
-        len_segments = sum(len(lb['segments']) for lb in labels)
+        lengths = ((len(lb['cls']), len(lb['bboxes']), len(lb['segments'])) for lb in labels)
+        len_cls, len_boxes, len_segments = (sum(x) for x in zip(*lengths))
         if len_segments and len_boxes != len_segments:
             LOGGER.warning(
                 f'WARNING ⚠️ Box and segment counts should be equal, but got len(segments) = {len_segments}, '

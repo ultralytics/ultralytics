@@ -37,11 +37,11 @@ from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.torch_utils import select_device
 
 
-def run_benchmarks(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
-                   imgsz=640,
-                   half=False,
-                   device='cpu',
-                   hard_fail=False):
+def benchmarks(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
+               imgsz=640,
+               half=False,
+               device='cpu',
+               hard_fail=False):
     device = select_device(device, verbose=False)
     if isinstance(model, (str, Path)):
         model = YOLO(model)
@@ -85,7 +85,7 @@ def run_benchmarks(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
             y.append([name, '✅', round(file_size(filename), 1), round(metric, 4), round(speed, 2)])
         except Exception as e:
             if hard_fail:
-                assert type(e) is AssertionError, f'Benchmark --hard-fail for {name}: {e}'
+                assert type(e) is AssertionError, f'Benchmark hard_fail for {name}: {e}'
             LOGGER.warning(f'ERROR ❌️ Benchmark failure for {name}: {e}')
             y.append([name, '❌', None, None, None])  # mAP, t_inference
 
@@ -107,4 +107,4 @@ def run_benchmarks(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
 
 
 if __name__ == '__main__':
-    run_benchmarks()
+    benchmarks()

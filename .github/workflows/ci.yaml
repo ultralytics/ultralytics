@@ -55,18 +55,18 @@ jobs:
       - name: Benchmark DetectionModel
         shell: python
         run: |
-          from ultralytics.yolo.utils.benchmarks import run_benchmarks
-          run_benchmarks(model='${{ matrix.model }}.pt', imgsz=160, half=False, hard_fail=False)
+          from ultralytics.yolo.utils.benchmarks import benchmarks
+          benchmarks(model='${{ matrix.model }}.pt', imgsz=160, half=False, hard_fail=0.30)
       - name: Benchmark SegmentationModel
         shell: python
         run: |
-          from ultralytics.yolo.utils.benchmarks import run_benchmarks
-          run_benchmarks(model='${{ matrix.model }}-seg.pt', imgsz=160, half=False, hard_fail=False)
+          from ultralytics.yolo.utils.benchmarks import benchmarks
+          benchmarks(model='${{ matrix.model }}-seg.pt', imgsz=160, half=False, hard_fail=0.14)
       - name: Benchmark ClassificationModel
         shell: python
         run: |
-          from ultralytics.yolo.utils.benchmarks import run_benchmarks
-          run_benchmarks(model='${{ matrix.model }}-cls.pt', imgsz=160, half=False, hard_fail=False)
+          from ultralytics.yolo.utils.benchmarks import benchmarks
+          benchmarks(model='${{ matrix.model }}-cls.pt', imgsz=160, half=False, hard_fail=0.70)
 
   Tests:
     timeout-minutes: 60

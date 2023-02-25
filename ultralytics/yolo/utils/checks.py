@@ -16,6 +16,7 @@ import cv2
 import numpy as np
 import pkg_resources as pkg
 import psutil
+import requests
 import torch
 from matplotlib import font_manager
 
@@ -115,6 +116,31 @@ def check_version(current: str = '0.0.0',
     if verbose and not result:
         LOGGER.warning(warning_message)
     return result
+
+
+def check_latest_pypi_version(package_name='ultralytics'):
+    """
+    Returns the latest version of a PyPI package without downloading or installing it.
+
+    Parameters:
+        package_name (str): The name of the package to find the latest version for.
+
+    Returns:
+        str: The latest version of the package.
+    """
+    response = requests.get(f'https://pypi.org/pypi/{package_name}/json')
+    if response.status_code == 200:
+        return response.json()['info']['version']
+    return None
+
+
+def check_pip_update():
+    from ultralytics import __version__
+    latest = check_latest_pypi_version()
+    latest = '9.0.0'
+    if pkg.parse_version(__version__) < pkg.parse_version(latest):
+        LOGGER.info(f'New https://pypi.org/project/ultralytics/{latest} available 😃 '
+                    f"Update with 'pip install -U ultralytics'")
 
 
 def check_font(font='Arial.ttf'):

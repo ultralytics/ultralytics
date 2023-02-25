@@ -354,22 +354,6 @@ def get_git_branch():
     return None  # if not git dir or on error
 
 
-def get_latest_pypi_version(package_name='ultralytics'):
-    """
-    Returns the latest version of a PyPI package without downloading or installing it.
-
-    Parameters:
-        package_name (str): The name of the package to find the latest version for.
-
-    Returns:
-        str: The latest version of the package.
-    """
-    response = requests.get(f'https://pypi.org/pypi/{package_name}/json')
-    if response.status_code == 200:
-        return response.json()['info']['version']
-    return None
-
-
 def get_default_args(func):
     """Returns a dictionary of default arguments for a function.
 
@@ -611,7 +595,7 @@ def set_settings(kwargs, file=USER_CONFIG_DIR / 'settings.yaml'):
 # Run below code on yolo/utils init ------------------------------------------------------------------------------------
 
 # Set logger
-set_logging(LOGGING_NAME)  # run before defining LOGGER
+set_logging(LOGGING_NAME, verbose=VERBOSE)  # run before defining LOGGER
 LOGGER = logging.getLogger(LOGGING_NAME)  # define globally (used in train.py, val.py, detect.py, etc.)
 if WINDOWS:
     for fn in LOGGER.info, LOGGER.warning:

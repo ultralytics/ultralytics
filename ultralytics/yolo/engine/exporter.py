@@ -50,7 +50,6 @@ TensorFlow.js:
 import json
 import os
 import platform
-import re
 import subprocess
 import time
 import warnings
@@ -208,7 +207,7 @@ class Exporter:
         self.file = file
         self.output_shape = tuple(y.shape) if isinstance(y, torch.Tensor) else tuple(tuple(x.shape) for x in y)
         self.pretty_name = self.file.stem.replace('yolo', 'YOLO')
-        description = f'Ultralytics {self.pretty_name} model' + f'trained on {Path(self.args.data).name}' \
+        description = f'Ultralytics {self.pretty_name} model ' + f'trained on {Path(self.args.data).name}' \
             if self.args.data else '(untrained)'
         self.metadata = {
             'description': description,
@@ -380,7 +379,6 @@ class Exporter:
         yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml
         return f, None
 
-    @try_export
     def _export_coreml(self, prefix=colorstr('CoreML:')):
         # YOLOv8 CoreML export
         check_requirements('coremltools>=6.0')
@@ -424,10 +422,13 @@ class Exporter:
         if self.args.nms:
             ct_model = self._pipeline_coreml(ct_model)
 
-        ct_model.short_description = self.metadata['description']
-        ct_model.author = self.metadata['author']
-        ct_model.license = self.metadata['license']
-        ct_model.version = self.metadata['version']
+        m = self.metadata  # metadata dict
+        ct_model.short_description = m['description']
+        ct_model.author = m['author']
+        ct_model.license = m['license']
+        ct_model.version = m['version']
+        if not self.args.nms:
+            ct_model.user_defined_metadata.update({k: str(v) for k, v in m.items() if k in ('stride', 'task', 'names')})
         ct_model.save(str(f))
         return f, ct_model
 
@@ -650,19 +651,19 @@ class Exporter:
               f'--output_node_names=Identity,Identity_1,Identity_2,Identity_3 {f_pb} {f}'
         subprocess.run(cmd.split(), check=True)
 
-        with open(f_json, 'w') as j:  # sort JSON Identity_* in ascending order
-            subst = re.sub(
-                r'{"outputs": {"Identity.?.?": {"name": "Identity.?.?"}, '
-                r'"Identity.?.?": {"name": "Identity.?.?"}, '
-                r'"Identity.?.?": {"name": "Identity.?.?"}, '
-                r'"Identity.?.?": {"name": "Identity.?.?"}}}',
-                r'{"outputs": {"Identity": {"name": "Identity"}, '
-                r'"Identity_1": {"name": "Identity_1"}, '
-                r'"Identity_2": {"name": "Identity_2"}, '
-                r'"Identity_3": {"name": "Identity_3"}}}',
-                f_json.read_text(),
-            )
-            j.write(subst)
+        # with open(f_json, 'w') as j:  # sort JSON Identity_* in ascending order
+        #     subst = re.sub(
+        #         r'{"outputs": {"Identity.?.?": {"name": "Identity.?.?"}, '
+        #         r'"Identity.?.?": {"name": "Identity.?.?"}, '
+        #         r'"Identity.?.?": {"name": "Identity.?.?"}, '
+        #         r'"Identity.?.?": {"name": "Identity.?.?"}}}',
+        #         r'{"outputs": {"Identity": {"name": "Identity"}, '
+        #         r'"Identity_1": {"name": "Identity_1"}, '
+        #         r'"Identity_2": {"name": "Identity_2"}, '
+        #         r'"Identity_3": {"name": "Identity_3"}}}',
+        #         f_json.read_text(),
+        #     )
+        #     j.write(subst)
         yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml
         return f, None
 

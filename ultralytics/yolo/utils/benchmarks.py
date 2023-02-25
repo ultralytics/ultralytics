@@ -98,7 +98,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
     if hard_fail and isinstance(hard_fail, float):
         metrics = df[key].array  # values to compare to floor
         floor = hard_fail  # minimum metric floor to pass, i.e. = 0.29 mAP for YOLOv5n
-        assert all(x > floor for x in metrics if pd.notna(x)), f'HARD FAIL: metric < floor {floor}'
+        assert all(x > floor for x in metrics if pd.notna(x)), f'HARD FAIL: one or more metric(s) < floor {floor}'
 
     return df
 

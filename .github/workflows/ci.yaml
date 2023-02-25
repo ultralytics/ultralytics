@@ -56,7 +56,7 @@ jobs:
         shell: python
         run: |
           from ultralytics.yolo.utils.benchmarks import benchmark
-          benchmark(model='${{ matrix.model }}.pt', imgsz=160, half=False, hard_fail=0.30)
+          benchmark(model='${{ matrix.model }}.pt', imgsz=160, half=False, hard_fail=0.20)
       - name: Benchmark SegmentationModel
         shell: python
         run: |

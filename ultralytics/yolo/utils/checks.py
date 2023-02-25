@@ -137,7 +137,6 @@ def check_latest_pypi_version(package_name='ultralytics'):
 def check_pip_update():
     from ultralytics import __version__
     latest = check_latest_pypi_version()
-    latest = '9.0.0'
     if pkg.parse_version(__version__) < pkg.parse_version(latest):
         LOGGER.info(f'New https://pypi.org/project/ultralytics/{latest} available 😃 '
                     f"Update with 'pip install -U ultralytics'")

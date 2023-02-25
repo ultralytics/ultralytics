@@ -89,11 +89,14 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
     # Print results
     LOGGER.info('\n')
     check_yolo(device=device)  # print system info
-    c = ['Format', 'Status❔', 'Size (MB)', key, 'Inference time (ms/im)'] if map else ['Format', 'Export', '', '']
+    c = ['Format', 'Status❔', 'Size (MB)', key, 'Inference time (ms/im)']
     df = pd.DataFrame(y, columns=c)
-    LOGGER.info(f'\nBenchmarks complete for {Path(model.ckpt_path).name} on {data} at imgsz={imgsz} '
-                f'({time.time() - t0:.2f}s)')
-    LOGGER.info(str(df if map else df.iloc[:, :2]))
+
+    name = Path(model.ckpt_path).name
+    s = f'\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({time.time() - t0:.2f}s)\n{df}'
+    LOGGER.info(s)
+    with open('benchmarks.log', 'a') as f:
+        f.write(s)
 
     if hard_fail and isinstance(hard_fail, float):
         metrics = df[key].array  # values to compare to floor

@@ -264,11 +264,11 @@ class YOLO:
             **kwargs : Any other args accepted by the validators. To see all args check 'configuration' section in docs
         """
         self._check_is_pytorch_model()
-        from ultralytics.yolo.utils.benchmarks import benchmarks
+        from ultralytics.yolo.utils.benchmarks import benchmark
         overrides = self.model.args.copy()
         overrides.update(kwargs)
         overrides = {**DEFAULT_CFG_DICT, **overrides}  # fill in missing overrides keys with defaults
-        return benchmarks(model=self, imgsz=overrides['imgsz'], half=overrides['half'], device=overrides['device'])
+        return benchmark(model=self, imgsz=overrides['imgsz'], half=overrides['half'], device=overrides['device'])
 
     def export(self, **kwargs):
         """

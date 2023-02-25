@@ -37,11 +37,11 @@ from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.torch_utils import select_device
 
 
-def benchmarks(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
-               imgsz=640,
-               half=False,
-               device='cpu',
-               hard_fail=False):
+def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
+              imgsz=640,
+              half=False,
+              device='cpu',
+              hard_fail=False):
     device = select_device(device, verbose=False)
     if isinstance(model, (str, Path)):
         model = YOLO(model)
@@ -107,4 +107,4 @@ def benchmarks(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
 
 
 if __name__ == '__main__':
-    benchmarks()
+    benchmark()

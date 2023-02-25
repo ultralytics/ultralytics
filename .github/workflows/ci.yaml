@@ -91,7 +91,7 @@ jobs:
       - name: Get cache dir
         # https://github.com/actions/cache/blob/master/examples.md#multiple-oss-in-a-workflow
         id: pip-cache
-        run: echo "::set-output name=dir::$(pip cache dir)"
+        run: echo "dir=$(pip cache dir)" >> $GITHUB_OUTPUT
       - name: Cache pip
         uses: actions/cache@v3
         with:

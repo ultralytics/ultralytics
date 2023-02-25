@@ -238,7 +238,7 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
             LOGGER.warning(f'{prefix} ❌ {e}')
 
 
-def check_suffix(file='yolov8n.pt', suffix=('.pt',), msg=''):
+def check_suffix(file='yolov8n.pt', suffix=('.pt', ), msg=''):
     # Check file(s) for acceptable suffix
     if file and suffix:
         if isinstance(suffix, str):

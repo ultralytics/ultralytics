@@ -379,6 +379,7 @@ class Exporter:
         yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml
         return f, None
 
+    @try_export
     def _export_coreml(self, prefix=colorstr('CoreML:')):
         # YOLOv8 CoreML export
         check_requirements('coremltools>=6.0')
@@ -683,7 +684,7 @@ class Exporter:
         model_meta.license = self.metadata['license']
 
         # Label file
-        tmp_file = file.parent / 'temp_meta.txt'
+        tmp_file = Path(file).parent / 'temp_meta.txt'
         with open(tmp_file, 'w') as f:
             f.write(str(self.metadata))
 
@@ -721,7 +722,7 @@ class Exporter:
         b.Finish(model_meta.Pack(b), _metadata.MetadataPopulator.METADATA_FILE_IDENTIFIER)
         metadata_buf = b.Output()
 
-        populator = _metadata.MetadataPopulator.with_model_file(file)
+        populator = _metadata.MetadataPopulator.with_model_file(str(file))
         populator.load_metadata_buffer(metadata_buf)
         populator.load_associated_files([str(tmp_file)])
         populator.populate()

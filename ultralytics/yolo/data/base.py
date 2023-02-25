@@ -25,18 +25,18 @@ class BaseDataset(Dataset):
     """
 
     def __init__(
-            self,
-            img_path,
-            imgsz=640,
-            cache=False,
-            augment=True,
-            hyp=None,
-            prefix='',
-            rect=False,
-            batch_size=None,
-            stride=32,
-            pad=0.5,
-            single_cls=False,
+        self,
+        img_path,
+        imgsz=640,
+        cache=False,
+        augment=True,
+        hyp=None,
+        prefix='',
+        rect=False,
+        batch_size=None,
+        stride=32,
+        pad=0.5,
+        single_cls=False,
     ):
         super().__init__()
         self.img_path = img_path

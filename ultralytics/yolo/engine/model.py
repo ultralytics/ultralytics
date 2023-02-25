@@ -2,7 +2,6 @@
 
 import sys
 from pathlib import Path
-from typing import List
 
 from ultralytics import yolo  # noqa
 from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, SegmentationModel, attempt_load_one_weight,

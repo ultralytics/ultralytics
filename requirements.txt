@@ -42,3 +42,4 @@ wheel>=0.38.0  # Snyk vulnerability fix
 # albumentations>=1.0.3
 # pycocotools>=2.0.6  # COCO mAP
 # roboflow
+certifi>=2022.12.7 # not directly required, pinned by Snyk to avoid a vulnerability

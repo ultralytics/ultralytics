@@ -45,11 +45,9 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
     y = []
     t0 = time.time()
     for i, (name, format, suffix, cpu, gpu) in export_formats().iterrows():  # index, (name, format, suffix, CPU, GPU)
+        emoji = '❌'  # indicates export failure
         try:
-            assert i not in (9, 10), 'inference not supported'  # Edge TPU and TF.js are unsupported
-            assert i != 5 or platform.system() == 'Darwin', 'inference only supported on macOS>=10.13'  # CoreML
             assert i != 11 or model.task != 'classify', 'paddle-classify bug'
-
             if 'cpu' in device.type:
                 assert cpu, 'inference not supported on CPU'
             if 'cuda' in device.type:
@@ -63,8 +61,11 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
                 filename = model.export(imgsz=imgsz, format=format, half=half, device=device)  # all others
                 export = YOLO(filename)
                 assert suffix in str(filename), 'export failed'
+            emoji = '☑️'  # indicates export succeeded
 
             # Predict
+            assert i not in (9, 10), 'inference not supported'  # Edge TPU and TF.js are unsupported
+            assert i != 5 or platform.system() == 'Darwin', 'inference only supported on macOS>=10.13'  # CoreML
             if not (ROOT / 'assets/bus.jpg').exists():
                 download(url='https://ultralytics.com/images/bus.jpg', dir=ROOT / 'assets')
             export.predict(ROOT / 'assets/bus.jpg', imgsz=imgsz, device=device, half=half)  # test
@@ -84,7 +85,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
             if hard_fail:
                 assert type(e) is AssertionError, f'Benchmark hard_fail for {name}: {e}'
             LOGGER.warning(f'ERROR ❌️ Benchmark failure for {name}: {e}')
-            y.append([name, '❌', None, None, None])  # mAP, t_inference
+            y.append([name, emoji, None, None, None])  # mAP, t_inference
 
     # Print results
     check_yolo(device=device)  # print system info

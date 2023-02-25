@@ -10,8 +10,8 @@ from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, Segmentat
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, ROOT, callbacks,
-                                    is_git_dir, yaml_load)
-from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_yaml
+                                    is_git_dir, yaml_load, is_pip_package)
+from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_yaml, check_pip_update
 from ultralytics.yolo.utils.downloads import GITHUB_ASSET_STEMS
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 
@@ -151,6 +151,13 @@ class YOLO:
                             f"'yolo export model=yolov8n.pt', but exported formats like ONNX, TensorRT etc. only "
                             f"support 'predict' and 'val' modes, i.e. 'yolo predict model=yolov8n.onnx'.")
 
+    def _check_pip_update(self):
+        """
+        Inform user of ultralytics package update availability
+        """
+        if is_pip_package():
+            check_pip_update()
+
     def reset(self):
         """
         Resets the model modules.
@@ -256,6 +263,7 @@ class YOLO:
         Args:
             **kwargs : Any other args accepted by the validators. To see all args check 'configuration' section in docs
         """
+        self._check_is_pytorch_model()
         from ultralytics.yolo.utils.benchmarks import run_benchmarks
         overrides = self.model.args.copy()
         overrides.update(kwargs)
@@ -288,6 +296,7 @@ class YOLO:
             **kwargs (Any): Any number of arguments representing the training configuration.
         """
         self._check_is_pytorch_model()
+        self._check_pip_update()
         overrides = self.overrides.copy()
         overrides.update(kwargs)
         if kwargs.get('cfg'):

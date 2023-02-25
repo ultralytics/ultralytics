@@ -354,22 +354,6 @@ def get_git_branch():
     return None  # if not git dir or on error
 
 
-def get_latest_pypi_version(package_name='ultralytics'):
-    """
-    Returns the latest version of a PyPI package without downloading or installing it.
-
-    Parameters:
-        package_name (str): The name of the package to find the latest version for.
-
-    Returns:
-        str: The latest version of the package.
-    """
-    response = requests.get(f'https://pypi.org/pypi/{package_name}/json')
-    if response.status_code == 200:
-        return response.json()['info']['version']
-    return None
-
-
 def get_default_args(func):
     """Returns a dictionary of default arguments for a function.
 

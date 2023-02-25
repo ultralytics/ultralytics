@@ -47,7 +47,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
     for i, (name, format, suffix, cpu, gpu) in export_formats().iterrows():  # index, (name, format, suffix, CPU, GPU)
         emoji = '❌'  # indicates export failure
         try:
-            assert i != 11 or model.task != 'classify', 'paddle-classify bug'
+            assert i != 11, 'paddle exports coming soon'
             if 'cpu' in device.type:
                 assert cpu, 'inference not supported on CPU'
             if 'cuda' in device.type:
@@ -61,7 +61,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
                 filename = model.export(imgsz=imgsz, format=format, half=half, device=device)  # all others
                 export = YOLO(filename)
                 assert suffix in str(filename), 'export failed'
-            emoji = '☑️'  # indicates export succeeded
+            emoji = '❎'  # indicates export succeeded
 
             # Predict
             assert i not in (9, 10), 'inference not supported'  # Edge TPU and TF.js are unsupported

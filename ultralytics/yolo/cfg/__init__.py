@@ -280,10 +280,11 @@ def entrypoint(debug=''):
 
     # Task
     task = overrides.get('task', model.task)
-    if task is not None and task not in TASKS:
-        raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
-    elif task is not None:
-        model.task = task
+    if task is not None:
+        if task not in TASKS:
+            raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
+        else:
+            model.task = task
 
     # Mode
     if mode in {'predict', 'track'} and 'source' not in overrides:

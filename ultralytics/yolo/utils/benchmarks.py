@@ -68,7 +68,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
             assert i != 5 or platform.system() == 'Darwin', 'inference only supported on macOS>=10.13'  # CoreML
             if not (ROOT / 'assets/bus.jpg').exists():
                 download(url='https://ultralytics.com/images/bus.jpg', dir=ROOT / 'assets')
-            export.predict(ROOT / 'assets/bus.jpg', imgsz=imgsz, device=device, half=half)  # test
+            export.predict(ROOT / 'assets/bus.jpg', imgsz=imgsz, device=device, half=half, task=model.task)
 
             # Validate
             if model.task == 'detect':

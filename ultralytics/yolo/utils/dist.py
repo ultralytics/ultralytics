@@ -1,12 +1,12 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
 import os
+import re
 import shutil
 import socket
 import sys
 import tempfile
 from pathlib import Path
-import re
 
 from . import USER_CONFIG_DIR
 from .torch_utils import TORCH_1_9

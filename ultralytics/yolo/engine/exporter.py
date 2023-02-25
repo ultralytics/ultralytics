@@ -92,7 +92,7 @@ def export_formats():
         ['TensorFlow Lite', 'tflite', '.tflite', True, False],
         ['TensorFlow Edge TPU', 'edgetpu', '_edgetpu.tflite', False, False],
         ['TensorFlow.js', 'tfjs', '_web_model', False, False],
-        ['PaddlePaddle', 'paddle', '_paddle_model', True, True], ]
+        ['PaddlePaddle', 'paddle', '_paddle_model', True, True],]
     return pd.DataFrame(x, columns=['Format', 'Argument', 'Suffix', 'CPU', 'GPU'])
 
 
@@ -619,11 +619,11 @@ class Exporter:
             LOGGER.info(f'\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}')
             sudo = subprocess.run('sudo --version >/dev/null', shell=True).returncode == 0  # sudo installed on system
             for c in (
-                'curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -',
-                'echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | '  # no comma
-                'sudo tee /etc/apt/sources.list.d/coral-edgetpu.list',
-                'sudo apt-get update',
-                'sudo apt-get install edgetpu-compiler'):
+                    'curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -',
+                    'echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | '  # no comma
+                    'sudo tee /etc/apt/sources.list.d/coral-edgetpu.list',
+                    'sudo apt-get update',
+                    'sudo apt-get install edgetpu-compiler'):
                 subprocess.run(c if sudo else c.replace('sudo ', ''), shell=True, check=True)
         ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().split()[-1]
 

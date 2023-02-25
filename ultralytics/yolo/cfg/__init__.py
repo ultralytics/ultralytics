@@ -294,7 +294,7 @@ def entrypoint(debug=''):
     elif mode in ('train', 'val'):
         if 'data' not in overrides:
             task2data = dict(detect='coco128.yaml', segment='coco128-seg.yaml', classify='imagenet100')
-            overrides['data'] = task2data.get(task, DEFAULT_CFG.task)
+            overrides['data'] = task2data.get(task or DEFAULT_CFG.task, DEFAULT_CFG.data)
             LOGGER.warning(f"WARNING ⚠️ 'data' is missing. Using default 'data={overrides['data']}'.")
     elif mode == 'export':
         if 'format' not in overrides:

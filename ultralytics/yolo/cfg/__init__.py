@@ -279,11 +279,10 @@ def entrypoint(debug=''):
     model = YOLO(model)
 
     # Task
-    task = overrides.get('task', None)
-    task2data = dict(detect='coco128.yaml', segment='coco128-seg.yaml', classify='imagenet100')
+    task = overrides.get('task', model.task)
     if task is not None and task not in TASKS:
         raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
-    else:
+    elif task is not None:
         model.task = task
 
     # Mode
@@ -293,8 +292,9 @@ def entrypoint(debug=''):
         LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using default 'source={overrides['source']}'.")
     elif mode in ('train', 'val'):
         if 'data' not in overrides:
-            overrides['data'] = task2data.get(overrides['task'], DEFAULT_CFG.data)
-            LOGGER.warning(f"WARNING ⚠️ 'data' is missing. Using {model.task} default 'data={overrides['data']}'.")
+            task2data = dict(detect='coco128.yaml', segment='coco128-seg.yaml', classify='imagenet100')
+            overrides['data'] = task2data.get(task, DEFAULT_CFG.task)
+            LOGGER.warning(f"WARNING ⚠️ 'data' is missing. Using default 'data={overrides['data']}'.")
     elif mode == 'export':
         if 'format' not in overrides:
             overrides['format'] = DEFAULT_CFG.format or 'torchscript'

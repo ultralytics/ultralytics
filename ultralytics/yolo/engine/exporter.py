@@ -647,12 +647,12 @@ class Exporter:
         LOGGER.info(f'\n{prefix} starting export with tensorflowjs {tfjs.__version__}...')
         f = str(self.file).replace(self.file.suffix, '_web_model')  # js dir
         f_pb = self.file.with_suffix('.pb')  # *.pb path
-        f_json = Path(f) / 'model.json'  # *.json path
 
         cmd = f'tensorflowjs_converter --input_format=tf_frozen_model ' \
               f'--output_node_names=Identity,Identity_1,Identity_2,Identity_3 {f_pb} {f}'
         subprocess.run(cmd.split(), check=True)
 
+        # f_json = Path(f) / 'model.json'  # *.json path
         # with open(f_json, 'w') as j:  # sort JSON Identity_* in ascending order
         #     subst = re.sub(
         #         r'{"outputs": {"Identity.?.?": {"name": "Identity.?.?"}, '

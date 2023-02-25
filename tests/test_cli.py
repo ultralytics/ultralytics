@@ -22,8 +22,7 @@ def test_special_modes():
 
 # Train checks ---------------------------------------------------------------------------------------------------------
 def test_train_det():
-    run(f'yolo train detect model={CFG}.yaml data=coco8.yaml imgsz=32 epochs=1')
-
+    run(f'yolo train detect model={CFG}.yaml data=coco8.yaml imgsz=32 epochs=1 v5loader')
 
 def test_train_seg():
     run(f'yolo train segment model={CFG}-seg.yaml data=coco8-seg.yaml imgsz=32 epochs=1')

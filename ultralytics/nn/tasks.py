@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
 import contextlib
+import sys
 from copy import deepcopy
 from pathlib import Path
 
@@ -339,14 +340,23 @@ def torch_safe_load(weight):
     file = attempt_download_asset(weight)  # search online if missing locally
     try:
         return torch.load(file, map_location='cpu'), file  # load
-    except ModuleNotFoundError as e:
-        if e.name == 'omegaconf':  # e.name is missing module name
-            LOGGER.warning(f'WARNING ⚠️ {weight} requires {e.name}, which is not in ultralytics requirements.'
-                           f'\nAutoInstall will run now for {e.name} but this feature will be removed in the future.'
-                           f'\nRecommend fixes are to train a new model using updated ultralytics package or to '
-                           f'download updated models from https://github.com/ultralytics/assets/releases/tag/v0.0.0')
-        if e.name != 'models':
+    except ModuleNotFoundError as e:  # e.name is missing module name
+        if e.name == 'models':
+            LOGGER.warning(
+                f'ERROR ❌️ {weight} appears to be an Ultralytics YOLOv5 model originally trained '
+                f'with https://github.com/ultralytics/yolov5.'
+                f'\nThis model is NOT forwards compatible with YOLOv8 at https://github.com/ultralytics/ultralytics.'
+                f"\nRecommend fixes are to train a new model using the latest 'ultralytics' package or to "
+                f"run a command with an official YOLOv8 model, i.e. 'yolo predict model=yolov8n.pt'")
+            sys.exit()
+        else:
+            LOGGER.warning(
+                f"WARNING ⚠️ {weight} appears to require '{e.name}', which is not in ultralytics requirements."
+                f"\nAutoInstall will run now for '{e.name}' but this feature will be removed in the future."
+                f"\nRecommend fixes are to train a new model using the latest 'ultralytics' package or to "
+                f"run a command with an official YOLOv8 model, i.e. 'yolo predict model=yolov8n.pt'")
             check_requirements(e.name)  # install missing module
+
         return torch.load(file, map_location='cpu'), file  # load
 
 

@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ['3.10']
         model: [yolov8n]
     steps:
@@ -36,9 +36,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip wheel
           if [ "${{ matrix.os }}" == "macos-latest" ]; then
-              pip install -e . coremltools openvino-dev tensorflow-macos --extra-index-url https://download.pytorch.org/whl/cpu
+              pip install -e . coremltools tensorflow-macos --extra-index-url https://download.pytorch.org/whl/cpu
             else
-              pip install -e . coremltools openvino-dev tensorflow-cpu paddlepaddle x2paddle --extra-index-url https://download.pytorch.org/whl/cpu
+              pip install -e . coremltools openvino-dev tensorflow-cpu --extra-index-url https://download.pytorch.org/whl/cpu
           fi
           yolo export format=tflite
       - name: Check environment

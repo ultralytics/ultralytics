@@ -87,13 +87,12 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
             y.append([name, '❌', None, None, None])  # mAP, t_inference
 
     # Print results
-    LOGGER.info('\n')
     check_yolo(device=device)  # print system info
     c = ['Format', 'Status❔', 'Size (MB)', key, 'Inference time (ms/im)']
     df = pd.DataFrame(y, columns=c)
 
     name = Path(model.ckpt_path).name
-    s = f'\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({time.time() - t0:.2f}s)\n{df}'
+    s = f'\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({time.time() - t0:.2f}s)\n{df}\n'
     LOGGER.info(s)
     with open('benchmarks.log', 'a') as f:
         f.write(s)

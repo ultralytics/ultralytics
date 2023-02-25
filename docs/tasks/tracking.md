@@ -42,11 +42,15 @@ Use a trained YOLOv8n/YOLOv8n-seg model to run tracker on video streams.
 
         ```
 
-As in the above usage, we support both the detection and segmentation models for tracking and the only thing you need to do is loading the corresponding(detection or segmentation) model.
+As in the above usage, we support both the detection and segmentation models for tracking and the only thing you need to
+do is loading the corresponding (detection or segmentation) model.
 
 ## Configuration
+
 ### Tracking
-Tracking shares the configuration with predict, i.e `conf`, `iou`, `show`. More configurations please refer to [predict page](https://docs.ultralytics.com/cfg/#prediction).
+
+Tracking shares the configuration with predict, i.e `conf`, `iou`, `show`. More configurations please refer
+to [predict page](https://docs.ultralytics.com/cfg/#prediction).
 !!! example ""
 
     === "Python"
@@ -65,7 +69,10 @@ Tracking shares the configuration with predict, i.e `conf`, `iou`, `show`. More 
         ```
 
 ### Tracker
-We also support using a modified tracker config file, just copy a config file i.e `custom_tracker.yaml` from [ultralytics/tracker/cfg](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/tracker/cfg) and modify any configurations(expect the `tracker_type`) you need to.
+
+We also support using a modified tracker config file, just copy a config file i.e `custom_tracker.yaml`
+from [ultralytics/tracker/cfg](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/tracker/cfg) and modify
+any configurations(expect the `tracker_type`) you need to.
 !!! example ""
 
     === "Python"
@@ -82,5 +89,7 @@ We also support using a modified tracker config file, just copy a config file i.
         yolo track model=yolov8n.pt source="https://youtu.be/Zgi9g1ksQHc" tracker='custom_tracker.yaml'
 
         ```
-Please refer to [ultralytics/tracker/cfg](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/tracker/cfg) page. 
+
+Please refer to [ultralytics/tracker/cfg](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/tracker/cfg)
+page. 
 

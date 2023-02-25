@@ -5,12 +5,11 @@ from .build import build_classification_dataloader, build_dataloader, load_infer
 from .dataset import ClassificationDataset, SemanticDataset, YOLODataset
 from .dataset_wrappers import MixAndRectDataset
 
-__all__ = [
-    'BaseDataset',
+__all__ = ['BaseDataset',
     'ClassificationDataset',
     'MixAndRectDataset',
     'SemanticDataset',
     'YOLODataset',
     'build_classification_dataloader',
     'build_dataloader',
-    'load_inference_source',]
+    'load_inference_source']

@@ -18,7 +18,6 @@ from typing import Union
 import cv2
 import numpy as np
 import pandas as pd
-import requests
 import torch
 import yaml
 

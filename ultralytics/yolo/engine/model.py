@@ -10,8 +10,8 @@ from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, Segmentat
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, ROOT, callbacks,
-                                    is_git_dir, yaml_load, is_pip_package)
-from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_yaml, check_pip_update
+                                    is_git_dir, is_pip_package, yaml_load)
+from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_pip_update, check_yaml
 from ultralytics.yolo.utils.downloads import GITHUB_ASSET_STEMS
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 

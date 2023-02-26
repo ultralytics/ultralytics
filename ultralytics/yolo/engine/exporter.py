@@ -99,14 +99,8 @@ EXPORT_FORMATS_LIST = list(export_formats()['Argument'][1:])
 EXPORT_FORMATS_TABLE = str(export_formats())
 
 
-def gd_outputs(filename):
+def gd_outputs(gd):
     # TensorFlow GraphDef model output node names
-    import tensorflow as tf
-
-    gd = tf.Graph().as_graph_def()  # TF GraphDef
-    with open(filename, 'rb') as f:
-        gd.ParseFromString(f.read())
-
     name_list, input_list = [], []
     for node in gd.node:  # tensorflow.core.framework.node_def_pb2.NodeDef
         name_list.append(node.name)
@@ -513,11 +507,7 @@ class Exporter:
         return f, None
 
     @try_export
-    def _export_saved_model(
-        self,
-        nms=False,
-        osd=False,  # output signature defs
-        prefix=colorstr('TensorFlow SavedModel:')):
+    def _export_saved_model(self, prefix=colorstr('TensorFlow SavedModel:')):
 
         # YOLOv8 TensorFlow SavedModel export
         try:
@@ -542,8 +532,7 @@ class Exporter:
 
         # Export to TF
         int8 = '-oiqt -qt per-tensor' if self.args.int8 else ''
-        osd = '-osd' if osd else ''
-        cmd = f'onnx2tf -i {f_onnx} -o {f} -nuo --non_verbose {int8} {osd}'
+        cmd = f'onnx2tf -i {f_onnx} -o {f} -nuo --non_verbose {int8}'
         LOGGER.info(f'\n{prefix} running {cmd}')
         subprocess.run(cmd, shell=True)
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml
@@ -576,6 +565,9 @@ class Exporter:
     @try_export
     def _export_tflite(self, keras_model, nms, agnostic_nms, prefix=colorstr('TensorFlow Lite:')):
         # YOLOv8 TensorFlow Lite export
+        import tensorflow as tf  # noqa
+
+        LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
         saved_model = Path(str(self.file).replace(self.file.suffix, '_saved_model'))
         if self.args.int8:
             f = saved_model / (self.file.stem + 'yolov8n_integer_quant.tflite')  # fp32 in/out
@@ -586,9 +578,6 @@ class Exporter:
         return str(f), None  # noqa
 
         # OLD VERSION BELOW ---------------------------------------------------------------
-        import tensorflow as tf  # noqa
-
-        LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
         batch_size, ch, *imgsz = list(self.im.shape)  # BCHW
         f = str(self.file).replace(self.file.suffix, '-fp16.tflite')
 
@@ -655,16 +644,20 @@ class Exporter:
     def _export_tfjs(self, prefix=colorstr('TensorFlow.js:')):
         # YOLOv8 TensorFlow.js export
         check_requirements('tensorflowjs')
+        import tensorflow as tf
         import tensorflowjs as tfjs  # noqa
 
         LOGGER.info(f'\n{prefix} starting export with tensorflowjs {tfjs.__version__}...')
         f = str(self.file).replace(self.file.suffix, '_web_model')  # js dir
         f_pb = self.file.with_suffix('.pb')  # *.pb path
 
-        outputs = ','.join(gd_outputs(f_pb))
-        print('OUTPUT_NODE_NAMES', outputs)
-        cmd = f'tensorflowjs_converter --input_format=tf_frozen_model ' \
-              f'--output_node_names={outputs} {f_pb} {f}'
+        gd = tf.Graph().as_graph_def()  # TF GraphDef
+        with open(f_pb, 'rb') as file:
+            gd.ParseFromString(file.read())
+        outputs = ','.join(gd_outputs(gd))
+        LOGGER.info(f'\n{prefix} output node names: {outputs}')
+
+        cmd = f'tensorflowjs_converter --input_format=tf_frozen_model --output_node_names={outputs} {f_pb} {f}'
         subprocess.run(cmd.split(), check=True)
 
         # f_json = Path(f) / 'model.json'  # *.json path

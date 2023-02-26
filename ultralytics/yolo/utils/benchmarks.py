@@ -30,7 +30,7 @@ import pandas as pd
 
 from ultralytics import YOLO
 from ultralytics.yolo.engine.exporter import export_formats
-from ultralytics.yolo.utils import LOGGER, ROOT, SETTINGS, emojis
+from ultralytics.yolo.utils import LINUX, LOGGER, ROOT, SETTINGS, emojis
 from ultralytics.yolo.utils.checks import check_yolo
 from ultralytics.yolo.utils.downloads import download
 from ultralytics.yolo.utils.files import file_size
@@ -48,6 +48,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
         emoji = '❌'  # indicates export failure
         try:
             assert i != 11, 'paddle exports coming soon'
+            assert i != 9 or LINUX, 'Edge TPU export only supported on Linux'
             if 'cpu' in device.type:
                 assert cpu, 'inference not supported on CPU'
             if 'cuda' in device.type:

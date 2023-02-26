@@ -342,17 +342,15 @@ def torch_safe_load(weight):
     except ModuleNotFoundError as e:  # e.name is missing module name
         if e.name == 'models':
             raise TypeError(
-                emojis(
-                    f'ERROR ❌️ {weight} appears to be an Ultralytics YOLOv5 model originally trained '
-                    f'with https://github.com/ultralytics/yolov5.\nThis model is NOT forwards compatible with '
-                    f'YOLOv8 at https://github.com/ultralytics/ultralytics.'
-                    f"\nRecommend fixes are to train a new model using the latest 'ultralytics' package or to "
-                    f"run a command with an official YOLOv8 model, i.e. 'yolo predict model=yolov8n.pt'")) from e
-        LOGGER.warning(
-            f"WARNING ⚠️ {weight} appears to require '{e.name}', which is not in ultralytics requirements."
-            f"\nAutoInstall will run now for '{e.name}' but this feature will be removed in the future."
-            f"\nRecommend fixes are to train a new model using the latest 'ultralytics' package or to "
-            f"run a command with an official YOLOv8 model, i.e. 'yolo predict model=yolov8n.pt'")
+                emojis(f'ERROR ❌️ {weight} appears to be an Ultralytics YOLOv5 model originally trained '
+                       f'with https://github.com/ultralytics/yolov5.\nThis model is NOT forwards compatible with '
+                       f'YOLOv8 at https://github.com/ultralytics/ultralytics.'
+                       f"\nRecommend fixes are to train a new model using the latest 'ultralytics' package or to "
+                       f"run a command with an official YOLOv8 model, i.e. 'yolo predict model=yolov8n.pt'")) from e
+        LOGGER.warning(f"WARNING ⚠️ {weight} appears to require '{e.name}', which is not in ultralytics requirements."
+                       f"\nAutoInstall will run now for '{e.name}' but this feature will be removed in the future."
+                       f"\nRecommend fixes are to train a new model using the latest 'ultralytics' package or to "
+                       f"run a command with an official YOLOv8 model, i.e. 'yolo predict model=yolov8n.pt'")
         check_requirements(e.name)  # install missing module
 
         return torch.load(file, map_location='cpu'), file  # load

@@ -193,10 +193,9 @@ class BasePredictor:
             n = len(im)
             for i in range(n):
                 self.results[i].speed = {
-                  'preprocess': self.dt[0].dt * 1E3 / n,
-                  'inference': self.dt[1].dt * 1E3 / n,
-                  'postprocess': self.dt[2].dt * 1E3 / n
-                }
+                    'preprocess': self.dt[0].dt * 1E3 / n,
+                    'inference': self.dt[1].dt * 1E3 / n,
+                    'postprocess': self.dt[2].dt * 1E3 / n}
                 if self.is_not_queue:
                     p, im0 = (path[i], im0s[i].copy()) if self.source_type.webcam or self.source_type.from_img \
                         else (path, im0s.copy())

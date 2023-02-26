@@ -97,8 +97,8 @@ Class reference documentation for `Results` module and its components can be fou
 
 ## Plotting results
 
-You can use `plot()` function of `Result` object to plot results on in image object. It plots all components(boxes, masks,
-classification logits, etc) found in the results object
+You can use `plot()` function of `Result` object to plot results on in image object. It plots all components(boxes,
+masks, classification logits, etc) found in the results object
 
 ```python
 res = model(img)

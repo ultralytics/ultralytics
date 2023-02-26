@@ -32,7 +32,6 @@ from collections import defaultdict
 from pathlib import Path
 
 import cv2
-import torch
 
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.yolo.cfg import get_cfg

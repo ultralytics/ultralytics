@@ -316,10 +316,9 @@ class AutoBackend(nn.Module):
             self.context.execute_v2(list(self.binding_addrs.values()))
             y = [self.bindings[x].data for x in sorted(self.output_names)]
         elif self.coreml:  # CoreML
-            im = im[0]
+            im = im[0].cpu().numpy()
             if self.task == 'classify':
                 from ultralytics.yolo.data.utils import IMAGENET_MEAN, IMAGENET_STD
-                im = im.cpu().numpy()
                 # im_pil = Image.fromarray(((im / 6 + 0.5) * 255).astype('uint8'))
                 for i in range(3):
                     im[..., i] *= IMAGENET_STD[i]

@@ -59,7 +59,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
                 export = model  # PyTorch format
             else:
                 filename = model.export(imgsz=imgsz, format=format, half=half, device=device)  # all others
-                export = YOLO(filename)
+                export = YOLO(filename, task=model.task)
                 assert suffix in str(filename), 'export failed'
             emoji = '❎'  # indicates export succeeded
 
@@ -68,7 +68,6 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
             assert i != 5 or platform.system() == 'Darwin', 'inference only supported on macOS>=10.13'  # CoreML
             if not (ROOT / 'assets/bus.jpg').exists():
                 download(url='https://ultralytics.com/images/bus.jpg', dir=ROOT / 'assets')
-            export.task = model.task
             export.predict(ROOT / 'assets/bus.jpg', imgsz=imgsz, device=device, half=half)
 
             # Validate

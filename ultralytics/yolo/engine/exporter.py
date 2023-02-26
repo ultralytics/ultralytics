@@ -625,12 +625,11 @@ class Exporter:
         if subprocess.run(f'{cmd} > /dev/null', shell=True).returncode != 0:
             LOGGER.info(f'\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}')
             sudo = subprocess.run('sudo --version >/dev/null', shell=True).returncode == 0  # sudo installed on system
+            # https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb
+            # https://github.com/google-coral/edgetpu/issues/550
             for c in (
-                    # https://github.com/google-coral/edgetpu/issues/550
-                    # 'curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -',  # errors
-                    'wget -O- https://packages.cloud.google.com/apt/doc/apt-key.gpg | '  # no comma
-                    'sudo tee /etc/apt/trusted.gpg.d/coral-edgetpu.gpg',
-                    'echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | '  # no comma
+                    'curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -',
+                    'echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | '
                     'sudo tee /etc/apt/sources.list.d/coral-edgetpu.list',
                     'sudo apt-get update',
                     'sudo apt-get install edgetpu-compiler'):

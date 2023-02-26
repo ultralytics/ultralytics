@@ -513,10 +513,11 @@ class Exporter:
         return f, None
 
     @try_export
-    def _export_saved_model(self,
-                            nms=False,
-                            osd=False,  # output signature defs
-                            prefix=colorstr('TensorFlow SavedModel:')):
+    def _export_saved_model(
+        self,
+        nms=False,
+        osd=False,  # output signature defs
+        prefix=colorstr('TensorFlow SavedModel:')):
 
         # YOLOv8 TensorFlow SavedModel export
         try:

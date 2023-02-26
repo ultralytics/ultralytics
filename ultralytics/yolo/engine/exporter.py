@@ -172,8 +172,6 @@ class Exporter:
         # Checks
         model.names = check_class_names(model.names)
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
-        if model.task == 'classify':
-            self.args.nms = self.args.agnostic_nms = False
         if self.args.optimize:
             assert self.device.type == 'cpu', '--optimize not compatible with cuda devices, i.e. use --device cpu'
         if edgetpu and not LINUX:
@@ -395,7 +393,7 @@ class Exporter:
         check_requirements('coremltools>=6.0')
         import coremltools as ct  # noqa
 
-        class iOSModel(torch.nn.Module):
+        class iOSDetectModel(torch.nn.Module):
             # Wrap an Ultralytics YOLO model for iOS export
             def __init__(self, model, im):
                 super().__init__()
@@ -414,23 +412,28 @@ class Exporter:
         LOGGER.info(f'\n{prefix} starting export with coremltools {ct.__version__}...')
         f = self.file.with_suffix('.mlmodel')
 
+        bias = [0.0, 0.0, 0.0]
+        scale = 1 / 255
+        classifier_config = None
         if self.model.task == 'classify':
             bias = [-x for x in IMAGENET_MEAN]
             scale = 1 / 255 / (sum(IMAGENET_STD) / 3)
             classifier_config = ct.ClassifierConfig(list(self.model.names.values())) if self.args.nms else None
-        else:
-            bias = [0.0, 0.0, 0.0]
-            scale = 1 / 255
-            classifier_config = None
-        model = iOSModel(self.model, self.im).eval() if self.args.nms else self.model
-        ts = torch.jit.trace(model, self.im, strict=False)  # TorchScript model
+            model = self.model
+        elif self.model.task == 'detect':
+            model = iOSDetectModel(self.model, self.im) if self.args.nms else self.model
+        elif self.model.task == 'segment':
+            # TODO CoreML Segmentation model pipelining
+            model = self.model
+
+        ts = torch.jit.trace(model.eval(), self.im, strict=False)  # TorchScript model
         ct_model = ct.convert(ts,
                               inputs=[ct.ImageType('image', shape=self.im.shape, scale=scale, bias=bias)],
                               classifier_config=classifier_config)
         bits, mode = (8, 'kmeans_lut') if self.args.int8 else (16, 'linear') if self.args.half else (32, None)
         if bits < 32:
             ct_model = ct.models.neural_network.quantization_utils.quantize_weights(ct_model, bits, mode)
-        if self.args.nms:
+        if self.args.nms and self.model.task == 'detect':
             ct_model = self._pipeline_coreml(ct_model)
 
         m = self.metadata  # metadata dict
@@ -438,8 +441,7 @@ class Exporter:
         ct_model.author = m['author']
         ct_model.license = m['license']
         ct_model.version = m['version']
-        if not self.args.nms:
-            ct_model.user_defined_metadata.update({k: str(v) for k, v in m.items() if k in ('stride', 'task', 'names')})
+        ct_model.user_defined_metadata.update({k: str(v) for k, v in m.items() if k in ('stride', 'task', 'names')})
         ct_model.save(str(f))
         return f, ct_model
 

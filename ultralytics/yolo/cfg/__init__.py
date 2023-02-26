@@ -316,4 +316,5 @@ def copy_default_cfg():
 
 
 if __name__ == '__main__':
-    entrypoint(debug='yolo predict model=yolov8n-cls.onnx imgsz=224')
+    entrypoint(debug='yolo predict model=yolov8n.pt')
+    entrypoint('')

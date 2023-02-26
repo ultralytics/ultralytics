@@ -83,7 +83,7 @@ def export_formats():
         ['PyTorch', '-', '.pt', True, True],
         ['TorchScript', 'torchscript', '.torchscript', True, True],
         ['ONNX', 'onnx', '.onnx', True, True],
-        ['OpenVINO', 'openvino', '_openvino_model', True, False],
+        ['OpenVINO', 'openvino', '_openvino_model', True, True],
         ['TensorRT', 'engine', '.engine', False, True],
         ['CoreML', 'coreml', '.mlmodel', True, False],
         ['TensorFlow SavedModel', 'saved_model', '_saved_model', True, True],

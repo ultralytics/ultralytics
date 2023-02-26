@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
 import contextlib
-import sys
 from copy import deepcopy
 from pathlib import Path
 
@@ -12,7 +11,7 @@ import torch.nn as nn
 from ultralytics.nn.modules import (C1, C2, C3, C3TR, SPP, SPPF, Bottleneck, BottleneckCSP, C2f, C3Ghost, C3x, Classify,
                                     Concat, Conv, ConvTranspose, Detect, DWConv, DWConvTranspose2d, Ensemble, Focus,
                                     GhostBottleneck, GhostConv, Segment)
-from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, colorstr, yaml_load
+from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, colorstr, emojis, yaml_load
 from ultralytics.yolo.utils.checks import check_requirements, check_yaml
 from ultralytics.yolo.utils.torch_utils import (fuse_conv_and_bn, fuse_deconv_and_bn, initialize_weights,
                                                 intersect_dicts, make_divisible, model_info, scale_img, time_sync)
@@ -342,20 +341,18 @@ def torch_safe_load(weight):
         return torch.load(file, map_location='cpu'), file  # load
     except ModuleNotFoundError as e:  # e.name is missing module name
         if e.name == 'models':
-            LOGGER.warning(
+            raise TypeError(emojis(
                 f'ERROR ❌️ {weight} appears to be an Ultralytics YOLOv5 model originally trained '
                 f'with https://github.com/ultralytics/yolov5.'
                 f'\nThis model is NOT forwards compatible with YOLOv8 at https://github.com/ultralytics/ultralytics.'
                 f"\nRecommend fixes are to train a new model using the latest 'ultralytics' package or to "
-                f"run a command with an official YOLOv8 model, i.e. 'yolo predict model=yolov8n.pt'")
-            sys.exit()
-        else:
-            LOGGER.warning(
-                f"WARNING ⚠️ {weight} appears to require '{e.name}', which is not in ultralytics requirements."
-                f"\nAutoInstall will run now for '{e.name}' but this feature will be removed in the future."
-                f"\nRecommend fixes are to train a new model using the latest 'ultralytics' package or to "
-                f"run a command with an official YOLOv8 model, i.e. 'yolo predict model=yolov8n.pt'")
-            check_requirements(e.name)  # install missing module
+                f"run a command with an official YOLOv8 model, i.e. 'yolo predict model=yolov8n.pt'")) from e
+        LOGGER.warning(
+            f"WARNING ⚠️ {weight} appears to require '{e.name}', which is not in ultralytics requirements."
+            f"\nAutoInstall will run now for '{e.name}' but this feature will be removed in the future."
+            f"\nRecommend fixes are to train a new model using the latest 'ultralytics' package or to "
+            f"run a command with an official YOLOv8 model, i.e. 'yolo predict model=yolov8n.pt'")
+        check_requirements(e.name)  # install missing module
 
         return torch.load(file, map_location='cpu'), file  # load
 

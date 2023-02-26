@@ -40,12 +40,6 @@ jobs:
             else
               pip install -e . coremltools openvino-dev tensorflow-cpu --extra-index-url https://download.pytorch.org/whl/cpu
           fi
-          if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
-              curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
-              echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | tee /etc/apt/sources.list.d/coral-edgetpu.list
-              apt-get update
-              apt-get install edgetpu-compiler
-          fi
           yolo export format=tflite
       - name: Check environment
         run: |

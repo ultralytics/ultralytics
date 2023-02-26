@@ -162,9 +162,8 @@ def test_workflow():
 
 
 def test_predict_callback_and_setup():
-
-    def on_predict_batch_end(predictor):
-        # results -> List[batch_size]
+    # test callback addition for prediction
+    def on_predict_batch_end(predictor):  # results -> List[batch_size]
         path, _, im0s, _, _ = predictor.batch
         # print('on_predict_batch_end', im0s[0].shape)
         im0s = im0s if isinstance(im0s, list) else [im0s]

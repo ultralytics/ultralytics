@@ -242,7 +242,7 @@ class BaseTrainer:
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix='val')
             self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))  # TODO: init metrics for plot_results()?
             self.ema = ModelEMA(self.model)
-            if self.args.plots:
+            if self.args.plots and not self.args.v5loader:
                 self.plot_training_labels()
         self.resume_training(ckpt)
         self.scheduler.last_epoch = self.start_epoch - 1  # do not move

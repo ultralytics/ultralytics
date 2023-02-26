@@ -30,14 +30,14 @@ import pandas as pd
 
 from ultralytics import YOLO
 from ultralytics.yolo.engine.exporter import export_formats
-from ultralytics.yolo.utils import LOGGER, ROOT, SETTINGS
+from ultralytics.yolo.utils import LINUX, LOGGER, ROOT, SETTINGS
 from ultralytics.yolo.utils.checks import check_yolo
 from ultralytics.yolo.utils.downloads import download
 from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.torch_utils import select_device
 
 
-def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, half=False, device='cpu', hard_fail=0.30):
+def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, half=False, device='cpu', hard_fail=False):
     device = select_device(device, verbose=False)
     if isinstance(model, (str, Path)):
         model = YOLO(model)
@@ -45,11 +45,10 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
     y = []
     t0 = time.time()
     for i, (name, format, suffix, cpu, gpu) in export_formats().iterrows():  # index, (name, format, suffix, CPU, GPU)
+        emoji = '❌'  # indicates export failure
         try:
-            assert i not in (9, 10), 'inference not supported'  # Edge TPU and TF.js are unsupported
-            assert i != 5 or platform.system() == 'Darwin', 'inference only supported on macOS>=10.13'  # CoreML
-            assert i != 11 or model.task != 'classify', 'paddle-classify bug'
-
+            assert i != 11, 'paddle exports coming soon'
+            assert i != 9 or LINUX, 'Edge TPU export only supported on Linux'
             if 'cpu' in device.type:
                 assert cpu, 'inference not supported on CPU'
             if 'cuda' in device.type:
@@ -61,13 +60,16 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
                 export = model  # PyTorch format
             else:
                 filename = model.export(imgsz=imgsz, format=format, half=half, device=device)  # all others
-                export = YOLO(filename)
+                export = YOLO(filename, task=model.task)
                 assert suffix in str(filename), 'export failed'
+            emoji = '❎'  # indicates export succeeded
 
             # Predict
+            assert i not in (9, 10), 'inference not supported'  # Edge TPU and TF.js are unsupported
+            assert i != 5 or platform.system() == 'Darwin', 'inference only supported on macOS>=10.13'  # CoreML
             if not (ROOT / 'assets/bus.jpg').exists():
                 download(url='https://ultralytics.com/images/bus.jpg', dir=ROOT / 'assets')
-            export.predict(ROOT / 'assets/bus.jpg', imgsz=imgsz, device=device, half=half)  # test
+            export.predict(ROOT / 'assets/bus.jpg', imgsz=imgsz, device=device, half=half)
 
             # Validate
             if model.task == 'detect':
@@ -84,17 +86,16 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
             if hard_fail:
                 assert type(e) is AssertionError, f'Benchmark hard_fail for {name}: {e}'
             LOGGER.warning(f'ERROR ❌️ Benchmark failure for {name}: {e}')
-            y.append([name, '❌', None, None, None])  # mAP, t_inference
+            y.append([name, emoji, None, None, None])  # mAP, t_inference
 
     # Print results
     check_yolo(device=device)  # print system info
-    c = ['Format', 'Status❔', 'Size (MB)', key, 'Inference time (ms/im)']
-    df = pd.DataFrame(y, columns=c)
+    df = pd.DataFrame(y, columns=['Format', 'Status❔', 'Size (MB)', key, 'Inference time (ms/im)'])
 
     name = Path(model.ckpt_path).name
     s = f'\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({time.time() - t0:.2f}s)\n{df}\n'
     LOGGER.info(s)
-    with open('benchmarks.log', 'a') as f:
+    with open('benchmarks.log', 'a', errors='ignore', encoding='utf-8') as f:
         f.write(s)
 
     if hard_fail and isinstance(hard_fail, float):

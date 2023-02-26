@@ -30,7 +30,7 @@ import pandas as pd
 
 from ultralytics import YOLO
 from ultralytics.yolo.engine.exporter import export_formats
-from ultralytics.yolo.utils import LINUX, LOGGER, ROOT, SETTINGS, emojis
+from ultralytics.yolo.utils import LINUX, LOGGER, ROOT, SETTINGS
 from ultralytics.yolo.utils.checks import check_yolo
 from ultralytics.yolo.utils.downloads import download
 from ultralytics.yolo.utils.files import file_size
@@ -96,8 +96,8 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
     name = Path(model.ckpt_path).name
     s = f'\nBenchmarks complete for {name} on {data} at imgsz={imgsz} ({time.time() - t0:.2f}s)\n{df}\n'
     LOGGER.info(s)
-    with open('benchmarks.log', 'a') as f:
-        f.write(emojis(s))
+    with open('benchmarks.log', 'a', errors='ignore', encoding='utf-8') as f:
+        f.write(s)
 
     if hard_fail and isinstance(hard_fail, float):
         metrics = df[key].array  # values to compare to floor

@@ -269,6 +269,11 @@ def entrypoint(debug=''):
         checks.check_yolo()
         return
 
+    # Task
+    task = overrides.get('task')
+    if task and task not in TASKS:
+        raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
+
     # Model
     model = overrides.pop('model', DEFAULT_CFG.model)
     if model is None:
@@ -276,15 +281,11 @@ def entrypoint(debug=''):
         LOGGER.warning(f"WARNING ⚠️ 'model' is missing. Using default 'model={model}'.")
     from ultralytics.yolo.engine.model import YOLO
     overrides['model'] = model
-    model = YOLO(model)
+    model = YOLO(model, task=task)
 
-    # Task
-    task = overrides.get('task', model.task)
-    if task is not None:
-        if task not in TASKS:
-            raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
-        else:
-            model.task = task
+    # Task Update
+    task = task or model.task
+    overrides['task'] = task
 
     # Mode
     if mode in {'predict', 'track'} and 'source' not in overrides:

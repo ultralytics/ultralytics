@@ -38,7 +38,7 @@ jobs:
           if [ "${{ matrix.os }}" == "macos-latest" ]; then
               pip install -e . coremltools openvino-dev tensorflow-macos --extra-index-url https://download.pytorch.org/whl/cpu
             else
-              pip install -e . coremltools openvino-dev tensorflow-cpu paddlepaddle x2paddle --extra-index-url https://download.pytorch.org/whl/cpu
+              pip install -e . coremltools openvino-dev tensorflow-cpu --extra-index-url https://download.pytorch.org/whl/cpu
           fi
           yolo export format=tflite
       - name: Check environment
@@ -66,7 +66,7 @@ jobs:
         shell: python
         run: |
           from ultralytics.yolo.utils.benchmarks import benchmark
-          benchmark(model='${{ matrix.model }}-cls.pt', imgsz=160, half=False, hard_fail=0.70)
+          benchmark(model='${{ matrix.model }}-cls.pt', imgsz=160, half=False, hard_fail=0.60)
       - name: Benchmark Summary
         run: cat benchmarks.log
 

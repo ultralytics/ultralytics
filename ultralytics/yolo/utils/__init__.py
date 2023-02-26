@@ -18,7 +18,6 @@ from typing import Union
 import cv2
 import numpy as np
 import pandas as pd
-import requests
 import torch
 import yaml
 
@@ -517,10 +516,7 @@ def set_sentry():
             ((is_pip_package() and not is_git_dir()) or
              (get_git_origin_url() == 'https://github.com/ultralytics/ultralytics.git' and get_git_branch() == 'main')):
 
-        import hashlib
-
         import sentry_sdk  # noqa
-
         sentry_sdk.init(
             dsn='https://f805855f03bb4363bc1e16cb7d87b654@o4504521589325824.ingest.sentry.io/4504521592406016',
             debug=False,

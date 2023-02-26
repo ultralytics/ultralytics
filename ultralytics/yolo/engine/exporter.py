@@ -628,7 +628,7 @@ class Exporter:
             for c in (
                     # https://github.com/google-coral/edgetpu/issues/550
                     # 'curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -',  # errors
-                    'curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | '  # no comma
+                    'wget -O- https://packages.cloud.google.com/apt/doc/apt-key.gpg | '  # no comma
                     'sudo tee /etc/apt/trusted.gpg.d/coral-edgetpu.gpg',
                     'echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | '  # no comma
                     'sudo tee /etc/apt/sources.list.d/coral-edgetpu.list',

@@ -626,9 +626,10 @@ class Exporter:
             LOGGER.info(f'\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}')
             sudo = subprocess.run('sudo --version >/dev/null', shell=True).returncode == 0  # sudo installed on system
             for c in (
+                    # https://github.com/google-coral/edgetpu/issues/550
                     # 'curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -',  # errors
-                    'wget --no-check-certificate -q -O - https://packages.cloud.google.com/apt/doc/apt-key.gpg | '
-                    'sudo apt-key add -',
+                    'curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | ',  # no comma
+                    'sudo tee /etc/apt/trusted.gpg.d/coral-edgetpu.gpg',
                     'echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | '  # no comma
                     'sudo tee /etc/apt/sources.list.d/coral-edgetpu.list',
                     'sudo apt-get update',

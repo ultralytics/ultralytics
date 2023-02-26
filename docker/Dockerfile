@@ -29,9 +29,8 @@ WORKDIR /usr/src/ultralytics
 RUN git clone https://github.com/ultralytics/ultralytics /usr/src/ultralytics
 
 # Install pip packages
-COPY requirements.txt .
 RUN python3 -m pip install --upgrade pip wheel
-RUN pip install --no-cache ultralytics[export] albumentations comet gsutil notebook
+RUN pip install --no-cache '.[export]' albumentations comet gsutil notebook
 
 # Set environment variables
 ENV OMP_NUM_THREADS=1

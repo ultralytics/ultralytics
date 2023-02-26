@@ -319,6 +319,7 @@ class AutoBackend(nn.Module):
             im = im[0].cpu().numpy()
             if self.task == 'classify':
                 from ultralytics.yolo.data.utils import IMAGENET_MEAN, IMAGENET_STD
+
                 # im_pil = Image.fromarray(((im / 6 + 0.5) * 255).astype('uint8'))
                 for i in range(3):
                     im[..., i] *= IMAGENET_STD[i]

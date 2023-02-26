@@ -99,6 +99,21 @@ EXPORT_FORMATS_LIST = list(export_formats()['Argument'][1:])
 EXPORT_FORMATS_TABLE = str(export_formats())
 
 
+def gd_outputs(filename):
+    # TensorFlow GraphDef model output node names
+    import tensorflow as tf
+
+    gd = tf.Graph().as_graph_def()  # TF GraphDef
+    with open(filename, 'rb') as f:
+        gd.ParseFromString(f.read())
+
+    name_list, input_list = [], []
+    for node in gd.node:  # tensorflow.core.framework.node_def_pb2.NodeDef
+        name_list.append(node.name)
+        input_list.extend(node.input)
+    return sorted(f'{x}:0' for x in list(set(name_list) - set(input_list)) if not x.startswith('NoOp'))
+
+
 def try_export(inner_func):
     # YOLOv8 export decorator, i..e @try_export
     inner_args = get_default_args(inner_func)
@@ -238,8 +253,7 @@ class Exporter:
                            'Please consider contributing to the effort if you have TF expertise. Thank you!')
             nms = False
             self.args.int8 |= edgetpu
-            f[5], s_model = self._export_saved_model(nms=nms or self.args.agnostic_nms or tfjs,
-                                                     agnostic_nms=self.args.agnostic_nms or tfjs)
+            f[5], s_model = self._export_saved_model()
             if pb or tfjs:  # pb prerequisite to tfjs
                 f[6], _ = self._export_pb(s_model)
             if tflite:
@@ -501,11 +515,7 @@ class Exporter:
     @try_export
     def _export_saved_model(self,
                             nms=False,
-                            agnostic_nms=False,
-                            topk_per_class=100,
-                            topk_all=100,
-                            iou_thres=0.45,
-                            conf_thres=0.25,
+                            osd=False,  # output signature defs
                             prefix=colorstr('TensorFlow SavedModel:')):
 
         # YOLOv8 TensorFlow SavedModel export
@@ -531,7 +541,8 @@ class Exporter:
 
         # Export to TF
         int8 = '-oiqt -qt per-tensor' if self.args.int8 else ''
-        cmd = f'onnx2tf -i {f_onnx} -o {f} -nuo --non_verbose {int8}'
+        osd = '-osd' if osd else ''
+        cmd = f'onnx2tf -i {f_onnx} -o {f} -nuo --non_verbose {int8} {osd}'
         LOGGER.info(f'\n{prefix} running {cmd}')
         subprocess.run(cmd, shell=True)
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml
@@ -649,9 +660,10 @@ class Exporter:
         f = str(self.file).replace(self.file.suffix, '_web_model')  # js dir
         f_pb = self.file.with_suffix('.pb')  # *.pb path
 
-        cmd = f'tensorflowjs_converter --input_format=tf_frozen_model {f_pb} {f}'
-        # cmd = f'tensorflowjs_converter --input_format=tf_frozen_model ' \
-        #       f'--output_node_names=Identity,Identity_1,Identity_2,Identity_3 {f_pb} {f}'
+        outputs = ','.join(gd_outputs(f_pb))
+        print('OUTPUT_NODE_NAMES', outputs)
+        cmd = f'tensorflowjs_converter --input_format=tf_frozen_model ' \
+              f'--output_node_names={outputs} {f_pb} {f}'
         subprocess.run(cmd.split(), check=True)
 
         # f_json = Path(f) / 'model.json'  # *.json path

@@ -5,7 +5,7 @@ from time import time
 
 from ultralytics.hub.utils import PREFIX, traces
 from ultralytics.yolo.utils import LOGGER
-from ultralytics.yolo.utils.torch_utils import get_num_params, get_flops
+from ultralytics.yolo.utils.torch_utils import get_flops, get_num_params
 
 
 def on_pretrain_routine_end(trainer):
@@ -52,7 +52,9 @@ def on_train_end(trainer):
         # Upload final model and metrics with exponential standoff
         LOGGER.info(f'{PREFIX}Training completed successfully ✅\n'
                     f'{PREFIX}Uploading final model to HUB...')
-        session._upload_model(trainer.epoch, trainer.best, map=trainer.metrics.get('metrics/mAP50-95(B)', 0),
+        session._upload_model(trainer.epoch,
+                              trainer.best,
+                              map=trainer.metrics.get('metrics/mAP50-95(B)', 0),
                               final=True)
         session.alive = False  # stop heartbeats
         LOGGER.info(f'{PREFIX}View model at https://hub.ultralytics.com/models/{session.model_id} 🚀')

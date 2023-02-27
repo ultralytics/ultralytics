@@ -621,7 +621,7 @@ class Exporter:
         cmd = 'edgetpu_compiler --version'
         help_url = 'https://coral.ai/docs/edgetpu/compiler/'
         assert LINUX, f'export only supported on Linux. See {help_url}'
-        if subprocess.run(f'{cmd} > /dev/null', shell=True).returncode != 0:
+        if subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True).returncode != 0:
             LOGGER.info(f'\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}')
             sudo = subprocess.run('sudo --version >/dev/null', shell=True).returncode == 0  # sudo installed on system
             for c in (

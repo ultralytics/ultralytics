@@ -139,7 +139,8 @@ class Results:
             annotator.masks(masks.data, colors=[colors(x, True) for x in boxes.cls], im_gpu=im)
 
         if logits is not None:
-            top5i = logits.argsort(0, descending=True)[:5].tolist()  # top 5 indices
+            n5 = min(len(self.names), 5)
+            top5i = logits.argsort(0, descending=True)[:n5].tolist()  # top 5 indices
             text = f"{', '.join(f'{names[j] if names else j} {logits[j]:.2f}' for j in top5i)}, "
             annotator.text((32, 32), text, txt_color=(255, 255, 255))  # TODO: allow setting colors
 

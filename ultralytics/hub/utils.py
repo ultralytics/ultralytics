@@ -10,10 +10,11 @@ from pathlib import Path
 from random import random
 
 import requests
+from tqdm import tqdm
 
-from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, ENVIRONMENT, LOGGER, RANK, SETTINGS, TESTS_RUNNING, TryExcept,
-                                    __version__, colorstr, emojis, get_git_origin_url, is_colab, is_git_dir,
-                                    is_pip_package)
+from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, ENVIRONMENT, LOGGER, RANK, SETTINGS, TESTS_RUNNING,
+                                    TQDM_BAR_FORMAT, TryExcept, __version__, colorstr, emojis, get_git_origin_url,
+                                    is_colab, is_git_dir, is_pip_package)
 from ultralytics.yolo.utils.checks import check_online
 
 PREFIX = colorstr('Ultralytics: ')
@@ -82,6 +83,34 @@ def split_key(key=''):
     api_key, model_id = key.split(sep)
     assert len(api_key) and len(model_id), error_string
     return api_key, model_id
+
+
+def requests_with_progress(method, url, **kwargs):
+    """
+    Make an HTTP request using the specified method and URL, with an optional progress bar.
+
+    Args:
+        method (str): The HTTP method to use (e.g. 'GET', 'POST').
+        url (str): The URL to send the request to.
+        progress (bool, optional): Whether to display a progress bar. Defaults to False.
+        **kwargs: Additional keyword arguments to pass to the underlying `requests.request` function.
+
+    Returns:
+        requests.Response: The response from the HTTP request.
+
+    """
+    progress = kwargs.pop('progress', False)
+    if progress:
+        response = requests.request(method, url, stream=True, **kwargs)
+        total = int(response.headers.get('content-length', 0))  # total size
+        desc = 'Progress'
+        pbar = tqdm(total=total, desc=desc, unit='B', unit_scale=True, unit_divisor=1024, bar_format=TQDM_BAR_FORMAT)
+        for data in response.iter_content(chunk_size=1024):
+            pbar.update(len(data))
+        pbar.close()
+        return response
+    else:
+        return requests.request(method, url, **kwargs)
 
 
 def smart_request(*args, retry=3, timeout=30, thread=True, code=-1, method='post', verbose=True, **kwargs):

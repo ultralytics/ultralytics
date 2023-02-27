@@ -171,12 +171,7 @@ class HubTrainingSession:
                           code=4)
         else:
             data.update({'type': 'epoch', 'isBest': bool(is_best)})
-            smart_request('post',
-                          url,
-                          data=data,
-                          files={'last.pt': file},
-                          headers=self.auth_header,
-                          code=3)
+            smart_request('post', url, data=data, files={'last.pt': file}, headers=self.auth_header, code=3)
 
     @threaded
     def _start_heartbeat(self):

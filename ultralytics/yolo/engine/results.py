@@ -42,9 +42,9 @@ class Results:
     def __init__(self, orig_img, path, names, boxes=None, masks=None, probs=None) -> None:
         self.orig_img = orig_img
         self.orig_shape = orig_img.shape[:2]
-        self.boxes = Boxes(boxes.cpu(), self.orig_shape) if boxes is not None else None  # native size boxes
-        self.masks = Masks(masks.cpu(), self.orig_shape) if masks is not None else None  # native size or imgsz masks
-        self.probs = probs.cpu() if probs is not None else None
+        self.boxes = Boxes(boxes, self.orig_shape) if boxes is not None else None  # native size boxes
+        self.masks = Masks(masks, self.orig_shape) if masks is not None else None  # native size or imgsz masks
+        self.probs = probs if probs is not None else None
         self.names = names
         self.path = path
         self._keys = (k for k in ('boxes', 'masks', 'probs') if getattr(self, k) is not None)
@@ -111,14 +111,14 @@ class Results:
 
         Args:
             show_conf (bool): Whether to show the detection confidence score.
-            line_width (float, optional): The line width of the bounding boxes. If None, it is automatically scaled to the image size.
-            font_size (float, optional): The font size of the text. If None, it is automatically scaled to the image size.
+            line_width (float, optional): The line width of the bounding boxes. If None, it is scaled to the image size.
+            font_size (float, optional): The font size of the text. If None, it is scaled to the image size.
             font (str): The font to use for the text.
             pil (bool): Whether to return the image as a PIL Image.
-            example (str): An example string to display in the plot. Useful for indicating the expected format of the output.
+            example (str): An example string to display. Useful for indicating the expected format of the output.
 
         Returns:
-            None or PIL Image: If `pil` is True, the image will be returned as a PIL Image. Otherwise, nothing is returned.
+            (None) or (PIL.Image): If `pil` is True, a PIL Image is returned. Otherwise, nothing is returned.
         """
         img = deepcopy(self.orig_img)
         annotator = Annotator(img, line_width, font_size, font, pil, example)
@@ -284,7 +284,7 @@ class Masks:
         orig_shape (tuple): Original image size, in the format (height, width).
 
     Properties:
-        segments (list): A list of segments which includes x, y, w, h, label, confidence, and mask of each detection masks.
+        segments (list): A list of segments which includes x, y, w, h, label, confidence, and mask of each detection.
 
     Methods:
         cpu(): Returns a copy of the masks tensor on CPU memory.

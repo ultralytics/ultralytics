@@ -2,15 +2,15 @@
 
 import sys
 from pathlib import Path
-from typing import List
 
 from ultralytics import yolo  # noqa
 from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, SegmentationModel, attempt_load_one_weight,
                                   guess_model_task, nn)
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
-from ultralytics.yolo.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, callbacks, yaml_load
-from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_yaml
+from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, ROOT, callbacks,
+                                    is_git_dir, is_pip_package, yaml_load)
+from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_pip_update, check_yaml
 from ultralytics.yolo.utils.downloads import GITHUB_ASSET_STEMS
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 
@@ -64,10 +64,10 @@ class YOLO:
             Performs prediction using the YOLO model.
 
     Returns:
-        list[ultralytics.yolo.engine.results.Results]: The prediction results.
+        list(ultralytics.yolo.engine.results.Results): The prediction results.
     """
 
-    def __init__(self, model='yolov8n.pt') -> None:
+    def __init__(self, model='yolov8n.pt', task=None) -> None:
         """
         Initializes the YOLO model.
 
@@ -90,9 +90,9 @@ class YOLO:
         if not suffix and Path(model).stem in GITHUB_ASSET_STEMS:
             model, suffix = Path(model).with_suffix('.pt'), '.pt'  # add suffix, i.e. yolov8n -> yolov8n.pt
         if suffix == '.yaml':
-            self._new(model)
+            self._new(model, task)
         else:
-            self._load(model)
+            self._load(model, task)
 
     def __call__(self, source=None, stream=False, **kwargs):
         return self.predict(source, stream, **kwargs)
@@ -101,17 +101,18 @@ class YOLO:
         name = self.__class__.__name__
         raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
-    def _new(self, cfg: str, verbose=True):
+    def _new(self, cfg: str, task=None, verbose=True):
         """
         Initializes a new model and infers the task type from the model definitions.
 
         Args:
             cfg (str): model configuration file
+            task (str) or (None): model task
             verbose (bool): display model info on load
         """
         self.cfg = check_yaml(cfg)  # check YAML
         cfg_dict = yaml_load(self.cfg, append_filename=True)  # model dict
-        self.task = guess_model_task(cfg_dict)
+        self.task = task or guess_model_task(cfg_dict)
         self.model = TASK_MAP[self.task][0](cfg_dict, verbose=verbose and RANK == -1)  # build model
         self.overrides['model'] = self.cfg
 
@@ -120,12 +121,13 @@ class YOLO:
         self.model.args = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # attach args to model
         self.model.task = self.task
 
-    def _load(self, weights: str, task=''):
+    def _load(self, weights: str, task=None):
         """
         Initializes a new model and infers the task type from the model head.
 
         Args:
             weights (str): model checkpoint to be loaded
+            task (str) or (None): model task
         """
         suffix = Path(weights).suffix
         if suffix == '.pt':
@@ -136,7 +138,7 @@ class YOLO:
         else:
             weights = check_file(weights)
             self.model, self.ckpt = weights, None
-            self.task = guess_model_task(weights)
+            self.task = task or guess_model_task(weights)
             self.ckpt_path = weights
         self.overrides['model'] = weights
 
@@ -149,6 +151,13 @@ class YOLO:
                             f'PyTorch models can be used to train, val, predict and export, i.e. '
                             f"'yolo export model=yolov8n.pt', but exported formats like ONNX, TensorRT etc. only "
                             f"support 'predict' and 'val' modes, i.e. 'yolo predict model=yolov8n.onnx'.")
+
+    def _check_pip_update(self):
+        """
+        Inform user of ultralytics package update availability
+        """
+        if is_pip_package():
+            check_pip_update()
 
     def reset(self):
         """
@@ -189,6 +198,10 @@ class YOLO:
         Returns:
             (List[ultralytics.yolo.engine.results.Results]): The prediction results.
         """
+        if source is None:
+            source = ROOT / 'assets' if is_git_dir() else 'https://ultralytics.com/images/bus.jpg'
+            LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using 'source={source}'.")
+
         overrides = self.overrides.copy()
         overrides['conf'] = 0.25
         overrides.update(kwargs)  # prefer kwargs
@@ -251,11 +264,12 @@ class YOLO:
         Args:
             **kwargs : Any other args accepted by the validators. To see all args check 'configuration' section in docs
         """
-        from ultralytics.yolo.utils.benchmarks import run_benchmarks
+        self._check_is_pytorch_model()
+        from ultralytics.yolo.utils.benchmarks import benchmark
         overrides = self.model.args.copy()
         overrides.update(kwargs)
         overrides = {**DEFAULT_CFG_DICT, **overrides}  # fill in missing overrides keys with defaults
-        return run_benchmarks(model=self, imgsz=overrides['imgsz'], half=overrides['half'], device=overrides['device'])
+        return benchmark(model=self, imgsz=overrides['imgsz'], half=overrides['half'], device=overrides['device'])
 
     def export(self, **kwargs):
         """
@@ -283,6 +297,7 @@ class YOLO:
             **kwargs (Any): Any number of arguments representing the training configuration.
         """
         self._check_is_pytorch_model()
+        self._check_pip_update()
         overrides = self.overrides.copy()
         overrides.update(kwargs)
         if kwargs.get('cfg'):

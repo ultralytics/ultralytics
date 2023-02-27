@@ -136,7 +136,7 @@ class AutoBackend(nn.Module):
             batch_dim = get_batch(network)
             if batch_dim.is_static:
                 batch_size = batch_dim.get_length()
-            executable_network = ie.compile_model(network, device_name='CPU')  # device_name="MYRIAD" for Intel NCS2
+            executable_network = ie.compile_model(network, device_name='CPU')  # device_name="MYRIAD" for NCS2
         elif engine:  # TensorRT
             LOGGER.info(f'Loading {w} for TensorRT inference...')
             import tensorrt as trt  # https://developer.nvidia.com/nvidia-tensorrt-download
@@ -176,6 +176,8 @@ class AutoBackend(nn.Module):
             LOGGER.info(f'Loading {w} for CoreML inference...')
             import coremltools as ct
             model = ct.models.MLModel(w)
+            names, stride, task = (model.user_defined_metadata.get(k) for k in ('names', 'stride', 'task'))
+            names, stride = eval(names), int(stride)
         elif saved_model:  # TF SavedModel
             LOGGER.info(f'Loading {w} for TensorFlow SavedModel inference...')
             import tensorflow as tf
@@ -185,17 +187,12 @@ class AutoBackend(nn.Module):
             LOGGER.info(f'Loading {w} for TensorFlow GraphDef inference...')
             import tensorflow as tf
 
+            from ultralytics.yolo.engine.exporter import gd_outputs
+
             def wrap_frozen_graph(gd, inputs, outputs):
                 x = tf.compat.v1.wrap_function(lambda: tf.compat.v1.import_graph_def(gd, name=''), [])  # wrapped
                 ge = x.graph.as_graph_element
                 return x.prune(tf.nest.map_structure(ge, inputs), tf.nest.map_structure(ge, outputs))
-
-            def gd_outputs(gd):
-                name_list, input_list = [], []
-                for node in gd.node:  # tensorflow.core.framework.node_def_pb2.NodeDef
-                    name_list.append(node.name)
-                    input_list.extend(node.input)
-                return sorted(f'{x}:0' for x in list(set(name_list) - set(input_list)) if not x.startswith('NoOp'))
 
             gd = tf.Graph().as_graph_def()  # TF GraphDef
             with open(w, 'rb') as f:
@@ -319,10 +316,17 @@ class AutoBackend(nn.Module):
             self.context.execute_v2(list(self.binding_addrs.values()))
             y = [self.bindings[x].data for x in sorted(self.output_names)]
         elif self.coreml:  # CoreML
-            im = im.cpu().numpy()
-            im = Image.fromarray((im[0] * 255).astype('uint8'))
+            im = im[0].cpu().numpy()
+            if self.task == 'classify':
+                from ultralytics.yolo.data.utils import IMAGENET_MEAN, IMAGENET_STD
+
+                # im_pil = Image.fromarray(((im / 6 + 0.5) * 255).astype('uint8'))
+                for i in range(3):
+                    im[..., i] *= IMAGENET_STD[i]
+                    im[..., i] += IMAGENET_MEAN[i]
+            im_pil = Image.fromarray((im * 255).astype('uint8'))
             # im = im.resize((192, 320), Image.ANTIALIAS)
-            y = self.model.predict({'image': im})  # coordinates are xywh normalized
+            y = self.model.predict({'image': im_pil})  # coordinates are xywh normalized
             if 'confidence' in y:
                 box = xywh2xyxy(y['coordinates'] * [[w, h, w, h]])  # xyxy pixels
                 conf, cls = y['confidence'].max(1), y['confidence'].argmax(1).astype(np.float)

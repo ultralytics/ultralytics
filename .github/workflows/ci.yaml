@@ -38,7 +38,7 @@ jobs:
           if [ "${{ matrix.os }}" == "macos-latest" ]; then
               pip install -e . coremltools openvino-dev tensorflow-macos --extra-index-url https://download.pytorch.org/whl/cpu
             else
-              pip install -e . coremltools openvino-dev tensorflow-cpu paddlepaddle x2paddle --extra-index-url https://download.pytorch.org/whl/cpu
+              pip install -e . coremltools openvino-dev tensorflow-cpu --extra-index-url https://download.pytorch.org/whl/cpu
           fi
           yolo export format=tflite
       - name: Check environment
@@ -55,18 +55,20 @@ jobs:
       - name: Benchmark DetectionModel
         shell: python
         run: |
-          from ultralytics.yolo.utils.benchmarks import run_benchmarks
-          run_benchmarks(model='${{ matrix.model }}.pt', imgsz=160, half=False, hard_fail=False)
+          from ultralytics.yolo.utils.benchmarks import benchmark
+          benchmark(model='${{ matrix.model }}.pt', imgsz=160, half=False, hard_fail=0.20)
       - name: Benchmark SegmentationModel
         shell: python
         run: |
-          from ultralytics.yolo.utils.benchmarks import run_benchmarks
-          run_benchmarks(model='${{ matrix.model }}-seg.pt', imgsz=160, half=False, hard_fail=False)
+          from ultralytics.yolo.utils.benchmarks import benchmark
+          benchmark(model='${{ matrix.model }}-seg.pt', imgsz=160, half=False, hard_fail=0.14)
       - name: Benchmark ClassificationModel
         shell: python
         run: |
-          from ultralytics.yolo.utils.benchmarks import run_benchmarks
-          run_benchmarks(model='${{ matrix.model }}-cls.pt', imgsz=160, half=False, hard_fail=False)
+          from ultralytics.yolo.utils.benchmarks import benchmark
+          benchmark(model='${{ matrix.model }}-cls.pt', imgsz=160, half=False, hard_fail=0.60)
+      - name: Benchmark Summary
+        run: cat benchmarks.log
 
   Tests:
     timeout-minutes: 60
@@ -88,10 +90,10 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Get cache dir
-        # https://github.com/actions/cache/blob/master/examples.md#multiple-oss-in-a-workflow
+      - name: Get cache dir  # https://github.com/actions/cache/blob/master/examples.md#multiple-oss-in-a-workflow
         id: pip-cache
-        run: echo "::set-output name=dir::$(pip cache dir)"
+        run: echo "dir=$(pip cache dir)" >> $GITHUB_OUTPUT
+        shell: bash  # for Windows compatibility
       - name: Cache pip
         uses: actions/cache@v3
         with:

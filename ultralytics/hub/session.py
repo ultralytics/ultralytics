@@ -154,6 +154,7 @@ class HubTrainingSession:
             LOGGER.warning(f'{PREFIX}WARNING ⚠️ Model upload issue. Missing model {weights}.')
             file = None
         url = f'{self.api_url}/upload'
+        # url = 'http://httpbin.org/post'  # for debug
         data = {'epoch': epoch}
         if final:
             data.update({'type': 'final', 'map': map})

@@ -56,10 +56,9 @@ class HubTrainingSession:
     def _get_model(self):
         # Returns model from database by id
         api_url = f'{HUB_API_ROOT}/v1/models/{self.model_id}'
-        headers = self.auth_header
 
         try:
-            response = smart_request('get', api_url, headers=headers, thread=False, code=0)
+            response = smart_request('get', api_url, headers=self.auth_header, thread=False, code=0)
             data = response.json().get('data', None)
 
             if data.get('status', None) == 'trained':
@@ -184,6 +183,6 @@ class HubTrainingSession:
                               headers=self.auth_header,
                               retry=0,
                               code=5,
-                              thread=False)
+                              thread=False)  # already in a thread
             self.agent_id = r.json().get('data', {}).get('agentId', None)
             sleep(self._rate_limits['heartbeat'])

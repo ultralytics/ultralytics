@@ -211,14 +211,7 @@ class Traces:
             trace = {'uuid': SETTINGS['uuid'], 'cfg': cfg, 'metadata': self.metadata}
 
             # Send a request to the HUB API to sync analytics
-            smart_request('post',
-                          f'{HUB_API_ROOT}/v1/usage/anonymous',
-                          json=trace,
-                          headers=None,
-                          code=3,
-                          retry=0,
-                          timeout=1.0,
-                          verbose=False)
+            smart_request('post', f'{HUB_API_ROOT}/v1/usage/anonymous', json=trace, code=3, retry=0, verbose=False)
 
 
 # Run below code on hub/utils init -------------------------------------------------------------------------------------

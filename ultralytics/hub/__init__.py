@@ -62,9 +62,9 @@ def reset_model(key=''):
     r = requests.post('https://api.ultralytics.com/model-reset', json={'apiKey': api_key, 'modelId': model_id})
 
     if r.status_code == 200:
-        LOGGER.info(f'{PREFIX}model reset successfully')
+        LOGGER.info(f'{PREFIX}Model reset successfully')
         return
-    LOGGER.warning(f'{PREFIX}model reset failure {r.status_code} {r.reason}')
+    LOGGER.warning(f'{PREFIX}Model reset failure {r.status_code} {r.reason}')
 
 
 def export_model(key='', format='torchscript'):
@@ -76,7 +76,7 @@ def export_model(key='', format='torchscript'):
                           'apiKey': api_key,
                           'modelId': model_id,
                           'format': format})
-    assert (r.status_code == 200), f'{PREFIX}{format} export failure {r.status_code} {r.reason}'
+    assert r.status_code == 200, f'{PREFIX}{format} export failure {r.status_code} {r.reason}'
     LOGGER.info(f'{PREFIX}{format} export started ✅')
 
 
@@ -89,7 +89,7 @@ def get_export(key='', format='torchscript'):
                           'apiKey': api_key,
                           'modelId': model_id,
                           'format': format})
-    assert (r.status_code == 200), f'{PREFIX}{format} get_export failure {r.status_code} {r.reason}'
+    assert r.status_code == 200, f'{PREFIX}{format} get_export failure {r.status_code} {r.reason}'
     return r.json()
 
 

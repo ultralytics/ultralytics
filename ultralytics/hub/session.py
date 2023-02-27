@@ -139,7 +139,7 @@ class HubTrainingSession:
     def on_train_end(self, trainer):
         # Upload final model and metrics with exponential standoff
         LOGGER.info(f'{PREFIX}Training completed successfully ✅\n'
-                    f'{PREFIX}Uploading final {self.model_id}')
+                    f'{PREFIX}Uploading final model to HUB...')
 
         self._upload_model(trainer.epoch, trainer.best, map=trainer.metrics.get('metrics/mAP50-95(B)', 0), final=True)
         self.alive = False  # stop heartbeats
@@ -156,7 +156,6 @@ class HubTrainingSession:
         url = f'{self.api_url}/upload'
         data = {'epoch': epoch}
         if final:
-            LOGGER.info(f'{PREFIX}Uploading final model to HUB, please wait...')
             data.update({'type': 'final', 'map': map})
             smart_request('post',
                           url,

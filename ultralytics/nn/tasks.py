@@ -9,7 +9,7 @@ import torch.nn as nn
 
 from ultralytics.nn.modules import (C1, C2, C3, C3TR, SPP, SPPF, Bottleneck, BottleneckCSP, C2f, C3Ghost, C3x, Classify,
                                     Concat, Conv, ConvTranspose, Detect, DWConv, DWConvTranspose2d, Ensemble, Focus,
-                                    GhostBottleneck, GhostConv, Segment)
+                                    GhostBottleneck, GhostConv, Segment, Keypoint)
 from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, yaml_load
 from ultralytics.yolo.utils.checks import check_requirements, check_yaml
 from ultralytics.yolo.utils.torch_utils import (fuse_conv_and_bn, fuse_deconv_and_bn, initialize_weights,
@@ -445,7 +445,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
-        elif m in {Detect, Segment}:
+        elif m in {Detect, Segment, Keypoint}:
             args.append([ch[x] for x in f])
             if m is Segment:
                 args[2] = make_divisible(args[2] * gw, 8)
@@ -500,6 +500,8 @@ def guess_model_task(model):
             return "detect"
         if m in ["segment"]:
             return "segment"
+        if m in ["keypoint"]:
+            return "keypoint"
 
     # Guess from PyTorch model
     if isinstance(model, nn.Module):
@@ -510,6 +512,8 @@ def guess_model_task(model):
                 return "segment"
             elif isinstance(m, Classify):
                 return "classify"
+            elif isinstance(m, Keypoint):
+                return "keypoint"
 
     # Unable to determine task from model
     raise SyntaxError("YOLO is unable to automatically guess model task. Explicitly define task for your model, "

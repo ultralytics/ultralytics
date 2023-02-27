@@ -166,4 +166,4 @@ def test_predict_callback_and_setup():
         print(boxes)
 
 
-test_predict_img()
+model = YOLO("yolov8n-kpt.yaml")

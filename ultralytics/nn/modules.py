@@ -371,6 +371,28 @@ class Ensemble(nn.ModuleList):
         y = torch.cat(y, 1)  # nms ensemble
         return y, None  # inference, train output
 
+class ImplicitA(nn.Module):
+
+    def __init__(self, channel):
+        super().__init__()
+        self.channel = channel
+        self.implicit = nn.Parameter(torch.zeros(1, channel, 1, 1))
+        nn.init.normal_(self.implicit, std=.02)
+
+    def forward(self, x):
+        return self.implicit.expand_as(x) + x
+
+
+class ImplicitM(nn.Module):
+
+    def __init__(self, channel):
+        super().__init__()
+        self.channel = channel
+        self.implicit = nn.Parameter(torch.ones(1, channel, 1, 1))
+        nn.init.normal_(self.implicit, mean=1., std=.02)
+
+    def forward(self, x):
+        return self.implicit.expand_as(x) * x
 
 # heads
 class Detect(nn.Module):
@@ -385,10 +407,9 @@ class Detect(nn.Module):
         super().__init__()
         self.nc = nc  # number of classes
         self.nl = len(ch)  # number of detection layers
-        self.reg_max = 16  # DFL channels (ch[0] // 16 to scale 4/8/12/16/20 for n/s/m/l/x)
+        self.reg_max = 16  # DFL channels (ch[0] // 16`` to scale 4/8/12/16/20 for n/s/m/l/x)
         self.no = nc + self.reg_max * 4  # number of outputs per anchor
         self.stride = torch.zeros(self.nl)  # strides computed during build
-
         c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0], self.nc)  # channels
         self.cv2 = nn.ModuleList(
             nn.Sequential(Conv(x, c2, 3), Conv(c2, c2, 3), nn.Conv2d(c2, 4 * self.reg_max, 1)) for x in ch)
@@ -458,3 +479,50 @@ class Classify(nn.Module):
             x = torch.cat(x, 1)
         x = self.linear(self.drop(self.pool(self.conv(x)).flatten(1)))
         return x if self.training else x.softmax(1)
+
+class Keypoint(Detect):
+
+    def __init__(self, nc=80,  nkpt=None, ch=()):
+        super().__init__(nc, ch)
+        self.nkpt = nkpt  # number of keypoints
+        self.no_kpt = self.nkpt  # number of outputs per anchor for keypoints
+        self.no_det = nc + self.reg_max * 4  # number of outputs per anchor
+        self.no = self.no_det + self.no_kpt  # number of outputs per anchor
+        self.m = nn.ModuleList(nn.Conv2d(x, self.no_det, 1) for x in ch)  # output conv
+        self.detect = Detect.forward
+
+        if self.nkpt is not None:
+            self.m_kpt = nn.ModuleList(nn.Conv2d(x, self.no_kpt, 1) for x in ch)
+
+    def forward(self, head_features):
+        output = []  # inference output
+        for i in range(self.nl):
+            head_features[i] = torch.cat((self.m[i](head_features[i]), self.m_kpt[i](head_features[i])), axis=1)
+            bs, _, ny, nx = head_features[i].shape  # x(bs,255,20,20) to x(bs,3,20,20,85)
+            head_features[i] = head_features[i].view(bs, 1, self.no, ny, nx).permute(0, 1, 3, 4, 2).contiguous()
+            x_det = head_features[i][..., :6]  # (obj, conf, x, y, w, h)
+            x_kpt = head_features[i][..., 6:]  # (kpt_i_x, kpt_i_y, kpt_i_conf)
+
+            if not self.training:  # inference
+                if self.dynamic or self.grid[i].shape[2:4] != head_features[i].shape[2:4]:
+                    self.grid[i], self.anchor_grid[i] = self._make_grid(nx, ny, i)
+
+                kpt_grid_x = self.grid[i][..., 0:1]
+                kpt_grid_y = self.grid[i][..., 1:2]
+
+                y = x_det.sigmoid()
+
+                xy = (y[..., 0:2] * 2 + self.grid[i]) * self.stride[i]  # xy
+                wh = (y[..., 2:4] * 2) ** 2 * self.anchor_grid[i]  # wh
+                if self.nkpt != 0:
+                    x_kpt[..., 0::3] = (x_kpt[..., ::3] * 2. +
+                                        kpt_grid_x.repeat(1, 1, 1, 1, self.nkpt)) * self.stride[i]  # xy
+                    x_kpt[..., 1::3] = (x_kpt[..., 1::3] * 2. +
+                                        kpt_grid_y.repeat(1, 1, 1, 1, self.nkpt)) * self.stride[i]  # xy
+
+                    x_kpt[..., 2::3] = x_kpt[..., 2::3].sigmoid()  # visibility confidence
+                y = torch.cat((xy, wh, y[..., 4:], x_kpt), -1)
+                output.append(y.view(bs, -1, self.no))
+        import pdb;pdb.set_trace()
+        return head_features if self.training else (torch.cat(output, 1),) if self.export else (torch.cat(output, 1),
+                                                                                                head_features)

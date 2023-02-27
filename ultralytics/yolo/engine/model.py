@@ -23,7 +23,13 @@ MODEL_MAP = {
         'yolo.TYPE.detect.DetectionPredictor'],
     "segment": [
         SegmentationModel, 'yolo.TYPE.segment.SegmentationTrainer', 'yolo.TYPE.segment.SegmentationValidator',
-        'yolo.TYPE.segment.SegmentationPredictor']}
+        'yolo.TYPE.segment.SegmentationPredictor'],
+    "keypoint": [
+                DetectionModel, 'yolo.TYPE.detect.DetectionTrainer', 'yolo.TYPE.detect.DetectionValidator',
+        'yolo.TYPE.detect.DetectionPredictor'
+    ] # temp untill keypoint modes are not  implemented
+        
+        }
 
 
 class YOLO:

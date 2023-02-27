@@ -15,7 +15,7 @@ AGENT_NAME = f'python-{__version__}-colab' if is_colab() else f'python-{__versio
 session = None
 
 
-class HubTrainingSession:
+class HUBTrainingSession:
 
     def __init__(self, model_id, auth):
         self.agent_id = None  # identifies which instance is communicating with server
@@ -97,11 +97,11 @@ class HubTrainingSession:
         if not check_dataset_disk_space(self.model['data']):
             raise MemoryError('Not enough disk space')
 
-    def register_callbacks(self, trainer):
-        trainer.add_callback('on_pretrain_routine_end', self.on_pretrain_routine_end)
-        trainer.add_callback('on_fit_epoch_end', self.on_fit_epoch_end)
-        trainer.add_callback('on_model_save', self.on_model_save)
-        trainer.add_callback('on_train_end', self.on_train_end)
+    def register_callbacks(self, model):
+        model.add_callback('on_pretrain_routine_end', self.on_pretrain_routine_end)
+        model.add_callback('on_fit_epoch_end', self.on_fit_epoch_end)
+        model.add_callback('on_model_save', self.on_model_save)
+        model.add_callback('on_train_end', self.on_train_end)
 
     def on_pretrain_routine_end(self, trainer):
         """

@@ -3,7 +3,7 @@
 import requests
 
 from ultralytics.hub.auth import Auth
-from ultralytics.hub.session import HubTrainingSession
+from ultralytics.hub.session import HUBTrainingSession
 from ultralytics.hub.utils import split_key
 from ultralytics.yolo.engine.exporter import EXPORT_FORMATS_LIST
 from ultralytics.yolo.engine.model import YOLO
@@ -27,7 +27,7 @@ def start(key=''):
         if not model_id:
             raise ConnectionError(emojis('Connecting with global API key is not currently supported. ❌'))
 
-        session = HubTrainingSession(model_id=model_id, auth=auth)
+        session = HUBTrainingSession(model_id=model_id, auth=auth)
         session.check_disk_space()
 
         model = YOLO(session.input_file)

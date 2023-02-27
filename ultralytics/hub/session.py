@@ -51,7 +51,7 @@ class HubTrainingSession:
 
     def upload_metrics(self):
         payload = {'metrics': self._metrics_queue.copy(), 'type': 'metrics'}
-        smart_request(f'{self.api_url}', json=payload, headers=self.auth_header, code=2)
+        smart_request('post', self.api_url, json=payload, headers=self.auth_header, code=2)
 
     def _get_model(self):
         # Returns model from database by id
@@ -59,7 +59,7 @@ class HubTrainingSession:
         headers = self.auth_header
 
         try:
-            response = smart_request(api_url, method='get', headers=headers, thread=False, code=0)
+            response = smart_request('get', api_url, headers=headers, thread=False, code=0)
             data = response.json().get('data', None)
 
             if data.get('status', None) == 'trained':
@@ -152,26 +152,37 @@ class HubTrainingSession:
             with open(weights, 'rb') as f:
                 file = f.read()
         else:
-            LOGGER.warning(f'{PREFIX}WARNING ⚠️ Model upload failed. Missing model {weights}.')
+            LOGGER.warning(f'{PREFIX}WARNING ⚠️ Model upload issue. Missing model {weights}.')
             file = None
+        url = f'{self.api_url}/upload'
         data = {'epoch': epoch}
         if final:
+            LOGGER.info(f'{PREFIX}Uploading final model to HUB, please wait...')
             data.update({'type': 'final', 'map': map})
+            smart_request('post',
+                          url,
+                          data=data,
+                          files={'best.pt': file},
+                          headers=self.auth_header,
+                          retry=10,
+                          timeout=3600,
+                          thread=False,
+                          progress=True,
+                          code=4)
         else:
             data.update({'type': 'epoch', 'isBest': bool(is_best)})
-
-        smart_request(f'{self.api_url}/upload',
-                      data=data,
-                      files={'best.pt' if final else 'last.pt': file},
-                      headers=self.auth_header,
-                      retry=10 if final else None,
-                      timeout=3600 if final else None,
-                      code=4 if final else 3)
+            smart_request('post',
+                          url,
+                          data=data,
+                          files={'last.pt': file},
+                          headers=self.auth_header,
+                          code=3)
 
     @threaded
     def _start_heartbeat(self):
         while self.alive:
-            r = smart_request(f'{HUB_API_ROOT}/v1/agent/heartbeat/models/{self.model_id}',
+            r = smart_request('post',
+                              f'{HUB_API_ROOT}/v1/agent/heartbeat/models/{self.model_id}',
                               json={
                                   'agent': AGENT_NAME,
                                   'agentId': self.agent_id},

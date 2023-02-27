@@ -243,15 +243,12 @@ class Exporter:
         if coreml:  # CoreML
             f[4], _ = self._export_coreml()
         if any((saved_model, pb, tflite, edgetpu, tfjs)):  # TensorFlow formats
-            LOGGER.warning('WARNING ⚠️ YOLOv8 TensorFlow export is still under development. '
-                           'Please consider contributing to the effort if you have TF expertise. Thank you!')
-            nms = False
             self.args.int8 |= edgetpu
             f[5], s_model = self._export_saved_model()
             if pb or tfjs:  # pb prerequisite to tfjs
                 f[6], _ = self._export_pb(s_model)
             if tflite:
-                f[7], _ = self._export_tflite(s_model, nms=nms, agnostic_nms=self.args.agnostic_nms)
+                f[7], _ = self._export_tflite(s_model, nms=False, agnostic_nms=self.args.agnostic_nms)
             if edgetpu:
                 f[8], _ = self._export_edgetpu(tflite_model=str(
                     Path(f[5]) / (self.file.stem + '_full_integer_quant.tflite')))  # int8 in/out
@@ -619,6 +616,8 @@ class Exporter:
     @try_export
     def _export_edgetpu(self, tflite_model='', prefix=colorstr('Edge TPU:')):
         # YOLOv8 Edge TPU export https://coral.ai/docs/edgetpu/models-intro/
+        LOGGER.warning(f'{prefix} WARNING ⚠️ Edge TPU known bug https://github.com/ultralytics/ultralytics/issues/1185')
+
         cmd = 'edgetpu_compiler --version'
         help_url = 'https://coral.ai/docs/edgetpu/compiler/'
         assert LINUX, f'export only supported on Linux. See {help_url}'

@@ -109,7 +109,6 @@ class KeypointLoss(Loss):
         if fg_mask.sum():
             loss[0], loss[3] = self.bbox_loss(pred_distri, pred_bboxes, anchor_points, target_bboxes / stride_tensor,
                                               target_scores, target_scores_sum, fg_mask)
-
         # WARNING: Uncomment lines below in case of Multi-GPU DDP unused gradient errors
         #         else:
         #             loss[1] += proto.sum() * 0
@@ -122,7 +121,6 @@ class KeypointLoss(Loss):
         loss[3] *= self.hyp.dfl  # dfl gain
 
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
-
 
 
 

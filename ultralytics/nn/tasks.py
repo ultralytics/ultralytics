@@ -523,6 +523,8 @@ def guess_model_task(model):
         for x in 'model.yaml', 'model.model.yaml', 'model.model.model.yaml':
             with contextlib.suppress(Exception):
                 return cfg2task(eval(x))
+        if m in ["keypoint"]:
+            return "keypoint"
 
         for m in model.modules():
             if isinstance(m, Detect):
@@ -543,6 +545,7 @@ def guess_model_task(model):
             return 'classify'
         elif 'detect' in model.parts:
             return 'detect'
+
 
     # Unable to determine task from model
     LOGGER.warning("WARNING ⚠️ Unable to automatically guess model task, assuming 'task=detect'. "

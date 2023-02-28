@@ -13,7 +13,7 @@ from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_P
 
 CLI_HELP_MSG = \
     f"""
-    Arguments received: {str(['yolo'] + sys.argv[1:])}. Note that Ultralytics 'yolo' commands use the following syntax:
+    Arguments received: {str(['yolo'] + sys.argv[1:])}. Ultralytics 'yolo' commands use the following syntax:
 
         yolo TASK MODE ARGS
 
@@ -217,6 +217,9 @@ def entrypoint(debug=''):
         if a.startswith('--'):
             LOGGER.warning(f"WARNING ⚠️ '{a}' does not require leading dashes '--', updating to '{a[2:]}'.")
             a = a[2:]
+        if a.endswith(','):
+            LOGGER.warning(f"WARNING ⚠️ '{a}' does not require trailing comma ',', updating to '{a[:-1]}'.")
+            a = a[:-1]
         if '=' in a:
             try:
                 re.sub(r' *= *', '=', a)  # remove spaces around equals sign
@@ -284,6 +287,9 @@ def entrypoint(debug=''):
     model = YOLO(model, task=task)
 
     # Task Update
+    if task and task != model.task:
+        LOGGER.warning(f"WARNING ⚠️ conflicting 'task={task}' passed with 'task={model.task}' model. "
+                       f'This may produce errors.')
     task = task or model.task
     overrides['task'] = task
 

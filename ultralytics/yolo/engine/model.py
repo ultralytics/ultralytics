@@ -67,7 +67,7 @@ class YOLO:
         list(ultralytics.yolo.engine.results.Results): The prediction results.
     """
 
-    def __init__(self, model='yolov8n.pt', task=None) -> None:
+    def __init__(self, model='yolov8n.pt', task=None, session=None) -> None:
         """
         Initializes the YOLO model.
 
@@ -84,6 +84,7 @@ class YOLO:
         self.ckpt_path = None
         self.overrides = {}  # overrides for trainer object
         self.metrics_data = None
+        self.session = session  # HUB session
 
         # Load or create new YOLO model
         suffix = Path(model).suffix
@@ -314,6 +315,7 @@ class YOLO:
         if not overrides.get('resume'):  # manually set model only if not resuming
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
             self.model = self.trainer.model
+        self.trainer.hub_session = self.session  # attach optional HUB session
         self.trainer.train()
         # update model and cfg after training
         if RANK in {0, -1}:

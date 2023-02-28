@@ -97,53 +97,6 @@ class HUBTrainingSession:
         if not check_dataset_disk_space(self.model['data']):
             raise MemoryError('Not enough disk space')
 
-    def register_callbacks(self, model):
-        model.add_callback('on_pretrain_routine_end', self.on_pretrain_routine_end)
-        model.add_callback('on_fit_epoch_end', self.on_fit_epoch_end)
-        model.add_callback('on_model_save', self.on_model_save)
-        model.add_callback('on_train_end', self.on_train_end)
-
-    def on_pretrain_routine_end(self, trainer):
-        """
-        Start timer for upload rate limit.
-        This method does not use trainer. It is passed to all callbacks by default.
-        """
-        # Start timer for upload rate limit
-        LOGGER.info(f'{PREFIX}View model at https://hub.ultralytics.com/models/{self.model_id} 🚀')
-        self._timers = {'metrics': time(), 'ckpt': time()}  # start timer on self.rate_limit
-
-    def on_fit_epoch_end(self, trainer):
-        # Upload metrics after val end
-        all_plots = {**trainer.label_loss_items(trainer.tloss, prefix='train'), **trainer.metrics}
-
-        if trainer.epoch == 0:
-            model_info = {
-                'model/parameters': get_num_params(trainer.model),
-                'model/GFLOPs': round(get_flops(trainer.model), 3),
-                'model/speed(ms)': round(trainer.validator.speed['inference'], 3)}
-            all_plots = {**all_plots, **model_info}
-        self._metrics_queue[trainer.epoch] = json.dumps(all_plots)
-        if time() - self._timers['metrics'] > self._rate_limits['metrics']:
-            self.upload_metrics()
-            self._timers['metrics'] = time()  # reset timer
-            self._metrics_queue = {}  # reset queue
-
-    def on_model_save(self, trainer):
-        # Upload checkpoints with rate limiting
-        is_best = trainer.best_fitness == trainer.fitness
-        if time() - self._timers['ckpt'] > self._rate_limits['ckpt']:
-            LOGGER.info(f'{PREFIX}Uploading checkpoint {self.model_id}')
-            self._upload_model(trainer.epoch, trainer.last, is_best)
-            self._timers['ckpt'] = time()  # reset timer
-
-    def on_train_end(self, trainer):
-        # Upload final model and metrics with exponential standoff
-        LOGGER.info(f'{PREFIX}Training completed successfully ✅\n'
-                    f'{PREFIX}Uploading final model to HUB...')
-
-        self._upload_model(trainer.epoch, trainer.best, map=trainer.metrics.get('metrics/mAP50-95(B)', 0), final=True)
-        self.alive = False  # stop heartbeats
-        LOGGER.info(f'{PREFIX}View model at https://hub.ultralytics.com/models/{self.model_id} 🚀')
 
     def _upload_model(self, epoch, weights, is_best=False, map=0.0, final=False):
         # Upload a model to HUB

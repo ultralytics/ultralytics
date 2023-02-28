@@ -1,15 +1,14 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
-import json
 import signal
 import sys
 from pathlib import Path
-from time import sleep, time
+from time import sleep
 
 import requests
 
 from ultralytics.hub.utils import HUB_API_ROOT, check_dataset_disk_space, smart_request
 from ultralytics.yolo.utils import LOGGER, PREFIX, __version__, emojis, is_colab, threaded
-from ultralytics.yolo.utils.torch_utils import get_flops, get_num_params
+from ultralytics.yolo.utils.checks import check_yolov5u_filename
 
 AGENT_NAME = f'python-{__version__}-colab' if is_colab() else f'python-{__version__}-local'
 session = None
@@ -81,11 +80,8 @@ class HUBTrainingSession:
                 'cache': data['cache'],
                 'data': data['data']}
 
-            self.input_file = data.get('cfg', data['weights'])
-
-            # hack for yolov5 cfg adds u
-            if 'cfg' in data and 'yolov5' in data['cfg']:
-                self.input_file = data['cfg'].replace('.yaml', 'u.yaml')
+            self.model_file = data.get('cfg', data['weights'])
+            self.model_file = check_yolov5u_filename(self.model_file)  # update *.yaml and *.pt files YOLOv5->YOLOv5u
 
             return data
         except requests.exceptions.ConnectionError as e:

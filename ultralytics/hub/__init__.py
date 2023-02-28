@@ -29,7 +29,7 @@ def start(key=''):
     session = HUBTrainingSession(model_id=model_id, auth=auth)
     session.check_disk_space()
 
-    model = YOLO(model=session.input_file, session=session)
+    model = YOLO(model=session.model_file, session=session)
     model.train(**session.train_args)
 
 

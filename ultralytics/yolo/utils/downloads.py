@@ -12,7 +12,7 @@ import requests
 import torch
 from tqdm import tqdm
 
-from ultralytics.yolo.utils import LOGGER, checks
+from ultralytics.yolo.utils import LOGGER, is_online, checks
 
 GITHUB_ASSET_NAMES = [f'yolov8{size}{suffix}.pt' for size in 'nsmlx' for suffix in ('', '6', '-cls', '-seg')] + \
                      [f'yolov5{size}u.pt' for size in 'nsmlx'] + \
@@ -112,7 +112,7 @@ def safe_download(url,
                         break  # success
                     f.unlink()  # remove partial downloads
             except Exception as e:
-                if i == 0 and not checks.ONLINE:
+                if i == 0 and not is_online():
                     raise ConnectionError(f'❌  Download failure for {url}. Environment is not online.') from e
                 elif i >= retry:
                     raise ConnectionError(f'❌  Download failure for {url}. Retry limit reached.') from e

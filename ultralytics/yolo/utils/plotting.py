@@ -301,14 +301,14 @@ def plot_images(images,
 
             # Plot masks
             if len(masks):
-                if masks.max() > 1.0:  # mean that masks are overlap
+                if idx.shape[0] == masks.shape[0]:  # overlap_masks=False
+                    image_masks = masks[idx]
+                else:  # overlap_masks=True
                     image_masks = masks[[i]]  # (1, 640, 640)
                     nl = idx.sum()
                     index = np.arange(nl).reshape(nl, 1, 1) + 1
                     image_masks = np.repeat(image_masks, nl, axis=0)
                     image_masks = np.where(image_masks == index, 1.0, 0.0)
-                else:
-                    image_masks = masks[idx]
 
                 im = np.asarray(annotator.im).copy()
                 for j, box in enumerate(boxes.T.tolist()):

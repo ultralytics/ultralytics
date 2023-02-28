@@ -12,6 +12,56 @@ on:
     - cron: '0 0 * * *'  # runs at 00:00 UTC every day
 
 jobs:
+  HUB:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ['3.10']
+        model: [yolov5n]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Get cache dir  # https://github.com/actions/cache/blob/master/examples.md#multiple-oss-in-a-workflow
+        id: pip-cache
+        run: echo "dir=$(pip cache dir)" >> $GITHUB_OUTPUT
+        shell: bash  # for Windows compatibility
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pip-cache.outputs.dir }}
+          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: ${{ runner.os }}-${{ matrix.python-version }}-pip-
+      - name: Install requirements
+        shell: bash  # for Windows compatibility
+        run: |
+          python -m pip install --upgrade pip wheel
+          pip install -e . --extra-index-url https://download.pytorch.org/whl/cpu
+      - name: Check environment
+        run: |
+          echo "RUNNER_OS is ${{ runner.os }}"
+          echo "GITHUB_EVENT_NAME is ${{ github.event_name }}"
+          echo "GITHUB_WORKFLOW is ${{ github.workflow }}"
+          echo "GITHUB_ACTOR is ${{ github.actor }}"
+          echo "GITHUB_REPOSITORY is ${{ github.repository }}"
+          echo "GITHUB_REPOSITORY_OWNER is ${{ github.repository_owner }}"
+          python --version
+          pip --version
+          pip list
+      - name: Test HUB training
+        shell: python
+        env:
+          APIKEY: ${{ secrets.ULTRALYTICS_HUB_APIKEY }}
+        run: |
+          import os
+          from ultralytics import hub
+          key = os.environ['APIKEY']
+          hub.reset_model(key)
+          hub.start(key)
+
   Benchmarks:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -25,12 +75,16 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-      #- name: Cache pip
-      #  uses: actions/cache@v3
-      #  with:
-      #    path: ~/.cache/pip
-      #    key: ${{ runner.os }}-Benchmarks-${{ hashFiles('requirements.txt') }}
-      #    restore-keys: ${{ runner.os }}-Benchmarks-
+      - name: Get cache dir  # https://github.com/actions/cache/blob/master/examples.md#multiple-oss-in-a-workflow
+        id: pip-cache
+        run: echo "dir=$(pip cache dir)" >> $GITHUB_OUTPUT
+        shell: bash  # for Windows compatibility
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pip-cache.outputs.dir }}
+          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: ${{ runner.os }}-${{ matrix.python-version }}-pip-
       - name: Install requirements
         shell: bash  # for Windows compatibility
         run: |
@@ -120,17 +174,6 @@ jobs:
           python --version
           pip --version
           pip list
-      - name: Test pip package
-        shell: python
-        env:
-          APIKEY: ${{ secrets.ULTRALYTICS_HUB_APIKEY }}
-        run: |
-          import os
-          import ultralytics
-          key = os.environ['APIKEY']
-          ultralytics.checks()
-          # ultralytics.reset_model(key)  # reset trained model
-          # ultralytics.start(key)  # train model
       - name: Test detection
         shell: bash  # for Windows compatibility
         run: |

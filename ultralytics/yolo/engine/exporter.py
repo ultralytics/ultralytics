@@ -243,15 +243,12 @@ class Exporter:
         if coreml:  # CoreML
             f[4], _ = self._export_coreml()
         if any((saved_model, pb, tflite, edgetpu, tfjs)):  # TensorFlow formats
-            LOGGER.warning('WARNING ⚠️ YOLOv8 TensorFlow export is still under development. '
-                           'Please consider contributing to the effort if you have TF expertise. Thank you!')
-            nms = False
             self.args.int8 |= edgetpu
             f[5], s_model = self._export_saved_model()
             if pb or tfjs:  # pb prerequisite to tfjs
                 f[6], _ = self._export_pb(s_model)
             if tflite:
-                f[7], _ = self._export_tflite(s_model, nms=nms, agnostic_nms=self.args.agnostic_nms)
+                f[7], _ = self._export_tflite(s_model, nms=False, agnostic_nms=self.args.agnostic_nms)
             if edgetpu:
                 f[8], _ = self._export_edgetpu(tflite_model=str(
                     Path(f[5]) / (self.file.stem + '_full_integer_quant.tflite')))  # int8 in/out
@@ -619,20 +616,18 @@ class Exporter:
     @try_export
     def _export_edgetpu(self, tflite_model='', prefix=colorstr('Edge TPU:')):
         # YOLOv8 Edge TPU export https://coral.ai/docs/edgetpu/models-intro/
+        LOGGER.warning(f'{prefix} WARNING ⚠️ Edge TPU known bug https://github.com/ultralytics/ultralytics/issues/1185')
+
         cmd = 'edgetpu_compiler --version'
         help_url = 'https://coral.ai/docs/edgetpu/compiler/'
         assert LINUX, f'export only supported on Linux. See {help_url}'
-        if subprocess.run(f'{cmd} > /dev/null', shell=True).returncode != 0:
+        if subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True).returncode != 0:
             LOGGER.info(f'\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}')
             sudo = subprocess.run('sudo --version >/dev/null', shell=True).returncode == 0  # sudo installed on system
             for c in (
-                    # 'curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -',  # errors
-                    'wget --no-check-certificate -q -O - https://packages.cloud.google.com/apt/doc/apt-key.gpg | '
-                    'sudo apt-key add -',
-                    'echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | '  # no comma
-                    'sudo tee /etc/apt/sources.list.d/coral-edgetpu.list',
-                    'sudo apt-get update',
-                    'sudo apt-get install edgetpu-compiler'):
+                    'curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -',
+                    'echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | sudo tee /etc/apt/sources.list.d/coral-edgetpu.list',
+                    'sudo apt-get update', 'sudo apt-get install edgetpu-compiler'):
                 subprocess.run(c if sudo else c.replace('sudo ', ''), shell=True, check=True)
         ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().split()[-1]
 

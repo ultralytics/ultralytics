@@ -97,7 +97,6 @@ class HUBTrainingSession:
         if not check_dataset_disk_space(self.model['data']):
             raise MemoryError('Not enough disk space')
 
-
     def _upload_model(self, epoch, weights, is_best=False, map=0.0, final=False):
         # Upload a model to HUB
         if Path(weights).is_file():

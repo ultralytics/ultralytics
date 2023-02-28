@@ -21,7 +21,7 @@ import torch
 from matplotlib import font_manager
 
 from ultralytics.yolo.utils import (AUTOINSTALL, LOGGER, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, downloads, emojis,
-                                    is_colab, is_docker, is_jupyter)
+                                    is_colab, is_docker, is_jupyter, is_online)
 
 
 def is_ascii(s) -> bool:
@@ -171,21 +171,6 @@ def check_font(font='Arial.ttf'):
         return file
 
 
-def check_online() -> bool:
-    """
-    Check internet connectivity by attempting to connect to a known online host.
-
-    Returns:
-        bool: True if connection is successful, False otherwise.
-    """
-    import socket
-    with contextlib.suppress(Exception):
-        host = socket.gethostbyname('www.github.com')
-        socket.create_connection((host, 80), timeout=2)
-        return True
-    return False
-
-
 def check_python(minimum: str = '3.7.0') -> bool:
     """
     Check current python version against the required minimum version.
@@ -229,7 +214,7 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
     if s and install and AUTOINSTALL:  # check environment variable
         LOGGER.info(f"{prefix} YOLOv8 requirement{'s' * (n > 1)} {s}not found, attempting AutoUpdate...")
         try:
-            assert check_online(), 'AutoUpdate skipped (offline)'
+            assert is_online(), 'AutoUpdate skipped (offline)'
             LOGGER.info(subprocess.check_output(f'pip install {s} {cmds}', shell=True).decode())
             s = f"{prefix} {n} package{'s' * (n > 1)} updated per {file or requirements}\n" \
                 f"{prefix} ⚠️ {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n"
@@ -353,7 +338,3 @@ def print_args(args: Optional[dict] = None, show_file=True, show_func=False):
         file = Path(file).stem
     s = (f'{file}: ' if show_file else '') + (f'{func}: ' if show_func else '')
     LOGGER.info(colorstr(s) + ', '.join(f'{k}={v}' for k, v in args.items()))
-
-
-# Define globals
-ONLINE = check_online()

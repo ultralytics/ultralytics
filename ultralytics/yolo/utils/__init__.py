@@ -243,6 +243,24 @@ def is_docker() -> bool:
         return False
 
 
+def is_online() -> bool:
+    """
+    Check internet connectivity by attempting to connect to a known online host.
+
+    Returns:
+        bool: True if connection is successful, False otherwise.
+    """
+    import socket
+    with contextlib.suppress(Exception):
+        host = socket.gethostbyname('www.github.com')
+        socket.create_connection((host, 80), timeout=2)
+        return True
+    return False
+
+
+ONLINE = is_online()
+
+
 def is_pip_package(filepath: str = __name__) -> bool:
     """
     Determines if the file at the given filepath is part of a pip package.
@@ -494,7 +512,6 @@ def set_sentry():
     """
     Initialize the Sentry SDK for error tracking and reporting if pytest is not currently running.
     """
-    from ultralytics.yolo.utils.checks import ONLINE
 
     def before_send(event, hint):
         if 'exc_info' in hint:

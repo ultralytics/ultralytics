@@ -12,9 +12,9 @@ from random import random
 import requests
 from tqdm import tqdm
 
-from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, ENVIRONMENT, LOGGER, RANK, SETTINGS, TESTS_RUNNING,
-                                    TQDM_BAR_FORMAT, TryExcept, __version__, checks, colorstr, emojis,
-                                    get_git_origin_url, is_colab, is_git_dir, is_pip_package)
+from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, ENVIRONMENT, LOGGER, ONLINE, RANK, SETTINGS, TESTS_RUNNING,
+                                    TQDM_BAR_FORMAT, TryExcept, __version__, colorstr, emojis, get_git_origin_url,
+                                    is_colab, is_git_dir, is_pip_package)
 
 PREFIX = colorstr('Ultralytics HUB: ')
 HELP_MSG = 'If this issue persists please visit https://github.com/ultralytics/hub/issues for assistance.'
@@ -184,7 +184,7 @@ class Traces:
             SETTINGS['sync'] and \
             RANK in {-1, 0} and \
             not TESTS_RUNNING and \
-            checks.ONLINE and \
+            ONLINE and \
             (is_pip_package() or get_git_origin_url() == 'https://github.com/ultralytics/ultralytics.git')
 
     def __call__(self, cfg, all_keys=False, traces_sample_rate=1.0):

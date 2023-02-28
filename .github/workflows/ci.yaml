@@ -13,7 +13,6 @@ on:
 
 jobs:
   HUB:
-    if: github.event_name == 'schedule'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false

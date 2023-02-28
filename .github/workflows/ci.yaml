@@ -25,6 +25,10 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Get cache dir  # https://github.com/actions/cache/blob/master/examples.md#multiple-oss-in-a-workflow
+        id: pip-cache
+        run: echo "dir=$(pip cache dir)" >> $GITHUB_OUTPUT
+        shell: bash  # for Windows compatibility
       - name: Cache pip
         uses: actions/cache@v3
         with:
@@ -71,6 +75,10 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Get cache dir  # https://github.com/actions/cache/blob/master/examples.md#multiple-oss-in-a-workflow
+        id: pip-cache
+        run: echo "dir=$(pip cache dir)" >> $GITHUB_OUTPUT
+        shell: bash  # for Windows compatibility
       - name: Cache pip
         uses: actions/cache@v3
         with:

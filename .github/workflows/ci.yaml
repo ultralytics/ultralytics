@@ -13,13 +13,14 @@ on:
 
 jobs:
   HUB:
+    if: github.event_name == 'schedule'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
         python-version: ['3.10']
-        model: [yolov8n]
+        model: [yolov5n]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4

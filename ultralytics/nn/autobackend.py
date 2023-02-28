@@ -123,9 +123,10 @@ class AutoBackend(nn.Module):
             check_requirements('openvino')  # requires openvino-dev: https://pypi.org/project/openvino-dev/
             from openvino.runtime import Core, Layout, get_batch  # noqa
             ie = Core()
-            if not Path(w).is_file():  # if not *.xml
-                w = next(Path(w).glob('*.xml'))  # get *.xml file from *_openvino_model dir
-            network = ie.read_model(model=w, weights=Path(w).with_suffix('.bin'))
+            w = Path(w)
+            if not w.is_file():  # if not *.xml
+                w = next(w.glob('*.xml'))  # get *.xml file from *_openvino_model dir
+            network = ie.read_model(model=str(w), weights=w.with_suffix('.bin'))
             if network.get_parameters()[0].get_layout().empty:
                 network.get_parameters()[0].set_layout(Layout('NCHW'))
             batch_dim = get_batch(network)
@@ -177,7 +178,7 @@ class AutoBackend(nn.Module):
             import tensorflow as tf
             keras = False  # assume TF1 saved_model
             model = tf.keras.models.load_model(w) if keras else tf.saved_model.load(w)
-            metadata = w / 'metadata.yaml'
+            metadata = Path(w) / 'metadata.yaml'
         elif pb:  # GraphDef https://www.tensorflow.org/guide/migrate#a_graphpb_or_graphpbtxt
             LOGGER.info(f'Loading {w} for TensorFlow GraphDef inference...')
             import tensorflow as tf
@@ -223,9 +224,10 @@ class AutoBackend(nn.Module):
             LOGGER.info(f'Loading {w} for PaddlePaddle inference...')
             check_requirements('paddlepaddle-gpu' if cuda else 'paddlepaddle')
             import paddle.inference as pdi
-            if not Path(w).is_file():  # if not *.pdmodel
-                w = next(Path(w).rglob('*.pdmodel'))  # get *.pdmodel file from *_paddle_model dir
-            config = pdi.Config(str(w), str(Path(w).with_suffix('.pdiparams')))
+            w = Path(w)
+            if not w.is_file():  # if not *.pdmodel
+                w = next(w.rglob('*.pdmodel'))  # get *.pdmodel file from *_paddle_model dir
+            config = pdi.Config(str(w), str(w.with_suffix('.pdiparams')))
             if cuda:
                 config.enable_use_gpu(memory_pool_init_size_mb=2048, device_id=0)
             predictor = pdi.create_predictor(config)
@@ -256,7 +258,7 @@ class AutoBackend(nn.Module):
             batch = int(metadata['batch'])
             imgsz = eval(metadata['imgsz']) if isinstance(metadata['imgsz'], str) else metadata['imgsz']
             names = eval(metadata['names']) if isinstance(metadata['names'], str) else metadata['names']
-        elif not (pt or nn_module):
+        elif not (pt or triton or nn_module):
             LOGGER.warning(f"WARNING ⚠️ Metadata not found for 'model={weights}'")
 
         # Check names

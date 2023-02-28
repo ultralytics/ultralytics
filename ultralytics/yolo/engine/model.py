@@ -43,7 +43,7 @@ class YOLO:
         cfg (str): The model configuration if loaded from *.yaml file.
         ckpt_path (str): The checkpoint file path.
         overrides (dict): Overrides for the trainer object.
-        metrics_data (Any): The data for metrics.
+        metrics (Any): The data for metrics.
 
     Methods:
         __call__(source=None, stream=False, **kwargs):
@@ -83,7 +83,7 @@ class YOLO:
         self.cfg = None  # if loaded from *.yaml
         self.ckpt_path = None
         self.overrides = {}  # overrides for trainer object
-        self.metrics_data = None
+        self.metrics = None  # validation/training metrics
         self.session = session  # HUB session
 
         # Load or create new YOLO model
@@ -253,7 +253,7 @@ class YOLO:
 
         validator = TASK_MAP[self.task][2](args=args)
         validator(model=self.model)
-        self.metrics_data = validator.metrics
+        self.metrics = validator.metrics
 
         return validator.metrics
 
@@ -321,7 +321,7 @@ class YOLO:
         if RANK in {0, -1}:
             self.model, _ = attempt_load_one_weight(str(self.trainer.best))
             self.overrides = self.model.args
-            self.metrics_data = getattr(self.trainer.validator, 'metrics', None)  # TODO: no metrics returned by DDP
+            self.metrics = getattr(self.trainer.validator, 'metrics', None)  # TODO: no metrics returned by DDP
 
     def to(self, device):
         """
@@ -353,15 +353,6 @@ class YOLO:
          Returns transform of the loaded model.
         """
         return self.model.transforms if hasattr(self.model, 'transforms') else None
-
-    @property
-    def metrics(self):
-        """
-        Returns metrics if computed
-        """
-        if not self.metrics_data:
-            LOGGER.info('No metrics data found! Run training or validation operation first.')
-        return self.metrics_data
 
     @staticmethod
     def add_callback(event: str, func):

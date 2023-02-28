@@ -255,7 +255,7 @@ class AutoBackend(nn.Module):
             stride = int(metadata['stride'])
             task = metadata['task']
             batch = metadata['batch']
-            imgsz =  metadata['imgsz']
+            imgsz = metadata['imgsz']
             names = metadata['names']
         else:
             LOGGER.warning(f"WARNING ⚠️ Metadata not found for 'model={weights}'")

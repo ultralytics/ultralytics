@@ -55,6 +55,7 @@ def on_train_end(trainer):
         LOGGER.info(f'{PREFIX}Done ✅\n'
                     f'{PREFIX}View model at https://hub.ultralytics.com/models/{session.model_id} 🚀')
 
+
 def on_train_start(trainer):
     traces(trainer.args, traces_sample_rate=1.0)
 

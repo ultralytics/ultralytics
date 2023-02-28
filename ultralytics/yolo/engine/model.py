@@ -185,6 +185,7 @@ class YOLO:
         self._check_is_pytorch_model()
         self.model.fuse()
 
+    @smart_inference_mode()
     def predict(self, source=None, stream=False, **kwargs):
         """
         Perform prediction using the YOLO model.
@@ -218,7 +219,6 @@ class YOLO:
         is_cli = sys.argv[0].endswith('yolo') or sys.argv[0].endswith('ultralytics')
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
 
-    @smart_inference_mode()
     def track(self, source=None, stream=False, **kwargs):
         from ultralytics.tracker import register_tracker
         register_tracker(self)

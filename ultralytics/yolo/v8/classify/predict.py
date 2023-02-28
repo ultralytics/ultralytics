@@ -52,7 +52,8 @@ class ClassificationPredictor(BasePredictor):
             return log_string
         prob = result.probs
         # Print results
-        top5i = prob.argsort(0, descending=True)[:5].tolist()  # top 5 indices
+        n5 = min(len(self.model.names), 5)
+        top5i = prob.argsort(0, descending=True)[:n5].tolist()  # top 5 indices
         log_string += f"{', '.join(f'{self.model.names[j]} {prob[j]:.2f}' for j in top5i)}, "
 
         # write

@@ -184,8 +184,8 @@ class Traces:
         self.enabled = \
             SETTINGS['sync'] and \
             RANK in {-1, 0} and \
-            check_online() and \
             not TESTS_RUNNING and \
+            check_online() and \
             (is_pip_package() or get_git_origin_url() == 'https://github.com/ultralytics/ultralytics.git')
 
     def __call__(self, cfg, all_keys=False, traces_sample_rate=1.0):

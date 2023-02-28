@@ -287,6 +287,9 @@ def entrypoint(debug=''):
     model = YOLO(model, task=task)
 
     # Task Update
+    if task and task != model.task:
+        LOGGER.warning(f"WARNING ⚠️ conflicting 'task={task}' passed with 'task={model.task}' model. "
+                       f"This may produce errors.")
     task = task or model.task
     overrides['task'] = task
 

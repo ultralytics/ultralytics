@@ -256,7 +256,7 @@ class AutoBackend(nn.Module):
             batch = int(metadata['batch'])
             imgsz = eval(metadata['imgsz']) if isinstance(metadata['imgsz'], str) else metadata['imgsz']
             names = eval(metadata['names']) if isinstance(metadata['names'], str) else metadata['names']
-        else:
+        elif not (pt or nn_module):
             LOGGER.warning(f"WARNING ⚠️ Metadata not found for 'model={weights}'")
 
         # Check names

@@ -171,8 +171,7 @@ class AutoBackend(nn.Module):
             LOGGER.info(f'Loading {w} for CoreML inference...')
             import coremltools as ct
             model = ct.models.MLModel(w)
-            names, stride, task = (model.user_defined_metadata.get(k) for k in ('names', 'stride', 'task'))
-            names, stride = eval(names), int(stride)
+            metadata = model.user_defined_metadata
         elif saved_model:  # TF SavedModel
             LOGGER.info(f'Loading {w} for TensorFlow SavedModel inference...')
             import tensorflow as tf
@@ -254,9 +253,9 @@ class AutoBackend(nn.Module):
         if metadata:
             stride = int(metadata['stride'])
             task = metadata['task']
-            batch = metadata['batch']
-            imgsz =  metadata['imgsz']
-            names = metadata['names']
+            batch = int(metadata['batch'])
+            imgsz = eval(metadata['imgsz']) if isinstance(metadata['imgsz'], str) else metadata['imgsz']
+            names = eval(metadata['names']) if isinstance(metadata['names'], str) else metadata['names']
         else:
             LOGGER.warning(f"WARNING ⚠️ Metadata not found for 'model={weights}'")
 

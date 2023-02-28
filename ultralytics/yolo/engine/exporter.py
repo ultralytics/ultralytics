@@ -435,11 +435,11 @@ class Exporter:
             ct_model = self._pipeline_coreml(ct_model)
 
         m = self.metadata  # metadata dict
-        ct_model.short_description = m['description']
-        ct_model.author = m['author']
-        ct_model.license = m['license']
-        ct_model.version = m['version']
-        ct_model.user_defined_metadata.update({k: str(v) for k, v in m.items() if k in ('stride', 'task', 'names')})
+        ct_model.short_description = m.pop('description')
+        ct_model.author = m.pop('author')
+        ct_model.license = m.pop('license')
+        ct_model.version = m.pop('version')
+        ct_model.user_defined_metadata.update({k: str(v) for k, v in m.items()})
         ct_model.save(str(f))
         return f, ct_model
 

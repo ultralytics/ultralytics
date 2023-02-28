@@ -3,7 +3,7 @@
 import subprocess
 from pathlib import Path
 
-from ultralytics.yolo.utils import LINUX, ROOT, SETTINGS, ONLINE
+from ultralytics.yolo.utils import LINUX, ONLINE, ROOT, SETTINGS
 
 MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n'
 CFG = 'yolov8n'

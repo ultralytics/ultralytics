@@ -27,7 +27,8 @@ class ClassificationValidator(BaseValidator):
         return batch
 
     def update_metrics(self, preds, batch):
-        self.pred.append(preds.argsort(1, descending=True)[:, :5])
+        n5 = min(len(self.model.names), 5)
+        self.pred.append(preds.argsort(1, descending=True)[:, :n5])
         self.targets.append(batch['cls'])
 
     def finalize_metrics(self, *args, **kwargs):

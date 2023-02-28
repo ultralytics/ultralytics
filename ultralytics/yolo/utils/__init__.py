@@ -243,6 +243,24 @@ def is_docker() -> bool:
         return False
 
 
+def is_online() -> bool:
+    """
+    Check internet connectivity by attempting to connect to a known online host.
+
+    Returns:
+        bool: True if connection is successful, False otherwise.
+    """
+    import socket
+    with contextlib.suppress(Exception):
+        host = socket.gethostbyname('www.github.com')
+        socket.create_connection((host, 80), timeout=2)
+        return True
+    return False
+
+
+ONLINE = is_online()
+
+
 def is_pip_package(filepath: str = __name__) -> bool:
     """
     Determines if the file at the given filepath is part of a pip package.
@@ -513,6 +531,7 @@ def set_sentry():
             RANK in {-1, 0} and \
             Path(sys.argv[0]).name == 'yolo' and \
             not TESTS_RUNNING and \
+            ONLINE and \
             ((is_pip_package() and not is_git_dir()) or
              (get_git_origin_url() == 'https://github.com/ultralytics/ultralytics.git' and get_git_branch() == 'main')):
 

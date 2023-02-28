@@ -12,7 +12,7 @@ import requests
 import torch
 from tqdm import tqdm
 
-from ultralytics.yolo.utils import LOGGER, checks
+from ultralytics.yolo.utils import LOGGER, checks, is_online
 
 GITHUB_ASSET_NAMES = [f'yolov8{size}{suffix}.pt' for size in 'nsmlx' for suffix in ('', '6', '-cls', '-seg')] + \
                      [f'yolov5{size}u.pt' for size in 'nsmlx'] + \
@@ -112,7 +112,7 @@ def safe_download(url,
                         break  # success
                     f.unlink()  # remove partial downloads
             except Exception as e:
-                if i == 0 and not checks.check_online():
+                if i == 0 and not is_online():
                     raise ConnectionError(f'❌  Download failure for {url}. Environment is not online.') from e
                 elif i >= retry:
                     raise ConnectionError(f'❌  Download failure for {url}. Retry limit reached.') from e
@@ -134,8 +134,7 @@ def safe_download(url,
 
 def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
     # Attempt file download from GitHub release assets if not found locally. release = 'latest', 'v6.2', etc.
-    from ultralytics.yolo.utils import SETTINGS
-    from ultralytics.yolo.utils.checks import check_yolov5u_filename
+    from ultralytics.yolo.utils import SETTINGS  # scoped for circular import
 
     def github_assets(repository, version='latest'):
         # Return GitHub repo tag and assets (i.e. ['yolov8n.pt', 'yolov8s.pt', ...])
@@ -146,7 +145,7 @@ def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
 
     # YOLOv3/5u updates
     file = str(file)
-    file = check_yolov5u_filename(file)
+    file = checks.check_yolov5u_filename(file)
     file = Path(file.strip().replace("'", ''))
     if file.exists():
         return str(file)

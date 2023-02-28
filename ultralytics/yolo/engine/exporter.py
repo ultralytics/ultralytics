@@ -225,6 +225,8 @@ class Exporter:
             'version': __version__,
             'stride': int(max(model.stride)),
             'task': model.task,
+            'batch': self.args.batch,
+            'imgsz': self.imgsz,
             'names': model.names}  # model metadata
 
         LOGGER.info(f"\n{colorstr('PyTorch:')} starting from {file} with input shape {tuple(im.shape)} BCHW and "
@@ -283,8 +285,7 @@ class Exporter:
         f = self.file.with_suffix('.torchscript')
 
         ts = torch.jit.trace(self.model, self.im, strict=False)
-        d = {'shape': self.im.shape, 'stride': int(max(self.model.stride)), 'names': self.model.names}
-        extra_files = {'config.txt': json.dumps(d)}  # torch._C.ExtraFilesMap()
+        extra_files = {'config.txt': json.dumps(self.metadata)}  # torch._C.ExtraFilesMap()
         if self.args.optimize:  # https://pytorch.org/tutorials/recipes/mobile_interpreter.html
             LOGGER.info(f'{prefix} optimizing for mobile...')
             from torch.utils.mobile_optimizer import optimize_for_mobile

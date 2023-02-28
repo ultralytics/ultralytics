@@ -17,7 +17,7 @@ from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, ENVIRONMENT, LOGGER, RANK,
                                     is_colab, is_git_dir, is_pip_package)
 from ultralytics.yolo.utils.checks import check_online
 
-PREFIX = colorstr('Ultralytics: ')
+PREFIX = colorstr('Ultralytics HUB: ')
 HELP_MSG = 'If this issue persists please visit https://github.com/ultralytics/hub/issues for assistance.'
 HUB_API_ROOT = os.environ.get('ULTRALYTICS_HUB_API', 'https://api.ultralytics.com')
 

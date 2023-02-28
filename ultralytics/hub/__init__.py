@@ -4,10 +4,10 @@ import requests
 
 from ultralytics.hub.auth import Auth
 from ultralytics.hub.session import HUBTrainingSession
-from ultralytics.hub.utils import split_key
+from ultralytics.hub.utils import PREFIX, split_key
 from ultralytics.yolo.engine.exporter import EXPORT_FORMATS_LIST
 from ultralytics.yolo.engine.model import YOLO
-from ultralytics.yolo.utils import LOGGER, PREFIX, emojis
+from ultralytics.yolo.utils import LOGGER, emojis
 
 # Define all export formats
 EXPORT_FORMATS_HUB = EXPORT_FORMATS_LIST + ['ultralytics_tflite', 'ultralytics_coreml']

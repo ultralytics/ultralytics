@@ -494,7 +494,7 @@ def set_sentry():
     """
     Initialize the Sentry SDK for error tracking and reporting if pytest is not currently running.
     """
-    from ultralytics.yolo.utils.checks import check_online
+    from ultralytics.yolo.utils.checks import ONLINE
 
     def before_send(event, hint):
         if 'exc_info' in hint:
@@ -514,7 +514,7 @@ def set_sentry():
             RANK in {-1, 0} and \
             Path(sys.argv[0]).name == 'yolo' and \
             not TESTS_RUNNING and \
-            check_online() and \
+            ONLINE and \
             ((is_pip_package() and not is_git_dir()) or
              (get_git_origin_url() == 'https://github.com/ultralytics/ultralytics.git' and get_git_branch() == 'main')):
 

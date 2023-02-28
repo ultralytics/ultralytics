@@ -13,7 +13,7 @@ def on_pretrain_routine_end(trainer):
     if session:
         # Start timer for upload rate limit
         LOGGER.info(f'{PREFIX}View model at https://hub.ultralytics.com/models/{session.model_id} 🚀')
-        session._timers = {'metrics': time(), 'ckpt': time()}  # start timer on session.rate_limit
+        session.timers = {'metrics': time(), 'ckpt': time()}  # start timer on session.rate_limit
 
 
 def on_fit_epoch_end(trainer):
@@ -28,11 +28,11 @@ def on_fit_epoch_end(trainer):
                 'model/GFLOPs': round(get_flops(trainer.model), 3),
                 'model/speed(ms)': round(trainer.validator.speed['inference'], 3)}
             all_plots = {**all_plots, **model_info}
-        session._metrics_queue[trainer.epoch] = json.dumps(all_plots)
-        if time() - session._timers['metrics'] > session._rate_limits['metrics']:
+        session.metrics_queue[trainer.epoch] = json.dumps(all_plots)
+        if time() - session.timers['metrics'] > session._rate_limits['metrics']:
             session.upload_metrics()
-            session._timers['metrics'] = time()  # reset timer
-            session._metrics_queue = {}  # reset queue
+            session.timers['metrics'] = time()  # reset timer
+            session.metrics_queue = {}  # reset queue
 
 
 def on_model_save(trainer):
@@ -40,10 +40,10 @@ def on_model_save(trainer):
     if session:
         # Upload checkpoints with rate limiting
         is_best = trainer.best_fitness == trainer.fitness
-        if time() - session._timers['ckpt'] > session._rate_limits['ckpt']:
+        if time() - session.timers['ckpt'] > session._rate_limits['ckpt']:
             LOGGER.info(f'{PREFIX}Uploading checkpoint {session.model_id}')
-            session._upload_model(trainer.epoch, trainer.last, is_best)
-            session._timers['ckpt'] = time()  # reset timer
+            session.upload_model(trainer.epoch, trainer.last, is_best)
+            session.timers['ckpt'] = time()  # reset timer
 
 
 def on_train_end(trainer):
@@ -52,7 +52,7 @@ def on_train_end(trainer):
         # Upload final model and metrics with exponential standoff
         LOGGER.info(f'{PREFIX}Training completed successfully ✅\n'
                     f'{PREFIX}Uploading final model to HUB...')
-        session._upload_model(trainer.epoch,
+        session.upload_model(trainer.epoch,
                               trainer.best,
                               map=trainer.metrics.get('metrics/mAP50-95(B)', 0),
                               final=True)

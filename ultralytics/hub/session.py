@@ -7,11 +7,9 @@ from time import sleep
 import requests
 
 from ultralytics.hub.utils import HUB_API_ROOT, check_dataset_disk_space, smart_request
-from ultralytics.yolo.utils import LOGGER, PREFIX, __version__, emojis, is_colab, threaded
-from ultralytics.yolo.utils.checks import check_yolov5u_filename
+from ultralytics.yolo.utils import LOGGER, PREFIX, __version__, checks, emojis, is_colab, threaded
 
 AGENT_NAME = f'python-{__version__}-colab' if is_colab() else f'python-{__version__}-local'
-session = None
 
 
 class HUBTrainingSession:
@@ -21,9 +19,9 @@ class HUBTrainingSession:
         self.model_id = model_id
         self.api_url = f'{HUB_API_ROOT}/v1/models/{model_id}'
         self.auth_header = auth.get_auth_header()
-        self._rate_limits = {'metrics': 3.0, 'ckpt': 900.0, 'heartbeat': 300.0}  # rate limits (seconds)
-        self._timers = {}  # rate limit timers (seconds)
-        self._metrics_queue = {}  # metrics queue
+        self.rate_limits = {'metrics': 3.0, 'ckpt': 900.0, 'heartbeat': 300.0}  # rate limits (seconds)
+        self.timers = {}  # rate limit timers (seconds)
+        self.metrics_queue = {}  # metrics queue
         self.model = self._get_model()
         self.alive = True
         self._start_heartbeat()  # start heartbeats
@@ -49,7 +47,7 @@ class HUBTrainingSession:
         self.alive = False
 
     def upload_metrics(self):
-        payload = {'metrics': self._metrics_queue.copy(), 'type': 'metrics'}
+        payload = {'metrics': self.metrics_queue.copy(), 'type': 'metrics'}
         smart_request('post', self.api_url, json=payload, headers=self.auth_header, code=2)
 
     def _get_model(self):
@@ -81,7 +79,7 @@ class HUBTrainingSession:
                 'data': data['data']}
 
             self.model_file = data.get('cfg', data['weights'])
-            self.model_file = check_yolov5u_filename(self.model_file)  # update *.yaml and *.pt files YOLOv5->YOLOv5u
+            self.model_file = checks.check_yolov5u_filename(self.model_file, verbose=False)  # YOLOv5->YOLOv5u
 
             return data
         except requests.exceptions.ConnectionError as e:
@@ -93,7 +91,7 @@ class HUBTrainingSession:
         if not check_dataset_disk_space(self.model['data']):
             raise MemoryError('Not enough disk space')
 
-    def _upload_model(self, epoch, weights, is_best=False, map=0.0, final=False):
+    def upload_model(self, epoch, weights, is_best=False, map=0.0, final=False):
         # Upload a model to HUB
         if Path(weights).is_file():
             with open(weights, 'rb') as f:
@@ -133,4 +131,4 @@ class HUBTrainingSession:
                               code=5,
                               thread=False)  # already in a thread
             self.agent_id = r.json().get('data', {}).get('agentId', None)
-            sleep(self._rate_limits['heartbeat'])
+            sleep(self.rate_limits['heartbeat'])

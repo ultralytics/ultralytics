@@ -18,7 +18,7 @@ RUN apt install --no-install-recommends -y gcc git zip curl htop libgl1-mesa-glx
 
 # Security updates
 # https://security.snyk.io/vuln/SNYK-UBUNTU1804-OPENSSL-3314796
-RUN apt upgrade --no-install-recommends -y openssl
+RUN apt upgrade --no-install-recommends -y openssl tar
 
 # Create working directory
 RUN mkdir -p /usr/src/ultralytics

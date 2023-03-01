@@ -67,7 +67,7 @@ class YOLO:
         list(ultralytics.yolo.engine.results.Results): The prediction results.
     """
 
-    def __init__(self, model='yolov8n.pt', task=None, session=None) -> None:
+    def __init__(self, model='yolov8n.pt', task=None, session=None, nc=None) -> None:
         """
         Initializes the YOLO model.
 
@@ -85,6 +85,7 @@ class YOLO:
         self.overrides = {}  # overrides for trainer object
         self.metrics = None  # validation/training metrics
         self.session = session  # HUB session
+        self.nc = nc  # number of classes
 
         # Load or create new YOLO model
         suffix = Path(model).suffix
@@ -114,7 +115,7 @@ class YOLO:
         self.cfg = check_yaml(cfg)  # check YAML
         cfg_dict = yaml_load(self.cfg, append_filename=True)  # model dict
         self.task = task or guess_model_task(cfg_dict)
-        self.model = TASK_MAP[self.task][0](cfg_dict, verbose=verbose and RANK == -1)  # build model
+        self.model = TASK_MAP[self.task][0](cfg_dict, verbose=verbose and RANK == -1, nc=self.nc)  # build model
         self.overrides['model'] = self.cfg
 
         # Below added to allow export from yamls

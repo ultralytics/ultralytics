@@ -430,6 +430,8 @@ class Exporter:
                               classifier_config=classifier_config)
         bits, mode = (8, 'kmeans_lut') if self.args.int8 else (16, 'linear') if self.args.half else (32, None)
         if bits < 32:
+            if 'kmeans' in mode:
+                check_requirements('scikit-learn')  # scikit-learn package required for k-means quantization
             ct_model = ct.models.neural_network.quantization_utils.quantize_weights(ct_model, bits, mode)
         if self.args.nms and self.model.task == 'detect':
             ct_model = self._pipeline_coreml(ct_model)

@@ -10,8 +10,7 @@ import torch.nn as nn
 
 from ultralytics.nn.modules import (C1, C2, C3, C3TR, SPP, SPPF, Bottleneck, BottleneckCSP, C2f, C3Ghost, C3x, Classify,
                                     Concat, Conv, ConvTranspose, Detect, DWConv, DWConvTranspose2d, Ensemble, Focus,
-                                    GhostBottleneck, GhostConv, Segment, Keypoint)
-
+                                    GhostBottleneck, GhostConv, Keypoint, Segment)
 from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, colorstr, emojis, yaml_load
 from ultralytics.yolo.utils.checks import check_requirements, check_yaml
 from ultralytics.yolo.utils.torch_utils import (fuse_conv_and_bn, fuse_deconv_and_bn, initialize_weights,
@@ -165,7 +164,12 @@ class BaseModel(nn.Module):
 
 class DetectionModel(BaseModel):
     # YOLOv8 detection model
-    def __init__(self, cfg='yolov8n.yaml', ch=3, nc=None, nkpt=None, verbose=True):  # model, input channels, number of classes
+    def __init__(self,
+                 cfg='yolov8n.yaml',
+                 ch=3,
+                 nc=None,
+                 nkpt=None,
+                 verbose=True):  # model, input channels, number of classes
         super().__init__()
         self.yaml = cfg if isinstance(cfg, dict) else yaml_load(check_yaml(cfg), append_filename=True)  # cfg dict
 
@@ -254,7 +258,9 @@ class SegmentationModel(DetectionModel):
     def _forward_augment(self, x):
         raise NotImplementedError('WARNING ⚠️ SegmentationModel has not supported augment inference yet!')
 
+
 class KeypointModel(DetectionModel):
+
     def __init__(self, cfg='yolov5s-kpt.yaml', ch=3, nc=None, nkpt=None, verbose=True):
         super().__init__(cfg, ch, nc, nkpt, verbose)
 
@@ -502,16 +508,15 @@ def guess_model_task(model):
 
     def cfg2task(cfg):
         # Guess from YAML dictionary
-        m = cfg["head"][-1][-2].lower()  # output module name
-        if m in ["classify", "classifier", "cls", "fc"]:
-            return "classify"
-        if m in ["detect"]:
-            return "detect"
-        if m in ["segment"]:
-            return "segment"
-        if m in ["keypoint"]:
-            return "keypoint"
-
+        m = cfg['head'][-1][-2].lower()  # output module name
+        if m in ['classify', 'classifier', 'cls', 'fc']:
+            return 'classify'
+        if m in ['detect']:
+            return 'detect'
+        if m in ['segment']:
+            return 'segment'
+        if m in ['keypoint']:
+            return 'keypoint'
 
     # Guess from model cfg
     if isinstance(model, dict):
@@ -526,19 +531,18 @@ def guess_model_task(model):
         for x in 'model.yaml', 'model.model.yaml', 'model.model.model.yaml':
             with contextlib.suppress(Exception):
                 return cfg2task(eval(x))
-        if m in ["keypoint"]:
-            return "keypoint"
-            
+        if m in ['keypoint']:
+            return 'keypoint'
+
         for m in model.modules():
             if isinstance(m, Detect):
                 return 'detect'
             elif isinstance(m, Segment):
                 return 'segment'
             elif isinstance(m, Classify):
-                return "classify"
+                return 'classify'
             elif isinstance(m, Keypoint):
-                return "keypoint"
-
+                return 'keypoint'
 
     # Guess from model filename
     if isinstance(model, (str, Path)):
@@ -549,7 +553,6 @@ def guess_model_task(model):
             return 'classify'
         elif 'detect' in model.parts:
             return 'detect'
-
 
     # Unable to determine task from model
     LOGGER.warning("WARNING ⚠️ Unable to automatically guess model task, assuming 'task=detect'. "

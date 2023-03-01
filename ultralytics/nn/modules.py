@@ -376,6 +376,7 @@ class Ensemble(nn.ModuleList):
         y = torch.cat(y, 1)  # nms ensemble
         return y, None  # inference, train output
 
+
 class ImplicitA(nn.Module):
 
     def __init__(self, channel):
@@ -398,6 +399,7 @@ class ImplicitM(nn.Module):
 
     def forward(self, x):
         return self.implicit.expand_as(x) * x
+
 
 # heads
 class Detect(nn.Module):
@@ -490,9 +492,10 @@ class Classify(nn.Module):
         x = self.linear(self.drop(self.pool(self.conv(x)).flatten(1)))
         return x if self.training else x.softmax(1)
 
+
 class Keypoint(Detect):
 
-    def __init__(self, nc=80,  nkpt=None, ch=()):
+    def __init__(self, nc=80, nkpt=None, ch=()):
         super().__init__(nc, ch)
         self.nkpt = nkpt  # number of keypoints
         self.no_kpt = self.nkpt  # number of outputs per anchor for keypoints
@@ -533,6 +536,7 @@ class Keypoint(Detect):
                     x_kpt[..., 2::3] = x_kpt[..., 2::3].sigmoid()  # visibility confidence
                 y = torch.cat((xy, wh, y[..., 4:], x_kpt), -1)
                 output.append(y.view(bs, -1, self.no))
-        import pdb;pdb.set_trace()
-        return head_features if self.training else (torch.cat(output, 1),) if self.export else (torch.cat(output, 1),
-                                                                                                head_features)
+        import pdb
+        pdb.set_trace()
+        return head_features if self.training else (torch.cat(output, 1), ) if self.export else (torch.cat(output, 1),
+                                                                                                 head_features)

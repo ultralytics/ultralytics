@@ -11,6 +11,7 @@ import torch.nn as nn
 from ultralytics.nn.modules import (C1, C2, C3, C3TR, SPP, SPPF, Bottleneck, BottleneckCSP, C2f, C3Ghost, C3x, Classify,
                                     Concat, Conv, ConvTranspose, Detect, DWConv, DWConvTranspose2d, Ensemble, Focus,
                                     GhostBottleneck, GhostConv, Segment, Keypoint)
+
 from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, colorstr, emojis, yaml_load
 from ultralytics.yolo.utils.checks import check_requirements, check_yaml
 from ultralytics.yolo.utils.torch_utils import (fuse_conv_and_bn, fuse_deconv_and_bn, initialize_weights,
@@ -256,6 +257,7 @@ class SegmentationModel(DetectionModel):
 class KeypointModel(DetectionModel):
     def __init__(self, cfg='yolov5s-kpt.yaml', ch=3, nc=None, nkpt=None, verbose=True):
         super().__init__(cfg, ch, nc, nkpt, verbose)
+
 
 class ClassificationModel(BaseModel):
     # YOLOv8 classification model
@@ -510,6 +512,7 @@ def guess_model_task(model):
         if m in ["keypoint"]:
             return "keypoint"
 
+
     # Guess from model cfg
     if isinstance(model, dict):
         with contextlib.suppress(Exception):
@@ -525,7 +528,7 @@ def guess_model_task(model):
                 return cfg2task(eval(x))
         if m in ["keypoint"]:
             return "keypoint"
-
+            
         for m in model.modules():
             if isinstance(m, Detect):
                 return 'detect'
@@ -535,6 +538,7 @@ def guess_model_task(model):
                 return "classify"
             elif isinstance(m, Keypoint):
                 return "keypoint"
+
 
     # Guess from model filename
     if isinstance(model, (str, Path)):

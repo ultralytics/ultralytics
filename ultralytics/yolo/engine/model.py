@@ -33,6 +33,7 @@ TASK_MAP = {
         }
 
 
+
 class YOLO:
     """
     YOLO (You Only Look Once) object detection model.

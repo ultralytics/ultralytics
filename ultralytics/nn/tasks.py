@@ -163,7 +163,7 @@ class BaseModel(nn.Module):
 
 class DetectionModel(BaseModel):
     # YOLOv8 detection model
-    def __init__(self, cfg='yolov8n.yaml', ch=3, nc=None, verbose=True):  # model, input channels, number of classes
+    def __init__(self, cfg='yolov8n.yaml', ch=3, nc=None, nkpt=None, verbose=True):  # model, input channels, number of classes
         super().__init__()
         self.yaml = cfg if isinstance(cfg, dict) else yaml_load(check_yaml(cfg), append_filename=True)  # cfg dict
 
@@ -172,13 +172,16 @@ class DetectionModel(BaseModel):
         if nc and nc != self.yaml['nc']:
             LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
             self.yaml['nc'] = nc  # override yaml value
+        if nkpt and nkpt != self.yaml['nkpt']:
+            LOGGER.info(f"Overriding model.yaml nkpt={self.yaml['nkpt']} with nkpt={nkpt}")
+            self.yaml['nkpt'] = nkpt
         self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose)  # model, savelist
         self.names = {i: f'{i}' for i in range(self.yaml['nc'])}  # default names dict
         self.inplace = self.yaml.get('inplace', True)
 
         # Build strides
         m = self.model[-1]  # Detect()
-        if isinstance(m, (Detect, Segment)):
+        if isinstance(m, (Detect, Segment, Keypoint)):
             s = 256  # 2x min stride
             m.inplace = self.inplace
             forward = lambda x: self.forward(x)[0] if isinstance(m, Segment) else self.forward(x)
@@ -246,6 +249,9 @@ class SegmentationModel(DetectionModel):
     def __init__(self, cfg='yolov8n-seg.yaml', ch=3, nc=None, verbose=True):
         super().__init__(cfg, ch, nc, verbose)
 
+class KeypointModel(DetectionModel):
+    def __init__(self, cfg='yolov5s-kpt.yaml', ch=3, nc=None, nkpt=None, verbose=True):
+        super().__init__(cfg, ch, nc, nkpt, verbose)
 
 class ClassificationModel(BaseModel):
     # YOLOv8 classification model
@@ -416,7 +422,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
     # Parse a YOLO model.yaml dictionary
     if verbose:
         LOGGER.info(f"\n{'':>3}{'from':>20}{'n':>3}{'params':>10}  {'module':<45}{'arguments':<30}")
-    nc, gd, gw, act = d['nc'], d['depth_multiple'], d['width_multiple'], d.get('activation')
+    nc, gd, gw, act, nkpt = d['nc'], d['depth_multiple'], d['width_multiple'], d.get('activation'), d.get('nkpt')
     if act:
         Conv.default_act = eval(act)  # redefine default activation, i.e. Conv.default_act = nn.SiLU()
         if verbose:

@@ -47,7 +47,8 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
     for i, (name, format, suffix, cpu, gpu) in export_formats().iterrows():  # index, (name, format, suffix, CPU, GPU)
         emoji = '❌'  # indicates export failure
         try:
-            assert i != 11, 'paddle exports coming soon'
+            if model.task == 'classify':
+                assert i != 11, 'paddle cls exports coming soon'
             assert i != 9 or LINUX, 'Edge TPU export only supported on Linux'
             if 'cpu' in device.type:
                 assert cpu, 'inference not supported on CPU'

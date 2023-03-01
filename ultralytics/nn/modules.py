@@ -536,7 +536,5 @@ class Keypoint(Detect):
                     x_kpt[..., 2::3] = x_kpt[..., 2::3].sigmoid()  # visibility confidence
                 y = torch.cat((xy, wh, y[..., 4:], x_kpt), -1)
                 output.append(y.view(bs, -1, self.no))
-        import pdb
-        pdb.set_trace()
-        return head_features if self.training else (torch.cat(output, 1), ) if self.export else (torch.cat(output, 1),
-                                                                                                 head_features)
+        return head_features if self.training else (torch.cat(output, 1),) if self.export else (torch.cat(output, 1),
+                                                                                                head_features)

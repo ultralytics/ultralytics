@@ -123,8 +123,8 @@ class KeypointLoss(Loss):
 
 
 def train(cfg=DEFAULT_CFG, use_python=False):
-    model = cfg.model or 'yolov8n-seg.pt'
-    data = cfg.data or 'coco128-seg.yaml'  # or yolo.ClassificationDataset("mnist")
+    model = cfg.model or "yolov8n-kpt.yaml"
+    data = cfg.data or "coco128-kpt.yaml"  # or yolo.ClassificationDataset("mnist")
     device = cfg.device if cfg.device is not None else ''
 
     args = dict(model=model, data=data, device=device)
@@ -132,7 +132,7 @@ def train(cfg=DEFAULT_CFG, use_python=False):
         from ultralytics import YOLO
         YOLO(model).train(**args)
     else:
-        trainer = SegmentationTrainer(overrides=args)
+        trainer = KeypointsTrain(overrides=args)
         trainer.train()
 
 

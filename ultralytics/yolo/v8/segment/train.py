@@ -77,11 +77,18 @@ class SegLoss(Loss):
         anchor_points, stride_tensor = make_anchors(feats, self.stride, 0.5)
 
         # targets
-        batch_idx = batch['batch_idx'].view(-1, 1)
-        targets = torch.cat((batch_idx, batch['cls'].view(-1, 1), batch['bboxes']), 1)
-        targets = self.preprocess(targets.to(self.device), batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
-        gt_labels, gt_bboxes = targets.split((1, 4), 2)  # cls, xyxy
-        mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0)
+        try:
+            batch_idx = batch['batch_idx'].view(-1, 1)
+            targets = torch.cat((batch_idx, batch['cls'].view(-1, 1), batch['bboxes']), 1)
+            targets = self.preprocess(targets.to(self.device), batch_size, scale_tensor=imgsz[[1, 0, 1, 0]])
+            gt_labels, gt_bboxes = targets.split((1, 4), 2)  # cls, xyxy
+            mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0)
+        except RuntimeError as e:
+            raise TypeError('ERROR ❌ segment dataset incorrectly formatted or not a segment dataset.\n'
+                            "This error can occur when incorrectly training a 'segment' model on a 'detect' dataset, "
+                            "i.e. 'yolo train model=yolov8n-seg.pt data=coco128.yaml'.\nVerify your dataset is a "
+                            "correctly formatted 'segment' dataset using 'data=coco128-seg.yaml' "
+                            'as an example.\nSee https://docs.ultralytics.com/tasks/segmentation/ for help.') from e
 
         # pboxes
         pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)

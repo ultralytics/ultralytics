@@ -261,7 +261,7 @@ class Boxes:
         return self.boxes.__str__()
 
     def __repr__(self):
-        return (f'Ultralytics YOLO {self.__class__} masks\n' + f'type: {type(self.boxes)}\n' +
+        return (f'Ultralytics YOLO {self.__class__.__name__}\n' + f'type: {type(self.boxes)}\n' +
                 f'shape: {self.boxes.shape}\n' + f'dtype: {self.boxes.dtype}\n + {self.boxes.__repr__()}')
 
     def __getitem__(self, idx):
@@ -337,7 +337,7 @@ class Masks:
         return self.masks.__str__()
 
     def __repr__(self):
-        return (f'Ultralytics YOLO {self.__class__} masks\n' + f'type: {type(self.masks)}\n' +
+        return (f'Ultralytics YOLO {self.__class__.__name__}\n' + f'type: {type(self.masks)}\n' +
                 f'shape: {self.masks.shape}\n' + f'dtype: {self.masks.dtype}\n + {self.masks.__repr__()}')
 
     def __getitem__(self, idx):

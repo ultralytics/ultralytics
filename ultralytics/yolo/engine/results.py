@@ -5,6 +5,7 @@ Ultralytics Results, Boxes and Masks classes for handling inference results
 Usage: See https://docs.ultralytics.com/predict/
 """
 
+import pprint
 from copy import deepcopy
 from functools import lru_cache
 
@@ -96,10 +97,11 @@ class Results:
             return len(getattr(self, k))
 
     def __str__(self):
-        return ''.join(getattr(self, k).__str__() for k in self._keys)
+        attr = {k: v for k, v in vars(self).items() if not isinstance(v, type(self))}
+        return pprint.pformat(attr, indent=2, width=120, depth=10, compact=True)
 
     def __repr__(self):
-        return ''.join(getattr(self, k).__repr__() for k in self._keys)
+        return self.__str__()
 
     def __getattr__(self, attr):
         name = self.__class__.__name__
@@ -261,7 +263,7 @@ class Boxes:
         return self.boxes.__str__()
 
     def __repr__(self):
-        return (f'Ultralytics YOLO {self.__class__} masks\n' + f'type: {type(self.boxes)}\n' +
+        return (f'Ultralytics YOLO {self.__class__.__name__}\n' + f'type: {type(self.boxes)}\n' +
                 f'shape: {self.boxes.shape}\n' + f'dtype: {self.boxes.dtype}\n + {self.boxes.__repr__()}')
 
     def __getitem__(self, idx):
@@ -337,7 +339,7 @@ class Masks:
         return self.masks.__str__()
 
     def __repr__(self):
-        return (f'Ultralytics YOLO {self.__class__} masks\n' + f'type: {type(self.masks)}\n' +
+        return (f'Ultralytics YOLO {self.__class__.__name__}\n' + f'type: {type(self.masks)}\n' +
                 f'shape: {self.masks.shape}\n' + f'dtype: {self.masks.dtype}\n + {self.masks.__repr__()}')
 
     def __getitem__(self, idx):

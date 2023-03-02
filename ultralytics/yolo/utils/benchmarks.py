@@ -45,7 +45,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
     y = []
     t0 = time.time()
     for i, (name, format, suffix, cpu, gpu) in export_formats().iterrows():  # index, (name, format, suffix, CPU, GPU)
-        emoji, filename = '❌', ''  # export defaults
+        emoji, filename = '❌', None  # export defaults
         try:
             if model.task == 'classify':
                 assert i != 11, 'paddle cls exports coming soon'

@@ -701,7 +701,7 @@ class Exporter:
 
         label_file = _metadata_fb.AssociatedFileT()
         label_file.name = tmp_file.name
-        label_file.description = "Labels for objects that the model can detect."
+        label_file.description = 'Labels for objects that the model can detect.'
         label_file.type = _metadata_fb.AssociatedFileType.TENSOR_AXIS_LABELS
 
         # Create input info

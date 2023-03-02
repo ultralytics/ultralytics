@@ -147,7 +147,45 @@ class Results:
             annotator.text((32, 32), text, txt_color=(255, 255, 255))  # TODO: allow setting colors
 
         return img
+    
+    def extract_labels(self):
+        labels = [] # contains entry to (cls, label)
+        det, mask = self.boxes, self.masks
+        for j, d in enumerate(reversed(det)):
+            cls, conf = d.cls.squeeze(), d.conf.squeeze()
+            seg = mask.segments[len(det) - j - 1].copy()
+            seg = seg.reshape(-1)
+            labels.append((cls.item(), seg))
 
+        return labels
+
+    def decode_labels_into_pixel_map(self, labels):
+        # returns a map of type ((pixel_x, pixel_y) -> cls)
+        # used this previously on the txt, so the labels were in string format
+        pixel_coords_to_class = {} # Create a dictionary to store the pixel coordinates and their corresponding class IDs
+        
+        img_height, img_width = np.asarray(self.boxes.orig_shape.cpu())
+        for label in labels:
+            # Parse the label information
+            class_id, coords = label
+
+            # Reshape the coordinates into a numpy array
+            coords = np.array(coords).reshape(-1, 2)
+
+            # Scale the coordinates to the image size
+            coords[:, 0] *= img_width
+            coords[:, 1] *= img_height
+
+            # Convert the coordinates to integers
+            coords = np.round(coords).astype(int)
+
+            # Iterate through the polygon coordinates and set the corresponding pixel coordinates to the class ID
+            for y in range(img_height):
+                for x in range(img_width):
+                    if cv2.pointPolygonTest(coords, (x, y), False) >= 0:
+                        pixel_coords_to_class[(x, y)] = class_id
+        
+        return pixel_coords_to_class
 
 class Boxes:
     """

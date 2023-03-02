@@ -21,7 +21,7 @@ class KeypointsTrain(v8.detect.DetectionTrainer):
     def __init__(self, cfg=DEFAULT_CFG, overrides=None):
         if overrides is None:
             overrides = {}
-        overrides['task'] = 'keypoints'
+        overrides['task'] = 'keypoint'
         super().__init__(cfg, overrides)
 
     def get_model(self, cfg=None, weights=None, verbose=True):
@@ -35,12 +35,11 @@ class KeypointsTrain(v8.detect.DetectionTrainer):
         self.loss_names = 'box_loss', 'seg_loss', 'cls_loss', 'dfl_loss'
         return v8.segment.SegmentationValidator(self.test_loader,
                                                 save_dir=self.save_dir,
-                                                logger=self.console,
                                                 args=copy(self.args))
 
     def criterion(self, preds, batch):
         if not hasattr(self, 'compute_loss'):
-            self.compute_loss = SegLoss(de_parallel(self.model), overlap=self.args.overlap_mask)
+            self.compute_loss = KeypointLoss(de_parallel(self.model))
         return self.compute_loss(preds, batch)
 
     def plot_training_samples(self, batch, ni):
@@ -59,15 +58,12 @@ class KeypointsTrain(v8.detect.DetectionTrainer):
 # Criterion class for computing training losses
 class KeypointLoss(Loss):
 
-    def __init__(self, model, overlap=True):  # model must be de-paralleled
+    def __init__(self, model):  # model must be de-paralleled
         super().__init__(model)
         self.nkpt = model.model[-1].nkpt  # number of keypoints
-        self.overlap = overlap
 
     def __call__(self, preds, batch):
-        tcls, tbox, tkpt, indices, anchors = self.build_targets(p, targets)  # targets
-
-        sigmas = torch.ones((self.n_kpt), device=self.device) / 10
+        sigmas = torch.ones((self.nkpt), device=self.device) / 10
         loss = torch.zeros(5, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility
         feats = preds[1] if isinstance(preds, tuple) else preds
         pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
@@ -126,7 +122,7 @@ def train(cfg=DEFAULT_CFG, use_python=False):
     model = cfg.model or "yolov8n-kpt.yaml"
     data = cfg.data or "coco128-kpt.yaml"  # or yolo.ClassificationDataset("mnist")
     device = cfg.device if cfg.device is not None else ''
-
+    cfg.batch = 1 # Temp
     args = dict(model=model, data=data, device=device)
     if use_python:
         from ultralytics import YOLO

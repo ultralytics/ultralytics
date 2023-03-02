@@ -693,12 +693,15 @@ class Exporter:
         model_meta.license = self.metadata['license']
 
         # Label file
-        tmp_file = Path(file).parent / 'temp_meta.txt'
+        names = self.metadata['names']
+        tmp_file = Path(file).parent / 'labels.txt'
         with open(tmp_file, 'w') as f:
-            f.write(str(self.metadata))
+            for value in names.values():
+                f.write(value + '\n')
 
         label_file = _metadata_fb.AssociatedFileT()
         label_file.name = tmp_file.name
+        label_file.description = "Labels for objects that the model can detect."
         label_file.type = _metadata_fb.AssociatedFileType.TENSOR_AXIS_LABELS
 
         # Create input info

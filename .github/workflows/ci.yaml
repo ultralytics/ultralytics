@@ -13,7 +13,7 @@ on:
 
 jobs:
   HUB:
-    if: github.event_name == 'schedule' || github.actor == 'glenn-jocher'
+    if: github.repository == 'ultralytics/ultralytics' && github.event_name in ('schedule', 'push')
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false

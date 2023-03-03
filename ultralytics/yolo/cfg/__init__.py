@@ -63,6 +63,7 @@ CFG_BOOL_KEYS = ('save', 'exist_ok', 'pretrained', 'verbose', 'deterministic', '
 # Define valid tasks and modes
 TASKS = 'detect', 'segment', 'classify'
 MODES = 'train', 'val', 'predict', 'export', 'track', 'benchmark'
+TASK2DATA = {'detect': 'coco128.yaml', 'segment': 'coco128-seg.yaml', 'classify': 'imagenet100'}
 
 
 def cfg2dict(cfg):
@@ -287,9 +288,10 @@ def entrypoint(debug=''):
     model = YOLO(model, task=task)
 
     # Task Update
-    if task and task != model.task:
-        LOGGER.warning(f"WARNING ⚠️ conflicting 'task={task}' passed with 'task={model.task}' model. "
-                       f"Ignoring 'task={task}' and updating to 'task={model.task}' to match model.")
+    if task != model.task:
+        if task:
+            LOGGER.warning(f"WARNING ⚠️ conflicting 'task={task}' passed with 'task={model.task}' model. "
+                           f"Ignoring 'task={task}' and updating to 'task={model.task}' to match model.")
         task = model.task
 
     # Mode
@@ -299,8 +301,7 @@ def entrypoint(debug=''):
         LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using default 'source={overrides['source']}'.")
     elif mode in ('train', 'val'):
         if 'data' not in overrides:
-            task2data = dict(detect='coco128.yaml', segment='coco128-seg.yaml', classify='imagenet100')
-            overrides['data'] = task2data.get(task or DEFAULT_CFG.task, DEFAULT_CFG.data)
+            overrides['data'] = TASK2DATA.get(task or DEFAULT_CFG.task, DEFAULT_CFG.data)
             LOGGER.warning(f"WARNING ⚠️ 'data' is missing. Using default 'data={overrides['data']}'.")
     elif mode == 'export':
         if 'format' not in overrides:
@@ -322,4 +323,4 @@ def copy_default_cfg():
 
 if __name__ == '__main__':
     # entrypoint(debug='yolo predict model=yolov8n.pt')
-    entrypoint(debug='')
+    entrypoint(debug='yolo train model=yolov8n-seg.pt')

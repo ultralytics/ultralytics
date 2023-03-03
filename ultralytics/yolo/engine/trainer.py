@@ -607,8 +607,8 @@ def check_amp(model):
         # All close FP32 vs AMP results
         m = YOLO(model)  # model
         a = m(im)[0].boxes.boxes  # FP32 inference
-        m.amp = True
-        b = m(im)[0].boxes.boxes  # AMP inference
+        with torch.cuda.amp.autocast(True):
+            b = m(im)[0].boxes.boxes  # AMP inference
         return a.shape == b.shape and torch.allclose(a, b, atol=0.1)  # close to 10% absolute tolerance
 
     prefix = colorstr('AMP: ')
@@ -621,7 +621,7 @@ def check_amp(model):
         assert amp_allclose(deepcopy(model), im) or amp_allclose(AutoBackend('yolov5n.pt', device), im)
         LOGGER.info(f'{prefix}checks passed ✅')
         return True
-    except Exception:
+    except AssertionError:
         help_url = 'https://github.com/ultralytics/yolov5/issues/7908'
         LOGGER.warning(f'{prefix}checks failed ❌, disabling Automatic Mixed Precision. See {help_url}')
         return False

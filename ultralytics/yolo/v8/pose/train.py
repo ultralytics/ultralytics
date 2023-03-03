@@ -2,6 +2,7 @@
 from copy import copy
 
 import torch
+import torch.nn as nn
 
 from ultralytics.nn.tasks import PoseModel
 from ultralytics.yolo import v8
@@ -11,6 +12,7 @@ from ultralytics.yolo.utils.plotting import plot_images, plot_results
 from ultralytics.yolo.utils.tal import make_anchors
 from ultralytics.yolo.utils.torch_utils import de_parallel
 from ultralytics.yolo.v8.detect.train import Loss
+from ultralytics.yolo.utils.loss import KeypointLoss
 
 
 # BaseTrainer python usage
@@ -30,7 +32,7 @@ class PoseTrainer(v8.detect.DetectionTrainer):
         return model
 
     def get_validator(self):
-        self.loss_names = 'box_loss', 'seg_loss', 'cls_loss', 'dfl_loss'
+        self.loss_names = 'box_loss', 'pose_loss', 'cls_loss', 'dfl_loss'
         return v8.segment.SegmentationValidator(self.test_loader,
                                                 save_dir=self.save_dir,
                                                 args=copy(self.args))
@@ -59,10 +61,11 @@ class PoseLoss(Loss):
     def __init__(self, model):  # model must be de-paralleled
         super().__init__(model)
         self.nkpt = model.model[-1].nkpt  # number of keypoints
+        self.bce_pose = nn.BCEWithLogitsLoss()
+        self.keypoint_loss = KeypointLoss(device=self.device, nkpt=self.nkpt)
 
     def __call__(self, preds, batch):
-        sigmas = torch.ones((self.nkpt), device=self.device) / 10
-        loss = torch.zeros(5, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility
+        loss = torch.zeros(6, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility
         feats, pred_kpts = preds if len(preds) == 2 else preds[1]
         pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
             (self.reg_max * 4, self.nc), 1)
@@ -84,10 +87,6 @@ class PoseLoss(Loss):
         gt_labels, gt_bboxes = targets.split((1, 4), 2)  # cls, xyxy
         mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0)
 
-        keypoints = batch['keypoints'].to(self.device).float()
-        print(keypoints.shape)
-        exit()
-
         # pboxes
         pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
 
@@ -99,12 +98,26 @@ class PoseLoss(Loss):
 
         # cls loss
         # loss[1] = self.varifocal_loss(pred_scores, target_scores, target_labels) / target_scores_sum  # VFL way
-        loss[2] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
+        loss[3] = self.bce(pred_scores, target_scores.to(dtype)).sum() / target_scores_sum  # BCE
 
         # bbox loss
         if fg_mask.sum():
-            loss[0], loss[3] = self.bbox_loss(pred_distri, pred_bboxes, anchor_points, target_bboxes / stride_tensor,
+            loss[0], loss[4] = self.bbox_loss(pred_distri, pred_bboxes, anchor_points, target_bboxes / stride_tensor,
                                               target_scores, target_scores_sum, fg_mask)
+            keypoints = batch['keypoints'].to(self.device).float().view(-1, self.nkpt * 3)
+            for i in range(batch_size):
+                if fg_mask[i].sum():
+                    idx = target_gt_idx[i][fg_mask[i]]
+                    gt_kpt = keypoints[batch_idx.view(-1) == i][idx]  # (n, 51)
+                    xyxyn = target_bboxes[i][fg_mask[i]] / imgsz[[1, 0, 1, 0]]
+                    area = xyxy2xywh(xyxyn)[:, 2:].prod(1)
+                    pred_kpt = self.decode_kpts(pred_kpts[i][fg_mask[i]])
+                    kpt_mask = gt_kpt[:, 2::3] != 0
+                    loss[1] += self.keypoint_loss(pred_kpt, gt_kpt, kpt_mask, area)
+                    # kpt_score loss
+                    loss[2] += self.bce_pose(pred_kpt[:, 3::3], gt_kpt[:, 3::3])
+
+
         # WARNING: Uncomment lines below in case of Multi-GPU DDP unused gradient errors
         #         else:
         #             loss[1] += proto.sum() * 0
@@ -112,11 +125,17 @@ class PoseLoss(Loss):
         #     loss[1] += proto.sum() * 0
 
         loss[0] *= self.hyp.box  # box gain
-        loss[1] *= self.hyp.box / batch_size  # seg gain
-        loss[2] *= self.hyp.cls  # cls gain
-        loss[3] *= self.hyp.dfl  # dfl gain
+        loss[1] *= self.hyp.box / batch_size  # pose gain
+        loss[2] *= self.hyp.box / batch_size  # TODO: pose_score gain
+        loss[3] *= self.hyp.cls  # cls gain
+        loss[4] *= self.hyp.dfl  # dfl gain
 
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
+
+    def decode_kpts(self, pred_kpts):
+        # TODO
+        return pred_kpts
+
 
 
 def train(cfg=DEFAULT_CFG, use_python=False):

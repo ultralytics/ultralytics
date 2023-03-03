@@ -54,3 +54,14 @@ class BboxLoss(nn.Module):
         wr = 1 - wl  # weight right
         return (F.cross_entropy(pred_dist, tl.view(-1), reduction='none').view(tl.shape) * wl +
                 F.cross_entropy(pred_dist, tr.view(-1), reduction='none').view(tl.shape) * wr).mean(-1, keepdim=True)
+
+class KeypointLoss(nn.Module):
+    def __init__(self, device, nkpt=17, scale=10) -> None:
+        super().__init__()
+        self.sigmas = torch.ones((nkpt), device=device) / scale
+
+    def forward(self, pred_kpts, gt_kpts, kpt_mask, area):
+        d = (pred_kpts[:, 0::3] - gt_kpts[:, 0::3]) ** 2 + (pred_kpts[:, 1::3] - gt_kpts[:, 1::3]) ** 2
+        kpt_loss_factor = (torch.sum(kpt_mask != 0) +
+                           torch.sum(kpt_mask == 0)) / (torch.sum(kpt_mask != 0) + 1e-9)
+        return kpt_loss_factor * ((1 - torch.exp(-d / (2 * (area * self.sigmas) ** 2 + 1e-9))) * kpt_mask).mean()

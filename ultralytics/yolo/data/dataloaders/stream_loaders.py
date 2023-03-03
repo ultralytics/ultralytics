@@ -29,7 +29,6 @@ class SourceTypes:
     tensor: bool = False
 
 
-
 class LoadStreams:
     # YOLOv8 streamloader, i.e. `yolo predict source='rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP streams`
     def __init__(self, sources='file.streams', imgsz=640, stride=32, auto=True, transforms=None, vid_stride=1):
@@ -330,20 +329,23 @@ class LoadPilAndNumpy:
         self.count = 0
         return self
 
+
 class LoadTensor:
+
     def __init__(self, imgs) -> None:
         self.im0 = imgs
         self.bs = imgs.shape[0]
-    
+
     def __iter__(self):
         self.count = 0
         return self
-    
+
     def __next__(self):
         if self.count == 1:
             raise StopIteration
         self.count += 1
-        return None, self.im0, self.im0, None, ''   # self.paths, im, self.im0, None, ''
+        return None, self.im0, self.im0, None, ''  # self.paths, im, self.im0, None, ''
+
 
 def autocast_list(source):
     """

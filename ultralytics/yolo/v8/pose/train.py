@@ -32,7 +32,7 @@ class PoseTrainer(v8.detect.DetectionTrainer):
         return model
 
     def get_validator(self):
-        self.loss_names = 'box_loss', 'pose_loss', 'cls_loss', 'dfl_loss'
+        self.loss_names = 'box_loss', 'pose_loss', 'kobj_loss', 'cls_loss', 'dfl_loss'
         return v8.segment.SegmentationValidator(self.test_loader,
                                                 save_dir=self.save_dir,
                                                 args=copy(self.args))
@@ -110,7 +110,7 @@ class PoseLoss(Loss):
                     idx = target_gt_idx[i][fg_mask[i]]
                     gt_kpt = keypoints[batch_idx.view(-1) == i][idx]  # (n, 51)
                     xyxyn = target_bboxes[i][fg_mask[i]] / imgsz[[1, 0, 1, 0]]
-                    area = xyxy2xywh(xyxyn)[:, 2:].prod(1)
+                    area = xyxy2xywh(xyxyn)[:, 2:].prod(1, keepdim=True)
                     pred_kpt = self.decode_kpts(pred_kpts[i][fg_mask[i]])
                     kpt_mask = gt_kpt[:, 2::3] != 0
                     loss[1] += self.keypoint_loss(pred_kpt, gt_kpt, kpt_mask, area)

@@ -25,8 +25,8 @@ from tqdm import tqdm
 from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.data.utils import check_cls_dataset, check_det_dataset
-from ultralytics.yolo.utils import (DEFAULT_CFG, LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, __version__, callbacks,
-                                    colorstr, emojis, yaml_save)
+from ultralytics.yolo.utils import (DEFAULT_CFG, LOGGER, ONLINE, RANK, ROOT, SETTINGS, TQDM_BAR_FORMAT, __version__,
+                                    callbacks, colorstr, emojis, yaml_save)
 from ultralytics.yolo.utils.autobatch import check_train_batch_size
 from ultralytics.yolo.utils.checks import check_file, check_imgsz, print_args
 from ultralytics.yolo.utils.dist import ddp_cleanup, generate_ddp_command
@@ -111,8 +111,6 @@ class BaseTrainer:
             print_args(vars(self.args))
 
         # Device
-        self.amp = self.device.type != 'cpu'
-        self.scaler = amp.GradScaler(enabled=self.amp)
         if self.device.type == 'cpu':
             self.args.workers = 0  # faster CPU training as time dominated by inference, not dataloading
 
@@ -204,6 +202,8 @@ class BaseTrainer:
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
         self.set_model_attributes()
+        self.amp = check_amp(self.model)
+        self.scaler = amp.GradScaler(enabled=self.amp)
         if world_size > 1:
             self.model = DDP(self.model, device_ids=[rank])
         # Check imgsz
@@ -516,9 +516,8 @@ class BaseTrainer:
         resume = self.args.resume
         if resume:
             try:
-                last = Path(
-                    check_file(resume) if isinstance(resume, (str,
-                                                              Path)) and Path(resume).exists() else get_latest_run())
+                last = Path(check_file(resume) if isinstance(resume, (str, Path)) and Path(resume).exists()
+                            else get_latest_run())
                 self.args = get_cfg(attempt_load_weights(last).args)
                 self.args.model, resume = str(last), True  # reinstate
             except Exception as e:
@@ -597,3 +596,32 @@ class BaseTrainer:
         LOGGER.info(f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}) with parameter groups "
                     f'{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias')
         return optimizer
+
+
+def check_amp(model):
+    # Check PyTorch Automatic Mixed Precision (AMP) functionality. Return True on correct operation
+    from ultralytics import YOLO
+    from ultralytics.nn.autobackend import AutoBackend
+
+    def amp_allclose(model, im):
+        # All close FP32 vs AMP results
+        m = YOLO(model)  # model
+        a = m(im)[0].boxes.boxes  # FP32 inference
+        m.amp = True
+        b = m(im)[0].boxes.boxes  # AMP inference
+        return a.shape == b.shape and torch.allclose(a, b, atol=0.1)  # close to 10% absolute tolerance
+
+    prefix = colorstr('AMP: ')
+    device = next(model.parameters()).device  # get model device
+    if device.type in ('cpu', 'mps'):
+        return False  # AMP only used on CUDA devices
+    f = ROOT / 'assets' / 'bus.jpg'  # image to check
+    im = f if f.exists() else 'https://ultralytics.com/images/bus.jpg' if ONLINE else np.ones((640, 640, 3))
+    try:
+        assert amp_allclose(deepcopy(model), im) or amp_allclose(AutoBackend('yolov5n.pt', device), im)
+        LOGGER.info(f'{prefix}checks passed ✅')
+        return True
+    except Exception:
+        help_url = 'https://github.com/ultralytics/yolov5/issues/7908'
+        LOGGER.warning(f'{prefix}checks failed ❌, disabling Automatic Mixed Precision. See {help_url}')
+        return False

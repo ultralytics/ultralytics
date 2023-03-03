@@ -600,7 +600,6 @@ class BaseTrainer:
 
 def check_amp(model):
     # Check PyTorch Automatic Mixed Precision (AMP) functionality. Return True on correct operation
-    from ultralytics import YOLO
 
     def amp_allclose(m, im):
         # All close FP32 vs AMP results
@@ -611,11 +610,12 @@ def check_amp(model):
 
     prefix = colorstr('AMP: ')
     device = next(model.parameters()).device  # get model device
-    if device.type in ('cpu', 'mps'):
-        return False  # AMP only used on CUDA devices
+    #if device.type in ('cpu', 'mps'):
+    #    return False  # AMP only used on CUDA devices
     f = ROOT / 'assets/bus.jpg'  # image to check
     im = f if f.exists() else 'https://ultralytics.com/images/bus.jpg' if ONLINE else np.ones((640, 640, 3))
     try:
+        from ultralytics import YOLO
         LOGGER.info(f'{prefix}running checks with YOLOv8n...')
         assert amp_allclose(YOLO('yolov8n.pt'), im)
         LOGGER.info(f'{prefix}checks passed ✅')

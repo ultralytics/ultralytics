@@ -64,6 +64,14 @@ def test_predict_img():
         np.zeros((320, 640, 3))]  # numpy
     assert len(model(batch)) == len(batch)  # multiple sources in a batch
 
+    # Test tensor inference
+    im = cv2.imread(str(SOURCE))  # OpenCV
+    t = cv2.resize(im, (640,640))
+    t = torch.from_numpy(t.transpose((2,0,1)))
+    t = torch.stack([t,t,t,t])
+    print(t.shape)
+    results = model(t)
+    assert len(results) == t.shape[0]
 
 def test_predict_grey_and_4ch():
     model = YOLO(MODEL)

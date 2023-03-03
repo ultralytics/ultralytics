@@ -96,12 +96,7 @@ def verify_image_label(args):
                     assert lb.shape[1] == 56, 'labels require 56 columns each'
                     assert (lb[:, 5::3] <= 1).all(), 'non-normalized or out of bounds coordinate labels'
                     assert (lb[:, 6::3] <= 1).all(), 'non-normalized or out of bounds coordinate labels'
-                    kpts = np.zeros((lb.shape[0], 39))
-                    for i in range(len(lb)):
-                        kpt = np.delete(lb[i, 5:], np.arange(2, lb.shape[1] - 5, 3))  # remove occlusion param from GT
-                        kpts[i] = np.hstack((lb[i, :5], kpt))
-                    lb = kpts
-                    assert lb.shape[1] == 39, 'labels require 39 columns each after removing occlusion parameter'
+                    assert lb.shape[1] == 56, 'labels require 56 columns each after removing occlusion parameter'
                 else:
                     assert lb.shape[1] == 5, f'labels require 5 columns, {lb.shape[1]} columns detected'
                     assert (lb[:, 1:] <= 1).all(), \
@@ -120,12 +115,12 @@ def verify_image_label(args):
                     msg = f'{prefix}WARNING ⚠️ {im_file}: {nl - len(i)} duplicate labels removed'
             else:
                 ne = 1  # label empty
-                lb = np.zeros((0, 39), dtype=np.float32) if keypoint else np.zeros((0, 5), dtype=np.float32)
+                lb = np.zeros((0, 56), dtype=np.float32) if keypoint else np.zeros((0, 5), dtype=np.float32)
         else:
             nm = 1  # label missing
-            lb = np.zeros((0, 39), dtype=np.float32) if keypoint else np.zeros((0, 5), dtype=np.float32)
+            lb = np.zeros((0, 56), dtype=np.float32) if keypoint else np.zeros((0, 5), dtype=np.float32)
         if keypoint:
-            keypoints = lb[:, 5:].reshape(-1, 17, 2)
+            keypoints = lb[:, 5:].reshape(-1, 17, 3)
         lb = lb[:, :5]
         return im_file, lb, shape, segments, keypoints, nm, nf, ne, nc, msg
     except Exception as e:

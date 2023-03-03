@@ -608,7 +608,7 @@ def check_amp(model):
             b = m(im)[0]  # AMP inference
         if isinstance(a, (list, tuple)):  # segment model
             a, b = a[0], b[0]
-        return a.shape == b.shape and torch.allclose(a, b, atol=0.1)  # close to 10% absolute tolerance
+        return a.shape == b.shape and torch.allclose(a, b.float(), atol=0.1)  # close to 10% absolute tolerance
 
     prefix = colorstr('AMP: ')
     device = next(model.parameters()).device  # get model device

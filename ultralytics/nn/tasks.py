@@ -10,7 +10,7 @@ import torch.nn as nn
 
 from ultralytics.nn.modules import (C1, C2, C3, C3TR, SPP, SPPF, Bottleneck, BottleneckCSP, C2f, C3Ghost, C3x, Classify,
                                     Concat, Conv, ConvTranspose, Detect, DWConv, DWConvTranspose2d, Ensemble, Focus,
-                                    GhostBottleneck, GhostConv, Keypoint, Segment)
+                                    GhostBottleneck, GhostConv, Pose, Segment)
 from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, colorstr, emojis, yaml_load
 from ultralytics.yolo.utils.checks import check_requirements, check_yaml
 from ultralytics.yolo.utils.torch_utils import (fuse_conv_and_bn, fuse_deconv_and_bn, initialize_weights,
@@ -187,10 +187,10 @@ class DetectionModel(BaseModel):
 
         # Build strides
         m = self.model[-1]  # Detect()
-        if isinstance(m, (Detect, Segment, Keypoint)):
+        if isinstance(m, (Detect, Segment, Pose)):
             s = 256  # 2x min stride
             m.inplace = self.inplace
-            forward = lambda x: self.forward(x)[0] if isinstance(m, Segment) else self.forward(x)
+            forward = lambda x: self.forward(x)[0] if isinstance(m, (Segment, Pose)) else self.forward(x)
             m.stride = torch.tensor([s / x.shape[-2] for x in forward(torch.zeros(1, ch, s, s))])  # forward
             self.stride = m.stride
             m.bias_init()  # only run once
@@ -259,7 +259,7 @@ class SegmentationModel(DetectionModel):
         raise NotImplementedError('WARNING ⚠️ SegmentationModel has not supported augment inference yet!')
 
 
-class KeypointModel(DetectionModel):
+class PoseModel(DetectionModel):
 
     def __init__(self, cfg='yolov5s-kpt.yaml', ch=3, nc=None, nkpt=None, verbose=True):
         super().__init__(cfg, ch, nc, nkpt, verbose)
@@ -471,7 +471,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
-        elif m in {Detect, Segment, Keypoint}:
+        elif m in {Detect, Segment, Pose}:
             args.append([ch[x] for x in f])
             if m is Segment:
                 args[2] = make_divisible(args[2] * gw, 8)
@@ -515,8 +515,8 @@ def guess_model_task(model):
             return 'detect'
         if m in ['segment']:
             return 'segment'
-        if m in ['keypoint']:
-            return 'keypoint'
+        if m in ['pose']:
+            return 'pose'
 
     # Guess from model cfg
     if isinstance(model, dict):
@@ -531,8 +531,8 @@ def guess_model_task(model):
         for x in 'model.yaml', 'model.model.yaml', 'model.model.model.yaml':
             with contextlib.suppress(Exception):
                 return cfg2task(eval(x))
-        if m in ['keypoint']:
-            return 'keypoint'
+        if m in ['pose']:
+            return 'pose'
 
         for m in model.modules():
             if isinstance(m, Detect):
@@ -541,8 +541,8 @@ def guess_model_task(model):
                 return 'segment'
             elif isinstance(m, Classify):
                 return 'classify'
-            elif isinstance(m, Keypoint):
-                return 'keypoint'
+            elif isinstance(m, Pose):
+                return 'pose'
 
     # Guess from model filename
     if isinstance(model, (str, Path)):

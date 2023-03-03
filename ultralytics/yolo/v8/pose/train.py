@@ -1,14 +1,12 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
-import sys
 from copy import copy
 
 import torch
-import torch.nn.functional as F
 
-from ultralytics.nn.tasks import KeypointModel
+from ultralytics.nn.tasks import PoseModel
 from ultralytics.yolo import v8
 from ultralytics.yolo.utils import DEFAULT_CFG
-from ultralytics.yolo.utils.ops import crop_mask, xyxy2xywh
+from ultralytics.yolo.utils.ops import xyxy2xywh
 from ultralytics.yolo.utils.plotting import plot_images, plot_results
 from ultralytics.yolo.utils.tal import make_anchors
 from ultralytics.yolo.utils.torch_utils import de_parallel
@@ -16,16 +14,16 @@ from ultralytics.yolo.v8.detect.train import Loss
 
 
 # BaseTrainer python usage
-class KeypointsTrain(v8.detect.DetectionTrainer):
+class PoseTrainer(v8.detect.DetectionTrainer):
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None):
         if overrides is None:
             overrides = {}
-        overrides['task'] = 'keypoint'
+        overrides['task'] = 'pose'
         super().__init__(cfg, overrides)
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        model = KeypointModel(cfg, ch=3, nc=self.data['nc'], nkpt=self.data['nkpt'], verbose=verbose)
+        model = PoseModel(cfg, ch=3, nc=self.data['nc'], nkpt=self.data['nkpt'], verbose=verbose)
         if weights:
             model.load(weights)
 
@@ -39,7 +37,7 @@ class KeypointsTrain(v8.detect.DetectionTrainer):
 
     def criterion(self, preds, batch):
         if not hasattr(self, 'compute_loss'):
-            self.compute_loss = KeypointLoss(de_parallel(self.model))
+            self.compute_loss = PoseLoss(de_parallel(self.model))
         return self.compute_loss(preds, batch)
 
     def plot_training_samples(self, batch, ni):
@@ -56,7 +54,7 @@ class KeypointsTrain(v8.detect.DetectionTrainer):
 
 
 # Criterion class for computing training losses
-class KeypointLoss(Loss):
+class PoseLoss(Loss):
 
     def __init__(self, model):  # model must be de-paralleled
         super().__init__(model)
@@ -65,13 +63,14 @@ class KeypointLoss(Loss):
     def __call__(self, preds, batch):
         sigmas = torch.ones((self.nkpt), device=self.device) / 10
         loss = torch.zeros(5, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility
-        feats = preds[1] if isinstance(preds, tuple) else preds
+        feats, pred_kpts = preds if len(preds) == 2 else preds[1]
         pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
             (self.reg_max * 4, self.nc), 1)
 
         # b, grids, ..
         pred_scores = pred_scores.permute(0, 2, 1).contiguous()
         pred_distri = pred_distri.permute(0, 2, 1).contiguous()
+        pred_kpts = pred_kpts.permute(0, 2, 1).contiguous()
 
         dtype = pred_scores.dtype
         imgsz = torch.tensor(feats[0].shape[2:], device=self.device, dtype=dtype) * self.stride[0]  # image size (h,w)
@@ -86,6 +85,8 @@ class KeypointLoss(Loss):
         mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0)
 
         keypoints = batch['keypoints'].to(self.device).float()
+        print(keypoints.shape)
+        exit()
 
         # pboxes
         pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)

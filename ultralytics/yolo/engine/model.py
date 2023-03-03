@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 from ultralytics import yolo  # noqa
-from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, SegmentationModel, attempt_load_one_weight,
+from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, SegmentationModel, PoseModel, attempt_load_one_weight,
                                   guess_model_task, nn)
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
@@ -23,11 +23,11 @@ TASK_MAP = {
         DetectionModel, yolo.v8.detect.DetectionTrainer, yolo.v8.detect.DetectionValidator,
         yolo.v8.detect.DetectionPredictor],
     'segment': [
-        SegmentationModel, 'yolo.TYPE.segment.SegmentationTrainer', 'yolo.TYPE.segment.SegmentationValidator',
-        'yolo.TYPE.segment.SegmentationPredictor'],
-    'keypoint': [
-        DetectionModel, 'yolo.TYPE.detect.DetectionTrainer', 'yolo.TYPE.detect.DetectionValidator',
-        'yolo.TYPE.detect.DetectionPredictor']  # temp untill keypoint modes are not  implemented
+        SegmentationModel, yolo.v8.segment.SegmentationTrainer, yolo.v8.segment.SegmentationValidator,
+        yolo.v8.segment.SegmentationPredictor],
+    'pose': [
+        PoseModel, yolo.v8.pose.PoseTrainer, 'yolo.TYPE.pose.PoseValidator',
+        'yolo.TYPE.pose.PosePredictor']  # temp untill keypoint modes are not  implemented
 }
 
 

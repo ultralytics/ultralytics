@@ -61,7 +61,7 @@ CFG_BOOL_KEYS = ('save', 'exist_ok', 'pretrained', 'verbose', 'deterministic', '
                  'v5loader')
 
 # Define valid tasks and modes
-TASKS = 'detect', 'segment', 'classify'
+TASKS = 'detect', 'segment', 'classify', 'pose'
 MODES = 'train', 'val', 'predict', 'export', 'track', 'benchmark'
 
 

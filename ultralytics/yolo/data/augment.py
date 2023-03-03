@@ -309,27 +309,22 @@ class RandomPerspective:
         """apply affine to keypoints.
 
         Args:
-            keypoints(ndarray): keypoints, [N, 17, 2].
+            keypoints(ndarray): keypoints, [N, 17, 3].
             M(ndarray): affine matrix.
         Return:
-            new_keypoints(ndarray): keypoints after affine, [N, 17, 2].
+            new_keypoints(ndarray): keypoints after affine, [N, 17, 3].
         """
         n = len(keypoints)
         if n == 0:
             return keypoints
-        new_keypoints = np.ones((n * 17, 3))
-        new_keypoints[:, :2] = keypoints.reshape(n * 17, 2)  # num_kpt is hardcoded to 17
-        new_keypoints = new_keypoints @ M.T  # transform
-        new_keypoints = (new_keypoints[:, :2] / new_keypoints[:, 2:3]).reshape(n, 34)  # perspective rescale or affine
-        new_keypoints[keypoints.reshape(-1, 34) == 0] = 0
-        x_kpts = new_keypoints[:, list(range(0, 34, 2))]
-        y_kpts = new_keypoints[:, list(range(1, 34, 2))]
-
-        x_kpts[np.logical_or.reduce((x_kpts < 0, x_kpts > self.size[0], y_kpts < 0, y_kpts > self.size[1]))] = 0
-        y_kpts[np.logical_or.reduce((x_kpts < 0, x_kpts > self.size[0], y_kpts < 0, y_kpts > self.size[1]))] = 0
-        new_keypoints[:, list(range(0, 34, 2))] = x_kpts
-        new_keypoints[:, list(range(1, 34, 2))] = y_kpts
-        return new_keypoints.reshape(n, 17, 2)
+        xy = np.ones((n * 17, 3))
+        visible = keypoints[..., 2].reshape(n * 17, 1)
+        xy[:, :2] = keypoints[..., :2].reshape(n * 17, 2)  # num_kpt is hardcoded to 17
+        xy = xy @ M.T  # transform
+        xy = xy[:, :2] / xy[:, 2:3]  # perspective rescale or affine
+        out_mask = (xy[:, 0] < 0) | (xy[:, 1] < 0) | (xy[:, 0] > self.size[0]) | (xy[:, 1] > self.size[1])
+        visible[out_mask] = 0
+        return np.concatenate([xy, visible], axis=-1).reshape(n, 17, 3)
 
     def __call__(self, labels):
         """
@@ -633,7 +628,7 @@ class Format:
         labels['cls'] = torch.from_numpy(cls) if nl else torch.zeros(nl)
         labels['bboxes'] = torch.from_numpy(instances.bboxes) if nl else torch.zeros((nl, 4))
         if self.return_keypoint:
-            labels['keypoints'] = torch.from_numpy(instances.keypoints) if nl else torch.zeros((nl, 17, 2))
+            labels['keypoints'] = torch.from_numpy(instances.keypoints) if nl else torch.zeros((nl, 17, 3))
         # then we can use collate_fn
         if self.batch_idx:
             labels['batch_idx'] = torch.zeros(nl)

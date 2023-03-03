@@ -25,7 +25,7 @@ from tqdm import tqdm
 from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.data.utils import check_cls_dataset, check_det_dataset
-from ultralytics.yolo.utils import (DEFAULT_CFG, LOGGER, ONLINE, RANK, ROOT, SETTINGS, TQDM_BAR_FORMAT, __version__,
+from ultralytics.yolo.utils import (DEFAULT_CFG, LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, __version__,
                                     callbacks, colorstr, emojis, yaml_save)
 from ultralytics.yolo.utils.autobatch import check_train_batch_size
 from ultralytics.yolo.utils.checks import check_file, check_imgsz, print_args
@@ -600,25 +600,23 @@ class BaseTrainer:
 
 def check_amp(model):
     # Check PyTorch Automatic Mixed Precision (AMP) functionality. Return True on correct operation
-    from ultralytics import YOLO
-    from ultralytics.nn.autobackend import AutoBackend
 
-    def amp_allclose(model, im):
+    def amp_allclose(m, im):
         # All close FP32 vs AMP results
-        m = YOLO(model)  # model
-        a = m(im)[0].boxes.boxes  # FP32 inference
+        a = m(im)[0]  # FP32 inference
         with torch.cuda.amp.autocast(True):
-            b = m(im)[0].boxes.boxes  # AMP inference
+            b = m(im)[0]  # AMP inference
+        if isinstance(a, (list, tuple)):  # segment model
+            a, b = a[0], b[0]
         return a.shape == b.shape and torch.allclose(a, b, atol=0.1)  # close to 10% absolute tolerance
 
     prefix = colorstr('AMP: ')
     device = next(model.parameters()).device  # get model device
     if device.type in ('cpu', 'mps'):
         return False  # AMP only used on CUDA devices
-    f = ROOT / 'assets' / 'bus.jpg'  # image to check
-    im = f if f.exists() else 'https://ultralytics.com/images/bus.jpg' if ONLINE else np.ones((640, 640, 3))
+    im = torch.rand((1, 3, 640, 640), device=device)
     try:
-        assert amp_allclose(deepcopy(model), im) or amp_allclose(AutoBackend('yolov5n.pt', device), im)
+        assert amp_allclose(deepcopy(model), im)
         LOGGER.info(f'{prefix}checks passed ✅')
         return True
     except AssertionError:

@@ -617,7 +617,7 @@ def check_amp(model):
     prefix = colorstr('AMP: ')
     try:
         from ultralytics import YOLO
-        LOGGER.info(f'{prefix}running Automatic Mixed Precision checks with YOLOv8n...')
+        LOGGER.info(f'{prefix}running Automatic Mixed Precision (AMP) checks with YOLOv8n...')
         assert amp_allclose(YOLO('yolov8n.pt'), im)
         LOGGER.info(f'{prefix}checks passed ✅')
         return True

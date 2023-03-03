@@ -55,7 +55,7 @@ class _RepeatSampler:
             yield from iter(self.sampler)
 
 
-def seed_worker(worker_id):
+def seed_worker(worker_id):  # noqa
     # Set dataloader worker seed https://pytorch.org/docs/stable/notes/randomness.html#dataloader
     worker_seed = torch.initial_seed() % 2 ** 32
     np.random.seed(worker_seed)
@@ -138,7 +138,7 @@ def check_source(source):
     if isinstance(source, queue.Queue):
         is_not_queue = False
     webcam, screenshot, from_img, in_memory = False, False, False, False
-    if isinstance(source, (str, int, Path, queue.Queue)):  # int for local usb carame
+    if isinstance(source, (str, int, Path, queue.Queue)):  # int for local usb camera
         webcam = (not is_not_queue)
         if is_not_queue:
             source = str(source)
@@ -153,11 +153,10 @@ def check_source(source):
     elif isinstance(source, (list, tuple)):
         source = autocast_list(source)  # convert all list elements to PIL or np arrays
         from_img = True
-    elif isinstance(source, ((Image.Image, np.ndarray))):
+    elif isinstance(source, (Image.Image, np.ndarray)):
         from_img = True
     else:
-        raise Exception(
-            'Unsupported type encountered! See docs for supported types https://docs.ultralytics.com/predict')
+        raise TypeError('Unsupported image type. See docs for supported types https://docs.ultralytics.com/predict')
 
     return source, webcam, screenshot, from_img, in_memory
 

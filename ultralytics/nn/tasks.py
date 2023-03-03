@@ -257,7 +257,7 @@ class ClassificationModel(BaseModel):
                  cfg=None,
                  model=None,
                  ch=3,
-                 nc=1000,
+                 nc=None,
                  cutoff=10,
                  verbose=True):  # yaml, model, channels, number of classes, cutoff index, verbose flag
         super().__init__()
@@ -286,6 +286,8 @@ class ClassificationModel(BaseModel):
         if nc and nc != self.yaml['nc']:
             LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
             self.yaml['nc'] = nc  # override yaml value
+        elif not nc and not self.yaml.get('nc', None):
+            raise ValueError('nc not specified. Must specify nc in model.yaml or function arguments.')
         self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose)  # model, savelist
         self.stride = torch.Tensor([1])  # no stride constraints
         self.names = {i: f'{i}' for i in range(self.yaml['nc'])}  # default names dict

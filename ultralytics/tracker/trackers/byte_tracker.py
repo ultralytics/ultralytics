@@ -92,7 +92,6 @@ class STrack(BaseTrack):
         Update a matched track
         :type new_track: STrack
         :type frame_id: int
-        :type update_feature: bool
         :return:
         """
         self.frame_id = frame_id

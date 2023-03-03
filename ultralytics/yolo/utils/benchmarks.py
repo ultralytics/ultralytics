@@ -45,9 +45,10 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
     y = []
     t0 = time.time()
     for i, (name, format, suffix, cpu, gpu) in export_formats().iterrows():  # index, (name, format, suffix, CPU, GPU)
-        emoji = '❌'  # indicates export failure
+        emoji, filename = '❌', None  # export defaults
         try:
-            assert i != 11, 'paddle exports coming soon'
+            if model.task == 'classify':
+                assert i != 11, 'paddle cls exports coming soon'
             assert i != 9 or LINUX, 'Edge TPU export only supported on Linux'
             if 'cpu' in device.type:
                 assert cpu, 'inference not supported on CPU'
@@ -86,7 +87,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
             if hard_fail:
                 assert type(e) is AssertionError, f'Benchmark hard_fail for {name}: {e}'
             LOGGER.warning(f'ERROR ❌️ Benchmark failure for {name}: {e}')
-            y.append([name, emoji, None, None, None])  # mAP, t_inference
+            y.append([name, emoji, round(file_size(filename), 1), None, None])  # mAP, t_inference
 
     # Print results
     check_yolo(device=device)  # print system info

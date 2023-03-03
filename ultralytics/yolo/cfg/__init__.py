@@ -273,7 +273,7 @@ def entrypoint(debug=''):
         return
 
     # Task
-    task = overrides.get('task')
+    task = overrides.pop('task', None)
     if task and task not in TASKS:
         raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
 
@@ -289,9 +289,8 @@ def entrypoint(debug=''):
     # Task Update
     if task and task != model.task:
         LOGGER.warning(f"WARNING ⚠️ conflicting 'task={task}' passed with 'task={model.task}' model. "
-                       f'This may produce errors.')
-    task = task or model.task
-    overrides['task'] = task
+                       f"Ignoring 'task={task}' and updating to 'task={model.task}' to match model.")
+        task = model.task
 
     # Mode
     if mode in {'predict', 'track'} and 'source' not in overrides:

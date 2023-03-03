@@ -47,7 +47,7 @@ source can be used as a stream and the model argument required for that source.
 | CSV        |         | `'sources.csv'`                            | `str`, `Path`  | RTSP, RTMP, HTTP |         
 | video      | &check; | `'vid.mp4'`                                | `str`, `Path`  |                  |
 | directory  | &check; | `'path/'`                                  | `str`, `Path`  |                  |
-| glob       | &check; | `path/*.jpg'`                              | `str`          | Use `*` operator |
+| glob       | &check; | `'path/*.jpg'`                             | `str`          | Use `*` operator |
 | YouTube    | &check; | `'https://youtu.be/Zgi9g1ksQHc'`           | `str`          |                  |
 | stream     | &check; | `'rtsp://example.com/media.mp4'`           | `str`          | RTSP, RTMP, HTTP |
 

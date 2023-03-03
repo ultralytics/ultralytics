@@ -483,22 +483,6 @@ def set_logging(name=LOGGING_NAME, verbose=True):
                 'propagate': False}}})
 
 
-class SilenceLogger:
-    # Silence logger class. Usage: @SilenceLogger(LOGGER) decorator or 'with SilenceLogger(LOGGER):' context manager
-    def __init__(self, logger, enabled=True):
-        self.logger = logger
-        self.enabled = enabled
-        self.handler = logging.NullHandler()
-
-    def __enter__(self):
-        if self.enabled:
-            self.logger.addHandler(self.handler)
-
-    def __exit__(self, type, value, traceback):
-        if self.enabled:
-            self.logger.removeHandler(self.handler)
-
-
 class TryExcept(contextlib.ContextDecorator):
     # YOLOv8 TryExcept class. Usage: @TryExcept() decorator or 'with TryExcept():' context manager
     def __init__(self, msg='', verbose=True):

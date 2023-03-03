@@ -600,6 +600,9 @@ class BaseTrainer:
 
 def check_amp(model):
     # Check PyTorch Automatic Mixed Precision (AMP) functionality. Return True on correct operation
+    device = next(model.parameters()).device  # get model device
+    if device.type in ('cpu', 'mps'):
+        return False  # AMP only used on CUDA devices
 
     def amp_allclose(m, im):
         # All close FP32 vs AMP results
@@ -608,19 +611,16 @@ def check_amp(model):
             b = m(im, device=device, verbose=False)[0].boxes.boxes  # AMP inference
         return a.shape == b.shape and torch.allclose(a, b.float(), atol=0.1)  # close to 10% absolute tolerance
 
-    prefix = colorstr('AMP: ')
-    device = next(model.parameters()).device  # get model device
-    #if device.type in ('cpu', 'mps'):
-    #    return False  # AMP only used on CUDA devices
     f = ROOT / 'assets/bus.jpg'  # image to check
     im = f if f.exists() else 'https://ultralytics.com/images/bus.jpg' if ONLINE else np.ones((640, 640, 3))
+    prefix = colorstr('AMP: ')
     try:
         from ultralytics import YOLO
-        LOGGER.info(f'{prefix}running checks with YOLOv8n...')
+        LOGGER.info(f'{prefix}running Automatic Mixed Precision checks with YOLOv8n...')
         assert amp_allclose(YOLO('yolov8n.pt'), im)
         LOGGER.info(f'{prefix}checks passed ✅')
         return True
     except AssertionError:
-        help_url = 'https://github.com/ultralytics/yolov5/issues/7908'
-        LOGGER.warning(f'{prefix}checks failed ❌, disabling Automatic Mixed Precision. See {help_url}')
+        LOGGER.warning(f'{prefix}checks failed ❌. Anomalies were detected with AMP on your system that may lead to '
+                       f'NaN losses or zero-mAP results, so AMP will be disabled during training.')
         return False

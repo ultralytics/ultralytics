@@ -40,7 +40,14 @@ class AutoBackend(nn.Module):
             return yaml_load(check_yaml(data))['names']
         return {i: f'class{i}' for i in range(999)}  # return default if above errors
 
-    def __init__(self, weights='yolov8n.pt', device=torch.device('cpu'), dnn=False, data=None, fp16=False, fuse=True, verbose=True):
+    def __init__(self,
+                 weights='yolov8n.pt',
+                 device=torch.device('cpu'),
+                 dnn=False,
+                 data=None,
+                 fp16=False,
+                 fuse=True,
+                 verbose=True):
         """
         MultiBackend class for python inference on various platforms using Ultralytics YOLO.
 

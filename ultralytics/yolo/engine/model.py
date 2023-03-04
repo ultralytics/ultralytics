@@ -90,9 +90,9 @@ class YOLO:
 
         # Load or create new YOLO model
         suffix = Path(model).suffix
-        if task and TASK_MODEL_NAME_SUFFIX[task] not in Path(model).stem:
-            model = Path(model).stem + TASK_MODEL_NAME_SUFFIX[task] + suffix
         if not suffix and Path(model).stem in GITHUB_ASSET_STEMS:
+            if task and TASK_MODEL_NAME_SUFFIX[task] not in Path(model).stem:
+                model = Path(model).stem + TASK_MODEL_NAME_SUFFIX[task] + suffix
             model, suffix = Path(model).with_suffix('.pt'), '.pt'  # add suffix, i.e. yolov8n -> yolov8n.pt
         if suffix == '.yaml':
             self._new(model, task)

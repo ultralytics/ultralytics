@@ -49,8 +49,8 @@ def test_predict_dir():
 
 def test_predict_img():
     model = YOLO(MODEL)
-    seg_model = YOLO("yolov8n-seg.pt")
-    cls_model = YOLO("yolov8n-cls.pt")
+    seg_model = YOLO('yolov8n-seg.pt')
+    cls_model = YOLO('yolov8n-cls.pt')
     im = cv2.imread(str(SOURCE))
     assert len(model(source=Image.open(SOURCE), save=True, verbose=True)) == 1  # PIL
     assert len(model(source=im, save=True, save_txt=True)) == 1  # ndarray
@@ -77,6 +77,7 @@ def test_predict_img():
     assert len(results) == t.shape[0]
     results = cls_model(t)
     assert len(results) == t.shape[0]
+
 
 def test_predict_grey_and_4ch():
     model = YOLO(MODEL)
@@ -212,5 +213,6 @@ def test_result():
     res = model(SOURCE)
     res[0].plot()
     print(res[0].path)
+
 
 test_predict_img()

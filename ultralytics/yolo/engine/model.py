@@ -26,6 +26,12 @@ TASK_MAP = {
         SegmentationModel, yolo.v8.segment.SegmentationTrainer, yolo.v8.segment.SegmentationValidator,
         yolo.v8.segment.SegmentationPredictor]}
 
+TASK_MODEL_NAME_SUFFIX = {
+    'classify': '-cls',
+    'detect': '',
+    'segment': '-seg'
+}
+
 
 class YOLO:
     """
@@ -88,6 +94,8 @@ class YOLO:
 
         # Load or create new YOLO model
         suffix = Path(model).suffix
+        if task and TASK_MODEL_NAME_SUFFIX[task] not in Path(model).stem:
+            model = Path(model).stem + TASK_MODEL_NAME_SUFFIX[task] + suffix
         if not suffix and Path(model).stem in GITHUB_ASSET_STEMS:
             model, suffix = Path(model).with_suffix('.pt'), '.pt'  # add suffix, i.e. yolov8n -> yolov8n.pt
         if suffix == '.yaml':

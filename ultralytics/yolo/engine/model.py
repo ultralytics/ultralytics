@@ -26,11 +26,7 @@ TASK_MAP = {
         SegmentationModel, yolo.v8.segment.SegmentationTrainer, yolo.v8.segment.SegmentationValidator,
         yolo.v8.segment.SegmentationPredictor]}
 
-TASK_MODEL_NAME_SUFFIX = {
-    'classify': '-cls',
-    'detect': '',
-    'segment': '-seg'
-}
+TASK_MODEL_NAME_SUFFIX = {'classify': '-cls', 'detect': '', 'segment': '-seg'}
 
 
 class YOLO:

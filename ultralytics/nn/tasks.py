@@ -437,7 +437,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
     ch = [ch]
     layers, save, c2 = [], [], ch[-1]  # layers, savelist, ch out
     for i, (f, n, m, args) in enumerate(d['backbone'] + d['head']):  # from, number, module, args
-        m = eval(m) if isinstance(m, str) else m  # eval strings
+        m = getattr(torch.nn, m[3:]) if "nn." in m else globals()[m] if isinstance(m, str) else m  # eval strings
         for j, a in enumerate(args):
             # TODO: re-implement with eval() removal if possible
             # args[j] = (locals()[a] if a in locals() else ast.literal_eval(a)) if isinstance(a, str) else a

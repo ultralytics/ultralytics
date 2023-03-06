@@ -195,22 +195,6 @@ DEFAULT_CFG_KEYS = DEFAULT_CFG_DICT.keys()
 DEFAULT_CFG = IterableSimpleNamespace(**DEFAULT_CFG_DICT)
 
 
-def import_if_possible(package_name):
-    """
-    Try to import a package and return the module object if successful.
-
-    Args:
-        package_name (str): The name of the package to import.
-
-    Returns:
-        module: The imported module object if successful, None otherwise.
-    """
-    try:
-        return importlib.import_module(package_name)
-    except ImportError:
-        return None
-
-
 def is_colab():
     """
     Check if the current script is running inside a Google Colab notebook.

@@ -130,7 +130,7 @@ class BasePredictor:
                                              imgsz=self.imgsz,
                                              vid_stride=self.args.vid_stride,
                                              stride=self.model.stride,
-                                             auto=self.imgsz[0]!=self.imgsz[1])
+                                             auto=self.imgsz[0] != self.imgsz[1])
         self.source_type = self.dataset.source_type
         self.vid_path, self.vid_writer = [None] * self.dataset.bs, [None] * self.dataset.bs
 

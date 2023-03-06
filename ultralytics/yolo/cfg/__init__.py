@@ -61,9 +61,10 @@ CFG_BOOL_KEYS = ('save', 'exist_ok', 'pretrained', 'verbose', 'deterministic', '
                  'v5loader')
 
 # Define valid tasks and modes
-TASKS = 'detect', 'segment', 'classify'
 MODES = 'train', 'val', 'predict', 'export', 'track', 'benchmark'
+TASKS = 'detect', 'segment', 'classify'
 TASK2DATA = {'detect': 'coco128.yaml', 'segment': 'coco128-seg.yaml', 'classify': 'imagenet100'}
+TASK2MODEL = {'detect': 'yolov8n.pt', 'segment': 'yolov8n-seg.pt', 'classify': 'yolov8n-cls.pt'}
 
 
 def cfg2dict(cfg):
@@ -275,8 +276,11 @@ def entrypoint(debug=''):
 
     # Task
     task = overrides.pop('task', None)
-    if task and task not in TASKS:
-        raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
+    if task:
+        if task not in TASKS:
+            raise ValueError(f"Invalid 'task={task}'. Valid tasks are {TASKS}.\n{CLI_HELP_MSG}")
+        if 'model' not in overrides:
+            overrides['model'] = TASK2MODEL[task]
 
     # Model
     model = overrides.pop('model', DEFAULT_CFG.model)

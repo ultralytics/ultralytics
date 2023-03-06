@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
 import contextlib
+import importlib
 import inspect
 import logging.config
 import os
@@ -192,6 +193,22 @@ for k, v in DEFAULT_CFG_DICT.items():
         DEFAULT_CFG_DICT[k] = None
 DEFAULT_CFG_KEYS = DEFAULT_CFG_DICT.keys()
 DEFAULT_CFG = IterableSimpleNamespace(**DEFAULT_CFG_DICT)
+
+
+def import_if_possible(package_name):
+    """
+    Try to import a package and return the module object if successful.
+
+    Args:
+        package_name (str): The name of the package to import.
+
+    Returns:
+        module: The imported module object if successful, None otherwise.
+    """
+    try:
+        return importlib.import_module(package_name)
+    except ImportError:
+        return None
 
 
 def is_colab():

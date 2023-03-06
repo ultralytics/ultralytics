@@ -14,7 +14,7 @@ class DetectionPredictor(BasePredictor):
         return Annotator(img, line_width=self.args.line_thickness, example=str(self.model.names))
 
     def preprocess(self, img):
-        img = (torch.from_numpy(img) if not isinstance(img, torch.Tensor) else img).to(self.model.device)
+        img = (torch.from_numpy(img) if isinstance(img, np.ndarray) else img).to(self.model.device)
         img = img.half() if self.model.fp16 else img.float()  # uint8 to fp16/32
         img /= 255  # 0 - 255 to 0.0 - 1.0
         return img

@@ -2,7 +2,7 @@
 
 # from .predict import KeypointPredictor, predict
 from .train import PoseTrainer, train
-# from .val import SegmentationValidator, val
+from .val import PoseValidator, val
 
-__all__ = 'PoseTrainer', 'train'
+__all__ = 'PoseTrainer', 'train', 'PoseValidator', 'val'
 

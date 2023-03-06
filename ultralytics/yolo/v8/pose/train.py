@@ -33,9 +33,9 @@ class PoseTrainer(v8.detect.DetectionTrainer):
 
     def get_validator(self):
         self.loss_names = 'box_loss', 'pose_loss', 'kobj_loss', 'cls_loss', 'dfl_loss'
-        return v8.segment.SegmentationValidator(self.test_loader,
-                                                save_dir=self.save_dir,
-                                                args=copy(self.args))
+        return v8.pose.PoseValidator(self.test_loader,
+                                     save_dir=self.save_dir,
+                                     args=copy(self.args))
 
     def criterion(self, preds, batch):
         if not hasattr(self, 'compute_loss'):
@@ -43,13 +43,14 @@ class PoseTrainer(v8.detect.DetectionTrainer):
         return self.compute_loss(preds, batch)
 
     def plot_training_samples(self, batch, ni):
-        images = batch['img']
-        masks = batch['masks']
-        cls = batch['cls'].squeeze(-1)
-        bboxes = batch['bboxes']
-        paths = batch['im_file']
-        batch_idx = batch['batch_idx']
-        plot_images(images, batch_idx, cls, bboxes, masks, paths=paths, fname=self.save_dir / f'train_batch{ni}.jpg')
+        pass
+        # images = batch['img']
+        # masks = batch['masks']
+        # cls = batch['cls'].squeeze(-1)
+        # bboxes = batch['bboxes']
+        # paths = batch['im_file']
+        # batch_idx = batch['batch_idx']
+        # plot_images(images, batch_idx, cls, bboxes, masks, paths=paths, fname=self.save_dir / f'train_batch{ni}.jpg')
 
     def plot_metrics(self):
         plot_results(file=self.csv, segment=True)  # save results.png
@@ -134,6 +135,7 @@ class PoseLoss(Loss):
 
     def decode_kpts(self, pred_kpts):
         # TODO
+        print(pred_kpts.shape)
         return pred_kpts
 
 

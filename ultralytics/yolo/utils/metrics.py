@@ -13,6 +13,8 @@ import torch.nn as nn
 
 from ultralytics.yolo.utils import LOGGER, TryExcept
 
+OKS_SIGMA = np.array([.26, .25, .25, .35, .35, .79, .79, .72, .72, .62,.62, 1.07, 1.07, .87, .87, .89, .89]) / 10.0
+
 
 # boxes
 def box_area(box):
@@ -118,8 +120,15 @@ def mask_iou(mask1, mask2, eps=1e-7):
     return intersection / (union + eps)
 
 
-def pose_iou(pose1, pose2, eps=1e-7):
-    pass
+def pose_iou(kpt1, kpt2, kpt_mask, area, eps=1e-7):
+    """OKS
+    kpt1: [N, 17, 2]
+    kpt2: [N, 17, 2]
+    kpt_mask: [N, 17]
+    area: [N]
+    """
+    d = (kpt1[..., 0] - kpt2[..., 0]) ** 2 + (kpt1[..., 1] - kpt2[..., 1]) ** 2
+    return (torch.exp(-d / (2 * (area * OKS_SIGMA) ** 2 + eps)) * kpt_mask).sum(-1) / kpt_mask.sum(-1)
 
 
 def smooth_BCE(eps=0.1):  # https://github.com/ultralytics/yolov3/issues/238#issuecomment-598028441

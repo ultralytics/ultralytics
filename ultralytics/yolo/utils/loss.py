@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .metrics import bbox_iou
+from .metrics import bbox_iou, OKS_SIGMA
 from .tal import bbox2dist
 
 
@@ -56,9 +56,10 @@ class BboxLoss(nn.Module):
                 F.cross_entropy(pred_dist, tr.view(-1), reduction='none').view(tl.shape) * wr).mean(-1, keepdim=True)
 
 class KeypointLoss(nn.Module):
-    def __init__(self, device, nkpt=17, scale=10) -> None:
+    def __init__(self, device, nkpt=17) -> None:
         super().__init__()
-        self.sigmas = torch.ones((nkpt), device=device) / scale
+        self.sigmas = torch.ones((nkpt), device=device) / 10
+        # self.sigmas = torch.from_numpy(OKS_SIGMA, device=device)
 
     def forward(self, pred_kpts, gt_kpts, kpt_mask, area):
         d = (pred_kpts[:, 0::3] - gt_kpts[:, 0::3]) ** 2 + (pred_kpts[:, 1::3] - gt_kpts[:, 1::3]) ** 2

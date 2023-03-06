@@ -492,7 +492,9 @@ class Pose(Detect):
         x = self.detect(self, x)
         if self.training:
             return x, kpt
-        # TODO
+        # TODO: decode kpt
+        pred_kpt = kpt
+        return torch.cat([x, pred_kpt], 1) if self.export else (torch.cat([x[0], pred_kpt], 1), (x[1], kpt))
 
 
 class Classify(nn.Module):

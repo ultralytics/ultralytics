@@ -183,6 +183,8 @@ class BasePredictor:
                     'preprocess': self.dt[0].dt * 1E3 / n,
                     'inference': self.dt[1].dt * 1E3 / n,
                     'postprocess': self.dt[2].dt * 1E3 / n}
+                if self.source_type.tensor:  # skip write, show and plot operations if input is raw tensor
+                    continue
                 p, im0 = (path[i], im0s[i].copy()) if self.source_type.webcam or self.source_type.from_img \
                     else (path, im0s.copy())
                 p = Path(p)

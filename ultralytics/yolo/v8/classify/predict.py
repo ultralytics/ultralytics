@@ -14,9 +14,8 @@ class ClassificationPredictor(BasePredictor):
         return Annotator(img, example=str(self.model.names), pil=True)
 
     def preprocess(self, img):
-        img = (img if isinstance(img, torch.Tensor) else torch.Tensor(img)).to(self.model.device)
-        img = img.half() if self.model.fp16 else img.float()  # uint8 to fp16/32
-        return img
+        img = (img if isinstance(img, torch.Tensor) else torch.from_numpy(img)).to(self.model.device)
+        return img.half() if self.model.fp16 else img.float()  # uint8 to fp16/32
 
     def postprocess(self, preds, img, orig_imgs):
         results = []

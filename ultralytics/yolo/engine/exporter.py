@@ -574,7 +574,7 @@ class Exporter:
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
         saved_model = Path(str(self.file).replace(self.file.suffix, '_saved_model'))
         if self.args.int8:
-            f = saved_model / (self.file.stem + 'yolov8n_integer_quant.tflite')  # fp32 in/out
+            f = saved_model / (self.file.stem + '_integer_quant.tflite')  # fp32 in/out
         elif self.args.half:
             f = saved_model / (self.file.stem + '_float16.tflite')
         else:
@@ -862,18 +862,6 @@ class Exporter:
 def export(cfg=DEFAULT_CFG):
     cfg.model = cfg.model or 'yolov8n.yaml'
     cfg.format = cfg.format or 'torchscript'
-
-    # exporter = Exporter(cfg)
-    #
-    # model = None
-    # if isinstance(cfg.model, (str, Path)):
-    #     if Path(cfg.model).suffix == '.yaml':
-    #         model = DetectionModel(cfg.model)
-    #     elif Path(cfg.model).suffix == '.pt':
-    #         model = attempt_load_weights(cfg.model, fuse=True)
-    #     else:
-    #         TypeError(f'Unsupported model type {cfg.model}')
-    # exporter(model=model)
 
     from ultralytics import YOLO
     model = YOLO(cfg.model)

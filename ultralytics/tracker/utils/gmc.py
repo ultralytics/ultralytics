@@ -71,7 +71,7 @@ class GMC:
 
     def apply(self, raw_frame, detections=None):
         if self.method in ['orb', 'sift']:
-            return self.applyFeaures(raw_frame, detections)
+            return self.applyFeatures(raw_frame, detections)
         elif self.method == 'ecc':
             return self.applyEcc(raw_frame, detections)
         elif self.method == 'sparseOptFlow':
@@ -116,7 +116,7 @@ class GMC:
 
         return H
 
-    def applyFeaures(self, raw_frame, detections=None):
+    def applyFeatures(self, raw_frame, detections=None):
 
         # Initialize
         height, width, _ = raw_frame.shape
@@ -190,13 +190,13 @@ class GMC:
         meanSpatialDistances = np.mean(spatialDistances, 0)
         stdSpatialDistances = np.std(spatialDistances, 0)
 
-        inliesrs = (spatialDistances - meanSpatialDistances) < 2.5 * stdSpatialDistances
+        inliers = (spatialDistances - meanSpatialDistances) < 2.5 * stdSpatialDistances
 
         goodMatches = []
         prevPoints = []
         currPoints = []
         for i in range(len(matches)):
-            if inliesrs[i, 0] and inliesrs[i, 1]:
+            if inliers[i, 0] and inliers[i, 1]:
                 goodMatches.append(matches[i])
                 prevPoints.append(self.prevKeyPoints[matches[i].queryIdx].pt)
                 currPoints.append(keypoints[matches[i].trainIdx].pt)
@@ -226,7 +226,7 @@ class GMC:
 
         # Find rigid matrix
         if (np.size(prevPoints, 0) > 4) and (np.size(prevPoints, 0) == np.size(prevPoints, 0)):
-            H, inliesrs = cv2.estimateAffinePartial2D(prevPoints, currPoints, cv2.RANSAC)
+            H, inliers = cv2.estimateAffinePartial2D(prevPoints, currPoints, cv2.RANSAC)
 
             # Handle downscale
             if self.downscale > 1.0:
@@ -285,7 +285,7 @@ class GMC:
 
         # Find rigid matrix
         if (np.size(prevPoints, 0) > 4) and (np.size(prevPoints, 0) == np.size(prevPoints, 0)):
-            H, inliesrs = cv2.estimateAffinePartial2D(prevPoints, currPoints, cv2.RANSAC)
+            H, inliers = cv2.estimateAffinePartial2D(prevPoints, currPoints, cv2.RANSAC)
 
             # Handle downscale
             if self.downscale > 1.0:

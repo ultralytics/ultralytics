@@ -75,7 +75,7 @@ class AutoBackend(nn.Module):
         fp16 &= pt or jit or onnx or engine or nn_module  # FP16
         nhwc = coreml or saved_model or pb or tflite or edgetpu  # BHWC formats (vs torch BCWH)
         stride = 32  # default stride
-        model = None  # TODO: resolves ONNX inference, verify effect on other backends
+        model, metadata = None, None
         cuda = torch.cuda.is_available() and device.type != 'cpu'  # use CUDA
         if not (pt or triton or nn_module):
             w = attempt_download_asset(w)  # download if not local
@@ -105,10 +105,7 @@ class AutoBackend(nn.Module):
             model = torch.jit.load(w, _extra_files=extra_files, map_location=device)
             model.half() if fp16 else model.float()
             if extra_files['config.txt']:  # load metadata dict
-                d = json.loads(extra_files['config.txt'],
-                               object_hook=lambda d: {int(k) if k.isdigit() else k: v
-                                                      for k, v in d.items()})
-                stride, names = int(d['stride']), d['names']
+                metadata = json.loads(extra_files['config.txt'], object_hook=lambda x: dict(x.items()))
         elif dnn:  # ONNX OpenCV DNN
             LOGGER.info(f'Loading {w} for ONNX OpenCV DNN inference...')
             check_requirements('opencv-python>=4.5.4')
@@ -120,23 +117,23 @@ class AutoBackend(nn.Module):
             providers = ['CUDAExecutionProvider', 'CPUExecutionProvider'] if cuda else ['CPUExecutionProvider']
             session = onnxruntime.InferenceSession(w, providers=providers)
             output_names = [x.name for x in session.get_outputs()]
-            meta = session.get_modelmeta().custom_metadata_map  # metadata
-            if 'stride' in meta:
-                stride, names = int(meta['stride']), eval(meta['names'])
+            metadata = session.get_modelmeta().custom_metadata_map  # metadata
         elif xml:  # OpenVINO
             LOGGER.info(f'Loading {w} for OpenVINO inference...')
             check_requirements('openvino')  # requires openvino-dev: https://pypi.org/project/openvino-dev/
             from openvino.runtime import Core, Layout, get_batch  # noqa
             ie = Core()
-            if not Path(w).is_file():  # if not *.xml
-                w = next(Path(w).glob('*.xml'))  # get *.xml file from *_openvino_model dir
-            network = ie.read_model(model=w, weights=Path(w).with_suffix('.bin'))
+            w = Path(w)
+            if not w.is_file():  # if not *.xml
+                w = next(w.glob('*.xml'))  # get *.xml file from *_openvino_model dir
+            network = ie.read_model(model=str(w), weights=w.with_suffix('.bin'))
             if network.get_parameters()[0].get_layout().empty:
                 network.get_parameters()[0].set_layout(Layout('NCHW'))
             batch_dim = get_batch(network)
             if batch_dim.is_static:
                 batch_size = batch_dim.get_length()
             executable_network = ie.compile_model(network, device_name='CPU')  # device_name="MYRIAD" for NCS2
+            metadata = w.parent / 'metadata.yaml'
         elif engine:  # TensorRT
             LOGGER.info(f'Loading {w} for TensorRT inference...')
             import tensorrt as trt  # https://developer.nvidia.com/nvidia-tensorrt-download
@@ -148,7 +145,7 @@ class AutoBackend(nn.Module):
             # Read file
             with open(w, 'rb') as f, trt.Runtime(logger) as runtime:
                 meta_len = int.from_bytes(f.read(4), byteorder='little')  # read metadata length
-                meta = json.loads(f.read(meta_len).decode('utf-8'))  # read metadata
+                metadata = json.loads(f.read(meta_len).decode('utf-8'))  # read metadata
                 model = runtime.deserialize_cuda_engine(f.read())  # read engine
             context = model.create_execution_context()
             bindings = OrderedDict()
@@ -171,18 +168,17 @@ class AutoBackend(nn.Module):
                 bindings[name] = Binding(name, dtype, shape, im, int(im.data_ptr()))
             binding_addrs = OrderedDict((n, d.ptr) for n, d in bindings.items())
             batch_size = bindings['images'].shape[0]  # if dynamic, this is instead max batch size
-            stride, names = int(meta['stride']), meta['names']
         elif coreml:  # CoreML
             LOGGER.info(f'Loading {w} for CoreML inference...')
             import coremltools as ct
             model = ct.models.MLModel(w)
-            names, stride, task = (model.user_defined_metadata.get(k) for k in ('names', 'stride', 'task'))
-            names, stride = eval(names), int(stride)
+            metadata = model.user_defined_metadata
         elif saved_model:  # TF SavedModel
             LOGGER.info(f'Loading {w} for TensorFlow SavedModel inference...')
             import tensorflow as tf
             keras = False  # assume TF1 saved_model
             model = tf.keras.models.load_model(w) if keras else tf.saved_model.load(w)
+            metadata = Path(w) / 'metadata.yaml'
         elif pb:  # GraphDef https://www.tensorflow.org/guide/migrate#a_graphpb_or_graphpbtxt
             LOGGER.info(f'Loading {w} for TensorFlow GraphDef inference...')
             import tensorflow as tf
@@ -221,23 +217,23 @@ class AutoBackend(nn.Module):
             with contextlib.suppress(zipfile.BadZipFile):
                 with zipfile.ZipFile(w, 'r') as model:
                     meta_file = model.namelist()[0]
-                    meta = ast.literal_eval(model.read(meta_file).decode('utf-8'))
-                    stride, names = int(meta['stride']), meta['names']
+                    metadata = ast.literal_eval(model.read(meta_file).decode('utf-8'))
         elif tfjs:  # TF.js
             raise NotImplementedError('YOLOv8 TF.js inference is not supported')
         elif paddle:  # PaddlePaddle
             LOGGER.info(f'Loading {w} for PaddlePaddle inference...')
             check_requirements('paddlepaddle-gpu' if cuda else 'paddlepaddle')
             import paddle.inference as pdi
-            if not Path(w).is_file():  # if not *.pdmodel
-                w = next(Path(w).rglob('*.pdmodel'))  # get *.pdmodel file from *_paddle_model dir
-            weights = Path(w).with_suffix('.pdiparams')
-            config = pdi.Config(str(w), str(weights))
+            w = Path(w)
+            if not w.is_file():  # if not *.pdmodel
+                w = next(w.rglob('*.pdmodel'))  # get *.pdmodel file from *_paddle_model dir
+            config = pdi.Config(str(w), str(w.with_suffix('.pdiparams')))
             if cuda:
                 config.enable_use_gpu(memory_pool_init_size_mb=2048, device_id=0)
             predictor = pdi.create_predictor(config)
             input_handle = predictor.get_input_handle(predictor.get_input_names()[0])
             output_names = predictor.get_output_names()
+            metadata = w.parents[1] / 'metadata.yaml'
         elif triton:  # NVIDIA Triton Inference Server
             LOGGER.info('Triton Inference Server not supported...')
             '''
@@ -254,14 +250,16 @@ class AutoBackend(nn.Module):
                             f'\n\n{EXPORT_FORMATS_TABLE}')
 
         # Load external metadata YAML
-        w = Path(w)
-        if xml or saved_model or paddle:
-            metadata = (w if saved_model else w.parents[1] if paddle else w.parent) / 'metadata.yaml'
-            if metadata.exists():
-                metadata = yaml_load(metadata)
-                stride, names = int(metadata['stride']), metadata['names']  # load metadata
-            else:
-                LOGGER.warning(f"WARNING ⚠️ Metadata not found at '{metadata}'")
+        if isinstance(metadata, (str, Path)) and Path(metadata).exists():
+            metadata = yaml_load(metadata)
+        if metadata:
+            stride = int(metadata['stride'])
+            task = metadata['task']
+            batch = int(metadata['batch'])
+            imgsz = eval(metadata['imgsz']) if isinstance(metadata['imgsz'], str) else metadata['imgsz']
+            names = eval(metadata['names']) if isinstance(metadata['names'], str) else metadata['names']
+        elif not (pt or triton or nn_module):
+            LOGGER.warning(f"WARNING ⚠️ Metadata not found for 'model={weights}'")
 
         # Check names
         if 'names' not in locals():  # names missing

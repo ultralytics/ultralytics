@@ -143,7 +143,7 @@ class AutoBackend(nn.Module):
             metadata = w.parent / 'metadata.yaml'
         elif engine:  # TensorRT
             LOGGER.info(f'Loading {w} for TensorRT inference...')
-            import tensorrt as trt  # https://developer.nvidia.com/nvidia-tensorrt-download
+            import tensorrt as trt  # noqa https://developer.nvidia.com/nvidia-tensorrt-download
             check_version(trt.__version__, '7.0.0', hard=True)  # require tensorrt>=7.0.0
             if device.type == 'cpu':
                 device = torch.device('cuda:0')
@@ -230,7 +230,7 @@ class AutoBackend(nn.Module):
         elif paddle:  # PaddlePaddle
             LOGGER.info(f'Loading {w} for PaddlePaddle inference...')
             check_requirements('paddlepaddle-gpu' if cuda else 'paddlepaddle')
-            import paddle.inference as pdi
+            import paddle.inference as pdi  # noqa
             w = Path(w)
             if not w.is_file():  # if not *.pdmodel
                 w = next(w.rglob('*.pdmodel'))  # get *.pdmodel file from *_paddle_model dir
@@ -285,7 +285,7 @@ class AutoBackend(nn.Module):
             visualize (bool): whether to visualize the output predictions, defaults to False
 
         Returns:
-            (tuple): Tuple containing the raw output tensor, and the processed output for visualization (if visualize=True)
+            (tuple): Tuple containing the raw output tensor, and processed output for visualization (if visualize=True)
         """
         b, ch, h, w = im.shape  # batch, channel, height, width
         if self.fp16 and im.dtype != torch.float16:

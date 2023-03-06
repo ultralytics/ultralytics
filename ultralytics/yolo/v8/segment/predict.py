@@ -10,7 +10,7 @@ from ultralytics.yolo.v8.detect.predict import DetectionPredictor
 
 class SegmentationPredictor(DetectionPredictor):
 
-    def postprocess(self, preds, img, orig_img):
+    def postprocess(self, preds, img, orig_imgs):
         # TODO: filter by classes
         p = ops.non_max_suppression(preds[0],
                                     self.args.conf,
@@ -22,7 +22,7 @@ class SegmentationPredictor(DetectionPredictor):
         results = []
         proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
         for i, pred in enumerate(p):
-            orig_img = orig_img[i] if isinstance(orig_img, list) else orig_img
+            orig_img = orig_imgs[i] if isinstance(orig_imgs, list) else orig_imgs
             shape = orig_img.shape
             path, _, _, _, _ = self.batch
             img_path = path[i] if isinstance(path, list) else path

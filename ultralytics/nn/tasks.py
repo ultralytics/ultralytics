@@ -87,7 +87,7 @@ class BaseModel(nn.Module):
         if c:
             LOGGER.info(f"{sum(dt):10.2f} {'-':>10s} {'-':>10s}  Total")
 
-    def fuse(self):
+    def fuse(self, verbose=True):
         """
         Fuse the `Conv2d()` and `BatchNorm2d()` layers of the model into a single layer, in order to improve the
         computation efficiency.
@@ -105,7 +105,7 @@ class BaseModel(nn.Module):
                     m.conv_transpose = fuse_deconv_and_bn(m.conv_transpose, m.bn)
                     delattr(m, 'bn')  # remove batchnorm
                     m.forward = m.forward_fuse  # update forward
-            self.info()
+            self.info(verbose=verbose)
 
         return self
 
@@ -130,7 +130,7 @@ class BaseModel(nn.Module):
             verbose (bool): if True, prints out the model information. Defaults to False
             imgsz (int): the size of the image that the model will be trained on. Defaults to 640
         """
-        model_info(self, verbose, imgsz)
+        model_info(self, verbose=verbose, imgsz=imgsz)
 
     def _apply(self, fn):
         """

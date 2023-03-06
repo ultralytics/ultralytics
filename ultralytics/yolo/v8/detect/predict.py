@@ -19,7 +19,7 @@ class DetectionPredictor(BasePredictor):
         img /= 255  # 0 - 255 to 0.0 - 1.0
         return img
 
-    def postprocess(self, preds, img, orig_img):
+    def postprocess(self, preds, img, orig_imgs):
         preds = ops.non_max_suppression(preds,
                                         self.args.conf,
                                         self.args.iou,
@@ -29,7 +29,7 @@ class DetectionPredictor(BasePredictor):
 
         results = []
         for i, pred in enumerate(preds):
-            orig_img = orig_img[i] if isinstance(orig_img, list) else orig_img
+            orig_img = orig_imgs[i] if isinstance(orig_imgs, list) else orig_imgs
             shape = orig_img.shape
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
             path, _, _, _, _ = self.batch

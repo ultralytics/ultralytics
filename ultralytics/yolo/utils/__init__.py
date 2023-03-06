@@ -133,9 +133,7 @@ def set_logging(name=LOGGING_NAME, verbose=True):
     logging.config.dictConfig({
         'version': 1,
         'disable_existing_loggers': False,
-        'formatters': {
-            name: {
-                'format': '%(message)s'}},
+        'formatters': {name: {'format': '%(message)s'}},
         'handlers': {
             name: {
                 'class': 'logging.StreamHandler',
@@ -479,19 +477,6 @@ def colorstr(*input):
         'bold': '\033[1m',
         'underline': '\033[4m'}
     return ''.join(colors[x] for x in args) + f'{string}' + colors['end']
-
-
-def remove_ansi_codes(string):
-    """
-    Remove ANSI escape sequences from a string.
-
-    Args:
-        string (str): The input string that may contain ANSI escape sequences.
-
-    Returns:
-        str: The input string with ANSI escape sequences removed.
-    """
-    return re.sub(r'\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]', '', string)
 
 
 class TryExcept(contextlib.ContextDecorator):

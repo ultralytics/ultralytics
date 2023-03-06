@@ -82,7 +82,8 @@ def build_dataloader(cfg, batch, img_path, stride=32, rect=False, names=None, ra
             prefix=colorstr(f'{mode}: '),
             use_segments=cfg.task == 'segment',
             use_keypoints=cfg.task == 'keypoint',
-            names=names)
+            names=names,
+            classes=cfg.classes)
 
     batch = min(batch, len(dataset))
     nd = torch.cuda.device_count()  # number of CUDA devices

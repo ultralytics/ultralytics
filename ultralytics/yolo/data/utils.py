@@ -16,6 +16,7 @@ import numpy as np
 from PIL import ExifTags, Image, ImageOps
 from tqdm import tqdm
 
+from ultralytics.nn.autobackend import check_class_names
 from ultralytics.yolo.utils import DATASETS_DIR, LOGGER, NUM_THREADS, ROOT, colorstr, emojis, yaml_load
 from ultralytics.yolo.utils.checks import check_file, check_font, is_ascii
 from ultralytics.yolo.utils.downloads import download, safe_download, unzip_file
@@ -211,8 +212,7 @@ def check_det_dataset(dataset, autodownload=True):
             raise SyntaxError(
                 emojis(f"{dataset} '{k}:' key missing ❌.\n"
                        f"'train', 'val' and 'names' are required in data.yaml files."))
-    if isinstance(data['names'], (list, tuple)):  # old array format
-        data['names'] = dict(enumerate(data['names']))  # convert to dict
+    data['names'] = check_class_names(data['names'])
     data['nc'] = len(data['names'])
 
     # Resolve paths

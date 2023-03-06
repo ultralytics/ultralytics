@@ -45,8 +45,7 @@ class BaseDataset(Dataset):
 
         self.im_files = self.get_img_files(self.img_path)
         self.labels = self.get_labels()
-        if self.single_cls:
-            self.update_labels(include_class=[])
+        self.update_labels(include_class=[])  # single_cls and include_class
 
         self.ni = len(self.labels)
 
@@ -104,7 +103,7 @@ class BaseDataset(Dataset):
                 self.labels[i]['cls'] = cls[j]
                 self.labels[i]['bboxes'] = bboxes[j]
                 if segments:
-                    self.labels[i]['segments'] = segments[j]
+                    self.labels[i]['segments'] = [segments[si] for si, idx in enumerate(j) if idx]
             if self.single_cls:
                 self.labels[i]['cls'][:, 0] = 0
 

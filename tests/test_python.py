@@ -68,7 +68,7 @@ def test_predict_img():
 
     # Test tensor inference
     im = cv2.imread(str(SOURCE))  # OpenCV
-    t = cv2.resize(im, (640, 640))
+    t = cv2.resize(im, (32, 32))
     t = torch.from_numpy(t.transpose((2, 0, 1)))
     t = torch.stack([t, t, t, t])
     results = model(t)

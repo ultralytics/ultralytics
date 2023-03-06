@@ -11,7 +11,7 @@ from PIL import Image
 from torch.utils.data import DataLoader, dataloader, distributed
 
 from ultralytics.yolo.data.dataloaders.stream_loaders import (LOADERS, LoadImages, LoadPilAndNumpy, LoadScreenshots,
-                                                              LoadStreams, SourceTypes, autocast_list)
+                                                              LoadStreams, LoadTensor, SourceTypes, autocast_list)
 from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS
 from ultralytics.yolo.utils.checks import check_file
 
@@ -83,7 +83,8 @@ def build_dataloader(cfg, batch, img_path, stride=32, rect=False, names=None, ra
             prefix=colorstr(f'{mode}: '),
             use_segments=cfg.task == 'segment',
             use_keypoints=cfg.task == 'keypoint',
-            names=names)
+            names=names,
+            classes=cfg.classes)
 
     batch = min(batch, len(dataset))
     nd = torch.cuda.device_count()  # number of CUDA devices
@@ -137,17 +138,18 @@ def check_source(source):
     is_not_queue = True
     if isinstance(source, queue.Queue):
         is_not_queue = False
-    webcam, screenshot, from_img, in_memory = False, False, False, False
+    webcam, screenshot, from_img, in_memory, tensor = False, False, False, False, False
     if isinstance(source, (str, int, Path, queue.Queue)):  # int for local usb camera
         webcam = (not is_not_queue)
         if is_not_queue:
             source = str(source)
             is_file = Path(source).suffix[1:] in (IMG_FORMATS + VID_FORMATS)
             is_url = source.lower().startswith(('https://', 'http://', 'rtsp://', 'rtmp://'))
-            webcam = webcam or (source.isnumeric() or source.endswith('.streams') or (is_url and not is_file))
+            webcam = webcam or source.isnumeric() or source.endswith('.streams') or (is_url and not is_file)
             screenshot = source.lower().startswith('screen')
             if is_url and is_file:
                 source = check_file(source)  # download
+
     elif isinstance(source, tuple(LOADERS)):
         in_memory = True
     elif isinstance(source, (list, tuple)):
@@ -155,22 +157,25 @@ def check_source(source):
         from_img = True
     elif isinstance(source, (Image.Image, np.ndarray)):
         from_img = True
+    elif isinstance(source, torch.Tensor):
+        tensor = True
     else:
         raise TypeError('Unsupported image type. See docs for supported types https://docs.ultralytics.com/predict')
 
-    return source, webcam, screenshot, from_img, in_memory
+    return source, webcam, screenshot, from_img, in_memory, tensor
 
 
 def load_inference_source(source=None, transforms=None, imgsz=640, vid_stride=1, stride=32, auto=True):
     """
     TODO: docs
     """
-    # source
-    source, webcam, screenshot, from_img, in_memory = check_source(source)
-    source_type = source.source_type if in_memory else SourceTypes(webcam, screenshot, from_img)
+    source, webcam, screenshot, from_img, in_memory, tensor = check_source(source)
+    source_type = source.source_type if in_memory else SourceTypes(webcam, screenshot, from_img, tensor)
 
     # Dataloader
-    if in_memory:
+    if tensor:
+        dataset = LoadTensor(source)
+    elif in_memory:
         dataset = source
     elif webcam:
         dataset = LoadStreams(source,

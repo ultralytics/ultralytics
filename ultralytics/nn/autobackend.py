@@ -27,6 +27,10 @@ def check_class_names(names):
     if isinstance(names, dict):
         if not all(isinstance(k, int) for k in names.keys()):  # convert string keys to int, i.e. '0' to 0
             names = {int(k): v for k, v in names.items()}
+        n = len(names)
+        if max(names.keys()) >= n:
+            raise KeyError(f'{n}-class dataset requires class indices 0-{n - 1}, but you have invalid class indices '
+                           f'{min(names.keys())}-{max(names.keys())} defined in your dataset YAML.')
         if isinstance(names[0], str) and names[0].startswith('n0'):  # imagenet class codes, i.e. 'n01440764'
             map = yaml_load(ROOT / 'datasets/ImageNet.yaml')['map']  # human-readable names
             names = {k: map[v] for k, v in names.items()}
@@ -35,12 +39,14 @@ def check_class_names(names):
 
 class AutoBackend(nn.Module):
 
-    def _apply_default_class_names(self, data):
-        with contextlib.suppress(Exception):
-            return yaml_load(check_yaml(data))['names']
-        return {i: f'class{i}' for i in range(999)}  # return default if above errors
-
-    def __init__(self, weights='yolov8n.pt', device=torch.device('cpu'), dnn=False, data=None, fp16=False, fuse=True):
+    def __init__(self,
+                 weights='yolov8n.pt',
+                 device=torch.device('cpu'),
+                 dnn=False,
+                 data=None,
+                 fp16=False,
+                 fuse=True,
+                 verbose=True):
         """
         MultiBackend class for python inference on various platforms using Ultralytics YOLO.
 
@@ -51,6 +57,7 @@ class AutoBackend(nn.Module):
             data (str), (Path): Additional data.yaml file for class names, optional
             fp16 (bool): If True, use half precision. Default: False
             fuse (bool): Whether to fuse the model or not. Default: True
+            verbose (bool): Whether to run in verbose mode or not. Default: True
 
         Supported formats and their naming conventions:
             | Format                | Suffix           |
@@ -83,7 +90,7 @@ class AutoBackend(nn.Module):
         # NOTE: special case: in-memory pytorch model
         if nn_module:
             model = weights.to(device)
-            model = model.fuse() if fuse else model
+            model = model.fuse(verbose=verbose) if fuse else model
             names = model.module.names if hasattr(model, 'module') else model.names  # get class names
             stride = max(int(model.stride.max()), 32)  # model stride
             model.half() if fp16 else model.float()
@@ -409,6 +416,12 @@ class AutoBackend(nn.Module):
             im = torch.empty(*imgsz, dtype=torch.half if self.fp16 else torch.float, device=self.device)  # input
             for _ in range(2 if self.jit else 1):  #
                 self.forward(im)  # warmup
+
+    @staticmethod
+    def _apply_default_class_names(data):
+        with contextlib.suppress(Exception):
+            return yaml_load(check_yaml(data))['names']
+        return {i: f'class{i}' for i in range(999)}  # return default if above errors
 
     @staticmethod
     def _model_type(p='path/to/model.pt'):

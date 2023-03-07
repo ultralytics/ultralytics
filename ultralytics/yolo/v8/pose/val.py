@@ -23,6 +23,17 @@ class PoseValidator(DetectionValidator):
         return ('%22s' + '%11s' * 10) % ('Class', 'Images', 'Instances', 'Box(P', 'R', 'mAP50', 'mAP50-95)', 'Pose(P',
                                          'R', 'mAP50', 'mAP50-95)')
 
+    def postprocess(self, preds):
+        preds = ops.non_max_suppression(preds,
+                                        self.args.conf,
+                                        self.args.iou,
+                                        labels=self.lb,
+                                        multi_label=True,
+                                        agnostic=self.args.single_cls,
+                                        max_det=self.args.max_det,
+                                        nc=self.nc)
+        return preds
+
     def update_metrics(self, preds, batch):
         # Metrics
         for si, pred in enumerate(preds):

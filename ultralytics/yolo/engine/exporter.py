@@ -69,7 +69,7 @@ from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages
 from ultralytics.yolo.data.utils import IMAGENET_MEAN, IMAGENET_STD, check_det_dataset
 from ultralytics.yolo.utils import (DEFAULT_CFG, LINUX, LOGGER, MACOS, __version__, callbacks, colorstr,
                                     get_default_args, yaml_save)
-from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version, check_yaml
+from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version
 from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.ops import Profile
 from ultralytics.yolo.utils.torch_utils import get_latest_opset, select_device, smart_inference_mode

@@ -1,0 +1,51 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license
+# Publish pip package to PyPI https://pypi.org/project/ultralytics/ and Docs to https://docs.ultralytics.com
+
+name: Publish to PyPI and Docs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]  # REMOVE AFTER DEBUGGING
+
+jobs:
+  publish:
+    if: github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher'
+    name: Publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Python environment
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip wheel
+          pip install -e . --extra-index-url https://download.pytorch.org/whl/cpu
+      - name: Check for pip updates
+        shell: python
+        run: |
+          import pkg_resources as pkg
+          import ultralytics
+          from ultralytics.yolo.utils.checks import check_latest_pypi_version
+          
+          v1 = pkg.parse_version(ultralytics.__version__).release
+          v2 = pkg.parse_version(check_latest_pypi_version()).release
+          print(v1, v2)
+          
+          d = [a - b for a, b in zip(v1,v2)]
+          increment_one_patch = (d[0] == d[1] == 0) and d[2] == 1  # only patch increment by 1
+          print(increment_one_patch)
+          return increment_one_patch
+        id: check_pip_update
+      - name: Publish to PyPI
+        if: steps.check_pip_update.outputs.return-value == 'True'
+        run: |
+          print('INSTALLING')
+      - name: Deploy Docs
+        if: steps.check_pip_update.outputs.return-value == 'True'
+        run: |
+          print('DEPLOYING DOCS')

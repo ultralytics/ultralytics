@@ -131,7 +131,19 @@ def pose_iou(kpt1, kpt2, kpt_mask, area, eps=1e-7):
     e = d / (2 * OKS_SIGMA) ** 2 / (area + eps) / 2  # from cocoeval
     # e = d / ((area + eps) * OKS_SIGMA) ** 2 / 2  # from formula
     # e = d / (2 * OKS_SIGMA) ** 2 / (area + eps) / 2
-    # return (torch.exp(-d / (2 * (area * OKS_SIGMA) ** 2 + eps)) * kpt_mask).sum(-1) / kpt_mask.sum(-1) # from formula
+    return (torch.exp(-e) * kpt_mask).sum(-1) / kpt_mask.sum(-1)
+
+def pose_iou(kpt1, kpt2, area, eps=1e-7):
+    """OKS
+    kpt1: [N, 51], pred
+    kpt2: [M, 51], gt
+    area: [M]
+    """
+    d = (kpt1[:, None, 0::3] - kpt2[:, 0::3]) ** 2 + (kpt1[:, None, 1::3] - kpt2[:, 1::3]) ** 2  # (N, M, 17)
+    sigma = torch.tensor(OKS_SIGMA, device=kpt1.device, dtype=kpt1.dtype) # (17, )
+    kpt_mask = kpt2[:, 2::3] != 0
+    e = d / (2 * sigma) ** 2 / (area[None, :, None] + eps) / 2  # from cocoeval
+    # e = d / ((area[None, :, None] + eps) * sigma) ** 2 / 2  # from formula
     return (torch.exp(-e) * kpt_mask).sum(-1) / kpt_mask.sum(-1)
 
 

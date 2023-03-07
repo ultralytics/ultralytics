@@ -29,7 +29,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
-          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}
+          key: ${{ runner.os }}-${{ runner.python-version }}-pip-${{ hashFiles('requirements.txt') }}
           restore-keys: ${{ runner.os }}-${{ matrix.python-version }}-pip-
       - name: Install dependencies
         run: |
@@ -40,6 +40,7 @@ jobs:
         run: |
           import pkg_resources as pkg
           import ultralytics
+          import os
           from ultralytics.yolo.utils.checks import check_latest_pypi_version
 
           v1 = pkg.parse_version(ultralytics.__version__).release
@@ -48,6 +49,7 @@ jobs:
 
           d = [a - b for a, b in zip(v1,v2)]
           increment = (d[0] == d[1] == 0) and d[2] == 1  # only patch increment by 1
+          os.system(f'echo "increment={increment}" >> $GITHUB_OUTPUT')
         id: check_pip_update
       - name: Publish to PyPI
         if: steps.check_pip_update.outputs.increment == 'True'

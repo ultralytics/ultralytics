@@ -65,7 +65,7 @@ class SegmentationValidator(DetectionValidator):
 
             if npr == 0:
                 if nl:
-                    self.stats.append((correct_masks, correct_bboxes, *torch.zeros(
+                    self.stats.append((correct_bboxes, correct_masks, *torch.zeros(
                         (2, 0), device=self.device), cls.squeeze(-1)))
                     if self.args.plots:
                         self.confusion_matrix.process_batch(detections=None, labels=cls.squeeze(-1))
@@ -103,7 +103,7 @@ class SegmentationValidator(DetectionValidator):
                     self.confusion_matrix.process_batch(predn, labelsn)
 
             # Append correct_masks, correct_boxes, pconf, pcls, tcls
-            self.stats.append((correct_masks, correct_bboxes, pred[:, 4], pred[:, 5], cls.squeeze(-1)))
+            self.stats.append((correct_bboxes, correct_masks, pred[:, 4], pred[:, 5], cls.squeeze(-1)))
 
             pred_masks = torch.as_tensor(pred_masks, dtype=torch.uint8)
             if self.args.plots and self.batch_i < 3:

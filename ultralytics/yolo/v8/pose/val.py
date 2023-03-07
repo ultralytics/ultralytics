@@ -49,7 +49,7 @@ class PoseValidator(DetectionValidator):
 
             if npr == 0:
                 if nl:
-                    self.stats.append((correct_kpts, correct_bboxes, *torch.zeros(
+                    self.stats.append((correct_bboxes, correct_kpts, *torch.zeros(
                         (2, 0), device=self.device), cls.squeeze(-1)))
                     if self.args.plots:
                         self.confusion_matrix.process_batch(detections=None, labels=cls.squeeze(-1))
@@ -77,13 +77,13 @@ class PoseValidator(DetectionValidator):
                 labelsn = torch.cat((cls, tbox), 1)  # native-space labels
                 correct_bboxes = self._process_batch(predn[:, :6], labelsn)
                 # TODO: maybe remove these `self.` arguments as they already are member variable
-                # correct_kpts = self._process_batch(predn[:, :6], labelsn, predn[:, 6:], tkpts)
-                correct_kpts = self._process_batch(predn[:, :6], labelsn)
+                correct_kpts = self._process_batch(predn[:, :6], labelsn, predn[:, 6:], tkpts)
+                # correct_kpts = self._process_batch(predn[:, :6], labelsn)
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, labelsn)
 
             # Append correct_masks, correct_boxes, pconf, pcls, tcls
-            self.stats.append((correct_kpts, correct_bboxes, pred[:, 4], pred[:, 5], cls.squeeze(-1)))
+            self.stats.append((correct_bboxes, correct_kpts, pred[:, 4], pred[:, 5], cls.squeeze(-1)))
 
             # Save
             if self.args.save_json:

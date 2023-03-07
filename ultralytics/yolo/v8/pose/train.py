@@ -89,7 +89,7 @@ class PoseLoss(Loss):
 
         # pboxes
         pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
-        pred_kpts = self.kpts_decode(anchor_points, pred_kpts)  # (b, h*w, 51)
+        # pred_kpts = self.kpts_decode(anchor_points, pred_kpts)  # (b, h*w, 51)
 
         _, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
             pred_scores.detach().sigmoid(), (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),
@@ -112,8 +112,10 @@ class PoseLoss(Loss):
                     idx = target_gt_idx[i][fg_mask[i]]
                     gt_kpt = keypoints[batch_idx.view(-1) == i][idx]  # (n, 51)
                     xyxyn = target_bboxes[i][fg_mask[i]]
-                    area = xyxy2xywh(xyxyn)[:, 2:].prod(1, keepdim=True)
-                    pred_kpt = pred_kpts[i][fg_mask[i]]
+                    xywhn = xyxy2xywh(xyxyn)
+                    area = xywhn[:, 2:].prod(1, keepdim=True)
+                    # pred_kpt = pred_kpts[i][fg_mask[i]]
+                    pred_kpt = self.kpts_decode(anchor_points[fg_mask[i]], pred_kpts[i][fg_mask[i]], xywhn)
                     kpt_mask = gt_kpt[:, 2::3] != 0
                     loss[1] += self.keypoint_loss(pred_kpt, gt_kpt, kpt_mask, area)
                     # kpt_score loss
@@ -134,10 +136,14 @@ class PoseLoss(Loss):
 
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
 
-    def kpts_decode(self, anchor_points, pred_kpts):
+    def kpts_decode(self, anchor_points, pred_kpts, bbox):
         # TODO
-        pred_kpts[..., 0::3] += anchor_points[:, [0]]
-        pred_kpts[..., 1::3] += anchor_points[:, [1]]
+        # pred_kpts[..., 0::3] += anchor_points[:, [0]]
+        # pred_kpts[..., 1::3] += anchor_points[:, [1]]
+        # pred_kpts[:, 0::3] = (pred_kpts[:, 0::3].sigmoid() - 0.5) * bbox[:, [2]] + anchor_points[:, [0]]
+        # pred_kpts[:, 1::3] = (pred_kpts[:, 1::3].sigmoid() - 0.5) * bbox[:, [3]] + anchor_points[:, [1]]
+        pred_kpts[:, 0::3] = (pred_kpts[:, 0::3].sigmoid() - 0.5) * bbox[:, [2]] + bbox[:, [0]]
+        pred_kpts[:, 1::3] = (pred_kpts[:, 1::3].sigmoid() - 0.5) * bbox[:, [3]] + bbox[:, [1]]
         return pred_kpts
 
 

@@ -493,18 +493,20 @@ class Pose(Detect):
         if self.training:
             return x, kpt
         # TODO: decode kpt
-        # bbox = x[:, :4, :] if self.export else x[0][:, :4, :]
-        pred_kpt = self.kpts_decode(kpt)
+        bbox = x[:, :4, :] if self.export else x[0][:, :4, :]
+        pred_kpt = self.kpts_decode(kpt, bbox)
         return torch.cat([x, pred_kpt], 1) if self.export else (torch.cat([x[0], pred_kpt], 1), (x[1], kpt))
 
     def kpts_decode(self, kpts, bbox=None):
-        # y = kpts.sigmoid()   # (bs, 51, h*w)
+        y = kpts.sigmoid()   # (bs, 51, h*w)
         # y[:, 0::3, :] = (y[:, 0::3, :] - 0.5) * bbox[:, [2], :] + self.anchors[0] * self.strides
         # y[:, 1::3, :] = (y[:, 1::3, :] - 0.5) * bbox[:, [3], :] + self.anchors[1] * self.strides
-        y = kpts.clone()
-        y[:, 2::3, :] = y[:, 2::3, :].sigmoid()
-        y[:, 0::3, :] = (y[:, 0::3, :] + self.anchors[0]) * self.strides
-        y[:, 1::3, :] = (y[:, 1::3, :] + self.anchors[1]) * self.strides
+        y[:, 0::3, :] = (y[:, 0::3, :] - 0.5) * bbox[:, [2], :] + bbox[:, [0], :]
+        y[:, 1::3, :] = (y[:, 1::3, :] - 0.5) * bbox[:, [3], :] + bbox[:, [1], :]
+        # y = kpts.clone()
+        # y[:, 2::3, :] = y[:, 2::3, :].sigmoid()
+        # y[:, 0::3, :] = (y[:, 0::3, :] + self.anchors[0]) * self.strides
+        # y[:, 1::3, :] = (y[:, 1::3, :] + self.anchors[1]) * self.strides
         return y
 
 

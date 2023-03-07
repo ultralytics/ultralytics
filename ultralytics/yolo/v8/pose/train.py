@@ -134,7 +134,6 @@ class PoseLoss(Loss):
 
     def decode_kpts(self, pred_kpts):
         # TODO
-        print(pred_kpts.shape)
         return pred_kpts
 
 

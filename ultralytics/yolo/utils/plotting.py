@@ -76,8 +76,8 @@ class Annotator:
                         [7, 13], [6, 7], [6, 8], [7, 9], [8, 10], [9, 11], [2, 3],
                         [1, 2], [1, 3], [2, 4], [3, 5], [4, 6], [5, 7]]
 
-        self.limb_color = colors.pose_palette([[9, 9, 9, 9, 7, 7, 7, 0, 0, 0, 0, 0, 16, 16, 16, 16, 16, 16, 16]])
-        self.kpt_color = colors.pose_palette([[16, 16, 16, 16, 16, 0, 0, 0, 0, 0, 0, 9, 9, 9, 9, 9, 9]])
+        self.limb_color = colors.pose_palette[[9, 9, 9, 9, 7, 7, 7, 0, 0, 0, 0, 0, 16, 16, 16, 16, 16, 16, 16]]
+        self.kpt_color = colors.pose_palette[[16, 16, 16, 16, 16, 0, 0, 0, 0, 0, 0, 9, 9, 9, 9, 9, 9]]
 
     def box_label(self, box, label='', color=(128, 128, 128), txt_color=(255, 255, 255)):
         # Add one xyxy box to image with label
@@ -156,6 +156,9 @@ class Annotator:
             steps (int): keypoints step
             radius (int): size of drawing points
         """
+        if self.pil:
+            # convert to numpy first
+            self.im = np.asarray(self.im).copy()
         num_kpts = len(kpts) // steps
         for kid in range(num_kpts):
             x_coord, y_coord = kpts[steps * kid], kpts[steps * kid + 1]
@@ -164,7 +167,7 @@ class Annotator:
                     conf = kpts[steps * kid + 2]
                     if conf < 0.5:
                         continue
-                cv2.circle(self.im, (int(x_coord), int(y_coord)), radius, self.kpt_color[kid], -1)
+                cv2.circle(self.im, (int(x_coord), int(y_coord)), radius, [int(x) for x in self.kpt_color[kid]], -1)
 
         for sk_id, sk in enumerate(self.skeleton):
             pos1 = (int(kpts[(sk[0] - 1) * steps]), int(kpts[(sk[0] - 1) * steps + 1]))
@@ -178,7 +181,10 @@ class Annotator:
                 continue
             if pos2[0] % shape[1] == 0 or pos2[1] % shape[0] == 0 or pos2[0] < 0 or pos2[1] < 0:
                 continue
-            cv2.line(self.im, pos1, pos2, self.limb_color[sk_id], thickness=2)
+            cv2.line(self.im, pos1, pos2, [int(x) for x in self.limb_color[sk_id]], thickness=2)
+        if self.pil:
+            # convert im back to PIL and update draw
+            self.fromarray(self.im)
 
     def rectangle(self, xy, fill=None, outline=None, width=1):
         # Add rectangle to image (PIL-only)
@@ -288,7 +294,7 @@ def plot_images(images,
     if isinstance(masks, torch.Tensor):
         masks = masks.cpu().numpy().astype(int)
     if isinstance(kpts, torch.Tensor):
-        kpts = kpts.cpu().numpy().astype(int)
+        kpts = kpts.cpu().numpy()
     if isinstance(batch_idx, torch.Tensor):
         batch_idx = batch_idx.cpu().numpy()
 
@@ -350,16 +356,17 @@ def plot_images(images,
 
             # Plot keypoints
             if len(kpts):
-                if kpts.max() <= 1.01:  # if normalized with tolerance 0.01
-                    kpts[:, 0::3] *= w  # scale to pixels
-                    kpts[:, 1::3] *= h
+                kpts_ = kpts[idx].copy()
+                if kpts_[:, 0::3].max() <= 1.01 or kpts_[:, 1::3].max() <= 1.01:  # if normalized with tolerance 0.01
+                    kpts_[:, 0::3] *= w  # scale to pixels
+                    kpts_[:, 1::3] *= h
                 elif scale < 1:  # absolute coords need scale if image scales
-                    kpts *= scale
-                kpts[:, 0::3] += x
-                kpts[:, 1::3] += y
-                for j in range(len(kpts)):
+                    kpts_ *= scale
+                kpts_[:, 0::3] += x
+                kpts_[:, 1::3] += y
+                for j in range(len(kpts_)):
                     if labels or conf[j] > 0.25:  # 0.25 conf thresh
-                        annotator.kpts(kpts[j])
+                        annotator.kpts(kpts_[j])
 
             # Plot masks
             if len(masks):

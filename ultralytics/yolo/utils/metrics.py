@@ -726,7 +726,7 @@ class SegmentMetrics:
     def results_dict(self):
         return dict(zip(self.keys + ['fitness'], self.mean_results() + [self.fitness]))
 
-class PoseMetrics:
+class PoseMetrics(SegmentMetrics):
     """
     Calculates and aggregates detection and pose metrics over a given set of classes.
 

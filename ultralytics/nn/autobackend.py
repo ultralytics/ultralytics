@@ -265,8 +265,11 @@ class AutoBackend(nn.Module):
                     metadata[k] = int(v)
                 elif k in ('imgsz', 'names') and isinstance(v, str):
                     metadata[k] = eval(v)
-            locals().update(metadata)  # assign metadata dict as model attributes
-            del k, v
+            stride = metadata['stride']
+            task = metadata['task']
+            batch = metadata['batch']
+            imgsz = metadata['imgsz']
+            names = metadata['names']
         elif not (pt or triton or nn_module):
             LOGGER.warning(f"WARNING ⚠️ Metadata not found for 'model={weights}'")
 

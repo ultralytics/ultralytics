@@ -501,12 +501,12 @@ class Pose(Detect):
         y = kpts.sigmoid()   # (bs, 51, h*w)
         # y[:, 0::3, :] = (y[:, 0::3, :] - 0.5) * bbox[:, [2], :] + self.anchors[0] * self.strides
         # y[:, 1::3, :] = (y[:, 1::3, :] - 0.5) * bbox[:, [3], :] + self.anchors[1] * self.strides
-        y[:, 0::3, :] = (y[:, 0::3, :] - 0.5) * bbox[:, [2], :] + bbox[:, [0], :]
-        y[:, 1::3, :] = (y[:, 1::3, :] - 0.5) * bbox[:, [3], :] + bbox[:, [1], :]
-        # y = kpts.clone()
-        # y[:, 2::3, :] = y[:, 2::3, :].sigmoid()
-        # y[:, 0::3, :] = (y[:, 0::3, :] + self.anchors[0]) * self.strides
-        # y[:, 1::3, :] = (y[:, 1::3, :] + self.anchors[1]) * self.strides
+        # y[:, 0::3, :] = (y[:, 0::3, :] - 0.5) * bbox[:, [2], :] + bbox[:, [0], :]
+        # y[:, 1::3, :] = (y[:, 1::3, :] - 0.5) * bbox[:, [3], :] + bbox[:, [1], :]
+        y = kpts.clone()
+        y[:, 2::3, :] = y[:, 2::3, :].sigmoid()
+        y[:, 0::3, :] = (y[:, 0::3, :] + self.anchors[0]) * self.strides
+        y[:, 1::3, :] = (y[:, 1::3, :] + self.anchors[1]) * self.strides
         return y
 
 

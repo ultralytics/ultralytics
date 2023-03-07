@@ -107,10 +107,14 @@ class PoseLoss(Loss):
             loss[0], loss[4] = self.bbox_loss(pred_distri, pred_bboxes, anchor_points, target_bboxes,
                                               target_scores, target_scores_sum, fg_mask)
             keypoints = batch['keypoints'].to(self.device).float().view(-1, self.nkpt * 3)
+            keypoints[:, 0::3] *= imgsz[1]
+            keypoints[:, 1::3] *= imgsz[0]
             for i in range(batch_size):
                 if fg_mask[i].sum():
                     idx = target_gt_idx[i][fg_mask[i]]
                     gt_kpt = keypoints[batch_idx.view(-1) == i][idx]  # (n, 51)
+                    gt_kpt[:, 0::3] /= stride_tensor[fg_mask[i]]
+                    gt_kpt[:, 1::3] /= stride_tensor[fg_mask[i]]
                     xyxyn = target_bboxes[i][fg_mask[i]]
                     xywhn = xyxy2xywh(xyxyn)
                     area = xywhn[:, 2:].prod(1, keepdim=True)
@@ -138,12 +142,12 @@ class PoseLoss(Loss):
 
     def kpts_decode(self, anchor_points, pred_kpts, bbox):
         # TODO
-        # pred_kpts[..., 0::3] += anchor_points[:, [0]]
-        # pred_kpts[..., 1::3] += anchor_points[:, [1]]
+        pred_kpts[..., 0::3] += anchor_points[:, [0]]
+        pred_kpts[..., 1::3] += anchor_points[:, [1]]
         # pred_kpts[:, 0::3] = (pred_kpts[:, 0::3].sigmoid() - 0.5) * bbox[:, [2]] + anchor_points[:, [0]]
         # pred_kpts[:, 1::3] = (pred_kpts[:, 1::3].sigmoid() - 0.5) * bbox[:, [3]] + anchor_points[:, [1]]
-        pred_kpts[:, 0::3] = (pred_kpts[:, 0::3].sigmoid() - 0.5) * bbox[:, [2]] + bbox[:, [0]]
-        pred_kpts[:, 1::3] = (pred_kpts[:, 1::3].sigmoid() - 0.5) * bbox[:, [3]] + bbox[:, [1]]
+        # pred_kpts[:, 0::3] = (pred_kpts[:, 0::3].sigmoid() - 0.5) * bbox[:, [2]] + bbox[:, [0]]
+        # pred_kpts[:, 1::3] = (pred_kpts[:, 1::3].sigmoid() - 0.5) * bbox[:, [3]] + bbox[:, [1]]
         return pred_kpts
 
 

@@ -1,6 +1,9 @@
 from ultralytics.yolo.v8.detect import DetectionValidator
-from ultralytics.yolo.utils import DEFAULT_CFG, ops
+from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, ops
 from ultralytics.yolo.utils.metrics import PoseMetrics, box_iou, kpt_iou
+from ultralytics.yolo.utils.checks import check_requirements
+from ultralytics.yolo.utils.plotting import output_to_target, plot_images
+from pathlib import Path
 import torch
 import numpy as np
 
@@ -110,16 +113,63 @@ class PoseValidator(DetectionValidator):
         return torch.tensor(correct, dtype=torch.bool, device=detections.device)
 
     def plot_val_samples(self, batch, ni):
-        return super().plot_val_samples(batch, ni)
+        plot_images(batch['img'],
+                    batch['batch_idx'],
+                    batch['cls'].squeeze(-1),
+                    batch['bboxes'],
+                    kpts=batch['keypoints'],
+                    paths=batch['im_file'],
+                    fname=self.save_dir / f'val_batch{ni}_labels.jpg',
+                    names=self.names)
 
     def plot_predictions(self, batch, preds, ni):
-        return super().plot_predictions(batch, preds, ni)
+        plot_images(batch['img'],
+                    *output_to_target(preds, max_det=15),
+                    kpts=preds[:, 6:],
+                    paths=batch['im_file'],
+                    fname=self.save_dir / f'val_batch{ni}_pred.jpg',
+                    names=self.names)  # pred
 
     def pred_to_json(self, predn, filename):
-        return super().pred_to_json(predn, filename)
+        stem = Path(filename).stem
+        image_id = int(stem) if stem.isnumeric() else stem
+        box = ops.xyxy2xywh(predn[:, :4])  # xywh
+        box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
+        for p, b in zip(predn.tolist(), box.tolist()):
+            self.jdict.append({
+                'image_id': image_id,
+                'category_id': self.class_map[int(p[5])],
+                'bbox': [round(x, 3) for x in b],
+                'keypoints': p[6:],
+                'score': round(p[4], 5)})
 
     def eval_json(self, stats):
-        return super().eval_json(stats)
+        if self.args.save_json and self.is_coco and len(self.jdict):
+            anno_json = self.data['path'] / 'annotations/instances_val2017.json'  # annotations
+            pred_json = self.save_dir / 'predictions.json'  # predictions
+            LOGGER.info(f'\nEvaluating pycocotools mAP using {pred_json} and {anno_json}...')
+            try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
+                check_requirements('pycocotools>=2.0.6')
+                from pycocotools.coco import COCO  # noqa
+                from pycocotools.cocoeval import COCOeval  # noqa
+
+                for x in anno_json, pred_json:
+                    assert x.is_file(), f'{x} file not found'
+                anno = COCO(str(anno_json))  # init annotations api
+                pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
+                for i, eval in enumerate([COCOeval(anno, pred, 'bbox'), COCOeval(anno, pred, 'keypoints')]):
+                    if self.is_coco:
+                        eval.params.imgIds = [int(Path(x).stem)
+                                              for x in self.dataloader.dataset.im_files]  # images to eval
+                    eval.evaluate()
+                    eval.accumulate()
+                    eval.summarize()
+                    idx = i * 4 + 2
+                    stats[self.metrics.keys[idx + 1]], stats[
+                        self.metrics.keys[idx]] = eval.stats[:2]  # update mAP50-95 and mAP50
+            except Exception as e:
+                LOGGER.warning(f'pycocotools unable to run: {e}')
+        return stats
 
 
 

@@ -134,12 +134,20 @@ def check_latest_pypi_version(package_name='ultralytics'):
     return None
 
 
-def check_pip_update():
+def check_pip_update_available():
+    """
+    Checks if a new version of the ultralytics package is available on PyPI.
+
+    Returns:
+        bool: True if an update is available, False otherwise.
+    """
     from ultralytics import __version__
     latest = check_latest_pypi_version()
-    if pkg.parse_version(__version__) < pkg.parse_version(latest):
+    if pkg.parse_version(__version__) < pkg.parse_version(latest):  # update is available
         LOGGER.info(f'New https://pypi.org/project/ultralytics/{latest} available 😃 '
                     f"Update with 'pip install -U ultralytics'")
+        return True
+    return False
 
 
 def check_font(font='Arial.ttf'):

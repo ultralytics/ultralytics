@@ -34,13 +34,15 @@ jobs:
           import os
           from ultralytics.yolo.utils.checks import check_latest_pypi_version
 
-          v1 = pkg.parse_version(ultralytics.__version__).release
-          v2 = pkg.parse_version(check_latest_pypi_version()).release
-          print(v1, v2)
-
-          d = [a - b for a, b in zip(v1,v2)]
+          v_local = pkg.parse_version(ultralytics.__version__).release
+          v_pypi = pkg.parse_version(check_latest_pypi_version()).release
+          print(f'Local version is {v_local}')
+          print(f'PyPI version is {v_pypi}')
+          d = [a - b for a, b in zip(v_local, v_pypi)]  # diff
           increment = (d[0] == d[1] == 0) and d[2] == 1  # only patch increment by 1
           os.system(f'echo "increment={increment}" >> $GITHUB_OUTPUT')
+          if increment:
+              print('Local version is higher than PyPI version. Publishing new version to PyPI.')
         id: check_pip_update
       - name: Publish to PyPI
         if: steps.check_pip_update.outputs.increment == 'True'
@@ -49,4 +51,4 @@ jobs:
       - name: Deploy Docs
         if: steps.check_pip_update.outputs.increment == 'True'
         run: |
-          mkdocs serve
+          mkdocs build

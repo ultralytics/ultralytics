@@ -27,7 +27,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip' # caching pip dependencies
-          cache-dependency-path: setup.py
       - name: Install requirements
         shell: bash  # for Windows compatibility
         run: |
@@ -69,7 +68,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip' # caching pip dependencies
-          cache-dependency-path: setup.py
       - name: Install requirements
         shell: bash  # for Windows compatibility
         run: |
@@ -130,7 +128,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip' # caching pip dependencies
-          cache-dependency-path: setup.py
       - name: Install requirements
         shell: bash  # for Windows compatibility
         run: |

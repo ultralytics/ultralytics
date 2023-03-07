@@ -31,11 +31,11 @@ jobs:
           import pkg_resources as pkg
           import ultralytics
           from ultralytics.yolo.utils.checks import check_latest_pypi_version
-          
+
           v1 = pkg.parse_version(ultralytics.__version__).release
           v2 = pkg.parse_version(check_latest_pypi_version()).release
           print(v1, v2)
-          
+
           d = [a - b for a, b in zip(v1,v2)]
           increment_one_patch = (d[0] == d[1] == 0) and d[2] == 1  # only patch increment by 1
           print(increment_one_patch)

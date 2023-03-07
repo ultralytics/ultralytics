@@ -133,7 +133,9 @@ def set_logging(name=LOGGING_NAME, verbose=True):
     logging.config.dictConfig({
         'version': 1,
         'disable_existing_loggers': False,
-        'formatters': {name: {'format': '%(message)s'}},
+        'formatters': {
+            name: {
+                'format': '%(message)s'}},
         'handlers': {
             name: {
                 'class': 'logging.StreamHandler',

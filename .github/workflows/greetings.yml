@@ -21,9 +21,11 @@ jobs:
             - ✅ Verify your PR is **up-to-date** with `ultralytics/ultralytics` `main` branch. If your PR is behind you can update your code by clicking the 'Update branch' button or by running `git pull` and `git merge master` locally.
             - ✅ Verify all YOLOv8 Continuous Integration (CI) **checks are passing**.
             - ✅ Reduce changes to the absolute **minimum** required for your bug fix or feature addition. _"It is not daily increase but daily decrease, hack away the unessential. The closer to the source, the less wastage there is."_  — Bruce Lee
+          
+            See our [Contributing Guide](https://github.com/ultralytics/ultralytics/blob/main/CONTRIBUTING.md) for details and let us know if you have any questions!
 
           issue-message: |
-            👋 Hello @${{ github.actor }}, thank you for your interest in YOLOv8 🚀! Please visit our ⭐️ [Tutorials](https://github.com/ultralytics/yolov5/wiki#tutorials) to get started, where you can find quickstart guides for simple tasks like [Custom Data Training](https://github.com/ultralytics/yolov5/wiki/Train-Custom-Data) all the way to advanced concepts like [Hyperparameter Evolution](https://github.com/ultralytics/yolov5/issues/607).
+            👋 Hello @${{ github.actor }}, thank you for your interest in YOLOv8 🚀! We recommend a visit to the [YOLOv8 Docs](https://docs.ultralytics.com) for new users where you can find many [Python](https://docs.ultralytics.com/python/) and [CLI](https://docs.ultralytics.com/cli/) usage examples and where the most common questions may already be answered.
 
             If this is a 🐛 Bug Report, please provide a [minimum reproducible example](https://stackoverflow.com/help/minimal-reproducible-example) to help us debug it.
 

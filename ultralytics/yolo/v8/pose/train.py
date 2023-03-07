@@ -116,7 +116,7 @@ class PoseLoss(Loss):
                     kpt_mask = gt_kpt[:, 2::3] != 0
                     loss[1] += self.keypoint_loss(pred_kpt, gt_kpt, kpt_mask, area)
                     # kpt_score loss
-                    loss[2] += self.bce_pose(pred_kpt[:, 2::3], gt_kpt[:, 2::3])
+                    loss[2] += self.bce_pose(pred_kpt[:, 2::3], (gt_kpt[:, 2::3] != 0).float())
 
 
         # WARNING: Uncomment lines below in case of Multi-GPU DDP unused gradient errors

@@ -103,14 +103,15 @@ class PoseLoss(Loss):
 
         # bbox loss
         if fg_mask.sum():
-            loss[0], loss[4] = self.bbox_loss(pred_distri, pred_bboxes, anchor_points, target_bboxes / stride_tensor,
+            target_bboxes /= stride_tensor
+            loss[0], loss[4] = self.bbox_loss(pred_distri, pred_bboxes, anchor_points, target_bboxes,
                                               target_scores, target_scores_sum, fg_mask)
             keypoints = batch['keypoints'].to(self.device).float().view(-1, self.nkpt * 3)
             for i in range(batch_size):
                 if fg_mask[i].sum():
                     idx = target_gt_idx[i][fg_mask[i]]
                     gt_kpt = keypoints[batch_idx.view(-1) == i][idx]  # (n, 51)
-                    xyxyn = target_bboxes[i][fg_mask[i]] / imgsz[[1, 0, 1, 0]]
+                    xyxyn = target_bboxes[i][fg_mask[i]]
                     area = xyxy2xywh(xyxyn)[:, 2:].prod(1, keepdim=True)
                     pred_kpt = pred_kpts[i][fg_mask[i]]
                     kpt_mask = gt_kpt[:, 2::3] != 0

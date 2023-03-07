@@ -128,7 +128,11 @@ def pose_iou(kpt1, kpt2, kpt_mask, area, eps=1e-7):
     area: [N]
     """
     d = (kpt1[..., 0] - kpt2[..., 0]) ** 2 + (kpt1[..., 1] - kpt2[..., 1]) ** 2
-    return (torch.exp(-d / (2 * (area * OKS_SIGMA) ** 2 + eps)) * kpt_mask).sum(-1) / kpt_mask.sum(-1)
+    e = d / (2 * OKS_SIGMA) ** 2 / (area + eps) / 2  # from cocoeval
+    # e = d / ((area + eps) * OKS_SIGMA) ** 2 / 2  # from formula
+    # e = d / (2 * OKS_SIGMA) ** 2 / (area + eps) / 2
+    # return (torch.exp(-d / (2 * (area * OKS_SIGMA) ** 2 + eps)) * kpt_mask).sum(-1) / kpt_mask.sum(-1) # from formula
+    return (torch.exp(-e) * kpt_mask).sum(-1) / kpt_mask.sum(-1)
 
 
 def smooth_BCE(eps=0.1):  # https://github.com/ultralytics/yolov3/issues/238#issuecomment-598028441

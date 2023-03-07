@@ -119,21 +119,7 @@ def mask_iou(mask1, mask2, eps=1e-7):
     union = (mask1.sum(1)[:, None] + mask2.sum(1)[None]) - intersection  # (area1 + area2) - intersection
     return intersection / (union + eps)
 
-
-def pose_iou(kpt1, kpt2, kpt_mask, area, eps=1e-7):
-    """OKS
-    kpt1: [N, 17, 2]
-    kpt2: [N, 17, 2]
-    kpt_mask: [N, 17]
-    area: [N]
-    """
-    d = (kpt1[..., 0] - kpt2[..., 0]) ** 2 + (kpt1[..., 1] - kpt2[..., 1]) ** 2
-    e = d / (2 * OKS_SIGMA) ** 2 / (area + eps) / 2  # from cocoeval
-    # e = d / ((area + eps) * OKS_SIGMA) ** 2 / 2  # from formula
-    # e = d / (2 * OKS_SIGMA) ** 2 / (area + eps) / 2
-    return (torch.exp(-e) * kpt_mask).sum(-1) / kpt_mask.sum(-1)
-
-def pose_iou(kpt1, kpt2, area, eps=1e-7):
+def kpt_iou(kpt1, kpt2, area, eps=1e-7):
     """OKS
     kpt1: [N, 51], pred
     kpt2: [M, 51], gt

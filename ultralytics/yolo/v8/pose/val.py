@@ -1,6 +1,6 @@
 from ultralytics.yolo.v8.detect import DetectionValidator
-from ultralytics.yolo.utils import DEFAULT_CFG
-from ultralytics.yolo.utils.metrics import PoseMetrics, box_iou, pose_iou
+from ultralytics.yolo.utils import DEFAULT_CFG, ops
+from ultralytics.yolo.utils.metrics import PoseMetrics, box_iou, kpt_iou
 import torch
 import numpy as np
 
@@ -20,7 +20,7 @@ class PoseValidator(DetectionValidator):
         return ('%22s' + '%11s' * 10) % ('Class', 'Images', 'Instances', 'Box(P', 'R', 'mAP50', 'mAP50-95)', 'Pose(P',
                                          'R', 'mAP50', 'mAP50-95)')
 
-    def _process_batch(self, detections, labels, pred_kpts=None, gt_kpts=None, kpts=False):
+    def _process_batch(self, detections, labels, pred_kpts=None, gt_kpts=None):
         """
         Return correct prediction matrix
         Arguments:
@@ -31,8 +31,10 @@ class PoseValidator(DetectionValidator):
         Returns:
             correct (array[N, 10]), for 10 IoU levels
         """
-        if kpts:
-            iou = mask_iou(gt_kpts.view(gt_kpts.shape[0], -1), pred_kpts.view(pred_kpts.shape[0], -1))
+        if pred_kpts is not None and gt_kpts is not None:
+            # `0.53` is from https://github.com/jin-s13/xtcocoapi/blob/master/xtcocotools/cocoeval.py#L384
+            area = ops.xyxy2xywh(labels[:, 1:])[:, 2:].prod(1) * 0.53
+            iou = kpt_iou(gt_kpts, pred_kpts, area=area)
         else:  # boxes
             iou = box_iou(labels[:, 1:], detections[:, :4])
 

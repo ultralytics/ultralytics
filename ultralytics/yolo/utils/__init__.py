@@ -151,9 +151,10 @@ def set_logging(name=LOGGING_NAME, verbose=True):
 # Set logger
 set_logging(LOGGING_NAME, verbose=VERBOSE)  # run before defining LOGGER
 LOGGER = logging.getLogger(LOGGING_NAME)  # define globally (used in train.py, val.py, detect.py, etc.)
-if WINDOWS:
-    for fn in LOGGER.info, LOGGER.warning:
-        setattr(LOGGER, fn.__name__, lambda x: fn(emojis(x)))  # emoji safe logging
+if WINDOWS:  # emoji-safe logging
+    info_fn, warning_fn = LOGGER.info, LOGGER.warning
+    setattr(LOGGER, info_fn.__name__, lambda x: info_fn(emojis(x)))
+    setattr(LOGGER, warning_fn.__name__, lambda x: warning_fn(emojis(x)))
 
 
 def yaml_save(file='data.yaml', data=None):

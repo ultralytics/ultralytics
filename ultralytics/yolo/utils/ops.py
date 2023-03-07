@@ -112,6 +112,34 @@ def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None):
     clip_boxes(boxes, img0_shape)
     return boxes
 
+def scale_kpts(img1_shape, kpts, img0_shape, ratio_pad=None, step=3):
+    """
+    Rescales bounding boxes (in the format of xyxy) from the shape of the image they were originally specified in
+    (img1_shape) to the shape of a different image (img0_shape).
+
+    Args:
+      img1_shape (tuple): The shape of the image that the bounding boxes are for, in the format of (height, width).
+      boxes (torch.Tensor): the bounding boxes of the objects in the image, in the format of (x1, y1, x2, y2)
+      img0_shape (tuple): the shape of the target image, in the format of (height, width).
+      ratio_pad (tuple): a tuple of (ratio, pad) for scaling the boxes. If not provided, the ratio and pad will be
+                         calculated based on the size difference between the two images.
+
+    Returns:
+      boxes (torch.Tensor): The scaled bounding boxes, in the format of (x1, y1, x2, y2)
+    """
+    if ratio_pad is None:  # calculate from img0_shape
+        gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
+        pad = (img1_shape[1] - img0_shape[1] * gain) / 2, (img1_shape[0] - img0_shape[0] * gain) / 2  # wh padding
+    else:
+        gain = ratio_pad[0][0]
+        pad = ratio_pad[1]
+
+    kpts[:, 0::step] -= pad[0]  # x padding
+    kpts[:, 1::step] -= pad[1]  # y padding
+    kpts[:, 0::step] /= gain
+    kpts[:, 1::step] /= gain
+    clip_kpts(kpts, img0_shape, step=step)
+    return kpts
 
 def make_divisible(x, divisor):
     """
@@ -303,6 +331,22 @@ def clip_coords(boxes, shape):
     else:  # np.array (faster grouped)
         boxes[:, [0, 2]] = boxes[:, [0, 2]].clip(0, shape[1])  # x1, x2
         boxes[:, [1, 3]] = boxes[:, [1, 3]].clip(0, shape[0])  # y1, y2
+
+
+def clip_kpts(kpts, shape, step=3):
+    """
+    Clip bounding xyxy bounding boxes to image shape (height, width).
+
+    Args:
+        boxes (torch.Tensor or numpy.ndarray): Keypoints to be clipped, [N, 51].
+        shape (tuple): the shape of the image
+    """
+    if isinstance(kpts, torch.Tensor):  # faster individually
+        kpts[:, 0::step].clamp_(0, shape[1])  # x
+        kpts[:, 1::step].clamp_(0, shape[0])  # y
+    else:  # np.array (faster grouped)
+        kpts[:, 0::step] = kpts[:, 0::step].clip(0, shape[1])  # x
+        kpts[:, 1::step] = kpts[:, 1::step].clip(0, shape[0])  # y
 
 
 def scale_image(im1_shape, masks, im0_shape, ratio_pad=None):

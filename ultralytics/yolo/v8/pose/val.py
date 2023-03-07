@@ -20,14 +20,70 @@ class PoseValidator(DetectionValidator):
         return ('%22s' + '%11s' * 10) % ('Class', 'Images', 'Instances', 'Box(P', 'R', 'mAP50', 'mAP50-95)', 'Pose(P',
                                          'R', 'mAP50', 'mAP50-95)')
 
+    def update_metrics(self, preds, batch):
+        # Metrics
+        for si, pred in enumerate(preds):
+            idx = batch['batch_idx'] == si
+            cls = batch['cls'][idx]
+            bbox = batch['bboxes'][idx]
+            kpts = batch['keypoints'][idx]
+            nl, npr = cls.shape[0], pred.shape[0]  # number of labels, predictions
+            shape = batch['ori_shape'][si]
+            correct_kpts = torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device)  # init
+            correct_bboxes = torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device)  # init
+            self.seen += 1
+
+            if npr == 0:
+                if nl:
+                    self.stats.append((correct_kpts, correct_bboxes, *torch.zeros(
+                        (2, 0), device=self.device), cls.squeeze(-1)))
+                    if self.args.plots:
+                        self.confusion_matrix.process_batch(detections=None, labels=cls.squeeze(-1))
+                continue
+
+            # Predictions
+            if self.args.single_cls:
+                pred[:, 5] = 0
+            predn = pred.clone()
+            ops.scale_boxes(batch['img'][si].shape[1:], predn[:, :4], shape,
+                            ratio_pad=batch['ratio_pad'][si])  # native-space pred
+            ops.scale_kpts(batch['img'][si].shape[1:], predn[:, 6:], shape, ratio_pad=batch['ratio_pad'][si])
+
+            # Evaluate
+            if nl:
+                height, width = batch['img'].shape[2:]
+                tbox = ops.xywh2xyxy(bbox) * torch.tensor(
+                    (width, height, width, height), device=self.device)  # target boxes
+                ops.scale_boxes(batch['img'][si].shape[1:], tbox, shape,
+                                ratio_pad=batch['ratio_pad'][si])  # native-space labels
+                tkpts = kpts.clone()
+                tkpts[:, 0::3] *= width
+                tkpts[:, 1::3] *= height
+                tkpts = ops.scale_kpts(batch['img'][si].shape[1:], tkpts, shape, ratio_pad=batch['ratio_pad'][si])
+                labelsn = torch.cat((cls, tbox), 1)  # native-space labels
+                correct_bboxes = self._process_batch(predn[:, :6], labelsn)
+                # TODO: maybe remove these `self.` arguments as they already are member variable
+                correct_kpts = self._process_batch(predn[:, :6], labelsn, predn[:, 6:], tkpts)
+                if self.args.plots:
+                    self.confusion_matrix.process_batch(predn, labelsn)
+
+            # Append correct_masks, correct_boxes, pconf, pcls, tcls
+            self.stats.append((correct_kpts, correct_bboxes, pred[:, 4], pred[:, 5], cls.squeeze(-1)))
+
+            # Save
+            if self.args.save_json:
+                self.pred_to_json(predn, batch['im_file'][si])
+            # if self.args.save_txt:
+            #    save_one_txt(predn, save_conf, shape, file=save_dir / 'labels' / f'{path.stem}.txt')
+
     def _process_batch(self, detections, labels, pred_kpts=None, gt_kpts=None):
         """
         Return correct prediction matrix
         Arguments:
             detections (array[N, 6]), x1, y1, x2, y2, conf, class
             labels (array[M, 5]), class, x1, y1, x2, y2
-            pred_kpts (array[N, 17, 3])
-            gt_kpts (array[N, 17, 3])
+            pred_kpts (array[N, 51]), 51 = 17 * 3
+            gt_kpts (array[N, 51])
         Returns:
             correct (array[N, 10]), for 10 IoU levels
         """
@@ -52,6 +108,18 @@ class PoseValidator(DetectionValidator):
                     matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
                 correct[matches[:, 1].astype(int), i] = True
         return torch.tensor(correct, dtype=torch.bool, device=detections.device)
+
+    def plot_val_samples(self, batch, ni):
+        return super().plot_val_samples(batch, ni)
+
+    def plot_predictions(self, batch, preds, ni):
+        return super().plot_predictions(batch, preds, ni)
+
+    def pred_to_json(self, predn, filename):
+        return super().pred_to_json(predn, filename)
+
+    def eval_json(self, stats):
+        return super().eval_json(stats)
 
 
 

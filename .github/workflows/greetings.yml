@@ -32,7 +32,7 @@ jobs:
             ## Install
 
             Pip install the ultralytics package including all [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) in a [**Python>=3.7**](https://www.python.org/) environment with [**PyTorch>=1.7**](https://pytorch.org/get-started/locally/).
-            
+
             ```bash
             pip install ultralytics
             ```
@@ -49,5 +49,5 @@ jobs:
             ## Status
 
             <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml?query=event%3Aschedule"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml/badge.svg" alt="Ultralytics CI"></a>
-            
+
             If this badge is green, all [Ultralytics GitHub Actions](https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml?query=event%3Aschedule) Continuous Integration (CI) tests are currently passing. CI tests verify correct operation of YOLOv8 modes and tasks on MacOS, Windows, and Ubuntu every 24 hours and on every commit.

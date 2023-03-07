@@ -21,20 +21,11 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-      - name: Get cache dir  # https://github.com/actions/cache/blob/master/examples.md#multiple-oss-in-a-workflow
-        id: pip-cache
-        run: echo "dir=$(pip cache dir)" >> $GITHUB_OUTPUT
-        shell: bash  # for Windows compatibility
-      - name: Cache pip
-        uses: actions/cache@v3
-        with:
-          path: ${{ steps.pip-cache.outputs.dir }}
-          key: ${{ runner.os }}-${{ runner.python-version }}-pip-${{ hashFiles('requirements.txt') }}
-          restore-keys: ${{ runner.os }}-${{ matrix.python-version }}-pip-
+          cache: 'pip' # caching pip dependencies
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip wheel
-          pip install -e . --extra-index-url https://download.pytorch.org/whl/cpu
+          python -m pip install --upgrade pip wheel build twine
+          pip install -e '.[dev]' --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check for pip updates
         shell: python
         run: |
@@ -54,8 +45,8 @@ jobs:
       - name: Publish to PyPI
         if: steps.check_pip_update.outputs.increment == 'True'
         run: |
-          print('INSTALLING')
+          python -m build
       - name: Deploy Docs
         if: steps.check_pip_update.outputs.increment == 'True'
         run: |
-          print('DEPLOYING DOCS')
+          mkdocs serve

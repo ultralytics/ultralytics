@@ -274,6 +274,7 @@ class AutoBackend(nn.Module):
             names = self._apply_default_class_names(data)
         names = check_class_names(names)
 
+        del k, v
         self.__dict__.update(locals())  # assign all variables to self
 
     def forward(self, im, augment=False, visualize=False):

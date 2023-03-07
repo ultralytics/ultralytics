@@ -43,7 +43,7 @@ jobs:
           increment = (d[0] == d[1] == 0) and d[2] == 1  # only patch increment by 1
           os.system(f'echo "increment={increment}" >> $GITHUB_OUTPUT')
           if increment:
-              print('Local version is higher than PyPI version. Publishing new version to PyPI.')
+              print('Local version is higher than PyPI version. Publishing new version to PyPI ✅.')
         id: check_pip_update
       - name: Publish to PyPI
         if: steps.check_pip_update.outputs.increment == 'True'

@@ -357,11 +357,12 @@ def plot_images(images,
             # Plot keypoints
             if len(kpts):
                 kpts_ = kpts[idx].copy()
-                if kpts_[:, 0::3].max() <= 1.01 or kpts_[:, 1::3].max() <= 1.01:  # if normalized with tolerance 0.01
-                    kpts_[:, 0::3] *= w  # scale to pixels
-                    kpts_[:, 1::3] *= h
-                elif scale < 1:  # absolute coords need scale if image scales
-                    kpts_ *= scale
+                if len(kpts_):
+                    if kpts_[:, 0::3].max() <= 1.01 or kpts_[:, 1::3].max() <= 1.01:  # if normalized with tolerance 0.01
+                        kpts_[:, 0::3] *= w  # scale to pixels
+                        kpts_[:, 1::3] *= h
+                    elif scale < 1:  # absolute coords need scale if image scales
+                        kpts_ *= scale
                 kpts_[:, 0::3] += x
                 kpts_[:, 1::3] += y
                 for j in range(len(kpts_)):

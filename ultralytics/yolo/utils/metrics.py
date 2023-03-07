@@ -765,19 +765,19 @@ class PoseMetrics(SegmentMetrics):
         name = self.__class__.__name__
         raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
-    def process(self, tp_m, tp_b, conf, pred_cls, target_cls):
+    def process(self, tp_p, tp_b, conf, pred_cls, target_cls):
         """
-        Processes the detection and segmentation metrics over the given set of predictions.
+        Processes the detection and pose metrics over the given set of predictions.
 
         Args:
-            tp_m (list): List of True Positive masks.
+            tp_p (list): List of True Positive keypoints.
             tp_b (list): List of True Positive boxes.
             conf (list): List of confidence scores.
             pred_cls (list): List of predicted classes.
             target_cls (list): List of target classes.
         """
 
-        results_pose = ap_per_class(tp_m,
+        results_pose = ap_per_class(tp_p,
                                     conf,
                                     pred_cls,
                                     target_cls,

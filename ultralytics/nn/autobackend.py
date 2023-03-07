@@ -260,11 +260,12 @@ class AutoBackend(nn.Module):
         if isinstance(metadata, (str, Path)) and Path(metadata).exists():
             metadata = yaml_load(metadata)
         if metadata:
-            stride = int(metadata['stride'])
-            task = metadata['task']
-            batch = int(metadata['batch'])
-            imgsz = eval(metadata['imgsz']) if isinstance(metadata['imgsz'], str) else metadata['imgsz']
-            names = eval(metadata['names']) if isinstance(metadata['names'], str) else metadata['names']
+            for k, v in metadata.items():
+                if k in ('stride', 'batch'):
+                    metadata[k] = int(v)
+                elif k in ('imgsz', 'names') and isinstance(v, str):
+                    metadata[k] = eval(v)
+            locals().update(metadata)  # assign metadata dict as model attributes
         elif not (pt or triton or nn_module):
             LOGGER.warning(f"WARNING ⚠️ Metadata not found for 'model={weights}'")
 

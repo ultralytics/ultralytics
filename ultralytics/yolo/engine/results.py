@@ -145,7 +145,7 @@ class Results:
             text = f"{', '.join(f'{names[j] if names else j} {logits[j]:.2f}' for j in top5i)}, "
             annotator.text((32, 32), text, txt_color=(255, 255, 255))  # TODO: allow setting colors
 
-        return np.asarray(annotator.im) if isinstance(annotator.im, PIL.Image.Image) else annotator.im
+        return np.asarray(annotator.im) if isinstance(annotator.im, Image.Image) else annotator.im
 
 
 class Boxes:

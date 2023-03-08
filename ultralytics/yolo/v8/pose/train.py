@@ -52,7 +52,7 @@ class PoseTrainer(v8.detect.DetectionTrainer):
         plot_images(images, batch_idx, cls, bboxes, kpts=kpts, paths=paths, fname=self.save_dir / f'train_batch{ni}.jpg')
 
     def plot_metrics(self):
-        plot_results(file=self.csv, segment=True)  # save results.png
+        plot_results(file=self.csv, pose=True)  # save results.png
 
 
 # Criterion class for computing training losses
@@ -106,7 +106,7 @@ class PoseLoss(Loss):
             target_bboxes /= stride_tensor
             loss[0], loss[4] = self.bbox_loss(pred_distri, pred_bboxes, anchor_points, target_bboxes,
                                               target_scores, target_scores_sum, fg_mask)
-            keypoints = batch['keypoints'].to(self.device).float().view(-1, self.nkpt * 3)
+            keypoints = batch['keypoints'].to(self.device).float()
             keypoints[:, 0::3] *= imgsz[1]
             keypoints[:, 1::3] *= imgsz[0]
             for i in range(batch_size):
@@ -123,8 +123,7 @@ class PoseLoss(Loss):
                     kpt_mask = gt_kpt[:, 2::3] != 0
                     loss[1] += self.keypoint_loss(pred_kpt, gt_kpt, kpt_mask, area)
                     # kpt_score loss
-                    loss[2] += self.bce_pose(pred_kpt[:, 2::3], (gt_kpt[:, 2::3] != 0).float())
-
+                    loss[2] += self.bce_pose(pred_kpt[:, 2::3], kpt_mask.float())
 
         # WARNING: Uncomment lines below in case of Multi-GPU DDP unused gradient errors
         #         else:
@@ -142,13 +141,16 @@ class PoseLoss(Loss):
 
     def kpts_decode(self, anchor_points, pred_kpts, bbox):
         # TODO
-        pred_kpts[..., 0::3] += anchor_points[:, [0]]
-        pred_kpts[..., 1::3] += anchor_points[:, [1]]
-        # pred_kpts[:, 0::3] = (pred_kpts[:, 0::3].sigmoid() - 0.5) * bbox[:, [2]] + anchor_points[:, [0]]
-        # pred_kpts[:, 1::3] = (pred_kpts[:, 1::3].sigmoid() - 0.5) * bbox[:, [3]] + anchor_points[:, [1]]
-        # pred_kpts[:, 0::3] = (pred_kpts[:, 0::3].sigmoid() - 0.5) * bbox[:, [2]] + bbox[:, [0]]
-        # pred_kpts[:, 1::3] = (pred_kpts[:, 1::3].sigmoid() - 0.5) * bbox[:, [3]] + bbox[:, [1]]
-        return pred_kpts
+        y = pred_kpts.clone()
+        y[..., 0::3] *= 2
+        y[..., 1::3] *= 2
+        y[..., 0::3] += anchor_points[:, [0]] - 0.5
+        y[..., 1::3] += anchor_points[:, [1]] - 0.5
+        # y[:, 0::3] = (y[:, 0::3].sigmoid() - 0.5) * bbox[:, [2]] + anchor_points[:, [0]]
+        # y[:, 1::3] = (y[:, 1::3].sigmoid() - 0.5) * bbox[:, [3]] + anchor_points[:, [1]]
+        # y[:, 0::3] = (y[:, 0::3].sigmoid() - 0.5) * bbox[:, [2]] + bbox[:, [0]]
+        # y[:, 1::3] = (y[:, 1::3].sigmoid() - 0.5) * bbox[:, [3]] + bbox[:, [1]]
+        return y
 
 
 

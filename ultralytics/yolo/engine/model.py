@@ -10,7 +10,7 @@ from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, ONLINE, RANK, ROOT,
                                     callbacks, is_git_dir, is_pip_package, yaml_load)
-from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_pip_update, check_yaml
+from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_pip_update_available, check_yaml
 from ultralytics.yolo.utils.downloads import GITHUB_ASSET_STEMS
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 
@@ -158,7 +158,7 @@ class YOLO:
         Inform user of ultralytics package update availability
         """
         if ONLINE and is_pip_package():
-            check_pip_update()
+            check_pip_update_available()
 
     def reset(self):
         """
@@ -203,6 +203,8 @@ class YOLO:
         if source is None:
             source = ROOT / 'assets' if is_git_dir() else 'https://ultralytics.com/images/bus.jpg'
             LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using 'source={source}'.")
+        is_cli = (sys.argv[0].endswith('yolo') or sys.argv[0].endswith('ultralytics')) and \
+                 ('predict' in sys.argv or 'mode=predict' in sys.argv)
 
         overrides = self.overrides.copy()
         overrides['conf'] = 0.25
@@ -213,10 +215,9 @@ class YOLO:
         if not self.predictor:
             self.task = overrides.get('task') or self.task
             self.predictor = TASK_MAP[self.task][3](overrides=overrides)
-            self.predictor.setup_model(model=self.model)
+            self.predictor.setup_model(model=self.model, verbose=is_cli)
         else:  # only update args if predictor is already setup
             self.predictor.args = get_cfg(self.predictor.args, overrides)
-        is_cli = sys.argv[0].endswith('yolo') or sys.argv[0].endswith('ultralytics')
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
 
     def track(self, source=None, stream=False, **kwargs):

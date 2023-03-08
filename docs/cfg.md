@@ -55,7 +55,7 @@ include train, val, and predict.
 | mode   | 'train'  | YOLO mode, i.e. train, val, predict, or export                                                |
 | resume | False    | resume training from last checkpoint or custom checkpoint if passed as resume=path/to/best.pt |
 | model  | null     | path to model file, i.e. yolov8n.pt, yolov8n.yaml                                             |
-| data   | null     | path to data file, i.e. i.e. coco128.yaml                                                     |
+| data   | null     | path to data file, i.e. coco128.yaml                                                          |
 
 ### Training
 
@@ -69,7 +69,7 @@ task.
 | Key             | Value  | Description                                                                    |
 |-----------------|--------|--------------------------------------------------------------------------------|
 | model           | null   | path to model file, i.e. yolov8n.pt, yolov8n.yaml                              |
-| data            | null   | path to data file, i.e. i.e. coco128.yaml                                      |
+| data            | null   | path to data file, i.e. coco128.yaml                                           |
 | epochs          | 100    | number of epochs to train for                                                  |
 | patience        | 50     | epochs to wait for no observable improvement for early stopping of training    |
 | batch           | 16     | number of images per batch (-1 for AutoBatch)                                  |
@@ -130,6 +130,7 @@ given task.
 | half           | False                | use half precision (FP16)                                |
 | device         | null                 | device to run on, i.e. cuda device=0/1/2/3 or device=cpu |
 | show           | False                | show results if possible                                 |
+| save           | False                | save images with results                                 |
 | save_txt       | False                | save results as .txt file                                |
 | save_conf      | False                | save results with confidence scores                      |
 | save_crop      | False                | save cropped images with results                         |

@@ -6,7 +6,7 @@ mode: train  # YOLO mode, i.e. train, val, predict, export
 
 # Train settings -------------------------------------------------------------------------------------------------------
 model:  # path to model file, i.e. yolov8n.pt, yolov8n.yaml
-data:  # path to data file, i.e. i.e. coco128.yaml
+data:  # path to data file, i.e. coco128.yaml
 epochs: 100  # number of epochs to train for
 patience: 50  # epochs to wait for no observable improvement for early stopping of training
 batch: 16  # number of images per batch (-1 for AutoBatch)
@@ -64,7 +64,7 @@ augment: False  # apply image augmentation to prediction sources
 agnostic_nms: False  # class-agnostic NMS
 classes:  # filter results by class, i.e. class=0, or class=[0,2,3]
 retina_masks: False  # use high-resolution segmentation masks
-boxes: True # Show boxes in segmentation predictions
+boxes: True  # Show boxes in segmentation predictions
 
 # Export settings ------------------------------------------------------------------------------------------------------
 format: torchscript  # format to export to
@@ -110,3 +110,6 @@ cfg:  # for overriding defaults.yaml
 
 # Debug, do not modify -------------------------------------------------------------------------------------------------
 v5loader: False  # use legacy YOLOv5 dataloader
+
+# Tracker settings ------------------------------------------------------------------------------------------------------
+tracker: botsort.yaml  # tracker type, ['botsort.yaml', 'bytetrack.yaml']

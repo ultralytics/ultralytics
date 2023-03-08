@@ -14,20 +14,22 @@ class ClassificationPredictor(BasePredictor):
         return Annotator(img, example=str(self.model.names), pil=True)
 
     def preprocess(self, img):
-        img = (img if isinstance(img, torch.Tensor) else torch.Tensor(img)).to(self.model.device)
-        img = img.half() if self.model.fp16 else img.float()  # uint8 to fp16/32
-        return img
+        img = (img if isinstance(img, torch.Tensor) else torch.from_numpy(img)).to(self.model.device)
+        return img.half() if self.model.fp16 else img.float()  # uint8 to fp16/32
 
-    def postprocess(self, preds, img, orig_img, classes=None):
+    def postprocess(self, preds, img, orig_imgs):
         results = []
         for i, pred in enumerate(preds):
-            shape = orig_img[i].shape if isinstance(orig_img, list) else orig_img.shape
-            results.append(Results(probs=pred, orig_shape=shape[:2]))
+            orig_img = orig_imgs[i] if isinstance(orig_imgs, list) else orig_imgs
+            path, _, _, _, _ = self.batch
+            img_path = path[i] if isinstance(path, list) else path
+            results.append(Results(orig_img=orig_img, path=img_path, names=self.model.names, probs=pred))
+
         return results
 
     def write_results(self, idx, results, batch):
         p, im, im0 = batch
-        log_string = ""
+        log_string = ''
         if len(im.shape) == 3:
             im = im[None]  # expand for batch dim
         self.seen += 1
@@ -49,7 +51,8 @@ class ClassificationPredictor(BasePredictor):
             return log_string
         prob = result.probs
         # Print results
-        top5i = prob.argsort(0, descending=True)[:5].tolist()  # top 5 indices
+        n5 = min(len(self.model.names), 5)
+        top5i = prob.argsort(0, descending=True)[:n5].tolist()  # top 5 indices
         log_string += f"{', '.join(f'{self.model.names[j]} {prob[j]:.2f}' for j in top5i)}, "
 
         # write
@@ -64,9 +67,9 @@ class ClassificationPredictor(BasePredictor):
 
 
 def predict(cfg=DEFAULT_CFG, use_python=False):
-    model = cfg.model or "yolov8n-cls.pt"  # or "resnet18"
-    source = cfg.source if cfg.source is not None else ROOT / "assets" if (ROOT / "assets").exists() \
-        else "https://ultralytics.com/images/bus.jpg"
+    model = cfg.model or 'yolov8n-cls.pt'  # or "resnet18"
+    source = cfg.source if cfg.source is not None else ROOT / 'assets' if (ROOT / 'assets').exists() \
+        else 'https://ultralytics.com/images/bus.jpg'
 
     args = dict(model=model, source=source)
     if use_python:
@@ -77,5 +80,5 @@ def predict(cfg=DEFAULT_CFG, use_python=False):
         predictor.predict_cli()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     predict()

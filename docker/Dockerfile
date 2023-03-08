@@ -13,12 +13,12 @@ ADD https://ultralytics.com/assets/Arial.ttf https://ultralytics.com/assets/Aria
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt update
 RUN TZ=Etc/UTC apt install -y tzdata
-RUN apt install --no-install-recommends -y gcc git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg
+RUN apt install --no-install-recommends -y gcc git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++
 # RUN alias python=python3
 
 # Security updates
 # https://security.snyk.io/vuln/SNYK-UBUNTU1804-OPENSSL-3314796
-RUN apt upgrade --no-install-recommends -y openssl
+RUN apt upgrade --no-install-recommends -y openssl tar
 
 # Create working directory
 RUN mkdir -p /usr/src/ultralytics
@@ -29,11 +29,8 @@ WORKDIR /usr/src/ultralytics
 RUN git clone https://github.com/ultralytics/ultralytics /usr/src/ultralytics
 
 # Install pip packages
-COPY requirements.txt .
 RUN python3 -m pip install --upgrade pip wheel
-RUN pip install --no-cache ultralytics albumentations comet gsutil notebook \
-    coremltools onnx onnx-simplifier onnxruntime openvino-dev>=2022.3
-    # tensorflow tensorflowjs \
+RUN pip install --no-cache '.[export]' albumentations comet gsutil notebook
 
 # Set environment variables
 ENV OMP_NUM_THREADS=1

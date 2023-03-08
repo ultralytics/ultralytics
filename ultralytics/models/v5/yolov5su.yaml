@@ -5,7 +5,6 @@ nc: 80  # number of classes
 depth_multiple: 0.33  # model depth multiple
 width_multiple: 0.50  # layer channel multiple
 
-
 # YOLOv5 v6.0 backbone
 backbone:
   # [from, number, module, args]

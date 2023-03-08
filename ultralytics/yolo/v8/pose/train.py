@@ -115,11 +115,10 @@ class PoseLoss(Loss):
                     gt_kpt = keypoints[batch_idx.view(-1) == i][idx]  # (n, 51)
                     gt_kpt[:, 0::3] /= stride_tensor[fg_mask[i]]
                     gt_kpt[:, 1::3] /= stride_tensor[fg_mask[i]]
-                    xyxyn = target_bboxes[i][fg_mask[i]]
-                    xywhn = xyxy2xywh(xyxyn)
-                    area = xywhn[:, 2:].prod(1, keepdim=True)
+                    xywh = xyxy2xywh(target_bboxes[i][fg_mask[i]])
+                    area = xywh[:, 2:].prod(1, keepdim=True)
                     # pred_kpt = pred_kpts[i][fg_mask[i]]
-                    pred_kpt = self.kpts_decode(anchor_points[fg_mask[i]], pred_kpts[i][fg_mask[i]], xywhn)
+                    pred_kpt = self.kpts_decode(anchor_points[fg_mask[i]], pred_kpts[i][fg_mask[i]], xywh)
                     kpt_mask = gt_kpt[:, 2::3] != 0
                     loss[1] += self.keypoint_loss(pred_kpt, gt_kpt, kpt_mask, area)
                     # kpt_score loss

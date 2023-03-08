@@ -263,8 +263,11 @@ class Boxes:
         return self.boxes.__str__()
 
     def __repr__(self):
-        return (f'Ultralytics YOLO {self.__class__.__name__}\n' + f'type: {type(self.boxes)}\n' +
-                f'shape: {self.boxes.shape}\n' + f'dtype: {self.boxes.dtype}\n + {self.boxes.__repr__()}')
+        return (f'{self.__class__.__module__}.{self.__class__.__name__}\n'
+                f'type:  {self.boxes.__class__.__module__}.{self.boxes.__class__.__name__}\n'
+                f'shape: {self.boxes.shape}\n'
+                f'dtype: {self.boxes.dtype}\n'
+                f'{self.boxes.__repr__()}')
 
     def __getitem__(self, idx):
         return Boxes(self.boxes[idx], self.orig_shape)
@@ -339,8 +342,11 @@ class Masks:
         return self.masks.__str__()
 
     def __repr__(self):
-        return (f'Ultralytics YOLO {self.__class__.__name__}\n' + f'type: {type(self.masks)}\n' +
-                f'shape: {self.masks.shape}\n' + f'dtype: {self.masks.dtype}\n + {self.masks.__repr__()}')
+        return (f'{self.__class__.__module__}.{self.__class__.__name__}\n'
+                f'type:  {self.masks.__class__.__module__}.{self.masks.__class__.__name__}\n'
+                f'shape: {self.masks.shape}\n'
+                f'dtype: {self.masks.dtype}\n'
+                f'{self.masks.__repr__()}')
 
     def __getitem__(self, idx):
         return Masks(self.masks[idx], self.orig_shape)

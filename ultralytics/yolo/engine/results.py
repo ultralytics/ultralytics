@@ -48,7 +48,7 @@ class Results:
         self.probs = probs if probs is not None else None
         self.names = names
         self.path = path
-        self._keys = (k for k in ('boxes', 'masks', 'probs') if getattr(self, k) is not None)
+        self._keys = [k for k in ('boxes', 'masks', 'probs') if getattr(self, k) is not None]
 
     def pandas(self):
         pass

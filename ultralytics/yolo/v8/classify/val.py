@@ -35,7 +35,6 @@ class ClassificationValidator(BaseValidator):
         self.metrics.speed = self.speed
         # self.metrics.confusion_matrix = self.confusion_matrix  # TODO: classification ConfusionMatrix
 
-
     def get_stats(self):
         self.metrics.process(self.targets, self.pred)
         return self.metrics.results_dict

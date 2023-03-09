@@ -81,7 +81,7 @@ def build_dataloader(cfg, batch, img_path, stride=32, rect=False, names=None, ra
             pad=0.0 if mode == 'train' else 0.5,
             prefix=colorstr(f'{mode}: '),
             use_segments=cfg.task == 'segment',
-            use_keypoints=cfg.task == 'keypoint',
+            use_keypoints=cfg.task == 'pose',
             names=names,
             classes=cfg.classes)
 

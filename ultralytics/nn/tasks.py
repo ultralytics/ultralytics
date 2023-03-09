@@ -253,7 +253,7 @@ class DetectionModel(BaseModel):
 class SegmentationModel(DetectionModel):
     # YOLOv8 segmentation model
     def __init__(self, cfg='yolov8n-seg.yaml', ch=3, nc=None, verbose=True):
-        super().__init__(cfg, ch, nc, verbose)
+        super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
     def _forward_augment(self, x):
         raise NotImplementedError('WARNING ⚠️ SegmentationModel has not supported augment inference yet!')

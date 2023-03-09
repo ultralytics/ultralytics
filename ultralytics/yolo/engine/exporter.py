@@ -58,7 +58,6 @@ from copy import deepcopy
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
 import torch
 
 from ultralytics.nn.autobackend import check_class_names
@@ -79,6 +78,7 @@ ARM64 = platform.machine() in ('arm64', 'aarch64')
 
 def export_formats():
     # YOLOv8 export formats
+    import pandas as pd
     x = [
         ['PyTorch', '-', '.pt', True, True],
         ['TorchScript', 'torchscript', '.torchscript', True, True],

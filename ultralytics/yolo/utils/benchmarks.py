@@ -26,8 +26,6 @@ import platform
 import time
 from pathlib import Path
 
-import pandas as pd
-
 from ultralytics import YOLO
 from ultralytics.yolo.engine.exporter import export_formats
 from ultralytics.yolo.utils import LINUX, LOGGER, ROOT, SETTINGS
@@ -38,6 +36,9 @@ from ultralytics.yolo.utils.torch_utils import select_device
 
 
 def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, half=False, device='cpu', hard_fail=False):
+    import pandas as pd
+    pd.options.display.max_columns = 10
+    pd.options.display.width = 120
     device = select_device(device, verbose=False)
     if isinstance(model, (str, Path)):
         model = YOLO(model)

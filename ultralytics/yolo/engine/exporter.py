@@ -78,7 +78,7 @@ ARM64 = platform.machine() in ('arm64', 'aarch64')
 
 def export_formats():
     # YOLOv8 export formats
-    import pandas as pd
+    import pandas
     x = [
         ['PyTorch', '-', '.pt', True, True],
         ['TorchScript', 'torchscript', '.torchscript', True, True],
@@ -92,7 +92,7 @@ def export_formats():
         ['TensorFlow Edge TPU', 'edgetpu', '_edgetpu.tflite', True, False],
         ['TensorFlow.js', 'tfjs', '_web_model', True, False],
         ['PaddlePaddle', 'paddle', '_paddle_model', True, True], ]
-    return pd.DataFrame(x, columns=['Format', 'Argument', 'Suffix', 'CPU', 'GPU'])
+    return pandas.DataFrame(x, columns=['Format', 'Argument', 'Suffix', 'CPU', 'GPU'])
 
 
 EXPORT_FORMATS_LIST = list(export_formats()['Argument'][1:])

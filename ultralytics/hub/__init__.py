@@ -5,12 +5,8 @@ import requests
 from ultralytics.hub.auth import Auth
 from ultralytics.hub.session import HUBTrainingSession
 from ultralytics.hub.utils import PREFIX, split_key
-from ultralytics.yolo.engine.exporter import EXPORT_FORMATS_LIST
 from ultralytics.yolo.engine.model import YOLO
 from ultralytics.yolo.utils import LOGGER, emojis
-
-# Define all export formats
-EXPORT_FORMATS_HUB = EXPORT_FORMATS_LIST + ['ultralytics_tflite', 'ultralytics_coreml']
 
 
 def start(key=''):
@@ -63,9 +59,15 @@ def reset_model(key=''):
     LOGGER.warning(f'{PREFIX}Model reset failure {r.status_code} {r.reason}')
 
 
+def export_fmts_hub():
+    # Returns a list of HUB-supported export formats
+    from ultralytics.yolo.engine.exporter import export_formats
+    return list(export_formats()['Argument'][1:]) + ['ultralytics_tflite', 'ultralytics_coreml']
+
+
 def export_model(key='', format='torchscript'):
     # Export a model to all formats
-    assert format in EXPORT_FORMATS_HUB, f"Unsupported export format '{format}', valid formats are {EXPORT_FORMATS_HUB}"
+    assert format in export_fmts_hub(), f"Unsupported export format '{format}', valid formats are {export_fmts_hub()}"
     api_key, model_id = split_key(key)
     r = requests.post('https://api.ultralytics.com/export',
                       json={
@@ -78,7 +80,7 @@ def export_model(key='', format='torchscript'):
 
 def get_export(key='', format='torchscript'):
     # Get an exported model dictionary with download URL
-    assert format in EXPORT_FORMATS_HUB, f"Unsupported export format '{format}', valid formats are {EXPORT_FORMATS_HUB}"
+    assert format in export_fmts_hub, f"Unsupported export format '{format}', valid formats are {export_fmts_hub}"
     api_key, model_id = split_key(key)
     r = requests.post('https://api.ultralytics.com/get-export',
                       json={

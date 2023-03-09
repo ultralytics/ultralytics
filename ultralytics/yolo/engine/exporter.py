@@ -95,10 +95,6 @@ def export_formats():
     return pandas.DataFrame(x, columns=['Format', 'Argument', 'Suffix', 'CPU', 'GPU'])
 
 
-EXPORT_FORMATS_LIST = list(export_formats()['Argument'][1:])
-EXPORT_FORMATS_TABLE = str(export_formats())
-
-
 def gd_outputs(gd):
     # TensorFlow GraphDef model output node names
     name_list, input_list = [], []

@@ -122,7 +122,7 @@ class BaseModel(nn.Module):
         bn = tuple(v for k, v in nn.__dict__.items() if 'Norm' in k)  # normalization layers, i.e. BatchNorm2d()
         return sum(isinstance(v, bn) for v in self.modules()) < thresh  # True if < 'thresh' BatchNorm layers in model
 
-    def info(self, verbose=False, imgsz=640):
+    def info(self, verbose=True, imgsz=640):
         """
         Prints model information
 

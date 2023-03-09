@@ -6,14 +6,13 @@ Dataloaders and dataset utils
 import contextlib
 import glob
 import hashlib
-import json
 import math
 import os
 import random
 import shutil
 import time
 from itertools import repeat
-from multiprocessing.pool import Pool, ThreadPool
+from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from threading import Thread
 from urllib.parse import urlparse
@@ -23,14 +22,13 @@ import numpy as np
 import psutil
 import torch
 import torchvision
-import yaml
 from PIL import ExifTags, Image, ImageOps
 from torch.utils.data import DataLoader, Dataset, dataloader, distributed
 from tqdm import tqdm
 
-from ultralytics.yolo.data.utils import check_dataset, unzip_file
-from ultralytics.yolo.utils import DATASETS_DIR, LOGGER, NUM_THREADS, TQDM_BAR_FORMAT, is_colab, is_kaggle
-from ultralytics.yolo.utils.checks import check_requirements, check_yaml
+from ultralytics.yolo.utils import (DATASETS_DIR, LOGGER, NUM_THREADS, TQDM_BAR_FORMAT, is_colab, is_dir_writeable,
+                                    is_kaggle)
+from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils.ops import clean_str, segments2boxes, xyn2xy, xywh2xyxy, xywhn2xyxy, xyxy2xywhn
 from ultralytics.yolo.utils.torch_utils import torch_distributed_zero_first
 
@@ -54,7 +52,7 @@ for orientation in ExifTags.TAGS.keys():
 def get_hash(paths):
     # Returns a single hash value of a list of paths (files or dirs)
     size = sum(os.path.getsize(p) for p in paths if os.path.exists(p))  # sizes
-    h = hashlib.md5(str(size).encode())  # hash sizes
+    h = hashlib.sha256(str(size).encode())  # hash sizes
     h.update(''.join(paths).encode())  # hash paths
     return h.hexdigest()  # return hash
 
@@ -91,7 +89,7 @@ def exif_transpose(image):
         if method is not None:
             image = image.transpose(method)
             del exif[0x0112]
-            image.info["exif"] = exif.tobytes()
+            image.info['exif'] = exif.tobytes()
     return image
 
 
@@ -216,11 +214,11 @@ class LoadScreenshots:
 
         # Parse monitor shape
         monitor = self.sct.monitors[self.screen]
-        self.top = monitor["top"] if top is None else (monitor["top"] + top)
-        self.left = monitor["left"] if left is None else (monitor["left"] + left)
-        self.width = width or monitor["width"]
-        self.height = height or monitor["height"]
-        self.monitor = {"left": self.left, "top": self.top, "width": self.width, "height": self.height}
+        self.top = monitor['top'] if top is None else (monitor['top'] + top)
+        self.left = monitor['left'] if left is None else (monitor['left'] + left)
+        self.width = width or monitor['width']
+        self.height = height or monitor['height']
+        self.monitor = {'left': self.left, 'top': self.top, 'width': self.width, 'height': self.height}
 
     def __iter__(self):
         return self
@@ -228,7 +226,7 @@ class LoadScreenshots:
     def __next__(self):
         # mss screen capture: get raw pixels from the screen as np array
         im0 = np.array(self.sct.grab(self.monitor))[:, :, :3]  # [:, :, :3] BGRA to BGR
-        s = f"screen {self.screen} (LTWH): {self.left},{self.top},{self.width},{self.height}: "
+        s = f'screen {self.screen} (LTWH): {self.left},{self.top},{self.width},{self.height}: '
 
         if self.transforms:
             im = self.transforms(im0)  # transforms
@@ -243,7 +241,7 @@ class LoadScreenshots:
 class LoadImages:
     # YOLOv5 image/video dataloader, i.e. `python detect.py --source image.jpg/vid.mp4`
     def __init__(self, path, img_size=640, stride=32, auto=True, transforms=None, vid_stride=1):
-        if isinstance(path, str) and Path(path).suffix == ".txt":  # *.txt file with img/vid/dir on each line
+        if isinstance(path, str) and Path(path).suffix == '.txt':  # *.txt file with img/vid/dir on each line
             path = Path(path).read_text().rsplit()
         files = []
         for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:
@@ -362,7 +360,7 @@ class LoadStreams:
                 # YouTube format i.e. 'https://www.youtube.com/watch?v=Zgi9g1ksQHc' or 'https://youtu.be/Zgi9g1ksQHc'
                 check_requirements(('pafy', 'youtube_dl==2020.12.2'))
                 import pafy
-                s = pafy.new(s).getbest(preftype="mp4").url  # YouTube URL
+                s = pafy.new(s).getbest(preftype='mp4').url  # YouTube URL
             s = eval(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
             if s == 0:
                 assert not is_colab(), '--source 0 webcam unsupported on Colab. Rerun command in a local environment.'
@@ -377,7 +375,7 @@ class LoadStreams:
 
             _, self.imgs[i] = cap.read()  # guarantee first frame
             self.threads[i] = Thread(target=self.update, args=([i, cap, s]), daemon=True)
-            LOGGER.info(f"{st} Success ({self.frames[i]} frames {w}x{h} at {self.fps[i]:.2f} FPS)")
+            LOGGER.info(f'{st} Success ({self.frames[i]} frames {w}x{h} at {self.fps[i]:.2f} FPS)')
             self.threads[i].start()
         LOGGER.info('')  # newline
 
@@ -493,13 +491,13 @@ class LoadImagesAndLabels(Dataset):
             cache, exists = np.load(cache_path, allow_pickle=True).item(), True  # load dict
             assert cache['version'] == self.cache_version  # matches current version
             assert cache['hash'] == get_hash(self.label_files + self.im_files)  # identical hash
-        except Exception:
+        except (FileNotFoundError, AssertionError, AttributeError):
             cache, exists = self.cache_labels(cache_path, prefix), False  # run cache ops
 
         # Display cache
         nf, nm, ne, nc, n = cache.pop('results')  # found, missing, empty, corrupt, total
         if exists and LOCAL_RANK in {-1, 0}:
-            d = f"Scanning {cache_path}... {nf} images, {nm + ne} backgrounds, {nc} corrupt"
+            d = f'Scanning {cache_path}... {nf} images, {nm + ne} backgrounds, {nc} corrupt'
             tqdm(None, desc=prefix + d, total=n, initial=n, bar_format=TQDM_BAR_FORMAT)  # display cache results
             if cache['msgs']:
                 LOGGER.info('\n'.join(cache['msgs']))  # display warnings
@@ -541,7 +539,7 @@ class LoadImagesAndLabels(Dataset):
                 j = (label[:, 0:1] == include_class_array).any(1)
                 self.labels[i] = label[j]
                 if segment:
-                    self.segments[i] = segment[j]
+                    self.segments[i] = [segment[si] for si, idx in enumerate(j) if idx]
             if single_cls:  # single-class training, merge all classes into 0
                 self.labels[i][:, 0] = 0
 
@@ -579,16 +577,17 @@ class LoadImagesAndLabels(Dataset):
             b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
             self.im_hw0, self.im_hw = [None] * n, [None] * n
             fcn = self.cache_images_to_disk if cache_images == 'disk' else self.load_image
-            results = ThreadPool(NUM_THREADS).imap(fcn, range(n))
-            pbar = tqdm(enumerate(results), total=n, bar_format=TQDM_BAR_FORMAT, disable=LOCAL_RANK > 0)
-            for i, x in pbar:
-                if cache_images == 'disk':
-                    b += self.npy_files[i].stat().st_size
-                else:  # 'ram'
-                    self.ims[i], self.im_hw0[i], self.im_hw[i] = x  # im, hw_orig, hw_resized = load_image(self, i)
-                    b += self.ims[i].nbytes
-                pbar.desc = f'{prefix}Caching images ({b / gb:.1f}GB {cache_images})'
-            pbar.close()
+            with ThreadPool(NUM_THREADS) as pool:
+                results = pool.imap(fcn, range(n))
+                pbar = tqdm(enumerate(results), total=n, bar_format=TQDM_BAR_FORMAT, disable=LOCAL_RANK > 0)
+                for i, x in pbar:
+                    if cache_images == 'disk':
+                        b += self.npy_files[i].stat().st_size
+                    else:  # 'ram'
+                        self.ims[i], self.im_hw0[i], self.im_hw[i] = x  # im, hw_orig, hw_resized = load_image(self, i)
+                        b += self.ims[i].nbytes
+                    pbar.desc = f'{prefix}Caching images ({b / gb:.1f}GB {cache_images})'
+                pbar.close()
 
     def check_cache_ram(self, safety_margin=0.1, prefix=''):
         # Check image caching requirements vs available memory
@@ -602,21 +601,22 @@ class LoadImagesAndLabels(Dataset):
         mem = psutil.virtual_memory()
         cache = mem_required * (1 + safety_margin) < mem.available  # to cache or not to cache, that is the question
         if not cache:
-            LOGGER.info(f"{prefix}{mem_required / gb:.1f}GB RAM required, "
-                        f"{mem.available / gb:.1f}/{mem.total / gb:.1f}GB available, "
+            LOGGER.info(f'{prefix}{mem_required / gb:.1f}GB RAM required, '
+                        f'{mem.available / gb:.1f}/{mem.total / gb:.1f}GB available, '
                         f"{'caching images ✅' if cache else 'not caching images ⚠️'}")
         return cache
 
     def cache_labels(self, path=Path('./labels.cache'), prefix=''):
         # Cache dataset labels, check images and read shapes
+        if path.exists():
+            path.unlink()  # remove *.cache file if exists
         x = {}  # dict
         nm, nf, ne, nc, msgs = 0, 0, 0, 0, []  # number missing, found, empty, corrupt, messages
-        desc = f"{prefix}Scanning {path.parent / path.stem}..."
-        with Pool(NUM_THREADS) as pool:
-            pbar = tqdm(pool.imap(verify_image_label, zip(self.im_files, self.label_files, repeat(prefix))),
-                        desc=desc,
-                        total=len(self.im_files),
-                        bar_format=TQDM_BAR_FORMAT)
+        desc = f'{prefix}Scanning {path.parent / path.stem}...'
+        total = len(self.im_files)
+        with ThreadPool(NUM_THREADS) as pool:
+            results = pool.imap(verify_image_label, zip(self.im_files, self.label_files, repeat(prefix)))
+            pbar = tqdm(results, desc=desc, total=total, bar_format=TQDM_BAR_FORMAT)
             for im_file, lb, shape, segments, nm_f, nf_f, ne_f, nc_f, msg in pbar:
                 nm += nm_f
                 nf += nf_f
@@ -626,9 +626,9 @@ class LoadImagesAndLabels(Dataset):
                     x[im_file] = [lb, shape, segments]
                 if msg:
                     msgs.append(msg)
-                pbar.desc = f"{desc} {nf} images, {nm + ne} backgrounds, {nc} corrupt"
+                pbar.desc = f'{desc} {nf} images, {nm + ne} backgrounds, {nc} corrupt'
+            pbar.close()
 
-        pbar.close()
         if msgs:
             LOGGER.info('\n'.join(msgs))
         if nf == 0:
@@ -637,12 +637,12 @@ class LoadImagesAndLabels(Dataset):
         x['results'] = nf, nm, ne, nc, len(self.im_files)
         x['msgs'] = msgs  # warnings
         x['version'] = self.cache_version  # cache version
-        try:
-            np.save(path, x)  # save cache for next time
+        if is_dir_writeable(path.parent):
+            np.save(str(path), x)  # save cache for next time
             path.with_suffix('.cache.npy').rename(path)  # remove .npy suffix
             LOGGER.info(f'{prefix}New cache created: {path}')
-        except Exception as e:
-            LOGGER.warning(f'{prefix}WARNING ⚠️ Cache directory {path.parent} is not writeable: {e}')  # not writeable
+        else:
+            LOGGER.warning(f'{prefix}WARNING ⚠️ Cache directory {path.parent} is not writeable')  # not writeable
         return x
 
     def __len__(self):
@@ -1034,126 +1034,6 @@ def verify_image_label(args):
         return [None, None, None, None, nm, nf, ne, nc, msg]
 
 
-class HUBDatasetStats():
-    """ Class for generating HUB dataset JSON and `-hub` dataset directory
-
-    Arguments
-        path:           Path to data.yaml or data.zip (with data.yaml inside data.zip)
-        autodownload:   Attempt to download dataset if not found locally
-
-    Usage
-        from utils.dataloaders import HUBDatasetStats
-        stats = HUBDatasetStats('coco128.yaml', autodownload=True)  # usage 1
-        stats = HUBDatasetStats('path/to/coco128.zip')  # usage 2
-        stats.get_json(save=False)
-        stats.process_images()
-    """
-
-    def __init__(self, path='coco128.yaml', autodownload=False):
-        # Initialize class
-        zipped, data_dir, yaml_path = self._unzip(Path(path))
-        try:
-            with open(check_yaml(yaml_path), errors='ignore') as f:
-                data = yaml.safe_load(f)  # data dict
-                if zipped:
-                    data['path'] = data_dir
-        except Exception as e:
-            raise Exception("error/HUB/dataset_stats/yaml_load") from e
-
-        check_dataset(data, autodownload)  # download dataset if missing
-        self.hub_dir = Path(data['path'] + '-hub')
-        self.im_dir = self.hub_dir / 'images'
-        self.im_dir.mkdir(parents=True, exist_ok=True)  # makes /images
-        self.stats = {'nc': data['nc'], 'names': list(data['names'].values())}  # statistics dictionary
-        self.data = data
-
-    @staticmethod
-    def _find_yaml(dir):
-        # Return data.yaml file
-        files = list(dir.glob('*.yaml')) or list(dir.rglob('*.yaml'))  # try root level first and then recursive
-        assert files, f'No *.yaml file found in {dir}'
-        if len(files) > 1:
-            files = [f for f in files if f.stem == dir.stem]  # prefer *.yaml files that match dir name
-            assert files, f'Multiple *.yaml files found in {dir}, only 1 *.yaml file allowed'
-        assert len(files) == 1, f'Multiple *.yaml files found: {files}, only 1 *.yaml file allowed in {dir}'
-        return files[0]
-
-    def _unzip(self, path):
-        # Unzip data.zip
-        if not str(path).endswith('.zip'):  # path is data.yaml
-            return False, None, path
-        assert Path(path).is_file(), f'Error unzipping {path}, file not found'
-        unzip_file(path, path=path.parent)
-        dir = path.with_suffix('')  # dataset directory == zip name
-        assert dir.is_dir(), f'Error unzipping {path}, {dir} not found. path/to/abc.zip MUST unzip to path/to/abc/'
-        return True, str(dir), self._find_yaml(dir)  # zipped, data_dir, yaml_path
-
-    def _hub_ops(self, f, max_dim=1920):
-        # HUB ops for 1 image 'f': resize and save at reduced quality in /dataset-hub for web/app viewing
-        f_new = self.im_dir / Path(f).name  # dataset-hub image filename
-        try:  # use PIL
-            im = Image.open(f)
-            r = max_dim / max(im.height, im.width)  # ratio
-            if r < 1.0:  # image too large
-                im = im.resize((int(im.width * r), int(im.height * r)))
-            im.save(f_new, 'JPEG', quality=50, optimize=True)  # save
-        except Exception as e:  # use OpenCV
-            LOGGER.info(f'WARNING ⚠️ HUB ops PIL failure {f}: {e}')
-            im = cv2.imread(f)
-            im_height, im_width = im.shape[:2]
-            r = max_dim / max(im_height, im_width)  # ratio
-            if r < 1.0:  # image too large
-                im = cv2.resize(im, (int(im_width * r), int(im_height * r)), interpolation=cv2.INTER_AREA)
-            cv2.imwrite(str(f_new), im)
-
-    def get_json(self, save=False, verbose=False):
-        # Return dataset JSON for Ultralytics HUB
-        def _round(labels):
-            # Update labels to integer class and 6 decimal place floats
-            return [[int(c), *(round(x, 4) for x in points)] for c, *points in labels]
-
-        for split in 'train', 'val', 'test':
-            if self.data.get(split) is None:
-                self.stats[split] = None  # i.e. no test set
-                continue
-            dataset = LoadImagesAndLabels(self.data[split])  # load dataset
-            x = np.array([
-                np.bincount(label[:, 0].astype(int), minlength=self.data['nc'])
-                for label in tqdm(dataset.labels, total=dataset.n, desc='Statistics')])  # shape(128x80)
-            self.stats[split] = {
-                'instance_stats': {
-                    'total': int(x.sum()),
-                    'per_class': x.sum(0).tolist()},
-                'image_stats': {
-                    'total': dataset.n,
-                    'unlabelled': int(np.all(x == 0, 1).sum()),
-                    'per_class': (x > 0).sum(0).tolist()},
-                'labels': [{
-                    str(Path(k).name): _round(v.tolist())} for k, v in zip(dataset.im_files, dataset.labels)]}
-
-        # Save, print and return
-        if save:
-            stats_path = self.hub_dir / 'stats.json'
-            print(f'Saving {stats_path.resolve()}...')
-            with open(stats_path, 'w') as f:
-                json.dump(self.stats, f)  # save stats.json
-        if verbose:
-            print(json.dumps(self.stats, indent=2, sort_keys=False))
-        return self.stats
-
-    def process_images(self):
-        # Compress images for Ultralytics HUB
-        for split in 'train', 'val', 'test':
-            if self.data.get(split) is None:
-                continue
-            dataset = LoadImagesAndLabels(self.data[split])  # load dataset
-            desc = f'{split} images'
-            for _ in tqdm(ThreadPool(NUM_THREADS).imap(self._hub_ops, dataset.im_files), total=dataset.n, desc=desc):
-                pass
-        print(f'Done. All images saved to {self.im_dir}')
-        return self.im_dir
-
-
 # Classification dataloaders -------------------------------------------------------------------------------------------
 class ClassificationDataset(torchvision.datasets.ImageFolder):
     """
@@ -1183,7 +1063,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         else:  # read image
             im = cv2.imread(f)  # BGR
         if self.album_transforms:
-            sample = self.album_transforms(image=cv2.cvtColor(im, cv2.COLOR_BGR2RGB))["image"]
+            sample = self.album_transforms(image=cv2.cvtColor(im, cv2.COLOR_BGR2RGB))['image']
         else:
             sample = self.torch_transforms(im)
         return sample, j

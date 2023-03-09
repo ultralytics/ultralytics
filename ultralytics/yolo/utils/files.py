@@ -6,7 +6,6 @@ import os
 import urllib
 from datetime import datetime
 from pathlib import Path
-from zipfile import ZipFile
 
 
 class WorkingDirectory(contextlib.ContextDecorator):
@@ -57,16 +56,6 @@ def increment_path(path, exist_ok=False, sep='', mkdir=False):
     return path
 
 
-def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX')):
-    # Unzip a *.zip file to path/, excluding files containing strings in exclude list
-    if path is None:
-        path = Path(file).parent  # default path
-    with ZipFile(file) as zipObj:
-        for f in zipObj.namelist():  # list all archived filenames in the zip
-            if all(x not in f for x in exclude):
-                zipObj.extract(f, path=path)
-
-
 def file_age(path=__file__):
     # Return days since last file update
     dt = (datetime.now() - datetime.fromtimestamp(Path(path).stat().st_mtime))  # delta
@@ -81,14 +70,14 @@ def file_date(path=__file__):
 
 def file_size(path):
     # Return file/dir size (MB)
-    mb = 1 << 20  # bytes to MiB (1024 ** 2)
-    path = Path(path)
-    if path.is_file():
-        return path.stat().st_size / mb
-    elif path.is_dir():
-        return sum(f.stat().st_size for f in path.glob('**/*') if f.is_file()) / mb
-    else:
-        return 0.0
+    if isinstance(path, (str, Path)):
+        mb = 1 << 20  # bytes to MiB (1024 ** 2)
+        path = Path(path)
+        if path.is_file():
+            return path.stat().st_size / mb
+        elif path.is_dir():
+            return sum(f.stat().st_size for f in path.glob('**/*') if f.is_file()) / mb
+    return 0.0
 
 
 def url2file(url):

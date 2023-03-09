@@ -16,7 +16,7 @@ segmentation is useful when you need to know not only where objects are in an im
 ## Train
 
 Train YOLOv8n-seg on the COCO128-seg dataset for 100 epochs at image size 640. For a full list of available
-arguments see the [Configuration](../config.md) page.
+arguments see the [Configuration](../cfg.md) page.
 
 !!! example ""
 
@@ -30,12 +30,12 @@ arguments see the [Configuration](../config.md) page.
         model = YOLO("yolov8n-seg.pt")  # load a pretrained model (recommended for training)
         
         # Train the model
-        results = model.train(data="coco128-seg.yaml", epochs=100, imgsz=640)
+        model.train(data="coco128-seg.yaml", epochs=100, imgsz=640)
         ```
     === "CLI"
     
         ```bash
-        yolo task=segment mode=train data=coco128-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
+        yolo segment train data=coco128-seg.yaml model=yolov8n-seg.pt epochs=100 imgsz=640
         ```
 
 ## Val
@@ -55,13 +55,21 @@ retains it's training `data` and arguments as model attributes.
         model = YOLO("path/to/best.pt")  # load a custom model
         
         # Validate the model
-        results = model.val()  # no arguments needed, dataset and settings remembered
+        metrics = model.val()  # no arguments needed, dataset and settings remembered
+        metrics.box.map    # map50-95(B)
+        metrics.box.map50  # map50(B)
+        metrics.box.map75  # map75(B)
+        metrics.box.maps   # a list contains map50-95(B) of each category
+        metrics.seg.map    # map50-95(M)
+        metrics.seg.map50  # map50(M)
+        metrics.seg.map75  # map75(M)
+        metrics.seg.maps   # a list contains map50-95(M) of each category
         ```
     === "CLI"
     
         ```bash
-        yolo task=segment mode=val model=yolov8n-seg.pt  # val official model
-        yolo task=segment mode=val model=path/to/best.pt  # val custom model
+        yolo segment val model=yolov8n-seg.pt  # val official model
+        yolo segment val model=path/to/best.pt  # val custom model
         ```
 
 ## Predict
@@ -85,9 +93,11 @@ Use a trained YOLOv8n-seg model to run predictions on images.
     === "CLI"
     
         ```bash
-        yolo task=segment mode=predict model=yolov8n-seg.pt source="https://ultralytics.com/images/bus.jpg"  # predict with official model
-        yolo task=segment mode=predict model=path/to/best.pt source="https://ultralytics.com/images/bus.jpg"  # predict with custom model
+        yolo segment predict model=yolov8n-seg.pt source="https://ultralytics.com/images/bus.jpg"  # predict with official model
+        yolo segment predict model=path/to/best.pt source="https://ultralytics.com/images/bus.jpg"  # predict with custom model
         ```
+
+Read more details of `predict` in our [Predict](https://docs.ultralytics.com/predict/) page.
 
 ## Export
 
@@ -110,26 +120,25 @@ Export a YOLOv8n-seg model to a different format like ONNX, CoreML, etc.
     === "CLI"
     
         ```bash
-        yolo mode=export model=yolov8n-seg.pt format=onnx  # export official model
-        yolo mode=export model=path/to/best.pt format=onnx  # export custom trained model
+        yolo export model=yolov8n-seg.pt format=onnx  # export official model
+        yolo export model=path/to/best.pt format=onnx  # export custom trained model
         ```
 
-    Available YOLOv8-seg export formats include:
+Available YOLOv8-seg export formats include:
 
-    | Format                                                                     | `format=`     | Model                         |
-    |----------------------------------------------------------------------------|---------------|-------------------------------|
-    | [PyTorch](https://pytorch.org/)                                            | -             | `yolov8n-seg.pt`              |
-    | [TorchScript](https://pytorch.org/docs/stable/jit.html)                    | `torchscript` | `yolov8n-seg.torchscript`     |
-    | [ONNX](https://onnx.ai/)                                                   | `onnx`        | `yolov8n-seg.onnx`            |
-    | [OpenVINO](https://docs.openvino.ai/latest/index.html)                     | `openvino`    | `yolov8n-seg_openvino_model/` |
-    | [TensorRT](https://developer.nvidia.com/tensorrt)                          | `engine`      | `yolov8n-seg.engine`          |
-    | [CoreML](https://github.com/apple/coremltools)                             | `coreml`      | `yolov8n-seg.mlmodel`         |
-    | [TensorFlow SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model` | `yolov8n-seg_saved_model/`    |
-    | [TensorFlow GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`          | `yolov8n-seg.pb`              |
-    | [TensorFlow Lite](https://www.tensorflow.org/lite)                         | `tflite`      | `yolov8n-seg.tflite`          |
-    | [TensorFlow Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`     | `yolov8n-seg_edgetpu.tflite`  |
-    | [TensorFlow.js](https://www.tensorflow.org/js)                             | `tfjs`        | `yolov8n-seg_web_model/`      |
-    | [PaddlePaddle](https://github.com/PaddlePaddle)                            | `paddle`      | `yolov8n-seg_paddle_model/`   |
-
+| Format                                                             | `format=`     | Model                         | Metadata |
+|--------------------------------------------------------------------|---------------|-------------------------------|----------|
+| [PyTorch](https://pytorch.org/)                                    | -             | `yolov8n-seg.pt`              | ✅        |
+| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript` | `yolov8n-seg.torchscript`     | ✅        |
+| [ONNX](https://onnx.ai/)                                           | `onnx`        | `yolov8n-seg.onnx`            | ✅        |
+| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`    | `yolov8n-seg_openvino_model/` | ✅        |
+| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`      | `yolov8n-seg.engine`          | ✅        |
+| [CoreML](https://github.com/apple/coremltools)                     | `coreml`      | `yolov8n-seg.mlmodel`         | ✅        |
+| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model` | `yolov8n-seg_saved_model/`    | ✅        |
+| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`          | `yolov8n-seg.pb`              | ❌        |
+| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`      | `yolov8n-seg.tflite`          | ✅        |
+| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`     | `yolov8n-seg_edgetpu.tflite`  | ✅        |
+| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`        | `yolov8n-seg_web_model/`      | ✅        |
+| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`      | `yolov8n-seg_paddle_model/`   | ✅        |
 
 

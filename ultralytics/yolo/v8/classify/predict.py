@@ -1,11 +1,10 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
-import hydra
 import torch
 
 from ultralytics.yolo.engine.predictor import BasePredictor
-from ultralytics.yolo.utils import DEFAULT_CONFIG, ROOT
-from ultralytics.yolo.utils.checks import check_imgsz
+from ultralytics.yolo.engine.results import Results
+from ultralytics.yolo.utils import DEFAULT_CFG, ROOT
 from ultralytics.yolo.utils.plotting import Annotator
 
 
@@ -15,20 +14,29 @@ class ClassificationPredictor(BasePredictor):
         return Annotator(img, example=str(self.model.names), pil=True)
 
     def preprocess(self, img):
-        img = torch.Tensor(img).to(self.model.device)
-        img = img.half() if self.model.fp16 else img.float()  # uint8 to fp16/32
-        return img
+        img = (img if isinstance(img, torch.Tensor) else torch.from_numpy(img)).to(self.model.device)
+        return img.half() if self.model.fp16 else img.float()  # uint8 to fp16/32
 
-    def write_results(self, idx, preds, batch):
+    def postprocess(self, preds, img, orig_imgs):
+        results = []
+        for i, pred in enumerate(preds):
+            orig_img = orig_imgs[i] if isinstance(orig_imgs, list) else orig_imgs
+            path, _, _, _, _ = self.batch
+            img_path = path[i] if isinstance(path, list) else path
+            results.append(Results(orig_img=orig_img, path=img_path, names=self.model.names, probs=pred))
+
+        return results
+
+    def write_results(self, idx, results, batch):
         p, im, im0 = batch
-        log_string = ""
+        log_string = ''
         if len(im.shape) == 3:
             im = im[None]  # expand for batch dim
         self.seen += 1
         im0 = im0.copy()
-        if self.webcam:  # batch_size >= 1
+        if self.source_type.webcam or self.source_type.from_img:  # batch_size >= 1
             log_string += f'{idx}: '
-            frame = self.dataset.cound
+            frame = self.dataset.count
         else:
             frame = getattr(self.dataset, 'frame', 0)
 
@@ -38,11 +46,13 @@ class ClassificationPredictor(BasePredictor):
         log_string += '%gx%g ' % im.shape[2:]  # print string
         self.annotator = self.get_annotator(im0)
 
-        prob = preds[idx].softmax(0)
-        if self.return_outputs:
-            self.output["prob"] = prob.cpu().numpy()
+        result = results[idx]
+        if len(result) == 0:
+            return log_string
+        prob = result.probs
         # Print results
-        top5i = prob.argsort(0, descending=True)[:5].tolist()  # top 5 indices
+        n5 = min(len(self.model.names), 5)
+        top5i = prob.argsort(0, descending=True)[:n5].tolist()  # top 5 indices
         log_string += f"{', '.join(f'{self.model.names[j]} {prob[j]:.2f}' for j in top5i)}, "
 
         # write
@@ -56,15 +66,19 @@ class ClassificationPredictor(BasePredictor):
         return log_string
 
 
-@hydra.main(version_base=None, config_path=str(DEFAULT_CONFIG.parent), config_name=DEFAULT_CONFIG.name)
-def predict(cfg):
-    cfg.model = cfg.model or "squeezenet1_0"
-    cfg.imgsz = check_imgsz(cfg.imgsz, min_dim=2)  # check image size
-    cfg.source = cfg.source if cfg.source is not None else ROOT / "assets"
+def predict(cfg=DEFAULT_CFG, use_python=False):
+    model = cfg.model or 'yolov8n-cls.pt'  # or "resnet18"
+    source = cfg.source if cfg.source is not None else ROOT / 'assets' if (ROOT / 'assets').exists() \
+        else 'https://ultralytics.com/images/bus.jpg'
 
-    predictor = ClassificationPredictor(cfg)
-    predictor.predict_cli()
+    args = dict(model=model, source=source)
+    if use_python:
+        from ultralytics import YOLO
+        YOLO(model)(**args)
+    else:
+        predictor = ClassificationPredictor(overrides=args)
+        predictor.predict_cli()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     predict()

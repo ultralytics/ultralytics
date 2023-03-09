@@ -1,0 +1,58 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license
+# SKU-110K retail items dataset https://github.com/eg4000/SKU110K_CVPR19 by Trax Retail
+# Example usage: yolo train data=SKU-110K.yaml
+# parent
+# ├── yolov5
+# └── datasets
+#     └── SKU-110K  ← downloads here (13.6 GB)
+
+
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+path: ../datasets/SKU-110K  # dataset root dir
+train: train.txt  # train images (relative to 'path')  8219 images
+val: val.txt  # val images (relative to 'path')  588 images
+test: test.txt  # test images (optional)  2936 images
+
+# Classes
+names:
+  0: object
+
+
+# Download script/URL (optional) ---------------------------------------------------------------------------------------
+download: |
+  import shutil
+  from pathlib import Path
+
+  import numpy as np
+  import pandas as pd
+  from tqdm import tqdm
+
+  from ultralytics.yolo.utils.downloads import download
+  from ultralytics.yolo.utils.ops import xyxy2xywh
+
+  # Download
+  dir = Path(yaml['path'])  # dataset root dir
+  parent = Path(dir.parent)  # download dir
+  urls = ['http://trax-geometry.s3.amazonaws.com/cvpr_challenge/SKU110K_fixed.tar.gz']
+  download(urls, dir=parent)
+
+  # Rename directories
+  if dir.exists():
+      shutil.rmtree(dir)
+  (parent / 'SKU110K_fixed').rename(dir)  # rename dir
+  (dir / 'labels').mkdir(parents=True, exist_ok=True)  # create labels dir
+
+  # Convert labels
+  names = 'image', 'x1', 'y1', 'x2', 'y2', 'class', 'image_width', 'image_height'  # column names
+  for d in 'annotations_train.csv', 'annotations_val.csv', 'annotations_test.csv':
+      x = pd.read_csv(dir / 'annotations' / d, names=names).values  # annotations
+      images, unique_images = x[:, 0], np.unique(x[:, 0])
+      with open((dir / d).with_suffix('.txt').__str__().replace('annotations_', ''), 'w') as f:
+          f.writelines(f'./images/{s}\n' for s in unique_images)
+      for im in tqdm(unique_images, desc=f'Converting {dir / d}'):
+          cls = 0  # single-class dataset
+          with open((dir / 'labels' / im).with_suffix('.txt'), 'a') as f:
+              for r in x[images == im]:
+                  w, h = r[6], r[7]  # image width, height
+                  xywh = xyxy2xywh(np.array([[r[1] / w, r[2] / h, r[3] / w, r[4] / h]]))[0]  # instance
+                  f.write(f"{cls} {xywh[0]:.5f} {xywh[1]:.5f} {xywh[2]:.5f} {xywh[3]:.5f}\n")  # write label

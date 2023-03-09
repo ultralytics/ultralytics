@@ -81,6 +81,9 @@ target/
 profile_default/
 ipython_config.py
 
+# Profiling
+*.pclprof
+
 # pyenv
 .python-version
 
@@ -136,6 +139,7 @@ wandb/
 .DS_Store
 
 # Neural Network weights -----------------------------------------------------------------------------------------------
+weights/
 *.weights
 *.pt
 *.pb

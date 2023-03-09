@@ -3,20 +3,24 @@
 import contextlib
 import math
 from pathlib import Path
-from urllib.error import URLError
 
 import cv2
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import torch
 from PIL import Image, ImageDraw, ImageFont
+from PIL import __version__ as pil_version
 
-from ultralytics.yolo.utils import FONT, USER_CONFIG_DIR, threaded
+from ultralytics.yolo.utils import LOGGER, TryExcept, threaded
 
-from .checks import check_font, check_requirements, is_ascii
+from .checks import check_font, check_version, is_ascii
 from .files import increment_path
 from .ops import clip_coords, scale_image, xywh2xyxy, xyxy2xywh
+
+matplotlib.rc('font', **{'size': 11})
+matplotlib.use('Agg')  # for writing to files only
 
 
 class Colors:
@@ -47,21 +51,30 @@ class Annotator:
         non_ascii = not is_ascii(example)  # non-latin labels, i.e. asian, arabic, cyrillic
         self.pil = pil or non_ascii
         if self.pil:  # use PIL
+            self.pil_9_2_0_check = check_version(pil_version, '9.2.0')  # deprecation check
             self.im = im if isinstance(im, Image.Image) else Image.fromarray(im)
             self.draw = ImageDraw.Draw(self.im)
-            self.font = check_pil_font(font='Arial.Unicode.ttf' if non_ascii else font,
-                                       size=font_size or max(round(sum(self.im.size) / 2 * 0.035), 12))
+            try:
+                font = check_font('Arial.Unicode.ttf' if non_ascii else font)
+                size = font_size or max(round(sum(self.im.size) / 2 * 0.035), 12)
+                self.font = ImageFont.truetype(str(font), size)
+            except Exception:
+                self.font = ImageFont.load_default()
         else:  # use cv2
             self.im = im
         self.lw = line_width or max(round(sum(im.shape) / 2 * 0.003), 2)  # line width
 
     def box_label(self, box, label='', color=(128, 128, 128), txt_color=(255, 255, 255)):
         # Add one xyxy box to image with label
+        if isinstance(box, torch.Tensor):
+            box = box.tolist()
         if self.pil or not is_ascii(label):
             self.draw.rectangle(box, width=self.lw, outline=color)  # box
             if label:
-                w, h = self.font.getsize(label)  # text width, height (WARNING: deprecated) in 9.2.0
-                # _, _, w, h = self.font.getbbox(label)  # text width, height (New)
+                if self.pil_9_2_0_check:
+                    _, _, w, h = self.font.getbbox(label)  # text width, height (New)
+                else:
+                    w, h = self.font.getsize(label)  # text width, height (Old, deprecated in 9.2.0)
                 outside = box[1] - h >= 0  # label fits outside box
                 self.draw.rectangle(
                     (box[0], box[1] - h if outside else box[1], box[0] + w + 1,
@@ -100,7 +113,9 @@ class Annotator:
             self.im = np.asarray(self.im).copy()
         if len(masks) == 0:
             self.im[:] = im_gpu.permute(1, 2, 0).contiguous().cpu().numpy() * 255
-        colors = torch.tensor(colors, device=im_gpu.device, dtype=torch.float32) / 255.0
+        if im_gpu.device != masks.device:
+            im_gpu = im_gpu.to(masks.device)
+        colors = torch.tensor(colors, device=masks.device, dtype=torch.float32) / 255.0
         colors = colors[:, None, None]  # shape(n,1,1,3)
         masks = masks.unsqueeze(3)  # shape(n,h,w,1)
         masks_color = masks * (colors * alpha)  # shape(n,h,w,3)
@@ -127,7 +142,11 @@ class Annotator:
         if anchor == 'bottom':  # start y from font bottom
             w, h = self.font.getsize(text)  # text width, height
             xy[1] += 1 - h
-        self.draw.text(xy, text, fill=txt_color, font=self.font)
+        if self.pil:
+            self.draw.text(xy, text, fill=txt_color, font=self.font)
+        else:
+            tf = max(self.lw - 1, 1)  # font thickness
+            cv2.putText(self.im, text, xy, 0, self.lw / 3, txt_color, thickness=tf, lineType=cv2.LINE_AA)
 
     def fromarray(self, im):
         # Update self.im from a numpy array
@@ -139,26 +158,57 @@ class Annotator:
         return np.asarray(self.im)
 
 
-def check_pil_font(font=FONT, size=10):
-    # Return a PIL TrueType Font, downloading to CONFIG_DIR if necessary
-    font = Path(font)
-    font = font if font.exists() else (USER_CONFIG_DIR / font.name)
-    try:
-        return ImageFont.truetype(str(font) if font.exists() else font.name, size)
-    except Exception:  # download if missing
-        try:
-            check_font(font)
-            return ImageFont.truetype(str(font), size)
-        except TypeError:
-            check_requirements('Pillow>=8.4.0')  # known issue https://github.com/ultralytics/yolov5/issues/5374
-        except URLError:  # not online
-            return ImageFont.load_default()
+@TryExcept()  # known issue https://github.com/ultralytics/yolov5/issues/5395
+def plot_labels(boxes, cls, names=(), save_dir=Path('')):
+    import seaborn as sn
+
+    # plot dataset labels
+    LOGGER.info(f"Plotting labels to {save_dir / 'labels.jpg'}... ")
+    b = boxes.transpose()  # classes, boxes
+    nc = int(cls.max() + 1)  # number of classes
+    x = pd.DataFrame(b.transpose(), columns=['x', 'y', 'width', 'height'])
+
+    # seaborn correlogram
+    sn.pairplot(x, corner=True, diag_kind='auto', kind='hist', diag_kws=dict(bins=50), plot_kws=dict(pmax=0.9))
+    plt.savefig(save_dir / 'labels_correlogram.jpg', dpi=200)
+    plt.close()
+
+    # matplotlib labels
+    matplotlib.use('svg')  # faster
+    ax = plt.subplots(2, 2, figsize=(8, 8), tight_layout=True)[1].ravel()
+    y = ax[0].hist(cls, bins=np.linspace(0, nc, nc + 1) - 0.5, rwidth=0.8)
+    with contextlib.suppress(Exception):  # color histogram bars by class
+        [y[2].patches[i].set_color([x / 255 for x in colors(i)]) for i in range(nc)]  # known issue #3195
+    ax[0].set_ylabel('instances')
+    if 0 < len(names) < 30:
+        ax[0].set_xticks(range(len(names)))
+        ax[0].set_xticklabels(list(names.values()), rotation=90, fontsize=10)
+    else:
+        ax[0].set_xlabel('classes')
+    sn.histplot(x, x='x', y='y', ax=ax[2], bins=50, pmax=0.9)
+    sn.histplot(x, x='width', y='height', ax=ax[3], bins=50, pmax=0.9)
+
+    # rectangles
+    boxes[:, 0:2] = 0.5  # center
+    boxes = xywh2xyxy(boxes) * 2000
+    img = Image.fromarray(np.ones((2000, 2000, 3), dtype=np.uint8) * 255)
+    for cls, box in zip(cls[:1000], boxes[:1000]):
+        ImageDraw.Draw(img).rectangle(box, width=1, outline=colors(cls))  # plot
+    ax[1].imshow(img)
+    ax[1].axis('off')
+
+    for a in [0, 1, 2, 3]:
+        for s in ['top', 'right', 'left', 'bottom']:
+            ax[a].spines[s].set_visible(False)
+
+    plt.savefig(save_dir / 'labels.jpg', dpi=200)
+    matplotlib.use('Agg')
+    plt.close()
 
 
 def save_one_box(xyxy, im, file=Path('im.jpg'), gain=1.02, pad=10, square=False, BGR=False, save=True):
     # Save image crop as {file} with crop size multiple {gain} and {pad} pixels. Save and/or return crop
-    xyxy = torch.tensor(xyxy).view(-1, 4)
-    b = xyxy2xywh(xyxy)  # boxes
+    b = xyxy2xywh(xyxy.view(-1, 4))  # boxes
     if square:
         b[:, 2:] = b[:, 2:].max(1)[0].unsqueeze(1)  # attempt rectangle to square
     b[:, 2:] = b[:, 2:] * gain + pad  # box wh * gain + pad
@@ -252,14 +302,14 @@ def plot_images(images,
 
             # Plot masks
             if len(masks):
-                if masks.max() > 1.0:  # mean that masks are overlap
+                if idx.shape[0] == masks.shape[0]:  # overlap_masks=False
+                    image_masks = masks[idx]
+                else:  # overlap_masks=True
                     image_masks = masks[[i]]  # (1, 640, 640)
                     nl = idx.sum()
                     index = np.arange(nl).reshape(nl, 1, 1) + 1
                     image_masks = np.repeat(image_masks, nl, axis=0)
                     image_masks = np.where(image_masks == index, 1.0, 0.0)
-                else:
-                    image_masks = masks[idx]
 
                 im = np.asarray(annotator.im).copy()
                 for j, box in enumerate(boxes.T.tolist()):
@@ -303,7 +353,7 @@ def plot_results(file='path/to/results.csv', dir='', segment=False):
                 # if j in [8, 9, 10]:  # share train and val loss y axes
                 #     ax[i].get_shared_y_axes().join(ax[i], ax[i - 5])
         except Exception as e:
-            print(f'Warning: Plotting error for {f}: {e}')
+            LOGGER.warning(f'WARNING: Plotting error for {f}: {e}')
     ax[1].legend()
     fig.savefig(save_dir / 'results.png', dpi=200)
     plt.close()

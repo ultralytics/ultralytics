@@ -202,7 +202,11 @@ class BaseTrainer:
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
         self.set_model_attributes()
+        # Backup default_callbacks before checking AMP since they are reset by check_amp
+        callbacks_backup = callbacks.default_callbacks.copy()
         self.amp = check_amp(self.model)
+        # Restore default_callbacks
+        callbacks.default_callbacks = callbacks_backup
         self.scaler = amp.GradScaler(enabled=self.amp)
         if world_size > 1:
             self.model = DDP(self.model, device_ids=[rank])

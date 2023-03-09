@@ -63,8 +63,16 @@ CFG_BOOL_KEYS = ('save', 'exist_ok', 'pretrained', 'verbose', 'deterministic', '
 # Define valid tasks and modes
 MODES = 'train', 'val', 'predict', 'export', 'track', 'benchmark'
 TASKS = 'detect', 'segment', 'classify', 'pose'
-TASK2DATA = {'detect': 'coco128.yaml', 'segment': 'coco128-seg.yaml', 'pose': 'coco128-kpt.yaml', 'classify': 'imagenet100'}
-TASK2MODEL = {'detect': 'yolov8n.pt', 'segment': 'yolov8n-seg.pt', 'pose': 'yolov8n-pose.yaml', 'classify': 'yolov8n-cls.pt'} # temp
+TASK2DATA = {
+    'detect': 'coco128.yaml',
+    'segment': 'coco128-seg.yaml',
+    'pose': 'coco128-kpt.yaml',
+    'classify': 'imagenet100'}
+TASK2MODEL = {
+    'detect': 'yolov8n.pt',
+    'segment': 'yolov8n-seg.pt',
+    'pose': 'yolov8n-pose.yaml',
+    'classify': 'yolov8n-cls.pt'}  # temp
 
 
 def cfg2dict(cfg):

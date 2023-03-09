@@ -254,6 +254,7 @@ class YOLO:
 
         validator = TASK_MAP[self.task][2](args=args)
         validator(model=self.model)
+        validator.metrics.confusion_matrix = validator.confusion_matrix
         self.metrics = validator.metrics
 
         return validator.metrics

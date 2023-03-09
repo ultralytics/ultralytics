@@ -26,7 +26,7 @@ TASK_MAP = {
         SegmentationModel, yolo.v8.segment.SegmentationTrainer, yolo.v8.segment.SegmentationValidator,
         yolo.v8.segment.SegmentationPredictor],
     'pose': [PoseModel, yolo.v8.pose.PoseTrainer, yolo.v8.pose.PoseValidator,
-             yolo.v8.pose.PosePredictor]  # temp untill keypoint modes are not  implemented
+             yolo.v8.pose.PosePredictor]
 }
 
 

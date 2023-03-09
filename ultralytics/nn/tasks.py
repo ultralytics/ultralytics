@@ -443,7 +443,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
     # Parse a YOLO model.yaml dictionary
     if verbose:
         LOGGER.info(f"\n{'':>3}{'from':>20}{'n':>3}{'params':>10}  {'module':<45}{'arguments':<30}")
-    nc, gd, gw, act, nkpt = d['nc'], d['depth_multiple'], d['width_multiple'], d.get('activation'), d.get('nkpt')
+    nc, gd, gw, act = d['nc'], d['depth_multiple'], d['width_multiple'], d.get('activation')
     if act:
         Conv.default_act = eval(act)  # redefine default activation, i.e. Conv.default_act = nn.SiLU()
         if verbose:
@@ -533,8 +533,6 @@ def guess_model_task(model):
         for x in 'model.yaml', 'model.model.yaml', 'model.model.model.yaml':
             with contextlib.suppress(Exception):
                 return cfg2task(eval(x))
-        if m in ['pose']:
-            return 'pose'
 
         for m in model.modules():
             if isinstance(m, Detect):

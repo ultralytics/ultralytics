@@ -7,12 +7,12 @@ import torch.nn as nn
 from ultralytics.nn.tasks import PoseModel
 from ultralytics.yolo import v8
 from ultralytics.yolo.utils import DEFAULT_CFG
-from ultralytics.yolo.utils.loss import KeypointLoss
 from ultralytics.yolo.utils.ops import xyxy2xywh
 from ultralytics.yolo.utils.plotting import plot_images, plot_results
 from ultralytics.yolo.utils.tal import make_anchors
 from ultralytics.yolo.utils.torch_utils import de_parallel
 from ultralytics.yolo.v8.detect.train import Loss
+from ultralytics.yolo.utils.loss import KeypointLoss
 
 
 # BaseTrainer python usage
@@ -33,7 +33,9 @@ class PoseTrainer(v8.detect.DetectionTrainer):
 
     def get_validator(self):
         self.loss_names = 'box_loss', 'pose_loss', 'kobj_loss', 'cls_loss', 'dfl_loss'
-        return v8.pose.PoseValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
+        return v8.segment.SegmentationValidator(self.test_loader,
+                                                save_dir=self.save_dir,
+                                                args=copy(self.args))
 
     def criterion(self, preds, batch):
         if not hasattr(self, 'compute_loss'):
@@ -42,21 +44,15 @@ class PoseTrainer(v8.detect.DetectionTrainer):
 
     def plot_training_samples(self, batch, ni):
         images = batch['img']
-        kpts = batch['keypoints']
+        masks = batch['masks']
         cls = batch['cls'].squeeze(-1)
         bboxes = batch['bboxes']
         paths = batch['im_file']
         batch_idx = batch['batch_idx']
-        plot_images(images,
-                    batch_idx,
-                    cls,
-                    bboxes,
-                    kpts=kpts,
-                    paths=paths,
-                    fname=self.save_dir / f'train_batch{ni}.jpg')
+        plot_images(images, batch_idx, cls, bboxes, masks, paths=paths, fname=self.save_dir / f'train_batch{ni}.jpg')
 
     def plot_metrics(self):
-        plot_results(file=self.csv, pose=True)  # save results.png
+        plot_results(file=self.csv, segment=True)  # save results.png
 
 
 # Criterion class for computing training losses
@@ -69,8 +65,8 @@ class PoseLoss(Loss):
         self.keypoint_loss = KeypointLoss(device=self.device, nkpt=self.nkpt)
 
     def __call__(self, preds, batch):
-        loss = torch.zeros(5, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility
-        feats, pred_kpts = preds if isinstance(preds[0], list) else preds[1]
+        loss = torch.zeros(6, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility
+        feats, pred_kpts = preds if len(preds) == 2 else preds[1]
         pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
             (self.reg_max * 4, self.nc), 1)
 
@@ -93,7 +89,6 @@ class PoseLoss(Loss):
 
         # pboxes
         pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
-        # pred_kpts = self.kpts_decode(anchor_points, pred_kpts)  # (b, h*w, 51)
 
         _, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
             pred_scores.detach().sigmoid(), (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),
@@ -107,26 +102,21 @@ class PoseLoss(Loss):
 
         # bbox loss
         if fg_mask.sum():
-            target_bboxes /= stride_tensor
-            loss[0], loss[4] = self.bbox_loss(pred_distri, pred_bboxes, anchor_points, target_bboxes, target_scores,
-                                              target_scores_sum, fg_mask)
-            keypoints = batch['keypoints'].to(self.device).float()
-            keypoints[:, 0::3] *= imgsz[1]
-            keypoints[:, 1::3] *= imgsz[0]
+            loss[0], loss[4] = self.bbox_loss(pred_distri, pred_bboxes, anchor_points, target_bboxes / stride_tensor,
+                                              target_scores, target_scores_sum, fg_mask)
+            keypoints = batch['keypoints'].to(self.device).float().view(-1, self.nkpt * 3)
             for i in range(batch_size):
                 if fg_mask[i].sum():
                     idx = target_gt_idx[i][fg_mask[i]]
                     gt_kpt = keypoints[batch_idx.view(-1) == i][idx]  # (n, 51)
-                    gt_kpt[:, 0::3] /= stride_tensor[fg_mask[i]]
-                    gt_kpt[:, 1::3] /= stride_tensor[fg_mask[i]]
-                    xywh = xyxy2xywh(target_bboxes[i][fg_mask[i]])
-                    area = xywh[:, 2:].prod(1, keepdim=True)
-                    # pred_kpt = pred_kpts[i][fg_mask[i]]
-                    pred_kpt = self.kpts_decode(anchor_points[fg_mask[i]], pred_kpts[i][fg_mask[i]], xywh)
+                    xyxyn = target_bboxes[i][fg_mask[i]] / imgsz[[1, 0, 1, 0]]
+                    area = xyxy2xywh(xyxyn)[:, 2:].prod(1, keepdim=True)
+                    pred_kpt = self.decode_kpts(pred_kpts[i][fg_mask[i]])
                     kpt_mask = gt_kpt[:, 2::3] != 0
                     loss[1] += self.keypoint_loss(pred_kpt, gt_kpt, kpt_mask, area)
                     # kpt_score loss
-                    loss[2] += self.bce_pose(pred_kpt[:, 2::3], kpt_mask.float())
+                    loss[2] += self.bce_pose(pred_kpt[:, 3::3], gt_kpt[:, 3::3])
+
 
         # WARNING: Uncomment lines below in case of Multi-GPU DDP unused gradient errors
         #         else:
@@ -142,25 +132,17 @@ class PoseLoss(Loss):
 
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
 
-    def kpts_decode(self, anchor_points, pred_kpts, bbox):
+    def decode_kpts(self, pred_kpts):
         # TODO
-        y = pred_kpts.clone()
-        y[..., 0::3] *= 2
-        y[..., 1::3] *= 2
-        y[..., 0::3] += anchor_points[:, [0]] - 0.5
-        y[..., 1::3] += anchor_points[:, [1]] - 0.5
-        # y[:, 0::3] = (y[:, 0::3].sigmoid() - 0.5) * bbox[:, [2]] + anchor_points[:, [0]]
-        # y[:, 1::3] = (y[:, 1::3].sigmoid() - 0.5) * bbox[:, [3]] + anchor_points[:, [1]]
-        # y[:, 0::3] = (y[:, 0::3].sigmoid() - 0.5) * bbox[:, [2]] + bbox[:, [0]]
-        # y[:, 1::3] = (y[:, 1::3].sigmoid() - 0.5) * bbox[:, [3]] + bbox[:, [1]]
-        return y
+        return pred_kpts
+
 
 
 def train(cfg=DEFAULT_CFG, use_python=False):
-    model = cfg.model or 'yolov8n-kpt.yaml'
-    data = cfg.data or 'coco128-kpt.yaml'  # or yolo.ClassificationDataset("mnist")
+    model = cfg.model or "yolov8n-pose.yaml"
+    data = cfg.data or "coco128-kpt.yaml"  # or yolo.ClassificationDataset("mnist")
     device = cfg.device if cfg.device is not None else ''
-    cfg.batch = 1  # Temp
+    cfg.batch = 1 # Temp
     args = dict(model=model, data=data, device=device)
     if use_python:
         from ultralytics import YOLO

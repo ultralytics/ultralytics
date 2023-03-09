@@ -69,7 +69,7 @@ from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages
 from ultralytics.yolo.data.utils import IMAGENET_MEAN, IMAGENET_STD, check_det_dataset
 from ultralytics.yolo.utils import (DEFAULT_CFG, LINUX, LOGGER, MACOS, __version__, callbacks, colorstr,
                                     get_default_args, yaml_save)
-from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version, check_yaml
+from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version
 from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.ops import Profile
 from ultralytics.yolo.utils.torch_utils import get_latest_opset, select_device, smart_inference_mode
@@ -574,7 +574,7 @@ class Exporter:
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
         saved_model = Path(str(self.file).replace(self.file.suffix, '_saved_model'))
         if self.args.int8:
-            f = saved_model / (self.file.stem + 'yolov8n_integer_quant.tflite')  # fp32 in/out
+            f = saved_model / (self.file.stem + '_integer_quant.tflite')  # fp32 in/out
         elif self.args.half:
             f = saved_model / (self.file.stem + '_float16.tflite')
         else:
@@ -601,7 +601,7 @@ class Exporter:
                     if n >= n_images:
                         break
 
-            dataset = LoadImages(check_det_dataset(check_yaml(self.args.data))['train'], imgsz=imgsz, auto=False)
+            dataset = LoadImages(check_det_dataset(self.args.data)['train'], imgsz=imgsz, auto=False)
             converter.representative_dataset = lambda: representative_dataset_gen(dataset, n_images=100)
             converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
             converter.target_spec.supported_types = []
@@ -862,18 +862,6 @@ class Exporter:
 def export(cfg=DEFAULT_CFG):
     cfg.model = cfg.model or 'yolov8n.yaml'
     cfg.format = cfg.format or 'torchscript'
-
-    # exporter = Exporter(cfg)
-    #
-    # model = None
-    # if isinstance(cfg.model, (str, Path)):
-    #     if Path(cfg.model).suffix == '.yaml':
-    #         model = DetectionModel(cfg.model)
-    #     elif Path(cfg.model).suffix == '.pt':
-    #         model = attempt_load_weights(cfg.model, fuse=True)
-    #     else:
-    #         TypeError(f'Unsupported model type {cfg.model}')
-    # exporter(model=model)
 
     from ultralytics import YOLO
     model = YOLO(cfg.model)

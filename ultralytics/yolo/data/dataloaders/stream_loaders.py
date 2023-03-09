@@ -26,6 +26,7 @@ class SourceTypes:
     webcam: bool = False
     screenshot: bool = False
     from_img: bool = False
+    tensor: bool = False
 
 
 class LoadStreams:
@@ -327,6 +328,23 @@ class LoadPilAndNumpy:
     def __iter__(self):
         self.count = 0
         return self
+
+
+class LoadTensor:
+
+    def __init__(self, imgs) -> None:
+        self.im0 = imgs
+        self.bs = imgs.shape[0]
+
+    def __iter__(self):
+        self.count = 0
+        return self
+
+    def __next__(self):
+        if self.count == 1:
+            raise StopIteration
+        self.count += 1
+        return None, self.im0, self.im0, None, ''  # self.paths, im, self.im0, None, ''
 
 
 def autocast_list(source):

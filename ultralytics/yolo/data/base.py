@@ -35,7 +35,8 @@ class BaseDataset(Dataset):
                  batch_size=None,
                  stride=32,
                  pad=0.5,
-                 single_cls=False):
+                 single_cls=False,
+                 classes=None):
         super().__init__()
         self.img_path = img_path
         self.imgsz = imgsz
@@ -45,8 +46,7 @@ class BaseDataset(Dataset):
 
         self.im_files = self.get_img_files(self.img_path)
         self.labels = self.get_labels()
-        if self.single_cls:
-            self.update_labels(include_class=[])
+        self.update_labels(include_class=classes)  # single_cls and include_class
 
         self.ni = len(self.labels)
 
@@ -96,7 +96,7 @@ class BaseDataset(Dataset):
         """include_class, filter labels to include only these classes (optional)"""
         include_class_array = np.array(include_class).reshape(1, -1)
         for i in range(len(self.labels)):
-            if include_class:
+            if include_class is not None:
                 cls = self.labels[i]['cls']
                 bboxes = self.labels[i]['bboxes']
                 segments = self.labels[i]['segments']
@@ -104,7 +104,7 @@ class BaseDataset(Dataset):
                 self.labels[i]['cls'] = cls[j]
                 self.labels[i]['bboxes'] = bboxes[j]
                 if segments:
-                    self.labels[i]['segments'] = segments[j]
+                    self.labels[i]['segments'] = [segments[si] for si, idx in enumerate(j) if idx]
             if self.single_cls:
                 self.labels[i]['cls'][:, 0] = 0
 

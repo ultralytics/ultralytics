@@ -112,6 +112,7 @@ def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None):
     clip_boxes(boxes, img0_shape)
     return boxes
 
+
 def scale_kpts(img1_shape, kpts, img0_shape, ratio_pad=None, step=3):
     """
     Rescales bounding boxes (in the format of xyxy) from the shape of the image they were originally specified in
@@ -140,6 +141,7 @@ def scale_kpts(img1_shape, kpts, img0_shape, ratio_pad=None, step=3):
     kpts[:, 1::step] /= gain
     clip_kpts(kpts, img0_shape, step=step)
     return kpts
+
 
 def make_divisible(x, divisor):
     """

@@ -1,14 +1,17 @@
-from ultralytics.yolo.v8.detect import DetectionValidator
-from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, ops
-from ultralytics.yolo.utils.metrics import PoseMetrics, box_iou, kpt_iou
-from ultralytics.yolo.utils.checks import check_requirements
-from ultralytics.yolo.utils.plotting import output_to_target, plot_images
 from pathlib import Path
-import torch
+
 import numpy as np
+import torch
+
+from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, ops
+from ultralytics.yolo.utils.checks import check_requirements
+from ultralytics.yolo.utils.metrics import PoseMetrics, box_iou, kpt_iou
+from ultralytics.yolo.utils.plotting import output_to_target, plot_images
+from ultralytics.yolo.v8.detect import DetectionValidator
 
 
 class PoseValidator(DetectionValidator):
+
     def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None):
         super().__init__(dataloader, save_dir, pbar, args)
         self.args.task = 'pose'
@@ -184,7 +187,6 @@ class PoseValidator(DetectionValidator):
         return stats
 
 
-
 def val(cfg=DEFAULT_CFG, use_python=False):
     model = cfg.model or 'yolov8n-pose.pt'
     data = cfg.data or 'coco128-pose.yaml'
@@ -200,4 +202,3 @@ def val(cfg=DEFAULT_CFG, use_python=False):
 
 if __name__ == '__main__':
     val()
-

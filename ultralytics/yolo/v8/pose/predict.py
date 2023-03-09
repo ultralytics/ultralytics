@@ -24,7 +24,12 @@ class PosePredictor(DetectionPredictor):
             pred[:, 6:] = ops.scale_kpts(img.shape[2:], pred[:, 6:], shape)
             path, _, _, _, _ = self.batch
             img_path = path[i] if isinstance(path, list) else path
-            results.append(Results(orig_img=orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], keypoints=pred[:, 6:]))
+            results.append(
+                Results(orig_img=orig_img,
+                        path=img_path,
+                        names=self.model.names,
+                        boxes=pred[:, :6],
+                        keypoints=pred[:, 6:]))
         return results
 
     def write_results(self, idx, results, batch):
@@ -92,4 +97,3 @@ def predict(cfg=DEFAULT_CFG, use_python=False):
 
 if __name__ == '__main__':
     predict()
-

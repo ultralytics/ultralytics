@@ -478,18 +478,21 @@ class Segment(Detect):
 
 
 class Pose(Detect):
+
     def __init__(self, nc=80, nkpt=17, ch=()):
         super().__init__(nc, ch)
         self.nkpt = nkpt  # number of keypoints
         self.no_kpt = self.nkpt * 3  # xy, cls(kpt)
         self.detect = Detect.forward
 
-        c4 = max(ch[0] // 4, 32)   # NOTE: wanted to set c4 = max(ch[0] // 4, self.no_kpt) but `no_kpt` is an odd number  
-        self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.no_kpt, 1)) for x in ch)
+        c4 = max(ch[0] // 4, 32)  # NOTE: wanted to set c4 = max(ch[0] // 4, self.no_kpt) but `no_kpt` is an odd number
+        self.cv4 = nn.ModuleList(
+            nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.no_kpt, 1)) for x in ch)
 
     def forward(self, x):
         bs = x[0].shape[0]  # batch size
-        kpt = torch.cat([self.cv4[i](x[i]).view(bs, self.no_kpt, -1) for i in range(self.nl)], 2)  # keypoints, (bs, 17*3, h*w)
+        kpt = torch.cat([self.cv4[i](x[i]).view(bs, self.no_kpt, -1) for i in range(self.nl)],
+                        2)  # keypoints, (bs, 17*3, h*w)
         x = self.detect(self, x)
         if self.training:
             return x, kpt

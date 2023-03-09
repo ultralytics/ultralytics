@@ -7,12 +7,12 @@ import torch.nn as nn
 from ultralytics.nn.tasks import PoseModel
 from ultralytics.yolo import v8
 from ultralytics.yolo.utils import DEFAULT_CFG
+from ultralytics.yolo.utils.loss import KeypointLoss
 from ultralytics.yolo.utils.ops import xyxy2xywh
 from ultralytics.yolo.utils.plotting import plot_images, plot_results
 from ultralytics.yolo.utils.tal import make_anchors
 from ultralytics.yolo.utils.torch_utils import de_parallel
 from ultralytics.yolo.v8.detect.train import Loss
-from ultralytics.yolo.utils.loss import KeypointLoss
 
 
 # BaseTrainer python usage
@@ -33,9 +33,7 @@ class PoseTrainer(v8.detect.DetectionTrainer):
 
     def get_validator(self):
         self.loss_names = 'box_loss', 'pose_loss', 'kobj_loss', 'cls_loss', 'dfl_loss'
-        return v8.pose.PoseValidator(self.test_loader,
-                                     save_dir=self.save_dir,
-                                     args=copy(self.args))
+        return v8.pose.PoseValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
 
     def criterion(self, preds, batch):
         if not hasattr(self, 'compute_loss'):
@@ -49,7 +47,13 @@ class PoseTrainer(v8.detect.DetectionTrainer):
         bboxes = batch['bboxes']
         paths = batch['im_file']
         batch_idx = batch['batch_idx']
-        plot_images(images, batch_idx, cls, bboxes, kpts=kpts, paths=paths, fname=self.save_dir / f'train_batch{ni}.jpg')
+        plot_images(images,
+                    batch_idx,
+                    cls,
+                    bboxes,
+                    kpts=kpts,
+                    paths=paths,
+                    fname=self.save_dir / f'train_batch{ni}.jpg')
 
     def plot_metrics(self):
         plot_results(file=self.csv, pose=True)  # save results.png
@@ -104,8 +108,8 @@ class PoseLoss(Loss):
         # bbox loss
         if fg_mask.sum():
             target_bboxes /= stride_tensor
-            loss[0], loss[4] = self.bbox_loss(pred_distri, pred_bboxes, anchor_points, target_bboxes,
-                                              target_scores, target_scores_sum, fg_mask)
+            loss[0], loss[4] = self.bbox_loss(pred_distri, pred_bboxes, anchor_points, target_bboxes, target_scores,
+                                              target_scores_sum, fg_mask)
             keypoints = batch['keypoints'].to(self.device).float()
             keypoints[:, 0::3] *= imgsz[1]
             keypoints[:, 1::3] *= imgsz[0]
@@ -152,12 +156,11 @@ class PoseLoss(Loss):
         return y
 
 
-
 def train(cfg=DEFAULT_CFG, use_python=False):
-    model = cfg.model or "yolov8n-kpt.yaml"
-    data = cfg.data or "coco128-kpt.yaml"  # or yolo.ClassificationDataset("mnist")
+    model = cfg.model or 'yolov8n-kpt.yaml'
+    data = cfg.data or 'coco128-kpt.yaml'  # or yolo.ClassificationDataset("mnist")
     device = cfg.device if cfg.device is not None else ''
-    cfg.batch = 1 # Temp
+    cfg.batch = 1  # Temp
     args = dict(model=model, data=data, device=device)
     if use_python:
         from ultralytics import YOLO

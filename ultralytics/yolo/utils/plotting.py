@@ -31,13 +31,11 @@ class Colors:
                 '2C99A8', '00C2FF', '344593', '6473FF', '0018EC', '8438FF', '520085', 'CB38FF', 'FF95C8', 'FF37C7')
         self.palette = [self.hex2rgb(f'#{c}') for c in hexs]
         self.n = len(self.palette)
-        self.pose_palette = np.array([[255, 128, 0], [255, 153, 51], [255, 178, 102],
-                                     [230, 230, 0], [255, 153, 255], [153, 204, 255],
-                                     [255, 102, 255], [255, 51, 255], [102, 178, 255],
-                                     [51, 153, 255], [255, 153, 153], [255, 102, 102],
-                                     [255, 51, 51], [153, 255, 153], [102, 255, 102],
-                                     [51, 255, 51], [0, 255, 0], [0, 0, 255], [255, 0, 0],
-                                     [255, 255, 255]], dtype=np.uint8)
+        self.pose_palette = np.array([[255, 128, 0], [255, 153, 51], [255, 178, 102], [230, 230, 0], [255, 153, 255],
+                                      [153, 204, 255], [255, 102, 255], [255, 51, 255], [102, 178, 255], [51, 153, 255],
+                                      [255, 153, 153], [255, 102, 102], [255, 51, 51], [153, 255, 153], [102, 255, 102],
+                                      [51, 255, 51], [0, 255, 0], [0, 0, 255], [255, 0, 0], [255, 255, 255]],
+                                     dtype=np.uint8)
 
     def __call__(self, i, bgr=False):
         c = self.palette[int(i) % self.n]
@@ -71,9 +69,8 @@ class Annotator:
             self.im = im
         self.lw = line_width or max(round(sum(im.shape) / 2 * 0.003), 2)  # line width
         # pose
-        self.skeleton = [[16, 14], [14, 12], [17, 15], [15, 13], [12, 13], [6, 12],
-                        [7, 13], [6, 7], [6, 8], [7, 9], [8, 10], [9, 11], [2, 3],
-                        [1, 2], [1, 3], [2, 4], [3, 5], [4, 6], [5, 7]]
+        self.skeleton = [[16, 14], [14, 12], [17, 15], [15, 13], [12, 13], [6, 12], [7, 13], [6, 7], [6, 8], [7, 9],
+                         [8, 10], [9, 11], [2, 3], [1, 2], [1, 3], [2, 4], [3, 5], [4, 6], [5, 7]]
 
         self.limb_color = colors.pose_palette[[9, 9, 9, 9, 7, 7, 7, 0, 0, 0, 0, 0, 16, 16, 16, 16, 16, 16, 16]]
         self.kpt_color = colors.pose_palette[[16, 16, 16, 16, 16, 0, 0, 0, 0, 0, 0, 9, 9, 9, 9, 9, 9]]
@@ -359,7 +356,8 @@ def plot_images(images,
             if len(kpts):
                 kpts_ = kpts[idx].copy()
                 if len(kpts_):
-                    if kpts_[:, 0::3].max() <= 1.01 or kpts_[:, 1::3].max() <= 1.01:  # if normalized with tolerance 0.01
+                    if kpts_[:, 0::3].max() <= 1.01 or kpts_[:,
+                                                             1::3].max() <= 1.01:  # if normalized with tolerance 0.01
                         kpts_[:, 0::3] *= w  # scale to pixels
                         kpts_[:, 1::3] *= h
                     elif scale < 1:  # absolute coords need scale if image scales

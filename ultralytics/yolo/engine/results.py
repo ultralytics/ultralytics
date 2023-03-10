@@ -108,7 +108,14 @@ class Results:
         name = self.__class__.__name__
         raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
-    def plot(self, show_conf=True, line_width=None, font_size=None, font='Arial.ttf', pil=False, example='abc', kpt_line=True):
+    def plot(self,
+             show_conf=True,
+             line_width=None,
+             font_size=None,
+             font='Arial.ttf',
+             pil=False,
+             example='abc',
+             kpt_line=True):
         """
         Plots the detection results on an input RGB image. Accepts a numpy array (cv2) or a PIL Image.
 

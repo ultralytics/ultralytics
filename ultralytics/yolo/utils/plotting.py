@@ -143,7 +143,7 @@ class Annotator:
             # convert im back to PIL and update draw
             self.fromarray(self.im)
 
-    def kpts(self, kpts, shape=(640, 640), steps=3, radius=5):
+    def kpts(self, kpts, shape=(640, 640), steps=3, radius=5, kpt_line=True):
         """Plot keypoints.
         Args:
             kpts (tensor): predicted kpts, shape: [51]
@@ -176,7 +176,8 @@ class Annotator:
                 continue
             if pos2[0] % shape[1] == 0 or pos2[1] % shape[0] == 0 or pos2[0] < 0 or pos2[1] < 0:
                 continue
-            cv2.line(self.im, pos1, pos2, [int(x) for x in self.limb_color[sk_id]], thickness=2)
+            if kpt_line:
+                cv2.line(self.im, pos1, pos2, [int(x) for x in self.limb_color[sk_id]], thickness=2)
         if self.pil:
             # convert im back to PIL and update draw
             self.fromarray(self.im)

@@ -108,7 +108,7 @@ class Results:
         name = self.__class__.__name__
         raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
-    def plot(self, show_conf=True, line_width=None, font_size=None, font='Arial.ttf', pil=False, example='abc'):
+    def plot(self, show_conf=True, line_width=None, font_size=None, font='Arial.ttf', pil=False, example='abc', kpt_line=True):
         """
         Plots the detection results on an input RGB image. Accepts a numpy array (cv2) or a PIL Image.
 
@@ -119,6 +119,7 @@ class Results:
             font (str): The font to use for the text.
             pil (bool): Whether to return the image as a PIL Image.
             example (str): An example string to display. Useful for indicating the expected format of the output.
+            kpt_line (bool): Whether to draw lines connecting keypoints
 
         Returns:
             (None) or (PIL.Image): If `pil` is True, a PIL Image is returned. Otherwise, nothing is returned.
@@ -128,6 +129,7 @@ class Results:
         masks = self.masks
         logits = self.probs
         names = self.names
+        keypoints = self.keypoints
         if boxes is not None:
             for d in reversed(boxes):
                 cls, conf = d.cls.squeeze(), d.conf.squeeze()
@@ -145,6 +147,10 @@ class Results:
             top5i = logits.argsort(0, descending=True)[:n5].tolist()  # top 5 indices
             text = f"{', '.join(f'{names[j] if names else j} {logits[j]:.2f}' for j in top5i)}, "
             annotator.text((32, 32), text, txt_color=(255, 255, 255))  # TODO: allow setting colors
+
+        if keypoints is not None:
+            for k in reversed(keypoints):
+                annotator.kpts(k, self.orig_shape, kpt_line=kpt_line)
 
         return np.asarray(annotator.im) if annotator.pil else annotator.im
 

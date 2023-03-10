@@ -51,7 +51,6 @@ class Results:
         self.path = path
         self._keys = (k for k in ('boxes', 'masks', 'probs', 'keypoints') if getattr(self, k) is not None)
 
-
     def pandas(self):
         pass
         # TODO masks.pandas + boxes.pandas + cls.pandas

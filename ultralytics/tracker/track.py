@@ -3,7 +3,9 @@
 import torch
 
 from ultralytics.yolo.utils import IterableSimpleNamespace, yaml_load
-from ultralytics.yolo.utils.checks import check_yaml
+from ultralytics.yolo.utils.checks import check_requirements, check_yaml
+
+check_requirements('lap')  # for linear_assignment
 
 from .trackers import BOTSORT, BYTETracker
 

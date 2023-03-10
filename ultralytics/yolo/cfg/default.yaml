@@ -17,7 +17,7 @@ cache: False  # True/ram, disk or False. Use cache for data loading
 device:  # device to run on, i.e. cuda device=0 or device=0,1,2,3 or device=cpu
 workers: 8  # number of worker threads for data loading (per RANK if DDP)
 project:  # project name
-name:  # experiment name
+name:  # experiment name, results saved to 'project/name' directory
 exist_ok: False  # whether to overwrite existing experiment
 pretrained: False  # whether to use a pretrained model
 optimizer: SGD  # optimizer to use, choices=['SGD', 'Adam', 'AdamW', 'RMSProp']
@@ -30,7 +30,6 @@ rect: False  # support rectangular training if mode='train', support rectangular
 cos_lr: False  # use cosine learning rate scheduler
 close_mosaic: 10  # disable mosaic augmentation for final 10 epochs
 resume: False  # resume training from last checkpoint
-min_memory: False  # minimize memory footprint loss function, choices=[False, True, <roll_out_thr>]
 # Segmentation
 overlap_mask: True  # masks should overlap during training (segment train only)
 mask_ratio: 4  # mask downsample ratio (segment train only)

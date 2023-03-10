@@ -4,6 +4,8 @@
 name: Publish to PyPI and Deploy Docs
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       pypi:
@@ -12,8 +14,6 @@ on:
       docs:
         type: boolean
         description: Deploy Docs
-  push:
-    branches: [main]
 
 jobs:
   publish:
@@ -35,9 +35,9 @@ jobs:
       - name: Check PyPI version
         shell: python
         run: |
+          import os
           import pkg_resources as pkg
           import ultralytics
-          import os
           from ultralytics.yolo.utils.checks import check_latest_pypi_version
 
           v_local = pkg.parse_version(ultralytics.__version__).release
@@ -45,7 +45,7 @@ jobs:
           print(f'Local version is {v_local}')
           print(f'PyPI version is {v_pypi}')
           d = [a - b for a, b in zip(v_local, v_pypi)]  # diff
-          increment = (d[0] == d[1] == 0) and d[2] == 1  # only patch increment by 1
+          increment = (d[0] == d[1] == 0) and d[2] == 1  # only publish if patch version increments by 1
           os.system(f'echo "increment={increment}" >> $GITHUB_OUTPUT')
           if increment:
               print('Local version is higher than PyPI version. Publishing new version to PyPI ✅.')
@@ -64,4 +64,4 @@ jobs:
         run: |
           mkdocs gh-deploy || true
           git checkout gh-pages
-          git push https://github.com/ultralytics/docs gh-pages --force
+          git push https://${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/ultralytics/docs gh-pages --force

@@ -57,16 +57,13 @@ from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
 
-import numpy as np
-import pandas as pd
 import torch
 
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import C2f, Detect, Segment
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel
 from ultralytics.yolo.cfg import get_cfg
-from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages
-from ultralytics.yolo.data.utils import IMAGENET_MEAN, IMAGENET_STD, check_det_dataset
+from ultralytics.yolo.data.utils import IMAGENET_MEAN, IMAGENET_STD
 from ultralytics.yolo.utils import (DEFAULT_CFG, LINUX, LOGGER, MACOS, __version__, callbacks, colorstr,
                                     get_default_args, yaml_save)
 from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version
@@ -79,6 +76,7 @@ ARM64 = platform.machine() in ('arm64', 'aarch64')
 
 def export_formats():
     # YOLOv8 export formats
+    import pandas
     x = [
         ['PyTorch', '-', '.pt', True, True],
         ['TorchScript', 'torchscript', '.torchscript', True, True],
@@ -92,11 +90,7 @@ def export_formats():
         ['TensorFlow Edge TPU', 'edgetpu', '_edgetpu.tflite', True, False],
         ['TensorFlow.js', 'tfjs', '_web_model', True, False],
         ['PaddlePaddle', 'paddle', '_paddle_model', True, True], ]
-    return pd.DataFrame(x, columns=['Format', 'Argument', 'Suffix', 'CPU', 'GPU'])
-
-
-EXPORT_FORMATS_LIST = list(export_formats()['Argument'][1:])
-EXPORT_FORMATS_TABLE = str(export_formats())
+    return pandas.DataFrame(x, columns=['Format', 'Argument', 'Suffix', 'CPU', 'GPU'])
 
 
 def gd_outputs(gd):
@@ -537,7 +531,7 @@ class Exporter:
         # Export to TF
         int8 = '-oiqt -qt per-tensor' if self.args.int8 else ''
         cmd = f'onnx2tf -i {f_onnx} -o {f} -nuo --non_verbose {int8}'
-        LOGGER.info(f'\n{prefix} running {cmd}')
+        LOGGER.info(f"\n{prefix} running '{cmd}'")
         subprocess.run(cmd, shell=True)
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml
 
@@ -574,47 +568,47 @@ class Exporter:
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
         saved_model = Path(str(self.file).replace(self.file.suffix, '_saved_model'))
         if self.args.int8:
-            f = saved_model / (self.file.stem + '_integer_quant.tflite')  # fp32 in/out
+            f = saved_model / f'{self.file.stem}_integer_quant.tflite'  # fp32 in/out
         elif self.args.half:
-            f = saved_model / (self.file.stem + '_float16.tflite')
+            f = saved_model / f'{self.file.stem}_float16.tflite'
         else:
-            f = saved_model / (self.file.stem + '_float32.tflite')
-        return str(f), None  # noqa
+            f = saved_model / f'{self.file.stem}_float32.tflite'
+        return str(f), None
 
-        # OLD VERSION BELOW ---------------------------------------------------------------
-        batch_size, ch, *imgsz = list(self.im.shape)  # BCHW
-        f = str(self.file).replace(self.file.suffix, '-fp16.tflite')
-
-        converter = tf.lite.TFLiteConverter.from_keras_model(keras_model)
-        converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS]
-        converter.target_spec.supported_types = [tf.float16]
-        converter.optimizations = [tf.lite.Optimize.DEFAULT]
-        if self.args.int8:
-
-            def representative_dataset_gen(dataset, n_images=100):
-                # Dataset generator for use with converter.representative_dataset, returns a generator of np arrays
-                for n, (path, img, im0s, vid_cap, string) in enumerate(dataset):
-                    im = np.transpose(img, [1, 2, 0])
-                    im = np.expand_dims(im, axis=0).astype(np.float32)
-                    im /= 255
-                    yield [im]
-                    if n >= n_images:
-                        break
-
-            dataset = LoadImages(check_det_dataset(self.args.data)['train'], imgsz=imgsz, auto=False)
-            converter.representative_dataset = lambda: representative_dataset_gen(dataset, n_images=100)
-            converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
-            converter.target_spec.supported_types = []
-            converter.inference_input_type = tf.uint8  # or tf.int8
-            converter.inference_output_type = tf.uint8  # or tf.int8
-            converter.experimental_new_quantizer = True
-            f = str(self.file).replace(self.file.suffix, '-int8.tflite')
-        if nms or agnostic_nms:
-            converter.target_spec.supported_ops.append(tf.lite.OpsSet.SELECT_TF_OPS)
-
-        tflite_model = converter.convert()
-        open(f, 'wb').write(tflite_model)
-        return f, None
+        # # OLD TFLITE EXPORT CODE BELOW -------------------------------------------------------------------------------
+        # batch_size, ch, *imgsz = list(self.im.shape)  # BCHW
+        # f = str(self.file).replace(self.file.suffix, '-fp16.tflite')
+        #
+        # converter = tf.lite.TFLiteConverter.from_keras_model(keras_model)
+        # converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS]
+        # converter.target_spec.supported_types = [tf.float16]
+        # converter.optimizations = [tf.lite.Optimize.DEFAULT]
+        # if self.args.int8:
+        #
+        #     def representative_dataset_gen(dataset, n_images=100):
+        #         # Dataset generator for use with converter.representative_dataset, returns a generator of np arrays
+        #         for n, (path, img, im0s, vid_cap, string) in enumerate(dataset):
+        #             im = np.transpose(img, [1, 2, 0])
+        #             im = np.expand_dims(im, axis=0).astype(np.float32)
+        #             im /= 255
+        #             yield [im]
+        #             if n >= n_images:
+        #                 break
+        #
+        #     dataset = LoadImages(check_det_dataset(self.args.data)['train'], imgsz=imgsz, auto=False)
+        #     converter.representative_dataset = lambda: representative_dataset_gen(dataset, n_images=100)
+        #     converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
+        #     converter.target_spec.supported_types = []
+        #     converter.inference_input_type = tf.uint8  # or tf.int8
+        #     converter.inference_output_type = tf.uint8  # or tf.int8
+        #     converter.experimental_new_quantizer = True
+        #     f = str(self.file).replace(self.file.suffix, '-int8.tflite')
+        # if nms or agnostic_nms:
+        #     converter.target_spec.supported_ops.append(tf.lite.OpsSet.SELECT_TF_OPS)
+        #
+        # tflite_model = converter.convert()
+        # open(f, 'wb').write(tflite_model)
+        # return f, None
 
     @try_export
     def _export_edgetpu(self, tflite_model='', prefix=colorstr('Edge TPU:')):
@@ -638,6 +632,7 @@ class Exporter:
         f = str(tflite_model).replace('.tflite', '_edgetpu.tflite')  # Edge TPU model
 
         cmd = f'edgetpu_compiler -s -d -k 10 --out_dir {Path(f).parent} {tflite_model}'
+        LOGGER.info(f"{prefix} running '{cmd}'")
         subprocess.run(cmd.split(), check=True)
         self._add_tflite_metadata(f)
         return f, None

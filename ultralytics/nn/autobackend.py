@@ -184,7 +184,7 @@ class AutoBackend(nn.Module):
             LOGGER.info(f'Loading {w} for CoreML inference...')
             import coremltools as ct
             model = ct.models.MLModel(w)
-            metadata = model.user_defined_metadata
+            metadata = dict(model.user_defined_metadata)
         elif saved_model:  # TF SavedModel
             LOGGER.info(f'Loading {w} for TensorFlow SavedModel inference...')
             import tensorflow as tf
@@ -256,10 +256,10 @@ class AutoBackend(nn.Module):
             nhwc = model.runtime.startswith("tensorflow")
             '''
         else:
-            from ultralytics.yolo.engine.exporter import EXPORT_FORMATS_TABLE
+            from ultralytics.yolo.engine.exporter import export_formats
             raise TypeError(f"model='{w}' is not a supported model format. "
                             'See https://docs.ultralytics.com/tasks/detection/#export for help.'
-                            f'\n\n{EXPORT_FORMATS_TABLE}')
+                            f'\n\n{export_formats()}')
 
         # Load external metadata YAML
         if isinstance(metadata, (str, Path)) and Path(metadata).exists():

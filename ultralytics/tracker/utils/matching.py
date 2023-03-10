@@ -36,13 +36,13 @@ def _indices_to_matches(cost_matrix, indices, thresh):
     return matches, unmatched_a, unmatched_b
 
 
-def linear_assignment(cost_matrix, thresh=0.0, use_scipy=False):
-    # Linear assignment function with scipy replacing lap.lapjv
+def linear_assignment(cost_matrix, thresh, use_scipy=False):
+    # Linear assignment implementations with scipy and lap.lapjv
     if cost_matrix.size == 0:
         return np.empty((0, 2), dtype=int), tuple(range(cost_matrix.shape[0])), tuple(range(cost_matrix.shape[1]))
 
     if use_scipy:
-        # Scipy linear sum assignment is NOT working correctly, do not use
+        # Scipy linear sum assignment is NOT working correctly, DO NOT USE
         y, x = scipy.optimize.linear_sum_assignment(cost_matrix)  # row y, col x
         matches = np.asarray([[i, x] for i, x in enumerate(x) if cost_matrix[i, x] <= thresh])
         unmatched = np.ones(cost_matrix.shape)

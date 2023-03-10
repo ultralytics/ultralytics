@@ -65,8 +65,9 @@ class DetectionPredictor(BasePredictor):
         for d in reversed(det):
             cls, conf = d.cls.squeeze(), d.conf.squeeze()
             if self.args.save_txt:  # Write to file
-                line = (cls, *(d.xywhn.view(-1).tolist()), conf) \
-                    if self.args.save_conf else (cls, *(d.xywhn.view(-1).tolist()))  # label format
+                line = (cls, *(d.xywhn.view(-1).tolist())) + \
+                    ((conf,) if self.args.save_conf else ()) + \
+                    ((d.id.squeeze() if d.id is not None else -1,) if self.args.save_id else ())
                 with open(f'{self.txt_path}.txt', 'a') as f:
                     f.write(('%g ' * len(line)).rstrip() % line + '\n')
             if self.args.save or self.args.save_crop or self.args.show:  # Add bbox to image

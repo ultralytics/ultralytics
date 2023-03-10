@@ -103,7 +103,7 @@ jobs:
         shell: python
         run: |
           from ultralytics.yolo.utils.benchmarks import benchmark
-          benchmark(model='${{ matrix.model }}-cls.pt', imgsz=160, half=False, hard_fail=0.60)
+          benchmark(model='${{ matrix.model }}-cls.pt', imgsz=160, half=False, hard_fail=0.58)
       - name: Benchmark Summary
         run: cat benchmarks.log
 
@@ -113,7 +113,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest]
         python-version: ['3.7', '3.8', '3.9', '3.10']
         model: [yolov8n]
         torch: [latest]

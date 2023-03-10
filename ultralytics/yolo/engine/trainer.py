@@ -197,12 +197,15 @@ class BaseTrainer:
         """
         Builds dataloaders and optimizer on correct rank process.
         """
-        # model
+        # Model
         self.run_callbacks('on_pretrain_routine_start')
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
         self.set_model_attributes()
+        # Check AMP
+        callbacks_backup = callbacks.default_callbacks.copy()  # backup callbacks as they are reset by check_amp()
         self.amp = check_amp(self.model)
+        callbacks.default_callbacks = callbacks_backup  # restore callbacks
         self.scaler = amp.GradScaler(enabled=self.amp)
         if world_size > 1:
             self.model = DDP(self.model, device_ids=[rank])
@@ -610,7 +613,7 @@ def check_amp(model):
         a = m(im, device=device, verbose=False)[0].boxes.boxes  # FP32 inference
         with torch.cuda.amp.autocast(True):
             b = m(im, device=device, verbose=False)[0].boxes.boxes  # AMP inference
-        return a.shape == b.shape and torch.allclose(a, b.float(), atol=0.1)  # close to 10% absolute tolerance
+        return a.shape == b.shape and torch.allclose(a, b.float(), rtol=0.1)  # close to 10% absolute tolerance
 
     f = ROOT / 'assets/bus.jpg'  # image to check
     im = f if f.exists() else 'https://ultralytics.com/images/bus.jpg' if ONLINE else np.ones((640, 640, 3))

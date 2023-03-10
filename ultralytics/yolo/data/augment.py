@@ -16,6 +16,8 @@ from ..utils.metrics import bbox_ioa
 from ..utils.ops import segment2box
 from .utils import IMAGENET_MEAN, IMAGENET_STD, polygons2masks, polygons2masks_overlap
 
+POSE_FLIPLR_INDEX = [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15]
+
 
 # TODO: we might need a BaseTransform to make all these augments be compatible with both classification and semantic
 class BaseTransform:
@@ -410,12 +412,13 @@ class RandomHSV:
 
 class RandomFlip:
 
-    def __init__(self, p=0.5, direction='horizontal') -> None:
+    def __init__(self, p=0.5, direction='horizontal', flip_idx=None) -> None:
         assert direction in ['horizontal', 'vertical'], f'Support direction `horizontal` or `vertical`, got {direction}'
         assert 0 <= p <= 1.0
 
         self.p = p
         self.direction = direction
+        self.flip_idx = flip_idx
 
     def __call__(self, labels):
         img = labels['img']
@@ -432,6 +435,9 @@ class RandomFlip:
         if self.direction == 'horizontal' and random.random() < self.p:
             img = np.fliplr(img)
             instances.fliplr(w)
+        # for keypoints
+        if self.flip_idx is not None and instances.keypoints is not None:
+            instances.keypoints = np.ascontiguousarray(instances.keypoints[:, self.flip_idx, :])
         labels['img'] = np.ascontiguousarray(img)
         labels['instances'] = instances
         return labels
@@ -673,7 +679,7 @@ def v8_transforms(dataset, imgsz, hyp):
         Albumentations(p=1.0),
         RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
         RandomFlip(direction='vertical', p=hyp.flipud),
-        RandomFlip(direction='horizontal', p=hyp.fliplr)])  # transforms
+        RandomFlip(direction='horizontal', p=hyp.fliplr, flip_idx=POSE_FLIPLR_INDEX)])  # transforms
 
 
 # Classification augmentations -----------------------------------------------------------------------------------------

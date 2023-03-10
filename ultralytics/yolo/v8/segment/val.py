@@ -121,6 +121,7 @@ class SegmentationValidator(DetectionValidator):
 
     def finalize_metrics(self, *args, **kwargs):
         self.metrics.speed = self.speed
+        self.metrics.confusion_matrix = self.confusion_matrix
 
     def _process_batch(self, detections, labels, pred_masks=None, gt_masks=None, overlap=False, masks=False):
         """

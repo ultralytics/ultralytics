@@ -110,7 +110,7 @@ class PoseLoss(Loss):
             target_bboxes /= stride_tensor
             loss[0], loss[4] = self.bbox_loss(pred_distri, pred_bboxes, anchor_points, target_bboxes, target_scores,
                                               target_scores_sum, fg_mask)
-            keypoints = batch['keypoints'].to(self.device).float()
+            keypoints = batch['keypoints'].to(self.device).float().clone()
             keypoints[:, 0::3] *= imgsz[1]
             keypoints[:, 1::3] *= imgsz[0]
             for i in range(batch_size):

@@ -110,7 +110,6 @@ task.
 | mask_ratio      | 4      | mask downsample ratio (segment train only)                                     |
 | dropout         | 0.0    | use dropout regularization (classify train only)                               |
 | val             | True   | validate/test during training                                                  |
-| min_memory      | False  | minimize memory footprint loss function, choices=[False, True, <roll_out_thr>] |
 
 ### Prediction
 

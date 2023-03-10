@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
+import lap
 import numpy as np
 import scipy
 from scipy.spatial.distance import cdist
@@ -35,20 +36,26 @@ def _indices_to_matches(cost_matrix, indices, thresh):
     return matches, unmatched_a, unmatched_b
 
 
-def linear_assignment(cost_matrix, thresh):
+def linear_assignment(cost_matrix, thresh=0.0, use_scipy=False):
     # Linear assignment function with scipy replacing lap.lapjv
     if cost_matrix.size == 0:
         return np.empty((0, 2), dtype=int), tuple(range(cost_matrix.shape[0])), tuple(range(cost_matrix.shape[1]))
 
-    # cost, x, y = lap.lapjv(cost_matrix, extend_cost=True, cost_limit=thresh)  # lap.lapjv usage (old)
-    y, x = scipy.optimize.linear_sum_assignment(cost_matrix)  # row y, col x
-    matches = np.asarray([[i, x] for i, x in enumerate(x) if cost_matrix[i, x] < thresh])
+    if use_scipy:
+        # Scipy linear sum assignment is NOT working correctly, do not use
+        y, x = scipy.optimize.linear_sum_assignment(cost_matrix)  # row y, col x
+        matches = np.asarray([[i, x] for i, x in enumerate(x) if cost_matrix[i, x] <= thresh])
+        unmatched = np.ones(cost_matrix.shape)
+        for i, xi in matches:
+            unmatched[i, xi] = 0.0
+        unmatched_a = np.where(unmatched.all(1))[0]
+        unmatched_b = np.where(unmatched.all(0))[0]
 
-    unmatched = np.ones(cost_matrix.shape)
-    for i, xi in enumerate(x):
-        unmatched[i, xi] = 0.0
-    unmatched_a = np.where(unmatched.all(1))[0]
-    unmatched_b = np.where(unmatched.all(0))[0]
+    else:
+        _, x, y = lap.lapjv(cost_matrix, extend_cost=True, cost_limit=thresh)
+        matches = [[ix, mx] for ix, mx in enumerate(x) if mx >= 0]
+        unmatched_a = np.where(x < 0)[0]
+        unmatched_b = np.where(y < 0)[0]
 
     return matches, unmatched_a, unmatched_b
 

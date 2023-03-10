@@ -197,16 +197,15 @@ class BaseTrainer:
         """
         Builds dataloaders and optimizer on correct rank process.
         """
-        # model
+        # Model
         self.run_callbacks('on_pretrain_routine_start')
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
         self.set_model_attributes()
-        # Backup default_callbacks before checking AMP since they are reset by check_amp
-        callbacks_backup = callbacks.default_callbacks.copy()
+        # Check AMP
+        callbacks_backup = callbacks.default_callbacks.copy()  # backup callbacks as they are reset by check_amp()
         self.amp = check_amp(self.model)
-        # Restore default_callbacks
-        callbacks.default_callbacks = callbacks_backup
+        callbacks.default_callbacks = callbacks_backup  # restore callbacks
         self.scaler = amp.GradScaler(enabled=self.amp)
         if world_size > 1:
             self.model = DDP(self.model, device_ids=[rank])

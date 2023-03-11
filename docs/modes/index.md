@@ -1,0 +1,49 @@
+# YOLOv8 Modes
+
+Ultralytics YOLOv8 supports several **modes** that can be used to perform different tasks. These modes are:
+
+* **Train**: This mode is used for training a YOLOv8 model on a custom dataset.
+* **Val**: This mode is used for validating a YOLOv8 model after it has been trained.
+* **Predict**: This mode is used for making predictions using a trained YOLOv8 model on new images or videos.
+* **Export**: This mode is used for exporting a YOLOv8 model to a format that can be used for deployment.
+* **Track**: This mode is used for tracking objects in real-time using a YOLOv8 model.
+* **Benchmark**: This mode is used for benchmarking the performance of a YOLOv8 model on a custom dataset.
+
+## [Train](train.md)
+
+The train mode is used for training a YOLOv8 model on a custom dataset. In this mode, the model is trained using the specified dataset and hyperparameters. The training process involves optimizing the model's parameters so that it can accurately predict the classes and locations of objects in an image.
+
+[Train Examples](train.md){ .md-button .md-button--primary}
+
+## [Val](val.md)
+
+The val mode is used for validating a YOLOv8 model after it has been trained. In this mode, the model is evaluated on a validation set to measure its accuracy and generalization performance. This mode can be used to tune the hyperparameters of the model to improve its performance.
+
+[Val Examples](val.md){ .md-button .md-button--primary}
+
+## [Predict](predict.md)
+
+The predict mode is used for making predictions using a trained YOLOv8 model on new images or videos. In this mode, the model is loaded from a checkpoint file, and the user can provide images or videos to perform inference. The model predicts the classes and locations of objects in the input images or videos.
+
+[Predict Examples](predict.md){ .md-button .md-button--primary}
+
+
+## [Export](export.md)
+
+The export mode is used for exporting a YOLOv8 model to a format that can be used for deployment. In this mode, the model is converted to a format that can be used by other software applications or hardware devices. This mode is useful when deploying the model to production environments.
+
+[Export Examples](export.md){ .md-button .md-button--primary}
+
+
+## [Track](track.md)
+
+The track mode is used for tracking objects in real-time using a YOLOv8 model. In this mode, the model is loaded from a checkpoint file, and the user can provide a live video stream to perform real-time object tracking. This mode is useful for applications such as surveillance systems or self-driving cars.
+
+[Track Examples](track.md){ .md-button .md-button--primary}
+
+
+## [Benchmark](benchmark.md)
+
+The benchmark mode is used for benchmarking the performance of a YOLOv8 model on a custom dataset. In this mode, the model is evaluated on a test set to measure its performance in terms of accuracy and speed. This mode can be used to compare the performance of different YOLOv8 models or to tune the hyperparameters of the model to improve its performance.
+
+[Benchmark Examples](benchmark.md){ .md-button .md-button--primary}

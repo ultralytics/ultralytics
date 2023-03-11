@@ -38,6 +38,8 @@ theme:
     - navigation.top
     - navigation.expand
     - navigation.footer
+    - navigation.tracking
+    - navigation.instant
     - content.tabs.link  # all code tabs change simultaneously
 
 # Customization

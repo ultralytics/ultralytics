@@ -687,7 +687,7 @@ def classify_transforms(size=224, mean=(0.0, 0.0, 0.0), std=(0.0, 0.0, 0.0)):  #
     if not isinstance(size, int):
         raise TypeError(f'classify_transforms() size {size} must be integer, not (list, tuple)')
     if any(mean) or any(std):
-        return T.Compose([CenterCrop(size), ToTensor(), T.Normalize(mean, std)])
+        return T.Compose([CenterCrop(size), ToTensor(), T.Normalize(mean, std, inplace=True)])
     else:
         return T.Compose([CenterCrop(size), ToTensor()])
 
@@ -725,9 +725,7 @@ def classify_albumentations(
                     T += [A.ColorJitter(jitter, jitter, jitter, 0)]  # brightness, contrast, saturation, 0 hue
         else:  # Use fixed crop for eval set (reproducibility)
             T = [A.SmallestMaxSize(max_size=size), A.CenterCrop(height=size, width=size)]
-        if any(mean) or any(std):
-            T += [A.Normalize(mean=mean, std=std)]
-        T += [ToTensorV2()]  # Normalize and convert to Tensor
+        T += [A.Normalize(mean=mean, std=std), ToTensorV2()]  # Normalize and convert to Tensor
         LOGGER.info(prefix + ', '.join(f'{x}'.replace('always_apply=False, ', '') for x in T if x.p))
         return A.Compose(T)
 

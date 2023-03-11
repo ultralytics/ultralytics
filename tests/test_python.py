@@ -96,8 +96,8 @@ def test_val_scratch():
     model.val(data='coco8.yaml', imgsz=32)
 
 
-def test_amp(enabled=torch.cuda.is_available()):
-    if enabled:
+def test_amp():
+    if torch.cuda.is_available():
         from ultralytics.yolo.engine.trainer import check_amp
         model = YOLO(MODEL).model.cuda()
         assert check_amp(model)

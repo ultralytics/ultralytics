@@ -2,12 +2,12 @@
 
 Ultralytics YOLOv8 supports several **modes** that can be used to perform different tasks. These modes are:
 
-* **Train**: This mode is used for training a YOLOv8 model on a custom dataset.
-* **Val**: This mode is used for validating a YOLOv8 model after it has been trained.
-* **Predict**: This mode is used for making predictions using a trained YOLOv8 model on new images or videos.
-* **Export**: This mode is used for exporting a YOLOv8 model to a format that can be used for deployment.
-* **Track**: This mode is used for tracking objects in real-time using a YOLOv8 model.
-* **Benchmark**: This mode is used for benchmarking the performance of a YOLOv8 model on a custom dataset.
+**Train**: For training a YOLOv8 model on a custom dataset.  
+**Val**: For validating a YOLOv8 model after it has been trained.  
+**Predict**: For making predictions using a trained YOLOv8 model on new images or videos.  
+**Export**: For exporting a YOLOv8 model to a format that can be used for deployment.  
+**Track**: For tracking objects in real-time using a YOLOv8 model.  
+**Benchmark**: For benchmarking YOLOv8 exports (ONNX, TensorRT, etc.) speed and accuracy.  
 
 ## [Train](train.md)
 
@@ -44,6 +44,6 @@ The track mode is used for tracking objects in real-time using a YOLOv8 model. I
 
 ## [Benchmark](benchmark.md)
 
-The benchmark mode is used for benchmarking the performance of a YOLOv8 model on a custom dataset. In this mode, the model is evaluated on a test set to measure its performance in terms of accuracy and speed. This mode can be used to compare the performance of different YOLOv8 models or to tune the hyperparameters of the model to improve its performance.
+The benchmark mode is used to profile the speed and accuracy of various export formats for YOLOv8. The benchmarks provide information on the size of the exported format, its `mAP50-95` metrics (for object detection and segmentation) or `accuracy_top5` metrics (for classification), and the inference time in milliseconds per image across various export formats like ONNX, OpenVINO, TensorRT and others. This information can help users choose the optimal export format for their specific use case based on their requirements for speed and accuracy.
 
 [Benchmark Examples](benchmark.md){ .md-button .md-button--primary}

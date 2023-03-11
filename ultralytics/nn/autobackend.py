@@ -332,13 +332,6 @@ class AutoBackend(nn.Module):
             y = [self.bindings[x].data for x in sorted(self.output_names)]
         elif self.coreml:  # CoreML
             im = im[0].cpu().numpy()
-            if self.task == 'classify':
-                from ultralytics.yolo.data.utils import IMAGENET_MEAN, IMAGENET_STD
-
-                # im_pil = Image.fromarray(((im / 6 + 0.5) * 255).astype('uint8'))
-                for i in range(3):
-                    im[..., i] *= IMAGENET_STD[i]
-                    im[..., i] += IMAGENET_MEAN[i]
             im_pil = Image.fromarray((im * 255).astype('uint8'))
             # im = im.resize((192, 320), Image.ANTIALIAS)
             y = self.model.predict({'image': im_pil})  # coordinates are xywh normalized

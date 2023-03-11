@@ -627,7 +627,7 @@ def check_amp(model):
         a = m(im, device=device, verbose=False)[0].boxes.boxes  # FP32 inference
         with torch.cuda.amp.autocast(True):
             b = m(im, device=device, verbose=False)[0].boxes.boxes  # AMP inference
-        return a.shape == b.shape and torch.allclose(a, b.float(), rtol=0.1)  # close to 10% absolute tolerance
+        return a.shape == b.shape and torch.allclose(a, b.float(), atol=0.5)  # close to 0.5 absolute tolerance
 
     f = ROOT / 'assets/bus.jpg'  # image to check
     im = f if f.exists() else 'https://ultralytics.com/images/bus.jpg' if ONLINE else np.ones((640, 640, 3))

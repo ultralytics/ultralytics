@@ -148,7 +148,7 @@ class Exporter:
         self.run_callbacks('on_export_start')
         t = time.time()
         format = self.args.format.lower()  # to lowercase
-        if format in {'tensorrt', 'trt'}:  # engine aliases
+        if format in ('tensorrt', 'trt'):  # engine aliases
             format = 'engine'
         fmts = tuple(export_formats()['Argument'][1:])  # available export formats
         flags = [x == format for x in fmts]
@@ -530,8 +530,8 @@ class Exporter:
 
         # Export to TF
         int8 = '-oiqt -qt per-tensor' if self.args.int8 else ''
-        cmd = f'onnx2tf -i {f_onnx} -o {f} -nuo --non_verbose {int8}'
-        LOGGER.info(f"\n{prefix} running '{cmd}'")
+        cmd = f'onnx2tf -i {f_onnx} -o {f} {int8}'  # -nuo --non_verbose for default
+        LOGGER.info(f"\n{prefix} running '{cmd.strip()}'")
         subprocess.run(cmd, shell=True)
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml
 

@@ -126,7 +126,7 @@ class IterableSimpleNamespace(SimpleNamespace):
 def set_logging(name=LOGGING_NAME, verbose=True):
     # sets up logging for the given name
     rank = int(os.getenv('RANK', -1))  # rank in world for Multi-GPU trainings
-    level = logging.INFO if verbose and rank in {-1, 0} else logging.ERROR
+    level = logging.INFO if verbose and rank in (-1, 0) else logging.ERROR
     logging.config.dictConfig({
         'version': 1,
         'disable_existing_loggers': False,
@@ -524,7 +524,7 @@ def set_sentry():
         return event
 
     if SETTINGS['sync'] and \
-            RANK in {-1, 0} and \
+            RANK in (-1, 0) and \
             Path(sys.argv[0]).name == 'yolo' and \
             not TESTS_RUNNING and \
             ONLINE and \

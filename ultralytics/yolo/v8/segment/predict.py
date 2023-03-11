@@ -23,18 +23,19 @@ class SegmentationPredictor(DetectionPredictor):
         proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
         for i, pred in enumerate(p):
             orig_img = orig_imgs[i] if isinstance(orig_imgs, list) else orig_imgs
-            shape = orig_img.shape
             path, _, _, _, _ = self.batch
             img_path = path[i] if isinstance(path, list) else path
             if not len(pred):  # save empty boxes
                 results.append(Results(orig_img=orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6]))
                 continue
             if self.args.retina_masks:
-                pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
-                masks = ops.process_mask_native(proto[i], pred[:, 6:], pred[:, :4], shape[:2])  # HWC
+                if not isinstance(orig_imgs, torch.Tensor):
+                    pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
+                masks = ops.process_mask_native(proto[i], pred[:, 6:], pred[:, :4], orig_img.shape[:2])  # HWC
             else:
                 masks = ops.process_mask(proto[i], pred[:, 6:], pred[:, :4], img.shape[2:], upsample=True)  # HWC
-                pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
+                if not isinstance(orig_imgs, torch.Tensor):
+                    pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
             results.append(
                 Results(orig_img=orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], masks=masks))
         return results

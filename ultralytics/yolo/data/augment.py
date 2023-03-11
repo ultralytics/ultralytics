@@ -435,9 +435,9 @@ class RandomFlip:
         if self.direction == 'horizontal' and random.random() < self.p:
             img = np.fliplr(img)
             instances.fliplr(w)
-        # for keypoints
-        if self.flip_idx is not None and instances.keypoints is not None:
-            instances.keypoints = np.ascontiguousarray(instances.keypoints[:, self.flip_idx, :])
+            # for keypoints
+            if self.flip_idx is not None and instances.keypoints is not None:
+                instances.keypoints = np.ascontiguousarray(instances.keypoints[:, self.flip_idx, :])
         labels['img'] = np.ascontiguousarray(img)
         labels['instances'] = instances
         return labels

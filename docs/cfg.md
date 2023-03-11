@@ -66,50 +66,50 @@ include the choice of optimizer, the choice of loss function, and the size and c
 is important to carefully tune and experiment with these settings to achieve the best possible performance for a given
 task.
 
-| Key             | Value  | Description                                                                    |
-|-----------------|--------|--------------------------------------------------------------------------------|
-| model           | null   | path to model file, i.e. yolov8n.pt, yolov8n.yaml                              |
-| data            | null   | path to data file, i.e. coco128.yaml                                           |
-| epochs          | 100    | number of epochs to train for                                                  |
-| patience        | 50     | epochs to wait for no observable improvement for early stopping of training    |
-| batch           | 16     | number of images per batch (-1 for AutoBatch)                                  |
-| imgsz           | 640    | size of input images as integer or w,h                                         |
-| save            | True   | save train checkpoints and predict results                                     |
-| save_period     | -1     | Save checkpoint every x epochs (disabled if < 1)                               |
-| cache           | False  | True/ram, disk or False. Use cache for data loading                            |
-| device          | null   | device to run on, i.e. cuda device=0 or device=0,1,2,3 or device=cpu           |
-| workers         | 8      | number of worker threads for data loading (per RANK if DDP)                    |
-| project         | null   | project name                                                                   |
-| name            | null   | experiment name                                                                |
-| exist_ok        | False  | whether to overwrite existing experiment                                       |
-| pretrained      | False  | whether to use a pretrained model                                              |
-| optimizer       | 'SGD'  | optimizer to use, choices=['SGD', 'Adam', 'AdamW', 'RMSProp']                  |
-| verbose         | False  | whether to print verbose output                                                |
-| seed            | 0      | random seed for reproducibility                                                |
-| deterministic   | True   | whether to enable deterministic mode                                           |
-| single_cls      | False  | train multi-class data as single-class                                         |
-| image_weights   | False  | use weighted image selection for training                                      |
-| rect            | False  | support rectangular training                                                   |
-| cos_lr          | False  | use cosine learning rate scheduler                                             |
-| close_mosaic    | 10     | disable mosaic augmentation for final 10 epochs                                |
-| resume          | False  | resume training from last checkpoint                                           |
-| lr0             | 0.01   | initial learning rate (i.e. SGD=1E-2, Adam=1E-3)                               |
-| lrf             | 0.01   | final learning rate (lr0 * lrf)                                                |
-| momentum        | 0.937  | SGD momentum/Adam beta1                                                        |
-| weight_decay    | 0.0005 | optimizer weight decay 5e-4                                                    |
-| warmup_epochs   | 3.0    | warmup epochs (fractions ok)                                                   |
-| warmup_momentum | 0.8    | warmup initial momentum                                                        |
-| warmup_bias_lr  | 0.1    | warmup initial bias lr                                                         |
-| box             | 7.5    | box loss gain                                                                  |
-| cls             | 0.5    | cls loss gain (scale with pixels)                                              |
-| dfl             | 1.5    | dfl loss gain                                                                  |
-| fl_gamma        | 0.0    | focal loss gamma (efficientDet default gamma=1.5)                              |
-| label_smoothing | 0.0    | label smoothing (fraction)                                                     |
-| nbs             | 64     | nominal batch size                                                             |
-| overlap_mask    | True   | masks should overlap during training (segment train only)                      |
-| mask_ratio      | 4      | mask downsample ratio (segment train only)                                     |
-| dropout         | 0.0    | use dropout regularization (classify train only)                               |
-| val             | True   | validate/test during training                                                  |
+| Key             | Value  | Description                                                                 |
+|-----------------|--------|-----------------------------------------------------------------------------|
+| model           | null   | path to model file, i.e. yolov8n.pt, yolov8n.yaml                           |
+| data            | null   | path to data file, i.e. coco128.yaml                                        |
+| epochs          | 100    | number of epochs to train for                                               |
+| patience        | 50     | epochs to wait for no observable improvement for early stopping of training |
+| batch           | 16     | number of images per batch (-1 for AutoBatch)                               |
+| imgsz           | 640    | size of input images as integer or w,h                                      |
+| save            | True   | save train checkpoints and predict results                                  |
+| save_period     | -1     | Save checkpoint every x epochs (disabled if < 1)                            |
+| cache           | False  | True/ram, disk or False. Use cache for data loading                         |
+| device          | null   | device to run on, i.e. cuda device=0 or device=0,1,2,3 or device=cpu        |
+| workers         | 8      | number of worker threads for data loading (per RANK if DDP)                 |
+| project         | null   | project name                                                                |
+| name            | null   | experiment name                                                             |
+| exist_ok        | False  | whether to overwrite existing experiment                                    |
+| pretrained      | False  | whether to use a pretrained model                                           |
+| optimizer       | 'SGD'  | optimizer to use, choices=['SGD', 'Adam', 'AdamW', 'RMSProp']               |
+| verbose         | False  | whether to print verbose output                                             |
+| seed            | 0      | random seed for reproducibility                                             |
+| deterministic   | True   | whether to enable deterministic mode                                        |
+| single_cls      | False  | train multi-class data as single-class                                      |
+| image_weights   | False  | use weighted image selection for training                                   |
+| rect            | False  | support rectangular training                                                |
+| cos_lr          | False  | use cosine learning rate scheduler                                          |
+| close_mosaic    | 10     | disable mosaic augmentation for final 10 epochs                             |
+| resume          | False  | resume training from last checkpoint                                        |
+| lr0             | 0.01   | initial learning rate (i.e. SGD=1E-2, Adam=1E-3)                            |
+| lrf             | 0.01   | final learning rate (lr0 * lrf)                                             |
+| momentum        | 0.937  | SGD momentum/Adam beta1                                                     |
+| weight_decay    | 0.0005 | optimizer weight decay 5e-4                                                 |
+| warmup_epochs   | 3.0    | warmup epochs (fractions ok)                                                |
+| warmup_momentum | 0.8    | warmup initial momentum                                                     |
+| warmup_bias_lr  | 0.1    | warmup initial bias lr                                                      |
+| box             | 7.5    | box loss gain                                                               |
+| cls             | 0.5    | cls loss gain (scale with pixels)                                           |
+| dfl             | 1.5    | dfl loss gain                                                               |
+| fl_gamma        | 0.0    | focal loss gamma (efficientDet default gamma=1.5)                           |
+| label_smoothing | 0.0    | label smoothing (fraction)                                                  |
+| nbs             | 64     | nominal batch size                                                          |
+| overlap_mask    | True   | masks should overlap during training (segment train only)                   |
+| mask_ratio      | 4      | mask downsample ratio (segment train only)                                  |
+| dropout         | 0.0    | use dropout regularization (classify train only)                            |
+| val             | True   | validate/test during training                                               |
 
 ### Prediction
 
@@ -179,6 +179,20 @@ additional features such as masks or multiple labels per box. Other factors that
 the specific task the model is being used for and the requirements or constraints of the target environment or platform.
 It is important to carefully consider and configure these settings to ensure that the exported model is optimized for
 the intended use case and can be used effectively in the target environment.
+
+| Key       | Value         | Description                                          |
+|-----------|---------------|------------------------------------------------------|
+| format    | 'torchscript' | format to export to                                  |
+| imgsz     | 640           | image size as scalar or (h, w) list, i.e. (640, 480) |
+| keras     | False         | use Keras for TF SavedModel export                   |
+| optimize  | False         | TorchScript: optimize for mobile                     |
+| half      | False         | FP16 quantization                                    |
+| int8      | False         | INT8 quantization                                    |
+| dynamic   | False         | ONNX/TF/TensorRT: dynamic axes                       |
+| simplify  | False         | ONNX: simplify model                                 |
+| opset     | null          | ONNX: opset version (optional, defaults to latest)   |
+| workspace | 4             | TensorRT: workspace size (GB)                        |
+| nms       | False         | CoreML: add NMS                                      |
 
 ### Augmentation
 

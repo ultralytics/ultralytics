@@ -120,11 +120,11 @@ nav:
       - Classify: tasks/classify.md
       - Keypoints: tasks/keypoints.md
   - Usage:
-      - CLI: cli.md
-      - Python: python.md
-      - Configuration: cfg.md
-      - Customization using callbacks: callbacks.md
-      - Advanced customization: engine.md
+      - CLI: usage/cli.md
+      - Python: usage/python.md
+      - Callbacks: usage/callbacks.md
+      - Configuration: usage/cfg.md
+      - Advanced Customization: usage/engine.md
   - Ultralytics HUB: hub.md
   - iOS and Android App: app.md
   - Reference:

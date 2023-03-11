@@ -53,7 +53,9 @@ source can be used as a stream and the model argument required for that source.
 
 ## Valid Image Formats
 
-For images, YOLOv8 supports a variety of image formats. The following suffixes are valid for images:
+For images, YOLOv8 supports a variety of image formats defined
+in [yolo/data/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/data/utils.py). The
+following suffixes are valid for images:
 
 | Image Suffixes | Example Predict Command          | Reference                                                                            |
 |----------------|----------------------------------|--------------------------------------------------------------------------------------|
@@ -70,7 +72,9 @@ For images, YOLOv8 supports a variety of image formats. The following suffixes a
 
 ## Valid Video Formats
 
-For videos, YOLOv8 also supports a variety of video formats. The following suffixes are valid for videos:
+For videos, YOLOv8 also supports a variety of video formats defined
+in [yolo/data/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/data/utils.py). The
+following suffixes are valid for videos:
 
 | Video Suffixes | Example Predict Command          | Reference                                                                                                      |
 |----------------|----------------------------------|----------------------------------------------------------------------------------------------------------------|

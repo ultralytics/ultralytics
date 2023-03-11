@@ -682,7 +682,7 @@ def v8_transforms(dataset, imgsz, hyp):
 
 
 # Classification augmentations -----------------------------------------------------------------------------------------
-def classify_transforms(size=224, mean=(0.0, 0.0, 0.0), std=(0.0, 0.0, 0.0)):  # IMAGENET_MEAN, IMAGENET_STD
+def classify_transforms(size=224, mean=(0.0, 0.0, 0.0), std=(1.0, 1.0, 1.0)):  # IMAGENET_MEAN, IMAGENET_STD
     # Transforms to apply if albumentations not installed
     if not isinstance(size, int):
         raise TypeError(f'classify_transforms() size {size} must be integer, not (list, tuple)')
@@ -700,7 +700,7 @@ def classify_albumentations(
         vflip=0.0,
         jitter=0.4,
         mean=(0.0, 0.0, 0.0),  # IMAGENET_MEAN
-        std=(0.0, 0.0, 0.0),  # IMAGENET_STD
+        std=(1.0, 1.0, 1.0),  # IMAGENET_STD
         auto_aug=False,
 ):
     # YOLOv8 classification Albumentations (optional, only used if package is installed)

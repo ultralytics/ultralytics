@@ -203,9 +203,10 @@ class BaseTrainer:
         self.model = self.model.to(self.device)
         self.set_model_attributes()
         # Check AMP
-        callbacks_backup = callbacks.default_callbacks.copy()  # backup callbacks as they are reset by check_amp()
-        self.amp = check_amp(self.model)
-        callbacks.default_callbacks = callbacks_backup  # restore callbacks
+        if RANK in {0, -1}:
+            callbacks_backup = callbacks.default_callbacks.copy()  # backup callbacks as they are reset by check_amp()
+            self.amp = check_amp(self.model)
+            callbacks.default_callbacks = callbacks_backup  # restore callbacks
         self.scaler = amp.GradScaler(enabled=self.amp)
         if world_size > 1:
             self.model = DDP(self.model, device_ids=[rank])

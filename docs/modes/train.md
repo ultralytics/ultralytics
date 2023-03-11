@@ -1,6 +1,8 @@
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
 
-**Train mode** is used for training a YOLOv8 model on a custom dataset. In this mode, the model is trained using the specified dataset and hyperparameters. The training process involves optimizing the model's parameters so that it can accurately predict the classes and locations of objects in an image.
+**Train mode** is used for training a YOLOv8 model on a custom dataset. In this mode, the model is trained using the
+specified dataset and hyperparameters. The training process involves optimizing the model's parameters so that it can
+accurately predict the classes and locations of objects in an image.
 
 !!! tip "Tip"
 
@@ -8,7 +10,8 @@
 
 ## Usage Examples
 
-Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. See Arguments section below for a full list of training arguments.
+Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. See Arguments section below for a full list of
+training arguments.
 
 !!! example ""
 

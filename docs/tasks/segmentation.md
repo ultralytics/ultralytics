@@ -124,7 +124,8 @@ Export a YOLOv8n-seg model to a different format like ONNX, CoreML, etc.
         yolo export model=path/to/best.pt format=onnx  # export custom trained model
         ```
 
-Available YOLOv8-seg export formats are in the table below. You can predict or validate directly on exported models, i.e. `yolo predict model=yolov8n-seg.onnx`.
+Available YOLOv8-seg export formats are in the table below. You can predict or validate directly on exported models,
+i.e. `yolo predict model=yolov8n-seg.onnx`.
 
 | Format                                                             | `format` Argument | Model                         | Metadata |
 |--------------------------------------------------------------------|-------------------|-------------------------------|----------|

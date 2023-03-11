@@ -1,19 +1,24 @@
-Key Point Estimation is a task that involves identifying the location of specific points in an image, usually referred to as keypoints. The keypoints can represent various parts of the object such as joints, landmarks, or other distinctive features. The locations of the keypoints are usually represented as a set of 2D `[x, y]` or 3D `[x, y, visible]` coordinates.
+Key Point Estimation is a task that involves identifying the location of specific points in an image, usually referred
+to as keypoints. The keypoints can represent various parts of the object such as joints, landmarks, or other distinctive
+features. The locations of the keypoints are usually represented as a set of 2D `[x, y]` or 3D `[x, y, visible]`
+coordinates.
 
 <img width="1024" src="https://user-images.githubusercontent.com/26833433/212094133-6bb8c21c-3d47-41df-a512-81c5931054ae.png">
 
-The output of a keypoint detector is a set of points that represent the keypoints on the object in the image, usually along with the confidence scores for each point. Keypoint estimation is a good choice when you need to identify specific parts of an object in a scene, and their location in relation to each other.
+The output of a keypoint detector is a set of points that represent the keypoints on the object in the image, usually
+along with the confidence scores for each point. Keypoint estimation is a good choice when you need to identify specific
+parts of an object in a scene, and their location in relation to each other.
 
 !!! tip "Tip"
-    
-    YOLOv8 _keypoints_ models use the `-kpts` suffix, i.e. `yolov8n-kpts.pt`. These models are trained on the COCO dataset and are suitable for a variety of keypoint estimation tasks.
 
+    YOLOv8 _keypoints_ models use the `-kpts` suffix, i.e. `yolov8n-kpts.pt`. These models are trained on the COCO dataset and are suitable for a variety of keypoint estimation tasks.
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models/v8){ .md-button .md-button--primary}
 
 ## Train TODO
 
-Train an OpenPose model on a custom dataset of keypoints using the OpenPose framework. For more information on how to train an OpenPose model on a custom dataset, see the OpenPose Training page.
+Train an OpenPose model on a custom dataset of keypoints using the OpenPose framework. For more information on how to
+train an OpenPose model on a custom dataset, see the OpenPose Training page.
 
 !!! example ""
 
@@ -117,7 +122,8 @@ Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
         yolo export model=path/to/best.pt format=onnx  # export custom trained model
         ```
 
-Available YOLOv8-pose export formats are in the table below. You can predict or validate directly on exported models, i.e. `yolo predict model=yolov8n-pose.onnx`.
+Available YOLOv8-pose export formats are in the table below. You can predict or validate directly on exported models,
+i.e. `yolo predict model=yolov8n-pose.onnx`.
 
 | Format                                                             | `format` Argument | Model                     | Metadata |
 |--------------------------------------------------------------------|-------------------|---------------------------|----------|

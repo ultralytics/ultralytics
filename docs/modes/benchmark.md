@@ -1,6 +1,10 @@
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
 
-**Benchmark mode** is used to profile the speed and accuracy of various export formats for YOLOv8. The benchmarks provide information on the size of the exported format, its `mAP50-95` metrics (for object detection and segmentation) or `accuracy_top5` metrics (for classification), and the inference time in milliseconds per image across various export formats like ONNX, OpenVINO, TensorRT and others. This information can help users choose the optimal export format for their specific use case based on their requirements for speed and accuracy.
+**Benchmark mode** is used to profile the speed and accuracy of various export formats for YOLOv8. The benchmarks
+provide information on the size of the exported format, its `mAP50-95` metrics (for object detection and segmentation)
+or `accuracy_top5` metrics (for classification), and the inference time in milliseconds per image across various export
+formats like ONNX, OpenVINO, TensorRT and others. This information can help users choose the optimal export format for
+their specific use case based on their requirements for speed and accuracy.
 
 !!! tip "Tip"
 
@@ -9,7 +13,8 @@
 
 ## Usage Examples
 
-Run YOLOv8n benchmarks on all supported export formats including ONNX, TensorRT etc. See Arguments section below for a full list of export arguments.
+Run YOLOv8n benchmarks on all supported export formats including ONNX, TensorRT etc. See Arguments section below for a
+full list of export arguments.
 
 !!! example ""
 
@@ -29,7 +34,8 @@ Run YOLOv8n benchmarks on all supported export formats including ONNX, TensorRT 
 
 ## Arguments
 
-Arguments such as `model`, `imgsz`, `half`, `device`, and `hard_fail` provide users with the flexibility to fine-tune the benchmarks to their specific needs and compare the performance of different export formats with ease.
+Arguments such as `model`, `imgsz`, `half`, `device`, and `hard_fail` provide users with the flexibility to fine-tune
+the benchmarks to their specific needs and compare the performance of different export formats with ease.
 
 | Key         | Value   | Description                                                          |
 |-------------|---------|----------------------------------------------------------------------|
@@ -38,7 +44,6 @@ Arguments such as `model`, `imgsz`, `half`, `device`, and `hard_fail` provide us
 | `half`      | `False` | FP16 quantization                                                    |
 | `device`    | `None`  | device to run on, i.e. cuda device=0 or device=0,1,2,3 or device=cpu |
 | `hard_fail` | `False` | do not continue on error (bool), or val floor threshold (float)      |
-
 
 ## Export Formats
 

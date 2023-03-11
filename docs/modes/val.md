@@ -1,6 +1,8 @@
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
 
-**Val mode** is used for validating a YOLOv8 model after it has been trained. In this mode, the model is evaluated on a validation set to measure its accuracy and generalization performance. This mode can be used to tune the hyperparameters of the model to improve its performance.
+**Val mode** is used for validating a YOLOv8 model after it has been trained. In this mode, the model is evaluated on a
+validation set to measure its accuracy and generalization performance. This mode can be used to tune the hyperparameters
+of the model to improve its performance.
 
 !!! tip "Tip"
 
@@ -48,9 +50,9 @@ validation dataset and to detect and prevent overfitting.
 
 | Key           | Value   | Description                                                        |
 |---------------|---------|--------------------------------------------------------------------|
-| `data`            | `None`   | path to data file, i.e. coco128.yaml                                        |
-| `imgsz`     | `640`           | image size as scalar or (h, w) list, i.e. (640, 480) |
-| `batch`           | `16`     | number of images per batch (-1 for AutoBatch)                               |
+| `data`        | `None`  | path to data file, i.e. coco128.yaml                               |
+| `imgsz`       | `640`   | image size as scalar or (h, w) list, i.e. (640, 480)               |
+| `batch`       | `16`    | number of images per batch (-1 for AutoBatch)                      |
 | `save_json`   | `False` | save results to JSON file                                          |
 | `save_hybrid` | `False` | save hybrid version of labels (labels + additional predictions)    |
 | `conf`        | `0.001` | object confidence threshold for detection                          |
@@ -62,7 +64,6 @@ validation dataset and to detect and prevent overfitting.
 | `plots`       | `False` | show plots during training                                         |
 | `rect`        | `False` | support rectangular evaluation                                     |
 | `split`       | `val`   | dataset split to use for validation, i.e. 'val', 'test' or 'train' |
-
 
 ## Export Formats
 

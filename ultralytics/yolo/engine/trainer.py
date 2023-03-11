@@ -633,13 +633,13 @@ def check_amp(model):
     im = f if f.exists() else 'https://ultralytics.com/images/bus.jpg' if ONLINE else np.ones((640, 640, 3))
     prefix = colorstr('AMP: ')
     try:
-        from ultralytics import YOLO
         LOGGER.info(f'{prefix}running Automatic Mixed Precision (AMP) checks with YOLOv8n...')
         try:
+            from ultralytics import YOLO
             assert amp_allclose(YOLO('yolov8n.pt'), im)
             LOGGER.info(f'{prefix}checks passed ✅')
         except ConnectionError:
-            LOGGER.info(f"{prefix}checks skipped ⚠️, offline and unable to download YOLOv8n. Setting 'amp=True'.")
+            LOGGER.warning(f"{prefix}checks skipped ⚠️, offline and unable to download YOLOv8n. Setting 'amp=True'.")
         return True
     except AssertionError:
         LOGGER.warning(f'{prefix}checks failed ❌. Anomalies were detected with AMP on your system that may lead to '

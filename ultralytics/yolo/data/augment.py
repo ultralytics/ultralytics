@@ -9,12 +9,12 @@ import numpy as np
 import torch
 import torchvision.transforms as T
 
+from .utils import polygons2masks, polygons2masks_overlap
 from ..utils import LOGGER, colorstr
 from ..utils.checks import check_version
 from ..utils.instance import Instances
 from ..utils.metrics import bbox_ioa
 from ..utils.ops import segment2box
-from .utils import IMAGENET_MEAN, IMAGENET_STD, polygons2masks, polygons2masks_overlap
 
 
 # TODO: we might need a BaseTransform to make all these augments be compatible with both classification and semantic
@@ -682,12 +682,14 @@ def v8_transforms(dataset, imgsz, hyp):
 
 
 # Classification augmentations -----------------------------------------------------------------------------------------
-def classify_transforms(size=224):
+def classify_transforms(size=224, mean=(0.0, 0.0, 0.0), std=(0.0, 0.0, 0.0)):  # IMAGENET_MEAN, IMAGENET_STD
     # Transforms to apply if albumentations not installed
     if not isinstance(size, int):
         raise TypeError(f'classify_transforms() size {size} must be integer, not (list, tuple)')
-    # T.Compose([T.ToTensor(), T.Resize(size), T.CenterCrop(size), T.Normalize(IMAGENET_MEAN, IMAGENET_STD)])
-    return T.Compose([CenterCrop(size), ToTensor(), T.Normalize(IMAGENET_MEAN, IMAGENET_STD)])
+    if any(mean) or any(std):
+        return T.Compose([CenterCrop(size), ToTensor(), T.Normalize(mean, std)])
+    else:
+        return T.Compose([CenterCrop(size), ToTensor()])
 
 
 def classify_albumentations(
@@ -697,8 +699,8 @@ def classify_albumentations(
         hflip=0.5,
         vflip=0.0,
         jitter=0.4,
-        mean=IMAGENET_MEAN,
-        std=IMAGENET_STD,
+        mean=(0.0, 0.0, 0.0),  # IMAGENET_MEAN
+        std=(0.0, 0.0, 0.0),  # IMAGENET_STD
         auto_aug=False,
 ):
     # YOLOv8 classification Albumentations (optional, only used if package is installed)
@@ -723,7 +725,9 @@ def classify_albumentations(
                     T += [A.ColorJitter(jitter, jitter, jitter, 0)]  # brightness, contrast, saturation, 0 hue
         else:  # Use fixed crop for eval set (reproducibility)
             T = [A.SmallestMaxSize(max_size=size), A.CenterCrop(height=size, width=size)]
-        T += [A.Normalize(mean=mean, std=std), ToTensorV2()]  # Normalize and convert to Tensor
+        if any(mean) or any(std):
+            T += [A.Normalize(mean=mean, std=std)]
+        T += [ToTensorV2()]  # Normalize and convert to Tensor
         LOGGER.info(prefix + ', '.join(f'{x}'.replace('always_apply=False, ', '') for x in T if x.p))
         return A.Compose(T)
 

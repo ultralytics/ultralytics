@@ -30,11 +30,17 @@ class SegmentationPredictor(DetectionPredictor):
                 results.append(Results(orig_img=orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6]))
                 continue
             if self.args.retina_masks:
-                pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
+                if not isinstance(orig_imgs, torch.Tensor):
+                    pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
+                else:
+                    pred[:, :4] = pred[:, :4].round()
                 masks = ops.process_mask_native(proto[i], pred[:, 6:], pred[:, :4], shape[:2])  # HWC
             else:
                 masks = ops.process_mask(proto[i], pred[:, 6:], pred[:, :4], img.shape[2:], upsample=True)  # HWC
-                pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
+                if not isinstance(orig_imgs, torch.Tensor):
+                    pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
+                else:
+                    pred[:, :4] = pred[:, :4].round()
             results.append(
                 Results(orig_img=orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], masks=masks))
         return results

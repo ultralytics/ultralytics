@@ -51,6 +51,42 @@ source can be used as a stream and the model argument required for that source.
 | YouTube    | &check; | `'https://youtu.be/Zgi9g1ksQHc'`           | `str`          |                  |
 | stream     | &check; | `'rtsp://example.com/media.mp4'`           | `str`          | RTSP, RTMP, HTTP |
 
+## Valid Image Formats
+
+For images, YOLOv8 supports a variety of image formats. The following suffixes are valid for images:
+
+| Image Suffixes | Example Predict Command          | Reference                                                                            |
+|----------------|----------------------------------|--------------------------------------------------------------------------------------|
+| bmp            | `yolo predict source=image.bmp`  | [Microsoft](https://docs.microsoft.com/en-us/windows/win32/gdi/bitmap-file-format)   |
+| dng            | `yolo predict source=image.dng`  | [Adobe](https://helpx.adobe.com/photoshop/using/digital-negative.html)               |
+| jpeg           | `yolo predict source=image.jpeg` | [Joint Photographic Experts Group](https://jpeg.org/jpeg/)                           |
+| jpg            | `yolo predict source=image.jpg`  | [Joint Photographic Experts Group](https://jpeg.org/jpeg/)                           |
+| mpo            | `yolo predict source=image.mpo`  | [CIPA](https://www.cipa.jp/std/documents/e/DC-007-Translation-2018-E.pdf)            |
+| png            | `yolo predict source=image.png`  | [Portable Network Graphics](https://www.w3.org/TR/PNG/)                              |
+| tif            | `yolo predict source=image.tif`  | [Adobe](https://www.adobe.com/content/dam/acom/en/products/photoshop/pdfs/tiff6.pdf) |
+| tiff           | `yolo predict source=image.tiff` | [Adobe](https://www.adobe.com/content/dam/acom/en/products/photoshop/pdfs/tiff6.pdf) |
+| webp           | `yolo predict source=image.webp` | [Google Developers](https://developers.google.com/speed/webp)                        |
+| pfm            | `yolo predict source=image.pfm`  | [HDR Labs](http://hdrlabs.com/tools/pfrenchy/)                                       |
+
+## Valid Video Formats
+
+For videos, YOLOv8 also supports a variety of video formats. The following suffixes are valid for videos:
+
+| Video Suffixes | Example Predict Command          | Reference                                                                                                      |
+|----------------|----------------------------------|----------------------------------------------------------------------------------------------------------------|
+| asf            | `yolo predict source=video.asf`  | [Microsoft](https://docs.microsoft.com/en-us/windows/win32/wmformat/asf-file-structure)                        |
+| avi            | `yolo predict source=video.avi`  | [Microsoft](https://docs.microsoft.com/en-us/windows/win32/directshow/avi-riff-file-reference)                 |
+| gif            | `yolo predict source=video.gif`  | [CompuServe](https://www.w3.org/Graphics/GIF/spec-gif89a.txt)                                                  |
+| m4v            | `yolo predict source=video.m4v`  | [Apple](https://developer.apple.com/library/archive/documentation/QuickTime/QTFF/QTFFChap2/qtff2.html)         |
+| mkv            | `yolo predict source=video.mkv`  | [Matroska](https://matroska.org/technical/specs/index.html)                                                    |
+| mov            | `yolo predict source=video.mov`  | [Apple](https://developer.apple.com/library/archive/documentation/QuickTime/QTFF/QTFFPreface/qtffPreface.html) |
+| mp4            | `yolo predict source=video.mp4`  | [ISO 68939](https://www.iso.org/standard/68939.html)                                                           |
+| mpeg           | `yolo predict source=video.mpeg` | [ISO 56021](https://www.iso.org/standard/56021.html)                                                           |
+| mpg            | `yolo predict source=video.mpg`  | [ISO 56021](https://www.iso.org/standard/56021.html)                                                           |
+| ts             | `yolo predict source=video.ts`   | [MPEG Transport Stream](https://en.wikipedia.org/wiki/MPEG_transport_stream)                                   |
+| wmv            | `yolo predict source=video.wmv`  | [Microsoft](https://docs.microsoft.com/en-us/windows/win32/wmformat/wmv-file-structure)                        |
+| webm           | `yolo predict source=video.webm` | [Google Developers](https://developers.google.com/media/vp9/getting-started/webm-file-format)                  |
+
 ## Working with Results
 
 Results object consists of these component objects:

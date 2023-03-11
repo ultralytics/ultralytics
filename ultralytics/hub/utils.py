@@ -182,7 +182,7 @@ class Traces:
             'environment': ENVIRONMENT}
         self.enabled = \
             SETTINGS['sync'] and \
-            RANK in {-1, 0} and \
+            RANK in (-1, 0) and \
             not TESTS_RUNNING and \
             ONLINE and \
             (is_pip_package() or get_git_origin_url() == 'https://github.com/ultralytics/ultralytics.git')

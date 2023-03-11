@@ -148,7 +148,7 @@ class Exporter:
         self.run_callbacks('on_export_start')
         t = time.time()
         format = self.args.format.lower()  # to lowercase
-        if format in {'tensorrt', 'trt'}:  # engine aliases
+        if format in ('tensorrt', 'trt'):  # engine aliases
             format = 'engine'
         fmts = tuple(export_formats()['Argument'][1:])  # available export formats
         flags = [x == format for x in fmts]

@@ -1,10 +1,12 @@
+<img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
+
 Inference or prediction of a task returns a list of `Results` objects. Alternatively, in the streaming mode, it returns
 a generator of `Results` objects which is memory efficient. Streaming mode can be enabled by passing `stream=True` in
 predictor's call method.
 
 !!! example "Predict"
 
-    === "Getting a List"
+    === "Return a List"
 
     ```python
     inputs = [img, img]  # list of np arrays
@@ -16,7 +18,7 @@ predictor's call method.
         probs = result.probs  # Class probabilities for classification outputs
     ```
     
-    === "Getting a Generator"
+    === "Return a Generator"
 
     ```python
     inputs = [img, img]  # list of numpy arrays
@@ -51,7 +53,7 @@ source can be used as a stream and the model argument required for that source.
 | YouTube    | &check; | `'https://youtu.be/Zgi9g1ksQHc'`           | `str`          |                  |
 | stream     | &check; | `'rtsp://example.com/media.mp4'`           | `str`          | RTSP, RTMP, HTTP |
 
-## Valid Image Formats
+## Image Formats
 
 For images, YOLOv8 supports a variety of image formats defined
 in [yolo/data/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/data/utils.py). The
@@ -70,7 +72,7 @@ following suffixes are valid for images:
 | webp           | `yolo predict source=image.webp` | [Google Developers](https://developers.google.com/speed/webp)                        |
 | pfm            | `yolo predict source=image.pfm`  | [HDR Labs](http://hdrlabs.com/tools/pfrenchy/)                                       |
 
-## Valid Video Formats
+## Video Formats
 
 For videos, YOLOv8 also supports a variety of video formats defined
 in [yolo/data/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/data/utils.py). The

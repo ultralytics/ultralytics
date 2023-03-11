@@ -111,6 +111,7 @@ nav:
       - Segmentation: tasks/segmentation.md
       - Multi-Object Tracking: tasks/tracking.md
       - Classification: tasks/classification.md
+      - Keypoints: tasks/keypoints.md
   - Usage:
       - CLI: cli.md
       - Python: python.md

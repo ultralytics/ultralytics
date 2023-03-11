@@ -1,6 +1,6 @@
 # Ultralytics YOLOv8 Tasks
 
-YOLOv8 is an AI framework that supports multiple computer vision tasks. The framework can be used to perform detection, segmentation, classification, and keypoints detection. Each of these tasks has a different objective and use case.
+YOLOv8 is an AI framework that supports multiple computer vision **tasks**. The framework can be used to perform [detection](detection.md), [segmentation](segmentation.md), [classification](classification.md), and [keypoints](keypoints.md) detection. Each of these tasks has a different objective and use case.
 
 <img width="1024" src="https://user-images.githubusercontent.com/26833433/212094133-6bb8c21c-3d47-41df-a512-81c5931054ae.png">
 

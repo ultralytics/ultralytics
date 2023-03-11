@@ -115,9 +115,9 @@ nav:
       - Benchmark: modes/benchmark.md
   - Tasks:
       - tasks/index.md
-      - Detection: tasks/detection.md
-      - Segmentation: tasks/segmentation.md
-      - Classification: tasks/classification.md
+      - Detect: tasks/detect.md
+      - Segment: tasks/segment.md
+      - Classify: tasks/classify.md
       - Keypoints: tasks/keypoints.md
   - Usage:
       - CLI: cli.md

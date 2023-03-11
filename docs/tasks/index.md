@@ -1,33 +1,33 @@
 # Ultralytics YOLOv8 Tasks
 
 YOLOv8 is an AI framework that supports multiple computer vision **tasks**. The framework can be used to
-perform [detection](detection.md), [segmentation](segmentation.md), [classification](classification.md),
+perform [detection](detect.md), [segmentation](segment.md), [classification](classify.md),
 and [keypoints](keypoints.md) detection. Each of these tasks has a different objective and use case.
 
 <img width="1024" src="https://user-images.githubusercontent.com/26833433/212094133-6bb8c21c-3d47-41df-a512-81c5931054ae.png">
 
-## [Detection](detection.md)
+## [Detection](detect.md)
 
 Detection is the primary task supported by YOLOv8. It involves detecting objects in an image or video frame and drawing
 bounding boxes around them. The detected objects are classified into different categories based on their features.
 YOLOv8 can detect multiple objects in a single image or video frame with high accuracy and speed.
 
-[Detection Examples](detection.md){ .md-button .md-button--primary}
+[Detection Examples](detect.md){ .md-button .md-button--primary}
 
-## [Segmentation](segmentation.md)
+## [Segmentation](segment.md)
 
 Segmentation is a task that involves segmenting an image into different regions based on the content of the image. Each
 region is assigned a label based on its content. This task is useful in applications such as image segmentation and
 medical imaging. YOLOv8 uses a variant of the U-Net architecture to perform segmentation.
 
-[Segmentation Examples](segmentation.md){ .md-button .md-button--primary}
+[Segmentation Examples](segment.md){ .md-button .md-button--primary}
 
-## [Classification](classification.md)
+## [Classification](classify.md)
 
 Classification is a task that involves classifying an image into different categories. YOLOv8 can be used to classify
 images based on their content. It uses a variant of the EfficientNet architecture to perform classification.
 
-[Classification Examples](classification.md){ .md-button .md-button--primary}
+[Classification Examples](classify.md){ .md-button .md-button--primary}
 
 ## [Keypoints](keypoints.md)
 

@@ -75,6 +75,7 @@ simplify: False  # ONNX: simplify model
 opset:  # ONNX: opset version (optional)
 workspace: 4  # TensorRT: workspace size (GB)
 nms: False  # CoreML: add NMS
+path: # folder location for predictor result
 
 # Hyperparameters ------------------------------------------------------------------------------------------------------
 lr0: 0.01  # initial learning rate (i.e. SGD=1E-2, Adam=1E-3)

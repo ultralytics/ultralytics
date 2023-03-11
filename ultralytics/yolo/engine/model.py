@@ -208,6 +208,7 @@ class YOLO:
 
         overrides = self.overrides.copy()
         overrides['conf'] = 0.25
+        overrides['path'] = None
         overrides.update(kwargs)  # prefer kwargs
         overrides['mode'] = kwargs.get('mode', 'predict')
         assert overrides['mode'] in ['track', 'predict']

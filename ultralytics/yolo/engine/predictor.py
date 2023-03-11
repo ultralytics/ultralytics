@@ -74,7 +74,10 @@ class BasePredictor:
         self.args = get_cfg(cfg, overrides)
         project = self.args.project or Path(SETTINGS['runs_dir']) / self.args.task
         name = self.args.name or f'{self.args.mode}'
-        self.save_dir = increment_path(Path(project) / name, exist_ok=self.args.exist_ok)
+        if (self.args.path):
+            self.save_dir = increment_path(Path(self.args.path), exist_ok=self.args.exist_ok)
+        else:
+            self.save_dir = increment_path(Path(project) / name, exist_ok=self.args.exist_ok)
         if self.args.conf is None:
             self.args.conf = 0.25  # default conf=0.25
         self.done_warmup = False
@@ -191,7 +194,6 @@ class BasePredictor:
 
                 if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
                     s += self.write_results(i, self.results, (p, im, im0))
-
                 if self.args.show:
                     self.show(p)
 

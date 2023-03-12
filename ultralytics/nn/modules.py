@@ -379,7 +379,7 @@ class Ensemble(nn.ModuleList):
 
 
 class ImplicitA(nn.Module):
-
+    # Adds an implicit parameter to the input tensor. The implicit parameter is learned during training.
     def __init__(self, channel):
         super().__init__()
         self.channel = channel
@@ -391,7 +391,7 @@ class ImplicitA(nn.Module):
 
 
 class ImplicitM(nn.Module):
-
+    # Multiplies the input tensor by an implicit parameter. The implicit parameter is learned during training.
     def __init__(self, channel):
         super().__init__()
         self.channel = channel
@@ -402,7 +402,8 @@ class ImplicitM(nn.Module):
         return self.implicit.expand_as(x) * x
 
 
-# heads
+# Model heads below ----------------------------------------------------------------------------------------------------
+
 class Detect(nn.Module):
     # YOLOv8 Detect head for detection models
     dynamic = False  # force grid reconstruction
@@ -478,7 +479,7 @@ class Segment(Detect):
 
 
 class Pose(Detect):
-
+    # YOLOv8 Pose head for keypoints models
     def __init__(self, nc=80, nkpt=17, ch=()):
         super().__init__(nc, ch)
         self.nkpt = nkpt  # number of keypoints
@@ -496,7 +497,6 @@ class Pose(Detect):
         x = self.detect(self, x)
         if self.training:
             return x, kpt
-        # TODO: decode kpt
         bbox = x[:, :4, :] if self.export else x[0][:, :4, :]
         pred_kpt = self.kpts_decode(kpt, bbox)
         return torch.cat([x, pred_kpt], 1) if self.export else (torch.cat([x[0], pred_kpt], 1), (x[1], kpt))

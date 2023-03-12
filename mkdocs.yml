@@ -118,7 +118,7 @@ nav:
       - Detect: tasks/detect.md
       - Segment: tasks/segment.md
       - Classify: tasks/classify.md
-#      - Keypoints: tasks/keypoints.md
+      - Keypoints: tasks/keypoints.md
   - Usage:
       - CLI: usage/cli.md
       - Python: usage/python.md

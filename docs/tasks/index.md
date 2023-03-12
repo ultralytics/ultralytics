@@ -29,7 +29,6 @@ images based on their content. It uses a variant of the EfficientNet architectur
 
 [Classification Examples](classify.md){ .md-button .md-button--primary}
 
-<!--
 ## [Keypoints](keypoints.md)
 
 Keypoints detection is a task that involves detecting specific points in an image or video frame. These points are
@@ -37,7 +36,6 @@ referred to as keypoints and are used to track movement or pose estimation. YOLO
 video frame with high accuracy and speed.
 
 [Keypoints Examples](keypoints.md){ .md-button .md-button--primary}
--->
 
 ## Conclusion
 

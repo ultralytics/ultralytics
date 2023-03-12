@@ -63,8 +63,8 @@ following suffixes are valid for images:
 |----------------|----------------------------------|-------------------------------------------------------------------------------|
 | .bmp           | `yolo predict source=image.bmp`  | [Microsoft BMP File Format](https://en.wikipedia.org/wiki/BMP_file_format)    |
 | .dng           | `yolo predict source=image.dng`  | [Adobe DNG](https://www.adobe.com/products/photoshop/extend.displayTab2.html) |
-| .jpeg          | `yolo predict source=image.jpeg` | [JEPG](https://en.wikipedia.org/wiki/JPEG)                                    |
-| .jpg           | `yolo predict source=image.jpg`  | [JEPG](https://en.wikipedia.org/wiki/JPEG)                                    |
+| .jpeg          | `yolo predict source=image.jpeg` | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                    |
+| .jpg           | `yolo predict source=image.jpg`  | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                    |
 | .mpo           | `yolo predict source=image.mpo`  | [Multi Picture Object](https://fileinfo.com/extension/mpo)                    |
 | .png           | `yolo predict source=image.png`  | [Portable Network Graphics](https://en.wikipedia.org/wiki/PNG)                |
 | .tif           | `yolo predict source=image.tif`  | [Tag Image File Format](https://en.wikipedia.org/wiki/TIFF)                   |
@@ -163,7 +163,7 @@ Class reference documentation for `Results` module and its components can be fou
 ## Plotting results
 
 You can use `plot()` function of `Result` object to plot results on in image object. It plots all components(boxes,
-masks, classification logits, etc) found in the results object
+masks, classification logits, etc.) found in the results object
 
 ```python
 res = model(img)

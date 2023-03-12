@@ -43,7 +43,7 @@ CLI requires no customization or code. You can simply run all tasks from the ter
         yolo detect train model=yolov8n.pt data=coco128.yaml device=\'0,1,2,3\'
         ```
 
-[CLI Guide](cli.md){ .md-button .md-button--primary}
+[CLI Guide](usage/cli.md){ .md-button .md-button--primary}
 
 ## Use with Python
 
@@ -70,4 +70,4 @@ classification into their Python projects using YOLOv8.
     success = model.export(format="onnx")  # export the model to ONNX format
     ```
 
-[Python Guide](python.md){.md-button .md-button--primary}
+[Python Guide](usage/python.md){.md-button .md-button--primary}

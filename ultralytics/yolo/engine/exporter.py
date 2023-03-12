@@ -63,7 +63,6 @@ from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import C2f, Detect, Segment
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel
 from ultralytics.yolo.cfg import get_cfg
-from ultralytics.yolo.data.utils import IMAGENET_MEAN, IMAGENET_STD
 from ultralytics.yolo.utils import (DEFAULT_CFG, LINUX, LOGGER, MACOS, __version__, callbacks, colorstr,
                                     get_default_args, yaml_save)
 from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version
@@ -148,7 +147,7 @@ class Exporter:
         self.run_callbacks('on_export_start')
         t = time.time()
         format = self.args.format.lower()  # to lowercase
-        if format in {'tensorrt', 'trt'}:  # engine aliases
+        if format in ('tensorrt', 'trt'):  # engine aliases
             format = 'engine'
         fmts = tuple(export_formats()['Argument'][1:])  # available export formats
         flags = [x == format for x in fmts]
@@ -408,8 +407,6 @@ class Exporter:
         scale = 1 / 255
         classifier_config = None
         if self.model.task == 'classify':
-            bias = [-x for x in IMAGENET_MEAN]
-            scale = 1 / 255 / (sum(IMAGENET_STD) / 3)
             classifier_config = ct.ClassifierConfig(list(self.model.names.values())) if self.args.nms else None
             model = self.model
         elif self.model.task == 'detect':
@@ -531,7 +528,7 @@ class Exporter:
         # Export to TF
         int8 = '-oiqt -qt per-tensor' if self.args.int8 else ''
         cmd = f'onnx2tf -i {f_onnx} -o {f} -nuo --non_verbose {int8}'
-        LOGGER.info(f"\n{prefix} running '{cmd}'")
+        LOGGER.info(f"\n{prefix} running '{cmd.strip()}'")
         subprocess.run(cmd, shell=True)
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml
 

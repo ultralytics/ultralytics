@@ -103,7 +103,7 @@ jobs:
         shell: python
         run: |
           from ultralytics.yolo.utils.benchmarks import benchmark
-          benchmark(model='${{ matrix.model }}-cls.pt', imgsz=160, half=False, hard_fail=0.60)
+          benchmark(model='${{ matrix.model }}-cls.pt', imgsz=160, half=False, hard_fail=0.61)
       - name: Benchmark Summary
         run: cat benchmarks.log
 

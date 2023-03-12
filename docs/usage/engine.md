@@ -9,7 +9,7 @@ custom model and dataloader by just overriding these functions:
 
 * `get_model(cfg, weights)` - The function that builds the model to be trained
 * `get_dataloder()` - The function that builds the dataloader
-  More details and source code can be found in [`BaseTrainer` Reference](reference/base_trainer.md)
+  More details and source code can be found in [`BaseTrainer` Reference](../reference/base_trainer.md)
 
 ## DetectionTrainer
 

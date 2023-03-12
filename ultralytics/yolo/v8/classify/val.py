@@ -43,6 +43,8 @@ class ClassificationValidator(BaseValidator):
         return build_classification_dataloader(path=dataset_path,
                                                imgsz=self.args.imgsz,
                                                batch_size=batch_size,
+                                               augment=False,
+                                               shuffle=False,
                                                workers=self.args.workers)
 
     def print_results(self):

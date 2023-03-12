@@ -49,7 +49,7 @@ class Results:
         self.keypoints = keypoints if keypoints is not None else None
         self.names = names
         self.path = path
-        self._keys = (k for k in ('boxes', 'masks', 'probs', 'keypoints') if getattr(self, k) is not None)
+        self._keys = [k for k in ('boxes', 'masks', 'probs', 'keypoints') if getattr(self, k) is not None]
 
     def pandas(self):
         pass

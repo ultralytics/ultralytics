@@ -404,6 +404,7 @@ class ImplicitM(nn.Module):
 
 # Model heads below ----------------------------------------------------------------------------------------------------
 
+
 class Detect(nn.Module):
     # YOLOv8 Detect head for detection models
     dynamic = False  # force grid reconstruction

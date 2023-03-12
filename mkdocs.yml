@@ -38,6 +38,9 @@ theme:
     - navigation.top
     - navigation.expand
     - navigation.footer
+    - navigation.tracking
+    - navigation.instant
+    - navigation.indexes
     - content.tabs.link  # all code tabs change simultaneously
 
 # Customization
@@ -102,18 +105,26 @@ plugins:
 nav:
   - Home: index.md
   - Quickstart: quickstart.md
+  - Modes:
+      - modes/index.md
+      - Train: modes/train.md
+      - Val: modes/val.md
+      - Predict: modes/predict.md
+      - Export: modes/export.md
+      - Track: modes/track.md
+      - Benchmark: modes/benchmark.md
   - Tasks:
-      - Detection: tasks/detection.md
-      - Segmentation: tasks/segmentation.md
-      - Multi-Object Tracking: tasks/tracking.md
-      - Classification: tasks/classification.md
+      - tasks/index.md
+      - Detect: tasks/detect.md
+      - Segment: tasks/segment.md
+      - Classify: tasks/classify.md
+#      - Keypoints: tasks/keypoints.md
   - Usage:
-      - CLI: cli.md
-      - Python: python.md
-      - Predict: predict.md
-      - Configuration: cfg.md
-      - Customization using callbacks: callbacks.md
-      - Advanced customization: engine.md
+      - CLI: usage/cli.md
+      - Python: usage/python.md
+      - Callbacks: usage/callbacks.md
+      - Configuration: usage/cfg.md
+      - Advanced Customization: usage/engine.md
   - Ultralytics HUB: hub.md
   - iOS and Android App: app.md
   - Reference:

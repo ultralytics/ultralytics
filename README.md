@@ -240,7 +240,7 @@ on your experience. Thank you 🙏 to all our contributors!
 <!-- SVG image from https://opencollective.com/ultralytics/contributors.svg?width=990 -->
 
 <a href="https://github.com/ultralytics/yolov5/graphs/contributors">
-<img src="https://github.com/ultralytics/assets/raw/main/im/image-contributors.png" /></a>
+<img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/image-contributors.png"></a>
 
 ## <div align="center">License</div>
 

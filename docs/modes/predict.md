@@ -59,18 +59,18 @@ For images, YOLOv8 supports a variety of image formats defined
 in [yolo/data/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/data/utils.py). The
 following suffixes are valid for images:
 
-| Image Suffixes | Example Predict Command          | Reference                                                                            |
-|----------------|----------------------------------|--------------------------------------------------------------------------------------|
-| bmp            | `yolo predict source=image.bmp`  | [Microsoft](https://docs.microsoft.com/en-us/windows/win32/gdi/bitmap-file-format)   |
-| dng            | `yolo predict source=image.dng`  | [Adobe](https://helpx.adobe.com/photoshop/using/digital-negative.html)               |
-| jpeg           | `yolo predict source=image.jpeg` | [Joint Photographic Experts Group](https://jpeg.org/jpeg/)                           |
-| jpg            | `yolo predict source=image.jpg`  | [Joint Photographic Experts Group](https://jpeg.org/jpeg/)                           |
-| mpo            | `yolo predict source=image.mpo`  | [CIPA](https://www.cipa.jp/std/documents/e/DC-007-Translation-2018-E.pdf)            |
-| png            | `yolo predict source=image.png`  | [Portable Network Graphics](https://www.w3.org/TR/PNG/)                              |
-| tif            | `yolo predict source=image.tif`  | [Adobe](https://www.adobe.com/content/dam/acom/en/products/photoshop/pdfs/tiff6.pdf) |
-| tiff           | `yolo predict source=image.tiff` | [Adobe](https://www.adobe.com/content/dam/acom/en/products/photoshop/pdfs/tiff6.pdf) |
-| webp           | `yolo predict source=image.webp` | [Google Developers](https://developers.google.com/speed/webp)                        |
-| pfm            | `yolo predict source=image.pfm`  | [HDR Labs](http://hdrlabs.com/tools/pfrenchy/)                                       |
+| Image Suffixes | Example Predict Command          | Reference                                                                     |
+|----------------|----------------------------------|-------------------------------------------------------------------------------|
+| .bmp           | `yolo predict source=image.bmp`  | [Microsoft BMP File Format](https://en.wikipedia.org/wiki/BMP_file_format)    |
+| .dng           | `yolo predict source=image.dng`  | [Adobe DNG](https://www.adobe.com/products/photoshop/extend.displayTab2.html) |
+| .jpeg          | `yolo predict source=image.jpeg` | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                    |
+| .jpg           | `yolo predict source=image.jpg`  | [JPEG](https://en.wikipedia.org/wiki/JPEG)                                    |
+| .mpo           | `yolo predict source=image.mpo`  | [Multi Picture Object](https://fileinfo.com/extension/mpo)                    |
+| .png           | `yolo predict source=image.png`  | [Portable Network Graphics](https://en.wikipedia.org/wiki/PNG)                |
+| .tif           | `yolo predict source=image.tif`  | [Tag Image File Format](https://en.wikipedia.org/wiki/TIFF)                   |
+| .tiff          | `yolo predict source=image.tiff` | [Tag Image File Format](https://en.wikipedia.org/wiki/TIFF)                   |
+| .webp          | `yolo predict source=image.webp` | [WebP](https://en.wikipedia.org/wiki/WebP)                                    |
+| .pfm           | `yolo predict source=image.pfm`  | [Portable FloatMap](https://en.wikipedia.org/wiki/Netpbm#File_formats)        |
 
 ## Video Formats
 
@@ -78,20 +78,20 @@ For videos, YOLOv8 also supports a variety of video formats defined
 in [yolo/data/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/data/utils.py). The
 following suffixes are valid for videos:
 
-| Video Suffixes | Example Predict Command          | Reference                                                                                                      |
-|----------------|----------------------------------|----------------------------------------------------------------------------------------------------------------|
-| asf            | `yolo predict source=video.asf`  | [Microsoft](https://docs.microsoft.com/en-us/windows/win32/wmformat/asf-file-structure)                        |
-| avi            | `yolo predict source=video.avi`  | [Microsoft](https://docs.microsoft.com/en-us/windows/win32/directshow/avi-riff-file-reference)                 |
-| gif            | `yolo predict source=video.gif`  | [CompuServe](https://www.w3.org/Graphics/GIF/spec-gif89a.txt)                                                  |
-| m4v            | `yolo predict source=video.m4v`  | [Apple](https://developer.apple.com/library/archive/documentation/QuickTime/QTFF/QTFFChap2/qtff2.html)         |
-| mkv            | `yolo predict source=video.mkv`  | [Matroska](https://matroska.org/technical/specs/index.html)                                                    |
-| mov            | `yolo predict source=video.mov`  | [Apple](https://developer.apple.com/library/archive/documentation/QuickTime/QTFF/QTFFPreface/qtffPreface.html) |
-| mp4            | `yolo predict source=video.mp4`  | [ISO 68939](https://www.iso.org/standard/68939.html)                                                           |
-| mpeg           | `yolo predict source=video.mpeg` | [ISO 56021](https://www.iso.org/standard/56021.html)                                                           |
-| mpg            | `yolo predict source=video.mpg`  | [ISO 56021](https://www.iso.org/standard/56021.html)                                                           |
-| ts             | `yolo predict source=video.ts`   | [MPEG Transport Stream](https://en.wikipedia.org/wiki/MPEG_transport_stream)                                   |
-| wmv            | `yolo predict source=video.wmv`  | [Microsoft](https://docs.microsoft.com/en-us/windows/win32/wmformat/wmv-file-structure)                        |
-| webm           | `yolo predict source=video.webm` | [Google Developers](https://developers.google.com/media/vp9/getting-started/webm-file-format)                  |
+| Video Suffixes | Example Predict Command          | Reference                                                                        |
+|----------------|----------------------------------|----------------------------------------------------------------------------------|
+| .asf           | `yolo predict source=video.asf`  | [Advanced Systems Format](https://en.wikipedia.org/wiki/Advanced_Systems_Format) |
+| .avi           | `yolo predict source=video.avi`  | [Audio Video Interleave](https://en.wikipedia.org/wiki/Audio_Video_Interleave)   |
+| .gif           | `yolo predict source=video.gif`  | [Graphics Interchange Format](https://en.wikipedia.org/wiki/GIF)                 |
+| .m4v           | `yolo predict source=video.m4v`  | [MPEG-4 Part 14](https://en.wikipedia.org/wiki/M4V)                              |
+| .mkv           | `yolo predict source=video.mkv`  | [Matroska](https://en.wikipedia.org/wiki/Matroska)                               |
+| .mov           | `yolo predict source=video.mov`  | [QuickTime File Format](https://en.wikipedia.org/wiki/QuickTime_File_Format)     |
+| .mp4           | `yolo predict source=video.mp4`  | [MPEG-4 Part 14 - Wikipedia](https://en.wikipedia.org/wiki/MPEG-4_Part_14)       |
+| .mpeg          | `yolo predict source=video.mpeg` | [MPEG-1 Part 2](https://en.wikipedia.org/wiki/MPEG-1)                            |
+| .mpg           | `yolo predict source=video.mpg`  | [MPEG-1 Part 2](https://en.wikipedia.org/wiki/MPEG-1)                            |
+| .ts            | `yolo predict source=video.ts`   | [MPEG Transport Stream](https://en.wikipedia.org/wiki/MPEG_transport_stream)     |
+| .wmv           | `yolo predict source=video.wmv`  | [Windows Media Video](https://en.wikipedia.org/wiki/Windows_Media_Video)         |
+| .webm          | `yolo predict source=video.webm` | [WebM Project](https://en.wikipedia.org/wiki/WebM)                               |
 
 ## Working with Results
 
@@ -163,7 +163,7 @@ Class reference documentation for `Results` module and its components can be fou
 ## Plotting results
 
 You can use `plot()` function of `Result` object to plot results on in image object. It plots all components(boxes,
-masks, classification logits, etc) found in the results object
+masks, classification logits, etc.) found in the results object
 
 ```python
 res = model(img)

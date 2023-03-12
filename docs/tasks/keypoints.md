@@ -95,7 +95,7 @@ Use a trained YOLOv8n model to run predictions on images.
         yolo detect predict model=path/to/best.pt source="https://ultralytics.com/images/bus.jpg"  # predict with custom model
         ```
 
-Read more details of `predict` in our [Predict](https://docs.ultralytics.com/predict/) page.
+Read more details of `predict` in our [Predict](https://docs.ultralytics.com/modes/predict/) page.
 
 ## Export TODO
 

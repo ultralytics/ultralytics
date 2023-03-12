@@ -132,7 +132,6 @@ given task.
 | `save`           | `False`                | save images with results                                 |
 | `save_txt`       | `False`                | save results as .txt file                                |
 | `save_conf`      | `False`                | save results with confidence scores                      |
-| `save_id`        | `False`                | save results with track id                               |
 | `save_crop`      | `False`                | save cropped images with results                         |
 | `hide_labels`    | `False`                | hide labels                                              |
 | `hide_conf`      | `False`                | hide confidence scores                                   |

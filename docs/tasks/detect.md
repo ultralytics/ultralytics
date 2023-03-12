@@ -16,7 +16,7 @@ scene, but don't need to know exactly where the object is or its exact shape.
 ## Train
 
 Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. For a full list of available arguments see
-the [Configuration](../cfg.md) page.
+the [Configuration](../usage/cfg.md) page.
 
 !!! example ""
 
@@ -120,19 +120,20 @@ Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
         yolo export model=path/to/best.pt format=onnx  # export custom trained model
         ```
 
-Available YOLOv8 export formats include:
+Available YOLOv8 export formats are in the table below. You can predict or validate directly on exported models,
+i.e. `yolo predict model=yolov8n.onnx`.
 
-| Format                                                             | `format=`     | Model                     | Metadata |
-|--------------------------------------------------------------------|---------------|---------------------------|----------|
-| [PyTorch](https://pytorch.org/)                                    | -             | `yolov8n.pt`              | ✅        |
-| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript` | `yolov8n.torchscript`     | ✅        |
-| [ONNX](https://onnx.ai/)                                           | `onnx`        | `yolov8n.onnx`            | ✅        |
-| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`    | `yolov8n_openvino_model/` | ✅        |
-| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`      | `yolov8n.engine`          | ✅        |
-| [CoreML](https://github.com/apple/coremltools)                     | `coreml`      | `yolov8n.mlmodel`         | ✅        |
-| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model` | `yolov8n_saved_model/`    | ✅        |
-| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`          | `yolov8n.pb`              | ❌        |
-| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`      | `yolov8n.tflite`          | ✅        |
-| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`     | `yolov8n_edgetpu.tflite`  | ✅        |
-| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`        | `yolov8n_web_model/`      | ✅        |
-| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`      | `yolov8n_paddle_model/`   | ✅        |
+| Format                                                             | `format` Argument | Model                     | Metadata |
+|--------------------------------------------------------------------|-------------------|---------------------------|----------|
+| [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n.pt`              | ✅        |
+| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n.torchscript`     | ✅        |
+| [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n.onnx`            | ✅        |
+| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`        | `yolov8n_openvino_model/` | ✅        |
+| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`          | `yolov8n.engine`          | ✅        |
+| [CoreML](https://github.com/apple/coremltools)                     | `coreml`          | `yolov8n.mlmodel`         | ✅        |
+| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`     | `yolov8n_saved_model/`    | ✅        |
+| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`              | `yolov8n.pb`              | ❌        |
+| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`          | `yolov8n.tflite`          | ✅        |
+| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`         | `yolov8n_edgetpu.tflite`  | ✅        |
+| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n_web_model/`      | ✅        |
+| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n_paddle_model/`   | ✅        |

@@ -299,7 +299,7 @@ def entrypoint(debug=''):
         task = model.task
 
     # Mode
-    if mode in {'predict', 'track'} and 'source' not in overrides:
+    if mode in ('predict', 'track') and 'source' not in overrides:
         overrides['source'] = DEFAULT_CFG.source or ROOT / 'assets' if (ROOT / 'assets').exists() \
             else 'https://ultralytics.com/images/bus.jpg'
         LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using default 'source={overrides['source']}'.")

@@ -124,13 +124,8 @@ class Loss:
         self.device = device
 
         self.use_dfl = m.reg_max > 1
-        roll_out_thr = h.min_memory if h.min_memory > 1 else 64 if h.min_memory else 0  # 64 is default
 
-        self.assigner = TaskAlignedAssigner(topk=10,
-                                            num_classes=self.nc,
-                                            alpha=0.5,
-                                            beta=6.0,
-                                            roll_out_thr=roll_out_thr)
+        self.assigner = TaskAlignedAssigner(topk=10, num_classes=self.nc, alpha=0.5, beta=6.0)
         self.bbox_loss = BboxLoss(m.reg_max - 1, use_dfl=self.use_dfl).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
 

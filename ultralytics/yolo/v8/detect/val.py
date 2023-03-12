@@ -113,6 +113,7 @@ class DetectionValidator(BaseValidator):
 
     def finalize_metrics(self, *args, **kwargs):
         self.metrics.speed = self.speed
+        self.metrics.confusion_matrix = self.confusion_matrix
 
     def get_stats(self):
         stats = [torch.cat(x, 0).cpu().numpy() for x in zip(*self.stats)]  # to numpy

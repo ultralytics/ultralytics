@@ -26,11 +26,9 @@ import platform
 import time
 from pathlib import Path
 
-import pandas as pd
-
 from ultralytics import YOLO
 from ultralytics.yolo.engine.exporter import export_formats
-from ultralytics.yolo.utils import LINUX, LOGGER, ROOT, SETTINGS
+from ultralytics.yolo.utils import LINUX, LOGGER, MACOS, ROOT, SETTINGS
 from ultralytics.yolo.utils.checks import check_yolo
 from ultralytics.yolo.utils.downloads import download
 from ultralytics.yolo.utils.files import file_size
@@ -38,6 +36,9 @@ from ultralytics.yolo.utils.torch_utils import select_device
 
 
 def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, half=False, device='cpu', hard_fail=False):
+    import pandas as pd
+    pd.options.display.max_columns = 10
+    pd.options.display.width = 120
     device = select_device(device, verbose=False)
     if isinstance(model, (str, Path)):
         model = YOLO(model)
@@ -50,6 +51,8 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
             if model.task == 'classify':
                 assert i != 11, 'paddle cls exports coming soon'
             assert i != 9 or LINUX, 'Edge TPU export only supported on Linux'
+            if i == 10:
+                assert MACOS or LINUX, 'TF.js export only supported on macOS and Linux'
             if 'cpu' in device.type:
                 assert cpu, 'inference not supported on CPU'
             if 'cuda' in device.type:

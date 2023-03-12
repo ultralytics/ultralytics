@@ -184,7 +184,7 @@ class AutoBackend(nn.Module):
             LOGGER.info(f'Loading {w} for CoreML inference...')
             import coremltools as ct
             model = ct.models.MLModel(w)
-            metadata = model.user_defined_metadata
+            metadata = dict(model.user_defined_metadata)
         elif saved_model:  # TF SavedModel
             LOGGER.info(f'Loading {w} for TensorFlow SavedModel inference...')
             import tensorflow as tf
@@ -256,10 +256,10 @@ class AutoBackend(nn.Module):
             nhwc = model.runtime.startswith("tensorflow")
             '''
         else:
-            from ultralytics.yolo.engine.exporter import EXPORT_FORMATS_TABLE
+            from ultralytics.yolo.engine.exporter import export_formats
             raise TypeError(f"model='{w}' is not a supported model format. "
                             'See https://docs.ultralytics.com/tasks/detection/#export for help.'
-                            f'\n\n{EXPORT_FORMATS_TABLE}')
+                            f'\n\n{export_formats()}')
 
         # Load external metadata YAML
         if isinstance(metadata, (str, Path)) and Path(metadata).exists():
@@ -332,13 +332,6 @@ class AutoBackend(nn.Module):
             y = [self.bindings[x].data for x in sorted(self.output_names)]
         elif self.coreml:  # CoreML
             im = im[0].cpu().numpy()
-            if self.task == 'classify':
-                from ultralytics.yolo.data.utils import IMAGENET_MEAN, IMAGENET_STD
-
-                # im_pil = Image.fromarray(((im / 6 + 0.5) * 255).astype('uint8'))
-                for i in range(3):
-                    im[..., i] *= IMAGENET_STD[i]
-                    im[..., i] += IMAGENET_MEAN[i]
             im_pil = Image.fromarray((im * 255).astype('uint8'))
             # im = im.resize((192, 320), Image.ANTIALIAS)
             y = self.model.predict({'image': im_pil})  # coordinates are xywh normalized
@@ -371,10 +364,10 @@ class AutoBackend(nn.Module):
                     self.names = {i: f'class{i}' for i in range(nc)}
             else:  # Lite or Edge TPU
                 input = self.input_details[0]
-                int8 = input['dtype'] == np.uint8  # is TFLite quantized uint8 model
+                int8 = input['dtype'] == np.int8  # is TFLite quantized int8 model
                 if int8:
                     scale, zero_point = input['quantization']
-                    im = (im / scale + zero_point).astype(np.uint8)  # de-scale
+                    im = (im / scale + zero_point).astype(np.int8)  # de-scale
                 self.interpreter.set_tensor(input['index'], im)
                 self.interpreter.invoke()
                 y = []

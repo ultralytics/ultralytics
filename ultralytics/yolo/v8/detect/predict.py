@@ -65,7 +65,7 @@ class DetectionPredictor(BasePredictor):
         for d in reversed(det):
             cls, conf, id = d.cls.squeeze(), d.conf.squeeze(), None if d.id is None else int(d.id.item())
             if self.args.save_txt:  # Write to file
-                line = (cls, *d.xywhn.view(-1)) + (conf,) * self.args.save_conf + () if id is None else (id,)
+                line = (cls, *d.xywhn.view(-1)) + (conf, ) * self.args.save_conf + () if id is None else (id, )
                 with open(f'{self.txt_path}.txt', 'a') as f:
                     f.write(('%g ' * len(line)).rstrip() % line + '\n')
             if self.args.save or self.args.save_crop or self.args.show:  # Add bbox to image

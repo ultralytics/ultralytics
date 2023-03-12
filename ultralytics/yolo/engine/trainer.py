@@ -203,11 +203,11 @@ class BaseTrainer:
         self.model = self.model.to(self.device)
         self.set_model_attributes()
         # Check AMP
-        self.amp = torch.tensor([True]).to(self.device)
+        self.amp = torch.tensor(True).to(self.device)
         with torch_distributed_zero_first(RANK):
             if RANK in (-1, 0):
                 callbacks_backup = callbacks.default_callbacks.copy()  # backup callbacks as they are reset by check_amp()
-                self.amp = check_amp(self.model)
+                self.amp = torch.tensor(check_amp(self.model), device=self.device)
                 callbacks.default_callbacks = callbacks_backup  # restore callbacks
         dist.broadcast(self.amp, src=0)  # broadcast the tensor from rank 0 to all other ranks
         self.scaler = amp.GradScaler(enabled=self.amp)

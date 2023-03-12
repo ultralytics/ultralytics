@@ -96,6 +96,13 @@ def test_val_scratch():
     model.val(data='coco8.yaml', imgsz=32)
 
 
+def test_amp():
+    if torch.cuda.is_available():
+        from ultralytics.yolo.engine.trainer import check_amp
+        model = YOLO(MODEL).model.cuda()
+        assert check_amp(model)
+
+
 def test_train_scratch():
     model = YOLO(CFG)
     model.train(data='coco8.yaml', epochs=1, imgsz=32)
@@ -213,6 +220,3 @@ def test_result():
     res = model(SOURCE)
     res[0].plot()
     print(res[0].path)
-
-
-test_predict_img()

@@ -12,6 +12,8 @@ path: ../datasets/coco128-kpt  # dataset root dir
 train: images/train2017  # train images (relative to 'path') 128 images
 val: images/train2017  # val images (relative to 'path') 128 images
 test:  # test images (optional)
+
+# Keypoints
 nkpt: 17  # number of keypoints
 
 # Classes

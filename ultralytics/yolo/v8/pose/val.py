@@ -162,19 +162,22 @@ class PoseValidator(DetectionValidator):
 
     def eval_json(self, stats):
         if self.args.save_json and self.is_coco and len(self.jdict):
-            anno_json = self.data['path'] / 'annotations/instances_val2017.json'  # annotations
+            anni_json = self.data['path'] / 'annotations/instances_val2017.json'  # instance annotations
+            annk_json = self.data['path'] / 'annotations/person_keypoints_val2017.json'  # keypoint annotations
             pred_json = self.save_dir / 'predictions.json'  # predictions
-            LOGGER.info(f'\nEvaluating pycocotools mAP using {pred_json} and {anno_json}...')
+            LOGGER.info(f'\nEvaluating pycocotools mAP using {pred_json} and {anni_json} and {annk_json}...')
             try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
                 check_requirements('pycocotools>=2.0.6')
                 from pycocotools.coco import COCO  # noqa
                 from pycocotools.cocoeval import COCOeval  # noqa
 
-                for x in anno_json, pred_json:
+                for x in anni_json, annk_json, pred_json:
                     assert x.is_file(), f'{x} file not found'
-                anno = COCO(str(anno_json))  # init annotations api
-                pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
-                for i, eval in enumerate([COCOeval(anno, pred, 'bbox'), COCOeval(anno, pred, 'keypoints')]):
+                anni = COCO(str(anni_json))  # init instance annotations api
+                annk = COCO(str(annk_json))  # init keypoints annotations api
+                predi = anni.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
+                predk = annk.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
+                for i, eval in enumerate([COCOeval(anni, predi, 'bbox'), COCOeval(anni, predk, 'keypoints')]):
                     if self.is_coco:
                         eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # im to eval
                     eval.evaluate()

@@ -2,7 +2,7 @@
 # COCO 2017 dataset http://cocodataset.org by Microsoft
 # Example usage: yolo train data=coco.yaml
 # parent
-# ├── yolov5
+# ├── ultralytics
 # └── datasets
 #     └── coco  ← downloads here (20.1 GB)
 

@@ -3,7 +3,7 @@
 # Simplified class names from https://github.com/anishathalye/imagenet-simple-labels
 # Example usage: yolo train task=classify data=imagenet
 # parent
-# ├── yolov5
+# ├── ultralytics
 # └── datasets
 #     └── imagenet  ← downloads here (144 GB)
 

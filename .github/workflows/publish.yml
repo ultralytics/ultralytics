@@ -65,5 +65,5 @@ jobs:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
           mkdocs gh-deploy || true
-          git checkout gh-pages
+          git checkout gh-pages --force
           git push https://$PERSONAL_ACCESS_TOKEN@github.com/ultralytics/docs gh-pages --force

@@ -177,7 +177,7 @@ class PoseValidator(DetectionValidator):
                 annk = COCO(str(annk_json))  # init keypoints annotations api
                 predi = anni.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
                 predk = annk.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
-                for i, eval in enumerate([COCOeval(anni, predi, 'bbox'), COCOeval(anni, predk, 'keypoints')]):
+                for i, eval in enumerate([COCOeval(anni, predi, 'bbox'), COCOeval(annk, predk, 'keypoints')]):
                     if self.is_coco:
                         eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # im to eval
                     eval.evaluate()

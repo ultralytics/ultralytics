@@ -126,7 +126,7 @@ class Results:
             font (str): The font to use for the text.
             pil (bool): Whether to return the image as a PIL Image.
             example (str): An example string to display. Useful for indicating the expected format of the output.
-            kpt_line (bool): Whether to draw lines connecting keypoints
+            kpt_line (bool): Whether to draw lines connecting keypoints.
 
         Returns:
             (None) or (PIL.Image): If `pil` is True, a PIL Image is returned. Otherwise, nothing is returned.

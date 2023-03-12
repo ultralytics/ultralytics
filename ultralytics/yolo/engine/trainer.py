@@ -619,6 +619,7 @@ def check_amp(model):
         AssertionError: If the AMP checks fail, indicating anomalies with the AMP functionality on the system.
     """
     device = next(model.parameters()).device  # get model device
+    print('RANK, DEVICE', RANK, device)
     if device.type in ('cpu', 'mps'):
         return False  # AMP only used on CUDA devices
 
@@ -627,6 +628,7 @@ def check_amp(model):
         a = m(im, device=device, verbose=False)[0].boxes.boxes  # FP32 inference
         with torch.cuda.amp.autocast(True):
             b = m(im, device=device, verbose=False)[0].boxes.boxes  # AMP inference
+        del m
         return a.shape == b.shape and torch.allclose(a, b.float(), atol=0.5)  # close to 0.5 absolute tolerance
 
     f = ROOT / 'assets/bus.jpg'  # image to check

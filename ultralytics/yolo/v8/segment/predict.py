@@ -80,7 +80,9 @@ class SegmentationPredictor(DetectionPredictor):
             if self.args.save_txt:  # Write to file
                 seg = mask.segments[len(det) - j - 1].copy()  # reversed mask.segments
                 seg = seg.reshape(-1)  # (n,2) to (n*2)
-                line = (cls, *seg, conf) if self.args.save_conf else (cls, *seg)  # label format
+                line = (cls, *seg) + \
+                    ((conf,) if self.args.save_conf else ()) + \
+                    ((d.id.squeeze() if d.id is not None else -1,) if self.args.save_id else ())
                 with open(f'{self.txt_path}.txt', 'a') as f:
                     f.write(('%g ' * len(line)).rstrip() % line + '\n')
 

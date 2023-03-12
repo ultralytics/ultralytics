@@ -52,7 +52,7 @@ do is loading the corresponding (detection or segmentation) model.
 ### Tracking
 
 Tracking shares the configuration with predict, i.e `conf`, `iou`, `show`. More configurations please refer
-to [predict page](https://docs.ultralytics.com/cfg/#prediction).
+to [predict page](https://docs.ultralytics.com/usage/cfg/#prediction).
 !!! example ""
 
     === "Python"

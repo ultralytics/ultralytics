@@ -2,7 +2,7 @@
 # PASCAL VOC dataset http://host.robots.ox.ac.uk/pascal/VOC by University of Oxford
 # Example usage: yolo train data=VOC.yaml
 # parent
-# ├── yolov5
+# ├── ultralytics
 # └── datasets
 #     └── VOC  ← downloads here (2.8 GB)
 

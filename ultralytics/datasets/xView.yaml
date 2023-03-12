@@ -3,7 +3,7 @@
 # --------  DOWNLOAD DATA MANUALLY and jar xf val_images.zip to 'datasets/xView' before running train command!  --------
 # Example usage: yolo train data=xView.yaml
 # parent
-# ├── yolov5
+# ├── ultralytics
 # └── datasets
 #     └── xView  ← downloads here (20.7 GB)
 

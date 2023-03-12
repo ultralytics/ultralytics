@@ -220,6 +220,3 @@ def test_result():
     res = model(SOURCE)
     res[0].plot()
     print(res[0].path)
-
-
-test_predict_img()

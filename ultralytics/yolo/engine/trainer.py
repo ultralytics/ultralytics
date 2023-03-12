@@ -32,7 +32,7 @@ from ultralytics.yolo.utils.checks import check_file, check_imgsz, print_args
 from ultralytics.yolo.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.yolo.utils.files import get_latest_run, increment_path
 from ultralytics.yolo.utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel, init_seeds, one_cycle,
-                                                select_device, strip_optimizer, torch_distributed_zero_first)
+                                                select_device, strip_optimizer)
 
 
 class BaseTrainer:
@@ -204,12 +204,12 @@ class BaseTrainer:
         self.set_model_attributes()
         # Check AMP
         self.amp = torch.tensor(True).to(self.device)
-        with torch_distributed_zero_first(RANK):
-            if RANK in (-1, 0):
-                callbacks_backup = callbacks.default_callbacks.copy()  # backup callbacks as check_amp() resets them
-                self.amp = torch.tensor(check_amp(self.model), device=self.device)
-                callbacks.default_callbacks = callbacks_backup  # restore callbacks
+        if RANK in (-1, 0):
+            callbacks_backup = callbacks.default_callbacks.copy()  # backup callbacks as check_amp() resets them
+            self.amp = torch.tensor(check_amp(self.model), device=self.device)
+            callbacks.default_callbacks = callbacks_backup  # restore callbacks
         dist.broadcast(self.amp, src=0)  # broadcast the tensor from rank 0 to all other ranks
+        self.amp = bool(self.amp)  # as boolean
         self.scaler = amp.GradScaler(enabled=self.amp)
         if world_size > 1:
             self.model = DDP(self.model, device_ids=[rank])

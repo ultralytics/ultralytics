@@ -61,7 +61,9 @@ jobs:
       - name: Deploy Docs
         continue-on-error: true
         if: (github.event_name == 'push' && steps.check_pypi.outputs.increment == 'True') || github.event.inputs.docs == 'true'
+        env:
+          PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
           mkdocs gh-deploy || true
           git checkout gh-pages
-          git push https://${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/ultralytics/docs gh-pages --force
+          git push https://$PERSONAL_ACCESS_TOKEN@github.com/ultralytics/docs gh-pages --force

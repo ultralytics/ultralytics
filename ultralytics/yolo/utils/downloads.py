@@ -118,7 +118,7 @@ def safe_download(url,
                     raise ConnectionError(f'❌  Download failure for {url}. Retry limit reached.') from e
                 LOGGER.warning(f'⚠️ Download failure, retrying {i + 1}/{retry} {url}...')
 
-    if unzip and f.exists() and f.suffix in {'.zip', '.tar', '.gz'}:
+    if unzip and f.exists() and f.suffix in ('.zip', '.tar', '.gz'):
         unzip_dir = dir or f.parent  # unzip to dir if provided else unzip in place
         LOGGER.info(f'Unzipping {f} to {unzip_dir}...')
         if f.suffix == '.zip':

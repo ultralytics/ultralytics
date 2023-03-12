@@ -1,10 +1,12 @@
+<img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
+
 Inference or prediction of a task returns a list of `Results` objects. Alternatively, in the streaming mode, it returns
 a generator of `Results` objects which is memory efficient. Streaming mode can be enabled by passing `stream=True` in
 predictor's call method.
 
 !!! example "Predict"
 
-    === "Getting a List"
+    === "Return a List"
 
     ```python
     inputs = [img, img]  # list of np arrays
@@ -16,7 +18,7 @@ predictor's call method.
         probs = result.probs  # Class probabilities for classification outputs
     ```
     
-    === "Getting a Generator"
+    === "Return a Generator"
 
     ```python
     inputs = [img, img]  # list of numpy arrays
@@ -50,6 +52,46 @@ source can be used as a stream and the model argument required for that source.
 | glob       | &check; | `'path/*.jpg'`                             | `str`          | Use `*` operator |
 | YouTube    | &check; | `'https://youtu.be/Zgi9g1ksQHc'`           | `str`          |                  |
 | stream     | &check; | `'rtsp://example.com/media.mp4'`           | `str`          | RTSP, RTMP, HTTP |
+
+## Image Formats
+
+For images, YOLOv8 supports a variety of image formats defined
+in [yolo/data/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/data/utils.py). The
+following suffixes are valid for images:
+
+| Image Suffixes | Example Predict Command          | Reference                                                                            |
+|----------------|----------------------------------|--------------------------------------------------------------------------------------|
+| bmp            | `yolo predict source=image.bmp`  | [Microsoft](https://docs.microsoft.com/en-us/windows/win32/gdi/bitmap-file-format)   |
+| dng            | `yolo predict source=image.dng`  | [Adobe](https://helpx.adobe.com/photoshop/using/digital-negative.html)               |
+| jpeg           | `yolo predict source=image.jpeg` | [Joint Photographic Experts Group](https://jpeg.org/jpeg/)                           |
+| jpg            | `yolo predict source=image.jpg`  | [Joint Photographic Experts Group](https://jpeg.org/jpeg/)                           |
+| mpo            | `yolo predict source=image.mpo`  | [CIPA](https://www.cipa.jp/std/documents/e/DC-007-Translation-2018-E.pdf)            |
+| png            | `yolo predict source=image.png`  | [Portable Network Graphics](https://www.w3.org/TR/PNG/)                              |
+| tif            | `yolo predict source=image.tif`  | [Adobe](https://www.adobe.com/content/dam/acom/en/products/photoshop/pdfs/tiff6.pdf) |
+| tiff           | `yolo predict source=image.tiff` | [Adobe](https://www.adobe.com/content/dam/acom/en/products/photoshop/pdfs/tiff6.pdf) |
+| webp           | `yolo predict source=image.webp` | [Google Developers](https://developers.google.com/speed/webp)                        |
+| pfm            | `yolo predict source=image.pfm`  | [HDR Labs](http://hdrlabs.com/tools/pfrenchy/)                                       |
+
+## Video Formats
+
+For videos, YOLOv8 also supports a variety of video formats defined
+in [yolo/data/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/data/utils.py). The
+following suffixes are valid for videos:
+
+| Video Suffixes | Example Predict Command          | Reference                                                                                                      |
+|----------------|----------------------------------|----------------------------------------------------------------------------------------------------------------|
+| asf            | `yolo predict source=video.asf`  | [Microsoft](https://docs.microsoft.com/en-us/windows/win32/wmformat/asf-file-structure)                        |
+| avi            | `yolo predict source=video.avi`  | [Microsoft](https://docs.microsoft.com/en-us/windows/win32/directshow/avi-riff-file-reference)                 |
+| gif            | `yolo predict source=video.gif`  | [CompuServe](https://www.w3.org/Graphics/GIF/spec-gif89a.txt)                                                  |
+| m4v            | `yolo predict source=video.m4v`  | [Apple](https://developer.apple.com/library/archive/documentation/QuickTime/QTFF/QTFFChap2/qtff2.html)         |
+| mkv            | `yolo predict source=video.mkv`  | [Matroska](https://matroska.org/technical/specs/index.html)                                                    |
+| mov            | `yolo predict source=video.mov`  | [Apple](https://developer.apple.com/library/archive/documentation/QuickTime/QTFF/QTFFPreface/qtffPreface.html) |
+| mp4            | `yolo predict source=video.mp4`  | [ISO 68939](https://www.iso.org/standard/68939.html)                                                           |
+| mpeg           | `yolo predict source=video.mpeg` | [ISO 56021](https://www.iso.org/standard/56021.html)                                                           |
+| mpg            | `yolo predict source=video.mpg`  | [ISO 56021](https://www.iso.org/standard/56021.html)                                                           |
+| ts             | `yolo predict source=video.ts`   | [MPEG Transport Stream](https://en.wikipedia.org/wiki/MPEG_transport_stream)                                   |
+| wmv            | `yolo predict source=video.wmv`  | [Microsoft](https://docs.microsoft.com/en-us/windows/win32/wmformat/wmv-file-structure)                        |
+| webm           | `yolo predict source=video.webm` | [Google Developers](https://developers.google.com/media/vp9/getting-started/webm-file-format)                  |
 
 ## Working with Results
 
@@ -116,7 +158,7 @@ results = model(inputs)
 results[0].probs  # cls prob, (num_class, )
 ```
 
-Class reference documentation for `Results` module and its components can be found [here](reference/results.md)
+Class reference documentation for `Results` module and its components can be found [here](../reference/results.md)
 
 ## Plotting results
 

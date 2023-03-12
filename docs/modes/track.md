@@ -1,3 +1,5 @@
+<img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
+
 Object tracking is a task that involves identifying the location and class of objects, then assigning a unique ID to
 that detection in video streams.
 
@@ -87,9 +89,8 @@ any configurations(expect the `tracker_type`) you need to.
     
         ```bash
         yolo track model=yolov8n.pt source="https://youtu.be/Zgi9g1ksQHc" tracker='custom_tracker.yaml'
-
         ```
 
 Please refer to [ultralytics/tracker/cfg](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/tracker/cfg)
-page. 
+page
 

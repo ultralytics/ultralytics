@@ -75,7 +75,7 @@ yolo predict model=yolov8n.pt source="https://ultralytics.com/images/bus.jpg"
 ```
 
 `yolo`可以用于各种任务和模式，并接受额外的参数，例如 `imgsz=640`。参见 YOLOv8 [文档](https://docs.ultralytics.com)
-中可用`yolo`[参数](https://docs.ultralytics.com/cfg/)的完整列表。
+中可用`yolo`[参数](https://docs.ultralytics.com/usage/cfg/)的完整列表。
 
 ```bash
 yolo task=detect    mode=train    model=yolov8n.pt        args...
@@ -84,7 +84,7 @@ yolo task=detect    mode=train    model=yolov8n.pt        args...
                          export         yolov8n.pt        format=onnx  args...
 ```
 
-YOLOv8 也可以在 Python 环境中直接使用，并接受与上面 CLI 例子中相同的[参数](https://docs.ultralytics.com/cfg/)：
+YOLOv8 也可以在 Python 环境中直接使用，并接受与上面 CLI 例子中相同的[参数](https://docs.ultralytics.com/usage/cfg/)：
 
 ```python
 from ultralytics import YOLO

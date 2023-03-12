@@ -2,7 +2,7 @@
 # Objects365 dataset https://www.objects365.org/ by Megvii
 # Example usage: yolo train data=Objects365.yaml
 # parent
-# ├── yolov5
+# ├── ultralytics
 # └── datasets
 #     └── Objects365  ← downloads here (712 GB = 367G data + 345G zips)
 

@@ -30,11 +30,11 @@ class Colors:
                 '2C99A8', '00C2FF', '344593', '6473FF', '0018EC', '8438FF', '520085', 'CB38FF', 'FF95C8', 'FF37C7')
         self.palette = [self.hex2rgb(f'#{c}') for c in hexs]
         self.n = len(self.palette)
-        self.pose_palette = np.array([[255, 128, 0], [255, 153, 51], [255, 178, 102], [230, 230, 0], [255, 153, 255],
-                                      [153, 204, 255], [255, 102, 255], [255, 51, 255], [102, 178, 255], [51, 153, 255],
-                                      [255, 153, 153], [255, 102, 102], [255, 51, 51], [153, 255, 153], [102, 255, 102],
-                                      [51, 255, 51], [0, 255, 0], [0, 0, 255], [255, 0, 0], [255, 255, 255]],
-                                     dtype=np.uint8)
+        self.pose_palette = np.array(
+            [[255, 128, 0], [255, 153, 51], [255, 178, 102], [230, 230, 0], [255, 153, 255], [153, 204, 255],
+             [255, 102, 255], [255, 51, 255], [102, 178, 255], [51, 153, 255], [255, 153, 153], [255, 102, 102],
+             [255, 51, 51], [153, 255, 153], [102, 255, 102], [51, 255, 51], [0, 255, 0], [0, 0, 255], [255, 0, 0],
+             [255, 255, 255]], dtype=np.uint8)
 
     def __call__(self, i, bgr=False):
         c = self.palette[int(i) % self.n]
@@ -157,7 +157,7 @@ class Annotator:
         num_kpts = len(kpts) // steps
         for kid in range(num_kpts):
             x_coord, y_coord = kpts[steps * kid], kpts[steps * kid + 1]
-            if not (x_coord % shape[1] == 0 or y_coord % shape[0] == 0):
+            if x_coord % shape[1] != 0 and y_coord % shape[0] != 0:
                 if steps == 3:
                     conf = kpts[steps * kid + 2]
                     if conf < 0.5:
@@ -357,8 +357,7 @@ def plot_images(images,
             if len(kpts):
                 kpts_ = kpts[idx].copy()
                 if len(kpts_):
-                    if kpts_[:, 0::3].max() <= 1.01 or kpts_[:,
-                                                             1::3].max() <= 1.01:  # if normalized with tolerance 0.01
+                    if kpts_[:, 0::3].max() <= 1.01 or kpts_[:, 1::3].max() <= 1.01:  # if normalized with tolerance .01
                         kpts_[:, 0::3] *= w  # scale to pixels
                         kpts_[:, 1::3] *= h
                     elif scale < 1:  # absolute coords need scale if image scales
@@ -376,7 +375,7 @@ def plot_images(images,
                 else:  # overlap_masks=True
                     image_masks = masks[[i]]  # (1, 640, 640)
                     nl = idx.sum()
-                    index = np.arange(nl).reshape(nl, 1, 1) + 1
+                    index = np.arange(nl).reshape((nl, 1, 1)) + 1
                     image_masks = np.repeat(image_masks, nl, axis=0)
                     image_masks = np.where(image_masks == index, 1.0, 0.0)
 

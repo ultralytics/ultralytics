@@ -2,9 +2,9 @@
 
 # Parameters
 nc: 80  # number of classes
+nkpt: 17  # number of keypoints
 depth_multiple: 0.33  # scales module repeats
 width_multiple: 0.25  # scales convolution channels
-nkpt: 17
 
 # YOLOv8.0n backbone
 backbone:
@@ -38,4 +38,4 @@ head:
   - [[-1, 9], 1, Concat, [1]]  # cat head P5
   - [-1, 3, C2f, [1024]]  # 21 (P5/32-large)
 
-  - [[15, 18, 21], 1, Pose, [nc, 17]]  # Detect(P3, P4, P5)
+  - [[15, 18, 21], 1, Pose, [nc, nkpt]]  # Detect(P3, P4, P5)

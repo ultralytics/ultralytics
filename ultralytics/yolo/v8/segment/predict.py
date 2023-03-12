@@ -84,7 +84,7 @@ class SegmentationPredictor(DetectionPredictor):
                     f.write(('%g ' * len(line)).rstrip() % line + '\n')
             if self.args.save or self.args.save_crop or self.args.show:  # Add bbox to image
                 c = int(cls)  # integer class
-                name = f'id:{id} {self.model.names[c]}' if d.id is not None else self.model.names[c]
+                name = ('' if id is None else f'id:{id} ') + self.model.names[c]
                 label = None if self.args.hide_labels else (name if self.args.hide_conf else f'{name} {conf:.2f}')
                 self.annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True)) if self.args.boxes else None
             if self.args.save_crop:

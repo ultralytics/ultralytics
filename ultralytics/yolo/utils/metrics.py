@@ -756,6 +756,7 @@ class PoseMetrics(SegmentMetrics):
     """
 
     def __init__(self, save_dir=Path('.'), plot=False, names=()) -> None:
+        super().__init__(save_dir, plot, names)
         self.save_dir = save_dir
         self.plot = plot
         self.names = names

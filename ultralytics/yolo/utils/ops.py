@@ -10,7 +10,6 @@ import torch.nn.functional as F
 import torchvision
 
 from ultralytics.yolo.utils import LOGGER
-
 from .metrics import box_iou
 
 
@@ -115,18 +114,20 @@ def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None):
 
 def scale_kpts(img1_shape, kpts, img0_shape, ratio_pad=None, step=3):
     """
-    Rescales bounding boxes (in the format of xyxy) from the shape of the image they were originally specified in
-    (img1_shape) to the shape of a different image (img0_shape).
+    Rescales keypoints from the shape of the image they were originally specified in (img1_shape) to the shape of a
+    different image (img0_shape).
 
     Args:
-      img1_shape (tuple): The shape of the image that the bounding boxes are for, in the format of (height, width).
-      boxes (torch.Tensor): the bounding boxes of the objects in the image, in the format of (x1, y1, x2, y2)
-      img0_shape (tuple): the shape of the target image, in the format of (height, width).
-      ratio_pad (tuple): a tuple of (ratio, pad) for scaling the boxes. If not provided, the ratio and pad will be
-                         calculated based on the size difference between the two images.
+      img1_shape (tuple): The shape of the image that the keypoints are for, in the format of (height, width).
+      kpts (torch.Tensor or numpy.ndarray): The keypoints to be rescaled of shape (n, 51).
+      img0_shape (tuple): The shape of the target image, in the format of (height, width).
+      ratio_pad (tuple, optional): A tuple of (ratio, pad) for scaling the keypoints. If not provided, the ratio and
+                                    pad will be calculated based on the size difference between the two images.
+      step (int, optional): The step size to take in indexing kpts,i.e. start at 0, go to the end, taking every step
+                            (default is 3).
 
     Returns:
-      boxes (torch.Tensor): The scaled bounding boxes, in the format of (x1, y1, x2, y2)
+      kpts (torch.Tensor) or (numpy.ndarray): The rescaled keypoints, of the same shape as the input keypoints.
     """
     if ratio_pad is None:  # calculate from img0_shape
         gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
@@ -337,11 +338,16 @@ def clip_coords(boxes, shape):
 
 def clip_kpts(kpts, shape, step=3):
     """
-    Clip bounding xyxy bounding boxes to image shape (height, width).
+    Clip keypoints to the image boundaries.
 
     Args:
-        boxes (torch.Tensor or numpy.ndarray): Keypoints to be clipped, [N, 51].
-        shape (tuple): the shape of the image
+        kpts (torch.Tensor or numpy.ndarray): A tensor or numpy array of shape (n, 51), where n is the number of
+            keypoints and 51 is the number of elements in each keypoint (17 coordinates, each with x, y, visibility).
+        shape (tuple): A tuple of integers representing the size of the image in the format (height, width).
+        step (int, optional): The step size for indexing the x, y coordinates in the keypoints. The default value is 3.
+
+    Returns:
+        None: The function modifies the input `kpts` in place, by clipping each keypoint to the image boundaries.
     """
     if isinstance(kpts, torch.Tensor):  # faster individually
         kpts[:, 0::step].clamp_(0, shape[1])  # x
@@ -623,17 +629,18 @@ def process_mask_upsample(protos, masks_in, bboxes, shape):
 
 def process_mask(protos, masks_in, bboxes, shape, upsample=False):
     """
-    It takes the output of the mask head, and applies the mask to the bounding boxes. This is faster but produces
-    downsampled quality of mask
+    Apply masks to bounding boxes using the output of the mask head.
 
     Args:
-      protos (torch.Tensor): [mask_dim, mask_h, mask_w]
-      masks_in (torch.Tensor): [n, mask_dim], n is number of masks after nms
-      bboxes (torch.Tensor): [n, 4], n is number of masks after nms
-      shape (tuple): the size of the input image (h,w)
+        protos (torch.Tensor): A tensor of shape [mask_dim, mask_h, mask_w].
+        masks_in (torch.Tensor): A tensor of shape [n, mask_dim], where n is the number of masks after NMS.
+        bboxes (torch.Tensor): A tensor of shape [n, 4], where n is the number of masks after NMS.
+        shape (tuple): A tuple of integers representing the size of the input image in the format (h, w).
+        upsample (bool): A flag to indicate whether to upsample the mask to the original image size. Default is False.
 
     Returns:
-      (torch.Tensor): The processed masks.
+        torch.Tensor: A binary mask tensor of shape [n, h, w], where n is the number of masks after NMS, and h and w
+            are the height and width of the input image. The mask is applied to the bounding boxes.
     """
 
     c, mh, mw = protos.shape  # CHW
@@ -736,12 +743,14 @@ def masks2segments(masks, strategy='largest'):
 
 def clip_segments(segments, shape):
     """
-    It takes a list of line segments (x1,y1,x2,y2) and clips them to the image shape (height, width)
+    Clip line segments to the image boundaries.
 
     Args:
-      segments (list): a list of segments, each segment is a list of points, each point is a list of x,y
-    coordinates
-      shape (tuple): the shape of the image
+        segments (list or torch.Tensor): A list of line segments.
+        shape (tuple): A tuple of integers representing the size of the image in the format (height, width).
+
+    Returns:
+        None: The function modifies the input `segments` in place, by clipping each segment to the image boundaries.
     """
     if isinstance(segments, torch.Tensor):  # faster individually
         segments[:, 0].clamp_(0, shape[1])  # x

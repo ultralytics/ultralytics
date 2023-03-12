@@ -511,13 +511,13 @@ def guess_model_task(model):
     def cfg2task(cfg):
         # Guess from YAML dictionary
         m = cfg['head'][-1][-2].lower()  # output module name
-        if m in ['classify', 'classifier', 'cls', 'fc']:
+        if m in ('classify', 'classifier', 'cls', 'fc'):
             return 'classify'
-        if m in ['detect']:
+        if m == 'detect':
             return 'detect'
-        if m in ['segment']:
+        if m == 'segment':
             return 'segment'
-        if m in ['pose']:
+        if m == 'pose':
             return 'pose'
 
     # Guess from model cfg

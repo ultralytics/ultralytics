@@ -378,30 +378,6 @@ class Ensemble(nn.ModuleList):
         return y, None  # inference, train output
 
 
-class ImplicitA(nn.Module):
-    # Adds an implicit parameter to the input tensor. The implicit parameter is learned during training.
-    def __init__(self, channel):
-        super().__init__()
-        self.channel = channel
-        self.implicit = nn.Parameter(torch.zeros(1, channel, 1, 1))
-        nn.init.normal_(self.implicit, std=.02)
-
-    def forward(self, x):
-        return self.implicit.expand_as(x) + x
-
-
-class ImplicitM(nn.Module):
-    # Multiplies the input tensor by an implicit parameter. The implicit parameter is learned during training.
-    def __init__(self, channel):
-        super().__init__()
-        self.channel = channel
-        self.implicit = nn.Parameter(torch.ones(1, channel, 1, 1))
-        nn.init.normal_(self.implicit, mean=1., std=.02)
-
-    def forward(self, x):
-        return self.implicit.expand_as(x) * x
-
-
 # Model heads below ----------------------------------------------------------------------------------------------------
 
 

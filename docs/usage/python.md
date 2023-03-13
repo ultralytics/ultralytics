@@ -127,7 +127,7 @@ The simplest way of simply using YOLOv8 directly in a Python environment.
 
 To know more about using `YOLO` models, refer Model class Reference
 
-[Model reference](reference/model.md){ .md-button .md-button--primary}
+[Model reference](../reference/model.md){ .md-button .md-button--primary}
 
 ---
 

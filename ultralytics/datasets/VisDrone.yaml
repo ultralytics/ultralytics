@@ -2,7 +2,7 @@
 # VisDrone2019-DET dataset https://github.com/VisDrone/VisDrone-Dataset by Tianjin University
 # Example usage: yolo train data=VisDrone.yaml
 # parent
-# ├── yolov5
+# ├── ultralytics
 # └── datasets
 #     └── VisDrone  ← downloads here (2.3 GB)
 

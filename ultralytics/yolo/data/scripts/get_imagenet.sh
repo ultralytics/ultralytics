@@ -3,7 +3,7 @@
 # Download ILSVRC2012 ImageNet dataset https://image-net.org
 # Example usage: bash data/scripts/get_imagenet.sh
 # parent
-# ├── yolov5
+# ├── ultralytics
 # └── datasets
 #     └── imagenet  ← downloads here
 

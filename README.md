@@ -88,7 +88,7 @@ yolo predict model=yolov8n.pt source="https://ultralytics.com/images/bus.jpg"
 #### Python
 
 YOLOv8 may also be used directly in a Python environment, and accepts the
-same [arguments](https://docs.ultralytics.com/cfg/) as in the CLI example above:
+same [arguments](https://docs.ultralytics.com/usage/cfg/) as in the CLI example above:
 
 ```python
 from ultralytics import YOLO
@@ -240,7 +240,7 @@ on your experience. Thank you 🙏 to all our contributors!
 <!-- SVG image from https://opencollective.com/ultralytics/contributors.svg?width=990 -->
 
 <a href="https://github.com/ultralytics/yolov5/graphs/contributors">
-<img src="https://github.com/ultralytics/assets/raw/main/im/image-contributors.png" /></a>
+<img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/image-contributors.png"></a>
 
 ## <div align="center">License</div>
 

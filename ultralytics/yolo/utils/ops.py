@@ -120,7 +120,7 @@ def scale_kpts(img1_shape, kpts, img0_shape, ratio_pad=None, step=3):
 
     Args:
       img1_shape (tuple): The shape of the image that the keypoints are for, in the format of (height, width).
-      kpts (torch.Tensor or numpy.ndarray): The keypoints to be rescaled of shape (n, 51).
+      kpts (torch.Tensor) or (numpy.ndarray): The keypoints to be rescaled of shape (n, 51).
       img0_shape (tuple): The shape of the target image, in the format of (height, width).
       ratio_pad (tuple, optional): A tuple of (ratio, pad) for scaling the keypoints. If not provided, the ratio and
                                     pad will be calculated based on the size difference between the two images.
@@ -342,7 +342,7 @@ def clip_kpts(kpts, shape, step=3):
     Clip keypoints to the image boundaries.
 
     Args:
-        kpts (torch.Tensor or numpy.ndarray): A tensor or numpy array of shape (n, 51), where n is the number of
+        kpts (torch.Tensor) or (numpy.ndarray): A tensor or numpy array of shape (n, 51), where n is the number of
             keypoints and 51 is the number of elements in each keypoint (17 coordinates, each with x, y, visibility).
         shape (tuple): A tuple of integers representing the size of the image in the format (height, width).
         step (int, optional): The step size for indexing the x, y coordinates in the keypoints. The default value is 3.
@@ -747,7 +747,7 @@ def clip_segments(segments, shape):
     Clip line segments to the image boundaries.
 
     Args:
-        segments (list or torch.Tensor): A list of line segments.
+        segments (torch.Tensor) or (numpy.ndarray): A list of line segments.
         shape (tuple): A tuple of integers representing the size of the image in the format (height, width).
 
     Returns:

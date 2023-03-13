@@ -172,7 +172,7 @@ class YOLO:
         for p in self.model.parameters():
             p.requires_grad = True
 
-    def info(self, verbose=False):
+    def info(self, verbose=True):
         """
         Logs model info.
 

@@ -44,7 +44,7 @@ theme:
     - content.tabs.link  # all code tabs change simultaneously
 
 # Customization
-copyright: Ultralytics 2023. All rights reserved.
+copyright: <a href="https://ultralytics.com" target="_blank">Ultralytics 2023.</a> All rights reserved.
 extra:
   # version:
   #   provider: mike  #  version drop-down menu

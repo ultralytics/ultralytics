@@ -640,7 +640,7 @@ def process_mask(protos, masks_in, bboxes, shape, upsample=False):
         upsample (bool): A flag to indicate whether to upsample the mask to the original image size. Default is False.
 
     Returns:
-        torch.Tensor: A binary mask tensor of shape [n, h, w], where n is the number of masks after NMS, and h and w
+        (torch.Tensor): A binary mask tensor of shape [n, h, w], where n is the number of masks after NMS, and h and w
             are the height and width of the input image. The mask is applied to the bounding boxes.
     """
 
@@ -751,7 +751,7 @@ def clip_segments(segments, shape):
         shape (tuple): A tuple of integers representing the size of the image in the format (height, width).
 
     Returns:
-        None: The function modifies the input `segments` in place, by clipping each segment to the image boundaries.
+        (None): The function modifies the input `segments` in place, by clipping each segment to the image boundaries.
     """
     if isinstance(segments, torch.Tensor):  # faster individually
         segments[:, 0].clamp_(0, shape[1])  # x

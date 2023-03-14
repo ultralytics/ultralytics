@@ -106,7 +106,7 @@ success = model.export(format="onnx")  # export the model to ONNX format
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) download automatically from the latest
 Ultralytics [release](https://github.com/ultralytics/assets/releases). See
-YOLOv8 [Python Docs](https://docs.ultralytics.com/python) for more examples.
+YOLOv8 [Python Docs](https://docs.ultralytics.com/usage/python) for more examples.
 
 #### Model Architectures
 

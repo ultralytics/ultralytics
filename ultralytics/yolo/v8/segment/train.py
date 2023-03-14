@@ -88,7 +88,7 @@ class SegLoss(Loss):
                             "This error can occur when incorrectly training a 'segment' model on a 'detect' dataset, "
                             "i.e. 'yolo train model=yolov8n-seg.pt data=coco128.yaml'.\nVerify your dataset is a "
                             "correctly formatted 'segment' dataset using 'data=coco128-seg.yaml' "
-                            'as an example.\nSee https://docs.ultralytics.com/tasks/segmentation/ for help.') from e
+                            'as an example.\nSee https://docs.ultralytics.com/tasks/segment/ for help.') from e
 
         # pboxes
         pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)

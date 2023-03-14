@@ -21,5 +21,7 @@ jobs:
         uses: lycheeverse/lychee-action@v1.6.1
         with:
           fail: true
+          # accept ok, 429(Instagram, 'too many requests'), 999(LinkedIn, 'unknown status code')
+          args: --accept 200,429,999
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

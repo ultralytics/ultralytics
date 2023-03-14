@@ -21,6 +21,7 @@ repos:
       - id: double-quote-string-fixer
       - id: detect-private-key
       - id: check-symlinks
+      - id: destroyed-symlinks
 
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.3.1

@@ -31,11 +31,6 @@ repos:
     hooks:
     - id: dockerfilelint
 
-  - repo: https://github.com/pre-commit/mirrors-csslint
-    rev: v3.3.1
-    hooks:
-      - id: csslint
-
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.3.1
     hooks:

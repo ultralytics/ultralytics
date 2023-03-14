@@ -17,11 +17,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Test links
+
+      - name: Test Markdown and HTML links
         uses: lycheeverse/lychee-action@v1.6.1
         with:
           fail: true
           # accept 429(Instagram, 'too many requests'), 999(LinkedIn, 'unknown status code'), Timeout(Twitter)
-          args: --accept 429,999 --exclude twitter.com --verbose --no-progress './**/*.md' './**/*.html' './**/*.ipynb' './**/*.py'
+          args: --accept 429,999 --exclude twitter.com --verbose --no-progress './**/*.md' './**/*.html'
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+      - name: Test Markdown, HTML, YAML, Python and Notebook links
+        if: github.event_name == 'workflow_dispatch'
+        uses: lycheeverse/lychee-action@v1.6.1
+        with:
+          fail: true
+          # accept 429(Instagram, 'too many requests'), 999(LinkedIn, 'unknown status code'), Timeout(Twitter)
+          args: --accept 429,999 --exclude twitter.com --verbose --no-progress './**/*.md' './**/*.html' './**/*.yml' './**/*.yaml' './**/*.py' './**/*.ipynb'
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

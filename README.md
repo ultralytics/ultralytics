@@ -83,7 +83,7 @@ yolo predict model=yolov8n.pt source="https://ultralytics.com/images/bus.jpg"
 ```
 
 `yolo` can be used for a variety of tasks and modes and accepts additional arguments, i.e. `imgsz=640`. See the YOLOv8
-[CLI Docs](https://docs.ultralytics.com/cli) for examples.
+[CLI Docs](https://docs.ultralytics.com/usage/cli) for examples.
 
 #### Python
 

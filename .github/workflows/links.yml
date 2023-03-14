@@ -22,8 +22,6 @@ jobs:
         with:
           fail: true
           # accept ok, 429(Instagram, 'too many requests'), 999(LinkedIn, 'unknown status code')
-          args:
-            description: 'Lychee arguments (https://github.com/lycheeverse/lychee#commandline-parameters)'
-            default: "--accept 200,429,999 --verbose --no-progress './**/*.md' './**/*.html'"
+          args: "--accept 200,429,999 --verbose --no-progress './**/*.md' './**/*.html'"
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

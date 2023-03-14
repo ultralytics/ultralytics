@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
-name: "CLA Assistant"
+name: CLA Assistant
 on:
   issue_comment:
     types:

@@ -21,12 +21,26 @@ repos:
       - id: double-quote-string-fixer
       - id: detect-private-key
 
+  - repo: https://github.com/asottile/dead
+    rev: v1.5.0
+    hooks:
+    -   id: dead
+
+  - repo: https://github.com/pryorda/dockerfilelint-precommit-hooks
+    rev: v0.1.0
+    hooks:
+    - id: dockerfilelint
+
+  - repo: https://github.com/pre-commit/mirrors-csslint
+    rev: v3.3.1
+    hooks:
+      - id: csslint
+
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.3.1
     hooks:
       - id: pyupgrade
         name: Upgrade code
-        args: [--py37-plus]
 
   - repo: https://github.com/PyCQA/isort
     rev: 5.12.0

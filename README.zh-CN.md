@@ -232,7 +232,7 @@ YOLOv8 在两种不同的 License 下可用：
 ## <div align="center">联系我们</div>
 
 请访问 [GitHub Issues](https://github.com/ultralytics/ultralytics/issues)
-或 [Ultralytics Community Forum](https://community.ultralytis.com) 以报告 YOLOv8 错误和请求功能。
+或 [Ultralytics Community Forum](https://community.ultralytics.com) 以报告 YOLOv8 错误和请求功能。
 
 <br>
 <div align="center">

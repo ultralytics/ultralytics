@@ -22,6 +22,6 @@ jobs:
         with:
           fail: true
           # accept 429(Instagram, 'too many requests'), 999(LinkedIn, 'unknown status code'), Timeout(Twitter)
-          args: --accept 200,429 --exclude twitter.com --verbose --no-progress './**/*.md' './**/*.html'
+          args: --accept 200,429 --exclude twitter.com,linkedin.com --verbose --no-progress './**/*.md' './**/*.html'
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

@@ -26,7 +26,6 @@ repos:
     hooks:
       - id: pyupgrade
         name: Upgrade code
-        args: [--py37-plus]
 
   - repo: https://github.com/PyCQA/isort
     rev: 5.12.0
@@ -63,7 +62,12 @@ repos:
         args:
           - --ignore-words-list=crate,nd,strack,dota
 
-  #- repo: https://github.com/asottile/yesqa
-  #  rev: v1.4.0
-  #  hooks:
-  #    - id: yesqa
+#  - repo: https://github.com/asottile/yesqa
+#    rev: v1.4.0
+#    hooks:
+#      - id: yesqa
+
+#  - repo: https://github.com/asottile/dead
+#    rev: v1.5.0
+#    hooks:
+#    -   id: dead

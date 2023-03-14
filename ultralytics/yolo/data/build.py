@@ -153,7 +153,7 @@ def check_source(source):
     elif isinstance(source, torch.Tensor):
         tensor = True
     else:
-        raise TypeError('Unsupported image type. See docs for supported types https://docs.ultralytics.com/predict')
+        raise TypeError('Unsupported image type. For supported types see https://docs.ultralytics.com/modes/predict')
 
     return source, webcam, screenshot, from_img, in_memory, tensor
 

@@ -64,7 +64,7 @@ HELP_MSG = \
             Where   TASK (optional) is one of [detect, segment, classify]
                     MODE (required) is one of [train, val, predict, export]
                     ARGS (optional) are any number of custom 'arg=value' pairs like 'imgsz=320' that override defaults.
-                        See all ARGS at https://docs.ultralytics.com/cfg or with 'yolo cfg'
+                        See all ARGS at https://docs.ultralytics.com/usage/cfg or with 'yolo cfg'
 
         - Train a detection model for 10 epochs with an initial learning_rate of 0.01
             yolo detect train data=coco128.yaml model=yolov8n.pt epochs=10 lr0=0.01

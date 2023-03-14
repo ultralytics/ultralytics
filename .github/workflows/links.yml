@@ -21,7 +21,7 @@ jobs:
         uses: lycheeverse/lychee-action@v1.6.1
         with:
           fail: true
-          # accept ok, 429(Instagram, 'too many requests'), 999(LinkedIn, 'unknown status code')
-          args: "--accept 200,429,999 --verbose --no-progress './**/*.md' './**/*.html'"
+          # accept 429(Instagram, 'too many requests'), 999(LinkedIn, 'unknown status code'), Timeout(Twitter)
+          args: --accept 429 --exclude twitter.com --verbose --no-progress './**/*.md' './**/*.html'
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

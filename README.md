@@ -32,7 +32,7 @@ To request an Enterprise License please complete the form at [Ultralytics Licens
     <a href="https://github.com/ultralytics" style="text-decoration:none;">
       <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-github.png" width="2%" alt="" /></a>
     <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="2%" alt="" />
-    <a href="https://www.linkedin.com/company/ultralytics" style="text-decoration:none;">
+    <a href="https://www.linkedin.com/company/ultralytics/" style="text-decoration:none;">
       <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-linkedin.png" width="2%" alt="" /></a>
     <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="2%" alt="" />
     <a href="https://twitter.com/ultralytics" style="text-decoration:none;">
@@ -83,7 +83,7 @@ yolo predict model=yolov8n.pt source="https://ultralytics.com/images/bus.jpg"
 ```
 
 `yolo` can be used for a variety of tasks and modes and accepts additional arguments, i.e. `imgsz=640`. See the YOLOv8
-[CLI Docs](https://docs.ultralytics.com/cli) for examples.
+[CLI Docs](https://docs.ultralytics.com/usage/cli) for examples.
 
 #### Python
 
@@ -106,7 +106,7 @@ success = model.export(format="onnx")  # export the model to ONNX format
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) download automatically from the latest
 Ultralytics [release](https://github.com/ultralytics/assets/releases). See
-YOLOv8 [Python Docs](https://docs.ultralytics.com/python) for more examples.
+YOLOv8 [Python Docs](https://docs.ultralytics.com/usage/python) for more examples.
 
 #### Model Architectures
 
@@ -136,7 +136,7 @@ Ultralytics [release](https://github.com/ultralytics/assets/releases) on first u
 
 <details open><summary>Detection</summary>
 
-See [Detection Docs](https://docs.ultralytics.com/tasks/detection/) for usage examples with these models.
+See [Detection Docs](https://docs.ultralytics.com/tasks/detect/) for usage examples with these models.
 
 | Model                                                                                | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 | ------------------------------------------------------------------------------------ | --------------------- | -------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
@@ -156,7 +156,7 @@ See [Detection Docs](https://docs.ultralytics.com/tasks/detection/) for usage ex
 
 <details><summary>Segmentation</summary>
 
-See [Segmentation Docs](https://docs.ultralytics.com/tasks/segmentation/) for usage examples with these models.
+See [Segmentation Docs](https://docs.ultralytics.com/tasks/segment/) for usage examples with these models.
 
 | Model                                                                                        | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 | -------------------------------------------------------------------------------------------- | --------------------- | -------------------- | --------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
@@ -176,7 +176,7 @@ See [Segmentation Docs](https://docs.ultralytics.com/tasks/segmentation/) for us
 
 <details><summary>Classification</summary>
 
-See [Classification Docs](https://docs.ultralytics.com/tasks/classification/) for usage examples with these models.
+See [Classification Docs](https://docs.ultralytics.com/tasks/classify/) for usage examples with these models.
 
 | Model                                                                                        | size<br><sup>(pixels) | acc<br><sup>top1 | acc<br><sup>top5 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
 | -------------------------------------------------------------------------------------------- | --------------------- | ---------------- | ---------------- | ------------------------------ | ----------------------------------- | ------------------ | ------------------------ |
@@ -262,7 +262,7 @@ the [Ultralytics Community Forum](https://community.ultralytics.com/).
   <a href="https://github.com/ultralytics" style="text-decoration:none;">
     <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-github.png" width="3%" alt="" /></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="" />
-  <a href="https://www.linkedin.com/company/ultralytics" style="text-decoration:none;">
+  <a href="https://www.linkedin.com/company/ultralytics/" style="text-decoration:none;">
     <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-linkedin.png" width="3%" alt="" /></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="" />
   <a href="https://twitter.com/ultralytics" style="text-decoration:none;">

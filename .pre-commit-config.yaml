@@ -21,11 +21,6 @@ repos:
       - id: double-quote-string-fixer
       - id: detect-private-key
 
-  - repo: https://github.com/asottile/dead
-    rev: v1.5.0
-    hooks:
-    -   id: dead
-
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.3.1
     hooks:
@@ -67,7 +62,12 @@ repos:
         args:
           - --ignore-words-list=crate,nd,strack,dota
 
-  #- repo: https://github.com/asottile/yesqa
-  #  rev: v1.4.0
-  #  hooks:
-  #    - id: yesqa
+#  - repo: https://github.com/asottile/yesqa
+#    rev: v1.4.0
+#    hooks:
+#      - id: yesqa
+
+#  - repo: https://github.com/asottile/dead
+#    rev: v1.5.0
+#    hooks:
+#    -   id: dead

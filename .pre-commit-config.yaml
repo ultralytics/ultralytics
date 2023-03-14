@@ -20,7 +20,14 @@ repos:
       - id: check-docstring-first
       - id: double-quote-string-fixer
       - id: detect-private-key
-      - id: dockerfile_lint
+
+  - repo: https://github.com/pryorda/dockerfilelint-precommit-hooks
+    rev: v0.1.0
+    hooks:
+    - id: dockerfilelint
+
+  - repo: github.com/pre-commit/mirrors-csslint
+    hooks:
       - id: csslint
 
   - repo: https://github.com/asottile/pyupgrade

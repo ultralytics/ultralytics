@@ -1,0 +1,25 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license
+# YOLO Continuous Integration (CI) GitHub Actions tests
+
+name: Check Broken links
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'  # runs at 00:00 UTC every day
+
+jobs:
+  Links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Test links
+        uses: lycheeverse/lychee-action@v1.6.1
+        with:
+          fail: true
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

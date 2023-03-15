@@ -129,12 +129,6 @@ class PoseLoss(Loss):
                     if self.ndim == 3:
                         loss[2] += self.bce_pose(pred_kpt[:, 2::self.ndim], kpt_mask.float())
 
-        # WARNING: Uncomment lines below in case of Multi-GPU DDP unused gradient errors
-        #         else:
-        #             loss[1] += proto.sum() * 0
-        # else:
-        #     loss[1] += proto.sum() * 0
-
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.box / batch_size  # kobj gain
         loss[2] *= self.hyp.box / batch_size  # pose gain

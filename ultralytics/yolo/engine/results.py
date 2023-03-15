@@ -325,7 +325,7 @@ class Masks:
     @lru_cache(maxsize=1)
     def segments(self):
         return [
-            ops.scale_segments(self.masks.shape[1:], x, self.orig_shape, normalize=True)
+            ops.scale_coords(self.masks.shape[1:], x, self.orig_shape, normalize=True)
             for x in ops.masks2segments(self.masks)]
 
     @property

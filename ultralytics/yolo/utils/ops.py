@@ -313,49 +313,23 @@ def clip_boxes(boxes, shape):
         boxes[..., [1, 3]] = boxes[..., [1, 3]].clip(0, shape[0])  # y1, y2
 
 
-def clip_coords(boxes, shape):
+def clip_coords(coords, shape):
     """
-    Clip bounding xyxy bounding boxes to image shape (height, width).
+    Clip line coordinates to the image boundaries.
 
     Args:
-        boxes (torch.Tensor or numpy.ndarray): Bounding boxes to be clipped.
-        shape (tuple): The shape of the image. (height, width)
-
-    Returns:
-        None
-
-    Note:
-        The input `boxes` is modified in-place, there is no return value.
-    """
-    if isinstance(boxes, torch.Tensor):  # faster individually
-        boxes[:, 0].clamp_(0, shape[1])  # x1
-        boxes[:, 1].clamp_(0, shape[0])  # y1
-        boxes[:, 2].clamp_(0, shape[1])  # x2
-        boxes[:, 3].clamp_(0, shape[0])  # y2
-    else:  # np.array (faster grouped)
-        boxes[:, [0, 2]] = boxes[:, [0, 2]].clip(0, shape[1])  # x1, x2
-        boxes[:, [1, 3]] = boxes[:, [1, 3]].clip(0, shape[0])  # y1, y2
-
-
-def clip_kpts(kpts, shape, step=3):
-    """
-    Clip keypoints to the image boundaries.
-
-    Args:
-        kpts (torch.Tensor) or (numpy.ndarray): A tensor or numpy array of shape (n, 51), where n is the number of
-            keypoints and 51 is the number of elements in each keypoint (17 coordinates, each with x, y, visibility).
+        coords (torch.Tensor) or (numpy.ndarray): A list of line coordinates.
         shape (tuple): A tuple of integers representing the size of the image in the format (height, width).
-        step (int, optional): The step size for indexing the x, y coordinates in the keypoints. The default value is 3.
 
     Returns:
-        None: The function modifies the input `kpts` in place, by clipping each keypoint to the image boundaries.
+        (None): The function modifies the input `coordinates` in place, by clipping each coordinate to the image boundaries.
     """
-    if isinstance(kpts, torch.Tensor):  # faster individually
-        kpts[:, 0::step].clamp_(0, shape[1])  # x
-        kpts[:, 1::step].clamp_(0, shape[0])  # y
+    if isinstance(coords, torch.Tensor):  # faster individually
+        coords[..., 0].clamp_(0, shape[1])  # x
+        coords[..., 1].clamp_(0, shape[0])  # y
     else:  # np.array (faster grouped)
-        kpts[:, 0::step] = kpts[:, 0::step].clip(0, shape[1])  # x
-        kpts[:, 1::step] = kpts[:, 1::step].clip(0, shape[0])  # y
+        coords[..., 0] = coords[..., 0].clip(0, shape[1])  # x
+        coords[..., 1] = coords[..., 1].clip(0, shape[0])  # y
 
 
 def scale_image(im1_shape, masks, im0_shape, ratio_pad=None):
@@ -686,19 +660,19 @@ def process_mask_native(protos, masks_in, bboxes, shape):
     return masks.gt_(0.5)
 
 
-def scale_segments(img1_shape, segments, img0_shape, ratio_pad=None, normalize=False):
+def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize=False):
     """
     Rescale segment coordinates (xyxy) from img1_shape to img0_shape
 
     Args:
-      img1_shape (tuple): The shape of the image that the segments are from.
-      segments (torch.Tensor): the segments to be scaled
+      img1_shape (tuple): The shape of the image that the coords are from.
+      coords (torch.Tensor): the coords to be scaled
       img0_shape (tuple): the shape of the image that the segmentation is being applied to
       ratio_pad (tuple): the ratio of the image size to the padded image size.
       normalize (bool): If True, the coordinates will be normalized to the range [0, 1]. Defaults to False
 
     Returns:
-      segments (torch.Tensor): the segmented image.
+      coords (torch.Tensor): the segmented image.
     """
     if ratio_pad is None:  # calculate from img0_shape
         gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
@@ -707,14 +681,15 @@ def scale_segments(img1_shape, segments, img0_shape, ratio_pad=None, normalize=F
         gain = ratio_pad[0][0]
         pad = ratio_pad[1]
 
-    segments[:, 0] -= pad[0]  # x padding
-    segments[:, 1] -= pad[1]  # y padding
-    segments /= gain
-    clip_segments(segments, img0_shape)
+    coords[..., 0] -= pad[0]  # x padding
+    coords[..., 1] -= pad[1]  # y padding
+    coords[..., 0] /= gain
+    coords[..., 1] /= gain
+    clip_coords(coords, img0_shape)
     if normalize:
-        segments[:, 0] /= img0_shape[1]  # width
-        segments[:, 1] /= img0_shape[0]  # height
-    return segments
+        coords[..., 0] /= img0_shape[1]  # width
+        coords[..., 1] /= img0_shape[0]  # height
+    return coords
 
 
 def masks2segments(masks, strategy='largest'):
@@ -740,25 +715,6 @@ def masks2segments(masks, strategy='largest'):
             c = np.zeros((0, 2))  # no segments found
         segments.append(c.astype('float32'))
     return segments
-
-
-def clip_segments(segments, shape):
-    """
-    Clip line segments to the image boundaries.
-
-    Args:
-        segments (torch.Tensor) or (numpy.ndarray): A list of line segments.
-        shape (tuple): A tuple of integers representing the size of the image in the format (height, width).
-
-    Returns:
-        (None): The function modifies the input `segments` in place, by clipping each segment to the image boundaries.
-    """
-    if isinstance(segments, torch.Tensor):  # faster individually
-        segments[:, 0].clamp_(0, shape[1])  # x
-        segments[:, 1].clamp_(0, shape[0])  # y
-    else:  # np.array (faster grouped)
-        segments[:, 0] = segments[:, 0].clip(0, shape[1])  # x
-        segments[:, 1] = segments[:, 1].clip(0, shape[0])  # y
 
 
 def clean_str(s):

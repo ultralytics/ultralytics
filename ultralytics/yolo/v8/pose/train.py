@@ -66,7 +66,6 @@ class PoseLoss(Loss):
     def __init__(self, model):  # model must be de-paralleled
         super().__init__(model)
         self.nkpt = model.model[-1].nkpt  # number of keypoints
-        self.ndim = model.model[-1].ndim
         self.bce_pose = nn.BCEWithLogitsLoss()
         self.keypoint_loss = KeypointLoss(device=self.device, nkpt=self.nkpt)
 
@@ -79,7 +78,7 @@ class PoseLoss(Loss):
         # b, grids, ..
         pred_scores = pred_scores.permute(0, 2, 1).contiguous()
         pred_distri = pred_distri.permute(0, 2, 1).contiguous()
-        pred_kpts = pred_kpts.permute(0, 2, 1).contiguous()
+        pred_kpts = pred_kpts.permute(0, 3, 1, 2).contiguous()  # (b, h*w, nkpt, ndim)
 
         dtype = pred_scores.dtype
         imgsz = torch.tensor(feats[0].shape[2:], device=self.device, dtype=dtype) * self.stride[0]  # image size (h,w)
@@ -113,21 +112,21 @@ class PoseLoss(Loss):
             loss[0], loss[4] = self.bbox_loss(pred_distri, pred_bboxes, anchor_points, target_bboxes, target_scores,
                                               target_scores_sum, fg_mask)
             keypoints = batch['keypoints'].to(self.device).float().clone()
-            keypoints[:, 0::self.ndim] *= imgsz[1]
-            keypoints[:, 1::self.ndim] *= imgsz[0]
+            keypoints[..., 0] *= imgsz[1]
+            keypoints[..., 1] *= imgsz[0]
             for i in range(batch_size):
                 if fg_mask[i].sum():
                     idx = target_gt_idx[i][fg_mask[i]]
                     gt_kpt = keypoints[batch_idx.view(-1) == i][idx]  # (n, 51)
-                    gt_kpt[:, 0::self.ndim] /= stride_tensor[fg_mask[i]]
-                    gt_kpt[:, 1::self.ndim] /= stride_tensor[fg_mask[i]]
+                    gt_kpt[..., 0] /= stride_tensor[fg_mask[i]]
+                    gt_kpt[..., 1] /= stride_tensor[fg_mask[i]]
                     area = xyxy2xywh(target_bboxes[i][fg_mask[i]])[:, 2:].prod(1, keepdim=True)
                     pred_kpt = pred_kpts[i][fg_mask[i]]
-                    kpt_mask = gt_kpt[:, 2::self.ndim] != 0
+                    kpt_mask = gt_kpt[:, 2] != 0
                     loss[1] += self.keypoint_loss(pred_kpt, gt_kpt, kpt_mask, area)
                     # kpt_score loss
-                    if self.ndim == 3:
-                        loss[2] += self.bce_pose(pred_kpt[:, 2::self.ndim], kpt_mask.float())
+                    if pred_kpt.shape[-1] == 3:
+                        loss[2] += self.bce_pose(pred_kpt[..., 2], kpt_mask.float())
 
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.box / batch_size  # kobj gain
@@ -139,10 +138,10 @@ class PoseLoss(Loss):
 
     def kpts_decode(self, anchor_points, pred_kpts):
         y = pred_kpts.clone()
-        y[..., 0::self.ndim] *= 2
-        y[..., 1::self.ndim] *= 2
-        y[..., 0::self.ndim] += anchor_points[:, [0]] - 0.5
-        y[..., 1::self.ndim] += anchor_points[:, [1]] - 0.5
+        y[..., 0] *= 2
+        y[..., 1] *= 2
+        y[..., 0] += anchor_points[:, [0]] - 0.5
+        y[..., 1] += anchor_points[:, [1]] - 0.5
         return y
 
 

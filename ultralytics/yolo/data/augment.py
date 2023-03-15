@@ -634,7 +634,7 @@ class Format:
         labels['cls'] = torch.from_numpy(cls) if nl else torch.zeros(nl)
         labels['bboxes'] = torch.from_numpy(instances.bboxes) if nl else torch.zeros((nl, 4))
         if self.return_keypoint:
-            labels['keypoints'] = torch.from_numpy(instances.keypoints).view(nl, -1) if nl else torch.zeros((nl, 51))
+            labels['keypoints'] = torch.from_numpy(instances.keypoints)
         # then we can use collate_fn
         if self.batch_idx:
             labels['batch_idx'] = torch.zeros(nl)

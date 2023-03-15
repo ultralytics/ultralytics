@@ -76,8 +76,8 @@ class PoseValidator(DetectionValidator):
                 ops.scale_boxes(batch['img'][si].shape[1:], tbox, shape,
                                 ratio_pad=batch['ratio_pad'][si])  # native-space labels
                 tkpts = kpts.clone()
-                tkpts[:, 0::3] *= width
-                tkpts[:, 1::3] *= height
+                tkpts[..., 0] *= width
+                tkpts[..., 1] *= height
                 tkpts = ops.scale_kpts(batch['img'][si].shape[1:], tkpts, shape, ratio_pad=batch['ratio_pad'][si])
                 labelsn = torch.cat((cls, tbox), 1)  # native-space labels
                 correct_bboxes = self._process_batch(predn[:, :6], labelsn)

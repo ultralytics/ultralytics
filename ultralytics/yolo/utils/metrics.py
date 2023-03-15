@@ -122,11 +122,11 @@ def mask_iou(mask1, mask2, eps=1e-7):
 
 def kpt_iou(kpt1, kpt2, area, eps=1e-7):
     """OKS
-    kpt1: [N, 51], gt
-    kpt2: [M, 51], pred
+    kpt1: [N, 17, 3], gt
+    kpt2: [M, 17, 3], pred
     area: [N], areas from gt
     """
-    d = (kpt1[:, None, 0::3] - kpt2[:, 0::3]) ** 2 + (kpt1[:, None, 1::3] - kpt2[:, 1::3]) ** 2  # (N, M, 17)
+    d = (kpt1[:, None, :, 0] - kpt2[..., 0]) ** 2 + (kpt1[:, None, :, 1] - kpt2[..., 1]) ** 2  # (N, M, 17)
     sigma = torch.tensor(OKS_SIGMA, device=kpt1.device, dtype=kpt1.dtype)  # (17, )
     kpt_mask = kpt1[:, 2::3] != 0  # (N, 17)
     e = d / (2 * sigma) ** 2 / (area[:, None, None] + eps) / 2  # from cocoeval

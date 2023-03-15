@@ -142,10 +142,11 @@ class PoseValidator(DetectionValidator):
                     names=self.names)
 
     def plot_predictions(self, batch, preds, ni):
-        # TODO
+        nk, nd = self.data["nkpt"], self.data["ndim"]
+        pred_kpts = torch.cat([p.view(-1, nk, nd)[:15] for p in preds], 0)
         plot_images(batch['img'],
                     *output_to_target(preds, max_det=15),
-                    kpts=torch.cat([p[:15, 6:] for p in preds], 0),
+                    kpts=pred_kpts,
                     paths=batch['im_file'],
                     fname=self.save_dir / f'val_batch{ni}_pred.jpg',
                     names=self.names)  # pred

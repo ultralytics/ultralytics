@@ -122,7 +122,7 @@ class PoseLoss(Loss):
                     gt_kpt[..., 1] /= stride_tensor[fg_mask[i]]
                     area = xyxy2xywh(target_bboxes[i][fg_mask[i]])[:, 2:].prod(1, keepdim=True)
                     pred_kpt = pred_kpts[i][fg_mask[i]]
-                    kpt_mask = gt_kpt[:, 2] != 0
+                    kpt_mask = gt_kpt[..., 2] != 0
                     loss[1] += self.keypoint_loss(pred_kpt, gt_kpt, kpt_mask, area)
                     # kpt_score loss
                     if pred_kpt.shape[-1] == 3:

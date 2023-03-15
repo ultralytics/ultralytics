@@ -39,4 +39,4 @@ head:
   - [[-1, 9], 1, Concat, [1]]  # cat head P5
   - [-1, 3, C2f, [1024]]  # 21 (P5/32-large)
 
-  - [[15, 18, 21], 1, Pose, [nc, nkpt]]  # Detect(P3, P4, P5)
+  - [[15, 18, 21], 1, Pose, [nc, nkpt, ndim]]  # Detect(P3, P4, P5)

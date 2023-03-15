@@ -26,7 +26,7 @@ class PoseTrainer(v8.detect.DetectionTrainer):
         super().__init__(cfg, overrides)
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        model = PoseModel(cfg, ch=3, nc=self.data['nc'], nkpt=self.data['nkpt'], verbose=verbose)
+        model = PoseModel(cfg, ch=3, nc=self.data['nc'], nkpt=self.data['nkpt'], ndim=self.data["ndim"], verbose=verbose)
         if weights:
             model.load(weights)
 

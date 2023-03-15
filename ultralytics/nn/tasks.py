@@ -265,7 +265,7 @@ class PoseModel(DetectionModel):
         if ndim and ndim != cfg['ndim']:
             LOGGER.info(f"Overriding model.yaml ndim={self.yaml['ndim']} with ndim={ndim}")
             cfg['ndim'] = ndim
-        super().__init__(cfg, ch, nc, nkpt, verbose)
+        super().__init__(cfg, ch, nc, verbose)
 
 
 class ClassificationModel(BaseModel):
@@ -447,7 +447,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
     if verbose:
         LOGGER.info(f"\n{'':>3}{'from':>20}{'n':>3}{'params':>10}  {'module':<45}{'arguments':<30}")
     nc, gd, gw, act = d['nc'], d['depth_multiple'], d['width_multiple'], d.get('activation')
-    nkpt = d.get('nkpt')  # noqa F841
+    nkpt, ndim = d['nkpt'], d['ndim']
     if act:
         Conv.default_act = eval(act)  # redefine default activation, i.e. Conv.default_act = nn.SiLU()
         if verbose:

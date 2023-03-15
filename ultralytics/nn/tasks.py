@@ -168,7 +168,6 @@ class DetectionModel(BaseModel):
                  cfg='yolov8n.yaml',
                  ch=3,
                  nc=None,
-                 nkpt=None,
                  verbose=True):  # model, input channels, number of classes
         super().__init__()
         self.yaml = cfg if isinstance(cfg, dict) else yaml_load(check_yaml(cfg), append_filename=True)  # cfg dict
@@ -178,9 +177,6 @@ class DetectionModel(BaseModel):
         if nc and nc != self.yaml['nc']:
             LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
             self.yaml['nc'] = nc  # override yaml value
-        if nkpt and nkpt != self.yaml['nkpt']:
-            LOGGER.info(f"Overriding model.yaml nkpt={self.yaml['nkpt']} with nkpt={nkpt}")
-            self.yaml['nkpt'] = nkpt
         self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose)  # model, savelist
         self.names = {i: f'{i}' for i in range(self.yaml['nc'])}  # default names dict
         self.inplace = self.yaml.get('inplace', True)
@@ -261,7 +257,14 @@ class SegmentationModel(DetectionModel):
 
 class PoseModel(DetectionModel):
 
-    def __init__(self, cfg='yolov5s-kpt.yaml', ch=3, nc=None, nkpt=None, verbose=True):
+    def __init__(self, cfg='yolov8n-pose.yaml', ch=3, nc=None, nkpt=None, ndim=None, verbose=True):
+        cfg = cfg if isinstance(cfg, dict) else yaml_load(check_yaml(cfg), append_filename=True)  # cfg dict
+        if nkpt and nkpt != cfg['nkpt']:
+            LOGGER.info(f"Overriding model.yaml nkpt={self.yaml['nkpt']} with nkpt={nkpt}")
+            cfg['nkpt'] = nkpt
+        if ndim and ndim != cfg['ndim']:
+            LOGGER.info(f"Overriding model.yaml ndim={self.yaml['ndim']} with ndim={ndim}")
+            cfg['ndim'] = ndim
         super().__init__(cfg, ch, nc, nkpt, verbose)
 
 

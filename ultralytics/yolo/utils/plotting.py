@@ -166,11 +166,11 @@ class Annotator:
         if kpt_line:
             steps = kpts.shape[-1]
             for sk_id, sk in enumerate(self.skeleton):
-                pos1 = (int(kpts[(sk[0] - 1) * steps]), int(kpts[(sk[0] - 1) * steps + 1]))
-                pos2 = (int(kpts[(sk[1] - 1) * steps]), int(kpts[(sk[1] - 1) * steps + 1]))
+                pos1 = (int(kpts[(sk[0] - 1), 0]), int(kpts[(sk[0] - 1), 1]))
+                pos2 = (int(kpts[(sk[1] - 1), 0]), int(kpts[(sk[1] - 1), 1]))
                 if steps == 3:
-                    conf1 = kpts[(sk[0] - 1) * steps + 2]
-                    conf2 = kpts[(sk[1] - 1) * steps + 2]
+                    conf1 = kpts[(sk[0] - 1), 2]
+                    conf2 = kpts[(sk[1] - 1), 2]
                     if conf1 < 0.5 or conf2 < 0.5:
                         continue
                 if pos1[0] % shape[1] == 0 or pos1[1] % shape[0] == 0 or pos1[0] < 0 or pos1[1] < 0:

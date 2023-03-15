@@ -22,6 +22,7 @@ class PosePredictor(DetectionPredictor):
             orig_img = orig_img[i] if isinstance(orig_img, list) else orig_img
             shape = orig_img.shape
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
+            # TODO
             pred[:, 6:] = ops.scale_kpts(img.shape[2:], pred[:, 6:], shape)
             path, _, _, _, _ = self.batch
             img_path = path[i] if isinstance(path, list) else path

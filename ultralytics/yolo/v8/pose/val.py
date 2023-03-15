@@ -142,6 +142,7 @@ class PoseValidator(DetectionValidator):
                     names=self.names)
 
     def plot_predictions(self, batch, preds, ni):
+        # TODO
         plot_images(batch['img'],
                     *output_to_target(preds, max_det=15),
                     kpts=torch.cat([p[:15, 6:] for p in preds], 0),

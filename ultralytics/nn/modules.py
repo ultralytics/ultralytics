@@ -478,7 +478,7 @@ class Pose(Detect):
         return torch.cat([x, pred_kpt], 1) if self.export else (torch.cat([x[0], pred_kpt], 1), (x[1], kpt))
 
     def kpts_decode(self, kpts):
-        ndim = self.ndim
+        ndim = getattr(self, "ndim", 3)  # Backward compatibility
         y = kpts.clone()
         if ndim == 3:
             y[:, 2::3, :] = y[:, 2::3, :].sigmoid()

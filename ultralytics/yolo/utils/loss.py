@@ -60,9 +60,9 @@ class KeypointLoss(nn.Module):
 
     def __init__(self, device, nkpt=17) -> None:
         super().__init__()
-        self.sigmas = torch.ones((nkpt), device=device) / 10
+        # self.sigmas = torch.ones((nkpt), device=device) / 10
         # TODO
-        # self.sigmas = torch.from_numpy(OKS_SIGMA).to(device)   # for human pose
+        self.sigmas = torch.from_numpy(OKS_SIGMA).to(device)   # for human pose
 
     def forward(self, pred_kpts, gt_kpts, kpt_mask, area):
         d = (pred_kpts[..., 0] - gt_kpts[..., 0]) ** 2 + (pred_kpts[..., 1] - gt_kpts[..., 1]) ** 2

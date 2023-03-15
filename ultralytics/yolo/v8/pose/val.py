@@ -47,6 +47,7 @@ class PoseValidator(DetectionValidator):
             bbox = batch['bboxes'][idx]
             kpts = batch['keypoints'][idx]
             nl, npr = cls.shape[0], pred.shape[0]  # number of labels, predictions
+            nk = kpts.shape[1]   # number of keypoints
             shape = batch['ori_shape'][si]
             correct_kpts = torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device)  # init
             correct_bboxes = torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device)  # init
@@ -66,7 +67,8 @@ class PoseValidator(DetectionValidator):
             predn = pred.clone()
             ops.scale_boxes(batch['img'][si].shape[1:], predn[:, :4], shape,
                             ratio_pad=batch['ratio_pad'][si])  # native-space pred
-            ops.scale_kpts(batch['img'][si].shape[1:], predn[:, 6:], shape, ratio_pad=batch['ratio_pad'][si])
+            pred_kpts = predn[:, 6:].view(npr, nk, -1)
+            ops.scale_coords(batch['img'][si].shape[1:], pred_kpts, shape, ratio_pad=batch['ratio_pad'][si])
 
             # Evaluate
             if nl:
@@ -78,11 +80,11 @@ class PoseValidator(DetectionValidator):
                 tkpts = kpts.clone()
                 tkpts[..., 0] *= width
                 tkpts[..., 1] *= height
-                tkpts = ops.scale_kpts(batch['img'][si].shape[1:], tkpts, shape, ratio_pad=batch['ratio_pad'][si])
+                tkpts = ops.scale_coords(batch['img'][si].shape[1:], tkpts, shape, ratio_pad=batch['ratio_pad'][si])
                 labelsn = torch.cat((cls, tbox), 1)  # native-space labels
                 correct_bboxes = self._process_batch(predn[:, :6], labelsn)
                 # TODO: maybe remove these `self.` arguments as they already are member variable
-                correct_kpts = self._process_batch(predn[:, :6], labelsn, predn[:, 6:], tkpts)
+                correct_kpts = self._process_batch(predn[:, :6], labelsn, pred_kpts, tkpts)
                 # correct_kpts = self._process_batch(predn[:, :6], labelsn)
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, labelsn)

@@ -128,7 +128,7 @@ def kpt_iou(kpt1, kpt2, area, eps=1e-7):
     """
     d = (kpt1[:, None, :, 0] - kpt2[..., 0]) ** 2 + (kpt1[:, None, :, 1] - kpt2[..., 1]) ** 2  # (N, M, 17)
     sigma = torch.tensor(OKS_SIGMA, device=kpt1.device, dtype=kpt1.dtype)  # (17, )
-    kpt_mask = kpt1[:, 2::3] != 0  # (N, 17)
+    kpt_mask = kpt1[..., 2] != 0  # (N, 17)
     e = d / (2 * sigma) ** 2 / (area[:, None, None] + eps) / 2  # from cocoeval
     # e = d / ((area[None, :, None] + eps) * sigma) ** 2 / 2  # from formula
     return (torch.exp(-e) * kpt_mask[:, None]).sum(-1) / kpt_mask.sum(-1)[:, None]

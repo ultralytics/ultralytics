@@ -470,7 +470,7 @@ class Pose(Detect):
 
     def forward(self, x):
         bs = x[0].shape[0]  # batch size
-        kpt = torch.cat([self.cv4[i](x[i]).view(bs, self.nkpt, self.ndim, -1) for i in range(self.nl)], -1)  # (bs, 17, 3, h*w)
+        kpt = torch.cat([self.cv4[i](x[i]).view(bs, self.no_kpt, -1) for i in range(self.nl)], -1)  # (bs, 17*3, h*w)
         x = self.detect(self, x)
         if self.training:
             return x, kpt

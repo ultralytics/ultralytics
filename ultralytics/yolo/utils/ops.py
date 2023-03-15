@@ -113,38 +113,6 @@ def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None):
     return boxes
 
 
-def scale_kpts(img1_shape, kpts, img0_shape, ratio_pad=None, step=3):
-    """
-    Rescales keypoints from the shape of the image they were originally specified in (img1_shape) to the shape of a
-    different image (img0_shape).
-
-    Args:
-      img1_shape (tuple): The shape of the image that the keypoints are for, in the format of (height, width).
-      kpts (torch.Tensor) or (numpy.ndarray): The keypoints to be rescaled of shape (n, 51).
-      img0_shape (tuple): The shape of the target image, in the format of (height, width).
-      ratio_pad (tuple, optional): A tuple of (ratio, pad) for scaling the keypoints. If not provided, the ratio and
-                                    pad will be calculated based on the size difference between the two images.
-      step (int, optional): The step size to take in indexing kpts,i.e. start at 0, go to the end, taking every step
-                            (default is 3).
-
-    Returns:
-      kpts (torch.Tensor) or (numpy.ndarray): The rescaled keypoints, of the same shape as the input keypoints.
-    """
-    if ratio_pad is None:  # calculate from img0_shape
-        gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
-        pad = (img1_shape[1] - img0_shape[1] * gain) / 2, (img1_shape[0] - img0_shape[0] * gain) / 2  # wh padding
-    else:
-        gain = ratio_pad[0][0]
-        pad = ratio_pad[1]
-
-    kpts[:, 0::step] -= pad[0]  # x padding
-    kpts[:, 1::step] -= pad[1]  # y padding
-    kpts[:, 0::step] /= gain
-    kpts[:, 1::step] /= gain
-    clip_kpts(kpts, img0_shape, step=step)
-    return kpts
-
-
 def make_divisible(x, divisor):
     """
     Returns the nearest number that is divisible by the given divisor.

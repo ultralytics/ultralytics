@@ -143,7 +143,7 @@ class PoseValidator(DetectionValidator):
 
     def plot_predictions(self, batch, preds, ni):
         nk, nd = self.data["nkpt"], self.data["ndim"]
-        pred_kpts = torch.cat([p.view(-1, nk, nd)[:15] for p in preds], 0)
+        pred_kpts = torch.cat([p[:, 6:].view(-1, nk, nd)[:15] for p in preds], 0)
         plot_images(batch['img'],
                     *output_to_target(preds, max_det=15),
                     kpts=pred_kpts,

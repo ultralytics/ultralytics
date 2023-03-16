@@ -2,8 +2,7 @@
 
 # Parameters
 nc: 80  # number of classes
-nkpt: 17  # number of keypoints
-ndim: 3  # number of dimension
+kpt_shape: [17, 3]  # number of keypoints, number of dims (2 for x,y or 3 for x,y,visible)
 depth_multiple: 1.00  # scales module repeats
 width_multiple: 1.00  # scales convolution channels
 

@@ -251,12 +251,13 @@ class SegmentationModel(DetectionModel):
 class PoseModel(DetectionModel):
 
     def __init__(self, cfg='yolov8n-pose.yaml', ch=3, nc=None, nkpt=None, ndim=None, verbose=True):
-        cfg = cfg if isinstance(cfg, dict) else yaml_load(check_yaml(cfg), append_filename=True)  # cfg dict
-        if nkpt and nkpt != cfg['nkpt']:
-            LOGGER.info(f"Overriding model.yaml nkpt={cfg['nkpt']} with nkpt={nkpt}")
+        cfg = cfg if isinstance(cfg, dict) else yaml_load(check_yaml(cfg), append_filename=True)  # model YAML cfg dict
+        shape = cfg['kpt_shape']
+        if nkpt and nkpt != shape[0]:
+            LOGGER.info(f"Overriding model.yaml nkpt={shape[0]} with nkpt={nkpt}")
             cfg['nkpt'] = nkpt
-        if ndim and ndim != cfg['ndim']:
-            LOGGER.info(f"Overriding model.yaml ndim={cfg['ndim']} with ndim={ndim}")
+        if ndim and ndim != shape[1]:
+            LOGGER.info(f"Overriding model.yaml ndim={shape[1]} with ndim={ndim}")
             cfg['ndim'] = ndim
         super().__init__(cfg, ch, nc, verbose)
 
@@ -436,7 +437,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         LOGGER.info(f"\n{'':>3}{'from':>20}{'n':>3}{'params':>10}  {'module':<45}{'arguments':<30}")
 
     nc, gd, gw = d['nc'], d['depth_multiple'], d['width_multiple']  # required model keys
-    nkpt, ndim, act = d.get('nkpt'), d.get('ndim'), d.get('activation')  # noqa F841 optional model keys
+    (nkpt, ndim), act = d.get('kpt_shape'), d.get('activation')  # noqa F841 optional model keys
 
     if act:
         Conv.default_act = eval(act)  # redefine default activation, i.e. Conv.default_act = nn.SiLU()

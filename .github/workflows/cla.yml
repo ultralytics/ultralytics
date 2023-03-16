@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
-name: "CLA Assistant"
+name: CLA Assistant
 on:
   issue_comment:
     types:
@@ -16,7 +16,7 @@ jobs:
     if: github.repository == 'ultralytics/ultralytics'
     runs-on: ubuntu-latest
     steps:
-      - name: "CLA Assistant"
+      - name: CLA Assistant
         if: (github.event.comment.body == 'recheck' || github.event.comment.body == 'I have read the CLA Document and I sign the CLA') || github.event_name == 'pull_request_target'
         uses: contributor-assistant/github-action@v2.3.0
         env:

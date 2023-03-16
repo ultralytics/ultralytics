@@ -32,6 +32,11 @@ class PoseTrainer(v8.detect.DetectionTrainer):
 
         return model
 
+
+    def set_model_attributes(self):
+        super().set_model_attributes()
+        self.model.nkpt = self.data["nkpt"]
+
     def get_validator(self):
         self.loss_names = 'box_loss', 'pose_loss', 'kobj_loss', 'cls_loss', 'dfl_loss'
         return v8.pose.PoseValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))

@@ -17,7 +17,7 @@ def on_predict_batch_end(predictor):
     im0s = im0s if isinstance(im0s, list) else [im0s]
     predictor.results = zip(predictor.results, im0s)
 
-model = YOLO(f"yolov8n.pt")
+model = YOLO(f'yolov8n.pt')
 model.add_callback("on_predict_batch_end", on_predict_batch_end)
 for (result, frame) in model.track/predict():
     pass

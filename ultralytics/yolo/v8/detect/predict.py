@@ -82,7 +82,7 @@ class DetectionPredictor(BasePredictor):
             if self.args.save_crop:
                 save_one_box(d.xyxy,
                              imc,
-                             file=self.save_dir / 'crops' / self.model.model.names[c] / f'{self.data_path.stem}.jpg',
+                             file=self.save_dir / 'crops' / self.model.names[c] / f'{self.data_path.stem}.jpg',
                              BGR=True)
 
         return log_string

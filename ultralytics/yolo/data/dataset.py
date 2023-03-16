@@ -80,9 +80,8 @@ class YOLODataset(BaseDataset):
         nc = len(self.data['names'])
         nkpt = self.data.get('nkpt', 0)
         ndim = self.data.get('ndim', 0)
-        if self.use_keypoints:
-            assert nkpt > 0 and ndim in [2, 3], \
-                    f'Expected `nkpt > 0` and `ndim = 2 or 3` in data.yaml but got `nkpt`: {nkpt}, `ndim`: {ndim}'
+        if self.use_keypoints and (nkpt <= 0 or ndim not in (2, 3)):
+            raise ValueError(f"Expected nkpt > 0 and ndim = 2 or 3 in data.yaml but got 'nkpt: {nkpt}', 'ndim: {ndim}'")
         with ThreadPool(NUM_THREADS) as pool:
             results = pool.imap(func=verify_image_label,
                                 iterable=zip(self.im_files, self.label_files, repeat(self.prefix),

@@ -79,8 +79,8 @@ class PoseLoss(Loss):
         self.ndim = model.model[-1].ndim
         self.bce_pose = nn.BCEWithLogitsLoss()
         is_pose = self.nkpt == 17 and self.ndim == 3
-        sigmas = torch.from_numpy(OKS_SIGMA).to(self.device) if is_pose else \
-                 torch.ones((self.nkpt), device=self.device) / self.nkpt
+        sigmas = torch.from_numpy(OKS_SIGMA).to(self.device) if is_pose \
+            else torch.ones(self.nkpt, device=self.device) / self.nkpt
         self.keypoint_loss = KeypointLoss(sigmas=sigmas)
 
     def __call__(self, preds, batch):

@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .metrics import OKS_SIGMA, bbox_iou
+from .metrics import bbox_iou
 from .tal import bbox2dist
 
 

@@ -23,7 +23,7 @@ training arguments.
         # Load a model
         model = YOLO('yolov8n.yaml')  # build a new model from YAML
         model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
-        model = YOLO('custom.yaml').load('yolov8n.pt')  # build from YAML and transfer weights
+        model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # build from YAML and transfer weights
         
         # Train the model
         model.train(data='coco128.yaml', epochs=100, imgsz=640)
@@ -38,7 +38,7 @@ training arguments.
         yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640
 
         # Build a new model from YAML, transfer pretrained weights to it and start training
-        yolo detect train data=coco128.yaml model=custom.yaml pretrained=yolov8n.pt epochs=100 imgsz=640
+        yolo detect train data=coco128.yaml model=yolov8n.yaml pretrained=yolov8n.pt epochs=100 imgsz=640
         ```
 
 ## Arguments

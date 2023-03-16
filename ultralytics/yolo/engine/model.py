@@ -167,16 +167,14 @@ class YOLO:
         return self
 
     @smart_inference_mode()
-    def transfer_weights(self, weights='yolov8n.pt'):
+    def load_weights(self, weights='yolov8n.pt'):
         """
         Transfers parameters with matching names and shapes from 'weights' to model.
         """
         self._check_is_pytorch_model()
         if isinstance(weights, (str, Path)):
             weights, ckpt = attempt_load_one_weight(weights)
-        print(self.model.names)
         self.model.load(weights)
-        print(self.model.names)
         return self
 
     def info(self, verbose=False):

@@ -16,7 +16,7 @@ from ultralytics.yolo.utils import LOGGER, TryExcept, threaded
 
 from .checks import check_font, check_version, is_ascii
 from .files import increment_path
-from .ops import clip_coords, scale_image, xywh2xyxy, xyxy2xywh
+from .ops import clip_boxes, scale_image, xywh2xyxy, xyxy2xywh
 
 matplotlib.rc('font', **{'size': 11})
 matplotlib.use('Agg')  # for writing to files only
@@ -143,10 +143,10 @@ class Annotator:
             # convert im back to PIL and update draw
             self.fromarray(self.im)
 
-    def kpts(self, kpts, shape=(640, 640), steps=3, radius=5, kpt_line=True):
+    def kpts(self, kpts, shape=(640, 640), radius=5, kpt_line=True):
         """Plot keypoints.
         Args:
-            kpts (tensor): predicted kpts, shape: [51]
+            kpts (tensor): predicted kpts, shape: [17, 3]
             shape (tuple): image shape, (h, w)
             steps (int): keypoints step
             radius (int): size of drawing points
@@ -154,29 +154,33 @@ class Annotator:
         if self.pil:
             # convert to numpy first
             self.im = np.asarray(self.im).copy()
-        num_kpts = len(kpts) // steps
-        for kid in range(num_kpts):
-            x_coord, y_coord = kpts[steps * kid], kpts[steps * kid + 1]
+        nkpt, ndim = kpts.shape
+        is_pose = nkpt == 17 and ndim == 3
+        kpt_line &= is_pose  # `kpt_line=True` for now only supports human pose plotting
+        for i, k in enumerate(kpts):
+            color_k = [int(x) for x in self.kpt_color[i]] if is_pose else colors(i)
+            x_coord, y_coord = k[0], k[1]
             if x_coord % shape[1] != 0 and y_coord % shape[0] != 0:
-                if steps == 3:
-                    conf = kpts[steps * kid + 2]
+                if len(k) == 3:
+                    conf = k[2]
                     if conf < 0.5:
                         continue
-                cv2.circle(self.im, (int(x_coord), int(y_coord)), radius, [int(x) for x in self.kpt_color[kid]], -1)
+                cv2.circle(self.im, (int(x_coord), int(y_coord)), radius, color_k, -1)
 
-        for sk_id, sk in enumerate(self.skeleton):
-            pos1 = (int(kpts[(sk[0] - 1) * steps]), int(kpts[(sk[0] - 1) * steps + 1]))
-            pos2 = (int(kpts[(sk[1] - 1) * steps]), int(kpts[(sk[1] - 1) * steps + 1]))
-            if steps == 3:
-                conf1 = kpts[(sk[0] - 1) * steps + 2]
-                conf2 = kpts[(sk[1] - 1) * steps + 2]
-                if conf1 < 0.5 or conf2 < 0.5:
+        if kpt_line:
+            ndim = kpts.shape[-1]
+            for sk_id, sk in enumerate(self.skeleton):
+                pos1 = (int(kpts[(sk[0] - 1), 0]), int(kpts[(sk[0] - 1), 1]))
+                pos2 = (int(kpts[(sk[1] - 1), 0]), int(kpts[(sk[1] - 1), 1]))
+                if ndim == 3:
+                    conf1 = kpts[(sk[0] - 1), 2]
+                    conf2 = kpts[(sk[1] - 1), 2]
+                    if conf1 < 0.5 or conf2 < 0.5:
+                        continue
+                if pos1[0] % shape[1] == 0 or pos1[1] % shape[0] == 0 or pos1[0] < 0 or pos1[1] < 0:
                     continue
-            if pos1[0] % shape[1] == 0 or pos1[1] % shape[0] == 0 or pos1[0] < 0 or pos1[1] < 0:
-                continue
-            if pos2[0] % shape[1] == 0 or pos2[1] % shape[0] == 0 or pos2[0] < 0 or pos2[1] < 0:
-                continue
-            if kpt_line:
+                if pos2[0] % shape[1] == 0 or pos2[1] % shape[0] == 0 or pos2[0] < 0 or pos2[1] < 0:
+                    continue
                 cv2.line(self.im, pos1, pos2, [int(x) for x in self.limb_color[sk_id]], thickness=2)
         if self.pil:
             # convert im back to PIL and update draw
@@ -263,7 +267,7 @@ def save_one_box(xyxy, im, file=Path('im.jpg'), gain=1.02, pad=10, square=False,
         b[:, 2:] = b[:, 2:].max(1)[0].unsqueeze(1)  # attempt rectangle to square
     b[:, 2:] = b[:, 2:] * gain + pad  # box wh * gain + pad
     xyxy = xywh2xyxy(b).long()
-    clip_coords(xyxy, im.shape)
+    clip_boxes(xyxy, im.shape)
     crop = im[int(xyxy[0, 1]):int(xyxy[0, 3]), int(xyxy[0, 0]):int(xyxy[0, 2]), ::(1 if BGR else -1)]
     if save:
         file.parent.mkdir(parents=True, exist_ok=True)  # make directory
@@ -357,13 +361,13 @@ def plot_images(images,
             if len(kpts):
                 kpts_ = kpts[idx].copy()
                 if len(kpts_):
-                    if kpts_[:, 0::3].max() <= 1.01 or kpts_[:, 1::3].max() <= 1.01:  # if normalized with tolerance .01
-                        kpts_[:, 0::3] *= w  # scale to pixels
-                        kpts_[:, 1::3] *= h
+                    if kpts_[..., 0].max() <= 1.01 or kpts_[..., 1].max() <= 1.01:  # if normalized with tolerance .01
+                        kpts_[..., 0] *= w  # scale to pixels
+                        kpts_[..., 1] *= h
                     elif scale < 1:  # absolute coords need scale if image scales
                         kpts_ *= scale
-                kpts_[:, 0::3] += x
-                kpts_[:, 1::3] += y
+                kpts_[..., 0] += x
+                kpts_[..., 1] += y
                 for j in range(len(kpts_)):
                     if labels or conf[j] > 0.25:  # 0.25 conf thresh
                         annotator.kpts(kpts_[j])

@@ -316,17 +316,17 @@ class RandomPerspective:
         Return:
             new_keypoints(ndarray): keypoints after affine, [N, 17, 3].
         """
-        n = len(keypoints)
+        n, nkpt = keypoints.shape[:2]
         if n == 0:
             return keypoints
-        xy = np.ones((n * 17, 3))
-        visible = keypoints[..., 2].reshape(n * 17, 1)
-        xy[:, :2] = keypoints[..., :2].reshape(n * 17, 2)  # num_kpt is hardcoded to 17
+        xy = np.ones((n * nkpt, 3))
+        visible = keypoints[..., 2].reshape(n * nkpt, 1)
+        xy[:, :2] = keypoints[..., :2].reshape(n * nkpt, 2)
         xy = xy @ M.T  # transform
         xy = xy[:, :2] / xy[:, 2:3]  # perspective rescale or affine
         out_mask = (xy[:, 0] < 0) | (xy[:, 1] < 0) | (xy[:, 0] > self.size[0]) | (xy[:, 1] > self.size[1])
         visible[out_mask] = 0
-        return np.concatenate([xy, visible], axis=-1).reshape(n, 17, 3)
+        return np.concatenate([xy, visible], axis=-1).reshape(n, nkpt, 3)
 
     def __call__(self, labels):
         """
@@ -634,7 +634,7 @@ class Format:
         labels['cls'] = torch.from_numpy(cls) if nl else torch.zeros(nl)
         labels['bboxes'] = torch.from_numpy(instances.bboxes) if nl else torch.zeros((nl, 4))
         if self.return_keypoint:
-            labels['keypoints'] = torch.from_numpy(instances.keypoints).view(nl, -1) if nl else torch.zeros((nl, 51))
+            labels['keypoints'] = torch.from_numpy(instances.keypoints)
         # then we can use collate_fn
         if self.batch_idx:
             labels['batch_idx'] = torch.zeros(nl)
@@ -673,13 +673,17 @@ def v8_transforms(dataset, imgsz, hyp):
             perspective=hyp.perspective,
             pre_transform=LetterBox(new_shape=(imgsz, imgsz)),
         )])
+    flip_idx = dataset.data.get('flip_idx', None)  # for keypoints augmentation
+    if dataset.use_keypoints and flip_idx is None and hyp.fliplr > 0.0:
+        hyp.fliplr = 0.0
+        LOGGER.warning("WARNING ⚠️ No `flip_idx` provided while training keypoints, setting augmentation 'fliplr=0.0'")
     return Compose([
         pre_transform,
         MixUp(dataset, pre_transform=pre_transform, p=hyp.mixup),
         Albumentations(p=1.0),
         RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
         RandomFlip(direction='vertical', p=hyp.flipud),
-        RandomFlip(direction='horizontal', p=hyp.fliplr, flip_idx=POSE_FLIPLR_INDEX)])  # transforms
+        RandomFlip(direction='horizontal', p=hyp.fliplr, flip_idx=flip_idx)])  # transforms
 
 
 # Classification augmentations -----------------------------------------------------------------------------------------

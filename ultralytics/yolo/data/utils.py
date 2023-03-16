@@ -63,7 +63,7 @@ def exif_size(img):
 
 def verify_image_label(args):
     # Verify one image-label pair
-    im_file, lb_file, prefix, keypoint, num_cls = args
+    im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim = args
     # number (missing, found, empty, corrupt), message, segments, keypoints
     nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, '', [], None
     try:
@@ -94,20 +94,19 @@ def verify_image_label(args):
             nl = len(lb)
             if nl:
                 if keypoint:
-                    assert lb.shape[1] == 56, 'labels require 56 columns each'
-                    assert (lb[:, 5::3] <= 1).all(), 'non-normalized or out of bounds coordinate labels'
-                    assert (lb[:, 6::3] <= 1).all(), 'non-normalized or out of bounds coordinate labels'
-                    assert lb.shape[1] == 56, 'labels require 56 columns each after removing occlusion parameter'
+                    assert lb.shape[1] == (5 + nkpt * ndim), f'labels require {(5 + nkpt * ndim)} columns each'
+                    assert (lb[:, 5::ndim] <= 1).all(), 'non-normalized or out of bounds coordinate labels'
+                    assert (lb[:, 6::ndim] <= 1).all(), 'non-normalized or out of bounds coordinate labels'
                 else:
                     assert lb.shape[1] == 5, f'labels require 5 columns, {lb.shape[1]} columns detected'
                     assert (lb[:, 1:] <= 1).all(), \
                         f'non-normalized or out of bounds coordinates {lb[:, 1:][lb[:, 1:] > 1]}'
+                    assert (lb >= 0).all(), f'negative label values {lb[lb < 0]}'
                 # All labels
                 max_cls = int(lb[:, 0].max())  # max label count
                 assert max_cls <= num_cls, \
                     f'Label class {max_cls} exceeds dataset class count {num_cls}. ' \
                     f'Possible class labels are 0-{num_cls - 1}'
-                assert (lb >= 0).all(), f'negative label values {lb[lb < 0]}'
                 _, i = np.unique(lb, axis=0, return_index=True)
                 if len(i) < nl:  # duplicate row check
                     lb = lb[i]  # remove duplicates
@@ -116,12 +115,18 @@ def verify_image_label(args):
                     msg = f'{prefix}WARNING ⚠️ {im_file}: {nl - len(i)} duplicate labels removed'
             else:
                 ne = 1  # label empty
-                lb = np.zeros((0, 56), dtype=np.float32) if keypoint else np.zeros((0, 5), dtype=np.float32)
+                lb = np.zeros((0, (5 + nkpt * ndim)), dtype=np.float32) if keypoint else np.zeros(
+                    (0, 5), dtype=np.float32)
         else:
             nm = 1  # label missing
-            lb = np.zeros((0, 56), dtype=np.float32) if keypoint else np.zeros((0, 5), dtype=np.float32)
+            lb = np.zeros((0, (5 + nkpt * ndim)), dtype=np.float32) if keypoint else np.zeros((0, 5), dtype=np.float32)
         if keypoint:
-            keypoints = lb[:, 5:].reshape(-1, 17, 3)
+            keypoints = lb[:, 5:].reshape(-1, nkpt, ndim)
+            if ndim == 2:
+                kpt_mask = np.ones(keypoints.shape[:2], dtype=np.float32)
+                kpt_mask = np.where(keypoints[..., 0] < 0, 0.0, kpt_mask)
+                kpt_mask = np.where(keypoints[..., 1] < 0, 0.0, kpt_mask)
+                keypoints = np.concatenate([keypoints, kpt_mask[..., None]], axis=-1)  # (nl, nkpt, 3)
         lb = lb[:, :5]
         return im_file, lb, shape, segments, keypoints, nm, nf, ne, nc, msg
     except Exception as e:

@@ -457,10 +457,11 @@ class Segment(Detect):
 
 class Pose(Detect):
     # YOLOv8 Pose head for keypoints models
-    def __init__(self, nc=80, nkpt=17, ch=()):
+    def __init__(self, nc=80, nkpt=17, ndim=3, ch=()):
         super().__init__(nc, ch)
         self.nkpt = nkpt  # number of keypoints
-        self.no_kpt = self.nkpt * 3  # xy, cls(kpt)
+        self.ndim = ndim
+        self.no_kpt = self.nkpt * ndim  # xy, cls(kpt)
         self.detect = Detect.forward
 
         c4 = max(ch[0] // 4, 32)  # NOTE: wanted to set c4 = max(ch[0] // 4, self.no_kpt) but `no_kpt` is an odd number
@@ -469,25 +470,20 @@ class Pose(Detect):
 
     def forward(self, x):
         bs = x[0].shape[0]  # batch size
-        kpt = torch.cat([self.cv4[i](x[i]).view(bs, self.no_kpt, -1) for i in range(self.nl)],
-                        2)  # keypoints, (bs, 17*3, h*w)
+        kpt = torch.cat([self.cv4[i](x[i]).view(bs, self.no_kpt, -1) for i in range(self.nl)], -1)  # (bs, 17*3, h*w)
         x = self.detect(self, x)
         if self.training:
             return x, kpt
-        bbox = x[:, :4, :] if self.export else x[0][:, :4, :]
-        pred_kpt = self.kpts_decode(kpt, bbox)
+        pred_kpt = self.kpts_decode(kpt)
         return torch.cat([x, pred_kpt], 1) if self.export else (torch.cat([x[0], pred_kpt], 1), (x[1], kpt))
 
-    def kpts_decode(self, kpts, bbox=None):
-        # y = kpts.sigmoid()   # (bs, 51, h*w)
-        # y[:, 0::3, :] = (y[:, 0::3, :] - 0.5) * bbox[:, [2], :] + self.anchors[0] * self.strides
-        # y[:, 1::3, :] = (y[:, 1::3, :] - 0.5) * bbox[:, [3], :] + self.anchors[1] * self.strides
-        # y[:, 0::3, :] = (y[:, 0::3, :] - 0.5) * bbox[:, [2], :] + bbox[:, [0], :]
-        # y[:, 1::3, :] = (y[:, 1::3, :] - 0.5) * bbox[:, [3], :] + bbox[:, [1], :]
+    def kpts_decode(self, kpts):
+        ndim = getattr(self, 'ndim', 3)  # Backward compatibility
         y = kpts.clone()
-        y[:, 2::3, :] = y[:, 2::3, :].sigmoid()
-        y[:, 0::3, :] = (y[:, 0::3, :] * 2 - 0.5 + self.anchors[0]) * self.strides
-        y[:, 1::3, :] = (y[:, 1::3, :] * 2 - 0.5 + self.anchors[1]) * self.strides
+        if ndim == 3:
+            y[:, 2::3, :] = y[:, 2::3, :].sigmoid()
+        y[:, 0::ndim, :] = (y[:, 0::ndim, :] * 2 - 0.5 + self.anchors[0]) * self.strides
+        y[:, 1::ndim, :] = (y[:, 1::ndim, :] * 2 - 0.5 + self.anchors[1]) * self.strides
         return y
 
 

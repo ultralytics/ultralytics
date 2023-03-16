@@ -7,7 +7,7 @@ import torch
 
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, ops
 from ultralytics.yolo.utils.checks import check_requirements
-from ultralytics.yolo.utils.metrics import PoseMetrics, box_iou, kpt_iou
+from ultralytics.yolo.utils.metrics import OKS_SIGMA, PoseMetrics, box_iou, kpt_iou
 from ultralytics.yolo.utils.plotting import output_to_target, plot_images
 from ultralytics.yolo.v8.detect import DetectionValidator
 
@@ -39,6 +39,13 @@ class PoseValidator(DetectionValidator):
                                         nc=self.nc)
         return preds
 
+    def init_metrics(self, model):
+        super().init_metrics(model)
+        self.nkpt = self.data['nkpt']
+        self.ndim = self.data['ndim']
+        is_pose = self.nkpt == 17 and self.ndim == 3
+        self.sigma = OKS_SIGMA if is_pose else np.ones(self.nkpt) / self.nkpt
+
     def update_metrics(self, preds, batch):
         # Metrics
         for si, pred in enumerate(preds):
@@ -47,6 +54,7 @@ class PoseValidator(DetectionValidator):
             bbox = batch['bboxes'][idx]
             kpts = batch['keypoints'][idx]
             nl, npr = cls.shape[0], pred.shape[0]  # number of labels, predictions
+            nk = kpts.shape[1]  # number of keypoints
             shape = batch['ori_shape'][si]
             correct_kpts = torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device)  # init
             correct_bboxes = torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device)  # init
@@ -66,7 +74,8 @@ class PoseValidator(DetectionValidator):
             predn = pred.clone()
             ops.scale_boxes(batch['img'][si].shape[1:], predn[:, :4], shape,
                             ratio_pad=batch['ratio_pad'][si])  # native-space pred
-            ops.scale_kpts(batch['img'][si].shape[1:], predn[:, 6:], shape, ratio_pad=batch['ratio_pad'][si])
+            pred_kpts = predn[:, 6:].view(npr, nk, -1)
+            ops.scale_coords(batch['img'][si].shape[1:], pred_kpts, shape, ratio_pad=batch['ratio_pad'][si])
 
             # Evaluate
             if nl:
@@ -76,14 +85,12 @@ class PoseValidator(DetectionValidator):
                 ops.scale_boxes(batch['img'][si].shape[1:], tbox, shape,
                                 ratio_pad=batch['ratio_pad'][si])  # native-space labels
                 tkpts = kpts.clone()
-                tkpts[:, 0::3] *= width
-                tkpts[:, 1::3] *= height
-                tkpts = ops.scale_kpts(batch['img'][si].shape[1:], tkpts, shape, ratio_pad=batch['ratio_pad'][si])
+                tkpts[..., 0] *= width
+                tkpts[..., 1] *= height
+                tkpts = ops.scale_coords(batch['img'][si].shape[1:], tkpts, shape, ratio_pad=batch['ratio_pad'][si])
                 labelsn = torch.cat((cls, tbox), 1)  # native-space labels
                 correct_bboxes = self._process_batch(predn[:, :6], labelsn)
-                # TODO: maybe remove these `self.` arguments as they already are member variable
-                correct_kpts = self._process_batch(predn[:, :6], labelsn, predn[:, 6:], tkpts)
-                # correct_kpts = self._process_batch(predn[:, :6], labelsn)
+                correct_kpts = self._process_batch(predn[:, :6], labelsn, pred_kpts, tkpts)
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, labelsn)
 
@@ -110,7 +117,7 @@ class PoseValidator(DetectionValidator):
         if pred_kpts is not None and gt_kpts is not None:
             # `0.53` is from https://github.com/jin-s13/xtcocoapi/blob/master/xtcocotools/cocoeval.py#L384
             area = ops.xyxy2xywh(labels[:, 1:])[:, 2:].prod(1) * 0.53
-            iou = kpt_iou(gt_kpts, pred_kpts, area=area)
+            iou = kpt_iou(gt_kpts, pred_kpts, sigma=self.sigma, area=area)
         else:  # boxes
             iou = box_iou(labels[:, 1:], detections[:, :4])
 
@@ -140,9 +147,10 @@ class PoseValidator(DetectionValidator):
                     names=self.names)
 
     def plot_predictions(self, batch, preds, ni):
+        pred_kpts = torch.cat([p[:, 6:].view(-1, self.nkpt, self.ndim)[:15] for p in preds], 0)
         plot_images(batch['img'],
                     *output_to_target(preds, max_det=15),
-                    kpts=torch.cat([p[:15, 6:] for p in preds], 0),
+                    kpts=pred_kpts,
                     paths=batch['im_file'],
                     fname=self.save_dir / f'val_batch{ni}_pred.jpg',
                     names=self.names)  # pred

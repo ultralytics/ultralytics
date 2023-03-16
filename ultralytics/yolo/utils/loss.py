@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .metrics import OKS_SIGMA, bbox_iou
+from .metrics import bbox_iou
 from .tal import bbox2dist
 
 
@@ -58,13 +58,12 @@ class BboxLoss(nn.Module):
 
 class KeypointLoss(nn.Module):
 
-    def __init__(self, device, nkpt=17) -> None:
+    def __init__(self, sigmas) -> None:
         super().__init__()
-        # self.sigmas = torch.ones((nkpt), device=device) / 10
-        self.sigmas = torch.from_numpy(OKS_SIGMA).to(device)
+        self.sigmas = sigmas
 
     def forward(self, pred_kpts, gt_kpts, kpt_mask, area):
-        d = (pred_kpts[:, 0::3] - gt_kpts[:, 0::3]) ** 2 + (pred_kpts[:, 1::3] - gt_kpts[:, 1::3]) ** 2
+        d = (pred_kpts[..., 0] - gt_kpts[..., 0]) ** 2 + (pred_kpts[..., 1] - gt_kpts[..., 1]) ** 2
         kpt_loss_factor = (torch.sum(kpt_mask != 0) + torch.sum(kpt_mask == 0)) / (torch.sum(kpt_mask != 0) + 1e-9)
         # e = d / (2 * (area * self.sigmas) ** 2 + 1e-9)  # from formula
         e = d / (2 * self.sigmas) ** 2 / (area + 1e-9) / 2  # from cocoeval

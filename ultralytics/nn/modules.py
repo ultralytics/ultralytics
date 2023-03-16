@@ -457,11 +457,11 @@ class Segment(Detect):
 
 class Pose(Detect):
     # YOLOv8 Pose head for keypoints models
-    def __init__(self, nc=80, nkpt=17, ndim=3, ch=()):
+    def __init__(self, nc=80, kpt_shape=(17, 3), ch=()):
         super().__init__(nc, ch)
-        self.nkpt = nkpt  # number of keypoints
-        self.ndim = ndim
-        self.no_kpt = self.nkpt * ndim  # xy, cls(kpt)
+        self.nkpt = kpt_shape[0]  # number of keypoints
+        self.ndim = kpt_shape[1]
+        self.no_kpt = self.nkpt * self.ndim  # xy, cls(kpt)
         self.detect = Detect.forward
 
         c4 = max(ch[0] // 4, 32)  # NOTE: wanted to set c4 = max(ch[0] // 4, self.no_kpt) but `no_kpt` is an odd number

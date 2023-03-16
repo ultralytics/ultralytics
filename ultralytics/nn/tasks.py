@@ -155,11 +155,8 @@ class BaseModel(nn.Module):
         """Load the weights into the model.
 
         Args:
-            weights (dict or torch.nn.Module): The pre-trained weights to be loaded.
+            weights (dict) or (torch.nn.Module): The pre-trained weights to be loaded.
             verbose (bool, optional): Whether to log the transfer progress. Defaults to True.
-
-        Returns:
-            None
         """
         model = weights['model'] if isinstance(weights, dict) else weights  # torchvision models are not dicts
         csd = model.float().state_dict()  # checkpoint state_dict as FP32

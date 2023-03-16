@@ -444,7 +444,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         LOGGER.info(f"\n{'':>3}{'from':>20}{'n':>3}{'params':>10}  {'module':<45}{'arguments':<30}")
 
     nc, gd, gw = d['nc'], d['depth_multiple'], d['width_multiple']  # required model keys
-    nkpt, ndim, act = d.get('nkpt'), d.get('ndim'), d.get('activation')  # optional model keys
+    nkpt, ndim, act = d.get('nkpt'), d.get('ndim'), d.get('activation')  # noqa F841 optional model keys
 
     if act:
         Conv.default_act = eval(act)  # redefine default activation, i.e. Conv.default_act = nn.SiLU()

@@ -21,16 +21,24 @@ training arguments.
         from ultralytics import YOLO
         
         # Load a model
-        model = YOLO("yolov8n.yaml")  # build a new model from scratch
-        model = YOLO("yolov8n.pt")  # load a pretrained model (recommended for training)
+        model = YOLO('yolov8n.yaml')  # build a new model from YAML
+        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+        model = YOLO('yolov8n.yaml').load('yolov8n.pt')  # build from YAML and transfer weights
         
         # Train the model
-        model.train(data="coco128.yaml", epochs=100, imgsz=640)
+        model.train(data='coco128.yaml', epochs=100, imgsz=640)
         ```
     === "CLI"
     
         ```bash
+        # Build a new model from YAML and start training from scratch
+        yolo detect train data=coco128.yaml model=yolov8n.yaml epochs=100 imgsz=640
+
+        # Start training from a pretrained *.pt model
         yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640
+
+        # Build a new model from YAML, transfer pretrained weights to it and start training
+        yolo detect train data=coco128.yaml model=yolov8n.yaml pretrained=yolov8n.pt epochs=100 imgsz=640
         ```
 
 ## Arguments

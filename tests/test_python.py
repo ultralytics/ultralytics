@@ -207,9 +207,9 @@ def test_predict_callback_and_setup():
 def test_result():
     model = YOLO('yolov8n-seg.pt')
     res = model([SOURCE, SOURCE])
-    res[0].cpu().numpy()
     res[0].plot(show_conf=False)
-    print(res[0].path)
+    res[0] = res[0].cpu().numpy()
+    print(res[0].path, res[0].masks.masks)
 
     model = YOLO('yolov8n.pt')
     res = model(SOURCE)

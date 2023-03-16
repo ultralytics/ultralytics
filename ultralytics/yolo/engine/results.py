@@ -48,7 +48,7 @@ class Results:
         self.probs = probs if probs is not None else None
         self.names = names
         self.path = path
-        self._keys = [k for k in ('boxes', 'masks', 'probs') if getattr(self, k) is not None]
+        self._keys = ('boxes', 'masks', 'probs')
 
     def pandas(self):
         pass
@@ -56,7 +56,7 @@ class Results:
 
     def __getitem__(self, idx):
         r = Results(orig_img=self.orig_img, path=self.path, names=self.names)
-        for k in self._keys:
+        for k in self.keys:
             setattr(r, k, getattr(self, k)[idx])
         return r
 
@@ -70,30 +70,30 @@ class Results:
 
     def cpu(self):
         r = Results(orig_img=self.orig_img, path=self.path, names=self.names)
-        for k in self._keys:
+        for k in self.keys:
             setattr(r, k, getattr(self, k).cpu())
         return r
 
     def numpy(self):
         r = Results(orig_img=self.orig_img, path=self.path, names=self.names)
-        for k in self._keys:
+        for k in self.keys:
             setattr(r, k, getattr(self, k).numpy())
         return r
 
     def cuda(self):
         r = Results(orig_img=self.orig_img, path=self.path, names=self.names)
-        for k in self._keys:
+        for k in self.keys:
             setattr(r, k, getattr(self, k).cuda())
         return r
 
     def to(self, *args, **kwargs):
         r = Results(orig_img=self.orig_img, path=self.path, names=self.names)
-        for k in self._keys:
+        for k in self.keys:
             setattr(r, k, getattr(self, k).to(*args, **kwargs))
         return r
 
     def __len__(self):
-        for k in self._keys:
+        for k in self.keys:
             return len(getattr(self, k))
 
     def __str__(self):
@@ -106,6 +106,10 @@ class Results:
     def __getattr__(self, attr):
         name = self.__class__.__name__
         raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
+
+    @property
+    def keys(self):
+        return [k for k in self._keys if getattr(self, k) is not None]
 
     def plot(self, show_conf=True, line_width=None, font_size=None, font='Arial.ttf', pil=False, example='abc'):
         """

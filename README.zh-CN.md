@@ -71,7 +71,7 @@ pip install ultralytics
 YOLOv8 可以直接在命令行界面（CLI）中使用 `yolo` 命令运行：
 
 ```bash
-yolo predict model=yolov8n.pt source="https://ultralytics.com/images/bus.jpg"
+yolo predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'
 ```
 
 `yolo`可以用于各种任务和模式，并接受额外的参数，例如 `imgsz=640`。参见 YOLOv8 [文档](https://docs.ultralytics.com)
@@ -90,14 +90,14 @@ YOLOv8 也可以在 Python 环境中直接使用，并接受与上面 CLI 例子
 from ultralytics import YOLO
 
 # 加载模型
-model = YOLO("yolov8n.yaml")  # 从头开始构建新模型
+model = YOLO('yolov8n.yaml')  # 从头开始构建新模型
 model = YOLO("yolov8n.pt")  # 加载预训练模型（推荐用于训练）
 
 # Use the model
 results = model.train(data="coco128.yaml", epochs=3)  # 训练模型
 results = model.val()  # 在验证集上评估模型性能
-results = model("https://ultralytics.com/images/bus.jpg")  # 预测图像
-success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
+results = model('https://ultralytics.com/images/bus.jpg')  # 预测图像
+success = model.export(format='onnx')  # 将模型导出为 ONNX 格式
 ```
 
 [模型](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) 会从

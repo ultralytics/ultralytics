@@ -167,7 +167,7 @@ class YOLO:
         return self
 
     @smart_inference_mode()
-    def load_weights(self, weights='yolov8n.pt'):
+    def load(self, weights='yolov8n.pt'):
         """
         Transfers parameters with matching names and shapes from 'weights' to model.
         """

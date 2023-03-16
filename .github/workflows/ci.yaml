@@ -39,9 +39,9 @@ jobs:
         run: |
           #git config --global user.email "glenn.jocher@ultralytics.com"
           #git config --global user.name "Glenn Jocher"
-  
+
           mkdocs gh-deploy --force || true
-          
+
           #git checkout gh-pages
           #git status
           #git push https://github.com/ultralytics/docs gh-pages --force

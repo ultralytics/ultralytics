@@ -58,11 +58,9 @@ class BboxLoss(nn.Module):
 
 class KeypointLoss(nn.Module):
 
-    def __init__(self, device, nkpt=17) -> None:
+    def __init__(self, sigmas) -> None:
         super().__init__()
-        self.sigmas = torch.ones((nkpt), device=device) / nkpt
-        # TODO
-        # self.sigmas = torch.from_numpy(OKS_SIGMA).to(device)   # for human pose
+        self.sigmas = sigmas
 
     def forward(self, pred_kpts, gt_kpts, kpt_mask, area):
         d = (pred_kpts[..., 0] - gt_kpts[..., 0]) ** 2 + (pred_kpts[..., 1] - gt_kpts[..., 1]) ** 2

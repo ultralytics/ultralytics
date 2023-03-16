@@ -11,6 +11,7 @@ from ultralytics.yolo.utils import DEFAULT_CFG
 from ultralytics.yolo.utils.loss import KeypointLoss
 from ultralytics.yolo.utils.ops import xyxy2xywh
 from ultralytics.yolo.utils.plotting import plot_images, plot_results
+from ultralytics.yolo.utils.metrics import OKS_SIGMA
 from ultralytics.yolo.utils.tal import make_anchors
 from ultralytics.yolo.utils.torch_utils import de_parallel
 from ultralytics.yolo.v8.detect.train import Loss
@@ -73,7 +74,10 @@ class PoseLoss(Loss):
         self.nkpt = model.model[-1].nkpt  # number of keypoints
         self.ndim = model.model[-1].ndim
         self.bce_pose = nn.BCEWithLogitsLoss()
-        self.keypoint_loss = KeypointLoss(device=self.device, nkpt=self.nkpt)
+        is_pose = self.nkpt == 17 and self.ndim == 3
+        sigmas = torch.from_numpy(OKS_SIGMA).to(self.device) if is_pose else \
+                 torch.ones((self.nkpt), device=self.device) / self.nkpt
+        self.keypoint_loss = KeypointLoss(sigmas=sigmas)
 
     def __call__(self, preds, batch):
         loss = torch.zeros(5, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility

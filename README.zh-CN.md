@@ -71,7 +71,7 @@ pip install ultralytics
 YOLOv8 可以直接在命令行界面（CLI）中使用 `yolo` 命令运行：
 
 ```bash
-yolo predict model=yolov8n.pt source="https://ultralytics.com/images/bus.jpg"
+yolo predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'
 ```
 
 `yolo`可以用于各种任务和模式，并接受额外的参数，例如 `imgsz=640`。参见 YOLOv8 [文档](https://docs.ultralytics.com)

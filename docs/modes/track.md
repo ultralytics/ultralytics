@@ -26,9 +26,9 @@ Use a trained YOLOv8n/YOLOv8n-seg model to run tracker on video streams.
         from ultralytics import YOLO
         
         # Load a model
-        model = YOLO("yolov8n.pt")  # load an official detection model
-        model = YOLO("yolov8n-seg.pt")  # load an official segmentation model
-        model = YOLO("path/to/best.pt")  # load a custom model
+        model = YOLO('yolov8n.pt')  # load an official detection model
+        model = YOLO('yolov8n-seg.pt')  # load an official segmentation model
+        model = YOLO('path/to/best.pt')  # load a custom model
         
         # Track with the model
         results = model.track(source="https://youtu.be/Zgi9g1ksQHc", show=True) 
@@ -60,7 +60,7 @@ to [predict page](https://docs.ultralytics.com/modes/predict/).
         ```python
         from ultralytics import YOLO
         
-        model = YOLO("yolov8n.pt")
+        model = YOLO('yolov8n.pt')
         results = model.track(source="https://youtu.be/Zgi9g1ksQHc", conf=0.3, iou=0.5, show=True) 
         ```
     === "CLI"
@@ -82,7 +82,7 @@ any configurations(expect the `tracker_type`) you need to.
         ```python
         from ultralytics import YOLO
         
-        model = YOLO("yolov8n.pt")
+        model = YOLO('yolov8n.pt')
         results = model.track(source="https://youtu.be/Zgi9g1ksQHc", tracker='custom_tracker.yaml') 
         ```
     === "CLI"

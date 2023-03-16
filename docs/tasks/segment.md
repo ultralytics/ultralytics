@@ -26,11 +26,11 @@ arguments see the [Configuration](../usage/cfg.md) page.
         from ultralytics import YOLO
         
         # Load a model
-        model = YOLO("yolov8n-seg.yaml")  # build a new model from scratch
-        model = YOLO("yolov8n-seg.pt")  # load a pretrained model (recommended for training)
+        model = YOLO('yolov8n-seg.yaml')  # build a new model from scratch
+        model = YOLO('yolov8n-seg.pt')  # load a pretrained model (recommended for training)
         
         # Train the model
-        model.train(data="coco128-seg.yaml", epochs=100, imgsz=640)
+        model.train(data='coco128-seg.yaml', epochs=100, imgsz=640)
         ```
     === "CLI"
     
@@ -51,8 +51,8 @@ retains it's training `data` and arguments as model attributes.
         from ultralytics import YOLO
         
         # Load a model
-        model = YOLO("yolov8n-seg.pt")  # load an official model
-        model = YOLO("path/to/best.pt")  # load a custom model
+        model = YOLO('yolov8n-seg.pt')  # load an official model
+        model = YOLO('path/to/best.pt')  # load a custom model
         
         # Validate the model
         metrics = model.val()  # no arguments needed, dataset and settings remembered
@@ -84,17 +84,17 @@ Use a trained YOLOv8n-seg model to run predictions on images.
         from ultralytics import YOLO
         
         # Load a model
-        model = YOLO("yolov8n-seg.pt")  # load an official model
-        model = YOLO("path/to/best.pt")  # load a custom model
+        model = YOLO('yolov8n-seg.pt')  # load an official model
+        model = YOLO('path/to/best.pt')  # load a custom model
         
         # Predict with the model
-        results = model("https://ultralytics.com/images/bus.jpg")  # predict on an image
+        results = model('https://ultralytics.com/images/bus.jpg')  # predict on an image
         ```
     === "CLI"
     
         ```bash
-        yolo segment predict model=yolov8n-seg.pt source="https://ultralytics.com/images/bus.jpg"  # predict with official model
-        yolo segment predict model=path/to/best.pt source="https://ultralytics.com/images/bus.jpg"  # predict with custom model
+        yolo segment predict model=yolov8n-seg.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
+        yolo segment predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predict with custom model
         ```
 
 Read more details of `predict` in our [Predict](https://docs.ultralytics.com/modes/predict/) page.
@@ -111,11 +111,11 @@ Export a YOLOv8n-seg model to a different format like ONNX, CoreML, etc.
         from ultralytics import YOLO
         
         # Load a model
-        model = YOLO("yolov8n-seg.pt")  # load an official model
-        model = YOLO("path/to/best.pt")  # load a custom trained
+        model = YOLO('yolov8n-seg.pt')  # load an official model
+        model = YOLO('path/to/best.pt')  # load a custom trained
         
         # Export the model
-        model.export(format="onnx")
+        model.export(format='onnx')
         ```
     === "CLI"
     

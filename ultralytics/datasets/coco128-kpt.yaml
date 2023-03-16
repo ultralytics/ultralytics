@@ -16,7 +16,7 @@ test:  # test images (optional)
 # Keypoints
 nkpt: 17  # number of keypoints
 ndim: 3  # (x, y, visible)
-flip_index: [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15]
+flip_idx: [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15]
 
 # Classes
 names:

@@ -20,8 +20,8 @@ import requests
 import torch
 from matplotlib import font_manager
 
-from ultralytics.yolo.utils import (AUTOINSTALL, LOGGER, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, downloads, emojis,
-                                    is_colab, is_docker, is_jupyter, is_online)
+from ultralytics.yolo.utils import (AUTOINSTALL, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, downloads,
+                                    emojis, is_colab, is_docker, is_jupyter, is_online, is_pip_package)
 
 
 def is_ascii(s) -> bool:
@@ -141,12 +141,13 @@ def check_pip_update_available():
     Returns:
         bool: True if an update is available, False otherwise.
     """
-    from ultralytics import __version__
-    latest = check_latest_pypi_version()
-    if pkg.parse_version(__version__) < pkg.parse_version(latest):  # update is available
-        LOGGER.info(f'New https://pypi.org/project/ultralytics/{latest} available 😃 '
-                    f"Update with 'pip install -U ultralytics'")
-        return True
+    if ONLINE and is_pip_package():
+        from ultralytics import __version__
+        latest = check_latest_pypi_version()
+        if pkg.parse_version(__version__) < pkg.parse_version(latest):  # update is available
+            LOGGER.info(f'New https://pypi.org/project/ultralytics/{latest} available 😃 '
+                        f"Update with 'pip install -U ultralytics'")
+            return True
     return False
 
 

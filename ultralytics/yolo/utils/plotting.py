@@ -154,21 +154,25 @@ class Annotator:
         if self.pil:
             # convert to numpy first
             self.im = np.asarray(self.im).copy()
+        nkpt, ndim = kpts.shape
+        is_pose = nkpt == 17 and ndim == 3
+        kpt_line &= is_pose # `kpt_line=True` for now only supports human pose plotting
         for i, k in enumerate(kpts):
+            color_k = [int(x) for x in self.kpt_color[i]] if is_pose else colors(i)
             x_coord, y_coord = k[0], k[1]
             if x_coord % shape[1] != 0 and y_coord % shape[0] != 0:
                 if len(k) == 3:
                     conf = k[2]
                     if conf < 0.5:
                         continue
-                cv2.circle(self.im, (int(x_coord), int(y_coord)), radius, [int(x) for x in self.kpt_color[i]], -1)
+                cv2.circle(self.im, (int(x_coord), int(y_coord)), radius, color_k, -1)
 
         if kpt_line:
-            steps = kpts.shape[-1]
+            ndim = kpts.shape[-1]
             for sk_id, sk in enumerate(self.skeleton):
                 pos1 = (int(kpts[(sk[0] - 1), 0]), int(kpts[(sk[0] - 1), 1]))
                 pos2 = (int(kpts[(sk[1] - 1), 0]), int(kpts[(sk[1] - 1), 1]))
-                if steps == 3:
+                if ndim == 3:
                     conf1 = kpts[(sk[0] - 1), 2]
                     conf2 = kpts[(sk[1] - 1), 2]
                     if conf1 < 0.5 or conf2 < 0.5:

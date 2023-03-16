@@ -316,17 +316,17 @@ class RandomPerspective:
         Return:
             new_keypoints(ndarray): keypoints after affine, [N, 17, 3].
         """
-        n = len(keypoints)
+        n, nkpt = keypoints.shape[:2]
         if n == 0:
             return keypoints
-        xy = np.ones((n * 17, 3))
-        visible = keypoints[..., 2].reshape(n * 17, 1)
-        xy[:, :2] = keypoints[..., :2].reshape(n * 17, 2)  # num_kpt is hardcoded to 17
+        xy = np.ones((n * nkpt, 3))
+        visible = keypoints[..., 2].reshape(n * nkpt, 1)
+        xy[:, :2] = keypoints[..., :2].reshape(n * nkpt, 2)
         xy = xy @ M.T  # transform
         xy = xy[:, :2] / xy[:, 2:3]  # perspective rescale or affine
         out_mask = (xy[:, 0] < 0) | (xy[:, 1] < 0) | (xy[:, 0] > self.size[0]) | (xy[:, 1] > self.size[1])
         visible[out_mask] = 0
-        return np.concatenate([xy, visible], axis=-1).reshape(n, 17, 3)
+        return np.concatenate([xy, visible], axis=-1).reshape(n, nkpt, 3)
 
     def __call__(self, labels):
         """

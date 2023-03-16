@@ -7,7 +7,7 @@ import torch
 
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, ops
 from ultralytics.yolo.utils.checks import check_requirements
-from ultralytics.yolo.utils.metrics import PoseMetrics, box_iou, kpt_iou
+from ultralytics.yolo.utils.metrics import PoseMetrics, box_iou, kpt_iou, OKS_SIGMA
 from ultralytics.yolo.utils.plotting import output_to_target, plot_images
 from ultralytics.yolo.v8.detect import DetectionValidator
 
@@ -38,6 +38,13 @@ class PoseValidator(DetectionValidator):
                                         max_det=self.args.max_det,
                                         nc=self.nc)
         return preds
+
+    def init_metrics(self, model):
+        super().init_metrics(model)
+        self.nkpt = self.data["nkpt"]
+        self.ndim = self.data["ndim"]
+        is_pose = self.nkpt == 17 and self.ndim == 3
+        self.sigma = OKS_SIGMA if is_pose else np.ones((self.nkpt)) / self.nkpt
 
     def update_metrics(self, preds, batch):
         # Metrics
@@ -110,7 +117,7 @@ class PoseValidator(DetectionValidator):
         if pred_kpts is not None and gt_kpts is not None:
             # `0.53` is from https://github.com/jin-s13/xtcocoapi/blob/master/xtcocotools/cocoeval.py#L384
             area = ops.xyxy2xywh(labels[:, 1:])[:, 2:].prod(1) * 0.53
-            iou = kpt_iou(gt_kpts, pred_kpts, area=area)
+            iou = kpt_iou(gt_kpts, pred_kpts, sigma=self.sigma, area=area)
         else:  # boxes
             iou = box_iou(labels[:, 1:], detections[:, :4])
 
@@ -140,8 +147,7 @@ class PoseValidator(DetectionValidator):
                     names=self.names)
 
     def plot_predictions(self, batch, preds, ni):
-        nk, nd = self.data["nkpt"], self.data["ndim"]
-        pred_kpts = torch.cat([p[:, 6:].view(-1, nk, nd)[:15] for p in preds], 0)
+        pred_kpts = torch.cat([p[:, 6:].view(-1, self.nkpt, self.ndim)[:15] for p in preds], 0)
         plot_images(batch['img'],
                     *output_to_target(preds, max_det=15),
                     kpts=pred_kpts,

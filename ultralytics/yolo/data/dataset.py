@@ -77,7 +77,7 @@ class YOLODataset(BaseDataset):
         nm, nf, ne, nc, msgs = 0, 0, 0, 0, []  # number missing, found, empty, corrupt, messages
         desc = f'{self.prefix}Scanning {path.parent / path.stem}...'
         total = len(self.im_files)
-        nc = len(self.data.pop("names"))
+        nc = len(self.data["names"])
         nkpt = self.data.get("nkpt", 0)
         ndim = self.data.get("ndim", 0)
         if self.use_keypoints:

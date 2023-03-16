@@ -260,10 +260,10 @@ class PoseModel(DetectionModel):
     def __init__(self, cfg='yolov8n-pose.yaml', ch=3, nc=None, nkpt=None, ndim=None, verbose=True):
         cfg = cfg if isinstance(cfg, dict) else yaml_load(check_yaml(cfg), append_filename=True)  # cfg dict
         if nkpt and nkpt != cfg['nkpt']:
-            LOGGER.info(f"Overriding model.yaml nkpt={self.yaml['nkpt']} with nkpt={nkpt}")
+            LOGGER.info(f"Overriding model.yaml nkpt={cfg['nkpt']} with nkpt={nkpt}")
             cfg['nkpt'] = nkpt
         if ndim and ndim != cfg['ndim']:
-            LOGGER.info(f"Overriding model.yaml ndim={self.yaml['ndim']} with ndim={ndim}")
+            LOGGER.info(f"Overriding model.yaml ndim={cfg['ndim']} with ndim={ndim}")
             cfg['ndim'] = ndim
         super().__init__(cfg, ch, nc, verbose)
 

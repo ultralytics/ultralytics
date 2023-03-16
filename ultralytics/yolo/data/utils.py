@@ -122,10 +122,10 @@ def verify_image_label(args):
         if keypoint:
             keypoints = lb[:, 5:].reshape(-1, nkpt, ndim)
             if ndim ==  2:
-                kpt_mask = np.ones((nl, nkpt, 1), dtype=np.float32)
+                kpt_mask = np.ones(keypoints.shape[:2], dtype=np.float32)
                 kpt_mask = np.where(keypoints[..., 0] < 0, 0.0, kpt_mask)
                 kpt_mask = np.where(keypoints[..., 1] < 0, 0.0, kpt_mask)
-                keypoints = np.concatenate([keypoints, kpt_mask], axis=-1)  # (nl, nkpt, 3)
+                keypoints = np.concatenate([keypoints, kpt_mask[..., None]], axis=-1)  # (nl, nkpt, 3)
         lb = lb[:, :5]
         return im_file, lb, shape, segments, keypoints, nm, nf, ne, nc, msg
     except Exception as e:

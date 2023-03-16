@@ -164,6 +164,7 @@ class YOLO:
                 m.reset_parameters()
         for p in self.model.parameters():
             p.requires_grad = True
+        return self
 
     @smart_inference_mode()
     def transfer_weights(self, weights='yolov8n.pt'):
@@ -172,8 +173,11 @@ class YOLO:
         """
         self._check_is_pytorch_model()
         if isinstance(weights, (str, Path)):
-            weights = attempt_load_one_weight(weights)
+            weights, ckpt = attempt_load_one_weight(weights)
+        print(self.model.names)
         self.model.load(weights)
+        print(self.model.names)
+        return self
 
     def info(self, verbose=False):
         """

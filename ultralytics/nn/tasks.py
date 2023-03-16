@@ -11,7 +11,7 @@ import torch.nn as nn
 from ultralytics.nn.modules import (C1, C2, C3, C3TR, SPP, SPPF, Bottleneck, BottleneckCSP, C2f, C3Ghost, C3x, Classify,
                                     Concat, Conv, ConvTranspose, Detect, DWConv, DWConvTranspose2d, Ensemble, Focus,
                                     GhostBottleneck, GhostConv, Segment)
-from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, colorstr, emojis, yaml_load
+from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.yolo.utils.checks import check_requirements, check_yaml
 from ultralytics.yolo.utils.torch_utils import (fuse_conv_and_bn, fuse_deconv_and_bn, initialize_weights,
                                                 intersect_dicts, make_divisible, model_info, scale_img, time_sync)
@@ -151,15 +151,22 @@ class BaseModel(nn.Module):
             m.strides = fn(m.strides)
         return self
 
-    def load(self, weights):
-        """
-        This function loads the weights of the model from a file
+    def load(self, weights, verbose=True):
+        """Load the weights into the model.
 
         Args:
-            weights (str): The weights to load into the model.
+            weights (dict or torch.nn.Module): The pre-trained weights to be loaded.
+            verbose (bool, optional): Whether to log the transfer progress. Defaults to True.
+
+        Returns:
+            None
         """
-        # Force all tasks to implement this function
-        raise NotImplementedError('This function needs to be implemented by derived classes!')
+        model = weights['model'] if isinstance(weights, dict) else weights  # torchvision models are not dicts
+        csd = model.float().state_dict()  # checkpoint state_dict as FP32
+        csd = intersect_dicts(csd, self.state_dict())  # intersect
+        self.load_state_dict(csd, strict=False)  # load
+        if verbose:
+            LOGGER.info(f'Transferred {len(csd)}/{len(self.model.state_dict())} items from pretrained weights')
 
 
 class DetectionModel(BaseModel):
@@ -234,13 +241,6 @@ class DetectionModel(BaseModel):
         y[-1] = y[-1][..., i:]  # small
         return y
 
-    def load(self, weights, verbose=True):
-        csd = weights.float().state_dict()  # checkpoint state_dict as FP32
-        csd = intersect_dicts(csd, self.state_dict())  # intersect
-        self.load_state_dict(csd, strict=False)  # load
-        if verbose and RANK == -1:
-            LOGGER.info(f'Transferred {len(csd)}/{len(self.model.state_dict())} items from pretrained weights')
-
 
 class SegmentationModel(DetectionModel):
     # YOLOv8 segmentation model
@@ -292,12 +292,6 @@ class ClassificationModel(BaseModel):
         self.stride = torch.Tensor([1])  # no stride constraints
         self.names = {i: f'{i}' for i in range(self.yaml['nc'])}  # default names dict
         self.info()
-
-    def load(self, weights):
-        model = weights['model'] if isinstance(weights, dict) else weights  # torchvision models are not dicts
-        csd = model.float().state_dict()
-        csd = intersect_dicts(csd, self.state_dict())  # intersect
-        self.load_state_dict(csd, strict=False)  # load
 
     @staticmethod
     def reshape_outputs(model, nc):

@@ -79,7 +79,7 @@ class SegmentationPredictor(DetectionPredictor):
             cls, conf, id = d.cls.squeeze(), d.conf.squeeze(), None if d.id is None else int(d.id.item())
             if self.args.save_txt:  # Write to file
                 seg = mask.segments[len(det) - j - 1].copy().reshape(-1)  # reversed mask.segments, (n,2) to (n*2)
-                line = (cls, *seg) + (conf,) * self.args.save_conf + (() if id is None else (id,))
+                line = (cls, *seg) + (conf, ) * self.args.save_conf + (() if id is None else (id, ))
                 with open(f'{self.txt_path}.txt', 'a') as f:
                     f.write(('%g ' * len(line)).rstrip() % line + '\n')
             if self.args.save or self.args.save_crop or self.args.show:  # Add bbox to image

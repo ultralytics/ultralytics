@@ -13,10 +13,11 @@ from ultralytics.yolo.data.dataloaders.stream_loaders import (LOADERS, LoadImage
                                                               LoadStreams, LoadTensor, SourceTypes, autocast_list)
 from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS
 from ultralytics.yolo.utils.checks import check_file
-from .dataset import ClassificationDataset, YOLODataset
-from .utils import PIN_MEMORY, RANK
+
 from ..utils import LOGGER, colorstr
 from ..utils.torch_utils import torch_distributed_zero_first
+from .dataset import ClassificationDataset, YOLODataset
+from .utils import PIN_MEMORY, RANK
 
 
 class InfiniteDataLoader(dataloader.DataLoader):

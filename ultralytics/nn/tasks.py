@@ -254,10 +254,10 @@ class PoseModel(DetectionModel):
         cfg = cfg if isinstance(cfg, dict) else yaml_load(check_yaml(cfg), append_filename=True)  # model YAML cfg dict
         shape = cfg['kpt_shape']
         if nkpt and nkpt != shape[0]:
-            LOGGER.info(f"Overriding model.yaml nkpt={shape[0]} with nkpt={nkpt}")
+            LOGGER.info(f'Overriding model.yaml nkpt={shape[0]} with nkpt={nkpt}')
             cfg['nkpt'] = nkpt
         if ndim and ndim != shape[1]:
-            LOGGER.info(f"Overriding model.yaml ndim={shape[1]} with ndim={ndim}")
+            LOGGER.info(f'Overriding model.yaml ndim={shape[1]} with ndim={ndim}')
             cfg['ndim'] = ndim
         super().__init__(cfg, ch, nc, verbose)
 

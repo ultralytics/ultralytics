@@ -676,8 +676,7 @@ def v8_transforms(dataset, imgsz, hyp):
     flip_idx = dataset.data.get('flip_idx', None)  # for keypoints augmentation
     if dataset.use_keypoints and flip_idx is None and hyp.fliplr > 0.0:
         hyp.fliplr = 0.0
-        LOGGER.warning(
-            f"WARNING ⚠️ There's no `flip_idx` provided while training keypoints, closing fliplr augmentation!")
+        LOGGER.warning("WARNING ⚠️ No `flip_idx` provided while training keypoints, setting augmentation 'fliplr=0.0'")
     return Compose([
         pre_transform,
         MixUp(dataset, pre_transform=pre_transform, p=hyp.mixup),

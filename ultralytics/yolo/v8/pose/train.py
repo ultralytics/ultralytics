@@ -9,9 +9,9 @@ from ultralytics.nn.tasks import PoseModel
 from ultralytics.yolo import v8
 from ultralytics.yolo.utils import DEFAULT_CFG
 from ultralytics.yolo.utils.loss import KeypointLoss
+from ultralytics.yolo.utils.metrics import OKS_SIGMA
 from ultralytics.yolo.utils.ops import xyxy2xywh
 from ultralytics.yolo.utils.plotting import plot_images, plot_results
-from ultralytics.yolo.utils.metrics import OKS_SIGMA
 from ultralytics.yolo.utils.tal import make_anchors
 from ultralytics.yolo.utils.torch_utils import de_parallel
 from ultralytics.yolo.v8.detect.train import Loss
@@ -27,16 +27,20 @@ class PoseTrainer(v8.detect.DetectionTrainer):
         super().__init__(cfg, overrides)
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        model = PoseModel(cfg, ch=3, nc=self.data['nc'], nkpt=self.data['nkpt'], ndim=self.data["ndim"], verbose=verbose)
+        model = PoseModel(cfg,
+                          ch=3,
+                          nc=self.data['nc'],
+                          nkpt=self.data['nkpt'],
+                          ndim=self.data['ndim'],
+                          verbose=verbose)
         if weights:
             model.load(weights)
 
         return model
 
-
     def set_model_attributes(self):
         super().set_model_attributes()
-        self.model.nkpt = self.data["nkpt"]
+        self.model.nkpt = self.data['nkpt']
 
     def get_validator(self):
         self.loss_names = 'box_loss', 'pose_loss', 'kobj_loss', 'cls_loss', 'dfl_loss'
@@ -104,7 +108,8 @@ class PoseLoss(Loss):
 
         # pboxes
         pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
-        pred_kpts = self.kpts_decode(anchor_points, pred_kpts.view(batch_size, -1, self.nkpt, self.ndim))  # (b, h*w, 17, 3)
+        pred_kpts = self.kpts_decode(anchor_points, pred_kpts.view(batch_size, -1, self.nkpt,
+                                                                   self.ndim))  # (b, h*w, 17, 3)
 
         _, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
             pred_scores.detach().sigmoid(), (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),

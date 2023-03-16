@@ -115,13 +115,14 @@ def verify_image_label(args):
                     msg = f'{prefix}WARNING ⚠️ {im_file}: {nl - len(i)} duplicate labels removed'
             else:
                 ne = 1  # label empty
-                lb = np.zeros((0, (5 + nkpt * ndim)), dtype=np.float32) if keypoint else np.zeros((0, 5), dtype=np.float32)
+                lb = np.zeros((0, (5 + nkpt * ndim)), dtype=np.float32) if keypoint else np.zeros(
+                    (0, 5), dtype=np.float32)
         else:
             nm = 1  # label missing
             lb = np.zeros((0, (5 + nkpt * ndim)), dtype=np.float32) if keypoint else np.zeros((0, 5), dtype=np.float32)
         if keypoint:
             keypoints = lb[:, 5:].reshape(-1, nkpt, ndim)
-            if ndim ==  2:
+            if ndim == 2:
                 kpt_mask = np.ones(keypoints.shape[:2], dtype=np.float32)
                 kpt_mask = np.where(keypoints[..., 0] < 0, 0.0, kpt_mask)
                 kpt_mask = np.where(keypoints[..., 1] < 0, 0.0, kpt_mask)

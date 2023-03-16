@@ -7,7 +7,7 @@ import torch
 
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, ops
 from ultralytics.yolo.utils.checks import check_requirements
-from ultralytics.yolo.utils.metrics import PoseMetrics, box_iou, kpt_iou, OKS_SIGMA
+from ultralytics.yolo.utils.metrics import OKS_SIGMA, PoseMetrics, box_iou, kpt_iou
 from ultralytics.yolo.utils.plotting import output_to_target, plot_images
 from ultralytics.yolo.v8.detect import DetectionValidator
 
@@ -41,10 +41,10 @@ class PoseValidator(DetectionValidator):
 
     def init_metrics(self, model):
         super().init_metrics(model)
-        self.nkpt = self.data["nkpt"]
-        self.ndim = self.data["ndim"]
+        self.nkpt = self.data['nkpt']
+        self.ndim = self.data['ndim']
         is_pose = self.nkpt == 17 and self.ndim == 3
-        self.sigma = OKS_SIGMA if is_pose else np.ones((self.nkpt)) / self.nkpt
+        self.sigma = OKS_SIGMA if is_pose else np.ones(self.nkpt) / self.nkpt
 
     def update_metrics(self, preds, batch):
         # Metrics
@@ -54,7 +54,7 @@ class PoseValidator(DetectionValidator):
             bbox = batch['bboxes'][idx]
             kpts = batch['keypoints'][idx]
             nl, npr = cls.shape[0], pred.shape[0]  # number of labels, predictions
-            nk = kpts.shape[1]   # number of keypoints
+            nk = kpts.shape[1]  # number of keypoints
             shape = batch['ori_shape'][si]
             correct_kpts = torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device)  # init
             correct_bboxes = torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device)  # init

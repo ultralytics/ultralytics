@@ -77,17 +77,16 @@ class YOLODataset(BaseDataset):
         nm, nf, ne, nc, msgs = 0, 0, 0, 0, []  # number missing, found, empty, corrupt, messages
         desc = f'{self.prefix}Scanning {path.parent / path.stem}...'
         total = len(self.im_files)
-        nc = len(self.data["names"])
-        nkpt = self.data.get("nkpt", 0)
-        ndim = self.data.get("ndim", 0)
+        nc = len(self.data['names'])
+        nkpt = self.data.get('nkpt', 0)
+        ndim = self.data.get('ndim', 0)
         if self.use_keypoints:
             assert nkpt > 0 and ndim in [2, 3], \
-                    f"Expected `nkpt > 0` and `ndim = 2 or 3` in data.yaml but got `nkpt`: {nkpt}, `ndim`: {ndim}"
+                    f'Expected `nkpt > 0` and `ndim = 2 or 3` in data.yaml but got `nkpt`: {nkpt}, `ndim`: {ndim}'
         with ThreadPool(NUM_THREADS) as pool:
             results = pool.imap(func=verify_image_label,
                                 iterable=zip(self.im_files, self.label_files, repeat(self.prefix),
-                                             repeat(self.use_keypoints), repeat(nc), 
-                                             repeat(nkpt), repeat(ndim)))
+                                             repeat(self.use_keypoints), repeat(nc), repeat(nkpt), repeat(ndim)))
             pbar = tqdm(results, desc=desc, total=total, bar_format=TQDM_BAR_FORMAT)
             for im_file, lb, shape, segments, keypoint, nm_f, nf_f, ne_f, nc_f, msg in pbar:
                 nm += nm_f

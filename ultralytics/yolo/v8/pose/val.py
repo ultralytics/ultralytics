@@ -83,9 +83,7 @@ class PoseValidator(DetectionValidator):
                 tkpts = ops.scale_coords(batch['img'][si].shape[1:], tkpts, shape, ratio_pad=batch['ratio_pad'][si])
                 labelsn = torch.cat((cls, tbox), 1)  # native-space labels
                 correct_bboxes = self._process_batch(predn[:, :6], labelsn)
-                # TODO: maybe remove these `self.` arguments as they already are member variable
                 correct_kpts = self._process_batch(predn[:, :6], labelsn, pred_kpts, tkpts)
-                # correct_kpts = self._process_batch(predn[:, :6], labelsn)
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, labelsn)
 

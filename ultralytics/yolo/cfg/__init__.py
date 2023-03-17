@@ -17,7 +17,7 @@ TASKS = 'detect', 'segment', 'classify', 'pose'
 TASK2DATA = {
     'detect': 'coco128.yaml',
     'segment': 'coco128-seg.yaml',
-    'pose': 'coco128-kpt.yaml',
+    'pose': 'coco128-pose.yaml',
     'classify': 'imagenet100'}
 TASK2MODEL = {
     'detect': 'yolov8n.pt',

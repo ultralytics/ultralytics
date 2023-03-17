@@ -478,7 +478,9 @@ def zip_directory(dir, use_zipfile_library=True):
 
     Usage:
         from ultralytics.yolo.data.utils import zip_directory
-        zip_directory('/Users/glennjocher/Downloads/dataset')
+        zip_directory('/Users/glennjocher/Downloads/playground')
+
+        zip -r coco8-pose.zip coco8-pose
     """
     delete_dsstore(dir)
     if use_zipfile_library:

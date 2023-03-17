@@ -11,7 +11,7 @@ parts of an object in a scene, and their location in relation to each other.
 
 !!! tip "Tip"
 
-    YOLOv8 _keypoints_ models use the `-kpts` suffix, i.e. `yolov8n-kpts.pt`. These models are trained on the COCO dataset and are suitable for a variety of keypoint estimation tasks.
+    YOLOv8 _pose_ models use the `-pose` suffix, i.e. `yolov8n-pose.pt`. These models are trained on the COCO dataset and are suitable for a variety of keypoint estimation tasks.
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models/v8){ .md-button .md-button--primary}
 

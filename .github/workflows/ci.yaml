@@ -175,9 +175,9 @@ jobs:
       - name: Test Pose
         shell: bash  # for Windows compatibility
         run: |
-          yolo pose train data=coco8-kpt.yaml model=yolov8n-pose.yaml epochs=1 imgsz=32
-          # yolo pose train data=coco8-kpt.yaml model=yolov8n-pose.pt epochs=1 imgsz=32
-          yolo pose val data=coco8-kpt.yaml model=runs/pose/train/weights/last.pt imgsz=32
+          yolo pose train data=coco8-pose.yaml model=yolov8n-pose.yaml epochs=1 imgsz=32
+          # yolo pose train data=coco8-pose.yaml model=yolov8n-pose.pt epochs=1 imgsz=32
+          yolo pose val data=coco8-pose.yaml model=runs/pose/train/weights/last.pt imgsz=32
           yolo pose predict model=runs/pose/train/weights/last.pt imgsz=32 source=ultralytics/assets/bus.jpg
           yolo export model=runs/pose/train/weights/last.pt imgsz=32 format=torchscript
       - name: Pytest tests

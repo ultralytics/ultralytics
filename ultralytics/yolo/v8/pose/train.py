@@ -155,9 +155,9 @@ class PoseLoss(Loss):
 
 def train(cfg=DEFAULT_CFG, use_python=False):
     model = cfg.model or 'yolov8n-pose.yaml'
-    data = cfg.data or 'coco128-kpt.yaml'  # or yolo.ClassificationDataset("mnist")
+    data = cfg.data or 'coco8-pose.yaml'
     device = cfg.device if cfg.device is not None else ''
-    cfg.batch = 1  # Temp
+
     args = dict(model=model, data=data, device=device)
     if use_python:
         from ultralytics import YOLO

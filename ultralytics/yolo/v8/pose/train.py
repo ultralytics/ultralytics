@@ -75,12 +75,11 @@ class PoseLoss(Loss):
 
     def __init__(self, model):  # model must be de-paralleled
         super().__init__(model)
-        self.nkpt = model.model[-1].nkpt  # number of keypoints
-        self.ndim = model.model[-1].ndim
+        self.kpt_shape = model.model[-1].kpt_shape
         self.bce_pose = nn.BCEWithLogitsLoss()
-        is_pose = self.nkpt == 17 and self.ndim == 3
-        sigmas = torch.from_numpy(OKS_SIGMA).to(self.device) if is_pose \
-            else torch.ones(self.nkpt, device=self.device) / self.nkpt
+        is_pose = self.kpt_shape == [17, 13]
+        nkpt = self.kpt_shape[0]  # number of keypoints
+        sigmas = torch.from_numpy(OKS_SIGMA).to(self.device) if is_pose else torch.ones(nkpt, device=self.device) / nkpt
         self.keypoint_loss = KeypointLoss(sigmas=sigmas)
 
     def __call__(self, preds, batch):
@@ -108,8 +107,7 @@ class PoseLoss(Loss):
 
         # pboxes
         pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
-        pred_kpts = self.kpts_decode(anchor_points, pred_kpts.view(batch_size, -1, self.nkpt,
-                                                                   self.ndim))  # (b, h*w, 17, 3)
+        pred_kpts = self.kpts_decode(anchor_points, pred_kpts.view(batch_size, -1, *self.kpt_shape))  # (b, h*w, 17, 3)
 
         _, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
             pred_scores.detach().sigmoid(), (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),

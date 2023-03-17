@@ -250,15 +250,12 @@ class SegmentationModel(DetectionModel):
 
 class PoseModel(DetectionModel):
 
-    def __init__(self, cfg='yolov8n-pose.yaml', ch=3, nc=None, nkpt=None, ndim=None, verbose=True):
-        cfg = cfg if isinstance(cfg, dict) else yaml_load(check_yaml(cfg), append_filename=True)  # model YAML cfg dict
-        shape = cfg['kpt_shape']
-        if nkpt and nkpt != shape[0]:
-            LOGGER.info(f'Overriding model.yaml nkpt={shape[0]} with nkpt={nkpt}')
-            cfg['kpt_shape'][0] = nkpt
-        if ndim and ndim != shape[1]:
-            LOGGER.info(f'Overriding model.yaml ndim={shape[1]} with ndim={ndim}')
-            cfg['kpt_shape'][1] = ndim
+    def __init__(self, cfg='yolov8n-pose.yaml', ch=3, nc=None, data_kpt_shape=(None, None), verbose=True):
+        if not isinstance(cfg, dict):
+            cfg = yaml_load(check_yaml(cfg), append_filename=True)  # load model YAML
+        if any(data_kpt_shape) and list(data_kpt_shape) != list(cfg['kpt_shape']):
+            LOGGER.info(f"Overriding model.yaml kpt_shape={cfg['kpt_shape']} with kpt_shape={data_kpt_shape}")
+            cfg['kpt_shape'] = data_kpt_shape
         super().__init__(cfg, ch, nc, verbose)
 
 

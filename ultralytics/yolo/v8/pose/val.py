@@ -41,10 +41,10 @@ class PoseValidator(DetectionValidator):
 
     def init_metrics(self, model):
         super().init_metrics(model)
-        self.nkpt = self.data['nkpt']
-        self.ndim = self.data['ndim']
-        is_pose = self.nkpt == 17 and self.ndim == 3
-        self.sigma = OKS_SIGMA if is_pose else np.ones(self.nkpt) / self.nkpt
+        self.kpt_shape = self.data['kpt_shape']
+        is_pose = self.kpt_shape == [17, 3]
+        nkpt = self.kpt_shape[1]
+        self.sigma = OKS_SIGMA if is_pose else np.ones(nkpt) / nkpt
 
     def update_metrics(self, preds, batch):
         # Metrics
@@ -147,7 +147,7 @@ class PoseValidator(DetectionValidator):
                     names=self.names)
 
     def plot_predictions(self, batch, preds, ni):
-        pred_kpts = torch.cat([p[:, 6:].view(-1, self.nkpt, self.ndim)[:15] for p in preds], 0)
+        pred_kpts = torch.cat([p[:, 6:].view(-1, *self.kpt_shape)[:15] for p in preds], 0)
         plot_images(batch['img'],
                     *output_to_target(preds, max_det=15),
                     kpts=pred_kpts,

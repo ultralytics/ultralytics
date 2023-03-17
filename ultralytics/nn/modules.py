@@ -459,18 +459,17 @@ class Pose(Detect):
     # YOLOv8 Pose head for keypoints models
     def __init__(self, nc=80, kpt_shape=(17, 3), ch=()):
         super().__init__(nc, ch)
-        self.nkpt = kpt_shape[0]  # number of keypoints
-        self.ndim = kpt_shape[1]
-        self.no_kpt = self.nkpt * self.ndim  # xy, cls(kpt)
+        self.kpt_shape = kpt_shape  # number of keypoints, number of dims (2 for x,y or 3 for x,y,visible)
+        self.nk = kpt_shape[0] * kpt_shape[1]  # number of keypoints total
         self.detect = Detect.forward
 
         c4 = max(ch[0] // 4, 32)  # NOTE: wanted to set c4 = max(ch[0] // 4, self.no_kpt) but `no_kpt` is an odd number
         self.cv4 = nn.ModuleList(
-            nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.no_kpt, 1)) for x in ch)
+            nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.nk, 1)) for x in ch)
 
     def forward(self, x):
         bs = x[0].shape[0]  # batch size
-        kpt = torch.cat([self.cv4[i](x[i]).view(bs, self.no_kpt, -1) for i in range(self.nl)], -1)  # (bs, 17*3, h*w)
+        kpt = torch.cat([self.cv4[i](x[i]).view(bs, self.nk, -1) for i in range(self.nl)], -1)  # (bs, 17*3, h*w)
         x = self.detect(self, x)
         if self.training:
             return x, kpt
@@ -478,12 +477,12 @@ class Pose(Detect):
         return torch.cat([x, pred_kpt], 1) if self.export else (torch.cat([x[0], pred_kpt], 1), (x[1], kpt))
 
     def kpts_decode(self, kpts):
-        ndim = getattr(self, 'ndim', 3)  # Backward compatibility
+        ndim = self.kpt_shape[1]
         y = kpts.clone()
         if ndim == 3:
-            y[:, 2::3, :] = y[:, 2::3, :].sigmoid()
-        y[:, 0::ndim, :] = (y[:, 0::ndim, :] * 2 - 0.5 + self.anchors[0]) * self.strides
-        y[:, 1::ndim, :] = (y[:, 1::ndim, :] * 2 - 0.5 + self.anchors[1]) * self.strides
+            y[:, 2::3].sigmoid_()  # inplace sigmoid
+        y[:, 0::ndim] = (y[:, 0::ndim] * 2 - 0.5 + self.anchors[0]) * self.strides
+        y[:, 1::ndim] = (y[:, 1::ndim] * 2 - 0.5 + self.anchors[1]) * self.strides
         return y
 
 

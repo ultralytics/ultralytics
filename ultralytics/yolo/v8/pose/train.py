@@ -30,8 +30,8 @@ class PoseTrainer(v8.detect.DetectionTrainer):
         model = PoseModel(cfg,
                           ch=3,
                           nc=self.data['nc'],
-                          nkpt=self.data['nkpt'],
-                          ndim=self.data['ndim'],
+                          nkpt=self.data['kpt_shape'][0],
+                          ndim=self.data['kpt_shape'][1],
                           verbose=verbose)
         if weights:
             model.load(weights)
@@ -40,7 +40,7 @@ class PoseTrainer(v8.detect.DetectionTrainer):
 
     def set_model_attributes(self):
         super().set_model_attributes()
-        self.model.nkpt = self.data['nkpt']
+        self.model.kpt_shape = self.data['kpt_shape']
 
     def get_validator(self):
         self.loss_names = 'box_loss', 'pose_loss', 'kobj_loss', 'cls_loss', 'dfl_loss'

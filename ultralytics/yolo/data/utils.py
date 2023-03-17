@@ -6,10 +6,10 @@ import json
 import os
 import subprocess
 import time
+import zipfile
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from tarfile import is_tarfile
-from zipfile import is_zipfile
 
 import cv2
 import numpy as np
@@ -197,7 +197,7 @@ def check_det_dataset(dataset, autodownload=True):
 
     # Download (optional)
     extract_dir = ''
-    if isinstance(data, (str, Path)) and (is_zipfile(data) or is_tarfile(data)):
+    if isinstance(data, (str, Path)) and (zipfile.is_zipfile(data) or is_tarfile(data)):
         new_dir = safe_download(data, dir=DATASETS_DIR, unzip=True, delete=False, curl=False)
         data = next((DATASETS_DIR / new_dir).rglob('*.yaml'))
         extract_dir, autodownload = data.parent, False
@@ -347,23 +347,8 @@ class HUBDatasetStats():
         assert dir.is_dir(), f'Error unzipping {path}, {dir} not found. path/to/abc.zip MUST unzip to path/to/abc/'
         return True, str(dir), self._find_yaml(dir)  # zipped, data_dir, yaml_path
 
-    def _hub_ops(self, f, max_dim=1920):
-        # HUB ops for 1 image 'f': resize and save at reduced quality in /dataset-hub for web/app viewing
-        f_new = self.im_dir / Path(f).name  # dataset-hub image filename
-        try:  # use PIL
-            im = Image.open(f)
-            r = max_dim / max(im.height, im.width)  # ratio
-            if r < 1.0:  # image too large
-                im = im.resize((int(im.width * r), int(im.height * r)))
-            im.save(f_new, 'JPEG', quality=50, optimize=True)  # save
-        except Exception as e:  # use OpenCV
-            LOGGER.info(f'WARNING ⚠️ HUB ops PIL failure {f}: {e}')
-            im = cv2.imread(f)
-            im_height, im_width = im.shape[:2]
-            r = max_dim / max(im_height, im_width)  # ratio
-            if r < 1.0:  # image too large
-                im = cv2.resize(im, (int(im_width * r), int(im_height * r)), interpolation=cv2.INTER_AREA)
-            cv2.imwrite(str(f_new), im)
+    def _hub_ops(self, f):
+        compress_one_image(f, self.im_dir / Path(f).name)  # save to dataset-hub
 
     def get_json(self, save=False, verbose=False):
         # Return dataset JSON for Ultralytics HUB
@@ -417,3 +402,87 @@ class HUBDatasetStats():
                     pass
         LOGGER.info(f'Done. All images saved to {self.im_dir}')
         return self.im_dir
+
+
+def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
+    """
+    Compresses a single image file to reduced size while preserving its aspect ratio and quality using either the
+    Python Imaging Library (PIL) or OpenCV library. If the input image is smaller than the maximum dimension, it will
+    not be resized.
+
+    Args:
+        f (str): The path to the input image file.
+        f_new (str, optional): The path to the output image file. If not specified, the input file will be overwritten.
+        max_dim (int, optional): The maximum dimension (width or height) of the output image. Default is 1920 pixels.
+        quality (int, optional): The image compression quality as a percentage. Default is 50%.
+
+    Returns:
+        None
+
+    Usage:
+        from pathlib import Path
+        from ultralytics.yolo.data.utils import compress_one_image
+        for f in Path('/Users/glennjocher/Downloads/playground').rglob('*.jpg'):
+            compress_one_image(f)
+    """
+    try:  # use PIL
+        im = Image.open(f)
+        r = max_dim / max(im.height, im.width)  # ratio
+        if r < 1.0:  # image too large
+            im = im.resize((int(im.width * r), int(im.height * r)))
+        im.save(f_new or f, 'JPEG', quality=quality, optimize=True)  # save
+    except Exception as e:  # use OpenCV
+        LOGGER.info(f'WARNING ⚠️ HUB ops PIL failure {f}: {e}')
+        im = cv2.imread(f)
+        im_height, im_width = im.shape[:2]
+        r = max_dim / max(im_height, im_width)  # ratio
+        if r < 1.0:  # image too large
+            im = cv2.resize(im, (int(im_width * r), int(im_height * r)), interpolation=cv2.INTER_AREA)
+        cv2.imwrite(str(f_new or f), im)
+
+
+def delete_dsstore(path):
+    """
+    Deletes all ".DS_store" files under a specified directory.
+
+    Args:
+        path (str, optional): The directory path where the ".DS_store" files should be deleted.
+
+    Returns:
+        None
+
+    Usage:
+        from ultralytics.yolo.data.utils import delete_dsstore
+        delete_dsstore('/Users/glennjocher/Downloads/playground')
+
+    Note:
+        ".DS_store" files are created by the Apple operating system and contain metadata about folders and files. They
+        are hidden system files and can cause issues when transferring files between different operating systems.
+    """
+    # Delete Apple .DS_store files
+    files = list(Path(path).rglob('.DS_store'))
+    LOGGER.info(f'Deleting *.DS_store files: {files}')
+    for f in files:
+        f.unlink()
+
+
+def zip_directory(dir):
+    """Zips a directory and saves the archive to the specified output path.
+
+    Args:
+        dir (str): The path to the directory to be zipped.
+
+    Returns:
+        None
+
+    Usage:
+        from ultralytics.yolo.data.utils import zip_directory
+        zip_directory('/Users/glennjocher/Downloads/playground/coco8')
+    """
+    delete_dsstore(dir)
+    output_path = Path(dir).with_suffix('.zip')
+    with zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        for root, dirs, files in os.walk(dir):
+            for file in files:
+                file_path = os.path.join(root, file)
+                zip_file.write(file_path, os.path.relpath(file_path, dir))

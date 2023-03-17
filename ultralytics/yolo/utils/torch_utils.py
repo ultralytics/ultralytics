@@ -324,18 +324,18 @@ def strip_optimizer(f='best.pt', s=''):
     """
     Strip optimizer from 'f' to finalize training, optionally save as 's'.
 
-    Usage:
-        from ultralytics.yolo.utils.torch_utils import strip_optimizer
-        from pathlib import Path
-        for f in Path('/Users/glennjocher/Downloads/weights').glob('*.pt'):
-            strip_optimizer(f)
-
     Args:
         f (str): file path to model to strip the optimizer from. Default is 'best.pt'.
         s (str): file path to save the model with stripped optimizer to. If not provided, 'f' will be overwritten.
 
     Returns:
         None
+
+    Usage:
+        from pathlib import Path
+        from ultralytics.yolo.utils.torch_utils import strip_optimizer
+        for f in Path('/Users/glennjocher/Downloads/weights').rglob('*.pt'):
+            strip_optimizer(f)
     """
     x = torch.load(f, map_location=torch.device('cpu'))
     args = {**DEFAULT_CFG_DICT, **x['train_args']}  # combine model args with default args, preferring model args
@@ -355,7 +355,9 @@ def strip_optimizer(f='best.pt', s=''):
 
 
 def profile(input, ops, n=10, device=None):
-    """ YOLOv8 speed/memory/FLOPs profiler
+    """
+    YOLOv8 speed/memory/FLOPs profiler
+
     Usage:
         input = torch.randn(16, 3, 640, 640)
         m1 = lambda x: x * torch.sigmoid(x)

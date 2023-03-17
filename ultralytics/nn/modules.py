@@ -480,8 +480,9 @@ class Pose(Detect):
         y = kpts.clone()
         if ndim == 3:
             y[:, 2::3].sigmoid_()  # inplace sigmoid
-        y[:, 0::ndim] = (y[:, 0::ndim] * 2 - 0.5 + self.anchors[0]) * self.strides
-        y[:, 1::ndim] = (y[:, 1::ndim] * 2 - 0.5 + self.anchors[1]) * self.strides
+        print(self.anchors[0].shape)
+        y[:, 0::ndim] = (y[:, 0::ndim] * 2 + (self.anchors[0] - 0.5)) * self.strides
+        y[:, 1::ndim] = (y[:, 1::ndim] * 2 + (self.anchors[1] - 0.5)) * self.strides
         return y
 
 

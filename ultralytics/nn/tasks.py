@@ -546,10 +546,12 @@ def guess_model_task(model):
             return 'segment'
         elif '-cls' in model.stem or 'classify' in model.parts:
             return 'classify'
+        elif '-pose' in model.stem or 'pose' in model.parts:
+            return 'pose'
         elif 'detect' in model.parts:
             return 'detect'
 
     # Unable to determine task from model
     LOGGER.warning("WARNING ⚠️ Unable to automatically guess model task, assuming 'task=detect'. "
-                   "Explicitly define task for your model, i.e. 'task=detect', 'task=segment' or 'task=classify'.")
+                   "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify', or 'pose'.")
     return 'detect'  # assume detect

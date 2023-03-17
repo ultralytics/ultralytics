@@ -255,10 +255,10 @@ class PoseModel(DetectionModel):
         shape = cfg['kpt_shape']
         if nkpt and nkpt != shape[0]:
             LOGGER.info(f'Overriding model.yaml nkpt={shape[0]} with nkpt={nkpt}')
-            cfg['nkpt'] = nkpt
+            cfg['kpt_shape'][0] = nkpt
         if ndim and ndim != shape[1]:
             LOGGER.info(f'Overriding model.yaml ndim={shape[1]} with ndim={ndim}')
-            cfg['ndim'] = ndim
+            cfg['kpt_shape'][1] = ndim
         super().__init__(cfg, ch, nc, verbose)
 
 

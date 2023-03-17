@@ -10,10 +10,10 @@ import torch
 import torchvision
 from tqdm import tqdm
 
-from ..utils import NUM_THREADS, TQDM_BAR_FORMAT, is_dir_writeable
 from .augment import Compose, Format, Instances, LetterBox, classify_albumentations, classify_transforms, v8_transforms
 from .base import BaseDataset
 from .utils import HELP_URL, LOCAL_RANK, LOGGER, get_hash, img2label_paths, verify_image_label
+from ..utils import NUM_THREADS, TQDM_BAR_FORMAT, is_dir_writeable
 
 
 class YOLODataset(BaseDataset):
@@ -78,10 +78,10 @@ class YOLODataset(BaseDataset):
         desc = f'{self.prefix}Scanning {path.parent / path.stem}...'
         total = len(self.im_files)
         nc = len(self.data['names'])
-        nkpt = self.data.get('nkpt', 0)
-        ndim = self.data.get('ndim', 0)
+        nkpt, ndim = self.data.get('kpt_shape', (0, 0))
         if self.use_keypoints and (nkpt <= 0 or ndim not in (2, 3)):
-            raise ValueError(f"Expected nkpt > 0 and ndim = 2 or 3 in data.yaml but got 'nkpt: {nkpt}', 'ndim: {ndim}'")
+            raise ValueError("'kpt_shape' in data.yaml missing or incorrect. Should be a list with [number of "
+                             "keypoints, number of dims (2 for x,y or 3 for x,y,visible)], i.e. 'kpt_shape: [17, 3]'")
         with ThreadPool(NUM_THREADS) as pool:
             results = pool.imap(func=verify_image_label,
                                 iterable=zip(self.im_files, self.label_files, repeat(self.prefix),

@@ -422,7 +422,7 @@ def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
     Usage:
         from pathlib import Path
         from ultralytics.yolo.data.utils import compress_one_image
-        for f in Path('/Users/glennjocher/Downloads/playground').rglob('*.jpg'):
+        for f in Path('/Users/glennjocher/Downloads/dataset').rglob('*.jpg'):
             compress_one_image(f)
     """
     try:  # use PIL
@@ -453,7 +453,7 @@ def delete_dsstore(path):
 
     Usage:
         from ultralytics.yolo.data.utils import delete_dsstore
-        delete_dsstore('/Users/glennjocher/Downloads/playground')
+        delete_dsstore('/Users/glennjocher/Downloads/dataset')
 
     Note:
         ".DS_store" files are created by the Apple operating system and contain metadata about folders and files. They
@@ -466,22 +466,27 @@ def delete_dsstore(path):
         f.unlink()
 
 
-def zip_directory(dir):
+def zip_directory(dir, use_zipfile_library=True):
     """Zips a directory and saves the archive to the specified output path.
 
     Args:
         dir (str): The path to the directory to be zipped.
+        use_zipfile_library (bool): Whether to use zipfile library or shutil for zipping.
 
     Returns:
         None
 
     Usage:
         from ultralytics.yolo.data.utils import zip_directory
-        zip_directory('/Users/glennjocher/Downloads/playground/coco8')
+        zip_directory('/Users/glennjocher/Downloads/dataset')
     """
-    dir = Path(dir)
     delete_dsstore(dir)
-    with zipfile.ZipFile(dir.with_suffix('.zip'), 'w', zipfile.ZIP_DEFLATED) as zip_file:
-        for file_path in dir.glob('**/*'):
-            if file_path.is_file():
-                zip_file.write(file_path, file_path.relative_to(dir))
+    if use_zipfile_library:
+        dir = Path(dir)
+        with zipfile.ZipFile(dir.with_suffix('.zip'), 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            for file_path in dir.glob('**/*'):
+                if file_path.is_file():
+                    zip_file.write(file_path, file_path.relative_to(dir))
+    else:
+        import shutil
+        shutil.make_archive(dir, 'zip', dir)

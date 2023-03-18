@@ -87,6 +87,8 @@ warmup_bias_lr: 0.1  # warmup initial bias lr
 box: 7.5  # box loss gain
 cls: 0.5  # cls loss gain (scale with pixels)
 dfl: 1.5  # dfl loss gain
+kobj: 7.5  # keypoint objectness loss gain
+pose: 7.5  # pose loss gain
 fl_gamma: 0.0  # focal loss gamma (efficientDet default gamma=1.5)
 label_smoothing: 0.0  # label smoothing (fraction)
 nbs: 64  # nominal batch size

@@ -137,8 +137,8 @@ class PoseLoss(Loss):
                         loss[2] += self.bce_pose(pred_kpt[..., 2], kpt_mask.float())
 
         loss[0] *= self.hyp.box  # box gain
-        loss[1] *= self.hyp.box / batch_size  # kobj gain
-        loss[2] *= self.hyp.box / batch_size  # pose gain
+        loss[1] *= self.hyp.kobj / batch_size  # kobj gain
+        loss[2] *= self.hyp.pose / batch_size  # pose gain
         loss[3] *= self.hyp.cls  # cls gain
         loss[4] *= self.hyp.dfl  # dfl gain
 

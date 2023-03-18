@@ -245,7 +245,7 @@ class Exporter:
             if tflite:
                 f[7], _ = self._export_tflite(s_model, nms=False, agnostic_nms=self.args.agnostic_nms)
             if edgetpu:
-                f[8], _ = self._export_edgetpu(tflite_model=Path(f[5]) / f'{self.file.stem}_full_integer_quant.tflite')
+                f[8], _ = self._export_edgetpu(tflite_model=Path(f[5]) / f'{self.file.stem}_integer_quant.tflite')
             if tfjs:
                 f[9], _ = self._export_tfjs()
         if paddle:  # PaddlePaddle

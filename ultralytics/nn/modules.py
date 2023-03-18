@@ -410,7 +410,7 @@ class Detect(nn.Module):
             return x
         elif self.dynamic or self.shape != shape:
             # self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.5))  # ORIGINAL
-            self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.0))
+            self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.25))
             self.shape = shape
 
         x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2)
@@ -490,8 +490,8 @@ class Pose(Detect):
         y = kpts.clone()
         if ndim == 3:
             y[:, 2::3].sigmoid_()  # inplace sigmoid
-        y[:, 0::ndim] = (y[:, 0::ndim] * 1.0 + (self.anchors[0] - 0.0)) * self.strides
-        y[:, 1::ndim] = (y[:, 1::ndim] * 1.0 + (self.anchors[1] - 0.0)) * self.strides
+        y[:, 0::ndim] = (y[:, 0::ndim] * 1.5 + (self.anchors[0] - 0.25)) * self.strides
+        y[:, 1::ndim] = (y[:, 1::ndim] * 1.5 + (self.anchors[1] - 0.25)) * self.strides
         return y
 
 

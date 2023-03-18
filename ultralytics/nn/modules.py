@@ -409,6 +409,7 @@ class Detect(nn.Module):
         if self.training:
             return x
         elif self.dynamic or self.shape != shape:
+            # self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.5))  # ORIGINAL
             self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.5))
             self.shape = shape
 
@@ -475,13 +476,22 @@ class Pose(Detect):
         pred_kpt = self.kpts_decode(kpt)
         return torch.cat([x, pred_kpt], 1) if self.export else (torch.cat([x[0], pred_kpt], 1), (x[1], kpt))
 
-    def kpts_decode(self, kpts):
+    def kpts_decode_ORIGINAL(self, kpts):
         ndim = self.kpt_shape[1]
         y = kpts.clone()
         if ndim == 3:
             y[:, 2::3].sigmoid_()  # inplace sigmoid
         y[:, 0::ndim] = (y[:, 0::ndim] * 2 + (self.anchors[0] - 0.5)) * self.strides
         y[:, 1::ndim] = (y[:, 1::ndim] * 2 + (self.anchors[1] - 0.5)) * self.strides
+        return y
+
+    def kpts_decode(self, kpts):
+        ndim = self.kpt_shape[1]
+        y = kpts.clone()
+        if ndim == 3:
+            y[:, 2::3].sigmoid_()  # inplace sigmoid
+        y[:, 0::ndim] = (y[:, 0::ndim] * 1.0 + (self.anchors[0] - 0.0)) * self.strides
+        y[:, 1::ndim] = (y[:, 1::ndim] * 1.0 + (self.anchors[1] - 0.0)) * self.strides
         return y
 
 

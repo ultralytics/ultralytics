@@ -131,14 +131,14 @@ class PoseLoss(Loss):
                     area = xyxy2xywh(target_bboxes[i][fg_mask[i]])[:, 2:].prod(1, keepdim=True)
                     pred_kpt = pred_kpts[i][fg_mask[i]]
                     kpt_mask = gt_kpt[..., 2] != 0
-                    loss[1] += self.keypoint_loss(pred_kpt, gt_kpt, kpt_mask, area)
+                    loss[1] += self.keypoint_loss(pred_kpt, gt_kpt, kpt_mask, area)  # pose loss
                     # kpt_score loss
                     if pred_kpt.shape[-1] == 3:
-                        loss[2] += self.bce_pose(pred_kpt[..., 2], kpt_mask.float())
+                        loss[2] += self.bce_pose(pred_kpt[..., 2], kpt_mask.float())  # keypoint obj loss
 
         loss[0] *= self.hyp.box  # box gain
-        loss[1] *= self.hyp.kobj / batch_size  # kobj gain
-        loss[2] *= self.hyp.pose / batch_size  # pose gain
+        loss[1] *= self.hyp.pose / batch_size  # pose gain
+        loss[2] *= self.hyp.kobj / batch_size  # kobj gain
         loss[3] *= self.hyp.cls  # cls gain
         loss[4] *= self.hyp.dfl  # dfl gain
 

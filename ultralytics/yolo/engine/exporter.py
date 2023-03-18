@@ -245,8 +245,7 @@ class Exporter:
             if tflite:
                 f[7], _ = self._export_tflite(s_model, nms=False, agnostic_nms=self.args.agnostic_nms)
             if edgetpu:
-                f[8], _ = self._export_edgetpu(tflite_model=str(
-                    Path(f[5]) / (self.file.stem + '_full_integer_quant.tflite')))  # int8 in/out
+                f[8], _ = self._export_edgetpu(tflite_model=Path(f[5]) / f'{self.file.stem}_full_integer_quant.tflite')
             if tfjs:
                 f[9], _ = self._export_tfjs()
         if paddle:  # PaddlePaddle
@@ -532,9 +531,16 @@ class Exporter:
         subprocess.run(cmd, shell=True)
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml
 
+        # Remove/rename TFLite models
+        if self.args.int8:
+            for file in f.rglob('*_dynamic_range_quant.tflite'):
+                file.rename(file.with_stem(file.stem.replace('_dynamic_range_quant', '_int8')))
+            for file in f.rglob('*_integer_quant_with_int16_act.tflite'):
+                file.unlink()  # delete extra fp16 activation TFLite files
+
         # Add TFLite metadata
         for file in f.rglob('*.tflite'):
-            self._add_tflite_metadata(file)
+            f.unlink() if 'quant_with_int16_act.tflite' in str(f) else self._add_tflite_metadata(file)
 
         # Load saved_model
         keras_model = tf.saved_model.load(f, tags=None, options=None)
@@ -565,9 +571,9 @@ class Exporter:
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
         saved_model = Path(str(self.file).replace(self.file.suffix, '_saved_model'))
         if self.args.int8:
-            f = saved_model / f'{self.file.stem}_integer_quant.tflite'  # fp32 in/out
+            f = saved_model / f'{self.file.stem}_int8.tflite'  # fp32 in/out
         elif self.args.half:
-            f = saved_model / f'{self.file.stem}_float16.tflite'
+            f = saved_model / f'{self.file.stem}_float16.tflite'  # fp32 in/out
         else:
             f = saved_model / f'{self.file.stem}_float32.tflite'
         return str(f), None

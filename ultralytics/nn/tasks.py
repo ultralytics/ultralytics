@@ -422,10 +422,12 @@ def parse_model(d, ch, scale=None, verbose=True):  # model_dict, input_channels(
     import ast
 
     # Args
-    nc, act, scales, depth, width = (d.get(x) for x in ('nc', 'act', 'scales', 'depth_multiple', 'width_multiple'))
+    max_channels = float('inf')
+    nc, act, scales = (d.get(x) for x in ('nc', 'act', 'scales'))
+    depth, width = (d.get(x, 1.0) for x in ('depth_multiple', 'width_multiple'))
     if scales:
-        scale |= list(scales.keys())[0]  # first key in scales dict
-        depth, width, max_channels = scales[scale]
+        depth, width, max_channels = scales[scale or list(scales.keys())[0]]
+
     if act:
         Conv.default_act = eval(act)  # redefine default activation, i.e. Conv.default_act = nn.SiLU()
         if verbose:
@@ -447,7 +449,7 @@ def parse_model(d, ch, scale=None, verbose=True):  # model_dict, input_channels(
                  BottleneckCSP, C1, C2, C2f, C3, C3TR, C3Ghost, nn.ConvTranspose2d, DWConvTranspose2d, C3x):
             c1, c2 = ch[f], args[0]
             if c2 != nc:  # if c2 not equal to number of classes (i.e. for Classify() output)
-                c2 = make_divisible(c2 * width, 8)
+                c2 = make_divisible(min(c2, max_channels) * width, 8)
 
             args = [c1, c2, *args[1:]]
             if m in (BottleneckCSP, C1, C2, C2f, C3, C3TR, C3Ghost, C3x):
@@ -460,7 +462,7 @@ def parse_model(d, ch, scale=None, verbose=True):  # model_dict, input_channels(
         elif m in (Detect, Segment):
             args.append([ch[x] for x in f])
             if m is Segment:
-                args[2] = make_divisible(args[2] * width, 8)
+                args[2] = make_divisible(min(args[2], max_channels) * width, 8)
         else:
             c2 = ch[f]
 

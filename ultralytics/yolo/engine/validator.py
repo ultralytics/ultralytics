@@ -25,8 +25,8 @@ from pathlib import Path
 import torch
 from tqdm import tqdm
 
-from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.cfg import get_cfg
+from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.yolo.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, callbacks, colorstr, emojis
 from ultralytics.yolo.utils.checks import check_imgsz

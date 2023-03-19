@@ -417,7 +417,7 @@ def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
     return model, ckpt
 
 
-def parse_model(d, ch, scale=None, verbose=True):  # model_dict, input_channels(3)
+def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
     # Parse a YOLO model.yaml dictionary into a PyTorch model
     import ast
 
@@ -426,7 +426,7 @@ def parse_model(d, ch, scale=None, verbose=True):  # model_dict, input_channels(
     nc, act, scales = (d.get(x) for x in ('nc', 'act', 'scales'))
     depth, width = (d.get(x, 1.0) for x in ('depth_multiple', 'width_multiple'))
     if scales:
-        depth, width, max_channels = scales[scale or list(scales.keys())[0]]
+        depth, width, max_channels = scales[d.get('scale') or tuple(scales.keys())[0]]
 
     if act:
         Conv.default_act = eval(act)  # redefine default activation, i.e. Conv.default_act = nn.SiLU()
@@ -478,6 +478,24 @@ def parse_model(d, ch, scale=None, verbose=True):  # model_dict, input_channels(
             ch = []
         ch.append(c2)
     return nn.Sequential(*layers), sorted(save)
+
+
+def guess_model_scale(model_path):
+    """
+    Takes a path to a YOLO model's YAML file as input and extracts the size character of the model's scale. 
+    The function uses regular expression matching to find the pattern of the model scale in the YAML file name, 
+    which is denoted by n, s, m, l, or x. The function returns the size character of the model scale as a string.
+
+    Args:
+        model_path (str or Path): The path to the YOLO model's YAML file.
+
+    Returns:
+        (str): The size character of the model's scale, which can be n, s, m, l, or x.
+    """
+    with contextlib.suppress(AttributeError):
+        import re
+        return re.search(r'yolov\d+([nslmx])', Path(model_path).stem).group(1)  # n, s, m, l, or x
+    return ''
 
 
 def guess_model_task(model):

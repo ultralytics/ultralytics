@@ -258,7 +258,7 @@ def check_yolov5u_filename(file: str, verbose: bool = True):
     return file
 
 
-def check_file(file, suffix='', download=True):
+def check_file(file, suffix='', download=True, hard=True):
     # Search/download file (if necessary) and return path
     check_suffix(file, suffix)  # optional
     file = str(file)  # convert to string
@@ -277,16 +277,16 @@ def check_file(file, suffix='', download=True):
         files = []
         for d in 'models', 'datasets', 'tracker/cfg', 'yolo/cfg':  # search directories
             files.extend(glob.glob(str(ROOT / d / '**' / file), recursive=True))  # find file
-        if not files:
+        if not files and hard:
             raise FileNotFoundError(f"'{file}' does not exist")
-        elif len(files) > 1:
+        elif len(files) > 1 and hard:
             raise FileNotFoundError(f"Multiple files match '{file}', specify exact path: {files}")
-        return files[0]  # return file
+        return files[0] if len(files) else []  # return file
 
 
-def check_yaml(file, suffix=('.yaml', '.yml')):
+def check_yaml(file, suffix=('.yaml', '.yml'), hard=True):
     # Search/download YAML file (if necessary) and return path, checking suffix
-    return check_file(file, suffix)
+    return check_file(file, suffix, hard=hard)
 
 
 def check_imshow(warn=False):

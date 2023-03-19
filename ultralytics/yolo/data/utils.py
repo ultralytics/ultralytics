@@ -21,6 +21,7 @@ from ultralytics.yolo.utils import DATASETS_DIR, LOGGER, NUM_THREADS, ROOT, colo
 from ultralytics.yolo.utils.checks import check_file, check_font, is_ascii
 from ultralytics.yolo.utils.downloads import download, safe_download, unzip_file
 from ultralytics.yolo.utils.ops import segments2boxes
+from ultralytics.yolo.engine.converter import convert_coco_to_yolo
 
 HELP_URL = 'See https://github.com/ultralytics/yolov5/wiki/Train-Custom-Data'
 IMG_FORMATS = 'bmp', 'dng', 'jpeg', 'jpg', 'mpo', 'png', 'tif', 'tiff', 'webp', 'pfm'  # image suffixes
@@ -37,11 +38,18 @@ for orientation in ExifTags.TAGS.keys():
         break
 
 
-def img2label_paths(img_paths):
+def img2yolo_label_paths(img_paths):
     # Define label paths as a function of image paths
     sa, sb = f'{os.sep}images{os.sep}', f'{os.sep}labels{os.sep}'  # /images/, /labels/ substrings
     return [sb.join(x.rsplit(sa, 1)).rsplit('.', 1)[0] + '.txt' for x in img_paths]
 
+def img2json_label_paths(img_paths):
+    if not img_paths:
+        return []
+    im_p = Path(img_paths[0]).parent
+    labels_dir = im_p.parent / "labels" / im_p.name
+    ( Path(img_paths[0]).name.rsplit(".", 1)[0] + ".txt")
+    return [ str(labels_dir / (Path(x).name.rsplit(".", 1)[0] + ".txt")) for x in img_paths]
 
 def get_hash(paths):
     # Returns a single hash value of a list of paths (files or dirs)
@@ -254,6 +262,11 @@ def check_det_dataset(dataset, autodownload=True):
             LOGGER.info(f'Dataset download {s}\n')
     check_font('Arial.ttf' if is_ascii(data['names']) else 'Arial.Unicode.ttf')  # download fonts
 
+    # if format is defined: # TODO: autodetect dataset format
+    if data.get("format"):
+        format = data["format"].lower()
+        if format == "json" or format == "coco":
+            convert_coco_to_yolo(data)
     return data  # dictionary
 
 

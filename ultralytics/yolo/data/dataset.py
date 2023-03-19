@@ -13,7 +13,7 @@ from tqdm import tqdm
 from ..utils import NUM_THREADS, TQDM_BAR_FORMAT, is_dir_writeable
 from .augment import Compose, Format, Instances, LetterBox, classify_albumentations, classify_transforms, v8_transforms
 from .base import BaseDataset
-from .utils import HELP_URL, LOCAL_RANK, LOGGER, get_hash, img2label_paths, verify_image_label
+from .utils import HELP_URL, LOCAL_RANK, LOGGER, get_hash, img2yolo_label_paths, img2json_label_paths, verify_image_label
 
 
 class YOLODataset(BaseDataset):
@@ -58,10 +58,13 @@ class YOLODataset(BaseDataset):
                  use_segments=False,
                  use_keypoints=False,
                  names=None,
-                 classes=None):
+                 classes=None,
+                 format="yolo",
+                 ):
         self.use_segments = use_segments
         self.use_keypoints = use_keypoints
         self.names = names
+        self.format = format
         assert not (self.use_segments and self.use_keypoints), 'Can not use both segments and keypoints.'
         super().__init__(img_path, imgsz, cache, augment, hyp, prefix, rect, batch_size, stride, pad, single_cls,
                          classes)
@@ -122,7 +125,14 @@ class YOLODataset(BaseDataset):
         return x
 
     def get_labels(self):
-        self.label_files = img2label_paths(self.im_files)
+        format = self.format.lower()
+        if format == "yolo":
+            self.label_files = img2yolo_label_paths(self.im_files)
+        elif format == "coco" or format == "json":
+            self.label_files = img2json_label_paths(self.im_files)
+        else:
+            raise NotImplementedError(f"Given format {format} is not currently supported. Please raise an issue on GitHub.")
+
         cache_path = Path(self.label_files[0]).parent.with_suffix('.cache')
         try:
             cache, exists = np.load(str(cache_path), allow_pickle=True).item(), True  # load dict

@@ -146,8 +146,7 @@ class PoseLoss(Loss):
 
     def kpts_decode(self, anchor_points, pred_kpts):
         y = pred_kpts.clone()
-        y[..., 0] *= 2.0
-        y[..., 1] *= 2.0
+        y[..., :2] *= 2.0
         y[..., 0] += anchor_points[:, [0]] - 0.5
         y[..., 1] += anchor_points[:, [1]] - 0.5
         return y

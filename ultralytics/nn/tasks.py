@@ -417,14 +417,15 @@ def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
     return model, ckpt
 
 
-def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
+def parse_model(d, ch, scale=None, verbose=True):  # model_dict, input_channels(3)
     # Parse a YOLO model.yaml dictionary into a PyTorch model
     import ast
 
     # Args
     nc, act, scales, depth, width = (d.get(x) for x in ('nc', 'act', 'scales', 'depth_multiple', 'width_multiple'))
     if scales:
-        depth, width, max_channels = scales['n']
+        scale |= list(scales.keys())[0]  # first key in scales dict
+        depth, width, max_channels = scales[scale]
     if act:
         Conv.default_act = eval(act)  # redefine default activation, i.e. Conv.default_act = nn.SiLU()
         if verbose:

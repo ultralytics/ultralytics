@@ -153,7 +153,6 @@ class PoseLoss(Loss):
         return y
 
 
-
 def train(cfg=DEFAULT_CFG, use_python=False):
     model = cfg.model or 'yolov8n-pose.yaml'
     data = cfg.data or 'coco8-pose.yaml'

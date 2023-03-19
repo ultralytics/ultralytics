@@ -418,7 +418,9 @@ def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
 
 
 def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
-    # Parse a YOLO model.yaml dictionary
+    # Parse a YOLO model.yaml dictionary into a PyTorch model
+    import ast
+
     if verbose:
         LOGGER.info(f"\n{'':>3}{'from':>20}{'n':>3}{'params':>10}  {'module':<45}{'arguments':<30}")
     nc, gd, gw, act = d['nc'], d['depth_multiple'], d['width_multiple'], d.get('activation')
@@ -431,10 +433,9 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
     for i, (f, n, m, args) in enumerate(d['backbone'] + d['head']):  # from, number, module, args
         m = getattr(torch.nn, m[3:]) if 'nn.' in m else globals()[m]  # get module
         for j, a in enumerate(args):
-            # TODO: re-implement with eval() removal if possible
-            # args[j] = (locals()[a] if a in locals() else ast.literal_eval(a)) if isinstance(a, str) else a
-            with contextlib.suppress(NameError):
-                args[j] = eval(a) if isinstance(a, str) else a  # eval strings
+            if isinstance(a, str):
+                with contextlib.suppress(ValueError):
+                    args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
 
         n = n_ = max(round(n * gd), 1) if n > 1 else n  # depth gain
         if m in (Classify, Conv, ConvTranspose, GhostConv, Bottleneck, GhostBottleneck, SPP, SPPF, DWConv, Focus,

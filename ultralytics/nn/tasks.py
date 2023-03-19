@@ -277,7 +277,8 @@ class ClassificationModel(BaseModel):
         self.nc = nc
 
     def _from_yaml(self, cfg, ch, nc, verbose):
-        self.yaml = cfg if isinstance(cfg, dict) else yaml_load(check_yaml(cfg), append_filename=True)  # cfg dict
+        self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
+
         # Define model
         ch = self.yaml['ch'] = self.yaml.get('ch', ch)  # input channels
         if nc and nc != self.yaml['nc']:

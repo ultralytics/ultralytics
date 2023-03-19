@@ -421,13 +421,17 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
     # Parse a YOLO model.yaml dictionary into a PyTorch model
     import ast
 
-    if verbose:
-        LOGGER.info(f"\n{'':>3}{'from':>20}{'n':>3}{'params':>10}  {'module':<45}{'arguments':<30}")
-    nc, gd, gw, act = d['nc'], d['depth_multiple'], d['width_multiple'], d.get('activation')
+    # Args
+    nc, act, scales, depth, width = (d.get(x) for x in ('nc', 'act', 'scales', 'depth_multiple', 'width_multiple'))
+    if scales:
+        depth, width, max_channels = scales['n']
     if act:
         Conv.default_act = eval(act)  # redefine default activation, i.e. Conv.default_act = nn.SiLU()
         if verbose:
             LOGGER.info(f"{colorstr('activation:')} {act}")  # print
+
+    if verbose:
+        LOGGER.info(f"\n{'':>3}{'from':>20}{'n':>3}{'params':>10}  {'module':<45}{'arguments':<30}")
     ch = [ch]
     layers, save, c2 = [], [], ch[-1]  # layers, savelist, ch out
     for i, (f, n, m, args) in enumerate(d['backbone'] + d['head']):  # from, number, module, args
@@ -437,12 +441,12 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 with contextlib.suppress(ValueError):
                     args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
 
-        n = n_ = max(round(n * gd), 1) if n > 1 else n  # depth gain
+        n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
         if m in (Classify, Conv, ConvTranspose, GhostConv, Bottleneck, GhostBottleneck, SPP, SPPF, DWConv, Focus,
                  BottleneckCSP, C1, C2, C2f, C3, C3TR, C3Ghost, nn.ConvTranspose2d, DWConvTranspose2d, C3x):
             c1, c2 = ch[f], args[0]
             if c2 != nc:  # if c2 not equal to number of classes (i.e. for Classify() output)
-                c2 = make_divisible(c2 * gw, 8)
+                c2 = make_divisible(c2 * width, 8)
 
             args = [c1, c2, *args[1:]]
             if m in (BottleneckCSP, C1, C2, C2f, C3, C3TR, C3Ghost, C3x):
@@ -455,7 +459,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
         elif m in (Detect, Segment):
             args.append([ch[x] for x in f])
             if m is Segment:
-                args[2] = make_divisible(args[2] * gw, 8)
+                args[2] = make_divisible(args[2] * width, 8)
         else:
             c2 = ch[f]
 

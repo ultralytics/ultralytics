@@ -248,9 +248,9 @@ def check_yolov5u_filename(file: str, verbose: bool = True):
     # Replace legacy YOLOv5 filenames with updated YOLOv5u filenames
     if ('yolov3' in file or 'yolov5' in file) and 'u' not in file:
         original_file = file
-        file = re.sub(r'(.*yolov5([nsmlx]))\.', '\\1u.', file)  # i.e. yolov5n.pt -> yolov5nu.pt
-        file = re.sub(r'(.*yolov5([nsmlx])6)\.', '\\1u.', file)  # i.e. yolov5n6.pt -> yolov5n6u.pt
-        file = re.sub(r'(.*yolov3(|-tiny|-spp))\.', '\\1u.', file)  # i.e. yolov3-spp.pt -> yolov3-sppu.pt
+        file = re.sub(r'(.*yolov5([nsmlx]))\.pt', '\\1u.pt', file)  # i.e. yolov5n.pt -> yolov5nu.pt
+        file = re.sub(r'(.*yolov5([nsmlx])6)\.pt', '\\1u.pt', file)  # i.e. yolov5n6.pt -> yolov5n6u.pt
+        file = re.sub(r'(.*yolov3(|-tiny|-spp))\.pt', '\\1u.pt', file)  # i.e. yolov3-spp.pt -> yolov3-sppu.pt
         if file != original_file and verbose:
             LOGGER.info(f"PRO TIP 💡 Replace 'model={original_file}' with new 'model={file}'.\nYOLOv5 'u' models are "
                         f'trained with https://github.com/ultralytics/ultralytics and feature improved performance vs '

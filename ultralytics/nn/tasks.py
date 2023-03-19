@@ -484,7 +484,13 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
 def yaml_model_load(path):
     import re
 
-    unified_path = re.sub(r'(\d+)([nslmx])(.+)?$', r'\1\3', path)  # i.e. yolov8x.yaml -> yolov8.yaml
+    path = Path(path)
+    if path.stem in (f'yolov8{x}6' for x in 'nsmlx'):
+        new_stem = re.sub(r'(\d+)([nslmx])6(.+)?$', r'\1\2-p6\3', path.stem)
+        LOGGER.warning(f'WARNING ⚠️ Ultralytics YOLO P6 models now use -p6 suffix. Renaming {path.stem} to {new_stem}.')
+        path = path.with_stem(new_stem)
+
+    unified_path = re.sub(r'(\d+)([nslmx])(.+)?$', r'\1\3', str(path))  # i.e. yolov8x.yaml -> yolov8.yaml
     yaml_file = check_yaml(unified_path, hard=False) or check_yaml(path)
     d = yaml_load(yaml_file)  # model dict
     d['scale'] = guess_model_scale(path)

@@ -427,7 +427,11 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
     nc, act, scales = (d.get(x) for x in ('nc', 'act', 'scales'))
     depth, width = (d.get(x, 1.0) for x in ('depth_multiple', 'width_multiple'))
     if scales:
-        depth, width, max_channels = scales[d.get('scale') or tuple(scales.keys())[0]]
+        scale = d.get('scale')
+        if not scale:
+            scale = tuple(scales.keys())[0]
+            LOGGER.warning(f"WARNING ⚠️ no model scale passed. Assuming scale='{scale}'.")
+        depth, width, max_channels = scales[scale]
 
     if act:
         Conv.default_act = eval(act)  # redefine default activation, i.e. Conv.default_act = nn.SiLU()

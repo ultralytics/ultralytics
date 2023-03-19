@@ -34,7 +34,7 @@ from pathlib import Path
 import cv2
 
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.cfg import get_cfg
+from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.data import load_inference_source
 from ultralytics.yolo.data.augment import classify_transforms
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, SETTINGS, callbacks, colorstr, ops

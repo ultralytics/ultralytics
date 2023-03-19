@@ -170,7 +170,7 @@ class DetectionModel(BaseModel):
     # YOLOv8 detection model
     def __init__(self, cfg='yolov8n.yaml', ch=3, nc=None, verbose=True):  # model, input channels, number of classes
         super().__init__()
-        self.yaml = cfg if isinstance(cfg, dict) else yaml_load(check_yaml(cfg), append_filename=True)  # cfg dict
+        self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
 
         # Define model
         ch = self.yaml['ch'] = self.yaml.get('ch', ch)  # input channels
@@ -478,6 +478,16 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             ch = []
         ch.append(c2)
     return nn.Sequential(*layers), sorted(save)
+
+
+def yaml_model_load(path):
+    import re
+    unified_path = re.sub(r'(\d+)([nslmx])(.+)?$', r'\1_\3', path)  # i.e. yolov8x.yaml -> yolov8.yaml
+    yaml_file = check_yaml(unified_path, hard=False) or check_yaml(path)
+    d = yaml_load(yaml_file)  # model dict
+    d['scale'] = guess_model_scale(path)
+    d['yaml_file'] = str(path)
+    return d
 
 
 def guess_model_scale(model_path):

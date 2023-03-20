@@ -63,13 +63,12 @@ class DetectionPredictor(BasePredictor):
 
         # write
         for d in reversed(det):
-            cls, conf, id = d.cls.squeeze(), d.conf.squeeze(), None if d.id is None else int(d.id.item())
+            c, conf, id = int(d.cls), float(d.conf), None if d.id is None else int(d.id.item())
             if self.args.save_txt:  # Write to file
-                line = (cls, *d.xywhn.view(-1)) + (conf, ) * self.args.save_conf + (() if id is None else (id, ))
+                line = (c, *d.xywhn.view(-1)) + (conf, ) * self.args.save_conf + (() if id is None else (id, ))
                 with open(f'{self.txt_path}.txt', 'a') as f:
                     f.write(('%g ' * len(line)).rstrip() % line + '\n')
-            if self.args.save or self.args.save_crop or self.args.show:  # Add bbox to image
-                c = int(cls)  # integer class
+            if self.args.save or self.args.show:  # Add bbox to image
                 name = ('' if id is None else f'id:{id} ') + self.model.names[c]
                 label = None if self.args.hide_labels else (name if self.args.hide_conf else f'{name} {conf:.2f}')
                 self.annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))

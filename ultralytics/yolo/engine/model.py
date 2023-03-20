@@ -5,7 +5,7 @@ from pathlib import Path
 
 from ultralytics import yolo  # noqa
 from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, SegmentationModel, attempt_load_one_weight,
-                                  guess_model_task, nn)
+                                  guess_model_task, nn, yaml_model_load)
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, ROOT, callbacks,
@@ -111,8 +111,8 @@ class YOLO:
             task (str) or (None): model task
             verbose (bool): display model info on load
         """
-        self.cfg = check_yaml(cfg)  # check YAML
-        cfg_dict = yaml_load(self.cfg, append_filename=True)  # model dict
+        cfg_dict = yaml_model_load(cfg)
+        self.cfg = cfg
         self.task = task or guess_model_task(cfg_dict)
         self.model = TASK_MAP[self.task][0](cfg_dict, verbose=verbose and RANK == -1)  # build model
         self.overrides['model'] = self.cfg

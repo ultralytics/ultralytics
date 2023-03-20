@@ -11,7 +11,7 @@ of that class are located or what their exact shape is.
 
     YOLOv8 _classification_ models use the `-cls` suffix, i.e. `yolov8n-cls.pt` and are pretrained on ImageNet.
 
-[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models/v8/cls){.md-button .md-button--primary}
+[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models/v8){ .md-button .md-button--primary}
 
 ## Train
 

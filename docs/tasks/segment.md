@@ -11,7 +11,7 @@ segmentation is useful when you need to know not only where objects are in an im
 
     YOLOv8 _segmentation_ models use the `-seg` suffix, i.e. `yolov8n-seg.pt` and are pretrained on COCO.
 
-[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models/v8/seg){.md-button .md-button--primary}
+[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models/v8){ .md-button .md-button--primary}
 
 ## Train
 

@@ -17,7 +17,7 @@ parts of an object in a scene, and their location in relation to each other.
 
 ## Train
 
-Train a YOLOv8-pose model on the COCO keypoints dataset.
+Train a YOLOv8-pose model on the COCO128-pose dataset.
 
 !!! example ""
 
@@ -27,21 +27,29 @@ Train a YOLOv8-pose model on the COCO keypoints dataset.
         from ultralytics import YOLO
         
         # Load a model
-        model = YOLO('yolov8n.yaml')  # build a new model from scratch
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+        model = YOLO('yolov8n-pose.yaml')  # build a new model from YAML
+        model = YOLO('yolov8n-pose.pt')  # load a pretrained model (recommended for training)
+        model = YOLO('yolov8n-pose.yaml').load('yolov8n-pose.pt')  # build from YAML and transfer weights
         
         # Train the model
-        model.train(data='coco128.yaml', epochs=100, imgsz=640)
+        model.train(data='coco128-pose.yaml', epochs=100, imgsz=640)
         ```
     === "CLI"
     
         ```bash
-        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640
+        # Build a new model from YAML and start training from scratch
+        yolo detect train data=coco128-pose.yaml model=yolov8n-pose.yaml epochs=100 imgsz=640
+
+        # Start training from a pretrained *.pt model
+        yolo detect train data=coco128-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
+
+        # Build a new model from YAML, transfer pretrained weights to it and start training
+        yolo detect train data=coco128-pose.yaml model=yolov8n-pose.yaml pretrained=yolov8n-pose.pt epochs=100 imgsz=640
         ```
 
-## Val TODO
+## Val
 
-Validate trained YOLOv8n model accuracy on the COCO128 dataset. No argument need to passed as the `model` retains it's
+Validate trained YOLOv8n-pose model accuracy on the COCO128-pose dataset. No argument need to passed as the `model` retains it's
 training `data` and arguments as model attributes.
 
 !!! example ""
@@ -52,7 +60,7 @@ training `data` and arguments as model attributes.
         from ultralytics import YOLO
         
         # Load a model
-        model = YOLO('yolov8n.pt')  # load an official model
+        model = YOLO('yolov8n-pose.pt')  # load an official model
         model = YOLO('path/to/best.pt')  # load a custom model
         
         # Validate the model
@@ -65,13 +73,13 @@ training `data` and arguments as model attributes.
     === "CLI"
     
         ```bash
-        yolo detect val model=yolov8n.pt  # val official model
-        yolo detect val model=path/to/best.pt  # val custom model
+        yolo pose val model=yolov8n-pose.pt  # val official model
+        yolo pose val model=path/to/best.pt  # val custom model
         ```
 
-## Predict TODO
+## Predict
 
-Use a trained YOLOv8n model to run predictions on images.
+Use a trained YOLOv8n-pose model to run predictions on images.
 
 !!! example ""
 
@@ -81,7 +89,7 @@ Use a trained YOLOv8n model to run predictions on images.
         from ultralytics import YOLO
         
         # Load a model
-        model = YOLO('yolov8n.pt')  # load an official model
+        model = YOLO('yolov8n-pose.pt')  # load an official model
         model = YOLO('path/to/best.pt')  # load a custom model
         
         # Predict with the model
@@ -90,13 +98,13 @@ Use a trained YOLOv8n model to run predictions on images.
     === "CLI"
     
         ```bash
-        yolo detect predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
-        yolo detect predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predict with custom model
+        yolo pose predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
+        yolo pose predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predict with custom model
         ```
 
-Read more details of `predict` in our [Predict](https://docs.ultralytics.com/modes/predict/) page.
+See full `predict` mode details in the [Predict](https://docs.ultralytics.com/modes/predict/) page.
 
-## Export TODO
+## Export
 
 Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
 
@@ -122,19 +130,21 @@ Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
         ```
 
 Available YOLOv8-pose export formats are in the table below. You can predict or validate directly on exported models,
-i.e. `yolo predict model=yolov8n-pose.onnx`.
+i.e. `yolo predict model=yolov8n-pose.onnx`. Usage examples are shown for your model after export completes.
 
-| Format                                                             | `format` Argument | Model                     | Metadata |
-|--------------------------------------------------------------------|-------------------|---------------------------|----------|
-| [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n.pt`              | ✅        |
-| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n.torchscript`     | ✅        |
-| [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n.onnx`            | ✅        |
-| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`        | `yolov8n_openvino_model/` | ✅        |
-| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`          | `yolov8n.engine`          | ✅        |
-| [CoreML](https://github.com/apple/coremltools)                     | `coreml`          | `yolov8n.mlmodel`         | ✅        |
-| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`     | `yolov8n_saved_model/`    | ✅        |
-| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`              | `yolov8n.pb`              | ❌        |
-| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`          | `yolov8n.tflite`          | ✅        |
-| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`         | `yolov8n_edgetpu.tflite`  | ✅        |
-| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n_web_model/`      | ✅        |
-| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n_paddle_model/`   | ✅        |
+| Format                                                             | `format` Argument | Model                         | Metadata |
+|--------------------------------------------------------------------|-------------------|-------------------------------|----------|
+| [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n-pose.pt`              | ✅        |
+| [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n-pose.torchscript`     | ✅        |
+| [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n-pose.onnx`            | ✅        |
+| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`        | `yolov8n-pose_openvino_model/` | ✅        |
+| [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`          | `yolov8n-pose.engine`          | ✅        |
+| [CoreML](https://github.com/apple/coremltools)                     | `coreml`          | `yolov8n-pose.mlmodel`         | ✅        |
+| [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`     | `yolov8n-pose_saved_model/`    | ✅        |
+| [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`              | `yolov8n-pose.pb`              | ❌        |
+| [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`          | `yolov8n-pose.tflite`          | ✅        |
+| [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`         | `yolov8n-pose_edgetpu.tflite`  | ✅        |
+| [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n-pose_web_model/`      | ✅        |
+| [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n-pose_paddle_model/`   | ✅        |
+
+See full `export` details in the [Export](https://docs.ultralytics.com/modes/export/) page.

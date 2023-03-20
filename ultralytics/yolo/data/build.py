@@ -16,7 +16,7 @@ from ultralytics.yolo.utils.checks import check_file
 
 from ..utils import LOGGER, colorstr
 from ..utils.torch_utils import torch_distributed_zero_first
-from .dataset import ClassificationDataset, YOLODataset, COCODataset
+from .dataset import ClassificationDataset, COCODataset, YOLODataset
 from .utils import PIN_MEMORY, RANK
 
 
@@ -61,35 +61,34 @@ def seed_worker(worker_id):  # noqa
     random.seed(worker_seed)
 
 
-def build_dataloader(cfg, batch, img_path, stride=32, rect=False, names=None, rank=-1, mode='train', format="yolo"):
+def build_dataloader(cfg, batch, img_path, stride=32, rect=False, names=None, rank=-1, mode='train', format='yolo'):
     assert mode in ['train', 'val']
     shuffle = mode == 'train'
     if cfg.rect and shuffle:
         LOGGER.warning("WARNING ⚠️ 'rect=True' is incompatible with DataLoader shuffle, setting shuffle=False")
         shuffle = False
     args = {
-            "img_path": img_path,
-            "imgsz": cfg.imgsz,
-            "batch_size": batch,
-            "augment": mode == 'train',  # augmentation
-            "hyp": cfg,  # TODO: probably add a get_hyps_from_cfg function
-            "rect": cfg.rect or rect,  # rectangular batches
-            "cache": cfg.cache or None,
-            "single_cls": cfg.single_cls or False,
-            "stride": int(stride),
-            "pad": 0.0 if mode == 'train' else 0.5,
-            "prefix": colorstr(f'{mode}: '),
-            "use_segments": cfg.task == 'segment',
-            "use_keypoints": cfg.task == 'keypoint',
-            "names": names,
-            "classes": cfg.classes,
-            "format": format
-        }
+        'img_path': img_path,
+        'imgsz': cfg.imgsz,
+        'batch_size': batch,
+        'augment': mode == 'train',  # augmentation
+        'hyp': cfg,  # TODO: probably add a get_hyps_from_cfg function
+        'rect': cfg.rect or rect,  # rectangular batches
+        'cache': cfg.cache or None,
+        'single_cls': cfg.single_cls or False,
+        'stride': int(stride),
+        'pad': 0.0 if mode == 'train' else 0.5,
+        'prefix': colorstr(f'{mode}: '),
+        'use_segments': cfg.task == 'segment',
+        'use_keypoints': cfg.task == 'keypoint',
+        'names': names,
+        'classes': cfg.classes,
+        'format': format}
     with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
-        if format == "yolo":
+        if format == 'yolo':
             dataset = YOLODataset(**args)
-        elif format == "coco" or format == "json":
-            dataset = COCODataset(**args)        
+        elif format == 'coco' or format == 'json':
+            dataset = COCODataset(**args)
 
     batch = min(batch, len(dataset))
     nd = torch.cuda.device_count()  # number of CUDA devices

@@ -13,7 +13,8 @@ from tqdm import tqdm
 from ..utils import NUM_THREADS, TQDM_BAR_FORMAT, is_dir_writeable
 from .augment import Compose, Format, Instances, LetterBox, classify_albumentations, classify_transforms, v8_transforms
 from .base import BaseDataset
-from .utils import HELP_URL, LOCAL_RANK, LOGGER, get_hash, img2yolo_label_paths, img2json_label_paths, verify_image_label
+from .utils import (HELP_URL, LOCAL_RANK, LOGGER, get_hash, img2json_label_paths, img2yolo_label_paths,
+                    verify_image_label)
 
 
 class YOLODataset(BaseDataset):
@@ -43,24 +44,25 @@ class YOLODataset(BaseDataset):
         A PyTorch dataset object that can be used for training an object detection or segmentation model.
     """
 
-    def __init__(self,
-                 img_path,
-                 imgsz=640,
-                 cache=False,
-                 augment=True,
-                 hyp=None,
-                 prefix='',
-                 rect=False,
-                 batch_size=None,
-                 stride=32,
-                 pad=0.0,
-                 single_cls=False,
-                 use_segments=False,
-                 use_keypoints=False,
-                 names=None,
-                 classes=None,
-                 format="yolo",
-                 ):
+    def __init__(
+        self,
+        img_path,
+        imgsz=640,
+        cache=False,
+        augment=True,
+        hyp=None,
+        prefix='',
+        rect=False,
+        batch_size=None,
+        stride=32,
+        pad=0.0,
+        single_cls=False,
+        use_segments=False,
+        use_keypoints=False,
+        names=None,
+        classes=None,
+        format='yolo',
+    ):
         self.use_segments = use_segments
         self.use_keypoints = use_keypoints
         self.names = names
@@ -126,7 +128,7 @@ class YOLODataset(BaseDataset):
 
     def imgs_to_labels(self):
         return img2yolo_label_paths(self.im_files)
-        
+
     def get_labels(self):
         self.label_files = self.imgs_to_labels()
         cache_path = Path(self.label_files[0]).parent.with_suffix('.cache')
@@ -220,9 +222,12 @@ class YOLODataset(BaseDataset):
         new_batch['batch_idx'] = torch.cat(new_batch['batch_idx'], 0)
         return new_batch
 
+
 class COCODataset(YOLODataset):
+
     def imgs_to_labels(self):
         return img2json_label_paths(self.im_files)
+
 
 # Classification dataloaders -------------------------------------------------------------------------------------------
 class ClassificationDataset(torchvision.datasets.ImageFolder):

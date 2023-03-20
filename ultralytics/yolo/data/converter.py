@@ -1,20 +1,23 @@
-from pathlib import Path
-import shutil
-
 import json
-import numpy as np
+import shutil
 from collections import defaultdict
+from pathlib import Path
+
+import numpy as np
 from tqdm import tqdm
+
 
 def coco91_to_coco80_class():  # converts 80-index (val2014) to 91-index (paper)
     # https://tech.amikelive.com/node-718/what-object-categories-labels-are-in-coco-dataset/
-    x = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, None, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, None, 24, 25, None,
-         None, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, None, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
-         51, 52, 53, 54, 55, 56, 57, 58, 59, None, 60, None, None, 61, None, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72,
-         None, 73, 74, 75, 76, 77, 78, 79, None]
+    x = [
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, None, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, None, 24, 25, None,
+        None, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, None, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
+        51, 52, 53, 54, 55, 56, 57, 58, 59, None, 60, None, None, 61, None, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72,
+        None, 73, 74, 75, 76, 77, 78, 79, None]
     return x
 
-def make_dirs(dir, split="tmp", exist_ok=True):
+
+def make_dirs(dir, split='tmp', exist_ok=True):
     # Create folders
     dir = Path(dir)
     if dir.exists() and not exist_ok:
@@ -23,17 +26,25 @@ def make_dirs(dir, split="tmp", exist_ok=True):
         p.mkdir(parents=True, exist_ok=True)  # make dir
     return dir
 
+
 def convert_coco_to_yolo(data: dict, use_segments=True, use_kpts=True, cls91to80=False):
-    splits = ["train", "test", "val"]
+    splits = ['train', 'test', 'val']
     for split in splits:
         if data.get(split):
             split = Path(data.get(split))
-            output_dir = split.parent / "labels"
-            convert_one_coco_json_to_yolo(json_dir=split, use_segments=use_segments, use_kpts=use_kpts, cls91to80=cls91to80, output_dir=output_dir)
+            output_dir = split.parent / 'labels'
+            convert_one_coco_json_to_yolo(json_dir=split,
+                                          use_segments=use_segments,
+                                          use_kpts=use_kpts,
+                                          cls91to80=cls91to80,
+                                          output_dir=output_dir)
 
 
-
-def convert_one_coco_json_to_yolo(json_dir='../coco/annotations/', use_segments=False, use_kpts=True, cls91to80=False, output_dir=None):
+def convert_one_coco_json_to_yolo(json_dir='../coco/annotations/',
+                                  use_segments=False,
+                                  use_kpts=True,
+                                  cls91to80=False,
+                                  output_dir=None):
     save_dir = make_dirs(output_dir)  # output directory
     coco80 = coco91_to_coco80_class()
     # Import json
@@ -90,11 +101,12 @@ def convert_one_coco_json_to_yolo(json_dir='../coco/annotations/', use_segments=
                 for i in range(len(bboxes)):
                     line = *(segments[i] if use_segments else bboxes[i]),  # cls, box or segments
                     file.write(('%g ' * len(line)).rstrip() % line + '\n')
-        
+
         return fn
 
+
 def min_index(arr1, arr2):
-    """Find a pair of indexes with the shortest distance. 
+    """Find a pair of indexes with the shortest distance.
     Args:
         arr1: (N, 2).
         arr2: (M, 2).
@@ -108,11 +120,11 @@ def min_index(arr1, arr2):
 def merge_multi_segment(segments):
     """Merge multi segments to one list.
     Find the coordinates with min distance between each segment,
-    then connect these coordinates with one thin line to merge all 
+    then connect these coordinates with one thin line to merge all
     segments into one.
     Args:
         segments(List(List)): original segmentations in coco's json file.
-            like [segmentation1, segmentation2,...], 
+            like [segmentation1, segmentation2,...],
             each segmentation is a list of coordinates.
     """
     s = []
@@ -161,4 +173,3 @@ def delete_dsstore(path='../datasets'):
     print(files)
     for f in files:
         f.unlink()
-

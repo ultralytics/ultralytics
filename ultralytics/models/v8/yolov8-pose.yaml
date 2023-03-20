@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
-# YOLOv8-Pose model. For Usage examples see https://docs.ultralytics.com/tasks/pose
+# YOLOv8-pose keypoints/pose estimation model. For Usage examples see https://docs.ultralytics.com/tasks/pose
 
 # Parameters
 nc: 80  # number of classes

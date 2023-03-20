@@ -87,10 +87,11 @@ def build_dataloader(cfg, batch, img_path, stride=32, rect=False, names=None, ra
     with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
         if format == 'yolo':
             dataset = YOLODataset(**args)
-        elif format == "coco" or format == "json":
+        elif format == 'coco' or format == 'json':
             dataset = COCODataset(**args)
         else:
-            raise NotImplementedError(f" {format} dataset is not yet supported. Please raise a feature request on github")        
+            raise NotImplementedError(
+                f' {format} dataset is not yet supported. Please raise a feature request on github')
 
     batch = min(batch, len(dataset))
     nd = torch.cuda.device_count()  # number of CUDA devices

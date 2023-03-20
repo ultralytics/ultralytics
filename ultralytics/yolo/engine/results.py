@@ -111,12 +111,13 @@ class Results:
     def keys(self):
         return [k for k in self._keys if getattr(self, k) is not None]
 
-    def plot(self, show_conf=True, line_width=None, font_size=None, font='Arial.ttf', pil=False, example='abc'):
+    def plot(self, show_conf=True, show_id=True, line_width=None, font_size=None, font='Arial.ttf', pil=False, example='abc'):
         """
         Plots the detection results on an input RGB image. Accepts a numpy array (cv2) or a PIL Image.
 
         Args:
             show_conf (bool): Whether to show the detection confidence score.
+            show_id (bool): Whether to show the tracked id when using a tracker.
             line_width (float, optional): The line width of the bounding boxes. If None, it is scaled to the image size.
             font_size (float, optional): The font size of the text. If None, it is scaled to the image size.
             font (str): The font to use for the text.
@@ -134,8 +135,11 @@ class Results:
         if boxes is not None:
             for d in reversed(boxes):
                 cls, conf = d.cls.squeeze(), d.conf.squeeze()
+                id = None
+                if show_id and d.id is not None:
+                    id = int(d.id.squeeze())
                 c = int(cls)
-                label = (f'{names[c]}' if names else f'{c}') + (f'{conf:.2f}' if show_conf else '')
+                label = (f'{names[c]}' if names else f'{c}') + (f'{conf:.2f}' if show_conf else '') + (f' {id}' if id is not None else '')
                 annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
 
         if masks is not None:

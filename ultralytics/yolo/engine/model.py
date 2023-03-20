@@ -2,6 +2,7 @@
 
 import sys
 from pathlib import Path
+import torch
 
 from ultralytics import yolo  # noqa
 from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, SegmentationModel, attempt_load_one_weight,
@@ -94,6 +95,7 @@ class YOLO:
             self._new(model, task)
         else:
             self._load(model, task)
+        self.model = torch.compile(self.model)
 
     def __call__(self, source=None, stream=False, **kwargs):
         return self.predict(source, stream, **kwargs)

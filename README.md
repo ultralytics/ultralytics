@@ -26,7 +26,6 @@ classification tasks.
 
 To request an Enterprise License please complete the form at [Ultralytics Licensing](https://ultralytics.com/license).
 
-<img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/yolo-comparison-plots.png"></a>
 
 <div align="center">
     <a href="https://github.com/ultralytics" style="text-decoration:none;">
@@ -135,6 +134,7 @@ while Classification models are pretrained on the ImageNet dataset.
 Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
 <details open><summary>Detection</summary>
+<img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/yolo-comparison-plots.png"></a>
 
 See [Detection Docs](https://docs.ultralytics.com/tasks/detect/) for usage examples with these models.
 

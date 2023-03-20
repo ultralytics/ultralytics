@@ -26,6 +26,7 @@ classification tasks.
 
 To request an Enterprise License please complete the form at [Ultralytics Licensing](https://ultralytics.com/license).
 
+<img width="3632" alt="v8_Tasks_0 2_W" src="https://user-images.githubusercontent.com/15766192/226470476-1e2c0587-fefc-468c-a236-9468af7f3c76.png">
 
 <div align="center">
     <a href="https://github.com/ultralytics" style="text-decoration:none;">

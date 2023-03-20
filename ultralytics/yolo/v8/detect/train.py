@@ -20,8 +20,7 @@ from ultralytics.yolo.utils.torch_utils import de_parallel
 
 # BaseTrainer python usage
 class DetectionTrainer(BaseTrainer):
-
-    def get_dataloader(self, dataset_path, batch_size, mode='train', rank=0):
+    def get_dataloader(self, dataset_path, batch_size, mode='train', rank=0, label_path=None):
         # TODO: manage splits differently
         # calculate stride - check if model is initialized
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
@@ -41,7 +40,7 @@ class DetectionTrainer(BaseTrainer):
                                  shuffle=mode == 'train',
                                  seed=self.args.seed)[0] if self.args.v5loader else \
             build_dataloader(self.args, batch_size, img_path=dataset_path, stride=gs, rank=rank, mode=mode,
-                             rect=mode == 'val', names=self.data['names'])[0]
+                             rect=mode == 'val', names=self.data['names'], label_path=label_path)[0]
 
     def preprocess_batch(self, batch):
         batch['img'] = batch['img'].to(self.device, non_blocking=True).float() / 255

@@ -5,7 +5,7 @@ import math
 import os
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union, List
 
 import cv2
 import numpy as np
@@ -25,7 +25,8 @@ class BaseDataset(Dataset):
     """
 
     def __init__(self,
-                 img_path,
+                 img_path: Union[str, List[str]],
+                 label_path: Optional[Union[str, List[str]]] = None,
                  imgsz=640,
                  cache=False,
                  augment=True,
@@ -39,13 +40,23 @@ class BaseDataset(Dataset):
                  classes=None):
         super().__init__()
         self.img_path = img_path
+        self.label_path = label_path
         self.imgsz = imgsz
         self.augment = augment
         self.single_cls = single_cls
         self.prefix = prefix
 
+        # checks for optional image and label paths:
+        if self.label_path is not None:
+            if isinstance(self.label_path, list):
+                if not isinstance(self.img_path, list):
+                    raise ValueError('img_path must be a list if label_path is a list')
+                if len(self.label_path) != len(self.img_path):
+                    raise ValueError('img_path and label_path must have the same length')
+
         self.im_files = self.get_img_files(self.img_path)
         self.labels = self.get_labels()
+        print(self.labels)
         self.update_labels(include_class=classes)  # single_cls and include_class
 
         self.ni = len(self.labels)

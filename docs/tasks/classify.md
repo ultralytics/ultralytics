@@ -26,16 +26,25 @@ see the [Configuration](../usage/cfg.md) page.
         from ultralytics import YOLO
         
         # Load a model
-        model = YOLO('yolov8n-cls.yaml')  # build a new model from scratch
+        model = YOLO('yolov8n-cls.yaml')  # build a new model from YAML
         model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
+        model = YOLO('yolov8n-cls.yaml').load('yolov8n-cls.pt')  # build from YAML and transfer weights
         
         # Train the model
         model.train(data='mnist160', epochs=100, imgsz=64)
         ```
+
     === "CLI"
-    
+
         ```bash
+        # Build a new model from YAML and start training from scratch
+        yolo classify train data=mnist160 model=yolov8n-cls.yaml epochs=100 imgsz=64
+
+        # Start training from a pretrained *.pt model
         yolo classify train data=mnist160 model=yolov8n-cls.pt epochs=100 imgsz=64
+
+        # Build a new model from YAML, transfer pretrained weights to it and start training
+        yolo classify train data=mnist160 model=yolov8n-cls.yaml pretrained=yolov8n-cls.pt epochs=100 imgsz=64
         ```
 
 ## Val

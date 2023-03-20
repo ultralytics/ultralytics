@@ -88,7 +88,7 @@ class SegLoss(Loss):
                             "This error can occur when incorrectly training a 'segment' model on a 'detect' dataset, "
                             "i.e. 'yolo train model=yolov8n-seg.pt data=coco128.yaml'.\nVerify your dataset is a "
                             "correctly formatted 'segment' dataset using 'data=coco128-seg.yaml' "
-                            'as an example.\nSee https://docs.ultralytics.com/tasks/segmentation/ for help.') from e
+                            'as an example.\nSee https://docs.ultralytics.com/tasks/segment/ for help.') from e
 
         # pboxes
         pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
@@ -122,13 +122,15 @@ class SegLoss(Loss):
                     xyxyn = target_bboxes[i][fg_mask[i]] / imgsz[[1, 0, 1, 0]]
                     marea = xyxy2xywh(xyxyn)[:, 2:].prod(1)
                     mxyxy = xyxyn * torch.tensor([mask_w, mask_h, mask_w, mask_h], device=self.device)
-                    loss[1] += self.single_mask_loss(gt_mask, pred_masks[i][fg_mask[i]], proto[i], mxyxy,
-                                                     marea)  # seg loss
-        # WARNING: Uncomment lines below in case of Multi-GPU DDP unused gradient errors
-        #         else:
-        #             loss[1] += proto.sum() * 0 + pred_masks.sum() * 0
-        # else:
-        #     loss[1] += proto.sum() * 0 + pred_masks.sum() * 0
+                    loss[1] += self.single_mask_loss(gt_mask, pred_masks[i][fg_mask[i]], proto[i], mxyxy, marea)  # seg
+
+                # WARNING: lines below prevents Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
+                else:
+                    loss[1] += proto.sum() * 0 + pred_masks.sum() * 0
+
+        # WARNING: lines below prevent Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
+        else:
+            loss[1] += proto.sum() * 0 + pred_masks.sum() * 0
 
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.box / batch_size  # seg gain

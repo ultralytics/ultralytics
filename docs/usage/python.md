@@ -6,7 +6,7 @@ The simplest way of simply using YOLOv8 directly in a Python environment.
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolov8n.pt") # pass any model type
+        model = YOLO('yolov8n.pt') # pass any model type
         model.train(epochs=5)
         ```
 
@@ -14,8 +14,8 @@ The simplest way of simply using YOLOv8 directly in a Python environment.
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolov8n.yaml")
-        model.train(data="coco128.yaml", epochs=5)
+        model = YOLO('yolov8n.yaml')
+        model.train(data='coco128.yaml', epochs=5)
         ```
 
     === "Resume"
@@ -31,8 +31,8 @@ The simplest way of simply using YOLOv8 directly in a Python environment.
         ```python
           from ultralytics import YOLO
 
-          model = YOLO("yolov8n.yaml")
-          model.train(data="coco128.yaml", epochs=5)
+          model = YOLO('yolov8n.yaml')
+          model.train(data='coco128.yaml', epochs=5)
           model.val()  # It'll automatically evaluate the data you trained.
         ```
 
@@ -44,7 +44,7 @@ The simplest way of simply using YOLOv8 directly in a Python environment.
           # It'll use the data yaml file in model.pt if you don't set data.
           model.val()
           # or you can set the data you want to val
-          model.val(data="coco128.yaml")
+          model.val(data='coco128.yaml')
         ```
 
 !!! example "Predict"

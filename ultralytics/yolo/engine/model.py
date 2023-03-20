@@ -5,11 +5,11 @@ from pathlib import Path
 
 from ultralytics import yolo  # noqa
 from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, SegmentationModel, attempt_load_one_weight,
-                                  guess_model_task, nn)
+                                  guess_model_task, nn, yaml_model_load)
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
-from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, ONLINE, RANK, ROOT,
-                                    callbacks, is_git_dir, is_pip_package, yaml_load)
+from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, ROOT, callbacks,
+                                    is_git_dir, yaml_load)
 from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_pip_update_available, check_yaml
 from ultralytics.yolo.utils.downloads import GITHUB_ASSET_STEMS
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode
@@ -111,8 +111,8 @@ class YOLO:
             task (str) or (None): model task
             verbose (bool): display model info on load
         """
-        self.cfg = check_yaml(cfg)  # check YAML
-        cfg_dict = yaml_load(self.cfg, append_filename=True)  # model dict
+        cfg_dict = yaml_model_load(cfg)
+        self.cfg = cfg
         self.task = task or guess_model_task(cfg_dict)
         self.model = TASK_MAP[self.task][0](cfg_dict, verbose=verbose and RANK == -1)  # build model
         self.overrides['model'] = self.cfg
@@ -153,16 +153,10 @@ class YOLO:
                             f"'yolo export model=yolov8n.pt', but exported formats like ONNX, TensorRT etc. only "
                             f"support 'predict' and 'val' modes, i.e. 'yolo predict model=yolov8n.onnx'.")
 
-    def _check_pip_update(self):
+    @smart_inference_mode()
+    def reset_weights(self):
         """
-        Inform user of ultralytics package update availability
-        """
-        if ONLINE and is_pip_package():
-            check_pip_update_available()
-
-    def reset(self):
-        """
-        Resets the model modules.
+        Resets the model modules parameters to randomly initialized values, losing all training information.
         """
         self._check_is_pytorch_model()
         for m in self.model.modules():
@@ -170,6 +164,18 @@ class YOLO:
                 m.reset_parameters()
         for p in self.model.parameters():
             p.requires_grad = True
+        return self
+
+    @smart_inference_mode()
+    def load(self, weights='yolov8n.pt'):
+        """
+        Transfers parameters with matching names and shapes from 'weights' to model.
+        """
+        self._check_is_pytorch_model()
+        if isinstance(weights, (str, Path)):
+            weights, self.ckpt = attempt_load_one_weight(weights)
+        self.model.load(weights)
+        return self
 
     def info(self, verbose=False):
         """
@@ -299,7 +305,7 @@ class YOLO:
             **kwargs (Any): Any number of arguments representing the training configuration.
         """
         self._check_is_pytorch_model()
-        self._check_pip_update()
+        check_pip_update_available()
         overrides = self.overrides.copy()
         overrides.update(kwargs)
         if kwargs.get('cfg'):

@@ -359,7 +359,7 @@ def autocast_list(source):
             files.append(im)
         else:
             raise TypeError(f'type {type(im).__name__} is not a supported Ultralytics prediction source type. \n'
-                            f'See https://docs.ultralytics.com/predict for supported source types.')
+                            f'See https://docs.ultralytics.com/modes/predict for supported source types.')
 
     return files
 

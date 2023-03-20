@@ -22,11 +22,11 @@ export arguments.
         from ultralytics import YOLO
         
         # Load a model
-        model = YOLO("yolov8n.pt")  # load an official model
-        model = YOLO("path/to/best.pt")  # load a custom trained
+        model = YOLO('yolov8n.pt')  # load an official model
+        model = YOLO('path/to/best.pt')  # load a custom trained
         
         # Export the model
-        model.export(format="onnx")
+        model.export(format='onnx')
         ```
     === "CLI"
     

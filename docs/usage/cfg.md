@@ -143,7 +143,7 @@ given task.
 | `agnostic_nms`   | `False`                | class-agnostic NMS                                       |
 | `retina_masks`   | `False`                | use high-resolution segmentation masks                   |
 | `classes`        | `None`                 | filter results by class, i.e. class=0, or class=[0,2,3]  |
-| `box`            | `True`                 | Show boxes in segmentation predictions                   |
+| `boxes`          | `True`                 | Show boxes in segmentation predictions                   |
 
 ### Validation
 

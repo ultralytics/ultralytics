@@ -25,7 +25,7 @@ jobs:
             See our [Contributing Guide](https://github.com/ultralytics/ultralytics/blob/main/CONTRIBUTING.md) for details and let us know if you have any questions!
 
           issue-message: |
-            👋 Hello @${{ github.actor }}, thank you for your interest in YOLOv8 🚀! We recommend a visit to the [YOLOv8 Docs](https://docs.ultralytics.com) for new users where you can find many [Python](https://docs.ultralytics.com/python/) and [CLI](https://docs.ultralytics.com/cli/) usage examples and where many of the most common questions may already be answered.
+            👋 Hello @${{ github.actor }}, thank you for your interest in YOLOv8 🚀! We recommend a visit to the [YOLOv8 Docs](https://docs.ultralytics.com) for new users where you can find many [Python](https://docs.ultralytics.com/usage/python/) and [CLI](https://docs.ultralytics.com/usage/cli/) usage examples and where many of the most common questions may already be answered.
 
             If this is a 🐛 Bug Report, please provide a [minimum reproducible example](https://stackoverflow.com/help/minimal-reproducible-example) to help us debug it.
 
@@ -52,4 +52,4 @@ jobs:
 
             <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml?query=event%3Aschedule"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml/badge.svg" alt="Ultralytics CI"></a>
 
-            If this badge is green, all [Ultralytics CI](https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml?query=event%3Aschedule) tests are currently passing. CI tests verify correct operation of all YOLOv8 modes and tasks on macOS, Windows, and Ubuntu every 24 hours and on every commit.
+            If this badge is green, all [Ultralytics CI](https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml?query=event%3Aschedule) tests are currently passing. CI tests verify correct operation of all YOLOv8 [Modes](https://docs.ultralytics.com/modes/) and [Tasks](https://docs.ultralytics.com/tasks/) on macOS, Windows, and Ubuntu every 24 hours and on every commit.

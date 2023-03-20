@@ -1,9 +1,15 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
+# YOLOv8-cls image classification model. For Usage examples see https://docs.ultralytics.com/tasks/classify
 
 # Parameters
 nc: 1000  # number of classes
-depth_multiple: 0.33  # scales module repeats
-width_multiple: 0.50  # scales convolution channels
+scales: # model compound scaling constants, i.e. 'model=yolov8n-cls.yaml' will call yolov8-cls.yaml with scale 'n'
+  # [depth, width, max_channels]
+  n: [0.33, 0.25, 1024]
+  s: [0.33, 0.50, 1024]
+  m: [0.67, 0.75, 1024]
+  l: [1.00, 1.00, 1024]
+  x: [1.00, 1.25, 1024]
 
 # YOLOv8.0n backbone
 backbone:
@@ -20,4 +26,4 @@ backbone:
 
 # YOLOv8.0n head
 head:
-  - [-1, 1, Classify, [nc]]
+  - [-1, 1, Classify, [nc]]  # Classify

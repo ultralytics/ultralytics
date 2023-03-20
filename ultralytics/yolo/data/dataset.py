@@ -124,15 +124,11 @@ class YOLODataset(BaseDataset):
             LOGGER.warning(f'{self.prefix}WARNING ⚠️ Cache directory {path.parent} is not writeable, cache not saved.')
         return x
 
+    def imgs_to_labels(self):
+        return img2yolo_label_paths(self.im_files)
+        
     def get_labels(self):
-        format = self.format.lower()
-        if format == "yolo":
-            self.label_files = img2yolo_label_paths(self.im_files)
-        elif format == "coco" or format == "json":
-            self.label_files = img2json_label_paths(self.im_files)
-        else:
-            raise NotImplementedError(f"Given format {format} is not currently supported. Please raise an issue on GitHub.")
-
+        self.label_files = self.imgs_to_labels()
         cache_path = Path(self.label_files[0]).parent.with_suffix('.cache')
         try:
             cache, exists = np.load(str(cache_path), allow_pickle=True).item(), True  # load dict
@@ -224,6 +220,9 @@ class YOLODataset(BaseDataset):
         new_batch['batch_idx'] = torch.cat(new_batch['batch_idx'], 0)
         return new_batch
 
+class COCODataset(YOLODataset):
+    def imgs_to_labels(self):
+        return img2json_label_paths(self.im_files)
 
 # Classification dataloaders -------------------------------------------------------------------------------------------
 class ClassificationDataset(torchvision.datasets.ImageFolder):

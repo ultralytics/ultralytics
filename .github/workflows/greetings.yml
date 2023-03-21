@@ -52,4 +52,4 @@ jobs:
 
             <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml?query=event%3Aschedule"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml/badge.svg" alt="Ultralytics CI"></a>
 
-            If this badge is green, all [Ultralytics CI](https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml?query=event%3Aschedule) tests are currently passing. CI tests verify correct operation of all YOLOv8 modes and tasks on macOS, Windows, and Ubuntu every 24 hours and on every commit.
+            If this badge is green, all [Ultralytics CI](https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml?query=event%3Aschedule) tests are currently passing. CI tests verify correct operation of all YOLOv8 [Modes](https://docs.ultralytics.com/modes/) and [Tasks](https://docs.ultralytics.com/tasks/) on macOS, Windows, and Ubuntu every 24 hours and on every commit.

@@ -131,11 +131,12 @@ class Results:
         masks = self.masks
         probs = self.probs
         names = self.names
+        hide_labels, hide_conf = False, not show_conf
         if boxes is not None:
             for d in reversed(boxes):
                 c, conf, id = int(d.cls), float(d.conf), None if d.id is None else int(d.id.item())
                 name = ('' if id is None else f'id:{id} ') + names[c]
-                label = None if self.args.hide_labels else (name if self.args.hide_conf else f'{name} {conf:.2f}')
+                label = None if hide_labels else (name if hide_conf else f'{name} {conf:.2f}')
                 annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
 
         if masks is not None:

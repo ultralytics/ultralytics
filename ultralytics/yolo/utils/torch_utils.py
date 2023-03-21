@@ -27,6 +27,7 @@ WORLD_SIZE = int(os.getenv('WORLD_SIZE', 1))
 TORCH_1_9 = check_version(torch.__version__, '1.9.0')
 TORCH_1_11 = check_version(torch.__version__, '1.11.0')
 TORCH_1_12 = check_version(torch.__version__, '1.12.0')
+TORCH_2_X = check_version(torch.__version__, minimum='2.0')
 
 
 @contextmanager
@@ -95,7 +96,8 @@ def select_device(device='', batch=0, newline=False, verbose=True):
             p = torch.cuda.get_device_properties(i)
             s += f"{'' if i == 0 else space}CUDA:{d} ({p.name}, {p.total_memory / (1 << 20):.0f}MiB)\n"  # bytes to MB
         arg = 'cuda:0'
-    elif mps and getattr(torch, 'has_mps', False) and torch.backends.mps.is_available():  # prefer MPS if available
+    elif mps and getattr(torch, 'has_mps', False) and torch.backends.mps.is_available() and TORCH_2_X:
+        # prefer MPS if available
         s += 'MPS\n'
         arg = 'mps'
     else:  # revert to CPU

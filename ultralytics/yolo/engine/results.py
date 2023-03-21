@@ -129,13 +129,14 @@ class Results:
         annotator = Annotator(deepcopy(self.orig_img), line_width, font_size, font, pil, example)
         boxes = self.boxes
         masks = self.masks
-        logits = self.probs
+        probs = self.probs
         names = self.names
+        hide_labels, hide_conf = False, not show_conf
         if boxes is not None:
             for d in reversed(boxes):
-                cls, conf = d.cls.squeeze(), d.conf.squeeze()
-                c = int(cls)
-                label = (f'{names[c]}' if names else f'{c}') + (f'{conf:.2f}' if show_conf else '')
+                c, conf, id = int(d.cls), float(d.conf), None if d.id is None else int(d.id.item())
+                name = ('' if id is None else f'id:{id} ') + names[c]
+                label = None if hide_labels else (name if hide_conf else f'{name} {conf:.2f}')
                 annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
 
         if masks is not None:
@@ -143,10 +144,10 @@ class Results:
             im = F.resize(im.contiguous(), masks.data.shape[1:]) / 255
             annotator.masks(masks.data, colors=[colors(x, True) for x in boxes.cls], im_gpu=im)
 
-        if logits is not None:
-            n5 = min(len(self.names), 5)
-            top5i = logits.argsort(0, descending=True)[:n5].tolist()  # top 5 indices
-            text = f"{', '.join(f'{names[j] if names else j} {logits[j]:.2f}' for j in top5i)}, "
+        if probs is not None:
+            n5 = min(len(names), 5)
+            top5i = probs.argsort(0, descending=True)[:n5].tolist()  # top 5 indices
+            text = f"{', '.join(f'{names[j] if names else j} {probs[j]:.2f}' for j in top5i)}, "
             annotator.text((32, 32), text, txt_color=(255, 255, 255))  # TODO: allow setting colors
 
         return np.asarray(annotator.im) if annotator.pil else annotator.im

@@ -204,7 +204,7 @@ class DetectionValidator(BaseValidator):
             xywh = (ops.xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
             line = (cls, *xywh, conf) if save_conf else (cls, *xywh)  # label format
             with open(file, 'a') as f:
-                f.write(('%g ' * len(line)).rstrip() % line + '\n') 
+                f.write(('%g ' * len(line)).rstrip() % line + '\n')
 
     def pred_to_json(self, predn, filename):
         stem = Path(filename).stem

@@ -1,6 +1,7 @@
 import cv2
-import torch
 import numpy as np
+import torch
+
 
 def night_vision_core(img):
     """
@@ -28,7 +29,7 @@ def night_vision_core(img):
     eq_g = cv2.equalizeHist(g)
     eq_r = cv2.equalizeHist(r)
 
-    eq_img = cv2.merge((eq_b, eq_g, eq_r))     # Merge the color channels back into a single image
+    eq_img = cv2.merge((eq_b, eq_g, eq_r))  # Merge the color channels back into a single image
 
     # --------------------------------------------------------
 
@@ -54,6 +55,7 @@ def night_vision_core(img):
 
     return eq_img
 
+
 def convert_to_cv2(img):
     """
     Converts an image from torch to cv2 format.
@@ -65,8 +67,9 @@ def convert_to_cv2(img):
         numpy.ndarray: The image in cv2 format. (shape: (H, W, 3))
     """
     img = img.permute(1, 2, 0).numpy()  # convert to numpy
-    img = cv2.normalize(img, None, 255, 0, cv2.NORM_MINMAX, cv2.CV_8U)   # normalize the image to 0-255 UINT8
+    img = cv2.normalize(img, None, 255, 0, cv2.NORM_MINMAX, cv2.CV_8U)  # normalize the image to 0-255 UINT8
     return img
+
 
 def convert_to_torch(img):
     """
@@ -82,8 +85,9 @@ def convert_to_torch(img):
     img = img / 255.0
     img = img.astype(np.float32)
 
-    img = torch.from_numpy(img).permute(2, 0, 1)    # convert back to tensor
+    img = torch.from_numpy(img).permute(2, 0, 1)  # convert back to tensor
     return img
+
 
 def apply_night_vision(img):
     """
@@ -96,11 +100,10 @@ def apply_night_vision(img):
     Returns:
         torch.Tensor: The image with night vision mode applied. (shape: (3, H, W))
     """
-    img = convert_to_cv2(img)   # convert to cv2
-    img = night_vision_core(img)   # apply night vision
+    img = convert_to_cv2(img)  # convert to cv2
+    img = night_vision_core(img)  # apply night vision
     img = convert_to_torch(img)  # convert back to torch
     return img
-
 
 
 # Load the image
@@ -119,9 +122,3 @@ def apply_night_vision(img):
 # cv2.imshow('Enhanced Image', img)
 # cv2.waitKey(0)
 # cv2.destroyAllWindows()
-
-
-
-
-
-

@@ -33,7 +33,7 @@ def test_train_cls():
     run(f'yolo train classify model={CFG}-cls.yaml data=imagenet10 imgsz=32 epochs=1')
 
 
-def test_train_seg():
+def test_train_pose():
     run(f'yolo train pose model={CFG}-pose.yaml data=coco8-pose.yaml imgsz=32 epochs=1')
 
 

@@ -2,6 +2,8 @@
 
 import torch
 
+from ultralytics.yolo.utils.night_vision import apply_night_vision, night_vision_core
+
 from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils import DEFAULT_CFG, ROOT, ops
@@ -17,6 +19,14 @@ class DetectionPredictor(BasePredictor):
         img = (img if isinstance(img, torch.Tensor) else torch.from_numpy(img)).to(self.model.device)
         img = img.half() if self.model.fp16 else img.float()  # uint8 to fp16/32
         img /= 255  # 0 - 255 to 0.0 - 1.0
+
+        # Night vision mode
+        if self.args.night_vision:
+
+            # check if source is a webcam
+            img = torch.squeeze(img)
+            img = apply_night_vision(img)
+
         return img
 
     def postprocess(self, preds, img, orig_imgs):
@@ -52,6 +62,11 @@ class DetectionPredictor(BasePredictor):
         self.data_path = p
         self.txt_path = str(self.save_dir / 'labels' / p.stem) + ('' if self.dataset.mode == 'image' else f'_{frame}')
         log_string += '%gx%g ' % im.shape[2:]  # print string
+
+        # apply Night Vision mode on original image
+        if self.args.night_vision == "show":
+            im0 = night_vision_core(im0)
+
         self.annotator = self.get_annotator(im0)
 
         det = results[idx].boxes  # TODO: make boxes inherit from tensors

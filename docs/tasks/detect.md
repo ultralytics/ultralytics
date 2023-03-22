@@ -103,6 +103,37 @@ Use a trained YOLOv8n model to run predictions on images.
 
 Read more details of `predict` in our [Predict](https://docs.ultralytics.com/modes/predict/) page.
 
+## Night Vision Feature
+If you use camera in a dark environment, then you may get poor results.\
+We have made a preprocess feature to enhance image brightness, it actually may help you get better results in dark environments.
+
+You can use Night Vision mode by adding parameter `night_vision` as follows:
+
+Using CLI:
+```bash
+yolo detect predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg' night_vision
+```
+and it has 3 modes:
+
+1- Default mode:
+> By not passing parameter `night_vision`, it will use the original image as it is.
+
+2- Night Vision mode (Only apply on input image):
+```bash
+night_vision 
+```
+> It will apply night vision on input image, pass it to the model and get the result based on night-processed image, But the shown/saved image will be the original image without night filter.
+
+3- Night Vision mode (Apply on both input image and shown/saved image):
+```bash
+night_vision=show
+```
+> It will apply night vision on input image, pass it to the model and get the result based on night-processed image, The shown/saved image will be also night-processed image with night filter applied.
+
+An example to differentiate between Night Vision modes and their (Saved/Shown) results:
+
+![Example Image](night_vision_example.png)
+
 ## Export
 
 Export a YOLOv8n model to a different format like ONNX, CoreML, etc.

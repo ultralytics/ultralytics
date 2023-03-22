@@ -95,6 +95,10 @@ class BasePredictor:
         self.callbacks = defaultdict(list, callbacks.default_callbacks)  # add callbacks
         callbacks.add_integration_callbacks(self)
 
+        # Check Night Vision mode
+        if self.args.night_vision:
+            LOGGER.info('Night Vision mode Activated!')
+
     def preprocess(self, img):
         pass
 

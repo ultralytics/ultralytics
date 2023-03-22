@@ -2,11 +2,10 @@
 
 import torch
 
-from ultralytics.yolo.utils.night_vision import apply_night_vision, night_vision_core
-
 from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils import DEFAULT_CFG, ROOT, ops
+from ultralytics.yolo.utils.night_vision import apply_night_vision, night_vision_core
 from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
 
 
@@ -64,7 +63,7 @@ class DetectionPredictor(BasePredictor):
         log_string += '%gx%g ' % im.shape[2:]  # print string
 
         # apply Night Vision mode on original image
-        if self.args.night_vision == "show":
+        if self.args.night_vision == 'show':
             im0 = night_vision_core(im0)
 
         self.annotator = self.get_annotator(im0)

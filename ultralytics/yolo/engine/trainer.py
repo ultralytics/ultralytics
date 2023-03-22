@@ -429,6 +429,9 @@ class BaseTrainer:
         else:
             cfg = model
         self.model = self.get_model(cfg=cfg, weights=weights, verbose=RANK == -1)  # calls Model(cfg, weights)
+        if check_version(torch.__version__, minimum='2.0'):
+            LOGGER.info('Compiling model...')
+            self.model = torch.compile(self.model)
         return ckpt
 
     def optimizer_step(self):

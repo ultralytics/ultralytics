@@ -168,6 +168,7 @@ class BYTETracker:
         self.args = args
         self.max_time_lost = int(frame_rate / 30.0 * args.track_buffer)
         self.kalman_filter = self.get_kalmanfilter()
+        self.reset_id()
 
     def update(self, results, img=None):
         self.frame_id += 1
@@ -298,6 +299,9 @@ class BYTETracker:
 
     def multi_predict(self, tracks):
         STrack.multi_predict(tracks)
+
+    def reset_id(self):
+        STrack.reset_id()
 
     @staticmethod
     def joint_stracks(tlista, tlistb):

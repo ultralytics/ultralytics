@@ -28,7 +28,7 @@ from ultralytics.yolo.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.yolo.utils import (DEFAULT_CFG, LOGGER, ONLINE, RANK, ROOT, SETTINGS, TQDM_BAR_FORMAT, __version__,
                                     callbacks, colorstr, emojis, yaml_save)
 from ultralytics.yolo.utils.autobatch import check_train_batch_size
-from ultralytics.yolo.utils.checks import check_file, check_imgsz, print_args
+from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_version, print_args
 from ultralytics.yolo.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.yolo.utils.files import get_latest_run, increment_path
 from ultralytics.yolo.utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel, init_seeds, one_cycle,
@@ -429,6 +429,9 @@ class BaseTrainer:
         else:
             cfg = model
         self.model = self.get_model(cfg=cfg, weights=weights, verbose=RANK == -1)  # calls Model(cfg, weights)
+        if check_version(torch.__version__, minimum='2.0'):
+            LOGGER.info('Compiling model...')
+            self.model = torch.compile(self.model)
         return ckpt
 
     def optimizer_step(self):

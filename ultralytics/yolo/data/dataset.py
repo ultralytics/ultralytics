@@ -84,8 +84,13 @@ class YOLODataset(BaseDataset):
                              "keypoints, number of dims (2 for x,y or 3 for x,y,visible)], i.e. 'kpt_shape: [17, 3]'")
         with ThreadPool(NUM_THREADS) as pool:
             results = pool.imap(func=verify_image_label,
-                                iterable=zip(self.im_files, self.label_files, repeat(self.prefix),
-                                             repeat(self.use_keypoints), repeat(nc), repeat(nkpt), repeat(ndim)))
+                                iterable=zip(self.im_files,
+                                             self.label_files,
+                                             repeat(self.prefix),
+                                             repeat(self.use_keypoints),
+                                             repeat(len(self.data['names'])),
+                                             repeat(nkpt),
+                                             repeat(ndim)))
             pbar = tqdm(results, desc=desc, total=total, bar_format=TQDM_BAR_FORMAT)
             for im_file, lb, shape, segments, keypoint, nm_f, nf_f, ne_f, nc_f, msg in pbar:
                 nm += nm_f

@@ -2,7 +2,7 @@
 # YOLOv8-pose keypoints/pose estimation model. For Usage examples see https://docs.ultralytics.com/tasks/pose
 
 # Parameters
-nc: 80  # number of classes
+nc: 1  # number of classes
 kpt_shape: [17, 3]  # number of keypoints, number of dims (2 for x,y or 3 for x,y,visible)
 scales: # model compound scaling constants, i.e. 'model=yolov8n-pose.yaml' will call yolov8-pose.yaml with scale 'n'
   # [depth, width, max_channels]

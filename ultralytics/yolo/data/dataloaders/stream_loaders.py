@@ -284,6 +284,7 @@ class LoadPilAndNumpy:
     def __init__(self, im0, imgsz=640, stride=32, auto=True, transforms=None):
         if not isinstance(im0, list):
             im0 = [im0]
+        self.paths = [getattr(im, 'filename', f'image{i}.jpg') for i, im in enumerate(im0)]
         self.im0 = [self._single_check(im) for im in im0]
         self.imgsz = imgsz
         self.stride = stride
@@ -291,7 +292,6 @@ class LoadPilAndNumpy:
         self.transforms = transforms
         self.mode = 'image'
         # generate fake paths
-        self.paths = [getattr(im, 'filename', f'image{i}.jpg') for i, im in enumerate(self.im0)]
         self.bs = len(self.im0)
 
     @staticmethod

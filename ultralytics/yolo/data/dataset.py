@@ -126,7 +126,7 @@ class YOLODataset(BaseDataset):
         cache_path = Path(self.label_files[0]).parent.with_suffix('.cache')
         try:
             import gc
-            gc.disable()
+            gc.disable()  # reduce pickle load time https://github.com/ultralytics/ultralytics/pull/1585
             cache, exists = np.load(str(cache_path), allow_pickle=True).item(), True  # load dict
             gc.enable()
             assert cache['version'] == self.cache_version  # matches current version

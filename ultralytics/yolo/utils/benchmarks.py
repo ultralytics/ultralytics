@@ -41,7 +41,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
     pd.options.display.width = 120
     device = select_device(device, verbose=False)
     if isinstance(model, (str, Path)):
-        model = YOLO(model)
+        model = YOLO(model, compile_model=False)
 
     y = []
     t0 = time.time()
@@ -64,7 +64,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
                 export = model  # PyTorch format
             else:
                 filename = model.export(imgsz=imgsz, format=format, half=half, device=device)  # all others
-                export = YOLO(filename, task=model.task)
+                export = YOLO(filename, task=model.task, compile_model=False)
                 assert suffix in str(filename), 'export failed'
             emoji = '❎'  # indicates export succeeded
 

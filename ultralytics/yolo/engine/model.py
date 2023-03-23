@@ -69,7 +69,7 @@ class YOLO:
         list(ultralytics.yolo.engine.results.Results): The prediction results.
     """
 
-    def __init__(self, model='yolov8n.pt', task=None, session=None) -> None:
+    def __init__(self, model='yolov8n.pt', task=None, session=None, compile_model=True) -> None:
         """
         Initializes the YOLO model.
 
@@ -96,9 +96,13 @@ class YOLO:
             self._new(model, task)
         else:
             self._load(model, task)
-        if check_version(torch.__version__, minimum='2.0'):
-            LOGGER.info('Pytorch model is compiled.')
-            self.model = torch.compile(self.model)
+        self.compile_model = compile_model
+        if self.compile_model:
+            if check_version(torch.__version__, minimum='2.0'):
+                LOGGER.info('Pytorch model is compiled.')
+                self.model = torch.compile(self.model)
+            else:
+                LOGGER.info('Pytorch version < 2.0. Please update pytorch to a version >= 2.0.')
 
     def __call__(self, source=None, stream=False, **kwargs):
         return self.predict(source, stream, **kwargs)
@@ -291,6 +295,9 @@ class YOLO:
         Args:
             **kwargs : Any other args accepted by the predictors. To see all args check 'configuration' section in docs
         """
+        if self.compile_model:
+            raise ValueError('ERROR ❌️ compile=True is not supported with method Yolo.export(...).')
+
         self._check_is_pytorch_model()
         overrides = self.overrides.copy()
         overrides.update(kwargs)

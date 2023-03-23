@@ -288,7 +288,7 @@ def entrypoint(debug=''):
         LOGGER.warning(f"WARNING ⚠️ 'model' is missing. Using default 'model={model}'.")
     from ultralytics.yolo.engine.model import YOLO
     overrides['model'] = model
-    model = YOLO(model, task=task)
+    model = YOLO(model, task=task, compile_model=(mode != 'export'))
     if isinstance(overrides.get('pretrained'), str):
         model.load(overrides['pretrained'])
 
@@ -312,7 +312,6 @@ def entrypoint(debug=''):
         if 'format' not in overrides:
             overrides['format'] = DEFAULT_CFG.format or 'torchscript'
             LOGGER.warning(f"WARNING ⚠️ 'format' is missing. Using default 'format={overrides['format']}'.")
-
     # Run command in python
     # getattr(model, mode)(**vars(get_cfg(overrides=overrides)))  # default args using default.yaml
     getattr(model, mode)(**overrides)  # default args from model

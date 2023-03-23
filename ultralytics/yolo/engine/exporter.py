@@ -862,7 +862,7 @@ def export(cfg=DEFAULT_CFG):
     cfg.format = cfg.format or 'torchscript'
 
     from ultralytics import YOLO
-    model = YOLO(cfg.model)
+    model = YOLO(cfg.model, compile_model=False)
     model.export(**vars(cfg))
 
 

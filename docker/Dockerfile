@@ -10,9 +10,9 @@ ADD https://ultralytics.com/assets/Arial.ttf https://ultralytics.com/assets/Aria
 
 # Install linux packages
 ENV DEBIAN_FRONTEND noninteractive
-apt update
-TZ=Etc/UTC apt install -y tzdata
-apt install --no-install-recommends -y gcc git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++
+RUN apt update
+RUN TZ=Etc/UTC apt install -y tzdata
+RUN apt install --no-install-recommends -y gcc git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++
 # RUN alias python=python3
 
 # Security updates
@@ -44,7 +44,7 @@ ENV DEBIAN_FRONTEND teletype
 # t=ultralytics/ultralytics:latest && sudo docker build -f docker/Dockerfile -t $t . && sudo docker push $t
 
 # Pull and Run
-# t=pytorch/pytorch:2.0.0-cuda11.7-cudnn8-runtime && sudo docker pull $t && sudo docker run -it --ipc=host --gpus all $t
+# t=ultralytics/ultralytics:latest && sudo docker pull $t && sudo docker run -it --ipc=host --gpus all $t
 
 # Pull and Run with local directory access
 # t=ultralytics/ultralytics:latest && sudo docker pull $t && sudo docker run -it --ipc=host --gpus all -v "$(pwd)"/datasets:/usr/src/datasets $t

@@ -219,8 +219,7 @@ def check_det_dataset(dataset, autodownload=True):
         data['names'] = [f'class_{i}' for i in range(data['nc'])]
     else:
         data['nc'] = len(data['names'])
-        
-        
+
     data['names'] = check_class_names(data['names'])
 
     # Resolve paths

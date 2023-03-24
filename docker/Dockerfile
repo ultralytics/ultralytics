@@ -3,16 +3,16 @@
 # Image is CUDA-optimized for YOLOv8 single/multi-GPU training and inference
 
 # Start FROM PyTorch image https://hub.docker.com/r/pytorch/pytorch
-FROM pytorch/pytorch:2.0.0-cuda11.7-cudnn8-runtime
+FROM pytorch/pytorch:latest
 
 # Downloads to user config dir
 ADD https://ultralytics.com/assets/Arial.ttf https://ultralytics.com/assets/Arial.Unicode.ttf /root/.config/Ultralytics/
 
 # Install linux packages
 ENV DEBIAN_FRONTEND noninteractive
-RUN apt update
-RUN TZ=Etc/UTC apt install -y tzdata
-RUN apt install --no-install-recommends -y gcc git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++
+apt update
+TZ=Etc/UTC apt install -y tzdata
+apt install --no-install-recommends -y gcc git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++
 # RUN alias python=python3
 
 # Security updates
@@ -44,7 +44,6 @@ ENV DEBIAN_FRONTEND teletype
 # t=ultralytics/ultralytics:latest && sudo docker build -f docker/Dockerfile -t $t . && sudo docker push $t
 
 # Pull and Run
-docker pull pytorch/pytorch:2.0.0-cuda11.7-cudnn8-runtime
 # t=pytorch/pytorch:2.0.0-cuda11.7-cudnn8-runtime && sudo docker pull $t && sudo docker run -it --ipc=host --gpus all $t
 
 # Pull and Run with local directory access

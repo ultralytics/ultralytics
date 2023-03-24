@@ -1,8 +1,8 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 # Default training settings and hyperparameters for medium-augmentation COCO training
 
-task: detect  # inference task, i.e. detect, segment, classify
-mode: train  # YOLO mode, i.e. train, val, predict, export
+task: detect  # YOLO task, i.e. detect, segment, classify, pose
+mode: train  # YOLO mode, i.e. train, val, predict, export, track, benchmark
 
 # Train settings -------------------------------------------------------------------------------------------------------
 model:  # path to model file, i.e. yolov8n.pt, yolov8n.yaml
@@ -30,6 +30,7 @@ rect: False  # support rectangular training if mode='train', support rectangular
 cos_lr: False  # use cosine learning rate scheduler
 close_mosaic: 10  # disable mosaic augmentation for final 10 epochs
 resume: False  # resume training from last checkpoint
+amp: True  # Automatic Mixed Precision (AMP) training, choices=[True, False], True runs AMP check
 # Segmentation
 overlap_mask: True  # masks should overlap during training (segment train only)
 mask_ratio: 4  # mask downsample ratio (segment train only)

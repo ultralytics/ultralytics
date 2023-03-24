@@ -21,7 +21,7 @@ import torch
 from matplotlib import font_manager
 
 from ultralytics.yolo.utils import (AUTOINSTALL, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, downloads,
-                                    emojis, is_colab, is_docker, is_jupyter, is_online, is_pip_package)
+                                    emojis, is_colab, is_docker, is_kaggle, is_online, is_pip_package)
 
 
 def is_ascii(s) -> bool:
@@ -292,8 +292,7 @@ def check_yaml(file, suffix=('.yaml', '.yml'), hard=True):
 def check_imshow(warn=False):
     # Check if environment supports image displays
     try:
-        assert not is_jupyter()
-        assert not is_docker()
+        assert not any((is_colab(), is_kaggle(), is_docker()))
         cv2.imshow('test', np.zeros((1, 1, 3)))
         cv2.waitKey(1)
         cv2.destroyAllWindows()

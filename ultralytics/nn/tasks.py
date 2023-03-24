@@ -249,14 +249,14 @@ class SegmentationModel(DetectionModel):
 
 
 class PoseModel(DetectionModel):
-
+    # YOLOv8 pose model
     def __init__(self, cfg='yolov8n-pose.yaml', ch=3, nc=None, data_kpt_shape=(None, None), verbose=True):
         if not isinstance(cfg, dict):
-            cfg = yaml_load(check_yaml(cfg), append_filename=True)  # load model YAML
+            cfg = yaml_model_load(cfg)  # load model YAML
         if any(data_kpt_shape) and list(data_kpt_shape) != list(cfg['kpt_shape']):
             LOGGER.info(f"Overriding model.yaml kpt_shape={cfg['kpt_shape']} with kpt_shape={data_kpt_shape}")
             cfg['kpt_shape'] = data_kpt_shape
-        super().__init__(cfg, ch, nc, verbose)
+        super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
 
 class ClassificationModel(BaseModel):

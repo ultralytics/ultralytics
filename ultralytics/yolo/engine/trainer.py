@@ -134,7 +134,7 @@ class BaseTrainer:
         self.scheduler = None
 
         # Epoch level metrics
-        self.done_val = False 
+        self.done_val = False
         self.best_fitness = None
         self.fitness = None
         self.loss = None

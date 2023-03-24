@@ -2,9 +2,8 @@
 # Builds ultralytics/ultralytics:latest image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
 # Image is CUDA-optimized for YOLOv8 single/multi-GPU training and inference
 
-# Start FROM NVIDIA PyTorch image https://ngc.nvidia.com/catalog/containers/nvidia:pytorch
-# FROM docker.io/pytorch/pytorch:latest
-FROM pytorch/pytorch:latest
+# Start FROM PyTorch image https://hub.docker.com/r/pytorch/pytorch
+FROM pytorch/pytorch:2.0.0-cuda11.7-cudnn8-runtime
 
 # Downloads to user config dir
 ADD https://ultralytics.com/assets/Arial.ttf https://ultralytics.com/assets/Arial.Unicode.ttf /root/.config/Ultralytics/

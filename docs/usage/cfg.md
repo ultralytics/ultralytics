@@ -14,48 +14,43 @@ YOLOv8 'yolo' CLI commands use the following syntax:
 
 Where:
 
-- `TASK` (optional) is one of `[detect, segment, classify]`. If it is not passed explicitly YOLOv8 will try to guess
+- `TASK` (optional) is one of `[detect, segment, classify, pose]`. If it is not passed explicitly YOLOv8 will try to
+  guess
   the `TASK` from the model type.
-- `MODE` (required) is one of `[train, val, predict, export]`
+- `MODE` (required) is one of `[train, val, predict, export, track, benchmark]`
 - `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults.
   For a full list of available `ARGS` see the [Configuration](cfg.md) page and `defaults.yaml`
   GitHub [source](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/cfg/default.yaml).
 
 #### Tasks
 
-YOLO models can be used for a variety of tasks, including detection, segmentation, and classification. These tasks
+YOLO models can be used for a variety of tasks, including detection, segmentation, classification and pose. These tasks
 differ in the type of output they produce and the specific problem they are designed to solve.
 
-- **Detect**: Detection tasks involve identifying and localizing objects or regions of interest in an image or video.
-  YOLO models can be used for object detection tasks by predicting the bounding boxes and class labels of objects in an
-  image.
-- **Segment**: Segmentation tasks involve dividing an image or video into regions or pixels that correspond to
-  different objects or classes. YOLO models can be used for image segmentation tasks by predicting a mask or label for
-  each pixel in an image.
-- **Classify**: Classification tasks involve assigning a class label to an input, such as an image or text. YOLO
-  models can be used for image classification tasks by predicting the class label of an input image.
+**Detect**: For identifying and localizing objects or regions of interest in an image or video.  
+**Segment**: For dividing an image or video into regions or pixels that correspond to different objects or classes.  
+**Classify**: For predicting the class label of an input image.  
+**Pose**: For identifying objects and estimating their keypoints in an image or video.
+
+| Key    | Value      | Description                                     |
+|--------|------------|-------------------------------------------------|
+| `task` | `'detect'` | YOLO task, i.e. detect, segment, classify, pose |
 
 #### Modes
 
 YOLO models can be used in different modes depending on the specific problem you are trying to solve. These modes
-include train, val, and predict.
+include:
 
-- **Train**: The train mode is used to train the model on a dataset. This mode is typically used during the development
-  and
-  testing phase of a model.
-- **Val**: The val mode is used to evaluate the model's performance on a validation dataset. This mode is typically used
-  to
-  tune the model's hyperparameters and detect overfitting.
-- **Predict**: The predict mode is used to make predictions with the model on new data. This mode is typically used in
-  production or when deploying the model to users.
+**Train**: For training a YOLOv8 model on a custom dataset.  
+**Val**: For validating a YOLOv8 model after it has been trained.  
+**Predict**: For making predictions using a trained YOLOv8 model on new images or videos.  
+**Export**: For exporting a YOLOv8 model to a format that can be used for deployment.  
+**Track**: For tracking objects in real-time using a YOLOv8 model.  
+**Benchmark**: For benchmarking YOLOv8 exports (ONNX, TensorRT, etc.) speed and accuracy.
 
-| Key      | Value      | Description                                                                                   |
-|----------|------------|-----------------------------------------------------------------------------------------------|
-| `task`   | `'detect'` | inference task, i.e. detect, segment, or classify                                             |
-| `mode`   | `'train'`  | YOLO mode, i.e. train, val, predict, or export                                                |
-| `resume` | `False`    | resume training from last checkpoint or custom checkpoint if passed as resume=path/to/best.pt |
-| `model`  | `None`     | path to model file, i.e. yolov8n.pt, yolov8n.yaml                                             |
-| `data`   | `None`     | path to data file, i.e. coco128.yaml                                                          |
+| Key    | Value     | Description                                                   |
+|--------|-----------|---------------------------------------------------------------|
+| `mode` | `'train'` | YOLO mode, i.e. train, val, predict, export, track, benchmark |
 
 ### Training
 
@@ -93,6 +88,7 @@ task.
 | `cos_lr`          | `False`  | use cosine learning rate scheduler                                          |
 | `close_mosaic`    | `10`     | disable mosaic augmentation for final 10 epochs                             |
 | `resume`          | `False`  | resume training from last checkpoint                                        |
+| `amp`             | `True`   | Automatic Mixed Precision (AMP) training, choices=[True, False]             |
 | `lr0`             | `0.01`   | initial learning rate (i.e. SGD=1E-2, Adam=1E-3)                            |
 | `lrf`             | `0.01`   | final learning rate (lr0 * lrf)                                             |
 | `momentum`        | `0.937`  | SGD momentum/Adam beta1                                                     |

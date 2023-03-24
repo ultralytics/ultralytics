@@ -33,7 +33,8 @@ def on_batch_end(trainer):
 
 
 def on_fit_epoch_end(trainer):
-    _log_scalars(trainer.metrics, trainer.epoch + 1)
+    if trainer.done_val:
+        _log_scalars(trainer.metrics, trainer.epoch + 1)
 
 
 callbacks = {

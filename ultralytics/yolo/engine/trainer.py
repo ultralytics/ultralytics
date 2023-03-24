@@ -134,6 +134,7 @@ class BaseTrainer:
         self.scheduler = None
 
         # Epoch level metrics
+        self.done_val = False 
         self.best_fitness = None
         self.fitness = None
         self.loss = None
@@ -295,6 +296,7 @@ class BaseTrainer:
                 LOGGER.info(self.progress_string())
                 pbar = tqdm(enumerate(self.train_loader), total=nb, bar_format=TQDM_BAR_FORMAT)
             self.tloss = None
+            self.done_val = False
             self.optimizer.zero_grad()
             for i, batch in pbar:
                 self.run_callbacks('on_train_batch_start')
@@ -353,10 +355,16 @@ class BaseTrainer:
                 self.ema.update_attr(self.model, include=['yaml', 'nc', 'args', 'names', 'stride', 'class_weights'])
                 final_epoch = (epoch + 1 == self.epochs) or self.stopper.possible_stop
 
-                if self.args.val or final_epoch:
+                if (self.args.val and (epoch % self.args.val_period == 0)) or final_epoch:
                     self.metrics, self.fitness = self.validate()
-                self.save_metrics(metrics={**self.label_loss_items(self.tloss), **self.metrics, **self.lr})
+                    self.done_val = True
                 self.stop = self.stopper(epoch + 1, self.fitness)
+
+                # Save metrics
+                metrics = {**self.label_loss_items(self.tloss), **self.lr}
+                if self.done_val:
+                    metrics.update(self.metrics)
+                self.save_metrics(metrics)
 
                 # Save model
                 if self.args.save or (epoch + 1 == self.epochs):

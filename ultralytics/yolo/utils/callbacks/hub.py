@@ -20,7 +20,9 @@ def on_fit_epoch_end(trainer):
     session = getattr(trainer, 'hub_session', None)
     if session:
         # Upload metrics after val end
-        all_plots = {**trainer.label_loss_items(trainer.tloss, prefix='train'), **trainer.metrics}
+        all_plots = {**trainer.label_loss_items(trainer.tloss, prefix='train')}
+        if trainer.done_val:
+            all_plots.update(trainer.metrics)
         if trainer.epoch == 0:
             model_info = {
                 'model/parameters': get_num_params(trainer.model),

@@ -207,12 +207,23 @@ def check_det_dataset(dataset, autodownload=True):
         data = yaml_load(data, append_filename=True)  # dictionary
 
     # Checks
-    for k in 'train', 'val', 'names':
+    for k in 'train', 'val':
         if k not in data:
             raise SyntaxError(
-                emojis(f"{dataset} '{k}:' key missing ❌.\n'train', 'val' and 'names' are required in all data YAMLs."))
+                emojis(f"{dataset} '{k}:' key missing ❌.\n'train', and 'val' are required in all data YAMLs."))
+    if "names" not in data and "nc" not in data:
+        raise SyntaxError(
+                emojis(f"{dataset} : key missing ❌.\n either 'names' or 'nc' is required in all data YAMLs."))
+    if "names" in data and "nc" in data and len(data["names"]) != data["nc"]:
+        raise SyntaxError(
+                emojis(f"{dataset} : 'names' and 'nc' don't match."))
+
+    if "names" not in data:
+        data["names"] = [f"class_{i}" for i in range(data["nc"])]
+    else:
+        data['nc'] = len(data['names'])
+    import pdb;pdb.set_trace()
     data['names'] = check_class_names(data['names'])
-    data['nc'] = len(data['names'])
 
     # Resolve paths
     path = Path(extract_dir or data.get('path') or Path(data.get('yaml_file', '')).parent)  # dataset root

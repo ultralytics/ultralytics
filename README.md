@@ -81,6 +81,11 @@ yolo predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'
 
 `yolo` can be used for a variety of tasks and modes and accepts additional arguments, i.e. `imgsz=640`. See the YOLOv8
 [CLI Docs](https://docs.ultralytics.com/usage/cli) for examples.
+#### NOTE
+  If you want to a use camera stream as the source, make sure to enclose the RTSP URL within the double quotes like this (unlike single quotes in case of using image as a source):
+  ```bash
+  yolo predict model=yolov8n.pt --source="rtsp://username:password@IP:PORT/cam/realmonitor?channel=1&subtype=0"
+  ```
 
 #### Python
 

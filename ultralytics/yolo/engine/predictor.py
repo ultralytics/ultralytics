@@ -28,7 +28,6 @@ Usage - formats:
                               yolov8n_paddle_model       # PaddlePaddle
 """
 import platform
-import time
 from collections import defaultdict
 from pathlib import Path
 

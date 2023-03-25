@@ -136,7 +136,7 @@ class BasePredictor:
         self.source_type = self.dataset.source_type
         if not getattr(self, "stream", True) and (
              self.dataset.mode == "stream" or   # streams
-             len(self.dataset) > 500 or        # images
+             len(self.dataset) > 1000 or        # images
              any(getattr(self.dataset, "video_flag", [False]))):  # videos
             LOGGER.warning(
                     "WARNING ⚠️ to predict with streams/videos/image folder, please set `stream=True` "\

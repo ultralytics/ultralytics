@@ -267,7 +267,7 @@ class Boxes:
         return self.boxes.__str__()
 
     def __repr__(self):
-        return (f'{self.__class__.__module__}.{self.__class__.__name__}\n'
+        return (f'{self.__class__.__module__}.{self.__class__.__name__} object\n'
                 f'type:  {self.boxes.__class__.__module__}.{self.boxes.__class__.__name__}\n'
                 f'shape: {self.boxes.shape}\n'
                 f'dtype: {self.boxes.dtype}\n'
@@ -346,7 +346,7 @@ class Masks:
         return self.masks.__str__()
 
     def __repr__(self):
-        return (f'{self.__class__.__module__}.{self.__class__.__name__}\n'
+        return (f'{self.__class__.__module__}.{self.__class__.__name__} object\n'
                 f'type:  {self.masks.__class__.__module__}.{self.masks.__class__.__name__}\n'
                 f'shape: {self.masks.shape}\n'
                 f'dtype: {self.masks.dtype}\n'

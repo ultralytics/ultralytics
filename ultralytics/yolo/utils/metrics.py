@@ -3,6 +3,7 @@
 Model validation metrics
 """
 import math
+import pprint
 import warnings
 from pathlib import Path
 
@@ -465,6 +466,10 @@ class Metric:
         name = self.__class__.__name__
         raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
+    def __repr__(self):
+        return (f'{self.__class__.__module__}.{self.__class__.__name__} object\n'
+                f'{pprint.pformat(vars(self))}')
+
     @property
     def ap50(self):
         """AP@0.5 of all classes.
@@ -589,6 +594,10 @@ class DetMetrics:
         name = self.__class__.__name__
         raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
+    def __repr__(self):
+        return (f'{self.__class__.__module__}.{self.__class__.__name__} object\n'
+                f'{pprint.pformat(vars(self))}')
+
     def process(self, tp, conf, pred_cls, target_cls):
         results = ap_per_class(tp, conf, pred_cls, target_cls, plot=self.plot, save_dir=self.save_dir,
                                names=self.names)[2:]
@@ -660,6 +669,10 @@ class SegmentMetrics:
     def __getattr__(self, attr):
         name = self.__class__.__name__
         raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
+
+    def __repr__(self):
+        return (f'{self.__class__.__module__}.{self.__class__.__name__} object\n'
+                f'{pprint.pformat(vars(self))}')
 
     def process(self, tp_m, tp_b, conf, pred_cls, target_cls):
         """
@@ -750,6 +763,10 @@ class ClassifyMetrics:
     def __getattr__(self, attr):
         name = self.__class__.__name__
         raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
+
+    def __repr__(self):
+        return (f'{self.__class__.__module__}.{self.__class__.__name__} object\n'
+                f'{pprint.pformat(vars(self))}')
 
     def process(self, targets, pred):
         # target classes and predicted classes

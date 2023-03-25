@@ -28,11 +28,11 @@ Usage - formats:
                               yolov8n_paddle_model       # PaddlePaddle
 """
 import platform
+import time
 from collections import defaultdict
 from pathlib import Path
 
 import cv2
-import time
 
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.yolo.cfg import get_cfg
@@ -134,22 +134,21 @@ class BasePredictor:
                                              stride=self.model.stride,
                                              auto=self.model.pt)
         self.source_type = self.dataset.source_type
-        if not getattr(self, "stream", True) and (
-             self.dataset.mode == "stream" or   # streams
-             len(self.dataset) > 1000 or        # images
-             any(getattr(self.dataset, "video_flag", [False]))):  # videos
+        if not getattr(self, 'stream', True) and (self.dataset.mode == 'stream' or  # streams
+                                                  len(self.dataset) > 1000 or  # images
+                                                  any(getattr(self.dataset, 'video_flag', [False]))):  # videos
             LOGGER.warning(
-                    "WARNING ⚠️ to predict with streams/videos/image folder, please set `stream=True` "\
-                    "to use the memory efficient way! \n"
-                    "Or you might encounter OOM!\n"\
-                    "Usage:\n"\
-                    "   results = model(source=..., stream=True)  # generator of Results objects\n"\
-                    "   for r in results:\n"\
-                    "       boxes = r.boxes  # Boxes object for bbox outputs\n"\
-                    "       masks = r.masks  # Masks object for segmenation masks outputs\n"\
-                    "       probs = r.probs  # Class probabilities for classification outputs\n"\
+                    'WARNING ⚠️ to predict with streams/videos/image folder, please set `stream=True` '\
+                    'to use the memory efficient way! \n'
+                    'Or you might encounter OOM!\n'\
+                    'Usage:\n'\
+                    '   results = model(source=..., stream=True)  # generator of Results objects\n'\
+                    '   for r in results:\n'\
+                    '       boxes = r.boxes  # Boxes object for bbox outputs\n'\
+                    '       masks = r.masks  # Masks object for segmenation masks outputs\n'\
+                    '       probs = r.probs  # Class probabilities for classification outputs\n'\
                     )
-            time.sleep(5) # to make users notice the warning
+            time.sleep(5)  # to make users notice the warning
 
         self.vid_path, self.vid_writer = [None] * self.dataset.bs, [None] * self.dataset.bs
 

@@ -346,6 +346,9 @@ class LoadTensor:
         self.count += 1
         return None, self.im0, self.im0, None, ''  # self.paths, im, self.im0, None, ''
 
+    def __len__(self):
+        return self.bs
+
 
 def autocast_list(source):
     """

@@ -43,9 +43,8 @@ from ultralytics.yolo.utils.checks import check_imgsz, check_imshow
 from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode
 
-
 STREAM_WARNING = """
-    WARNING ⚠️ stream/video/webcam/dir predict source will accumulate results in RAM unless you set `stream=True`. 
+    WARNING ⚠️ stream/video/webcam/dir predict source will accumulate results in RAM unless you set `stream=True`.
     This may lead to out-of-memory errors for large sources.
 
     Usage:
@@ -55,6 +54,7 @@ STREAM_WARNING = """
             masks = r.masks  # Masks object for segment masks outputs
             probs = r.probs  # Class probabilities for classification outputs
 """
+
 
 class BasePredictor:
     """

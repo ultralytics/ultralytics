@@ -335,6 +335,7 @@ class LoadTensor:
     def __init__(self, imgs) -> None:
         self.im0 = imgs
         self.bs = imgs.shape[0]
+        self.mode = 'image'
 
     def __iter__(self):
         self.count = 0

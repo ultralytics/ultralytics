@@ -3,17 +3,21 @@
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
+import glob
+import os
+from os.path import join
 
 import cv2
 import numpy as np
 import torch
 import torchvision
 from tqdm import tqdm
+from typing import Union, List, Optional
 
 from ..utils import NUM_THREADS, TQDM_BAR_FORMAT, is_dir_writeable
 from .augment import Compose, Format, Instances, LetterBox, classify_albumentations, classify_transforms, v8_transforms
 from .base import BaseDataset
-from .utils import HELP_URL, LOCAL_RANK, LOGGER, get_hash, img2label_paths, verify_image_label
+from .utils import HELP_URL, LOCAL_RANK, LOGGER, get_hash, img2label_paths, verify_image_label, IMG_FORMATS
 
 
 class YOLODataset(BaseDataset):
@@ -44,7 +48,8 @@ class YOLODataset(BaseDataset):
     """
 
     def __init__(self,
-                 img_path,
+                 img_path: Union[str, List[str]],
+                 label_path: Union[str, List[str]],
                  imgsz=640,
                  cache=False,
                  augment=True,
@@ -63,7 +68,7 @@ class YOLODataset(BaseDataset):
         self.use_keypoints = use_keypoints
         self.names = names
         assert not (self.use_segments and self.use_keypoints), 'Can not use both segments and keypoints.'
-        super().__init__(img_path, imgsz, cache, augment, hyp, prefix, rect, batch_size, stride, pad, single_cls,
+        super().__init__(img_path, label_path, imgsz, cache, augment, hyp, prefix, rect, batch_size, stride, pad, single_cls,
                          classes)
 
     def cache_labels(self, path=Path('./labels.cache')):
@@ -121,8 +126,46 @@ class YOLODataset(BaseDataset):
             LOGGER.warning(f'{self.prefix}WARNING ⚠️ Cache directory {path.parent} is not writeable, cache not saved.')
         return x
 
+    def get_custom_label_files(self, label_path: Union[str, List[str]]) -> List[str]:
+        """
+        For datasets where the yaml files lists labels folders, the label files are not in the same directory as the images
+        but in unique directories. The filenames should however match the image filenames (except for the extensions,
+        which will be .txt instead of .jpg).
+        This is an adapted version of BaseDataset.get_im_files()
+        """
+        assert self.label_path is not None
+
+        # since we may have the same label filename in multiple different folders, we need to make sure we are
+        # properly mapping label filenames to image filenames. The order of the folders for labels in the yaml file is important,
+        # and we will use that as a basis for mapping.
+
+        # while prior construction doesn't actually hard code this, the usage of YOLO suggests that the folders in self.img_path
+        # should all contain images only in a folder called images.
+        lab_img_folder_map = {lab_folder: join(im_folder, "images") for im_folder, lab_folder in zip(self.img_path if isinstance(self.img_path, list) else [self.img_path],
+                                                                                    label_path if isinstance(label_path, list) else [label_path])}
+        img_lab_folder_map = {v: k for k, v in lab_img_folder_map.items()}
+
+        # get the label files
+        # we assume that the label folder could be anything, and only contains label files as .txt files which are
+        # named the same as the image files (except for the extension) based on the im_lab_folder_map mapping.
+        label_paths = []  # label files
+        for img_folder in self.img_path if isinstance(self.img_path, list) else [self.img_path]:
+            img_folder = join(img_folder, "images")
+            lab_folder = img_lab_folder_map[img_folder]
+            img_folder_Path = Path(img_folder)
+            stems_to_find = [f.stem for f in img_folder_Path.glob("*") if f.suffix.lower()[1:] in IMG_FORMATS]
+            for f_ in img_folder_Path.glob("*"):
+                lab_equivalent = join(lab_folder, f_.stem) + ".txt"
+                if f_.stem not in stems_to_find or not Path(lab_equivalent).exists():
+                    raise FileNotFoundError(f"Could not find label files for images: {stems_to_find}")
+                label_paths.append(lab_equivalent)
+        return label_paths
+
     def get_labels(self):
-        self.label_files = img2label_paths(self.im_files)
+        if self.label_path is None:
+            self.label_files = img2label_paths(self.im_files)
+        else:
+            self.label_files = self.get_custom_label_files(self.label_path)
         cache_path = Path(self.label_files[0]).parent.with_suffix('.cache')
         try:
             import gc

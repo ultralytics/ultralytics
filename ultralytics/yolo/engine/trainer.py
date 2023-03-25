@@ -127,6 +127,12 @@ class BaseTrainer:
             raise RuntimeError(emojis(f"Dataset '{self.args.data}' error ❌ {e}")) from e
 
         self.trainset, self.testset = self.get_dataset(self.data)
+
+        # todo: refactor to make simpler
+        self.train_labels_folder = self.data['train_labs'] if 'train_labs' in self.data.keys() else None
+        self.val_labels_folder = self.data['val_labs'] if 'val_labs' in self.data.keys() else None
+        self.test_labels_folder = self.data['test_labs'] if 'test_labs' in self.data.keys() else None
+
         self.ema = None
 
         # Optimization utils init
@@ -243,9 +249,10 @@ class BaseTrainer:
 
         # dataloaders
         batch_size = self.batch_size // world_size if world_size > 1 else self.batch_size
-        self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=rank, mode='train')
+        self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=rank, mode='train', label_path=self.train_labels_folder)
         if rank in (-1, 0):
-            self.test_loader = self.get_dataloader(self.testset, batch_size=batch_size * 2, rank=-1, mode='val')
+            self.test_loader = self.get_dataloader(self.testset, batch_size=batch_size * 2, rank=-1, mode='val',
+                                                   label_path=self.val_labels_folder if self.val_labels_folder is not None else self.test_labels_folder)
             self.validator = self.get_validator()
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix='val')
             self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))  # TODO: init metrics for plot_results()?
@@ -414,6 +421,13 @@ class BaseTrainer:
         """
         return data['train'], data.get('val') or data.get('test')
 
+    def get_custom_label_paths(self, data):
+        """
+        Get custom label paths from data dict if it exists. Returns None if data format is not recognized.
+        """
+        return data.get('train_labels') if "train_labels" in data.keys() else None, \
+            data.get('val_labels') or data.get('test_labels')
+
     def setup_model(self):
         """
         load/create/download model for any task.
@@ -462,7 +476,7 @@ class BaseTrainer:
     def get_validator(self):
         raise NotImplementedError('get_validator function not implemented in trainer')
 
-    def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode='train'):
+    def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode='train', label_path=None):
         """
         Returns dataloader derived from torch.data.Dataloader.
         """

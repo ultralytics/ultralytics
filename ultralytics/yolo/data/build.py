@@ -61,7 +61,7 @@ def seed_worker(worker_id):  # noqa
     random.seed(worker_seed)
 
 
-def build_dataloader(cfg, batch, img_path, stride=32, rect=False, names=None, rank=-1, mode='train'):
+def build_dataloader(cfg, batch, img_path, stride=32, rect=False, names=None, rank=-1, mode='train', label_path=None):
     assert mode in ['train', 'val']
     shuffle = mode == 'train'
     if cfg.rect and shuffle:
@@ -70,6 +70,7 @@ def build_dataloader(cfg, batch, img_path, stride=32, rect=False, names=None, ra
     with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
         dataset = YOLODataset(
             img_path=img_path,
+            label_path=label_path,
             imgsz=cfg.imgsz,
             batch_size=batch,
             augment=mode == 'train',  # augmentation

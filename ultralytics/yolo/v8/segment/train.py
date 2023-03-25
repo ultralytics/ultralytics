@@ -126,11 +126,11 @@ class SegLoss(Loss):
 
                 # WARNING: lines below prevents Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
                 else:
-                    loss[1] += proto.sum() * 0 + pred_masks.sum() * 0
+                    loss[1] += (proto * 0).sum() + (pred_masks * 0).sum()
 
         # WARNING: lines below prevent Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
         else:
-            loss[1] += proto.sum() * 0 + pred_masks.sum() * 0
+            loss[1] += (proto * 0).sum() + (pred_masks * 0).sum()
 
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.box / batch_size  # seg gain

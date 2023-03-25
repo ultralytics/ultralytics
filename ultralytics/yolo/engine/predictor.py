@@ -44,6 +44,18 @@ from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode
 
 
+STREAM_WARNING = """
+    WARNING ⚠️ stream/video/webcam/dir predict source will accumulate results in RAM unless you set `stream=True`. 
+    This may lead to out-of-memory errors for large sources.
+
+    Usage:
+        results = model(source=..., stream=True)  # generator of Results objects
+        for r in results:
+            boxes = r.boxes  # Boxes object for bbox outputs
+            masks = r.masks  # Masks object for segment masks outputs
+            probs = r.probs  # Class probabilities for classification outputs
+"""
+
 class BasePredictor:
     """
     BasePredictor
@@ -137,19 +149,7 @@ class BasePredictor:
         if not getattr(self, 'stream', True) and (self.dataset.mode == 'stream' or  # streams
                                                   len(self.dataset) > 1000 or  # images
                                                   any(getattr(self.dataset, 'video_flag', [False]))):  # videos
-            LOGGER.warning(
-                    'WARNING ⚠️ to predict with streams/videos/image folder, please set `stream=True` '\
-                    'to use the memory efficient way! \n'
-                    'Or you might encounter OOM!\n'\
-                    'Usage:\n'\
-                    '   results = model(source=..., stream=True)  # generator of Results objects\n'\
-                    '   for r in results:\n'\
-                    '       boxes = r.boxes  # Boxes object for bbox outputs\n'\
-                    '       masks = r.masks  # Masks object for segmenation masks outputs\n'\
-                    '       probs = r.probs  # Class probabilities for classification outputs\n'\
-                    )
-            time.sleep(5)  # to make users notice the warning
-
+            LOGGER.warning(STREAM_WARNING)
         self.vid_path, self.vid_writer = [None] * self.dataset.bs, [None] * self.dataset.bs
 
     @smart_inference_mode()

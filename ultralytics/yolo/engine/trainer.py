@@ -188,7 +188,7 @@ class BaseTrainer:
             finally:
                 ddp_cleanup(self, str(file))
         else:
-            self._do_train(RANK, world_size)
+            self._do_train(world_size)
 
     def _setup_ddp(self, world_size):
         torch.cuda.set_device(RANK)
@@ -411,7 +411,9 @@ class BaseTrainer:
             torch.save(ckpt, self.wdir / f'epoch{self.epoch}.pt')
         del ckpt
 
-    def get_dataset(self, data):
+
+    @staticmethod
+    def get_dataset(data):
         """
         Get train, val path from data dict if it exists. Returns None if data format is not recognized.
         """

@@ -43,8 +43,8 @@ from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode
 
 STREAM_WARNING = """
-    WARNING ⚠️ stream/video/webcam/dir predict source will accumulate results in RAM unless `stream=True` is passed, 
-    causing potential out-of-memory errors for large sources or long-running streams/videos. 
+    WARNING ⚠️ stream/video/webcam/dir predict source will accumulate results in RAM unless `stream=True` is passed,
+    causing potential out-of-memory errors for large sources or long-running streams/videos.
 
     Usage:
         results = model(source=..., stream=True)  # generator of Results objects

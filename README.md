@@ -105,7 +105,6 @@ success = model.export(format="onnx")  # export the model to ONNX format
 Ultralytics [release](https://github.com/ultralytics/assets/releases). See
 YOLOv8 [Python Docs](https://docs.ultralytics.com/usage/python) for more examples.
 
-
 </details>
 
 ## <div align="center">Models</div>

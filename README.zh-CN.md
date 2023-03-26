@@ -100,7 +100,6 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 [模型](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) 会从
 Ultralytics [发布页](https://github.com/ultralytics/ultralytics/releases) 自动下载。
 
-
 </details>
 
 ## <div align="center">模型</div>

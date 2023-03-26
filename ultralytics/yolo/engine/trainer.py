@@ -176,6 +176,7 @@ class BaseTrainer:
         if world_size > 1 and 'LOCAL_RANK' not in os.environ:
             # Checks
 
+            print('\nRUNNING RECT=TRUE DEBUG PRINTING-----------------------------------------------------------------')
             print(self.args.rect)
             print(self.args.rect == True)
             print(self.args)

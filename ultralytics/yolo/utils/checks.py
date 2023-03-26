@@ -239,7 +239,7 @@ def check_suffix(file='yolov8n.pt', suffix='.pt', msg=''):
         if isinstance(suffix, str):
             suffix = (suffix, )
         for f in file if isinstance(file, (list, tuple)) else [file]:
-            s = Path(f).suffix.lower()  # file suffix
+            s = Path(f).suffix.lower().strip()  # file suffix
             if len(s):
                 assert s in suffix, f'{msg}{f} acceptable suffix is {suffix}, not {s}'
 
@@ -261,7 +261,7 @@ def check_yolov5u_filename(file: str, verbose: bool = True):
 def check_file(file, suffix='', download=True, hard=True):
     # Search/download file (if necessary) and return path
     check_suffix(file, suffix)  # optional
-    file = str(file)  # convert to string
+    file = str(file).strip()  # convert to string and strip spaces
     file = check_yolov5u_filename(file)  # yolov5n -> yolov5nu
     if not file or ('://' not in file and Path(file).exists()):  # exists ('://' check required in Windows Python<3.10)
         return file

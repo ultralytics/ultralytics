@@ -11,11 +11,42 @@ parts of an object in a scene, and their location in relation to each other.
 
 !!! tip "Tip"
 
-    YOLOv8 _pose_ models use the `-pose` suffix, i.e. `yolov8n-pose.pt`. These models are trained on the COCO keypoints dataset and are suitable for a variety of pose estimation tasks.
+    YOLOv8 _pose_ models use the `-pose` suffix, i.e. `yolov8n-pose.pt`. These models are trained on the [COCO keypoints](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco-pose.yaml) dataset and are suitable for a variety of pose estimation tasks.
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models/v8)
 
-TODO
+## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models/v8)
+
+YOLOv8 pretrained Pose models are shown here. Detect, Segment and Pose models are pretrained on
+the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco.yaml) dataset, while Classify
+models are pretrained on
+the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/ImageNet.yaml) dataset.
+
+[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) download automatically from the latest
+Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
+
+# TODO: FIX URLS BELOW
+
+| Model | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>pose<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) |
+Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+|\--------------------------------------------------------------------------------------|-----------------------|----------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
+| [YOLOv8n-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt) | 640 | - | 50.1 | - |
+3.3 | 9.2 |
+| [YOLOv8s-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt) | 640 | - | 59.0 | - |
+11.6 | 30.2 |
+| [YOLOv8m-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt) | 640 | - | - | - |
+26.4 | 81.0 |
+| [YOLOv8l-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt) | 640 | - | 66.8 | - |
+44.5 | 168.6 |
+| [YOLOv8x-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt) | 640 | - | 68.6 | - |
+69.4 | 263.2 |
+
+- **mAP<sup>val</sup>** values are for single-model single-scale on [COCO Keypoints val2017](http://cocodataset.org)
+  dataset.
+  <br>Reproduce by `yolo val pose data=coco-pose.yaml device=0`
+- **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)
+  instance.
+  <br>Reproduce by `yolo val pose data=coco8-pose.yaml batch=1 device=0|cpu`
 
 ## Train
 
@@ -51,7 +82,8 @@ Train a YOLOv8-pose model on the COCO128-pose dataset.
 
 ## Val
 
-Validate trained YOLOv8n-pose model accuracy on the COCO128-pose dataset. No argument need to passed as the `model` retains it's
+Validate trained YOLOv8n-pose model accuracy on the COCO128-pose dataset. No argument need to passed as the `model`
+retains it's
 training `data` and arguments as model attributes.
 
 !!! example ""
@@ -134,8 +166,8 @@ Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
 Available YOLOv8-pose export formats are in the table below. You can predict or validate directly on exported models,
 i.e. `yolo predict model=yolov8n-pose.onnx`. Usage examples are shown for your model after export completes.
 
-| Format                                                             | `format` Argument | Model                         | Metadata |
-|--------------------------------------------------------------------|-------------------|-------------------------------|----------|
+| Format                                                             | `format` Argument | Model                          | Metadata |
+|--------------------------------------------------------------------|-------------------|--------------------------------|----------|
 | [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n-pose.pt`              | ✅        |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n-pose.torchscript`     | ✅        |
 | [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n-pose.onnx`            | ✅        |

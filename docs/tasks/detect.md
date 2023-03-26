@@ -13,7 +13,7 @@ scene, but don't need to know exactly where the object is or its exact shape.
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models/v8)
 
-All YOLOv8 pretrained models are available here. Detect, Segment and Pose models are pretrained on
+YOLOv8 pretrained Detect models are shown here. Detect, Segment and Pose models are pretrained on
 the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco.yaml) dataset, while Classify
 models are pretrained on
 the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/ImageNet.yaml) dataset.

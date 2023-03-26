@@ -13,15 +13,13 @@ of that class are located or what their exact shape is.
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models/v8)
 
-All YOLOv8 pretrained models are available here. Detect, Segment and Pose models are pretrained on
+YOLOv8 pretrained Classify models are shown here. Detect, Segment and Pose models are pretrained on
 the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco.yaml) dataset, while Classify
 models are pretrained on
 the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/ImageNet.yaml) dataset.
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) download automatically from the latest
 Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
-
-<details open><summary>Classification</summary>
 
 | Model                                                                                        | size<br><sup>(pixels) | acc<br><sup>top1 | acc<br><sup>top5 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
 |----------------------------------------------------------------------------------------------|-----------------------|------------------|------------------|--------------------------------|-------------------------------------|--------------------|--------------------------|
@@ -36,8 +34,6 @@ Ultralytics [release](https://github.com/ultralytics/assets/releases) on first u
 - **Speed** averaged over ImageNet val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)
   instance.
   <br>Reproduce by `yolo val classify data=path/to/ImageNet batch=1 device=0/cpu`
-
-</details>
 
 ## Train
 

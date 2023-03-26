@@ -13,15 +13,13 @@ segmentation is useful when you need to know not only where objects are in an im
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models/v8)
 
-All YOLOv8 pretrained models are available here. Detect, Segment and Pose models are pretrained on
+YOLOv8 pretrained Segment models are shown here. Detect, Segment and Pose models are pretrained on
 the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco.yaml) dataset, while Classify
 models are pretrained on
 the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/ImageNet.yaml) dataset.
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) download automatically from the latest
 Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
-
-<details open><summary>Segmentation</summary>
 
 | Model                                                                                        | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>mask<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 |----------------------------------------------------------------------------------------------|-----------------------|----------------------|-----------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
@@ -36,8 +34,6 @@ Ultralytics [release](https://github.com/ultralytics/assets/releases) on first u
 - **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)
   instance.
   <br>Reproduce by `yolo val segment data=coco128-seg.yaml batch=1 device=0/cpu`
-
-</details>
 
 ## Train
 

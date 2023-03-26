@@ -23,7 +23,7 @@ jobs:
         with:
           fail: true
           # accept 429(Instagram, 'too many requests'), 999(LinkedIn, 'unknown status code'), Timeout(Twitter)
-          args: --accept 429,999 --exclude twitter.com --verbose --no-progress './**/*.md' './**/*.html'
+          args: --accept 429,999 --exclude-loopback --exclude twitter.com --verbose --no-progress './**/*.md' './**/*.html'
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
@@ -33,6 +33,6 @@ jobs:
         with:
           fail: true
           # accept 429(Instagram, 'too many requests'), 999(LinkedIn, 'unknown status code'), Timeout(Twitter)
-          args: --accept 429,999 --exclude twitter.com,url.com --verbose --no-progress './**/*.md' './**/*.html' './**/*.yml' './**/*.yaml' './**/*.py' './**/*.ipynb'
+          args: --accept 429,999 --exclude-loopback --exclude twitter.com,url.com --verbose --no-progress './**/*.md' './**/*.html' './**/*.yml' './**/*.yaml' './**/*.py' './**/*.ipynb'
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

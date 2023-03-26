@@ -174,13 +174,7 @@ class BaseTrainer:
 
         # Run subprocess if DDP training, else train normally
         if world_size > 1 and 'LOCAL_RANK' not in os.environ:
-            # Checks
-
-            print('\nRUNNING RECT=TRUE DEBUG PRINTING-----------------------------------------------------------------')
-            print(self.args.rect)
-            print(self.args.rect == True)
-            print(self.args)
-
+            # Argument checks
             if self.args.rect:
                 LOGGER.warning("WARNING ⚠️ 'rect=True' is incompatible with Multi-GPU training, setting rect=False")
                 self.args.rect = False

@@ -115,7 +115,7 @@ class SimpleClass:
                     # Display only the module and class name for subclasses
                     s = f'{a}: {v.__module__}.{v.__class__.__name__} object'
                 else:
-                    s = f"{a}: {repr(v)}"
+                    s = f'{a}: {repr(v)}'
                 attr.append(s)
         return f'{self.__module__}.{self.__class__.__name__} object with attributes:\n\n' + '\n'.join(attr)
 

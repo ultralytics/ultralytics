@@ -58,7 +58,7 @@ full documentation on training, validation, prediction and deployment.
 <summary>Install</summary>
 
 Pip install the ultralytics package including
-all [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) in a
+all [requirements](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) in a
 [**Python>=3.7**](https://www.python.org/) environment with
 [**PyTorch>=1.7**](https://pytorch.org/get-started/locally/).
 
@@ -105,28 +105,11 @@ success = model.export(format="onnx")  # export the model to ONNX format
 Ultralytics [release](https://github.com/ultralytics/assets/releases). See
 YOLOv8 [Python Docs](https://docs.ultralytics.com/usage/python) for more examples.
 
-#### Model Architectures
-
-⭐ **NEW** YOLOv5u anchor free models are now available.
-
-All supported model architectures can be found in the [Models](./ultralytics/models/) section.
-
-#### Known Issues / TODOs
-
-We are still working on several parts of YOLOv8! We aim to have these completed soon to bring the YOLOv8 feature set up
-to par with YOLOv5, including export and inference to all the same formats. We are also writing a YOLOv8 paper which we
-will submit to [arxiv.org](https://arxiv.org) once complete.
-
-- [x] TensorFlow exports
-- [x] DDP resume
-- [ ] [arxiv.org](https://arxiv.org) paper
-
 </details>
 
 ## <div align="center">Models</div>
 
-All YOLOv8 pretrained models are available here. Detection and Segmentation models are pretrained on the COCO dataset,
-while Classification models are pretrained on the ImageNet dataset.
+All YOLOv8 pretrained models are available here. Detect, Segment and Pose models are pretrained on the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco.yaml) dataset, while Classify models are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/ImageNet.yaml) dataset.
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) download automatically from the latest
 Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
@@ -147,7 +130,7 @@ See [Detection Docs](https://docs.ultralytics.com/tasks/detect/) for usage examp
   <br>Reproduce by `yolo val detect data=coco.yaml device=0`
 - **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)
   instance.
-  <br>Reproduce by `yolo val detect data=coco128.yaml batch=1 device=0/cpu`
+  <br>Reproduce by `yolo val detect data=coco128.yaml batch=1 device=0|cpu`
 
 </details>
 
@@ -167,7 +150,7 @@ See [Segmentation Docs](https://docs.ultralytics.com/tasks/segment/) for usage e
   <br>Reproduce by `yolo val segment data=coco.yaml device=0`
 - **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)
   instance.
-  <br>Reproduce by `yolo val segment data=coco128-seg.yaml batch=1 device=0/cpu`
+  <br>Reproduce by `yolo val segment data=coco128-seg.yaml batch=1 device=0|cpu`
 
 </details>
 
@@ -187,7 +170,7 @@ See [Classification Docs](https://docs.ultralytics.com/tasks/classify/) for usag
   <br>Reproduce by `yolo val classify data=path/to/ImageNet device=0`
 - **Speed** averaged over ImageNet val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)
   instance.
-  <br>Reproduce by `yolo val classify data=path/to/ImageNet batch=1 device=0/cpu`
+  <br>Reproduce by `yolo val classify data=path/to/ImageNet batch=1 device=0|cpu`
 
 </details>
 

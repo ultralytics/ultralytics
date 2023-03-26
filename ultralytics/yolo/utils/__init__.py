@@ -131,8 +131,8 @@ class SimpleClass:
 
 class IterableSimpleNamespace(SimpleNamespace):
     """
-    IterableSimpleNamespace is an extension of SimpleNamespace that adds iterable functionality and enables usage with
-    dict() and for loops.
+    Ultralytics IterableSimpleNamespace is an extension class of SimpleNamespace that adds iterable functionality and
+    enables usage with dict() and for loops.
     """
 
     def __iter__(self):

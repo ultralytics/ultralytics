@@ -2,6 +2,7 @@
 
 import sys
 from pathlib import Path
+from typing import Union
 
 from ultralytics import yolo  # noqa
 from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, PoseModel, SegmentationModel,
@@ -68,7 +69,7 @@ class YOLO:
         list(ultralytics.yolo.engine.results.Results): The prediction results.
     """
 
-    def __init__(self, model='yolov8n.pt', task=None, session=None) -> None:
+    def __init__(self, model: Union[str, Path] = 'yolov8n.pt', task=None, session=None) -> None:
         """
         Initializes the YOLO model.
 
@@ -88,6 +89,7 @@ class YOLO:
         self.session = session  # HUB session
 
         # Load or create new YOLO model
+        model = str(model).strip()  # strip spaces
         suffix = Path(model).suffix
         if not suffix and Path(model).stem in GITHUB_ASSET_STEMS:
             model, suffix = Path(model).with_suffix('.pt'), '.pt'  # add suffix, i.e. yolov8n -> yolov8n.pt

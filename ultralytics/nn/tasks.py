@@ -245,7 +245,7 @@ class SegmentationModel(DetectionModel):
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
     def _forward_augment(self, x):
-        raise NotImplementedError('WARNING ⚠️ SegmentationModel has not supported augment inference yet!')
+        raise NotImplementedError(emojis('WARNING ⚠️ SegmentationModel has not supported augment inference yet!'))
 
 
 class PoseModel(DetectionModel):

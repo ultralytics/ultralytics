@@ -25,8 +25,8 @@ def check_class_names(names):
     if isinstance(names, list):  # names is a list
         names = dict(enumerate(names))  # convert to dict
     if isinstance(names, dict):
-        if not all(isinstance(k, int) for k in names.keys()):  # convert string keys to int, i.e. '0' to 0
-            names = {int(k): v for k, v in names.items()}
+        # convert 1) string keys to int, i.e. '0' to 0, and non-string values to strings, i.e. True to 'True'
+        names = {int(k): str(v) for k, v in names.items()}
         n = len(names)
         if max(names.keys()) >= n:
             raise KeyError(f'{n}-class dataset requires class indices 0-{n - 1}, but you have invalid class indices '

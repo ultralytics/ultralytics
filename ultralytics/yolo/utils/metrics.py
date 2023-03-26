@@ -11,7 +11,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from ultralytics.yolo.utils import LOGGER, TryExcept
+from ultralytics.yolo.utils import LOGGER, SimpleClass, TryExcept
 
 OKS_SIGMA = np.array([.26, .25, .25, .35, .35, .79, .79, .72, .72, .62, .62, 1.07, 1.07, .87, .87, .89, .89]) / 10.0
 
@@ -429,7 +429,7 @@ def ap_per_class(tp, conf, pred_cls, target_cls, plot=False, save_dir=Path(), na
     return tp, fp, p, r, f1, ap, unique_classes.astype(int)
 
 
-class Metric:
+class Metric(SimpleClass):
     """
         Class for computing evaluation metrics for YOLOv8 model.
 
@@ -464,10 +464,6 @@ class Metric:
         self.all_ap = []  # (nc, 10)
         self.ap_class_index = []  # (nc, )
         self.nc = 0
-
-    def __getattr__(self, attr):
-        name = self.__class__.__name__
-        raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
     @property
     def ap50(self):
@@ -554,7 +550,7 @@ class Metric:
         self.p, self.r, self.f1, self.all_ap, self.ap_class_index = results
 
 
-class DetMetrics:
+class DetMetrics(SimpleClass):
     """
     This class is a utility class for computing detection metrics such as precision, recall, and mean average precision
     (mAP) of an object detection model.
@@ -589,10 +585,6 @@ class DetMetrics:
         self.box = Metric()
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
 
-    def __getattr__(self, attr):
-        name = self.__class__.__name__
-        raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
-
     def process(self, tp, conf, pred_cls, target_cls):
         results = ap_per_class(tp, conf, pred_cls, target_cls, plot=self.plot, save_dir=self.save_dir,
                                names=self.names)[2:]
@@ -626,7 +618,7 @@ class DetMetrics:
         return dict(zip(self.keys + ['fitness'], self.mean_results() + [self.fitness]))
 
 
-class SegmentMetrics:
+class SegmentMetrics(SimpleClass):
     """
     Calculates and aggregates detection and segmentation metrics over a given set of classes.
 
@@ -660,10 +652,6 @@ class SegmentMetrics:
         self.box = Metric()
         self.seg = Metric()
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
-
-    def __getattr__(self, attr):
-        name = self.__class__.__name__
-        raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
     def process(self, tp_b, tp_m, conf, pred_cls, target_cls):
         """
@@ -822,7 +810,7 @@ class PoseMetrics(SegmentMetrics):
         return self.pose.fitness() + self.box.fitness()
 
 
-class ClassifyMetrics:
+class ClassifyMetrics(SimpleClass):
     """
     Class for computing classification metrics including top-1 and top-5 accuracy.
 
@@ -844,10 +832,6 @@ class ClassifyMetrics:
         self.top1 = 0
         self.top5 = 0
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
-
-    def __getattr__(self, attr):
-        name = self.__class__.__name__
-        raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
     def process(self, targets, pred):
         # target classes and predicted classes

@@ -5,7 +5,6 @@ Ultralytics Results, Boxes and Masks classes for handling inference results
 Usage: See https://docs.ultralytics.com/modes/predict/
 """
 
-import pprint
 from copy import deepcopy
 from functools import lru_cache
 
@@ -13,11 +12,11 @@ import numpy as np
 import torch
 import torchvision.transforms.functional as F
 
-from ultralytics.yolo.utils import LOGGER, ops
+from ultralytics.yolo.utils import LOGGER, SimpleClass, ops
 from ultralytics.yolo.utils.plotting import Annotator, colors
 
 
-class Results:
+class Results(SimpleClass):
     """
     A class for storing and manipulating inference results.
 
@@ -96,17 +95,6 @@ class Results:
         for k in self.keys:
             return len(getattr(self, k))
 
-    def __str__(self):
-        attr = {k: v for k, v in vars(self).items() if not isinstance(v, type(self))}
-        return pprint.pformat(attr, indent=2, width=120, depth=10, compact=True)
-
-    def __repr__(self):
-        return self.__str__()
-
-    def __getattr__(self, attr):
-        name = self.__class__.__name__
-        raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
-
     @property
     def keys(self):
         return [k for k in self._keys if getattr(self, k) is not None]
@@ -153,7 +141,7 @@ class Results:
         return np.asarray(annotator.im) if annotator.pil else annotator.im
 
 
-class Boxes:
+class Boxes(SimpleClass):
     """
     A class for storing and manipulating detection boxes.
 
@@ -242,15 +230,6 @@ class Boxes:
 
     def pandas(self):
         LOGGER.info('results.pandas() method not yet implemented')
-        '''
-        new = copy(self)  # return copy
-        ca = 'xmin', 'ymin', 'xmax', 'ymax', 'confidence', 'class', 'name'  # xyxy columns
-        cb = 'xcenter', 'ycenter', 'width', 'height', 'confidence', 'class', 'name'  # xywh columns
-        for k, c in zip(['xyxy', 'xyxyn', 'xywh', 'xywhn'], [ca, ca, cb, cb]):
-            a = [[x[:5] + [int(x[5]), self.names[int(x[5])]] for x in x.tolist()] for x in getattr(self, k)]  # update
-            setattr(new, k, [pd.DataFrame(x, columns=c) for x in a])
-        return new
-        '''
 
     @property
     def shape(self):
@@ -263,25 +242,11 @@ class Boxes:
     def __len__(self):  # override len(results)
         return len(self.boxes)
 
-    def __str__(self):
-        return self.boxes.__str__()
-
-    def __repr__(self):
-        return (f'{self.__class__.__module__}.{self.__class__.__name__}\n'
-                f'type:  {self.boxes.__class__.__module__}.{self.boxes.__class__.__name__}\n'
-                f'shape: {self.boxes.shape}\n'
-                f'dtype: {self.boxes.dtype}\n'
-                f'{self.boxes.__repr__()}')
-
     def __getitem__(self, idx):
         return Boxes(self.boxes[idx], self.orig_shape)
 
-    def __getattr__(self, attr):
-        name = self.__class__.__name__
-        raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
-
-class Masks:
+class Masks(SimpleClass):
     """
     A class for storing and manipulating detection masks.
 
@@ -301,11 +266,6 @@ class Masks:
         numpy(): Returns a copy of the masks tensor as a numpy array.
         cuda(): Returns a copy of the masks tensor on GPU memory.
         to(): Returns a copy of the masks tensor with the specified device and dtype.
-        __len__(): Returns the number of masks in the tensor.
-        __str__(): Returns a string representation of the masks tensor.
-        __repr__(): Returns a detailed string representation of the masks tensor.
-        __getitem__(): Returns a new Masks object with the masks at the specified index.
-        __getattr__(): Raises an AttributeError with a list of valid attributes and properties.
     """
 
     def __init__(self, masks, orig_shape) -> None:
@@ -342,19 +302,5 @@ class Masks:
     def __len__(self):  # override len(results)
         return len(self.masks)
 
-    def __str__(self):
-        return self.masks.__str__()
-
-    def __repr__(self):
-        return (f'{self.__class__.__module__}.{self.__class__.__name__}\n'
-                f'type:  {self.masks.__class__.__module__}.{self.masks.__class__.__name__}\n'
-                f'shape: {self.masks.shape}\n'
-                f'dtype: {self.masks.dtype}\n'
-                f'{self.masks.__repr__()}')
-
     def __getitem__(self, idx):
         return Masks(self.masks[idx], self.orig_shape)
-
-    def __getattr__(self, attr):
-        name = self.__class__.__name__
-        raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")

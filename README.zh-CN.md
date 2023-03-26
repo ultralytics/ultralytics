@@ -123,7 +123,7 @@ Ultralytics [发布页](https://github.com/ultralytics/ultralytics/releases) 自
   <br>复现命令 `yolo val detect data=coco.yaml device=0`
 - **推理速度**使用 COCO
   验证集图片推理时间进行平均得到，测试环境使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例。
-  <br>复现命令 `yolo val detect data=coco128.yaml batch=1 device=0/cpu`
+  <br>复现命令 `yolo val detect data=coco128.yaml batch=1 device=0|cpu`
 
 </details>
 
@@ -141,7 +141,7 @@ Ultralytics [发布页](https://github.com/ultralytics/ultralytics/releases) 自
   <br>复现命令 `yolo val segment data=coco.yaml device=0`
 - **推理速度**使用 COCO
   验证集图片推理时间进行平均得到，测试环境使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例。
-  <br>复现命令 `yolo val segment data=coco128-seg.yaml batch=1 device=0/cpu`
+  <br>复现命令 `yolo val segment data=coco128-seg.yaml batch=1 device=0|cpu`
 
 </details>
 
@@ -159,7 +159,7 @@ Ultralytics [发布页](https://github.com/ultralytics/ultralytics/releases) 自
   <br>复现命令 `yolo val classify data=path/to/ImageNet device=0`
 - **推理速度**使用 ImageNet
   验证集图片推理时间进行平均得到，测试环境使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例。
-  <br>复现命令 `yolo val classify data=path/to/ImageNet batch=1 device=0/cpu`
+  <br>复现命令 `yolo val classify data=path/to/ImageNet batch=1 device=0|cpu`
 
 </details>
 

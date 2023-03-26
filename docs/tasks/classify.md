@@ -33,7 +33,7 @@ Ultralytics [release](https://github.com/ultralytics/assets/releases) on first u
   <br>Reproduce by `yolo val classify data=path/to/ImageNet device=0`
 - **Speed** averaged over ImageNet val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)
   instance.
-  <br>Reproduce by `yolo val classify data=path/to/ImageNet batch=1 device=0/cpu`
+  <br>Reproduce by `yolo val classify data=path/to/ImageNet batch=1 device=0|cpu`
 
 ## Train
 

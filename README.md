@@ -130,7 +130,7 @@ See [Detection Docs](https://docs.ultralytics.com/tasks/detect/) for usage examp
   <br>Reproduce by `yolo val detect data=coco.yaml device=0`
 - **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)
   instance.
-  <br>Reproduce by `yolo val detect data=coco128.yaml batch=1 device=0/cpu`
+  <br>Reproduce by `yolo val detect data=coco128.yaml batch=1 device=0|cpu`
 
 </details>
 
@@ -150,7 +150,7 @@ See [Segmentation Docs](https://docs.ultralytics.com/tasks/segment/) for usage e
   <br>Reproduce by `yolo val segment data=coco.yaml device=0`
 - **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)
   instance.
-  <br>Reproduce by `yolo val segment data=coco128-seg.yaml batch=1 device=0/cpu`
+  <br>Reproduce by `yolo val segment data=coco128-seg.yaml batch=1 device=0|cpu`
 
 </details>
 
@@ -170,7 +170,7 @@ See [Classification Docs](https://docs.ultralytics.com/tasks/classify/) for usag
   <br>Reproduce by `yolo val classify data=path/to/ImageNet device=0`
 - **Speed** averaged over ImageNet val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)
   instance.
-  <br>Reproduce by `yolo val classify data=path/to/ImageNet batch=1 device=0/cpu`
+  <br>Reproduce by `yolo val classify data=path/to/ImageNet batch=1 device=0|cpu`
 
 </details>
 

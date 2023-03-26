@@ -174,7 +174,12 @@ class BaseTrainer:
 
         # Run subprocess if DDP training, else train normally
         if world_size > 1 and 'LOCAL_RANK' not in os.environ:
-            cmd, file = generate_ddp_command(world_size, self)  # security vulnerability in Snyk scans
+            # Checks
+            if self.args.rect:
+                LOGGER.warning("WARNING ⚠️ 'rect=True' is incompatible with Multi-GPU training, setting rect=False")
+                self.args.rect = False
+            # Command
+            cmd, file = generate_ddp_command(world_size, self)
             try:
                 LOGGER.info(f'Running DDP command {cmd}')
                 subprocess.run(cmd, check=True)
@@ -190,11 +195,6 @@ class BaseTrainer:
         self.device = torch.device('cuda', rank)
         LOGGER.info(f'DDP settings: RANK {rank}, WORLD_SIZE {world_size}, DEVICE {self.device}')
         dist.init_process_group('nccl' if dist.is_nccl_available() else 'gloo', rank=rank, world_size=world_size)
-
-        # DPP argument checks
-        if self.args.rect:
-            LOGGER.warning("WARNING ⚠️ 'rect=True' is incompatible with Multi-GPU training, setting rect=False")
-            self.args.rect = False
 
     def _setup_train(self, rank, world_size):
         """

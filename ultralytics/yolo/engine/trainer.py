@@ -411,7 +411,6 @@ class BaseTrainer:
             torch.save(ckpt, self.wdir / f'epoch{self.epoch}.pt')
         del ckpt
 
-
     @staticmethod
     def get_dataset(data):
         """

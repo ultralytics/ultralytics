@@ -96,25 +96,59 @@ HELP_MSG = \
     """
 
 # Settings
-torch.set_printoptions(linewidth=320, precision=5, profile='long')
+torch.set_printoptions(linewidth=320, precision=4, profile='default')
 np.set_printoptions(linewidth=320, formatter={'float_kind': '{:11.5g}'.format})  # format short g, %precision=5
 cv2.setNumThreads(0)  # prevent OpenCV from multithreading (incompatible with PyTorch DataLoader)
 os.environ['NUMEXPR_MAX_THREADS'] = str(NUM_THREADS)  # NumExpr max threads
 os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':4096:8'  # for deterministic training
 
 
+class SimpleClass:
+    """
+    Ultralytics SimpleClass is a base class providing helpful string representation, error reporting, and attribute
+    access methods for easier debugging and usage.
+    """
+
+    def __str__(self):
+        """Return a human-readable string representation of the object."""
+        attr = []
+        for a in dir(self):
+            v = getattr(self, a)
+            if not callable(v) and not a.startswith('__'):
+                if isinstance(v, SimpleClass):
+                    # Display only the module and class name for subclasses
+                    s = f'{a}: {v.__module__}.{v.__class__.__name__} object'
+                else:
+                    s = f'{a}: {repr(v)}'
+                attr.append(s)
+        return f'{self.__module__}.{self.__class__.__name__} object with attributes:\n\n' + '\n'.join(attr)
+
+    def __repr__(self):
+        """Return a machine-readable string representation of the object."""
+        return self.__str__()
+
+    def __getattr__(self, attr):
+        """Custom attribute access error message with helpful information."""
+        name = self.__class__.__name__
+        raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
+
+
 class IterableSimpleNamespace(SimpleNamespace):
     """
-    Iterable SimpleNamespace class to allow SimpleNamespace to be used with dict() and in for loops
+    Ultralytics IterableSimpleNamespace is an extension class of SimpleNamespace that adds iterable functionality and
+    enables usage with dict() and for loops.
     """
 
     def __iter__(self):
+        """Return an iterator of key-value pairs from the namespace's attributes."""
         return iter(vars(self).items())
 
     def __str__(self):
+        """Return a human-readable string representation of the object."""
         return '\n'.join(f'{k}={v}' for k, v in vars(self).items())
 
     def __getattr__(self, attr):
+        """Custom attribute access error message with helpful information."""
         name = self.__class__.__name__
         raise AttributeError(f"""
             '{name}' object has no attribute '{attr}'. This may be caused by a modified or out of date ultralytics
@@ -124,6 +158,7 @@ class IterableSimpleNamespace(SimpleNamespace):
             """)
 
     def get(self, key, default=None):
+        """Return the value of the specified key if it exists; otherwise, return the default value."""
         return getattr(self, key, default)
 
 

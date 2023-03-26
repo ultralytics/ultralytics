@@ -8,7 +8,7 @@ try:
 
     assert clearml.__version__  # verify package is not directory
     assert not TESTS_RUNNING  # do not log pytest
-except (ImportError, AssertionError):
+except (ImportError, AssertionError, AttributeError):
     clearml = None
 
 

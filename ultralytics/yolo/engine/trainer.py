@@ -177,7 +177,7 @@ class BaseTrainer:
             # Checks
 
             print(self.args.rect)
-            print(self.args.rect==True)
+            print(self.args.rect == True)
             print(self.args)
 
             if self.args.rect:

@@ -8,10 +8,11 @@ from .kalman_filter import chi2inv95
 
 try:
     import lap  # for linear_assignment
-except ImportError:
+    assert lap.__version__  # verify package is not directory
+except (ImportError, AssertionError, AttributeError):
     from ultralytics.yolo.utils.checks import check_requirements
 
-    check_requirements('lap')  # for linear_assignment
+    check_requirements('lap>=0.4')  # install
     import lap
 
 

@@ -15,8 +15,6 @@ parts of an object in a scene, and their location in relation to each other.
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models/v8)
 
-## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models/v8)
-
 YOLOv8 pretrained Pose models are shown here. Detect, Segment and Pose models are pretrained on
 the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco.yaml) dataset, while Classify
 models are pretrained on
@@ -27,19 +25,13 @@ Ultralytics [release](https://github.com/ultralytics/assets/releases) on first u
 
 # TODO: FIX URLS BELOW
 
-| Model | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>pose<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) |
-Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
-|\--------------------------------------------------------------------------------------|-----------------------|----------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
-| [YOLOv8n-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt) | 640 | - | 50.1 | - |
-3.3 | 9.2 |
-| [YOLOv8s-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt) | 640 | - | 59.0 | - |
-11.6 | 30.2 |
-| [YOLOv8m-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt) | 640 | - | - | - |
-26.4 | 81.0 |
-| [YOLOv8l-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt) | 640 | - | 66.8 | - |
-44.5 | 168.6 |
-| [YOLOv8x-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt) | 640 | - | 68.6 | - |
-69.4 | 263.2 |
+| Model                                                                                          | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>pose<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+|------------------------------------------------------------------------------------------------|-----------------------|----------------------|-----------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
+| [YOLOv8n-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt) | 640                   | -                    | 50.1                  | -                              | 3.3                                 | 9.2                |
+| [YOLOv8s-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt) | 640                   | -                    | 59.0                  | -                              | 11.6                                | 30.2               |
+| [YOLOv8m-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt) | 640                   | -                    | -                     | -                              | 26.4                                | 81.0               |
+| [YOLOv8l-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt) | 640                   | -                    | 66.8                  | -                              | 44.5                                | 168.6              |
+| [YOLOv8x-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt) | 640                   | -                    | 68.6                  | -                              | 69.4                                | 263.2              |
 
 - **mAP<sup>val</sup>** values are for single-model single-scale on [COCO Keypoints val2017](http://cocodataset.org)
   dataset.

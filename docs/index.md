@@ -23,8 +23,7 @@ variety of hardware platforms, from CPUs to GPUs.
 
 Whether you are a seasoned machine learning practitioner or new to the field, we hope that the resources on this page
 will help you get the most out of YOLOv8. For any bugs and feature requests please
-visit [GitHub Issues](https://github.com/ultralytics/ultralytics/issues). For professional support
-please [Contact Us](https://ultralytics.com/contact).
+visit [GitHub Issues](https://github.com/ultralytics/ultralytics/issues).
 
 ## A Brief History of YOLO
 

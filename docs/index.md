@@ -1,22 +1,21 @@
 <div align="center">
-  <a href="https://github.com/ultralytics/ultralytics" target="_blank">
+  <p>
+    <a href="https://github.com/ultralytics/ultralytics" target="_blank">
     <img width="1024" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png"></a>
-<br>
-    <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml/badge.svg" alt="Ultralytics CI"></a>
-    <a href="https://zenodo.org/badge/latestdoi/264818686"><img src="https://zenodo.org/badge/264818686.svg" alt="YOLOv8 Citation"></a>
-    <a href="https://hub.docker.com/r/ultralytics/ultralytics"><img src="https://img.shields.io/docker/pulls/ultralytics/ultralytics?logo=docker" alt="Docker Pulls"></a>
-    <br>
-    <a href="https://console.paperspace.com/github/ultralytics/ultralytics"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"/></a>
-    <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
-    <a href="https://www.kaggle.com/ultralytics/yolov8"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
-<br>
+  </p>
+  <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml/badge.svg" alt="Ultralytics CI"></a>
+  <a href="https://zenodo.org/badge/latestdoi/264818686"><img src="https://zenodo.org/badge/264818686.svg" alt="YOLOv8 Citation"></a>
+  <a href="https://hub.docker.com/r/ultralytics/ultralytics"><img src="https://img.shields.io/docker/pulls/ultralytics/ultralytics?logo=docker" alt="Docker Pulls"></a>
+  <br>
+  <a href="https://console.paperspace.com/github/ultralytics/ultralytics"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"/></a>
+  <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
+  <a href="https://www.kaggle.com/ultralytics/yolov8"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 </div>
 
-Welcome to the Ultralytics YOLOv8 documentation landing
-page! [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) is the latest version of the YOLO (You Only Look
-Once) object detection and image segmentation model developed by [Ultralytics](https://ultralytics.com). This page
-serves as the starting point for exploring the various resources available to help you get started with YOLOv8 and
-understand its features and capabilities.
+Welcome to the Ultralytics YOLOv8 Docs! [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) is the latest
+version of the YOLO (You Only Look Once) object detection and image segmentation model developed
+by [Ultralytics](https://ultralytics.com). This page serves as the starting point for exploring the various resources
+available to help you get started with YOLOv8 and understand its features and capabilities.
 
 The YOLOv8 model is designed to be fast, accurate, and easy to use, making it an excellent choice for a wide range of
 object detection and image segmentation tasks. It can be trained on large datasets and is capable of running on a

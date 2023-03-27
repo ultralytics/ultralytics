@@ -153,4 +153,7 @@ nav:
           - Results: reference/results.md
       - ultralytics.nn: reference/nn.md
       - Operations: reference/ops.md
+  - YOLOv5:
+      - yolov5/index.md
+      - Train Custom Data: yolov5/train_custom_data.md
   - Security: SECURITY.md

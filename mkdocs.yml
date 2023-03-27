@@ -161,4 +161,5 @@ nav:
       - PyTorch Hub: yolov5/pytorch_hub.md
       - TFLite, ONNX, CoreML, TensorRT Export: yolov5/export.md
       - NVIDIA Jetson Nano Deployment: yolov5/jetson_nano.md
+      - Test-Time Augmentation (TTA): yolov5/tta.md
   - Security: SECURITY.md

@@ -167,5 +167,7 @@ nav:
       - Hyperparameter evolution: yolov5/hyp_evolution.md
       - Transfer learning with frozen layers: yolov5/transfer_learn_frozen.md
       - Architecture Summary: yolov5/architecture.md
+      - Roboflow for Datasets, Labeling, and Active Learning: yolov5/roboflow.md
+      
 
   - Security: SECURITY.md

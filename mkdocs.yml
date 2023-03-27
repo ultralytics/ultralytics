@@ -159,4 +159,5 @@ nav:
       - Tips for Best Training Results: yolov5/tips_for_best_training_results.md
       - Multi-GPU Training: yolov5/multi_gpu_training.md
       - PyTorch Hub: yolov5/pytorch_hub.md
+      - TFLite, ONNX, CoreML, TensorRT Export: yolov5/export.md
   - Security: SECURITY.md

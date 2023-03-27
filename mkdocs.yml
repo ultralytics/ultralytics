@@ -162,4 +162,5 @@ nav:
       - TFLite, ONNX, CoreML, TensorRT Export: yolov5/export.md
       - NVIDIA Jetson Nano Deployment: yolov5/jetson_nano.md
       - Test-Time Augmentation (TTA): yolov5/tta.md
+      - Model Ensembling: yolov5/ensemble.md
   - Security: SECURITY.md

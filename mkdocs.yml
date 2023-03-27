@@ -170,5 +170,6 @@ nav:
       - Roboflow for Datasets, Labeling, and Active Learning: yolov5/roboflow.md
       - Neural Magic's DeepSparse: yolov5/neural_magic.md
       - Comet Logging: yolov5/comet.md
+      - Clearml Logging: yolov5/clearml.md
 
   - Security: SECURITY.md

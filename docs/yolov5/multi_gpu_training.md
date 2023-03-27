@@ -51,7 +51,7 @@ $ python -m torch.distributed.run --nproc_per_node 2 train.py --batch 64 --data 
 The code above will use GPUs `0... (N-1)`.
 
 <details markdown>
-  <summary>Use specific GPUs (click to expand)</summary><br>
+  <summary>Use specific GPUs (click to expand)</summary>
 
 You can do so by simply passing `--device` followed by your specific GPUs. For example, in the code below, we will use GPUs `2,3`.
 

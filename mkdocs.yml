@@ -164,4 +164,5 @@ nav:
       - Test-Time Augmentation (TTA): yolov5/tta.md
       - Model Ensembling: yolov5/ensemble.md
       - Pruning/Sparsity Tutorial: yolov5/pruning_sparsity.md
+      - Hyperparameter evolution: yolov5/hyp_evolution.md
   - Security: SECURITY.md

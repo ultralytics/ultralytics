@@ -7,7 +7,7 @@ try:
 
     assert not TESTS_RUNNING  # do not log pytest
     assert comet_ml.__version__  # verify package is not directory
-except (ImportError, AssertionError):
+except (ImportError, AssertionError, AttributeError):
     comet_ml = None
 
 

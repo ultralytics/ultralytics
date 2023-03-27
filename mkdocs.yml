@@ -100,8 +100,7 @@ markdown_extensions:
   - pymdownx.snippets
   - pymdownx.emoji:
       emoji_index: !!python/name:materialx.emoji.twemoji
-      emoji_generator: !!python/name:materialx.emoji.to_svg
-
+      emoji_generator: !!python/name:materialx.emoji.to_svg  # noqa
 
   # Content tabs
   - pymdownx.tabbed:

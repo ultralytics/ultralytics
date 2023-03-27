@@ -24,22 +24,22 @@ This powerful deep learning framework is built on the PyTorch platform and has g
 
 ## Tutorials
 
-* [Train Custom Data](https://github.com/ultralytics/yolov5/wiki/Train-Custom-Data) 🚀 RECOMMENDED
-* [Tips for Best Training Results](https://github.com/ultralytics/yolov5/wiki/Tips-for-Best-Training-Results) ☘️
-* [Multi-GPU Training](https://github.com/ultralytics/yolov5/issues/475)
-* [PyTorch Hub](https://github.com/ultralytics/yolov5/issues/36) 🌟 NEW
-* [TFLite, ONNX, CoreML, TensorRT Export](https://github.com/ultralytics/yolov5/issues/251) 🚀
-* [NVIDIA Jetson Nano Deployment](https://github.com/ultralytics/yolov5/issues/9627) 🌟 NEW
-* [Test-Time Augmentation (TTA)](https://github.com/ultralytics/yolov5/issues/303)
-* [Model Ensembling](https://github.com/ultralytics/yolov5/issues/318)
-* [Model Pruning/Sparsity](https://github.com/ultralytics/yolov5/issues/304)
-* [Hyperparameter Evolution](https://github.com/ultralytics/yolov5/issues/607)
-* [Transfer Learning with Frozen Layers](https://github.com/ultralytics/yolov5/issues/1314)
-* [Architecture Summary](https://github.com/ultralytics/yolov5/issues/6998) 🌟 NEW
-* [Roboflow for Datasets, Labeling, and Active Learning](https://github.com/ultralytics/yolov5/issues/4975)
-* [ClearML Logging](https://github.com/ultralytics/yolov5/tree/master/utils/loggers/clearml) 🌟 NEW
-* [YOLOv5 with Neural Magic's Deepsparse](https://bit.ly/yolov5-neuralmagic) 🌟 NEW
-* [Comet Logging](https://github.com/ultralytics/yolov5/tree/master/utils/loggers/comet) 🌟 NEW
+* [Train Custom Data](train_custom_data.md) 🚀 RECOMMENDED
+* [Tips for Best Training Results](tips_for_best_training_results.md) ☘️
+* [Multi-GPU Training](multi_gpu_training.md)
+* [PyTorch Hub](pytorch_hub.md) 🌟 NEW
+* [TFLite, ONNX, CoreML, TensorRT Export](export.md) 🚀
+* [NVIDIA Jetson platform Deployment](jetson_nano.md) 🌟 NEW
+* [Test-Time Augmentation (TTA)](tta.md)
+* [Model Ensembling](ensemble.md)
+* [Model Pruning/Sparsity](pruning_sparsity.md)
+* [Hyperparameter Evolution](hyp_evolution.md)
+* [Transfer Learning with Frozen Layers](transfer_learn_frozen.md)
+* [Architecture Summary](architecture.md) 🌟 NEW
+* [Roboflow for Datasets, Labeling, and Active Learning](roboflow.md)
+* [ClearML Logging](clearml.md) 🌟 NEW
+* [YOLOv5 with Neural Magic's Deepsparse](neural_magic.md) 🌟 NEW
+* [Comet Logging](comet.md) 🌟 NEW
 
 ## Environments
 

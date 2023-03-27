@@ -169,6 +169,6 @@ nav:
       - Architecture Summary: yolov5/architecture.md
       - Roboflow for Datasets, Labeling, and Active Learning: yolov5/roboflow.md
       - Neural Magic's DeepSparse: yolov5/neural_magic.md
-
+      - Comet Logging: yolov5/comet.md
 
   - Security: SECURITY.md

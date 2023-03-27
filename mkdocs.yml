@@ -12,6 +12,7 @@ theme:
   favicon: https://github.com/ultralytics/assets/raw/main/logo/favicon-yolo.ico
   font:
     text: Roboto
+    code: Roboto Mono
 
   palette:
     # Palette toggle for light mode
@@ -30,6 +31,7 @@ theme:
   features:
     - content.action.edit
     - content.code.annotate
+    - content.code.copy
     - content.tooltips
     - search.highlight
     - search.share
@@ -85,6 +87,7 @@ extra_css:
 markdown_extensions:
   # Div text decorators
   - admonition
+  - md_in_html
   - pymdownx.details
   - pymdownx.superfences
   - tables
@@ -100,7 +103,6 @@ markdown_extensions:
   - attr_list
 
   # Content tabs
-  - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
 

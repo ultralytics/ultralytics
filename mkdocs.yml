@@ -168,6 +168,7 @@ nav:
       - Transfer learning with frozen layers: yolov5/transfer_learn_frozen.md
       - Architecture Summary: yolov5/architecture.md
       - Roboflow for Datasets, Labeling, and Active Learning: yolov5/roboflow.md
+      - Neural Magic's DeepSparse: yolov5/neural_magic.md
 
 
   - Security: SECURITY.md

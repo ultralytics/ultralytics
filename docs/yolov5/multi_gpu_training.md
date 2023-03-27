@@ -51,7 +51,7 @@ $ python -m torch.distributed.run --nproc_per_node 2 train.py --batch 64 --data 
 The code above will use GPUs `0... (N-1)`.
 
 <details markdown>
-    <summary>Use specific GPUs (click to expand)</summary><br>
+  <summary>Use specific GPUs (click to expand)</summary><br>
 
 You can do so by simply passing `--device` followed by your specific GPUs. For example, in the code below, we will use GPUs `2,3`.
 
@@ -62,8 +62,7 @@ $ python -m torch.distributed.run --nproc_per_node 2 train.py --batch 64 --data 
 </details>
 
 <details markdown>
-    <summary>Use SyncBatchNorm (click to expand)</summary><br>
-
+  <summary>Use SyncBatchNorm (click to expand)</summary>
 
 [SyncBatchNorm](https://pytorch.org/docs/master/generated/torch.nn.SyncBatchNorm.html) could increase accuracy for multiple gpu training, however, it will slow down training by a significant factor. It is **only** available for Multiple GPU DistributedDataParallel training. 
 
@@ -77,7 +76,7 @@ $ python -m torch.distributed.run --nproc_per_node 2 train.py --batch 64 --data 
 </details>
 
 <details markdown>
-    <summary>Use Multiple machines (click to expand)</summary><br>
+  <summary>Use Multiple machines (click to expand)</summary>
 
 This is **only** available for Multiple GPU DistributedDataParallel training. 
 
@@ -119,7 +118,7 @@ $ python -m torch.distributed.run --master_port 1234 --nproc_per_node 2 ...
 DDP profiling results on an [AWS EC2 P4d instance](https://github.com/ultralytics/yolov5/wiki/AWS-Quickstart) with 8x A100 SXM4-40GB for YOLOv5l for 1 COCO epoch.
 
 <details markdown>
-    <summary>Profiling code</summary>
+  <summary>Profiling code</summary>
 
 ```bash
 # prepare
@@ -149,7 +148,7 @@ python -m torch.distributed.run --nproc_per_node 8 train.py --batch-size 128 --d
 If an error occurs, please read the checklist below first! (It could save your time)
 
 <details markdown>
-    <summary>Checklist (click to expand) </summary><br>
+  <summary>Checklist (click to expand) </summary>
 
 <ul>
     <li>Have you properly read this post?  </li>
@@ -160,7 +159,7 @@ If an error occurs, please read the checklist below first! (It could save your t
     <li>Have you tried with another dataset like coco128 or coco2017? It will make it easier to find the root cause. </li>
 </ul>
 
-If you went through all the above, feel free to raise an Issue by giving as much detail as possible following the template. <br>
+If you went through all the above, feel free to raise an Issue by giving as much detail as possible following the template.
 
 </details>
 

@@ -12,18 +12,16 @@
   <a href="https://www.kaggle.com/ultralytics/yolov8"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 </div>
 
-Welcome to the Ultralytics YOLOv8 Docs! [Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics) is the latest
-version of the YOLO (You Only Look Once) object detection and image segmentation model developed
-by [Ultralytics](https://ultralytics.com). This page serves as the starting point for exploring the various resources
-available to help you get started with YOLOv8 and understand its features and capabilities.
+Introducing [Ultralytics](https://ultralytics.com) [YOLOv8](https://github.com/ultralytics/ultralytics), the latest version of the renowned real-time object detection and image segmentation model. YOLOv8 is built on cutting-edge advancements in deep learning and computer vision, offering unparalleled performance in terms of speed and accuracy. Its streamlined design makes it suitable for various applications and easily adaptable to different hardware platforms, from CPUs to GPUs.
 
-The YOLOv8 model is designed to be fast, accurate, and easy to use, making it an excellent choice for a wide range of
-object detection and image segmentation tasks. It can be trained on large datasets and is capable of running on a
-variety of hardware platforms, from CPUs to GPUs.
+Explore the wealth of resources available in the YOLOv8 Docs, designed to help you understand and harness its features and capabilities. Whether you are a seasoned machine learning practitioner or new to the field, this hub aims to maximize YOLOv8's potential in your projects
 
-Whether you are a seasoned machine learning practitioner or new to the field, we hope that the resources on this page
-will help you get the most out of YOLOv8. For any bugs and feature requests please
-visit [GitHub Issues](https://github.com/ultralytics/ultralytics/issues).
+## Where to Start
+
+- **Install** `ultralytics` with pip and get up and running in minutes &nbsp; [:material-clock-fast: Get Started](quickstart.md){ .md-button }
+- **Predict** new images and videos with YOLOv8 &nbsp; [:octicons-image-16: Predict on Images](modes/predict.md){ .md-button } 
+- **Train** a new YOLOv8 model on your own custom dataset &nbsp; [:fontawesome-solid-brain: Train a Model](modes/train.md){ .md-button }
+- **Explore** YOLOv8 tasks like segment, classify, pose and track &nbsp; [:material-magnify-expand: Explore Tasks](tasks/index.md){ .md-button }
 
 ## A Brief History of YOLO
 

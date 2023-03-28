@@ -1,41 +1,32 @@
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
 
-Inference or prediction of a task returns a list of `Results` objects. Alternatively, in the streaming mode, it returns
-a generator of `Results` objects which is memory efficient. Streaming mode can be enabled by passing `stream=True` in
-predictor's call method.
+YOLOv8 can generate predictions for various tasks, returning either a list of `Results` objects or a memory-efficient generator of `Results` objects when using the streaming mode. Enable streaming mode by passing `stream=True` in the predictor's call method.
 
-!!! example "Predict"
+```python
+### Example: Predict
 
-    === "Return a List"
+# Return a List
+inputs = [img, img]  # list of np arrays
+results = model(inputs)  # List of Results objects
 
-    ```python
-    inputs = [img, img]  # list of np arrays
-    results = model(inputs)  # List of Results objects
-    
-    for result in results:
-        boxes = result.boxes  # Boxes object for bbox outputs
-        masks = result.masks  # Masks object for segmenation masks outputs
-        probs = result.probs  # Class probabilities for classification outputs
-    ```
-    
-    === "Return a Generator"
+for result in results:
+    boxes = result.boxes  # Boxes object for bbox outputs
+    masks = result.masks  # Masks object for segmentation masks outputs
+    probs = result.probs  # Class probabilities for classification outputs
 
-    ```python
-    inputs = [img, img]  # list of numpy arrays
-    results = model(inputs, stream=True)  # generator of Results objects
-    
-    for r in results:
-        boxes = r.boxes  # Boxes object for bbox outputs
-        masks = r.masks  # Masks object for segmenation masks outputs
-        probs = r.probs  # Class probabilities for classification outputs
-    ```
+# Return a Generator
+inputs = [img, img]  # list of numpy arrays
+results = model(inputs, stream=True)  # generator of Results objects
+
+for r in results:
+    boxes = r.boxes  # Boxes object for bbox outputs
+    masks = r.masks  # Masks object for segmentation masks outputs
+    probs = r.probs  # Class probabilities for classification outputs
+```
 
 ## Sources
 
-YOLOv8 can run inference on a variety of sources. The table below lists the various sources that can be used as input
-for YOLOv8, along with the required format and notes. Sources include images, URLs, PIL images, OpenCV, numpy arrays,
-torch tensors, CSV files, videos, directories, globs, YouTube videos, and streams. The table also indicates whether each
-source can be used as a stream and the model argument required for that source.
+YOLOv8 can accept various input sources, as shown in the table below. This includes images, URLs, PIL images, OpenCV, numpy arrays, torch tensors, CSV files, videos, directories, globs, YouTube videos, and streams. The table indicates whether each source can be used as a stream and the model argument required for that source.
 
 | source     | stream  | model(arg)                                 | type           | notes            |
 |------------|---------|--------------------------------------------|----------------|------------------|
@@ -53,11 +44,11 @@ source can be used as a stream and the model argument required for that source.
 | YouTube    | &check; | `'https://youtu.be/Zgi9g1ksQHc'`           | `str`          |                  |
 | stream     | &check; | `'rtsp://example.com/media.mp4'`           | `str`          | RTSP, RTMP, HTTP |
 
-## Image Formats
+## Image and Video Formats
 
-For images, YOLOv8 supports a variety of image formats defined
-in [yolo/data/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/data/utils.py). The
-following suffixes are valid for images:
+YOLOv8 supports various image and video formats, as specified in [yolo/data/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/data/utils.py). See the tables below for the valid suffixes and example predict commands.
+
+### Image Suffixes
 
 | Image Suffixes | Example Predict Command          | Reference                                                                     |
 |----------------|----------------------------------|-------------------------------------------------------------------------------|
@@ -72,11 +63,7 @@ following suffixes are valid for images:
 | .webp          | `yolo predict source=image.webp` | [WebP](https://en.wikipedia.org/wiki/WebP)                                    |
 | .pfm           | `yolo predict source=image.pfm`  | [Portable FloatMap](https://en.wikipedia.org/wiki/Netpbm#File_formats)        |
 
-## Video Formats
-
-For videos, YOLOv8 also supports a variety of video formats defined
-in [yolo/data/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/data/utils.py). The
-following suffixes are valid for videos:
+### Video Suffixes
 
 | Video Suffixes | Example Predict Command          | Reference                                                                        |
 |----------------|----------------------------------|----------------------------------------------------------------------------------|
@@ -95,15 +82,15 @@ following suffixes are valid for videos:
 
 ## Working with Results
 
-Results object consists of these component objects:
+The `Results` object contains the following components:
 
-- `Results.boxes`: `Boxes` object with properties and methods for manipulating bboxes
-- `Results.masks`: `Masks` object used to index masks or to get segment coordinates.
-- `Results.probs`: `torch.Tensor` containing the class probabilities/logits.
-- `Results.orig_img`: Original image loaded in memory.
-- `Results.path`: `Path` containing the path to input image
+- `Results.boxes`: `Boxes` object with properties and methods for manipulating bounding boxes
+- `Results.masks`: `Masks` object for indexing masks or getting segment coordinates
+- `Results.probs`: `torch.Tensor` containing class probabilities or logits
+- `Results.orig_img`: Original image loaded in memory
+- `Results.path`: `Path` containing the path to the input image
 
-Each result is composed of torch.Tensor by default, in which you can easily use following functionality:
+Each result is composed of a `torch.Tensor` by default, which allows for easy manipulation:
 
 ```python
 results = results.cuda()
@@ -114,16 +101,15 @@ results = results.numpy()
 
 ### Boxes
 
-`Boxes` object can be used index, manipulate and convert bboxes to different formats. The box format conversion
-operations are cached, which means they're only calculated once per object and those values are reused for future calls.
+`Boxes` object can be used to index, manipulate, and convert bounding boxes to different formats. Box format conversion operations are cached, meaning they're only calculated once per object, and those values are reused for future calls.
 
-- Indexing a `Boxes` objects returns a `Boxes` object
+- Indexing a `Boxes` object returns a `Boxes` object:
 
 ```python
 results = model(inputs)
 boxes = results[0].boxes
 box = boxes[0]  # returns one box
-box.xyxy 
+box.xyxy
 ```
 
 - Properties and conversions
@@ -135,7 +121,7 @@ boxes.xyxyn  # box with xyxy format but normalized, (N, 4)
 boxes.xywhn  # box with xywh format but normalized, (N, 4)
 boxes.conf  # confidence score, (N, 1)
 boxes.cls  # cls, (N, 1)
-boxes.data  # raw bboxes tensor, (N, 6) or boxes.boxes .
+boxes.data  # raw bboxes tensor, (N, 6) or boxes.boxes
 ```
 
 ### Masks

@@ -1,17 +1,5 @@
-# Content
-
-+ [1. Model Structure](#1)
-+ [2. Data Augmentation](#2)
-+ [3. Training Strategies](#3)
-+ [4. Others](#4)
-    - [4.1 Compute Losses](#41)
-    - [4.2 Balance Losses](#42)
-    - [4.2 Eliminate Grid Sensitivity](#43)
-    - [4.3 Build Targets](#44)
-
-
-<a name="1"></a>
 ## 1. Model Structure
+
 YOLOv5 (v6.0/6.1) consists of:
 - **Backbone**: `New CSP-Darknet53`
 - **Neck**: `SPPF`, `New CSP-PAN`
@@ -23,6 +11,7 @@ Model structure (`yolov5l.yaml`):
 
 
 Some minor changes compared to previous versions:
+
 1. Replace the `Focus` structure with `6x6 Conv2d`(more efficient, refer #4825)  
 2. Replace the `SPP` structure with `SPPF`(more than double the speed)
 
@@ -96,8 +85,8 @@ sppf time: 0.20780706405639648
 
 
 
-<a name="2"></a>
 ## 2. Data Augmentation
+
 - Mosaic
 <img src="https://user-images.githubusercontent.com/31005897/159109235-c7aad8f2-1d4f-41f9-8d5f-b2fde6f2885e.png#pic_center" width=80%>
 
@@ -119,8 +108,8 @@ sppf time: 0.20780706405639648
 
 
 
-<a name="3"></a>
 ## 3. Training Strategies
+
 - Multi-scale training(0.5~1.5x)
 - AutoAnchor(For training custom data)
 - Warmup and Cosine LR scheduler
@@ -130,24 +119,23 @@ sppf time: 0.20780706405639648
 
 
 
-<a name="4"></a>
 ## 4. Others
-<a name="41"></a>
+
 ### 4.1 Compute Losses
+
 The YOLOv5 loss consists of three parts: 
+
 - Classes loss(BCE loss)
 - Objectness loss(BCE loss)
 - Location loss(CIoU loss)
 
 ![loss](https://latex.codecogs.com/svg.image?Loss=\lambda_1L_{cls}+\lambda_2L_{obj}+\lambda_3L_{loc})
 
-<a name="42"></a>
 ### 4.2 Balance Losses
 The objectness losses of the three prediction layers(`P3`, `P4`, `P5`) are weighted differently. The balance weights are `[4.0, 1.0, 0.4]` respectively.
 
 ![obj_loss](https://latex.codecogs.com/svg.image?L_{obj}=4.0\cdot&space;L_{obj}^{small}+1.0\cdot&space;L_{obj}^{medium}+0.4\cdot&space;L_{obj}^{large})
 
-<a name="43"></a>
 ### 4.3 Eliminate Grid Sensitivity
 In YOLOv2 and YOLOv3, the formula for calculating the predicted target information is:  
 
@@ -177,9 +165,9 @@ Compare the height and width scaling ratio(relative to anchor) before and after 
 <img src="https://user-images.githubusercontent.com/31005897/158508089-5ac0c7a3-6358-44b7-863e-a6e45babb842.png#pic_center" width=40%>
 
 
-<a name="44"></a>
 ### 4.4 Build Targets
 Match positive samples:
+
 - Calculate the aspect ratio of GT and Anchor Templates
 
 ![rw](https://latex.codecogs.com/svg.image?r_w=w_{gt}/w_{at})

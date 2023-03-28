@@ -31,7 +31,7 @@ YOLO (You Only Look Once), a popular object detection and image segmentation mod
 - [YOLOv3](https://pjreddie.com/media/files/papers/YOLOv3.pdf), launched in 2018, further enhanced the model's performance using a more efficient backbone network, multiple anchors and spatial pyramid pooling.
 - [YOLOv4](https://arxiv.org/abs/2004.10934) was released in 2020, introducing innovations like Mosaic data augmentation, a new anchor-free detection head, and a new loss function.
 - [YOLOv5](https://github.com/ultralytics/yolov5) further improved the model's performance and added new features such as hyperparameter optimization, integrated experiment tracking and automatic export to popular export formats.
-- [YOLOv6](https://github.com/meituan/YOLOv6) was open-sourced by Meituan in 2023 and is in use in many of the company's autonomous delivery robots.
+- [YOLOv6](https://github.com/meituan/YOLOv6) was open-sourced by Meituan in 2022 and is in use in many of the company's autonomous delivery robots.
 - [YOLOv7](https://github.com/WongKinYiu/yolov7) added additional tasks such as pose estimation on the COCO keypoints dataset.
 
 Since its launch YOLO has been employed in various applications, including autonomous vehicles, security and surveillance, and medical imaging, and has won several competitions like the COCO Object Detection Challenge and the DOTA Object Detection Challenge.

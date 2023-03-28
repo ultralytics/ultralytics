@@ -1,4 +1,4 @@
-📚 This guide explains how to load YOLOv5 🚀 from PyTorch Hub https://pytorch.org/hub/ultralytics_yolov5.  
+📚 This guide explains how to load YOLOv5 🚀 from PyTorch Hub  at [https://pytorch.org/hub/ultralytics_yolov5](https://pytorch.org/hub/ultralytics_yolov5).  
 UPDATED 26 March 2023.
 
 ## Before You Start
@@ -71,8 +71,7 @@ results.pandas().xyxy[0]  # im1 predictions (pandas)
 ```
 <img src="https://user-images.githubusercontent.com/26833433/124915064-62a49e00-dff1-11eb-86b3-a85b97061afb.jpg" width="500">  <img src="https://user-images.githubusercontent.com/26833433/124915055-60424400-dff1-11eb-9055-24585b375a29.jpg" width="300">
 
-For all inference options see YOLOv5 `AutoShape()` forward method:
-https://github.com/ultralytics/yolov5/blob/30e4c4f09297b67afedf8b2bcd851833ddc9dead/models/common.py#L243-L252
+For all inference options see YOLOv5 `AutoShape()` forward [method](https://github.com/ultralytics/yolov5/blob/30e4c4f09297b67afedf8b2bcd851833ddc9dead/models/common.py#L243-L252).
 
 ### Inference Settings
 YOLOv5 models contain various inference attributes such as **confidence threshold**, **IoU threshold**, etc. which can be set by:
@@ -148,7 +147,7 @@ results = model(im)
 
 ### Multi-GPU Inference
 
-YOLOv5 models can be be loaded to multiple GPUs in parallel with threaded inference:
+YOLOv5 models can be loaded to multiple GPUs in parallel with threaded inference:
 
 ```python
 import torch
@@ -234,6 +233,7 @@ Results can be returned in JSON format once converted to `.pandas()` dataframes 
 results = model(ims)  # inference
 results.pandas().xyxy[0].to_json(orient="records")  # JSON img1 predictions
 ```
+
 <details markdown>
   <summary>JSON Output (click to expand)</summary>
 
@@ -244,7 +244,8 @@ results.pandas().xyxy[0].to_json(orient="records")  # JSON img1 predictions
 {"xmin":115.25,"ymin":195.75,"xmax":1096.0,"ymax":708.0,"confidence":0.6254882812,"class":0,"name":"person"},
 {"xmin":986.0,"ymin":304.0,"xmax":1028.0,"ymax":420.0,"confidence":0.2873535156,"class":27,"name":"tie"}
 ]
-  ```
+```
+
 </details>
 
 ## Custom Models
@@ -258,7 +259,7 @@ model = torch.hub.load('path/to/yolov5', 'custom', path='path/to/best.pt', sourc
 
 PyTorch Hub supports inference on most YOLOv5 export formats, including custom trained models. See [TFLite, ONNX, CoreML, TensorRT Export tutorial](https://github.com/ultralytics/yolov5/issues/251) for details on exporting models.
 
-💡 ProTip: **TensorRT** may be up to 2-5X faster than PyTorch on [**GPU benchmarks**](https://github.com/ultralytics/yolov5/pull/6963)
+💡 ProTip: **TensorRT** may be up to 2-5X faster than PyTorch on [**GPU benchmarks**](https://github.com/ultralytics/yolov5/pull/6963)  
 💡 ProTip: **ONNX** and **OpenVINO** may be up to 2-3X faster than PyTorch on [**CPU benchmarks**](https://github.com/ultralytics/yolov5/pull/6613)
 
 ```python

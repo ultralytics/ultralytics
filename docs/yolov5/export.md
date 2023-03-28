@@ -206,16 +206,18 @@ python val.py --weights yolov5s.onnx --dnn  # validate
 ## C++ Inference
 
 YOLOv5 OpenCV DNN C++ inference on exported ONNX model examples:
-- https://github.com/Hexmagic/ONNX-yolov5/blob/master/src/test.cpp
-- https://github.com/doleron/yolov5-opencv-cpp-python
+
+- [https://github.com/Hexmagic/ONNX-yolov5/blob/master/src/test.cpp](https://github.com/Hexmagic/ONNX-yolov5/blob/master/src/test.cpp)
+- [https://github.com/doleron/yolov5-opencv-cpp-python](https://github.com/doleron/yolov5-opencv-cpp-python)
 
 YOLOv5 OpenVINO C++ inference examples:
-- https://github.com/dacquaviva/yolov5-openvino-cpp-python
-- https://github.com/UNeedCryDear/yolov5-seg-opencv-dnn-cpp
+
+- [https://github.com/dacquaviva/yolov5-openvino-cpp-python](https://github.com/dacquaviva/yolov5-openvino-cpp-python)
+- [https://github.com/UNeedCryDear/yolov5-seg-opencv-dnn-cpp](https://github.com/UNeedCryDear/yolov5-seg-opencv-dnn-cpp)
 
 ## TensorFlow.js Web Browser Inference
 
-- https://aukerul-shuvo.github.io/YOLOv5_TensorFlow-JS/
+- [https://aukerul-shuvo.github.io/YOLOv5_TensorFlow-JS/](https://aukerul-shuvo.github.io/YOLOv5_TensorFlow-JS/)
 
 ## Environments
 

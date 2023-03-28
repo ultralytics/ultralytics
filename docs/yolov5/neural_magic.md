@@ -59,7 +59,7 @@ We will walk through an example benchmarking and deploying a sparse version of Y
 
 ### Install DeepSparse
 
-Run the following to install DeepSparse. We recommend you use a virtual enviornment with Python.
+Run the following to install DeepSparse. We recommend you use a virtual environment with Python.
 
 ```bash
 pip install deepsparse[server,yolo,onnxruntime]
@@ -88,7 +88,7 @@ wget -O basilica.jpg https://raw.githubusercontent.com/neuralmagic/deepsparse/ma
 
 #### Python API
   
-`Pipelines` wrap pre-processing and output post-processing around the runtime, providing a clean inferface for adding DeepSparse to an application. 
+`Pipelines` wrap pre-processing and output post-processing around the runtime, providing a clean interface for adding DeepSparse to an application. 
 The DeepSparse-Ultralytics integration includes an out-of-the-box `Pipeline` that accepts raw images and outputs the bounding boxes.
 
 Create a `Pipeline` and run inference:
@@ -106,7 +106,7 @@ yolo_pipeline = Pipeline.create(
     model_path=model_stub,
 )
 
-# run inference on images, recieve bounding boxes + classes
+# run inference on images, receive bounding boxes + classes
 pipeline_outputs = yolo_pipeline(images=images, iou_thres=0.6, conf_thres=0.001)
 print(pipeline_outputs)
 ```
@@ -121,7 +121,7 @@ apt-get install libgl1-mesa-glx
   
 DeepSparse Server runs on top of the popular FastAPI web framework and Uvicorn web server. With just a single CLI command, you can easily setup a model 
 service endpoint with DeepSparse. The Server supports any Pipeline from DeepSparse, including object detection with YOLOv5, enabling you to send raw 
-images to the endpoint and recieve the bounding boxes.
+images to the endpoint and receive the bounding boxes.
 
 Spin up the Server with the pruned-quantized YOLOv5s:
 
@@ -158,7 +158,7 @@ deepsparse.object_detection.annotate --model_filepath zoo:cv/detection/yolov5-s/
 Running the above command will create an `annotation-results` folder and save the annotated image inside.
 
 <p align = "center">
-<img src="https://github.com/neuralmagic/deepsparse/blob/d31f02596ebff2ec62761d0bc9ca14c4663e8858/src/deepsparse/yolo/sample_images/basilica-annotated.jpg" alt="annotated" width="60%"/>
+<img src="https://github.com/neuralmagic/deepsparse/raw/d31f02596ebff2ec62761d0bc9ca14c4663e8858/src/deepsparse/yolo/sample_images/basilica-annotated.jpg" alt="annotated" width="60%"/>
 </p>
 
 ## Benchmarking Performance
@@ -167,7 +167,7 @@ We will compare DeepSparse's throughput to ONNX Runtime's throughput on YOLOv5s,
 
 The benchmarks were run on an AWS `c6i.8xlarge` instance (16 cores). 
 
-### Batch 32 Performance Comparsion
+### Batch 32 Performance Comparison
 
 #### ONNX Runtime Baseline
 

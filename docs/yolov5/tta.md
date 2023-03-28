@@ -17,7 +17,7 @@ pip install -r requirements.txt  # install
 
 Before trying TTA we want to establish a baseline performance to compare to. This command tests YOLOv5x on COCO val2017 at image size 640 pixels. `yolov5x.pt` is the largest and most accurate model available. Other options are `yolov5s.pt`, `yolov5m.pt` and `yolov5l.pt`, or you own checkpoint from training a custom dataset `./weights/best.pt`. For details on all available models please see our README [table](https://github.com/ultralytics/yolov5#pretrained-checkpoints).
 ```bash
-$ python val.py --weights yolov5x.pt --data coco.yaml --img 640 --half
+python val.py --weights yolov5x.pt --data coco.yaml --img 640 --half
 ```
 
 Output:
@@ -53,7 +53,7 @@ Evaluating pycocotools mAP... saving runs/val/exp/yolov5x_predictions.json...
 ## Test with TTA
 Append `--augment` to any existing `val.py` command to enable TTA, and increase the image size by about 30% for improved results. Note that inference with TTA enabled will typically take about 2-3X the time of normal inference as the images are being left-right flipped and processed at 3 different resolutions, with the outputs merged before NMS. Part of the speed decrease is simply due to larger image sizes (832 vs 640), while part is due to the actual TTA operations.
 ```bash
-$ python val.py --weights yolov5x.pt --data coco.yaml --img 832 --augment --half
+python val.py --weights yolov5x.pt --data coco.yaml --img 832 --augment --half
 ```
 
 Output:
@@ -91,7 +91,7 @@ Evaluating pycocotools mAP... saving runs/val/exp2/yolov5x_predictions.json...
 
 `detect.py` TTA inference operates identically to `val.py` TTA: simply append `--augment` to any existing `detect.py` command:
 ```bash
-$ python detect.py --weights yolov5s.pt --img 832 --source data/images --augment
+python detect.py --weights yolov5s.pt --img 832 --source data/images --augment
 ```
 
 Output:
@@ -134,8 +134,7 @@ results.print()  # or .show(), .save(), .crop(), .pandas(), etc.
 
 ### Customize 
 
-You can customize the TTA ops applied in the YOLOv5 `forward_augment()` method here:
-https://github.com/ultralytics/yolov5/blob/8c6f9e15bfc0000d18b976a95b9d7c17d407ec91/models/yolo.py#L125-L137
+You can customize the TTA ops applied in the YOLOv5 `forward_augment()` method [here](https://github.com/ultralytics/yolov5/blob/8c6f9e15bfc0000d18b976a95b9d7c17d407ec91/models/yolo.py#L125-L137).
 
 
 ## Environments

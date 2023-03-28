@@ -38,7 +38,7 @@ Either sign up for free to the [ClearML Hosted Service](https://cutt.ly/yolov5-t
    pip install clearml
    ```
 
-1. Connect the ClearML SDK to the server by [creating credentials](https://app.clear.ml/settings/workspace-configuration) (go right top to Settings -> Workspace -> Create new credentials), then execute the command below and follow the instructions:
+2. Connect the ClearML SDK to the server by [creating credentials](https://app.clear.ml/settings/workspace-configuration) (go right top to Settings -> Workspace -> Create new credentials), then execute the command below and follow the instructions:
 
    ```bash
    clearml-init

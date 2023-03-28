@@ -9,7 +9,7 @@ remote_name: https://github.com/ultralytics/docs
 theme:
   name: "material"
   logo: https://github.com/ultralytics/assets/raw/main/logo/Ultralytics_Logotype_Reverse.svg
-  favicon: https://github.com/ultralytics/assets/raw/main/logo/favicon-yolo.ico
+  favicon: assets/favicon.ico
   font:
     text: Roboto
     code: Roboto Mono

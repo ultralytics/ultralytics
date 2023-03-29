@@ -19,9 +19,9 @@ Usage - formats:
                           yolov8n_paddle_model       # PaddlePaddle
 """
 import json
+import re
 from collections import defaultdict
 from pathlib import Path
-import re
 
 import torch
 from tqdm import tqdm
@@ -105,7 +105,7 @@ class BaseValidator:
 
         # if no match is found, raise an error
         else:
-            return RuntimeError("Unable to find number of channels from error string.")
+            return RuntimeError('Unable to find number of channels from error string.')
 
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
@@ -161,7 +161,6 @@ class BaseValidator:
             except RuntimeError as err:
                 num_channels = self.find_num_channels(err.args[0])
                 model.warmup(imgsz=(self.args.batch, num_channels, imgsz, imgsz))  # warmup
-
 
         dt = Profile(), Profile(), Profile(), Profile()
         n_batches = len(self.dataloader)

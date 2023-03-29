@@ -1,18 +1,13 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
-import json
 import os
 import re
 from pathlib import Path
-from time import time
 
-from ultralytics.hub.utils import PREFIX, traces
 from ultralytics.yolo.utils import LOGGER, colorstr
-from ultralytics.yolo.utils.torch_utils import get_flops, get_num_params
 
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[3]
-PREFIX = colorstr('MLFlow: ')
 
 try:
     import mlflow
@@ -39,14 +34,15 @@ def on_pretrain_routine_end(trainer):
             mlflow.create_experiment(_expr_name)
         mlflow.set_experiment(_expr_name)
 
+        prefix = colorstr('MLFlow: ')
         try:
             _mlflow, mlflow_active_run = mlflow, None if not mlflow else mlflow.start_run()
             if mlflow_active_run is not None:
                 _run_id = mlflow_active_run.info.run_id
-                LOGGER.info(f'{PREFIX}Using run_id({_run_id}) at {mlflow_location}')
+                LOGGER.info(f'{prefix}Using run_id({_run_id}) at {mlflow_location}')
         except Exception as err:
-            LOGGER.error(f'{PREFIX}Failing init - {repr(err)}')
-            LOGGER.warning(f'{PREFIX}Continuining without Mlflow')
+            LOGGER.error(f'{prefix}Failing init - {repr(err)}')
+            LOGGER.warning(f'{prefix}Continuining without Mlflow')
             _mlflow = None
             mlflow_active_run = None
 

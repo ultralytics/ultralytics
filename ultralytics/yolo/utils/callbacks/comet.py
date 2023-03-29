@@ -7,13 +7,14 @@ try:
 
     assert not TESTS_RUNNING  # do not log pytest
     assert comet_ml.__version__  # verify package is not directory
-except (ImportError, AssertionError):
+except (ImportError, AssertionError, AttributeError):
     comet_ml = None
 
 
 def on_pretrain_routine_start(trainer):
     try:
         experiment = comet_ml.Experiment(project_name=trainer.args.project or 'YOLOv8')
+        experiment.set_name(trainer.args.name)
         experiment.log_parameters(vars(trainer.args))
     except Exception as e:
         LOGGER.warning(f'WARNING ⚠️ Comet installed but not initialized correctly, not logging this run. {e}')

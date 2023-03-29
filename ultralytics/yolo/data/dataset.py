@@ -10,10 +10,10 @@ import torch
 import torchvision
 from tqdm import tqdm
 
-from ..utils import NUM_THREADS, TQDM_BAR_FORMAT, is_dir_writeable
+from ..utils import LOCAL_RANK, NUM_THREADS, TQDM_BAR_FORMAT, is_dir_writeable
 from .augment import Compose, Format, Instances, LetterBox, classify_albumentations, classify_transforms, v8_transforms
 from .base import BaseDataset
-from .utils import HELP_URL, LOCAL_RANK, LOGGER, get_hash, img2label_paths, verify_image_label
+from .utils import HELP_URL, LOGGER, get_hash, img2label_paths, verify_image_label
 
 
 class YOLODataset(BaseDataset):
@@ -125,7 +125,10 @@ class YOLODataset(BaseDataset):
         self.label_files = img2label_paths(self.im_files)
         cache_path = Path(self.label_files[0]).parent.with_suffix('.cache')
         try:
+            import gc
+            gc.disable()  # reduce pickle load time https://github.com/ultralytics/ultralytics/pull/1585
             cache, exists = np.load(str(cache_path), allow_pickle=True).item(), True  # load dict
+            gc.enable()
             assert cache['version'] == self.cache_version  # matches current version
             assert cache['hash'] == get_hash(self.label_files + self.im_files)  # identical hash
         except (FileNotFoundError, AssertionError, AttributeError):

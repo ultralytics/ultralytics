@@ -5,7 +5,6 @@ Ultralytics Results, Boxes and Masks classes for handling inference results
 Usage: See https://docs.ultralytics.com/modes/predict/
 """
 
-import pprint
 from copy import deepcopy
 from functools import lru_cache
 
@@ -13,11 +12,11 @@ import numpy as np
 import torch
 import torchvision.transforms.functional as F
 
-from ultralytics.yolo.utils import LOGGER, ops
+from ultralytics.yolo.utils import LOGGER, SimpleClass, ops
 from ultralytics.yolo.utils.plotting import Annotator, colors
 
 
-class Results:
+class Results(SimpleClass):
     """
     A class for storing and manipulating inference results.
 
@@ -96,17 +95,6 @@ class Results:
         for k in self.keys:
             return len(getattr(self, k))
 
-    def __str__(self):
-        attr = {k: v for k, v in vars(self).items() if not isinstance(v, type(self))}
-        return pprint.pformat(attr, indent=2, width=120, depth=10, compact=True)
-
-    def __repr__(self):
-        return self.__str__()
-
-    def __getattr__(self, attr):
-        name = self.__class__.__name__
-        raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
-
     @property
     def keys(self):
         return [k for k in self._keys if getattr(self, k) is not None]
@@ -129,13 +117,14 @@ class Results:
         annotator = Annotator(deepcopy(self.orig_img), line_width, font_size, font, pil, example)
         boxes = self.boxes
         masks = self.masks
-        logits = self.probs
+        probs = self.probs
         names = self.names
+        hide_labels, hide_conf = False, not show_conf
         if boxes is not None:
             for d in reversed(boxes):
-                cls, conf = d.cls.squeeze(), d.conf.squeeze()
-                c = int(cls)
-                label = (f'{names[c]}' if names else f'{c}') + (f'{conf:.2f}' if show_conf else '')
+                c, conf, id = int(d.cls), float(d.conf), None if d.id is None else int(d.id.item())
+                name = ('' if id is None else f'id:{id} ') + names[c]
+                label = None if hide_labels else (name if hide_conf else f'{name} {conf:.2f}')
                 annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
 
         if masks is not None:
@@ -143,16 +132,16 @@ class Results:
             im = F.resize(im.contiguous(), masks.data.shape[1:]) / 255
             annotator.masks(masks.data, colors=[colors(x, True) for x in boxes.cls], im_gpu=im)
 
-        if logits is not None:
-            n5 = min(len(self.names), 5)
-            top5i = logits.argsort(0, descending=True)[:n5].tolist()  # top 5 indices
-            text = f"{', '.join(f'{names[j] if names else j} {logits[j]:.2f}' for j in top5i)}, "
+        if probs is not None:
+            n5 = min(len(names), 5)
+            top5i = probs.argsort(0, descending=True)[:n5].tolist()  # top 5 indices
+            text = f"{', '.join(f'{names[j] if names else j} {probs[j]:.2f}' for j in top5i)}, "
             annotator.text((32, 32), text, txt_color=(255, 255, 255))  # TODO: allow setting colors
 
         return np.asarray(annotator.im) if annotator.pil else annotator.im
 
 
-class Boxes:
+class Boxes(SimpleClass):
     """
     A class for storing and manipulating detection boxes.
 
@@ -241,15 +230,6 @@ class Boxes:
 
     def pandas(self):
         LOGGER.info('results.pandas() method not yet implemented')
-        '''
-        new = copy(self)  # return copy
-        ca = 'xmin', 'ymin', 'xmax', 'ymax', 'confidence', 'class', 'name'  # xyxy columns
-        cb = 'xcenter', 'ycenter', 'width', 'height', 'confidence', 'class', 'name'  # xywh columns
-        for k, c in zip(['xyxy', 'xyxyn', 'xywh', 'xywhn'], [ca, ca, cb, cb]):
-            a = [[x[:5] + [int(x[5]), self.names[int(x[5])]] for x in x.tolist()] for x in getattr(self, k)]  # update
-            setattr(new, k, [pd.DataFrame(x, columns=c) for x in a])
-        return new
-        '''
 
     @property
     def shape(self):
@@ -262,25 +242,11 @@ class Boxes:
     def __len__(self):  # override len(results)
         return len(self.boxes)
 
-    def __str__(self):
-        return self.boxes.__str__()
-
-    def __repr__(self):
-        return (f'{self.__class__.__module__}.{self.__class__.__name__}\n'
-                f'type:  {self.boxes.__class__.__module__}.{self.boxes.__class__.__name__}\n'
-                f'shape: {self.boxes.shape}\n'
-                f'dtype: {self.boxes.dtype}\n'
-                f'{self.boxes.__repr__()}')
-
     def __getitem__(self, idx):
         return Boxes(self.boxes[idx], self.orig_shape)
 
-    def __getattr__(self, attr):
-        name = self.__class__.__name__
-        raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
-
-class Masks:
+class Masks(SimpleClass):
     """
     A class for storing and manipulating detection masks.
 
@@ -300,11 +266,6 @@ class Masks:
         numpy(): Returns a copy of the masks tensor as a numpy array.
         cuda(): Returns a copy of the masks tensor on GPU memory.
         to(): Returns a copy of the masks tensor with the specified device and dtype.
-        __len__(): Returns the number of masks in the tensor.
-        __str__(): Returns a string representation of the masks tensor.
-        __repr__(): Returns a detailed string representation of the masks tensor.
-        __getitem__(): Returns a new Masks object with the masks at the specified index.
-        __getattr__(): Raises an AttributeError with a list of valid attributes and properties.
     """
 
     def __init__(self, masks, orig_shape) -> None:
@@ -341,19 +302,5 @@ class Masks:
     def __len__(self):  # override len(results)
         return len(self.masks)
 
-    def __str__(self):
-        return self.masks.__str__()
-
-    def __repr__(self):
-        return (f'{self.__class__.__module__}.{self.__class__.__name__}\n'
-                f'type:  {self.masks.__class__.__module__}.{self.masks.__class__.__name__}\n'
-                f'shape: {self.masks.shape}\n'
-                f'dtype: {self.masks.dtype}\n'
-                f'{self.masks.__repr__()}')
-
     def __getitem__(self, idx):
         return Masks(self.masks[idx], self.orig_shape)
-
-    def __getattr__(self, attr):
-        name = self.__class__.__name__
-        raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")

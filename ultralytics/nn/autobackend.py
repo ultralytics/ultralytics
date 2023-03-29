@@ -383,7 +383,12 @@ class AutoBackend(nn.Module):
                     y = list(reversed(y))  # should be y = (1, 116, 8400), (1, 160, 160, 32)
                 y[1] = np.transpose(y[1], (0, 3, 1, 2))  # should be y = (1, 116, 8400), (1, 32, 160, 160)
             y = [x if isinstance(x, np.ndarray) else x.numpy() for x in y]
-            # y[0][..., :4] *= [w, h, w, h]  # xywh normalized to pixels
+
+        # unnormalize xywh with input image size
+        y[0][:, 0, :] *= w
+        y[0][:, 1, :] *= h
+        y[0][:, 2, :] *= w
+        y[0][:, 3, :] *= h
 
         # for x in y:
         #     print(type(x), len(x)) if isinstance(x, (list, tuple)) else print(type(x), x.shape)  # debug shapes

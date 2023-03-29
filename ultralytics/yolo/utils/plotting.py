@@ -243,7 +243,7 @@ def plot_images(images,
         masks = masks.cpu().numpy().astype(int)
     if isinstance(batch_idx, torch.Tensor):
         batch_idx = batch_idx.cpu().numpy()
-
+        
     images = images[:, :3, :, :]
     max_size = 1920  # max image size
     max_subplots = 16  # max image subplots, i.e. 4x4

@@ -130,7 +130,7 @@ class Exporter:
         save_dir (Path): Directory to save results.
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, channels=3):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None):
         """
         Initializes the Exporter class.
 
@@ -141,7 +141,6 @@ class Exporter:
         self.args = get_cfg(cfg, overrides)
         self.callbacks = defaultdict(list, callbacks.default_callbacks)  # add callbacks
         callbacks.add_integration_callbacks(self)
-        self.channels = channels
 
     @smart_inference_mode()
     def __call__(self, model=None):

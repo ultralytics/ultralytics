@@ -409,7 +409,7 @@ class RandomHSV:
             lut_val = np.clip(x * r[2], 0, 255).astype(dtype)
 
             im_hsv = cv2.merge((cv2.LUT(hue, lut_hue), cv2.LUT(sat, lut_sat), cv2.LUT(val, lut_val)))
-            cv2.cvtColor(im_hsv, cv2.COLOR_HSV2BGR, dst=img)  # no return needed
+            img[:,:,:3] = cv2.cvtColor(im_hsv, cv2.COLOR_HSV2BGR)  # no return needed
         return labels
 
 
@@ -641,7 +641,9 @@ class Format:
     def _format_img(self, img):
         if len(img.shape) < 3:
             img = np.expand_dims(img, -1)
-        img = np.ascontiguousarray(img.transpose(2, 0, 1)[::-1])
+        # Change from BGR to RGB. Preserve the ordering of any other channels.
+        num_channels = img.shape[2]
+        img = np.ascontiguousarray(img.transpose(2, 0, 1)[[2,1,0] + list(range(3, num_channels))])
         img = torch.from_numpy(img)
         return img
 

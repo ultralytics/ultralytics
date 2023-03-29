@@ -1,3 +1,5 @@
+# Python Usage
+
 The simplest way of simply using YOLOv8 directly in a Python environment.
 
 !!! example "Train"

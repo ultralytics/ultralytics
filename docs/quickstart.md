@@ -47,7 +47,7 @@ CLI requires no customization or Python code. You can simply run all tasks from 
                 MODE (required) is one of [train, val, predict, export, track]
                 ARGS (optional) are any number of custom 'arg=value' pairs like 'imgsz=320' that override defaults.
         ```
-        See all ARGS in the full [CLI Guide](usage/cli.md) or with 'yolo cfg'
+        See all ARGS in the full [Configuration Guide](usage/cfg.md) or with `yolo cfg`
 
     === "Train"
 
@@ -76,6 +76,27 @@ CLI requires no customization or Python code. You can simply run all tasks from 
         ```bash
         yolo export model=yolov8n-cls.pt format=onnx imgsz=224,128
         ```
+
+    === "Special"
+
+        Run special commands to see version, view settings, run checks and more:
+        ```bash
+        yolo help
+        yolo checks
+        yolo version
+        yolo settings
+        yolo copy-cfg
+        yolo cfg
+        ```
+
+
+!!! warning "Warning"
+
+    Arguments must be passed as `arg=val` pairs, split by an equals `=` sign and delimited by spaces ` ` between pairs. Do not use `--` argument prefixes or commas `,` beteen arguments.
+
+    - `yolo predict model=yolov8n.pt imgsz=640 conf=0.25` &nbsp; ✅
+    - `yolo predict model yolov8n.pt imgsz 640 conf 0.25` &nbsp; ❌
+    - `yolo predict --model yolov8n.pt --imgsz 640 --conf 0.25` &nbsp; ❌
 
 [CLI Guide](usage/cli.md){ .md-button .md-button--primary}
 

@@ -525,7 +525,31 @@ class Exporter:
         f_onnx, _ = self._export_onnx()
 
         # Export to TF
-        int8 = '-oiqt -qt per-tensor' if self.args.int8 else ''
+        if self.args.int8:
+            import numpy as np
+
+            from ultralytics.yolo.data.dataloaders.stream_loaders import LoadImages
+            from ultralytics.yolo.data.utils import check_det_dataset
+
+            # Generate calibration data for integer quantization
+            _, _, *imgsz = list(self.im.shape)  # BCHW
+            dataset = LoadImages(check_det_dataset(self.args.data)['train'], imgsz=imgsz, auto=False)
+            calib_data = []
+            n_images = 100
+            for n, (_, img, _, _, _) in enumerate(dataset):
+                if n >= n_images:
+                    break
+                img = img.transpose(1, 2, 0)  # CHW to HWC
+                img = img[np.newaxis]
+                calib_data.append(img)
+            f.mkdir()
+            calib_file = Path(f / 'calib_data.npy')
+            np.save(calib_file, np.vstack(calib_data))  # BHWC
+
+            int8 = f'-oiqt -qt per-tensor -qcind images {calib_file} "[[[[0, 0, 0]]]]" "[[[[255, 255, 255]]]]"'
+        else:
+            int8 = ''
+
         cmd = f'onnx2tf -i {f_onnx} -o {f} -nuo --non_verbose {int8}'
         LOGGER.info(f"\n{prefix} running '{cmd.strip()}'")
         subprocess.run(cmd, shell=True)
@@ -533,10 +557,10 @@ class Exporter:
 
         # Remove/rename TFLite models
         if self.args.int8:
-            for file in f.rglob('*_dynamic_range_quant.tflite'):
-                file.rename(file.with_stem(file.stem.replace('_dynamic_range_quant', '_int8')))
             for file in f.rglob('*_integer_quant_with_int16_act.tflite'):
                 file.unlink()  # delete extra fp16 activation TFLite files
+            # Remove caliblation data file
+            calib_file.unlink()
 
         # Add TFLite metadata
         for file in f.rglob('*.tflite'):

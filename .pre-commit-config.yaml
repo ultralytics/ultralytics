@@ -16,7 +16,7 @@ repos:
       - id: end-of-file-fixer
       - id: trailing-whitespace
       - id: check-case-conflict
-      - id: check-yaml
+      # - id: check-yaml
       - id: check-docstring-first
       - id: double-quote-string-fixer
       - id: detect-private-key

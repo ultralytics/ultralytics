@@ -400,7 +400,7 @@ class RandomHSV:
         img = labels['img']
         if self.hgain or self.sgain or self.vgain:
             r = np.random.uniform(-1, 1, 3) * [self.hgain, self.sgain, self.vgain] + 1  # random gains
-            hue, sat, val = cv2.split(cv2.cvtColor(img[:,:,:3], cv2.COLOR_BGR2HSV))
+            hue, sat, val = cv2.split(cv2.cvtColor(img[:, :, :3], cv2.COLOR_BGR2HSV))
             dtype = img.dtype  # uint8
 
             x = np.arange(0, 256, dtype=r.dtype)
@@ -409,7 +409,7 @@ class RandomHSV:
             lut_val = np.clip(x * r[2], 0, 255).astype(dtype)
 
             im_hsv = cv2.merge((cv2.LUT(hue, lut_hue), cv2.LUT(sat, lut_sat), cv2.LUT(val, lut_val)))
-            img[:,:,:3] = cv2.cvtColor(im_hsv, cv2.COLOR_HSV2BGR)  # no return needed
+            img[:, :, :3] = cv2.cvtColor(im_hsv, cv2.COLOR_HSV2BGR)  # no return needed
         return labels
 
 
@@ -486,7 +486,7 @@ class LetterBox:
             img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
         top, bottom = int(round(dh - 0.1)), int(round(dh + 0.1))
         left, right = int(round(dw - 0.1)), int(round(dw + 0.1))
-        img = np.pad(img, ((top, bottom),(left, right),(0, 0)), 'constant', constant_values=114)  # add border
+        img = np.pad(img, ((top, bottom), (left, right), (0, 0)), 'constant', constant_values=114)  # add border
 
         if len(labels):
             labels = self._update_labels(labels, ratio, dw, dh)
@@ -581,9 +581,9 @@ class Albumentations:
             bboxes = labels['instances'].bboxes
             # TODO: add supports of segments and keypoints
             if self.transform and random.random() < self.p:
-                new = self.transform(image=im[:,:,:3], bboxes=bboxes, class_labels=cls)  # transformed
+                new = self.transform(image=im[:, :, :3], bboxes=bboxes, class_labels=cls)  # transformed
                 if len(new['class_labels']) > 0:  # skip update if no bbox in new im
-                    labels['img'] = np.concatenate([new['image'], im[:,:,3:]], axis=2)
+                    labels['img'] = np.concatenate([new['image'], im[:, :, 3:]], axis=2)
                     labels['cls'] = np.array(new['class_labels'])
                     bboxes = np.array(new['bboxes'])
             labels['instances'].update(bboxes=bboxes)
@@ -643,7 +643,7 @@ class Format:
             img = np.expand_dims(img, -1)
         # Change from BGR to RGB. Preserve the ordering of any other channels.
         num_channels = img.shape[2]
-        img = np.ascontiguousarray(img.transpose(2, 0, 1)[[2,1,0] + list(range(3, num_channels))])
+        img = np.ascontiguousarray(img.transpose(2, 0, 1)[[2, 1, 0] + list(range(3, num_channels))])
         img = torch.from_numpy(img)
         return img
 

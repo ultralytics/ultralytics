@@ -1,4 +1,4 @@
-# YOLOv8 Modes
+# Ultralytics YOLOv8 Modes
 
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
 

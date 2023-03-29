@@ -1,13 +1,13 @@
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
 
-YOLOv8 can generate predictions for various tasks, returning either a list of `Results` objects or a memory-efficient generator of `Results` objects when using the streaming mode. Enable streaming mode by passing `stream=True` in the predictor's call method.
+YOLOv8 **predict mode** can generate predictions for various tasks, returning either a list of `Results` objects or a memory-efficient generator of `Results` objects when using the streaming mode. Enable streaming mode by passing `stream=True` in the predictor's call method.
 
 ```python
 ### Example: Predict
 
 # Return a List
-inputs = [img, img]  # list of np arrays
-results = model(inputs)  # List of Results objects
+inputs = [img, img]  # list of numpy arrays
+results = model(inputs)  # list of Results objects
 
 for result in results:
     boxes = result.boxes  # Boxes object for bbox outputs
@@ -18,10 +18,10 @@ for result in results:
 inputs = [img, img]  # list of numpy arrays
 results = model(inputs, stream=True)  # generator of Results objects
 
-for r in results:
-    boxes = r.boxes  # Boxes object for bbox outputs
-    masks = r.masks  # Masks object for segmentation masks outputs
-    probs = r.probs  # Class probabilities for classification outputs
+for result in results:
+    boxes = result.boxes  # Boxes object for bbox outputs
+    masks = result.masks  # Masks object for segmentation masks outputs
+    probs = result.probs  # Class probabilities for classification outputs
 ```
 
 ## Sources

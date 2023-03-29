@@ -400,7 +400,7 @@ class RandomHSV:
         img = labels['img']
         if self.hgain or self.sgain or self.vgain:
             r = np.random.uniform(-1, 1, 3) * [self.hgain, self.sgain, self.vgain] + 1  # random gains
-            hue, sat, val = cv2.split(cv2.cvtColor(img, cv2.COLOR_BGR2HSV))
+            hue, sat, val = cv2.split(cv2.cvtColor(img[:,:,:3], cv2.COLOR_BGR2HSV))
             dtype = img.dtype  # uint8
 
             x = np.arange(0, 256, dtype=r.dtype)
@@ -486,8 +486,7 @@ class LetterBox:
             img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
         top, bottom = int(round(dh - 0.1)), int(round(dh + 0.1))
         left, right = int(round(dw - 0.1)), int(round(dw + 0.1))
-        img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT,
-                                 value=(114, 114, 114))  # add border
+        img = np.pad(img, ((top, bottom),(left, right),(0, 0)), 'constant', constant_values=114)  # add border
 
         if len(labels):
             labels = self._update_labels(labels, ratio, dw, dh)
@@ -582,9 +581,9 @@ class Albumentations:
             bboxes = labels['instances'].bboxes
             # TODO: add supports of segments and keypoints
             if self.transform and random.random() < self.p:
-                new = self.transform(image=im, bboxes=bboxes, class_labels=cls)  # transformed
+                new = self.transform(image=im[:,:,:3], bboxes=bboxes, class_labels=cls)  # transformed
                 if len(new['class_labels']) > 0:  # skip update if no bbox in new im
-                    labels['img'] = new['image']
+                    labels['img'] = np.concatenate([new['image'], im[:,:,3:]], axis=2)
                     labels['cls'] = np.array(new['class_labels'])
                     bboxes = np.array(new['bboxes'])
             labels['instances'].update(bboxes=bboxes)

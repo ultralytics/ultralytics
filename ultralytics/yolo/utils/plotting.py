@@ -18,9 +18,6 @@ from .checks import check_font, check_version, is_ascii
 from .files import increment_path
 from .ops import clip_coords, scale_image, xywh2xyxy, xyxy2xywh
 
-matplotlib.rc('font', **{'size': 11})
-matplotlib.use('Agg')  # for writing to files only
-
 
 class Colors:
     # Ultralytics color palette https://ultralytics.com/

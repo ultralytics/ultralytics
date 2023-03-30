@@ -294,8 +294,8 @@ def check_cls_dataset(dataset: str):
         s = f"Dataset download success ✅ ({time.time() - t:.1f}s), saved to {colorstr('bold', data_dir)}\n"
         LOGGER.info(s)
     train_set = data_dir / 'train'
-    val_set = data_dir / 'val' if (data_dir / 'val').exists() else data_dir / 'test'  # data/test or data/val
-    test_set = data_dir / 'test' if (data_dir / 'test').exists() else data_dir / 'val'  # data/val or data/test
+    val_set = data_dir / 'val' if (data_dir / 'val').exists() else None  # data/test or data/val
+    test_set = data_dir / 'test' if (data_dir / 'test').exists() else None  # data/val or data/test
     nc = len([x for x in (data_dir / 'train').glob('*') if x.is_dir()])  # number of classes
     names = [x.name for x in (data_dir / 'train').iterdir() if x.is_dir()]  # class names list
     names = dict(enumerate(sorted(names)))

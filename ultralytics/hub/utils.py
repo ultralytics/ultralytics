@@ -197,7 +197,14 @@ class Traces:
             traces_sample_rate (float): Fraction of traces captured from 0.0 to 1.0
         """
         t = time.time()  # current time
-        if self.enabled and random() < traces_sample_rate and (t - self.t) > self.rate_limit:
+        if not self.enabled or random() > traces_sample_rate:
+            # Traces disabled or not randomly selected, do nothing
+            return
+        elif (t - self.t) < self.rate_limit:
+            # Time is under rate limiter, do nothing
+            return
+        else:
+            # Time is over rate limiter, send trace now
             self.t = t  # reset rate limit timer
             cfg = vars(cfg)  # convert type from IterableSimpleNamespace to dict
             if not all_keys:  # filter cfg

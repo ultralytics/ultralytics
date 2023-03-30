@@ -73,7 +73,7 @@ task.
 | `deterministic`   | `True`   | whether to enable deterministic mode                                        |
 | `single_cls`      | `False`  | train multi-class data as single-class                                      |
 | `image_weights`   | `False`  | use weighted image selection for training                                   |
-| `rect`            | `False`  | Rectangular training. Each batch uses aspect ratio to minimizing padding    |
+| `rect`            | `False`  | rectangular training with each batch collated for minimum padding           |
 | `cos_lr`          | `False`  | use cosine learning rate scheduler                                          |
 | `close_mosaic`    | `10`     | disable mosaic augmentation for final 10 epochs                             |
 | `resume`          | `False`  | resume training from last checkpoint                                        |

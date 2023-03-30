@@ -12,13 +12,22 @@ In this example, we want to return the original frame with each result object. H
 
 ```python
 def on_predict_batch_end(predictor):
-    # results -> List[batch_size]
+    # Retrieve the batch data
     _, _, im0s, _, _ = predictor.batch
+    
+    # Ensure that im0s is a list
     im0s = im0s if isinstance(im0s, list) else [im0s]
+    
+    # Combine the prediction results with the corresponding frames
     predictor.results = zip(predictor.results, im0s)
 
+# Create a YOLO model instance
 model = YOLO(f'yolov8n.pt')
+
+# Add the custom callback to the model
 model.add_callback("on_predict_batch_end", on_predict_batch_end)
+
+# Iterate through the results and frames
 for (result, frame) in model.track/predict():
     pass
 ```
@@ -27,7 +36,6 @@ for (result, frame) in model.track/predict():
 
 Here are all supported callbacks. See callbacks [source code](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/utils/callbacks/base.py) for additional details.
 
-### Trainer
 
 ### Trainer Callbacks
 

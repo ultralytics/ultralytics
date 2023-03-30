@@ -87,6 +87,11 @@ class YOLO:
         self.metrics = None  # validation/training metrics
         self.session = session  # HUB session
 
+        if 'https://hub.ultralytics.com/models/' in model:
+            self.session = HUBTrainingSession(model_id=model_id, auth=auth)  # HUB session
+            self.session.check_disk_space()
+            model = self.session.model_file
+
         # Load or create new YOLO model
         model = str(model).strip()  # strip spaces
         suffix = Path(model).suffix
@@ -308,6 +313,8 @@ class YOLO:
             **kwargs (Any): Any number of arguments representing the training configuration.
         """
         self._check_is_pytorch_model()
+        if self.session:  # Ultralytics HUB session
+            kwargs = self.session.train_args  #
         check_pip_update_available()
         overrides = self.overrides.copy()
         overrides.update(kwargs)

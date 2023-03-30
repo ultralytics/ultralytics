@@ -42,6 +42,18 @@ from ultralytics.yolo.utils.checks import check_imgsz, check_imshow
 from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode
 
+STREAM_WARNING = """
+    WARNING ⚠️ stream/video/webcam/dir predict source will accumulate results in RAM unless `stream=True` is passed,
+    causing potential out-of-memory errors for large sources or long-running streams/videos.
+
+    Usage:
+        results = model(source=..., stream=True)  # generator of Results objects
+        for r in results:
+            boxes = r.boxes  # Boxes object for bbox outputs
+            masks = r.masks  # Masks object for segment masks outputs
+            probs = r.probs  # Class probabilities for classification outputs
+"""
+
 
 class BasePredictor:
     """
@@ -108,6 +120,7 @@ class BasePredictor:
         return preds
 
     def __call__(self, source=None, model=None, stream=False):
+        self.stream = stream
         if stream:
             return self.stream_inference(source, model)
         else:
@@ -132,6 +145,10 @@ class BasePredictor:
                                              stride=self.model.stride,
                                              auto=self.model.pt)
         self.source_type = self.dataset.source_type
+        if not getattr(self, 'stream', True) and (self.dataset.mode == 'stream' or  # streams
+                                                  len(self.dataset) > 1000 or  # images
+                                                  any(getattr(self.dataset, 'video_flag', [False]))):  # videos
+            LOGGER.warning(STREAM_WARNING)
         self.vid_path, self.vid_writer = [None] * self.dataset.bs, [None] * self.dataset.bs
 
     @smart_inference_mode()

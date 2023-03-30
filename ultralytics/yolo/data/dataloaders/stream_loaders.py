@@ -335,6 +335,7 @@ class LoadTensor:
     def __init__(self, imgs) -> None:
         self.im0 = imgs
         self.bs = imgs.shape[0]
+        self.mode = 'image'
 
     def __iter__(self):
         self.count = 0
@@ -345,6 +346,9 @@ class LoadTensor:
             raise StopIteration
         self.count += 1
         return None, self.im0, self.im0, None, ''  # self.paths, im, self.im0, None, ''
+
+    def __len__(self):
+        return self.bs
 
 
 def autocast_list(source):

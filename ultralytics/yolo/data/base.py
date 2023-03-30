@@ -12,8 +12,8 @@ import numpy as np
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
-from ..utils import NUM_THREADS, TQDM_BAR_FORMAT
-from .utils import HELP_URL, IMG_FORMATS, LOCAL_RANK
+from ..utils import LOCAL_RANK, NUM_THREADS, TQDM_BAR_FORMAT
+from .utils import HELP_URL, IMG_FORMATS
 
 
 class BaseDataset(Dataset):

@@ -95,7 +95,7 @@ The training settings for YOLO models encompass various hyperparameters and conf
 | `deterministic`   | `True`   | whether to enable deterministic mode                                        |
 | `single_cls`      | `False`  | train multi-class data as single-class                                      |
 | `image_weights`   | `False`  | use weighted image selection for training                                   |
-| `rect`            | `False`  | support rectangular training                                                |
+| `rect`            | `False`  | rectangular training with each batch collated for minimum padding           |
 | `cos_lr`          | `False`  | use cosine learning rate scheduler                                          |
 | `close_mosaic`    | `10`     | disable mosaic augmentation for final 10 epochs                             |
 | `resume`          | `False`  | resume training from last checkpoint                                        |
@@ -165,7 +165,7 @@ The val (validation) settings for YOLO models involve various hyperparameters an
 | `device`      | `None`  | device to run on, i.e. cuda device=0/1/2/3 or device=cpu           |
 | `dnn`         | `False` | use OpenCV DNN for ONNX inference                                  |
 | `plots`       | `False` | show plots during training                                         |
-| `rect`        | `False` | support rectangular evaluation                                     |
+| `rect`        | `False` | rectangular val with each batch collated for minimum padding       |
 | `split`       | `val`   | dataset split to use for validation, i.e. 'val', 'test' or 'train' |
 
 [Val Guide](../modes/val.md){ .md-button .md-button--primary}

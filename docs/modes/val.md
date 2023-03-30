@@ -62,7 +62,7 @@ validation dataset and to detect and prevent overfitting.
 | `device`      | `None`  | device to run on, i.e. cuda device=0/1/2/3 or device=cpu           |
 | `dnn`         | `False` | use OpenCV DNN for ONNX inference                                  |
 | `plots`       | `False` | show plots during training                                         |
-| `rect`        | `False` | support rectangular evaluation                                     |
+| `rect`        | `False` | rectangular val with each batch collated for minimum padding       |
 | `split`       | `val`   | dataset split to use for validation, i.e. 'val', 'test' or 'train' |
 
 ## Export Formats

@@ -172,7 +172,7 @@ class Traces:
         """
         Initialize Traces for error tracking and reporting if tests are not currently running.
         """
-        from ultralytics.yolo.cfg import TASKS, MODES
+        from ultralytics.yolo.cfg import MODES, TASKS
         self.rate_limit = 60.0  # rate limit (seconds)
         self.t = 0.0  # rate limit timer (seconds)
         self.metadata = {

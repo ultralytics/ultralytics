@@ -32,7 +32,8 @@ def request_api_key(auth, max_attempts=3):
     import getpass
     for attempts in range(max_attempts):
         LOGGER.info(f'{PREFIX}Login. Attempt {attempts + 1} of {max_attempts}')
-        input_key = getpass.getpass('Enter your Ultralytics API Key from https://hub.ultralytics.com/settings?tab=api+keys:\n')
+        input_key = getpass.getpass(
+            'Enter your Ultralytics API Key from https://hub.ultralytics.com/settings?tab=api+keys:\n')
         auth.api_key, model_id = split_key(input_key)
 
         if auth.authenticate():

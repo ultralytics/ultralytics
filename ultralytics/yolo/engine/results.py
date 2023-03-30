@@ -11,6 +11,7 @@ from functools import lru_cache
 import numpy as np
 import torch
 import torchvision.transforms.functional as F
+from torchvision import __version__ as torchvision_version
 
 from ultralytics.yolo.utils import LOGGER, SimpleClass, ops
 from ultralytics.yolo.utils.plotting import Annotator, colors
@@ -129,7 +130,12 @@ class Results(SimpleClass):
 
         if masks is not None:
             im = torch.as_tensor(annotator.im, dtype=torch.float16, device=masks.data.device).permute(2, 0, 1).flip(0)
-            im = F.resize(im.contiguous(), masks.data.shape[1:], antialias=True) / 255
+            
+            if int(torchvision_version.split('.')[1]) > 9:
+                im = F.resize(im.contiguous(), masks.data.shape[1:], antialias=True) / 255
+            else:
+                im = F.resize(im.contiguous(), masks.data.shape[1:]) / 255
+                
             annotator.masks(masks.data, colors=[colors(x, True) for x in boxes.cls], im_gpu=im)
 
         if probs is not None:

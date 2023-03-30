@@ -76,7 +76,7 @@ def split_key(key=''):
     error_string = emojis(f'{PREFIX}Invalid API key ⚠️\n')  # error string
     if not key:
         key = getpass.getpass('Enter model key: ')
-    sep = '_' if '_' in key else '.' if '.' in key else None  # separator
+    sep = '_' if '_' in key else None  # separator
     assert sep, error_string
     api_key, model_id = key.split(sep)
     assert len(api_key) and len(model_id), error_string

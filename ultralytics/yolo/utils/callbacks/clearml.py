@@ -6,9 +6,9 @@ try:
     import clearml
     from clearml import Task
 
-    assert clearml.__version__  # verify package is not directory
+    assert hasattr(clearml, '__version__')  # verify package is not directory
     assert not TESTS_RUNNING  # do not log pytest
-except (ImportError, AssertionError, AttributeError):
+except (ImportError, AssertionError):
     clearml = None
 
 

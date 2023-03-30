@@ -14,8 +14,8 @@ import torchvision.transforms.functional as F
 from torchvision import __version__ as torchvision_version
 
 from ultralytics.yolo.utils import LOGGER, SimpleClass, ops
-from ultralytics.yolo.utils.torch_utils import TORCHVISION_0_10
 from ultralytics.yolo.utils.plotting import Annotator, colors
+from ultralytics.yolo.utils.torch_utils import TORCHVISION_0_10
 
 
 class Results(SimpleClass):

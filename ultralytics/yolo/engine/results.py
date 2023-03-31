@@ -276,19 +276,25 @@ class Masks(SimpleClass):
         self.masks = masks  # N, h, w
         self.orig_shape = orig_shape
 
-    @property
-    @lru_cache(maxsize=1)
     def segments(self):
-        return [
-            ops.scale_segments(self.masks.shape[1:], x, self.orig_shape, normalize=True)
-            for x in ops.masks2segments(self.masks)]
+        # Segments-deprecated (normalized)
+        LOGGER.warning(f"WARNING ⚠️ 'Masks.segments' is deprecated. Use 'Masks.xyn' for segments (normalized) and "
+                       f"'Masks.xy' for segments (pixels) instead.")
+        return self.xyn
 
     @property
     @lru_cache(maxsize=1)
-    def segments_xy(self):
-        return [
-            np.int32(ops.scale_segments(self.masks.shape[1:], x, self.orig_shape, normalize=False))
-            for x in ops.masks2segments(self.masks)]
+    def xyn(self):
+        # Segments (normalized)
+        return [ops.scale_segments(self.masks.shape[1:], x, self.orig_shape, normalize=True)
+                for x in ops.masks2segments(self.masks)]
+
+    @property
+    @lru_cache(maxsize=1)
+    def xy(self):
+        # Segments (pixels)
+        return [ops.scale_segments(self.masks.shape[1:], x, self.orig_shape, normalize=False)
+                for x in ops.masks2segments(self.masks)]
 
     @property
     def shape(self):

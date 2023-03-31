@@ -378,7 +378,7 @@ class AutoBackend(nn.Module):
                         x = (x.astype(np.float32) - zero_point) * scale  # re-scale
                     # Unnormalize xywh with input image size
                     # xywh are normalized in TFLite/EdgeTPU to mitigate quantization error of integer models
-                    # see this PR for details: https://github.com/ultralytics/ultralytics/pull/1695
+                    # See this PR for details: https://github.com/ultralytics/ultralytics/pull/1695
                     x[:, 0, :] *= w
                     x[:, 1, :] *= h
                     x[:, 2, :] *= w

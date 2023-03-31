@@ -12,9 +12,9 @@ from random import random
 import requests
 from tqdm import tqdm
 
-from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, ENVIRONMENT, LOGGER, ONLINE, RANK, SETTINGS, TESTS_RUNNING,
-                                    TQDM_BAR_FORMAT, TryExcept, __version__, colorstr, emojis, get_git_origin_url,
-                                    is_colab, is_git_dir, is_pip_package)
+from ultralytics.yolo.utils import (ENVIRONMENT, LOGGER, ONLINE, RANK, SETTINGS, TESTS_RUNNING, TQDM_BAR_FORMAT,
+                                    TryExcept, __version__, colorstr, emojis, get_git_origin_url, is_colab, is_git_dir,
+                                    is_pip_package)
 
 PREFIX = colorstr('Ultralytics HUB: ')
 HELP_MSG = 'If this issue persists please visit https://github.com/ultralytics/hub/issues for assistance.'
@@ -172,7 +172,7 @@ class Traces:
         """
         Initialize Traces for error tracking and reporting if tests are not currently running.
         """
-        from ultralytics.yolo.cfg import TASKS, MODES
+        from ultralytics.yolo.cfg import MODES, TASKS
         self.rate_limit = 60.0  # rate limit (seconds)
         self.t = 0.0  # rate limit timer (seconds)
         self.metadata = {

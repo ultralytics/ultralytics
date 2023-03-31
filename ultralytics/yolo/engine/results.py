@@ -263,7 +263,8 @@ class Masks(SimpleClass):
         orig_shape (tuple): Original image size, in the format (height, width).
 
     Properties:
-        segments (list): A list of segments which includes x, y, w, h, label, confidence, and mask of each detection.
+        xy (list): A list of segments (pixels) which includes x, y segments of each detection.
+        xyn (list): A list of segments (normalized) which includes x, y segments of each detection.
 
     Methods:
         cpu(): Returns a copy of the masks tensor on CPU memory.

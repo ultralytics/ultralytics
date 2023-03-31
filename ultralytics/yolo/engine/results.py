@@ -284,6 +284,13 @@ class Masks(SimpleClass):
             for x in ops.masks2segments(self.masks)]
 
     @property
+    @lru_cache(maxsize=1)
+    def segments_xy(self):
+        return [
+            np.int32(ops.scale_segments(self.masks.shape[1:], x, self.orig_shape, normalize=False))
+            for x in ops.masks2segments(self.masks)]
+
+    @property
     def shape(self):
         return self.masks.shape
 

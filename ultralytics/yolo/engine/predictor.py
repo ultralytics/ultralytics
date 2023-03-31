@@ -3,16 +3,16 @@
 Run prediction on images, videos, directories, globs, YouTube, webcam, streams, etc.
 
 Usage - sources:
-    $ yolo mode=predict model=yolov8n.pt --source 0                               # webcam
-                                                  img.jpg                         # image
-                                                  vid.mp4                         # video
-                                                  screen                          # screenshot
-                                                  path/                           # directory
-                                                  list.txt                        # list of images
-                                                  list.streams                    # list of streams
-                                                  'path/*.jpg'                    # glob
-                                                  'https://youtu.be/Zgi9g1ksQHc'  # YouTube
-                                                  'rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP stream
+    $ yolo mode=predict model=yolov8n.pt source=0                               # webcam
+                                                img.jpg                         # image
+                                                vid.mp4                         # video
+                                                screen                          # screenshot
+                                                path/                           # directory
+                                                list.txt                        # list of images
+                                                list.streams                    # list of streams
+                                                'path/*.jpg'                    # glob
+                                                'https://youtu.be/Zgi9g1ksQHc'  # YouTube
+                                                'rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP stream
 
 Usage - formats:
     $ yolo mode=predict model=yolov8n.pt                 # PyTorch

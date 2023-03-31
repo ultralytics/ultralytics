@@ -12,9 +12,9 @@ from random import random
 import requests
 from tqdm import tqdm
 
-from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, ENVIRONMENT, LOGGER, ONLINE, RANK, SETTINGS, TESTS_RUNNING,
-                                    TQDM_BAR_FORMAT, TryExcept, __version__, colorstr, emojis, get_git_origin_url,
-                                    is_colab, is_git_dir, is_pip_package)
+from ultralytics.yolo.utils import (ENVIRONMENT, LOGGER, ONLINE, RANK, SETTINGS, TESTS_RUNNING, TQDM_BAR_FORMAT,
+                                    TryExcept, __version__, colorstr, emojis, get_git_origin_url, is_colab, is_git_dir,
+                                    is_pip_package)
 
 PREFIX = colorstr('Ultralytics HUB: ')
 HELP_MSG = 'If this issue persists please visit https://github.com/ultralytics/hub/issues for assistance.'
@@ -76,7 +76,7 @@ def split_key(key=''):
     error_string = emojis(f'{PREFIX}Invalid API key ⚠️\n')  # error string
     if not key:
         key = getpass.getpass('Enter model key: ')
-    sep = '_' if '_' in key else '.' if '.' in key else None  # separator
+    sep = '_' if '_' in key else None  # separator
     assert sep, error_string
     api_key, model_id = key.split(sep)
     assert len(api_key) and len(model_id), error_string
@@ -172,7 +172,8 @@ class Traces:
         """
         Initialize Traces for error tracking and reporting if tests are not currently running.
         """
-        self.rate_limit = 3.0  # rate limit (seconds)
+        from ultralytics.yolo.cfg import MODES, TASKS
+        self.rate_limit = 60.0  # rate limit (seconds)
         self.t = 0.0  # rate limit timer (seconds)
         self.metadata = {
             'sys_argv_name': Path(sys.argv[0]).name,
@@ -186,6 +187,7 @@ class Traces:
             not TESTS_RUNNING and \
             ONLINE and \
             (is_pip_package() or get_git_origin_url() == 'https://github.com/ultralytics/ultralytics.git')
+        self.usage = {'tasks': {k: 0 for k in TASKS}, 'modes': {k: 0 for k in MODES}}
 
     def __call__(self, cfg, all_keys=False, traces_sample_rate=1.0):
         """
@@ -197,15 +199,22 @@ class Traces:
             traces_sample_rate (float): Fraction of traces captured from 0.0 to 1.0
         """
         t = time.time()  # current time
-        if self.enabled and random() < traces_sample_rate and (t - self.t) > self.rate_limit:
+        if not self.enabled or random() > traces_sample_rate:
+            # Traces disabled or not randomly selected, do nothing
+            return
+        elif (t - self.t) < self.rate_limit:
+            # Time is under rate limiter, do nothing
+            return
+        else:
+            # Time is over rate limiter, send trace now
             self.t = t  # reset rate limit timer
-            cfg = vars(cfg)  # convert type from IterableSimpleNamespace to dict
-            if not all_keys:  # filter cfg
-                include_keys = {'task', 'mode'}  # always include
-                cfg = {
-                    k: (v.split(os.sep)[-1] if isinstance(v, str) and os.sep in v else v)
-                    for k, v in cfg.items() if v != DEFAULT_CFG_DICT.get(k, None) or k in include_keys}
-            trace = {'uuid': SETTINGS['uuid'], 'cfg': cfg, 'metadata': self.metadata}
+
+            # Build trace
+            if cfg.task in self.usage['tasks']:
+                self.usage['tasks'][cfg.task] += 1
+            if cfg.mode in self.usage['modes']:
+                self.usage['modes'][cfg.mode] += 1
+            trace = {'uuid': SETTINGS['uuid'], 'usage': self.usage, 'metadata': self.metadata}
 
             # Send a request to the HUB API to sync analytics
             smart_request('post', f'{HUB_API_ROOT}/v1/usage/anonymous', json=trace, code=3, retry=0, verbose=False)

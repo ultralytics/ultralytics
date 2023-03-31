@@ -25,8 +25,6 @@ from ultralytics.yolo.utils.ops import segments2boxes
 HELP_URL = 'See https://github.com/ultralytics/yolov5/wiki/Train-Custom-Data'
 IMG_FORMATS = 'bmp', 'dng', 'jpeg', 'jpg', 'mpo', 'png', 'tif', 'tiff', 'webp', 'pfm'  # image suffixes
 VID_FORMATS = 'asf', 'avi', 'gif', 'm4v', 'mkv', 'mov', 'mp4', 'mpeg', 'mpg', 'ts', 'wmv', 'webm'  # video suffixes
-LOCAL_RANK = int(os.getenv('LOCAL_RANK', -1))  # https://pytorch.org/docs/stable/elastic/run.html
-RANK = int(os.getenv('RANK', -1))
 PIN_MEMORY = str(os.getenv('PIN_MEMORY', True)).lower() == 'true'  # global pin_memory for dataloaders
 IMAGENET_MEAN = 0.485, 0.456, 0.406  # RGB mean
 IMAGENET_STD = 0.229, 0.224, 0.225  # RGB standard deviation
@@ -280,6 +278,7 @@ def check_cls_dataset(dataset: str):
         data (dict): A dictionary containing the following keys and values:
             'train': Path object for the directory containing the training set of the dataset
             'val': Path object for the directory containing the validation set of the dataset
+            'test': Path object for the directory containing the test set of the dataset
             'nc': Number of classes in the dataset
             'names': List of class names in the dataset
     """
@@ -295,11 +294,12 @@ def check_cls_dataset(dataset: str):
         s = f"Dataset download success ✅ ({time.time() - t:.1f}s), saved to {colorstr('bold', data_dir)}\n"
         LOGGER.info(s)
     train_set = data_dir / 'train'
-    test_set = data_dir / 'test' if (data_dir / 'test').exists() else data_dir / 'val'  # data/test or data/val
+    val_set = data_dir / 'val' if (data_dir / 'val').exists() else None  # data/test or data/val
+    test_set = data_dir / 'test' if (data_dir / 'test').exists() else None  # data/val or data/test
     nc = len([x for x in (data_dir / 'train').glob('*') if x.is_dir()])  # number of classes
     names = [x.name for x in (data_dir / 'train').iterdir() if x.is_dir()]  # class names list
     names = dict(enumerate(sorted(names)))
-    return {'train': train_set, 'val': test_set, 'nc': nc, 'names': names}
+    return {'train': train_set, 'val': val_set, 'test': test_set, 'nc': nc, 'names': names}
 
 
 class HUBDatasetStats():

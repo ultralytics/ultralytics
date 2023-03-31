@@ -14,11 +14,7 @@ def start(key=''):
     Start training models with Ultralytics HUB. Usage: from ultralytics.hub import start; start('API_KEY')
     """
     auth = Auth(key)
-    if not auth.get_state():
-        model_id = request_api_key(auth)
-    else:
-        _, model_id = split_key(key)
-
+    model_id = split_key(key)[1] if auth.get_state() else request_api_key(auth)
     if not model_id:
         raise ConnectionError(emojis('Connecting with global API key is not currently supported. ❌'))
 
@@ -36,7 +32,8 @@ def request_api_key(auth, max_attempts=3):
     import getpass
     for attempts in range(max_attempts):
         LOGGER.info(f'{PREFIX}Login. Attempt {attempts + 1} of {max_attempts}')
-        input_key = getpass.getpass('Enter your Ultralytics HUB API key:\n')
+        input_key = getpass.getpass(
+            'Enter your Ultralytics API Key from https://hub.ultralytics.com/settings?tab=api+keys:\n')
         auth.api_key, model_id = split_key(input_key)
 
         if auth.authenticate():

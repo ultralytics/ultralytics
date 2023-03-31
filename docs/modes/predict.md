@@ -152,7 +152,8 @@ operations are cached, meaning they're only calculated once per object, and thos
     ```python
     results = model(inputs)
     masks = results[0].masks  # Masks object
-    masks.segments  # bounding coordinates of masks, List[segment] * N
+    masks.xy  # x, y segments (pixels), List[segment] * N
+    masks.xyn  # x, y segments (normalized), List[segment] * N
     masks.data  # raw masks tensor, (N, H, W) or masks.masks 
     ```
 
@@ -185,3 +186,47 @@ masks, classification logits, etc.) found in the results object
 - `show_conf (bool)`: Show confidence
 - `line_width (Float)`: The line width of boxes. Automatically scaled to img size if not provided
 - `font_size (Float)`: The font size of . Automatically scaled to img size if not provided
+
+## Streaming Source `for`-loop
+
+Here's a Python script using OpenCV (cv2) and YOLOv8 to run inference on video frames. This script assumes you have already installed the necessary packages (opencv-python and ultralytics).
+
+!!! example "Streaming for-loop"
+
+    ```python
+    import cv2
+    from ultralytics import YOLO
+    
+    # Load the YOLOv8 model
+    model = YOLO('yolov8n.pt')
+    
+    # Open the video file
+    video_path = "path/to/your/video/file.mp4"
+    cap = cv2.VideoCapture(video_path)
+    
+    # Loop through the video frames
+    while cap.isOpened():
+        # Read a frame from the video
+        success, frame = cap.read()
+    
+        if success:
+            # Run YOLOv8 inference on the frame
+            results = model(frame)
+    
+            # Visualize the results on the frame
+            annotated_frame = results[0].plot()
+    
+            # Display the annotated frame
+            cv2.imshow("YOLOv8 Inference", annotated_frame)
+    
+            # Break the loop if 'q' is pressed
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
+        else:
+            # Break the loop if the end of the video is reached
+            break
+    
+    # Release the video capture object and close the display window
+    cap.release()
+    cv2.destroyAllWindows()
+    ```

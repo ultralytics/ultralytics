@@ -230,8 +230,9 @@ class YOLO:
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
 
     def track(self, source=None, stream=False, **kwargs):
-        from ultralytics.tracker import register_tracker
-        register_tracker(self)
+        if not hasattr(self.predictor, 'trackers'):
+            from ultralytics.tracker import register_tracker
+            register_tracker(self)
         # ByteTrack-based method needs low confidence predictions as input
         conf = kwargs.get('conf') or 0.1
         kwargs['conf'] = conf

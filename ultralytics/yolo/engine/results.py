@@ -286,15 +286,17 @@ class Masks(SimpleClass):
     @lru_cache(maxsize=1)
     def xyn(self):
         # Segments (normalized)
-        return [ops.scale_segments(self.masks.shape[1:], x, self.orig_shape, normalize=True)
-                for x in ops.masks2segments(self.masks)]
+        return [
+            ops.scale_segments(self.masks.shape[1:], x, self.orig_shape, normalize=True)
+            for x in ops.masks2segments(self.masks)]
 
     @property
     @lru_cache(maxsize=1)
     def xy(self):
         # Segments (pixels)
-        return [ops.scale_segments(self.masks.shape[1:], x, self.orig_shape, normalize=False)
-                for x in ops.masks2segments(self.masks)]
+        return [
+            ops.scale_segments(self.masks.shape[1:], x, self.orig_shape, normalize=False)
+            for x in ops.masks2segments(self.masks)]
 
     @property
     def shape(self):

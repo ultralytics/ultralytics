@@ -14,6 +14,7 @@ import torchvision.transforms.functional as F
 
 from ultralytics.yolo.utils import LOGGER, SimpleClass, ops
 from ultralytics.yolo.utils.plotting import Annotator, colors
+from ultralytics.yolo.utils.torch_utils import TORCHVISION_0_10
 
 
 class Results(SimpleClass):
@@ -129,7 +130,10 @@ class Results(SimpleClass):
 
         if masks is not None:
             im = torch.as_tensor(annotator.im, dtype=torch.float16, device=masks.data.device).permute(2, 0, 1).flip(0)
-            im = F.resize(im.contiguous(), masks.data.shape[1:]) / 255
+            if TORCHVISION_0_10:
+                im = F.resize(im.contiguous(), masks.data.shape[1:], antialias=True) / 255
+            else:
+                im = F.resize(im.contiguous(), masks.data.shape[1:]) / 255
             annotator.masks(masks.data, colors=[colors(x, True) for x in boxes.cls], im_gpu=im)
 
         if probs is not None:
@@ -259,7 +263,8 @@ class Masks(SimpleClass):
         orig_shape (tuple): Original image size, in the format (height, width).
 
     Properties:
-        segments (list): A list of segments which includes x, y, w, h, label, confidence, and mask of each detection.
+        xy (list): A list of segments (pixels) which includes x, y segments of each detection.
+        xyn (list): A list of segments (normalized) which includes x, y segments of each detection.
 
     Methods:
         cpu(): Returns a copy of the masks tensor on CPU memory.
@@ -272,11 +277,26 @@ class Masks(SimpleClass):
         self.masks = masks  # N, h, w
         self.orig_shape = orig_shape
 
+    def segments(self):
+        # Segments-deprecated (normalized)
+        LOGGER.warning("WARNING ⚠️ 'Masks.segments' is deprecated. Use 'Masks.xyn' for segments (normalized) and "
+                       "'Masks.xy' for segments (pixels) instead.")
+        return self.xyn
+
     @property
     @lru_cache(maxsize=1)
-    def segments(self):
+    def xyn(self):
+        # Segments (normalized)
         return [
             ops.scale_segments(self.masks.shape[1:], x, self.orig_shape, normalize=True)
+            for x in ops.masks2segments(self.masks)]
+
+    @property
+    @lru_cache(maxsize=1)
+    def xy(self):
+        # Segments (pixels)
+        return [
+            ops.scale_segments(self.masks.shape[1:], x, self.orig_shape, normalize=False)
             for x in ops.masks2segments(self.masks)]
 
     @property

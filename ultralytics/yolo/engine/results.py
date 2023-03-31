@@ -279,8 +279,8 @@ class Masks(SimpleClass):
 
     def segments(self):
         # Segments-deprecated (normalized)
-        LOGGER.warning(f"WARNING ⚠️ 'Masks.segments' is deprecated. Use 'Masks.xyn' for segments (normalized) and "
-                       f"'Masks.xy' for segments (pixels) instead.")
+        LOGGER.warning("WARNING ⚠️ 'Masks.segments' is deprecated. Use 'Masks.xyn' for segments (normalized) and "
+                       "'Masks.xy' for segments (pixels) instead.")
         return self.xyn
 
     @property

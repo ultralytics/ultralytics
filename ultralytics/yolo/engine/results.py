@@ -99,8 +99,17 @@ class Results(SimpleClass):
     def keys(self):
         return [k for k in self._keys if getattr(self, k) is not None]
 
-    def plot(self, show_conf=True, line_width=None, font_size=None, font='Arial.ttf', pil=False, example='abc',
-             img=None, hide_labels=False, hide_boxes=False, hide_masks=False):
+    def plot(self,
+             show_conf=True,
+             line_width=None,
+             font_size=None,
+             font='Arial.ttf',
+             pil=False,
+             example='abc',
+             img=None,
+             hide_labels=False,
+             hide_boxes=False,
+             hide_masks=False):
         """
         Plots the detection results on an input RGB image. Accepts a numpy array (cv2) or a PIL Image.
 

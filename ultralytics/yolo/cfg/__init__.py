@@ -11,14 +11,28 @@ from typing import Dict, List, Union
 from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, ROOT, USER_CONFIG_DIR,
                                     IterableSimpleNamespace, __version__, checks, colorstr, yaml_load, yaml_print)
 
+# Define valid tasks and modes
+MODES = 'train', 'val', 'predict', 'export', 'track', 'benchmark'
+TASKS = 'detect', 'segment', 'classify', 'pose'
+TASK2DATA = {
+    'detect': 'coco128.yaml',
+    'segment': 'coco128-seg.yaml',
+    'pose': 'coco128-pose.yaml',
+    'classify': 'imagenet100'}
+TASK2MODEL = {
+    'detect': 'yolov8n.pt',
+    'segment': 'yolov8n-seg.pt',
+    'pose': 'yolov8n-pose.yaml',
+    'classify': 'yolov8n-cls.pt'}  # temp
+
 CLI_HELP_MSG = \
     f"""
     Arguments received: {str(['yolo'] + sys.argv[1:])}. Ultralytics 'yolo' commands use the following syntax:
 
         yolo TASK MODE ARGS
 
-        Where   TASK (optional) is one of [detect, segment, classify]
-                MODE (required) is one of [train, val, predict, export, track]
+        Where   TASK (optional) is one of {TASKS}
+                MODE (required) is one of {MODES}
                 ARGS (optional) are any number of custom 'arg=value' pairs like 'imgsz=320' that override defaults.
                     See all ARGS at https://docs.ultralytics.com/usage/cfg or with 'yolo cfg'
 
@@ -58,12 +72,6 @@ CFG_BOOL_KEYS = ('save', 'exist_ok', 'verbose', 'deterministic', 'single_cls', '
                  'overlap_mask', 'val', 'save_json', 'save_hybrid', 'half', 'dnn', 'plots', 'show', 'save_txt',
                  'save_conf', 'save_crop', 'hide_labels', 'hide_conf', 'visualize', 'augment', 'agnostic_nms',
                  'retina_masks', 'boxes', 'keras', 'optimize', 'int8', 'dynamic', 'simplify', 'nms', 'v5loader')
-
-# Define valid tasks and modes
-MODES = 'train', 'val', 'predict', 'export', 'track', 'benchmark'
-TASKS = 'detect', 'segment', 'classify'
-TASK2DATA = {'detect': 'coco128.yaml', 'segment': 'coco128-seg.yaml', 'classify': 'imagenet100'}
-TASK2MODEL = {'detect': 'yolov8n.pt', 'segment': 'yolov8n-seg.pt', 'classify': 'yolov8n-cls.pt'}
 
 
 def cfg2dict(cfg):

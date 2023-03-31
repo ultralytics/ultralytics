@@ -99,7 +99,8 @@ class Results(SimpleClass):
     def keys(self):
         return [k for k in self._keys if getattr(self, k) is not None]
 
-    def plot(self, show_conf=True, line_width=None, font_size=None, font='Arial.ttf', pil=False, example='abc'):
+    def plot(self, show_conf=True, line_width=None, font_size=None, font='Arial.ttf', pil=False, example='abc',
+             img=None, hide_labels=False, hide_boxes=False, hide_masks=False):
         """
         Plots the detection results on an input RGB image. Accepts a numpy array (cv2) or a PIL Image.
 
@@ -110,24 +111,28 @@ class Results(SimpleClass):
             font (str): The font to use for the text.
             pil (bool): Whether to return the image as a PIL Image.
             example (str): An example string to display. Useful for indicating the expected format of the output.
+            img (numpy.ndarray): Plot to another image. if not, plot to original image.
+            hide_labels (bool): Whether to show the label of bounding boxes.
+            hide_boxes (bool): Whether to show the bounding boxes.
+            hide_masks (bool): Whether to show the masks.
 
         Returns:
             (None) or (PIL.Image): If `pil` is True, a PIL Image is returned. Otherwise, nothing is returned.
         """
-        annotator = Annotator(deepcopy(self.orig_img), line_width, font_size, font, pil, example)
+        annotator = Annotator(deepcopy(self.orig_img if img is None else img), line_width, font_size, font, pil,
+                              example)
         boxes = self.boxes
         masks = self.masks
         probs = self.probs
         names = self.names
-        hide_labels, hide_conf = False, not show_conf
-        if boxes is not None:
+        if boxes is not None and not hide_boxes:
             for d in reversed(boxes):
                 c, conf, id = int(d.cls), float(d.conf), None if d.id is None else int(d.id.item())
                 name = ('' if id is None else f'id:{id} ') + names[c]
-                label = None if hide_labels else (name if hide_conf else f'{name} {conf:.2f}')
+                label = None if hide_labels else (name if not show_conf else f'{name} {conf:.2f}')
                 annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
 
-        if masks is not None:
+        if masks is not None and not hide_masks:
             im = torch.as_tensor(annotator.im, dtype=torch.float16, device=masks.data.device).permute(2, 0, 1).flip(0)
             im = F.resize(im.contiguous(), masks.data.shape[1:]) / 255
             annotator.masks(masks.data, colors=[colors(x, True) for x in boxes.cls], im_gpu=im)

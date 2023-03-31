@@ -426,9 +426,9 @@ class Detect(nn.Module):
             img_h = shape[2] * self.stride[0]
             img_w = shape[3] * self.stride[0]
             img_size = torch.tensor([[img_w, img_h, img_w, img_h]], device=dbox.device).unsqueeze(-1)  # [1, 4, 1]
-            y = torch.cat((dbox / img_size, cls.sigmoid()), 1)
-        else:
-            y = torch.cat((dbox, cls.sigmoid()), 1)
+            dbox /= img_size
+
+        y = torch.cat((dbox, cls.sigmoid()), 1)
         return y if self.export else (y, x)
 
     def bias_init(self):

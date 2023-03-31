@@ -484,7 +484,7 @@ def get_user_config_dir(sub_dir='Ultralytics'):
     return path
 
 
-USER_CONFIG_DIR = os.getenv('YOLO_CONFIG_DIR', get_user_config_dir())  # Ultralytics settings dir
+USER_CONFIG_DIR = Path(os.getenv('YOLO_CONFIG_DIR', get_user_config_dir()))  # Ultralytics settings dir
 
 
 def emojis(string=''):

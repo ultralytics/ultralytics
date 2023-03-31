@@ -152,7 +152,8 @@ operations are cached, meaning they're only calculated once per object, and thos
     ```python
     results = model(inputs)
     masks = results[0].masks  # Masks object
-    masks.segments  # bounding coordinates of masks, List[segment] * N
+    masks.xy  # x, y segments (pixels), List[segment] * N
+    masks.xyn  # x, y segments (normalized), List[segment] * N
     masks.data  # raw masks tensor, (N, H, W) or masks.masks 
     ```
 

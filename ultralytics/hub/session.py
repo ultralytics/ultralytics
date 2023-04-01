@@ -14,7 +14,15 @@ AGENT_NAME = f'python-{__version__}-colab' if is_colab() else f'python-{__versio
 
 class HUBTrainingSession:
 
-    def __init__(self, model_id, auth):
+    def __init__(self, key):
+        from ultralytics.hub import Auth, request_api_key, split_key
+
+        # Authorize
+        auth = Auth(key)
+        model_id = split_key(key)[1] if auth.get_state() else request_api_key(auth)
+        if not model_id:
+            raise ConnectionError(emojis('Connecting with global API key is not currently supported. ❌'))
+
         self.agent_id = None  # identifies which instance is communicating with server
         self.model_id = model_id
         self.api_url = f'{HUB_API_ROOT}/v1/models/{model_id}'
@@ -23,6 +31,7 @@ class HUBTrainingSession:
         self.timers = {}  # rate limit timers (seconds)
         self.metrics_queue = {}  # metrics queue
         self.model = self._get_model()
+        self.check_disk_space()
         self.alive = True
         self._start_heartbeat()  # start heartbeats
         self._register_signal_handlers()
@@ -88,7 +97,7 @@ class HUBTrainingSession:
             raise
 
     def check_disk_space(self):
-        if not check_dataset_disk_space(self.model['data']):
+        if not check_dataset_disk_space(url=self.model['data']):
             raise MemoryError('Not enough disk space')
 
     def upload_model(self, epoch, weights, is_best=False, map=0.0, final=False):

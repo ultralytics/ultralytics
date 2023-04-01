@@ -110,7 +110,8 @@ class YOLO:
         name = self.__class__.__name__
         raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
-    def _is_hub_model(self, model):
+    @staticmethod
+    def _is_hub_model(model):
         # True for HUB model URLs or key-model-id pairs
         return model.startswith('https://hub.ultralytics.com/models/') or [len(x) for x in model.split('_')] == [42, 20]
 

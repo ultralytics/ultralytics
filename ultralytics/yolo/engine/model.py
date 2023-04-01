@@ -94,6 +94,10 @@ class YOLO:
             self.session = HUBTrainingSession(model)
             model = self.session.model_file
 
+        # if 'https://hub.ultralytics.com/models/' in model:
+        #     self.session = HUBTrainingSession(model_id=model_id, auth=auth)  # HUB session
+        #     model = self.session.model_file
+
         # Load or create new YOLO model
         suffix = Path(model).suffix
         if not suffix and Path(model).stem in GITHUB_ASSET_STEMS:

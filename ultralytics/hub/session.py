@@ -41,6 +41,7 @@ class HUBTrainingSession:
         self.timers = {}  # rate limit timers (seconds)
         self.metrics_queue = {}  # metrics queue
         self.model = self._get_model()
+        self.check_disk_space()
         self.alive = True
         self._start_heartbeat()  # start heartbeats
         self._register_signal_handlers()

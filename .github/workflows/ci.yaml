@@ -59,7 +59,7 @@ jobs:
           APIKEY: ${{ secrets.ULTRALYTICS_HUB_APIKEY }}
         run: |
           import os
-          from ultralytics import YOLO
+          from ultralytics import YOLO, hub
           key = os.environ['APIKEY']
           hub.reset_model(key)
           model = YOLO(key)
@@ -70,7 +70,7 @@ jobs:
           APIKEY: ${{ secrets.ULTRALYTICS_HUB_APIKEY }}
         run: |
           import os
-          from ultralytics import YOLO
+          from ultralytics import YOLO, hub
           key = os.environ['APIKEY']
           hub.reset_model(key)
           model = YOLO('https://hub.ultralytics.com/models/' + key)

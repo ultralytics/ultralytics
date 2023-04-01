@@ -35,7 +35,7 @@ def on_pretrain_routine_end(trainer):
         try:
             run = mlflow.active_run()
             if not run:
-                run = mlflow.start_run(experiment_id = experiment.experiment_id)
+                run = mlflow.start_run(experiment_id=experiment.experiment_id)
             run_id = run.info.run_id
             LOGGER.info(f'{prefix}Using run_id({run_id}) at {mlflow_location}')
             mlflow.log_params(vars(trainer.model.args))

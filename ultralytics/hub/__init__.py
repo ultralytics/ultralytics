@@ -12,7 +12,7 @@ def start(key=''):
     """
     Start training models with Ultralytics HUB. Usage: from ultralytics.hub import start; start('API_KEY')
     """
-    session = HUBTrainingSession(key=key)  # key=apikey_modelid
+    session = HUBTrainingSession(key=key)  # key=api_model
     model = YOLO(model=session.model_file, session=session)
     model.train(**session.train_args)
 

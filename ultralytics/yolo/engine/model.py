@@ -86,13 +86,15 @@ class YOLO:
         self.overrides = {}  # overrides for trainer object
         self.metrics = None  # validation/training metrics
         self.session = session  # HUB session
+        model = str(model).strip()  # strip spaces
 
-        # if 'https://hub.ultralytics.com/models/' in model:
-        #     self.session = HUBTrainingSession(model_id=model_id, auth=auth)  # HUB session
-        #     model = self.session.model_file
+        # Check if HUB model
+        if model.startswith('https://hub.ultralytics.com/models/'):
+            from ultralytics.hub import HUBTrainingSession
+            self.session = HUBTrainingSession(model_url=model)  # HUB session
+            model = self.session.model_file
 
         # Load or create new YOLO model
-        model = str(model).strip()  # strip spaces
         suffix = Path(model).suffix
         if not suffix and Path(model).stem in GITHUB_ASSET_STEMS:
             model, suffix = Path(model).with_suffix('.pt'), '.pt'  # add suffix, i.e. yolov8n -> yolov8n.pt

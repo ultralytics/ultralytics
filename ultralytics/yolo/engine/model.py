@@ -87,10 +87,9 @@ class YOLO:
         self.metrics = None  # validation/training metrics
         self.session = session  # HUB session
 
-        if 'https://hub.ultralytics.com/models/' in model:
-            self.session = HUBTrainingSession(model_id=model_id, auth=auth)  # HUB session
-            self.session.check_disk_space()
-            model = self.session.model_file
+        # if 'https://hub.ultralytics.com/models/' in model:
+        #     self.session = HUBTrainingSession(model_id=model_id, auth=auth)  # HUB session
+        #     model = self.session.model_file
 
         # Load or create new YOLO model
         model = str(model).strip()  # strip spaces

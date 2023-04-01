@@ -5,9 +5,9 @@ name: Ultralytics CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, updates]
   pull_request:
-    branches: [main]
+    branches: [main, updates]
   schedule:
     - cron: '0 0 * * *'  # runs at 00:00 UTC every day
 

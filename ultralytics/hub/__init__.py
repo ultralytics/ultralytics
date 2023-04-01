@@ -10,10 +10,20 @@ from ultralytics.yolo.utils import LOGGER, emojis
 
 def start(model=''):
     """
-    Start training models with Ultralytics HUB. Usage: from ultralytics.hub import start; start('API_KEY')
+    Start training models with Ultralytics HUB.
+
+    Args:
+        model (str, optional): A string containing either the API key and model ID combination (apikey_modelid),
+                               or the full model URL (https://hub.ultralytics.com/models/apikey_modelid).
+
+    Usage:
+        from ultralytics import hub
+        hub.start('API_KEY')
+
+    This function initializes a HUBTrainingSession with the provided model string and trains a YOLO model using
+    the session's model file and training arguments.
     """
-    session = HUBTrainingSession(
-        model)  # model can be apikey_modelid or https://hub.ultralytics.com/models/apikey_modelid
+    session = HUBTrainingSession(model)
     model = YOLO(model=session.model_file, session=session)
     model.train(**session.train_args)
 

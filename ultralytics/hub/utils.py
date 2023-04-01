@@ -185,6 +185,7 @@ def smart_request(method, url, retry=3, timeout=30, thread=True, code=-1, verbos
 
 
 class Traces:
+
     def __init__(self):
         """
         Initialize Traces for error tracking and reporting if tests are not currently running.

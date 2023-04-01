@@ -1,6 +1,7 @@
+import argparse
+
 import cv2.dnn
 import numpy as np
-import argparse
 
 from ultralytics.yolo.utils import ROOT, yaml_load
 from ultralytics.yolo.utils.checks import check_yaml
@@ -73,7 +74,7 @@ def main(onnx_model, input_image):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', default='yolov8n.onnx', help="Input your onnx model.")
-    parser.add_argument('--img', default=str(ROOT / 'assets/bus.jpg'), help="Path to input image.")
+    parser.add_argument('--model', default='yolov8n.onnx', help='Input your onnx model.')
+    parser.add_argument('--img', default=str(ROOT / 'assets/bus.jpg'), help='Path to input image.')
     args = parser.parse_args()
     main(args.model, args.img)

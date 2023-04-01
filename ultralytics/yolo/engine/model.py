@@ -323,7 +323,7 @@ class YOLO:
         self._check_is_pytorch_model()
         if self.session:  # Ultralytics HUB session
             if any(kwargs):
-                LOGGER.warning("WARNING ⚠️ using HUB training arguments, ignoring local training arguments.")
+                LOGGER.warning('WARNING ⚠️ using HUB training arguments, ignoring local training arguments.')
             kwargs = self.session.train_args
             self.session.check_disk_space()
         check_pip_update_available()

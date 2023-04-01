@@ -73,7 +73,10 @@ class YOLO:
         Initializes the YOLO model.
 
         Args:
-            model (str, Path): model to load or create
+            model (Union[str, Path], optional): Path or name of the model to load or create. Defaults to 'yolov8n.pt'.
+            task (Any, optional): Task type for the YOLO model. Defaults to None.
+            session (Any, optional): HUB session for Ultralytics HUB model. Defaults to None.
+
         """
         self._reset_callbacks()
         self.predictor = None  # reuse predictor
@@ -88,15 +91,11 @@ class YOLO:
         self.session = session  # HUB session
         model = str(model).strip()  # strip spaces
 
-        # Check if HUB model
+        # Check if Ultralytics HUB model from https://hub.ultralytics.com
         if self._is_hub_model(model):
             from ultralytics.hub import HUBTrainingSession
             self.session = HUBTrainingSession(model)
             model = self.session.model_file
-
-        # if 'https://hub.ultralytics.com/models/' in model:
-        #     self.session = HUBTrainingSession(model_id=model_id, auth=auth)  # HUB session
-        #     model = self.session.model_file
 
         # Load or create new YOLO model
         suffix = Path(model).suffix

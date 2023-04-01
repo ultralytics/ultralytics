@@ -13,8 +13,38 @@ AGENT_NAME = f'python-{__version__}-colab' if is_colab() else f'python-{__versio
 
 
 class HUBTrainingSession:
+    """
+    HUB training session for Ultralytics HUB YOLO models. Handles model initialization, heartbeats, and checkpointing.
+
+    Args:
+        model (str): Model identifier used to initialize the HUB training session.
+
+    Attributes:
+        agent_id (str): Identifier for the instance communicating with the server.
+        model_id (str): Identifier for the YOLOv5 model being trained.
+        model_url (str): URL for the model in Ultralytics HUB.
+        api_url (str): API URL for the model in Ultralytics HUB.
+        auth_header (Dict): Authentication header for the Ultralytics HUB API requests.
+        rate_limits (Dict): Rate limits for different API calls (in seconds).
+        timers (Dict): Timers for rate limiting.
+        metrics_queue (Dict): Queue for the model's metrics.
+        model (Dict): Model data fetched from Ultralytics HUB.
+        alive (bool): Indicates if the heartbeat loop is active.
+    """
 
     def __init__(self, model):
+        """
+        Initialize the HUBTrainingSession with the provided model identifier.
+
+        Args:
+            model (str): Model identifier used to initialize the HUB training session.
+                         It can be a URL string or a model key with specific format.
+
+        Raises:
+            ValueError: If the provided model identifier is invalid.
+            ConnectionError: If connecting with global API key is not supported.
+        """
+
         from ultralytics.hub import request_api_key, split_key
         from ultralytics.hub.auth import Auth
 
@@ -48,14 +78,14 @@ class HUBTrainingSession:
         LOGGER.info(f'{PREFIX}View model at {self.model_url} 🚀')
 
     def _register_signal_handlers(self):
+        """Register signal handlers for SIGTERM and SIGINT signals to gracefully handle termination."""
         signal.signal(signal.SIGTERM, self._handle_signal)
         signal.signal(signal.SIGINT, self._handle_signal)
 
     def _handle_signal(self, signum, frame):
         """
-        Prevent heartbeats from being sent on Colab after kill.
-        This method does not use frame, it is included as it is
-        passed by signal.
+        Handle kill signals and prevent heartbeats from being sent on Colab after termination.
+        This method does not use frame, it is included as it is passed by signal.
         """
         if self.alive is True:
             LOGGER.info(f'{PREFIX}Kill signal received! ❌')
@@ -63,15 +93,16 @@ class HUBTrainingSession:
             sys.exit(signum)
 
     def _stop_heartbeat(self):
-        """End the heartbeat loop"""
+        """Terminate the heartbeat loop."""
         self.alive = False
 
     def upload_metrics(self):
+        """Upload model metrics to Ultralytics HUB."""
         payload = {'metrics': self.metrics_queue.copy(), 'type': 'metrics'}
         smart_request('post', self.api_url, json=payload, headers=self.auth_header, code=2)
 
     def _get_model(self):
-        # Returns model from database by id
+        """Fetch and return model data from Ultralytics HUB."""
         api_url = f'{HUB_API_ROOT}/v1/models/{self.model_id}'
 
         try:
@@ -106,11 +137,21 @@ class HUBTrainingSession:
             raise
 
     def check_disk_space(self):
+        """Check if there is enough disk space for the dataset."""
         if not check_dataset_disk_space(url=self.model['data']):
             raise MemoryError('Not enough disk space')
 
     def upload_model(self, epoch, weights, is_best=False, map=0.0, final=False):
-        # Upload a model to HUB
+        """
+        Upload a model checkpoint to Ultralytics HUB.
+
+        Args:
+            epoch (int): The current training epoch.
+            weights (str): Path to the model weights file.
+            is_best (bool): Indicates if the current model is the best one so far.
+            map (float): Mean average precision of the model.
+            final (bool): Indicates if the model is the final model after training.
+        """
         if Path(weights).is_file():
             with open(weights, 'rb') as f:
                 file = f.read()
@@ -138,6 +179,7 @@ class HUBTrainingSession:
 
     @threaded
     def _start_heartbeat(self):
+        """Begin a threaded heartbeat loop to report the agent's status to Ultralytics HUB."""
         while self.alive:
             r = smart_request('post',
                               f'{HUB_API_ROOT}/v1/agent/heartbeat/models/{self.model_id}',

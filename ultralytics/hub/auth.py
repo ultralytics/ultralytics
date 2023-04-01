@@ -106,4 +106,3 @@ class Auth:
             key (str): The API key string.
         """
         self.api_key = key
-

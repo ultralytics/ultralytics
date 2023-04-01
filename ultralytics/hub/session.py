@@ -6,17 +6,25 @@ from time import sleep
 
 import requests
 
-from ultralytics.hub.utils import HUB_API_ROOT, check_dataset_disk_space, smart_request
-from ultralytics.yolo.utils import LOGGER, PREFIX, __version__, checks, emojis, is_colab, threaded
+from ultralytics.hub.utils import HUB_API_ROOT, PREFIX, check_dataset_disk_space, smart_request
+from ultralytics.yolo.utils import LOGGER, __version__, checks, emojis, is_colab, threaded
 
 AGENT_NAME = f'python-{__version__}-colab' if is_colab() else f'python-{__version__}-local'
 
 
 class HUBTrainingSession:
 
-    def __init__(self, key):
+    def __init__(self, model):
         from ultralytics.hub import request_api_key, split_key
         from ultralytics.hub.auth import Auth
+
+        # Parse input
+        if model.startswith('https://hub.ultralytics.com/models/'):
+            key = model.split('/models/')[-1]
+        elif [len(x) for x in model.split('_')] == [42, 20]:
+            key = model
+        else:
+            raise ValueError(emojis(f'Invalid HUBTrainingSession input: {model}'))
 
         # Authorize
         auth = Auth(key)
@@ -26,16 +34,17 @@ class HUBTrainingSession:
 
         self.agent_id = None  # identifies which instance is communicating with server
         self.model_id = model_id
+        self.model_url = f'https://hub.ultralytics.com/models/{model_id}'
         self.api_url = f'{HUB_API_ROOT}/v1/models/{model_id}'
         self.auth_header = auth.get_auth_header()
         self.rate_limits = {'metrics': 3.0, 'ckpt': 900.0, 'heartbeat': 300.0}  # rate limits (seconds)
         self.timers = {}  # rate limit timers (seconds)
         self.metrics_queue = {}  # metrics queue
         self.model = self._get_model()
-        self.check_disk_space()
         self.alive = True
         self._start_heartbeat()  # start heartbeats
         self._register_signal_handlers()
+        LOGGER.info(f'{PREFIX}View model at {self.model_url} 🚀')
 
     def _register_signal_handlers(self):
         signal.signal(signal.SIGTERM, self._handle_signal)
@@ -69,9 +78,7 @@ class HUBTrainingSession:
             data = response.json().get('data', None)
 
             if data.get('status', None) == 'trained':
-                raise ValueError(
-                    emojis(f'Model is already trained and uploaded to '
-                           f'https://hub.ultralytics.com/models/{self.model_id} 🚀'))
+                raise ValueError(emojis(f'Model is already trained and uploaded to {self.model_url} 🚀'))
 
             if not data.get('data', None):
                 raise ValueError('Dataset may still be processing. Please wait a minute and try again.')  # RF fix

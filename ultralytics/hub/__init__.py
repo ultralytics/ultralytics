@@ -8,11 +8,11 @@ from ultralytics.yolo.engine.model import YOLO
 from ultralytics.yolo.utils import LOGGER, emojis
 
 
-def start(key=''):
+def start(model=''):
     """
     Start training models with Ultralytics HUB. Usage: from ultralytics.hub import start; start('API_KEY')
     """
-    session = HUBTrainingSession(key=key)  # key=api_model
+    session = HUBTrainingSession(model)  # key=api_model
     model = YOLO(model=session.model_file, session=session)
     model.train(**session.train_args)
 

@@ -224,5 +224,6 @@ class Traces:
         from ultralytics.yolo.cfg import MODES, TASKS
         self.usage = {'tasks': {k: 0 for k in TASKS}, 'modes': {k: 0 for k in MODES}}
 
+
 # Run below code on hub/utils init -------------------------------------------------------------------------------------
 traces = Traces()

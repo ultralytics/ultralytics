@@ -5,7 +5,7 @@ name: Ultralytics CI
 
 on:
   push:
-    branches: [main, updates]
+    branches: [main]
   pull_request:
     branches: [main, updates]
   schedule:

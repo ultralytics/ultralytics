@@ -15,7 +15,7 @@ AGENT_NAME = f'python-{__version__}-colab' if is_colab() else f'python-{__versio
 class HUBTrainingSession:
 
     def __init__(self, key):
-        from ultralytics.hub import Auth, split_key, request_api_key
+        from ultralytics.hub import Auth, request_api_key, split_key
 
         # Authorize
         auth = Auth(key)

@@ -25,7 +25,7 @@ def main():
     image[0:height, 0:width] = original_image
     scale = length / 640
 
-    blob = cv2.dnn.blobFromImage(image, scalefactor=1 / 255, size=(640, 640))
+    blob = cv2.dnn.blobFromImage(image, scalefactor=1 / 255, size=(640, 640), swapRB=True)
     model.setInput(blob)
     outputs = model.forward()
 

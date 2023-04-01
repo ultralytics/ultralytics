@@ -172,7 +172,6 @@ class Traces:
         """
         Initialize Traces for error tracking and reporting if tests are not currently running.
         """
-        from ultralytics.yolo.cfg import MODES, TASKS
         self.rate_limit = 60.0  # rate limit (seconds)
         self.t = 0.0  # rate limit timer (seconds)
         self.metadata = {
@@ -187,7 +186,7 @@ class Traces:
             not TESTS_RUNNING and \
             ONLINE and \
             (is_pip_package() or get_git_origin_url() == 'https://github.com/ultralytics/ultralytics.git')
-        self.usage = {'tasks': {k: 0 for k in TASKS}, 'modes': {k: 0 for k in MODES}}
+        self._reset_usage()
 
     def __call__(self, cfg, all_keys=False, traces_sample_rate=1.0):
         """
@@ -198,6 +197,11 @@ class Traces:
             all_keys (bool): Sync all items, not just non-default values.
             traces_sample_rate (float): Fraction of traces captured from 0.0 to 1.0
         """
+
+        # Increment usage
+        self.usage['modes'][cfg.mode] = self.usage['modes'].get(cfg.mode, 0) + 1
+        self.usage['tasks'][cfg.task] = self.usage['tasks'].get(cfg.task, 0) + 1
+
         t = time.time()  # current time
         if not self.enabled or random() > traces_sample_rate:
             # Traces disabled or not randomly selected, do nothing
@@ -207,17 +211,18 @@ class Traces:
             return
         else:
             # Time is over rate limiter, send trace now
-            self.t = t  # reset rate limit timer
-
-            # Build trace
-            if cfg.task in self.usage['tasks']:
-                self.usage['tasks'][cfg.task] += 1
-            if cfg.mode in self.usage['modes']:
-                self.usage['modes'][cfg.mode] += 1
-            trace = {'uuid': SETTINGS['uuid'], 'usage': self.usage, 'metadata': self.metadata}
+            trace = {'uuid': SETTINGS['uuid'], 'usage': self.usage.copy(), 'metadata': self.metadata}
 
             # Send a request to the HUB API to sync analytics
             smart_request('post', f'{HUB_API_ROOT}/v1/usage/anonymous', json=trace, code=3, retry=0, verbose=False)
+
+            # Reset usage and rate limit timer
+            self._reset_usage()
+            self.t = t
+
+    def _reset_usage(self):
+        from ultralytics.yolo.cfg import MODES, TASKS
+        self.usage = {'tasks': {k: 0 for k in TASKS}, 'modes': {k: 0 for k in MODES}}
 
 
 # Run below code on hub/utils init -------------------------------------------------------------------------------------

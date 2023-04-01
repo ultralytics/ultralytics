@@ -142,7 +142,7 @@ def check_pip_update_available():
         bool: True if an update is available, False otherwise.
     """
     if ONLINE and is_pip_package():
-        with contextlib.suppress(ConnectionError):
+        with contextlib.suppress(Exception):
             from ultralytics import __version__
             latest = check_latest_pypi_version()
             if pkg.parse_version(__version__) < pkg.parse_version(latest):  # update is available

@@ -12,6 +12,18 @@ YOLOv8 'yolo' CLI commands use the following syntax:
         yolo TASK MODE ARGS
         ```
 
+    === "Python"
+    
+        ```python
+        from ultralytics import YOLO
+        
+        # Load a YOLOv8 model from a pre-trained weights file
+        model = YOLO('yolov8n.pt')
+         
+        # Run MODE mode using the custom arguments ARGS (guess TASK)
+        model.MODE(ARGS)
+        ```
+
 Where:
 
 - `TASK` (optional) is one of `[detect, segment, classify, pose]`. If it is not passed explicitly YOLOv8 will try to
@@ -36,6 +48,8 @@ differ in the type of output they produce and the specific problem they are desi
 |--------|------------|-------------------------------------------------|
 | `task` | `'detect'` | YOLO task, i.e. detect, segment, classify, pose |
 
+[Tasks Guide](../tasks/index.md){ .md-button .md-button--primary}
+
 #### Modes
 
 YOLO models can be used in different modes depending on the specific problem you are trying to solve. These modes
@@ -52,14 +66,11 @@ include:
 |--------|-----------|---------------------------------------------------------------|
 | `mode` | `'train'` | YOLO mode, i.e. train, val, predict, export, track, benchmark |
 
-### Training
+[Modes Guide](../modes/index.md){ .md-button .md-button--primary}
 
-Training settings for YOLO models refer to the various hyperparameters and configurations used to train the model on a
-dataset. These settings can affect the model's performance, speed, and accuracy. Some common YOLO training settings
-include the batch size, learning rate, momentum, and weight decay. Other factors that may affect the training process
-include the choice of optimizer, the choice of loss function, and the size and composition of the training dataset. It
-is important to carefully tune and experiment with these settings to achieve the best possible performance for a given
-task.
+## Train
+
+The training settings for YOLO models encompass various hyperparameters and configurations used during the training process. These settings influence the model's performance, speed, and accuracy. Key training settings include batch size, learning rate, momentum, and weight decay. Additionally, the choice of optimizer, loss function, and training dataset composition can impact the training process. Careful tuning and experimentation with these settings are crucial for optimizing performance.
 
 | Key               | Value    | Description                                                                 |
 |-------------------|----------|-----------------------------------------------------------------------------|
@@ -84,7 +95,7 @@ task.
 | `deterministic`   | `True`   | whether to enable deterministic mode                                        |
 | `single_cls`      | `False`  | train multi-class data as single-class                                      |
 | `image_weights`   | `False`  | use weighted image selection for training                                   |
-| `rect`            | `False`  | support rectangular training                                                |
+| `rect`            | `False`  | rectangular training with each batch collated for minimum padding           |
 | `cos_lr`          | `False`  | use cosine learning rate scheduler                                          |
 | `close_mosaic`    | `10`     | disable mosaic augmentation for final 10 epochs                             |
 | `resume`          | `False`  | resume training from last checkpoint                                        |
@@ -107,15 +118,11 @@ task.
 | `dropout`         | `0.0`    | use dropout regularization (classify train only)                            |
 | `val`             | `True`   | validate/test during training                                               |
 
-### Prediction
+[Train Guide](../modes/train.md){ .md-button .md-button--primary}
 
-Prediction settings for YOLO models refer to the various hyperparameters and configurations used to make predictions
-with the model on new data. These settings can affect the model's performance, speed, and accuracy. Some common YOLO
-prediction settings include the confidence threshold, non-maximum suppression (NMS) threshold, and the number of classes
-to consider. Other factors that may affect the prediction process include the size and format of the input data, the
-presence of additional features such as masks or multiple labels per box, and the specific task the model is being used
-for. It is important to carefully tune and experiment with these settings to achieve the best possible performance for a
-given task.
+## Predict
+
+The prediction settings for YOLO models encompass a range of hyperparameters and configurations that influence the model's performance, speed, and accuracy during inference on new data. Careful tuning and experimentation with these settings are essential to achieve optimal performance for a specific task. Key settings include the confidence threshold, Non-Maximum Suppression (NMS) threshold, and the number of classes considered. Additional factors affecting the prediction process are input data size and format, the presence of supplementary features such as masks or multiple labels per box, and the particular task the model is employed for.
 
 | Key              | Value                  | Description                                              |
 |------------------|------------------------|----------------------------------------------------------|
@@ -141,15 +148,11 @@ given task.
 | `classes`        | `None`                 | filter results by class, i.e. class=0, or class=[0,2,3]  |
 | `boxes`          | `True`                 | Show boxes in segmentation predictions                   |
 
-### Validation
+[Predict Guide](../modes/predict.md){ .md-button .md-button--primary}
 
-Validation settings for YOLO models refer to the various hyperparameters and configurations used to
-evaluate the model's performance on a validation dataset. These settings can affect the model's performance, speed, and
-accuracy. Some common YOLO validation settings include the batch size, the frequency with which validation is performed
-during training, and the metrics used to evaluate the model's performance. Other factors that may affect the validation
-process include the size and composition of the validation dataset and the specific task the model is being used for. It
-is important to carefully tune and experiment with these settings to ensure that the model is performing well on the
-validation dataset and to detect and prevent overfitting.
+## Val
+
+The val (validation) settings for YOLO models involve various hyperparameters and configurations used to evaluate the model's performance on a validation dataset. These settings influence the model's performance, speed, and accuracy. Common YOLO validation settings include batch size, validation frequency during training, and performance evaluation metrics. Other factors affecting the validation process include the validation dataset's size and composition, as well as the specific task the model is employed for. Careful tuning and experimentation with these settings are crucial to ensure optimal performance on the validation dataset and detect and prevent overfitting.
 
 | Key           | Value   | Description                                                        |
 |---------------|---------|--------------------------------------------------------------------|
@@ -162,19 +165,14 @@ validation dataset and to detect and prevent overfitting.
 | `device`      | `None`  | device to run on, i.e. cuda device=0/1/2/3 or device=cpu           |
 | `dnn`         | `False` | use OpenCV DNN for ONNX inference                                  |
 | `plots`       | `False` | show plots during training                                         |
-| `rect`        | `False` | support rectangular evaluation                                     |
+| `rect`        | `False` | rectangular val with each batch collated for minimum padding       |
 | `split`       | `val`   | dataset split to use for validation, i.e. 'val', 'test' or 'train' |
 
-### Export
+[Val Guide](../modes/val.md){ .md-button .md-button--primary}
 
-Export settings for YOLO models refer to the various configurations and options used to save or
-export the model for use in other environments or platforms. These settings can affect the model's performance, size,
-and compatibility with different systems. Some common YOLO export settings include the format of the exported model
-file (e.g. ONNX, TensorFlow SavedModel), the device on which the model will be run (e.g. CPU, GPU), and the presence of
-additional features such as masks or multiple labels per box. Other factors that may affect the export process include
-the specific task the model is being used for and the requirements or constraints of the target environment or platform.
-It is important to carefully consider and configure these settings to ensure that the exported model is optimized for
-the intended use case and can be used effectively in the target environment.
+## Export
+
+Export settings for YOLO models encompass configurations and options related to saving or exporting the model for use in different environments or platforms. These settings can impact the model's performance, size, and compatibility with various systems. Key export settings include the exported model file format (e.g., ONNX, TensorFlow SavedModel), the target device (e.g., CPU, GPU), and additional features such as masks or multiple labels per box. The export process may also be affected by the model's specific task and the requirements or constraints of the destination environment or platform. It is crucial to thoughtfully configure these settings to ensure the exported model is optimized for the intended use case and functions effectively in the target environment.
 
 | Key         | Value           | Description                                          |
 |-------------|-----------------|------------------------------------------------------|
@@ -190,7 +188,9 @@ the intended use case and can be used effectively in the target environment.
 | `workspace` | `4`             | TensorRT: workspace size (GB)                        |
 | `nms`       | `False`         | CoreML: add NMS                                      |
 
-### Augmentation
+[Export Guide](../modes/export.md){ .md-button .md-button--primary}
+
+## Augmentation
 
 Augmentation settings for YOLO models refer to the various transformations and modifications
 applied to the training data to increase the diversity and size of the dataset. These settings can affect the model's
@@ -217,7 +217,7 @@ ensure that the augmented dataset is diverse and representative enough to train 
 | `mixup`       | 0.0   | image mixup (probability)                       |
 | `copy_paste`  | 0.0   | segment copy-paste (probability)                |
 
-### Logging, checkpoints, plotting and file management
+## Logging, checkpoints, plotting and file management
 
 Logging, checkpoints, plotting, and file management are important considerations when training a YOLO model.
 

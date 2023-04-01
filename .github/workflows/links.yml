@@ -5,9 +5,9 @@ name: Check Broken links
 
 on:
   push:
-    branches: [na]
+    branches: [main]
   pull_request:
-    branches: [na]
+    branches: [main]
   workflow_dispatch:
   schedule:
     - cron: '0 0 * * *'  # runs at 00:00 UTC every day

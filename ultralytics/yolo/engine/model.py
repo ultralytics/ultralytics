@@ -91,7 +91,7 @@ class YOLO:
         # Check if HUB model
         if model.startswith('https://hub.ultralytics.com/models/'):
             from ultralytics.hub import HUBTrainingSession
-            self.session = HUBTrainingSession(model_url=model)  # HUB session
+            self.session = HUBTrainingSession(model.split('/models/')[-1])
             model = self.session.model_file
 
         # Load or create new YOLO model
@@ -318,6 +318,8 @@ class YOLO:
         """
         self._check_is_pytorch_model()
         if self.session:  # Ultralytics HUB session
+            if any(kwargs):
+                LOGGER.warning("WARNING ⚠️ using HUB training arguments, ignoring local training arguments.")
             kwargs = self.session.train_args  #
         check_pip_update_available()
         overrides = self.overrides.copy()

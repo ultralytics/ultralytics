@@ -2,8 +2,8 @@
 
 import requests
 
-from ultralytics.hub.utils import HUB_API_ROOT, request_with_credentials
-from ultralytics.yolo.utils import is_colab
+from ultralytics.hub.utils import HUB_API_ROOT, request_with_credentials, PREFIX
+from ultralytics.yolo.utils import SETTINGS, is_colab, set_settings, LOGGER
 
 API_KEY_PATH = 'https://hub.ultralytics.com/settings?tab=api+keys'
 
@@ -16,10 +16,15 @@ class Auth:
         Initialize the Auth class with an optional API key.
 
         Args:
-            api_key (str, optional): The API key to authenticate with.
+            api_key (str, optional): May be an API key or a combination API key and model ID, i.e. key_id
         """
         self.api_key = self._clean_api_key(api_key)
-        self.authenticate() if self.api_key else self.auth_with_cookies()
+        if SETTINGS.get('api_key') != self.api_key:
+            self.authenticate() if self.api_key else self.auth_with_cookies()
+            set_settings({'api_key': self.api_key})
+            LOGGER.info(f'{PREFIX}New login successful ✅')
+        else:
+            LOGGER.info(f'{PREFIX}Logged in ✅')
 
     @staticmethod
     def _clean_api_key(key: str) -> str:

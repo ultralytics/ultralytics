@@ -112,7 +112,7 @@ class Results(SimpleClass):
             labels=True,
             boxes=True,
             masks=True,
-            logits=True,
+            probs=True,
             **kwargs  # deprecated args TODO: remove support in 8.2
     ):
         """
@@ -129,7 +129,7 @@ class Results(SimpleClass):
             labels (bool): Whether to plot the label of bounding boxes.
             boxes (bool): Whether to plot the bounding boxes.
             masks (bool): Whether to plot the masks.
-            logits (bool): Whether to plot classification logits
+            probs (bool): Whether to plot classification probability
 
         Returns:
             (None) or (PIL.Image): If `pil` is True, a PIL Image is returned. Otherwise, nothing is returned.
@@ -144,7 +144,7 @@ class Results(SimpleClass):
                               example)
         pred_boxes, show_boxes = self.boxes, boxes
         pred_masks, show_masks = self.masks, masks
-        pred_logits, show_logits = self.probs, logits
+        pred_probs, show_probs = self.probs, probs
         names = self.names
         if pred_boxes and show_boxes:
             for d in reversed(pred_boxes):
@@ -162,10 +162,10 @@ class Results(SimpleClass):
                 im = F.resize(im.contiguous(), pred_masks.data.shape[1:]) / 255
             annotator.masks(pred_masks.data, colors=[colors(x, True) for x in pred_boxes.cls], im_gpu=im)
 
-        if pred_logits is not None and show_logits:
+        if pred_probs is not None and show_probs:
             n5 = min(len(names), 5)
-            top5i = pred_logits.argsort(0, descending=True)[:n5].tolist()  # top 5 indices
-            text = f"{', '.join(f'{names[j] if names else j} {pred_logits[j]:.2f}' for j in top5i)}, "
+            top5i = pred_probs.argsort(0, descending=True)[:n5].tolist()  # top 5 indices
+            text = f"{', '.join(f'{names[j] if names else j} {pred_probs[j]:.2f}' for j in top5i)}, "
             annotator.text((32, 32), text, txt_color=(255, 255, 255))  # TODO: allow setting colors
 
         return np.asarray(annotator.im) if annotator.pil else annotator.im

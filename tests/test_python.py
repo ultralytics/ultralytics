@@ -218,5 +218,5 @@ def test_result():
 
     model = YOLO('yolov8n-cls.pt')
     res = model(SOURCE)
-    res[0].plot(logits=False)
+    res[0].plot(probs=False)
     print(res[0].path)

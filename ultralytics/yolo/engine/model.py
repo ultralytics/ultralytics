@@ -73,7 +73,10 @@ class YOLO:
         Initializes the YOLO model.
 
         Args:
-            model (str, Path): model to load or create
+            model (Union[str, Path], optional): Path or name of the model to load or create. Defaults to 'yolov8n.pt'.
+            task (Any, optional): Task type for the YOLO model. Defaults to None.
+            session (Any, optional): HUB session for Ultralytics HUB model. Defaults to None.
+
         """
         self._reset_callbacks()
         self.predictor = None  # reuse predictor
@@ -86,13 +89,15 @@ class YOLO:
         self.overrides = {}  # overrides for trainer object
         self.metrics = None  # validation/training metrics
         self.session = session  # HUB session
+        model = str(model).strip()  # strip spaces
 
-        # if 'https://hub.ultralytics.com/models/' in model:
-        #     self.session = HUBTrainingSession(model_id=model_id, auth=auth)  # HUB session
-        #     model = self.session.model_file
+        # Check if Ultralytics HUB model from https://hub.ultralytics.com
+        if model.startswith('https://hub.ultralytics.com/models/'):
+            from ultralytics.hub import HUBTrainingSession
+            self.session = HUBTrainingSession(model)
+            model = self.session.model_file
 
         # Load or create new YOLO model
-        model = str(model).strip()  # strip spaces
         suffix = Path(model).suffix
         if not suffix and Path(model).stem in GITHUB_ASSET_STEMS:
             model, suffix = Path(model).with_suffix('.pt'), '.pt'  # add suffix, i.e. yolov8n -> yolov8n.pt
@@ -316,7 +321,10 @@ class YOLO:
         """
         self._check_is_pytorch_model()
         if self.session:  # Ultralytics HUB session
-            kwargs = self.session.train_args  #
+            if any(kwargs):
+                LOGGER.warning('WARNING ⚠️ using HUB training arguments, ignoring local training arguments.')
+            kwargs = self.session.train_args
+            self.session.check_disk_space()
         check_pip_update_available()
         overrides = self.overrides.copy()
         overrides.update(kwargs)

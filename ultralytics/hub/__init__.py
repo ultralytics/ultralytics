@@ -5,36 +5,55 @@ import requests
 from ultralytics.hub.session import HUBTrainingSession
 from ultralytics.hub.utils import PREFIX, split_key
 from ultralytics.yolo.engine.model import YOLO
-from ultralytics.yolo.utils import LOGGER, emojis
+from ultralytics.yolo.utils import LOGGER
 
 
-def start(key=''):
+def login(api_key=''):
     """
-    Start training models with Ultralytics HUB. Usage: from ultralytics.hub import start; start('API_KEY')
+    Log in to the Ultralytics HUB API using the provided API key.
+
+    Args:
+        api_key (str, optional): May be an API key or a combination API key and model ID, i.e. key_id
+
+    Example:
+        from ultralytics import hub
+        hub.login('your_api_key')
     """
-    session = HUBTrainingSession(key=key)  # key=apikey_modelid
+    from ultralytics.hub.auth import Auth
+    Auth(api_key)
+
+
+def logout():
+    """
+    Logout Ultralytics HUB
+
+    Example:
+        from ultralytics import hub
+        hub.logout()
+    """
+    LOGGER.warning('WARNING ⚠️ This method is not yet implemented.')
+
+
+def start(model=''):
+    """
+    --- DEPRECATED ---
+    Start training models with Ultralytics HUB.
+
+    Args:
+        model (str, optional): A string containing either the API key and model ID combination (apikey_modelid),
+                               or the full model URL (https://hub.ultralytics.com/models/apikey_modelid).
+
+    Usage:
+        from ultralytics import hub
+        hub.start('API_KEY')
+
+    This function initializes a HUBTrainingSession with the provided model string and trains a YOLO model using
+    the session's model file and training arguments.
+    """
+    LOGGER.warning('WARNING ⚠️ This method is deprecated.')
+    session = HUBTrainingSession(model)
     model = YOLO(model=session.model_file, session=session)
     model.train(**session.train_args)
-
-
-def request_api_key(auth, max_attempts=3):
-    """
-    Prompt the user to input their API key. Returns the model ID.
-    """
-    import getpass
-    for attempts in range(max_attempts):
-        LOGGER.info(f'{PREFIX}Login. Attempt {attempts + 1} of {max_attempts}')
-        input_key = getpass.getpass(
-            'Enter your Ultralytics API Key from https://hub.ultralytics.com/settings?tab=api+keys:\n')
-        auth.api_key, model_id = split_key(input_key)
-
-        if auth.authenticate():
-            LOGGER.info(f'{PREFIX}Authenticated ✅')
-            return model_id
-
-        LOGGER.warning(f'{PREFIX}Invalid API key ⚠️\n')
-
-    raise ConnectionError(emojis(f'{PREFIX}Failed to authenticate ❌'))
 
 
 def reset_model(key=''):

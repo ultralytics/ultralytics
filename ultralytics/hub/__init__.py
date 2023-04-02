@@ -43,7 +43,7 @@ def start(key=''):
     """
     LOGGER.warning(f"""
 WARNING ⚠️ ultralytics.start() is deprecated in 8.0.60. Updated usage to train your Ultralytics HUB model is below:
-    
+
 from ultralytics import YOLO
 
 model = YOLO('https://hub.ultralytics.com/models/{key}')

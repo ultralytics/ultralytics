@@ -5,7 +5,7 @@ import requests
 from ultralytics.hub.session import HUBTrainingSession
 from ultralytics.hub.utils import PREFIX, split_key
 from ultralytics.yolo.engine.model import YOLO
-from ultralytics.yolo.utils import LOGGER, emojis
+from ultralytics.yolo.utils import LOGGER
 
 
 def start(model=''):
@@ -27,26 +27,6 @@ def start(model=''):
     session = HUBTrainingSession(model)
     model = YOLO(model=session.model_file, session=session)
     model.train(**session.train_args)
-
-
-def request_api_key(auth, max_attempts=3):
-    """
-    Prompt the user to input their API key. Returns the model ID.
-    """
-    import getpass
-    for attempts in range(max_attempts):
-        LOGGER.info(f'{PREFIX}Login. Attempt {attempts + 1} of {max_attempts}')
-        input_key = getpass.getpass(
-            'Enter your Ultralytics API Key from https://hub.ultralytics.com/settings?tab=api+keys:\n')
-        auth.api_key, model_id = split_key(input_key)
-
-        if auth.authenticate():
-            LOGGER.info(f'{PREFIX}Authenticated ✅')
-            return model_id
-
-        LOGGER.warning(f'{PREFIX}Invalid API key ⚠️\n')
-
-    raise ConnectionError(emojis(f'{PREFIX}Failed to authenticate ❌'))
 
 
 def reset_model(key=''):

@@ -2,8 +2,8 @@
 
 import requests
 
-from ultralytics.hub.utils import HUB_API_ROOT, request_with_credentials, PREFIX
-from ultralytics.yolo.utils import SETTINGS, is_colab, set_settings, LOGGER
+from ultralytics.hub.utils import HUB_API_ROOT, PREFIX, request_with_credentials
+from ultralytics.yolo.utils import LOGGER, SETTINGS, emojis, is_colab, set_settings
 
 API_KEY_PATH = 'https://hub.ultralytics.com/settings?tab=api+keys'
 
@@ -11,34 +11,55 @@ API_KEY_PATH = 'https://hub.ultralytics.com/settings?tab=api+keys'
 class Auth:
     id_token = api_key = model_key = False
 
-    def __init__(self, api_key=None):
+    def __init__(self, api_key=''):
         """
         Initialize the Auth class with an optional API key.
 
         Args:
             api_key (str, optional): May be an API key or a combination API key and model ID, i.e. key_id
         """
-        self.api_key = self._clean_api_key(api_key)
-        if SETTINGS.get('api_key') != self.api_key:
-            self.authenticate() if self.api_key else self.auth_with_cookies()
-            set_settings({'api_key': self.api_key})
-            LOGGER.info(f'{PREFIX}New login successful ✅')
+        # Split the input API key in case it contains a combined key_model and keep only the API key part
+        api_key = api_key.split('_')[0]
+
+        # Set API key attribute as value passed or SETTINGS API key if none passed
+        self.api_key = api_key or SETTINGS.get('api_key', '')
+
+        # If an API key is provided
+        if self.api_key:
+            # If the provided API key matches the API key in the SETTINGS
+            if self.api_key == SETTINGS.get('api_key'):
+                # Log that the user is already logged in
+                LOGGER.info(f'{PREFIX}Authenticated ✅')
+                return
+            else:
+                # Attempt to authenticate with the provided API key
+                self.authenticate()
+        # If the API key is not provided and the environment is a Google Colab notebook
+        elif is_colab():
+            # Attempt to authenticate using browser cookies
+            self.auth_with_cookies()
         else:
-            LOGGER.info(f'{PREFIX}Logged in ✅')
+            # Request an API key
+            self.request_api_key()
 
-    @staticmethod
-    def _clean_api_key(key: str) -> str:
+        # Update SETTINGS with the new API key after successful authentication
+        set_settings({'api_key': self.api_key})
+        # Log that the new login was successful
+        LOGGER.info(f'{PREFIX}New authentication successful ✅')
+
+    def request_api_key(self, max_attempts=3):
         """
-        Strip the model from the key if present.
-
-        Args:
-            key (str): The API key string.
-
-        Returns:
-            str: The cleaned API key string.
+        Prompt the user to input their API key. Returns the model ID.
         """
-        separator = '_'
-        return key.split(separator)[0] if separator in key else key
+        import getpass
+        for attempts in range(max_attempts):
+            LOGGER.info(f'{PREFIX}Login. Attempt {attempts + 1} of {max_attempts}')
+            input_key = getpass.getpass('Enter your API Key from https://hub.ultralytics.com/settings?tab=api+keys:\n')
+            self.api_key = input_key.split('_')[0]  # remove model id if present
+            if self.authenticate():
+                return True
+            LOGGER.warning(f'{PREFIX}Invalid API key ⚠️\n')
+        raise ConnectionError(emojis(f'{PREFIX}Failed to authenticate ❌'))
 
     def authenticate(self) -> bool:
         """

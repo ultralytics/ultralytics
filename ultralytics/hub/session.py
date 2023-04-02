@@ -17,7 +17,7 @@ class HUBTrainingSession:
     HUB training session for Ultralytics HUB YOLO models. Handles model initialization, heartbeats, and checkpointing.
 
     Args:
-        model (str): Model identifier used to initialize the HUB training session.
+        url (str): Model identifier used to initialize the HUB training session.
 
     Attributes:
         agent_id (str): Identifier for the instance communicating with the server.
@@ -32,12 +32,12 @@ class HUBTrainingSession:
         alive (bool): Indicates if the heartbeat loop is active.
     """
 
-    def __init__(self, model):
+    def __init__(self, url):
         """
         Initialize the HUBTrainingSession with the provided model identifier.
 
         Args:
-            model (str): Model identifier used to initialize the HUB training session.
+            url (str): Model identifier used to initialize the HUB training session.
                          It can be a URL string or a model key with specific format.
 
         Raises:
@@ -45,23 +45,21 @@ class HUBTrainingSession:
             ConnectionError: If connecting with global API key is not supported.
         """
 
-        from ultralytics.hub import request_api_key, split_key
         from ultralytics.hub.auth import Auth
 
         # Parse input
-        if model.startswith('https://hub.ultralytics.com/models/'):
-            key = model.split('/models/')[-1]
-        elif [len(x) for x in model.split('_')] == [42, 20]:
-            key = model
+        if url.startswith('https://hub.ultralytics.com/models/'):
+            url = url.split('https://hub.ultralytics.com/models/')[-1]
+        if [len(x) for x in url.split('_')] == [42, 20]:
+            key, model_id = url.split('_')
+        elif len(url) == 20:
+            key, model_id = '', url
         else:
-            raise ValueError(emojis(f'Invalid HUBTrainingSession input: {model}'))
+            raise ValueError(f'Invalid HUBTrainingSession input: {url}')
 
         # Authorize
         auth = Auth(key)
-        model_id = split_key(key)[1] if auth.get_state() else request_api_key(auth)
-        if not model_id:
-            raise ConnectionError(emojis('Connecting with global API key is not currently supported. ❌'))
-
+        # model_id = split_key(key)[1] if auth.get_state() else request_api_key(auth)
         self.agent_id = None  # identifies which instance is communicating with server
         self.model_id = model_id
         self.model_url = f'https://hub.ultralytics.com/models/{model_id}'

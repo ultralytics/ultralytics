@@ -586,7 +586,7 @@ def set_sentry():
             logging.getLogger(logger).setLevel(logging.CRITICAL)
 
 
-def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.2'):
+def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.3'):
     """
     Loads a global Ultralytics settings YAML file or creates one with default values if it does not exist.
 
@@ -609,8 +609,9 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.2'):
         'datasets_dir': str(datasets_root / 'datasets'),  # default datasets directory.
         'weights_dir': str(root / 'weights'),  # default weights directory.
         'runs_dir': str(root / 'runs'),  # default runs directory.
-        'sync': True,  # sync analytics to help with YOLO development
         'uuid': hashlib.sha256(str(uuid.getnode()).encode()).hexdigest(),  # anonymized uuid hash
+        'sync': True,  # sync analytics to help with YOLO development
+        'api_key': '',  # Ultralytics HUB API key (https://hub.ultralytics.com/)
         'settings_version': version}  # Ultralytics settings version
 
     with torch_distributed_zero_first(RANK):

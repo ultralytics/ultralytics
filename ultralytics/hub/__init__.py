@@ -10,6 +10,7 @@ from ultralytics.yolo.utils import LOGGER, emojis
 
 def start(model=''):
     """
+    --- DEPRECATED ---
     Start training models with Ultralytics HUB.
 
     Args:

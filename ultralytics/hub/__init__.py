@@ -4,7 +4,6 @@ import requests
 
 from ultralytics.hub.session import HUBTrainingSession
 from ultralytics.hub.utils import PREFIX, split_key
-from ultralytics.yolo.engine.model import YOLO
 from ultralytics.yolo.utils import LOGGER
 
 
@@ -34,26 +33,21 @@ def logout():
     LOGGER.warning('WARNING ⚠️ This method is not yet implemented.')
 
 
-def start(model=''):
+def start(key=''):
     """
-    --- DEPRECATED ---
-    Start training models with Ultralytics HUB.
+    Start training models with Ultralytics HUB (DEPRECATED).
 
     Args:
-        model (str, optional): A string containing either the API key and model ID combination (apikey_modelid),
+        key (str, optional): A string containing either the API key and model ID combination (apikey_modelid),
                                or the full model URL (https://hub.ultralytics.com/models/apikey_modelid).
-
-    Usage:
-        from ultralytics import hub
-        hub.start('API_KEY')
-
-    This function initializes a HUBTrainingSession with the provided model string and trains a YOLO model using
-    the session's model file and training arguments.
     """
-    LOGGER.warning('WARNING ⚠️ This method is deprecated.')
-    session = HUBTrainingSession(model)
-    model = YOLO(model=session.model_file, session=session)
-    model.train(**session.train_args)
+    LOGGER.warning(f"""
+WARNING ⚠️ ultralytics.start() is deprecated in 8.0.60. Updated usage to train your Ultralytics HUB model is below:
+    
+from ultralytics import YOLO
+
+model = YOLO('https://hub.ultralytics.com/models/{key}')
+model.train()""")
 
 
 def reset_model(key=''):

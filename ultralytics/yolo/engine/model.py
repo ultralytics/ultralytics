@@ -68,14 +68,13 @@ class YOLO:
         list(ultralytics.yolo.engine.results.Results): The prediction results.
     """
 
-    def __init__(self, model: Union[str, Path] = 'yolov8n.pt', task=None, session=None) -> None:
+    def __init__(self, model: Union[str, Path] = 'yolov8n.pt', task=None) -> None:
         """
         Initializes the YOLO model.
 
         Args:
             model (Union[str, Path], optional): Path or name of the model to load or create. Defaults to 'yolov8n.pt'.
             task (Any, optional): Task type for the YOLO model. Defaults to None.
-            session (Any, optional): HUB session for Ultralytics HUB model. Defaults to None.
 
         """
         self._reset_callbacks()
@@ -88,7 +87,7 @@ class YOLO:
         self.ckpt_path = None
         self.overrides = {}  # overrides for trainer object
         self.metrics = None  # validation/training metrics
-        self.session = session  # HUB session
+        self.session = None  # HUB session
         model = str(model).strip()  # strip spaces
 
         # Check if Ultralytics HUB model from https://hub.ultralytics.com

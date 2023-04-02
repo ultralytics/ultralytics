@@ -154,12 +154,12 @@ class Results(SimpleClass):
                 annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
 
         if pred_masks and show_masks:
-            im = torch.as_tensor(annotator.im, dtype=torch.float16, device=masks.data.device).permute(2, 0, 1).flip(0)
+            im = torch.as_tensor(annotator.im, dtype=torch.float16, device=pred_masks.data.device).permute(2, 0, 1).flip(0)
             if TORCHVISION_0_10:
-                im = F.resize(im.contiguous(), masks.data.shape[1:], antialias=True) / 255
+                im = F.resize(im.contiguous(), pred_masks.data.shape[1:], antialias=True) / 255
             else:
-                im = F.resize(im.contiguous(), masks.data.shape[1:]) / 255
-            annotator.masks(masks.data, colors=[colors(x, True) for x in pred_boxes.cls], im_gpu=im)
+                im = F.resize(im.contiguous(), pred_masks.data.shape[1:]) / 255
+            annotator.masks(pred_masks.data, colors=[colors(x, True) for x in pred_boxes.cls], im_gpu=im)
 
         if pred_logits and show_logits:
             n5 = min(len(names), 5)

@@ -43,7 +43,7 @@ jobs:
           python --version
           pip --version
           pip list
-      - name: Test HUB training (NEW syntax 1)
+      - name: Test HUB training (hub.start() DEPRECATED)
         shell: python
         env:
           APIKEY: ${{ secrets.ULTRALYTICS_HUB_APIKEY }}
@@ -53,18 +53,7 @@ jobs:
           key = os.environ['APIKEY']
           hub.reset_model(key)
           hub.start(key)
-      - name: Test HUB training (NEW syntax 2)
-        shell: python
-        env:
-          APIKEY: ${{ secrets.ULTRALYTICS_HUB_APIKEY }}
-        run: |
-          import os
-          from ultralytics import YOLO, hub
-          key = os.environ['APIKEY']
-          hub.reset_model(key)
-          model = YOLO(key)
-          model.train()
-      - name: Test HUB training (NEW syntax 3)
+      - name: Test HUB training (Python Usage1)
         shell: python
         env:
           APIKEY: ${{ secrets.ULTRALYTICS_HUB_APIKEY }}

@@ -161,7 +161,7 @@ class Results(SimpleClass):
                 im = F.resize(im.contiguous(), pred_masks.data.shape[1:]) / 255
             annotator.masks(pred_masks.data, colors=[colors(x, True) for x in pred_boxes.cls], im_gpu=im)
 
-        if pred_logits and show_logits:
+        if pred_logits is not None and show_logits:
             n5 = min(len(names), 5)
             top5i = pred_logits.argsort(0, descending=True)[:n5].tolist()  # top 5 indices
             text = f"{', '.join(f'{names[j] if names else j} {pred_logits[j]:.2f}' for j in top5i)}, "

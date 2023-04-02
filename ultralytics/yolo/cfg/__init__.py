@@ -142,7 +142,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
 
 def _handle_deprication(custom):
     """
-    Hardcoded function to handle depricated config keys
+    Hardcoded function to handle deprecated config keys
     """
 
     for key in custom.copy().keys():

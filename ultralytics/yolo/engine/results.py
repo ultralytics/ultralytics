@@ -113,7 +113,7 @@ class Results(SimpleClass):
             boxes=True,
             masks=True,
             logits=True,
-            **kwargs  # depricated args TODO: remove support in 8.2
+            **kwargs  # deprecated args TODO: remove support in 8.2
     ):
         """
         Plots the detection results on an input RGB image. Accepts a numpy array (cv2) or a PIL Image.

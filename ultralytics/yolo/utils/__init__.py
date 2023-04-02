@@ -641,6 +641,10 @@ def set_settings(kwargs, file=USER_CONFIG_DIR / 'settings.yaml'):
     SETTINGS.update(kwargs)
     yaml_save(file, SETTINGS)
 
+def deprication_warn(arg, new_arg, version=None):
+    if not version:
+        version = float(__version__[0:3]) + 0.2 # depricate after 2nd major release
+    LOGGER.warning(f"WARNING: `{arg}` is depricated and will be removed in upcoming major release {version}. Use `{new_arg}` instead")
 
 # Run below code on yolo/utils init ------------------------------------------------------------------------------------
 

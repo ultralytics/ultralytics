@@ -9,7 +9,7 @@ from types import SimpleNamespace
 from typing import Dict, List, Union
 
 from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, ROOT, USER_CONFIG_DIR,
-                                    IterableSimpleNamespace, __version__, checks, colorstr, yaml_load, yaml_print)
+                                    IterableSimpleNamespace, __version__, checks, colorstr, yaml_load, yaml_print, deprication_warn)
 
 # Define valid tasks and modes
 MODES = 'train', 'val', 'predict', 'export', 'track', 'benchmark'
@@ -70,7 +70,7 @@ CFG_INT_KEYS = ('epochs', 'patience', 'batch', 'workers', 'seed', 'close_mosaic'
                 'line_thickness', 'workspace', 'nbs', 'save_period')
 CFG_BOOL_KEYS = ('save', 'exist_ok', 'verbose', 'deterministic', 'single_cls', 'image_weights', 'rect', 'cos_lr',
                  'overlap_mask', 'val', 'save_json', 'save_hybrid', 'half', 'dnn', 'plots', 'show', 'save_txt',
-                 'save_conf', 'save_crop', 'hide_labels', 'hide_conf', 'visualize', 'augment', 'agnostic_nms',
+                 'save_conf', 'save_crop', 'show_labels', 'show_conf', 'visualize', 'augment', 'agnostic_nms',
                  'retina_masks', 'boxes', 'keras', 'optimize', 'int8', 'dynamic', 'simplify', 'nms', 'v5loader')
 
 
@@ -138,6 +138,20 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
     # Return instance
     return IterableSimpleNamespace(**cfg)
 
+def _handle_deprication(custom):
+    """
+    Hardcoded function to handle depricated config keys
+    """
+
+    for key in custom.copy().keys():
+        if key == "hide_labels":
+            deprication_warn(key, "show_labels")
+            custom["show_labels"] = custom.pop("hide_labels") == "False"
+        if key == "hide_conf":
+            deprication_warn(key, "show_conf")
+            custom["show_conf"] = custom.pop("hide_conf") == "False"
+    
+    return custom
 
 def check_cfg_mismatch(base: Dict, custom: Dict, e=None):
     """
@@ -148,7 +162,9 @@ def check_cfg_mismatch(base: Dict, custom: Dict, e=None):
         - custom (Dict): a dictionary of custom configuration options
         - base (Dict): a dictionary of base configuration options
     """
+    custom = _handle_deprication(custom)
     base, custom = (set(x.keys()) for x in (base, custom))
+
     mismatched = [x for x in custom if x not in base]
     if mismatched:
         string = ''

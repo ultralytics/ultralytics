@@ -202,7 +202,6 @@ def handle_yolo_hub(args: List[str]) -> None:
         python my_script.py hub login your_api_key
     """
     from ultralytics import hub
-    print(args)
 
     if args[0] == 'login':
         key = args[1] if len(args) > 1 else ''

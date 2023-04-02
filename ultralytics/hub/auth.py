@@ -5,7 +5,7 @@ import requests
 from ultralytics.hub.utils import HUB_API_ROOT, PREFIX, request_with_credentials
 from ultralytics.yolo.utils import LOGGER, SETTINGS, emojis, is_colab, set_settings
 
-API_KEY_PATH = 'https://hub.ultralytics.com/settings?tab=api+keys'
+API_KEY_URL = 'https://hub.ultralytics.com/settings?tab=api+keys'
 
 
 class Auth:
@@ -33,19 +33,22 @@ class Auth:
                 return
             else:
                 # Attempt to authenticate with the provided API key
-                self.authenticate()
+                success = self.authenticate()
         # If the API key is not provided and the environment is a Google Colab notebook
         elif is_colab():
             # Attempt to authenticate using browser cookies
-            self.auth_with_cookies()
+            success = self.auth_with_cookies()
         else:
             # Request an API key
-            self.request_api_key()
+            success = self.request_api_key()
 
         # Update SETTINGS with the new API key after successful authentication
-        set_settings({'api_key': self.api_key})
-        # Log that the new login was successful
-        LOGGER.info(f'{PREFIX}New authentication successful ✅')
+        if success:
+            set_settings({'api_key': self.api_key})
+            # Log that the new login was successful
+            LOGGER.info(f'{PREFIX}New authentication successful ✅')
+        else:
+            LOGGER.info(f'{PREFIX}Retrieve API key from {API_KEY_URL}')
 
     def request_api_key(self, max_attempts=3):
         """
@@ -54,11 +57,10 @@ class Auth:
         import getpass
         for attempts in range(max_attempts):
             LOGGER.info(f'{PREFIX}Login. Attempt {attempts + 1} of {max_attempts}')
-            input_key = getpass.getpass('Enter your API Key from https://hub.ultralytics.com/settings?tab=api+keys:\n')
+            input_key = getpass.getpass(f'Enter API key from {API_KEY_URL} ')
             self.api_key = input_key.split('_')[0]  # remove model id if present
             if self.authenticate():
                 return True
-            LOGGER.warning(f'{PREFIX}Invalid API key ⚠️\n')
         raise ConnectionError(emojis(f'{PREFIX}Failed to authenticate ❌'))
 
     def authenticate(self) -> bool:
@@ -78,6 +80,7 @@ class Auth:
             raise ConnectionError('User has not authenticated locally.')
         except ConnectionError:
             self.id_token = self.api_key = False  # reset invalid
+            LOGGER.warning(f'{PREFIX}Invalid API key ⚠️')
             return False
 
     def auth_with_cookies(self) -> bool:

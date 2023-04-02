@@ -23,6 +23,17 @@ def login(api_key=''):
     Auth(api_key)
 
 
+def logout():
+    """
+    Logout Ultralytics HUB
+
+    Example:
+        from ultralytics import hub
+        hub.logout()
+    """
+    LOGGER.warning('WARNING ⚠️ This method is not yet implemented.')
+
+
 def start(model=''):
     """
     --- DEPRECATED ---
@@ -39,6 +50,7 @@ def start(model=''):
     This function initializes a HUBTrainingSession with the provided model string and trains a YOLO model using
     the session's model file and training arguments.
     """
+    LOGGER.warning('WARNING ⚠️ This method is deprecated.')
     session = HUBTrainingSession(model)
     model = YOLO(model=session.model_file, session=session)
     model.train(**session.train_args)

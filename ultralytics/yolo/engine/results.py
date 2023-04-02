@@ -12,7 +12,7 @@ import numpy as np
 import torch
 import torchvision.transforms.functional as F
 
-from ultralytics.yolo.utils import LOGGER, SimpleClass, ops, deprication_warn
+from ultralytics.yolo.utils import LOGGER, SimpleClass, deprication_warn, ops
 from ultralytics.yolo.utils.plotting import Annotator, colors
 from ultralytics.yolo.utils.torch_utils import TORCHVISION_0_10
 
@@ -100,20 +100,21 @@ class Results(SimpleClass):
     def keys(self):
         return [k for k in self._keys if getattr(self, k) is not None]
 
-    def plot(self,
-             conf=True,
-             line_width=None,
-             font_size=None,
-             font='Arial.ttf',
-             pil=False,
-             example='abc',
-             img=None,
-             labels=True,
-             boxes=True,
-             masks=True,
-             logits=True,
-             **kwargs # depricated args TODO: remove support in 8.2
-             ):
+    def plot(
+            self,
+            conf=True,
+            line_width=None,
+            font_size=None,
+            font='Arial.ttf',
+            pil=False,
+            example='abc',
+            img=None,
+            labels=True,
+            boxes=True,
+            masks=True,
+            logits=True,
+            **kwargs  # depricated args TODO: remove support in 8.2
+    ):
         """
         Plots the detection results on an input RGB image. Accepts a numpy array (cv2) or a PIL Image.
 
@@ -135,10 +136,10 @@ class Results(SimpleClass):
         """
         # Deprication warn TODO: remove in 8.2
         if 'show_conf' in kwargs:
-            deprication_warn("show_conf", "conf")
-            conf = kwargs["show_conf"]
-            assert type(conf) == bool, "`show_conf` should be of boolean type, i.e, show_conf=True/False"
-    
+            deprication_warn('show_conf', 'conf')
+            conf = kwargs['show_conf']
+            assert type(conf) == bool, '`show_conf` should be of boolean type, i.e, show_conf=True/False'
+
         annotator = Annotator(deepcopy(self.orig_img if img is None else img), line_width, font_size, font, pil,
                               example)
         boxes_data, show_boxes = self.boxes, boxes

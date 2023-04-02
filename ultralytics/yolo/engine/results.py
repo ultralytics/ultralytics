@@ -65,7 +65,7 @@ class Results(SimpleClass):
             self.boxes = Boxes(boxes, self.orig_shape)
         if masks is not None:
             self.masks = Masks(masks, self.orig_shape)
-        if boxes is not None:
+        if probs is not None:
             self.probs = probs
 
     def cpu(self):

@@ -141,29 +141,29 @@ class Results(SimpleClass):
     
         annotator = Annotator(deepcopy(self.orig_img if img is None else img), line_width, font_size, font, pil,
                               example)
-        boxes_data, show_boxes = self.boxes, boxes
-        masks_data, show_masks = self.masks, masks
-        probs_data, show_logits = self.probs, logits
+        pred_boxes, show_boxes = self.boxes, boxes
+        pred_masks, show_masks = self.masks, masks
+        pred_logits, show_logits = self.probs, logits
         names = self.names
-        if boxes_data and show_boxes:
-            for d in reversed(boxes):
+        if pred_boxes and show_boxes:
+            for d in reversed(pred_boxes):
                 c, conf, id = int(d.cls), float(d.conf) if conf else None, None if d.id is None else int(d.id.item())
                 name = ('' if id is None else f'id:{id} ') + names[c]
                 label = (name if not conf else f'{name} {conf:.2f}') if labels else None
                 annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
 
-        if masks_data and show_masks:
+        if pred_masks and show_masks:
             im = torch.as_tensor(annotator.im, dtype=torch.float16, device=masks.data.device).permute(2, 0, 1).flip(0)
             if TORCHVISION_0_10:
                 im = F.resize(im.contiguous(), masks.data.shape[1:], antialias=True) / 255
             else:
                 im = F.resize(im.contiguous(), masks.data.shape[1:]) / 255
-            annotator.masks(masks.data, colors=[colors(x, True) for x in boxes.cls], im_gpu=im)
+            annotator.masks(masks.data, colors=[colors(x, True) for x in pred_boxes.cls], im_gpu=im)
 
-        if probs_data and show_logits:
+        if pred_logits and show_logits:
             n5 = min(len(names), 5)
-            top5i = probs_data.argsort(0, descending=True)[:n5].tolist()  # top 5 indices
-            text = f"{', '.join(f'{names[j] if names else j} {probs_data[j]:.2f}' for j in top5i)}, "
+            top5i = pred_logits.argsort(0, descending=True)[:n5].tolist()  # top 5 indices
+            text = f"{', '.join(f'{names[j] if names else j} {pred_logits[j]:.2f}' for j in top5i)}, "
             annotator.text((32, 32), text, txt_color=(255, 255, 255))  # TODO: allow setting colors
 
         return np.asarray(annotator.im) if annotator.pil else annotator.im

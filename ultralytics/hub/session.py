@@ -59,7 +59,6 @@ class HUBTrainingSession:
 
         # Authorize
         auth = Auth(key)
-        # model_id = split_key(key)[1] if auth.get_state() else request_api_key(auth)
         self.agent_id = None  # identifies which instance is communicating with server
         self.model_id = model_id
         self.model_url = f'https://hub.ultralytics.com/models/{model_id}'

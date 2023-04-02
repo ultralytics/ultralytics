@@ -8,6 +8,21 @@ from ultralytics.yolo.engine.model import YOLO
 from ultralytics.yolo.utils import LOGGER
 
 
+def login(api_key=''):
+    """
+    Log in to the Ultralytics HUB API using the provided API key.
+
+    Args:
+        api_key (str, optional): May be an API key or a combination API key and model ID, i.e. key_id
+
+    Example:
+        from ultralytics import hub
+        hub.login('your_api_key')
+    """
+    from ultralytics.hub.auth import Auth
+    Auth(api_key)
+
+
 def start(model=''):
     """
     --- DEPRECATED ---

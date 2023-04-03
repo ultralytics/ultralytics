@@ -344,8 +344,10 @@ def on_train_end(trainer):
 
     _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch)
     _log_image_predictions(experiment, trainer.validator, curr_step)
-
     experiment.end()
+
+    global _comet_image_prediction_count
+    _comet_image_prediction_count = 0
 
 
 if comet_ml:

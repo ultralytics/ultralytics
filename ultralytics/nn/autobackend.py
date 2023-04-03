@@ -68,6 +68,7 @@ class AutoBackend(nn.Module):
             | ONNX OpenCV DNN       | *.onnx dnn=True  |
             | OpenVINO              | *.xml            |
             | CoreML                | *.mlmodel        |
+            | CoreML ML Program     | *.mlpackage      |
             | TensorRT              | *.engine         |
             | TensorFlow SavedModel | *_saved_model    |
             | TensorFlow GraphDef   | *.pb             |
@@ -78,9 +79,9 @@ class AutoBackend(nn.Module):
         super().__init__()
         w = str(weights[0] if isinstance(weights, list) else weights)
         nn_module = isinstance(weights, torch.nn.Module)
-        pt, jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, triton = self._model_type(w)
+        pt, jit, onnx, xml, engine, coreml, mlprogram, saved_model, pb, tflite, edgetpu, tfjs, paddle, triton = self._model_type(w)
         fp16 &= pt or jit or onnx or engine or nn_module  # FP16
-        nhwc = coreml or saved_model or pb or tflite or edgetpu  # BHWC formats (vs torch BCWH)
+        nhwc = coreml or saved_model or pb or tflite or edgetpu or mlprogram  # BHWC formats (vs torch BCWH)
         stride = 32  # default stride
         model, metadata = None, None
         cuda = torch.cuda.is_available() and device.type != 'cpu'  # use CUDA
@@ -182,6 +183,11 @@ class AutoBackend(nn.Module):
             batch_size = bindings['images'].shape[0]  # if dynamic, this is instead max batch size
         elif coreml:  # CoreML
             LOGGER.info(f'Loading {w} for CoreML inference...')
+            import coremltools as ct
+            model = ct.models.MLModel(w)
+            metadata = dict(model.user_defined_metadata)
+        elif mlprogram:
+            LOGGER.info(f'Loading {w} for CoreML ML Program inference...')
             import coremltools as ct
             model = ct.models.MLModel(w)
             metadata = dict(model.user_defined_metadata)
@@ -330,7 +336,7 @@ class AutoBackend(nn.Module):
             self.binding_addrs['images'] = int(im.data_ptr())
             self.context.execute_v2(list(self.binding_addrs.values()))
             y = [self.bindings[x].data for x in sorted(self.output_names)]
-        elif self.coreml:  # CoreML
+        elif self.coreml or self.mlprogram:  # CoreML
             im = im[0].cpu().numpy()
             im_pil = Image.fromarray((im * 255).astype('uint8'))
             # im = im.resize((192, 320), Image.ANTIALIAS)

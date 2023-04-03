@@ -9,7 +9,8 @@ from types import SimpleNamespace
 from typing import Dict, List, Union
 
 from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, ROOT, USER_CONFIG_DIR,
-                                    IterableSimpleNamespace, __version__, checks, colorstr, yaml_load, yaml_print)
+                                    IterableSimpleNamespace, __version__, checks, colorstr, get_settings, yaml_load,
+                                    yaml_print)
 
 # Define valid tasks and modes
 MODES = 'train', 'val', 'predict', 'export', 'track', 'benchmark'
@@ -187,6 +188,51 @@ def merge_equals_args(args: List[str]) -> List[str]:
     return new_args
 
 
+def handle_yolo_hub(args: List[str]) -> None:
+    """
+    Handle Ultralytics HUB command-line interface (CLI) commands.
+
+    This function processes Ultralytics HUB CLI commands such as login and logout.
+    It should be called when executing a script with arguments related to HUB authentication.
+
+    Args:
+        args (List[str]): A list of command line arguments
+
+    Example:
+        python my_script.py hub login your_api_key
+    """
+    from ultralytics import hub
+
+    if args[0] == 'login':
+        key = args[1] if len(args) > 1 else ''
+        # Log in to Ultralytics HUB using the provided API key
+        hub.login(key)
+    elif args[0] == 'logout':
+        # Log out from Ultralytics HUB
+        hub.logout()
+
+
+def handle_yolo_settings(args: List[str]) -> None:
+    """
+    Handle YOLO settings command-line interface (CLI) commands.
+
+    This function processes YOLO settings CLI commands such as reset.
+    It should be called when executing a script with arguments related to YOLO settings management.
+
+    Args:
+        args (List[str]): A list of command line arguments for YOLO settings management.
+
+    Example:
+        python my_script.py yolo settings reset
+    """
+    path = USER_CONFIG_DIR / 'settings.yaml'  # get SETTINGS YAML file path
+    if any(args) and args[0] == 'reset':
+        path.unlink()  # delete the settings file
+        get_settings()  # create new settings
+        LOGGER.info('Settings reset successfully')  # inform the user that settings have been reset
+    yaml_print(path)  # print the current settings
+
+
 def entrypoint(debug=''):
     """
     This function is the ultralytics package entrypoint, it's responsible for parsing the command line arguments passed
@@ -211,8 +257,10 @@ def entrypoint(debug=''):
         'help': lambda: LOGGER.info(CLI_HELP_MSG),
         'checks': checks.check_yolo,
         'version': lambda: LOGGER.info(__version__),
-        'settings': lambda: yaml_print(USER_CONFIG_DIR / 'settings.yaml'),
+        'settings': lambda: handle_yolo_settings(args[1:]),
         'cfg': lambda: yaml_print(DEFAULT_CFG_PATH),
+        'hub': lambda: handle_yolo_hub(args[1:]),
+        'login': lambda: handle_yolo_hub(args),
         'copy-cfg': copy_default_cfg}
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 
@@ -255,8 +303,8 @@ def entrypoint(debug=''):
             overrides['task'] = a
         elif a in MODES:
             overrides['mode'] = a
-        elif a in special:
-            special[a]()
+        elif a.lower() in special:
+            special[a.lower()]()
             return
         elif a in DEFAULT_CFG_DICT and isinstance(DEFAULT_CFG_DICT[a], bool):
             overrides[a] = True  # auto-True for default bool args, i.e. 'yolo show' sets show=True

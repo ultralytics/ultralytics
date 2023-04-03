@@ -359,7 +359,18 @@ class YOLO:
         self.model.to(device)
 
 
-    def tune(self, data:str, space: dict = None, gpu_per_trial = None, max_samples=10, pbt_interval=4, pbt_space=None):
+    def tune(self, data:str, space: dict = None, pbt_space=None,  pbt_interval=4, gpu_per_trial = None, max_samples=10):
+        """
+        Runs hyper-parameter tuning using ray tune
+
+        Args:
+            data (str): The dataset to run the tuner on
+            space (dict): The hyper parameter search space
+            pbt_space (dict): The perturbation space
+            pbt_interval (int): Perturbation interval
+            gpu_per_trial (int): set CUDA_VISIBLE_DEVICES per trial
+            max_samples (int): Max number of trials to run
+        """
         try:
             from ultralytics.yolo.utils.tuner import tune, default_space, task_metric_map, PBT, session, WandbLoggerCallback, RunConfig
         except:

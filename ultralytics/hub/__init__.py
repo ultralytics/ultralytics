@@ -2,7 +2,6 @@
 
 import requests
 
-from ultralytics.hub.session import HUBTrainingSession
 from ultralytics.hub.utils import PREFIX, split_key
 from ultralytics.yolo.utils import LOGGER
 

@@ -9,8 +9,8 @@ from types import SimpleNamespace
 from typing import Dict, List, Union
 
 from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, ROOT, USER_CONFIG_DIR,
-                                    IterableSimpleNamespace, __version__, checks, colorstr, get_settings, yaml_load,
-                                    yaml_print, deprecation_warn)
+                                    IterableSimpleNamespace, __version__, checks, colorstr, deprecation_warn,
+                                    get_settings, yaml_load, yaml_print)
 
 # Define valid tasks and modes
 MODES = 'train', 'val', 'predict', 'export', 'track', 'benchmark'

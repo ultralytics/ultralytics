@@ -221,6 +221,7 @@ def test_result():
     res[0].plot()
     print(res[0].path)
 
+
 model = YOLO('yolov8n.pt')
 #model.tune()
 model.train(epochs=1, imgsz=16)

@@ -358,8 +358,7 @@ class YOLO:
         self._check_is_pytorch_model()
         self.model.to(device)
 
-
-    def tune(self, data:str, space: dict = None, pbt_space=None,  pbt_interval=4, gpu_per_trial = None, max_samples=10):
+    def tune(self, data: str, space: dict = None, pbt_space=None, pbt_interval=4, gpu_per_trial=None, max_samples=10):
         """
         Runs hyper-parameter tuning using ray tune
 
@@ -372,10 +371,11 @@ class YOLO:
             max_samples (int): Max number of trials to run
         """
         try:
-            from ultralytics.yolo.utils.tuner import tune, default_space, task_metric_map, PBT, session, WandbLoggerCallback, RunConfig
+            from ultralytics.yolo.utils.tuner import (PBT, RunConfig, WandbLoggerCallback, default_space, session,
+                                                      task_metric_map, tune)
         except:
             raise ModuleNotFoundError("Install ray tune: `pip install 'ray[tune]'")
-        
+
         try:
             import wandb
             from wandb import __version__
@@ -387,33 +387,33 @@ class YOLO:
             self.train(**config)
 
         if not space:
-            LOGGER.warning("WARNING: search space not provided. Using default search space")
+            LOGGER.warning('WARNING: search space not provided. Using default search space')
             space = default_space
-        space["data"] = data
+        space['data'] = data
 
-        trainable_with_resources = tune.with_resources(_tune,{"cpu": 8, "gpu": gpu_per_trial if gpu_per_trial else 0})
+        trainable_with_resources = tune.with_resources(_tune, {'cpu': 8, 'gpu': gpu_per_trial if gpu_per_trial else 0})
         pbt_interval = pbt_interval
         # params to pe
         pbt_perturbation_space = pbt_space if pbt_space else {
-                "lr0": tune.qloguniform(5e-3, 1e-1, 5e-4),
-                "weight_decay": tune.uniform(0.00005, 0.005),
-                "mixup": tune.uniform(0.0, 0.5) , # image mixup (probability)
-            }
+            'lr0': tune.qloguniform(5e-3, 1e-1, 5e-4),
+            'weight_decay': tune.uniform(0.00005, 0.005),
+            'mixup': tune.uniform(0.0, 0.5),  # image mixup (probability)
+        }
         pbt_scheduler = PBT(
-            time_attr="epoch",
+            time_attr='epoch',
             perturbation_interval=pbt_interval,
-            metric=task_metric_map[self.task], 
-            mode="max",
+            metric=task_metric_map[self.task],
+            mode='max',
             quantile_fraction=0.5,
             resample_probability=0.5,
             hyperparam_mutations=pbt_perturbation_space,
-            synch=True, # TODO: test with and without
+            synch=True,  # TODO: test with and without
         )
-        tuner = tune.Tuner(trainable_with_resources,
-                            param_space=space,
-                            tune_config=tune.TuneConfig(scheduler=pbt_scheduler,num_samples=max_samples),
-                            run_config=RunConfig(callbacks=[WandbLoggerCallback(project="yolov8_tuner") if wandb else None]
-                            ))
+        tuner = tune.Tuner(
+            trainable_with_resources,
+            param_space=space,
+            tune_config=tune.TuneConfig(scheduler=pbt_scheduler, num_samples=max_samples),
+            run_config=RunConfig(callbacks=[WandbLoggerCallback(project='yolov8_tuner') if wandb else None]))
         tuner.fit()
 
         return tuner.get_results()

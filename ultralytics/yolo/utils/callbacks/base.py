@@ -148,8 +148,8 @@ def add_integration_callbacks(instance):
     from .comet import callbacks as comet_callbacks
     from .hub import callbacks as hub_callbacks
     from .mlflow import callbacks as mf_callbacks
-    from .tensorboard import callbacks as tb_callbacks
     from .raytune import callbacks as tune_callbacks
+    from .tensorboard import callbacks as tb_callbacks
 
     for x in clearml_callbacks, comet_callbacks, hub_callbacks, tb_callbacks, mf_callbacks, tune_callbacks:
         for k, v in x.items():

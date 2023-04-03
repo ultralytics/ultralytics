@@ -84,6 +84,7 @@ jobs:
           from ultralytics.yolo.utils import USER_CONFIG_DIR
           Path(USER_CONFIG_DIR / 'settings.yaml').unlink()
           key = os.environ['APIKEY']
+          hub.reset_model(key)
           model = YOLO(key)
           model.train()
       - name: Test HUB training (Python Usage 4)

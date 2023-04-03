@@ -335,7 +335,6 @@ class YOLO:
             raise AttributeError("Dataset required but missing, i.e. pass 'data=coco128.yaml'")
         if overrides.get('resume'):
             overrides['resume'] = self.ckpt_path
-
         self.task = overrides.get('task') or self.task
         self.trainer = TASK_MAP[self.task][1](overrides=overrides)
         if not overrides.get('resume'):  # manually set model only if not resuming
@@ -358,6 +357,20 @@ class YOLO:
         """
         self._check_is_pytorch_model()
         self.model.to(device)
+
+    def _tune(self, config, reporter):
+        self.train(**config)
+        reporter(self.metrics)
+
+    def tune(self, space: dict = None, device = None):
+        from ultralytics.yolo.cfg.tune_space import tune, tune_space
+        if not tune:
+            raise ModuleNotFoundError("Install ray tune: `pip install 'ray[tune]'")
+        space = {"epochs": tune.randint(1, 4), "imgsz": tune.choice([16,32])}
+        #trainable_with_resources = tune.with_resources(trainable, {"cpu": 4})
+
+        tuner = tune.Tuner(self._tune, param_space=space, tune_config=tune.TuneConfig(num_samples=1))
+        tuner.fit()
 
     @property
     def names(self):

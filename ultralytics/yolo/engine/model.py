@@ -365,15 +365,18 @@ class YOLO:
         session.report(self.metrics.results_dict)        
 
     def tune(self, data:str, space: dict = None, gpu_per_trial = None, max_samples=10):
-        from ultralytics.yolo.cfg.tune_space import tune, tune_space
+        from ultralytics.yolo.utils.tuner import tune, default_space, task_metric_map
         if not tune:
             raise ModuleNotFoundError("Install ray tune: `pip install 'ray[tune]'")
         if not space:
             LOGGER.warning("WARNING: search space not provided. Using default search space")
-            space = tune_space
+            space = default_space
         space["data"] = data
-        trainable_with_resources = tune.with_resources(self._tune, {"cpu": 8, "gpu": gpu_per_trial if gpu_per_trial else 0})
-        tuner = tune.Tuner(trainable_with_resources, param_space=space, tune_config=tune.TuneConfig(num_samples=max_samples))
+        trainable_with_resources = tune.with_resources(self._tune, {"cpu": 8, 
+                                                        "gpu": gpu_per_trial if gpu_per_trial else 0})
+        tuner = tune.Tuner(trainable_with_resources,
+                            param_space=space,
+                            tune_config=tune.TuneConfig(num_samples=max_samples, mode="max", metric=task_metric_map[self.task]))
         tuner.fit()
 
         return tuner.get_results()

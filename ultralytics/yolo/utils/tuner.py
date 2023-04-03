@@ -7,7 +7,7 @@ except:
     LOGGER.info("Tuning hyperparameters requires ray/tune. Install using `pip install 'ray[tune]'`")
     tune = None
 
-tune_space = {
+default_space = {
 "optimizer": ['SGD', 'Adam', 'AdamW', 'RMSProp'],
 "lr0": tune.uniform(0.0001, 0.1),
 "lrf": 0.01,  # final learning rate (lr0 * lrf)
@@ -35,4 +35,11 @@ tune_space = {
 "mosaic": 1.0,  # image mosaic (probability)
 "mixup": 0.0 , # image mixup (probability)
 "copy_paste": 0.0,  # segment copy-paste (probability)
+}
+
+task_metric_map = {
+    "detect": "metrics/mAP50-95(B)",
+    "segment": "metrics/mAP50-95(M)",
+    "classify": "top1_acc",
+    "pose": None
 }

@@ -378,7 +378,7 @@ class YOLO:
 
         try:
             import wandb
-            from wandb import __version__ # noqa
+            from wandb import __version__  # noqa
         except ImportError:
             wandb = False
 

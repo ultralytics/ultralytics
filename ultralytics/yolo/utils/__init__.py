@@ -642,7 +642,7 @@ def set_settings(kwargs, file=USER_CONFIG_DIR / 'settings.yaml'):
     yaml_save(file, SETTINGS)
 
 
-def deprication_warn(arg, new_arg, version=None):
+def deprecation_warn(arg, new_arg, version=None):
     if not version:
         version = float(__version__[0:3]) + 0.2  # deprecate after 2nd major release
     LOGGER.warning(

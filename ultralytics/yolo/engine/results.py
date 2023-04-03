@@ -12,7 +12,7 @@ import numpy as np
 import torch
 import torchvision.transforms.functional as F
 
-from ultralytics.yolo.utils import LOGGER, SimpleClass, deprication_warn, ops
+from ultralytics.yolo.utils import LOGGER, SimpleClass, deprecation_warn, ops
 from ultralytics.yolo.utils.plotting import Annotator, colors
 from ultralytics.yolo.utils.torch_utils import TORCHVISION_0_10
 
@@ -134,9 +134,9 @@ class Results(SimpleClass):
         Returns:
             (None) or (PIL.Image): If `pil` is True, a PIL Image is returned. Otherwise, nothing is returned.
         """
-        # Deprication warn TODO: remove in 8.2
+        # Deprecation warn TODO: remove in 8.2
         if 'show_conf' in kwargs:
-            deprication_warn('show_conf', 'conf')
+            deprecation_warn('show_conf', 'conf')
             conf = kwargs['show_conf']
             assert type(conf) == bool, '`show_conf` should be of boolean type, i.e, show_conf=True/False'
 

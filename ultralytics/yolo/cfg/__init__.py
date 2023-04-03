@@ -9,7 +9,7 @@ from types import SimpleNamespace
 from typing import Dict, List, Union
 
 from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, ROOT, USER_CONFIG_DIR,
-                                    IterableSimpleNamespace, __version__, checks, colorstr, deprication_warn, yaml_load,
+                                    IterableSimpleNamespace, __version__, checks, colorstr, deprecation_warn, yaml_load,
                                     yaml_print)
 
 # Define valid tasks and modes
@@ -140,17 +140,17 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
     return IterableSimpleNamespace(**cfg)
 
 
-def _handle_deprication(custom):
+def _handle_deprecation(custom):
     """
     Hardcoded function to handle deprecated config keys
     """
 
     for key in custom.copy().keys():
         if key == 'hide_labels':
-            deprication_warn(key, 'show_labels')
+            deprecation_warn(key, 'show_labels')
             custom['show_labels'] = custom.pop('hide_labels') == 'False'
         if key == 'hide_conf':
-            deprication_warn(key, 'show_conf')
+            deprecation_warn(key, 'show_conf')
             custom['show_conf'] = custom.pop('hide_conf') == 'False'
 
     return custom
@@ -165,7 +165,7 @@ def check_cfg_mismatch(base: Dict, custom: Dict, e=None):
         - custom (Dict): a dictionary of custom configuration options
         - base (Dict): a dictionary of base configuration options
     """
-    custom = _handle_deprication(custom)
+    custom = _handle_deprecation(custom)
     base, custom = (set(x.keys()) for x in (base, custom))
 
     mismatched = [x for x in custom if x not in base]

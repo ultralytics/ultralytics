@@ -624,7 +624,7 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.3'):
 
         # Check that settings keys and types match defaults
         correct = \
-            settings    
+            settings
             and settings.keys() == defaults.keys() \
             and all(type(a) == type(b) for a, b in zip(settings.values(), defaults.values())) \
             and check_version(settings['settings_version'], version)

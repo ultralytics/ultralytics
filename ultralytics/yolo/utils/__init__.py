@@ -321,10 +321,13 @@ def is_online() -> bool:
         bool: True if connection is successful, False otherwise.
     """
     import socket
-    with contextlib.suppress(Exception):
-        host = socket.gethostbyname('www.github.com')
-        socket.create_connection((host, 80), timeout=2)
-        return True
+
+    for server in '1.1.1.1', '8.8.8.8', '223.5.5.5':  # Cloudflare, Google, AliDNS:
+        try:
+            socket.create_connection((server, 53), timeout=2)  # connect to (server, port=53)
+            return True
+        except (socket.timeout, socket.gaierror, socket.error):
+            continue
     return False
 
 

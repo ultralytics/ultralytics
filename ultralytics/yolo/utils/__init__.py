@@ -326,7 +326,7 @@ def is_online() -> bool:
         try:
             socket.create_connection((server, 53), timeout=2)  # connect to (server, port=53)
             return True
-        except (socket.timeout, socket.gaierror, socket.error):
+        except (socket.timeout, socket.gaierror, OSError):
             continue
     return False
 

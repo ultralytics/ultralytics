@@ -371,9 +371,9 @@ class YOLO:
             max_samples (int): Max number of trials to run
         """
         try:
-            from ultralytics.yolo.utils.tuner import (PBT, RunConfig, WandbLoggerCallback, default_space, session,
+            from ultralytics.yolo.utils.tuner import (PBT, RunConfig, WandbLoggerCallback, default_space,
                                                       task_metric_map, tune)
-        except:
+        except ImportError:
             raise ModuleNotFoundError("Install ray tune: `pip install 'ray[tune]'")
 
         try:

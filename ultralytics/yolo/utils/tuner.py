@@ -6,7 +6,7 @@ try:
     from ray.air.integrations.wandb import WandbLoggerCallback  # noqa
     from ray.tune.schedulers import PopulationBasedTraining as PBT  # noqa
 
-except:
+except ImportError:
     LOGGER.info("Tuning hyperparameters requires ray/tune. Install using `pip install 'ray[tune]'`")
     tune = None
 

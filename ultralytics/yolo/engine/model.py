@@ -378,8 +378,8 @@ class YOLO:
 
         try:
             import wandb
-            from wandb import __version__
-        except:
+            from wandb import __version__ # noqa
+        except ImportError:
             wandb = False
 
         def _tune(config):

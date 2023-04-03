@@ -78,7 +78,7 @@ class SegmentationPredictor(DetectionPredictor):
         for j, d in enumerate(reversed(det)):
             c, conf, id = int(d.cls), float(d.conf), None if d.id is None else int(d.id.item())
             if self.args.save_txt:  # Write to file
-                seg = mask.segments[len(det) - j - 1].copy().reshape(-1)  # reversed mask.segments, (n,2) to (n*2)
+                seg = mask.xyn[len(det) - j - 1].copy().reshape(-1)  # reversed mask.xyn, (n,2) to (n*2)
                 line = (c, *seg) + (conf, ) * self.args.save_conf + (() if id is None else (id, ))
                 with open(f'{self.txt_path}.txt', 'a') as f:
                     f.write(('%g ' * len(line)).rstrip() % line + '\n')

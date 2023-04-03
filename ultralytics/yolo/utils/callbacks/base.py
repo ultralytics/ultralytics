@@ -149,8 +149,9 @@ def add_integration_callbacks(instance):
     from .hub import callbacks as hub_callbacks
     from .mlflow import callbacks as mf_callbacks
     from .tensorboard import callbacks as tb_callbacks
+    from .raytune import callbacks as tune_callbacks
 
-    for x in clearml_callbacks, comet_callbacks, hub_callbacks, tb_callbacks, mf_callbacks:
+    for x in clearml_callbacks, comet_callbacks, hub_callbacks, tb_callbacks, mf_callbacks, tune_callbacks:
         for k, v in x.items():
             if v not in instance.callbacks[k]:  # prevent duplicate callbacks addition
                 instance.callbacks[k].append(v)  # callback[name].append(func)

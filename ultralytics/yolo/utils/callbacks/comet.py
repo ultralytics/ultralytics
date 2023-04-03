@@ -13,6 +13,7 @@ COMET_EVAL_BATCH_LOGGING_INTERVAL = int(os.getenv('COMET_EVAL_BATCH_LOGGING_INTE
 COMET_EVAL_LOG_CONFUSION_MATRIX = (os.getenv('COMET_EVAL_LOG_CONFUSION_MATRIX', 'true').lower() == 'true')
 # determines whether to log image predictions every evaluation epoch
 COMET_EVAL_LOG_IMAGE_PREDICTIONS = (os.getenv('COMET_EVAL_LOG_IMAGE_PREDICTIONS', 'true').lower() == 'true')
+COMET_MAX_IMAGE_PREDICTIONS = int(os.getenv('COMET_MAX_IMAGE_PREDICTIONS', 100))
 
 # ensures certain logging functions only run for supported tasks
 COMET_SUPPORTED_TASKS = ['detect']
@@ -36,6 +37,8 @@ try:
 except (ImportError, AssertionError):
     comet_ml = None
 
+_comet_image_prediction_count = 0
+
 
 def _get_experiment_type(mode, project_name):
     if mode == 'offline':
@@ -53,6 +56,11 @@ def _create_experiment(args):
         project_name = args.project
         experiment = _get_experiment_type(COMET_MODE, project_name)
         experiment.log_parameters(vars(args))
+        experiment.log_others({
+            'eval_batch_logging_interval': COMET_EVAL_BATCH_LOGGING_INTERVAL,
+            'log_confusion_matrix': COMET_EVAL_LOG_CONFUSION_MATRIX,
+            'log_image_predictions': COMET_EVAL_LOG_IMAGE_PREDICTIONS,
+            'max_image_predictions': COMET_MAX_IMAGE_PREDICTIONS,})
         experiment.log_other('Created from', 'yolov8')
 
     except Exception as e:
@@ -107,7 +115,7 @@ def _format_ground_truth_annotations_for_detection(img_idx, image_path, batch, c
     indices = batch['batch_idx'] == img_idx
     bboxes = batch['bboxes'][indices]
     if len(bboxes) == 0:
-        LOGGER.warning(f'COMET WARNING: Image: {image_path} has no bounding boxes labels')
+        LOGGER.debug(f'COMET WARNING: Image: {image_path} has no bounding boxes labels')
         return None
 
     cls_labels = batch['cls'][indices].squeeze(1).tolist()
@@ -139,7 +147,7 @@ def _format_prediction_annotations_for_detection(image_path, metadata, class_lab
 
     predictions = metadata.get(image_id)
     if not predictions:
-        LOGGER.warning(f'COMET WARNING: Image: {image_path} has no bounding boxes predictions')
+        LOGGER.debug(f'COMET WARNING: Image: {image_path} has no bounding boxes predictions')
         return None
 
     data = []
@@ -183,7 +191,7 @@ def _create_prediction_metadata_map(model_predictions):
     return pred_metadata_map
 
 
-def _log_confusion_matrix(experiment, trainer, curr_epoch):
+def _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch):
     conf_mat = trainer.validator.confusion_matrix.matrix
 
     # Ensure dictionary with label names is sorted based on keys
@@ -194,6 +202,7 @@ def _log_confusion_matrix(experiment, trainer, curr_epoch):
         labels=label_names,
         max_categories=len(label_names),
         epoch=curr_epoch,
+        step=curr_step,
     )
 
 
@@ -208,6 +217,8 @@ def _log_images(experiment, image_paths, curr_step, annotations=None):
 
 
 def _log_image_predictions(experiment, validator, curr_step):
+    global _comet_image_prediction_count
+
     task = validator.args.task
     if task not in COMET_SUPPORTED_TASKS:
         return
@@ -226,8 +237,10 @@ def _log_image_predictions(experiment, validator, curr_step):
 
         image_paths = batch['im_file']
         for img_idx, image_path in enumerate(image_paths):
-            image_path = Path(image_path)
+            if _comet_image_prediction_count >= COMET_MAX_IMAGE_PREDICTIONS:
+                return
 
+            image_path = Path(image_path)
             annotations = _fetch_annotations(
                 img_idx,
                 image_path,
@@ -241,6 +254,7 @@ def _log_image_predictions(experiment, validator, curr_step):
                 curr_step,
                 annotations=annotations,
             )
+            _comet_image_prediction_count += 1
 
 
 def _log_plots(experiment, trainer):
@@ -309,7 +323,7 @@ def on_fit_epoch_end(trainer):
 
     _log_model(experiment, trainer)
     if COMET_EVAL_LOG_CONFUSION_MATRIX:
-        _log_confusion_matrix(experiment, trainer, curr_epoch)
+        _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch)
     if COMET_EVAL_LOG_IMAGE_PREDICTIONS:
         _log_image_predictions(experiment, trainer.validator, curr_step)
 
@@ -328,7 +342,7 @@ def on_train_end(trainer):
     if plots:
         _log_plots(experiment, trainer)
 
-    _log_confusion_matrix(experiment, trainer, curr_epoch)
+    _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch)
     _log_image_predictions(experiment, trainer.validator, curr_step)
 
     experiment.end()

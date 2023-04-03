@@ -78,19 +78,19 @@ def export_formats():
     # YOLOv8 export formats
     import pandas
     x = [
-        ['PyTorch', '-', '.pt', True, True],
-        ['TorchScript', 'torchscript', '.torchscript', True, True],
-        ['ONNX', 'onnx', '.onnx', True, True],
-        ['OpenVINO', 'openvino', '_openvino_model', True, False],
-        ['TensorRT', 'engine', '.engine', False, True],
-        ['CoreML', 'coreml', '.mlmodel', True, False],
-        ['CoreML ML Program', 'mlprogram', '.mlpackage', True, False],
-        ['TensorFlow SavedModel', 'saved_model', '_saved_model', True, True],
-        ['TensorFlow GraphDef', 'pb', '.pb', True, True],
-        ['TensorFlow Lite', 'tflite', '.tflite', True, False],
-        ['TensorFlow Edge TPU', 'edgetpu', '_edgetpu.tflite', True, False],
-        ['TensorFlow.js', 'tfjs', '_web_model', True, False],
-        ['PaddlePaddle', 'paddle', '_paddle_model', True, True], ]
+        ['PyTorch', '-', '.pt', True, True],  # 0
+        ['TorchScript', 'torchscript', '.torchscript', True, True],  # 1
+        ['ONNX', 'onnx', '.onnx', True, True],  # 2
+        ['OpenVINO', 'openvino', '_openvino_model', True, False],  # 3
+        ['TensorRT', 'engine', '.engine', False, True],  # 4
+        ['CoreML', 'coreml', '.mlmodel', True, False],  # 5
+        ['CoreML ML Program', 'mlprogram', '.mlpackage', True, False], # 6
+        ['TensorFlow SavedModel', 'saved_model', '_saved_model', True, True],  # 7 (6)
+        ['TensorFlow GraphDef', 'pb', '.pb', True, True],  # 8 (7)
+        ['TensorFlow Lite', 'tflite', '.tflite', True, False],  # 9 (8)
+        ['TensorFlow Edge TPU', 'edgetpu', '_edgetpu.tflite', True, False],  # 10 (9)
+        ['TensorFlow.js', 'tfjs', '_web_model', True, False],  # 11 (10)
+        ['PaddlePaddle', 'paddle', '_paddle_model', True, True], ]  # 12 (11)
     return pandas.DataFrame(x, columns=['Format', 'Argument', 'Suffix', 'CPU', 'GPU'])
 
 

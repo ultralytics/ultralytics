@@ -14,6 +14,7 @@ ONNX                    | `onnx`                    | yolov8n.onnx
 OpenVINO                | `openvino`                | yolov8n_openvino_model/
 TensorRT                | `engine`                  | yolov8n.engine
 CoreML                  | `coreml`                  | yolov8n.mlmodel
+CoreML ML Program       | `mlprogram`               | yolov8n.mlpackage
 TensorFlow SavedModel   | `saved_model`             | yolov8n_saved_model/
 TensorFlow GraphDef     | `pb`                      | yolov8n.pb
 TensorFlow Lite         | `tflite`                  | yolov8n.tflite
@@ -48,8 +49,8 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
     for i, (name, format, suffix, cpu, gpu) in export_formats().iterrows():  # index, (name, format, suffix, CPU, GPU)
         emoji, filename = '❌', None  # export defaults
         try:
-            assert i != 9 or LINUX, 'Edge TPU export only supported on Linux'
-            if i == 10:
+            assert i != 10 or LINUX, 'Edge TPU export only supported on Linux'
+            if i == 11:
                 assert MACOS or LINUX, 'TF.js export only supported on macOS and Linux'
             if 'cpu' in device.type:
                 assert cpu, 'inference not supported on CPU'
@@ -67,8 +68,8 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
             emoji = '❎'  # indicates export succeeded
 
             # Predict
-            assert i not in (9, 10), 'inference not supported'  # Edge TPU and TF.js are unsupported
-            assert i != 5 or platform.system() == 'Darwin', 'inference only supported on macOS>=10.13'  # CoreML
+            assert i not in (10, 11), 'inference not supported'  # Edge TPU and TF.js are unsupported
+            assert i != 5 or i != 6 or platform.system() == 'Darwin', 'inference only supported on macOS>=10.13'  # CoreML
             if not (ROOT / 'assets/bus.jpg').exists():
                 download(url='https://ultralytics.com/images/bus.jpg', dir=ROOT / 'assets')
             export.predict(ROOT / 'assets/bus.jpg', imgsz=imgsz, device=device, half=half)

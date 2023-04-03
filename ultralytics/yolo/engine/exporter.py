@@ -420,7 +420,7 @@ class Exporter:
 
         ts = torch.jit.trace(model.eval(), self.im, strict=False)  # TorchScript model
         ct_model = ct.convert(ts,
-                              convert_to="mlprogram" if mlprogram else None,
+                              convert_to='mlprogram' if mlprogram else None,
                               inputs=[ct.ImageType('image', shape=self.im.shape, scale=scale, bias=bias)],
                               classifier_config=classifier_config)
         bits, mode = (8, 'kmeans_lut') if self.args.int8 else (16, 'linear') if self.args.half else (32, None)
@@ -437,17 +437,15 @@ class Exporter:
         ct_model.license = m.pop('license')
         ct_model.version = m.pop('version')
         ct_model.user_defined_metadata.update({k: str(v) for k, v in m.items()})
-        
+
         if mlprogram:
             # Workaround for https://github.com/apple/coremltools/issues/1680
-            ct_model = ct.models.MLModel(
-                ct_model._spec, weights_dir=ct_model._weights_dir, is_temp_package=True
-            )
-        
+            ct_model = ct.models.MLModel(ct_model._spec, weights_dir=ct_model._weights_dir, is_temp_package=True)
+
         ct_model.save(str(f))
-        
+
         return f, ct_model
-    
+
     @try_export
     def _export_engine(self, workspace=4, verbose=False, prefix=colorstr('TensorRT:')):
         # YOLOv8 TensorRT export https://developer.nvidia.com/tensorrt

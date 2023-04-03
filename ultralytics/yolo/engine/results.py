@@ -277,6 +277,8 @@ class Masks(SimpleClass):
         self.masks = masks  # N, h, w
         self.orig_shape = orig_shape
 
+    @property
+    @lru_cache(maxsize=1)
     def segments(self):
         # Segments-deprecated (normalized)
         LOGGER.warning("WARNING ⚠️ 'Masks.segments' is deprecated. Use 'Masks.xyn' for segments (normalized) and "

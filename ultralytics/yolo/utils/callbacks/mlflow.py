@@ -25,7 +25,7 @@ def on_pretrain_routine_end(trainer):
         mlflow_location = os.environ['MLFLOW_TRACKING_URI']  # "http://192.168.xxx.xxx:5000"
         mlflow.set_tracking_uri(mlflow_location)
 
-        experiment_name = trainer.args.project or 'YOLOv8'
+        experiment_name = trainer.args.project or '/Shared/YOLOv8'
         experiment = mlflow.get_experiment_by_name(experiment_name)
         if experiment is None:
             mlflow.create_experiment(experiment_name)
@@ -33,16 +33,15 @@ def on_pretrain_routine_end(trainer):
 
         prefix = colorstr('MLFlow: ')
         try:
-            run, active_run = mlflow, mlflow.start_run() if mlflow else None
-            if active_run is not None:
-                run_id = active_run.info.run_id
-                LOGGER.info(f'{prefix}Using run_id({run_id}) at {mlflow_location}')
+            run, active_run = mlflow, mlflow.active_run()
+            if not active_run:
+                active_run = mlflow.start_run(experiment_id=experiment.experiment_id)
+            run_id = active_run.info.run_id
+            LOGGER.info(f'{prefix}Using run_id({run_id}) at {mlflow_location}')
+            run.log_params(vars(trainer.model.args))
         except Exception as err:
             LOGGER.error(f'{prefix}Failing init - {repr(err)}')
             LOGGER.warning(f'{prefix}Continuing without Mlflow')
-            run = None
-
-        run.log_params(vars(trainer.model.args))
 
 
 def on_fit_epoch_end(trainer):

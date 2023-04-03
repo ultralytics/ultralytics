@@ -1,3 +1,5 @@
+import argparse
+
 import cv2.dnn
 import numpy as np
 
@@ -16,9 +18,9 @@ def draw_bounding_box(img, class_id, confidence, x, y, x_plus_w, y_plus_h):
     cv2.putText(img, label, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
 
-def main():
-    model: cv2.dnn.Net = cv2.dnn.readNetFromONNX('yolov8n.onnx')
-    original_image: np.ndarray = cv2.imread(str(ROOT / 'assets/bus.jpg'))
+def main(onnx_model, input_image):
+    model: cv2.dnn.Net = cv2.dnn.readNetFromONNX(onnx_model)
+    original_image: np.ndarray = cv2.imread(input_image)
     [height, width, _] = original_image.shape
     length = max((height, width))
     image = np.zeros((length, length, 3), np.uint8)
@@ -71,4 +73,8 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model', default='yolov8n.onnx', help='Input your onnx model.')
+    parser.add_argument('--img', default=str(ROOT / 'assets/bus.jpg'), help='Path to input image.')
+    args = parser.parse_args()
+    main(args.model, args.img)

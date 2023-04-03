@@ -55,7 +55,7 @@ class BaseValidator:
         save_dir (Path): Directory to save results.
     """
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None):
+    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
         """
         Initializes a BaseValidator instance.
 
@@ -85,7 +85,7 @@ class BaseValidator:
         if self.args.conf is None:
             self.args.conf = 0.001  # default conf=0.001
 
-        self.callbacks = defaultdict(list, callbacks.default_callbacks)  # add callbacks
+        self.callbacks = defaultdict(list, _callbacks)  # add callbacks
 
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):

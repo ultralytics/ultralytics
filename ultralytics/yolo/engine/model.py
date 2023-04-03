@@ -3,6 +3,7 @@
 import sys
 from pathlib import Path
 from typing import Union
+from copy import deepcopy
 
 from ultralytics import yolo  # noqa
 from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, SegmentationModel, attempt_load_one_weight,
@@ -77,7 +78,7 @@ class YOLO:
             task (Any, optional): Task type for the YOLO model. Defaults to None.
 
         """
-        self._reset_callbacks()
+        self.callbacks = deepcopy(callbacks.default_callbacks)
         self.predictor = None  # reuse predictor
         self.model = None  # model object
         self.trainer = None  # trainer object
@@ -231,7 +232,7 @@ class YOLO:
         overrides['save'] = kwargs.get('save', False)  # not save files by default
         if not self.predictor:
             self.task = overrides.get('task') or self.task
-            self.predictor = TASK_MAP[self.task][3](overrides=overrides)
+            self.predictor = TASK_MAP[self.task][3](overrides=overrides, _callbacks=self.callbacks)
             self.predictor.setup_model(model=self.model, verbose=is_cli)
         else:  # only update args if predictor is already setup
             self.predictor.args = get_cfg(self.predictor.args, overrides)
@@ -380,19 +381,17 @@ class YOLO:
         """
         return self.model.transforms if hasattr(self.model, 'transforms') else None
 
-    @staticmethod
-    def add_callback(event: str, func):
+    def add_callback(self, event: str, func):
         """
         Add callback
         """
-        callbacks.default_callbacks[event].append(func)
+        self.callbacks[event].append(func)
 
     @staticmethod
     def _reset_ckpt_args(args):
         include = {'imgsz', 'data', 'task', 'single_cls'}  # only remember these arguments when loading a PyTorch model
         return {k: v for k, v in args.items() if k in include}
 
-    @staticmethod
-    def _reset_callbacks():
+    def _reset_callbacks(self):
         for event in callbacks.default_callbacks.keys():
-            callbacks.default_callbacks[event] = [callbacks.default_callbacks[event][0]]
+            self.callbacks[event] = [callbacks.default_callbacks[event][0]]

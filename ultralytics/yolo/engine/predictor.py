@@ -104,7 +104,7 @@ class BasePredictor:
         self.data_path = None
         self.source_type = None
         self.batch = None
-        self.callbacks = defaultdict(list, _callbacks)
+        self.callbacks = defaultdict(list, _callbacks) if _callbacks else defaultdict(list, callbacks.default_callbacks)
         callbacks.add_integration_callbacks(self)
 
     def preprocess(self, img):

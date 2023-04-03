@@ -91,7 +91,7 @@ class YOLO:
         model = str(model).strip()  # strip spaces
 
         # Check if Ultralytics HUB model from https://hub.ultralytics.com
-        if model.startswith('https://hub.ultralytics.com/models/') or [len(x) for x in model.split('_')] == [42, 20]:
+        if self.is_hub_model(model):
             from ultralytics.hub.session import HUBTrainingSession
             self.session = HUBTrainingSession(model)
             model = self.session.model_file
@@ -111,6 +111,12 @@ class YOLO:
     def __getattr__(self, attr):
         name = self.__class__.__name__
         raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
+
+    @staticmethod
+    def is_hub_model(model):
+        return any((model.startswith('https://hub.ultralytics.com/models/'),
+                    [len(x) for x in model.split('_')] == [42, 20],  # APIKEY_MODELID
+                    (len(model) == 20 and not Path(model).exists() and not any(x in model for x in './\\'))))  # MODELID
 
     def _new(self, cfg: str, task=None, verbose=True):
         """

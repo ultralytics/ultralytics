@@ -84,7 +84,7 @@ def export_formats():
         ['OpenVINO', 'openvino', '_openvino_model', True, False],  # 3
         ['TensorRT', 'engine', '.engine', False, True],  # 4
         ['CoreML', 'coreml', '.mlmodel', True, False],  # 5
-        ['CoreML ML Program', 'mlprogram', '.mlpackage', True, False], # 6
+        ['CoreML ML Program', 'mlprogram', '.mlpackage', True, False],  # 6
         ['TensorFlow SavedModel', 'saved_model', '_saved_model', True, True],  # 7 (6)
         ['TensorFlow GraphDef', 'pb', '.pb', True, True],  # 8 (7)
         ['TensorFlow Lite', 'tflite', '.tflite', True, False],  # 9 (8)

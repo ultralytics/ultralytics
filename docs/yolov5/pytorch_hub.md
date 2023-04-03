@@ -269,6 +269,7 @@ model = torch.hub.load('ultralytics/yolov5', 'custom', path='yolov5s.pt')  # PyT
                                                             'yolov5s_openvino_model/')  # OpenVINO
                                                             'yolov5s.engine')  # TensorRT
                                                             'yolov5s.mlmodel')  # CoreML (macOS-only)
+                                                            'yolov5s.mlpackage')  # CoreML (macOS-only)
                                                             'yolov5s.tflite')  # TFLite
                                                             'yolov5s_paddle_model/')  # PaddlePaddle
 ```

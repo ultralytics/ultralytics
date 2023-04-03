@@ -56,7 +56,8 @@ Benchmarks will attempt to run automatically on all possible export formats belo
 | [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n.onnx`            | ✅        |
 | [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`        | `yolov8n_openvino_model/` | ✅        |
 | [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`          | `yolov8n.engine`          | ✅        |
-| [CoreML](https://github.com/apple/coremltools)                     | `coreml`          | `yolov8n.mlmodel`         | ✅        |
+| [CoreML MLModel](https://github.com/apple/coremltools)             | `mlmodel`         | `yolov8n.mlmodel`         | ✅        |
+| [CoreML MLProgram](https://github.com/apple/coremltools)           | `mlprogram`       | `yolov8n.mlpackage`       | ✅        |
 | [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`     | `yolov8n_saved_model/`    | ✅        |
 | [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`              | `yolov8n.pb`              | ❌        |
 | [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`          | `yolov8n.tflite`          | ✅        |

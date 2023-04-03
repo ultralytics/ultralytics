@@ -29,7 +29,8 @@ YOLOv5 inference is officially supported in 11 formats:
 | [ONNX](https://onnx.ai/)                                                   | `onnx`                | `yolov5s.onnx`            |
 | [OpenVINO](https://docs.openvino.ai/latest/index.html)                     | `openvino`            | `yolov5s_openvino_model/` |
 | [TensorRT](https://developer.nvidia.com/tensorrt)                          | `engine`              | `yolov5s.engine`          |
-| [CoreML](https://github.com/apple/coremltools)                             | `coreml`              | `yolov5s.mlmodel`         |
+| [CoreML MLModel](https://github.com/apple/coremltools)                     | `mlmodel`             | `yolov8n.mlmodel`         |
+| [CoreML MLProgram](https://github.com/apple/coremltools)                   | `mlprogram`           | `yolov8n.mlpackage`       |
 | [TensorFlow SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`         | `yolov5s_saved_model/`    |
 | [TensorFlow GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`                  | `yolov5s.pb`              |
 | [TensorFlow Lite](https://www.tensorflow.org/lite)                         | `tflite`              | `yolov5s.tflite`          |
@@ -144,6 +145,7 @@ python detect.py --weights yolov5s.pt                 # PyTorch
                            yolov5s_openvino_model     # OpenVINO
                            yolov5s.engine             # TensorRT
                            yolov5s.mlmodel            # CoreML (macOS only)
+                           yolov5s.mlpackage          # CoreML (macOS only)
                            yolov5s_saved_model        # TensorFlow SavedModel
                            yolov5s.pb                 # TensorFlow GraphDef
                            yolov5s.tflite             # TensorFlow Lite
@@ -159,6 +161,7 @@ python val.py --weights yolov5s.pt                 # PyTorch
                         yolov5s_openvino_model     # OpenVINO
                         yolov5s.engine             # TensorRT
                         yolov5s.mlmodel            # CoreML (macOS Only)
+                        yolov5s.mlpackage          # CoreML (macOS Only)
                         yolov5s_saved_model        # TensorFlow SavedModel
                         yolov5s.pb                 # TensorFlow GraphDef
                         yolov5s.tflite             # TensorFlow Lite
@@ -177,6 +180,7 @@ model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s.pt')
                                                        'yolov5s_openvino_model')     # OpenVINO
                                                        'yolov5s.engine')             # TensorRT
                                                        'yolov5s.mlmodel')            # CoreML (macOS Only)
+                                                       'yolov5s.mlpackage')          # CoreML (macOS Only)
                                                        'yolov5s_saved_model')        # TensorFlow SavedModel
                                                        'yolov5s.pb')                 # TensorFlow GraphDef
                                                        'yolov5s.tflite')             # TensorFlow Lite

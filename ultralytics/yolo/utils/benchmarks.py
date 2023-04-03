@@ -13,8 +13,8 @@ TorchScript             | `torchscript`             | yolov8n.torchscript
 ONNX                    | `onnx`                    | yolov8n.onnx
 OpenVINO                | `openvino`                | yolov8n_openvino_model/
 TensorRT                | `engine`                  | yolov8n.engine
-CoreML                  | `coreml`                  | yolov8n.mlmodel
-CoreML ML Program       | `mlprogram`               | yolov8n.mlpackage
+CoreML MLModel          | `mlmodel`                 | yolov8n.mlmodel
+CoreML MLProgram        | `mlprogram`               | yolov8n.mlpackage
 TensorFlow SavedModel   | `saved_model`             | yolov8n_saved_model/
 TensorFlow GraphDef     | `pb`                      | yolov8n.pb
 TensorFlow Lite         | `tflite`                  | yolov8n.tflite

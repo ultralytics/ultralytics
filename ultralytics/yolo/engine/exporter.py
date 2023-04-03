@@ -9,8 +9,8 @@ TorchScript             | `torchscript`             | yolov8n.torchscript
 ONNX                    | `onnx`                    | yolov8n.onnx
 OpenVINO                | `openvino`                | yolov8n_openvino_model/
 TensorRT                | `engine`                  | yolov8n.engine
-CoreML                  | `coreml`                  | yolov8n.mlmodel
-CoreML ML Program       | `mlprogram`               | yolov8n.mlpackage
+CoreML MLModel          | `mlmodel`                 | yolov8n.mlmodel
+CoreML MLProgram        | `mlprogram`               | yolov8n.mlpackage
 TensorFlow SavedModel   | `saved_model`             | yolov8n_saved_model/
 TensorFlow GraphDef     | `pb`                      | yolov8n.pb
 TensorFlow Lite         | `tflite`                  | yolov8n.tflite
@@ -36,6 +36,7 @@ Inference:
                          yolov8n_openvino_model     # OpenVINO
                          yolov8n.engine             # TensorRT
                          yolov8n.mlmodel            # CoreML (macOS-only)
+                         yolov8n.mlpackage          # CoreML (macOS-only)
                          yolov8n_saved_model        # TensorFlow SavedModel
                          yolov8n.pb                 # TensorFlow GraphDef
                          yolov8n.tflite             # TensorFlow Lite
@@ -83,8 +84,8 @@ def export_formats():
         ['ONNX', 'onnx', '.onnx', True, True],  # 2
         ['OpenVINO', 'openvino', '_openvino_model', True, False],  # 3
         ['TensorRT', 'engine', '.engine', False, True],  # 4
-        ['CoreML', 'coreml', '.mlmodel', True, False],  # 5
-        ['CoreML ML Program', 'mlprogram', '.mlpackage', True, False],  # 6
+        ['CoreML MLModel', 'mlmodel', '.mlmodel', True, False],  # 5
+        ['CoreML MLProgram', 'mlprogram', '.mlpackage', True, False],  # 6
         ['TensorFlow SavedModel', 'saved_model', '_saved_model', True, True],  # 7 (6)
         ['TensorFlow GraphDef', 'pb', '.pb', True, True],  # 8 (7)
         ['TensorFlow Lite', 'tflite', '.tflite', True, False],  # 9 (8)
@@ -155,7 +156,7 @@ class Exporter:
         flags = [x == format for x in fmts]
         if sum(flags) != 1:
             raise ValueError(f"Invalid export format='{format}'. Valid formats are {fmts}")
-        jit, onnx, xml, engine, coreml, mlprogram, saved_model, pb, tflite, edgetpu, tfjs, paddle = flags  # export booleans
+        jit, onnx, xml, engine, mlmodel, mlprogram, saved_model, pb, tflite, edgetpu, tfjs, paddle = flags  # export booleans
 
         # Load PyTorch model
         self.device = select_device('cpu' if self.args.device is None else self.args.device)
@@ -237,7 +238,7 @@ class Exporter:
             f[2], _ = self._export_onnx()
         if xml:  # OpenVINO
             f[3], _ = self._export_openvino()
-        if coreml:  # CoreML
+        if mlmodel:  # CoreML MLModel
             f[4], _ = self._export_coreml()
         if any((saved_model, pb, tflite, edgetpu, tfjs)):  # TensorFlow formats
             self.args.int8 |= edgetpu
@@ -253,7 +254,7 @@ class Exporter:
         if paddle:  # PaddlePaddle
             f[10], _ = self._export_paddle()
         if mlprogram:
-            f[11], _ = self._export_coreml(mlprogram=True)
+            f[11], _ = self._export_coreml(mlprogram=True)  # CoreML MLProgram
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None

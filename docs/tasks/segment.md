@@ -164,7 +164,8 @@ i.e. `yolo predict model=yolov8n-seg.onnx`.
 | [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n-seg.onnx`            | ✅        |
 | [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`        | `yolov8n-seg_openvino_model/` | ✅        |
 | [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`          | `yolov8n-seg.engine`          | ✅        |
-| [CoreML](https://github.com/apple/coremltools)                     | `coreml`          | `yolov8n-seg.mlmodel`         | ✅        |
+| [CoreML MLModel](https://github.com/apple/coremltools)             | `mlmodel`         | `yolov8n.mlmodel`             | ✅        |
+| [CoreML MLProgram](https://github.com/apple/coremltools)           | `mlprogram`       | `yolov8n.mlpackage`           | ✅        |
 | [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`     | `yolov8n-seg_saved_model/`    | ✅        |
 | [TF GraphDef](https://www.tensorflow.org/api_docs/python/tf/Graph) | `pb`              | `yolov8n-seg.pb`              | ❌        |
 | [TF Lite](https://www.tensorflow.org/lite)                         | `tflite`          | `yolov8n-seg.tflite`          | ✅        |

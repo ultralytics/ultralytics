@@ -114,9 +114,10 @@ class YOLO:
 
     @staticmethod
     def is_hub_model(model):
-        return any((model.startswith('https://hub.ultralytics.com/models/'),
-                    [len(x) for x in model.split('_')] == [42, 20],  # APIKEY_MODELID
-                    (len(model) == 20 and not Path(model).exists() and not any(x in model for x in './\\'))))  # MODELID
+        return any((
+            model.startswith('https://hub.ultralytics.com/models/'),
+            [len(x) for x in model.split('_')] == [42, 20],  # APIKEY_MODELID
+            (len(model) == 20 and not Path(model).exists() and not any(x in model for x in './\\'))))  # MODELID
 
     def _new(self, cfg: str, task=None, verbose=True):
         """

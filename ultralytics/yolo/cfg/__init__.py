@@ -167,7 +167,6 @@ def check_cfg_mismatch(base: Dict, custom: Dict, e=None):
     """
     custom = _handle_deprecation(custom)
     base, custom = (set(x.keys()) for x in (base, custom))
-
     mismatched = [x for x in custom if x not in base]
     if mismatched:
         string = ''

@@ -92,7 +92,7 @@ class YOLO:
 
         # Check if Ultralytics HUB model from https://hub.ultralytics.com
         if model.startswith('https://hub.ultralytics.com/models/'):
-            from ultralytics.hub import HUBTrainingSession
+            from ultralytics.hub.session import HUBTrainingSession
             self.session = HUBTrainingSession(model)
             model = self.session.model_file
 

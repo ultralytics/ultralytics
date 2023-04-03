@@ -46,7 +46,7 @@ theme:
     - content.tabs.link  # all code tabs change simultaneously
 
 # Customization
-copyright: Ultralytics 2023. All rights reserved.
+copyright: <a href="https://ultralytics.com" target="_blank">Ultralytics 2023.</a> All rights reserved.
 extra:
   # version:
   #   provider: mike  #  version drop-down menu
@@ -167,7 +167,7 @@ nav:
       - Hyperparameter evolution: yolov5/hyp_evolution.md
       - Transfer learning with frozen layers: yolov5/transfer_learn_frozen.md
       - Architecture Summary: yolov5/architecture.md
-      - Roboflow for Datasets, Labeling, and Active Learning: yolov5/roboflow.md
+      - Roboflow Datasets: yolov5/roboflow.md
       - Neural Magic's DeepSparse: yolov5/neural_magic.md
       - Comet Logging: yolov5/comet.md
       - Clearml Logging: yolov5/clearml.md

@@ -12,7 +12,7 @@ import numpy as np
 import torch
 import torchvision.transforms.functional as F
 
-from ultralytics.yolo.utils import LOGGER, SimpleClass, ops
+from ultralytics.yolo.utils import LOGGER, SimpleClass, deprecation_warn, ops
 from ultralytics.yolo.utils.plotting import Annotator, colors
 from ultralytics.yolo.utils.torch_utils import TORCHVISION_0_10
 
@@ -65,7 +65,7 @@ class Results(SimpleClass):
             self.boxes = Boxes(boxes, self.orig_shape)
         if masks is not None:
             self.masks = Masks(masks, self.orig_shape)
-        if boxes is not None:
+        if probs is not None:
             self.probs = probs
 
     def cpu(self):
@@ -100,46 +100,72 @@ class Results(SimpleClass):
     def keys(self):
         return [k for k in self._keys if getattr(self, k) is not None]
 
-    def plot(self, show_conf=True, line_width=None, font_size=None, font='Arial.ttf', pil=False, example='abc'):
+    def plot(
+            self,
+            conf=True,
+            line_width=None,
+            font_size=None,
+            font='Arial.ttf',
+            pil=False,
+            example='abc',
+            img=None,
+            labels=True,
+            boxes=True,
+            masks=True,
+            probs=True,
+            **kwargs  # deprecated args TODO: remove support in 8.2
+    ):
         """
         Plots the detection results on an input RGB image. Accepts a numpy array (cv2) or a PIL Image.
 
         Args:
-            show_conf (bool): Whether to show the detection confidence score.
+            conf (bool): Whether to plot the detection confidence score.
             line_width (float, optional): The line width of the bounding boxes. If None, it is scaled to the image size.
             font_size (float, optional): The font size of the text. If None, it is scaled to the image size.
             font (str): The font to use for the text.
             pil (bool): Whether to return the image as a PIL Image.
             example (str): An example string to display. Useful for indicating the expected format of the output.
+            img (numpy.ndarray): Plot to another image. if not, plot to original image.
+            labels (bool): Whether to plot the label of bounding boxes.
+            boxes (bool): Whether to plot the bounding boxes.
+            masks (bool): Whether to plot the masks.
+            probs (bool): Whether to plot classification probability
 
         Returns:
             (None) or (PIL.Image): If `pil` is True, a PIL Image is returned. Otherwise, nothing is returned.
         """
-        annotator = Annotator(deepcopy(self.orig_img), line_width, font_size, font, pil, example)
-        boxes = self.boxes
-        masks = self.masks
-        probs = self.probs
+        # Deprecation warn TODO: remove in 8.2
+        if 'show_conf' in kwargs:
+            deprecation_warn('show_conf', 'conf')
+            conf = kwargs['show_conf']
+            assert type(conf) == bool, '`show_conf` should be of boolean type, i.e, show_conf=True/False'
+
+        annotator = Annotator(deepcopy(self.orig_img if img is None else img), line_width, font_size, font, pil,
+                              example)
+        pred_boxes, show_boxes = self.boxes, boxes
+        pred_masks, show_masks = self.masks, masks
+        pred_probs, show_probs = self.probs, probs
         names = self.names
-        hide_labels, hide_conf = False, not show_conf
-        if boxes is not None:
-            for d in reversed(boxes):
-                c, conf, id = int(d.cls), float(d.conf), None if d.id is None else int(d.id.item())
+        if pred_boxes and show_boxes:
+            for d in reversed(pred_boxes):
+                c, conf, id = int(d.cls), float(d.conf) if conf else None, None if d.id is None else int(d.id.item())
                 name = ('' if id is None else f'id:{id} ') + names[c]
-                label = None if hide_labels else (name if hide_conf else f'{name} {conf:.2f}')
+                label = (name if not conf else f'{name} {conf:.2f}') if labels else None
                 annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
 
-        if masks is not None:
-            im = torch.as_tensor(annotator.im, dtype=torch.float16, device=masks.data.device).permute(2, 0, 1).flip(0)
+        if pred_masks and show_masks:
+            im = torch.as_tensor(annotator.im, dtype=torch.float16, device=pred_masks.data.device).permute(2, 0,
+                                                                                                           1).flip(0)
             if TORCHVISION_0_10:
-                im = F.resize(im.contiguous(), masks.data.shape[1:], antialias=True) / 255
+                im = F.resize(im.contiguous(), pred_masks.data.shape[1:], antialias=True) / 255
             else:
-                im = F.resize(im.contiguous(), masks.data.shape[1:]) / 255
-            annotator.masks(masks.data, colors=[colors(x, True) for x in boxes.cls], im_gpu=im)
+                im = F.resize(im.contiguous(), pred_masks.data.shape[1:]) / 255
+            annotator.masks(pred_masks.data, colors=[colors(x, True) for x in pred_boxes.cls], im_gpu=im)
 
-        if probs is not None:
+        if pred_probs is not None and show_probs:
             n5 = min(len(names), 5)
-            top5i = probs.argsort(0, descending=True)[:n5].tolist()  # top 5 indices
-            text = f"{', '.join(f'{names[j] if names else j} {probs[j]:.2f}' for j in top5i)}, "
+            top5i = pred_probs.argsort(0, descending=True)[:n5].tolist()  # top 5 indices
+            text = f"{', '.join(f'{names[j] if names else j} {pred_probs[j]:.2f}' for j in top5i)}, "
             annotator.text((32, 32), text, txt_color=(255, 255, 255))  # TODO: allow setting colors
 
         return np.asarray(annotator.im) if annotator.pil else annotator.im

@@ -83,6 +83,7 @@ def export_formats():
         ['OpenVINO', 'openvino', '_openvino_model', True, False],
         ['TensorRT', 'engine', '.engine', False, True],
         ['CoreML', 'coreml', '.mlmodel', True, False],
+        ['CoreML MLProgram', 'mlprogram', '.mlpackage', True, False],
         ['TensorFlow SavedModel', 'saved_model', '_saved_model', True, True],
         ['TensorFlow GraphDef', 'pb', '.pb', True, True],
         ['TensorFlow Lite', 'tflite', '.tflite', True, False],
@@ -153,7 +154,7 @@ class Exporter:
         flags = [x == format for x in fmts]
         if sum(flags) != 1:
             raise ValueError(f"Invalid export format='{format}'. Valid formats are {fmts}")
-        jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle = flags  # export booleans
+        jit, onnx, xml, engine, coreml, mlprogram, saved_model, pb, tflite, edgetpu, tfjs, paddle = flags  # export booleans
 
         # Load PyTorch model
         self.device = select_device('cpu' if self.args.device is None else self.args.device)
@@ -250,6 +251,8 @@ class Exporter:
                 f[9], _ = self._export_tfjs()
         if paddle:  # PaddlePaddle
             f[10], _ = self._export_paddle()
+        if mlprogram:
+            f[11], _ = self._export_coreml(mlprogram=True)
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
@@ -378,7 +381,7 @@ class Exporter:
         return f, None
 
     @try_export
-    def _export_coreml(self, prefix=colorstr('CoreML:')):
+    def _export_coreml(self, prefix=colorstr('CoreML:'), mlprogram=False):
         # YOLOv8 CoreML export
         check_requirements('coremltools>=6.0')
         import coremltools as ct  # noqa
@@ -400,7 +403,7 @@ class Exporter:
                 return cls, xywh * self.normalize  # confidence (3780, 80), coordinates (3780, 4)
 
         LOGGER.info(f'\n{prefix} starting export with coremltools {ct.__version__}...')
-        f = self.file.with_suffix('.mlmodel')
+        f = self.file.with_suffix('.mlpackage' if mlprogram else '.mlmodel')
 
         bias = [0.0, 0.0, 0.0]
         scale = 1 / 255
@@ -416,6 +419,7 @@ class Exporter:
 
         ts = torch.jit.trace(model.eval(), self.im, strict=False)  # TorchScript model
         ct_model = ct.convert(ts,
+                              convert_to="mlprogram" if mlprogram else None,
                               inputs=[ct.ImageType('image', shape=self.im.shape, scale=scale, bias=bias)],
                               classifier_config=classifier_config)
         bits, mode = (8, 'kmeans_lut') if self.args.int8 else (16, 'linear') if self.args.half else (32, None)
@@ -432,9 +436,17 @@ class Exporter:
         ct_model.license = m.pop('license')
         ct_model.version = m.pop('version')
         ct_model.user_defined_metadata.update({k: str(v) for k, v in m.items()})
+        
+        if mlprogram:
+            # Workaround for https://github.com/apple/coremltools/issues/1680
+            ct_model = ct.models.MLModel(
+                ct_model._spec, weights_dir=ct_model._weights_dir, is_temp_package=True
+            )
+        
         ct_model.save(str(f))
+        
         return f, ct_model
-
+    
     @try_export
     def _export_engine(self, workspace=4, verbose=False, prefix=colorstr('TensorRT:')):
         # YOLOv8 TensorRT export https://developer.nvidia.com/tensorrt

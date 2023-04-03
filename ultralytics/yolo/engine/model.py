@@ -91,7 +91,7 @@ class YOLO:
         model = str(model).strip()  # strip spaces
 
         # Check if Ultralytics HUB model from https://hub.ultralytics.com
-        if model.startswith('https://hub.ultralytics.com/models/'):
+        if model.startswith('https://hub.ultralytics.com/models/') or [len(x) for x in model.split('_')] == [42, 20]:
             from ultralytics.hub.session import HUBTrainingSession
             self.session = HUBTrainingSession(model)
             model = self.session.model_file

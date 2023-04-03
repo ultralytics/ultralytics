@@ -56,11 +56,11 @@ def test_predict_detect():
 
 
 def test_predict_segment():
-    run(f"yolo predict model={MODEL}-seg.pt source={ROOT / 'assets'} imgsz=32 save")
+    run(f"yolo predict model={MODEL}-seg.pt source={ROOT / 'assets'} imgsz=32 save save_txt")
 
 
 def test_predict_classify():
-    run(f"yolo predict model={MODEL}-cls.pt source={ROOT / 'assets'} imgsz=32 save")
+    run(f"yolo predict model={MODEL}-cls.pt source={ROOT / 'assets'} imgsz=32 save save_txt")
 
 
 # Export checks --------------------------------------------------------------------------------------------------------

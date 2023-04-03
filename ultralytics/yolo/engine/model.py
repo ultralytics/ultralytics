@@ -1,9 +1,9 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
 import sys
+from copy import deepcopy
 from pathlib import Path
 from typing import Union
-from copy import deepcopy
 
 from ultralytics import yolo  # noqa
 from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, SegmentationModel, attempt_load_one_weight,

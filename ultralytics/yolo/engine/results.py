@@ -17,6 +17,40 @@ from ultralytics.yolo.utils.plotting import Annotator, colors
 from ultralytics.yolo.utils.torch_utils import TORCHVISION_0_10
 
 
+class BaseTensor(SimpleClass):
+    def __init__(self, tensor, orig_shape) -> None:
+        super().__init__()
+        assert isinstance(tensor, torch.Tensor)
+        self.tensor = tensor
+        self.orig_shape = orig_shape
+
+    @property
+    def shape(self):
+        return self.data.shape
+
+    @property
+    def data(self):
+        return self.tensor
+
+    def cpu(self):
+        return self.__class__(self.data.cpu(), self.orig_shape)
+
+    def numpy(self):
+        return self.__class__(self.data.numpy(), self.orig_shape)
+
+    def cuda(self):
+        return self.__class__(self.data.cuda(), self.orig_shape)
+
+    def to(self, *args, **kwargs):
+        return self.__class__(self.data.to(*args, **kwargs), self.orig_shape)
+
+    def __len__(self):  # override len(results)
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        return self.__class__(self.data[idx], self.orig_shape)
+
+
 class Results(SimpleClass):
     """
     A class for storing and manipulating inference results.
@@ -56,7 +90,7 @@ class Results(SimpleClass):
         # TODO masks.pandas + boxes.pandas + cls.pandas
 
     def __getitem__(self, idx):
-        r = Results(orig_img=self.orig_img, path=self.path, names=self.names)
+        r = self.new()
         for k in self.keys:
             setattr(r, k, getattr(self, k)[idx])
         return r
@@ -70,25 +104,25 @@ class Results(SimpleClass):
             self.probs = probs
 
     def cpu(self):
-        r = Results(orig_img=self.orig_img, path=self.path, names=self.names)
+        r = self.new()
         for k in self.keys:
             setattr(r, k, getattr(self, k).cpu())
         return r
 
     def numpy(self):
-        r = Results(orig_img=self.orig_img, path=self.path, names=self.names)
+        r = self.new()
         for k in self.keys:
             setattr(r, k, getattr(self, k).numpy())
         return r
 
     def cuda(self):
-        r = Results(orig_img=self.orig_img, path=self.path, names=self.names)
+        r = self.new()
         for k in self.keys:
             setattr(r, k, getattr(self, k).cuda())
         return r
 
     def to(self, *args, **kwargs):
-        r = Results(orig_img=self.orig_img, path=self.path, names=self.names)
+        r = self.new()
         for k in self.keys:
             setattr(r, k, getattr(self, k).to(*args, **kwargs))
         return r
@@ -96,6 +130,9 @@ class Results(SimpleClass):
     def __len__(self):
         for k in self.keys:
             return len(getattr(self, k))
+
+    def new(self):
+        return Results(orig_img=self.orig_img, path=self.path, names=self.names)
 
     @property
     def keys(self):
@@ -159,7 +196,7 @@ class Results(SimpleClass):
         return np.asarray(annotator.im) if annotator.pil else annotator.im
 
 
-class Boxes(SimpleClass):
+class Boxes(BaseTensor):
     """
     A class for storing and manipulating detection boxes.
 
@@ -234,37 +271,15 @@ class Boxes(SimpleClass):
     def xywhn(self):
         return self.xywh / self.orig_shape[[1, 0, 1, 0]]
 
-    def cpu(self):
-        return Boxes(self.boxes.cpu(), self.orig_shape)
-
-    def numpy(self):
-        return Boxes(self.boxes.numpy(), self.orig_shape)
-
-    def cuda(self):
-        return Boxes(self.boxes.cuda(), self.orig_shape)
-
-    def to(self, *args, **kwargs):
-        return Boxes(self.boxes.to(*args, **kwargs), self.orig_shape)
-
     def pandas(self):
         LOGGER.info('results.pandas() method not yet implemented')
-
-    @property
-    def shape(self):
-        return self.boxes.shape
 
     @property
     def data(self):
         return self.boxes
 
-    def __len__(self):  # override len(results)
-        return len(self.boxes)
 
-    def __getitem__(self, idx):
-        return Boxes(self.boxes[idx], self.orig_shape)
-
-
-class Masks(SimpleClass):
+class Masks(BaseTensor):
     """
     A class for storing and manipulating detection masks.
 
@@ -316,27 +331,5 @@ class Masks(SimpleClass):
             for x in ops.masks2segments(self.masks)]
 
     @property
-    def shape(self):
-        return self.masks.shape
-
-    @property
     def data(self):
         return self.masks
-
-    def cpu(self):
-        return Masks(self.masks.cpu(), self.orig_shape)
-
-    def numpy(self):
-        return Masks(self.masks.numpy(), self.orig_shape)
-
-    def cuda(self):
-        return Masks(self.masks.cuda(), self.orig_shape)
-
-    def to(self, *args, **kwargs):
-        return Masks(self.masks.to(*args, **kwargs), self.orig_shape)
-
-    def __len__(self):  # override len(results)
-        return len(self.masks)
-
-    def __getitem__(self, idx):
-        return Masks(self.masks[idx], self.orig_shape)

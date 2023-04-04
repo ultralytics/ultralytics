@@ -5,7 +5,7 @@ This repository features a collection of real-world applications and walkthrough
 ### Ultralytics YOLO Example Applications
 
 | Title                                                                    | Format             | Contributor                                         |
-|--------------------------------------------------------------------------|--------------------|-----------------------------------------------------|
+| ------------------------------------------------------------------------ | ------------------ | --------------------------------------------------- |
 | [YOLO ONNX Detection Inference with C++](./YOLOv8-CPP-Inference)         | C++/ONNX           | [Justas Bartnykas](https://github.com/JustasBart)   |
 | [YOLO OpenCV ONNX Detection Python](./YOLOv8-OpenCV-ONNX-Python)         | OpenCV/Python/ONNX | [Farid Inawan](https://github.com/frdteknikelektro) |
 | [YOLO .Net ONNX Detection C#](https://www.nuget.org/packages/Yolov8.Net) | C# .Net            | [Samuel Stainback](https://github.com/sstainba)     |
@@ -15,7 +15,7 @@ This repository features a collection of real-world applications and walkthrough
 We welcome contributions from the community in the form of examples, applications, and guides. To contribute, please follow these steps:
 
 1. Create a pull request (PR) with the `[Example]` prefix in the title, adding your project folder to the `examples/` directory in the repository.
-2. Ensure that your project meets the following criteria:
+1. Ensure that your project meets the following criteria:
    - Utilizes the `ultralytics` package.
    - Includes a `README.md` file with instructions on how to run the project.
    - Avoids adding large assets or dependencies unless absolutely necessary.

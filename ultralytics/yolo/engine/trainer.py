@@ -25,8 +25,8 @@ from tqdm import tqdm
 from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.data.utils import check_cls_dataset, check_det_dataset
-from ultralytics.yolo.utils import (DEFAULT_CFG, LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, __version__, callbacks,
-                                    colorstr, emojis, yaml_save)
+from ultralytics.yolo.utils import (DEFAULT_CFG, LOGGER, ONLINE, RANK, ROOT, SETTINGS, TQDM_BAR_FORMAT, __version__,
+                                    callbacks, colorstr, emojis, yaml_save)
 from ultralytics.yolo.utils.autobatch import check_train_batch_size
 from ultralytics.yolo.utils.checks import check_file, check_imgsz, print_args
 from ultralytics.yolo.utils.dist import ddp_cleanup, generate_ddp_command
@@ -95,9 +95,9 @@ class BaseTrainer:
             self.save_dir = Path(self.args.save_dir)
         else:
             self.save_dir = Path(
-                increment_path(Path(project) / name, exist_ok=self.args.exist_ok if RANK in {-1, 0} else True))
+                increment_path(Path(project) / name, exist_ok=self.args.exist_ok if RANK in (-1, 0) else True))
         self.wdir = self.save_dir / 'weights'  # weights dir
-        if RANK in {-1, 0}:
+        if RANK in (-1, 0):
             self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
             self.args.save_dir = str(self.save_dir)
             yaml_save(self.save_dir / 'args.yaml', vars(self.args))  # save run args
@@ -111,8 +111,6 @@ class BaseTrainer:
             print_args(vars(self.args))
 
         # Device
-        self.amp = self.device.type != 'cpu'
-        self.scaler = amp.GradScaler(enabled=self.amp)
         if self.device.type == 'cpu':
             self.args.workers = 0  # faster CPU training as time dominated by inference, not dataloading
 
@@ -126,7 +124,7 @@ class BaseTrainer:
                 if 'yaml_file' in self.data:
                     self.args.data = self.data['yaml_file']  # for validating 'yolo train data=url.zip' usage
         except Exception as e:
-            raise FileNotFoundError(emojis(f"Dataset '{self.args.data}' error ❌ {e}")) from e
+            raise RuntimeError(emojis(f"Dataset '{self.args.data}' error ❌ {e}")) from e
 
         self.trainset, self.testset = self.get_dataset(self.data)
         self.ema = None
@@ -146,7 +144,7 @@ class BaseTrainer:
 
         # Callbacks
         self.callbacks = defaultdict(list, callbacks.default_callbacks)  # add callbacks
-        if RANK in {0, -1}:
+        if RANK in (-1, 0):
             callbacks.add_integration_callbacks(self)
 
     def add_callback(self, event: str, callback):
@@ -176,7 +174,12 @@ class BaseTrainer:
 
         # Run subprocess if DDP training, else train normally
         if world_size > 1 and 'LOCAL_RANK' not in os.environ:
-            cmd, file = generate_ddp_command(world_size, self)  # security vulnerability in Snyk scans
+            # Argument checks
+            if self.args.rect:
+                LOGGER.warning("WARNING ⚠️ 'rect=True' is incompatible with Multi-GPU training, setting rect=False")
+                self.args.rect = False
+            # Command
+            cmd, file = generate_ddp_command(world_size, self)
             try:
                 LOGGER.info(f'Running DDP command {cmd}')
                 subprocess.run(cmd, check=True)
@@ -185,27 +188,35 @@ class BaseTrainer:
             finally:
                 ddp_cleanup(self, str(file))
         else:
-            self._do_train(RANK, world_size)
+            self._do_train(world_size)
 
-    def _setup_ddp(self, rank, world_size):
-        # os.environ['MASTER_ADDR'] = 'localhost'
-        # os.environ['MASTER_PORT'] = '9020'
-        torch.cuda.set_device(rank)
-        self.device = torch.device('cuda', rank)
-        LOGGER.info(f'DDP settings: RANK {rank}, WORLD_SIZE {world_size}, DEVICE {self.device}')
-        dist.init_process_group('nccl' if dist.is_nccl_available() else 'gloo', rank=rank, world_size=world_size)
+    def _setup_ddp(self, world_size):
+        torch.cuda.set_device(RANK)
+        self.device = torch.device('cuda', RANK)
+        LOGGER.info(f'DDP settings: RANK {RANK}, WORLD_SIZE {world_size}, DEVICE {self.device}')
+        dist.init_process_group('nccl' if dist.is_nccl_available() else 'gloo', rank=RANK, world_size=world_size)
 
-    def _setup_train(self, rank, world_size):
+    def _setup_train(self, world_size):
         """
         Builds dataloaders and optimizer on correct rank process.
         """
-        # model
+        # Model
         self.run_callbacks('on_pretrain_routine_start')
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
         self.set_model_attributes()
+        # Check AMP
+        self.amp = torch.tensor(self.args.amp).to(self.device)  # True or False
+        if self.amp and RANK in (-1, 0):  # Single-GPU and DDP
+            callbacks_backup = callbacks.default_callbacks.copy()  # backup callbacks as check_amp() resets them
+            self.amp = torch.tensor(check_amp(self.model), device=self.device)
+            callbacks.default_callbacks = callbacks_backup  # restore callbacks
+        if RANK > -1:  # DDP
+            dist.broadcast(self.amp, src=0)  # broadcast the tensor from rank 0 to all other ranks (returns None)
+        self.amp = bool(self.amp)  # as boolean
+        self.scaler = amp.GradScaler(enabled=self.amp)
         if world_size > 1:
-            self.model = DDP(self.model, device_ids=[rank])
+            self.model = DDP(self.model, device_ids=[RANK])
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, 'stride') else 32), 32)  # grid size (max stride)
         self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
@@ -235,24 +246,24 @@ class BaseTrainer:
 
         # dataloaders
         batch_size = self.batch_size // world_size if world_size > 1 else self.batch_size
-        self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=rank, mode='train')
-        if rank in {0, -1}:
+        self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=RANK, mode='train')
+        if RANK in (-1, 0):
             self.test_loader = self.get_dataloader(self.testset, batch_size=batch_size * 2, rank=-1, mode='val')
             self.validator = self.get_validator()
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix='val')
             self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))  # TODO: init metrics for plot_results()?
             self.ema = ModelEMA(self.model)
-            if self.args.plots:
+            if self.args.plots and not self.args.v5loader:
                 self.plot_training_labels()
         self.resume_training(ckpt)
         self.scheduler.last_epoch = self.start_epoch - 1  # do not move
         self.run_callbacks('on_pretrain_routine_end')
 
-    def _do_train(self, rank=-1, world_size=1):
+    def _do_train(self, world_size=1):
         if world_size > 1:
-            self._setup_ddp(rank, world_size)
+            self._setup_ddp(world_size)
 
-        self._setup_train(rank, world_size)
+        self._setup_train(world_size)
 
         self.epoch_time = None
         self.epoch_time_start = time.time()
@@ -272,7 +283,7 @@ class BaseTrainer:
             self.epoch = epoch
             self.run_callbacks('on_train_epoch_start')
             self.model.train()
-            if rank != -1:
+            if RANK != -1:
                 self.train_loader.sampler.set_epoch(epoch)
             pbar = enumerate(self.train_loader)
             # Update dataloader attributes (optional)
@@ -283,7 +294,7 @@ class BaseTrainer:
                 if hasattr(self.train_loader.dataset, 'close_mosaic'):
                     self.train_loader.dataset.close_mosaic(hyp=self.args)
 
-            if rank in {-1, 0}:
+            if RANK in (-1, 0):
                 LOGGER.info(self.progress_string())
                 pbar = tqdm(enumerate(self.train_loader), total=nb, bar_format=TQDM_BAR_FORMAT)
             self.tloss = None
@@ -307,7 +318,7 @@ class BaseTrainer:
                     batch = self.preprocess_batch(batch)
                     preds = self.model(batch['img'])
                     self.loss, self.loss_items = self.criterion(preds, batch)
-                    if rank != -1:
+                    if RANK != -1:
                         self.loss *= world_size
                     self.tloss = (self.tloss * i + self.loss_items) / (i + 1) if self.tloss is not None \
                         else self.loss_items
@@ -324,7 +335,7 @@ class BaseTrainer:
                 mem = f'{torch.cuda.memory_reserved() / 1E9 if torch.cuda.is_available() else 0:.3g}G'  # (GB)
                 loss_len = self.tloss.shape[0] if len(self.tloss.size()) else 1
                 losses = self.tloss if loss_len > 1 else torch.unsqueeze(self.tloss, 0)
-                if rank in {-1, 0}:
+                if RANK in (-1, 0):
                     pbar.set_description(
                         ('%11s' * 2 + '%11.4g' * (2 + loss_len)) %
                         (f'{epoch + 1}/{self.epochs}', mem, *losses, batch['cls'].shape[0], batch['img'].shape[-1]))
@@ -339,7 +350,7 @@ class BaseTrainer:
             self.scheduler.step()
             self.run_callbacks('on_train_epoch_end')
 
-            if rank in {-1, 0}:
+            if RANK in (-1, 0):
 
                 # Validation
                 self.ema.update_attr(self.model, include=['yaml', 'nc', 'args', 'names', 'stride', 'class_weights'])
@@ -359,6 +370,7 @@ class BaseTrainer:
             self.epoch_time = tnow - self.epoch_time_start
             self.epoch_time_start = tnow
             self.run_callbacks('on_fit_epoch_end')
+            torch.cuda.empty_cache()  # clears GPU vRAM at end of epoch, can help with out of memory errors
 
             # Early Stopping
             if RANK != -1:  # if DDP training
@@ -369,7 +381,7 @@ class BaseTrainer:
             if self.stop:
                 break  # must break all DDP ranks
 
-        if rank in {-1, 0}:
+        if RANK in (-1, 0):
             # Do final val with best.pt
             LOGGER.info(f'\n{epoch - self.start_epoch + 1} epochs completed in '
                         f'{(time.time() - self.train_time_start) / 3600:.3f} hours.')
@@ -400,7 +412,8 @@ class BaseTrainer:
             torch.save(ckpt, self.wdir / f'epoch{self.epoch}.pt')
         del ckpt
 
-    def get_dataset(self, data):
+    @staticmethod
+    def get_dataset(data):
         """
         Get train, val path from data dict if it exists. Returns None if data format is not recognized.
         """
@@ -597,3 +610,47 @@ class BaseTrainer:
         LOGGER.info(f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}) with parameter groups "
                     f'{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias')
         return optimizer
+
+
+def check_amp(model):
+    """
+    This function checks the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLOv8 model.
+    If the checks fail, it means there are anomalies with AMP on the system that may cause NaN losses or zero-mAP
+    results, so AMP will be disabled during training.
+
+    Args:
+        model (nn.Module): A YOLOv8 model instance.
+
+    Returns:
+        bool: Returns True if the AMP functionality works correctly with YOLOv8 model, else False.
+
+    Raises:
+        AssertionError: If the AMP checks fail, indicating anomalies with the AMP functionality on the system.
+    """
+    device = next(model.parameters()).device  # get model device
+    if device.type in ('cpu', 'mps'):
+        return False  # AMP only used on CUDA devices
+
+    def amp_allclose(m, im):
+        # All close FP32 vs AMP results
+        a = m(im, device=device, verbose=False)[0].boxes.boxes  # FP32 inference
+        with torch.cuda.amp.autocast(True):
+            b = m(im, device=device, verbose=False)[0].boxes.boxes  # AMP inference
+        del m
+        return a.shape == b.shape and torch.allclose(a, b.float(), atol=0.5)  # close to 0.5 absolute tolerance
+
+    f = ROOT / 'assets/bus.jpg'  # image to check
+    im = f if f.exists() else 'https://ultralytics.com/images/bus.jpg' if ONLINE else np.ones((640, 640, 3))
+    prefix = colorstr('AMP: ')
+    LOGGER.info(f'{prefix}running Automatic Mixed Precision (AMP) checks with YOLOv8n...')
+    try:
+        from ultralytics import YOLO
+        assert amp_allclose(YOLO('yolov8n.pt'), im)
+        LOGGER.info(f'{prefix}checks passed ✅')
+    except ConnectionError:
+        LOGGER.warning(f"{prefix}checks skipped ⚠️, offline and unable to download YOLOv8n. Setting 'amp=True'.")
+    except AssertionError:
+        LOGGER.warning(f'{prefix}checks failed ❌. Anomalies were detected with AMP on your system that may lead to '
+                       f'NaN losses or zero-mAP results, so AMP will be disabled during training.')
+        return False
+    return True

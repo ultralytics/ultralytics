@@ -26,6 +26,7 @@ class SourceTypes:
     webcam: bool = False
     screenshot: bool = False
     from_img: bool = False
+    tensor: bool = False
 
 
 class LoadStreams:
@@ -283,6 +284,7 @@ class LoadPilAndNumpy:
     def __init__(self, im0, imgsz=640, stride=32, auto=True, transforms=None):
         if not isinstance(im0, list):
             im0 = [im0]
+        self.paths = [getattr(im, 'filename', f'image{i}.jpg') for i, im in enumerate(im0)]
         self.im0 = [self._single_check(im) for im in im0]
         self.imgsz = imgsz
         self.stride = stride
@@ -290,7 +292,6 @@ class LoadPilAndNumpy:
         self.transforms = transforms
         self.mode = 'image'
         # generate fake paths
-        self.paths = [getattr(im, 'filename', f'image{i}.jpg') for i, im in enumerate(self.im0)]
         self.bs = len(self.im0)
 
     @staticmethod
@@ -329,6 +330,27 @@ class LoadPilAndNumpy:
         return self
 
 
+class LoadTensor:
+
+    def __init__(self, imgs) -> None:
+        self.im0 = imgs
+        self.bs = imgs.shape[0]
+        self.mode = 'image'
+
+    def __iter__(self):
+        self.count = 0
+        return self
+
+    def __next__(self):
+        if self.count == 1:
+            raise StopIteration
+        self.count += 1
+        return None, self.im0, self.im0, None, ''  # self.paths, im, self.im0, None, ''
+
+    def __len__(self):
+        return self.bs
+
+
 def autocast_list(source):
     """
     Merges a list of source of different types into a list of numpy arrays or PIL images
@@ -341,7 +363,7 @@ def autocast_list(source):
             files.append(im)
         else:
             raise TypeError(f'type {type(im).__name__} is not a supported Ultralytics prediction source type. \n'
-                            f'See https://docs.ultralytics.com/predict for supported source types.')
+                            f'See https://docs.ultralytics.com/modes/predict for supported source types.')
 
     return files
 

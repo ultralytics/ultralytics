@@ -2,15 +2,16 @@
 
 import sys
 from pathlib import Path
-from typing import List
+from typing import Union
 
 from ultralytics import yolo  # noqa
 from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, SegmentationModel, attempt_load_one_weight,
-                                  guess_model_task, nn)
+                                  guess_model_task, nn, yaml_model_load)
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
-from ultralytics.yolo.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, callbacks, yaml_load
-from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_yaml
+from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, ROOT, callbacks,
+                                    is_git_dir, yaml_load)
+from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_pip_update_available, check_yaml
 from ultralytics.yolo.utils.downloads import GITHUB_ASSET_STEMS
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 
@@ -43,7 +44,7 @@ class YOLO:
         cfg (str): The model configuration if loaded from *.yaml file.
         ckpt_path (str): The checkpoint file path.
         overrides (dict): Overrides for the trainer object.
-        metrics_data (Any): The data for metrics.
+        metrics (Any): The data for metrics.
 
     Methods:
         __call__(source=None, stream=False, **kwargs):
@@ -67,12 +68,14 @@ class YOLO:
         list(ultralytics.yolo.engine.results.Results): The prediction results.
     """
 
-    def __init__(self, model='yolov8n.pt') -> None:
+    def __init__(self, model: Union[str, Path] = 'yolov8n.pt', task=None) -> None:
         """
         Initializes the YOLO model.
 
         Args:
-            model (str, Path): model to load or create
+            model (Union[str, Path], optional): Path or name of the model to load or create. Defaults to 'yolov8n.pt'.
+            task (Any, optional): Task type for the YOLO model. Defaults to None.
+
         """
         self._reset_callbacks()
         self.predictor = None  # reuse predictor
@@ -83,16 +86,24 @@ class YOLO:
         self.cfg = None  # if loaded from *.yaml
         self.ckpt_path = None
         self.overrides = {}  # overrides for trainer object
-        self.metrics_data = None
+        self.metrics = None  # validation/training metrics
+        self.session = None  # HUB session
+        model = str(model).strip()  # strip spaces
+
+        # Check if Ultralytics HUB model from https://hub.ultralytics.com
+        if model.startswith('https://hub.ultralytics.com/models/'):
+            from ultralytics.hub.session import HUBTrainingSession
+            self.session = HUBTrainingSession(model)
+            model = self.session.model_file
 
         # Load or create new YOLO model
         suffix = Path(model).suffix
         if not suffix and Path(model).stem in GITHUB_ASSET_STEMS:
             model, suffix = Path(model).with_suffix('.pt'), '.pt'  # add suffix, i.e. yolov8n -> yolov8n.pt
         if suffix == '.yaml':
-            self._new(model)
+            self._new(model, task)
         else:
-            self._load(model)
+            self._load(model, task)
 
     def __call__(self, source=None, stream=False, **kwargs):
         return self.predict(source, stream, **kwargs)
@@ -101,17 +112,18 @@ class YOLO:
         name = self.__class__.__name__
         raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
-    def _new(self, cfg: str, verbose=True):
+    def _new(self, cfg: str, task=None, verbose=True):
         """
         Initializes a new model and infers the task type from the model definitions.
 
         Args:
             cfg (str): model configuration file
+            task (str) or (None): model task
             verbose (bool): display model info on load
         """
-        self.cfg = check_yaml(cfg)  # check YAML
-        cfg_dict = yaml_load(self.cfg, append_filename=True)  # model dict
-        self.task = guess_model_task(cfg_dict)
+        cfg_dict = yaml_model_load(cfg)
+        self.cfg = cfg
+        self.task = task or guess_model_task(cfg_dict)
         self.model = TASK_MAP[self.task][0](cfg_dict, verbose=verbose and RANK == -1)  # build model
         self.overrides['model'] = self.cfg
 
@@ -120,12 +132,13 @@ class YOLO:
         self.model.args = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # attach args to model
         self.model.task = self.task
 
-    def _load(self, weights: str, task=''):
+    def _load(self, weights: str, task=None):
         """
         Initializes a new model and infers the task type from the model head.
 
         Args:
             weights (str): model checkpoint to be loaded
+            task (str) or (None): model task
         """
         suffix = Path(weights).suffix
         if suffix == '.pt':
@@ -136,9 +149,10 @@ class YOLO:
         else:
             weights = check_file(weights)
             self.model, self.ckpt = weights, None
-            self.task = guess_model_task(weights)
+            self.task = task or guess_model_task(weights)
             self.ckpt_path = weights
         self.overrides['model'] = weights
+        self.overrides['task'] = self.task
 
     def _check_is_pytorch_model(self):
         """
@@ -150,9 +164,10 @@ class YOLO:
                             f"'yolo export model=yolov8n.pt', but exported formats like ONNX, TensorRT etc. only "
                             f"support 'predict' and 'val' modes, i.e. 'yolo predict model=yolov8n.onnx'.")
 
-    def reset(self):
+    @smart_inference_mode()
+    def reset_weights(self):
         """
-        Resets the model modules.
+        Resets the model modules parameters to randomly initialized values, losing all training information.
         """
         self._check_is_pytorch_model()
         for m in self.model.modules():
@@ -160,6 +175,18 @@ class YOLO:
                 m.reset_parameters()
         for p in self.model.parameters():
             p.requires_grad = True
+        return self
+
+    @smart_inference_mode()
+    def load(self, weights='yolov8n.pt'):
+        """
+        Transfers parameters with matching names and shapes from 'weights' to model.
+        """
+        self._check_is_pytorch_model()
+        if isinstance(weights, (str, Path)):
+            weights, self.ckpt = attempt_load_one_weight(weights)
+        self.model.load(weights)
+        return self
 
     def info(self, verbose=False):
         """
@@ -175,6 +202,7 @@ class YOLO:
         self._check_is_pytorch_model()
         self.model.fuse()
 
+    @smart_inference_mode()
     def predict(self, source=None, stream=False, **kwargs):
         """
         Perform prediction using the YOLO model.
@@ -189,6 +217,12 @@ class YOLO:
         Returns:
             (List[ultralytics.yolo.engine.results.Results]): The prediction results.
         """
+        if source is None:
+            source = ROOT / 'assets' if is_git_dir() else 'https://ultralytics.com/images/bus.jpg'
+            LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using 'source={source}'.")
+        is_cli = (sys.argv[0].endswith('yolo') or sys.argv[0].endswith('ultralytics')) and \
+                 ('predict' in sys.argv or 'mode=predict' in sys.argv)
+
         overrides = self.overrides.copy()
         overrides['conf'] = 0.25
         overrides.update(kwargs)  # prefer kwargs
@@ -198,16 +232,15 @@ class YOLO:
         if not self.predictor:
             self.task = overrides.get('task') or self.task
             self.predictor = TASK_MAP[self.task][3](overrides=overrides)
-            self.predictor.setup_model(model=self.model)
+            self.predictor.setup_model(model=self.model, verbose=is_cli)
         else:  # only update args if predictor is already setup
             self.predictor.args = get_cfg(self.predictor.args, overrides)
-        is_cli = sys.argv[0].endswith('yolo') or sys.argv[0].endswith('ultralytics')
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
 
-    @smart_inference_mode()
     def track(self, source=None, stream=False, **kwargs):
-        from ultralytics.tracker import register_tracker
-        register_tracker(self)
+        if not hasattr(self.predictor, 'trackers'):
+            from ultralytics.tracker import register_tracker
+            register_tracker(self)
         # ByteTrack-based method needs low confidence predictions as input
         conf = kwargs.get('conf') or 0.1
         kwargs['conf'] = conf
@@ -239,7 +272,7 @@ class YOLO:
 
         validator = TASK_MAP[self.task][2](args=args)
         validator(model=self.model)
-        self.metrics_data = validator.metrics
+        self.metrics = validator.metrics
 
         return validator.metrics
 
@@ -251,11 +284,13 @@ class YOLO:
         Args:
             **kwargs : Any other args accepted by the validators. To see all args check 'configuration' section in docs
         """
-        from ultralytics.yolo.utils.benchmarks import run_benchmarks
+        self._check_is_pytorch_model()
+        from ultralytics.yolo.utils.benchmarks import benchmark
         overrides = self.model.args.copy()
         overrides.update(kwargs)
+        overrides['mode'] = 'benchmark'
         overrides = {**DEFAULT_CFG_DICT, **overrides}  # fill in missing overrides keys with defaults
-        return run_benchmarks(model=self, imgsz=overrides['imgsz'], half=overrides['half'], device=overrides['device'])
+        return benchmark(model=self, imgsz=overrides['imgsz'], half=overrides['half'], device=overrides['device'])
 
     def export(self, **kwargs):
         """
@@ -267,6 +302,7 @@ class YOLO:
         self._check_is_pytorch_model()
         overrides = self.overrides.copy()
         overrides.update(kwargs)
+        overrides['mode'] = 'export'
         args = get_cfg(cfg=DEFAULT_CFG, overrides=overrides)
         args.task = self.task
         if args.imgsz == DEFAULT_CFG.imgsz:
@@ -283,6 +319,12 @@ class YOLO:
             **kwargs (Any): Any number of arguments representing the training configuration.
         """
         self._check_is_pytorch_model()
+        if self.session:  # Ultralytics HUB session
+            if any(kwargs):
+                LOGGER.warning('WARNING ⚠️ using HUB training arguments, ignoring local training arguments.')
+            kwargs = self.session.train_args
+            self.session.check_disk_space()
+        check_pip_update_available()
         overrides = self.overrides.copy()
         overrides.update(kwargs)
         if kwargs.get('cfg'):
@@ -299,12 +341,13 @@ class YOLO:
         if not overrides.get('resume'):  # manually set model only if not resuming
             self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
             self.model = self.trainer.model
+        self.trainer.hub_session = self.session  # attach optional HUB session
         self.trainer.train()
         # update model and cfg after training
-        if RANK in {0, -1}:
+        if RANK in (-1, 0):
             self.model, _ = attempt_load_one_weight(str(self.trainer.best))
             self.overrides = self.model.args
-            self.metrics_data = getattr(self.trainer.validator, 'metrics', None)  # TODO: no metrics returned by DDP
+            self.metrics = getattr(self.trainer.validator, 'metrics', None)  # TODO: no metrics returned by DDP
 
     def to(self, device):
         """
@@ -336,15 +379,6 @@ class YOLO:
          Returns transform of the loaded model.
         """
         return self.model.transforms if hasattr(self.model, 'transforms') else None
-
-    @property
-    def metrics(self):
-        """
-        Returns metrics if computed
-        """
-        if not self.metrics_data:
-            LOGGER.info('No metrics data found! Run training or validation operation first.')
-        return self.metrics_data
 
     @staticmethod
     def add_callback(event: str, func):

@@ -59,7 +59,7 @@ setup(
         'Topic :: Scientific/Engineering :: Image Recognition',
         'Operating System :: POSIX :: Linux',
         'Operating System :: MacOS',
-        'Operating System :: Microsoft :: Windows',],
+        'Operating System :: Microsoft :: Windows', ],
     keywords='machine-learning, deep-learning, vision, ML, DL, AI, YOLO, YOLOv3, YOLOv5, YOLOv8, HUB, Ultralytics',
     entry_points={
         'console_scripts': ['yolo = ultralytics.yolo.cfg:entrypoint', 'ultralytics = ultralytics.yolo.cfg:entrypoint']})

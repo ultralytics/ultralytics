@@ -16,11 +16,12 @@ import cv2
 import numpy as np
 import pkg_resources as pkg
 import psutil
+import requests
 import torch
 from matplotlib import font_manager
 
-from ultralytics.yolo.utils import (AUTOINSTALL, LOGGER, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, downloads, emojis,
-                                    is_colab, is_docker, is_jupyter)
+from ultralytics.yolo.utils import (AUTOINSTALL, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, downloads,
+                                    emojis, is_colab, is_docker, is_kaggle, is_online, is_pip_package)
 
 
 def is_ascii(s) -> bool:
@@ -117,6 +118,40 @@ def check_version(current: str = '0.0.0',
     return result
 
 
+def check_latest_pypi_version(package_name='ultralytics'):
+    """
+    Returns the latest version of a PyPI package without downloading or installing it.
+
+    Parameters:
+        package_name (str): The name of the package to find the latest version for.
+
+    Returns:
+        str: The latest version of the package.
+    """
+    response = requests.get(f'https://pypi.org/pypi/{package_name}/json')
+    if response.status_code == 200:
+        return response.json()['info']['version']
+    return None
+
+
+def check_pip_update_available():
+    """
+    Checks if a new version of the ultralytics package is available on PyPI.
+
+    Returns:
+        bool: True if an update is available, False otherwise.
+    """
+    if ONLINE and is_pip_package():
+        with contextlib.suppress(Exception):
+            from ultralytics import __version__
+            latest = check_latest_pypi_version()
+            if pkg.parse_version(__version__) < pkg.parse_version(latest):  # update is available
+                LOGGER.info(f'New https://pypi.org/project/ultralytics/{latest} available 😃 '
+                            f"Update with 'pip install -U ultralytics'")
+                return True
+    return False
+
+
 def check_font(font='Arial.ttf'):
     """
     Find font locally or download to user's configuration directory if it does not already exist.
@@ -144,21 +179,6 @@ def check_font(font='Arial.ttf'):
     if downloads.is_url(url):
         downloads.safe_download(url=url, file=file)
         return file
-
-
-def check_online() -> bool:
-    """
-    Check internet connectivity by attempting to connect to a known online host.
-
-    Returns:
-        bool: True if connection is successful, False otherwise.
-    """
-    import socket
-    with contextlib.suppress(Exception):
-        host = socket.gethostbyname('www.github.com')
-        socket.create_connection((host, 80), timeout=2)
-        return True
-    return False
 
 
 def check_python(minimum: str = '3.7.0') -> bool:
@@ -204,7 +224,7 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
     if s and install and AUTOINSTALL:  # check environment variable
         LOGGER.info(f"{prefix} YOLOv8 requirement{'s' * (n > 1)} {s}not found, attempting AutoUpdate...")
         try:
-            assert check_online(), 'AutoUpdate skipped (offline)'
+            assert is_online(), 'AutoUpdate skipped (offline)'
             LOGGER.info(subprocess.check_output(f'pip install {s} {cmds}', shell=True).decode())
             s = f"{prefix} {n} package{'s' * (n > 1)} updated per {file or requirements}\n" \
                 f"{prefix} ⚠️ {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n"
@@ -213,34 +233,35 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
             LOGGER.warning(f'{prefix} ❌ {e}')
 
 
-def check_suffix(file='yolov8n.pt', suffix=('.pt',), msg=''):
+def check_suffix(file='yolov8n.pt', suffix='.pt', msg=''):
     # Check file(s) for acceptable suffix
     if file and suffix:
         if isinstance(suffix, str):
-            suffix = [suffix]
+            suffix = (suffix, )
         for f in file if isinstance(file, (list, tuple)) else [file]:
-            s = Path(f).suffix.lower()  # file suffix
+            s = Path(f).suffix.lower().strip()  # file suffix
             if len(s):
-                assert s in suffix, f'{msg}{f} acceptable suffix is {suffix}'
+                assert s in suffix, f'{msg}{f} acceptable suffix is {suffix}, not {s}'
 
 
-def check_yolov5u_filename(file: str):
+def check_yolov5u_filename(file: str, verbose: bool = True):
     # Replace legacy YOLOv5 filenames with updated YOLOv5u filenames
-    if 'yolov3' in file or 'yolov5' in file and 'u' not in file:
+    if ('yolov3' in file or 'yolov5' in file) and 'u' not in file:
         original_file = file
-        file = re.sub(r'(.*yolov5([nsmlx]))\.', '\\1u.', file)  # i.e. yolov5n.pt -> yolov5nu.pt
-        file = re.sub(r'(.*yolov3(|-tiny|-spp))\.', '\\1u.', file)  # i.e. yolov3-spp.pt -> yolov3-sppu.pt
-        if file != original_file:
+        file = re.sub(r'(.*yolov5([nsmlx]))\.pt', '\\1u.pt', file)  # i.e. yolov5n.pt -> yolov5nu.pt
+        file = re.sub(r'(.*yolov5([nsmlx])6)\.pt', '\\1u.pt', file)  # i.e. yolov5n6.pt -> yolov5n6u.pt
+        file = re.sub(r'(.*yolov3(|-tiny|-spp))\.pt', '\\1u.pt', file)  # i.e. yolov3-spp.pt -> yolov3-sppu.pt
+        if file != original_file and verbose:
             LOGGER.info(f"PRO TIP 💡 Replace 'model={original_file}' with new 'model={file}'.\nYOLOv5 'u' models are "
                         f'trained with https://github.com/ultralytics/ultralytics and feature improved performance vs '
                         f'standard YOLOv5 models trained with https://github.com/ultralytics/yolov5.\n')
     return file
 
 
-def check_file(file, suffix='', download=True):
+def check_file(file, suffix='', download=True, hard=True):
     # Search/download file (if necessary) and return path
     check_suffix(file, suffix)  # optional
-    file = str(file)  # convert to string
+    file = str(file).strip()  # convert to string and strip spaces
     file = check_yolov5u_filename(file)  # yolov5n -> yolov5nu
     if not file or ('://' not in file and Path(file).exists()):  # exists ('://' check required in Windows Python<3.10)
         return file
@@ -256,23 +277,22 @@ def check_file(file, suffix='', download=True):
         files = []
         for d in 'models', 'datasets', 'tracker/cfg', 'yolo/cfg':  # search directories
             files.extend(glob.glob(str(ROOT / d / '**' / file), recursive=True))  # find file
-        if not files:
+        if not files and hard:
             raise FileNotFoundError(f"'{file}' does not exist")
-        elif len(files) > 1:
+        elif len(files) > 1 and hard:
             raise FileNotFoundError(f"Multiple files match '{file}', specify exact path: {files}")
-        return files[0]  # return file
+        return files[0] if len(files) else []  # return file
 
 
-def check_yaml(file, suffix=('.yaml', '.yml')):
+def check_yaml(file, suffix=('.yaml', '.yml'), hard=True):
     # Search/download YAML file (if necessary) and return path, checking suffix
-    return check_file(file, suffix)
+    return check_file(file, suffix, hard=hard)
 
 
 def check_imshow(warn=False):
     # Check if environment supports image displays
     try:
-        assert not is_jupyter()
-        assert not is_docker()
+        assert not any((is_colab(), is_kaggle(), is_docker()))
         cv2.imshow('test', np.zeros((1, 1, 3)))
         cv2.waitKey(1)
         cv2.destroyAllWindows()

@@ -1,8 +1,12 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
+from ultralytics.yolo.utils import LOGGER, TESTS_RUNNING, colorstr
 
-from torch.utils.tensorboard import SummaryWriter
+try:
+    from torch.utils.tensorboard import SummaryWriter
 
-from ultralytics.yolo.utils import LOGGER
+    assert not TESTS_RUNNING  # do not log pytest
+except (ImportError, AssertionError):
+    SummaryWriter = None
 
 writer = None  # TensorBoard SummaryWriter instance
 
@@ -14,12 +18,14 @@ def _log_scalars(scalars, step=0):
 
 
 def on_pretrain_routine_start(trainer):
-    global writer
-    try:
-        writer = SummaryWriter(str(trainer.save_dir))
-    except Exception as e:
-        writer = None  # TensorBoard SummaryWriter instance
-        LOGGER.warning(f'WARNING ⚠️ TensorBoard not initialized correctly, not logging this run. {e}')
+    if SummaryWriter:
+        try:
+            global writer
+            writer = SummaryWriter(str(trainer.save_dir))
+            prefix = colorstr('TensorBoard: ')
+            LOGGER.info(f"{prefix}Start with 'tensorboard --logdir {trainer.save_dir}', view at http://localhost:6006/")
+        except Exception as e:
+            LOGGER.warning(f'WARNING ⚠️ TensorBoard not initialized correctly, not logging this run. {e}')
 
 
 def on_batch_end(trainer):

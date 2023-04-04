@@ -25,27 +25,24 @@ SOTA 模型。它在以前成功的 YOLO 版本基础上，引入了新的功能
 如果要申请企业许可证，请填写 [Ultralytics 许可](https://ultralytics.com/license)。
 
 <div align="center">
-    <a href="https://github.com/ultralytics" style="text-decoration:none;">
-      <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-github.png" width="2%" alt="" /></a>
-    <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="2%" alt="" />
-    <a href="https://www.linkedin.com/company/ultralytics" style="text-decoration:none;">
-      <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-linkedin.png" width="2%" alt="" /></a>
-    <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="2%" alt="" />
-    <a href="https://twitter.com/ultralytics" style="text-decoration:none;">
-      <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-twitter.png" width="2%" alt="" /></a>
-    <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="2%" alt="" />
-    <a href="https://www.producthunt.com/@glenn_jocher" style="text-decoration:none;">
-      <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-producthunt.png" width="2%" alt="" /></a>
-    <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="2%" alt="" />
-    <a href="https://youtube.com/ultralytics" style="text-decoration:none;">
-      <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-youtube.png" width="2%" alt="" /></a>
-    <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="2%" alt="" />
-    <a href="https://www.facebook.com/ultralytics" style="text-decoration:none;">
-      <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-facebook.png" width="2%" alt="" /></a>
-    <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="2%" alt="" />
-    <a href="https://www.instagram.com/ultralytics/" style="text-decoration:none;">
-      <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-instagram.png" width="2%" alt="" /></a>
-  </div>
+  <a href="https://github.com/ultralytics" style="text-decoration:none;">
+    <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-github.png" width="2%" alt="" /></a>
+  <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="2%" alt="" />
+  <a href="https://www.linkedin.com/company/ultralytics" style="text-decoration:none;">
+    <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-linkedin.png" width="2%" alt="" /></a>
+  <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="2%" alt="" />
+  <a href="https://twitter.com/ultralytics" style="text-decoration:none;">
+    <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-twitter.png" width="2%" alt="" /></a>
+  <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="2%" alt="" />
+  <a href="https://youtube.com/ultralytics" style="text-decoration:none;">
+    <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-youtube.png" width="2%" alt="" /></a>
+  <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="2%" alt="" />
+  <a href="https://www.tiktok.com/@ultralytics" style="text-decoration:none;">
+    <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-tiktok.png" width="2%" alt="" /></a>
+  <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="2%" alt="" />
+  <a href="https://www.instagram.com/ultralytics/" style="text-decoration:none;">
+    <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-instagram.png" width="2%" alt="" /></a>
+</div>
 </div>
 
 ## <div align="center">文档</div>
@@ -55,7 +52,7 @@ SOTA 模型。它在以前成功的 YOLO 版本基础上，引入了新的功能
 <details open>
 <summary>安装</summary>
 
-Pip 安装包含所有 [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) 的
+Pip 安装包含所有 [requirements](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) 的
 ultralytics 包，环境要求 [**Python>=3.7**](https://www.python.org/)，且 [\*\*PyTorch>=1.7
 \*\*](https://pytorch.org/get-started/locally/)。
 
@@ -71,11 +68,11 @@ pip install ultralytics
 YOLOv8 可以直接在命令行界面（CLI）中使用 `yolo` 命令运行：
 
 ```bash
-yolo predict model=yolov8n.pt source="https://ultralytics.com/images/bus.jpg"
+yolo predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'
 ```
 
 `yolo`可以用于各种任务和模式，并接受额外的参数，例如 `imgsz=640`。参见 YOLOv8 [文档](https://docs.ultralytics.com)
-中可用`yolo`[参数](https://docs.ultralytics.com/cfg/)的完整列表。
+中可用`yolo`[参数](https://docs.ultralytics.com/usage/cfg/)的完整列表。
 
 ```bash
 yolo task=detect    mode=train    model=yolov8n.pt        args...
@@ -84,7 +81,7 @@ yolo task=detect    mode=train    model=yolov8n.pt        args...
                          export         yolov8n.pt        format=onnx  args...
 ```
 
-YOLOv8 也可以在 Python 环境中直接使用，并接受与上面 CLI 例子中相同的[参数](https://docs.ultralytics.com/cfg/)：
+YOLOv8 也可以在 Python 环境中直接使用，并接受与上面 CLI 例子中相同的[参数](https://docs.ultralytics.com/usage/cfg/)：
 
 ```python
 from ultralytics import YOLO
@@ -102,15 +99,6 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 
 [模型](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) 会从
 Ultralytics [发布页](https://github.com/ultralytics/ultralytics/releases) 自动下载。
-
-### 已知问题 / 待办事项
-
-我们仍在努力完善 YOLOv8 的几个部分！我们的目标是尽快完成这些工作，使 YOLOv8 的功能设置达到YOLOv5
-的水平，包括对所有相同格式的导出和推理。我们还在写一篇 YOLOv8 的论文，一旦完成，我们将提交给 [arxiv.org](https://arxiv.org)。
-
-- [x] TensorFlow 导出
-- [x] DDP 恢复训练
-- [ ] [arxiv.org](https://arxiv.org) 论文
 
 </details>
 
@@ -135,7 +123,7 @@ Ultralytics [发布页](https://github.com/ultralytics/ultralytics/releases) 自
   <br>复现命令 `yolo val detect data=coco.yaml device=0`
 - **推理速度**使用 COCO
   验证集图片推理时间进行平均得到，测试环境使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例。
-  <br>复现命令 `yolo val detect data=coco128.yaml batch=1 device=0/cpu`
+  <br>复现命令 `yolo val detect data=coco128.yaml batch=1 device=0|cpu`
 
 </details>
 
@@ -153,7 +141,7 @@ Ultralytics [发布页](https://github.com/ultralytics/ultralytics/releases) 自
   <br>复现命令 `yolo val segment data=coco.yaml device=0`
 - **推理速度**使用 COCO
   验证集图片推理时间进行平均得到，测试环境使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例。
-  <br>复现命令 `yolo val segment data=coco128-seg.yaml batch=1 device=0/cpu`
+  <br>复现命令 `yolo val segment data=coco128-seg.yaml batch=1 device=0|cpu`
 
 </details>
 
@@ -171,7 +159,7 @@ Ultralytics [发布页](https://github.com/ultralytics/ultralytics/releases) 自
   <br>复现命令 `yolo val classify data=path/to/ImageNet device=0`
 - **推理速度**使用 ImageNet
   验证集图片推理时间进行平均得到，测试环境使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例。
-  <br>复现命令 `yolo val classify data=path/to/ImageNet batch=1 device=0/cpu`
+  <br>复现命令 `yolo val classify data=path/to/ImageNet batch=1 device=0|cpu`
 
 </details>
 
@@ -219,19 +207,20 @@ Ultralytics [发布页](https://github.com/ultralytics/ultralytics/releases) 自
 <!-- SVG image from https://opencollective.com/ultralytics/contributors.svg?width=990 -->
 
 <a href="https://github.com/ultralytics/yolov5/graphs/contributors">
-<img src="https://github.com/ultralytics/assets/raw/main/im/image-contributors.png" /></a>
+<img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/image-contributors.png"></a>
 
 ## <div align="center">License</div>
 
-- YOLOv8 在两种不同的 License 下可用：
-  - **GPL-3.0 License**： 查看 [License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) 文件的详细信息。
-  - **企业License**：在没有 GPL-3.0 开源要求的情况下为商业产品开发提供更大的灵活性。典型用例是将 Ultralytics 软件和 AI
-    模型嵌入到商业产品和应用程序中。在以下位置申请企业许可证 [Ultralytics 许可](https://ultralytics.com/license) 。
+YOLOv8 在两种不同的 License 下可用：
+
+- **GPL-3.0 License**： 查看 [License](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) 文件的详细信息。
+- **企业License**：在没有 GPL-3.0 开源要求的情况下为商业产品开发提供更大的灵活性。典型用例是将 Ultralytics 软件和 AI
+  模型嵌入到商业产品和应用程序中。在以下位置申请企业许可证 [Ultralytics 许可](https://ultralytics.com/license) 。
 
 ## <div align="center">联系我们</div>
 
 请访问 [GitHub Issues](https://github.com/ultralytics/ultralytics/issues)
-或 [Ultralytics Community Forum](https://community.ultralytis.com) 以报告 YOLOv8 错误和请求功能。
+或 [Ultralytics Community Forum](https://community.ultralytics.com) 以报告 YOLOv8 错误和请求功能。
 
 <br>
 <div align="center">
@@ -244,14 +233,11 @@ Ultralytics [发布页](https://github.com/ultralytics/ultralytics/releases) 自
   <a href="https://twitter.com/ultralytics" style="text-decoration:none;">
     <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-twitter.png" width="3%" alt="" /></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="" />
-  <a href="https://www.producthunt.com/@glenn_jocher" style="text-decoration:none;">
-    <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-producthunt.png" width="3%" alt="" /></a>
-  <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="" />
   <a href="https://youtube.com/ultralytics" style="text-decoration:none;">
     <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-youtube.png" width="3%" alt="" /></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="" />
-  <a href="https://www.facebook.com/ultralytics" style="text-decoration:none;">
-    <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-facebook.png" width="3%" alt="" /></a>
+  <a href="https://www.tiktok.com/@ultralytics" style="text-decoration:none;">
+    <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-tiktok.png" width="3%" alt="" /></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="" />
   <a href="https://www.instagram.com/ultralytics/" style="text-decoration:none;">
     <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-instagram.png" width="3%" alt="" /></a>

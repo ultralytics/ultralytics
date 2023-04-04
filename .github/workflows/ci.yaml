@@ -7,11 +7,73 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    branches: [main, updates]
   schedule:
     - cron: '0 0 * * *'  # runs at 00:00 UTC every day
 
 jobs:
+  HUB:
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push')
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ['3.10']
+        model: [yolov5n]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip' # caching pip dependencies
+      - name: Install requirements
+        shell: bash  # for Windows compatibility
+        run: |
+          python -m pip install --upgrade pip wheel
+          pip install -e . --extra-index-url https://download.pytorch.org/whl/cpu
+      - name: Check environment
+        run: |
+          echo "RUNNER_OS is ${{ runner.os }}"
+          echo "GITHUB_EVENT_NAME is ${{ github.event_name }}"
+          echo "GITHUB_WORKFLOW is ${{ github.workflow }}"
+          echo "GITHUB_ACTOR is ${{ github.actor }}"
+          echo "GITHUB_REPOSITORY is ${{ github.repository }}"
+          echo "GITHUB_REPOSITORY_OWNER is ${{ github.repository_owner }}"
+          python --version
+          pip --version
+          pip list
+      - name: Test HUB training (Python Usage 1)
+        shell: python
+        env:
+          APIKEY: ${{ secrets.ULTRALYTICS_HUB_APIKEY }}
+        run: |
+          import os
+          from pathlib import Path
+          from ultralytics import YOLO, hub
+          from ultralytics.yolo.utils import USER_CONFIG_DIR
+          Path(USER_CONFIG_DIR / 'settings.yaml').unlink()
+          key = os.environ['APIKEY']
+          hub.reset_model(key)
+          model = YOLO('https://hub.ultralytics.com/models/' + key)
+          model.train()
+      - name: Test HUB training (Python Usage 2)
+        shell: python
+        env:
+          APIKEY: ${{ secrets.ULTRALYTICS_HUB_APIKEY }}
+        run: |
+          import os
+          from pathlib import Path
+          from ultralytics import YOLO, hub
+          from ultralytics.yolo.utils import USER_CONFIG_DIR
+          Path(USER_CONFIG_DIR / 'settings.yaml').unlink()
+          key = os.environ['APIKEY']
+          hub.reset_model(key)
+          key, model_id = key.split('_')
+          hub.login(key)
+          model = YOLO('https://hub.ultralytics.com/models/' + model_id)
+          model.train()
+
   Benchmarks:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -25,12 +87,7 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-      #- name: Cache pip
-      #  uses: actions/cache@v3
-      #  with:
-      #    path: ~/.cache/pip
-      #    key: ${{ runner.os }}-Benchmarks-${{ hashFiles('requirements.txt') }}
-      #    restore-keys: ${{ runner.os }}-Benchmarks-
+          cache: 'pip' # caching pip dependencies
       - name: Install requirements
         shell: bash  # for Windows compatibility
         run: |
@@ -38,7 +95,7 @@ jobs:
           if [ "${{ matrix.os }}" == "macos-latest" ]; then
               pip install -e . coremltools openvino-dev tensorflow-macos --extra-index-url https://download.pytorch.org/whl/cpu
             else
-              pip install -e . coremltools openvino-dev tensorflow-cpu paddlepaddle x2paddle --extra-index-url https://download.pytorch.org/whl/cpu
+              pip install -e . coremltools openvino-dev tensorflow-cpu --extra-index-url https://download.pytorch.org/whl/cpu
           fi
           yolo export format=tflite
       - name: Check environment
@@ -55,18 +112,22 @@ jobs:
       - name: Benchmark DetectionModel
         shell: python
         run: |
-          from ultralytics.yolo.utils.benchmarks import run_benchmarks
-          run_benchmarks(model='${{ matrix.model }}.pt', imgsz=160, half=False, hard_fail=False)
+          from ultralytics.yolo.utils.benchmarks import benchmark
+          benchmark(model='${{ matrix.model }}.pt', imgsz=160, half=False, hard_fail=0.20)
       - name: Benchmark SegmentationModel
         shell: python
         run: |
-          from ultralytics.yolo.utils.benchmarks import run_benchmarks
-          run_benchmarks(model='${{ matrix.model }}-seg.pt', imgsz=160, half=False, hard_fail=False)
+          from ultralytics.yolo.utils.benchmarks import benchmark
+          benchmark(model='${{ matrix.model }}-seg.pt', imgsz=160, half=False, hard_fail=0.14)
       - name: Benchmark ClassificationModel
         shell: python
         run: |
-          from ultralytics.yolo.utils.benchmarks import run_benchmarks
-          run_benchmarks(model='${{ matrix.model }}-cls.pt', imgsz=160, half=False, hard_fail=False)
+          from ultralytics.yolo.utils.benchmarks import benchmark
+          benchmark(model='${{ matrix.model }}-cls.pt', imgsz=160, half=False, hard_fail=0.61)
+      - name: Benchmark Summary
+        run: |
+          cat benchmarks.log
+          echo "$(cat benchmarks.log)" >> $GITHUB_STEP_SUMMARY
 
   Tests:
     timeout-minutes: 60
@@ -88,24 +149,15 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Get cache dir
-        # https://github.com/actions/cache/blob/master/examples.md#multiple-oss-in-a-workflow
-        id: pip-cache
-        run: echo "::set-output name=dir::$(pip cache dir)"
-      - name: Cache pip
-        uses: actions/cache@v3
-        with:
-          path: ${{ steps.pip-cache.outputs.dir }}
-          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}
-          restore-keys: ${{ runner.os }}-${{ matrix.python-version }}-pip-
+          cache: 'pip' # caching pip dependencies
       - name: Install requirements
         shell: bash  # for Windows compatibility
         run: |
           python -m pip install --upgrade pip wheel
           if [ "${{ matrix.torch }}" == "1.8.0" ]; then
-              pip install -e '.[export]' torch==1.8.0 torchvision==0.9.0 pytest --extra-index-url https://download.pytorch.org/whl/cpu
+              pip install -e . torch==1.8.0 torchvision==0.9.0 pytest --extra-index-url https://download.pytorch.org/whl/cpu
           else
-              pip install -e '.[export]' pytest --extra-index-url https://download.pytorch.org/whl/cpu
+              pip install -e . pytest --extra-index-url https://download.pytorch.org/whl/cpu
           fi
       - name: Check environment
         run: |
@@ -118,17 +170,6 @@ jobs:
           python --version
           pip --version
           pip list
-      - name: Test pip package
-        shell: python
-        env:
-          APIKEY: ${{ secrets.ULTRALYTICS_HUB_APIKEY }}
-        run: |
-          import os
-          import ultralytics
-          key = os.environ['APIKEY']
-          ultralytics.checks()
-          # ultralytics.reset_model(key)  # reset trained model
-          # ultralytics.start(key)  # train model
       - name: Test detection
         shell: bash  # for Windows compatibility
         run: |

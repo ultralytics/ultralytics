@@ -9,11 +9,18 @@ from PIL import Image
 
 from ultralytics import YOLO
 from ultralytics.yolo.data.build import load_inference_source
-from ultralytics.yolo.utils import LINUX, ROOT, SETTINGS
+from ultralytics.yolo.utils import LINUX, ONLINE, ROOT, SETTINGS
 
 MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n.pt'
 CFG = 'yolov8n.yaml'
 SOURCE = ROOT / 'assets/bus.jpg'
+SOURCE_GREYSCALE = Path(f'{SOURCE.parent / SOURCE.stem}_greyscale.jpg')
+SOURCE_RGBA = Path(f'{SOURCE.parent / SOURCE.stem}_4ch.png')
+
+# Convert SOURCE to greyscale and 4-ch
+im = Image.open(SOURCE)
+im.convert('L').save(SOURCE_GREYSCALE)  # greyscale
+im.convert('RGBA').save(SOURCE_RGBA)  # 4-ch PNG with alpha
 
 
 def test_model_forward():
@@ -42,34 +49,58 @@ def test_predict_dir():
 
 def test_predict_img():
     model = YOLO(MODEL)
-    img = Image.open(str(SOURCE))
-    output = model(source=img, save=True, verbose=True)  # PIL
-    assert len(output) == 1, 'predict test failed'
-    img = cv2.imread(str(SOURCE))
-    output = model(source=img, save=True, save_txt=True)  # ndarray
-    assert len(output) == 1, 'predict test failed'
-    output = model(source=[img, img], save=True, save_txt=True)  # batch
-    assert len(output) == 2, 'predict test failed'
-    output = model(source=[img, img], save=True, stream=True)  # stream
-    assert len(list(output)) == 2, 'predict test failed'
-    tens = torch.zeros(320, 640, 3)
-    output = model(tens.numpy())
-    assert len(output) == 1, 'predict test failed'
-    # test multiple source
-    imgs = [
-        SOURCE,  # filename
+    seg_model = YOLO('yolov8n-seg.pt')
+    cls_model = YOLO('yolov8n-cls.pt')
+    im = cv2.imread(str(SOURCE))
+    assert len(model(source=Image.open(SOURCE), save=True, verbose=True)) == 1  # PIL
+    assert len(model(source=im, save=True, save_txt=True)) == 1  # ndarray
+    assert len(model(source=[im, im], save=True, save_txt=True)) == 2  # batch
+    assert len(list(model(source=[im, im], save=True, stream=True))) == 2  # stream
+    assert len(model(torch.zeros(320, 640, 3).numpy())) == 1  # tensor to numpy
+    batch = [
+        str(SOURCE),  # filename
         Path(SOURCE),  # Path
-        'https://ultralytics.com/images/zidane.jpg',  # URI
+        'https://ultralytics.com/images/zidane.jpg' if ONLINE else SOURCE,  # URI
         cv2.imread(str(SOURCE)),  # OpenCV
         Image.open(SOURCE),  # PIL
         np.zeros((320, 640, 3))]  # numpy
-    output = model(imgs)
-    assert len(output) == 6, 'predict test failed!'
+    assert len(model(batch)) == len(batch)  # multiple sources in a batch
+
+    # Test tensor inference
+    im = cv2.imread(str(SOURCE))  # OpenCV
+    t = cv2.resize(im, (32, 32))
+    t = torch.from_numpy(t.transpose((2, 0, 1)))
+    t = torch.stack([t, t, t, t])
+    results = model(t)
+    assert len(results) == t.shape[0]
+    results = seg_model(t)
+    assert len(results) == t.shape[0]
+    results = cls_model(t)
+    assert len(results) == t.shape[0]
+
+
+def test_predict_grey_and_4ch():
+    model = YOLO(MODEL)
+    for f in SOURCE_RGBA, SOURCE_GREYSCALE:
+        for source in Image.open(f), cv2.imread(str(f)), f:
+            model(source, save=True, verbose=True)
 
 
 def test_val():
     model = YOLO(MODEL)
     model.val(data='coco8.yaml', imgsz=32)
+
+
+def test_val_scratch():
+    model = YOLO(CFG)
+    model.val(data='coco8.yaml', imgsz=32)
+
+
+def test_amp():
+    if torch.cuda.is_available():
+        from ultralytics.yolo.engine.trainer import check_amp
+        model = YOLO(MODEL).model.cuda()
+        assert check_amp(model)
 
 
 def test_train_scratch():
@@ -86,6 +117,12 @@ def test_train_pretrained():
 
 def test_export_torchscript():
     model = YOLO(MODEL)
+    f = model.export(format='torchscript')
+    YOLO(f)(SOURCE)  # exported model inference
+
+
+def test_export_torchscript_scratch():
+    model = YOLO(CFG)
     f = model.export(format='torchscript')
     YOLO(f)(SOURCE)  # exported model inference
 
@@ -146,11 +183,11 @@ def test_workflow():
 
 
 def test_predict_callback_and_setup():
-
-    def on_predict_batch_end(predictor):
-        # results -> List[batch_size]
+    # test callback addition for prediction
+    def on_predict_batch_end(predictor):  # results -> List[batch_size]
         path, _, im0s, _, _ = predictor.batch
         # print('on_predict_batch_end', im0s[0].shape)
+        im0s = im0s if isinstance(im0s, list) else [im0s]
         bs = [predictor.dataset.bs for _ in range(len(path))]
         predictor.results = zip(predictor.results, im0s, bs)
 
@@ -170,9 +207,9 @@ def test_predict_callback_and_setup():
 def test_result():
     model = YOLO('yolov8n-seg.pt')
     res = model([SOURCE, SOURCE])
-    res[0].cpu().numpy()
     res[0].plot(show_conf=False)
-    print(res[0].path)
+    res[0] = res[0].cpu().numpy()
+    print(res[0].path, res[0].masks.masks)
 
     model = YOLO('yolov8n.pt')
     res = model(SOURCE)

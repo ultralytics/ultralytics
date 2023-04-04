@@ -1,0 +1,56 @@
+# Ultralytics YOLO 🚀, GPL-3.0 license
+
+name: Greetings
+
+on:
+  pull_request_target:
+    types: [opened]
+  issues:
+    types: [opened]
+
+jobs:
+  greeting:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/first-interaction@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-message: |
+            👋 Hello @${{ github.actor }}, thank you for submitting a YOLOv8 🚀 PR! To allow your work to be integrated as seamlessly as possible, we advise you to:
+
+            - ✅ Verify your PR is **up-to-date** with `ultralytics/ultralytics` `main` branch. If your PR is behind you can update your code by clicking the 'Update branch' button or by running `git pull` and `git merge main` locally.
+            - ✅ Verify all YOLOv8 Continuous Integration (CI) **checks are passing**.
+            - ✅ Update YOLOv8 [Docs](https://docs.ultralytics.com) for any new or updated features.
+            - ✅ Reduce changes to the absolute **minimum** required for your bug fix or feature addition. _"It is not daily increase but daily decrease, hack away the unessential. The closer to the source, the less wastage there is."_  — Bruce Lee
+
+            See our [Contributing Guide](https://github.com/ultralytics/ultralytics/blob/main/CONTRIBUTING.md) for details and let us know if you have any questions!
+
+          issue-message: |
+            👋 Hello @${{ github.actor }}, thank you for your interest in YOLOv8 🚀! We recommend a visit to the [YOLOv8 Docs](https://docs.ultralytics.com) for new users where you can find many [Python](https://docs.ultralytics.com/usage/python/) and [CLI](https://docs.ultralytics.com/usage/cli/) usage examples and where many of the most common questions may already be answered.
+
+            If this is a 🐛 Bug Report, please provide a [minimum reproducible example](https://stackoverflow.com/help/minimal-reproducible-example) to help us debug it.
+
+            If this is a custom training ❓ Question, please provide as much information as possible, including dataset image examples and training logs, and verify you are following our [Tips for Best Training Results](https://github.com/ultralytics/yolov5/wiki/Tips-for-Best-Training-Results).
+
+            ## Install
+
+            Pip install the `ultralytics` package including all [requirements](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) in a [**Python>=3.7**](https://www.python.org/) environment with [**PyTorch>=1.7**](https://pytorch.org/get-started/locally/).
+
+            ```bash
+            pip install ultralytics
+            ```
+
+            ## Environments
+
+            YOLOv8 may be run in any of the following up-to-date verified environments (with all dependencies including [CUDA](https://developer.nvidia.com/cuda)/[CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/) and [PyTorch](https://pytorch.org/) preinstalled):
+
+            - **Notebooks** with free GPU: <a href="https://console.paperspace.com/github/ultralytics/ultralytics"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"/></a> <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/ultralytics/yolov8"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
+            - **Google Cloud** Deep Learning VM. See [GCP Quickstart Guide](https://github.com/ultralytics/yolov5/wiki/GCP-Quickstart)
+            - **Amazon** Deep Learning AMI. See [AWS Quickstart Guide](https://github.com/ultralytics/yolov5/wiki/AWS-Quickstart)
+            - **Docker Image**. See [Docker Quickstart Guide](https://github.com/ultralytics/yolov5/wiki/Docker-Quickstart) <a href="https://hub.docker.com/r/ultralytics/ultralytics"><img src="https://img.shields.io/docker/pulls/ultralytics/ultralytics?logo=docker" alt="Docker Pulls"></a>
+
+            ## Status
+
+            <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml?query=event%3Aschedule"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml/badge.svg" alt="Ultralytics CI"></a>
+
+            If this badge is green, all [Ultralytics CI](https://github.com/ultralytics/ultralytics/actions/workflows/ci.yaml?query=event%3Aschedule) tests are currently passing. CI tests verify correct operation of all YOLOv8 [Modes](https://docs.ultralytics.com/modes/) and [Tasks](https://docs.ultralytics.com/tasks/) on macOS, Windows, and Ubuntu every 24 hours and on every commit.

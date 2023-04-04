@@ -14,7 +14,7 @@ from ..utils.checks import check_version
 from ..utils.instance import Instances
 from ..utils.metrics import bbox_ioa
 from ..utils.ops import segment2box
-from .utils import IMAGENET_MEAN, IMAGENET_STD, polygons2masks, polygons2masks_overlap
+from .utils import polygons2masks, polygons2masks_overlap
 
 
 # TODO: we might need a BaseTransform to make all these augments be compatible with both classification and semantic
@@ -564,7 +564,7 @@ class Albumentations:
                 A.CLAHE(p=0.01),
                 A.RandomBrightnessContrast(p=0.0),
                 A.RandomGamma(p=0.0),
-                A.ImageCompression(quality_lower=75, p=0.0),]  # transforms
+                A.ImageCompression(quality_lower=75, p=0.0)]  # transforms
             self.transform = A.Compose(T, bbox_params=A.BboxParams(format='yolo', label_fields=['class_labels']))
 
             LOGGER.info(prefix + ', '.join(f'{x}'.replace('always_apply=False, ', '') for x in T if x.p))
@@ -671,23 +671,25 @@ def v8_transforms(dataset, imgsz, hyp):
             shear=hyp.shear,
             perspective=hyp.perspective,
             pre_transform=LetterBox(new_shape=(imgsz, imgsz)),
-        ),])
+        )])
     return Compose([
         pre_transform,
         MixUp(dataset, pre_transform=pre_transform, p=hyp.mixup),
         Albumentations(p=1.0),
         RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
         RandomFlip(direction='vertical', p=hyp.flipud),
-        RandomFlip(direction='horizontal', p=hyp.fliplr),])  # transforms
+        RandomFlip(direction='horizontal', p=hyp.fliplr)])  # transforms
 
 
 # Classification augmentations -----------------------------------------------------------------------------------------
-def classify_transforms(size=224):
+def classify_transforms(size=224, mean=(0.0, 0.0, 0.0), std=(1.0, 1.0, 1.0)):  # IMAGENET_MEAN, IMAGENET_STD
     # Transforms to apply if albumentations not installed
     if not isinstance(size, int):
         raise TypeError(f'classify_transforms() size {size} must be integer, not (list, tuple)')
-    # T.Compose([T.ToTensor(), T.Resize(size), T.CenterCrop(size), T.Normalize(IMAGENET_MEAN, IMAGENET_STD)])
-    return T.Compose([CenterCrop(size), ToTensor(), T.Normalize(IMAGENET_MEAN, IMAGENET_STD)])
+    if any(mean) or any(std):
+        return T.Compose([CenterCrop(size), ToTensor(), T.Normalize(mean, std, inplace=True)])
+    else:
+        return T.Compose([CenterCrop(size), ToTensor()])
 
 
 def classify_albumentations(
@@ -697,8 +699,8 @@ def classify_albumentations(
         hflip=0.5,
         vflip=0.0,
         jitter=0.4,
-        mean=IMAGENET_MEAN,
-        std=IMAGENET_STD,
+        mean=(0.0, 0.0, 0.0),  # IMAGENET_MEAN
+        std=(1.0, 1.0, 1.0),  # IMAGENET_STD
         auto_aug=False,
 ):
     # YOLOv8 classification Albumentations (optional, only used if package is installed)
@@ -719,8 +721,8 @@ def classify_albumentations(
                 if vflip > 0:
                     T += [A.VerticalFlip(p=vflip)]
                 if jitter > 0:
-                    color_jitter = (float(jitter),) * 3  # repeat value for brightness, contrast, saturation, 0 hue
-                    T += [A.ColorJitter(*color_jitter, 0)]
+                    jitter = float(jitter)
+                    T += [A.ColorJitter(jitter, jitter, jitter, 0)]  # brightness, contrast, saturation, 0 hue
         else:  # Use fixed crop for eval set (reproducibility)
             T = [A.SmallestMaxSize(max_size=size), A.CenterCrop(height=size, width=size)]
         T += [A.Normalize(mean=mean, std=std), ToTensorV2()]  # Normalize and convert to Tensor

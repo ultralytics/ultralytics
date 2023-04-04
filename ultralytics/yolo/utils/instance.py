@@ -10,9 +10,8 @@ import numpy as np
 from .ops import ltwh2xywh, ltwh2xyxy, resample_segments, xywh2ltwh, xywh2xyxy, xyxy2ltwh, xyxy2xywh
 
 
-# From PyTorch internals
 def _ntuple(n):
-
+    # From PyTorch internals
     def parse(x):
         return x if isinstance(x, abc.Iterable) else tuple(repeat(x, n))
 
@@ -26,7 +25,7 @@ to_4tuple = _ntuple(4)
 # `ltwh` means left top and width, height(coco format)
 _formats = ['xyxy', 'xywh', 'ltwh']
 
-__all__ = ['Bboxes']
+__all__ = 'Bboxes',  # tuple or list
 
 
 class Bboxes:

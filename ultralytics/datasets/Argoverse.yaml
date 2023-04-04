@@ -2,7 +2,7 @@
 # Argoverse-HD dataset (ring-front-center camera) http://www.cs.cmu.edu/~mengtial/proj/streaming/ by Argo AI
 # Example usage: yolo train data=Argoverse.yaml
 # parent
-# ├── yolov5
+# ├── ultralytics
 # └── datasets
 #     └── Argoverse  ← downloads here (31.3 GB)
 

@@ -2,14 +2,14 @@
 
 from ultralytics.yolo.data import build_classification_dataloader
 from ultralytics.yolo.engine.validator import BaseValidator
-from ultralytics.yolo.utils import DEFAULT_CFG
+from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER
 from ultralytics.yolo.utils.metrics import ClassifyMetrics
 
 
 class ClassificationValidator(BaseValidator):
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, logger=None, args=None):
-        super().__init__(dataloader, save_dir, pbar, logger, args)
+    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None):
+        super().__init__(dataloader, save_dir, pbar, args)
         self.args.task = 'classify'
         self.metrics = ClassifyMetrics()
 
@@ -27,11 +27,13 @@ class ClassificationValidator(BaseValidator):
         return batch
 
     def update_metrics(self, preds, batch):
-        self.pred.append(preds.argsort(1, descending=True)[:, :5])
+        n5 = min(len(self.model.names), 5)
+        self.pred.append(preds.argsort(1, descending=True)[:, :n5])
         self.targets.append(batch['cls'])
 
     def finalize_metrics(self, *args, **kwargs):
-        self.metrics.speed = dict(zip(self.metrics.speed.keys(), self.speed))
+        self.metrics.speed = self.speed
+        # self.metrics.confusion_matrix = self.confusion_matrix  # TODO: classification ConfusionMatrix
 
     def get_stats(self):
         self.metrics.process(self.targets, self.pred)
@@ -41,11 +43,13 @@ class ClassificationValidator(BaseValidator):
         return build_classification_dataloader(path=dataset_path,
                                                imgsz=self.args.imgsz,
                                                batch_size=batch_size,
+                                               augment=False,
+                                               shuffle=False,
                                                workers=self.args.workers)
 
     def print_results(self):
         pf = '%22s' + '%11.3g' * len(self.metrics.keys)  # print format
-        self.logger.info(pf % ('all', self.metrics.top1, self.metrics.top5))
+        LOGGER.info(pf % ('all', self.metrics.top1, self.metrics.top5))
 
 
 def val(cfg=DEFAULT_CFG, use_python=False):

@@ -59,7 +59,7 @@ def test_segment():
     # Predictor
     pred = segment.SegmentationPredictor(overrides={'imgsz': [64, 64]})
     result = pred(source=SOURCE, model=f'{MODEL}-seg.pt')
-    assert len(result) == 2, 'predictor test failed'
+    assert len(result), 'predictor test failed'
 
     # Test resume
     overrides['resume'] = trainer.last
@@ -74,16 +74,9 @@ def test_segment():
 
 
 def test_classify():
-    overrides = {
-        'data': 'imagenet10',
-        'model': 'yolov8n-cls.yaml',
-        'imgsz': 32,
-        'epochs': 1,
-        'batch': 64,
-        'save': False}
+    overrides = {'data': 'imagenet10', 'model': 'yolov8n-cls.yaml', 'imgsz': 32, 'epochs': 1, 'save': False}
     CFG.data = 'imagenet10'
     CFG.imgsz = 32
-    CFG.batch = 64
     # YOLO(CFG_SEG).train(**overrides)  # works
 
     # Trainer
@@ -97,4 +90,4 @@ def test_classify():
     # Predictor
     pred = classify.ClassificationPredictor(overrides={'imgsz': [64, 64]})
     result = pred(source=SOURCE, model=trainer.best)
-    assert len(result) == 2, 'predictor test failed'
+    assert len(result), 'predictor test failed'

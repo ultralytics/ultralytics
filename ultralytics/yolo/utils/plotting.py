@@ -5,18 +5,21 @@ import math
 from pathlib import Path
 
 import cv2
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 import torch
 from PIL import Image, ImageDraw, ImageFont
 from PIL import __version__ as pil_version
 
-from ultralytics.yolo.utils import LOGGER, threaded
+from ultralytics.yolo.utils import LOGGER, TryExcept, threaded
 
 from .checks import check_font, check_version, is_ascii
 from .files import increment_path
 from .ops import clip_coords, scale_image, xywh2xyxy, xyxy2xywh
+
+matplotlib.rc('font', **{'size': 11})
+matplotlib.use('Agg')  # for writing to files only
 
 
 class Colors:
@@ -109,7 +112,9 @@ class Annotator:
             self.im = np.asarray(self.im).copy()
         if len(masks) == 0:
             self.im[:] = im_gpu.permute(1, 2, 0).contiguous().cpu().numpy() * 255
-        colors = torch.tensor(colors, device=im_gpu.device, dtype=torch.float32) / 255.0
+        if im_gpu.device != masks.device:
+            im_gpu = im_gpu.to(masks.device)
+        colors = torch.tensor(colors, device=masks.device, dtype=torch.float32) / 255.0  # shape(n,3)
         colors = colors[:, None, None]  # shape(n,1,1,3)
         masks = masks.unsqueeze(3)  # shape(n,h,w,1)
         masks_color = masks * (colors * alpha)  # shape(n,h,w,3)
@@ -152,10 +157,58 @@ class Annotator:
         return np.asarray(self.im)
 
 
+@TryExcept()  # known issue https://github.com/ultralytics/yolov5/issues/5395
+def plot_labels(boxes, cls, names=(), save_dir=Path('')):
+    import pandas as pd
+    import seaborn as sn
+
+    # plot dataset labels
+    LOGGER.info(f"Plotting labels to {save_dir / 'labels.jpg'}... ")
+    b = boxes.transpose()  # classes, boxes
+    nc = int(cls.max() + 1)  # number of classes
+    x = pd.DataFrame(b.transpose(), columns=['x', 'y', 'width', 'height'])
+
+    # seaborn correlogram
+    sn.pairplot(x, corner=True, diag_kind='auto', kind='hist', diag_kws=dict(bins=50), plot_kws=dict(pmax=0.9))
+    plt.savefig(save_dir / 'labels_correlogram.jpg', dpi=200)
+    plt.close()
+
+    # matplotlib labels
+    matplotlib.use('svg')  # faster
+    ax = plt.subplots(2, 2, figsize=(8, 8), tight_layout=True)[1].ravel()
+    y = ax[0].hist(cls, bins=np.linspace(0, nc, nc + 1) - 0.5, rwidth=0.8)
+    with contextlib.suppress(Exception):  # color histogram bars by class
+        [y[2].patches[i].set_color([x / 255 for x in colors(i)]) for i in range(nc)]  # known issue #3195
+    ax[0].set_ylabel('instances')
+    if 0 < len(names) < 30:
+        ax[0].set_xticks(range(len(names)))
+        ax[0].set_xticklabels(list(names.values()), rotation=90, fontsize=10)
+    else:
+        ax[0].set_xlabel('classes')
+    sn.histplot(x, x='x', y='y', ax=ax[2], bins=50, pmax=0.9)
+    sn.histplot(x, x='width', y='height', ax=ax[3], bins=50, pmax=0.9)
+
+    # rectangles
+    boxes[:, 0:2] = 0.5  # center
+    boxes = xywh2xyxy(boxes) * 2000
+    img = Image.fromarray(np.ones((2000, 2000, 3), dtype=np.uint8) * 255)
+    for cls, box in zip(cls[:1000], boxes[:1000]):
+        ImageDraw.Draw(img).rectangle(box, width=1, outline=colors(cls))  # plot
+    ax[1].imshow(img)
+    ax[1].axis('off')
+
+    for a in [0, 1, 2, 3]:
+        for s in ['top', 'right', 'left', 'bottom']:
+            ax[a].spines[s].set_visible(False)
+
+    plt.savefig(save_dir / 'labels.jpg', dpi=200)
+    matplotlib.use('Agg')
+    plt.close()
+
+
 def save_one_box(xyxy, im, file=Path('im.jpg'), gain=1.02, pad=10, square=False, BGR=False, save=True):
     # Save image crop as {file} with crop size multiple {gain} and {pad} pixels. Save and/or return crop
-    xyxy = torch.Tensor(xyxy).view(-1, 4)
-    b = xyxy2xywh(xyxy)  # boxes
+    b = xyxy2xywh(xyxy.view(-1, 4))  # boxes
     if square:
         b[:, 2:] = b[:, 2:].max(1)[0].unsqueeze(1)  # attempt rectangle to square
     b[:, 2:] = b[:, 2:] * gain + pad  # box wh * gain + pad
@@ -222,7 +275,7 @@ def plot_images(images,
         x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
         annotator.rectangle([x, y, x + w, y + h], None, (255, 255, 255), width=2)  # borders
         if paths:
-            annotator.text((x + 5, y + 5 + h), text=Path(paths[i]).name[:40], txt_color=(220, 220, 220))  # filenames
+            annotator.text((x + 5, y + 5), text=Path(paths[i]).name[:40], txt_color=(220, 220, 220))  # filenames
         if len(cls) > 0:
             idx = batch_idx == i
 
@@ -242,21 +295,21 @@ def plot_images(images,
             for j, box in enumerate(boxes.T.tolist()):
                 c = classes[j]
                 color = colors(c)
-                c = names[c] if names else c
+                c = names.get(c, c) if names else c
                 if labels or conf[j] > 0.25:  # 0.25 conf thresh
                     label = f'{c}' if labels else f'{c} {conf[j]:.1f}'
                     annotator.box_label(box, label, color=color)
 
             # Plot masks
             if len(masks):
-                if masks.max() > 1.0:  # mean that masks are overlap
+                if idx.shape[0] == masks.shape[0]:  # overlap_masks=False
+                    image_masks = masks[idx]
+                else:  # overlap_masks=True
                     image_masks = masks[[i]]  # (1, 640, 640)
                     nl = idx.sum()
                     index = np.arange(nl).reshape(nl, 1, 1) + 1
                     image_masks = np.repeat(image_masks, nl, axis=0)
                     image_masks = np.where(image_masks == index, 1.0, 0.0)
-                else:
-                    image_masks = masks[idx]
 
                 im = np.asarray(annotator.im).copy()
                 for j, box in enumerate(boxes.T.tolist()):
@@ -277,6 +330,7 @@ def plot_images(images,
 
 def plot_results(file='path/to/results.csv', dir='', segment=False):
     # Plot training results.csv. Usage: from utils.plots import *; plot_results('path/to/results.csv')
+    import pandas as pd
     save_dir = Path(file).parent if file else Path(dir)
     if segment:
         fig, ax = plt.subplots(2, 8, figsize=(18, 6), tight_layout=True)

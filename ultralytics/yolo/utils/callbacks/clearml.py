@@ -11,7 +11,7 @@ try:
     import clearml
     from clearml import Task
 
-    assert clearml.__version__  # verify package is not directory
+    assert hasattr(clearml, '__version__')  # verify package is not directory
     assert not TESTS_RUNNING  # do not log pytest
 except (ImportError, AssertionError):
     clearml = None
@@ -70,7 +70,7 @@ def on_pretrain_routine_start(trainer):
             )
         task.connect(vars(trainer.args), name='General')
     except Exception as e:
-        LOGGER.warning(f'WARNING ⚠️ ClearML not initialized correctly, not logging this run. {e}')
+        LOGGER.warning(f'WARNING ⚠️ ClearML installed but not initialized correctly, not logging this run. {e}')
 
 
 def on_train_epoch_end(trainer):
@@ -86,9 +86,9 @@ def on_fit_epoch_end(trainer):
                                                    iteration=trainer.epoch)
     if trainer.epoch == 0:
         model_info = {
-            'Parameters': get_num_params(trainer.model),
-            'GFLOPs': round(get_flops(trainer.model), 3),
-            'Inference speed (ms/img)': round(trainer.validator.speed[1], 3)}
+            'model/parameters': get_num_params(trainer.model),
+            'model/GFLOPs': round(get_flops(trainer.model), 3),
+            'model/speed(ms)': round(trainer.validator.speed['inference'], 3)}
         [Task.current_task().get_logger().report_single_value(k, v) for k, v in model_info.items()]
 
 

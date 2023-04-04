@@ -6,7 +6,7 @@ try:
     import comet_ml
 
     assert not TESTS_RUNNING  # do not log pytest
-    assert comet_ml.__version__  # verify package is not directory
+    assert hasattr(comet_ml, '__version__')  # verify package is not directory
 except (ImportError, AssertionError):
     comet_ml = None
 
@@ -14,9 +14,10 @@ except (ImportError, AssertionError):
 def on_pretrain_routine_start(trainer):
     try:
         experiment = comet_ml.Experiment(project_name=trainer.args.project or 'YOLOv8')
+        experiment.set_name(trainer.args.name)
         experiment.log_parameters(vars(trainer.args))
     except Exception as e:
-        LOGGER.warning(f'WARNING ⚠️ Comet not initialized correctly, not logging this run. {e}')
+        LOGGER.warning(f'WARNING ⚠️ Comet installed but not initialized correctly, not logging this run. {e}')
 
 
 def on_train_epoch_end(trainer):
@@ -36,7 +37,7 @@ def on_fit_epoch_end(trainer):
             model_info = {
                 'model/parameters': get_num_params(trainer.model),
                 'model/GFLOPs': round(get_flops(trainer.model), 3),
-                'model/speed(ms)': round(trainer.validator.speed[1], 3)}
+                'model/speed(ms)': round(trainer.validator.speed['inference'], 3)}
             experiment.log_metrics(model_info, step=trainer.epoch + 1)
 
 

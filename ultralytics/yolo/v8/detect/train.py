@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 from copy import copy
 
+import numpy as np
 import torch
 import torch.nn as nn
 
@@ -12,7 +13,7 @@ from ultralytics.yolo.engine.trainer import BaseTrainer
 from ultralytics.yolo.utils import DEFAULT_CFG, RANK, colorstr
 from ultralytics.yolo.utils.loss import BboxLoss
 from ultralytics.yolo.utils.ops import xywh2xyxy
-from ultralytics.yolo.utils.plotting import plot_images, plot_results
+from ultralytics.yolo.utils.plotting import plot_images, plot_labels, plot_results
 from ultralytics.yolo.utils.tal import TaskAlignedAssigner, dist2bbox, make_anchors
 from ultralytics.yolo.utils.torch_utils import de_parallel
 
@@ -57,18 +58,14 @@ class DetectionTrainer(BaseTrainer):
         # TODO: self.model.class_weights = labels_to_class_weights(dataset.labels, nc).to(device) * nc
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        model = DetectionModel(cfg, ch=3, nc=self.data['nc'], verbose=verbose and RANK == -1)
+        model = DetectionModel(cfg, nc=self.data['nc'], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
-
         return model
 
     def get_validator(self):
         self.loss_names = 'box_loss', 'cls_loss', 'dfl_loss'
-        return v8.detect.DetectionValidator(self.test_loader,
-                                            save_dir=self.save_dir,
-                                            logger=self.console,
-                                            args=copy(self.args))
+        return v8.detect.DetectionValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
 
     def criterion(self, preds, batch):
         if not hasattr(self, 'compute_loss'):
@@ -102,6 +99,11 @@ class DetectionTrainer(BaseTrainer):
     def plot_metrics(self):
         plot_results(file=self.csv)  # save results.png
 
+    def plot_training_labels(self):
+        boxes = np.concatenate([lb['bboxes'] for lb in self.train_loader.dataset.labels], 0)
+        cls = np.concatenate([lb['cls'] for lb in self.train_loader.dataset.labels], 0)
+        plot_labels(boxes, cls.squeeze(), names=self.data['names'], save_dir=self.save_dir)
+
 
 # Criterion class for computing training losses
 class Loss:
@@ -121,13 +123,8 @@ class Loss:
         self.device = device
 
         self.use_dfl = m.reg_max > 1
-        roll_out_thr = h.min_memory if h.min_memory > 1 else 64 if h.min_memory else 0  # 64 is default
 
-        self.assigner = TaskAlignedAssigner(topk=10,
-                                            num_classes=self.nc,
-                                            alpha=0.5,
-                                            beta=6.0,
-                                            roll_out_thr=roll_out_thr)
+        self.assigner = TaskAlignedAssigner(topk=10, num_classes=self.nc, alpha=0.5, beta=6.0)
         self.bbox_loss = BboxLoss(m.reg_max - 1, use_dfl=self.use_dfl).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
 
@@ -137,6 +134,7 @@ class Loss:
         else:
             i = targets[:, 0]  # image index
             _, counts = i.unique(return_counts=True)
+            counts = counts.to(dtype=torch.int32)
             out = torch.zeros(batch_size, counts.max(), 5, device=self.device)
             for j in range(batch_size):
                 matches = i == j

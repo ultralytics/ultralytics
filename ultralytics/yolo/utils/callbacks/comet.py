@@ -47,8 +47,7 @@ def _create_experiment(args):
     if RANK not in (-1, 0):
         return
     try:
-        project_name = args.project
-        experiment = _get_experiment_type(COMET_MODE, project_name)
+        experiment = _get_experiment_type(COMET_MODE, args.project)
         experiment.log_parameters(vars(args))
         experiment.log_others({
             'eval_batch_logging_interval': COMET_EVAL_BATCH_LOGGING_INTERVAL,
@@ -64,9 +63,7 @@ def _create_experiment(args):
 def _fetch_trainer_metadata(trainer):
     curr_epoch = trainer.epoch + 1
 
-    train_num_samples = len(trainer.train_loader.dataset)
-    train_batch_size = trainer.batch_size
-    train_num_steps_per_epoch = train_num_samples // train_batch_size
+    train_num_steps_per_epoch = len(trainer.train_loader.dataset) // trainer.batch_size
     curr_step = curr_epoch * train_num_steps_per_epoch
     final_epoch = curr_epoch == trainer.epochs
 
@@ -75,12 +72,7 @@ def _fetch_trainer_metadata(trainer):
     save_interval = curr_epoch % save_period == 0
     save_assets = save and save_period > 0 and save_interval and not final_epoch
 
-    return dict(
-        curr_epoch=curr_epoch,
-        curr_step=curr_step,
-        save_assets=save_assets,
-        final_epoch=final_epoch,
-    )
+    return dict(curr_epoch=curr_epoch, curr_step=curr_step, save_assets=save_assets, final_epoch=final_epoch)
 
 
 def _scale_bounding_box_to_original_image_shape(box, resized_image_shape, original_image_shape, ratio_pad):

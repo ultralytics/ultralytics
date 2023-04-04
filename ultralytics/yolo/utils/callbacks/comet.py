@@ -122,10 +122,7 @@ def _format_ground_truth_annotations_for_detection(img_idx, image_path, batch, c
     data = []
     for box, label in zip(bboxes, cls_labels):
         box = _scale_bounding_box_to_original_image_shape(box, resized_image_shape, original_image_shape, ratio_pad)
-        data.append({
-            'boxes': [box],
-            'label': f'gt_{label}',
-            'score': COMET_MAX_CONFIDENCE_SCORE})
+        data.append({'boxes': [box], 'label': f'gt_{label}', 'score': COMET_MAX_CONFIDENCE_SCORE})
 
     return {'name': 'ground_truth', 'data': data}
 
@@ -159,10 +156,7 @@ def _fetch_annotations(img_idx, image_path, batch, prediction_metadata_map, clas
                                                                           class_label_map)
 
     annotations = [
-        annotation
-        for annotation in [ground_truth_annotations, prediction_annotations]
-        if annotation is not None
-    ]
+        annotation for annotation in [ground_truth_annotations, prediction_annotations] if annotation is not None]
     return [annotations] if annotations else None
 
 

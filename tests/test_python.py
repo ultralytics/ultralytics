@@ -139,9 +139,9 @@ def test_export_openvino():
     YOLO(f)(SOURCE)  # exported model inference
 
 
-def test_export_coreml():  # sourcery skip: move-assign
+def test_export_mlmodel():  # sourcery skip: move-assign
     model = YOLO(MODEL)
-    model.export(format='coreml')
+    model.export(format='mlmodel')
     # if MACOS:
     #    YOLO(f)(SOURCE)  # model prediction only supported on macOS
 

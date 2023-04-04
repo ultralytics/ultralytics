@@ -20,7 +20,7 @@ from ultralytics.yolo.utils.torch_utils import TORCHVISION_0_10
 class BaseTensor(SimpleClass):
     """
 
-    Attributes: 
+    Attributes:
         tensor (torch.Tensor): A tensor.
         orig_shape (tuple): Original image size, in the format (height, width).
 
@@ -30,6 +30,7 @@ class BaseTensor(SimpleClass):
         cuda(): Returns a copy of the tensor on GPU memory.
         to(): Returns a copy of the tensor with the specified device and dtype.
     """
+
     def __init__(self, tensor, orig_shape) -> None:
         super().__init__()
         assert isinstance(tensor, torch.Tensor)

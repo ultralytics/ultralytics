@@ -58,15 +58,17 @@ class PosePredictor(DetectionPredictor):
             n = (det.cls == c).sum()  # detections per class
             log_string += f"{n} {self.model.names[int(c)]}{'s' * (n > 1)}, "
 
-        for k in reversed(results[idx].keypoints):
+        kpts = reversed(results[idx].keypoints)
+        for k in kpts:
             self.annotator.kpts(k, shape=results[idx].orig_shape)
 
         # write
-        for d in reversed(det):
-            c, conf = int(d.cls), float(d.conf)
+        for j, d in enumerate(reversed(det)):
+            c, conf, id = int(d.cls), float(d.conf), None if d.id is None else int(d.id.item())
             if self.args.save_txt:  # Write to file
-                line = (c, *(d.xywhn.view(-1).tolist()), conf) \
-                    if self.args.save_conf else (c, *(d.xywhn.view(-1).tolist()))  # label format
+                kpt = (kpts[j][:, :2] / d.orig_shape[[1, 0]]).reshape(-1).tolist()
+                box = d.xywhn.view(-1).tolist()
+                line = (c, *box, *kpt) + (conf, ) * self.args.save_conf + (() if id is None else (id, ))
                 with open(f'{self.txt_path}.txt', 'a') as f:
                     f.write(('%g ' * len(line)).rstrip() % line + '\n')
             if self.args.save or self.args.show:  # Add bbox to image

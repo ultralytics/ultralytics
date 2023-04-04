@@ -312,7 +312,7 @@ class Masks(SimpleClass):
     def xy(self):
         # Segments (pixels)
         return [
-            ops.scale_segments(self.masks.shape[1:], x, self.orig_shape, normalize=False)
+            ops.scale_coords(self.masks.shape[1:], x, self.orig_shape, normalize=False)
             for x in ops.masks2segments(self.masks)]
 
     @property

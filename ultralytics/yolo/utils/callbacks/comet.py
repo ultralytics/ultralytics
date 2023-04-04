@@ -26,7 +26,7 @@ EVALUATION_PLOT_NAMES = [
     'P_curve',
     'R_curve',
     'PR_curve',
-    'confusion_matrix',]
+    'confusion_matrix', ]
 LABEL_PLOT_NAMES = ['labels', 'labels_correlogram']
 
 try:
@@ -60,7 +60,7 @@ def _create_experiment(args):
             'eval_batch_logging_interval': COMET_EVAL_BATCH_LOGGING_INTERVAL,
             'log_confusion_matrix': COMET_EVAL_LOG_CONFUSION_MATRIX,
             'log_image_predictions': COMET_EVAL_LOG_IMAGE_PREDICTIONS,
-            'max_image_predictions': COMET_MAX_IMAGE_PREDICTIONS,})
+            'max_image_predictions': COMET_MAX_IMAGE_PREDICTIONS, })
         experiment.log_other('Created from', 'yolov8')
 
     except Exception as e:
@@ -132,11 +132,11 @@ def _format_ground_truth_annotations_for_detection(img_idx, image_path, batch, c
         data.append({
             'boxes': [box],
             'label': f'gt_{label}',
-            'score': COMET_MAX_CONFIDENCE_SCORE,})
+            'score': COMET_MAX_CONFIDENCE_SCORE, })
 
     annotation = {
         'name': 'ground_truth',
-        'data': data,}
+        'data': data, }
 
     return annotation
 
@@ -315,7 +315,7 @@ def on_fit_epoch_end(trainer):
         model_info = {
             'model/parameters': get_num_params(trainer.model),
             'model/GFLOPs': round(get_flops(trainer.model), 3),
-            'model/speed(ms)': round(trainer.validator.speed['inference'], 3),}
+            'model/speed(ms)': round(trainer.validator.speed['inference'], 3), }
         experiment.log_metrics(model_info, step=curr_step, epoch=curr_epoch)
 
     if not save_assets:
@@ -355,6 +355,6 @@ if comet_ml:
         'on_pretrain_routine_start': on_pretrain_routine_start,
         'on_train_epoch_end': on_train_epoch_end,
         'on_fit_epoch_end': on_fit_epoch_end,
-        'on_train_end': on_train_end,}
+        'on_train_end': on_train_end, }
 else:
     callbacks = {}

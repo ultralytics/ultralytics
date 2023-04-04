@@ -5,6 +5,14 @@ from pathlib import Path
 from ultralytics.yolo.utils import LOGGER, RANK, TESTS_RUNNING, ops
 from ultralytics.yolo.utils.torch_utils import get_flops, get_num_params
 
+try:
+    import comet_ml
+
+    assert not TESTS_RUNNING  # do not log pytest
+    assert hasattr(comet_ml, '__version__')  # verify package is not directory
+except (ImportError, AssertionError):
+    comet_ml = None
+
 COMET_MODE = os.getenv('COMET_MODE', 'online')
 COMET_MODEL_NAME = os.getenv('COMET_MODEL_NAME', 'YOLOv8')
 # determines how many batches of image predictions to log from the validation set
@@ -21,21 +29,8 @@ COMET_SUPPORTED_TASKS = ['detect']
 COMET_MAX_CONFIDENCE_SCORE = int(os.getenv('COMET_MAX_CONFIDENCE_SCORE', 100))
 
 # names of plots created by YOLOv8 that are logged to Comet
-EVALUATION_PLOT_NAMES = [
-    'F1_curve',
-    'P_curve',
-    'R_curve',
-    'PR_curve',
-    'confusion_matrix', ]
-LABEL_PLOT_NAMES = ['labels', 'labels_correlogram']
-
-try:
-    import comet_ml
-
-    assert not TESTS_RUNNING  # do not log pytest
-    assert hasattr(comet_ml, '__version__')  # verify package is not directory
-except (ImportError, AssertionError):
-    comet_ml = None
+EVALUATION_PLOT_NAMES = 'F1_curve', 'P_curve', 'R_curve', 'PR_curve', 'confusion_matrix'
+LABEL_PLOT_NAMES = 'labels', 'labels_correlogram'
 
 _comet_image_prediction_count = 0
 
@@ -48,8 +43,7 @@ def _get_experiment_type(mode, project_name):
 
 
 def _create_experiment(args):
-    # Ensures that the experiment object is only created in a single process
-    # during distributed training.
+    # Ensures that the experiment object is only created in a single process during distributed training.
     if RANK not in (-1, 0):
         return
     try:
@@ -64,7 +58,7 @@ def _create_experiment(args):
         experiment.log_other('Created from', 'yolov8')
 
     except Exception as e:
-        LOGGER.warning(f'COMET WARNING: {e}')
+        LOGGER.warning(f'WARNING ⚠️ Comet installed but not initialized correctly, not logging this run. {e}')
 
 
 def _fetch_trainer_metadata(trainer):
@@ -81,13 +75,12 @@ def _fetch_trainer_metadata(trainer):
     save_interval = curr_epoch % save_period == 0
     save_assets = save and save_period > 0 and save_interval and not final_epoch
 
-    output = dict(
+    return dict(
         curr_epoch=curr_epoch,
         curr_step=curr_step,
         save_assets=save_assets,
         final_epoch=final_epoch,
     )
-    return output
 
 
 def _scale_bounding_box_to_original_image_shape(box, resized_image_shape, original_image_shape, ratio_pad):
@@ -132,13 +125,9 @@ def _format_ground_truth_annotations_for_detection(img_idx, image_path, batch, c
         data.append({
             'boxes': [box],
             'label': f'gt_{label}',
-            'score': COMET_MAX_CONFIDENCE_SCORE, })
+            'score': COMET_MAX_CONFIDENCE_SCORE})
 
-    annotation = {
-        'name': 'ground_truth',
-        'data': data, }
-
-    return annotation
+    return {'name': 'ground_truth', 'data': data}
 
 
 def _format_prediction_annotations_for_detection(image_path, metadata, class_label_map=None):
@@ -160,9 +149,7 @@ def _format_prediction_annotations_for_detection(image_path, metadata, class_lab
 
         data.append({'boxes': [boxes], 'label': cls_label, 'score': score})
 
-    annotation = {'name': 'prediction', 'data': data}
-
-    return annotation
+    return {'name': 'prediction', 'data': data}
 
 
 def _fetch_annotations(img_idx, image_path, batch, prediction_metadata_map, class_label_map):
@@ -171,15 +158,12 @@ def _fetch_annotations(img_idx, image_path, batch, prediction_metadata_map, clas
     prediction_annotations = _format_prediction_annotations_for_detection(image_path, prediction_metadata_map,
                                                                           class_label_map)
 
-    annotations = []
-    for annotation in [ground_truth_annotations, prediction_annotations]:
-        if annotation is not None:
-            annotations.append(annotation)
-
-    if not annotations:
-        return None
-
-    return [annotations]
+    annotations = [
+        annotation
+        for annotation in [ground_truth_annotations, prediction_annotations]
+        if annotation is not None
+    ]
+    return [annotations] if annotations else None
 
 
 def _create_prediction_metadata_map(model_predictions):
@@ -315,7 +299,7 @@ def on_fit_epoch_end(trainer):
         model_info = {
             'model/parameters': get_num_params(trainer.model),
             'model/GFLOPs': round(get_flops(trainer.model), 3),
-            'model/speed(ms)': round(trainer.validator.speed['inference'], 3), }
+            'model/speed(ms)': round(trainer.validator.speed['inference'], 3)}
         experiment.log_metrics(model_info, step=curr_step, epoch=curr_epoch)
 
     if not save_assets:
@@ -350,11 +334,8 @@ def on_train_end(trainer):
     _comet_image_prediction_count = 0
 
 
-if comet_ml:
-    callbacks = {
-        'on_pretrain_routine_start': on_pretrain_routine_start,
-        'on_train_epoch_end': on_train_epoch_end,
-        'on_fit_epoch_end': on_fit_epoch_end,
-        'on_train_end': on_train_end, }
-else:
-    callbacks = {}
+callbacks = {
+    'on_pretrain_routine_start': on_pretrain_routine_start,
+    'on_train_epoch_end': on_train_epoch_end,
+    'on_fit_epoch_end': on_fit_epoch_end,
+    'on_train_end': on_train_end} if comet_ml else {}

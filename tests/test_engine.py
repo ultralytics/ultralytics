@@ -13,6 +13,8 @@ CFG = get_cfg(DEFAULT_CFG)
 MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n'
 SOURCE = ROOT / 'assets'
 
+def test_func(model):
+    print('callback test passed')
 
 def test_detect():
     overrides = {'data': 'coco8.yaml', 'model': CFG_DET, 'imgsz': 32, 'epochs': 1, 'save': False}
@@ -20,14 +22,21 @@ def test_detect():
 
     # Trainer
     trainer = detect.DetectionTrainer(overrides=overrides)
+    trainer.add_callback("on_train_start", test_func)
+    assert test_func in trainer.callbacks['on_train_start'], 'callback test failed'
+    # assert trainer.callbacks
     trainer.train()
 
     # Validator
     val = detect.DetectionValidator(args=CFG)
+    val.add_callback("on_val_start", test_func)
+    assert test_func in val.callbacks['on_val_start'], 'callback test failed'
     val(model=trainer.best)  # validate best.pt
 
     # Predictor
     pred = detect.DetectionPredictor(overrides={'imgsz': [64, 64]})
+    pred.add_callback("on_predict_start", test_func)
+    assert test_func in pred.callbacks['on_predict_start'], 'callback test failed'
     result = pred(source=SOURCE, model=f'{MODEL}.pt')
     assert len(result), 'predictor test failed'
 
@@ -50,14 +59,20 @@ def test_segment():
 
     # trainer
     trainer = segment.SegmentationTrainer(overrides=overrides)
+    trainer.add_callback("on_train_start", test_func)
+    assert test_func in trainer.callbacks['on_train_start'], 'callback test failed'
     trainer.train()
 
     # Validator
     val = segment.SegmentationValidator(args=CFG)
+    val.add_callback("on_val_start", test_func)
+    assert test_func in val.callbacks['on_val_start'], 'callback test failed'
     val(model=trainer.best)  # validate best.pt
 
     # Predictor
     pred = segment.SegmentationPredictor(overrides={'imgsz': [64, 64]})
+    pred.add_callback("on_predict_start", test_func)
+    assert test_func in pred.callbacks['on_predict_start'], 'callback test failed'
     result = pred(source=SOURCE, model=f'{MODEL}-seg.pt')
     assert len(result), 'predictor test failed'
 
@@ -81,13 +96,19 @@ def test_classify():
 
     # Trainer
     trainer = classify.ClassificationTrainer(overrides=overrides)
+    trainer.add_callback("on_train_start", test_func)
+    assert test_func in trainer.callbacks['on_train_start'], 'callback test failed'
     trainer.train()
 
     # Validator
     val = classify.ClassificationValidator(args=CFG)
+    val.add_callback("on_val_start", test_func)
+    assert test_func in val.callbacks['on_val_start'], 'callback test failed'
     val(model=trainer.best)
 
     # Predictor
     pred = classify.ClassificationPredictor(overrides={'imgsz': [64, 64]})
+    pred.add_callback("on_predict_start", test_func)
+    assert test_func in pred.callbacks['on_predict_start'], 'callback test failed'
     result = pred(source=SOURCE, model=trainer.best)
     assert len(result), 'predictor test failed'

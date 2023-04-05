@@ -80,6 +80,8 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
                 data, key = 'coco128-seg.yaml', 'metrics/mAP50-95(M)'
             elif model.task == 'classify':
                 data, key = 'imagenet100', 'metrics/accuracy_top5'
+            elif model.task == 'pose':
+                data, key = 'coco8-pose.yaml', 'metrics/mAP50-95(P)'
 
             results = export.val(data=data, batch=1, imgsz=imgsz, plots=False, device=device, half=half, verbose=False)
             metric, speed = results.results_dict[key], results.speed['inference']

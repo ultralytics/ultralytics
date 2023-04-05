@@ -18,13 +18,13 @@ TASKS = 'detect', 'segment', 'classify', 'pose'
 TASK2DATA = {
     'detect': 'coco128.yaml',
     'segment': 'coco128-seg.yaml',
-    'pose': 'coco128-pose.yaml',
-    'classify': 'imagenet100'}
+    'classify': 'imagenet100',
+    'pose': 'coco128-pose.yaml'}
 TASK2MODEL = {
     'detect': 'yolov8n.pt',
     'segment': 'yolov8n-seg.pt',
-    'pose': 'yolov8n-pose.yaml',
-    'classify': 'yolov8n-cls.pt'}  # temp
+    'classify': 'yolov8n-cls.pt',
+    'pose': 'yolov8n-pose.yaml'}
 
 CLI_HELP_MSG = \
     f"""

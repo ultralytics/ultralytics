@@ -83,7 +83,7 @@ std::vector<Detection> Inference::runInference(const cv::Mat &input)
         {
             float confidence = data[4];
 
-            if (confidence >= modelConfidenseThreshold)
+            if (confidence >= modelConfidenceThreshold)
             {
                 float *classes_scores = data+5;
 

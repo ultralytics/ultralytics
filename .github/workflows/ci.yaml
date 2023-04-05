@@ -73,6 +73,36 @@ jobs:
           hub.login(key)
           model = YOLO('https://hub.ultralytics.com/models/' + model_id)
           model.train()
+      - name: Test HUB training (Python Usage 3)
+        shell: python
+        env:
+          APIKEY: ${{ secrets.ULTRALYTICS_HUB_APIKEY }}
+        run: |
+          import os
+          from pathlib import Path
+          from ultralytics import YOLO, hub
+          from ultralytics.yolo.utils import USER_CONFIG_DIR
+          Path(USER_CONFIG_DIR / 'settings.yaml').unlink()
+          key = os.environ['APIKEY']
+          hub.reset_model(key)
+          model = YOLO(key)
+          model.train()
+      - name: Test HUB training (Python Usage 4)
+        shell: python
+        env:
+          APIKEY: ${{ secrets.ULTRALYTICS_HUB_APIKEY }}
+        run: |
+          import os
+          from pathlib import Path
+          from ultralytics import YOLO, hub
+          from ultralytics.yolo.utils import USER_CONFIG_DIR
+          Path(USER_CONFIG_DIR / 'settings.yaml').unlink()
+          key = os.environ['APIKEY']
+          hub.reset_model(key)
+          key, model_id = key.split('_')
+          hub.login(key)
+          model = YOLO(model_id)
+          model.train()
 
   Benchmarks:
     runs-on: ${{ matrix.os }}

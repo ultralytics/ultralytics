@@ -168,7 +168,7 @@ class Instances:
         Args:
             bboxes (ndarray): bboxes with shape [N, 4].
             segments (list | ndarray): segments.
-            keypoints (ndarray): keypoints with shape [N, 17, 2].
+            keypoints (ndarray): keypoints(x, y, visible) with shape [N, 17, 3].
         """
         if segments is None:
             segments = []

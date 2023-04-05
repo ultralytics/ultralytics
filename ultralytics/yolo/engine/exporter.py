@@ -210,7 +210,7 @@ class Exporter:
         self.output_shape = tuple(y.shape) if isinstance(y, torch.Tensor) else tuple(tuple(x.shape) for x in y)
         self.pretty_name = Path(self.model.yaml.get('yaml_file', self.file)).stem.replace('yolo', 'YOLO')
         description = f'Ultralytics {self.pretty_name} model ' + f'trained on {Path(self.args.data).name}' \
-            if self.args.data else '(untrained)'
+                if self.args.data else '(untrained)'
         self.metadata = {
             'description': description,
             'author': 'Ultralytics',
@@ -221,6 +221,8 @@ class Exporter:
             'batch': self.args.batch,
             'imgsz': self.imgsz,
             'names': model.names}  # model metadata
+        if model.task == 'pose':
+            self.metadata['kpt_shape'] = model.kpt_shape
 
         LOGGER.info(f"\n{colorstr('PyTorch:')} starting from {file} with input shape {tuple(im.shape)} BCHW and "
                     f'output shape(s) {self.output_shape} ({file_size(file):.1f} MB)')
@@ -257,7 +259,7 @@ class Exporter:
             f = str(Path(f[-1]))
             square = self.imgsz[0] == self.imgsz[1]
             s = '' if square else f"WARNING ⚠️ non-PyTorch val requires square images, 'imgsz={self.imgsz}' will not " \
-                                  f"work. Use export 'imgsz={max(self.imgsz)}' if val is required."
+                                      f"work. Use export 'imgsz={max(self.imgsz)}' if val is required."
             imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(' ', '')
             data = f'data={self.args.data}' if model.task == 'segment' and format == 'pb' else ''
             LOGGER.info(

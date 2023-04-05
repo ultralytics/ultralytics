@@ -91,8 +91,7 @@ class AutoBackend(nn.Module):
         if nn_module:
             model = weights.to(device)
             model = model.fuse(verbose=verbose) if fuse else model
-            # TODO
-            kpt_shape = getattr(model, 'kpt_shape', (17, 3))  # backward compatibility
+            kpt_shape = getattr(model, 'kpt_shape')  # pose-only
             stride = max(int(model.stride.max()), 32)  # model stride
             names = model.module.names if hasattr(model, 'module') else model.names  # get class names
             model.half() if fp16 else model.float()
@@ -104,8 +103,7 @@ class AutoBackend(nn.Module):
                                          device=device,
                                          inplace=True,
                                          fuse=fuse)
-            # TODO
-            kpt_shape = getattr(model, 'kpt_shape', (17, 3))  # backward compatibility
+            kpt_shape = getattr(model, 'kpt_shape')  # pose-only
             stride = max(int(model.stride.max()), 32)  # model stride
             names = model.module.names if hasattr(model, 'module') else model.names  # get class names
             model.half() if fp16 else model.float()
@@ -272,13 +270,14 @@ class AutoBackend(nn.Module):
             for k, v in metadata.items():
                 if k in ('stride', 'batch'):
                     metadata[k] = int(v)
-                elif k in ('imgsz', 'names') and isinstance(v, str):
+                elif k in ('imgsz', 'names', 'kpt_shape') and isinstance(v, str):
                     metadata[k] = eval(v)
             stride = metadata['stride']
             task = metadata['task']
             batch = metadata['batch']
             imgsz = metadata['imgsz']
             names = metadata['names']
+            kpt_shape = metadata.get('kpt_shape')
         elif not (pt or triton or nn_module):
             LOGGER.warning(f"WARNING ⚠️ Metadata not found for 'model={weights}'")
 

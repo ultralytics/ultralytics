@@ -61,7 +61,12 @@ repos:
       - id: codespell
         args:
           - --ignore-words-list=crate,nd,strack,dota
-
+         
+  -  repo: https://github.com/asottile/add-trailing-comma
+     rev: v2.4.0
+     hooks:
+       - id: add-trailing-comma
+    
 #  - repo: https://github.com/asottile/yesqa
 #    rev: v1.4.0
 #    hooks:

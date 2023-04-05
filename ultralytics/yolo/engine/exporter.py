@@ -380,7 +380,6 @@ class Exporter:
         yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml
         return f, None
 
-    @try_export
     def _export_coreml(self, prefix=colorstr('CoreML:')):
         # YOLOv8 CoreML export
         check_requirements('coremltools>=6.0')
@@ -413,8 +412,8 @@ class Exporter:
             model = self.model
         elif self.model.task == 'detect':
             model = iOSDetectModel(self.model, self.im) if self.args.nms else self.model
-        elif self.model.task == 'segment':
-            # TODO CoreML Segmentation model pipelining
+        else:
+            # TODO CoreML Segment and Pose model pipelining
             model = self.model
 
         ts = torch.jit.trace(model.eval(), self.im, strict=False)  # TorchScript model

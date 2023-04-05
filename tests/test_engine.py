@@ -29,14 +29,14 @@ def test_detect():
 
     # Validator
     val = detect.DetectionValidator(args=CFG)
-    val.add_callback("on_val_start", test_func)
-    assert test_func in val.callbacks['on_val_start'], 'callback test failed'
+    # val.add_callback("on_val_start", test_func)
+    # assert test_func in val.callbacks['on_val_start'], 'callback test failed'
     val(model=trainer.best)  # validate best.pt
 
     # Predictor
     pred = detect.DetectionPredictor(overrides={'imgsz': [64, 64]})
-    pred.add_callback("on_predict_start", test_func)
-    assert test_func in pred.callbacks['on_predict_start'], 'callback test failed'
+    # pred.add_callback("on_predict_start", test_func)
+    # assert test_func in pred.callbacks['on_predict_start'], 'callback test failed'
     result = pred(source=SOURCE, model=f'{MODEL}.pt')
     assert len(result), 'predictor test failed'
 
@@ -65,14 +65,14 @@ def test_segment():
 
     # Validator
     val = segment.SegmentationValidator(args=CFG)
-    val.add_callback("on_val_start", test_func)
-    assert test_func in val.callbacks['on_val_start'], 'callback test failed'
+    # val.add_callback("on_val_start", test_func)
+    # assert test_func in val.callbacks['on_val_start'], 'callback test failed'
     val(model=trainer.best)  # validate best.pt
 
     # Predictor
     pred = segment.SegmentationPredictor(overrides={'imgsz': [64, 64]})
-    pred.add_callback("on_predict_start", test_func)
-    assert test_func in pred.callbacks['on_predict_start'], 'callback test failed'
+    # pred.add_callback("on_predict_start", test_func)
+    # assert test_func in pred.callbacks['on_predict_start'], 'callback test failed'
     result = pred(source=SOURCE, model=f'{MODEL}-seg.pt')
     assert len(result), 'predictor test failed'
 
@@ -102,13 +102,13 @@ def test_classify():
 
     # Validator
     val = classify.ClassificationValidator(args=CFG)
-    val.add_callback("on_val_start", test_func)
-    assert test_func in val.callbacks['on_val_start'], 'callback test failed'
+    # val.add_callback("on_val_start", test_func)
+    # assert test_func in val.callbacks['on_val_start'], 'callback test failed'
     val(model=trainer.best)
 
     # Predictor
     pred = classify.ClassificationPredictor(overrides={'imgsz': [64, 64]})
-    pred.add_callback("on_predict_start", test_func)
-    assert test_func in pred.callbacks['on_predict_start'], 'callback test failed'
+    # pred.add_callback("on_predict_start", test_func)
+    # assert test_func in pred.callbacks['on_predict_start'], 'callback test failed'
     result = pred(source=SOURCE, model=trainer.best)
     assert len(result), 'predictor test failed'

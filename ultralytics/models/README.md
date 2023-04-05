@@ -51,6 +51,7 @@ Available Models:
 - Detection - `yolov8n`, `yolov8s`, `yolov8m`, `yolov8l`, `yolov8x`
 - Instance Segmentation - `yolov8n-seg`, `yolov8s-seg`, `yolov8m-seg`, `yolov8l-seg`, `yolov8x-seg`
 - Classification - `yolov8n-cls`, `yolov8s-cls`, `yolov8m-cls`, `yolov8l-cls`, `yolov8x-cls`
+- Pose - `yolov8n-pose`, `yolov8s-pose`, `yolov8m-pose`, `yolov8l-pose`, `yolov8x-pose`, `yolov8x-pose-p6`
 
 <details><summary>Performance</summary>
 

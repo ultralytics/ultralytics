@@ -16,6 +16,8 @@ from ..utils.metrics import bbox_ioa
 from ..utils.ops import segment2box
 from .utils import polygons2masks, polygons2masks_overlap
 
+POSE_FLIPLR_INDEX = [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15]
+
 
 # TODO: we might need a BaseTransform to make all these augments be compatible with both classification and semantic
 class BaseTransform:
@@ -309,27 +311,22 @@ class RandomPerspective:
         """apply affine to keypoints.
 
         Args:
-            keypoints(ndarray): keypoints, [N, 17, 2].
+            keypoints(ndarray): keypoints, [N, 17, 3].
             M(ndarray): affine matrix.
         Return:
-            new_keypoints(ndarray): keypoints after affine, [N, 17, 2].
+            new_keypoints(ndarray): keypoints after affine, [N, 17, 3].
         """
-        n = len(keypoints)
+        n, nkpt = keypoints.shape[:2]
         if n == 0:
             return keypoints
-        new_keypoints = np.ones((n * 17, 3))
-        new_keypoints[:, :2] = keypoints.reshape(n * 17, 2)  # num_kpt is hardcoded to 17
-        new_keypoints = new_keypoints @ M.T  # transform
-        new_keypoints = (new_keypoints[:, :2] / new_keypoints[:, 2:3]).reshape(n, 34)  # perspective rescale or affine
-        new_keypoints[keypoints.reshape(-1, 34) == 0] = 0
-        x_kpts = new_keypoints[:, list(range(0, 34, 2))]
-        y_kpts = new_keypoints[:, list(range(1, 34, 2))]
-
-        x_kpts[np.logical_or.reduce((x_kpts < 0, x_kpts > self.size[0], y_kpts < 0, y_kpts > self.size[1]))] = 0
-        y_kpts[np.logical_or.reduce((x_kpts < 0, x_kpts > self.size[0], y_kpts < 0, y_kpts > self.size[1]))] = 0
-        new_keypoints[:, list(range(0, 34, 2))] = x_kpts
-        new_keypoints[:, list(range(1, 34, 2))] = y_kpts
-        return new_keypoints.reshape(n, 17, 2)
+        xy = np.ones((n * nkpt, 3))
+        visible = keypoints[..., 2].reshape(n * nkpt, 1)
+        xy[:, :2] = keypoints[..., :2].reshape(n * nkpt, 2)
+        xy = xy @ M.T  # transform
+        xy = xy[:, :2] / xy[:, 2:3]  # perspective rescale or affine
+        out_mask = (xy[:, 0] < 0) | (xy[:, 1] < 0) | (xy[:, 0] > self.size[0]) | (xy[:, 1] > self.size[1])
+        visible[out_mask] = 0
+        return np.concatenate([xy, visible], axis=-1).reshape(n, nkpt, 3)
 
     def __call__(self, labels):
         """
@@ -415,12 +412,13 @@ class RandomHSV:
 
 class RandomFlip:
 
-    def __init__(self, p=0.5, direction='horizontal') -> None:
+    def __init__(self, p=0.5, direction='horizontal', flip_idx=None) -> None:
         assert direction in ['horizontal', 'vertical'], f'Support direction `horizontal` or `vertical`, got {direction}'
         assert 0 <= p <= 1.0
 
         self.p = p
         self.direction = direction
+        self.flip_idx = flip_idx
 
     def __call__(self, labels):
         img = labels['img']
@@ -437,6 +435,9 @@ class RandomFlip:
         if self.direction == 'horizontal' and random.random() < self.p:
             img = np.fliplr(img)
             instances.fliplr(w)
+            # for keypoints
+            if self.flip_idx is not None and instances.keypoints is not None:
+                instances.keypoints = np.ascontiguousarray(instances.keypoints[:, self.flip_idx, :])
         labels['img'] = np.ascontiguousarray(img)
         labels['instances'] = instances
         return labels
@@ -633,7 +634,7 @@ class Format:
         labels['cls'] = torch.from_numpy(cls) if nl else torch.zeros(nl)
         labels['bboxes'] = torch.from_numpy(instances.bboxes) if nl else torch.zeros((nl, 4))
         if self.return_keypoint:
-            labels['keypoints'] = torch.from_numpy(instances.keypoints) if nl else torch.zeros((nl, 17, 2))
+            labels['keypoints'] = torch.from_numpy(instances.keypoints)
         # then we can use collate_fn
         if self.batch_idx:
             labels['batch_idx'] = torch.zeros(nl)
@@ -672,13 +673,17 @@ def v8_transforms(dataset, imgsz, hyp):
             perspective=hyp.perspective,
             pre_transform=LetterBox(new_shape=(imgsz, imgsz)),
         )])
+    flip_idx = dataset.data.get('flip_idx', None)  # for keypoints augmentation
+    if dataset.use_keypoints and flip_idx is None and hyp.fliplr > 0.0:
+        hyp.fliplr = 0.0
+        LOGGER.warning("WARNING ⚠️ No `flip_idx` provided while training keypoints, setting augmentation 'fliplr=0.0'")
     return Compose([
         pre_transform,
         MixUp(dataset, pre_transform=pre_transform, p=hyp.mixup),
         Albumentations(p=1.0),
         RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
         RandomFlip(direction='vertical', p=hyp.flipud),
-        RandomFlip(direction='horizontal', p=hyp.fliplr)])  # transforms
+        RandomFlip(direction='horizontal', p=hyp.fliplr, flip_idx=flip_idx)])  # transforms
 
 
 # Classification augmentations -----------------------------------------------------------------------------------------

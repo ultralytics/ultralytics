@@ -295,7 +295,8 @@ class Exporter:
         check_requirements(requirements)
         import onnx  # noqa
 
-        LOGGER.info(f'\n{prefix} starting export with onnx {onnx.__version__}...')
+        opset_version = self.args.opset or get_latest_opset()
+        LOGGER.info(f'\n{prefix} starting export with onnx {onnx.__version__} opset {opset_version}...')
         f = str(self.file.with_suffix('.onnx'))
 
         output_names = ['output0', 'output1'] if isinstance(self.model, SegmentationModel) else ['output0']
@@ -313,7 +314,7 @@ class Exporter:
             self.im.cpu() if dynamic else self.im,
             f,
             verbose=False,
-            opset_version=self.args.opset or get_latest_opset(),
+            opset_version=opset_version,
             do_constant_folding=True,  # WARNING: DNN inference with torch>=1.12 may require do_constant_folding=False
             input_names=['images'],
             output_names=output_names,

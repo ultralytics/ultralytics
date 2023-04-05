@@ -72,9 +72,9 @@ class PosePredictor(DetectionPredictor):
                 with open(f'{self.txt_path}.txt', 'a') as f:
                     f.write(('%g ' * len(line)).rstrip() % line + '\n')
             if self.args.save or self.args.show:  # Add bbox to image
-                name = f'id:{int(d.id.item())} {self.model.names[c]}' if d.id is not None else self.model.names[c]
-                label = None if self.args.hide_labels else (name if self.args.hide_conf else f'{name} {conf:.2f}')
-                if self.args.box:
+                name = ('' if id is None else f'id:{id} ') + self.model.names[c]
+                label = (f'{name} {conf:.2f}' if self.args.show_conf else name) if self.args.show_labels else None
+                if self.args.boxes:
                     self.annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
             if self.args.save_crop:
                 save_one_box(d.xyxy,

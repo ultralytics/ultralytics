@@ -88,14 +88,13 @@ Available Models:
 ### Pose
 
 | Model                                                                                                | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>pose<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
-|------------------------------------------------------------------------------------------------------|-----------------------|----------------------|-----------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
+| ---------------------------------------------------------------------------------------------------- | --------------------- | -------------------- | --------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
 | [YOLOv8n-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt)       | 640                   | -                    | 49.7                  | -                              | -                                   | 3.3                | 9.2               |
 | [YOLOv8s-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-pose.pt)       | 640                   | -                    | 59.2                  | -                              | -                                   | 11.6               | 30.2              |
 | [YOLOv8m-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-pose.pt)       | 640                   | -                    | 63.6                  | -                              | -                                   | 26.4               | 81.0              |
 | [YOLOv8l-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-pose.pt)       | 640                   | -                    | 67.0                  | -                              | -                                   | 44.4               | 168.6             |
 | [YOLOv8x-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose.pt)       | 640                   | -                    | 68.9                  | -                              | -                                   | 69.4               | 263.2             |
 | [YOLOv8x-pose-p6](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose-p6.pt) | 1280                  | -                    | 71.5                  | -                              | -                                   | 99.1               | 1066.4            |
-
 
 </details>
 

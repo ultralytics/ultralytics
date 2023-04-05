@@ -72,7 +72,7 @@ def test_predict_classify():
 
 
 def test_predict_pose():
-    run(f"yolo predict model={MODEL}-pose.pt source={ROOT / 'assets'} imgsz=32 save")
+    run(f"yolo predict model={MODEL}-pose.pt source={ROOT / 'assets'} imgsz=32 save save_txt")
 
 
 # Export checks --------------------------------------------------------------------------------------------------------

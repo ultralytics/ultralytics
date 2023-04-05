@@ -584,8 +584,8 @@ def process_mask(protos, masks_in, bboxes, shape, orig_shape, upsample=False):
       protos (torch.Tensor): [mask_dim, mask_h, mask_w]
       masks_in (torch.Tensor): [n, mask_dim], n is number of masks after nms
       bboxes (torch.Tensor): [n, 4], n is number of masks after nms
-      orig_shape (tuple): the original size of the input image (h,w)
       shape (tuple): the size of the input image (h,w)
+      orig_shape (tuple): the original size of the input image (h,w)
 
     Returns:
       (torch.Tensor): The processed masks.

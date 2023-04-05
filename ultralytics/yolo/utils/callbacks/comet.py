@@ -163,14 +163,11 @@ def _create_prediction_metadata_map(model_predictions):
 
 def _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch):
     conf_mat = trainer.validator.confusion_matrix.matrix
-
-    # Ensure dictionary with label names is sorted based on keys
-    label_names = [v for k, v in sorted(trainer.data['names'].items())]
-    label_names.append('background')
+    names = list(trainer.data['names'].values()) + ['background']
     experiment.log_confusion_matrix(
         matrix=conf_mat,
-        labels=label_names,
-        max_categories=len(label_names),
+        labels=names,
+        max_categories=len(names),
         epoch=curr_epoch,
         step=curr_step,
     )

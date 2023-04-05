@@ -1,11 +1,19 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
-import lap
 import numpy as np
 import scipy
 from scipy.spatial.distance import cdist
 
 from .kalman_filter import chi2inv95
+
+try:
+    import lap  # for linear_assignment
+    assert lap.__version__  # verify package is not directory
+except (ImportError, AssertionError, AttributeError):
+    from ultralytics.yolo.utils.checks import check_requirements
+
+    check_requirements('lap>=0.4')  # install
+    import lap
 
 
 def merge_matches(m1, m2, shape):

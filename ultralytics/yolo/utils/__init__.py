@@ -22,11 +22,15 @@ import yaml
 
 from ultralytics import __version__
 
-# Constants
+# PyTorch Multi-GPU DDP Constants
+RANK = int(os.getenv('RANK', -1))
+LOCAL_RANK = int(os.getenv('LOCAL_RANK', -1))  # https://pytorch.org/docs/stable/elastic/run.html
+WORLD_SIZE = int(os.getenv('WORLD_SIZE', 1))
+
+# Other Constants
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[2]  # YOLO
 DEFAULT_CFG_PATH = ROOT / 'yolo/cfg/default.yaml'
-RANK = int(os.getenv('RANK', -1))
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLOv5 multiprocessing threads
 AUTOINSTALL = str(os.getenv('YOLO_AUTOINSTALL', True)).lower() == 'true'  # global auto-install mode
 VERBOSE = str(os.getenv('YOLO_VERBOSE', True)).lower() == 'true'  # global verbose mode
@@ -92,25 +96,59 @@ HELP_MSG = \
     """
 
 # Settings
-torch.set_printoptions(linewidth=320, precision=5, profile='long')
+torch.set_printoptions(linewidth=320, precision=4, profile='default')
 np.set_printoptions(linewidth=320, formatter={'float_kind': '{:11.5g}'.format})  # format short g, %precision=5
 cv2.setNumThreads(0)  # prevent OpenCV from multithreading (incompatible with PyTorch DataLoader)
 os.environ['NUMEXPR_MAX_THREADS'] = str(NUM_THREADS)  # NumExpr max threads
 os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':4096:8'  # for deterministic training
 
 
+class SimpleClass:
+    """
+    Ultralytics SimpleClass is a base class providing helpful string representation, error reporting, and attribute
+    access methods for easier debugging and usage.
+    """
+
+    def __str__(self):
+        """Return a human-readable string representation of the object."""
+        attr = []
+        for a in dir(self):
+            v = getattr(self, a)
+            if not callable(v) and not a.startswith('__'):
+                if isinstance(v, SimpleClass):
+                    # Display only the module and class name for subclasses
+                    s = f'{a}: {v.__module__}.{v.__class__.__name__} object'
+                else:
+                    s = f'{a}: {repr(v)}'
+                attr.append(s)
+        return f'{self.__module__}.{self.__class__.__name__} object with attributes:\n\n' + '\n'.join(attr)
+
+    def __repr__(self):
+        """Return a machine-readable string representation of the object."""
+        return self.__str__()
+
+    def __getattr__(self, attr):
+        """Custom attribute access error message with helpful information."""
+        name = self.__class__.__name__
+        raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
+
+
 class IterableSimpleNamespace(SimpleNamespace):
     """
-    Iterable SimpleNamespace class to allow SimpleNamespace to be used with dict() and in for loops
+    Ultralytics IterableSimpleNamespace is an extension class of SimpleNamespace that adds iterable functionality and
+    enables usage with dict() and for loops.
     """
 
     def __iter__(self):
+        """Return an iterator of key-value pairs from the namespace's attributes."""
         return iter(vars(self).items())
 
     def __str__(self):
+        """Return a human-readable string representation of the object."""
         return '\n'.join(f'{k}={v}' for k, v in vars(self).items())
 
     def __getattr__(self, attr):
+        """Custom attribute access error message with helpful information."""
         name = self.__class__.__name__
         raise AttributeError(f"""
             '{name}' object has no attribute '{attr}'. This may be caused by a modified or out of date ultralytics
@@ -120,6 +158,7 @@ class IterableSimpleNamespace(SimpleNamespace):
             """)
 
     def get(self, key, default=None):
+        """Return the value of the specified key if it exists; otherwise, return the default value."""
         return getattr(self, key, default)
 
 
@@ -282,10 +321,13 @@ def is_online() -> bool:
         bool: True if connection is successful, False otherwise.
     """
     import socket
-    with contextlib.suppress(Exception):
-        host = socket.gethostbyname('www.github.com')
-        socket.create_connection((host, 80), timeout=2)
-        return True
+
+    for server in '1.1.1.1', '8.8.8.8', '223.5.5.5':  # Cloudflare, Google, AliDNS:
+        try:
+            socket.create_connection((server, 53), timeout=2)  # connect to (server, port=53)
+            return True
+        except (socket.timeout, socket.gaierror, OSError):
+            continue
     return False
 
 
@@ -445,7 +487,7 @@ def get_user_config_dir(sub_dir='Ultralytics'):
     return path
 
 
-USER_CONFIG_DIR = get_user_config_dir()  # Ultralytics settings dir
+USER_CONFIG_DIR = Path(os.getenv('YOLO_CONFIG_DIR', get_user_config_dir()))  # Ultralytics settings dir
 
 
 def emojis(string=''):
@@ -547,7 +589,7 @@ def set_sentry():
             logging.getLogger(logger).setLevel(logging.CRITICAL)
 
 
-def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.2'):
+def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.3'):
     """
     Loads a global Ultralytics settings YAML file or creates one with default values if it does not exist.
 
@@ -570,8 +612,9 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.2'):
         'datasets_dir': str(datasets_root / 'datasets'),  # default datasets directory.
         'weights_dir': str(root / 'weights'),  # default weights directory.
         'runs_dir': str(root / 'runs'),  # default runs directory.
-        'sync': True,  # sync analytics to help with YOLO development
         'uuid': hashlib.sha256(str(uuid.getnode()).encode()).hexdigest(),  # anonymized uuid hash
+        'sync': True,  # sync analytics to help with YOLO development
+        'api_key': '',  # Ultralytics HUB API key (https://hub.ultralytics.com/)
         'settings_version': version}  # Ultralytics settings version
 
     with torch_distributed_zero_first(RANK):
@@ -581,7 +624,8 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.2'):
 
         # Check that settings keys and types match defaults
         correct = \
-            settings.keys() == defaults.keys() \
+            settings \
+            and settings.keys() == defaults.keys() \
             and all(type(a) == type(b) for a, b in zip(settings.values(), defaults.values())) \
             and check_version(settings['settings_version'], version)
         if not correct:
@@ -601,6 +645,14 @@ def set_settings(kwargs, file=USER_CONFIG_DIR / 'settings.yaml'):
     """
     SETTINGS.update(kwargs)
     yaml_save(file, SETTINGS)
+
+
+def deprecation_warn(arg, new_arg, version=None):
+    if not version:
+        version = float(__version__[0:3]) + 0.2  # deprecate after 2nd major release
+    LOGGER.warning(
+        f'WARNING: `{arg}` is deprecated and will be removed in upcoming major release {version}. Use `{new_arg}` instead'
+    )
 
 
 # Run below code on yolo/utils init ------------------------------------------------------------------------------------

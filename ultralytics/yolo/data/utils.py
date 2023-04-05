@@ -25,8 +25,6 @@ from ultralytics.yolo.utils.ops import segments2boxes
 HELP_URL = 'See https://github.com/ultralytics/yolov5/wiki/Train-Custom-Data'
 IMG_FORMATS = 'bmp', 'dng', 'jpeg', 'jpg', 'mpo', 'png', 'tif', 'tiff', 'webp', 'pfm'  # image suffixes
 VID_FORMATS = 'asf', 'avi', 'gif', 'm4v', 'mkv', 'mov', 'mp4', 'mpeg', 'mpg', 'ts', 'wmv', 'webm'  # video suffixes
-LOCAL_RANK = int(os.getenv('LOCAL_RANK', -1))  # https://pytorch.org/docs/stable/elastic/run.html
-RANK = int(os.getenv('RANK', -1))
 PIN_MEMORY = str(os.getenv('PIN_MEMORY', True)).lower() == 'true'  # global pin_memory for dataloaders
 IMAGENET_MEAN = 0.485, 0.456, 0.406  # RGB mean
 IMAGENET_STD = 0.229, 0.224, 0.225  # RGB standard deviation
@@ -207,12 +205,20 @@ def check_det_dataset(dataset, autodownload=True):
         data = yaml_load(data, append_filename=True)  # dictionary
 
     # Checks
-    for k in 'train', 'val', 'names':
+    for k in 'train', 'val':
         if k not in data:
             raise SyntaxError(
-                emojis(f"{dataset} '{k}:' key missing ❌.\n'train', 'val' and 'names' are required in all data YAMLs."))
+                emojis(f"{dataset} '{k}:' key missing ❌.\n'train' and 'val' are required in all data YAMLs."))
+    if 'names' not in data and 'nc' not in data:
+        raise SyntaxError(emojis(f"{dataset} key missing ❌.\n either 'names' or 'nc' are required in all data YAMLs."))
+    if 'names' in data and 'nc' in data and len(data['names']) != data['nc']:
+        raise SyntaxError(emojis(f"{dataset} 'names' length {len(data['names'])} and 'nc: {data['nc']}' must match."))
+    if 'names' not in data:
+        data['names'] = [f'class_{i}' for i in range(data['nc'])]
+    else:
+        data['nc'] = len(data['names'])
+
     data['names'] = check_class_names(data['names'])
-    data['nc'] = len(data['names'])
 
     # Resolve paths
     path = Path(extract_dir or data.get('path') or Path(data.get('yaml_file', '')).parent)  # dataset root
@@ -235,7 +241,8 @@ def check_det_dataset(dataset, autodownload=True):
     if val:
         val = [Path(x).resolve() for x in (val if isinstance(val, list) else [val])]  # val path
         if not all(x.exists() for x in val):
-            m = f"\nDataset '{dataset}' images not found ⚠️, missing paths %s" % [str(x) for x in val if not x.exists()]
+            name = str(dataset).split('?')[0]  # dataset name with URL auth stripped
+            m = f"\nDataset '{name}' images not found ⚠️, missing paths %s" % [str(x) for x in val if not x.exists()]
             if s and autodownload:
                 LOGGER.warning(m)
             else:
@@ -272,6 +279,7 @@ def check_cls_dataset(dataset: str):
         data (dict): A dictionary containing the following keys and values:
             'train': Path object for the directory containing the training set of the dataset
             'val': Path object for the directory containing the validation set of the dataset
+            'test': Path object for the directory containing the test set of the dataset
             'nc': Number of classes in the dataset
             'names': List of class names in the dataset
     """
@@ -287,11 +295,12 @@ def check_cls_dataset(dataset: str):
         s = f"Dataset download success ✅ ({time.time() - t:.1f}s), saved to {colorstr('bold', data_dir)}\n"
         LOGGER.info(s)
     train_set = data_dir / 'train'
-    test_set = data_dir / 'test' if (data_dir / 'test').exists() else data_dir / 'val'  # data/test or data/val
+    val_set = data_dir / 'val' if (data_dir / 'val').exists() else None  # data/test or data/val
+    test_set = data_dir / 'test' if (data_dir / 'test').exists() else None  # data/val or data/test
     nc = len([x for x in (data_dir / 'train').glob('*') if x.is_dir()])  # number of classes
     names = [x.name for x in (data_dir / 'train').iterdir() if x.is_dir()]  # class names list
     names = dict(enumerate(sorted(names)))
-    return {'train': train_set, 'val': test_set, 'nc': nc, 'names': names}
+    return {'train': train_set, 'val': val_set, 'test': test_set, 'nc': nc, 'names': names}
 
 
 class HUBDatasetStats():

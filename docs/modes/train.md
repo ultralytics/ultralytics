@@ -73,10 +73,11 @@ task.
 | `deterministic`   | `True`   | whether to enable deterministic mode                                        |
 | `single_cls`      | `False`  | train multi-class data as single-class                                      |
 | `image_weights`   | `False`  | use weighted image selection for training                                   |
-| `rect`            | `False`  | support rectangular training                                                |
+| `rect`            | `False`  | rectangular training with each batch collated for minimum padding           |
 | `cos_lr`          | `False`  | use cosine learning rate scheduler                                          |
 | `close_mosaic`    | `10`     | disable mosaic augmentation for final 10 epochs                             |
 | `resume`          | `False`  | resume training from last checkpoint                                        |
+| `amp`             | `True`   | Automatic Mixed Precision (AMP) training, choices=[True, False]             |
 | `lr0`             | `0.01`   | initial learning rate (i.e. SGD=1E-2, Adam=1E-3)                            |
 | `lrf`             | `0.01`   | final learning rate (lr0 * lrf)                                             |
 | `momentum`        | `0.937`  | SGD momentum/Adam beta1                                                     |

@@ -21,7 +21,7 @@ import torch
 from matplotlib import font_manager
 
 from ultralytics.yolo.utils import (AUTOINSTALL, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, downloads,
-                                    emojis, is_colab, is_docker, is_jupyter, is_online, is_pip_package)
+                                    emojis, is_colab, is_docker, is_kaggle, is_online, is_pip_package)
 
 
 def is_ascii(s) -> bool:
@@ -142,7 +142,7 @@ def check_pip_update_available():
         bool: True if an update is available, False otherwise.
     """
     if ONLINE and is_pip_package():
-        with contextlib.suppress(ConnectionError):
+        with contextlib.suppress(Exception):
             from ultralytics import __version__
             latest = check_latest_pypi_version()
             if pkg.parse_version(__version__) < pkg.parse_version(latest):  # update is available
@@ -239,7 +239,7 @@ def check_suffix(file='yolov8n.pt', suffix='.pt', msg=''):
         if isinstance(suffix, str):
             suffix = (suffix, )
         for f in file if isinstance(file, (list, tuple)) else [file]:
-            s = Path(f).suffix.lower()  # file suffix
+            s = Path(f).suffix.lower().strip()  # file suffix
             if len(s):
                 assert s in suffix, f'{msg}{f} acceptable suffix is {suffix}, not {s}'
 
@@ -261,7 +261,7 @@ def check_yolov5u_filename(file: str, verbose: bool = True):
 def check_file(file, suffix='', download=True, hard=True):
     # Search/download file (if necessary) and return path
     check_suffix(file, suffix)  # optional
-    file = str(file)  # convert to string
+    file = str(file).strip()  # convert to string and strip spaces
     file = check_yolov5u_filename(file)  # yolov5n -> yolov5nu
     if not file or ('://' not in file and Path(file).exists()):  # exists ('://' check required in Windows Python<3.10)
         return file
@@ -292,8 +292,7 @@ def check_yaml(file, suffix=('.yaml', '.yml'), hard=True):
 def check_imshow(warn=False):
     # Check if environment supports image displays
     try:
-        assert not is_jupyter()
-        assert not is_docker()
+        assert not any((is_colab(), is_kaggle(), is_docker()))
         cv2.imshow('test', np.zeros((1, 1, 3)))
         cv2.waitKey(1)
         cv2.destroyAllWindows()

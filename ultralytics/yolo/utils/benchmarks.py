@@ -48,8 +48,6 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
     for i, (name, format, suffix, cpu, gpu) in export_formats().iterrows():  # index, (name, format, suffix, CPU, GPU)
         emoji, filename = '❌', None  # export defaults
         try:
-            if model.task == 'classify':
-                assert i != 11, 'paddle cls exports coming soon'
             assert i != 9 or LINUX, 'Edge TPU export only supported on Linux'
             if i == 10:
                 assert MACOS or LINUX, 'TF.js export only supported on macOS and Linux'

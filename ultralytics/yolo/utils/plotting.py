@@ -114,7 +114,7 @@ class Annotator:
             self.im[:] = im_gpu.permute(1, 2, 0).contiguous().cpu().numpy() * 255
         if im_gpu.device != masks.device:
             im_gpu = im_gpu.to(masks.device)
-        colors = torch.tensor(colors, device=masks.device, dtype=torch.float32) / 255.0
+        colors = torch.tensor(colors, device=masks.device, dtype=torch.float32) / 255.0  # shape(n,3)
         colors = colors[:, None, None]  # shape(n,1,1,3)
         masks = masks.unsqueeze(3)  # shape(n,h,w,1)
         masks_color = masks * (colors * alpha)  # shape(n,h,w,3)
@@ -295,7 +295,7 @@ def plot_images(images,
             for j, box in enumerate(boxes.T.tolist()):
                 c = classes[j]
                 color = colors(c)
-                c = names[c] if names else c
+                c = names.get(c, c) if names else c
                 if labels or conf[j] > 0.25:  # 0.25 conf thresh
                     label = f'{c}' if labels else f'{c} {conf[j]:.1f}'
                     annotator.box_label(box, label, color=color)

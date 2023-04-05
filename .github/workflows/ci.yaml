@@ -7,7 +7,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    branches: [main, updates]
   schedule:
     - cron: '0 0 * * *'  # runs at 00:00 UTC every day
 
@@ -43,16 +43,66 @@ jobs:
           python --version
           pip --version
           pip list
-      - name: Test HUB training
+      - name: Test HUB training (Python Usage 1)
         shell: python
         env:
           APIKEY: ${{ secrets.ULTRALYTICS_HUB_APIKEY }}
         run: |
           import os
-          from ultralytics import hub
+          from pathlib import Path
+          from ultralytics import YOLO, hub
+          from ultralytics.yolo.utils import USER_CONFIG_DIR
+          Path(USER_CONFIG_DIR / 'settings.yaml').unlink()
           key = os.environ['APIKEY']
           hub.reset_model(key)
-          hub.start(key)
+          model = YOLO('https://hub.ultralytics.com/models/' + key)
+          model.train()
+      - name: Test HUB training (Python Usage 2)
+        shell: python
+        env:
+          APIKEY: ${{ secrets.ULTRALYTICS_HUB_APIKEY }}
+        run: |
+          import os
+          from pathlib import Path
+          from ultralytics import YOLO, hub
+          from ultralytics.yolo.utils import USER_CONFIG_DIR
+          Path(USER_CONFIG_DIR / 'settings.yaml').unlink()
+          key = os.environ['APIKEY']
+          hub.reset_model(key)
+          key, model_id = key.split('_')
+          hub.login(key)
+          model = YOLO('https://hub.ultralytics.com/models/' + model_id)
+          model.train()
+      - name: Test HUB training (Python Usage 3)
+        shell: python
+        env:
+          APIKEY: ${{ secrets.ULTRALYTICS_HUB_APIKEY }}
+        run: |
+          import os
+          from pathlib import Path
+          from ultralytics import YOLO, hub
+          from ultralytics.yolo.utils import USER_CONFIG_DIR
+          Path(USER_CONFIG_DIR / 'settings.yaml').unlink()
+          key = os.environ['APIKEY']
+          hub.reset_model(key)
+          model = YOLO(key)
+          model.train()
+      - name: Test HUB training (Python Usage 4)
+        shell: python
+        env:
+          APIKEY: ${{ secrets.ULTRALYTICS_HUB_APIKEY }}
+        run: |
+          import os
+          from pathlib import Path
+          from ultralytics import YOLO, hub
+          from ultralytics.yolo.utils import USER_CONFIG_DIR
+          Path(USER_CONFIG_DIR / 'settings.yaml').unlink()
+          key = os.environ['APIKEY']
+          hub.reset_model(key)
+          key, model_id = key.split('_')
+          hub.login(key)
+          model = YOLO(model_id)
+          model.train()
 
   Benchmarks:
     runs-on: ${{ matrix.os }}
@@ -105,7 +155,9 @@ jobs:
           from ultralytics.yolo.utils.benchmarks import benchmark
           benchmark(model='${{ matrix.model }}-cls.pt', imgsz=160, half=False, hard_fail=0.61)
       - name: Benchmark Summary
-        run: cat benchmarks.log
+        run: |
+          cat benchmarks.log
+          echo "$(cat benchmarks.log)" >> $GITHUB_STEP_SUMMARY
 
   Tests:
     timeout-minutes: 60
@@ -133,9 +185,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip wheel
           if [ "${{ matrix.torch }}" == "1.8.0" ]; then
-              pip install -e '.[export]' torch==1.8.0 torchvision==0.9.0 pytest --extra-index-url https://download.pytorch.org/whl/cpu
+              pip install -e . torch==1.8.0 torchvision==0.9.0 pytest --extra-index-url https://download.pytorch.org/whl/cpu
           else
-              pip install -e '.[export]' pytest --extra-index-url https://download.pytorch.org/whl/cpu
+              pip install -e . pytest --extra-index-url https://download.pytorch.org/whl/cpu
           fi
       - name: Check environment
         run: |

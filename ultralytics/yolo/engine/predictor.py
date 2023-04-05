@@ -75,7 +75,7 @@ class BasePredictor:
         data_path (str): Path to data.
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """
         Initializes the BasePredictor class.
 
@@ -104,7 +104,7 @@ class BasePredictor:
         self.data_path = None
         self.source_type = None
         self.batch = None
-        self.callbacks = defaultdict(list, callbacks.default_callbacks)  # add callbacks
+        self.callbacks = defaultdict(list, _callbacks) if _callbacks else defaultdict(list, callbacks.default_callbacks)
         callbacks.add_integration_callbacks(self)
 
     def preprocess(self, img):
@@ -282,3 +282,9 @@ class BasePredictor:
     def run_callbacks(self, event: str):
         for callback in self.callbacks.get(event, []):
             callback(self)
+
+    def add_callback(self, event: str, func):
+        """
+        Add callback
+        """
+        self.callbacks[event].append(func)

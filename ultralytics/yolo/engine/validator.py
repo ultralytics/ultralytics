@@ -55,7 +55,7 @@ class BaseValidator:
         save_dir (Path): Directory to save results.
     """
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None):
+    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
         """
         Initializes a BaseValidator instance.
 
@@ -85,7 +85,7 @@ class BaseValidator:
         if self.args.conf is None:
             self.args.conf = 0.001  # default conf=0.001
 
-        self.callbacks = defaultdict(list, callbacks.default_callbacks)  # add callbacks
+        self.callbacks = defaultdict(list, _callbacks) if _callbacks else defaultdict(list, callbacks.default_callbacks)
 
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
@@ -194,6 +194,12 @@ class BaseValidator:
             if self.args.plots or self.args.save_json:
                 LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}")
             return stats
+
+    def add_callback(self, event: str, callback):
+        """
+        Appends the given callback.
+        """
+        self.callbacks[event].append(callback)
 
     def run_callbacks(self, event: str):
         for callback in self.callbacks.get(event, []):

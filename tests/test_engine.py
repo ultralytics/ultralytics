@@ -14,7 +14,7 @@ MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n'
 SOURCE = ROOT / 'assets'
 
 
-def test_func(model):
+def test_func(model=None):
     print('callback test passed')
 
 

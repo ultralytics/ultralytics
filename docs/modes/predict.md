@@ -17,7 +17,7 @@ passing `stream=True` in the predictor's call method.
             probs = result.probs  # Class probabilities for classification outputs
         ```
 
-    === "Return a list with `Stream=True`"
+    === "Return a generator with `Stream=True`"
         ```python
         inputs = [img, img]  # list of numpy arrays
         results = model(inputs, stream=True)  # generator of Results objects
@@ -53,6 +53,40 @@ whether each source can be used in streaming mode with `stream=True` ✅ and an 
 | glob ✅      | `'path/*.jpg'`                             | `str`          | Use `*` operator |
 | YouTube ✅   | `'https://youtu.be/Zgi9g1ksQHc'`           | `str`          |                  |
 | stream ✅    | `'rtsp://example.com/media.mp4'`           | `str`          | RTSP, RTMP, HTTP |
+
+
+## Arguments
+`model.predict` accepts multiple arguments that control the predction operation. These arguments can be passed directly to `model.predict`:
+!!! example
+    ```
+    model.predict(source, save=True, imgsz=320, conf=0.5)
+    ```
+
+All supported arguments:
+
+| Key              | Value                  | Description                                              |
+|------------------|------------------------|----------------------------------------------------------|
+| `source`         | `'ultralytics/assets'` | source directory for images or videos                    |
+| `conf`           | `0.25`                 | object confidence threshold for detection                |
+| `iou`            | `0.7`                  | intersection over union (IoU) threshold for NMS          |
+| `half`           | `False`                | use half precision (FP16)                                |
+| `device`         | `None`                 | device to run on, i.e. cuda device=0/1/2/3 or device=cpu |
+| `show`           | `False`                | show results if possible                                 |
+| `save`           | `False`                | save images with results                                 |
+| `save_txt`       | `False`                | save results as .txt file                                |
+| `save_conf`      | `False`                | save results with confidence scores                      |
+| `save_crop`      | `False`                | save cropped images with results                         |
+| `hide_labels`    | `False`                | hide labels                                              |
+| `hide_conf`      | `False`                | hide confidence scores                                   |
+| `max_det`        | `300`                  | maximum number of detections per image                   |
+| `vid_stride`     | `False`                | video frame-rate stride                                  |
+| `line_thickness` | `3`                    | bounding box thickness (pixels)                          |
+| `visualize`      | `False`                | visualize model features                                 |
+| `augment`        | `False`                | apply image augmentation to prediction sources           |
+| `agnostic_nms`   | `False`                | class-agnostic NMS                                       |
+| `retina_masks`   | `False`                | use high-resolution segmentation masks                   |
+| `classes`        | `None`                 | filter results by class, i.e. class=0, or class=[0,2,3]  |
+| `boxes`          | `True`                 | Show boxes in segmentation predictions                   |
 
 ## Image and Video Formats
 
@@ -182,10 +216,20 @@ masks, classification logits, etc.) found in the results object
     res_plotted = res[0].plot()
     cv2.imshow("result", res_plotted)
     ```
+| Argument    | Description   |
+| ----------- | ------------- |
+| `conf (bool)` | Whether to plot the detection confidence score. |
+| `line_width (float, optional)` | The line width of the bounding boxes. If None, it is scaled to the image size. |
+| `font_size (float, optional)` | The font size of the text. If None, it is scaled to the image size. |
+| `font (str)` | The font to use for the text. |
+| `pil (bool)` | Whether to return the image as a PIL Image. |
+| `example (str)` | An example string to display. Useful for indicating the expected format of the output. |
+| `img (numpy.ndarray)` | Plot to another image. if not, plot to original image. |
+| `labels (bool)` | Whether to plot the label of bounding boxes. |
+| `boxes (bool)` | Whether to plot the bounding boxes. |
+| `masks (bool)` | Whether to plot the masks. |
+| `probs (bool)` | Whether to plot classification probability. |
 
-- `show_conf (bool)`: Show confidence
-- `line_width (Float)`: The line width of boxes. Automatically scaled to img size if not provided
-- `font_size (Float)`: The font size of . Automatically scaled to img size if not provided
 
 ## Streaming Source `for`-loop
 

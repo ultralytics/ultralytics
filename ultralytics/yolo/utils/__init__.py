@@ -321,10 +321,13 @@ def is_online() -> bool:
         bool: True if connection is successful, False otherwise.
     """
     import socket
-    with contextlib.suppress(Exception):
-        host = socket.gethostbyname('www.github.com')
-        socket.create_connection((host, 80), timeout=2)
-        return True
+
+    for server in '1.1.1.1', '8.8.8.8', '223.5.5.5':  # Cloudflare, Google, AliDNS:
+        try:
+            socket.create_connection((server, 53), timeout=2)  # connect to (server, port=53)
+            return True
+        except (socket.timeout, socket.gaierror, OSError):
+            continue
     return False
 
 
@@ -586,7 +589,7 @@ def set_sentry():
             logging.getLogger(logger).setLevel(logging.CRITICAL)
 
 
-def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.2'):
+def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.3'):
     """
     Loads a global Ultralytics settings YAML file or creates one with default values if it does not exist.
 
@@ -609,8 +612,9 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.2'):
         'datasets_dir': str(datasets_root / 'datasets'),  # default datasets directory.
         'weights_dir': str(root / 'weights'),  # default weights directory.
         'runs_dir': str(root / 'runs'),  # default runs directory.
-        'sync': True,  # sync analytics to help with YOLO development
         'uuid': hashlib.sha256(str(uuid.getnode()).encode()).hexdigest(),  # anonymized uuid hash
+        'sync': True,  # sync analytics to help with YOLO development
+        'api_key': '',  # Ultralytics HUB API key (https://hub.ultralytics.com/)
         'settings_version': version}  # Ultralytics settings version
 
     with torch_distributed_zero_first(RANK):
@@ -620,7 +624,8 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.2'):
 
         # Check that settings keys and types match defaults
         correct = \
-            settings.keys() == defaults.keys() \
+            settings \
+            and settings.keys() == defaults.keys() \
             and all(type(a) == type(b) for a, b in zip(settings.values(), defaults.values())) \
             and check_version(settings['settings_version'], version)
         if not correct:
@@ -640,6 +645,14 @@ def set_settings(kwargs, file=USER_CONFIG_DIR / 'settings.yaml'):
     """
     SETTINGS.update(kwargs)
     yaml_save(file, SETTINGS)
+
+
+def deprecation_warn(arg, new_arg, version=None):
+    if not version:
+        version = float(__version__[0:3]) + 0.2  # deprecate after 2nd major release
+    LOGGER.warning(
+        f'WARNING: `{arg}` is deprecated and will be removed in upcoming major release {version}. Use `{new_arg}` instead'
+    )
 
 
 # Run below code on yolo/utils init ------------------------------------------------------------------------------------

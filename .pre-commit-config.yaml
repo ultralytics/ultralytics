@@ -27,6 +27,12 @@ repos:
       - id: pyupgrade
         name: Upgrade code
 
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: 'v0.0.260'
+    hooks:
+      - id: ruff
+      args: [--fix]
+
   - repo: https://github.com/PyCQA/isort
     rev: 5.12.0
     hooks:

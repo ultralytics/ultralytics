@@ -43,28 +43,32 @@ class YOLODataset(BaseDataset):
         A PyTorch dataset object that can be used for training an object detection or segmentation model.
     """
 
-    def __init__(self,
-                 img_path,
-                 imgsz=640,
-                 cache=False,
-                 augment=True,
-                 hyp=None,
-                 prefix='',
-                 rect=False,
-                 batch_size=None,
-                 stride=32,
-                 pad=0.0,
-                 single_cls=False,
-                 use_segments=False,
-                 use_keypoints=False,
-                 names=None,
-                 classes=None):
+    def __init__(
+        self,
+        img_path,
+        imgsz=640,
+        cache=False,
+        augment=True,
+        hyp=None,
+        prefix='',
+        rect=False,
+        batch_size=None,
+        stride=32,
+        pad=0.0,
+        single_cls=False,
+        use_segments=False,
+        use_keypoints=False,
+        names=None,
+        classes=None,
+    ):
         self.use_segments = use_segments
         self.use_keypoints = use_keypoints
         self.names = names
         assert not (self.use_segments and self.use_keypoints), 'Can not use both segments and keypoints.'
-        super().__init__(img_path, imgsz, cache, augment, hyp, prefix, rect, batch_size, stride, pad, single_cls,
-                         classes)
+        super().__init__(
+            img_path, imgsz, cache, augment, hyp, prefix, rect, batch_size, stride, pad, single_cls,
+            classes,
+        )
 
     def cache_labels(self, path=Path('./labels.cache')):
         """Cache dataset labels, check images and read shapes.
@@ -78,9 +82,13 @@ class YOLODataset(BaseDataset):
         desc = f'{self.prefix}Scanning {path.parent / path.stem}...'
         total = len(self.im_files)
         with ThreadPool(NUM_THREADS) as pool:
-            results = pool.imap(func=verify_image_label,
-                                iterable=zip(self.im_files, self.label_files, repeat(self.prefix),
-                                             repeat(self.use_keypoints), repeat(len(self.names))))
+            results = pool.imap(
+                func=verify_image_label,
+                iterable=zip(
+                    self.im_files, self.label_files, repeat(self.prefix),
+                    repeat(self.use_keypoints), repeat(len(self.names)),
+                ),
+            )
             pbar = tqdm(results, desc=desc, total=total, bar_format=TQDM_BAR_FORMAT)
             for im_file, lb, shape, segments, keypoint, nm_f, nf_f, ne_f, nc_f, msg in pbar:
                 nm += nm_f
@@ -97,7 +105,9 @@ class YOLODataset(BaseDataset):
                             segments=segments,
                             keypoints=keypoint,
                             normalized=True,
-                            bbox_format='xywh'))
+                            bbox_format='xywh',
+                        ),
+                    )
                 if msg:
                     msgs.append(msg)
                 pbar.desc = f'{desc} {nf} images, {nm + ne} backgrounds, {nc} corrupt'
@@ -156,7 +166,8 @@ class YOLODataset(BaseDataset):
             LOGGER.warning(
                 f'WARNING ⚠️ Box and segment counts should be equal, but got len(segments) = {len_segments}, '
                 f'len(boxes) = {len_boxes}. To resolve this only boxes will be used and all segments will be removed. '
-                'To avoid this please supply either a detect or segment dataset, not a detect-segment mixed dataset.')
+                'To avoid this please supply either a detect or segment dataset, not a detect-segment mixed dataset.',
+            )
             for lb in labels:
                 lb['segments'] = []
         if len_cls == 0:
@@ -172,13 +183,16 @@ class YOLODataset(BaseDataset):
         else:
             transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), scaleup=False)])
         transforms.append(
-            Format(bbox_format='xywh',
-                   normalize=True,
-                   return_mask=self.use_segments,
-                   return_keypoint=self.use_keypoints,
-                   batch_idx=True,
-                   mask_ratio=hyp.mask_ratio,
-                   mask_overlap=hyp.overlap_mask))
+            Format(
+                bbox_format='xywh',
+                normalize=True,
+                return_mask=self.use_segments,
+                return_keypoint=self.use_keypoints,
+                batch_idx=True,
+                mask_ratio=hyp.mask_ratio,
+                mask_overlap=hyp.overlap_mask,
+            ),
+        )
         return transforms
 
     def close_mosaic(self, hyp):

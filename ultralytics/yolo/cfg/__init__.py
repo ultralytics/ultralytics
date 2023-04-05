@@ -8,9 +8,11 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Dict, List, Union
 
-from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, ROOT, USER_CONFIG_DIR,
-                                    IterableSimpleNamespace, __version__, checks, colorstr, deprecation_warn,
-                                    get_settings, yaml_load, yaml_print)
+from ultralytics.yolo.utils import (
+    DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_PATH, LOGGER, ROOT, USER_CONFIG_DIR,
+    IterableSimpleNamespace, __version__, checks, colorstr, deprecation_warn,
+    get_settings, yaml_load, yaml_print,
+)
 
 # Define valid tasks and modes
 MODES = 'train', 'val', 'predict', 'export', 'track', 'benchmark'
@@ -19,12 +21,14 @@ TASK2DATA = {
     'detect': 'coco128.yaml',
     'segment': 'coco128-seg.yaml',
     'pose': 'coco128-pose.yaml',
-    'classify': 'imagenet100'}
+    'classify': 'imagenet100',
+}
 TASK2MODEL = {
     'detect': 'yolov8n.pt',
     'segment': 'yolov8n-seg.pt',
     'pose': 'yolov8n-pose.yaml',
-    'classify': 'yolov8n-cls.pt'}  # temp
+    'classify': 'yolov8n-cls.pt',
+}  # temp
 
 CLI_HELP_MSG = \
     f"""
@@ -64,15 +68,21 @@ CLI_HELP_MSG = \
 
 # Define keys for arg type checks
 CFG_FLOAT_KEYS = 'warmup_epochs', 'box', 'cls', 'dfl', 'degrees', 'shear', 'fl_gamma'
-CFG_FRACTION_KEYS = ('dropout', 'iou', 'lr0', 'lrf', 'momentum', 'weight_decay', 'warmup_momentum', 'warmup_bias_lr',
-                     'label_smoothing', 'hsv_h', 'hsv_s', 'hsv_v', 'translate', 'scale', 'perspective', 'flipud',
-                     'fliplr', 'mosaic', 'mixup', 'copy_paste', 'conf', 'iou')  # fractional floats limited to 0.0 - 1.0
-CFG_INT_KEYS = ('epochs', 'patience', 'batch', 'workers', 'seed', 'close_mosaic', 'mask_ratio', 'max_det', 'vid_stride',
-                'line_thickness', 'workspace', 'nbs', 'save_period')
-CFG_BOOL_KEYS = ('save', 'exist_ok', 'verbose', 'deterministic', 'single_cls', 'image_weights', 'rect', 'cos_lr',
-                 'overlap_mask', 'val', 'save_json', 'save_hybrid', 'half', 'dnn', 'plots', 'show', 'save_txt',
-                 'save_conf', 'save_crop', 'show_labels', 'show_conf', 'visualize', 'augment', 'agnostic_nms',
-                 'retina_masks', 'boxes', 'keras', 'optimize', 'int8', 'dynamic', 'simplify', 'nms', 'v5loader')
+CFG_FRACTION_KEYS = (
+    'dropout', 'iou', 'lr0', 'lrf', 'momentum', 'weight_decay', 'warmup_momentum', 'warmup_bias_lr',
+    'label_smoothing', 'hsv_h', 'hsv_s', 'hsv_v', 'translate', 'scale', 'perspective', 'flipud',
+    'fliplr', 'mosaic', 'mixup', 'copy_paste', 'conf', 'iou',
+)  # fractional floats limited to 0.0 - 1.0
+CFG_INT_KEYS = (
+    'epochs', 'patience', 'batch', 'workers', 'seed', 'close_mosaic', 'mask_ratio', 'max_det', 'vid_stride',
+    'line_thickness', 'workspace', 'nbs', 'save_period',
+)
+CFG_BOOL_KEYS = (
+    'save', 'exist_ok', 'verbose', 'deterministic', 'single_cls', 'image_weights', 'rect', 'cos_lr',
+    'overlap_mask', 'val', 'save_json', 'save_hybrid', 'half', 'dnn', 'plots', 'show', 'save_txt',
+    'save_conf', 'save_crop', 'show_labels', 'show_conf', 'visualize', 'augment', 'agnostic_nms',
+    'retina_masks', 'boxes', 'keras', 'optimize', 'int8', 'dynamic', 'simplify', 'nms', 'v5loader',
+)
 
 
 def cfg2dict(cfg):
@@ -120,21 +130,31 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
     for k, v in cfg.items():
         if v is not None:  # None values may be from optional args
             if k in CFG_FLOAT_KEYS and not isinstance(v, (int, float)):
-                raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. "
-                                f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')")
+                raise TypeError(
+                    f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                    f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')",
+                )
             elif k in CFG_FRACTION_KEYS:
                 if not isinstance(v, (int, float)):
-                    raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. "
-                                    f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')")
+                    raise TypeError(
+                        f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                        f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')",
+                    )
                 if not (0.0 <= v <= 1.0):
-                    raise ValueError(f"'{k}={v}' is an invalid value. "
-                                     f"Valid '{k}' values are between 0.0 and 1.0.")
+                    raise ValueError(
+                        f"'{k}={v}' is an invalid value. "
+                        f"Valid '{k}' values are between 0.0 and 1.0.",
+                    )
             elif k in CFG_INT_KEYS and not isinstance(v, int):
-                raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. "
-                                f"'{k}' must be an int (i.e. '{k}=8')")
+                raise TypeError(
+                    f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                    f"'{k}' must be an int (i.e. '{k}=8')",
+                )
             elif k in CFG_BOOL_KEYS and not isinstance(v, bool):
-                raise TypeError(f"'{k}={v}' is of invalid type {type(v).__name__}. "
-                                f"'{k}' must be a bool (i.e. '{k}=True' or '{k}=False')")
+                raise TypeError(
+                    f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                    f"'{k}' must be a bool (i.e. '{k}=True' or '{k}=False')",
+                )
 
     # Return instance
     return IterableSimpleNamespace(**cfg)
@@ -278,7 +298,8 @@ def entrypoint(debug=''):
         'cfg': lambda: yaml_print(DEFAULT_CFG_PATH),
         'hub': lambda: handle_yolo_hub(args[1:]),
         'login': lambda: handle_yolo_hub(args),
-        'copy-cfg': copy_default_cfg}
+        'copy-cfg': copy_default_cfg,
+    }
     full_args_dict = {**DEFAULT_CFG_DICT, **{k: None for k in TASKS}, **{k: None for k in MODES}, **special}
 
     # Define common mis-uses of special commands, i.e. -h, -help, --help
@@ -326,8 +347,10 @@ def entrypoint(debug=''):
         elif a in DEFAULT_CFG_DICT and isinstance(DEFAULT_CFG_DICT[a], bool):
             overrides[a] = True  # auto-True for default bool args, i.e. 'yolo show' sets show=True
         elif a in DEFAULT_CFG_DICT:
-            raise SyntaxError(f"'{colorstr('red', 'bold', a)}' is a valid YOLO argument but is missing an '=' sign "
-                              f"to set its value, i.e. try '{a}={DEFAULT_CFG_DICT[a]}'\n{CLI_HELP_MSG}")
+            raise SyntaxError(
+                f"'{colorstr('red', 'bold', a)}' is a valid YOLO argument but is missing an '=' sign "
+                f"to set its value, i.e. try '{a}={DEFAULT_CFG_DICT[a]}'\n{CLI_HELP_MSG}",
+            )
         else:
             check_cfg_mismatch(full_args_dict, {a: ''})
 
@@ -368,8 +391,10 @@ def entrypoint(debug=''):
     # Task Update
     if task != model.task:
         if task:
-            LOGGER.warning(f"WARNING ⚠️ conflicting 'task={task}' passed with 'task={model.task}' model. "
-                           f"Ignoring 'task={task}' and updating to 'task={model.task}' to match model.")
+            LOGGER.warning(
+                f"WARNING ⚠️ conflicting 'task={task}' passed with 'task={model.task}' model. "
+                f"Ignoring 'task={task}' and updating to 'task={model.task}' to match model.",
+            )
         task = model.task
 
     # Mode
@@ -395,8 +420,10 @@ def entrypoint(debug=''):
 def copy_default_cfg():
     new_file = Path.cwd() / DEFAULT_CFG_PATH.name.replace('.yaml', '_copy.yaml')
     shutil.copy2(DEFAULT_CFG_PATH, new_file)
-    LOGGER.info(f'{DEFAULT_CFG_PATH} copied to {new_file}\n'
-                f"Example YOLO command with this new custom cfg:\n    yolo cfg='{new_file}' imgsz=320 batch=8")
+    LOGGER.info(
+        f'{DEFAULT_CFG_PATH} copied to {new_file}\n'
+        f"Example YOLO command with this new custom cfg:\n    yolo cfg='{new_file}' imgsz=320 batch=8",
+    )
 
 
 if __name__ == '__main__':

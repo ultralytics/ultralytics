@@ -12,9 +12,11 @@ from random import random
 import requests
 from tqdm import tqdm
 
-from ultralytics.yolo.utils import (ENVIRONMENT, LOGGER, ONLINE, RANK, SETTINGS, TESTS_RUNNING, TQDM_BAR_FORMAT,
-                                    TryExcept, __version__, colorstr, emojis, get_git_origin_url, is_colab, is_git_dir,
-                                    is_pip_package)
+from ultralytics.yolo.utils import (
+    ENVIRONMENT, LOGGER, ONLINE, RANK, SETTINGS, TESTS_RUNNING, TQDM_BAR_FORMAT,
+    TryExcept, __version__, colorstr, emojis, get_git_origin_url, is_colab, is_git_dir,
+    is_pip_package,
+)
 
 PREFIX = colorstr('Ultralytics HUB: ')
 HELP_MSG = 'If this issue persists please visit https://github.com/ultralytics/hub/issues for assistance.'
@@ -38,8 +40,10 @@ def check_dataset_disk_space(url='https://ultralytics.com/assets/coco128.zip', s
     LOGGER.info(f'{PREFIX}{data:.3f} GB dataset, {free:.1f}/{total:.1f} GB free disk space')
     if data * sf < free:
         return True  # sufficient space
-    LOGGER.warning(f'{PREFIX}WARNING: Insufficient free disk space {free:.1f} GB < {data * sf:.3f} GB required, '
-                   f'training cancelled ❌. Please free {data * sf - free:.1f} GB additional disk space and try again.')
+    LOGGER.warning(
+        f'{PREFIX}WARNING: Insufficient free disk space {free:.1f} GB < {data * sf:.3f} GB required, '
+        f'training cancelled ❌. Please free {data * sf - free:.1f} GB additional disk space and try again.',
+    )
     return False  # insufficient space
 
 
@@ -61,7 +65,8 @@ def request_with_credentials(url: str) -> any:
     from google.colab import output  # noqa
     from IPython import display  # noqa
     display.display(
-        display.Javascript("""
+        display.Javascript(
+            """
             window._hub_tmp = new Promise((resolve, reject) => {
                 const timeout = setTimeout(() => reject("Failed authenticating existing browser session"), 5000)
                 fetch("%s", {
@@ -76,7 +81,9 @@ def request_with_credentials(url: str) -> any:
                     reject(err);
                 });
             });
-            """ % url))
+            """ % url,
+        ),
+    )
     return output.eval_js('_hub_tmp')
 
 
@@ -198,7 +205,8 @@ class Traces:
             'install': 'git' if is_git_dir() else 'pip' if is_pip_package() else 'other',
             'python': platform.python_version(),
             'release': __version__,
-            'environment': ENVIRONMENT}
+            'environment': ENVIRONMENT,
+        }
         self.enabled = \
             SETTINGS['sync'] and \
             RANK in (-1, 0) and \

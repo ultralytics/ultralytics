@@ -69,12 +69,14 @@ class ClassificationTrainer(BaseTrainer):
         return  # dont return ckpt. Classification doesn't support resume
 
     def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode='train'):
-        loader = build_classification_dataloader(path=dataset_path,
-                                                 imgsz=self.args.imgsz,
-                                                 batch_size=batch_size if mode == 'train' else (batch_size * 2),
-                                                 augment=mode == 'train',
-                                                 rank=rank,
-                                                 workers=self.args.workers)
+        loader = build_classification_dataloader(
+            path=dataset_path,
+            imgsz=self.args.imgsz,
+            batch_size=batch_size if mode == 'train' else (batch_size * 2),
+            augment=mode == 'train',
+            rank=rank,
+            workers=self.args.workers,
+        )
         # Attach inference transforms
         if mode != 'train':
             if is_parallel(self.model):

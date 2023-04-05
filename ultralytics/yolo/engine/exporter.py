@@ -63,8 +63,10 @@ from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import C2f, Detect, Segment
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel
 from ultralytics.yolo.cfg import get_cfg
-from ultralytics.yolo.utils import (DEFAULT_CFG, LINUX, LOGGER, MACOS, __version__, callbacks, colorstr,
-                                    get_default_args, yaml_save)
+from ultralytics.yolo.utils import (
+    DEFAULT_CFG, LINUX, LOGGER, MACOS, __version__, callbacks, colorstr,
+    get_default_args, yaml_save,
+)
 from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version
 from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.ops import Profile
@@ -220,10 +222,13 @@ class Exporter:
             'task': model.task,
             'batch': self.args.batch,
             'imgsz': self.imgsz,
-            'names': model.names}  # model metadata
+            'names': model.names,
+        }  # model metadata
 
-        LOGGER.info(f"\n{colorstr('PyTorch:')} starting from {file} with input shape {tuple(im.shape)} BCHW and "
-                    f'output shape(s) {self.output_shape} ({file_size(file):.1f} MB)')
+        LOGGER.info(
+            f"\n{colorstr('PyTorch:')} starting from {file} with input shape {tuple(im.shape)} BCHW and "
+            f'output shape(s) {self.output_shape} ({file_size(file):.1f} MB)',
+        )
 
         # Exports
         f = [''] * len(fmts)  # exported filenames
@@ -265,7 +270,8 @@ class Exporter:
                 f"\nResults saved to {colorstr('bold', file.parent.resolve())}"
                 f'\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {data}'
                 f'\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={self.args.data} {s}'
-                f'\nVisualize:       https://netron.app')
+                f'\nVisualize:       https://netron.app',
+            )
 
         self.run_callbacks('on_export_end')
         return f  # return list of exported files/dirs
@@ -317,7 +323,8 @@ class Exporter:
             do_constant_folding=True,  # WARNING: DNN inference with torch>=1.12 may require do_constant_folding=False
             input_names=['images'],
             output_names=output_names,
-            dynamic_axes=dynamic or None)
+            dynamic_axes=dynamic or None,
+        )
 
         # Checks
         model_onnx = onnx.load(f)  # load onnx model
@@ -355,10 +362,12 @@ class Exporter:
         f_onnx = self.file.with_suffix('.onnx')
         f_ov = str(Path(f) / self.file.with_suffix('.xml').name)
 
-        ov_model = mo.convert_model(f_onnx,
-                                    model_name=self.pretty_name,
-                                    framework='onnx',
-                                    compress_to_fp16=self.args.half)  # export
+        ov_model = mo.convert_model(
+            f_onnx,
+            model_name=self.pretty_name,
+            framework='onnx',
+            compress_to_fp16=self.args.half,
+        )  # export
         ov.serialize(ov_model, f_ov)  # save
         yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml
         return f, None
@@ -415,9 +424,11 @@ class Exporter:
             model = self.model
 
         ts = torch.jit.trace(model.eval(), self.im, strict=False)  # TorchScript model
-        ct_model = ct.convert(ts,
-                              inputs=[ct.ImageType('image', shape=self.im.shape, scale=scale, bias=bias)],
-                              classifier_config=classifier_config)
+        ct_model = ct.convert(
+            ts,
+            inputs=[ct.ImageType('image', shape=self.im.shape, scale=scale, bias=bias)],
+            classifier_config=classifier_config,
+        )
         bits, mode = (8, 'kmeans_lut') if self.args.int8 else (16, 'linear') if self.args.half else (32, None)
         if bits < 32:
             if 'kmeans' in mode:
@@ -485,7 +496,8 @@ class Exporter:
             config.add_optimization_profile(profile)
 
         LOGGER.info(
-            f'{prefix} building FP{16 if builder.platform_has_fast_fp16 and self.args.half else 32} engine as {f}')
+            f'{prefix} building FP{16 if builder.platform_has_fast_fp16 and self.args.half else 32} engine as {f}',
+        )
         if builder.platform_has_fast_fp16 and self.args.half:
             config.set_flag(trt.BuilderFlag.FP16)
 
@@ -510,9 +522,13 @@ class Exporter:
             cuda = torch.cuda.is_available()
             check_requirements(f"tensorflow{'-macos' if MACOS else '-aarch64' if ARM64 else '' if cuda else '-cpu'}")
             import tensorflow as tf  # noqa
-        check_requirements(('onnx', 'onnx2tf>=1.7.7', 'sng4onnx>=1.0.1', 'onnxsim>=0.4.17', 'onnx_graphsurgeon>=0.3.26',
-                            'tflite_support', 'onnxruntime-gpu' if torch.cuda.is_available() else 'onnxruntime'),
-                           cmds='--extra-index-url https://pypi.ngc.nvidia.com')
+        check_requirements(
+            (
+                'onnx', 'onnx2tf>=1.7.7', 'sng4onnx>=1.0.1', 'onnxsim>=0.4.17', 'onnx_graphsurgeon>=0.3.26',
+                'tflite_support', 'onnxruntime-gpu' if torch.cuda.is_available() else 'onnxruntime',
+            ),
+            cmds='--extra-index-url https://pypi.ngc.nvidia.com',
+        )
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
         f = Path(str(self.file).replace(self.file.suffix, '_saved_model'))
@@ -627,7 +643,8 @@ class Exporter:
             for c in (
                     'curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -',
                     'echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | sudo tee /etc/apt/sources.list.d/coral-edgetpu.list',
-                    'sudo apt-get update', 'sudo apt-get install edgetpu-compiler'):
+                    'sudo apt-get update', 'sudo apt-get install edgetpu-compiler',
+            ):
                 subprocess.run(c if sudo else c.replace('sudo ', ''), shell=True, check=True)
         ver = subprocess.run(cmd, shell=True, capture_output=True, check=True).stdout.decode().split()[-1]
 
@@ -823,10 +840,14 @@ class Exporter:
         nms_model = ct.models.MLModel(nms_spec)
 
         # 4. Pipeline models together
-        pipeline = ct.models.pipeline.Pipeline(input_features=[('image', ct.models.datatypes.Array(3, ny, nx)),
-                                                               ('iouThreshold', ct.models.datatypes.Double()),
-                                                               ('confidenceThreshold', ct.models.datatypes.Double())],
-                                               output_features=['confidence', 'coordinates'])
+        pipeline = ct.models.pipeline.Pipeline(
+            input_features=[
+                ('image', ct.models.datatypes.Array(3, ny, nx)),
+                ('iouThreshold', ct.models.datatypes.Double()),
+                ('confidenceThreshold', ct.models.datatypes.Double()),
+            ],
+            output_features=['confidence', 'coordinates'],
+        )
         pipeline.add_model(model)
         pipeline.add_model(nms_model)
 
@@ -839,7 +860,8 @@ class Exporter:
         pipeline.spec.specificationVersion = 5
         pipeline.spec.description.metadata.userDefined.update({
             'IoU threshold': str(nms.iouThreshold),
-            'Confidence threshold': str(nms.confidenceThreshold)})
+            'Confidence threshold': str(nms.confidenceThreshold),
+        })
 
         # Save the model
         model = ct.models.MLModel(pipeline.spec)

@@ -32,12 +32,14 @@ def generate_ddp_file(trainer):
     trainer = {name}(cfg=cfg)
     trainer.train()'''
     (USER_CONFIG_DIR / 'DDP').mkdir(exist_ok=True)
-    with tempfile.NamedTemporaryFile(prefix='_temp_',
-                                     suffix=f'{id(trainer)}.py',
-                                     mode='w+',
-                                     encoding='utf-8',
-                                     dir=USER_CONFIG_DIR / 'DDP',
-                                     delete=False) as file:
+    with tempfile.NamedTemporaryFile(
+        prefix='_temp_',
+        suffix=f'{id(trainer)}.py',
+        mode='w+',
+        encoding='utf-8',
+        dir=USER_CONFIG_DIR / 'DDP',
+        delete=False,
+    ) as file:
         file.write(content)
     return file.name
 

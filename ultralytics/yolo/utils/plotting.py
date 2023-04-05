@@ -26,8 +26,10 @@ class Colors:
     # Ultralytics color palette https://ultralytics.com/
     def __init__(self):
         # hex = matplotlib.colors.TABLEAU_COLORS.values()
-        hexs = ('FF3838', 'FF9D97', 'FF701F', 'FFB21D', 'CFD231', '48F90A', '92CC17', '3DDB86', '1A9334', '00D4BB',
-                '2C99A8', '00C2FF', '344593', '6473FF', '0018EC', '8438FF', '520085', 'CB38FF', 'FF95C8', 'FF37C7')
+        hexs = (
+            'FF3838', 'FF9D97', 'FF701F', 'FFB21D', 'CFD231', '48F90A', '92CC17', '3DDB86', '1A9334', '00D4BB',
+            '2C99A8', '00C2FF', '344593', '6473FF', '0018EC', '8438FF', '520085', 'CB38FF', 'FF95C8', 'FF37C7',
+        )
         self.palette = [self.hex2rgb(f'#{c}') for c in hexs]
         self.n = len(self.palette)
 
@@ -76,8 +78,10 @@ class Annotator:
                     w, h = self.font.getsize(label)  # text width, height (Old, deprecated in 9.2.0)
                 outside = box[1] - h >= 0  # label fits outside box
                 self.draw.rectangle(
-                    (box[0], box[1] - h if outside else box[1], box[0] + w + 1,
-                     box[1] + 1 if outside else box[1] + h + 1),
+                    (
+                        box[0], box[1] - h if outside else box[1], box[0] + w + 1,
+                        box[1] + 1 if outside else box[1] + h + 1,
+                    ),
                     fill=color,
                 )
                 # self.draw.text((box[0], box[1]), label, fill=txt_color, font=self.font, anchor='ls')  # for PIL>8.0
@@ -91,13 +95,15 @@ class Annotator:
                 outside = p1[1] - h >= 3
                 p2 = p1[0] + w, p1[1] - h - 3 if outside else p1[1] + h + 3
                 cv2.rectangle(self.im, p1, p2, color, -1, cv2.LINE_AA)  # filled
-                cv2.putText(self.im,
-                            label, (p1[0], p1[1] - 2 if outside else p1[1] + h + 2),
-                            0,
-                            self.lw / 3,
-                            txt_color,
-                            thickness=tf,
-                            lineType=cv2.LINE_AA)
+                cv2.putText(
+                    self.im,
+                    label, (p1[0], p1[1] - 2 if outside else p1[1] + h + 2),
+                    0,
+                    self.lw / 3,
+                    txt_color,
+                    thickness=tf,
+                    lineType=cv2.LINE_AA,
+                )
 
     def masks(self, masks, colors, im_gpu, alpha=0.5, retina_masks=False):
         """Plot masks at once.
@@ -224,14 +230,16 @@ def save_one_box(xyxy, im, file=Path('im.jpg'), gain=1.02, pad=10, square=False,
 
 
 @threaded
-def plot_images(images,
-                batch_idx,
-                cls,
-                bboxes,
-                masks=np.zeros(0, dtype=np.uint8),
-                paths=None,
-                fname='images.jpg',
-                names=None):
+def plot_images(
+    images,
+    batch_idx,
+    cls,
+    bboxes,
+    masks=np.zeros(0, dtype=np.uint8),
+    paths=None,
+    fname='images.jpg',
+    names=None,
+):
     # Plot image grid with labels
     if isinstance(images, torch.Tensor):
         images = images.cpu().float().numpy()

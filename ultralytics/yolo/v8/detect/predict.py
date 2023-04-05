@@ -20,12 +20,14 @@ class DetectionPredictor(BasePredictor):
         return img
 
     def postprocess(self, preds, img, orig_imgs):
-        preds = ops.non_max_suppression(preds,
-                                        self.args.conf,
-                                        self.args.iou,
-                                        agnostic=self.args.agnostic_nms,
-                                        max_det=self.args.max_det,
-                                        classes=self.args.classes)
+        preds = ops.non_max_suppression(
+            preds,
+            self.args.conf,
+            self.args.iou,
+            agnostic=self.args.agnostic_nms,
+            max_det=self.args.max_det,
+            classes=self.args.classes,
+        )
 
         results = []
         for i, pred in enumerate(preds):
@@ -65,7 +67,7 @@ class DetectionPredictor(BasePredictor):
         for d in reversed(det):
             c, conf, id = int(d.cls), float(d.conf), None if d.id is None else int(d.id.item())
             if self.args.save_txt:  # Write to file
-                line = (c, *d.xywhn.view(-1)) + (conf, ) * self.args.save_conf + (() if id is None else (id, ))
+                line = (c, *d.xywhn.view(-1)) + (conf,) * self.args.save_conf + (() if id is None else (id,))
                 with open(f'{self.txt_path}.txt', 'a') as f:
                     f.write(('%g ' * len(line)).rstrip() % line + '\n')
             if self.args.save or self.args.show:  # Add bbox to image
@@ -73,10 +75,12 @@ class DetectionPredictor(BasePredictor):
                 label = (f'{name} {conf:.2f}' if self.args.show_conf else name) if self.args.show_labels else None
                 self.annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
             if self.args.save_crop:
-                save_one_box(d.xyxy,
-                             imc,
-                             file=self.save_dir / 'crops' / self.model.names[c] / f'{self.data_path.stem}.jpg',
-                             BGR=True)
+                save_one_box(
+                    d.xyxy,
+                    imc,
+                    file=self.save_dir / 'crops' / self.model.names[c] / f'{self.data_path.stem}.jpg',
+                    BGR=True,
+                )
 
         return log_string
 

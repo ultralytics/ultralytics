@@ -61,14 +61,17 @@ def on_train_end(trainer):
         run.log_artifact(trainer.best)
         model_uri = f'runs:/{run_id}/'
         run.register_model(model_uri, experiment_name)
-        run.pyfunc.log_model(artifact_path=experiment_name,
-                             code_path=[str(root_dir)],
-                             artifacts={'model_path': str(trainer.save_dir)},
-                             python_model=run.pyfunc.PythonModel())
+        run.pyfunc.log_model(
+            artifact_path=experiment_name,
+            code_path=[str(root_dir)],
+            artifacts={'model_path': str(trainer.save_dir)},
+            python_model=run.pyfunc.PythonModel(),
+        )
 
 
 callbacks = {
     'on_pretrain_routine_end': on_pretrain_routine_end,
     'on_fit_epoch_end': on_fit_epoch_end,
     'on_model_save': on_model_save,
-    'on_train_end': on_train_end} if mlflow else {}
+    'on_train_end': on_train_end,
+} if mlflow else {}

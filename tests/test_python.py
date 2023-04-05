@@ -63,7 +63,8 @@ def test_predict_img():
         'https://ultralytics.com/images/zidane.jpg' if ONLINE else SOURCE,  # URI
         cv2.imread(str(SOURCE)),  # OpenCV
         Image.open(SOURCE),  # PIL
-        np.zeros((320, 640, 3))]  # numpy
+        np.zeros((320, 640, 3)),
+    ]  # numpy
     assert len(model(batch)) == len(batch)  # multiple sources in a batch
 
     # Test tensor inference

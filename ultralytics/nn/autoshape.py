@@ -109,13 +109,15 @@ class AutoShape(nn.Module):
 
             # Postprocess
             with dt[2]:
-                y = non_max_suppression(y if self.dmb else y[0],
-                                        self.conf,
-                                        self.iou,
-                                        self.classes,
-                                        self.agnostic,
-                                        self.multi_label,
-                                        max_det=self.max_det)  # NMS
+                y = non_max_suppression(
+                    y if self.dmb else y[0],
+                    self.conf,
+                    self.iou,
+                    self.classes,
+                    self.agnostic,
+                    self.multi_label,
+                    max_det=self.max_det,
+                )  # NMS
                 for i in range(n):
                     scale_boxes(shape1, y[i][:, :4], shape0[i])
 
@@ -161,7 +163,8 @@ class Detections:
                                 'conf': conf,
                                 'cls': cls,
                                 'label': label,
-                                'im': save_one_box(box, im, file=file, save=save)})
+                                'im': save_one_box(box, im, file=file, save=save),
+                            })
                         else:  # all others
                             annotator.box_label(box, label if labels else '', color=colors(cls))
                     im = annotator.im

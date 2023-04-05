@@ -6,12 +6,16 @@ from pathlib import Path
 from typing import Union
 
 from ultralytics import yolo  # noqa
-from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, SegmentationModel, attempt_load_one_weight,
-                                  guess_model_task, nn, yaml_model_load)
+from ultralytics.nn.tasks import (
+    ClassificationModel, DetectionModel, SegmentationModel, attempt_load_one_weight,
+    guess_model_task, nn, yaml_model_load,
+)
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
-from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, ROOT, callbacks,
-                                    is_git_dir, yaml_load)
+from ultralytics.yolo.utils import (
+    DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, ROOT, callbacks,
+    is_git_dir, yaml_load,
+)
 from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_pip_update_available, check_yaml
 from ultralytics.yolo.utils.downloads import GITHUB_ASSET_STEMS
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode
@@ -20,13 +24,17 @@ from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 TASK_MAP = {
     'classify': [
         ClassificationModel, yolo.v8.classify.ClassificationTrainer, yolo.v8.classify.ClassificationValidator,
-        yolo.v8.classify.ClassificationPredictor],
+        yolo.v8.classify.ClassificationPredictor,
+    ],
     'detect': [
         DetectionModel, yolo.v8.detect.DetectionTrainer, yolo.v8.detect.DetectionValidator,
-        yolo.v8.detect.DetectionPredictor],
+        yolo.v8.detect.DetectionPredictor,
+    ],
     'segment': [
         SegmentationModel, yolo.v8.segment.SegmentationTrainer, yolo.v8.segment.SegmentationValidator,
-        yolo.v8.segment.SegmentationPredictor]}
+        yolo.v8.segment.SegmentationPredictor,
+    ],
+}
 
 
 class YOLO:
@@ -118,7 +126,8 @@ class YOLO:
         return any((
             model.startswith('https://hub.ultralytics.com/models/'),
             [len(x) for x in model.split('_')] == [42, 20],  # APIKEY_MODELID
-            (len(model) == 20 and not Path(model).exists() and not any(x in model for x in './\\'))))  # MODELID
+            (len(model) == 20 and not Path(model).exists() and not any(x in model for x in './\\')),
+        ))  # MODELID
 
     def _new(self, cfg: str, task=None, verbose=True):
         """
@@ -167,10 +176,12 @@ class YOLO:
         Raises TypeError is model is not a PyTorch model
         """
         if not isinstance(self.model, nn.Module):
-            raise TypeError(f"model='{self.model}' must be a *.pt PyTorch model, but is a different type. "
-                            f'PyTorch models can be used to train, val, predict and export, i.e. '
-                            f"'yolo export model=yolov8n.pt', but exported formats like ONNX, TensorRT etc. only "
-                            f"support 'predict' and 'val' modes, i.e. 'yolo predict model=yolov8n.onnx'.")
+            raise TypeError(
+                f"model='{self.model}' must be a *.pt PyTorch model, but is a different type. "
+                f'PyTorch models can be used to train, val, predict and export, i.e. '
+                f"'yolo export model=yolov8n.pt', but exported formats like ONNX, TensorRT etc. only "
+                f"support 'predict' and 'val' modes, i.e. 'yolo predict model=yolov8n.onnx'.",
+            )
 
     @smart_inference_mode()
     def reset_weights(self):

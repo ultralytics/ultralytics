@@ -140,8 +140,10 @@ class Results(SimpleClass):
             conf = kwargs['show_conf']
             assert type(conf) == bool, '`show_conf` should be of boolean type, i.e, show_conf=True/False'
 
-        annotator = Annotator(deepcopy(self.orig_img if img is None else img), line_width, font_size, font, pil,
-                              example)
+        annotator = Annotator(
+            deepcopy(self.orig_img if img is None else img), line_width, font_size, font, pil,
+            example,
+        )
         pred_boxes, show_boxes = self.boxes, boxes
         pred_masks, show_masks = self.masks, masks
         pred_probs, show_probs = self.probs, probs
@@ -154,8 +156,10 @@ class Results(SimpleClass):
                 annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
 
         if pred_masks and show_masks:
-            im = torch.as_tensor(annotator.im, dtype=torch.float16, device=pred_masks.data.device).permute(2, 0,
-                                                                                                           1).flip(0)
+            im = torch.as_tensor(annotator.im, dtype=torch.float16, device=pred_masks.data.device).permute(
+                2, 0,
+                1,
+            ).flip(0)
             if TORCHVISION_0_10:
                 im = F.resize(im.contiguous(), pred_masks.data.shape[1:], antialias=True) / 255
             else:
@@ -307,8 +311,10 @@ class Masks(SimpleClass):
     @lru_cache(maxsize=1)
     def segments(self):
         # Segments-deprecated (normalized)
-        LOGGER.warning("WARNING ⚠️ 'Masks.segments' is deprecated. Use 'Masks.xyn' for segments (normalized) and "
-                       "'Masks.xy' for segments (pixels) instead.")
+        LOGGER.warning(
+            "WARNING ⚠️ 'Masks.segments' is deprecated. Use 'Masks.xyn' for segments (normalized) and "
+            "'Masks.xy' for segments (pixels) instead.",
+        )
         return self.xyn
 
     @property
@@ -317,7 +323,8 @@ class Masks(SimpleClass):
         # Segments (normalized)
         return [
             ops.scale_segments(self.masks.shape[1:], x, self.orig_shape, normalize=True)
-            for x in ops.masks2segments(self.masks)]
+            for x in ops.masks2segments(self.masks)
+        ]
 
     @property
     @lru_cache(maxsize=1)
@@ -325,7 +332,8 @@ class Masks(SimpleClass):
         # Segments (pixels)
         return [
             ops.scale_segments(self.masks.shape[1:], x, self.orig_shape, normalize=False)
-            for x in ops.masks2segments(self.masks)]
+            for x in ops.masks2segments(self.masks)
+        ]
 
     @property
     def shape(self):

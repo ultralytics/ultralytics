@@ -37,7 +37,8 @@ def on_fit_epoch_end(trainer):
             model_info = {
                 'model/parameters': get_num_params(trainer.model),
                 'model/GFLOPs': round(get_flops(trainer.model), 3),
-                'model/speed(ms)': round(trainer.validator.speed['inference'], 3)}
+                'model/speed(ms)': round(trainer.validator.speed['inference'], 3),
+            }
             experiment.log_metrics(model_info, step=trainer.epoch + 1)
 
 
@@ -51,4 +52,5 @@ callbacks = {
     'on_pretrain_routine_start': on_pretrain_routine_start,
     'on_train_epoch_end': on_train_epoch_end,
     'on_fit_epoch_end': on_fit_epoch_end,
-    'on_train_end': on_train_end} if comet_ml else {}
+    'on_train_end': on_train_end,
+} if comet_ml else {}

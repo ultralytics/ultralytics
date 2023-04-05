@@ -38,7 +38,8 @@ class Albumentations:
                 A.CLAHE(p=0.01),
                 A.RandomBrightnessContrast(p=0.0),
                 A.RandomGamma(p=0.0),
-                A.ImageCompression(quality_lower=75, p=0.0)]  # transforms
+                A.ImageCompression(quality_lower=75, p=0.0),
+            ]  # transforms
             self.transform = A.Compose(T, bbox_params=A.BboxParams(format='yolo', label_fields=['class_labels']))
 
             LOGGER.info(prefix + ', '.join(f'{x}'.replace('always_apply=False, ', '') for x in T if x.p))
@@ -143,15 +144,17 @@ def letterbox(im, new_shape=(640, 640), color=(114, 114, 114), auto=True, scaleF
     return im, ratio, (dw, dh)
 
 
-def random_perspective(im,
-                       targets=(),
-                       segments=(),
-                       degrees=10,
-                       translate=.1,
-                       scale=.1,
-                       shear=10,
-                       perspective=0.0,
-                       border=(0, 0)):
+def random_perspective(
+    im,
+    targets=(),
+    segments=(),
+    degrees=10,
+    translate=.1,
+    scale=.1,
+    shear=10,
+    perspective=0.0,
+    border=(0, 0),
+):
     # torchvision.transforms.RandomAffine(degrees=(-10, 10), translate=(0.1, 0.1), scale=(0.9, 1.1), shear=(-10, 10))
     # targets = [cls, xyxy]
 
@@ -317,7 +320,8 @@ def classify_albumentations(
         jitter=0.4,
         mean=IMAGENET_MEAN,
         std=IMAGENET_STD,
-        auto_aug=False):
+        auto_aug=False,
+):
     # YOLOv5 classification Albumentations (optional, only used if package is installed)
     prefix = colorstr('albumentations: ')
     try:

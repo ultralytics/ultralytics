@@ -64,20 +64,24 @@ def select_device(device='', batch=0, newline=False, verbose=True):
             LOGGER.info(s)
             install = 'See https://pytorch.org/get-started/locally/ for up-to-date torch install instructions if no ' \
                       'CUDA devices are seen by torch.\n' if torch.cuda.device_count() == 0 else ''
-            raise ValueError(f"Invalid CUDA 'device={device}' requested."
-                             f" Use 'device=cpu' or pass valid CUDA device(s) if available,"
-                             f" i.e. 'device=0' or 'device=0,1,2,3' for Multi-GPU.\n"
-                             f'\ntorch.cuda.is_available(): {torch.cuda.is_available()}'
-                             f'\ntorch.cuda.device_count(): {torch.cuda.device_count()}'
-                             f"\nos.environ['CUDA_VISIBLE_DEVICES']: {visible}\n"
-                             f'{install}')
+            raise ValueError(
+                f"Invalid CUDA 'device={device}' requested."
+                f" Use 'device=cpu' or pass valid CUDA device(s) if available,"
+                f" i.e. 'device=0' or 'device=0,1,2,3' for Multi-GPU.\n"
+                f'\ntorch.cuda.is_available(): {torch.cuda.is_available()}'
+                f'\ntorch.cuda.device_count(): {torch.cuda.device_count()}'
+                f"\nos.environ['CUDA_VISIBLE_DEVICES']: {visible}\n"
+                f'{install}',
+            )
 
     if not cpu and not mps and torch.cuda.is_available():  # prefer GPU if available
         devices = device.split(',') if device else '0'  # range(torch.cuda.device_count())  # i.e. 0,1,6,7
         n = len(devices)  # device count
         if n > 1 and batch > 0 and batch % n != 0:  # check batch_size is divisible by device_count
-            raise ValueError(f"'batch={batch}' must be a multiple of GPU count {n}. Try 'batch={batch // n * n}' or "
-                             f"'batch={batch // n * n + n}', the nearest batch sizes evenly divisible by {n}.")
+            raise ValueError(
+                f"'batch={batch}' must be a multiple of GPU count {n}. Try 'batch={batch // n * n}' or "
+                f"'batch={batch // n * n + n}', the nearest batch sizes evenly divisible by {n}.",
+            )
         space = ' ' * (len(s) + 1)
         for i, d in enumerate(devices):
             p = torch.cuda.get_device_properties(i)
@@ -105,14 +109,16 @@ def time_sync():
 
 def fuse_conv_and_bn(conv, bn):
     # Fuse Conv2d() and BatchNorm2d() layers https://tehnokv.com/posts/fusing-batchnorm-and-conv/
-    fusedconv = nn.Conv2d(conv.in_channels,
-                          conv.out_channels,
-                          kernel_size=conv.kernel_size,
-                          stride=conv.stride,
-                          padding=conv.padding,
-                          dilation=conv.dilation,
-                          groups=conv.groups,
-                          bias=True).requires_grad_(False).to(conv.weight.device)
+    fusedconv = nn.Conv2d(
+        conv.in_channels,
+        conv.out_channels,
+        kernel_size=conv.kernel_size,
+        stride=conv.stride,
+        padding=conv.padding,
+        dilation=conv.dilation,
+        groups=conv.groups,
+        bias=True,
+    ).requires_grad_(False).to(conv.weight.device)
 
     # Prepare filters
     w_conv = conv.weight.clone().view(conv.out_channels, -1)
@@ -129,15 +135,17 @@ def fuse_conv_and_bn(conv, bn):
 
 def fuse_deconv_and_bn(deconv, bn):
     # Fuse ConvTranspose2d() and BatchNorm2d() layers
-    fuseddconv = nn.ConvTranspose2d(deconv.in_channels,
-                                    deconv.out_channels,
-                                    kernel_size=deconv.kernel_size,
-                                    stride=deconv.stride,
-                                    padding=deconv.padding,
-                                    output_padding=deconv.output_padding,
-                                    dilation=deconv.dilation,
-                                    groups=deconv.groups,
-                                    bias=True).requires_grad_(False).to(deconv.weight.device)
+    fuseddconv = nn.ConvTranspose2d(
+        deconv.in_channels,
+        deconv.out_channels,
+        kernel_size=deconv.kernel_size,
+        stride=deconv.stride,
+        padding=deconv.padding,
+        output_padding=deconv.output_padding,
+        dilation=deconv.dilation,
+        groups=deconv.groups,
+        bias=True,
+    ).requires_grad_(False).to(deconv.weight.device)
 
     # prepare filters
     w_deconv = deconv.weight.clone().view(deconv.out_channels, -1)
@@ -160,11 +168,14 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
     n_g = get_num_gradients(model)  # number gradients
     if detailed:
         LOGGER.info(
-            f"{'layer':>5} {'name':>40} {'gradient':>9} {'parameters':>12} {'shape':>20} {'mu':>10} {'sigma':>10}")
+            f"{'layer':>5} {'name':>40} {'gradient':>9} {'parameters':>12} {'shape':>20} {'mu':>10} {'sigma':>10}",
+        )
         for i, (name, p) in enumerate(model.named_parameters()):
             name = name.replace('module_list.', '')
-            LOGGER.info('%5g %40s %9s %12g %20s %10.3g %10.3g' %
-                        (i, name, p.requires_grad, p.numel(), list(p.shape), p.mean(), p.std()))
+            LOGGER.info(
+                '%5g %40s %9s %12g %20s %10.3g %10.3g' %
+                (i, name, p.requires_grad, p.numel(), list(p.shape), p.mean(), p.std()),
+            )
 
     flops = get_flops(model, imgsz)
     fused = ' (fused)' if model.is_fused() else ''
@@ -359,8 +370,10 @@ def profile(input, ops, n=10, device=None):
     results = []
     if not isinstance(device, torch.device):
         device = select_device(device)
-    LOGGER.info(f"{'Params':>12s}{'GFLOPs':>12s}{'GPU_mem (GB)':>14s}{'forward (ms)':>14s}{'backward (ms)':>14s}"
-                f"{'input':>24s}{'output':>24s}")
+    LOGGER.info(
+        f"{'Params':>12s}{'GFLOPs':>12s}{'GPU_mem (GB)':>14s}{'forward (ms)':>14s}{'backward (ms)':>14s}"
+        f"{'input':>24s}{'output':>24s}",
+    )
 
     for x in input if isinstance(input, list) else [input]:
         x = x.to(device)
@@ -437,8 +450,10 @@ class EarlyStopping:
         self.possible_stop = delta >= (self.patience - 1)  # possible stop may occur next epoch
         stop = delta >= self.patience  # stop training if patience exceeded
         if stop:
-            LOGGER.info(f'Stopping training early as no improvement observed in last {self.patience} epochs. '
-                        f'Best results observed at epoch {self.best_epoch}, best model saved as best.pt.\n'
-                        f'To update EarlyStopping(patience={self.patience}) pass a new patience value, '
-                        f'i.e. `patience=300` or use `patience=0` to disable EarlyStopping.')
+            LOGGER.info(
+                f'Stopping training early as no improvement observed in last {self.patience} epochs. '
+                f'Best results observed at epoch {self.best_epoch}, best model saved as best.pt.\n'
+                f'To update EarlyStopping(patience={self.patience}) pass a new patience value, '
+                f'i.e. `patience=300` or use `patience=0` to disable EarlyStopping.',
+            )
         return stop

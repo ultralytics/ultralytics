@@ -65,7 +65,8 @@ class KalmanFilterXYAH:
         std = [
             2 * self._std_weight_position * measurement[3], 2 * self._std_weight_position * measurement[3], 1e-2,
             2 * self._std_weight_position * measurement[3], 10 * self._std_weight_velocity * measurement[3],
-            10 * self._std_weight_velocity * measurement[3], 1e-5, 10 * self._std_weight_velocity * measurement[3]]
+            10 * self._std_weight_velocity * measurement[3], 1e-5, 10 * self._std_weight_velocity * measurement[3],
+        ]
         covariance = np.diag(np.square(std))
         return mean, covariance
 
@@ -90,10 +91,12 @@ class KalmanFilterXYAH:
         """
         std_pos = [
             self._std_weight_position * mean[3], self._std_weight_position * mean[3], 1e-2,
-            self._std_weight_position * mean[3]]
+            self._std_weight_position * mean[3],
+        ]
         std_vel = [
             self._std_weight_velocity * mean[3], self._std_weight_velocity * mean[3], 1e-5,
-            self._std_weight_velocity * mean[3]]
+            self._std_weight_velocity * mean[3],
+        ]
         motion_cov = np.diag(np.square(np.r_[std_pos, std_vel]))
 
         # mean = np.dot(self._motion_mat, mean)
@@ -121,7 +124,8 @@ class KalmanFilterXYAH:
         """
         std = [
             self._std_weight_position * mean[3], self._std_weight_position * mean[3], 1e-1,
-            self._std_weight_position * mean[3]]
+            self._std_weight_position * mean[3],
+        ]
         innovation_cov = np.diag(np.square(std))
 
         mean = np.dot(self._update_mat, mean)
@@ -146,10 +150,12 @@ class KalmanFilterXYAH:
         """
         std_pos = [
             self._std_weight_position * mean[:, 3], self._std_weight_position * mean[:, 3],
-            1e-2 * np.ones_like(mean[:, 3]), self._std_weight_position * mean[:, 3]]
+            1e-2 * np.ones_like(mean[:, 3]), self._std_weight_position * mean[:, 3],
+        ]
         std_vel = [
             self._std_weight_velocity * mean[:, 3], self._std_weight_velocity * mean[:, 3],
-            1e-5 * np.ones_like(mean[:, 3]), self._std_weight_velocity * mean[:, 3]]
+            1e-5 * np.ones_like(mean[:, 3]), self._std_weight_velocity * mean[:, 3],
+        ]
         sqr = np.square(np.r_[std_pos, std_vel]).T
 
         motion_cov = [np.diag(sqr[i]) for i in range(len(mean))]
@@ -184,9 +190,11 @@ class KalmanFilterXYAH:
         projected_mean, projected_cov = self.project(mean, covariance)
 
         chol_factor, lower = scipy.linalg.cho_factor(projected_cov, lower=True, check_finite=False)
-        kalman_gain = scipy.linalg.cho_solve((chol_factor, lower),
-                                             np.dot(covariance, self._update_mat.T).T,
-                                             check_finite=False).T
+        kalman_gain = scipy.linalg.cho_solve(
+            (chol_factor, lower),
+            np.dot(covariance, self._update_mat.T).T,
+            check_finite=False,
+        ).T
         innovation = measurement - projected_mean
 
         new_mean = mean + np.dot(innovation, kalman_gain.T)
@@ -292,7 +300,8 @@ class KalmanFilterXYWH:
             2 * self._std_weight_position * measurement[2], 2 * self._std_weight_position * measurement[3],
             2 * self._std_weight_position * measurement[2], 2 * self._std_weight_position * measurement[3],
             10 * self._std_weight_velocity * measurement[2], 10 * self._std_weight_velocity * measurement[3],
-            10 * self._std_weight_velocity * measurement[2], 10 * self._std_weight_velocity * measurement[3]]
+            10 * self._std_weight_velocity * measurement[2], 10 * self._std_weight_velocity * measurement[3],
+        ]
         covariance = np.diag(np.square(std))
         return mean, covariance
 
@@ -317,10 +326,12 @@ class KalmanFilterXYWH:
         """
         std_pos = [
             self._std_weight_position * mean[2], self._std_weight_position * mean[3],
-            self._std_weight_position * mean[2], self._std_weight_position * mean[3]]
+            self._std_weight_position * mean[2], self._std_weight_position * mean[3],
+        ]
         std_vel = [
             self._std_weight_velocity * mean[2], self._std_weight_velocity * mean[3],
-            self._std_weight_velocity * mean[2], self._std_weight_velocity * mean[3]]
+            self._std_weight_velocity * mean[2], self._std_weight_velocity * mean[3],
+        ]
         motion_cov = np.diag(np.square(np.r_[std_pos, std_vel]))
 
         mean = np.dot(mean, self._motion_mat.T)
@@ -347,7 +358,8 @@ class KalmanFilterXYWH:
         """
         std = [
             self._std_weight_position * mean[2], self._std_weight_position * mean[3],
-            self._std_weight_position * mean[2], self._std_weight_position * mean[3]]
+            self._std_weight_position * mean[2], self._std_weight_position * mean[3],
+        ]
         innovation_cov = np.diag(np.square(std))
 
         mean = np.dot(self._update_mat, mean)
@@ -372,10 +384,12 @@ class KalmanFilterXYWH:
         """
         std_pos = [
             self._std_weight_position * mean[:, 2], self._std_weight_position * mean[:, 3],
-            self._std_weight_position * mean[:, 2], self._std_weight_position * mean[:, 3]]
+            self._std_weight_position * mean[:, 2], self._std_weight_position * mean[:, 3],
+        ]
         std_vel = [
             self._std_weight_velocity * mean[:, 2], self._std_weight_velocity * mean[:, 3],
-            self._std_weight_velocity * mean[:, 2], self._std_weight_velocity * mean[:, 3]]
+            self._std_weight_velocity * mean[:, 2], self._std_weight_velocity * mean[:, 3],
+        ]
         sqr = np.square(np.r_[std_pos, std_vel]).T
 
         motion_cov = [np.diag(sqr[i]) for i in range(len(mean))]
@@ -410,9 +424,11 @@ class KalmanFilterXYWH:
         projected_mean, projected_cov = self.project(mean, covariance)
 
         chol_factor, lower = scipy.linalg.cho_factor(projected_cov, lower=True, check_finite=False)
-        kalman_gain = scipy.linalg.cho_solve((chol_factor, lower),
-                                             np.dot(covariance, self._update_mat.T).T,
-                                             check_finite=False).T
+        kalman_gain = scipy.linalg.cho_solve(
+            (chol_factor, lower),
+            np.dot(covariance, self._update_mat.T).T,
+            check_finite=False,
+        ).T
         innovation = measurement - projected_mean
 
         new_mean = mean + np.dot(innovation, kalman_gain.T)

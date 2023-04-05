@@ -12,13 +12,15 @@ class SegmentationPredictor(DetectionPredictor):
 
     def postprocess(self, preds, img, orig_imgs):
         # TODO: filter by classes
-        p = ops.non_max_suppression(preds[0],
-                                    self.args.conf,
-                                    self.args.iou,
-                                    agnostic=self.args.agnostic_nms,
-                                    max_det=self.args.max_det,
-                                    nc=len(self.model.names),
-                                    classes=self.args.classes)
+        p = ops.non_max_suppression(
+            preds[0],
+            self.args.conf,
+            self.args.iou,
+            agnostic=self.args.agnostic_nms,
+            max_det=self.args.max_det,
+            nc=len(self.model.names),
+            classes=self.args.classes,
+        )
         results = []
         proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
         for i, pred in enumerate(p):
@@ -37,7 +39,8 @@ class SegmentationPredictor(DetectionPredictor):
                 if not isinstance(orig_imgs, torch.Tensor):
                     pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
             results.append(
-                Results(orig_img=orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], masks=masks))
+                Results(orig_img=orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], masks=masks),
+            )
         return results
 
     def write_results(self, idx, results, batch):
@@ -71,7 +74,8 @@ class SegmentationPredictor(DetectionPredictor):
         # Mask plotting
         if self.args.save or self.args.show:
             im_gpu = torch.as_tensor(im0, dtype=torch.float16, device=mask.masks.device).permute(
-                2, 0, 1).flip(0).contiguous() / 255 if self.args.retina_masks else im[idx]
+                2, 0, 1,
+            ).flip(0).contiguous() / 255 if self.args.retina_masks else im[idx]
             self.annotator.masks(masks=mask.masks, colors=[colors(x, True) for x in det.cls], im_gpu=im_gpu)
 
         # Write results
@@ -79,7 +83,7 @@ class SegmentationPredictor(DetectionPredictor):
             c, conf, id = int(d.cls), float(d.conf), None if d.id is None else int(d.id.item())
             if self.args.save_txt:  # Write to file
                 seg = mask.xyn[len(det) - j - 1].copy().reshape(-1)  # reversed mask.xyn, (n,2) to (n*2)
-                line = (c, *seg) + (conf, ) * self.args.save_conf + (() if id is None else (id, ))
+                line = (c, *seg) + (conf,) * self.args.save_conf + (() if id is None else (id,))
                 with open(f'{self.txt_path}.txt', 'a') as f:
                     f.write(('%g ' * len(line)).rstrip() % line + '\n')
             if self.args.save or self.args.show:  # Add bbox to image
@@ -88,10 +92,12 @@ class SegmentationPredictor(DetectionPredictor):
                 if self.args.boxes:
                     self.annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
             if self.args.save_crop:
-                save_one_box(d.xyxy,
-                             imc,
-                             file=self.save_dir / 'crops' / self.model.names[c] / f'{self.data_path.stem}.jpg',
-                             BGR=True)
+                save_one_box(
+                    d.xyxy,
+                    imc,
+                    file=self.save_dir / 'crops' / self.model.names[c] / f'{self.data_path.stem}.jpg',
+                    BGR=True,
+                )
 
         return log_string
 

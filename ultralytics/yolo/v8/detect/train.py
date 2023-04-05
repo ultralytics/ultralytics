@@ -25,23 +25,27 @@ class DetectionTrainer(BaseTrainer):
         # TODO: manage splits differently
         # calculate stride - check if model is initialized
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
-        return create_dataloader(path=dataset_path,
-                                 imgsz=self.args.imgsz,
-                                 batch_size=batch_size,
-                                 stride=gs,
-                                 hyp=vars(self.args),
-                                 augment=mode == 'train',
-                                 cache=self.args.cache,
-                                 pad=0 if mode == 'train' else 0.5,
-                                 rect=self.args.rect or mode == 'val',
-                                 rank=rank,
-                                 workers=self.args.workers,
-                                 close_mosaic=self.args.close_mosaic != 0,
-                                 prefix=colorstr(f'{mode}: '),
-                                 shuffle=mode == 'train',
-                                 seed=self.args.seed)[0] if self.args.v5loader else \
-            build_dataloader(self.args, batch_size, img_path=dataset_path, stride=gs, rank=rank, mode=mode,
-                             rect=mode == 'val', names=self.data['names'])[0]
+        return create_dataloader(
+            path=dataset_path,
+            imgsz=self.args.imgsz,
+            batch_size=batch_size,
+            stride=gs,
+            hyp=vars(self.args),
+            augment=mode == 'train',
+            cache=self.args.cache,
+            pad=0 if mode == 'train' else 0.5,
+            rect=self.args.rect or mode == 'val',
+            rank=rank,
+            workers=self.args.workers,
+            close_mosaic=self.args.close_mosaic != 0,
+            prefix=colorstr(f'{mode}: '),
+            shuffle=mode == 'train',
+            seed=self.args.seed,
+        )[0] if self.args.v5loader else \
+            build_dataloader(
+                self.args, batch_size, img_path=dataset_path, stride=gs, rank=rank, mode=mode,
+                rect=mode == 'val', names=self.data['names'],
+            )[0]
 
     def preprocess_batch(self, batch):
         batch['img'] = batch['img'].to(self.device, non_blocking=True).float() / 255
@@ -85,16 +89,20 @@ class DetectionTrainer(BaseTrainer):
             return keys
 
     def progress_string(self):
-        return ('\n' + '%11s' *
-                (4 + len(self.loss_names))) % ('Epoch', 'GPU_mem', *self.loss_names, 'Instances', 'Size')
+        return (
+            '\n' + '%11s' *
+            (4 + len(self.loss_names))
+        ) % ('Epoch', 'GPU_mem', *self.loss_names, 'Instances', 'Size')
 
     def plot_training_samples(self, batch, ni):
-        plot_images(images=batch['img'],
-                    batch_idx=batch['batch_idx'],
-                    cls=batch['cls'].squeeze(-1),
-                    bboxes=batch['bboxes'],
-                    paths=batch['im_file'],
-                    fname=self.save_dir / f'train_batch{ni}.jpg')
+        plot_images(
+            images=batch['img'],
+            batch_idx=batch['batch_idx'],
+            cls=batch['cls'].squeeze(-1),
+            bboxes=batch['bboxes'],
+            paths=batch['im_file'],
+            fname=self.save_dir / f'train_batch{ni}.jpg',
+        )
 
     def plot_metrics(self):
         plot_results(file=self.csv)  # save results.png
@@ -156,7 +164,8 @@ class Loss:
         loss = torch.zeros(3, device=self.device)  # box, cls, dfl
         feats = preds[1] if isinstance(preds, tuple) else preds
         pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
-            (self.reg_max * 4, self.nc), 1)
+            (self.reg_max * 4, self.nc), 1,
+        )
 
         pred_scores = pred_scores.permute(0, 2, 1).contiguous()
         pred_distri = pred_distri.permute(0, 2, 1).contiguous()
@@ -177,7 +186,8 @@ class Loss:
 
         _, target_bboxes, target_scores, fg_mask, _ = self.assigner(
             pred_scores.detach().sigmoid(), (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),
-            anchor_points * stride_tensor, gt_labels, gt_bboxes, mask_gt)
+            anchor_points * stride_tensor, gt_labels, gt_bboxes, mask_gt,
+        )
 
         target_bboxes /= stride_tensor
         target_scores_sum = max(target_scores.sum(), 1)
@@ -188,8 +198,10 @@ class Loss:
 
         # bbox loss
         if fg_mask.sum():
-            loss[0], loss[2] = self.bbox_loss(pred_distri, pred_bboxes, anchor_points, target_bboxes, target_scores,
-                                              target_scores_sum, fg_mask)
+            loss[0], loss[2] = self.bbox_loss(
+                pred_distri, pred_bboxes, anchor_points, target_bboxes, target_scores,
+                target_scores_sum, fg_mask,
+            )
 
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.cls  # cls gain

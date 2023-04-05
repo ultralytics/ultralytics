@@ -171,8 +171,10 @@ def polygons2masks(imgsz, polygons, color, downsample_ratio=1):
 
 def polygons2masks_overlap(imgsz, segments, downsample_ratio=1):
     """Return a (640, 640) overlap mask."""
-    masks = np.zeros((imgsz[0] // downsample_ratio, imgsz[1] // downsample_ratio),
-                     dtype=np.int32 if len(segments) > 255 else np.uint8)
+    masks = np.zeros(
+        (imgsz[0] // downsample_ratio, imgsz[1] // downsample_ratio),
+        dtype=np.int32 if len(segments) > 255 else np.uint8,
+    )
     areas = []
     ms = []
     for si in range(len(segments)):
@@ -208,7 +210,8 @@ def check_det_dataset(dataset, autodownload=True):
     for k in 'train', 'val':
         if k not in data:
             raise SyntaxError(
-                emojis(f"{dataset} '{k}:' key missing ❌.\n'train' and 'val' are required in all data YAMLs."))
+                emojis(f"{dataset} '{k}:' key missing ❌.\n'train' and 'val' are required in all data YAMLs."),
+            )
     if 'names' not in data and 'nc' not in data:
         raise SyntaxError(emojis(f"{dataset} key missing ❌.\n either 'names' or 'nc' are required in all data YAMLs."))
     if 'names' in data and 'nc' in data and len(data['names']) != data['nc']:
@@ -389,17 +392,24 @@ class HUBDatasetStats():
             dataset = LoadImagesAndLabels(self.data[split])  # load dataset
             x = np.array([
                 np.bincount(label[:, 0].astype(int), minlength=self.data['nc'])
-                for label in tqdm(dataset.labels, total=len(dataset), desc='Statistics')])  # shape(128x80)
+                for label in tqdm(dataset.labels, total=len(dataset), desc='Statistics')
+            ])  # shape(128x80)
             self.stats[split] = {
                 'instance_stats': {
                     'total': int(x.sum()),
-                    'per_class': x.sum(0).tolist()},
+                    'per_class': x.sum(0).tolist(),
+                },
                 'image_stats': {
                     'total': len(dataset),
                     'unlabelled': int(np.all(x == 0, 1).sum()),
-                    'per_class': (x > 0).sum(0).tolist()},
-                'labels': [{
-                    str(Path(k).name): _round(v.tolist())} for k, v in zip(dataset.im_files, dataset.labels)]}
+                    'per_class': (x > 0).sum(0).tolist(),
+                },
+                'labels': [
+                    {
+                    str(Path(k).name): _round(v.tolist()),
+                    } for k, v in zip(dataset.im_files, dataset.labels)
+                ],
+            }
 
         # Save, print and return
         if save:

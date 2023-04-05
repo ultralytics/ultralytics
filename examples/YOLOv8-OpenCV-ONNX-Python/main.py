@@ -44,7 +44,8 @@ def main(onnx_model, input_image):
         if maxScore >= 0.25:
             box = [
                 outputs[0][i][0] - (0.5 * outputs[0][i][2]), outputs[0][i][1] - (0.5 * outputs[0][i][3]),
-                outputs[0][i][2], outputs[0][i][3]]
+                outputs[0][i][2], outputs[0][i][3],
+            ]
             boxes.append(box)
             scores.append(maxScore)
             class_ids.append(maxClassIndex)
@@ -60,10 +61,13 @@ def main(onnx_model, input_image):
             'class_name': CLASSES[class_ids[index]],
             'confidence': scores[index],
             'box': box,
-            'scale': scale}
+            'scale': scale,
+        }
         detections.append(detection)
-        draw_bounding_box(original_image, class_ids[index], scores[index], round(box[0] * scale), round(box[1] * scale),
-                          round((box[0] + box[2]) * scale), round((box[1] + box[3]) * scale))
+        draw_bounding_box(
+            original_image, class_ids[index], scores[index], round(box[0] * scale), round(box[1] * scale),
+            round((box[0] + box[2]) * scale), round((box[1] + box[3]) * scale),
+        )
 
     cv2.imshow('image', original_image)
     cv2.waitKey(0)

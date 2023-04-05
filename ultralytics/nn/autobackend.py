@@ -29,8 +29,10 @@ def check_class_names(names):
         names = {int(k): str(v) for k, v in names.items()}
         n = len(names)
         if max(names.keys()) >= n:
-            raise KeyError(f'{n}-class dataset requires class indices 0-{n - 1}, but you have invalid class indices '
-                           f'{min(names.keys())}-{max(names.keys())} defined in your dataset YAML.')
+            raise KeyError(
+                f'{n}-class dataset requires class indices 0-{n - 1}, but you have invalid class indices '
+                f'{min(names.keys())}-{max(names.keys())} defined in your dataset YAML.',
+            )
         if isinstance(names[0], str) and names[0].startswith('n0'):  # imagenet class codes, i.e. 'n01440764'
             map = yaml_load(ROOT / 'datasets/ImageNet.yaml')['map']  # human-readable names
             names = {k: map[v] for k, v in names.items()}
@@ -39,14 +41,16 @@ def check_class_names(names):
 
 class AutoBackend(nn.Module):
 
-    def __init__(self,
-                 weights='yolov8n.pt',
-                 device=torch.device('cpu'),
-                 dnn=False,
-                 data=None,
-                 fp16=False,
-                 fuse=True,
-                 verbose=True):
+    def __init__(
+        self,
+        weights='yolov8n.pt',
+        device=torch.device('cpu'),
+        dnn=False,
+        data=None,
+        fp16=False,
+        fuse=True,
+        verbose=True,
+    ):
         """
         MultiBackend class for python inference on various platforms using Ultralytics YOLO.
 
@@ -98,10 +102,12 @@ class AutoBackend(nn.Module):
             pt = True
         elif pt:  # PyTorch
             from ultralytics.nn.tasks import attempt_load_weights
-            model = attempt_load_weights(weights if isinstance(weights, list) else w,
-                                         device=device,
-                                         inplace=True,
-                                         fuse=fuse)
+            model = attempt_load_weights(
+                weights if isinstance(weights, list) else w,
+                device=device,
+                inplace=True,
+                fuse=fuse,
+            )
             stride = max(int(model.stride.max()), 32)  # model stride
             names = model.module.names if hasattr(model, 'module') else model.names  # get class names
             model.half() if fp16 else model.float()
@@ -217,7 +223,8 @@ class AutoBackend(nn.Module):
                 delegate = {
                     'Linux': 'libedgetpu.so.1',
                     'Darwin': 'libedgetpu.1.dylib',
-                    'Windows': 'edgetpu.dll'}[platform.system()]
+                    'Windows': 'edgetpu.dll',
+                }[platform.system()]
                 interpreter = Interpreter(model_path=w, experimental_delegates=[load_delegate(delegate)])
             else:  # TFLite
                 LOGGER.info(f'Loading {w} for TensorFlow Lite inference...')
@@ -257,9 +264,11 @@ class AutoBackend(nn.Module):
             '''
         else:
             from ultralytics.yolo.engine.exporter import export_formats
-            raise TypeError(f"model='{w}' is not a supported model format. "
-                            'See https://docs.ultralytics.com/modes/predict for help.'
-                            f'\n\n{export_formats()}')
+            raise TypeError(
+                f"model='{w}' is not a supported model format. "
+                'See https://docs.ultralytics.com/modes/predict for help.'
+                f'\n\n{export_formats()}',
+            )
 
         # Load external metadata YAML
         if isinstance(metadata, (str, Path)) and Path(metadata).exists():

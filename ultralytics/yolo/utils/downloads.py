@@ -49,15 +49,17 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX')):
         return zipObj.namelist()[0]  # return unzip dir
 
 
-def safe_download(url,
-                  file=None,
-                  dir=None,
-                  unzip=True,
-                  delete=False,
-                  curl=False,
-                  retry=3,
-                  min_bytes=1E0,
-                  progress=True):
+def safe_download(
+    url,
+    file=None,
+    dir=None,
+    unzip=True,
+    delete=False,
+    curl=False,
+    retry=3,
+    min_bytes=1E0,
+    progress=True,
+):
     """
     Function for downloading files from a URL, with options for retrying, unzipping, and deleting the downloaded file.
 
@@ -95,13 +97,15 @@ def safe_download(url,
                         torch.hub.download_url_to_file(url, f, progress=progress)
                     else:
                         from ultralytics.yolo.utils import TQDM_BAR_FORMAT
-                        with request.urlopen(url) as response, tqdm(total=int(response.getheader('Content-Length', 0)),
-                                                                    desc=desc,
-                                                                    disable=not progress,
-                                                                    unit='B',
-                                                                    unit_scale=True,
-                                                                    unit_divisor=1024,
-                                                                    bar_format=TQDM_BAR_FORMAT) as pbar:
+                        with request.urlopen(url) as response, tqdm(
+                            total=int(response.getheader('Content-Length', 0)),
+                            desc=desc,
+                            disable=not progress,
+                            unit='B',
+                            unit_scale=True,
+                            unit_divisor=1024,
+                            bar_format=TQDM_BAR_FORMAT,
+                        ) as pbar:
                             with open(f, 'wb') as f_opened:
                                 for data in response:
                                     f_opened.write(data)
@@ -191,8 +195,10 @@ def download(url, dir=Path.cwd(), unzip=True, delete=False, curl=False, threads=
         with ThreadPool(threads) as pool:
             pool.map(
                 lambda x: safe_download(
-                    url=x[0], dir=x[1], unzip=unzip, delete=delete, curl=curl, retry=retry, progress=threads <= 1),
-                zip(url, repeat(dir)))
+                    url=x[0], dir=x[1], unzip=unzip, delete=delete, curl=curl, retry=retry, progress=threads <= 1,
+                ),
+                zip(url, repeat(dir)),
+            )
             pool.close()
             pool.join()
     else:

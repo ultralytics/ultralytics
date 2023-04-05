@@ -34,8 +34,10 @@ class DetectionValidator(BaseValidator):
             batch[k] = batch[k].to(self.device)
 
         nb = len(batch['img'])
-        self.lb = [torch.cat([batch['cls'], batch['bboxes']], dim=-1)[batch['batch_idx'] == i]
-                   for i in range(nb)] if self.args.save_hybrid else []  # for autolabelling
+        self.lb = [
+            torch.cat([batch['cls'], batch['bboxes']], dim=-1)[batch['batch_idx'] == i]
+            for i in range(nb)
+        ] if self.args.save_hybrid else []  # for autolabelling
 
         return batch
 
@@ -57,13 +59,15 @@ class DetectionValidator(BaseValidator):
         return ('%22s' + '%11s' * 6) % ('Class', 'Images', 'Instances', 'Box(P', 'R', 'mAP50', 'mAP50-95)')
 
     def postprocess(self, preds):
-        preds = ops.non_max_suppression(preds,
-                                        self.args.conf,
-                                        self.args.iou,
-                                        labels=self.lb,
-                                        multi_label=True,
-                                        agnostic=self.args.single_cls,
-                                        max_det=self.args.max_det)
+        preds = ops.non_max_suppression(
+            preds,
+            self.args.conf,
+            self.args.iou,
+            labels=self.lb,
+            multi_label=True,
+            agnostic=self.args.single_cls,
+            max_det=self.args.max_det,
+        )
         return preds
 
     def update_metrics(self, preds, batch):
@@ -88,16 +92,21 @@ class DetectionValidator(BaseValidator):
             if self.args.single_cls:
                 pred[:, 5] = 0
             predn = pred.clone()
-            ops.scale_boxes(batch['img'][si].shape[1:], predn[:, :4], shape,
-                            ratio_pad=batch['ratio_pad'][si])  # native-space pred
+            ops.scale_boxes(
+                batch['img'][si].shape[1:], predn[:, :4], shape,
+                ratio_pad=batch['ratio_pad'][si],
+            )  # native-space pred
 
             # Evaluate
             if nl:
                 height, width = batch['img'].shape[2:]
                 tbox = ops.xywh2xyxy(bbox) * torch.tensor(
-                    (width, height, width, height), device=self.device)  # target boxes
-                ops.scale_boxes(batch['img'][si].shape[1:], tbox, shape,
-                                ratio_pad=batch['ratio_pad'][si])  # native-space labels
+                    (width, height, width, height), device=self.device,
+                )  # target boxes
+                ops.scale_boxes(
+                    batch['img'][si].shape[1:], tbox, shape,
+                    ratio_pad=batch['ratio_pad'][si],
+                )  # native-space labels
                 labelsn = torch.cat((cls, tbox), 1)  # native-space labels
                 correct_bboxes = self._process_batch(predn, labelsn)
                 # TODO: maybe remove these `self.` arguments as they already are member variable
@@ -128,7 +137,8 @@ class DetectionValidator(BaseValidator):
         LOGGER.info(pf % ('all', self.seen, self.nt_per_class.sum(), *self.metrics.mean_results()))
         if self.nt_per_class.sum() == 0:
             LOGGER.warning(
-                f'WARNING ⚠️ no labels found in {self.args.task} set, can not compute metrics without labels')
+                f'WARNING ⚠️ no labels found in {self.args.task} set, can not compute metrics without labels',
+            )
 
         # Print results per class
         if self.args.verbose and not self.training and self.nc > 1 and len(self.stats):
@@ -153,8 +163,10 @@ class DetectionValidator(BaseValidator):
         for i in range(len(self.iouv)):
             x = torch.where((iou >= self.iouv[i]) & correct_class)  # IoU > threshold and classes match
             if x[0].shape[0]:
-                matches = torch.cat((torch.stack(x, 1), iou[x[0], x[1]][:, None]),
-                                    1).cpu().numpy()  # [label, detect, iou]
+                matches = torch.cat(
+                    (torch.stack(x, 1), iou[x[0], x[1]][:, None]),
+                    1,
+                ).cpu().numpy()  # [label, detect, iou]
                 if x[0].shape[0] > 1:
                     matches = matches[matches[:, 2].argsort()[::-1]]
                     matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
@@ -167,36 +179,44 @@ class DetectionValidator(BaseValidator):
         # TODO: manage splits differently
         # calculate stride - check if model is initialized
         gs = max(int(de_parallel(self.model).stride if self.model else 0), 32)
-        return create_dataloader(path=dataset_path,
-                                 imgsz=self.args.imgsz,
-                                 batch_size=batch_size,
-                                 stride=gs,
-                                 hyp=vars(self.args),
-                                 cache=False,
-                                 pad=0.5,
-                                 rect=self.args.rect,
-                                 workers=self.args.workers,
-                                 prefix=colorstr(f'{self.args.mode}: '),
-                                 shuffle=False,
-                                 seed=self.args.seed)[0] if self.args.v5loader else \
-            build_dataloader(self.args, batch_size, img_path=dataset_path, stride=gs, names=self.data['names'],
-                             mode='val')[0]
+        return create_dataloader(
+            path=dataset_path,
+            imgsz=self.args.imgsz,
+            batch_size=batch_size,
+            stride=gs,
+            hyp=vars(self.args),
+            cache=False,
+            pad=0.5,
+            rect=self.args.rect,
+            workers=self.args.workers,
+            prefix=colorstr(f'{self.args.mode}: '),
+            shuffle=False,
+            seed=self.args.seed,
+        )[0] if self.args.v5loader else \
+            build_dataloader(
+                self.args, batch_size, img_path=dataset_path, stride=gs, names=self.data['names'],
+                mode='val',
+            )[0]
 
     def plot_val_samples(self, batch, ni):
-        plot_images(batch['img'],
-                    batch['batch_idx'],
-                    batch['cls'].squeeze(-1),
-                    batch['bboxes'],
-                    paths=batch['im_file'],
-                    fname=self.save_dir / f'val_batch{ni}_labels.jpg',
-                    names=self.names)
+        plot_images(
+            batch['img'],
+            batch['batch_idx'],
+            batch['cls'].squeeze(-1),
+            batch['bboxes'],
+            paths=batch['im_file'],
+            fname=self.save_dir / f'val_batch{ni}_labels.jpg',
+            names=self.names,
+        )
 
     def plot_predictions(self, batch, preds, ni):
-        plot_images(batch['img'],
-                    *output_to_target(preds, max_det=15),
-                    paths=batch['im_file'],
-                    fname=self.save_dir / f'val_batch{ni}_pred.jpg',
-                    names=self.names)  # pred
+        plot_images(
+            batch['img'],
+            *output_to_target(preds, max_det=15),
+            paths=batch['im_file'],
+            fname=self.save_dir / f'val_batch{ni}_pred.jpg',
+            names=self.names
+        )  # pred
 
     def save_one_txt(self, predn, save_conf, shape, file):
         gn = torch.tensor(shape)[[1, 0, 1, 0]]  # normalization gain whwh
@@ -216,7 +236,8 @@ class DetectionValidator(BaseValidator):
                 'image_id': image_id,
                 'category_id': self.class_map[int(p[5])],
                 'bbox': [round(x, 3) for x in b],
-                'score': round(p[4], 5)})
+                'score': round(p[4], 5),
+            })
 
     def eval_json(self, stats):
         if self.args.save_json and self.is_coco and len(self.jdict):

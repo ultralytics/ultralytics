@@ -31,7 +31,8 @@ setup(
     project_urls={
         'Bug Reports': 'https://github.com/ultralytics/ultralytics/issues',
         'Funding': 'https://ultralytics.com',
-        'Source': 'https://github.com/ultralytics/ultralytics'},
+        'Source': 'https://github.com/ultralytics/ultralytics',
+    },
     author='Ultralytics',
     author_email='hello@ultralytics.com',
     packages=find_packages(),  # required
@@ -40,7 +41,8 @@ setup(
     extras_require={
         'dev': ['check-manifest', 'pytest', 'pytest-cov', 'coverage', 'mkdocs-material', 'mkdocstrings[python]'],
         'export': ['coremltools>=6.0', 'onnx', 'onnxsim', 'onnxruntime', 'openvino-dev>=2022.3'],
-        'tf': ['onnx2tf', 'sng4onnx', 'tflite_support', 'tensorflow']},
+        'tf': ['onnx2tf', 'sng4onnx', 'tflite_support', 'tensorflow'],
+    },
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
@@ -62,4 +64,6 @@ setup(
         'Operating System :: Microsoft :: Windows', ],
     keywords='machine-learning, deep-learning, vision, ML, DL, AI, YOLO, YOLOv3, YOLOv5, YOLOv8, HUB, Ultralytics',
     entry_points={
-        'console_scripts': ['yolo = ultralytics.yolo.cfg:entrypoint', 'ultralytics = ultralytics.yolo.cfg:entrypoint']})
+        'console_scripts': ['yolo = ultralytics.yolo.cfg:entrypoint', 'ultralytics = ultralytics.yolo.cfg:entrypoint'],
+    },
+)

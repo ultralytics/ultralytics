@@ -21,12 +21,14 @@ def _log_images(imgs_dict, group='', step=0):
 
 def on_pretrain_routine_start(trainer):
     try:
-        task = Task.init(project_name=trainer.args.project or 'YOLOv8',
-                         task_name=trainer.args.name,
-                         tags=['YOLOv8'],
-                         output_uri=True,
-                         reuse_last_task_id=False,
-                         auto_connect_frameworks={'pytorch': False})
+        task = Task.init(
+            project_name=trainer.args.project or 'YOLOv8',
+            task_name=trainer.args.name,
+            tags=['YOLOv8'],
+            output_uri=True,
+            reuse_last_task_id=False,
+            auto_connect_frameworks={'pytorch': False},
+        )
         task.connect(vars(trainer.args), name='General')
     except Exception as e:
         LOGGER.warning(f'WARNING ⚠️ ClearML installed but not initialized correctly, not logging this run. {e}')
@@ -43,7 +45,8 @@ def on_fit_epoch_end(trainer):
         model_info = {
             'model/parameters': get_num_params(trainer.model),
             'model/GFLOPs': round(get_flops(trainer.model), 3),
-            'model/speed(ms)': round(trainer.validator.speed['inference'], 3)}
+            'model/speed(ms)': round(trainer.validator.speed['inference'], 3),
+        }
         task.connect(model_info, name='Model')
 
 
@@ -57,4 +60,5 @@ callbacks = {
     'on_pretrain_routine_start': on_pretrain_routine_start,
     'on_train_epoch_end': on_train_epoch_end,
     'on_fit_epoch_end': on_fit_epoch_end,
-    'on_train_end': on_train_end} if clearml else {}
+    'on_train_end': on_train_end,
+} if clearml else {}

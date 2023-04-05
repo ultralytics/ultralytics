@@ -51,8 +51,10 @@ class LoadStreams:
                 s = pafy.new(s).getbest(preftype='mp4').url  # YouTube URL
             s = eval(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
             if s == 0 and (is_colab() or is_kaggle()):
-                raise NotImplementedError("'source=0' webcam not supported in Colab and Kaggle notebooks. "
-                                          "Try running 'source=0' in a local environment.")
+                raise NotImplementedError(
+                    "'source=0' webcam not supported in Colab and Kaggle notebooks. "
+                    "Try running 'source=0' in a local environment.",
+                )
             cap = cv2.VideoCapture(s)
             if not cap.isOpened():
                 raise ConnectionError(f'{st}Failed to open {s}')
@@ -207,8 +209,10 @@ class LoadImages:
         else:
             self.cap = None
         if self.nf == 0:
-            raise FileNotFoundError(f'No images or videos found in {p}. '
-                                    f'Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}')
+            raise FileNotFoundError(
+                f'No images or videos found in {p}. '
+                f'Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}',
+            )
 
     def __iter__(self):
         self.count = 0
@@ -362,8 +366,10 @@ def autocast_list(source):
         elif isinstance(im, (Image.Image, np.ndarray)):  # PIL or np Image
             files.append(im)
         else:
-            raise TypeError(f'type {type(im).__name__} is not a supported Ultralytics prediction source type. \n'
-                            f'See https://docs.ultralytics.com/modes/predict for supported source types.')
+            raise TypeError(
+                f'type {type(im).__name__} is not a supported Ultralytics prediction source type. \n'
+                f'See https://docs.ultralytics.com/modes/predict for supported source types.',
+            )
 
     return files
 

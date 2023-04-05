@@ -20,8 +20,10 @@ import requests
 import torch
 from matplotlib import font_manager
 
-from ultralytics.yolo.utils import (AUTOINSTALL, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, downloads,
-                                    emojis, is_colab, is_docker, is_kaggle, is_online, is_pip_package)
+from ultralytics.yolo.utils import (
+    AUTOINSTALL, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, downloads,
+    emojis, is_colab, is_docker, is_kaggle, is_online, is_pip_package,
+)
 
 
 def is_ascii(s) -> bool:
@@ -64,8 +66,10 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
     elif isinstance(imgsz, (list, tuple)):
         imgsz = list(imgsz)
     else:
-        raise TypeError(f"'imgsz={imgsz}' is of invalid type {type(imgsz).__name__}. "
-                        f"Valid imgsz types are int i.e. 'imgsz=640' or list i.e. 'imgsz=[640,640]'")
+        raise TypeError(
+            f"'imgsz={imgsz}' is of invalid type {type(imgsz).__name__}. "
+            f"Valid imgsz types are int i.e. 'imgsz=640' or list i.e. 'imgsz=[640,640]'",
+        )
 
     # Apply max_dim
     if len(imgsz) > max_dim:
@@ -88,12 +92,14 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
     return sz
 
 
-def check_version(current: str = '0.0.0',
-                  minimum: str = '0.0.0',
-                  name: str = 'version ',
-                  pinned: bool = False,
-                  hard: bool = False,
-                  verbose: bool = False) -> bool:
+def check_version(
+    current: str = '0.0.0',
+    minimum: str = '0.0.0',
+    name: str = 'version ',
+    pinned: bool = False,
+    hard: bool = False,
+    verbose: bool = False,
+) -> bool:
     """
     Check current version against the required minimum version.
 
@@ -146,8 +152,10 @@ def check_pip_update_available():
             from ultralytics import __version__
             latest = check_latest_pypi_version()
             if pkg.parse_version(__version__) < pkg.parse_version(latest):  # update is available
-                LOGGER.info(f'New https://pypi.org/project/ultralytics/{latest} available 😃 '
-                            f"Update with 'pip install -U ultralytics'")
+                LOGGER.info(
+                    f'New https://pypi.org/project/ultralytics/{latest} available 😃 '
+                    f"Update with 'pip install -U ultralytics'",
+                )
                 return True
     return False
 
@@ -237,7 +245,7 @@ def check_suffix(file='yolov8n.pt', suffix='.pt', msg=''):
     # Check file(s) for acceptable suffix
     if file and suffix:
         if isinstance(suffix, str):
-            suffix = (suffix, )
+            suffix = (suffix,)
         for f in file if isinstance(file, (list, tuple)) else [file]:
             s = Path(f).suffix.lower().strip()  # file suffix
             if len(s):
@@ -252,9 +260,11 @@ def check_yolov5u_filename(file: str, verbose: bool = True):
         file = re.sub(r'(.*yolov5([nsmlx])6)\.pt', '\\1u.pt', file)  # i.e. yolov5n6.pt -> yolov5n6u.pt
         file = re.sub(r'(.*yolov3(|-tiny|-spp))\.pt', '\\1u.pt', file)  # i.e. yolov3-spp.pt -> yolov3-sppu.pt
         if file != original_file and verbose:
-            LOGGER.info(f"PRO TIP 💡 Replace 'model={original_file}' with new 'model={file}'.\nYOLOv5 'u' models are "
-                        f'trained with https://github.com/ultralytics/ultralytics and feature improved performance vs '
-                        f'standard YOLOv5 models trained with https://github.com/ultralytics/yolov5.\n')
+            LOGGER.info(
+                f"PRO TIP 💡 Replace 'model={original_file}' with new 'model={file}'.\nYOLOv5 'u' models are "
+                f'trained with https://github.com/ultralytics/ultralytics and feature improved performance vs '
+                f'standard YOLOv5 models trained with https://github.com/ultralytics/yolov5.\n',
+            )
     return file
 
 

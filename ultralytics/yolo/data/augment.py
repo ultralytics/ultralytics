@@ -177,7 +177,8 @@ class Mosaic(BaseMixTransform):
             'resized_shape': (self.imgsz * 2, self.imgsz * 2),
             'cls': np.concatenate(cls, 0),
             'instances': Instances.concatenate(instances, axis=0),
-            'mosaic_border': self.border}
+            'mosaic_border': self.border,
+        }
         final_labels['instances'].clip(self.imgsz * 2, self.imgsz * 2)
         return final_labels
 
@@ -202,14 +203,16 @@ class MixUp(BaseMixTransform):
 
 class RandomPerspective:
 
-    def __init__(self,
-                 degrees=0.0,
-                 translate=0.1,
-                 scale=0.5,
-                 shear=0.0,
-                 perspective=0.0,
-                 border=(0, 0),
-                 pre_transform=None):
+    def __init__(
+        self,
+        degrees=0.0,
+        translate=0.1,
+        scale=0.5,
+        shear=0.0,
+        perspective=0.0,
+        border=(0, 0),
+        pre_transform=None,
+    ):
         self.degrees = degrees
         self.translate = translate
         self.scale = scale
@@ -372,9 +375,11 @@ class RandomPerspective:
         # filter instances
         instances.scale(scale_w=scale, scale_h=scale, bbox_only=True)
         # make the bboxes have the same scale with new_bboxes
-        i = self.box_candidates(box1=instances.bboxes.T,
-                                box2=new_instances.bboxes.T,
-                                area_thr=0.01 if len(segments) else 0.10)
+        i = self.box_candidates(
+            box1=instances.bboxes.T,
+            box2=new_instances.bboxes.T,
+            area_thr=0.01 if len(segments) else 0.10,
+        )
         labels['instances'] = new_instances[i]
         labels['cls'] = cls[i]
         labels['img'] = img
@@ -486,8 +491,10 @@ class LetterBox:
             img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
         top, bottom = int(round(dh - 0.1)), int(round(dh + 0.1))
         left, right = int(round(dw - 0.1)), int(round(dw + 0.1))
-        img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT,
-                                 value=(114, 114, 114))  # add border
+        img = cv2.copyMakeBorder(
+            img, top, bottom, left, right, cv2.BORDER_CONSTANT,
+            value=(114, 114, 114),
+        )  # add border
 
         if len(labels):
             labels = self._update_labels(labels, ratio, dw, dh)
@@ -564,7 +571,8 @@ class Albumentations:
                 A.CLAHE(p=0.01),
                 A.RandomBrightnessContrast(p=0.0),
                 A.RandomGamma(p=0.0),
-                A.ImageCompression(quality_lower=75, p=0.0)]  # transforms
+                A.ImageCompression(quality_lower=75, p=0.0),
+            ]  # transforms
             self.transform = A.Compose(T, bbox_params=A.BboxParams(format='yolo', label_fields=['class_labels']))
 
             LOGGER.info(prefix + ', '.join(f'{x}'.replace('always_apply=False, ', '') for x in T if x.p))
@@ -594,14 +602,16 @@ class Albumentations:
 # TODO: technically this is not an augmentation, maybe we should put this to another files
 class Format:
 
-    def __init__(self,
-                 bbox_format='xywh',
-                 normalize=True,
-                 return_mask=False,
-                 return_keypoint=False,
-                 mask_ratio=4,
-                 mask_overlap=True,
-                 batch_idx=True):
+    def __init__(
+        self,
+        bbox_format='xywh',
+        normalize=True,
+        return_mask=False,
+        return_keypoint=False,
+        mask_ratio=4,
+        mask_overlap=True,
+        batch_idx=True,
+    ):
         self.bbox_format = bbox_format
         self.normalize = normalize
         self.return_mask = return_mask  # set False when training detection only
@@ -624,8 +634,10 @@ class Format:
                 masks, instances, cls = self._format_segments(instances, cls, w, h)
                 masks = torch.from_numpy(masks)
             else:
-                masks = torch.zeros(1 if self.mask_overlap else nl, img.shape[0] // self.mask_ratio,
-                                    img.shape[1] // self.mask_ratio)
+                masks = torch.zeros(
+                    1 if self.mask_overlap else nl, img.shape[0] // self.mask_ratio,
+                    img.shape[1] // self.mask_ratio,
+                )
             labels['masks'] = masks
         if self.normalize:
             instances.normalize(w, h)
@@ -671,14 +683,16 @@ def v8_transforms(dataset, imgsz, hyp):
             shear=hyp.shear,
             perspective=hyp.perspective,
             pre_transform=LetterBox(new_shape=(imgsz, imgsz)),
-        )])
+        ),
+    ])
     return Compose([
         pre_transform,
         MixUp(dataset, pre_transform=pre_transform, p=hyp.mixup),
         Albumentations(p=1.0),
         RandomHSV(hgain=hyp.hsv_h, sgain=hyp.hsv_s, vgain=hyp.hsv_v),
         RandomFlip(direction='vertical', p=hyp.flipud),
-        RandomFlip(direction='horizontal', p=hyp.fliplr)])  # transforms
+        RandomFlip(direction='horizontal', p=hyp.fliplr),
+    ])  # transforms
 
 
 # Classification augmentations -----------------------------------------------------------------------------------------

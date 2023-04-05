@@ -39,4 +39,5 @@ def on_fit_epoch_end(trainer):
 callbacks = {
     'on_pretrain_routine_start': on_pretrain_routine_start,
     'on_fit_epoch_end': on_fit_epoch_end,
-    'on_batch_end': on_batch_end}
+    'on_batch_end': on_batch_end,
+}

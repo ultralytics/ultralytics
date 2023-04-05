@@ -25,7 +25,8 @@ def on_fit_epoch_end(trainer):
             model_info = {
                 'model/parameters': get_num_params(trainer.model),
                 'model/GFLOPs': round(get_flops(trainer.model), 3),
-                'model/speed(ms)': round(trainer.validator.speed['inference'], 3)}
+                'model/speed(ms)': round(trainer.validator.speed['inference'], 3),
+            }
             all_plots = {**all_plots, **model_info}
         session.metrics_queue[trainer.epoch] = json.dumps(all_plots)
         if time() - session.timers['metrics'] > session.rate_limits['metrics']:
@@ -52,8 +53,10 @@ def on_train_end(trainer):
         LOGGER.info(f'{PREFIX}Syncing final model...')
         session.upload_model(trainer.epoch, trainer.best, map=trainer.metrics.get('metrics/mAP50-95(B)', 0), final=True)
         session.alive = False  # stop heartbeats
-        LOGGER.info(f'{PREFIX}Done ✅\n'
-                    f'{PREFIX}View model at https://hub.ultralytics.com/models/{session.model_id} 🚀')
+        LOGGER.info(
+            f'{PREFIX}Done ✅\n'
+            f'{PREFIX}View model at https://hub.ultralytics.com/models/{session.model_id} 🚀',
+        )
 
 
 def on_train_start(trainer):
@@ -80,4 +83,5 @@ callbacks = {
     'on_train_start': on_train_start,
     'on_val_start': on_val_start,
     'on_predict_start': on_predict_start,
-    'on_export_start': on_export_start}
+    'on_export_start': on_export_start,
+}

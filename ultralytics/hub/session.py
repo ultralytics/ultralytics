@@ -121,7 +121,8 @@ class HUBTrainingSession:
                 'patience': data['patience'],
                 'device': data['device'],
                 'cache': data['cache'],
-                'data': data['data']}
+                'data': data['data'],
+            }
 
             self.model_file = data.get('cfg', data['weights'])
             self.model_file = checks.check_yolov5u_filename(self.model_file, verbose=False)  # YOLOv5->YOLOv5u
@@ -159,16 +160,18 @@ class HUBTrainingSession:
         data = {'epoch': epoch}
         if final:
             data.update({'type': 'final', 'map': map})
-            smart_request('post',
-                          url,
-                          data=data,
-                          files={'best.pt': file},
-                          headers=self.auth_header,
-                          retry=10,
-                          timeout=3600,
-                          thread=False,
-                          progress=True,
-                          code=4)
+            smart_request(
+                'post',
+                url,
+                data=data,
+                files={'best.pt': file},
+                headers=self.auth_header,
+                retry=10,
+                timeout=3600,
+                thread=False,
+                progress=True,
+                code=4,
+            )
         else:
             data.update({'type': 'epoch', 'isBest': bool(is_best)})
             smart_request('post', url, data=data, files={'last.pt': file}, headers=self.auth_header, code=3)
@@ -177,14 +180,17 @@ class HUBTrainingSession:
     def _start_heartbeat(self):
         """Begin a threaded heartbeat loop to report the agent's status to Ultralytics HUB."""
         while self.alive:
-            r = smart_request('post',
-                              f'{HUB_API_ROOT}/v1/agent/heartbeat/models/{self.model_id}',
-                              json={
-                                  'agent': AGENT_NAME,
-                                  'agentId': self.agent_id},
-                              headers=self.auth_header,
-                              retry=0,
-                              code=5,
-                              thread=False)  # already in a thread
+            r = smart_request(
+                'post',
+                f'{HUB_API_ROOT}/v1/agent/heartbeat/models/{self.model_id}',
+                json={
+                    'agent': AGENT_NAME,
+                    'agentId': self.agent_id,
+                },
+                headers=self.auth_header,
+                retry=0,
+                code=5,
+                thread=False,
+            )  # already in a thread
             self.agent_id = r.json().get('data', {}).get('agentId', None)
             sleep(self.rate_limits['heartbeat'])

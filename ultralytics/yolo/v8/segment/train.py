@@ -65,7 +65,8 @@ class SegLoss(Loss):
         feats, pred_masks, proto = preds if len(preds) == 3 else preds[1]
         batch_size, _, mask_h, mask_w = proto.shape  # batch size, number of masks, mask height, mask width
         pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
-            (self.reg_max * 4, self.nc), 1)
+            (self.reg_max * 4, self.nc), 1,
+        )
 
         # b, grids, ..
         pred_scores = pred_scores.permute(0, 2, 1).contiguous()
@@ -84,18 +85,21 @@ class SegLoss(Loss):
             gt_labels, gt_bboxes = targets.split((1, 4), 2)  # cls, xyxy
             mask_gt = gt_bboxes.sum(2, keepdim=True).gt_(0)
         except RuntimeError as e:
-            raise TypeError('ERROR ❌ segment dataset incorrectly formatted or not a segment dataset.\n'
-                            "This error can occur when incorrectly training a 'segment' model on a 'detect' dataset, "
-                            "i.e. 'yolo train model=yolov8n-seg.pt data=coco128.yaml'.\nVerify your dataset is a "
-                            "correctly formatted 'segment' dataset using 'data=coco128-seg.yaml' "
-                            'as an example.\nSee https://docs.ultralytics.com/tasks/segment/ for help.') from e
+            raise TypeError(
+                'ERROR ❌ segment dataset incorrectly formatted or not a segment dataset.\n'
+                "This error can occur when incorrectly training a 'segment' model on a 'detect' dataset, "
+                "i.e. 'yolo train model=yolov8n-seg.pt data=coco128.yaml'.\nVerify your dataset is a "
+                "correctly formatted 'segment' dataset using 'data=coco128-seg.yaml' "
+                'as an example.\nSee https://docs.ultralytics.com/tasks/segment/ for help.',
+            ) from e
 
         # pboxes
         pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
 
         _, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
             pred_scores.detach().sigmoid(), (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),
-            anchor_points * stride_tensor, gt_labels, gt_bboxes, mask_gt)
+            anchor_points * stride_tensor, gt_labels, gt_bboxes, mask_gt,
+        )
 
         target_scores_sum = max(target_scores.sum(), 1)
 
@@ -105,8 +109,10 @@ class SegLoss(Loss):
 
         if fg_mask.sum():
             # bbox loss
-            loss[0], loss[3] = self.bbox_loss(pred_distri, pred_bboxes, anchor_points, target_bboxes / stride_tensor,
-                                              target_scores, target_scores_sum, fg_mask)
+            loss[0], loss[3] = self.bbox_loss(
+                pred_distri, pred_bboxes, anchor_points, target_bboxes / stride_tensor,
+                target_scores, target_scores_sum, fg_mask,
+            )
             # masks loss
             masks = batch['masks'].to(self.device).float()
             if tuple(masks.shape[-2:]) != (mask_h, mask_w):  # downsample

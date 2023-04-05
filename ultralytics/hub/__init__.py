@@ -70,11 +70,14 @@ def export_model(key='', format='torchscript'):
     # Export a model to all formats
     assert format in export_fmts_hub(), f"Unsupported export format '{format}', valid formats are {export_fmts_hub()}"
     api_key, model_id = split_key(key)
-    r = requests.post('https://api.ultralytics.com/export',
-                      json={
-                          'apiKey': api_key,
-                          'modelId': model_id,
-                          'format': format})
+    r = requests.post(
+        'https://api.ultralytics.com/export',
+        json={
+            'apiKey': api_key,
+            'modelId': model_id,
+            'format': format,
+        },
+    )
     assert r.status_code == 200, f'{PREFIX}{format} export failure {r.status_code} {r.reason}'
     LOGGER.info(f'{PREFIX}{format} export started ✅')
 
@@ -83,11 +86,14 @@ def get_export(key='', format='torchscript'):
     # Get an exported model dictionary with download URL
     assert format in export_fmts_hub, f"Unsupported export format '{format}', valid formats are {export_fmts_hub}"
     api_key, model_id = split_key(key)
-    r = requests.post('https://api.ultralytics.com/get-export',
-                      json={
-                          'apiKey': api_key,
-                          'modelId': model_id,
-                          'format': format})
+    r = requests.post(
+        'https://api.ultralytics.com/get-export',
+        json={
+            'apiKey': api_key,
+            'modelId': model_id,
+            'format': format,
+        },
+    )
     assert r.status_code == 200, f'{PREFIX}{format} get_export failure {r.status_code} {r.reason}'
     return r.json()
 

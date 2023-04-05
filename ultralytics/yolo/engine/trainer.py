@@ -25,14 +25,18 @@ from tqdm import tqdm
 from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.data.utils import check_cls_dataset, check_det_dataset
-from ultralytics.yolo.utils import (DEFAULT_CFG, LOGGER, ONLINE, RANK, ROOT, SETTINGS, TQDM_BAR_FORMAT, __version__,
-                                    callbacks, colorstr, emojis, yaml_save)
+from ultralytics.yolo.utils import (
+    DEFAULT_CFG, LOGGER, ONLINE, RANK, ROOT, SETTINGS, TQDM_BAR_FORMAT, __version__,
+    callbacks, colorstr, emojis, yaml_save,
+)
 from ultralytics.yolo.utils.autobatch import check_train_batch_size
 from ultralytics.yolo.utils.checks import check_file, check_imgsz, print_args
 from ultralytics.yolo.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.yolo.utils.files import get_latest_run, increment_path
-from ultralytics.yolo.utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel, init_seeds, one_cycle,
-                                                select_device, strip_optimizer)
+from ultralytics.yolo.utils.torch_utils import (
+    EarlyStopping, ModelEMA, de_parallel, init_seeds, one_cycle,
+    select_device, strip_optimizer,
+)
 
 
 class BaseTrainer:
@@ -95,7 +99,8 @@ class BaseTrainer:
             self.save_dir = Path(self.args.save_dir)
         else:
             self.save_dir = Path(
-                increment_path(Path(project) / name, exist_ok=self.args.exist_ok if RANK in (-1, 0) else True))
+                increment_path(Path(project) / name, exist_ok=self.args.exist_ok if RANK in (-1, 0) else True),
+            )
         self.wdir = self.save_dir / 'weights'  # weights dir
         if RANK in (-1, 0):
             self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
@@ -225,17 +230,21 @@ class BaseTrainer:
             if RANK == -1:  # single-GPU only, estimate best batch size
                 self.batch_size = check_train_batch_size(self.model, self.args.imgsz, self.amp)
             else:
-                SyntaxError('batch=-1 to use AutoBatch is only available in Single-GPU training. '
-                            'Please pass a valid batch size value for Multi-GPU DDP training, i.e. batch=16')
+                SyntaxError(
+                    'batch=-1 to use AutoBatch is only available in Single-GPU training. '
+                    'Please pass a valid batch size value for Multi-GPU DDP training, i.e. batch=16',
+                )
 
         # Optimizer
         self.accumulate = max(round(self.args.nbs / self.batch_size), 1)  # accumulate loss before optimizing
         weight_decay = self.args.weight_decay * self.batch_size * self.accumulate / self.args.nbs  # scale weight_decay
-        self.optimizer = self.build_optimizer(model=self.model,
-                                              name=self.args.optimizer,
-                                              lr=self.args.lr0,
-                                              momentum=self.args.momentum,
-                                              decay=weight_decay)
+        self.optimizer = self.build_optimizer(
+            model=self.model,
+            name=self.args.optimizer,
+            lr=self.args.lr0,
+            momentum=self.args.momentum,
+            decay=weight_decay,
+        )
         # Scheduler
         if self.args.cos_lr:
             self.lf = one_cycle(1, self.args.lrf, self.epochs)  # cosine 1->hyp['lrf']
@@ -272,10 +281,12 @@ class BaseTrainer:
         nw = max(round(self.args.warmup_epochs * nb), 100)  # number of warmup iterations
         last_opt_step = -1
         self.run_callbacks('on_train_start')
-        LOGGER.info(f'Image sizes {self.args.imgsz} train, {self.args.imgsz} val\n'
-                    f'Using {self.train_loader.num_workers * (world_size or 1)} dataloader workers\n'
-                    f"Logging results to {colorstr('bold', self.save_dir)}\n"
-                    f'Starting training for {self.epochs} epochs...')
+        LOGGER.info(
+            f'Image sizes {self.args.imgsz} train, {self.args.imgsz} val\n'
+            f'Using {self.train_loader.num_workers * (world_size or 1)} dataloader workers\n'
+            f"Logging results to {colorstr('bold', self.save_dir)}\n"
+            f'Starting training for {self.epochs} epochs...',
+        )
         if self.args.close_mosaic:
             base_idx = (self.epochs - self.args.close_mosaic) * nb
             self.plot_idx.extend([base_idx, base_idx + 1, base_idx + 2])
@@ -309,7 +320,8 @@ class BaseTrainer:
                     for j, x in enumerate(self.optimizer.param_groups):
                         # bias lr falls from 0.1 to lr0, all other lrs rise from 0.0 to lr0
                         x['lr'] = np.interp(
-                            ni, xi, [self.args.warmup_bias_lr if j == 0 else 0.0, x['initial_lr'] * self.lf(epoch)])
+                            ni, xi, [self.args.warmup_bias_lr if j == 0 else 0.0, x['initial_lr'] * self.lf(epoch)],
+                        )
                         if 'momentum' in x:
                             x['momentum'] = np.interp(ni, xi, [self.args.warmup_momentum, self.args.momentum])
 
@@ -338,7 +350,8 @@ class BaseTrainer:
                 if RANK in (-1, 0):
                     pbar.set_description(
                         ('%11s' * 2 + '%11.4g' * (2 + loss_len)) %
-                        (f'{epoch + 1}/{self.epochs}', mem, *losses, batch['cls'].shape[0], batch['img'].shape[-1]))
+                        (f'{epoch + 1}/{self.epochs}', mem, *losses, batch['cls'].shape[0], batch['img'].shape[-1]),
+                    )
                     self.run_callbacks('on_batch_end')
                     if self.args.plots and ni in self.plot_idx:
                         self.plot_training_samples(batch, ni)
@@ -383,8 +396,10 @@ class BaseTrainer:
 
         if RANK in (-1, 0):
             # Do final val with best.pt
-            LOGGER.info(f'\n{epoch - self.start_epoch + 1} epochs completed in '
-                        f'{(time.time() - self.train_time_start) / 3600:.3f} hours.')
+            LOGGER.info(
+                f'\n{epoch - self.start_epoch + 1} epochs completed in '
+                f'{(time.time() - self.train_time_start) / 3600:.3f} hours.',
+            )
             self.final_eval()
             if self.args.plots:
                 self.plot_metrics()
@@ -402,7 +417,8 @@ class BaseTrainer:
             'optimizer': self.optimizer.state_dict(),
             'train_args': vars(self.args),  # save as dict
             'date': datetime.now().isoformat(),
-            'version': __version__}
+            'version': __version__,
+        }
 
         # Save last, best and delete
         torch.save(ckpt, self.last)
@@ -530,13 +546,20 @@ class BaseTrainer:
         if resume:
             try:
                 last = Path(
-                    check_file(resume) if isinstance(resume, (str,
-                                                              Path)) and Path(resume).exists() else get_latest_run())
+                    check_file(resume) if isinstance(
+                        resume, (
+                            str,
+                            Path,
+                        ),
+                    ) and Path(resume).exists() else get_latest_run(),
+                )
                 self.args = get_cfg(attempt_load_weights(last).args)
                 self.args.model, resume = str(last), True  # reinstate
             except Exception as e:
-                raise FileNotFoundError('Resume checkpoint not found. Please pass a valid checkpoint to resume from, '
-                                        "i.e. 'yolo train resume model=path/to/last.pt'") from e
+                raise FileNotFoundError(
+                    'Resume checkpoint not found. Please pass a valid checkpoint to resume from, '
+                    "i.e. 'yolo train resume model=path/to/last.pt'",
+                ) from e
         self.resume = resume
 
     def resume_training(self, ckpt):
@@ -555,10 +578,12 @@ class BaseTrainer:
                 f'{self.args.model} training to {self.epochs} epochs is finished, nothing to resume.\n' \
                 f"Start a new training without --resume, i.e. 'yolo task=... mode=train model={self.args.model}'"
             LOGGER.info(
-                f'Resuming training from {self.args.model} from epoch {start_epoch + 1} to {self.epochs} total epochs')
+                f'Resuming training from {self.args.model} from epoch {start_epoch + 1} to {self.epochs} total epochs',
+            )
         if self.epochs < start_epoch:
             LOGGER.info(
-                f"{self.model} has been trained for {ckpt['epoch']} epochs. Fine-tuning for {self.epochs} more epochs.")
+                f"{self.model} has been trained for {ckpt['epoch']} epochs. Fine-tuning for {self.epochs} more epochs.",
+            )
             self.epochs += ckpt['epoch']  # finetune additional epochs
         self.best_fitness = best_fitness
         self.start_epoch = start_epoch
@@ -607,8 +632,10 @@ class BaseTrainer:
 
         optimizer.add_param_group({'params': g[0], 'weight_decay': decay})  # add g0 with weight_decay
         optimizer.add_param_group({'params': g[1], 'weight_decay': 0.0})  # add g1 (BatchNorm2d weights)
-        LOGGER.info(f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}) with parameter groups "
-                    f'{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias')
+        LOGGER.info(
+            f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}) with parameter groups "
+            f'{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias',
+        )
         return optimizer
 
 
@@ -650,7 +677,9 @@ def check_amp(model):
     except ConnectionError:
         LOGGER.warning(f"{prefix}checks skipped ⚠️, offline and unable to download YOLOv8n. Setting 'amp=True'.")
     except AssertionError:
-        LOGGER.warning(f'{prefix}checks failed ❌. Anomalies were detected with AMP on your system that may lead to '
-                       f'NaN losses or zero-mAP results, so AMP will be disabled during training.')
+        LOGGER.warning(
+            f'{prefix}checks failed ❌. Anomalies were detected with AMP on your system that may lead to '
+            f'NaN losses or zero-mAP results, so AMP will be disabled during training.',
+        )
         return False
     return True

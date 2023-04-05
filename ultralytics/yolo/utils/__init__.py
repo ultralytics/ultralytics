@@ -171,17 +171,24 @@ def set_logging(name=LOGGING_NAME, verbose=True):
         'disable_existing_loggers': False,
         'formatters': {
             name: {
-                'format': '%(message)s'}},
+                'format': '%(message)s',
+            },
+        },
         'handlers': {
             name: {
                 'class': 'logging.StreamHandler',
                 'formatter': name,
-                'level': level}},
+                'level': level,
+            },
+        },
         'loggers': {
             name: {
                 'level': level,
                 'handlers': [name],
-                'propagate': False}}})
+                'propagate': False,
+            },
+        },
+    })
 
 
 # Set logger
@@ -211,11 +218,15 @@ def yaml_save(file='data.yaml', data=None):
 
     with open(file, 'w') as f:
         # Dump data to file in YAML format, converting Path objects to strings
-        yaml.safe_dump({k: str(v) if isinstance(v, Path) else v
-                        for k, v in data.items()},
-                       f,
-                       sort_keys=False,
-                       allow_unicode=True)
+        yaml.safe_dump(
+            {
+                k: str(v) if isinstance(v, Path) else v
+                for k, v in data.items()
+            },
+            f,
+            sort_keys=False,
+            allow_unicode=True,
+        )
 
 
 def yaml_load(file='data.yaml', append_filename=False):
@@ -517,7 +528,8 @@ def colorstr(*input):
         'bright_white': '\033[97m',
         'end': '\033[0m',  # misc
         'bold': '\033[1m',
-        'underline': '\033[4m'}
+        'underline': '\033[4m',
+    }
     return ''.join(colors[x] for x in args) + f'{string}' + colors['end']
 
 
@@ -562,7 +574,8 @@ def set_sentry():
             'sys_argv': sys.argv[0],
             'sys_argv_name': Path(sys.argv[0]).name,
             'install': 'git' if is_git_dir() else 'pip' if is_pip_package() else 'other',
-            'os': ENVIRONMENT}
+            'os': ENVIRONMENT,
+        }
         return event
 
     if SETTINGS['sync'] and \
@@ -581,7 +594,8 @@ def set_sentry():
             release=__version__,
             environment='production',  # 'dev' or 'production'
             before_send=before_send,
-            ignore_errors=[KeyboardInterrupt, FileNotFoundError])
+            ignore_errors=[KeyboardInterrupt, FileNotFoundError],
+        )
         sentry_sdk.set_user({'id': SETTINGS['uuid']})
 
         # Disable all sentry logging
@@ -615,7 +629,8 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.3'):
         'uuid': hashlib.sha256(str(uuid.getnode()).encode()).hexdigest(),  # anonymized uuid hash
         'sync': True,  # sync analytics to help with YOLO development
         'api_key': '',  # Ultralytics HUB API key (https://hub.ultralytics.com/)
-        'settings_version': version}  # Ultralytics settings version
+        'settings_version': version,
+    }  # Ultralytics settings version
 
     with torch_distributed_zero_first(RANK):
         if not file.exists():
@@ -629,9 +644,11 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.3'):
             and all(type(a) == type(b) for a, b in zip(settings.values(), defaults.values())) \
             and check_version(settings['settings_version'], version)
         if not correct:
-            LOGGER.warning('WARNING ⚠️ Ultralytics settings reset to defaults. This is normal and may be due to a '
-                           'recent ultralytics package update, but may have overwritten previous settings. '
-                           f"\nView and update settings with 'yolo settings' or at '{file}'")
+            LOGGER.warning(
+                'WARNING ⚠️ Ultralytics settings reset to defaults. This is normal and may be due to a '
+                'recent ultralytics package update, but may have overwritten previous settings. '
+                f"\nView and update settings with 'yolo settings' or at '{file}'",
+            )
             settings = defaults  # merge **defaults with **settings (prefer **settings)
             yaml_save(file, settings)  # save updated defaults
 
@@ -651,7 +668,7 @@ def deprecation_warn(arg, new_arg, version=None):
     if not version:
         version = float(__version__[0:3]) + 0.2  # deprecate after 2nd major release
     LOGGER.warning(
-        f'WARNING: `{arg}` is deprecated and will be removed in upcoming major release {version}. Use `{new_arg}` instead'
+        f'WARNING: `{arg}` is deprecated and will be removed in upcoming major release {version}. Use `{new_arg}` instead',
     )
 
 

@@ -243,17 +243,20 @@ class ConfusionMatrix:
         ticklabels = (names + ['background']) if labels else 'auto'
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')  # suppress empty matrix RuntimeWarning: All-NaN slice encountered
-            sn.heatmap(array,
-                       ax=ax,
-                       annot=nc < 30,
-                       annot_kws={
-                           'size': 8},
-                       cmap='Blues',
-                       fmt='.2f',
-                       square=True,
-                       vmin=0.0,
-                       xticklabels=ticklabels,
-                       yticklabels=ticklabels).set_facecolor((1, 1, 1))
+            sn.heatmap(
+                array,
+                ax=ax,
+                annot=nc < 30,
+                annot_kws={
+                    'size': 8,
+                },
+                cmap='Blues',
+                fmt='.2f',
+                square=True,
+                vmin=0.0,
+                xticklabels=ticklabels,
+                yticklabels=ticklabels,
+            ).set_facecolor((1, 1, 1))
         ax.set_xlabel('True')
         ax.set_ylabel('Predicted')
         ax.set_title('Confusion Matrix')
@@ -582,8 +585,10 @@ class DetMetrics(SimpleClass):
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
 
     def process(self, tp, conf, pred_cls, target_cls):
-        results = ap_per_class(tp, conf, pred_cls, target_cls, plot=self.plot, save_dir=self.save_dir,
-                               names=self.names)[2:]
+        results = ap_per_class(
+            tp, conf, pred_cls, target_cls, plot=self.plot, save_dir=self.save_dir,
+            names=self.names,
+        )[2:]
         self.box.nc = len(self.names)
         self.box.update(results)
 
@@ -661,24 +666,28 @@ class SegmentMetrics(SimpleClass):
             target_cls (list): List of target classes.
         """
 
-        results_mask = ap_per_class(tp_m,
-                                    conf,
-                                    pred_cls,
-                                    target_cls,
-                                    plot=self.plot,
-                                    save_dir=self.save_dir,
-                                    names=self.names,
-                                    prefix='Mask')[2:]
+        results_mask = ap_per_class(
+            tp_m,
+            conf,
+            pred_cls,
+            target_cls,
+            plot=self.plot,
+            save_dir=self.save_dir,
+            names=self.names,
+            prefix='Mask',
+        )[2:]
         self.seg.nc = len(self.names)
         self.seg.update(results_mask)
-        results_box = ap_per_class(tp_b,
-                                   conf,
-                                   pred_cls,
-                                   target_cls,
-                                   plot=self.plot,
-                                   save_dir=self.save_dir,
-                                   names=self.names,
-                                   prefix='Box')[2:]
+        results_box = ap_per_class(
+            tp_b,
+            conf,
+            pred_cls,
+            target_cls,
+            plot=self.plot,
+            save_dir=self.save_dir,
+            names=self.names,
+            prefix='Box',
+        )[2:]
         self.box.nc = len(self.names)
         self.box.update(results_box)
 
@@ -686,7 +695,8 @@ class SegmentMetrics(SimpleClass):
     def keys(self):
         return [
             'metrics/precision(B)', 'metrics/recall(B)', 'metrics/mAP50(B)', 'metrics/mAP50-95(B)',
-            'metrics/precision(M)', 'metrics/recall(M)', 'metrics/mAP50(M)', 'metrics/mAP50-95(M)']
+            'metrics/precision(M)', 'metrics/recall(M)', 'metrics/mAP50(M)', 'metrics/mAP50-95(M)',
+        ]
 
     def mean_results(self):
         return self.box.mean_results() + self.seg.mean_results()

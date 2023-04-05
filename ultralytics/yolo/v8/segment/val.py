@@ -36,18 +36,22 @@ class SegmentationValidator(DetectionValidator):
             self.process = ops.process_mask  # faster
 
     def get_desc(self):
-        return ('%22s' + '%11s' * 10) % ('Class', 'Images', 'Instances', 'Box(P', 'R', 'mAP50', 'mAP50-95)', 'Mask(P',
-                                         'R', 'mAP50', 'mAP50-95)')
+        return ('%22s' + '%11s' * 10) % (
+            'Class', 'Images', 'Instances', 'Box(P', 'R', 'mAP50', 'mAP50-95)', 'Mask(P',
+            'R', 'mAP50', 'mAP50-95)',
+        )
 
     def postprocess(self, preds):
-        p = ops.non_max_suppression(preds[0],
-                                    self.args.conf,
-                                    self.args.iou,
-                                    labels=self.lb,
-                                    multi_label=True,
-                                    agnostic=self.args.single_cls,
-                                    max_det=self.args.max_det,
-                                    nc=self.nc)
+        p = ops.non_max_suppression(
+            preds[0],
+            self.args.conf,
+            self.args.iou,
+            labels=self.lb,
+            multi_label=True,
+            agnostic=self.args.single_cls,
+            max_det=self.args.max_det,
+            nc=self.nc,
+        )
         proto = preds[1][-1] if len(preds[1]) == 3 else preds[1]  # second output is len 3 if pt, but only 1 if exported
         return p, proto
 
@@ -65,8 +69,11 @@ class SegmentationValidator(DetectionValidator):
 
             if npr == 0:
                 if nl:
-                    self.stats.append((correct_masks, correct_bboxes, *torch.zeros(
-                        (2, 0), device=self.device), cls.squeeze(-1)))
+                    self.stats.append((
+                        correct_masks, correct_bboxes, *torch.zeros(
+                        (2, 0), device=self.device,
+                        ), cls.squeeze(-1),
+                    ))
                     if self.args.plots:
                         self.confusion_matrix.process_batch(detections=None, labels=cls.squeeze(-1))
                 continue
@@ -80,25 +87,32 @@ class SegmentationValidator(DetectionValidator):
             if self.args.single_cls:
                 pred[:, 5] = 0
             predn = pred.clone()
-            ops.scale_boxes(batch['img'][si].shape[1:], predn[:, :4], shape,
-                            ratio_pad=batch['ratio_pad'][si])  # native-space pred
+            ops.scale_boxes(
+                batch['img'][si].shape[1:], predn[:, :4], shape,
+                ratio_pad=batch['ratio_pad'][si],
+            )  # native-space pred
 
             # Evaluate
             if nl:
                 height, width = batch['img'].shape[2:]
                 tbox = ops.xywh2xyxy(bbox) * torch.tensor(
-                    (width, height, width, height), device=self.device)  # target boxes
-                ops.scale_boxes(batch['img'][si].shape[1:], tbox, shape,
-                                ratio_pad=batch['ratio_pad'][si])  # native-space labels
+                    (width, height, width, height), device=self.device,
+                )  # target boxes
+                ops.scale_boxes(
+                    batch['img'][si].shape[1:], tbox, shape,
+                    ratio_pad=batch['ratio_pad'][si],
+                )  # native-space labels
                 labelsn = torch.cat((cls, tbox), 1)  # native-space labels
                 correct_bboxes = self._process_batch(predn, labelsn)
                 # TODO: maybe remove these `self.` arguments as they already are member variable
-                correct_masks = self._process_batch(predn,
-                                                    labelsn,
-                                                    pred_masks,
-                                                    gt_masks,
-                                                    overlap=self.args.overlap_mask,
-                                                    masks=True)
+                correct_masks = self._process_batch(
+                    predn,
+                    labelsn,
+                    pred_masks,
+                    gt_masks,
+                    overlap=self.args.overlap_mask,
+                    masks=True,
+                )
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, labelsn)
 
@@ -111,10 +125,12 @@ class SegmentationValidator(DetectionValidator):
 
             # Save
             if self.args.save_json:
-                pred_masks = ops.scale_image(batch['img'][si].shape[1:],
-                                             pred_masks.permute(1, 2, 0).contiguous().cpu().numpy(),
-                                             shape,
-                                             ratio_pad=batch['ratio_pad'][si])
+                pred_masks = ops.scale_image(
+                    batch['img'][si].shape[1:],
+                    pred_masks.permute(1, 2, 0).contiguous().cpu().numpy(),
+                    shape,
+                    ratio_pad=batch['ratio_pad'][si],
+                )
                 self.pred_to_json(predn, batch['im_file'][si], pred_masks)
             # if self.args.save_txt:
             #    save_one_txt(predn, save_conf, shape, file=save_dir / 'labels' / f'{path.stem}.txt')
@@ -150,8 +166,10 @@ class SegmentationValidator(DetectionValidator):
         for i in range(len(self.iouv)):
             x = torch.where((iou >= self.iouv[i]) & correct_class)  # IoU > threshold and classes match
             if x[0].shape[0]:
-                matches = torch.cat((torch.stack(x, 1), iou[x[0], x[1]][:, None]),
-                                    1).cpu().numpy()  # [label, detect, iou]
+                matches = torch.cat(
+                    (torch.stack(x, 1), iou[x[0], x[1]][:, None]),
+                    1,
+                ).cpu().numpy()  # [label, detect, iou]
                 if x[0].shape[0] > 1:
                     matches = matches[matches[:, 2].argsort()[::-1]]
                     matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
@@ -161,22 +179,26 @@ class SegmentationValidator(DetectionValidator):
         return torch.tensor(correct, dtype=torch.bool, device=detections.device)
 
     def plot_val_samples(self, batch, ni):
-        plot_images(batch['img'],
-                    batch['batch_idx'],
-                    batch['cls'].squeeze(-1),
-                    batch['bboxes'],
-                    batch['masks'],
-                    paths=batch['im_file'],
-                    fname=self.save_dir / f'val_batch{ni}_labels.jpg',
-                    names=self.names)
+        plot_images(
+            batch['img'],
+            batch['batch_idx'],
+            batch['cls'].squeeze(-1),
+            batch['bboxes'],
+            batch['masks'],
+            paths=batch['im_file'],
+            fname=self.save_dir / f'val_batch{ni}_labels.jpg',
+            names=self.names,
+        )
 
     def plot_predictions(self, batch, preds, ni):
-        plot_images(batch['img'],
-                    *output_to_target(preds[0], max_det=15),
-                    torch.cat(self.plot_masks, dim=0) if len(self.plot_masks) else self.plot_masks,
-                    paths=batch['im_file'],
-                    fname=self.save_dir / f'val_batch{ni}_pred.jpg',
-                    names=self.names)  # pred
+        plot_images(
+            batch['img'],
+            *output_to_target(preds[0], max_det=15),
+            torch.cat(self.plot_masks, dim=0) if len(self.plot_masks) else self.plot_masks,
+            paths=batch['im_file'],
+            fname=self.save_dir / f'val_batch{ni}_pred.jpg',
+            names=self.names
+        )  # pred
         self.plot_masks.clear()
 
     def pred_to_json(self, predn, filename, pred_masks):
@@ -202,7 +224,8 @@ class SegmentationValidator(DetectionValidator):
                 'category_id': self.class_map[int(p[5])],
                 'bbox': [round(x, 3) for x in b],
                 'score': round(p[4], 5),
-                'segmentation': rles[i]})
+                'segmentation': rles[i],
+            })
 
     def eval_json(self, stats):
         if self.args.save_json and self.is_coco and len(self.jdict):
@@ -220,14 +243,17 @@ class SegmentationValidator(DetectionValidator):
                 pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
                 for i, eval in enumerate([COCOeval(anno, pred, 'bbox'), COCOeval(anno, pred, 'segm')]):
                     if self.is_coco:
-                        eval.params.imgIds = [int(Path(x).stem)
-                                              for x in self.dataloader.dataset.im_files]  # images to eval
+                        eval.params.imgIds = [
+                            int(Path(x).stem)
+                            for x in self.dataloader.dataset.im_files
+                        ]  # images to eval
                     eval.evaluate()
                     eval.accumulate()
                     eval.summarize()
                     idx = i * 4 + 2
                     stats[self.metrics.keys[idx + 1]], stats[
-                        self.metrics.keys[idx]] = eval.stats[:2]  # update mAP50-95 and mAP50
+                        self.metrics.keys[idx]
+                    ] = eval.stats[:2]  # update mAP50-95 and mAP50
             except Exception as e:
                 LOGGER.warning(f'pycocotools unable to run: {e}')
         return stats

@@ -75,8 +75,10 @@ class STrack(BaseTrack):
         self.start_frame = frame_id
 
     def re_activate(self, new_track, frame_id, new_id=False):
-        self.mean, self.covariance = self.kalman_filter.update(self.mean, self.covariance,
-                                                               self.convert_coords(new_track.tlwh))
+        self.mean, self.covariance = self.kalman_filter.update(
+            self.mean, self.covariance,
+            self.convert_coords(new_track.tlwh),
+        )
         self.tracklet_len = 0
         self.state = TrackState.Tracked
         self.is_activated = True
@@ -98,8 +100,10 @@ class STrack(BaseTrack):
         self.tracklet_len += 1
 
         new_tlwh = new_track.tlwh
-        self.mean, self.covariance = self.kalman_filter.update(self.mean, self.covariance,
-                                                               self.convert_coords(new_tlwh))
+        self.mean, self.covariance = self.kalman_filter.update(
+            self.mean, self.covariance,
+            self.convert_coords(new_tlwh),
+        )
         self.state = TrackState.Tracked
         self.is_activated = True
 
@@ -281,7 +285,8 @@ class BYTETracker:
         self.tracked_stracks, self.lost_stracks = self.remove_duplicate_stracks(self.tracked_stracks, self.lost_stracks)
         output = [
             track.tlbr.tolist() + [track.track_id, track.score, track.cls, track.idx] for track in self.tracked_stracks
-            if track.is_activated]
+            if track.is_activated
+        ]
         return np.asarray(output, dtype=np.float32)
 
     def get_kalmanfilter(self):

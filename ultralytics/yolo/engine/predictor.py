@@ -138,16 +138,20 @@ class BasePredictor:
             transforms = getattr(self.model.model, 'transforms', classify_transforms(self.imgsz[0]))
         else:  # predict, segment
             transforms = None
-        self.dataset = load_inference_source(source=source,
-                                             transforms=transforms,
-                                             imgsz=self.imgsz,
-                                             vid_stride=self.args.vid_stride,
-                                             stride=self.model.stride,
-                                             auto=self.model.pt)
+        self.dataset = load_inference_source(
+            source=source,
+            transforms=transforms,
+            imgsz=self.imgsz,
+            vid_stride=self.args.vid_stride,
+            stride=self.model.stride,
+            auto=self.model.pt,
+        )
         self.source_type = self.dataset.source_type
-        if not getattr(self, 'stream', True) and (self.dataset.mode == 'stream' or  # streams
-                                                  len(self.dataset) > 1000 or  # images
-                                                  any(getattr(self.dataset, 'video_flag', [False]))):  # videos
+        if not getattr(self, 'stream', True) and (
+            self.dataset.mode == 'stream' or  # streams
+            len(self.dataset) > 1000 or  # images
+            any(getattr(self.dataset, 'video_flag', [False]))
+        ):  # videos
             LOGGER.warning(STREAM_WARNING)
         self.vid_path, self.vid_writer = [None] * self.dataset.bs, [None] * self.dataset.bs
 
@@ -199,7 +203,8 @@ class BasePredictor:
                 self.results[i].speed = {
                     'preprocess': self.dt[0].dt * 1E3 / n,
                     'inference': self.dt[1].dt * 1E3 / n,
-                    'postprocess': self.dt[2].dt * 1E3 / n}
+                    'postprocess': self.dt[2].dt * 1E3 / n,
+                }
                 if self.source_type.tensor:  # skip write, show and plot operations if input is raw tensor
                     continue
                 p, im0 = (path[i], im0s[i].copy()) if self.source_type.webcam or self.source_type.from_img \
@@ -228,8 +233,10 @@ class BasePredictor:
         # Print results
         if self.args.verbose and self.seen:
             t = tuple(x.t / self.seen * 1E3 for x in self.dt)  # speeds per image
-            LOGGER.info(f'Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape '
-                        f'{(1, 3, *self.imgsz)}' % t)
+            LOGGER.info(
+                f'Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape '
+                f'{(1, 3, *self.imgsz)}' % t,
+            )
         if self.args.save or self.args.save_txt or self.args.save_crop:
             nl = len(list(self.save_dir.glob('labels/*.txt')))  # number of labels
             s = f"\n{nl} label{'s' * (nl > 1)} saved to {self.save_dir / 'labels'}" if self.args.save_txt else ''
@@ -241,12 +248,14 @@ class BasePredictor:
         device = select_device(self.args.device, verbose=verbose)
         model = model or self.args.model
         self.args.half &= device.type != 'cpu'  # half precision only supported on CUDA
-        self.model = AutoBackend(model,
-                                 device=device,
-                                 dnn=self.args.dnn,
-                                 data=self.args.data,
-                                 fp16=self.args.half,
-                                 verbose=verbose)
+        self.model = AutoBackend(
+            model,
+            device=device,
+            dnn=self.args.dnn,
+            data=self.args.data,
+            fp16=self.args.half,
+            verbose=verbose,
+        )
         self.device = device
         self.model.eval()
 

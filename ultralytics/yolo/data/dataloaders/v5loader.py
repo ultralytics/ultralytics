@@ -26,14 +26,18 @@ from PIL import ExifTags, Image, ImageOps
 from torch.utils.data import DataLoader, Dataset, dataloader, distributed
 from tqdm import tqdm
 
-from ultralytics.yolo.utils import (DATASETS_DIR, LOGGER, NUM_THREADS, TQDM_BAR_FORMAT, is_colab, is_dir_writeable,
-                                    is_kaggle)
+from ultralytics.yolo.utils import (
+    DATASETS_DIR, LOGGER, NUM_THREADS, TQDM_BAR_FORMAT, is_colab, is_dir_writeable,
+    is_kaggle,
+)
 from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils.ops import clean_str, segments2boxes, xyn2xy, xywh2xyxy, xywhn2xyxy, xyxy2xywhn
 from ultralytics.yolo.utils.torch_utils import torch_distributed_zero_first
 
-from .v5augmentations import (Albumentations, augment_hsv, classify_albumentations, classify_transforms, copy_paste,
-                              letterbox, mixup, random_perspective)
+from .v5augmentations import (
+    Albumentations, augment_hsv, classify_albumentations, classify_transforms, copy_paste,
+    letterbox, mixup, random_perspective,
+)
 
 # Parameters
 HELP_URL = 'See https://github.com/ultralytics/yolov5/wiki/Train-Custom-Data'
@@ -85,7 +89,8 @@ def exif_transpose(image):
             5: Image.TRANSPOSE,
             6: Image.ROTATE_270,
             7: Image.TRANSVERSE,
-            8: Image.ROTATE_90}.get(orientation)
+            8: Image.ROTATE_90,
+        }.get(orientation)
         if method is not None:
             image = image.transpose(method)
             del exif[0x0112]
@@ -100,24 +105,26 @@ def seed_worker(worker_id):
     random.seed(worker_seed)
 
 
-def create_dataloader(path,
-                      imgsz,
-                      batch_size,
-                      stride,
-                      single_cls=False,
-                      hyp=None,
-                      augment=False,
-                      cache=False,
-                      pad=0.0,
-                      rect=False,
-                      rank=-1,
-                      workers=8,
-                      image_weights=False,
-                      close_mosaic=False,
-                      min_items=0,
-                      prefix='',
-                      shuffle=False,
-                      seed=0):
+def create_dataloader(
+    path,
+    imgsz,
+    batch_size,
+    stride,
+    single_cls=False,
+    hyp=None,
+    augment=False,
+    cache=False,
+    pad=0.0,
+    rect=False,
+    rank=-1,
+    workers=8,
+    image_weights=False,
+    close_mosaic=False,
+    min_items=0,
+    prefix='',
+    shuffle=False,
+    seed=0,
+):
     if rect and shuffle:
         LOGGER.warning('WARNING ⚠️ --rect is incompatible with DataLoader shuffle, setting shuffle=False')
         shuffle = False
@@ -135,7 +142,8 @@ def create_dataloader(path,
             pad=pad,
             image_weights=image_weights,
             min_items=min_items,
-            prefix=prefix)
+            prefix=prefix,
+        )
 
     batch_size = min(batch_size, len(dataset))
     nd = torch.cuda.device_count()  # number of CUDA devices
@@ -144,15 +152,17 @@ def create_dataloader(path,
     loader = DataLoader if image_weights or close_mosaic else InfiniteDataLoader  # DataLoader allows attribute updates
     generator = torch.Generator()
     generator.manual_seed(6148914691236517205 + seed + RANK)
-    return loader(dataset,
-                  batch_size=batch_size,
-                  shuffle=shuffle and sampler is None,
-                  num_workers=nw,
-                  sampler=sampler,
-                  pin_memory=PIN_MEMORY,
-                  collate_fn=LoadImagesAndLabels.collate_fn,
-                  worker_init_fn=seed_worker,
-                  generator=generator), dataset
+    return loader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=shuffle and sampler is None,
+        num_workers=nw,
+        sampler=sampler,
+        pin_memory=PIN_MEMORY,
+        collate_fn=LoadImagesAndLabels.collate_fn,
+        worker_init_fn=seed_worker,
+        generator=generator,
+    ), dataset
 
 
 class InfiniteDataLoader(dataloader.DataLoader):
@@ -438,20 +448,22 @@ class LoadImagesAndLabels(Dataset):
     cache_version = 0.6  # dataset labels *.cache version
     rand_interp_methods = [cv2.INTER_NEAREST, cv2.INTER_LINEAR, cv2.INTER_CUBIC, cv2.INTER_AREA, cv2.INTER_LANCZOS4]
 
-    def __init__(self,
-                 path,
-                 img_size=640,
-                 batch_size=16,
-                 augment=False,
-                 hyp=None,
-                 rect=False,
-                 image_weights=False,
-                 cache_images=False,
-                 single_cls=False,
-                 stride=32,
-                 pad=0.0,
-                 min_items=0,
-                 prefix=''):
+    def __init__(
+        self,
+        path,
+        img_size=640,
+        batch_size=16,
+        augment=False,
+        hyp=None,
+        rect=False,
+        image_weights=False,
+        cache_images=False,
+        single_cls=False,
+        stride=32,
+        pad=0.0,
+        min_items=0,
+        prefix='',
+    ):
         self.img_size = img_size
         self.augment = augment
         self.hyp = hyp
@@ -601,9 +613,11 @@ class LoadImagesAndLabels(Dataset):
         mem = psutil.virtual_memory()
         cache = mem_required * (1 + safety_margin) < mem.available  # to cache or not to cache, that is the question
         if not cache:
-            LOGGER.info(f'{prefix}{mem_required / gb:.1f}GB RAM required, '
-                        f'{mem.available / gb:.1f}/{mem.total / gb:.1f}GB available, '
-                        f"{'caching images ✅' if cache else 'not caching images ⚠️'}")
+            LOGGER.info(
+                f'{prefix}{mem_required / gb:.1f}GB RAM required, '
+                f'{mem.available / gb:.1f}/{mem.total / gb:.1f}GB available, '
+                f"{'caching images ✅' if cache else 'not caching images ⚠️'}",
+            )
         return cache
 
     def cache_labels(self, path=Path('./labels.cache'), prefix=''):
@@ -682,13 +696,15 @@ class LoadImagesAndLabels(Dataset):
                 labels[:, 1:] = xywhn2xyxy(labels[:, 1:], ratio[0] * w, ratio[1] * h, padw=pad[0], padh=pad[1])
 
             if self.augment:
-                img, labels = random_perspective(img,
-                                                 labels,
-                                                 degrees=hyp['degrees'],
-                                                 translate=hyp['translate'],
-                                                 scale=hyp['scale'],
-                                                 shear=hyp['shear'],
-                                                 perspective=hyp['perspective'])
+                img, labels = random_perspective(
+                    img,
+                    labels,
+                    degrees=hyp['degrees'],
+                    translate=hyp['translate'],
+                    scale=hyp['scale'],
+                    shear=hyp['shear'],
+                    perspective=hyp['perspective'],
+                )
 
         nl = len(labels)  # number of labels
         if nl:
@@ -797,15 +813,17 @@ class LoadImagesAndLabels(Dataset):
 
         # Augment
         img4, labels4, segments4 = copy_paste(img4, labels4, segments4, p=self.hyp['copy_paste'])
-        img4, labels4 = random_perspective(img4,
-                                           labels4,
-                                           segments4,
-                                           degrees=self.hyp['degrees'],
-                                           translate=self.hyp['translate'],
-                                           scale=self.hyp['scale'],
-                                           shear=self.hyp['shear'],
-                                           perspective=self.hyp['perspective'],
-                                           border=self.mosaic_border)  # border to remove
+        img4, labels4 = random_perspective(
+            img4,
+            labels4,
+            segments4,
+            degrees=self.hyp['degrees'],
+            translate=self.hyp['translate'],
+            scale=self.hyp['scale'],
+            shear=self.hyp['shear'],
+            perspective=self.hyp['perspective'],
+            border=self.mosaic_border,
+        )  # border to remove
 
         return img4, labels4
 
@@ -874,15 +892,17 @@ class LoadImagesAndLabels(Dataset):
 
         # Augment
         img9, labels9, segments9 = copy_paste(img9, labels9, segments9, p=self.hyp['copy_paste'])
-        img9, labels9 = random_perspective(img9,
-                                           labels9,
-                                           segments9,
-                                           degrees=self.hyp['degrees'],
-                                           translate=self.hyp['translate'],
-                                           scale=self.hyp['scale'],
-                                           shear=self.hyp['shear'],
-                                           perspective=self.hyp['perspective'],
-                                           border=self.mosaic_border)  # border to remove
+        img9, labels9 = random_perspective(
+            img9,
+            labels9,
+            segments9,
+            degrees=self.hyp['degrees'],
+            translate=self.hyp['translate'],
+            scale=self.hyp['scale'],
+            shear=self.hyp['shear'],
+            perspective=self.hyp['perspective'],
+            border=self.mosaic_border,
+        )  # border to remove
 
         return img9, labels9
 
@@ -900,7 +920,8 @@ class LoadImagesAndLabels(Dataset):
             'img': torch.stack(im, 0),
             'cls': cls,
             'bboxes': bboxes,
-            'batch_idx': batch_idx.view(-1)}
+            'batch_idx': batch_idx.view(-1),
+        }
 
     @staticmethod
     def collate_fn_old(batch):
@@ -1069,14 +1090,16 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         return sample, j
 
 
-def create_classification_dataloader(path,
-                                     imgsz=224,
-                                     batch_size=16,
-                                     augment=True,
-                                     cache=False,
-                                     rank=-1,
-                                     workers=8,
-                                     shuffle=True):
+def create_classification_dataloader(
+    path,
+    imgsz=224,
+    batch_size=16,
+    augment=True,
+    cache=False,
+    rank=-1,
+    workers=8,
+    shuffle=True,
+):
     # Returns Dataloader object to be used with YOLOv5 Classifier
     with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
         dataset = ClassificationDataset(root=path, imgsz=imgsz, augment=augment, cache=cache)
@@ -1086,11 +1109,13 @@ def create_classification_dataloader(path,
     sampler = None if rank == -1 else distributed.DistributedSampler(dataset, shuffle=shuffle)
     generator = torch.Generator()
     generator.manual_seed(6148914691236517205 + RANK)
-    return InfiniteDataLoader(dataset,
-                              batch_size=batch_size,
-                              shuffle=shuffle and sampler is None,
-                              num_workers=nw,
-                              sampler=sampler,
-                              pin_memory=PIN_MEMORY,
-                              worker_init_fn=seed_worker,
-                              generator=generator)  # or DataLoader(persistent_workers=True)
+    return InfiniteDataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=shuffle and sampler is None,
+        num_workers=nw,
+        sampler=sampler,
+        pin_memory=PIN_MEMORY,
+        worker_init_fn=seed_worker,
+        generator=generator,
+    )  # or DataLoader(persistent_workers=True)

@@ -140,7 +140,8 @@ default_callbacks = {
 
     # Run in exporter
     'on_export_start': [on_export_start],
-    'on_export_end': [on_export_end]}
+    'on_export_end': [on_export_end],
+}
 
 
 def add_integration_callbacks(instance):

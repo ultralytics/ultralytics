@@ -91,7 +91,8 @@ class AutoBackend(nn.Module):
         if nn_module:
             model = weights.to(device)
             model = model.fuse(verbose=verbose) if fuse else model
-            kpt_shape = getattr(model, 'kpt_shape')  # pose-only
+            if hasattr(model, 'kpt_shape'):
+                kpt_shape = model.kpt_shape  # pose-only
             stride = max(int(model.stride.max()), 32)  # model stride
             names = model.module.names if hasattr(model, 'module') else model.names  # get class names
             model.half() if fp16 else model.float()
@@ -103,7 +104,8 @@ class AutoBackend(nn.Module):
                                          device=device,
                                          inplace=True,
                                          fuse=fuse)
-            kpt_shape = getattr(model, 'kpt_shape')  # pose-only
+            if hasattr(model, 'kpt_shape'):
+                kpt_shape = model.kpt_shape  # pose-only
             stride = max(int(model.stride.max()), 32)  # model stride
             names = model.module.names if hasattr(model, 'module') else model.names  # get class names
             model.half() if fp16 else model.float()

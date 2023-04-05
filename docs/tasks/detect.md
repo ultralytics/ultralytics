@@ -134,7 +134,6 @@ An example to differentiate between Night Vision modes and their (Saved/Shown) r
 
 ![Example Image](night_vision_example.png)
 
-
 ## Export
 
 Export a YOLOv8n model to a different format like ONNX, CoreML, etc.

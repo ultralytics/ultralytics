@@ -227,8 +227,8 @@ class YOLO:
         if source is None:
             source = ROOT / 'assets' if is_git_dir() else 'https://ultralytics.com/images/bus.jpg'
             LOGGER.warning(f"WARNING ⚠️ 'source' is missing. Using 'source={source}'.")
-        is_cli = (sys.argv[0].endswith('yolo') or sys.argv[0].endswith('ultralytics')) and \
-                 any(x in sys.argv for x in ('predict', 'track', 'mode=predict', 'mode=track'))
+        is_cli = (sys.argv[0].endswith('yolo') or sys.argv[0].endswith('ultralytics')) and any(
+            x in sys.argv for x in ('predict', 'track', 'mode=predict', 'mode=track'))
         overrides = self.overrides.copy()
         overrides['conf'] = 0.25
         overrides.update(kwargs)  # prefer kwargs

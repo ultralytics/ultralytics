@@ -624,7 +624,8 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.3'):
 
         # Check that settings keys and types match defaults
         correct = \
-            settings.keys() == defaults.keys() \
+            settings \
+            and settings.keys() == defaults.keys() \
             and all(type(a) == type(b) for a, b in zip(settings.values(), defaults.values())) \
             and check_version(settings['settings_version'], version)
         if not correct:
@@ -644,6 +645,14 @@ def set_settings(kwargs, file=USER_CONFIG_DIR / 'settings.yaml'):
     """
     SETTINGS.update(kwargs)
     yaml_save(file, SETTINGS)
+
+
+def deprecation_warn(arg, new_arg, version=None):
+    if not version:
+        version = float(__version__[0:3]) + 0.2  # deprecate after 2nd major release
+    LOGGER.warning(
+        f'WARNING: `{arg}` is deprecated and will be removed in upcoming major release {version}. Use `{new_arg}` instead'
+    )
 
 
 # Run below code on yolo/utils init ------------------------------------------------------------------------------------

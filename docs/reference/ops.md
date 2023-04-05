@@ -175,9 +175,9 @@ show_source: false
 show_root_toc_entry: false
 ---
 
-## scale_segments
+## scale_coords
 
-:::ultralytics.yolo.utils.ops.scale_segments
+:::ultralytics.yolo.utils.ops.scale_coords
 handler: python
 options:
 show_source: false
@@ -193,9 +193,9 @@ show_source: false
 show_root_toc_entry: false
 ---
 
-## clip_segments
+## clip_coords
 
-:::ultralytics.yolo.utils.ops.clip_segments
+:::ultralytics.yolo.utils.ops.clip_coords
 handler: python
 options:
 show_source: false

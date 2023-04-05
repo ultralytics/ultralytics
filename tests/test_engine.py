@@ -13,8 +13,10 @@ CFG = get_cfg(DEFAULT_CFG)
 MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n'
 SOURCE = ROOT / 'assets'
 
+
 def test_func(model):
     print('callback test passed')
+
 
 def test_detect():
     overrides = {'data': 'coco8.yaml', 'model': CFG_DET, 'imgsz': 32, 'epochs': 1, 'save': False}
@@ -22,7 +24,7 @@ def test_detect():
 
     # Trainer
     trainer = detect.DetectionTrainer(overrides=overrides)
-    trainer.add_callback("on_train_start", test_func)
+    trainer.add_callback('on_train_start', test_func)
     assert test_func in trainer.callbacks['on_train_start'], 'callback test failed'
     # assert trainer.callbacks
     trainer.train()
@@ -59,7 +61,7 @@ def test_segment():
 
     # trainer
     trainer = segment.SegmentationTrainer(overrides=overrides)
-    trainer.add_callback("on_train_start", test_func)
+    trainer.add_callback('on_train_start', test_func)
     assert test_func in trainer.callbacks['on_train_start'], 'callback test failed'
     trainer.train()
 
@@ -96,7 +98,7 @@ def test_classify():
 
     # Trainer
     trainer = classify.ClassificationTrainer(overrides=overrides)
-    trainer.add_callback("on_train_start", test_func)
+    trainer.add_callback('on_train_start', test_func)
     assert test_func in trainer.callbacks['on_train_start'], 'callback test failed'
     trainer.train()
 

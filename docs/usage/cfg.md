@@ -136,8 +136,8 @@ The prediction settings for YOLO models encompass a range of hyperparameters and
 | `save_txt`       | `False`                | save results as .txt file                                |
 | `save_conf`      | `False`                | save results with confidence scores                      |
 | `save_crop`      | `False`                | save cropped images with results                         |
-| `hide_labels`    | `False`                | hide labels                                              |
-| `hide_conf`      | `False`                | hide confidence scores                                   |
+| `show_labels`    | `True`                 | show object labels in plots                              |
+| `show_conf`      | `True`                 | show object confidence scores in plots                   |
 | `max_det`        | `300`                  | maximum number of detections per image                   |
 | `vid_stride`     | `False`                | video frame-rate stride                                  |
 | `line_thickness` | `3`                    | bounding box thickness (pixels)                          |

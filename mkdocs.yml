@@ -65,7 +65,7 @@ extra:
           data: 0
           note: >-
             Thanks for your feedback!<br>
-            <a href="https://github.com/ultralytics/ultralytics/issues/new?title=Docs+Feedback+for+{title}+page+at+{url}&labels=enhancement&template=feature-request.yml" target="_blank" rel="noopener">Tell us what we can improve.</a>
+            <a href="https://github.com/ultralytics/ultralytics/issues/new?title=Docs+Feedback+for+{title}+page+at+https://docs.ultralytics.com/{url}&labels=enhancement&template=feature-request.yml" target="_blank" rel="noopener">Tell us what we can improve.</a>
 
   social:
     - icon: fontawesome/brands/github
@@ -134,7 +134,7 @@ nav:
       - Detect: tasks/detect.md
       - Segment: tasks/segment.md
       - Classify: tasks/classify.md
-#      - Keypoints: tasks/keypoints.md
+      - Pose: tasks/pose.md
   - Usage:
       - CLI: usage/cli.md
       - Python: usage/python.md

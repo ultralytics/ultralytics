@@ -127,7 +127,7 @@ Use a trained YOLOv8n-seg model to run predictions on images.
         yolo segment predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predict with custom model
         ```
 
-Read more details of `predict` in our [Predict](https://docs.ultralytics.com/modes/predict/) page.
+See full `predict` mode details in the [Predict](https://docs.ultralytics.com/modes/predict/) page.
 
 ## Export
 
@@ -155,7 +155,7 @@ Export a YOLOv8n-seg model to a different format like ONNX, CoreML, etc.
         ```
 
 Available YOLOv8-seg export formats are in the table below. You can predict or validate directly on exported models,
-i.e. `yolo predict model=yolov8n-seg.onnx`.
+i.e. `yolo predict model=yolov8n-seg.onnx`. Usage examples are shown for your model after export completes.
 
 | Format                                                             | `format` Argument | Model                         | Metadata |
 |--------------------------------------------------------------------|-------------------|-------------------------------|----------|
@@ -172,4 +172,4 @@ i.e. `yolo predict model=yolov8n-seg.onnx`.
 | [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n-seg_web_model/`      | ✅        |
 | [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n-seg_paddle_model/`   | ✅        |
 
-
+See full `export` details in the [Export](https://docs.ultralytics.com/modes/export/) page.

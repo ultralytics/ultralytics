@@ -88,6 +88,8 @@ task.
 | `box`             | `7.5`    | box loss gain                                                               |
 | `cls`             | `0.5`    | cls loss gain (scale with pixels)                                           |
 | `dfl`             | `1.5`    | dfl loss gain                                                               |
+| `pose`            | `12.0`   | pose loss gain (pose-only)                                                  |
+| `kobj`            | `2.0`    | keypoint obj loss gain (pose-only)                                          |
 | `fl_gamma`        | `0.0`    | focal loss gamma (efficientDet default gamma=1.5)                           |
 | `label_smoothing` | `0.0`    | label smoothing (fraction)                                                  |
 | `nbs`             | `64`     | nominal batch size                                                          |

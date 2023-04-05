@@ -74,7 +74,10 @@ class SegmentationValidator(DetectionValidator):
             # Masks
             midx = [si] if self.args.overlap_mask else idx
             gt_masks = batch['masks'][midx]
-            pred_masks = self.process(proto, pred[:, 6:], pred[:, :4], shape=batch['img'][si].shape[1:])
+            if self.process == ops.process_mask_upsample:
+                pred_masks = self.process(proto, pred[:, 6:], pred[:, :4], shape=batch['img'][si].shape[1:])
+            elif self.process == ops.process_mask:
+                pred_masks = self.process(proto, pred[:, 6:], pred[:, :4], batch['img'][si].shape[1:], batch['img'][si].shape[1:])
 
             # Predictions
             if self.args.single_cls:

@@ -610,7 +610,7 @@ def process_mask(protos, masks_in, bboxes, shape, orig_shape, upsample=False):
     pad = (ih - unpad_shape[0]) / 2, (iw - unpad_shape[1]) / 2
 
     rp = min(mh / ih, mw / iw)
-    top, left = int(pad[0] * rp), int(pad[1] * rp)  # y, x
+    top, left = int(pad[0] * rp), int(pad[1] * rp)
     bottom, right = int((ih - pad[0]) * rp), int((iw - pad[1]) * rp)
     masks = masks[:, top:bottom, left:right]
 

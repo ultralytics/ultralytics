@@ -59,7 +59,7 @@ jobs:
           hub.login(key)
           model = YOLO('https://hub.ultralytics.com/models/' + model_id)
           model.train()
-          model_id = '0y3hn778RpK4T6aQ8tIF'
+          model_id = 'AaNEkcy7xXx7fFQ0Tmz0'
           hub.reset_model(f'{key}_{model_id}')
           model = YOLO('https://hub.ultralytics.com/models/' + model_id)
           model.train()

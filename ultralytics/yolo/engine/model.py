@@ -405,8 +405,6 @@ class YOLO:
             LOGGER.warning('WARNING: search space not provided. Using default search space')
             space = default_space
         space['data'] = data
-        if not space.get('epochs'):
-            space['epochs'] = max_epochs
 
         trainable_with_resources = tune.with_resources(_tune, {'cpu': 8, 'gpu': gpu_per_trial if gpu_per_trial else 0})
         pbt_interval = pbt_interval

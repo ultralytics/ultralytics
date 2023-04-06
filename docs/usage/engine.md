@@ -74,7 +74,7 @@ trainer.add_callback("on_train_epoch_end", log_model)  # Adds to existing callba
 trainer.train()
 ```
 
-To know more about Callback triggering events and entry point, checkout our Callbacks guide # TODO
+To know more about Callback triggering events and entry point, checkout our [Callbacks Guide](callbacks.md)
 
 ## Other engine components
 

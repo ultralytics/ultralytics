@@ -59,7 +59,6 @@ accurately predict the classes and locations of objects in an image.
 
     === "Resume"
         ```python
-        # TODO: Resume feature is under development and should be released soon.
         model = YOLO("last.pt")
         model.train(resume=True)
         ```

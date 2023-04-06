@@ -225,7 +225,7 @@ class Results(SimpleClass):
             for k in reversed(keypoints):
                 annotator.kpts(k, self.orig_shape, kpt_line=kpt_line)
 
-        return np.asarray(annotator.im) if annotator.pil else annotator.im
+        return annotator.result()
 
 
 class Boxes(BaseTensor):

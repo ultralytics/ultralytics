@@ -365,7 +365,7 @@ class YOLO:
         self._check_is_pytorch_model()
         self.model.to(device)
 
-    def tune(self, data: str, space: dict = None, pbt_space=None, pbt_interval=4, gpu_per_trial=None, max_samples=10):
+    def tune(self, data: str, space: dict = None, pbt_space=None, pbt_interval=4, gpu_per_trial=None, max_samples=10, max_epochs=50):
         """
         Runs hyper-parameter tuning using ray tune
 
@@ -397,7 +397,9 @@ class YOLO:
             LOGGER.warning('WARNING: search space not provided. Using default search space')
             space = default_space
         space['data'] = data
-
+        if not space.get("epochs"):
+            space["epochs"] = 50
+            
         trainable_with_resources = tune.with_resources(_tune, {'cpu': 8, 'gpu': gpu_per_trial if gpu_per_trial else 0})
         pbt_interval = pbt_interval
         # params to pe

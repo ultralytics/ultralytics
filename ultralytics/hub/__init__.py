@@ -3,7 +3,7 @@
 import requests
 
 from ultralytics.hub.utils import PREFIX, split_key
-from ultralytics.yolo.utils import LOGGER
+from ultralytics.yolo.utils import LOGGER, SETTINGS, USER_CONFIG_DIR, yaml_save
 
 
 def login(api_key=''):
@@ -15,7 +15,7 @@ def login(api_key=''):
 
     Example:
         from ultralytics import hub
-        hub.login('your_api_key')
+        hub.login('API_KEY')
     """
     from ultralytics.hub.auth import Auth
     Auth(api_key)
@@ -23,13 +23,15 @@ def login(api_key=''):
 
 def logout():
     """
-    Logout Ultralytics HUB
+    Log out of Ultralytics HUB by removing the API key from the settings file. To log in again, use 'yolo hub login'.
 
     Example:
         from ultralytics import hub
         hub.logout()
     """
-    LOGGER.warning('WARNING ⚠️ This method is not yet implemented.')
+    SETTINGS['api_key'] = ''
+    yaml_save(USER_CONFIG_DIR / 'settings.yaml', SETTINGS)
+    LOGGER.info(f"{PREFIX}logged out ✅. To log in again, use 'yolo hub login'.")
 
 
 def start(key=''):

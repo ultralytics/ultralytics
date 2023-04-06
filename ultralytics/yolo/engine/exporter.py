@@ -53,7 +53,6 @@ import platform
 import subprocess
 import time
 import warnings
-from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
 
@@ -139,7 +138,7 @@ class Exporter:
             overrides (dict, optional): Configuration overrides. Defaults to None.
         """
         self.args = get_cfg(cfg, overrides)
-        self.callbacks = defaultdict(list, _callbacks) if _callbacks else defaultdict(list, callbacks.default_callbacks)
+        self.callbacks = _callbacks if _callbacks else callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 
     @smart_inference_mode()

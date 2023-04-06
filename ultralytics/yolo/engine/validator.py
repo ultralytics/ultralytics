@@ -19,7 +19,6 @@ Usage - formats:
                           yolov8n_paddle_model       # PaddlePaddle
 """
 import json
-from collections import defaultdict
 from pathlib import Path
 
 import torch
@@ -85,7 +84,7 @@ class BaseValidator:
         if self.args.conf is None:
             self.args.conf = 0.001  # default conf=0.001
 
-        self.callbacks = defaultdict(list, _callbacks) if _callbacks else defaultdict(list, callbacks.default_callbacks)
+        self.callbacks = _callbacks if _callbacks else callbacks.get_default_callbacks()
 
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):

@@ -78,7 +78,7 @@ class YOLO:
             task (Any, optional): Task type for the YOLO model. Defaults to None.
 
         """
-        self.callbacks = callbacks.default_callbacks.copy()
+        self.callbacks = callbacks.get_default_callbacks()
         self.predictor = None  # reuse predictor
         self.model = None  # model object
         self.trainer = None  # trainer object

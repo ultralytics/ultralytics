@@ -47,7 +47,7 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX')):
             # If zip does not expand into a directory create a new directory to expand into
             if i == 0:
                 info = zipObj.getinfo(f)
-                if hasattr(info, 'file_size') or not info.filename.endswith('/'):  # element is a file
+                if info.file_size > 0 or not info.filename.endswith('/'):  # element is a file and not a directory
                     path = Path(path) / Path(file).stem  # define new unzip directory
                     unzip_dir = path
                 else:

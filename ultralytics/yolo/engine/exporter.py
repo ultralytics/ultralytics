@@ -544,7 +544,7 @@ class Exporter:
                 img = img.transpose(1, 2, 0)  # CHW to HWC
                 img = img[np.newaxis]
                 calib_data.append(img)
-            f.mkdir(parents=True, exist_ok=True)
+            f.mkdir()
             calib_file = Path(f / 'calib_data.npy')
             np.save(calib_file, np.vstack(calib_data))  # BHWC
 

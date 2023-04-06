@@ -61,7 +61,8 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
                 filename = model.ckpt_path or model.cfg
                 export = model  # PyTorch format
             else:
-                filename = model.export(imgsz=imgsz, format=format, half=half, device=device)  # all others
+                filename = model.export(imgsz=imgsz, format=format, half=half, device=device,
+                                        data='coco128.yaml')  # all others
                 export = YOLO(filename, task=model.task)
                 assert suffix in str(filename), 'export failed'
             emoji = '❎'  # indicates export succeeded

@@ -2,11 +2,11 @@
 
 from pathlib import Path
 
+from ultralytics import YOLO
 from ultralytics.yolo.cfg import get_cfg
+from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import DEFAULT_CFG, ROOT, SETTINGS
 from ultralytics.yolo.v8 import classify, detect, segment
-from ultralytics.yolo.engine.exporter import Exporter
-from ultralytics import YOLO
 
 CFG_DET = 'yolov8n.yaml'
 CFG_SEG = 'yolov8n-seg.yaml'
@@ -19,12 +19,14 @@ SOURCE = ROOT / 'assets'
 def test_func(model=None):
     print('callback test passed')
 
+
 def test_export():
     exporter = Exporter()
     exporter.add_callback('on_export_start', test_func)
     assert test_func in exporter.callbacks['on_export_start'], 'callback test failed'
     f = exporter(model=YOLO(CFG_DET).model)
     YOLO(f)(SOURCE)  # exported model inference
+
 
 def test_detect():
     overrides = {'data': 'coco8.yaml', 'model': CFG_DET, 'imgsz': 32, 'epochs': 1, 'save': False}

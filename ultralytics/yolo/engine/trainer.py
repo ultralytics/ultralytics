@@ -8,7 +8,6 @@ Usage:
 import os
 import subprocess
 import time
-from collections import defaultdict
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
@@ -72,7 +71,7 @@ class BaseTrainer:
         csv (Path): Path to results CSV file.
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """
         Initializes the BaseTrainer class.
 
@@ -143,7 +142,7 @@ class BaseTrainer:
         self.plot_idx = [0, 1, 2]
 
         # Callbacks
-        self.callbacks = defaultdict(list, callbacks.default_callbacks)  # add callbacks
+        self.callbacks = _callbacks if _callbacks else callbacks.get_default_callbacks()
         if RANK in (-1, 0):
             callbacks.add_integration_callbacks(self)
 

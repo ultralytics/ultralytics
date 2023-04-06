@@ -13,7 +13,7 @@ on:
 
 jobs:
   HUB:
-    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push')
+    # if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push')
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -57,6 +57,10 @@ jobs:
           hub.reset_model(key)
           key, model_id = key.split('_')
           hub.login(key)
+          model = YOLO('https://hub.ultralytics.com/models/' + model_id)
+          model.train()
+          model_id = '0y3hn778RpK4T6aQ8tIF'
+          hub.reset_model(f'{key}_{model_id}')
           model = YOLO('https://hub.ultralytics.com/models/' + model_id)
           model.train()
 

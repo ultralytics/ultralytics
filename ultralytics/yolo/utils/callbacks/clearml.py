@@ -95,7 +95,8 @@ def on_fit_epoch_end(trainer):
             'model/parameters': get_num_params(trainer.model),
             'model/GFLOPs': round(get_flops(trainer.model), 3),
             'model/speed(ms)': round(trainer.validator.speed['inference'], 3)}
-        [Task.current_task().get_logger().report_single_value(k, v) for k, v in model_info.items()]
+        for k, v in model_info.items():
+            Task.current_task().get_logger().report_single_value(k, v)
 
 
 def on_val_end(validator):
@@ -107,11 +108,11 @@ def on_train_end(trainer):
     # Log final results, CM matrix + PR plots
     files = ['results.png', 'confusion_matrix.png', *(f'{x}_curve.png' for x in ('F1', 'PR', 'P', 'R'))]
     files = [(trainer.save_dir / f) for f in files if (trainer.save_dir / f).exists()]  # filter
-    [_log_plot(title=f.stem, plot_path=f) for f in files]
+    for f in files:
+        _log_plot(title=f.stem, plot_path=f)
     # Report final metrics
-    [
+    for k, v in trainer.validator.metrics.results_dict.items():
         Task.current_task().get_logger().report_single_value(k, v)
-        for k, v in trainer.validator.metrics.results_dict.items()]
     # Log the final model
     Task.current_task().update_output_model(model_path=str(trainer.best),
                                             model_name=trainer.args.name,

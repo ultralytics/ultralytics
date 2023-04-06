@@ -650,9 +650,8 @@ def set_settings(kwargs, file=USER_CONFIG_DIR / 'settings.yaml'):
 def deprecation_warn(arg, new_arg, version=None):
     if not version:
         version = float(__version__[:3]) + 0.2  # deprecate after 2nd major release
-    LOGGER.warning(
-        f'WARNING: `{arg}` is deprecated and will be removed in upcoming major release {version}. Use `{new_arg}` instead'
-    )
+    LOGGER.warning(f"WARNING ⚠️ '{arg}' is deprecated and will be removed in 'ultralytics {version}' in the future. "
+                   f"Please use '{new_arg}' instead.")
 
 
 # Run below code on yolo/utils init ------------------------------------------------------------------------------------

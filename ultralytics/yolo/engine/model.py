@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
 import sys
-from copy import deepcopy
 from pathlib import Path
 from typing import Union
 
@@ -79,7 +78,7 @@ class YOLO:
             task (Any, optional): Task type for the YOLO model. Defaults to None.
 
         """
-        self.callbacks = deepcopy(callbacks.default_callbacks)
+        self.callbacks = callbacks.default_callbacks.copy()
         self.predictor = None  # reuse predictor
         self.model = None  # model object
         self.trainer = None  # trainer object

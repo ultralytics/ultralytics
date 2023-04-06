@@ -314,8 +314,6 @@ def scale_image(masks, im0_shape, ratio_pad=None):
     """
     # Rescale coordinates (xyxy) from im1_shape to im0_shape
     im1_shape = masks.shape
-    if len(im1_shape) == 2:
-        masks = masks[:, :, None]
     if im1_shape[:2] == im0_shape[:2]:
         return masks
     if ratio_pad is None:  # calculate from im0_shape
@@ -334,6 +332,8 @@ def scale_image(masks, im0_shape, ratio_pad=None):
     # masks = F.interpolate(masks[None], im0_shape[:2], mode='bilinear', align_corners=False)[0]
     # masks = masks.permute(1, 2, 0).contiguous()
     masks = cv2.resize(masks, (im0_shape[1], im0_shape[0]))
+    if len(masks.shape) == 2:
+        masks = masks[:, :, None]
 
     return masks
 
@@ -578,11 +578,11 @@ def process_mask(protos, masks_in, bboxes, shape, upsample=False):
     Apply masks to bounding boxes using the output of the mask head.
 
     Args:
-      protos (torch.Tensor): [mask_dim, mask_h, mask_w]
-      masks_in (torch.Tensor): [n, mask_dim], n is number of masks after nms
-      bboxes (torch.Tensor): [n, 4], n is number of masks after nms
-      shape (tuple): the size of the input image (h,w)
-      upsample (bool): A flag to indicate whether to upsample the mask to the original image size. Default is False.
+        protos (torch.Tensor): A tensor of shape [mask_dim, mask_h, mask_w].
+        masks_in (torch.Tensor): A tensor of shape [n, mask_dim], where n is the number of masks after NMS.
+        bboxes (torch.Tensor): A tensor of shape [n, 4], where n is the number of masks after NMS.
+        shape (tuple): A tuple of integers representing the size of the input image in the format (h, w).
+        upsample (bool): A flag to indicate whether to upsample the mask to the original image size. Default is False.
 
     Returns:
         (torch.Tensor): A binary mask tensor of shape [n, h, w], where n is the number of masks after NMS, and h and w

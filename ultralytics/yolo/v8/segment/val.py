@@ -74,11 +74,7 @@ class SegmentationValidator(DetectionValidator):
             # Masks
             midx = [si] if self.args.overlap_mask else idx
             gt_masks = batch['masks'][midx]
-            if self.process == ops.process_mask_upsample:
-                pred_masks = self.process(proto, pred[:, 6:], pred[:, :4], shape=batch['img'][si].shape[1:])
-            elif self.process == ops.process_mask:
-                pred_masks = self.process(proto, pred[:, 6:], pred[:, :4], batch['img'][si].shape[1:],
-                                          batch['img'][si].shape[1:])
+            pred_masks = self.process(proto, pred[:, 6:], pred[:, :4], shape=batch['img'][si].shape[1:])
 
             # Predictions
             if self.args.single_cls:
@@ -118,6 +114,7 @@ class SegmentationValidator(DetectionValidator):
                 pred_masks = ops.scale_image(pred_masks.permute(1, 2, 0).contiguous().cpu().numpy(),
                                              shape,
                                              ratio_pad=batch['ratio_pad'][si])
+                print(pred_masks.shape)
                 self.pred_to_json(predn, batch['im_file'][si], pred_masks)
             # if self.args.save_txt:
             #    save_one_txt(predn, save_conf, shape, file=save_dir / 'labels' / f'{path.stem}.txt')

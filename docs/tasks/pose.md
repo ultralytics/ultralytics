@@ -123,7 +123,7 @@ Use a trained YOLOv8n-pose model to run predictions on images.
     === "CLI"
     
         ```bash
-        yolo pose predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
+        yolo pose predict model=yolov8n-pose.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
         yolo pose predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predict with custom model
         ```
 
@@ -131,7 +131,7 @@ See full `predict` mode details in the [Predict](https://docs.ultralytics.com/mo
 
 ## Export
 
-Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
+Export a YOLOv8n Pose model to a different format like ONNX, CoreML, etc.
 
 !!! example ""
 
@@ -141,7 +141,7 @@ Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
         from ultralytics import YOLO
         
         # Load a model
-        model = YOLO('yolov8n.pt')  # load an official model
+        model = YOLO('yolov8n-pose.pt')  # load an official model
         model = YOLO('path/to/best.pt')  # load a custom trained
         
         # Export the model
@@ -150,7 +150,7 @@ Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
     === "CLI"
     
         ```bash
-        yolo export model=yolov8n.pt format=onnx  # export official model
+        yolo export model=yolov8n-pose.pt format=onnx  # export official model
         yolo export model=path/to/best.pt format=onnx  # export custom trained model
         ```
 

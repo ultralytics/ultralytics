@@ -169,12 +169,12 @@ See [Pose Docs](https://docs.ultralytics.com/tasks/) for usage examples with the
 
 | Model                                                                                                | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>pose<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 | ---------------------------------------------------------------------------------------------------- | --------------------- | -------------------- | --------------------- | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
-| [YOLOv8n-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt)       | 640                   | -                    | 49.7                  | -                              | -                                   | 3.3                | 9.2               |
-| [YOLOv8s-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-pose.pt)       | 640                   | -                    | 59.2                  | -                              | -                                   | 11.6               | 30.2              |
-| [YOLOv8m-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-pose.pt)       | 640                   | -                    | 63.6                  | -                              | -                                   | 26.4               | 81.0              |
-| [YOLOv8l-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-pose.pt)       | 640                   | -                    | 67.0                  | -                              | -                                   | 44.4               | 168.6             |
-| [YOLOv8x-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose.pt)       | 640                   | -                    | 68.9                  | -                              | -                                   | 69.4               | 263.2             |
-| [YOLOv8x-pose-p6](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose-p6.pt) | 1280                  | -                    | 71.5                  | -                              | -                                   | 99.1               | 1066.4            |
+| [YOLOv8n-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt)       | 640                   | -                    | 49.7                  | 131.8                          | 1.18                                | 3.3                | 9.2               |
+| [YOLOv8s-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-pose.pt)       | 640                   | -                    | 59.2                  | 233.2                          | 1.42                                | 11.6               | 30.2              |
+| [YOLOv8m-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-pose.pt)       | 640                   | -                    | 63.6                  | 456.3                          | 2.00                                | 26.4               | 81.0              |
+| [YOLOv8l-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-pose.pt)       | 640                   | -                    | 67.0                  | 784.5                          | 2.59                                | 44.4               | 168.6             |
+| [YOLOv8x-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose.pt)       | 640                   | -                    | 68.9                  | 1607.1                         | 3.73                                | 69.4               | 263.2             |
+| [YOLOv8x-pose-p6](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose-p6.pt) | 1280                  | -                    | 71.5                  | 4088.7                         | 10.04                               | 99.1               | 1066.4            |
 
 - **mAP<sup>val</sup>** values are for single-model single-scale on [COCO Keypoints val2017](http://cocodataset.org)
   dataset.
@@ -200,16 +200,16 @@ See [Pose Docs](https://docs.ultralytics.com/tasks/) for usage examples with the
   <a href="https://cutt.ly/yolov5-readme-clearml">
     <img src="https://github.com/ultralytics/assets/raw/main/partners/logo-clearml.png" width="10%" /></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="15%" height="0" alt="" />
-  <a href="https://bit.ly/yolov5-readme-comet2">
+  <a href="https://bit.ly/yolov8-readme-comet">
     <img src="https://github.com/ultralytics/assets/raw/main/partners/logo-comet.png" width="10%" /></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="15%" height="0" alt="" />
   <a href="https://bit.ly/yolov5-neuralmagic">
     <img src="https://github.com/ultralytics/assets/raw/main/partners/logo-neuralmagic.png" width="10%" /></a>
 </div>
 
-|                                      Roboflow                                      |                                 ClearML ⭐ 新                                 |                                     Comet ⭐ 新                                      |                                    Neural Magic ⭐ 新                                    |
-| :--------------------------------------------------------------------------------: | :-------------------------------------------------------------------------: | :--------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------: |
-| 将您的自定义数据集进行标注并直接导出到 YOLOv8 以进行训练 [Roboflow](https://roboflow.com/?ref=ultralytics) | 自动跟踪、可视化甚至远程训练 YOLOv8 [ClearML](https://cutt.ly/yolov5-readme-clearml)（开源！） | 永远免费，[Comet](https://bit.ly/yolov5-readme-comet2)可让您保存 YOLOv8 模型、恢复训练以及交互式可视化和调试预测 | 使用 [Neural Magic DeepSparse](https://bit.ly/yolov5-neuralmagic)，运行 YOLOv8 推理的速度最高可提高6倍 |
+|                                      Roboflow                                      |                                 ClearML ⭐ 新                                 |                                     Comet ⭐ 新                                     |                                    Neural Magic ⭐ 新                                    |
+| :--------------------------------------------------------------------------------: | :-------------------------------------------------------------------------: | :-------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------: |
+| 将您的自定义数据集进行标注并直接导出到 YOLOv8 以进行训练 [Roboflow](https://roboflow.com/?ref=ultralytics) | 自动跟踪、可视化甚至远程训练 YOLOv8 [ClearML](https://cutt.ly/yolov5-readme-clearml)（开源！） | 永远免费，[Comet](https://bit.ly/yolov8-readme-comet)可让您保存 YOLOv8 模型、恢复训练以及交互式可视化和调试预测 | 使用 [Neural Magic DeepSparse](https://bit.ly/yolov5-neuralmagic)，运行 YOLOv8 推理的速度最高可提高6倍 |
 
 ## <div align="center">Ultralytics HUB</div>
 

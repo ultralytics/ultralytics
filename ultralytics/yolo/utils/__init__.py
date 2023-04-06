@@ -10,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+import urllib
 import uuid
 from pathlib import Path
 from types import SimpleNamespace
@@ -165,7 +166,7 @@ class IterableSimpleNamespace(SimpleNamespace):
 def set_logging(name=LOGGING_NAME, verbose=True):
     # sets up logging for the given name
     rank = int(os.getenv('RANK', -1))  # rank in world for Multi-GPU trainings
-    level = logging.INFO if verbose and rank in (-1, 0) else logging.ERROR
+    level = logging.INFO if verbose and rank in {-1, 0} else logging.ERROR
     logging.config.dictConfig({
         'version': 1,
         'disable_existing_loggers': False,
@@ -649,10 +650,20 @@ def set_settings(kwargs, file=USER_CONFIG_DIR / 'settings.yaml'):
 
 def deprecation_warn(arg, new_arg, version=None):
     if not version:
-        version = float(__version__[0:3]) + 0.2  # deprecate after 2nd major release
-    LOGGER.warning(
-        f'WARNING: `{arg}` is deprecated and will be removed in upcoming major release {version}. Use `{new_arg}` instead'
-    )
+        version = float(__version__[:3]) + 0.2  # deprecate after 2nd major release
+    LOGGER.warning(f"WARNING ⚠️ '{arg}' is deprecated and will be removed in 'ultralytics {version}' in the future. "
+                   f"Please use '{new_arg}' instead.")
+
+
+def clean_url(url):
+    # Strip auth from URL, i.e. https://url.com/file.txt?auth -> https://url.com/file.txt
+    url = str(Path(url)).replace(':/', '://')  # Pathlib turns :// -> :/
+    return urllib.parse.unquote(url).split('?')[0]  # '%2F' to '/', split https://url.com/file.txt?auth
+
+
+def url2file(url):
+    # Convert URL to filename, i.e. https://url.com/file.txt?auth -> file.txt
+    return Path(clean_url(url)).name
 
 
 # Run below code on yolo/utils init ------------------------------------------------------------------------------------

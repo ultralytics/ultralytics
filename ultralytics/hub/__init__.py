@@ -21,17 +21,17 @@ def login(api_key=''):
     Auth(api_key)
 
 
-def logout(file=USER_CONFIG_DIR / 'settings.yaml'):
+def logout():
     """
-    Log out of Ultralytics HUB
+    Log out of Ultralytics HUB by removing the API key from the settings file. To log in again, use 'yolo hub login'.
 
     Example:
         from ultralytics import hub
         hub.logout()
     """
     SETTINGS['api_key'] = ''
-    yaml_save(file, SETTINGS)
-    LOGGER.info(f"{PREFIX}logged out ✅. Run 'yolo hub login' to log in again.")
+    yaml_save(USER_CONFIG_DIR / 'settings.yaml', SETTINGS)
+    LOGGER.info(f"{PREFIX}logged out ✅. To log in again, use 'yolo hub login'.")
 
 
 def start(key=''):

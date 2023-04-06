@@ -8,7 +8,6 @@ import platform
 import re
 import shutil
 import subprocess
-import urllib
 from pathlib import Path
 from typing import Optional
 
@@ -21,7 +20,7 @@ import torch
 from matplotlib import font_manager
 
 from ultralytics.yolo.utils import (AUTOINSTALL, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, downloads,
-                                    emojis, is_colab, is_docker, is_kaggle, is_online, is_pip_package)
+                                    emojis, is_colab, is_docker, is_kaggle, is_online, is_pip_package, url2file)
 
 
 def is_ascii(s) -> bool:
@@ -267,7 +266,7 @@ def check_file(file, suffix='', download=True, hard=True):
         return file
     elif download and file.lower().startswith(('https://', 'http://', 'rtsp://', 'rtmp://')):  # download
         url = file  # warning: Pathlib turns :// -> :/
-        file = Path(urllib.parse.unquote(file).split('?')[0]).name  # '%2F' to '/', split https://url.com/file.txt?auth
+        file = url2file(file)  # '%2F' to '/', split https://url.com/file.txt?auth
         if Path(file).exists():
             LOGGER.info(f'Found {url} locally at {file}')  # file already exists
         else:

@@ -12,7 +12,7 @@ import requests
 import torch
 from tqdm import tqdm
 
-from ultralytics.yolo.utils import LOGGER, checks, emojis, is_online
+from ultralytics.yolo.utils import LOGGER, checks, clean_url, emojis, is_online
 
 GITHUB_ASSET_NAMES = [f'yolov8{k}{suffix}.pt' for k in 'nsmlx' for suffix in ('', '6', '-cls', '-seg', '-pose')] + \
                      [f'yolov5{k}u.pt' for k in 'nsmlx'] + \
@@ -156,7 +156,7 @@ def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
         name = Path(parse.unquote(str(file))).name  # decode '%2F' to '/' etc.
         if str(file).startswith(('http:/', 'https:/')):  # download
             url = str(file).replace(':/', '://')  # Pathlib turns :// -> :/
-            file = name.split('?')[0]  # parse authentication https://url.com/file.txt?auth...
+            file = clean_url(name)  # parse authentication https://url.com/file.txt?auth...
             if Path(file).is_file():
                 LOGGER.info(f'Found {url} locally at {file}')  # file already exists
             else:

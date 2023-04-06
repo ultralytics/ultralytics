@@ -12,7 +12,7 @@ import requests
 import torch
 from tqdm import tqdm
 
-from ultralytics.yolo.utils import LOGGER, checks, clean_url, emojis, is_online
+from ultralytics.yolo.utils import LOGGER, checks, clean_url, emojis, is_online, url2file
 
 GITHUB_ASSET_NAMES = [f'yolov8{k}{suffix}.pt' for k in 'nsmlx' for suffix in ('', '6', '-cls', '-seg', '-pose')] + \
                      [f'yolov5{k}u.pt' for k in 'nsmlx'] + \
@@ -79,8 +79,8 @@ def safe_download(url,
         f = Path(url)  # filename
     else:  # does not exist
         assert dir or file, 'dir or file required for download'
-        f = dir / Path(url).name if dir else Path(file)
-        desc = f'Downloading {url} to {f}'
+        f = dir / url2file(url) if dir else Path(file)
+        desc = f'Downloading {clean_url(url)} to {f}'
         LOGGER.info(f'{desc}...')
         f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
         for i in range(retry + 1):

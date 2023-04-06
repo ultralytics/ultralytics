@@ -4,8 +4,6 @@ import sys
 from pathlib import Path
 from typing import Union
 
-import deepcopy
-
 from ultralytics import yolo  # noqa
 from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, PoseModel, SegmentationModel,
                                   attempt_load_one_weight, guess_model_task, nn, yaml_model_load)
@@ -80,7 +78,7 @@ class YOLO:
             task (Any, optional): Task type for the YOLO model. Defaults to None.
 
         """
-        self.callbacks = deepcopy(callbacks.get_default_callbacks())  # warning: requires deepcopy()
+        self.callbacks = callbacks.get_default_callbacks()
         self.predictor = None  # reuse predictor
         self.model = None  # model object
         self.trainer = None  # trainer object

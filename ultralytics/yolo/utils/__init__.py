@@ -165,7 +165,7 @@ class IterableSimpleNamespace(SimpleNamespace):
 def set_logging(name=LOGGING_NAME, verbose=True):
     # sets up logging for the given name
     rank = int(os.getenv('RANK', -1))  # rank in world for Multi-GPU trainings
-    level = logging.INFO if verbose and rank in (-1, 0) else logging.ERROR
+    level = logging.INFO if verbose and rank in {-1, 0} else logging.ERROR
     logging.config.dictConfig({
         'version': 1,
         'disable_existing_loggers': False,
@@ -649,7 +649,7 @@ def set_settings(kwargs, file=USER_CONFIG_DIR / 'settings.yaml'):
 
 def deprecation_warn(arg, new_arg, version=None):
     if not version:
-        version = float(__version__[0:3]) + 0.2  # deprecate after 2nd major release
+        version = float(__version__[:3]) + 0.2  # deprecate after 2nd major release
     LOGGER.warning(
         f'WARNING: `{arg}` is deprecated and will be removed in upcoming major release {version}. Use `{new_arg}` instead'
     )

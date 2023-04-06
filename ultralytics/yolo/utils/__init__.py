@@ -10,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+import urllib
 import uuid
 from pathlib import Path
 from types import SimpleNamespace
@@ -650,9 +651,19 @@ def set_settings(kwargs, file=USER_CONFIG_DIR / 'settings.yaml'):
 def deprecation_warn(arg, new_arg, version=None):
     if not version:
         version = float(__version__[:3]) + 0.2  # deprecate after 2nd major release
-    LOGGER.warning(
-        f'WARNING: `{arg}` is deprecated and will be removed in upcoming major release {version}. Use `{new_arg}` instead'
-    )
+    LOGGER.warning(f"WARNING ⚠️ '{arg}' is deprecated and will be removed in 'ultralytics {version}' in the future. "
+                   f"Please use '{new_arg}' instead.")
+
+
+def clean_url(url):
+    # Strip auth from URL, i.e. https://url.com/file.txt?auth -> https://url.com/file.txt
+    url = str(Path(url)).replace(':/', '://')  # Pathlib turns :// -> :/
+    return urllib.parse.unquote(url).split('?')[0]  # '%2F' to '/', split https://url.com/file.txt?auth
+
+
+def url2file(url):
+    # Convert URL to filename, i.e. https://url.com/file.txt?auth -> file.txt
+    return Path(clean_url(url)).name
 
 
 # Run below code on yolo/utils init ------------------------------------------------------------------------------------

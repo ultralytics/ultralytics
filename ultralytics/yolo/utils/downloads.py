@@ -12,7 +12,7 @@ import requests
 import torch
 from tqdm import tqdm
 
-from ultralytics.yolo.utils import LOGGER, checks, emojis, is_online
+from ultralytics.yolo.utils import LOGGER, checks, clean_url, emojis, is_online, url2file
 
 GITHUB_ASSET_NAMES = [f'yolov8{k}{suffix}.pt' for k in 'nsmlx' for suffix in ('', '6', '-cls', '-seg', '-pose')] + \
                      [f'yolov5{k}u.pt' for k in 'nsmlx'] + \
@@ -79,8 +79,8 @@ def safe_download(url,
         f = Path(url)  # filename
     else:  # does not exist
         assert dir or file, 'dir or file required for download'
-        f = dir / Path(url).name if dir else Path(file)
-        desc = f'Downloading {url} to {f}'
+        f = dir / url2file(url) if dir else Path(file)
+        desc = f'Downloading {clean_url(url)} to {f}'
         LOGGER.info(f'{desc}...')
         f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
         for i in range(retry + 1):
@@ -156,7 +156,7 @@ def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
         name = Path(parse.unquote(str(file))).name  # decode '%2F' to '/' etc.
         if str(file).startswith(('http:/', 'https:/')):  # download
             url = str(file).replace(':/', '://')  # Pathlib turns :// -> :/
-            file = name.split('?')[0]  # parse authentication https://url.com/file.txt?auth...
+            file = clean_url(name)  # parse authentication https://url.com/file.txt?auth...
             if Path(file).is_file():
                 LOGGER.info(f'Found {url} locally at {file}')  # file already exists
             else:

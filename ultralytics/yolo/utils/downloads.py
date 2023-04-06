@@ -14,9 +14,9 @@ from tqdm import tqdm
 
 from ultralytics.yolo.utils import LOGGER, checks, emojis, is_online
 
-GITHUB_ASSET_NAMES = [f'yolov8{size}{suffix}.pt' for size in 'nsmlx' for suffix in ('', '6', '-cls', '-seg')] + \
-                     [f'yolov5{size}u.pt' for size in 'nsmlx'] + \
-                     [f'yolov3{size}u.pt' for size in ('', '-spp', '-tiny')]
+GITHUB_ASSET_NAMES = [f'yolov8{k}{suffix}.pt' for k in 'nsmlx' for suffix in ('', '6', '-cls', '-seg', '-pose')] + \
+                     [f'yolov5{k}u.pt' for k in 'nsmlx'] + \
+                     [f'yolov3{k}u.pt' for k in ('', '-spp', '-tiny')]
 GITHUB_ASSET_STEMS = [Path(k).stem for k in GITHUB_ASSET_NAMES]
 
 

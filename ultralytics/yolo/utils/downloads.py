@@ -43,10 +43,18 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX')):
     if path is None:
         path = Path(file).parent  # default path
     with ZipFile(file) as zipObj:
-        for f in zipObj.namelist():  # list all archived filenames in the zip
+        for i, f in enumerate(zipObj.namelist()):  # list all archived filenames in the zip
+            # If zip does not expand into a directory create a new directory to expand into
+            if i == 0:
+                info = zipObj.getinfo(f)
+                if hasattr(info, 'file_size') or not info.filename.endswith('/'):  # element is a file
+                    path = Path(path) / Path(file).stem  # define new unzip directory
+                    unzip_dir = path
+                else:
+                    unzip_dir = f
             if all(x not in f for x in exclude):
                 zipObj.extract(f, path=path)
-        return zipObj.namelist()[0]  # return unzip dir
+        return unzip_dir  # return unzip dir
 
 
 def safe_download(url,
@@ -156,9 +164,9 @@ def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
         name = Path(parse.unquote(str(file))).name  # decode '%2F' to '/' etc.
         if str(file).startswith(('http:/', 'https:/')):  # download
             url = str(file).replace(':/', '://')  # Pathlib turns :// -> :/
-            file = clean_url(name)  # parse authentication https://url.com/file.txt?auth...
+            file = url2file(name)  # parse authentication https://url.com/file.txt?auth...
             if Path(file).is_file():
-                LOGGER.info(f'Found {url} locally at {file}')  # file already exists
+                LOGGER.info(f'Found {clean_url(url)} locally at {file}')  # file already exists
             else:
                 safe_download(url=url, file=file, min_bytes=1E5)
             return file

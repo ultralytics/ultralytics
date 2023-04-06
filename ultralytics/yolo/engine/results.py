@@ -13,6 +13,7 @@ import torch
 
 from ultralytics.yolo.utils import LOGGER, SimpleClass, deprecation_warn, ops
 from ultralytics.yolo.utils.plotting import Annotator, colors
+from ultralytics.yolo.data.augment import LetterBox
 
 
 class BaseTensor(SimpleClass):
@@ -202,7 +203,8 @@ class Results(SimpleClass):
         keypoints = self.keypoints
         if pred_masks and show_masks:
             if img_gpu is None:
-                img_gpu = torch.as_tensor(annotator.im, dtype=torch.float16,
+                img = LetterBox(pred_masks.shape[1:])(image=annotator.im)
+                img_gpu = torch.as_tensor(img, dtype=torch.float16,
                                           device=pred_masks.masks.device).permute(2, 0, 1).flip(0).contiguous() / 255
             annotator.masks(pred_masks.data, colors=[colors(x, True) for x in pred_boxes.cls], im_gpu=img_gpu)
 

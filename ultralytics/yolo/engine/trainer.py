@@ -299,6 +299,8 @@ class BaseTrainer:
             self.tloss = None
             self.optimizer.zero_grad()
             for i, batch in pbar:
+                if batch is None:
+                    continue
                 self.run_callbacks('on_train_batch_start')
                 # Warmup
                 ni = i + nb * epoch

@@ -221,6 +221,8 @@ class YOLODataset(BaseDataset):
         for i in range(len(new_batch['batch_idx'])):
             new_batch['batch_idx'][i] += i  # add target image index for build_targets()
         new_batch['batch_idx'] = torch.cat(new_batch['batch_idx'], 0)
+        if len(new_batch['batch_idx']) == 0:
+            return None
         return new_batch
 
 

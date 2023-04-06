@@ -62,13 +62,13 @@ Train a YOLOv8-pose model on the COCO128-pose dataset.
     
         ```bash
         # Build a new model from YAML and start training from scratch
-        yolo detect train data=coco128-pose.yaml model=yolov8n-pose.yaml epochs=100 imgsz=640
+        yolo pose train data=coco128-pose.yaml model=yolov8n-pose.yaml epochs=100 imgsz=640
 
         # Start training from a pretrained *.pt model
-        yolo detect train data=coco128-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
+        yolo pose train data=coco128-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
 
         # Build a new model from YAML, transfer pretrained weights to it and start training
-        yolo detect train data=coco128-pose.yaml model=yolov8n-pose.yaml pretrained=yolov8n-pose.pt epochs=100 imgsz=640
+        yolo pose train data=coco128-pose.yaml model=yolov8n-pose.yaml pretrained=yolov8n-pose.pt epochs=100 imgsz=640
         ```
 
 ## Val

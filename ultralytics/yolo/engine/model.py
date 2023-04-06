@@ -372,7 +372,8 @@ class YOLO:
              pbt_interval=4,
              gpu_per_trial=None,
              max_samples=10,
-             max_epochs=50):
+             train_args: dict = {}             
+             ):
         """
         Runs hyper-parameter tuning using ray tune
 
@@ -398,6 +399,7 @@ class YOLO:
 
         def _tune(config):
             self._reset_callbacks()
+            config.update(train_args)
             self.train(**config)
 
         if not space:

@@ -130,7 +130,7 @@ class Exporter:
         save_dir (Path): Directory to save results.
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """
         Initializes the Exporter class.
 
@@ -139,7 +139,7 @@ class Exporter:
             overrides (dict, optional): Configuration overrides. Defaults to None.
         """
         self.args = get_cfg(cfg, overrides)
-        self.callbacks = defaultdict(list, callbacks.default_callbacks)  # add callbacks
+        self.callbacks = defaultdict(list, _callbacks) if _callbacks else defaultdict(list, callbacks.default_callbacks)
         callbacks.add_integration_callbacks(self)
 
     @smart_inference_mode()
@@ -853,6 +853,12 @@ class Exporter:
         model.output_description['coordinates'] = 'Boxes × [x, y, width, height] (relative to image size)'
         LOGGER.info(f'{prefix} pipeline success')
         return model
+
+    def add_callback(self, event: str, callback):
+        """
+        Appends the given callback.
+        """
+        self.callbacks[event].append(callback)
 
     def run_callbacks(self, event: str):
         for callback in self.callbacks.get(event, []):

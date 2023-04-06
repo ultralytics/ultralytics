@@ -43,10 +43,18 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX')):
     if path is None:
         path = Path(file).parent  # default path
     with ZipFile(file) as zipObj:
-        for f in zipObj.namelist():  # list all archived filenames in the zip
+        for i, f in enumerate(zipObj.namelist()):  # list all archived filenames in the zip
+            # If zip does not expand into a directory create a new directory to expand into
+            if i == 0:
+                info = zipObj.getinfo(f)
+                if hasattr(info, 'file_size') or not info.filename.endswith('/'):  # element is a file
+                    path = Path(path) / Path(file).stem  # define new unzip directory
+                    unzip_dir = path
+                else:
+                    unzip_dir = f
             if all(x not in f for x in exclude):
                 zipObj.extract(f, path=path)
-        return zipObj.namelist()[0]  # return unzip dir
+        return unzip_dir  # return unzip dir
 
 
 def safe_download(url,

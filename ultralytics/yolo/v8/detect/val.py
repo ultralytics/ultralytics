@@ -18,8 +18,8 @@ from ultralytics.yolo.utils.torch_utils import de_parallel
 
 class DetectionValidator(BaseValidator):
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None):
-        super().__init__(dataloader, save_dir, pbar, args)
+    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
+        super().__init__(dataloader, save_dir, pbar, args, _callbacks)
         self.args.task = 'detect'
         self.is_coco = False
         self.class_map = None

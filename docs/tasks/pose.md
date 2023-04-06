@@ -25,12 +25,12 @@ Ultralytics [release](https://github.com/ultralytics/assets/releases) on first u
 
 | Model                                                                                                | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>pose<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 |------------------------------------------------------------------------------------------------------|-----------------------|----------------------|-----------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
-| [YOLOv8n-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt)       | 640                   | -                    | 49.7                  | -                              | -                                   | 3.3                | 9.2               |
-| [YOLOv8s-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-pose.pt)       | 640                   | -                    | 59.2                  | -                              | -                                   | 11.6               | 30.2              |
-| [YOLOv8m-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-pose.pt)       | 640                   | -                    | 63.6                  | -                              | -                                   | 26.4               | 81.0              |
-| [YOLOv8l-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-pose.pt)       | 640                   | -                    | 67.0                  | -                              | -                                   | 44.4               | 168.6             |
-| [YOLOv8x-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose.pt)       | 640                   | -                    | 68.9                  | -                              | -                                   | 69.4               | 263.2             |
-| [YOLOv8x-pose-p6](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose-p6.pt) | 1280                  | -                    | 71.5                  | -                              | -                                   | 99.1               | 1066.4            |
+| [YOLOv8n-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt)       | 640                   | -                    | 49.7                  | 131.8                          | 1.18                                | 3.3                | 9.2               |
+| [YOLOv8s-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-pose.pt)       | 640                   | -                    | 59.2                  | 233.2                          | 1.42                                | 11.6               | 30.2              |
+| [YOLOv8m-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-pose.pt)       | 640                   | -                    | 63.6                  | 456.3                          | 2.00                                | 26.4               | 81.0              |
+| [YOLOv8l-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-pose.pt)       | 640                   | -                    | 67.0                  | 784.5                          | 2.59                                | 44.4               | 168.6             |
+| [YOLOv8x-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose.pt)       | 640                   | -                    | 68.9                  | 1607.1                         | 3.73                                | 69.4               | 263.2             |
+| [YOLOv8x-pose-p6](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose-p6.pt) | 1280                  | -                    | 71.5                  | 4088.7                         | 10.04                               | 99.1               | 1066.4            |
 
 - **mAP<sup>val</sup>** values are for single-model single-scale on [COCO Keypoints val2017](http://cocodataset.org)
   dataset.
@@ -123,7 +123,7 @@ Use a trained YOLOv8n-pose model to run predictions on images.
     === "CLI"
     
         ```bash
-        yolo pose predict model=yolov8n.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
+        yolo pose predict model=yolov8n-pose.pt source='https://ultralytics.com/images/bus.jpg'  # predict with official model
         yolo pose predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predict with custom model
         ```
 
@@ -131,7 +131,7 @@ See full `predict` mode details in the [Predict](https://docs.ultralytics.com/mo
 
 ## Export
 
-Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
+Export a YOLOv8n Pose model to a different format like ONNX, CoreML, etc.
 
 !!! example ""
 
@@ -141,7 +141,7 @@ Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
         from ultralytics import YOLO
         
         # Load a model
-        model = YOLO('yolov8n.pt')  # load an official model
+        model = YOLO('yolov8n-pose.pt')  # load an official model
         model = YOLO('path/to/best.pt')  # load a custom trained
         
         # Export the model
@@ -150,7 +150,7 @@ Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
     === "CLI"
     
         ```bash
-        yolo export model=yolov8n.pt format=onnx  # export official model
+        yolo export model=yolov8n-pose.pt format=onnx  # export official model
         yolo export model=path/to/best.pt format=onnx  # export custom trained model
         ```
 

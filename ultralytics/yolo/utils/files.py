@@ -3,7 +3,6 @@
 import contextlib
 import glob
 import os
-import urllib
 from datetime import datetime
 from pathlib import Path
 
@@ -78,12 +77,6 @@ def file_size(path):
         elif path.is_dir():
             return sum(f.stat().st_size for f in path.glob('**/*') if f.is_file()) / mb
     return 0.0
-
-
-def url2file(url):
-    # Convert URL to filename, i.e. https://url.com/file.txt?auth -> file.txt
-    url = str(Path(url)).replace(':/', '://')  # Pathlib turns :// -> :/
-    return Path(urllib.parse.unquote(url)).name.split('?')[0]  # '%2F' to '/', split https://url.com/file.txt?auth
 
 
 def get_latest_run(search_dir='.'):

@@ -17,7 +17,7 @@ from PIL import ExifTags, Image, ImageOps
 from tqdm import tqdm
 
 from ultralytics.nn.autobackend import check_class_names
-from ultralytics.yolo.utils import DATASETS_DIR, LOGGER, NUM_THREADS, ROOT, colorstr, emojis, yaml_load
+from ultralytics.yolo.utils import DATASETS_DIR, LOGGER, NUM_THREADS, ROOT, clean_url, colorstr, emojis, yaml_load
 from ultralytics.yolo.utils.checks import check_file, check_font, is_ascii
 from ultralytics.yolo.utils.downloads import download, safe_download, unzip_file
 from ultralytics.yolo.utils.ops import segments2boxes
@@ -241,7 +241,7 @@ def check_det_dataset(dataset, autodownload=True):
     if val:
         val = [Path(x).resolve() for x in (val if isinstance(val, list) else [val])]  # val path
         if not all(x.exists() for x in val):
-            name = str(dataset).split('?')[0]  # dataset name with URL auth stripped
+            name = clean_url(dataset)  # dataset name with URL auth stripped
             m = f"\nDataset '{name}' images not found ⚠️, missing paths %s" % [str(x) for x in val if not x.exists()]
             if s and autodownload:
                 LOGGER.warning(m)

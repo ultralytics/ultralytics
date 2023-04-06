@@ -86,12 +86,10 @@ def on_train_epoch_end(trainer):
 
 def on_fit_epoch_end(trainer):
     # You should have access to the validation bboxes under jdict
-    Task.current_task().get_logger().report_scalar(
-        title='Epoch Time',
-        series='Epoch Time',
-        value=trainer.epoch_time,
-        iteration=trainer.epoch
-    )
+    Task.current_task().get_logger().report_scalar(title='Epoch Time',
+                                                   series='Epoch Time',
+                                                   value=trainer.epoch_time,
+                                                   iteration=trainer.epoch)
     if trainer.epoch == 0:
         model_info = {
             'model/parameters': get_num_params(trainer.model),

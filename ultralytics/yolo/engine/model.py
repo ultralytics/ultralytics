@@ -372,8 +372,7 @@ class YOLO:
              pbt_interval=4,
              gpu_per_trial=None,
              max_samples=10,
-             train_args: dict = {}             
-             ):
+             train_args: dict = {}):
         """
         Runs hyper-parameter tuning using ray tune
 

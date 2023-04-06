@@ -10,6 +10,8 @@ from ultralytics.yolo.utils.torch_utils import get_flops, get_num_params
 try:
     import clearml
     from clearml import Task
+    from clearml.binding.frameworks.pytorch_bind import PatchPyTorchModelIO
+    from clearml.binding.matplotlib_bind import PatchedMatplotlib
 
     assert hasattr(clearml, '__version__')  # verify package is not directory
     assert not TESTS_RUNNING  # do not log pytest
@@ -56,6 +58,11 @@ def on_pretrain_routine_start(trainer):
     try:
         if Task.current_task():
             task = Task.current_task()
+
+            # Make sure the automatic pytorch and matplotlib bindings are disabled!
+            # We are logging these plots and model files manually in the integration
+            PatchPyTorchModelIO.update_current_task(None)
+            PatchedMatplotlib.update_current_task(None)
         else:
             task = Task.init(project_name=trainer.args.project or 'YOLOv8',
                              task_name=trainer.args.name,
@@ -65,9 +72,8 @@ def on_pretrain_routine_start(trainer):
                              auto_connect_frameworks={
                                  'pytorch': False,
                                  'matplotlib': False})
-            LOGGER.warning(
-                f'ClearML Initialized a new task. If you want to run remotely, please add clearml-init and connect your arguments before initializing YOLO.'
-            )
+            LOGGER.warning('ClearML Initialized a new task. If you want to run remotely, '
+                           'please add clearml-init and connect your arguments before initializing YOLO.')
         task.connect(vars(trainer.args), name='General')
     except Exception as e:
         LOGGER.warning(f'WARNING ⚠️ ClearML installed but not initialized correctly, not logging this run. {e}')
@@ -80,10 +86,12 @@ def on_train_epoch_end(trainer):
 
 def on_fit_epoch_end(trainer):
     # You should have access to the validation bboxes under jdict
-    Task.current_task().get_logger().report_scalar('Epoch Time',
-                                                   'Epoch Time',
-                                                   trainer.epoch_time,
-                                                   iteration=trainer.epoch)
+    Task.current_task().get_logger().report_scalar(
+        title='Epoch Time',
+        series='Epoch Time',
+        value=trainer.epoch_time,
+        iteration=trainer.epoch
+    )
     if trainer.epoch == 0:
         model_info = {
             'model/parameters': get_num_params(trainer.model),

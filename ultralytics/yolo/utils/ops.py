@@ -570,7 +570,7 @@ def process_mask_upsample(protos, masks_in, bboxes, shape):
     return masks.gt_(0.5)
 
 
-def process_mask(protos, masks_in, bboxes, shape, orig_shape, upsample=False):
+def process_mask(protos, masks_in, bboxes, shape, upsample=False):
     """
     Apply masks to bounding boxes using the output of the mask head.
 
@@ -579,7 +579,6 @@ def process_mask(protos, masks_in, bboxes, shape, orig_shape, upsample=False):
       masks_in (torch.Tensor): [n, mask_dim], n is number of masks after nms
       bboxes (torch.Tensor): [n, 4], n is number of masks after nms
       shape (tuple): the size of the input image (h,w)
-      orig_shape (tuple): the original size of the input image (h,w)
       upsample (bool): A flag to indicate whether to upsample the mask to the original image size. Default is False.
 
     Returns:
@@ -588,7 +587,6 @@ def process_mask(protos, masks_in, bboxes, shape, orig_shape, upsample=False):
     """
 
     c, mh, mw = protos.shape  # CHW
-    oh, ow = orig_shape
     ih, iw = shape
     masks = (masks_in @ protos.float().view(c, -1)).sigmoid().view(-1, mh, mw)  # CHW
 
@@ -599,19 +597,8 @@ def process_mask(protos, masks_in, bboxes, shape, orig_shape, upsample=False):
     downsampled_bboxes[:, 1] *= mh / ih
 
     masks = crop_mask(masks, downsampled_bboxes)  # CHW
-
-    # cut out letter box
-    r = min(ih / oh, iw / ow)
-    unpad_shape = int(round(oh * r)), int(round(ow * r))
-    pad = (ih - unpad_shape[0]) / 2, (iw - unpad_shape[1]) / 2
-
-    rp = min(mh / ih, mw / iw)
-    top, left = int(pad[0] * rp), int(pad[1] * rp)
-    bottom, right = int((ih - pad[0]) * rp), int((iw - pad[1]) * rp)
-    masks = masks[:, top:bottom, left:right]
-
     if upsample:
-        masks = F.interpolate(masks[None], unpad_shape, mode='bilinear', align_corners=False)[0]  # CHW
+        masks = F.interpolate(masks[None], shape, mode='bilinear', align_corners=False)[0]  # CHW
     return masks.gt_(0.5)
 
 

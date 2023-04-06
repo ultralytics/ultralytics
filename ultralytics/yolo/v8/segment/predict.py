@@ -37,7 +37,6 @@ class SegmentationPredictor(DetectionPredictor):
                                          pred[:, 6:],
                                          pred[:, :4],
                                          img.shape[2:],
-                                         orig_img.shape[:2],
                                          upsample=True)  # HWC
                 if not isinstance(orig_imgs, torch.Tensor):
                     pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)

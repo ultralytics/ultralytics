@@ -156,9 +156,9 @@ def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
         name = Path(parse.unquote(str(file))).name  # decode '%2F' to '/' etc.
         if str(file).startswith(('http:/', 'https:/')):  # download
             url = str(file).replace(':/', '://')  # Pathlib turns :// -> :/
-            file = clean_url(name)  # parse authentication https://url.com/file.txt?auth...
+            file = url2file(name)  # parse authentication https://url.com/file.txt?auth...
             if Path(file).is_file():
-                LOGGER.info(f'Found {url} locally at {file}')  # file already exists
+                LOGGER.info(f'Found {clean_url(url)} locally at {file}')  # file already exists
             else:
                 safe_download(url=url, file=file, min_bytes=1E5)
             return file

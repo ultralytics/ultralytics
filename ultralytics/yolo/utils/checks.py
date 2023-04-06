@@ -20,7 +20,7 @@ import torch
 from matplotlib import font_manager
 
 from ultralytics.yolo.utils import (AUTOINSTALL, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, downloads,
-                                    emojis, is_colab, is_docker, is_kaggle, is_online, is_pip_package, url2file)
+                                    emojis, is_colab, is_docker, is_kaggle, is_online, is_pip_package, url2file, clean_url)
 
 
 def is_ascii(s) -> bool:
@@ -268,7 +268,7 @@ def check_file(file, suffix='', download=True, hard=True):
         url = file  # warning: Pathlib turns :// -> :/
         file = url2file(file)  # '%2F' to '/', split https://url.com/file.txt?auth
         if Path(file).exists():
-            LOGGER.info(f'Found {url} locally at {file}')  # file already exists
+            LOGGER.info(f'Found {clean_url(url)} locally at {file}')  # file already exists
         else:
             downloads.safe_download(url=url, file=file, unzip=False)
         return file

@@ -66,6 +66,10 @@ classes:  # filter results by class, i.e. class=0, or class=[0,2,3]
 retina_masks: False  # use high-resolution segmentation masks
 boxes: True  # Show boxes in segmentation predictions
 night_vision: False # Activate Night Vision
+image_gamma: auto # image gamma ('auto'/int/float)
+min_gamma: 0.6 # minimum image gamma (if gamma = auto)
+max_gamma: 1.0 # maximum image gamma (if gamma = auto)
+min_normalized_intensity: 0.25 # minimum image normalized intensity (if gamma = auto)
 
 # Export settings ------------------------------------------------------------------------------------------------------
 format: torchscript  # format to export to

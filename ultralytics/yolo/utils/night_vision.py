@@ -2,10 +2,9 @@ import cv2
 import torch
 import numpy as np
 
-def night_vision_core(img):
+def night_vision_core(img, image_gamma="auto", min_gamma=0.6, max_gamma=1.0, min_normalized_intensity=0.25):
     """
     Night vision mode core function.
-    Applies histogram equalization the image.
 
     Args:
         img (numpy.ndarray): The image to apply night vision mode to.
@@ -58,20 +57,26 @@ def night_vision_core(img):
 
     # --------------------------------------------------------
 
-    # -- Gamma Correction -- good
+    # -- Gamma Correction --
 
-    intensity = measure_intensity(img)
-    # print("Image intensity: ", intensity)
-    normaized_intensity = intensity / 255.0
-    # print("Normalized intensity: ", normaized_intensity)
-    exp_intensity = 0.7 * np.exp(normaized_intensity)
-    # print("Exponential intensity: ", exp_intensity)
-    scaled_intensity = ((exp_intensity - 0) / (1 - 0)) * (0.8 - 0.4) + 0.4
-    # print("Scaled intensity: ", scaled_intensity)
-
+    gamma = image_gamma
+    
+    if image_gamma == "auto":
+        intensity = measure_intensity(img)  # intensity of the image, value range (0-255)
+        normaized_intensity = intensity / 255.0
+        
+        if normaized_intensity < min_normalized_intensity:  # if the image is dark
+            scaled_intensity = ((2 * normaized_intensity - 0) / (1 - 0)) * (max_gamma - min_gamma) + min_gamma
+        else:   # if the image is bright
+            scaled_intensity = 1.0
+            
+        gamma = scaled_intensity
+    elif type(gamma) == float or type(gamma) == int:
+        gamma = image_gamma
+    else:
+        raise ValueError("image_gamma must be either 'auto' or a float or int")
 
     # Apply gamma correction
-    gamma = scaled_intensity
     img_gamma_corrected = np.power(img / 255.0, gamma) * 255.0
     img_gamma_corrected = img_gamma_corrected.astype(np.uint8)
 
@@ -129,7 +134,7 @@ def convert_to_torch(img):
     img = torch.from_numpy(img).permute(2, 0, 1)    # convert back to tensor
     return img
 
-def apply_night_vision(img):
+def apply_night_vision(img, image_gamma="auto", min_gamma=0.6, max_gamma=1.0, min_normalized_intensity=0.25):
     """
     Applies night vision mode to an image.
     (applies night_vision_core() function to the image)
@@ -141,9 +146,28 @@ def apply_night_vision(img):
         torch.Tensor: The image with night vision mode applied. (shape: (3, H, W))
     """
     img = convert_to_cv2(img)   # convert to cv2
-    img = night_vision_core(img)   # apply night vision
+    img = night_vision_core(img, image_gamma, min_gamma, max_gamma, min_normalized_intensity)   # apply night vision
     img = convert_to_torch(img)  # convert back to torch
     return img
+
+def apply_night_vision_on_batch(batch, image_gamma="auto", min_gamma=0.6, max_gamma=1.0, min_normalized_intensity=0.25):
+    """
+    Applies night vision mode to a batch of images.
+    (applies night_vision_core() function to each image in the batch)
+
+    Args:
+        batch (torch.Tensor): The batch of images to apply night vision mode to. (shape: (N, 3, H, W))
+
+    Returns:
+        torch.Tensor: The batch of images with night vision mode applied. (shape: (N, 3, H, W))
+    """
+    # batch = batch.cpu()
+    for i in range(batch.shape[0]):
+        img = batch[i]
+        img = apply_night_vision(img, image_gamma, min_gamma, max_gamma, min_normalized_intensity) * 255.0
+        batch[i] = img
+    return batch
+
 
 def measure_intensity(img):
     """
@@ -155,14 +179,12 @@ def measure_intensity(img):
     Returns:
         float: The intensity of the image.
     """
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    # img = cv2.GaussianBlur(img, (21, 21), 0)
-    intensity = np.mean(img)
+    gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    intensity = np.mean(gray_img)
     return intensity
 
-
 # Load the image
-# img = cv2.imread(r'D:\ME\Downloads\New folder\Downloads\light_stop.jpg')
+# img = cv2.imread(r'D:\ME\Downloads\New folder\Downloads\dark_stop_6.png')
 
 # print("img data type: ", img.dtype)
 # print("img: ", img)

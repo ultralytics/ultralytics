@@ -24,7 +24,11 @@ class DetectionPredictor(BasePredictor):
 
             # check if source is a webcam
             img = torch.squeeze(img)
-            img = apply_night_vision(img)
+            img = apply_night_vision(img,
+                                     image_gamma=self.args.image_gamma,
+                                     min_gamma=self.args.min_gamma,
+                                     max_gamma=self.args.max_gamma,
+                                     min_normalized_intensity=self.args.min_normalized_intensity)
 
         return img
 
@@ -64,7 +68,11 @@ class DetectionPredictor(BasePredictor):
 
         # apply Night Vision mode on original image
         if self.args.night_vision == 'show':
-            im0 = night_vision_core(im0)
+            im0 = night_vision_core(im0,
+                                    self.args.image_gamma,
+                                    self.args.min_gamma,
+                                    self.args.max_gamma,
+                                    self.args.min_normalized_intensity)
 
         self.annotator = self.get_annotator(im0)
 

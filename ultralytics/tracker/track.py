@@ -1,7 +1,9 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
-import torch
 from functools import partial
+
+import torch
+
 from ultralytics.yolo.utils import IterableSimpleNamespace, yaml_load
 from ultralytics.yolo.utils.checks import check_yaml
 
@@ -11,7 +13,7 @@ TRACKER_MAP = {'bytetrack': BYTETracker, 'botsort': BOTSORT}
 
 
 def on_predict_start(predictor, global_tracker=False):
-    if hasattr(predictor, "trackers") and global_tracker:
+    if hasattr(predictor, 'trackers') and global_tracker:
         return
     tracker = check_yaml(predictor.args.tracker)
     cfg = IterableSimpleNamespace(**yaml_load(tracker))

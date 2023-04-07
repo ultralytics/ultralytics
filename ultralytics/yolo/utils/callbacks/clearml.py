@@ -27,14 +27,16 @@ def _log_debug_samples(files, title='Debug Samples'):
         files (List(PosixPath)) a list of file paths in PosixPath format
         title (str) A title that groups together images with the same values
         """
-    for f in files:
-        if f.exists():
-            it = re.search(r'_batch(\d+)', f.name)
-            iteration = int(it.groups()[0]) if it else 0
-            Task.current_task().get_logger().report_image(title=title,
-                                                          series=f.name.replace(it.group(), ''),
-                                                          local_path=str(f),
-                                                          iteration=iteration)
+    task = Task.current_task()
+    if task:
+        for f in files:
+            if f.exists():
+                it = re.search(r'_batch(\d+)', f.name)
+                iteration = int(it.groups()[0]) if it else 0
+                task.get_logger().report_image(title=title,
+                                               series=f.name.replace(it.group(), ''),
+                                               local_path=str(f),
+                                               iteration=iteration)
 
 
 def _log_plot(title, plot_path):
@@ -54,11 +56,9 @@ def _log_plot(title, plot_path):
 
 
 def on_pretrain_routine_start(trainer):
-    # TODO: reuse existing task
     try:
-        if Task.current_task():
-            task = Task.current_task()
-
+        task = Task.current_task()
+        if task:
             # Make sure the automatic pytorch and matplotlib bindings are disabled!
             # We are logging these plots and model files manually in the integration
             PatchPyTorchModelIO.update_current_task(None)
@@ -85,19 +85,20 @@ def on_train_epoch_end(trainer):
 
 
 def on_fit_epoch_end(trainer):
-    if Task.current_task():
+    task = Task.current_task()
+    if task:
         # You should have access to the validation bboxes under jdict
-        Task.current_task().get_logger().report_scalar(title='Epoch Time',
-                                                       series='Epoch Time',
-                                                       value=trainer.epoch_time,
-                                                       iteration=trainer.epoch)
+        task.get_logger().report_scalar(title='Epoch Time',
+                                        series='Epoch Time',
+                                        value=trainer.epoch_time,
+                                        iteration=trainer.epoch)
         if trainer.epoch == 0:
             model_info = {
                 'model/parameters': get_num_params(trainer.model),
                 'model/GFLOPs': round(get_flops(trainer.model), 3),
                 'model/speed(ms)': round(trainer.validator.speed['inference'], 3)}
             for k, v in model_info.items():
-                Task.current_task().get_logger().report_single_value(k, v)
+                task.get_logger().report_single_value(k, v)
 
 
 def on_val_end(validator):
@@ -107,7 +108,8 @@ def on_val_end(validator):
 
 
 def on_train_end(trainer):
-    if Task.current_task():
+    task = Task.current_task()
+    if task:
         # Log final results, CM matrix + PR plots
         files = ['results.png', 'confusion_matrix.png', *(f'{x}_curve.png' for x in ('F1', 'PR', 'P', 'R'))]
         files = [(trainer.save_dir / f) for f in files if (trainer.save_dir / f).exists()]  # filter
@@ -115,11 +117,9 @@ def on_train_end(trainer):
             _log_plot(title=f.stem, plot_path=f)
         # Report final metrics
         for k, v in trainer.validator.metrics.results_dict.items():
-            Task.current_task().get_logger().report_single_value(k, v)
+            task.get_logger().report_single_value(k, v)
         # Log the final model
-        Task.current_task().update_output_model(model_path=str(trainer.best),
-                                                model_name=trainer.args.name,
-                                                auto_delete_file=False)
+        task.update_output_model(model_path=str(trainer.best), model_name=trainer.args.name, auto_delete_file=False)
 
 
 callbacks = {

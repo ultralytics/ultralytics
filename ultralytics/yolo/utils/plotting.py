@@ -138,7 +138,7 @@ class Annotator:
         im_gpu = im_gpu * inv_alph_masks[-1] + mcs
         im_mask = (im_gpu * 255)
         im_mask_np = im_mask.byte().cpu().numpy()
-        self.im[:] = im_mask_np if retina_masks else scale_image(im_gpu.shape, im_mask_np, self.im.shape)
+        self.im[:] = im_mask_np if retina_masks else scale_image(im_mask_np, self.im.shape)
         if self.pil:
             # convert im back to PIL and update draw
             self.fromarray(self.im)

@@ -44,7 +44,6 @@ class ClassificationPredictor(BasePredictor):
         # save_path = str(self.save_dir / p.name)  # im.jpg
         self.txt_path = str(self.save_dir / 'labels' / p.stem) + ('' if self.dataset.mode == 'image' else f'_{frame}')
         log_string += '%gx%g ' % im.shape[2:]  # print string
-        self.annotator = self.get_annotator(im0)
 
         result = results[idx]
         if len(result) == 0:
@@ -56,10 +55,10 @@ class ClassificationPredictor(BasePredictor):
         log_string += f"{', '.join(f'{self.model.names[j]} {prob[j]:.2f}' for j in top5i)}, "
 
         # write
-        text = '\n'.join(f'{prob[j]:.2f} {self.model.names[j]}' for j in top5i)
         if self.args.save or self.args.show:  # Add bbox to image
-            self.annotator.text((32, 32), text, txt_color=(255, 255, 255))
+            self.plotted_img = result.plot()
         if self.args.save_txt:  # Write to file
+            text = '\n'.join(f'{prob[j]:.2f} {self.model.names[j]}' for j in top5i)
             with open(f'{self.txt_path}.txt', 'a') as f:
                 f.write(text + '\n')
 

@@ -1,6 +1,7 @@
 import cv2
-import torch
 import numpy as np
+import torch
+
 
 def night_vision_core(img, image_gamma="auto", min_gamma=0.6, max_gamma=1.0, min_normalized_intensity=0.25):
     """
@@ -103,6 +104,7 @@ def night_vision_core(img, image_gamma="auto", min_gamma=0.6, max_gamma=1.0, min
 
     return img_gamma_corrected
 
+
 def convert_to_cv2(img):
     """
     Converts an image from torch to cv2 format.
@@ -114,8 +116,9 @@ def convert_to_cv2(img):
         numpy.ndarray: The image in cv2 format. (shape: (H, W, 3))
     """
     img = img.permute(1, 2, 0).numpy()  # convert to numpy
-    img = cv2.normalize(img, None, 255, 0, cv2.NORM_MINMAX, cv2.CV_8U)   # normalize the image to 0-255 UINT8
+    img = cv2.normalize(img, None, 255, 0, cv2.NORM_MINMAX, cv2.CV_8U)  # normalize the image to 0-255 UINT8
     return img
+
 
 def convert_to_torch(img):
     """
@@ -131,7 +134,7 @@ def convert_to_torch(img):
     img = img / 255.0
     img = img.astype(np.float32)
 
-    img = torch.from_numpy(img).permute(2, 0, 1)    # convert back to tensor
+    img = torch.from_numpy(img).permute(2, 0, 1)  # convert back to tensor
     return img
 
 def apply_night_vision(img, image_gamma="auto", min_gamma=0.6, max_gamma=1.0, min_normalized_intensity=0.25):
@@ -200,9 +203,3 @@ def measure_intensity(img):
 # cv2.imshow('Enhanced Image', img)
 # cv2.waitKey(0)
 # cv2.destroyAllWindows()
-
-
-
-
-
-

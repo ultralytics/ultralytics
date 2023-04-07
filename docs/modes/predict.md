@@ -216,19 +216,19 @@ masks, classification logits, etc.) found in the results object
     res_plotted = res[0].plot()
     cv2.imshow("result", res_plotted)
     ```
-| Argument    | Description   |
-| ----------- | ------------- |
-| `conf (bool)` | Whether to plot the detection confidence score. |
-| `line_width (float, optional)` | The line width of the bounding boxes. If None, it is scaled to the image size. |
-| `font_size (float, optional)` | The font size of the text. If None, it is scaled to the image size. |
-| `font (str)` | The font to use for the text. |
-| `pil (bool)` | Whether to return the image as a PIL Image. |
-| `example (str)` | An example string to display. Useful for indicating the expected format of the output. |
-| `img (numpy.ndarray)` | Plot to another image. if not, plot to original image. |
-| `labels (bool)` | Whether to plot the label of bounding boxes. |
-| `boxes (bool)` | Whether to plot the bounding boxes. |
-| `masks (bool)` | Whether to plot the masks. |
-| `probs (bool)` | Whether to plot classification probability. |
+| Argument                       | Description                                                                            |
+|--------------------------------|----------------------------------------------------------------------------------------|
+| `conf (bool)`                  | Whether to plot the detection confidence score.                                        |
+| `line_width (float, optional)` | The line width of the bounding boxes. If None, it is scaled to the image size.         |
+| `font_size (float, optional)`  | The font size of the text. If None, it is scaled to the image size.                    |
+| `font (str)`                   | The font to use for the text.                                                          |
+| `pil (bool)`                   | Whether to use PIL for image plotting.                                                 |
+| `example (str)`                | An example string to display. Useful for indicating the expected format of the output. |
+| `img (numpy.ndarray)`          | Plot to another image. if not, plot to original image.                                 |
+| `labels (bool)`                | Whether to plot the label of bounding boxes.                                           |
+| `boxes (bool)`                 | Whether to plot the bounding boxes.                                                    |
+| `masks (bool)`                 | Whether to plot the masks.                                                             |
+| `probs (bool)`                 | Whether to plot classification probability.                                            |
 
 
 ## Streaming Source `for`-loop

@@ -81,7 +81,7 @@ def export_formats():
         ['ONNX', 'onnx', '.onnx', True, True],
         ['OpenVINO', 'openvino', '_openvino_model', True, False],
         ['TensorRT', 'engine', '.engine', False, True],
-        ['CoreML', 'coreml', '.mlmodel', True, False],
+        ['CoreML', 'coreml', '.mlmodel or .mlpackage', True, False],
         ['TensorFlow SavedModel', 'saved_model', '_saved_model', True, True],
         ['TensorFlow GraphDef', 'pb', '.pb', True, True],
         ['TensorFlow Lite', 'tflite', '.tflite', True, False],
@@ -407,9 +407,11 @@ class Exporter:
         scale = 1 / 255
         classifier_config = None
         if self.model.task == 'classify':
+            f = self.file.with_suffix('.mlpackage')
             classifier_config = ct.ClassifierConfig(list(self.model.names.values())) if self.args.nms else None
             model = self.model
         elif self.model.task == 'detect':
+            f = self.file.with_suffix('.mlpackage')
             model = iOSDetectModel(self.model, self.im) if self.args.nms else self.model
         else:
             # TODO CoreML Segment and Pose model pipelining

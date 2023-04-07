@@ -1,11 +1,11 @@
 import os
 import matplotlib.pyplot as plt
-import config
+
 import numpy as np
 import matplotlib.patches as patches
 import torch
 from .bboxes_utils import non_max_suppression as nms
-
+import custom_models.config as cfg
 
 def cells_to_bboxes(predictions, anchors, strides, is_pred=False, to_list=True):
     num_out_layers = len(predictions)
@@ -27,7 +27,7 @@ def cells_to_bboxes(predictions, anchors, strides, is_pred=False, to_list=True):
             best_class = torch.argmax(layer_prediction[..., 5:], dim=-1).unsqueeze(-1)
 
         else:
-            predictions[i] = predictions[i].to(config.DEVICE, non_blocking=True)
+            predictions[i] = predictions[i].to(cfg.DEVICE, non_blocking=True)
             obj = predictions[i][..., 4:5]
             xy = (predictions[i][..., 0:2] + grid[i]) * stride
             wh = predictions[i][..., 2:4] * stride
@@ -54,7 +54,7 @@ def make_grids(anchors, naxs, stride, nx=20, ny=20, i=0):
     return xy_grid, anchor_grid
 
 
-def save_predictions(model, loader, folder, epoch, device, filename, num_images=10, labels=config.COCO):
+def save_predictions(model, loader, folder, epoch, device, filename, num_images=10, labels=cfg.COCO):
 
     print("=> Saving images predictions...")
 
@@ -144,7 +144,7 @@ def save_predictions(model, loader, folder, epoch, device, filename, num_images=
     model.train()
 
 
-def plot_image(image, boxes, labels=config.COCO):
+def plot_image(image, boxes, labels=cfg.COCO):
     """Plots predicted bounding boxes on the image"""
     cmap = plt.get_cmap("tab20b")
     class_labels = labels

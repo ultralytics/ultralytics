@@ -4,7 +4,7 @@ import albumentations as A
 import torch.cuda
 
 parent_dir = Path(__file__).parent.parent
-ROOT_DIR = os.path.join(parent_dir, "datasets", "coco")
+ROOT_DIR = os.path.join(parent_dir, "datasets", "copper")
 
 # if no yaml file, this must be manually inserted
 # nc is number of classes (int)

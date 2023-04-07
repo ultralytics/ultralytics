@@ -1,10 +1,8 @@
 import argparse
 import os
-import time
-from pathlib import Path
 import torch
 import numpy as np
-from model import YOLOV5m
+from custom_models.yolo.models.yolov5m import YOLOV5m
 from utils.utils import load_model_checkpoint
 from utils.plot_utils import cells_to_bboxes, plot_image
 from utils.bboxes_utils import non_max_suppression
@@ -31,7 +29,7 @@ if __name__ == "__main__":
     model = YOLOV5m(first_out=first_out, nc=nc, anchors=config.ANCHORS,
                     ch=(first_out * 4, first_out * 8, first_out * 16)).to(config.DEVICE)
 
-    path2model = os.path.join("../../../../Downloads/YOLOV5m-main/YOLOV5m-main/SAVED_CHECKPOINT", args.model_name, args.checkpoint)
+    path2model = os.path.join("../../../Downloads/YOLOV5m-main/YOLOV5m-main/SAVED_CHECKPOINT", args.model_name, args.checkpoint)
     load_model_checkpoint(model=model, model_name=path2model, training=False)
 
     config.ROOT_DIR = "/".join((config.ROOT_DIR.split("/")[:-1] + ["flir"]))

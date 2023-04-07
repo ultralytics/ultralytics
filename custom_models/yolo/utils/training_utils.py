@@ -3,10 +3,10 @@ import torch.nn as nn
 import random
 import math
 from tqdm import tqdm
-import config
 from torch.utils.data import DataLoader
-from ..dataset import Training_Dataset, Validation_Dataset
 
+from custom_models.yolo.data.dataLoader import Training_Dataset, Validation_Dataset
+import custom_models.config as cfg
 
 def multi_scale(img, target_shape, max_stride):
     # to make it work with collate_fn of the loader
@@ -31,7 +31,7 @@ def multi_scale(img, target_shape, max_stride):
 def get_loaders(
         db_root_dir,
         batch_size,
-        num_classes=len(config.COCO),
+        num_classes=len(cfg.COCO),
         num_workers=4,
         pin_memory=torch.cuda.is_available(),
         rect_training=False,
@@ -41,7 +41,7 @@ def get_loaders(
 
     S = [8, 16, 32]
 
-    train_augmentation = config.TRAIN_TRANSFORMS
+    train_augmentation = cfg.TRAIN_TRANSFORMS
     val_augmentation = None
 
     # bs here is not batch_size, check class method "adaptive_shape" to check behavior
@@ -49,7 +49,7 @@ def get_loaders(
                                 transform=train_augmentation, train=True, rect_training=rect_training,
                                 bs=batch_size, bboxes_format=box_format, ultralytics_loss=ultralytics_loss)
 
-    val_ds = Validation_Dataset(anchors=config.ANCHORS,
+    val_ds = Validation_Dataset(anchors=cfg.ANCHORS,
                                 root_directory=db_root_dir, transform=val_augmentation,
                                 train=False, S=S, rect_training=rect_training, bs=batch_size,
                                 bboxes_format=box_format)
@@ -99,7 +99,7 @@ def train_loop(model, loader, optim, loss_fn, scaler, epoch, num_epochs, multi_s
         if multi_scale_training:
             images = multi_scale(images, target_shape=640, max_stride=32)
 
-        images = images.to(config.DEVICE, non_blocking=True)
+        images = images.to(cfg.DEVICE, non_blocking=True)
         # BBOXES AND CLASSES ARE PUSHED to.(DEVICE) INSIDE THE LOSS_FN
 
         # If I had a V100...

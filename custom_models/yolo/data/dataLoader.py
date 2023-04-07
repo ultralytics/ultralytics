@@ -7,10 +7,10 @@ import imagesize
 import pandas as pd
 from PIL import Image
 from torch.utils.data import Dataset, DataLoader
-from utils.utils import resize_image
-from utils.bboxes_utils import iou_width_height, coco_to_yolo_tensors, non_max_suppression
-from utils.plot_utils import plot_image, cells_to_bboxes
-import config
+from custom_models.yolo.utils.utils import resize_image
+from custom_models.yolo.utils.bboxes_utils import iou_width_height, coco_to_yolo_tensors, non_max_suppression
+from custom_models.yolo.utils.plot_utils import plot_image, cells_to_bboxes
+import custom_models.config as cfg
 
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
@@ -19,13 +19,13 @@ from matplotlib.patches import Rectangle
 class Training_Dataset(Dataset):
 
     def __init__(self,
-                 root_directory=config.ROOT_DIR,
+                 root_directory=cfg.ROOT_DIR,
                  transform=None,
                  train=True,
                  rect_training=False,
                  default_size=640,
                  bs=64,
-                 bboxes_format="coco",
+                 bboxes_format="yolo",
                  ultralytics_loss=False,
                  ):
 
@@ -43,12 +43,12 @@ class Training_Dataset(Dataset):
 
         if train:
             fname = 'images/train'
-            annot_file = "annot_train.csv"
+            annot_file = "train.txt"
             # class instance because it's used in the __getitem__
             self.annot_folder = "train"
         else:
             fname = 'images/val'
-            annot_file = "annot_val.csv"
+            annot_file = "val.txt"
             # class instance because it's used in the __getitem__
             self.annot_folder = "val"
 
@@ -63,10 +63,11 @@ class Training_Dataset(Dataset):
             for img_txt in os.listdir(os.path.join(self.root_directory, "labels", self.annot_folder)):
                 img = img_txt.split(".txt")[0]
                 try:
-                    w, h = imagesize.get(os.path.join(self.root_directory, "images", self.annot_folder, f"{img}.jpg"))
+                    w, h = imagesize.get(os.path.join(self.root_directory, "images", self.annot_folder, f"{img}.png"))
+                    print(os.path.join(self.root_directory, "images", self.annot_folder, f"{img}.png"))
                 except FileNotFoundError:
                     continue
-                annotations.append([str(img) + ".jpg", h, w])
+                annotations.append([str(img) + ".png", h, w])
             self.annotations = pd.DataFrame(annotations)
             self.annotations.to_csv(os.path.join(self.root_directory, "labels", annot_file))
 
@@ -214,7 +215,7 @@ class Validation_Dataset(Dataset):
 
     def __init__(self,
                  anchors,
-                 root_directory=config.ROOT_DIR,
+                 root_directory=cfg.ROOT_DIR,
                  transform=None,
                  train=True,
                  S=(8, 16, 32),
@@ -470,10 +471,10 @@ if __name__ == "__main__":
 
     S = [8, 16, 32]
 
-    anchors = config.ANCHORS
+    anchors = cfg.ANCHORS
 
-    dataset = Validation_Dataset(anchors=config.ANCHORS,
-                                 root_directory=config.ROOT_DIR, transform=None,
+    dataset = Validation_Dataset(anchors=cfg.ANCHORS,
+                                 root_directory=cfg.ROOT_DIR, transform=None,
                                  train=False, S=S, rect_training=True, default_size=640, bs=4,
                                  bboxes_format="coco")
 

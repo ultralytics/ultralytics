@@ -68,10 +68,7 @@ class DetectionPredictor(BasePredictor):
 
         # apply Night Vision mode on original image
         if self.args.night_vision == 'show':
-            im0 = night_vision_core(im0,
-                                    self.args.image_gamma,
-                                    self.args.min_gamma,
-                                    self.args.max_gamma,
+            im0 = night_vision_core(im0, self.args.image_gamma, self.args.min_gamma, self.args.max_gamma,
                                     self.args.min_normalized_intensity)
 
         self.annotator = self.get_annotator(im0)

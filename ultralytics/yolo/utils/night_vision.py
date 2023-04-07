@@ -3,7 +3,7 @@ import numpy as np
 import torch
 
 
-def night_vision_core(img, image_gamma="auto", min_gamma=0.6, max_gamma=1.0, min_normalized_intensity=0.25):
+def night_vision_core(img, image_gamma='auto', min_gamma=0.6, max_gamma=1.0, min_normalized_intensity=0.25):
     """
     Night vision mode core function.
 
@@ -61,16 +61,16 @@ def night_vision_core(img, image_gamma="auto", min_gamma=0.6, max_gamma=1.0, min
     # -- Gamma Correction --
 
     gamma = image_gamma
-    
-    if image_gamma == "auto":
+
+    if image_gamma == 'auto':
         intensity = measure_intensity(img)  # intensity of the image, value range (0-255)
         normaized_intensity = intensity / 255.0
-        
+
         if normaized_intensity < min_normalized_intensity:  # if the image is dark
             scaled_intensity = ((2 * normaized_intensity - 0) / (1 - 0)) * (max_gamma - min_gamma) + min_gamma
-        else:   # if the image is bright
+        else:  # if the image is bright
             scaled_intensity = 1.0
-            
+
         gamma = scaled_intensity
     elif type(gamma) == float or type(gamma) == int:
         gamma = image_gamma
@@ -137,7 +137,8 @@ def convert_to_torch(img):
     img = torch.from_numpy(img).permute(2, 0, 1)  # convert back to tensor
     return img
 
-def apply_night_vision(img, image_gamma="auto", min_gamma=0.6, max_gamma=1.0, min_normalized_intensity=0.25):
+
+def apply_night_vision(img, image_gamma='auto', min_gamma=0.6, max_gamma=1.0, min_normalized_intensity=0.25):
     """
     Applies night vision mode to an image.
     (applies night_vision_core() function to the image)
@@ -148,12 +149,13 @@ def apply_night_vision(img, image_gamma="auto", min_gamma=0.6, max_gamma=1.0, mi
     Returns:
         torch.Tensor: The image with night vision mode applied. (shape: (3, H, W))
     """
-    img = convert_to_cv2(img)   # convert to cv2
-    img = night_vision_core(img, image_gamma, min_gamma, max_gamma, min_normalized_intensity)   # apply night vision
+    img = convert_to_cv2(img)  # convert to cv2
+    img = night_vision_core(img, image_gamma, min_gamma, max_gamma, min_normalized_intensity)  # apply night vision
     img = convert_to_torch(img)  # convert back to torch
     return img
 
-def apply_night_vision_on_batch(batch, image_gamma="auto", min_gamma=0.6, max_gamma=1.0, min_normalized_intensity=0.25):
+
+def apply_night_vision_on_batch(batch, image_gamma='auto', min_gamma=0.6, max_gamma=1.0, min_normalized_intensity=0.25):
     """
     Applies night vision mode to a batch of images.
     (applies night_vision_core() function to each image in the batch)
@@ -185,6 +187,7 @@ def measure_intensity(img):
     gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     intensity = np.mean(gray_img)
     return intensity
+
 
 # Load the image
 # img = cv2.imread(r'D:\ME\Downloads\New folder\Downloads\dark_stop_6.png')

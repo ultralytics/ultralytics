@@ -337,11 +337,15 @@ def git_describe(path=ROOT):  # path must be a directory
 
 def print_args(args: Optional[dict] = None, show_file=True, show_func=False):
     # Print function arguments (optional args dict)
+    def strip_auth(v):
+        # Strip authentication information from URLs
+        return clean_url(v) if (isinstance(v, str) and v.startswith('http') and len(v) > 100) else v
+
     x = inspect.currentframe().f_back  # previous frame
     file, _, func, _, _ = inspect.getframeinfo(x)
     if args is None:  # get args automatically
         args, _, _, frm = inspect.getargvalues(x)
-        args = {k: v for k, v in frm.items() if k in args}
+        args = {k: strip_auth(v) for k, v in frm.items() if k in args}
     try:
         file = Path(file).resolve().relative_to(ROOT).with_suffix('')
     except ValueError:

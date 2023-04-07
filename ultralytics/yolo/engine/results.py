@@ -185,7 +185,7 @@ class Results(SimpleClass):
             probs (bool): Whether to plot classification probability
 
         Returns:
-            (None) or (PIL.Image): If `pil` is True, a PIL Image is returned. Otherwise, nothing is returned.
+            (numpy.ndarray): A numpy array of the annotated image.
         """
         # Deprecation warn TODO: remove in 8.2
         if 'show_conf' in kwargs:

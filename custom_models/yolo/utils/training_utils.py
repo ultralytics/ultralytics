@@ -31,7 +31,7 @@ def multi_scale(img, target_shape, max_stride):
 def get_loaders(
         db_root_dir,
         batch_size,
-        num_classes=len(cfg.COCO),
+        num_classes=len(cfg.nc),
         num_workers=4,
         pin_memory=torch.cuda.is_available(),
         rect_training=False,

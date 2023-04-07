@@ -18,7 +18,7 @@ def login(api_key=''):
         from ultralytics import hub
         hub.login('API_KEY')
     """
-    Auth(api_key)
+    Auth(api_key, verbose=True)
 
 
 def logout():

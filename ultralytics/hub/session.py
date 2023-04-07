@@ -58,7 +58,7 @@ class HUBTrainingSession:
             raise ValueError(f'Invalid HUBTrainingSession input: {url}')
 
         # Authorize
-        auth = Auth(key, verbose=False)
+        auth = Auth(key)
         self.agent_id = None  # identifies which instance is communicating with server
         self.model_id = model_id
         self.model_url = f'https://hub.ultralytics.com/models/{model_id}'

@@ -99,7 +99,7 @@ class BasePredictor:
         self.device = None
         self.dataset = None
         self.vid_path, self.vid_writer = None, None
-        self.annotator = None
+        self.plotted_img = None
         self.data_path = None
         self.source_type = None
         self.batch = None
@@ -108,9 +108,6 @@ class BasePredictor:
 
     def preprocess(self, img):
         pass
-
-    def get_annotator(self, img):
-        raise NotImplementedError('get_annotator function needs to be implemented')
 
     def write_results(self, results, batch, print_string):
         raise NotImplementedError('print_results function needs to be implemented')
@@ -208,10 +205,10 @@ class BasePredictor:
                 if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
                     s += self.write_results(i, self.results, (p, im, im0))
 
-                if self.args.show:
+                if self.args.show and self.plotted_img is not None:
                     self.show(p)
 
-                if self.args.save:
+                if self.args.save and self.plotted_img is not None:
                     self.save_preds(vid_cap, i, str(self.save_dir / p.name))
             self.run_callbacks('on_predict_batch_end')
             yield from self.results
@@ -251,7 +248,7 @@ class BasePredictor:
         self.model.eval()
 
     def show(self, p):
-        im0 = self.annotator.result()
+        im0 = self.plotted_img
         if platform.system() == 'Linux' and p not in self.windows:
             self.windows.append(p)
             cv2.namedWindow(str(p), cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
@@ -260,7 +257,7 @@ class BasePredictor:
         cv2.waitKey(500 if self.batch[4].startswith('image') else 1)  # 1 millisecond
 
     def save_preds(self, vid_cap, idx, save_path):
-        im0 = self.annotator.result()
+        im0 = self.plotted_img
         # save imgs
         if self.dataset.mode == 'image':
             cv2.imwrite(save_path, im0)

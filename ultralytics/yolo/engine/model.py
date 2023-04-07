@@ -1,7 +1,6 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
 import sys
-from copy import deepcopy
 from pathlib import Path
 from typing import Union
 

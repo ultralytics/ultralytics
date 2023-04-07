@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 
 import torch
-
+from functools import partial
 from ultralytics.yolo.utils import IterableSimpleNamespace, yaml_load
 from ultralytics.yolo.utils.checks import check_yaml
 
@@ -10,7 +10,9 @@ from .trackers import BOTSORT, BYTETracker
 TRACKER_MAP = {'bytetrack': BYTETracker, 'botsort': BOTSORT}
 
 
-def on_predict_start(predictor):
+def on_predict_start(predictor, global_tracker=False):
+    if hasattr(predictor, "trackers") and global_tracker:
+        return
     tracker = check_yaml(predictor.args.tracker)
     cfg = IterableSimpleNamespace(**yaml_load(tracker))
     assert cfg.tracker_type in ['bytetrack', 'botsort'], \
@@ -38,6 +40,6 @@ def on_predict_postprocess_end(predictor):
         predictor.results[i].update(boxes=torch.as_tensor(tracks[:, :-1]))
 
 
-def register_tracker(model):
-    model.add_callback('on_predict_start', on_predict_start)
+def register_tracker(model, global_tracker):
+    model.add_callback('on_predict_start', partial(on_predict_start, global_tracker=global_tracker))
     model.add_callback('on_predict_postprocess_end', on_predict_postprocess_end)

@@ -2,7 +2,7 @@
 
 from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils import DEFAULT_CFG, ROOT, ops
-from ultralytics.yolo.utils.plotting import colors, save_one_box
+from ultralytics.yolo.utils.plotting import save_one_box
 from ultralytics.yolo.v8.detect.predict import DetectionPredictor
 
 

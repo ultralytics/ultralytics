@@ -278,7 +278,8 @@ class BYTETracker:
         self.lost_stracks.extend(lost_stracks)
         self.lost_stracks = self.sub_stracks(self.lost_stracks, self.removed_stracks)
         self.removed_stracks.extend(removed_stracks)
-        self.removed_stracks = [track for track in self.removed_stracks if self.frame_id - track.end_frame < 5 * self.max_time_lost]
+        self.removed_stracks = [
+            track for track in self.removed_stracks if self.frame_id - track.end_frame < 5 * self.max_time_lost]
         self.tracked_stracks, self.lost_stracks = self.remove_duplicate_stracks(self.tracked_stracks, self.lost_stracks)
         output = [
             track.tlbr.tolist() + [track.track_id, track.score, track.cls, track.idx] for track in self.tracked_stracks

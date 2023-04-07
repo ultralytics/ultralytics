@@ -11,7 +11,7 @@ API_KEY_URL = 'https://hub.ultralytics.com/settings?tab=api+keys'
 class Auth:
     id_token = api_key = model_key = False
 
-    def __init__(self, api_key='', verbose=True):
+    def __init__(self, api_key='', verbose=False):
         """
         Initialize the Auth class with an optional API key.
 

@@ -138,7 +138,7 @@ class Annotator:
         im_gpu = im_gpu * inv_alph_masks[-1] + mcs
         im_mask = (im_gpu * 255)
         im_mask_np = im_mask.byte().cpu().numpy()
-        self.im[:] = im_mask_np if retina_masks else scale_image(im_gpu.shape, im_mask_np, self.im.shape)
+        self.im[:] = im_mask_np if retina_masks else scale_image(im_mask_np, self.im.shape)
         if self.pil:
             # convert im back to PIL and update draw
             self.fromarray(self.im)
@@ -165,11 +165,11 @@ class Annotator:
                     conf = k[2]
                     if conf < 0.5:
                         continue
-                cv2.circle(self.im, (int(x_coord), int(y_coord)), radius, color_k, -1)
+                cv2.circle(self.im, (int(x_coord), int(y_coord)), radius, color_k, -1, lineType=cv2.LINE_AA)
 
         if kpt_line:
             ndim = kpts.shape[-1]
-            for sk_id, sk in enumerate(self.skeleton):
+            for i, sk in enumerate(self.skeleton):
                 pos1 = (int(kpts[(sk[0] - 1), 0]), int(kpts[(sk[0] - 1), 1]))
                 pos2 = (int(kpts[(sk[1] - 1), 0]), int(kpts[(sk[1] - 1), 1]))
                 if ndim == 3:
@@ -181,7 +181,7 @@ class Annotator:
                     continue
                 if pos2[0] % shape[1] == 0 or pos2[1] % shape[0] == 0 or pos2[0] < 0 or pos2[1] < 0:
                     continue
-                cv2.line(self.im, pos1, pos2, [int(x) for x in self.limb_color[sk_id]], thickness=2)
+                cv2.line(self.im, pos1, pos2, [int(x) for x in self.limb_color[i]], thickness=2, lineType=cv2.LINE_AA)
         if self.pil:
             # convert im back to PIL and update draw
             self.fromarray(self.im)

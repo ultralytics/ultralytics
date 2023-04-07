@@ -29,7 +29,6 @@ Usage - formats:
                               yolov8n_paddle_model       # PaddlePaddle
 """
 import platform
-from collections import defaultdict
 from pathlib import Path
 
 import cv2
@@ -105,7 +104,7 @@ class BasePredictor:
         self.data_path = None
         self.source_type = None
         self.batch = None
-        self.callbacks = defaultdict(list, _callbacks) if _callbacks else defaultdict(list, callbacks.default_callbacks)
+        self.callbacks = _callbacks if _callbacks else callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 
     def preprocess(self, img):
@@ -284,3 +283,9 @@ class BasePredictor:
     def run_callbacks(self, event: str):
         for callback in self.callbacks.get(event, []):
             callback(self)
+
+    def add_callback(self, event: str, func):
+        """
+        Add callback
+        """
+        self.callbacks[event].append(func)

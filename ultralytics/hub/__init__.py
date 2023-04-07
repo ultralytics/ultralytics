@@ -3,7 +3,7 @@
 import requests
 
 from ultralytics.hub.auth import Auth
-from ultralytics.hub.utils import PREFIX, split_key
+from ultralytics.hub.utils import PREFIX
 from ultralytics.yolo.utils import LOGGER, SETTINGS, USER_CONFIG_DIR, yaml_save
 
 

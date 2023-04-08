@@ -10,6 +10,9 @@ from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
 
 
 class DetectionPredictor(BasePredictor):
+    
+    def get_annotator(self, img):
+        return Annotator(img, line_width=self.args.line_thickness, example=str(self.model.names))
 
     def preprocess(self, img):
         img = (img if isinstance(img, torch.Tensor) else torch.from_numpy(img)).to(self.model.device)

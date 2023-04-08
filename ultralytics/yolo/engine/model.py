@@ -368,7 +368,6 @@ class YOLO:
     def tune(self,
              data: str,
              space: dict = None,
-             pbt_space=None,
              grace_period=5,
              gpu_per_trial=None,
              max_samples=10,
@@ -427,18 +426,16 @@ class YOLO:
             synch=True,  # TODO: test with and without
         )
         """
-        tuner = tune.Tuner(trainable_with_resources,
-                           param_space=space,
-                           tune_config=tune.TuneConfig(scheduler=scheduler,
-                                                       num_samples=100,
-                                                       metric=task_metric_map[self.task],
-                                                       mode='max'),
-                           run_config=RunConfig(callbacks=[
-                               WandbLoggerCallback(project='yolov8_tuner') if wandb else None],
-                                                stop=stopping_criteria,
-                                                verbose=1,
-                                                local_dir='./runs',
-                                                log_to_file=True))
+        tuner = tune.Tuner(
+            trainable_with_resources,
+            param_space=space,
+            tune_config=tune.TuneConfig(scheduler=scheduler, num_samples=max_samples, metric=task_metric_map[self.task], mode='max'),
+            run_config=RunConfig(callbacks=[WandbLoggerCallback(project='yolov8_tuner') if wandb else None],
+            stop=stopping_criteria,
+            verbose=0,
+            local_dir="./runs",
+            log_to_file=True
+            ))
         tuner.fit()
 
         return tuner.get_results()

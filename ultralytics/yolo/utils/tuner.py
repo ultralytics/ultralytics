@@ -4,9 +4,8 @@ try:
     from ray import tune
     from ray.air import RunConfig, session  # noqa
     from ray.air.integrations.wandb import WandbLoggerCallback  # noqa
+    from ray.tune.schedulers import AsyncHyperBandScheduler as AHB  # noqa
     from ray.tune.schedulers import PopulationBasedTraining as PBT  # noqa
-    from ray.tune.schedulers import AsyncHyperBandScheduler as AHB # noqa
-
 
 except ImportError:
     LOGGER.info("Tuning hyperparameters requires ray/tune. Install using `pip install 'ray[tune]'`")

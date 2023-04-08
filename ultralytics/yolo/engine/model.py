@@ -408,8 +408,7 @@ class YOLO:
 
         trainable_with_resources = tune.with_resources(_tune, {'cpu': 8, 'gpu': gpu_per_trial if gpu_per_trial else 0})
         scheduler = AHB(grace_period=grace_period, max_t=100)
-        stopping_criteria = {"epoch": train_args["epochs"] if train_args.get("epochs") else 50}
-
+        stopping_criteria = {'epoch': train_args['epochs'] if train_args.get('epochs') else 50}
         """
         pbt_interval = pbt_interval
         pbt_perturbation_space = pbt_space if pbt_space else {
@@ -428,17 +427,19 @@ class YOLO:
             synch=True,  # TODO: test with and without
         )
         """
-        tuner = tune.Tuner(
-            trainable_with_resources,
-            param_space=space,
-            tune_config=tune.TuneConfig(scheduler=scheduler, num_samples=100, metric=task_metric_map[self.task], mode='max'),
-            run_config=RunConfig(callbacks=[WandbLoggerCallback(project='yolov8_tuner') if wandb else None],
-            stop=stopping_criteria,
-            verbose=1,
-            local_dir="./runs",
-            name="tune",
-            log_to_file=True
-            ))
+        tuner = tune.Tuner(trainable_with_resources,
+                           param_space=space,
+                           tune_config=tune.TuneConfig(scheduler=scheduler,
+                                                       num_samples=100,
+                                                       metric=task_metric_map[self.task],
+                                                       mode='max'),
+                           run_config=RunConfig(callbacks=[
+                               WandbLoggerCallback(project='yolov8_tuner') if wandb else None],
+                                                stop=stopping_criteria,
+                                                verbose=1,
+                                                local_dir='./runs',
+                                                name='tune',
+                                                log_to_file=True))
         tuner.fit()
 
         return tuner.get_results()

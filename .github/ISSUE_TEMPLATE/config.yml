@@ -9,6 +9,3 @@ contact_links:
   - name: 🎧 Discord
     url: https://discord.gg/n6cFeSPZdD
     about: Ask on Ultralytics Discord
-  - name: Stack Overflow
-    url: https://stackoverflow.com/search?q=YOLOv8
-    about: Ask on Stack Overflow with 'YOLOv8' tag

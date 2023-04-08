@@ -33,6 +33,7 @@ class DetectionValidator(BaseValidator):
 
         # Night Vision mode
         if self.args.night_vision:
+            self.args.device = 'cpu'  # val works only on CPU
             batch['img'] = apply_night_vision_on_batch(batch['img'], self.args.image_gamma, self.args.min_gamma,
                                                        self.args.max_gamma, self.args.min_normalized_intensity)
 

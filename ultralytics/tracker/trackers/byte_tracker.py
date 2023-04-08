@@ -349,4 +349,3 @@ class BYTETracker:
         resa = [t for i, t in enumerate(stracksa) if i not in dupa]
         resb = [t for i, t in enumerate(stracksb) if i not in dupb]
         return resa, resb
-

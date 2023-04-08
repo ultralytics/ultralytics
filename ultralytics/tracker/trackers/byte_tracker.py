@@ -278,13 +278,17 @@ class BYTETracker:
         self.lost_stracks.extend(lost_stracks)
         self.lost_stracks = self.sub_stracks(self.lost_stracks, self.removed_stracks)
         self.removed_stracks.extend(removed_stracks)
-        self.removed_stracks = [
-            track for track in self.removed_stracks if self.frame_id - track.end_frame < 5 * self.max_time_lost]
         self.tracked_stracks, self.lost_stracks = self.remove_duplicate_stracks(self.tracked_stracks, self.lost_stracks)
         output = [
             track.tlbr.tolist() + [track.track_id, track.score, track.cls, track.idx] for track in self.tracked_stracks
             if track.is_activated]
         return np.asarray(output, dtype=np.float32)
+        self.removed_stracks.extend(removed_stracks)
+        if len(self.removed_stracks) > 1000:
+            self.removed_stracks = self.removed_stracks[-999:]  # clip remove stracks to 1000 maximum
+        return np.asarray(
+            [x.tlbr.tolist() + [x.track_id, x.score, x.cls, x.idx] for x in self.tracked_stracks if x.is_activated],
+            dtype=np.float32)
 
     def get_kalmanfilter(self):
         return KalmanFilterXYAH()
@@ -326,6 +330,8 @@ class BYTETracker:
             tid = t.track_id
             if stracks.get(tid, 0):
                 del stracks[tid]
+            if t.track_id in stracks:
+                del stracks[t.track_id]
         return list(stracks.values())
 
     @staticmethod
@@ -343,3 +349,4 @@ class BYTETracker:
         resa = [t for i, t in enumerate(stracksa) if i not in dupa]
         resb = [t for i, t in enumerate(stracksb) if i not in dupb]
         return resa, resb
+

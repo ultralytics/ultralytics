@@ -235,7 +235,8 @@ class YOLO:
         overrides.update(kwargs)  # prefer kwargs
         overrides['mode'] = kwargs.get('mode', 'predict')
         assert overrides['mode'] in ['track', 'predict']
-        overrides['save'] = kwargs.get('save', False)  # not save files by default
+        if not is_cli:
+            overrides['save'] = kwargs.get('save', False)  # do not save by default if called in Python
         if not self.predictor:
             self.task = overrides.get('task') or self.task
             self.predictor = TASK_MAP[self.task][3](overrides=overrides, _callbacks=self.callbacks)

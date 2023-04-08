@@ -329,7 +329,8 @@ class BYTETracker:
         return list(stracks.values())
         """
         track_ids_b = {t.track_id for t in tlistb}
-        return [t for t in tlista if t.trackid not in track_ids_b]
+        return [t for t in tlista if t.track_id not in track_ids_b]
+
 
     @staticmethod
     def remove_duplicate_stracks(stracksa, stracksb):

@@ -23,7 +23,7 @@ full list of export arguments.
         ```python
         from ultralytics.yolo.utils.benchmarks import benchmark
         
-        # Benchmark
+        # Benchmark on GPU
         benchmark(model='yolov8n.pt', imgsz=640, half=False, device=0)
         ```
     === "CLI"
@@ -63,3 +63,5 @@ Benchmarks will attempt to run automatically on all possible export formats belo
 | [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`         | `yolov8n_edgetpu.tflite`  | ✅        |
 | [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n_web_model/`      | ✅        |
 | [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n_paddle_model/`   | ✅        |
+
+See full `export` details in the [Export](https://docs.ultralytics.com/modes/export/) page.

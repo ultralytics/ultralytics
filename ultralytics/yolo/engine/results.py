@@ -70,10 +70,12 @@ class Results(SimpleClass):
     Args:
         orig_img (numpy.ndarray): The original image as a numpy array.
         path (str): The path to the image file.
-        names (List[str]): A list of class names.
+        names (dict): A dictionary of class names.
         boxes (List[List[float]], optional): A list of bounding box coordinates for each detection.
         masks (numpy.ndarray, optional): A 3D numpy array of detection masks, where each mask is a binary image.
         probs (numpy.ndarray, optional): A 2D numpy array of detection probabilities for each class.
+        keypoints (List[List[float]], optional): A list of detected keypoints for each object.
+
 
     Attributes:
         orig_img (numpy.ndarray): The original image as a numpy array.
@@ -81,9 +83,12 @@ class Results(SimpleClass):
         boxes (Boxes, optional): A Boxes object containing the detection bounding boxes.
         masks (Masks, optional): A Masks object containing the detection masks.
         probs (numpy.ndarray, optional): A 2D numpy array of detection probabilities for each class.
-        names (List[str]): A list of class names.
+        names (dict): A dictionary of class names.
         path (str): The path to the image file.
+        keypoints (List[List[float]], optional): A list of detected keypoints for each object.
+        speed (dict): A dictionary of preprocess, inference and postprocess speeds in milliseconds per image.
         _keys (tuple): A tuple of attribute names for non-empty attributes.
+
     """
 
     def __init__(self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None) -> None:
@@ -93,6 +98,7 @@ class Results(SimpleClass):
         self.masks = Masks(masks, self.orig_shape) if masks is not None else None  # native size or imgsz masks
         self.probs = probs if probs is not None else None
         self.keypoints = keypoints if keypoints is not None else None
+        self.speed = {'preprocess': None, 'inference': None, 'postprocess': None}  # milliseconds per image
         self.names = names
         self.path = path
         self._keys = ('boxes', 'masks', 'probs', 'keypoints')
@@ -203,7 +209,7 @@ class Results(SimpleClass):
         keypoints = self.keypoints
         if pred_masks and show_masks:
             if img_gpu is None:
-                img = LetterBox(pred_masks.shape[1:])(image=annotator.im)
+                img = LetterBox(pred_masks.shape[1:])(image=annotator.result())
                 img_gpu = torch.as_tensor(img, dtype=torch.float16, device=pred_masks.masks.device).permute(
                     2, 0, 1).flip(0).contiguous() / 255
             annotator.masks(pred_masks.data, colors=[colors(x, True) for x in pred_boxes.cls], im_gpu=img_gpu)

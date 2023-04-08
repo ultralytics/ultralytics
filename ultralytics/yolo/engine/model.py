@@ -235,7 +235,8 @@ class YOLO:
         overrides.update(kwargs)  # prefer kwargs
         overrides['mode'] = kwargs.get('mode', 'predict')
         assert overrides['mode'] in ['track', 'predict']
-        overrides['save'] = kwargs.get('save', False)  # not save files by default
+        if not is_cli:
+            overrides['save'] = kwargs.get('save', False)  # do not save by default if called in Python
         if not self.predictor:
             self.task = overrides.get('task') or self.task
             self.predictor = TASK_MAP[self.task][3](overrides=overrides, _callbacks=self.callbacks)
@@ -244,10 +245,23 @@ class YOLO:
             self.predictor.args = get_cfg(self.predictor.args, overrides)
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
 
-    def track(self, source=None, stream=False, **kwargs):
+    def track(self, source=None, stream=False, persist=False, **kwargs):
+        """
+        Perform object tracking on the input source using the registered trackers.
+
+        Args:
+            source (str, optional): The input source for object tracking. Can be a file path or a video stream.
+            stream (bool, optional): Whether the input source is a video stream. Defaults to False.
+            persist (bool, optional): Whether to persist the trackers if they already exist. Defaults to False.
+            **kwargs: Additional keyword arguments for the tracking process.
+
+        Returns:
+            object: The tracking results.
+
+        """
         if not hasattr(self.predictor, 'trackers'):
             from ultralytics.tracker import register_tracker
-            register_tracker(self)
+            register_tracker(self, persist)
         # ByteTrack-based method needs low confidence predictions as input
         conf = kwargs.get('conf') or 0.1
         kwargs['conf'] = conf

@@ -70,7 +70,6 @@ class DetectionPredictor(BasePredictor):
 
         self.annotator = self.get_annotator(im0)
 
-
         result = results[idx]  # TODO: make boxes inherit from tensors
         if len(result) == 0:
             return f'{log_string}(no detections), '

@@ -84,7 +84,7 @@ class BaseValidator:
         if self.args.conf is None:
             self.args.conf = 0.001  # default conf=0.001
 
-        self.callbacks = _callbacks if _callbacks else callbacks.get_default_callbacks()
+        self.callbacks = _callbacks or callbacks.get_default_callbacks()
 
         # Check Night Vision mode
         if self.args.night_vision:

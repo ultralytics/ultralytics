@@ -198,7 +198,7 @@ class PoseValidator(DetectionValidator):
 
 def val(cfg=DEFAULT_CFG, use_python=False):
     model = cfg.model or 'yolov8n-pose.pt'
-    data = cfg.data or 'coco128-pose.yaml'
+    data = cfg.data or 'coco8-pose.yaml'
 
     args = dict(model=model, data=data)
     if use_python:

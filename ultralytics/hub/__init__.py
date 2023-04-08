@@ -18,7 +18,7 @@ def login(api_key=''):
         from ultralytics import hub
         hub.login('API_KEY')
     """
-    Auth(api_key)
+    Auth(api_key, verbose=True)
 
 
 def logout():
@@ -82,7 +82,7 @@ def export_model(model_id='', format='torchscript'):
 
 def get_export(model_id='', format='torchscript'):
     # Get an exported model dictionary with download URL
-    assert format in export_fmts_hub, f"Unsupported export format '{format}', valid formats are {export_fmts_hub}"
+    assert format in export_fmts_hub(), f"Unsupported export format '{format}', valid formats are {export_fmts_hub()}"
     r = requests.post('https://api.ultralytics.com/get-export',
                       json={
                           'apiKey': Auth().api_key,

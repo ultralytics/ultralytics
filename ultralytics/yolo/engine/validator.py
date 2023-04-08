@@ -87,6 +87,10 @@ class BaseValidator:
 
         self.callbacks = defaultdict(list, callbacks.default_callbacks)  # add callbacks
 
+        # Check Night Vision mode
+        if self.args.night_vision:
+            LOGGER.info('Night Vision mode Activated!')
+
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
         """

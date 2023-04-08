@@ -67,9 +67,9 @@ def night_vision_core(img, image_gamma="auto", min_gamma=0.6, max_gamma=1.0, min
         normaized_intensity = intensity / 255.0
         
         if normaized_intensity < min_normalized_intensity:  # if the image is dark
-            scaled_intensity = ((2 * normaized_intensity - 0) / (1 - 0)) * (max_gamma - min_gamma) + min_gamma
+            scaled_intensity = ((normaized_intensity - 0) / (1 - 0)) * (max_gamma - min_gamma) + min_gamma
         else:   # if the image is bright
-            scaled_intensity = 1.0
+            scaled_intensity = 1.0  # no gamma correction
             
         gamma = scaled_intensity
     elif type(gamma) == float or type(gamma) == int:

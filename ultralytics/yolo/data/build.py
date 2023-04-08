@@ -102,7 +102,7 @@ def build_dataloader(cfg, batch, img_path, data_info, stride=32, rect=False, ran
         pin_memory=PIN_MEMORY,
         collate_fn=getattr(dataset, 'collate_fn', None),
         worker_init_fn=seed_worker,
-        persistent_workers=loader == DataLoader,  # persist workers if using default PyTorch DataLoader
+        persistent_workers=(nw > 0) and (loader == DataLoader),  # persist workers if using default PyTorch DataLoader
         generator=generator), dataset
 
 

@@ -46,17 +46,14 @@ jobs:
       - name: Test HUB training
         shell: python
         env:
-          APIKEY: ${{ secrets.ULTRALYTICS_HUB_APIKEY }}
+          API_KEY: ${{ secrets.ULTRALYTICS_HUB_API_KEY }}
+          MODEL_ID: ${{ secrets.ULTRALYTICS_HUB_MODEL_ID }}
         run: |
           import os
-          from pathlib import Path
           from ultralytics import YOLO, hub
-          from ultralytics.yolo.utils import USER_CONFIG_DIR
-          Path(USER_CONFIG_DIR / 'settings.yaml').unlink()
-          key = os.environ['APIKEY']
-          hub.reset_model(key)
-          key, model_id = key.split('_')
-          hub.login(key)
+          api_key, model_id = os.environ['API_KEY'], os.environ['MODEL_ID']
+          hub.login(api_key)
+          hub.reset_model(model_id)
           model = YOLO('https://hub.ultralytics.com/models/' + model_id)
           model.train()
 

@@ -56,19 +56,19 @@ Train a YOLOv8-pose model on the COCO128-pose dataset.
         model = YOLO('yolov8n-pose.yaml').load('yolov8n-pose.pt')  # build from YAML and transfer weights
         
         # Train the model
-        model.train(data='coco128-pose.yaml', epochs=100, imgsz=640)
+        model.train(data='coco8-pose.yaml', epochs=100, imgsz=640)
         ```
     === "CLI"
     
         ```bash
         # Build a new model from YAML and start training from scratch
-        yolo pose train data=coco128-pose.yaml model=yolov8n-pose.yaml epochs=100 imgsz=640
+        yolo pose train data=coco8-pose.yaml model=yolov8n-pose.yaml epochs=100 imgsz=640
 
         # Start training from a pretrained *.pt model
-        yolo pose train data=coco128-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
+        yolo pose train data=coco8-pose.yaml model=yolov8n-pose.pt epochs=100 imgsz=640
 
         # Build a new model from YAML, transfer pretrained weights to it and start training
-        yolo pose train data=coco128-pose.yaml model=yolov8n-pose.yaml pretrained=yolov8n-pose.pt epochs=100 imgsz=640
+        yolo pose train data=coco8-pose.yaml model=yolov8n-pose.yaml pretrained=yolov8n-pose.pt epochs=100 imgsz=640
         ```
 
 ## Val

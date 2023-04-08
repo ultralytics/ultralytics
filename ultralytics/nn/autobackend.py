@@ -381,19 +381,14 @@ class AutoBackend(nn.Module):
                     if int8:
                         scale, zero_point = output['quantization']
                         x = (x.astype(np.float32) - zero_point) * scale  # re-scale
-                    if x.ndim == 2:  # classification model
-                        pass
-                    elif x.ndim == 3:  # detection, segmentation, or pose model
+                    if x.ndim != 2:  # if task is not classification
                         # Unnormalize xywh with input image size
                         # xywh are normalized in TFLite/EdgeTPU to mitigate quantization error of integer models
                         # See this PR for details: https://github.com/ultralytics/ultralytics/pull/1695
-                        x[:, 0, :] *= w
-                        x[:, 1, :] *= h
-                        x[:, 2, :] *= w
-                        x[:, 3, :] *= h
-                    else:
-                        raise ValueError('Unexpected output tensor shape. '
-                                         f'x.ndim expected to be 2 or 3, but got {x.ndim=}')
+                        x[:, 0] *= w
+                        x[:, 1] *= h
+                        x[:, 2] *= w
+                        x[:, 3] *= h
                     y.append(x)
             # TF segment fixes: export is reversed vs ONNX export and protos are transposed
             if len(y) == 2:  # segment with (det, proto) output order reversed

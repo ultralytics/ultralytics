@@ -426,7 +426,7 @@ class Detect(nn.Module):
             # See this PR for details: https://github.com/ultralytics/ultralytics/pull/1695
             img_h = shape[2] * self.stride[0]
             img_w = shape[3] * self.stride[0]
-            img_size = torch.tensor([[img_w, img_h, img_w, img_h]], device=dbox.device).unsqueeze(-1)  # [1, 4, 1]
+            img_size = torch.tensor([img_w, img_h, img_w, img_h], device=dbox.device).reshape(1, 4, 1)
             dbox /= img_size
 
         y = torch.cat((dbox, cls.sigmoid()), 1)

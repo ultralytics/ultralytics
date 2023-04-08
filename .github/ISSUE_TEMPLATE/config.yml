@@ -1,6 +1,6 @@
 blank_issues_enabled: true
 contact_links:
-  - name: 📄Docs
+  - name: 📄 Docs
     url: https://docs.ultralytics.com/
     about: Full Ultralytics YOLOv8 Documentation
   - name: 💬 Forum

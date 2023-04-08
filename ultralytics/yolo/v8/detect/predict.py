@@ -5,13 +5,10 @@ import torch
 from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils import DEFAULT_CFG, ROOT, ops
-from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
+from ultralytics.yolo.utils.plotting import save_one_box
 
 
 class DetectionPredictor(BasePredictor):
-
-    def get_annotator(self, img):
-        return Annotator(img, line_width=self.args.line_thickness, example=str(self.model.names))
 
     def preprocess(self, img):
         img = (img if isinstance(img, torch.Tensor) else torch.from_numpy(img)).to(self.model.device)
@@ -52,14 +49,17 @@ class DetectionPredictor(BasePredictor):
         self.data_path = p
         self.txt_path = str(self.save_dir / 'labels' / p.stem) + ('' if self.dataset.mode == 'image' else f'_{frame}')
         log_string += '%gx%g ' % im.shape[2:]  # print string
-        self.annotator = self.get_annotator(im0)
 
-        det = results[idx].boxes  # TODO: make boxes inherit from tensors
-        if len(det) == 0:
+        result = results[idx]  # TODO: make boxes inherit from tensors
+        if len(result) == 0:
             return f'{log_string}(no detections), '
+        det = result.boxes
         for c in det.cls.unique():
             n = (det.cls == c).sum()  # detections per class
             log_string += f"{n} {self.model.names[int(c)]}{'s' * (n > 1)}, "
+
+        if self.args.save or self.args.show:  # Add bbox to image
+            self.plotted_img = result.plot(line_width=self.args.line_thickness)
 
         # write
         for d in reversed(det):
@@ -68,10 +68,6 @@ class DetectionPredictor(BasePredictor):
                 line = (c, *d.xywhn.view(-1)) + (conf, ) * self.args.save_conf + (() if id is None else (id, ))
                 with open(f'{self.txt_path}.txt', 'a') as f:
                     f.write(('%g ' * len(line)).rstrip() % line + '\n')
-            if self.args.save or self.args.show:  # Add bbox to image
-                name = ('' if id is None else f'id:{id} ') + self.model.names[c]
-                label = (f'{name} {conf:.2f}' if self.args.show_conf else name) if self.args.show_labels else None
-                self.annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
             if self.args.save_crop:
                 save_one_box(d.xyxy,
                              imc,

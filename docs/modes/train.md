@@ -90,7 +90,6 @@ task.
 | `dfl`             | `1.5`    | dfl loss gain                                                               |
 | `pose`            | `12.0`   | pose loss gain (pose-only)                                                  |
 | `kobj`            | `2.0`    | keypoint obj loss gain (pose-only)                                          |
-| `fl_gamma`        | `0.0`    | focal loss gamma (efficientDet default gamma=1.5)                           |
 | `label_smoothing` | `0.0`    | label smoothing (fraction)                                                  |
 | `nbs`             | `64`     | nominal batch size                                                          |
 | `overlap_mask`    | `True`   | masks should overlap during training (segment train only)                   |

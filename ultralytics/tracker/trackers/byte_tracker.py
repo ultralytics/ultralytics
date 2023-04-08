@@ -331,7 +331,6 @@ class BYTETracker:
         track_ids_b = {t.track_id for t in tlistb}
         return [t for t in tlista if t.track_id not in track_ids_b]
 
-
     @staticmethod
     def remove_duplicate_stracks(stracksa, stracksb):
         pdist = matching.iou_distance(stracksa, stracksb)

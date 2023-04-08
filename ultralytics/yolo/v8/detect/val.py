@@ -12,9 +12,9 @@ from ultralytics.yolo.engine.validator import BaseValidator
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, colorstr, ops
 from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
+from ultralytics.yolo.utils.night_vision import apply_night_vision, apply_night_vision_on_batch, night_vision_core
 from ultralytics.yolo.utils.plotting import output_to_target, plot_images
 from ultralytics.yolo.utils.torch_utils import de_parallel
-from ultralytics.yolo.utils.night_vision import apply_night_vision, apply_night_vision_on_batch, night_vision_core
 
 
 class DetectionValidator(BaseValidator):
@@ -33,11 +33,8 @@ class DetectionValidator(BaseValidator):
 
         # Night Vision mode
         if self.args.night_vision:
-            batch['img'] = apply_night_vision_on_batch(batch['img'],
-                                                       self.args.image_gamma,
-                                                       self.args.min_gamma,
-                                                       self.args.max_gamma,
-                                                       self.args.min_normalized_intensity)
+            batch['img'] = apply_night_vision_on_batch(batch['img'], self.args.image_gamma, self.args.min_gamma,
+                                                       self.args.max_gamma, self.args.min_normalized_intensity)
 
         batch['img'] = (batch['img'].half() if self.args.half else batch['img'].float()) / 255
         for k in ['batch_idx', 'cls', 'bboxes']:

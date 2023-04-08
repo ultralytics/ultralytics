@@ -209,6 +209,7 @@ def test_result():
     res = model([SOURCE, SOURCE])
     res[0].plot(show_conf=False)  # raises warning
     res[0].plot(conf=True, boxes=False, masks=True)
+    res[0].plot(pil=True)
     res[0] = res[0].cpu().numpy()
     print(res[0].path, res[0].masks.masks)
     model = YOLO('yolov8n.pt')

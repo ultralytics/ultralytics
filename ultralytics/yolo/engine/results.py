@@ -31,7 +31,6 @@ class BaseTensor(SimpleClass):
     """
 
     def __init__(self, tensor, orig_shape) -> None:
-        super().__init__()
         self.tensor = tensor
         self.orig_shape = orig_shape
 

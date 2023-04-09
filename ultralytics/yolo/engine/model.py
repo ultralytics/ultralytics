@@ -448,10 +448,10 @@ class YOLO:
                                                        mode='max'),
                            run_config=RunConfig(callbacks=[
                                WandbLoggerCallback(project='yolov8_tuner') if wandb else None],
-                                                stop=stopping_criteria,
-                                                verbose=0,
-                                                local_dir='./runs',
-                                                log_to_file=True))
+                               stop=stopping_criteria,
+                               verbose=0,
+                               local_dir='./runs',
+                               log_to_file=True))
         tuner.fit()
 
         return tuner.get_results()

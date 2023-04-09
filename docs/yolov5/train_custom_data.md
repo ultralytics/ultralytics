@@ -25,13 +25,13 @@ Creating a custom model to detect your objects is an iterative process of collec
 YOLOv5 models must be trained on labelled data in order to learn classes of objects in that data. There are two options for creating your dataset before you start training:
 
 <details markdown>
-<summary>Use Roboflow to manage your dataset in YOLO format</summary>
+<summary>Use <a href="https://universe.roboflow.com/?ref=ultralytics">Roboflow</a> to create your dataset in YOLO format</summary>
 
 ### 1.1 Collect Images
 
 Your model will learn by example. Training on images similar to the ones it will see in the wild is of the utmost importance. Ideally, you will collect a wide variety of images from the same configuration (camera, angle, lighting, etc.) as you will ultimately deploy your project.
 
-If this is not possible, you can start from [a public dataset](https://universe.roboflow.com/?ref=ultralytics) to train your initial model and then [sample images from the wild during inference](https://blog.roboflow.com/computer-vision-active-learning-tips/?ref=ultralytics) to improve your dataset and model iteratively.
+If this is not possible, you can start from <a><>https://universe.roboflow.com/?ref=ultralytics) to train your initial model and then [sample images from the wild during inference](https://blog.roboflow.com/computer-vision-active-learning-tips/?ref=ultralytics) to improve your dataset and model iteratively.
 
 ### 1.2 Create Labels
 

@@ -267,7 +267,7 @@ class Boxes(BaseTensor):
         pandas(): Convert the object to a pandas DataFrame (not yet implemented).
     """
 
-    def __init__(self, boxes, orig_shape, tensor) -> None:
+    def __init__(self, boxes, orig_shape) -> None:
         super().__init__()
         if boxes.ndim == 1:
             boxes = boxes[None, :]
@@ -341,7 +341,7 @@ class Masks(BaseTensor):
         to(): Returns a copy of the masks tensor with the specified device and dtype.
     """
 
-    def __init__(self, masks, orig_shape, tensor) -> None:
+    def __init__(self, masks, orig_shape) -> None:
         super().__init__()
         self.masks = masks  # N, h, w
         self.orig_shape = orig_shape

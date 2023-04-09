@@ -379,13 +379,7 @@ class YOLO:
         self._check_is_pytorch_model()
         self.model.to(device)
 
-    def tune(self,
-             data: str,
-             space: dict = None,
-             grace_period=5,
-             gpu_per_trial=None,
-             max_samples=10,
-             train_args=None):
+    def tune(self, data: str, space: dict = None, grace_period=5, gpu_per_trial=None, max_samples=10, train_args=None):
         """
         Runs hyperparameter tuning using Ray Tune.
 
@@ -465,10 +459,7 @@ class YOLO:
                                log_to_file=True)
 
         # Instantiate the tuner
-        tuner = tune.Tuner(trainable_with_resources,
-                           param_space=space,
-                           tune_config=tune_config,
-                           run_config=run_config)
+        tuner = tune.Tuner(trainable_with_resources, param_space=space, tune_config=tune_config, run_config=run_config)
 
         # Fit the tuner
         tuner.fit()

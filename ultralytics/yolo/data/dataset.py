@@ -37,7 +37,7 @@ class YOLODataset(BaseDataset):
         single_cls (bool): if True, single class training is used (default: False).
         use_segments (bool): if True, segmentation masks are used as labels (default: False).
         use_keypoints (bool): if True, keypoints are used as labels (default: False).
-        names (list): class names (default: None).
+        names (dict): A dictionary of class names. (default: None).
 
     Returns:
         A PyTorch dataset object that can be used for training an object detection or segmentation model.
@@ -77,7 +77,6 @@ class YOLODataset(BaseDataset):
         nm, nf, ne, nc, msgs = 0, 0, 0, 0, []  # number missing, found, empty, corrupt, messages
         desc = f'{self.prefix}Scanning {path.parent / path.stem}...'
         total = len(self.im_files)
-        nc = len(self.data['names'])
         nkpt, ndim = self.data.get('kpt_shape', (0, 0))
         if self.use_keypoints and (nkpt <= 0 or ndim not in (2, 3)):
             raise ValueError("'kpt_shape' in data.yaml missing or incorrect. Should be a list with [number of "

@@ -253,10 +253,10 @@ class YOLO:
             source (str, optional): The input source for object tracking. Can be a file path or a video stream.
             stream (bool, optional): Whether the input source is a video stream. Defaults to False.
             persist (bool, optional): Whether to persist the trackers if they already exist. Defaults to False.
-            **kwargs: Additional keyword arguments for the tracking process.
+            **kwargs (optional): Additional keyword arguments for the tracking process.
 
         Returns:
-            object: The tracking results.
+            (List[ultralytics.yolo.engine.results.Results]): The tracking results.
 
         """
         if not hasattr(self.predictor, 'trackers'):

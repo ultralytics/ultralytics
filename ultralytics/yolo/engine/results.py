@@ -32,7 +32,6 @@ class BaseTensor(SimpleClass):
 
     def __init__(self, tensor, orig_shape) -> None:
         super().__init__()
-        assert isinstance(tensor, torch.Tensor)
         self.tensor = tensor
         self.orig_shape = orig_shape
 
@@ -268,6 +267,7 @@ class Boxes(BaseTensor):
     """
 
     def __init__(self, boxes, orig_shape) -> None:
+        super().__init__(boxes, orig_shape)
         if boxes.ndim == 1:
             boxes = boxes[None, :]
         n = boxes.shape[-1]
@@ -341,6 +341,7 @@ class Masks(BaseTensor):
     """
 
     def __init__(self, masks, orig_shape) -> None:
+        super().__init__(masks, orig_shape)
         self.masks = masks  # N, h, w
         self.orig_shape = orig_shape
 

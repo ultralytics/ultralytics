@@ -244,8 +244,7 @@ class Boxes(BaseTensor):
         orig_shape (tuple): Original image size, in the format (height, width).
 
     Attributes:
-        boxes (torch.Tensor) or (numpy.ndarray): A tensor or numpy array containing the detection boxes,
-            with shape (num_boxes, 6).
+        boxes (torch.Tensor) or (numpy.ndarray): The detection boxes with shape (num_boxes, 6).
         orig_shape (torch.Tensor) or (numpy.ndarray): Original image size, in the format (height, width).
         is_track (bool): True if the boxes also include track IDs, False otherwise.
 

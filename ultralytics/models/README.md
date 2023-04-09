@@ -87,7 +87,7 @@ Available Models:
 
 ### Pose
 
-| Model                                                                                                | size<br><sup>(pixels) | mAP<sup>box<br>50-95 | mAP<sup>pose<br>50 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
+| Model                                                                                                | size<br><sup>(pixels) | mAP<sup>pose<br>50-95 | mAP<sup>pose<br>50 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 | ---------------------------------------------------------------------------------------------------- | --------------------- | -------------------- | ------------------ | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |
 | [YOLOv8n-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt)       | 640                   | 49.7                 | 79.7               | 131.8                          | 1.18                                | 3.3                | 9.2               |
 | [YOLOv8s-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-pose.pt)       | 640                   | 59.2                 | 85.8               | 233.2                          | 1.42                                | 11.6               | 30.2              |

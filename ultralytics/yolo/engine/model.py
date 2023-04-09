@@ -385,20 +385,22 @@ class YOLO:
              grace_period=5,
              gpu_per_trial=None,
              max_samples=10,
-             train_args: dict = {}):
+             train_args=None):
         """
-        Runs hyperparameter tuning using ray tune
+        Runs hyperparameter tuning using Ray Tune.
 
         Args:
-            data (str): The dataset to run the tuner on
-            space (dict): The hyperparameter search space
-            pbt_space (dict): The perturbation space
-            pbt_interval (int): Perturbation interval
-            gpu_per_trial (int): set CUDA_VISIBLE_DEVICES per trial
-            max_samples (int): Max number of trials to run
+            data (str): The dataset to run the tuner on.
+            space (dict): The hyperparameter search space.
+            grace_period (int): Minimum training iterations before early stopping.
+            gpu_per_trial (int): Set CUDA_VISIBLE_DEVICES per trial.
+            max_samples (int): Maximum number of trials to run.
+            train_args (dict): Additional arguments to pass during training.
         """
+        if train_args is None:
+            train_args = {}
         try:
-            from ultralytics.yolo.utils.tuner import (AHB, RunConfig, WandbLoggerCallback, default_space,
+            from ultralytics.yolo.utils.tuner import (AHB, RunConfig, TuneConfig, WandbLoggerCallback, default_space,
                                                       task_metric_map, tune)
         except ImportError:
             raise ModuleNotFoundError("Install ray tune: `pip install 'ray[tune]'")
@@ -409,19 +411,28 @@ class YOLO:
         except ImportError:
             wandb = False
 
+        # Define the training function to be used in hyperparameter tuning
         def _tune(config):
             self._reset_callbacks()
             config.update(train_args)
             self.train(**config)
 
+        # Use the default search space if not provided
         if not space:
             LOGGER.warning('WARNING: search space not provided. Using default search space')
             space = default_space
         space['data'] = data
 
+        # Set up the trainable function with appropriate resources
         trainable_with_resources = tune.with_resources(_tune, {'cpu': 8, 'gpu': gpu_per_trial or 0})
+
+        # Set up the scheduler for hyperparameter tuning
         scheduler = AHB(grace_period=grace_period, max_t=100)
+
+        # Set up stopping criteria
         stopping_criteria = {'epoch': train_args['epochs'] if train_args.get('epochs') else 50}
+
+        # Set up PBT criteria
         """
         pbt_interval = pbt_interval
         pbt_perturbation_space = pbt_space if pbt_space else {
@@ -440,18 +451,26 @@ class YOLO:
             synch=True,  # TODO: test with and without
         )
         """
-        tuner = tune.Tuner(
-            trainable_with_resources,
-            param_space=space,
-            tune_config=tune.TuneConfig(scheduler=scheduler,
-                                        num_samples=max_samples,
-                                        metric=task_metric_map[self.task],
-                                        mode='max'),
-            run_config=RunConfig(callbacks=[WandbLoggerCallback(project='yolov8_tuner') if wandb else None],
-                                 stop=stopping_criteria,
-                                 verbose=0,
-                                 local_dir='./runs',
-                                 log_to_file=True))
+        # Set up the configuration for Ray Tune
+        tune_config = TuneConfig(scheduler=scheduler,
+                                 num_samples=max_samples,
+                                 metric=task_metric_map[self.task],
+                                 mode='max')
+
+        # Set up run configuration
+        run_config = RunConfig(callbacks=[WandbLoggerCallback(project='yolov8_tuner') if wandb else None],
+                               stop=stopping_criteria,
+                               verbose=0,
+                               local_dir='./runs',
+                               log_to_file=True)
+
+        # Instantiate the tuner
+        tuner = tune.Tuner(trainable_with_resources,
+                           param_space=space,
+                           tune_config=tune_config,
+                           run_config=run_config)
+
+        # Fit the tuner
         tuner.fit()
 
         return tuner.get_results()

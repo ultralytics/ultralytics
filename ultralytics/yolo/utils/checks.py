@@ -8,7 +8,6 @@ import platform
 import re
 import shutil
 import subprocess
-import urllib
 from pathlib import Path
 from typing import Optional
 
@@ -20,8 +19,9 @@ import requests
 import torch
 from matplotlib import font_manager
 
-from ultralytics.yolo.utils import (AUTOINSTALL, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, downloads,
-                                    emojis, is_colab, is_docker, is_kaggle, is_online, is_pip_package)
+from ultralytics.yolo.utils import (AUTOINSTALL, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, TryExcept, clean_url, colorstr,
+                                    downloads, emojis, is_colab, is_docker, is_kaggle, is_online, is_pip_package,
+                                    url2file)
 
 
 def is_ascii(s) -> bool:
@@ -267,9 +267,9 @@ def check_file(file, suffix='', download=True, hard=True):
         return file
     elif download and file.lower().startswith(('https://', 'http://', 'rtsp://', 'rtmp://')):  # download
         url = file  # warning: Pathlib turns :// -> :/
-        file = Path(urllib.parse.unquote(file).split('?')[0]).name  # '%2F' to '/', split https://url.com/file.txt?auth
+        file = url2file(file)  # '%2F' to '/', split https://url.com/file.txt?auth
         if Path(file).exists():
-            LOGGER.info(f'Found {url} locally at {file}')  # file already exists
+            LOGGER.info(f'Found {clean_url(url)} locally at {file}')  # file already exists
         else:
             downloads.safe_download(url=url, file=file, unzip=False)
         return file
@@ -337,6 +337,10 @@ def git_describe(path=ROOT):  # path must be a directory
 
 def print_args(args: Optional[dict] = None, show_file=True, show_func=False):
     # Print function arguments (optional args dict)
+    def strip_auth(v):
+        # Clean longer Ultralytics HUB URLs by stripping potential authentication information
+        return clean_url(v) if (isinstance(v, str) and v.startswith('http') and len(v) > 100) else v
+
     x = inspect.currentframe().f_back  # previous frame
     file, _, func, _, _ = inspect.getframeinfo(x)
     if args is None:  # get args automatically
@@ -347,4 +351,4 @@ def print_args(args: Optional[dict] = None, show_file=True, show_func=False):
     except ValueError:
         file = Path(file).stem
     s = (f'{file}: ' if show_file else '') + (f'{func}: ' if show_func else '')
-    LOGGER.info(colorstr(s) + ', '.join(f'{k}={v}' for k, v in args.items()))
+    LOGGER.info(colorstr(s) + ', '.join(f'{k}={strip_auth(v)}' for k, v in args.items()))

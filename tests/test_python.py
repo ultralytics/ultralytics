@@ -205,18 +205,33 @@ def test_predict_callback_and_setup():
 
 
 def test_result():
+    model = YOLO('yolov8n-pose.pt')
+    res = model([SOURCE, SOURCE])
+    res[0].plot(show_conf=False)  # raises warning
+    res[0].plot(conf=True, boxes=False)
+    res[0].plot(pil=True)
+    res[0] = res[0].cpu().numpy()
+    print(res[0].path, res[0].keypoints)
+
     model = YOLO('yolov8n-seg.pt')
     res = model([SOURCE, SOURCE])
-    res[0].plot(show_conf=False)
+    res[0].plot(show_conf=False)  # raises warning
+    res[0].plot(conf=True, boxes=False, masks=True)
+    res[0].plot(pil=True)
     res[0] = res[0].cpu().numpy()
     print(res[0].path, res[0].masks.masks)
 
     model = YOLO('yolov8n.pt')
     res = model(SOURCE)
+    res[0].plot(pil=True)
     res[0].plot()
+    res[0] = res[0].cpu().numpy()
     print(res[0].path)
 
     model = YOLO('yolov8n-cls.pt')
     res = model(SOURCE)
+    res[0].plot(probs=False)
+    res[0].plot(pil=True)
     res[0].plot()
+    res[0] = res[0].cpu().numpy()
     print(res[0].path)

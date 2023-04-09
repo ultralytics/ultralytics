@@ -13,7 +13,7 @@ import requests
 from tqdm import tqdm
 
 from ultralytics.yolo.utils import (ENVIRONMENT, LOGGER, ONLINE, RANK, SETTINGS, TESTS_RUNNING, TQDM_BAR_FORMAT,
-                                    TryExcept, __version__, colorstr, emojis, get_git_origin_url, is_colab, is_git_dir,
+                                    TryExcept, __version__, colorstr, get_git_origin_url, is_colab, is_git_dir,
                                     is_pip_package)
 
 PREFIX = colorstr('Ultralytics HUB: ')
@@ -78,29 +78,6 @@ def request_with_credentials(url: str) -> any:
             });
             """ % url))
     return output.eval_js('_hub_tmp')
-
-
-def split_key(key=''):
-    """
-    Verify and split a 'api_key[sep]model_id' string, sep is one of '.' or '_'
-
-    Args:
-        key (str): The model key to split. If not provided, the user will be prompted to enter it.
-
-    Returns:
-        Tuple[str, str]: A tuple containing the API key and model ID.
-    """
-
-    import getpass
-
-    error_string = emojis(f'{PREFIX}Invalid API key ⚠️\n')  # error string
-    if not key:
-        key = getpass.getpass('Enter model key: ')
-    sep = '_' if '_' in key else None  # separator
-    assert sep, error_string
-    api_key, model_id = key.split(sep)
-    assert len(api_key) and len(model_id), error_string
-    return api_key, model_id
 
 
 def requests_with_progress(method, url, **kwargs):

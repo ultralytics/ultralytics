@@ -61,7 +61,7 @@ def seed_worker(worker_id):  # noqa
     random.seed(worker_seed)
 
 
-def build_dataloader(cfg, batch, img_path, stride=32, rect=False, names=None, rank=-1, mode='train'):
+def build_dataloader(cfg, batch, img_path, data_info, stride=32, rect=False, rank=-1, mode='train'):
     assert mode in ['train', 'val']
     shuffle = mode == 'train'
     if cfg.rect and shuffle:
@@ -81,9 +81,9 @@ def build_dataloader(cfg, batch, img_path, stride=32, rect=False, names=None, ra
             pad=0.0 if mode == 'train' else 0.5,
             prefix=colorstr(f'{mode}: '),
             use_segments=cfg.task == 'segment',
-            use_keypoints=cfg.task == 'keypoint',
-            names=names,
-            classes=cfg.classes)
+            use_keypoints=cfg.task == 'pose',
+            classes=cfg.classes,
+            data=data_info)
 
     batch = min(batch, len(dataset))
     nd = torch.cuda.device_count()  # number of CUDA devices
@@ -93,15 +93,17 @@ def build_dataloader(cfg, batch, img_path, stride=32, rect=False, names=None, ra
     loader = DataLoader if cfg.image_weights or cfg.close_mosaic else InfiniteDataLoader  # allow attribute updates
     generator = torch.Generator()
     generator.manual_seed(6148914691236517205 + RANK)
-    return loader(dataset=dataset,
-                  batch_size=batch,
-                  shuffle=shuffle and sampler is None,
-                  num_workers=nw,
-                  sampler=sampler,
-                  pin_memory=PIN_MEMORY,
-                  collate_fn=getattr(dataset, 'collate_fn', None),
-                  worker_init_fn=seed_worker,
-                  generator=generator), dataset
+    return loader(
+        dataset=dataset,
+        batch_size=batch,
+        shuffle=shuffle and sampler is None,
+        num_workers=nw,
+        sampler=sampler,
+        pin_memory=PIN_MEMORY,
+        collate_fn=getattr(dataset, 'collate_fn', None),
+        worker_init_fn=seed_worker,
+        persistent_workers=(nw > 0) and (loader == DataLoader),  # persist workers if using default PyTorch DataLoader
+        generator=generator), dataset
 
 
 # build classification

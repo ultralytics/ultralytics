@@ -55,8 +55,8 @@ show: False  # show results if possible
 save_txt: False  # save results as .txt file
 save_conf: False  # save results with confidence scores
 save_crop: False  # save cropped images with results
-hide_labels: False  # hide labels
-hide_conf: False  # hide confidence scores
+show_labels: True  # show object labels in plots
+show_conf: True  # show object confidence scores in plots
 vid_stride: 1  # video frame-rate stride
 line_thickness: 3  # bounding box thickness (pixels)
 visualize: False  # visualize model features
@@ -88,7 +88,8 @@ warmup_bias_lr: 0.1  # warmup initial bias lr
 box: 7.5  # box loss gain
 cls: 0.5  # cls loss gain (scale with pixels)
 dfl: 1.5  # dfl loss gain
-fl_gamma: 0.0  # focal loss gamma (efficientDet default gamma=1.5)
+pose: 12.0  # pose loss gain
+kobj: 1.0  # keypoint obj loss gain
 label_smoothing: 0.0  # label smoothing (fraction)
 nbs: 64  # nominal batch size
 hsv_h: 0.015  # image HSV-Hue augmentation (fraction)

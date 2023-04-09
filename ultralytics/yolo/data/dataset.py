@@ -37,7 +37,7 @@ class YOLODataset(BaseDataset):
         single_cls (bool): if True, single class training is used (default: False).
         use_segments (bool): if True, segmentation masks are used as labels (default: False).
         use_keypoints (bool): if True, keypoints are used as labels (default: False).
-        names (list): class names (default: None).
+        names (dict): A dictionary of class names. (default: None).
 
     Returns:
         A PyTorch dataset object that can be used for training an object detection or segmentation model.
@@ -57,11 +57,11 @@ class YOLODataset(BaseDataset):
                  single_cls=False,
                  use_segments=False,
                  use_keypoints=False,
-                 names=None,
+                 data=None,
                  classes=None):
         self.use_segments = use_segments
         self.use_keypoints = use_keypoints
-        self.names = names
+        self.data = data
         assert not (self.use_segments and self.use_keypoints), 'Can not use both segments and keypoints.'
         super().__init__(img_path, imgsz, cache, augment, hyp, prefix, rect, batch_size, stride, pad, single_cls,
                          classes)
@@ -77,10 +77,16 @@ class YOLODataset(BaseDataset):
         nm, nf, ne, nc, msgs = 0, 0, 0, 0, []  # number missing, found, empty, corrupt, messages
         desc = f'{self.prefix}Scanning {path.parent / path.stem}...'
         total = len(self.im_files)
+        nc = len(self.data['names'])
+        nkpt, ndim = self.data.get('kpt_shape', (0, 0))
+        if self.use_keypoints and (nkpt <= 0 or ndim not in (2, 3)):
+            raise ValueError("'kpt_shape' in data.yaml missing or incorrect. Should be a list with [number of "
+                             "keypoints, number of dims (2 for x,y or 3 for x,y,visible)], i.e. 'kpt_shape: [17, 3]'")
         with ThreadPool(NUM_THREADS) as pool:
             results = pool.imap(func=verify_image_label,
                                 iterable=zip(self.im_files, self.label_files, repeat(self.prefix),
-                                             repeat(self.use_keypoints), repeat(len(self.names))))
+                                             repeat(self.use_keypoints), repeat(len(self.data['names'])), repeat(nkpt),
+                                             repeat(ndim)))
             pbar = tqdm(results, desc=desc, total=total, bar_format=TQDM_BAR_FORMAT)
             for im_file, lb, shape, segments, keypoint, nm_f, nf_f, ne_f, nc_f, msg in pbar:
                 nm += nm_f

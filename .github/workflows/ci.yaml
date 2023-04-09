@@ -43,34 +43,17 @@ jobs:
           python --version
           pip --version
           pip list
-      - name: Test HUB training (Python Usage 1)
+      - name: Test HUB training
         shell: python
         env:
-          APIKEY: ${{ secrets.ULTRALYTICS_HUB_APIKEY }}
+          API_KEY: ${{ secrets.ULTRALYTICS_HUB_API_KEY }}
+          MODEL_ID: ${{ secrets.ULTRALYTICS_HUB_MODEL_ID }}
         run: |
           import os
-          from pathlib import Path
           from ultralytics import YOLO, hub
-          from ultralytics.yolo.utils import USER_CONFIG_DIR
-          Path(USER_CONFIG_DIR / 'settings.yaml').unlink()
-          key = os.environ['APIKEY']
-          hub.reset_model(key)
-          model = YOLO('https://hub.ultralytics.com/models/' + key)
-          model.train()
-      - name: Test HUB training (Python Usage 2)
-        shell: python
-        env:
-          APIKEY: ${{ secrets.ULTRALYTICS_HUB_APIKEY }}
-        run: |
-          import os
-          from pathlib import Path
-          from ultralytics import YOLO, hub
-          from ultralytics.yolo.utils import USER_CONFIG_DIR
-          Path(USER_CONFIG_DIR / 'settings.yaml').unlink()
-          key = os.environ['APIKEY']
-          hub.reset_model(key)
-          key, model_id = key.split('_')
-          hub.login(key)
+          api_key, model_id = os.environ['API_KEY'], os.environ['MODEL_ID']
+          hub.login(api_key)
+          hub.reset_model(model_id)
           model = YOLO('https://hub.ultralytics.com/models/' + model_id)
           model.train()
 
@@ -124,6 +107,11 @@ jobs:
         run: |
           from ultralytics.yolo.utils.benchmarks import benchmark
           benchmark(model='${{ matrix.model }}-cls.pt', imgsz=160, half=False, hard_fail=0.61)
+      - name: Benchmark PoseModel
+        shell: python
+        run: |
+          from ultralytics.yolo.utils.benchmarks import benchmark
+          benchmark(model='${{ matrix.model }}-pose.pt', imgsz=160, half=False, hard_fail=0.0)
       - name: Benchmark Summary
         run: |
           cat benchmarks.log
@@ -170,30 +158,38 @@ jobs:
           python --version
           pip --version
           pip list
-      - name: Test detection
+      - name: Test Detect
         shell: bash  # for Windows compatibility
         run: |
-          yolo task=detect mode=train data=coco8.yaml model=yolov8n.yaml epochs=1 imgsz=32
-          yolo task=detect mode=train data=coco8.yaml model=yolov8n.pt epochs=1 imgsz=32
-          yolo task=detect mode=val data=coco8.yaml model=runs/detect/train/weights/last.pt imgsz=32
-          yolo task=detect mode=predict model=runs/detect/train/weights/last.pt imgsz=32 source=ultralytics/assets/bus.jpg
-          yolo mode=export model=runs/detect/train/weights/last.pt imgsz=32 format=torchscript
-      - name: Test segmentation
+          yolo detect train data=coco8.yaml model=yolov8n.yaml epochs=1 imgsz=32
+          yolo detect train data=coco8.yaml model=yolov8n.pt epochs=1 imgsz=32
+          yolo detect val data=coco8.yaml model=runs/detect/train/weights/last.pt imgsz=32
+          yolo detect predict model=runs/detect/train/weights/last.pt imgsz=32 source=ultralytics/assets/bus.jpg
+          yolo export model=runs/detect/train/weights/last.pt imgsz=32 format=torchscript
+      - name: Test Segment
         shell: bash  # for Windows compatibility
         run: |
-          yolo task=segment mode=train data=coco8-seg.yaml model=yolov8n-seg.yaml epochs=1 imgsz=32
-          yolo task=segment mode=train data=coco8-seg.yaml model=yolov8n-seg.pt epochs=1 imgsz=32
-          yolo task=segment mode=val data=coco8-seg.yaml model=runs/segment/train/weights/last.pt imgsz=32
-          yolo task=segment mode=predict model=runs/segment/train/weights/last.pt imgsz=32 source=ultralytics/assets/bus.jpg
-          yolo mode=export model=runs/segment/train/weights/last.pt imgsz=32 format=torchscript
-      - name: Test classification
+          yolo segment train data=coco8-seg.yaml model=yolov8n-seg.yaml epochs=1 imgsz=32
+          yolo segment train data=coco8-seg.yaml model=yolov8n-seg.pt epochs=1 imgsz=32
+          yolo segment val data=coco8-seg.yaml model=runs/segment/train/weights/last.pt imgsz=32
+          yolo segment predict model=runs/segment/train/weights/last.pt imgsz=32 source=ultralytics/assets/bus.jpg
+          yolo export model=runs/segment/train/weights/last.pt imgsz=32 format=torchscript
+      - name: Test Classify
         shell: bash  # for Windows compatibility
         run: |
-          yolo task=classify mode=train data=imagenet10 model=yolov8n-cls.yaml epochs=1 imgsz=32
-          yolo task=classify mode=train data=imagenet10 model=yolov8n-cls.pt epochs=1 imgsz=32
-          yolo task=classify mode=val data=imagenet10 model=runs/classify/train/weights/last.pt imgsz=32
-          yolo task=classify mode=predict model=runs/classify/train/weights/last.pt imgsz=32 source=ultralytics/assets/bus.jpg
-          yolo mode=export model=runs/classify/train/weights/last.pt imgsz=32 format=torchscript
+          yolo classify train data=imagenet10 model=yolov8n-cls.yaml epochs=1 imgsz=32
+          yolo classify train data=imagenet10 model=yolov8n-cls.pt epochs=1 imgsz=32
+          yolo classify val data=imagenet10 model=runs/classify/train/weights/last.pt imgsz=32
+          yolo classify predict model=runs/classify/train/weights/last.pt imgsz=32 source=ultralytics/assets/bus.jpg
+          yolo export model=runs/classify/train/weights/last.pt imgsz=32 format=torchscript
+      - name: Test Pose
+        shell: bash  # for Windows compatibility
+        run: |
+          yolo pose train data=coco8-pose.yaml model=yolov8n-pose.yaml epochs=1 imgsz=32
+          yolo pose train data=coco8-pose.yaml model=yolov8n-pose.pt epochs=1 imgsz=32
+          yolo pose val data=coco8-pose.yaml model=runs/pose/train/weights/last.pt imgsz=32
+          yolo pose predict model=runs/pose/train/weights/last.pt imgsz=32 source=ultralytics/assets/bus.jpg
+          yolo export model=runs/pose/train/weights/last.pt imgsz=32 format=torchscript
       - name: Pytest tests
         shell: bash  # for Windows compatibility
         run: pytest tests

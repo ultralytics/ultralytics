@@ -53,7 +53,6 @@ import platform
 import subprocess
 import time
 import warnings
-from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
 
@@ -130,7 +129,7 @@ class Exporter:
         save_dir (Path): Directory to save results.
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """
         Initializes the Exporter class.
 
@@ -139,7 +138,7 @@ class Exporter:
             overrides (dict, optional): Configuration overrides. Defaults to None.
         """
         self.args = get_cfg(cfg, overrides)
-        self.callbacks = defaultdict(list, callbacks.default_callbacks)  # add callbacks
+        self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 
     @smart_inference_mode()
@@ -209,8 +208,8 @@ class Exporter:
         self.file = file
         self.output_shape = tuple(y.shape) if isinstance(y, torch.Tensor) else tuple(tuple(x.shape) for x in y)
         self.pretty_name = Path(self.model.yaml.get('yaml_file', self.file)).stem.replace('yolo', 'YOLO')
-        description = f'Ultralytics {self.pretty_name} model ' + f'trained on {Path(self.args.data).name}' \
-            if self.args.data else '(untrained)'
+        trained_on = f'trained on {Path(self.args.data).name}' if self.args.data else '(untrained)'
+        description = f'Ultralytics {self.pretty_name} model {trained_on}'
         self.metadata = {
             'description': description,
             'author': 'Ultralytics',
@@ -221,6 +220,8 @@ class Exporter:
             'batch': self.args.batch,
             'imgsz': self.imgsz,
             'names': model.names}  # model metadata
+        if model.task == 'pose':
+            self.metadata['kpt_shape'] = model.kpt_shape
 
         LOGGER.info(f"\n{colorstr('PyTorch:')} starting from {file} with input shape {tuple(im.shape)} BCHW and "
                     f'output shape(s) {self.output_shape} ({file_size(file):.1f} MB)')
@@ -295,7 +296,8 @@ class Exporter:
         check_requirements(requirements)
         import onnx  # noqa
 
-        LOGGER.info(f'\n{prefix} starting export with onnx {onnx.__version__}...')
+        opset_version = self.args.opset or get_latest_opset()
+        LOGGER.info(f'\n{prefix} starting export with onnx {onnx.__version__} opset {opset_version}...')
         f = str(self.file.with_suffix('.onnx'))
 
         output_names = ['output0', 'output1'] if isinstance(self.model, SegmentationModel) else ['output0']
@@ -313,7 +315,7 @@ class Exporter:
             self.im.cpu() if dynamic else self.im,
             f,
             verbose=False,
-            opset_version=self.args.opset or get_latest_opset(),
+            opset_version=opset_version,
             do_constant_folding=True,  # WARNING: DNN inference with torch>=1.12 may require do_constant_folding=False
             input_names=['images'],
             output_names=output_names,
@@ -410,8 +412,8 @@ class Exporter:
             model = self.model
         elif self.model.task == 'detect':
             model = iOSDetectModel(self.model, self.im) if self.args.nms else self.model
-        elif self.model.task == 'segment':
-            # TODO CoreML Segmentation model pipelining
+        else:
+            # TODO CoreML Segment and Pose model pipelining
             model = self.model
 
         ts = torch.jit.trace(model.eval(), self.im, strict=False)  # TorchScript model
@@ -851,6 +853,12 @@ class Exporter:
         model.output_description['coordinates'] = 'Boxes × [x, y, width, height] (relative to image size)'
         LOGGER.info(f'{prefix} pipeline success')
         return model
+
+    def add_callback(self, event: str, callback):
+        """
+        Appends the given callback.
+        """
+        self.callbacks[event].append(callback)
 
     def run_callbacks(self, event: str):
         for callback in self.callbacks.get(event, []):

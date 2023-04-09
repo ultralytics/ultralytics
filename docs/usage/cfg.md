@@ -110,7 +110,8 @@ The training settings for YOLO models encompass various hyperparameters and conf
 | `box`             | `7.5`    | box loss gain                                                               |
 | `cls`             | `0.5`    | cls loss gain (scale with pixels)                                           |
 | `dfl`             | `1.5`    | dfl loss gain                                                               |
-| `fl_gamma`        | `0.0`    | focal loss gamma (efficientDet default gamma=1.5)                           |
+| `pose`            | `12.0`   | pose loss gain (pose-only)                                                  |
+| `kobj`            | `2.0`    | keypoint obj loss gain (pose-only)                                          |
 | `label_smoothing` | `0.0`    | label smoothing (fraction)                                                  |
 | `nbs`             | `64`     | nominal batch size                                                          |
 | `overlap_mask`    | `True`   | masks should overlap during training (segment train only)                   |
@@ -136,8 +137,8 @@ The prediction settings for YOLO models encompass a range of hyperparameters and
 | `save_txt`       | `False`                | save results as .txt file                                |
 | `save_conf`      | `False`                | save results with confidence scores                      |
 | `save_crop`      | `False`                | save cropped images with results                         |
-| `hide_labels`    | `False`                | hide labels                                              |
-| `hide_conf`      | `False`                | hide confidence scores                                   |
+| `show_labels`    | `True`                 | show object labels in plots                              |
+| `show_conf`      | `True`                 | show object confidence scores in plots                   |
 | `max_det`        | `300`                  | maximum number of detections per image                   |
 | `vid_stride`     | `False`                | video frame-rate stride                                  |
 | `line_thickness` | `3`                    | bounding box thickness (pixels)                          |

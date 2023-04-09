@@ -1,22 +1,24 @@
-This is a list of real-world applications and walkthroughs. These can be folders of either python files or notebooks .
+## Ultralytics YOLOv8 Example Applications
 
-## Ultralytics YOLO example applications
+This repository features a collection of real-world applications and walkthroughs, provided as either Python files or notebooks. Explore the examples below to see how YOLOv8 can be integrated into various applications.
+
+### Ultralytics YOLO Example Applications
 
 | Title                                                                    | Format             | Contributor                                         |
 | ------------------------------------------------------------------------ | ------------------ | --------------------------------------------------- |
-| [YOLO ONNX detection Inference with C++](./YOLOv8-CPP-Inference)         | C++/ONNX           | [Justas Bartnykas](https://github.com/JustasBart)   |
-| [YOLO OpenCV ONNX detection Python](./YOLOv8-OpenCV-ONNX-Python)         | OpenCV/Python/ONNX | [Farid Inawan](https://github.com/frdteknikelektro) |
-| [YOLO .Net ONNX detection C#](https://www.nuget.org/packages/Yolov8.Net) | C# .Net            | [Samuel Stainback](https://github.com/sstainba)     |
+| [YOLO ONNX Detection Inference with C++](./YOLOv8-CPP-Inference)         | C++/ONNX           | [Justas Bartnykas](https://github.com/JustasBart)   |
+| [YOLO OpenCV ONNX Detection Python](./YOLOv8-OpenCV-ONNX-Python)         | OpenCV/Python/ONNX | [Farid Inawan](https://github.com/frdteknikelektro) |
+| [YOLO .Net ONNX Detection C#](https://www.nuget.org/packages/Yolov8.Net) | C# .Net            | [Samuel Stainback](https://github.com/sstainba)     |
 
-## How can you contribute ?
+### How to Contribute
 
-We're looking for examples, applications and guides from the community. Here's how you can contribute:
+We welcome contributions from the community in the form of examples, applications, and guides. To contribute, please follow these steps:
 
-- Make a PR with `[Example]` prefix in title after adding your project folder in the examples/ folder of the repository
-- The project should satisfy these conditions:
-  - It should use ultralytics framework
-  - It have a README.md with instructions to run the project
-  - It should avoid adding large assets or dependencies unless absolutely needed
-  - The contributor is expected to help out in issues related to their examples
+1. Create a pull request (PR) with the `[Example]` prefix in the title, adding your project folder to the `examples/` directory in the repository.
+1. Ensure that your project meets the following criteria:
+   - Utilizes the `ultralytics` package.
+   - Includes a `README.md` file with instructions on how to run the project.
+   - Avoids adding large assets or dependencies unless absolutely necessary.
+   - The contributor is expected to provide support for issues related to their examples.
 
-If you're unsure about any of these requirements, make a PR and we'll happy to guide you
+If you have any questions or concerns about these requirements, please submit a PR, and we will be more than happy to guide you.

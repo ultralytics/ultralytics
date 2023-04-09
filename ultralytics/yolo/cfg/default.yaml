@@ -28,7 +28,7 @@ single_cls: False  # train multi-class data as single-class
 image_weights: False  # use weighted image selection for training
 rect: False  # rectangular training if mode='train' or rectangular validation if mode='val'
 cos_lr: False  # use cosine learning rate scheduler
-close_mosaic: 10  # disable mosaic augmentation for final 10 epochs
+close_mosaic: 0  # (int) disable mosaic augmentation for final epochs
 resume: False  # resume training from last checkpoint
 amp: True  # Automatic Mixed Precision (AMP) training, choices=[True, False], True runs AMP check
 # Segmentation

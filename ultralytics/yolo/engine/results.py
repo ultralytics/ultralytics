@@ -268,7 +268,7 @@ class Boxes(BaseTensor):
     """
 
     def __init__(self, boxes, orig_shape, tensor) -> None:
-        super().__init__(tensor, orig_shape)
+        super().__init__()
         if boxes.ndim == 1:
             boxes = boxes[None, :]
         n = boxes.shape[-1]
@@ -342,7 +342,7 @@ class Masks(BaseTensor):
     """
 
     def __init__(self, masks, orig_shape, tensor) -> None:
-        super().__init__(tensor, orig_shape)
+        super().__init__()
         self.masks = masks  # N, h, w
         self.orig_shape = orig_shape
 

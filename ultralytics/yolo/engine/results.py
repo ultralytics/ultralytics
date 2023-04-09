@@ -268,12 +268,11 @@ class Boxes(BaseTensor):
     """
 
     def __init__(self, boxes, orig_shape) -> None:
-        super().__init__()
+        super().__init__(boxes, orig_shape)
         if boxes.ndim == 1:
             boxes = boxes[None, :]
         n = boxes.shape[-1]
         assert n in (6, 7), f'expected `n` in [6, 7], but got {n}'  # xyxy, (track_id), conf, cls
-        # TODO
         self.is_track = n == 7
         self.boxes = boxes
         self.orig_shape = torch.as_tensor(orig_shape, device=boxes.device) if isinstance(boxes, torch.Tensor) \
@@ -342,7 +341,7 @@ class Masks(BaseTensor):
     """
 
     def __init__(self, masks, orig_shape) -> None:
-        super().__init__()
+        super().__init__(masks, orig_shape)
         self.masks = masks  # N, h, w
         self.orig_shape = orig_shape
 

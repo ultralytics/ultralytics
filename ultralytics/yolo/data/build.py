@@ -190,7 +190,6 @@ def load_inference_source(source=None, transforms=None, imgsz=640, vid_stride=1,
                               auto=auto,
                               transforms=transforms,
                               vid_stride=vid_stride)
-
     elif screenshot:
         dataset = LoadScreenshots(source, imgsz=imgsz, stride=stride, auto=auto, transforms=transforms)
     elif from_img:

@@ -206,4 +206,3 @@ def load_inference_source(source=None, transforms=None, imgsz=640, vid_stride=1,
     setattr(dataset, 'source_type', source_type)
 
     return dataset
-

@@ -334,8 +334,8 @@ if __name__ == "__main__":
                                   bboxes_format="coco")"""
 
     dataset = Training_Dataset(num_classes=nc, root_directory=config.ROOT_DIR, transform=None,
-                           train=True, rect_training=True, default_size=640, bs=8,
-                           bboxes_format="coco", ultralytics_loss=True)
+                               train=True, rect_training=True, default_size=640, batch_size=8,
+                               bboxes_format="coco", ultralytics_loss=True)
 
     collate_fn = dataset.collate_fn_ultra if dataset.ultralytics_loss else dataset.collate_fn
 

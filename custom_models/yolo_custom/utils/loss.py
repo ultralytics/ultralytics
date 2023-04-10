@@ -258,8 +258,8 @@ if __name__ == "__main__":
     model.load_state_dict(state_dict=torch.load("yolov5m.pt"), strict=True)
 
     dataset = Training_Dataset(num_classes=len(config.COCO),
-                           root_directory=config.ROOT_DIR, transform=config.TRAIN_TRANSFORMS,
-                           train=True, rect_training=True, default_size=640, bs=4, bboxes_format="coco")
+                               root_directory=config.ROOT_DIR, transform=config.TRAIN_TRANSFORMS,
+                               train=True, rect_training=True, default_size=640, batch_size=4, bboxes_format="coco")
 
     yolo_loss = YOLO_LOSS(model, rect_training=dataset.rect_training)
 

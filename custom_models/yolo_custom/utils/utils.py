@@ -5,7 +5,7 @@ import numpy as np
 
 # Tensor.element_size() → int
 # Returns the size in bytes of an individual element.
-import config
+import custom_models.config as cfg
 
 
 def check_size(model):
@@ -68,7 +68,7 @@ def load_model_checkpoint(model_name, model, last_epoch):
     ckpt_name = f"checkpoint_epoch_{last_epoch}.pth.tar"
     print(f"==> loading model weights stored in {ckpt_name} ")
     
-    checkpoint = torch.load(os.path.join("SAVED_CHECKPOINT", model_name, ckpt_name), map_location=config.DEVICE)
+    checkpoint = torch.load(os.path.join("SAVED_CHECKPOINT", model_name, ckpt_name), map_location=cfg.DEVICE)
     model.load_state_dict(checkpoint["state_dict"])
 
 
@@ -78,7 +78,7 @@ def load_optim_checkpoint(model_name, optim, last_epoch):
     ckpt_name = f"checkpoint_epoch_{last_epoch}.pth.tar"
     print(f"==> loading optimizer stored in {ckpt_name}")
     
-    checkpoint = torch.load(os.path.join("SAVED_CHECKPOINT", model_name, ckpt_name), map_location=config.DEVICE)
+    checkpoint = torch.load(os.path.join("SAVED_CHECKPOINT", model_name, ckpt_name), map_location=cfg.DEVICE)
     optim.load_state_dict(checkpoint["optimizer"])
 
 

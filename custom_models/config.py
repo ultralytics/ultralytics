@@ -41,17 +41,17 @@ ANCHORS = [
 
 TRAIN_TRANSFORMS = A.Compose(
     [
-        A.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.0, p=0.4),
-        A.Transpose(p=1),
-        A.HorizontalFlip(p=0.5),
-        A.VerticalFlip(p=0.5),
-        A.Rotate(limit=(-20, 20), p=0.7),
-        A.Blur(p=0.05),
-        A.CLAHE(p=0.1),
-        A.Posterize(p=0.1),
-        A.ChannelShuffle(p=0.05),
+        # A.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.0, p=0.4),
+        # A.Transpose(p=1),
+        # A.HorizontalFlip(p=0.5),
+        # A.VerticalFlip(p=0.5),
+        # A.Rotate(limit=(-20, 20), p=0.7),
+        # A.Blur(p=0.05),
+        # A.CLAHE(p=0.1),
+        # A.Posterize(p=0.1),
+        # A.ChannelShuffle(p=0.05),
     ],
-    bbox_params=A.BboxParams("yolo", min_visibility=0.4, label_fields=[],),
+    # bbox_params=A.BboxParams("yolo", min_visibility=0.0, label_fields=[],),
 )
 
 FLIR = [

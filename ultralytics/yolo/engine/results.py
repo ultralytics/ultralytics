@@ -243,7 +243,7 @@ class Results(SimpleClass):
         boxes = self.boxes
         if len(self) == 0:
             return log_string if probs is not None else log_string + "(no detections), "
-        if probs:
+        if probs is not None:
             n5 = min(len(self.names), 5)
             top5i = probs.argsort(0, descending=True)[:n5].tolist()  # top 5 indices
             log_string += f"{', '.join(f'{self.names[j]} {probs[j]:.2f}' for j in top5i)}, "

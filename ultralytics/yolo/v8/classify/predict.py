@@ -23,41 +23,6 @@ class ClassificationPredictor(BasePredictor):
 
         return results
 
-    def write_results(self, idx, results, batch):
-        p, im, im0 = batch
-        log_string = ''
-        if len(im.shape) == 3:
-            im = im[None]  # expand for batch dim
-        self.seen += 1
-        im0 = im0.copy()
-        if self.source_type.webcam or self.source_type.from_img:  # batch_size >= 1
-            log_string += f'{idx}: '
-            frame = self.dataset.count
-        else:
-            frame = getattr(self.dataset, 'frame', 0)
-
-        self.data_path = p
-        # save_path = str(self.save_dir / p.name)  # im.jpg
-        self.txt_path = str(self.save_dir / 'labels' / p.stem) + ('' if self.dataset.mode == 'image' else f'_{frame}')
-        log_string += '%gx%g ' % im.shape[2:]  # print string
-
-        result = results[idx]
-        if len(result) == 0:
-            return log_string
-        prob = result.probs
-        # Print results
-        n5 = min(len(self.model.names), 5)
-        top5i = prob.argsort(0, descending=True)[:n5].tolist()  # top 5 indices
-        log_string += f"{', '.join(f'{self.model.names[j]} {prob[j]:.2f}' for j in top5i)}, "
-
-        # write
-        if self.args.save or self.args.show:  # Add bbox to image
-            self.plotted_img = result.plot()
-        if self.args.save_txt:
-            result.save_txt(f'{self.txt_path}.txt', save_conf=self.args.save_conf)
-
-        return log_string
-
 
 def predict(cfg=DEFAULT_CFG, use_python=False):
     model = cfg.model or 'yolov8n-cls.pt'  # or "resnet18"

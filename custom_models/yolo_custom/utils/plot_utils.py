@@ -7,19 +7,26 @@ import torch
 from .bboxes_utils import non_max_suppression as nms
 import custom_models.config as cfg
 
-def cells_to_bboxes(predictions, anchors, strides, is_pred=False, to_list=True):
+def cells_to_bboxes(predictions, anchors, strides, device, is_pred=False, to_list=True):
     num_out_layers = len(predictions)
     grid = [torch.empty(0) for _ in range(num_out_layers)]  # initialize
     anchor_grid = [torch.empty(0) for _ in range(num_out_layers)]  # initialize
-        
+
+    # device = "cpu"
+
     all_bboxes = []
     for i in range(num_out_layers):
         bs, naxs, ny, nx, _ = predictions[i].shape
         stride = strides[i]
         grid[i], anchor_grid[i] = make_grids(anchors, naxs, ny=ny, nx=nx, stride=stride, i=i)
+
+        grid[i] = grid[i].to(device, non_blocking=True)
+        anchor_grid[i] = anchor_grid[i].to(device, non_blocking=True)
+
         if is_pred:
             # formula here: https://github.com/ultralytics/yolov5/issues/471
             #xy, wh, conf = predictions[i].sigmoid().split((2, 2, 80 + 1), 4)
+            predictions[i] = predictions[i].to(device, non_blocking=True)
             layer_prediction = predictions[i].sigmoid()
             obj = layer_prediction[..., 4:5]
             xy = (2 * (layer_prediction[..., 0:2]) + grid[i] - 0.5) * stride
@@ -27,7 +34,7 @@ def cells_to_bboxes(predictions, anchors, strides, is_pred=False, to_list=True):
             best_class = torch.argmax(layer_prediction[..., 5:], dim=-1).unsqueeze(-1)
 
         else:
-            predictions[i] = predictions[i].to(cfg.DEVICE, non_blocking=True)
+            predictions[i] = predictions[i].to(device, non_blocking=True)
             obj = predictions[i][..., 4:5]
             xy = (predictions[i][..., 0:2] + grid[i]) * stride
             wh = predictions[i][..., 2:4] * stride
@@ -74,8 +81,8 @@ def save_predictions(model, loader, folder, epoch, device, filename, num_images=
             with torch.no_grad():
                 out = model(images)
 
-            boxes = cells_to_bboxes(out, anchors, model.head.stride, is_pred=True, list_output=False)
-            gt_boxes = cells_to_bboxes(targets, anchors, model.head.stride, is_pred=False, list_output=False)
+            boxes = cells_to_bboxes(out, anchors, model.head.stride, device, is_pred=True, to_list=False)
+            gt_boxes = cells_to_bboxes(targets, anchors, model.head.stride, device, is_pred=False, to_list=False)
 
             # here using different nms_iou_thresh and config_thresh because of
             # https://github.com/ultralytics/yolov5/issues/4464

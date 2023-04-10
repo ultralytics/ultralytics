@@ -1,25 +1,25 @@
 import argparse
 import os.path
-from pathlib import Path
 import yaml
-from tqdm import tqdm
 
 import torch
 from torch.optim import Adam
 
-from yolo.models.yolov5m import YOLOV5m
-from yolo.utils.loss import YOLO_LOSS
-from yolo.utils.ultralytics_loss import ComputeLoss
-from yolo.utils.validation_utils import YOLO_EVAL
-from yolo.utils.training_utils import train_loop, get_loaders
-from yolo.utils.utils import save_checkpoint, load_model_checkpoint, load_optim_checkpoint
-from yolo.utils.plot_utils import save_predictions
 import custom_models.config as cfg
+
+from yolo_custom.utils.loss import YOLO_LOSS
+from yolo_custom.utils.ultralytics_loss import ComputeLoss
+from yolo_custom.utils.validation_utils import YOLO_EVAL
+from yolo_custom.utils.training_utils import train_loop, get_loaders
+from yolo_custom.utils.utils import save_checkpoint, load_model_checkpoint, load_optim_checkpoint
+from yolo_custom.utils.plot_utils import save_predictions
+from yolo_custom.models.yolov5m import YOLOV5m
+
 
 def arg_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("--data_path", type=str, default="coco", help="Path to dataset")
-    parser.add_argument("--box_format", type=str, default="coco", help="Choose between 'coco' and 'yolo' format")
+    parser.add_argument("--box_format", type=str, default="yolo", help="Choose between 'coco' and 'yolo' format")
     parser.add_argument("--nosaveimgs", action='store_true', help="Don't save images predictions in SAVED_IMAGES folder")
     parser.add_argument("--nosavemodel", action='store_true', help="Don't save model weights in SAVED_CHECKPOINT folder")
     parser.add_argument("--epochs", type=int, default=100, help="Num of training epochs")
@@ -39,28 +39,28 @@ def main(opt):
     if os.path.isfile(os.path.join(opt.data_path, "defect.yaml")):
         with open(os.path.join(opt.data_path, "defect.yaml"), "r") as f:
             data = yaml.load(f, Loader=yaml.FullLoader)
-            nc = data["nc"]
+            num_of_classes = data["nc"]
             labels = data["names"]
-
     else:
         assert cfg.nc is not None and cfg.labels is not None, "set in config.py nc=num_classes and config.labels='your labels'"
 
-        nc = cfg.nc
+        num_of_classes = cfg.nc
         labels = cfg.labels
 
     first_out = cfg.FIRST_OUT
     scaler = torch.cuda.amp.GradScaler()
 
-    model = YOLOV5m(first_out=first_out, nc=nc, anchors=cfg.ANCHORS,
-                    ch=(first_out * 4, first_out * 8, first_out * 16), inference=False).to(cfg.DEVICE)
+    model = YOLOV5m(first_out=first_out, nc=num_of_classes, anchors=cfg.ANCHORS,
+                    ch=(first_out * 4, first_out * 8, first_out * 16), inference=False)
+    model.to(cfg.DEVICE)
 
     optim = Adam(model.parameters(), lr=cfg.LEARNING_RATE, weight_decay=cfg.WEIGHT_DECAY)
 
     # if no models are saved in checkpoints, creates model0 files,
     # else i.e. if model0.pt is in the folder, new filename will be model1.pt
     starting_epoch = 1
-    # if loading pre-existing weights
 
+    # if loading pre-existing weights
     if opt.load_coco_weights:
         # if dataset is coco loads all the weights
         if opt.data_path == "coco":
@@ -91,8 +91,7 @@ def main(opt):
     rect_training = True if opt.rect else False
 
     # check get_loaders to see how augmentation is set
-    print(f'df root dir: {os.path.join(opt.data_path, "copper")}')
-    train_loader, val_loader = get_loaders(db_root_dir=os.path.join(opt.data_path, "copper"), batch_size=opt.batch_size, num_classes=nc,
+    train_loader, val_loader = get_loaders(db_root_dir=opt.data_path, batch_size=opt.batch_size, num_classes=num_of_classes,
                                            box_format=opt.box_format, ultralytics_loss=opt.ultralytics_loss,
                                            rect_training=rect_training, num_workers=opt.workers)
 
@@ -108,19 +107,16 @@ def main(opt):
 
     # starting epoch is used only when training is resumed by loading weights
 
-    for epoch in tqdm(range(starting_epoch, opt.epochs + starting_epoch), mininterval=1):
+    for epoch in range(starting_epoch, opt.epochs + starting_epoch):
 
         model.train()
-
         if not opt.only_eval:
             train_loop(model=model, loader=train_loader, loss_fn=loss_fn, optim=optim,
-                       scaler=scaler, epoch=epoch, num_epochs=opt.epochs+starting_epoch,
+                       scaler=scaler, epoch=epoch, num_epochs=opt.epochs,
                        multi_scale_training=not rect_training)
 
         model.eval()
-
         evaluate.check_class_accuracy(model, val_loader)
-
         evaluate.map_pr_rec(model, val_loader, anchors=model.head.anchors, epoch=epoch)
 
         # NMS WRONGLY MODIFIED TO TEST THIS FEATURE!!

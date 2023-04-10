@@ -1,7 +1,9 @@
 import os
 from pathlib import Path
 import albumentations as A
+
 import torch.cuda
+import torchvision.transforms as transforms
 
 parent_dir = Path(__file__).parent.parent
 ROOT_DIR = os.path.join(parent_dir, "datasets", "copper")
@@ -17,7 +19,7 @@ FIRST_OUT = 48
 CLS_PW = 1.0
 OBJ_PW = 1.0
 
-LEARNING_RATE = 5e-4
+LEARNING_RATE = 1e-3
 WEIGHT_DECAY = 5e-4
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"

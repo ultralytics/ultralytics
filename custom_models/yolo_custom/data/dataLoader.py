@@ -6,10 +6,12 @@ import warnings
 import imagesize
 import pandas as pd
 from PIL import Image
+import cv2
+
 from torch.utils.data import Dataset, DataLoader
-from custom_models.yolo.utils.utils import resize_image
-from custom_models.yolo.utils.bboxes_utils import iou_width_height, coco_to_yolo_tensors, non_max_suppression
-from custom_models.yolo.utils.plot_utils import plot_image, cells_to_bboxes
+from custom_models.yolo_custom.utils.utils import resize_image
+from custom_models.yolo_custom.utils.bboxes_utils import iou_width_height, coco_to_yolo_tensors, non_max_suppression
+from custom_models.yolo_custom.utils.plot_utils import plot_image, cells_to_bboxes
 import custom_models.config as cfg
 
 import matplotlib.pyplot as plt
@@ -17,7 +19,6 @@ from matplotlib.patches import Rectangle
 
 
 class Training_Dataset(Dataset):
-
     def __init__(self,
                  root_directory=cfg.ROOT_DIR,
                  transform=None,
@@ -42,12 +43,12 @@ class Training_Dataset(Dataset):
         self.train = train
 
         if train:
-            fname = 'images/train'
+            fname = 'images\\train'
             annot_file = "train.txt"
             # class instance because it's used in the __getitem__
             self.annot_folder = "train"
         else:
-            fname = 'images/val'
+            fname = 'images\\val'
             annot_file = "val.txt"
             # class instance because it's used in the __getitem__
             self.annot_folder = "val"
@@ -55,16 +56,18 @@ class Training_Dataset(Dataset):
         self.fname = fname
 
         try:
+            # self.annotations = pd.read_csv(os.path.join(root_directory, "labels", annot_file),
+            #                                header=None, index_col=1).sort_values(by=[0])
             self.annotations = pd.read_csv(os.path.join(root_directory, "labels", annot_file),
-                                           header=None, index_col=0).sort_values(by=[0])
-            self.annotations = self.annotations.head((len(self.annotations)-1))  # just removes last line
+                                           header=None).sort_values(by=[0])
+
+            # self.annotations = self.annotations.head((len(self.annotations)-1))  # just removes last line
         except FileNotFoundError:
             annotations = []
             for img_txt in os.listdir(os.path.join(self.root_directory, "labels", self.annot_folder)):
                 img = img_txt.split(".txt")[0]
                 try:
                     w, h = imagesize.get(os.path.join(self.root_directory, "images", self.annot_folder, f"{img}.png"))
-                    print(os.path.join(self.root_directory, "images", self.annot_folder, f"{img}.png"))
                 except FileNotFoundError:
                     continue
                 annotations.append([str(img) + ".png", h, w])
@@ -79,7 +82,6 @@ class Training_Dataset(Dataset):
         return len(self.annotations)
 
     def __getitem__(self, idx):
-
         img_name = self.annotations.iloc[idx, 0]
         tg_height = self.annotations.iloc[idx, 1] if self.rect_training else 640
         tg_width = self.annotations.iloc[idx, 2] if self.rect_training else 640
@@ -94,7 +96,8 @@ class Training_Dataset(Dataset):
             # to avoid negative values
             labels[:, 3:5] = np.floor(labels[:, 3:5] * 1000) / 1000
 
-        img = np.array(Image.open(os.path.join(self.root_directory, self.fname, img_name)).convert("RGB"))
+        img = Image.open(os.path.join(self.root_directory, self.fname, img_name)).convert("RGB")
+        img = np.array(img)
 
         if self.bboxes_format == "coco":
             labels[:, -1] -= 1  # 0-indexing the classes of coco labels (1-80 --> 0-79)
@@ -112,32 +115,34 @@ class Training_Dataset(Dataset):
             else:
                 self.transform[1].p = 0
 
-            augmentations = self.transform(image=img,
-                                           bboxes=np.roll(labels, axis=1, shift=4)
-                                           )
+            augmentations = self.transform(
+                image=img,
+                bboxes=np.roll(labels, axis=1, shift=4)
+                # bboxes=labels
+            )
             img = augmentations["image"]
-            # loss fx requires bboxes to be (class_idx,x,y,w,h)
+            # loss fx requires bboxes to be (class_idx, x, y, w, h)
             labels = np.array(augmentations["bboxes"])
             if len(labels):
                 labels = np.roll(labels, axis=1, shift=1)
-
-        """if len(labels):
-            plot_labes = xywhn2xyxy(labels[:, 1:], w=img.shape[1], h=img.shape[0])
-            fig, ax = plt.subplots(1)
-            ax.imshow(img)
-            for box in plot_labes:
-                rect = Rectangle(
-                    (box[0], box[1]),
-                    box[2] - box[0],
-                    box[3] - box[1],
-                    linewidth=2,
-                    edgecolor="green",
-                    facecolor="none"
-                )
-                # Add the patch to the Axes
-                ax.add_patch(rect)
-
-            plt.show()"""
+            print(f'labels: {labels}')
+        # if len(labels):
+        #     plot_labes = xywhn2xyxy(labels[:, 1:], w=img.shape[1], h=img.shape[0])
+        #     fig, ax = plt.subplots(1)
+        #     ax.imshow(img)
+        #     for box in plot_labes:
+        #         rect = Rectangle(
+        #             (box[0], box[1]),
+        #             box[2] - box[0],
+        #             box[3] - box[1],
+        #             linewidth=2,
+        #             edgecolor="green",
+        #             facecolor="none"
+        #         )
+        #         # Add the patch to the Axes
+        #         ax.add_patch(rect)
+        #
+        #     plt.show()
 
         if self.ultralytics_loss:
             labels = torch.from_numpy(labels)
@@ -240,21 +245,21 @@ class Validation_Dataset(Dataset):
         self.nl = len(anchors[0])
         self.anchors = torch.tensor(anchors).float().view(self.nl, -1, 2) / torch.tensor(self.S).repeat(6, 1).T.reshape(3, 3, 2)
         self.num_anchors = self.anchors.reshape(9,2).shape[0]
-
         self.num_anchors_per_scale = self.num_anchors // 3
         self.ignore_iou_thresh = 0.5
         self.rect_training = rect_training
         self.default_size = default_size
         self.root_directory = root_directory
         self.train = train
+
         if train:
-            fname = 'images/train'
-            annot_file = "annot_train.csv"
+            fname = 'images\\train'
+            annot_file = "train.txt"
             # class instance because it's used in the __getitem__
             self.annot_folder = "train"
         else:
-            fname = 'images/val'
-            annot_file = "annot_val.csv"
+            fname = 'images\\val'
+            annot_file = "val.txt"
             # class instance because it's used in the __getitem__
             self.annot_folder = "val"
 
@@ -262,17 +267,17 @@ class Validation_Dataset(Dataset):
 
         try:
             self.annotations = pd.read_csv(os.path.join(root_directory, "labels", annot_file),
-                                           header=None, index_col=0).sort_values(by=[0])
+                                           header=None).sort_values(by=[0])
             self.annotations = self.annotations.head((len(self.annotations)-1))  # just removes last line
         except FileNotFoundError:
             annotations = []
             for img_txt in os.listdir(os.path.join(self.root_directory, "labels", self.annot_folder)):
                 img = img_txt.split(".txt")[0]
                 try:
-                    w, h = imagesize.get(os.path.join(self.root_directory, "images", self.annot_folder, f"{img}.jpg"))
+                    w, h = imagesize.get(os.path.join(self.root_directory, "images", self.annot_folder, f"{img}.png"))
                 except FileNotFoundError:
                     continue
-                annotations.append([str(img) + ".jpg", h, w])
+                annotations.append([str(img) + ".png", h, w])
             self.annotations = pd.DataFrame(annotations)
             self.annotations.to_csv(os.path.join(self.root_directory, "labels", annot_file))
 
@@ -300,7 +305,8 @@ class Validation_Dataset(Dataset):
             # to avoid negative values
             labels[:, 3:5] = np.floor(labels[:, 3:5] * 1000) / 1000
 
-        img = np.array(Image.open(os.path.join(self.root_directory, self.fname, img_name)).convert("RGB"))
+        img = Image.open(os.path.join(self.root_directory, self.fname, img_name)).convert("RGB")
+        img = np.array(img)
 
         if self.bboxes_format == "coco":
             labels[:, -1] -= 1  # 0-indexing the classes of coco labels (1-80 --> 0-79)
@@ -318,12 +324,13 @@ class Validation_Dataset(Dataset):
             else:
                 self.transform[2].p = 0
 
-            augmentations = self.transform(image=img,
-                                           bboxes=np.roll(labels, axis=1, shift=4)
-                                               )
+            augmentations = self.transform(
+                image=img,
+                bboxes=np.roll(labels, axis=1, shift=4)
+            )
 
             img = augmentations["image"]
-            # loss fx requires bboxes to be (class_idx,x,y,w,h)
+            # loss fx requires bboxes to be (class_idx, x, y, w, h)
             labels = np.array(augmentations["bboxes"])
             if len(labels):
                 labels = np.roll(labels, axis=1, shift=1)
@@ -340,7 +347,6 @@ class Validation_Dataset(Dataset):
                    for S in self.S]
 
         for idx, box in enumerate(bboxes):
-
             # this iou() computer iou just by comparing widths and heights
             # torch.tensor(box[2:4] -> shape (2,) - self.anchors shape -> (9,2)
             # iou_anchors --> tensor of shape (9,)
@@ -472,20 +478,23 @@ if __name__ == "__main__":
     S = [8, 16, 32]
 
     anchors = cfg.ANCHORS
-
-    dataset = Validation_Dataset(anchors=cfg.ANCHORS,
-                                 root_directory=cfg.ROOT_DIR, transform=None,
-                                 train=False, S=S, rect_training=True, default_size=640, bs=4,
-                                 bboxes_format="coco")
-
+    dataset = Training_Dataset(root_directory=cfg.ROOT_DIR,
+                                transform=cfg.TRAIN_TRANSFORMS, train=True, rect_training=False,
+                                bs=1, bboxes_format="yolo", ultralytics_loss=False)
+    # dataset = Validation_Dataset(anchors=anchors,
+    #                              root_directory=cfg.ROOT_DIR, transform=cfg.TRAIN_TRANSFORMS,
+    #                              train=False, S=S, rect_training=False, default_size=640, bs=4,
+    #                              bboxes_format="yolo")
+    #
     # anchors = torch.tensor(anchors)
-    loader = DataLoader(dataset=dataset, batch_size=8, shuffle=False)
-
-    for x, y in loader:
-
+    loader = DataLoader(dataset=dataset, batch_size=1, shuffle=False,
+                        collate_fn=dataset.collate_fn
+                        )
+    #
+    for idx, (images, bboxes) in enumerate(loader):
         """boxes = cells_to_bboxes(y, anchors, S)[0]
         boxes = nms(boxes, iou_threshold=1, threshold=0.7, box_format="midpoint")"""
-
-        boxes = cells_to_bboxes(y, torch.tensor(anchors), S, to_list=False)
-        boxes = non_max_suppression(boxes, iou_threshold=0.6, threshold=0.01, max_detections=300)
-        plot_image(x[0].permute(1, 2, 0).to("cpu"), boxes[0])
+        print(f'idx: {idx}, {dataset.annotations.iloc[idx, 0]}')
+        # boxes = cells_to_bboxes(bboxes, torch.tensor(anchors), S, device=cfg.DEVICE, to_list=False)
+        # boxes = non_max_suppression(boxes, iou_threshold=0.6, threshold=0.01, max_detections=300)
+        # plot_image(images[0].permute(1, 2, 0).to("cpu"), boxes[0])

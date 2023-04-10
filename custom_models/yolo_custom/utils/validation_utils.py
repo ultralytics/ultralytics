@@ -7,6 +7,7 @@ from tqdm import tqdm
 from .bboxes_utils import non_max_suppression
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
 from .plot_utils import cells_to_bboxes
+import custom_models.config as cfg
 
 
 class YOLO_EVAL:
@@ -28,8 +29,7 @@ class YOLO_EVAL:
                     os.makedirs(folder)
                 with open(os.path.join(folder, "eval.csv"), "w") as f:
                     writer = csv.writer(f)
-                    writer.writerow(["epoch", "class_accuracy",
-                                     "obj_accuracy", "map50", "map75"])
+                    writer.writerow(["epoch", "class_accuracy", "obj_accuracy", "map50", "map75"])
                     
                     print("--------------------------------------------------------------------------------------")
                     print(f'Eval Logs will be saved in {os.path.join("train_eval_metrics", filename, "eval.csv")}')
@@ -50,7 +50,6 @@ class YOLO_EVAL:
         tot_obj, correct_obj = 0, 0
 
         for idx, (images, y) in enumerate(tqdm(loader)):
-
             images = images.to(self.device)
             images = images.float() / 255
             with torch.no_grad():
@@ -84,29 +83,25 @@ class YOLO_EVAL:
         model.train()
 
     def map_pr_rec(self, model, loader, anchors, epoch):
-
         print(".. Getting Evaluation bboxes to compute MAP..")
         # make sure model is in eval before get bboxes
-
         model.eval()
-
         # 1) GET EVALUATION BBOXES
         preds = []
         targets = []
 
         for batch_idx, (images, labels) in enumerate(tqdm(loader)):
-            images = images.to(self.device).float() / 255
+            images = images.to(self.device)
+            images = images.float() / 255
             with torch.no_grad():
                 predictions = model(images)
 
-            pred_boxes = cells_to_bboxes(predictions, anchors, strides=model.head.stride, is_pred=True, to_list=False)
-
+            pred_boxes = cells_to_bboxes(predictions, anchors, strides=model.head.stride, device=self.device, is_pred=True, to_list=False)
             # we just want one bbox for each label, not one for each scale
-            true_boxes = cells_to_bboxes(labels, anchors, strides=model.head.stride, is_pred=False, to_list=False)
+            true_boxes = cells_to_bboxes(labels, anchors, strides=model.head.stride, device=self.device, is_pred=False, to_list=False)
 
             pred_boxes = non_max_suppression(pred_boxes, iou_threshold=self.nms_iou_thresh, threshold=self.conf_threshold,
                                              tolist=False, max_detections=300)
-
             true_boxes = non_max_suppression(true_boxes, iou_threshold=self.nms_iou_thresh,threshold=self.conf_threshold,
                                              tolist=False, max_detections=300)
 

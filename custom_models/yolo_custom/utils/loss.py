@@ -5,12 +5,12 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-from custom_models.yolo.utils.training_utils import multi_scale
-from custom_models.yolo.utils.bboxes_utils import iou_width_height, intersection_over_union, non_max_suppression as nms
-from custom_models.yolo.utils.plot_utils import cells_to_bboxes, plot_image
+from custom_models.yolo_custom.utils.training_utils import multi_scale
+from custom_models.yolo_custom.utils.bboxes_utils import iou_width_height, intersection_over_union, non_max_suppression as nms
+from custom_models.yolo_custom.utils.plot_utils import cells_to_bboxes, plot_image
 import config
-from custom_models.yolo.models.yolov5m import YOLOV5m
-from custom_models.yolo.data.dataLoader import Training_Dataset
+from custom_models.yolo_custom.models.yolov5m import YOLOV5m
+from custom_models.yolo_custom.data.dataLoader import Training_Dataset
 
 
 class YOLO_LOSS:
@@ -46,14 +46,14 @@ class YOLO_LOSS:
 
         if self.save_logs:
             if not resume:
-                folder = os.path.join("../../../../../Downloads/YOLOV5m-main/YOLOV5m-main/train_eval_metrics", filename)
+                folder = os.path.join("train_eval_metrics", filename)
                 if not os.path.isdir(folder):
                     os.makedirs(folder)
                 with open(os.path.join(folder, "loss.csv"), "w") as f:
                     writer = csv.writer(f)
                     writer.writerow(["epoch", "batch_idx", "box_loss", "object_loss", "class_loss"])
                     print("--------------------------------------------------------------------------------------")
-                    print(f'Training Logs will be saved in {os.path.join("../../../../../Downloads/YOLOV5m-main/YOLOV5m-main/train_eval_metrics", filename, "loss.csv")}')
+                    print(f'Training Logs will be saved in {os.path.join("train_eval_metrics", filename, "loss.csv")}')
                     print("--------------------------------------------------------------------------------------")
                     f.close()
 
@@ -78,7 +78,7 @@ class YOLO_LOSS:
             freq = 100
             if self.batch_idx % freq == 0:
                 log_losses = torch.mean(torch.cat([logs1, logs2, logs3], dim=0), dim=0)
-                with open(os.path.join("../../../../../Downloads/YOLOV5m-main/YOLOV5m-main/train_eval_metrics", self.filename, "loss.csv"), "a") as f:
+                with open(os.path.join("train_eval_metrics", self.filename, "loss.csv"), "a") as f:
                     writer = csv.writer(f)
                     writer.writerow([self.epoch, self.batch_idx, log_losses[0].item(),
                                      log_losses[1].item(), log_losses[2].item()])

@@ -5,7 +5,7 @@ import math
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 
-from custom_models.yolo.data.dataLoader import Training_Dataset, Validation_Dataset
+from custom_models.yolo_custom.data.dataLoader import Training_Dataset, Validation_Dataset
 import custom_models.config as cfg
 
 def multi_scale(img, target_shape, max_stride):
@@ -31,11 +31,11 @@ def multi_scale(img, target_shape, max_stride):
 def get_loaders(
         db_root_dir,
         batch_size,
-        num_classes=len(cfg.nc),
+        num_classes=cfg.nc,
         num_workers=4,
         pin_memory=torch.cuda.is_available(),
         rect_training=False,
-        box_format="coco",
+        box_format="yolo",
         ultralytics_loss=False
 ):
 

@@ -159,3 +159,6 @@ weights/
 /.idea/modules.xml
 /.idea/vcs.xml
 /.idea/yolov8-custom.iml
+/custom_models/SAVED_CHECKPOINT/
+/custom_models/SAVED_IMAGES/
+/custom_models/train_eval_metrics/

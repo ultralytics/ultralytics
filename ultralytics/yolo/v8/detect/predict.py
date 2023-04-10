@@ -5,7 +5,6 @@ import torch
 from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils import DEFAULT_CFG, ROOT, ops
-from ultralytics.yolo.utils.plotting import save_one_box
 
 
 class DetectionPredictor(BasePredictor):

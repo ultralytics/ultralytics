@@ -153,6 +153,7 @@ weights/
 *_web_model/
 *_openvino_model/
 *_paddle_model/
+.idea
 /.idea/.gitignore
 /.idea/jupyter-settings.xml
 /.idea/misc.xml

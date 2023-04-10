@@ -238,11 +238,11 @@ class Results(SimpleClass):
         """
         Return log string for each tasks.
         """
-        log_string = ""
+        log_string = ''
         probs = self.probs
         boxes = self.boxes
         if len(self) == 0:
-            return log_string if probs is not None else log_string + "(no detections), "
+            return log_string if probs is not None else log_string + '(no detections), '
         if probs is not None:
             n5 = min(len(self.names), 5)
             top5i = probs.argsort(0, descending=True)[:n5].tolist()  # top 5 indices
@@ -290,13 +290,13 @@ class Results(SimpleClass):
 
     def save_crop(self, save_dir, file_name=Path('im.jpg')):
         """Save cropped predictions to `save_dir/cls/file_name.jpg`.
-        
+
         Args:
             save_dir (str | pathlib.Path): Save path.
             file_name (str | pathlib.Path): File name.
         """
         if self.probs is not None:
-            LOGGER.warning("Warning: Classify task do not support `save_crop`.")
+            LOGGER.warning('Warning: Classify task do not support `save_crop`.')
             return
         if isinstance(save_dir, str):
             save_dir = Path(save_dir)

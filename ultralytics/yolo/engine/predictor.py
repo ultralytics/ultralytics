@@ -129,7 +129,7 @@ class BasePredictor:
         if self.args.save or self.args.show:  # Add bbox to image
             plot_args = dict(line_width=self.args.line_thickness, boxes=self.args.boxes)
             if not self.args.retina_masks:
-                plot_args["im_gpu"] = im[idx]
+                plot_args['im_gpu'] = im[idx]
             self.plotted_img = result.plot(**plot_args)
         # write
         if self.args.save_txt:

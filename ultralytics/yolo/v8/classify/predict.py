@@ -5,13 +5,9 @@ import torch
 from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils import DEFAULT_CFG, ROOT
-from ultralytics.yolo.utils.plotting import Annotator
 
 
 class ClassificationPredictor(BasePredictor):
-
-    def get_annotator(self, img):
-        return Annotator(img, example=str(self.model.names), pil=True)
 
     def preprocess(self, img):
         img = (img if isinstance(img, torch.Tensor) else torch.from_numpy(img)).to(self.model.device)
@@ -57,10 +53,8 @@ class ClassificationPredictor(BasePredictor):
         # write
         if self.args.save or self.args.show:  # Add bbox to image
             self.plotted_img = result.plot()
-        if self.args.save_txt:  # Write to file
-            text = '\n'.join(f'{prob[j]:.2f} {self.model.names[j]}' for j in top5i)
-            with open(f'{self.txt_path}.txt', 'a') as f:
-                f.write(text + '\n')
+        if self.args.save_txt:
+            result.save_txt(f'{self.txt_path}.txt', save_conf=self.args.save_conf)
 
         return log_string
 

@@ -62,19 +62,10 @@ class PosePredictor(DetectionPredictor):
             self.plotted_img = result.plot(line_width=self.args.line_thickness, boxes=self.args.boxes)
 
         # write
-        for j, d in enumerate(reversed(det)):
-            c, conf, id = int(d.cls), float(d.conf), None if d.id is None else int(d.id.item())
-            if self.args.save_txt:  # Write to file
-                kpt = (result[j].keypoints[:, :2] / d.orig_shape[[1, 0]]).reshape(-1).tolist()
-                box = d.xywhn.view(-1).tolist()
-                line = (c, *box, *kpt) + (conf, ) * self.args.save_conf + (() if id is None else (id, ))
-                with open(f'{self.txt_path}.txt', 'a') as f:
-                    f.write(('%g ' * len(line)).rstrip() % line + '\n')
-            if self.args.save_crop:
-                save_one_box(d.xyxy,
-                             imc,
-                             file=self.save_dir / 'crops' / self.model.model.names[c] / f'{self.data_path.stem}.jpg',
-                             BGR=True)
+        if self.args.save_txt:
+            result.save_txt(f'{self.txt_path}.txt', save_conf=self.args.save_conf)
+        if self.args.save_crop:
+            result.save_crop(save_dir=self.save_dir / 'crops', file_name=self.data_path.stem)
 
         return log_string
 

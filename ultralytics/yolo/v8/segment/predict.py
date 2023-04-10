@@ -73,19 +73,10 @@ class SegmentationPredictor(DetectionPredictor):
                 2, 0, 1).flip(0).contiguous() / 255 if self.args.retina_masks else im[idx]
             self.plotted_img = result.plot(line_width=self.args.line_thickness, im_gpu=im_gpu, boxes=self.args.boxes)
 
-        # Write results
-        for j, d in enumerate(reversed(det)):
-            c, conf, id = int(d.cls), float(d.conf), None if d.id is None else int(d.id.item())
-            if self.args.save_txt:  # Write to file
-                seg = mask.xyn[len(det) - j - 1].copy().reshape(-1)  # reversed mask.xyn, (n,2) to (n*2)
-                line = (c, *seg) + (conf, ) * self.args.save_conf + (() if id is None else (id, ))
-                with open(f'{self.txt_path}.txt', 'a') as f:
-                    f.write(('%g ' * len(line)).rstrip() % line + '\n')
-            if self.args.save_crop:
-                save_one_box(d.xyxy,
-                             imc,
-                             file=self.save_dir / 'crops' / self.model.names[c] / f'{self.data_path.stem}.jpg',
-                             BGR=True)
+        if self.args.save_txt:
+            result.save_txt(f'{self.txt_path}.txt', save_conf=self.args.save_conf)
+        if self.args.save_crop:
+            result.save_crop(save_dir=self.save_dir / 'crops', file_name=self.data_path.stem)
 
         return log_string
 

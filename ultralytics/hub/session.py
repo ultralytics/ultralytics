@@ -112,10 +112,8 @@ class HUBTrainingSession:
                 raise ValueError('Dataset may still be processing. Please wait a minute and try again.')  # RF fix
             self.model_id = data['id']
 
-            # TODO: restore when server keys when dataset URL and GPU train is working
-
             self.train_args = {
-                'batch': data['batch_size'],
+                'batch': data['batch' if ('batch' in data) else 'batch_size'],  # TODO: deprecate 'batch_size' in 3Q23
                 'epochs': data['epochs'],
                 'imgsz': data['imgsz'],
                 'patience': data['patience'],

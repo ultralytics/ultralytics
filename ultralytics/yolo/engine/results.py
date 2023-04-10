@@ -7,13 +7,14 @@ Usage: See https://docs.ultralytics.com/modes/predict/
 
 from copy import deepcopy
 from functools import lru_cache
+from pathlib import Path
 
 import numpy as np
 import torch
 
 from ultralytics.yolo.data.augment import LetterBox
 from ultralytics.yolo.utils import LOGGER, SimpleClass, deprecation_warn, ops
-from ultralytics.yolo.utils.plotting import Annotator, colors
+from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
 
 
 class BaseTensor(SimpleClass):
@@ -233,6 +234,80 @@ class Results(SimpleClass):
 
         return annotator.result()
 
+    def verbose(self):
+        """
+        Return log string for each tasks.
+        """
+        log_string = ''
+        probs = self.probs
+        boxes = self.boxes
+        if len(self) == 0:
+            return log_string if probs is not None else log_string + '(no detections), '
+        if probs is not None:
+            n5 = min(len(self.names), 5)
+            top5i = probs.argsort(0, descending=True)[:n5].tolist()  # top 5 indices
+            log_string += f"{', '.join(f'{self.names[j]} {probs[j]:.2f}' for j in top5i)}, "
+        if boxes:
+            for c in boxes.cls.unique():
+                n = (boxes.cls == c).sum()  # detections per class
+                log_string += f"{n} {self.names[int(c)]}{'s' * (n > 1)}, "
+        return log_string
+
+    def save_txt(self, txt_file, save_conf=False):
+        """Save predictions into txt file.
+
+        Args:
+            txt_file (str): txt file path.
+            save_conf (bool): save confidence score or not.
+        """
+        boxes = self.boxes
+        masks = self.masks
+        probs = self.probs
+        kpts = self.keypoints
+        texts = []
+        if probs is not None:
+            # classify
+            n5 = min(len(self.names), 5)
+            top5i = probs.argsort(0, descending=True)[:n5].tolist()  # top 5 indices
+            [texts.append(f'{probs[j]:.2f} {self.names[j]}') for j in top5i]
+        elif boxes:
+            # detect/segment/pose
+            for j, d in enumerate(boxes):
+                c, conf, id = int(d.cls), float(d.conf), None if d.id is None else int(d.id.item())
+                line = (c, *d.xywhn.view(-1))
+                if masks:
+                    seg = masks[j].xyn[0].copy().reshape(-1)  # reversed mask.xyn, (n,2) to (n*2)
+                    line = (c, *seg)
+                if kpts is not None:
+                    kpt = (kpts[j][:, :2] / d.orig_shape[[1, 0]]).reshape(-1).tolist()
+                    line += (*kpt, )
+                line += (conf, ) * save_conf + (() if id is None else (id, ))
+                texts.append(('%g ' * len(line)).rstrip() % line)
+
+        with open(txt_file, 'a') as f:
+            for text in texts:
+                f.write(text + '\n')
+
+    def save_crop(self, save_dir, file_name=Path('im.jpg')):
+        """Save cropped predictions to `save_dir/cls/file_name.jpg`.
+
+        Args:
+            save_dir (str | pathlib.Path): Save path.
+            file_name (str | pathlib.Path): File name.
+        """
+        if self.probs is not None:
+            LOGGER.warning('Warning: Classify task do not support `save_crop`.')
+            return
+        if isinstance(save_dir, str):
+            save_dir = Path(save_dir)
+        if isinstance(file_name, str):
+            file_name = Path(file_name)
+        for d in self.boxes:
+            save_one_box(d.xyxy,
+                         self.orig_img.copy(),
+                         file=save_dir / self.names[int(d.cls)] / f'{file_name.stem}.jpg',
+                         BGR=True)
+
 
 class Boxes(BaseTensor):
     """
@@ -339,6 +414,8 @@ class Masks(BaseTensor):
     """
 
     def __init__(self, masks, orig_shape) -> None:
+        if masks.ndim == 2:
+            masks = masks[None, :]
         self.masks = masks  # N, h, w
         self.orig_shape = orig_shape
 

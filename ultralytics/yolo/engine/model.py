@@ -356,7 +356,6 @@ class YOLO:
             raise AttributeError("Dataset required but missing, i.e. pass 'data=coco128.yaml'")
         if overrides.get('resume'):
             overrides['resume'] = self.ckpt_path
-
         self.task = overrides.get('task') or self.task
         self.trainer = TASK_MAP[self.task][1](overrides=overrides, _callbacks=self.callbacks)
         if not overrides.get('resume'):  # manually set model only if not resuming

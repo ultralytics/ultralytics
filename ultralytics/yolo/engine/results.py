@@ -346,7 +346,6 @@ class Boxes(BaseTensor):
         assert n in (6, 7), f'expected `n` in [6, 7], but got {n}'  # xyxy, (track_id), conf, cls
         super().__init__(boxes, orig_shape)
         self.is_track = n == 7
-        self._data = boxes
         self.orig_shape = torch.as_tensor(orig_shape, device=boxes.device) if isinstance(boxes, torch.Tensor) \
             else np.asarray(orig_shape)
 

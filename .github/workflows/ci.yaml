@@ -76,9 +76,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip wheel
           if [ "${{ matrix.os }}" == "macos-latest" ]; then
-              pip install -e . coremltools openvino-dev tensorflow-macos --extra-index-url https://download.pytorch.org/whl/cpu
+              pip install -e . coremltools openvino-dev tensorflow-macos tensorflowjs --extra-index-url https://download.pytorch.org/whl/cpu
             else
-              pip install -e . coremltools openvino-dev tensorflow-cpu --extra-index-url https://download.pytorch.org/whl/cpu
+              pip install -e . coremltools openvino-dev tensorflow-cpu tensorflowjs --extra-index-url https://download.pytorch.org/whl/cpu
           fi
           yolo export format=tflite
       - name: Check environment

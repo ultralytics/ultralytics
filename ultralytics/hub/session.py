@@ -112,17 +112,21 @@ class HUBTrainingSession:
                 raise ValueError('Dataset may still be processing. Please wait a minute and try again.')  # RF fix
             self.model_id = data['id']
 
-            self.train_args = {
-                'batch': data['batch' if ('batch' in data) else 'batch_size'],  # TODO: deprecate 'batch_size' in 3Q23
-                'epochs': data['epochs'],
-                'imgsz': data['imgsz'],
-                'patience': data['patience'],
-                'device': data['device'],
-                'cache': data['cache'],
-                'data': data['data']}
-
-            self.model_file = data.get('cfg', data['weights'])
-            self.model_file = checks.check_yolov5u_filename(self.model_file, verbose=False)  # YOLOv5->YOLOv5u
+            if data['status'] == 'new':  # new model to start training
+                self.train_args = {
+                    # TODO: deprecate 'batch_size' key for 'batch' in 3Q23
+                    'batch': data['batch' if ('batch' in data) else 'batch_size'],
+                    'epochs': data['epochs'],
+                    'imgsz': data['imgsz'],
+                    'patience': data['patience'],
+                    'device': data['device'],
+                    'cache': data['cache'],
+                    'data': data['data']}
+                self.model_file = data.get('cfg', data['weights'])
+                self.model_file = checks.check_yolov5u_filename(self.model_file, verbose=False)  # YOLOv5->YOLOv5u
+            elif data['status'] == 'training':  # existing model to resume training
+                self.train_args = {'data': data['data'], 'resume': True}
+                self.model_file = data['resume']
 
             return data
         except requests.exceptions.ConnectionError as e:

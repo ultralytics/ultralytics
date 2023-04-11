@@ -4,7 +4,6 @@ import torch
 
 from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils import DEFAULT_CFG, ROOT, ops
-from ultralytics.yolo.utils.plotting import save_one_box
 from ultralytics.yolo.v8.detect.predict import DetectionPredictor
 
 
@@ -39,55 +38,6 @@ class SegmentationPredictor(DetectionPredictor):
             results.append(
                 Results(orig_img=orig_img, path=img_path, names=self.model.names, boxes=pred[:, :6], masks=masks))
         return results
-
-    def write_results(self, idx, results, batch):
-        p, im, im0 = batch
-        log_string = ''
-        if len(im.shape) == 3:
-            im = im[None]  # expand for batch dim
-        self.seen += 1
-        imc = im0.copy() if self.args.save_crop else im0
-        if self.source_type.webcam or self.source_type.from_img:  # batch_size >= 1
-            log_string += f'{idx}: '
-            frame = self.dataset.count
-        else:
-            frame = getattr(self.dataset, 'frame', 0)
-
-        self.data_path = p
-        self.txt_path = str(self.save_dir / 'labels' / p.stem) + ('' if self.dataset.mode == 'image' else f'_{frame}')
-        log_string += '%gx%g ' % im.shape[2:]  # print string
-
-        result = results[idx]
-        if len(result) == 0:
-            return f'{log_string}(no detections), '
-        det, mask = result.boxes, result.masks  # getting tensors TODO: mask mask,box inherit for tensor
-
-        # Print results
-        for c in det.cls.unique():
-            n = (det.cls == c).sum()  # detections per class
-            log_string += f"{n} {self.model.names[int(c)]}{'s' * (n > 1)}, "
-
-        # Mask plotting
-        if self.args.save or self.args.show:
-            im_gpu = torch.as_tensor(im0, dtype=torch.float16, device=mask.masks.device).permute(
-                2, 0, 1).flip(0).contiguous() / 255 if self.args.retina_masks else im[idx]
-            self.plotted_img = result.plot(line_width=self.args.line_thickness, im_gpu=im_gpu, boxes=self.args.boxes)
-
-        # Write results
-        for j, d in enumerate(reversed(det)):
-            c, conf, id = int(d.cls), float(d.conf), None if d.id is None else int(d.id.item())
-            if self.args.save_txt:  # Write to file
-                seg = mask.xyn[len(det) - j - 1].copy().reshape(-1)  # reversed mask.xyn, (n,2) to (n*2)
-                line = (c, *seg) + (conf, ) * self.args.save_conf + (() if id is None else (id, ))
-                with open(f'{self.txt_path}.txt', 'a') as f:
-                    f.write(('%g ' * len(line)).rstrip() % line + '\n')
-            if self.args.save_crop:
-                save_one_box(d.xyxy,
-                             imc,
-                             file=self.save_dir / 'crops' / self.model.names[c] / f'{self.data_path.stem}.jpg',
-                             BGR=True)
-
-        return log_string
 
 
 def predict(cfg=DEFAULT_CFG, use_python=False):

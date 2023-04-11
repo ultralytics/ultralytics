@@ -1,4 +1,5 @@
 try:
+    import ray
     from ray import tune
     from ray.air import session
 except (ImportError, AssertionError):
@@ -6,9 +7,10 @@ except (ImportError, AssertionError):
 
 
 def on_fit_epoch_end(trainer):
-    metrics = trainer.metrics
-    metrics['epoch'] = trainer.epoch
-    session.report(metrics)
+    if ray.tune.is_session_enabled():
+        metrics = trainer.metrics
+        metrics['epoch'] = trainer.epoch
+        session.report(metrics)
 
 
 callbacks = {

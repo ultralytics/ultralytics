@@ -9,8 +9,8 @@ import torch
 import torch.nn as nn
 
 from ultralytics.nn.modules import (C1, C2, C3, C3TR, SPP, SPPF, Bottleneck, BottleneckCSP, C2f, C3Ghost, C3x, Classify,
-                                    Concat, Conv, ConvTranspose, Detect, DWConv, DWConvTranspose2d, Ensemble, Focus,
-                                    GhostBottleneck, GhostConv, Pose, Segment, DetectOBB)
+                                    Concat, Conv, ConvTranspose, Detect, DetectOBB, DWConv, DWConvTranspose2d, Ensemble,
+                                    Focus, GhostBottleneck, GhostConv, Pose, Segment)
 from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.yolo.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.yolo.utils.torch_utils import (fuse_conv_and_bn, fuse_deconv_and_bn, initialize_weights,
@@ -243,9 +243,10 @@ class DetectionOBBModel(DetectionModel):
     # YOLOv8 obb model
     def __init__(self, cfg='yolov8n-obb.yaml', ch=3, nc=None, verbose=True):
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
-    
+
     def _forward_augment(self, x):
-        raise NotImplementedError(emojis('WARNING ⚠️ DetectionWithOrientationModel has not supported augment inference yet!'))
+        raise NotImplementedError(
+            emojis('WARNING ⚠️ DetectionWithOrientationModel has not supported augment inference yet!'))
 
 
 class SegmentationModel(DetectionModel):
@@ -609,6 +610,7 @@ def guess_model_task(model):
             return 'detect'
 
     # Unable to determine task from model
-    LOGGER.warning("WARNING ⚠️ Unable to automatically guess model task, assuming 'task=detect'. "
-                   "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify','pose' or 'detectobb'.")
+    LOGGER.warning(
+        "WARNING ⚠️ Unable to automatically guess model task, assuming 'task=detect'. "
+        "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify','pose' or 'detectobb'.")
     return 'detect'  # assume detect

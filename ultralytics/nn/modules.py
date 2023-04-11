@@ -439,14 +439,15 @@ class DetectOBB(Detect):
         self.nc_theta = nc_theta
         self.no = nc + self.reg_max * 4 + self.nc_theta
         self.detect = Detect.forward
-        
+
         c4 = max(ch[0], self.nc_theta)
-        self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.nc_theta, 1)) for x in ch)
+        self.cv4 = nn.ModuleList(
+            nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.nc_theta, 1)) for x in ch)
 
     def forward(self, x):
         bs = x[0].shape[0]
-        
-        theta = torch.cat([self.cv4[i](x[i]).view(bs, self.no, -1) for i in range(self.nl)], -1) 
+
+        theta = torch.cat([self.cv4[i](x[i]).view(bs, self.no, -1) for i in range(self.nl)], -1)
         x = self.detect(self, x)
         if self.training:
             return x, theta
@@ -504,6 +505,7 @@ class Pose(Detect):
         y[:, 0::ndim] = (y[:, 0::ndim] * 2.0 + (self.anchors[0] - 0.5)) * self.strides
         y[:, 1::ndim] = (y[:, 1::ndim] * 2.0 + (self.anchors[1] - 0.5)) * self.strides
         return y
+
 
 class Classify(nn.Module):
     # YOLOv8 classification head, i.e. x(b,c1,20,20) to x(b,c2)

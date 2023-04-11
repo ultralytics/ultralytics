@@ -9,7 +9,6 @@ from ultralytics.yolo.utils.night_vision import apply_night_vision, night_vision
 from ultralytics.yolo.utils.plotting import Annotator, save_one_box
 
 
-
 class DetectionPredictor(BasePredictor):
 
     def get_annotator(self, img):
@@ -99,6 +98,7 @@ class DetectionPredictor(BasePredictor):
                              BGR=True)
 
         return log_string
+
 
 def predict(cfg=DEFAULT_CFG, use_python=False):
     model = cfg.model or 'yolov8n.pt'

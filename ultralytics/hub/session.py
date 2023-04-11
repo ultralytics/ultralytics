@@ -125,7 +125,7 @@ class HUBTrainingSession:
                 self.model_file = data.get('cfg', data['weights'])
                 self.model_file = checks.check_yolov5u_filename(self.model_file, verbose=False)  # YOLOv5->YOLOv5u
             elif data['status'] == 'training':  # existing model to resume training
-                self.train_args = {}
+                self.train_args = {'resume': True}
                 self.model_file = data['resume']
 
             return data

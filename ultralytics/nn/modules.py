@@ -435,7 +435,7 @@ class Detect(nn.Module):
 class DetectOBB(Detect):
     # YOLOv8 DetectOBB head for detection with rotation models
     def __init__(self, nc=80, nc_theta=180, ch=()):
-        super().__init__(nc, nc_theta, ch)
+        super().__init__(nc, ch)
         self.nc_theta = nc_theta
         self.no = nc + self.reg_max * 4 + self.nc_theta
         self.detect = Detect.forward

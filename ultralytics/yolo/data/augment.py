@@ -127,7 +127,7 @@ class Mosaic(BaseMixTransform):
         s = self.imgsz
         yc, xc = (int(random.uniform(-x, 2 * s + x)) for x in self.border)  # mosaic center x, y
         for i in range(4):
-            labels_patch = (labels if i == 0 else labels['mix_labels'][i - 1]).copy()
+            labels_patch = labels if i == 0 else labels['mix_labels'][i - 1]
             # Load image
             img = labels_patch['img']
             h, w = labels_patch.pop('resized_shape')

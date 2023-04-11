@@ -12,11 +12,11 @@ import requests
 import torch
 from tqdm import tqdm
 
-from ultralytics.yolo.utils import LOGGER, checks, is_online
+from ultralytics.yolo.utils import LOGGER, checks, clean_url, emojis, is_online, url2file
 
-GITHUB_ASSET_NAMES = [f'yolov8{size}{suffix}.pt' for size in 'nsmlx' for suffix in ('', '6', '-cls', '-seg')] + \
-                     [f'yolov5{size}u.pt' for size in 'nsmlx'] + \
-                     [f'yolov3{size}u.pt' for size in ('', '-spp', '-tiny')]
+GITHUB_ASSET_NAMES = [f'yolov8{k}{suffix}.pt' for k in 'nsmlx' for suffix in ('', '6', '-cls', '-seg', '-pose')] + \
+                     [f'yolov5{k}u.pt' for k in 'nsmlx'] + \
+                     [f'yolov3{k}u.pt' for k in ('', '-spp', '-tiny')]
 GITHUB_ASSET_STEMS = [Path(k).stem for k in GITHUB_ASSET_NAMES]
 
 
@@ -43,10 +43,18 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX')):
     if path is None:
         path = Path(file).parent  # default path
     with ZipFile(file) as zipObj:
-        for f in zipObj.namelist():  # list all archived filenames in the zip
+        for i, f in enumerate(zipObj.namelist()):  # list all archived filenames in the zip
+            # If zip does not expand into a directory create a new directory to expand into
+            if i == 0:
+                info = zipObj.getinfo(f)
+                if info.file_size > 0 or not info.filename.endswith('/'):  # element is a file and not a directory
+                    path = Path(path) / Path(file).stem  # define new unzip directory
+                    unzip_dir = path
+                else:
+                    unzip_dir = f
             if all(x not in f for x in exclude):
                 zipObj.extract(f, path=path)
-        return zipObj.namelist()[0]  # return unzip dir
+        return unzip_dir  # return unzip dir
 
 
 def safe_download(url,
@@ -79,8 +87,8 @@ def safe_download(url,
         f = Path(url)  # filename
     else:  # does not exist
         assert dir or file, 'dir or file required for download'
-        f = dir / Path(url).name if dir else Path(file)
-        desc = f'Downloading {url} to {f}'
+        f = dir / url2file(url) if dir else Path(file)
+        desc = f'Downloading {clean_url(url)} to {f}'
         LOGGER.info(f'{desc}...')
         f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
         for i in range(retry + 1):
@@ -113,15 +121,15 @@ def safe_download(url,
                     f.unlink()  # remove partial downloads
             except Exception as e:
                 if i == 0 and not is_online():
-                    raise ConnectionError(f'❌  Download failure for {url}. Environment is not online.') from e
+                    raise ConnectionError(emojis(f'❌  Download failure for {url}. Environment is not online.')) from e
                 elif i >= retry:
-                    raise ConnectionError(f'❌  Download failure for {url}. Retry limit reached.') from e
+                    raise ConnectionError(emojis(f'❌  Download failure for {url}. Retry limit reached.')) from e
                 LOGGER.warning(f'⚠️ Download failure, retrying {i + 1}/{retry} {url}...')
 
-    if unzip and f.exists() and f.suffix in ('.zip', '.tar', '.gz'):
+    if unzip and f.exists() and f.suffix in ('', '.zip', '.tar', '.gz'):
         unzip_dir = dir or f.parent  # unzip to dir if provided else unzip in place
         LOGGER.info(f'Unzipping {f} to {unzip_dir}...')
-        if f.suffix == '.zip':
+        if is_zipfile(f):
             unzip_dir = unzip_file(file=f, path=unzip_dir)  # unzip
         elif f.suffix == '.tar':
             subprocess.run(['tar', 'xf', f, '--directory', unzip_dir], check=True)  # unzip
@@ -156,9 +164,9 @@ def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
         name = Path(parse.unquote(str(file))).name  # decode '%2F' to '/' etc.
         if str(file).startswith(('http:/', 'https:/')):  # download
             url = str(file).replace(':/', '://')  # Pathlib turns :// -> :/
-            file = name.split('?')[0]  # parse authentication https://url.com/file.txt?auth...
+            file = url2file(name)  # parse authentication https://url.com/file.txt?auth...
             if Path(file).is_file():
-                LOGGER.info(f'Found {url} locally at {file}')  # file already exists
+                LOGGER.info(f'Found {clean_url(url)} locally at {file}')  # file already exists
             else:
                 safe_download(url=url, file=file, min_bytes=1E5)
             return file

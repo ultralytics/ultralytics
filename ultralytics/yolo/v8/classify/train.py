@@ -13,11 +13,11 @@ from ultralytics.yolo.utils.torch_utils import is_parallel, strip_optimizer
 
 class ClassificationTrainer(BaseTrainer):
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         if overrides is None:
             overrides = {}
         overrides['task'] = 'classify'
-        super().__init__(cfg, overrides)
+        super().__init__(cfg, overrides, _callbacks)
 
     def set_model_attributes(self):
         self.model.names = self.data['names']

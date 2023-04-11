@@ -28,7 +28,6 @@ Usage - formats:
                               yolov8n_paddle_model       # PaddlePaddle
 """
 import platform
-from collections import defaultdict
 from pathlib import Path
 
 import cv2
@@ -75,7 +74,7 @@ class BasePredictor:
         data_path (str): Path to data.
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """
         Initializes the BasePredictor class.
 
@@ -100,21 +99,45 @@ class BasePredictor:
         self.device = None
         self.dataset = None
         self.vid_path, self.vid_writer = None, None
-        self.annotator = None
+        self.plotted_img = None
         self.data_path = None
         self.source_type = None
         self.batch = None
-        self.callbacks = defaultdict(list, callbacks.default_callbacks)  # add callbacks
+        self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 
     def preprocess(self, img):
         pass
 
-    def get_annotator(self, img):
-        raise NotImplementedError('get_annotator function needs to be implemented')
+    def write_results(self, idx, results, batch):
+        p, im, _ = batch
+        log_string = ''
+        if len(im.shape) == 3:
+            im = im[None]  # expand for batch dim
+        self.seen += 1
+        if self.source_type.webcam or self.source_type.from_img:  # batch_size >= 1
+            log_string += f'{idx}: '
+            frame = self.dataset.count
+        else:
+            frame = getattr(self.dataset, 'frame', 0)
+        self.data_path = p
+        self.txt_path = str(self.save_dir / 'labels' / p.stem) + ('' if self.dataset.mode == 'image' else f'_{frame}')
+        log_string += '%gx%g ' % im.shape[2:]  # print string
+        result = results[idx]
+        log_string += result.verbose()
 
-    def write_results(self, results, batch, print_string):
-        raise NotImplementedError('print_results function needs to be implemented')
+        if self.args.save or self.args.show:  # Add bbox to image
+            plot_args = dict(line_width=self.args.line_thickness, boxes=self.args.boxes)
+            if not self.args.retina_masks:
+                plot_args['im_gpu'] = im[idx]
+            self.plotted_img = result.plot(**plot_args)
+        # write
+        if self.args.save_txt:
+            result.save_txt(f'{self.txt_path}.txt', save_conf=self.args.save_conf)
+        if self.args.save_crop:
+            result.save_crop(save_dir=self.save_dir / 'crops', file_name=self.data_path.stem)
+
+        return log_string
 
     def postprocess(self, preds, img, orig_img):
         return preds
@@ -209,10 +232,10 @@ class BasePredictor:
                 if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
                     s += self.write_results(i, self.results, (p, im, im0))
 
-                if self.args.show:
+                if self.args.show and self.plotted_img is not None:
                     self.show(p)
 
-                if self.args.save:
+                if self.args.save and self.plotted_img is not None:
                     self.save_preds(vid_cap, i, str(self.save_dir / p.name))
             self.run_callbacks('on_predict_batch_end')
             yield from self.results
@@ -246,12 +269,13 @@ class BasePredictor:
                                  dnn=self.args.dnn,
                                  data=self.args.data,
                                  fp16=self.args.half,
+                                 fuse=True,
                                  verbose=verbose)
         self.device = device
         self.model.eval()
 
     def show(self, p):
-        im0 = self.annotator.result()
+        im0 = self.plotted_img
         if platform.system() == 'Linux' and p not in self.windows:
             self.windows.append(p)
             cv2.namedWindow(str(p), cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
@@ -260,7 +284,7 @@ class BasePredictor:
         cv2.waitKey(500 if self.batch[4].startswith('image') else 1)  # 1 millisecond
 
     def save_preds(self, vid_cap, idx, save_path):
-        im0 = self.annotator.result()
+        im0 = self.plotted_img
         # save imgs
         if self.dataset.mode == 'image':
             cv2.imwrite(save_path, im0)
@@ -282,3 +306,9 @@ class BasePredictor:
     def run_callbacks(self, event: str):
         for callback in self.callbacks.get(event, []):
             callback(self)
+
+    def add_callback(self, event: str, func):
+        """
+        Add callback
+        """
+        self.callbacks[event].append(func)

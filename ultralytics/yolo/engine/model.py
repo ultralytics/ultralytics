@@ -166,7 +166,9 @@ class YOLO:
         """
         Raises TypeError is model is not a PyTorch model
         """
-        if not isinstance(self.model, nn.Module):
+        pt_str = isinstance(self.model, (str, Path)) and Path(self.model).suffix == '.pt'
+        pt_module = isinstance(self.model, nn.Module)
+        if not (pt_module or pt_str):
             raise TypeError(f"model='{self.model}' must be a *.pt PyTorch model, but is a different type. "
                             f'PyTorch models can be used to train, val, predict and export, i.e. '
                             f"'yolo export model=yolov8n.pt', but exported formats like ONNX, TensorRT etc. only "

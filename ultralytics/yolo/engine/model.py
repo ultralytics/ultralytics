@@ -28,8 +28,7 @@ TASK_MAP = {
         yolo.v8.segment.SegmentationPredictor],
     'pose': [PoseModel, yolo.v8.pose.PoseTrainer, yolo.v8.pose.PoseValidator, yolo.v8.pose.PosePredictor],
     # TODO: replace these with modules once implemented
-    'obb': [OBBModel, 'yolo.v8.obb.OBBTrainer', 'yolo.v8.obb.OBBValidator', 'yolo.v8.obb.OBBPredictor']
-}
+    'obb': [OBBModel, 'yolo.v8.obb.OBBTrainer', 'yolo.v8.obb.OBBValidator', 'yolo.v8.obb.OBBPredictor']}
 
 
 class YOLO:

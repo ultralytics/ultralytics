@@ -368,7 +368,7 @@ class YOLO:
     def tune(self,
              data: str,
              space: dict = None,
-             grace_period=30,
+             grace_period=10,
              gpu_per_trial=None,
              max_samples=10,
              train_args: dict = {}):
@@ -384,7 +384,7 @@ class YOLO:
             max_samples (int): Max number of trials to run
         """
         try:
-            from ultralytics.yolo.utils.tuner import (RunConfig, WandbLoggerCallback, default_space, hyperband,
+            from ultralytics.yolo.utils.tuner import (RunConfig, WandbLoggerCallback, default_space, AHB,
                                                       task_metric_map, tune)
         except ImportError:
             raise ModuleNotFoundError("Install ray tune: `pip install 'ray[tune]'")
@@ -406,7 +406,7 @@ class YOLO:
         space['data'] = data
 
         trainable_with_resources = tune.with_resources(_tune, {'cpu': 8, 'gpu': gpu_per_trial if gpu_per_trial else 0})
-        scheduler = hyperband(time_attr='epoch', max_t=100)
+        scheduler = AHB(max_t=100, grace_period=grace_period)
 
         tuner = tune.Tuner(trainable_with_resources,
                            param_space=space,

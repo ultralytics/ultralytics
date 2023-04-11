@@ -127,7 +127,7 @@ class Mosaic(BaseMixTransform):
         s = self.imgsz
         yc, xc = (int(random.uniform(-x, 2 * s + x)) for x in self.border)  # mosaic center x, y
         for i in range(4):
-            labels_patch = (labels if i == 0 else labels['mix_labels'][i - 1]).copy()
+            labels_patch = labels if i == 0 else labels['mix_labels'][i - 1]
             # Load image
             img = labels_patch['img']
             h, w = labels_patch.pop('resized_shape')
@@ -223,18 +223,18 @@ class RandomPerspective:
 
     def affine_transform(self, img, border):
         # Center
-        C = np.eye(3)
+        C = np.eye(3, dtype=np.float32)
 
         C[0, 2] = -img.shape[1] / 2  # x translation (pixels)
         C[1, 2] = -img.shape[0] / 2  # y translation (pixels)
 
         # Perspective
-        P = np.eye(3)
+        P = np.eye(3, dtype=np.float32)
         P[2, 0] = random.uniform(-self.perspective, self.perspective)  # x perspective (about y)
         P[2, 1] = random.uniform(-self.perspective, self.perspective)  # y perspective (about x)
 
         # Rotation and Scale
-        R = np.eye(3)
+        R = np.eye(3, dtype=np.float32)
         a = random.uniform(-self.degrees, self.degrees)
         # a += random.choice([-180, -90, 0, 90])  # add 90deg rotations to small rotations
         s = random.uniform(1 - self.scale, 1 + self.scale)
@@ -242,12 +242,12 @@ class RandomPerspective:
         R[:2] = cv2.getRotationMatrix2D(angle=a, center=(0, 0), scale=s)
 
         # Shear
-        S = np.eye(3)
+        S = np.eye(3, dtype=np.float32)
         S[0, 1] = math.tan(random.uniform(-self.shear, self.shear) * math.pi / 180)  # x shear (deg)
         S[1, 0] = math.tan(random.uniform(-self.shear, self.shear) * math.pi / 180)  # y shear (deg)
 
         # Translation
-        T = np.eye(3)
+        T = np.eye(3, dtype=np.float32)
         T[0, 2] = random.uniform(0.5 - self.translate, 0.5 + self.translate) * self.size[0]  # x translation (pixels)
         T[1, 2] = random.uniform(0.5 - self.translate, 0.5 + self.translate) * self.size[1]  # y translation (pixels)
 
@@ -274,7 +274,7 @@ class RandomPerspective:
         if n == 0:
             return bboxes
 
-        xy = np.ones((n * 4, 3))
+        xy = np.ones((n * 4, 3), dtype=bboxes.dtype)
         xy[:, :2] = bboxes[:, [0, 1, 2, 3, 0, 3, 2, 1]].reshape(n * 4, 2)  # x1y1, x2y2, x1y2, x2y1
         xy = xy @ M.T  # transform
         xy = (xy[:, :2] / xy[:, 2:3] if self.perspective else xy[:, :2]).reshape(n, 8)  # perspective rescale or affine
@@ -282,7 +282,7 @@ class RandomPerspective:
         # create new boxes
         x = xy[:, [0, 2, 4, 6]]
         y = xy[:, [1, 3, 5, 7]]
-        return np.concatenate((x.min(1), y.min(1), x.max(1), y.max(1))).reshape(4, n).T
+        return np.concatenate((x.min(1), y.min(1), x.max(1), y.max(1)), dtype=bboxes.dtype).reshape(4, n).T
 
     def apply_segments(self, segments, M):
         """apply affine to segments and generate new bboxes from segments.
@@ -298,7 +298,7 @@ class RandomPerspective:
         if n == 0:
             return [], segments
 
-        xy = np.ones((n * num, 3))
+        xy = np.ones((n * num, 3), dtype=segments.dtype)
         segments = segments.reshape(-1, 2)
         xy[:, :2] = segments
         xy = xy @ M.T  # transform
@@ -319,7 +319,7 @@ class RandomPerspective:
         n, nkpt = keypoints.shape[:2]
         if n == 0:
             return keypoints
-        xy = np.ones((n * nkpt, 3))
+        xy = np.ones((n * nkpt, 3), dtype=keypoints.dtype)
         visible = keypoints[..., 2].reshape(n * nkpt, 1)
         xy[:, :2] = keypoints[..., :2].reshape(n * nkpt, 2)
         xy = xy @ M.T  # transform

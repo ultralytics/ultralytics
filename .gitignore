@@ -163,3 +163,4 @@ weights/
 /custom_models/SAVED_CHECKPOINT/
 /custom_models/SAVED_IMAGES/
 /custom_models/train_eval_metrics/
+/custom_models/yolo_custom/data/test.ipynb

@@ -1,7 +1,5 @@
 import random
 
-import inline as inline
-import matplotlib
 import numpy as np
 import torch
 import os
@@ -67,9 +65,11 @@ class Training_Dataset(Dataset):
         self.fname = fname
 
         try:
+            # self.annotations = pd.read_csv(os.path.join(root_directory, "labels", annot_file),
+            #                                header=None, index_col=0).sort_values(by=[0])
             self.annotations = pd.read_csv(os.path.join(root_directory, "labels", annot_file),
-                                           header=None, index_col=0).sort_values(by=[0])
-            self.annotations = self.annotations.head((len(self.annotations)-1))  # just removes last line
+                                           header=None).sort_values(by=[0])
+            # self.annotations = self.annotations.head((len(self.annotations)-1))  # just removes last line
         except FileNotFoundError:
             annotations = []
             for img_txt in os.listdir(os.path.join(self.root_directory, "labels", self.annot_folder)):
@@ -95,6 +95,9 @@ class Training_Dataset(Dataset):
         target_width = self.annotations.iloc[idx, 2] if self.rect_training else cfg.IMAGE_SIZE
         # img_name[:-4] to remove the .jpg or .png which are coco img formats
         label_path = os.path.join(self.root_directory, "labels", self.annot_folder, img_name[:-4] + ".txt")
+
+        # print(f'{label_path}')
+
         # to avoid an annoying "UserWarning: loadtxt: Empty input file"
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -125,33 +128,32 @@ class Training_Dataset(Dataset):
 
             augmentations = self.transform(
                 image=img,
-                # bboxes=np.roll(labels, shift=-1, axis=1)
-                # bboxes=labels
+                bboxes=np.roll(labels, shift=-1, axis=1)
             )
             img = augmentations["image"]
             # loss fx requires bboxes to be (class_idx, x, y, w, h)
-            # labels = np.array(augmentations["bboxes"])
-            # if len(labels):
-            #     labels = np.roll(labels, axis=1, shift=1)
+            labels = np.array(augmentations["bboxes"])
+            if len(labels):
+                labels = np.roll(labels, axis=1, shift=1)
             # print(f'labels: {labels}')
 
-        if len(labels):
-            plot_labels = xywhn2xyxy(labels[:, 1:], w=img.shape[1], h=img.shape[0])
-            fig, ax = plt.subplots(1)
-            ax.imshow(img)
-            for box in plot_labels:
-                rect = Rectangle(
-                    (box[0], box[1]),
-                    box[2] - box[0],
-                    box[3] - box[1],
-                    linewidth=2,
-                    edgecolor="green",
-                    facecolor="none"
-                )
-                # Add the patch to the Axes
-                ax.add_patch(rect)
-
-            plt.show()
+        # if len(labels):
+        #     plot_labels = xywhn2xyxy(labels[:, 1:], w=img.shape[1], h=img.shape[0])
+        #     fig, ax = plt.subplots(1)
+        #     ax.imshow(img)
+        #     for box in plot_labels:
+        #         rect = Rectangle(
+        #             (box[0], box[1]),
+        #             box[2] - box[0],
+        #             box[3] - box[1],
+        #             linewidth=2,
+        #             edgecolor="green",
+        #             facecolor="none"
+        #         )
+        #         # Add the patch to the Axes
+        #         ax.add_patch(rect)
+        #
+        #     plt.show()
 
         if self.ultralytics_loss:
             labels = torch.from_numpy(labels)
@@ -262,12 +264,12 @@ class Validation_Dataset(Dataset):
         self.train = train
 
         if train:
-            fname = 'images\\train'
+            fname = 'images/train'
             annot_file = "train.txt"
             # class instance because it's used in the __getitem__
             self.annot_folder = "train"
         else:
-            fname = 'images\\val'
+            fname = 'images/val'
             annot_file = "val.txt"
             # class instance because it's used in the __getitem__
             self.annot_folder = "val"
@@ -301,12 +303,11 @@ class Validation_Dataset(Dataset):
         img_name = self.annotations.iloc[idx, 0]
         tg_height = self.annotations.iloc[idx, 1] if self.rect_training else cfg.IMAGE_SIZE
         tg_width = self.annotations.iloc[idx, 2] if self.rect_training else cfg.IMAGE_SIZE
-        # print(f'image_name: {img_name}, idx: {idx}, tg_height: {tg_height}, tg_width: {tg_width}')
         # img_name[:-4] to remove the .jpg or .png which are coco img formats
         label_path = os.path.join(os.path.join(self.root_directory, "labels", self.annot_folder, img_name[:-4] + ".txt"))
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            labels = np.loadtxt(fname=label_path, delimiter=" ", ndmin=2)
+            labels = np.loadtxt(fname=label_path, dtype=float, delimiter=" ", ndmin=2)
             # removing annotations with negative values
             labels = labels[np.all(labels >= 0, axis=1), :]
             # to avoid negative values
@@ -333,14 +334,14 @@ class Validation_Dataset(Dataset):
 
             augmentations = self.transform(
                 image=img,
-                # bboxes=np.roll(labels, axis=1, shift=4)
+                bboxes=np.roll(labels, shift=-1, axis=1)
             )
 
             img = augmentations["image"]
             # loss fx requires bboxes to be (class_idx, x, y, w, h)
-            # labels = np.array(augmentations["bboxes"])
-            # if len(labels):
-            #     labels = np.roll(labels, axis=1, shift=1)
+            labels = np.array(augmentations["bboxes"])
+            if len(labels):
+                labels = np.roll(labels, axis=1, shift=1)
 
         classes = labels[:, 0].tolist() if len(labels) else []
         bboxes = labels[:, 1:] if len(labels) else []
@@ -501,7 +502,7 @@ if __name__ == "__main__":
     for idx, (images, bboxes) in enumerate(loader):
         """boxes = cells_to_bboxes(y, anchors, S)[0]
         boxes = nms(boxes, iou_threshold=1, threshold=0.7, box_format="midpoint")"""
-        # print(f'idx: {idx}, {dataset.annotations.iloc[idx, 0]}')
+        print(f'idx: {idx}', end=' ')
         # boxes = cells_to_bboxes(bboxes, torch.tensor(anchors), S, device=cfg.DEVICE, to_list=False)
         # boxes = non_max_suppression(boxes, iou_threshold=0.6, threshold=0.01, max_detections=300)
         # plot_image(images[0].permute(1, 2, 0).to("cpu"), boxes[0])

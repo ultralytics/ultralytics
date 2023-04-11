@@ -128,7 +128,7 @@ def check_latest_pypi_version(package_name='ultralytics'):
     Returns:
         str: The latest version of the package.
     """
-    response = requests.get(f'https://pypi.org/pypi/{package_name}/json')
+    response = requests.get(f'https://pypi.org/pypi/{package_name}/json', verify=False)
     if response.status_code == 200:
         return response.json()['info']['version']
     return None

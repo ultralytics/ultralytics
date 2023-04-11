@@ -539,7 +539,7 @@ def guess_model_task(model):
         model (nn.Module) or (dict): PyTorch model or model configuration in YAML format.
 
     Returns:
-        str: Task of the model ('detect', 'segment', 'classify').
+        str: Task of the model ('detect', 'segment', 'classify', 'pose').
 
     Raises:
         SyntaxError: If the task of the model could not be determined.

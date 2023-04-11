@@ -490,6 +490,7 @@ def get_user_config_dir(sub_dir='Ultralytics'):
 
 
 USER_CONFIG_DIR = Path(os.getenv('YOLO_CONFIG_DIR', get_user_config_dir()))  # Ultralytics settings dir
+SETTINGS_YAML = USER_CONFIG_DIR / 'settings.yaml'
 
 
 def emojis(string=''):
@@ -591,7 +592,7 @@ def set_sentry():
             logging.getLogger(logger).setLevel(logging.CRITICAL)
 
 
-def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.3'):
+def get_settings(file=SETTINGS_YAML, version='0.0.3'):
     """
     Loads a global Ultralytics settings YAML file or creates one with default values if it does not exist.
 
@@ -640,7 +641,7 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.3'):
         return settings
 
 
-def set_settings(kwargs, file=USER_CONFIG_DIR / 'settings.yaml'):
+def set_settings(kwargs, file=SETTINGS_YAML):
     """
     Function that runs on a first-time ultralytics package installation to set up global settings and create necessary
     directories.

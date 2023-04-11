@@ -566,8 +566,8 @@ def guess_model_task(model):
             return 'segment'
         if m == 'pose':
             return 'pose'
-        if m == 'detectobb':
-            return 'detectobb'
+        if m == 'obb':
+            return 'obb'
 
     # Guess from model cfg
     if isinstance(model, dict):
@@ -593,7 +593,7 @@ def guess_model_task(model):
             elif isinstance(m, Pose):
                 return 'pose'
             elif isinstance(m, DetectOBB):
-                return 'detectobb'
+                return 'obb'
 
     # Guess from model filename
     if isinstance(model, (str, Path)):
@@ -605,12 +605,12 @@ def guess_model_task(model):
         elif '-pose' in model.stem or 'pose' in model.parts:
             return 'pose'
         elif '-obb' in model.stem or 'obb' in model.parts:
-            return 'detectobb'
+            return 'obb'
         elif 'detect' in model.parts:
             return 'detect'
 
     # Unable to determine task from model
     LOGGER.warning(
         "WARNING ⚠️ Unable to automatically guess model task, assuming 'task=detect'. "
-        "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify','pose' or 'detectobb'.")
+        "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify','pose' or 'obb'.")
     return 'detect'  # assume detect

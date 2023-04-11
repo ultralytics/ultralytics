@@ -27,7 +27,7 @@ TASK_MAP = {
         SegmentationModel, yolo.v8.segment.SegmentationTrainer, yolo.v8.segment.SegmentationValidator,
         yolo.v8.segment.SegmentationPredictor],
     'pose': [PoseModel, yolo.v8.pose.PoseTrainer, yolo.v8.pose.PoseValidator, yolo.v8.pose.PosePredictor],
-    'detectobb': [
+    'obb': [
         DetectionOBBModel, 'yolo.v8.detectobb.DetectionOBBTrainer', 'yolo.v8.detectobb.DetectionOBBValidator',
         'yolo.v8.detectobb.DetectionOBBPredictor']  # temp until obb modes are not implemented
 }

@@ -160,7 +160,7 @@ See [Classification Docs](https://docs.ultralytics.com/tasks/classify/) for usag
 
 <details><summary>Pose</summary>
 
-See [Pose Docs](https://docs.ultralytics.com/tasks/) for usage examples with these models.
+See [Pose Docs](https://docs.ultralytics.com/tasks/pose) for usage examples with these models.
 
 | Model                                                                                                | size<br><sup>(pixels) | mAP<sup>pose<br>50-95 | mAP<sup>pose<br>50 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 | ---------------------------------------------------------------------------------------------------- | --------------------- | --------------------- | ------------------ | ------------------------------ | ----------------------------------- | ------------------ | ----------------- |

@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 
 from ultralytics.nn.modules import (C1, C2, C3, C3TR, SPP, SPPF, Bottleneck, BottleneckCSP, C2f, C3Ghost, C3x, Classify,
-                                    Concat, Conv, ConvTranspose, Detect, DetectOBB, DWConv, DWConvTranspose2d, Ensemble,
+                                    Concat, Conv, ConvTranspose, Detect, OBB, DWConv, DWConvTranspose2d, Ensemble,
                                     Focus, GhostBottleneck, GhostConv, Pose, Segment)
 from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.yolo.utils.checks import check_requirements, check_suffix, check_yaml
@@ -239,7 +239,7 @@ class DetectionModel(BaseModel):
         return y
 
 
-class DetectionOBBModel(DetectionModel):
+class OBBModel(DetectionModel):
     # YOLOv8 obb model
     def __init__(self, cfg='yolov8n-obb.yaml', ch=3, nc=None, verbose=True):
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
@@ -485,7 +485,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
-        elif m in (Detect, Segment, Pose, DetectOBB):
+        elif m in (Detect, Segment, Pose, OBB):
             args.append([ch[x] for x in f])
             if m is Segment:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
@@ -592,7 +592,7 @@ def guess_model_task(model):
                 return 'classify'
             elif isinstance(m, Pose):
                 return 'pose'
-            elif isinstance(m, DetectOBB):
+            elif isinstance(m, OBB):
                 return 'obb'
 
     # Guess from model filename

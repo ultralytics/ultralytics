@@ -432,8 +432,8 @@ class Detect(nn.Module):
             b[-1].bias.data[:m.nc] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)
 
 
-class DetectOBB(Detect):
-    # YOLOv8 DetectOBB head for detection with rotation models
+class OBB(Detect):
+    # YOLOv8 OBB detection head for detection with rotation models
     def __init__(self, nc=80, nc_theta=180, ch=()):
         super().__init__(nc, ch)
         self.nc_theta = nc_theta

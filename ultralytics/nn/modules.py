@@ -432,6 +432,27 @@ class Detect(nn.Module):
             b[-1].bias.data[:m.nc] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)
 
 
+class DetectOBB(Detect):
+    # YOLOv8 DetectOBB head for detection with rotation models
+    def __init__(self, nc=80, nc_theta=180, ch=()):
+        super().__init__(nc, nc_theta, ch)
+        self.nc_theta = nc_theta
+        self.no = nc + self.reg_max * 4 + self.nc_theta
+        self.detect = Detect.forward
+        
+        c4 = max(ch[0], self.nc_theta)
+        self.cv4 = nn.ModuleList(nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.nc_theta, 1)) for x in ch)
+
+    def forward(self, x):
+        bs = x[0].shape[0]
+        
+        theta = torch.cat([self.cv4[i](x[i]).view(bs, self.no, -1) for i in range(self.nl)], -1) 
+        x = self.detect(self, x)
+        if self.training:
+            return x, theta
+        return torch.cat([x, theta], 1) if self.export else (torch.cat([x[0], theta], 1), (x[1], theta))
+
+
 class Segment(Detect):
     # YOLOv8 Segment head for segmentation models
     def __init__(self, nc=80, nm=32, npr=256, ch=()):
@@ -483,7 +504,6 @@ class Pose(Detect):
         y[:, 0::ndim] = (y[:, 0::ndim] * 2.0 + (self.anchors[0] - 0.5)) * self.strides
         y[:, 1::ndim] = (y[:, 1::ndim] * 2.0 + (self.anchors[1] - 0.5)) * self.strides
         return y
-
 
 class Classify(nn.Module):
     # YOLOv8 classification head, i.e. x(b,c1,20,20) to x(b,c2)

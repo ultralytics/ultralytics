@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Union
 
 from ultralytics import yolo  # noqa
-from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, PoseModel, SegmentationModel,
+from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, PoseModel, SegmentationModel, DetectionOBBModel,
                                   attempt_load_one_weight, guess_model_task, nn, yaml_model_load)
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
@@ -26,7 +26,10 @@ TASK_MAP = {
     'segment': [
         SegmentationModel, yolo.v8.segment.SegmentationTrainer, yolo.v8.segment.SegmentationValidator,
         yolo.v8.segment.SegmentationPredictor],
-    'pose': [PoseModel, yolo.v8.pose.PoseTrainer, yolo.v8.pose.PoseValidator, yolo.v8.pose.PosePredictor]}
+    'pose': [PoseModel, yolo.v8.pose.PoseTrainer, yolo.v8.pose.PoseValidator, yolo.v8.pose.PosePredictor],
+    'detectobb': [DetectionOBBModel, 'yolo.v8.detectobb.DetectionOBBTrainer', 'yolo.v8.detectobb.DetectionOBBValidator', 
+                  'yolo.v8.detectobb.DetectionOBBPredictor'] # temp until obb modes are not implemented
+    }
 
 
 class YOLO:

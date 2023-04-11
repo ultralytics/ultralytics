@@ -384,7 +384,7 @@ class YOLO:
             max_samples (int): Max number of trials to run
         """
         try:
-            from ultralytics.yolo.utils.tuner import (hyperband, RunConfig, WandbLoggerCallback, default_space,
+            from ultralytics.yolo.utils.tuner import (RunConfig, WandbLoggerCallback, default_space, hyperband,
                                                       task_metric_map, tune)
         except ImportError:
             raise ModuleNotFoundError("Install ray tune: `pip install 'ray[tune]'")
@@ -406,13 +406,17 @@ class YOLO:
         space['data'] = data
 
         trainable_with_resources = tune.with_resources(_tune, {'cpu': 8, 'gpu': gpu_per_trial if gpu_per_trial else 0})
-        scheduler = hyperband(time_attr="epoch", max_t=100)
- 
-        tuner = tune.Tuner(
-            trainable_with_resources,
-            param_space=space,
-            tune_config=tune.TuneConfig(metric=task_metric_map[self.task], mode="max", scheduler=scheduler, num_samples=max_samples),
-            run_config=RunConfig(callbacks=[WandbLoggerCallback(project='yolov8_tuner') if wandb else None], local_dir="./runs"))
+        scheduler = hyperband(time_attr='epoch', max_t=100)
+
+        tuner = tune.Tuner(trainable_with_resources,
+                           param_space=space,
+                           tune_config=tune.TuneConfig(metric=task_metric_map[self.task],
+                                                       mode='max',
+                                                       scheduler=scheduler,
+                                                       num_samples=max_samples),
+                           run_config=RunConfig(callbacks=[
+                               WandbLoggerCallback(project='yolov8_tuner') if wandb else None],
+                                                local_dir='./runs'))
         tuner.fit()
 
         return tuner.get_results()

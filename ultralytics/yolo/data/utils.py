@@ -17,7 +17,8 @@ from PIL import ExifTags, Image, ImageOps
 from tqdm import tqdm
 
 from ultralytics.nn.autobackend import check_class_names
-from ultralytics.yolo.utils import DATASETS_DIR, LOGGER, NUM_THREADS, ROOT, clean_url, colorstr, emojis, yaml_load
+from ultralytics.yolo.utils import (DATASETS_DIR, LOGGER, NUM_THREADS, ROOT, SETTINGS_YAML, clean_url, colorstr, emojis,
+                                    yaml_load)
 from ultralytics.yolo.utils.checks import check_file, check_font, is_ascii
 from ultralytics.yolo.utils.downloads import download, safe_download, unzip_file
 from ultralytics.yolo.utils.ops import segments2boxes
@@ -246,6 +247,7 @@ def check_det_dataset(dataset, autodownload=True):
             if s and autodownload:
                 LOGGER.warning(m)
             else:
+                m += f"\nNote dataset download directory is '{DATASETS_DIR}'. You can update this in '{SETTINGS_YAML}'"
                 raise FileNotFoundError(m)
             t = time.time()
             if s.startswith('http') and s.endswith('.zip'):  # URL

@@ -413,7 +413,7 @@ class YOLO:
         tuner = tune.Tuner(
             trainable_with_resources,
             param_space=space,
-            tune_config=tune.TuneConfig(scheduler=scheduler, num_samples=max_samples),
+            tune_config=tune.TuneConfig(metric=task_metric_map[self.task], mode="max", scheduler=scheduler, num_samples=max_samples),
             run_config=RunConfig(callbacks=[WandbLoggerCallback(project='yolov8_tuner') if wandb else None], local_dir="./runs"))
         tuner.fit()
 

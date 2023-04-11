@@ -40,7 +40,7 @@ def on_model_save(trainer):
         # Upload checkpoints with rate limiting
         is_best = trainer.best_fitness == trainer.fitness
         if time() - session.timers['ckpt'] > session.rate_limits['ckpt']:
-            LOGGER.info(f'{PREFIX}Uploading checkpoint {session.model_id}')
+            LOGGER.info(f'{PREFIX}Uploading checkpoint https://hub.ultralytics.com/models/{session.model_id}')
             session.upload_model(trainer.epoch, trainer.last, is_best)
             session.timers['ckpt'] = time()  # reset timer
 

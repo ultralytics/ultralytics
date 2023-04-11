@@ -3,8 +3,8 @@
 import glob
 import math
 import os
-from multiprocessing.pool import ThreadPool
 from copy import deepcopy
+from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from typing import Optional
 

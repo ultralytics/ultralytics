@@ -31,10 +31,8 @@ class BaseTensor(SimpleClass):
         to(): Returns a copy of the tensor with the specified device and dtype.
     """
 
-    def __init__(self, tensor, orig_shape) -> None:
-        super().__init__()
-        assert isinstance(tensor, torch.Tensor)
-        self.tensor = tensor
+    def __init__(self, data, orig_shape) -> None:
+        self._data = data
         self.orig_shape = orig_shape
 
     @property
@@ -43,7 +41,7 @@ class BaseTensor(SimpleClass):
 
     @property
     def data(self):
-        return self.tensor
+        return self._data
 
     def cpu(self):
         return self.__class__(self.data.cpu(), self.orig_shape)
@@ -346,26 +344,26 @@ class Boxes(BaseTensor):
             boxes = boxes[None, :]
         n = boxes.shape[-1]
         assert n in (6, 7), f'expected `n` in [6, 7], but got {n}'  # xyxy, (track_id), conf, cls
+        super().__init__(boxes, orig_shape)
         self.is_track = n == 7
-        self.boxes = boxes
         self.orig_shape = torch.as_tensor(orig_shape, device=boxes.device) if isinstance(boxes, torch.Tensor) \
             else np.asarray(orig_shape)
 
     @property
     def xyxy(self):
-        return self.boxes[:, :4]
+        return self._data[:, :4]
 
     @property
     def conf(self):
-        return self.boxes[:, -2]
+        return self._data[:, -2]
 
     @property
     def cls(self):
-        return self.boxes[:, -1]
+        return self._data[:, -1]
 
     @property
     def id(self):
-        return self.boxes[:, -3] if self.is_track else None
+        return self._data[:, -3] if self.is_track else None
 
     @property
     @lru_cache(maxsize=2)  # maxsize 1 should suffice
@@ -386,8 +384,9 @@ class Boxes(BaseTensor):
         LOGGER.info('results.pandas() method not yet implemented')
 
     @property
-    def data(self):
-        return self.boxes
+    def boxes(self):
+        LOGGER.warning("WARNING ⚠️ 'Boxes.boxes' is deprecated. Use 'Boxes.data' instead.")
+        return self._data
 
 
 class Masks(BaseTensor):
@@ -416,8 +415,7 @@ class Masks(BaseTensor):
     def __init__(self, masks, orig_shape) -> None:
         if masks.ndim == 2:
             masks = masks[None, :]
-        self.masks = masks  # N, h, w
-        self.orig_shape = orig_shape
+        super().__init__(masks, orig_shape)
 
     @property
     @lru_cache(maxsize=1)
@@ -432,17 +430,18 @@ class Masks(BaseTensor):
     def xyn(self):
         # Segments (normalized)
         return [
-            ops.scale_coords(self.masks.shape[1:], x, self.orig_shape, normalize=True)
-            for x in ops.masks2segments(self.masks)]
+            ops.scale_coords(self.data.shape[1:], x, self.orig_shape, normalize=True)
+            for x in ops.masks2segments(self.data)]
 
     @property
     @lru_cache(maxsize=1)
     def xy(self):
         # Segments (pixels)
         return [
-            ops.scale_coords(self.masks.shape[1:], x, self.orig_shape, normalize=False)
-            for x in ops.masks2segments(self.masks)]
+            ops.scale_coords(self.data.shape[1:], x, self.orig_shape, normalize=False)
+            for x in ops.masks2segments(self.data)]
 
     @property
-    def data(self):
-        return self.masks
+    def masks(self):
+        LOGGER.warning("WARNING ⚠️ 'Masks.masks' is deprecated. Use 'Masks.data' instead.")
+        return self._data

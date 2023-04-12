@@ -385,7 +385,7 @@ class YOLO:
         """
         try:
             from ultralytics.yolo.utils.tuner import (AHB, RunConfig, WandbLoggerCallback, default_space,
-                                                      task_metric_map, tune)
+                                                      task_metric_map, tune, ASHAScheduler)
         except ImportError:
             raise ModuleNotFoundError("Install ray tune: `pip install 'ray[tune]'")
 
@@ -406,13 +406,20 @@ class YOLO:
         space['data'] = data
 
         trainable_with_resources = tune.with_resources(_tune, {'cpu': 8, 'gpu': gpu_per_trial if gpu_per_trial else 0})
-        scheduler = AHB(max_t=100, grace_period=grace_period)
+        #scheduler = AHB(max_t=100, grace_period=grace_period, )
 
+        asha_scheduler = ASHAScheduler(
+            time_attr='epoch',
+            metric=task_metric_map[self.task],
+            mode='max',
+            max_t=train_args.get("epochs") or 100,
+            grace_period=grace_period,
+            reduction_factor=3,
+        )
         tuner = tune.Tuner(trainable_with_resources,
                            param_space=space,
-                           tune_config=tune.TuneConfig(metric=task_metric_map[self.task],
-                                                       mode='max',
-                                                       scheduler=scheduler,
+                           tune_config=tune.TuneConfig(
+                                                       scheduler=asha_scheduler,
                                                        num_samples=max_samples),
                            run_config=RunConfig(callbacks=[
                                WandbLoggerCallback(project='yolov8_tuner') if wandb else None],

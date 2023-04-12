@@ -182,14 +182,15 @@ class ConfusionMatrix:
     def process_preds(self, preds, targets):
         """
         Update confusion matrix for classification task
+        
         Arguments:
             preds (Array[N, min(nc,5)])
             targets (Array[N, 1])
+            
         Returns:
             None, updates confusion matrix accordingly
         """
         preds, targets = torch.cat(preds)[:, 0], torch.cat(targets)
-
         for p, t in zip(preds.cpu().numpy(), targets.cpu().numpy()):
             self.matrix[t][p] += 1
 
@@ -197,9 +198,11 @@ class ConfusionMatrix:
         """
         Return intersection-over-union (Jaccard index) of boxes.
         Both sets of boxes are expected to be in (x1, y1, x2, y2) format.
+        
         Arguments:
             detections (Array[N, 6]), x1, y1, x2, y2, conf, class
             labels (Array[M, 5]), class, x1, y1, x2, y2
+            
         Returns:
             None, updates confusion matrix accordingly
         """

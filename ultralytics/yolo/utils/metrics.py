@@ -172,11 +172,29 @@ class FocalLoss(nn.Module):
 
 class ConfusionMatrix:
     # Updated version of https://github.com/kaanakan/object_detection_confusion_matrix
-    def __init__(self, nc, conf=0.25, iou_thres=0.45):
-        self.matrix = np.zeros((nc + 1, nc + 1))
+    def __init__(self, nc, conf=0.25, iou_thres=0.45, task='detect'):
+        self.task = task
+        if self.task == 'detect':
+            self.matrix = np.zeros((nc + 1, nc + 1))
+        else:
+            self.matrix = np.zeros((nc, nc))
         self.nc = nc  # number of classes
         self.conf = conf
         self.iou_thres = iou_thres
+
+    def process_preds(self, preds, targets):
+        """
+        Update confusion matrix for classification task
+        Arguments:
+            preds (Array[N, min(nc,5)])
+            targets (Array[N, 1])
+        Returns:
+            None, updates confusion matrix accordingly
+        """
+        preds, targets = torch.cat(preds)[:,0], torch.cat(targets)
+        
+        for p, t in zip(preds.cpu().numpy(), targets.cpu().numpy()):
+            self.matrix[t][p] += 1
 
     def process_batch(self, detections, labels):
         """
@@ -231,7 +249,10 @@ class ConfusionMatrix:
         tp = self.matrix.diagonal()  # true positives
         fp = self.matrix.sum(1) - tp  # false positives
         # fn = self.matrix.sum(0) - tp  # false negatives (missed detections)
-        return tp[:-1], fp[:-1]  # remove background class
+        if self.task == 'detect':
+            return tp[:-1], fp[:-1]  # remove background class
+        else:
+            return tp, fp
 
     @TryExcept('WARNING ⚠️ ConfusionMatrix plot failure')
     def plot(self, normalize=True, save_dir='', names=()):

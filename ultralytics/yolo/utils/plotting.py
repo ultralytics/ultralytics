@@ -19,6 +19,38 @@ from .files import increment_path
 from .ops import clip_boxes, scale_image, xywh2xyxy, xyxy2xywh
 
 
+def plt_settings(rcparams={"font.size": 11}, backend='Agg'):
+    """
+    Decorator to temporarily set rc parameters and the backend for a plotting function.
+
+    Usage:
+        decorator: @plt_settings({"font.size": 12})
+        context manager: with plt_settings({"font.size": 12}):
+
+    Args:
+        rcparams (dict): Dictionary of rc parameters to set.
+        backend (str, optional): Name of the backend to use. Defaults to 'Agg'.
+
+    Returns:
+        callable: Decorated function with temporarily set rc parameters and backend.
+    """
+
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            original_backend = plt.get_backend()
+            plt.switch_backend(backend)
+
+            with plt.rc_context(rcparams):
+                result = func(*args, **kwargs)
+
+            plt.switch_backend(original_backend)
+            return result
+
+        return wrapper
+
+    return decorator
+
+
 class Colors:
     # Ultralytics color palette https://ultralytics.com/
     def __init__(self):
@@ -209,6 +241,7 @@ class Annotator:
 
 
 @TryExcept()  # known issue https://github.com/ultralytics/yolov5/issues/5395
+@plt_settings()
 def plot_labels(boxes, cls, names=(), save_dir=Path('')):
     import pandas as pd
     import seaborn as sn
@@ -397,6 +430,7 @@ def plot_images(images,
     annotator.im.save(fname)  # save
 
 
+@plt_settings()
 def plot_results(file='path/to/results.csv', dir='', segment=False, pose=False):
     # Plot training results.csv. Usage: from utils.plots import *; plot_results('path/to/results.csv')
     import pandas as pd

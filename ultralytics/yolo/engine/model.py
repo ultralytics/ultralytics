@@ -384,8 +384,8 @@ class YOLO:
             max_samples (int): Max number of trials to run
         """
         try:
-            from ultralytics.yolo.utils.tuner import (AHB, RunConfig, WandbLoggerCallback, default_space,
-                                                      task_metric_map, tune, ASHAScheduler)
+            from ultralytics.yolo.utils.tuner import (AHB, ASHAScheduler, RunConfig, WandbLoggerCallback, default_space,
+                                                      task_metric_map, tune)
         except ImportError:
             raise ModuleNotFoundError("Install ray tune: `pip install 'ray[tune]'")
 
@@ -412,15 +412,13 @@ class YOLO:
             time_attr='epoch',
             metric=task_metric_map[self.task],
             mode='max',
-            max_t=train_args.get("epochs") or 100,
+            max_t=train_args.get('epochs') or 100,
             grace_period=grace_period,
             reduction_factor=3,
         )
         tuner = tune.Tuner(trainable_with_resources,
                            param_space=space,
-                           tune_config=tune.TuneConfig(
-                                                       scheduler=asha_scheduler,
-                                                       num_samples=max_samples),
+                           tune_config=tune.TuneConfig(scheduler=asha_scheduler, num_samples=max_samples),
                            run_config=RunConfig(callbacks=[
                                WandbLoggerCallback(project='yolov8_tune') if wandb else None],
                                                 local_dir='./runs'))

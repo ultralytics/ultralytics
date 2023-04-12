@@ -23,9 +23,6 @@ from ultralytics.yolo.utils import (AUTOINSTALL, LOGGER, ONLINE, ROOT, USER_CONF
                                     downloads, emojis, is_colab, is_docker, is_kaggle, is_online, is_pip_package,
                                     url2file)
 
-# Disable the InsecureRequestWarning in check_latest_pypi_version()
-requests.packages.urllib3.disable_warnings()
-
 
 def is_ascii(s) -> bool:
     """
@@ -131,6 +128,7 @@ def check_latest_pypi_version(package_name='ultralytics'):
     Returns:
         str: The latest version of the package.
     """
+    requests.packages.urllib3.disable_warnings()  # Disable the InsecureRequestWarning
     response = requests.get(f'https://pypi.org/pypi/{package_name}/json', verify=False)
     if response.status_code == 200:
         return response.json()['info']['version']
@@ -240,7 +238,7 @@ def check_suffix(file='yolov8n.pt', suffix='.pt', msg=''):
     # Check file(s) for acceptable suffix
     if file and suffix:
         if isinstance(suffix, str):
-            suffix = (suffix, )
+            suffix = (suffix,)
         for f in file if isinstance(file, (list, tuple)) else [file]:
             s = Path(f).suffix.lower().strip()  # file suffix
             if len(s):

@@ -95,7 +95,7 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 
 </details>
 
-## <div align="center">Models</div>
+## <div align="center">模型</div>
 
 所有的 YOLOv8 预训练模型都可以在此找到。检测、分割和姿态模型在 [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco.yaml) 数据集上进行预训练，而分类模型在 [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/ImageNet.yaml) 数据集上进行预训练。
 
@@ -179,7 +179,7 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 
 </details>
 
-## <div align="center">Integrations</div>
+## <div align="center">集成</div>
 
 <br>
 <a href="https://bit.ly/ultralytics_hub" target="_blank">
@@ -212,7 +212,7 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 <a href="https://bit.ly/ultralytics_hub" target="_blank">
 <img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/ultralytics-hub.png"></a>
 
-## <div align="center">Contribute</div>
+## <div align="center">贡献</div>
 
 我们喜欢您的参与！没有社区的帮助，YOLOv5 和 YOLOv8 将无法实现。请参阅我们的[贡献指南](CONTRIBUTING.md)以开始使用，并填写我们的[调查问卷](https://ultralytics.com/survey?utm_source=github&utm_medium=social&utm_campaign=Survey)向我们提供您的使用体验反馈。感谢所有贡献者的支持！🙏
 
@@ -221,14 +221,14 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 <a href="https://github.com/ultralytics/yolov5/graphs/contributors">
 <img width="100%" src="https://github.com/ultralytics/assets/raw/main/im/image-contributors.png"></a>
 
-## <div align="center">License</div>
+## <div align="center">许可证</div>
 
 YOLOv8 提供两种不同的许可证：
 
 - **GPL-3.0 许可证**：详细信息请参阅 [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) 文件。
 - **企业许可证**：为商业产品开发提供更大的灵活性，无需遵循 GPL-3.0 的开源要求。典型的用例是将 Ultralytics 软件和 AI 模型嵌入商业产品和应用中。在 [Ultralytics 授权](https://ultralytics.com/license) 处申请企业许可证。
 
-## <div align="center">Contact</div>
+## <div align="center">联系方式</div>
 
 如需报告 YOLOv8 的错误或提出功能需求，请访问 [GitHub Issues](https://github.com/ultralytics/ultralytics/issues) 或 [Ultralytics 社区论坛](https://community.ultralytics.com/)。
 

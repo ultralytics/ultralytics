@@ -117,7 +117,7 @@ class SimpleClass:
         attr = []
         for a in dir(self):
             v = getattr(self, a)
-            if not callable(v) and not a.startswith('__'):
+            if not callable(v) and not a.startswith('_'):
                 if isinstance(v, SimpleClass):
                     # Display only the module and class name for subclasses
                     s = f'{a}: {v.__module__}.{v.__class__.__name__} object'

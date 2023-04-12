@@ -21,7 +21,7 @@ class BaseTensor(SimpleClass):
     """
 
     Attributes:
-        tensor (torch.Tensor): A tensor.
+        _data (torch.Tensor): Base tensor.
         orig_shape (tuple): Original image size, in the format (height, width).
 
     Methods:
@@ -162,7 +162,6 @@ class Results(SimpleClass):
             font_size=None,
             font='Arial.ttf',
             pil=False,
-            example='abc',
             img=None,
             img_gpu=None,
             kpt_line=True,
@@ -181,7 +180,6 @@ class Results(SimpleClass):
             font_size (float, optional): The font size of the text. If None, it is scaled to the image size.
             font (str): The font to use for the text.
             pil (bool): Whether to return the image as a PIL Image.
-            example (str): An example string to display. Useful for indicating the expected format of the output.
             img (numpy.ndarray): Plot to another image. if not, plot to original image.
             img_gpu (torch.Tensor): Normalized image in gpu with shape (1, 3, 640, 640), for faster mask plotting.
             kpt_line (bool): Whether to draw lines connecting keypoints.
@@ -199,12 +197,12 @@ class Results(SimpleClass):
             conf = kwargs['show_conf']
             assert type(conf) == bool, '`show_conf` should be of boolean type, i.e, show_conf=True/False'
 
+        names = self.names
         annotator = Annotator(deepcopy(self.orig_img if img is None else img), line_width, font_size, font, pil,
-                              example)
+                              example=names)
         pred_boxes, show_boxes = self.boxes, boxes
         pred_masks, show_masks = self.masks, masks
         pred_probs, show_probs = self.probs, probs
-        names = self.names
         keypoints = self.keypoints
         if pred_masks and show_masks:
             if img_gpu is None:
@@ -234,13 +232,13 @@ class Results(SimpleClass):
 
     def verbose(self):
         """
-        Return log string for each tasks.
+        Return log string for each task.
         """
         log_string = ''
         probs = self.probs
         boxes = self.boxes
         if len(self) == 0:
-            return log_string if probs is not None else log_string + '(no detections), '
+            return log_string if probs is not None else f'{log_string}(no detections), '
         if probs is not None:
             n5 = min(len(self.names), 5)
             top5i = probs.argsort(0, descending=True)[:n5].tolist()  # top 5 indices

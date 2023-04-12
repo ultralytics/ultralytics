@@ -12,44 +12,11 @@ import torch
 from PIL import Image, ImageDraw, ImageFont
 from PIL import __version__ as pil_version
 
-from ultralytics.yolo.utils import LOGGER, TryExcept, threaded
+from ultralytics.yolo.utils import LOGGER, TryExcept, threaded, plt_settings
 
 from .checks import check_font, check_version, is_ascii
 from .files import increment_path
 from .ops import clip_boxes, scale_image, xywh2xyxy, xyxy2xywh
-
-
-def plt_settings(rcparams={'font.size': 11}, backend='Agg'):
-    """
-    Decorator to temporarily set rc parameters and the backend for a plotting function.
-
-    Usage:
-        decorator: @plt_settings({"font.size": 12})
-        context manager: with plt_settings({"font.size": 12}):
-
-    Args:
-        rcparams (dict): Dictionary of rc parameters to set.
-        backend (str, optional): Name of the backend to use. Defaults to 'Agg'.
-
-    Returns:
-        callable: Decorated function with temporarily set rc parameters and backend.
-    """
-
-    def decorator(func):
-
-        def wrapper(*args, **kwargs):
-            original_backend = plt.get_backend()
-            plt.switch_backend(backend)
-
-            with plt.rc_context(rcparams):
-                result = func(*args, **kwargs)
-
-            plt.switch_backend(original_backend)
-            return result
-
-        return wrapper
-
-    return decorator
 
 
 class Colors:

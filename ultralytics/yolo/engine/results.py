@@ -21,7 +21,7 @@ class BaseTensor(SimpleClass):
     """
 
     Attributes:
-        _data (torch.Tensor): Base tensor.
+        data (torch.Tensor): Base tensor.
         orig_shape (tuple): Original image size, in the format (height, width).
 
     Methods:
@@ -32,16 +32,12 @@ class BaseTensor(SimpleClass):
     """
 
     def __init__(self, data, orig_shape) -> None:
-        self._data = data
+        self.data = data
         self.orig_shape = orig_shape
 
     @property
     def shape(self):
         return self.data.shape
-
-    @property
-    def data(self):
-        return self._data
 
     def cpu(self):
         return self.__class__(self.data.cpu(), self.orig_shape)
@@ -353,19 +349,19 @@ class Boxes(BaseTensor):
 
     @property
     def xyxy(self):
-        return self._data[:, :4]
+        return self.data[:, :4]
 
     @property
     def conf(self):
-        return self._data[:, -2]
+        return self.data[:, -2]
 
     @property
     def cls(self):
-        return self._data[:, -1]
+        return self.data[:, -1]
 
     @property
     def id(self):
-        return self._data[:, -3] if self.is_track else None
+        return self.data[:, -3] if self.is_track else None
 
     @property
     @lru_cache(maxsize=2)  # maxsize 1 should suffice
@@ -388,7 +384,7 @@ class Boxes(BaseTensor):
     @property
     def boxes(self):
         LOGGER.warning("WARNING ⚠️ 'Boxes.boxes' is deprecated. Use 'Boxes.data' instead.")
-        return self._data
+        return self.data
 
 
 class Masks(BaseTensor):
@@ -446,4 +442,4 @@ class Masks(BaseTensor):
     @property
     def masks(self):
         LOGGER.warning("WARNING ⚠️ 'Masks.masks' is deprecated. Use 'Masks.data' instead.")
-        return self._data
+        return self.data

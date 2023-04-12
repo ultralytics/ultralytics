@@ -198,7 +198,11 @@ class Results(SimpleClass):
             assert type(conf) == bool, '`show_conf` should be of boolean type, i.e, show_conf=True/False'
 
         names = self.names
-        annotator = Annotator(deepcopy(self.orig_img if img is None else img), line_width, font_size, font, pil,
+        annotator = Annotator(deepcopy(self.orig_img if img is None else img),
+                              line_width,
+                              font_size,
+                              font,
+                              pil,
                               example=names)
         pred_boxes, show_boxes = self.boxes, boxes
         pred_masks, show_masks = self.masks, masks

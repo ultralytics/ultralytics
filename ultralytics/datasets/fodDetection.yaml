@@ -1,8 +1,0 @@
-train: /kaggle/input/newdataset/newDataset/images/Train
-val:  /kaggle/input/newdataset/newDataset/images/Validate
-test: /kaggle/input/newdataset/newDataset/images/Test
-# number of classes
-nc: 2
-
-# class names
-names: ["FOD", "RunwayCrack"]

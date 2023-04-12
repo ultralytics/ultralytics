@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.patches as patches
 import torch
 from .bboxes_utils import non_max_suppression as nms
-import custom_models.config as cfg
+import skyNet.config as cfg
 
 def cells_to_bboxes(predictions, anchors, strides, device, is_pred=False, to_list=True):
     num_out_layers = len(predictions)

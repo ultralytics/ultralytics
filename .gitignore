@@ -153,6 +153,7 @@ weights/
 *_web_model/
 *_openvino_model/
 *_paddle_model/
+# My files -------------------------------------------------------------------------------------------------------------
 .idea
 /.idea/.gitignore
 /.idea/jupyter-settings.xml
@@ -160,7 +161,7 @@ weights/
 /.idea/modules.xml
 /.idea/vcs.xml
 /.idea/yolov8-custom.iml
-/custom_models/SAVED_CHECKPOINT/
-/custom_models/SAVED_IMAGES/
-/custom_models/train_eval_metrics/
-/custom_models/yolo_custom/data/test.ipynb
+/skyNet/SAVED_CHECKPOINT/
+/skyNet/SAVED_IMAGES/
+/skyNet/train_eval_metrics/
+/skyNet/yolo_custom/data/test.ipynb

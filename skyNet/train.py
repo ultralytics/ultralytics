@@ -5,7 +5,7 @@ import yaml
 import torch
 from torch.optim import Adam
 
-import custom_models.config as cfg
+import skyNet.config as cfg
 
 from yolo_custom.utils.loss import YOLO_LOSS
 from yolo_custom.utils.ultralytics_loss import ComputeLoss

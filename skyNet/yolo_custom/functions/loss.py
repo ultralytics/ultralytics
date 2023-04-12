@@ -5,12 +5,12 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-from custom_models.yolo_custom.utils.training_utils import multi_scale
-from custom_models.yolo_custom.utils.bboxes_utils import iou_width_height, intersection_over_union, non_max_suppression as nms
-from custom_models.yolo_custom.utils.plot_utils import cells_to_bboxes, plot_image
+from skyNet.yolo_custom.utils.training_utils import multi_scale
+from skyNet.yolo_custom.utils.bboxes_utils import iou_width_height, intersection_over_union, non_max_suppression as nms
+from skyNet.yolo_custom.utils.plot_utils import cells_to_bboxes, plot_image
 import config
-from custom_models.yolo_custom.models.yolov5m import YOLOV5m
-from custom_models.yolo_custom.data.dataLoader import Training_Dataset
+from skyNet.yolo_custom.models.yolov5m import YOLOV5m
+from skyNet.yolo_custom.data.dataLoader import Training_Dataset
 
 
 class YOLO_LOSS:

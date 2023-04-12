@@ -5,7 +5,7 @@ import numpy as np
 
 # Tensor.element_size() → int
 # Returns the size in bytes of an individual element.
-import custom_models.config as cfg
+import skyNet.config as cfg
 
 
 def check_size(model):

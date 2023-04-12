@@ -2,7 +2,7 @@ import argparse
 import os
 import torch
 import numpy as np
-from custom_models.yolo_custom.models.yolov5m import YOLOV5m
+from skyNet.yolo_custom.models.yolov5m import YOLOV5m
 from utils.utils import load_model_checkpoint
 from utils.plot_utils import cells_to_bboxes, plot_image
 from utils.bboxes_utils import non_max_suppression

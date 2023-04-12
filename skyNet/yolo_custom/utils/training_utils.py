@@ -5,8 +5,8 @@ import math
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 
-from custom_models.yolo_custom.data.dataLoader import Training_Dataset, Validation_Dataset
-import custom_models.config as cfg
+from skyNet.yolo_custom.data.dataLoader import Training_Dataset, Validation_Dataset
+import skyNet.config as cfg
 
 def multi_scale(img, target_shape, max_stride):
     # to make it work with collate_fn of the loader

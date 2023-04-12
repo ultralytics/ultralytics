@@ -9,10 +9,10 @@ import pandas as pd
 from PIL import Image
 
 from torch.utils.data import Dataset, DataLoader
-from custom_models.yolo_custom.utils.utils import resize_image
-from custom_models.yolo_custom.utils.bboxes_utils import iou_width_height, coco_to_yolo_tensors, non_max_suppression
-from custom_models.yolo_custom.utils.plot_utils import plot_image, cells_to_bboxes
-import custom_models.config as cfg
+from skyNet.yolo_custom.utils.utils import resize_image
+from skyNet.yolo_custom.utils.bboxes_utils import iou_width_height, coco_to_yolo_tensors, non_max_suppression
+from skyNet.yolo_custom.utils.plot_utils import plot_image, cells_to_bboxes
+import skyNet.config as cfg
 
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
@@ -69,7 +69,7 @@ class Training_Dataset(Dataset):
             #                                header=None, index_col=0).sort_values(by=[0])
             self.annotations = pd.read_csv(os.path.join(root_directory, "labels", annot_file),
                                            header=None).sort_values(by=[0])
-            # self.annotations = self.annotations.head((len(self.annotations)-1))  # just removes last line
+            self.annotations = self.annotations.head((len(self.annotations)-1))  # just removes last line
         except FileNotFoundError:
             annotations = []
             for img_txt in os.listdir(os.path.join(self.root_directory, "labels", self.annot_folder)):
@@ -137,23 +137,23 @@ class Training_Dataset(Dataset):
                 labels = np.roll(labels, axis=1, shift=1)
             # print(f'labels: {labels}')
 
-        # if len(labels):
-        #     plot_labels = xywhn2xyxy(labels[:, 1:], w=img.shape[1], h=img.shape[0])
-        #     fig, ax = plt.subplots(1)
-        #     ax.imshow(img)
-        #     for box in plot_labels:
-        #         rect = Rectangle(
-        #             (box[0], box[1]),
-        #             box[2] - box[0],
-        #             box[3] - box[1],
-        #             linewidth=2,
-        #             edgecolor="green",
-        #             facecolor="none"
-        #         )
-        #         # Add the patch to the Axes
-        #         ax.add_patch(rect)
-        #
-        #     plt.show()
+        if len(labels):
+            plot_labels = xywhn2xyxy(labels[:, 1:], w=img.shape[1], h=img.shape[0])
+            fig, ax = plt.subplots(1)
+            ax.imshow(img)
+            for box in plot_labels:
+                rect = Rectangle(
+                    (box[0], box[1]),
+                    box[2] - box[0],
+                    box[3] - box[1],
+                    linewidth=2,
+                    edgecolor="green",
+                    facecolor="none"
+                )
+                # Add the patch to the Axes
+                ax.add_patch(rect)
+
+            plt.show()
 
         if self.ultralytics_loss:
             labels = torch.from_numpy(labels)

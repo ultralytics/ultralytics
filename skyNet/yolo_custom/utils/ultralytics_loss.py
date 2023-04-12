@@ -8,10 +8,10 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-from custom_models.yolo_custom.utils.bboxes_utils import intersection_over_union
-from custom_models.yolo_custom.data.dataLoader import Training_Dataset
+from skyNet.yolo_custom.utils.bboxes_utils import intersection_over_union
+from skyNet.yolo_custom.data.dataLoader import Training_Dataset
 import config
-from custom_models.yolo_custom.models.yolov5m import YOLOV5m
+from skyNet.yolo_custom.models.yolov5m import YOLOV5m
 
 
 class ComputeLoss:

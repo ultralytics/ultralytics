@@ -7,7 +7,7 @@ from tqdm import tqdm
 from .bboxes_utils import non_max_suppression
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
 from .plot_utils import cells_to_bboxes
-import custom_models.config as cfg
+import skyNet.config as cfg
 
 
 class YOLO_EVAL:

@@ -165,7 +165,7 @@ class IterableSimpleNamespace(SimpleNamespace):
         return getattr(self, key, default)
 
 
-def plt_settings(rcparams={"font.size": 11}, backend='Agg'):
+def plt_settings(rcparams={'font.size': 11}, backend='Agg'):
     """
     Decorator to temporarily set rc parameters and the backend for a plotting function.
 
@@ -182,6 +182,7 @@ def plt_settings(rcparams={"font.size": 11}, backend='Agg'):
     """
 
     def decorator(func):
+
         def wrapper(*args, **kwargs):
             original_backend = plt.get_backend()
             plt.switch_backend(backend)

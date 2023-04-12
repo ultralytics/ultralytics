@@ -12,7 +12,7 @@ import torch
 from PIL import Image, ImageDraw, ImageFont
 from PIL import __version__ as pil_version
 
-from ultralytics.yolo.utils import LOGGER, TryExcept, plt_settings, threaded
+from ultralytics.yolo.utils import LOGGER, TryExcept, threaded, plt_settings
 
 from .checks import check_font, check_version, is_ascii
 from .files import increment_path
@@ -226,7 +226,6 @@ def plot_labels(boxes, cls, names=(), save_dir=Path('')):
     plt.close()
 
     # matplotlib labels
-    matplotlib.use('svg')  # faster
     ax = plt.subplots(2, 2, figsize=(8, 8), tight_layout=True)[1].ravel()
     y = ax[0].hist(cls, bins=np.linspace(0, nc, nc + 1) - 0.5, rwidth=0.8)
     with contextlib.suppress(Exception):  # color histogram bars by class
@@ -242,9 +241,9 @@ def plot_labels(boxes, cls, names=(), save_dir=Path('')):
 
     # rectangles
     boxes[:, 0:2] = 0.5  # center
-    boxes = xywh2xyxy(boxes) * 2000
-    img = Image.fromarray(np.ones((2000, 2000, 3), dtype=np.uint8) * 255)
-    for cls, box in zip(cls[:1000], boxes[:1000]):
+    boxes = xywh2xyxy(boxes) * 1000
+    img = Image.fromarray(np.ones((1000, 1000, 3), dtype=np.uint8) * 255)
+    for cls, box in zip(cls[:500], boxes[:500]):
         ImageDraw.Draw(img).rectangle(box, width=1, outline=colors(cls))  # plot
     ax[1].imshow(img)
     ax[1].axis('off')
@@ -254,7 +253,6 @@ def plot_labels(boxes, cls, names=(), save_dir=Path('')):
             ax[a].spines[s].set_visible(False)
 
     plt.savefig(save_dir / 'labels.jpg', dpi=200)
-    matplotlib.use('Agg')
     plt.close()
 
 

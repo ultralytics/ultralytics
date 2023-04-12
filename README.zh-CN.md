@@ -132,10 +132,10 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 | [YOLOv8l-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-seg.pt) | 640             | 52.3                 | 42.6                  | 572.4                       | 2.79                             | 46.0           | 220.5             |
 | [YOLOv8x-seg](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-seg.pt) | 640             | 53.4                 | 43.4                  | 712.1                       | 4.02                             | 71.8           | 344.1             |
 
-- **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](http://cocodataset.org) dataset.
-  <br>Reproduce by `yolo val segment data=coco.yaml device=0`
-- **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance.
-  <br>Reproduce by `yolo val segment data=coco128-seg.yaml batch=1 device=0|cpu`
+- **mAP<sup>val</sup>** 值是基于单模型单尺度在 [COCO val2017](http://cocodataset.org) 数据集上的结果。
+  <br>通过 `yolo val segment data=coco.yaml device=0` 复现
+- **速度** 是使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例对 COCO val 图像进行平均计算的。
+  <br>通过 `yolo val segment data=coco128-seg.yaml batch=1 device=0|cpu` 复现
 
 </details>
 
@@ -151,10 +151,10 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 | [YOLOv8l-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-cls.pt) | 224             | 78.0             | 94.1             | 163.0                       | 0.87                             | 37.5           | 99.7                     |
 | [YOLOv8x-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-cls.pt) | 224             | 78.4             | 94.3             | 232.0                       | 1.01                             | 57.4           | 154.8                    |
 
-- **acc** values are model accuracies on the [ImageNet](https://www.image-net.org/) dataset validation set.
-  <br>Reproduce by `yolo val classify data=path/to/ImageNet device=0`
-- **Speed** averaged over ImageNet val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance.
-  <br>Reproduce by `yolo val classify data=path/to/ImageNet batch=1 device=0|cpu`
+- **acc** 值是模型在 [ImageNet](https://www.image-net.org/) 数据集验证集上的准确率。
+  <br>通过 `yolo val classify data=path/to/ImageNet device=0` 复现
+- **速度** 是使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例对 ImageNet val 图像进行平均计算的。
+  <br>通过 `yolo val classify data=path/to/ImageNet batch=1 device=0|cpu` 复现
 
 </details>
 
@@ -171,11 +171,10 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 | [YOLOv8x-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose.pt)       | 640             | 68.9                  | 90.4               | 1607.1                      | 3.73                             | 69.4           | 263.2             |
 | [YOLOv8x-pose-p6](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose-p6.pt) | 1280            | 71.5                  | 91.3               | 4088.7                      | 10.04                            | 99.1           | 1066.4            |
 
-- **mAP<sup>val</sup>** values are for single-model single-scale on [COCO Keypoints val2017](http://cocodataset.org)
-  dataset.
-  <br>Reproduce by `yolo val pose data=coco-pose.yaml device=0`
-- **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance.
-  <br>Reproduce by `yolo val pose data=coco8-pose.yaml batch=1 device=0|cpu`
+- **mAP<sup>val</sup>** 值是基于单模型单尺度在 [COCO Keypoints val2017](http://cocodataset.org) 数据集上的结果。
+  <br>通过 `yolo val pose data=coco-pose.yaml device=0` 复现
+- **速度** 是使用 [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) 实例对 COCO val 图像进行平均计算的。
+  <br>通过 `yolo val pose data=coco8-pose.yaml batch=1 device=0|cpu` 复现
 
 </details>
 

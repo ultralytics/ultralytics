@@ -8,9 +8,9 @@ import thop
 import torch
 import torch.nn as nn
 
-from ultralytics.nn.modules import (C1, C2, C3, C3TR, SPP, SPPF, Bottleneck, BottleneckCSP, C2f, C3Ghost, C3x, Classify,
-                                    Concat, Conv, ConvTranspose, Detect, DWConv, DWConvTranspose2d, Ensemble, Focus,
-                                    GhostBottleneck, GhostConv, Pose, Segment)
+from ultralytics.nn.modules import (C1, C2, C3, C3TR, OBB, SPP, SPPF, Bottleneck, BottleneckCSP, C2f, C3Ghost, C3x,
+                                    Classify, Concat, Conv, ConvTranspose, Detect, DWConv, DWConvTranspose2d, Ensemble,
+                                    Focus, GhostBottleneck, GhostConv, Pose, Segment)
 from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
 from ultralytics.yolo.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.yolo.utils.torch_utils import (fuse_conv_and_bn, fuse_deconv_and_bn, initialize_weights,
@@ -237,6 +237,16 @@ class DetectionModel(BaseModel):
         i = (y[-1].shape[-1] // g) * sum(4 ** (nl - 1 - x) for x in range(e))  # indices
         y[-1] = y[-1][..., i:]  # small
         return y
+
+
+class OBBModel(DetectionModel):
+    # YOLOv8 obb model
+    def __init__(self, cfg='yolov8n-obb.yaml', ch=3, nc=None, verbose=True):
+        super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+
+    def _forward_augment(self, x):
+        raise NotImplementedError(
+            emojis('WARNING ⚠️ DetectionWithOrientationModel has not supported augment inference yet!'))
 
 
 class SegmentationModel(DetectionModel):
@@ -475,7 +485,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
-        elif m in (Detect, Segment, Pose):
+        elif m in (Detect, Segment, Pose, OBB):
             args.append([ch[x] for x in f])
             if m is Segment:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
@@ -556,6 +566,8 @@ def guess_model_task(model):
             return 'segment'
         if m == 'pose':
             return 'pose'
+        if m == 'obb':
+            return 'obb'
 
     # Guess from model cfg
     if isinstance(model, dict):
@@ -580,6 +592,8 @@ def guess_model_task(model):
                 return 'classify'
             elif isinstance(m, Pose):
                 return 'pose'
+            elif isinstance(m, OBB):
+                return 'obb'
 
     # Guess from model filename
     if isinstance(model, (str, Path)):
@@ -590,10 +604,12 @@ def guess_model_task(model):
             return 'classify'
         elif '-pose' in model.stem or 'pose' in model.parts:
             return 'pose'
+        elif '-obb' in model.stem or 'obb' in model.parts:
+            return 'obb'
         elif 'detect' in model.parts:
             return 'detect'
 
     # Unable to determine task from model
     LOGGER.warning("WARNING ⚠️ Unable to automatically guess model task, assuming 'task=detect'. "
-                   "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify', or 'pose'.")
+                   "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify','pose' or 'obb'.")
     return 'detect'  # assume detect

@@ -191,8 +191,8 @@ class ConfusionMatrix:
         Returns:
             None, updates confusion matrix accordingly
         """
-        preds, targets = torch.cat(preds)[:,0], torch.cat(targets)
-        
+        preds, targets = torch.cat(preds)[:, 0], torch.cat(targets)
+
         for p, t in zip(preds.cpu().numpy(), targets.cpu().numpy()):
             self.matrix[t][p] += 1
 

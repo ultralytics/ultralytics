@@ -18,7 +18,7 @@ class ClassificationValidator(BaseValidator):
 
     def init_metrics(self, model):
         self.nc = len(model.names)
-        self.confusion_matrix = ConfusionMatrix(nc=self.nc,task='classify')
+        self.confusion_matrix = ConfusionMatrix(nc=self.nc, task='classify')
         self.pred = []
         self.targets = []
 

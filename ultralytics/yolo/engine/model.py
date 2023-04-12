@@ -422,7 +422,7 @@ class YOLO:
                                                        scheduler=asha_scheduler,
                                                        num_samples=max_samples),
                            run_config=RunConfig(callbacks=[
-                               WandbLoggerCallback(project='yolov8_tuner') if wandb else None],
+                               WandbLoggerCallback(project='yolov8_tune') if wandb else None],
                                                 local_dir='./runs'))
         tuner.fit()
 

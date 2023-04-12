@@ -5,7 +5,7 @@ try:
     from ray.air import RunConfig, session  # noqa
     from ray.air.integrations.wandb import WandbLoggerCallback  # noqa
     from ray.tune.schedulers import AsyncHyperBandScheduler as AHB  # noqa
-    from tune.schedulers import ASHAScheduler # noqa
+    from ray.tune.schedulers import ASHAScheduler # noqa
 
 except ImportError:
     LOGGER.info("Tuning hyperparameters requires ray/tune. Install using `pip install 'ray[tune]'`")

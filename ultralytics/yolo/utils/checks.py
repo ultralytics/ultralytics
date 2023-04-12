@@ -23,6 +23,9 @@ from ultralytics.yolo.utils import (AUTOINSTALL, LOGGER, ONLINE, ROOT, USER_CONF
                                     downloads, emojis, is_colab, is_docker, is_kaggle, is_online, is_pip_package,
                                     url2file)
 
+# Disable the InsecureRequestWarning in check_latest_pypi_version()
+requests.packages.urllib3.disable_warnings()
+
 
 def is_ascii(s) -> bool:
     """

@@ -5,10 +5,10 @@ Train a model on a dataset
 Usage:
     $ yolo mode=train model=yolov8n.pt data=coco128.yaml imgsz=640 epochs=100 batch=16
 """
+import logging
 import os
 import subprocess
 import time
-import logging
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path

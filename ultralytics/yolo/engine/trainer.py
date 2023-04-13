@@ -113,7 +113,7 @@ class BaseTrainer:
         if self.device.type == 'cpu':
             self.args.workers = 0  # faster CPU training as time dominated by inference, not dataloading
 
-        # Model and Dataloaders.
+        # Model and Dataset
         self.model = self.args.model
         try:
             if self.args.task == 'classify':
@@ -243,7 +243,7 @@ class BaseTrainer:
         self.scheduler = lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
         self.stopper, self.stop = EarlyStopping(patience=self.args.patience), False
 
-        # dataloaders
+        # Dataloaders
         batch_size = self.batch_size // world_size if world_size > 1 else self.batch_size
         self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=RANK, mode='train')
         if RANK in (-1, 0):

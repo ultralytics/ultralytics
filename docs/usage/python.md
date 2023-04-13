@@ -148,7 +148,7 @@ predicts the classes and locations of objects in the input images or videos.
             result.boxes.cls    # cls, (N, 1)
 
             # segmentation
-            result.masks.masks     # masks, (N, H, W)
+            result.masks.data     # masks, (N, H, W)
             result.masks.xy        # x,y segments (pixels), List[segment] * N
             result.masks.xyn       # x,y segments (normalized), List[segment] * N
 

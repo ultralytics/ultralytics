@@ -26,8 +26,10 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt /u
 
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel
-RUN pip install --no-cache '.[export]' albumentations gsutil notebook \
-        --extra-index-url https://download.pytorch.org/whl/cpu
+# RUN pip install --no-cache '.[export]' albumentations gsutil notebook --extra-index-url https://download.pytorch.org/whl/cpu \
+RUN --mount=type=cache,target=/root/.cache pip install '.[export]' albumentations gsutil notebook --extra-index-url https://download.pytorch.org/whl/cpu
+
+
 
 # Auto-install Ultralytics ONNX and TF export packages on first use
 RUN yolo export format=edgetpu imgsz=32

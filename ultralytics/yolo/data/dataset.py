@@ -65,13 +65,10 @@ class YOLODataset(BaseDataset):
         self.use_keypoints = use_keypoints
         self.use_obb = use_obb
         self.data = data
-        assert not (
-            (self.use_segments and self.use_keypoints) or
-            (self.use_keypoints and self.use_obb) or
-            (self.use_segments and self.use_obb) or
-            (self.use_segments and self.use_keypoints and self.use_obb)
-        ), 'Cannot use segments, keypoints and OBB together'
-
+        assert not ((self.use_segments and self.use_keypoints) or (self.use_keypoints and self.use_obb) or
+                    (self.use_segments and self.use_obb) or
+                    (self.use_segments and self.use_keypoints
+                     and self.use_obb)), 'Cannot use segments, keypoints and OBB together'
 
         super().__init__(img_path, imgsz, cache, augment, hyp, prefix, rect, batch_size, stride, pad, single_cls,
                          classes)

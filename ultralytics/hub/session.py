@@ -56,7 +56,8 @@ class HUBTrainingSession:
         elif len(url) == 20:
             key, model_id = '', url
         else:
-            raise HUBModelError(f"model='{url}' not found. Please check model URL and try again.")
+            raise HUBModelError(f"model='{url}' not found. Check format is correct, i.e. "
+                                f"model='https://hub.ultralytics.com/models/MODEL_ID' and try again.")
 
         # Authorize
         auth = Auth(key)

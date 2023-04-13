@@ -668,14 +668,15 @@ def v8_transforms(dataset, imgsz, hyp):
     if hyp.copy_paste > 0:
         pre_transform.append(CopyPaste(p=hyp.copy_paste))
     if hyp.perspective > 0:
-        pre_transform.append(RandomPerspective(
-            degrees=hyp.degrees,
-            translate=hyp.translate,
-            scale=hyp.scale,
-            shear=hyp.shear,
-            perspective=hyp.perspective,
-            pre_transform=LetterBox(new_shape=(imgsz, imgsz)),
-        ))        
+        pre_transform.append(
+            RandomPerspective(
+                degrees=hyp.degrees,
+                translate=hyp.translate,
+                scale=hyp.scale,
+                shear=hyp.shear,
+                perspective=hyp.perspective,
+                pre_transform=LetterBox(new_shape=(imgsz, imgsz)),
+            ))
     flip_idx = dataset.data.get('flip_idx', None)  # for keypoints augmentation
     if dataset.use_keypoints and flip_idx is None and hyp.fliplr > 0.0:
         hyp.fliplr = 0.0

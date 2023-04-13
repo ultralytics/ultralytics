@@ -394,7 +394,7 @@ class YOLO:
         Args:
             data (str): The dataset to run the tuner on.
             space (dict, optional): The hyperparameter search space. Defaults to None.
-            grace_period (int, optional): The grace period of the ASHA scheduler in number of training epochs. Defaults to 10.
+            grace_period (int, optional): The grace period in epochs of the ASHA scheduler. Defaults to 10.
             gpu_per_trial (int, optional): The number of GPUs to allocate per trial. Defaults to None.
             max_samples (int, optional): The maximum number of trials to run. Defaults to 10.
             train_args (dict, optional): Additional arguments to pass to the `train()` method. Defaults to {}.
@@ -420,7 +420,7 @@ class YOLO:
 
         def _tune(config):
             """
-            Trains the YOLOv5 model with the specified hyperparameters and additional arguments.
+            Trains the YOLO model with the specified hyperparameters and additional arguments.
 
             Args:
                 config (dict): A dictionary of hyperparameters to use for training.

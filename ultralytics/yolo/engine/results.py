@@ -7,20 +7,21 @@ Usage: See https://docs.ultralytics.com/modes/predict/
 
 from copy import deepcopy
 from functools import lru_cache
+from pathlib import Path
 
 import numpy as np
 import torch
 
 from ultralytics.yolo.data.augment import LetterBox
 from ultralytics.yolo.utils import LOGGER, SimpleClass, deprecation_warn, ops
-from ultralytics.yolo.utils.plotting import Annotator, colors
+from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
 
 
 class BaseTensor(SimpleClass):
     """
 
     Attributes:
-        tensor (torch.Tensor): A tensor.
+        data (torch.Tensor): Base tensor.
         orig_shape (tuple): Original image size, in the format (height, width).
 
     Methods:
@@ -30,19 +31,13 @@ class BaseTensor(SimpleClass):
         to(): Returns a copy of the tensor with the specified device and dtype.
     """
 
-    def __init__(self, tensor, orig_shape) -> None:
-        super().__init__()
-        assert isinstance(tensor, torch.Tensor)
-        self.tensor = tensor
+    def __init__(self, data, orig_shape) -> None:
+        self.data = data
         self.orig_shape = orig_shape
 
     @property
     def shape(self):
         return self.data.shape
-
-    @property
-    def data(self):
-        return self.tensor
 
     def cpu(self):
         return self.__class__(self.data.cpu(), self.orig_shape)
@@ -163,7 +158,6 @@ class Results(SimpleClass):
             font_size=None,
             font='Arial.ttf',
             pil=False,
-            example='abc',
             img=None,
             img_gpu=None,
             kpt_line=True,
@@ -182,7 +176,6 @@ class Results(SimpleClass):
             font_size (float, optional): The font size of the text. If None, it is scaled to the image size.
             font (str): The font to use for the text.
             pil (bool): Whether to return the image as a PIL Image.
-            example (str): An example string to display. Useful for indicating the expected format of the output.
             img (numpy.ndarray): Plot to another image. if not, plot to original image.
             img_gpu (torch.Tensor): Normalized image in gpu with shape (1, 3, 640, 640), for faster mask plotting.
             kpt_line (bool): Whether to draw lines connecting keypoints.
@@ -200,17 +193,21 @@ class Results(SimpleClass):
             conf = kwargs['show_conf']
             assert type(conf) == bool, '`show_conf` should be of boolean type, i.e, show_conf=True/False'
 
-        annotator = Annotator(deepcopy(self.orig_img if img is None else img), line_width, font_size, font, pil,
-                              example)
+        names = self.names
+        annotator = Annotator(deepcopy(self.orig_img if img is None else img),
+                              line_width,
+                              font_size,
+                              font,
+                              pil,
+                              example=names)
         pred_boxes, show_boxes = self.boxes, boxes
         pred_masks, show_masks = self.masks, masks
         pred_probs, show_probs = self.probs, probs
-        names = self.names
         keypoints = self.keypoints
         if pred_masks and show_masks:
             if img_gpu is None:
                 img = LetterBox(pred_masks.shape[1:])(image=annotator.result())
-                img_gpu = torch.as_tensor(img, dtype=torch.float16, device=pred_masks.masks.device).permute(
+                img_gpu = torch.as_tensor(img, dtype=torch.float16, device=pred_masks.data.device).permute(
                     2, 0, 1).flip(0).contiguous() / 255
             annotator.masks(pred_masks.data, colors=[colors(x, True) for x in pred_boxes.cls], im_gpu=img_gpu)
 
@@ -232,6 +229,80 @@ class Results(SimpleClass):
                 annotator.kpts(k, self.orig_shape, kpt_line=kpt_line)
 
         return annotator.result()
+
+    def verbose(self):
+        """
+        Return log string for each task.
+        """
+        log_string = ''
+        probs = self.probs
+        boxes = self.boxes
+        if len(self) == 0:
+            return log_string if probs is not None else f'{log_string}(no detections), '
+        if probs is not None:
+            n5 = min(len(self.names), 5)
+            top5i = probs.argsort(0, descending=True)[:n5].tolist()  # top 5 indices
+            log_string += f"{', '.join(f'{self.names[j]} {probs[j]:.2f}' for j in top5i)}, "
+        if boxes:
+            for c in boxes.cls.unique():
+                n = (boxes.cls == c).sum()  # detections per class
+                log_string += f"{n} {self.names[int(c)]}{'s' * (n > 1)}, "
+        return log_string
+
+    def save_txt(self, txt_file, save_conf=False):
+        """Save predictions into txt file.
+
+        Args:
+            txt_file (str): txt file path.
+            save_conf (bool): save confidence score or not.
+        """
+        boxes = self.boxes
+        masks = self.masks
+        probs = self.probs
+        kpts = self.keypoints
+        texts = []
+        if probs is not None:
+            # classify
+            n5 = min(len(self.names), 5)
+            top5i = probs.argsort(0, descending=True)[:n5].tolist()  # top 5 indices
+            [texts.append(f'{probs[j]:.2f} {self.names[j]}') for j in top5i]
+        elif boxes:
+            # detect/segment/pose
+            for j, d in enumerate(boxes):
+                c, conf, id = int(d.cls), float(d.conf), None if d.id is None else int(d.id.item())
+                line = (c, *d.xywhn.view(-1))
+                if masks:
+                    seg = masks[j].xyn[0].copy().reshape(-1)  # reversed mask.xyn, (n,2) to (n*2)
+                    line = (c, *seg)
+                if kpts is not None:
+                    kpt = (kpts[j][:, :2] / d.orig_shape[[1, 0]]).reshape(-1).tolist()
+                    line += (*kpt, )
+                line += (conf, ) * save_conf + (() if id is None else (id, ))
+                texts.append(('%g ' * len(line)).rstrip() % line)
+
+        with open(txt_file, 'a') as f:
+            for text in texts:
+                f.write(text + '\n')
+
+    def save_crop(self, save_dir, file_name=Path('im.jpg')):
+        """Save cropped predictions to `save_dir/cls/file_name.jpg`.
+
+        Args:
+            save_dir (str | pathlib.Path): Save path.
+            file_name (str | pathlib.Path): File name.
+        """
+        if self.probs is not None:
+            LOGGER.warning('Warning: Classify task do not support `save_crop`.')
+            return
+        if isinstance(save_dir, str):
+            save_dir = Path(save_dir)
+        if isinstance(file_name, str):
+            file_name = Path(file_name)
+        for d in self.boxes:
+            save_one_box(d.xyxy,
+                         self.orig_img.copy(),
+                         file=save_dir / self.names[int(d.cls)] / f'{file_name.stem}.jpg',
+                         BGR=True)
 
 
 class Boxes(BaseTensor):
@@ -271,26 +342,26 @@ class Boxes(BaseTensor):
             boxes = boxes[None, :]
         n = boxes.shape[-1]
         assert n in (6, 7), f'expected `n` in [6, 7], but got {n}'  # xyxy, (track_id), conf, cls
+        super().__init__(boxes, orig_shape)
         self.is_track = n == 7
-        self.boxes = boxes
         self.orig_shape = torch.as_tensor(orig_shape, device=boxes.device) if isinstance(boxes, torch.Tensor) \
             else np.asarray(orig_shape)
 
     @property
     def xyxy(self):
-        return self.boxes[:, :4]
+        return self.data[:, :4]
 
     @property
     def conf(self):
-        return self.boxes[:, -2]
+        return self.data[:, -2]
 
     @property
     def cls(self):
-        return self.boxes[:, -1]
+        return self.data[:, -1]
 
     @property
     def id(self):
-        return self.boxes[:, -3] if self.is_track else None
+        return self.data[:, -3] if self.is_track else None
 
     @property
     @lru_cache(maxsize=2)  # maxsize 1 should suffice
@@ -311,8 +382,9 @@ class Boxes(BaseTensor):
         LOGGER.info('results.pandas() method not yet implemented')
 
     @property
-    def data(self):
-        return self.boxes
+    def boxes(self):
+        LOGGER.warning("WARNING ⚠️ 'Boxes.boxes' is deprecated. Use 'Boxes.data' instead.")
+        return self.data
 
 
 class Masks(BaseTensor):
@@ -339,8 +411,9 @@ class Masks(BaseTensor):
     """
 
     def __init__(self, masks, orig_shape) -> None:
-        self.masks = masks  # N, h, w
-        self.orig_shape = orig_shape
+        if masks.ndim == 2:
+            masks = masks[None, :]
+        super().__init__(masks, orig_shape)
 
     @property
     @lru_cache(maxsize=1)
@@ -355,17 +428,18 @@ class Masks(BaseTensor):
     def xyn(self):
         # Segments (normalized)
         return [
-            ops.scale_coords(self.masks.shape[1:], x, self.orig_shape, normalize=True)
-            for x in ops.masks2segments(self.masks)]
+            ops.scale_coords(self.data.shape[1:], x, self.orig_shape, normalize=True)
+            for x in ops.masks2segments(self.data)]
 
     @property
     @lru_cache(maxsize=1)
     def xy(self):
         # Segments (pixels)
         return [
-            ops.scale_coords(self.masks.shape[1:], x, self.orig_shape, normalize=False)
-            for x in ops.masks2segments(self.masks)]
+            ops.scale_coords(self.data.shape[1:], x, self.orig_shape, normalize=False)
+            for x in ops.masks2segments(self.data)]
 
     @property
-    def data(self):
-        return self.masks
+    def masks(self):
+        LOGGER.warning("WARNING ⚠️ 'Masks.masks' is deprecated. Use 'Masks.data' instead.")
+        return self.data

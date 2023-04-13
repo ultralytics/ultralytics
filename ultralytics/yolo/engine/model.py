@@ -116,7 +116,7 @@ class YOLO:
     @staticmethod
     def is_hub_model(model):
         return any((
-            model.startswith('https://hub.ultralytics.com/models/'),
+            model.startswith('https://hub.ultra'),  # i.e. https://hub.ultralytics.com/models/MODEL_ID
             [len(x) for x in model.split('_')] == [42, 20],  # APIKEY_MODELID
             len(model) == 20 and not Path(model).exists() and all(x not in model for x in './\\')))  # MODELID
 
@@ -166,7 +166,9 @@ class YOLO:
         """
         Raises TypeError is model is not a PyTorch model
         """
-        if not isinstance(self.model, nn.Module):
+        pt_str = isinstance(self.model, (str, Path)) and Path(self.model).suffix == '.pt'
+        pt_module = isinstance(self.model, nn.Module)
+        if not (pt_module or pt_str):
             raise TypeError(f"model='{self.model}' must be a *.pt PyTorch model, but is a different type. "
                             f'PyTorch models can be used to train, val, predict and export, i.e. '
                             f"'yolo export model=yolov8n.pt', but exported formats like ONNX, TensorRT etc. only "
@@ -379,22 +381,26 @@ class YOLO:
         self._check_is_pytorch_model()
         self.model.to(device)
 
-    def tune(self, data: str, space: dict = None, grace_period=5, gpu_per_trial=None, max_samples=10, train_args=None):
+    def tune(self,
+             data: str,
+             space: dict = None,
+             grace_period=10,
+             gpu_per_trial=None,
+             max_samples=10,
+             train_args: dict = {}):
         """
-        Runs hyperparameter tuning using Ray Tune.
+        Runs hyper-parameter tuning using ray tune
 
         Args:
-            data (str): The dataset to run the tuner on.
-            space (dict): The hyperparameter search space.
-            grace_period (int): Minimum training iterations before early stopping.
-            gpu_per_trial (int): Set CUDA_VISIBLE_DEVICES per trial.
-            max_samples (int): Maximum number of trials to run.
-            train_args (dict): Additional arguments to pass during training.
+            data (str): The dataset to run the tuner on
+            space (dict): The hyper parameter search space
+            pbt_space (dict): The perturbation space
+            pbt_interval (int): Perturbation interval
+            gpu_per_trial (int): set CUDA_VISIBLE_DEVICES per trial
+            max_samples (int): Max number of trials to run
         """
-        if train_args is None:
-            train_args = {}
         try:
-            from ultralytics.yolo.utils.tuner import (AHB, RunConfig, TuneConfig, WandbLoggerCallback, default_space,
+            from ultralytics.yolo.utils.tuner import (AHB, ASHAScheduler, RunConfig, WandbLoggerCallback, default_space,
                                                       task_metric_map, tune)
         except ImportError:
             raise ModuleNotFoundError("Install ray tune: `pip install 'ray[tune]'")
@@ -405,63 +411,33 @@ class YOLO:
         except ImportError:
             wandb = False
 
-        # Define the training function to be used in hyperparameter tuning
         def _tune(config):
             self._reset_callbacks()
             config.update(train_args)
             self.train(**config)
 
-        # Use the default search space if not provided
         if not space:
             LOGGER.warning('WARNING: search space not provided. Using default search space')
             space = default_space
         space['data'] = data
 
-        # Set up the trainable function with appropriate resources
-        trainable_with_resources = tune.with_resources(_tune, {'cpu': 8, 'gpu': gpu_per_trial or 0})
+        trainable_with_resources = tune.with_resources(_tune, {'cpu': 8, 'gpu': gpu_per_trial if gpu_per_trial else 0})
+        #scheduler = AHB(max_t=100, grace_period=grace_period, )
 
-        # Set up the scheduler for hyperparameter tuning
-        scheduler = AHB(grace_period=grace_period, max_t=100)
-
-        # Set up stopping criteria
-        stopping_criteria = {'epoch': train_args['epochs'] if train_args.get('epochs') else 50}
-
-        # Set up PBT criteria
-        """
-        pbt_interval = pbt_interval
-        pbt_perturbation_space = pbt_space if pbt_space else {
-            'lr0': tune.qloguniform(5e-3, 1e-1, 5e-4),
-            'weight_decay': tune.uniform(0.00005, 0.005),
-            'mixup': tune.uniform(0.0, 0.5),  # image mixup (probability)
-        }
-        pbt_scheduler = PBT(
+        asha_scheduler = ASHAScheduler(
             time_attr='epoch',
-            perturbation_interval=pbt_interval,
             metric=task_metric_map[self.task],
             mode='max',
-            quantile_fraction=0.5,
-            resample_probability=0.5,
-            hyperparam_mutations=pbt_perturbation_space,
-            synch=True,  # TODO: test with and without
+            max_t=train_args.get('epochs') or 100,
+            grace_period=grace_period,
+            reduction_factor=3,
         )
-        """
-        # Set up the configuration for Ray Tune
-        tune_config = TuneConfig(scheduler=scheduler,
-                                 num_samples=max_samples,
-                                 metric=task_metric_map[self.task],
-                                 mode='max')
-
-        # Set up run configuration
-        run_config = RunConfig(callbacks=[WandbLoggerCallback(project='yolov8_tuner') if wandb else None],
-                               stop=stopping_criteria,
-                               verbose=0,
-                               local_dir='./runs',
-                               log_to_file=True)
-
-        # Instantiate the tuner
-        tuner = tune.Tuner(trainable_with_resources, param_space=space, tune_config=tune_config, run_config=run_config)
-
-        # Fit the tuner
+        tuner = tune.Tuner(trainable_with_resources,
+                           param_space=space,
+                           tune_config=tune.TuneConfig(scheduler=asha_scheduler, num_samples=max_samples),
+                           run_config=RunConfig(callbacks=[
+                               WandbLoggerCallback(project='yolov8_tune') if wandb else None],
+                                                local_dir='./runs'))
         tuner.fit()
 
         return tuner.get_results()

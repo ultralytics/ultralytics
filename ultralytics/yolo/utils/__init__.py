@@ -10,12 +10,14 @@ import subprocess
 import sys
 import tempfile
 import threading
+import urllib
 import uuid
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Union
 
 import cv2
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import yaml
@@ -101,6 +103,7 @@ np.set_printoptions(linewidth=320, formatter={'float_kind': '{:11.5g}'.format}) 
 cv2.setNumThreads(0)  # prevent OpenCV from multithreading (incompatible with PyTorch DataLoader)
 os.environ['NUMEXPR_MAX_THREADS'] = str(NUM_THREADS)  # NumExpr max threads
 os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':4096:8'  # for deterministic training
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # suppress verbose TF compiler warnings in Colab
 
 
 class SimpleClass:
@@ -114,7 +117,7 @@ class SimpleClass:
         attr = []
         for a in dir(self):
             v = getattr(self, a)
-            if not callable(v) and not a.startswith('__'):
+            if not callable(v) and not a.startswith('_'):
                 if isinstance(v, SimpleClass):
                     # Display only the module and class name for subclasses
                     s = f'{a}: {v.__module__}.{v.__class__.__name__} object'
@@ -162,10 +165,43 @@ class IterableSimpleNamespace(SimpleNamespace):
         return getattr(self, key, default)
 
 
+def plt_settings(rcparams={'font.size': 11}, backend='Agg'):
+    """
+    Decorator to temporarily set rc parameters and the backend for a plotting function.
+
+    Usage:
+        decorator: @plt_settings({"font.size": 12})
+        context manager: with plt_settings({"font.size": 12}):
+
+    Args:
+        rcparams (dict): Dictionary of rc parameters to set.
+        backend (str, optional): Name of the backend to use. Defaults to 'Agg'.
+
+    Returns:
+        callable: Decorated function with temporarily set rc parameters and backend.
+    """
+
+    def decorator(func):
+
+        def wrapper(*args, **kwargs):
+            original_backend = plt.get_backend()
+            plt.switch_backend(backend)
+
+            with plt.rc_context(rcparams):
+                result = func(*args, **kwargs)
+
+            plt.switch_backend(original_backend)
+            return result
+
+        return wrapper
+
+    return decorator
+
+
 def set_logging(name=LOGGING_NAME, verbose=True):
     # sets up logging for the given name
     rank = int(os.getenv('RANK', -1))  # rank in world for Multi-GPU trainings
-    level = logging.INFO if verbose and rank in (-1, 0) else logging.ERROR
+    level = logging.INFO if verbose and rank in {-1, 0} else logging.ERROR
     logging.config.dictConfig({
         'version': 1,
         'disable_existing_loggers': False,
@@ -488,6 +524,7 @@ def get_user_config_dir(sub_dir='Ultralytics'):
 
 
 USER_CONFIG_DIR = Path(os.getenv('YOLO_CONFIG_DIR', get_user_config_dir()))  # Ultralytics settings dir
+SETTINGS_YAML = USER_CONFIG_DIR / 'settings.yaml'
 
 
 def emojis(string=''):
@@ -589,7 +626,7 @@ def set_sentry():
             logging.getLogger(logger).setLevel(logging.CRITICAL)
 
 
-def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.3'):
+def get_settings(file=SETTINGS_YAML, version='0.0.3'):
     """
     Loads a global Ultralytics settings YAML file or creates one with default values if it does not exist.
 
@@ -638,7 +675,7 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.3'):
         return settings
 
 
-def set_settings(kwargs, file=USER_CONFIG_DIR / 'settings.yaml'):
+def set_settings(kwargs, file=SETTINGS_YAML):
     """
     Function that runs on a first-time ultralytics package installation to set up global settings and create necessary
     directories.
@@ -649,10 +686,20 @@ def set_settings(kwargs, file=USER_CONFIG_DIR / 'settings.yaml'):
 
 def deprecation_warn(arg, new_arg, version=None):
     if not version:
-        version = float(__version__[0:3]) + 0.2  # deprecate after 2nd major release
-    LOGGER.warning(
-        f'WARNING: `{arg}` is deprecated and will be removed in upcoming major release {version}. Use `{new_arg}` instead'
-    )
+        version = float(__version__[:3]) + 0.2  # deprecate after 2nd major release
+    LOGGER.warning(f"WARNING ⚠️ '{arg}' is deprecated and will be removed in 'ultralytics {version}' in the future. "
+                   f"Please use '{new_arg}' instead.")
+
+
+def clean_url(url):
+    # Strip auth from URL, i.e. https://url.com/file.txt?auth -> https://url.com/file.txt
+    url = str(Path(url)).replace(':/', '://')  # Pathlib turns :// -> :/
+    return urllib.parse.unquote(url).split('?')[0]  # '%2F' to '/', split https://url.com/file.txt?auth
+
+
+def url2file(url):
+    # Convert URL to filename, i.e. https://url.com/file.txt?auth -> file.txt
+    return Path(clean_url(url)).name
 
 
 # Run below code on yolo/utils init ------------------------------------------------------------------------------------

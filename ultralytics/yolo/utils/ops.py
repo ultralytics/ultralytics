@@ -81,7 +81,8 @@ def segment2box(segment, width=640, height=640):
     x, y = segment.T  # segment xy
     inside = (x >= 0) & (y >= 0) & (x <= width) & (y <= height)
     x, y, = x[inside], y[inside]
-    return np.array([x.min(), y.min(), x.max(), y.max()]) if any(x) else np.zeros(4)  # xyxy
+    return np.array([x.min(), y.min(), x.max(), y.max()], dtype=segment.dtype) if any(x) else np.zeros(
+        4, dtype=segment.dtype)  # xyxy
 
 
 def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None):
@@ -300,13 +301,12 @@ def clip_coords(coords, shape):
         coords[..., 1] = coords[..., 1].clip(0, shape[0])  # y
 
 
-def scale_image(im1_shape, masks, im0_shape, ratio_pad=None):
+def scale_image(masks, im0_shape, ratio_pad=None):
     """
     Takes a mask, and resizes it to the original image size
 
     Args:
-      im1_shape (tuple): model input shape, [h, w]
-      masks (torch.Tensor): [h, w, num]
+      masks (torch.Tensor): resized and padded masks/images, [h, w, num]/[h, w, 3].
       im0_shape (tuple): the original image shape
       ratio_pad (tuple): the ratio of the padding to the original image.
 
@@ -314,10 +314,14 @@ def scale_image(im1_shape, masks, im0_shape, ratio_pad=None):
       masks (torch.Tensor): The masks that are being returned.
     """
     # Rescale coordinates (xyxy) from im1_shape to im0_shape
+    im1_shape = masks.shape
+    if im1_shape[:2] == im0_shape[:2]:
+        return masks
     if ratio_pad is None:  # calculate from im0_shape
         gain = min(im1_shape[0] / im0_shape[0], im1_shape[1] / im0_shape[1])  # gain  = old / new
         pad = (im1_shape[1] - im0_shape[1] * gain) / 2, (im1_shape[0] - im0_shape[0] * gain) / 2  # wh padding
     else:
+        gain = ratio_pad[0][0]
         pad = ratio_pad[1]
     top, left = int(pad[1]), int(pad[0])  # y, x
     bottom, right = int(im1_shape[0] - pad[1]), int(im1_shape[1] - pad[0])
@@ -329,9 +333,9 @@ def scale_image(im1_shape, masks, im0_shape, ratio_pad=None):
     # masks = F.interpolate(masks[None], im0_shape[:2], mode='bilinear', align_corners=False)[0]
     # masks = masks.permute(1, 2, 0).contiguous()
     masks = cv2.resize(masks, (im0_shape[1], im0_shape[0]))
-
     if len(masks.shape) == 2:
         masks = masks[:, :, None]
+
     return masks
 
 
@@ -526,7 +530,8 @@ def resample_segments(segments, n=1000):
         s = np.concatenate((s, s[0:1, :]), axis=0)
         x = np.linspace(0, len(s) - 1, n)
         xp = np.arange(len(s))
-        segments[i] = np.concatenate([np.interp(x, xp, s[:, i]) for i in range(2)]).reshape(2, -1).T  # segment xy
+        segments[i] = np.concatenate([np.interp(x, xp, s[:, i]) for i in range(2)],
+                                     dtype=np.float32).reshape(2, -1).T  # segment xy
     return segments
 
 
@@ -542,9 +547,9 @@ def crop_mask(masks, boxes):
       (torch.Tensor): The masks are being cropped to the bounding box.
     """
     n, h, w = masks.shape
-    x1, y1, x2, y2 = torch.chunk(boxes[:, :, None], 4, 1)  # x1 shape(1,1,n)
-    r = torch.arange(w, device=masks.device, dtype=x1.dtype)[None, None, :]  # rows shape(1,w,1)
-    c = torch.arange(h, device=masks.device, dtype=x1.dtype)[None, :, None]  # cols shape(h,1,1)
+    x1, y1, x2, y2 = torch.chunk(boxes[:, :, None], 4, 1)  # x1 shape(n,1,1)
+    r = torch.arange(w, device=masks.device, dtype=x1.dtype)[None, None, :]  # rows shape(1,1,w)
+    c = torch.arange(h, device=masks.device, dtype=x1.dtype)[None, :, None]  # cols shape(1,h,1)
 
     return masks * ((r >= x1) * (r < x2) * (c >= y1) * (c < y2))
 

@@ -14,8 +14,8 @@ from ultralytics.yolo.v8.detect import DetectionValidator
 
 class PoseValidator(DetectionValidator):
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None):
-        super().__init__(dataloader, save_dir, pbar, args)
+    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
+        super().__init__(dataloader, save_dir, pbar, args, _callbacks)
         self.args.task = 'pose'
         self.metrics = PoseMetrics(save_dir=self.save_dir)
 
@@ -198,7 +198,7 @@ class PoseValidator(DetectionValidator):
 
 def val(cfg=DEFAULT_CFG, use_python=False):
     model = cfg.model or 'yolov8n-pose.pt'
-    data = cfg.data or 'coco128-pose.yaml'
+    data = cfg.data or 'coco8-pose.yaml'
 
     args = dict(model=model, data=data)
     if use_python:

@@ -16,8 +16,8 @@ from ultralytics.yolo.v8.detect import DetectionValidator
 
 class SegmentationValidator(DetectionValidator):
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None):
-        super().__init__(dataloader, save_dir, pbar, args)
+    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
+        super().__init__(dataloader, save_dir, pbar, args, _callbacks)
         self.args.task = 'segment'
         self.metrics = SegmentMetrics(save_dir=self.save_dir)
 
@@ -111,8 +111,7 @@ class SegmentationValidator(DetectionValidator):
 
             # Save
             if self.args.save_json:
-                pred_masks = ops.scale_image(batch['img'][si].shape[1:],
-                                             pred_masks.permute(1, 2, 0).contiguous().cpu().numpy(),
+                pred_masks = ops.scale_image(pred_masks.permute(1, 2, 0).contiguous().cpu().numpy(),
                                              shape,
                                              ratio_pad=batch['ratio_pad'][si])
                 self.pred_to_json(predn, batch['im_file'][si], pred_masks)

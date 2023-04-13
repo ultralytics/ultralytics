@@ -11,7 +11,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from ultralytics.yolo.utils import LOGGER, SimpleClass, TryExcept
+from ultralytics.yolo.utils import LOGGER, SimpleClass, TryExcept, plt_settings
 
 OKS_SIGMA = np.array([.26, .25, .25, .35, .35, .79, .79, .72, .72, .62, .62, 1.07, 1.07, .87, .87, .89, .89]) / 10.0
 
@@ -172,19 +172,37 @@ class FocalLoss(nn.Module):
 
 class ConfusionMatrix:
     # Updated version of https://github.com/kaanakan/object_detection_confusion_matrix
-    def __init__(self, nc, conf=0.25, iou_thres=0.45):
-        self.matrix = np.zeros((nc + 1, nc + 1))
+    def __init__(self, nc, conf=0.25, iou_thres=0.45, task='detect'):
+        self.task = task
+        self.matrix = np.zeros((nc + 1, nc + 1)) if self.task == 'detect' else np.zeros((nc, nc))
         self.nc = nc  # number of classes
         self.conf = conf
         self.iou_thres = iou_thres
+
+    def process_cls_preds(self, preds, targets):
+        """
+        Update confusion matrix for classification task
+
+        Arguments:
+            preds (Array[N, min(nc,5)])
+            targets (Array[N, 1])
+
+        Returns:
+            None, updates confusion matrix accordingly
+        """
+        preds, targets = torch.cat(preds)[:, 0], torch.cat(targets)
+        for p, t in zip(preds.cpu().numpy(), targets.cpu().numpy()):
+            self.matrix[t][p] += 1
 
     def process_batch(self, detections, labels):
         """
         Return intersection-over-union (Jaccard index) of boxes.
         Both sets of boxes are expected to be in (x1, y1, x2, y2) format.
+
         Arguments:
             detections (Array[N, 6]), x1, y1, x2, y2, conf, class
             labels (Array[M, 5]), class, x1, y1, x2, y2
+
         Returns:
             None, updates confusion matrix accordingly
         """
@@ -231,9 +249,10 @@ class ConfusionMatrix:
         tp = self.matrix.diagonal()  # true positives
         fp = self.matrix.sum(1) - tp  # false positives
         # fn = self.matrix.sum(0) - tp  # false negatives (missed detections)
-        return tp[:-1], fp[:-1]  # remove background class
+        return (tp[:-1], fp[:-1]) if self.task == 'detect' else (tp, fp)  # remove background class if task=detect
 
     @TryExcept('WARNING ⚠️ ConfusionMatrix plot failure')
+    @plt_settings()
     def plot(self, normalize=True, save_dir='', names=()):
         import seaborn as sn
 
@@ -277,6 +296,7 @@ def smooth(y, f=0.05):
     return np.convolve(yp, np.ones(nf) / nf, mode='valid')  # y-smoothed
 
 
+@plt_settings()
 def plot_pr_curve(px, py, ap, save_dir=Path('pr_curve.png'), names=()):
     # Precision-recall curve
     fig, ax = plt.subplots(1, 1, figsize=(9, 6), tight_layout=True)
@@ -299,6 +319,7 @@ def plot_pr_curve(px, py, ap, save_dir=Path('pr_curve.png'), names=()):
     plt.close(fig)
 
 
+@plt_settings()
 def plot_mc_curve(px, py, save_dir=Path('mc_curve.png'), names=(), xlabel='Confidence', ylabel='Metric'):
     # Metric-confidence curve
     fig, ax = plt.subplots(1, 1, figsize=(9, 6), tight_layout=True)

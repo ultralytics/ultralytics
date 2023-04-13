@@ -2,8 +2,9 @@
 
 import requests
 
-from ultralytics.hub.utils import PREFIX, split_key
-from ultralytics.yolo.utils import LOGGER
+from ultralytics.hub.auth import Auth
+from ultralytics.hub.utils import PREFIX
+from ultralytics.yolo.utils import LOGGER, SETTINGS, USER_CONFIG_DIR, yaml_save
 
 
 def login(api_key=''):
@@ -15,21 +16,22 @@ def login(api_key=''):
 
     Example:
         from ultralytics import hub
-        hub.login('your_api_key')
+        hub.login('API_KEY')
     """
-    from ultralytics.hub.auth import Auth
-    Auth(api_key)
+    Auth(api_key, verbose=True)
 
 
 def logout():
     """
-    Logout Ultralytics HUB
+    Log out of Ultralytics HUB by removing the API key from the settings file. To log in again, use 'yolo hub login'.
 
     Example:
         from ultralytics import hub
         hub.logout()
     """
-    LOGGER.warning('WARNING ⚠️ This method is not yet implemented.')
+    SETTINGS['api_key'] = ''
+    yaml_save(USER_CONFIG_DIR / 'settings.yaml', SETTINGS)
+    LOGGER.info(f"{PREFIX}logged out ✅. To log in again, use 'yolo hub login'.")
 
 
 def start(key=''):
@@ -40,20 +42,20 @@ def start(key=''):
         key (str, optional): A string containing either the API key and model ID combination (apikey_modelid),
                                or the full model URL (https://hub.ultralytics.com/models/apikey_modelid).
     """
+    api_key, model_id = key.split('_')
     LOGGER.warning(f"""
-WARNING ⚠️ ultralytics.start() is deprecated in 8.0.60. Updated usage to train your Ultralytics HUB model is below:
+WARNING ⚠️ ultralytics.start() is deprecated after 8.0.60. Updated usage to train Ultralytics HUB models is:
 
-from ultralytics import YOLO
+from ultralytics import YOLO, hub
 
-model = YOLO('https://hub.ultralytics.com/models/{key}')
+hub.login('{api_key}')
+model = YOLO('https://hub.ultralytics.com/models/{model_id}')
 model.train()""")
 
 
-def reset_model(key=''):
+def reset_model(model_id=''):
     # Reset a trained model to an untrained state
-    api_key, model_id = split_key(key)
-    r = requests.post('https://api.ultralytics.com/model-reset', json={'apiKey': api_key, 'modelId': model_id})
-
+    r = requests.post('https://api.ultralytics.com/model-reset', json={'apiKey': Auth().api_key, 'modelId': model_id})
     if r.status_code == 200:
         LOGGER.info(f'{PREFIX}Model reset successfully')
         return
@@ -66,26 +68,24 @@ def export_fmts_hub():
     return list(export_formats()['Argument'][1:]) + ['ultralytics_tflite', 'ultralytics_coreml']
 
 
-def export_model(key='', format='torchscript'):
+def export_model(model_id='', format='torchscript'):
     # Export a model to all formats
     assert format in export_fmts_hub(), f"Unsupported export format '{format}', valid formats are {export_fmts_hub()}"
-    api_key, model_id = split_key(key)
     r = requests.post('https://api.ultralytics.com/export',
                       json={
-                          'apiKey': api_key,
+                          'apiKey': Auth().api_key,
                           'modelId': model_id,
                           'format': format})
     assert r.status_code == 200, f'{PREFIX}{format} export failure {r.status_code} {r.reason}'
     LOGGER.info(f'{PREFIX}{format} export started ✅')
 
 
-def get_export(key='', format='torchscript'):
+def get_export(model_id='', format='torchscript'):
     # Get an exported model dictionary with download URL
-    assert format in export_fmts_hub, f"Unsupported export format '{format}', valid formats are {export_fmts_hub}"
-    api_key, model_id = split_key(key)
+    assert format in export_fmts_hub(), f"Unsupported export format '{format}', valid formats are {export_fmts_hub()}"
     r = requests.post('https://api.ultralytics.com/get-export',
                       json={
-                          'apiKey': api_key,
+                          'apiKey': Auth().api_key,
                           'modelId': model_id,
                           'format': format})
     assert r.status_code == 200, f'{PREFIX}{format} get_export failure {r.status_code} {r.reason}'

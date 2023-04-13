@@ -11,7 +11,7 @@ API_KEY_URL = 'https://hub.ultralytics.com/settings?tab=api+keys'
 class Auth:
     id_token = api_key = model_key = False
 
-    def __init__(self, api_key=''):
+    def __init__(self, api_key='', verbose=False):
         """
         Initialize the Auth class with an optional API key.
 
@@ -29,7 +29,8 @@ class Auth:
             # If the provided API key matches the API key in the SETTINGS
             if self.api_key == SETTINGS.get('api_key'):
                 # Log that the user is already logged in
-                LOGGER.info(f'{PREFIX}Authenticated ✅')
+                if verbose:
+                    LOGGER.info(f'{PREFIX}Authenticated ✅')
                 return
             else:
                 # Attempt to authenticate with the provided API key
@@ -46,8 +47,9 @@ class Auth:
         if success:
             set_settings({'api_key': self.api_key})
             # Log that the new login was successful
-            LOGGER.info(f'{PREFIX}New authentication successful ✅')
-        else:
+            if verbose:
+                LOGGER.info(f'{PREFIX}New authentication successful ✅')
+        elif verbose:
             LOGGER.info(f'{PREFIX}Retrieve API key from {API_KEY_URL}')
 
     def request_api_key(self, max_attempts=3):

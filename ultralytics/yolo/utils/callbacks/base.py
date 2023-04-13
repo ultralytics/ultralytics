@@ -2,6 +2,8 @@
 """
 Base callbacks
 """
+from collections import defaultdict
+from copy import deepcopy
 
 
 # Trainer callbacks ----------------------------------------------------------------------------------------------------
@@ -141,6 +143,10 @@ default_callbacks = {
     # Run in exporter
     'on_export_start': [on_export_start],
     'on_export_end': [on_export_end]}
+
+
+def get_default_callbacks():
+    return defaultdict(list, deepcopy(default_callbacks))
 
 
 def add_integration_callbacks(instance):

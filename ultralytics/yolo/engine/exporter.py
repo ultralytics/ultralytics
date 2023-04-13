@@ -53,7 +53,6 @@ import platform
 import subprocess
 import time
 import warnings
-from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
 
@@ -130,7 +129,7 @@ class Exporter:
         save_dir (Path): Directory to save results.
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """
         Initializes the Exporter class.
 
@@ -139,7 +138,7 @@ class Exporter:
             overrides (dict, optional): Configuration overrides. Defaults to None.
         """
         self.args = get_cfg(cfg, overrides)
-        self.callbacks = defaultdict(list, callbacks.default_callbacks)  # add callbacks
+        self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 
     @smart_inference_mode()
@@ -380,6 +379,7 @@ class Exporter:
         yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml
         return f, None
 
+    @try_export
     def _export_coreml(self, prefix=colorstr('CoreML:')):
         # YOLOv8 CoreML export
         check_requirements('coremltools>=6.0')
@@ -853,6 +853,12 @@ class Exporter:
         model.output_description['coordinates'] = 'Boxes × [x, y, width, height] (relative to image size)'
         LOGGER.info(f'{prefix} pipeline success')
         return model
+
+    def add_callback(self, event: str, callback):
+        """
+        Appends the given callback.
+        """
+        self.callbacks[event].append(callback)
 
     def run_callbacks(self, event: str):
         for callback in self.callbacks.get(event, []):

@@ -97,7 +97,7 @@ The training settings for YOLO models encompass various hyperparameters and conf
 | `image_weights`   | `False`  | use weighted image selection for training                                   |
 | `rect`            | `False`  | rectangular training with each batch collated for minimum padding           |
 | `cos_lr`          | `False`  | use cosine learning rate scheduler                                          |
-| `close_mosaic`    | `10`     | disable mosaic augmentation for final 10 epochs                             |
+| `close_mosaic`    | `0`      | (int) disable mosaic augmentation for final epochs                          |
 | `resume`          | `False`  | resume training from last checkpoint                                        |
 | `amp`             | `True`   | Automatic Mixed Precision (AMP) training, choices=[True, False]             |
 | `lr0`             | `0.01`   | initial learning rate (i.e. SGD=1E-2, Adam=1E-3)                            |
@@ -112,7 +112,6 @@ The training settings for YOLO models encompass various hyperparameters and conf
 | `dfl`             | `1.5`    | dfl loss gain                                                               |
 | `pose`            | `12.0`   | pose loss gain (pose-only)                                                  |
 | `kobj`            | `2.0`    | keypoint obj loss gain (pose-only)                                          |
-| `fl_gamma`        | `0.0`    | focal loss gamma (efficientDet default gamma=1.5)                           |
 | `label_smoothing` | `0.0`    | label smoothing (fraction)                                                  |
 | `nbs`             | `64`     | nominal batch size                                                          |
 | `overlap_mask`    | `True`   | masks should overlap during training (segment train only)                   |

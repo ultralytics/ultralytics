@@ -41,7 +41,7 @@ class DetectionTrainer(BaseTrainer):
                                  shuffle=mode == 'train',
                                  seed=self.args.seed)[0] if self.args.v5loader else \
             build_dataloader(self.args, batch_size, img_path=dataset_path, stride=gs, rank=rank, mode=mode,
-                             rect=mode == 'val', names=self.data['names'])[0]
+                             rect=mode == 'val', data_info=self.data)[0]
 
     def preprocess_batch(self, batch):
         batch['img'] = batch['img'].to(self.device, non_blocking=True).float() / 255
@@ -134,6 +134,7 @@ class Loss:
         else:
             i = targets[:, 0]  # image index
             _, counts = i.unique(return_counts=True)
+            counts = counts.to(dtype=torch.int32)
             out = torch.zeros(batch_size, counts.max(), 5, device=self.device)
             for j in range(batch_size):
                 matches = i == j

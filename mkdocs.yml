@@ -9,9 +9,10 @@ remote_name: https://github.com/ultralytics/docs
 theme:
   name: "material"
   logo: https://github.com/ultralytics/assets/raw/main/logo/Ultralytics_Logotype_Reverse.svg
-  favicon: https://github.com/ultralytics/assets/raw/main/logo/favicon-yolo.ico
+  favicon: assets/favicon.ico
   font:
     text: Roboto
+    code: Roboto Mono
 
   palette:
     # Palette toggle for light mode
@@ -30,6 +31,7 @@ theme:
   features:
     - content.action.edit
     - content.code.annotate
+    - content.code.copy
     - content.tooltips
     - search.highlight
     - search.share
@@ -44,7 +46,7 @@ theme:
     - content.tabs.link  # all code tabs change simultaneously
 
 # Customization
-copyright: Ultralytics 2023. All rights reserved.
+copyright: <a href="https://ultralytics.com" target="_blank">Ultralytics 2023.</a> All rights reserved.
 extra:
   # version:
   #   provider: mike  #  version drop-down menu
@@ -63,7 +65,7 @@ extra:
           data: 0
           note: >-
             Thanks for your feedback!<br>
-            <a href="https://github.com/ultralytics/ultralytics/issues/new?title=Docs+Feedback+for+{title}+page+at+{url}&labels=enhancement&template=feature-request.yml" target="_blank" rel="noopener">Tell us what we can improve.</a>
+            <a href="https://github.com/ultralytics/ultralytics/issues/new?title=Docs+Feedback+for+{title}+page+at+https://docs.ultralytics.com/{url}&labels=enhancement&template=feature-request.yml" target="_blank" rel="noopener">Tell us what we can improve.</a>
 
   social:
     - icon: fontawesome/brands/github
@@ -85,6 +87,7 @@ extra_css:
 markdown_extensions:
   # Div text decorators
   - admonition
+  - md_in_html
   - pymdownx.details
   - pymdownx.superfences
   - tables
@@ -95,12 +98,11 @@ markdown_extensions:
       anchor_linenums: true
   - pymdownx.inlinehilite
   - pymdownx.snippets
-
-  # Button
-  - attr_list
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji  # noqa
+      emoji_generator: !!python/name:materialx.emoji.to_svg
 
   # Content tabs
-  - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
 
@@ -132,7 +134,7 @@ nav:
       - Detect: tasks/detect.md
       - Segment: tasks/segment.md
       - Classify: tasks/classify.md
-#      - Keypoints: tasks/keypoints.md
+      - Pose: tasks/pose.md
   - Usage:
       - CLI: usage/cli.md
       - Python: usage/python.md
@@ -151,4 +153,23 @@ nav:
           - Results: reference/results.md
       - ultralytics.nn: reference/nn.md
       - Operations: reference/ops.md
+  - YOLOv5:
+      - yolov5/index.md
+      - Train Custom Data: yolov5/train_custom_data.md
+      - Tips for Best Training Results: yolov5/tips_for_best_training_results.md
+      - Multi-GPU Training: yolov5/multi_gpu_training.md
+      - PyTorch Hub: yolov5/pytorch_hub.md
+      - TFLite, ONNX, CoreML, TensorRT Export: yolov5/export.md
+      - NVIDIA Jetson Nano Deployment: yolov5/jetson_nano.md
+      - Test-Time Augmentation (TTA): yolov5/tta.md
+      - Model Ensembling: yolov5/ensemble.md
+      - Pruning/Sparsity Tutorial: yolov5/pruning_sparsity.md
+      - Hyperparameter evolution: yolov5/hyp_evolution.md
+      - Transfer learning with frozen layers: yolov5/transfer_learn_frozen.md
+      - Architecture Summary: yolov5/architecture.md
+      - Roboflow Datasets: yolov5/roboflow.md
+      - Neural Magic's DeepSparse: yolov5/neural_magic.md
+      - Comet Logging: yolov5/comet.md
+      - Clearml Logging: yolov5/clearml.md
+
   - Security: SECURITY.md

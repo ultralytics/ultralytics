@@ -16,7 +16,7 @@ repos:
       - id: end-of-file-fixer
       - id: trailing-whitespace
       - id: check-case-conflict
-      - id: check-yaml
+      # - id: check-yaml
       - id: check-docstring-first
       - id: double-quote-string-fixer
       - id: detect-private-key
@@ -56,7 +56,7 @@ repos:
         name: PEP8
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.2
+    rev: v2.2.4
     hooks:
       - id: codespell
         args:

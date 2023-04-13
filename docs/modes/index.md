@@ -1,4 +1,4 @@
-# YOLOv8 Modes
+# Ultralytics YOLOv8 Modes
 
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
 
@@ -54,7 +54,7 @@ for applications such as surveillance systems or self-driving cars.
 ## [Benchmark](benchmark.md)
 
 Benchmark mode is used to profile the speed and accuracy of various export formats for YOLOv8. The benchmarks provide
-information on the size of the exported format, its `mAP50-95` metrics (for object detection and segmentation)
+information on the size of the exported format, its `mAP50-95` metrics (for object detection, segmentation and pose)
 or `accuracy_top5` metrics (for classification), and the inference time in milliseconds per image across various export
 formats like ONNX, OpenVINO, TensorRT and others. This information can help users choose the optimal export format for
 their specific use case based on their requirements for speed and accuracy.

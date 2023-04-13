@@ -9,9 +9,31 @@ of that class are located or what their exact shape is.
 
 !!! tip "Tip"
 
-    YOLOv8 _classification_ models use the `-cls` suffix, i.e. `yolov8n-cls.pt` and are pretrained on ImageNet.
+    YOLOv8 Classify models use the `-cls` suffix, i.e. `yolov8n-cls.pt` and are pretrained on [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/ImageNet.yaml).
 
-[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models/v8){ .md-button .md-button--primary}
+## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models/v8)
+
+YOLOv8 pretrained Classify models are shown here. Detect, Segment and Pose models are pretrained on
+the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco.yaml) dataset, while Classify
+models are pretrained on
+the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/ImageNet.yaml) dataset.
+
+[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) download automatically from the latest
+Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
+
+| Model                                                                                        | size<br><sup>(pixels) | acc<br><sup>top1 | acc<br><sup>top5 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) at 640 |
+|----------------------------------------------------------------------------------------------|-----------------------|------------------|------------------|--------------------------------|-------------------------------------|--------------------|--------------------------|
+| [YOLOv8n-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-cls.pt) | 224                   | 66.6             | 87.0             | 12.9                           | 0.31                                | 2.7                | 4.3                      |
+| [YOLOv8s-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8s-cls.pt) | 224                   | 72.3             | 91.1             | 23.4                           | 0.35                                | 6.4                | 13.5                     |
+| [YOLOv8m-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8m-cls.pt) | 224                   | 76.4             | 93.2             | 85.4                           | 0.62                                | 17.0               | 42.7                     |
+| [YOLOv8l-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-cls.pt) | 224                   | 78.0             | 94.1             | 163.0                          | 0.87                                | 37.5               | 99.7                     |
+| [YOLOv8x-cls](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-cls.pt) | 224                   | 78.4             | 94.3             | 232.0                          | 1.01                                | 57.4               | 154.8                    |
+
+- **acc** values are model accuracies on the [ImageNet](https://www.image-net.org/) dataset validation set.
+  <br>Reproduce by `yolo val classify data=path/to/ImageNet device=0`
+- **Speed** averaged over ImageNet val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/)
+  instance.
+  <br>Reproduce by `yolo val classify data=path/to/ImageNet batch=1 device=0|cpu`
 
 ## Train
 
@@ -100,7 +122,7 @@ Use a trained YOLOv8n-cls model to run predictions on images.
         yolo classify predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predict with custom model
         ```
 
-Read more details of `predict` in our [Predict](https://docs.ultralytics.com/modes/predict/) page.
+See full `predict` mode details in the [Predict](https://docs.ultralytics.com/modes/predict/) page.
 
 ## Export
 
@@ -128,7 +150,7 @@ Export a YOLOv8n-cls model to a different format like ONNX, CoreML, etc.
         ```
 
 Available YOLOv8-cls export formats are in the table below. You can predict or validate directly on exported models,
-i.e. `yolo predict model=yolov8n-cls.onnx`.
+i.e. `yolo predict model=yolov8n-cls.onnx`. Usage examples are shown for your model after export completes.
 
 | Format                                                             | `format` Argument | Model                         | Metadata |
 |--------------------------------------------------------------------|-------------------|-------------------------------|----------|
@@ -145,3 +167,4 @@ i.e. `yolo predict model=yolov8n-cls.onnx`.
 | [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n-cls_web_model/`      | ✅        |
 | [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n-cls_paddle_model/`   | ✅        |
 
+See full `export` details in the [Export](https://docs.ultralytics.com/modes/export/) page.

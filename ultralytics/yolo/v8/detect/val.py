@@ -18,8 +18,8 @@ from ultralytics.yolo.utils.torch_utils import de_parallel
 
 class DetectionValidator(BaseValidator):
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None):
-        super().__init__(dataloader, save_dir, pbar, args)
+    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
+        super().__init__(dataloader, save_dir, pbar, args, _callbacks)
         self.args.task = 'detect'
         self.is_coco = False
         self.class_map = None
@@ -41,7 +41,7 @@ class DetectionValidator(BaseValidator):
 
     def init_metrics(self, model):
         val = self.data.get(self.args.split, '')  # validation path
-        self.is_coco = isinstance(val, str) and val.endswith(f'coco{os.sep}val2017.txt')  # is COCO dataset
+        self.is_coco = isinstance(val, str) and 'coco' in val and val.endswith(f'{os.sep}val2017.txt')  # is COCO
         self.class_map = ops.coco80_to_coco91_class() if self.is_coco else list(range(1000))
         self.args.save_json |= self.is_coco and not self.training  # run on final val if training COCO
         self.names = model.names
@@ -108,8 +108,9 @@ class DetectionValidator(BaseValidator):
             # Save
             if self.args.save_json:
                 self.pred_to_json(predn, batch['im_file'][si])
-            # if self.args.save_txt:
-            #    save_one_txt(predn, save_conf, shape, file=save_dir / 'labels' / f'{path.stem}.txt')
+            if self.args.save_txt:
+                file = self.save_dir / 'labels' / f'{Path(batch["im_file"][si]).stem}.txt'
+                self.save_one_txt(predn, self.args.save_conf, shape, file)
 
     def finalize_metrics(self, *args, **kwargs):
         self.metrics.speed = self.speed
@@ -178,7 +179,7 @@ class DetectionValidator(BaseValidator):
                                  prefix=colorstr(f'{self.args.mode}: '),
                                  shuffle=False,
                                  seed=self.args.seed)[0] if self.args.v5loader else \
-            build_dataloader(self.args, batch_size, img_path=dataset_path, stride=gs, names=self.data['names'],
+            build_dataloader(self.args, batch_size, img_path=dataset_path, stride=gs, data_info=self.data,
                              mode='val')[0]
 
     def plot_val_samples(self, batch, ni):
@@ -196,6 +197,14 @@ class DetectionValidator(BaseValidator):
                     paths=batch['im_file'],
                     fname=self.save_dir / f'val_batch{ni}_pred.jpg',
                     names=self.names)  # pred
+
+    def save_one_txt(self, predn, save_conf, shape, file):
+        gn = torch.tensor(shape)[[1, 0, 1, 0]]  # normalization gain whwh
+        for *xyxy, conf, cls in predn.tolist():
+            xywh = (ops.xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
+            line = (cls, *xywh, conf) if save_conf else (cls, *xywh)  # label format
+            with open(file, 'a') as f:
+                f.write(('%g ' * len(line)).rstrip() % line + '\n')
 
     def pred_to_json(self, predn, filename):
         stem = Path(filename).stem

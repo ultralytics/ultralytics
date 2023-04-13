@@ -168,6 +168,7 @@ class BYTETracker:
         self.args = args
         self.max_time_lost = int(frame_rate / 30.0 * args.track_buffer)
         self.kalman_filter = self.get_kalmanfilter()
+        self.reset_id()
 
     def update(self, results, img=None):
         self.frame_id += 1
@@ -276,12 +277,13 @@ class BYTETracker:
         self.lost_stracks = self.sub_stracks(self.lost_stracks, self.tracked_stracks)
         self.lost_stracks.extend(lost_stracks)
         self.lost_stracks = self.sub_stracks(self.lost_stracks, self.removed_stracks)
-        self.removed_stracks.extend(removed_stracks)
         self.tracked_stracks, self.lost_stracks = self.remove_duplicate_stracks(self.tracked_stracks, self.lost_stracks)
-        output = [
-            track.tlbr.tolist() + [track.track_id, track.score, track.cls, track.idx] for track in self.tracked_stracks
-            if track.is_activated]
-        return np.asarray(output, dtype=np.float32)
+        self.removed_stracks.extend(removed_stracks)
+        if len(self.removed_stracks) > 1000:
+            self.removed_stracks = self.removed_stracks[-999:]  # clip remove stracks to 1000 maximum
+        return np.asarray(
+            [x.tlbr.tolist() + [x.track_id, x.score, x.cls, x.idx] for x in self.tracked_stracks if x.is_activated],
+            dtype=np.float32)
 
     def get_kalmanfilter(self):
         return KalmanFilterXYAH()
@@ -299,6 +301,9 @@ class BYTETracker:
     def multi_predict(self, tracks):
         STrack.multi_predict(tracks)
 
+    def reset_id(self):
+        STrack.reset_id()
+
     @staticmethod
     def joint_stracks(tlista, tlistb):
         exists = {}
@@ -315,12 +320,16 @@ class BYTETracker:
 
     @staticmethod
     def sub_stracks(tlista, tlistb):
+        """ DEPRECATED CODE in https://github.com/ultralytics/ultralytics/pull/1890/
         stracks = {t.track_id: t for t in tlista}
         for t in tlistb:
             tid = t.track_id
             if stracks.get(tid, 0):
                 del stracks[tid]
         return list(stracks.values())
+        """
+        track_ids_b = {t.track_id for t in tlistb}
+        return [t for t in tlista if t.track_id not in track_ids_b]
 
     @staticmethod
     def remove_duplicate_stracks(stracksa, stracksb):

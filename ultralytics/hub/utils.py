@@ -12,9 +12,9 @@ from random import random
 import requests
 from tqdm import tqdm
 
-from ultralytics.yolo.utils import (DEFAULT_CFG_DICT, ENVIRONMENT, LOGGER, ONLINE, RANK, SETTINGS, TESTS_RUNNING,
-                                    TQDM_BAR_FORMAT, TryExcept, __version__, colorstr, emojis, get_git_origin_url,
-                                    is_colab, is_git_dir, is_pip_package)
+from ultralytics.yolo.utils import (ENVIRONMENT, LOGGER, ONLINE, RANK, SETTINGS, TESTS_RUNNING, TQDM_BAR_FORMAT,
+                                    TryExcept, __version__, colorstr, get_git_origin_url, is_colab, is_git_dir,
+                                    is_pip_package)
 
 PREFIX = colorstr('Ultralytics HUB: ')
 HELP_MSG = 'If this issue persists please visit https://github.com/ultralytics/hub/issues for assistance.'
@@ -22,7 +22,16 @@ HUB_API_ROOT = os.environ.get('ULTRALYTICS_HUB_API', 'https://api.ultralytics.co
 
 
 def check_dataset_disk_space(url='https://ultralytics.com/assets/coco128.zip', sf=2.0):
-    # Check that url fits on disk with safety factor sf, i.e. require 2GB free if url size is 1GB with sf=2.0
+    """
+    Check if there is sufficient disk space to download and store a dataset.
+
+    Args:
+        url (str, optional): The URL to the dataset file. Defaults to 'https://ultralytics.com/assets/coco128.zip'.
+        sf (float, optional): Safety factor, the multiplier for the required free space. Defaults to 2.0.
+
+    Returns:
+        bool: True if there is sufficient disk space, False otherwise.
+    """
     gib = 1 << 30  # bytes per GiB
     data = int(requests.head(url).headers['Content-Length']) / gib  # dataset size (GB)
     total, used, free = (x / gib for x in shutil.disk_usage('/'))  # bytes
@@ -35,7 +44,18 @@ def check_dataset_disk_space(url='https://ultralytics.com/assets/coco128.zip', s
 
 
 def request_with_credentials(url: str) -> any:
-    """ Make an ajax request with cookies attached """
+    """
+    Make an AJAX request with cookies attached in a Google Colab environment.
+
+    Args:
+        url (str): The URL to make the request to.
+
+    Returns:
+        any: The response data from the AJAX request.
+
+    Raises:
+        OSError: If the function is not run in a Google Colab environment.
+    """
     if not is_colab():
         raise OSError('request_with_credentials() must run in a Colab environment')
     from google.colab import output  # noqa
@@ -60,29 +80,6 @@ def request_with_credentials(url: str) -> any:
     return output.eval_js('_hub_tmp')
 
 
-def split_key(key=''):
-    """
-    Verify and split a 'api_key[sep]model_id' string, sep is one of '.' or '_'
-
-    Args:
-        key (str): The model key to split. If not provided, the user will be prompted to enter it.
-
-    Returns:
-        Tuple[str, str]: A tuple containing the API key and model ID.
-    """
-
-    import getpass
-
-    error_string = emojis(f'{PREFIX}Invalid API key ⚠️\n')  # error string
-    if not key:
-        key = getpass.getpass('Enter model key: ')
-    sep = '_' if '_' in key else '.' if '.' in key else None  # separator
-    assert sep, error_string
-    api_key, model_id = key.split(sep)
-    assert len(api_key) and len(model_id), error_string
-    return api_key, model_id
-
-
 def requests_with_progress(method, url, **kwargs):
     """
     Make an HTTP request using the specified method and URL, with an optional progress bar.
@@ -95,7 +92,6 @@ def requests_with_progress(method, url, **kwargs):
 
     Returns:
         requests.Response: The response from the HTTP request.
-
     """
     progress = kwargs.pop('progress', False)
     if not progress:
@@ -126,7 +122,6 @@ def smart_request(method, url, retry=3, timeout=30, thread=True, code=-1, verbos
 
     Returns:
         requests.Response: The HTTP response object. If the request is executed in a separate thread, returns None.
-
     """
     retry_codes = (408, 500)  # retry only these codes
 
@@ -171,8 +166,9 @@ class Traces:
     def __init__(self):
         """
         Initialize Traces for error tracking and reporting if tests are not currently running.
+        Sets the rate limit, timer, and metadata attributes, and determines whether Traces are enabled.
         """
-        self.rate_limit = 3.0  # rate limit (seconds)
+        self.rate_limit = 60.0  # rate limit (seconds)
         self.t = 0.0  # rate limit timer (seconds)
         self.metadata = {
             'sys_argv_name': Path(sys.argv[0]).name,
@@ -186,29 +182,44 @@ class Traces:
             not TESTS_RUNNING and \
             ONLINE and \
             (is_pip_package() or get_git_origin_url() == 'https://github.com/ultralytics/ultralytics.git')
+        self._reset_usage()
 
     def __call__(self, cfg, all_keys=False, traces_sample_rate=1.0):
         """
-       Sync traces data if enabled in the global settings
+        Sync traces data if enabled in the global settings.
 
         Args:
             cfg (IterableSimpleNamespace): Configuration for the task and mode.
             all_keys (bool): Sync all items, not just non-default values.
-            traces_sample_rate (float): Fraction of traces captured from 0.0 to 1.0
+            traces_sample_rate (float): Fraction of traces captured from 0.0 to 1.0.
         """
+
+        # Increment usage
+        self.usage['modes'][cfg.mode] = self.usage['modes'].get(cfg.mode, 0) + 1
+        self.usage['tasks'][cfg.task] = self.usage['tasks'].get(cfg.task, 0) + 1
+
         t = time.time()  # current time
-        if self.enabled and random() < traces_sample_rate and (t - self.t) > self.rate_limit:
-            self.t = t  # reset rate limit timer
-            cfg = vars(cfg)  # convert type from IterableSimpleNamespace to dict
-            if not all_keys:  # filter cfg
-                include_keys = {'task', 'mode'}  # always include
-                cfg = {
-                    k: (v.split(os.sep)[-1] if isinstance(v, str) and os.sep in v else v)
-                    for k, v in cfg.items() if v != DEFAULT_CFG_DICT.get(k, None) or k in include_keys}
-            trace = {'uuid': SETTINGS['uuid'], 'cfg': cfg, 'metadata': self.metadata}
+        if not self.enabled or random() > traces_sample_rate:
+            # Traces disabled or not randomly selected, do nothing
+            return
+        elif (t - self.t) < self.rate_limit:
+            # Time is under rate limiter, do nothing
+            return
+        else:
+            # Time is over rate limiter, send trace now
+            trace = {'uuid': SETTINGS['uuid'], 'usage': self.usage.copy(), 'metadata': self.metadata}
 
             # Send a request to the HUB API to sync analytics
             smart_request('post', f'{HUB_API_ROOT}/v1/usage/anonymous', json=trace, code=3, retry=0, verbose=False)
+
+            # Reset usage and rate limit timer
+            self._reset_usage()
+            self.t = t
+
+    def _reset_usage(self):
+        """Reset the usage dictionary by initializing keys for each task and mode with a value of 0."""
+        from ultralytics.yolo.cfg import MODES, TASKS
+        self.usage = {'tasks': {k: 0 for k in TASKS}, 'modes': {k: 0 for k in MODES}}
 
 
 # Run below code on hub/utils init -------------------------------------------------------------------------------------

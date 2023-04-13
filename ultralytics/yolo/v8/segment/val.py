@@ -16,8 +16,8 @@ from ultralytics.yolo.v8.detect import DetectionValidator
 
 class SegmentationValidator(DetectionValidator):
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None):
-        super().__init__(dataloader, save_dir, pbar, args)
+    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
+        super().__init__(dataloader, save_dir, pbar, args, _callbacks)
         self.args.task = 'segment'
         self.metrics = SegmentMetrics(save_dir=self.save_dir)
 
@@ -65,7 +65,7 @@ class SegmentationValidator(DetectionValidator):
 
             if npr == 0:
                 if nl:
-                    self.stats.append((correct_masks, correct_bboxes, *torch.zeros(
+                    self.stats.append((correct_bboxes, correct_masks, *torch.zeros(
                         (2, 0), device=self.device), cls.squeeze(-1)))
                     if self.args.plots:
                         self.confusion_matrix.process_batch(detections=None, labels=cls.squeeze(-1))
@@ -103,7 +103,7 @@ class SegmentationValidator(DetectionValidator):
                     self.confusion_matrix.process_batch(predn, labelsn)
 
             # Append correct_masks, correct_boxes, pconf, pcls, tcls
-            self.stats.append((correct_masks, correct_bboxes, pred[:, 4], pred[:, 5], cls.squeeze(-1)))
+            self.stats.append((correct_bboxes, correct_masks, pred[:, 4], pred[:, 5], cls.squeeze(-1)))
 
             pred_masks = torch.as_tensor(pred_masks, dtype=torch.uint8)
             if self.args.plots and self.batch_i < 3:
@@ -111,8 +111,7 @@ class SegmentationValidator(DetectionValidator):
 
             # Save
             if self.args.save_json:
-                pred_masks = ops.scale_image(batch['img'][si].shape[1:],
-                                             pred_masks.permute(1, 2, 0).contiguous().cpu().numpy(),
+                pred_masks = ops.scale_image(pred_masks.permute(1, 2, 0).contiguous().cpu().numpy(),
                                              shape,
                                              ratio_pad=batch['ratio_pad'][si])
                 self.pred_to_json(predn, batch['im_file'][si], pred_masks)
@@ -220,8 +219,7 @@ class SegmentationValidator(DetectionValidator):
                 pred = anno.loadRes(str(pred_json))  # init predictions api (must pass string, not Path)
                 for i, eval in enumerate([COCOeval(anno, pred, 'bbox'), COCOeval(anno, pred, 'segm')]):
                     if self.is_coco:
-                        eval.params.imgIds = [int(Path(x).stem)
-                                              for x in self.dataloader.dataset.im_files]  # images to eval
+                        eval.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # im to eval
                     eval.evaluate()
                     eval.accumulate()
                     eval.summarize()

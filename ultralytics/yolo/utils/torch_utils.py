@@ -8,6 +8,7 @@ import time
 from contextlib import contextmanager
 from copy import deepcopy
 from pathlib import Path
+from typing import Union
 
 import numpy as np
 import thop
@@ -15,18 +16,16 @@ import torch
 import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.nn.parallel import DistributedDataParallel as DDP
+import torchvision
 
-from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, __version__
+from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, __version__
 from ultralytics.yolo.utils.checks import check_version
 
-LOCAL_RANK = int(os.getenv('LOCAL_RANK', -1))  # https://pytorch.org/docs/stable/elastic/run.html
-RANK = int(os.getenv('RANK', -1))
-WORLD_SIZE = int(os.getenv('WORLD_SIZE', 1))
-
+TORCHVISION_0_10 = check_version(torchvision.__version__, '0.10.0')
 TORCH_1_9 = check_version(torch.__version__, '1.9.0')
 TORCH_1_11 = check_version(torch.__version__, '1.11.0')
 TORCH_1_12 = check_version(torch.__version__, '1.12.0')
+TORCH_2_X = check_version(torch.__version__, minimum='2.0')
 
 
 @contextmanager
@@ -46,17 +45,6 @@ def smart_inference_mode():
         return (torch.inference_mode if TORCH_1_9 else torch.no_grad)()(fn)
 
     return decorate
-
-
-def DDP_model(model):
-    # Model DDP creation with checks
-    assert not check_version(torch.__version__, '1.12.0', pinned=True), \
-        'torch==1.12.0 torchvision==0.13.0 DDP training is not supported due to a known issue. ' \
-        'Please upgrade or downgrade torch to use DDP. See https://github.com/ultralytics/yolov5/issues/8395'
-    if TORCH_1_11:
-        return DDP(model, device_ids=[LOCAL_RANK], output_device=LOCAL_RANK, static_graph=True)
-    else:
-        return DDP(model, device_ids=[LOCAL_RANK], output_device=LOCAL_RANK)
 
 
 def select_device(device='', batch=0, newline=False, verbose=True):
@@ -95,7 +83,8 @@ def select_device(device='', batch=0, newline=False, verbose=True):
             p = torch.cuda.get_device_properties(i)
             s += f"{'' if i == 0 else space}CUDA:{d} ({p.name}, {p.total_memory / (1 << 20):.0f}MiB)\n"  # bytes to MB
         arg = 'cuda:0'
-    elif mps and getattr(torch, 'has_mps', False) and torch.backends.mps.is_available():  # prefer MPS if available
+    elif mps and getattr(torch, 'has_mps', False) and torch.backends.mps.is_available() and TORCH_2_X:
+        # prefer MPS if available
         s += 'MPS\n'
         arg = 'mps'
     else:  # revert to CPU
@@ -139,6 +128,7 @@ def fuse_conv_and_bn(conv, bn):
 
 
 def fuse_deconv_and_bn(deconv, bn):
+    # Fuse ConvTranspose2d() and BatchNorm2d() layers
     fuseddconv = nn.ConvTranspose2d(deconv.in_channels,
                                     deconv.out_channels,
                                     kernel_size=deconv.kernel_size,
@@ -184,14 +174,17 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
 
 
 def get_num_params(model):
+    # Return the total number of parameters in a YOLO model
     return sum(x.numel() for x in model.parameters())
 
 
 def get_num_gradients(model):
+    # Return the total number of parameters with gradients in a YOLO model
     return sum(x.numel() for x in model.parameters() if x.requires_grad)
 
 
 def get_flops(model, imgsz=640):
+    # Return a YOLO model's FLOPs
     try:
         model = de_parallel(model)
         p = next(model.parameters())
@@ -206,6 +199,7 @@ def get_flops(model, imgsz=640):
 
 
 def initialize_weights(model):
+    # Initialize model weights to random values
     for m in model.modules():
         t = type(m)
         if t is nn.Conv2d:
@@ -237,7 +231,7 @@ def make_divisible(x, divisor):
 
 
 def copy_attr(a, b, include=(), exclude=()):
-    # Copy attributes from b to a, options to only include [...] and to exclude [...]
+    # Copy attributes from 'b' to 'a', options to only include [...] and to exclude [...]
     for k, v in b.__dict__.items():
         if (len(include) and k not in include) or k.startswith('_') or k in exclude:
             continue
@@ -246,8 +240,8 @@ def copy_attr(a, b, include=(), exclude=()):
 
 
 def get_latest_opset():
-    # Return max supported ONNX opset by this version of torch
-    return max(int(k[14:]) for k in vars(torch.onnx) if 'symbolic_opset' in k)  # opset
+    # Return second-most (for maturity) recently supported ONNX opset by this version of torch
+    return max(int(k[14:]) for k in vars(torch.onnx) if 'symbolic_opset' in k) - 1  # opset
 
 
 def intersect_dicts(da, db, exclude=()):
@@ -320,15 +314,9 @@ class ModelEMA:
             copy_attr(self.ema, model, include, exclude)
 
 
-def strip_optimizer(f='best.pt', s=''):
+def strip_optimizer(f: Union[str, Path] = 'best.pt', s: str = '') -> None:
     """
     Strip optimizer from 'f' to finalize training, optionally save as 's'.
-
-    Usage:
-        from ultralytics.yolo.utils.torch_utils import strip_optimizer
-        from pathlib import Path
-        for f in Path('/Users/glennjocher/Downloads/weights').glob('*.pt'):
-            strip_optimizer(f)
 
     Args:
         f (str): file path to model to strip the optimizer from. Default is 'best.pt'.
@@ -336,6 +324,12 @@ def strip_optimizer(f='best.pt', s=''):
 
     Returns:
         None
+
+    Usage:
+        from pathlib import Path
+        from ultralytics.yolo.utils.torch_utils import strip_optimizer
+        for f in Path('/Users/glennjocher/Downloads/weights').rglob('*.pt'):
+            strip_optimizer(f)
     """
     x = torch.load(f, map_location=torch.device('cpu'))
     args = {**DEFAULT_CFG_DICT, **x['train_args']}  # combine model args with default args, preferring model args
@@ -355,7 +349,9 @@ def strip_optimizer(f='best.pt', s=''):
 
 
 def profile(input, ops, n=10, device=None):
-    """ YOLOv8 speed/memory/FLOPs profiler
+    """
+    YOLOv8 speed/memory/FLOPs profiler
+
     Usage:
         input = torch.randn(16, 3, 640, 640)
         m1 = lambda x: x * torch.sigmoid(x)

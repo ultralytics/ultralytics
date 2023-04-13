@@ -3,7 +3,6 @@
 import copy
 
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
 
 from ultralytics.yolo.utils import LOGGER
@@ -205,24 +204,25 @@ class GMC:
         currPoints = np.array(currPoints)
 
         # Draw the keypoint matches on the output image
-        if 0:
-            matches_img = np.hstack((self.prevFrame, frame))
-            matches_img = cv2.cvtColor(matches_img, cv2.COLOR_GRAY2BGR)
-            W = np.size(self.prevFrame, 1)
-            for m in goodMatches:
-                prev_pt = np.array(self.prevKeyPoints[m.queryIdx].pt, dtype=np.int_)
-                curr_pt = np.array(keypoints[m.trainIdx].pt, dtype=np.int_)
-                curr_pt[0] += W
-                color = np.random.randint(0, 255, 3)
-                color = (int(color[0]), int(color[1]), int(color[2]))
-
-                matches_img = cv2.line(matches_img, prev_pt, curr_pt, tuple(color), 1, cv2.LINE_AA)
-                matches_img = cv2.circle(matches_img, prev_pt, 2, tuple(color), -1)
-                matches_img = cv2.circle(matches_img, curr_pt, 2, tuple(color), -1)
-
-            plt.figure()
-            plt.imshow(matches_img)
-            plt.show()
+        # if False:
+        #     import matplotlib.pyplot as plt
+        #     matches_img = np.hstack((self.prevFrame, frame))
+        #     matches_img = cv2.cvtColor(matches_img, cv2.COLOR_GRAY2BGR)
+        #     W = np.size(self.prevFrame, 1)
+        #     for m in goodMatches:
+        #         prev_pt = np.array(self.prevKeyPoints[m.queryIdx].pt, dtype=np.int_)
+        #         curr_pt = np.array(keypoints[m.trainIdx].pt, dtype=np.int_)
+        #         curr_pt[0] += W
+        #         color = np.random.randint(0, 255, 3)
+        #         color = (int(color[0]), int(color[1]), int(color[2]))
+        #
+        #         matches_img = cv2.line(matches_img, prev_pt, curr_pt, tuple(color), 1, cv2.LINE_AA)
+        #         matches_img = cv2.circle(matches_img, prev_pt, 2, tuple(color), -1)
+        #         matches_img = cv2.circle(matches_img, curr_pt, 2, tuple(color), -1)
+        #
+        #     plt.figure()
+        #     plt.imshow(matches_img)
+        #     plt.show()
 
         # Find rigid matrix
         if (np.size(prevPoints, 0) > 4) and (np.size(prevPoints, 0) == np.size(prevPoints, 0)):

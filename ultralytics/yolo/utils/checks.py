@@ -8,7 +8,6 @@ import platform
 import re
 import shutil
 import subprocess
-import urllib
 from pathlib import Path
 from typing import Optional
 
@@ -20,8 +19,9 @@ import requests
 import torch
 from matplotlib import font_manager
 
-from ultralytics.yolo.utils import (AUTOINSTALL, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, TryExcept, colorstr, downloads,
-                                    emojis, is_colab, is_docker, is_jupyter, is_online, is_pip_package)
+from ultralytics.yolo.utils import (AUTOINSTALL, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, TryExcept, clean_url, colorstr,
+                                    downloads, emojis, is_colab, is_docker, is_kaggle, is_online, is_pip_package,
+                                    url2file)
 
 
 def is_ascii(s) -> bool:
@@ -128,7 +128,8 @@ def check_latest_pypi_version(package_name='ultralytics'):
     Returns:
         str: The latest version of the package.
     """
-    response = requests.get(f'https://pypi.org/pypi/{package_name}/json')
+    requests.packages.urllib3.disable_warnings()  # Disable the InsecureRequestWarning
+    response = requests.get(f'https://pypi.org/pypi/{package_name}/json', verify=False)
     if response.status_code == 200:
         return response.json()['info']['version']
     return None
@@ -142,7 +143,7 @@ def check_pip_update_available():
         bool: True if an update is available, False otherwise.
     """
     if ONLINE and is_pip_package():
-        with contextlib.suppress(ConnectionError):
+        with contextlib.suppress(Exception):
             from ultralytics import __version__
             latest = check_latest_pypi_version()
             if pkg.parse_version(__version__) < pkg.parse_version(latest):  # update is available
@@ -239,7 +240,7 @@ def check_suffix(file='yolov8n.pt', suffix='.pt', msg=''):
         if isinstance(suffix, str):
             suffix = (suffix, )
         for f in file if isinstance(file, (list, tuple)) else [file]:
-            s = Path(f).suffix.lower()  # file suffix
+            s = Path(f).suffix.lower().strip()  # file suffix
             if len(s):
                 assert s in suffix, f'{msg}{f} acceptable suffix is {suffix}, not {s}'
 
@@ -261,15 +262,15 @@ def check_yolov5u_filename(file: str, verbose: bool = True):
 def check_file(file, suffix='', download=True, hard=True):
     # Search/download file (if necessary) and return path
     check_suffix(file, suffix)  # optional
-    file = str(file)  # convert to string
+    file = str(file).strip()  # convert to string and strip spaces
     file = check_yolov5u_filename(file)  # yolov5n -> yolov5nu
     if not file or ('://' not in file and Path(file).exists()):  # exists ('://' check required in Windows Python<3.10)
         return file
     elif download and file.lower().startswith(('https://', 'http://', 'rtsp://', 'rtmp://')):  # download
         url = file  # warning: Pathlib turns :// -> :/
-        file = Path(urllib.parse.unquote(file).split('?')[0]).name  # '%2F' to '/', split https://url.com/file.txt?auth
+        file = url2file(file)  # '%2F' to '/', split https://url.com/file.txt?auth
         if Path(file).exists():
-            LOGGER.info(f'Found {url} locally at {file}')  # file already exists
+            LOGGER.info(f'Found {clean_url(url)} locally at {file}')  # file already exists
         else:
             downloads.safe_download(url=url, file=file, unzip=False)
         return file
@@ -292,8 +293,7 @@ def check_yaml(file, suffix=('.yaml', '.yml'), hard=True):
 def check_imshow(warn=False):
     # Check if environment supports image displays
     try:
-        assert not is_jupyter()
-        assert not is_docker()
+        assert not any((is_colab(), is_kaggle(), is_docker()))
         cv2.imshow('test', np.zeros((1, 1, 3)))
         cv2.waitKey(1)
         cv2.destroyAllWindows()
@@ -338,6 +338,10 @@ def git_describe(path=ROOT):  # path must be a directory
 
 def print_args(args: Optional[dict] = None, show_file=True, show_func=False):
     # Print function arguments (optional args dict)
+    def strip_auth(v):
+        # Clean longer Ultralytics HUB URLs by stripping potential authentication information
+        return clean_url(v) if (isinstance(v, str) and v.startswith('http') and len(v) > 100) else v
+
     x = inspect.currentframe().f_back  # previous frame
     file, _, func, _, _ = inspect.getframeinfo(x)
     if args is None:  # get args automatically
@@ -348,4 +352,4 @@ def print_args(args: Optional[dict] = None, show_file=True, show_func=False):
     except ValueError:
         file = Path(file).stem
     s = (f'{file}: ' if show_file else '') + (f'{func}: ' if show_func else '')
-    LOGGER.info(colorstr(s) + ', '.join(f'{k}={v}' for k, v in args.items()))
+    LOGGER.info(colorstr(s) + ', '.join(f'{k}={strip_auth(v)}' for k, v in args.items()))

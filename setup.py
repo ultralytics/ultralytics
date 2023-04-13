@@ -39,9 +39,8 @@ setup(
     install_requires=REQUIREMENTS + PKG_REQUIREMENTS,
     extras_require={
         'dev': ['check-manifest', 'pytest', 'pytest-cov', 'coverage', 'mkdocs-material', 'mkdocstrings[python]'],
-        'export': ['coremltools>=6.0', 'openvino-dev>=2022.3', 'tensorflow', 'tensorflowjs'],
-        'export-cpu': ['coremltools>=6.0', 'openvino-dev>=2022.3', 'tensorflow-cpu', 'tensorflowjs'],
-        'export-macos': ['coremltools>=6.0', 'openvino-dev>=2022.3', 'tensorflow-macos', 'tensorflowjs']},
+        'export': ['coremltools>=6.0', 'openvino-dev>=2022.3', 'tensorflowjs'],  # automatically installs tensorflow
+    },
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',

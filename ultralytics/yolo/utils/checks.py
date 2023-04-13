@@ -226,7 +226,7 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
         LOGGER.info(f"{prefix} YOLOv8 requirement{'s' * (n > 1)} {s}not found, attempting AutoUpdate...")
         try:
             assert is_online(), 'AutoUpdate skipped (offline)'
-            LOGGER.info(subprocess.check_output(f'pip install --no-cache {s} {cmds}', shell=True).decode())
+            LOGGER.info(subprocess.check_output(f'pip install {s} {cmds}', shell=True).decode())
             s = f"{prefix} {n} package{'s' * (n > 1)} updated per {file or requirements}\n" \
                 f"{prefix} ⚠️ {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n"
             LOGGER.info(s)

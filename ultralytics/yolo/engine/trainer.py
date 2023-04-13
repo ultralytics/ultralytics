@@ -102,7 +102,7 @@ class BaseTrainer:
             self.args.save_dir = str(self.save_dir)
             yaml_save(self.save_dir / 'args.yaml', vars(self.args))  # save run args
 
-            formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s - %(lineno)s %(message)s')
+            formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s - %(lineno)s - %(message)s')
             file_handler = logging.FileHandler(self.save_dir / 'log.log', mode='w')
             file_handler.setFormatter(formatter)
             LOGGER.addHandler(file_handler)

@@ -29,7 +29,7 @@ RUN python3 -m pip install --upgrade pip wheel
 RUN pip install --no-cache '.[export-cpu]' albumentations gsutil notebook \
         --extra-index-url https://download.pytorch.org/whl/cpu
 
-RUN yolo export format=edgetpu
+RUN yolo export model=yolov8n.pt format=edgetpu imgsz=32
 
 # Cleanup
 ENV DEBIAN_FRONTEND teletype

@@ -389,11 +389,11 @@ class YOLO:
              max_samples=10,
              train_args: dict = {}):
         """
-        Runs hyper-parameter tuning using ray tune
+        Runs hyperparameter tuning using ray tune
 
         Args:
             data (str): The dataset to run the tuner on
-            space (dict): The hyper parameter search space
+            space (dict): The hyperparameter search space
             pbt_space (dict): The perturbation space
             pbt_interval (int): Perturbation interval
             gpu_per_trial (int): set CUDA_VISIBLE_DEVICES per trial
@@ -432,12 +432,11 @@ class YOLO:
             grace_period=grace_period,
             reduction_factor=3,
         )
+        tuner_callbacks = [WandbLoggerCallback(project='yolov8_tune') if wandb else None]
         tuner = tune.Tuner(trainable_with_resources,
                            param_space=space,
                            tune_config=tune.TuneConfig(scheduler=asha_scheduler, num_samples=max_samples),
-                           run_config=RunConfig(callbacks=[
-                               WandbLoggerCallback(project='yolov8_tune') if wandb else None],
-                                                local_dir='./runs'))
+                           run_config=RunConfig(callbacks=tuner_callbacks, local_dir='./runs'))
         tuner.fit()
 
         return tuner.get_results()

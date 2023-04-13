@@ -18,6 +18,7 @@ class ClassificationValidator(BaseValidator):
         return ('%22s' + '%11s' * 2) % ('classes', 'top1_acc', 'top5_acc')
 
     def init_metrics(self, model):
+        self.names = model.names
         self.nc = len(model.names)
         self.confusion_matrix = ConfusionMatrix(nc=self.nc, task='classify')
         self.pred = []

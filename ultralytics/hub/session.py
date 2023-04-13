@@ -8,6 +8,7 @@ import requests
 
 from ultralytics.hub.utils import HUB_API_ROOT, PREFIX, check_dataset_disk_space, smart_request
 from ultralytics.yolo.utils import LOGGER, __version__, checks, emojis, is_colab, threaded
+from ultralytics.yolo.utils.errors import HUBModelError
 
 AGENT_NAME = f'python-{__version__}-colab' if is_colab() else f'python-{__version__}-local'
 
@@ -55,7 +56,8 @@ class HUBTrainingSession:
         elif len(url) == 20:
             key, model_id = '', url
         else:
-            raise ValueError(f'Invalid HUBTrainingSession input: {url}')
+            raise HUBModelError(f"model='{url}' not found. Check format is correct, i.e. "
+                                f"model='https://hub.ultralytics.com/models/MODEL_ID' and try again.")
 
         # Authorize
         auth = Auth(key)

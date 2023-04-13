@@ -29,6 +29,10 @@ RUN python3 -m pip install --upgrade pip wheel
 RUN pip install --no-cache '.[export]' albumentations gsutil notebook \
         --extra-index-url https://download.pytorch.org/whl/cpu
 
+# Auto-install Ultralytics ONNX and TF export packages on first use
+RUN yolo export format=edgetpu imgsz=32
+RUN yolo export format=paddle imgsz=32
+
 # Cleanup
 ENV DEBIAN_FRONTEND teletype
 

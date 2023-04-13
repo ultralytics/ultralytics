@@ -12,6 +12,8 @@ class ClassificationValidator(BaseValidator):
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
         self.args.task = 'classify'
         self.metrics = ClassifyMetrics()
+        self.names = dict(enumerate(dataloader.dataset.classes))
+        self.save_dir = save_dir
 
     def get_desc(self):
         return ('%22s' + '%11s' * 2) % ('classes', 'top1_acc', 'top5_acc')
@@ -34,7 +36,7 @@ class ClassificationValidator(BaseValidator):
         self.targets.append(batch['cls'])
 
     def finalize_metrics(self, *args, **kwargs):
-        self.confusion_matrix.process_preds(self.pred, self.targets)
+        self.confusion_matrix.process_cls_preds(self.pred, self.targets)
         self.metrics.speed = self.speed
         self.metrics.confusion_matrix = self.confusion_matrix
 
@@ -53,6 +55,9 @@ class ClassificationValidator(BaseValidator):
     def print_results(self):
         pf = '%22s' + '%11.3g' * len(self.metrics.keys)  # print format
         LOGGER.info(pf % ('all', self.metrics.top1, self.metrics.top5))
+
+        if self.args.plots:
+            self.confusion_matrix.plot(save_dir=self.save_dir, names=list(self.names.values()))
 
 
 def val(cfg=DEFAULT_CFG, use_python=False):

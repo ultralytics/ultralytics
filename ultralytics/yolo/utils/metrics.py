@@ -179,7 +179,7 @@ class ConfusionMatrix:
         self.conf = conf
         self.iou_thres = iou_thres
 
-    def process_preds(self, preds, targets):
+    def process_cls_preds(self, preds, targets):
         """
         Update confusion matrix for classification task
 

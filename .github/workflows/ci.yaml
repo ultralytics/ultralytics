@@ -80,7 +80,7 @@ jobs:
             else
               pip install -e '.[export-cpu]' --extra-index-url https://download.pytorch.org/whl/cpu
           fi
-          yolo export format=tflite
+          yolo export format=tflite imgsz=32
       - name: Check environment
         run: |
           echo "RUNNER_OS is ${{ runner.os }}"

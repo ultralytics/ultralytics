@@ -37,6 +37,7 @@ class YOLODataset(BaseDataset):
         single_cls (bool): if True, single class training is used (default: False).
         use_segments (bool): if True, segmentation masks are used as labels (default: False).
         use_keypoints (bool): if True, keypoints are used as labels (default: False).
+        use_obb (bool): if True, OBB angles are used as labels (default: False).
         names (dict): A dictionary of class names. (default: None).
 
     Returns:
@@ -57,12 +58,16 @@ class YOLODataset(BaseDataset):
                  single_cls=False,
                  use_segments=False,
                  use_keypoints=False,
+                 use_obb=False,
                  data=None,
                  classes=None):
         self.use_segments = use_segments
         self.use_keypoints = use_keypoints
+        self.use_obb = use_obb
         self.data = data
-        assert not (self.use_segments and self.use_keypoints), 'Can not use both segments and keypoints.'
+        assert not ((self.use_segments and self.use_keypoints) or (self.use_keypoints and self.use_obb) or (self.use_segments and self.use_obb) or (
+            self.use_segments and self.use_keypoints and self.use_obb)), 'Cannot use segments, keypoints and OBB together'
+
         super().__init__(img_path, imgsz, cache, augment, hyp, prefix, rect, batch_size, stride, pad, single_cls,
                          classes)
 
@@ -84,10 +89,10 @@ class YOLODataset(BaseDataset):
         with ThreadPool(NUM_THREADS) as pool:
             results = pool.imap(func=verify_image_label,
                                 iterable=zip(self.im_files, self.label_files, repeat(self.prefix),
-                                             repeat(self.use_keypoints), repeat(len(self.data['names'])), repeat(nkpt),
-                                             repeat(ndim)))
+                                             repeat(self.use_keypoints), repeat(self.use_obb), 
+                                             repeat(self.data['names']), repeat(nkpt), repeat(ndim)))
             pbar = tqdm(results, desc=desc, total=total, bar_format=TQDM_BAR_FORMAT)
-            for im_file, lb, shape, segments, keypoint, nm_f, nf_f, ne_f, nc_f, msg in pbar:
+            for im_file, lb, shape, segments, keypoint, obb_theta, nm_f, nf_f, ne_f, nc_f, msg in pbar:
                 nm += nm_f
                 nf += nf_f
                 ne += ne_f
@@ -98,7 +103,8 @@ class YOLODataset(BaseDataset):
                             im_file=im_file,
                             shape=shape,
                             cls=lb[:, 0:1],  # n, 1
-                            bboxes=lb[:, 1:],  # n, 4
+                            bboxes=lb[:, 1:5],  # n, 4
+                            obb_theta=obb_theta,  # n, 1
                             segments=segments,
                             keypoints=keypoint,
                             normalized=True,
@@ -127,7 +133,7 @@ class YOLODataset(BaseDataset):
         return x
 
     def get_labels(self):
-        self.label_files = img2label_paths(self.im_files)
+        self.label_files = img2label_paths(self.im_files, self.use_obb)
         cache_path = Path(self.label_files[0]).parent.with_suffix('.cache')
         try:
             import gc
@@ -213,7 +219,7 @@ class YOLODataset(BaseDataset):
             value = values[i]
             if k == 'img':
                 value = torch.stack(value, 0)
-            if k in ['masks', 'keypoints', 'bboxes', 'cls']:
+            if k in ['masks', 'keypoints', 'bboxes', 'cls', 'obb_theta']:
                 value = torch.cat(value, 0)
             new_batch[k] = value
         new_batch['batch_idx'] = list(new_batch['batch_idx'])

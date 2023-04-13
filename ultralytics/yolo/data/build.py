@@ -82,6 +82,7 @@ def build_dataloader(cfg, batch, img_path, data_info, stride=32, rect=False, ran
             prefix=colorstr(f'{mode}: '),
             use_segments=cfg.task == 'segment',
             use_keypoints=cfg.task == 'pose',
+            use_obb=cfg.task == 'obb',
             classes=cfg.classes,
             data=data_info)
 

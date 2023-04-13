@@ -498,6 +498,96 @@ def ltwh2xyxy(x):
     return y
 
 
+def dota2yolo(obb_list, img_width, img_height):
+    """
+    Converts a list of bounding boxes from DOTA format to YOLO format.
+
+    Args:
+        obb_list (np.ndarray): eight points representing the bounding box in the DOTA format.
+        img_width (int): The width of the image that the bounding boxes are relative to.
+        img_height (int): The height of the image that the bounding boxes are relative to.
+
+    Returns:
+        np.ndarray: An array of bounding boxes in the YOLO format, where each bounding box is a list of x_center, y_center, width, height and angle.
+    """
+    return np.array([dota2xywha(obb, img_width, img_height) for obb in obb_list])
+
+
+def dota2xywha(bbox, img_width, img_height):
+    """
+    Converts a bounding box from DOTA format (a list of eight points) to the xywha format (a list of five values).
+
+    Args:
+        bbox (np.ndarray): eight points representing the bounding box in the DOTA format, ordered as follows: x1, y1, x2, y2, x3, y3, x4, y4.
+        img_width (int): The width of the image that the bounding box is relative to.
+        img_height (int): The height of the image that the bounding box is relative to.
+
+    Returns:
+        list: A list of five values representing the bounding box in the xywha format. The values are ordered as follows: x_center, y_center, width, height, angle.
+
+        - x_center (float): The x-coordinate of the center of the bounding box, normalized to the range [0, 1].
+        - y_center (float): The y-coordinate of the center of the bounding box, normalized to the range [0, 1].
+        - width (float): The width of the bounding box, normalized to the range [0, 1].
+        - height (float): The height of the bounding box, normalized to the range [0, 1].
+        - angle (float): The angle of rotation of the bounding box in degrees, normalized to the range [0, 1).
+    """
+    x1, y1, x2, y2, x3, y3, x4, y4 = map(float, bbox[:8])
+    x, y = (x1 + x2 + x3 + x4) / 4, (y1 + y2 + y3 + y4) / 4,
+    points = np.array([(x1, y1), (x2, y2), (x3, y3), (x4, y4)])
+
+    # Calculate the width and height
+    width = np.linalg.norm(points[0] - points[1])
+    height = np.linalg.norm(points[1] - points[2])
+
+    # Calculate the angle of rotation (theta)
+    delta_x, delta_y = points[0] - points[1]
+    theta = np.arctan2(delta_y, delta_x)
+    theta = np.degrees(theta)
+
+    # Keep the angle between -180 and 180 degrees [-180, 180)
+    while theta > 180:
+        theta -= 360
+    while theta < -180:
+        theta += 360
+
+    # Normalizes an angle in the range [-180, 180) to the range [0, 1)
+    theta_norm = normalize_angle(theta)
+
+    # Normalize coordinates to YOLO format
+    x_norm = x / img_width
+    y_norm = y / img_height
+    width_norm = width / img_width
+    height_norm = height / img_height
+
+    return [x_norm, y_norm, width_norm, height_norm, theta_norm]
+
+
+def normalize_angle(theta):
+    """
+    Normalizes an angle in the range [-180, 180) to the range [0, 1).
+
+    Args:
+        theta (float): An angle in degrees, in the range [-180, 180).
+
+    Returns:
+        float: The normalized angle in the range [0, 1).
+    """
+    return (theta + 180) / 360
+
+
+def denormalize_angle(theta_norm):
+    """
+    Denormalizes an angle in the range [0, 1) to the range [-180, 180).
+
+    Args:
+        theta_norm (float): A normalized angle in the range [0, 1).
+
+    Returns:
+        float: The denormalized angle in degrees, in the range [-180, 180).
+    """
+    return theta_norm * 360 - 180
+
+
 def segments2boxes(segments):
     """
     It converts segment labels to box labels, i.e. (cls, xy1, xy2, ...) to (cls, xywh)

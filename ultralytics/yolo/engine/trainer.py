@@ -113,7 +113,7 @@ class BaseTrainer:
         if self.device.type == 'cpu':
             self.args.workers = 0  # faster CPU training as time dominated by inference, not dataloading
 
-        # Model and Dataloaders.
+        # Model and Dataset
         self.model = self.args.model
         try:
             if self.args.task == 'classify':
@@ -244,7 +244,7 @@ class BaseTrainer:
         self.scheduler = lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
         self.stopper, self.stop = EarlyStopping(patience=self.args.patience), False
 
-        # dataloaders
+        # Dataloaders
         batch_size = self.batch_size // world_size if world_size > 1 else self.batch_size
         self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=RANK, mode='train')
         if RANK in (-1, 0):
@@ -640,9 +640,9 @@ def check_amp(model):
 
     def amp_allclose(m, im):
         # All close FP32 vs AMP results
-        a = m(im, device=device, verbose=False)[0].boxes.boxes  # FP32 inference
+        a = m(im, device=device, verbose=False)[0].boxes.data  # FP32 inference
         with torch.cuda.amp.autocast(True):
-            b = m(im, device=device, verbose=False)[0].boxes.boxes  # AMP inference
+            b = m(im, device=device, verbose=False)[0].boxes.data  # AMP inference
         del m
         return a.shape == b.shape and torch.allclose(a, b.float(), atol=0.5)  # close to 0.5 absolute tolerance
 

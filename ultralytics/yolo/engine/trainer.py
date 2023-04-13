@@ -8,6 +8,7 @@ Usage:
 import os
 import subprocess
 import time
+import logging
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
@@ -100,6 +101,12 @@ class BaseTrainer:
             self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
             self.args.save_dir = str(self.save_dir)
             yaml_save(self.save_dir / 'args.yaml', vars(self.args))  # save run args
+
+            formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(filename)s - %(lineno)s %(message)s')
+            file_handler = logging.FileHandler(self.save_dir / 'log.log', mode='w')
+            file_handler.setFormatter(formatter)
+            LOGGER.addHandler(file_handler)
+
         self.last, self.best = self.wdir / 'last.pt', self.wdir / 'best.pt'  # checkpoint paths
         self.save_period = self.args.save_period
 

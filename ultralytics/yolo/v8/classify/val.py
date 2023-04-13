@@ -12,7 +12,6 @@ class ClassificationValidator(BaseValidator):
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
         self.args.task = 'classify'
         self.metrics = ClassifyMetrics()
-        self.names = dict(enumerate(dataloader.dataset.classes))
         self.save_dir = save_dir
 
     def get_desc(self):

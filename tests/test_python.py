@@ -116,31 +116,31 @@ def test_train_pretrained():
 
 
 def test_export_torchscript():
-    model = YOLO(MODEL, compile_model=False)
+    model = YOLO(MODEL)
     f = model.export(format='torchscript')
-    YOLO(f, compile_model=False)(SOURCE)  # exported model inference
+    YOLO(f)(SOURCE)  # exported model inference
 
 
 def test_export_torchscript_scratch():
-    model = YOLO(CFG, compile_model=False)
+    model = YOLO(CFG)
     f = model.export(format='torchscript')
-    YOLO(f, compile_model=False)(SOURCE)  # exported model inference
+    YOLO(f)(SOURCE)  # exported model inference
 
 
 def test_export_onnx():
-    model = YOLO(MODEL, compile_model=False)
+    model = YOLO(MODEL)
     f = model.export(format='onnx')
-    YOLO(f, compile_model=False)(SOURCE)  # exported model inference
+    YOLO(f)(SOURCE)  # exported model inference
 
 
 def test_export_openvino():
-    model = YOLO(MODEL, compile_model=False)
+    model = YOLO(MODEL)
     f = model.export(format='openvino')
-    YOLO(f, compile_model=False)(SOURCE)  # exported model inference
+    YOLO(f)(SOURCE)  # exported model inference
 
 
 def test_export_coreml():  # sourcery skip: move-assign
-    model = YOLO(MODEL, compile_model=False)
+    model = YOLO(MODEL)
     model.export(format='coreml')
     # if MACOS:
     #    YOLO(f)(SOURCE)  # model prediction only supported on macOS
@@ -149,23 +149,23 @@ def test_export_coreml():  # sourcery skip: move-assign
 def test_export_tflite(enabled=False):
     # TF suffers from install conflicts on Windows and macOS
     if enabled and LINUX:
-        model = YOLO(MODEL, compile_model=False)
+        model = YOLO(MODEL)
         f = model.export(format='tflite')
-        YOLO(f, compile_model=False)(SOURCE)
+        YOLO(f)(SOURCE)
 
 
 def test_export_pb(enabled=False):
     # TF suffers from install conflicts on Windows and macOS
     if enabled and LINUX:
-        model = YOLO(MODEL, compile_model=False)
+        model = YOLO(MODEL)
         f = model.export(format='pb')
-        YOLO(f, compile_model=False)(SOURCE)
+        YOLO(f)(SOURCE)
 
 
 def test_export_paddle(enabled=False):
     # Paddle protobuf requirements conflicting with onnx protobuf requirements
     if enabled:
-        model = YOLO(MODEL, compile_model=False)
+        model = YOLO(MODEL)
         model.export(format='paddle')
 
 
@@ -175,7 +175,7 @@ def test_all_model_yamls():
 
 
 def test_workflow():
-    model = YOLO(MODEL, compile_model=False)
+    model = YOLO(MODEL)
     model.train(data='coco8.yaml', epochs=1, imgsz=32)
     model.val()
     model.predict(SOURCE)

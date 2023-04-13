@@ -84,7 +84,8 @@ class BaseTrainer:
         self.device = select_device(self.args.device, self.args.batch)
         self.check_resume()
         self.validator = None
-        self.model = None
+        self._model = None
+        self._not_opt_model = None
         self.metrics = None
         init_seeds(self.args.seed + 1 + RANK, deterministic=self.args.deterministic)
 
@@ -116,6 +117,7 @@ class BaseTrainer:
 
         # Model and Dataloaders.
         self.model = self.args.model
+
         try:
             if self.args.task == 'classify':
                 self.data = check_cls_dataset(self.args.data)
@@ -429,9 +431,6 @@ class BaseTrainer:
         else:
             cfg = model
         self.model = self.get_model(cfg=cfg, weights=weights, verbose=RANK == -1)  # calls Model(cfg, weights)
-        if check_version(torch.__version__, minimum='2.0'):
-            LOGGER.info('Compiling model...')
-            self.model = torch.compile(self.model)
         return ckpt
 
     def optimizer_step(self):
@@ -608,6 +607,22 @@ class BaseTrainer:
         LOGGER.info(f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}) with parameter groups "
                     f'{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias')
         return optimizer
+
+    @property
+    def model(self):
+        return self._not_opt_model if self._not_opt_model else self._model
+
+    @model.setter
+    def model(self, set_model):
+        if self.args.compile and isinstance(set_model, nn.Module) and not self._not_opt_model:
+            if check_version(torch.__version__, minimum='2.0'):
+                self._not_opt_model = set_model
+                self._model = torch.compile(self._not_opt_model)
+                LOGGER.info('Pytorch model is compiled.')
+                return
+            else:
+                LOGGER.info('Pytorch version < 2.0. Please update pytorch to a version >= 2.0.')
+        self._model = set_model
 
 
 def check_amp(model):

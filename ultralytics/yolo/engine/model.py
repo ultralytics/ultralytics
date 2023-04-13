@@ -3,8 +3,6 @@
 import sys
 from pathlib import Path
 
-import torch
-
 from ultralytics import yolo  # noqa
 from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, SegmentationModel, attempt_load_one_weight,
                                   guess_model_task, nn, yaml_model_load)
@@ -12,7 +10,7 @@ from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, ROOT, callbacks,
                                     is_git_dir, yaml_load)
-from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_pip_update_available, check_version, check_yaml
+from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_pip_update_available, check_yaml
 from ultralytics.yolo.utils.downloads import GITHUB_ASSET_STEMS
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 
@@ -69,7 +67,7 @@ class YOLO:
         list(ultralytics.yolo.engine.results.Results): The prediction results.
     """
 
-    def __init__(self, model='yolov8n.pt', task=None, session=None, compile_model=True) -> None:
+    def __init__(self, model='yolov8n.pt', task=None, session=None) -> None:
         """
         Initializes the YOLO model.
 
@@ -96,13 +94,6 @@ class YOLO:
             self._new(model, task)
         else:
             self._load(model, task)
-        self.compile_model = compile_model
-        if self.compile_model:
-            if check_version(torch.__version__, minimum='2.0'):
-                LOGGER.info('Pytorch model is compiled.')
-                self.model = torch.compile(self.model)
-            else:
-                LOGGER.info('Pytorch version < 2.0. Please update pytorch to a version >= 2.0.')
 
     def __call__(self, source=None, stream=False, **kwargs):
         return self.predict(source, stream, **kwargs)
@@ -295,9 +286,6 @@ class YOLO:
         Args:
             **kwargs : Any other args accepted by the predictors. To see all args check 'configuration' section in docs
         """
-        if self.compile_model:
-            raise ValueError('ERROR ❌️ compile=True is not supported with method Yolo.export(...).')
-
         self._check_is_pytorch_model()
         overrides = self.overrides.copy()
         overrides.update(kwargs)

@@ -422,7 +422,7 @@ class YOLO:
         space['data'] = data
 
         trainable_with_resources = tune.with_resources(_tune, {'cpu': 8, 'gpu': gpu_per_trial if gpu_per_trial else 0})
-        #scheduler = AHB(max_t=100, grace_period=grace_period, )
+        # scheduler = AHB(max_t=100, grace_period=grace_period, )
 
         asha_scheduler = ASHAScheduler(
             time_attr='epoch',
@@ -437,7 +437,7 @@ class YOLO:
                            tune_config=tune.TuneConfig(scheduler=asha_scheduler, num_samples=max_samples),
                            run_config=RunConfig(callbacks=[
                                WandbLoggerCallback(project='yolov8_tune') if wandb else None],
-                                                local_dir='./runs'))
+                               local_dir='./runs'))
         tuner.fit()
 
         return tuner.get_results()

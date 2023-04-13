@@ -437,7 +437,7 @@ class YOLO:
                            tune_config=tune.TuneConfig(scheduler=asha_scheduler, num_samples=max_samples),
                            run_config=RunConfig(callbacks=[
                                WandbLoggerCallback(project='yolov8_tune') if wandb else None],
-                               local_dir='./runs'))
+                                                local_dir='./runs'))
         tuner.fit()
 
         return tuner.get_results()

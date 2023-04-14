@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 # COCO8-pose dataset (first 8 images from COCO train2017) by Ultralytics
 # Example usage: yolo train data=coco8-pose.yaml
 # parent

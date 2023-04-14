@@ -36,6 +36,7 @@ ENV OMP_NUM_THREADS=1
 
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
+
 # Build and Push
 # t=ultralytics/ultralytics:latest && sudo docker build -f docker/Dockerfile -t $t . && sudo docker push $t
 

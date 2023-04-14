@@ -198,7 +198,7 @@ def check_python(minimum: str = '3.7.0') -> bool:
 @TryExcept()
 def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=(), install=True, cmds=''):
     """
-    Check if installed dependencies meet YOLOv5 requirements and attempt to auto-update if needed.
+    Check if installed dependencies meet YOLOv8 requirements and attempt to auto-update if needed.
 
     Args:
         requirements (Union[Path, str, List[str]]): Path to a requirements.txt file, a single package requirement as a

@@ -112,4 +112,4 @@ understand and diagnose your problem.
 ## License
 
 By contributing, you agree that your contributions will be licensed under
-the [GPL-3.0 license](https://choosealicense.com/licenses/gpl-3.0/)
+the [AGPL-3.0 license](https://choosealicense.com/licenses/agpl-3.0/)

@@ -224,8 +224,8 @@ success = model.export(format="onnx")  # 将模型导出为 ONNX 格式
 
 YOLOv8 提供两种不同的许可证：
 
-- **GPL-3.0 许可证**：详细信息请参阅 [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) 文件。
-- **企业许可证**：为商业产品开发提供更大的灵活性，无需遵循 GPL-3.0 的开源要求。典型的用例是将 Ultralytics 软件和 AI 模型嵌入商业产品和应用中。在 [Ultralytics 授权](https://ultralytics.com/license) 处申请企业许可证。
+- **AGPL-3.0 许可证**：详细信息请参阅 [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) 文件。
+- **企业许可证**：为商业产品开发提供更大的灵活性，无需遵循 AGPL-3.0 的开源要求。典型的用例是将 Ultralytics 软件和 AI 模型嵌入商业产品和应用中。在 [Ultralytics 授权](https://ultralytics.com/license) 处申请企业许可证。
 
 ## <div align="center">联系方式</div>
 

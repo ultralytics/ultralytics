@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 """
 Functions for estimating the best YOLO batch size to use a fraction of the available CUDA memory in PyTorch.
 """

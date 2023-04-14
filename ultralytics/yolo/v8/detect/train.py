@@ -21,7 +21,7 @@ from ultralytics.yolo.utils.torch_utils import de_parallel
 # BaseTrainer python usage
 class DetectionTrainer(BaseTrainer):
 
-    def get_dataloader(self, dataset_path, batch_size, mode='train', rank=0):
+    def get_dataloader(self, dataset_path, batch_size, rank=0, mode='train'):
         # TODO: manage splits differently
         # calculate stride - check if model is initialized
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)

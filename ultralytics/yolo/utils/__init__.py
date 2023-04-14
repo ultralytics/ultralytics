@@ -17,6 +17,7 @@ from types import SimpleNamespace
 from typing import Union
 
 import cv2
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import yaml
@@ -116,7 +117,7 @@ class SimpleClass:
         attr = []
         for a in dir(self):
             v = getattr(self, a)
-            if not callable(v) and not a.startswith('__'):
+            if not callable(v) and not a.startswith('_'):
                 if isinstance(v, SimpleClass):
                     # Display only the module and class name for subclasses
                     s = f'{a}: {v.__module__}.{v.__class__.__name__} object'
@@ -162,6 +163,39 @@ class IterableSimpleNamespace(SimpleNamespace):
     def get(self, key, default=None):
         """Return the value of the specified key if it exists; otherwise, return the default value."""
         return getattr(self, key, default)
+
+
+def plt_settings(rcparams={'font.size': 11}, backend='Agg'):
+    """
+    Decorator to temporarily set rc parameters and the backend for a plotting function.
+
+    Usage:
+        decorator: @plt_settings({"font.size": 12})
+        context manager: with plt_settings({"font.size": 12}):
+
+    Args:
+        rcparams (dict): Dictionary of rc parameters to set.
+        backend (str, optional): Name of the backend to use. Defaults to 'Agg'.
+
+    Returns:
+        callable: Decorated function with temporarily set rc parameters and backend.
+    """
+
+    def decorator(func):
+
+        def wrapper(*args, **kwargs):
+            original_backend = plt.get_backend()
+            plt.switch_backend(backend)
+
+            with plt.rc_context(rcparams):
+                result = func(*args, **kwargs)
+
+            plt.switch_backend(original_backend)
+            return result
+
+        return wrapper
+
+    return decorator
 
 
 def set_logging(name=LOGGING_NAME, verbose=True):
@@ -490,6 +524,7 @@ def get_user_config_dir(sub_dir='Ultralytics'):
 
 
 USER_CONFIG_DIR = Path(os.getenv('YOLO_CONFIG_DIR', get_user_config_dir()))  # Ultralytics settings dir
+SETTINGS_YAML = USER_CONFIG_DIR / 'settings.yaml'
 
 
 def emojis(string=''):
@@ -591,7 +626,7 @@ def set_sentry():
             logging.getLogger(logger).setLevel(logging.CRITICAL)
 
 
-def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.3'):
+def get_settings(file=SETTINGS_YAML, version='0.0.3'):
     """
     Loads a global Ultralytics settings YAML file or creates one with default values if it does not exist.
 
@@ -640,7 +675,7 @@ def get_settings(file=USER_CONFIG_DIR / 'settings.yaml', version='0.0.3'):
         return settings
 
 
-def set_settings(kwargs, file=USER_CONFIG_DIR / 'settings.yaml'):
+def set_settings(kwargs, file=SETTINGS_YAML):
     """
     Function that runs on a first-time ultralytics package installation to set up global settings and create necessary
     directories.

@@ -7,7 +7,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main, updates]
+    branches: [main]
   schedule:
     - cron: '0 0 * * *'  # runs at 00:00 UTC every day
 
@@ -76,11 +76,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip wheel
           if [ "${{ matrix.os }}" == "macos-latest" ]; then
-              pip install -e . coremltools openvino-dev tensorflow-macos --extra-index-url https://download.pytorch.org/whl/cpu
+              pip install -e '.[export]' --extra-index-url https://download.pytorch.org/whl/cpu
             else
-              pip install -e . coremltools openvino-dev tensorflow-cpu --extra-index-url https://download.pytorch.org/whl/cpu
+              pip install -e '.[export]' --extra-index-url https://download.pytorch.org/whl/cpu
           fi
-          yolo export format=tflite
+          yolo export format=tflite imgsz=32
       - name: Check environment
         run: |
           echo "RUNNER_OS is ${{ runner.os }}"

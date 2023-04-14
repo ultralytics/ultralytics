@@ -3,7 +3,6 @@ FROM python:3.10-slim-buster
 
 # Install linux packages required for the image
 # g++ required to build 'tflite_support' package
-ENV DEBIAN_FRONTEND noninteractive
 RUN apt update \
     && apt install --no-install-recommends -y git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg watch vim g++
 
@@ -25,9 +24,6 @@ RUN yolo export format=paddle imgsz=32
 
 # Set the working directory for the application
 WORKDIR /app
-
-# Set the terminal type for the container
-ENV DEBIAN_FRONTEND teletype
 
 # Expose port 8000 for the application
 #EXPOSE 8000

@@ -19,7 +19,6 @@ RUN pip install --no-cache 'coremltools>=6.0,<=6.2' ultralytics[export]  \
     --extra-index-url https://download.pytorch.org/whl/cpu
 
 # Auto-install Ultralytics ONNX and TF export packages on first use
-RUN pip install --no-cache onnx 'onnx2tf>=1.7.7' 'sng4onnx>=1.0.1' 'onnxsim>=0.4.17'  'onnx_graphsurgeon>=0.3.26'  tflite_support onnxruntime
 RUN yolo export format=edgetpu imgsz=32
 RUN pip install --no-cache paddlepaddle x2paddle
 

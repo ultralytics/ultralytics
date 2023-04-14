@@ -219,10 +219,13 @@ def set_logging(name=LOGGING_NAME, verbose=True):
                 'handlers': [name],
                 'propagate': False}}})
 
+
 class EmojiFilter(logging.Filter):
+
     def filter(self, record):
         record.msg = emojis(record.msg)
         return super().filter(record)
+
 
 # Set logger
 set_logging(LOGGING_NAME, verbose=VERBOSE)  # run before defining LOGGER

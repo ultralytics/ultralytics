@@ -253,7 +253,7 @@ class BaseTrainer:
             self.validator = self.get_validator()
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix='val')
             self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))  # TODO: init metrics for plot_results()?
-            self.ema = ModelEMA(self.model)
+            self.ema = ModelEMA(self.no_opt_model)
             if self.args.plots and not self.args.v5loader:
                 self.plot_training_labels()
         self.resume_training(ckpt)
@@ -354,7 +354,8 @@ class BaseTrainer:
             if RANK in (-1, 0):
 
                 # Validation
-                self.ema.update_attr(self.model, include=['yaml', 'nc', 'args', 'names', 'stride', 'class_weights'])
+                self.ema.update_attr(self.no_opt_model,
+                                     include=['yaml', 'nc', 'args', 'names', 'stride', 'class_weights'])
                 final_epoch = (epoch + 1 == self.epochs) or self.stopper.possible_stop
 
                 if self.args.val or final_epoch:
@@ -397,7 +398,7 @@ class BaseTrainer:
         ckpt = {
             'epoch': self.epoch,
             'best_fitness': self.best_fitness,
-            'model': deepcopy(de_parallel(self.model)).half(),
+            'model': deepcopy(de_parallel(self.no_opt_model)).half(),
             'ema': deepcopy(self.ema.ema).half(),
             'updates': self.ema.updates,
             'optimizer': self.optimizer.state_dict(),
@@ -444,7 +445,7 @@ class BaseTrainer:
         self.scaler.update()
         self.optimizer.zero_grad()
         if self.ema:
-            self.ema.update(self.model)
+            self.ema.update(self.no_opt_model)
 
     def preprocess_batch(self, batch):
         """
@@ -614,11 +615,11 @@ class BaseTrainer:
 
     @property
     def model(self):
-        return self._not_opt_model if self._not_opt_model else self._model
+        return self._model
 
     @model.setter
     def model(self, set_model):
-        if self.args.compile and isinstance(set_model, nn.Module) and not self._not_opt_model:
+        if self.args.compile_model and isinstance(set_model, nn.Module) and not self._not_opt_model:
             if check_version(torch.__version__, minimum='2.0'):
                 self._not_opt_model = set_model
                 self._model = torch.compile(self._not_opt_model)
@@ -627,6 +628,10 @@ class BaseTrainer:
             else:
                 LOGGER.info('Pytorch version < 2.0. Please update pytorch to a version >= 2.0.')
         self._model = set_model
+
+    @property
+    def no_opt_model(self):
+        return self._not_opt_model if self._not_opt_model else self.model
 
 
 def check_amp(model):

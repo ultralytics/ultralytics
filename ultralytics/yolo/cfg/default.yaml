@@ -116,4 +116,4 @@ v5loader: False  # use legacy YOLOv5 dataloader
 tracker: botsort.yaml  # tracker type, ['botsort.yaml', 'bytetrack.yaml']
 
 # Model compilation
-compile: True
+compile_model: True

@@ -46,6 +46,7 @@ class AutoBackend(nn.Module):
                  data=None,
                  fp16=False,
                  fuse=True,
+                 compile_model=True,
                  verbose=True):
         """
         MultiBackend class for python inference on various platforms using Ultralytics YOLO.
@@ -87,6 +88,13 @@ class AutoBackend(nn.Module):
         if not (pt or triton or nn_module):
             w = attempt_download_asset(w)  # download if not local
 
+        if compile_model:
+            if check_version(torch.__version__, minimum='2.0'):
+                LOGGER.info('Pytorch version >= 2.0, so the model will be compiled.')
+            else:
+                compile_model = False
+                LOGGER.info('Pytorch version < 2.0. Please update pytorch to a version >= 2.0.')
+
         # NOTE: special case: in-memory pytorch model
         if nn_module:
             model = weights.to(device)
@@ -96,7 +104,8 @@ class AutoBackend(nn.Module):
             stride = max(int(model.stride.max()), 32)  # model stride
             names = model.module.names if hasattr(model, 'module') else model.names  # get class names
             model.half() if fp16 else model.float()
-            self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
+            # explicitly assign for to(), cpu(), cuda(), half()
+            self.model = torch.compile(model) if compile_model else model
             pt = True
         elif pt:  # PyTorch
             from ultralytics.nn.tasks import attempt_load_weights
@@ -109,7 +118,8 @@ class AutoBackend(nn.Module):
             stride = max(int(model.stride.max()), 32)  # model stride
             names = model.module.names if hasattr(model, 'module') else model.names  # get class names
             model.half() if fp16 else model.float()
-            self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
+            # explicitly assign for to(), cpu(), cuda(), half()
+            self.model = torch.compile(model) if compile_model else model
         elif jit:  # TorchScript
             LOGGER.info(f'Loading {w} for TorchScript inference...')
             extra_files = {'config.txt': ''}  # model metadata

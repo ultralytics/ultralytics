@@ -270,6 +270,7 @@ class BasePredictor:
                                  data=self.args.data,
                                  fp16=self.args.half,
                                  fuse=True,
+                                 compile_model=self.args.compile_model,
                                  verbose=verbose)
         self.device = device
         self.model.eval()

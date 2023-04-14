@@ -16,5 +16,5 @@ preferred-citation:
   version: 8.0.0
   # doi: 10.5281/zenodo.3908559  # TODO
   date-released: 2023-1-10
-  license: GPL-3.0
+  license: AGPL-3.0
   url: "https://github.com/ultralytics/ultralytics"

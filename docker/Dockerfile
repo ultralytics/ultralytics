@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 # Builds ultralytics/ultralytics:latest image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
 # Image is CUDA-optimized for YOLOv8 single/multi-GPU training and inference
 
@@ -40,12 +40,12 @@ ENV DEBIAN_FRONTEND teletype
 
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
-
+docker pull ultralytics/ultralytics:latest-hub-export-edgetpu-paddle
 # Build and Push
 # t=ultralytics/ultralytics:latest && sudo docker build -f docker/Dockerfile -t $t . && sudo docker push $t
 
 # Pull and Run
-# t=ultralytics/ultralytics:latest && sudo docker pull $t && sudo docker run -it --ipc=host --gpus all $t
+# t=ultralytics/ultralytics/ultralytics:latest-hub-export-edgetpu-paddle && sudo docker pull $t && sudo docker run -it --ipc=host $t
 
 # Pull and Run with local directory access
 # t=ultralytics/ultralytics:latest && sudo docker pull $t && sudo docker run -it --ipc=host --gpus all -v "$(pwd)"/datasets:/usr/src/datasets $t

@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 """
 Export a YOLOv8 PyTorch model to other formats. TensorFlow exports authored by https://github.com/zldrobit
 
@@ -213,7 +213,7 @@ class Exporter:
         self.metadata = {
             'description': description,
             'author': 'Ultralytics',
-            'license': 'GPL-3.0 https://ultralytics.com/license',
+            'license': 'AGPL-3.0 https://ultralytics.com/license',
             'version': __version__,
             'stride': int(max(model.stride)),
             'task': model.task,

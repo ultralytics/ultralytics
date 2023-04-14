@@ -10,10 +10,8 @@ ADD https://ultralytics.com/assets/Arial.ttf https://ultralytics.com/assets/Aria
 
 # Install linux packages
 # g++ required to build 'tflite_support' package
-ENV DEBIAN_FRONTEND noninteractive
-RUN apt update
-RUN TZ=Etc/UTC apt install -y tzdata
-RUN apt install --no-install-recommends -y python3-pip git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++
+RUN apt update \
+    && apt install --no-install-recommends -y python3-pip git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++
 # RUN alias python=python3
 
 # Create working directory
@@ -30,14 +28,10 @@ RUN python3 -m pip install --upgrade pip wheel
 RUN pip install --no-cache . albumentations gsutil notebook tensorboard \
         --extra-index-url https://download.pytorch.org/whl/cpu
 
-# Cleanup
-ENV DEBIAN_FRONTEND teletype
-
-
 # Usage Examples -------------------------------------------------------------------------------------------------------
 
 # Build and Push
-# t=ultralytics/ultralytics:latest-python && sudo docker build -f docker/Dockerfile-python -t $t . && sudo docker push $t
+# t=ultralytics/ultralytics:latest-cpu && sudo docker build -f docker/Dockerfile-cpu -t $t . && sudo docker push $t
 
 # Pull and Run
 # t=ultralytics/ultralytics:latest-cpu && sudo docker pull $t && sudo docker run -it --ipc=host -v "$(pwd)"/datasets:/usr/src/datasets $t

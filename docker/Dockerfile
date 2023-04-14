@@ -10,10 +10,8 @@ ADD https://ultralytics.com/assets/Arial.ttf https://ultralytics.com/assets/Aria
 
 # Install linux packages
 # g++ required to build 'tflite_support' package
-ENV DEBIAN_FRONTEND noninteractive
 RUN apt update
-RUN TZ=Etc/UTC apt install -y tzdata
-RUN apt install --no-install-recommends -y gcc git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++
+    && apt install --no-install-recommends -y gcc git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++
 # RUN alias python=python3
 
 # Security updates
@@ -36,17 +34,13 @@ RUN pip install --no-cache . albumentations comet gsutil notebook tensorboard
 # Set environment variables
 ENV OMP_NUM_THREADS=1
 
-# Cleanup
-ENV DEBIAN_FRONTEND teletype
-
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
-docker pull ultralytics/ultralytics:latest-hub-export-edgetpu-paddle
 # Build and Push
 # t=ultralytics/ultralytics:latest && sudo docker build -f docker/Dockerfile -t $t . && sudo docker push $t
 
 # Pull and Run
-# t=ultralytics/ultralytics/ultralytics:latest-hub-export-edgetpu-paddle && sudo docker pull $t && sudo docker run -it --ipc=host $t
+# t=ultralytics/ultralytics:latest && sudo docker pull $t && sudo docker run -it --ipc=host $t
 
 # Pull and Run with local directory access
 # t=ultralytics/ultralytics:latest && sudo docker pull $t && sudo docker run -it --ipc=host --gpus all -v "$(pwd)"/datasets:/usr/src/datasets $t

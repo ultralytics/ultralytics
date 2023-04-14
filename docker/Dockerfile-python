@@ -15,7 +15,7 @@ RUN mkdir -p /app/logs
 
 # Install the required Python packages for the application
 RUN python -m pip install --upgrade pip wheel
-RUN pip install --no-cache 'coremltools>=6.0,<=6.2' ultralytics[export]  \
+RUN pip install --no-cache 'coremltools>=6.0,<=6.2' ultralytics[export] tensorboard \
     --extra-index-url https://download.pytorch.org/whl/cpu
 
 # Auto-install Ultralytics ONNX and TF export packages on first use

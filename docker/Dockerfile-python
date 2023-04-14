@@ -15,12 +15,12 @@ RUN mkdir -p /app/logs
 
 # Install the required Python packages for the application
 RUN python -m pip install --upgrade pip wheel
-RUN pip install --no-cache 'coremltools>=6.0,<=6.2' ultralytics[export] tensorboard \
+RUN pip install --no-cache 'coremltools>=6.0,<=6.2' ultralytics[export] \
     --extra-index-url https://download.pytorch.org/whl/cpu
 
 # Auto-install Ultralytics ONNX and TF export packages on first use
 RUN yolo export format=edgetpu imgsz=32
-RUN pip install --no-cache paddlepaddle x2paddle
+RUN pip install --no-cache paddlepaddle x2paddle tensorboard
 
 # Set the working directory for the application
 WORKDIR /app

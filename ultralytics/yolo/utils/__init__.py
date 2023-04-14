@@ -223,10 +223,11 @@ def set_logging(name=LOGGING_NAME, verbose=True):
 class EmojiFilter(logging.Filter):
     """
     A custom logging filter class for removing emojis in log messages.
-    
+
     This filter is particularly useful for ensuring compatibility with Windows terminals
     that may not support the display of emojis in log messages.
     """
+
     def filter(self, record):
         record.msg = emojis(record.msg)
         return super().filter(record)

@@ -20,7 +20,7 @@ RUN pip install --no-cache 'coremltools>=6.0,<=6.2' ultralytics[export]  \
 
 # Auto-install Ultralytics ONNX and TF export packages on first use
 RUN yolo export format=edgetpu imgsz=32
-RUN yolo export format=paddle imgsz=32
+RUN pip install --no-cache paddlepaddle x2paddle
 
 # Set the working directory for the application
 WORKDIR /app

@@ -9,6 +9,7 @@ FROM pytorch/pytorch:2.0.0-cuda11.7-cudnn8-runtime
 ADD https://ultralytics.com/assets/Arial.ttf https://ultralytics.com/assets/Arial.Unicode.ttf /root/.config/Ultralytics/
 
 # Install linux packages
+# g++ required to build 'tflite_support' package
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt update
 RUN TZ=Etc/UTC apt install -y tzdata

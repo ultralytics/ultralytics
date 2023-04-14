@@ -2,10 +2,10 @@
 FROM python:3.10-slim-buster
 
 # Install linux packages required for the image
+# g++ required to build 'tflite_support' package
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt update \
-    && TZ=Etc/UTC apt install -y tzdata \
-    && apt install --no-install-recommends -y git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg watch vim
+    && apt install --no-install-recommends -y git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg watch vim g++
 
 # Copy server contents and default settings to the container
 # COPY ./server/ /app/server

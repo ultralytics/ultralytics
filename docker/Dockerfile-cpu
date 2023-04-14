@@ -9,6 +9,7 @@ FROM ubuntu:rolling
 ADD https://ultralytics.com/assets/Arial.ttf https://ultralytics.com/assets/Arial.Unicode.ttf /root/.config/Ultralytics/
 
 # Install linux packages
+# g++ required to build 'tflite_support' package
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt update
 RUN TZ=Etc/UTC apt install -y tzdata

@@ -38,6 +38,16 @@ jobs:
           push: true
           tags: ultralytics/ultralytics:latest-arm64
 
+      - name: Build and push Jetson image
+        uses: docker/build-push-action@v4
+        continue-on-error: true
+        with:
+          context: .
+          platforms: linux/arm64
+          file: docker/Dockerfile-jetson
+          push: true
+          tags: ultralytics/ultralytics:latest-jetson
+
       - name: Build and push CPU image
         uses: docker/build-push-action@v4
         continue-on-error: true

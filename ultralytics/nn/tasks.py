@@ -520,7 +520,7 @@ def guess_model_scale(model_path):
     which is denoted by n, s, m, l, or x. The function returns the size character of the model scale as a string.
 
     Args:
-        model_path (str or Path): The path to the YOLO model's YAML file.
+        model_path (str) or (Path): The path to the YOLO model's YAML file.
 
     Returns:
         (str): The size character of the model's scale, which can be n, s, m, l, or x.

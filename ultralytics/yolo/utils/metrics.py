@@ -395,12 +395,17 @@ def plot_mc_curve(px, py, save_dir=Path('mc_curve.png'), names=(), xlabel='Confi
 
 
 def compute_ap(recall, precision):
-    """ Compute the average precision, given the recall and precision curves
+    """
+    Compute the average precision (AP) given the recall and precision curves.
+
     Arguments:
-        recall:    The recall curve (list)
-        precision: The precision curve (list)
+        recall (list): The recall curve.
+        precision (list): The precision curve.
+
     Returns:
-        Average precision, precision curve, recall curve
+        (float): Average precision.
+        (np.ndarray): Precision envelope curve.
+        (np.ndarray): Modified recall curve with sentinel values added at the beginning and end.
     """
 
     # Append sentinel values to beginning and end
@@ -540,9 +545,11 @@ class Metric(SimpleClass):
 
     @property
     def ap50(self):
-        """AP@0.5 of all classes.
+        """
+        Returns the Average Precision (AP) at an IoU threshold of 0.5 for all classes.
+
         Returns:
-            (nc, ) or [].
+            np.ndarray or list: Array of shape (nc,) containing AP@0.5 values for each class, or an empty list if not available.
         """
         return self.all_ap[:, 0] if len(self.all_ap) else []
 

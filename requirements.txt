@@ -26,6 +26,7 @@ seaborn>=0.11.0
 # coremltools>=6.0  # CoreML export
 # onnx>=1.12.0  # ONNX export
 # onnxsim>=0.4.1  # ONNX simplifier
+# onnxconverter-common>=1.13.0 # ONNX converter
 # nvidia-pyindex  # TensorRT export
 # nvidia-tensorrt  # TensorRT export
 # scikit-learn==0.19.2  # CoreML quantization

@@ -293,6 +293,8 @@ class Exporter:
         requirements = ['onnx>=1.12.0']
         if self.args.simplify:
             requirements += ['onnxsim>=0.4.17', 'onnxruntime-gpu' if torch.cuda.is_available() else 'onnxruntime']
+        if self.args.half:
+            requirements += ['onnxconverter-common>=1.13.0']
         check_requirements(requirements)
         import onnx  # noqa
 
@@ -324,6 +326,15 @@ class Exporter:
         # Checks
         model_onnx = onnx.load(f)  # load onnx model
         # onnx.checker.check_model(model_onnx)  # check onnx model
+
+        #FP16 half precision
+        if self.args.half:
+            try:
+                from onnxconverter_common import float16
+                LOGGER.info(f'{prefix} FP16 half precision with onnxconverter_common')
+                model_onnx = float16.convert_float_to_float16(model_onnx)
+            except Exception as e:
+                LOGGER.info(f'{prefix} FP16 half precision failure: {e}')
 
         # Simplify
         if self.args.simplify:

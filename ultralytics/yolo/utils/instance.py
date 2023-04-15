@@ -98,7 +98,7 @@ class Bboxes:
     def mul(self, scale):
         """
         Args:
-            scale (tuple | List | int): the scale for four coords.
+            scale (tuple) or (list) or (int): the scale for four coords.
         """
         if isinstance(scale, Number):
             scale = to_4tuple(scale)
@@ -112,7 +112,7 @@ class Bboxes:
     def add(self, offset):
         """
         Args:
-            offset (tuple | List | int): the offset for four coords.
+            offset (tuple) or (list) or (int): the offset for four coords.
         """
         if isinstance(offset, Number):
             offset = to_4tuple(offset)
@@ -129,13 +129,18 @@ class Bboxes:
     @classmethod
     def concatenate(cls, boxes_list: List['Bboxes'], axis=0) -> 'Bboxes':
         """
-        Concatenates a list of Boxes into a single Bboxes
+        Concatenate a list of Bboxes objects into a single Bboxes object.
 
-        Arguments:
-            boxes_list (list[Bboxes])
+        Args:
+            boxes_list (List[Bboxes]): A list of Bboxes objects to concatenate.
+            axis (int, optional): The axis along which to concatenate the bounding boxes.
+                                   Defaults to 0.
 
         Returns:
-            Bboxes: the concatenated Boxes
+            Bboxes: A new Bboxes object containing the concatenated bounding boxes.
+
+        Note:
+            The input should be a list or tuple of Bboxes objects.
         """
         assert isinstance(boxes_list, (list, tuple))
         if not boxes_list:
@@ -148,11 +153,21 @@ class Bboxes:
 
     def __getitem__(self, index) -> 'Bboxes':
         """
+        Retrieve a specific bounding box or a set of bounding boxes using indexing.
+
         Args:
-            index: int, slice, or a BoolArray
+            index (int, slice, or np.ndarray): The index, slice, or boolean array to select
+                                               the desired bounding boxes.
 
         Returns:
-            Bboxes: Create a new :class:`Bboxes` by indexing.
+            Bboxes: A new Bboxes object containing the selected bounding boxes.
+
+        Raises:
+            AssertionError: If the indexed bounding boxes do not form a 2-dimensional matrix.
+
+        Note:
+            When using boolean indexing, make sure to provide a boolean array with the same
+            length as the number of bounding boxes.
         """
         if isinstance(index, int):
             return Bboxes(self.bboxes[index].view(1, -1))
@@ -236,11 +251,19 @@ class Instances:
 
     def __getitem__(self, index) -> 'Instances':
         """
+        Retrieve a specific instance or a set of instances using indexing.
+
         Args:
-            index: int, slice, or a BoolArray
+            index (int, slice, or np.ndarray): The index, slice, or boolean array to select
+                                               the desired instances.
 
         Returns:
-            Instances: Create a new :class:`Instances` by indexing.
+            Instances: A new Instances object containing the selected bounding boxes,
+                       segments, and keypoints if present.
+
+        Note:
+            When using boolean indexing, make sure to provide a boolean array with the same
+            length as the number of instances.
         """
         segments = self.segments[index] if len(self.segments) else self.segments
         keypoints = self.keypoints[index] if self.keypoints is not None else None
@@ -305,14 +328,20 @@ class Instances:
     @classmethod
     def concatenate(cls, instances_list: List['Instances'], axis=0) -> 'Instances':
         """
-        Concatenates a list of Boxes into a single Bboxes
+        Concatenates a list of Instances objects into a single Instances object.
 
-        Arguments:
-            instances_list (list[Bboxes])
-            axis
+        Args:
+            instances_list (List[Instances]): A list of Instances objects to concatenate.
+            axis (int, optional): The axis along which the arrays will be concatenated. Defaults to 0.
 
         Returns:
-            Boxes: the concatenated Boxes
+            Instances: A new Instances object containing the concatenated bounding boxes,
+                       segments, and keypoints if present.
+
+        Note:
+            The `Instances` objects in the list should have the same properties, such as
+            the format of the bounding boxes, whether keypoints are present, and if the
+            coordinates are normalized.
         """
         assert isinstance(instances_list, (list, tuple))
         if not instances_list:

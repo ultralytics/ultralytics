@@ -549,55 +549,67 @@ class Metric(SimpleClass):
         Returns the Average Precision (AP) at an IoU threshold of 0.5 for all classes.
 
         Returns:
-            np.ndarray or list: Array of shape (nc,) containing AP@0.5 values for each class, or an empty list if not available.
+            (np.ndarray, list): Array of shape (nc,) with AP50 values per class, or an empty list if not available.
         """
         return self.all_ap[:, 0] if len(self.all_ap) else []
 
     @property
     def ap(self):
-        """AP@0.5:0.95
+        """
+        Returns the Average Precision (AP) at an IoU threshold of 0.5-0.95 for all classes.
+
         Returns:
-            (nc, ) or [].
+            (np.ndarray, list): Array of shape (nc,) with AP50-95 values per class, or an empty list if not available.
         """
         return self.all_ap.mean(1) if len(self.all_ap) else []
 
     @property
     def mp(self):
-        """mean precision of all classes.
+        """
+        Returns the Mean Precision of all classes.
+
         Returns:
-            float.
+            (float): The mean precision of all classes.
         """
         return self.p.mean() if len(self.p) else 0.0
 
     @property
     def mr(self):
-        """mean recall of all classes.
+        """
+        Returns the Mean Recall of all classes.
+
         Returns:
-            float.
+            (float): The mean recall of all classes.
         """
         return self.r.mean() if len(self.r) else 0.0
 
     @property
     def map50(self):
-        """Mean AP@0.5 of all classes.
+        """
+        Returns the mean Average Precision (mAP) at an IoU threshold of 0.5.
+
         Returns:
-            float.
+            (float): The mAP50 at an IoU threshold of 0.5.
         """
         return self.all_ap[:, 0].mean() if len(self.all_ap) else 0.0
 
     @property
     def map75(self):
-        """Mean AP@0.75 of all classes.
+        """
+        Returns the mean Average Precision (mAP) at an IoU threshold of 0.75.
+
         Returns:
-            float.
+            (float): The mAP50 at an IoU threshold of 0.75.
         """
         return self.all_ap[:, 5].mean() if len(self.all_ap) else 0.0
 
     @property
     def map(self):
-        """Mean AP@0.5:0.95 of all classes.
+        """
+        Returns the mean Average Precision (mAP) over IoU thresholds of 0.5 - 0.95 in steps of 0.05.
+
         Returns:
-            float.
+            (float): The mAP over IoU thresholds of 0.5 - 0.95 in steps of 0.05.
         """
         return self.all_ap.mean() if len(self.all_ap) else 0.0
 
@@ -625,7 +637,7 @@ class Metric(SimpleClass):
     def update(self, results):
         """
         Args:
-            results: tuple(p, r, ap, f1, ap_class)
+            results (tuple): A tuple of (p, r, ap, f1, ap_class)
         """
         self.p, self.r, self.f1, self.all_ap, self.ap_class_index = results
 

@@ -140,7 +140,7 @@ def check_pip_update_available():
     Checks if a new version of the ultralytics package is available on PyPI.
 
     Returns:
-        bool: True if an update is available, False otherwise.
+        (bool): True if an update is available, False otherwise.
     """
     if ONLINE and is_pip_package():
         with contextlib.suppress(Exception):

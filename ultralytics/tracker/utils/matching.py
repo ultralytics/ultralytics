@@ -201,8 +201,8 @@ def bbox_ious(box1, box2, eps=1e-7):
         eps (float, optional): A small constant to prevent division by zero. Defaults to 1e-7.
 
     Returns:
-        np.array: A numpy array of shape (n, m) representing the IoU scores for each pair
-                  of bounding boxes from box1 and box2.
+        (np.array): A numpy array of shape (n, m) representing the IoU scores for each pair
+                    of bounding boxes from box1 and box2.
 
     Note:
         The bounding box coordinates are expected to be in the format (x1, y1, x2, y2).

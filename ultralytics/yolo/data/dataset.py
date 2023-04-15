@@ -34,7 +34,8 @@ class YOLODataset(BaseDataset):
         single_cls (bool, optional): If True, single class training is used. Defaults to False.
         use_segments (bool, optional): If True, segmentation masks are used as labels. Defaults to False.
         use_keypoints (bool, optional): If True, keypoints are used as labels. Defaults to False.
-        names (dict, optional): A dictionary of class names. Defaults to None.
+        data (dict, optional): A dataset YAML dictionary. Defaults to None.
+        classes (list): List of included classes. Default is None.
 
     Returns:
         (torch.utils.data.Dataset): A PyTorch dataset object that can be used for training an object detection model.

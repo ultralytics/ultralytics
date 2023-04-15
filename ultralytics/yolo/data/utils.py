@@ -270,9 +270,8 @@ def check_cls_dataset(dataset: str):
     """
     Check a classification dataset such as Imagenet.
 
-    Copy code
     This function takes a `dataset` name as input and returns a dictionary containing information about the dataset.
-    If the dataset is not found, it attempts to download the dataset from the internet and save it to the local file system.
+    If the dataset is not found, it attempts to download the dataset from the internet and save it locally.
 
     Args:
         dataset (str): Name of the dataset.
@@ -306,7 +305,8 @@ def check_cls_dataset(dataset: str):
 
 
 class HUBDatasetStats():
-    """ Class for generating HUB dataset JSON and `-hub` dataset directory
+    """
+    Class for generating HUB dataset JSON and `-hub` dataset directory
 
     Arguments
         path:           Path to data.yaml or data.zip (with data.yaml inside data.zip)
@@ -427,9 +427,6 @@ def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
         max_dim (int, optional): The maximum dimension (width or height) of the output image. Default is 1920 pixels.
         quality (int, optional): The image compression quality as a percentage. Default is 50%.
 
-    Returns:
-        None
-
     Usage:
         from pathlib import Path
         from ultralytics.yolo.data.utils import compress_one_image
@@ -459,9 +456,6 @@ def delete_dsstore(path):
     Args:
         path (str, optional): The directory path where the ".DS_store" files should be deleted.
 
-    Returns:
-        None
-
     Usage:
         from ultralytics.yolo.data.utils import delete_dsstore
         delete_dsstore('/Users/glennjocher/Downloads/dataset')
@@ -478,14 +472,12 @@ def delete_dsstore(path):
 
 
 def zip_directory(dir, use_zipfile_library=True):
-    """Zips a directory and saves the archive to the specified output path.
+    """
+    Zips a directory and saves the archive to the specified output path.
 
     Args:
         dir (str): The path to the directory to be zipped.
         use_zipfile_library (bool): Whether to use zipfile library or shutil for zipping.
-
-    Returns:
-        None
 
     Usage:
         from ultralytics.yolo.data.utils import zip_directory

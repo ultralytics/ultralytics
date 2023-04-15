@@ -120,7 +120,7 @@ def make_divisible(x, divisor):
 
     Args:
         x (int): The number to make divisible.
-        divisor (int or torch.Tensor): The divisor.
+        divisor (int) or (torch.Tensor): The divisor.
 
     Returns:
         int: The nearest number divisible by the divisor.

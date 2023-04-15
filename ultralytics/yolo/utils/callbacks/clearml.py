@@ -19,14 +19,14 @@ except (ImportError, AssertionError):
     clearml = None
 
 
-def _log_debug_samples(files, title='Debug Samples'):
+def _log_debug_samples(files, title='Debug Samples') -> None:
     """
-        Log files (images) as debug samples in the ClearML task.
+    Log files (images) as debug samples in the ClearML task.
 
-        arguments:
-        files (List(PosixPath)) a list of file paths in PosixPath format
-        title (str) A title that groups together images with the same values
-        """
+    Args:
+        files (list): A list of file paths in PosixPath format.
+        title (str): A title that groups together images with the same values.
+    """
     task = Task.current_task()
     if task:
         for f in files:
@@ -39,20 +39,23 @@ def _log_debug_samples(files, title='Debug Samples'):
                                                iteration=iteration)
 
 
-def _log_plot(title, plot_path):
+def _log_plot(title, plot_path) -> None:
     """
-        Log image as plot in the plot section of ClearML
+    Log an image as a plot in the plot section of ClearML.
 
-        arguments:
-        title (str) Title of the plot
-        plot_path (PosixPath or str) Path to the saved image file
-        """
+    Args:
+        title (str): The title of the plot.
+        plot_path (str): The path to the saved image file.
+    """
     img = mpimg.imread(plot_path)
     fig = plt.figure()
     ax = fig.add_axes([0, 0, 1, 1], frameon=False, aspect='auto', xticks=[], yticks=[])  # no ticks
     ax.imshow(img)
 
-    Task.current_task().get_logger().report_matplotlib_figure(title, '', figure=fig, report_interactive=False)
+    Task.current_task().get_logger().report_matplotlib_figure(title=title,
+                                                              series='',
+                                                              figure=fig,
+                                                              report_interactive=False)
 
 
 def on_pretrain_routine_start(trainer):

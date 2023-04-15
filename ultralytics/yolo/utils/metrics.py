@@ -23,10 +23,16 @@ def box_area(box):
 
 
 def bbox_ioa(box1, box2, eps=1e-7):
-    """Returns the intersection over box2 area given box1, box2. Boxes are x1y1x2y2
-    box1:       np.array of shape(nx4)
-    box2:       np.array of shape(mx4)
-    returns:    np.array of shape(nxm)
+    """
+    Calculate the intersection over box2 area given box1 and box2. Boxes are in x1y1x2y2 format.
+
+    Args:
+        box1 (np.array): A numpy array of shape (n, 4) representing n bounding boxes.
+        box2 (np.array): A numpy array of shape (m, 4) representing m bounding boxes.
+        eps (float, optional): A small value to avoid division by zero. Defaults to 1e-7.
+
+    Returns:
+        (np.array): A numpy array of shape (n, m) representing the intersection over box2 area.
     """
 
     # Get the coordinates of bounding boxes
@@ -46,17 +52,17 @@ def bbox_ioa(box1, box2, eps=1e-7):
 
 def box_iou(box1, box2, eps=1e-7):
     """
-    Return intersection-over-union (Jaccard index) of boxes.
+    Calculate intersection-over-union (IoU) of boxes.
     Both sets of boxes are expected to be in (x1, y1, x2, y2) format.
     Based on https://github.com/pytorch/vision/blob/master/torchvision/ops/boxes.py
 
-    Arguments:
-        box1 (Tensor[N, 4])
-        box2 (Tensor[M, 4])
-        eps
+    Args:
+        box1 (torch.Tensor): A tensor of shape (N, 4) representing N bounding boxes.
+        box2 (torch.Tensor): A tensor of shape (M, 4) representing M bounding boxes.
+        eps (float, optional): A small value to avoid division by zero. Defaults to 1e-7.
 
     Returns:
-        iou (Tensor[N, M]): the NxM matrix containing the pairwise IoU values for every element in boxes1 and boxes2
+        (torch.Tensor): An NxM tensor containing the pairwise IoU values for every element in box1 and box2.
     """
 
     # inter(N,M) = (rb(N,M,2) - lt(N,M,2)).clamp(0).prod(2)
@@ -68,7 +74,22 @@ def box_iou(box1, box2, eps=1e-7):
 
 
 def bbox_iou(box1, box2, xywh=True, GIoU=False, DIoU=False, CIoU=False, eps=1e-7):
-    # Returns Intersection over Union (IoU) of box1(1,4) to box2(n,4)
+    """
+    Calculate Intersection over Union (IoU) of box1(1, 4) to box2(n, 4).
+
+    Args:
+        box1 (torch.Tensor): A tensor representing a single bounding box with shape (1, 4).
+        box2 (torch.Tensor): A tensor representing n bounding boxes with shape (n, 4).
+        xywh (bool, optional): If True, input boxes are in (x, y, w, h) format. If False, input boxes are in
+                               (x1, y1, x2, y2) format. Defaults to True.
+        GIoU (bool, optional): If True, calculate Generalized IoU. Defaults to False.
+        DIoU (bool, optional): If True, calculate Distance IoU. Defaults to False.
+        CIoU (bool, optional): If True, calculate Complete IoU. Defaults to False.
+        eps (float, optional): A small value to avoid division by zero. Defaults to 1e-7.
+
+    Returns:
+        (torch.Tensor): IoU, GIoU, DIoU, or CIoU values depending on the specified flags.
+    """
 
     # Get the coordinates of bounding boxes
     if xywh:  # transform from xywh to xyxy
@@ -110,10 +131,17 @@ def bbox_iou(box1, box2, xywh=True, GIoU=False, DIoU=False, CIoU=False, eps=1e-7
 
 def mask_iou(mask1, mask2, eps=1e-7):
     """
-    mask1: [N, n] m1 means number of gt objects
-    mask2: [M, n] m2 means number of predicted objects
-    Note: n means image_w x image_h
-    Returns: masks iou, [N, M]
+    Calculate masks IoU.
+
+    Args:
+        mask1 (torch.Tensor): A tensor of shape (N, n) where N is the number of ground truth objects and n is the
+                        product of image width and height.
+        mask2 (torch.Tensor): A tensor of shape (M, n) where M is the number of predicted objects and n is the
+                        product of image width and height.
+        eps (float, optional): A small value to avoid division by zero. Defaults to 1e-7.
+
+    Returns:
+        (torch.Tensor): A tensor of shape (N, M) representing masks IoU.
     """
     intersection = torch.matmul(mask1, mask2.t()).clamp(0)
     union = (mask1.sum(1)[:, None] + mask2.sum(1)[None]) - intersection  # (area1 + area2) - intersection
@@ -121,10 +149,18 @@ def mask_iou(mask1, mask2, eps=1e-7):
 
 
 def kpt_iou(kpt1, kpt2, area, sigma, eps=1e-7):
-    """OKS
-    kpt1: [N, 17, 3], gt
-    kpt2: [M, 17, 3], pred
-    area: [N], areas from gt
+    """
+    Calculate Object Keypoint Similarity (OKS).
+
+    Args:
+        kpt1 (torch.Tensor): A tensor of shape (N, 17, 3) representing ground truth keypoints.
+        kpt2 (torch.Tensor): A tensor of shape (M, 17, 3) representing predicted keypoints.
+        area (torch.Tensor): A tensor of shape (N,) representing areas from ground truth.
+        sigma (list): A list containing 17 values representing keypoint scales.
+        eps (float, optional): A small value to avoid division by zero. Defaults to 1e-7.
+
+    Returns:
+        (torch.Tensor): A tensor of shape (N, M) representing keypoint similarities.
     """
     d = (kpt1[:, None, :, 0] - kpt2[..., 0]) ** 2 + (kpt1[:, None, :, 1] - kpt2[..., 1]) ** 2  # (N, M, 17)
     sigma = torch.tensor(sigma, device=kpt1.device, dtype=kpt1.dtype)  # (17, )
@@ -171,7 +207,17 @@ class FocalLoss(nn.Module):
 
 
 class ConfusionMatrix:
-    # Updated version of https://github.com/kaanakan/object_detection_confusion_matrix
+    """
+    A class for calculating and updating a confusion matrix for object detection and classification tasks.
+
+    Attributes:
+        task (str): The type of task, either 'detect' or 'classify'.
+        matrix (np.array): The confusion matrix, with dimensions depending on the task.
+        nc (int): The number of classes.
+        conf (float): The confidence threshold for detections.
+        iou_thres (float): The Intersection over Union threshold.
+    """
+
     def __init__(self, nc, conf=0.25, iou_thres=0.45, task='detect'):
         self.task = task
         self.matrix = np.zeros((nc + 1, nc + 1)) if self.task == 'detect' else np.zeros((nc, nc))
@@ -183,12 +229,9 @@ class ConfusionMatrix:
         """
         Update confusion matrix for classification task
 
-        Arguments:
-            preds (Array[N, min(nc,5)])
-            targets (Array[N, 1])
-
-        Returns:
-            None, updates confusion matrix accordingly
+        Args:
+            preds (Array[N, min(nc,5)]): Predicted class labels.
+            targets (Array[N, 1]): Ground truth class labels.
         """
         preds, targets = torch.cat(preds)[:, 0], torch.cat(targets)
         for p, t in zip(preds.cpu().numpy(), targets.cpu().numpy()):
@@ -196,15 +239,13 @@ class ConfusionMatrix:
 
     def process_batch(self, detections, labels):
         """
-        Return intersection-over-union (Jaccard index) of boxes.
-        Both sets of boxes are expected to be in (x1, y1, x2, y2) format.
+        Update confusion matrix for object detection task.
 
-        Arguments:
-            detections (Array[N, 6]), x1, y1, x2, y2, conf, class
-            labels (Array[M, 5]), class, x1, y1, x2, y2
-
-        Returns:
-            None, updates confusion matrix accordingly
+        Args:
+            detections (Array[N, 6]): Detected bounding boxes and their associated information.
+                                      Each row should contain (x1, y1, x2, y2, conf, class).
+            labels (Array[M, 5]): Ground truth bounding boxes and their associated class labels.
+                                  Each row should contain (class, x1, y1, x2, y2).
         """
         if detections is None:
             gt_classes = labels.int()
@@ -254,6 +295,14 @@ class ConfusionMatrix:
     @TryExcept('WARNING ⚠️ ConfusionMatrix plot failure')
     @plt_settings()
     def plot(self, normalize=True, save_dir='', names=()):
+        """
+        Plot the confusion matrix using seaborn and save it to a file.
+
+        Args:
+            normalize (bool): Whether to normalize the confusion matrix.
+            save_dir (str): Directory where the plot will be saved.
+            names (tuple): Names of classes, used as labels on the plot.
+        """
         import seaborn as sn
 
         array = self.matrix / ((self.matrix.sum(0).reshape(1, -1) + 1E-9) if normalize else 1)  # normalize columns
@@ -284,6 +333,9 @@ class ConfusionMatrix:
         plt.close(fig)
 
     def print(self):
+        """
+        Print the confusion matrix to the console.
+        """
         for i in range(self.nc + 1):
             LOGGER.info(' '.join(map(str, self.matrix[i])))
 

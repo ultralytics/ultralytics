@@ -6,8 +6,8 @@ Base callbacks
 from collections import defaultdict
 from copy import deepcopy
 
-
 # Trainer callbacks ----------------------------------------------------------------------------------------------------
+
 
 def on_pretrain_routine_start(trainer):
     """Called before the pretraining routine starts."""
@@ -81,6 +81,7 @@ def teardown(trainer):
 
 # Validator callbacks --------------------------------------------------------------------------------------------------
 
+
 def on_val_start(validator):
     """Called when the validation starts."""
     pass
@@ -102,6 +103,7 @@ def on_val_end(validator):
 
 
 # Predictor callbacks --------------------------------------------------------------------------------------------------
+
 
 def on_predict_start(predictor):
     """Called when the prediction starts."""
@@ -129,6 +131,7 @@ def on_predict_end(predictor):
 
 
 # Exporter callbacks ---------------------------------------------------------------------------------------------------
+
 
 def on_export_start(exporter):
     """Called when the model export starts."""

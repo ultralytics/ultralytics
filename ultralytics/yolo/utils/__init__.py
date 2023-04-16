@@ -571,6 +571,7 @@ def colorstr(*input):
 
 class TryExcept(contextlib.ContextDecorator):
     """YOLOv8 TryExcept class. Usage: @TryExcept() decorator or 'with TryExcept():' context manager."""
+
     def __init__(self, msg='', verbose=True):
         self.msg = msg
         self.verbose = verbose

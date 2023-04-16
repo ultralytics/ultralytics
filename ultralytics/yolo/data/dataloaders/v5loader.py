@@ -31,7 +31,6 @@ from ultralytics.yolo.utils import (DATASETS_DIR, LOGGER, NUM_THREADS, TQDM_BAR_
 from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils.ops import clean_str, segments2boxes, xyn2xy, xywh2xyxy, xywhn2xyxy, xyxy2xywhn
 from ultralytics.yolo.utils.torch_utils import torch_distributed_zero_first
-
 from .v5augmentations import (Albumentations, augment_hsv, classify_albumentations, classify_transforms, copy_paste,
                               letterbox, mixup, random_perspective)
 

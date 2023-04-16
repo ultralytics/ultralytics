@@ -276,8 +276,8 @@ class Results(SimpleClass):
                     line = (c, *seg)
                 if kpts is not None:
                     kpt = (kpts[j][:, :2] / d.orig_shape[[1, 0]]).reshape(-1).tolist()
-                    line += (*kpt, )
-                line += (conf, ) * save_conf + (() if id is None else (id, ))
+                    line += (*kpt,)
+                line += (conf,) * save_conf + (() if id is None else (id,))
                 texts.append(('%g ' * len(line)).rstrip() % line)
 
         with open(txt_file, 'a') as f:

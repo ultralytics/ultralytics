@@ -12,7 +12,7 @@ from ultralytics.yolo.utils.tal import dist2bbox, make_anchors
 
 
 def autopad(k, p=None, d=1):  # kernel, padding, dilation
-    # Pad to 'same' shape outputs
+    """Pad to 'same' shape outputs."""
     if d > 1:
         k = d * (k - 1) + 1 if isinstance(k, int) else [d * (x - 1) + 1 for x in k]  # actual kernel-size
     if p is None:
@@ -69,9 +69,11 @@ class ConvTranspose(nn.Module):
 
 
 class DFL(nn.Module):
-    """Integral module of Distribution Focal Loss (DFL)."""
+    """
+    Integral module of Distribution Focal Loss (DFL).
+    Proposed in Generalized Focal Loss https://ieeexplore.ieee.org/document/9792391
+    """
 
-    # Proposed in Generalized Focal Loss https://ieeexplore.ieee.org/document/9792391
     def __init__(self, c1=16):
         super().__init__()
         self.conv = nn.Conv2d(c1, 1, 1, bias=False).requires_grad_(False)

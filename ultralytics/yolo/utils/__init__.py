@@ -182,7 +182,6 @@ def plt_settings(rcparams={'font.size': 11}, backend='Agg'):
     """
 
     def decorator(func):
-
         def wrapper(*args, **kwargs):
             original_backend = plt.get_backend()
             plt.switch_backend(backend)

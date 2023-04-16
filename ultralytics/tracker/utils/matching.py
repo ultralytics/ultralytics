@@ -8,6 +8,7 @@ from .kalman_filter import chi2inv95
 
 try:
     import lap  # for linear_assignment
+
     assert lap.__version__  # verify package is not directory
 except (ImportError, AssertionError, AttributeError):
     from ultralytics.yolo.utils.checks import check_requirements

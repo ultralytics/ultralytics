@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import os
 import re
@@ -24,6 +24,7 @@ def find_free_network_port() -> int:
 
 
 def generate_ddp_file(trainer):
+    """Generates a DDP file and returns its file name."""
     module, name = f'{trainer.__class__.__module__}.{trainer.__class__.__name__}'.rsplit('.', 1)
 
     content = f'''cfg = {vars(trainer.args)} \nif __name__ == "__main__":
@@ -43,6 +44,7 @@ def generate_ddp_file(trainer):
 
 
 def generate_ddp_command(world_size, trainer):
+    """Generates and returns command for distributed training."""
     import __main__  # noqa local import to avoid https://github.com/Lightning-AI/lightning/issues/15218
     if not trainer.resume:
         shutil.rmtree(trainer.save_dir)  # remove the save_dir
@@ -59,6 +61,6 @@ def generate_ddp_command(world_size, trainer):
 
 
 def ddp_cleanup(trainer, file):
-    # delete temp file if created
+    """Delete temp file if created."""
     if f'{id(trainer)}.py' in file:  # if temp_file suffix in file
         os.remove(file)

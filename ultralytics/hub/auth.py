@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import requests
 
@@ -111,7 +111,7 @@ class Auth:
         Get the authentication header for making API requests.
 
         Returns:
-            dict: The authentication header if id_token or API key is set, None otherwise.
+            (dict): The authentication header if id_token or API key is set, None otherwise.
         """
         if self.id_token:
             return {'authorization': f'Bearer {self.id_token}'}

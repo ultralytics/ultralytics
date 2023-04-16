@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 from ultralytics.yolo.utils import LOGGER, TESTS_RUNNING, colorstr
 
 try:
@@ -12,12 +12,14 @@ writer = None  # TensorBoard SummaryWriter instance
 
 
 def _log_scalars(scalars, step=0):
+    """Logs scalar values to TensorBoard."""
     if writer:
         for k, v in scalars.items():
             writer.add_scalar(k, v, step)
 
 
 def on_pretrain_routine_start(trainer):
+    """Initialize TensorBoard logging with SummaryWriter."""
     if SummaryWriter:
         try:
             global writer
@@ -29,10 +31,12 @@ def on_pretrain_routine_start(trainer):
 
 
 def on_batch_end(trainer):
+    """Logs scalar statistics at the end of a training batch."""
     _log_scalars(trainer.label_loss_items(trainer.tloss, prefix='train'), trainer.epoch + 1)
 
 
 def on_fit_epoch_end(trainer):
+    """Logs epoch metrics at end of training epoch."""
     _log_scalars(trainer.metrics, trainer.epoch + 1)
 
 

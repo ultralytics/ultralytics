@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from copy import copy
 
@@ -21,12 +21,14 @@ from ultralytics.yolo.v8.detect.train import Loss
 class PoseTrainer(v8.detect.DetectionTrainer):
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+        """Initialize a PoseTrainer object with specified configurations and overrides."""
         if overrides is None:
             overrides = {}
         overrides['task'] = 'pose'
         super().__init__(cfg, overrides, _callbacks)
 
     def get_model(self, cfg=None, weights=None, verbose=True):
+        """Get pose estimation model with specified configuration and weights."""
         model = PoseModel(cfg, ch=3, nc=self.data['nc'], data_kpt_shape=self.data['kpt_shape'], verbose=verbose)
         if weights:
             model.load(weights)
@@ -34,19 +36,23 @@ class PoseTrainer(v8.detect.DetectionTrainer):
         return model
 
     def set_model_attributes(self):
+        """Sets keypoints shape attribute of PoseModel."""
         super().set_model_attributes()
         self.model.kpt_shape = self.data['kpt_shape']
 
     def get_validator(self):
+        """Returns an instance of the PoseValidator class for validation."""
         self.loss_names = 'box_loss', 'pose_loss', 'kobj_loss', 'cls_loss', 'dfl_loss'
         return v8.pose.PoseValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
 
     def criterion(self, preds, batch):
+        """Computes pose loss for the YOLO model."""
         if not hasattr(self, 'compute_loss'):
             self.compute_loss = PoseLoss(de_parallel(self.model))
         return self.compute_loss(preds, batch)
 
     def plot_training_samples(self, batch, ni):
+        """Plot a batch of training samples with annotated class labels, bounding boxes, and keypoints."""
         images = batch['img']
         kpts = batch['keypoints']
         cls = batch['cls'].squeeze(-1)
@@ -62,6 +68,7 @@ class PoseTrainer(v8.detect.DetectionTrainer):
                     fname=self.save_dir / f'train_batch{ni}.jpg')
 
     def plot_metrics(self):
+        """Plots training/val metrics."""
         plot_results(file=self.csv, pose=True)  # save results.png
 
 
@@ -78,6 +85,7 @@ class PoseLoss(Loss):
         self.keypoint_loss = KeypointLoss(sigmas=sigmas)
 
     def __call__(self, preds, batch):
+        """Calculate the total loss and detach it."""
         loss = torch.zeros(5, device=self.device)  # box, cls, dfl, kpt_location, kpt_visibility
         feats, pred_kpts = preds if isinstance(preds[0], list) else preds[1]
         pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
@@ -145,6 +153,7 @@ class PoseLoss(Loss):
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
 
     def kpts_decode(self, anchor_points, pred_kpts):
+        """Decodes predicted keypoints to image coordinates."""
         y = pred_kpts.clone()
         y[..., :2] *= 2.0
         y[..., 0] += anchor_points[:, [0]] - 0.5
@@ -153,6 +162,7 @@ class PoseLoss(Loss):
 
 
 def train(cfg=DEFAULT_CFG, use_python=False):
+    """Train the YOLO model on the given data and device."""
     model = cfg.model or 'yolov8n-pose.yaml'
     data = cfg.data or 'coco8-pose.yaml'
     device = cfg.device if cfg.device is not None else ''

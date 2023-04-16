@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 import signal
 import sys
 from pathlib import Path
@@ -124,7 +124,7 @@ class HUBTrainingSession:
                     'device': data['device'],
                     'cache': data['cache'],
                     'data': data['data']}
-                self.model_file = data.get('cfg', data['weights'])
+                self.model_file = data.get('cfg') or data.get('weights')  # cfg for pretrained=False
                 self.model_file = checks.check_yolov5u_filename(self.model_file, verbose=False)  # YOLOv5->YOLOv5u
             elif data['status'] == 'training':  # existing model to resume training
                 self.train_args = {'data': data['data'], 'resume': True}

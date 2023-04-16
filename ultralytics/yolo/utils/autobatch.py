@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 """
 Functions for estimating the best YOLO batch size to use a fraction of the available CUDA memory in PyTorch.
 """
@@ -22,7 +22,7 @@ def check_train_batch_size(model, imgsz=640, amp=True):
         amp (bool): If True, use automatic mixed precision (AMP) for training.
 
     Returns:
-        int: Optimal batch size computed using the autobatch() function.
+        (int): Optimal batch size computed using the autobatch() function.
     """
 
     with torch.cuda.amp.autocast(amp):
@@ -34,13 +34,13 @@ def autobatch(model, imgsz=640, fraction=0.67, batch_size=16):
     Automatically estimate the best YOLO batch size to use a fraction of the available CUDA memory.
 
     Args:
-        model: YOLO model to compute batch size for.
+        model (torch.nn.module): YOLO model to compute batch size for.
         imgsz (int, optional): The image size used as input for the YOLO model. Defaults to 640.
         fraction (float, optional): The fraction of available CUDA memory to use. Defaults to 0.67.
         batch_size (int, optional): The default batch size to use if an error is detected. Defaults to 16.
 
     Returns:
-        int: The optimal batch size.
+        (int): The optimal batch size.
     """
 
     # Check device

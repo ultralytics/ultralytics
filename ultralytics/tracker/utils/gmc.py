@@ -11,6 +11,7 @@ from ultralytics.yolo.utils import LOGGER
 class GMC:
 
     def __init__(self, method='sparseOptFlow', downscale=2, verbose=None):
+        """Initialize a video tracker with specified parameters."""
         super().__init__()
 
         self.method = method
@@ -69,6 +70,7 @@ class GMC:
         self.initializedFirstFrame = False
 
     def apply(self, raw_frame, detections=None):
+        """Apply object detection on a raw frame using specified method."""
         if self.method in ['orb', 'sift']:
             return self.applyFeatures(raw_frame, detections)
         elif self.method == 'ecc':
@@ -303,6 +305,7 @@ class GMC:
         return H
 
     def applyFile(self, raw_frame, detections=None):
+        """Return the homography matrix based on the GCPs in the next line of the input GMC file."""
         line = self.gmcFile.readline()
         tokens = line.split('\t')
         H = np.eye(2, 3, dtype=np.float_)

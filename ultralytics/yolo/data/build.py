@@ -21,10 +21,7 @@ from .utils import PIN_MEMORY
 
 
 class InfiniteDataLoader(dataloader.DataLoader):
-    """Dataloader that reuses workers
-
-    Uses same syntax as vanilla DataLoader
-    """
+    """Dataloader that reuses workers. Uses same syntax as vanilla DataLoader."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -40,10 +37,11 @@ class InfiniteDataLoader(dataloader.DataLoader):
 
 
 class _RepeatSampler:
-    """Sampler that repeats forever
+    """
+    Sampler that repeats forever.
 
     Args:
-        sampler (Sampler)
+        sampler (Dataset.sampler): The sampler to repeat.
     """
 
     def __init__(self, sampler):
@@ -173,7 +171,7 @@ def load_inference_source(source=None, transforms=None, imgsz=640, vid_stride=1,
         auto (bool, optional): Automatically apply pre-processing. Default is True.
 
     Returns:
-        dataset: A dataset object for the specified input source.
+        dataset (Dataset): A dataset object for the specified input source.
     """
     source, webcam, screenshot, from_img, in_memory, tensor = check_source(source)
     source_type = source.source_type if in_memory else SourceTypes(webcam, screenshot, from_img, tensor)

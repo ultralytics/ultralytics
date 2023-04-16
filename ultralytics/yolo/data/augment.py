@@ -262,13 +262,15 @@ class RandomPerspective:
         return img, M, s
 
     def apply_bboxes(self, bboxes, M):
-        """apply affine to bboxes only.
+        """
+        Apply affine to bboxes only.
 
         Args:
-            bboxes(ndarray): list of bboxes, xyxy format, with shape (num_bboxes, 4).
-            M(ndarray): affine matrix.
+            bboxes (ndarray): list of bboxes, xyxy format, with shape (num_bboxes, 4).
+            M (ndarray): affine matrix.
+
         Returns:
-            new_bboxes(ndarray): bboxes after affine, [num_bboxes, 4].
+            new_bboxes (ndarray): bboxes after affine, [num_bboxes, 4].
         """
         n = len(bboxes)
         if n == 0:
@@ -285,14 +287,16 @@ class RandomPerspective:
         return np.concatenate((x.min(1), y.min(1), x.max(1), y.max(1)), dtype=bboxes.dtype).reshape(4, n).T
 
     def apply_segments(self, segments, M):
-        """apply affine to segments and generate new bboxes from segments.
+        """
+        Apply affine to segments and generate new bboxes from segments.
 
         Args:
-            segments(ndarray): list of segments, [num_samples, 500, 2].
-            M(ndarray): affine matrix.
+            segments (ndarray): list of segments, [num_samples, 500, 2].
+            M (ndarray): affine matrix.
+
         Returns:
-            new_segments(ndarray): list of segments after affine, [num_samples, 500, 2].
-            new_bboxes(ndarray): bboxes after affine, [N, 4].
+            new_segments (ndarray): list of segments after affine, [num_samples, 500, 2].
+            new_bboxes (ndarray): bboxes after affine, [N, 4].
         """
         n, num = segments.shape[:2]
         if n == 0:
@@ -308,13 +312,15 @@ class RandomPerspective:
         return bboxes, segments
 
     def apply_keypoints(self, keypoints, M):
-        """apply affine to keypoints.
+        """
+        Apply affine to keypoints.
 
         Args:
-            keypoints(ndarray): keypoints, [N, 17, 3].
-            M(ndarray): affine matrix.
+            keypoints (ndarray): keypoints, [N, 17, 3].
+            M (ndarray): affine matrix.
+
         Return:
-            new_keypoints(ndarray): keypoints after affine, [N, 17, 3].
+            new_keypoints (ndarray): keypoints after affine, [N, 17, 3].
         """
         n, nkpt = keypoints.shape[:2]
         if n == 0:
@@ -333,7 +339,7 @@ class RandomPerspective:
         Affine images and targets.
 
         Args:
-            labels(Dict): a dict of `bboxes`, `segments`, `keypoints`.
+            labels (dict): a dict of `bboxes`, `segments`, `keypoints`.
         """
         if self.pre_transform and 'mosaic_border' not in labels:
             labels = self.pre_transform(labels)

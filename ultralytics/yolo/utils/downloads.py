@@ -67,21 +67,21 @@ def safe_download(url,
                   min_bytes=1E0,
                   progress=True):
     """
-    Function for downloading files from a URL, with options for retrying, unzipping, and deleting the downloaded file.
+    Downloads files from a URL, with options for retrying, unzipping, and deleting the downloaded file.
 
     Args:
-        url: str: The URL of the file to be downloaded.
-        file: str, optional: The filename of the downloaded file.
+        url (str): The URL of the file to be downloaded.
+        file (str, optional): The filename of the downloaded file.
             If not provided, the file will be saved with the same name as the URL.
-        dir: str, optional: The directory to save the downloaded file.
+        dir (str, optional): The directory to save the downloaded file.
             If not provided, the file will be saved in the current working directory.
-        unzip: bool, optional: Whether to unzip the downloaded file. Default: True.
-        delete: bool, optional: Whether to delete the downloaded file after unzipping. Default: False.
-        curl: bool, optional: Whether to use curl command line tool for downloading. Default: False.
-        retry: int, optional: The number of times to retry the download in case of failure. Default: 3.
-        min_bytes: float, optional: The minimum number of bytes that the downloaded file should have, to be considered
+        unzip (bool, optional): Whether to unzip the downloaded file. Default: True.
+        delete (bool, optional): Whether to delete the downloaded file after unzipping. Default: False.
+        curl (bool, optional): Whether to use curl command line tool for downloading. Default: False.
+        retry (int, optional): The number of times to retry the download in case of failure. Default: 3.
+        min_bytes (float, optional): The minimum number of bytes that the downloaded file should have, to be considered
             a successful download. Default: 1E0.
-        progress: bool, optional: Whether to display a progress bar during the download. Default: True.
+        progress (bool, optional): Whether to display a progress bar during the download. Default: True.
     """
     if '://' not in str(url) and Path(url).is_file():  # exists ('://' check required in Windows Python<3.10)
         f = Path(url)  # filename

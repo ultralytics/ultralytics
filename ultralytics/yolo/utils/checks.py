@@ -47,13 +47,13 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
     stride, update it to the nearest multiple of the stride that is greater than or equal to the given floor value.
 
     Args:
-        imgsz (int or List[int]): Image size.
+        imgsz (int) or (cList[int]): Image size.
         stride (int): Stride value.
         min_dim (int): Minimum number of dimensions.
         floor (int): Minimum allowed value for image size.
 
     Returns:
-        List[int]: Updated image size.
+        (List[int]): Updated image size.
     """
     # Convert stride to integer if it is a tensor
     stride = int(stride.max() if isinstance(stride, torch.Tensor) else stride)
@@ -106,7 +106,7 @@ def check_version(current: str = '0.0.0',
         verbose (bool): If True, print warning message if minimum version is not met.
 
     Returns:
-        bool: True if minimum version is met, False otherwise.
+        (bool): True if minimum version is met, False otherwise.
     """
     current, minimum = (pkg.parse_version(x) for x in (current, minimum))
     result = (current == minimum) if pinned else (current >= minimum)  # bool
@@ -126,7 +126,7 @@ def check_latest_pypi_version(package_name='ultralytics'):
         package_name (str): The name of the package to find the latest version for.
 
     Returns:
-        str: The latest version of the package.
+        (str): The latest version of the package.
     """
     requests.packages.urllib3.disable_warnings()  # Disable the InsecureRequestWarning
     response = requests.get(f'https://pypi.org/pypi/{package_name}/json', verify=False)
@@ -140,7 +140,7 @@ def check_pip_update_available():
     Checks if a new version of the ultralytics package is available on PyPI.
 
     Returns:
-        bool: True if an update is available, False otherwise.
+        (bool): True if an update is available, False otherwise.
     """
     if ONLINE and is_pip_package():
         with contextlib.suppress(Exception):
@@ -206,9 +206,6 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
         exclude (Tuple[str]): Tuple of package names to exclude from checking.
         install (bool): If True, attempt to auto-update packages that don't meet requirements.
         cmds (str): Additional commands to pass to the pip install command when auto-updating.
-
-    Returns:
-        None
     """
     prefix = colorstr('red', 'bold', 'requirements:')
     check_python()  # check python version

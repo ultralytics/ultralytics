@@ -18,11 +18,30 @@ from .utils import HELP_URL, IMG_FORMATS
 
 
 class BaseDataset(Dataset):
-    """Base Dataset.
+    """
+    Base dataset class for loading and processing image data.
+
     Args:
-        img_path (str): image path.
-        pipeline (dict): a dict of image transforms.
-        label_path (str): label path, this can also be an ann_file or other custom label path.
+        img_path (str): Image path.
+        imgsz (int): Target image size for resizing. Default is 640.
+        cache (bool): Cache images in memory or on disk for faster loading. Default is False.
+        augment (bool): Apply data augmentation. Default is True.
+        hyp (dict): Dictionary of hyperparameters for data augmentation. Default is None.
+        prefix (str): Prefix for file paths. Default is an empty string.
+        rect (bool): Enable rectangular training. Default is False.
+        batch_size (int): Batch size for rectangular training. Default is None.
+        stride (int): Stride for rectangular training. Default is 32.
+        pad (float): Padding for rectangular training. Default is 0.5.
+        single_cls (bool): Use a single class for all labels. Default is False.
+        classes (list): List of included classes. Default is None.
+
+    Attributes:
+        im_files (list): List of image file paths.
+        labels (list): List of label data dictionaries.
+        ni (int): Number of images in the dataset.
+        ims (list): List of loaded images.
+        npy_files (list): List of numpy file paths.
+        transforms (callable): Image transformation function.
     """
 
     def __init__(self,

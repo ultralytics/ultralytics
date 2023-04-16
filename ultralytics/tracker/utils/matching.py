@@ -190,11 +190,24 @@ def fuse_score(cost_matrix, detections):
 
 
 def bbox_ious(box1, box2, eps=1e-7):
-    """Boxes are x1y1x2y2
-    box1:       np.array of shape(nx4)
-    box2:       np.array of shape(mx4)
-    returns:    np.array of shape(nxm)
     """
+    Calculate the Intersection over Union (IoU) between pairs of bounding boxes.
+
+    Args:
+        box1 (np.array): A numpy array of shape (n, 4) representing 'n' bounding boxes.
+                         Each row is in the format (x1, y1, x2, y2).
+        box2 (np.array): A numpy array of shape (m, 4) representing 'm' bounding boxes.
+                         Each row is in the format (x1, y1, x2, y2).
+        eps (float, optional): A small constant to prevent division by zero. Defaults to 1e-7.
+
+    Returns:
+        (np.array): A numpy array of shape (n, m) representing the IoU scores for each pair
+                    of bounding boxes from box1 and box2.
+
+    Note:
+        The bounding box coordinates are expected to be in the format (x1, y1, x2, y2).
+    """
+
     # Get the coordinates of bounding boxes
     b1_x1, b1_y1, b1_x2, b1_y2 = box1.T
     b2_x1, b2_y1, b2_x2, b2_y2 = box2.T

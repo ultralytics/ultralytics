@@ -127,7 +127,7 @@ class Annotator:
         masks_color = masks * (colors * alpha)  # shape(n,h,w,3)
 
         inv_alph_masks = (1 - masks * alpha).cumprod(0)  # shape(n,h,w,1)
-        mcs = (masks_color * inv_alph_masks).sum(0) * 2  # mask color summand shape(n,h,w,3)
+        mcs = masks_color.max(dim=0).values  # shape(n,h,w,3)
 
         im_gpu = im_gpu.flip(dims=[0])  # flip channel
         im_gpu = im_gpu.permute(1, 2, 0).contiguous()  # shape(h,w,3)
@@ -140,12 +140,16 @@ class Annotator:
             self.fromarray(self.im)
 
     def kpts(self, kpts, shape=(640, 640), radius=5, kpt_line=True):
-        """Plot keypoints.
+        """Plot keypoints on the image.
+
         Args:
-            kpts (tensor): predicted kpts, shape: [17, 3]
-            shape (tuple): image shape, (h, w)
-            steps (int): keypoints step
-            radius (int): size of drawing points
+            kpts (tensor): Predicted keypoints with shape [17, 3]. Each keypoint has (x, y, confidence).
+            shape (tuple): Image shape as a tuple (h, w), where h is the height and w is the width.
+            radius (int, optional): Radius of the drawn keypoints. Default is 5.
+            kpt_line (bool, optional): If True, the function will draw lines connecting keypoints
+                                       for human pose. Default is True.
+
+        Note: `kpt_line=True` currently only supports human pose plotting.
         """
         if self.pil:
             # convert to numpy first

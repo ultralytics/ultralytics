@@ -73,7 +73,7 @@ ARM64 = platform.machine() in ('arm64', 'aarch64')
 
 
 def export_formats():
-    # YOLOv8 export formats
+    """YOLOv8 export formats"""
     import pandas
     x = [
         ['PyTorch', '-', '.pt', True, True],
@@ -92,7 +92,7 @@ def export_formats():
 
 
 def gd_outputs(gd):
-    # TensorFlow GraphDef model output node names
+    """TensorFlow GraphDef model output node names"""
     name_list, input_list = [], []
     for node in gd.node:  # tensorflow.core.framework.node_def_pb2.NodeDef
         name_list.append(node.name)
@@ -101,7 +101,7 @@ def gd_outputs(gd):
 
 
 def try_export(inner_func):
-    # YOLOv8 export decorator, i..e @try_export
+    """YOLOv8 export decorator, i..e @try_export"""
     inner_args = get_default_args(inner_func)
 
     def outer_func(*args, **kwargs):
@@ -118,10 +118,26 @@ def try_export(inner_func):
     return outer_func
 
 
+class iOSDetectModel(torch.nn.Module):
+    """Wrap an Ultralytics YOLO model for iOS export"""
+
+    def __init__(self, model, im):
+        super().__init__()
+        b, c, h, w = im.shape  # batch, channel, height, width
+        self.model = model
+        self.nc = len(model.names)  # number of classes
+        if w == h:
+            self.normalize = 1.0 / w  # scalar
+        else:
+            self.normalize = torch.tensor([1.0 / w, 1.0 / h, 1.0 / w, 1.0 / h])  # broadcast (slower, smaller)
+
+    def forward(self, x):
+        xywh, cls = self.model(x)[0].transpose(0, 1).split((4, self.nc), 1)
+        return cls, xywh * self.normalize  # confidence (3780, 80), coordinates (3780, 4)
+
+
 class Exporter:
     """
-    Exporter
-
     A class for exporting a model.
 
     Attributes:
@@ -136,6 +152,7 @@ class Exporter:
         Args:
             cfg (str, optional): Path to a configuration file. Defaults to DEFAULT_CFG.
             overrides (dict, optional): Configuration overrides. Defaults to None.
+            _callbacks (list, optional): List of callback functions. Defaults to None.
         """
         self.args = get_cfg(cfg, overrides)
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
@@ -384,22 +401,6 @@ class Exporter:
         # YOLOv8 CoreML export
         check_requirements('coremltools>=6.0')
         import coremltools as ct  # noqa
-
-        class iOSDetectModel(torch.nn.Module):
-            # Wrap an Ultralytics YOLO model for iOS export
-            def __init__(self, model, im):
-                super().__init__()
-                b, c, h, w = im.shape  # batch, channel, height, width
-                self.model = model
-                self.nc = len(model.names)  # number of classes
-                if w == h:
-                    self.normalize = 1.0 / w  # scalar
-                else:
-                    self.normalize = torch.tensor([1.0 / w, 1.0 / h, 1.0 / w, 1.0 / h])  # broadcast (slower, smaller)
-
-            def forward(self, x):
-                xywh, cls = self.model(x)[0].transpose(0, 1).split((4, self.nc), 1)
-                return cls, xywh * self.normalize  # confidence (3780, 80), coordinates (3780, 4)
 
         LOGGER.info(f'\n{prefix} starting export with coremltools {ct.__version__}...')
         f = self.file.with_suffix('.mlmodel')

@@ -16,6 +16,7 @@ except (ImportError, AssertionError):
 
 
 def on_pretrain_routine_end(trainer):
+    """Logs training parameters to MLflow."""
     global mlflow, run, run_id, experiment_name
 
     if os.environ.get('MLFLOW_TRACKING_URI') is None:
@@ -45,17 +46,20 @@ def on_pretrain_routine_end(trainer):
 
 
 def on_fit_epoch_end(trainer):
+    """Logs training metrics to Mlflow."""
     if mlflow:
         metrics_dict = {f"{re.sub('[()]', '', k)}": float(v) for k, v in trainer.metrics.items()}
         run.log_metrics(metrics=metrics_dict, step=trainer.epoch)
 
 
 def on_model_save(trainer):
+    """Logs model and metrics to mlflow on save."""
     if mlflow:
         run.log_artifact(trainer.last)
 
 
 def on_train_end(trainer):
+    """Called at end of train loop to log model artifact info."""
     if mlflow:
         root_dir = Path(__file__).resolve().parents[3]
         run.log_artifact(trainer.best)

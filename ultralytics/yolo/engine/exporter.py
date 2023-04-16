@@ -290,7 +290,7 @@ class Exporter:
 
     @try_export
     def _export_torchscript(self, prefix=colorstr('TorchScript:')):
-        # YOLOv8 TorchScript model export
+        """YOLOv8 TorchScript model export."""
         LOGGER.info(f'\n{prefix} starting export with torch {torch.__version__}...')
         f = self.file.with_suffix('.torchscript')
 
@@ -306,7 +306,7 @@ class Exporter:
 
     @try_export
     def _export_onnx(self, prefix=colorstr('ONNX:')):
-        # YOLOv8 ONNX export
+        """YOLOv8 ONNX export."""
         requirements = ['onnx>=1.12.0']
         if self.args.simplify:
             requirements += ['onnxsim>=0.4.17', 'onnxruntime-gpu' if torch.cuda.is_available() else 'onnxruntime']
@@ -364,7 +364,7 @@ class Exporter:
 
     @try_export
     def _export_openvino(self, prefix=colorstr('OpenVINO:')):
-        # YOLOv8 OpenVINO export
+        """YOLOv8 OpenVINO export."""
         check_requirements('openvino-dev>=2022.3')  # requires openvino-dev: https://pypi.org/project/openvino-dev/
         import openvino.runtime as ov  # noqa
         from openvino.tools import mo  # noqa
@@ -384,7 +384,7 @@ class Exporter:
 
     @try_export
     def _export_paddle(self, prefix=colorstr('PaddlePaddle:')):
-        # YOLOv8 Paddle export
+        """YOLOv8 Paddle export."""
         check_requirements(('paddlepaddle', 'x2paddle'))
         import x2paddle  # noqa
         from x2paddle.convert import pytorch2paddle  # noqa
@@ -398,7 +398,7 @@ class Exporter:
 
     @try_export
     def _export_coreml(self, prefix=colorstr('CoreML:')):
-        # YOLOv8 CoreML export
+        """YOLOv8 CoreML export."""
         check_requirements('coremltools>=6.0')
         import coremltools as ct  # noqa
 
@@ -440,7 +440,7 @@ class Exporter:
 
     @try_export
     def _export_engine(self, workspace=4, verbose=False, prefix=colorstr('TensorRT:')):
-        # YOLOv8 TensorRT export https://developer.nvidia.com/tensorrt
+        """YOLOv8 TensorRT export https://developer.nvidia.com/tensorrt."""
         assert self.im.device.type != 'cpu', "export running on CPU but must be on GPU, i.e. use 'device=0'"
         try:
             import tensorrt as trt  # noqa
@@ -505,8 +505,7 @@ class Exporter:
 
     @try_export
     def _export_saved_model(self, prefix=colorstr('TensorFlow SavedModel:')):
-
-        # YOLOv8 TensorFlow SavedModel export
+        """YOLOv8 TensorFlow SavedModel export."""
         try:
             import tensorflow as tf  # noqa
         except ImportError:
@@ -552,7 +551,7 @@ class Exporter:
 
     @try_export
     def _export_pb(self, keras_model, prefix=colorstr('TensorFlow GraphDef:')):
-        # YOLOv8 TensorFlow GraphDef *.pb export https://github.com/leimao/Frozen_Graph_TensorFlow
+        """YOLOv8 TensorFlow GraphDef *.pb export https://github.com/leimao/Frozen_Graph_TensorFlow."""
         import tensorflow as tf  # noqa
         from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2  # noqa
 
@@ -568,7 +567,7 @@ class Exporter:
 
     @try_export
     def _export_tflite(self, keras_model, nms, agnostic_nms, prefix=colorstr('TensorFlow Lite:')):
-        # YOLOv8 TensorFlow Lite export
+        """YOLOv8 TensorFlow Lite export."""
         import tensorflow as tf  # noqa
 
         LOGGER.info(f'\n{prefix} starting export with tensorflow {tf.__version__}...')
@@ -583,7 +582,7 @@ class Exporter:
 
     @try_export
     def _export_edgetpu(self, tflite_model='', prefix=colorstr('Edge TPU:')):
-        # YOLOv8 Edge TPU export https://coral.ai/docs/edgetpu/models-intro/
+        """YOLOv8 Edge TPU export https://coral.ai/docs/edgetpu/models-intro/."""
         LOGGER.warning(f'{prefix} WARNING ⚠️ Edge TPU known bug https://github.com/ultralytics/ultralytics/issues/1185')
 
         cmd = 'edgetpu_compiler --version'
@@ -610,7 +609,7 @@ class Exporter:
 
     @try_export
     def _export_tfjs(self, prefix=colorstr('TensorFlow.js:')):
-        # YOLOv8 TensorFlow.js export
+        """YOLOv8 TensorFlow.js export."""
         check_requirements('tensorflowjs')
         import tensorflow as tf
         import tensorflowjs as tfjs  # noqa

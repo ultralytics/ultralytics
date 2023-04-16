@@ -273,7 +273,7 @@ class YOLO:
     @smart_inference_mode()
     def val(self, data=None, **kwargs):
         """
-        Validate a model on a given dataset .
+        Validate a model on a given dataset.
 
         Args:
             data (str): The dataset to validate on. Accepts all formats accepted by yolo
@@ -467,7 +467,7 @@ class YOLO:
     @property
     def names(self):
         """
-         Returns class names of the loaded model.
+        Returns class names of the loaded model.
         """
         return self.model.names if hasattr(self.model, 'names') else None
 
@@ -481,7 +481,7 @@ class YOLO:
     @property
     def transforms(self):
         """
-         Returns transform of the loaded model.
+        Returns transform of the loaded model.
         """
         return self.model.transforms if hasattr(self.model, 'transforms') else None
 

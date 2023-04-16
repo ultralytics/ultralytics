@@ -42,7 +42,7 @@ class Bboxes:
         # self.normalized = normalized
 
     # def convert(self, format):
-    #     assert format in _formats
+    # """     assert format in _formats."""
     #     if self.format == format:
     #         bboxes = self.bboxes
     #     elif self.format == "xyxy":
@@ -81,7 +81,7 @@ class Bboxes:
         return (self.bboxes[:, 2] - self.bboxes[:, 0]) * (self.bboxes[:, 3] - self.bboxes[:, 1])
 
     # def denormalize(self, w, h):
-    #    if not self.normalized:
+    # """    if not self.normalized:."""
     #         return
     #     assert (self.bboxes <= 1.0).all()
     #     self.bboxes[:, 0::2] *= w
@@ -89,7 +89,7 @@ class Bboxes:
     #     self.normalized = False
     #
     # def normalize(self, w, h):
-    #     if self.normalized:
+    # """     if self.normalized:."""
     #         return
     #     assert (self.bboxes > 1.0).any()
     #     self.bboxes[:, 0::2] /= w

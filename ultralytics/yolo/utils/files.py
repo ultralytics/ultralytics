@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 class WorkingDirectory(contextlib.ContextDecorator):
-    # Usage: @WorkingDirectory(dir) decorator or 'with WorkingDirectory(dir):' context manager
+    """Usage: @WorkingDirectory(dir) decorator or 'with WorkingDirectory(dir):' context manager."""
     def __init__(self, new_dir):
         self.dir = new_dir  # new dir
         self.cwd = Path.cwd().resolve()  # current dir

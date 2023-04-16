@@ -83,7 +83,6 @@ class GMC:
             return np.eye(2, 3)
 
     def applyEcc(self, raw_frame, detections=None):
-
         """Initialize."""
         height, width, _ = raw_frame.shape
         frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY)
@@ -116,7 +115,6 @@ class GMC:
         return H
 
     def applyFeatures(self, raw_frame, detections=None):
-
         """Initialize."""
         height, width, _ = raw_frame.shape
         frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY)

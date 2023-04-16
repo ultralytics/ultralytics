@@ -41,7 +41,7 @@ ENV OMP_NUM_THREADS=1
 # t=ultralytics/ultralytics:latest && sudo docker build -f docker/Dockerfile -t $t . && sudo docker push $t
 
 # Pull and Run
-# t=ultralytics/ultralytics:latest && sudo docker pull $t && sudo docker run -it --ipc=host $t
+# t=ultralytics/ultralytics:latest && sudo docker pull $t && sudo docker run -it --ipc=host --gpus all $t
 
 # Pull and Run with local directory access
 # t=ultralytics/ultralytics:latest && sudo docker pull $t && sudo docker run -it --ipc=host --gpus all -v "$(pwd)"/datasets:/usr/src/datasets $t

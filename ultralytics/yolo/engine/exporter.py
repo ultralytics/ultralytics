@@ -73,7 +73,7 @@ ARM64 = platform.machine() in ('arm64', 'aarch64')
 
 
 def export_formats():
-    # YOLOv8 export formats
+    """YOLOv8 export formats"""
     import pandas
     x = [
         ['PyTorch', '-', '.pt', True, True],
@@ -92,7 +92,7 @@ def export_formats():
 
 
 def gd_outputs(gd):
-    # TensorFlow GraphDef model output node names
+    """TensorFlow GraphDef model output node names"""
     name_list, input_list = [], []
     for node in gd.node:  # tensorflow.core.framework.node_def_pb2.NodeDef
         name_list.append(node.name)
@@ -101,7 +101,7 @@ def gd_outputs(gd):
 
 
 def try_export(inner_func):
-    # YOLOv8 export decorator, i..e @try_export
+    """YOLOv8 export decorator, i..e @try_export"""
     inner_args = get_default_args(inner_func)
 
     def outer_func(*args, **kwargs):
@@ -119,7 +119,7 @@ def try_export(inner_func):
 
 
 class iOSDetectModel(torch.nn.Module):
-    # Wrap an Ultralytics YOLO model for iOS export
+    """Wrap an Ultralytics YOLO model for iOS export"""
     def __init__(self, model, im):
         super().__init__()
         b, c, h, w = im.shape  # batch, channel, height, width
@@ -137,8 +137,6 @@ class iOSDetectModel(torch.nn.Module):
 
 class Exporter:
     """
-    Exporter
-
     A class for exporting a model.
 
     Attributes:
@@ -153,6 +151,7 @@ class Exporter:
         Args:
             cfg (str, optional): Path to a configuration file. Defaults to DEFAULT_CFG.
             overrides (dict, optional): Configuration overrides. Defaults to None.
+            _callbacks (list, optional): List of callback functions. Defaults to None.
         """
         self.args = get_cfg(cfg, overrides)
         self.callbacks = _callbacks or callbacks.get_default_callbacks()

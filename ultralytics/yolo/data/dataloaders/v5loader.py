@@ -162,14 +162,17 @@ class InfiniteDataLoader(dataloader.DataLoader):
     """
 
     def __init__(self, *args, **kwargs):
+        """Dataloader that reuses workers for same syntax as vanilla DataLoader."""
         super().__init__(*args, **kwargs)
         object.__setattr__(self, 'batch_sampler', _RepeatSampler(self.batch_sampler))
         self.iterator = super().__iter__()
 
     def __len__(self):
+        """Returns the length of batch_sampler's sampler."""
         return len(self.batch_sampler.sampler)
 
     def __iter__(self):
+        """Creates a sampler that infinitely repeats."""
         for _ in range(len(self)):
             yield next(self.iterator)
 
@@ -182,9 +185,11 @@ class _RepeatSampler:
     """
 
     def __init__(self, sampler):
+        """Sampler that repeats dataset samples infinitely."""
         self.sampler = sampler
 
     def __iter__(self):
+        """Infinite loop iterating over a given sampler."""
         while True:
             yield from iter(self.sampler)
 
@@ -221,6 +226,7 @@ class LoadScreenshots:
         self.monitor = {'left': self.left, 'top': self.top, 'width': self.width, 'height': self.height}
 
     def __iter__(self):
+        """Iterates over objects with the same structure as the monitor attribute."""
         return self
 
     def __next__(self):
@@ -241,6 +247,7 @@ class LoadScreenshots:
 class LoadImages:
     # YOLOv5 image/video dataloader, i.e. `python detect.py --source image.jpg/vid.mp4`
     def __init__(self, path, img_size=640, stride=32, auto=True, transforms=None, vid_stride=1):
+        """Initialize instance variables and check for valid input."""
         if isinstance(path, str) and Path(path).suffix == '.txt':  # *.txt file with img/vid/dir on each line
             path = Path(path).read_text().rsplit()
         files = []
@@ -276,10 +283,12 @@ class LoadImages:
                             f'Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}'
 
     def __iter__(self):
+        """Returns an iterator object for iterating over images or videos found in a directory."""
         self.count = 0
         return self
 
     def __next__(self):
+        """Iterator's next item, performs transformation on image and returns path, transformed image, original image, capture and size."""
         if self.count == self.nf:
             raise StopIteration
         path = self.files[self.count]
@@ -338,12 +347,14 @@ class LoadImages:
         return im
 
     def __len__(self):
+        """Returns the number of files in the class instance."""
         return self.nf  # number of files
 
 
 class LoadStreams:
     # YOLOv5 streamloader, i.e. `python detect.py --source 'rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP streams`
     def __init__(self, sources='file.streams', img_size=640, stride=32, auto=True, transforms=None, vid_stride=1):
+        """Initialize YOLO detector with optional transforms and check input shapes."""
         torch.backends.cudnn.benchmark = True  # faster for fixed-size inference
         self.mode = 'stream'
         self.img_size = img_size
@@ -404,10 +415,12 @@ class LoadStreams:
             time.sleep(0.0)  # wait time
 
     def __iter__(self):
+        """Iterator that returns the class instance."""
         self.count = -1
         return self
 
     def __next__(self):
+        """Return a tuple containing transformed and resized image data."""
         self.count += 1
         if not all(x.is_alive() for x in self.threads) or cv2.waitKey(1) == ord('q'):  # q to quit
             cv2.destroyAllWindows()
@@ -424,6 +437,7 @@ class LoadStreams:
         return self.sources, im, im0, None, ''
 
     def __len__(self):
+        """Returns the number of sources as the length of the object."""
         return len(self.sources)  # 1E12 frames = 32 streams at 30 FPS for 30 years
 
 
@@ -607,6 +621,7 @@ class LoadImagesAndLabels(Dataset):
         return cache
 
     def cache_labels(self, path=Path('./labels.cache'), prefix=''):
+        """Cache labels and save as numpy file for next time."""
         # Cache dataset labels, check images and read shapes
         if path.exists():
             path.unlink()  # remove *.cache file if exists
@@ -646,9 +661,11 @@ class LoadImagesAndLabels(Dataset):
         return x
 
     def __len__(self):
+        """Returns the length of 'im_files' attribute."""
         return len(self.im_files)
 
     def __getitem__(self, index):
+        """Get a sample and its corresponding label, filename and shape from the dataset."""
         index = self.indices[index]  # linear, shuffled, or image_weights
 
         hyp = self.hyp
@@ -1039,6 +1056,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
     """
 
     def __init__(self, root, augment, imgsz, cache=False):
+        """Initialize YOLO dataset with root, augmentation, image size, and cache parameters."""
         super().__init__(root=root)
         self.torch_transforms = classify_transforms(imgsz)
         self.album_transforms = classify_albumentations(augment, imgsz) if augment else None
@@ -1047,6 +1065,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         self.samples = [list(x) + [Path(x[0]).with_suffix('.npy'), None] for x in self.samples]  # file, index, npy, im
 
     def __getitem__(self, i):
+        """Retrieves data items of 'dataset' via indices & creates InfiniteDataLoader."""
         f, j, fn, im = self.samples[i]  # filename, index, filename.with_suffix('.npy'), image
         if self.cache_ram and im is None:
             im = self.samples[i][3] = cv2.imread(f)

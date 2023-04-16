@@ -18,6 +18,7 @@ except (ImportError, AssertionError, AttributeError):
 
 
 def merge_matches(m1, m2, shape):
+    """Merge two sets of matches and return matched and unmatched indices."""
     O, P, Q = shape
     m1 = np.asarray(m1)
     m2 = np.asarray(m2)
@@ -35,6 +36,7 @@ def merge_matches(m1, m2, shape):
 
 
 def _indices_to_matches(cost_matrix, indices, thresh):
+    """_indices_to_matches: Return matched and unmatched indices given a cost matrix, indices, and a threshold."""
     matched_cost = cost_matrix[tuple(zip(*indices))]
     matched_mask = (matched_cost <= thresh)
 
@@ -144,6 +146,7 @@ def embedding_distance(tracks, detections, metric='cosine'):
 
 
 def gate_cost_matrix(kf, cost_matrix, tracks, detections, only_position=False):
+    """Apply gating to the cost matrix based on predicted tracks and detected objects."""
     if cost_matrix.size == 0:
         return cost_matrix
     gating_dim = 2 if only_position else 4
@@ -156,6 +159,7 @@ def gate_cost_matrix(kf, cost_matrix, tracks, detections, only_position=False):
 
 
 def fuse_motion(kf, cost_matrix, tracks, detections, only_position=False, lambda_=0.98):
+    """Fuse motion between tracks and detections with gating and Kalman filtering."""
     if cost_matrix.size == 0:
         return cost_matrix
     gating_dim = 2 if only_position else 4
@@ -169,6 +173,7 @@ def fuse_motion(kf, cost_matrix, tracks, detections, only_position=False, lambda
 
 
 def fuse_iou(cost_matrix, tracks, detections):
+    """Fuses ReID and IoU similarity matrices to yield a cost matrix for object tracking."""
     if cost_matrix.size == 0:
         return cost_matrix
     reid_sim = 1 - cost_matrix
@@ -181,6 +186,7 @@ def fuse_iou(cost_matrix, tracks, detections):
 
 
 def fuse_score(cost_matrix, detections):
+    """Fuses cost matrix with detection scores to produce a single similarity matrix."""
     if cost_matrix.size == 0:
         return cost_matrix
     iou_sim = 1 - cost_matrix

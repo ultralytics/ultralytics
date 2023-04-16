@@ -192,7 +192,7 @@ def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
 
 
 def download(url, dir=Path.cwd(), unzip=True, delete=False, curl=False, threads=1, retry=3):
-    # Multithreaded file download and unzip function, used in data.yaml for autodownload
+    """Downloads and unzips files concurrently if threads > 1, else sequentially."""
     dir = Path(dir)
     dir.mkdir(parents=True, exist_ok=True)  # make directory
     if threads > 1:

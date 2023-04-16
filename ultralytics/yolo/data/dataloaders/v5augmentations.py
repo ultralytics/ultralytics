@@ -24,6 +24,7 @@ IMAGENET_STD = 0.229, 0.224, 0.225  # RGB standard deviation
 class Albumentations:
     # YOLOv5 Albumentations class (optional, only used if package is installed)
     def __init__(self, size=640):
+        """Instantiate object with image augmentations for YOLOv5."""
         self.transform = None
         prefix = colorstr('albumentations: ')
         try:
@@ -48,6 +49,7 @@ class Albumentations:
             LOGGER.info(f'{prefix}{e}')
 
     def __call__(self, im, labels, p=1.0):
+        """Transforms input image and labels with probability 'p'."""
         if self.transform and random.random() < p:
             new = self.transform(image=im, bboxes=labels[:, 1:], class_labels=labels[:, 0])  # transformed
             im, labels = new['image'], np.array([[c, *b] for c, b in zip(new['class_labels'], new['bboxes'])])
@@ -111,7 +113,7 @@ def replicate(im, labels):
 
 
 def letterbox(im, new_shape=(640, 640), color=(114, 114, 114), auto=True, scaleFill=False, scaleup=True, stride=32):
-    # Resize and pad image while meeting stride-multiple constraints
+    """Resize and pad image while meeting stride-multiple constraints."""
     shape = im.shape[:2]  # current shape [height, width]
     if isinstance(new_shape, int):
         new_shape = (new_shape, new_shape)
@@ -359,6 +361,7 @@ def classify_transforms(size=224):
 class LetterBox:
     # YOLOv5 LetterBox class for image preprocessing, i.e. T.Compose([LetterBox(size), ToTensor()])
     def __init__(self, size=(640, 640), auto=False, stride=32):
+        """Resizes and crops an image to a specified size for YOLOv5 preprocessing."""
         super().__init__()
         self.h, self.w = (size, size) if isinstance(size, int) else size
         self.auto = auto  # pass max size integer, automatically solve for short side using stride
@@ -378,6 +381,7 @@ class LetterBox:
 class CenterCrop:
     # YOLOv5 CenterCrop class for image preprocessing, i.e. T.Compose([CenterCrop(size), ToTensor()])
     def __init__(self, size=640):
+        """Converts input image into tensor for YOLOv5 processing."""
         super().__init__()
         self.h, self.w = (size, size) if isinstance(size, int) else size
 
@@ -391,6 +395,7 @@ class CenterCrop:
 class ToTensor:
     # YOLOv5 ToTensor class for image preprocessing, i.e. T.Compose([LetterBox(size), ToTensor()])
     def __init__(self, half=False):
+        """Initialize ToTensor class for YOLOv5 image preprocessing."""
         super().__init__()
         self.half = half
 

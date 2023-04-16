@@ -195,58 +195,72 @@ class BaseValidator:
             return stats
 
     def add_callback(self, event: str, callback):
-        """
-        Appends the given callback.
-        """
+        """Appends the given callback."""
         self.callbacks[event].append(callback)
 
     def run_callbacks(self, event: str):
+        """Runs all callbacks associated with a specified event."""
         for callback in self.callbacks.get(event, []):
             callback(self)
 
     def get_dataloader(self, dataset_path, batch_size):
+        """Get data loader from dataset path and batch size."""
         raise NotImplementedError('get_dataloader function not implemented for this validator')
 
     def preprocess(self, batch):
+        """Preprocesses an input batch."""
         return batch
 
     def postprocess(self, preds):
+        """Describes and summarizes the purpose of 'postprocess()' but no details mentioned."""
         return preds
 
     def init_metrics(self, model):
+        """Initialize performance metrics for the YOLO model."""
         pass
 
     def update_metrics(self, preds, batch):
+        """Updates metrics based on predictions and batch."""
         pass
 
     def finalize_metrics(self, *args, **kwargs):
+        """Finalizes and returns all metrics."""
         pass
 
     def get_stats(self):
+        """Returns statistics about the model's performance."""
         return {}
 
     def check_stats(self, stats):
+        """Checks statistics."""
         pass
 
     def print_results(self):
+        """Prints the results of the model's predictions."""
         pass
 
     def get_desc(self):
+        """Get description of the YOLO model."""
         pass
 
     @property
     def metric_keys(self):
+        """Returns the metric keys used in YOLO training/validation."""
         return []
 
     # TODO: may need to put these following functions into callback
     def plot_val_samples(self, batch, ni):
+        """Plots validation samples during training."""
         pass
 
     def plot_predictions(self, batch, preds, ni):
+        """Plots YOLO model predictions on batch images."""
         pass
 
     def pred_to_json(self, preds, batch):
+        """Convert predictions to JSON format."""
         pass
 
     def eval_json(self, stats):
+        """Evaluate and return JSON format of prediction statistics."""
         pass

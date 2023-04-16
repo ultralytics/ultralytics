@@ -202,6 +202,7 @@ class AutoBackend(nn.Module):
             from ultralytics.yolo.engine.exporter import gd_outputs
 
             def wrap_frozen_graph(gd, inputs, outputs):
+                """Wrap frozen graphs for deployment."""
                 x = tf.compat.v1.wrap_function(lambda: tf.compat.v1.import_graph_def(gd, name=''), [])  # wrapped
                 ge = x.graph.as_graph_element
                 return x.prune(tf.nest.map_structure(ge, inputs), tf.nest.map_structure(ge, outputs))
@@ -427,6 +428,7 @@ class AutoBackend(nn.Module):
 
     @staticmethod
     def _apply_default_class_names(data):
+        """Applies default class names to an input YAML file or returns numerical class names."""
         with contextlib.suppress(Exception):
             return yaml_load(check_yaml(data))['names']
         return {i: f'class{i}' for i in range(999)}  # return default if above errors

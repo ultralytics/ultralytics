@@ -26,15 +26,19 @@ class BaseTransform:
         pass
 
     def apply_image(self, labels):
+        """Applies image transformation to labels."""
         pass
 
     def apply_instances(self, labels):
+        """Applies transformations to input 'labels' and returns object instances."""
         pass
 
     def apply_semantic(self, labels):
+        """Applies semantic segmentation to an image."""
         pass
 
     def __call__(self, labels):
+        """Applies label transformations to an image, instances and semantic masks."""
         self.apply_image(labels)
         self.apply_instances(labels)
         self.apply_semantic(labels)
@@ -43,20 +47,25 @@ class BaseTransform:
 class Compose:
 
     def __init__(self, transforms):
+        """Initializes the Compose object with a list of transforms."""
         self.transforms = transforms
 
     def __call__(self, data):
+        """Applies a series of transformations to input data."""
         for t in self.transforms:
             data = t(data)
         return data
 
     def append(self, transform):
+        """Appends a new transform to the existing list of transforms."""
         self.transforms.append(transform)
 
     def tolist(self):
+        """Converts list of transforms to a standard Python list."""
         return self.transforms
 
     def __repr__(self):
+        """Return string representation of object."""
         format_string = f'{self.__class__.__name__}('
         for t in self.transforms:
             format_string += '\n'
@@ -74,6 +83,7 @@ class BaseMixTransform:
         self.p = p
 
     def __call__(self, labels):
+        """Applies pre-processing transforms and mixup/mosaic transforms to labels data."""
         if random.uniform(0, 1) > self.p:
             return labels
 
@@ -96,9 +106,11 @@ class BaseMixTransform:
         return labels
 
     def _mix_transform(self, labels):
+        """Applies MixUp or Mosaic augmentation to the label dictionary."""
         raise NotImplementedError
 
     def get_indexes(self):
+        """Gets a list of shuffled indexes for mosaic augmentation."""
         raise NotImplementedError
 
 
@@ -111,6 +123,7 @@ class Mosaic(BaseMixTransform):
     """
 
     def __init__(self, dataset, imgsz=640, p=1.0, border=(0, 0)):
+        """Initializes the object with a dataset, image size, probability, and border."""
         assert 0 <= p <= 1.0, 'The probability should be in range [0, 1]. ' f'got {p}.'
         super().__init__(dataset=dataset, p=p)
         self.dataset = dataset
@@ -118,9 +131,11 @@ class Mosaic(BaseMixTransform):
         self.border = border
 
     def get_indexes(self):
+        """Return a list of 3 random indexes from the dataset."""
         return [random.randint(0, len(self.dataset) - 1) for _ in range(3)]
 
     def _mix_transform(self, labels):
+        """Apply mixup transformation to the input image and labels."""
         mosaic_labels = []
         assert labels.get('rect_shape', None) is None, 'rect and mosaic is exclusive.'
         assert len(labels.get('mix_labels', [])) > 0, 'There are no other images for mosaic augment.'
@@ -166,6 +181,7 @@ class Mosaic(BaseMixTransform):
         return labels
 
     def _cat_labels(self, mosaic_labels):
+        """Return labels with mosaic border instances clipped."""
         if len(mosaic_labels) == 0:
             return {}
         cls = []
@@ -190,6 +206,7 @@ class MixUp(BaseMixTransform):
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
 
     def get_indexes(self):
+        """Get a random index from the dataset."""
         return random.randint(0, len(self.dataset) - 1)
 
     def _mix_transform(self, labels):
@@ -400,6 +417,7 @@ class RandomHSV:
         self.vgain = vgain
 
     def __call__(self, labels):
+        """Applies random horizontal or vertical flip to an image with a given probability."""
         img = labels['img']
         if self.hgain or self.sgain or self.vgain:
             r = np.random.uniform(-1, 1, 3) * [self.hgain, self.sgain, self.vgain] + 1  # random gains
@@ -427,6 +445,7 @@ class RandomFlip:
         self.flip_idx = flip_idx
 
     def __call__(self, labels):
+        """Resize image and padding for detection, instance segmentation, pose."""
         img = labels['img']
         instances = labels.pop('instances')
         instances.convert_bbox(format='xywh')
@@ -453,6 +472,7 @@ class LetterBox:
     """Resize image and padding for detection, instance segmentation, pose."""
 
     def __init__(self, new_shape=(640, 640), auto=False, scaleFill=False, scaleup=True, stride=32):
+        """Initialize LetterBox object with specific parameters."""
         self.new_shape = new_shape
         self.auto = auto
         self.scaleFill = scaleFill
@@ -460,6 +480,7 @@ class LetterBox:
         self.stride = stride
 
     def __call__(self, labels=None, image=None):
+        """Return updated labels and image with added border."""
         if labels is None:
             labels = {}
         img = labels.get('img') if image is None else image
@@ -556,6 +577,7 @@ class CopyPaste:
 class Albumentations:
     # YOLOv8 Albumentations class (optional, only used if package is installed)
     def __init__(self, p=1.0):
+        """Initialize the transform object for YOLO bbox formatted params."""
         self.p = p
         self.transform = None
         prefix = colorstr('albumentations: ')
@@ -581,6 +603,7 @@ class Albumentations:
             LOGGER.info(f'{prefix}{e}')
 
     def __call__(self, labels):
+        """Generates object detections and returns a dictionary with detection results."""
         im = labels['img']
         cls = labels['cls']
         if len(cls):
@@ -618,6 +641,7 @@ class Format:
         self.batch_idx = batch_idx  # keep the batch indexes
 
     def __call__(self, labels):
+        """Return formatted image, classes, bounding boxes & keypoints to be used by 'collate_fn'."""
         img = labels.pop('img')
         h, w = img.shape[:2]
         cls = labels.pop('cls')
@@ -647,6 +671,7 @@ class Format:
         return labels
 
     def _format_img(self, img):
+        """Format the image for YOLOv5 from Numpy array to PyTorch tensor."""
         if len(img.shape) < 3:
             img = np.expand_dims(img, -1)
         img = np.ascontiguousarray(img.transpose(2, 0, 1)[::-1])
@@ -668,6 +693,7 @@ class Format:
 
 
 def v8_transforms(dataset, imgsz, hyp):
+    """Convert images to a size suitable for YOLOv8 training."""
     pre_transform = Compose([
         Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic, border=[-imgsz // 2, -imgsz // 2]),
         CopyPaste(p=hyp.copy_paste),
@@ -749,6 +775,7 @@ def classify_albumentations(
 class ClassifyLetterBox:
     # YOLOv8 LetterBox class for image preprocessing, i.e. T.Compose([LetterBox(size), ToTensor()])
     def __init__(self, size=(640, 640), auto=False, stride=32):
+        """Resizes image and crops it to center with max dimensions 'h' and 'w'."""
         super().__init__()
         self.h, self.w = (size, size) if isinstance(size, int) else size
         self.auto = auto  # pass max size integer, automatically solve for short side using stride
@@ -768,6 +795,7 @@ class ClassifyLetterBox:
 class CenterCrop:
     # YOLOv8 CenterCrop class for image preprocessing, i.e. T.Compose([CenterCrop(size), ToTensor()])
     def __init__(self, size=640):
+        """Converts an image from numpy array to PyTorch tensor."""
         super().__init__()
         self.h, self.w = (size, size) if isinstance(size, int) else size
 
@@ -781,6 +809,7 @@ class CenterCrop:
 class ToTensor:
     # YOLOv8 ToTensor class for image preprocessing, i.e. T.Compose([LetterBox(size), ToTensor()])
     def __init__(self, half=False):
+        """Initialize YOLOv8 ToTensor object with optional half-precision support."""
         super().__init__()
         self.half = half
 

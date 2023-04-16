@@ -59,6 +59,7 @@ def _log_plot(title, plot_path) -> None:
 
 
 def on_pretrain_routine_start(trainer):
+    """Runs at start of pretraining routine; initializes and connects/ logs task to ClearML."""
     try:
         task = Task.current_task()
         if task:
@@ -83,11 +84,13 @@ def on_pretrain_routine_start(trainer):
 
 
 def on_train_epoch_end(trainer):
+    """Logs debug samples for the first epoch of YOLO training."""
     if trainer.epoch == 1 and Task.current_task():
         _log_debug_samples(sorted(trainer.save_dir.glob('train_batch*.jpg')), 'Mosaic')
 
 
 def on_fit_epoch_end(trainer):
+    """Reports model information to logger at the end of an epoch."""
     task = Task.current_task()
     if task:
         # You should have access to the validation bboxes under jdict
@@ -105,12 +108,14 @@ def on_fit_epoch_end(trainer):
 
 
 def on_val_end(validator):
+    """Logs validation results including labels and predictions."""
     if Task.current_task():
         # Log val_labels and val_pred
         _log_debug_samples(sorted(validator.save_dir.glob('val*.jpg')), 'Validation')
 
 
 def on_train_end(trainer):
+    """Logs final model and its name on training completion."""
     task = Task.current_task()
     if task:
         # Log final results, CM matrix + PR plots

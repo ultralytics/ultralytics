@@ -8,6 +8,7 @@ from ultralytics.yolo.v8.detect.predict import DetectionPredictor
 class PosePredictor(DetectionPredictor):
 
     def postprocess(self, preds, img, orig_img):
+        """Return detection results for a given input image or list of images."""
         preds = ops.non_max_suppression(preds,
                                         self.args.conf,
                                         self.args.iou,
@@ -35,6 +36,7 @@ class PosePredictor(DetectionPredictor):
 
 
 def predict(cfg=DEFAULT_CFG, use_python=False):
+    """Runs YOLO to predict objects in an image or video."""
     model = cfg.model or 'yolov8n-pose.pt'
     source = cfg.source if cfg.source is not None else ROOT / 'assets' if (ROOT / 'assets').exists() \
         else 'https://ultralytics.com/images/bus.jpg'

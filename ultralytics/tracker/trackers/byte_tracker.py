@@ -23,6 +23,7 @@ class STrack(BaseTrack):
         self.idx = tlwh[-1]
 
     def predict(self):
+        """Predicts mean and covariance using Kalman filter."""
         mean_state = self.mean.copy()
         if self.state != TrackState.Tracked:
             mean_state[7] = 0
@@ -30,6 +31,7 @@ class STrack(BaseTrack):
 
     @staticmethod
     def multi_predict(stracks):
+        """Perform multi-object predictive tracking using Kalman filter for given stracks."""
         if len(stracks) <= 0:
             return
         multi_mean = np.asarray([st.mean.copy() for st in stracks])
@@ -44,6 +46,7 @@ class STrack(BaseTrack):
 
     @staticmethod
     def multi_gmc(stracks, H=np.eye(2, 3)):
+        """Update state tracks positions and covariances using a homography matrix."""
         if len(stracks) > 0:
             multi_mean = np.asarray([st.mean.copy() for st in stracks])
             multi_covariance = np.asarray([st.covariance for st in stracks])
@@ -74,6 +77,7 @@ class STrack(BaseTrack):
         self.start_frame = frame_id
 
     def re_activate(self, new_track, frame_id, new_id=False):
+        """Reactivates a previously lost track with a new detection."""
         self.mean, self.covariance = self.kalman_filter.update(self.mean, self.covariance,
                                                                self.convert_coords(new_track.tlwh))
         self.tracklet_len = 0
@@ -107,6 +111,7 @@ class STrack(BaseTrack):
         self.idx = new_track.idx
 
     def convert_coords(self, tlwh):
+        """Convert a bounding box's top-left-width-height format to its x-y-angle-height equivalent."""
         return self.tlwh_to_xyah(tlwh)
 
     @property
@@ -142,23 +147,27 @@ class STrack(BaseTrack):
 
     @staticmethod
     def tlbr_to_tlwh(tlbr):
+        """Converts top-left bottom-right format to top-left width height format."""
         ret = np.asarray(tlbr).copy()
         ret[2:] -= ret[:2]
         return ret
 
     @staticmethod
     def tlwh_to_tlbr(tlwh):
+        """Converts tlwh bounding box format to tlbr format."""
         ret = np.asarray(tlwh).copy()
         ret[2:] += ret[:2]
         return ret
 
     def __repr__(self):
+        """Return a string representation of the BYTETracker object with start and end frames and track ID."""
         return f'OT_{self.track_id}_({self.start_frame}-{self.end_frame})'
 
 
 class BYTETracker:
 
     def __init__(self, args, frame_rate=30):
+        """Initialize a YOLOv8 object to track objects with given arguments and frame rate."""
         self.tracked_stracks = []  # type: list[STrack]
         self.lost_stracks = []  # type: list[STrack]
         self.removed_stracks = []  # type: list[STrack]
@@ -170,6 +179,7 @@ class BYTETracker:
         self.reset_id()
 
     def update(self, results, img=None):
+        """Updates object tracker with new detections and returns tracked object bounding boxes."""
         self.frame_id += 1
         activated_starcks = []
         refind_stracks = []
@@ -285,12 +295,15 @@ class BYTETracker:
             dtype=np.float32)
 
     def get_kalmanfilter(self):
+        """Returns a Kalman filter object for tracking bounding boxes."""
         return KalmanFilterXYAH()
 
     def init_track(self, dets, scores, cls, img=None):
+        """Initialize object tracking with detections and scores using STrack algorithm."""
         return [STrack(xyxy, s, c) for (xyxy, s, c) in zip(dets, scores, cls)] if len(dets) else []  # detections
 
     def get_dists(self, tracks, detections):
+        """Calculates the distance between tracks and detections using IOU and fuses scores."""
         dists = matching.iou_distance(tracks, detections)
         # TODO: mot20
         # if not self.args.mot20:
@@ -298,13 +311,16 @@ class BYTETracker:
         return dists
 
     def multi_predict(self, tracks):
+        """Returns the predicted tracks using the YOLOv8 network."""
         STrack.multi_predict(tracks)
 
     def reset_id(self):
+        """Resets the ID counter of STrack."""
         STrack.reset_id()
 
     @staticmethod
     def joint_stracks(tlista, tlistb):
+        """Combine two lists of stracks into a single one."""
         exists = {}
         res = []
         for t in tlista:
@@ -332,6 +348,7 @@ class BYTETracker:
 
     @staticmethod
     def remove_duplicate_stracks(stracksa, stracksb):
+        """Remove duplicate stracks with non-maximum IOU distance."""
         pdist = matching.iou_distance(stracksa, stracksb)
         pairs = np.where(pdist < 0.15)
         dupa, dupb = [], []

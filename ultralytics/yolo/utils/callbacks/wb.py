@@ -11,11 +11,13 @@ except (ImportError, AssertionError):
 
 
 def on_pretrain_routine_start(trainer):
+    """Initiate and start project if module is present."""
     wb.init(project=trainer.args.project or 'YOLOv8', name=trainer.args.name, config=vars(
         trainer.args)) if not wb.run else wb.run
 
 
 def on_fit_epoch_end(trainer):
+    """Logs training metrics and model information at the end of an epoch."""
     wb.run.log(trainer.metrics, step=trainer.epoch + 1)
     if trainer.epoch == 0:
         model_info = {
@@ -26,6 +28,7 @@ def on_fit_epoch_end(trainer):
 
 
 def on_train_epoch_end(trainer):
+    """Log metrics and save images at the end of each training epoch."""
     wb.run.log(trainer.label_loss_items(trainer.tloss, prefix='train'), step=trainer.epoch + 1)
     wb.run.log(trainer.lr, step=trainer.epoch + 1)
     if trainer.epoch == 1:
@@ -35,6 +38,7 @@ def on_train_epoch_end(trainer):
 
 
 def on_train_end(trainer):
+    """Save the best model as an artifact at end of training."""
     art = wb.Artifact(type='model', name=f'run_{wb.run.id}_model')
     if trainer.best.exists():
         art.add_file(trainer.best)

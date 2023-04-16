@@ -34,6 +34,7 @@ class AutoShape(nn.Module):
     amp = False  # Automatic Mixed Precision (AMP) inference
 
     def __init__(self, model, verbose=True):
+        """Initializes object and copies attributes from model object."""
         super().__init__()
         if verbose:
             LOGGER.info('Adding AutoShape... ')
@@ -125,6 +126,7 @@ class AutoShape(nn.Module):
 class Detections:
     # YOLOv8 detections class for inference results
     def __init__(self, ims, pred, files, times=(0, 0, 0), names=None, shape=None):
+        """Initialize object attributes for YOLO detection results."""
         super().__init__()
         d = pred[0].device  # device
         gn = [torch.tensor([*(im.shape[i] for i in [1, 0, 1, 0]), 1, 1], device=d) for im in ims]  # normalizations
@@ -142,6 +144,7 @@ class Detections:
         self.s = tuple(shape)  # inference BCHW shape
 
     def _run(self, pprint=False, show=False, save=False, crop=False, render=False, labels=True, save_dir=Path('')):
+        """Return performance metrics and optionally cropped/save images or results."""
         s, crops = '', []
         for i, (im, pred) in enumerate(zip(self.ims, self.pred)):
             s += f'\nimage {i + 1}/{len(self.pred)}: {im.shape[0]}x{im.shape[1]} '  # string
@@ -187,17 +190,21 @@ class Detections:
             return crops
 
     def show(self, labels=True):
+        """Displays YOLO results with detected bounding boxes."""
         self._run(show=True, labels=labels)  # show results
 
     def save(self, labels=True, save_dir='runs/detect/exp', exist_ok=False):
+        """Save detection results with optional labels to specified directory."""
         save_dir = increment_path(save_dir, exist_ok, mkdir=True)  # increment save_dir
         self._run(save=True, labels=labels, save_dir=save_dir)  # save results
 
     def crop(self, save=True, save_dir='runs/detect/exp', exist_ok=False):
+        """Crops images into detections and saves them if 'save' is True."""
         save_dir = increment_path(save_dir, exist_ok, mkdir=True) if save else None
         return self._run(crop=True, save=save, save_dir=save_dir)  # crop results
 
     def render(self, labels=True):
+        """Renders detected objects and returns images."""
         self._run(render=True, labels=labels)  # render results
         return self.ims
 
@@ -222,6 +229,7 @@ class Detections:
         return x
 
     def print(self):
+        """Print the results of the `self._run()` function."""
         LOGGER.info(self.__str__())
 
     def __len__(self):  # override len(results)
@@ -231,4 +239,5 @@ class Detections:
         return self._run(pprint=True)  # print results
 
     def __repr__(self):
+        """Returns a printable representation of the object."""
         return f'YOLOv8 {self.__class__} instance\n' + self.__str__()

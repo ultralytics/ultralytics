@@ -36,6 +36,7 @@ _comet_image_prediction_count = 0
 
 
 def _get_experiment_type(mode, project_name):
+    """Return an experiment based on mode and project name."""
     if mode == 'offline':
         return comet_ml.OfflineExperiment(project_name=project_name)
 
@@ -61,6 +62,7 @@ def _create_experiment(args):
 
 
 def _fetch_trainer_metadata(trainer):
+    """Returns metadata for YOLO training including epoch and asset saving status."""
     curr_epoch = trainer.epoch + 1
 
     train_num_steps_per_epoch = len(trainer.train_loader.dataset) // trainer.batch_size
@@ -97,6 +99,7 @@ def _scale_bounding_box_to_original_image_shape(box, resized_image_shape, origin
 
 
 def _format_ground_truth_annotations_for_detection(img_idx, image_path, batch, class_name_map=None):
+    """Format ground truth annotations for detection."""
     indices = batch['batch_idx'] == img_idx
     bboxes = batch['bboxes'][indices]
     if len(bboxes) == 0:
@@ -120,6 +123,7 @@ def _format_ground_truth_annotations_for_detection(img_idx, image_path, batch, c
 
 
 def _format_prediction_annotations_for_detection(image_path, metadata, class_label_map=None):
+    """Format YOLO predictions for object detection visualization."""
     stem = image_path.stem
     image_id = int(stem) if stem.isnumeric() else stem
 
@@ -142,6 +146,7 @@ def _format_prediction_annotations_for_detection(image_path, metadata, class_lab
 
 
 def _fetch_annotations(img_idx, image_path, batch, prediction_metadata_map, class_label_map):
+    """Join the ground truth and prediction annotations if they exist."""
     ground_truth_annotations = _format_ground_truth_annotations_for_detection(img_idx, image_path, batch,
                                                                               class_label_map)
     prediction_annotations = _format_prediction_annotations_for_detection(image_path, prediction_metadata_map,
@@ -153,6 +158,7 @@ def _fetch_annotations(img_idx, image_path, batch, prediction_metadata_map, clas
 
 
 def _create_prediction_metadata_map(model_predictions):
+    """Create metadata map for model predictions by groupings them based on image ID."""
     pred_metadata_map = {}
     for prediction in model_predictions:
         pred_metadata_map.setdefault(prediction['image_id'], [])
@@ -162,6 +168,7 @@ def _create_prediction_metadata_map(model_predictions):
 
 
 def _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch):
+    """Log the confusion matrix to Weights and Biases experiment."""
     conf_mat = trainer.validator.confusion_matrix.matrix
     names = list(trainer.data['names'].values()) + ['background']
     experiment.log_confusion_matrix(
@@ -174,6 +181,7 @@ def _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch):
 
 
 def _log_images(experiment, image_paths, curr_step, annotations=None):
+    """Logs images to the experiment with optional annotations."""
     if annotations:
         for image_path, annotation in zip(image_paths, annotations):
             experiment.log_image(image_path, name=image_path.stem, step=curr_step, annotations=annotation)
@@ -184,6 +192,7 @@ def _log_images(experiment, image_paths, curr_step, annotations=None):
 
 
 def _log_image_predictions(experiment, validator, curr_step):
+    """Logs predicted boxes for a single image during training."""
     global _comet_image_prediction_count
 
     task = validator.args.task
@@ -225,6 +234,7 @@ def _log_image_predictions(experiment, validator, curr_step):
 
 
 def _log_plots(experiment, trainer):
+    """Logs evaluation plots and label plots for the experiment."""
     plot_filenames = [trainer.save_dir / f'{plots}.png' for plots in EVALUATION_PLOT_NAMES]
     _log_images(experiment, plot_filenames, None)
 
@@ -233,6 +243,7 @@ def _log_plots(experiment, trainer):
 
 
 def _log_model(experiment, trainer):
+    """Log the best-trained model to Comet.ml."""
     experiment.log_model(
         COMET_MODEL_NAME,
         file_or_folder=str(trainer.best),
@@ -242,12 +253,14 @@ def _log_model(experiment, trainer):
 
 
 def on_pretrain_routine_start(trainer):
+    """Creates or resumes a CometML experiment at the start of a YOLO pre-training routine."""
     experiment = comet_ml.get_global_experiment()
     if not experiment:
         _create_experiment(trainer.args)
 
 
 def on_train_epoch_end(trainer):
+    """Log metrics and save batch images at the end of training epochs."""
     experiment = comet_ml.get_global_experiment()
     if not experiment:
         return
@@ -267,6 +280,7 @@ def on_train_epoch_end(trainer):
 
 
 def on_fit_epoch_end(trainer):
+    """Logs model assets at the end of each epoch."""
     experiment = comet_ml.get_global_experiment()
     if not experiment:
         return
@@ -296,6 +310,7 @@ def on_fit_epoch_end(trainer):
 
 
 def on_train_end(trainer):
+    """Perform operations at the end of training."""
     experiment = comet_ml.get_global_experiment()
     if not experiment:
         return

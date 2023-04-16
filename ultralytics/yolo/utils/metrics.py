@@ -180,6 +180,7 @@ class FocalLoss(nn.Module):
     """Wraps focal loss around existing loss_fcn(), i.e. criteria = FocalLoss(nn.BCEWithLogitsLoss(), gamma=1.5)."""
 
     def __init__(self, loss_fcn, gamma=1.5, alpha=0.25):
+        """Initialize FocalLoss object with given loss function and hyperparameters."""
         super().__init__()
         self.loss_fcn = loss_fcn  # must be nn.BCEWithLogitsLoss()
         self.gamma = gamma
@@ -188,6 +189,7 @@ class FocalLoss(nn.Module):
         self.loss_fcn.reduction = 'none'  # required to apply FL to each element
 
     def forward(self, pred, true):
+        """Calculates and updates confusion matrix for object detection/classification tasks."""
         loss = self.loss_fcn(pred, true)
         # p_t = torch.exp(-loss)
         # loss *= self.alpha * (1.000001 - p_t) ** self.gamma  # non-zero power for gradient stability
@@ -220,6 +222,7 @@ class ConfusionMatrix:
     """
 
     def __init__(self, nc, conf=0.25, iou_thres=0.45, task='detect'):
+        """Initialize attributes for the YOLO model."""
         self.task = task
         self.matrix = np.zeros((nc + 1, nc + 1)) if self.task == 'detect' else np.zeros((nc, nc))
         self.nc = nc  # number of classes
@@ -285,9 +288,11 @@ class ConfusionMatrix:
                     self.matrix[dc, self.nc] += 1  # predicted background
 
     def matrix(self):
+        """Returns the confusion matrix."""
         return self.matrix
 
     def tp_fp(self):
+        """Returns true positives and false positives."""
         tp = self.matrix.diagonal()  # true positives
         fp = self.matrix.sum(1) - tp  # false positives
         # fn = self.matrix.sum(0) - tp  # false negatives (missed detections)
@@ -679,6 +684,7 @@ class DetMetrics(SimpleClass):
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
 
     def process(self, tp, conf, pred_cls, target_cls):
+        """Process predicted results for object detection and update metrics."""
         results = ap_per_class(tp, conf, pred_cls, target_cls, plot=self.plot, save_dir=self.save_dir,
                                names=self.names)[2:]
         self.box.nc = len(self.names)
@@ -686,28 +692,35 @@ class DetMetrics(SimpleClass):
 
     @property
     def keys(self):
+        """Returns a list of keys for accessing specific metrics."""
         return ['metrics/precision(B)', 'metrics/recall(B)', 'metrics/mAP50(B)', 'metrics/mAP50-95(B)']
 
     def mean_results(self):
+        """Calculate mean of detected objects & return precision, recall, mAP50, and mAP50-95."""
         return self.box.mean_results()
 
     def class_result(self, i):
+        """Return the result of evaluating the performance of an object detection model on a specific class."""
         return self.box.class_result(i)
 
     @property
     def maps(self):
+        """Returns mean Average Precision (mAP) scores per class."""
         return self.box.maps
 
     @property
     def fitness(self):
+        """Returns the fitness of box object."""
         return self.box.fitness()
 
     @property
     def ap_class_index(self):
+        """Returns the average precision index per class."""
         return self.box.ap_class_index
 
     @property
     def results_dict(self):
+        """Returns dictionary of computed performance metrics and statistics."""
         return dict(zip(self.keys + ['fitness'], self.mean_results() + [self.fitness]))
 
 
@@ -781,22 +794,27 @@ class SegmentMetrics(SimpleClass):
 
     @property
     def keys(self):
+        """Returns a list of keys for accessing metrics."""
         return [
             'metrics/precision(B)', 'metrics/recall(B)', 'metrics/mAP50(B)', 'metrics/mAP50-95(B)',
             'metrics/precision(M)', 'metrics/recall(M)', 'metrics/mAP50(M)', 'metrics/mAP50-95(M)']
 
     def mean_results(self):
+        """Return the mean metrics for bounding box and segmentation results."""
         return self.box.mean_results() + self.seg.mean_results()
 
     def class_result(self, i):
+        """Returns classification results for a specified class index."""
         return self.box.class_result(i) + self.seg.class_result(i)
 
     @property
     def maps(self):
+        """Returns mAP scores for object detection and semantic segmentation models."""
         return self.box.maps + self.seg.maps
 
     @property
     def fitness(self):
+        """Get the fitness score for both segmentation and bounding box models."""
         return self.seg.fitness() + self.box.fitness()
 
     @property
@@ -806,6 +824,7 @@ class SegmentMetrics(SimpleClass):
 
     @property
     def results_dict(self):
+        """Returns results of object detection model for evaluation."""
         return dict(zip(self.keys + ['fitness'], self.mean_results() + [self.fitness]))
 
 
@@ -846,6 +865,7 @@ class PoseMetrics(SegmentMetrics):
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
 
     def __getattr__(self, attr):
+        """Raises an AttributeError if an invalid attribute is accessed."""
         name = self.__class__.__name__
         raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
@@ -884,22 +904,27 @@ class PoseMetrics(SegmentMetrics):
 
     @property
     def keys(self):
+        """Returns list of evaluation metric keys."""
         return [
             'metrics/precision(B)', 'metrics/recall(B)', 'metrics/mAP50(B)', 'metrics/mAP50-95(B)',
             'metrics/precision(P)', 'metrics/recall(P)', 'metrics/mAP50(P)', 'metrics/mAP50-95(P)']
 
     def mean_results(self):
+        """Return the mean results of box and pose."""
         return self.box.mean_results() + self.pose.mean_results()
 
     def class_result(self, i):
+        """Return the class-wise detection results for a specific class i."""
         return self.box.class_result(i) + self.pose.class_result(i)
 
     @property
     def maps(self):
+        """Returns the mean average precision (mAP) per class for both box and pose detections."""
         return self.box.maps + self.pose.maps
 
     @property
     def fitness(self):
+        """Computes classification metrics and speed using the `targets` and `pred` inputs."""
         return self.pose.fitness() + self.box.fitness()
 
 
@@ -935,12 +960,15 @@ class ClassifyMetrics(SimpleClass):
 
     @property
     def fitness(self):
+        """Returns top-5 accuracy as fitness score."""
         return self.top5
 
     @property
     def results_dict(self):
+        """Returns a dictionary with model's performance metrics and fitness score."""
         return dict(zip(self.keys + ['fitness'], [self.top1, self.top5, self.fitness]))
 
     @property
     def keys(self):
+        """Returns a list of keys for the results_dict property."""
         return ['metrics/accuracy_top1', 'metrics/accuracy_top5']

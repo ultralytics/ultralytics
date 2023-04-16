@@ -44,6 +44,7 @@ class DetectionTrainer(BaseTrainer):
                              rect=mode == 'val', data_info=self.data)[0]
 
     def preprocess_batch(self, batch):
+        """Preprocesses a batch of images by scaling and converting to float."""
         batch['img'] = batch['img'].to(self.device, non_blocking=True).float() / 255
         return batch
 
@@ -58,16 +59,19 @@ class DetectionTrainer(BaseTrainer):
         # TODO: self.model.class_weights = labels_to_class_weights(dataset.labels, nc).to(device) * nc
 
     def get_model(self, cfg=None, weights=None, verbose=True):
+        """Return a YOLO detection model."""
         model = DetectionModel(cfg, nc=self.data['nc'], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
         return model
 
     def get_validator(self):
+        """Returns a DetectionValidator for YOLO model validation."""
         self.loss_names = 'box_loss', 'cls_loss', 'dfl_loss'
         return v8.detect.DetectionValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
 
     def criterion(self, preds, batch):
+        """Compute loss for YOLO prediction and ground-truth."""
         if not hasattr(self, 'compute_loss'):
             self.compute_loss = Loss(de_parallel(self.model))
         return self.compute_loss(preds, batch)
@@ -85,10 +89,12 @@ class DetectionTrainer(BaseTrainer):
             return keys
 
     def progress_string(self):
+        """Returns a formatted string of training progress with epoch, GPU memory, loss, instances and size."""
         return ('\n' + '%11s' *
                 (4 + len(self.loss_names))) % ('Epoch', 'GPU_mem', *self.loss_names, 'Instances', 'Size')
 
     def plot_training_samples(self, batch, ni):
+        """Plots training samples with their annotations."""
         plot_images(images=batch['img'],
                     batch_idx=batch['batch_idx'],
                     cls=batch['cls'].squeeze(-1),
@@ -97,9 +103,11 @@ class DetectionTrainer(BaseTrainer):
                     fname=self.save_dir / f'train_batch{ni}.jpg')
 
     def plot_metrics(self):
+        """Plots metrics from a CSV file."""
         plot_results(file=self.csv)  # save results.png
 
     def plot_training_labels(self):
+        """Create a labeled training plot of the YOLO model."""
         boxes = np.concatenate([lb['bboxes'] for lb in self.train_loader.dataset.labels], 0)
         cls = np.concatenate([lb['cls'] for lb in self.train_loader.dataset.labels], 0)
         plot_labels(boxes, cls.squeeze(), names=self.data['names'], save_dir=self.save_dir)
@@ -129,6 +137,7 @@ class Loss:
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
 
     def preprocess(self, targets, batch_size, scale_tensor):
+        """Preprocesses the target counts and matches with the input batch size to output a tensor."""
         if targets.shape[0] == 0:
             out = torch.zeros(batch_size, 0, 5, device=self.device)
         else:
@@ -145,6 +154,7 @@ class Loss:
         return out
 
     def bbox_decode(self, anchor_points, pred_dist):
+        """Decode predicted object bounding box coordinates from anchor points and distribution."""
         if self.use_dfl:
             b, a, c = pred_dist.shape  # batch, anchors, channels
             pred_dist = pred_dist.view(b, a, 4, c // 4).softmax(3).matmul(self.proj.type(pred_dist.dtype))
@@ -153,6 +163,7 @@ class Loss:
         return dist2bbox(pred_dist, anchor_points, xywh=False)
 
     def __call__(self, preds, batch):
+        """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
         loss = torch.zeros(3, device=self.device)  # box, cls, dfl
         feats = preds[1] if isinstance(preds, tuple) else preds
         pred_distri, pred_scores = torch.cat([xi.view(feats[0].shape[0], self.no, -1) for xi in feats], 2).split(
@@ -199,6 +210,7 @@ class Loss:
 
 
 def train(cfg=DEFAULT_CFG, use_python=False):
+    """Train and optimize YOLO model given training data and device."""
     model = cfg.model or 'yolov8n.pt'
     data = cfg.data or 'coco128.yaml'  # or yolo.ClassificationDataset("mnist")
     device = cfg.device if cfg.device is not None else ''

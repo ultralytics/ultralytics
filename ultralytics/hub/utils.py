@@ -130,6 +130,7 @@ def smart_request(method, url, retry=3, timeout=30, thread=True, code=-1, verbos
 
     @TryExcept(verbose=verbose)
     def func(func_method, func_url, **func_kwargs):
+        """Make HTTP requests with retries and timeouts, with optional progress tracking."""
         r = None  # response
         t0 = time.time()  # initial time for timer
         for i in range(retry + 1):

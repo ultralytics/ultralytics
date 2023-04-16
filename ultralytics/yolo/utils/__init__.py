@@ -182,8 +182,10 @@ def plt_settings(rcparams={'font.size': 11}, backend='Agg'):
     """
 
     def decorator(func):
+        """Decorator to apply temporary rc parameters and backend to a function."""
 
         def wrapper(*args, **kwargs):
+            """Sets rc parameters and backend, calls the original function, and restores the settings."""
             original_backend = plt.get_backend()
             plt.switch_backend(backend)
 
@@ -229,6 +231,7 @@ class EmojiFilter(logging.Filter):
     """
 
     def filter(self, record):
+        """Filter logs by emoji unicode characters on windows."""
         record.msg = emojis(record.msg)
         return super().filter(record)
 
@@ -573,13 +576,16 @@ class TryExcept(contextlib.ContextDecorator):
     """YOLOv8 TryExcept class. Usage: @TryExcept() decorator or 'with TryExcept():' context manager."""
 
     def __init__(self, msg='', verbose=True):
+        """Initialize TryExcept class with optional message and verbosity settings."""
         self.msg = msg
         self.verbose = verbose
 
     def __enter__(self):
+        """Executes when entering TryExcept context, initializes instance."""
         pass
 
     def __exit__(self, exc_type, value, traceback):
+        """Defines behavior when exiting a 'with' block, prints error message if necessary."""
         if self.verbose and value:
             print(emojis(f"{self.msg}{': ' if self.msg else ''}{value}"))
         return True
@@ -589,6 +595,7 @@ def threaded(func):
     """Multi-threads a target function and returns thread. Usage: @threaded decorator."""
 
     def wrapper(*args, **kwargs):
+        """Multi-threads a given function and returns the thread."""
         thread = threading.Thread(target=func, args=args, kwargs=kwargs, daemon=True)
         thread.start()
         return thread
@@ -602,6 +609,7 @@ def set_sentry():
     """
 
     def before_send(event, hint):
+        """A function executed before sending the event to Sentry."""
         if 'exc_info' in hint:
             exc_type, exc_value, tb = hint['exc_info']
             if exc_type in (KeyboardInterrupt, FileNotFoundError) \
@@ -698,6 +706,7 @@ def set_settings(kwargs, file=SETTINGS_YAML):
 
 
 def deprecation_warn(arg, new_arg, version=None):
+    """Issue a deprecation warning when a deprecated argument is used, suggesting an updated argument."""
     if not version:
         version = float(__version__[:3]) + 0.2  # deprecate after 2nd major release
     LOGGER.warning(f"WARNING ⚠️ '{arg}' is deprecated and will be removed in 'ultralytics {version}' in the future. "

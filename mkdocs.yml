@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-site_name: YOLOv8 Docs
+site_name: Ultralytics YOLOv8 Docs
+site_url: https://docs.ultralytics.com
 repo_url: https://github.com/ultralytics/ultralytics
 edit_uri: https://github.com/ultralytics/ultralytics/tree/main/docs
 repo_name: ultralytics/ultralytics

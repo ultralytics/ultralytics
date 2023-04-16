@@ -1,11 +1,11 @@
-# iOSDetectModel
----
-:::ultralytics.yolo.engine.exporter.iOSDetectModel
-<br><br>
-
 # Exporter
 ---
 :::ultralytics.yolo.engine.exporter.Exporter
+<br><br>
+
+# iOSDetectModel
+---
+:::ultralytics.yolo.engine.exporter.iOSDetectModel
 <br><br>
 
 # export_formats

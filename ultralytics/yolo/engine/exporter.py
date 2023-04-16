@@ -105,6 +105,7 @@ def try_export(inner_func):
     inner_args = get_default_args(inner_func)
 
     def outer_func(*args, **kwargs):
+        """Export a model."""
         prefix = inner_args['prefix']
         try:
             with Profile() as dt:
@@ -116,24 +117,6 @@ def try_export(inner_func):
             return None, None
 
     return outer_func
-
-
-class iOSDetectModel(torch.nn.Module):
-    """Wrap an Ultralytics YOLO model for iOS export."""
-
-    def __init__(self, model, im):
-        super().__init__()
-        b, c, h, w = im.shape  # batch, channel, height, width
-        self.model = model
-        self.nc = len(model.names)  # number of classes
-        if w == h:
-            self.normalize = 1.0 / w  # scalar
-        else:
-            self.normalize = torch.tensor([1.0 / w, 1.0 / h, 1.0 / w, 1.0 / h])  # broadcast (slower, smaller)
-
-    def forward(self, x):
-        xywh, cls = self.model(x)[0].transpose(0, 1).split((4, self.nc), 1)
-        return cls, xywh * self.normalize  # confidence (3780, 80), coordinates (3780, 4)
 
 
 class Exporter:
@@ -160,6 +143,7 @@ class Exporter:
 
     @smart_inference_mode()
     def __call__(self, model=None):
+        """Returns list of exported files/dirs after running callbacks."""
         self.run_callbacks('on_export_start')
         t = time.time()
         format = self.args.format.lower()  # to lowercase
@@ -703,7 +687,7 @@ class Exporter:
         tmp_file.unlink()
 
     def _pipeline_coreml(self, model, prefix=colorstr('CoreML Pipeline:')):
-        # YOLOv8 CoreML pipeline
+        """YOLOv8 CoreML pipeline."""
         import coremltools as ct  # noqa
 
         LOGGER.info(f'{prefix} starting pipeline with coremltools {ct.__version__}...')
@@ -826,11 +810,33 @@ class Exporter:
         self.callbacks[event].append(callback)
 
     def run_callbacks(self, event: str):
+        """Execute all callbacks for a given event."""
         for callback in self.callbacks.get(event, []):
             callback(self)
 
 
+class iOSDetectModel(torch.nn.Module):
+    """Wrap an Ultralytics YOLO model for iOS export."""
+
+    def __init__(self, model, im):
+        """Initialize the iOSDetectModel class with a YOLO model and example image."""
+        super().__init__()
+        b, c, h, w = im.shape  # batch, channel, height, width
+        self.model = model
+        self.nc = len(model.names)  # number of classes
+        if w == h:
+            self.normalize = 1.0 / w  # scalar
+        else:
+            self.normalize = torch.tensor([1.0 / w, 1.0 / h, 1.0 / w, 1.0 / h])  # broadcast (slower, smaller)
+
+    def forward(self, x):
+        """Normalize predictions of object detection model with input size-dependent factors."""
+        xywh, cls = self.model(x)[0].transpose(0, 1).split((4, self.nc), 1)
+        return cls, xywh * self.normalize  # confidence (3780, 80), coordinates (3780, 4)
+
+
 def export(cfg=DEFAULT_CFG):
+    """Export a YOLOv model to a specific format."""
     cfg.model = cfg.model or 'yolov8n.yaml'
     cfg.format = cfg.format or 'torchscript'
 

@@ -32,6 +32,7 @@ class SourceTypes:
 class LoadStreams:
     # YOLOv8 streamloader, i.e. `yolo predict source='rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP streams`
     def __init__(self, sources='file.streams', imgsz=640, stride=32, auto=True, transforms=None, vid_stride=1):
+        """Initialize instance variables and check for consistent input stream shapes."""
         torch.backends.cudnn.benchmark = True  # faster for fixed-size inference
         self.mode = 'stream'
         self.imgsz = imgsz
@@ -97,10 +98,12 @@ class LoadStreams:
             time.sleep(0.0)  # wait time
 
     def __iter__(self):
+        """Iterates through YOLO image feed and re-opens unresponsive streams."""
         self.count = -1
         return self
 
     def __next__(self):
+        """Returns source paths, transformed and original images for processing YOLOv5."""
         self.count += 1
         if not all(x.is_alive() for x in self.threads) or cv2.waitKey(1) == ord('q'):  # q to quit
             cv2.destroyAllWindows()
@@ -117,6 +120,7 @@ class LoadStreams:
         return self.sources, im, im0, None, ''
 
     def __len__(self):
+        """Return the length of the sources object."""
         return len(self.sources)  # 1E12 frames = 32 streams at 30 FPS for 30 years
 
 
@@ -153,6 +157,7 @@ class LoadScreenshots:
         self.monitor = {'left': self.left, 'top': self.top, 'width': self.width, 'height': self.height}
 
     def __iter__(self):
+        """Returns an iterator of the object."""
         return self
 
     def __next__(self):
@@ -173,6 +178,7 @@ class LoadScreenshots:
 class LoadImages:
     # YOLOv8 image/video dataloader, i.e. `yolo predict source=image.jpg/vid.mp4`
     def __init__(self, path, imgsz=640, stride=32, auto=True, transforms=None, vid_stride=1):
+        """Initialize the Dataloader and raise FileNotFoundError if file not found."""
         if isinstance(path, str) and Path(path).suffix == '.txt':  # *.txt file with img/vid/dir on each line
             path = Path(path).read_text().rsplit()
         files = []
@@ -211,10 +217,12 @@ class LoadImages:
                                     f'Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}')
 
     def __iter__(self):
+        """Returns an iterator object for VideoStream or ImageFolder."""
         self.count = 0
         return self
 
     def __next__(self):
+        """Return next image, path and metadata from dataset."""
         if self.count == self.nf:
             raise StopIteration
         path = self.files[self.count]
@@ -276,12 +284,14 @@ class LoadImages:
         return im
 
     def __len__(self):
+        """Returns the number of files in the object."""
         return self.nf  # number of files
 
 
 class LoadPilAndNumpy:
 
     def __init__(self, im0, imgsz=640, stride=32, auto=True, transforms=None):
+        """Initialize PIL and Numpy Dataloader."""
         if not isinstance(im0, list):
             im0 = [im0]
         self.paths = [getattr(im, 'filename', f'image{i}.jpg') for i, im in enumerate(im0)]
@@ -296,6 +306,7 @@ class LoadPilAndNumpy:
 
     @staticmethod
     def _single_check(im):
+        """Validate and format an image to numpy array."""
         assert isinstance(im, (Image.Image, np.ndarray)), f'Expected PIL/np.ndarray image type, but got {type(im)}'
         if isinstance(im, Image.Image):
             if im.mode != 'RGB':
@@ -305,6 +316,7 @@ class LoadPilAndNumpy:
         return im
 
     def _single_preprocess(self, im, auto):
+        """Preprocesses a single image for inference."""
         if self.transforms:
             im = self.transforms(im)  # transforms
         else:
@@ -314,9 +326,11 @@ class LoadPilAndNumpy:
         return im
 
     def __len__(self):
+        """Returns the length of the 'im0' attribute."""
         return len(self.im0)
 
     def __next__(self):
+        """Returns batch paths, images, processed images, None, ''."""
         if self.count == 1:  # loop only once as it's batch inference
             raise StopIteration
         auto = all(x.shape == self.im0[0].shape for x in self.im0) and self.auto
@@ -326,6 +340,7 @@ class LoadPilAndNumpy:
         return self.paths, im, self.im0, None, ''
 
     def __iter__(self):
+        """Enables iteration for class LoadPilAndNumpy."""
         self.count = 0
         return self
 
@@ -338,16 +353,19 @@ class LoadTensor:
         self.mode = 'image'
 
     def __iter__(self):
+        """Returns an iterator object."""
         self.count = 0
         return self
 
     def __next__(self):
+        """Return next item in the iterator."""
         if self.count == 1:
             raise StopIteration
         self.count += 1
         return None, self.im0, self.im0, None, ''  # self.paths, im, self.im0, None, ''
 
     def __len__(self):
+        """Returns the batch size."""
         return self.bs
 
 

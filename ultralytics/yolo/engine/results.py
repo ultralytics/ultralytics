@@ -57,7 +57,6 @@ class BaseTensor(SimpleClass):
         return self.__class__(self.data[idx], self.orig_shape)
 
 
-
 class Results(SimpleClass):
     """
     A class for storing and manipulating inference results.
@@ -83,7 +82,6 @@ class Results(SimpleClass):
         keypoints (List[List[float]], optional): A list of detected keypoints for each object.
         speed (dict): A dictionary of preprocess, inference and postprocess speeds in milliseconds per image.
         _keys (tuple): A tuple of attribute names for non-empty attributes.
-
     """
 
     def __init__(self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None) -> None:
@@ -99,16 +97,19 @@ class Results(SimpleClass):
         self._keys = ('boxes', 'masks', 'probs', 'keypoints')
 
     def pandas(self):
+        """Convert the results to a pandas DataFrame."""
         pass
         # TODO masks.pandas + boxes.pandas + cls.pandas
 
     def __getitem__(self, idx):
+        """Return a Results object for the specified index."""
         r = self.new()
         for k in self.keys:
             setattr(r, k, getattr(self, k)[idx])
         return r
 
     def update(self, boxes=None, masks=None, probs=None):
+        """Update the boxes, masks, and probs attributes of the Results object."""
         if boxes is not None:
             self.boxes = Boxes(boxes, self.orig_shape)
         if masks is not None:
@@ -117,38 +118,45 @@ class Results(SimpleClass):
             self.probs = probs
 
     def cpu(self):
+        """Return a copy of the Results object with all tensors on CPU memory."""
         r = self.new()
         for k in self.keys:
             setattr(r, k, getattr(self, k).cpu())
         return r
 
     def numpy(self):
+        """Return a copy of the Results object with all tensors as numpy arrays."""
         r = self.new()
         for k in self.keys:
             setattr(r, k, getattr(self, k).numpy())
         return r
 
     def cuda(self):
+        """Return a copy of the Results object with all tensors on GPU memory."""
         r = self.new()
         for k in self.keys:
             setattr(r, k, getattr(self, k).cuda())
         return r
 
     def to(self, *args, **kwargs):
+        """Return a copy of the Results object with tensors on the specified device and dtype."""
         r = self.new()
         for k in self.keys:
             setattr(r, k, getattr(self, k).to(*args, **kwargs))
         return r
 
     def __len__(self):
+        """Return the number of detections in the Results object."""
         for k in self.keys:
             return len(getattr(self, k))
 
     def new(self):
+        """Return a new Results object with the same image, path, and names."""
         return Results(orig_img=self.orig_img, path=self.path, names=self.names)
 
     @property
     def keys(self):
+        """Return a list of non-empty attribute names."""
         return [k for k in self._keys if getattr(self, k) is not None]
 
     def plot(
@@ -276,8 +284,8 @@ class Results(SimpleClass):
                     line = (c, *seg)
                 if kpts is not None:
                     kpt = (kpts[j][:, :2] / d.orig_shape[[1, 0]]).reshape(-1).tolist()
-                    line += (*kpt, )
-                line += (conf, ) * save_conf + (() if id is None else (id, ))
+                    line += (*kpt,)
+                line += (conf,) * save_conf + (() if id is None else (id,))
                 texts.append(('%g ' * len(line)).rstrip() % line)
 
         with open(txt_file, 'a') as f:

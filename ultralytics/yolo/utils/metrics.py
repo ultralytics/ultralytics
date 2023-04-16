@@ -18,7 +18,7 @@ OKS_SIGMA = np.array([.26, .25, .25, .35, .35, .79, .79, .72, .72, .62, .62, 1.0
 
 # boxes
 def box_area(box):
-    """Retun box area, where box shape is xyxy(4,n)."""
+    """Return box area, where box shape is xyxy(4,n)."""
     return (box[2] - box[0]) * (box[3] - box[1])
 
 

@@ -10,6 +10,7 @@ from .tal import bbox2dist
 
 class VarifocalLoss(nn.Module):
     """Varifocal loss by Zhang et al. https://arxiv.org/abs/2008.13367."""
+
     def __init__(self):
         super().__init__()
 

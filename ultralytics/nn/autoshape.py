@@ -24,7 +24,7 @@ from ultralytics.yolo.utils.torch_utils import copy_attr, smart_inference_mode
 
 
 class AutoShape(nn.Module):
-    # YOLOv8 input-robust model wrapper for passing cv2/np/PIL/torch inputs. Includes preprocessing, inference and NMS
+    """YOLOv8 input-robust model wrapper for passing cv2/np/PIL/torch inputs. Includes preprocessing, inference and NMS."""
     conf = 0.25  # NMS confidence threshold
     iou = 0.45  # NMS IoU threshold
     agnostic = False  # NMS class-agnostic

@@ -167,7 +167,7 @@ class BaseModel(nn.Module):
 
 
 class DetectionModel(BaseModel):
-    # YOLOv8 detection model
+    """YOLOv8 detection model."""
     def __init__(self, cfg='yolov8n.yaml', ch=3, nc=None, verbose=True):  # model, input channels, number of classes
         super().__init__()
         self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
@@ -240,7 +240,7 @@ class DetectionModel(BaseModel):
 
 
 class SegmentationModel(DetectionModel):
-    # YOLOv8 segmentation model
+    """YOLOv8 segmentation model."""
     def __init__(self, cfg='yolov8n-seg.yaml', ch=3, nc=None, verbose=True):
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
@@ -249,7 +249,7 @@ class SegmentationModel(DetectionModel):
 
 
 class PoseModel(DetectionModel):
-    # YOLOv8 pose model
+    """YOLOv8 pose model."""
     def __init__(self, cfg='yolov8n-pose.yaml', ch=3, nc=None, data_kpt_shape=(None, None), verbose=True):
         if not isinstance(cfg, dict):
             cfg = yaml_model_load(cfg)  # load model YAML
@@ -260,7 +260,7 @@ class PoseModel(DetectionModel):
 
 
 class ClassificationModel(BaseModel):
-    # YOLOv8 classification model
+    """YOLOv8 classification model."""
     def __init__(self,
                  cfg=None,
                  model=None,

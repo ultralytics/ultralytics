@@ -120,6 +120,7 @@ def try_export(inner_func):
 
 class iOSDetectModel(torch.nn.Module):
     """Wrap an Ultralytics YOLO model for iOS export"""
+
     def __init__(self, model, im):
         super().__init__()
         b, c, h, w = im.shape  # batch, channel, height, width

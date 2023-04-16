@@ -178,7 +178,7 @@ class _RepeatSampler:
     """ Sampler that repeats forever
 
     Args:
-        sampler (Sampler)
+        sampler (Dataset.sampler): The sampler to repeat.
     """
 
     def __init__(self, sampler):

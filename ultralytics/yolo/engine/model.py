@@ -400,7 +400,7 @@ class YOLO:
             train_args (dict, optional): Additional arguments to pass to the `train()` method. Defaults to {}.
 
         Returns:
-            A dictionary containing the results of the hyperparameter search.
+            (dict): A dictionary containing the results of the hyperparameter search.
 
         Raises:
             ModuleNotFoundError: If Ray Tune is not installed.

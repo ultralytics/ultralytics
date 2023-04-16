@@ -337,7 +337,7 @@ def torch_safe_load(weight):
         weight (str): The file path of the PyTorch model.
 
     Returns:
-        The loaded PyTorch model.
+        (dict): The loaded PyTorch model.
     """
     from ultralytics.yolo.utils.downloads import attempt_download_asset
 
@@ -398,7 +398,7 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
     for k in 'names', 'nc', 'yaml':
         setattr(ensemble, k, getattr(ensemble[0], k))
     ensemble.stride = ensemble[torch.argmax(torch.tensor([m.stride.max() for m in ensemble])).int()].stride
-    assert all(ensemble[0].nc == m.nc for m in ensemble), f'Models differ in class counts: {[m.nc for m in ensemble]}'
+    assert all(ensemble[0].nc == m.nc for m in ensemble), f'Models differ in class counts {[m.nc for m in ensemble]}'
     return ensemble
 
 
@@ -520,7 +520,7 @@ def guess_model_scale(model_path):
     which is denoted by n, s, m, l, or x. The function returns the size character of the model scale as a string.
 
     Args:
-        model_path (str or Path): The path to the YOLO model's YAML file.
+        model_path (str) or (Path): The path to the YOLO model's YAML file.
 
     Returns:
         (str): The size character of the model's scale, which can be n, s, m, l, or x.
@@ -539,7 +539,7 @@ def guess_model_task(model):
         model (nn.Module) or (dict): PyTorch model or model configuration in YAML format.
 
     Returns:
-        str: Task of the model ('detect', 'segment', 'classify', 'pose').
+        (str): Task of the model ('detect', 'segment', 'classify', 'pose').
 
     Raises:
         SyntaxError: If the task of the model could not be determined.

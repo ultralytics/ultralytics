@@ -17,31 +17,31 @@ from .utils import HELP_URL, LOGGER, get_hash, img2label_paths, verify_image_lab
 
 
 class YOLODataset(BaseDataset):
-    cache_version = '1.0.2'  # dataset labels *.cache version, >= 1.0.0 for YOLOv8
-    rand_interp_methods = [cv2.INTER_NEAREST, cv2.INTER_LINEAR, cv2.INTER_CUBIC, cv2.INTER_AREA, cv2.INTER_LANCZOS4]
     """
-    Dataset class for loading images object detection and/or segmentation labels in YOLO format.
+    Dataset class for loading object detection and/or segmentation labels in YOLO format.
 
     Args:
-        img_path (str): path to the folder containing images.
-        imgsz (int): image size (default: 640).
-        cache (bool): if True, a cache file of the labels is created to speed up future creation of dataset instances
-        (default: False).
-        augment (bool): if True, data augmentation is applied (default: True).
-        hyp (dict): hyperparameters to apply data augmentation (default: None).
-        prefix (str): prefix to print in log messages (default: '').
-        rect (bool): if True, rectangular training is used (default: False).
-        batch_size (int): size of batches (default: None).
-        stride (int): stride (default: 32).
-        pad (float): padding (default: 0.0).
-        single_cls (bool): if True, single class training is used (default: False).
-        use_segments (bool): if True, segmentation masks are used as labels (default: False).
-        use_keypoints (bool): if True, keypoints are used as labels (default: False).
-        names (dict): A dictionary of class names. (default: None).
+        img_path (str): Path to the folder containing images.
+        imgsz (int, optional): Image size. Defaults to 640.
+        cache (bool, optional): Cache images to RAM or disk during training. Defaults to False.
+        augment (bool, optional): If True, data augmentation is applied. Defaults to True.
+        hyp (dict, optional): Hyperparameters to apply data augmentation. Defaults to None.
+        prefix (str, optional): Prefix to print in log messages. Defaults to ''.
+        rect (bool, optional): If True, rectangular training is used. Defaults to False.
+        batch_size (int, optional): Size of batches. Defaults to None.
+        stride (int, optional): Stride. Defaults to 32.
+        pad (float, optional): Padding. Defaults to 0.0.
+        single_cls (bool, optional): If True, single class training is used. Defaults to False.
+        use_segments (bool, optional): If True, segmentation masks are used as labels. Defaults to False.
+        use_keypoints (bool, optional): If True, keypoints are used as labels. Defaults to False.
+        data (dict, optional): A dataset YAML dictionary. Defaults to None.
+        classes (list): List of included classes. Default is None.
 
     Returns:
-        A PyTorch dataset object that can be used for training an object detection or segmentation model.
+        (torch.utils.data.Dataset): A PyTorch dataset object that can be used for training an object detection model.
     """
+    cache_version = '1.0.2'  # dataset labels *.cache version, >= 1.0.0 for YOLOv8
+    rand_interp_methods = [cv2.INTER_NEAREST, cv2.INTER_LINEAR, cv2.INTER_CUBIC, cv2.INTER_AREA, cv2.INTER_LANCZOS4]
 
     def __init__(self,
                  img_path,

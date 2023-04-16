@@ -621,7 +621,7 @@ def check_amp(model):
         model (nn.Module): A YOLOv8 model instance.
 
     Returns:
-        bool: Returns True if the AMP functionality works correctly with YOLOv8 model, else False.
+        (bool): Returns True if the AMP functionality works correctly with YOLOv8 model, else False.
 
     Raises:
         AssertionError: If the AMP checks fail, indicating anomalies with the AMP functionality on the system.

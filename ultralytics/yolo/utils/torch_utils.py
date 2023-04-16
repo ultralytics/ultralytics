@@ -427,7 +427,7 @@ class EarlyStopping:
             fitness (float): Fitness value of current epoch
 
         Returns:
-            bool: True if training should stop, False otherwise
+            (bool): True if training should stop, False otherwise
         """
         if fitness is None:  # check if fitness=None (happens when val=False)
             return False

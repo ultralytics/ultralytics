@@ -55,19 +55,19 @@ class Albumentations:
 
 
 def normalize(x, mean=IMAGENET_MEAN, std=IMAGENET_STD, inplace=False):
-    # Denormalize RGB images x per ImageNet stats in BCHW format, i.e. = (x - mean) / std
+    """Denormalize RGB images x per ImageNet stats in BCHW format, i.e. = (x - mean) / std."""
     return TF.normalize(x, mean, std, inplace=inplace)
 
 
 def denormalize(x, mean=IMAGENET_MEAN, std=IMAGENET_STD):
-    # Denormalize RGB images x per ImageNet stats in BCHW format, i.e. = x * std + mean
+    """Denormalize RGB images x per ImageNet stats in BCHW format, i.e. = x * std + mean."""
     for i in range(3):
         x[:, i] = x[:, i] * std[i] + mean[i]
     return x
 
 
 def augment_hsv(im, hgain=0.5, sgain=0.5, vgain=0.5):
-    # HSV color-space augmentation
+    """HSV color-space augmentation."""
     if hgain or sgain or vgain:
         r = np.random.uniform(-1, 1, 3) * [hgain, sgain, vgain] + 1  # random gains
         hue, sat, val = cv2.split(cv2.cvtColor(im, cv2.COLOR_BGR2HSV))
@@ -83,7 +83,7 @@ def augment_hsv(im, hgain=0.5, sgain=0.5, vgain=0.5):
 
 
 def hist_equalize(im, clahe=True, bgr=False):
-    # Equalize histogram on BGR image 'im' with im.shape(n,m,3) and range 0-255
+    """Equalize histogram on BGR image 'im' with im.shape(n,m,3) and range 0-255."""
     yuv = cv2.cvtColor(im, cv2.COLOR_BGR2YUV if bgr else cv2.COLOR_RGB2YUV)
     if clahe:
         c = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
@@ -94,7 +94,7 @@ def hist_equalize(im, clahe=True, bgr=False):
 
 
 def replicate(im, labels):
-    # Replicate labels
+    """Replicate labels."""
     h, w = im.shape[:2]
     boxes = labels[:, 1:].astype(int)
     x1, y1, x2, y2 = boxes.T
@@ -240,7 +240,7 @@ def random_perspective(im,
 
 
 def copy_paste(im, labels, segments, p=0.5):
-    # Implement Copy-Paste augmentation https://arxiv.org/abs/2012.07177, labels as nx5 np.array(cls, xyxy)
+    """Implement Copy-Paste augmentation https://arxiv.org/abs/2012.07177, labels as nx5 np.array(cls, xyxy)."""
     n = len(segments)
     if p and n:
         h, w, c = im.shape  # height, width, channels
@@ -265,7 +265,7 @@ def copy_paste(im, labels, segments, p=0.5):
 
 
 def cutout(im, labels, p=0.5):
-    # Applies image cutout augmentation https://arxiv.org/abs/1708.04552
+    """Applies image cutout augmentation https://arxiv.org/abs/1708.04552."""
     if random.random() < p:
         h, w = im.shape[:2]
         scales = [0.5] * 1 + [0.25] * 2 + [0.125] * 4 + [0.0625] * 8 + [0.03125] * 16  # image size fraction
@@ -292,7 +292,7 @@ def cutout(im, labels, p=0.5):
 
 
 def mixup(im, labels, im2, labels2):
-    # Applies MixUp augmentation https://arxiv.org/pdf/1710.09412.pdf
+    """Applies MixUp augmentation https://arxiv.org/pdf/1710.09412.pdf."""
     r = np.random.beta(32.0, 32.0)  # mixup ratio, alpha=beta=32.0
     im = (im * r + im2 * (1 - r)).astype(np.uint8)
     labels = np.concatenate((labels, labels2), 0)
@@ -350,7 +350,7 @@ def classify_albumentations(
 
 
 def classify_transforms(size=224):
-    # Transforms to apply if albumentations not installed
+    """Transforms to apply if albumentations not installed."""
     assert isinstance(size, int), f'ERROR: classify_transforms size {size} must be integer, not (list, tuple)'
     # T.Compose([T.ToTensor(), T.Resize(size), T.CenterCrop(size), T.Normalize(IMAGENET_MEAN, IMAGENET_STD)])
     return T.Compose([CenterCrop(size), ToTensor(), T.Normalize(IMAGENET_MEAN, IMAGENET_STD)])

@@ -18,7 +18,7 @@ OKS_SIGMA = np.array([.26, .25, .25, .35, .35, .79, .79, .72, .72, .62, .62, 1.0
 
 # boxes
 def box_area(box):
-    # box = xyxy(4,n)
+    """Retun box area, where box shape is xyxy(4,n)."""
     return (box[2] - box[0]) * (box[3] - box[1])
 
 
@@ -341,7 +341,7 @@ class ConfusionMatrix:
 
 
 def smooth(y, f=0.05):
-    # Box filter of fraction f
+    """Box filter of fraction f."""
     nf = round(len(y) * f * 2) // 2 + 1  # number of filter elements (must be odd)
     p = np.ones(nf // 2)  # ones padding
     yp = np.concatenate((p * y[0], y, p * y[-1]), 0)  # y padded
@@ -630,7 +630,7 @@ class Metric(SimpleClass):
         return maps
 
     def fitness(self):
-        # Model fitness as a weighted combination of metrics
+        """Model fitness as a weighted combination of metrics."""
         w = [0.0, 0.0, 0.1, 0.9]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
         return (np.array(self.mean_results()) * w).sum()
 
@@ -800,7 +800,7 @@ class SegmentMetrics(SimpleClass):
 
     @property
     def ap_class_index(self):
-        # boxes and masks have the same ap_class_index
+        """Boxes and masks have the same ap_class_index."""
         return self.box.ap_class_index
 
     @property
@@ -926,7 +926,7 @@ class ClassifyMetrics(SimpleClass):
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
 
     def process(self, targets, pred):
-        # target classes and predicted classes
+        """Target classes and predicted classes."""
         pred, targets = torch.cat(pred), torch.cat(targets)
         correct = (targets[:, None] == pred).float()
         acc = torch.stack((correct[:, 0], correct.max(1).values), dim=1)  # (top1, top5) accuracy

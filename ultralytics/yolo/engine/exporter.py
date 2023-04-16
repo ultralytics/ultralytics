@@ -581,41 +581,6 @@ class Exporter:
             f = saved_model / f'{self.file.stem}_float32.tflite'
         return str(f), None
 
-        # # OLD TFLITE EXPORT CODE BELOW -------------------------------------------------------------------------------
-        # batch_size, ch, *imgsz = list(self.im.shape)  # BCHW
-        # f = str(self.file).replace(self.file.suffix, '-fp16.tflite')
-        #
-        # converter = tf.lite.TFLiteConverter.from_keras_model(keras_model)
-        # converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS]
-        # converter.target_spec.supported_types = [tf.float16]
-        # converter.optimizations = [tf.lite.Optimize.DEFAULT]
-        # if self.args.int8:
-        #
-        #     def representative_dataset_gen(dataset, n_images=100):
-        #         # Dataset generator for use with converter.representative_dataset, returns a generator of np arrays
-        #         for n, (path, img, im0s, vid_cap, string) in enumerate(dataset):
-        #             im = np.transpose(img, [1, 2, 0])
-        #             im = np.expand_dims(im, axis=0).astype(np.float32)
-        #             im /= 255
-        #             yield [im]
-        #             if n >= n_images:
-        #                 break
-        #
-        #     dataset = LoadImages(check_det_dataset(self.args.data)['train'], imgsz=imgsz, auto=False)
-        #     converter.representative_dataset = lambda: representative_dataset_gen(dataset, n_images=100)
-        #     converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
-        #     converter.target_spec.supported_types = []
-        #     converter.inference_input_type = tf.uint8  # or tf.int8
-        #     converter.inference_output_type = tf.uint8  # or tf.int8
-        #     converter.experimental_new_quantizer = True
-        #     f = str(self.file).replace(self.file.suffix, '-int8.tflite')
-        # if nms or agnostic_nms:
-        #     converter.target_spec.supported_ops.append(tf.lite.OpsSet.SELECT_TF_OPS)
-        #
-        # tflite_model = converter.convert()
-        # open(f, 'wb').write(tflite_model)
-        # return f, None
-
     @try_export
     def _export_edgetpu(self, tflite_model='', prefix=colorstr('Edge TPU:')):
         # YOLOv8 Edge TPU export https://coral.ai/docs/edgetpu/models-intro/
@@ -681,7 +646,7 @@ class Exporter:
         return f, None
 
     def _add_tflite_metadata(self, file):
-        # Add metadata to *.tflite models per https://www.tensorflow.org/lite/models/convert/metadata
+        """Add metadata to *.tflite models per https://www.tensorflow.org/lite/models/convert/metadata."""
         from tflite_support import flatbuffers  # noqa
         from tflite_support import metadata as _metadata  # noqa
         from tflite_support import metadata_schema_py_generated as _metadata_fb  # noqa

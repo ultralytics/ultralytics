@@ -418,7 +418,7 @@ class Masks(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def segments(self):
-        # Segments-deprecated (normalized)
+        """Segments-deprecated (normalized)."""
         LOGGER.warning("WARNING ⚠️ 'Masks.segments' is deprecated. Use 'Masks.xyn' for segments (normalized) and "
                        "'Masks.xy' for segments (pixels) instead.")
         return self.xyn
@@ -426,7 +426,7 @@ class Masks(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def xyn(self):
-        # Segments (normalized)
+        """Segments (normalized)."""
         return [
             ops.scale_coords(self.data.shape[1:], x, self.orig_shape, normalize=True)
             for x in ops.masks2segments(self.data)]
@@ -434,7 +434,7 @@ class Masks(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def xy(self):
-        # Segments (pixels)
+        """Segments (pixels)."""
         return [
             ops.scale_coords(self.data.shape[1:], x, self.orig_shape, normalize=False)
             for x in ops.masks2segments(self.data)]

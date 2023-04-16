@@ -21,7 +21,7 @@ from ultralytics.yolo.utils.ops import xywh2xyxy
 
 
 def check_class_names(names):
-    # Check class names. Map imagenet class codes to human-readable names if required. Convert lists to dicts.
+    """Check class names. Map imagenet class codes to human-readable names if required. Convert lists to dicts."""
     if isinstance(names, list):  # names is a list
         names = dict(enumerate(names))  # convert to dict
     if isinstance(names, dict):

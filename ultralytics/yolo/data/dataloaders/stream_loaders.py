@@ -81,7 +81,7 @@ class LoadStreams:
             LOGGER.warning('WARNING ⚠️ Stream shapes differ. For optimal performance supply similarly-shaped streams.')
 
     def update(self, i, cap, stream):
-        # Read stream `i` frames in daemon thread
+        """Read stream `i` frames in daemon thread."""
         n, f = 0, self.frames[i]  # frame number, frame array
         while cap.isOpened() and n < f:
             n += 1
@@ -123,7 +123,7 @@ class LoadStreams:
 class LoadScreenshots:
     # YOLOv8 screenshot dataloader, i.e. `yolo predict source=screen`
     def __init__(self, source, imgsz=640, stride=32, auto=True, transforms=None):
-        # source = [screen_number left top width height] (pixels)
+        """source = [screen_number left top width height] (pixels)."""
         check_requirements('mss')
         import mss  # noqa
 
@@ -156,7 +156,7 @@ class LoadScreenshots:
         return self
 
     def __next__(self):
-        # mss screen capture: get raw pixels from the screen as np array
+        """mss screen capture: get raw pixels from the screen as np array."""
         im0 = np.array(self.sct.grab(self.monitor))[:, :, :3]  # [:, :, :3] BGRA to BGR
         s = f'screen {self.screen} (LTWH): {self.left},{self.top},{self.width},{self.height}: '
 
@@ -256,7 +256,7 @@ class LoadImages:
         return path, im, im0, self.cap, s
 
     def _new_video(self, path):
-        # Create a new video capture object
+        """Create a new video capture object."""
         self.frame = 0
         self.cap = cv2.VideoCapture(path)
         self.frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT) / self.vid_stride)
@@ -266,7 +266,7 @@ class LoadImages:
             # self.cap.set(cv2.CAP_PROP_ORIENTATION_AUTO, 0)
 
     def _cv2_rotate(self, im):
-        # Rotate a cv2 video manually
+        """Rotate a cv2 video manually."""
         if self.orientation == 0:
             return cv2.rotate(im, cv2.ROTATE_90_CLOCKWISE)
         elif self.orientation == 180:

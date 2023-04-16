@@ -54,7 +54,7 @@ model.train()""")
 
 
 def reset_model(model_id=''):
-    # Reset a trained model to an untrained state
+    """Reset a trained model to an untrained state."""
     r = requests.post('https://api.ultralytics.com/model-reset', json={'apiKey': Auth().api_key, 'modelId': model_id})
     if r.status_code == 200:
         LOGGER.info(f'{PREFIX}Model reset successfully')
@@ -63,13 +63,13 @@ def reset_model(model_id=''):
 
 
 def export_fmts_hub():
-    # Returns a list of HUB-supported export formats
+    """Returns a list of HUB-supported export formats."""
     from ultralytics.yolo.engine.exporter import export_formats
     return list(export_formats()['Argument'][1:]) + ['ultralytics_tflite', 'ultralytics_coreml']
 
 
 def export_model(model_id='', format='torchscript'):
-    # Export a model to all formats
+    """Export a model to all formats."""
     assert format in export_fmts_hub(), f"Unsupported export format '{format}', valid formats are {export_fmts_hub()}"
     r = requests.post('https://api.ultralytics.com/export',
                       json={
@@ -81,7 +81,7 @@ def export_model(model_id='', format='torchscript'):
 
 
 def get_export(model_id='', format='torchscript'):
-    # Get an exported model dictionary with download URL
+    """Get an exported model dictionary with download URL."""
     assert format in export_fmts_hub(), f"Unsupported export format '{format}', valid formats are {export_fmts_hub()}"
     r = requests.post('https://api.ultralytics.com/get-export',
                       json={

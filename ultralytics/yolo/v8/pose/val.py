@@ -47,7 +47,7 @@ class PoseValidator(DetectionValidator):
         self.sigma = OKS_SIGMA if is_pose else np.ones(nkpt) / nkpt
 
     def update_metrics(self, preds, batch):
-        # Metrics
+        """Metrics."""
         for si, pred in enumerate(preds):
             idx = batch['batch_idx'] == si
             cls = batch['cls'][idx]

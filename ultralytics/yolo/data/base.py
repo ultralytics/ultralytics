@@ -129,7 +129,7 @@ class BaseDataset(Dataset):
                 self.labels[i]['cls'][:, 0] = 0
 
     def load_image(self, i):
-        # Loads 1 image from dataset index 'i', returns (im, resized hw)
+        """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
         im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
         if im is None:  # not cached in RAM
             if fn.exists():  # load npy
@@ -147,7 +147,7 @@ class BaseDataset(Dataset):
         return self.ims[i], self.im_hw0[i], self.im_hw[i]  # im, hw_original, hw_resized
 
     def cache_images(self, cache):
-        # cache images to memory or disk
+        """Cache images to memory or disk."""
         gb = 0  # Gigabytes of cached images
         self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni
         fcn = self.cache_images_to_disk if cache == 'disk' else self.load_image
@@ -164,7 +164,7 @@ class BaseDataset(Dataset):
             pbar.close()
 
     def cache_images_to_disk(self, i):
-        # Saves an image as an *.npy file for faster loading
+        """Saves an image as an *.npy file for faster loading."""
         f = self.npy_files[i]
         if not f.exists():
             np.save(f.as_posix(), cv2.imread(self.im_files[i]))

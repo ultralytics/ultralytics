@@ -21,7 +21,7 @@ from .ops import clip_boxes, scale_image, xywh2xyxy, xyxy2xywh
 class Colors:
     # Ultralytics color palette https://ultralytics.com/
     def __init__(self):
-        # hex = matplotlib.colors.TABLEAU_COLORS.values()
+        """Initialize colors as hex = matplotlib.colors.TABLEAU_COLORS.values()."""
         hexs = ('FF3838', 'FF9D97', 'FF701F', 'FFB21D', 'CFD231', '48F90A', '92CC17', '3DDB86', '1A9334', '00D4BB',
                 '2C99A8', '00C2FF', '344593', '6473FF', '0018EC', '8438FF', '520085', 'CB38FF', 'FF95C8', 'FF37C7')
         self.palette = [self.hex2rgb(f'#{c}') for c in hexs]
@@ -187,7 +187,7 @@ class Annotator:
             self.fromarray(self.im)
 
     def rectangle(self, xy, fill=None, outline=None, width=1):
-        # Add rectangle to image (PIL-only)
+        """Add rectangle to image (PIL-only)."""
         self.draw.rectangle(xy, fill, outline, width)
 
     def text(self, xy, text, txt_color=(255, 255, 255), anchor='top'):
@@ -202,12 +202,12 @@ class Annotator:
             cv2.putText(self.im, text, xy, 0, self.lw / 3, txt_color, thickness=tf, lineType=cv2.LINE_AA)
 
     def fromarray(self, im):
-        # Update self.im from a numpy array
+        """Update self.im from a numpy array."""
         self.im = im if isinstance(im, Image.Image) else Image.fromarray(im)
         self.draw = ImageDraw.Draw(self.im)
 
     def result(self):
-        # Return annotated image as array
+        """Return annotated image as array."""
         return np.asarray(self.im)
 
 
@@ -401,7 +401,7 @@ def plot_images(images,
 
 @plt_settings()
 def plot_results(file='path/to/results.csv', dir='', segment=False, pose=False):
-    # Plot training results.csv. Usage: from utils.plots import *; plot_results('path/to/results.csv')
+    """Plot training results.csv. Usage: from utils.plots import *; plot_results('path/to/results.csv')."""
     import pandas as pd
     save_dir = Path(file).parent if file else Path(dir)
     if segment:
@@ -436,7 +436,7 @@ def plot_results(file='path/to/results.csv', dir='', segment=False, pose=False):
 
 
 def output_to_target(output, max_det=300):
-    # Convert model output to target format [batch_id, class_id, x, y, w, h, conf] for plotting
+    """Convert model output to target format [batch_id, class_id, x, y, w, h, conf] for plotting."""
     targets = []
     for i, o in enumerate(output):
         box, conf, cls = o[:max_det, :6].cpu().split((4, 1, 1), 1)

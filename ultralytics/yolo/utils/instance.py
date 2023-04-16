@@ -11,7 +11,7 @@ from .ops import ltwh2xywh, ltwh2xyxy, resample_segments, xywh2ltwh, xywh2xyxy, 
 
 
 def _ntuple(n):
-    # From PyTorch internals
+    """From PyTorch internals."""
     def parse(x):
         return x if isinstance(x, abc.Iterable) else tuple(repeat(x, n))
 
@@ -80,7 +80,7 @@ class Bboxes:
         return (self.bboxes[:, 2] - self.bboxes[:, 0]) * (self.bboxes[:, 3] - self.bboxes[:, 1])
 
     # def denormalize(self, w, h):
-    #     if not self.normalized:
+    #    if not self.normalized:
     #         return
     #     assert (self.bboxes <= 1.0).all()
     #     self.bboxes[:, 0::2] *= w
@@ -240,7 +240,7 @@ class Instances:
         self.normalized = True
 
     def add_padding(self, padw, padh):
-        # handle rect and mosaic situation
+        """Handle rect and mosaic situation."""
         assert not self.normalized, 'you should add padding with absolute coordinates.'
         self._bboxes.add(offset=(padw, padh, padw, padh))
         self.segments[..., 0] += padw

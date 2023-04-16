@@ -140,7 +140,7 @@ class SegLoss(Loss):
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
 
     def single_mask_loss(self, gt_mask, pred, proto, xyxy, area):
-        # Mask loss for one image
+        """Mask loss for one image."""
         pred_mask = (pred @ proto.view(self.nm, -1)).view(-1, *proto.shape[1:])  # (n, 32) @ (32,80,80) -> (n,80,80)
         loss = F.binary_cross_entropy_with_logits(pred_mask, gt_mask, reduction='none')
         return (crop_mask(loss, xyxy).mean(dim=(1, 2)) / area).mean()

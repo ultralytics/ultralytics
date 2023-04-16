@@ -193,7 +193,7 @@ class MixUp(BaseMixTransform):
         return random.randint(0, len(self.dataset) - 1)
 
     def _mix_transform(self, labels):
-        # Applies MixUp augmentation https://arxiv.org/pdf/1710.09412.pdf
+        """Applies MixUp augmentation https://arxiv.org/pdf/1710.09412.pdf."""
         r = np.random.beta(32.0, 32.0)  # mixup ratio, alpha=beta=32.0
         labels2 = labels['mix_labels'][0]
         labels['img'] = (labels['img'] * r + labels2['img'] * (1 - r)).astype(np.uint8)
@@ -222,7 +222,7 @@ class RandomPerspective:
         self.pre_transform = pre_transform
 
     def affine_transform(self, img, border):
-        # Center
+        """Center."""
         C = np.eye(3, dtype=np.float32)
 
         C[0, 2] = -img.shape[1] / 2  # x translation (pixels)
@@ -519,7 +519,7 @@ class CopyPaste:
         self.p = p
 
     def __call__(self, labels):
-        # Implement Copy-Paste augmentation https://arxiv.org/abs/2012.07177, labels as nx5 np.array(cls, xyxy)
+        """Implement Copy-Paste augmentation https://arxiv.org/abs/2012.07177, labels as nx5 np.array(cls, xyxy)."""
         im = labels['img']
         cls = labels['cls']
         h, w = im.shape[:2]

@@ -84,7 +84,7 @@ class GMC:
 
     def applyEcc(self, raw_frame, detections=None):
 
-        # Initialize
+        """Initialize."""
         height, width, _ = raw_frame.shape
         frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY)
         H = np.eye(2, 3, dtype=np.float32)
@@ -117,7 +117,7 @@ class GMC:
 
     def applyFeatures(self, raw_frame, detections=None):
 
-        # Initialize
+        """Initialize."""
         height, width, _ = raw_frame.shape
         frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY)
         H = np.eye(2, 3)
@@ -243,7 +243,7 @@ class GMC:
         return H
 
     def applySparseOptFlow(self, raw_frame, detections=None):
-        # Initialize
+        """Initialize."""
         # t0 = time.time()
         height, width, _ = raw_frame.shape
         frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY)

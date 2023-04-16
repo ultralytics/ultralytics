@@ -254,18 +254,18 @@ class Exporter:
         if xml:  # OpenVINO
             f[3], _ = self.export_openvino()
         if coreml:  # CoreML
-            f[4], _ = self._export_coreml()
+            f[4], _ = self.export_coreml()
         if any((saved_model, pb, tflite, edgetpu, tfjs)):  # TensorFlow formats
             self.args.int8 |= edgetpu
-            f[5], s_model = self._export_saved_model()
+            f[5], s_model = self.export_saved_model()
             if pb or tfjs:  # pb prerequisite to tfjs
                 f[6], _ = self.export_pb(s_model)
             if tflite:
-                f[7], _ = self._export_tflite(s_model, nms=False, agnostic_nms=self.args.agnostic_nms)
+                f[7], _ = self.export_tflite(s_model, nms=False, agnostic_nms=self.args.agnostic_nms)
             if edgetpu:
                 f[8], _ = self.export_edgetpu(tflite_model=Path(f[5]) / f'{self.file.stem}_full_integer_quant.tflite')
             if tfjs:
-                f[9], _ = self._export_tfjs()
+                f[9], _ = self.export_tfjs()
         if paddle:  # PaddlePaddle
             f[10], _ = self.export_paddle()
 

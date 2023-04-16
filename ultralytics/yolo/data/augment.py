@@ -66,7 +66,7 @@ class Compose:
 
 
 class BaseMixTransform:
-    """This implementation is from mmyolo"""
+    """This implementation is from mmyolo."""
 
     def __init__(self, dataset, pre_transform=None, p=0.0) -> None:
         self.dataset = dataset
@@ -158,7 +158,7 @@ class Mosaic(BaseMixTransform):
         return final_labels
 
     def _update_labels(self, labels, padw, padh):
-        """Update labels"""
+        """Update labels."""
         nh, nw = labels['img'].shape[:2]
         labels['instances'].convert_bbox(format='xyxy')
         labels['instances'].denormalize(nw, nh)
@@ -450,7 +450,7 @@ class RandomFlip:
 
 
 class LetterBox:
-    """Resize image and padding for detection, instance segmentation, pose"""
+    """Resize image and padding for detection, instance segmentation, pose."""
 
     def __init__(self, new_shape=(640, 640), auto=False, scaleFill=False, scaleup=True, stride=32):
         self.new_shape = new_shape
@@ -505,7 +505,7 @@ class LetterBox:
             return img
 
     def _update_labels(self, labels, ratio, padw, padh):
-        """Update labels"""
+        """Update labels."""
         labels['instances'].convert_bbox(format='xyxy')
         labels['instances'].denormalize(*labels['img'].shape[:2][::-1])
         labels['instances'].scale(*ratio)
@@ -654,7 +654,7 @@ class Format:
         return img
 
     def _format_segments(self, instances, cls, w, h):
-        """convert polygon points to bitmap"""
+        """convert polygon points to bitmap."""
         segments = instances.segments
         if self.mask_overlap:
             masks, sorted_idx = polygons2masks_overlap((h, w), segments, downsample_ratio=self.mask_ratio)

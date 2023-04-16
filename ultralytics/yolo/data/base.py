@@ -113,7 +113,7 @@ class BaseDataset(Dataset):
         return im_files
 
     def update_labels(self, include_class: Optional[list]):
-        """include_class, filter labels to include only these classes (optional)"""
+        """include_class, filter labels to include only these classes (optional)."""
         include_class_array = np.array(include_class).reshape(1, -1)
         for i in range(len(self.labels)):
             if include_class is not None:
@@ -211,7 +211,7 @@ class BaseDataset(Dataset):
         return len(self.labels)
 
     def update_labels_info(self, label):
-        """custom your label format here"""
+        """custom your label format here."""
         return label
 
     def build_transforms(self, hyp=None):

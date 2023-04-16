@@ -118,24 +118,6 @@ def try_export(inner_func):
     return outer_func
 
 
-class iOSDetectModel(torch.nn.Module):
-    """Wrap an Ultralytics YOLO model for iOS export."""
-
-    def __init__(self, model, im):
-        super().__init__()
-        b, c, h, w = im.shape  # batch, channel, height, width
-        self.model = model
-        self.nc = len(model.names)  # number of classes
-        if w == h:
-            self.normalize = 1.0 / w  # scalar
-        else:
-            self.normalize = torch.tensor([1.0 / w, 1.0 / h, 1.0 / w, 1.0 / h])  # broadcast (slower, smaller)
-
-    def forward(self, x):
-        xywh, cls = self.model(x)[0].transpose(0, 1).split((4, self.nc), 1)
-        return cls, xywh * self.normalize  # confidence (3780, 80), coordinates (3780, 4)
-
-
 class Exporter:
     """
     A class for exporting a model.
@@ -828,6 +810,24 @@ class Exporter:
     def run_callbacks(self, event: str):
         for callback in self.callbacks.get(event, []):
             callback(self)
+
+
+class iOSDetectModel(torch.nn.Module):
+    """Wrap an Ultralytics YOLO model for iOS export."""
+
+    def __init__(self, model, im):
+        super().__init__()
+        b, c, h, w = im.shape  # batch, channel, height, width
+        self.model = model
+        self.nc = len(model.names)  # number of classes
+        if w == h:
+            self.normalize = 1.0 / w  # scalar
+        else:
+            self.normalize = torch.tensor([1.0 / w, 1.0 / h, 1.0 / w, 1.0 / h])  # broadcast (slower, smaller)
+
+    def forward(self, x):
+        xywh, cls = self.model(x)[0].transpose(0, 1).split((4, self.nc), 1)
+        return cls, xywh * self.normalize  # confidence (3780, 80), coordinates (3780, 4)
 
 
 def export(cfg=DEFAULT_CFG):

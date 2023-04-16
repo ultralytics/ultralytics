@@ -24,14 +24,17 @@ class InfiniteDataLoader(dataloader.DataLoader):
     """Dataloader that reuses workers. Uses same syntax as vanilla DataLoader."""
 
     def __init__(self, *args, **kwargs):
+        """Dataloader that infinitely recycles workers, inherits from DataLoader."""
         super().__init__(*args, **kwargs)
         object.__setattr__(self, 'batch_sampler', _RepeatSampler(self.batch_sampler))
         self.iterator = super().__iter__()
 
     def __len__(self):
+        """Returns the length of the batch sampler's sampler."""
         return len(self.batch_sampler.sampler)
 
     def __iter__(self):
+        """Creates a sampler that repeats indefinitely."""
         for _ in range(len(self)):
             yield next(self.iterator)
 
@@ -45,9 +48,11 @@ class _RepeatSampler:
     """
 
     def __init__(self, sampler):
+        """Initializes an object that repeats a given sampler indefinitely."""
         self.sampler = sampler
 
     def __iter__(self):
+        """Iterates over the 'sampler' and yields its contents."""
         while True:
             yield from iter(self.sampler)
 
@@ -60,6 +65,7 @@ def seed_worker(worker_id):  # noqa
 
 
 def build_dataloader(cfg, batch, img_path, data_info, stride=32, rect=False, rank=-1, mode='train'):
+    """Return an InfiniteDataLoader or DataLoader for training or validation set."""
     assert mode in ['train', 'val']
     shuffle = mode == 'train'
     if cfg.rect and shuffle:
@@ -134,6 +140,7 @@ def build_classification_dataloader(path,
 
 
 def check_source(source):
+    """Check source type and return corresponding flag values."""
     webcam, screenshot, from_img, in_memory, tensor = False, False, False, False, False
     if isinstance(source, (str, int, Path)):  # int for local usb camera
         source = str(source)

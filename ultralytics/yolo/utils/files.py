@@ -11,13 +11,16 @@ class WorkingDirectory(contextlib.ContextDecorator):
     """Usage: @WorkingDirectory(dir) decorator or 'with WorkingDirectory(dir):' context manager."""
 
     def __init__(self, new_dir):
+        """Sets the working directory to 'new_dir' upon instantiation."""
         self.dir = new_dir  # new dir
         self.cwd = Path.cwd().resolve()  # current dir
 
     def __enter__(self):
+        """Changes the current directory to the specified directory."""
         os.chdir(self.dir)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        """Restore the current working directory on context exit."""
         os.chdir(self.cwd)
 
 

@@ -85,6 +85,7 @@ class Results(SimpleClass):
     """
 
     def __init__(self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None) -> None:
+        """Initialize the Results class."""
         self.orig_img = orig_img
         self.orig_shape = orig_img.shape[:2]
         self.boxes = Boxes(boxes, self.orig_shape) if boxes is not None else None  # native size boxes
@@ -258,7 +259,8 @@ class Results(SimpleClass):
         return log_string
 
     def save_txt(self, txt_file, save_conf=False):
-        """Save predictions into txt file.
+        """
+        Save predictions into txt file.
 
         Args:
             txt_file (str): txt file path.
@@ -293,7 +295,8 @@ class Results(SimpleClass):
                 f.write(text + '\n')
 
     def save_crop(self, save_dir, file_name=Path('im.jpg')):
-        """Save cropped predictions to `save_dir/cls/file_name.jpg`.
+        """
+        Save cropped predictions to `save_dir/cls/file_name.jpg`.
 
         Args:
             save_dir (str | pathlib.Path): Save path.
@@ -346,6 +349,7 @@ class Boxes(BaseTensor):
     """
 
     def __init__(self, boxes, orig_shape) -> None:
+        """Initialize the Boxes class."""
         if boxes.ndim == 1:
             boxes = boxes[None, :]
         n = boxes.shape[-1]
@@ -357,40 +361,49 @@ class Boxes(BaseTensor):
 
     @property
     def xyxy(self):
+        """Return the boxes in xyxy format."""
         return self.data[:, :4]
 
     @property
     def conf(self):
+        """Return the confidence values of the boxes."""
         return self.data[:, -2]
 
     @property
     def cls(self):
+        """Return the class values of the boxes."""
         return self.data[:, -1]
 
     @property
     def id(self):
+        """Return the track IDs of the boxes (if available)."""
         return self.data[:, -3] if self.is_track else None
 
     @property
     @lru_cache(maxsize=2)  # maxsize 1 should suffice
     def xywh(self):
+        """Return the boxes in xywh format."""
         return ops.xyxy2xywh(self.xyxy)
 
     @property
     @lru_cache(maxsize=2)
     def xyxyn(self):
+        """Return the boxes in xyxy format normalized by original image size."""
         return self.xyxy / self.orig_shape[[1, 0, 1, 0]]
 
     @property
     @lru_cache(maxsize=2)
     def xywhn(self):
+        """Return the boxes in xywh format normalized by original image size."""
         return self.xywh / self.orig_shape[[1, 0, 1, 0]]
 
     def pandas(self):
+        """Convert the object to a pandas DataFrame (not yet implemented)."""
         LOGGER.info('results.pandas() method not yet implemented')
 
     @property
     def boxes(self):
+        """Return the raw bboxes tensor (deprecated)."""
         LOGGER.warning("WARNING ⚠️ 'Boxes.boxes' is deprecated. Use 'Boxes.data' instead.")
         return self.data
 
@@ -419,6 +432,7 @@ class Masks(BaseTensor):
     """
 
     def __init__(self, masks, orig_shape) -> None:
+        """Initialize the Masks class."""
         if masks.ndim == 2:
             masks = masks[None, :]
         super().__init__(masks, orig_shape)
@@ -426,7 +440,7 @@ class Masks(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def segments(self):
-        """Segments-deprecated (normalized)."""
+        """Return segments (deprecated; normalized)."""
         LOGGER.warning("WARNING ⚠️ 'Masks.segments' is deprecated. Use 'Masks.xyn' for segments (normalized) and "
                        "'Masks.xy' for segments (pixels) instead.")
         return self.xyn
@@ -434,7 +448,7 @@ class Masks(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def xyn(self):
-        """Segments (normalized)."""
+        """Return segments (normalized)."""
         return [
             ops.scale_coords(self.data.shape[1:], x, self.orig_shape, normalize=True)
             for x in ops.masks2segments(self.data)]
@@ -442,12 +456,13 @@ class Masks(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def xy(self):
-        """Segments (pixels)."""
+        """Return segments (pixels)."""
         return [
             ops.scale_coords(self.data.shape[1:], x, self.orig_shape, normalize=False)
             for x in ops.masks2segments(self.data)]
 
     @property
     def masks(self):
+        """Return the raw masks tensor (deprecated)."""
         LOGGER.warning("WARNING ⚠️ 'Masks.masks' is deprecated. Use 'Masks.data' instead.")
         return self.data

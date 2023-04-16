@@ -21,11 +21,11 @@ from ultralytics.yolo.utils.ops import xywh2xyxy
 
 
 def check_class_names(names):
-    # Check class names. Map imagenet class codes to human-readable names if required. Convert lists to dicts.
+    """Check class names. Map imagenet class codes to human-readable names if required. Convert lists to dicts."""
     if isinstance(names, list):  # names is a list
         names = dict(enumerate(names))  # convert to dict
     if isinstance(names, dict):
-        # convert 1) string keys to int, i.e. '0' to 0, and non-string values to strings, i.e. True to 'True'
+        # Convert 1) string keys to int, i.e. '0' to 0, and non-string values to strings, i.e. True to 'True'
         names = {int(k): str(v) for k, v in names.items()}
         n = len(names)
         if max(names.keys()) >= n:
@@ -229,7 +229,7 @@ class AutoBackend(nn.Module):
             interpreter.allocate_tensors()  # allocate
             input_details = interpreter.get_input_details()  # inputs
             output_details = interpreter.get_output_details()  # outputs
-            # load metadata
+            # Load metadata
             with contextlib.suppress(zipfile.BadZipFile):
                 with zipfile.ZipFile(w, 'r') as model:
                     meta_file = model.namelist()[0]

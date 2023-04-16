@@ -39,7 +39,7 @@ class MixAndRectDataset:
         """
         labels = deepcopy(self.dataset[index])
         for transform in self.dataset.transforms.tolist():
-            # mosaic and mixup
+            # Mosaic and mixup
             if hasattr(transform, 'get_indexes'):
                 indexes = transform.get_indexes(self.dataset)
                 if not isinstance(indexes, collections.abc.Sequence):

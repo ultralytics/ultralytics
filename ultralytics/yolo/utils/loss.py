@@ -9,7 +9,8 @@ from .tal import bbox2dist
 
 
 class VarifocalLoss(nn.Module):
-    # Varifocal loss by Zhang et al. https://arxiv.org/abs/2008.13367
+    """Varifocal loss by Zhang et al. https://arxiv.org/abs/2008.13367."""
+
     def __init__(self):
         super().__init__()
 
@@ -29,7 +30,7 @@ class BboxLoss(nn.Module):
         self.use_dfl = use_dfl
 
     def forward(self, pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, target_scores_sum, fg_mask):
-        # IoU loss
+        """IoU loss."""
         weight = torch.masked_select(target_scores.sum(-1), fg_mask).unsqueeze(-1)
         iou = bbox_iou(pred_bboxes[fg_mask], target_bboxes[fg_mask], xywh=False, CIoU=True)
         loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
@@ -46,7 +47,7 @@ class BboxLoss(nn.Module):
 
     @staticmethod
     def _df_loss(pred_dist, target):
-        # Return sum of left and right DFL losses
+        """Return sum of left and right DFL losses."""
         # Distribution Focal Loss (DFL) proposed in Generalized Focal Loss https://ieeexplore.ieee.org/document/9792391
         tl = target.long()  # target left
         tr = tl + 1  # target right

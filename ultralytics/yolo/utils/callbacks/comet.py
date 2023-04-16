@@ -15,20 +15,20 @@ except (ImportError, AssertionError):
 
 COMET_MODE = os.getenv('COMET_MODE', 'online')
 COMET_MODEL_NAME = os.getenv('COMET_MODEL_NAME', 'YOLOv8')
-# determines how many batches of image predictions to log from the validation set
+# Determines how many batches of image predictions to log from the validation set
 COMET_EVAL_BATCH_LOGGING_INTERVAL = int(os.getenv('COMET_EVAL_BATCH_LOGGING_INTERVAL', 1))
-# determines whether to log confusion matrix every evaluation epoch
+# Determines whether to log confusion matrix every evaluation epoch
 COMET_EVAL_LOG_CONFUSION_MATRIX = (os.getenv('COMET_EVAL_LOG_CONFUSION_MATRIX', 'true').lower() == 'true')
-# determines whether to log image predictions every evaluation epoch
+# Determines whether to log image predictions every evaluation epoch
 COMET_EVAL_LOG_IMAGE_PREDICTIONS = (os.getenv('COMET_EVAL_LOG_IMAGE_PREDICTIONS', 'true').lower() == 'true')
 COMET_MAX_IMAGE_PREDICTIONS = int(os.getenv('COMET_MAX_IMAGE_PREDICTIONS', 100))
 
-# ensures certain logging functions only run for supported tasks
+# Ensures certain logging functions only run for supported tasks
 COMET_SUPPORTED_TASKS = ['detect']
-# scales reported confidence scores (0.0-1.0) by this value
+# Scales reported confidence scores (0.0-1.0) by this value
 COMET_MAX_CONFIDENCE_SCORE = int(os.getenv('COMET_MAX_CONFIDENCE_SCORE', 100))
 
-# names of plots created by YOLOv8 that are logged to Comet
+# Names of plots created by YOLOv8 that are logged to Comet
 EVALUATION_PLOT_NAMES = 'F1_curve', 'P_curve', 'R_curve', 'PR_curve', 'confusion_matrix'
 LABEL_PLOT_NAMES = 'labels', 'labels_correlogram'
 
@@ -43,7 +43,7 @@ def _get_experiment_type(mode, project_name):
 
 
 def _create_experiment(args):
-    # Ensures that the experiment object is only created in a single process during distributed training.
+    """Ensures that the experiment object is only created in a single process during distributed training."""
     if RANK not in (-1, 0):
         return
     try:
@@ -83,13 +83,13 @@ def _scale_bounding_box_to_original_image_shape(box, resized_image_shape, origin
 
     resized_image_height, resized_image_width = resized_image_shape
 
-    # convert normalized xywh format predictions to xyxy in resized scale format
+    # Convert normalized xywh format predictions to xyxy in resized scale format
     box = ops.xywhn2xyxy(box, h=resized_image_height, w=resized_image_width)
-    # scale box predictions from resized image scale back to original image scale
+    # Scale box predictions from resized image scale back to original image scale
     box = ops.scale_boxes(resized_image_shape, box, original_image_shape, ratio_pad)
     # Convert bounding box format from xyxy to xywh for Comet logging
     box = ops.xyxy2xywh(box)
-    # adjust xy center to correspond top-left corner
+    # Adjust xy center to correspond top-left corner
     box[:2] -= box[2:] / 2
     box = box.tolist()
 

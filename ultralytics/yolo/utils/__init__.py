@@ -199,7 +199,7 @@ def plt_settings(rcparams={'font.size': 11}, backend='Agg'):
 
 
 def set_logging(name=LOGGING_NAME, verbose=True):
-    # sets up logging for the given name
+    """Sets up logging for the given name."""
     rank = int(os.getenv('RANK', -1))  # rank in world for Multi-GPU trainings
     level = logging.INFO if verbose and rank in {-1, 0} else logging.ERROR
     logging.config.dictConfig({
@@ -539,12 +539,12 @@ SETTINGS_YAML = USER_CONFIG_DIR / 'settings.yaml'
 
 
 def emojis(string=''):
-    # Return platform-dependent emoji-safe version of string
+    """Return platform-dependent emoji-safe version of string."""
     return string.encode().decode('ascii', 'ignore') if WINDOWS else string
 
 
 def colorstr(*input):
-    # Colors a string https://en.wikipedia.org/wiki/ANSI_escape_code, i.e.  colorstr('blue', 'hello world')
+    """Colors a string https://en.wikipedia.org/wiki/ANSI_escape_code, i.e.  colorstr('blue', 'hello world')."""
     *args, string = input if len(input) > 1 else ('blue', 'bold', input[0])  # color arguments, string
     colors = {
         'black': '\033[30m',  # basic colors
@@ -570,7 +570,8 @@ def colorstr(*input):
 
 
 class TryExcept(contextlib.ContextDecorator):
-    # YOLOv8 TryExcept class. Usage: @TryExcept() decorator or 'with TryExcept():' context manager
+    """YOLOv8 TryExcept class. Usage: @TryExcept() decorator or 'with TryExcept():' context manager."""
+
     def __init__(self, msg='', verbose=True):
         self.msg = msg
         self.verbose = verbose
@@ -585,7 +586,8 @@ class TryExcept(contextlib.ContextDecorator):
 
 
 def threaded(func):
-    # Multi-threads a target function and returns thread. Usage: @threaded decorator
+    """Multi-threads a target function and returns thread. Usage: @threaded decorator."""
+
     def wrapper(*args, **kwargs):
         thread = threading.Thread(target=func, args=args, kwargs=kwargs, daemon=True)
         thread.start()
@@ -703,13 +705,13 @@ def deprecation_warn(arg, new_arg, version=None):
 
 
 def clean_url(url):
-    # Strip auth from URL, i.e. https://url.com/file.txt?auth -> https://url.com/file.txt
+    """Strip auth from URL, i.e. https://url.com/file.txt?auth -> https://url.com/file.txt."""
     url = str(Path(url)).replace(':/', '://')  # Pathlib turns :// -> :/
     return urllib.parse.unquote(url).split('?')[0]  # '%2F' to '/', split https://url.com/file.txt?auth
 
 
 def url2file(url):
-    # Convert URL to filename, i.e. https://url.com/file.txt?auth -> file.txt
+    """Convert URL to filename, i.e. https://url.com/file.txt?auth -> file.txt."""
     return Path(clean_url(url)).name
 
 

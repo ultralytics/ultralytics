@@ -21,7 +21,7 @@ GITHUB_ASSET_STEMS = [Path(k).stem for k in GITHUB_ASSET_NAMES]
 
 
 def is_url(url, check=True):
-    # Check if string is URL and check if URL exists
+    """Check if string is URL and check if URL exists."""
     with contextlib.suppress(Exception):
         url = str(url)
         result = parse.urlparse(url)
@@ -141,11 +141,11 @@ def safe_download(url,
 
 
 def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
-    # Attempt file download from GitHub release assets if not found locally. release = 'latest', 'v6.2', etc.
+    """Attempt file download from GitHub release assets if not found locally. release = 'latest', 'v6.2', etc."""
     from ultralytics.yolo.utils import SETTINGS  # scoped for circular import
 
     def github_assets(repository, version='latest'):
-        # Return GitHub repo tag and assets (i.e. ['yolov8n.pt', 'yolov8s.pt', ...])
+        """Return GitHub repo tag and assets (i.e. ['yolov8n.pt', 'yolov8s.pt', ...])."""
         if version != 'latest':
             version = f'tags/{version}'  # i.e. tags/v6.2
         response = requests.get(f'https://api.github.com/repos/{repository}/releases/{version}').json()  # github api

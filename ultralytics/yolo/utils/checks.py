@@ -244,7 +244,7 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
 
 
 def check_suffix(file='yolov8n.pt', suffix='.pt', msg=''):
-    # Check file(s) for acceptable suffix
+    """Check file(s) for acceptable suffix."""
     if file and suffix:
         if isinstance(suffix, str):
             suffix = (suffix, )
@@ -255,7 +255,7 @@ def check_suffix(file='yolov8n.pt', suffix='.pt', msg=''):
 
 
 def check_yolov5u_filename(file: str, verbose: bool = True):
-    # Replace legacy YOLOv5 filenames with updated YOLOv5u filenames
+    """Replace legacy YOLOv5 filenames with updated YOLOv5u filenames."""
     if ('yolov3' in file or 'yolov5' in file) and 'u' not in file:
         original_file = file
         file = re.sub(r'(.*yolov5([nsmlx]))\.pt', '\\1u.pt', file)  # i.e. yolov5n.pt -> yolov5nu.pt
@@ -269,7 +269,7 @@ def check_yolov5u_filename(file: str, verbose: bool = True):
 
 
 def check_file(file, suffix='', download=True, hard=True):
-    # Search/download file (if necessary) and return path
+    """Search/download file (if necessary) and return path."""
     check_suffix(file, suffix)  # optional
     file = str(file).strip()  # convert to string and strip spaces
     file = check_yolov5u_filename(file)  # yolov5n -> yolov5nu
@@ -300,7 +300,7 @@ def check_yaml(file, suffix=('.yaml', '.yml'), hard=True):
 
 
 def check_imshow(warn=False):
-    # Check if environment supports image displays
+    """Check if environment supports image displays."""
     try:
         assert not any((is_colab(), is_kaggle(), is_docker()))
         cv2.imshow('test', np.zeros((1, 1, 3)))
@@ -346,9 +346,10 @@ def git_describe(path=ROOT):  # path must be a directory
 
 
 def print_args(args: Optional[dict] = None, show_file=True, show_func=False):
-    # Print function arguments (optional args dict)
+    """Print function arguments (optional args dict)."""
+
     def strip_auth(v):
-        # Clean longer Ultralytics HUB URLs by stripping potential authentication information
+        """Clean longer Ultralytics HUB URLs by stripping potential authentication information."""
         return clean_url(v) if (isinstance(v, str) and v.startswith('http') and len(v) > 100) else v
 
     x = inspect.currentframe().f_back  # previous frame

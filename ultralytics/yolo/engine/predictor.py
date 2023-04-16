@@ -134,7 +134,7 @@ class BasePredictor:
             if not self.args.retina_masks:
                 plot_args['im_gpu'] = im[idx]
             self.plotted_img = result.plot(**plot_args)
-        # write
+        # Write
         if self.args.save_txt:
             result.save_txt(f'{self.txt_path}.txt', save_conf=self.args.save_conf)
         if self.args.save_crop:
@@ -153,7 +153,7 @@ class BasePredictor:
             return list(self.stream_inference(source, model))  # merge list of Result into one
 
     def predict_cli(self, source=None, model=None):
-        # Method used for CLI prediction. It uses always generator as outputs as not required by CLI mode
+        """Method used for CLI prediction. It uses always generator as outputs as not required by CLI mode."""
         gen = self.stream_inference(source, model)
         for _ in gen:  # running CLI inference without accumulating any outputs (do not modify)
             pass
@@ -182,16 +182,16 @@ class BasePredictor:
         if self.args.verbose:
             LOGGER.info('')
 
-        # setup model
+        # Setup model
         if not self.model:
             self.setup_model(model)
-        # setup source every time predict is called
+        # Setup source every time predict is called
         self.setup_source(source if source is not None else self.args.source)
 
-        # check if save_dir/ label file exists
+        # Check if save_dir/ label file exists
         if self.args.save or self.args.save_txt:
             (self.save_dir / 'labels' if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
-        # warmup model
+        # Warmup model
         if not self.done_warmup:
             self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, 3, *self.imgsz))
             self.done_warmup = True
@@ -204,22 +204,22 @@ class BasePredictor:
             path, im, im0s, vid_cap, s = batch
             visualize = increment_path(self.save_dir / Path(path).stem, mkdir=True) if self.args.visualize else False
 
-            # preprocess
+            # Preprocess
             with self.dt[0]:
                 im = self.preprocess(im)
                 if len(im.shape) == 3:
                     im = im[None]  # expand for batch dim
 
-            # inference
+            # Inference
             with self.dt[1]:
                 preds = self.model(im, augment=self.args.augment, visualize=visualize)
 
-            # postprocess
+            # Postprocess
             with self.dt[2]:
                 self.results = self.postprocess(preds, im, im0s)
             self.run_callbacks('on_predict_postprocess_end')
 
-            # visualize, save, write results
+            # Visualize, save, write results
             n = len(im)
             for i in range(n):
                 self.results[i].speed = {
@@ -288,7 +288,7 @@ class BasePredictor:
 
     def save_preds(self, vid_cap, idx, save_path):
         im0 = self.plotted_img
-        # save imgs
+        # Save imgs
         if self.dataset.mode == 'image':
             cv2.imwrite(save_path, im0)
         else:  # 'video' or 'stream'

@@ -163,7 +163,7 @@ class BaseTrainer:
             callback(self)
 
     def train(self):
-        # Allow device='', device=None on Multi-GPU systems to default to device=0
+        """Allow device='', device=None on Multi-GPU systems to default to device=0."""
         if isinstance(self.args.device, int) or self.args.device:  # i.e. device=0 or device=[0,1,2,3]
             world_size = torch.cuda.device_count()
         elif torch.cuda.is_available():  # i.e. device=None or device=''
@@ -306,7 +306,7 @@ class BaseTrainer:
                     xi = [0, nw]  # x interp
                     self.accumulate = max(1, np.interp(ni, xi, [1, self.args.nbs / self.batch_size]).round())
                     for j, x in enumerate(self.optimizer.param_groups):
-                        # bias lr falls from 0.1 to lr0, all other lrs rise from 0.0 to lr0
+                        # Bias lr falls from 0.1 to lr0, all other lrs rise from 0.0 to lr0
                         x['lr'] = np.interp(
                             ni, xi, [self.args.warmup_bias_lr if j == 0 else 0.0, x['initial_lr'] * self.lf(epoch)])
                         if 'momentum' in x:
@@ -631,7 +631,7 @@ def check_amp(model):
         return False  # AMP only used on CUDA devices
 
     def amp_allclose(m, im):
-        # All close FP32 vs AMP results
+        """All close FP32 vs AMP results."""
         a = m(im, device=device, verbose=False)[0].boxes.data  # FP32 inference
         with torch.cuda.amp.autocast(True):
             b = m(im, device=device, verbose=False)[0].boxes.data  # AMP inference

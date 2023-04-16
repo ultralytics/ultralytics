@@ -35,6 +35,7 @@ class YOLO:
 
     Args:
         model (str, Path): Path to the model file to load or create.
+        task (Any, optional): Task type for the YOLO model. Defaults to None.
 
     Attributes:
         predictor (Any): The predictor object.
@@ -76,7 +77,6 @@ class YOLO:
         Args:
             model (Union[str, Path], optional): Path or name of the model to load or create. Defaults to 'yolov8n.pt'.
             task (Any, optional): Task type for the YOLO model. Defaults to None.
-
         """
         self.callbacks = callbacks.get_default_callbacks()
         self.predictor = None  # reuse predictor
@@ -273,7 +273,7 @@ class YOLO:
     @smart_inference_mode()
     def val(self, data=None, **kwargs):
         """
-        Validate a model on a given dataset .
+        Validate a model on a given dataset.
 
         Args:
             data (str): The dataset to validate on. Accepts all formats accepted by yolo
@@ -365,7 +365,7 @@ class YOLO:
             self.model = self.trainer.model
         self.trainer.hub_session = self.session  # attach optional HUB session
         self.trainer.train()
-        # update model and cfg after training
+        # Update model and cfg after training
         if RANK in (-1, 0):
             self.model, _ = attempt_load_one_weight(str(self.trainer.best))
             self.overrides = self.model.args
@@ -467,7 +467,7 @@ class YOLO:
     @property
     def names(self):
         """
-         Returns class names of the loaded model.
+        Returns class names of the loaded model.
         """
         return self.model.names if hasattr(self.model, 'names') else None
 
@@ -481,7 +481,7 @@ class YOLO:
     @property
     def transforms(self):
         """
-         Returns transform of the loaded model.
+        Returns transform of the loaded model.
         """
         return self.model.transforms if hasattr(self.model, 'transforms') else None
 

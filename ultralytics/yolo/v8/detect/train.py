@@ -22,8 +22,8 @@ from ultralytics.yolo.utils.torch_utils import de_parallel
 class DetectionTrainer(BaseTrainer):
 
     def get_dataloader(self, dataset_path, batch_size, rank=0, mode='train'):
-        # TODO: manage splits differently
-        # calculate stride - check if model is initialized
+        """TODO: manage splits differently."""
+        # Calculate stride - check if model is initialized
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
         return create_dataloader(path=dataset_path,
                                  imgsz=self.args.imgsz,
@@ -48,7 +48,7 @@ class DetectionTrainer(BaseTrainer):
         return batch
 
     def set_model_attributes(self):
-        # nl = de_parallel(self.model).model[-1].nl  # number of detection layers (to scale hyps)
+        """nl = de_parallel(self.model).model[-1].nl  # number of detection layers (to scale hyps)."""
         # self.args.box *= 3 / nl  # scale to layers
         # self.args.cls *= self.data["nc"] / 80 * 3 / nl  # scale to classes and layers
         # self.args.cls *= (self.args.imgsz / 640) ** 2 * 3 / nl  # scale to image size and layers

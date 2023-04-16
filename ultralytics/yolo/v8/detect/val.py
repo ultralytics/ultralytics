@@ -67,7 +67,7 @@ class DetectionValidator(BaseValidator):
         return preds
 
     def update_metrics(self, preds, batch):
-        # Metrics
+        """Metrics."""
         for si, pred in enumerate(preds):
             idx = batch['batch_idx'] == si
             cls = batch['cls'][idx]
@@ -164,8 +164,8 @@ class DetectionValidator(BaseValidator):
         return torch.tensor(correct, dtype=torch.bool, device=detections.device)
 
     def get_dataloader(self, dataset_path, batch_size):
-        # TODO: manage splits differently
-        # calculate stride - check if model is initialized
+        """TODO: manage splits differently."""
+        # Calculate stride - check if model is initialized
         gs = max(int(de_parallel(self.model).stride if self.model else 0), 32)
         return create_dataloader(path=dataset_path,
                                  imgsz=self.args.imgsz,

@@ -16,9 +16,9 @@ from ultralytics.yolo.utils import LOGGER, SimpleClass, TryExcept, plt_settings
 OKS_SIGMA = np.array([.26, .25, .25, .35, .35, .79, .79, .72, .72, .62, .62, 1.07, 1.07, .87, .87, .89, .89]) / 10.0
 
 
-# boxes
+# Boxes
 def box_area(box):
-    # box = xyxy(4,n)
+    """Return box area, where box shape is xyxy(4,n)."""
     return (box[2] - box[0]) * (box[3] - box[1])
 
 
@@ -175,9 +175,10 @@ def smooth_BCE(eps=0.1):  # https://github.com/ultralytics/yolov3/issues/238#iss
     return 1.0 - 0.5 * eps, 0.5 * eps
 
 
-# losses
+# Losses
 class FocalLoss(nn.Module):
-    # Wraps focal loss around existing loss_fcn(), i.e. criteria = FocalLoss(nn.BCEWithLogitsLoss(), gamma=1.5)
+    """Wraps focal loss around existing loss_fcn(), i.e. criteria = FocalLoss(nn.BCEWithLogitsLoss(), gamma=1.5)."""
+
     def __init__(self, loss_fcn, gamma=1.5, alpha=0.25):
         super().__init__()
         self.loss_fcn = loss_fcn  # must be nn.BCEWithLogitsLoss()
@@ -341,7 +342,7 @@ class ConfusionMatrix:
 
 
 def smooth(y, f=0.05):
-    # Box filter of fraction f
+    """Box filter of fraction f."""
     nf = round(len(y) * f * 2) // 2 + 1  # number of filter elements (must be odd)
     p = np.ones(nf // 2)  # ones padding
     yp = np.concatenate((p * y[0], y, p * y[-1]), 0)  # y padded
@@ -350,7 +351,7 @@ def smooth(y, f=0.05):
 
 @plt_settings()
 def plot_pr_curve(px, py, ap, save_dir=Path('pr_curve.png'), names=()):
-    # Precision-recall curve
+    """Plots a precision-recall curve."""
     fig, ax = plt.subplots(1, 1, figsize=(9, 6), tight_layout=True)
     py = np.stack(py, axis=1)
 
@@ -373,7 +374,7 @@ def plot_pr_curve(px, py, ap, save_dir=Path('pr_curve.png'), names=()):
 
 @plt_settings()
 def plot_mc_curve(px, py, save_dir=Path('mc_curve.png'), names=(), xlabel='Confidence', ylabel='Metric'):
-    # Metric-confidence curve
+    """Plots a metric-confidence curve."""
     fig, ax = plt.subplots(1, 1, figsize=(9, 6), tight_layout=True)
 
     if 0 < len(names) < 21:  # display per-class legend if < 21 classes
@@ -614,23 +615,23 @@ class Metric(SimpleClass):
         return self.all_ap.mean() if len(self.all_ap) else 0.0
 
     def mean_results(self):
-        """Mean of results, return mp, mr, map50, map"""
+        """Mean of results, return mp, mr, map50, map."""
         return [self.mp, self.mr, self.map50, self.map]
 
     def class_result(self, i):
-        """class-aware result, return p[i], r[i], ap50[i], ap[i]"""
+        """class-aware result, return p[i], r[i], ap50[i], ap[i]."""
         return self.p[i], self.r[i], self.ap50[i], self.ap[i]
 
     @property
     def maps(self):
-        """mAP of each class"""
+        """mAP of each class."""
         maps = np.zeros(self.nc) + self.map
         for i, c in enumerate(self.ap_class_index):
             maps[c] = self.ap[i]
         return maps
 
     def fitness(self):
-        # Model fitness as a weighted combination of metrics
+        """Model fitness as a weighted combination of metrics."""
         w = [0.0, 0.0, 0.1, 0.9]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
         return (np.array(self.mean_results()) * w).sum()
 
@@ -800,7 +801,7 @@ class SegmentMetrics(SimpleClass):
 
     @property
     def ap_class_index(self):
-        # boxes and masks have the same ap_class_index
+        """Boxes and masks have the same ap_class_index."""
         return self.box.ap_class_index
 
     @property
@@ -926,7 +927,7 @@ class ClassifyMetrics(SimpleClass):
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
 
     def process(self, targets, pred):
-        # target classes and predicted classes
+        """Target classes and predicted classes."""
         pred, targets = torch.cat(pred), torch.cat(targets)
         correct = (targets[:, None] == pred).float()
         acc = torch.stack((correct[:, 0], correct.max(1).values), dim=1)  # (top1, top5) accuracy

@@ -262,12 +262,12 @@ class Results(SimpleClass):
         kpts = self.keypoints
         texts = []
         if probs is not None:
-            # classify
+            # Classify
             n5 = min(len(self.names), 5)
             top5i = probs.argsort(0, descending=True)[:n5].tolist()  # top 5 indices
             [texts.append(f'{probs[j]:.2f} {self.names[j]}') for j in top5i]
         elif boxes:
-            # detect/segment/pose
+            # Detect/segment/pose
             for j, d in enumerate(boxes):
                 c, conf, id = int(d.cls), float(d.conf), None if d.id is None else int(d.id.item())
                 line = (c, *d.xywhn.view(-1))
@@ -418,7 +418,7 @@ class Masks(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def segments(self):
-        # Segments-deprecated (normalized)
+        """Segments-deprecated (normalized)."""
         LOGGER.warning("WARNING ⚠️ 'Masks.segments' is deprecated. Use 'Masks.xyn' for segments (normalized) and "
                        "'Masks.xy' for segments (pixels) instead.")
         return self.xyn
@@ -426,7 +426,7 @@ class Masks(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def xyn(self):
-        # Segments (normalized)
+        """Segments (normalized)."""
         return [
             ops.scale_coords(self.data.shape[1:], x, self.orig_shape, normalize=True)
             for x in ops.masks2segments(self.data)]
@@ -434,7 +434,7 @@ class Masks(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def xy(self):
-        # Segments (pixels)
+        """Segments (pixels)."""
         return [
             ops.scale_coords(self.data.shape[1:], x, self.orig_shape, normalize=False)
             for x in ops.masks2segments(self.data)]

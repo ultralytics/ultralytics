@@ -83,8 +83,7 @@ class GMC:
             return np.eye(2, 3)
 
     def applyEcc(self, raw_frame, detections=None):
-
-        # Initialize
+        """Initialize."""
         height, width, _ = raw_frame.shape
         frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY)
         H = np.eye(2, 3, dtype=np.float32)
@@ -116,8 +115,7 @@ class GMC:
         return H
 
     def applyFeatures(self, raw_frame, detections=None):
-
-        # Initialize
+        """Initialize."""
         height, width, _ = raw_frame.shape
         frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY)
         H = np.eye(2, 3)
@@ -129,7 +127,7 @@ class GMC:
             width = width // self.downscale
             height = height // self.downscale
 
-        # find the keypoints
+        # Find the keypoints
         mask = np.zeros_like(frame)
         # mask[int(0.05 * height): int(0.95 * height), int(0.05 * width): int(0.95 * width)] = 255
         mask[int(0.02 * height):int(0.98 * height), int(0.02 * width):int(0.98 * width)] = 255
@@ -140,7 +138,7 @@ class GMC:
 
         keypoints = self.detector.detect(frame, mask)
 
-        # compute the descriptors
+        # Compute the descriptors
         keypoints, descriptors = self.extractor.compute(frame, keypoints)
 
         # Handle first frame
@@ -243,7 +241,7 @@ class GMC:
         return H
 
     def applySparseOptFlow(self, raw_frame, detections=None):
-        # Initialize
+        """Initialize."""
         # t0 = time.time()
         height, width, _ = raw_frame.shape
         frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY)
@@ -254,7 +252,7 @@ class GMC:
             # frame = cv2.GaussianBlur(frame, (3, 3), 1.5)
             frame = cv2.resize(frame, (width // self.downscale, height // self.downscale))
 
-        # find the keypoints
+        # Find the keypoints
         keypoints = cv2.goodFeaturesToTrack(frame, mask=None, **self.feature_params)
 
         # Handle first frame
@@ -268,10 +266,10 @@ class GMC:
 
             return H
 
-        # find correspondences
+        # Find correspondences
         matchedKeypoints, status, err = cv2.calcOpticalFlowPyrLK(self.prevFrame, frame, self.prevKeyPoints, None)
 
-        # leave good correspondences only
+        # Leave good correspondences only
         prevPoints = []
         currPoints = []
 

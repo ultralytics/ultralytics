@@ -59,6 +59,6 @@ def generate_ddp_command(world_size, trainer):
 
 
 def ddp_cleanup(trainer, file):
-    # delete temp file if created
+    """Delete temp file if created."""
     if f'{id(trainer)}.py' in file:  # if temp_file suffix in file
         os.remove(file)

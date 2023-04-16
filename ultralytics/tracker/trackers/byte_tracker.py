@@ -11,8 +11,7 @@ class STrack(BaseTrack):
     shared_kalman = KalmanFilterXYAH()
 
     def __init__(self, tlwh, score, cls):
-
-        # wait activate
+        """wait activate."""
         self._tlwh = np.asarray(self.tlbr_to_tlwh(tlwh[:-1]), dtype=np.float32)
         self.kalman_filter = None
         self.mean, self.covariance = None, None
@@ -62,7 +61,7 @@ class STrack(BaseTrack):
                 stracks[i].covariance = cov
 
     def activate(self, kalman_filter, frame_id):
-        """Start a new tracklet"""
+        """Start a new tracklet."""
         self.kalman_filter = kalman_filter
         self.track_id = self.next_id()
         self.mean, self.covariance = self.kalman_filter.initiate(self.convert_coords(self._tlwh))
@@ -179,7 +178,7 @@ class BYTETracker:
 
         scores = results.conf
         bboxes = results.xyxy
-        # add index
+        # Add index
         bboxes = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
         cls = results.cls
 
@@ -196,7 +195,7 @@ class BYTETracker:
         cls_second = cls[inds_second]
 
         detections = self.init_track(dets, scores_keep, cls_keep, img)
-        """ Add newly detected tracklets to tracked_stracks"""
+        # Add newly detected tracklets to tracked_stracks
         unconfirmed = []
         tracked_stracks = []  # type: list[STrack]
         for track in self.tracked_stracks:
@@ -204,7 +203,7 @@ class BYTETracker:
                 unconfirmed.append(track)
             else:
                 tracked_stracks.append(track)
-        """ Step 2: First association, with high score detection boxes"""
+        # Step 2: First association, with high score detection boxes
         strack_pool = self.joint_stracks(tracked_stracks, self.lost_stracks)
         # Predict the current location with KF
         self.multi_predict(strack_pool)
@@ -225,7 +224,7 @@ class BYTETracker:
             else:
                 track.re_activate(det, self.frame_id, new_id=False)
                 refind_stracks.append(track)
-        """ Step 3: Second association, with low score detection boxes"""
+        # Step 3: Second association, with low score detection boxes
         # association the untrack to the low score detections
         detections_second = self.init_track(dets_second, scores_second, cls_second, img)
         r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
@@ -247,7 +246,7 @@ class BYTETracker:
             if track.state != TrackState.Lost:
                 track.mark_lost()
                 lost_stracks.append(track)
-        """Deal with unconfirmed tracks, usually tracks with only one beginning frame"""
+        # Deal with unconfirmed tracks, usually tracks with only one beginning frame
         detections = [detections[i] for i in u_detection]
         dists = self.get_dists(unconfirmed, detections)
         matches, u_unconfirmed, u_detection = matching.linear_assignment(dists, thresh=0.7)
@@ -258,14 +257,14 @@ class BYTETracker:
             track = unconfirmed[it]
             track.mark_removed()
             removed_stracks.append(track)
-        """ Step 4: Init new stracks"""
+        # Step 4: Init new stracks
         for inew in u_detection:
             track = detections[inew]
             if track.score < self.args.new_track_thresh:
                 continue
             track.activate(self.kalman_filter, self.frame_id)
             activated_starcks.append(track)
-        """ Step 5: Update state"""
+        # Step 5: Update state
         for track in self.lost_stracks:
             if self.frame_id - track.end_frame > self.max_time_lost:
                 track.mark_removed()
@@ -320,7 +319,7 @@ class BYTETracker:
 
     @staticmethod
     def sub_stracks(tlista, tlistb):
-        """ DEPRECATED CODE in https://github.com/ultralytics/ultralytics/pull/1890/
+        """DEPRECATED CODE in https://github.com/ultralytics/ultralytics/pull/1890/
         stracks = {t.track_id: t for t in tlista}
         for t in tlistb:
             tid = t.track_id

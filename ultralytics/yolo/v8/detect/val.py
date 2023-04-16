@@ -165,7 +165,7 @@ class DetectionValidator(BaseValidator):
 
     def get_dataloader(self, dataset_path, batch_size):
         """TODO: manage splits differently."""
-        # calculate stride - check if model is initialized
+        # Calculate stride - check if model is initialized
         gs = max(int(de_parallel(self.model).stride if self.model else 0), 32)
         return create_dataloader(path=dataset_path,
                                  imgsz=self.args.imgsz,

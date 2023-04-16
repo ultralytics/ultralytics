@@ -85,7 +85,7 @@ def select_device(device='', batch=0, newline=False, verbose=True):
             s += f"{'' if i == 0 else space}CUDA:{d} ({p.name}, {p.total_memory / (1 << 20):.0f}MiB)\n"  # bytes to MB
         arg = 'cuda:0'
     elif mps and getattr(torch, 'has_mps', False) and torch.backends.mps.is_available() and TORCH_2_X:
-        # prefer MPS if available
+        # Prefer MPS if available
         s += 'MPS\n'
         arg = 'mps'
     else:  # revert to CPU
@@ -140,7 +140,7 @@ def fuse_deconv_and_bn(deconv, bn):
                                     groups=deconv.groups,
                                     bias=True).requires_grad_(False).to(deconv.weight.device)
 
-    # prepare filters
+    # Prepare filters
     w_deconv = deconv.weight.clone().view(deconv.out_channels, -1)
     w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
     fuseddconv.weight.copy_(torch.mm(w_bn, w_deconv).view(fuseddconv.weight.shape))

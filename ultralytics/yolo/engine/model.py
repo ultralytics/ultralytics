@@ -365,7 +365,7 @@ class YOLO:
             self.model = self.trainer.model
         self.trainer.hub_session = self.session  # attach optional HUB session
         self.trainer.train()
-        # update model and cfg after training
+        # Update model and cfg after training
         if RANK in (-1, 0):
             self.model, _ = attempt_load_one_weight(str(self.trainer.best))
             self.overrides = self.model.args

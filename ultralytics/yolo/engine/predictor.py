@@ -134,7 +134,7 @@ class BasePredictor:
             if not self.args.retina_masks:
                 plot_args['im_gpu'] = im[idx]
             self.plotted_img = result.plot(**plot_args)
-        # write
+        # Write
         if self.args.save_txt:
             result.save_txt(f'{self.txt_path}.txt', save_conf=self.args.save_conf)
         if self.args.save_crop:
@@ -288,7 +288,7 @@ class BasePredictor:
 
     def save_preds(self, vid_cap, idx, save_path):
         im0 = self.plotted_img
-        # save imgs
+        # Save imgs
         if self.dataset.mode == 'image':
             cv2.imwrite(save_path, im0)
         else:  # 'video' or 'stream'

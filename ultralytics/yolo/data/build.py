@@ -104,7 +104,7 @@ def build_dataloader(cfg, batch, img_path, data_info, stride=32, rect=False, ran
         generator=generator), dataset
 
 
-# build classification
+# Build classification
 # TODO: using cfg like `build_dataloader`
 def build_classification_dataloader(path,
                                     imgsz=224,

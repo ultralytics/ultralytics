@@ -70,7 +70,7 @@ class LoadStreams:
             self.threads[i].start()
         LOGGER.info('')  # newline
 
-        # check for common shapes
+        # Check for common shapes
         s = np.stack([LetterBox(imgsz, auto, stride=stride)(image=x).shape for x in self.imgs])
         self.rect = np.unique(s, axis=0).shape[0] == 1  # rect inference if all shapes equal
         self.auto = auto and self.rect
@@ -291,7 +291,7 @@ class LoadPilAndNumpy:
         self.auto = auto
         self.transforms = transforms
         self.mode = 'image'
-        # generate fake paths
+        # Generate fake paths
         self.bs = len(self.im0)
 
     @staticmethod

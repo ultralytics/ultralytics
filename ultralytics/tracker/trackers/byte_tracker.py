@@ -178,7 +178,7 @@ class BYTETracker:
 
         scores = results.conf
         bboxes = results.xyxy
-        # add index
+        # Add index
         bboxes = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
         cls = results.cls
 

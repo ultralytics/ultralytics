@@ -70,7 +70,7 @@ class BaseDataset(Dataset):
 
         self.ni = len(self.labels)
 
-        # rect stuff
+        # Rect stuff
         self.rect = rect
         self.batch_size = batch_size
         self.stride = stride
@@ -79,13 +79,13 @@ class BaseDataset(Dataset):
             assert self.batch_size is not None
             self.set_rectangle()
 
-        # cache stuff
+        # Cache stuff
         self.ims = [None] * self.ni
         self.npy_files = [Path(f).with_suffix('.npy') for f in self.im_files]
         if cache:
             self.cache_images(cache)
 
-        # transforms
+        # Transforms
         self.transforms = self.build_transforms(hyp=hyp)
 
     def get_img_files(self, img_path):
@@ -96,13 +96,13 @@ class BaseDataset(Dataset):
                 p = Path(p)  # os-agnostic
                 if p.is_dir():  # dir
                     f += glob.glob(str(p / '**' / '*.*'), recursive=True)
-                    # f = list(p.rglob('*.*'))  # pathlib
+                    # F = list(p.rglob('*.*'))  # pathlib
                 elif p.is_file():  # file
                     with open(p) as t:
                         t = t.read().strip().splitlines()
                         parent = str(p.parent) + os.sep
                         f += [x.replace('./', parent) if x.startswith('./') else x for x in t]  # local to global path
-                        # f += [p.parent / x.lstrip(os.sep) for x in t]  # local to global path (pathlib)
+                        # F += [p.parent / x.lstrip(os.sep) for x in t]  # local to global path (pathlib)
                 else:
                     raise FileNotFoundError(f'{self.prefix}{p} does not exist')
             im_files = sorted(x.replace('/', os.sep) for x in f if x.split('.')[-1].lower() in IMG_FORMATS)
@@ -218,10 +218,10 @@ class BaseDataset(Dataset):
         """Users can custom augmentations here
         like:
             if self.augment:
-                # training transforms
+                # Training transforms
                 return Compose([])
             else:
-                # val transforms
+                # Val transforms
                 return Compose([])
         """
         raise NotImplementedError

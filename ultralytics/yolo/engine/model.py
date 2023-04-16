@@ -35,6 +35,7 @@ class YOLO:
 
     Args:
         model (str, Path): Path to the model file to load or create.
+        task (Any, optional): Task type for the YOLO model. Defaults to None.
 
     Attributes:
         predictor (Any): The predictor object.
@@ -76,7 +77,6 @@ class YOLO:
         Args:
             model (Union[str, Path], optional): Path or name of the model to load or create. Defaults to 'yolov8n.pt'.
             task (Any, optional): Task type for the YOLO model. Defaults to None.
-
         """
         self.callbacks = callbacks.get_default_callbacks()
         self.predictor = None  # reuse predictor

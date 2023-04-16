@@ -524,7 +524,7 @@ class BaseTrainer:
             f.write(s + ('%23.5g,' * n % tuple([self.epoch] + vals)).rstrip(',') + '\n')
 
     def plot_metrics(self):
-        """Function to plot and display metrics visually."""
+        """Plot and display metrics visually."""
         pass
 
     def final_eval(self):

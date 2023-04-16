@@ -30,7 +30,7 @@ TORCH_2_X = check_version(torch.__version__, minimum='2.0')
 
 @contextmanager
 def torch_distributed_zero_first(local_rank: int):
-    # Decorator to make all processes in distributed training wait for each local_master to do something
+    """Decorator to make all processes in distributed training wait for each local_master to do something."""
     initialized = torch.distributed.is_available() and torch.distributed.is_initialized()
     if initialized and local_rank not in (-1, 0):
         dist.barrier(device_ids=[local_rank])
@@ -40,7 +40,8 @@ def torch_distributed_zero_first(local_rank: int):
 
 
 def smart_inference_mode():
-    # Applies torch.inference_mode() decorator if torch>=1.9.0 else torch.no_grad() decorator
+    """Applies torch.inference_mode() decorator if torch>=1.9.0 else torch.no_grad() decorator."""
+
     def decorate(fn):
         return (torch.inference_mode if TORCH_1_9 else torch.no_grad)()(fn)
 
@@ -48,7 +49,7 @@ def smart_inference_mode():
 
 
 def select_device(device='', batch=0, newline=False, verbose=True):
-    # device = None or 'cpu' or 0 or '0' or '0,1,2,3'
+    """Selects PyTorch Device. Options are device = None or 'cpu' or 0 or '0' or '0,1,2,3'."""
     s = f'Ultralytics YOLOv{__version__} 🚀 Python-{platform.python_version()} torch-{torch.__version__} '
     device = str(device).lower()
     for remove in 'cuda:', 'none', '(', ')', '[', ']', "'", ' ':
@@ -84,7 +85,7 @@ def select_device(device='', batch=0, newline=False, verbose=True):
             s += f"{'' if i == 0 else space}CUDA:{d} ({p.name}, {p.total_memory / (1 << 20):.0f}MiB)\n"  # bytes to MB
         arg = 'cuda:0'
     elif mps and getattr(torch, 'has_mps', False) and torch.backends.mps.is_available() and TORCH_2_X:
-        # prefer MPS if available
+        # Prefer MPS if available
         s += 'MPS\n'
         arg = 'mps'
     else:  # revert to CPU
@@ -97,14 +98,14 @@ def select_device(device='', batch=0, newline=False, verbose=True):
 
 
 def time_sync():
-    # PyTorch-accurate time
+    """PyTorch-accurate time."""
     if torch.cuda.is_available():
         torch.cuda.synchronize()
     return time.time()
 
 
 def fuse_conv_and_bn(conv, bn):
-    # Fuse Conv2d() and BatchNorm2d() layers https://tehnokv.com/posts/fusing-batchnorm-and-conv/
+    """Fuse Conv2d() and BatchNorm2d() layers https://tehnokv.com/posts/fusing-batchnorm-and-conv/."""
     fusedconv = nn.Conv2d(conv.in_channels,
                           conv.out_channels,
                           kernel_size=conv.kernel_size,
@@ -128,7 +129,7 @@ def fuse_conv_and_bn(conv, bn):
 
 
 def fuse_deconv_and_bn(deconv, bn):
-    # Fuse ConvTranspose2d() and BatchNorm2d() layers
+    """Fuse ConvTranspose2d() and BatchNorm2d() layers."""
     fuseddconv = nn.ConvTranspose2d(deconv.in_channels,
                                     deconv.out_channels,
                                     kernel_size=deconv.kernel_size,
@@ -139,7 +140,7 @@ def fuse_deconv_and_bn(deconv, bn):
                                     groups=deconv.groups,
                                     bias=True).requires_grad_(False).to(deconv.weight.device)
 
-    # prepare filters
+    # Prepare filters
     w_deconv = deconv.weight.clone().view(deconv.out_channels, -1)
     w_bn = torch.diag(bn.weight.div(torch.sqrt(bn.eps + bn.running_var)))
     fuseddconv.weight.copy_(torch.mm(w_bn, w_deconv).view(fuseddconv.weight.shape))
@@ -153,7 +154,7 @@ def fuse_deconv_and_bn(deconv, bn):
 
 
 def model_info(model, detailed=False, verbose=True, imgsz=640):
-    # Model information. imgsz may be int or list, i.e. imgsz=640 or imgsz=[640, 320]
+    """Model information. imgsz may be int or list, i.e. imgsz=640 or imgsz=[640, 320]."""
     if not verbose:
         return
     n_p = get_num_params(model)
@@ -174,17 +175,17 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
 
 
 def get_num_params(model):
-    # Return the total number of parameters in a YOLO model
+    """Return the total number of parameters in a YOLO model."""
     return sum(x.numel() for x in model.parameters())
 
 
 def get_num_gradients(model):
-    # Return the total number of parameters with gradients in a YOLO model
+    """Return the total number of parameters with gradients in a YOLO model."""
     return sum(x.numel() for x in model.parameters() if x.requires_grad)
 
 
 def get_flops(model, imgsz=640):
-    # Return a YOLO model's FLOPs
+    """Return a YOLO model's FLOPs."""
     try:
         model = de_parallel(model)
         p = next(model.parameters())
@@ -199,7 +200,7 @@ def get_flops(model, imgsz=640):
 
 
 def initialize_weights(model):
-    # Initialize model weights to random values
+    """Initialize model weights to random values."""
     for m in model.modules():
         t = type(m)
         if t is nn.Conv2d:
@@ -224,7 +225,7 @@ def scale_img(img, ratio=1.0, same_shape=False, gs=32):  # img(16,3,256,416)
 
 
 def make_divisible(x, divisor):
-    # Returns nearest x divisible by divisor
+    """Returns nearest x divisible by divisor."""
     if isinstance(divisor, torch.Tensor):
         divisor = int(divisor.max())  # to int
     return math.ceil(x / divisor) * divisor
@@ -240,7 +241,7 @@ def copy_attr(a, b, include=(), exclude=()):
 
 
 def get_latest_opset():
-    # Return second-most (for maturity) recently supported ONNX opset by this version of torch
+    """Return second-most (for maturity) recently supported ONNX opset by this version of torch."""
     return max(int(k[14:]) for k in vars(torch.onnx) if 'symbolic_opset' in k) - 1  # opset
 
 
@@ -250,22 +251,22 @@ def intersect_dicts(da, db, exclude=()):
 
 
 def is_parallel(model):
-    # Returns True if model is of type DP or DDP
+    """Returns True if model is of type DP or DDP."""
     return isinstance(model, (nn.parallel.DataParallel, nn.parallel.DistributedDataParallel))
 
 
 def de_parallel(model):
-    # De-parallelize a model: returns single-GPU model if model is of type DP or DDP
+    """De-parallelize a model: returns single-GPU model if model is of type DP or DDP."""
     return model.module if is_parallel(model) else model
 
 
 def one_cycle(y1=0.0, y2=1.0, steps=100):
-    # lambda function for sinusoidal ramp from y1 to y2 https://arxiv.org/pdf/1812.01187.pdf
+    """Returns a lambda function for sinusoidal ramp from y1 to y2 https://arxiv.org/pdf/1812.01187.pdf."""
     return lambda x: ((1 - math.cos(x * math.pi / steps)) / 2) * (y2 - y1) + y1
 
 
 def init_seeds(seed=0, deterministic=False):
-    # Initialize random number generator (RNG) seeds https://pytorch.org/docs/stable/notes/randomness.html
+    """Initialize random number generator (RNG) seeds https://pytorch.org/docs/stable/notes/randomness.html."""
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -280,14 +281,14 @@ def init_seeds(seed=0, deterministic=False):
 
 
 class ModelEMA:
-    """ Updated Exponential Moving Average (EMA) from https://github.com/rwightman/pytorch-image-models
+    """Updated Exponential Moving Average (EMA) from https://github.com/rwightman/pytorch-image-models
     Keeps a moving average of everything in the model state_dict (parameters and buffers)
     For EMA details see https://www.tensorflow.org/api_docs/python/tf/train/ExponentialMovingAverage
     To disable EMA set the `enabled` attribute to `False`.
     """
 
     def __init__(self, model, decay=0.9999, tau=2000, updates=0):
-        # Create EMA
+        """Create EMA."""
         self.ema = deepcopy(de_parallel(model)).eval()  # FP32 EMA
         self.updates = updates  # number of EMA updates
         self.decay = lambda x: decay * (1 - math.exp(-x / tau))  # decay exponential ramp (to help early epochs)
@@ -296,7 +297,7 @@ class ModelEMA:
         self.enabled = True
 
     def update(self, model):
-        # Update EMA parameters
+        """Update EMA parameters."""
         if self.enabled:
             self.updates += 1
             d = self.decay(self.updates)

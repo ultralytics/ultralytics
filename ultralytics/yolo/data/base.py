@@ -70,7 +70,7 @@ class BaseDataset(Dataset):
 
         self.ni = len(self.labels)
 
-        # rect stuff
+        # Rect stuff
         self.rect = rect
         self.batch_size = batch_size
         self.stride = stride
@@ -79,13 +79,13 @@ class BaseDataset(Dataset):
             assert self.batch_size is not None
             self.set_rectangle()
 
-        # cache stuff
+        # Cache stuff
         self.ims = [None] * self.ni
         self.npy_files = [Path(f).with_suffix('.npy') for f in self.im_files]
         if cache:
             self.cache_images(cache)
 
-        # transforms
+        # Transforms
         self.transforms = self.build_transforms(hyp=hyp)
 
     def get_img_files(self, img_path):
@@ -96,13 +96,13 @@ class BaseDataset(Dataset):
                 p = Path(p)  # os-agnostic
                 if p.is_dir():  # dir
                     f += glob.glob(str(p / '**' / '*.*'), recursive=True)
-                    # f = list(p.rglob('*.*'))  # pathlib
+                    # F = list(p.rglob('*.*'))  # pathlib
                 elif p.is_file():  # file
                     with open(p) as t:
                         t = t.read().strip().splitlines()
                         parent = str(p.parent) + os.sep
                         f += [x.replace('./', parent) if x.startswith('./') else x for x in t]  # local to global path
-                        # f += [p.parent / x.lstrip(os.sep) for x in t]  # local to global path (pathlib)
+                        # F += [p.parent / x.lstrip(os.sep) for x in t]  # local to global path (pathlib)
                 else:
                     raise FileNotFoundError(f'{self.prefix}{p} does not exist')
             im_files = sorted(x.replace('/', os.sep) for x in f if x.split('.')[-1].lower() in IMG_FORMATS)
@@ -113,7 +113,7 @@ class BaseDataset(Dataset):
         return im_files
 
     def update_labels(self, include_class: Optional[list]):
-        """include_class, filter labels to include only these classes (optional)"""
+        """include_class, filter labels to include only these classes (optional)."""
         include_class_array = np.array(include_class).reshape(1, -1)
         for i in range(len(self.labels)):
             if include_class is not None:
@@ -129,7 +129,7 @@ class BaseDataset(Dataset):
                 self.labels[i]['cls'][:, 0] = 0
 
     def load_image(self, i):
-        # Loads 1 image from dataset index 'i', returns (im, resized hw)
+        """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
         im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
         if im is None:  # not cached in RAM
             if fn.exists():  # load npy
@@ -147,7 +147,7 @@ class BaseDataset(Dataset):
         return self.ims[i], self.im_hw0[i], self.im_hw[i]  # im, hw_original, hw_resized
 
     def cache_images(self, cache):
-        # cache images to memory or disk
+        """Cache images to memory or disk."""
         gb = 0  # Gigabytes of cached images
         self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni
         fcn = self.cache_images_to_disk if cache == 'disk' else self.load_image
@@ -164,7 +164,7 @@ class BaseDataset(Dataset):
             pbar.close()
 
     def cache_images_to_disk(self, i):
-        # Saves an image as an *.npy file for faster loading
+        """Saves an image as an *.npy file for faster loading."""
         f = self.npy_files[i]
         if not f.exists():
             np.save(f.as_posix(), cv2.imread(self.im_files[i]))
@@ -211,17 +211,17 @@ class BaseDataset(Dataset):
         return len(self.labels)
 
     def update_labels_info(self, label):
-        """custom your label format here"""
+        """custom your label format here."""
         return label
 
     def build_transforms(self, hyp=None):
         """Users can custom augmentations here
         like:
             if self.augment:
-                # training transforms
+                # Training transforms
                 return Compose([])
             else:
-                # val transforms
+                # Val transforms
                 return Compose([])
         """
         raise NotImplementedError

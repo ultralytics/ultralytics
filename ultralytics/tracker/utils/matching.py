@@ -8,6 +8,7 @@ from .kalman_filter import chi2inv95
 
 try:
     import lap  # for linear_assignment
+
     assert lap.__version__  # verify package is not directory
 except (ImportError, AssertionError, AttributeError):
     from ultralytics.yolo.utils.checks import check_requirements
@@ -45,7 +46,7 @@ def _indices_to_matches(cost_matrix, indices, thresh):
 
 
 def linear_assignment(cost_matrix, thresh, use_lap=True):
-    # Linear assignment implementations with scipy and lap.lapjv
+    """Linear assignment implementations with scipy and lap.lapjv."""
     if cost_matrix.size == 0:
         return np.empty((0, 2), dtype=int), tuple(range(cost_matrix.shape[0])), tuple(range(cost_matrix.shape[1]))
 

@@ -149,20 +149,20 @@ class BaseValidator:
         for batch_i, batch in enumerate(bar):
             self.run_callbacks('on_val_batch_start')
             self.batch_i = batch_i
-            # preprocess
+            # Preprocess
             with dt[0]:
                 batch = self.preprocess(batch)
 
-            # inference
+            # Inference
             with dt[1]:
                 preds = model(batch['img'])
 
-            # loss
+            # Loss
             with dt[2]:
                 if self.training:
                     self.loss += trainer.criterion(preds, batch)[1]
 
-            # postprocess
+            # Postprocess
             with dt[3]:
                 preds = self.postprocess(preds)
 

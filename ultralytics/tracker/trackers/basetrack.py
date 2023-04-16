@@ -27,7 +27,7 @@ class BaseTrack:
     frame_id = 0
     time_since_update = 0
 
-    # multi-camera
+    # Multi-camera
     location = (np.inf, np.inf)
 
     @property

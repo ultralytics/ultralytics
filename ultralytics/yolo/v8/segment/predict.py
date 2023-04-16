@@ -10,7 +10,7 @@ from ultralytics.yolo.v8.detect.predict import DetectionPredictor
 class SegmentationPredictor(DetectionPredictor):
 
     def postprocess(self, preds, img, orig_imgs):
-        # TODO: filter by classes
+        """TODO: filter by classes."""
         p = ops.non_max_suppression(preds[0],
                                     self.args.conf,
                                     self.args.iou,

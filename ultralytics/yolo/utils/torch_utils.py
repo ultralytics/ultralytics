@@ -43,6 +43,7 @@ def smart_inference_mode():
     """Applies torch.inference_mode() decorator if torch>=1.9.0 else torch.no_grad() decorator."""
 
     def decorate(fn):
+        """Applies appropriate torch decorator for inference mode based on torch version."""
         return (torch.inference_mode if TORCH_1_9 else torch.no_grad)()(fn)
 
     return decorate
@@ -232,7 +233,7 @@ def make_divisible(x, divisor):
 
 
 def copy_attr(a, b, include=(), exclude=()):
-    # Copy attributes from 'b' to 'a', options to only include [...] and to exclude [...]
+    """Copies attributes from object 'b' to object 'a', with options to include/exclude certain attributes."""
     for k, v in b.__dict__.items():
         if (len(include) and k not in include) or k.startswith('_') or k in exclude:
             continue
@@ -246,7 +247,7 @@ def get_latest_opset():
 
 
 def intersect_dicts(da, db, exclude=()):
-    # Dictionary intersection of matching keys and shapes, omitting 'exclude' keys, using da values
+    """Returns a dictionary of intersecting keys with matching shapes, excluding 'exclude' keys, using da values."""
     return {k: v for k, v in da.items() if k in db and all(x not in k for x in exclude) and v.shape == db[k].shape}
 
 
@@ -310,7 +311,7 @@ class ModelEMA:
                     # assert v.dtype == msd[k].dtype == torch.float32, f'{k}: EMA {v.dtype},  model {msd[k].dtype}'
 
     def update_attr(self, model, include=(), exclude=('process_group', 'reducer')):
-        # Update EMA attributes
+        """Updates attributes and saves stripped model with optimizer removed."""
         if self.enabled:
             copy_attr(self.ema, model, include, exclude)
 

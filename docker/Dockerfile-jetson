@@ -34,7 +34,7 @@ ENV OMP_NUM_THREADS=1
 # Usage Examples -------------------------------------------------------------------------------------------------------
 
 # Build and Push
-# t=ultralytics/ultralytics:jetson && sudo docker build -f docker/Dockerfile -t $t . && sudo docker push $t
+# t=ultralytics/ultralytics:latest-jetson && sudo docker build --platform linux/arm64 -f docker/Dockerfile-jetson -t $t . && sudo docker push $t
 
 # Pull and Run
-# t=ultralytics/ultralytics:jetson && sudo docker pull $t && sudo docker run -it --ipc=host $t
+# t=ultralytics/ultralytics:jetson && sudo docker pull $t && sudo docker run -it --ipc=host --gpus all $t

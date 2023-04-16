@@ -19,43 +19,43 @@ from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
 
 class BaseTensor(SimpleClass):
     """
-
-    Attributes:
-        data (torch.Tensor): Base tensor.
-        orig_shape (tuple): Original image size, in the format (height, width).
-
-    Methods:
-        cpu(): Returns a copy of the tensor on CPU memory.
-        numpy(): Returns a copy of the tensor as a numpy array.
-        cuda(): Returns a copy of the tensor on GPU memory.
-        to(): Returns a copy of the tensor with the specified device and dtype.
+    Base tensor class with additional methods for easy manipulation and device handling.
     """
 
     def __init__(self, data, orig_shape) -> None:
+        """Initialize BaseTensor with data and original shape."""
         self.data = data
         self.orig_shape = orig_shape
 
     @property
     def shape(self):
+        """Return the shape of the data tensor."""
         return self.data.shape
 
     def cpu(self):
+        """Return a copy of the tensor on CPU memory."""
         return self.__class__(self.data.cpu(), self.orig_shape)
 
     def numpy(self):
+        """Return a copy of the tensor as a numpy array."""
         return self.__class__(self.data.numpy(), self.orig_shape)
 
     def cuda(self):
+        """Return a copy of the tensor on GPU memory."""
         return self.__class__(self.data.cuda(), self.orig_shape)
 
     def to(self, *args, **kwargs):
+        """Return a copy of the tensor with the specified device and dtype."""
         return self.__class__(self.data.to(*args, **kwargs), self.orig_shape)
 
     def __len__(self):  # override len(results)
+        """Return the length of the data tensor."""
         return len(self.data)
 
     def __getitem__(self, idx):
+        """Return a BaseTensor with the specified index of the data tensor."""
         return self.__class__(self.data[idx], self.orig_shape)
+
 
 
 class Results(SimpleClass):

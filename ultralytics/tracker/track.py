@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from functools import partial
 
@@ -37,6 +37,7 @@ def on_predict_start(predictor, persist=False):
 
 
 def on_predict_postprocess_end(predictor):
+    """Postprocess detected boxes and update with object tracking."""
     bs = predictor.dataset.bs
     im0s = predictor.batch[2]
     im0s = im0s if isinstance(im0s, list) else [im0s]

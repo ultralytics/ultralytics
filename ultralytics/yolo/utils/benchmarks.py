@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 """
 Benchmark a YOLO model formats for speed and accuracy
 
@@ -35,7 +35,30 @@ from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.torch_utils import select_device
 
 
-def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, half=False, device='cpu', hard_fail=False):
+def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
+              imgsz=160,
+              half=False,
+              int8=False,
+              device='cpu',
+              hard_fail=False):
+    """
+    Benchmark a YOLO model across different formats for speed and accuracy.
+
+    Args:
+        model (Union[str, Path], optional): Path to the model file or directory. Default is
+            Path(SETTINGS['weights_dir']) / 'yolov8n.pt'.
+        imgsz (int, optional): Image size for the benchmark. Default is 160.
+        half (bool, optional): Use half-precision for the model if True. Default is False.
+        int8 (bool, optional): Use int8-precision for the model if True. Default is False.
+        device (str, optional): Device to run the benchmark on, either 'cpu' or 'cuda'. Default is 'cpu'.
+        hard_fail (Union[bool, float], optional): If True or a float, assert benchmarks pass with given metric.
+            Default is False.
+
+    Returns:
+        df (pandas.DataFrame): A pandas DataFrame with benchmark results for each format, including file size,
+            metric, and inference time.
+    """
+
     import pandas as pd
     pd.options.display.max_columns = 10
     pd.options.display.width = 120
@@ -61,7 +84,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
                 filename = model.ckpt_path or model.cfg
                 export = model  # PyTorch format
             else:
-                filename = model.export(imgsz=imgsz, format=format, half=half, device=device)  # all others
+                filename = model.export(imgsz=imgsz, format=format, half=half, int8=int8, device=device)  # all others
                 export = YOLO(filename, task=model.task)
                 assert suffix in str(filename), 'export failed'
             emoji = '❎'  # indicates export succeeded
@@ -83,7 +106,14 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
             elif model.task == 'pose':
                 data, key = 'coco8-pose.yaml', 'metrics/mAP50-95(P)'
 
-            results = export.val(data=data, batch=1, imgsz=imgsz, plots=False, device=device, half=half, verbose=False)
+            results = export.val(data=data,
+                                 batch=1,
+                                 imgsz=imgsz,
+                                 plots=False,
+                                 device=device,
+                                 half=half,
+                                 int8=int8,
+                                 verbose=False)
             metric, speed = results.results_dict[key], results.speed['inference']
             y.append([name, '✅', round(file_size(filename), 1), round(metric, 4), round(speed, 2)])
         except Exception as e:

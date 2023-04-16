@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import collections
 from copy import deepcopy
@@ -7,24 +7,39 @@ from .augment import LetterBox
 
 
 class MixAndRectDataset:
-    """A wrapper of multiple images mixed dataset.
+    """
+    A dataset class that applies mosaic and mixup transformations as well as rectangular training.
 
-    Args:
-        dataset (:obj:`BaseDataset`): The dataset to be mixed.
-        transforms (Sequence[dict]): config dict to be composed.
+    Attributes:
+        dataset: The base dataset.
+        imgsz: The size of the images in the dataset.
     """
 
     def __init__(self, dataset):
+        """
+        Args:
+            dataset (BaseDataset): The base dataset to apply transformations to.
+        """
         self.dataset = dataset
         self.imgsz = dataset.imgsz
 
     def __len__(self):
+        """Returns the number of items in the dataset."""
         return len(self.dataset)
 
     def __getitem__(self, index):
+        """
+        Applies mosaic, mixup and rectangular training transformations to an item in the dataset.
+
+        Args:
+            index (int): Index of the item in the dataset.
+
+        Returns:
+            (dict): A dictionary containing the transformed item data.
+        """
         labels = deepcopy(self.dataset[index])
         for transform in self.dataset.transforms.tolist():
-            # mosaic and mixup
+            # Mosaic and mixup
             if hasattr(transform, 'get_indexes'):
                 indexes = transform.get_indexes(self.dataset)
                 if not isinstance(indexes, collections.abc.Sequence):

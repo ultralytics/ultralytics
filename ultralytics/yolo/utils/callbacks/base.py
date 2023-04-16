@@ -6,6 +6,7 @@ Base callbacks
 from collections import defaultdict
 from copy import deepcopy
 
+
 # Trainer callbacks ----------------------------------------------------------------------------------------------------
 
 
@@ -193,7 +194,8 @@ def add_integration_callbacks(instance):
     Add integration callbacks from various sources to the instance's callbacks.
 
     Args:
-        instance: An object with a 'callbacks' attribute that is a dictionary of callback lists.
+        instance (Trainer, Predictor, Validator, Exporter): An object with a 'callbacks' attribute that is a dictionary
+            of callback lists.
     """
     from .clearml import callbacks as clearml_callbacks
     from .comet import callbacks as comet_callbacks

@@ -49,7 +49,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt', imgsz=160, hal
             Default is False.
 
     Returns:
-        pd.DataFrame: A pandas DataFrame with benchmark results for each format, including file size,
+        df (pandas.DataFrame): A pandas DataFrame with benchmark results for each format, including file size,
             metric, and inference time.
     """
 

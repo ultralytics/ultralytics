@@ -157,10 +157,12 @@ class Exporter:
 
         # Load PyTorch model
         self.device = select_device('cpu' if self.args.device is None else self.args.device)
+        '''
         if self.args.half and onnx and self.device.type == 'cpu':
             LOGGER.warning('WARNING ⚠️ half=True only compatible with GPU export, i.e. use device=0')
             self.args.half = False
             assert not self.args.dynamic, 'half=True not compatible with dynamic=True, i.e. use only one.'
+        '''
 
         # Checks
         model.names = check_class_names(model.names)

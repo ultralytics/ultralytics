@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn as nn
+from sklearn.metrics import f1_score
 
 from ultralytics.yolo.utils import LOGGER, SimpleClass, TryExcept, plt_settings
 
@@ -957,6 +958,12 @@ class ClassifyMetrics(SimpleClass):
         correct = (targets[:, None] == pred).float()
         acc = torch.stack((correct[:, 0], correct.max(1).values), dim=1)  # (top1, top5) accuracy
         self.top1, self.top5 = acc.mean(0).tolist()
+        self.f1_score = self.get_weighted_f1(pred, targets)
+
+    def get_weighted_f1(self, preds, targets):
+        y_pred = preds[:, 0].cpu().numpy()
+        y_true = targets.cpu().numpy()
+        return f1_score(y_true, y_pred, average='weighted')
 
     @property
     def fitness(self):
@@ -966,9 +973,9 @@ class ClassifyMetrics(SimpleClass):
     @property
     def results_dict(self):
         """Returns a dictionary with model's performance metrics and fitness score."""
-        return dict(zip(self.keys + ['fitness'], [self.top1, self.top5, self.fitness]))
+        return dict(zip(self.keys + ['fitness'], [self.top1, self.top5,self.f1_score, self.fitness]))
 
     @property
     def keys(self):
         """Returns a list of keys for the results_dict property."""
-        return ['metrics/accuracy_top1', 'metrics/accuracy_top5']
+        return ['metrics/accuracy_top1', 'metrics/accuracy_top5', 'metrics/f1_score']

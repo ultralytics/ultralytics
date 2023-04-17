@@ -23,8 +23,7 @@ WORKDIR /usr/src/ultralytics
 RUN git clone https://github.com/ultralytics/ultralytics /usr/src/ultralytics
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt /usr/src/ultralytics/
 
-# Install pip packages manually to be compatible with tensorrt
-# https://github.com/NVIDIA/TensorRT/issues/2567
+# Install pip packages manually for TensorRT compatibility https://github.com/NVIDIA/TensorRT/issues/2567
 RUN python3 -m pip install --upgrade pip wheel
 RUN python3 -m pip install --no-cache tqdm matplotlib pyyaml psutil thop pandas onnx "numpy==1.23"
 RUN python3 -m pip install --no-cache -e . --no-deps

@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import re
 from pathlib import Path
@@ -23,7 +23,7 @@ setup(
     name='ultralytics',  # name of pypi package
     version=get_version(),  # version of pypi package
     python_requires='>=3.7',
-    license='GPL-3.0',
+    license='AGPL-3.0',
     description='Ultralytics YOLOv8',
     long_description=README,
     long_description_content_type='text/markdown',
@@ -39,8 +39,8 @@ setup(
     install_requires=REQUIREMENTS + PKG_REQUIREMENTS,
     extras_require={
         'dev': ['check-manifest', 'pytest', 'pytest-cov', 'coverage', 'mkdocs-material', 'mkdocstrings[python]'],
-        'export': ['coremltools>=6.0', 'onnx', 'onnxsim', 'onnxruntime', 'openvino-dev>=2022.3'],
-        'tf': ['onnx2tf', 'sng4onnx', 'tflite_support', 'tensorflow']},
+        'export': ['coremltools>=6.0', 'openvino-dev>=2022.3', 'tensorflowjs'],  # automatically installs tensorflow
+    },
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',

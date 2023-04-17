@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from pathlib import Path
 
@@ -217,7 +217,7 @@ def test_result():
     res[0].plot(conf=True, boxes=False, masks=True)
     res[0].plot(pil=True)
     res[0] = res[0].cpu().numpy()
-    print(res[0].path, res[0].masks.masks)
+    print(res[0].path, res[0].masks.data)
 
     model = YOLO('yolov8n.pt')
     res = model(SOURCE)

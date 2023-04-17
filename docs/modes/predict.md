@@ -202,7 +202,7 @@ operations are cached, meaning they're only calculated once per object, and thos
     results[0].probs  # cls prob, (num_class, )
     ```
 
-Class reference documentation for `Results` module and its components can be found [here](../reference/results.md)
+Class reference documentation for `Results` module and its components can be found [here](../reference/yolo/engine/results.md)
 
 ## Plotting results
 

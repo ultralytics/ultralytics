@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 """
 Model validation metrics
 """
@@ -16,17 +16,23 @@ from ultralytics.yolo.utils import LOGGER, SimpleClass, TryExcept, plt_settings
 OKS_SIGMA = np.array([.26, .25, .25, .35, .35, .79, .79, .72, .72, .62, .62, 1.07, 1.07, .87, .87, .89, .89]) / 10.0
 
 
-# boxes
+# Boxes
 def box_area(box):
-    # box = xyxy(4,n)
+    """Return box area, where box shape is xyxy(4,n)."""
     return (box[2] - box[0]) * (box[3] - box[1])
 
 
 def bbox_ioa(box1, box2, eps=1e-7):
-    """Returns the intersection over box2 area given box1, box2. Boxes are x1y1x2y2
-    box1:       np.array of shape(nx4)
-    box2:       np.array of shape(mx4)
-    returns:    np.array of shape(nxm)
+    """
+    Calculate the intersection over box2 area given box1 and box2. Boxes are in x1y1x2y2 format.
+
+    Args:
+        box1 (np.array): A numpy array of shape (n, 4) representing n bounding boxes.
+        box2 (np.array): A numpy array of shape (m, 4) representing m bounding boxes.
+        eps (float, optional): A small value to avoid division by zero. Defaults to 1e-7.
+
+    Returns:
+        (np.array): A numpy array of shape (n, m) representing the intersection over box2 area.
     """
 
     # Get the coordinates of bounding boxes
@@ -46,17 +52,17 @@ def bbox_ioa(box1, box2, eps=1e-7):
 
 def box_iou(box1, box2, eps=1e-7):
     """
-    Return intersection-over-union (Jaccard index) of boxes.
+    Calculate intersection-over-union (IoU) of boxes.
     Both sets of boxes are expected to be in (x1, y1, x2, y2) format.
     Based on https://github.com/pytorch/vision/blob/master/torchvision/ops/boxes.py
 
-    Arguments:
-        box1 (Tensor[N, 4])
-        box2 (Tensor[M, 4])
-        eps
+    Args:
+        box1 (torch.Tensor): A tensor of shape (N, 4) representing N bounding boxes.
+        box2 (torch.Tensor): A tensor of shape (M, 4) representing M bounding boxes.
+        eps (float, optional): A small value to avoid division by zero. Defaults to 1e-7.
 
     Returns:
-        iou (Tensor[N, M]): the NxM matrix containing the pairwise IoU values for every element in boxes1 and boxes2
+        (torch.Tensor): An NxM tensor containing the pairwise IoU values for every element in box1 and box2.
     """
 
     # inter(N,M) = (rb(N,M,2) - lt(N,M,2)).clamp(0).prod(2)
@@ -68,7 +74,22 @@ def box_iou(box1, box2, eps=1e-7):
 
 
 def bbox_iou(box1, box2, xywh=True, GIoU=False, DIoU=False, CIoU=False, eps=1e-7):
-    # Returns Intersection over Union (IoU) of box1(1,4) to box2(n,4)
+    """
+    Calculate Intersection over Union (IoU) of box1(1, 4) to box2(n, 4).
+
+    Args:
+        box1 (torch.Tensor): A tensor representing a single bounding box with shape (1, 4).
+        box2 (torch.Tensor): A tensor representing n bounding boxes with shape (n, 4).
+        xywh (bool, optional): If True, input boxes are in (x, y, w, h) format. If False, input boxes are in
+                               (x1, y1, x2, y2) format. Defaults to True.
+        GIoU (bool, optional): If True, calculate Generalized IoU. Defaults to False.
+        DIoU (bool, optional): If True, calculate Distance IoU. Defaults to False.
+        CIoU (bool, optional): If True, calculate Complete IoU. Defaults to False.
+        eps (float, optional): A small value to avoid division by zero. Defaults to 1e-7.
+
+    Returns:
+        (torch.Tensor): IoU, GIoU, DIoU, or CIoU values depending on the specified flags.
+    """
 
     # Get the coordinates of bounding boxes
     if xywh:  # transform from xywh to xyxy
@@ -110,10 +131,17 @@ def bbox_iou(box1, box2, xywh=True, GIoU=False, DIoU=False, CIoU=False, eps=1e-7
 
 def mask_iou(mask1, mask2, eps=1e-7):
     """
-    mask1: [N, n] m1 means number of gt objects
-    mask2: [M, n] m2 means number of predicted objects
-    Note: n means image_w x image_h
-    Returns: masks iou, [N, M]
+    Calculate masks IoU.
+
+    Args:
+        mask1 (torch.Tensor): A tensor of shape (N, n) where N is the number of ground truth objects and n is the
+                        product of image width and height.
+        mask2 (torch.Tensor): A tensor of shape (M, n) where M is the number of predicted objects and n is the
+                        product of image width and height.
+        eps (float, optional): A small value to avoid division by zero. Defaults to 1e-7.
+
+    Returns:
+        (torch.Tensor): A tensor of shape (N, M) representing masks IoU.
     """
     intersection = torch.matmul(mask1, mask2.t()).clamp(0)
     union = (mask1.sum(1)[:, None] + mask2.sum(1)[None]) - intersection  # (area1 + area2) - intersection
@@ -121,10 +149,18 @@ def mask_iou(mask1, mask2, eps=1e-7):
 
 
 def kpt_iou(kpt1, kpt2, area, sigma, eps=1e-7):
-    """OKS
-    kpt1: [N, 17, 3], gt
-    kpt2: [M, 17, 3], pred
-    area: [N], areas from gt
+    """
+    Calculate Object Keypoint Similarity (OKS).
+
+    Args:
+        kpt1 (torch.Tensor): A tensor of shape (N, 17, 3) representing ground truth keypoints.
+        kpt2 (torch.Tensor): A tensor of shape (M, 17, 3) representing predicted keypoints.
+        area (torch.Tensor): A tensor of shape (N,) representing areas from ground truth.
+        sigma (list): A list containing 17 values representing keypoint scales.
+        eps (float, optional): A small value to avoid division by zero. Defaults to 1e-7.
+
+    Returns:
+        (torch.Tensor): A tensor of shape (N, M) representing keypoint similarities.
     """
     d = (kpt1[:, None, :, 0] - kpt2[..., 0]) ** 2 + (kpt1[:, None, :, 1] - kpt2[..., 1]) ** 2  # (N, M, 17)
     sigma = torch.tensor(sigma, device=kpt1.device, dtype=kpt1.dtype)  # (17, )
@@ -139,10 +175,12 @@ def smooth_BCE(eps=0.1):  # https://github.com/ultralytics/yolov3/issues/238#iss
     return 1.0 - 0.5 * eps, 0.5 * eps
 
 
-# losses
+# Losses
 class FocalLoss(nn.Module):
-    # Wraps focal loss around existing loss_fcn(), i.e. criteria = FocalLoss(nn.BCEWithLogitsLoss(), gamma=1.5)
+    """Wraps focal loss around existing loss_fcn(), i.e. criteria = FocalLoss(nn.BCEWithLogitsLoss(), gamma=1.5)."""
+
     def __init__(self, loss_fcn, gamma=1.5, alpha=0.25):
+        """Initialize FocalLoss object with given loss function and hyperparameters."""
         super().__init__()
         self.loss_fcn = loss_fcn  # must be nn.BCEWithLogitsLoss()
         self.gamma = gamma
@@ -151,6 +189,7 @@ class FocalLoss(nn.Module):
         self.loss_fcn.reduction = 'none'  # required to apply FL to each element
 
     def forward(self, pred, true):
+        """Calculates and updates confusion matrix for object detection/classification tasks."""
         loss = self.loss_fcn(pred, true)
         # p_t = torch.exp(-loss)
         # loss *= self.alpha * (1.000001 - p_t) ** self.gamma  # non-zero power for gradient stability
@@ -171,8 +210,19 @@ class FocalLoss(nn.Module):
 
 
 class ConfusionMatrix:
-    # Updated version of https://github.com/kaanakan/object_detection_confusion_matrix
+    """
+    A class for calculating and updating a confusion matrix for object detection and classification tasks.
+
+    Attributes:
+        task (str): The type of task, either 'detect' or 'classify'.
+        matrix (np.array): The confusion matrix, with dimensions depending on the task.
+        nc (int): The number of classes.
+        conf (float): The confidence threshold for detections.
+        iou_thres (float): The Intersection over Union threshold.
+    """
+
     def __init__(self, nc, conf=0.25, iou_thres=0.45, task='detect'):
+        """Initialize attributes for the YOLO model."""
         self.task = task
         self.matrix = np.zeros((nc + 1, nc + 1)) if self.task == 'detect' else np.zeros((nc, nc))
         self.nc = nc  # number of classes
@@ -183,12 +233,9 @@ class ConfusionMatrix:
         """
         Update confusion matrix for classification task
 
-        Arguments:
-            preds (Array[N, min(nc,5)])
-            targets (Array[N, 1])
-
-        Returns:
-            None, updates confusion matrix accordingly
+        Args:
+            preds (Array[N, min(nc,5)]): Predicted class labels.
+            targets (Array[N, 1]): Ground truth class labels.
         """
         preds, targets = torch.cat(preds)[:, 0], torch.cat(targets)
         for p, t in zip(preds.cpu().numpy(), targets.cpu().numpy()):
@@ -196,15 +243,13 @@ class ConfusionMatrix:
 
     def process_batch(self, detections, labels):
         """
-        Return intersection-over-union (Jaccard index) of boxes.
-        Both sets of boxes are expected to be in (x1, y1, x2, y2) format.
+        Update confusion matrix for object detection task.
 
-        Arguments:
-            detections (Array[N, 6]), x1, y1, x2, y2, conf, class
-            labels (Array[M, 5]), class, x1, y1, x2, y2
-
-        Returns:
-            None, updates confusion matrix accordingly
+        Args:
+            detections (Array[N, 6]): Detected bounding boxes and their associated information.
+                                      Each row should contain (x1, y1, x2, y2, conf, class).
+            labels (Array[M, 5]): Ground truth bounding boxes and their associated class labels.
+                                  Each row should contain (class, x1, y1, x2, y2).
         """
         if detections is None:
             gt_classes = labels.int()
@@ -243,9 +288,11 @@ class ConfusionMatrix:
                     self.matrix[dc, self.nc] += 1  # predicted background
 
     def matrix(self):
+        """Returns the confusion matrix."""
         return self.matrix
 
     def tp_fp(self):
+        """Returns true positives and false positives."""
         tp = self.matrix.diagonal()  # true positives
         fp = self.matrix.sum(1) - tp  # false positives
         # fn = self.matrix.sum(0) - tp  # false negatives (missed detections)
@@ -254,6 +301,14 @@ class ConfusionMatrix:
     @TryExcept('WARNING ⚠️ ConfusionMatrix plot failure')
     @plt_settings()
     def plot(self, normalize=True, save_dir='', names=()):
+        """
+        Plot the confusion matrix using seaborn and save it to a file.
+
+        Args:
+            normalize (bool): Whether to normalize the confusion matrix.
+            save_dir (str): Directory where the plot will be saved.
+            names (tuple): Names of classes, used as labels on the plot.
+        """
         import seaborn as sn
 
         array = self.matrix / ((self.matrix.sum(0).reshape(1, -1) + 1E-9) if normalize else 1)  # normalize columns
@@ -284,12 +339,15 @@ class ConfusionMatrix:
         plt.close(fig)
 
     def print(self):
+        """
+        Print the confusion matrix to the console.
+        """
         for i in range(self.nc + 1):
             LOGGER.info(' '.join(map(str, self.matrix[i])))
 
 
 def smooth(y, f=0.05):
-    # Box filter of fraction f
+    """Box filter of fraction f."""
     nf = round(len(y) * f * 2) // 2 + 1  # number of filter elements (must be odd)
     p = np.ones(nf // 2)  # ones padding
     yp = np.concatenate((p * y[0], y, p * y[-1]), 0)  # y padded
@@ -298,7 +356,7 @@ def smooth(y, f=0.05):
 
 @plt_settings()
 def plot_pr_curve(px, py, ap, save_dir=Path('pr_curve.png'), names=()):
-    # Precision-recall curve
+    """Plots a precision-recall curve."""
     fig, ax = plt.subplots(1, 1, figsize=(9, 6), tight_layout=True)
     py = np.stack(py, axis=1)
 
@@ -321,7 +379,7 @@ def plot_pr_curve(px, py, ap, save_dir=Path('pr_curve.png'), names=()):
 
 @plt_settings()
 def plot_mc_curve(px, py, save_dir=Path('mc_curve.png'), names=(), xlabel='Confidence', ylabel='Metric'):
-    # Metric-confidence curve
+    """Plots a metric-confidence curve."""
     fig, ax = plt.subplots(1, 1, figsize=(9, 6), tight_layout=True)
 
     if 0 < len(names) < 21:  # display per-class legend if < 21 classes
@@ -343,12 +401,17 @@ def plot_mc_curve(px, py, save_dir=Path('mc_curve.png'), names=(), xlabel='Confi
 
 
 def compute_ap(recall, precision):
-    """ Compute the average precision, given the recall and precision curves
+    """
+    Compute the average precision (AP) given the recall and precision curves.
+
     Arguments:
-        recall:    The recall curve (list)
-        precision: The precision curve (list)
+        recall (list): The recall curve.
+        precision (list): The precision curve.
+
     Returns:
-        Average precision, precision curve, recall curve
+        (float): Average precision.
+        (np.ndarray): Precision envelope curve.
+        (np.ndarray): Modified recall curve with sentinel values added at the beginning and end.
     """
 
     # Append sentinel values to beginning and end
@@ -488,85 +551,99 @@ class Metric(SimpleClass):
 
     @property
     def ap50(self):
-        """AP@0.5 of all classes.
+        """
+        Returns the Average Precision (AP) at an IoU threshold of 0.5 for all classes.
+
         Returns:
-            (nc, ) or [].
+            (np.ndarray, list): Array of shape (nc,) with AP50 values per class, or an empty list if not available.
         """
         return self.all_ap[:, 0] if len(self.all_ap) else []
 
     @property
     def ap(self):
-        """AP@0.5:0.95
+        """
+        Returns the Average Precision (AP) at an IoU threshold of 0.5-0.95 for all classes.
+
         Returns:
-            (nc, ) or [].
+            (np.ndarray, list): Array of shape (nc,) with AP50-95 values per class, or an empty list if not available.
         """
         return self.all_ap.mean(1) if len(self.all_ap) else []
 
     @property
     def mp(self):
-        """mean precision of all classes.
+        """
+        Returns the Mean Precision of all classes.
+
         Returns:
-            float.
+            (float): The mean precision of all classes.
         """
         return self.p.mean() if len(self.p) else 0.0
 
     @property
     def mr(self):
-        """mean recall of all classes.
+        """
+        Returns the Mean Recall of all classes.
+
         Returns:
-            float.
+            (float): The mean recall of all classes.
         """
         return self.r.mean() if len(self.r) else 0.0
 
     @property
     def map50(self):
-        """Mean AP@0.5 of all classes.
+        """
+        Returns the mean Average Precision (mAP) at an IoU threshold of 0.5.
+
         Returns:
-            float.
+            (float): The mAP50 at an IoU threshold of 0.5.
         """
         return self.all_ap[:, 0].mean() if len(self.all_ap) else 0.0
 
     @property
     def map75(self):
-        """Mean AP@0.75 of all classes.
+        """
+        Returns the mean Average Precision (mAP) at an IoU threshold of 0.75.
+
         Returns:
-            float.
+            (float): The mAP50 at an IoU threshold of 0.75.
         """
         return self.all_ap[:, 5].mean() if len(self.all_ap) else 0.0
 
     @property
     def map(self):
-        """Mean AP@0.5:0.95 of all classes.
+        """
+        Returns the mean Average Precision (mAP) over IoU thresholds of 0.5 - 0.95 in steps of 0.05.
+
         Returns:
-            float.
+            (float): The mAP over IoU thresholds of 0.5 - 0.95 in steps of 0.05.
         """
         return self.all_ap.mean() if len(self.all_ap) else 0.0
 
     def mean_results(self):
-        """Mean of results, return mp, mr, map50, map"""
+        """Mean of results, return mp, mr, map50, map."""
         return [self.mp, self.mr, self.map50, self.map]
 
     def class_result(self, i):
-        """class-aware result, return p[i], r[i], ap50[i], ap[i]"""
+        """class-aware result, return p[i], r[i], ap50[i], ap[i]."""
         return self.p[i], self.r[i], self.ap50[i], self.ap[i]
 
     @property
     def maps(self):
-        """mAP of each class"""
+        """mAP of each class."""
         maps = np.zeros(self.nc) + self.map
         for i, c in enumerate(self.ap_class_index):
             maps[c] = self.ap[i]
         return maps
 
     def fitness(self):
-        # Model fitness as a weighted combination of metrics
+        """Model fitness as a weighted combination of metrics."""
         w = [0.0, 0.0, 0.1, 0.9]  # weights for [P, R, mAP@0.5, mAP@0.5:0.95]
         return (np.array(self.mean_results()) * w).sum()
 
     def update(self, results):
         """
         Args:
-            results: tuple(p, r, ap, f1, ap_class)
+            results (tuple): A tuple of (p, r, ap, f1, ap_class)
         """
         self.p, self.r, self.f1, self.all_ap, self.ap_class_index = results
 
@@ -607,6 +684,7 @@ class DetMetrics(SimpleClass):
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
 
     def process(self, tp, conf, pred_cls, target_cls):
+        """Process predicted results for object detection and update metrics."""
         results = ap_per_class(tp, conf, pred_cls, target_cls, plot=self.plot, save_dir=self.save_dir,
                                names=self.names)[2:]
         self.box.nc = len(self.names)
@@ -614,28 +692,35 @@ class DetMetrics(SimpleClass):
 
     @property
     def keys(self):
+        """Returns a list of keys for accessing specific metrics."""
         return ['metrics/precision(B)', 'metrics/recall(B)', 'metrics/mAP50(B)', 'metrics/mAP50-95(B)']
 
     def mean_results(self):
+        """Calculate mean of detected objects & return precision, recall, mAP50, and mAP50-95."""
         return self.box.mean_results()
 
     def class_result(self, i):
+        """Return the result of evaluating the performance of an object detection model on a specific class."""
         return self.box.class_result(i)
 
     @property
     def maps(self):
+        """Returns mean Average Precision (mAP) scores per class."""
         return self.box.maps
 
     @property
     def fitness(self):
+        """Returns the fitness of box object."""
         return self.box.fitness()
 
     @property
     def ap_class_index(self):
+        """Returns the average precision index per class."""
         return self.box.ap_class_index
 
     @property
     def results_dict(self):
+        """Returns dictionary of computed performance metrics and statistics."""
         return dict(zip(self.keys + ['fitness'], self.mean_results() + [self.fitness]))
 
 
@@ -709,31 +794,37 @@ class SegmentMetrics(SimpleClass):
 
     @property
     def keys(self):
+        """Returns a list of keys for accessing metrics."""
         return [
             'metrics/precision(B)', 'metrics/recall(B)', 'metrics/mAP50(B)', 'metrics/mAP50-95(B)',
             'metrics/precision(M)', 'metrics/recall(M)', 'metrics/mAP50(M)', 'metrics/mAP50-95(M)']
 
     def mean_results(self):
+        """Return the mean metrics for bounding box and segmentation results."""
         return self.box.mean_results() + self.seg.mean_results()
 
     def class_result(self, i):
+        """Returns classification results for a specified class index."""
         return self.box.class_result(i) + self.seg.class_result(i)
 
     @property
     def maps(self):
+        """Returns mAP scores for object detection and semantic segmentation models."""
         return self.box.maps + self.seg.maps
 
     @property
     def fitness(self):
+        """Get the fitness score for both segmentation and bounding box models."""
         return self.seg.fitness() + self.box.fitness()
 
     @property
     def ap_class_index(self):
-        # boxes and masks have the same ap_class_index
+        """Boxes and masks have the same ap_class_index."""
         return self.box.ap_class_index
 
     @property
     def results_dict(self):
+        """Returns results of object detection model for evaluation."""
         return dict(zip(self.keys + ['fitness'], self.mean_results() + [self.fitness]))
 
 
@@ -774,6 +865,7 @@ class PoseMetrics(SegmentMetrics):
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
 
     def __getattr__(self, attr):
+        """Raises an AttributeError if an invalid attribute is accessed."""
         name = self.__class__.__name__
         raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
@@ -812,22 +904,27 @@ class PoseMetrics(SegmentMetrics):
 
     @property
     def keys(self):
+        """Returns list of evaluation metric keys."""
         return [
             'metrics/precision(B)', 'metrics/recall(B)', 'metrics/mAP50(B)', 'metrics/mAP50-95(B)',
             'metrics/precision(P)', 'metrics/recall(P)', 'metrics/mAP50(P)', 'metrics/mAP50-95(P)']
 
     def mean_results(self):
+        """Return the mean results of box and pose."""
         return self.box.mean_results() + self.pose.mean_results()
 
     def class_result(self, i):
+        """Return the class-wise detection results for a specific class i."""
         return self.box.class_result(i) + self.pose.class_result(i)
 
     @property
     def maps(self):
+        """Returns the mean average precision (mAP) per class for both box and pose detections."""
         return self.box.maps + self.pose.maps
 
     @property
     def fitness(self):
+        """Computes classification metrics and speed using the `targets` and `pred` inputs."""
         return self.pose.fitness() + self.box.fitness()
 
 
@@ -855,7 +952,7 @@ class ClassifyMetrics(SimpleClass):
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
 
     def process(self, targets, pred):
-        # target classes and predicted classes
+        """Target classes and predicted classes."""
         pred, targets = torch.cat(pred), torch.cat(targets)
         correct = (targets[:, None] == pred).float()
         acc = torch.stack((correct[:, 0], correct.max(1).values), dim=1)  # (top1, top5) accuracy
@@ -863,12 +960,15 @@ class ClassifyMetrics(SimpleClass):
 
     @property
     def fitness(self):
+        """Returns top-5 accuracy as fitness score."""
         return self.top5
 
     @property
     def results_dict(self):
+        """Returns a dictionary with model's performance metrics and fitness score."""
         return dict(zip(self.keys + ['fitness'], [self.top1, self.top5, self.fitness]))
 
     @property
     def keys(self):
+        """Returns a list of keys for the results_dict property."""
         return ['metrics/accuracy_top1', 'metrics/accuracy_top5']

@@ -316,9 +316,14 @@ class YOLO:
         overrides = self.model.args.copy()
         overrides.update(kwargs)
         overrides['mode'] = 'benchmark'
-        data = overrides.get("data", None) # do this before merging
+        data = overrides.get('data', None)  # do this before merging
         overrides = {**DEFAULT_CFG_DICT, **overrides}  # fill in missing overrides keys with defaults
-        return benchmark(model=self, imgsz=overrides['imgsz'], half=overrides['half'], device=overrides['device'], int8=overrides['int8'], data=data)
+        return benchmark(model=self,
+                         imgsz=overrides['imgsz'],
+                         half=overrides['half'],
+                         device=overrides['device'],
+                         int8=overrides['int8'],
+                         data=data)
 
     def export(self, **kwargs):
         """

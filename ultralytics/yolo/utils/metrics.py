@@ -973,7 +973,7 @@ class ClassifyMetrics(SimpleClass):
     @property
     def results_dict(self):
         """Returns a dictionary with model's performance metrics and fitness score."""
-        return dict(zip(self.keys + ['fitness'], [self.top1, self.top5,self.f1_score, self.fitness]))
+        return dict(zip(self.keys + ['fitness'], [self.top1, self.top5, self.f1_score, self.fitness]))
 
     @property
     def keys(self):

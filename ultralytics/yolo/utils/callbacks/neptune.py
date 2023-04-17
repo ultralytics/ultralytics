@@ -1,6 +1,8 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 from ultralytics.yolo.utils import LOGGER, TESTS_RUNNING
 from ultralytics.yolo.utils.torch_utils import get_flops, get_num_params
+import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
 
 try:
     import neptune
@@ -22,14 +24,27 @@ def _log_scalars(scalars):
 def _log_images(imgs_dict, group=""):
     if run:
         for k, v in imgs_dict.items():
-            run[f"{group}/{k}"].append(File(v))
+            run[f"{group}/{k}"].upload(File(v))
+
+def _log_plot(title, plot_path):
+    """
+        Log image as plot in the plot section of ClearML
+
+        arguments:
+        title (str) Title of the plot
+        plot_path (PosixPath or str) Path to the saved image file
+        """
+    img = mpimg.imread(plot_path)
+    fig = plt.figure()
+    ax = fig.add_axes([0, 0, 1, 1], frameon=False, aspect='auto', xticks=[], yticks=[])  # no ticks
+    ax.imshow(img)
+    run["Plots/"+title].upload(fig)
 
 
 def on_pretrain_routine_start(trainer):
     try:
         global run
-        project = 'YOLOv8' if trainer.args.project is None else trainer.args.project
-        run = neptune.init_run(project=project,
+        run = neptune.init_run(project=trainer.args.project or 'YOLOv8',
                                name=trainer.args.name,
                                tags=['YOLOv8'])
         run["Configuration/Hyperparameters"] = {k: "" if v is None else v for k, v in vars(trainer.args).items()}
@@ -39,9 +54,9 @@ def on_pretrain_routine_start(trainer):
 
 def on_train_epoch_end(trainer):
     _log_scalars(trainer.label_loss_items(trainer.tloss, prefix='train'))
+    _log_scalars(trainer.lr)
     if trainer.epoch == 1:
         _log_images({f.stem: str(f) for f in trainer.save_dir.glob('train_batch*.jpg')}, 'Mosaic')
-
 
 def on_fit_epoch_end(trainer):
     if run and trainer.epoch == 0:
@@ -51,16 +66,28 @@ def on_fit_epoch_end(trainer):
             'speed(ms)': round(trainer.validator.speed['inference'], 3)}
         run['Configuration/Model'] = model_info
     _log_scalars(trainer.metrics)
+    
+def on_val_end(validator):
+    if run:
+        # Log val_labels and val_pred
+        _log_images({f.stem: str(f) for f in validator.save_dir.glob('val*.jpg')}, 'Validation')
 
 
 def on_train_end(trainer):
     if run:
+        # Log final results, CM matrix + PR plots
+        files = ['results.png', 'confusion_matrix.png', *(f'{x}_curve.png' for x in ('F1', 'PR', 'P', 'R'))]
+        files = [(trainer.save_dir / f) for f in files if (trainer.save_dir / f).exists()]  # filter
+        for f in files:
+            _log_plot(title=f.stem, plot_path=f)
+        # Log the final model
         run[f"weights/{trainer.args.name or trainer.args.task}/{str(trainer.best.name)}"].upload(File(str(trainer.best)))
-        run.stop()
+        run.stop()  
 
 
 callbacks = {
     "on_pretrain_routine_start": on_pretrain_routine_start,
     "on_train_epoch_end": on_train_epoch_end,
     "on_fit_epoch_end": on_fit_epoch_end,
+    'on_val_end': on_val_end,
     "on_train_end": on_train_end} if neptune else {}

@@ -170,6 +170,7 @@ class BaseDataset(Dataset):
             np.save(f.as_posix(), cv2.imread(self.im_files[i]))
 
     def set_rectangle(self):
+        """Sets the shape of bounding boxes for YOLO detections as rectangles."""
         bi = np.floor(np.arange(self.ni) / self.batch_size).astype(int)  # batch index
         nb = bi[-1] + 1  # number of batches
 
@@ -194,9 +195,11 @@ class BaseDataset(Dataset):
         self.batch = bi  # batch index of image
 
     def __getitem__(self, index):
+        """Returns transformed label information for given index."""
         return self.transforms(self.get_label_info(index))
 
     def get_label_info(self, index):
+        """Get and return label information from the dataset."""
         label = deepcopy(self.labels[index])  # requires deepcopy() https://github.com/ultralytics/ultralytics/pull/1948
         label.pop('shape', None)  # shape is for rect, remove it
         label['img'], label['ori_shape'], label['resized_shape'] = self.load_image(index)
@@ -208,6 +211,7 @@ class BaseDataset(Dataset):
         return label
 
     def __len__(self):
+        """Returns the length of the labels list for the dataset."""
         return len(self.labels)
 
     def update_labels_info(self, label):

@@ -199,11 +199,13 @@ class DetectionModel(BaseModel):
             LOGGER.info('')
 
     def forward(self, x, augment=False, profile=False, visualize=False):
+        """Run forward pass on input image(s) with optional augmentation and profiling."""
         if augment:
             return self._forward_augment(x)  # augmented inference, None
         return self._forward_once(x, profile, visualize)  # single-scale inference, train
 
     def _forward_augment(self, x):
+        """Perform augmentations on input image x and return augmented inference and train outputs."""
         img_size = x.shape[-2:]  # height, width
         s = [1, 0.83, 0.67]  # scales
         f = [None, 3, None]  # flips (2-ud, 3-lr)
@@ -244,9 +246,11 @@ class SegmentationModel(DetectionModel):
     """YOLOv8 segmentation model."""
 
     def __init__(self, cfg='yolov8n-seg.yaml', ch=3, nc=None, verbose=True):
+        """Initialize YOLOv8 segmentation model with given config and parameters."""
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
     def _forward_augment(self, x):
+        """Undocumented function."""
         raise NotImplementedError(emojis('WARNING ⚠️ SegmentationModel has not supported augment inference yet!'))
 
 
@@ -254,6 +258,7 @@ class PoseModel(DetectionModel):
     """YOLOv8 pose model."""
 
     def __init__(self, cfg='yolov8n-pose.yaml', ch=3, nc=None, data_kpt_shape=(None, None), verbose=True):
+        """Initialize YOLOv8 Pose model."""
         if not isinstance(cfg, dict):
             cfg = yaml_model_load(cfg)  # load model YAML
         if any(data_kpt_shape) and list(data_kpt_shape) != list(cfg['kpt_shape']):
@@ -292,6 +297,7 @@ class ClassificationModel(BaseModel):
         self.nc = nc
 
     def _from_yaml(self, cfg, ch, nc, verbose):
+        """Set YOLOv8 model configurations and define the model architecture."""
         self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
 
         # Define model
@@ -501,6 +507,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
 
 
 def yaml_model_load(path):
+    """Load a YOLOv8 model from a YAML file."""
     import re
 
     path = Path(path)

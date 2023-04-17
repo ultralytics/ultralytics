@@ -107,14 +107,17 @@ class YOLO:
             self._load(model, task)
 
     def __call__(self, source=None, stream=False, **kwargs):
+        """Calls the 'predict' function with given arguments to perform object detection."""
         return self.predict(source, stream, **kwargs)
 
     def __getattr__(self, attr):
+        """Raises error if object has no requested attribute."""
         name = self.__class__.__name__
         raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
     @staticmethod
     def is_hub_model(model):
+        """Check if the provided model is a HUB model."""
         return any((
             model.startswith('https://hub.ultra'),  # i.e. https://hub.ultralytics.com/models/MODEL_ID
             [len(x) for x in model.split('_')] == [42, 20],  # APIKEY_MODELID
@@ -209,6 +212,7 @@ class YOLO:
         self.model.info(verbose=verbose)
 
     def fuse(self):
+        """Fuse PyTorch Conv2d and BatchNorm2d layers."""
         self._check_is_pytorch_model()
         self.model.fuse()
 
@@ -493,9 +497,11 @@ class YOLO:
 
     @staticmethod
     def _reset_ckpt_args(args):
+        """Reset arguments when loading a PyTorch model."""
         include = {'imgsz', 'data', 'task', 'single_cls'}  # only remember these arguments when loading a PyTorch model
         return {k: v for k, v in args.items() if k in include}
 
     def _reset_callbacks(self):
+        """Reset all registered callbacks."""
         for event in callbacks.default_callbacks.keys():
             self.callbacks[event] = [callbacks.default_callbacks[event][0]]

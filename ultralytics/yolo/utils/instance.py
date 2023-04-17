@@ -14,6 +14,7 @@ def _ntuple(n):
     """From PyTorch internals."""
 
     def parse(x):
+        """Parse bounding boxes format between XYWH and LTWH."""
         return x if isinstance(x, abc.Iterable) else tuple(repeat(x, n))
 
     return parse
@@ -64,6 +65,7 @@ class Bboxes:
     #     return Bboxes(bboxes, format)
 
     def convert(self, format):
+        """Converts bounding box format from one type to another."""
         assert format in _formats
         if self.format == format:
             return
@@ -77,6 +79,7 @@ class Bboxes:
         self.format = format
 
     def areas(self):
+        """Return box areas."""
         self.convert('xyxy')
         return (self.bboxes[:, 2] - self.bboxes[:, 0]) * (self.bboxes[:, 3] - self.bboxes[:, 1])
 
@@ -125,6 +128,7 @@ class Bboxes:
         self.bboxes[:, 3] += offset[3]
 
     def __len__(self):
+        """Return the number of boxes."""
         return len(self.bboxes)
 
     @classmethod
@@ -202,9 +206,11 @@ class Instances:
         self.segments = segments
 
     def convert_bbox(self, format):
+        """Convert bounding box format."""
         self._bboxes.convert(format=format)
 
     def bbox_areas(self):
+        """Calculate the area of bounding boxes."""
         self._bboxes.areas()
 
     def scale(self, scale_w, scale_h, bbox_only=False):
@@ -219,6 +225,7 @@ class Instances:
             self.keypoints[..., 1] *= scale_h
 
     def denormalize(self, w, h):
+        """Denormalizes boxes, segments, and keypoints from normalized coordinates."""
         if not self.normalized:
             return
         self._bboxes.mul(scale=(w, h, w, h))
@@ -230,6 +237,7 @@ class Instances:
         self.normalized = False
 
     def normalize(self, w, h):
+        """Normalize bounding boxes, segments, and keypoints to image dimensions."""
         if self.normalized:
             return
         self._bboxes.mul(scale=(1 / w, 1 / h, 1 / w, 1 / h))
@@ -279,6 +287,7 @@ class Instances:
         )
 
     def flipud(self, h):
+        """Flips the coordinates of bounding boxes, segments, and keypoints vertically."""
         if self._bboxes.format == 'xyxy':
             y1 = self.bboxes[:, 1].copy()
             y2 = self.bboxes[:, 3].copy()
@@ -291,6 +300,7 @@ class Instances:
             self.keypoints[..., 1] = h - self.keypoints[..., 1]
 
     def fliplr(self, w):
+        """Reverses the order of the bounding boxes and segments horizontally."""
         if self._bboxes.format == 'xyxy':
             x1 = self.bboxes[:, 0].copy()
             x2 = self.bboxes[:, 2].copy()
@@ -303,6 +313,7 @@ class Instances:
             self.keypoints[..., 0] = w - self.keypoints[..., 0]
 
     def clip(self, w, h):
+        """Clips bounding boxes, segments, and keypoints values to stay within image boundaries."""
         ori_format = self._bboxes.format
         self.convert_bbox(format='xyxy')
         self.bboxes[:, [0, 2]] = self.bboxes[:, [0, 2]].clip(0, w)
@@ -316,6 +327,7 @@ class Instances:
             self.keypoints[..., 1] = self.keypoints[..., 1].clip(0, h)
 
     def update(self, bboxes, segments=None, keypoints=None):
+        """Updates instance variables."""
         new_bboxes = Bboxes(bboxes, format=self._bboxes.format)
         self._bboxes = new_bboxes
         if segments is not None:
@@ -324,6 +336,7 @@ class Instances:
             self.keypoints = keypoints
 
     def __len__(self):
+        """Return the length of the instance list."""
         return len(self.bboxes)
 
     @classmethod
@@ -363,4 +376,5 @@ class Instances:
 
     @property
     def bboxes(self):
+        """Return bounding boxes."""
         return self._bboxes.bboxes

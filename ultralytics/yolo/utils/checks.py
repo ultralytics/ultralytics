@@ -295,7 +295,7 @@ def check_file(file, suffix='', download=True, hard=True):
 
 
 def check_yaml(file, suffix=('.yaml', '.yml'), hard=True):
-    # Search/download YAML file (if necessary) and return path, checking suffix
+    """Search/download YAML file (if necessary) and return path, checking suffix."""
     return check_file(file, suffix, hard=hard)
 
 
@@ -315,6 +315,7 @@ def check_imshow(warn=False):
 
 
 def check_yolo(verbose=True, device=''):
+    """Return a human-readable YOLO software and hardware summary."""
     from ultralytics.yolo.utils.torch_utils import select_device
 
     if is_colab():

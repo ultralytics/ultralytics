@@ -9,6 +9,7 @@ from ultralytics.yolo.utils.torch_utils import get_flops, get_num_params
 
 
 def on_pretrain_routine_end(trainer):
+    """Logs info before starting timer for upload rate limit."""
     session = getattr(trainer, 'hub_session', None)
     if session:
         # Start timer for upload rate limit
@@ -17,6 +18,7 @@ def on_pretrain_routine_end(trainer):
 
 
 def on_fit_epoch_end(trainer):
+    """Uploads training progress metrics at the end of each epoch."""
     session = getattr(trainer, 'hub_session', None)
     if session:
         # Upload metrics after val end
@@ -35,6 +37,7 @@ def on_fit_epoch_end(trainer):
 
 
 def on_model_save(trainer):
+    """Saves checkpoints to Ultralytics HUB with rate limiting."""
     session = getattr(trainer, 'hub_session', None)
     if session:
         # Upload checkpoints with rate limiting
@@ -46,6 +49,7 @@ def on_model_save(trainer):
 
 
 def on_train_end(trainer):
+    """Upload final model and metrics to Ultralytics HUB at the end of training."""
     session = getattr(trainer, 'hub_session', None)
     if session:
         # Upload final model and metrics with exponential standoff
@@ -57,18 +61,22 @@ def on_train_end(trainer):
 
 
 def on_train_start(trainer):
+    """Run traces on train start."""
     traces(trainer.args, traces_sample_rate=1.0)
 
 
 def on_val_start(validator):
+    """Runs traces on validation start."""
     traces(validator.args, traces_sample_rate=1.0)
 
 
 def on_predict_start(predictor):
+    """Run traces on predict start."""
     traces(predictor.args, traces_sample_rate=1.0)
 
 
 def on_export_start(exporter):
+    """Run traces on export start."""
     traces(exporter.args, traces_sample_rate=1.0)
 
 

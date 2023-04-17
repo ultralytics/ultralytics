@@ -41,8 +41,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
               int8=False,
               device='cpu',
               hard_fail=False,
-              data=None
-              ):
+              data=None):
     """
     Benchmark a YOLO model across different formats for speed and accuracy.
 

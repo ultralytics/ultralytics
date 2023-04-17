@@ -40,7 +40,9 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
               half=False,
               int8=False,
               device='cpu',
-              hard_fail=False):
+              hard_fail=False,
+              data=None
+              ):
     """
     Benchmark a YOLO model across different formats for speed and accuracy.
 
@@ -98,13 +100,13 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
 
             # Validate
             if model.task == 'detect':
-                data, key = 'coco8.yaml', 'metrics/mAP50-95(B)'
+                data, key = data or 'coco8.yaml', 'metrics/mAP50-95(B)'
             elif model.task == 'segment':
-                data, key = 'coco8-seg.yaml', 'metrics/mAP50-95(M)'
+                data, key = data or 'coco8-seg.yaml', 'metrics/mAP50-95(M)'
             elif model.task == 'classify':
-                data, key = 'imagenet100', 'metrics/accuracy_top5'
+                data, key = data or 'imagenet100', 'metrics/accuracy_top5'
             elif model.task == 'pose':
-                data, key = 'coco8-pose.yaml', 'metrics/mAP50-95(P)'
+                data, key = data or 'coco8-pose.yaml', 'metrics/mAP50-95(P)'
 
             results = export.val(data=data,
                                  batch=1,

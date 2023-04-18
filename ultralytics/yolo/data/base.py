@@ -177,11 +177,11 @@ class BaseDataset(Dataset):
             im = cv2.imread(random.choice(self.im_files))  # sample image
             ratio = self.imgsz / max(im.shape[0], im.shape[1])  # max(h, w)  # ratio
             b += im.nbytes * ratio ** 2
-        mem_required = b * self.ni / n  # GB required to cache dataset into RAM
+        mem_required = b * self.ni / n * (1 + safety_margin)  # GB required to cache dataset into RAM
         mem = psutil.virtual_memory()
-        cache = mem_required * (1 + safety_margin) < mem.available  # to cache or not to cache, that is the question
+        cache = mem_required < mem.available  # to cache or not to cache, that is the question
         if not cache:
-            LOGGER.info(f'{self.prefix}{mem_required * safety_margin / gb:.1f}GB RAM required to cache images '
+            LOGGER.info(f'{self.prefix}{mem_required / gb:.1f}GB RAM required to cache images '
                         f'with {int(safety_margin * 100)}% safety margin but only '
                         f'{mem.available / gb:.1f}/{mem.total / gb:.1f}GB available, '
                         f"{'caching images ✅' if cache else 'not caching images ⚠️'}")

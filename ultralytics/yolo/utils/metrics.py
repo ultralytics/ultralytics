@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn as nn
-from sklearn.metrics import f1_score, precision_score, recall_score, accuracy_score, precision_recall_fscore_support
+from sklearn.metrics import precision_recall_fscore_support
 
 from ultralytics.yolo.utils import LOGGER, SimpleClass, TryExcept, plt_settings
 

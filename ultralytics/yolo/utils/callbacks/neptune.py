@@ -15,10 +15,10 @@ except (ImportError, AssertionError):
 
 run = None  # NeptuneAI experiment logger instance
 
-def _log_scalars(scalars):
+def _log_scalars(scalars, step = 0):
     if run:
         for k, v in scalars.items():
-            run[k].append(v)
+            run[k].append(value = v, step = step)
 
 
 def _log_images(imgs_dict, group=""):
@@ -28,7 +28,7 @@ def _log_images(imgs_dict, group=""):
 
 def _log_plot(title, plot_path):
     """
-        Log image as plot in the plot section of ClearML
+        Log image as plot in the plot section of NeptuneAI
 
         arguments:
         title (str) Title of the plot
@@ -53,8 +53,8 @@ def on_pretrain_routine_start(trainer):
 
 
 def on_train_epoch_end(trainer):
-    _log_scalars(trainer.label_loss_items(trainer.tloss, prefix='train'))
-    _log_scalars(trainer.lr)
+    _log_scalars(trainer.label_loss_items(trainer.tloss, prefix='train'), trainer.epoch + 1)
+    _log_scalars(trainer.lr, trainer.epoch + 1)
     if trainer.epoch == 1:
         _log_images({f.stem: str(f) for f in trainer.save_dir.glob('train_batch*.jpg')}, 'Mosaic')
 
@@ -65,7 +65,7 @@ def on_fit_epoch_end(trainer):
             'GFLOPs': round(get_flops(trainer.model), 3),
             'speed(ms)': round(trainer.validator.speed['inference'], 3)}
         run['Configuration/Model'] = model_info
-    _log_scalars(trainer.metrics)
+    _log_scalars(trainer.metrics, trainer.epoch + 1)
     
 def on_val_end(validator):
     if run:

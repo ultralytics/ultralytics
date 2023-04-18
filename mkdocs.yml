@@ -143,7 +143,7 @@ nav:
       - Python: usage/python.md
       - Callbacks: usage/callbacks.md
       - Configuration: usage/cfg.md
-      - Hyperparameter Tuning: usage/hyp_tuning.md
+      - Hyperparameter Tuning: usage/hyperparameter_tuning.md
       - Advanced Customization: usage/engine.md
   - Ultralytics HUB: hub.md
   - iOS and Android App: app.md

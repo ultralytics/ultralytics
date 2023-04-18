@@ -6,9 +6,8 @@ from time import sleep
 
 import requests
 
-from ultralytics.hub.utils import HUB_API_ROOT, PREFIX, check_dataset_disk_space, smart_request
+from ultralytics.hub.utils import HUB_API_ROOT, PREFIX, smart_request
 from ultralytics.yolo.utils import LOGGER, __version__, checks, emojis, is_colab, threaded
-from ultralytics.yolo.utils.downloads import is_url
 from ultralytics.yolo.utils.errors import HUBModelError
 
 AGENT_NAME = f'python-{__version__}-colab' if is_colab() else f'python-{__version__}-local'
@@ -136,12 +135,6 @@ class HUBTrainingSession:
             raise ConnectionRefusedError('ERROR: The HUB server is not online. Please try again later.') from e
         except Exception:
             raise
-
-    def check_disk_space(self):
-        """Check if there is enough disk space for the dataset."""
-        dataset_path = self.model['data']
-        if is_url(dataset_path) and not check_dataset_disk_space(url=dataset_path):
-            raise MemoryError('Not enough disk space')
 
     def upload_model(self, epoch, weights, is_best=False, map=0.0, final=False):
         """

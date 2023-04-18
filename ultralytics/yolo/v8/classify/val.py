@@ -16,7 +16,9 @@ class ClassificationValidator(BaseValidator):
 
     def get_desc(self):
         """Returns a formatted string summarizing classification metrics."""
-        return ('%22s' + '%11s' * 3) % ('classes', 'top1_acc', 'top5_acc', 'f1_score')
+        return ('%22s' + '%11s' * 5) % (
+        self.metrics.average + ': classes', 'top1_acc', 'top5_acc', 'precision', 'recall',
+        'f1_score')
 
     def init_metrics(self, model):
         """Initialize confusion matrix, class names, and top-1 and top-5 accuracy."""
@@ -64,7 +66,8 @@ class ClassificationValidator(BaseValidator):
     def print_results(self):
         """Prints evaluation metrics for YOLO object detection model."""
         pf = '%22s' + '%11.3g' * len(self.metrics.keys)  # print format
-        LOGGER.info(pf % ('all', self.metrics.top1, self.metrics.top5, self.metrics.f1_score))
+        LOGGER.info(pf % ('all', self.metrics.top1, self.metrics.top5, self.metrics.precision, self.metrics.recall,
+                          self.metrics.f1_score))
 
 
 def val(cfg=DEFAULT_CFG, use_python=False):

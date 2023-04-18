@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn as nn
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, precision_score, recall_score, accuracy_score, precision_recall_fscore_support
 
 from ultralytics.yolo.utils import LOGGER, SimpleClass, TryExcept, plt_settings
 
@@ -947,10 +947,12 @@ class ClassifyMetrics(SimpleClass):
         process(targets, pred): Processes the targets and predictions to compute classification metrics.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, average='macro') -> None:
         self.top1 = 0
         self.top5 = 0
+        self.precision, self.recall, self.f1_score = 0, 0, 0
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
+        self.average = average
 
     def process(self, targets, pred):
         """Target classes and predicted classes."""
@@ -958,12 +960,12 @@ class ClassifyMetrics(SimpleClass):
         correct = (targets[:, None] == pred).float()
         acc = torch.stack((correct[:, 0], correct.max(1).values), dim=1)  # (top1, top5) accuracy
         self.top1, self.top5 = acc.mean(0).tolist()
-        self.f1_score = self.get_weighted_f1(pred, targets)
 
-    def get_weighted_f1(self, preds, targets):
-        y_pred = preds[:, 0].cpu().numpy()
+        y_pred = pred[:, 0].cpu().numpy()
         y_true = targets.cpu().numpy()
-        return f1_score(y_true, y_pred, average='weighted')
+        self.precision, self.recall, self.f1_score, _ = precision_recall_fscore_support(y_true, y_pred,
+                                                                                        average=self.average,
+                                                                                        zero_division=0)
 
     @property
     def fitness(self):
@@ -973,9 +975,11 @@ class ClassifyMetrics(SimpleClass):
     @property
     def results_dict(self):
         """Returns a dictionary with model's performance metrics and fitness score."""
-        return dict(zip(self.keys + ['fitness'], [self.top1, self.top5, self.f1_score, self.fitness]))
+        return dict(zip(self.keys + ['fitness'],
+                        [self.top1, self.top5, self.precision, self.recall, self.f1_score, self.fitness]))
 
     @property
     def keys(self):
         """Returns a list of keys for the results_dict property."""
-        return ['metrics/accuracy_top1', 'metrics/accuracy_top5', 'metrics/f1_score']
+        return ['metrics/accuracy_top1', 'metrics/accuracy_top5', 'metrics/precision', 'metrics/recall',
+                'metrics/f1_score']

@@ -290,9 +290,9 @@ class Results(SimpleClass):
                 line += (conf, ) * save_conf + (() if id is None else (id, ))
                 texts.append(('%g ' * len(line)).rstrip() % line)
 
-        with open(txt_file, 'a') as f:
-            for text in texts:
-                f.write(text + '\n')
+        if texts:
+            with open(txt_file, 'a') as f:
+                f.writelines(text + '\n' for text in texts)
 
     def save_crop(self, save_dir, file_name=Path('im.jpg')):
         """

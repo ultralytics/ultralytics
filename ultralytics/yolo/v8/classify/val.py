@@ -16,9 +16,8 @@ class ClassificationValidator(BaseValidator):
 
     def get_desc(self):
         """Returns a formatted string summarizing classification metrics."""
-        return ('%22s' + '%11s' * 5) % (
-        self.metrics.average + ': classes', 'top1_acc', 'top5_acc', 'precision', 'recall',
-        'f1_score')
+        return ('%22s' + '%11s' * 5) % (self.metrics.average + ': classes', 'top1_acc', 'top5_acc', 'precision',
+                                        'recall', 'f1_score')
 
     def init_metrics(self, model):
         """Initialize confusion matrix, class names, and top-1 and top-5 accuracy."""

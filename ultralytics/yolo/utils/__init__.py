@@ -739,16 +739,19 @@ set_sentry()
 imread_ = cv2.imread  # copy to avoid recursion errors
 imwrite_ = cv2.imwrite  # copy to avoid recursion errors
 
+
 def imread(filename, flags=cv2.IMREAD_COLOR):
     if emojis(filename) == filename:
         return imread_(filename, flags)
     else:
-        return cv2.imdecode(np.fromfile(filename, np.uint8), flags) 
+        return cv2.imdecode(np.fromfile(filename, np.uint8), flags)
+
 
 def imwrite(filename, img, params=[]):
     if emojis(filename) == filename:
         return imwrite_(filename, img, params)
     else:
         return cv2.imencode(Path(filename).suffix, img, params)[1].tofile(filename)
-    
+
+
 cv2.imread, cv2.imwrite = imread, imwrite  # redefine

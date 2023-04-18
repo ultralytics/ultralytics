@@ -67,6 +67,9 @@ the [Configuration](../usage/cfg.md) page.
         # Build a new model from YAML, transfer pretrained weights to it and start training
         yolo detect train data=coco128.yaml model=yolov8n.yaml pretrained=yolov8n.pt epochs=100 imgsz=640
         ```
+### Dataset format
+YOLO detection dataset format can be found in detail in the [Dataset Guide](../yolov5/train_custom_data.md).
+To convert your existing dataset from other formats( like COCO, VOC etc.) to YOLO format, please use [json2yolo tool](https://github.com/ultralytics/JSON2YOLO) by Ultralytics.
 
 ## Val
 

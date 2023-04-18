@@ -8,6 +8,7 @@ import requests
 
 from ultralytics.hub.utils import HUB_API_ROOT, PREFIX, check_dataset_disk_space, smart_request
 from ultralytics.yolo.utils import LOGGER, __version__, checks, emojis, is_colab, threaded
+from ultralytics.yolo.utils.downloads import is_url
 from ultralytics.yolo.utils.errors import HUBModelError
 
 AGENT_NAME = f'python-{__version__}-colab' if is_colab() else f'python-{__version__}-local'
@@ -138,7 +139,8 @@ class HUBTrainingSession:
 
     def check_disk_space(self):
         """Check if there is enough disk space for the dataset."""
-        if not check_dataset_disk_space(url=self.model['data']):
+        dataset_path = self.model['data']
+        if is_url(dataset_path) and not check_dataset_disk_space(url=dataset_path):
             raise MemoryError('Not enough disk space')
 
     def upload_model(self, epoch, weights, is_best=False, map=0.0, final=False):

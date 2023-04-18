@@ -41,6 +41,7 @@ theme:
     - toc.integrate
     - navigation.top
     - navigation.tabs
+    - navigation.tabs.sticky
     - navigation.footer
     - navigation.tracking
     - navigation.instant

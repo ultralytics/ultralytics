@@ -294,7 +294,6 @@ class Results(SimpleClass):
             with open(txt_file, 'a') as f:
                 f.writelines(text + '\n' for text in texts)
 
-
     def save_crop(self, save_dir, file_name=Path('im.jpg')):
         """
         Save cropped predictions to `save_dir/cls/file_name.jpg`.

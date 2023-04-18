@@ -15,8 +15,8 @@ import psutil
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
-from ..utils import LOCAL_RANK, LOGGER, NUM_THREADS, TQDM_BAR_FORMAT
 from .utils import HELP_URL, IMG_FORMATS
+from ..utils import LOCAL_RANK, LOGGER, NUM_THREADS, TQDM_BAR_FORMAT
 
 
 class BaseDataset(Dataset):
@@ -181,8 +181,8 @@ class BaseDataset(Dataset):
         mem = psutil.virtual_memory()
         cache = mem_required * (1 + safety_margin) < mem.available  # to cache or not to cache, that is the question
         if not cache:
-            LOGGER.info(f'{self.prefix}{mem_required / gb:.1f}GB RAM required to cache images '
-                        f'with {safety_margin * 100}% safety margin but only '
+            LOGGER.info(f'{self.prefix}{mem_required * safety_margin / gb:.1f}GB RAM required to cache images '
+                        f'with {int(safety_margin * 100)}% safety margin but only '
                         f'{mem.available / gb:.1f}/{mem.total / gb:.1f}GB available, '
                         f"{'caching images ✅' if cache else 'not caching images ⚠️'}")
         return cache

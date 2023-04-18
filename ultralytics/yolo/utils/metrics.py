@@ -963,7 +963,8 @@ class ClassifyMetrics(SimpleClass):
 
         y_pred = pred[:, 0].cpu().numpy()
         y_true = targets.cpu().numpy()
-        self.precision, self.recall, self.f1_score, _ = precision_recall_fscore_support(y_true, y_pred,
+        self.precision, self.recall, self.f1_score, _ = precision_recall_fscore_support(y_true,
+                                                                                        y_pred,
                                                                                         average=self.average,
                                                                                         zero_division=0)
 
@@ -975,11 +976,12 @@ class ClassifyMetrics(SimpleClass):
     @property
     def results_dict(self):
         """Returns a dictionary with model's performance metrics and fitness score."""
-        return dict(zip(self.keys + ['fitness'],
-                        [self.top1, self.top5, self.precision, self.recall, self.f1_score, self.fitness]))
+        return dict(
+            zip(self.keys + ['fitness'],
+                [self.top1, self.top5, self.precision, self.recall, self.f1_score, self.fitness]))
 
     @property
     def keys(self):
         """Returns a list of keys for the results_dict property."""
-        return ['metrics/accuracy_top1', 'metrics/accuracy_top5', 'metrics/precision', 'metrics/recall',
-                'metrics/f1_score']
+        return [
+            'metrics/accuracy_top1', 'metrics/accuracy_top5', 'metrics/precision', 'metrics/recall', 'metrics/f1_score']

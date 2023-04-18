@@ -350,7 +350,6 @@ class YOLO:
             if any(kwargs):
                 LOGGER.warning('WARNING ⚠️ using HUB training arguments, ignoring local training arguments.')
             kwargs = self.session.train_args
-            self.session.check_disk_space()
         check_pip_update_available()
         overrides = self.overrides.copy()
         overrides.update(kwargs)

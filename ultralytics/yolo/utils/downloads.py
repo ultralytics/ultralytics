@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import contextlib
+import shutil
 import subprocess
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
@@ -57,6 +58,38 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX')):
         return unzip_dir  # return unzip dir
 
 
+def check_disk_space(url='https://ultralytics.com/assets/coco128.zip', sf=1.5, hard=True):
+    """
+    Check if there is sufficient disk space to download and store a file.
+
+    Args:
+        url (str, optional): The URL to the file. Defaults to 'https://ultralytics.com/assets/coco128.zip'.
+        sf (float, optional): Safety factor, the multiplier for the required free space. Defaults to 2.0.
+        hard (bool, optional): Whether to throw an error or not on insufficient disk space. Defaults to True.
+
+    Returns:
+        (bool): True if there is sufficient disk space, False otherwise.
+    """
+    with contextlib.suppress(Exception):
+        gib = 1 << 30  # bytes per GiB
+        data = int(requests.head(url).headers['Content-Length']) / gib  # file size (GB)
+        total, used, free = (x / gib for x in shutil.disk_usage('/'))  # bytes
+        if data * sf < free:
+            return True  # sufficient space
+
+        # Insufficient space
+        text = (f'WARNING ⚠️ Insufficient free disk space {free:.1f} GB < {data * sf:.3f} GB required, '
+                f'Please free {data * sf - free:.1f} GB additional disk space and try again.')
+        if hard:
+            raise MemoryError(text)
+        else:
+            LOGGER.warning(text)
+            return False
+
+            # Pass if error
+    return True
+
+
 def safe_download(url,
                   file=None,
                   dir=None,
@@ -91,6 +124,7 @@ def safe_download(url,
         desc = f'Downloading {clean_url(url)} to {f}'
         LOGGER.info(f'{desc}...')
         f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
+        check_disk_space(url)
         for i in range(retry + 1):
             try:
                 if curl or i > 0:  # curl download with retry, continue

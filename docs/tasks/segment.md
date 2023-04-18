@@ -68,6 +68,13 @@ arguments see the [Configuration](../usage/cfg.md) page.
         yolo segment train data=coco128-seg.yaml model=yolov8n-seg.yaml pretrained=yolov8n-seg.pt epochs=100 imgsz=640
         ```
 
+### Dataset format
+YOLO segmentation dataset label format extends detection format with segment points.
+
+`cls x1 y1 x2 y2 p1 p2 ... pn`
+
+To convert your existing dataset from other formats( like COCO, VOC etc.) to YOLO format, please use [json2yolo tool](https://github.com/ultralytics/JSON2YOLO) by Ultralytics.
+
 ## Val
 
 Validate trained YOLOv8n-seg model accuracy on the COCO128-seg dataset. No argument need to passed as the `model`

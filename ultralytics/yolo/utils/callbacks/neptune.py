@@ -44,7 +44,7 @@ def _log_plot(title, plot_path):
     fig = plt.figure()
     ax = fig.add_axes([0, 0, 1, 1], frameon=False, aspect='auto', xticks=[], yticks=[])  # no ticks
     ax.imshow(img)
-    run['Plots/' + title].upload(fig)
+    run[f'Plots/{title}'].upload(fig)
 
 
 def on_pretrain_routine_start(trainer):

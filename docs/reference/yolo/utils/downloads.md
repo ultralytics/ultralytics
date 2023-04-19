@@ -8,6 +8,11 @@
 :::ultralytics.yolo.utils.downloads.unzip_file
 <br><br>
 
+# check_disk_space
+---
+:::ultralytics.yolo.utils.downloads.check_disk_space
+<br><br>
+
 # safe_download
 ---
 :::ultralytics.yolo.utils.downloads.safe_download

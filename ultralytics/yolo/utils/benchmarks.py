@@ -106,7 +106,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
                 data, key = data or 'imagenet100', 'metrics/accuracy_top5'
             elif model.task == 'pose':
                 data, key = data or 'coco8-pose.yaml', 'metrics/mAP50-95(P)'
-            
+
             results = export.val(data=data,
                                  batch=1,
                                  imgsz=imgsz,

@@ -46,7 +46,6 @@ To request an Enterprise License please complete the form at [Ultralytics Licens
   <a href="https://discord.gg/c9p47D9G" style="text-decoration:none;">
     <img src="https://github.com/ultralytics/ultralytics/blob/fb1a250500e517bf9ec5bfee9dd82e2149754df4/logo-social-discord.png" width="2%" alt="" /></a>
 </div>
-</div>
 
 ## <div align="center">Documentation</div>
 

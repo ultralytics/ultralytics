@@ -539,7 +539,7 @@ def compute_metrics(y_true, y_pred, average='macro'):
 
     """
     if average != 'macro':
-        LOGGER.warning(f"The average function [{average}] is not supported. Use macro for instead. ")
+        LOGGER.warning(f'The average function [{average}] is not supported. Use macro for instead. ')
         average = 'macro'
     unique_classes = set(y_true).union(set(y_pred))
 

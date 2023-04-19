@@ -469,30 +469,26 @@ class YOLO:
 
     @property
     def names(self):
-        """
-        Returns class names of the loaded model.
-        """
+        """Returns class names of the loaded model."""
         return self.model.names if hasattr(self.model, 'names') else None
 
     @property
     def device(self):
-        """
-        Returns device if PyTorch model
-        """
+        """Returns device if PyTorch model."""
         return next(self.model.parameters()).device if isinstance(self.model, nn.Module) else None
 
     @property
     def transforms(self):
-        """
-        Returns transform of the loaded model.
-        """
+        """Returns transform of the loaded model."""
         return self.model.transforms if hasattr(self.model, 'transforms') else None
 
     def add_callback(self, event: str, func):
-        """
-        Add callback
-        """
+        """Add a callback."""
         self.callbacks[event].append(func)
+
+    def clear_callback(self, event: str):
+        """Clear all event callbacks."""
+        self.callbacks[event] = []
 
     @staticmethod
     def _reset_ckpt_args(args):

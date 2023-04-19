@@ -493,6 +493,12 @@ class YOLO:
         Add callback
         """
         self.callbacks[event].append(func)
+    
+    def clear_callback(self, event: str):
+        """
+        Clear / Disable a callback
+        """
+        self.callbacks[event] = [] 
 
     @staticmethod
     def _reset_ckpt_args(args):

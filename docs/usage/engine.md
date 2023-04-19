@@ -9,7 +9,7 @@ custom model and dataloader by just overriding these functions:
 
 * `get_model(cfg, weights)` - The function that builds the model to be trained
 * `get_dataloder()` - The function that builds the dataloader
-  More details and source code can be found in [`BaseTrainer` Reference](../reference/base_trainer.md)
+  More details and source code can be found in [`BaseTrainer` Reference](../reference/yolo/engine/trainer.md)
 
 ## DetectionTrainer
 
@@ -74,7 +74,7 @@ trainer.add_callback("on_train_epoch_end", log_model)  # Adds to existing callba
 trainer.train()
 ```
 
-To know more about Callback triggering events and entry point, checkout our Callbacks guide # TODO
+To know more about Callback triggering events and entry point, checkout our [Callbacks Guide](callbacks.md)
 
 ## Other engine components
 

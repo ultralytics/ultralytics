@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 """
 Check a model's accuracy on a test or val split of a dataset
 
@@ -19,7 +19,6 @@ Usage - formats:
                           yolov8n_paddle_model       # PaddlePaddle
 """
 import json
-from collections import defaultdict
 from pathlib import Path
 
 import torch
@@ -55,7 +54,7 @@ class BaseValidator:
         save_dir (Path): Directory to save results.
     """
 
-    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None):
+    def __init__(self, dataloader=None, save_dir=None, pbar=None, args=None, _callbacks=None):
         """
         Initializes a BaseValidator instance.
 
@@ -85,7 +84,7 @@ class BaseValidator:
         if self.args.conf is None:
             self.args.conf = 0.001  # default conf=0.001
 
-        self.callbacks = defaultdict(list, callbacks.default_callbacks)  # add callbacks
+        self.callbacks = _callbacks or callbacks.get_default_callbacks()
 
     @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
@@ -150,20 +149,20 @@ class BaseValidator:
         for batch_i, batch in enumerate(bar):
             self.run_callbacks('on_val_batch_start')
             self.batch_i = batch_i
-            # preprocess
+            # Preprocess
             with dt[0]:
                 batch = self.preprocess(batch)
 
-            # inference
+            # Inference
             with dt[1]:
                 preds = model(batch['img'])
 
-            # loss
+            # Loss
             with dt[2]:
                 if self.training:
                     self.loss += trainer.criterion(preds, batch)[1]
 
-            # postprocess
+            # Postprocess
             with dt[3]:
                 preds = self.postprocess(preds)
 
@@ -175,9 +174,9 @@ class BaseValidator:
             self.run_callbacks('on_val_batch_end')
         stats = self.get_stats()
         self.check_stats(stats)
-        self.print_results()
         self.speed = dict(zip(self.speed.keys(), (x.t / len(self.dataloader.dataset) * 1E3 for x in dt)))
         self.finalize_metrics()
+        self.print_results()
         self.run_callbacks('on_val_end')
         if self.training:
             model.float()
@@ -195,53 +194,73 @@ class BaseValidator:
                 LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}")
             return stats
 
+    def add_callback(self, event: str, callback):
+        """Appends the given callback."""
+        self.callbacks[event].append(callback)
+
     def run_callbacks(self, event: str):
+        """Runs all callbacks associated with a specified event."""
         for callback in self.callbacks.get(event, []):
             callback(self)
 
     def get_dataloader(self, dataset_path, batch_size):
+        """Get data loader from dataset path and batch size."""
         raise NotImplementedError('get_dataloader function not implemented for this validator')
 
     def preprocess(self, batch):
+        """Preprocesses an input batch."""
         return batch
 
     def postprocess(self, preds):
+        """Describes and summarizes the purpose of 'postprocess()' but no details mentioned."""
         return preds
 
     def init_metrics(self, model):
+        """Initialize performance metrics for the YOLO model."""
         pass
 
     def update_metrics(self, preds, batch):
+        """Updates metrics based on predictions and batch."""
         pass
 
     def finalize_metrics(self, *args, **kwargs):
+        """Finalizes and returns all metrics."""
         pass
 
     def get_stats(self):
+        """Returns statistics about the model's performance."""
         return {}
 
     def check_stats(self, stats):
+        """Checks statistics."""
         pass
 
     def print_results(self):
+        """Prints the results of the model's predictions."""
         pass
 
     def get_desc(self):
+        """Get description of the YOLO model."""
         pass
 
     @property
     def metric_keys(self):
+        """Returns the metric keys used in YOLO training/validation."""
         return []
 
     # TODO: may need to put these following functions into callback
     def plot_val_samples(self, batch, ni):
+        """Plots validation samples during training."""
         pass
 
     def plot_predictions(self, batch, preds, ni):
+        """Plots YOLO model predictions on batch images."""
         pass
 
     def pred_to_json(self, preds, batch):
+        """Convert predictions to JSON format."""
         pass
 
     def eval_json(self, stats):
+        """Evaluate and return JSON format of prediction statistics."""
         pass

@@ -1,23 +1,26 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import contextlib
 import glob
 import os
-import urllib
 from datetime import datetime
 from pathlib import Path
 
 
 class WorkingDirectory(contextlib.ContextDecorator):
-    # Usage: @WorkingDirectory(dir) decorator or 'with WorkingDirectory(dir):' context manager
+    """Usage: @WorkingDirectory(dir) decorator or 'with WorkingDirectory(dir):' context manager."""
+
     def __init__(self, new_dir):
+        """Sets the working directory to 'new_dir' upon instantiation."""
         self.dir = new_dir  # new dir
         self.cwd = Path.cwd().resolve()  # current dir
 
     def __enter__(self):
+        """Changes the current directory to the specified directory."""
         os.chdir(self.dir)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        """Restore the current working directory on context exit."""
         os.chdir(self.cwd)
 
 
@@ -31,13 +34,13 @@ def increment_path(path, exist_ok=False, sep='', mkdir=False):
     directory if it does not already exist.
 
     Args:
-    path (str or pathlib.Path): Path to increment.
-    exist_ok (bool, optional): If True, the path will not be incremented and will be returned as-is. Defaults to False.
-    sep (str, optional): Separator to use between the path and the incrementation number. Defaults to an empty string.
-    mkdir (bool, optional): If True, the path will be created as a directory if it does not exist. Defaults to False.
+        path (str, pathlib.Path): Path to increment.
+        exist_ok (bool, optional): If True, the path will not be incremented and returned as-is. Defaults to False.
+        sep (str, optional): Separator to use between the path and the incrementation number. Defaults to ''.
+        mkdir (bool, optional): Create a directory if it does not exist. Defaults to False.
 
     Returns:
-    pathlib.Path: Incremented path.
+        (pathlib.Path): Incremented path.
     """
     path = Path(path)  # os-agnostic
     if path.exists() and not exist_ok:
@@ -57,19 +60,19 @@ def increment_path(path, exist_ok=False, sep='', mkdir=False):
 
 
 def file_age(path=__file__):
-    # Return days since last file update
+    """Return days since last file update."""
     dt = (datetime.now() - datetime.fromtimestamp(Path(path).stat().st_mtime))  # delta
     return dt.days  # + dt.seconds / 86400  # fractional days
 
 
 def file_date(path=__file__):
-    # Return human-readable file modification date, i.e. '2021-3-26'
+    """Return human-readable file modification date, i.e. '2021-3-26'."""
     t = datetime.fromtimestamp(Path(path).stat().st_mtime)
     return f'{t.year}-{t.month}-{t.day}'
 
 
 def file_size(path):
-    # Return file/dir size (MB)
+    """Return file/dir size (MB)."""
     if isinstance(path, (str, Path)):
         mb = 1 << 20  # bytes to MiB (1024 ** 2)
         path = Path(path)
@@ -80,13 +83,7 @@ def file_size(path):
     return 0.0
 
 
-def url2file(url):
-    # Convert URL to filename, i.e. https://url.com/file.txt?auth -> file.txt
-    url = str(Path(url)).replace(':/', '://')  # Pathlib turns :// -> :/
-    return Path(urllib.parse.unquote(url)).name.split('?')[0]  # '%2F' to '/', split https://url.com/file.txt?auth
-
-
 def get_latest_run(search_dir='.'):
-    # Return path to most recent 'last.pt' in /runs (i.e. to --resume from)
+    """Return path to most recent 'last.pt' in /runs (i.e. to --resume from)."""
     last_list = glob.glob(f'{search_dir}/**/last*.pt', recursive=True)
     return max(last_list, key=os.path.getctime) if last_list else ''

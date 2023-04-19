@@ -1,4 +1,6 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
+from functools import partial
 
 import torch
 
@@ -10,7 +12,19 @@ from .trackers import BOTSORT, BYTETracker
 TRACKER_MAP = {'bytetrack': BYTETracker, 'botsort': BOTSORT}
 
 
-def on_predict_start(predictor):
+def on_predict_start(predictor, persist=False):
+    """
+    Initialize trackers for object tracking during prediction.
+
+    Args:
+        predictor (object): The predictor object to initialize trackers for.
+        persist (bool, optional): Whether to persist the trackers if they already exist. Defaults to False.
+
+    Raises:
+        AssertionError: If the tracker_type is not 'bytetrack' or 'botsort'.
+    """
+    if hasattr(predictor, 'trackers') and persist:
+        return
     tracker = check_yaml(predictor.args.tracker)
     cfg = IterableSimpleNamespace(**yaml_load(tracker))
     assert cfg.tracker_type in ['bytetrack', 'botsort'], \
@@ -23,6 +37,7 @@ def on_predict_start(predictor):
 
 
 def on_predict_postprocess_end(predictor):
+    """Postprocess detected boxes and update with object tracking."""
     bs = predictor.dataset.bs
     im0s = predictor.batch[2]
     im0s = im0s if isinstance(im0s, list) else [im0s]
@@ -33,12 +48,19 @@ def on_predict_postprocess_end(predictor):
         tracks = predictor.trackers[i].update(det, im0s[i])
         if len(tracks) == 0:
             continue
+        idx = tracks[:, -1].tolist()
+        predictor.results[i] = predictor.results[i][idx]
         predictor.results[i].update(boxes=torch.as_tensor(tracks[:, :-1]))
-        if predictor.results[i].masks is not None:
-            idx = tracks[:, -1].tolist()
-            predictor.results[i].masks = predictor.results[i].masks[idx]
 
 
-def register_tracker(model):
-    model.add_callback('on_predict_start', on_predict_start)
+def register_tracker(model, persist):
+    """
+    Register tracking callbacks to the model for object tracking during prediction.
+
+    Args:
+        model (object): The model object to register tracking callbacks for.
+        persist (bool): Whether to persist the trackers if they already exist.
+
+    """
+    model.add_callback('on_predict_start', partial(on_predict_start, persist=persist))
     model.add_callback('on_predict_postprocess_end', on_predict_postprocess_end)

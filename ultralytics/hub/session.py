@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 import signal
 import sys
 from pathlib import Path
@@ -6,8 +6,9 @@ from time import sleep
 
 import requests
 
-from ultralytics.hub.utils import HUB_API_ROOT, PREFIX, check_dataset_disk_space, smart_request
+from ultralytics.hub.utils import HUB_API_ROOT, PREFIX, smart_request
 from ultralytics.yolo.utils import LOGGER, __version__, checks, emojis, is_colab, threaded
+from ultralytics.yolo.utils.errors import HUBModelError
 
 AGENT_NAME = f'python-{__version__}-colab' if is_colab() else f'python-{__version__}-local'
 
@@ -55,7 +56,8 @@ class HUBTrainingSession:
         elif len(url) == 20:
             key, model_id = '', url
         else:
-            raise ValueError(f'Invalid HUBTrainingSession input: {url}')
+            raise HUBModelError(f"model='{url}' not found. Check format is correct, i.e. "
+                                f"model='https://hub.ultralytics.com/models/MODEL_ID' and try again.")
 
         # Authorize
         auth = Auth(key)
@@ -112,30 +114,27 @@ class HUBTrainingSession:
                 raise ValueError('Dataset may still be processing. Please wait a minute and try again.')  # RF fix
             self.model_id = data['id']
 
-            # TODO: restore when server keys when dataset URL and GPU train is working
-
-            self.train_args = {
-                'batch': data['batch_size'],
-                'epochs': data['epochs'],
-                'imgsz': data['imgsz'],
-                'patience': data['patience'],
-                'device': data['device'],
-                'cache': data['cache'],
-                'data': data['data']}
-
-            self.model_file = data.get('cfg', data['weights'])
-            self.model_file = checks.check_yolov5u_filename(self.model_file, verbose=False)  # YOLOv5->YOLOv5u
+            if data['status'] == 'new':  # new model to start training
+                self.train_args = {
+                    # TODO: deprecate 'batch_size' key for 'batch' in 3Q23
+                    'batch': data['batch' if ('batch' in data) else 'batch_size'],
+                    'epochs': data['epochs'],
+                    'imgsz': data['imgsz'],
+                    'patience': data['patience'],
+                    'device': data['device'],
+                    'cache': data['cache'],
+                    'data': data['data']}
+                self.model_file = data.get('cfg') or data.get('weights')  # cfg for pretrained=False
+                self.model_file = checks.check_yolov5u_filename(self.model_file, verbose=False)  # YOLOv5->YOLOv5u
+            elif data['status'] == 'training':  # existing model to resume training
+                self.train_args = {'data': data['data'], 'resume': True}
+                self.model_file = data['resume']
 
             return data
         except requests.exceptions.ConnectionError as e:
             raise ConnectionRefusedError('ERROR: The HUB server is not online. Please try again later.') from e
         except Exception:
             raise
-
-    def check_disk_space(self):
-        """Check if there is enough disk space for the dataset."""
-        if not check_dataset_disk_space(url=self.model['data']):
-            raise MemoryError('Not enough disk space')
 
     def upload_model(self, epoch, weights, is_best=False, map=0.0, final=False):
         """

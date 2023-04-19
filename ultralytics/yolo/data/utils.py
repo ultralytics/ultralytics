@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import contextlib
 import hashlib
@@ -6,10 +6,10 @@ import json
 import os
 import subprocess
 import time
+import zipfile
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from tarfile import is_tarfile
-from zipfile import is_zipfile
 
 import cv2
 import numpy as np
@@ -17,7 +17,8 @@ from PIL import ExifTags, Image, ImageOps
 from tqdm import tqdm
 
 from ultralytics.nn.autobackend import check_class_names
-from ultralytics.yolo.utils import DATASETS_DIR, LOGGER, NUM_THREADS, ROOT, colorstr, emojis, yaml_load
+from ultralytics.yolo.utils import (DATASETS_DIR, LOGGER, NUM_THREADS, ROOT, SETTINGS_YAML, clean_url, colorstr, emojis,
+                                    yaml_load)
 from ultralytics.yolo.utils.checks import check_file, check_font, is_ascii
 from ultralytics.yolo.utils.downloads import download, safe_download, unzip_file
 from ultralytics.yolo.utils.ops import segments2boxes
@@ -36,13 +37,13 @@ for orientation in ExifTags.TAGS.keys():
 
 
 def img2label_paths(img_paths):
-    # Define label paths as a function of image paths
+    """Define label paths as a function of image paths."""
     sa, sb = f'{os.sep}images{os.sep}', f'{os.sep}labels{os.sep}'  # /images/, /labels/ substrings
     return [sb.join(x.rsplit(sa, 1)).rsplit('.', 1)[0] + '.txt' for x in img_paths]
 
 
 def get_hash(paths):
-    # Returns a single hash value of a list of paths (files or dirs)
+    """Returns a single hash value of a list of paths (files or dirs)."""
     size = sum(os.path.getsize(p) for p in paths if os.path.exists(p))  # sizes
     h = hashlib.sha256(str(size).encode())  # hash sizes
     h.update(''.join(paths).encode())  # hash paths
@@ -50,7 +51,7 @@ def get_hash(paths):
 
 
 def exif_size(img):
-    # Returns exif-corrected PIL size
+    """Returns exif-corrected PIL size."""
     s = img.size  # (width, height)
     with contextlib.suppress(Exception):
         rotation = dict(img._getexif().items())[orientation]
@@ -60,12 +61,12 @@ def exif_size(img):
 
 
 def verify_image_label(args):
-    # Verify one image-label pair
-    im_file, lb_file, prefix, keypoint, num_cls = args
-    # number (missing, found, empty, corrupt), message, segments, keypoints
+    """Verify one image-label pair."""
+    im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim = args
+    # Number (missing, found, empty, corrupt), message, segments, keypoints
     nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, '', [], None
     try:
-        # verify images
+        # Verify images
         im = Image.open(im_file)
         im.verify()  # PIL verify
         shape = exif_size(im)  # image size
@@ -79,7 +80,7 @@ def verify_image_label(args):
                     ImageOps.exif_transpose(Image.open(im_file)).save(im_file, 'JPEG', subsampling=0, quality=100)
                     msg = f'{prefix}WARNING ⚠️ {im_file}: corrupt JPEG restored and saved'
 
-        # verify labels
+        # Verify labels
         if os.path.isfile(lb_file):
             nf = 1  # label found
             with open(lb_file) as f:
@@ -92,25 +93,19 @@ def verify_image_label(args):
             nl = len(lb)
             if nl:
                 if keypoint:
-                    assert lb.shape[1] == 56, 'labels require 56 columns each'
-                    assert (lb[:, 5::3] <= 1).all(), 'non-normalized or out of bounds coordinate labels'
-                    assert (lb[:, 6::3] <= 1).all(), 'non-normalized or out of bounds coordinate labels'
-                    kpts = np.zeros((lb.shape[0], 39))
-                    for i in range(len(lb)):
-                        kpt = np.delete(lb[i, 5:], np.arange(2, lb.shape[1] - 5, 3))  # remove occlusion param from GT
-                        kpts[i] = np.hstack((lb[i, :5], kpt))
-                    lb = kpts
-                    assert lb.shape[1] == 39, 'labels require 39 columns each after removing occlusion parameter'
+                    assert lb.shape[1] == (5 + nkpt * ndim), f'labels require {(5 + nkpt * ndim)} columns each'
+                    assert (lb[:, 5::ndim] <= 1).all(), 'non-normalized or out of bounds coordinate labels'
+                    assert (lb[:, 6::ndim] <= 1).all(), 'non-normalized or out of bounds coordinate labels'
                 else:
                     assert lb.shape[1] == 5, f'labels require 5 columns, {lb.shape[1]} columns detected'
                     assert (lb[:, 1:] <= 1).all(), \
                         f'non-normalized or out of bounds coordinates {lb[:, 1:][lb[:, 1:] > 1]}'
+                    assert (lb >= 0).all(), f'negative label values {lb[lb < 0]}'
                 # All labels
                 max_cls = int(lb[:, 0].max())  # max label count
                 assert max_cls <= num_cls, \
                     f'Label class {max_cls} exceeds dataset class count {num_cls}. ' \
                     f'Possible class labels are 0-{num_cls - 1}'
-                assert (lb >= 0).all(), f'negative label values {lb[lb < 0]}'
                 _, i = np.unique(lb, axis=0, return_index=True)
                 if len(i) < nl:  # duplicate row check
                     lb = lb[i]  # remove duplicates
@@ -119,12 +114,18 @@ def verify_image_label(args):
                     msg = f'{prefix}WARNING ⚠️ {im_file}: {nl - len(i)} duplicate labels removed'
             else:
                 ne = 1  # label empty
-                lb = np.zeros((0, 39), dtype=np.float32) if keypoint else np.zeros((0, 5), dtype=np.float32)
+                lb = np.zeros((0, (5 + nkpt * ndim)), dtype=np.float32) if keypoint else np.zeros(
+                    (0, 5), dtype=np.float32)
         else:
             nm = 1  # label missing
-            lb = np.zeros((0, 39), dtype=np.float32) if keypoint else np.zeros((0, 5), dtype=np.float32)
+            lb = np.zeros((0, (5 + nkpt * ndim)), dtype=np.float32) if keypoint else np.zeros((0, 5), dtype=np.float32)
         if keypoint:
-            keypoints = lb[:, 5:].reshape(-1, 17, 2)
+            keypoints = lb[:, 5:].reshape(-1, nkpt, ndim)
+            if ndim == 2:
+                kpt_mask = np.ones(keypoints.shape[:2], dtype=np.float32)
+                kpt_mask = np.where(keypoints[..., 0] < 0, 0.0, kpt_mask)
+                kpt_mask = np.where(keypoints[..., 1] < 0, 0.0, kpt_mask)
+                keypoints = np.concatenate([keypoints, kpt_mask[..., None]], axis=-1)  # (nl, nkpt, 3)
         lb = lb[:, :5]
         return im_file, lb, shape, segments, keypoints, nm, nf, ne, nc, msg
     except Exception as e:
@@ -190,12 +191,12 @@ def polygons2masks_overlap(imgsz, segments, downsample_ratio=1):
 
 
 def check_det_dataset(dataset, autodownload=True):
-    # Download, check and/or unzip dataset if not found locally
+    """Download, check and/or unzip dataset if not found locally."""
     data = check_file(dataset)
 
     # Download (optional)
     extract_dir = ''
-    if isinstance(data, (str, Path)) and (is_zipfile(data) or is_tarfile(data)):
+    if isinstance(data, (str, Path)) and (zipfile.is_zipfile(data) or is_tarfile(data)):
         new_dir = safe_download(data, dir=DATASETS_DIR, unzip=True, delete=False, curl=False)
         data = next((DATASETS_DIR / new_dir).rglob('*.yaml'))
         extract_dir, autodownload = data.parent, False
@@ -241,10 +242,12 @@ def check_det_dataset(dataset, autodownload=True):
     if val:
         val = [Path(x).resolve() for x in (val if isinstance(val, list) else [val])]  # val path
         if not all(x.exists() for x in val):
-            m = f"\nDataset '{dataset}' images not found ⚠️, missing paths %s" % [str(x) for x in val if not x.exists()]
+            name = clean_url(dataset)  # dataset name with URL auth stripped
+            m = f"\nDataset '{name}' images not found ⚠️, missing paths %s" % [str(x) for x in val if not x.exists()]
             if s and autodownload:
                 LOGGER.warning(m)
             else:
+                m += f"\nNote dataset download directory is '{DATASETS_DIR}'. You can update this in '{SETTINGS_YAML}'"
                 raise FileNotFoundError(m)
             t = time.time()
             if s.startswith('http') and s.endswith('.zip'):  # URL
@@ -267,9 +270,8 @@ def check_cls_dataset(dataset: str):
     """
     Check a classification dataset such as Imagenet.
 
-    Copy code
     This function takes a `dataset` name as input and returns a dictionary containing information about the dataset.
-    If the dataset is not found, it attempts to download the dataset from the internet and save it to the local file system.
+    If the dataset is not found, it attempts to download the dataset from the internet and save it locally.
 
     Args:
         dataset (str): Name of the dataset.
@@ -303,7 +305,8 @@ def check_cls_dataset(dataset: str):
 
 
 class HUBDatasetStats():
-    """ Class for generating HUB dataset JSON and `-hub` dataset directory
+    """
+    Class for generating HUB dataset JSON and `-hub` dataset directory
 
     Arguments
         path:           Path to data.yaml or data.zip (with data.yaml inside data.zip)
@@ -318,7 +321,7 @@ class HUBDatasetStats():
     """
 
     def __init__(self, path='coco128.yaml', autodownload=False):
-        # Initialize class
+        """Initialize class."""
         zipped, data_dir, yaml_path = self._unzip(Path(path))
         try:
             # data = yaml_load(check_yaml(yaml_path))  # data dict
@@ -336,7 +339,7 @@ class HUBDatasetStats():
 
     @staticmethod
     def _find_yaml(dir):
-        # Return data.yaml file
+        """Return data.yaml file."""
         files = list(dir.glob('*.yaml')) or list(dir.rglob('*.yaml'))  # try root level first and then recursive
         assert files, f'No *.yaml file found in {dir}'
         if len(files) > 1:
@@ -346,7 +349,7 @@ class HUBDatasetStats():
         return files[0]
 
     def _unzip(self, path):
-        # Unzip data.zip
+        """Unzip data.zip."""
         if not str(path).endswith('.zip'):  # path is data.yaml
             return False, None, path
         assert Path(path).is_file(), f'Error unzipping {path}, file not found'
@@ -355,31 +358,17 @@ class HUBDatasetStats():
         assert dir.is_dir(), f'Error unzipping {path}, {dir} not found. path/to/abc.zip MUST unzip to path/to/abc/'
         return True, str(dir), self._find_yaml(dir)  # zipped, data_dir, yaml_path
 
-    def _hub_ops(self, f, max_dim=1920):
-        # HUB ops for 1 image 'f': resize and save at reduced quality in /dataset-hub for web/app viewing
-        f_new = self.im_dir / Path(f).name  # dataset-hub image filename
-        try:  # use PIL
-            im = Image.open(f)
-            r = max_dim / max(im.height, im.width)  # ratio
-            if r < 1.0:  # image too large
-                im = im.resize((int(im.width * r), int(im.height * r)))
-            im.save(f_new, 'JPEG', quality=50, optimize=True)  # save
-        except Exception as e:  # use OpenCV
-            LOGGER.info(f'WARNING ⚠️ HUB ops PIL failure {f}: {e}')
-            im = cv2.imread(f)
-            im_height, im_width = im.shape[:2]
-            r = max_dim / max(im_height, im_width)  # ratio
-            if r < 1.0:  # image too large
-                im = cv2.resize(im, (int(im_width * r), int(im_height * r)), interpolation=cv2.INTER_AREA)
-            cv2.imwrite(str(f_new), im)
+    def _hub_ops(self, f):
+        """Saves a compressed image for HUB previews."""
+        compress_one_image(f, self.im_dir / Path(f).name)  # save to dataset-hub
 
     def get_json(self, save=False, verbose=False):
-        # Return dataset JSON for Ultralytics HUB
+        """Return dataset JSON for Ultralytics HUB."""
         # from ultralytics.yolo.data import YOLODataset
         from ultralytics.yolo.data.dataloaders.v5loader import LoadImagesAndLabels
 
         def _round(labels):
-            # Update labels to integer class and 6 decimal place floats
+            """Update labels to integer class and 6 decimal place floats."""
             return [[int(c), *(round(x, 4) for x in points)] for c, *points in labels]
 
         for split in 'train', 'val', 'test':
@@ -412,7 +401,7 @@ class HUBDatasetStats():
         return self.stats
 
     def process_images(self):
-        # Compress images for Ultralytics HUB
+        """Compress images for Ultralytics HUB."""
         # from ultralytics.yolo.data import YOLODataset
         from ultralytics.yolo.data.dataloaders.v5loader import LoadImagesAndLabels
 
@@ -425,3 +414,85 @@ class HUBDatasetStats():
                     pass
         LOGGER.info(f'Done. All images saved to {self.im_dir}')
         return self.im_dir
+
+
+def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
+    """
+    Compresses a single image file to reduced size while preserving its aspect ratio and quality using either the
+    Python Imaging Library (PIL) or OpenCV library. If the input image is smaller than the maximum dimension, it will
+    not be resized.
+
+    Args:
+        f (str): The path to the input image file.
+        f_new (str, optional): The path to the output image file. If not specified, the input file will be overwritten.
+        max_dim (int, optional): The maximum dimension (width or height) of the output image. Default is 1920 pixels.
+        quality (int, optional): The image compression quality as a percentage. Default is 50%.
+
+    Usage:
+        from pathlib import Path
+        from ultralytics.yolo.data.utils import compress_one_image
+        for f in Path('/Users/glennjocher/Downloads/dataset').rglob('*.jpg'):
+            compress_one_image(f)
+    """
+    try:  # use PIL
+        im = Image.open(f)
+        r = max_dim / max(im.height, im.width)  # ratio
+        if r < 1.0:  # image too large
+            im = im.resize((int(im.width * r), int(im.height * r)))
+        im.save(f_new or f, 'JPEG', quality=quality, optimize=True)  # save
+    except Exception as e:  # use OpenCV
+        LOGGER.info(f'WARNING ⚠️ HUB ops PIL failure {f}: {e}')
+        im = cv2.imread(f)
+        im_height, im_width = im.shape[:2]
+        r = max_dim / max(im_height, im_width)  # ratio
+        if r < 1.0:  # image too large
+            im = cv2.resize(im, (int(im_width * r), int(im_height * r)), interpolation=cv2.INTER_AREA)
+        cv2.imwrite(str(f_new or f), im)
+
+
+def delete_dsstore(path):
+    """
+    Deletes all ".DS_store" files under a specified directory.
+
+    Args:
+        path (str, optional): The directory path where the ".DS_store" files should be deleted.
+
+    Usage:
+        from ultralytics.yolo.data.utils import delete_dsstore
+        delete_dsstore('/Users/glennjocher/Downloads/dataset')
+
+    Note:
+        ".DS_store" files are created by the Apple operating system and contain metadata about folders and files. They
+        are hidden system files and can cause issues when transferring files between different operating systems.
+    """
+    # Delete Apple .DS_store files
+    files = list(Path(path).rglob('.DS_store'))
+    LOGGER.info(f'Deleting *.DS_store files: {files}')
+    for f in files:
+        f.unlink()
+
+
+def zip_directory(dir, use_zipfile_library=True):
+    """
+    Zips a directory and saves the archive to the specified output path.
+
+    Args:
+        dir (str): The path to the directory to be zipped.
+        use_zipfile_library (bool): Whether to use zipfile library or shutil for zipping.
+
+    Usage:
+        from ultralytics.yolo.data.utils import zip_directory
+        zip_directory('/Users/glennjocher/Downloads/playground')
+
+        zip -r coco8-pose.zip coco8-pose
+    """
+    delete_dsstore(dir)
+    if use_zipfile_library:
+        dir = Path(dir)
+        with zipfile.ZipFile(dir.with_suffix('.zip'), 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            for file_path in dir.glob('**/*'):
+                if file_path.is_file():
+                    zip_file.write(file_path, file_path.relative_to(dir))
+    else:
+        import shutil
+        shutil.make_archive(dir, 'zip', dir)

@@ -67,6 +67,9 @@ the [Configuration](../usage/cfg.md) page.
         # Build a new model from YAML, transfer pretrained weights to it and start training
         yolo detect train data=coco128.yaml model=yolov8n.yaml pretrained=yolov8n.pt epochs=100 imgsz=640
         ```
+### Dataset format
+YOLO detection dataset format can be found in detail in the [Dataset Guide](../yolov5/train_custom_data.md).
+To convert your existing dataset from other formats( like COCO, VOC etc.) to YOLO format, please use [json2yolo tool](https://github.com/ultralytics/JSON2YOLO) by Ultralytics.
 
 ## Val
 
@@ -123,7 +126,7 @@ Use a trained YOLOv8n model to run predictions on images.
         yolo detect predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predict with custom model
         ```
 
-Read more details of `predict` in our [Predict](https://docs.ultralytics.com/modes/predict/) page.
+See full `predict` mode details in the [Predict](https://docs.ultralytics.com/modes/predict/) page.
 
 ## Export
 
@@ -151,7 +154,7 @@ Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
         ```
 
 Available YOLOv8 export formats are in the table below. You can predict or validate directly on exported models,
-i.e. `yolo predict model=yolov8n.onnx`.
+i.e. `yolo predict model=yolov8n.onnx`. Usage examples are shown for your model after export completes.
 
 | Format                                                             | `format` Argument | Model                     | Metadata |
 |--------------------------------------------------------------------|-------------------|---------------------------|----------|
@@ -167,3 +170,5 @@ i.e. `yolo predict model=yolov8n.onnx`.
 | [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`         | `yolov8n_edgetpu.tflite`  | ✅        |
 | [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n_web_model/`      | ✅        |
 | [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n_paddle_model/`   | ✅        |
+
+See full `export` details in the [Export](https://docs.ultralytics.com/modes/export/) page.

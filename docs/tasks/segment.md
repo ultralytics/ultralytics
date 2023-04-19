@@ -68,6 +68,13 @@ arguments see the [Configuration](../usage/cfg.md) page.
         yolo segment train data=coco128-seg.yaml model=yolov8n-seg.yaml pretrained=yolov8n-seg.pt epochs=100 imgsz=640
         ```
 
+### Dataset format
+YOLO segmentation dataset label format extends detection format with segment points.
+
+`cls x1 y1 x2 y2 p1 p2 ... pn`
+
+To convert your existing dataset from other formats( like COCO, VOC etc.) to YOLO format, please use [json2yolo tool](https://github.com/ultralytics/JSON2YOLO) by Ultralytics.
+
 ## Val
 
 Validate trained YOLOv8n-seg model accuracy on the COCO128-seg dataset. No argument need to passed as the `model`
@@ -127,7 +134,7 @@ Use a trained YOLOv8n-seg model to run predictions on images.
         yolo segment predict model=path/to/best.pt source='https://ultralytics.com/images/bus.jpg'  # predict with custom model
         ```
 
-Read more details of `predict` in our [Predict](https://docs.ultralytics.com/modes/predict/) page.
+See full `predict` mode details in the [Predict](https://docs.ultralytics.com/modes/predict/) page.
 
 ## Export
 
@@ -155,7 +162,7 @@ Export a YOLOv8n-seg model to a different format like ONNX, CoreML, etc.
         ```
 
 Available YOLOv8-seg export formats are in the table below. You can predict or validate directly on exported models,
-i.e. `yolo predict model=yolov8n-seg.onnx`.
+i.e. `yolo predict model=yolov8n-seg.onnx`. Usage examples are shown for your model after export completes.
 
 | Format                                                             | `format` Argument | Model                         | Metadata |
 |--------------------------------------------------------------------|-------------------|-------------------------------|----------|
@@ -172,4 +179,4 @@ i.e. `yolo predict model=yolov8n-seg.onnx`.
 | [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n-seg_web_model/`      | ✅        |
 | [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n-seg_paddle_model/`   | ✅        |
 
-
+See full `export` details in the [Export](https://docs.ultralytics.com/modes/export/) page.

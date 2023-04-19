@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 """
 Train a model on a dataset
 
@@ -8,7 +8,6 @@ Usage:
 import os
 import subprocess
 import time
-from collections import defaultdict
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
@@ -26,7 +25,7 @@ from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.yolo.utils import (DEFAULT_CFG, LOGGER, ONLINE, RANK, ROOT, SETTINGS, TQDM_BAR_FORMAT, __version__,
-                                    callbacks, colorstr, emojis, yaml_save)
+                                    callbacks, clean_url, colorstr, emojis, yaml_save)
 from ultralytics.yolo.utils.autobatch import check_train_batch_size
 from ultralytics.yolo.utils.checks import check_file, check_imgsz, print_args
 from ultralytics.yolo.utils.dist import ddp_cleanup, generate_ddp_command
@@ -72,7 +71,7 @@ class BaseTrainer:
         csv (Path): Path to results CSV file.
     """
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """
         Initializes the BaseTrainer class.
 
@@ -114,7 +113,7 @@ class BaseTrainer:
         if self.device.type == 'cpu':
             self.args.workers = 0  # faster CPU training as time dominated by inference, not dataloading
 
-        # Model and Dataloaders.
+        # Model and Dataset
         self.model = self.args.model
         try:
             if self.args.task == 'classify':
@@ -124,7 +123,7 @@ class BaseTrainer:
                 if 'yaml_file' in self.data:
                     self.args.data = self.data['yaml_file']  # for validating 'yolo train data=url.zip' usage
         except Exception as e:
-            raise RuntimeError(emojis(f"Dataset '{self.args.data}' error ❌ {e}")) from e
+            raise RuntimeError(emojis(f"Dataset '{clean_url(self.args.data)}' error ❌ {e}")) from e
 
         self.trainset, self.testset = self.get_dataset(self.data)
         self.ema = None
@@ -143,7 +142,7 @@ class BaseTrainer:
         self.plot_idx = [0, 1, 2]
 
         # Callbacks
-        self.callbacks = defaultdict(list, callbacks.default_callbacks)  # add callbacks
+        self.callbacks = _callbacks or callbacks.get_default_callbacks()
         if RANK in (-1, 0):
             callbacks.add_integration_callbacks(self)
 
@@ -160,11 +159,12 @@ class BaseTrainer:
         self.callbacks[event] = [callback]
 
     def run_callbacks(self, event: str):
+        """Run all existing callbacks associated with a particular event."""
         for callback in self.callbacks.get(event, []):
             callback(self)
 
     def train(self):
-        # Allow device='', device=None on Multi-GPU systems to default to device=0
+        """Allow device='', device=None on Multi-GPU systems to default to device=0."""
         if isinstance(self.args.device, int) or self.args.device:  # i.e. device=0 or device=[0,1,2,3]
             world_size = torch.cuda.device_count()
         elif torch.cuda.is_available():  # i.e. device=None or device=''
@@ -191,6 +191,7 @@ class BaseTrainer:
             self._do_train(world_size)
 
     def _setup_ddp(self, world_size):
+        """Initializes and sets the DistributedDataParallel parameters for training."""
         torch.cuda.set_device(RANK)
         self.device = torch.device('cuda', RANK)
         LOGGER.info(f'DDP settings: RANK {RANK}, WORLD_SIZE {world_size}, DEVICE {self.device}')
@@ -244,7 +245,7 @@ class BaseTrainer:
         self.scheduler = lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
         self.stopper, self.stop = EarlyStopping(patience=self.args.patience), False
 
-        # dataloaders
+        # Dataloaders
         batch_size = self.batch_size // world_size if world_size > 1 else self.batch_size
         self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=RANK, mode='train')
         if RANK in (-1, 0):
@@ -260,6 +261,7 @@ class BaseTrainer:
         self.run_callbacks('on_pretrain_routine_end')
 
     def _do_train(self, world_size=1):
+        """Train completed, evaluate and plot if specified by arguments."""
         if world_size > 1:
             self._setup_ddp(world_size)
 
@@ -307,7 +309,7 @@ class BaseTrainer:
                     xi = [0, nw]  # x interp
                     self.accumulate = max(1, np.interp(ni, xi, [1, self.args.nbs / self.batch_size]).round())
                     for j, x in enumerate(self.optimizer.param_groups):
-                        # bias lr falls from 0.1 to lr0, all other lrs rise from 0.0 to lr0
+                        # Bias lr falls from 0.1 to lr0, all other lrs rise from 0.0 to lr0
                         x['lr'] = np.interp(
                             ni, xi, [self.args.warmup_bias_lr if j == 0 else 0.0, x['initial_lr'] * self.lf(epoch)])
                         if 'momentum' in x:
@@ -393,6 +395,7 @@ class BaseTrainer:
         self.run_callbacks('teardown')
 
     def save_model(self):
+        """Save model checkpoints based on various conditions."""
         ckpt = {
             'epoch': self.epoch,
             'best_fitness': self.best_fitness,
@@ -437,6 +440,7 @@ class BaseTrainer:
         return ckpt
 
     def optimizer_step(self):
+        """Perform a single step of the training optimizer with gradient clipping and EMA update."""
         self.scaler.unscale_(self.optimizer)  # unscale gradients
         torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)  # clip gradients
         self.scaler.step(self.optimizer)
@@ -462,9 +466,11 @@ class BaseTrainer:
         return metrics, fitness
 
     def get_model(self, cfg=None, weights=None, verbose=True):
+        """Get model and raise NotImplementedError for loading cfg files."""
         raise NotImplementedError("This task trainer doesn't support loading cfg files")
 
     def get_validator(self):
+        """Returns a NotImplementedError when the get_validator function is called."""
         raise NotImplementedError('get_validator function not implemented in trainer')
 
     def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode='train'):
@@ -493,19 +499,24 @@ class BaseTrainer:
         self.model.names = self.data['names']
 
     def build_targets(self, preds, targets):
+        """Builds target tensors for training YOLO model."""
         pass
 
     def progress_string(self):
+        """Returns a string describing training progress."""
         return ''
 
     # TODO: may need to put these following functions into callback
     def plot_training_samples(self, batch, ni):
+        """Plots training samples during YOLOv5 training."""
         pass
 
     def plot_training_labels(self):
+        """Plots training labels for YOLO model."""
         pass
 
     def save_metrics(self, metrics):
+        """Saves training metrics to a CSV file."""
         keys, vals = list(metrics.keys()), list(metrics.values())
         n = len(metrics) + 1  # number of cols
         s = '' if self.csv.exists() else (('%23s,' * n % tuple(['epoch'] + keys)).rstrip(',') + '\n')  # header
@@ -513,9 +524,11 @@ class BaseTrainer:
             f.write(s + ('%23.5g,' * n % tuple([self.epoch] + vals)).rstrip(',') + '\n')
 
     def plot_metrics(self):
+        """Plot and display metrics visually."""
         pass
 
     def final_eval(self):
+        """Performs final evaluation and validation for object detection YOLO model."""
         for f in self.last, self.best:
             if f.exists():
                 strip_optimizer(f)  # strip optimizers
@@ -526,6 +539,7 @@ class BaseTrainer:
                     self.run_callbacks('on_fit_epoch_end')
 
     def check_resume(self):
+        """Check if resume checkpoint exists and update arguments accordingly."""
         resume = self.args.resume
         if resume:
             try:
@@ -540,6 +554,7 @@ class BaseTrainer:
         self.resume = resume
 
     def resume_training(self, ckpt):
+        """Resume YOLO training from given epoch and best fitness."""
         if ckpt is None:
             return
         best_fitness = 0.0
@@ -553,7 +568,7 @@ class BaseTrainer:
         if self.resume:
             assert start_epoch > 0, \
                 f'{self.args.model} training to {self.epochs} epochs is finished, nothing to resume.\n' \
-                f"Start a new training without --resume, i.e. 'yolo task=... mode=train model={self.args.model}'"
+                f"Start a new training without resuming, i.e. 'yolo train model={self.args.model}'"
             LOGGER.info(
                 f'Resuming training from {self.args.model} from epoch {start_epoch + 1} to {self.epochs} total epochs')
         if self.epochs < start_epoch:
@@ -622,7 +637,7 @@ def check_amp(model):
         model (nn.Module): A YOLOv8 model instance.
 
     Returns:
-        bool: Returns True if the AMP functionality works correctly with YOLOv8 model, else False.
+        (bool): Returns True if the AMP functionality works correctly with YOLOv8 model, else False.
 
     Raises:
         AssertionError: If the AMP checks fail, indicating anomalies with the AMP functionality on the system.
@@ -632,10 +647,10 @@ def check_amp(model):
         return False  # AMP only used on CUDA devices
 
     def amp_allclose(m, im):
-        # All close FP32 vs AMP results
-        a = m(im, device=device, verbose=False)[0].boxes.boxes  # FP32 inference
+        """All close FP32 vs AMP results."""
+        a = m(im, device=device, verbose=False)[0].boxes.data  # FP32 inference
         with torch.cuda.amp.autocast(True):
-            b = m(im, device=device, verbose=False)[0].boxes.boxes  # AMP inference
+            b = m(im, device=device, verbose=False)[0].boxes.data  # AMP inference
         del m
         return a.shape == b.shape and torch.allclose(a, b.float(), atol=0.5)  # close to 0.5 absolute tolerance
 

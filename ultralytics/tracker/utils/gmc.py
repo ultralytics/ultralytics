@@ -1,9 +1,8 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import copy
 
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
 
 from ultralytics.yolo.utils import LOGGER
@@ -12,6 +11,7 @@ from ultralytics.yolo.utils import LOGGER
 class GMC:
 
     def __init__(self, method='sparseOptFlow', downscale=2, verbose=None):
+        """Initialize a video tracker with specified parameters."""
         super().__init__()
 
         self.method = method
@@ -70,6 +70,7 @@ class GMC:
         self.initializedFirstFrame = False
 
     def apply(self, raw_frame, detections=None):
+        """Apply object detection on a raw frame using specified method."""
         if self.method in ['orb', 'sift']:
             return self.applyFeatures(raw_frame, detections)
         elif self.method == 'ecc':
@@ -84,8 +85,7 @@ class GMC:
             return np.eye(2, 3)
 
     def applyEcc(self, raw_frame, detections=None):
-
-        # Initialize
+        """Initialize."""
         height, width, _ = raw_frame.shape
         frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY)
         H = np.eye(2, 3, dtype=np.float32)
@@ -117,8 +117,7 @@ class GMC:
         return H
 
     def applyFeatures(self, raw_frame, detections=None):
-
-        # Initialize
+        """Initialize."""
         height, width, _ = raw_frame.shape
         frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY)
         H = np.eye(2, 3)
@@ -130,7 +129,7 @@ class GMC:
             width = width // self.downscale
             height = height // self.downscale
 
-        # find the keypoints
+        # Find the keypoints
         mask = np.zeros_like(frame)
         # mask[int(0.05 * height): int(0.95 * height), int(0.05 * width): int(0.95 * width)] = 255
         mask[int(0.02 * height):int(0.98 * height), int(0.02 * width):int(0.98 * width)] = 255
@@ -141,7 +140,7 @@ class GMC:
 
         keypoints = self.detector.detect(frame, mask)
 
-        # compute the descriptors
+        # Compute the descriptors
         keypoints, descriptors = self.extractor.compute(frame, keypoints)
 
         # Handle first frame
@@ -205,24 +204,25 @@ class GMC:
         currPoints = np.array(currPoints)
 
         # Draw the keypoint matches on the output image
-        if 0:
-            matches_img = np.hstack((self.prevFrame, frame))
-            matches_img = cv2.cvtColor(matches_img, cv2.COLOR_GRAY2BGR)
-            W = np.size(self.prevFrame, 1)
-            for m in goodMatches:
-                prev_pt = np.array(self.prevKeyPoints[m.queryIdx].pt, dtype=np.int_)
-                curr_pt = np.array(keypoints[m.trainIdx].pt, dtype=np.int_)
-                curr_pt[0] += W
-                color = np.random.randint(0, 255, 3)
-                color = (int(color[0]), int(color[1]), int(color[2]))
-
-                matches_img = cv2.line(matches_img, prev_pt, curr_pt, tuple(color), 1, cv2.LINE_AA)
-                matches_img = cv2.circle(matches_img, prev_pt, 2, tuple(color), -1)
-                matches_img = cv2.circle(matches_img, curr_pt, 2, tuple(color), -1)
-
-            plt.figure()
-            plt.imshow(matches_img)
-            plt.show()
+        # if False:
+        #     import matplotlib.pyplot as plt
+        #     matches_img = np.hstack((self.prevFrame, frame))
+        #     matches_img = cv2.cvtColor(matches_img, cv2.COLOR_GRAY2BGR)
+        #     W = np.size(self.prevFrame, 1)
+        #     for m in goodMatches:
+        #         prev_pt = np.array(self.prevKeyPoints[m.queryIdx].pt, dtype=np.int_)
+        #         curr_pt = np.array(keypoints[m.trainIdx].pt, dtype=np.int_)
+        #         curr_pt[0] += W
+        #         color = np.random.randint(0, 255, 3)
+        #         color = (int(color[0]), int(color[1]), int(color[2]))
+        #
+        #         matches_img = cv2.line(matches_img, prev_pt, curr_pt, tuple(color), 1, cv2.LINE_AA)
+        #         matches_img = cv2.circle(matches_img, prev_pt, 2, tuple(color), -1)
+        #         matches_img = cv2.circle(matches_img, curr_pt, 2, tuple(color), -1)
+        #
+        #     plt.figure()
+        #     plt.imshow(matches_img)
+        #     plt.show()
 
         # Find rigid matrix
         if (np.size(prevPoints, 0) > 4) and (np.size(prevPoints, 0) == np.size(prevPoints, 0)):
@@ -243,7 +243,7 @@ class GMC:
         return H
 
     def applySparseOptFlow(self, raw_frame, detections=None):
-        # Initialize
+        """Initialize."""
         # t0 = time.time()
         height, width, _ = raw_frame.shape
         frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY)
@@ -254,7 +254,7 @@ class GMC:
             # frame = cv2.GaussianBlur(frame, (3, 3), 1.5)
             frame = cv2.resize(frame, (width // self.downscale, height // self.downscale))
 
-        # find the keypoints
+        # Find the keypoints
         keypoints = cv2.goodFeaturesToTrack(frame, mask=None, **self.feature_params)
 
         # Handle first frame
@@ -268,10 +268,10 @@ class GMC:
 
             return H
 
-        # find correspondences
+        # Find correspondences
         matchedKeypoints, status, err = cv2.calcOpticalFlowPyrLK(self.prevFrame, frame, self.prevKeyPoints, None)
 
-        # leave good correspondences only
+        # Leave good correspondences only
         prevPoints = []
         currPoints = []
 
@@ -305,6 +305,7 @@ class GMC:
         return H
 
     def applyFile(self, raw_frame, detections=None):
+        """Return the homography matrix based on the GCPs in the next line of the input GMC file."""
         line = self.gmcFile.readline()
         tokens = line.split('\t')
         H = np.eye(2, 3, dtype=np.float_)

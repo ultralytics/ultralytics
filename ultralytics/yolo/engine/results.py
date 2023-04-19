@@ -97,11 +97,6 @@ class Results(SimpleClass):
         self.path = path
         self._keys = ('boxes', 'masks', 'probs', 'keypoints')
 
-    def pandas(self):
-        """Convert the results to a pandas DataFrame."""
-        pass
-        # TODO masks.pandas + boxes.pandas + cls.pandas
-
     def __getitem__(self, idx):
         """Return a Results object for the specified index."""
         r = self.new()
@@ -315,6 +310,28 @@ class Results(SimpleClass):
                          file=save_dir / self.names[int(d.cls)] / f'{file_name.stem}.jpg',
                          BGR=True)
 
+    def pandas(self):
+        """Convert the object to a pandas DataFrame (not yet implemented)."""
+        LOGGER.warning("WARNING ⚠️ 'Results.pandas' method is not yet implemented.")
+
+    def tojson(self):
+        """Convert the object to JSON format."""
+        import json
+
+        # Create list of detection dictionaries
+        detections = []
+        data = self.boxes.data.cpu().tolist()
+        for row in data:
+            # row = [round(x,5) for x in row]  # round to 5 decimals
+            box = {"x1": row[0], "y1": row[1], "x2": row[2], "y2": row[3]}
+            conf = row[4]
+            id = int(row[5])
+            name = self.names[id]
+            detections.append({'box': box, 'confidence': conf, 'class': id, 'name': name})
+
+        # Convert detections to JSON
+        return json.dumps(detections, indent=2)
+
 
 class Boxes(BaseTensor):
     """
@@ -397,10 +414,6 @@ class Boxes(BaseTensor):
         """Return the boxes in xywh format normalized by original image size."""
         return self.xywh / self.orig_shape[[1, 0, 1, 0]]
 
-    def pandas(self):
-        """Convert the object to a pandas DataFrame (not yet implemented)."""
-        LOGGER.info('results.pandas() method not yet implemented')
-
     @property
     def boxes(self):
         """Return the raw bboxes tensor (deprecated)."""
@@ -466,3 +479,7 @@ class Masks(BaseTensor):
         """Return the raw masks tensor (deprecated)."""
         LOGGER.warning("WARNING ⚠️ 'Masks.masks' is deprecated. Use 'Masks.data' instead.")
         return self.data
+
+    def pandas(self):
+        """Convert the object to a pandas DataFrame (not yet implemented)."""
+        LOGGER.warning("WARNING ⚠️ 'Masks.pandas' method is not yet implemented.")

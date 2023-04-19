@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn as nn
-from sklearn.metrics import precision_recall_fscore_support
 
 from ultralytics.yolo.utils import LOGGER, SimpleClass, TryExcept, plt_settings
 
@@ -514,6 +513,71 @@ def ap_per_class(tp, conf, pred_cls, target_cls, plot=False, save_dir=Path(), na
     return tp, fp, p, r, f1, ap, unique_classes.astype(int)
 
 
+def compute_metrics(y_true, y_pred, average='macro'):
+    """
+    Compute precision, recall, F-measure and support for each class.
+    Args:
+        y_true: 1d array-like, Ground truth (correct) target values.
+        y_pred: 1d array-like, Estimated targets as returned by a classifier.
+        average: average function, can be one of 'micro', 'macro', 'weighted' or 'samples'. Currently only 'macro'
+            is supported.
+
+    Returns:
+        -------
+        average precision: float
+            Average Precision score.
+        average recall: float
+            Average Recall score.
+        average f1_score: float
+            Average F-beta score.
+        precision by class: array of float, shape = [n_unique_labels]
+            Precision score by class.
+        recall by class: array of float, shape = [n_unique_labels]
+            Recall score by class.
+        f1_score by class: array of float, shape = [n_unique_labels]
+            F1 score by class.
+
+    """
+    if average != 'macro':
+        LOGGER.warning(f"The average function [{average}] is not supported. Use macro for instead. ")
+        average = 'macro'
+    unique_classes = set(y_true).union(set(y_pred))
+
+    # Calculate precision, recall, f1 score for each class
+    precision = {}
+    recall = {}
+    f1 = {}
+    for c in unique_classes:
+        true_positives = sum(1 for true, pred in zip(y_true, y_pred) if true == c and pred == c)
+        false_positives = sum(1 for true, pred in zip(y_true, y_pred) if true != c and pred == c)
+        false_negatives = sum(1 for true, pred in zip(y_true, y_pred) if true == c and pred != c)
+
+        if true_positives + false_positives == 0:
+            precision[c] = 0
+        else:
+            precision[c] = true_positives / (true_positives + false_positives)
+
+        if true_positives + false_negatives == 0:
+            recall[c] = 0
+        else:
+            recall[c] = true_positives / (true_positives + false_negatives)
+
+        if precision[c] + recall[c] == 0:
+            f1[c] = 0
+        else:
+            f1[c] = 2 * (precision[c] * recall[c]) / (precision[c] + recall[c])
+
+    if average == 'macro':
+        # Calculate macro-average precision, recall, f1 score
+        macro_precision = sum(precision.values()) / len(precision)
+        macro_recall = sum(recall.values()) / len(recall)
+        macro_f1 = sum(f1.values()) / len(f1)
+
+        return macro_precision, macro_recall, macro_f1, precision, recall, f1
+    else:
+        return 0, 0, 0, 0, 0
+
+
 class Metric(SimpleClass):
     """
         Class for computing evaluation metrics for YOLOv8 model.
@@ -951,6 +1015,7 @@ class ClassifyMetrics(SimpleClass):
         self.top1 = 0
         self.top5 = 0
         self.precision, self.recall, self.f1_score = 0, 0, 0
+        self.cls_precision, self.cls_recall, self.cls_f1_score = {}, {}, {}
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
         self.average = average
 
@@ -963,10 +1028,8 @@ class ClassifyMetrics(SimpleClass):
 
         y_pred = pred[:, 0].cpu().numpy()
         y_true = targets.cpu().numpy()
-        self.precision, self.recall, self.f1_score, _ = precision_recall_fscore_support(y_true,
-                                                                                        y_pred,
-                                                                                        average=self.average,
-                                                                                        zero_division=0)
+        self.precision, self.recall, self.f1_score, self.cls_precision, self.cls_recall, self.cls_f1_score \
+            = compute_metrics(y_true, y_pred)
 
     @property
     def fitness(self):

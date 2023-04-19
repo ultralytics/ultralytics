@@ -323,7 +323,7 @@ class Results(SimpleClass):
         data = self.boxes.data.cpu().tolist()
         for row in data:
             # row = [round(x,5) for x in row]  # round to 5 decimals
-            box = {"x1": row[0], "y1": row[1], "x2": row[2], "y2": row[3]}
+            box = {'x1': row[0], 'y1': row[1], 'x2': row[2], 'y2': row[3]}
             conf = row[4]
             id = int(row[5])
             name = self.names[id]

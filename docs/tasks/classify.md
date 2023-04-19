@@ -69,6 +69,15 @@ see the [Configuration](../usage/cfg.md) page.
         yolo classify train data=mnist160 model=yolov8n-cls.yaml pretrained=yolov8n-cls.pt epochs=100 imgsz=64
         ```
 
+### Dataset format
+The YOLO classification dataset format is same as the torchvision format. Each class of images has its own folder and you have to simply pass the path of the dataset folder, i.e, `yolo classify train data="path/to/dataset"`
+```
+dataset/
+├── class1/
+├── class2/
+├── class3/
+├── ...
+```
 ## Val
 
 Validate trained YOLOv8n-cls model accuracy on the MNIST160 dataset. No argument need to passed as the `model` retains

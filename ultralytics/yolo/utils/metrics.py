@@ -517,8 +517,8 @@ def compute_metrics(y_true, y_pred, average='macro'):
     """
     Compute precision, recall, F-measure and support for each class.
     Args:
-        y_true: 1d array-like, Ground truth (correct) target values.
-        y_pred: 1d array-like, Estimated targets as returned by a classifier.
+        y_true: 1d array-like, ground truth (correct) target values.
+        y_pred: 1d array-like, estimated targets as returned by a classifier.
         average: average function, can be one of 'micro', 'macro', 'weighted' or 'samples'. Currently only 'macro'
             is supported.
 
@@ -541,6 +541,7 @@ def compute_metrics(y_true, y_pred, average='macro'):
     if average != 'macro':
         LOGGER.warning(f'The average function [{average}] is not supported. Use macro for instead. ')
         average = 'macro'
+    # Get union of classes from y_ture and y_pred
     unique_classes = set(y_true).union(set(y_pred))
 
     # Calculate precision, recall, f1 score for each class
@@ -575,6 +576,7 @@ def compute_metrics(y_true, y_pred, average='macro'):
 
         return macro_precision, macro_recall, macro_f1, precision, recall, f1
     else:
+        # If the average is not supported, return 0 for each metrics
         return 0, 0, 0, 0, 0
 
 

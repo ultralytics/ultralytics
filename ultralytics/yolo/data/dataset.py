@@ -112,7 +112,7 @@ class YOLODataset(BaseDataset):
             LOGGER.info('\n'.join(msgs))
         if nf == 0:
             LOGGER.warning(f'{self.prefix}WARNING ⚠️ No labels found in {path}. {HELP_URL}')
-        x['hash'] = get_hash(self.label_files + self.im_files)
+        x['hash'] = get_hash(self.label_files + self.im_files + [Path(__file__).parent / "utils.py", __file__])
         x['results'] = nf, nm, ne, nc, len(self.im_files)
         x['msgs'] = msgs  # warnings
         x['version'] = self.cache_version  # cache version
@@ -136,7 +136,7 @@ class YOLODataset(BaseDataset):
             cache, exists = np.load(str(cache_path), allow_pickle=True).item(), True  # load dict
             gc.enable()
             assert cache['version'] == self.cache_version  # matches current version
-            assert cache['hash'] == get_hash(self.label_files + self.im_files)  # identical hash
+            assert cache['hash'] == get_hash(self.label_files + self.im_files + [Path(__file__).parent / "utils.py", __file__])  # identical hash
         except (FileNotFoundError, AssertionError, AttributeError):
             cache, exists = self.cache_labels(cache_path), False  # run cache ops
 

@@ -55,8 +55,6 @@ def on_train_end(trainer):
         root_dir = Path(__file__).resolve().parents[3]
         run.log_artifact(trainer.last)
         run.log_artifact(trainer.best)
-        model_uri = f'runs:/{run_id}/'
-        run.register_model(model_uri, experiment_name)
         run.pyfunc.log_model(artifact_path=experiment_name,
                              code_path=[str(root_dir)],
                              artifacts={'model_path': str(trainer.save_dir)},

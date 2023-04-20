@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 import ast
 import contextlib
 import json
@@ -21,11 +21,11 @@ from ultralytics.yolo.utils.ops import xywh2xyxy
 
 
 def check_class_names(names):
-    # Check class names. Map imagenet class codes to human-readable names if required. Convert lists to dicts.
+    """Check class names. Map imagenet class codes to human-readable names if required. Convert lists to dicts."""
     if isinstance(names, list):  # names is a list
         names = dict(enumerate(names))  # convert to dict
     if isinstance(names, dict):
-        # convert 1) string keys to int, i.e. '0' to 0, and non-string values to strings, i.e. True to 'True'
+        # Convert 1) string keys to int, i.e. '0' to 0, and non-string values to strings, i.e. True to 'True'
         names = {int(k): str(v) for k, v in names.items()}
         n = len(names)
         if max(names.keys()) >= n:
@@ -202,6 +202,7 @@ class AutoBackend(nn.Module):
             from ultralytics.yolo.engine.exporter import gd_outputs
 
             def wrap_frozen_graph(gd, inputs, outputs):
+                """Wrap frozen graphs for deployment."""
                 x = tf.compat.v1.wrap_function(lambda: tf.compat.v1.import_graph_def(gd, name=''), [])  # wrapped
                 ge = x.graph.as_graph_element
                 return x.prune(tf.nest.map_structure(ge, inputs), tf.nest.map_structure(ge, outputs))
@@ -229,7 +230,7 @@ class AutoBackend(nn.Module):
             interpreter.allocate_tensors()  # allocate
             input_details = interpreter.get_input_details()  # inputs
             output_details = interpreter.get_output_details()  # outputs
-            # load metadata
+            # Load metadata
             with contextlib.suppress(zipfile.BadZipFile):
                 with zipfile.ZipFile(w, 'r') as model:
                     meta_file = model.namelist()[0]
@@ -427,6 +428,7 @@ class AutoBackend(nn.Module):
 
     @staticmethod
     def _apply_default_class_names(data):
+        """Applies default class names to an input YAML file or returns numerical class names."""
         with contextlib.suppress(Exception):
             return yaml_load(check_yaml(data))['names']
         return {i: f'class{i}' for i in range(999)}  # return default if above errors

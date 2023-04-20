@@ -1,8 +1,7 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import os
 import platform
-import shutil
 import sys
 import threading
 import time
@@ -21,28 +20,6 @@ HELP_MSG = 'If this issue persists please visit https://github.com/ultralytics/h
 HUB_API_ROOT = os.environ.get('ULTRALYTICS_HUB_API', 'https://api.ultralytics.com')
 
 
-def check_dataset_disk_space(url='https://ultralytics.com/assets/coco128.zip', sf=2.0):
-    """
-    Check if there is sufficient disk space to download and store a dataset.
-
-    Args:
-        url (str, optional): The URL to the dataset file. Defaults to 'https://ultralytics.com/assets/coco128.zip'.
-        sf (float, optional): Safety factor, the multiplier for the required free space. Defaults to 2.0.
-
-    Returns:
-        bool: True if there is sufficient disk space, False otherwise.
-    """
-    gib = 1 << 30  # bytes per GiB
-    data = int(requests.head(url).headers['Content-Length']) / gib  # dataset size (GB)
-    total, used, free = (x / gib for x in shutil.disk_usage('/'))  # bytes
-    LOGGER.info(f'{PREFIX}{data:.3f} GB dataset, {free:.1f}/{total:.1f} GB free disk space')
-    if data * sf < free:
-        return True  # sufficient space
-    LOGGER.warning(f'{PREFIX}WARNING: Insufficient free disk space {free:.1f} GB < {data * sf:.3f} GB required, '
-                   f'training cancelled ❌. Please free {data * sf - free:.1f} GB additional disk space and try again.')
-    return False  # insufficient space
-
-
 def request_with_credentials(url: str) -> any:
     """
     Make an AJAX request with cookies attached in a Google Colab environment.
@@ -51,7 +28,7 @@ def request_with_credentials(url: str) -> any:
         url (str): The URL to make the request to.
 
     Returns:
-        any: The response data from the AJAX request.
+        (any): The response data from the AJAX request.
 
     Raises:
         OSError: If the function is not run in a Google Colab environment.
@@ -87,11 +64,14 @@ def requests_with_progress(method, url, **kwargs):
     Args:
         method (str): The HTTP method to use (e.g. 'GET', 'POST').
         url (str): The URL to send the request to.
-        progress (bool, optional): Whether to display a progress bar. Defaults to False.
-        **kwargs: Additional keyword arguments to pass to the underlying `requests.request` function.
+        **kwargs (dict): Additional keyword arguments to pass to the underlying `requests.request` function.
 
     Returns:
-        requests.Response: The response from the HTTP request.
+        (requests.Response): The response object from the HTTP request.
+
+    Note:
+        If 'progress' is set to True, the progress bar will display the download progress
+        for responses with a known content length.
     """
     progress = kwargs.pop('progress', False)
     if not progress:
@@ -118,15 +98,16 @@ def smart_request(method, url, retry=3, timeout=30, thread=True, code=-1, verbos
         code (int, optional): An identifier for the request, used for logging purposes. Default is -1.
         verbose (bool, optional): A flag to determine whether to print out to console or not. Default is True.
         progress (bool, optional): Whether to show a progress bar during the request. Default is False.
-        **kwargs: Keyword arguments to be passed to the requests function specified in method.
+        **kwargs (dict): Keyword arguments to be passed to the requests function specified in method.
 
     Returns:
-        requests.Response: The HTTP response object. If the request is executed in a separate thread, returns None.
+        (requests.Response): The HTTP response object. If the request is executed in a separate thread, returns None.
     """
     retry_codes = (408, 500)  # retry only these codes
 
     @TryExcept(verbose=verbose)
     def func(func_method, func_url, **func_kwargs):
+        """Make HTTP requests with retries and timeouts, with optional progress tracking."""
         r = None  # response
         t0 = time.time()  # initial time for timer
         for i in range(retry + 1):

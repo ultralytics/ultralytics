@@ -139,7 +139,7 @@ predicts the classes and locations of objects in the input images or videos.
         results = model.predict(source=0, stream=True)
 
         for result in results:
-            # detection
+            # Detection
             result.boxes.xyxy   # box with xyxy format, (N, 4)
             result.boxes.xywh   # box with xywh format, (N, 4)
             result.boxes.xyxyn  # box with xyxy format but normalized, (N, 4)
@@ -147,12 +147,12 @@ predicts the classes and locations of objects in the input images or videos.
             result.boxes.conf   # confidence score, (N, 1)
             result.boxes.cls    # cls, (N, 1)
 
-            # segmentation
-            result.masks.masks     # masks, (N, H, W)
+            # Segmentation
+            result.masks.data      # masks, (N, H, W)
             result.masks.xy        # x,y segments (pixels), List[segment] * N
             result.masks.xyn       # x,y segments (normalized), List[segment] * N
 
-            # classification
+            # Classification
             result.probs     # cls prob, (num_class, )
 
         # Each result is composed of torch.Tensor by default, 

@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import sys
 from pathlib import Path
@@ -35,6 +35,7 @@ class YOLO:
 
     Args:
         model (str, Path): Path to the model file to load or create.
+        task (Any, optional): Task type for the YOLO model. Defaults to None.
 
     Attributes:
         predictor (Any): The predictor object.
@@ -76,7 +77,6 @@ class YOLO:
         Args:
             model (Union[str, Path], optional): Path or name of the model to load or create. Defaults to 'yolov8n.pt'.
             task (Any, optional): Task type for the YOLO model. Defaults to None.
-
         """
         self.callbacks = callbacks.get_default_callbacks()
         self.predictor = None  # reuse predictor
@@ -107,16 +107,19 @@ class YOLO:
             self._load(model, task)
 
     def __call__(self, source=None, stream=False, **kwargs):
+        """Calls the 'predict' function with given arguments to perform object detection."""
         return self.predict(source, stream, **kwargs)
 
     def __getattr__(self, attr):
+        """Raises error if object has no requested attribute."""
         name = self.__class__.__name__
         raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
     @staticmethod
     def is_hub_model(model):
+        """Check if the provided model is a HUB model."""
         return any((
-            model.startswith('https://hub.ultralytics.com/models/'),
+            model.startswith('https://hub.ultra'),  # i.e. https://hub.ultralytics.com/models/MODEL_ID
             [len(x) for x in model.split('_')] == [42, 20],  # APIKEY_MODELID
             len(model) == 20 and not Path(model).exists() and all(x not in model for x in './\\')))  # MODELID
 
@@ -209,6 +212,7 @@ class YOLO:
         self.model.info(verbose=verbose)
 
     def fuse(self):
+        """Fuse PyTorch Conv2d and BatchNorm2d layers."""
         self._check_is_pytorch_model()
         self.model.fuse()
 
@@ -273,7 +277,7 @@ class YOLO:
     @smart_inference_mode()
     def val(self, data=None, **kwargs):
         """
-        Validate a model on a given dataset .
+        Validate a model on a given dataset.
 
         Args:
             data (str): The dataset to validate on. Accepts all formats accepted by yolo
@@ -346,7 +350,6 @@ class YOLO:
             if any(kwargs):
                 LOGGER.warning('WARNING ⚠️ using HUB training arguments, ignoring local training arguments.')
             kwargs = self.session.train_args
-            self.session.check_disk_space()
         check_pip_update_available()
         overrides = self.overrides.copy()
         overrides.update(kwargs)
@@ -365,7 +368,7 @@ class YOLO:
             self.model = self.trainer.model
         self.trainer.hub_session = self.session  # attach optional HUB session
         self.trainer.train()
-        # update model and cfg after training
+        # Update model and cfg after training
         if RANK in (-1, 0):
             self.model, _ = attempt_load_one_weight(str(self.trainer.best))
             self.overrides = self.model.args
@@ -381,38 +384,119 @@ class YOLO:
         self._check_is_pytorch_model()
         self.model.to(device)
 
+    def tune(self,
+             data: str,
+             space: dict = None,
+             grace_period: int = 10,
+             gpu_per_trial: int = None,
+             max_samples: int = 10,
+             train_args: dict = {}):
+        """
+        Runs hyperparameter tuning using Ray Tune.
+
+        Args:
+            data (str): The dataset to run the tuner on.
+            space (dict, optional): The hyperparameter search space. Defaults to None.
+            grace_period (int, optional): The grace period in epochs of the ASHA scheduler. Defaults to 10.
+            gpu_per_trial (int, optional): The number of GPUs to allocate per trial. Defaults to None.
+            max_samples (int, optional): The maximum number of trials to run. Defaults to 10.
+            train_args (dict, optional): Additional arguments to pass to the `train()` method. Defaults to {}.
+
+        Returns:
+            (dict): A dictionary containing the results of the hyperparameter search.
+
+        Raises:
+            ModuleNotFoundError: If Ray Tune is not installed.
+        """
+
+        try:
+            from ultralytics.yolo.utils.tuner import (ASHAScheduler, RunConfig, WandbLoggerCallback, default_space,
+                                                      task_metric_map, tune)
+        except ImportError:
+            raise ModuleNotFoundError("Install Ray Tune: `pip install 'ray[tune]'`")
+
+        try:
+            import wandb
+            from wandb import __version__  # noqa
+        except ImportError:
+            wandb = False
+
+        def _tune(config):
+            """
+            Trains the YOLO model with the specified hyperparameters and additional arguments.
+
+            Args:
+                config (dict): A dictionary of hyperparameters to use for training.
+
+            Returns:
+                None.
+            """
+            self._reset_callbacks()
+            config.update(train_args)
+            self.train(**config)
+
+        if not space:
+            LOGGER.warning('WARNING: search space not provided. Using default search space')
+            space = default_space
+
+        space['data'] = data
+
+        # Define the trainable function with allocated resources
+        trainable_with_resources = tune.with_resources(_tune, {'cpu': 8, 'gpu': gpu_per_trial if gpu_per_trial else 0})
+
+        # Define the ASHA scheduler for hyperparameter search
+        asha_scheduler = ASHAScheduler(time_attr='epoch',
+                                       metric=task_metric_map[self.task],
+                                       mode='max',
+                                       max_t=train_args.get('epochs') or 100,
+                                       grace_period=grace_period,
+                                       reduction_factor=3)
+
+        # Define the callbacks for the hyperparameter search
+        tuner_callbacks = [WandbLoggerCallback(project='yolov8_tune') if wandb else None]
+
+        # Create the Ray Tune hyperparameter search tuner
+        tuner = tune.Tuner(trainable_with_resources,
+                           param_space=space,
+                           tune_config=tune.TuneConfig(scheduler=asha_scheduler, num_samples=max_samples),
+                           run_config=RunConfig(callbacks=tuner_callbacks, local_dir='./runs'))
+
+        # Run the hyperparameter search
+        tuner.fit()
+
+        # Return the results of the hyperparameter search
+        return tuner.get_results()
+
     @property
     def names(self):
-        """
-         Returns class names of the loaded model.
-        """
+        """Returns class names of the loaded model."""
         return self.model.names if hasattr(self.model, 'names') else None
 
     @property
     def device(self):
-        """
-        Returns device if PyTorch model
-        """
+        """Returns device if PyTorch model."""
         return next(self.model.parameters()).device if isinstance(self.model, nn.Module) else None
 
     @property
     def transforms(self):
-        """
-         Returns transform of the loaded model.
-        """
+        """Returns transform of the loaded model."""
         return self.model.transforms if hasattr(self.model, 'transforms') else None
 
     def add_callback(self, event: str, func):
-        """
-        Add callback
-        """
+        """Add a callback."""
         self.callbacks[event].append(func)
+
+    def clear_callback(self, event: str):
+        """Clear all event callbacks."""
+        self.callbacks[event] = []
 
     @staticmethod
     def _reset_ckpt_args(args):
+        """Reset arguments when loading a PyTorch model."""
         include = {'imgsz', 'data', 'task', 'single_cls'}  # only remember these arguments when loading a PyTorch model
         return {k: v for k, v in args.items() if k in include}
 
     def _reset_callbacks(self):
+        """Reset all registered callbacks."""
         for event in callbacks.default_callbacks.keys():
             self.callbacks[event] = [callbacks.default_callbacks[event][0]]

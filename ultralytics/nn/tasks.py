@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import contextlib
 from copy import deepcopy
@@ -167,7 +167,8 @@ class BaseModel(nn.Module):
 
 
 class DetectionModel(BaseModel):
-    # YOLOv8 detection model
+    """YOLOv8 detection model."""
+
     def __init__(self, cfg='yolov8n.yaml', ch=3, nc=None, verbose=True):  # model, input channels, number of classes
         super().__init__()
         self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
@@ -198,11 +199,13 @@ class DetectionModel(BaseModel):
             LOGGER.info('')
 
     def forward(self, x, augment=False, profile=False, visualize=False):
+        """Run forward pass on input image(s) with optional augmentation and profiling."""
         if augment:
             return self._forward_augment(x)  # augmented inference, None
         return self._forward_once(x, profile, visualize)  # single-scale inference, train
 
     def _forward_augment(self, x):
+        """Perform augmentations on input image x and return augmented inference and train outputs."""
         img_size = x.shape[-2:]  # height, width
         s = [1, 0.83, 0.67]  # scales
         f = [None, 3, None]  # flips (2-ud, 3-lr)
@@ -218,7 +221,7 @@ class DetectionModel(BaseModel):
 
     @staticmethod
     def _descale_pred(p, flips, scale, img_size, dim=1):
-        # de-scale predictions following augmented inference (inverse operation)
+        """De-scale predictions following augmented inference (inverse operation)."""
         p[:, :4] /= scale  # de-scale
         x, y, wh, cls = p.split((1, 1, 2, p.shape[dim] - 4), dim)
         if flips == 2:
@@ -228,7 +231,7 @@ class DetectionModel(BaseModel):
         return torch.cat((x, y, wh, cls), dim)
 
     def _clip_augmented(self, y):
-        # Clip YOLOv5 augmented inference tails
+        """Clip YOLOv5 augmented inference tails."""
         nl = self.model[-1].nl  # number of detection layers (P3-P5)
         g = sum(4 ** x for x in range(nl))  # grid points
         e = 1  # exclude layer count
@@ -240,17 +243,22 @@ class DetectionModel(BaseModel):
 
 
 class SegmentationModel(DetectionModel):
-    # YOLOv8 segmentation model
+    """YOLOv8 segmentation model."""
+
     def __init__(self, cfg='yolov8n-seg.yaml', ch=3, nc=None, verbose=True):
+        """Initialize YOLOv8 segmentation model with given config and parameters."""
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
     def _forward_augment(self, x):
+        """Undocumented function."""
         raise NotImplementedError(emojis('WARNING ⚠️ SegmentationModel has not supported augment inference yet!'))
 
 
 class PoseModel(DetectionModel):
-    # YOLOv8 pose model
+    """YOLOv8 pose model."""
+
     def __init__(self, cfg='yolov8n-pose.yaml', ch=3, nc=None, data_kpt_shape=(None, None), verbose=True):
+        """Initialize YOLOv8 Pose model."""
         if not isinstance(cfg, dict):
             cfg = yaml_model_load(cfg)  # load model YAML
         if any(data_kpt_shape) and list(data_kpt_shape) != list(cfg['kpt_shape']):
@@ -260,7 +268,8 @@ class PoseModel(DetectionModel):
 
 
 class ClassificationModel(BaseModel):
-    # YOLOv8 classification model
+    """YOLOv8 classification model."""
+
     def __init__(self,
                  cfg=None,
                  model=None,
@@ -272,7 +281,7 @@ class ClassificationModel(BaseModel):
         self._from_detection_model(model, nc, cutoff) if model is not None else self._from_yaml(cfg, ch, nc, verbose)
 
     def _from_detection_model(self, model, nc=1000, cutoff=10):
-        # Create a YOLOv5 classification model from a YOLOv5 detection model
+        """Create a YOLOv5 classification model from a YOLOv5 detection model."""
         from ultralytics.nn.autobackend import AutoBackend
         if isinstance(model, AutoBackend):
             model = model.model  # unwrap DetectMultiBackend
@@ -288,6 +297,7 @@ class ClassificationModel(BaseModel):
         self.nc = nc
 
     def _from_yaml(self, cfg, ch, nc, verbose):
+        """Set YOLOv8 model configurations and define the model architecture."""
         self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)  # cfg dict
 
         # Define model
@@ -304,7 +314,7 @@ class ClassificationModel(BaseModel):
 
     @staticmethod
     def reshape_outputs(model, nc):
-        # Update a TorchVision classification model to class count 'n' if required
+        """Update a TorchVision classification model to class count 'n' if required."""
         name, m = list((model.model if hasattr(model, 'model') else model).named_children())[-1]  # last module
         if isinstance(m, Classify):  # YOLO Classify() head
             if m.linear.out_features != nc:
@@ -337,7 +347,7 @@ def torch_safe_load(weight):
         weight (str): The file path of the PyTorch model.
 
     Returns:
-        The loaded PyTorch model.
+        (dict): The loaded PyTorch model.
     """
     from ultralytics.yolo.utils.downloads import attempt_download_asset
 
@@ -363,7 +373,7 @@ def torch_safe_load(weight):
 
 
 def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
-    # Loads an ensemble of models weights=[a,b,c] or a single model weights=[a] or weights=a
+    """Loads an ensemble of models weights=[a,b,c] or a single model weights=[a] or weights=a."""
 
     ensemble = Ensemble()
     for w in weights if isinstance(weights, list) else [weights]:
@@ -398,12 +408,12 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
     for k in 'names', 'nc', 'yaml':
         setattr(ensemble, k, getattr(ensemble[0], k))
     ensemble.stride = ensemble[torch.argmax(torch.tensor([m.stride.max() for m in ensemble])).int()].stride
-    assert all(ensemble[0].nc == m.nc for m in ensemble), f'Models differ in class counts: {[m.nc for m in ensemble]}'
+    assert all(ensemble[0].nc == m.nc for m in ensemble), f'Models differ in class counts {[m.nc for m in ensemble]}'
     return ensemble
 
 
 def attempt_load_one_weight(weight, device=None, inplace=True, fuse=False):
-    # Loads a single model weights
+    """Loads a single model weights."""
     ckpt, weight = torch_safe_load(weight)  # load ckpt
     args = {**DEFAULT_CFG_DICT, **ckpt['train_args']}  # combine model and default args, preferring model args
     model = (ckpt.get('ema') or ckpt['model']).to(device).float()  # FP32 model
@@ -497,6 +507,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
 
 
 def yaml_model_load(path):
+    """Load a YOLOv8 model from a YAML file."""
     import re
 
     path = Path(path)
@@ -520,7 +531,7 @@ def guess_model_scale(model_path):
     which is denoted by n, s, m, l, or x. The function returns the size character of the model scale as a string.
 
     Args:
-        model_path (str or Path): The path to the YOLO model's YAML file.
+        model_path (str) or (Path): The path to the YOLO model's YAML file.
 
     Returns:
         (str): The size character of the model's scale, which can be n, s, m, l, or x.
@@ -539,14 +550,14 @@ def guess_model_task(model):
         model (nn.Module) or (dict): PyTorch model or model configuration in YAML format.
 
     Returns:
-        str: Task of the model ('detect', 'segment', 'classify', 'pose').
+        (str): Task of the model ('detect', 'segment', 'classify', 'pose').
 
     Raises:
         SyntaxError: If the task of the model could not be determined.
     """
 
     def cfg2task(cfg):
-        # Guess from YAML dictionary
+        """Guess from YAML dictionary."""
         m = cfg['head'][-1][-2].lower()  # output module name
         if m in ('classify', 'classifier', 'cls', 'fc'):
             return 'classify'

@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from collections import deque
 
@@ -15,6 +15,7 @@ class BOTrack(STrack):
     shared_kalman = KalmanFilterXYWH()
 
     def __init__(self, tlwh, score, cls, feat=None, feat_history=50):
+        """Initialize YOLOv8 object with temporal parameters, such as feature history, alpha and current features."""
         super().__init__(tlwh, score, cls)
 
         self.smooth_feat = None
@@ -25,6 +26,7 @@ class BOTrack(STrack):
         self.alpha = 0.9
 
     def update_features(self, feat):
+        """Update features vector and smooth it using exponential moving average."""
         feat /= np.linalg.norm(feat)
         self.curr_feat = feat
         if self.smooth_feat is None:
@@ -35,6 +37,7 @@ class BOTrack(STrack):
         self.smooth_feat /= np.linalg.norm(self.smooth_feat)
 
     def predict(self):
+        """Predicts the mean and covariance using Kalman filter."""
         mean_state = self.mean.copy()
         if self.state != TrackState.Tracked:
             mean_state[6] = 0
@@ -43,11 +46,13 @@ class BOTrack(STrack):
         self.mean, self.covariance = self.kalman_filter.predict(mean_state, self.covariance)
 
     def re_activate(self, new_track, frame_id, new_id=False):
+        """Reactivates a track with updated features and optionally assigns a new ID."""
         if new_track.curr_feat is not None:
             self.update_features(new_track.curr_feat)
         super().re_activate(new_track, frame_id, new_id)
 
     def update(self, new_track, frame_id):
+        """Update the YOLOv8 instance with new track and frame ID."""
         if new_track.curr_feat is not None:
             self.update_features(new_track.curr_feat)
         super().update(new_track, frame_id)
@@ -65,6 +70,7 @@ class BOTrack(STrack):
 
     @staticmethod
     def multi_predict(stracks):
+        """Predicts the mean and covariance of multiple object tracks using shared Kalman filter."""
         if len(stracks) <= 0:
             return
         multi_mean = np.asarray([st.mean.copy() for st in stracks])
@@ -79,6 +85,7 @@ class BOTrack(STrack):
             stracks[i].covariance = cov
 
     def convert_coords(self, tlwh):
+        """Converts Top-Left-Width-Height bounding box coordinates to X-Y-Width-Height format."""
         return self.tlwh_to_xywh(tlwh)
 
     @staticmethod
@@ -94,21 +101,24 @@ class BOTrack(STrack):
 class BOTSORT(BYTETracker):
 
     def __init__(self, args, frame_rate=30):
+        """Initialize YOLOv8 object with ReID module and GMC algorithm."""
         super().__init__(args, frame_rate)
         # ReID module
         self.proximity_thresh = args.proximity_thresh
         self.appearance_thresh = args.appearance_thresh
 
         if args.with_reid:
-            # haven't supported BoT-SORT(reid) yet
+            # Haven't supported BoT-SORT(reid) yet
             self.encoder = None
         # self.gmc = GMC(method=args.cmc_method, verbose=[args.name, args.ablation])
         self.gmc = GMC(method=args.cmc_method)
 
     def get_kalmanfilter(self):
+        """Returns an instance of KalmanFilterXYWH for object tracking."""
         return KalmanFilterXYWH()
 
     def init_track(self, dets, scores, cls, img=None):
+        """Initialize track with detections, scores, and classes."""
         if len(dets) == 0:
             return []
         if self.args.with_reid and self.encoder is not None:
@@ -118,6 +128,7 @@ class BOTSORT(BYTETracker):
             return [BOTrack(xyxy, s, c) for (xyxy, s, c) in zip(dets, scores, cls)]  # detections
 
     def get_dists(self, tracks, detections):
+        """Get distances between tracks and detections using IoU and (optionally) ReID embeddings."""
         dists = matching.iou_distance(tracks, detections)
         dists_mask = (dists > self.proximity_thresh)
 
@@ -133,4 +144,5 @@ class BOTSORT(BYTETracker):
         return dists
 
     def multi_predict(self, tracks):
+        """Predict and track multiple objects with YOLOv8 model."""
         BOTrack.multi_predict(tracks)

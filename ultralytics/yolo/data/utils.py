@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import contextlib
 import hashlib
@@ -37,13 +37,13 @@ for orientation in ExifTags.TAGS.keys():
 
 
 def img2label_paths(img_paths):
-    # Define label paths as a function of image paths
+    """Define label paths as a function of image paths."""
     sa, sb = f'{os.sep}images{os.sep}', f'{os.sep}labels{os.sep}'  # /images/, /labels/ substrings
     return [sb.join(x.rsplit(sa, 1)).rsplit('.', 1)[0] + '.txt' for x in img_paths]
 
 
 def get_hash(paths):
-    # Returns a single hash value of a list of paths (files or dirs)
+    """Returns a single hash value of a list of paths (files or dirs)."""
     size = sum(os.path.getsize(p) for p in paths if os.path.exists(p))  # sizes
     h = hashlib.sha256(str(size).encode())  # hash sizes
     h.update(''.join(paths).encode())  # hash paths
@@ -51,7 +51,7 @@ def get_hash(paths):
 
 
 def exif_size(img):
-    # Returns exif-corrected PIL size
+    """Returns exif-corrected PIL size."""
     s = img.size  # (width, height)
     with contextlib.suppress(Exception):
         rotation = dict(img._getexif().items())[orientation]
@@ -61,12 +61,12 @@ def exif_size(img):
 
 
 def verify_image_label(args):
-    # Verify one image-label pair
+    """Verify one image-label pair."""
     im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim = args
-    # number (missing, found, empty, corrupt), message, segments, keypoints
+    # Number (missing, found, empty, corrupt), message, segments, keypoints
     nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, '', [], None
     try:
-        # verify images
+        # Verify images
         im = Image.open(im_file)
         im.verify()  # PIL verify
         shape = exif_size(im)  # image size
@@ -80,7 +80,7 @@ def verify_image_label(args):
                     ImageOps.exif_transpose(Image.open(im_file)).save(im_file, 'JPEG', subsampling=0, quality=100)
                     msg = f'{prefix}WARNING ⚠️ {im_file}: corrupt JPEG restored and saved'
 
-        # verify labels
+        # Verify labels
         if os.path.isfile(lb_file):
             nf = 1  # label found
             with open(lb_file) as f:
@@ -191,7 +191,7 @@ def polygons2masks_overlap(imgsz, segments, downsample_ratio=1):
 
 
 def check_det_dataset(dataset, autodownload=True):
-    # Download, check and/or unzip dataset if not found locally
+    """Download, check and/or unzip dataset if not found locally."""
     data = check_file(dataset)
 
     # Download (optional)
@@ -270,9 +270,8 @@ def check_cls_dataset(dataset: str):
     """
     Check a classification dataset such as Imagenet.
 
-    Copy code
     This function takes a `dataset` name as input and returns a dictionary containing information about the dataset.
-    If the dataset is not found, it attempts to download the dataset from the internet and save it to the local file system.
+    If the dataset is not found, it attempts to download the dataset from the internet and save it locally.
 
     Args:
         dataset (str): Name of the dataset.
@@ -306,7 +305,8 @@ def check_cls_dataset(dataset: str):
 
 
 class HUBDatasetStats():
-    """ Class for generating HUB dataset JSON and `-hub` dataset directory
+    """
+    Class for generating HUB dataset JSON and `-hub` dataset directory
 
     Arguments
         path:           Path to data.yaml or data.zip (with data.yaml inside data.zip)
@@ -321,7 +321,7 @@ class HUBDatasetStats():
     """
 
     def __init__(self, path='coco128.yaml', autodownload=False):
-        # Initialize class
+        """Initialize class."""
         zipped, data_dir, yaml_path = self._unzip(Path(path))
         try:
             # data = yaml_load(check_yaml(yaml_path))  # data dict
@@ -339,7 +339,7 @@ class HUBDatasetStats():
 
     @staticmethod
     def _find_yaml(dir):
-        # Return data.yaml file
+        """Return data.yaml file."""
         files = list(dir.glob('*.yaml')) or list(dir.rglob('*.yaml'))  # try root level first and then recursive
         assert files, f'No *.yaml file found in {dir}'
         if len(files) > 1:
@@ -349,7 +349,7 @@ class HUBDatasetStats():
         return files[0]
 
     def _unzip(self, path):
-        # Unzip data.zip
+        """Unzip data.zip."""
         if not str(path).endswith('.zip'):  # path is data.yaml
             return False, None, path
         assert Path(path).is_file(), f'Error unzipping {path}, file not found'
@@ -359,15 +359,16 @@ class HUBDatasetStats():
         return True, str(dir), self._find_yaml(dir)  # zipped, data_dir, yaml_path
 
     def _hub_ops(self, f):
+        """Saves a compressed image for HUB previews."""
         compress_one_image(f, self.im_dir / Path(f).name)  # save to dataset-hub
 
     def get_json(self, save=False, verbose=False):
-        # Return dataset JSON for Ultralytics HUB
+        """Return dataset JSON for Ultralytics HUB."""
         # from ultralytics.yolo.data import YOLODataset
         from ultralytics.yolo.data.dataloaders.v5loader import LoadImagesAndLabels
 
         def _round(labels):
-            # Update labels to integer class and 6 decimal place floats
+            """Update labels to integer class and 6 decimal place floats."""
             return [[int(c), *(round(x, 4) for x in points)] for c, *points in labels]
 
         for split in 'train', 'val', 'test':
@@ -400,7 +401,7 @@ class HUBDatasetStats():
         return self.stats
 
     def process_images(self):
-        # Compress images for Ultralytics HUB
+        """Compress images for Ultralytics HUB."""
         # from ultralytics.yolo.data import YOLODataset
         from ultralytics.yolo.data.dataloaders.v5loader import LoadImagesAndLabels
 
@@ -426,9 +427,6 @@ def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
         f_new (str, optional): The path to the output image file. If not specified, the input file will be overwritten.
         max_dim (int, optional): The maximum dimension (width or height) of the output image. Default is 1920 pixels.
         quality (int, optional): The image compression quality as a percentage. Default is 50%.
-
-    Returns:
-        None
 
     Usage:
         from pathlib import Path
@@ -459,9 +457,6 @@ def delete_dsstore(path):
     Args:
         path (str, optional): The directory path where the ".DS_store" files should be deleted.
 
-    Returns:
-        None
-
     Usage:
         from ultralytics.yolo.data.utils import delete_dsstore
         delete_dsstore('/Users/glennjocher/Downloads/dataset')
@@ -478,14 +473,12 @@ def delete_dsstore(path):
 
 
 def zip_directory(dir, use_zipfile_library=True):
-    """Zips a directory and saves the archive to the specified output path.
+    """
+    Zips a directory and saves the archive to the specified output path.
 
     Args:
         dir (str): The path to the directory to be zipped.
         use_zipfile_library (bool): Whether to use zipfile library or shutil for zipping.
-
-    Returns:
-        None
 
     Usage:
         from ultralytics.yolo.data.utils import zip_directory

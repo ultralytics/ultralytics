@@ -314,23 +314,30 @@ class Results(SimpleClass):
         """Convert the object to a pandas DataFrame (not yet implemented)."""
         LOGGER.warning("WARNING ⚠️ 'Results.pandas' method is not yet implemented.")
 
-    def tojson(self):
+    def tojson(self, normalize=False):
         """Convert the object to JSON format."""
         import json
 
         # Create list of detection dictionaries
-        detections = []
+        results = []
         data = self.boxes.data.cpu().tolist()
-        for row in data:
-            # row = [round(x,5) for x in row]  # round to 5 decimals
-            box = {'x1': row[0], 'y1': row[1], 'x2': row[2], 'y2': row[3]}
+        h, w = self.orig_shape if normalize else (1, 1)
+        for i, row in enumerate(data):
+            box = {'x1': row[0] / w, 'y1': row[1] / h, 'x2': row[2] / w, 'y2': row[3] / h}
             conf = row[4]
             id = int(row[5])
             name = self.names[id]
-            detections.append({'box': box, 'confidence': conf, 'class': id, 'name': name})
+            result = {'name': name, 'class': id, 'confidence': conf, 'box': box}
+            if self.masks:
+                x, y = self.masks.xy[i].cpu().unbind(dim=1)
+                result['segments'] = {'x': (x / w).tolist(), 'y': (y / h).tolist()}
+            if self.keypoints is not None:
+                x, y, visible = self.keypoints[i].cpu().unbind(dim=1)
+                result['keypoints'] = {'x': (x / w).tolist(), 'y': (y / h).tolist(), 'visible': visible.tolist()}
+            results.append(result)
 
         # Convert detections to JSON
-        return json.dumps(detections, indent=2)
+        return json.dumps(results, indent=2)
 
 
 class Boxes(BaseTensor):

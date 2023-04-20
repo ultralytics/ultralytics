@@ -694,17 +694,22 @@ class Format:
 
 def v8_transforms(dataset, imgsz, hyp):
     """Convert images to a size suitable for YOLOv8 training."""
-    pre_transform = Compose([
-        Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic, border=[-imgsz // 2, -imgsz // 2]),
-        CopyPaste(p=hyp.copy_paste),
-        RandomPerspective(
+    pre_transform = Compose([])
+    if hyp.mosaic > 0:
+        pre_transform.append(Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic, border=[-imgsz // 2, -imgsz // 2]))
+    if hyp.copy_paste > 0:
+        pre_transform.append(CopyPaste(p=hyp.copy_paste))
+    if hyp.degrees > 0 or hyp.translate > 0 or hyp.scale > 0 or hyp.shear > 0 or hyp.perspective > 0:
+        pre_transform.append(RandomPerspective(
             degrees=hyp.degrees,
             translate=hyp.translate,
             scale=hyp.scale,
             shear=hyp.shear,
             perspective=hyp.perspective,
             pre_transform=LetterBox(new_shape=(imgsz, imgsz)),
-        )])
+        ))
+    else:
+        pre_transform.append(LetterBox(new_shape=(imgsz, imgsz)))
     flip_idx = dataset.data.get('flip_idx', None)  # for keypoints augmentation
     if dataset.use_keypoints and flip_idx is None and hyp.fliplr > 0.0:
         hyp.fliplr = 0.0

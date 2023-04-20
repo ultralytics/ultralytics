@@ -24,22 +24,22 @@ This powerful deep learning framework is built on the PyTorch platform and has g
 
 ## Tutorials
 
-* [Train Custom Data](train_custom_data.md) 🚀 RECOMMENDED
-* [Tips for Best Training Results](tips_for_best_training_results.md) ☘️
-* [Multi-GPU Training](multi_gpu_training.md)
-* [PyTorch Hub](pytorch_hub.md) 🌟 NEW
-* [TFLite, ONNX, CoreML, TensorRT Export](export.md) 🚀
-* [NVIDIA Jetson platform Deployment](jetson_nano.md) 🌟 NEW
-* [Test-Time Augmentation (TTA)](tta.md)
-* [Model Ensembling](ensemble.md)
-* [Model Pruning/Sparsity](pruning_sparsity.md)
-* [Hyperparameter Evolution](hyp_evolution.md)
-* [Transfer Learning with Frozen Layers](transfer_learn_frozen.md)
-* [Architecture Summary](architecture.md) 🌟 NEW
-* [Roboflow for Datasets, Labeling, and Active Learning](roboflow.md)
-* [ClearML Logging](clearml.md) 🌟 NEW
-* [YOLOv5 with Neural Magic's Deepsparse](neural_magic.md) 🌟 NEW
-* [Comet Logging](comet.md) 🌟 NEW
+* [Train Custom Data](tutorials/yolov5_train_custom_data.md) 🚀 RECOMMENDED
+* [Tips for Best Training Results](tutorials/yolov5_tips_for_best_training_results.md) ☘️
+* [Multi-GPU Training](tutorials/yolov5_multi_gpu_training_tutorial.md)
+* [PyTorch Hub](tutorials/yolov5_pytorch_hub_tutorial.md) 🌟 NEW
+* [TFLite, ONNX, CoreML, TensorRT Export](tutorials/yolov5_model_export_tutorial.md) 🚀
+* [NVIDIA Jetson platform Deployment](tutorials/yolov5_jetson_nano_tutorial.md) 🌟 NEW
+* [Test-Time Augmentation (TTA)](tutorials/yolov5_test_time_augmentation_tutorial.md)
+* [Model Ensembling](tutorials/yolov5_model_ensembling_tutorial.md)
+* [Model Pruning/Sparsity](tutorials/yolov5_pruning_and_sparsity_tutorial.md)
+* [Hyperparameter Evolution](tutorials/yolov5_hyperparameter_evolution_tutorial.md)
+* [Transfer Learning with Frozen Layers](tutorials/yolov5_transfer_learning_with_frozen_layers_tutorial.md)
+* [Architecture Summary](tutorials/yolov5_architecture_tutorial.md) 🌟 NEW
+* [Roboflow for Datasets, Labeling, and Active Learning](tutorials/yolov5_roboflow_integration.md)
+* [ClearML Logging](tutorials/yolov5_clearml_integration_tutorial.md) 🌟 NEW
+* [YOLOv5 with Neural Magic's Deepsparse](tutorials/yolov5_neural_magic_tutorial.md) 🌟 NEW
+* [Comet Logging](tutorials/yolov5_comet_integration_tutorial.md) 🌟 NEW
 
 ## Environments
 

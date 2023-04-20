@@ -3,41 +3,7 @@ import yaml
 import math
 import os
 import shutil
-
-
-class Hyperparameters:
-    def __init__(self, path, default=None) -> None:
-        self.path = path
-        if default is not None:
-            self.saveHyps(default)
-        else:
-            self.update()
-    
-    def update(self):
-        self.hyps = self.loadHyps()
-        self.hyp_ranges_dict = self.create_hyp_ranges_dict()
-        self.hyp_dict = self.create_hyp_dict()
-
-    def loadHyps(self):
-        with open(self.path, 'r') as file:
-            return dict(yaml.load(file, Loader=yaml.FullLoader))
-    
-    def create_hyp_ranges_dict(self):
-        return {key: (self.hyps[key], math.floor(self.hyps[key]), math.ceil(self.hyps[key])) for key in self.hyps.keys()}
-    
-    def create_hyp_dict(self):
-        return {key: self.hyps[key] for key in self.hyps.keys()}
-
-    def get_hyps(self):
-        return self.hyps
-    
-    def get_values_for_particular_hyp(self, key: str):
-        return self.hyp_ranges_dict[key]
-    
-    def saveHyps(self, dict):
-        with open(self.path, "w") as file:
-            yaml.dump(dict, file)
-        self.update()
+from FOD_YOLOv8.hyperparameter import Hyperparameters
 
 
 class CustomTrainer:
@@ -75,25 +41,22 @@ class CustomTrainer:
     def _create_hyps(self, trial):
         hypsObject = Hyperparameters(self._hyps_path)
         hyps = hypsObject.get_hyps()
+        vals = hypsObject.hyp_ranges_dict
         if self._trial_count>0:
-            for l in hypsObject.hyp_ranges_dict:
-                vals = hypsObject.hyp_ranges_dict[l]
-                if l=="lr0":
-                    hyps[l] = 0.001
-                elif l=='nbs':
-                    hyps[l] = 64
+            for l in vals:
+                if vals[0]:
+                    hyps[l] = trial.suggest_float(l, vals[2], vals[3])
                 else:
-                    hyps[l] = trial.suggest_float(l, vals[1], vals[2])
+                    hyps[l] = trial.suggest_int(l, vals[2], vals[3])
             hypsObject.saveHyps(hyps)
         else:
-            for l in hypsObject.hyp_ranges_dict:
-                vals = hypsObject.hyp_ranges_dict[l]
+            for l in vals:
                 if l=="lr0":
                     hyps[l] = 0.001
                 elif l=='nbs':
                     hyps[l] = 64
                 else:
-                    hyps[l] = trial.suggest_float(l, vals[0], vals[0])
+                    hyps[l] = trial.suggest_float(l, vals[1], vals[1])
             hypsObject.saveHyps(hyps)
         return hypsObject.hyp_dict
 

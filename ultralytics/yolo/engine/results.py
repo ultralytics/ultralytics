@@ -329,10 +329,10 @@ class Results(SimpleClass):
             name = self.names[id]
             result = {'name': name, 'class': id, 'confidence': conf, 'box': box}
             if self.masks:
-                x, y = self.masks.xy[i].cpu().unbind(dim=1)
+                x, y = self.masks.xy[i][:, 0], self.masks.xy[i][:, 1]  # numpy array
                 result['segments'] = {'x': (x / w).tolist(), 'y': (y / h).tolist()}
             if self.keypoints is not None:
-                x, y, visible = self.keypoints[i].cpu().unbind(dim=1)
+                x, y, visible = self.keypoints[i].cpu().unbind(dim=1)  # torch Tensor
                 result['keypoints'] = {'x': (x / w).tolist(), 'y': (y / h).tolist(), 'visible': visible.tolist()}
             results.append(result)
 

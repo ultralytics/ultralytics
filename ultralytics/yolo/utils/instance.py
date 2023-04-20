@@ -34,7 +34,7 @@ class Bboxes:
     """Now only numpy is supported."""
 
     def __init__(self, bboxes, format='xyxy') -> None:
-        assert format in _formats
+        assert format in _formats, f'Invalid bounding box format: {format}, format must be one of {_formats}'
         bboxes = bboxes[None, :] if bboxes.ndim == 1 else bboxes
         assert bboxes.ndim == 2
         assert bboxes.shape[1] == 4
@@ -66,7 +66,7 @@ class Bboxes:
 
     def convert(self, format):
         """Converts bounding box format from one type to another."""
-        assert format in _formats
+        assert format in _formats, f'Invalid bounding box format: {format}, format must be one of {_formats}'
         if self.format == format:
             return
         elif self.format == 'xyxy':

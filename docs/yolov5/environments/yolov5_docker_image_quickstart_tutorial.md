@@ -1,6 +1,8 @@
 # Get Started with YOLOv5 🚀 in Docker
 
-This tutorial will guide you through the process of setting up and running YOLOv5 in a Docker container. You can also explore other quickstart options for YOLOv5, such as the [Colab Notebook](https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb) and cloud instances on [Google](https://github.com/ultralytics/yolov5/wiki/GCP-Quickstart) and [Amazon](https://github.com/ultralytics/yolov5/wiki/AWS-Quickstart). 
+This tutorial will guide you through the process of setting up and running YOLOv5 in a Docker container. 
+
+You can also explore other quickstart options for YOLOv5, such as our [Colab Notebook](https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb) <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>, [GCP Deep Learning VM](https://docs.ultralytics.com/yolov5/environments/yolov5_google_cloud_platform_quickstart_tutorial), and [Amazon AWS](https://docs.ultralytics.com/yolov5/environments/yolov5_amazon_web_services_quickstart_tutorial). *Updated: 21 April 2023*.
 
 **Last Updated**: 21 May 2022
 

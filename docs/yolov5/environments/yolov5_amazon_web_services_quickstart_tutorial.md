@@ -1,6 +1,8 @@
 # YOLOv5 🚀 on AWS Deep Learning Instance: A Comprehensive Guide
 
-This guide will help new users run YOLOv5 on an Amazon Web Services (AWS) Deep Learning instance. AWS offers a [Free Tier](https://aws.amazon.com/free/) and a [credit program](https://aws.amazon.com/activate/) for a quick and affordable start. Other quickstart options for YOLOv5 include our [Colab Notebook](https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb), [GCP Deep Learning VM](https://github.com/ultralytics/yolov5/wiki/GCP-Quickstart), and our Docker image at [Docker Hub](https://hub.docker.com/r/ultralytics/yolov5). *Updated: 6 May 2022*.
+This guide will help new users run YOLOv5 on an Amazon Web Services (AWS) Deep Learning instance. AWS offers a [Free Tier](https://aws.amazon.com/free/) and a [credit program](https://aws.amazon.com/activate/) for a quick and affordable start. 
+
+Other quickstart options for YOLOv5 include our [Colab Notebook](https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb) <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>, [GCP Deep Learning VM](https://docs.ultralytics.com/yolov5/environments/yolov5_google_cloud_platform_quickstart_tutorial), and our Docker image at [Docker Hub](https://hub.docker.com/r/ultralytics/yolov5)![Docker Pulls](https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker). *Updated: 21 April 2023*.
 
 ## 1. AWS Console Sign-in
 

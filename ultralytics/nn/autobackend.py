@@ -143,7 +143,7 @@ class AutoBackend(nn.Module):
             batch_dim = get_batch(network)
             if batch_dim.is_static:
                 batch_size = batch_dim.get_length()
-            executable_network = ie.compile_model(network, device_name='CPU')  # device_name="MYRIAD" for NCS2
+            executable_network = ie.compile_model(network, device_name='GPU')  # device_name="MYRIAD" for NCS2
             metadata = w.parent / 'metadata.yaml'
         elif engine:  # TensorRT
             LOGGER.info(f'Loading {w} for TensorRT inference...')

@@ -1,4 +1,4 @@
-# YOLO Inference API
+# YOLO Inference API (UNDER CONSTRUCTION)
 
 The YOLO Inference API allows you to access the YOLOv8 object detection capabilities via a RESTful API. This enables you to run object detection on images without the need to install and set up the YOLOv8 environment locally.
 
@@ -7,7 +7,7 @@ The YOLO Inference API allows you to access the YOLOv8 object detection capabili
 The API URL is the address used to access the YOLO Inference API. In this case, the base URL is:
 
 ```
-https://hub.ultralytics.com/api
+https://api.ultralytics.com/inference/v1
 ```
 
 To access the API with a specific model and your API key, you can include them as query parameters in the API URL. The `model` parameter refers to the `MODEL_ID` you want to use for inference, and the `key` parameter corresponds to your `API_KEY`.
@@ -15,7 +15,7 @@ To access the API with a specific model and your API key, you can include them a
 The complete API URL with the model and API key parameters would be:
 
 ```
-https://hub.ultralytics.com/api?model=MODEL_ID&key=API_KEY
+https://api.ultralytics.com/inference/v1?model=MODEL_ID&key=API_KEY
 ```
 
 Replace `MODEL_ID` with the ID of the model you want to use and `API_KEY` with your actual API key from [https://hub.ultralytics.com/settings?tab=api+keys](https://hub.ultralytics.com/settings?tab=api+keys).
@@ -29,7 +29,7 @@ import requests
 
 api_key = "API_KEY"
 model_id = "MODEL_ID"
-url = f"https://hub.ultralytics.com/api?model={model_id}&key={api_key}"
+url = f"https://api.ultralytics.com/inference/v1?model={model_id}&key={api_key}"
 image_path = "image.jpg"
 
 with open(image_path, "rb") as image_file:
@@ -47,7 +47,7 @@ In this example, replace `API_KEY` with your actual API key, `MODEL_ID` with the
 You can use the YOLO Inference API with the command-line interface (CLI) by utilizing the `curl` command. Replace `API_KEY` with your actual API key, `MODEL_ID` with the desired model ID, and `image.jpg` with the path to the image you want to analyze:
 
 ```commandline
-curl -X POST -F image=@image.jpg "https://hub.ultralytics.com/api?model=MODEL_ID&key=API_KEY"
+curl -X POST -F image=@image.jpg "https://api.ultralytics.com/inference/v1?model=MODEL_ID&key=API_KEY"
 ```
 
 ## Passing Arguments
@@ -61,7 +61,7 @@ import requests
 
 api_key = "API_KEY"
 model_id = "MODEL_ID"
-url = "https://hub.ultralytics.com/api"
+url = "https://api.ultralytics.com/inference/v1"
 
 # Define your query parameters
 params = {
@@ -111,7 +111,7 @@ YOLO detection models, such as `yolov8n.pt`, can return JSON responses from loca
 
     === "CLI API"
         ```commandline
-        curl -X POST -F image=@image.jpg https://hub.ultralytics.com/api?model=MODEL_ID,key=API_KEY
+        curl -X POST -F image=@image.jpg https://api.ultralytics.com/inference/v1?model=MODEL_ID,key=API_KEY
         ```
 
     === "Python API"
@@ -120,7 +120,7 @@ YOLO detection models, such as `yolov8n.pt`, can return JSON responses from loca
         
         api_key = "API_KEY"
         model_id = "MODEL_ID"
-        url = "https://hub.ultralytics.com/api"
+        url = "https://api.ultralytics.com/inference/v1"
         
         # Define your query parameters
         params = {
@@ -198,7 +198,7 @@ YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses fr
 
     === "CLI API"
         ```commandline
-        curl -X POST -F image=@image.jpg https://hub.ultralytics.com/api?model=MODEL_ID,key=API_KEY
+        curl -X POST -F image=@image.jpg https://api.ultralytics.com/inference/v1?model=MODEL_ID,key=API_KEY
         ```
 
     === "Python API"
@@ -207,7 +207,7 @@ YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses fr
         
         api_key = "API_KEY"
         model_id = "MODEL_ID"
-        url = "https://hub.ultralytics.com/api"
+        url = "https://api.ultralytics.com/inference/v1"
         
         # Define your query parameters
         params = {
@@ -329,7 +329,7 @@ YOLO pose models, such as `yolov8n-pose.pt`, can return JSON responses from loca
 
     === "CLI API"
         ```commandline
-        curl -X POST -F image=@image.jpg https://hub.ultralytics.com/api?model=MODEL_ID,key=API_KEY
+        curl -X POST -F image=@image.jpg https://api.ultralytics.com/inference/v1?model=MODEL_ID,key=API_KEY
         ```
 
     === "Python API"
@@ -338,7 +338,7 @@ YOLO pose models, such as `yolov8n-pose.pt`, can return JSON responses from loca
         
         api_key = "API_KEY"
         model_id = "MODEL_ID"
-        url = "https://hub.ultralytics.com/api"
+        url = "https://api.ultralytics.com/inference/v1"
         
         # Define your query parameters
         params = {

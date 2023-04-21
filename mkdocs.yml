@@ -231,7 +231,7 @@ nav:
 
   - YOLOv5:
       - yolov5/index.md
-      - Quickstart: yolov5/yolov5_quickstart_tutorial.md
+      - Quickstart: yolov5/quickstart_tutorial.md
       - Environments:
           - Amazon Web Services (AWS): yolov5/environments/aws_quickstart_tutorial.md
           - Google Cloud (GCP): yolov5/environments/google_cloud_quickstart_tutorial.md

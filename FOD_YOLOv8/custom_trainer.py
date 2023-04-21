@@ -4,6 +4,10 @@ import math
 import os
 import shutil
 from FOD_YOLOv8.hyperparameter import Hyperparameters
+import logging
+
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
 
 
 class CustomTrainer:
@@ -42,6 +46,7 @@ class CustomTrainer:
         hypsObject = Hyperparameters(self._hyps_path)
         hyps = hypsObject.get_hyps()
         vals = hypsObject.hyp_ranges_dict
+        logger.info(str(vals))
         if self._trial_count>0:
             for l in vals:
                 if vals[0]:

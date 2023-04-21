@@ -26,20 +26,20 @@ This powerful deep learning framework is built on the PyTorch platform and has g
 
 * [Train Custom Data](tutorials/train_custom_data.md) 🚀 RECOMMENDED
 * [Tips for Best Training Results](tutorials/tips_for_best_training_results.md) ☘️
-* [Multi-GPU Training](tutorials/multi_gpu_training_tutorial.md)
-* [PyTorch Hub](tutorials/pytorch_hub_tutorial.md) 🌟 NEW
-* [TFLite, ONNX, CoreML, TensorRT Export](tutorials/model_export_tutorial.md) 🚀
-* [NVIDIA Jetson platform Deployment](tutorials/jetson_nano_tutorial.md) 🌟 NEW
-* [Test-Time Augmentation (TTA)](tutorials/test_time_augmentation_tutorial.md)
-* [Model Ensembling](tutorials/model_ensembling_tutorial.md)
-* [Model Pruning/Sparsity](tutorials/pruning_and_sparsity_tutorial.md)
-* [Hyperparameter Evolution](tutorials/hyperparameter_evolution_tutorial.md)
-* [Transfer Learning with Frozen Layers](tutorials/transfer_learning_with_frozen_layers_tutorial.md)
-* [Architecture Summary](tutorials/architecture_tutorial.md) 🌟 NEW
-* [Roboflow for Datasets, Labeling, and Active Learning](tutorials/roboflow_integration.md)
-* [ClearML Logging](tutorials/clearml_integration_tutorial.md) 🌟 NEW
-* [YOLOv5 with Neural Magic's Deepsparse](tutorials/neural_magic_tutorial.md) 🌟 NEW
-* [Comet Logging](tutorials/comet_integration_tutorial.md) 🌟 NEW
+* [Multi-GPU Training](tutorials/multi_gpu_training.md)
+* [PyTorch Hub](tutorials/pytorch_hub_model_loading.md) 🌟 NEW
+* [TFLite, ONNX, CoreML, TensorRT Export](tutorials/model_export.md) 🚀
+* [NVIDIA Jetson platform Deployment](tutorials/running_on_jetson_nano.md) 🌟 NEW
+* [Test-Time Augmentation (TTA)](tutorials/test_time_augmentation.md)
+* [Model Ensembling](tutorials/model_ensembling.md)
+* [Model Pruning/Sparsity](tutorials/model_pruning_and_sparsity.md)
+* [Hyperparameter Evolution](tutorials/hyperparameter_evolution.md)
+* [Transfer Learning with Frozen Layers](tutorials/transfer_learning_with_frozen_layers.md)
+* [Architecture Summary](tutorials/architecture_description.md) 🌟 NEW
+* [Roboflow for Datasets, Labeling, and Active Learning](tutorials/roboflow_datasets_integration.md)
+* [ClearML Logging](tutorials/clearml_logging_integration.md) 🌟 NEW
+* [YOLOv5 with Neural Magic's Deepsparse](tutorials/neural_magic_pruning_quantization.md) 🌟 NEW
+* [Comet Logging](tutorials/comet_logging_integration.md) 🌟 NEW
 
 ## Environments
 

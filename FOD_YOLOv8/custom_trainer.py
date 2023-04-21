@@ -52,7 +52,7 @@ class CustomTrainer:
         else:
             for l in vals:
                 if l=="lr0":
-                    hyps[l] = 0.001
+                    hyps[l] = 0.01
                 elif l=='nbs':
                     hyps[l] = 64
                 else:
@@ -69,7 +69,8 @@ class CustomTrainer:
             hyp_dict = self._create_hyps(trial)
             self._model.train(epochs=self._epochs, imgsz=self._img, device=self._device, data=self._data_path, optimizer=self._optim, batch=self._batch, **hyp_dict, save=self._save)
         metrics = self._model.val()
-        ws = [0.7, 0.2, 0.1]
+        # 0.5*mAP50-95 + 0.35*mAP75 + 0.15*mAP50
+        ws = [0.5, 0.35, 0.15]
         maps = [metrics.box.map, metrics.box.map75, metrics.box.map50]
         self._trial_count+=1
         aggregate_map = sum([i[0]*i[1] for i in zip(maps, ws)])

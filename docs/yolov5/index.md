@@ -24,22 +24,22 @@ This powerful deep learning framework is built on the PyTorch platform and has g
 
 ## Tutorials
 
-* [Train Custom Data](train_custom_data.md) 🚀 RECOMMENDED
-* [Tips for Best Training Results](tips_for_best_training_results.md) ☘️
-* [Multi-GPU Training](multi_gpu_training.md)
-* [PyTorch Hub](pytorch_hub.md) 🌟 NEW
-* [TFLite, ONNX, CoreML, TensorRT Export](export.md) 🚀
-* [NVIDIA Jetson platform Deployment](jetson_nano.md) 🌟 NEW
-* [Test-Time Augmentation (TTA)](tta.md)
-* [Model Ensembling](ensemble.md)
-* [Model Pruning/Sparsity](pruning_sparsity.md)
-* [Hyperparameter Evolution](hyp_evolution.md)
-* [Transfer Learning with Frozen Layers](transfer_learn_frozen.md)
-* [Architecture Summary](architecture.md) 🌟 NEW
-* [Roboflow for Datasets, Labeling, and Active Learning](roboflow.md)
-* [ClearML Logging](clearml.md) 🌟 NEW
-* [YOLOv5 with Neural Magic's Deepsparse](neural_magic.md) 🌟 NEW
-* [Comet Logging](comet.md) 🌟 NEW
+* [Train Custom Data](tutorials/train_custom_data.md) 🚀 RECOMMENDED
+* [Tips for Best Training Results](tutorials/tips_for_best_training_results.md) ☘️
+* [Multi-GPU Training](tutorials/multi_gpu_training.md)
+* [PyTorch Hub](tutorials/pytorch_hub_model_loading.md) 🌟 NEW
+* [TFLite, ONNX, CoreML, TensorRT Export](tutorials/model_export.md) 🚀
+* [NVIDIA Jetson platform Deployment](tutorials/running_on_jetson_nano.md) 🌟 NEW
+* [Test-Time Augmentation (TTA)](tutorials/test_time_augmentation.md)
+* [Model Ensembling](tutorials/model_ensembling.md)
+* [Model Pruning/Sparsity](tutorials/model_pruning_and_sparsity.md)
+* [Hyperparameter Evolution](tutorials/hyperparameter_evolution.md)
+* [Transfer Learning with Frozen Layers](tutorials/transfer_learning_with_frozen_layers.md)
+* [Architecture Summary](tutorials/architecture_description.md) 🌟 NEW
+* [Roboflow for Datasets, Labeling, and Active Learning](tutorials/roboflow_datasets_integration.md)
+* [ClearML Logging](tutorials/clearml_logging_integration.md) 🌟 NEW
+* [YOLOv5 with Neural Magic's Deepsparse](tutorials/neural_magic_pruning_quantization.md) 🌟 NEW
+* [Comet Logging](tutorials/comet_logging_integration.md) 🌟 NEW
 
 ## Environments
 
@@ -50,10 +50,10 @@ and [PyTorch](https://pytorch.org/) preinstalled):
 - **Notebooks** with free
   GPU: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud** Deep Learning VM.
-  See [GCP Quickstart Guide](https://github.com/ultralytics/yolov5/wiki/GCP-Quickstart)
-- **Amazon** Deep Learning AMI. See [AWS Quickstart Guide](https://github.com/ultralytics/yolov5/wiki/AWS-Quickstart)
+  See [GCP Quickstart Guide](environments/google_cloud_quickstart_tutorial.md)
+- **Amazon** Deep Learning AMI. See [AWS Quickstart Guide](environments/aws_quickstart_tutorial.md)
 - **Docker Image**.
-  See [Docker Quickstart Guide](https://github.com/ultralytics/yolov5/wiki/Docker-Quickstart) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
+  See [Docker Quickstart Guide](environments/docker_image_quickstart_tutorial.md) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
 
 ## Status
 

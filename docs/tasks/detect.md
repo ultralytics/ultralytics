@@ -69,7 +69,7 @@ the [Configuration](../usage/cfg.md) page.
         ```
 ### Dataset format
 
-YOLO detection dataset format can be found in detail in the [Dataset Guide](../yolov5/tutorials/yolov5_train_custom_data.md).
+YOLO detection dataset format can be found in detail in the [Dataset Guide](../yolov5/tutorials/train_custom_data.md).
 To convert your existing dataset from other formats( like COCO, VOC etc.) to YOLO format, please use [json2yolo tool](https://github.com/ultralytics/JSON2YOLO) by Ultralytics.
 
 ## Val

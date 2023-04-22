@@ -62,22 +62,22 @@ def on_train_end(trainer):
 
 def on_train_start(trainer):
     """Run traces on train start."""
-    traces(trainer.args, traces_sample_rate=1.0)
+    traces(trainer.args)
 
 
 def on_val_start(validator):
     """Runs traces on validation start."""
-    traces(validator.args, traces_sample_rate=1.0)
+    traces(validator.args)
 
 
 def on_predict_start(predictor):
     """Run traces on predict start."""
-    traces(predictor.args, traces_sample_rate=1.0)
+    traces(predictor.args)
 
 
 def on_export_start(exporter):
     """Run traces on export start."""
-    traces(exporter.args, traces_sample_rate=1.0)
+    traces(exporter.args)
 
 
 callbacks = {

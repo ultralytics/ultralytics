@@ -9,7 +9,7 @@ from PIL import Image
 
 from ultralytics import YOLO
 from ultralytics.yolo.data.build import load_inference_source
-from ultralytics.yolo.utils import LINUX, ONLINE, ROOT, SETTINGS
+from ultralytics.yolo.utils import LINUX, ONLINE, ROOT, SETTINGS, metrics
 
 MODEL = Path(SETTINGS['weights_dir']) / 'yolov8n.pt'
 CFG = 'yolov8n.yaml'
@@ -233,3 +233,79 @@ def test_result():
     res[0].plot()
     res[0] = res[0].cpu().numpy()
     print(res[0].path)
+
+
+def test_metrics():
+    """
+    Test the compute_metrics method in metrics. The expected values are from the return value of
+    precision_recall_fscore_support in sklearn with same y_true and y_pred
+    """
+
+    # Binary classification
+    y_true = [0, 0, 0, 1, 1, 1]
+    y_pred = [0, 1, 0, 1, 1, 0]
+    precision, recall, f1_score, _, _, _ = metrics.compute_metrics(y_true, y_pred)
+    assert precision == 0.6666666666666666
+    assert recall == 0.6666666666666666
+    assert f1_score == 0.6666666666666666
+
+    y_true = [0, 0, 0, 0, 1, 1]
+    y_pred = [0, 1, 0, 0, 0, 0]
+    precision, recall, f1_score, _, _, _ = metrics.compute_metrics(y_true, y_pred)
+    assert precision == 0.3
+    assert recall == 0.375
+    assert f1_score == 0.33333333333333326
+
+    # Multi-class classification
+    y_true = [0, 0, 0, 1, 1, 1, 2, 2, 2]
+    y_pred = [0, 1, 0, 1, 1, 2, 1, 2, 0]
+    precision, recall, f1_score, _, _, _ = metrics.compute_metrics(y_true, y_pred)
+    assert precision == 0.5555555555555555
+    assert recall == 0.5555555555555555
+    assert f1_score == 0.546031746031746
+
+    y_true = [0, 0, 0, 1, 1, 1, 2, 2, 3]
+    y_pred = [0, 1, 0, 1, 1, 2, 1, 3, 0]
+    precision, recall, f1_score, _, _, _ = metrics.compute_metrics(y_true, y_pred)
+    assert precision == 0.29166666666666663
+    assert recall == 0.3333333333333333
+    assert f1_score == 0.30952380952380953
+
+    # y_pred contains unknown class
+    y_true = [0, 0, 0, 1, 1, 1, 2, 2, 3]
+    y_pred = [0, 1, 0, 1, 1, 2, 1, 2, 0]
+    precision, recall, f1_score, _, _, _ = metrics.compute_metrics(y_true, y_pred)
+    assert precision == 0.41666666666666663
+    assert recall == 0.4583333333333333
+    assert f1_score == 0.43452380952380953
+
+    # y_true contains unknown class
+    y_true = [0, 0, 0, 1, 1, 1, 2, 2, 2]
+    y_pred = [0, 1, 0, 1, 1, 2, 1, 2, 3]
+    precision, recall, f1_score, _, _, _ = metrics.compute_metrics(y_true, y_pred)
+    assert precision == 0.5
+    assert recall == 0.41666666666666663
+    assert f1_score == 0.44285714285714284
+
+    # y_true class label int numbers are not continuous.
+    y_true = [0, 0, 0, 1, 1, 1, 2, 2, 4, 7]
+    y_pred = [0, 1, 0, 1, 1, 2, 1, 2, 3, 4]
+    precision, recall, f1_score, _, _, _ = metrics.compute_metrics(y_true, y_pred)
+    assert precision == 0.3333333333333333
+    assert recall == 0.3055555555555555
+    assert f1_score == 0.3119047619047619
+
+    y_true = [0, 0, 0, 1, 1, 1, 2, 2, 4, 10]
+    y_pred = [0, 1, 0, 1, 1, 2, 1, 2, 3, 0]
+    precision, recall, f1_score, _, _, _ = metrics.compute_metrics(y_true, y_pred)
+    assert precision == 0.27777777777777773
+    assert recall == 0.3055555555555555
+    assert f1_score == 0.2896825396825397
+
+    # division by zero
+    y_true = [0, 0, 0, 1, 1, 1, 2, 2, 4, 4]
+    y_pred = [0, 1, 0, 1, 1, 2, 1, 2, 3, 1]
+    precision, recall, f1_score, _, _, _ = metrics.compute_metrics(y_true, y_pred)
+    assert precision == 0.38
+    assert recall == 0.36666666666666664
+    assert f1_score == 0.36

@@ -46,24 +46,29 @@ class CustomTrainer:
         hypsObject = Hyperparameters(self._hyps_path)
         hyps = hypsObject.get_hyps()
         vals = hypsObject.hyp_ranges_dict
-        logger.info(str(vals))
+        # logger.info(str(vals))
         if self._trial_count>0:
             for l in vals:
-                logger.info(f"current hyp: {l}")
+                vals2 = vals[l]
+                # logger.info(f"current hyp: {l}")
                 if vals[0]:
-                    hyps[l] = trial.suggest_float(l, vals[2], vals[3])
+                    hyps[l] = trial.suggest_float(l, vals2[2], vals2[3])
                 else:
-                    hyps[l] = trial.suggest_int(l, vals[2], vals[3])
+                    hyps[l] = trial.suggest_int(l, vals2[2], vals2[3])
             hypsObject.saveHyps(hyps)
         else:
             for l in vals:
-                logger.info(f"current hyp: {l}")
+                vals3 = vals[l]
+                # logger.info(f"current hyp: {l}")
                 if l=="lr0":
                     hyps[l] = 0.01
                 elif l=='nbs':
                     hyps[l] = 64
                 else:
-                    hyps[l] = trial.suggest_float(l, vals[1], vals[1])
+                    if vals[l][0]:
+                        hyps[l] = trial.suggest_float(l, vals3[1], vals3[1])
+                    else:
+                        hyps[l] = trial.suggest_int(l, vals3[1], vals3[1])
             hypsObject.saveHyps(hyps)
         return hypsObject.hyp_dict
 

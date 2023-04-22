@@ -196,16 +196,16 @@ def add_integration_callbacks(instance):
         instance (Trainer, Predictor, Validator, Exporter): An object with a 'callbacks' attribute that is a dictionary
             of callback lists.
     """
-    from .clearml import callbacks as clearml_callbacks
-    from .comet import callbacks as comet_callbacks
-    from .hub import callbacks as hub_callbacks
-    from .mlflow import callbacks as mf_callbacks
-    from .neptune import callbacks as neptune_callbacks
-    from .raytune import callbacks as tune_callbacks
-    from .tensorboard import callbacks as tb_callbacks
-    from .wb import callbacks as wb_callbacks
+    from .clearml import callbacks as clearml_cb
+    from .comet import callbacks as comet_cb
+    from .hub import callbacks as hub_cb
+    from .mlflow import callbacks as mlflow_cb
+    from .neptune import callbacks as neptune_cb
+    from .raytune import callbacks as tune_cb
+    from .tensorboard import callbacks as tensorboard_cb
+    from .wb import callbacks as wb_cb
 
-    for x in clearml_callbacks, comet_callbacks, hub_callbacks, tb_callbacks, mf_callbacks, tune_callbacks, wb_callbacks, neptune_callbacks:
+    for x in clearml_cb, comet_cb, hub_cb, mlflow_cb, neptune_cb, tune_cb, tensorboard_cb, wb_cb:
         for k, v in x.items():
             if v not in instance.callbacks[k]:  # prevent duplicate callbacks addition
                 instance.callbacks[k].append(v)  # callback[name].append(func)

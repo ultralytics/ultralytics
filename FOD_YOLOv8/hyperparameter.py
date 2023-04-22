@@ -6,7 +6,7 @@ import json
 class Hyperparameters:
     def __init__(self, path, default=None) -> None:
         self.path = path
-        with open('utils\hyps.json', 'r') as file:
+        with open(r'utils/hyps.json', 'r') as file:
             self.ranges = json.load(file)
         if default is not None:
             self.saveHyps(default)

@@ -141,22 +141,22 @@ def smart_request(method, url, retry=3, timeout=30, thread=True, code=-1, verbos
         return func(*args, **kwargs)
 
 
-class Traces:
+class Events:
     """
-    A class for sending Ultralytics pip package anonymous usage analytics to GA4.
+    A class for collecting anonymous event analytics.
 
     Attributes:
         url (str): The GA4 Measurement Protocol URL.
         rate_limit (float): The rate limit in seconds for sending events.
         metadata (dict): A dictionary containing metadata about the environment.
-        enabled (bool): A flag to enable or disable Traces based on certain conditions.
+        enabled (bool): A flag to enable or disable Events based on certain conditions.
     """
 
     url = 'https://www.google-analytics.com/mp/collect?measurement_id=G-X8NCJYTQXM&api_secret=QLQrATrNSwGRFRLE-cbHJw'
 
     def __init__(self):
         """
-        Initializes the Traces object with default values for events, rate_limit, and metadata.
+        Initializes the Events object with default values for events, rate_limit, and metadata.
         """
         self.events = []  # events list
         self.rate_limit = 10.0  # rate limit (seconds)
@@ -182,7 +182,7 @@ class Traces:
             cfg: The configuration object containing mode and task information.
         """
         if not self.enabled:
-            # Traces disabled, do nothing
+            # Events disabled, do nothing
             return
 
         # Attempt to add to events
@@ -206,4 +206,4 @@ class Traces:
 
 
 # Run below code on hub/utils init -------------------------------------------------------------------------------------
-traces = Traces()
+events = Events()

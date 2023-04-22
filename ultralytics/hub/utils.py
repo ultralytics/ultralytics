@@ -6,7 +6,6 @@ import sys
 import threading
 import time
 from pathlib import Path
-from random import random
 
 import requests
 from tqdm import tqdm

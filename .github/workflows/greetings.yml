@@ -30,7 +30,7 @@ jobs:
 
             If this is a 🐛 Bug Report, please provide a [minimum reproducible example](https://stackoverflow.com/help/minimal-reproducible-example) to help us debug it.
 
-            If this is a custom training ❓ Question, please provide as much information as possible, including dataset image examples and training logs, and verify you are following our [Tips for Best Training Results](https://docs.ultralytics.com/yolov5/tips_for_best_training_results/).
+            If this is a custom training ❓ Question, please provide as much information as possible, including dataset image examples and training logs, and verify you are following our [Tips for Best Training Results](https://docs.ultralytics.com/yolov5/tutorials/tips_for_best_training_results/).
 
             ## Install
 

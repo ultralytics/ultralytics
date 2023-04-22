@@ -52,19 +52,12 @@ def on_fit_epoch_end(trainer):
         run.log_metrics(metrics=metrics_dict, step=trainer.epoch)
 
 
-def on_model_save(trainer):
-    """Logs model and metrics to mlflow on save."""
-    if mlflow:
-        run.log_artifact(trainer.last)
-
-
 def on_train_end(trainer):
     """Called at end of train loop to log model artifact info."""
     if mlflow:
         root_dir = Path(__file__).resolve().parents[3]
+        run.log_artifact(trainer.last)
         run.log_artifact(trainer.best)
-        model_uri = f'runs:/{run_id}/'
-        run.register_model(model_uri, experiment_name)
         run.pyfunc.log_model(artifact_path=experiment_name,
                              code_path=[str(root_dir)],
                              artifacts={'model_path': str(trainer.save_dir)},
@@ -74,5 +67,4 @@ def on_train_end(trainer):
 callbacks = {
     'on_pretrain_routine_end': on_pretrain_routine_end,
     'on_fit_epoch_end': on_fit_epoch_end,
-    'on_model_save': on_model_save,
     'on_train_end': on_train_end} if mlflow else {}

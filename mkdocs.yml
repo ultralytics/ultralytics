@@ -42,6 +42,7 @@ theme:
     - navigation.top
     - navigation.tabs
     - navigation.tabs.sticky
+    - navigation.expand
     - navigation.footer
     - navigation.tracking
     - navigation.instant
@@ -230,20 +231,26 @@ nav:
 
   - YOLOv5:
       - yolov5/index.md
-      - Train Custom Data: yolov5/train_custom_data.md
-      - Tips for Best Training Results: yolov5/tips_for_best_training_results.md
-      - Multi-GPU Training: yolov5/multi_gpu_training.md
-      - PyTorch Hub: yolov5/pytorch_hub.md
-      - TFLite, ONNX, CoreML, TensorRT Export: yolov5/export.md
-      - NVIDIA Jetson Nano Deployment: yolov5/jetson_nano.md
-      - Test-Time Augmentation (TTA): yolov5/tta.md
-      - Model Ensembling: yolov5/ensemble.md
-      - Pruning/Sparsity Tutorial: yolov5/pruning_sparsity.md
-      - Hyperparameter evolution: yolov5/hyp_evolution.md
-      - Transfer learning with frozen layers: yolov5/transfer_learn_frozen.md
-      - Architecture Summary: yolov5/architecture.md
-      - Roboflow Datasets: yolov5/roboflow.md
-      - Neural Magic's DeepSparse: yolov5/neural_magic.md
-      - Comet Logging: yolov5/comet.md
-      - Clearml Logging: yolov5/clearml.md
+      - Quickstart: yolov5/quickstart_tutorial.md
+      - Environments:
+          - Amazon Web Services (AWS): yolov5/environments/aws_quickstart_tutorial.md
+          - Google Cloud (GCP): yolov5/environments/google_cloud_quickstart_tutorial.md
+          - Docker Image: yolov5/environments/docker_image_quickstart_tutorial.md
+      - Tutorials:
+          - Train Custom Data: yolov5/tutorials/train_custom_data.md
+          - Tips for Best Training Results: yolov5/tutorials/tips_for_best_training_results.md
+          - Multi-GPU Training: yolov5/tutorials/multi_gpu_training.md
+          - PyTorch Hub: yolov5/tutorials/pytorch_hub_model_loading.md
+          - TFLite, ONNX, CoreML, TensorRT Export: yolov5/tutorials/model_export.md
+          - NVIDIA Jetson Nano Deployment: yolov5/tutorials/running_on_jetson_nano.md
+          - Test-Time Augmentation (TTA): yolov5/tutorials/test_time_augmentation.md
+          - Model Ensembling: yolov5/tutorials/model_ensembling.md
+          - Pruning/Sparsity Tutorial: yolov5/tutorials/model_pruning_and_sparsity.md
+          - Hyperparameter evolution: yolov5/tutorials/hyperparameter_evolution.md
+          - Transfer learning with frozen layers: yolov5/tutorials/transfer_learning_with_frozen_layers.md
+          - Architecture Summary: yolov5/tutorials/architecture_description.md
+          - Roboflow Datasets: yolov5/tutorials/roboflow_datasets_integration.md
+          - Neural Magic's DeepSparse: yolov5/tutorials/neural_magic_pruning_quantization.md
+          - Comet Logging: yolov5/tutorials/comet_logging_integration.md
+          - Clearml Logging: yolov5/tutorials/clearml_logging_integration.md
   - Security: SECURITY.md

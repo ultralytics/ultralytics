@@ -43,27 +43,26 @@ class CustomTrainer:
         self._train_with_evolve()
 
     def _create_hyps(self, trial):
+        # logger.info("Trial")
         hypsObject = Hyperparameters(self._hyps_path)
         hyps = hypsObject.get_hyps()
         vals = hypsObject.hyp_ranges_dict
-        # logger.info(str(vals))
         if self._trial_count>0:
             for l in vals:
-                vals2 = vals[l]
-                # logger.info(f"current hyp: {l}")
-                if vals2[0]:
-                    hyps[l] = trial.suggest_float(l, vals2[2], vals2[3])
+                vals3 = vals[l]
+                if l=="lr0":
+                    hyps[l] = 0.01 if self._optim == 'SGD' else 0.001
                 else:
-                    hyps[l] = trial.suggest_int(l, vals2[2], vals2[3])
+                    if vals3[0]:
+                        hyps[l] = trial.suggest_float(l, vals3[2], vals3[3])
+                    else:
+                        hyps[l] = trial.suggest_int(l, vals3[2], vals3[3])
             hypsObject.saveHyps(hyps)
         else:
             for l in vals:
                 vals3 = vals[l]
-                # logger.info(f"current hyp: {l}")
                 if l=="lr0":
-                    hyps[l] = 0.01
-                elif l=='nbs':
-                    hyps[l] = 64
+                    hyps[l] = 0.01 if self._optim == 'SGD' else 0.001
                 else:
                     if vals3[0]:
                         hyps[l] = trial.suggest_float(l, vals3[1], vals3[1])

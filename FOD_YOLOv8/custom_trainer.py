@@ -49,6 +49,7 @@ class CustomTrainer:
         logger.info(str(vals))
         if self._trial_count>0:
             for l in vals:
+                logger.info(f"current hyp: {l}")
                 if vals[0]:
                     hyps[l] = trial.suggest_float(l, vals[2], vals[3])
                 else:
@@ -56,6 +57,7 @@ class CustomTrainer:
             hypsObject.saveHyps(hyps)
         else:
             for l in vals:
+                logger.info(f"current hyp: {l}")
                 if l=="lr0":
                     hyps[l] = 0.01
                 elif l=='nbs':

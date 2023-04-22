@@ -1,0 +1,25 @@
+lr0: 0.01  # initial learning rate (i.e. SGD=1E-2, Adam=1E-3)
+lrf: 0.01  # final learning rate (lr0 * lrf)
+momentum: 0.937  # SGD momentum/Adam beta1
+weight_decay: 0.0005  # optimizer weight decay 5e-4
+warmup_epochs: 3.0  # warmup epochs (fractions ok)
+warmup_momentum: 0.8  # warmup initial momentum
+warmup_bias_lr: 0.1  # warmup initial bias lr
+box: 7.5  # box loss gain
+cls: 0.5  # cls loss gain (scale with pixels)
+dfl: 1.5  # dfl loss gain
+label_smoothing: 0.0  # label smoothing (fraction)
+nbs: 64  # nominal batch size
+hsv_h: 0.015  # image HSV-Hue augmentation (fraction)
+hsv_s: 0.7  # image HSV-Saturation augmentation (fraction)
+hsv_v: 0.4  # image HSV-Value augmentation (fraction)
+degrees: 0.5  # image rotation (+/- deg)
+translate: 0.4  # image translation (+/- fraction)
+scale: 0.5  # image scale (+/- gain)
+shear: 0.4  # image shear (+/- deg)
+perspective: 0.0  # image perspective (+/- fraction), range 0-0.001
+flipud: 0.5  # image flip up-down (probability)
+fliplr: 0.5  # image flip left-right (probability)
+mosaic: 1.0  # image mosaic (probability)
+mixup: 0.4  # image mixup (probability)
+copy_paste: 0.4  # segment copy-paste (probability)

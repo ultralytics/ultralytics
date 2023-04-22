@@ -1,31 +1,12 @@
 import yaml
 import math
+import json
 
 
 class Hyperparameters:
     def __init__(self, path, default=None) -> None:
         self.path = path
-        self.ranges = {
-            'momentum': [0.9, 0.99],
-            'weight_decay': [0.0001, 0.001],
-            'warmup_momentum': [0.8, 0.95],
-            'box': [0.1, 10],
-            'cls': [0.1, 10],
-            'dfl': [0.1, 10],
-            'label_smoothing': [0, 1],
-            'hsv_h': [-0.5, 0.5],
-            'hsv_s': [-0.5, 0.5],
-            'hsv_v': [-0.5, 0.5],
-            'degrees': [-10, 10],
-            'translate': [0, 0.5],
-            'scale': [0, 1],
-            'shear': [0, 1],
-            'flipud': [0, 1],
-            'fliplr': [0, 1],
-            'mosaic': [0, 1],
-            'mixup': [0, 1],
-            'copy_paste': [0, 1]
-        }
+        self.ranges = json.load('utils\hyps.json')
         if default is not None:
             self.saveHyps(default)
         else:

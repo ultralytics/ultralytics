@@ -1,2 +1,2 @@
 RCA_YOLOv8.egg-info/
-dist/
+dist/*.tar.gz

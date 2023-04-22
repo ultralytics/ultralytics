@@ -18,9 +18,11 @@
   </div>
   <br>
 
-[Ultralytics YOLOv8](https://github.com/ultralytics/ultralytics)，由 [Ultralytics](https://ultralytics.com) 开发，是一种尖端的、最先进（SOTA）的模型，它在之前 YOLO 版本的成功基础上进行了建设，并引入了新的特性和改进，以进一步提高性能和灵活性。YOLOv8 旨在快速、准确且易于使用，使其成为广泛的对象检测、图像分割和图像分类任务的绝佳选择。
+[Ultralytics](https://ultralytics.com) [YOLOv8](https://github.com/ultralytics/ultralytics) 是一款前沿、最先进（SOTA）的模型，基于先前 YOLO 版本的成功，引入了新功能和改进，进一步提升性能和灵活性。YOLOv8 设计快速、准确且易于使用，使其成为各种物体检测与跟踪、实例分割、图像分类和姿态估计任务的绝佳选择。
 
-如需申请企业许可，请在 [Ultralytics 授权](https://ultralytics.com/license) 完成表格。
+我们希望这里的资源能帮助您充分利用 YOLOv8。请浏览 YOLOv8 <a href="https://docs.ultralytics.com/">文档</a> 了解详细信息，在 <a href="https://github.com/ultralytics/ultralytics">GitHub</a> 上提交问题以获得支持，并加入我们的 <a href="https://discord.gg/n6cFeSPZdD">Discord</a> 社区进行问题和讨论！
+
+如需申请企业许可，请在 [Ultralytics Licensing](https://ultralytics.com/license) 处填写表格
 
 <img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/yolo-comparison-plots.png"></a>
 
@@ -42,6 +44,9 @@
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="2%" alt="" />
   <a href="https://www.instagram.com/ultralytics/" style="text-decoration:none;">
     <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-instagram.png" width="2%" alt="" /></a>
+  <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="2%" alt="" />
+  <a href="https://discord.gg/n6cFeSPZdD" style="text-decoration:none;">
+    <img src="https://github.com/ultralytics/assets/blob/main/social/logo-social-discord.png" width="2%" alt="" /></a>
 </div>
 </div>
 
@@ -229,7 +234,7 @@ YOLOv8 提供两种不同的许可证：
 
 ## <div align="center">联系方式</div>
 
-如需报告 YOLOv8 的错误或提出功能需求，请访问 [GitHub Issues](https://github.com/ultralytics/ultralytics/issues) 或 [Ultralytics 社区论坛](https://community.ultralytics.com/)。
+对于 YOLOv8 的错误报告和功能请求，请访问 [GitHub Issues](https://github.com/ultralytics/ultralytics/issues)，并加入我们的 [Discord](https://discord.gg/n6cFeSPZdD) 社区进行问题和讨论！
 
 <br>
 <div align="center">
@@ -250,4 +255,6 @@ YOLOv8 提供两种不同的许可证：
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="" />
   <a href="https://www.instagram.com/ultralytics/" style="text-decoration:none;">
     <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-instagram.png" width="3%" alt="" /></a>
+  <a href="https://discord.gg/n6cFeSPZdD" style="text-decoration:none;">
+    <img src="https://github.com/ultralytics/assets/blob/main/social/logo-social-discord.png" width="3%" alt="" /></a>
 </div>

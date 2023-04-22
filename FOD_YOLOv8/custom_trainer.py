@@ -51,7 +51,7 @@ class CustomTrainer:
             for l in vals:
                 vals2 = vals[l]
                 # logger.info(f"current hyp: {l}")
-                if vals[0]:
+                if vals2[0]:
                     hyps[l] = trial.suggest_float(l, vals2[2], vals2[3])
                 else:
                     hyps[l] = trial.suggest_int(l, vals2[2], vals2[3])
@@ -65,7 +65,7 @@ class CustomTrainer:
                 elif l=='nbs':
                     hyps[l] = 64
                 else:
-                    if vals[l][0]:
+                    if vals3[0]:
                         hyps[l] = trial.suggest_float(l, vals3[1], vals3[1])
                     else:
                         hyps[l] = trial.suggest_int(l, vals3[1], vals3[1])

@@ -10,7 +10,7 @@
     "hsv_s": [0.0, 1.0],
     "hsv_v": [0.0, 1.0],
     "degrees": [-10, 10],
-    "translate": [0, 0.5],
+    "translate": [0.0, 0.5],
     "scale": [0, 1],
     "shear": [0, 1],
     "flipud": [0, 1],

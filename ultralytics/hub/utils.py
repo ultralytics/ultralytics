@@ -148,7 +148,7 @@ class Events:
     disabled when sync=False. Run 'yolo settings' to see and update settings YAML file.
 
     Attributes:
-        url (str): The GA4 Measurement Protocol URL.
+        url (str): The URL to send anonymous events.
         rate_limit (float): The rate limit in seconds for sending events.
         metadata (dict): A dictionary containing metadata about the environment.
         enabled (bool): A flag to enable or disable Events based on certain conditions.

@@ -163,11 +163,11 @@ class Events:
         self.rate_limit = 10.0  # rate limit (seconds)
         self.t = 0.0  # rate limit timer (seconds)
         self.metadata = {
-            'sys_argv_name': Path(sys.argv[0]).name,
+            'cli': Path(sys.argv[0]).name == 'yolo',
             'install': 'git' if is_git_dir() else 'pip' if is_pip_package() else 'other',
             'python': platform.python_version(),
             'version': __version__,
-            'environment': ENVIRONMENT}
+            'env': ENVIRONMENT}
         self.enabled = \
             SETTINGS['sync'] and \
             RANK in (-1, 0) and \
@@ -188,8 +188,10 @@ class Events:
 
         # Attempt to add to events
         if len(self.events) < 25:  # Events list limited to 25 events (drop any events past this)
-            event = {'name': cfg.mode, 'params': {**self.metadata, **{'task': cfg.task}}}
-            self.events.append(event)
+            params = {**self.metadata, **{'task': cfg.task}}
+            if cfg.mode == 'export':
+                params['format'] = cfg.format
+            self.events.append({'name': cfg.mode, 'params': params})
 
         # Check rate limit
         t = time.time()

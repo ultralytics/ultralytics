@@ -166,10 +166,10 @@ class Events:
         self.metadata = {
             'cli': Path(sys.argv[0]).name == 'yolo',
             'install': 'git' if is_git_dir() else 'pip' if is_pip_package() else 'other',
-            'python': platform.python_version(),
+            'python': '.'.join(platform.python_version_tuple()[:2]),  # i.e. 3.10
             'version': __version__,
             'env': ENVIRONMENT,
-            'session_id': round(random.random() * 1E16),
+            'session_id': round(random.random() * 1E15),
             'engagement_time_msec': 1000}
         self.enabled = \
             SETTINGS['sync'] and \

@@ -8,10 +8,10 @@ import torch
 
 from functools import partial
 
-from .encoders import ImageEncoderViT, PromptEncoder
-from .decoders import MaskDecoder
-from .sam import Sam
-from .transformer import TwoWayTransformer
+from .modules.encoders import ImageEncoderViT, PromptEncoder
+from .modules.decoders import MaskDecoder
+from .modules.sam import Sam
+from .modules.transformer import TwoWayTransformer
 
 
 def build_sam_vit_h(checkpoint=None):
@@ -44,13 +44,6 @@ def build_sam_vit_b(checkpoint=None):
         checkpoint=checkpoint,
     )
 
-
-sam_model_registry = {
-    "default": build_sam_vit_h,
-    "vit_h": build_sam_vit_h,
-    "vit_l": build_sam_vit_l,
-    "vit_b": build_sam_vit_b,
-}
 
 
 def _build_sam(
@@ -108,14 +101,16 @@ def _build_sam(
     return sam
 
 sam_model_map = {
-    "default": build_sam_vit_h,
-    "vit_h": build_sam_vit_h,
-    "vit_l": build_sam_vit_l,
-    "vit_b": build_sam_vit_b,
+    # "default": build_sam_vit_h,
+    "sam_h.pt": build_sam_vit_h,
+    "sam_l.pt": build_sam_vit_l,
+    "sam_b.pt": build_sam_vit_b,
 }
 
-def build_sam(ckpt, type="default"):
-    sam = sam_model_map[type](ckpt)
-
-    return sam
+def build_sam(ckpt="sam_b.pt"):
+    model_builder = sam_model_map.get(ckpt)
+    if not model_builder:
+        raise FileNotFoundError(f"{ckpt} is not a supported sam model. Available models are: \n {sam_model_map.keys()}")
+    
+    return model_builder(ckpt)
 

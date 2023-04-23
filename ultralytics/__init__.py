@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-__version__ = '8.0.85'
+__version__ = '8.0.86'
 
 from ultralytics.hub import start
 from ultralytics.yolo.engine.model import YOLO

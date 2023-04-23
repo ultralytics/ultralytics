@@ -10,6 +10,7 @@ import os
 import re
 from collections import defaultdict
 from pathlib import Path
+from ultralytics.yolo.utils import ROOT
 
 TARGET_DIR = Path('..')
 
@@ -83,19 +84,17 @@ def create_nav_menu_yaml(nav_items):
 
 
 def main():
-    source_dir = Path("../ultralytics")
     target_dir = Path("reference")
-
     nav_items = []
 
-    for root, _, files in os.walk(source_dir):
+    for root, _, files in os.walk(ROOT):
         for file in files:
             if file.endswith(".py") and file != "__init__.py":
                 py_filepath = Path(root) / file
                 classes, functions = extract_classes_and_functions(py_filepath)
 
                 if classes or functions:
-                    py_filepath_rel = py_filepath.relative_to(source_dir)
+                    py_filepath_rel = py_filepath.relative_to(ROOT)
                     md_filepath = target_dir / py_filepath_rel
                     module_path = f"ultralytics.{py_filepath_rel.with_suffix('').as_posix().replace('/', '.')}"
                     md_rel_filepath = create_markdown(md_filepath, module_path, classes, functions)

@@ -6,7 +6,6 @@ import sys
 import threading
 import time
 from pathlib import Path
-from random import random
 
 import requests
 from tqdm import tqdm
@@ -114,7 +113,7 @@ def smart_request(method, url, retry=3, timeout=30, thread=True, code=-1, verbos
             if (time.time() - t0) > timeout:
                 break
             r = requests_with_progress(func_method, func_url, **func_kwargs)  # i.e. get(url, data, json, files)
-            if r.status_code == 200:
+            if r.status_code < 300:  # return codes in the 2xx range are generally considered "good" or "successful"
                 break
             try:
                 m = r.json().get('message', 'No JSON message.')
@@ -142,66 +141,72 @@ def smart_request(method, url, retry=3, timeout=30, thread=True, code=-1, verbos
         return func(*args, **kwargs)
 
 
-class Traces:
+class Events:
+    """
+    A class for collecting anonymous event analytics. Event analytics are enabled when sync=True in settings and
+    disabled when sync=False. Run 'yolo settings' to see and update settings YAML file.
+
+    Attributes:
+        url (str): The GA4 Measurement Protocol URL.
+        rate_limit (float): The rate limit in seconds for sending events.
+        metadata (dict): A dictionary containing metadata about the environment.
+        enabled (bool): A flag to enable or disable Events based on certain conditions.
+    """
+
+    url = 'https://www.google-analytics.com/mp/collect?measurement_id=G-X8NCJYTQXM&api_secret=QLQrATrNSwGRFRLE-cbHJw'
 
     def __init__(self):
         """
-        Initialize Traces for error tracking and reporting if tests are not currently running.
-        Sets the rate limit, timer, and metadata attributes, and determines whether Traces are enabled.
+        Initializes the Events object with default values for events, rate_limit, and metadata.
         """
-        self.rate_limit = 60.0  # rate limit (seconds)
+        self.events = []  # events list
+        self.rate_limit = 10.0  # rate limit (seconds)
         self.t = 0.0  # rate limit timer (seconds)
         self.metadata = {
-            'sys_argv_name': Path(sys.argv[0]).name,
+            'cli': Path(sys.argv[0]).name == 'yolo',
             'install': 'git' if is_git_dir() else 'pip' if is_pip_package() else 'other',
             'python': platform.python_version(),
-            'release': __version__,
-            'environment': ENVIRONMENT}
+            'version': __version__,
+            'env': ENVIRONMENT}
         self.enabled = \
             SETTINGS['sync'] and \
             RANK in (-1, 0) and \
             not TESTS_RUNNING and \
             ONLINE and \
             (is_pip_package() or get_git_origin_url() == 'https://github.com/ultralytics/ultralytics.git')
-        self._reset_usage()
 
-    def __call__(self, cfg, all_keys=False, traces_sample_rate=1.0):
+    def __call__(self, cfg):
         """
-        Sync traces data if enabled in the global settings.
+        Attempts to add a new event to the events list and send events if the rate limit is reached.
 
         Args:
-            cfg (IterableSimpleNamespace): Configuration for the task and mode.
-            all_keys (bool): Sync all items, not just non-default values.
-            traces_sample_rate (float): Fraction of traces captured from 0.0 to 1.0.
+            cfg: The configuration object containing mode and task information.
         """
-
-        # Increment usage
-        self.usage['modes'][cfg.mode] = self.usage['modes'].get(cfg.mode, 0) + 1
-        self.usage['tasks'][cfg.task] = self.usage['tasks'].get(cfg.task, 0) + 1
-
-        t = time.time()  # current time
-        if not self.enabled or random() > traces_sample_rate:
-            # Traces disabled or not randomly selected, do nothing
+        if not self.enabled:
+            # Events disabled, do nothing
             return
-        elif (t - self.t) < self.rate_limit:
-            # Time is under rate limiter, do nothing
+
+        # Attempt to add to events
+        if len(self.events) < 25:  # Events list limited to 25 events (drop any events past this)
+            params = {**self.metadata, **{'task': cfg.task}}
+            if cfg.mode == 'export':
+                params['format'] = cfg.format
+            self.events.append({'name': cfg.mode, 'params': params})
+
+        # Check rate limit
+        t = time.time()
+        if (t - self.t) < self.rate_limit:
+            # Time is under rate limiter, wait to send
             return
-        else:
-            # Time is over rate limiter, send trace now
-            trace = {'uuid': SETTINGS['uuid'], 'usage': self.usage.copy(), 'metadata': self.metadata}
 
-            # Send a request to the HUB API to sync analytics
-            smart_request('post', f'{HUB_API_ROOT}/v1/usage/anonymous', json=trace, code=3, retry=0, verbose=False)
+        # Time is over rate limiter, send now
+        data = {'client_id': SETTINGS['uuid'], 'events': self.events}  # SHA-256 anonymized UUID hash and events list
+        smart_request('post', self.url, json=data, retry=0, code=3)  # equivalent to requests.post(self.url, json=data)
 
-            # Reset usage and rate limit timer
-            self._reset_usage()
-            self.t = t
-
-    def _reset_usage(self):
-        """Reset the usage dictionary by initializing keys for each task and mode with a value of 0."""
-        from ultralytics.yolo.cfg import MODES, TASKS
-        self.usage = {'tasks': {k: 0 for k in TASKS}, 'modes': {k: 0 for k in MODES}}
+        # Reset events and rate limit timer
+        self.events = []
+        self.t = t
 
 
 # Run below code on hub/utils init -------------------------------------------------------------------------------------
-traces = Traces()
+events = Events()

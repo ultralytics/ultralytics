@@ -183,7 +183,7 @@ class Events:
         Attempts to add a new event to the events list and send events if the rate limit is reached.
 
         Args:
-            cfg: The configuration object containing mode and task information.
+            cfg (IterableSimpleNamespace): The configuration object containing mode and task information.
         """
         if not self.enabled:
             # Events disabled, do nothing

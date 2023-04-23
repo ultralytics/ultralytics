@@ -200,6 +200,7 @@ nav:
           - comet: reference/yolo/utils/callbacks/comet.md
           - hub: reference/yolo/utils/callbacks/hub.md
           - mlflow: reference/yolo/utils/callbacks/mlflow.md
+          - neptune: reference/yolo/utils/callbacks/neptune.md
           - raytune: reference/yolo/utils/callbacks/raytune.md
           - tensorboard: reference/yolo/utils/callbacks/tensorboard.md
           - wb: reference/yolo/utils/callbacks/wb.md

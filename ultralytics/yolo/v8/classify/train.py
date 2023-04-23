@@ -30,7 +30,7 @@ class ClassificationTrainer(BaseTrainer):
         if weights:
             model.load(weights)
 
-        pretrained = False
+        pretrained = self.args.pretrained
         for m in model.modules():
             if not pretrained and hasattr(m, 'reset_parameters'):
                 m.reset_parameters()

@@ -70,7 +70,6 @@ The following table lists the default search space parameters for hyperparameter
 | warmup_momentum | `tune.uniform(0.0, 0.95)`  | Warmup momentum                          |
 | box             | `tune.uniform(0.02, 0.2)`  | Box loss weight                          |
 | cls             | `tune.uniform(0.2, 4.0)`   | Class loss weight                        |
-| fl_gamma        | `tune.uniform(0.0, 2.0)`   | Focal loss gamma                         |
 | hsv_h           | `tune.uniform(0.0, 0.1)`   | Hue augmentation range                   |
 | hsv_s           | `tune.uniform(0.0, 0.9)`   | Saturation augmentation range            |
 | hsv_v           | `tune.uniform(0.0, 0.9)`   | Value (brightness) augmentation range    |

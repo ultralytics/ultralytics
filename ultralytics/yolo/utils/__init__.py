@@ -670,7 +670,7 @@ def get_settings(file=SETTINGS_YAML, version='0.0.3'):
         'datasets_dir': str(datasets_root / 'datasets'),  # default datasets directory.
         'weights_dir': str(root / 'weights'),  # default weights directory.
         'runs_dir': str(root / 'runs'),  # default runs directory.
-        'uuid': hashlib.sha256(str(uuid.getnode()).encode()).hexdigest(),  # anonymized uuid hash
+        'uuid': hashlib.sha256(str(uuid.getnode()).encode()).hexdigest(),  # SHA-256 anonymized UUID hash
         'sync': True,  # sync analytics to help with YOLO development
         'api_key': '',  # Ultralytics HUB API key (https://hub.ultralytics.com/)
         'settings_version': version}  # Ultralytics settings version

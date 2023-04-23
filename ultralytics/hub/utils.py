@@ -2,6 +2,7 @@
 
 import os
 import platform
+import random
 import sys
 import threading
 import time
@@ -167,7 +168,9 @@ class Events:
             'install': 'git' if is_git_dir() else 'pip' if is_pip_package() else 'other',
             'python': platform.python_version(),
             'version': __version__,
-            'env': ENVIRONMENT}
+            'env': ENVIRONMENT,
+            'session_id': round(random.random() * 1E16),
+            'engagement_time_msec': 1000}
         self.enabled = \
             SETTINGS['sync'] and \
             RANK in (-1, 0) and \

@@ -56,7 +56,7 @@ whether each source can be used in streaming mode with `stream=True` ✅ and an 
 
 
 ## Arguments
-`model.predict` accepts multiple arguments that control the predction operation. These arguments can be passed directly to `model.predict`:
+`model.predict` accepts multiple arguments that control the prediction operation. These arguments can be passed directly to `model.predict`:
 !!! example
     ```
     model.predict(source, save=True, imgsz=320, conf=0.5)
@@ -202,7 +202,7 @@ operations are cached, meaning they're only calculated once per object, and thos
     results[0].probs  # cls prob, (num_class, )
     ```
 
-Class reference documentation for `Results` module and its components can be found [here](../reference/results.md)
+Class reference documentation for `Results` module and its components can be found [here](../reference/yolo/engine/results.md)
 
 ## Plotting results
 

@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 import signal
 import sys
 from pathlib import Path
@@ -6,7 +6,7 @@ from time import sleep
 
 import requests
 
-from ultralytics.hub.utils import HUB_API_ROOT, PREFIX, check_dataset_disk_space, smart_request
+from ultralytics.hub.utils import HUB_API_ROOT, PREFIX, smart_request
 from ultralytics.yolo.utils import LOGGER, __version__, checks, emojis, is_colab, threaded
 from ultralytics.yolo.utils.errors import HUBModelError
 
@@ -124,7 +124,7 @@ class HUBTrainingSession:
                     'device': data['device'],
                     'cache': data['cache'],
                     'data': data['data']}
-                self.model_file = data.get('cfg', data['weights'])
+                self.model_file = data.get('cfg') or data.get('weights')  # cfg for pretrained=False
                 self.model_file = checks.check_yolov5u_filename(self.model_file, verbose=False)  # YOLOv5->YOLOv5u
             elif data['status'] == 'training':  # existing model to resume training
                 self.train_args = {'data': data['data'], 'resume': True}
@@ -135,11 +135,6 @@ class HUBTrainingSession:
             raise ConnectionRefusedError('ERROR: The HUB server is not online. Please try again later.') from e
         except Exception:
             raise
-
-    def check_disk_space(self):
-        """Check if there is enough disk space for the dataset."""
-        if not check_dataset_disk_space(url=self.model['data']):
-            raise MemoryError('Not enough disk space')
 
     def upload_model(self, epoch, weights, is_best=False, map=0.0, final=False):
         """

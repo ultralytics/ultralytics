@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import numpy as np
 
@@ -11,8 +11,7 @@ class STrack(BaseTrack):
     shared_kalman = KalmanFilterXYAH()
 
     def __init__(self, tlwh, score, cls):
-
-        # wait activate
+        """wait activate."""
         self._tlwh = np.asarray(self.tlbr_to_tlwh(tlwh[:-1]), dtype=np.float32)
         self.kalman_filter = None
         self.mean, self.covariance = None, None
@@ -24,6 +23,7 @@ class STrack(BaseTrack):
         self.idx = tlwh[-1]
 
     def predict(self):
+        """Predicts mean and covariance using Kalman filter."""
         mean_state = self.mean.copy()
         if self.state != TrackState.Tracked:
             mean_state[7] = 0
@@ -31,6 +31,7 @@ class STrack(BaseTrack):
 
     @staticmethod
     def multi_predict(stracks):
+        """Perform multi-object predictive tracking using Kalman filter for given stracks."""
         if len(stracks) <= 0:
             return
         multi_mean = np.asarray([st.mean.copy() for st in stracks])
@@ -45,6 +46,7 @@ class STrack(BaseTrack):
 
     @staticmethod
     def multi_gmc(stracks, H=np.eye(2, 3)):
+        """Update state tracks positions and covariances using a homography matrix."""
         if len(stracks) > 0:
             multi_mean = np.asarray([st.mean.copy() for st in stracks])
             multi_covariance = np.asarray([st.covariance for st in stracks])
@@ -62,7 +64,7 @@ class STrack(BaseTrack):
                 stracks[i].covariance = cov
 
     def activate(self, kalman_filter, frame_id):
-        """Start a new tracklet"""
+        """Start a new tracklet."""
         self.kalman_filter = kalman_filter
         self.track_id = self.next_id()
         self.mean, self.covariance = self.kalman_filter.initiate(self.convert_coords(self._tlwh))
@@ -75,6 +77,7 @@ class STrack(BaseTrack):
         self.start_frame = frame_id
 
     def re_activate(self, new_track, frame_id, new_id=False):
+        """Reactivates a previously lost track with a new detection."""
         self.mean, self.covariance = self.kalman_filter.update(self.mean, self.covariance,
                                                                self.convert_coords(new_track.tlwh))
         self.tracklet_len = 0
@@ -108,6 +111,7 @@ class STrack(BaseTrack):
         self.idx = new_track.idx
 
     def convert_coords(self, tlwh):
+        """Convert a bounding box's top-left-width-height format to its x-y-angle-height equivalent."""
         return self.tlwh_to_xyah(tlwh)
 
     @property
@@ -143,23 +147,27 @@ class STrack(BaseTrack):
 
     @staticmethod
     def tlbr_to_tlwh(tlbr):
+        """Converts top-left bottom-right format to top-left width height format."""
         ret = np.asarray(tlbr).copy()
         ret[2:] -= ret[:2]
         return ret
 
     @staticmethod
     def tlwh_to_tlbr(tlwh):
+        """Converts tlwh bounding box format to tlbr format."""
         ret = np.asarray(tlwh).copy()
         ret[2:] += ret[:2]
         return ret
 
     def __repr__(self):
+        """Return a string representation of the BYTETracker object with start and end frames and track ID."""
         return f'OT_{self.track_id}_({self.start_frame}-{self.end_frame})'
 
 
 class BYTETracker:
 
     def __init__(self, args, frame_rate=30):
+        """Initialize a YOLOv8 object to track objects with given arguments and frame rate."""
         self.tracked_stracks = []  # type: list[STrack]
         self.lost_stracks = []  # type: list[STrack]
         self.removed_stracks = []  # type: list[STrack]
@@ -171,6 +179,7 @@ class BYTETracker:
         self.reset_id()
 
     def update(self, results, img=None):
+        """Updates object tracker with new detections and returns tracked object bounding boxes."""
         self.frame_id += 1
         activated_starcks = []
         refind_stracks = []
@@ -179,7 +188,7 @@ class BYTETracker:
 
         scores = results.conf
         bboxes = results.xyxy
-        # add index
+        # Add index
         bboxes = np.concatenate([bboxes, np.arange(len(bboxes)).reshape(-1, 1)], axis=-1)
         cls = results.cls
 
@@ -196,7 +205,7 @@ class BYTETracker:
         cls_second = cls[inds_second]
 
         detections = self.init_track(dets, scores_keep, cls_keep, img)
-        """ Add newly detected tracklets to tracked_stracks"""
+        # Add newly detected tracklets to tracked_stracks
         unconfirmed = []
         tracked_stracks = []  # type: list[STrack]
         for track in self.tracked_stracks:
@@ -204,7 +213,7 @@ class BYTETracker:
                 unconfirmed.append(track)
             else:
                 tracked_stracks.append(track)
-        """ Step 2: First association, with high score detection boxes"""
+        # Step 2: First association, with high score detection boxes
         strack_pool = self.joint_stracks(tracked_stracks, self.lost_stracks)
         # Predict the current location with KF
         self.multi_predict(strack_pool)
@@ -225,7 +234,7 @@ class BYTETracker:
             else:
                 track.re_activate(det, self.frame_id, new_id=False)
                 refind_stracks.append(track)
-        """ Step 3: Second association, with low score detection boxes"""
+        # Step 3: Second association, with low score detection boxes
         # association the untrack to the low score detections
         detections_second = self.init_track(dets_second, scores_second, cls_second, img)
         r_tracked_stracks = [strack_pool[i] for i in u_track if strack_pool[i].state == TrackState.Tracked]
@@ -247,7 +256,7 @@ class BYTETracker:
             if track.state != TrackState.Lost:
                 track.mark_lost()
                 lost_stracks.append(track)
-        """Deal with unconfirmed tracks, usually tracks with only one beginning frame"""
+        # Deal with unconfirmed tracks, usually tracks with only one beginning frame
         detections = [detections[i] for i in u_detection]
         dists = self.get_dists(unconfirmed, detections)
         matches, u_unconfirmed, u_detection = matching.linear_assignment(dists, thresh=0.7)
@@ -258,14 +267,14 @@ class BYTETracker:
             track = unconfirmed[it]
             track.mark_removed()
             removed_stracks.append(track)
-        """ Step 4: Init new stracks"""
+        # Step 4: Init new stracks
         for inew in u_detection:
             track = detections[inew]
             if track.score < self.args.new_track_thresh:
                 continue
             track.activate(self.kalman_filter, self.frame_id)
             activated_starcks.append(track)
-        """ Step 5: Update state"""
+        # Step 5: Update state
         for track in self.lost_stracks:
             if self.frame_id - track.end_frame > self.max_time_lost:
                 track.mark_removed()
@@ -286,12 +295,15 @@ class BYTETracker:
             dtype=np.float32)
 
     def get_kalmanfilter(self):
+        """Returns a Kalman filter object for tracking bounding boxes."""
         return KalmanFilterXYAH()
 
     def init_track(self, dets, scores, cls, img=None):
+        """Initialize object tracking with detections and scores using STrack algorithm."""
         return [STrack(xyxy, s, c) for (xyxy, s, c) in zip(dets, scores, cls)] if len(dets) else []  # detections
 
     def get_dists(self, tracks, detections):
+        """Calculates the distance between tracks and detections using IOU and fuses scores."""
         dists = matching.iou_distance(tracks, detections)
         # TODO: mot20
         # if not self.args.mot20:
@@ -299,13 +311,16 @@ class BYTETracker:
         return dists
 
     def multi_predict(self, tracks):
+        """Returns the predicted tracks using the YOLOv8 network."""
         STrack.multi_predict(tracks)
 
     def reset_id(self):
+        """Resets the ID counter of STrack."""
         STrack.reset_id()
 
     @staticmethod
     def joint_stracks(tlista, tlistb):
+        """Combine two lists of stracks into a single one."""
         exists = {}
         res = []
         for t in tlista:
@@ -320,7 +335,7 @@ class BYTETracker:
 
     @staticmethod
     def sub_stracks(tlista, tlistb):
-        """ DEPRECATED CODE in https://github.com/ultralytics/ultralytics/pull/1890/
+        """DEPRECATED CODE in https://github.com/ultralytics/ultralytics/pull/1890/
         stracks = {t.track_id: t for t in tlista}
         for t in tlistb:
             tid = t.track_id
@@ -333,6 +348,7 @@ class BYTETracker:
 
     @staticmethod
     def remove_duplicate_stracks(stracksa, stracksb):
+        """Remove duplicate stracks with non-maximum IOU distance."""
         pdist = matching.iou_distance(stracksa, stracksb)
         pairs = np.where(pdist < 0.15)
         dupa, dupb = [], []

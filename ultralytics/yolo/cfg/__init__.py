@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 import contextlib
 import re
 import shutil
@@ -71,10 +71,10 @@ CFG_FRACTION_KEYS = ('dropout', 'iou', 'lr0', 'lrf', 'momentum', 'weight_decay',
                      'fliplr', 'mosaic', 'mixup', 'copy_paste', 'conf', 'iou')  # fractional floats limited to 0.0 - 1.0
 CFG_INT_KEYS = ('epochs', 'patience', 'batch', 'workers', 'seed', 'close_mosaic', 'mask_ratio', 'max_det', 'vid_stride',
                 'line_thickness', 'workspace', 'nbs', 'save_period')
-CFG_BOOL_KEYS = ('save', 'exist_ok', 'verbose', 'deterministic', 'single_cls', 'image_weights', 'rect', 'cos_lr',
-                 'overlap_mask', 'val', 'save_json', 'save_hybrid', 'half', 'dnn', 'plots', 'show', 'save_txt',
-                 'save_conf', 'save_crop', 'show_labels', 'show_conf', 'visualize', 'augment', 'agnostic_nms',
-                 'retina_masks', 'boxes', 'keras', 'optimize', 'int8', 'dynamic', 'simplify', 'nms', 'v5loader')
+CFG_BOOL_KEYS = ('save', 'exist_ok', 'verbose', 'deterministic', 'single_cls', 'rect', 'cos_lr', 'overlap_mask', 'val',
+                 'save_json', 'save_hybrid', 'half', 'dnn', 'plots', 'show', 'save_txt', 'save_conf', 'save_crop',
+                 'show_labels', 'show_conf', 'visualize', 'augment', 'agnostic_nms', 'retina_masks', 'boxes', 'keras',
+                 'optimize', 'int8', 'dynamic', 'simplify', 'nms', 'v5loader')
 
 
 def cfg2dict(cfg):
@@ -395,6 +395,7 @@ def entrypoint(debug=''):
 
 # Special modes --------------------------------------------------------------------------------------------------------
 def copy_default_cfg():
+    """Copy and create a new default configuration file with '_copy' appended to its name."""
     new_file = Path.cwd() / DEFAULT_CFG_PATH.name.replace('.yaml', '_copy.yaml')
     shutil.copy2(DEFAULT_CFG_PATH, new_file)
     LOGGER.info(f'{DEFAULT_CFG_PATH} copied to {new_file}\n'
@@ -402,5 +403,5 @@ def copy_default_cfg():
 
 
 if __name__ == '__main__':
-    # entrypoint(debug='yolo predict model=yolov8n.pt')
+    # Example Usage: entrypoint(debug='yolo predict model=yolov8n.pt')
     entrypoint(debug='')

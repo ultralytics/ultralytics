@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import sys
 from pathlib import Path
@@ -37,6 +37,7 @@ class YOLO:
 
     Args:
         model (str, Path): Path to the model file to load or create.
+        task (Any, optional): Task type for the YOLO model. Defaults to None.
 
     Attributes:
         predictor (Any): The predictor object.
@@ -78,7 +79,6 @@ class YOLO:
         Args:
             model (Union[str, Path], optional): Path or name of the model to load or create. Defaults to 'yolov8n.pt'.
             task (Any, optional): Task type for the YOLO model. Defaults to None.
-
         """
         self.callbacks = callbacks.get_default_callbacks()
         self.predictor = None  # reuse predictor
@@ -109,14 +109,17 @@ class YOLO:
             self._load(model, task)
 
     def __call__(self, source=None, stream=False, **kwargs):
+        """Calls the 'predict' function with given arguments to perform object detection."""
         return self.predict(source, stream, **kwargs)
 
     def __getattr__(self, attr):
+        """Raises error if object has no requested attribute."""
         name = self.__class__.__name__
         raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
 
     @staticmethod
     def is_hub_model(model):
+        """Check if the provided model is a HUB model."""
         return any((
             model.startswith('https://hub.ultra'),  # i.e. https://hub.ultralytics.com/models/MODEL_ID
             [len(x) for x in model.split('_')] == [42, 20],  # APIKEY_MODELID
@@ -211,6 +214,7 @@ class YOLO:
         self.model.info(verbose=verbose)
 
     def fuse(self):
+        """Fuse PyTorch Conv2d and BatchNorm2d layers."""
         self._check_is_pytorch_model()
         self.model.fuse()
 
@@ -275,7 +279,7 @@ class YOLO:
     @smart_inference_mode()
     def val(self, data=None, **kwargs):
         """
-        Validate a model on a given dataset .
+        Validate a model on a given dataset.
 
         Args:
             data (str): The dataset to validate on. Accepts all formats accepted by yolo
@@ -348,7 +352,6 @@ class YOLO:
             if any(kwargs):
                 LOGGER.warning('WARNING ⚠️ using HUB training arguments, ignoring local training arguments.')
             kwargs = self.session.train_args
-            self.session.check_disk_space()
         check_pip_update_available()
         overrides = self.overrides.copy()
         overrides.update(kwargs)
@@ -367,7 +370,7 @@ class YOLO:
             self.model = self.trainer.model
         self.trainer.hub_session = self.session  # attach optional HUB session
         self.trainer.train()
-        # update model and cfg after training
+        # Update model and cfg after training
         if RANK in (-1, 0):
             self.model, _ = attempt_load_one_weight(str(self.trainer.best))
             self.overrides = self.model.args
@@ -402,7 +405,7 @@ class YOLO:
             train_args (dict, optional): Additional arguments to pass to the `train()` method. Defaults to {}.
 
         Returns:
-            A dictionary containing the results of the hyperparameter search.
+            (dict): A dictionary containing the results of the hyperparameter search.
 
         Raises:
             ModuleNotFoundError: If Ray Tune is not installed.
@@ -468,36 +471,34 @@ class YOLO:
 
     @property
     def names(self):
-        """
-         Returns class names of the loaded model.
-        """
+        """Returns class names of the loaded model."""
         return self.model.names if hasattr(self.model, 'names') else None
 
     @property
     def device(self):
-        """
-        Returns device if PyTorch model
-        """
+        """Returns device if PyTorch model."""
         return next(self.model.parameters()).device if isinstance(self.model, nn.Module) else None
 
     @property
     def transforms(self):
-        """
-         Returns transform of the loaded model.
-        """
+        """Returns transform of the loaded model."""
         return self.model.transforms if hasattr(self.model, 'transforms') else None
 
     def add_callback(self, event: str, func):
-        """
-        Add callback
-        """
+        """Add a callback."""
         self.callbacks[event].append(func)
+
+    def clear_callback(self, event: str):
+        """Clear all event callbacks."""
+        self.callbacks[event] = []
 
     @staticmethod
     def _reset_ckpt_args(args):
+        """Reset arguments when loading a PyTorch model."""
         include = {'imgsz', 'data', 'task', 'single_cls'}  # only remember these arguments when loading a PyTorch model
         return {k: v for k, v in args.items() if k in include}
 
     def _reset_callbacks(self):
+        """Reset all registered callbacks."""
         for event in callbacks.default_callbacks.keys():
             self.callbacks[event] = [callbacks.default_callbacks[event][0]]

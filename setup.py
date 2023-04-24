@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import re
 from pathlib import Path
@@ -23,7 +23,7 @@ setup(
     name='ultralytics',  # name of pypi package
     version=get_version(),  # version of pypi package
     python_requires='>=3.7',
-    license='GPL-3.0',
+    license='AGPL-3.0',
     description='Ultralytics YOLOv8',
     long_description=README,
     long_description_content_type='text/markdown',
@@ -46,7 +46,7 @@ setup(
         'Intended Audience :: Developers',
         'Intended Audience :: Education',
         'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        'License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',

@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import torch
 import torchvision
@@ -14,20 +14,23 @@ from ultralytics.yolo.utils.torch_utils import is_parallel, strip_optimizer
 class ClassificationTrainer(BaseTrainer):
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+        """Initialize a ClassificationTrainer object with optional configuration overrides and callbacks."""
         if overrides is None:
             overrides = {}
         overrides['task'] = 'classify'
         super().__init__(cfg, overrides, _callbacks)
 
     def set_model_attributes(self):
+        """Set the YOLO model's class names from the loaded dataset."""
         self.model.names = self.data['names']
 
     def get_model(self, cfg=None, weights=None, verbose=True):
+        """Returns a modified PyTorch model configured for training YOLO."""
         model = ClassificationModel(cfg, nc=self.data['nc'], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
 
-        pretrained = False
+        pretrained = self.args.pretrained
         for m in model.modules():
             if not pretrained and hasattr(m, 'reset_parameters'):
                 m.reset_parameters()
@@ -46,7 +49,7 @@ class ClassificationTrainer(BaseTrainer):
         """
         load/create/download model for any task
         """
-        # classification models require special handling
+        # Classification models require special handling
 
         if isinstance(self.model, torch.nn.Module):  # if model is loaded beforehand. No setup needed
             return
@@ -69,6 +72,7 @@ class ClassificationTrainer(BaseTrainer):
         return  # dont return ckpt. Classification doesn't support resume
 
     def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode='train'):
+        """Returns PyTorch DataLoader with transforms to preprocess images for inference."""
         loader = build_classification_dataloader(path=dataset_path,
                                                  imgsz=self.args.imgsz,
                                                  batch_size=batch_size if mode == 'train' else (batch_size * 2),
@@ -84,34 +88,26 @@ class ClassificationTrainer(BaseTrainer):
         return loader
 
     def preprocess_batch(self, batch):
+        """Preprocesses a batch of images and classes."""
         batch['img'] = batch['img'].to(self.device)
         batch['cls'] = batch['cls'].to(self.device)
         return batch
 
     def progress_string(self):
+        """Returns a formatted string showing training progress."""
         return ('\n' + '%11s' * (4 + len(self.loss_names))) % \
             ('Epoch', 'GPU_mem', *self.loss_names, 'Instances', 'Size')
 
     def get_validator(self):
+        """Returns an instance of ClassificationValidator for validation."""
         self.loss_names = ['loss']
         return v8.classify.ClassificationValidator(self.test_loader, self.save_dir)
 
     def criterion(self, preds, batch):
+        """Compute the classification loss between predictions and true labels."""
         loss = torch.nn.functional.cross_entropy(preds, batch['cls'], reduction='sum') / self.args.nbs
         loss_items = loss.detach()
         return loss, loss_items
-
-    # def label_loss_items(self, loss_items=None, prefix="train"):
-    #     """
-    #     Returns a loss dict with labelled training loss items tensor
-    #     """
-    #     # Not needed for classification but necessary for segmentation & detection
-    #     keys = [f"{prefix}/{x}" for x in self.loss_names]
-    #     if loss_items is not None:
-    #         loss_items = [round(float(x), 5) for x in loss_items]  # convert tensors to 5 decimal place floats
-    #         return dict(zip(keys, loss_items))
-    #     else:
-    #         return keys
 
     def label_loss_items(self, loss_items=None, prefix='train'):
         """
@@ -125,9 +121,11 @@ class ClassificationTrainer(BaseTrainer):
         return dict(zip(keys, loss_items))
 
     def resume_training(self, ckpt):
+        """Resumes training from a given checkpoint."""
         pass
 
     def final_eval(self):
+        """Evaluate trained model and save validation results."""
         for f in self.last, self.best:
             if f.exists():
                 strip_optimizer(f)  # strip optimizers
@@ -142,6 +140,7 @@ class ClassificationTrainer(BaseTrainer):
 
 
 def train(cfg=DEFAULT_CFG, use_python=False):
+    """Train the YOLO classification model."""
     model = cfg.model or 'yolov8n-cls.pt'  # or "resnet18"
     data = cfg.data or 'mnist160'  # or yolo.ClassificationDataset("mnist")
     device = cfg.device if cfg.device is not None else ''

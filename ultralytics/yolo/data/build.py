@@ -1,4 +1,4 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import os
 import random
@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 import torch
 from PIL import Image
-from torch.utils.data import DataLoader, dataloader, distributed
+from torch.utils.data import dataloader, distributed
 
 from ultralytics.yolo.data.dataloaders.stream_loaders import (LOADERS, LoadImages, LoadPilAndNumpy, LoadScreenshots,
                                                               LoadStreams, LoadTensor, SourceTypes, autocast_list)
@@ -21,35 +21,44 @@ from .utils import PIN_MEMORY
 
 
 class InfiniteDataLoader(dataloader.DataLoader):
-    """Dataloader that reuses workers
-
-    Uses same syntax as vanilla DataLoader
-    """
+    """Dataloader that reuses workers. Uses same syntax as vanilla DataLoader."""
 
     def __init__(self, *args, **kwargs):
+        """Dataloader that infinitely recycles workers, inherits from DataLoader."""
         super().__init__(*args, **kwargs)
         object.__setattr__(self, 'batch_sampler', _RepeatSampler(self.batch_sampler))
         self.iterator = super().__iter__()
 
     def __len__(self):
+        """Returns the length of the batch sampler's sampler."""
         return len(self.batch_sampler.sampler)
 
     def __iter__(self):
+        """Creates a sampler that repeats indefinitely."""
         for _ in range(len(self)):
             yield next(self.iterator)
 
+    def reset(self):
+        """Reset iterator.
+        This is useful when we want to modify settings of dataset while training.
+        """
+        self.iterator = self._get_iterator()
+
 
 class _RepeatSampler:
-    """Sampler that repeats forever
+    """
+    Sampler that repeats forever.
 
     Args:
-        sampler (Sampler)
+        sampler (Dataset.sampler): The sampler to repeat.
     """
 
     def __init__(self, sampler):
+        """Initializes an object that repeats a given sampler indefinitely."""
         self.sampler = sampler
 
     def __iter__(self):
+        """Iterates over the 'sampler' and yields its contents."""
         while True:
             yield from iter(self.sampler)
 
@@ -62,6 +71,7 @@ def seed_worker(worker_id):  # noqa
 
 
 def build_dataloader(cfg, batch, img_path, data_info, stride=32, rect=False, rank=-1, mode='train'):
+    """Return an InfiniteDataLoader or DataLoader for training or validation set."""
     assert mode in ['train', 'val']
     shuffle = mode == 'train'
     if cfg.rect and shuffle:
@@ -91,23 +101,20 @@ def build_dataloader(cfg, batch, img_path, data_info, stride=32, rect=False, ran
     workers = cfg.workers if mode == 'train' else cfg.workers * 2
     nw = min([os.cpu_count() // max(nd, 1), batch if batch > 1 else 0, workers])  # number of workers
     sampler = None if rank == -1 else distributed.DistributedSampler(dataset, shuffle=shuffle)
-    loader = DataLoader if cfg.image_weights or cfg.close_mosaic else InfiniteDataLoader  # allow attribute updates
     generator = torch.Generator()
     generator.manual_seed(6148914691236517205 + RANK)
-    return loader(
-        dataset=dataset,
-        batch_size=batch,
-        shuffle=shuffle and sampler is None,
-        num_workers=nw,
-        sampler=sampler,
-        pin_memory=PIN_MEMORY,
-        collate_fn=getattr(dataset, 'collate_fn', None),
-        worker_init_fn=seed_worker,
-        persistent_workers=(nw > 0) and (loader == DataLoader),  # persist workers if using default PyTorch DataLoader
-        generator=generator), dataset
+    return InfiniteDataLoader(dataset=dataset,
+                              batch_size=batch,
+                              shuffle=shuffle and sampler is None,
+                              num_workers=nw,
+                              sampler=sampler,
+                              pin_memory=PIN_MEMORY,
+                              collate_fn=getattr(dataset, 'collate_fn', None),
+                              worker_init_fn=seed_worker,
+                              generator=generator), dataset
 
 
-# build classification
+# Build classification
 # TODO: using cfg like `build_dataloader`
 def build_classification_dataloader(path,
                                     imgsz=224,
@@ -117,7 +124,7 @@ def build_classification_dataloader(path,
                                     rank=-1,
                                     workers=8,
                                     shuffle=True):
-    # Returns Dataloader object to be used with YOLOv5 Classifier
+    """Returns Dataloader object to be used with YOLOv5 Classifier."""
     with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
         dataset = ClassificationDataset(root=path, imgsz=imgsz, augment=augment, cache=cache)
     batch_size = min(batch_size, len(dataset))
@@ -137,6 +144,7 @@ def build_classification_dataloader(path,
 
 
 def check_source(source):
+    """Check source type and return corresponding flag values."""
     webcam, screenshot, from_img, in_memory, tensor = False, False, False, False, False
     if isinstance(source, (str, int, Path)):  # int for local usb camera
         source = str(source)
@@ -174,7 +182,7 @@ def load_inference_source(source=None, transforms=None, imgsz=640, vid_stride=1,
         auto (bool, optional): Automatically apply pre-processing. Default is True.
 
     Returns:
-        dataset: A dataset object for the specified input source.
+        dataset (Dataset): A dataset object for the specified input source.
     """
     source, webcam, screenshot, from_img, in_memory, tensor = check_source(source)
     source_type = source.source_type if in_memory else SourceTypes(webcam, screenshot, from_img, tensor)

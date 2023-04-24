@@ -1,6 +1,7 @@
-# Ultralytics YOLO 🚀, GPL-3.0 license
+# Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import contextlib
+import shutil
 import subprocess
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
@@ -21,7 +22,7 @@ GITHUB_ASSET_STEMS = [Path(k).stem for k in GITHUB_ASSET_NAMES]
 
 
 def is_url(url, check=True):
-    # Check if string is URL and check if URL exists
+    """Check if string is URL and check if URL exists."""
     with contextlib.suppress(Exception):
         url = str(url)
         result = parse.urlparse(url)
@@ -57,6 +58,38 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX')):
         return unzip_dir  # return unzip dir
 
 
+def check_disk_space(url='https://ultralytics.com/assets/coco128.zip', sf=1.5, hard=True):
+    """
+    Check if there is sufficient disk space to download and store a file.
+
+    Args:
+        url (str, optional): The URL to the file. Defaults to 'https://ultralytics.com/assets/coco128.zip'.
+        sf (float, optional): Safety factor, the multiplier for the required free space. Defaults to 2.0.
+        hard (bool, optional): Whether to throw an error or not on insufficient disk space. Defaults to True.
+
+    Returns:
+        (bool): True if there is sufficient disk space, False otherwise.
+    """
+    with contextlib.suppress(Exception):
+        gib = 1 << 30  # bytes per GiB
+        data = int(requests.head(url).headers['Content-Length']) / gib  # file size (GB)
+        total, used, free = (x / gib for x in shutil.disk_usage('/'))  # bytes
+        if data * sf < free:
+            return True  # sufficient space
+
+        # Insufficient space
+        text = (f'WARNING ⚠️ Insufficient free disk space {free:.1f} GB < {data * sf:.3f} GB required, '
+                f'Please free {data * sf - free:.1f} GB additional disk space and try again.')
+        if hard:
+            raise MemoryError(text)
+        else:
+            LOGGER.warning(text)
+            return False
+
+            # Pass if error
+    return True
+
+
 def safe_download(url,
                   file=None,
                   dir=None,
@@ -67,21 +100,21 @@ def safe_download(url,
                   min_bytes=1E0,
                   progress=True):
     """
-    Function for downloading files from a URL, with options for retrying, unzipping, and deleting the downloaded file.
+    Downloads files from a URL, with options for retrying, unzipping, and deleting the downloaded file.
 
     Args:
-        url: str: The URL of the file to be downloaded.
-        file: str, optional: The filename of the downloaded file.
+        url (str): The URL of the file to be downloaded.
+        file (str, optional): The filename of the downloaded file.
             If not provided, the file will be saved with the same name as the URL.
-        dir: str, optional: The directory to save the downloaded file.
+        dir (str, optional): The directory to save the downloaded file.
             If not provided, the file will be saved in the current working directory.
-        unzip: bool, optional: Whether to unzip the downloaded file. Default: True.
-        delete: bool, optional: Whether to delete the downloaded file after unzipping. Default: False.
-        curl: bool, optional: Whether to use curl command line tool for downloading. Default: False.
-        retry: int, optional: The number of times to retry the download in case of failure. Default: 3.
-        min_bytes: float, optional: The minimum number of bytes that the downloaded file should have, to be considered
+        unzip (bool, optional): Whether to unzip the downloaded file. Default: True.
+        delete (bool, optional): Whether to delete the downloaded file after unzipping. Default: False.
+        curl (bool, optional): Whether to use curl command line tool for downloading. Default: False.
+        retry (int, optional): The number of times to retry the download in case of failure. Default: 3.
+        min_bytes (float, optional): The minimum number of bytes that the downloaded file should have, to be considered
             a successful download. Default: 1E0.
-        progress: bool, optional: Whether to display a progress bar during the download. Default: True.
+        progress (bool, optional): Whether to display a progress bar during the download. Default: True.
     """
     if '://' not in str(url) and Path(url).is_file():  # exists ('://' check required in Windows Python<3.10)
         f = Path(url)  # filename
@@ -91,6 +124,7 @@ def safe_download(url,
         desc = f'Downloading {clean_url(url)} to {f}'
         LOGGER.info(f'{desc}...')
         f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
+        check_disk_space(url)
         for i in range(retry + 1):
             try:
                 if curl or i > 0:  # curl download with retry, continue
@@ -141,11 +175,11 @@ def safe_download(url,
 
 
 def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
-    # Attempt file download from GitHub release assets if not found locally. release = 'latest', 'v6.2', etc.
+    """Attempt file download from GitHub release assets if not found locally. release = 'latest', 'v6.2', etc."""
     from ultralytics.yolo.utils import SETTINGS  # scoped for circular import
 
     def github_assets(repository, version='latest'):
-        # Return GitHub repo tag and assets (i.e. ['yolov8n.pt', 'yolov8s.pt', ...])
+        """Return GitHub repo tag and assets (i.e. ['yolov8n.pt', 'yolov8s.pt', ...])."""
         if version != 'latest':
             version = f'tags/{version}'  # i.e. tags/v6.2
         response = requests.get(f'https://api.github.com/repos/{repository}/releases/{version}').json()  # github api
@@ -192,7 +226,7 @@ def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
 
 
 def download(url, dir=Path.cwd(), unzip=True, delete=False, curl=False, threads=1, retry=3):
-    # Multithreaded file download and unzip function, used in data.yaml for autodownload
+    """Downloads and unzips files concurrently if threads > 1, else sequentially."""
     dir = Path(dir)
     dir.mkdir(parents=True, exist_ok=True)  # make directory
     if threads > 1:

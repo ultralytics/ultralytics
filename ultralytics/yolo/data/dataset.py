@@ -65,10 +65,9 @@ class YOLODataset(BaseDataset):
         self.use_keypoints = use_keypoints
         self.use_obb = use_obb
         self.data = data
-        assert not ((self.use_segments and self.use_keypoints) or (self.use_keypoints and self.use_obb) or
-                    (self.use_segments and self.use_obb) or
-                    (self.use_segments and self.use_keypoints
-                     and self.use_obb)), 'Cannot use segments, keypoints and OBB together'
+        assert not ((self.use_segments and self.use_keypoints and self.use_obb) or
+                    (self.use_segments and self.use_keypoints) or (self.use_keypoints and self.use_obb) or
+                    (self.use_segments and self.use_obb)), 'Cannot use segments, keypoints and OBB together'
 
         super().__init__(img_path, imgsz, cache, augment, hyp, prefix, rect, batch_size, stride, pad, single_cls,
                          classes)
@@ -189,6 +188,7 @@ class YOLODataset(BaseDataset):
                    normalize=True,
                    return_mask=self.use_segments,
                    return_keypoint=self.use_keypoints,
+                   return_obb_theta=self.use_obb,
                    batch_idx=True,
                    mask_ratio=hyp.mask_ratio,
                    mask_overlap=hyp.overlap_mask))
@@ -205,11 +205,13 @@ class YOLODataset(BaseDataset):
         # NOTE: cls is not with bboxes now, classification and semantic segmentation need an independent cls label
         # we can make it also support classification and semantic segmentation by add or remove some dict keys there.
         bboxes = label.pop('bboxes')
+        obb_theta = label.pop('obb_theta')
         segments = label.pop('segments')
         keypoints = label.pop('keypoints', None)
         bbox_format = label.pop('bbox_format')
         normalized = label.pop('normalized')
-        label['instances'] = Instances(bboxes, segments, keypoints, bbox_format=bbox_format, normalized=normalized)
+        label['instances'] = Instances(bboxes, obb_theta, segments, keypoints,
+                                       bbox_format=bbox_format, normalized=normalized)
         return label
 
     @staticmethod

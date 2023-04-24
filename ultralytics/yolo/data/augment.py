@@ -13,7 +13,7 @@ from ..utils import LOGGER, colorstr
 from ..utils.checks import check_version
 from ..utils.instance import Instances
 from ..utils.metrics import bbox_ioa
-from ..utils.ops import segment2box
+from ..utils.ops import segment2box, create_obb_boxes, xyxya2dota, dota2xywha, split_obb_boxes, xywh2xyxy
 from .utils import polygons2masks, polygons2masks_overlap
 
 POSE_FLIPLR_INDEX = [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15]
@@ -284,6 +284,37 @@ class RandomPerspective:
         y = xy[:, [1, 3, 5, 7]]
         return np.concatenate((x.min(1), y.min(1), x.max(1), y.max(1)), dtype=bboxes.dtype).reshape(4, n).T
 
+    def apply_bboxes_with_obb(self, bboxes, obb_theta, M):
+        """apply affine to bboxes with theta.
+
+        Args:
+            bboxes(ndarray): list of bboxes, xyxy format, with shape (num_bboxes, 4).
+            obb_theta(ndarray): Oriented bounding box theta, [N, 1] (in degrees).
+            M(ndarray): affine matrix.
+        Returns:
+            new_bboxes(ndarray): bboxes after affine, [num_bboxes, 4].
+            new_obb_theta(ndarray): Oriented bounding box theta, [N, 1] (in degrees).
+        """
+
+        obboxes = create_obb_boxes(bboxes, obb_theta)
+        xy_obboxes = [xyxya2dota(obbox) for obbox in obboxes]
+        xy_obboxes = np.array(xy_obboxes)
+
+        n = len(xy_obboxes)
+        if n == 0:
+            return bboxes, obb_theta
+
+        xy = np.ones((n * 4, 3), dtype=xy_obboxes.dtype)
+        xy[:, :2] = xy_obboxes[:, [0, 1, 2, 3, 4, 5, 6, 7]].reshape(n * 4, 2)  # x1y1, x2y2, x3y3, x4y4
+        xy = xy @ M.T  # transform
+        xy = (xy[:, :2] / xy[:, 2:3] if self.perspective else xy[:, :2]).reshape(n, 8)  # perspective rescale or affine
+
+        xy_yolo = np.array([dota2xywha(x, normalised=False) for x in xy])
+        new_bboxes, new_obb_theta = split_obb_boxes(xy_yolo)
+
+        # return new_bboxes, new_obb_theta
+        return np.array([xywh2xyxy(u) for u in new_bboxes]), new_obb_theta
+
     def apply_segments(self, segments, M):
         """apply affine to segments and generate new bboxes from segments.
 
@@ -352,17 +383,24 @@ class RandomPerspective:
         # scale for func:`box_candidates`
         img, M, scale = self.affine_transform(img, border)
 
-        bboxes = self.apply_bboxes(instances.bboxes, M)
-
+        # bboxes = self.apply_bboxes(instances.bboxes, M)
+        bboxes = instances.bboxes
+        obb_theta = instances.obb_theta
         segments = instances.segments
         keypoints = instances.keypoints
+
+        if obb_theta is not None:
+            bboxes, obb_theta = self.apply_bboxes_with_obb(bboxes, obb_theta, M)
+        else:
+            bboxes = self.apply_bboxes(bboxes, M)
+
         # update bboxes if there are segments.
         if len(segments):
             bboxes, segments = self.apply_segments(segments, M)
 
         if keypoints is not None:
             keypoints = self.apply_keypoints(keypoints, M)
-        new_instances = Instances(bboxes, segments, keypoints, bbox_format='xyxy', normalized=False)
+        new_instances = Instances(bboxes, obb_theta, segments, keypoints, bbox_format='xyxy', normalized=False)
         # clip
         new_instances.clip(*self.size)
 
@@ -600,6 +638,7 @@ class Format:
                  normalize=True,
                  return_mask=False,
                  return_keypoint=False,
+                 return_obb_theta=False,
                  mask_ratio=4,
                  mask_overlap=True,
                  batch_idx=True):
@@ -607,6 +646,7 @@ class Format:
         self.normalize = normalize
         self.return_mask = return_mask  # set False when training detection only
         self.return_keypoint = return_keypoint
+        self.return_obb_theta = return_obb_theta
         self.mask_ratio = mask_ratio
         self.mask_overlap = mask_overlap
         self.batch_idx = batch_idx  # keep the batch indexes
@@ -635,6 +675,8 @@ class Format:
         labels['bboxes'] = torch.from_numpy(instances.bboxes) if nl else torch.zeros((nl, 4))
         if self.return_keypoint:
             labels['keypoints'] = torch.from_numpy(instances.keypoints)
+        if self.return_obb_theta:
+            labels['obb_theta'] = torch.from_numpy(instances.obb_theta)
         # then we can use collate_fn
         if self.batch_idx:
             labels['batch_idx'] = torch.zeros(nl)

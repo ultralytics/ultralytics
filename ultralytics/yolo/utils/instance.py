@@ -163,16 +163,18 @@ class Bboxes:
 
 class Instances:
 
-    def __init__(self, bboxes, segments=None, keypoints=None, bbox_format='xywh', normalized=True) -> None:
+    def __init__(self, bboxes, obb_theta=None, segments=None, keypoints=None, bbox_format='xywh', normalized=True) -> None:
         """
         Args:
             bboxes (ndarray): bboxes with shape [N, 4].
+            obb_theta (ndarray): theta with shape [N, 1]
             segments (list | ndarray): segments.
             keypoints (ndarray): keypoints(x, y, visible) with shape [N, 17, 3].
         """
         if segments is None:
             segments = []
         self._bboxes = Bboxes(bboxes=bboxes, format=bbox_format)
+        self.obb_theta = obb_theta
         self.keypoints = keypoints
         self.normalized = normalized
 
@@ -206,6 +208,8 @@ class Instances:
         if not self.normalized:
             return
         self._bboxes.mul(scale=(w, h, w, h))
+        if self.obb_theta is not None:
+            self.obb_theta = self.obb_theta * 360 - 180
         self.segments[..., 0] *= w
         self.segments[..., 1] *= h
         if self.keypoints is not None:
@@ -217,6 +221,8 @@ class Instances:
         if self.normalized:
             return
         self._bboxes.mul(scale=(1 / w, 1 / h, 1 / w, 1 / h))
+        if self.obb_theta is not None:
+            self.obb_theta = (self.obb_theta + 180) / 360
         self.segments[..., 0] /= w
         self.segments[..., 1] /= h
         if self.keypoints is not None:
@@ -245,9 +251,11 @@ class Instances:
         segments = self.segments[index] if len(self.segments) else self.segments
         keypoints = self.keypoints[index] if self.keypoints is not None else None
         bboxes = self.bboxes[index]
+        obb_theta = self.obb_theta[index] if self.obb_theta is not None else None
         bbox_format = self._bboxes.format
         return Instances(
             bboxes=bboxes,
+            obb_theta=obb_theta,
             segments=segments,
             keypoints=keypoints,
             bbox_format=bbox_format,
@@ -263,6 +271,10 @@ class Instances:
         else:
             self.bboxes[:, 1] = h - self.bboxes[:, 1]
         self.segments[..., 1] = h - self.segments[..., 1]
+        if self.normalized:
+            self.obb_theta = 1 - self.obb_theta
+        else:
+            self.obb_theta = -1 * self.obb_theta
         if self.keypoints is not None:
             self.keypoints[..., 1] = h - self.keypoints[..., 1]
 
@@ -275,6 +287,10 @@ class Instances:
         else:
             self.bboxes[:, 0] = w - self.bboxes[:, 0]
         self.segments[..., 0] = w - self.segments[..., 0]
+        if self.normalized:
+            self.obb_theta = np.where(self.obb_theta >= 0.5, 1.5 - self.obb_theta, 0.5 - self.obb_theta)
+        else:
+            self.obb_theta = np.where(self.obb_theta >= 0, 180 - self.obb_theta, -180 - self.obb_theta)
         if self.keypoints is not None:
             self.keypoints[..., 0] = w - self.keypoints[..., 0]
 
@@ -291,9 +307,11 @@ class Instances:
             self.keypoints[..., 0] = self.keypoints[..., 0].clip(0, w)
             self.keypoints[..., 1] = self.keypoints[..., 1].clip(0, h)
 
-    def update(self, bboxes, segments=None, keypoints=None):
+    def update(self, bboxes, obb_theta=None, segments=None, keypoints=None):
         new_bboxes = Bboxes(bboxes, format=self._bboxes.format)
         self._bboxes = new_bboxes
+        if obb_theta is not None:
+            self.obb_theta = obb_theta
         if segments is not None:
             self.segments = segments
         if keypoints is not None:
@@ -323,13 +341,16 @@ class Instances:
             return instances_list[0]
 
         use_keypoint = instances_list[0].keypoints is not None
+        use_obb = instances_list[0].obb_theta is not None
         bbox_format = instances_list[0]._bboxes.format
         normalized = instances_list[0].normalized
 
         cat_boxes = np.concatenate([ins.bboxes for ins in instances_list], axis=axis)
         cat_segments = np.concatenate([b.segments for b in instances_list], axis=axis)
         cat_keypoints = np.concatenate([b.keypoints for b in instances_list], axis=axis) if use_keypoint else None
-        return cls(cat_boxes, cat_segments, cat_keypoints, bbox_format, normalized)
+        cat_obb_theta = np.concatenate([b.obb_theta for b in instances_list], axis=axis) if use_obb else None
+
+        return cls(cat_boxes, cat_obb_theta, cat_segments, cat_keypoints, bbox_format, normalized)
 
     @property
     def bboxes(self):

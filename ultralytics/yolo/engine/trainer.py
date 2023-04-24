@@ -296,6 +296,7 @@ class BaseTrainer:
                     self.train_loader.dataset.mosaic = False
                 if hasattr(self.train_loader.dataset, 'close_mosaic'):
                     self.train_loader.dataset.close_mosaic(hyp=self.args)
+                self.train_loader.reset()
 
             if RANK in (-1, 0):
                 LOGGER.info(self.progress_string())

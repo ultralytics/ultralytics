@@ -94,7 +94,6 @@ The training settings for YOLO models encompass various hyperparameters and conf
 | `seed`            | `0`      | random seed for reproducibility                                             |
 | `deterministic`   | `True`   | whether to enable deterministic mode                                        |
 | `single_cls`      | `False`  | train multi-class data as single-class                                      |
-| `image_weights`   | `False`  | use weighted image selection for training                                   |
 | `rect`            | `False`  | rectangular training with each batch collated for minimum padding           |
 | `cos_lr`          | `False`  | use cosine learning rate scheduler                                          |
 | `close_mosaic`    | `0`      | (int) disable mosaic augmentation for final epochs                          |

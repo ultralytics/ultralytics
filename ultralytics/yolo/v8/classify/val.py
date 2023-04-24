@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.yolo.data import build_classification_dataloader
+from ultralytics.yolo.data import build_dataloader, ClassificationDataset
 from ultralytics.yolo.engine.validator import BaseValidator
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER
 from ultralytics.yolo.utils.metrics import ClassifyMetrics, ConfusionMatrix
@@ -52,14 +52,14 @@ class ClassificationValidator(BaseValidator):
         self.metrics.process(self.targets, self.pred)
         return self.metrics.results_dict
 
+    def build_dataset(self, img_path):
+        dataset = ClassificationDataset(root=img_path, imgsz=self.args.imgsz, augment=False)
+        return dataset
+
     def get_dataloader(self, dataset_path, batch_size):
         """Builds and returns a data loader for classification tasks with given parameters."""
-        return build_classification_dataloader(path=dataset_path,
-                                               imgsz=self.args.imgsz,
-                                               batch_size=batch_size,
-                                               augment=False,
-                                               shuffle=False,
-                                               workers=self.args.workers)
+        dataset = self.build_dataset(dataset_path)
+        return build_dataloader(dataset, batch_size, self.args.workers, rank=-1)
 
     def print_results(self):
         """Prints evaluation metrics for YOLO object detection model."""

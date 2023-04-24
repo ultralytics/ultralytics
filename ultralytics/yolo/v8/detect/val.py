@@ -179,14 +179,14 @@ class DetectionValidator(BaseValidator):
             mode (str): `train` mode or `val` mode, users are able to customize different augmentations for each mode.
             batch_size (int, optional): Size of batches, this is for `rect`. Defaults to None.
         """
-        gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
+        gs = max(int(de_parallel(self.model).stride if self.model else 0), 32)
         return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == 'val', stride=gs)
 
     def get_dataloader(self, dataset_path, batch_size):
         """TODO: manage splits differently."""
         # Calculate stride - check if model is initialized
         if self.args.v5loader:
-            gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
+            gs = max(int(de_parallel(self.model).stride if self.model else 0), 32)
             return create_dataloader(path=dataset_path,
                                      imgsz=self.args.imgsz,
                                      batch_size=batch_size,

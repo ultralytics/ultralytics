@@ -304,10 +304,11 @@ class Instances:
         else:
             self.bboxes[:, 1] = h - self.bboxes[:, 1]
         self.segments[..., 1] = h - self.segments[..., 1]
-        if self.normalized:
-            self.obb_theta = 1 - self.obb_theta
-        else:
-            self.obb_theta = -1 * self.obb_theta
+        if self.obb_theta is not None:
+            if self.normalized:
+                self.obb_theta = 1 - self.obb_theta
+            else:
+                self.obb_theta = -1 * self.obb_theta
         if self.keypoints is not None:
             self.keypoints[..., 1] = h - self.keypoints[..., 1]
 
@@ -321,10 +322,11 @@ class Instances:
         else:
             self.bboxes[:, 0] = w - self.bboxes[:, 0]
         self.segments[..., 0] = w - self.segments[..., 0]
-        if self.normalized:
-            self.obb_theta = np.where(self.obb_theta >= 0.5, 1.5 - self.obb_theta, 0.5 - self.obb_theta)
-        else:
-            self.obb_theta = np.where(self.obb_theta >= 0, 180 - self.obb_theta, -180 - self.obb_theta)
+        if self.obb_theta is not None:
+            if self.normalized:
+                self.obb_theta = np.where(self.obb_theta >= 0.5, 1.5 - self.obb_theta, 0.5 - self.obb_theta)
+            else:
+                self.obb_theta = np.where(self.obb_theta >= 0, 180 - self.obb_theta, -180 - self.obb_theta)
         if self.keypoints is not None:
             self.keypoints[..., 0] = w - self.keypoints[..., 0]
 

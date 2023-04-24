@@ -54,7 +54,7 @@ class DetectionTrainer(BaseTrainer):
                                      seed=self.args.seed)[0]
         assert mode in ['train', 'val']
         with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
-            dataset = self.build_dataset(dataset_path, batch_size, mode)
+            dataset = self.build_dataset(dataset_path, mode, batch_size)
         shuffle = mode == 'train'
         if getattr(dataset, 'rect', False) and shuffle:
             LOGGER.warning("WARNING ⚠️ 'rect=True' is incompatible with DataLoader shuffle, setting shuffle=False")

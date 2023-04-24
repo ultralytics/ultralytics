@@ -92,7 +92,8 @@ def build_dataset(cfg, img_path, data_info, batch, mode="train", rect=False, str
             data=data_info)
     return dataset
 
-def build_dataloader(dataset, batch, workers, rank=-1, mode='train', close_mosaic=False):
+
+def build_dataloader(dataset, batch, workers, rank=-1, mode='train', infinite_loader=True):
     """Return an InfiniteDataLoader or DataLoader for training or validation set."""
     shuffle = mode == 'train'
     if getattr(dataset, "rect", False) and shuffle:

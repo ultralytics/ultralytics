@@ -13,7 +13,7 @@ from ..utils import LOGGER, colorstr
 from ..utils.checks import check_version
 from ..utils.instance import Instances
 from ..utils.metrics import bbox_ioa
-from ..utils.ops import segment2box, create_obb_boxes, xyxya2dota, dota2xywha, split_obb_boxes, xywh2xyxy
+from ..utils.ops import create_obb_boxes, dota2xywha, segment2box, split_obb_boxes, xywh2xyxy, xyxya2dota
 from .utils import polygons2masks, polygons2masks_overlap
 
 POSE_FLIPLR_INDEX = [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15]

@@ -571,11 +571,11 @@ def xyxya2dota(xyxya_bbox):
     Converts a bounding box from (x1, y1, x2, y2, theta) format to DOTA format
 
     Args:
-        xyxya_bbox (tuple): A tuple of five values representing the bounding box in the format of 
+        xyxya_bbox (tuple): A tuple of five values representing the bounding box in the format of
         `(x1, y1, x2, y2, theta)`.
 
     Returns:
-        list: A list of eight coordinates `[x1, y1, x2, y2, x3, y3, x4, y4]` representing the 
+        list: A list of eight coordinates `[x1, y1, x2, y2, x3, y3, x4, y4]` representing the
         four corner points of the bounding box in DOTA format.
     """
     x1, y1, x2, y2, theta = xyxya_bbox

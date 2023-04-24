@@ -200,7 +200,7 @@ class DetectionValidator(BaseValidator):
                                      shuffle=False,
                                      seed=self.args.seed)[0]
 
-        dataset = self.build_dataset(dataset_path, batch_size, mode='val')
+        dataset = self.build_dataset(dataset_path, batch=batch_size, mode='val')
         dataloader = build_dataloader(dataset, batch_size, self.args.workers, shuffle=False, rank=-1)
         return dataloader
 

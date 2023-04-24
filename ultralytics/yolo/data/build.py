@@ -7,14 +7,14 @@ from pathlib import Path
 import numpy as np
 import torch
 from PIL import Image
-from torch.utils.data import DataLoader, dataloader, distributed
+from torch.utils.data import dataloader, distributed
 
 from ultralytics.yolo.data.dataloaders.stream_loaders import (LOADERS, LoadImages, LoadPilAndNumpy, LoadScreenshots,
                                                               LoadStreams, LoadTensor, SourceTypes, autocast_list)
 from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS
 from ultralytics.yolo.utils.checks import check_file
 
-from ..utils import LOGGER, RANK, colorstr
+from ..utils import RANK, colorstr
 from ..utils.torch_utils import torch_distributed_zero_first
 from .dataset import ClassificationDataset, YOLODataset
 from .utils import PIN_MEMORY
@@ -70,38 +70,31 @@ def seed_worker(worker_id):  # noqa
     random.seed(worker_seed)
 
 
-def build_dataset(cfg, img_path, data_info, batch, mode="train", rect=False, stride=32, rank=-1):
+def build_yolo_dataset(cfg, img_path, batch, data_info, mode="train", rect=False, stride=32):
     """Build YOLO Dataset"""
-    assert mode in ['train', 'val']
-    with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
-        dataset = YOLODataset(
-            img_path=img_path,
-            imgsz=cfg.imgsz,
-            batch_size=batch,
-            augment=mode == 'train',  # augmentation
-            hyp=cfg,  # TODO: probably add a get_hyps_from_cfg function
-            rect=cfg.rect or rect,  # rectangular batches
-            cache=cfg.cache or None,
-            single_cls=cfg.single_cls or False,
-            stride=int(stride),
-            pad=0.0 if mode == 'train' else 0.5,
-            prefix=colorstr(f'{mode}: '),
-            use_segments=cfg.task == 'segment',
-            use_keypoints=cfg.task == 'pose',
-            classes=cfg.classes,
-            data=data_info)
+    dataset = YOLODataset(
+        img_path=img_path,
+        imgsz=cfg.imgsz,
+        batch_size=batch,
+        augment=mode == 'train',  # augmentation
+        hyp=cfg,  # TODO: probably add a get_hyps_from_cfg function
+        rect=cfg.rect or rect,  # rectangular batches
+        cache=cfg.cache or None,
+        single_cls=cfg.single_cls or False,
+        stride=int(stride),
+        pad=0.0 if mode == 'train' else 0.5,
+        prefix=colorstr(f'{mode}: '),
+        use_segments=cfg.task == 'segment',
+        use_keypoints=cfg.task == 'pose',
+        classes=cfg.classes,
+        data=data_info)
     return dataset
 
 
-def build_dataloader(dataset, batch, workers, rank=-1, mode='train'):
+def build_dataloader(dataset, batch, workers, shuffle=True, rank=-1):
     """Return an InfiniteDataLoader or DataLoader for training or validation set."""
-    shuffle = mode == 'train'
-    if getattr(dataset, "rect", False) and shuffle:
-        LOGGER.warning("WARNING ⚠️ 'rect=True' is incompatible with DataLoader shuffle, setting shuffle=False")
-        shuffle = False
     batch = min(batch, len(dataset))
     nd = torch.cuda.device_count()  # number of CUDA devices
-    workers = workers if mode == 'train' else workers * 2
     nw = min([os.cpu_count() // max(nd, 1), batch if batch > 1 else 0, workers])  # number of workers
     sampler = None if rank == -1 else distributed.DistributedSampler(dataset, shuffle=shuffle)
     generator = torch.Generator()
@@ -114,7 +107,7 @@ def build_dataloader(dataset, batch, workers, rank=-1, mode='train'):
                               pin_memory=PIN_MEMORY,
                               collate_fn=getattr(dataset, 'collate_fn', None),
                               worker_init_fn=seed_worker,
-                              generator=generator), dataset
+                              generator=generator)
 
 
 # Build classification

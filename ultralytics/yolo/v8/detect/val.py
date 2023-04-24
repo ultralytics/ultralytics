@@ -171,7 +171,7 @@ class DetectionValidator(BaseValidator):
                 correct[matches[:, 1].astype(int), i] = True
         return torch.tensor(correct, dtype=torch.bool, device=detections.device)
 
-    def build_dataset(self, img_path, mode="val", batch=None):
+    def build_dataset(self, img_path, mode='val', batch=None):
         """Build YOLO Dataset
 
         Args:
@@ -180,7 +180,7 @@ class DetectionValidator(BaseValidator):
             batch_size (int, optional): Size of batches, this is for `rect`. Defaults to None.
         """
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
-        return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode=="val", stride=gs)
+        return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == 'val', stride=gs)
 
     def get_dataloader(self, dataset_path, batch_size):
         """TODO: manage splits differently."""
@@ -200,7 +200,7 @@ class DetectionValidator(BaseValidator):
                                      shuffle=False,
                                      seed=self.args.seed)[0]
 
-        dataset = self.build_dataset(dataset_path, batch_size, mode="val")
+        dataset = self.build_dataset(dataset_path, batch_size, mode='val')
         dataloader = build_dataloader(dataset, batch_size, self.args.workers, shuffle=False, rank=-1)
         return dataloader
 

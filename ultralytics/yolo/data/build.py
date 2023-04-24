@@ -70,7 +70,7 @@ def seed_worker(worker_id):  # noqa
     random.seed(worker_seed)
 
 
-def build_yolo_dataset(cfg, img_path, batch, data_info, mode="train", rect=False, stride=32):
+def build_yolo_dataset(cfg, img_path, batch, data_info, mode='train', rect=False, stride=32):
     """Build YOLO Dataset"""
     dataset = YOLODataset(
         img_path=img_path,

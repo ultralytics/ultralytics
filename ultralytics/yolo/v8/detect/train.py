@@ -10,7 +10,7 @@ from ultralytics.yolo import v8
 from ultralytics.yolo.data import build_dataloader, build_yolo_dataset
 from ultralytics.yolo.data.dataloaders.v5loader import create_dataloader
 from ultralytics.yolo.engine.trainer import BaseTrainer
-from ultralytics.yolo.utils import DEFAULT_CFG, RANK, colorstr, LOGGER
+from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, RANK, colorstr
 from ultralytics.yolo.utils.loss import BboxLoss
 from ultralytics.yolo.utils.ops import xywh2xyxy
 from ultralytics.yolo.utils.plotting import plot_images, plot_labels, plot_results
@@ -21,7 +21,7 @@ from ultralytics.yolo.utils.torch_utils import de_parallel, torch_distributed_ze
 # BaseTrainer python usage
 class DetectionTrainer(BaseTrainer):
 
-    def build_dataset(self, img_path, mode="train", batch=None):
+    def build_dataset(self, img_path, mode='train', batch=None):
         """Build YOLO Dataset
 
         Args:
@@ -30,7 +30,7 @@ class DetectionTrainer(BaseTrainer):
             batch_size (int, optional): Size of batches, this is for `rect`. Defaults to None.
         """
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
-        return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode=="val", stride=gs)
+        return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == 'val', stride=gs)
 
     def get_dataloader(self, dataset_path, batch_size, rank=0, mode='train'):
         """TODO: manage splits differently."""
@@ -56,7 +56,7 @@ class DetectionTrainer(BaseTrainer):
         with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
             dataset = self.build_dataset(dataset_path, batch_size, mode)
         shuffle = mode == 'train'
-        if getattr(dataset, "rect", False) and shuffle:
+        if getattr(dataset, 'rect', False) and shuffle:
             LOGGER.warning("WARNING ⚠️ 'rect=True' is incompatible with DataLoader shuffle, setting shuffle=False")
             shuffle = False
         workers = self.args.workers if mode == 'train' else self.args.workers * 2

@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.yolo.data import build_dataloader, ClassificationDataset
+from ultralytics.yolo.data import ClassificationDataset, build_dataloader
 from ultralytics.yolo.engine.validator import BaseValidator
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER
 from ultralytics.yolo.utils.metrics import ClassifyMetrics, ConfusionMatrix

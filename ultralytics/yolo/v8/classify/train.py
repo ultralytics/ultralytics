@@ -5,7 +5,7 @@ import torchvision
 
 from ultralytics.nn.tasks import ClassificationModel, attempt_load_one_weight
 from ultralytics.yolo import v8
-from ultralytics.yolo.data import build_dataloader, ClassificationDataset
+from ultralytics.yolo.data import ClassificationDataset, build_dataloader
 from ultralytics.yolo.engine.trainer import BaseTrainer
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, RANK, colorstr
 from ultralytics.yolo.utils.torch_utils import is_parallel, strip_optimizer, torch_distributed_zero_first
@@ -71,8 +71,8 @@ class ClassificationTrainer(BaseTrainer):
 
         return  # dont return ckpt. Classification doesn't support resume
 
-    def build_dataset(self, img_path, mode="train"):
-        dataset = ClassificationDataset(root=img_path, imgsz=self.args.imgsz, augment=mode=="train")
+    def build_dataset(self, img_path, mode='train'):
+        dataset = ClassificationDataset(root=img_path, imgsz=self.args.imgsz, augment=mode == 'train')
         return dataset
 
     def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode='train'):

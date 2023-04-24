@@ -19,7 +19,7 @@ model.track(
     source="video/streams",
     stream=True,
     tracker="botsort.yaml",  # or 'bytetrack.yaml'
-    ,show=True
+    show=True
 )
 ```
 
@@ -31,9 +31,7 @@ from ultralytics import YOLO
 model = YOLO("yolov8n.pt")
 
 for result in model.track(source="video.mp4"):
-    print(
-        result.boxes.id.cpu().numpy().astype(int)
-    )  # this will print the IDs of the tracked objects in the frame
+    print(result.boxes.id.cpu().numpy().astype(int))  # this will print the IDs of the tracked objects in the frame
 ```
 
 If you want to use the tracker with a folder of images or when you loop on the video frames, you should use the `persist` parameter to tell the model that these frames are related to each other so the IDs will be fixed for the same objects. Otherwise, the IDs will be different in each frame because in each loop, the model creates a new object for tracking, but the `persist` parameter makes it use the same object for tracking.
@@ -69,7 +67,7 @@ while True:
 
 ## Change tracker parameters
 
-You can change the tracker parameters by eding the tracker.yaml file which is located in the ultralytics/tracker/cfg folder.
+You can change the tracker parameters by eding the `tracker.yaml` file which is located in the ultralytics/tracker/cfg folder.
 
 ## Command Line Interface (CLI)
 
@@ -78,6 +76,7 @@ You can also use the command line interface to track objects using the YOLO mode
 ```bash
 yolo detect track source=... tracker=...
 yolo segment track source=... tracker=...
+yolo pose track source=... tracker=...
 ```
 
 By default, trackers will use the configuration in `ultralytics/tracker/cfg`.

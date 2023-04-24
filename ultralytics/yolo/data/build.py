@@ -70,13 +70,9 @@ def seed_worker(worker_id):  # noqa
     random.seed(worker_seed)
 
 
-def build_dataloader(cfg, batch, img_path, data_info, stride=32, rect=False, rank=-1, mode='train'):
-    """Return an InfiniteDataLoader or DataLoader for training or validation set."""
+def build_dataset(cfg, img_path, data_info, batch, mode="train", rect=False, stride=32, rank=-1):
+    """Build YOLO Dataset"""
     assert mode in ['train', 'val']
-    shuffle = mode == 'train'
-    if cfg.rect and shuffle:
-        LOGGER.warning("WARNING ⚠️ 'rect=True' is incompatible with DataLoader shuffle, setting shuffle=False")
-        shuffle = False
     with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
         dataset = YOLODataset(
             img_path=img_path,
@@ -94,10 +90,17 @@ def build_dataloader(cfg, batch, img_path, data_info, stride=32, rect=False, ran
             use_keypoints=cfg.task == 'pose',
             classes=cfg.classes,
             data=data_info)
+    return dataset
 
+def build_dataloader(dataset, batch, workers, rank=-1, mode='train', close_mosaic=False):
+    """Return an InfiniteDataLoader or DataLoader for training or validation set."""
+    shuffle = mode == 'train'
+    if getattr(dataset, "rect", False) and shuffle:
+        LOGGER.warning("WARNING ⚠️ 'rect=True' is incompatible with DataLoader shuffle, setting shuffle=False")
+        shuffle = False
     batch = min(batch, len(dataset))
     nd = torch.cuda.device_count()  # number of CUDA devices
-    workers = cfg.workers if mode == 'train' else cfg.workers * 2
+    workers = workers if mode == 'train' else workers * 2
     nw = min([os.cpu_count() // max(nd, 1), batch if batch > 1 else 0, workers])  # number of workers
     sampler = None if rank == -1 else distributed.DistributedSampler(dataset, shuffle=shuffle)
     generator = torch.Generator()

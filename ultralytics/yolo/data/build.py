@@ -15,8 +15,7 @@ from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS
 from ultralytics.yolo.utils.checks import check_file
 
 from ..utils import RANK, colorstr
-from ..utils.torch_utils import torch_distributed_zero_first
-from .dataset import ClassificationDataset, YOLODataset
+from .dataset import YOLODataset
 from .utils import PIN_MEMORY
 
 

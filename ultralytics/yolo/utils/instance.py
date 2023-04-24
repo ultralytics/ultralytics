@@ -183,7 +183,13 @@ class Bboxes:
 
 class Instances:
 
-    def __init__(self, bboxes, obb_theta=None, segments=None, keypoints=None, bbox_format='xywh', normalized=True) -> None:
+    def __init__(self,
+                 bboxes,
+                 obb_theta=None,
+                 segments=None,
+                 keypoints=None,
+                 bbox_format='xywh',
+                 normalized=True) -> None:
         """
         Args:
             bboxes (ndarray): bboxes with shape [N, 4].

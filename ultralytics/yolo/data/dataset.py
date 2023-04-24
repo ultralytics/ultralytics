@@ -135,7 +135,7 @@ class YOLODataset(BaseDataset):
     def get_labels(self):
         """Returns dictionary of labels for YOLO training."""
         self.label_files = img2label_paths(self.im_files, self.use_obb)
-        
+
         cache_path = Path(self.label_files[0]).parent.with_suffix('.cache')
         try:
             import gc
@@ -213,8 +213,12 @@ class YOLODataset(BaseDataset):
         keypoints = label.pop('keypoints', None)
         bbox_format = label.pop('bbox_format')
         normalized = label.pop('normalized')
-        label['instances'] = Instances(bboxes, obb_theta, segments, keypoints,
-                                       bbox_format=bbox_format, normalized=normalized)
+        label['instances'] = Instances(bboxes,
+                                       obb_theta,
+                                       segments,
+                                       keypoints,
+                                       bbox_format=bbox_format,
+                                       normalized=normalized)
         return label
 
     @staticmethod

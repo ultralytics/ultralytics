@@ -180,7 +180,7 @@ class DetectionValidator(BaseValidator):
             batch_size (int, optional): Size of batches, this is for `rect`. Defaults to None.
         """
         gs = max(int(de_parallel(self.model).stride if self.model else 0), 32)
-        return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == 'val', stride=gs)
+        return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, stride=gs)
 
     def get_dataloader(self, dataset_path, batch_size):
         """TODO: manage splits differently."""

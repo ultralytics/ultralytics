@@ -102,16 +102,15 @@ def build_dataloader(cfg, batch, img_path, data_info, stride=32, rect=False, ran
     sampler = None if rank == -1 else distributed.DistributedSampler(dataset, shuffle=shuffle)
     generator = torch.Generator()
     generator.manual_seed(6148914691236517205 + RANK)
-    return InfiniteDataLoader(
-        dataset=dataset,
-        batch_size=batch,
-        shuffle=shuffle and sampler is None,
-        num_workers=nw,
-        sampler=sampler,
-        pin_memory=PIN_MEMORY,
-        collate_fn=getattr(dataset, 'collate_fn', None),
-        worker_init_fn=seed_worker,
-        generator=generator), dataset
+    return InfiniteDataLoader(dataset=dataset,
+                              batch_size=batch,
+                              shuffle=shuffle and sampler is None,
+                              num_workers=nw,
+                              sampler=sampler,
+                              pin_memory=PIN_MEMORY,
+                              collate_fn=getattr(dataset, 'collate_fn', None),
+                              worker_init_fn=seed_worker,
+                              generator=generator), dataset
 
 
 # Build classification

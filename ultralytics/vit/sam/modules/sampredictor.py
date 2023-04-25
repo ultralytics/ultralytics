@@ -3,15 +3,15 @@ from typing import Optional, Tuple
 import numpy as np
 import torch
 
-from ..autosize import ResizeLongestSide
 from .sam import Sam
+from ..autosize import ResizeLongestSide
 
 
 class SamPredictor:
 
     def __init__(
-        self,
-        sam_model: Sam,
+            self,
+            sam_model: Sam,
     ) -> None:
         """
         Uses SAM to calculate the image embedding for an image, and then
@@ -26,9 +26,9 @@ class SamPredictor:
         self.reset_image()
 
     def set_image(
-        self,
-        image: np.ndarray,
-        image_format: str = 'RGB',
+            self,
+            image: np.ndarray,
+            image_format: str = 'RGB',
     ) -> None:
         """
         Calculates the image embeddings for the provided image, allowing
@@ -54,9 +54,9 @@ class SamPredictor:
 
     @torch.no_grad()
     def set_torch_image(
-        self,
-        transformed_image: torch.Tensor,
-        original_image_size: Tuple[int, ...],
+            self,
+            transformed_image: torch.Tensor,
+            original_image_size: Tuple[int, ...],
     ) -> None:
         """
         Calculates the image embeddings for the provided image, allowing
@@ -69,9 +69,10 @@ class SamPredictor:
           original_image_size (tuple(int, int)): The size of the image
             before transformation, in (H, W) format.
         """
-        assert (len(transformed_image.shape) == 4 and transformed_image.shape[1] == 3
-                and max(*transformed_image.shape[2:]) == self.model.image_encoder.img_size
-                ), f'set_torch_image input must be BCHW with long side {self.model.image_encoder.img_size}.'
+        if len(transformed_image.shape) != 4 \
+                or transformed_image.shape[1] != 3 \
+                or max(*transformed_image.shape[2:]) != self.model.image_encoder.img_size:
+            raise ValueError('set_torch_image input must be BCHW with long side {self.model.image_encoder.img_size}.')
         self.reset_image()
 
         self.original_size = original_image_size
@@ -81,13 +82,13 @@ class SamPredictor:
         self.is_image_set = True
 
     def predict(
-        self,
-        point_coords: Optional[np.ndarray] = None,
-        point_labels: Optional[np.ndarray] = None,
-        box: Optional[np.ndarray] = None,
-        mask_input: Optional[np.ndarray] = None,
-        multimask_output: bool = True,
-        return_logits: bool = False,
+            self,
+            point_coords: Optional[np.ndarray] = None,
+            point_labels: Optional[np.ndarray] = None,
+            box: Optional[np.ndarray] = None,
+            mask_input: Optional[np.ndarray] = None,
+            multimask_output: bool = True,
+            return_logits: bool = False,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Predict masks for the given input prompts, using the currently set image.
@@ -156,13 +157,13 @@ class SamPredictor:
 
     @torch.no_grad()
     def predict_torch(
-        self,
-        point_coords: Optional[torch.Tensor],
-        point_labels: Optional[torch.Tensor],
-        boxes: Optional[torch.Tensor] = None,
-        mask_input: Optional[torch.Tensor] = None,
-        multimask_output: bool = True,
-        return_logits: bool = False,
+            self,
+            point_coords: Optional[torch.Tensor],
+            point_labels: Optional[torch.Tensor],
+            boxes: Optional[torch.Tensor] = None,
+            mask_input: Optional[torch.Tensor] = None,
+            multimask_output: bool = True,
+            return_logits: bool = False,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Predict masks for the given input prompts, using the currently set image.

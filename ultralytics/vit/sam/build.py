@@ -16,6 +16,7 @@ from .modules.transformer import TwoWayTransformer
 
 
 def build_sam_vit_h(checkpoint=None):
+    """Build and return a Segment Anything Model (SAM) h-size model."""
     return _build_sam(
         encoder_embed_dim=1280,
         encoder_depth=32,
@@ -26,6 +27,7 @@ def build_sam_vit_h(checkpoint=None):
 
 
 def build_sam_vit_l(checkpoint=None):
+    """Build and return a Segment Anything Model (SAM) l-size model."""
     return _build_sam(
         encoder_embed_dim=1024,
         encoder_depth=24,
@@ -36,6 +38,7 @@ def build_sam_vit_l(checkpoint=None):
 
 
 def build_sam_vit_b(checkpoint=None):
+    """Build and return a Segment Anything Model (SAM) b-size model."""
     return _build_sam(
         encoder_embed_dim=768,
         encoder_depth=12,
@@ -109,6 +112,7 @@ sam_model_map = {
 
 
 def build_sam(ckpt='sam_b.pt'):
+    """Build a SAM model specified by ckpt."""
     model_builder = sam_model_map.get(ckpt)
     if not model_builder:
         raise FileNotFoundError(f'{ckpt} is not a supported sam model. Available models are: \n {sam_model_map.keys()}')

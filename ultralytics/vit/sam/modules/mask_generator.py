@@ -121,7 +121,7 @@ class SamAutomaticMaskGenerator:
     # TODO: Temporary implementation for compatibility
     def __call__(self, image: np.ndarray, augment=False, visualize=False) -> List[Dict[str, Any]]:
         return self.generate(image)
-    
+
     @torch.no_grad()
     def generate(self, image: np.ndarray) -> List[Dict[str, Any]]:
         """

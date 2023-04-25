@@ -14,7 +14,7 @@ class SAM:
         self.predictor = None  # reuse predictor
 
     def predict(self, source, stream=False, **kwargs):
-        overrides = dict(conf=0.25, task='segment')
+        overrides = dict(conf=0.25, task='segment', mode='predict')
         overrides.update(kwargs)  # prefer kwargs
         if not self.predictor:
             self.predictor = Predictor(overrides=overrides)

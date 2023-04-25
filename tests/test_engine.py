@@ -118,7 +118,7 @@ def test_classify():
     val(model=trainer.best)
 
     # Predictor
-    pred = classify.ClassificationPredictor(overrides={'imgsz': [64, 64]})
+    pred = classify.ClassificationPredictor(overrides={'imgsz': [64, 64], 'task': "classify"})
     pred.add_callback('on_predict_start', test_func)
     assert test_func in pred.callbacks['on_predict_start'], 'callback test failed'
     result = pred(source=SOURCE, model=trainer.best)

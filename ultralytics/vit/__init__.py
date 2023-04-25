@@ -1,1 +1,1 @@
-from .sam import sam
+from .sam import SAM

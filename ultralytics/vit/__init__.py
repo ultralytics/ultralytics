@@ -1,1 +1,1 @@
-from .sam import SAM # noqa
+from .sam import SAM  # noqa

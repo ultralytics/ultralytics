@@ -4,10 +4,11 @@ import torch
 
 from ultralytics import YOLO
 from ultralytics.vit.sam import PromptPredictor, build_sam
-from ultralytics.yolo.utils.torch_utils import select_device
 from ultralytics.yolo.engine.results import Results
+from ultralytics.yolo.utils.torch_utils import select_device
 
-def auto_annotate(data, det_model="yolov8x.pt", sam_model="sam_b.pt", device=""):
+
+def auto_annotate(data, det_model='yolov8x.pt', sam_model='sam_b.pt', device=''):
     device = select_device(device)
     det_model = YOLO(det_model)
     sam_model = build_sam(sam_model)
@@ -30,4 +31,3 @@ def auto_annotate(data, det_model="yolov8x.pt", sam_model="sam_b.pt", device="")
 
         sam_result = Results(result.orig_img, path=result.path, names=det_model.names, masks=masks)
         segments = sam_result.masks.xyn
-        

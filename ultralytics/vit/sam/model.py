@@ -5,6 +5,7 @@ from ultralytics.yolo.cfg import get_cfg
 from .build import build_sam
 from .predict import Predictor
 
+
 class SAM:
 
     def __init__(self, model='sam_b.pt') -> None:

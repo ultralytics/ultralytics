@@ -14,8 +14,8 @@ from ..amg import (MaskData, area_from_rle, batch_iterator, batched_mask_to_box,
                    build_all_layer_point_grids, calculate_stability_score, coco_encode_rle, generate_crop_boxes,
                    is_box_near_crop_edge, mask_to_rle_pytorch, remove_small_regions, rle_to_mask, uncrop_boxes_xyxy,
                    uncrop_masks, uncrop_points)
-from .sam import Sam
 from .prompt_predictor import PromptPredictor
+from .sam import Sam
 
 
 class SamAutomaticMaskGenerator:

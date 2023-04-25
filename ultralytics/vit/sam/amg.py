@@ -89,8 +89,7 @@ def box_xyxy_to_xywh(box_xyxy: torch.Tensor) -> torch.Tensor:
 
 
 def batch_iterator(batch_size: int, *args) -> Generator[List[Any], None, None]:
-    assert len(args) > 0 and all(len(a) == len(args[0])
-                                 for a in args), 'Batched iteration must have inputs of all the same size.'
+    assert args and all(len(a) == len(args[0]) for a in args), 'Batched iteration must have same-size inputs.'
     n_batches = len(args[0]) // batch_size + int(len(args[0]) % batch_size != 0)
     for b in range(n_batches):
         yield [arg[b * batch_size:(b + 1) * batch_size] for arg in args]
@@ -98,8 +97,7 @@ def batch_iterator(batch_size: int, *args) -> Generator[List[Any], None, None]:
 
 def mask_to_rle_pytorch(tensor: torch.Tensor) -> List[Dict[str, Any]]:
     """
-    Encodes masks to an uncompressed RLE, in the format expected by
-    pycoco tools.
+    Encodes masks to an uncompressed RLE, in the format expected by pycocotools.
     """
     # Put in fortran order and flatten h,w
     b, h, w = tensor.shape
@@ -162,17 +160,12 @@ def build_point_grid(n_per_side: int) -> np.ndarray:
     points_one_side = np.linspace(offset, 1 - offset, n_per_side)
     points_x = np.tile(points_one_side[None, :], (n_per_side, 1))
     points_y = np.tile(points_one_side[:, None], (1, n_per_side))
-    points = np.stack([points_x, points_y], axis=-1).reshape(-1, 2)
-    return points
+    return np.stack([points_x, points_y], axis=-1).reshape(-1, 2)
 
 
 def build_all_layer_point_grids(n_per_side: int, n_layers: int, scale_per_layer: int) -> List[np.ndarray]:
     """Generates point grids for all crop layers."""
-    points_by_layer = []
-    for i in range(n_layers + 1):
-        n_points = int(n_per_side / (scale_per_layer ** i))
-        points_by_layer.append(build_point_grid(n_points))
-    return points_by_layer
+    return [build_point_grid(int(n_per_side / (scale_per_layer**i))) for i in range(n_layers + 1)]
 
 
 def generate_crop_boxes(im_size: Tuple[int, ...], n_layers: int,
@@ -247,19 +240,19 @@ def remove_small_regions(mask: np.ndarray, area_thresh: float, mode: str) -> Tup
     """
     import cv2  # type: ignore
 
-    assert mode in ['holes', 'islands']
+    assert mode in {'holes', 'islands'}
     correct_holes = mode == 'holes'
     working_mask = (correct_holes ^ mask).astype(np.uint8)
     n_labels, regions, stats, _ = cv2.connectedComponentsWithStats(working_mask, 8)
     sizes = stats[:, -1][1:]  # Row 0 is background label
     small_regions = [i + 1 for i, s in enumerate(sizes) if s < area_thresh]
-    if len(small_regions) == 0:
+    if not small_regions:
         return mask, False
     fill_labels = [0] + small_regions
     if not correct_holes:
         fill_labels = [i for i in range(n_labels) if i not in fill_labels]
         # If every region is below threshold, keep largest
-        if len(fill_labels) == 0:
+        if not fill_labels:
             fill_labels = [int(np.argmax(sizes)) + 1]
     mask = np.isin(regions, fill_labels)
     return mask, True
@@ -286,11 +279,7 @@ def batched_mask_to_box(masks: torch.Tensor) -> torch.Tensor:
     # Normalize shape to CxHxW
     shape = masks.shape
     h, w = shape[-2:]
-    if len(shape) > 2:
-        masks = masks.flatten(0, -3)
-    else:
-        masks = masks.unsqueeze(0)
-
+    masks = masks.flatten(0, -3) if len(shape) > 2 else masks.unsqueeze(0)
     # Get top and bottom edges
     in_height, _ = torch.max(masks, dim=-1)
     in_height_coords = in_height * torch.arange(h, device=in_height.device)[None, :]
@@ -312,9 +301,4 @@ def batched_mask_to_box(masks: torch.Tensor) -> torch.Tensor:
     out = out * (~empty_filter).unsqueeze(-1)
 
     # Return to original shape
-    if len(shape) > 2:
-        out = out.reshape(*shape[:-2], 4)
-    else:
-        out = out[0]
-
-    return out
+    return out.reshape(*shape[:-2], 4) if len(shape) > 2 else out[0]

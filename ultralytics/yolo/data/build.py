@@ -192,17 +192,13 @@ def load_inference_source(source=None, imgsz=640, vid_stride=1):
     elif in_memory:
         dataset = source
     elif webcam:
-        dataset = LoadStreams(source,
-                              imgsz=imgsz,
-                              vid_stride=vid_stride)
+        dataset = LoadStreams(source, imgsz=imgsz, vid_stride=vid_stride)
     elif screenshot:
         dataset = LoadScreenshots(source, imgsz=imgsz)
     elif from_img:
         dataset = LoadPilAndNumpy(source, imgsz=imgsz)
     else:
-        dataset = LoadImages(source,
-                             imgsz=imgsz,
-                             vid_stride=vid_stride)
+        dataset = LoadImages(source, imgsz=imgsz, vid_stride=vid_stride)
 
     # Attach source types to the dataset
     setattr(dataset, 'source_type', source_type)

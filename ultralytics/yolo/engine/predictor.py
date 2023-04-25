@@ -35,10 +35,9 @@ import numpy as np
 import torch
 
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.yolo.data.augment import LetterBox
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.data import load_inference_source
-from ultralytics.yolo.data.augment import classify_transforms
+from ultralytics.yolo.data.augment import LetterBox, classify_transforms
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, SETTINGS, callbacks, colorstr, ops
 from ultralytics.yolo.utils.checks import check_imgsz, check_imshow
 from ultralytics.yolo.utils.files import increment_path
@@ -116,7 +115,7 @@ class BasePredictor:
             im (torch.Tensor | List(np.ndarray)): (N, 3, h, w) for tensor, [(h, w, 3) x N] for list.
         """
         if not isinstance(im, torch.Tensor):
-                # auto = all(x.shape == self.im0[0].shape for x in self.im0) and self.auto
+            # auto = all(x.shape == self.im0[0].shape for x in self.im0) and self.auto
             im = np.stack([LetterBox(self.imgsz, auto=self.model.pt, stride=self.model.stride)(image=x) for x in im])
             im = im[..., ::-1].transpose((0, 3, 1, 2))  # BGR to RGB, BHWC to BCHW, (n, 3, h, w)
             im = np.ascontiguousarray(im)  # contiguous
@@ -182,10 +181,9 @@ class BasePredictor:
     def setup_source(self, source):
         """Sets up source and inference mode."""
         self.imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)  # check image size
-        self.transforms = getattr(self.model.model, 'transforms', classify_transforms(self.imgsz[0])) if self.args.task == 'classify' else None
-        self.dataset = load_inference_source(source=source,
-                                             imgsz=self.imgsz,
-                                             vid_stride=self.args.vid_stride)
+        self.transforms = getattr(self.model.model, 'transforms', classify_transforms(
+            self.imgsz[0])) if self.args.task == 'classify' else None
+        self.dataset = load_inference_source(source=source, imgsz=self.imgsz, vid_stride=self.args.vid_stride)
         self.source_type = self.dataset.source_type
         if not getattr(self, 'stream', True) and (self.dataset.mode == 'stream' or  # streams
                                                   len(self.dataset) > 1000 or  # images

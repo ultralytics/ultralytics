@@ -4,13 +4,13 @@ import torch
 from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils.torch_utils import select_device
-
 from .modules.mask_generator import SamAutomaticMaskGenerator
 
 
 class Predictor(BasePredictor):
 
     def preprocess(self, im):
+        """Prepares input image for inference."""
         # TODO: Only support bs=1 for now
         # im = ResizeLongestSide(1024).apply_image(im[0])
         # im = torch.as_tensor(im, device=self.device)
@@ -18,6 +18,7 @@ class Predictor(BasePredictor):
         return im[0]
 
     def setup_model(self, model):
+        """Set up YOLO model with specified thresholds and device."""
         device = select_device(self.args.device)
         model.eval()
         self.model = SamAutomaticMaskGenerator(model.to(device),
@@ -32,6 +33,7 @@ class Predictor(BasePredictor):
         self.done_warmup = True
 
     def postprocess(self, preds, path, orig_imgs):
+        """Postprocesses inference output predictions to create detection masks for objects."""
         names = dict(enumerate(list(range(len(preds)))))
         results = []
         # TODO

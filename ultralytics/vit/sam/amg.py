@@ -190,6 +190,7 @@ def generate_crop_boxes(im_size: Tuple[int, ...], n_layers: int,
     layer_idxs.append(0)
 
     def crop_len(orig_len, n_crops, overlap):
+        """Crops bounding boxes to the size of the input image."""
         return int(math.ceil((overlap * (n_crops - 1) + orig_len) / n_crops))
 
     for i_layer in range(n_layers):

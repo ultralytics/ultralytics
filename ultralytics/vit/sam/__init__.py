@@ -14,6 +14,7 @@ class SAM:
         self.predictor = None  # reuse predictor
 
     def predict(self, source, stream=False, **kwargs):
+        """Predicts and returns segmentation masks for given image or video source."""
         overrides = dict(conf=0.25, task='segment', mode='predict')
         overrides.update(kwargs)  # prefer kwargs
         if not self.predictor:
@@ -24,7 +25,9 @@ class SAM:
         return self.predictor(source, stream=stream)
 
     def train(self, **kwargs):
+        """Function trains models but raises an error as SAM models do not support training."""
         raise NotImplementedError("SAM models don't support training")
 
     def val(self, **kwargs):
+        """Run inference on validation set images."""
         raise NotImplementedError("SAM models don't support validation")

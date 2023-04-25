@@ -8,11 +8,11 @@ from functools import partial
 
 import torch
 
+from ...yolo.utils.downloads import attempt_download_asset
 from .modules.decoders import MaskDecoder
 from .modules.encoders import ImageEncoderViT, PromptEncoder
 from .modules.sam import Sam
 from .modules.transformer import TwoWayTransformer
-from ...yolo.utils.downloads import attempt_download_asset
 
 
 def build_sam_vit_h(checkpoint=None):

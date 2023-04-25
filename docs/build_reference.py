@@ -10,8 +10,11 @@ import os
 import re
 from collections import defaultdict
 from pathlib import Path
+from ultralytics.yolo.utils import ROOT
 
-TARGET_DIR = Path('..')
+NEW_YAML_DIR = ROOT.parent
+CODE_DIR = ROOT
+REFERENCE_DIR = ROOT.parent / 'docs/reference'
 
 
 def extract_classes_and_functions(filepath):
@@ -38,7 +41,7 @@ def create_markdown(py_filepath, module_path, classes, functions):
     with open(md_filepath, 'w') as file:
         file.write(md_content)
 
-    return md_filepath.relative_to(TARGET_DIR)
+    return md_filepath.relative_to(NEW_YAML_DIR)
 
 
 def nested_dict():
@@ -77,26 +80,22 @@ def create_nav_menu_yaml(nav_items):
                 yaml_str += f"{indent}- {k}: {str(v).replace('docs/', '')}\n"
         return yaml_str
 
-    with open(TARGET_DIR / 'nav_menu_updated.yml', 'w') as file:
+    with open(NEW_YAML_DIR / 'nav_menu_updated.yml', 'w') as file:
         yaml_str = _dict_to_yaml(nav_tree_sorted)
         file.write(yaml_str)
 
 
 def main():
-    source_dir = Path("../ultralytics")
-    target_dir = Path("reference")
-
     nav_items = []
-
-    for root, _, files in os.walk(source_dir):
+    for root, _, files in os.walk(CODE_DIR):
         for file in files:
             if file.endswith(".py") and file != "__init__.py":
                 py_filepath = Path(root) / file
                 classes, functions = extract_classes_and_functions(py_filepath)
 
                 if classes or functions:
-                    py_filepath_rel = py_filepath.relative_to(source_dir)
-                    md_filepath = target_dir / py_filepath_rel
+                    py_filepath_rel = py_filepath.relative_to(CODE_DIR)
+                    md_filepath = REFERENCE_DIR / py_filepath_rel
                     module_path = f"ultralytics.{py_filepath_rel.with_suffix('').as_posix().replace('/', '.')}"
                     md_rel_filepath = create_markdown(md_filepath, module_path, classes, functions)
                     nav_items.append(str(md_rel_filepath))

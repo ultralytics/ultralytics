@@ -68,7 +68,7 @@ downloaded and unzipped to see exactly how to structure your custom dataset.
 </p>
 
 The dataset YAML is the same standard YOLOv5 YAML format. See
-the [YOLOv5 Train Custom Data tutorial](https://github.com/ultralytics/yolov5/wiki/Train-Custom-Data) for full details.
+the [YOLOv5 Train Custom Data tutorial](https://docs.ultralytics.com/yolov5/tutorials/train_custom_data) for full details.
 
 ```yaml
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]

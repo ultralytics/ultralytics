@@ -1,7 +1,3 @@
-import cv2
-import numpy as np
-import torch
-
 from ultralytics import YOLO
 from ultralytics.vit.sam import PromptPredictor, build_sam
 from ultralytics.yolo.engine.results import Results
@@ -20,7 +16,7 @@ def auto_annotate(data, det_model='yolov8x.pt', sam_model='sam_b.pt', device='')
 
     for result in det_results:
         boxes = result.boxes.xyxy  # Boxes object for bbox outputs
-        class_ids = result.boxes.cls.long().tolist()
+        class_ids = result.boxes.cls.long().tolist() # noqa
         prompt_predictor.set_image(result.orig_img)
         masks, _, _ = prompt_predictor.predict_torch(
             point_coords=None,
@@ -30,4 +26,4 @@ def auto_annotate(data, det_model='yolov8x.pt', sam_model='sam_b.pt', device='')
         )
 
         sam_result = Results(result.orig_img, path=result.path, names=det_model.names, masks=masks)
-        segments = sam_result.masks.xyn
+        segments = sam_result.masks.xyn # noqa

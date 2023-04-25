@@ -31,8 +31,11 @@ import platform
 from pathlib import Path
 
 import cv2
+import numpy as np
+import torch
 
 from ultralytics.nn.autobackend import AutoBackend
+from ultralytics.yolo.data.augment import LetterBox
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.data import load_inference_source
 from ultralytics.yolo.data.augment import classify_transforms
@@ -106,9 +109,23 @@ class BasePredictor:
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 
-    def preprocess(self, img):
-        """Prepares input image before inference."""
-        pass
+    def preprocess(self, im):
+        """Prepares input image before inference.
+
+        Args:
+            im (torch.Tensor | List(np.ndarray)): (N, 3, h, w) for tensor, [(h, w, 3) x N] for list.
+        """
+        if not isinstance(im, torch.Tensor):
+                # auto = all(x.shape == self.im0[0].shape for x in self.im0) and self.auto
+            im = np.stack([LetterBox(self.imgsz, auto=self.model.pt, stride=self.model.stride)(image=x) for x in im])
+            im = im[..., ::-1].transpose((0, 3, 1, 2))  # BGR to RGB, BHWC to BCHW, (n, 3, h, w)
+            im = np.ascontiguousarray(im)  # contiguous
+            im = torch.from_numpy(im)
+        # NOTE: assuming im with (b, 3, h, w) if it's a tensor
+        img = im.to(self.model.device)
+        img = img.half() if self.model.fp16 else img.float()  # uint8 to fp16/32
+        img /= 255  # 0 - 255 to 0.0 - 1.0
+        return img
 
     def write_results(self, idx, results, batch):
         """Write inference results to a file or directory."""
@@ -165,16 +182,10 @@ class BasePredictor:
     def setup_source(self, source):
         """Sets up source and inference mode."""
         self.imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)  # check image size
-        if self.args.task == 'classify':
-            transforms = getattr(self.model.model, 'transforms', classify_transforms(self.imgsz[0]))
-        else:  # predict, segment
-            transforms = None
+        self.transforms = getattr(self.model.model, 'transforms', classify_transforms(self.imgsz[0])) if self.args.task == 'classify' else None
         self.dataset = load_inference_source(source=source,
-                                             transforms=transforms,
                                              imgsz=self.imgsz,
-                                             vid_stride=self.args.vid_stride,
-                                             stride=self.model.stride,
-                                             auto=self.model.pt)
+                                             vid_stride=self.args.vid_stride)
         self.source_type = self.dataset.source_type
         if not getattr(self, 'stream', True) and (self.dataset.mode == 'stream' or  # streams
                                                   len(self.dataset) > 1000 or  # images
@@ -234,8 +245,7 @@ class BasePredictor:
                     'postprocess': self.dt[2].dt * 1E3 / n}
                 if self.source_type.tensor:  # skip write, show and plot operations if input is raw tensor
                     continue
-                p, im0 = (path[i], im0s[i].copy()) if self.source_type.webcam or self.source_type.from_img \
-                    else (path, im0s.copy())
+                p, im0 = path[i], im0s[i].copy()
                 p = Path(p)
 
                 if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:

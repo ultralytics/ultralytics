@@ -9,13 +9,6 @@ from ultralytics.yolo.utils import DEFAULT_CFG, ROOT, ops
 
 class DetectionPredictor(BasePredictor):
 
-    def preprocess(self, img):
-        """Convert an image to PyTorch tensor and normalize pixel values."""
-        img = (img if isinstance(img, torch.Tensor) else torch.from_numpy(img)).to(self.model.device)
-        img = img.half() if self.model.fp16 else img.float()  # uint8 to fp16/32
-        img /= 255  # 0 - 255 to 0.0 - 1.0
-        return img
-
     def postprocess(self, preds, img, orig_imgs):
         """Postprocesses predictions and returns a list of Results objects."""
         preds = ops.non_max_suppression(preds,

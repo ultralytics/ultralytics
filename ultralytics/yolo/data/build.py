@@ -168,7 +168,7 @@ def check_source(source):
     return source, webcam, screenshot, from_img, in_memory, tensor
 
 
-def load_inference_source(source=None, transforms=None, imgsz=640, vid_stride=1, stride=32, auto=True):
+def load_inference_source(source=None, imgsz=640, vid_stride=1):
     """
     Loads an inference source for object detection and applies necessary transformations.
 
@@ -194,20 +194,14 @@ def load_inference_source(source=None, transforms=None, imgsz=640, vid_stride=1,
     elif webcam:
         dataset = LoadStreams(source,
                               imgsz=imgsz,
-                              stride=stride,
-                              auto=auto,
-                              transforms=transforms,
                               vid_stride=vid_stride)
     elif screenshot:
-        dataset = LoadScreenshots(source, imgsz=imgsz, stride=stride, auto=auto, transforms=transforms)
+        dataset = LoadScreenshots(source, imgsz=imgsz)
     elif from_img:
-        dataset = LoadPilAndNumpy(source, imgsz=imgsz, stride=stride, auto=auto, transforms=transforms)
+        dataset = LoadPilAndNumpy(source, imgsz=imgsz)
     else:
         dataset = LoadImages(source,
                              imgsz=imgsz,
-                             stride=stride,
-                             auto=auto,
-                             transforms=transforms,
                              vid_stride=vid_stride)
 
     # Attach source types to the dataset

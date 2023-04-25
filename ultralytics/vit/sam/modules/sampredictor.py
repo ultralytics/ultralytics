@@ -3,8 +3,8 @@ from typing import Optional, Tuple
 import numpy as np
 import torch
 
-from .sam import Sam
 from ..autosize import ResizeLongestSide
+from .sam import Sam
 
 
 class SamPredictor:
@@ -68,14 +68,15 @@ class SamPredictor:
         self.features = self.model.image_encoder(input_image)
         self.is_image_set = True
 
-    def predict(self,
-                point_coords: Optional[np.ndarray] = None,
-                point_labels: Optional[np.ndarray] = None,
-                box: Optional[np.ndarray] = None,
-                mask_input: Optional[np.ndarray] = None,
-                multimask_output: bool = True,
-                return_logits: bool = False,
-                ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def predict(
+        self,
+        point_coords: Optional[np.ndarray] = None,
+        point_labels: Optional[np.ndarray] = None,
+        box: Optional[np.ndarray] = None,
+        mask_input: Optional[np.ndarray] = None,
+        multimask_output: bool = True,
+        return_logits: bool = False,
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Predict masks for the given input prompts, using the currently set image.
 
@@ -142,14 +143,15 @@ class SamPredictor:
         return masks_np, iou_predictions_np, low_res_masks_np
 
     @torch.no_grad()
-    def predict_torch(self,
-                      point_coords: Optional[torch.Tensor],
-                      point_labels: Optional[torch.Tensor],
-                      boxes: Optional[torch.Tensor] = None,
-                      mask_input: Optional[torch.Tensor] = None,
-                      multimask_output: bool = True,
-                      return_logits: bool = False,
-                      ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def predict_torch(
+        self,
+        point_coords: Optional[torch.Tensor],
+        point_labels: Optional[torch.Tensor],
+        boxes: Optional[torch.Tensor] = None,
+        mask_input: Optional[torch.Tensor] = None,
+        multimask_output: bool = True,
+        return_logits: bool = False,
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Predict masks for the given input prompts, using the currently set image.
         Input prompts are batched torch tensors and are expected to already be

@@ -31,5 +31,5 @@ class SAM:
         raise NotImplementedError("SAM models don't support training")
 
     def val(self, **kwargs):
-        """Run inference on validation set images."""
+        """Run validation given dataset."""
         raise NotImplementedError("SAM models don't support validation")

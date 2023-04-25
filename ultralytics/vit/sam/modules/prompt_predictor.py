@@ -7,7 +7,7 @@ from ..autosize import ResizeLongestSide
 from .sam import Sam
 
 
-class SamPredictor:
+class PromptPredictor:
 
     def __init__(self, sam_model: Sam) -> None:
         """

@@ -15,7 +15,7 @@ from ..amg import (MaskData, area_from_rle, batch_iterator, batched_mask_to_box,
                    is_box_near_crop_edge, mask_to_rle_pytorch, remove_small_regions, rle_to_mask, uncrop_boxes_xyxy,
                    uncrop_masks, uncrop_points)
 from .sam import Sam
-from .sampredictor import SamPredictor
+from .prompt_predictor import PromptPredictor
 
 
 class SamAutomaticMaskGenerator:
@@ -102,7 +102,7 @@ class SamAutomaticMaskGenerator:
         if min_mask_region_area > 0:
             import cv2  # type: ignore # noqa: F401
 
-        self.predictor = SamPredictor(model)
+        self.predictor = PromptPredictor(model)
         self.points_per_batch = points_per_batch
         self.pred_iou_thresh = pred_iou_thresh
         self.stability_score_thresh = stability_score_thresh

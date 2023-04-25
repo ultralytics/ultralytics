@@ -24,7 +24,7 @@ class Predictor(BasePredictor):
         result = self.predictor.generate(frame)
         names = dict(enumerate(list(range(len(result)))))
         masks = torch.from_numpy(np.stack([r["segmentation"] for r in result], axis=0))
-        result = Results(orig_img=frame, path=source, names=names, masks=masks) # TODO: integrate Results with sam output
+        result = Results(orig_img=frame, path=source, names=names, masks=masks)
         return result
         
         

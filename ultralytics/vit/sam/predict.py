@@ -7,9 +7,17 @@ from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils.torch_utils import select_device
 
 from .modules.mask_generator import SamAutomaticMaskGenerator
+from .autosize import ResizeLongestSide
 
 
 class Predictor(BasePredictor):
+
+    def preprocess(self, im):
+        # TODO: Only support bs=1 for now
+        # im = ResizeLongestSide(1024).apply_image(im[0])
+        # im = torch.as_tensor(im, device=self.device)
+        # im = im.permute(2, 0, 1).contiguous()[None, :, :, :]
+        return im[0]
 
     def setup_model(self, model):
         device = select_device(self.args.device)
@@ -18,14 +26,26 @@ class Predictor(BasePredictor):
                                                pred_iou_thresh=self.args.conf,
                                                box_nms_thresh=self.args.iou)
         self.device = device
+        # TODO: Temporary settings for compatibility
+        self.model.pt = False
+        self.model.triton = False
+        self.model.stride = 32
+        self.model.fp16 = False
+        self.done_warmup = True
 
     def postprocess(self, preds, path, orig_imgs):
         names = dict(enumerate(list(range(len(preds)))))
-        masks = torch.from_numpy(np.stack([p['segmentation'] for p in preds], axis=0))
-        result = Results(orig_img=orig_imgs, path=path, names=names, masks=masks)
-        return result
+        results = []
+        # TODO
+        for i, pred in enumerate([preds]):
+            masks = torch.from_numpy(np.stack([p['segmentation'] for p in pred], axis=0))
+            orig_img = orig_imgs[i] if isinstance(orig_imgs, list) else orig_imgs
+            path = self.batch[0]
+            img_path = path[i] if isinstance(path, list) else path
+            results.append(Results(orig_img=orig_img, path=img_path, names=names, masks=masks))
+        return results
 
-    def __call__(self, source=None, model=None, stream=False):
-        frame = cv2.imread(source)
-        preds = self.model.generate(frame)
-        return self.postprocess(preds, source, frame)
+    # def __call__(self, source=None, model=None, stream=False):
+    #     frame = cv2.imread(source)
+    #     preds = self.model.generate(frame)
+    #     return self.postprocess(preds, source, frame)

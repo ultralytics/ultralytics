@@ -118,6 +118,10 @@ class SamAutomaticMaskGenerator:
         self.min_mask_region_area = min_mask_region_area
         self.output_mode = output_mode
 
+    # TODO: Temporary implementation for compatibility
+    def __call__(self, image: np.ndarray, augment=False, visualize=False) -> List[Dict[str, Any]]:
+        return self.generate(image)
+    
     @torch.no_grad()
     def generate(self, image: np.ndarray) -> List[Dict[str, Any]]:
         """

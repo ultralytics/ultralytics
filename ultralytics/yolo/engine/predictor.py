@@ -121,7 +121,7 @@ class BasePredictor:
             im = np.ascontiguousarray(im)  # contiguous
             im = torch.from_numpy(im)
         # NOTE: assuming im with (b, 3, h, w) if it's a tensor
-        img = im.to(self.model.device)
+        img = im.to(self.device)
         img = img.half() if self.model.fp16 else img.float()  # uint8 to fp16/32
         img /= 255  # 0 - 255 to 0.0 - 1.0
         return img
@@ -233,7 +233,7 @@ class BasePredictor:
             self.run_callbacks('on_predict_postprocess_end')
 
             # Visualize, save, write results
-            n = len(im)
+            n = len(im0s)
             for i in range(n):
                 self.results[i].speed = {
                     'preprocess': self.dt[0].dt * 1E3 / n,

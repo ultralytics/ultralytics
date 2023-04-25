@@ -1,4 +1,6 @@
 import cv2
+import torch
+import numpy as np
 
 from ultralytics.vit.engine import BasePredictor
 from ultralytics.yolo.engine.results import Results
@@ -20,7 +22,9 @@ class Predictor(BasePredictor):
         source = source or self.args.source
         frame = cv2.imread(source)
         result = self.predictor.generate(frame)
-        # result = Results(orig_img=frame, ) # TODO: integrate Results with sam output
+        names = dict(enumerate(list(range(len(result)))))
+        masks = torch.from_numpy(np.stack([r["segmentation"] for r in result], axis=0))
+        result = Results(orig_img=frame, path=source, names=names, masks=masks) # TODO: integrate Results with sam output
         return result
         
         

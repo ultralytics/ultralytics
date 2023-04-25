@@ -12,6 +12,7 @@ from .modules.decoders import MaskDecoder
 from .modules.encoders import ImageEncoderViT, PromptEncoder
 from .modules.sam import Sam
 from .modules.transformer import TwoWayTransformer
+from ...yolo.utils.downloads import attempt_download_asset
 
 
 def build_sam_vit_h(checkpoint=None):
@@ -93,6 +94,7 @@ def _build_sam(
     )
     sam.eval()
     if checkpoint is not None:
+        attempt_download_asset(checkpoint)
         with open(checkpoint, 'rb') as f:
             state_dict = torch.load(f)
         sam.load_state_dict(state_dict)

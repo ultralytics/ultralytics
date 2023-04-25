@@ -24,7 +24,7 @@ class PosePredictor(DetectionPredictor):
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
             pred_kpts = pred[:, 6:].view(len(pred), *self.model.kpt_shape) if len(pred) else pred[:, 6:]
             pred_kpts = ops.scale_coords(img.shape[2:], pred_kpts, shape)
-            path, _, _, _, _ = self.batch
+            path = self.batch[0]
             img_path = path[i] if isinstance(path, list) else path
             results.append(
                 Results(orig_img=orig_img,

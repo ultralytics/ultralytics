@@ -218,14 +218,12 @@ class BasePredictor:
         for batch in self.dataset:
             self.run_callbacks('on_predict_batch_start')
             self.batch = batch
-            path, im, im0s, vid_cap, s = batch
+            path, im0s, vid_cap, s = batch
             visualize = increment_path(self.save_dir / Path(path).stem, mkdir=True) if self.args.visualize else False
 
             # Preprocess
             with self.dt[0]:
-                im = self.preprocess(im)
-                if len(im.shape) == 3:
-                    im = im[None]  # expand for batch dim
+                im = self.preprocess(im0s)
 
             # Inference
             with self.dt[1]:

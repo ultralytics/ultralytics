@@ -12,7 +12,7 @@ class ClassificationPredictor(BasePredictor):
     def preprocess(self, img):
         """Converts input image to model-compatible data type."""
         if self.transforms:
-            img = self.transforms(img)
+            img = torch.stack([self.transforms(im) for im in img], dim=0)
         img = (img if isinstance(img, torch.Tensor) else torch.from_numpy(img)).to(self.model.device)
         return img.half() if self.model.fp16 else img.float()  # uint8 to fp16/32
 
@@ -21,7 +21,7 @@ class ClassificationPredictor(BasePredictor):
         results = []
         for i, pred in enumerate(preds):
             orig_img = orig_imgs[i] if isinstance(orig_imgs, list) else orig_imgs
-            path, _, _, _, _ = self.batch
+            path = self.batch[0]
             img_path = path[i] if isinstance(path, list) else path
             results.append(Results(orig_img=orig_img, path=img_path, names=self.model.names, probs=pred))
 

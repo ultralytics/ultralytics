@@ -495,13 +495,13 @@ class Detect(nn.Module):
             b[-1].bias.data[:m.nc] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)
 
 
-
 class MLPBlock(nn.Module):
+
     def __init__(
         self,
         embedding_dim,
         mlp_dim,
-        act = nn.GELU,
+        act=nn.GELU,
     ):
         super().__init__()
         self.lin1 = nn.Linear(embedding_dim, mlp_dim)
@@ -515,7 +515,8 @@ class MLPBlock(nn.Module):
 # From https://github.com/facebookresearch/detectron2/blob/main/detectron2/layers/batch_norm.py # noqa
 # Itself from https://github.com/facebookresearch/ConvNeXt/blob/d1fa8f6fef0a165b27399986cc2bdacc92777e40/models/convnext.py#L119  # noqa
 class LayerNorm2d(nn.Module):
-    def __init__(self, num_channels, eps = 1e-6):
+
+    def __init__(self, num_channels, eps=1e-6):
         super().__init__()
         self.weight = nn.Parameter(torch.ones(num_channels))
         self.bias = nn.Parameter(torch.zeros(num_channels))
@@ -527,7 +528,6 @@ class LayerNorm2d(nn.Module):
         x = (x - u) / torch.sqrt(s + self.eps)
         x = self.weight[:, None, None] * x + self.bias[:, None, None]
         return x
-
 
 
 class Segment(Detect):

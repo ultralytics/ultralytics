@@ -1,14 +1,14 @@
+from typing import Optional, Tuple
+
 import numpy as np
 import torch
 
-from .sam import Sam
-
-from typing import Optional, Tuple
-
 from ..autosize import ResizeLongestSide
+from .sam import Sam
 
 
 class SamPredictor:
+
     def __init__(
         self,
         sam_model: Sam,
@@ -28,7 +28,7 @@ class SamPredictor:
     def set_image(
         self,
         image: np.ndarray,
-        image_format: str = "RGB",
+        image_format: str = 'RGB',
     ) -> None:
         """
         Calculates the image embeddings for the provided image, allowing
@@ -40,9 +40,8 @@ class SamPredictor:
           image_format (str): The color format of the image, in ['RGB', 'BGR'].
         """
         assert image_format in [
-            "RGB",
-            "BGR",
-        ], f"image_format must be in ['RGB', 'BGR'], is {image_format}."
+            'RGB',
+            'BGR', ], f"image_format must be in ['RGB', 'BGR'], is {image_format}."
         if image_format != self.model.image_format:
             image = image[..., ::-1]
 
@@ -70,11 +69,9 @@ class SamPredictor:
           original_image_size (tuple(int, int)): The size of the image
             before transformation, in (H, W) format.
         """
-        assert (
-            len(transformed_image.shape) == 4
-            and transformed_image.shape[1] == 3
-            and max(*transformed_image.shape[2:]) == self.model.image_encoder.img_size
-        ), f"set_torch_image input must be BCHW with long side {self.model.image_encoder.img_size}."
+        assert (len(transformed_image.shape) == 4 and transformed_image.shape[1] == 3
+                and max(*transformed_image.shape[2:]) == self.model.image_encoder.img_size
+                ), f'set_torch_image input must be BCHW with long side {self.model.image_encoder.img_size}.'
         self.reset_image()
 
         self.original_size = original_image_size
@@ -125,14 +122,12 @@ class SamPredictor:
             a subsequent iteration as mask input.
         """
         if not self.is_image_set:
-            raise RuntimeError("An image must be set with .set_image(...) before mask prediction.")
+            raise RuntimeError('An image must be set with .set_image(...) before mask prediction.')
 
         # Transform input prompts
         coords_torch, labels_torch, box_torch, mask_input_torch = None, None, None, None
         if point_coords is not None:
-            assert (
-                point_labels is not None
-            ), "point_labels must be supplied if point_coords is supplied."
+            assert (point_labels is not None), 'point_labels must be supplied if point_coords is supplied.'
             point_coords = self.transform.apply_coords(point_coords, self.original_size)
             coords_torch = torch.as_tensor(point_coords, dtype=torch.float, device=self.device)
             labels_torch = torch.as_tensor(point_labels, dtype=torch.int, device=self.device)
@@ -205,7 +200,7 @@ class SamPredictor:
             a subsequent iteration as mask input.
         """
         if not self.is_image_set:
-            raise RuntimeError("An image must be set with .set_image(...) before mask prediction.")
+            raise RuntimeError('An image must be set with .set_image(...) before mask prediction.')
 
         if point_coords is not None:
             points = (point_coords, point_labels)
@@ -243,10 +238,8 @@ class SamPredictor:
         the embedding spatial dimension of SAM (typically C=256, H=W=64).
         """
         if not self.is_image_set:
-            raise RuntimeError(
-                "An image must be set with .set_image(...) to generate an embedding."
-            )
-        assert self.features is not None, "Features must exist if an image has been set."
+            raise RuntimeError('An image must be set with .set_image(...) to generate an embedding.')
+        assert self.features is not None, 'Features must exist if an image has been set.'
         return self.features
 
     @property

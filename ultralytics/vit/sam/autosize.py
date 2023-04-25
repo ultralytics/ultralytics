@@ -4,13 +4,13 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
+from copy import deepcopy
+from typing import Tuple
+
 import numpy as np
 import torch
 from torch.nn import functional as F
 from torchvision.transforms.functional import resize, to_pil_image  # type: ignore
-
-from copy import deepcopy
-from typing import Tuple
 
 
 class ResizeLongestSide:
@@ -36,9 +36,7 @@ class ResizeLongestSide:
         original image size in (H, W) format.
         """
         old_h, old_w = original_size
-        new_h, new_w = self.get_preprocess_shape(
-            original_size[0], original_size[1], self.target_length
-        )
+        new_h, new_w = self.get_preprocess_shape(original_size[0], original_size[1], self.target_length)
         coords = deepcopy(coords).astype(float)
         coords[..., 0] = coords[..., 0] * (new_w / old_w)
         coords[..., 1] = coords[..., 1] * (new_h / old_h)
@@ -60,29 +58,21 @@ class ResizeLongestSide:
         """
         # Expects an image in BCHW format. May not exactly match apply_image.
         target_size = self.get_preprocess_shape(image.shape[2], image.shape[3], self.target_length)
-        return F.interpolate(
-            image, target_size, mode="bilinear", align_corners=False, antialias=True
-        )
+        return F.interpolate(image, target_size, mode='bilinear', align_corners=False, antialias=True)
 
-    def apply_coords_torch(
-        self, coords: torch.Tensor, original_size: Tuple[int, ...]
-    ) -> torch.Tensor:
+    def apply_coords_torch(self, coords: torch.Tensor, original_size: Tuple[int, ...]) -> torch.Tensor:
         """
         Expects a torch tensor with length 2 in the last dimension. Requires the
         original image size in (H, W) format.
         """
         old_h, old_w = original_size
-        new_h, new_w = self.get_preprocess_shape(
-            original_size[0], original_size[1], self.target_length
-        )
+        new_h, new_w = self.get_preprocess_shape(original_size[0], original_size[1], self.target_length)
         coords = deepcopy(coords).to(torch.float)
         coords[..., 0] = coords[..., 0] * (new_w / old_w)
         coords[..., 1] = coords[..., 1] * (new_h / old_h)
         return coords
 
-    def apply_boxes_torch(
-        self, boxes: torch.Tensor, original_size: Tuple[int, ...]
-    ) -> torch.Tensor:
+    def apply_boxes_torch(self, boxes: torch.Tensor, original_size: Tuple[int, ...]) -> torch.Tensor:
         """
         Expects a torch tensor with shape Bx4. Requires the original image
         size in (H, W) format.

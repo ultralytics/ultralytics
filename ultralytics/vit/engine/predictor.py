@@ -1,12 +1,14 @@
 # Draft of predictor engine for Vits.
 from pathlib import Path
 
-from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, SETTINGS, callbacks, colorstr, ops
 from ultralytics.yolo.cfg import get_cfg
-from ultralytics.yolo.utils.files import increment_path
+from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, SETTINGS, callbacks, colorstr, ops
 from ultralytics.yolo.utils.checks import check_imgsz, check_imshow
+from ultralytics.yolo.utils.files import increment_path
+
 
 class BasePredictor:
+
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         self.args = get_cfg(cfg, overrides)
         project = self.args.project or Path(SETTINGS['runs_dir']) / self.args.task
@@ -31,11 +33,11 @@ class BasePredictor:
         self.batch = None
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
-        
+
         self.setup()
 
     def setup(self, model=None):
         pass
-    
+
     def __call__(self):
         pass

@@ -4,12 +4,12 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
-import torch
-
 from functools import partial
 
-from .modules.encoders import ImageEncoderViT, PromptEncoder
+import torch
+
 from .modules.decoders import MaskDecoder
+from .modules.encoders import ImageEncoderViT, PromptEncoder
 from .modules.sam import Sam
 from .modules.transformer import TwoWayTransformer
 
@@ -22,7 +22,6 @@ def build_sam_vit_h(checkpoint=None):
         encoder_global_attn_indexes=[7, 15, 23, 31],
         checkpoint=checkpoint,
     )
-
 
 
 def build_sam_vit_l(checkpoint=None):
@@ -43,7 +42,6 @@ def build_sam_vit_b(checkpoint=None):
         encoder_global_attn_indexes=[2, 5, 8, 11],
         checkpoint=checkpoint,
     )
-
 
 
 def _build_sam(
@@ -95,22 +93,22 @@ def _build_sam(
     )
     sam.eval()
     if checkpoint is not None:
-        with open(checkpoint, "rb") as f:
+        with open(checkpoint, 'rb') as f:
             state_dict = torch.load(f)
         sam.load_state_dict(state_dict)
     return sam
 
+
 sam_model_map = {
     # "default": build_sam_vit_h,
-    "sam_h.pt": build_sam_vit_h,
-    "sam_l.pt": build_sam_vit_l,
-    "sam_b.pt": build_sam_vit_b,
-}
+    'sam_h.pt': build_sam_vit_h,
+    'sam_l.pt': build_sam_vit_l,
+    'sam_b.pt': build_sam_vit_b, }
 
-def build_sam(ckpt="sam_b.pt"):
+
+def build_sam(ckpt='sam_b.pt'):
     model_builder = sam_model_map.get(ckpt)
     if not model_builder:
-        raise FileNotFoundError(f"{ckpt} is not a supported sam model. Available models are: \n {sam_model_map.keys()}")
-    
-    return model_builder(ckpt)
+        raise FileNotFoundError(f'{ckpt} is not a supported sam model. Available models are: \n {sam_model_map.keys()}')
 
+    return model_builder(ckpt)

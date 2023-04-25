@@ -48,13 +48,13 @@ def build_sam_vit_b(checkpoint=None):
     )
 
 
-def _build_sam(
-    encoder_embed_dim,
-    encoder_depth,
-    encoder_num_heads,
-    encoder_global_attn_indexes,
-    checkpoint=None,
-):
+def _build_sam(encoder_embed_dim,
+               encoder_depth,
+               encoder_num_heads,
+               encoder_global_attn_indexes,
+               checkpoint=None,
+               ):
+    """Builds the selected SAM model architecture."""
     prompt_embed_dim = 256
     image_size = 1024
     vit_patch_size = 16

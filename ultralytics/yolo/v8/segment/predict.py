@@ -11,7 +11,7 @@ class SegmentationPredictor(DetectionPredictor):
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         super().__init__(cfg, overrides, _callbacks)
-        self.args.task = "segment"
+        self.args.task = 'segment'
 
     def postprocess(self, preds, img, orig_imgs):
         """TODO: filter by classes."""

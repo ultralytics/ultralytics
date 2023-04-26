@@ -9,7 +9,7 @@ class PosePredictor(DetectionPredictor):
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         super().__init__(cfg, overrides, _callbacks)
-        self.args.task = "pose"
+        self.args.task = 'pose'
 
     def postprocess(self, preds, img, orig_img):
         """Return detection results for a given input image or list of images."""

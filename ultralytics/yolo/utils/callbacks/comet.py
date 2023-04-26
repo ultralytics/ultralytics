@@ -297,7 +297,8 @@ def _log_model(experiment, trainer):
 def on_pretrain_routine_start(trainer):
     """Creates or resumes a CometML experiment at the start of a YOLO pre-training routine."""
     experiment = comet_ml.get_global_experiment()
-    if not experiment:
+    is_alive = getattr(experiment, 'alive', False)
+    if (not experiment) or (is_alive is False):
         _create_experiment(trainer.args)
 
 

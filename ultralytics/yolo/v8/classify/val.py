@@ -1,11 +1,12 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import torch
+
 from ultralytics.yolo.data import ClassificationDataset, build_dataloader
 from ultralytics.yolo.engine.validator import BaseValidator
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER
-from ultralytics.yolo.utils.plotting import plot_images
 from ultralytics.yolo.utils.metrics import ClassifyMetrics, ConfusionMatrix
-import torch
+from ultralytics.yolo.utils.plotting import plot_images
 
 
 class ClassificationValidator(BaseValidator):
@@ -71,7 +72,7 @@ class ClassificationValidator(BaseValidator):
     def plot_val_samples(self, batch, ni):
         """Plot validation image samples."""
         plot_images(images=batch['img'],
-                    batch_idx=torch.arange(len(batch["img"])),
+                    batch_idx=torch.arange(len(batch['img'])),
                     cls=batch['cls'].squeeze(-1),
                     fname=self.save_dir / f'val_batch{ni}_labels.jpg',
                     names=self.names)
@@ -79,7 +80,7 @@ class ClassificationValidator(BaseValidator):
     def plot_predictions(self, batch, preds, ni):
         """Plots predicted bounding boxes on input images and saves the result."""
         plot_images(batch['img'],
-                    batch_idx=torch.arange(len(batch["img"])),
+                    batch_idx=torch.arange(len(batch['img'])),
                     cls=torch.argmax(preds, dim=1),
                     fname=self.save_dir / f'val_batch{ni}_pred.jpg',
                     names=self.names)  # pred

@@ -13,20 +13,8 @@ try:
 except (ImportError, AssertionError):
     comet_ml = None
 
-COMET_MODE = os.getenv('COMET_MODE', 'online')
-COMET_MODEL_NAME = os.getenv('COMET_MODEL_NAME', 'YOLOv8')
-# Determines how many batches of image predictions to log from the validation set
-COMET_EVAL_BATCH_LOGGING_INTERVAL = int(os.getenv('COMET_EVAL_BATCH_LOGGING_INTERVAL', 1))
-# Determines whether to log confusion matrix every evaluation epoch
-COMET_EVAL_LOG_CONFUSION_MATRIX = (os.getenv('COMET_EVAL_LOG_CONFUSION_MATRIX', 'true').lower() == 'true')
-# Determines whether to log image predictions every evaluation epoch
-COMET_EVAL_LOG_IMAGE_PREDICTIONS = (os.getenv('COMET_EVAL_LOG_IMAGE_PREDICTIONS', 'true').lower() == 'true')
-COMET_MAX_IMAGE_PREDICTIONS = int(os.getenv('COMET_MAX_IMAGE_PREDICTIONS', 100))
-
 # Ensures certain logging functions only run for supported tasks
 COMET_SUPPORTED_TASKS = ['detect']
-# Scales reported confidence scores (0.0-1.0) by this value
-COMET_MAX_CONFIDENCE_SCORE = int(os.getenv('COMET_MAX_CONFIDENCE_SCORE', 100))
 
 # Names of plots created by YOLOv8 that are logged to Comet
 EVALUATION_PLOT_NAMES = 'F1_curve', 'P_curve', 'R_curve', 'PR_curve', 'confusion_matrix'
@@ -173,7 +161,7 @@ def _format_prediction_annotations_for_detection(image_path, metadata, class_lab
     data = []
     for prediction in predictions:
         boxes = prediction['bbox']
-        score = prediction['score'] * COMET_MAX_CONFIDENCE_SCORE
+        score = _scale_confidence_score(prediction['score'])
         cls_label = prediction['category_id']
         if class_label_map:
             cls_label = str(class_label_map[cls_label])

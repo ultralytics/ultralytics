@@ -8,7 +8,7 @@ from ultralytics.yolo import v8
 from ultralytics.yolo.data import ClassificationDataset, build_dataloader
 from ultralytics.yolo.engine.trainer import BaseTrainer
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, RANK, colorstr
-from ultralytics.yolo.utils.plotting import plot_images
+from ultralytics.yolo.utils.plotting import plot_images, plot_results
 from ultralytics.yolo.utils.torch_utils import is_parallel, strip_optimizer, torch_distributed_zero_first
 
 
@@ -126,6 +126,10 @@ class ClassificationTrainer(BaseTrainer):
     def resume_training(self, ckpt):
         """Resumes training from a given checkpoint."""
         pass
+
+    def plot_metrics(self):
+        """Plots metrics from a CSV file."""
+        plot_results(file=self.csv, classify=True)  # save results.png
 
     def final_eval(self):
         """Evaluate trained model and save validation results."""

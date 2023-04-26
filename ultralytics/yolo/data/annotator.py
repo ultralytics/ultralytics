@@ -10,7 +10,7 @@ def auto_annotate(data, det_model='yolov8x.pt', sam_model='sam_b.pt', device='',
     sam_model = build_sam(sam_model)
     det_model.to(device)
     sam_model.to(device)
-    
+
     prompt_predictor = PromptPredictor(sam_model)
     det_results = det_model(data, stream=True)
 

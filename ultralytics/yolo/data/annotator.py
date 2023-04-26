@@ -1,11 +1,7 @@
-import os
 from pathlib import Path
-
-import numpy as np
 
 from ultralytics import YOLO
 from ultralytics.vit.sam import PromptPredictor, build_sam
-from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils.torch_utils import select_device
 
 
@@ -34,10 +30,10 @@ def auto_annotate(data, det_model='yolov8x.pt', sam_model='sam_b.pt', device='',
             multimask_output=False,
         )
 
-        result.update(masks=masks)
+        result.update(masks=masks.squeeze(1))
         segments = result.masks.xyn  # noqa
 
-        with open(str(output_dir / Path(result.path).stem) + '.txt', 'w') as f:
+        with open(str(Path(output_dir) / Path(result.path).stem) + ".txt", "w") as f:
             for i in range(len(segments)):
                 segment = map(str, segments[i].reshape(-1).tolist())
                 f.write(f'{class_ids[i]} ' + ' '.join(segment))

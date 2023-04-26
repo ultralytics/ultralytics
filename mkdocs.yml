@@ -127,7 +127,7 @@ plugins:
 # Primary navigation
 nav:
   - Home:
-      - index.md
+      - Home: index.md
       - Quickstart: quickstart.md
       - Modes:
           - modes/index.md

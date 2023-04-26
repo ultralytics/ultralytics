@@ -161,7 +161,7 @@ class Events:
         Initializes the Events object with default values for events, rate_limit, and metadata.
         """
         self.events = []  # events list
-        self.rate_limit = 10.0  # rate limit (seconds)
+        self.rate_limit = 60.0  # rate limit (seconds)
         self.t = 0.0  # rate limit timer (seconds)
         self.metadata = {
             'cli': Path(sys.argv[0]).name == 'yolo',
@@ -204,7 +204,9 @@ class Events:
 
         # Time is over rate limiter, send now
         data = {'client_id': SETTINGS['uuid'], 'events': self.events}  # SHA-256 anonymized UUID hash and events list
-        smart_request('post', self.url, json=data, retry=0, code=3)  # equivalent to requests.post(self.url, json=data)
+
+        # POST equivalent to requests.post(self.url, json=data)
+        smart_request('post', self.url, json=data, retry=0, verbose=False)
 
         # Reset events and rate limit timer
         self.events = []

@@ -9,9 +9,13 @@ from ultralytics.yolo.utils import DEFAULT_CFG, ROOT
 
 class ClassificationPredictor(BasePredictor):
 
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+        super().__init__(cfg, overrides, _callbacks)
+        self.args.task = "classify"
+
     def preprocess(self, img):
         """Converts input image to model-compatible data type."""
-        if self.transforms and not isinstance(img, torch.Tensor):
+        if not isinstance(img, torch.Tensor):
             img = torch.stack([self.transforms(im) for im in img], dim=0)
         img = (img if isinstance(img, torch.Tensor) else torch.from_numpy(img)).to(self.model.device)
         return img.half() if self.model.fp16 else img.float()  # uint8 to fp16/32

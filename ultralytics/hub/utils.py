@@ -204,7 +204,9 @@ class Events:
 
         # Time is over rate limiter, send now
         data = {'client_id': SETTINGS['uuid'], 'events': self.events}  # SHA-256 anonymized UUID hash and events list
-        smart_request('post', self.url, json=data, retry=0, code=3)  # equivalent to requests.post(self.url, json=data)
+
+        # POST equivalent to requests.post(self.url, json=data)
+        smart_request('post', self.url, json=data, retry=0, code=3, verbose=False)
 
         # Reset events and rate limit timer
         self.events = []

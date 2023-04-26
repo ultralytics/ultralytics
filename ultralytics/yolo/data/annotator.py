@@ -33,7 +33,7 @@ def auto_annotate(data, det_model='yolov8x.pt', sam_model='sam_b.pt', device='',
         result.update(masks=masks.squeeze(1))
         segments = result.masks.xyn  # noqa
 
-        with open(str(Path(output_dir) / Path(result.path).stem) + ".txt", "w") as f:
+        with open(str(Path(output_dir) / Path(result.path).stem) + '.txt', 'w') as f:
             for i in range(len(segments)):
                 segment = map(str, segments[i].reshape(-1).tolist())
                 f.write(f'{class_ids[i]} ' + ' '.join(segment))

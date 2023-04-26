@@ -1,6 +1,6 @@
-# Traces
+# Events
 ---
-:::ultralytics.hub.utils.Traces
+:::ultralytics.hub.utils.Events
 <br><br>
 
 # request_with_credentials

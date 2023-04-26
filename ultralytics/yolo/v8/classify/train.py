@@ -8,6 +8,7 @@ from ultralytics.yolo import v8
 from ultralytics.yolo.data import ClassificationDataset, build_dataloader
 from ultralytics.yolo.engine.trainer import BaseTrainer
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, RANK, colorstr
+from ultralytics.yolo.utils.plotting import plot_images
 from ultralytics.yolo.utils.torch_utils import is_parallel, strip_optimizer, torch_distributed_zero_first
 
 
@@ -139,6 +140,13 @@ class ClassificationTrainer(BaseTrainer):
                 #     self.metrics.pop('fitness', None)
                 #     self.run_callbacks('on_fit_epoch_end')
         LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}")
+
+    def plot_training_samples(self, batch, ni):
+        """Plots training samples with their annotations."""
+        plot_images(images=batch['img'],
+                    batch_idx=torch.arange(len(batch["img"])),
+                    cls=batch['cls'].squeeze(-1),
+                    fname=self.save_dir / f'train_batch{ni}.jpg')
 
 
 def train(cfg=DEFAULT_CFG, use_python=False):

@@ -161,7 +161,7 @@ class Events:
         Initializes the Events object with default values for events, rate_limit, and metadata.
         """
         self.events = []  # events list
-        self.rate_limit = 10.0  # rate limit (seconds)
+        self.rate_limit = 60.0  # rate limit (seconds)
         self.t = 0.0  # rate limit timer (seconds)
         self.metadata = {
             'cli': Path(sys.argv[0]).name == 'yolo',

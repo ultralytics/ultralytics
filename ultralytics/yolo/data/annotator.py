@@ -1,22 +1,30 @@
+import os
+from pathlib import Path
+import numpy as np
+
 from ultralytics import YOLO
 from ultralytics.vit.sam import PromptPredictor, build_sam
 from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils.torch_utils import select_device
 
 
-def auto_annotate(data, det_model='yolov8x.pt', sam_model='sam_b.pt', device='', output=None):
+def auto_annotate(data, det_model='yolov8x.pt', sam_model='sam_b.pt', device='', output_dir=None):
     device = select_device(device)
     det_model = YOLO(det_model)
     sam_model = build_sam(sam_model)
     det_model.to(device)
     sam_model.to(device)
-
+    
+    if not output_dir:
+        output_dir = Path(str(data)).parent / "labels"
+    Path(output_dir).mkdir(exist_ok=True, parents=True)
+    
     prompt_predictor = PromptPredictor(sam_model)
     det_results = det_model(data, stream=True)
 
     for result in det_results:
         boxes = result.boxes.xyxy  # Boxes object for bbox outputs
-        class_ids = result.boxes.cls.long().tolist()  # noqa
+        class_ids = result.boxes.cls.int().tolist()  # noqa
         prompt_predictor.set_image(result.orig_img)
         masks, _, _ = prompt_predictor.predict_torch(
             point_coords=None,
@@ -25,5 +33,12 @@ def auto_annotate(data, det_model='yolov8x.pt', sam_model='sam_b.pt', device='',
             multimask_output=False,
         )
 
-        sam_result = Results(result.orig_img, path=result.path, names=det_model.names, masks=masks.squeeze(1))
-        segments = sam_result.masks.xyn  # noqa
+        result.update(masks=masks)
+        segments = result.masks.xyn  # noqa
+
+        with open(str(output_dir / Path(result.path).stem) + ".txt", "w") as f:
+            for i in range(len(segments)):
+                segment = map(str, segments[i].reshape(-1).tolist())
+                f.write(f"{class_ids[i]} " + " ".join(segment))
+
+

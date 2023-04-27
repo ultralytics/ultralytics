@@ -225,6 +225,7 @@ class ConfusionMatrix:
         """Initialize attributes for the YOLO model."""
         self.task = task
         self.matrix = np.zeros((nc + 1, nc + 1)) if self.task == 'detect' else np.zeros((nc, nc))
+        self.count_matrix = self.matrix.copy() # Copy from original matrix for count
         self.nc = nc  # number of classes
         self.conf = conf
         self.iou_thres = iou_thres

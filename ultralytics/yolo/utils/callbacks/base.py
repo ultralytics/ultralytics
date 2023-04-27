@@ -214,7 +214,7 @@ def add_integration_callbacks(instance):
         ('mlflow', mlflow_cb),
         ('neptune', neptune_cb)('raytune', tune_cb),
         ('tensorboard', tensorboard_cb),
-        ('wb', wb_cb), ]
+        ('wb', wb_cb)]
 
     for s, x in all_callbacks:
         if s in SETTINGS['callbacks_enabled']:  #Check if callback enabled.

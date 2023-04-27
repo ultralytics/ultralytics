@@ -25,7 +25,6 @@ verbose: True  # whether to print verbose output
 seed: 0  # random seed for reproducibility
 deterministic: True  # whether to enable deterministic mode
 single_cls: False  # train multi-class data as single-class
-image_weights: False  # use weighted image selection for training
 rect: False  # rectangular training if mode='train' or rectangular validation if mode='val'
 cos_lr: False  # use cosine learning rate scheduler
 close_mosaic: 0  # (int) disable mosaic augmentation for final epochs

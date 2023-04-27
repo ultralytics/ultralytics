@@ -453,7 +453,7 @@ class YOLO:
                                        reduction_factor=3)
 
         # Define the callbacks for the hyperparameter search
-        tuner_callbacks = [WandbLoggerCallback(project='yolov8_tune') if wandb else None]
+        tuner_callbacks = [WandbLoggerCallback(project='yolov8_tune')] if wandb else []
 
         # Create the Ray Tune hyperparameter search tuner
         tuner = tune.Tuner(trainable_with_resources,

@@ -176,7 +176,7 @@ plugins:
         yolov5/ensemble.md: yolov5/tutorials/model_ensembling.md
         yolov5/jetson_nano.md: yolov5/tutorials/running_on_jetson_nano.md
         yolov5/transfer_learn_frozen.md: yolov5/tutorials/transfer_learning_with_frozen_layers.md
-        yolov5/neural_magic: yolov5/tutorials/neural_magic_pruning_quantization.md
+        yolov5/neural_magic.md: yolov5/tutorials/neural_magic_pruning_quantization.md
 
 # Primary navigation
 nav:

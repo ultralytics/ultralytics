@@ -286,7 +286,7 @@ def on_pretrain_routine_start(trainer):
     """Creates or resumes a CometML experiment at the start of a YOLO pre-training routine."""
     experiment = comet_ml.get_global_experiment()
     is_alive = getattr(experiment, 'alive', False)
-    if (not experiment) or (is_alive is False):
+    if not experiment or not is_alive:
         _create_experiment(trainer.args)
 
 
@@ -363,8 +363,8 @@ def on_train_end(trainer):
     _comet_image_prediction_count = 0
 
 
-callbacks = ({
+callbacks = {
     'on_pretrain_routine_start': on_pretrain_routine_start,
     'on_train_epoch_end': on_train_epoch_end,
     'on_fit_epoch_end': on_fit_epoch_end,
-    'on_train_end': on_train_end, } if comet_ml else {})
+    'on_train_end': on_train_end} if comet_ml else {}

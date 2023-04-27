@@ -123,6 +123,64 @@ markdown_extensions:
 plugins:
   - mkdocstrings
   - search
+  - redirects:
+      redirect_maps:
+        callbacks.md: usage/callbacks.md
+        cfg.md: usage/cfg.md
+        cli.md: usage/cli.md
+        config.md: usage/cfg.md
+        engine.md: usage/engine.md
+        environments/AWS-Quickstart.md: yolov5/environments/aws_quickstart_tutorial.md
+        environments/Docker-Quickstart.md: yolov5/environments/docker_image_quickstart_tutorial.md
+        environments/GCP-Quickstart.md: yolov5/environments/google_cloud_quickstart_tutorial.md
+        FAQ/augmentation.md: yolov5/tutorials/tips_for_best_training_results.md
+        package-framework.md: index.md
+        package-framework/mock_detector.md: index.md
+        predict.md: modes/predict.md
+        python.md: usage/python.md
+        quick-start.md: quickstart.md
+        reference/base_pred.md: reference/yolo/engine/predictor.md
+        reference/base_trainer.md: reference/yolo/engine/trainer.md
+        reference/exporter.md: reference/yolo/engine/exporter.md
+        reference/model.md: reference/yolo/engine/model.md
+        reference/nn.md: reference/nn/modules.md
+        reference/ops.md: reference/yolo/utils/ops.md
+        reference/results.md: reference/yolo/engine/results.md
+        sdk.md: index.md
+        tasks/classification.md: tasks/classify.md
+        tasks/detection.md: tasks/detect.md
+        tasks/segmentation.md: tasks/segment.md
+        tasks/keypoints.md: tasks/pose.md
+        tasks/tracking.md: modes/track.md
+        tutorials/architecture-summary.md: yolov5/tutorials/architecture_description.md
+        tutorials/clearml-logging.md: yolov5/tutorials/clearml_logging_integration.md
+        tutorials/comet-logging.md: yolov5/tutorials/comet_logging_integration.md
+        tutorials/hyperparameter-evolution.md: yolov5/tutorials/hyperparameter_evolution.md
+        tutorials/model-ensembling.md: yolov5/tutorials/model_ensembling.md
+        tutorials/multi-gpu-training.md: yolov5/tutorials/multi_gpu_training.md
+        tutorials/nvidia-jetson.md: yolov5/tutorials/running_on_jetson_nano.md
+        tutorials/pruning-sparsity.md: yolov5/tutorials/model_pruning_and_sparsity.md
+        tutorials/pytorch-hub.md: yolov5/tutorials/pytorch_hub_model_loading.md
+        tutorials/roboflow.md: yolov5/tutorials/roboflow_datasets_integration.md
+        tutorials/test-time-augmentation.md: yolov5/tutorials/test_time_augmentation.md
+        tutorials/torchscript-onnx-coreml-export.md: yolov5/tutorials/model_export.md
+        tutorials/train-custom-datasets.md: yolov5/tutorials/train_custom_data.md
+        tutorials/training-tips-best-results.md: yolov5/tutorials/tips_for_best_training_results.md
+        tutorials/transfer-learning-froze-layers.md: yolov5/tutorials/transfer_learning_with_frozen_layers.md
+        tutorials/weights-and-biasis-logging.md: yolov5/tutorials/comet_logging_integration.md
+        yolov5/pytorch_hub.md: yolov5/tutorials/pytorch_hub_model_loading.md
+        yolov5/hyp_evolution.md: yolov5/tutorials/hyperparameter_evolution.md
+        yolov5/pruning_sparsity.md: yolov5/tutorials/model_pruning_and_sparsity.md
+        yolov5/comet.md: yolov5/tutorials/comet_logging_integration.md
+        yolov5/tta.md: yolov5/tutorials/test_time_augmentation.md
+        yolov5/multi_gpu_training.md: yolov5/tutorials/multi_gpu_training.md
+        yolov5/ensemble.md: yolov5/tutorials/model_ensembling.md
+        yolov5/jetson_nano.md: yolov5/tutorials/running_on_jetson_nano.md
+        yolov5/transfer_learn_frozen.md: yolov5/tutorials/transfer_learning_with_frozen_layers.md
+        yolov5/neural_magic.md: yolov5/tutorials/neural_magic_pruning_quantization.md
+        yolov5/train_custom_data.md: yolov5/tutorials/train_custom_data.md
+        yolov5/architecture.md: yolov5/tutorials/architecture_description.md
+        yolov5/export.md: yolov5/tutorials/model_export.md
 
 # Primary navigation
 nav:
@@ -166,88 +224,87 @@ nav:
       - Advanced Customization: usage/engine.md
   - Ultralytics HUB: hub.md
   - iOS and Android App: app.md
-
   - Reference:
-    - hub:
-      - auth: reference/hub/auth.md
-      - session: reference/hub/session.md
-      - utils: reference/hub/utils.md
-    - nn:
-      - autobackend: reference/nn/autobackend.md
-      - autoshape: reference/nn/autoshape.md
-      - modules: reference/nn/modules.md
-      - tasks: reference/nn/tasks.md
-    - tracker:
-      - track: reference/tracker/track.md
-      - trackers:
-        - basetrack: reference/tracker/trackers/basetrack.md
-        - bot_sort: reference/tracker/trackers/bot_sort.md
-        - byte_tracker: reference/tracker/trackers/byte_tracker.md
-      - utils:
-        - gmc: reference/tracker/utils/gmc.md
-        - kalman_filter: reference/tracker/utils/kalman_filter.md
-        - matching: reference/tracker/utils/matching.md
-    - yolo:
-      - data:
-        - augment: reference/yolo/data/augment.md
-        - base: reference/yolo/data/base.md
-        - build: reference/yolo/data/build.md
-        - dataloaders:
-          - stream_loaders: reference/yolo/data/dataloaders/stream_loaders.md
-          - v5augmentations: reference/yolo/data/dataloaders/v5augmentations.md
-          - v5loader: reference/yolo/data/dataloaders/v5loader.md
-        - dataset: reference/yolo/data/dataset.md
-        - dataset_wrappers: reference/yolo/data/dataset_wrappers.md
-        - utils: reference/yolo/data/utils.md
-      - engine:
-        - exporter: reference/yolo/engine/exporter.md
-        - model: reference/yolo/engine/model.md
-        - predictor: reference/yolo/engine/predictor.md
-        - results: reference/yolo/engine/results.md
-        - trainer: reference/yolo/engine/trainer.md
-        - validator: reference/yolo/engine/validator.md
-      - utils:
-        - autobatch: reference/yolo/utils/autobatch.md
-        - benchmarks: reference/yolo/utils/benchmarks.md
-        - callbacks:
-          - base: reference/yolo/utils/callbacks/base.md
-          - clearml: reference/yolo/utils/callbacks/clearml.md
-          - comet: reference/yolo/utils/callbacks/comet.md
-          - hub: reference/yolo/utils/callbacks/hub.md
-          - mlflow: reference/yolo/utils/callbacks/mlflow.md
-          - neptune: reference/yolo/utils/callbacks/neptune.md
-          - raytune: reference/yolo/utils/callbacks/raytune.md
-          - tensorboard: reference/yolo/utils/callbacks/tensorboard.md
-          - wb: reference/yolo/utils/callbacks/wb.md
-        - checks: reference/yolo/utils/checks.md
-        - dist: reference/yolo/utils/dist.md
-        - downloads: reference/yolo/utils/downloads.md
-        - errors: reference/yolo/utils/errors.md
-        - files: reference/yolo/utils/files.md
-        - instance: reference/yolo/utils/instance.md
-        - loss: reference/yolo/utils/loss.md
-        - metrics: reference/yolo/utils/metrics.md
-        - ops: reference/yolo/utils/ops.md
-        - plotting: reference/yolo/utils/plotting.md
-        - tal: reference/yolo/utils/tal.md
-        - torch_utils: reference/yolo/utils/torch_utils.md
-      - v8:
-        - classify:
-          - predict: reference/yolo/v8/classify/predict.md
-          - train: reference/yolo/v8/classify/train.md
-          - val: reference/yolo/v8/classify/val.md
-        - detect:
-          - predict: reference/yolo/v8/detect/predict.md
-          - train: reference/yolo/v8/detect/train.md
-          - val: reference/yolo/v8/detect/val.md
-        - pose:
-          - predict: reference/yolo/v8/pose/predict.md
-          - train: reference/yolo/v8/pose/train.md
-          - val: reference/yolo/v8/pose/val.md
-        - segment:
-          - predict: reference/yolo/v8/segment/predict.md
-          - train: reference/yolo/v8/segment/train.md
-          - val: reference/yolo/v8/segment/val.md
+      - hub:
+          - auth: reference/hub/auth.md
+          - session: reference/hub/session.md
+          - utils: reference/hub/utils.md
+      - nn:
+          - autobackend: reference/nn/autobackend.md
+          - autoshape: reference/nn/autoshape.md
+          - modules: reference/nn/modules.md
+          - tasks: reference/nn/tasks.md
+      - tracker:
+          - track: reference/tracker/track.md
+          - trackers:
+              - basetrack: reference/tracker/trackers/basetrack.md
+              - bot_sort: reference/tracker/trackers/bot_sort.md
+              - byte_tracker: reference/tracker/trackers/byte_tracker.md
+          - utils:
+              - gmc: reference/tracker/utils/gmc.md
+              - kalman_filter: reference/tracker/utils/kalman_filter.md
+              - matching: reference/tracker/utils/matching.md
+      - yolo:
+          - data:
+              - augment: reference/yolo/data/augment.md
+              - base: reference/yolo/data/base.md
+              - build: reference/yolo/data/build.md
+              - dataloaders:
+                  - stream_loaders: reference/yolo/data/dataloaders/stream_loaders.md
+                  - v5augmentations: reference/yolo/data/dataloaders/v5augmentations.md
+                  - v5loader: reference/yolo/data/dataloaders/v5loader.md
+              - dataset: reference/yolo/data/dataset.md
+              - dataset_wrappers: reference/yolo/data/dataset_wrappers.md
+              - utils: reference/yolo/data/utils.md
+          - engine:
+              - exporter: reference/yolo/engine/exporter.md
+              - model: reference/yolo/engine/model.md
+              - predictor: reference/yolo/engine/predictor.md
+              - results: reference/yolo/engine/results.md
+              - trainer: reference/yolo/engine/trainer.md
+              - validator: reference/yolo/engine/validator.md
+          - utils:
+              - autobatch: reference/yolo/utils/autobatch.md
+              - benchmarks: reference/yolo/utils/benchmarks.md
+              - callbacks:
+                  - base: reference/yolo/utils/callbacks/base.md
+                  - clearml: reference/yolo/utils/callbacks/clearml.md
+                  - comet: reference/yolo/utils/callbacks/comet.md
+                  - hub: reference/yolo/utils/callbacks/hub.md
+                  - mlflow: reference/yolo/utils/callbacks/mlflow.md
+                  - neptune: reference/yolo/utils/callbacks/neptune.md
+                  - raytune: reference/yolo/utils/callbacks/raytune.md
+                  - tensorboard: reference/yolo/utils/callbacks/tensorboard.md
+                  - wb: reference/yolo/utils/callbacks/wb.md
+              - checks: reference/yolo/utils/checks.md
+              - dist: reference/yolo/utils/dist.md
+              - downloads: reference/yolo/utils/downloads.md
+              - errors: reference/yolo/utils/errors.md
+              - files: reference/yolo/utils/files.md
+              - instance: reference/yolo/utils/instance.md
+              - loss: reference/yolo/utils/loss.md
+              - metrics: reference/yolo/utils/metrics.md
+              - ops: reference/yolo/utils/ops.md
+              - plotting: reference/yolo/utils/plotting.md
+              - tal: reference/yolo/utils/tal.md
+              - torch_utils: reference/yolo/utils/torch_utils.md
+          - v8:
+              - classify:
+                  - predict: reference/yolo/v8/classify/predict.md
+                  - train: reference/yolo/v8/classify/train.md
+                  - val: reference/yolo/v8/classify/val.md
+              - detect:
+                  - predict: reference/yolo/v8/detect/predict.md
+                  - train: reference/yolo/v8/detect/train.md
+                  - val: reference/yolo/v8/detect/val.md
+              - pose:
+                  - predict: reference/yolo/v8/pose/predict.md
+                  - train: reference/yolo/v8/pose/train.md
+                  - val: reference/yolo/v8/pose/val.md
+              - segment:
+                  - predict: reference/yolo/v8/segment/predict.md
+                  - train: reference/yolo/v8/segment/train.md
+                  - val: reference/yolo/v8/segment/val.md
 
   - YOLOv5:
       - yolov5/index.md

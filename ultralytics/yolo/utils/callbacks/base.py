@@ -6,6 +6,8 @@ Base callbacks
 from collections import defaultdict
 from copy import deepcopy
 
+from ultralytics.yolo.utils import SETTINGS
+
 # Trainer callbacks ----------------------------------------------------------------------------------------------------
 
 
@@ -205,7 +207,19 @@ def add_integration_callbacks(instance):
     from .tensorboard import callbacks as tensorboard_cb
     from .wb import callbacks as wb_cb
 
-    for x in clearml_cb, comet_cb, hub_cb, mlflow_cb, neptune_cb, tune_cb, tensorboard_cb, wb_cb:
-        for k, v in x.items():
-            if v not in instance.callbacks[k]:  # prevent duplicate callbacks addition
-                instance.callbacks[k].append(v)  # callback[name].append(func)
+
+    all_callbacks = [('clearml', clearml_cb),
+                     ('comet', comet_cb), 
+                     ('hub', hub_cb), 
+                     ('mlflow', mlflow_cb),                      
+                     ('neptune', neptune_cb)
+                     ('raytune', tune_cb),                      
+                     ('tensorboard', tensorboard_cb), 
+                     ('wb', wb_cb),
+                    ]
+
+    for s, x in all_callbacks :
+        if s in SETTINGS['callbacks_enabled'] : #Check if callback enabled.
+            for k, v in x.items():
+                if v not in instance.callbacks[k]:  # prevent duplicate callbacks addition
+                    instance.callbacks[k].append(v)  # callback[name].append(func)

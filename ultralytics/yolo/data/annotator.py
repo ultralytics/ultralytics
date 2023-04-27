@@ -35,5 +35,8 @@ def auto_annotate(data, det_model='yolov8x.pt', sam_model='sam_b.pt', device='',
 
         with open(str(Path(output_dir) / Path(result.path).stem) + '.txt', 'w') as f:
             for i in range(len(segments)):
+                s = segments[i]
+                if len(s) == 0:
+                    continue
                 segment = map(str, segments[i].reshape(-1).tolist())
-                f.write(f'{class_ids[i]} ' + ' '.join(segment))
+                f.write(f'{class_ids[i]} ' + ' '.join(segment) + '\n')

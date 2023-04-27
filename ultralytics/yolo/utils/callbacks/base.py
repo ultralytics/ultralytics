@@ -208,7 +208,7 @@ def add_integration_callbacks(instance):
     from .wb import callbacks as wb_cb
 
     all_callbacks = [('clearml', clearml_cb), ('comet', comet_cb), ('hub', hub_cb), ('mlflow', mlflow_cb),
-                     ('neptune', neptune_cb)('raytune', tune_cb), ('tensorboard', tensorboard_cb), ('wb', wb_cb)]
+                     ('neptune', neptune_cb), ('raytune', tune_cb), ('tensorboard', tensorboard_cb), ('wb', wb_cb)]
 
     for s, x in all_callbacks:
         if s in SETTINGS['callbacks_enabled']:  # check if callback enabled.

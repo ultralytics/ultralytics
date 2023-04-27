@@ -186,6 +186,8 @@ class DetectionValidator(BaseValidator):
         """TODO: manage splits differently."""
         # Calculate stride - check if model is initialized
         if self.args.v5loader:
+            LOGGER.warning("WARNING ⚠️ 'v5loader' feature is deprecated and will be removed soon. You can train using "
+                           "the default YOLOv8 dataloader instead, no argument is needed.")
             gs = max(int(de_parallel(self.model).stride if self.model else 0), 32)
             return create_dataloader(path=dataset_path,
                                      imgsz=self.args.imgsz,

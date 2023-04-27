@@ -167,6 +167,16 @@ plugins:
         tutorials/training-tips-best-results.md: yolov5/tutorials/tips_for_best_training_results.md
         tutorials/transfer-learning-froze-layers.md: yolov5/tutorials/transfer_learning_with_frozen_layers.md
         tutorials/weights-and-biasis-logging.md: yolov5/tutorials/comet_logging_integration.md
+        yolov5/pytorch_hub.md: yolov5/tutorials/pytorch_hub_model_loading.md
+        yolov5/hyp_evolution.md: yolov5/tutorials/hyperparameter_evolution.md
+        yolov5/pruning_sparsity.md: yolov5/tutorials/model_pruning_and_sparsity.md
+        yolov5/comet.md: yolov5/tutorials/comet_logging_integration.md
+        yolov5/tta.md: yolov5/tutorials/test_time_augmentation.md
+        yolov5/multi_gpu_training.md: yolov5/tutorials/multi_gpu_training.md
+        yolov5/ensemble.md: yolov5/tutorials/model_ensembling.md
+        yolov5/jetson_nano.md: yolov5/tutorials/running_on_jetson_nano.md
+        yolov5/transfer_learn_frozen.md: yolov5/tutorials/transfer_learning_with_frozen_layers.md
+        yolov5/neural_magic/: yolov5/tutorials/neural_magic_pruning_quantization.md
 
 # Primary navigation
 nav:

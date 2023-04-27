@@ -21,21 +21,9 @@ class YOLODataset(BaseDataset):
     Dataset class for loading object detection and/or segmentation labels in YOLO format.
 
     Args:
-        img_path (str): Path to the folder containing images.
-        imgsz (int, optional): Image size. Defaults to 640.
-        cache (bool, optional): Cache images to RAM or disk during training. Defaults to False.
-        augment (bool, optional): If True, data augmentation is applied. Defaults to True.
-        hyp (dict, optional): Hyperparameters to apply data augmentation. Defaults to None.
-        prefix (str, optional): Prefix to print in log messages. Defaults to ''.
-        rect (bool, optional): If True, rectangular training is used. Defaults to False.
-        batch_size (int, optional): Size of batches. Defaults to None.
-        stride (int, optional): Stride. Defaults to 32.
-        pad (float, optional): Padding. Defaults to 0.0.
-        single_cls (bool, optional): If True, single class training is used. Defaults to False.
+        data (dict, optional): A dataset YAML dictionary. Defaults to None.
         use_segments (bool, optional): If True, segmentation masks are used as labels. Defaults to False.
         use_keypoints (bool, optional): If True, keypoints are used as labels. Defaults to False.
-        data (dict, optional): A dataset YAML dictionary. Defaults to None.
-        classes (list): List of included classes. Default is None.
 
     Returns:
         (torch.utils.data.Dataset): A PyTorch dataset object that can be used for training an object detection model.
@@ -43,28 +31,12 @@ class YOLODataset(BaseDataset):
     cache_version = '1.0.2'  # dataset labels *.cache version, >= 1.0.0 for YOLOv8
     rand_interp_methods = [cv2.INTER_NEAREST, cv2.INTER_LINEAR, cv2.INTER_CUBIC, cv2.INTER_AREA, cv2.INTER_LANCZOS4]
 
-    def __init__(self,
-                 img_path,
-                 imgsz=640,
-                 cache=False,
-                 augment=True,
-                 hyp=None,
-                 prefix='',
-                 rect=False,
-                 batch_size=None,
-                 stride=32,
-                 pad=0.0,
-                 single_cls=False,
-                 use_segments=False,
-                 use_keypoints=False,
-                 data=None,
-                 classes=None):
+    def __init__(self, *args, data=None, use_segments=False, use_keypoints=False, **kwargs):
         self.use_segments = use_segments
         self.use_keypoints = use_keypoints
         self.data = data
         assert not (self.use_segments and self.use_keypoints), 'Can not use both segments and keypoints.'
-        super().__init__(img_path, imgsz, cache, augment, hyp, prefix, rect, batch_size, stride, pad, single_cls,
-                         classes)
+        super().__init__(*args, **kwargs)
 
     def cache_labels(self, path=Path('./labels.cache')):
         """Cache dataset labels, check images and read shapes.

@@ -207,6 +207,10 @@ class BaseValidator:
         """Get data loader from dataset path and batch size."""
         raise NotImplementedError('get_dataloader function not implemented for this validator')
 
+    def build_dataset(self, img_path):
+        """Build dataset"""
+        raise NotImplementedError('build_dataset function not implemented in validator')
+
     def preprocess(self, batch):
         """Preprocesses an input batch."""
         return batch

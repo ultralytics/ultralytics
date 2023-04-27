@@ -211,7 +211,7 @@ def add_integration_callbacks(instance):
                      ('neptune', neptune_cb)('raytune', tune_cb), ('tensorboard', tensorboard_cb), ('wb', wb_cb)]
 
     for s, x in all_callbacks:
-        if s in SETTINGS['callbacks_enabled']:  #Check if callback enabled.
+        if s in SETTINGS['callbacks_enabled']:  # check if callback enabled.
             for k, v in x.items():
                 if v not in instance.callbacks[k]:  # prevent duplicate callbacks addition
                     instance.callbacks[k].append(v)  # callback[name].append(func)

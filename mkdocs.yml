@@ -109,7 +109,7 @@ markdown_extensions:
       emoji_index: !!python/name:materialx.emoji.twemoji  # noqa
       emoji_generator: !!python/name:materialx.emoji.to_svg
 
-      # Content tabs
+  # Content tabs
   - pymdownx.tabbed:
       alternate_style: true
 
@@ -224,7 +224,6 @@ nav:
       - Advanced Customization: usage/engine.md
   - Ultralytics HUB: hub.md
   - iOS and Android App: app.md
-
   - Reference:
       - hub:
           - auth: reference/hub/auth.md

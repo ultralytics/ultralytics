@@ -95,6 +95,7 @@ def build_dataloader(cfg, batch, img_path, data_info, stride=32, rect=False, ran
             classes=cfg.classes,
             data=data_info)
 
+
 def build_yolo_dataset(cfg, img_path, batch, data_info, mode='train', rect=False, stride=32):
     """Build YOLO Dataset"""
     dataset = YOLODataset(
@@ -114,7 +115,6 @@ def build_yolo_dataset(cfg, img_path, batch, data_info, mode='train', rect=False
         classes=cfg.classes,
         data=data_info)
     return dataset
-
 
 
 def build_dataloader(dataset, batch, workers, shuffle=True, rank=-1):

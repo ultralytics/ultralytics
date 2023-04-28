@@ -495,7 +495,6 @@ class Detect(nn.Module):
             b[-1].bias.data[:m.nc] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)
 
 
-
 class OBB(Detect):
     # YOLOv8 OBB detection head for detection with rotation models
     def __init__(self, nc=80, nc_theta=180, ch=()):
@@ -516,6 +515,7 @@ class OBB(Detect):
         if self.training:
             return x, theta
         return torch.cat([x, theta], 1) if self.export else (torch.cat([x[0], theta], 1), (x[1], theta))
+
 
 class MLPBlock(nn.Module):
 
@@ -550,7 +550,6 @@ class LayerNorm2d(nn.Module):
         x = (x - u) / torch.sqrt(s + self.eps)
         x = self.weight[:, None, None] * x + self.bias[:, None, None]
         return x
-
 
 
 class Segment(Detect):

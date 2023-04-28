@@ -51,6 +51,7 @@ def test_predict_img():
     model = YOLO(MODEL)
     seg_model = YOLO('yolov8n-seg.pt')
     cls_model = YOLO('yolov8n-cls.pt')
+    pose_model = YOLO('yolov8n-pose.pt')
     im = cv2.imread(str(SOURCE))
     assert len(model(source=Image.open(SOURCE), save=True, verbose=True)) == 1  # PIL
     assert len(model(source=im, save=True, save_txt=True)) == 1  # ndarray
@@ -71,11 +72,13 @@ def test_predict_img():
     t = cv2.resize(im, (32, 32))
     t = torch.from_numpy(t.transpose((2, 0, 1)))
     t = torch.stack([t, t, t, t])
-    results = model(t)
+    results = model(t, visualize=True)
     assert len(results) == t.shape[0]
-    results = seg_model(t)
+    results = seg_model(t, visualize=True)
     assert len(results) == t.shape[0]
-    results = cls_model(t)
+    results = cls_model(t, visualize=True)
+    assert len(results) == t.shape[0]
+    results = pose_model(t, visualize=True)
     assert len(results) == t.shape[0]
 
 

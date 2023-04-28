@@ -192,14 +192,27 @@ class Annotator:
         """Add rectangle to image (PIL-only)."""
         self.draw.rectangle(xy, fill, outline, width)
 
-    def text(self, xy, text, txt_color=(255, 255, 255), anchor='top'):
+    def text(self, xy, text, txt_color=(255, 255, 255), anchor='top', box_style=False):
         """Adds text to an image using PIL or cv2."""
         if anchor == 'bottom':  # start y from font bottom
             w, h = self.font.getsize(text)  # text width, height
             xy[1] += 1 - h
         if self.pil:
+            if box_style:
+                w, h = self.font.getsize(text)
+                self.draw.rectangle((xy[0], xy[1], xy[0] + w + 1, xy[1] + h + 1), fill=txt_color)
+                # Using `txt_color` for background and draw fg with white color
+                txt_color = (255, 255, 255)
             self.draw.text(xy, text, fill=txt_color, font=self.font)
         else:
+            if box_style:
+                tf = max(self.lw - 1, 1)  # font thickness
+                w, h = cv2.getTextSize(text, 0, fontScale=self.lw / 3, thickness=tf)[0]  # text width, height
+                outside = xy[1] - h >= 3
+                p2 = xy[0] + w, xy[1] - h - 3 if outside else xy[1] + h + 3
+                cv2.rectangle(self.im, xy, p2, txt_color, -1, cv2.LINE_AA)  # filled
+                # Using `txt_color` for background and draw fg with white color
+                txt_color = (255, 255, 255)
             tf = max(self.lw - 1, 1)  # font thickness
             cv2.putText(self.im, text, xy, 0, self.lw / 3, txt_color, thickness=tf, lineType=cv2.LINE_AA)
 
@@ -283,7 +296,7 @@ def save_one_box(xyxy, im, file=Path('im.jpg'), gain=1.02, pad=10, square=False,
 def plot_images(images,
                 batch_idx,
                 cls,
-                bboxes,
+                bboxes=np.zeros(0, dtype=np.float32),
                 masks=np.zeros(0, dtype=np.uint8),
                 kpts=np.zeros((0, 51), dtype=np.float32),
                 paths=None,
@@ -337,27 +350,33 @@ def plot_images(images,
             annotator.text((x + 5, y + 5), text=Path(paths[i]).name[:40], txt_color=(220, 220, 220))  # filenames
         if len(cls) > 0:
             idx = batch_idx == i
-
-            boxes = xywh2xyxy(bboxes[idx, :4]).T
             classes = cls[idx].astype('int')
-            labels = bboxes.shape[1] == 4  # labels if no conf column
-            conf = None if labels else bboxes[idx, 4]  # check for confidence presence (label vs pred)
 
-            if boxes.shape[1]:
-                if boxes.max() <= 1.01:  # if normalized with tolerance 0.01
-                    boxes[[0, 2]] *= w  # scale to pixels
-                    boxes[[1, 3]] *= h
-                elif scale < 1:  # absolute coords need scale if image scales
-                    boxes *= scale
-            boxes[[0, 2]] += x
-            boxes[[1, 3]] += y
-            for j, box in enumerate(boxes.T.tolist()):
-                c = classes[j]
-                color = colors(c)
-                c = names.get(c, c) if names else c
-                if labels or conf[j] > 0.25:  # 0.25 conf thresh
-                    label = f'{c}' if labels else f'{c} {conf[j]:.1f}'
-                    annotator.box_label(box, label, color=color)
+            if len(bboxes):
+                boxes = xywh2xyxy(bboxes[idx, :4]).T
+                labels = bboxes.shape[1] == 4  # labels if no conf column
+                conf = None if labels else bboxes[idx, 4]  # check for confidence presence (label vs pred)
+
+                if boxes.shape[1]:
+                    if boxes.max() <= 1.01:  # if normalized with tolerance 0.01
+                        boxes[[0, 2]] *= w  # scale to pixels
+                        boxes[[1, 3]] *= h
+                    elif scale < 1:  # absolute coords need scale if image scales
+                        boxes *= scale
+                boxes[[0, 2]] += x
+                boxes[[1, 3]] += y
+                for j, box in enumerate(boxes.T.tolist()):
+                    c = classes[j]
+                    color = colors(c)
+                    c = names.get(c, c) if names else c
+                    if labels or conf[j] > 0.25:  # 0.25 conf thresh
+                        label = f'{c}' if labels else f'{c} {conf[j]:.1f}'
+                        annotator.box_label(box, label, color=color)
+            elif len(classes):
+                for c in classes:
+                    color = colors(c)
+                    c = names.get(c, c) if names else c
+                    annotator.text((x, y), f'{c}', txt_color=color, box_style=True)
 
             # Plot keypoints
             if len(kpts):
@@ -403,11 +422,14 @@ def plot_images(images,
 
 
 @plt_settings()
-def plot_results(file='path/to/results.csv', dir='', segment=False, pose=False):
+def plot_results(file='path/to/results.csv', dir='', segment=False, pose=False, classify=False):
     """Plot training results.csv. Usage: from utils.plots import *; plot_results('path/to/results.csv')."""
     import pandas as pd
     save_dir = Path(file).parent if file else Path(dir)
-    if segment:
+    if classify:
+        fig, ax = plt.subplots(2, 2, figsize=(6, 6), tight_layout=True)
+        index = [1, 4, 2, 3]
+    elif segment:
         fig, ax = plt.subplots(2, 8, figsize=(18, 6), tight_layout=True)
         index = [1, 2, 3, 4, 5, 6, 9, 10, 13, 14, 15, 16, 7, 8, 11, 12]
     elif pose:

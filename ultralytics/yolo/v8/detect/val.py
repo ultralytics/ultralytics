@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.yolo.data import build_dataloader
+from ultralytics.yolo.data import build_dataloader, build_yolo_dataset
 from ultralytics.yolo.data.dataloaders.v5loader import create_dataloader
 from ultralytics.yolo.engine.validator import BaseValidator
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, colorstr, ops
@@ -171,24 +171,40 @@ class DetectionValidator(BaseValidator):
                 correct[matches[:, 1].astype(int), i] = True
         return torch.tensor(correct, dtype=torch.bool, device=detections.device)
 
+    def build_dataset(self, img_path, mode='val', batch=None):
+        """Build YOLO Dataset
+
+        Args:
+            img_path (str): Path to the folder containing images.
+            mode (str): `train` mode or `val` mode, users are able to customize different augmentations for each mode.
+            batch_size (int, optional): Size of batches, this is for `rect`. Defaults to None.
+        """
+        gs = max(int(de_parallel(self.model).stride if self.model else 0), 32)
+        return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, stride=gs)
+
     def get_dataloader(self, dataset_path, batch_size):
         """TODO: manage splits differently."""
         # Calculate stride - check if model is initialized
-        gs = max(int(de_parallel(self.model).stride if self.model else 0), 32)
-        return create_dataloader(path=dataset_path,
-                                 imgsz=self.args.imgsz,
-                                 batch_size=batch_size,
-                                 stride=gs,
-                                 hyp=vars(self.args),
-                                 cache=False,
-                                 pad=0.5,
-                                 rect=self.args.rect,
-                                 workers=self.args.workers,
-                                 prefix=colorstr(f'{self.args.mode}: '),
-                                 shuffle=False,
-                                 seed=self.args.seed)[0] if self.args.v5loader else \
-            build_dataloader(self.args, batch_size, img_path=dataset_path, stride=gs, data_info=self.data,
-                             mode='val')[0]
+        if self.args.v5loader:
+            LOGGER.warning("WARNING ⚠️ 'v5loader' feature is deprecated and will be removed soon. You can train using "
+                           'the default YOLOv8 dataloader instead, no argument is needed.')
+            gs = max(int(de_parallel(self.model).stride if self.model else 0), 32)
+            return create_dataloader(path=dataset_path,
+                                     imgsz=self.args.imgsz,
+                                     batch_size=batch_size,
+                                     stride=gs,
+                                     hyp=vars(self.args),
+                                     cache=False,
+                                     pad=0.5,
+                                     rect=self.args.rect,
+                                     workers=self.args.workers,
+                                     prefix=colorstr(f'{self.args.mode}: '),
+                                     shuffle=False,
+                                     seed=self.args.seed)[0]
+
+        dataset = self.build_dataset(dataset_path, batch=batch_size, mode='val')
+        dataloader = build_dataloader(dataset, batch_size, self.args.workers, shuffle=False, rank=-1)
+        return dataloader
 
     def plot_val_samples(self, batch, ni):
         """Plot validation image samples."""

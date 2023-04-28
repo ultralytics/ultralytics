@@ -117,7 +117,8 @@ class BasePredictor:
         if not isinstance(im, torch.Tensor):
             auto = all(x.shape == im[0].shape for x in im) and self.model.pt
             if not auto:
-                LOGGER.warning('WARNING ⚠️ Source shapes differ. For optimal performance supply similarly-shaped sources.')
+                LOGGER.warning(
+                    'WARNING ⚠️ Source shapes differ. For optimal performance supply similarly-shaped sources.')
             im = np.stack([LetterBox(self.imgsz, auto=auto, stride=self.model.stride)(image=x) for x in im])
             im = im[..., ::-1].transpose((0, 3, 1, 2))  # BGR to RGB, BHWC to BCHW, (n, 3, h, w)
             im = np.ascontiguousarray(im)  # contiguous

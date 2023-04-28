@@ -44,9 +44,9 @@ class CustomTrainer:
 
     def _create_hyps(self, trial):
         # logger.info("Trial")
-        hypsObject = Hyperparameters(self._hyps_path)
-        hyps = hypsObject.get_hyps()
-        vals = hypsObject.hyp_ranges_dict
+        hyps_object = Hyperparameters(self._hyps_path)
+        hyps = hyps_object.get_hyps()
+        vals = hyps_object.hyp_ranges_dict
         if self._trial_count>0:
             for l in vals:
                 vals3 = vals[l]
@@ -57,7 +57,7 @@ class CustomTrainer:
                         hyps[l] = trial.suggest_float(l, vals3[2], vals3[3])
                     else:
                         hyps[l] = trial.suggest_int(l, vals3[2], vals3[3])
-            hypsObject.saveHyps(hyps)
+            hyps_object.save_hyps(hyps)
         else:
             for l in vals:
                 vals3 = vals[l]
@@ -68,8 +68,8 @@ class CustomTrainer:
                         hyps[l] = trial.suggest_float(l, vals3[1], vals3[1])
                     else:
                         hyps[l] = trial.suggest_int(l, vals3[1], vals3[1])
-            hypsObject.saveHyps(hyps)
-        return hypsObject.hyp_dict
+            hyps_object.save_hyps(hyps)
+        return hyps_object.hyp_dict
 
     def objective(self, trial):
         if self._resume:
@@ -95,12 +95,12 @@ class CustomTrainer:
         Hyperparameters(self._optuna_path.replace('.jpeg', '.yaml'), default=study.best_params)
     
     def _train(self) -> None:
-        hypsObject = Hyperparameters(self._hyps_path)
-        self._model.train(epochs=self._epochs, imgsz=self._img, device=self._device, data=self._data_path, optimizer=self._optim, batch=self._batch, **hypsObject.hyp_dict, save=self._save)
+        hyps_object = Hyperparameters(self._hyps_path)
+        self._model.train(epochs=self._epochs, imgsz=self._img, device=self._device, data=self._data_path, optimizer=self._optim, batch=self._batch, **hyps_object.hyp_dict, save=self._save)
 
     def _plot(self, study):
         fig = self._optuna.visualization.plot_optimization_history(study)
-        if not os.path.isdir('runs/detect/optuna'):
+        if not os.path.isdir(r'runs/detect/optuna'):
             os.makedirs('runs/detect/optuna', exist_ok=True)
         path = os.path.join('runs/detect/optuna')
         if os.path.isdir(os.path.join(path, self._study_name)):

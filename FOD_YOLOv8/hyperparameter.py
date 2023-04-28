@@ -1,29 +1,32 @@
 import yaml
 import math
 import json
-
+import os
 
 class Hyperparameters:
     def __init__(self, path, default=None) -> None:
         self.path = path
-        with open(r'utils/hyps.json', 'r') as file:
+        if os.path.isfile(r'yolov8/utils/hyps.json'):
+            f_path = r'yolov8/utils/hyps.json'
+        else:
+            f_path = r'utils/hyps.json'
+        with open(f_path, 'r') as file:
             self.ranges = json.load(file)
         if default is not None:
-            self.saveHyps(default)
+            self.save_hyps(default)
         else:
             self.update()
     
     def update(self):
-        self.hyps = self.loadHyps()
+        self.hyps = self.load_hyps()
         self.hyp_ranges_dict = self.create_hyp_ranges_dict()
         self.hyp_dict = self.create_hyp_dict()
 
-    def loadHyps(self):
+    def load_hyps(self):
         with open(self.path, 'r') as file:
             return dict(yaml.load(file, Loader=yaml.FullLoader))
     
     def create_hyp_ranges_dict(self):
-        # return {key: (self.hyps[key], math.floor(self.hyps[key]), math.ceil(self.hyps[key])) for key in self.hyps.keys()}
         hyps = {key: [True, self.hyps[key]] for key in self.hyps.keys()}
         for hyp in hyps:
             vals_list = hyps[hyp]
@@ -44,7 +47,7 @@ class Hyperparameters:
     def get_values_for_particular_hyp(self, key: str):
         return self.hyp_ranges_dict[key]
     
-    def saveHyps(self, dict):
+    def save_hyps(self, dict):
         with open(self.path, "w") as file:
             yaml.dump(dict, file)
         self.update()

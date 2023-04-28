@@ -225,7 +225,7 @@ class TaskAlignedAssigner(nn.Module):
         target_bboxes = gt_bboxes.view(-1, 4)[target_gt_idx]
 
         # Assigned target scores
-        target_labels.clamp(0)
+        target_labels.clamp_(0)
         target_scores = F.one_hot(target_labels, self.num_classes)  # (b, h*w, 80)
         fg_scores_mask = fg_mask[:, :, None].repeat(1, 1, self.num_classes)  # (b, h*w, 80)
         target_scores = torch.where(fg_scores_mask > 0, target_scores, 0)

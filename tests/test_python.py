@@ -65,7 +65,7 @@ def test_predict_img():
         cv2.imread(str(SOURCE)),  # OpenCV
         Image.open(SOURCE),  # PIL
         np.zeros((320, 640, 3))]  # numpy
-    assert len(model(batch), visualize=True) == len(batch)  # multiple sources in a batch
+    assert len(model(batch, visualize=True)) == len(batch)  # multiple sources in a batch
 
     # Test tensor inference
     im = cv2.imread(str(SOURCE))  # OpenCV

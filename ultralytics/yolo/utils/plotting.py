@@ -479,7 +479,7 @@ def feature_visualization(x, module_type, stage, n=32, save_dir=Path('runs/detec
     n:              Maximum number of feature maps to plot
     save_dir:       Directory to save results
     """
-    for m in ["Detect", "Pose", "Segment"]:
+    for m in ['Detect', 'Pose', 'Segment']:
         if m in module_type:
             return
     batch, channels, height, width = x.shape  # batch, channels, height, width

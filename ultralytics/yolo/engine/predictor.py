@@ -220,7 +220,8 @@ class BasePredictor:
             self.run_callbacks('on_predict_batch_start')
             self.batch = batch
             path, im0s, vid_cap, s = batch
-            visualize = increment_path(self.save_dir / Path(path[0]).stem, mkdir=True) if self.args.visualize and (not self.source_type.tensor) else False
+            visualize = increment_path(self.save_dir / Path(path[0]).stem,
+                                       mkdir=True) if self.args.visualize and (not self.source_type.tensor) else False
 
             # Preprocess
             with self.dt[0]:

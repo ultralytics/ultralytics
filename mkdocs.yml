@@ -322,7 +322,7 @@ nav:
           - train: reference/yolo/v8/segment/train.md
           - val: reference/yolo/v8/segment/val.md
 
-            
+
   - YOLOv5:
       - yolov5/index.md
       - Quickstart: yolov5/quickstart_tutorial.md

@@ -83,7 +83,7 @@ jobs:
           PR_JSON=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }})
           PR_NUMBER=${{ github.event.pull_request.number }}
           PR_TITLE=$(echo $PR_JSON | jq -r '.title')
-          PR_BODY=$(echo $PR_JSON | jq -r '.body')
+          PR_BODY=$(echo $PR_JSON | jq -r '.body' | sed '/<!--/,/-->/d') # remove all text between <!-- and --> tags
           echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
           echo "PR_TITLE=$PR_TITLE" >> $GITHUB_ENV
           echo "PR_BODY=$PR_BODY" >> $GITHUB_ENV

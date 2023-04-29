@@ -66,7 +66,22 @@ jobs:
         env:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
+          mkdocs build
+          
+          git config --global user.name "Glenn Jocher"
+          git config --global user.email "glenn.jocher@ultralytics.com"
+      
+          # Deploy docs to ultralytics/docs
+          git clone https://github.com/ultralytics/docs.git docs-repo
+          cd docs-repo
+          git checkout gh-deploy || git checkout -b gh-deploy
+          rm -rf *
+          cp -R ../site/* .
+          git add .
+          git commit -m "Update documentation"
+          git push https://${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/ultralytics/docs.git gh-deploy
+          
           # mkdocs gh-deploy --force || true
           # git checkout gh-pages
           # git push https://$PERSONAL_ACCESS_TOKEN@github.com/ultralytics/docs gh-pages --force
-          mkdocs gh-deploy --force --remote-url https://$PERSONAL_ACCESS_TOKEN@github.com/ultralytics/docs.git || true
+          # mkdocs gh-deploy --force --remote-url https://$PERSONAL_ACCESS_TOKEN@github.com/ultralytics/docs.git || true

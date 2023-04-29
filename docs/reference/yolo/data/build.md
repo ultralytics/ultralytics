@@ -18,11 +18,6 @@
 :::ultralytics.yolo.data.build.build_dataloader
 <br><br>
 
-# build_classification_dataloader
----
-:::ultralytics.yolo.data.build.build_classification_dataloader
-<br><br>
-
 # check_source
 ---
 :::ultralytics.yolo.data.build.check_source

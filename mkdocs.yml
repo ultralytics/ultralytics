@@ -248,6 +248,7 @@ nav:
               - matching: reference/tracker/utils/matching.md
       - yolo:
           - data:
+              - annotator: reference/yolo/data/annotator.md
               - augment: reference/yolo/data/augment.md
               - base: reference/yolo/data/base.md
               - build: reference/yolo/data/build.md

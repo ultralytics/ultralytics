@@ -1,4 +1,4 @@
-Ultralytics supports many models and architectures with more to come in the future. What to add your model architecture? [Here's](https://github.com/ultralytics/ultralytics/blob/main/CONTRIBUTING.md) how you can contribute
+Ultralytics supports many models and architectures with more to come in the future. What to add your model architecture? [Here's](../help/contributing.md) how you can contribute
 
 
 ## YOLO

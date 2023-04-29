@@ -6,6 +6,8 @@ name: Publish to PyPI and Deploy Docs
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
     inputs:
       pypi:
@@ -64,6 +66,7 @@ jobs:
         env:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
-          mkdocs gh-deploy --force || true
+          # mkdocs gh-deploy --force || true
           # git checkout gh-pages
           # git push https://$PERSONAL_ACCESS_TOKEN@github.com/ultralytics/docs gh-pages --force
+          mkdocs gh-deploy --force --remote-url https://$PERSONAL_ACCESS_TOKEN@github.com/ultralytics/docs.git || true

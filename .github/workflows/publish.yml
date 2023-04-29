@@ -63,7 +63,7 @@ jobs:
           python -m twine upload dist/* -u __token__ -p $PYPI_TOKEN
       - name: Deploy Docs
         continue-on-error: true
-        if: (github.event_name == 'push' && steps.check_pypi.outputs.increment == 'True') || github.event.inputs.docs == 'true'
+        #if: (github.event_name == 'push' && steps.check_pypi.outputs.increment == 'True') || github.event.inputs.docs == 'true'
         env:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
@@ -78,3 +78,16 @@ jobs:
           git add .
           git commit -m "Update Docs for 'ultralytics ${{ steps.check_pypi.outputs.version }}'"
           git push https://${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/ultralytics/docs.git gh-deploy
+      - name: Get PR Details
+        #if: github.event_name == 'push'
+        run: |
+          PR=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{ github.repository }}/pulls?state=closed | jq '.[] | select(.merge_commit_sha == "${{ github.sha }}")')
+          PR_BODY=$(echo "$PR" | jq -r '.body')
+          echo "PR_BODY=$PR_BODY" >> $GITHUB_ENV
+      - name: Notify on Slack
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+          payload: |
+            {"text": "<!channel> GitHub Actions ${{ job.status }} for ${{ github.workflow }} ${{ job.status == 'success' ? '✅' : '❌' }}\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* ${{ github.event_name }}\n*Job Status:* ${{ job.status }}\n*PR Message:* ${{ env.PR_BODY }}\n"}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}

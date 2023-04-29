@@ -26,19 +26,19 @@ model.train(data="coco128.yaml", epochs=100)  # train the model
 
 ### Supported Tasks
 
-| Model Type   | Pre-trained Weights  | Task      |
-| ------------ | ------------------------------------------------------------- | ------------ |
-| YOLOv8       | `yolov8n.pt`, `yolov8s.pt`, `yolov8m.pt`, `yolov8l.pt`, `yolov8x.pt` | Detection |
-| YOLOv8-seg   | `yolov8n-seg.pt`, `yolov8s-seg.pt`, `yolov8m-seg.pt`, `yolov8l-seg.pt`, `yolov8x-seg.pt`                  | Instance Segmentation         |
-| YOLOv8-pose | `yolov8n-pose.pt`, `yolov8s-pose.pt`, `yolov8m-pose.pt`, `yolov8l-pose.pt`, `yolov8x-pose.pt` ,`yolov8x-pose-p6`               | Pose/Keypoints         |
-| YOLOv8-cls   | `yolov8n-cls.pt`, `yolov8s-cls.pt`, `yolov8m-cls.pt`, `yolov8l-cls.pt`, `yolov8x-cls.pt`| Classification|
+| Model Type  | Pre-trained Weights                                                                                              | Task                  |
+|-------------|------------------------------------------------------------------------------------------------------------------|-----------------------|
+| YOLOv8      | `yolov8n.pt`, `yolov8s.pt`, `yolov8m.pt`, `yolov8l.pt`, `yolov8x.pt`                                             | Detection             |
+| YOLOv8-seg  | `yolov8n-seg.pt`, `yolov8s-seg.pt`, `yolov8m-seg.pt`, `yolov8l-seg.pt`, `yolov8x-seg.pt`                         | Instance Segmentation |
+| YOLOv8-pose | `yolov8n-pose.pt`, `yolov8s-pose.pt`, `yolov8m-pose.pt`, `yolov8l-pose.pt`, `yolov8x-pose.pt` ,`yolov8x-pose-p6` | Pose/Keypoints        |
+| YOLOv8-cls  | `yolov8n-cls.pt`, `yolov8s-cls.pt`, `yolov8m-cls.pt`, `yolov8l-cls.pt`, `yolov8x-cls.pt`                         | Classification        |
 
 ### Supported Modes
-| Mode     | Supported |
-| -------- | --------- |
-|Inference | :heavy_check_mark: |
+| Mode       | Supported          |
+|------------|--------------------|
+| Inference  | :heavy_check_mark: |
 | Validation | :heavy_check_mark: |
-| Training  | :heavy_check_mark: |
+| Training   | :heavy_check_mark: |
 
 ??? Performance
 
@@ -87,14 +87,13 @@ model.train(data="coco128.yaml", epochs=100)  # train the model
 ## YOLOv5u
 
 ### About
-Anchor-free YOLOv5 models with improved accuracy-speed tradeoff
+Anchor-free YOLOv5 models with improved accuracy-speed tradeoff.
 
 ### Supported Tasks
 
-| Model Type   | Pre-trained Weights |Task      |
-| ------------ | ------------------ | ---------------------|
-| YOLOv5u      | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u`
-| Detection        |
+| Model Type | Pre-trained Weights                                                                                                         | Task      |
+|------------|-----------------------------------------------------------------------------------------------------------------------------|-----------|
+| YOLOv5u    | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u` | Detection |
 
 ### Supported Modes
 | Mode     | Supported |
@@ -143,14 +142,14 @@ model.predict(...)  # train the model
 
 ### Supported Tasks
 
-| Model Type   | Pre-trained Weights| Tasks Supported      |
-| ------------ | ------------------ |  ---------------------|
-| sam base | `sam_b.pt`             | Instance Segmentation        |
-| sam large | `sam_l.pt`            |Instance Segmentation       |
+| Model Type | Pre-trained Weights | Tasks Supported       |
+|------------|---------------------|-----------------------|
+| sam base   | `sam_b.pt`          | Instance Segmentation |
+| sam large  | `sam_l.pt`          | Instance Segmentation |
 
 ### Supported Modes
-| Mode     | Supported |
-| -------- | --------- |
-|Inference | :heavy_check_mark: |
-| Validation | :x: |
-| Training  | :x: |
+| Mode       | Supported          |
+|------------|--------------------|
+| Inference  | :heavy_check_mark: |
+| Validation | :x:                |
+| Training   | :x:                |

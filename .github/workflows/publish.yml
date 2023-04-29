@@ -49,7 +49,7 @@ jobs:
           d = [a - b for a, b in zip(v_local, v_pypi)]  # diff
           increment = (d[0] == d[1] == 0) and d[2] == 1  # only publish if patch version increments by 1
           os.system(f'echo "increment={increment}" >> $GITHUB_OUTPUT')
-          os.system(f'echo "v_local={v_local}" >> $GITHUB_OUTPUT')
+          os.system(f'echo "version={ultralytics.__version__}" >> $GITHUB_OUTPUT')
           if increment:
               print('Local version is higher than PyPI version. Publishing new version to PyPI ✅.')
         id: check_pypi
@@ -68,16 +68,13 @@ jobs:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
           mkdocs build
-
           git config --global user.name "Glenn Jocher"
           git config --global user.email "glenn.jocher@ultralytics.com"
-
-          # Deploy docs to ultralytics/docs
           git clone https://github.com/ultralytics/docs.git docs-repo
           cd docs-repo
           git checkout gh-deploy || git checkout -b gh-deploy
           rm -rf *
           cp -R ../site/* .
           git add .
-          git commit -m "Update documentation for `ultralytics ${{ steps.check_pypi.outputs.v_local }}`"
+          git commit -m "Update documentation for `ultralytics ${{ version }}`"
           git push https://${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/ultralytics/docs.git gh-deploy

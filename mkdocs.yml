@@ -84,6 +84,9 @@ extra:
       link: https://hub.docker.com/r/ultralytics/ultralytics/
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/ultralytics/
+    - icon: fontawesome/brands/discord
+      link: https://discord.gg/n6cFeSPZdD
+
 
 extra_css:
   - stylesheets/style.css

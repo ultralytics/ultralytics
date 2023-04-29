@@ -49,7 +49,7 @@ If you encounter a bug in the Ultralytics YOLO repositories, please open a new i
 
 ### Minimum Reproducible Example
 
-When reporting a bug, it's essential to provide a minimum reproducible example. A minimum reproducible example is a small, self-contained piece of code that demonstrates the bug. This helps the maintainers and other contributors quickly identify the issue and work on a fix.
+When reporting a bug, it's essential to provide a minimum reproducible example. A minimum reproducible example is a small, self-contained piece of code that demonstrates the bug. This helps the maintainers and other contributors quickly identify the issue and work on a fix. See our [Minimum Reproducible Example (MRE) Guide](minimum_reproducible_example.md) for details.
 
 ## License and Copyright
 

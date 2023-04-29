@@ -1,3 +1,38 @@
+# _get_comet_mode
+---
+:::ultralytics.yolo.utils.callbacks.comet._get_comet_mode
+<br><br>
+
+# _get_comet_model_name
+---
+:::ultralytics.yolo.utils.callbacks.comet._get_comet_model_name
+<br><br>
+
+# _get_eval_batch_logging_interval
+---
+:::ultralytics.yolo.utils.callbacks.comet._get_eval_batch_logging_interval
+<br><br>
+
+# _get_max_image_predictions_to_log
+---
+:::ultralytics.yolo.utils.callbacks.comet._get_max_image_predictions_to_log
+<br><br>
+
+# _scale_confidence_score
+---
+:::ultralytics.yolo.utils.callbacks.comet._scale_confidence_score
+<br><br>
+
+# _should_log_confusion_matrix
+---
+:::ultralytics.yolo.utils.callbacks.comet._should_log_confusion_matrix
+<br><br>
+
+# _should_log_image_predictions
+---
+:::ultralytics.yolo.utils.callbacks.comet._should_log_image_predictions
+<br><br>
+
 # _get_experiment_type
 ---
 :::ultralytics.yolo.utils.callbacks.comet._get_experiment_type

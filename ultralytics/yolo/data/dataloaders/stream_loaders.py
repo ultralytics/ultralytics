@@ -72,9 +72,6 @@ class LoadStreams:
         # Check for common shapes
         self.bs = self.__len__()
 
-        if not self.rect:
-            LOGGER.warning('WARNING ⚠️ Stream shapes differ. For optimal performance supply similarly-shaped streams.')
-
     def update(self, i, cap, stream):
         """Read stream `i` frames in daemon thread."""
         n, f = 0, self.frames[i]  # frame number, frame array

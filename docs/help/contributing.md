@@ -7,6 +7,8 @@ First of all, thank you for your interest in contributing to Ultralytics open-so
 - [Code of Conduct](#code-of-conduct)
 - [Pull Requests](#pull-requests)
   - [CLA Signing](#cla-signing)
+  - [Google-Style Docstrings](#google-style-docstrings)
+  - [GitHub Actions CI Tests](#github-actions-ci-tests)
 - [Bug Reports](#bug-reports)
   - [Minimum Reproducible Example](#minimum-reproducible-example)
 - [License and Copyright](#license-and-copyright)
@@ -37,26 +39,31 @@ Before we can accept your pull request, you need to sign a [Contributor License 
 
 To sign the CLA, follow the instructions provided by the CLA bot after you submit your PR.
 
-## Bug Reports
+### Google-Style Docstrings
 
-If you encounter a bug in the Ultralytics YOLO repositories, please open a new issue in the repository's issue tracker. When reporting a bug, make sure to include the following information:
+When adding new functions or classes, please include a [Google-style docstring](https://google.github.io/styleguide/pyguide.html) to provide clear and concise documentation for other developers. This will help ensure that your contributions are easy to understand and maintain.
 
-1. A clear and concise description of the bug.
-2. Steps to reproduce the bug.
-3. The expected behavior.
-4. The actual behavior you experienced.
-5. Any relevant error messages or logs.
+Example Google-style docstring:
 
-### Minimum Reproducible Example
+```python
+def example_function(arg1: int, arg2: str) -> bool:
+    """Example function that demonstrates Google-style docstrings.
 
-When reporting a bug, it's essential to provide a minimum reproducible example. A minimum reproducible example is a small, self-contained piece of code that demonstrates the bug. This helps the maintainers and other contributors quickly identify the issue and work on a fix.
+    Args:
+        arg1 (int): The first argument.
+        arg2 (str): The second argument.
 
-## License and Copyright
+    Returns:
+        bool: True if successful, False otherwise.
 
-All contributions to Ultralytics YOLO repositories are subject to the AGPL-3.0 license. By submitting a contribution, you agree that your work will be licensed under the AGPL-3.0 license and that you have the necessary rights to submit the contribution.
+    Raises:
+        ValueError: If `arg1` is negative or `arg2` is empty.
+    """
+    if arg1 < 0 or not arg2:
+        raise ValueError("Invalid input values")
+    return True
+```
 
-For more information about the AGPL-3.0 license, please see the [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file.
+### GitHub Actions CI Tests
 
----
-
-Thank you again for your interest in contributing to Ultralytics YOLO repositories! We appreciate your efforts and look forward to collaborating with you to make the project even better.
+Before your pull request can be merged, all GitHub Actions Continuous Integration (CI) tests must pass. These tests include linting, unit tests, and other checks to ensure that your changes meet the quality standards of the project. Make sure to review the output of the GitHub Actions and fix any issues

@@ -76,5 +76,5 @@ jobs:
           rm -rf *
           cp -R ../site/* .
           git add .
-          git commit -m "Update documentation for 'ultralytics ${{ steps.check_pypi.outputs.version }}'"
+          git commit -m "Update 'ultralytics ${{ steps.check_pypi.outputs.version }}' docs"
           git push https://${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/ultralytics/docs.git gh-deploy

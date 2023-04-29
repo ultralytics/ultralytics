@@ -10,32 +10,32 @@ import numpy as np
 import torch
 from torchvision.ops.boxes import batched_nms, box_area  # type: ignore
 
+from .prompt_predictor import PromptPredictor
+from .sam import Sam
 from ..amg import (MaskData, area_from_rle, batch_iterator, batched_mask_to_box, box_xyxy_to_xywh,
                    build_all_layer_point_grids, calculate_stability_score, coco_encode_rle, generate_crop_boxes,
                    is_box_near_crop_edge, mask_to_rle_pytorch, remove_small_regions, rle_to_mask, uncrop_boxes_xyxy,
                    uncrop_masks, uncrop_points)
-from .prompt_predictor import PromptPredictor
-from .sam import Sam
 
 
 class SamAutomaticMaskGenerator:
 
     def __init__(
-        self,
-        model: Sam,
-        points_per_side: Optional[int] = 32,
-        points_per_batch: int = 64,
-        pred_iou_thresh: float = 0.88,
-        stability_score_thresh: float = 0.95,
-        stability_score_offset: float = 1.0,
-        box_nms_thresh: float = 0.7,
-        crop_n_layers: int = 0,
-        crop_nms_thresh: float = 0.7,
-        crop_overlap_ratio: float = 512 / 1500,
-        crop_n_points_downscale_factor: int = 1,
-        point_grids: Optional[List[np.ndarray]] = None,
-        min_mask_region_area: int = 0,
-        output_mode: str = 'binary_mask',
+            self,
+            model: Sam,
+            points_per_side: Optional[int] = 32,
+            points_per_batch: int = 64,
+            pred_iou_thresh: float = 0.88,
+            stability_score_thresh: float = 0.95,
+            stability_score_offset: float = 1.0,
+            box_nms_thresh: float = 0.7,
+            crop_n_layers: int = 0,
+            crop_nms_thresh: float = 0.7,
+            crop_overlap_ratio: float = 512 / 1500,
+            crop_n_points_downscale_factor: int = 1,
+            point_grids: Optional[List[np.ndarray]] = None,
+            min_mask_region_area: int = 0,
+            output_mode: str = 'binary_mask',
     ) -> None:
         """
         Using a SAM model, generates masks for the entire image.
@@ -45,7 +45,7 @@ class SamAutomaticMaskGenerator:
 
         Arguments:
           model (Sam): The SAM model to use for mask prediction.
-          points_per_side (int or None): The number of points to be sampled
+          points_per_side (int, None): The number of points to be sampled
             along one side of the image. The total number of points is
             points_per_side**2. If None, 'point_grids' must provide explicit
             point sampling.
@@ -70,7 +70,7 @@ class SamAutomaticMaskGenerator:
             the image length. Later layers with more crops scale down this overlap.
           crop_n_points_downscale_factor (int): The number of points-per-side
             sampled in layer n is scaled down by crop_n_points_downscale_factor**n.
-          point_grids (list(np.ndarray) or None): A list over explicit grids
+          point_grids (list(np.ndarray), None): A list over explicit grids
             of points used for sampling, normalized to [0,1]. The nth grid in the
             list is used in the nth crop layer. Exclusive with points_per_side.
           min_mask_region_area (int): If >0, postprocessing will be applied
@@ -128,9 +128,8 @@ class SamAutomaticMaskGenerator:
           image (np.ndarray): The image to generate masks for, in HWC uint8 format.
 
         Returns:
-           list(dict(str, any)): A list over records for masks. Each record is
-             a dict containing the following keys:
-               segmentation (dict(str, any) or np.ndarray): The mask. If
+           list(dict(str, any)): A list over records for masks. Each record is a dict containing the following keys:
+               segmentation (dict(str, any), np.ndarray): The mask. If
                  output_mode='binary_mask', is an array of shape HW. Otherwise,
                  is a dictionary containing the RLE.
                bbox (list(float)): The box around the mask, in XYWH format.
@@ -206,11 +205,11 @@ class SamAutomaticMaskGenerator:
         return data
 
     def _process_crop(
-        self,
-        image: np.ndarray,
-        crop_box: List[int],
-        crop_layer_idx: int,
-        orig_size: Tuple[int, ...],
+            self,
+            image: np.ndarray,
+            crop_box: List[int],
+            crop_layer_idx: int,
+            orig_size: Tuple[int, ...],
     ) -> MaskData:
         # Crop the image and calculate embeddings
         x0, y0, x1, y1 = crop_box
@@ -224,7 +223,7 @@ class SamAutomaticMaskGenerator:
 
         # Generate masks for this crop in batches
         data = MaskData()
-        for (points, ) in batch_iterator(self.points_per_batch, points_for_image):
+        for (points,) in batch_iterator(self.points_per_batch, points_for_image):
             batch_data = self._process_batch(points, cropped_im_size, crop_box, orig_size)
             data.cat(batch_data)
             del batch_data
@@ -247,11 +246,11 @@ class SamAutomaticMaskGenerator:
         return data
 
     def _process_batch(
-        self,
-        points: np.ndarray,
-        im_size: Tuple[int, ...],
-        crop_box: List[int],
-        orig_size: Tuple[int, ...],
+            self,
+            points: np.ndarray,
+            im_size: Tuple[int, ...],
+            crop_box: List[int],
+            orig_size: Tuple[int, ...],
     ) -> MaskData:
         orig_h, orig_w = orig_size
 

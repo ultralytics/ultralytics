@@ -33,9 +33,9 @@ We welcome contributions in the form of pull requests. To make the review proces
 
 ### CLA Signing
 
-Before we can accept your pull request, you need to sign a Contributor License Agreement (CLA). This is a legal document stating that you agree to the terms of contributing to the Ultralytics YOLO repositories. The CLA ensures that your contributions are properly licensed and that the project can continue to be distributed under the AGPL-3.0 license.
+Before we can accept your pull request, you need to sign a [Contributor License Agreement (CLA)](CLA.md). This is a legal document stating that you agree to the terms of contributing to the Ultralytics YOLO repositories. The CLA ensures that your contributions are properly licensed and that the project can continue to be distributed under the AGPL-3.0 license.
 
-To sign the CLA, follow the instructions provided in the [CLA.md](CLA.md) file.
+To sign the CLA, follow the instructions provided by the CLA bot after you submit your PR.
 
 ## Bug Reports
 
@@ -55,7 +55,7 @@ When reporting a bug, it's essential to provide a minimum reproducible example. 
 
 All contributions to Ultralytics YOLO repositories are subject to the AGPL-3.0 license. By submitting a contribution, you agree that your work will be licensed under the AGPL-3.0 license and that you have the necessary rights to submit the contribution.
 
-For more information about the AGPL-3.0 license, please see the [LICENSE](LICENSE) file.
+For more information about the AGPL-3.0 license, please see the [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file.
 
 ---
 

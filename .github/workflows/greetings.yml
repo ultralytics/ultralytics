@@ -23,7 +23,7 @@ jobs:
             - ✅ Update YOLOv8 [Docs](https://docs.ultralytics.com) for any new or updated features.
             - ✅ Reduce changes to the absolute **minimum** required for your bug fix or feature addition. _"It is not daily increase but daily decrease, hack away the unessential. The closer to the source, the less wastage there is."_  — Bruce Lee
 
-            See our [Contributing Guide](https://github.com/ultralytics/ultralytics/blob/main/CONTRIBUTING.md) for details and let us know if you have any questions!
+            See our [Contributing Guide](https://docs.ultralytics.com/help/contributing) for details and let us know if you have any questions!
 
           issue-message: |
             👋 Hello @${{ github.actor }}, thank you for your interest in YOLOv8 🚀! We recommend a visit to the [YOLOv8 Docs](https://docs.ultralytics.com) for new users where you can find many [Python](https://docs.ultralytics.com/usage/python/) and [CLI](https://docs.ultralytics.com/usage/cli/) usage examples and where many of the most common questions may already be answered.

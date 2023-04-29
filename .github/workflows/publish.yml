@@ -47,6 +47,7 @@ jobs:
           d = [a - b for a, b in zip(v_local, v_pypi)]  # diff
           increment = (d[0] == d[1] == 0) and d[2] == 1  # only publish if patch version increments by 1
           os.system(f'echo "increment={increment}" >> $GITHUB_OUTPUT')
+          os.system(f'echo "version={ultralytics.__version__}" >> $GITHUB_OUTPUT')
           if increment:
               print('Local version is higher than PyPI version. Publishing new version to PyPI ✅.')
         id: check_pypi
@@ -64,6 +65,44 @@ jobs:
         env:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
-          mkdocs gh-deploy --force || true
-          # git checkout gh-pages
-          # git push https://$PERSONAL_ACCESS_TOKEN@github.com/ultralytics/docs gh-pages --force
+          mkdocs build
+          git config --global user.name "Glenn Jocher"
+          git config --global user.email "glenn.jocher@ultralytics.com"
+          git clone https://github.com/ultralytics/docs.git docs-repo
+          cd docs-repo
+          git checkout gh-pages || git checkout -b gh-pages
+          rm -rf *
+          cp -R ../site/* .
+          git add .
+          git commit -m "Update Docs for 'ultralytics ${{ steps.check_pypi.outputs.version }}'"
+          git push https://${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/ultralytics/docs.git gh-pages
+      - name: Extract PR Details
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            PR_JSON=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }})
+            PR_NUMBER=${{ github.event.pull_request.number }}
+            PR_TITLE=$(echo $PR_JSON | jq -r '.title')
+          else
+            COMMIT_SHA=${{ github.event.after }}
+            PR_JSON=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/search/issues?q=repo:${{ github.repository }}+is:pr+is:merged+sha:$COMMIT_SHA")
+            PR_NUMBER=$(echo $PR_JSON | jq -r '.items[0].number')
+            PR_TITLE=$(echo $PR_JSON | jq -r '.items[0].title')
+          fi
+          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
+          echo "PR_TITLE=$PR_TITLE" >> $GITHUB_ENV
+      - name: Notify on Slack (Success)
+        if: success() && github.event_name == 'push' && steps.check_pypi.outputs.increment == 'True'
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+          payload: |
+            {"text": "<!channel> GitHub Actions success for ${{ github.workflow }} ✅\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* NEW 'ultralytics ${{ steps.check_pypi.outputs.version }}' pip package published 😃\n*Job Status:* ${{ job.status }}\n*Pull Request:* <https://github.com/${{ github.repository }}/pull/${{ env.PR_NUMBER }}> ${{ env.PR_TITLE }}\n"}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
+      - name: Notify on Slack (Failure)
+        if: failure()
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+          payload: |
+            {"text": "<!channel> GitHub Actions error for ${{ github.workflow }} ❌\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* ${{ github.event_name }}\n*Job Status:* ${{ job.status }}\n*Pull Request:* <https://github.com/${{ github.repository }}/pull/${{ env.PR_NUMBER }}> ${{ env.PR_TITLE }}\n"}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}

@@ -233,10 +233,10 @@ class PromptEncoder(nn.Module):
         embeddings.
 
         Arguments:
-          points (tuple(torch.Tensor, torch.Tensor) or none): point coordinates
+          points (tuple(torch.Tensor, torch.Tensor), None): point coordinates
             and labels to embed.
-          boxes (torch.Tensor or none): boxes to embed
-          masks (torch.Tensor or none): masks to embed
+          boxes (torch.Tensor, None): boxes to embed
+          masks (torch.Tensor, None): masks to embed
 
         Returns:
           torch.Tensor: sparse embeddings for the points and boxes, with shape
@@ -337,7 +337,7 @@ class Block(nn.Module):
             rel_pos_zero_init (bool): If True, zero initialize relative positional parameters.
             window_size (int): Window size for window attention blocks. If it equals 0, then
                 use global attention.
-            input_size (tuple(int, int) or None): Input resolution for calculating the relative
+            input_size (tuple(int, int), None): Input resolution for calculating the relative
                 positional parameter size.
         """
         super().__init__()
@@ -392,9 +392,8 @@ class Attention(nn.Module):
             dim (int): Number of input channels.
             num_heads (int): Number of attention heads.
             qkv_bias (bool):  If True, add a learnable bias to query, key, value.
-            rel_pos (bool): If True, add relative positional embeddings to the attention map.
             rel_pos_zero_init (bool): If True, zero initialize relative positional parameters.
-            input_size (tuple(int, int) or None): Input resolution for calculating the relative
+            input_size (tuple(int, int), None): Input resolution for calculating the relative
                 positional parameter size.
         """
         super().__init__()

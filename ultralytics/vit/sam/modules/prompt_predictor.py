@@ -81,12 +81,12 @@ class PromptPredictor:
         Predict masks for the given input prompts, using the currently set image.
 
         Arguments:
-          point_coords (np.ndarray or None): A Nx2 array of point prompts to the
+          point_coords (np.ndarray, None): A Nx2 array of point prompts to the
             model. Each point is in (X,Y) in pixels.
-          point_labels (np.ndarray or None): A length N array of labels for the
+          point_labels (np.ndarray, None): A length N array of labels for the
             point prompts. 1 indicates a foreground point and 0 indicates a
             background point.
-          box (np.ndarray or None): A length 4 array given a box prompt to the
+          box (np.ndarray, None): A length 4 array given a box prompt to the
             model, in XYXY format.
           mask_input (np.ndarray): A low resolution mask input to the model, typically
             coming from a previous prediction iteration. Has form 1xHxW, where
@@ -158,12 +158,12 @@ class PromptPredictor:
         transformed to the input frame using ResizeLongestSide.
 
         Arguments:
-          point_coords (torch.Tensor or None): A BxNx2 array of point prompts to the
+          point_coords (torch.Tensor, None): A BxNx2 array of point prompts to the
             model. Each point is in (X,Y) in pixels.
-          point_labels (torch.Tensor or None): A BxN array of labels for the
+          point_labels (torch.Tensor, None): A BxN array of labels for the
             point prompts. 1 indicates a foreground point and 0 indicates a
             background point.
-          boxes (np.ndarray or None): A Bx4 array given a box prompt to the
+          boxes (np.ndarray, None): A Bx4 array given a box prompt to the
             model, in XYXY format.
           mask_input (np.ndarray): A low resolution mask input to the model, typically
             coming from a previous prediction iteration. Has form Bx1xHxW, where

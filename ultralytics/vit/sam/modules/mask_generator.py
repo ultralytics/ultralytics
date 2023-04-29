@@ -45,7 +45,7 @@ class SamAutomaticMaskGenerator:
 
         Arguments:
           model (Sam): The SAM model to use for mask prediction.
-          points_per_side (int or None): The number of points to be sampled
+          points_per_side (int, None): The number of points to be sampled
             along one side of the image. The total number of points is
             points_per_side**2. If None, 'point_grids' must provide explicit
             point sampling.
@@ -70,7 +70,7 @@ class SamAutomaticMaskGenerator:
             the image length. Later layers with more crops scale down this overlap.
           crop_n_points_downscale_factor (int): The number of points-per-side
             sampled in layer n is scaled down by crop_n_points_downscale_factor**n.
-          point_grids (list(np.ndarray) or None): A list over explicit grids
+          point_grids (list(np.ndarray), None): A list over explicit grids
             of points used for sampling, normalized to [0,1]. The nth grid in the
             list is used in the nth crop layer. Exclusive with points_per_side.
           min_mask_region_area (int): If >0, postprocessing will be applied
@@ -128,9 +128,8 @@ class SamAutomaticMaskGenerator:
           image (np.ndarray): The image to generate masks for, in HWC uint8 format.
 
         Returns:
-           list(dict(str, any)): A list over records for masks. Each record is
-             a dict containing the following keys:
-               segmentation (dict(str, any) or np.ndarray): The mask. If
+           list(dict(str, any)): A list over records for masks. Each record is a dict containing the following keys:
+               segmentation (dict(str, any), np.ndarray): The mask. If
                  output_mode='binary_mask', is an array of shape HW. Otherwise,
                  is a dictionary containing the RLE.
                bbox (list(float)): The box around the mask, in XYWH format.

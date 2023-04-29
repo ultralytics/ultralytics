@@ -88,6 +88,6 @@ jobs:
         uses: slackapi/slack-github-action@v1.23.0
         with:
           payload: |
-            {"text": "<!channel> GitHub Actions ${{ job.status }} for ${{ github.workflow }} ${{ job.status == 'success' ? '✅' : '❌' }}\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* ${{ github.event_name }}\n*Job Status:* ${{ job.status }}\n*PR Message:* ${{ env.PR_BODY }}\n"}
+            {"text": "<!channel> GitHub Actions ${{ job.status }} for ${{ github.workflow }} ${{ join('✅', '❌', job.status == 'success') }}\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* ${{ github.event_name }}\n*Job Status:* ${{ job.status }}\n*PR Message:* ${{ env.PR_BODY }}\n"}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}

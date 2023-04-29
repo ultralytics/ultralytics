@@ -1,8 +1,7 @@
-# Models
 Ultralytics supports many models and architectures with more to come in the future. What to add your model architecture? [Here's](https://github.com/ultralytics/ultralytics/blob/main/CONTRIBUTING.md) how you can contribute
 
 
-# YOLO
+## YOLO
 Model *.yaml files may be used directly in the Command Line Interface (CLI) with a yolo command:
 
 ```bash
@@ -125,7 +124,7 @@ Anchor-free YOLOv5 models with improved accuracy-speed tradeoff
         | [YOLOv5x6u](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov5x6u.pt) | 1280                  | 56.8                 | -                              | -                                   | 155.4              | 250.7             |
 
 ---
-# Vision Transformers
+## Vision Transformers
 Vit models currently support Python environment:
 
 ```python

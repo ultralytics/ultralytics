@@ -201,7 +201,8 @@ nav:
           - Segment: tasks/segment.md
           - Classify: tasks/classify.md
           - Pose: tasks/pose.md
-  - Models: models.md
+  - Models:
+          - models/index.md
   - Quickstart: quickstart.md
   - Modes:
       - modes/index.md

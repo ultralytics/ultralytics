@@ -84,6 +84,8 @@ extra:
       link: https://hub.docker.com/r/ultralytics/ultralytics/
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/ultralytics/
+    - icon: fontawesome/brands/discord
+      link: https://discord.gg/n6cFeSPZdD
 
 extra_css:
   - stylesheets/style.css
@@ -227,102 +229,87 @@ nav:
   - Ultralytics HUB: hub.md
   - iOS and Android App: app.md
   - Reference:
-    - hub:
-      - auth: reference/hub/auth.md
-      - session: reference/hub/session.md
-      - utils: reference/hub/utils.md
-    - nn:
-      - autobackend: reference/nn/autobackend.md
-      - autoshape: reference/nn/autoshape.md
-      - modules: reference/nn/modules.md
-      - tasks: reference/nn/tasks.md
-    - tracker:
-      - track: reference/tracker/track.md
-      - trackers:
-        - basetrack: reference/tracker/trackers/basetrack.md
-        - bot_sort: reference/tracker/trackers/bot_sort.md
-        - byte_tracker: reference/tracker/trackers/byte_tracker.md
-      - utils:
-        - gmc: reference/tracker/utils/gmc.md
-        - kalman_filter: reference/tracker/utils/kalman_filter.md
-        - matching: reference/tracker/utils/matching.md
-    - vit:
-      - sam:
-        - amg: reference/vit/sam/amg.md
-        - autosize: reference/vit/sam/autosize.md
-        - build: reference/vit/sam/build.md
-        - model: reference/vit/sam/model.md
-        - modules:
-          - decoders: reference/vit/sam/modules/decoders.md
-          - encoders: reference/vit/sam/modules/encoders.md
-          - mask_generator: reference/vit/sam/modules/mask_generator.md
-          - prompt_predictor: reference/vit/sam/modules/prompt_predictor.md
-          - sam: reference/vit/sam/modules/sam.md
-          - transformer: reference/vit/sam/modules/transformer.md
-        - predict: reference/vit/sam/predict.md
-    - yolo:
-      - data:
-        - annotator: reference/yolo/data/annotator.md
-        - augment: reference/yolo/data/augment.md
-        - base: reference/yolo/data/base.md
-        - build: reference/yolo/data/build.md
-        - dataloaders:
-          - stream_loaders: reference/yolo/data/dataloaders/stream_loaders.md
-          - v5augmentations: reference/yolo/data/dataloaders/v5augmentations.md
-          - v5loader: reference/yolo/data/dataloaders/v5loader.md
-        - dataset: reference/yolo/data/dataset.md
-        - dataset_wrappers: reference/yolo/data/dataset_wrappers.md
-        - utils: reference/yolo/data/utils.md
-      - engine:
-        - exporter: reference/yolo/engine/exporter.md
-        - model: reference/yolo/engine/model.md
-        - predictor: reference/yolo/engine/predictor.md
-        - results: reference/yolo/engine/results.md
-        - trainer: reference/yolo/engine/trainer.md
-        - validator: reference/yolo/engine/validator.md
-      - utils:
-        - autobatch: reference/yolo/utils/autobatch.md
-        - benchmarks: reference/yolo/utils/benchmarks.md
-        - callbacks:
-          - base: reference/yolo/utils/callbacks/base.md
-          - clearml: reference/yolo/utils/callbacks/clearml.md
-          - comet: reference/yolo/utils/callbacks/comet.md
-          - hub: reference/yolo/utils/callbacks/hub.md
-          - mlflow: reference/yolo/utils/callbacks/mlflow.md
-          - neptune: reference/yolo/utils/callbacks/neptune.md
-          - raytune: reference/yolo/utils/callbacks/raytune.md
-          - tensorboard: reference/yolo/utils/callbacks/tensorboard.md
-          - wb: reference/yolo/utils/callbacks/wb.md
-        - checks: reference/yolo/utils/checks.md
-        - dist: reference/yolo/utils/dist.md
-        - downloads: reference/yolo/utils/downloads.md
-        - errors: reference/yolo/utils/errors.md
-        - files: reference/yolo/utils/files.md
-        - instance: reference/yolo/utils/instance.md
-        - loss: reference/yolo/utils/loss.md
-        - metrics: reference/yolo/utils/metrics.md
-        - ops: reference/yolo/utils/ops.md
-        - plotting: reference/yolo/utils/plotting.md
-        - tal: reference/yolo/utils/tal.md
-        - torch_utils: reference/yolo/utils/torch_utils.md
-      - v8:
-        - classify:
-          - predict: reference/yolo/v8/classify/predict.md
-          - train: reference/yolo/v8/classify/train.md
-          - val: reference/yolo/v8/classify/val.md
-        - detect:
-          - predict: reference/yolo/v8/detect/predict.md
-          - train: reference/yolo/v8/detect/train.md
-          - val: reference/yolo/v8/detect/val.md
-        - pose:
-          - predict: reference/yolo/v8/pose/predict.md
-          - train: reference/yolo/v8/pose/train.md
-          - val: reference/yolo/v8/pose/val.md
-        - segment:
-          - predict: reference/yolo/v8/segment/predict.md
-          - train: reference/yolo/v8/segment/train.md
-          - val: reference/yolo/v8/segment/val.md
-
+      - hub:
+          - auth: reference/hub/auth.md
+          - session: reference/hub/session.md
+          - utils: reference/hub/utils.md
+      - nn:
+          - autobackend: reference/nn/autobackend.md
+          - autoshape: reference/nn/autoshape.md
+          - modules: reference/nn/modules.md
+          - tasks: reference/nn/tasks.md
+      - tracker:
+          - track: reference/tracker/track.md
+          - trackers:
+              - basetrack: reference/tracker/trackers/basetrack.md
+              - bot_sort: reference/tracker/trackers/bot_sort.md
+              - byte_tracker: reference/tracker/trackers/byte_tracker.md
+          - utils:
+              - gmc: reference/tracker/utils/gmc.md
+              - kalman_filter: reference/tracker/utils/kalman_filter.md
+              - matching: reference/tracker/utils/matching.md
+      - yolo:
+          - data:
+              - annotator: reference/yolo/data/annotator.md
+              - augment: reference/yolo/data/augment.md
+              - base: reference/yolo/data/base.md
+              - build: reference/yolo/data/build.md
+              - dataloaders:
+                  - stream_loaders: reference/yolo/data/dataloaders/stream_loaders.md
+                  - v5augmentations: reference/yolo/data/dataloaders/v5augmentations.md
+                  - v5loader: reference/yolo/data/dataloaders/v5loader.md
+              - dataset: reference/yolo/data/dataset.md
+              - dataset_wrappers: reference/yolo/data/dataset_wrappers.md
+              - utils: reference/yolo/data/utils.md
+          - engine:
+              - exporter: reference/yolo/engine/exporter.md
+              - model: reference/yolo/engine/model.md
+              - predictor: reference/yolo/engine/predictor.md
+              - results: reference/yolo/engine/results.md
+              - trainer: reference/yolo/engine/trainer.md
+              - validator: reference/yolo/engine/validator.md
+          - utils:
+              - autobatch: reference/yolo/utils/autobatch.md
+              - benchmarks: reference/yolo/utils/benchmarks.md
+              - callbacks:
+                  - base: reference/yolo/utils/callbacks/base.md
+                  - clearml: reference/yolo/utils/callbacks/clearml.md
+                  - comet: reference/yolo/utils/callbacks/comet.md
+                  - hub: reference/yolo/utils/callbacks/hub.md
+                  - mlflow: reference/yolo/utils/callbacks/mlflow.md
+                  - neptune: reference/yolo/utils/callbacks/neptune.md
+                  - raytune: reference/yolo/utils/callbacks/raytune.md
+                  - tensorboard: reference/yolo/utils/callbacks/tensorboard.md
+                  - wb: reference/yolo/utils/callbacks/wb.md
+              - checks: reference/yolo/utils/checks.md
+              - dist: reference/yolo/utils/dist.md
+              - downloads: reference/yolo/utils/downloads.md
+              - errors: reference/yolo/utils/errors.md
+              - files: reference/yolo/utils/files.md
+              - instance: reference/yolo/utils/instance.md
+              - loss: reference/yolo/utils/loss.md
+              - metrics: reference/yolo/utils/metrics.md
+              - ops: reference/yolo/utils/ops.md
+              - plotting: reference/yolo/utils/plotting.md
+              - tal: reference/yolo/utils/tal.md
+              - torch_utils: reference/yolo/utils/torch_utils.md
+          - v8:
+              - classify:
+                  - predict: reference/yolo/v8/classify/predict.md
+                  - train: reference/yolo/v8/classify/train.md
+                  - val: reference/yolo/v8/classify/val.md
+              - detect:
+                  - predict: reference/yolo/v8/detect/predict.md
+                  - train: reference/yolo/v8/detect/train.md
+                  - val: reference/yolo/v8/detect/val.md
+              - pose:
+                  - predict: reference/yolo/v8/pose/predict.md
+                  - train: reference/yolo/v8/pose/train.md
+                  - val: reference/yolo/v8/pose/val.md
+              - segment:
+                  - predict: reference/yolo/v8/segment/predict.md
+                  - train: reference/yolo/v8/segment/train.md
+                  - val: reference/yolo/v8/segment/val.md
 
   - YOLOv5:
       - yolov5/index.md
@@ -348,4 +335,11 @@ nav:
           - Neural Magic's DeepSparse: yolov5/tutorials/neural_magic_pruning_quantization.md
           - Comet Logging: yolov5/tutorials/comet_logging_integration.md
           - Clearml Logging: yolov5/tutorials/clearml_logging_integration.md
-  - Security: SECURITY.md
+  - Help:
+      - Help: help/index.md
+      - Frequently Asked Questions (FAQ): help/FAQ.md
+      - Contributing Guide: help/contributing.md
+      - Contributor License Agreement (CLA): help/CLA.md
+      - Minimum Reproducible Example (MRE) Guide: help/minimum_reproducible_example.md
+      - Code of Conduct: help/code_of_conduct.md
+      - Security Policy: SECURITY.md

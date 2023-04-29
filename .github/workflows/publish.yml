@@ -63,7 +63,7 @@ jobs:
           python -m twine upload dist/* -u __token__ -p $PYPI_TOKEN
       - name: Deploy Docs
         continue-on-error: true
-        #if: (github.event_name == 'push' && steps.check_pypi.outputs.increment == 'True') || github.event.inputs.docs == 'true'
+        # if: (github.event_name == 'push' && steps.check_pypi.outputs.increment == 'True') || github.event.inputs.docs == 'true'
         env:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
@@ -80,13 +80,23 @@ jobs:
           git push https://${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/ultralytics/docs.git gh-deploy
       - name: Extract PR Details
         run: |
-          PR_JSON=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }})
-          PR_NUMBER=${{ github.event.pull_request.number }}
-          PR_TITLE=$(echo $PR_JSON | jq -r '.title')
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            PR_JSON=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }})
+            PR_NUMBER=${{ github.event.pull_request.number }}
+            PR_TITLE=$(echo $PR_JSON | jq -r '.title')
+            PR_BODY=$(echo $PR_JSON | jq -r '.body')
+          else
+            COMMIT_SHA=${{ github.event.after }}
+            PR_JSON=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/search/issues?q=repo:${{ github.repository }}+is:pr+is:merged+sha:$COMMIT_SHA")
+            PR_NUMBER=$(echo $PR_JSON | jq -r '.items[0].number')
+            PR_TITLE=$(echo $PR_JSON | jq -r '.items[0].title')
+            PR_BODY=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER | jq -r '.body')
+          fi
           echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
           echo "PR_TITLE=$PR_TITLE" >> $GITHUB_ENV
+          echo "PR_BODY=$PR_BODY" >> $GITHUB_ENV
       - name: Notify on Slack (Success)
-        if: success()
+        if: success() # && github.event_name == 'push' && steps.check_pypi.outputs.increment == 'True'
         uses: slackapi/slack-github-action@v1.23.0
         with:
           payload: |

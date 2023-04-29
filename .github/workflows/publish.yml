@@ -6,8 +6,6 @@ name: Publish to PyPI and Deploy Docs
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
     inputs:
       pypi:

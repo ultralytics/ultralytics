@@ -1,3 +1,5 @@
+# Security Policy
+
 At [Ultralytics](https://ultralytics.com), the security of our users' data and systems is of utmost importance. To
 ensure the safety and security of our [open-source projects](https://github.com/ultralytics), we have implemented
 several measures to detect and prevent security vulnerabilities.

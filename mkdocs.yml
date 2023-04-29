@@ -84,6 +84,8 @@ extra:
       link: https://hub.docker.com/r/ultralytics/ultralytics/
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/ultralytics/
+    - icon: fontawesome/brands/discord
+      link: https://discord.gg/n6cFeSPZdD
 
 extra_css:
   - stylesheets/style.css
@@ -201,6 +203,8 @@ nav:
           - Segment: tasks/segment.md
           - Classify: tasks/classify.md
           - Pose: tasks/pose.md
+  - Models:
+          - models/index.md
   - Quickstart: quickstart.md
   - Modes:
       - modes/index.md
@@ -246,6 +250,7 @@ nav:
               - matching: reference/tracker/utils/matching.md
       - yolo:
           - data:
+              - annotator: reference/yolo/data/annotator.md
               - augment: reference/yolo/data/augment.md
               - base: reference/yolo/data/base.md
               - build: reference/yolo/data/build.md
@@ -330,4 +335,11 @@ nav:
           - Neural Magic's DeepSparse: yolov5/tutorials/neural_magic_pruning_quantization.md
           - Comet Logging: yolov5/tutorials/comet_logging_integration.md
           - Clearml Logging: yolov5/tutorials/clearml_logging_integration.md
-  - Security: SECURITY.md
+  - Help:
+      - Help: help/index.md
+      - Frequently Asked Questions (FAQ): help/FAQ.md
+      - Contributing Guide: help/contributing.md
+      - Contributor License Agreement (CLA): help/CLA.md
+      - Minimum Reproducible Example (MRE) Guide: help/minimum_reproducible_example.md
+      - Code of Conduct: help/code_of_conduct.md
+      - Security Policy: SECURITY.md

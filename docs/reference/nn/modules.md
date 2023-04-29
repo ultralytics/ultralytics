@@ -138,6 +138,16 @@
 :::ultralytics.nn.modules.Detect
 <br><br>
 
+# MLPBlock
+---
+:::ultralytics.nn.modules.MLPBlock
+<br><br>
+
+# LayerNorm2d
+---
+:::ultralytics.nn.modules.LayerNorm2d
+<br><br>
+
 # Segment
 ---
 :::ultralytics.nn.modules.Segment

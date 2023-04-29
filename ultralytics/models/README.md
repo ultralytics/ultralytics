@@ -37,7 +37,7 @@ model.train(data="coco128.yaml", epochs=100)  # train the model
 
 ## Pre-trained Model Architectures
 
-Ultralytics supports many model architectures. Visit https://docs.ultralytics.com/models to view detailed information 
+Ultralytics supports many model architectures. Visit https://docs.ultralytics.com/models to view detailed information
 and usage. Any of these models can be used by loading their configs or pretrained checkpoints if available.
 
 ## Contributing New Models

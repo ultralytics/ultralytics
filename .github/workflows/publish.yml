@@ -63,7 +63,7 @@ jobs:
           python -m twine upload dist/* -u __token__ -p $PYPI_TOKEN
       - name: Deploy Docs
         continue-on-error: true
-        # if: (github.event_name == 'push' && steps.check_pypi.outputs.increment == 'True') || github.event.inputs.docs == 'true'
+        if: (github.event_name == 'push' && steps.check_pypi.outputs.increment == 'True') || github.event.inputs.docs == 'true'
         env:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
@@ -93,7 +93,7 @@ jobs:
           echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
           echo "PR_TITLE=$PR_TITLE" >> $GITHUB_ENV
       - name: Notify on Slack (Success)
-        if: success() # && github.event_name == 'push' && steps.check_pypi.outputs.increment == 'True'
+        if: success() && github.event_name == 'push' && steps.check_pypi.outputs.increment == 'True'
         uses: slackapi/slack-github-action@v1.23.0
         with:
           payload: |

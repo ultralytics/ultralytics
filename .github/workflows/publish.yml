@@ -102,4 +102,3 @@ jobs:
             {"text": "<!channel> GitHub Actions error for ${{ github.workflow }} ❌\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* ${{ github.event_name }}\n*Job Status:* ${{ job.status }}\n*PR Details:* ([#${{ env.PR_NUMBER }}](<https://github.com/${{ github.repository }}/pull/${{ env.PR_NUMBER }}>)) ${{ env.PR_TITLE }}\n"}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
-

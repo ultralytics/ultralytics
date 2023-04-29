@@ -141,11 +141,8 @@ def load_inference_source(source=None, imgsz=640, vid_stride=1):
 
     Args:
         source (str, Path, Tensor, PIL.Image, np.ndarray): The input source for inference.
-        transforms (callable, optional): Custom transformations to be applied to the input source.
         imgsz (int, optional): The size of the image for inference. Default is 640.
         vid_stride (int, optional): The frame interval for video sources. Default is 1.
-        stride (int, optional): The model stride. Default is 32.
-        auto (bool, optional): Automatically apply pre-processing. Default is True.
 
     Returns:
         dataset (Dataset): A dataset object for the specified input source.

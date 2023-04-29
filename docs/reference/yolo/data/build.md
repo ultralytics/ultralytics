@@ -13,6 +13,11 @@
 :::ultralytics.yolo.data.build.seed_worker
 <br><br>
 
+# build_yolo_dataset
+---
+:::ultralytics.yolo.data.build.build_yolo_dataset
+<br><br>
+
 # build_dataloader
 ---
 :::ultralytics.yolo.data.build.build_dataloader

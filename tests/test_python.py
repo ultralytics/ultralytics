@@ -237,7 +237,7 @@ def test_result():
     res[0] = res[0].cpu().numpy()
     print(res[0].path)
 
-def test_tracker():
+def test_track():
     im = cv2.imread(str(SOURCE))
     model = YOLO(MODEL)
     seg_model = YOLO('yolov8n-seg.pt')

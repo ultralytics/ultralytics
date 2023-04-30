@@ -13,7 +13,7 @@ In this example, we want to return the original frame with each result object. H
 ```python
 def on_predict_batch_end(predictor):
     # Retrieve the batch data
-    _, _, im0s, _, _ = predictor.batch
+    _, im0s, _, _ = predictor.batch
     
     # Ensure that im0s is a list
     im0s = im0s if isinstance(im0s, list) else [im0s]

@@ -40,7 +40,6 @@ def on_predict_postprocess_end(predictor):
     """Postprocess detected boxes and update with object tracking."""
     bs = predictor.dataset.bs
     im0s = predictor.batch[1]
-    im0s = im0s if isinstance(im0s, list) else [im0s]
     for i in range(bs):
         det = predictor.results[i].boxes.cpu().numpy()
         if len(det) == 0:

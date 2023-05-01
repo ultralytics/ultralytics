@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 # Ultralytics HUB App for YOLOv8
 
 <a href="https://bit.ly/ultralytics_hub" target="_blank">

@@ -88,7 +88,7 @@ short guidelines below to help users provide what we need in order to get starte
 
 When asking a question, people will be better able to provide help if you provide **code** that they can easily
 understand and use to **reproduce** the problem. This is referred to by community members as creating
-a [minimum reproducible example](https://stackoverflow.com/help/minimal-reproducible-example). Your code that reproduces
+a [minimum reproducible example](https://docs.ultralytics.com/help/minimum_reproducible_example/). Your code that reproduces
 the problem should be:
 
 - ✅ **Minimal** – Use as little code as possible that still produces the same problem
@@ -106,7 +106,7 @@ should be:
 
 If you believe your problem meets all of the above criteria, please close this issue and raise a new one using the 🐛
 **Bug Report** [template](https://github.com/ultralytics/ultralytics/issues/new/choose) and providing
-a [minimum reproducible example](https://stackoverflow.com/help/minimal-reproducible-example) to help us better
+a [minimum reproducible example](https://docs.ultralytics.com/help/minimum_reproducible_example/) to help us better
 understand and diagnose your problem.
 
 ## License

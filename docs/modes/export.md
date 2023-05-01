@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
 
 **Export mode** is used for exporting a YOLOv8 model to a format that can be used for deployment. In this mode, the

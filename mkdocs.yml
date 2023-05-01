@@ -8,7 +8,8 @@ repo_name: ultralytics/ultralytics
 remote_name: https://github.com/ultralytics/docs
 
 theme:
-  name: "material"
+  name: material
+  custom_dir: docs/overrides
   logo: https://github.com/ultralytics/assets/raw/main/logo/Ultralytics_Logotype_Reverse.svg
   favicon: assets/favicon.ico
   font:
@@ -110,8 +111,6 @@ markdown_extensions:
   - pymdownx.emoji:
       emoji_index: !!python/name:materialx.emoji.twemoji  # noqa
       emoji_generator: !!python/name:materialx.emoji.to_svg
-
-  # Content tabs
   - pymdownx.tabbed:
       alternate_style: true
 
@@ -122,69 +121,7 @@ markdown_extensions:
   - pymdownx.mark
   - pymdownx.tilde
 
-plugins:
-  - mkdocstrings
-  - search
-  - redirects:
-      redirect_maps:
-        callbacks.md: usage/callbacks.md
-        cfg.md: usage/cfg.md
-        cli.md: usage/cli.md
-        config.md: usage/cfg.md
-        engine.md: usage/engine.md
-        environments/AWS-Quickstart.md: yolov5/environments/aws_quickstart_tutorial.md
-        environments/Docker-Quickstart.md: yolov5/environments/docker_image_quickstart_tutorial.md
-        environments/GCP-Quickstart.md: yolov5/environments/google_cloud_quickstart_tutorial.md
-        FAQ/augmentation.md: yolov5/tutorials/tips_for_best_training_results.md
-        package-framework.md: index.md
-        package-framework/mock_detector.md: index.md
-        predict.md: modes/predict.md
-        python.md: usage/python.md
-        quick-start.md: quickstart.md
-        reference/base_pred.md: reference/yolo/engine/predictor.md
-        reference/base_trainer.md: reference/yolo/engine/trainer.md
-        reference/exporter.md: reference/yolo/engine/exporter.md
-        reference/model.md: reference/yolo/engine/model.md
-        reference/nn.md: reference/nn/modules.md
-        reference/ops.md: reference/yolo/utils/ops.md
-        reference/results.md: reference/yolo/engine/results.md
-        sdk.md: index.md
-        tasks/classification.md: tasks/classify.md
-        tasks/detection.md: tasks/detect.md
-        tasks/segmentation.md: tasks/segment.md
-        tasks/keypoints.md: tasks/pose.md
-        tasks/tracking.md: modes/track.md
-        tutorials/architecture-summary.md: yolov5/tutorials/architecture_description.md
-        tutorials/clearml-logging.md: yolov5/tutorials/clearml_logging_integration.md
-        tutorials/comet-logging.md: yolov5/tutorials/comet_logging_integration.md
-        tutorials/hyperparameter-evolution.md: yolov5/tutorials/hyperparameter_evolution.md
-        tutorials/model-ensembling.md: yolov5/tutorials/model_ensembling.md
-        tutorials/multi-gpu-training.md: yolov5/tutorials/multi_gpu_training.md
-        tutorials/nvidia-jetson.md: yolov5/tutorials/running_on_jetson_nano.md
-        tutorials/pruning-sparsity.md: yolov5/tutorials/model_pruning_and_sparsity.md
-        tutorials/pytorch-hub.md: yolov5/tutorials/pytorch_hub_model_loading.md
-        tutorials/roboflow.md: yolov5/tutorials/roboflow_datasets_integration.md
-        tutorials/test-time-augmentation.md: yolov5/tutorials/test_time_augmentation.md
-        tutorials/torchscript-onnx-coreml-export.md: yolov5/tutorials/model_export.md
-        tutorials/train-custom-datasets.md: yolov5/tutorials/train_custom_data.md
-        tutorials/training-tips-best-results.md: yolov5/tutorials/tips_for_best_training_results.md
-        tutorials/transfer-learning-froze-layers.md: yolov5/tutorials/transfer_learning_with_frozen_layers.md
-        tutorials/weights-and-biasis-logging.md: yolov5/tutorials/comet_logging_integration.md
-        yolov5/pytorch_hub.md: yolov5/tutorials/pytorch_hub_model_loading.md
-        yolov5/hyp_evolution.md: yolov5/tutorials/hyperparameter_evolution.md
-        yolov5/pruning_sparsity.md: yolov5/tutorials/model_pruning_and_sparsity.md
-        yolov5/comet.md: yolov5/tutorials/comet_logging_integration.md
-        yolov5/tta.md: yolov5/tutorials/test_time_augmentation.md
-        yolov5/multi_gpu_training.md: yolov5/tutorials/multi_gpu_training.md
-        yolov5/ensemble.md: yolov5/tutorials/model_ensembling.md
-        yolov5/jetson_nano.md: yolov5/tutorials/running_on_jetson_nano.md
-        yolov5/transfer_learn_frozen.md: yolov5/tutorials/transfer_learning_with_frozen_layers.md
-        yolov5/neural_magic.md: yolov5/tutorials/neural_magic_pruning_quantization.md
-        yolov5/train_custom_data.md: yolov5/tutorials/train_custom_data.md
-        yolov5/architecture.md: yolov5/tutorials/architecture_description.md
-        yolov5/export.md: yolov5/tutorials/model_export.md
-
-# Primary navigation
+# Primary navigation ---------------------------------------------------------------------------------------------------
 nav:
   - Home:
       - Home: index.md
@@ -204,7 +141,11 @@ nav:
           - Classify: tasks/classify.md
           - Pose: tasks/pose.md
   - Models:
-          - models/index.md
+      - models/index.md
+      - YOLOv3: models/yolov3.md
+      - YOLOv5: models/yolov5.md
+      - YOLOv8: models/yolov8.md
+      - Segment Anything Model (SAM): models/sam.md
   - Quickstart: quickstart.md
   - Modes:
       - modes/index.md
@@ -343,3 +284,70 @@ nav:
       - Minimum Reproducible Example (MRE) Guide: help/minimum_reproducible_example.md
       - Code of Conduct: help/code_of_conduct.md
       - Security Policy: SECURITY.md
+
+# Plugins including 301 redirects navigation ---------------------------------------------------------------------------
+plugins:
+  - mkdocstrings
+  - search
+  - redirects:
+      redirect_maps:
+        callbacks.md: usage/callbacks.md
+        cfg.md: usage/cfg.md
+        cli.md: usage/cli.md
+        config.md: usage/cfg.md
+        engine.md: usage/engine.md
+        environments/AWS-Quickstart.md: yolov5/environments/aws_quickstart_tutorial.md
+        environments/Docker-Quickstart.md: yolov5/environments/docker_image_quickstart_tutorial.md
+        environments/GCP-Quickstart.md: yolov5/environments/google_cloud_quickstart_tutorial.md
+        FAQ/augmentation.md: yolov5/tutorials/tips_for_best_training_results.md
+        package-framework.md: index.md
+        package-framework/mock_detector.md: index.md
+        predict.md: modes/predict.md
+        python.md: usage/python.md
+        quick-start.md: quickstart.md
+        reference/base_pred.md: reference/yolo/engine/predictor.md
+        reference/base_trainer.md: reference/yolo/engine/trainer.md
+        reference/exporter.md: reference/yolo/engine/exporter.md
+        reference/model.md: reference/yolo/engine/model.md
+        reference/nn.md: reference/nn/modules.md
+        reference/ops.md: reference/yolo/utils/ops.md
+        reference/results.md: reference/yolo/engine/results.md
+        sdk.md: index.md
+        tasks/classification.md: tasks/classify.md
+        tasks/detection.md: tasks/detect.md
+        tasks/segmentation.md: tasks/segment.md
+        tasks/keypoints.md: tasks/pose.md
+        tasks/tracking.md: modes/track.md
+        tutorials/architecture-summary.md: yolov5/tutorials/architecture_description.md
+        tutorials/clearml-logging.md: yolov5/tutorials/clearml_logging_integration.md
+        tutorials/comet-logging.md: yolov5/tutorials/comet_logging_integration.md
+        tutorials/hyperparameter-evolution.md: yolov5/tutorials/hyperparameter_evolution.md
+        tutorials/model-ensembling.md: yolov5/tutorials/model_ensembling.md
+        tutorials/multi-gpu-training.md: yolov5/tutorials/multi_gpu_training.md
+        tutorials/nvidia-jetson.md: yolov5/tutorials/running_on_jetson_nano.md
+        tutorials/pruning-sparsity.md: yolov5/tutorials/model_pruning_and_sparsity.md
+        tutorials/pytorch-hub.md: yolov5/tutorials/pytorch_hub_model_loading.md
+        tutorials/roboflow.md: yolov5/tutorials/roboflow_datasets_integration.md
+        tutorials/test-time-augmentation.md: yolov5/tutorials/test_time_augmentation.md
+        tutorials/torchscript-onnx-coreml-export.md: yolov5/tutorials/model_export.md
+        tutorials/train-custom-datasets.md: yolov5/tutorials/train_custom_data.md
+        tutorials/training-tips-best-results.md: yolov5/tutorials/tips_for_best_training_results.md
+        tutorials/transfer-learning-froze-layers.md: yolov5/tutorials/transfer_learning_with_frozen_layers.md
+        tutorials/weights-and-biasis-logging.md: yolov5/tutorials/comet_logging_integration.md
+        yolov5/pytorch_hub.md: yolov5/tutorials/pytorch_hub_model_loading.md
+        yolov5/hyp_evolution.md: yolov5/tutorials/hyperparameter_evolution.md
+        yolov5/pruning_sparsity.md: yolov5/tutorials/model_pruning_and_sparsity.md
+        yolov5/comet.md: yolov5/tutorials/comet_logging_integration.md
+        yolov5/tta.md: yolov5/tutorials/test_time_augmentation.md
+        yolov5/multi_gpu_training.md: yolov5/tutorials/multi_gpu_training.md
+        yolov5/ensemble.md: yolov5/tutorials/model_ensembling.md
+        yolov5/jetson_nano.md: yolov5/tutorials/running_on_jetson_nano.md
+        yolov5/transfer_learn_frozen.md: yolov5/tutorials/transfer_learning_with_frozen_layers.md
+        yolov5/neural_magic.md: yolov5/tutorials/neural_magic_pruning_quantization.md
+        yolov5/train_custom_data.md: yolov5/tutorials/train_custom_data.md
+        yolov5/architecture.md: yolov5/tutorials/architecture_description.md
+        yolov5/export.md: yolov5/tutorials/model_export.md
+        yolov5/tips_for_best_training_results.md: yolov5/tutorials/tips_for_best_training_results.md
+        yolov5/tutorials/yolov5_neural_magic_tutorial.md: yolov5/tutorials/neural_magic_pruning_quantization.md
+        yolov5/tutorials/model_ensembling_tutorial.md: yolov5/tutorials/model_ensembling.md
+        yolov5/tutorials/pytorch_hub_tutorial.md: yolov5/tutorials/pytorch_hub_model_loading.md

@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 Object detection is a task that involves identifying the location and class of objects in an image or video stream.
 
 <img width="1024" src="https://user-images.githubusercontent.com/26833433/212094133-6bb8c21c-3d47-41df-a512-81c5931054ae.png">

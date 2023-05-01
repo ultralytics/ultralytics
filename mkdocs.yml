@@ -345,3 +345,6 @@ plugins:
         yolov5/architecture.md: yolov5/tutorials/architecture_description.md
         yolov5/export.md: yolov5/tutorials/model_export.md
         yolov5/tips_for_best_training_results.md: yolov5/tutorials/tips_for_best_training_results.md
+        yolov5/tutorials/yolov5_neural_magic_tutorial.md: yolov5/tutorials/neural_magic_pruning_quantization.md
+        yolov5/tutorials/model_ensembling_tutorial.md: yolov5/tutorials/model_ensembling.md
+        yolov5/tutorials/pytorch_hub_tutorial.md: yolov5/tutorials/pytorch_hub_model_loading.md

@@ -1,45 +1,44 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+# YOLO Continuous Integration (CI) GitHub Actions tests broken link checker
+# Accept 429(Instagram, 'too many requests'), 999(LinkedIn, 'unknown status code'), Timeout(Twitter)
 
-name: "CodeQL"
+name: Check Broken links
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
   schedule:
-    - cron: '0 0 1 * *'
+    - cron: '0 0 * * *'  # runs at 00:00 UTC every day
 
 jobs:
-  analyze:
-    name: Analyze
-    runs-on: ${{ 'ubuntu-latest' }}
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [ 'python' ]
-        # CodeQL supports [ 'cpp', 'csharp', 'go', 'java', 'javascript', 'python', 'ruby' ]
-
+  Links:
+    runs-on: ubuntu-latest
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    # Initializes the CodeQL tools for scanning.
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
-      with:
-        languages: ${{ matrix.language }}
-        # If you wish to specify custom queries, you can do so here or in a config file.
-        # By default, queries listed here will override any specified in a config file.
-        # Prefix the list here with "+" to use these queries and those in the config file.
-        # queries: security-extended,security-and-quality
+      - name: Download and install lychee
+        run: |
+          LYCHEE_URL=$(curl -s https://api.github.com/repos/lycheeverse/lychee/releases/latest | grep "browser_download_url" | grep "x86_64-unknown-linux-gnu.tar.gz" | cut -d '"' -f 4)
+          curl -L $LYCHEE_URL -o lychee.tar.gz
+          tar xzf lychee.tar.gz
+          sudo mv lychee /usr/local/bin
 
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
-      with:
-        category: "/language:${{matrix.language}}"
+      - name: Test Markdown and HTML links with retry
+        uses: nick-invision/retry@v2
+        with:
+          timeout_minutes: 5
+          delay_seconds: 30
+          max_attempts: 3
+          command: lychee --accept 429,999 --exclude-loopback --exclude twitter.com --exclude-path '**/ci.yaml' --exclude-mail './**/*.md' './**/*.html'
+
+      - name: Test Markdown, HTML, YAML, Python and Notebook links with retry
+        if: github.event_name == 'workflow_dispatch'
+        uses: nick-invision/retry@v2
+        with:
+          timeout_minutes: 5
+          delay_seconds: 30
+          max_attempts: 3
+          command: lychee --accept 429,999 --exclude-loopback --exclude twitter.com,url.com --exclude-path '**/ci.yaml' --exclude-mail './**/*.md' './**/*.html' './**/*.yml' './**/*.yaml' './**/*.py' './**/*.ipynb'

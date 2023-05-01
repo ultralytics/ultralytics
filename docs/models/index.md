@@ -2,6 +2,8 @@
 comments: true
 ---
 
+# Models
+
 Ultralytics supports many models and architectures with more to come in the future. Want to add your model architecture? [Here's](../help/contributing.md) how you can contribute.
 
 In this documentation, we provide information on four major models:
@@ -14,11 +16,13 @@ In this documentation, we provide information on four major models:
 You can use these models directly in the Command Line Interface (CLI) or in a Python environment. Below are examples of how to use the models with CLI and Python:
 
 ## CLI Example
+
 ```bash
 yolo task=detect mode=train model=yolov8n.yaml data=coco128.yaml epochs=100
 ```
 
-## Python Example 
+## Python Example
+
 ```python
 from ultralytics import YOLO
 

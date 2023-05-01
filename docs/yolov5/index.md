@@ -2,7 +2,7 @@
 comments: true
 ---
 
-# YOLOv5 Docs
+# Ultralytics YOLOv5
 
 <div align="center">
   <p>

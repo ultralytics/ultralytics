@@ -173,8 +173,7 @@ class KalmanFilterXYAH:
             The state's covariance matrix (8x8 dimensional).
         measurement : ndarray
             The 4 dimensional measurement vector (x, y, a, h), where (x, y)
-            is the center position, a the aspect ratio, and h the height of the
-            bounding box.
+            is the center position, a is the aspect ratio, and h is the height of the bounding box.
 
         Returns
         -------
@@ -184,12 +183,17 @@ class KalmanFilterXYAH:
         """
         projected_mean, projected_cov = self.project(mean, covariance)
 
-        chol_factor, lower = scipy.linalg.cho_factor(projected_cov, lower=True, check_finite=False)
-        kalman_gain = scipy.linalg.cho_solve((chol_factor, lower),
-                                             np.dot(covariance, self._update_mat.T).T,
-                                             check_finite=False).T
-        innovation = measurement - projected_mean
+        # Scipy Kalman gain (DEPRECATED)
+        # L, lower = scipy.linalg.cho_factor(projected_cov, lower=True, check_finite=False)
+        # kalman_gain = scipy.linalg.cho_solve(
+        #     (L, lower), np.dot(covariance, self._update_mat.T).T, check_finite=False).T
 
+        # Numpy Kalman gain (replaces scipy implementation above)
+        L = np.linalg.cholesky(projected_cov)
+        temp = np.linalg.solve(L, np.dot(covariance, self._update_mat.T).T)
+        kalman_gain = np.linalg.solve(L.T, temp).T
+
+        innovation = measurement - projected_mean
         new_mean = mean + np.dot(innovation, kalman_gain.T)
         new_covariance = covariance - np.linalg.multi_dot((kalman_gain, projected_cov, kalman_gain.T))
         return new_mean, new_covariance
@@ -399,9 +403,8 @@ class KalmanFilterXYWH:
         covariance : ndarray
             The state's covariance matrix (8x8 dimensional).
         measurement : ndarray
-            The 4 dimensional measurement vector (x, y, w, h), where (x, y)
-            is the center position, w the width, and h the height of the
-            bounding box.
+            The 4 dimensional measurement vector (x, y, w, h), where (x, y) is the center position, w is the width, and
+            h is the height of the bounding box.
 
         Returns
         -------
@@ -411,12 +414,17 @@ class KalmanFilterXYWH:
         """
         projected_mean, projected_cov = self.project(mean, covariance)
 
-        chol_factor, lower = scipy.linalg.cho_factor(projected_cov, lower=True, check_finite=False)
-        kalman_gain = scipy.linalg.cho_solve((chol_factor, lower),
-                                             np.dot(covariance, self._update_mat.T).T,
-                                             check_finite=False).T
-        innovation = measurement - projected_mean
+        # Scipy Kalman gain (DEPRECATED)
+        # L, lower = scipy.linalg.cho_factor(projected_cov, lower=True, check_finite=False)
+        # kalman_gain = scipy.linalg.cho_solve(
+        #     (L, lower), np.dot(covariance, self._update_mat.T).T, check_finite=False).T
 
+        # Numpy Kalman gain (replaces scipy implementation above)
+        L = np.linalg.cholesky(projected_cov)
+        temp = np.linalg.solve(L, np.dot(covariance, self._update_mat.T).T)
+        kalman_gain = np.linalg.solve(L.T, temp).T
+
+        innovation = measurement - projected_mean
         new_mean = mean + np.dot(innovation, kalman_gain.T)
         new_covariance = covariance - np.linalg.multi_dot((kalman_gain, projected_cov, kalman_gain.T))
         return new_mean, new_covariance

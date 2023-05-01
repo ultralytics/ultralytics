@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 # Ultralytics YOLOv8 Tasks
 
 YOLOv8 is an AI framework that supports multiple computer vision **tasks**. The framework can be used to

@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 <img src="https://cdn.comet.ml/img/notebook_logo.png">
 
 # YOLOv5 with Comet

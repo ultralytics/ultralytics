@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 📚 This guide explains how to properly use **multiple** GPUs to train a dataset with YOLOv5 🚀 on single or multiple machine(s).  
 UPDATED 25 December 2022.
 

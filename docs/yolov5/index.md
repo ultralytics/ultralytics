@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 # YOLOv5 Docs
 
 <div align="center">

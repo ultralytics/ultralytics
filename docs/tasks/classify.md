@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 Image classification is the simplest of the three tasks and involves classifying an entire image into one of a set of
 predefined classes.
 

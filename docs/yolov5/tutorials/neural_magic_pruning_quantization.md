@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 <!--
 Copyright (c) 2021 - present / Neuralmagic, Inc. All Rights Reserved.
 

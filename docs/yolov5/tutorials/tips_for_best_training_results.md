@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 📚 This guide explains how to produce the best mAP and training results with YOLOv5 🚀.  
 UPDATED 25 May 2022.
 

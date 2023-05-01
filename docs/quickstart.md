@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 ## Install
 
 Install YOLOv8 via the `ultralytics` pip package for the latest stable release or by cloning

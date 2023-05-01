@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 Ultralytics supports many models and architectures with more to come in the future. What to add your model architecture? [Here's](../help/contributing.md) how you can contribute
 
 

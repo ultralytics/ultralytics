@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
 
 YOLOv8 **predict mode** can generate predictions for various tasks, returning either a list of `Results` objects or a

@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 <div align="center">
   <p>
     <a href="https://github.com/ultralytics/ultralytics" target="_blank">

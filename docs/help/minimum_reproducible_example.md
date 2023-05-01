@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 # Creating a Minimum Reproducible Example for Bug Reports in Ultralytics YOLO Repositories
 
 When submitting a bug report for Ultralytics YOLO repositories, it's essential to provide a [minimum reproducible example](https://stackoverflow.com/help/minimal-reproducible-example) (MRE). An MRE is a small, self-contained piece of code that demonstrates the problem you're experiencing. Providing an MRE helps maintainers and contributors understand the issue and work on a fix more efficiently. This guide explains how to create an MRE when submitting bug reports to Ultralytics YOLO repositories.

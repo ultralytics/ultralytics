@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 ## Callbacks
 
 Ultralytics framework supports callbacks as entry points in strategic stages of train, val, export, and predict modes.

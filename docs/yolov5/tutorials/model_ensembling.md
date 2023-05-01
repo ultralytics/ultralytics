@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 📚  This guide explains how to use YOLOv5 🚀 **model ensembling** during testing and inference for improved mAP and Recall.  
 UPDATED 25 September 2022.
 

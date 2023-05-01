@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 YOLO settings and hyperparameters play a critical role in the model's performance, speed, and accuracy. These settings
 and hyperparameters can affect the model's behavior at various stages of the model development process, including
 training, validation, and prediction.

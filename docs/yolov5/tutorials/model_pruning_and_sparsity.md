@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 📚 This guide explains how to apply **pruning** to YOLOv5 🚀 models.  
 UPDATED 25 September 2022.
 

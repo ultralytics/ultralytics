@@ -8,7 +8,8 @@ repo_name: ultralytics/ultralytics
 remote_name: https://github.com/ultralytics/docs
 
 theme:
-  name: "material"
+  name: material
+  custom_dir: docs/overrides
   logo: https://github.com/ultralytics/assets/raw/main/logo/Ultralytics_Logotype_Reverse.svg
   favicon: assets/favicon.ico
   font:
@@ -110,8 +111,6 @@ markdown_extensions:
   - pymdownx.emoji:
       emoji_index: !!python/name:materialx.emoji.twemoji  # noqa
       emoji_generator: !!python/name:materialx.emoji.to_svg
-
-  # Content tabs
   - pymdownx.tabbed:
       alternate_style: true
 
@@ -142,7 +141,7 @@ nav:
           - Classify: tasks/classify.md
           - Pose: tasks/pose.md
   - Models:
-          - models/index.md
+      - models/index.md
   - Quickstart: quickstart.md
   - Modes:
       - modes/index.md

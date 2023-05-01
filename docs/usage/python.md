@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 # Python Usage
 
 Welcome to the YOLOv8 Python Usage documentation! This guide is designed to help you seamlessly integrate YOLOv8 into

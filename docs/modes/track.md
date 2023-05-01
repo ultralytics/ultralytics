@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
 
 Object tracking is a task that involves identifying the location and class of objects, then assigning a unique ID to

@@ -30,7 +30,7 @@ jobs:
         uses: nick-invision/retry@v2
         with:
           timeout_minutes: 5
-          retry_wait_seconds: 30
+          retry_wait_seconds: 60
           max_attempts: 3
           command: lychee --accept 429,999 --exclude-loopback --exclude twitter.com --exclude-path '**/ci.yaml' --exclude-mail --github-token ${{ secrets.GITHUB_TOKEN }} './**/*.md' './**/*.html'
 
@@ -39,6 +39,6 @@ jobs:
         uses: nick-invision/retry@v2
         with:
           timeout_minutes: 5
-          retry_wait_seconds: 30
+          retry_wait_seconds: 60
           max_attempts: 3
           command: lychee --accept 429,999 --exclude-loopback --exclude twitter.com,url.com --exclude-path '**/ci.yaml' --exclude-mail --github-token ${{ secrets.GITHUB_TOKEN }} './**/*.md' './**/*.html' './**/*.yml' './**/*.yaml' './**/*.py' './**/*.ipynb'

@@ -22,21 +22,22 @@ def auto_annotate(data, det_model='yolov8x.pt', sam_model='sam_b.pt', device='',
     for result in det_results:
         boxes = result.boxes.xyxy  # Boxes object for bbox outputs
         class_ids = result.boxes.cls.int().tolist()  # noqa
-        prompt_predictor.set_image(result.orig_img)
-        masks, _, _ = prompt_predictor.predict_torch(
-            point_coords=None,
-            point_labels=None,
-            boxes=prompt_predictor.transform.apply_boxes_torch(boxes, result.orig_shape[:2]),
-            multimask_output=False,
-        )
+        if len(class_ids):
+            prompt_predictor.set_image(result.orig_img)
+            masks, _, _ = prompt_predictor.predict_torch(
+                point_coords=None,
+                point_labels=None,
+                boxes=prompt_predictor.transform.apply_boxes_torch(boxes, result.orig_shape[:2]),
+                multimask_output=False,
+            )
 
-        result.update(masks=masks.squeeze(1))
-        segments = result.masks.xyn  # noqa
+            result.update(masks=masks.squeeze(1))
+            segments = result.masks.xyn  # noqa
 
-        with open(str(Path(output_dir) / Path(result.path).stem) + '.txt', 'w') as f:
-            for i in range(len(segments)):
-                s = segments[i]
-                if len(s) == 0:
-                    continue
-                segment = map(str, segments[i].reshape(-1).tolist())
-                f.write(f'{class_ids[i]} ' + ' '.join(segment) + '\n')
+            with open(str(Path(output_dir) / Path(result.path).stem) + '.txt', 'w') as f:
+                for i in range(len(segments)):
+                    s = segments[i]
+                    if len(s) == 0:
+                        continue
+                    segment = map(str, segments[i].reshape(-1).tolist())
+                    f.write(f'{class_ids[i]} ' + ' '.join(segment) + '\n')

@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 # Ultralytics HUB
 
 <a href="https://bit.ly/ultralytics_hub" target="_blank">

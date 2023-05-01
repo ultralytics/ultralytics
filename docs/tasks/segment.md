@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 Instance segmentation goes a step further than object detection and involves identifying individual objects in an image
 and segmenting them from the rest of the image.
 

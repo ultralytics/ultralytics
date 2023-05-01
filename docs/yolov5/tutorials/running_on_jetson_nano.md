@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 # Deploy on NVIDIA Jetson using TensorRT and DeepStream SDK
 
 📚 This guide explains how to deploy a trained model into NVIDIA Jetson Platform and perform inference using TensorRT and DeepStream SDK. Here we use TensorRT to maximize the inference performance on the Jetson platform.  

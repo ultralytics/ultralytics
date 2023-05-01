@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 📚 This guide explains how to train your own **custom dataset** with [YOLOv5](https://github.com/ultralytics/yolov5) 🚀.  
 UPDATED 26 March 2023.
 

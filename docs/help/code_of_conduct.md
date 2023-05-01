@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 # Ultralytics Contributor Covenant Code of Conduct
 
 ## Our Pledge

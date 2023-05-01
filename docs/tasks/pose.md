@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 Pose estimation is a task that involves identifying the location of specific points in an image, usually referred
 to as keypoints. The keypoints can represent various parts of the object such as joints, landmarks, or other distinctive
 features. The locations of the keypoints are usually represented as a set of 2D `[x, y]` or 3D `[x, y, visible]`

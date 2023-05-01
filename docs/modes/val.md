@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
 
 **Val mode** is used for validating a YOLOv8 model after it has been trained. In this mode, the model is evaluated on a

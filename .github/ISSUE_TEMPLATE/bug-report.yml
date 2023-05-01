@@ -62,7 +62,7 @@ body:
       label: Minimal Reproducible Example
       description: >
         When asking a question, people will be better able to provide help if you provide code that they can easily understand and use to **reproduce** the problem.
-        This is referred to by community members as creating a [minimal reproducible example](https://stackoverflow.com/help/minimal-reproducible-example).
+        This is referred to by community members as creating a [minimal reproducible example](https://docs.ultralytics.com/help/minimum_reproducible_example/).
       placeholder: |
         ```
         # Code to reproduce your issue here

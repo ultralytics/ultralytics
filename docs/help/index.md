@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 Welcome to the Ultralytics Help page! We are committed to providing you with comprehensive resources to make your experience with Ultralytics YOLO repositories as smooth and enjoyable as possible. On this page, you'll find essential links to guides and documents that will help you navigate through common tasks and address any questions you might have while using our repositories.
 
 - [Frequently Asked Questions (FAQ)](FAQ.md): Find answers to common questions and issues faced by users and contributors of Ultralytics YOLO repositories.

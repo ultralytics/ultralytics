@@ -1,13 +1,10 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-# YOLO Continuous Integration (CI) GitHub Actions tests
+# YOLO Continuous Integration (CI) GitHub Actions tests broken link checker
+# Accept 429(Instagram, 'too many requests'), 999(LinkedIn, 'unknown status code'), Timeout(Twitter)
 
 name: Check Broken links
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
   schedule:
     - cron: '0 0 * * *'  # runs at 00:00 UTC every day
@@ -18,21 +15,26 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Test Markdown and HTML links
-        uses: lycheeverse/lychee-action@v1.7.0
-        with:
-          fail: true
-          # accept 429(Instagram, 'too many requests'), 999(LinkedIn, 'unknown status code'), Timeout(Twitter)
-          args: --accept 429,999 --exclude-loopback --exclude twitter.com --exclude-path '**/ci.yaml' --exclude-mail './**/*.md' './**/*.html'
-        env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      - name: Download and install lychee
+        run: |
+          LYCHEE_URL=$(curl -s https://api.github.com/repos/lycheeverse/lychee/releases/latest | grep "browser_download_url" | grep "x86_64-unknown-linux-gnu.tar.gz" | cut -d '"' -f 4)
+          curl -L $LYCHEE_URL -o lychee.tar.gz
+          tar xzf lychee.tar.gz
+          sudo mv lychee /usr/local/bin
 
-      - name: Test Markdown, HTML, YAML, Python and Notebook links
-        if: github.event_name == 'workflow_dispatch'
-        uses: lycheeverse/lychee-action@v1.7.0
+      - name: Test Markdown and HTML links with retry
+        uses: nick-invision/retry@v2
         with:
-          fail: true
-          # accept 429(Instagram, 'too many requests'), 999(LinkedIn, 'unknown status code'), Timeout(Twitter)
-          args: --accept 429,999 --exclude-loopback --exclude twitter.com,url.com --exclude-path '**/ci.yaml' --exclude-mail './**/*.md' './**/*.html' './**/*.yml' './**/*.yaml' './**/*.py' './**/*.ipynb'
-        env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          timeout_minutes: 5
+          retry_wait_seconds: 60
+          max_attempts: 3
+          command: lychee --accept 429,999 --exclude-loopback --exclude twitter.com --exclude-path '**/ci.yaml' --exclude-mail --github-token ${{ secrets.GITHUB_TOKEN }} './**/*.md' './**/*.html'
+
+      - name: Test Markdown, HTML, YAML, Python and Notebook links with retry
+        if: github.event_name == 'workflow_dispatch'
+        uses: nick-invision/retry@v2
+        with:
+          timeout_minutes: 5
+          retry_wait_seconds: 60
+          max_attempts: 3
+          command: lychee --accept 429,999 --exclude-loopback --exclude twitter.com,url.com --exclude-path '**/ci.yaml' --exclude-mail --github-token ${{ secrets.GITHUB_TOKEN }} './**/*.md' './**/*.html' './**/*.yml' './**/*.yaml' './**/*.py' './**/*.ipynb'

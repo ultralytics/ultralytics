@@ -142,6 +142,10 @@ nav:
           - Pose: tasks/pose.md
   - Models:
       - models/index.md
+      - YOLOv3: models/yolov3.md
+      - YOLOv5: models/yolov5.md
+      - YOLOv8: models/yolov8.md
+      - Segment Anything Model (SAM): models/sam.md
   - Quickstart: quickstart.md
   - Modes:
       - modes/index.md

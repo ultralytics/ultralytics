@@ -13,12 +13,12 @@ In this documentation, we provide information on four major models:
 
 You can use these models directly in the Command Line Interface (CLI) or in a Python environment. Below are examples of how to use the models with CLI and Python:
 
-**CLI example:**
+## CLI Example
 ```bash
 yolo task=detect mode=train model=yolov8n.yaml data=coco128.yaml epochs=100
 ```
 
-**Python example:**
+## Python Example 
 ```python
 from ultralytics import YOLO
 

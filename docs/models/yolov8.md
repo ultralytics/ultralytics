@@ -6,7 +6,6 @@ comments: true
 
 ## About
 
-
 ## Supported Tasks
 
 | Model Type  | Pre-trained Weights                                                                                              | Task                  |
@@ -17,6 +16,7 @@ comments: true
 | YOLOv8-cls  | `yolov8n-cls.pt`, `yolov8s-cls.pt`, `yolov8m-cls.pt`, `yolov8l-cls.pt`, `yolov8x-cls.pt`                         | Classification        |
 
 ## Supported Modes
+
 | Mode       | Supported          |
 |------------|--------------------|
 | Inference  | :heavy_check_mark: |

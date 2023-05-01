@@ -5,6 +5,7 @@ comments: true
 # YOLOv5u
 
 ## About
+
 Anchor-free YOLOv5 models with improved accuracy-speed tradeoff.
 
 ## Supported Tasks
@@ -14,15 +15,14 @@ Anchor-free YOLOv5 models with improved accuracy-speed tradeoff.
 | YOLOv5u    | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u` | Detection |
 
 ## Supported Modes
+
 | Mode       | Supported          |
 |------------|--------------------|
 | Inference  | :heavy_check_mark: |
 | Validation | :heavy_check_mark: |
 | Training   | :heavy_check_mark: |
 
-
 ??? Performance
-
 
     === "Detection"
 

@@ -3,10 +3,12 @@ comments: true
 ---
 
 # Vision Transformers
+
 Vit models currently support Python environment:
 
 ```python
-from ultralytics.vit import SAM 
+from ultralytics.vit import SAM
+
 # from ultralytics.vit import MODEL_TYPe
 
 model = SAM("sam_b.pt")
@@ -18,7 +20,6 @@ model.predict(...)  # train the model
 
 ## About
 
-
 ## Supported Tasks
 
 | Model Type | Pre-trained Weights | Tasks Supported       |
@@ -27,6 +28,7 @@ model.predict(...)  # train the model
 | sam large  | `sam_l.pt`          | Instance Segmentation |
 
 ## Supported Modes
+
 | Mode       | Supported          |
 |------------|--------------------|
 | Inference  | :heavy_check_mark: |

@@ -30,21 +30,29 @@ def on_predict_start(predictor, persist=False):
     assert cfg.tracker_type in ['bytetrack', 'botsort'], \
         f"Only support 'bytetrack' and 'botsort' for now, but got '{cfg.tracker_type}'"
     trackers = []
-    for _ in range(predictor.dataset.bs):
-        tracker = TRACKER_MAP[cfg.tracker_type](args=cfg, frame_rate=30)
-        trackers.append(tracker)
+    # for persist, only use one tracker
+    if persist :
+        trackers.append(TRACKER_MAP[cfg.tracker_type](args=cfg, frame_rate=30))
+    else :
+        for _ in range(predictor.dataset.bs):
+            tracker = TRACKER_MAP[cfg.tracker_type](args=cfg, frame_rate=30)
+            trackers.append(tracker)
     predictor.trackers = trackers
 
 
-def on_predict_postprocess_end(predictor):
+def on_predict_postprocess_end(predictor,persist=False):
     """Postprocess detected boxes and update with object tracking."""
     bs = predictor.dataset.bs
-    im0s = predictor.batch[1]
+    im0s = predictor.batch[2]
+    im0s = im0s if isinstance(im0s, list) else [im0s]
     for i in range(bs):
         det = predictor.results[i].boxes.cpu().numpy()
         if len(det) == 0:
             continue
-        tracks = predictor.trackers[i].update(det, im0s[i])
+        if persist: # only use one tracker
+            tracks = predictor.trackers[0].update(det, im0s[i])
+        else :
+            tracks = predictor.trackers[i].update(det, im0s[i])
         if len(tracks) == 0:
             continue
         idx = tracks[:, -1].tolist()
@@ -62,4 +70,4 @@ def register_tracker(model, persist):
 
     """
     model.add_callback('on_predict_start', partial(on_predict_start, persist=persist))
-    model.add_callback('on_predict_postprocess_end', on_predict_postprocess_end)
+    model.add_callback('on_predict_postprocess_end', partial(on_predict_postprocess_end,persist=persist))

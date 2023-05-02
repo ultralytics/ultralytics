@@ -40,7 +40,9 @@ setup(
     extras_require={
         'dev': [
             'check-manifest', 'pytest', 'pytest-cov', 'coverage', 'mkdocs-material', 'mkdocstrings[python]',
-            'mkdocs-redirects'],
+            'mkdocs-redirects',  # for 301 redirects
+            'mkdocs-git-revision-date-localized-plugin',  # for created/updated dates
+        ],
         'export': ['coremltools>=6.0', 'openvino-dev>=2022.3', 'tensorflowjs'],  # automatically installs tensorflow
     },
     classifiers=[

@@ -12,6 +12,8 @@ theme:
   custom_dir: docs/overrides
   logo: https://github.com/ultralytics/assets/raw/main/logo/Ultralytics_Logotype_Reverse.svg
   favicon: assets/favicon.ico
+  icon:
+    repo: fontawesome/brands/github
   font:
     text: Roboto
     code: Roboto Mono
@@ -55,6 +57,7 @@ copyright: <a href="https://ultralytics.com" target="_blank">Ultralytics 2023.</
 extra:
   # version:
   #   provider: mike  #  version drop-down menu
+  robots: robots.txt
   analytics:
     provider: google
     property: G-2M5EHKC0BH
@@ -90,9 +93,6 @@ extra:
 
 extra_css:
   - stylesheets/style.css
-
-extra_files:
-  - robots.txt
 
 markdown_extensions:
   # Div text decorators
@@ -289,6 +289,9 @@ nav:
 plugins:
   - mkdocstrings
   - search
+  - git-revision-date-localized:
+      type: timeago
+      enable_creation_date: true
   - redirects:
       redirect_maps:
         callbacks.md: usage/callbacks.md

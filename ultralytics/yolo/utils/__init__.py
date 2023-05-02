@@ -261,8 +261,9 @@ def yaml_save(file='data.yaml', data=None):
 
     with open(file, 'w') as f:
         # Dump data to file in YAML format, converting Path objects to strings
-        yaml.safe_dump({k: str(v) if isinstance(v, Path) else v
-                        for k, v in data.items()},
+        yaml.safe_dump({
+            k: str(v) if isinstance(v, Path) else v
+            for k, v in data.items()},
                        f,
                        sort_keys=False,
                        allow_unicode=True)
@@ -759,7 +760,7 @@ ENVIRONMENT = 'Colab' if is_colab() else 'Kaggle' if is_kaggle() else 'Jupyter' 
 TESTS_RUNNING = is_pytest_running() or is_github_actions_ci()
 set_sentry()
 
-# OpenCV Multilanguage-friendly functions ------------------------------------------------------------------------------------
+# OpenCV Multilanguage-friendly functions ------------------------------------------------------------------------------
 imshow_ = cv2.imshow  # copy to avoid recursion errors
 
 

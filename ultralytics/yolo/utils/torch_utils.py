@@ -200,6 +200,24 @@ def get_flops(model, imgsz=640):
         return 0
 
 
+def get_flops_with_torch_profiler(model, imgsz=640):
+    # Enable FLOP counting
+    model = de_parallel(model)
+    p = next(model.parameters())
+    stride = max(int(model.stride.max()), 32) if hasattr(model, 'stride') else 32  # max stride
+    im = torch.empty((1, p.shape[1], stride, stride),
+                     device=p.device)  # input image in BCHW format
+    with torch.profiler.profile(with_flops=True,
+                                schedule=torch.profiler.schedule(wait=0, warmup=1, active=1, repeat=0),
+                                activities=[torch.profiler.ProfilerActivity.CPU]
+                                ) as p:
+        model(im)
+    flops = sum(x.flops for x in p.key_averages()) / 1E9
+    imgsz = imgsz if isinstance(imgsz, list) else [imgsz, imgsz]  # expand if int/float
+    flops = flops * imgsz[0] / stride * imgsz[1] / stride  # 640x640 GFLOPs
+    return flops
+
+
 def initialize_weights(model):
     """Initialize model weights to random values."""
     for m in model.modules():

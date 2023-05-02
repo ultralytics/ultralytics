@@ -55,6 +55,7 @@ copyright: <a href="https://ultralytics.com" target="_blank">Ultralytics 2023.</
 extra:
   # version:
   #   provider: mike  #  version drop-down menu
+  robots: robots.txt
   analytics:
     provider: google
     property: G-2M5EHKC0BH
@@ -90,9 +91,6 @@ extra:
 
 extra_css:
   - stylesheets/style.css
-
-extra_files:
-  - robots.txt
 
 markdown_extensions:
   # Div text decorators

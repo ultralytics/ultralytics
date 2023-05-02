@@ -258,12 +258,12 @@ def yaml_save(file='data.yaml', data=None):
     if not file.parent.exists():
         # Create parent directories if they don't exist
         file.parent.mkdir(parents=True, exist_ok=True)
-        
+
     # Convert Path objects to strings
     for k, v in data.items():
         if isinstance(v, Path):
             dict[k] = str(v)
-            
+
     # Dump data to file in YAML format
     with open(file, 'w') as f:
         yaml.safe_dump(data, f, sort_keys=False, allow_unicode=True)

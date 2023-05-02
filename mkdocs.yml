@@ -12,6 +12,8 @@ theme:
   custom_dir: docs/overrides
   logo: https://github.com/ultralytics/assets/raw/main/logo/Ultralytics_Logotype_Reverse.svg
   favicon: assets/favicon.ico
+  icon:
+    repo: fontawesome/brands/github
   font:
     text: Roboto
     code: Roboto Mono

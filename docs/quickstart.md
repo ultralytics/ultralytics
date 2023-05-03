@@ -96,7 +96,7 @@ CLI requires no customization or Python code. You can simply run all tasks from 
 
 !!! warning "Warning"
 
-    Arguments must be passed as `arg=val` pairs, split by an equals `=` sign and delimited by spaces ` ` between pairs. Do not use `--` argument prefixes or commas `,` beteen arguments.
+    Arguments must be passed as `arg=val` pairs, split by an equals `=` sign and delimited by spaces ` ` between pairs. Do not use `--` argument prefixes or commas `,` between arguments.
 
     - `yolo predict model=yolov8n.pt imgsz=640 conf=0.25` &nbsp; ✅
     - `yolo predict model yolov8n.pt imgsz 640 conf 0.25` &nbsp; ❌

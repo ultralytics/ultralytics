@@ -26,15 +26,27 @@ class VarifocalLoss(nn.Module):
 
 class BboxLoss(nn.Module):
 
-    def __init__(self, reg_max, use_dfl=False):
+    def __init__(self, reg_max, use_dfl=False, class_weights=None):
         """Initialize the BboxLoss module with regularization maximum and DFL settings."""
         super().__init__()
         self.reg_max = reg_max
         self.use_dfl = use_dfl
+        self.register_buffer('class_weights', torch.as_tensor(class_weights) if class_weights is not None else None)
+        self.class_weights: torch.Tensor
 
     def forward(self, pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, target_scores_sum, fg_mask):
         """IoU loss."""
         weight = torch.masked_select(target_scores.sum(-1), fg_mask).unsqueeze(-1)
+        target_classes = target_scores[fg_mask].argmax(dim=-1)
+        cls_weight = torch.ones_like(target_classes, dtype=weight.dtype).to(weight.device)
+        if self.class_weights is not None:
+            assert self.class_weights.shape[0] == target_scores.shape[-1], \
+                f'{self.class_weights.shape[0]} dim(s) expected due to the class_weights, ' \
+                f'but {target_scores.shape} found in target_scores.'
+            for i, w in enumerate(self.class_weights):
+                cls_weight[target_classes == i] = w
+        weight *= cls_weight.unsqueeze(-1)
+
         iou = bbox_iou(pred_bboxes[fg_mask], target_bboxes[fg_mask], xywh=False, CIoU=True)
         loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
 

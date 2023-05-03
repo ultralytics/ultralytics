@@ -142,10 +142,11 @@ class Loss:
 
         device = next(model.parameters()).device  # get model device
         h = model.args  # hyperparameters
-
         m = model.model[-1]  # Detect() module
-        self.bce = nn.BCEWithLogitsLoss(reduction='none')
+
         self.hyp = h
+        cls_weights = torch.tensor(h.get('cls_weights')).to(device) if h.get('cls_weights') else None
+        self.bce = nn.BCEWithLogitsLoss(reduction='none', pos_weight=cls_weights)
         self.stride = m.stride  # model strides
         self.nc = m.nc  # number of classes
         self.no = m.no
@@ -155,7 +156,7 @@ class Loss:
         self.use_dfl = m.reg_max > 1
 
         self.assigner = TaskAlignedAssigner(topk=10, num_classes=self.nc, alpha=0.5, beta=6.0)
-        self.bbox_loss = BboxLoss(m.reg_max - 1, use_dfl=self.use_dfl).to(device)
+        self.bbox_loss = BboxLoss(m.reg_max - 1, use_dfl=self.use_dfl, class_weights=cls_weights).to(device)
         self.proj = torch.arange(m.reg_max, dtype=torch.float, device=device)
 
     def preprocess(self, targets, batch_size, scale_tensor):

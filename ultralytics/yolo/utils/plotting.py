@@ -481,9 +481,6 @@ def feature_visualization(x, module_type, stage, n=32, save_dir=Path('runs/detec
         stage (int): Module stage within the model.
         n (int, optional): Maximum number of feature maps to plot. Defaults to 32.
         save_dir (Path, optional): Directory to save results. Defaults to Path('runs/detect/exp').
-
-    Returns:
-        None: This function does not return any value; it saves the visualization to the specified directory.
     """
     for m in ['Detect', 'Pose', 'Segment']:
         if m in module_type:

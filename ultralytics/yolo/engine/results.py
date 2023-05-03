@@ -98,8 +98,21 @@ class Results(SimpleClass):
         show_keypoints (bool): Whether to plot the keypoints
     """
 
-    def __init__(self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None, line_thickness=None,
-                 show_conf=True, show_labels=True, show_boxes=True, show_masks=True, show_probs=True, show_keypoints=True) -> None:
+    def __init__(self,
+                 orig_img,
+                 path,
+                 names,
+                 boxes=None,
+                 masks=None,
+                 probs=None,
+                 keypoints=None,
+                 line_thickness=None,
+                 show_conf=True,
+                 show_labels=True,
+                 show_boxes=True,
+                 show_masks=True,
+                 show_probs=True,
+                 show_keypoints=True) -> None:
         """Initialize the Results class."""
         self.orig_img = orig_img
         self.orig_shape = orig_img.shape[:2]
@@ -113,7 +126,7 @@ class Results(SimpleClass):
         self._keys = ('boxes', 'masks', 'probs', 'keypoints')
         self.line_thickness = line_thickness
         self.show_conf = show_conf
-        self.show_labels= show_labels
+        self.show_labels = show_labels
         self.show_boxes = show_boxes
         self.show_masks = show_masks
         self.show_probs = show_probs
@@ -249,7 +262,8 @@ class Results(SimpleClass):
 
         if pred_boxes and show_boxes:
             for d in reversed(pred_boxes):
-                c, conf, id = int(d.cls), float(d.conf) if show_conf else None, None if d.id is None else int(d.id.item())
+                c, conf, id = int(
+                    d.cls), float(d.conf) if show_conf else None, None if d.id is None else int(d.id.item())
                 name = ('' if id is None else f'id:{id} ') + names[c]
                 label = (f'{name} {conf:.2f}' if conf else name) if show_labels else None
                 annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))

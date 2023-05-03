@@ -12,6 +12,8 @@ theme:
   custom_dir: docs/overrides
   logo: https://github.com/ultralytics/assets/raw/main/logo/Ultralytics_Logotype_Reverse.svg
   favicon: assets/favicon.ico
+  icon:
+    repo: fontawesome/brands/github
   font:
     text: Roboto
     code: Roboto Mono
@@ -55,6 +57,7 @@ copyright: <a href="https://ultralytics.com" target="_blank">Ultralytics 2023.</
 extra:
   # version:
   #   provider: mike  #  version drop-down menu
+  robots: robots.txt
   analytics:
     provider: google
     property: G-2M5EHKC0BH
@@ -90,9 +93,6 @@ extra:
 
 extra_css:
   - stylesheets/style.css
-
-extra_files:
-  - robots.txt
 
 markdown_extensions:
   # Div text decorators
@@ -289,6 +289,9 @@ nav:
 plugins:
   - mkdocstrings
   - search
+  - git-revision-date-localized:
+      type: timeago
+      enable_creation_date: true
   - redirects:
       redirect_maps:
         callbacks.md: usage/callbacks.md
@@ -338,6 +341,7 @@ plugins:
         yolov5/hyp_evolution.md: yolov5/tutorials/hyperparameter_evolution.md
         yolov5/pruning_sparsity.md: yolov5/tutorials/model_pruning_and_sparsity.md
         yolov5/comet.md: yolov5/tutorials/comet_logging_integration.md
+        yolov5/clearml.md: yolov5/tutorials/clearml_logging_integration.md
         yolov5/tta.md: yolov5/tutorials/test_time_augmentation.md
         yolov5/multi_gpu_training.md: yolov5/tutorials/multi_gpu_training.md
         yolov5/ensemble.md: yolov5/tutorials/model_ensembling.md
@@ -351,3 +355,10 @@ plugins:
         yolov5/tutorials/yolov5_neural_magic_tutorial.md: yolov5/tutorials/neural_magic_pruning_quantization.md
         yolov5/tutorials/model_ensembling_tutorial.md: yolov5/tutorials/model_ensembling.md
         yolov5/tutorials/pytorch_hub_tutorial.md: yolov5/tutorials/pytorch_hub_model_loading.md
+        yolov5/tutorials/yolov5_architecture_tutorial.md: yolov5/tutorials/architecture_description.md
+        yolov5/tutorials/multi_gpu_training_tutorial.md: yolov5/tutorials/multi_gpu_training.md
+        yolov5/tutorials/yolov5_pytorch_hub_tutorial.md: yolov5/tutorials/pytorch_hub_model_loading.md
+        yolov5/tutorials/model_export_tutorial.md: yolov5/tutorials/model_export.md
+        yolov5/tutorials/jetson_nano_tutorial.md: yolov5/tutorials/running_on_jetson_nano.md
+        yolov5/tutorials/yolov5_model_ensembling_tutorial.md: yolov5/tutorials/model_ensembling.md
+        reference/base_val.md: index.md

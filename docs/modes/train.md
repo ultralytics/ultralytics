@@ -2,10 +2,6 @@
 comments: true
 ---
 
----
-comments: true
----
-
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
 
 **Train mode** is used for training a YOLOv8 model on a custom dataset. In this mode, the model is trained using the

@@ -80,8 +80,12 @@ All supported arguments:
 | `save_txt`       | `False`                | save results as .txt file                                |
 | `save_conf`      | `False`                | save results with confidence scores                      |
 | `save_crop`      | `False`                | save cropped images with results                         |
-| `hide_labels`    | `False`                | hide labels                                              |
-| `hide_conf`      | `False`                | hide confidence scores                                   |
+| `show_labels`    | `True`                 | show object labels in plots                              |
+| `show_conf`      | `True`                 | show object confidence scores in plots                   |
+| `show_probs`     | `True`                 | show object probs in plots                               |
+| `show_boxes`     | `True`                 | show object boxes in plots                               |
+| `show_masks`     | `True`                 | show object masks in plots                               |
+| `show_keypoints` | `True`                 | show object keypoints in plots                           |
 | `max_det`        | `300`                  | maximum number of detections per image                   |
 | `vid_stride`     | `False`                | video frame-rate stride                                  |
 | `line_thickness` | `3`                    | bounding box thickness (pixels)                          |
@@ -223,7 +227,7 @@ masks, classification logits, etc.) found in the results object
 | Argument                           | Description                                                                            |
 |------------------------------------|----------------------------------------------------------------------------------------|
 | `conf (bool)`                      | Whether to plot the detection confidence score.                                        |
-| `line_thickness (float, optional)` | The line width of the bounding boxes. If None, it is scaled to the image size.         |
+| `line_thickness (float, optional)` | The line thickness of the bounding boxes. If None, it is scaled to the image size.     |
 | `font_size (float, optional)`      | The font size of the text. If None, it is scaled to the image size.                    |
 | `font (str)`                       | The font to use for the text.                                                          |
 | `pil (bool)`                       | Whether to use PIL for image plotting.                                                 |
@@ -233,6 +237,7 @@ masks, classification logits, etc.) found in the results object
 | `boxes (bool)`                     | Whether to plot the bounding boxes.                                                    |
 | `masks (bool)`                     | Whether to plot the masks.                                                             |
 | `probs (bool)`                     | Whether to plot classification probability.                                            |
+| `keypoints (bool)`                 | Whether to plot the keypoints.                                                         |
 
 
 ## Streaming Source `for`-loop

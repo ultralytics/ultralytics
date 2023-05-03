@@ -142,6 +142,10 @@ The prediction settings for YOLO models encompass a range of hyperparameters and
 | `save_crop`      | `False`                | save cropped images with results                         |
 | `show_labels`    | `True`                 | show object labels in plots                              |
 | `show_conf`      | `True`                 | show object confidence scores in plots                   |
+| `show_probs`     | `True`                 | show object probs in plots                               |
+| `show_boxes`     | `True`                 | show object boxes in plots                               |
+| `show_masks`     | `True`                 | show object masks in plots                               |
+| `show_keypoints` | `True`                 | show object keypoints in plots                           |
 | `max_det`        | `300`                  | maximum number of detections per image                   |
 | `vid_stride`     | `False`                | video frame-rate stride                                  |
 | `line_thickness` | `3`                    | bounding box thickness (pixels)                          |

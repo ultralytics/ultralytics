@@ -27,7 +27,8 @@ class ClassificationPredictor(BasePredictor):
             orig_img = orig_imgs[i] if isinstance(orig_imgs, list) else orig_imgs
             path = self.batch[0]
             img_path = path[i] if isinstance(path, list) else path
-            results.append(Results(orig_img=orig_img, path=img_path, names=self.model.names, probs=pred))
+            results.append(Results(orig_img=orig_img, path=img_path, names=self.model.names, probs=pred,
+                                   show_probs=self.args.show_probs))
 
         return results
 

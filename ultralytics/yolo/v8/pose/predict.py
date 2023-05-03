@@ -35,7 +35,11 @@ class PosePredictor(DetectionPredictor):
                         path=img_path,
                         names=self.model.names,
                         boxes=pred[:, :6],
-                        keypoints=pred_kpts))
+                        keypoints=pred_kpts,
+                        show_keypoints=self.args.show_keypoints,
+                        show_conf=self.args.show_conf,
+                        show_labels=self.args.show_labels,
+                        show_boxes=self.args.show_boxes))
         return results
 
 

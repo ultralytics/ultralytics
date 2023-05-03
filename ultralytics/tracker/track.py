@@ -2,6 +2,7 @@
 
 from functools import partial
 
+import cv2
 import torch
 
 from ultralytics.yolo.utils import IterableSimpleNamespace, yaml_load
@@ -19,7 +20,6 @@ def on_predict_start(predictor, persist=False):
     Args:
         predictor (object): The predictor object to initialize trackers for.
         persist (bool, optional): Whether to persist the trackers if they already exist. Defaults to False.
-
     Raises:
         AssertionError: If the tracker_type is not 'bytetrack' or 'botsort'.
     """
@@ -30,21 +30,31 @@ def on_predict_start(predictor, persist=False):
     assert cfg.tracker_type in ['bytetrack', 'botsort'], \
         f"Only support 'bytetrack' and 'botsort' for now, but got '{cfg.tracker_type}'"
     trackers = []
-    for _ in range(predictor.dataset.bs):
-        tracker = TRACKER_MAP[cfg.tracker_type](args=cfg, frame_rate=30)
-        trackers.append(tracker)
+    # for batch of frames of the same video, only use one tracker
+    if predictor.source_type.from_img and predictor.dataset.bs >=1 :
+        trackers.append(TRACKER_MAP[cfg.tracker_type](args=cfg, frame_rate=30))
+    else :
+        for _ in range(predictor.dataset.bs):
+            tracker = TRACKER_MAP[cfg.tracker_type](args=cfg, frame_rate=30)
+            trackers.append(tracker)
     predictor.trackers = trackers
 
 
 def on_predict_postprocess_end(predictor):
     """Postprocess detected boxes and update with object tracking."""
     bs = predictor.dataset.bs
-    im0s = predictor.batch[1]
+    im0s = predictor.batch[2]
+    im0s = im0s if isinstance(im0s, list) else [im0s]
+    batch_of_frames= predictor.source_type.from_img and bs >= 1
     for i in range(bs):
         det = predictor.results[i].boxes.cpu().numpy()
         if len(det) == 0:
             continue
-        tracks = predictor.trackers[i].update(det, im0s[i])
+        # for batch of frames of the same video, only use one tracker
+        if batch_of_frames :
+            tracks = predictor.trackers[0].update(det, im0s[i])
+        else :
+            tracks = predictor.trackers[i].update(det, im0s[i])
         if len(tracks) == 0:
             continue
         idx = tracks[:, -1].tolist()

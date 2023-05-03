@@ -69,6 +69,13 @@ class Results(SimpleClass):
         masks (numpy.ndarray, optional): A 3D numpy array of detection masks, where each mask is a binary image.
         probs (numpy.ndarray, optional): A 2D numpy array of detection probabilities for each class.
         keypoints (List[List[float]], optional): A list of detected keypoints for each object.
+        line_thickness (float): The line width of the bounding boxes. If None, it is scaled to the image size.
+        show_conf (bool): Whether to plot the detection confidence score.
+        show_labels (bool): Whether to plot the label of bounding boxes.
+        show_boxes (bool): Whether to plot the bounding boxes.
+        show_masks (bool): Whether to plot the masks.
+        show_probs (bool): Whether to plot classification probability.
+        show_keypoints (bool): Whether to plot the keypoints
 
 
     Attributes:
@@ -82,9 +89,17 @@ class Results(SimpleClass):
         keypoints (List[List[float]], optional): A list of detected keypoints for each object.
         speed (dict): A dictionary of preprocess, inference and postprocess speeds in milliseconds per image.
         _keys (tuple): A tuple of attribute names for non-empty attributes.
+        line_thickness (float): The line width of the bounding boxes. If None, it is scaled to the image size.
+        show_conf (bool): Whether to plot the detection confidence score.
+        show_labels (bool): Whether to plot the label of bounding boxes.
+        show_boxes (bool): Whether to plot the bounding boxes.
+        show_masks (bool): Whether to plot the masks.
+        show_probs (bool): Whether to plot classification probability.
+        show_keypoints (bool): Whether to plot the keypoints
     """
 
-    def __init__(self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None) -> None:
+    def __init__(self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None, line_thickness=None,
+                 show_conf=True, show_labels=True, show_boxes=True, show_masks=True, show_probs=True, show_keypoints=True) -> None:
         """Initialize the Results class."""
         self.orig_img = orig_img
         self.orig_shape = orig_img.shape[:2]
@@ -96,6 +111,13 @@ class Results(SimpleClass):
         self.names = names
         self.path = path
         self._keys = ('boxes', 'masks', 'probs', 'keypoints')
+        self.line_thickness = line_thickness
+        self.show_conf = show_conf
+        self.show_labels= show_labels
+        self.show_boxes = show_boxes
+        self.show_masks = show_masks
+        self.show_probs = show_probs
+        self.show_keypoints = show_keypoints
 
     def __getitem__(self, idx):
         """Return a Results object for the specified index."""
@@ -158,7 +180,7 @@ class Results(SimpleClass):
     def plot(
             self,
             conf=True,
-            line_width=None,
+            line_thickness=None,
             font_size=None,
             font='Arial.ttf',
             pil=False,
@@ -169,6 +191,7 @@ class Results(SimpleClass):
             boxes=True,
             masks=True,
             probs=True,
+            keypoints=True,
             **kwargs  # deprecated args TODO: remove support in 8.2
     ):
         """
@@ -176,7 +199,7 @@ class Results(SimpleClass):
 
         Args:
             conf (bool): Whether to plot the detection confidence score.
-            line_width (float, optional): The line width of the bounding boxes. If None, it is scaled to the image size.
+            line_thickness (float, optional): The line width of the bounding boxes. If None, it is scaled to the image size.
             font_size (float, optional): The font size of the text. If None, it is scaled to the image size.
             font (str): The font to use for the text.
             pil (bool): Whether to return the image as a PIL Image.
@@ -186,7 +209,8 @@ class Results(SimpleClass):
             labels (bool): Whether to plot the label of bounding boxes.
             boxes (bool): Whether to plot the bounding boxes.
             masks (bool): Whether to plot the masks.
-            probs (bool): Whether to plot classification probability
+            probs (bool): Whether to plot classification probability.
+            keypoints (bool): Whether to plot the keypoints.
 
         Returns:
             (numpy.ndarray): A numpy array of the annotated image.
@@ -197,17 +221,24 @@ class Results(SimpleClass):
             conf = kwargs['show_conf']
             assert type(conf) == bool, '`show_conf` should be of boolean type, i.e, show_conf=True/False'
 
+        if 'line_width' in kwargs:
+            deprecation_warn('line_width', 'line_thickness')
+            line_thickness = kwargs['line_width']
+            assert type(conf) == float, '`line_thickness` should be of float type, i.e, line_thickness=3.0'
+        line_thickness = line_thickness if line_thickness else self.line_thickness
         names = self.names
         annotator = Annotator(deepcopy(self.orig_img if img is None else img),
-                              line_width,
+                              line_thickness,
                               font_size,
                               font,
                               pil,
                               example=names)
-        pred_boxes, show_boxes = self.boxes, boxes
-        pred_masks, show_masks = self.masks, masks
-        pred_probs, show_probs = self.probs, probs
-        keypoints = self.keypoints
+        show_conf = self.show_conf & conf
+        show_labels = self.show_labels & labels
+        pred_boxes, show_boxes = self.boxes, self.show_boxes & boxes
+        pred_masks, show_masks = self.masks, self.show_masks & masks
+        pred_probs, show_probs = self.probs, self.show_probs & probs
+        pred_keypoints, show_keypoints = self.keypoints, self.show_keypoints & keypoints
         if pred_masks and show_masks:
             if img_gpu is None:
                 img = LetterBox(pred_masks.shape[1:])(image=annotator.result())
@@ -218,9 +249,9 @@ class Results(SimpleClass):
 
         if pred_boxes and show_boxes:
             for d in reversed(pred_boxes):
-                c, conf, id = int(d.cls), float(d.conf) if conf else None, None if d.id is None else int(d.id.item())
+                c, conf, id = int(d.cls), float(d.conf) if show_conf else None, None if d.id is None else int(d.id.item())
                 name = ('' if id is None else f'id:{id} ') + names[c]
-                label = (f'{name} {conf:.2f}' if conf else name) if labels else None
+                label = (f'{name} {conf:.2f}' if conf else name) if show_labels else None
                 annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
 
         if pred_probs is not None and show_probs:
@@ -229,8 +260,8 @@ class Results(SimpleClass):
             text = f"{', '.join(f'{names[j] if names else j} {pred_probs[j]:.2f}' for j in top5i)}, "
             annotator.text((32, 32), text, txt_color=(255, 255, 255))  # TODO: allow setting colors
 
-        if keypoints is not None:
-            for k in reversed(keypoints):
+        if pred_keypoints is not None and show_keypoints:
+            for k in reversed(pred_keypoints):
                 annotator.kpts(k, self.orig_shape, kpt_line=kpt_line)
 
         return annotator.result()

@@ -148,7 +148,7 @@ class BasePredictor:
         log_string += result.verbose()
 
         if self.args.save or self.args.show:  # Add bbox to image
-            plot_args = dict(line_width=self.args.line_thickness,
+            plot_args = dict(line_thickness=self.args.line_thickness,
                              boxes=self.args.boxes,
                              conf=self.args.show_conf,
                              labels=self.args.show_labels)

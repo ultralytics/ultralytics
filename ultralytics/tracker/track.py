@@ -30,9 +30,9 @@ def on_predict_start(predictor, persist=False):
         f"Only support 'bytetrack' and 'botsort' for now, but got '{cfg.tracker_type}'"
     trackers = []
     # for batch of frames of the same video, only use one tracker
-    if predictor.source_type.from_img and predictor.dataset.bs >=1 :
+    if predictor.source_type.from_img and predictor.dataset.bs >= 1:
         trackers.append(TRACKER_MAP[cfg.tracker_type](args=cfg, frame_rate=30))
-    else :
+    else:
         for _ in range(predictor.dataset.bs):
             tracker = TRACKER_MAP[cfg.tracker_type](args=cfg, frame_rate=30)
             trackers.append(tracker)
@@ -44,15 +44,15 @@ def on_predict_postprocess_end(predictor):
     bs = predictor.dataset.bs
     im0s = predictor.batch[2]
     im0s = im0s if isinstance(im0s, list) else [im0s]
-    batch_of_frames= predictor.source_type.from_img and bs >= 1
+    batch_of_frames = predictor.source_type.from_img and bs >= 1
     for i in range(bs):
         det = predictor.results[i].boxes.cpu().numpy()
         if len(det) == 0:
             continue
         # for batch of frames of the same video, only use one tracker
-        if batch_of_frames :
+        if batch_of_frames:
             tracks = predictor.trackers[0].update(det, im0s[i])
-        else :
+        else:
             tracks = predictor.trackers[i].update(det, im0s[i])
         if len(tracks) == 0:
             continue

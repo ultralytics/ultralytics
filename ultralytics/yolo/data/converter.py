@@ -1,22 +1,24 @@
 import json
+from collections import defaultdict
+from pathlib import Path
 
 import cv2
 import numpy as np
 from tqdm import tqdm
-from collections import defaultdict
-from pathlib import Path
 
-from ultralytics.yolo.utils.files import make_dirs
 from ultralytics.yolo.utils.checks import check_requirements
+from ultralytics.yolo.utils.files import make_dirs
 
 
 def coco91_to_coco80_class():  # converts 80-index (val2014) to 91-index (paper)
     # https://tech.amikelive.com/node-718/what-object-categories-labels-are-in-coco-dataset/
-    x = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, None, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, None, 24, 25, None,
-         None, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, None, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
-         51, 52, 53, 54, 55, 56, 57, 58, 59, None, 60, None, None, 61, None, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72,
-         None, 73, 74, 75, 76, 77, 78, 79, None]
+    x = [
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, None, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, None, 24, 25, None,
+        None, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, None, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
+        51, 52, 53, 54, 55, 56, 57, 58, 59, None, 60, None, None, 61, None, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72,
+        None, 73, 74, 75, 76, 77, 78, 79, None]
     return x
+
 
 def convert_coco(labels_dir='../coco/annotations/', use_segments=False, use_keypoints=False, cls91to80=True):
     """
@@ -40,10 +42,10 @@ def convert_coco(labels_dir='../coco/annotations/', use_segments=False, use_keyp
     Output:
     Generates output files in the specified output directory.
     """
-    check_requirements("pycocotools")
+    check_requirements('pycocotools')
     from pycocotools import mask
 
-    save_dir = make_dirs("yolo_labels")  # output directory
+    save_dir = make_dirs('yolo_labels')  # output directory
     coco80 = coco91_to_coco80_class()
 
     # Import json
@@ -83,7 +85,7 @@ def convert_coco(labels_dir='../coco/annotations/', use_segments=False, use_keyp
                 box = [cls] + box.tolist()
                 if box not in bboxes:
                     bboxes.append(box)
-                if use_segments and ann.get("segmentation") is not None:
+                if use_segments and ann.get('segmentation') is not None:
                     if len(ann['segmentation']) == 0:
                         segments.append([])
                         continue
@@ -98,7 +100,7 @@ def convert_coco(labels_dir='../coco/annotations/', use_segments=False, use_keyp
                     s = [cls] + s
                     if s not in segments:
                         segments.append(s)
-                if use_keypoints and ann.get("keypoints") is not None:
+                if use_keypoints and ann.get('keypoints') is not None:
                     k = (np.array(ann['keypoints']).reshape(-1, 3) / np.array([w, h, 1])).reshape(-1).tolist()
                     k = box + k
                     keypoints.append(k)
@@ -109,13 +111,13 @@ def convert_coco(labels_dir='../coco/annotations/', use_segments=False, use_keyp
                     if use_keypoints:
                         line = *(keypoints[i]),  # cls, box, keypoints
                     else:
-                        line = *(segments[i] if use_segments and len(segments[i]) > 0 else bboxes[i]),  # cls, box or segments
+                        line = *(segments[i]
+                                 if use_segments and len(segments[i]) > 0 else bboxes[i]),  # cls, box or segments
                     file.write(('%g ' * len(line)).rstrip() % line + '\n')
 
 
-
 def rle2polygon(segmentation):
-    m = mask.decode(segmentation) 
+    m = mask.decode(segmentation)
     m[m > 0] = 255
     contours, _ = cv2.findContours(m, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_KCOS)
     polygons = []
@@ -128,7 +130,7 @@ def rle2polygon(segmentation):
 
 
 def min_index(arr1, arr2):
-    """Find a pair of indexes with the shortest distance. 
+    """Find a pair of indexes with the shortest distance.
     Args:
         arr1: (N, 2).
         arr2: (M, 2).
@@ -142,12 +144,12 @@ def min_index(arr1, arr2):
 def merge_multi_segment(segments):
     """Merge multi segments to one list.
     Find the coordinates with min distance between each segment,
-    then connect these coordinates with one thin line to merge all 
+    then connect these coordinates with one thin line to merge all
     segments into one.
 
     Args:
         segments(List(List)): original segmentations in coco's json file.
-            like [segmentation1, segmentation2,...], 
+            like [segmentation1, segmentation2,...],
             each segmentation is a list of coordinates.
     """
     s = []
@@ -202,7 +204,8 @@ if __name__ == '__main__':
     source = 'COCO'
 
     if source == 'COCO':
-        convert_coco('../datasets/coco/annotations',  # directory with *.json
-                          use_segments=False,
-                          use_keypoints=True,
-                          cls91to80=False)
+        convert_coco(
+            '../datasets/coco/annotations',  # directory with *.json
+            use_segments=False,
+            use_keypoints=True,
+            cls91to80=False)

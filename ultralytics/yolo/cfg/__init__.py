@@ -152,6 +152,9 @@ def _handle_deprecation(custom):
         if key == 'hide_conf':
             deprecation_warn(key, 'show_conf')
             custom['show_conf'] = custom.pop('hide_conf') == 'False'
+        if key == 'line_thickness':
+            deprecation_warn(key, 'line_width')
+            custom['line_width'] = custom.pop('line_thickness')
 
     return custom
 

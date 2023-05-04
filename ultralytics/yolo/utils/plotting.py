@@ -47,7 +47,7 @@ colors = Colors()  # create instance for 'from utils.plots import colors'
 
 class Annotator:
     # YOLOv8 Annotator for train/val mosaics and jpgs and detect/hub inference annotations
-    def __init__(self, im, line_thickness=None, font_size=None, font='Arial.ttf', pil=False, example='abc'):
+    def __init__(self, im, line_width=None, font_size=None, font='Arial.ttf', pil=False, example='abc'):
         """Initialize the Annotator class with image and line width along with color palette for keypoints and limbs."""
         assert im.data.contiguous, 'Image not contiguous. Apply np.ascontiguousarray(im) to Annotator() input images.'
         non_ascii = not is_ascii(example)  # non-latin labels, i.e. asian, arabic, cyrillic
@@ -64,7 +64,7 @@ class Annotator:
                 self.font = ImageFont.load_default()
         else:  # use cv2
             self.im = im
-        self.lw = line_thickness or max(round(sum(im.shape) / 2 * 0.003), 2)  # line width
+        self.lw = line_width or max(round(sum(im.shape) / 2 * 0.003), 2)  # line width
         # Pose
         self.skeleton = [[16, 14], [14, 12], [17, 15], [15, 13], [12, 13], [6, 12], [7, 13], [6, 7], [6, 8], [7, 9],
                          [8, 10], [9, 11], [2, 3], [1, 2], [1, 3], [2, 4], [3, 5], [4, 6], [5, 7]]
@@ -342,7 +342,7 @@ def plot_images(images,
 
     # Annotate
     fs = int((h + w) * ns * 0.01)  # font size
-    annotator = Annotator(mosaic, line_thickness=round(fs / 10), font_size=fs, pil=True, example=names)
+    annotator = Annotator(mosaic, line_width=round(fs / 10), font_size=fs, pil=True, example=names)
     for i in range(i + 1):
         x, y = int(w * (i // ns)), int(h * (i % ns))  # block origin
         annotator.rectangle([x, y, x + w, y + h], None, (255, 255, 255), width=2)  # borders

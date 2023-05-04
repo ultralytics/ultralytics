@@ -69,7 +69,7 @@ class Results(SimpleClass):
         masks (numpy.ndarray, optional): A 3D numpy array of detection masks, where each mask is a binary image.
         probs (numpy.ndarray, optional): A 2D numpy array of detection probabilities for each class.
         keypoints (List[List[float]], optional): A list of detected keypoints for each object.
-        line_thickness (float): The line width of the bounding boxes. If None, it is scaled to the image size.
+        line_width (float): The line width of the bounding boxes. If None, it is scaled to the image size.
         show_conf (bool): Whether to plot the detection confidence score.
         show_labels (bool): Whether to plot the label of bounding boxes.
         show_boxes (bool): Whether to plot the bounding boxes.
@@ -89,7 +89,7 @@ class Results(SimpleClass):
         keypoints (List[List[float]], optional): A list of detected keypoints for each object.
         speed (dict): A dictionary of preprocess, inference and postprocess speeds in milliseconds per image.
         _keys (tuple): A tuple of attribute names for non-empty attributes.
-        line_thickness (float): The line width of the bounding boxes. If None, it is scaled to the image size.
+        line_width (float): The line width of the bounding boxes. If None, it is scaled to the image size.
         show_conf (bool): Whether to plot the detection confidence score.
         show_labels (bool): Whether to plot the label of bounding boxes.
         show_boxes (bool): Whether to plot the bounding boxes.
@@ -98,7 +98,7 @@ class Results(SimpleClass):
         show_keypoints (bool): Whether to plot the keypoints
     """
 
-    def __init__(self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None, line_thickness=None,
+    def __init__(self, orig_img, path, names, boxes=None, masks=None, probs=None, keypoints=None, line_width=None,
                  show_conf=True, show_labels=True, show_boxes=True, show_masks=True, show_probs=True, show_keypoints=True) -> None:
         """Initialize the Results class."""
         self.orig_img = orig_img
@@ -111,7 +111,7 @@ class Results(SimpleClass):
         self.names = names
         self.path = path
         self._keys = ('boxes', 'masks', 'probs', 'keypoints')
-        self.line_thickness = line_thickness
+        self.line_width = line_width
         self.show_conf = show_conf
         self.show_labels= show_labels
         self.show_boxes = show_boxes
@@ -180,7 +180,7 @@ class Results(SimpleClass):
     def plot(
             self,
             conf=True,
-            line_thickness=None,
+            line_width=None,
             font_size=None,
             font='Arial.ttf',
             pil=False,
@@ -199,7 +199,7 @@ class Results(SimpleClass):
 
         Args:
             conf (bool): Whether to plot the detection confidence score.
-            line_thickness (float, optional): The line width of the bounding boxes. If None, it is scaled to the image size.
+            line_width (float, optional): The line width of the bounding boxes. If None, it is scaled to the image size.
             font_size (float, optional): The font size of the text. If None, it is scaled to the image size.
             font (str): The font to use for the text.
             pil (bool): Whether to return the image as a PIL Image.
@@ -222,13 +222,13 @@ class Results(SimpleClass):
             assert type(conf) == bool, '`show_conf` should be of boolean type, i.e, show_conf=True/False'
 
         if 'line_width' in kwargs:
-            deprecation_warn('line_width', 'line_thickness')
-            line_thickness = kwargs['line_width']
-            assert type(conf) == float, '`line_thickness` should be of float type, i.e, line_thickness=3.0'
-        line_thickness = line_thickness if line_thickness else self.line_thickness
+            deprecation_warn('line_thickness', 'line_width')
+            line_width = kwargs['line_thickness']
+            assert type(conf) == float, '`line_width` should be of float type, i.e, line_width=3.0'
+        line_width = line_width if line_width else self.line_width
         names = self.names
         annotator = Annotator(deepcopy(self.orig_img if img is None else img),
-                              line_thickness,
+                              line_width,
                               font_size,
                               font,
                               pil,

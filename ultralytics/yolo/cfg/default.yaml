@@ -61,7 +61,7 @@ show_probs: True  # show object probs in plots
 show_keypoints: True  # show object keypoints in plots
 show_conf: True  # show object confidence scores in plots
 vid_stride: 1  # video frame-rate stride
-line_thickness: 0.0  # The line width of the bounding boxes. If None, it is scaled to the image size.
+line_width: 0.0  # The line width of the bounding boxes. If 0, it is scaled to the image size.
 visualize: False  # visualize model features
 augment: False  # apply image augmentation to prediction sources
 agnostic_nms: False  # class-agnostic NMS

@@ -66,6 +66,25 @@ while True:
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
 ```
+### Batch tracking using the python interface: 
+You can use the tracker to track multiple videos at the same time using the following code:
+```python
+while True 
+    _, frame1 = cap.read()
+    _, frame2 = cap2.read()
+    results = model.track([frame1, frame2], persist=True,mutiple_video=True)
+```
+You can also track a batch of frames from the same video using the following code:
+```python
+batch = []
+batch_size = 4
+while True 
+    _, frame = cap.read()
+    batch.append(frame)
+    if len(batch) == batch_size:
+        results = model.track(batch, persist=True,mutiple_video=False)
+        batch = []
+```
 
 ## Change tracker parameters
 

@@ -212,7 +212,6 @@ class Loss:
             pred_scores.detach().sigmoid(), (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),
             anchor_points * stride_tensor, gt_labels, gt_bboxes, mask_gt)
 
-        target_bboxes /= stride_tensor
         target_scores_sum = max(target_scores.sum(), 1)
 
         # cls loss
@@ -221,6 +220,7 @@ class Loss:
 
         # bbox loss
         if fg_mask.sum():
+            target_bboxes /= stride_tensor
             loss[0], loss[2] = self.bbox_loss(pred_distri, pred_bboxes, anchor_points, target_bboxes, target_scores,
                                               target_scores_sum, fg_mask)
 

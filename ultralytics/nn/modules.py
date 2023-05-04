@@ -5,11 +5,16 @@ Common modules.
 Usage - visualize a model in Netron:
 
 from ultralytics.nn.modules import *
+import subprocess
+f = 'module.onnx'
 c1 = 128
 c2 = 256
 m = Conv(c1, c2)
 x = torch.zeros(1, c1, 64, 64)
-torch.onnx.export(m, x, 'module.onnx')
+torch.onnx.export(m, x, f, do_constant_folding=True)
+subprocess.run(['onnxsim', f, f])
+subprocess.run(['open', f])
+
 """
 
 import math
@@ -31,7 +36,7 @@ def autopad(k, p=None, d=1):  # kernel, padding, dilation
 
 class Conv(nn.Module):
     """Standard convolution with args(ch_in, ch_out, kernel, stride, padding, groups, dilation, activation)."""
-    default_act = nn.ReLU()  # default activation
+    default_act = nn.SiLU()  # default activation
 
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1, d=1, act=True):
         """Initialize Conv layer with given arguments including activation."""
@@ -226,7 +231,7 @@ class C2f(nn.Module):
         self.m = nn.ModuleList(Bottleneck(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0) for _ in range(n))
 
     def forward(self, x):
-        """Forward pass of a YOLOv5 CSPDarknet backbone layer."""
+        """Forward pass for C2f layer."""
         y = list(self.cv1(x).chunk(2, 1))
         y.extend(m(y[-1]) for m in self.m)
         return self.cv2(torch.cat(y, 1))
@@ -507,10 +512,10 @@ class Detect(nn.Module):
 class MLPBlock(nn.Module):
 
     def __init__(
-        self,
-        embedding_dim,
-        mlp_dim,
-        act=nn.GELU,
+            self,
+            embedding_dim,
+            mlp_dim,
+            act=nn.GELU,
     ):
         super().__init__()
         self.lin1 = nn.Linear(embedding_dim, mlp_dim)
@@ -623,3 +628,48 @@ class Classify(nn.Module):
             x = torch.cat(x, 1)
         x = self.linear(self.drop(self.pool(self.conv(x)).flatten(1)))
         return x if self.training else x.softmax(1)
+
+
+# EXPERIMENTAL ---------------------------------------------------------------------------------------------------------
+
+
+class Cxa(nn.Module):
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):  # ch_in, ch_out, number, shortcut, groups, expansion
+        super().__init__()
+        n = n * 2
+        self.c = int(c2 * e)  # hidden channels
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv((2 + n) * self.c, c2, 1)  # optional act=FReLU(c2)
+        self.m = nn.ModuleList(Conv(self.c, self.c, k=3) for _ in range(n))
+
+    def forward(self, x):
+        y = list(self.cv1(x).split((self.c, self.c), 1))
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))
+
+
+class Cxb(nn.Module):
+    """CSP Bottleneck with 2 convolutions."""
+
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):  # ch_in, ch_out, number, shortcut, groups, expansion
+        super().__init__()
+        self.c = int(c2 * e)  # hidden channels
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv((2 + n) * self.c, c2, 1)  # optional act=FReLU(c2)
+        self.m = nn.ModuleList(Bottleneck(self.c, self.c, shortcut, g, k=((3, 3), (3, 3)), e=1.0) for _ in range(n))
+
+    def forward(self, x):
+        """Forward pass for C2f layer."""
+        y = list(self.cv1(x).chunk(2, 1))
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))
+
+
+class Conv5(nn.Module):
+    def __init__(self, c, k=(3, 5)):  # ch_in, ch_out, shortcut, groups, kernels, expand
+        super().__init__()
+        self.cv1 = Conv(c, c, k[0], act=False)
+        self.cv2 = DWConv(c, c, k[1])
+
+    def forward(self, x):
+        return self.cv2(self.cv1(x))

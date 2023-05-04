@@ -25,9 +25,14 @@ class DetectionPredictor(BasePredictor):
                 pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], orig_img.shape)
             path = self.batch[0]
             img_path = path[i] if isinstance(path, list) else path
-            results.append(Results(orig_img=orig_img, path=img_path, names=self.model.names, boxes=pred,
-                                   line_width=self.args.line_width, show_labels=self.args.show_labels,
-                                   show_boxes=self.args.show_boxes))
+            results.append(
+                Results(orig_img=orig_img,
+                        path=img_path,
+                        names=self.model.names,
+                        boxes=pred,
+                        line_width=self.args.line_width,
+                        show_labels=self.args.show_labels,
+                        show_boxes=self.args.show_boxes))
         return results
 
 

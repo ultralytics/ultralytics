@@ -12,7 +12,7 @@ from .trackers import BOTSORT, BYTETracker
 TRACKER_MAP = {'bytetrack': BYTETracker, 'botsort': BOTSORT}
 
 
-def on_predict_start(predictor, persist=False,multiple_videos=False):
+def on_predict_start(predictor, persist=False, multiple_videos=False):
     """
     Initialize trackers for object tracking during prediction.
 
@@ -31,16 +31,16 @@ def on_predict_start(predictor, persist=False,multiple_videos=False):
         f"Only support 'bytetrack' and 'botsort' for now, but got '{cfg.tracker_type}'"
     trackers = []
     # for batch of frames of the same video, only use one tracker
-    if predictor.source_type.from_img and predictor.dataset.bs >=1 and not multiple_videos:
+    if predictor.source_type.from_img and predictor.dataset.bs >= 1 and not multiple_videos:
         trackers.append(TRACKER_MAP[cfg.tracker_type](args=cfg, frame_rate=30))
-    else :
+    else:
         for _ in range(predictor.dataset.bs):
             tracker = TRACKER_MAP[cfg.tracker_type](args=cfg, frame_rate=30)
             trackers.append(tracker)
     predictor.trackers = trackers
 
 
-def on_predict_postprocess_end(predictor,multiple_videos=False):
+def on_predict_postprocess_end(predictor, multiple_videos=False):
     """Postprocess detected boxes and update with object tracking."""
     """
         Args:
@@ -50,15 +50,15 @@ def on_predict_postprocess_end(predictor,multiple_videos=False):
     bs = predictor.dataset.bs
     im0s = predictor.batch[2]
     im0s = im0s if isinstance(im0s, list) else [im0s]
-    batch_of_frames= predictor.source_type.from_img and bs >= 1 and not multiple_videos
+    batch_of_frames = predictor.source_type.from_img and bs >= 1 and not multiple_videos
     for i in range(bs):
         det = predictor.results[i].boxes.cpu().numpy()
         if len(det) == 0:
             continue
         # for batch of frames of the same video, only use one tracker
-        if batch_of_frames :
+        if batch_of_frames:
             tracks = predictor.trackers[0].update(det, im0s[i])
-        else :
+        else:
             tracks = predictor.trackers[i].update(det, im0s[i])
         if len(tracks) == 0:
             continue
@@ -67,7 +67,7 @@ def on_predict_postprocess_end(predictor,multiple_videos=False):
         predictor.results[i].update(boxes=torch.as_tensor(tracks[:, :-1]))
 
 
-def register_tracker(model, persist,multiple_videos=False):
+def register_tracker(model, persist, multiple_videos=False):
     """
     Register tracking callbacks to the model for object tracking during prediction.
 
@@ -78,4 +78,5 @@ def register_tracker(model, persist,multiple_videos=False):
 
     """
     model.add_callback('on_predict_start', partial(on_predict_start, persist=persist, multiple_videos=multiple_videos))
-    model.add_callback('on_predict_postprocess_end', partial(on_predict_postprocess_end, multiple_videos=multiple_videos))
+    model.add_callback('on_predict_postprocess_end', partial(on_predict_postprocess_end,
+                                                             multiple_videos=multiple_videos))

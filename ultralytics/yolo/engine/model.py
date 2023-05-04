@@ -251,7 +251,7 @@ class YOLO:
             self.predictor.args = get_cfg(self.predictor.args, overrides)
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
 
-    def track(self, source=None, stream=False, persist=False,multiple_videos=False, **kwargs):
+    def track(self, source=None, stream=False, persist=False, multiple_videos=False, **kwargs):
         """
         Perform object tracking on the input source using the registered trackers.
 

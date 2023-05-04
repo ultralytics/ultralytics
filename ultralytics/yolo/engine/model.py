@@ -251,7 +251,7 @@ class YOLO:
             self.predictor.args = get_cfg(self.predictor.args, overrides)
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
 
-    def track(self, source=None, stream=False, persist=False, **kwargs):
+    def track(self, source=None, stream=False, persist=False,multiple_videos=False, **kwargs):
         """
         Perform object tracking on the input source using the registered trackers.
 
@@ -259,6 +259,7 @@ class YOLO:
             source (str, optional): The input source for object tracking. Can be a file path or a video stream.
             stream (bool, optional): Whether the input source is a video stream. Defaults to False.
             persist (bool, optional): Whether to persist the trackers if they already exist. Defaults to False.
+            multiple_videos (bool, optional): Whether input frames of the same video or different. Defaults to False.
             **kwargs (optional): Additional keyword arguments for the tracking process.
 
         Returns:
@@ -267,7 +268,7 @@ class YOLO:
         """
         if not hasattr(self.predictor, 'trackers'):
             from ultralytics.tracker import register_tracker
-            register_tracker(self, persist)
+            register_tracker(self, persist, multiple_videos)
         # ByteTrack-based method needs low confidence predictions as input
         conf = kwargs.get('conf') or 0.1
         kwargs['conf'] = conf

@@ -1,6 +1,15 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 """
-Common modules
+Common modules.
+
+Usage - visualize a model in Netron:
+
+from ultralytics.nn.modules import *
+c1 = 128
+c2 = 256
+m = Conv(c1, c2)
+x = torch.zeros(1, c1, 64, 64)
+torch.onnx.export(m, x, 'module.onnx')
 """
 
 import math
@@ -22,7 +31,7 @@ def autopad(k, p=None, d=1):  # kernel, padding, dilation
 
 class Conv(nn.Module):
     """Standard convolution with args(ch_in, ch_out, kernel, stride, padding, groups, dilation, activation)."""
-    default_act = nn.SiLU()  # default activation
+    default_act = nn.ReLU()  # default activation
 
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1, d=1, act=True):
         """Initialize Conv layer with given arguments including activation."""

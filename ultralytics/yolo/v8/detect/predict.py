@@ -31,6 +31,7 @@ class DetectionPredictor(BasePredictor):
                         names=self.model.names,
                         boxes=pred,
                         line_width=self.args.line_width,
+                        show_conf=self.args.show_conf,
                         show_labels=self.args.show_labels,
                         show_boxes=self.args.show_boxes))
         return results

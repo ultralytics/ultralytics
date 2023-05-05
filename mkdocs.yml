@@ -140,12 +140,6 @@ nav:
           - Segment: tasks/segment.md
           - Classify: tasks/classify.md
           - Pose: tasks/pose.md
-  - Models:
-      - models/index.md
-      - YOLOv3: models/yolov3.md
-      - YOLOv5: models/yolov5.md
-      - YOLOv8: models/yolov8.md
-      - Segment Anything Model (SAM): models/sam.md
   - Quickstart: quickstart.md
   - Modes:
       - modes/index.md
@@ -161,14 +155,54 @@ nav:
       - Segment: tasks/segment.md
       - Classify: tasks/classify.md
       - Pose: tasks/pose.md
+  - Models:
+      - models/index.md
+      - YOLOv3: models/yolov3.md
+      - YOLOv5: models/yolov5.md
+      - YOLOv8: models/yolov8.md
+      - Segment Anything Model (SAM): models/sam.md
   - Usage:
       - CLI: usage/cli.md
       - Python: usage/python.md
       - Callbacks: usage/callbacks.md
       - Configuration: usage/cfg.md
       - Advanced Customization: usage/engine.md
-  - Ultralytics HUB: hub.md
-  - iOS and Android App: app.md
+  - YOLOv5:
+      - yolov5/index.md
+      - Quickstart: yolov5/quickstart_tutorial.md
+      - Environments:
+          - Amazon Web Services (AWS): yolov5/environments/aws_quickstart_tutorial.md
+          - Google Cloud (GCP): yolov5/environments/google_cloud_quickstart_tutorial.md
+          - Docker Image: yolov5/environments/docker_image_quickstart_tutorial.md
+      - Tutorials:
+          - Train Custom Data: yolov5/tutorials/train_custom_data.md
+          - Tips for Best Training Results: yolov5/tutorials/tips_for_best_training_results.md
+          - Multi-GPU Training: yolov5/tutorials/multi_gpu_training.md
+          - PyTorch Hub: yolov5/tutorials/pytorch_hub_model_loading.md
+          - TFLite, ONNX, CoreML, TensorRT Export: yolov5/tutorials/model_export.md
+          - NVIDIA Jetson Nano Deployment: yolov5/tutorials/running_on_jetson_nano.md
+          - Test-Time Augmentation (TTA): yolov5/tutorials/test_time_augmentation.md
+          - Model Ensembling: yolov5/tutorials/model_ensembling.md
+          - Pruning/Sparsity Tutorial: yolov5/tutorials/model_pruning_and_sparsity.md
+          - Hyperparameter evolution: yolov5/tutorials/hyperparameter_evolution.md
+          - Transfer learning with frozen layers: yolov5/tutorials/transfer_learning_with_frozen_layers.md
+          - Architecture Summary: yolov5/tutorials/architecture_description.md
+          - Roboflow Datasets: yolov5/tutorials/roboflow_datasets_integration.md
+          - Neural Magic's DeepSparse: yolov5/tutorials/neural_magic_pruning_quantization.md
+          - Comet Logging: yolov5/tutorials/comet_logging_integration.md
+          - Clearml Logging: yolov5/tutorials/clearml_logging_integration.md
+  - Ultralytics HUB:
+      - hub/index.md
+      - Quickstart: hub/quickstart.md
+      - Datasets: hub/datasets.md
+      - Projects: hub/projects.md
+      - Models: hub/models.md
+      - Integrations: hub/integrations.md
+      - Ultralytics HUB App:
+          - hub/app/index.md
+          - 'iOS': hub/app/ios.md
+          - 'Android': hub/app/android.md
+      - Inference API: hub/inference_api.md
   - Reference:
       - hub:
           - auth: reference/hub/auth.md
@@ -195,6 +229,7 @@ nav:
               - augment: reference/yolo/data/augment.md
               - base: reference/yolo/data/base.md
               - build: reference/yolo/data/build.md
+              - converter: reference/yolo/data/converter.md
               - dataloaders:
                   - stream_loaders: reference/yolo/data/dataloaders/stream_loaders.md
                   - v5augmentations: reference/yolo/data/dataloaders/v5augmentations.md
@@ -251,31 +286,6 @@ nav:
                   - predict: reference/yolo/v8/segment/predict.md
                   - train: reference/yolo/v8/segment/train.md
                   - val: reference/yolo/v8/segment/val.md
-
-  - YOLOv5:
-      - yolov5/index.md
-      - Quickstart: yolov5/quickstart_tutorial.md
-      - Environments:
-          - Amazon Web Services (AWS): yolov5/environments/aws_quickstart_tutorial.md
-          - Google Cloud (GCP): yolov5/environments/google_cloud_quickstart_tutorial.md
-          - Docker Image: yolov5/environments/docker_image_quickstart_tutorial.md
-      - Tutorials:
-          - Train Custom Data: yolov5/tutorials/train_custom_data.md
-          - Tips for Best Training Results: yolov5/tutorials/tips_for_best_training_results.md
-          - Multi-GPU Training: yolov5/tutorials/multi_gpu_training.md
-          - PyTorch Hub: yolov5/tutorials/pytorch_hub_model_loading.md
-          - TFLite, ONNX, CoreML, TensorRT Export: yolov5/tutorials/model_export.md
-          - NVIDIA Jetson Nano Deployment: yolov5/tutorials/running_on_jetson_nano.md
-          - Test-Time Augmentation (TTA): yolov5/tutorials/test_time_augmentation.md
-          - Model Ensembling: yolov5/tutorials/model_ensembling.md
-          - Pruning/Sparsity Tutorial: yolov5/tutorials/model_pruning_and_sparsity.md
-          - Hyperparameter evolution: yolov5/tutorials/hyperparameter_evolution.md
-          - Transfer learning with frozen layers: yolov5/tutorials/transfer_learning_with_frozen_layers.md
-          - Architecture Summary: yolov5/tutorials/architecture_description.md
-          - Roboflow Datasets: yolov5/tutorials/roboflow_datasets_integration.md
-          - Neural Magic's DeepSparse: yolov5/tutorials/neural_magic_pruning_quantization.md
-          - Comet Logging: yolov5/tutorials/comet_logging_integration.md
-          - Clearml Logging: yolov5/tutorials/clearml_logging_integration.md
   - Help:
       - Help: help/index.md
       - Frequently Asked Questions (FAQ): help/FAQ.md
@@ -308,6 +318,8 @@ plugins:
         predict.md: modes/predict.md
         python.md: usage/python.md
         quick-start.md: quickstart.md
+        app.md: hub/app/index.md
+        sdk.md: index.md
         reference/base_pred.md: reference/yolo/engine/predictor.md
         reference/base_trainer.md: reference/yolo/engine/trainer.md
         reference/exporter.md: reference/yolo/engine/exporter.md
@@ -315,7 +327,6 @@ plugins:
         reference/nn.md: reference/nn/modules.md
         reference/ops.md: reference/yolo/utils/ops.md
         reference/results.md: reference/yolo/engine/results.md
-        sdk.md: index.md
         tasks/classification.md: tasks/classify.md
         tasks/detection.md: tasks/detect.md
         tasks/segmentation.md: tasks/segment.md

@@ -42,8 +42,6 @@ def convert_coco(labels_dir='../coco/annotations/', use_segments=False, use_keyp
     Output:
     Generates output files in the specified output directory.
     """
-    check_requirements('pycocotools')
-    from pycocotools import mask
 
     save_dir = make_dirs('yolo_labels')  # output directory
     coco80 = coco91_to_coco80_class()
@@ -117,7 +115,10 @@ def convert_coco(labels_dir='../coco/annotations/', use_segments=False, use_keyp
 
 
 def rle2polygon(segmentation):
-    m = mask.decode(segmentation)
+    check_requirements("pycocotools")
+    from pycocotools import mask
+    
+    m = mask.decode(segmentation) 
     m[m > 0] = 255
     contours, _ = cv2.findContours(m, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_KCOS)
     polygons = []

@@ -115,10 +115,10 @@ def convert_coco(labels_dir='../coco/annotations/', use_segments=False, use_keyp
 
 
 def rle2polygon(segmentation):
-    check_requirements("pycocotools")
+    check_requirements('pycocotools')
     from pycocotools import mask
-    
-    m = mask.decode(segmentation) 
+
+    m = mask.decode(segmentation)
     m[m > 0] = 255
     contours, _ = cv2.findContours(m, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_KCOS)
     polygons = []

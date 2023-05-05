@@ -10,8 +10,14 @@ from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils.files import make_dirs
 
 
-def coco91_to_coco80_class():  # converts 80-index (val2014) to 91-index (paper)
-    # https://tech.amikelive.com/node-718/what-object-categories-labels-are-in-coco-dataset/
+def coco91_to_coco80_class():
+    """Converts 91-index COCO class IDs to 80-index COCO class IDs.
+
+    Returns:
+        (list): A list of 91 class IDs where the index represents the 80-index class ID and the value is the
+            corresponding 91-index class ID.
+
+    """
     x = [
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, None, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, None, 24, 25, None,
         None, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, None, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
@@ -21,26 +27,25 @@ def coco91_to_coco80_class():  # converts 80-index (val2014) to 91-index (paper)
 
 
 def convert_coco(labels_dir='../coco/annotations/', use_segments=False, use_keypoints=False, cls91to80=True):
-    """
-    Converts COCO dataset annotations to a format suitable for training YOLOv5 models.
+    """Converts COCO dataset annotations to a format suitable for training YOLOv5 models.
 
     Args:
-    labels_dir (str, optional): Path to directory containing COCO dataset annotation files.
-    use_segments (bool, optional): Whether to include segmentation masks in the output.
-    use_keypoints (bool, optional): Whether to include keypoint annotations in the output.
-    cls91to80 (bool, optional): Whether to map 91 COCO class ids to the corresponding 80 COCO class ids.
+        labels_dir (str, optional): Path to directory containing COCO dataset annotation files.
+        use_segments (bool, optional): Whether to include segmentation masks in the output.
+        use_keypoints (bool, optional): Whether to include keypoint annotations in the output.
+        cls91to80 (bool, optional): Whether to map 91 COCO class IDs to the corresponding 80 COCO class IDs.
 
     Returns:
-    None
+        None
 
     Raises:
-    FileNotFoundError: If the labels_dir path does not exist.
+        FileNotFoundError: If the labels_dir path does not exist.
 
     Example Usage:
-    convert_coco(labels_dir='../coco/annotations/', use_segments=True, use_keypoints=True, cls91to80=True)
+        convert_coco(labels_dir='../coco/annotations/', use_segments=True, use_keypoints=True, cls91to80=True)
 
     Output:
-    Generates output files in the specified output directory.
+        Generates output files in the specified output directory.
     """
 
     save_dir = make_dirs('yolo_labels')  # output directory
@@ -49,7 +54,7 @@ def convert_coco(labels_dir='../coco/annotations/', use_segments=False, use_keyp
     # Import json
     for json_file in sorted(Path(labels_dir).resolve().glob('*.json')):
         fn = Path(save_dir) / 'labels' / json_file.stem.replace('instances_', '')  # folder name
-        fn.mkdir()
+        fn.mkdir(parents=True, exist_ok=True)
         with open(json_file) as f:
             data = json.load(f)
 
@@ -115,6 +120,18 @@ def convert_coco(labels_dir='../coco/annotations/', use_segments=False, use_keyp
 
 
 def rle2polygon(segmentation):
+    """
+    Convert Run-Length Encoding (RLE) mask to polygon coordinates.
+
+    Args:
+        segmentation (dict or list): RLE mask representation of the object segmentation.
+
+    Returns:
+        list: A list of lists representing the polygon coordinates for each contour.
+
+    Note:
+        Requires the 'pycocotools' package to be installed.
+    """
     check_requirements('pycocotools')
     from pycocotools import mask
 
@@ -131,12 +148,16 @@ def rle2polygon(segmentation):
 
 
 def min_index(arr1, arr2):
-    """Find a pair of indexes with the shortest distance.
+    """
+    Find a pair of indexes with the shortest distance between two arrays of 2D points.
+
     Args:
-        arr1: (N, 2).
-        arr2: (M, 2).
-    Return:
-        a pair of indexes(tuple).
+        arr1 (np.array): A NumPy array of shape (N, 2) representing N 2D points.
+        arr2 (np.array): A NumPy array of shape (M, 2) representing M 2D points.
+
+    Returns:
+        tuple: A tuple containing the indexes of the points with the shortest distance
+               in arr1 and arr2 respectively.
     """
     dis = ((arr1[:, None, :] - arr2[None, :, :]) ** 2).sum(-1)
     return np.unravel_index(np.argmin(dis, axis=None), dis.shape)
@@ -193,8 +214,9 @@ def merge_multi_segment(segments):
 
 
 def delete_dsstore(path='../datasets'):
-    # Delete apple .DS_store files
+    """Delete Apple .DS_Store files in the specified directory and its subdirectories."""
     from pathlib import Path
+
     files = list(Path(path).rglob('.DS_store'))
     print(files)
     for f in files:

@@ -89,13 +89,13 @@ In this example, the `data` dictionary contains the query arguments `size`, `con
 
 This will send the query parameters along with the file in the POST request. See the table below for a full list of available inference arguments.
 
-| Argument     | Default | Type    | Notes                                   |
-|--------------|---------|---------|-----------------------------------------|
-| `size`       | `640`   | `int`   | allowable range is `32` - `1280` pixels |
-| `confidence` | `0.25`  | `float` | allowable range is `0.01` - `1.0`       |
-| `iou`        | `0.45`  | `float` | allowable range is `0.0` - `0.95`       |
-| `url`        | `''`    | `str`   |                                         |
-| `normalize`  | `False` | `bool`  |                                         |
+| Inference Argument | Default | Type    | Notes                                          |
+|--------------------|---------|---------|------------------------------------------------|
+| `size`             | `640`   | `int`   | valid range is `32` - `1280` pixels            |
+| `confidence`       | `0.25`  | `float` | valid range is `0.01` - `1.0`                  |
+| `iou`              | `0.45`  | `float` | valid range is `0.0` - `0.95`                  |
+| `url`              | `''`    | `str`   | optional image URL if not image file is passed |
+| `normalize`        | `False` | `bool`  |                                                |
 
 ## Return JSON format
 

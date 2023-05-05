@@ -16,18 +16,8 @@ The YOLO Inference API allows you to access the YOLOv8 object detection capabili
 The API URL is the address used to access the YOLO Inference API. In this case, the base URL is:
 
 ```
-https://api.ultralytics.com/inference/v1
+https://api.ultralytics.com/v1/predict
 ```
-
-To access the API with a specific model and your API key, you can include them as query parameters in the API URL. The `model` parameter refers to the `MODEL_ID` you want to use for inference, and the `key` parameter corresponds to your `API_KEY`.
-
-The complete API URL with the model and API key parameters would be:
-
-```
-https://api.ultralytics.com/inference/v1?model=MODEL_ID&key=API_KEY
-```
-
-Replace `MODEL_ID` with the ID of the model you want to use and `API_KEY` with your actual API key from [https://hub.ultralytics.com/settings?tab=api+keys](https://hub.ultralytics.com/settings?tab=api+keys).
 
 ## Example Usage in Python
 
@@ -36,19 +26,24 @@ To access the YOLO Inference API with the specified model and API key using Pyth
 ```python
 import requests
 
-api_key = "API_KEY"
-model_id = "MODEL_ID"
-url = f"https://api.ultralytics.com/inference/v1?model={model_id}&key={api_key}"
-image_path = "image.jpg"
+# API URL, use actual MODEL_ID
+url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
 
-with open(image_path, "rb") as image_file:
-    files = {"image": image_file}
-    response = requests.post(url, files=files)
+# Headers, use actual API_KEY
+headers = {"x-api-key": "API_KEY"}
 
-print(response.text)
+# Inference arguments (optional)
+data = {"size": 640, "confidence": 0.25, "iou": 0.45}
+
+# Load image and send request
+with open("path/to/image.jpg", "rb") as image_file:
+    files = {"image": ("image.jpg", image_file, "image/jpeg")}
+    response = requests.post(url, headers=headers, files=files, data=data)
+
+print(response.json())
 ```
 
-In this example, replace `API_KEY` with your actual API key, `MODEL_ID` with the desired model ID, and `image.jpg` with the path to the image you want to analyze.
+In this example, replace `API_KEY` with your actual API key, `MODEL_ID` with the desired model ID, and `path/to/image.jpg` with the path to the image you want to analyze.
 
 
 ## Example Usage with CLI
@@ -56,41 +51,43 @@ In this example, replace `API_KEY` with your actual API key, `MODEL_ID` with the
 You can use the YOLO Inference API with the command-line interface (CLI) by utilizing the `curl` command. Replace `API_KEY` with your actual API key, `MODEL_ID` with the desired model ID, and `image.jpg` with the path to the image you want to analyze:
 
 ```commandline
-curl -X POST -F image=@image.jpg "https://api.ultralytics.com/inference/v1?model=MODEL_ID&key=API_KEY"
+curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \
+	-H "x-api-key: API_KEY" \
+	-F "image=@/path/to/image.jpg" \
+	-F "size=640" \
+	-F "confidence=0.25" \
+	-F "iou=0.45"
 ```
 
 ## Passing Arguments
 
-This command sends a POST request to the YOLO Inference API with the specified `model` and `key` parameters in the URL, along with the image file specified by `@image.jpg`.
+This command sends a POST request to the YOLO Inference API with the specified `MODEL_ID` in the URL and the `API_KEY` in the request `headers`, along with the image file specified by `@path/to/image.jpg`.
 
-Here's an example of passing the `model`, `key`, and `normalize` arguments via the API URL using the `requests` library in Python:
+Here's an example of passing the `size`, `confidence`, and `iou` arguments via the API URL using the `requests` library in Python:
 
 ```python
 import requests
 
-api_key = "API_KEY"
-model_id = "MODEL_ID"
-url = "https://api.ultralytics.com/inference/v1"
+# API URL, use actual MODEL_ID
+url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
 
-# Define your query parameters
-params = {
-    "key": api_key,
-    "model": model_id,
-    "normalize": "True"
-}
+# Headers, use actual API_KEY
+headers = {"x-api-key": "API_KEY"}
 
-image_path = "image.jpg"
+# Inference arguments (optional)
+data = {"size": 640, "confidence": 0.25, "iou": 0.45}
 
-with open(image_path, "rb") as image_file:
-    files = {"image": image_file}
-    response = requests.post(url, files=files, params=params)
+# Load image and send request
+with open("path/to/image.jpg", "rb") as image_file:
+    files = {"image": ("image.jpg", image_file, "image/jpeg")}
+    response = requests.post(url, headers=headers, files=files, data=data)
 
-print(response.text)
+print(response.json())
 ```
 
-In this example, the `params` dictionary contains the query parameters `key`, `model`, and `normalize`, which tells the API to return all values in normalized image coordinates from 0 to 1. The `normalize` parameter is set to `"True"` as a string since query parameters should be passed as strings. These query parameters are then passed to the `requests.post()` function.
+In this example, the `data` dictionary contains the query arguments `size`, `confidence`, and `iou`, which tells the API to run inference at image size 640 with confidence and IoU thresholds of 0.25 and 0.45.
 
-This will send the query parameters along with the file in the POST request. Make sure to consult the API documentation for the list of available arguments and their expected values.
+This will send the query parameters along with the file in the POST request. See the [Predict Docs](../modes/predict.md) for a full list of available inference arguments.
 
 ## Return JSON format
 
@@ -120,30 +117,33 @@ YOLO detection models, such as `yolov8n.pt`, can return JSON responses from loca
 
     === "CLI API"
         ```commandline
-        curl -X POST -F image=@image.jpg https://api.ultralytics.com/inference/v1?model=MODEL_ID,key=API_KEY
+        curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \ 
+            -H "x-api-key: API_KEY" \
+            -F "image=@/path/to/image.jpg" \
+            -F "size=640" \
+            -F "confidence=0.25" \
+            -F "iou=0.45"
         ```
 
     === "Python API"
         ```python
         import requests
         
-        api_key = "API_KEY"
-        model_id = "MODEL_ID"
-        url = "https://api.ultralytics.com/inference/v1"
+        # API URL, use actual MODEL_ID
+        url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
         
-        # Define your query parameters
-        params = {
-            "key": api_key,
-            "model": model_id,
-        }
+        # Headers, use actual API_KEY
+        headers = {"x-api-key": "API_KEY"}
         
-        image_path = "image.jpg"
+        # Inference arguments (optional)
+        data = {"size": 640, "confidence": 0.25, "iou": 0.45}
         
-        with open(image_path, "rb") as image_file:
-            files = {"image": image_file}
-            response = requests.post(url, files=files, params=params)
+        # Load image and send request
+        with open("path/to/image.jpg", "rb") as image_file:
+            files = {"image": ("image.jpg", image_file, "image/jpeg")}
+            response = requests.post(url, headers=headers, files=files, data=data)
         
-        print(response.text)
+        print(response.json())
         ```
 
     === "JSON Response"
@@ -211,30 +211,33 @@ YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses fr
 
     === "CLI API"
         ```commandline
-        curl -X POST -F image=@image.jpg https://api.ultralytics.com/inference/v1?model=MODEL_ID,key=API_KEY
+        curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \ 
+            -H "x-api-key: API_KEY" \
+            -F "image=@/path/to/image.jpg" \
+            -F "size=640" \
+            -F "confidence=0.25" \
+            -F "iou=0.45"
         ```
 
     === "Python API"
         ```python
         import requests
         
-        api_key = "API_KEY"
-        model_id = "MODEL_ID"
-        url = "https://api.ultralytics.com/inference/v1"
+        # API URL, use actual MODEL_ID
+        url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
         
-        # Define your query parameters
-        params = {
-            "key": api_key,
-            "model": model_id,
-        }
+        # Headers, use actual API_KEY
+        headers = {"x-api-key": "API_KEY"}
         
-        image_path = "image.jpg"
+        # Inference arguments (optional)
+        data = {"size": 640, "confidence": 0.25, "iou": 0.45}
         
-        with open(image_path, "rb") as image_file:
-            files = {"image": image_file}
-            response = requests.post(url, files=files, params=params)
+        # Load image and send request
+        with open("path/to/image.jpg", "rb") as image_file:
+            files = {"image": ("image.jpg", image_file, "image/jpeg")}
+            response = requests.post(url, headers=headers, files=files, data=data)
         
-        print(response.text)
+        print(response.json())
         ```
 
     === "JSON Response"
@@ -346,30 +349,33 @@ YOLO pose models, such as `yolov8n-pose.pt`, can return JSON responses from loca
 
     === "CLI API"
         ```commandline
-        curl -X POST -F image=@image.jpg https://api.ultralytics.com/inference/v1?model=MODEL_ID,key=API_KEY
+        curl -X POST "https://api.ultralytics.com/v1/predict/MODEL_ID" \ 
+            -H "x-api-key: API_KEY" \
+            -F "image=@/path/to/image.jpg" \
+            -F "size=640" \
+            -F "confidence=0.25" \
+            -F "iou=0.45"
         ```
 
     === "Python API"
         ```python
         import requests
         
-        api_key = "API_KEY"
-        model_id = "MODEL_ID"
-        url = "https://api.ultralytics.com/inference/v1"
+        # API URL, use actual MODEL_ID
+        url = f"https://api.ultralytics.com/v1/predict/MODEL_ID"
         
-        # Define your query parameters
-        params = {
-            "key": api_key,
-            "model": model_id,
-        }
+        # Headers, use actual API_KEY
+        headers = {"x-api-key": "API_KEY"}
         
-        image_path = "image.jpg"
+        # Inference arguments (optional)
+        data = {"size": 640, "confidence": 0.25, "iou": 0.45}
         
-        with open(image_path, "rb") as image_file:
-            files = {"image": image_file}
-            response = requests.post(url, files=files, params=params)
+        # Load image and send request
+        with open("path/to/image.jpg", "rb") as image_file:
+            files = {"image": ("image.jpg", image_file, "image/jpeg")}
+            response = requests.post(url, headers=headers, files=files, data=data)
         
-        print(response.text)
+        print(response.json())
         ```
 
     === "JSON Response"

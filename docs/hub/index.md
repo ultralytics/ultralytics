@@ -28,14 +28,14 @@ easily upload their data and train new models quickly. It offers a range of pre-
 templates to choose from, making it easy for users to get started with training their own models. Once a model is
 trained, it can be easily deployed and used for real-time object detection, instance segmentation and classification tasks.
 
-We hope that the resources here will help you get the most out of HUB. Please browse the HUB <a href="https://docs.ultralytics.com/">Docs</a> for details, raise an issue on <a href="https://github.com/ultralytics/hub/issues/new/choose">GitHub</a> for support, and join our <a href="https://discord.gg/n6cFeSPZdD">Discord</a> community for questions and discussions!
+We hope that the resources here will help you get the most out of HUB. Please browse the HUB <a href="https://docs.ultralytics.com/hub">Docs</a> for details, raise an issue on <a href="https://github.com/ultralytics/hub/issues/new/choose">GitHub</a> for support, and join our <a href="https://discord.gg/n6cFeSPZdD">Discord</a> community for questions and discussions!
 
-- [**Get started**](./quickstart.md). A quick guide to help you get started with Ultralytics HUB.
-- [**Datasets: Preparing and Uploading**](./datasets.md). Learn how to prepare and upload your datasets in the required format for Ultralytics HUB.
-- [**Projects: Creating and Managing**](./projects.md). Understand how to create, configure, and manage projects in Ultralytics HUB for organizing your model training and deployment tasks.
+- [**Quickstart**](./quickstart.md). Start training and deploying YOLO models with HUB in seconds.
+- [**Datasets: Preparing and Uploading**](./datasets.md). Learn how to prepare and upload your datasets to HUB in YOLO format.
+- [**Projects: Creating and Managing**](./projects.md). Group your models into projects for improved organization.
 - [**Models: Training and Exporting**](./models.md). Train YOLOv5 and YOLOv8 models on your custom datasets and export them to various formats for deployment.
-- [**Integrations: Options**](./integrations.md). Explore different integration options for your trained models, such as TensorFlow, ONNX, OpenVINO, CoreML, and Paddle.
+- [**Integrations: Options**](./integrations.md). Explore different integration options for your trained models, such as TensorFlow, ONNX, OpenVINO, CoreML, and PaddlePaddle.
 - [**Ultralytics HUB App**](./app/index.md). Learn about the Ultralytics App for iOS and Android, which allows you to run models directly on your mobile device.
   - [**iOS**](./app/ios.md)
   - [**Android**](./app/android.md)
-- [**Inference API**](./inference_api.md). Understand how to use the Inference API for running your trained models on new data and generating predictions.
+- [**Inference API**](./inference_api.md). Understand how to use the Inference API for running your trained models in the cloud to generate predictions.

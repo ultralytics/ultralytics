@@ -37,7 +37,7 @@ data = {"size": 640, "confidence": 0.25, "iou": 0.45}
 
 # Load image and send request
 with open("path/to/image.jpg", "rb") as image_file:
-    files = {"image": ("image.jpg", image_file, "image/jpeg")}
+    files = {"image": image_file}
     response = requests.post(url, headers=headers, files=files, data=data)
 
 print(response.json())
@@ -79,7 +79,7 @@ data = {"size": 640, "confidence": 0.25, "iou": 0.45}
 
 # Load image and send request
 with open("path/to/image.jpg", "rb") as image_file:
-    files = {"image": ("image.jpg", image_file, "image/jpeg")}
+    files = {"image": image_file}
     response = requests.post(url, headers=headers, files=files, data=data)
 
 print(response.json())
@@ -87,7 +87,15 @@ print(response.json())
 
 In this example, the `data` dictionary contains the query arguments `size`, `confidence`, and `iou`, which tells the API to run inference at image size 640 with confidence and IoU thresholds of 0.25 and 0.45.
 
-This will send the query parameters along with the file in the POST request. See the [Predict Docs](../modes/predict.md) for a full list of available inference arguments.
+This will send the query parameters along with the file in the POST request. See the table below for a full list of available inference arguments.
+
+| Argument   | Default | Type    | Notes                                   |
+|------------|---------|---------|-----------------------------------------|
+| size       | `640`   | `int`   | allowable range is `32` - `1280` pixels |
+| confidence | `0.25`  | `float` | allowable range is `0.01` - `1.0`       |
+| iou        | `0.45`  | `float` | allowable range is `0.0` - `0.95`       |
+| url        | ``      | `str`   |                                         |
+| normalize  | `False` | `bool`  |                                         |
 
 ## Return JSON format
 
@@ -140,7 +148,7 @@ YOLO detection models, such as `yolov8n.pt`, can return JSON responses from loca
         
         # Load image and send request
         with open("path/to/image.jpg", "rb") as image_file:
-            files = {"image": ("image.jpg", image_file, "image/jpeg")}
+            files = {"image": image_file}
             response = requests.post(url, headers=headers, files=files, data=data)
         
         print(response.json())
@@ -234,7 +242,7 @@ YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses fr
         
         # Load image and send request
         with open("path/to/image.jpg", "rb") as image_file:
-            files = {"image": ("image.jpg", image_file, "image/jpeg")}
+            files = {"image": image_file}
             response = requests.post(url, headers=headers, files=files, data=data)
         
         print(response.json())
@@ -372,7 +380,7 @@ YOLO pose models, such as `yolov8n-pose.pt`, can return JSON responses from loca
         
         # Load image and send request
         with open("path/to/image.jpg", "rb") as image_file:
-            files = {"image": ("image.jpg", image_file, "image/jpeg")}
+            files = {"image": image_file}
             response = requests.post(url, headers=headers, files=files, data=data)
         
         print(response.json())

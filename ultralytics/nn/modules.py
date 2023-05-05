@@ -50,11 +50,12 @@ class LightConv(nn.Module):
         """Initialize Conv layer with given arguments including activation."""
         super().__init__()
         self.conv1 = Conv(c1, c2, 1, act=False)
-        self.conv2 = Conv(c2, c2, k, act=nn.ReLU())
+        self.conv2 = DWConv(c2, c2, k, act=nn.ReLU())
 
     def forward(self, x):
         """Apply 2 convolutions to input tensor."""
         return self.conv2(self.conv1(x))
+
 
 class DWConv(Conv):
     """Depth-wise convolution."""

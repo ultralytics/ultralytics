@@ -649,6 +649,7 @@ class Cxa(nn.Module):
 
 
 class Cxb(nn.Module):
+    """BAD"""
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):  # ch_in, ch_out, number, shortcut, groups, expansion
         super().__init__()
         n = n * 2
@@ -678,6 +679,21 @@ class Cxc(nn.Module):
         return self.cv2(torch.cat(y, 1))
 
 
+class Cxc_act(nn.Module):
+    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):  # ch_in, ch_out, number, shortcut, groups, expansion
+        super().__init__()
+        n = n * 2
+        self.c = int(c2 * e)  # hidden channels
+        self.cv1 = Conv(c1, 2 * self.c, 1, 1)
+        self.cv2 = Conv((2 + n) * self.c, c2, 1)  # optional act=FReLU(c2)
+        self.m = nn.ModuleList(Conv5(self.c, self.c, k=3, act=True) for _ in range(n))
+
+    def forward(self, x):
+        y = list(self.cv1(x).split((self.c, self.c), 1))
+        y.extend(m(y[-1]) for m in self.m)
+        return self.cv2(torch.cat(y, 1))
+
+
 class Cxd(nn.Module):
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):  # ch_in, ch_out, number, shortcut, groups, expansion
         super().__init__()
@@ -694,7 +710,7 @@ class Cxd(nn.Module):
 
 
 class Cxe(nn.Module):
-    """CSP Bottleneck with 2 convolutions."""
+    """BAD - CSP Bottleneck with 2 convolutions."""
 
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):  # ch_in, ch_out, number, shortcut, groups, expansion
         super().__init__()
@@ -711,7 +727,7 @@ class Cxe(nn.Module):
 
 
 class Cxf(nn.Module):
-    """CSP Bottleneck with 2 convolutions."""
+    """BAD - CSP Bottleneck with 2 convolutions."""
 
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):  # ch_in, ch_out, number, shortcut, groups, expansion
         super().__init__()
@@ -743,9 +759,9 @@ class Bottleneck2(nn.Module):
 
 
 class Conv5(nn.Module):
-    def __init__(self, c1, c2, k=3, *args):  # ch_in, ch_out, shortcut, groups, kernels, expand
+    def __init__(self, c1, c2, k=3, act=False, *args):  # ch_in, ch_out, shortcut, groups, kernels, expand
         super().__init__()
-        self.cv1 = Conv(c1, c2, k, act=False)
+        self.cv1 = Conv(c1, c2, k, act=act)
         self.cv2 = DWConv(c2, c2, 5)
 
     def forward(self, x):

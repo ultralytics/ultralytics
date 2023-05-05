@@ -2,7 +2,12 @@
 comments: true
 ---
 
-# YOLO Inference API (UNDER CONSTRUCTION)
+# 🚧 Page Under Construction ⚒
+
+This page is currently under construction!️ 👷Please check back later for updates. 😃🔜
+
+
+# YOLO Inference API
 
 The YOLO Inference API allows you to access the YOLOv8 object detection capabilities via a RESTful API. This enables you to run object detection on images without the need to install and set up the YOLOv8 environment locally.
 

@@ -200,7 +200,7 @@ class Results(SimpleClass):
         if 'show_conf' in kwargs:
             deprecation_warn('line_thickness', 'line_width')
             line_width = kwargs['line_thickness']
-            assert type(conf) == int, '`line_width` should be of int type, i.e, line_width=3'
+            assert type(line_width) == int, '`line_width` should be of int type, i.e, line_width=3'
 
         names = self.names
         annotator = Annotator(deepcopy(self.orig_img if img is None else img),

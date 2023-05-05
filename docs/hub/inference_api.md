@@ -94,7 +94,7 @@ This will send the query parameters along with the file in the POST request. See
 | `size`       | `640`   | `int`   | allowable range is `32` - `1280` pixels |
 | `confidence` | `0.25`  | `float` | allowable range is `0.01` - `1.0`       |
 | `iou`        | `0.45`  | `float` | allowable range is `0.0` - `0.95`       |
-| `url`        | ``      | `str`   |                                         |
+| `url`        | `''`    | `str`   |                                         |
 | `normalize`  | `False` | `bool`  |                                         |
 
 ## Return JSON format

@@ -229,6 +229,7 @@ nav:
               - augment: reference/yolo/data/augment.md
               - base: reference/yolo/data/base.md
               - build: reference/yolo/data/build.md
+              - converter: reference/yolo/data/converter.md
               - dataloaders:
                   - stream_loaders: reference/yolo/data/dataloaders/stream_loaders.md
                   - v5augmentations: reference/yolo/data/dataloaders/v5augmentations.md

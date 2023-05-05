@@ -18,12 +18,11 @@ def coco91_to_coco80_class():
             corresponding 91-index class ID.
 
     """
-    x = [
+    return [
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, None, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, None, 24, 25, None,
         None, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, None, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
         51, 52, 53, 54, 55, 56, 57, 58, 59, None, 60, None, None, 61, None, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72,
         None, 73, 74, 75, 76, 77, 78, 79, None]
-    return x
 
 
 def convert_coco(labels_dir='../coco/annotations/', use_segments=False, use_keypoints=False, cls91to80=True):
@@ -34,9 +33,6 @@ def convert_coco(labels_dir='../coco/annotations/', use_segments=False, use_keyp
         use_segments (bool, optional): Whether to include segmentation masks in the output.
         use_keypoints (bool, optional): Whether to include keypoint annotations in the output.
         cls91to80 (bool, optional): Whether to map 91 COCO class IDs to the corresponding 80 COCO class IDs.
-
-    Returns:
-        None
 
     Raises:
         FileNotFoundError: If the labels_dir path does not exist.
@@ -124,10 +120,10 @@ def rle2polygon(segmentation):
     Convert Run-Length Encoding (RLE) mask to polygon coordinates.
 
     Args:
-        segmentation (dict or list): RLE mask representation of the object segmentation.
+        segmentation (dict, list): RLE mask representation of the object segmentation.
 
     Returns:
-        list: A list of lists representing the polygon coordinates for each contour.
+        (list): A list of lists representing the polygon coordinates for each contour.
 
     Note:
         Requires the 'pycocotools' package to be installed.
@@ -156,23 +152,23 @@ def min_index(arr1, arr2):
         arr2 (np.array): A NumPy array of shape (M, 2) representing M 2D points.
 
     Returns:
-        tuple: A tuple containing the indexes of the points with the shortest distance
-               in arr1 and arr2 respectively.
+        (tuple): A tuple containing the indexes of the points with the shortest distance in arr1 and arr2 respectively.
     """
     dis = ((arr1[:, None, :] - arr2[None, :, :]) ** 2).sum(-1)
     return np.unravel_index(np.argmin(dis, axis=None), dis.shape)
 
 
 def merge_multi_segment(segments):
-    """Merge multi segments to one list.
-    Find the coordinates with min distance between each segment,
-    then connect these coordinates with one thin line to merge all
-    segments into one.
+    """
+    Merge multiple segments into one list by connecting the coordinates with the minimum distance between each segment.
+    This function connects these coordinates with a thin line to merge all segments into one.
 
     Args:
-        segments(List(List)): original segmentations in coco's json file.
-            like [segmentation1, segmentation2,...],
-            each segmentation is a list of coordinates.
+        segments (List[List]): Original segmentations in COCO's JSON file.
+                               Each element is a list of coordinates, like [segmentation1, segmentation2,...].
+
+    Returns:
+        s (List[np.ndarray]): A list of connected segments represented as NumPy arrays.
     """
     s = []
     segments = [np.array(i).reshape(-1, 2) for i in segments]

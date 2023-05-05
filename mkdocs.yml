@@ -193,7 +193,7 @@ nav:
           - Clearml Logging: yolov5/tutorials/clearml_logging_integration.md
   - Ultralytics HUB:
       - hub/index.md
-      - Get started: quickstart.md
+      - Quickstart: hub/quickstart.md
       - Datasets: hub/datasets.md
       - Projects: hub/projects.md
       - Models: hub/models.md
@@ -317,6 +317,8 @@ plugins:
         predict.md: modes/predict.md
         python.md: usage/python.md
         quick-start.md: quickstart.md
+        app.md: hub/app/index.md
+        sdk.md: index.md
         reference/base_pred.md: reference/yolo/engine/predictor.md
         reference/base_trainer.md: reference/yolo/engine/trainer.md
         reference/exporter.md: reference/yolo/engine/exporter.md
@@ -324,13 +326,11 @@ plugins:
         reference/nn.md: reference/nn/modules.md
         reference/ops.md: reference/yolo/utils/ops.md
         reference/results.md: reference/yolo/engine/results.md
-        sdk.md: index.md
         tasks/classification.md: tasks/classify.md
         tasks/detection.md: tasks/detect.md
         tasks/segmentation.md: tasks/segment.md
         tasks/keypoints.md: tasks/pose.md
         tasks/tracking.md: modes/track.md
-        app.md: hub/app.md
         tutorials/architecture-summary.md: yolov5/tutorials/architecture_description.md
         tutorials/clearml-logging.md: yolov5/tutorials/clearml_logging_integration.md
         tutorials/comet-logging.md: yolov5/tutorials/comet_logging_integration.md

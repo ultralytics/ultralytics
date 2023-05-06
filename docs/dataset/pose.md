@@ -55,6 +55,9 @@ names:
   1: bicycle
 ```
 
+(Optional) if the points are symmetric then need flip_idx, like left-right side of human or face.
+For example let's say there're five keypoints of facial landmark: [left eye, right eye, nose, left point of mouth, right point of mouse], and the original index is [0, 1, 2, 3, 4], then flip_idx is [1, 0, 2, 4, 3].(just exchange the left-right index, i.e 0-1 and 3-4, and do not modify others like nose in this example) 
+
 ** Example **
 
 ```
@@ -63,6 +66,10 @@ val: data/val/
 
 nc: 2
 names: ['person', 'car']
+
+# Keypoints
+kpt_shape: [17, 3]  # number of keypoints, number of dims (2 for x,y or 3 for x,y,visible)
+flip_idx: [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15]
 ```
 
 ## Usage

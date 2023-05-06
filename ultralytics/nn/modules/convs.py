@@ -124,14 +124,14 @@ class RepConv(nn.Module):
     """RepConv is a basic rep-style block, including training and deploy status
     This code is based on https://github.com/DingXiaoH/RepVGG/blob/main/repvgg.py
     """
-    def __init__(self, c1, c2, k=3, s=1, p=1, g=1, d=1, bn=False, deploy=False):
+    default_act = nn.SiLU()  # default activation
+    def __init__(self, c1, c2, k=3, s=1, p=1, g=1, d=1, act=True, bn=False, deploy=False):
         super(RepConv, self).__init__()
         assert k == 3 and p == 1
         self.g = g
         self.c1 = c1
         self.c2 = c2
-
-        self.act = nn.ReLU()
+        self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
 
         if deploy:
             self.conv = nn.Conv2d(c1, c2, k, s, p, d, g, bias=True)

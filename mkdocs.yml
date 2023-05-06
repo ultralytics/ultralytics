@@ -167,7 +167,7 @@ nav:
       - Segmentation: dataset/segmentation.md
       - Pose: dataset/pose.md
       - Classification: dataset/cls.md
-      - Multi-Object Tracking: dataset/mot.md
+      - Multi-Object Tracking: dataset/track.md
   - Usage:
       - CLI: usage/cli.md
       - Python: usage/python.md

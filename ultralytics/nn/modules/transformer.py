@@ -2,7 +2,59 @@ import torch
 import torch.nn as nn
 from .convs import Conv
 
-__all__ = ["TransformerLayer", "TransformerBlock", "MLPBlock", "LayerNorm2d"]
+__all__ = ["TransformerEncoderLayer", "TransformerLayer", "TransformerBlock", "MLPBlock", "LayerNorm2d"]
+
+
+class TransformerEncoderLayer(nn.Module):
+    """Transformer Encoder."""
+
+    def __init__(self, c1, c2=2048, num_heads=0, dropout=0.0, act=nn.GELU(), normalize_before=False):
+        super().__init__()
+        self.ma = nn.MultiheadAttention(c1, num_heads, dropout=dropout)
+        # Implementation of Feedforward model
+        self.fc1 = nn.Linear(c1, c2)
+        self.fc2 = nn.Linear(c2, c1)
+
+        self.norm1 = nn.LayerNorm(c1)
+        self.norm2 = nn.LayerNorm(c1)
+        self.dropout = nn.Dropout(dropout)
+        self.dropout1 = nn.Dropout(dropout)
+        self.dropout2 = nn.Dropout(dropout)
+
+        self.act = act
+        self.normalize_before = normalize_before
+
+    def with_pos_embed(self, tensor, pos=None):
+        """Add position embeddings if given."""
+        return tensor if pos is None else tensor + pos
+
+    def forward_post(self, src, src_mask=None, src_key_padding_mask=None, pos=None):
+        q = k = self.with_pos_embed(src, pos)
+        src2 = self.ma(q, k, value=src, attn_mask=src_mask,
+                              key_padding_mask=src_key_padding_mask)[0]
+        src = src + self.dropout1(src2)
+        src = self.norm1(src)
+        src2 = self.fc2(self.dropout(self.act(self.fc1(src))))
+        src = src + self.dropout2(src2)
+        src = self.norm2(src)
+        return src
+
+    def forward_pre(self, src, src_mask=None, src_key_padding_mask=None, pos=None):
+        src2 = self.norm1(src)
+        q = k = self.with_pos_embed(src2, pos)
+        src2 = self.ma(q, k, value=src2, attn_mask=src_mask,
+                              key_padding_mask=src_key_padding_mask)[0]
+        src = src + self.dropout1(src2)
+        src2 = self.norm2(src)
+        src2 = self.fc2(self.dropout(self.act(self.fc1(src2))))
+        src = src + self.dropout2(src2)
+        return src
+
+    def forward(self, src, src_mask=None, src_key_padding_mask=None, pos=None):
+        """Forward propagates the input through the encoder module."""
+        if self.normalize_before:
+            return self.forward_pre(src, src_mask, src_key_padding_mask, pos)
+        return self.forward_post(src, src_mask, src_key_padding_mask, pos)
 
 
 class TransformerLayer(nn.Module):

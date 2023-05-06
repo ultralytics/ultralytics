@@ -24,3 +24,4 @@ backbone:
 
 head:
   - [-1, 1, Classify, [nc]]  # Classify
+  # - [-1, 1, Conv, [1024]]  # BaseConv

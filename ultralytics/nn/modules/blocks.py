@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from .convs import Conv, LightConv, GhostConv, DWConv
+from .convs import Conv, LightConv, GhostConv, DWConv, RepConv
 from .transformer import TransformerBlock
 
 __all__ = ["DFL", "HGBlock", "HGStem", "SPP", "SPPF", "C1", "C2", "C3", "C2f", "C3x", "C3TR", "C3Ghost", "GhostBottleneck", 
@@ -243,6 +243,21 @@ class GhostBottleneck(nn.Module):
     def forward(self, x):
         """Applies skip connection and concatenation to input tensor."""
         return self.conv(x) + self.shortcut(x)
+
+
+class RepBottleneck(nn.Module):
+    """Rep Bottleneck."""
+    def __init__(self, c1, c2, n=3, e=1.0):
+        super().__init__()
+        c_ = int(c2 * e)  # hidden channels
+        self.cv1 = Conv(c1, c2, 1, 1)
+        self.cv2 = Conv(c1, c2, 1, 1)
+        self.m = nn.Sequential(*[RepConv(c1, c2) for _ in range(n)])
+        self.cv3 = Conv(c_, c2, 1, 1) if c_ != c2 else nn.Identity()
+
+    def forward(self, x):
+        """Forward pass of a RT-DETR neck layer."""
+        return self.cv3(self.m(self.cv1(x)) + self.cv2(x))
 
 
 class Bottleneck(nn.Module):

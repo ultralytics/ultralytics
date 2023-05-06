@@ -142,7 +142,7 @@ class RepConv(nn.Module):
         self.deploy = deploy
 
     def forward(self, x):
-        '''Forward process'''
+        """Forward process"""
         if hasattr(self, 'conv'):
             return self.act(self.conv(x))
         id_out = 0 if self.bn is None else self.bn(x)

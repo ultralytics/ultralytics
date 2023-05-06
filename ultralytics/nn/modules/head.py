@@ -146,3 +146,71 @@ class Classify(nn.Module):
         x = self.linear(self.drop(self.pool(self.conv(x)).flatten(1)))
         return x if self.training else x.softmax(1)
 
+
+class RTDETRHEAD(nn.Module):
+    def __init__(self,
+                 num_classes=80,
+                 hidden_dim=256,
+                 num_queries=300,
+                 position_embed_type='sine',
+                 backbone_feat_channels=[512, 1024, 2048],
+                 feat_strides=[8, 16, 32],
+                 num_levels=3,
+                 num_decoder_points=4,
+                 nhead=8,
+                 num_decoder_layers=6,
+                 dim_feedforward=1024,
+                 dropout=0.,
+                 activation="relu",
+                 num_denoising=100,
+                 label_noise_ratio=0.5,
+                 box_noise_scale=1.0,
+                 learnt_init_query=True,
+                 eval_size=None,
+                 eval_idx=-1,
+                 eps=1e-2):
+        super().__init__()
+        assert position_embed_type in ['sine', 'learned'], \
+            f'ValueError: position_embed_type not supported {position_embed_type}!'
+        assert len(backbone_feat_channels) <= num_levels
+        assert len(feat_strides) == len(backbone_feat_channels)
+        for _ in range(num_levels - len(feat_strides)):
+            feat_strides.append(feat_strides[-1] * 2)
+
+        self.hidden_dim = hidden_dim
+        self.nhead = nhead
+        self.feat_strides = feat_strides
+        self.num_levels = num_levels
+        self.num_classes = num_classes
+        self.num_queries = num_queries
+        self.eps = eps
+        self.num_decoder_layers = num_decoder_layers
+        self.eval_size = eval_size
+
+        # backbone feature projection
+        self._build_input_proj_layer(backbone_feat_channels)
+
+    def _build_input_proj_layer(self, backbone_feat_channels):
+        self.input_proj = nn.ModuleList()
+        for in_channels in backbone_feat_channels:
+            self.input_proj.append(
+                nn.Sequential(
+                    nn.Conv2d(
+                        in_channels,
+                        self.hidden_dim,
+                        kernel_size=1,
+                        bias_attr=False), 
+                    nn.BatchNorm2D(self.hidden_dim)))
+        in_channels = backbone_feat_channels[-1]
+        for _ in range(self.num_levels - len(backbone_feat_channels)):
+            self.input_proj.append(
+                nn.Sequential(
+                    nn.Conv2D(
+                        in_channels,
+                        self.hidden_dim,
+                        kernel_size=3,
+                        stride=2,
+                        padding=1,
+                        bias_attr=False), nn.BatchNorm2D(
+                            self.hidden_dim)))
+            in_channels = self.hidden_dim

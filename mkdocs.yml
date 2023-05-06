@@ -164,7 +164,7 @@ nav:
   - Datasets:
       - dataset/index.md
       - Detection: dataset/detection.md
-      - Segmentation: dataset/segment.md
+      - Segmentation: dataset/segmentation.md
       - Pose: dataset/pose.md
       - Classification: dataset/cls.md
       - Multi-Object Tracking: dataset/mot.md

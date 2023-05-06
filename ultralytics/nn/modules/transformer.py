@@ -8,7 +8,7 @@ __all__ = ["TransformerEncoderLayer", "TransformerLayer", "TransformerBlock", "M
 class TransformerEncoderLayer(nn.Module):
     """Transformer Encoder."""
 
-    def __init__(self, c1, c2=2048, num_heads=0, dropout=0.0, act=nn.GELU(), normalize_before=False):
+    def __init__(self, c1, c2=2048, num_heads=8, dropout=0.0, act=nn.GELU(), normalize_before=False):
         super().__init__()
         self.ma = nn.MultiheadAttention(c1, num_heads, dropout=dropout)
         # Implementation of Feedforward model

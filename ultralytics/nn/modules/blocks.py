@@ -5,7 +5,7 @@ from .convs import Conv, LightConv, GhostConv, DWConv, RepConv
 from .transformer import TransformerBlock
 
 __all__ = ["DFL", "HGBlock", "HGStem", "SPP", "SPPF", "C1", "C2", "C3", "C2f", "C3x", "C3TR", "C3Ghost", "GhostBottleneck", 
-           "Bottleneck", "BottleneckCSP", "Proto"]
+           "Bottleneck", "BottleneckCSP", "Proto", "RepC3"]
 
 
 class DFL(nn.Module):
@@ -157,22 +157,6 @@ class C2(nn.Module):
         return self.cv2(torch.cat((self.m(a), b), 1))
 
 
-class C3(nn.Module):
-    """CSP Bottleneck with 3 convolutions."""
-
-    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):  # ch_in, ch_out, number, shortcut, groups, expansion
-        super().__init__()
-        c_ = int(c2 * e)  # hidden channels
-        self.cv1 = Conv(c1, c_, 1, 1)
-        self.cv2 = Conv(c1, c_, 1, 1)
-        self.cv3 = Conv(2 * c_, c2, 1)  # optional act=FReLU(c2)
-        self.m = nn.Sequential(*(Bottleneck(c_, c_, shortcut, g, k=((1, 1), (3, 3)), e=1.0) for _ in range(n)))
-
-    def forward(self, x):
-        """Forward pass through the CSP bottleneck with 2 convolutions."""
-        return self.cv3(torch.cat((self.m(self.cv1(x)), self.cv2(x)), 1))
-
-
 class C2f(nn.Module):
     """CSP Bottleneck with 2 convolutions."""
 
@@ -196,6 +180,22 @@ class C2f(nn.Module):
         return self.cv2(torch.cat(y, 1))
 
 
+class C3(nn.Module):
+    """CSP Bottleneck with 3 convolutions."""
+
+    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):  # ch_in, ch_out, number, shortcut, groups, expansion
+        super().__init__()
+        c_ = int(c2 * e)  # hidden channels
+        self.cv1 = Conv(c1, c_, 1, 1)
+        self.cv2 = Conv(c1, c_, 1, 1)
+        self.cv3 = Conv(2 * c_, c2, 1)  # optional act=FReLU(c2)
+        self.m = nn.Sequential(*(Bottleneck(c_, c_, shortcut, g, k=((1, 1), (3, 3)), e=1.0) for _ in range(n)))
+
+    def forward(self, x):
+        """Forward pass through the CSP bottleneck with 2 convolutions."""
+        return self.cv3(torch.cat((self.m(self.cv1(x)), self.cv2(x)), 1))
+
+
 class C3x(C3):
     """C3 module with cross-convolutions."""
 
@@ -204,6 +204,21 @@ class C3x(C3):
         super().__init__(c1, c2, n, shortcut, g, e)
         self.c_ = int(c2 * e)
         self.m = nn.Sequential(*(Bottleneck(self.c_, self.c_, shortcut, g, k=((1, 3), (3, 1)), e=1) for _ in range(n)))
+
+
+class RepC3(nn.Module):
+    """Rep C3."""
+    def __init__(self, c1, c2, n=3, e=1.0):
+        super().__init__()
+        c_ = int(c2 * e)  # hidden channels
+        self.cv1 = Conv(c1, c2, 1, 1)
+        self.cv2 = Conv(c1, c2, 1, 1)
+        self.m = nn.Sequential(*[RepConv(c_, c_) for _ in range(n)])
+        self.cv3 = Conv(c_, c2, 1, 1) if c_ != c2 else nn.Identity()
+
+    def forward(self, x):
+        """Forward pass of a RT-DETR neck layer."""
+        return self.cv3(self.m(self.cv1(x)) + self.cv2(x))
 
 
 class C3TR(C3):
@@ -226,7 +241,6 @@ class C3Ghost(C3):
         self.m = nn.Sequential(*(GhostBottleneck(c_, c_) for _ in range(n)))
 
 
-
 class GhostBottleneck(nn.Module):
     """Ghost Bottleneck https://github.com/huawei-noah/ghostnet."""
 
@@ -243,21 +257,6 @@ class GhostBottleneck(nn.Module):
     def forward(self, x):
         """Applies skip connection and concatenation to input tensor."""
         return self.conv(x) + self.shortcut(x)
-
-
-class RepBottleneck(nn.Module):
-    """Rep Bottleneck."""
-    def __init__(self, c1, c2, n=3, e=1.0):
-        super().__init__()
-        c_ = int(c2 * e)  # hidden channels
-        self.cv1 = Conv(c1, c2, 1, 1)
-        self.cv2 = Conv(c1, c2, 1, 1)
-        self.m = nn.Sequential(*[RepConv(c1, c2) for _ in range(n)])
-        self.cv3 = Conv(c_, c2, 1, 1) if c_ != c2 else nn.Identity()
-
-    def forward(self, x):
-        """Forward pass of a RT-DETR neck layer."""
-        return self.cv3(self.m(self.cv1(x)) + self.cv2(x))
 
 
 class Bottleneck(nn.Module):

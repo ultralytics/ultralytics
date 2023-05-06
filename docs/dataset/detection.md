@@ -7,7 +7,7 @@ comments: true
 
 ** Label Format **
 
-The dataset format used for training YOLO models is as follows:
+The dataset format used for training YOLO detection models is as follows:
 
 1. One text file per image: Each image in the dataset has a corresponding text file with the same name as the image file and the ".txt" extension.
 2. One row per object: Each row in the text file corresponds to one object instance in the image.
@@ -16,7 +16,7 @@ The dataset format used for training YOLO models is as follows:
    - Object center coordinates: The x and y coordinates of the center of the object, normalized to be between 0 and 1.
    - Object width and height: The width and height of the object, normalized to be between 0 and 1.
    
-The format for a single row in the YOLO dataset file is as follows:
+The format for a single row in the detection dataset file is as follows:
 ```
 <object-class> <x> <y> <width> <height>
 ```

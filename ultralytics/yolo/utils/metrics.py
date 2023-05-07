@@ -332,10 +332,11 @@ class ConfusionMatrix:
                        vmin=0.0,
                        xticklabels=ticklabels,
                        yticklabels=ticklabels).set_facecolor((1, 1, 1))
+        title = 'Confusion Matrix' + ' Normalized' * normalize
         ax.set_xlabel('True')
         ax.set_ylabel('Predicted')
-        ax.set_title('Confusion Matrix')
-        fig.savefig(Path(save_dir) / 'confusion_matrix.png', dpi=250)
+        ax.set_title(title)
+        fig.savefig(Path(save_dir) / f'{title.lower().replace(" ", "_")}.png', dpi=250)
         plt.close(fig)
 
     def print(self):

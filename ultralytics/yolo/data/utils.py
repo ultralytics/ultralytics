@@ -389,7 +389,8 @@ class HUBDatasetStats():
                     'total': len(dataset),
                     'unlabelled': int(np.all(x == 0, 1).sum()),
                     'per_class': (x > 0).sum(0).tolist()},
-                'labels': [{Path(k).name: _round(v)} for k, v in zip(dataset.im_files, dataset.labels)]}
+                'labels': [{
+                    Path(k).name: _round(v)} for k, v in zip(dataset.im_files, dataset.labels)]}
 
         # Save, print and return
         if save:

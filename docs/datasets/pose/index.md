@@ -2,6 +2,8 @@
 comments: true
 ---
 
+# Pose Estimation Datasets Overview
+
 ## Supported Dataset Formats
 
 ### Ultralytics YOLO format
@@ -38,7 +40,7 @@ In this format, `<class-index>` is the index of the class for the object,`<x> <y
 
 The Ultralytics framework uses a YAML file format to define the dataset and model configuration for training Detection Models. Here is an example of the YAML format used for defining a detection dataset:
 
-```
+```yaml
 train: <path-to-training-images>
 val: <path-to-validation-images>
 
@@ -71,7 +73,7 @@ For example let's say there're five keypoints of facial landmark: [left eye, rig
 
 ** Example **
 
-```
+```yaml
 train: data/train/
 val: data/val/
 

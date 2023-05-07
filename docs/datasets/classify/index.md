@@ -2,6 +2,8 @@
 comments: true
 ---
 
+# Image Classification Datasets Overview
+
 ## Dataset format
 
 The folder structure for classification datasets in torchvision typically follows a standard format:
@@ -26,7 +28,7 @@ root/
 |-- ...
 ```
 
-In this folder structure, the `root` directory contains one subdirectory for each class in the dataset. Each subdirectory is named after the corresponding class and contains all of the images for that class. Each image file is named uniquely and is typically in a common image file format such as JPEG or PNG.
+In this folder structure, the `root` directory contains one subdirectory for each class in the dataset. Each subdirectory is named after the corresponding class and contains all the images for that class. Each image file is named uniquely and is typically in a common image file format such as JPEG or PNG.
 
 ** Example **
 
@@ -72,7 +74,7 @@ cifar-10-/
 |   |-- ...
 ```
 
-In this example, the `train` directory contains subdirectories for each class in the dataset, and each class subdirectory contains all of the images for that class. The `test` directory has a similar structure. The `root` directory also contains other files that are part of the CIFAR10 dataset.
+In this example, the `train` directory contains subdirectories for each class in the dataset, and each class subdirectory contains all the images for that class. The `test` directory has a similar structure. The `root` directory also contains other files that are part of the CIFAR10 dataset.
 
 ## Usage
 !!! example ""

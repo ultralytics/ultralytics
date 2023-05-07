@@ -144,7 +144,7 @@ class DetectionValidator(BaseValidator):
                 LOGGER.info(pf % (self.names[c], self.seen, self.nt_per_class[c], *self.metrics.class_result(i)))
 
         if self.args.plots:
-            self.confusion_matrix.plot(save_dir=self.save_dir, names=list(self.names.values()))
+            self.confusion_matrix.plot(save_dir=self.save_dir, names=tuple(self.names.values()))
 
     def _process_batch(self, detections, labels):
         """

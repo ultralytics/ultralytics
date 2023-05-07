@@ -35,7 +35,5 @@ We hope that the resources here will help you get the most out of HUB. Please br
 - [**Projects: Creating and Managing**](./projects.md). Group your models into projects for improved organization.
 - [**Models: Training and Exporting**](./models.md). Train YOLOv5 and YOLOv8 models on your custom datasets and export them to various formats for deployment.
 - [**Integrations: Options**](./integrations.md). Explore different integration options for your trained models, such as TensorFlow, ONNX, OpenVINO, CoreML, and PaddlePaddle.
-- [**Ultralytics HUB App**](./app/index.md). Learn about the Ultralytics App for iOS and Android, which allows you to run models directly on your mobile device.
-  - [**iOS**](./app/ios.md)
-  - [**Android**](./app/android.md)
+- [**Ultralytics HUB App**](./app/index.md). Learn about the Ultralytics App for [**iOS**](./app/ios.md) and [**Android**](./app/android.md), which allows you to run models directly on your mobile device.
 - [**Inference API**](./inference_api.md). Understand how to use the Inference API for running your trained models in the cloud to generate predictions.

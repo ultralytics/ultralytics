@@ -46,7 +46,7 @@ class ClassificationValidator(BaseValidator):
         """Finalizes metrics of the model such as confusion_matrix and speed."""
         self.confusion_matrix.process_cls_preds(self.pred, self.targets)
         if self.args.plots:
-            self.confusion_matrix.plot(save_dir=self.save_dir, names=list(self.names.values()))
+            self.confusion_matrix.plot(save_dir=self.save_dir, names=tuple(self.names.values()))
         self.metrics.speed = self.speed
         self.metrics.confusion_matrix = self.confusion_matrix
 

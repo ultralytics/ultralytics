@@ -162,12 +162,12 @@ nav:
       - YOLOv8: models/yolov8.md
       - Segment Anything Model (SAM): models/sam.md
   - Datasets:
-      - dataset/index.md
-      - Detection: dataset/detection.md
-      - Segmentation: dataset/segmentation.md
-      - Pose: dataset/pose.md
-      - Classification: dataset/cls.md
-      - Multi-Object Tracking: dataset/track.md
+      - datasets/index.md
+      - Detection: datasets/detection.md
+      - Segmentation: datasets/segmentation.md
+      - Pose: datasets/pose.md
+      - Classification: datasets/cls.md
+      - Multi-Object Tracking: datasets/track.md
   - Usage:
       - CLI: usage/cli.md
       - Python: usage/python.md

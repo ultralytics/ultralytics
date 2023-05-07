@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 # Command Line Interface Usage
 
 The YOLO command line interface (CLI) allows for simple single-line commands without the need for a Python environment.

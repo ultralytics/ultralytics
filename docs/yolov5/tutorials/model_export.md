@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 # TFLite, ONNX, CoreML, TensorRT Export
 
 📚 This guide explains how to export a trained YOLOv5 🚀 model from PyTorch to ONNX and TorchScript formats.  

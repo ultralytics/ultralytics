@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 <!--
 Copyright (c) 2021 - present / Neuralmagic, Inc. All Rights Reserved.
 
@@ -29,8 +33,6 @@ Put simply, DeepSparse gives you the performance of GPUs and the simplicity of s
 - **Flexible Deployments**: Run consistently across cloud, data center, and edge with any hardware provider from Intel to AMD to ARM
 - **Infinite Scalability**: Scale vertically to 100s of cores, out with standard Kubernetes, or fully-abstracted with Serverless
 - **Easy Integration**: Clean APIs for integrating your model into an application and monitoring it in production
-
-**[Start your 90 day Free Trial](https://neuralmagic.com/deepsparse-free-trial/?utm_campaign=free_trial&utm_source=ultralytics_github).**
 
 ### How Does DeepSparse Achieve GPU-Class Performance?
 
@@ -256,5 +258,3 @@ deepsparse.benchmark zoo:cv/detection/yolov5-s/pytorch/ultralytics/coco/pruned35
 ## Get Started With DeepSparse
 
 **Research or Testing?** DeepSparse Community is free for research and testing. Get started with our [Documentation](https://docs.neuralmagic.com/).
-
-**Want to Try DeepSparse Enterprise?** [Start your 90 day free trial](https://neuralmagic.com/deepsparse-free-trial/?utm_campaign=free_trial&utm_source=ultralytics_github).

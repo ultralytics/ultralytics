@@ -7,6 +7,10 @@ from ultralytics.yolo.v8.detect.predict import DetectionPredictor
 
 class PosePredictor(DetectionPredictor):
 
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+        super().__init__(cfg, overrides, _callbacks)
+        self.args.task = 'pose'
+
     def postprocess(self, preds, img, orig_img):
         """Return detection results for a given input image or list of images."""
         preds = ops.non_max_suppression(preds,
@@ -24,7 +28,7 @@ class PosePredictor(DetectionPredictor):
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
             pred_kpts = pred[:, 6:].view(len(pred), *self.model.kpt_shape) if len(pred) else pred[:, 6:]
             pred_kpts = ops.scale_coords(img.shape[2:], pred_kpts, shape)
-            path, _, _, _, _ = self.batch
+            path = self.batch[0]
             img_path = path[i] if isinstance(path, list) else path
             results.append(
                 Results(orig_img=orig_img,

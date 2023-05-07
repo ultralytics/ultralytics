@@ -25,7 +25,7 @@ jobs:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         with:
           path-to-signatures: 'signatures/version1/cla.json'
-          path-to-document: 'https://github.com/ultralytics/assets/blob/main/documents/CLA.md' # CLA document
+          path-to-document: 'https://docs.ultralytics.com/help/CLA' # CLA document
           # branch should not be protected
           branch: 'main'
           allowlist: dependabot[bot],github-actions,[pre-commit*,pre-commit*,bot*

@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 ## 1. Model Structure
 
 YOLOv5 (v6.0/6.1) consists of:

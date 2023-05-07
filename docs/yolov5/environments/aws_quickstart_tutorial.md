@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 # YOLOv5 🚀 on AWS Deep Learning Instance: A Comprehensive Guide
 
 This guide will help new users run YOLOv5 on an Amazon Web Services (AWS) Deep Learning instance. AWS offers a [Free Tier](https://aws.amazon.com/free/) and a [credit program](https://aws.amazon.com/activate/) for a quick and affordable start. 

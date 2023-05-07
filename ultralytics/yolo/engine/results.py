@@ -197,6 +197,11 @@ class Results(SimpleClass):
             conf = kwargs['show_conf']
             assert type(conf) == bool, '`show_conf` should be of boolean type, i.e, show_conf=True/False'
 
+        if 'show_conf' in kwargs:
+            deprecation_warn('line_thickness', 'line_width')
+            line_width = kwargs['line_thickness']
+            assert type(line_width) == int, '`line_width` should be of int type, i.e, line_width=3'
+
         names = self.names
         annotator = Annotator(deepcopy(self.orig_img if img is None else img),
                               line_width,
@@ -213,7 +218,8 @@ class Results(SimpleClass):
                 img = LetterBox(pred_masks.shape[1:])(image=annotator.result())
                 img_gpu = torch.as_tensor(img, dtype=torch.float16, device=pred_masks.data.device).permute(
                     2, 0, 1).flip(0).contiguous() / 255
-            annotator.masks(pred_masks.data, colors=[colors(x, True) for x in pred_boxes.cls], im_gpu=img_gpu)
+            idx = pred_boxes.cls if pred_boxes else range(len(pred_masks))
+            annotator.masks(pred_masks.data, colors=[colors(x, True) for x in idx], im_gpu=img_gpu)
 
         if pred_boxes and show_boxes:
             for d in reversed(pred_boxes):

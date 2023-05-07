@@ -31,11 +31,13 @@ import platform
 from pathlib import Path
 
 import cv2
+import numpy as np
+import torch
 
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.data import load_inference_source
-from ultralytics.yolo.data.augment import classify_transforms
+from ultralytics.yolo.data.augment import LetterBox, classify_transforms
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, SETTINGS, callbacks, colorstr, ops
 from ultralytics.yolo.utils.checks import check_imgsz, check_imshow
 from ultralytics.yolo.utils.files import increment_path
@@ -106,9 +108,24 @@ class BasePredictor:
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 
-    def preprocess(self, img):
-        """Prepares input image before inference."""
-        pass
+    def preprocess(self, im):
+        """Prepares input image before inference.
+
+        Args:
+            im (torch.Tensor | List(np.ndarray)): (N, 3, h, w) for tensor, [(h, w, 3) x N] for list.
+        """
+        if not isinstance(im, torch.Tensor):
+            same_shapes = all(x.shape == im[0].shape for x in im)
+            auto = same_shapes and self.model.pt
+            im = np.stack([LetterBox(self.imgsz, auto=auto, stride=self.model.stride)(image=x) for x in im])
+            im = im[..., ::-1].transpose((0, 3, 1, 2))  # BGR to RGB, BHWC to BCHW, (n, 3, h, w)
+            im = np.ascontiguousarray(im)  # contiguous
+            im = torch.from_numpy(im)
+        # NOTE: assuming im with (b, 3, h, w) if it's a tensor
+        img = im.to(self.device)
+        img = img.half() if self.model.fp16 else img.float()  # uint8 to fp16/32
+        img /= 255  # 0 - 255 to 0.0 - 1.0
+        return img
 
     def write_results(self, idx, results, batch):
         """Write inference results to a file or directory."""
@@ -129,7 +146,7 @@ class BasePredictor:
         log_string += result.verbose()
 
         if self.args.save or self.args.show:  # Add bbox to image
-            plot_args = dict(line_width=self.args.line_thickness,
+            plot_args = dict(line_width=self.args.line_width,
                              boxes=self.args.boxes,
                              conf=self.args.show_conf,
                              labels=self.args.show_labels)
@@ -165,16 +182,9 @@ class BasePredictor:
     def setup_source(self, source):
         """Sets up source and inference mode."""
         self.imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)  # check image size
-        if self.args.task == 'classify':
-            transforms = getattr(self.model.model, 'transforms', classify_transforms(self.imgsz[0]))
-        else:  # predict, segment
-            transforms = None
-        self.dataset = load_inference_source(source=source,
-                                             transforms=transforms,
-                                             imgsz=self.imgsz,
-                                             vid_stride=self.args.vid_stride,
-                                             stride=self.model.stride,
-                                             auto=self.model.pt)
+        self.transforms = getattr(self.model.model, 'transforms', classify_transforms(
+            self.imgsz[0])) if self.args.task == 'classify' else None
+        self.dataset = load_inference_source(source=source, imgsz=self.imgsz, vid_stride=self.args.vid_stride)
         self.source_type = self.dataset.source_type
         if not getattr(self, 'stream', True) and (self.dataset.mode == 'stream' or  # streams
                                                   len(self.dataset) > 1000 or  # images
@@ -202,40 +212,38 @@ class BasePredictor:
             self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, 3, *self.imgsz))
             self.done_warmup = True
 
-        self.seen, self.windows, self.dt, self.batch = 0, [], (ops.Profile(), ops.Profile(), ops.Profile()), None
+        self.seen, self.windows, self.batch, profilers = 0, [], None, (ops.Profile(), ops.Profile(), ops.Profile())
         self.run_callbacks('on_predict_start')
         for batch in self.dataset:
             self.run_callbacks('on_predict_batch_start')
             self.batch = batch
-            path, im, im0s, vid_cap, s = batch
-            visualize = increment_path(self.save_dir / Path(path).stem, mkdir=True) if self.args.visualize else False
+            path, im0s, vid_cap, s = batch
+            visualize = increment_path(self.save_dir / Path(path[0]).stem,
+                                       mkdir=True) if self.args.visualize and (not self.source_type.tensor) else False
 
             # Preprocess
-            with self.dt[0]:
-                im = self.preprocess(im)
-                if len(im.shape) == 3:
-                    im = im[None]  # expand for batch dim
+            with profilers[0]:
+                im = self.preprocess(im0s)
 
             # Inference
-            with self.dt[1]:
+            with profilers[1]:
                 preds = self.model(im, augment=self.args.augment, visualize=visualize)
 
             # Postprocess
-            with self.dt[2]:
+            with profilers[2]:
                 self.results = self.postprocess(preds, im, im0s)
             self.run_callbacks('on_predict_postprocess_end')
 
             # Visualize, save, write results
-            n = len(im)
+            n = len(im0s)
             for i in range(n):
                 self.results[i].speed = {
-                    'preprocess': self.dt[0].dt * 1E3 / n,
-                    'inference': self.dt[1].dt * 1E3 / n,
-                    'postprocess': self.dt[2].dt * 1E3 / n}
+                    'preprocess': profilers[0].dt * 1E3 / n,
+                    'inference': profilers[1].dt * 1E3 / n,
+                    'postprocess': profilers[2].dt * 1E3 / n}
                 if self.source_type.tensor:  # skip write, show and plot operations if input is raw tensor
                     continue
-                p, im0 = (path[i], im0s[i].copy()) if self.source_type.webcam or self.source_type.from_img \
-                    else (path, im0s.copy())
+                p, im0 = path[i], im0s[i].copy()
                 p = Path(p)
 
                 if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
@@ -251,7 +259,7 @@ class BasePredictor:
 
             # Print time (inference-only)
             if self.args.verbose:
-                LOGGER.info(f'{s}{self.dt[1].dt * 1E3:.1f}ms')
+                LOGGER.info(f'{s}{profilers[1].dt * 1E3:.1f}ms')
 
         # Release assets
         if isinstance(self.vid_writer[-1], cv2.VideoWriter):
@@ -259,7 +267,7 @@ class BasePredictor:
 
         # Print results
         if self.args.verbose and self.seen:
-            t = tuple(x.t / self.seen * 1E3 for x in self.dt)  # speeds per image
+            t = tuple(x.t / self.seen * 1E3 for x in profilers)  # speeds per image
             LOGGER.info(f'Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape '
                         f'{(1, 3, *self.imgsz)}' % t)
         if self.args.save or self.args.save_txt or self.args.save_crop:
@@ -292,7 +300,7 @@ class BasePredictor:
             cv2.namedWindow(str(p), cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
             cv2.resizeWindow(str(p), im0.shape[1], im0.shape[0])
         cv2.imshow(str(p), im0)
-        cv2.waitKey(500 if self.batch[4].startswith('image') else 1)  # 1 millisecond
+        cv2.waitKey(500 if self.batch[3].startswith('image') else 1)  # 1 millisecond
 
     def save_preds(self, vid_cap, idx, save_path):
         """Save video predictions as mp4 at specified path."""

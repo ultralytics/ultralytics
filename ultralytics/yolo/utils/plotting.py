@@ -192,14 +192,27 @@ class Annotator:
         """Add rectangle to image (PIL-only)."""
         self.draw.rectangle(xy, fill, outline, width)
 
-    def text(self, xy, text, txt_color=(255, 255, 255), anchor='top'):
+    def text(self, xy, text, txt_color=(255, 255, 255), anchor='top', box_style=False):
         """Adds text to an image using PIL or cv2."""
         if anchor == 'bottom':  # start y from font bottom
             w, h = self.font.getsize(text)  # text width, height
             xy[1] += 1 - h
         if self.pil:
+            if box_style:
+                w, h = self.font.getsize(text)
+                self.draw.rectangle((xy[0], xy[1], xy[0] + w + 1, xy[1] + h + 1), fill=txt_color)
+                # Using `txt_color` for background and draw fg with white color
+                txt_color = (255, 255, 255)
             self.draw.text(xy, text, fill=txt_color, font=self.font)
         else:
+            if box_style:
+                tf = max(self.lw - 1, 1)  # font thickness
+                w, h = cv2.getTextSize(text, 0, fontScale=self.lw / 3, thickness=tf)[0]  # text width, height
+                outside = xy[1] - h >= 3
+                p2 = xy[0] + w, xy[1] - h - 3 if outside else xy[1] + h + 3
+                cv2.rectangle(self.im, xy, p2, txt_color, -1, cv2.LINE_AA)  # filled
+                # Using `txt_color` for background and draw fg with white color
+                txt_color = (255, 255, 255)
             tf = max(self.lw - 1, 1)  # font thickness
             cv2.putText(self.im, text, xy, 0, self.lw / 3, txt_color, thickness=tf, lineType=cv2.LINE_AA)
 
@@ -283,7 +296,7 @@ def save_one_box(xyxy, im, file=Path('im.jpg'), gain=1.02, pad=10, square=False,
 def plot_images(images,
                 batch_idx,
                 cls,
-                bboxes,
+                bboxes=np.zeros(0, dtype=np.float32),
                 masks=np.zeros(0, dtype=np.uint8),
                 kpts=np.zeros((0, 51), dtype=np.float32),
                 paths=None,
@@ -337,27 +350,33 @@ def plot_images(images,
             annotator.text((x + 5, y + 5), text=Path(paths[i]).name[:40], txt_color=(220, 220, 220))  # filenames
         if len(cls) > 0:
             idx = batch_idx == i
-
-            boxes = xywh2xyxy(bboxes[idx, :4]).T
             classes = cls[idx].astype('int')
-            labels = bboxes.shape[1] == 4  # labels if no conf column
-            conf = None if labels else bboxes[idx, 4]  # check for confidence presence (label vs pred)
 
-            if boxes.shape[1]:
-                if boxes.max() <= 1.01:  # if normalized with tolerance 0.01
-                    boxes[[0, 2]] *= w  # scale to pixels
-                    boxes[[1, 3]] *= h
-                elif scale < 1:  # absolute coords need scale if image scales
-                    boxes *= scale
-            boxes[[0, 2]] += x
-            boxes[[1, 3]] += y
-            for j, box in enumerate(boxes.T.tolist()):
-                c = classes[j]
-                color = colors(c)
-                c = names.get(c, c) if names else c
-                if labels or conf[j] > 0.25:  # 0.25 conf thresh
-                    label = f'{c}' if labels else f'{c} {conf[j]:.1f}'
-                    annotator.box_label(box, label, color=color)
+            if len(bboxes):
+                boxes = xywh2xyxy(bboxes[idx, :4]).T
+                labels = bboxes.shape[1] == 4  # labels if no conf column
+                conf = None if labels else bboxes[idx, 4]  # check for confidence presence (label vs pred)
+
+                if boxes.shape[1]:
+                    if boxes.max() <= 1.01:  # if normalized with tolerance 0.01
+                        boxes[[0, 2]] *= w  # scale to pixels
+                        boxes[[1, 3]] *= h
+                    elif scale < 1:  # absolute coords need scale if image scales
+                        boxes *= scale
+                boxes[[0, 2]] += x
+                boxes[[1, 3]] += y
+                for j, box in enumerate(boxes.T.tolist()):
+                    c = classes[j]
+                    color = colors(c)
+                    c = names.get(c, c) if names else c
+                    if labels or conf[j] > 0.25:  # 0.25 conf thresh
+                        label = f'{c}' if labels else f'{c} {conf[j]:.1f}'
+                        annotator.box_label(box, label, color=color)
+            elif len(classes):
+                for c in classes:
+                    color = colors(c)
+                    c = names.get(c, c) if names else c
+                    annotator.text((x, y), f'{c}', txt_color=color, box_style=True)
 
             # Plot keypoints
             if len(kpts):
@@ -403,11 +422,14 @@ def plot_images(images,
 
 
 @plt_settings()
-def plot_results(file='path/to/results.csv', dir='', segment=False, pose=False):
+def plot_results(file='path/to/results.csv', dir='', segment=False, pose=False, classify=False):
     """Plot training results.csv. Usage: from utils.plots import *; plot_results('path/to/results.csv')."""
     import pandas as pd
     save_dir = Path(file).parent if file else Path(dir)
-    if segment:
+    if classify:
+        fig, ax = plt.subplots(2, 2, figsize=(6, 6), tight_layout=True)
+        index = [1, 4, 2, 3]
+    elif segment:
         fig, ax = plt.subplots(2, 8, figsize=(18, 6), tight_layout=True)
         index = [1, 2, 3, 4, 5, 6, 9, 10, 13, 14, 15, 16, 7, 8, 11, 12]
     elif pose:
@@ -447,3 +469,36 @@ def output_to_target(output, max_det=300):
         targets.append(torch.cat((j, cls, xyxy2xywh(box), conf), 1))
     targets = torch.cat(targets, 0).numpy()
     return targets[:, 0], targets[:, 1], targets[:, 2:]
+
+
+def feature_visualization(x, module_type, stage, n=32, save_dir=Path('runs/detect/exp')):
+    """
+    Visualize feature maps of a given model module during inference.
+
+    Args:
+        x (torch.Tensor): Features to be visualized.
+        module_type (str): Module type.
+        stage (int): Module stage within the model.
+        n (int, optional): Maximum number of feature maps to plot. Defaults to 32.
+        save_dir (Path, optional): Directory to save results. Defaults to Path('runs/detect/exp').
+    """
+    for m in ['Detect', 'Pose', 'Segment']:
+        if m in module_type:
+            return
+    batch, channels, height, width = x.shape  # batch, channels, height, width
+    if height > 1 and width > 1:
+        f = save_dir / f"stage{stage}_{module_type.split('.')[-1]}_features.png"  # filename
+
+        blocks = torch.chunk(x[0].cpu(), channels, dim=0)  # select batch index 0, block by channels
+        n = min(n, channels)  # number of plots
+        fig, ax = plt.subplots(math.ceil(n / 8), 8, tight_layout=True)  # 8 rows x n/8 cols
+        ax = ax.ravel()
+        plt.subplots_adjust(wspace=0.05, hspace=0.05)
+        for i in range(n):
+            ax[i].imshow(blocks[i].squeeze())  # cmap='gray'
+            ax[i].axis('off')
+
+        LOGGER.info(f'Saving {f}... ({n}/{channels})')
+        plt.savefig(f, dpi=300, bbox_inches='tight')
+        plt.close()
+        np.save(str(f.with_suffix('.npy')), x[0].cpu().numpy())  # npy save

@@ -481,6 +481,10 @@ class BaseTrainer:
         """
         raise NotImplementedError('get_dataloader function not implemented in trainer')
 
+    def build_dataset(self, img_path, mode='train', batch=None):
+        """Build dataset"""
+        raise NotImplementedError('build_dataset function not implemented in trainer')
+
     def criterion(self, preds, batch):
         """
         Returns loss and individual loss items as Tensor.

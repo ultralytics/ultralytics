@@ -315,8 +315,9 @@ class HUBDatasetStats():
 
     Usage
         from ultralytics.yolo.data.utils import HUBDatasetStats
-        stats = HUBDatasetStats('coco128.yaml', autodownload=True)  # usage 1
-        stats = HUBDatasetStats('/Users/glennjocher/Downloads/coco6.zip')  # usage 2
+        stats = HUBDatasetStats('/Users/glennjocher/Downloads/coco8.zip', task='detect')  # detect dataset
+        stats = HUBDatasetStats('/Users/glennjocher/Downloads/coco8-seg.zip', task='segment')  # segment dataset
+        stats = HUBDatasetStats('/Users/glennjocher/Downloads/coco8-pose.zip', task='pose')  # pose dataset
         stats.get_json(save=False)
         stats.process_images()
     """
@@ -373,13 +374,14 @@ class HUBDatasetStats():
             if self.task == 'detect':
                 coordinates = labels['bboxes']
             elif self.task == 'segment':
-                coordinates = labels['segments']
+                coordinates = [x.flatten() for x in labels['segments']]
             elif self.task == 'pose':
-                coordinates = labels['bboxes'], labels['keypoints']
+                n = labels['keypoints'].shape[0]
+                coordinates = np.concatenate((labels['bboxes'], labels['keypoints'].reshape(n, -1)), 1)
             else:
                 raise ValueError('Undefined dataset task.')
-            joined = np.concatenate((labels['cls'], coordinates), 1)
-            return [[int(c), *(round(x, 4) for x in points)] for c, *points in joined]
+            zipped = zip(labels['cls'], coordinates)
+            return [[int(c), *(round(float(x), 4) for x in points)] for c, points in zipped]
 
         for split in 'train', 'val', 'test':
             if self.data.get(split) is None:

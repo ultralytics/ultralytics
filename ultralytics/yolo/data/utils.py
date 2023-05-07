@@ -352,11 +352,10 @@ class HUBDatasetStats():
         """Unzip data.zip."""
         if not str(path).endswith('.zip'):  # path is data.yaml
             return False, None, path
-        assert Path(path).is_file(), f'Error unzipping {path}, file not found'
-        unzip_file(path, path=path.parent)
-        dir = path.with_suffix('')  # dataset directory == zip name
-        assert dir.is_dir(), f'Error unzipping {path}, {dir} not found. path/to/abc.zip MUST unzip to path/to/abc/'
-        return True, str(dir), self._find_yaml(dir)  # zipped, data_dir, yaml_path
+        unzip_dir = unzip_file(path, path=path.parent)
+        assert unzip_dir.is_dir(), f'Error unzipping {path}, {unzip_dir} not found. ' \
+                                   f'path/to/abc.zip MUST unzip to path/to/abc/'
+        return True, str(unzip_dir), self._find_yaml(unzip_dir)  # zipped, data_dir, yaml_path
 
     def _hub_ops(self, f):
         """Saves a compressed image for HUB previews."""

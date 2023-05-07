@@ -209,7 +209,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         album_transform: Albumentations transforms, used if installed
     """
 
-    def __init__(self, root, augment, imgsz, cache=False):
+    def __init__(self, root, augment=False, imgsz=224, cache=False):
         """Initialize YOLO object with root, image size, augmentations, and cache settings"""
         super().__init__(root=root)
         self.torch_transforms = classify_transforms(imgsz)

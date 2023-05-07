@@ -365,19 +365,21 @@ class HUBDatasetStats():
     def get_json(self, save=False, verbose=False):
         """Return dataset JSON for Ultralytics HUB."""
         # from ultralytics.yolo.data import YOLODataset
-        from ultralytics.yolo.data.dataloaders.v5loader import LoadImagesAndLabels
+        from ultralytics.yolo.data.dataset import YOLODataset
 
         def _round(labels):
-            """Update labels to integer class and 6 decimal place floats."""
-            return [[int(c), *(round(x, 4) for x in points)] for c, *points in labels]
+            """Update labels to integer class and 4 decimal place floats."""
+            joined = np.concatenate((labels['cls'], labels['bboxes']), 1)
+            return [[int(c), *(round(x, 4) for x in points)] for c, *points in joined]
 
         for split in 'train', 'val', 'test':
             if self.data.get(split) is None:
                 self.stats[split] = None  # i.e. no test set
                 continue
-            dataset = LoadImagesAndLabels(self.data[split])  # load dataset
+
+            dataset = YOLODataset(img_path=self.data[split], data=self.data)
             x = np.array([
-                np.bincount(label[:, 0].astype(int), minlength=self.data['nc'])
+                np.bincount(label['cls'].astype(int).flatten(), minlength=self.data['nc'])
                 for label in tqdm(dataset.labels, total=len(dataset), desc='Statistics')])  # shape(128x80)
             self.stats[split] = {
                 'instance_stats': {
@@ -387,8 +389,7 @@ class HUBDatasetStats():
                     'total': len(dataset),
                     'unlabelled': int(np.all(x == 0, 1).sum()),
                     'per_class': (x > 0).sum(0).tolist()},
-                'labels': [{
-                    str(Path(k).name): _round(v.tolist())} for k, v in zip(dataset.im_files, dataset.labels)]}
+                'labels': [{Path(k).name: _round(v)} for k, v in zip(dataset.im_files, dataset.labels)]}
 
         # Save, print and return
         if save:
@@ -403,12 +404,12 @@ class HUBDatasetStats():
     def process_images(self):
         """Compress images for Ultralytics HUB."""
         # from ultralytics.yolo.data import YOLODataset
-        from ultralytics.yolo.data.dataloaders.v5loader import LoadImagesAndLabels
+        from ultralytics.yolo.data.dataset import YOLODataset
 
         for split in 'train', 'val', 'test':
             if self.data.get(split) is None:
                 continue
-            dataset = LoadImagesAndLabels(self.data[split])  # load dataset
+            dataset = YOLODataset(img_path=self.data[split], data=self.data)
             with ThreadPool(NUM_THREADS) as pool:
                 for _ in tqdm(pool.imap(self._hub_ops, dataset.im_files), total=len(dataset), desc=f'{split} images'):
                     pass

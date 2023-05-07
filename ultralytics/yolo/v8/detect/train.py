@@ -62,8 +62,7 @@ class DetectionTrainer(BaseTrainer):
             LOGGER.warning("WARNING ⚠️ 'rect=True' is incompatible with DataLoader shuffle, setting shuffle=False")
             shuffle = False
         workers = self.args.workers if mode == 'train' else self.args.workers * 2
-        dataloader = build_dataloader(dataset, batch_size, workers, shuffle, rank)
-        return dataloader
+        return build_dataloader(dataset, batch_size, workers, shuffle, rank)  # return dataloader
 
     def preprocess_batch(self, batch):
         """Preprocesses a batch of images by scaling and converting to float."""

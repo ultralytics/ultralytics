@@ -360,8 +360,6 @@ class ConfusionMatrix:
         plt.close(fig)
 
 
-
-
     def print(self):
         """
         Print the confusion matrix to the console.

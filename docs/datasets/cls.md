@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 ## Dataset format
 
 The folder structure for classification datasets in torchvision typically follows a standard format:

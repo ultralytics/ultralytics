@@ -52,7 +52,7 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX')):
         BadZipFile: If the provided file does not exist or is not a valid zipfile.
 
     Returns:
-        Path: The path to the directory where the zipfile was extracted.
+        (Path): The path to the directory where the zipfile was extracted.
     """
     if not (Path(file).exists() and is_zipfile(file)):
         raise BadZipFile(f"File '{file}' does not exist or is a bad zip file.")

@@ -63,7 +63,8 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX')):
         file_list = [f for f in zipObj.namelist() if all(x not in f for x in exclude)]
         top_level_dirs = {Path(f).parts[0] for f in file_list}
 
-        if len(top_level_dirs) > 1 or not next(iter(top_level_dirs)).endswith('/'):
+        print(file_list)
+        if len(top_level_dirs) > 1 or not file_list[0].endswith('/'):
             path = Path(path) / Path(file).stem  # define new unzip directory
 
         for f in file_list:

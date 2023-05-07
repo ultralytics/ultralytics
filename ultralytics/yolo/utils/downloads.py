@@ -37,26 +37,39 @@ def is_url(url, check=True):
 
 def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX')):
     """
-    Unzip a *.zip file to path/, excluding files containing strings in exclude list
-    Replaces: ZipFile(file).extractall(path=path)
+    Unzips a *.zip file to the specified path, excluding files containing strings in the exclude list.
+
+    If the zipfile does not contain a single top-level directory, the function will create a new
+    directory with the same name as the zipfile (without the extension) to extract its contents.
+    If a path is not provided, the function will use the parent directory of the zipfile as the default path.
+
+    Args:
+        file (str): The path to the zipfile to be extracted.
+        path (str, optional): The path to extract the zipfile to. Defaults to None.
+        exclude (tuple, optional): A tuple of filename strings to be excluded. Defaults to ('.DS_Store', '__MACOSX').
+
+    Raises:
+        BadZipFile: If the provided file does not exist or is not a valid zipfile.
+
+    Returns:
+        (Path): The path to the directory where the zipfile was extracted.
     """
     if not (Path(file).exists() and is_zipfile(file)):
         raise BadZipFile(f"File '{file}' does not exist or is a bad zip file.")
     if path is None:
         path = Path(file).parent  # default path
+
     with ZipFile(file) as zipObj:
-        for i, f in enumerate(zipObj.namelist()):  # list all archived filenames in the zip
-            # If zip does not expand into a directory create a new directory to expand into
-            if i == 0:
-                info = zipObj.getinfo(f)
-                if info.file_size > 0 or not info.filename.endswith('/'):  # element is a file and not a directory
-                    path = Path(path) / Path(file).stem  # define new unzip directory
-                    unzip_dir = path
-                else:
-                    unzip_dir = f
-            if all(x not in f for x in exclude):
-                zipObj.extract(f, path=path)
-        return unzip_dir  # return unzip dir
+        file_list = [f for f in zipObj.namelist() if all(x not in f for x in exclude)]
+        top_level_dirs = {Path(f).parts[0] for f in file_list}
+
+        if len(top_level_dirs) > 1 or not file_list[0].endswith('/'):
+            path = Path(path) / Path(file).stem  # define new unzip directory
+
+        for f in file_list:
+            zipObj.extract(f, path=path)
+
+    return path  # return unzip dir
 
 
 def check_disk_space(url='https://ultralytics.com/assets/coco128.zip', sf=1.5, hard=True):

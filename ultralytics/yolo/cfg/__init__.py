@@ -24,7 +24,7 @@ TASK2MODEL = {
     'detect': 'yolov8n.pt',
     'segment': 'yolov8n-seg.pt',
     'classify': 'yolov8n-cls.pt',
-    'pose': 'yolov8n-pose.yaml'}
+    'pose': 'yolov8n-pose.pt'}
 
 CLI_HELP_MSG = \
     f"""

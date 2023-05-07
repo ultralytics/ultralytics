@@ -317,7 +317,7 @@ class ConfusionMatrix:
 
         count_array = self.matrix
 
-        fig, ax = plt.subplots(1, 1, figsize=(12, 9), tight_layout=True)
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 9), tight_layout=True)
         nc, nn = self.nc, len(names)  # number of classes, names
         sn.set(font_scale=1.0 if nc < 50 else 0.8)  # for label size
         labels = (0 < nn < 99) and (nn == nc)  # apply names to ticklabels
@@ -325,7 +325,7 @@ class ConfusionMatrix:
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')  # suppress empty matrix RuntimeWarning: All-NaN slice encountered
             sn.heatmap(array,
-                       ax=ax,
+                       ax=ax1,
                        annot=nc < 30,
                        annot_kws={
                            'size': 8},
@@ -335,30 +335,32 @@ class ConfusionMatrix:
                        vmin=0.0,
                        xticklabels=ticklabels,
                        yticklabels=ticklabels).set_facecolor((1, 1, 1))
-        ax.set_xlabel('True')
-        ax.set_ylabel('Predicted')
-        ax.set_title('Confusion Matrix')
-        fig.savefig(Path(save_dir) / 'confusion_matrix.png', dpi=250)
-        plt.close(fig)
+        ax1.set_xlabel('True')
+        ax1.set_ylabel('Predicted')
+        ax1.set_title('Confusion Matrix')
 
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')  # suppress empty matrix RuntimeWarning: All-NaN slice encountered
             sn.heatmap(count_array,
-                       ax=ax,
+                       ax=ax2,
                        annot=nc < 30,
                        annot_kws={
-                           'size': 8},
+                           'size': 20},
                        cmap='Blues',
-                       fmt='.2f',
+                       fmt='.0f',
                        square=True,
                        vmin=0.0,
                        xticklabels=ticklabels,
                        yticklabels=ticklabels).set_facecolor((1, 1, 1))
-        ax.set_xlabel('True')
-        ax.set_ylabel('Predicted')
-        ax.set_title('Confusion Matrix')
-        fig.savefig(Path(save_dir) / 'confusion_matrix_count.png', dpi=250)
+        ax2.set_xlabel('True')
+        ax2.set_ylabel('Predicted')
+        ax2.set_title('Confusion Matrix with Count')
+
+        fig.savefig(Path(save_dir) / 'confusion_matrix.png', dpi=250)
         plt.close(fig)
+
+
+
 
     def print(self):
         """

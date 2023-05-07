@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-__version__ = '8.0.93'
+__version__ = '8.0.94'
 
 from ultralytics.hub import start
 from ultralytics.vit.sam import SAM

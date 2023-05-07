@@ -4,7 +4,7 @@ This example demonstrates how to perform inference using YOLOv8 and YOLOv5 model
 
 ## Usage
 
-```commandline
+```bash
 git clone ultralytics
 cd ultralytics
 pip install .

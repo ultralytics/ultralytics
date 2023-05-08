@@ -38,5 +38,5 @@ default_space = {
 task_metric_map = {
     'detect': 'metrics/mAP50-95(B)',
     'segment': 'metrics/mAP50-95(M)',
-    'classify': 'top1_acc',
-    'pose': None}
+    'classify': 'metrics/accuracy_top1',
+    'pose': 'metrics/mAP50-95(P)'}

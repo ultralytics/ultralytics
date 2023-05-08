@@ -161,6 +161,41 @@ nav:
       - YOLOv5: models/yolov5.md
       - YOLOv8: models/yolov8.md
       - Segment Anything Model (SAM): models/sam.md
+  - Datasets:
+      - datasets/index.md
+      - Detection:
+          - datasets/detect/index.md
+          - Argoverse: datasets/detect/argoverse.md
+          - COCO: datasets/detect/coco.md
+          - COCO8: datasets/detect/coco8.md
+          - GlobalWheat2020: datasets/detect/globalwheat2020.md
+          - Objects365: datasets/detect/objects365.md
+          - SKU-110K: datasets/detect/sku-110k.md
+          - VisDrone: datasets/detect/visdrone.md
+          - VOC: datasets/detect/voc.md
+          - xView: datasets/detect/xview.md
+      - Segmentation:
+          - datasets/segment/index.md
+          - COCO: datasets/segment/coco.md
+          - COCO8-seg: datasets/segment/coco8-seg.md
+      - Pose:
+          - datasets/pose/index.md
+          - COCO: datasets/pose/coco.md
+          - COCO8-pose: datasets/pose/coco8-pose.md
+      - Classification:
+          - datasets/classify/index.md
+          - Caltech 101: datasets/classify/caltech101.md
+          - Caltech 256: datasets/classify/caltech256.md
+          - CIFAR-10: datasets/classify/cifar10.md
+          - CIFAR-100: datasets/classify/cifar100.md
+          - Fashion-MNIST: datasets/classify/fashion-mnist.md
+          - ImageNet: datasets/classify/imagenet.md
+          - ImageNet-10: datasets/classify/imagenet10.md
+          - Imagenette: datasets/classify/imagenette.md
+          - Imagewoof: datasets/classify/imagewoof.md
+          - MNIST: datasets/classify/mnist.md
+      - Multi-Object Tracking:
+          - datasets/track/index.md
   - Usage:
       - CLI: usage/cli.md
       - Python: usage/python.md
@@ -327,6 +362,7 @@ plugins:
         reference/nn.md: reference/nn/modules.md
         reference/ops.md: reference/yolo/utils/ops.md
         reference/results.md: reference/yolo/engine/results.md
+        reference/base_val.md: index.md
         tasks/classification.md: tasks/classify.md
         tasks/detection.md: tasks/detect.md
         tasks/segmentation.md: tasks/segment.md
@@ -362,6 +398,7 @@ plugins:
         yolov5/train_custom_data.md: yolov5/tutorials/train_custom_data.md
         yolov5/architecture.md: yolov5/tutorials/architecture_description.md
         yolov5/export.md: yolov5/tutorials/model_export.md
+        yolov5/yolov5_quickstart_tutorial.md: yolov5/quickstart_tutorial.md
         yolov5/tips_for_best_training_results.md: yolov5/tutorials/tips_for_best_training_results.md
         yolov5/tutorials/yolov5_neural_magic_tutorial.md: yolov5/tutorials/neural_magic_pruning_quantization.md
         yolov5/tutorials/model_ensembling_tutorial.md: yolov5/tutorials/model_ensembling.md
@@ -372,4 +409,17 @@ plugins:
         yolov5/tutorials/model_export_tutorial.md: yolov5/tutorials/model_export.md
         yolov5/tutorials/jetson_nano_tutorial.md: yolov5/tutorials/running_on_jetson_nano.md
         yolov5/tutorials/yolov5_model_ensembling_tutorial.md: yolov5/tutorials/model_ensembling.md
-        reference/base_val.md: index.md
+        yolov5/tutorials/roboflow_integration.md: yolov5/tutorials/roboflow_datasets_integration.md
+        yolov5/tutorials/pruning_and_sparsity_tutorial.md: yolov5/tutorials/model_pruning_and_sparsity.md
+        yolov5/tutorials/yolov5_transfer_learning_with_frozen_layers_tutorial.md: yolov5/tutorials/transfer_learning_with_frozen_layers.md
+        yolov5/tutorials/transfer_learning_with_frozen_layers_tutorial.md: yolov5/tutorials/transfer_learning_with_frozen_layers.md
+        yolov5/tutorials/yolov5_model_export_tutorial.md: yolov5/tutorials/model_export.md
+        yolov5/tutorials/neural_magic_tutorial.md: yolov5/tutorials/neural_magic_pruning_quantization.md
+        yolov5/tutorials/yolov5_clearml_integration_tutorial.md: yolov5/tutorials/clearml_logging_integration.md
+        yolov5/tutorials/yolov5_train_custom_data.md: yolov5/tutorials/train_custom_data.md
+        yolov5/tutorials/comet_integration_tutorial.md: yolov5/tutorials/comet_logging_integration.md
+        yolov5/tutorials/yolov5_pruning_and_sparsity_tutorial.md: yolov5/tutorials/model_pruning_and_sparsity.md
+        yolov5/tutorials/yolov5_jetson_nano_tutorial.md: yolov5/tutorials/running_on_jetson_nano.md
+        yolov5/environments/yolov5_amazon_web_services_quickstart_tutorial.md: yolov5/environments/aws_quickstart_tutorial.md
+        yolov5/environments/yolov5_google_cloud_platform_quickstart_tutorial.md: yolov5/environments/google_cloud_quickstart_tutorial.md
+        yolov5/environments/yolov5_docker_image_quickstart_tutorial.md: yolov5/environments/docker_image_quickstart_tutorial.md

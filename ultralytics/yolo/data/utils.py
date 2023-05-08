@@ -310,17 +310,19 @@ class HUBDatasetStats():
 
     Arguments
         path:           Path to data.yaml or data.zip (with data.yaml inside data.zip)
+        task:           Dataset task. Options are 'detect', 'segment', 'pose', 'classify'.
         autodownload:   Attempt to download dataset if not found locally
 
     Usage
         from ultralytics.yolo.data.utils import HUBDatasetStats
-        stats = HUBDatasetStats('coco128.yaml', autodownload=True)  # usage 1
-        stats = HUBDatasetStats('/Users/glennjocher/Downloads/coco6.zip')  # usage 2
+        stats = HUBDatasetStats('/Users/glennjocher/Downloads/coco8.zip', task='detect')  # detect dataset
+        stats = HUBDatasetStats('/Users/glennjocher/Downloads/coco8-seg.zip', task='segment')  # segment dataset
+        stats = HUBDatasetStats('/Users/glennjocher/Downloads/coco8-pose.zip', task='pose')  # pose dataset
         stats.get_json(save=False)
         stats.process_images()
     """
 
-    def __init__(self, path='coco128.yaml', autodownload=False):
+    def __init__(self, path='coco128.yaml', task='detect', autodownload=False):
         """Initialize class."""
         zipped, data_dir, yaml_path = self._unzip(Path(path))
         try:
@@ -336,6 +338,7 @@ class HUBDatasetStats():
         self.im_dir.mkdir(parents=True, exist_ok=True)  # makes /images
         self.stats = {'nc': len(data['names']), 'names': list(data['names'].values())}  # statistics dictionary
         self.data = data
+        self.task = task  # detect, segment, pose, classify
 
     @staticmethod
     def _find_yaml(dir):
@@ -352,11 +355,10 @@ class HUBDatasetStats():
         """Unzip data.zip."""
         if not str(path).endswith('.zip'):  # path is data.yaml
             return False, None, path
-        assert Path(path).is_file(), f'Error unzipping {path}, file not found'
-        unzip_file(path, path=path.parent)
-        dir = path.with_suffix('')  # dataset directory == zip name
-        assert dir.is_dir(), f'Error unzipping {path}, {dir} not found. path/to/abc.zip MUST unzip to path/to/abc/'
-        return True, str(dir), self._find_yaml(dir)  # zipped, data_dir, yaml_path
+        unzip_dir = unzip_file(path, path=path.parent)
+        assert unzip_dir.is_dir(), f'Error unzipping {path}, {unzip_dir} not found. ' \
+                                   f'path/to/abc.zip MUST unzip to path/to/abc/'
+        return True, str(unzip_dir), self._find_yaml(unzip_dir)  # zipped, data_dir, yaml_path
 
     def _hub_ops(self, f):
         """Saves a compressed image for HUB previews."""
@@ -364,20 +366,33 @@ class HUBDatasetStats():
 
     def get_json(self, save=False, verbose=False):
         """Return dataset JSON for Ultralytics HUB."""
-        # from ultralytics.yolo.data import YOLODataset
-        from ultralytics.yolo.data.dataloaders.v5loader import LoadImagesAndLabels
+        from ultralytics.yolo.data import YOLODataset  # ClassificationDataset
 
         def _round(labels):
-            """Update labels to integer class and 6 decimal place floats."""
-            return [[int(c), *(round(x, 4) for x in points)] for c, *points in labels]
+            """Update labels to integer class and 4 decimal place floats."""
+            if self.task == 'detect':
+                coordinates = labels['bboxes']
+            elif self.task == 'segment':
+                coordinates = [x.flatten() for x in labels['segments']]
+            elif self.task == 'pose':
+                n = labels['keypoints'].shape[0]
+                coordinates = np.concatenate((labels['bboxes'], labels['keypoints'].reshape(n, -1)), 1)
+            else:
+                raise ValueError('Undefined dataset task.')
+            zipped = zip(labels['cls'], coordinates)
+            return [[int(c), *(round(float(x), 4) for x in points)] for c, points in zipped]
 
         for split in 'train', 'val', 'test':
             if self.data.get(split) is None:
                 self.stats[split] = None  # i.e. no test set
                 continue
-            dataset = LoadImagesAndLabels(self.data[split])  # load dataset
+
+            dataset = YOLODataset(img_path=self.data[split],
+                                  data=self.data,
+                                  use_segments=self.task == 'segment',
+                                  use_keypoints=self.task == 'pose')
             x = np.array([
-                np.bincount(label[:, 0].astype(int), minlength=self.data['nc'])
+                np.bincount(label['cls'].astype(int).flatten(), minlength=self.data['nc'])
                 for label in tqdm(dataset.labels, total=len(dataset), desc='Statistics')])  # shape(128x80)
             self.stats[split] = {
                 'instance_stats': {
@@ -388,7 +403,7 @@ class HUBDatasetStats():
                     'unlabelled': int(np.all(x == 0, 1).sum()),
                     'per_class': (x > 0).sum(0).tolist()},
                 'labels': [{
-                    str(Path(k).name): _round(v.tolist())} for k, v in zip(dataset.im_files, dataset.labels)]}
+                    Path(k).name: _round(v)} for k, v in zip(dataset.im_files, dataset.labels)]}
 
         # Save, print and return
         if save:
@@ -402,13 +417,12 @@ class HUBDatasetStats():
 
     def process_images(self):
         """Compress images for Ultralytics HUB."""
-        # from ultralytics.yolo.data import YOLODataset
-        from ultralytics.yolo.data.dataloaders.v5loader import LoadImagesAndLabels
+        from ultralytics.yolo.data import YOLODataset  # ClassificationDataset
 
         for split in 'train', 'val', 'test':
             if self.data.get(split) is None:
                 continue
-            dataset = LoadImagesAndLabels(self.data[split])  # load dataset
+            dataset = YOLODataset(img_path=self.data[split], data=self.data)
             with ThreadPool(NUM_THREADS) as pool:
                 for _ in tqdm(pool.imap(self._hub_ops, dataset.im_files), total=len(dataset), desc=f'{split} images'):
                     pass

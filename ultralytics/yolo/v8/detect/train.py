@@ -32,7 +32,7 @@ class DetectionTrainer(BaseTrainer):
         gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
         return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == 'val', stride=gs)
 
-    def get_dataloader(self, dataset_path, batch_size, rank=0, mode='train'):
+    def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode='train'):
         """TODO: manage splits differently."""
         # Calculate stride - check if model is initialized
         if self.args.v5loader:
@@ -62,8 +62,7 @@ class DetectionTrainer(BaseTrainer):
             LOGGER.warning("WARNING ⚠️ 'rect=True' is incompatible with DataLoader shuffle, setting shuffle=False")
             shuffle = False
         workers = self.args.workers if mode == 'train' else self.args.workers * 2
-        dataloader = build_dataloader(dataset, batch_size, workers, shuffle, rank)
-        return dataloader
+        return build_dataloader(dataset, batch_size, workers, shuffle, rank)  # return dataloader
 
     def preprocess_batch(self, batch):
         """Preprocesses a batch of images by scaling and converting to float."""

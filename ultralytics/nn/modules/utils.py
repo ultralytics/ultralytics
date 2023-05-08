@@ -1,6 +1,7 @@
 import torch
 import copy
 import torch.nn as nn
+import numpy as np
 import torch.nn.functional as F
 
 __all__ = ["multi_scale_deformable_attn_pytorch", "inverse_sigmoid"]
@@ -9,6 +10,11 @@ __all__ = ["multi_scale_deformable_attn_pytorch", "inverse_sigmoid"]
 def _get_clones(module, N):
     return nn.ModuleList([copy.deepcopy(module) for _ in range(N)])
 
+
+def bias_init_with_prob(prior_prob=0.01):
+    """initialize conv/fc bias value according to a given probability value."""
+    bias_init = float(-np.log((1 - prior_prob) / prior_prob))
+    return bias_init
 
 def inverse_sigmoid(x, eps=1e-5):
     x = x.clamp(min=0, max=1)

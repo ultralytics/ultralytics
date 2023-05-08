@@ -337,8 +337,7 @@ nav:
 plugins:
   - mkdocstrings
   - search
-  #- meta-descriptions:
-  #    enable_checks: True
+  - ultralytics
   - git-revision-date-localized:
       type: timeago
       enable_creation_date: true

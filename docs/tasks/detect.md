@@ -6,10 +6,7 @@ Object detection is a task that involves identifying the location and class of o
 
 <img width="1024" src="https://user-images.githubusercontent.com/26833433/212094133-6bb8c21c-3d47-41df-a512-81c5931054ae.png">
 
-The output of an object detector is a set of bounding boxes that enclose the objects in the image, along with class
-labels
-and confidence scores for each box. Object detection is a good choice when you need to identify objects of interest in a
-scene, but don't need to know exactly where the object is or its exact shape.
+The output of an object detector is a set of bounding boxes that enclose the objects in the image, along with class labels and confidence scores for each box. Object detection is a good choice when you need to identify objects of interest in a scene, but don't need to know exactly where the object is or its exact shape.
 
 !!! tip "Tip"
 
@@ -17,13 +14,9 @@ scene, but don't need to know exactly where the object is or its exact shape.
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models/v8)
 
-YOLOv8 pretrained Detect models are shown here. Detect, Segment and Pose models are pretrained on
-the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco.yaml) dataset, while Classify
-models are pretrained on
-the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/ImageNet.yaml) dataset.
+YOLOv8 pretrained Detect models are shown here. Detect, Segment and Pose models are pretrained on the [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco.yaml) dataset, while Classify models are pretrained on the [ImageNet](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/ImageNet.yaml) dataset.
 
-[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) download automatically from the latest
-Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
+[Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
 | Model                                                                                | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |
 |--------------------------------------------------------------------------------------|-----------------------|----------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
@@ -41,8 +34,7 @@ Ultralytics [release](https://github.com/ultralytics/assets/releases) on first u
 
 ## Train
 
-Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. For a full list of available arguments see
-the [Configuration](../usage/cfg.md) page.
+Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
 
 !!! example ""
 
@@ -71,15 +63,14 @@ the [Configuration](../usage/cfg.md) page.
         # Build a new model from YAML, transfer pretrained weights to it and start training
         yolo detect train data=coco128.yaml model=yolov8n.yaml pretrained=yolov8n.pt epochs=100 imgsz=640
         ```
+
 ### Dataset format
 
-YOLO detection dataset format can be found in detail in the [Dataset Guide](../yolov5/tutorials/train_custom_data.md).
-To convert your existing dataset from other formats( like COCO, VOC etc.) to YOLO format, please use [json2yolo tool](https://github.com/ultralytics/JSON2YOLO) by Ultralytics.
+YOLO detection dataset format can be found in detail in the [Dataset Guide](../yolov5/tutorials/train_custom_data.md). To convert your existing dataset from other formats( like COCO, VOC etc.) to YOLO format, please use [json2yolo tool](https://github.com/ultralytics/JSON2YOLO) by Ultralytics.
 
 ## Val
 
-Validate trained YOLOv8n model accuracy on the COCO128 dataset. No argument need to passed as the `model` retains it's
-training `data` and arguments as model attributes.
+Validate trained YOLOv8n model accuracy on the COCO128 dataset. No argument need to passed as the `model` retains it's training `data` and arguments as model attributes.
 
 !!! example ""
 
@@ -158,8 +149,7 @@ Export a YOLOv8n model to a different format like ONNX, CoreML, etc.
         yolo export model=path/to/best.pt format=onnx  # export custom trained model
         ```
 
-Available YOLOv8 export formats are in the table below. You can predict or validate directly on exported models,
-i.e. `yolo predict model=yolov8n.onnx`. Usage examples are shown for your model after export completes.
+Available YOLOv8 export formats are in the table below. You can predict or validate directly on exported models, i.e. `yolo predict model=yolov8n.onnx`. Usage examples are shown for your model after export completes.
 
 | Format                                                             | `format` Argument | Model                     | Metadata | Arguments                                           |
 |--------------------------------------------------------------------|-------------------|---------------------------|----------|-----------------------------------------------------|

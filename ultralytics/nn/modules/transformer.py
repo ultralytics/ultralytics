@@ -223,6 +223,10 @@ class MSDeformAttn(nn.Module):
 
 
 class DeformableTransformerDecoderLayer(nn.Module):
+    """
+    https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/transformers/deformable_transformer.py
+    https://github.com/fundamentalvision/Deformable-DETR/blob/main/models/deformable_transformer.py
+    """
     def __init__(self, d_model=256, d_ffn=1024, dropout=0.1, act=nn.ReLU(), n_levels=4, n_heads=8, n_points=4):
         super().__init__()
 
@@ -279,6 +283,9 @@ class DeformableTransformerDecoderLayer(nn.Module):
 
 
 class DeformableTransformerDecoder(nn.Module):
+    """
+    https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/transformers/deformable_transformer.py
+    """
     def __init__(self, hidden_dim, decoder_layer, num_layers, eval_idx=-1):
         super().__init__()
         self.layers = _get_clones(decoder_layer, num_layers)

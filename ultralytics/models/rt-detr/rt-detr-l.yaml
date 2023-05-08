@@ -24,7 +24,7 @@ backbone:
 
 head:
   - [-1, 1, Conv, [256, 1, 1, None, 1, 1, False]]
-  - [-1, 1, AIFI, [1024, 8]]   # TODO
+  - [-1, 1, AIFI, [1024, 8]]
   - [-1, 1, Conv, [256, 1, 1]]   # Y5
 
   - [-1, 1, nn.Upsample, [None, 2, 'nearest']]

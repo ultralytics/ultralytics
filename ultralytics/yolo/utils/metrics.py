@@ -328,7 +328,7 @@ class ConfusionMatrix:
                 annot_kws={
                     'size': 8},
                 cmap='Blues',
-                fmt='.2f' if normalize else '%d',  # float if normalize else integer
+                fmt='.2f' if normalize else 'd',  # float if normalize else integer
                 square=True,
                 vmin=0.0,
                 xticklabels=ticklabels,

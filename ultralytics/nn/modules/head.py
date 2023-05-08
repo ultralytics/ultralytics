@@ -170,7 +170,7 @@ class RTDETRDecoder(nn.Module):
                  num_denoising=100,
                  label_noise_ratio=0.5,
                  box_noise_scale=1.0,
-                 learnt_init_query=True):
+                 learnt_init_query=False):
         super().__init__()
         assert len(ch) <= nl
         assert len(strides) == len(ch)

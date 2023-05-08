@@ -60,9 +60,9 @@ class HGStem(nn.Module):
     def forward(self, x):
         """Forward pass of a PPHGNetV2 backbone layer."""
         x = self.stem1(x)
-        x = F.pad(x, [0, 1, 0, 1], value=-torch.inf)
+        x = F.pad(x, [0, 1, 0, 1])
         x2 = self.stem2a(x)
-        x2 = F.pad(x2, [0, 1, 0, 1], value=-torch.inf)
+        x2 = F.pad(x2, [0, 1, 0, 1])
         x2 = self.stem2b(x2)
         x1 = self.pool(x)
         x = torch.cat([x1, x2], dim=1)

@@ -47,6 +47,7 @@ setup(
             'mkdocstrings[python]',
             'mkdocs-redirects',  # for 301 redirects
             'mkdocs-git-revision-date-localized-plugin',  # for created/updated dates
+            'mkdocs-meta-descriptions-plugin',  # for meta descriptions from first paragraph
         ],
         'export': ['coremltools>=6.0', 'openvino-dev>=2022.3', 'tensorflowjs'],  # automatically installs tensorflow
     },

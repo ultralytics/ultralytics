@@ -87,7 +87,9 @@ def on_train_end(trainer):
     """Callback function called at end of training."""
     if run:
         # Log final results, CM matrix + PR plots
-        files = ['results.png', 'confusion_matrix.png', *(f'{x}_curve.png' for x in ('F1', 'PR', 'P', 'R'))]
+        files = [
+            'results.png', 'confusion_matrix.png', 'confusion_matrix_normalized.png',
+            *(f'{x}_curve.png' for x in ('F1', 'PR', 'P', 'R'))]
         files = [(trainer.save_dir / f) for f in files if (trainer.save_dir / f).exists()]  # filter
         for f in files:
             _log_plot(title=f.stem, plot_path=f)

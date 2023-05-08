@@ -92,7 +92,7 @@ def on_train_epoch_end(trainer):
             _log_debug_samples(sorted(trainer.save_dir.glob('train_batch*.jpg')), 'Mosaic')
         """Report the current training progress."""
         for k, v in trainer.validator.metrics.results_dict.items():
-            task.get_logger().report_scalar("train", k, v, iteration=trainer.epoch)
+            task.get_logger().report_scalar('train', k, v, iteration=trainer.epoch)
 
 
 def on_fit_epoch_end(trainer):

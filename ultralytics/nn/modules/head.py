@@ -2,11 +2,11 @@ import torch
 import torch.nn as nn
 import math
 import torch.nn.functional as F
-from torch.nn.init import xavier_uniform_, constant_, linear_init_
+from torch.nn.init import xavier_uniform_, constant_
 from .convs import Conv
 from .blocks import DFL, Proto
 from .transformer import DeformableTransformerDecoderLayer, DeformableTransformerDecoder, MLP
-from .utils import bias_init_with_prob
+from .utils import bias_init_with_prob, linear_init_
 
 from ultralytics.yolo.utils.tal import dist2bbox, make_anchors
 
@@ -215,11 +215,11 @@ class RTDETRDecoder(nn.Module):
         self.enc_bbox_head = MLP(hidden_dim, hidden_dim, 4, num_layers=3)
 
         # decoder head
-        self.dec_score_head = nn.LayerList([
+        self.dec_score_head = nn.ModuleList([
             nn.Linear(hidden_dim, nc)
             for _ in range(num_decoder_layers)
         ])
-        self.dec_bbox_head = nn.LayerList([
+        self.dec_bbox_head = nn.ModuleList([
             MLP(hidden_dim, hidden_dim, 4, num_layers=3)
             for _ in range(num_decoder_layers)
         ])
@@ -266,13 +266,13 @@ class RTDETRDecoder(nn.Module):
         bias_cls = bias_init_with_prob(0.01)
         linear_init_(self.enc_score_head)
         constant_(self.enc_score_head.bias, bias_cls)
-        constant_(self.enc_bbox_head.layers[-1].weight)
-        constant_(self.enc_bbox_head.layers[-1].bias)
+        constant_(self.enc_bbox_head.layers[-1].weight, 0.)
+        constant_(self.enc_bbox_head.layers[-1].bias, 0.)
         for cls_, reg_ in zip(self.dec_score_head, self.dec_bbox_head):
             linear_init_(cls_)
             constant_(cls_.bias, bias_cls)
-            constant_(reg_.layers[-1].weight)
-            constant_(reg_.layers[-1].bias)
+            constant_(reg_.layers[-1].weight, 0.)
+            constant_(reg_.layers[-1].bias, 0.)
 
         linear_init_(self.enc_output[0])
         xavier_uniform_(self.enc_output[0].weight)
@@ -292,8 +292,8 @@ class RTDETRDecoder(nn.Module):
                         in_channels,
                         self.hidden_dim,
                         kernel_size=1,
-                        bias_attr=False), 
-                    nn.BatchNorm2D(self.hidden_dim)))
+                        bias=False), 
+                    nn.BatchNorm2d(self.hidden_dim)))
         in_channels = ch[-1]
         for _ in range(self.nl - len(ch)):
             self.input_proj.append(
@@ -304,7 +304,7 @@ class RTDETRDecoder(nn.Module):
                         kernel_size=3,
                         stride=2,
                         padding=1,
-                        bias_attr=False), nn.BatchNorm2D(
+                        bias=False), nn.BatchNorm2d(
                             self.hidden_dim)))
             in_channels = self.hidden_dim
 

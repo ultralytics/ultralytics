@@ -1,8 +1,10 @@
 import torch
 import copy
+import math
 import torch.nn as nn
 import numpy as np
 import torch.nn.functional as F
+from torch.nn.init import uniform_
 
 __all__ = ["multi_scale_deformable_attn_pytorch", "inverse_sigmoid"]
 
@@ -15,6 +17,14 @@ def bias_init_with_prob(prior_prob=0.01):
     """initialize conv/fc bias value according to a given probability value."""
     bias_init = float(-np.log((1 - prior_prob) / prior_prob))
     return bias_init
+
+
+def linear_init_(module):
+    bound = 1 / math.sqrt(module.weight.shape[0])
+    uniform_(module.weight, -bound, bound)
+    if hasattr(module, "bias") and module.bias is not None:
+        uniform_(module.bias, -bound, bound)
+
 
 def inverse_sigmoid(x, eps=1e-5):
     x = x.clamp(min=0, max=1)

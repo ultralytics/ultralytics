@@ -230,17 +230,15 @@ class TaskAlignedAssigner(nn.Module):
         target_labels.clamp_(0)
 
         # 10x faster than F.one_hot()
-        target_scores = torch.zeros(target_labels.shape[0],
-                                    target_labels.shape[1],
-                                    self.num_classes,
-                                    dtype=torch.int8,
+        target_scores = torch.zeros((target_labels.shape[0], target_labels.shape[1], self.num_classes),
+                                    dtype=torch.int64,
                                     device=target_labels.device)  # (b, h*w, 80)
         target_scores.scatter_(2, target_labels.unsqueeze(-1), 1)
 
         fg_scores_mask = fg_mask[:, :, None].repeat(1, 1, self.num_classes)  # (b, h*w, 80)
         target_scores = torch.where(fg_scores_mask > 0, target_scores, 0)
 
-        return target_labels, target_bboxes, target_scores.long()
+        return target_labels, target_bboxes, target_scores
 
 
 def make_anchors(feats, strides, grid_cell_offset=0.5):

@@ -6,7 +6,7 @@ from torch.nn.init import xavier_uniform_, constant_
 from .convs import Conv
 from .utils import multi_scale_deformable_attn_pytorch, inverse_sigmoid, _get_clones
 
-__all__ = ["TransformerEncoderLayer", "TransformerLayer", "TransformerBlock", "MLPBlock", "LayerNorm2d"]
+__all__ = ["TransformerEncoderLayer", "TransformerLayer", "TransformerBlock", "MLPBlock", "LayerNorm2d", "AIFI"]
 
 
 class TransformerEncoderLayer(nn.Module):
@@ -59,6 +59,40 @@ class TransformerEncoderLayer(nn.Module):
         if self.normalize_before:
             return self.forward_pre(src, src_mask, src_key_padding_mask, pos)
         return self.forward_post(src, src_mask, src_key_padding_mask, pos)
+
+
+class AIFI(TransformerEncoderLayer):
+    def __init__(self, c1, c2=2048, num_heads=8, dropout=0, act=nn.GELU(), normalize_before=False):
+        super().__init__(c1, c2, num_heads, dropout, act, normalize_before)
+
+    def forward(self, x):
+        c, h, w = x.shape[1:]
+        pos_embed = self.build_2d_sincos_position_embedding(w, h, c)
+        return super().forward(x, pos=pos_embed)
+
+    @staticmethod
+    def build_2d_sincos_position_embedding(w,
+                                           h,
+                                           embed_dim=256,
+                                           temperature=10000.):
+        grid_w = torch.arange(int(w), dtype=torch.float32)
+        grid_h = torch.arange(int(h), dtype=torch.float32)
+        grid_w, grid_h = torch.meshgrid(grid_w, grid_h)
+        assert embed_dim % 4 == 0, \
+            'Embed dimension must be divisible by 4 for 2D sin-cos position embedding'
+        pos_dim = embed_dim // 4
+        omega = torch.arange(pos_dim, dtype=torch.float32) / pos_dim
+        omega = 1. / (temperature**omega)
+
+        out_w = grid_w.flatten()[..., None] @omega[None]
+        out_h = grid_h.flatten()[..., None] @omega[None]
+
+        return torch.concat(
+            [
+                torch.sin(out_w), torch.cos(out_w), torch.sin(out_h),
+                torch.cos(out_h)
+            ],
+            axis=1)[None, :, :]
 
 
 class TransformerLayer(nn.Module):

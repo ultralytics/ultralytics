@@ -156,7 +156,6 @@ class RTDETRHEAD(nn.Module):
                  num_classes=80,
                  hidden_dim=256,
                  num_queries=300,
-                 position_embed_type='sine',
                  backbone_feat_channels=[512, 1024, 2048],
                  feat_strides=[8, 16, 32],
                  num_levels=3,
@@ -174,8 +173,6 @@ class RTDETRHEAD(nn.Module):
                  eval_idx=-1,
                  eps=1e-2):
         super().__init__()
-        assert position_embed_type in ['sine', 'learned'], \
-            f'ValueError: position_embed_type not supported {position_embed_type}!'
         assert len(backbone_feat_channels) <= num_levels
         assert len(feat_strides) == len(backbone_feat_channels)
         for _ in range(num_levels - len(feat_strides)):

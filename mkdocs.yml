@@ -337,7 +337,8 @@ nav:
 plugins:
   - mkdocstrings
   - search
-  - meta-descriptions
+  #- meta-descriptions:
+  #    enable_checks: True
   - git-revision-date-localized:
       type: timeago
       enable_creation_date: true

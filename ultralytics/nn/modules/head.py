@@ -311,7 +311,7 @@ class RTDETRDecoder(nn.Module):
     def _generate_anchors(self, spatial_shapes, grid_size=0.05, dtype=torch.float32, eps=1e-2):
         anchors = []
         for lvl, (h, w) in enumerate(spatial_shapes):
-            grid_y, grid_x = torch.meshgrid(torch.arange(end=h, dtype=dtype), torch.arange(end=w, dtype=dtype))
+            grid_y, grid_x = torch.meshgrid(torch.arange(end=h, dtype=dtype), torch.arange(end=w, dtype=dtype), indexing="ij")
             grid_xy = torch.stack([grid_x, grid_y], -1)
 
             valid_WH = torch.tensor([h, w]).to(dtype)
@@ -343,7 +343,7 @@ class RTDETRDecoder(nn.Module):
         for i, feat in enumerate(proj_feats):
             _, _, h, w = feat.shape
             # [b, c, h, w] -> [b, h*w, c]
-            feat_flatten.append(feat.flatten(2).transpose([0, 2, 1]))
+            feat_flatten.append(feat.flatten(2).permute(0, 2, 1))
             # [nl, 2]
             spatial_shapes.append([h, w])
             # [l], start index of each level
@@ -375,20 +375,20 @@ class RTDETRDecoder(nn.Module):
         batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
         topk_ind = topk_ind.view(-1)
 
-        reference_points_unact = enc_outputs_coord_unact[batch_ind, topk_ind]  # unsigmoided.
+        reference_points_unact = enc_outputs_coord_unact[batch_ind, topk_ind].view(bs, self.num_queries, -1)  # unsigmoided.
         enc_topk_bboxes = F.sigmoid(reference_points_unact)
         if denoising_bbox_unact is not None:
             reference_points_unact = torch.concat(
                 [denoising_bbox_unact, reference_points_unact], 1)
         if self.training:
             reference_points_unact = reference_points_unact.detach()
-        enc_topk_logits = enc_outputs_class[batch_ind, topk_ind]
+        enc_topk_logits = enc_outputs_class[batch_ind, topk_ind].view(bs, self.num_queries, -1)
 
         # extract region features
         if self.learnt_init_query:
             target = self.tgt_embed.weight.unsqueeze(0).repeat(bs, 1, 1)
         else:
-            target = output_memory[batch_ind, topk_ind]
+            target = output_memory[batch_ind, topk_ind].view(bs, self.num_queries, -1)
             if self.training:
                 target = target.detach()
         if denoising_class is not None:

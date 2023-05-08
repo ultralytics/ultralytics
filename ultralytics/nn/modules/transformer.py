@@ -13,12 +13,12 @@ __all__ = ["TransformerEncoderLayer", "TransformerLayer", "TransformerBlock", "M
 class TransformerEncoderLayer(nn.Module):
     """Transformer Encoder."""
 
-    def __init__(self, c1, c2=2048, num_heads=8, dropout=0.0, act=nn.GELU(), normalize_before=False):
+    def __init__(self, c1, cm=2048, num_heads=8, dropout=0.0, act=nn.GELU(), normalize_before=False):
         super().__init__()
         self.ma = nn.MultiheadAttention(c1, num_heads, dropout=dropout)
         # Implementation of Feedforward model
-        self.fc1 = nn.Linear(c1, c2)
-        self.fc2 = nn.Linear(c2, c1)
+        self.fc1 = nn.Linear(c1, cm)
+        self.fc2 = nn.Linear(cm, c1)
 
         self.norm1 = nn.LayerNorm(c1)
         self.norm2 = nn.LayerNorm(c1)
@@ -63,13 +63,15 @@ class TransformerEncoderLayer(nn.Module):
 
 
 class AIFI(TransformerEncoderLayer):
-    def __init__(self, c1, c2=2048, num_heads=8, dropout=0, act=nn.GELU(), normalize_before=False):
-        super().__init__(c1, c2, num_heads, dropout, act, normalize_before)
+    def __init__(self, c1, cm=2048, num_heads=8, dropout=0, act=nn.GELU(), normalize_before=False):
+        super().__init__(c1, cm, num_heads, dropout, act, normalize_before)
 
     def forward(self, x):
         c, h, w = x.shape[1:]
         pos_embed = self.build_2d_sincos_position_embedding(w, h, c)
-        return super().forward(x, pos=pos_embed)
+        # flatten [B, C, H, W] to [B, HxW, C]
+        x = super().forward(x.flatten(2).permute(0, 2, 1), pos=pos_embed)
+        return x.permute((0, 2, 1)).view([-1, c, h, w])
 
     @staticmethod
     def build_2d_sincos_position_embedding(w,
@@ -78,7 +80,7 @@ class AIFI(TransformerEncoderLayer):
                                            temperature=10000.):
         grid_w = torch.arange(int(w), dtype=torch.float32)
         grid_h = torch.arange(int(h), dtype=torch.float32)
-        grid_w, grid_h = torch.meshgrid(grid_w, grid_h)
+        grid_w, grid_h = torch.meshgrid(grid_w, grid_h, indexing="ij")
         assert embed_dim % 4 == 0, \
             'Embed dimension must be divisible by 4 for 2D sin-cos position embedding'
         pos_dim = embed_dim // 4
@@ -239,7 +241,7 @@ class MSDeformAttn(nn.Module):
             reference_points (Tensor): [bs, query_length, n_levels, 2], range in [0, 1], top-left (0,0),
                 bottom-right (1, 1), including padding area
             value (Tensor): [bs, value_length, C]
-            value_spatial_shapes (Tensor): [n_levels, 2], [(H_0, W_0), (H_1, W_1), ..., (H_{L-1}, W_{L-1})]
+            value_spatial_shapes (List): [n_levels, 2], [(H_0, W_0), (H_1, W_1), ..., (H_{L-1}, W_{L-1})]
             value_mask (Tensor): [bs, value_length], True for non-padding elements, False for padding elements
 
         Returns:
@@ -247,7 +249,7 @@ class MSDeformAttn(nn.Module):
         """
         bs, len_q = query.shape[:2]
         _, len_v = value.shape[:2]
-        assert (value_spatial_shapes[:, 0] * value_spatial_shapes[:, 1]).sum() == len_v
+        assert sum([s[0] * s[1] for s in value_spatial_shapes]) == len_v
 
         value = self.value_proj(value)
         if value_mask is not None:
@@ -258,7 +260,7 @@ class MSDeformAttn(nn.Module):
         attention_weights = F.softmax(attention_weights, -1).view(bs, len_q, self.n_heads, self.n_levels, self.n_points)
         # N, Len_q, n_heads, n_levels, n_points, 2
         if reference_points.shape[-1] == 2:
-            offset_normalizer = value_spatial_shapes.flip(-1)
+            offset_normalizer = torch.as_tensor(value_spatial_shapes, dtype=query.dtype, device=query.device).flip(-1)
             sampling_locations = reference_points[:, :, None, :, None, :] \
                                  + sampling_offsets / offset_normalizer[None, None, None, :, None, :]
         elif reference_points.shape[-1] == 4:

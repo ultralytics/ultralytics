@@ -6,7 +6,8 @@ from torch.nn.init import xavier_uniform_, constant_
 from .convs import Conv
 from .utils import multi_scale_deformable_attn_pytorch, inverse_sigmoid, _get_clones
 
-__all__ = ["TransformerEncoderLayer", "TransformerLayer", "TransformerBlock", "MLPBlock", "LayerNorm2d", "AIFI"]
+__all__ = ["TransformerEncoderLayer", "TransformerLayer", "TransformerBlock", "MLPBlock", "LayerNorm2d", "AIFI", "DeformableTransformerDecoder", 
+           "DeformableTransformerDecoderLayer", "MSDeformAttn", "MLP"]
 
 
 class TransformerEncoderLayer(nn.Module):

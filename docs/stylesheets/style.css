@@ -31,3 +31,8 @@ th, td {
     background-color: hsla(var(--md-hue),25%,25%,1)
 }
 /* Table format like GitHub ----------------------------------------------------------------------------------------- */
+
+/* Code block vertical scroll */
+.md-typeset pre > code {
+    max-height: 20rem;
+}

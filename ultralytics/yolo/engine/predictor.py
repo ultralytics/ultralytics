@@ -146,7 +146,7 @@ class BasePredictor:
         log_string += result.verbose()
 
         if self.args.save or self.args.show:  # Add bbox to image
-            plot_args = dict(line_width=self.args.line_thickness,
+            plot_args = dict(line_width=self.args.line_width,
                              boxes=self.args.boxes,
                              conf=self.args.show_conf,
                              labels=self.args.show_labels)
@@ -212,7 +212,7 @@ class BasePredictor:
             self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, 3, *self.imgsz))
             self.done_warmup = True
 
-        self.seen, self.windows, self.dt, self.batch = 0, [], (ops.Profile(), ops.Profile(), ops.Profile()), None
+        self.seen, self.windows, self.batch, profilers = 0, [], None, (ops.Profile(), ops.Profile(), ops.Profile())
         self.run_callbacks('on_predict_start')
         for batch in self.dataset:
             self.run_callbacks('on_predict_batch_start')
@@ -222,15 +222,15 @@ class BasePredictor:
                                        mkdir=True) if self.args.visualize and (not self.source_type.tensor) else False
 
             # Preprocess
-            with self.dt[0]:
+            with profilers[0]:
                 im = self.preprocess(im0s)
 
             # Inference
-            with self.dt[1]:
+            with profilers[1]:
                 preds = self.model(im, augment=self.args.augment, visualize=visualize)
 
             # Postprocess
-            with self.dt[2]:
+            with profilers[2]:
                 self.results = self.postprocess(preds, im, im0s)
             self.run_callbacks('on_predict_postprocess_end')
 
@@ -238,9 +238,9 @@ class BasePredictor:
             n = len(im0s)
             for i in range(n):
                 self.results[i].speed = {
-                    'preprocess': self.dt[0].dt * 1E3 / n,
-                    'inference': self.dt[1].dt * 1E3 / n,
-                    'postprocess': self.dt[2].dt * 1E3 / n}
+                    'preprocess': profilers[0].dt * 1E3 / n,
+                    'inference': profilers[1].dt * 1E3 / n,
+                    'postprocess': profilers[2].dt * 1E3 / n}
                 if self.source_type.tensor:  # skip write, show and plot operations if input is raw tensor
                     continue
                 p, im0 = path[i], im0s[i].copy()
@@ -259,7 +259,7 @@ class BasePredictor:
 
             # Print time (inference-only)
             if self.args.verbose:
-                LOGGER.info(f'{s}{self.dt[1].dt * 1E3:.1f}ms')
+                LOGGER.info(f'{s}{profilers[1].dt * 1E3:.1f}ms')
 
         # Release assets
         if isinstance(self.vid_writer[-1], cv2.VideoWriter):
@@ -267,7 +267,7 @@ class BasePredictor:
 
         # Print results
         if self.args.verbose and self.seen:
-            t = tuple(x.t / self.seen * 1E3 for x in self.dt)  # speeds per image
+            t = tuple(x.t / self.seen * 1E3 for x in profilers)  # speeds per image
             LOGGER.info(f'Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape '
                         f'{(1, 3, *self.imgsz)}' % t)
         if self.args.save or self.args.save_txt or self.args.save_crop:

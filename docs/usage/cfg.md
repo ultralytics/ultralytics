@@ -128,29 +128,29 @@ The training settings for YOLO models encompass various hyperparameters and conf
 
 The prediction settings for YOLO models encompass a range of hyperparameters and configurations that influence the model's performance, speed, and accuracy during inference on new data. Careful tuning and experimentation with these settings are essential to achieve optimal performance for a specific task. Key settings include the confidence threshold, Non-Maximum Suppression (NMS) threshold, and the number of classes considered. Additional factors affecting the prediction process are input data size and format, the presence of supplementary features such as masks or multiple labels per box, and the particular task the model is employed for.
 
-| Key              | Value                  | Description                                              |
-|------------------|------------------------|----------------------------------------------------------|
-| `source`         | `'ultralytics/assets'` | source directory for images or videos                    |
-| `conf`           | `0.25`                 | object confidence threshold for detection                |
-| `iou`            | `0.7`                  | intersection over union (IoU) threshold for NMS          |
-| `half`           | `False`                | use half precision (FP16)                                |
-| `device`         | `None`                 | device to run on, i.e. cuda device=0/1/2/3 or device=cpu |
-| `show`           | `False`                | show results if possible                                 |
-| `save`           | `False`                | save images with results                                 |
-| `save_txt`       | `False`                | save results as .txt file                                |
-| `save_conf`      | `False`                | save results with confidence scores                      |
-| `save_crop`      | `False`                | save cropped images with results                         |
-| `show_labels`    | `True`                 | show object labels in plots                              |
-| `show_conf`      | `True`                 | show object confidence scores in plots                   |
-| `max_det`        | `300`                  | maximum number of detections per image                   |
-| `vid_stride`     | `False`                | video frame-rate stride                                  |
-| `line_thickness` | `3`                    | bounding box thickness (pixels)                          |
-| `visualize`      | `False`                | visualize model features                                 |
-| `augment`        | `False`                | apply image augmentation to prediction sources           |
-| `agnostic_nms`   | `False`                | class-agnostic NMS                                       |
-| `retina_masks`   | `False`                | use high-resolution segmentation masks                   |
-| `classes`        | `None`                 | filter results by class, i.e. class=0, or class=[0,2,3]  |
-| `boxes`          | `True`                 | Show boxes in segmentation predictions                   |
+| Key            | Value                  | Description                                                                    |
+|----------------|------------------------|--------------------------------------------------------------------------------|
+| `source`       | `'ultralytics/assets'` | source directory for images or videos                                          |
+| `conf`         | `0.25`                 | object confidence threshold for detection                                      |
+| `iou`          | `0.7`                  | intersection over union (IoU) threshold for NMS                                |
+| `half`         | `False`                | use half precision (FP16)                                                      |
+| `device`       | `None`                 | device to run on, i.e. cuda device=0/1/2/3 or device=cpu                       |
+| `show`         | `False`                | show results if possible                                                       |
+| `save`         | `False`                | save images with results                                                       |
+| `save_txt`     | `False`                | save results as .txt file                                                      |
+| `save_conf`    | `False`                | save results with confidence scores                                            |
+| `save_crop`    | `False`                | save cropped images with results                                               |
+| `show_labels`  | `True`                 | show object labels in plots                                                    |
+| `show_conf`    | `True`                 | show object confidence scores in plots                                         |
+| `max_det`      | `300`                  | maximum number of detections per image                                         |
+| `vid_stride`   | `False`                | video frame-rate stride                                                        |
+| `line_width`   | `None`                 | The line width of the bounding boxes. If None, it is scaled to the image size. |
+| `visualize`    | `False`                | visualize model features                                                       |
+| `augment`      | `False`                | apply image augmentation to prediction sources                                 |
+| `agnostic_nms` | `False`                | class-agnostic NMS                                                             |
+| `retina_masks` | `False`                | use high-resolution segmentation masks                                         |
+| `classes`      | `None`                 | filter results by class, i.e. class=0, or class=[0,2,3]                        |
+| `boxes`        | `True`                 | Show boxes in segmentation predictions                                         |
 
 [Predict Guide](../modes/predict.md){ .md-button .md-button--primary}
 

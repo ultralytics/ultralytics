@@ -27,3 +27,8 @@
 ---
 :::ultralytics.yolo.utils.files.get_latest_run
 <br><br>
+
+# make_dirs
+---
+:::ultralytics.yolo.utils.files.make_dirs
+<br><br>

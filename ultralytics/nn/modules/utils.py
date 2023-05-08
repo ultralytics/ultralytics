@@ -1,5 +1,20 @@
 import torch
+import copy
+import torch.nn as nn
 import torch.nn.functional as F
+
+__all__ = ["multi_scale_deformable_attn_pytorch", "inverse_sigmoid"]
+
+
+def _get_clones(module, N):
+    return nn.ModuleList([copy.deepcopy(module) for _ in range(N)])
+
+
+def inverse_sigmoid(x, eps=1e-5):
+    x = x.clamp(min=0, max=1)
+    x1 = x.clamp(min=eps)
+    x2 = (1 - x).clamp(min=eps)
+    return torch.log(x1/x2)
 
 
 def multi_scale_deformable_attn_pytorch(

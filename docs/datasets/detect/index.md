@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn about supported dataset formats for training YOLO detection models, including Ultralytics YOLO and COCO, in this Object Detection Datasets Overview.
 ---
 
 # Object Detection Datasets Overview
@@ -15,11 +16,12 @@ The dataset format used for training YOLO detection models is as follows:
 1. One text file per image: Each image in the dataset has a corresponding text file with the same name as the image file and the ".txt" extension.
 2. One row per object: Each row in the text file corresponds to one object instance in the image.
 3. Object information per row: Each row contains the following information about the object instance:
-   - Object class index: An integer representing the class of the object (e.g., 0 for person, 1 for car, etc.).
-   - Object center coordinates: The x and y coordinates of the center of the object, normalized to be between 0 and 1.
-   - Object width and height: The width and height of the object, normalized to be between 0 and 1.
-   
+    - Object class index: An integer representing the class of the object (e.g., 0 for person, 1 for car, etc.).
+    - Object center coordinates: The x and y coordinates of the center of the object, normalized to be between 0 and 1.
+    - Object width and height: The width and height of the object, normalized to be between 0 and 1.
+
 The format for a single row in the detection dataset file is as follows:
+
 ```
 <object-class> <x> <y> <width> <height>
 ```
@@ -55,6 +57,7 @@ The `names` field is a list of the names of the object classes. The order of the
 NOTE: Either `nc` or `names` must be defined. Defining both are not mandatory
 
 Alternatively, you can directly define class names like this:
+
 ```yaml
 names:
   0: person
@@ -72,6 +75,7 @@ names: ['person', 'car']
 ```
 
 ## Usage
+
 !!! example ""
 
     === "Python"
@@ -93,6 +97,7 @@ names: ['person', 'car']
         ```
 
 ## Supported Datasets
+
 TODO
 
 ## Port or Convert label formats

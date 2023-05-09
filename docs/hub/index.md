@@ -1,5 +1,6 @@
 ---
 comments: true
+description: 'Ultralytics HUB: Train & deploy YOLO models from one spot! Use drag-and-drop interface with templates & pre-training models. Check quickstart, datasets, and more.'
 ---
 
 # Ultralytics HUB
@@ -19,7 +20,6 @@ comments: true
 👋 Hello from the [Ultralytics](https://ultralytics.com/) Team! We've been working hard these last few months to
 launch [Ultralytics HUB](https://bit.ly/ultralytics_hub), a new web tool for training and deploying all your YOLOv5 and YOLOv8 🚀
 models from one spot!
-
 
 ## Introduction
 

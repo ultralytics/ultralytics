@@ -1,3 +1,7 @@
+---
+description: Improve your YOLO models with Ultralytics' TaskAlignedAssigner, select_highest_overlaps, and dist2bbox utilities. Streamline your workflow today.
+---
+
 # TaskAlignedAssigner
 ---
 :::ultralytics.yolo.utils.tal.TaskAlignedAssigner

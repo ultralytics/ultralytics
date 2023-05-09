@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn how to use Export Mode to convert and export a YOLOv8 model to a format ready for deployment in other software applications.
 ---
 
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">

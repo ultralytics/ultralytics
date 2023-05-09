@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Get started with YOLOv5 on GCP! Set up and run YOLOv5 on a GCP Deep Learning VM using our step-by-step tutorial. Get a $300 free credit offer.
 ---
 
 # Run YOLOv5 🚀 on Google Cloud Platform (GCP) Deep Learning Virtual Machine (VM) ⭐

@@ -1,3 +1,7 @@
+---
+description: Discover useful utilities for PyTorch models in YOLOv5, including early stopping, time syncing, and weight initialization.
+---
+
 # ModelEMA
 ---
 :::ultralytics.yolo.utils.torch_utils.ModelEMA

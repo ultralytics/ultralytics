@@ -1,3 +1,7 @@
+---
+description: Callbacks for logging YOLOv5 model training and evaluation metrics to Comet.ml. Optimize and track your model performance in the cloud.
+---
+
 # _get_comet_mode
 ---
 :::ultralytics.yolo.utils.callbacks.comet._get_comet_mode

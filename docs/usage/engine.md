@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Explore the Ultralytics YOLO `DetectionTrainer` and learn how to customize it effortlessly with our comprehensive guide in the Ultralytics Docs.
 ---
 
 Both the Ultralytics YOLO command-line and python interfaces are simply a high-level abstraction on the base engine
@@ -84,4 +85,3 @@ To know more about Callback triggering events and entry point, checkout our [Cal
 
 There are other components that can be customized similarly like `Validators` and `Predictors`
 See Reference section for more information on these.
-

@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn about Ultralytics framework callbacks and utilize supported ones in Trainer, Validator, Predictor, and Exporter modes in your YOLO models.
 ---
 
 ## Callbacks

@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Improve YOLOv5's performance with test-time augmentation (TTA). Learn how to enable and use TTA during testing and inference.
 ---
 
 # Test-Time Augmentation (TTA)

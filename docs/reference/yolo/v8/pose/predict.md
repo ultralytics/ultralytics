@@ -1,3 +1,7 @@
+---
+description: Easily predict human poses with Ultralytics YOLO Docs PosePredictor. Learn how to use the powerful prediction capabilities today.
+---
+
 # PosePredictor
 ---
 :::ultralytics.yolo.v8.pose.predict.PosePredictor

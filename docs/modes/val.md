@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Validate your YOLOv8 model's accuracy on validation set. Easily tune hyperparameters for better model performance with just a few lines of code.
 ---
 
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">

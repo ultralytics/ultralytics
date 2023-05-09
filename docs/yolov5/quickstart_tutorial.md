@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Start with YOLOv5 easily with Ultralytics quickstart guide. Clone, install, infer, detect and train YOLOv5. Try Now.
 ---
 
 # YOLOv5 Quickstart

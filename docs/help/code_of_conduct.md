@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn about Ultralytics Code of Conduct. We pledge to act in ways that contribute to an open, welcoming, diverse, inclusive & healthy community.
 ---
 
 # Ultralytics Contributor Covenant Code of Conduct

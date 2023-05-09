@@ -1,3 +1,7 @@
+---
+description: The Individual Contributor License Agreement outlines the terms for contributing to Ultralytics' open source software projects.
+---
+
 # Ultralytics Individual Contributor License Agreement
 
 Thank you for your interest in contributing to open source software projects (“Projects”) made available by Ultralytics

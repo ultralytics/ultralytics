@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Discover YOLOv5 and YOLOv8 models' power to recognize objects in images and video using the Ultralytics HUB app. Download now on App Store and Play Store.
 ---
 
 # Ultralytics HUB App

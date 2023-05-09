@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn how to easily load YOLOv5 from PyTorch Hub for object detection. Follow tutorials for inference, training, output formats, and more!
 ---
 
 📚 This guide explains how to load YOLOv5 🚀 from PyTorch Hub  at [https://pytorch.org/hub/ultralytics_yolov5](https://pytorch.org/hub/ultralytics_yolov5).  

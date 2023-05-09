@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn how to use ClearML Open-Source Toolbox to easily track every YOLOv5 training run, remotely train and monitor, version datasets and more.
 ---
 
 # ClearML Integration

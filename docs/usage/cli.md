@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn how to use the Ultralytics YOLO command line interface (CLI) to train, validate, predict, and export models. No Python required.
 ---
 
 # Command Line Interface Usage

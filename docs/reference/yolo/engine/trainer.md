@@ -1,3 +1,7 @@
+---
+description: 'BaseTrainer: YOLO Engine''s ampere check module. Improve YOLO training and detection. Get high-accuracy results with less power consumption.'
+---
+
 # BaseTrainer
 ---
 :::ultralytics.yolo.engine.trainer.BaseTrainer

@@ -1,3 +1,7 @@
+---
+description: Learn how to load pre-trained weights and models for detection, segmentation, and classification tasks in PyTorch with Ultralytics YOLO's BaseModel.
+---
+
 # BaseModel
 ---
 :::ultralytics.nn.tasks.BaseModel

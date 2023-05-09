@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn about detecting keypoints in an image with YOLOv8 pose estimation models. Use pre-trained models or train your own.
 ---
 
 Pose estimation is a task that involves identifying the location of specific points in an image, usually referred

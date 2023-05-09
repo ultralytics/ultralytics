@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn how to ensemble pretrained YOLOv5 models for improved mAP and Recall during testing and inference. Clone, install requirements and run YOLOv5. 🚀
 ---
 
 📚  This guide explains how to use YOLOv5 🚀 **model ensembling** during testing and inference for improved mAP and Recall.  

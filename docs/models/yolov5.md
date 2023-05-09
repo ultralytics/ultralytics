@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Choose YOLOv5u for improved accuracy-speed tradeoff, and get anchor-free models supporting detection as pre-trained weights. Check the performance.
 ---
 
 # YOLOv5u

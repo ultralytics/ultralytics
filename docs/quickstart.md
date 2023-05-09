@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Install YOLOv8 via `ultralytics` pip or GitHub with `git clone`. Use the YOLO CLI or Python interface for detection, segmentation, and classification.
 ---
 
 ## Install

@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Use benchmark mode to profile YOLOv8's export formats with mAP50-95 and accuracy_top5 metrics. Improve speed using ONNX and TensorRT.
 ---
 
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">

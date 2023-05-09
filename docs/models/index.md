@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Discover the powerful YOLO object detection models supported by Ultralytics. Build custom models with ease and add your architecture to the list.
 ---
 
 # Models

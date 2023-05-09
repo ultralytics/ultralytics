@@ -1,5 +1,6 @@
 ---
 comments: true
+description: 'Introducing Ultralytics YOLOv8: the latest in cutting-edge, real-time object detection and image segmentation with streamlined design & unparalleled performance. Explore its comprehensive Docs for maximum applications.'
 ---
 
 <div align="center">

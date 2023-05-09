@@ -1,3 +1,7 @@
+---
+description: Discover and learn about the powerful image augmentation techniques in Ultralytics YOLO with Albumentations and similar libraries.
+---
+
 # Albumentations
 ---
 :::ultralytics.yolo.data.dataloaders.v5augmentations.Albumentations

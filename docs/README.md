@@ -1,3 +1,7 @@
+---
+description: Learn to install Ultralytics package & deploy MkDocs documentation site using Ultralytics package. Serve locally & deploy on your preferred provider.
+---
+
 # Ultralytics Docs
 
 Ultralytics Docs are deployed to [https://docs.ultralytics.com](https://docs.ultralytics.com).

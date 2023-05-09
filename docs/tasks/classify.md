@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Use YOLOv8 pretrained models to classify images on ImageNet dataset. Compare accuracy, speed with different models and export.
 ---
 
 Image classification is the simplest of the three tasks and involves classifying an entire image into one of a set of

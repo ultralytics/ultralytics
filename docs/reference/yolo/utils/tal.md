@@ -1,3 +1,7 @@
+---
+description: Efficiently assign object detection tasks with TaskAlignedAssigner, select highest overlaps with make_anchors, convert dist to bbox with dist2bbox.
+---
+
 # TaskAlignedAssigner
 ---
 :::ultralytics.yolo.utils.tal.TaskAlignedAssigner

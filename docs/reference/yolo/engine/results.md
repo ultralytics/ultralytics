@@ -1,3 +1,7 @@
+---
+description: '"Learn about BaseTensor and Boxes in Ultralytics YOLO''s Results and Masks modules - essential tools for object detection and segmentation."'
+---
+
 # BaseTensor
 ---
 :::ultralytics.yolo.engine.results.BaseTensor

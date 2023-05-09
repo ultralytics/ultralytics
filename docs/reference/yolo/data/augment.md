@@ -1,3 +1,7 @@
+---
+description: Improve object detection model training using a range of data augmentation techniques, from letter boxing to flipping, with Ultralytics YOLO.
+---
+
 # BaseTransform
 ---
 :::ultralytics.yolo.data.augment.BaseTransform

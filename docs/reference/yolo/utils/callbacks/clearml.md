@@ -1,3 +1,7 @@
+---
+description: Improve your YOLO model training with Ultralytics YOLO's _log_debug_samples and train callbacks. Use on_train_end for increased efficiency.
+---
+
 # _log_debug_samples
 ---
 :::ultralytics.yolo.utils.callbacks.clearml._log_debug_samples

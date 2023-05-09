@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Accelerate your YOLOv5 development with Comet. Visualize training, log metrics, track experiments and optimize your models in real time.
 ---
 
 <img src="https://cdn.comet.ml/img/notebook_logo.png">

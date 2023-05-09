@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn YOLOv8 'yolo' CLI commands, and tasks and modes for YOLO models in training, validation, prediction, export, tracking, and benchmarking.
 ---
 
 YOLO settings and hyperparameters play a critical role in the model's performance, speed, and accuracy. These settings

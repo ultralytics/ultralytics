@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Find answers to common questions and issues that arise while working with Ultralytics YOLO repositories. Learn how to improve accuracy and more.
 ---
 
 # Ultralytics YOLO Frequently Asked Questions (FAQ)

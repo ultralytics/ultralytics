@@ -1,5 +1,6 @@
 ---
 comments: true
+description: 'Train Object Detection Faster and Better with YOLOv5: Multi-GPU on Single/Multiple Server(s), with PyTorch>=1.7. Git clone+run YOLOv5, no setup required.'
 ---
 
 📚 This guide explains how to properly use **multiple** GPUs to train a dataset with YOLOv5 🚀 on single or multiple machine(s).  

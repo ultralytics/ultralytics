@@ -1,3 +1,7 @@
+---
+description: Visualize YOLOv5 predictions with customizable annotations, box labels, images, and features using Ultralytics' YOLOv5 Utils.
+---
+
 # Colors
 ---
 :::ultralytics.yolo.utils.plotting.Colors

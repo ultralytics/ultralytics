@@ -1,3 +1,7 @@
+---
+description: Integrate Neptune with YOLO. Log Scalars, Images, Plots and Epoch end to monitor and improve your Object Detection performance.
+---
+
 # _log_scalars
 ---
 :::ultralytics.yolo.utils.callbacks.neptune._log_scalars

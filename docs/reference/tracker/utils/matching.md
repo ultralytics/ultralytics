@@ -1,3 +1,7 @@
+---
+description: Learn how to perform multi-object tracking with Ultralytics YOLOv5 and easily merge detections from consecutive frames! Check out our matching utils.
+---
+
 # merge_matches
 ---
 :::ultralytics.tracker.utils.matching.merge_matches

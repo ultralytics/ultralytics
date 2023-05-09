@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Use YOLOv8's predict mode to generate predictions for various tasks such as segmentation masks, classification and object detection.
 ---
 
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">

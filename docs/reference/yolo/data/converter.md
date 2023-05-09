@@ -1,3 +1,7 @@
+---
+description: Learn to convert COCO v9.1 to v8.0 class and how to process RLE, merge multi-segment, and delete DS_Store files with Ultralytics YOLO.
+---
+
 # coco91_to_coco80_class
 ---
 :::ultralytics.yolo.data.converter.coco91_to_coco80_class

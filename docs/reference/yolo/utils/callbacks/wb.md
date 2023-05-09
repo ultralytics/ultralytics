@@ -1,3 +1,7 @@
+---
+description: Learn how to set up and use pre-training routines, and callbacks in UltraLytics YOLO API, for better object detection models.
+---
+
 # on_pretrain_routine_start
 ---
 :::ultralytics.yolo.utils.callbacks.wb.on_pretrain_routine_start

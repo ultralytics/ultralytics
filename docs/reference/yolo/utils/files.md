@@ -1,3 +1,7 @@
+---
+description: Learn about Ultralytics YOLO's file management utilities like incremental paths, file age, file size checks, and making directories with ease.
+---
+
 # WorkingDirectory
 ---
 :::ultralytics.yolo.utils.files.WorkingDirectory

@@ -1,3 +1,7 @@
+---
+description: Checklist of Ultralytics YOLO's utility functions including image, version, pip update, font, Python, YOLO, YAML, suffix and more.
+---
+
 # is_ascii
 ---
 :::ultralytics.yolo.utils.checks.is_ascii

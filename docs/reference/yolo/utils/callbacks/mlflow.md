@@ -1,3 +1,7 @@
+---
+description: 'Learn about Ultralytics YOLO''s MLflow callbacks: on pretrain routine end and on train end. Track and log hyperparameters, metrics, and more.'
+---
+
 # on_pretrain_routine_end
 ---
 :::ultralytics.yolo.utils.callbacks.mlflow.on_pretrain_routine_end

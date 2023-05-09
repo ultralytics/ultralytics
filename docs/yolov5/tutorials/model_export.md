@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Export YOLOv5 models from PyTorch to ONNX, TensorRT, CoreML, Openvino, GPUs to use YOLOv5 inference in any format. Speedup with CPU benchmarks.
 ---
 
 # TFLite, ONNX, CoreML, TensorRT Export

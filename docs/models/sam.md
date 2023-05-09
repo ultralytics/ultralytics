@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Use Vision Transformers in Python. Ultralytics' VIT model supports instance segmentation tasks. Explore Ultralytics Docs for more details.
 ---
 
 # Vision Transformers

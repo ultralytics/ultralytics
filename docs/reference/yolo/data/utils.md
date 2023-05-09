@@ -1,3 +1,7 @@
+---
+description: Efficiently manage datasets, compress images, and check image labels in YOLO with Ultralytics data utilities. Learn more in the HUBDatasetStats page.
+---
+
 # HUBDatasetStats
 ---
 :::ultralytics.yolo.data.utils.HUBDatasetStats

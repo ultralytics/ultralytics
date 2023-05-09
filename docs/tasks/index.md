@@ -1,5 +1,6 @@
 ---
 comments: true
+description: YOLOv8 framework supports multiple computer vision tasks for detection, segmentation, classification, and pose estimation. Choose the right task with the examples provided.
 ---
 
 # Ultralytics YOLOv8 Tasks

@@ -1,3 +1,7 @@
+---
+description: 'Ultralytics YOLO Docs: Learn about v5loader Dataloaders and their functions - Image loading, classification dataset, worker creation and more.'
+---
+
 # InfiniteDataLoader
 ---
 :::ultralytics.yolo.data.dataloaders.v5loader.InfiniteDataLoader

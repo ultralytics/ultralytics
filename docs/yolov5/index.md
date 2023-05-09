@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Discover the power of YOLOV5, a leading object detection model, with Ultralytics. Get step-by-step tutorials, installation & architecture details.
 ---
 
 # Ultralytics YOLOv5

@@ -1,3 +1,7 @@
+---
+description: Learn how to track and register object detection predictions using Ultralytics YOLO with on_predict_start and register_tracker methods.
+---
+
 # on_predict_start
 ---
 :::ultralytics.tracker.track.on_predict_start

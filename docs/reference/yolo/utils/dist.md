@@ -1,3 +1,7 @@
+---
+description: Find free network port and generate DDP command in Ultralytics YOLO, using utils.dist.generate_ddp_file and utils.dist.ddp_cleanup.
+---
+
 # find_free_network_port
 ---
 :::ultralytics.yolo.utils.dist.find_free_network_port

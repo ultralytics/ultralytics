@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn about Ultralytics YOLOv8 implementation of instance segmentation. See pretrained models, train, validate and export models with ease.
 ---
 
 Instance segmentation goes a step further than object detection and involves identifying individual objects in an image

@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Deploy a trained model on NVIDIA Jetson using TensorRT and DeepStream SDK for maximum inference performance. Guide includes INT8 calibration.
 ---
 
 # Deploy on NVIDIA Jetson using TensorRT and DeepStream SDK

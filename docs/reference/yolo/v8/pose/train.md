@@ -1,3 +1,7 @@
+---
+description: Learn about PoseTrainer and its related functions for training pose estimation models in YOLOv8. Improve your computer vision skills today.
+---
+
 # PoseTrainer
 ---
 :::ultralytics.yolo.v8.pose.train.PoseTrainer

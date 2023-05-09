@@ -1,3 +1,7 @@
+---
+description: Efficiently manage and load data with Ultralytics YOLO InfiniteDataLoader, seed_worker, build_dataloader & load_inference_source.
+---
+
 # InfiniteDataLoader
 ---
 :::ultralytics.yolo.data.build.InfiniteDataLoader

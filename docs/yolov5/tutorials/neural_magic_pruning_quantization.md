@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Deploy YOLOv5 with Neural Magic's DeepSparse! Achieve GPU-class perf with CPUs using sparsity-aware AI, flexible deployments, & easy integrations.
 ---
 
 <!--

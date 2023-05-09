@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn how to experiment pruning methods with 🚀 YOLOv5 🚀model on this guide 📚! Achieve sparsity levels without losing much accuracy.
 ---
 
 📚 This guide explains how to apply **pruning** to YOLOv5 🚀 models.  

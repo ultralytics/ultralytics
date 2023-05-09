@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn how to run YOLOv5 on Amazon Web Services (AWS) Deep Learning instances with a comprehensive guide. Quickstart with Colab or GCP options.
 ---
 
 # YOLOv5 🚀 on AWS Deep Learning Instance: A Comprehensive Guide

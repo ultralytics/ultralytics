@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn how to contribute to the Ultralytics YOLO repositories, adhere to guidelines and best practices, and use Google-style docstrings.
 ---
 
 # Contributing to Ultralytics Open-Source YOLO Repositories

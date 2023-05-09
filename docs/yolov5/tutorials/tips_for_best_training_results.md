@@ -1,5 +1,8 @@
 ---
 comments: true
+description: 'Learn how to produce the best YOLOv5 training results and mAP with our updated guide 🚀. Tips on dataset, model selection, and training settings.
+
+  '
 ---
 
 📚 This guide explains how to produce the best mAP and training results with YOLOv5 🚀.  

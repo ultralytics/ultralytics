@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Train and deploy ML models to the real world in 13 different formats, including TensorFlow, ONNX, OpenVINO, CoreML, Paddle, and more!
 ---
 
 # HUB Models

@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Use Roboflow to organize, label, prepare, version, and host your datasets for YOLOv5 models. Free to use with a public workspace.
 ---
 
 # Roboflow Datasets

@@ -1,3 +1,7 @@
+---
+description: Learn how to tensorboard log YOLOv5 training progress with on_pretrain_routine_start and on_fit_epoch_end callbacks. Ultralytics Docs.
+---
+
 # _log_scalars
 ---
 :::ultralytics.yolo.utils.callbacks.tensorboard._log_scalars

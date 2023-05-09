@@ -1,3 +1,7 @@
+---
+description: Learn about YOLOv5 callback functions for model training, validation, prediction, and export at Ultralytics YOLO Docs.
+---
+
 # on_pretrain_routine_start
 ---
 :::ultralytics.yolo.utils.callbacks.base.on_pretrain_routine_start

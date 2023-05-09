@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Optimize your YOLOv8 model's hyperparameters with Ray Tune. Use advanced search algorithms, parallelism, and early stopping to speed up the process.
 ---
 
 # Hyperparameter Tuning with Ray Tune and YOLOv8

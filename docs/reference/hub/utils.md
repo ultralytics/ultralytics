@@ -1,3 +1,7 @@
+---
+description: Discover Ultralytics Jupyter Notebook events methods like `request_with_credentials` and `smart_request` to monitor and manage your projects.
+---
+
 # Events
 ---
 :::ultralytics.hub.utils.Events

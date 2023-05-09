@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Explore Ultralytics' YOLOv8 models designed for detection, segmentation, classification, and pose estimation. Get started with pre-trained models now.
 ---
 
 # YOLOv8

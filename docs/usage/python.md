@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn to use YOLOv8 in Python for object detection, segmentation, and classification. Load a model, train, make predictions and export.
 ---
 
 # Python Usage

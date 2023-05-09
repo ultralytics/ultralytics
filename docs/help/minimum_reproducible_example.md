@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Improve your bug reports for Ultralytics YOLO repositories by following these guidelines on creating a minimal reproducible example (MRE).
 ---
 
 # Creating a Minimum Reproducible Example for Bug Reports in Ultralytics YOLO Repositories

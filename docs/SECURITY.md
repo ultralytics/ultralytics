@@ -1,3 +1,7 @@
+---
+description: Learn about Ultralytics' measures to detect and prevent security vulnerabilities on our open-source projects and report issues to our security team.
+---
+
 # Security Policy
 
 At [Ultralytics](https://ultralytics.com), the security of our users' data and systems is of utmost importance. To

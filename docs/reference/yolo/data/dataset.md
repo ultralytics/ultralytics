@@ -1,3 +1,7 @@
+---
+description: Effortlessly preprocess data with YOLODataset and SemanticDataset. Simplify object detection and image segmentation. Explore more at Ultralytics.
+---
+
 # YOLODataset
 ---
 :::ultralytics.yolo.data.dataset.YOLODataset

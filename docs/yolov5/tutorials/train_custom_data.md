@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Train your custom dataset with YOLOv5 using Ultralytics guide. Learn to collect and organize images, label objects, and train models iteratively.
 ---
 
 📚 This guide explains how to train your own **custom dataset** with [YOLOv5](https://github.com/ultralytics/yolov5) 🚀.  
@@ -28,7 +29,7 @@ Creating a custom model to detect your objects is an iterative process of collec
 
 YOLOv5 models must be trained on labelled data in order to learn classes of objects in that data. There are two options for creating your dataset before you start training:
 
-<details markdown>
+<details open markdown>
 <summary>Use <a href="https://roboflow.com/?ref=ultralytics">Roboflow</a> to create your dataset in YOLO format</summary>
 
 ### 1.1 Collect Images

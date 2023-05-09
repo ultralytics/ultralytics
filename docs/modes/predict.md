@@ -58,8 +58,8 @@ whether each source can be used in streaming mode with `stream=True` ✅ and an 
 | YouTube ✅   | `'https://youtu.be/Zgi9g1ksQHc'`           | `str`          |                  |
 | stream ✅    | `'rtsp://example.com/media.mp4'`           | `str`          | RTSP, RTMP, HTTP |
 
-
 ## Arguments
+
 `model.predict` accepts multiple arguments that control the prediction operation. These arguments can be passed directly to `model.predict`:
 !!! example
     ```
@@ -220,6 +220,7 @@ masks, classification logits, etc.) found in the results object
     res_plotted = res[0].plot()
     cv2.imshow("result", res_plotted)
     ```
+
 | Argument                      | Description                                                                            |
 |-------------------------------|----------------------------------------------------------------------------------------|
 | `conf (bool)`                 | Whether to plot the detection confidence score.                                        |
@@ -233,7 +234,6 @@ masks, classification logits, etc.) found in the results object
 | `boxes (bool)`                | Whether to plot the bounding boxes.                                                    |
 | `masks (bool)`                | Whether to plot the masks.                                                             |
 | `probs (bool)`                | Whether to plot classification probability.                                            |
-
 
 ## Streaming Source `for`-loop
 

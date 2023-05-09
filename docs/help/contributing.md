@@ -10,11 +10,11 @@ First of all, thank you for your interest in contributing to Ultralytics open-so
 
 - [Code of Conduct](#code-of-conduct)
 - [Pull Requests](#pull-requests)
-  - [CLA Signing](#cla-signing)
-  - [Google-Style Docstrings](#google-style-docstrings)
-  - [GitHub Actions CI Tests](#github-actions-ci-tests)
+    - [CLA Signing](#cla-signing)
+    - [Google-Style Docstrings](#google-style-docstrings)
+    - [GitHub Actions CI Tests](#github-actions-ci-tests)
 - [Bug Reports](#bug-reports)
-  - [Minimum Reproducible Example](#minimum-reproducible-example)
+    - [Minimum Reproducible Example](#minimum-reproducible-example)
 - [License and Copyright](#license-and-copyright)
 
 ## Code of Conduct

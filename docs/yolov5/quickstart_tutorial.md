@@ -18,8 +18,6 @@ cd yolov5
 pip install -r requirements.txt  # install
 ```
 
-
-
 ## Inference
 
 YOLOv5 [PyTorch Hub](https://docs.ultralytics.com/yolov5/tutorials/pytorch_hub_model_loading) inference. [Models](https://github.com/ultralytics/yolov5/tree/master/models) download automatically from the latest

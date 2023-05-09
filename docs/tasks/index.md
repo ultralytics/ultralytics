@@ -35,7 +35,7 @@ images based on their content. It uses a variant of the EfficientNet architectur
 
 ## [Pose](pose.md)
 
-Pose/keypoint detection is a task that involves detecting specific points in an image or video frame. These points are 
+Pose/keypoint detection is a task that involves detecting specific points in an image or video frame. These points are
 referred to as keypoints and are used to track movement or pose estimation. YOLOv8 can detect keypoints in an image or
 video frame with high accuracy and speed.
 

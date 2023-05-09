@@ -20,7 +20,6 @@ comments: true
 launch [Ultralytics HUB](https://bit.ly/ultralytics_hub), a new web tool for training and deploying all your YOLOv5 and YOLOv8 🚀
 models from one spot!
 
-
 ## Introduction
 
 HUB is designed to be user-friendly and intuitive, with a drag-and-drop interface that allows users to

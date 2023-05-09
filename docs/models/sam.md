@@ -9,11 +9,11 @@ Vit models currently support Python environment:
 ```python
 from ultralytics.vit import SAM
 
-# from ultralytics.vit import MODEL_TYPe
+# from ultralytics.vit import MODEL_TYPE
 
 model = SAM("sam_b.pt")
 model.info()  # display model information
-model.predict(...)  # train the model
+model.predict(...)  # predict
 ```
 
 # Segment Anything

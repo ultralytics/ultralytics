@@ -1,3 +1,8 @@
+---
+comments: true
+description: Explore YOLOv8n-based object tracking with Ultralytics' BoT-SORT and ByteTrack. Learn configuration, usage, and customization tips.
+---
+
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
 
 Object tracking is a task that involves identifying the location and class of objects, then assigning a unique ID to

@@ -1,3 +1,8 @@
+---
+comments: true
+description: Learn how to train custom YOLOv8 models on various datasets, configure hyperparameters, and use Ultralytics' YOLO for seamless training.
+---
+
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
 
 **Train mode** is used for training a YOLOv8 model on a custom dataset. In this mode, the model is trained using the

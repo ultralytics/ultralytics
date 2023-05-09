@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 # YOLOv5 Quickstart
 
 See below for quickstart examples.

@@ -82,8 +82,8 @@ class SamAutomaticMaskGenerator:
             memory.
         """
 
-        assert (points_per_side is None) != (point_grids is
-                                             None), 'Exactly one of points_per_side or point_grid must be provided.'
+        assert (points_per_side is None) != (point_grids is None), \
+            'Exactly one of points_per_side or point_grid must be provided.'
         if points_per_side is not None:
             self.point_grids = build_all_layer_point_grids(
                 points_per_side,

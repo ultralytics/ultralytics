@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 Both the Ultralytics YOLO command-line and python interfaces are simply a high-level abstraction on the base engine
 executors. Let's take a look at the Trainer engine.
 

@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 # Ultralytics YOLO Frequently Asked Questions (FAQ)
 
 This FAQ section addresses some common questions and issues users might encounter while working with Ultralytics YOLO repositories.

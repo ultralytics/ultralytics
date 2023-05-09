@@ -1,4 +1,8 @@
-# YOLOv5 Docs
+---
+comments: true
+---
+
+# Ultralytics YOLOv5
 
 <div align="center">
   <p>

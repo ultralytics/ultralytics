@@ -1,3 +1,7 @@
+---
+comments: true
+---
+
 # Get Started with YOLOv5 🚀 in Docker
 
 This tutorial will guide you through the process of setting up and running YOLOv5 in a Docker container. 

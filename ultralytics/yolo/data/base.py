@@ -15,7 +15,7 @@ import psutil
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
-from ..utils import LOCAL_RANK, LOGGER, NUM_THREADS, TQDM_BAR_FORMAT
+from ..utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM_BAR_FORMAT
 from .utils import HELP_URL, IMG_FORMATS
 
 
@@ -51,7 +51,7 @@ class BaseDataset(Dataset):
                  imgsz=640,
                  cache=False,
                  augment=True,
-                 hyp=None,
+                 hyp=DEFAULT_CFG,
                  prefix='',
                  rect=False,
                  batch_size=None,

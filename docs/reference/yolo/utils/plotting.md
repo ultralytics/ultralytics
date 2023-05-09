@@ -32,3 +32,8 @@
 ---
 :::ultralytics.yolo.utils.plotting.output_to_target
 <br><br>
+
+# feature_visualization
+---
+:::ultralytics.yolo.utils.plotting.feature_visualization
+<br><br>

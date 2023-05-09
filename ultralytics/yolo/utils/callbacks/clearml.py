@@ -84,9 +84,15 @@ def on_pretrain_routine_start(trainer):
 
 
 def on_train_epoch_end(trainer):
-    """Logs debug samples for the first epoch of YOLO training."""
-    if trainer.epoch == 1 and Task.current_task():
-        _log_debug_samples(sorted(trainer.save_dir.glob('train_batch*.jpg')), 'Mosaic')
+    task = Task.current_task()
+
+    if task:
+        """Logs debug samples for the first epoch of YOLO training."""
+        if trainer.epoch == 1:
+            _log_debug_samples(sorted(trainer.save_dir.glob('train_batch*.jpg')), 'Mosaic')
+        """Report the current training progress."""
+        for k, v in trainer.validator.metrics.results_dict.items():
+            task.get_logger().report_scalar('train', k, v, iteration=trainer.epoch)
 
 
 def on_fit_epoch_end(trainer):
@@ -119,7 +125,9 @@ def on_train_end(trainer):
     task = Task.current_task()
     if task:
         # Log final results, CM matrix + PR plots
-        files = ['results.png', 'confusion_matrix.png', *(f'{x}_curve.png' for x in ('F1', 'PR', 'P', 'R'))]
+        files = [
+            'results.png', 'confusion_matrix.png', 'confusion_matrix_normalized.png',
+            *(f'{x}_curve.png' for x in ('F1', 'PR', 'P', 'R'))]
         files = [(trainer.save_dir / f) for f in files if (trainer.save_dir / f).exists()]  # filter
         for f in files:
             _log_plot(title=f.stem, plot_path=f)

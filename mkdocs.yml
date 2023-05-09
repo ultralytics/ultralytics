@@ -338,9 +338,9 @@ plugins:
   - mkdocstrings
   - search
   - ultralytics:
-      - add_desc: False
-      - add_image: True
-      - default_image: https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png
+      add_desc: False
+      add_image: True
+      default_image: https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png
   - git-revision-date-localized:
       type: timeago
       enable_creation_date: true

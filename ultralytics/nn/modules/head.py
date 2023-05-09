@@ -12,8 +12,8 @@ from torch.nn.init import constant_, xavier_uniform_
 
 from ultralytics.yolo.utils.tal import dist2bbox, make_anchors
 
-from .blocks import DFL, Proto
-from .convs import Conv
+from .block import DFL, Proto
+from .conv import Conv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init_
 

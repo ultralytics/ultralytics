@@ -258,6 +258,8 @@ class RTDETRDecoder(nn.Module):
             self.dec_score_head,
             self.query_pos_head,
             attn_mask=attn_mask)
+        if not self.training:
+            out_logits = out_logits.sigmoid_()
         return (out_bboxes, out_logits, enc_topk_bboxes, enc_topk_logits,
                 dn_meta)
 

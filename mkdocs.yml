@@ -2,6 +2,8 @@
 
 site_name: Ultralytics YOLOv8 Docs
 site_url: https://docs.ultralytics.com
+site_description: The official documentation for Ultralytics YOLOv8, providing comprehensive guides, tutorials, and references to get you started on your AI journey.
+site_author: Ultralytics
 repo_url: https://github.com/ultralytics/ultralytics
 edit_uri: https://github.com/ultralytics/ultralytics/tree/main/docs
 repo_name: ultralytics/ultralytics
@@ -107,7 +109,8 @@ markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.inlinehilite
-  - pymdownx.snippets
+  - pymdownx.snippets:
+      base_path: ./
   - pymdownx.emoji:
       emoji_index: !!python/name:materialx.emoji.twemoji  # noqa
       emoji_generator: !!python/name:materialx.emoji.to_svg
@@ -334,6 +337,7 @@ nav:
 plugins:
   - mkdocstrings
   - search
+  - ultralytics
   - git-revision-date-localized:
       type: timeago
       enable_creation_date: true

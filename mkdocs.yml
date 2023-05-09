@@ -249,7 +249,12 @@ nav:
       - nn:
           - autobackend: reference/nn/autobackend.md
           - autoshape: reference/nn/autoshape.md
-          - modules: reference/nn/modules.md
+          - modules:
+              - blocks: reference/nn/modules/blocks.md
+              - convs: reference/nn/modules/convs.md
+              - head: reference/nn/modules/head.md
+              - transformer: reference/nn/modules/transformer.md
+              - utils: reference/nn/modules/utils.md
           - tasks: reference/nn/tasks.md
       - tracker:
           - track: reference/tracker/track.md
@@ -363,7 +368,7 @@ plugins:
         reference/base_trainer.md: reference/yolo/engine/trainer.md
         reference/exporter.md: reference/yolo/engine/exporter.md
         reference/model.md: reference/yolo/engine/model.md
-        reference/nn.md: reference/nn/modules.md
+        reference/nn.md: reference/nn/modules/head.md
         reference/ops.md: reference/yolo/utils/ops.md
         reference/results.md: reference/yolo/engine/results.md
         reference/base_val.md: index.md

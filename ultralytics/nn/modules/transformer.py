@@ -259,11 +259,12 @@ class MSDeformAttn(nn.Module):
         n = reference_points.shape[-1]
         if n == 2:
             offset_normalizer = torch.as_tensor(value_spatial_shapes, dtype=query.dtype, device=query.device).flip(-1)
-            denominator = offset_normalizer[None, None, None, :, None, :]
-            sampling_locations = reference_points[:, :, None, :, None, :] + sampling_offsets / denominator
+            add = sampling_offsets / offset_normalizer[None, None, None, :, None, :]
+            sampling_locations = reference_points[:, :, None, :, None, :] + add
+
         elif n == 4:
-            denominator = self.n_points * reference_points[:, :, None, :, None, 2:]
-            sampling_locations = reference_points[:, :, None, :, None, :2] + sampling_offsets / denominator * 0.5
+            add = sampling_offsets / self.n_points * reference_points[:, :, None, :, None, 2:] * 0.5
+            sampling_locations = reference_points[:, :, None, :, None, :2] + add
         else:
             raise ValueError(f'Last dim of reference_points must be 2 or 4, but got {n}.')
         output = multi_scale_deformable_attn_pytorch(value, value_spatial_shapes, sampling_locations, attention_weights)

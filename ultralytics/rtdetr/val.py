@@ -5,6 +5,8 @@ from ultralytics.yolo.data.augment import Compose, LetterBox, Format
 from pathlib import Path
 import torch
 
+__all__ = ["RTDETRValidator"]
+
 # TODO: Temporarily, RTDETR do not need padding.
 class RTDETRDataset(YOLODataset):
     def __init__(self, *args, data=None, **kwargs):
@@ -54,11 +56,10 @@ class RTDETRValidator(DetectionValidator):
         for i, bbox in enumerate(bboxes):   # (300, 4)
             bbox = ops.xywh2xyxy(bbox)
             score, cls = scores[i].max(-1)  # (300, )
-            idx = score > self.args.iou
-            pred = torch.cat([bbox, score[..., None], cls[..., None]], dim=-1)[idx]  # filter
-            # pred[..., [0, 2]] *= ow
-            # pred[..., [1, 3]] *= oh
-            outputs[i] = pred
+            # Do not need threshold for evaluation as only got 300 boxes here.
+            # idx = score > self.args.conf
+            pred = torch.cat([bbox, score[..., None], cls[..., None]], dim=-1)  # filter
+            outputs[i] = pred#[idx]
 
         return outputs
 

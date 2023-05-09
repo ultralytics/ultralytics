@@ -15,7 +15,7 @@ class RTDETRPredictor(BasePredictor):
         for i, bbox in enumerate(bboxes):   # (300, 4)
             bbox = ops.xywh2xyxy(bbox)
             score, cls = scores[i].max(-1)  # (300, )
-            idx = score > self.args.iou
+            idx = score > self.args.conf
             pred = torch.cat([bbox, score[..., None], cls[..., None]], dim=-1)[idx]  # filter
             orig_img = orig_imgs[i] if isinstance(orig_imgs, list) else orig_imgs
             oh, ow = orig_img.shape[:2]

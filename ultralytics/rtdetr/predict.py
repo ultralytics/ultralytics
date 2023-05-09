@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
 import torch
 
 from ultralytics.yolo.data.augment import LetterBox
@@ -9,7 +11,7 @@ from ultralytics.yolo.utils import ops
 class RTDETRPredictor(BasePredictor):
 
     def postprocess(self, preds, img, orig_imgs):
-        """Postprocesses predictions and returns a list of Results objects."""
+        """Postprocess predictions and returns a list of Results objects."""
         bboxes, scores = preds[:2]  # (1, bs, 300, 4), (1, bs, 300, nc)
         bboxes, scores = bboxes.squeeze_(0), scores.squeeze_(0)
         results = []
@@ -29,7 +31,7 @@ class RTDETRPredictor(BasePredictor):
         return results
 
     def pre_transform(self, im):
-        """Pre-tranform input image before inference.
+        """Pre-transform input image before inference.
 
         Args:
             im (List(np.ndarray)): (N, 3, h, w) for tensor, [(h, w, 3) x N] for list.

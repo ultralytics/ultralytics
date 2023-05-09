@@ -1,3 +1,8 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+"""
+Model head modules
+"""
+
 import math
 
 import torch
@@ -158,10 +163,10 @@ class RTDETRDecoder(nn.Module):
     def __init__(
             self,
             nc=80,
-            ch=[512, 1024, 2048],
+            ch=(512, 1024, 2048),
             hidden_dim=256,
             num_queries=300,
-            strides=[8, 16, 32],  # TODO
+            strides=(8, 16, 32),  # TODO
             nl=3,
             num_decoder_points=4,
             nhead=8,
@@ -240,8 +245,7 @@ class RTDETRDecoder(nn.Module):
             denoising_class, denoising_bbox_unact, attn_mask, dn_meta = None, None, None, None
 
         target, init_ref_points_unact, enc_topk_bboxes, enc_topk_logits = \
-            self._get_decoder_input(
-            memory, spatial_shapes, denoising_class, denoising_bbox_unact)
+            self._get_decoder_input(memory, spatial_shapes, denoising_class, denoising_bbox_unact)
 
         # decoder
         out_bboxes, out_logits = self.decoder(target,
@@ -254,7 +258,7 @@ class RTDETRDecoder(nn.Module):
                                               attn_mask=attn_mask)
         if not self.training:
             out_logits = out_logits.sigmoid_()
-        return (out_bboxes, out_logits, enc_topk_bboxes, enc_topk_logits, dn_meta)
+        return out_bboxes, out_logits, enc_topk_bboxes, enc_topk_logits, dn_meta
 
     def _reset_parameters(self):
         # class and bbox head init
@@ -275,8 +279,8 @@ class RTDETRDecoder(nn.Module):
             xavier_uniform_(self.tgt_embed.weight)
         xavier_uniform_(self.query_pos_head.layers[0].weight)
         xavier_uniform_(self.query_pos_head.layers[1].weight)
-        for l in self.input_proj:
-            xavier_uniform_(l[0].weight)
+        for layer in self.input_proj:
+            xavier_uniform_(layer[0].weight)
 
     def _build_input_proj_layer(self, ch):
         self.input_proj = nn.ModuleList()
@@ -324,9 +328,8 @@ class RTDETRDecoder(nn.Module):
         # get encoder inputs
         feat_flatten = []
         spatial_shapes = []
-        level_start_index = [
-            0, ]
-        for i, feat in enumerate(proj_feats):
+        level_start_index = [0]
+        for feat in proj_feats:
             _, _, h, w = feat.shape
             # [b, c, h, w] -> [b, h*w, c]
             feat_flatten.append(feat.flatten(2).permute(0, 2, 1))
@@ -357,8 +360,9 @@ class RTDETRDecoder(nn.Module):
         batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
         topk_ind = topk_ind.view(-1)
 
-        reference_points_unact = enc_outputs_coord_unact[batch_ind, topk_ind].view(bs, self.num_queries,
-                                                                                   -1)  # unsigmoided.
+        # Unsigmoided
+        reference_points_unact = enc_outputs_coord_unact[batch_ind, topk_ind].view(bs, self.num_queries, -1)
+
         enc_topk_bboxes = F.sigmoid(reference_points_unact)
         if denoising_bbox_unact is not None:
             reference_points_unact = torch.concat([denoising_bbox_unact, reference_points_unact], 1)

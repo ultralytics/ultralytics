@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 """
-Common convolutions
+Convolution modules
 """
 
 import math

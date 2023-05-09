@@ -1,3 +1,8 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+"""
+Transformer modules
+"""
+
 import math
 
 import torch
@@ -137,12 +142,7 @@ class TransformerBlock(nn.Module):
 
 class MLPBlock(nn.Module):
 
-    def __init__(
-        self,
-        embedding_dim,
-        mlp_dim,
-        act=nn.GELU,
-    ):
+    def __init__(self, embedding_dim, mlp_dim, act=nn.GELU):
         super().__init__()
         self.lin1 = nn.Linear(embedding_dim, mlp_dim)
         self.lin2 = nn.Linear(mlp_dim, embedding_dim)
@@ -194,7 +194,7 @@ class MSDeformAttn(nn.Module):
     def __init__(self, d_model=256, n_levels=4, n_heads=8, n_points=4):
         super().__init__()
         if d_model % n_heads != 0:
-            raise ValueError('d_model must be divisible by n_heads, but got {} and {}'.format(d_model, n_heads))
+            raise ValueError(f'd_model must be divisible by n_heads, but got {d_model} and {n_heads}')
         _d_per_head = d_model // n_heads
         # you'd better set _d_per_head to a power of 2 which is more efficient in our CUDA implementation
         assert _d_per_head * n_heads == d_model, '`d_model` must be divisible by `n_heads`'
@@ -246,7 +246,7 @@ class MSDeformAttn(nn.Module):
         """
         bs, len_q = query.shape[:2]
         _, len_v = value.shape[:2]
-        assert sum([s[0] * s[1] for s in value_spatial_shapes]) == len_v
+        assert sum(s[0] * s[1] for s in value_spatial_shapes) == len_v
 
         value = self.value_proj(value)
         if value_mask is not None:
@@ -264,8 +264,7 @@ class MSDeformAttn(nn.Module):
             sampling_locations = reference_points[:, :, None, :, None, :2] \
                                  + sampling_offsets / self.n_points * reference_points[:, :, None, :, None, 2:] * 0.5
         else:
-            raise ValueError('Last dim of reference_points must be 2 or 4, but get {} instead.'.format(
-                reference_points.shape[-1]))
+            raise ValueError(f'Last dim of reference_points must be 2 or 4, but got {reference_points.shape[-1]}.')
         output = multi_scale_deformable_attn_pytorch(value, value_spatial_shapes, sampling_locations, attention_weights)
         output = self.output_proj(output)
         return output
@@ -362,6 +361,7 @@ class DeformableTransformerDecoder(nn.Module):
         output = tgt
         dec_out_bboxes = []
         dec_out_logits = []
+        ref_points = None
         ref_points_detach = F.sigmoid(reference_points)
         for i, layer in enumerate(self.layers):
             ref_points_input = ref_points_detach.unsqueeze(2)

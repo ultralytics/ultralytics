@@ -1,3 +1,8 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+"""
+Module utils
+"""
+
 import copy
 import math
 
@@ -10,14 +15,13 @@ from torch.nn.init import uniform_
 __all__ = ['multi_scale_deformable_attn_pytorch', 'inverse_sigmoid']
 
 
-def _get_clones(module, N):
-    return nn.ModuleList([copy.deepcopy(module) for _ in range(N)])
+def _get_clones(module, n):
+    return nn.ModuleList([copy.deepcopy(module) for _ in range(n)])
 
 
 def bias_init_with_prob(prior_prob=0.01):
     """initialize conv/fc bias value according to a given probability value."""
-    bias_init = float(-np.log((1 - prior_prob) / prior_prob))
-    return bias_init
+    return float(-np.log((1 - prior_prob) / prior_prob))  # return bias_init
 
 
 def linear_init_(module):

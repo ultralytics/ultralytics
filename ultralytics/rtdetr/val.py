@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
 from pathlib import Path
 
 import torch
@@ -10,7 +12,7 @@ from ultralytics.yolo.v8.detect import DetectionValidator
 __all__ = ['RTDETRValidator']
 
 
-# TODO: Temporarily, RTDETR do not need padding.
+# TODO: Temporarily, RT-DETR does not need padding.
 class RTDETRDataset(YOLODataset):
 
     def __init__(self, *args, data=None, **kwargs):
@@ -46,7 +48,7 @@ class RTDETRValidator(DetectionValidator):
             batch_size=batch,
             augment=False,  # no augmentation
             hyp=self.args,
-            rect=False,  # no tect
+            rect=False,  # no rect
             cache=self.args.cache or None,
             prefix=colorstr(f'{mode}: '),
             data=self.data)
@@ -63,7 +65,7 @@ class RTDETRValidator(DetectionValidator):
             # Do not need threshold for evaluation as only got 300 boxes here.
             # idx = score > self.args.conf
             pred = torch.cat([bbox, score[..., None], cls[..., None]], dim=-1)  # filter
-            outputs[i] = pred  #[idx]
+            outputs[i] = pred  # [idx]
 
         return outputs
 

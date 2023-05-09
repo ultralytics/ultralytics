@@ -1,3 +1,8 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+"""
+Block modules
+"""
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -222,7 +227,7 @@ class RepC3(nn.Module):
         self.cv3 = Conv(c_, c2, 1, 1) if c_ != c2 else nn.Identity()
 
     def forward(self, x):
-        """Forward pass of a RT-DETR neck layer."""
+        """Forward pass of RT-DETR neck layer."""
         return self.cv3(self.m(self.cv1(x)) + self.cv2(x))
 
 

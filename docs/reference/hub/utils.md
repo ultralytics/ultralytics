@@ -1,3 +1,7 @@
+---
+description: Explore Ultralytics events, including 'request_with_credentials' and 'smart_request', to improve your project's performance and efficiency.
+---
+
 # Events
 ---
 :::ultralytics.hub.utils.Events

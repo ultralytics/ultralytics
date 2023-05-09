@@ -1,3 +1,7 @@
+---
+description: Improve YOLOv5 training with Neptune, a powerful logging tool. Track metrics like images, plots, and epochs for better model performance.
+---
+
 # _log_scalars
 ---
 :::ultralytics.yolo.utils.callbacks.neptune._log_scalars

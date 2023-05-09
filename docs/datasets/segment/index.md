@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn about the Ultralytics YOLO dataset format for segmentation models. Use YAML to train Detection Models. Convert COCO to YOLO format using Python.
 ---
 
 # Instance Segmentation Datasets Overview
@@ -15,8 +16,8 @@ The dataset format used for training YOLO segmentation models is as follows:
 1. One text file per image: Each image in the dataset has a corresponding text file with the same name as the image file and the ".txt" extension.
 2. One row per object: Each row in the text file corresponds to one object instance in the image.
 3. Object information per row: Each row contains the following information about the object instance:
-   - Object class index: An integer representing the class of the object (e.g., 0 for person, 1 for car, etc.).
-   - Object bounding coordinates: The bounding coordinates around the mask area, normalized to be between 0 and 1.
+    - Object class index: An integer representing the class of the object (e.g., 0 for person, 1 for car, etc.).
+    - Object bounding coordinates: The bounding coordinates around the mask area, normalized to be between 0 and 1.
 
 The format for a single row in the segmentation dataset file is as follows:
 
@@ -24,7 +25,7 @@ The format for a single row in the segmentation dataset file is as follows:
 <class-index> <x1> <y1> <x2> <y2> ... <xn> <yn>
 ```
 
-In this format, `<class-index>` is the index of the class for the object, and `<x1> <y1> <x2> <y2> ... <xn> <yn>` are the bounding coordinates of the object's segmentation mask. The coordinates are separated by spaces. 
+In this format, `<class-index>` is the index of the class for the object, and `<x1> <y1> <x2> <y2> ... <xn> <yn>` are the bounding coordinates of the object's segmentation mask. The coordinates are separated by spaces.
 
 Here is an example of the YOLO dataset format for a single image with two object instances:
 
@@ -32,6 +33,7 @@ Here is an example of the YOLO dataset format for a single image with two object
 0 0.6812 0.48541 0.67 0.4875 0.67656 0.487 0.675 0.489 0.66
 1 0.5046 0.0 0.5015 0.004 0.4984 0.00416 0.4937 0.010 0.492 0.0104
 ```
+
 Note: The length of each row does not have to be equal.
 
 ** Dataset file format **
@@ -56,6 +58,7 @@ The `names` field is a list of the names of the object classes. The order of the
 NOTE: Either `nc` or `names` must be defined. Defining both are not mandatory.
 
 Alternatively, you can directly define class names like this:
+
 ```yaml
 names:
   0: person
@@ -73,6 +76,7 @@ names: ['person', 'car']
 ```
 
 ## Usage
+
 !!! example ""
 
     === "Python"

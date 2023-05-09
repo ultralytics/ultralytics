@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn about the Vision Transformer (ViT) and segment anything with SAM models. Train and use pre-trained models with Python API.
 ---
 
 # Vision Transformers
@@ -9,11 +10,11 @@ Vit models currently support Python environment:
 ```python
 from ultralytics.vit import SAM
 
-# from ultralytics.vit import MODEL_TYPe
+# from ultralytics.vit import MODEL_TYPE
 
 model = SAM("sam_b.pt")
 model.info()  # display model information
-model.predict(...)  # train the model
+model.predict(...)  # predict
 ```
 
 # Segment Anything

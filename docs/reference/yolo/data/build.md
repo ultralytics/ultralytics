@@ -1,3 +1,7 @@
+---
+description: Maximize YOLO performance with Ultralytics' InfiniteDataLoader, seed_worker, build_dataloader, and load_inference_source functions.
+---
+
 # InfiniteDataLoader
 ---
 :::ultralytics.yolo.data.build.InfiniteDataLoader

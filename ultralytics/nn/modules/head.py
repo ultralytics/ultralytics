@@ -311,12 +311,12 @@ class RTDETRDecoder(nn.Module):
     def _generate_anchors(self, spatial_shapes, grid_size=0.05, dtype=torch.float32, device="cpu", eps=1e-2):
         anchors = []
         for lvl, (h, w) in enumerate(spatial_shapes):
-            grid_y, grid_x = torch.meshgrid(torch.arange(end=h, dtype=dtype),
-                                            torch.arange(end=w, dtype=dtype), 
+            grid_y, grid_x = torch.meshgrid(torch.arange(end=h, dtype=torch.float32),
+                                            torch.arange(end=w, dtype=torch.float32), 
                                             indexing="ij")
             grid_xy = torch.stack([grid_x, grid_y], -1)
 
-            valid_WH = torch.tensor([h, w]).to(dtype)
+            valid_WH = torch.tensor([h, w]).to(torch.float32)
             grid_xy = (grid_xy.unsqueeze(0) + 0.5) / valid_WH
             wh = torch.ones_like(grid_xy) * grid_size * (2.0**lvl)
             anchors.append(torch.concat([grid_xy, wh], -1).reshape([-1, h * w, 4]))
@@ -325,7 +325,7 @@ class RTDETRDecoder(nn.Module):
         valid_mask = ((anchors > eps) * (anchors < 1 - eps)).all(-1, keepdim=True)
         anchors = torch.log(anchors / (1 - anchors))
         anchors = torch.where(valid_mask, anchors, torch.inf)
-        return anchors.to(device), valid_mask.to(device)
+        return anchors.to(device=device, dtype=dtype), valid_mask.to(device=device)
 
     def _get_encoder_input(self, feats):
         # get projection features

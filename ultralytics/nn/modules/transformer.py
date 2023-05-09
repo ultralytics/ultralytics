@@ -70,17 +70,16 @@ class AIFI(TransformerEncoderLayer):
         c, h, w = x.shape[1:]
         pos_embed = self.build_2d_sincos_position_embedding(w, h, c)
         # flatten [B, C, H, W] to [B, HxW, C]
-        x = super().forward(x.flatten(2).permute(0, 2, 1), pos=pos_embed.to(x.device))
+        x = super().forward(x.flatten(2).permute(0, 2, 1), pos=pos_embed.to(device=x.device, dtype=x.dtype))
         return x.permute((0, 2, 1)).view([-1, c, h, w])
 
     @staticmethod
     def build_2d_sincos_position_embedding(w,
                                            h,
                                            embed_dim=256,
-                                           temperature=10000.,
-                                           dtype=torch.float32):
-        grid_w = torch.arange(int(w), dtype=dtype)
-        grid_h = torch.arange(int(h), dtype=dtype)
+                                           temperature=10000.):
+        grid_w = torch.arange(int(w), dtype=torch.float32)
+        grid_h = torch.arange(int(h), dtype=torch.float32)
         grid_w, grid_h = torch.meshgrid(grid_w, grid_h, indexing="ij")
         assert embed_dim % 4 == 0, \
             'Embed dimension must be divisible by 4 for 2D sin-cos position embedding'

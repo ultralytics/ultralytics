@@ -18,8 +18,9 @@ The dataset format used for training YOLO detection models is as follows:
     - Object class index: An integer representing the class of the object (e.g., 0 for person, 1 for car, etc.).
     - Object center coordinates: The x and y coordinates of the center of the object, normalized to be between 0 and 1.
     - Object width and height: The width and height of the object, normalized to be between 0 and 1.
-   
+
 The format for a single row in the detection dataset file is as follows:
+
 ```
 <object-class> <x> <y> <width> <height>
 ```
@@ -55,6 +56,7 @@ The `names` field is a list of the names of the object classes. The order of the
 NOTE: Either `nc` or `names` must be defined. Defining both are not mandatory
 
 Alternatively, you can directly define class names like this:
+
 ```yaml
 names:
   0: person
@@ -72,6 +74,7 @@ names: ['person', 'car']
 ```
 
 ## Usage
+
 !!! example ""
 
     === "Python"
@@ -93,6 +96,7 @@ names: ['person', 'car']
         ```
 
 ## Supported Datasets
+
 TODO
 
 ## Port or Convert label formats

@@ -40,7 +40,6 @@ for (result, frame) in model.track/predict():
 
 Here are all supported callbacks. See callbacks [source code](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/utils/callbacks/base.py) for additional details.
 
-
 ### Trainer Callbacks
 
 | Callback                    | Description                                             |
@@ -60,7 +59,6 @@ Here are all supported callbacks. See callbacks [source code](https://github.com
 | `on_params_update`          | Triggered when model parameters are updated             |
 | `teardown`                  | Triggered when the training process is being cleaned up |
 
-
 ### Validator Callbacks
 
 | Callback             | Description                                     |
@@ -69,7 +67,6 @@ Here are all supported callbacks. See callbacks [source code](https://github.com
 | `on_val_batch_start` | Triggered at the start of each validation batch |
 | `on_val_batch_end`   | Triggered at the end of each validation batch   |
 | `on_val_end`         | Triggered when the validation ends              |
-
 
 ### Predictor Callbacks
 

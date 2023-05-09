@@ -27,6 +27,7 @@ Format with Dim = 2
 ```
 <class-index> <x> <y> <width> <height> <px1> <py1> <px2> <py2> ... <pxn> <pyn>
 ```
+
 Format with Dim = 3
 
 ```
@@ -34,7 +35,6 @@ Format with Dim = 3
 ```
 
 In this format, `<class-index>` is the index of the class for the object,`<x> <y> <width> <height>` are coordinates of boudning box, and `<px1> <py1> <px2> <py2> ... <pxn> <pyn>` are the pixel coordinates of the keypoints. The coordinates are separated by spaces. 
-
 
 ** Dataset file format **
 
@@ -62,6 +62,7 @@ The `names` field is a list of the names of the object classes. The order of the
 NOTE: Either `nc` or `names` must be defined. Defining both are not mandatory
 
 Alternatively, you can directly define class names like this:
+
 ```
 names:
   0: person
@@ -69,7 +70,7 @@ names:
 ```
 
 (Optional) if the points are symmetric then need flip_idx, like left-right side of human or face.
-For example let's say there're five keypoints of facial landmark: [left eye, right eye, nose, left point of mouth, right point of mouse], and the original index is [0, 1, 2, 3, 4], then flip_idx is [1, 0, 2, 4, 3].(just exchange the left-right index, i.e 0-1 and 3-4, and do not modify others like nose in this example) 
+For example let's say there're five keypoints of facial landmark: [left eye, right eye, nose, left point of mouth, right point of mouse], and the original index is [0, 1, 2, 3, 4], then flip_idx is [1, 0, 2, 4, 3].(just exchange the left-right index, i.e 0-1 and 3-4, and do not modify others like nose in this example)
 
 ** Example **
 
@@ -86,6 +87,7 @@ flip_idx: [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15]
 ```
 
 ## Usage
+
 !!! example ""
 
     === "Python"
@@ -107,6 +109,7 @@ flip_idx: [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15]
         ```
 
 ## Supported Datasets
+
 TODO
 
 ## Port or Convert label formats

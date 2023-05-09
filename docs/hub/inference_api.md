@@ -6,7 +6,6 @@ comments: true
 
 This page is currently under construction!️ 👷Please check back later for updates. 😃🔜
 
-
 # YOLO Inference API
 
 The YOLO Inference API allows you to access the YOLOv8 object detection capabilities via a RESTful API. This enables you to run object detection on images without the need to install and set up the YOLOv8 environment locally.
@@ -44,7 +43,6 @@ print(response.json())
 ```
 
 In this example, replace `API_KEY` with your actual API key, `MODEL_ID` with the desired model ID, and `path/to/image.jpg` with the path to the image you want to analyze.
-
 
 ## Example Usage with CLI
 
@@ -333,7 +331,6 @@ YOLO segmentation models, such as `yolov8n-seg.pt`, can return JSON responses fr
           ]
         }
         ```
-
 
 ### Pose Model Format
 

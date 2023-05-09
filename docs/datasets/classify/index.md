@@ -77,6 +77,7 @@ cifar-10-/
 In this example, the `train` directory contains subdirectories for each class in the dataset, and each class subdirectory contains all the images for that class. The `test` directory has a similar structure. The `root` directory also contains other files that are part of the CIFAR10 dataset.
 
 ## Usage
+
 !!! example ""
 
     === "Python"
@@ -98,4 +99,5 @@ In this example, the `train` directory contains subdirectories for each class in
         ```
 
 ## Supported Datasets
+
 TODO

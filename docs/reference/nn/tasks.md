@@ -1,3 +1,7 @@
+---
+description: Learn how to work with Ultralytics YOLO Detection, Segmentation & Classification Models, load weights and parse models in PyTorch.
+---
+
 # BaseModel
 ---
 :::ultralytics.nn.tasks.BaseModel

@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Detect objects faster and more accurately using Ultralytics YOLOv5u. Find pre-trained models for each task, including Inference, Validation and Training.
 ---
 
 # YOLOv5u

@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn about the COCO dataset, designed to encourage research on object detection, segmentation, and captioning with standardized evaluation metrics.
 ---
 
 # COCO Dataset

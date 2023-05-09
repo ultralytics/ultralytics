@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Get started with YOLOv8 Predict mode and input sources. Accepts various input sources such as images, videos, and directories.
 ---
 
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
@@ -58,10 +59,11 @@ whether each source can be used in streaming mode with `stream=True` ✅ and an 
 | YouTube ✅   | `'https://youtu.be/Zgi9g1ksQHc'`           | `str`          |                  |
 | stream ✅    | `'rtsp://example.com/media.mp4'`           | `str`          | RTSP, RTMP, HTTP |
 
-
 ## Arguments
+
 `model.predict` accepts multiple arguments that control the prediction operation. These arguments can be passed directly to `model.predict`:
 !!! example
+
     ```
     model.predict(source, save=True, imgsz=320, conf=0.5)
     ```
@@ -220,6 +222,7 @@ masks, classification logits, etc.) found in the results object
     res_plotted = res[0].plot()
     cv2.imshow("result", res_plotted)
     ```
+
 | Argument                      | Description                                                                            |
 |-------------------------------|----------------------------------------------------------------------------------------|
 | `conf (bool)`                 | Whether to plot the detection confidence score.                                        |
@@ -233,7 +236,6 @@ masks, classification logits, etc.) found in the results object
 | `boxes (bool)`                | Whether to plot the bounding boxes.                                                    |
 | `masks (bool)`                | Whether to plot the masks.                                                             |
 | `probs (bool)`                | Whether to plot classification probability.                                            |
-
 
 ## Streaming Source `for`-loop
 

@@ -1,3 +1,7 @@
+---
+description: Ensure class names match filenames for easy imports. Use AutoBackend to automatically rename and refactor model files.
+---
+
 # AutoBackend
 ---
 :::ultralytics.nn.autobackend.AutoBackend

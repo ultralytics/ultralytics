@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Get comprehensive resources for Ultralytics YOLO repositories. Find guides, FAQs, MRE creation, CLA & more. Join the supportive community now!
 ---
 
 Welcome to the Ultralytics Help page! We are committed to providing you with comprehensive resources to make your experience with Ultralytics YOLO repositories as smooth and enjoyable as possible. On this page, you'll find essential links to guides and documents that will help you navigate through common tasks and address any questions you might have while using our repositories.

@@ -1,3 +1,7 @@
+---
+description: Improve your YOLOv5 model training with callbacks from ClearML. Learn about log debug samples, pre-training routines, validation and more.
+---
+
 # _log_debug_samples
 ---
 :::ultralytics.yolo.utils.callbacks.clearml._log_debug_samples

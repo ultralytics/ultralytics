@@ -1,3 +1,7 @@
+---
+description: Efficiently handle data in YOLO with Ultralytics. Utilize HUBDatasetStats and customize dataset with these data utility functions.
+---
+
 # HUBDatasetStats
 ---
 :::ultralytics.yolo.data.utils.HUBDatasetStats

@@ -414,15 +414,7 @@ def is_dir_writeable(dir_path: Union[str, Path]) -> bool:
     Returns:
         bool: True if the directory is writeable, False otherwise.
     """
-    if WINDOWS and str(dir_path).lower() == 'c:\\':
-        return False
-
-    try:
-        with tempfile.TemporaryFile(dir=dir_path):
-            pass
-        return True
-    except OSError:
-        return False
+    return os.access(str(dir_path), os.W_OK)
 
 
 def is_pytest_running():

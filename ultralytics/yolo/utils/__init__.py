@@ -8,7 +8,6 @@ import platform
 import re
 import subprocess
 import sys
-import tempfile
 import threading
 import urllib
 import uuid

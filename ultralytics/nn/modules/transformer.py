@@ -256,15 +256,16 @@ class MSDeformAttn(nn.Module):
         attention_weights = self.attention_weights(query).view(bs, len_q, self.n_heads, self.n_levels * self.n_points)
         attention_weights = F.softmax(attention_weights, -1).view(bs, len_q, self.n_heads, self.n_levels, self.n_points)
         # N, Len_q, n_heads, n_levels, n_points, 2
-        if reference_points.shape[-1] == 2:
+        n = reference_points.shape[-1]
+        if n == 2:
             offset_normalizer = torch.as_tensor(value_spatial_shapes, dtype=query.dtype, device=query.device).flip(-1)
-            sampling_locations = reference_points[:, :, None, :, None, :] \
-                                 + sampling_offsets / offset_normalizer[None, None, None, :, None, :]
-        elif reference_points.shape[-1] == 4:
-            sampling_locations = reference_points[:, :, None, :, None, :2] \
-                                 + sampling_offsets / self.n_points * reference_points[:, :, None, :, None, 2:] * 0.5
+            denominator = offset_normalizer[None, None, None, :, None, :]
+            sampling_locations = reference_points[:, :, None, :, None, :] + sampling_offsets / denominator
+        elif n == 4:
+            denominator = self.n_points * reference_points[:, :, None, :, None, 2:]
+            sampling_locations = reference_points[:, :, None, :, None, :2] + sampling_offsets / denominator * 0.5
         else:
-            raise ValueError(f'Last dim of reference_points must be 2 or 4, but got {reference_points.shape[-1]}.')
+            raise ValueError(f'Last dim of reference_points must be 2 or 4, but got {n}.')
         output = multi_scale_deformable_attn_pytorch(value, value_spatial_shapes, sampling_locations, attention_weights)
         output = self.output_proj(output)
         return output

@@ -308,10 +308,12 @@ class RTDETRDecoder(nn.Module):
                             self.hidden_dim)))
             in_channels = self.hidden_dim
 
-    def _generate_anchors(self, spatial_shapes, grid_size=0.05, dtype=torch.float32, eps=1e-2):
+    def _generate_anchors(self, spatial_shapes, grid_size=0.05, dtype=torch.float32, device="cpu", eps=1e-2):
         anchors = []
         for lvl, (h, w) in enumerate(spatial_shapes):
-            grid_y, grid_x = torch.meshgrid(torch.arange(end=h, dtype=dtype), torch.arange(end=w, dtype=dtype), indexing="ij")
+            grid_y, grid_x = torch.meshgrid(torch.arange(end=h, dtype=dtype),
+                                            torch.arange(end=w, dtype=dtype), 
+                                            indexing="ij")
             grid_xy = torch.stack([grid_x, grid_y], -1)
 
             valid_WH = torch.tensor([h, w]).to(dtype)
@@ -323,7 +325,7 @@ class RTDETRDecoder(nn.Module):
         valid_mask = ((anchors > eps) * (anchors < 1 - eps)).all(-1, keepdim=True)
         anchors = torch.log(anchors / (1 - anchors))
         anchors = torch.where(valid_mask, anchors, torch.inf)
-        return anchors, valid_mask
+        return anchors.to(device), valid_mask.to(device)
 
     def _get_encoder_input(self, feats):
         # get projection features
@@ -361,7 +363,7 @@ class RTDETRDecoder(nn.Module):
                            denoising_bbox_unact=None):
         bs, _, _ = memory.shape
         # prepare input for decoder
-        anchors, valid_mask = self._generate_anchors(spatial_shapes)
+        anchors, valid_mask = self._generate_anchors(spatial_shapes, dtype=memory.dtype, device=memory.device)
         memory = torch.where(valid_mask, memory, torch.tensor(0.))
         output_memory = self.enc_output(memory)
 

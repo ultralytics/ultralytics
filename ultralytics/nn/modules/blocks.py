@@ -75,12 +75,12 @@ class HGBlock(nn.Module):
     """HG_Block of PPHGNetV2 with 2 convolutions and LightConv.
     https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/backbones/hgnet_v2.py
     """
-    def __init__(self, c1, cm, c2, k=3, n=6, lightconv=False, shortcut=False):
+    def __init__(self, c1, cm, c2, k=3, n=6, lightconv=False, shortcut=False, act=nn.ReLU()):
         super().__init__()
         block = LightConv if lightconv else Conv
-        self.m = nn.ModuleList(block(c1 if i == 0 else cm, cm, k=k) for i in range(n))
-        self.sc = Conv(c1 + n * cm, c2 // 2, 1, 1) # squeeze conv
-        self.ec = Conv(c2 // 2, c2, 1, 1) # excitation conv
+        self.m = nn.ModuleList(block(c1 if i == 0 else cm, cm, k=k, act=act) for i in range(n))
+        self.sc = Conv(c1 + n * cm, c2 // 2, 1, 1, act=act) # squeeze conv
+        self.ec = Conv(c2 // 2, c2, 1, 1, act=act) # excitation conv
         self.add = shortcut and c1 == c2
 
     def forward(self, x):

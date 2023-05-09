@@ -5,12 +5,13 @@ Common convolutions
 
 import math
 
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
 
-__all__ = ["Conv", "LightConv", "DWConv", "DWConvTranspose2d", "ConvTranspose", "Focus", "GhostConv", 
-           "ChannelAttention", "SpatialAttention", "CBAM", "Concat", "RepConv"]
+__all__ = [
+    'Conv', 'LightConv', 'DWConv', 'DWConvTranspose2d', 'ConvTranspose', 'Focus', 'GhostConv', 'ChannelAttention',
+    'SpatialAttention', 'CBAM', 'Concat', 'RepConv']
 
 
 def autopad(k, p=None, d=1):  # kernel, padding, dilation
@@ -125,8 +126,9 @@ class RepConv(nn.Module):
     This code is based on https://github.com/DingXiaoH/RepVGG/blob/main/repvgg.py
     """
     default_act = nn.SiLU()  # default activation
+
     def __init__(self, c1, c2, k=3, s=1, p=1, g=1, d=1, act=True, bn=False, deploy=False):
-        super(RepConv, self).__init__()
+        super().__init__()
         assert k == 3 and p == 1
         self.g = g
         self.c1 = c1
@@ -160,7 +162,7 @@ class RepConv(nn.Module):
         k = torch.zeros((channels, input_dim, kernel_size, kernel_size))
         k[np.arange(channels), np.tile(np.arange(input_dim), groups), :, :] = 1.0 / kernel_size ** 2
         return k
-    
+
     def _pad_1x1_to_3x3_tensor(self, kernel1x1):
         if kernel1x1 is None:
             return 0
@@ -198,10 +200,14 @@ class RepConv(nn.Module):
         if hasattr(self, 'conv'):
             return
         kernel, bias = self.get_equivalent_kernel_bias()
-        self.conv = nn.Conv2d(in_channels=self.conv1.conv.in_channels, out_channels=self.conv1.conv.out_channels,
-                                     kernel_size=self.conv1.conv.kernel_size, stride=self.conv1.conv.stride,
-                                     padding=self.conv1.conv.padding, dilation=self.conv1.conv.dilation, 
-                                     groups=self.conv1.conv.groups, bias=True).requires_grad_(False)
+        self.conv = nn.Conv2d(in_channels=self.conv1.conv.in_channels,
+                              out_channels=self.conv1.conv.out_channels,
+                              kernel_size=self.conv1.conv.kernel_size,
+                              stride=self.conv1.conv.stride,
+                              padding=self.conv1.conv.padding,
+                              dilation=self.conv1.conv.dilation,
+                              groups=self.conv1.conv.groups,
+                              bias=True).requires_grad_(False)
         self.conv.weight.data = kernel
         self.conv.bias.data = bias
         for para in self.parameters():

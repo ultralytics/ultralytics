@@ -1,16 +1,18 @@
+import math
+
 import torch
 import torch.nn as nn
-import math
 import torch.nn.functional as F
-from torch.nn.init import xavier_uniform_, constant_
-from .convs import Conv
-from .blocks import DFL, Proto
-from .transformer import DeformableTransformerDecoderLayer, DeformableTransformerDecoder, MLP
-from .utils import bias_init_with_prob, linear_init_
+from torch.nn.init import constant_, xavier_uniform_
 
 from ultralytics.yolo.utils.tal import dist2bbox, make_anchors
 
-__all__ = ["Detect", "Segment", "Pose", "Classify", "RTDETRDecoder"]
+from .blocks import DFL, Proto
+from .convs import Conv
+from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
+from .utils import bias_init_with_prob, linear_init_
+
+__all__ = ['Detect', 'Segment', 'Pose', 'Classify', 'RTDETRDecoder']
 
 
 class Detect(nn.Module):
@@ -152,25 +154,27 @@ class Classify(nn.Module):
 
 
 class RTDETRDecoder(nn.Module):
-    def __init__(self,
-                 nc=80,
-                 ch=[512, 1024, 2048],
-                 hidden_dim=256,
-                 num_queries=300,
-                 strides=[8, 16, 32],  # TODO
-                 nl=3,
-                 num_decoder_points=4,
-                 nhead=8,
-                 num_decoder_layers=6,
-                 dim_feedforward=1024,
-                 dropout=0.,
-                 act=nn.ReLU(),
-                 eval_idx=-1,
-                 # training args
-                 num_denoising=100,
-                 label_noise_ratio=0.5,
-                 box_noise_scale=1.0,
-                 learnt_init_query=False):
+
+    def __init__(
+            self,
+            nc=80,
+            ch=[512, 1024, 2048],
+            hidden_dim=256,
+            num_queries=300,
+            strides=[8, 16, 32],  # TODO
+            nl=3,
+            num_decoder_points=4,
+            nhead=8,
+            num_decoder_layers=6,
+            dim_feedforward=1024,
+            dropout=0.,
+            act=nn.ReLU(),
+            eval_idx=-1,
+            # training args
+            num_denoising=100,
+            label_noise_ratio=0.5,
+            box_noise_scale=1.0,
+            learnt_init_query=False):
         super().__init__()
         assert len(ch) <= nl
         assert len(strides) == len(ch)
@@ -189,11 +193,9 @@ class RTDETRDecoder(nn.Module):
         self._build_input_proj_layer(ch)
 
         # Transformer module
-        decoder_layer = DeformableTransformerDecoderLayer(
-            hidden_dim, nhead, dim_feedforward, dropout, act, nl,
-            num_decoder_points)
-        self.decoder = DeformableTransformerDecoder(hidden_dim, decoder_layer,
-                                                      num_decoder_layers, eval_idx)
+        decoder_layer = DeformableTransformerDecoderLayer(hidden_dim, nhead, dim_feedforward, dropout, act, nl,
+                                                          num_decoder_points)
+        self.decoder = DeformableTransformerDecoder(hidden_dim, decoder_layer, num_decoder_layers, eval_idx)
 
         # denoising part
         self.denoising_class_embed = nn.Embedding(nc, hidden_dim)
@@ -208,21 +210,14 @@ class RTDETRDecoder(nn.Module):
         self.query_pos_head = MLP(4, 2 * hidden_dim, hidden_dim, num_layers=2)
 
         # encoder head
-        self.enc_output = nn.Sequential(
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.LayerNorm(hidden_dim))
+        self.enc_output = nn.Sequential(nn.Linear(hidden_dim, hidden_dim), nn.LayerNorm(hidden_dim))
         self.enc_score_head = nn.Linear(hidden_dim, nc)
         self.enc_bbox_head = MLP(hidden_dim, hidden_dim, 4, num_layers=3)
 
         # decoder head
-        self.dec_score_head = nn.ModuleList([
-            nn.Linear(hidden_dim, nc)
-            for _ in range(num_decoder_layers)
-        ])
+        self.dec_score_head = nn.ModuleList([nn.Linear(hidden_dim, nc) for _ in range(num_decoder_layers)])
         self.dec_bbox_head = nn.ModuleList([
-            MLP(hidden_dim, hidden_dim, 4, num_layers=3)
-            for _ in range(num_decoder_layers)
-        ])
+            MLP(hidden_dim, hidden_dim, 4, num_layers=3) for _ in range(num_decoder_layers)])
 
         self._reset_parameters()
 
@@ -249,19 +244,17 @@ class RTDETRDecoder(nn.Module):
             memory, spatial_shapes, denoising_class, denoising_bbox_unact)
 
         # decoder
-        out_bboxes, out_logits = self.decoder(
-            target,
-            init_ref_points_unact,
-            memory,
-            spatial_shapes,
-            self.dec_bbox_head,
-            self.dec_score_head,
-            self.query_pos_head,
-            attn_mask=attn_mask)
+        out_bboxes, out_logits = self.decoder(target,
+                                              init_ref_points_unact,
+                                              memory,
+                                              spatial_shapes,
+                                              self.dec_bbox_head,
+                                              self.dec_score_head,
+                                              self.query_pos_head,
+                                              attn_mask=attn_mask)
         if not self.training:
             out_logits = out_logits.sigmoid_()
-        return (out_bboxes, out_logits, enc_topk_bboxes, enc_topk_logits,
-                dn_meta)
+        return (out_bboxes, out_logits, enc_topk_bboxes, enc_topk_logits, dn_meta)
 
     def _reset_parameters(self):
         # class and bbox head init
@@ -289,38 +282,26 @@ class RTDETRDecoder(nn.Module):
         self.input_proj = nn.ModuleList()
         for in_channels in ch:
             self.input_proj.append(
-                nn.Sequential(
-                    nn.Conv2d(
-                        in_channels,
-                        self.hidden_dim,
-                        kernel_size=1,
-                        bias=False), 
-                    nn.BatchNorm2d(self.hidden_dim)))
+                nn.Sequential(nn.Conv2d(in_channels, self.hidden_dim, kernel_size=1, bias=False),
+                              nn.BatchNorm2d(self.hidden_dim)))
         in_channels = ch[-1]
         for _ in range(self.nl - len(ch)):
             self.input_proj.append(
-                nn.Sequential(
-                    nn.Conv2D(
-                        in_channels,
-                        self.hidden_dim,
-                        kernel_size=3,
-                        stride=2,
-                        padding=1,
-                        bias=False), nn.BatchNorm2d(
-                            self.hidden_dim)))
+                nn.Sequential(nn.Conv2D(in_channels, self.hidden_dim, kernel_size=3, stride=2, padding=1, bias=False),
+                              nn.BatchNorm2d(self.hidden_dim)))
             in_channels = self.hidden_dim
 
-    def _generate_anchors(self, spatial_shapes, grid_size=0.05, dtype=torch.float32, device="cpu", eps=1e-2):
+    def _generate_anchors(self, spatial_shapes, grid_size=0.05, dtype=torch.float32, device='cpu', eps=1e-2):
         anchors = []
         for lvl, (h, w) in enumerate(spatial_shapes):
             grid_y, grid_x = torch.meshgrid(torch.arange(end=h, dtype=torch.float32),
-                                            torch.arange(end=w, dtype=torch.float32), 
-                                            indexing="ij")
+                                            torch.arange(end=w, dtype=torch.float32),
+                                            indexing='ij')
             grid_xy = torch.stack([grid_x, grid_y], -1)
 
             valid_WH = torch.tensor([h, w]).to(torch.float32)
             grid_xy = (grid_xy.unsqueeze(0) + 0.5) / valid_WH
-            wh = torch.ones_like(grid_xy) * grid_size * (2.0**lvl)
+            wh = torch.ones_like(grid_xy) * grid_size * (2.0 ** lvl)
             anchors.append(torch.concat([grid_xy, wh], -1).reshape([-1, h * w, 4]))
 
         anchors = torch.concat(anchors, 1)
@@ -343,7 +324,8 @@ class RTDETRDecoder(nn.Module):
         # get encoder inputs
         feat_flatten = []
         spatial_shapes = []
-        level_start_index = [0, ]
+        level_start_index = [
+            0, ]
         for i, feat in enumerate(proj_feats):
             _, _, h, w = feat.shape
             # [b, c, h, w] -> [b, h*w, c]
@@ -358,11 +340,7 @@ class RTDETRDecoder(nn.Module):
         level_start_index.pop()
         return feat_flatten, spatial_shapes, level_start_index
 
-    def _get_decoder_input(self,
-                           memory,
-                           spatial_shapes,
-                           denoising_class=None,
-                           denoising_bbox_unact=None):
+    def _get_decoder_input(self, memory, spatial_shapes, denoising_class=None, denoising_bbox_unact=None):
         bs, _, _ = memory.shape
         # prepare input for decoder
         anchors, valid_mask = self._generate_anchors(spatial_shapes, dtype=memory.dtype, device=memory.device)
@@ -379,11 +357,11 @@ class RTDETRDecoder(nn.Module):
         batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
         topk_ind = topk_ind.view(-1)
 
-        reference_points_unact = enc_outputs_coord_unact[batch_ind, topk_ind].view(bs, self.num_queries, -1)  # unsigmoided.
+        reference_points_unact = enc_outputs_coord_unact[batch_ind, topk_ind].view(bs, self.num_queries,
+                                                                                   -1)  # unsigmoided.
         enc_topk_bboxes = F.sigmoid(reference_points_unact)
         if denoising_bbox_unact is not None:
-            reference_points_unact = torch.concat(
-                [denoising_bbox_unact, reference_points_unact], 1)
+            reference_points_unact = torch.concat([denoising_bbox_unact, reference_points_unact], 1)
         if self.training:
             reference_points_unact = reference_points_unact.detach()
         enc_topk_logits = enc_outputs_class[batch_ind, topk_ind].view(bs, self.num_queries, -1)

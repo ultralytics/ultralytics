@@ -1,8 +1,9 @@
+import torch
+
+from ultralytics.yolo.data.augment import LetterBox
 from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils import ops
-from ultralytics.yolo.data.augment import LetterBox
-import torch
 
 
 class RTDETRPredictor(BasePredictor):
@@ -12,7 +13,7 @@ class RTDETRPredictor(BasePredictor):
         bboxes, scores = preds[:2]  # (1, bs, 300, 4), (1, bs, 300, nc)
         bboxes, scores = bboxes.squeeze_(0), scores.squeeze_(0)
         results = []
-        for i, bbox in enumerate(bboxes):   # (300, 4)
+        for i, bbox in enumerate(bboxes):  # (300, 4)
             bbox = ops.xywh2xyxy(bbox)
             score, cls = scores[i].max(-1)  # (300, )
             idx = score > self.args.conf

@@ -1,11 +1,13 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from .convs import Conv, LightConv, GhostConv, DWConv, RepConv
+
+from .convs import Conv, DWConv, GhostConv, LightConv, RepConv
 from .transformer import TransformerBlock
 
-__all__ = ["DFL", "HGBlock", "HGStem", "SPP", "SPPF", "C1", "C2", "C3", "C2f", "C3x", "C3TR", "C3Ghost", "GhostBottleneck", 
-           "Bottleneck", "BottleneckCSP", "Proto", "RepC3"]
+__all__ = [
+    'DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', 'C3x', 'C3TR', 'C3Ghost', 'GhostBottleneck',
+    'Bottleneck', 'BottleneckCSP', 'Proto', 'RepC3']
 
 
 class DFL(nn.Module):
@@ -48,6 +50,7 @@ class HGStem(nn.Module):
     """StemBlock of PPHGNetV2 with 5 convolutions and one maxpool2d.
     https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/backbones/hgnet_v2.py
     """
+
     def __init__(self, c1, cm, c2):
         super().__init__()
         self.stem1 = Conv(c1, cm, 3, 2, act=nn.ReLU())
@@ -75,12 +78,13 @@ class HGBlock(nn.Module):
     """HG_Block of PPHGNetV2 with 2 convolutions and LightConv.
     https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/backbones/hgnet_v2.py
     """
+
     def __init__(self, c1, cm, c2, k=3, n=6, lightconv=False, shortcut=False, act=nn.ReLU()):
         super().__init__()
         block = LightConv if lightconv else Conv
         self.m = nn.ModuleList(block(c1 if i == 0 else cm, cm, k=k, act=act) for i in range(n))
-        self.sc = Conv(c1 + n * cm, c2 // 2, 1, 1, act=act) # squeeze conv
-        self.ec = Conv(c2 // 2, c2, 1, 1, act=act) # excitation conv
+        self.sc = Conv(c1 + n * cm, c2 // 2, 1, 1, act=act)  # squeeze conv
+        self.ec = Conv(c2 // 2, c2, 1, 1, act=act)  # excitation conv
         self.add = shortcut and c1 == c2
 
     def forward(self, x):
@@ -208,6 +212,7 @@ class C3x(C3):
 
 class RepC3(nn.Module):
     """Rep C3."""
+
     def __init__(self, c1, c2, n=3, e=1.0):
         super().__init__()
         c_ = int(c2 * e)  # hidden channels

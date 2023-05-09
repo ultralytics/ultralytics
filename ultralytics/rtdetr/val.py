@@ -1,14 +1,18 @@
-from ultralytics.yolo.v8.detect import DetectionValidator
-from ultralytics.yolo.utils import ops, colorstr
-from ultralytics.yolo.data import YOLODataset
-from ultralytics.yolo.data.augment import Compose, LetterBox, Format 
 from pathlib import Path
+
 import torch
 
-__all__ = ["RTDETRValidator"]
+from ultralytics.yolo.data import YOLODataset
+from ultralytics.yolo.data.augment import Compose, Format, LetterBox
+from ultralytics.yolo.utils import colorstr, ops
+from ultralytics.yolo.v8.detect import DetectionValidator
+
+__all__ = ['RTDETRValidator']
+
 
 # TODO: Temporarily, RTDETR do not need padding.
 class RTDETRDataset(YOLODataset):
+
     def __init__(self, *args, data=None, **kwargs):
         super().__init__(*args, data=data, use_segments=False, use_keypoints=False, **kwargs)
 
@@ -37,15 +41,15 @@ class RTDETRValidator(DetectionValidator):
             batch (int, optional): Size of batches, this is for `rect`. Defaults to None.
         """
         return RTDETRDataset(
-                img_path=img_path,
-                imgsz=self.args.imgsz,
-                batch_size=batch,
-                augment=False,  # no augmentation
-                hyp=self.args,
-                rect=False,  # no tect
-                cache=self.args.cache or None,
-                prefix=colorstr(f'{mode}: '),
-                data=self.data)
+            img_path=img_path,
+            imgsz=self.args.imgsz,
+            batch_size=batch,
+            augment=False,  # no augmentation
+            hyp=self.args,
+            rect=False,  # no tect
+            cache=self.args.cache or None,
+            prefix=colorstr(f'{mode}: '),
+            data=self.data)
 
     def postprocess(self, preds):
         """Apply Non-maximum suppression to prediction outputs."""
@@ -53,13 +57,13 @@ class RTDETRValidator(DetectionValidator):
         bboxes, scores = bboxes.squeeze_(0), scores.squeeze_(0)  # (bs, 300, 4)
         bs = len(bboxes)
         outputs = [torch.zeros((0, 6), device=bboxes.device)] * bs
-        for i, bbox in enumerate(bboxes):   # (300, 4)
+        for i, bbox in enumerate(bboxes):  # (300, 4)
             bbox = ops.xywh2xyxy(bbox)
             score, cls = scores[i].max(-1)  # (300, )
             # Do not need threshold for evaluation as only got 300 boxes here.
             # idx = score > self.args.conf
             pred = torch.cat([bbox, score[..., None], cls[..., None]], dim=-1)  # filter
-            outputs[i] = pred#[idx]
+            outputs[i] = pred  #[idx]
 
         return outputs
 
@@ -90,7 +94,7 @@ class RTDETRValidator(DetectionValidator):
 
             # Evaluate
             if nl:
-                tbox = ops.xywh2xyxy(bbox)   # target boxes
+                tbox = ops.xywh2xyxy(bbox)  # target boxes
                 tbox[..., [0, 2]] *= shape[1]  # native-space pred
                 tbox[..., [1, 3]] *= shape[0]  # native-space pred
                 labelsn = torch.cat((cls, tbox), 1)  # native-space labels

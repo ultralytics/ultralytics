@@ -1,5 +1,6 @@
 ---
 comments: true
+description: 'Ultralytics YOLOv5 Docs: Learn model structure, data augmentation &amp; training strategies. Build targets and the losses of object detection.'
 ---
 
 ## 1. Model Structure

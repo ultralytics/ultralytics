@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn how to apply pruning to your YOLOv5 models. See the before and after performance with an explanation of sparsity and more.
 ---
 
 📚 This guide explains how to apply **pruning** to YOLOv5 🚀 models.  

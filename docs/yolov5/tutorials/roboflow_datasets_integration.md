@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Use Roboflow to organize, label, prepare, version & host datasets for training YOLOv5 models. Upload via UI, API, or Python, making versions with custom preprocessing and offline augmentation. Export in YOLOv5 format and access custom training tutorials. Use active learning to improve model deployments.
 ---
 
 # Roboflow Datasets

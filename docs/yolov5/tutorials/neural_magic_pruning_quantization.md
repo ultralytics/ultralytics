@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn how to deploy YOLOv5 with DeepSparse to achieve exceptional CPU performance close to GPUs, using pruning, and quantization.<br>
 ---
 
 <!--

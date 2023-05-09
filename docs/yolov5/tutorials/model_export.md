@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Export YOLOv5 models to TFLite, ONNX, CoreML, and TensorRT formats. Achieve up to 5x GPU speedup using TensorRT. Benchmarks included.
 ---
 
 # TFLite, ONNX, CoreML, TensorRT Export

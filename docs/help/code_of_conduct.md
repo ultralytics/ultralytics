@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Read the Ultralytics Contributor Covenant Code of Conduct. Learn ways to create a welcoming community & consequences for inappropriate conduct.
 ---
 
 # Ultralytics Contributor Covenant Code of Conduct

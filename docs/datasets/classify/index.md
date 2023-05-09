@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn how torchvision organizes classification image datasets. Use this code to create and train models. CLI and Python code shown.
 ---
 
 # Image Classification Datasets Overview

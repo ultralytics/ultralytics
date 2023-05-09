@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Get the most out of YOLOv5 with this guide; producing best results, checking dataset, hypertuning & more. Updated May 2022.
 ---
 
 📚 This guide explains how to produce the best mAP and training results with YOLOv5 🚀.  

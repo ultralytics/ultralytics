@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Train and Deploy your Model to 13 different formats, including TensorFlow, ONNX, OpenVINO, CoreML, Paddle or directly on Mobile.
 ---
 
 # HUB Models

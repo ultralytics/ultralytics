@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Get started with YOLOv5 on AWS. Our comprehensive guide provides everything you need to know to run YOLOv5 on an Amazon Deep Learning instance.
 ---
 
 # YOLOv5 🚀 on AWS Deep Learning Instance: A Comprehensive Guide

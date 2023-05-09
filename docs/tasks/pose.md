@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn how to use YOLOv8 pose estimation models to identify the position of keypoints on objects in an image, and how to train, validate, predict, and export these models for use with various formats such as ONNX or CoreML.
 ---
 
 Pose estimation is a task that involves identifying the location of specific points in an image, usually referred

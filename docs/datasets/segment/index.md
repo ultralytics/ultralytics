@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn about the Ultralytics YOLO dataset format for segmentation models. Use YAML to train Detection Models. Convert COCO to YOLO format using Python.
 ---
 
 # Instance Segmentation Datasets Overview

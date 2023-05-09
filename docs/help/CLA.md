@@ -1,3 +1,7 @@
+---
+description: Individual Contributor License Agreement. Settle Intellectual Property issues for Contributions made to anything open source released by Ultralytics.
+---
+
 # Ultralytics Individual Contributor License Agreement
 
 Thank you for your interest in contributing to open source software projects (“Projects”) made available by Ultralytics

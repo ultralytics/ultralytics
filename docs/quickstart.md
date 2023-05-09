@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Install and use YOLOv8 via CLI or Python. Run single-line commands or integrate with Python projects for object detection, segmentation, and classification.
 ---
 
 ## Install

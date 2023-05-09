@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn how to use Test Time Augmentation (TTA) with YOLOv5 to improve mAP and Recall during testing and inference. Code examples included.
 ---
 
 # Test-Time Augmentation (TTA)

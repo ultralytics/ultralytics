@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn how Ultralytics YOLOv8 AI framework supports detection, segmentation, classification, and pose/keypoint estimation tasks.
 ---
 
 # Ultralytics YOLOv8 Tasks

@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Discover how to integrate hyperparameter tuning with Ray Tune and Ultralytics YOLOv8. Speed up the tuning process and optimize your model's performance.
 ---
 
 # Hyperparameter Tuning with Ray Tune and YOLOv8

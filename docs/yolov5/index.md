@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Discover the YOLOv5 object detection model designed to deliver fast and accurate real-time results. Let's dive into this documentation to harness its full potential!
 ---
 
 # Ultralytics YOLOv5

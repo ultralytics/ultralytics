@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn about the Vision Transformer (ViT) and segment anything with SAM models. Train and use pre-trained models with Python API.
 ---
 
 # Vision Transformers

@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn how to use YOLOv5 with Comet, a tool for logging and visualizing machine learning model metrics in real-time. Install, log and analyze seamlessly.
 ---
 
 <img src="https://cdn.comet.ml/img/notebook_logo.png">

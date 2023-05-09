@@ -25,7 +25,7 @@ Here is an example of the label format for pose estimation task:
 Format with Dim = 2
 
 ```
-<class-index> <x> <y> <width> <height> <px1> <py1> <px2> <py2>  <pxn> <pyn>
+<class-index> <x> <y> <width> <height> <px1> <py1> <px2> <py2> ... <pxn> <pyn>
 ```
 
 Format with Dim = 3
@@ -34,7 +34,7 @@ Format with Dim = 3
 <class-index> <x> <y> <width> <height> <px1> <py1> <p1-visibility> <px2> <py2> <p2-visibility> <pxn> <pyn> <p2-visibility>
 ```
 
-In this format, `<class-index>` is the index of the class for the object,`<x> <y> <width> <height>` are coordinates of boudning box, and `<px1> <py1> <px2> <py2>  <pxn> <pyn>` are the pixel coordinates of the keypoints. The coordinates are separated by spaces.
+In this format, `<class-index>` is the index of the class for the object,`<x> <y> <width> <height>` are coordinates of boudning box, and `<px1> <py1> <px2> <py2> ... <pxn> <pyn>` are the pixel coordinates of the keypoints. The coordinates are separated by spaces. 
 
 ** Dataset file format **
 

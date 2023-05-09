@@ -133,18 +133,16 @@ class RepConv(nn.Module):
         self.c2 = c2
         self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
 
-        if deploy:
-            self.conv = nn.Conv2d(c1, c2, k, s, p, d, g, bias=True)
-        else:
-            self.bn = nn.BatchNorm2d(num_features=c1) if bn and c2 == c1 and s == 1 else None
-            self.conv1 = Conv(c1, c2, k, s, p=p, g=g, act=False)
-            self.conv2 = Conv(c1, c2, 1, s, p=(p - k // 2), g=g, act=False)
-        self.deploy = deploy
+        self.bn = nn.BatchNorm2d(num_features=c1) if bn and c2 == c1 and s == 1 else None
+        self.conv1 = Conv(c1, c2, k, s, p=p, g=g, act=False)
+        self.conv2 = Conv(c1, c2, 1, s, p=(p - k // 2), g=g, act=False)
+
+    def forward_fuse(self, x):
+        """Forward process"""
+        return self.act(self.conv(x))
 
     def forward(self, x):
         """Forward process"""
-        if hasattr(self, 'conv'):
-            return self.act(self.conv(x))
         id_out = 0 if self.bn is None else self.bn(x)
         return self.act(self.conv1(x) + self.conv2(x) + id_out)
 
@@ -174,8 +172,11 @@ class RepConv(nn.Module):
             return 0, 0
         if isinstance(branch, Conv):
             kernel = branch.conv.weight
-            bias = branch.conv.bias
-            return kernel, bias
+            running_mean = branch.bn.running_mean
+            running_var = branch.bn.running_var
+            gamma = branch.bn.weight
+            beta = branch.bn.bias
+            eps = branch.bn.eps
         elif isinstance(branch, nn.BatchNorm2d):
             if not hasattr(self, 'id_tensor'):
                 input_dim = self.c1 // self.g
@@ -189,17 +190,18 @@ class RepConv(nn.Module):
             gamma = branch.weight
             beta = branch.bias
             eps = branch.eps
-            std = (running_var + eps).sqrt()
-            t = (gamma / std).reshape(-1, 1, 1, 1)
-            return kernel * t, beta - running_mean * gamma / std
+        std = (running_var + eps).sqrt()
+        t = (gamma / std).reshape(-1, 1, 1, 1)
+        return kernel * t, beta - running_mean * gamma / std
 
-    def switch_to_deploy(self):
-        if hasattr(self, 'rbr_reparam'):
+    def fuse_convs(self):
+        if hasattr(self, 'conv'):
             return
         kernel, bias = self.get_equivalent_kernel_bias()
         self.conv = nn.Conv2d(in_channels=self.conv1.conv.in_channels, out_channels=self.conv1.conv.out_channels,
                                      kernel_size=self.conv1.conv.kernel_size, stride=self.conv1.conv.stride,
-                                     padding=self.conv1.conv.padding, dilation=self.conv1.conv.dilation, groups=self.conv1.conv.groups, bias=True)
+                                     padding=self.conv1.conv.padding, dilation=self.conv1.conv.dilation, 
+                                     groups=self.conv1.conv.groups, bias=True).requires_grad_(False)
         self.conv.weight.data = kernel
         self.conv.bias.data = bias
         for para in self.parameters():
@@ -208,9 +210,10 @@ class RepConv(nn.Module):
         self.__delattr__('conv2')
         if hasattr(self, 'nm'):
             self.__delattr__('nm')
+        if hasattr(self, 'bn'):
+            self.__delattr__('bn')
         if hasattr(self, 'id_tensor'):
             self.__delattr__('id_tensor')
-        self.deploy = True
 
 
 class ChannelAttention(nn.Module):

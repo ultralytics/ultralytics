@@ -250,8 +250,8 @@ nav:
           - autobackend: reference/nn/autobackend.md
           - autoshape: reference/nn/autoshape.md
           - modules:
-              - blocks: reference/nn/modules/blocks.md
-              - convs: reference/nn/modules/convs.md
+              - blocks: reference/nn/modules/block.md
+              - convs: reference/nn/modules/conv.md
               - head: reference/nn/modules/head.md
               - transformer: reference/nn/modules/transformer.md
               - utils: reference/nn/modules/utils.md

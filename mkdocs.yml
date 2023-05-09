@@ -337,7 +337,10 @@ nav:
 plugins:
   - mkdocstrings
   - search
-  - ultralytics
+  - ultralytics:
+      enabled: True
+      verbose: True
+      default_image: https://repository-images.githubusercontent.com/535360445/0c4a8fc2-afc0-43d2-b064-b6048837f5ac
   - git-revision-date-localized:
       type: timeago
       enable_creation_date: true

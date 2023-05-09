@@ -1,3 +1,7 @@
+---
+description: Explore Ultralytics neural network modules for convolution, attention, detection, pose, and classification in PyTorch.
+---
+
 # Conv
 ---
 :::ultralytics.nn.modules.Conv

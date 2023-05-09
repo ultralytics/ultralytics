@@ -1,3 +1,7 @@
+---
+description: Learn how to use Ultralytics YOLO's built-in callbacks `on_pretrain_routine_start` and `on_train_epoch_end` for improved training performance.
+---
+
 # on_pretrain_routine_start
 ---
 :::ultralytics.yolo.utils.callbacks.wb.on_pretrain_routine_start

@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Upload custom datasets to Ultralytics HUB for YOLOv5 and YOLOv8 models. Follow YAML structure, zip and upload. Scan & train new models.
 ---
 
 # HUB Datasets

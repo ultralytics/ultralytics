@@ -2,7 +2,7 @@
 
 site_name: Ultralytics YOLOv8 Docs
 site_url: https://docs.ultralytics.com
-site_description: The official documentation for Ultralytics YOLOv8, providing comprehensive guides, tutorials, and references to get you started on your AI journey.
+site_description: Explore Ultralytics YOLOv8, a cutting-edge real-time object detection and image segmentation model for various applications and hardware platforms.
 site_author: Ultralytics
 repo_url: https://github.com/ultralytics/ultralytics
 edit_uri: https://github.com/ultralytics/ultralytics/tree/main/docs
@@ -337,7 +337,10 @@ nav:
 plugins:
   - mkdocstrings
   - search
-  - ultralytics
+  - ultralytics:
+      add_desc: False
+      add_image: True
+      default_image: https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png
   - git-revision-date-localized:
       type: timeago
       enable_creation_date: true

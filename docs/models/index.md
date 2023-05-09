@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn about the supported models and architectures, such as YOLOv3, YOLOv5, and YOLOv8, and how to contribute your own model to Ultralytics.
 ---
 
 # Models

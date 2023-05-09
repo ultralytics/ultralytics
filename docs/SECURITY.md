@@ -1,3 +1,7 @@
+---
+description: Learn how Ultralytics prioritize security. Get insights into Snyk and GitHub CodeQL scans, and how to report security issues in YOLOv8.
+---
+
 # Security Policy
 
 At [Ultralytics](https://ultralytics.com), the security of our users' data and systems is of utmost importance. To

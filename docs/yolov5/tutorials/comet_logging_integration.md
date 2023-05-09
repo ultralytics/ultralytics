@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn how to use YOLOv5 with Comet, a tool for logging and visualizing machine learning model metrics in real-time. Install, log and analyze seamlessly.
 ---
 
 <img src="https://cdn.comet.ml/img/notebook_logo.png">
@@ -218,7 +219,7 @@ If your training run is interrupted for any reason, e.g. disrupted internet conn
 
 The Run Path has the following format `comet://<your workspace name>/<your project name>/<experiment id>`.
 
-This will restore the run to its state before the interruption, which includes restoring the  model from a checkpoint, restoring all hyperparameters and training arguments and downloading Comet dataset Artifacts if they were used in the original run. The resumed run will continue logging to the existing Experiment in the Comet UI
+This will restore the run to its state before the interruption, which includes restoring the model from a checkpoint, restoring all hyperparameters and training arguments and downloading Comet dataset Artifacts if they were used in the original run. The resumed run will continue logging to the existing Experiment in the Comet UI
 
 ```shell
 python train.py \

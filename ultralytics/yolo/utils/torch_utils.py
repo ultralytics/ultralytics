@@ -25,7 +25,7 @@ TORCHVISION_0_10 = check_version(torchvision.__version__, '0.10.0')
 TORCH_1_9 = check_version(torch.__version__, '1.9.0')
 TORCH_1_11 = check_version(torch.__version__, '1.11.0')
 TORCH_1_12 = check_version(torch.__version__, '1.12.0')
-TORCH_2_X = check_version(torch.__version__, minimum='2.0')
+TORCH_2_0 = check_version(torch.__version__, minimum='2.0')
 
 
 @contextmanager
@@ -85,7 +85,7 @@ def select_device(device='', batch=0, newline=False, verbose=True):
             p = torch.cuda.get_device_properties(i)
             s += f"{'' if i == 0 else space}CUDA:{d} ({p.name}, {p.total_memory / (1 << 20):.0f}MiB)\n"  # bytes to MB
         arg = 'cuda:0'
-    elif mps and getattr(torch, 'has_mps', False) and torch.backends.mps.is_available() and TORCH_2_X:
+    elif mps and getattr(torch, 'has_mps', False) and torch.backends.mps.is_available() and TORCH_2_0:
         # Prefer MPS if available
         s += 'MPS\n'
         arg = 'mps'
@@ -274,11 +274,14 @@ def init_seeds(seed=0, deterministic=False):
     torch.cuda.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)  # for Multi-GPU, exception safe
     # torch.backends.cudnn.benchmark = True  # AutoBatch problem https://github.com/ultralytics/yolov5/issues/9287
-    if deterministic and TORCH_1_12:  # https://github.com/ultralytics/yolov5/pull/8213
-        torch.use_deterministic_algorithms(True)
-        torch.backends.cudnn.deterministic = True
-        os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':4096:8'
-        os.environ['PYTHONHASHSEED'] = str(seed)
+    if deterministic:  # https://github.com/ultralytics/yolov5/pull/8213
+        if TORCH_2_0:
+            torch.use_deterministic_algorithms(True)
+            torch.backends.cudnn.deterministic = True
+            os.environ['CUBLAS_WORKSPACE_CONFIG'] = ':4096:8'
+            os.environ['PYTHONHASHSEED'] = str(seed)
+        else:
+            LOGGER.warning('WARNING ⚠️ Upgrade to torch>=2.0.0 for deterministic training.')
 
 
 class ModelEMA:

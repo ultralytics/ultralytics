@@ -43,7 +43,7 @@ head:
   - [-1, 3, RepC3, [256]]    # F4 (24), pan_blocks.0
 
   - [-1, 1, Conv, [256, 3, 2]]   # 25, downsample_convs.1
-  - [[-1, 12], 1, Concat, [1]]  # cat Y4
+  - [[-1, 12], 1, Concat, [1]]  # cat Y5
   - [-1, 3, RepC3, [256]]    # F5 (27), pan_blocks.1
 
   - [[21, 24, 27], 1, RTDETRDecoder, [nc]]  # Detect(P3, P4, P5)

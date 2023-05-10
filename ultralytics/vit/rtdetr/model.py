@@ -10,9 +10,9 @@ from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import DEFAULT_CFG, DEFAULT_CFG_DICT
 from ultralytics.yolo.utils.checks import check_imgsz
-
 from .predict import RTDETRPredictor
 from .val import RTDETRValidator
+from ...yolo.utils.torch_utils import smart_inference_mode
 
 
 class RTDETR:
@@ -38,11 +38,13 @@ class RTDETR:
         self.model.args = DEFAULT_CFG_DICT  # attach args to model
         self.model.task = self.task
 
+    @smart_inference_mode()
     def _load(self, weights: str):
         self.model, _ = attempt_load_one_weight(weights)
         self.model.args = DEFAULT_CFG_DICT  # attach args to model
         self.task = self.model.args['task']
 
+    @smart_inference_mode()
     def predict(self, source, stream=False, **kwargs):
         """
         Perform prediction using the YOLO model.
@@ -81,6 +83,7 @@ class RTDETR:
         self.metrics = validator.metrics
         return validator.metrics
 
+    @smart_inference_mode()
     def export(self, **kwargs):
         """
         Export model.

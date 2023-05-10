@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Integrate YOLOv8 in Python. Load, use pretrained models, train, and infer images. Export to ONNX. Track objects in videos.
 ---
 
 # Python Usage

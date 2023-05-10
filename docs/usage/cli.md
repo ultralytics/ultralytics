@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn how to use YOLOv8 from the Command Line Interface (CLI) through simple, single-line commands with `yolo` without Python code.
 ---
 
 # Command Line Interface Usage

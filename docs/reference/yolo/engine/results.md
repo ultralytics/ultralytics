@@ -1,3 +1,7 @@
+---
+description: Learn about BaseTensor & Boxes in Ultralytics YOLO Engine. Check out Ultralytics Docs for quality tutorials and resources on object detection.
+---
+
 # BaseTensor
 ---
 :::ultralytics.yolo.engine.results.BaseTensor

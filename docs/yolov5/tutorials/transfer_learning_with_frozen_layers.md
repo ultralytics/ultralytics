@@ -1,10 +1,10 @@
 ---
 comments: true
+description: Learn how to freeze YOLOv5 when transfer learning. Retrain a pre-trained model on new data faster and with fewer resources.
 ---
 
 📚 This guide explains how to **freeze** YOLOv5 🚀 layers when **transfer learning**. Transfer learning is a useful way to quickly retrain a model on new data without having to retrain the entire network. Instead, part of the initial weights are frozen in place, and the rest of the weights are used to compute loss and are updated by the optimizer. This requires less resources than normal training and allows for faster training times, though it may also result in reductions to final trained accuracy.  
 UPDATED 25 September 2022.
-
 
 ## Before You Start
 
@@ -19,6 +19,7 @@ pip install -r requirements.txt  # install
 ## Freeze Backbone
 
 All layers that match the train.py `freeze` list in train.py will be frozen by setting their gradients to zero before training starts.
+
 ```python
  # Freeze 
  freeze = [f'model.{x}.' for x in range(freeze)]  # layers to freeze 
@@ -30,6 +31,7 @@ All layers that match the train.py `freeze` list in train.py will be frozen by s
 ```
 
 To see a list of module names:
+
 ```python
 for k, v in model.named_parameters():
     print(k)
@@ -55,6 +57,7 @@ model.24.m.2.bias
 ```
 
 Looking at the model architecture we can see that the model backbone is layers 0-9:
+
 ```yaml
 # YOLOv5 backbone 
  backbone: 
@@ -96,6 +99,7 @@ Looking at the model architecture we can see that the model backbone is layers 0
 ```
 
 so we can define the freeze list to contain all modules with 'model.0.' - 'model.9.' in their names:
+
 ```bash
 python train.py --freeze 10
 ```
@@ -103,6 +107,7 @@ python train.py --freeze 10
 ## Freeze All Layers
 
 To freeze the full model except for the final output convolution layers in Detect(), we set freeze list to contain all modules with 'model.0.' - 'model.23.' in their names:
+
 ```bash
 python train.py --freeze 24
 ```
@@ -110,6 +115,7 @@ python train.py --freeze 24
 ## Results
 
 We train YOLOv5m on VOC on both of the above scenarios, along with a default model (no freezing), starting from the official COCO pretrained `--weights yolov5m.pt`:
+
 ```python
 train.py --batch 48 --weights yolov5m.pt --data voc.yaml --epochs 50 --cache --img 512 --hyp hyp.finetune.yaml
 ```
@@ -132,7 +138,6 @@ Interestingly, the more modules are frozen the less GPU memory is required to tr
 
 ![](https://user-images.githubusercontent.com/26833433/98394918-bf634980-205b-11eb-948d-311036ef9325.png)
 
-
 ## Environments
 
 YOLOv5 may be run in any of the following up-to-date verified environments (with all dependencies including [CUDA](https://developer.nvidia.com/cuda)/[CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/) and [PyTorch](https://pytorch.org/) preinstalled):
@@ -141,7 +146,6 @@ YOLOv5 may be run in any of the following up-to-date verified environments (with
 - **Google Cloud** Deep Learning VM. See [GCP Quickstart Guide](https://docs.ultralytics.com/yolov5/environments/google_cloud_quickstart_tutorial/)
 - **Amazon** Deep Learning AMI. See [AWS Quickstart Guide](https://docs.ultralytics.com/yolov5/environments/aws_quickstart_tutorial/)
 - **Docker Image**. See [Docker Quickstart Guide](https://docs.ultralytics.com/yolov5/environments/docker_image_quickstart_tutorial/) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
-
 
 ## Status
 

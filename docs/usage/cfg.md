@@ -1,5 +1,6 @@
 ---
 comments: true
+description: 'Learn about YOLO settings and modes for different tasks like detection, segmentation etc. Train and predict with custom argparse commands.'
 ---
 
 YOLO settings and hyperparameters play a critical role in the model's performance, speed, and accuracy. These settings

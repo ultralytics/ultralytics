@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Learn how to quickly start using YOLOv5 including installation, inference, and training on this Ultralytics Docs page.
 ---
 
 # YOLOv5 Quickstart
@@ -17,8 +18,6 @@ git clone https://github.com/ultralytics/yolov5  # clone
 cd yolov5
 pip install -r requirements.txt  # install
 ```
-
-
 
 ## Inference
 

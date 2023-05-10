@@ -1,5 +1,6 @@
 ---
 comments: true
+description: 'Get quick answers to common Ultralytics YOLO questions: Hardware requirements, fine-tuning, conversion, real-time detection, and accuracy tips.'
 ---
 
 # Ultralytics YOLO Frequently Asked Questions (FAQ)

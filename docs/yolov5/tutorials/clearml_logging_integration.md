@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Integrate ClearML with YOLOv5 to track experiments and manage data versions. Optimize hyperparameters and remotely monitor your runs.
 ---
 
 # ClearML Integration

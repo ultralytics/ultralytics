@@ -95,6 +95,7 @@ extra:
 
 extra_css:
   - stylesheets/style.css
+  - https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css
 
 markdown_extensions:
   # Div text decorators
@@ -340,6 +341,7 @@ plugins:
   - ultralytics:
       add_desc: False
       add_image: True
+      add_share_buttons: True
       default_image: https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png
   - git-revision-date-localized:
       type: timeago

@@ -7,7 +7,6 @@ import math
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.nn.init import constant_, xavier_uniform_
 
 from ultralytics.yolo.utils.tal import dist2bbox, make_anchors

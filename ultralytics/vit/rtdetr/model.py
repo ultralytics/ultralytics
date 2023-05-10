@@ -1,16 +1,18 @@
 # RT-DETR model interface
-from ultralytics.yolo.cfg import get_cfg
-from ultralytics.nn.tasks import attempt_load_one_weight, DetectionModel, yaml_model_load
-from ultralytics.yolo.utils.checks import check_imgsz
-from ultralytics.yolo.engine.exporter import Exporter
-from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG
 from pathlib import Path
+
+from ultralytics.nn.tasks import DetectionModel, attempt_load_one_weight, yaml_model_load
+from ultralytics.yolo.cfg import get_cfg
+from ultralytics.yolo.engine.exporter import Exporter
+from ultralytics.yolo.utils import DEFAULT_CFG, DEFAULT_CFG_DICT
+from ultralytics.yolo.utils.checks import check_imgsz
 
 from .predict import RTDETRPredictor
 from .val import RTDETRValidator
 
 
 class RTDERT:
+
     def __init__(self, model='rtdetr-l.pt') -> None:
         if model and not (model.endswith('.pt') or model.endswith('.yaml')):
             # Should raise AssertionError instead?
@@ -26,7 +28,7 @@ class RTDERT:
     def _new(self, cfg: str, verbose=True):
         cfg_dict = yaml_model_load(cfg)
         self.cfg = cfg
-        self.task = "detect"
+        self.task = 'detect'
         self.model = DetectionModel(cfg_dict, verbose=verbose)  # build model
 
         # Below added to allow export from yamls

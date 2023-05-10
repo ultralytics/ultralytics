@@ -1,4 +1,6 @@
-from .rtdetr import RTDERT
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
+from .rtdetr import RTDETR
 from .sam import SAM
 
-__all__ = 'RTDERT', 'SAM', 'SAM'  # allow simpler import
+__all__ = 'RTDETR', 'SAM', 'SAM'  # allow simpler import

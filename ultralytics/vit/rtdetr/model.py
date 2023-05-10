@@ -1,4 +1,8 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+"""
 # RT-DETR model interface
+"""
+
 from pathlib import Path
 
 from ultralytics.nn.tasks import DetectionModel, attempt_load_one_weight, yaml_model_load
@@ -11,11 +15,10 @@ from .predict import RTDETRPredictor
 from .val import RTDETRValidator
 
 
-class RTDERT:
+class RTDETR:
 
     def __init__(self, model='rtdetr-l.pt') -> None:
-        if model and not (model.endswith('.pt') or model.endswith('.yaml')):
-            # Should raise AssertionError instead?
+        if model and not model.endswith('.pt') and not model.endswith('.yaml'):
             raise NotImplementedError('RT-DETR only supports creating from pt file or yaml file.')
         # Load or create new YOLO model
         self.predictor = None

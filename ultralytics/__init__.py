@@ -3,8 +3,8 @@
 __version__ = '8.0.97'
 
 from ultralytics.hub import start
-from ultralytics.vit.sam import SAM
 from ultralytics.vit.rtdetr import RTDETR
+from ultralytics.vit.sam import SAM
 from ultralytics.yolo.engine.model import YOLO
 from ultralytics.yolo.utils.checks import check_yolo as checks
 

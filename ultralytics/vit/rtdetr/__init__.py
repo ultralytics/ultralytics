@@ -2,5 +2,6 @@
 
 from .predict import RTDETRPredictor
 from .val import RTDETRValidator
+from .model import RTDERT
 
-__all__ = 'RTDETRPredictor', 'RTDETRValidator'
+__all__ = 'RTDETRPredictor', 'RTDETRValidator', 'RTDERT'

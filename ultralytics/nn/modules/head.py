@@ -258,7 +258,7 @@ class RTDETRDecoder(nn.Module):
                                               attn_mask=attn_mask)
         if not self.training:
             out_logits = out_logits.sigmoid_()
-        return out_bboxes, out_logits, enc_topk_bboxes, enc_topk_logits, dn_meta
+        return out_bboxes, out_logits #, enc_topk_bboxes, enc_topk_logits, dn_meta
 
     def _reset_parameters(self):
         # class and bbox head init

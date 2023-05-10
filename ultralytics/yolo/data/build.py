@@ -69,33 +69,6 @@ def seed_worker(worker_id):  # noqa
     random.seed(worker_seed)
 
 
-def build_dataloader(cfg, batch, img_path, data_info, stride=32, rect=False, rank=-1, mode='train'):
-    """Return an InfiniteDataLoader or DataLoader for training or validation set."""
-    assert mode in ['train', 'val']
-    shuffle = mode == 'train'
-    if cfg.rect and shuffle:
-        LOGGER.warning("WARNING ⚠️ 'rect=True' is incompatible with DataLoader shuffle, setting shuffle=False")
-        shuffle = False
-    with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
-        dataset = YOLODataset(
-            img_path=img_path,
-            imgsz=cfg.imgsz,
-            batch_size=batch,
-            augment=mode == 'train',  # augmentation
-            hyp=cfg,  # TODO: probably add a get_hyps_from_cfg function
-            rect=cfg.rect or rect,  # rectangular batches
-            cache=cfg.cache or None,
-            single_cls=cfg.single_cls or False,
-            stride=int(stride),
-            pad=0.0 if mode == 'train' else 0.5,
-            prefix=colorstr(f'{mode}: '),
-            use_segments=cfg.task == 'segment',
-            use_keypoints=cfg.task == 'pose',
-            use_obb=cfg.task == 'obb',
-            classes=cfg.classes,
-            data=data_info)
-
-
 def build_yolo_dataset(cfg, img_path, batch, data_info, mode='train', rect=False, stride=32):
     """Build YOLO Dataset"""
     return YOLODataset(
@@ -112,6 +85,7 @@ def build_yolo_dataset(cfg, img_path, batch, data_info, mode='train', rect=False
         prefix=colorstr(f'{mode}: '),
         use_segments=cfg.task == 'segment',
         use_keypoints=cfg.task == 'pose',
+        use_obb=cfg.task == 'obb',
         classes=cfg.classes,
         data=data_info)
 

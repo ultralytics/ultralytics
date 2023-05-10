@@ -31,12 +31,16 @@ class YOLODataset(BaseDataset):
     cache_version = '1.0.2'  # dataset labels *.cache version, >= 1.0.0 for YOLOv8
     rand_interp_methods = [cv2.INTER_NEAREST, cv2.INTER_LINEAR, cv2.INTER_CUBIC, cv2.INTER_AREA, cv2.INTER_LANCZOS4]
 
-    def __init__(self, *args, data=None, use_segments=False, use_keypoints=False, **kwargs):
+    def __init__(self, *args, data=None, use_segments=False, use_keypoints=False, use_obb=False, **kwargs):
         self.use_segments = use_segments
         self.use_keypoints = use_keypoints
         self.use_obb = use_obb
         self.data = data
-        assert not (self.use_segments and self.use_keypoints), 'Can not use both segments and keypoints.'
+        assert not ((self.use_segments and self.use_keypoints and self.use_obb) or
+                    (self.use_segments and self.use_keypoints) or
+                    (self.use_keypoints and self.use_obb) or
+                    (self.use_segments and self.use_obb)
+                    ), 'Can not use segments, keypoints and obb together.'
         super().__init__(*args, **kwargs)
 
     def cache_labels(self, path=Path('./labels.cache')):

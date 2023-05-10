@@ -64,7 +64,7 @@ def exif_size(img):
 def verify_image_label(args):
     """Verify one image-label pair."""
     im_file, lb_file, prefix, keypoint, obb, cls, nkpt, ndim = args
-    # number (missing, found, empty, corrupt), message, segments, keypoints
+    # number (missing, found, empty, corrupt), message, segments, keypoints, theta
     nm, nf, ne, nc, msg, segments, keypoints, obb_theta = 0, 0, 0, 0, '', [], None, None
     num_cls = len(cls)
 

@@ -364,21 +364,21 @@ class DeformableTransformerDecoder(nn.Module):
         dec_out_bboxes = []
         dec_out_logits = []
         ref_points = None
-        ref_points_detach = F.sigmoid(reference_points)
+        ref_points_detach = torch.sigmoid(reference_points)
         for i, layer in enumerate(self.layers):
             ref_points_input = ref_points_detach.unsqueeze(2)
             query_pos_embed = query_pos_head(ref_points_detach)
             output = layer(output, ref_points_input, src, src_spatial_shapes, src_padding_mask, attn_mask,
                            query_pos_embed)
 
-            inter_ref_bbox = F.sigmoid(bbox_head[i](output) + inverse_sigmoid(ref_points_detach))
+            inter_ref_bbox = torch.sigmoid(bbox_head[i](output) + inverse_sigmoid(ref_points_detach))
 
             if self.training:
                 dec_out_logits.append(score_head[i](output))
                 if i == 0:
                     dec_out_bboxes.append(inter_ref_bbox)
                 else:
-                    dec_out_bboxes.append(F.sigmoid(bbox_head[i](output) + inverse_sigmoid(ref_points)))
+                    dec_out_bboxes.append(torch.sigmoid(bbox_head[i](output) + inverse_sigmoid(ref_points)))
             elif i == self.eval_idx:
                 dec_out_logits.append(score_head[i](output))
                 dec_out_bboxes.append(inter_ref_bbox)

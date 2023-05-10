@@ -242,7 +242,7 @@ class RTDETRDecoder(nn.Module):
             #                                 self.label_noise_ratio,
             #                                 self.box_noise_scale)
         else:
-            denoising_class, denoising_bbox_unact, attn_mask, dn_meta = None, None, None, None
+            denoising_class, denoising_bbox_unact, attn_mask = None, None, None
 
         target, init_ref_points_unact, enc_topk_bboxes, enc_topk_logits = \
             self._get_decoder_input(memory, spatial_shapes, denoising_class, denoising_bbox_unact)
@@ -258,7 +258,7 @@ class RTDETRDecoder(nn.Module):
                                               attn_mask=attn_mask)
         if not self.training:
             out_logits = out_logits.sigmoid_()
-        return out_bboxes, out_logits  #, enc_topk_bboxes, enc_topk_logits, dn_meta
+        return out_bboxes, out_logits  # enc_topk_bboxes, enc_topk_logits, dn_meta
 
     def _reset_parameters(self):
         # class and bbox head init

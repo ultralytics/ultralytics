@@ -190,6 +190,16 @@ class BaseTrainer:
         else:
             self._do_train(world_size)
 
+    def _pre_caching_dataset(self):
+        """
+        Caching dataset before training to avoid NCCL timeout
+        It has to be done before DDP initialization
+        """
+        if RANK in (-1, 0):
+            LOGGER.info(f'Pre-caching dataset to avoid NCCL timeout')
+            self.get_dataloader(self.trainset, batch_size=1, rank=RANK, mode='train')
+            self.get_dataloader(self.testset, batch_size=1, rank=-1, mode='val')
+
     def _setup_ddp(self, world_size):
         """Initializes and sets the DistributedDataParallel parameters for training."""
         torch.cuda.set_device(RANK)
@@ -263,6 +273,7 @@ class BaseTrainer:
     def _do_train(self, world_size=1):
         """Train completed, evaluate and plot if specified by arguments."""
         if world_size > 1:
+            self._pre_caching_dataset()
             self._setup_ddp(world_size)
 
         self._setup_train(world_size)

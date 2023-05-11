@@ -196,7 +196,7 @@ class BaseTrainer:
         It has to be done before DDP initialization
         """
         if RANK in (-1, 0):
-            LOGGER.info(f'Pre-caching dataset to avoid NCCL timeout')
+            LOGGER.info('Pre-caching dataset to avoid NCCL timeout')
             self.get_dataloader(self.trainset, batch_size=1, rank=RANK, mode='train')
             self.get_dataloader(self.testset, batch_size=1, rank=-1, mode='val')
 

@@ -7,7 +7,14 @@ description: Explore RT-DETR, a high-performance real-time object detector. Lear
 
 ## Overview
 
-Real-Time Detection Transformer (RT-DETR) is an end-to-end object detector that provides real-time performance while maintaining high accuracy. It efficiently processes multi-scale features and supports flexible adjustment of inference speed. RT-DETR outperforms many real-time object detectors on accelerated backends like CUDA with TensorRT.
+Real-Time Detection Transformer (RT-DETR) is an end-to-end object detector that provides real-time performance while maintaining high accuracy. It efficiently processes multi-scale features by decoupling intra-scale interaction and cross-scale fusion, and supports flexible adjustment of inference speed using different decoder layers without retraining. RT-DETR outperforms many real-time object detectors on accelerated backends like CUDA with TensorRT.
+
+### Key Features
+
+- **Efficient Hybrid Encoder:** RT-DETR uses an efficient hybrid encoder that processes multi-scale features by decoupling intra-scale interaction and cross-scale fusion. This design reduces computational costs and allows for real-time object detection.
+- **IoU-aware Query Selection:** RT-DETR improves object query initialization by utilizing IoU-aware query selection. This allows the model to focus on the most relevant objects in the scene.
+- **Adaptable Inference Speed:** RT-DETR supports flexible adjustments of inference speed by using different decoder layers without the need for retraining. This adaptability facilitates practical application in various real-time object detection scenarios.
+
 
 ## Pre-trained Models
 
@@ -25,7 +32,7 @@ from ultralytics import RTDETR
 
 model = RTDETR("rtdetr-l.pt")
 model.info()  # display model information
-model.predict(...)  # predict
+model.predict("path/to/image.jpg")  # predict
 ```
 
 ### Supported Tasks

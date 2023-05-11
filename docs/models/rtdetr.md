@@ -3,7 +3,7 @@ comments: true
 description: Explore RT-DETR, a high-performance real-time object detector. Learn how to use pre-trained models with Ultralytics Python API for various tasks.
 ---
 
-# Baidu Real-Time DETR
+# RT-DETR
 
 ## Overview
 

@@ -12,7 +12,7 @@ from ultralytics.vit import RTDETR
 
 # from ultralytics.vit import MODEL_TYPE
 
-model = RTDETR("rtdetr_l.pt")
+model = RTDETR("rtdetr-l.pt")
 model.info()  # display model information
 model.predict(...)  # predict
 ```
@@ -25,8 +25,8 @@ model.predict(...)  # predict
 
 | Model Type          | Pre-trained Weights | Tasks Supported       |
 |---------------------|---------------------|-----------------------|
-| rtdetr large        | `rtdetr_l.pt`          | Object Detection |
-| rtdetr extra-large  | `rtdetr_x.pt`          | Object Detection |
+| rtdetr large        | `rtdetr-l.pt`          | Object Detection |
+| rtdetr extra-large  | `rtdetr-x.pt`          | Object Detection |
 
 ## Supported Modes
 

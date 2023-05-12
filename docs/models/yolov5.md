@@ -5,9 +5,15 @@ description: Detect objects faster and more accurately using Ultralytics YOLOv5u
 
 # YOLOv5u
 
-## About
+## Overview
 
-Anchor-free YOLOv5 models with improved accuracy-speed tradeoff.
+YOLOv5u is an updated version of YOLOv5 that incorporates the anchor-free split Ultralytics head used in the YOLOv8 models. It retains the same backbone and neck architecture as YOLOv5 but offers improved accuracy-speed tradeoff for object detection tasks.
+
+## Key Features
+
+- **Anchor-free Split Ultralytics Head:** YOLOv5u replaces the traditional anchor-based detection head with an anchor-free split Ultralytics head, resulting in improved performance.
+- **Optimized Accuracy-Speed Tradeoff:** The updated model offers a better balance between accuracy and speed, making it more suitable for a wider range of applications.
+- **Variety of Pre-trained Models:** YOLOv5u offers a range of pre-trained models tailored for various tasks, including Inference, Validation, and Training.
 
 ## Supported Tasks
 

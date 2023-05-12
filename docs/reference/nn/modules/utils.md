@@ -1,3 +1,7 @@
+---
+description: 'Learn about Ultralytics NN modules: get_clones, linear_init_, and multi_scale_deformable_attn_pytorch. Code examples and usage tips.'
+---
+
 # _get_clones
 ---
 :::ultralytics.nn.modules.utils._get_clones

@@ -1,3 +1,7 @@
+---
+description: Explore convolutional neural network modules & techniques such as LightConv, DWConv, ConvTranspose, GhostConv, CBAM & autopad with Ultralytics Docs.
+---
+
 # Conv
 ---
 :::ultralytics.nn.modules.conv.Conv

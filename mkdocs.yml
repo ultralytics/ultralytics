@@ -63,19 +63,19 @@ extra:
   analytics:
     provider: google
     property: G-2M5EHKC0BH
-    feedback:
-      title: Was this page helpful?
-      ratings:
-        - icon: material/heart
-          name: This page was helpful
-          data: 1
-          note: Thanks for your feedback!
-        - icon: material/heart-broken
-          name: This page could be improved
-          data: 0
-          note: >-
-            Thanks for your feedback!<br>
-            <a href="https://github.com/ultralytics/ultralytics/issues/new?title=Docs+Feedback+for+{title}+page+at+https://docs.ultralytics.com/{url}&labels=enhancement&template=feature-request.yml" target="_blank" rel="noopener">Tell us what we can improve.</a>
+  #    feedback:
+  #      title: Was this page helpful?
+  #      ratings:
+  #        - icon: material/heart
+  #          name: This page was helpful
+  #          data: 1
+  #          note: Thanks for your feedback!
+  #        - icon: material/heart-broken
+  #          name: This page could be improved
+  #          data: 0
+  #          note: >-
+  #            Thanks for your feedback!<br>
+  #            <a href="https://github.com/ultralytics/ultralytics/issues/new?title=Docs+Feedback+for+{title}+page+at+https://docs.ultralytics.com/{url}&labels=enhancement&template=feature-request.yml" target="_blank" rel="noopener">Tell us what we can improve.</a>
 
   social:
     - icon: fontawesome/brands/github
@@ -164,7 +164,8 @@ nav:
       - YOLOv3: models/yolov3.md
       - YOLOv5: models/yolov5.md
       - YOLOv8: models/yolov8.md
-      - Segment Anything Model (SAM): models/sam.md
+      - SAM (Segment Anything Model): models/sam.md
+      - RT-DETR (Realtime Detection Transformer): models/rtdetr.md
   - Datasets:
       - datasets/index.md
       - Detection:
@@ -348,9 +349,6 @@ plugins:
       add_image: True
       add_share_buttons: True
       default_image: https://github.com/ultralytics/ultralytics/assets/26833433/6d09221c-c52a-4234-9a5d-b862e93c6529
-  - git-revision-date-localized:
-      type: timeago
-      enable_creation_date: true
   - redirects:
       redirect_maps:
         callbacks.md: usage/callbacks.md

@@ -48,7 +48,7 @@ model.predict('path/to/image.jpg')  # predict
 | Validation | :x:                |
 | Training   | :x:                |
 
-# Citations and Acknowledgements
+## Citations and Acknowledgements
 
 If you use SAM in your research or development work, please cite the following paper:
 

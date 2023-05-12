@@ -1,3 +1,7 @@
+---
+description: Explore ultralytics.nn.modules.block to build powerful YOLO object detection models. Master DFL, HGStem, SPP, CSP components and more.
+---
+
 # DFL
 ---
 :::ultralytics.nn.modules.block.DFL

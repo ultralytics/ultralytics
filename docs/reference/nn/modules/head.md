@@ -1,3 +1,7 @@
+---
+description: 'Learn about Ultralytics YOLO modules: Segment, Classify, and RTDETRDecoder. Optimize object detection and classification in your project.'
+---
+
 # Detect
 ---
 :::ultralytics.nn.modules.head.Detect

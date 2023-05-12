@@ -10,6 +10,7 @@ from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import DEFAULT_CFG, DEFAULT_CFG_DICT
 from ultralytics.yolo.utils.checks import check_imgsz
+from ultralytics.yolo.utils.torch_utils import model_info
 
 from ...yolo.utils.torch_utils import smart_inference_mode
 from .predict import RTDETRPredictor
@@ -83,6 +84,10 @@ class RTDETR:
         validator(model=self.model)
         self.metrics = validator.metrics
         return validator.metrics
+
+    def info(self, verbose=True):
+        """Get model info"""
+        return model_info(self.model, verbose=verbose)
 
     @smart_inference_mode()
     def export(self, **kwargs):

@@ -549,10 +549,15 @@ class BaseTrainer:
         resume = self.args.resume
         if resume:
             try:
-                last = Path(
-                    check_file(resume) if isinstance(resume, (str,
-                                                              Path)) and Path(resume).exists() else get_latest_run())
-                self.args = get_cfg(attempt_load_weights(last).args)
+                exists = isinstance(resume, (str, Path)) and Path(resume).exists()
+                last = Path(check_file(resume) if exists else get_latest_run())
+
+                # Check that resume data YAML exists, otherwise strip to force re-download of dataset
+                ckpt_args = attempt_load_weights(last).args
+                if not Path(ckpt_args['data']).exists():
+                    ckpt_args['data'] = self.args.data
+
+                self.args = get_cfg(ckpt_args)
                 self.args.model, resume = str(last), True  # reinstate
             except Exception as e:
                 raise FileNotFoundError('Resume checkpoint not found. Please pass a valid checkpoint to resume from, '

@@ -1,3 +1,7 @@
+---
+description: Explore the Ultralytics nn modules pages on Transformer and MLP blocks, LayerNorm2d, and Deformable Transformer Decoder Layer.
+---
+
 # TransformerEncoderLayer
 ---
 :::ultralytics.nn.modules.transformer.TransformerEncoderLayer

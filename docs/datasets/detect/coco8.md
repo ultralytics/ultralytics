@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Get started with Ultralytics COCO8. Ideal for testing and debugging object detection models or experimenting with new detection approaches.
 ---
 
 # COCO8 Dataset

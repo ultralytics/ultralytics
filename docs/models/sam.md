@@ -7,7 +7,9 @@ description: Learn about the Segment Anything Model (SAM) and how it provides pr
 
 ## Overview
 
-The Segment Anything Model (SAM) is a groundbreaking image segmentation model that enables promptable segmentation with real-time performance. It forms the foundation for the Segment Anything project, which introduces a new task, model, and dataset for image segmentation. SAM is designed to be promptable, allowing it to transfer zero-shot to new image distributions and tasks. The model is trained on the SA-1B dataset, which contains over 1 billion masks on 11 million licensed and privacy-respecting images. SAM has demonstrated impressive zero-shot performance, often surpassing prior fully supervised results.
+The Segment Anything Model (SAM) is a groundbreaking image segmentation model that enables promptable segmentation with real-time performance. It forms the foundation for the Segment Anything project, which introduces a new task, model, and dataset for image segmentation. SAM is designed to be promptable, allowing it to transfer zero-shot to new image distributions and tasks. The model is trained on the [SA-1B dataset](https://ai.facebook.com/datasets/segment-anything/), which contains over 1 billion masks on 11 million licensed and privacy-respecting images. SAM has demonstrated impressive zero-shot performance, often surpassing prior fully supervised results.
+
+![Dataset sample image](https://production-media.paperswithcode.com/datasets/540cfe0d-5fe7-43a4-9e1d-4c5813ddeb3e.png)
 
 ## Key Features
 

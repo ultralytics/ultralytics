@@ -192,8 +192,9 @@ class BaseTrainer:
 
     def _pre_caching_dataset(self):
         """
-        Caching dataset before training to avoid NCCL timeout
-        It has to be done before DDP initialization
+        Caching dataset before training to avoid NCCL timeout.
+        Must be done before DDP initialization.
+        See https://github.com/ultralytics/ultralytics/pull/2549 for details.
         """
         if RANK in (-1, 0):
             LOGGER.info('Pre-caching dataset to avoid NCCL timeout')

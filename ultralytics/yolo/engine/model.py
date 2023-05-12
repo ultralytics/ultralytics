@@ -209,7 +209,7 @@ class YOLO:
             verbose (bool): Controls verbosity.
         """
         self._check_is_pytorch_model()
-        self.model.info(verbose=verbose)
+        return self.model.info(verbose=verbose)
 
     def fuse(self):
         """Fuse PyTorch Conv2d and BatchNorm2d layers."""

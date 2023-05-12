@@ -15,7 +15,6 @@ Real-Time Detection Transformer (RT-DETR) is an end-to-end object detector that 
 - **IoU-aware Query Selection:** RT-DETR improves object query initialization by utilizing IoU-aware query selection. This allows the model to focus on the most relevant objects in the scene.
 - **Adaptable Inference Speed:** RT-DETR supports flexible adjustments of inference speed by using different decoder layers without the need for retraining. This adaptability facilitates practical application in various real-time object detection scenarios.
 
-
 ## Pre-trained Models
 
 Ultralytics RT-DETR provides several pre-trained models with different scales:

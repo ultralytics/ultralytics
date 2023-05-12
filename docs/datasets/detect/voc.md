@@ -35,6 +35,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
     ```yaml
     --8<-- "ultralytics/datasets/VOC.yaml"
     ```
+
 ## Usage
 
 To train a YOLOv8n model on the VOC dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.

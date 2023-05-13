@@ -8,7 +8,7 @@ from pathlib import Path
 from ultralytics.nn.tasks import DetectionModel, attempt_load_one_weight, yaml_model_load
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
-from ultralytics.yolo.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, ROOT, is_git_dir, LOGGER
+from ultralytics.yolo.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, ROOT, is_git_dir
 from ultralytics.yolo.utils.checks import check_imgsz
 from ultralytics.yolo.utils.torch_utils import model_info
 

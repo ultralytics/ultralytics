@@ -118,7 +118,7 @@ class Mosaic(BaseMixTransform):
     """
     Mosaic augmentation.
 
-    This class performs mosaic augmentation by combining 4 images into a single mosaic image.
+    This class performs mosaic augmentation by combining multiple (4 or 9) images into a single mosaic image.
     The augmentation is applied to a dataset with a given probability.
 
     Attributes:

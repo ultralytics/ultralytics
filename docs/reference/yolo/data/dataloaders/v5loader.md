@@ -1,3 +1,7 @@
+---
+description: Efficiently load images and labels to models using Ultralytics YOLO's InfiniteDataLoader, LoadScreenshots, and LoadStreams.
+---
+
 # InfiniteDataLoader
 ---
 :::ultralytics.yolo.data.dataloaders.v5loader.InfiniteDataLoader

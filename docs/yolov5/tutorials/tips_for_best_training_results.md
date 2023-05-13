@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Get the most out of YOLOv5 with this guide; producing best results, checking dataset, hypertuning & more. Updated May 2022.
 ---
 
 📚 This guide explains how to produce the best mAP and training results with YOLOv5 🚀.  
@@ -23,14 +24,14 @@ We've put together a full guide for users looking to get the best results on the
 
 <a href="https://arxiv.org/abs/1405.0312"><img width="800" src="https://user-images.githubusercontent.com/26833433/109398377-82b0ac00-78f1-11eb-9c76-cc7820669d0d.png" alt="COCO Analysis"></a>
 
-
 ## Model Selection
 
-Larger models like YOLOv5x and [YOLOv5x6](https://github.com/ultralytics/yolov5/releases/tag/v5.0) will produce better results in nearly all cases, but have more parameters, require more CUDA memory to train, and are slower to run. For **mobile** deployments we recommend YOLOv5s/m, for **cloud** deployments we recommend YOLOv5l/x. See our README [table](https://github.com/ultralytics/yolov5#pretrained-checkpoints) for a full comparison of all models. 
+Larger models like YOLOv5x and [YOLOv5x6](https://github.com/ultralytics/yolov5/releases/tag/v5.0) will produce better results in nearly all cases, but have more parameters, require more CUDA memory to train, and are slower to run. For **mobile** deployments we recommend YOLOv5s/m, for **cloud** deployments we recommend YOLOv5l/x. See our README [table](https://github.com/ultralytics/yolov5#pretrained-checkpoints) for a full comparison of all models.
 
 <p align="center"><img width="700" alt="YOLOv5 Models" src="https://github.com/ultralytics/yolov5/releases/download/v1.0/model_comparison.png"></p>
 
 - **Start from Pretrained weights.** Recommended for small to medium-sized datasets (i.e. [VOC](https://github.com/ultralytics/yolov5/blob/master/data/VOC.yaml), [VisDrone](https://github.com/ultralytics/yolov5/blob/master/data/VisDrone.yaml), [GlobalWheat](https://github.com/ultralytics/yolov5/blob/master/data/GlobalWheat2020.yaml)). Pass the name of the model to the `--weights` argument. Models download automatically from the [latest YOLOv5 release](https://github.com/ultralytics/yolov5/releases).
+
 ```shell
 python train.py --data custom.yaml --weights yolov5s.pt
                                              yolov5m.pt
@@ -38,14 +39,15 @@ python train.py --data custom.yaml --weights yolov5s.pt
                                              yolov5x.pt
                                              custom_pretrained.pt
 ```
+
 - **Start from Scratch.** Recommended for large datasets (i.e. [COCO](https://github.com/ultralytics/yolov5/blob/master/data/coco.yaml), [Objects365](https://github.com/ultralytics/yolov5/blob/master/data/Objects365.yaml), [OIv6](https://storage.googleapis.com/openimages/web/index.html)). Pass the model architecture yaml you are interested in, along with an empty `--weights ''` argument:
+
 ```bash
 python train.py --data custom.yaml --weights '' --cfg yolov5s.yaml
                                                       yolov5m.yaml
                                                       yolov5l.yaml
                                                       yolov5x.yaml
 ```
-
 
 ## Training Settings
 

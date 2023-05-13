@@ -1,3 +1,7 @@
+---
+description: Enhance image data with Albumentations CenterCrop, normalize, augment_hsv, replicate, random_perspective, cutout, & box_candidates.
+---
+
 # Albumentations
 ---
 :::ultralytics.yolo.data.dataloaders.v5augmentations.Albumentations

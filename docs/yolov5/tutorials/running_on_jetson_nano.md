@@ -1,11 +1,12 @@
 ---
 comments: true
+description: Deploy YOLOv5 on NVIDIA Jetson using TensorRT and DeepStream SDK for high performance inference. Step-by-step guide with code snippets.
 ---
 
 # Deploy on NVIDIA Jetson using TensorRT and DeepStream SDK
 
 📚 This guide explains how to deploy a trained model into NVIDIA Jetson Platform and perform inference using TensorRT and DeepStream SDK. Here we use TensorRT to maximize the inference performance on the Jetson platform.  
-UPDATED 18 November 2022. 
+UPDATED 18 November 2022.
 
 ## Hardware Verification
 
@@ -27,8 +28,7 @@ There are two major installation methods including,
 
 You can find a very detailed installation guide from NVIDIA [official website](https://developer.nvidia.com/jetpack-sdk-461). You can also find guides corresponding to the above-mentioned [reComputer J1010](https://wiki.seeedstudio.com/reComputer_J1010_J101_Flash_Jetpack) and [reComputer J2021](https://wiki.seeedstudio.com/reComputer_J2021_J202_Flash_Jetpack).
 
-
-## Install Necessary Packages 
+## Install Necessary Packages
 
 - **Step 1.** Access the terminal of Jetson device, install pip and upgrade it
 
@@ -89,7 +89,7 @@ Supported by JetPack 4.4 (L4T R32.4.3) / JetPack 4.4.1 (L4T R32.4.4) / JetPack 4
 
 **PyTorch v1.12.0**
 
-Supported by JetPack 5.0 (L4T R34.1.0) / JetPack 5.0.1 (L4T R34.1.1) / JetPack 5.0.2 (L4T R35.1.0) with Python 3.8 
+Supported by JetPack 5.0 (L4T R34.1.0) / JetPack 5.0.1 (L4T R34.1.1) / JetPack 5.0.2 (L4T R35.1.0) with Python 3.8
 
 **file_name:** torch-1.12.0a0+2c916ef.nv22.3-cp38-cp38-linux_aarch64.whl
 **URL:** [https://developer.download.nvidia.com/compute/redist/jp/v50/pytorch/torch-1.12.0a0+2c916ef.nv22.3-cp38-cp38-linux_aarch64.whl](https://developer.download.nvidia.com/compute/redist/jp/v50/pytorch/torch-1.12.0a0+2c916ef.nv22.3-cp38-cp38-linux_aarch64.whl)
@@ -133,7 +133,7 @@ cd ~
 git clone https://github.com/marcoslucianops/DeepStream-Yolo
 ```
 
-- **Step 2.** Copy **gen_wts_yoloV5.py** from **DeepStream-Yolo/utils** into **yolov5** directory 
+- **Step 2.** Copy **gen_wts_yoloV5.py** from **DeepStream-Yolo/utils** into **yolov5** directory
 
 ```sh
 cp DeepStream-Yolo/utils/gen_wts_yoloV5.py yolov5
@@ -222,7 +222,7 @@ The above result is running on **Jetson Xavier NX** with **FP32** and **YOLOv5s 
 
 ## INT8 Calibration
 
-If you want to use INT8 precision for inference, you need to follow the steps below 
+If you want to use INT8 precision for inference, you need to follow the steps below
 
 - **Step 1.** Install OpenCV
 
@@ -254,7 +254,7 @@ for jpg in $(ls -1 val2017/*.jpg | sort -R | head -1000); do \
 done
 ```
 
-**Note:** NVIDIA recommends at least 500 images to get a good accuracy. On this example, 1000 images are chosen to get better accuracy (more images = more accuracy). Higher INT8_CALIB_BATCH_SIZE values will result in more accuracy and faster calibration speed. Set it according to you GPU memory. You can set it from **head -1000**. For example, for 2000 images, **head -2000**. This process can take a long time. 
+**Note:** NVIDIA recommends at least 500 images to get a good accuracy. On this example, 1000 images are chosen to get better accuracy (more images = more accuracy). Higher INT8_CALIB_BATCH_SIZE values will result in more accuracy and faster calibration speed. Set it according to you GPU memory. You can set it from **head -1000**. For example, for 2000 images, **head -2000**. This process can take a long time.
 
 - **Step 6.** Create the **calibration.txt** file with all selected images
 
@@ -305,7 +305,7 @@ The above result is running on **Jetson Xavier NX** with **INT8** and **YOLOv5s 
 
 ## Benchmark results
 
-The following table summarizes how different models perform on **Jetson Xavier NX**. 
+The following table summarizes how different models perform on **Jetson Xavier NX**.
 
 | Model Name | Precision | Inference Size | Inference Time (ms) | FPS |
 |------------|-----------|----------------|---------------------|-----|
@@ -313,7 +313,6 @@ The following table summarizes how different models perform on **Jetson Xavier N
 |            | FP32      | 640x640        | 33.33               | 30  |                    
 |            | INT8      | 640x640        | 16.66               | 60  |                    
 | YOLOv5n    | FP32      | 640x640        | 16.66               | 60  |                    
-
 
 ### Additional
 

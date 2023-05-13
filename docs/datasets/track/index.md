@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Discover the datasets compatible with Multi-Object Detector. Train your trackers and make your detections more efficient with Ultralytics' YOLO.
 ---
 
 # Multi-object Tracking Datasets Overview
@@ -26,4 +27,3 @@ Support for training trackers alone is coming soon
         ```bash
         yolo track model=yolov8n.pt source="https://youtu.be/Zgi9g1ksQHc" conf=0.3, iou=0.5 show
         ```
-

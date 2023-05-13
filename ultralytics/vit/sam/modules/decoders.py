@@ -157,5 +157,5 @@ class MLP(nn.Module):
         for i, layer in enumerate(self.layers):
             x = F.relu(layer(x)) if i < self.num_layers - 1 else layer(x)
         if self.sigmoid_output:
-            x = F.sigmoid(x)
+            x = torch.sigmoid(x)
         return x

@@ -145,8 +145,8 @@ class Mosaic(BaseMixTransform):
 
     def _mix_transform(self, labels):
         """Apply mixup transformation to the input image and labels."""
-        assert labels.get('rect_shape', None) is None, 'rect and mosaic is exclusive.'
-        assert len(labels.get('mix_labels', [])) > 0, 'There are no other images for mosaic augment.'
+        assert labels.get('rect_shape', None) is None, 'rect and mosaic are mutually exclusive.'
+        assert len(labels.get('mix_labels', [])), 'There are no other images for mosaic augment.'
         return self._mosaic4(labels) if self.n == 4 else self._mosaic9(labels)
 
     def _mosaic4(self, labels):

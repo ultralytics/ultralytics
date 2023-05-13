@@ -13,7 +13,7 @@ torchvision>=0.8.1
 tqdm>=4.64.0
 
 # Logging -------------------------------------
-# tensorboard>=2.4.1
+# tensorboard>=2.13.0
 # clearml
 # comet
 

@@ -41,7 +41,7 @@ def parse_file(input_path, output_path = '/content/img2.jpg', scale_factor = 1, 
                     min_y = y
                 temp_arr.append ((x, y))
             vertex_arr.append(temp_arr)
-            
+
     #################################
     ##### GENERATE ##################
     #################################
@@ -50,9 +50,9 @@ def parse_file(input_path, output_path = '/content/img2.jpg', scale_factor = 1, 
     expr_img = np.zeros((int(heigh * scale_factor) + 1 , int(width * scale_factor) + 1 ))
     for stroke in vertex_arr:
         temp_vertex_arr = []
-        for vertex in stroke:          
+        for vertex in stroke:
             temp_vertex_arr.append((int((vertex[0]-min_x) * scale_factor ), int((vertex[1]-min_y) * scale_factor)))
-            
+
         for i in range (len(stroke) - 1):
             cv2.line(expr_img, temp_vertex_arr[i], temp_vertex_arr[i + 1], (255, 255, 255), 10)
 
@@ -126,7 +126,7 @@ def get_min_coords(trace_group):
         max_x_coords.append(max(x_coords))
         max_y_coords.append(max(y_coords))
     return min(min_x_coords), min(min_y_coords), max(max_x_coords), max(max_y_coords)
-  
+
 
 def complete(path, output_dir):
   min_x, min_y = parse_file(path, output_path=output_dir)
@@ -142,12 +142,12 @@ def complete(path, output_dir):
     y1 = int(y1)
     min_x = int(min_x)
     min_y = int(min_y)
-    #x0-min_x, y0-min_y, x1-min_x, y1-min_y are the bounding box coordinates. 
+    #x0-min_x, y0-min_y, x1-min_x, y1-min_y are the bounding box coordinates.
     cv2.rectangle(im, ((x0-min_x)-2, (y0-min_y)-2), ((x1-min_x)+2, (y1-min_y)+2), color=(0, 255, 0), thickness=2)
   cv2_imshow(im)
 
 
 
 #You call the comlete function using the input directory (file) and the output directory (image). This will write an image in the output directory that has the bounding boxes placed onto them
-#if you want just the image + bounding boxes, you need to use the xyxy2xywh function to do so. 
+#if you want just the image + bounding boxes, you need to use the xyxy2xywh function to do so.
 complete("/content/CROHME_extractor/data/CROHME_full_v2/CROHME2013_data/TrainINKML/MathBrush/2009210-947-0.inkml", "/content/tempimg.jpg")

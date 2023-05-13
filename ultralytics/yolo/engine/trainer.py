@@ -274,7 +274,7 @@ class BaseTrainer:
     def _do_train(self, world_size=1):
         """Train completed, evaluate and plot if specified by arguments."""
         if world_size > 1:
-            self._pre_caching_dataset()
+            # self._pre_caching_dataset()
             self._setup_ddp(world_size)
 
         self._setup_train(world_size)

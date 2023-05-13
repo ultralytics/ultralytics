@@ -49,4 +49,19 @@ model.predict("path/to/image.jpg")  # predict
 | Validation | :heavy_check_mark: |
 | Training   | :x: (Coming soon)  |
 
-For more information about the RT-DETR model, please refer to the [original paper](https://arxiv.org/abs/2304.08069) and the [PaddleDetection repository](https://github.com/PaddlePaddle/PaddleDetection).
+# Citations and Acknowledgements
+
+If you use RT-DETR in your research or development work, please cite the [original paper](https://arxiv.org/abs/2304.08069):
+
+```bibtex
+@misc{lv2023detrs,
+      title={DETRs Beat YOLOs on Real-time Object Detection},
+      author={Wenyu Lv and Shangliang Xu and Yian Zhao and Guanzhong Wang and Jinman Wei and Cheng Cui and Yuning Du and Qingqing Dang and Yi Liu},
+      year={2023},
+      eprint={2304.08069},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}
+```
+
+We would like to acknowledge Baidu's [PaddlePaddle]((https://github.com/PaddlePaddle/PaddleDetection)) team for creating and maintaining this valuable resource for the computer vision community.

@@ -248,15 +248,16 @@ class Mosaic(BaseMixTransform):
         for labels in mosaic_labels:
             cls.append(labels['cls'])
             instances.append(labels['instances'])
-        return {
+        final_labels = {
             'im_file': mosaic_labels[0]['im_file'],
             'ori_shape': mosaic_labels[0]['ori_shape'],
             'resized_shape': (self.imgsz * 2, self.imgsz * 2),
             'cls': np.concatenate(cls, 0),
             'instances': Instances.concatenate(instances, axis=0),
             'mosaic_border': self.border}  # final_labels
-        # final_labels['instances'].clip(self.imgsz * 2, self.imgsz * 2)
-        # return final_labels
+        clip_size = self.imgsz * (2 if self.n == 2 else 3)
+        final_labels['instances'].clip(clip_size, clip_size)
+        return final_labels
 
 
 class MixUp(BaseMixTransform):

@@ -107,6 +107,7 @@ celerybeat.pid
 # Environments
 .env
 .venv
+.idea
 env/
 venv/
 ENV/
@@ -153,4 +154,3 @@ weights/
 *_web_model/
 *_openvino_model/
 *_paddle_model/
-.idea

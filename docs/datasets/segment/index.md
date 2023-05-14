@@ -45,7 +45,7 @@ train: <path-to-training-images>
 val: <path-to-validation-images>
 
 nc: <number-of-classes>
-names: [<class-1>, <class-2>, ..., <class-n>]
+names: [ <class-1>, <class-2>, ..., <class-n> ]
 
 ```
 
@@ -72,7 +72,7 @@ train: data/train/
 val: data/val/
 
 nc: 2
-names: ['person', 'car']
+names: [ 'person', 'car' ]
 ```
 
 ## Usage
@@ -108,3 +108,29 @@ from ultralytics.yolo.data.converter import convert_coco
 
 convert_coco(labels_dir='../coco/annotations/', use_segments=True)
 ```
+
+## Auto-Annotation
+
+Auto-annotation is an essential feature that allows you to generate a segmentation dataset using a pre-trained detection model. It enables you to quickly and accurately annotate a large number of images without the need for manual labeling, saving time and effort.
+
+### Generate Segmentation Dataset Using a Detection Model
+
+To auto-annotate your dataset using the Ultralytics framework, you can use the `auto_annotate` function as shown below:
+
+```python
+from ultralytics.yolo.data import auto_annotate
+
+auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model='sam_b.pt')
+```
+
+| Argument   | Type                | Description                                                                                             | Default      |
+|------------|---------------------|---------------------------------------------------------------------------------------------------------|--------------|
+| data       | str                 | Path to a folder containing images to be annotated.                                                     |              |
+| det_model  | str, optional       | Pre-trained YOLO detection model. Defaults to 'yolov8x.pt'.                                             | 'yolov8x.pt' |
+| sam_model  | str, optional       | Pre-trained SAM segmentation model. Defaults to 'sam_b.pt'.                                             | 'sam_b.pt'   |
+| device     | str, optional       | Device to run the models on. Defaults to an empty string (CPU or GPU, if available).                    |              |
+| output_dir | str, None, optional | Directory to save the annotated results. Defaults to a 'labels' folder in the same directory as 'data'. | None         |
+
+The `auto_annotate` function takes the path to your images, along with optional arguments for specifying the pre-trained detection and [SAM segmentation models](https://docs.ultralytics.com/models/sam), the device to run the models on, and the output directory for saving the annotated results.
+
+By leveraging the power of pre-trained models, auto-annotation can significantly reduce the time and effort required for creating high-quality segmentation datasets. This feature is particularly useful for researchers and developers working with large image collections, as it allows them to focus on model development and evaluation rather than manual annotation.

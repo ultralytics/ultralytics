@@ -233,7 +233,7 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
                 n += 1
 
     if s and install and AUTOINSTALL:  # check environment variable
-        LOGGER.info(f"{prefix} YOLOv8 requirement{'s' * (n > 1)} {s}not found, attempting AutoUpdate...")
+        LOGGER.info(f"{prefix} Ultralytics requirement{'s' * (n > 1)} {s}not found, attempting AutoUpdate...")
         try:
             assert is_online(), 'AutoUpdate skipped (offline)'
             LOGGER.info(subprocess.check_output(f'pip install --no-cache {s} {cmds}', shell=True).decode())

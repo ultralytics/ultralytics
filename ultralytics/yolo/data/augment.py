@@ -125,18 +125,17 @@ class Mosaic(BaseMixTransform):
         dataset: The dataset on which the mosaic augmentation is applied.
         imgsz (int, optional): Image size (height and width) after mosaic pipeline of a single image. Default to 640.
         p (float, optional): Probability of applying the mosaic augmentation. Must be in the range 0-1. Default to 1.0.
-        border (Tuple[int, int], optional): The (horizontal, vertical) mosaic border area. Default to (0, 0).
         n (int, optional): The grid size, either 4 (for 2x2) or 9 (for 3x3).
     """
 
-    def __init__(self, dataset, imgsz=640, p=1.0, border=(0, 0), n=9):
+    def __init__(self, dataset, imgsz=640, p=1.0, n=9):
         """Initializes the object with a dataset, image size, probability, and border."""
         assert 0 <= p <= 1.0, f'The probability should be in range [0, 1], but got {p}.'
         assert n in (4, 9), 'grid must be equal to 4 or 9.'
         super().__init__(dataset=dataset, p=p)
         self.dataset = dataset
         self.imgsz = imgsz
-        self.border = border
+        self.border = [-imgsz // 2, -imgsz // 2] if n == 4 else [-imgsz, -imgsz]
         self.n = n
 
     def get_indexes(self):
@@ -755,7 +754,7 @@ class Format:
 def v8_transforms(dataset, imgsz, hyp):
     """Convert images to a size suitable for YOLOv8 training."""
     pre_transform = Compose([
-        Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic, border=[-imgsz // 2, -imgsz // 2]),
+        Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic),
         CopyPaste(p=hyp.copy_paste),
         RandomPerspective(
             degrees=hyp.degrees,

@@ -49,7 +49,7 @@ whether each source can be used in streaming mode with `stream=True` ✅ and an 
 | URL         | `'https://ultralytics.com/images/bus.jpg'` | `str`          |                  |
 | screenshot  | `'screen'`                                 | `str`          |                  |
 | PIL         | `Image.open('im.jpg')`                     | `PIL.Image`    | HWC, RGB         |
-| OpenCV      | `cv2.imread('im.jpg')[:,:,::-1]`           | `np.ndarray`   | HWC, BGR to RGB  |
+| OpenCV      | `cv2.imread('im.jpg')`                     | `np.ndarray`   | HWC, BGR         |
 | numpy       | `np.zeros((640,1280,3))`                   | `np.ndarray`   | HWC              |
 | torch       | `torch.zeros(16,3,320,640)`                | `torch.Tensor` | BCHW, RGB        |
 | CSV         | `'sources.csv'`                            | `str`, `Path`  | RTSP, RTMP, HTTP |         

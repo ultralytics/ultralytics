@@ -201,15 +201,16 @@ class YOLO:
         self.model.load(weights)
         return self
 
-    def info(self, verbose=True):
+    def info(self, detailed=False, verbose=True):
         """
         Logs model info.
 
         Args:
+            detailed (bool): Show detailed information about model.
             verbose (bool): Controls verbosity.
         """
         self._check_is_pytorch_model()
-        self.model.info(verbose=verbose)
+        return self.model.info(detailed=detailed, verbose=verbose)
 
     def fuse(self):
         """Fuse PyTorch Conv2d and BatchNorm2d layers."""

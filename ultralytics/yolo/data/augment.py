@@ -255,7 +255,7 @@ class Mosaic(BaseMixTransform):
             'cls': np.concatenate(cls, 0),
             'instances': Instances.concatenate(instances, axis=0),
             'mosaic_border': self.border}  # final_labels
-        clip_size = self.imgsz * (2 if self.n == 2 else 3)
+        clip_size = self.imgsz * (2 if self.n == 4 else 3)
         final_labels['instances'].clip(clip_size, clip_size)
         return final_labels
 

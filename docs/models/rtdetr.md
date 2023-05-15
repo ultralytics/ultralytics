@@ -64,4 +64,4 @@ If you use RT-DETR in your research or development work, please cite the [origin
 }
 ```
 
-We would like to acknowledge Baidu's [PaddlePaddle]((https://github.com/PaddlePaddle/PaddleDetection)) team for creating and maintaining this valuable resource for the computer vision community.
+We would like to acknowledge Baidu's [PaddlePaddle](https://github.com/PaddlePaddle/PaddleDetection) team for creating and maintaining this valuable resource for the computer vision community.

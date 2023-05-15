@@ -1,8 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-import collections
-from copy import deepcopy
-
 from .augment import LetterBox
 
 
@@ -42,7 +39,7 @@ class MixAndRectDataset:
             # Mosaic and mixup
             if hasattr(transform, 'get_indexes'):
                 indexes = transform.get_indexes(self.dataset)
-                if not isinstance(indexes, collections.abc.Sequence):
+                if not isinstance(indexes, (tuple, list)):
                     indexes = [indexes]
                 labels['mix_labels'] = [self.dataset[index] for index in indexes]
             if self.dataset.rect and isinstance(transform, LetterBox):

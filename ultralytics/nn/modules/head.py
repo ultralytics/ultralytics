@@ -346,7 +346,7 @@ class RTDETRDecoder(nn.Module):
         bs, _, _ = memory.shape
         # prepare input for decoder
         anchors, valid_mask = self._generate_anchors(spatial_shapes, dtype=memory.dtype, device=memory.device)
-        memory = torch.where(valid_mask, memory, torch.tensor(0.))
+        memory = torch.where(valid_mask, memory, 0)
         output_memory = self.enc_output(memory)
 
         enc_outputs_class = self.enc_score_head(output_memory)  # (bs, h*w, nc)

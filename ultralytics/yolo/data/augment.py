@@ -140,7 +140,7 @@ class Mosaic(BaseMixTransform):
 
     def get_indexes(self):
         """Return a list of random indexes from the dataset."""
-        return [random.randint(0, len(self.dataset) - 1) for _ in range(self.n - 1)]
+        return [random.randint(0, len(self.dataset) - 1) for _ in range(4 - 1)]
 
     def _mix_transform(self, labels):
         """Apply mixup transformation to the input image and labels."""
@@ -189,8 +189,9 @@ class Mosaic(BaseMixTransform):
         mosaic_labels = []
         s = self.imgsz
         hp, wp = -1, -1  # height, width previous
+        len_mix_labels = len(labels['mix_labels'])
         for i in range(9):
-            labels_patch = labels if i == 0 else labels['mix_labels'][i - 1]
+            labels_patch = labels if i == 0 else deepcopy(labels['mix_labels'][(i - 1) % len_mix_labels])
             # Load image
             img = labels_patch['img']
             h, w = labels_patch.pop('resized_shape')

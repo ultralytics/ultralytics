@@ -261,7 +261,7 @@ def yaml_save(file='data.yaml', data=None):
     # Convert Path objects to strings
     for k, v in data.items():
         if isinstance(v, Path):
-            dict[k] = str(v)
+            data[k] = str(v)
 
     # Dump data to file in YAML format
     with open(file, 'w') as f:

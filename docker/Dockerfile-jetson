@@ -28,11 +28,6 @@ RUN python3 -m pip install --upgrade pip wheel
 RUN pip install --no-cache tqdm matplotlib pyyaml psutil thop pandas onnx "numpy==1.23"
 RUN pip install --no-cache -e .
 
-# Resolve duplicate OpenCV installation issues in https://github.com/ultralytics/ultralytics/issues/2407
-RUN apt_packages=$(dpkg -l | grep opencv | awk '{print $2}') && [ -n "$apt_packages" ] && apt-get remove -y $apt_packages || true
-RUN pip uninstall -y opencv-python
-RUN pip install "opencv-python<4.7"
-
 # Set environment variables
 ENV OMP_NUM_THREADS=1
 

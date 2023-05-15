@@ -249,6 +249,7 @@ def yaml_save(file='data.yaml', data={}):
     Args:
         file (str, optional): File name. Default is 'data.yaml'.
         data (dict): Data to save in YAML format.
+
     Returns:
         None: Data is saved to the specified file.
     """

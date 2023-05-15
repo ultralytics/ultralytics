@@ -181,6 +181,8 @@ class BaseTrainer:
             # Command
             cmd, file = generate_ddp_command(world_size, self)
             try:
+                LOGGER.info('Pre-caching dataset to avoid NCCL timeout before running DDP command')
+                deepcopy(self)._setup_train(world_size=0)
                 LOGGER.info(f'Running DDP command {cmd}')
                 subprocess.run(cmd, check=True)
             except Exception as e:

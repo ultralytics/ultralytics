@@ -9,7 +9,7 @@ from .predict import Predictor
 class SAM:
 
     def __init__(self, model='sam_b.pt') -> None:
-        if model and not (model.endswith('.pt') or model.endswith('.pth')):
+        if model and not model.endswith('.pt') and not model.endswith('.pth'):
             # Should raise AssertionError instead?
             raise NotImplementedError('Segment anything prediction requires pre-trained checkpoint')
         self.model = build_sam(model)

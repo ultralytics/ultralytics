@@ -181,6 +181,8 @@ class BaseTrainer:
             # Command
             cmd, file = generate_ddp_command(world_size, self)
             try:
+                LOGGER.info('Pre-caching dataset to avoid NCCL timeout before running DDP command')
+                deepcopy(self)._setup_train(world_size=0)
                 LOGGER.info(f'Running DDP command {cmd}')
                 subprocess.run(cmd, check=True)
             except Exception as e:
@@ -189,17 +191,6 @@ class BaseTrainer:
                 ddp_cleanup(self, str(file))
         else:
             self._do_train(world_size)
-
-    def _pre_caching_dataset(self):
-        """
-        Caching dataset before training to avoid NCCL timeout.
-        Must be done before DDP initialization.
-        See https://github.com/ultralytics/ultralytics/pull/2549 for details.
-        """
-        if RANK in (-1, 0):
-            LOGGER.info('Pre-caching dataset to avoid NCCL timeout')
-            self.get_dataloader(self.trainset, batch_size=1, rank=RANK, mode='train')
-            self.get_dataloader(self.testset, batch_size=1, rank=-1, mode='val')
 
     def _setup_ddp(self, world_size):
         """Initializes and sets the DistributedDataParallel parameters for training."""
@@ -274,7 +265,6 @@ class BaseTrainer:
     def _do_train(self, world_size=1):
         """Train completed, evaluate and plot if specified by arguments."""
         if world_size > 1:
-            # self._pre_caching_dataset()
             self._setup_ddp(world_size)
 
         self._setup_train(world_size)

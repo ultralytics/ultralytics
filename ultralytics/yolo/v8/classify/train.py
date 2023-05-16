@@ -19,8 +19,8 @@ class ClassificationTrainer(BaseTrainer):
         if overrides is None:
             overrides = {}
         overrides['task'] = 'classify'
-        if overrides.get("imgsz") is None:
-            overrides['imgsz'] = 224 
+        if overrides.get('imgsz') is None:
+            overrides['imgsz'] = 224
         super().__init__(cfg, overrides, _callbacks)
 
     def set_model_attributes(self):

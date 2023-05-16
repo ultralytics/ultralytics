@@ -64,7 +64,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python-version: ['3.10']
-        model: [yolov8n]
+        model: [yolov8n, yolov8s, yolov8m, yolov8l, yolov8x]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4

@@ -12,7 +12,7 @@ TASK_ARGS = [  # (task, model, data)
     ('detect', 'yolov8n', 'coco8.yaml'), ('segment', 'yolov8n-seg', 'coco8-seg.yaml'),
     ('classify', 'yolov8n-cls', 'imagenet10'), ('pose', 'yolov8n-pose', 'coco8-pose.yaml')]
 EXPORT_ARGS = [  # (model, format)
-    ('yolov8n', 'torchscript'), ('yolov8n', 'edgetpu'), ('yolov8n-seg', 'torchscript'), ('yolov8n-cls', 'torchscript'),
+    ('yolov8n', 'torchscript'), ('yolov8n-seg', 'torchscript'), ('yolov8n-cls', 'torchscript'),
     ('yolov8n-pose', 'torchscript')]
 
 

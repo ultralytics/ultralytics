@@ -1,10 +1,11 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+
 import subprocess
 from pathlib import Path
 
 import pytest
 
-from ultralytics.yolo.utils import LINUX, ONLINE, ROOT, SETTINGS
+from ultralytics.yolo.utils import ONLINE, ROOT, SETTINGS
 
 WEIGHT_DIR = Path(SETTINGS['weights_dir'])
 TASK_ARGS = [  # (task, model, data)

@@ -4,8 +4,8 @@ import requests
 
 from ultralytics.hub.auth import Auth
 from ultralytics.hub.utils import PREFIX
-from ultralytics.yolo.utils import LOGGER, SETTINGS, USER_CONFIG_DIR, yaml_save
 from ultralytics.yolo.data.utils import HUBDatasetStats
+from ultralytics.yolo.utils import LOGGER, SETTINGS, USER_CONFIG_DIR, yaml_save
 
 
 def login(api_key=''):

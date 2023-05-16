@@ -190,7 +190,6 @@ class DetectionModel(BaseModel):
             m.inplace = self.inplace
             forward = lambda x: self.forward(x)[0] if isinstance(m, (Segment, Pose)) else self.forward(x)
             m.stride = torch.tensor([s / x.shape[-2] for x in forward(torch.zeros(1, ch, s, s))])  # forward
-            m.stride = torch.cat((m.stride, torch.tensor([64])))
             self.stride = m.stride
             m.bias_init()  # only run once
 

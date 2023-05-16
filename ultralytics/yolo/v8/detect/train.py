@@ -39,8 +39,6 @@ class DetectionTrainer(BaseTrainer):
             LOGGER.warning("WARNING ⚠️ 'v5loader' feature is deprecated and will be removed soon. You can train using "
                            'the default YOLOv8 dataloader instead, no argument is needed.')
             gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
-            if mode == 'val':
-                gs = 64
             return create_dataloader(path=dataset_path,
                                      imgsz=self.args.imgsz,
                                      batch_size=batch_size,

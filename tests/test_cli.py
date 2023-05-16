@@ -1,5 +1,4 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-
 import subprocess
 from pathlib import Path
 
@@ -37,10 +36,11 @@ def test_val(task, model, data):
     run(f'yolo val {task} model={model}.pt data={data} imgsz=32')
 
 
+
 @pytest.mark.parametrize('task,model,data', TASK_ARGS)
 def test_predict(task, model, data):
-    run(f"yolo {task} model={model}.pt source={ROOT / 'assets'} imgsz=32 save save_crop save_txt")
-    if ONLINE and task == 'detect':
+    run(f"yolo predict model={model}.pt source={ROOT / 'assets'} imgsz=32 save save_crop save_txt")
+    if ONLINE:
         run(f'yolo predict model={model}.pt source=https://ultralytics.com/images/bus.jpg imgsz=32')
         run(f'yolo predict model={model}.pt source=https://ultralytics.com/assets/decelera_landscape_min.mov imgsz=32')
         run(f'yolo predict model={model}.pt source=https://ultralytics.com/assets/decelera_portrait_min.mov imgsz=32')

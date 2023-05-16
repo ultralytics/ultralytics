@@ -106,7 +106,7 @@ def check_dataset(path='', task='detect'):
         check_dataset('path/to/coco8-pose.zip', task='pose')  # pose dataset
     """
     HUBDatasetStats(path=path, task=task).get_json()
-    LOGGER.info('Checks completed correctly ✅. Upload this dataset to https://hub.ultralytics.com/datasets.')
+    LOGGER.info('Checks completed correctly ✅. Upload this dataset to https://hub.ultralytics.com/datasets/.')
 
 
 if __name__ == '__main__':

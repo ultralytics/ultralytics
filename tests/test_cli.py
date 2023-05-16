@@ -36,7 +36,6 @@ def test_val(task, model, data):
     run(f'yolo val {task} model={model}.pt data={data} imgsz=32')
 
 
-
 @pytest.mark.parametrize('task,model,data', TASK_ARGS)
 def test_predict(task, model, data):
     run(f"yolo predict model={model}.pt source={ROOT / 'assets'} imgsz=32 save save_crop save_txt")

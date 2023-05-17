@@ -19,6 +19,8 @@ class ClassificationTrainer(BaseTrainer):
         if overrides is None:
             overrides = {}
         overrides['task'] = 'classify'
+        if overrides.get('imgsz') is None:
+            overrides['imgsz'] = 224
         super().__init__(cfg, overrides, _callbacks)
 
     def set_model_attributes(self):
@@ -39,10 +41,6 @@ class ClassificationTrainer(BaseTrainer):
                 m.p = self.args.dropout  # set dropout
         for p in model.parameters():
             p.requires_grad = True  # for training
-
-        # Update defaults
-        if self.args.imgsz == 640:
-            self.args.imgsz = 224
 
         return model
 

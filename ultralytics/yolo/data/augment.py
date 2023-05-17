@@ -789,13 +789,20 @@ def classify_transforms(size=224, mean=(0.0, 0.0, 0.0), std=(1.0, 1.0, 1.0)):  #
         return T.Compose([CenterCrop(size), ToTensor()])
 
 
+def hsv2colorjitter(h, s, v):
+    """Map HSV (hue, saturation, value) jitter into ColorJitter values (brightness, contrast, saturation, hue)"""
+    return v, v, s, h
+
+
 def classify_albumentations(
         augment=True,
         size=224,
         scale=(0.08, 1.0),
         hflip=0.5,
         vflip=0.0,
-        jitter=0.4,
+        hsv_h=0.015,  # image HSV-Hue augmentation (fraction)
+        hsv_s=0.7,  # image HSV-Saturation augmentation (fraction)
+        hsv_v=0.4,  # image HSV-Value augmentation (fraction)
         mean=(0.0, 0.0, 0.0),  # IMAGENET_MEAN
         std=(1.0, 1.0, 1.0),  # IMAGENET_STD
         auto_aug=False,
@@ -810,16 +817,15 @@ def classify_albumentations(
         if augment:  # Resize and crop
             T = [A.RandomResizedCrop(height=size, width=size, scale=scale)]
             if auto_aug:
-                # TODO: implement AugMix, AutoAug & RandAug in albumentation
+                # TODO: implement AugMix, AutoAug & RandAug in albumentations
                 LOGGER.info(f'{prefix}auto augmentations are currently not supported')
             else:
                 if hflip > 0:
                     T += [A.HorizontalFlip(p=hflip)]
                 if vflip > 0:
                     T += [A.VerticalFlip(p=vflip)]
-                if jitter > 0:
-                    jitter = float(jitter)
-                    T += [A.ColorJitter(jitter, jitter, jitter, 0)]  # brightness, contrast, saturation, 0 hue
+                if any((hsv_h, hsv_s, hsv_v)):
+                    T += [A.ColorJitter(*hsv2colorjitter(hsv_h, hsv_s, hsv_v))]  # brightness, contrast, saturation, hue
         else:  # Use fixed crop for eval set (reproducibility)
             T = [A.SmallestMaxSize(max_size=size), A.CenterCrop(height=size, width=size)]
         T += [A.Normalize(mean=mean, std=std), ToTensorV2()]  # Normalize and convert to Tensor

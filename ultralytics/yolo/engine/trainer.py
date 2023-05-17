@@ -9,7 +9,7 @@ import os
 import subprocess
 import time
 from copy import deepcopy
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import numpy as np
@@ -191,23 +191,16 @@ class BaseTrainer:
         else:
             self._do_train(world_size)
 
-    def _pre_caching_dataset(self):
-        """
-        Caching dataset before training to avoid NCCL timeout.
-        Must be done before DDP initialization.
-        See https://github.com/ultralytics/ultralytics/pull/2549 for details.
-        """
-        if RANK in (-1, 0):
-            LOGGER.info('Pre-caching dataset to avoid NCCL timeout')
-            self.get_dataloader(self.trainset, batch_size=1, rank=RANK, mode='train')
-            self.get_dataloader(self.testset, batch_size=1, rank=-1, mode='val')
-
     def _setup_ddp(self, world_size):
         """Initializes and sets the DistributedDataParallel parameters for training."""
         torch.cuda.set_device(RANK)
         self.device = torch.device('cuda', RANK)
         LOGGER.info(f'DDP settings: RANK {RANK}, WORLD_SIZE {world_size}, DEVICE {self.device}')
-        dist.init_process_group('nccl' if dist.is_nccl_available() else 'gloo', rank=RANK, world_size=world_size)
+        os.environ['NCCL_BLOCKING_WAIT'] = '1'  # set to enforce timeout
+        dist.init_process_group('nccl' if dist.is_nccl_available() else 'gloo',
+                                timeout=timedelta(seconds=3600),
+                                rank=RANK,
+                                world_size=world_size)
 
     def _setup_train(self, world_size):
         """
@@ -275,7 +268,6 @@ class BaseTrainer:
     def _do_train(self, world_size=1):
         """Train completed, evaluate and plot if specified by arguments."""
         if world_size > 1:
-            self._pre_caching_dataset()
             self._setup_ddp(world_size)
 
         self._setup_train(world_size)

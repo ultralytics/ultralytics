@@ -4,7 +4,6 @@ import contextlib
 from copy import deepcopy
 from pathlib import Path
 
-import thop
 import torch
 import torch.nn as nn
 
@@ -17,6 +16,11 @@ from ultralytics.yolo.utils.checks import check_requirements, check_suffix, chec
 from ultralytics.yolo.utils.plotting import feature_visualization
 from ultralytics.yolo.utils.torch_utils import (fuse_conv_and_bn, fuse_deconv_and_bn, initialize_weights,
                                                 intersect_dicts, make_divisible, model_info, scale_img, time_sync)
+
+try:
+    import thop
+except ImportError:
+    thop = None
 
 
 class BaseModel(nn.Module):
@@ -126,7 +130,7 @@ class BaseModel(nn.Module):
         bn = tuple(v for k, v in nn.__dict__.items() if 'Norm' in k)  # normalization layers, i.e. BatchNorm2d()
         return sum(isinstance(v, bn) for v in self.modules()) < thresh  # True if < 'thresh' BatchNorm layers in model
 
-    def info(self, verbose=True, imgsz=640):
+    def info(self, detailed=False, verbose=True, imgsz=640):
         """
         Prints model information
 
@@ -134,7 +138,7 @@ class BaseModel(nn.Module):
             verbose (bool): if True, prints out the model information. Defaults to False
             imgsz (int): the size of the image that the model will be trained on. Defaults to 640
         """
-        model_info(self, verbose=verbose, imgsz=imgsz)
+        return model_info(self, detailed=detailed, verbose=verbose, imgsz=imgsz)
 
     def _apply(self, fn):
         """

@@ -53,7 +53,6 @@ def create_markdown(py_filepath, module_path, classes, functions):
     return md_filepath.relative_to(NEW_YAML_DIR)
 
 
-
 def nested_dict():
     return defaultdict(nested_dict)
 

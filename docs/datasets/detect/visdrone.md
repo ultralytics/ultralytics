@@ -9,14 +9,6 @@ The [VisDrone Dataset](https://github.com/VisDrone/VisDrone-Dataset) is a large-
 
 VisDrone is composed of 288 video clips with 261,908 frames and 10,209 static images, captured by various drone-mounted cameras. The dataset covers a wide range of aspects, including location (14 different cities across China), environment (urban and rural), objects (pedestrians, vehicles, bicycles, etc.), and density (sparse and crowded scenes). The dataset was collected using various drone platforms under different scenarios and weather and lighting conditions. These frames are manually annotated with over 2.6 million bounding boxes of targets such as pedestrians, cars, bicycles, and tricycles. Attributes like scene visibility, object class, and occlusion are also provided for better data utilization.
 
-The challenge mainly focuses on five tasks:
-
-1. **Task 1**: Object detection in images challenge - Detect objects of predefined categories (e.g., cars and pedestrians) from individual images taken from drones.
-2. **Task 2**: Object detection in videos challenge - Similar to Task 1, except that objects are required to be detected from videos.
-3. **Task 3**: Single-object tracking challenge - Estimate the state of a target, indicated in the first frame, in the subsequent video frames.
-4. **Task 4**: Multi-object tracking challenge - Recover the trajectories of objects in each video frame.
-5. **Task 5**: Crowd counting challenge - Count persons in each video frame.
-
 ## Citation
 
 If you use the VisDrone dataset in your research or development work, please cite the following paper:

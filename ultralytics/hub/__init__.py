@@ -4,6 +4,7 @@ import requests
 
 from ultralytics.hub.auth import Auth
 from ultralytics.hub.utils import PREFIX
+from ultralytics.yolo.data.utils import HUBDatasetStats
 from ultralytics.yolo.utils import LOGGER, SETTINGS, USER_CONFIG_DIR, yaml_save
 
 
@@ -88,6 +89,24 @@ def get_export(model_id='', format='torchscript'):
                           'format': format})
     assert r.status_code == 200, f'{PREFIX}{format} get_export failure {r.status_code} {r.reason}'
     return r.json()
+
+
+def check_dataset(path='', task='detect'):
+    """
+    Function for error-checking HUB dataset Zip file before upload
+
+    Arguments
+        path:           Path to data.zip (with data.yaml inside data.zip)
+        task:           Dataset task. Options are 'detect', 'segment', 'pose', 'classify'.
+
+    Usage
+        from ultralytics.hub import check_dataset
+        check_dataset('path/to/coco8.zip', task='detect')  # detect dataset
+        check_dataset('path/to/coco8-seg.zip', task='segment')  # segment dataset
+        check_dataset('path/to/coco8-pose.zip', task='pose')  # pose dataset
+    """
+    HUBDatasetStats(path=path, task=task).get_json()
+    LOGGER.info('Checks completed correctly ✅. Upload this dataset to https://hub.ultralytics.com/datasets/.')
 
 
 if __name__ == '__main__':

@@ -85,6 +85,7 @@ class BaseTrainer:
         self.validator = None
         self.model = None
         self.metrics = None
+        self.plots = {}
         init_seeds(self.args.seed + 1 + RANK, deterministic=self.args.deterministic)
 
         # Dirs
@@ -536,6 +537,10 @@ class BaseTrainer:
     def plot_metrics(self):
         """Plot and display metrics visually."""
         pass
+
+    def on_plot(self, name, data=None):
+        """Registers plots (e.g. to be consumed in callbacks)"""
+        self.plots[name] = {'data': data, 'timestamp': time.time()}
 
     def final_eval(self):
         """Performs final evaluation and validation for object detection YOLO model."""

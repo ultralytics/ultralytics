@@ -71,7 +71,7 @@ class ClassificationTrainer(BaseTrainer):
         return  # dont return ckpt. Classification doesn't support resume
 
     def build_dataset(self, img_path, mode='train', batch=None):
-        return ClassificationDataset(root=img_path, imgsz=self.args.imgsz, augment=mode == 'train')
+        return ClassificationDataset(root=img_path, args=self.args, augment=mode == 'train')
 
     def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode='train'):
         """Returns PyTorch DataLoader with transforms to preprocess images for inference."""

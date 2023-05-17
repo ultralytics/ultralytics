@@ -28,7 +28,7 @@ The VOC dataset is widely used for training and evaluating deep learning models 
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the VOC dataset, the `VOC.yaml` file should be created and maintained.
+A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the VOC dataset, the `VOC.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/VOC.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/VOC.yaml).
 
 !!! example "ultralytics/datasets/VOC.yaml"
 

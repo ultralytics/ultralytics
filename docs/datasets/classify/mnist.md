@@ -31,20 +31,20 @@ The MNIST dataset is widely used for training and evaluating deep learning model
 
 ## Usage
 
-To train a CNN model on the MNIST dataset for 100 epochs with an image size of 28x28, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a CNN model on the MNIST dataset for 100 epochs with an image size of 32x32, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
     === "Python"
 
         ```python
-        from ultralytics import CNN
+        from ultralytics import YOLO
         
         # Load a model
-        model = CNN('cnn_mnist.pt')  # load a pretrained model (recommended for training)
+        model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
         
         # Train the model
-        model.train(data='MNIST.yaml', epochs=100, imgsz=28)
+        model.train(data='mnist', epochs=100, imgsz=32)
         ```
 
     === "CLI"

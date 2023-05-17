@@ -232,17 +232,18 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         self.cache_disk = cache == 'disk'
         self.samples = [list(x) + [Path(x[0]).with_suffix('.npy'), None] for x in self.samples]  # file, index, npy, im
         self.torch_transforms = classify_transforms(args.imgsz)
-        self.album_transforms = classify_albumentations(augment=augment,
-                                                        size=args.imgsz,
-                                                        scale=(1.0 - args.scale, 1.0),  # (0.08, 1.0)
-                                                        hflip=args.fliplr,
-                                                        vflip=args.flipud,
-                                                        hsv_h=args.hsv_h,  # HSV-Hue augmentation (fraction)
-                                                        hsv_s=args.hsv_s,  # HSV-Saturation augmentation (fraction)
-                                                        hsv_v=args.hsv_v,  # HSV-Value augmentation (fraction)
-                                                        mean=(0.0, 0.0, 0.0),  # IMAGENET_MEAN
-                                                        std=(1.0, 1.0, 1.0),  # IMAGENET_STD
-                                                        auto_aug=False) if augment else None
+        self.album_transforms = classify_albumentations(
+            augment=augment,
+            size=args.imgsz,
+            scale=(1.0 - args.scale, 1.0),  # (0.08, 1.0)
+            hflip=args.fliplr,
+            vflip=args.flipud,
+            hsv_h=args.hsv_h,  # HSV-Hue augmentation (fraction)
+            hsv_s=args.hsv_s,  # HSV-Saturation augmentation (fraction)
+            hsv_v=args.hsv_v,  # HSV-Value augmentation (fraction)
+            mean=(0.0, 0.0, 0.0),  # IMAGENET_MEAN
+            std=(1.0, 1.0, 1.0),  # IMAGENET_STD
+            auto_aug=False) if augment else None
 
     def __getitem__(self, i):
         """Returns subset of data and targets corresponding to given indices."""

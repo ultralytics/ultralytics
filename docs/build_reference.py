@@ -33,9 +33,18 @@ def extract_classes_and_functions(filepath):
 def create_markdown(py_filepath, module_path, classes, functions):
     md_filepath = py_filepath.with_suffix('.md')
 
+    # Read existing content and keep header content between first two ---
+    header_content = ""
+    if md_filepath.exists():
+        with open(md_filepath, 'r') as file:
+            existing_content = file.read()
+            header_parts = existing_content.split('---', 2)
+            if len(header_parts) >= 3:
+                header_content = f"{header_parts[0]}---{header_parts[1]}---\n\n"
+
     md_content = [f"# {class_name}\n---\n:::{module_path}.{class_name}\n<br><br>\n" for class_name in classes]
     md_content.extend(f"# {func_name}\n---\n:::{module_path}.{func_name}\n<br><br>\n" for func_name in functions)
-    md_content = "\n".join(md_content)
+    md_content = header_content + "\n".join(md_content)
 
     os.makedirs(os.path.dirname(md_filepath), exist_ok=True)
     with open(md_filepath, 'w') as file:

@@ -19,6 +19,8 @@ class ClassificationTrainer(BaseTrainer):
         if overrides is None:
             overrides = {}
         overrides['task'] = 'classify'
+        if overrides.get('imgsz') is None:
+            overrides['imgsz'] = 224
         super().__init__(cfg, overrides, _callbacks)
 
     def set_model_attributes(self):
@@ -39,10 +41,6 @@ class ClassificationTrainer(BaseTrainer):
                 m.p = self.args.dropout  # set dropout
         for p in model.parameters():
             p.requires_grad = True  # for training
-
-        # Update defaults
-        if self.args.imgsz == 640:
-            self.args.imgsz = 224
 
         return model
 
@@ -73,7 +71,7 @@ class ClassificationTrainer(BaseTrainer):
         return  # dont return ckpt. Classification doesn't support resume
 
     def build_dataset(self, img_path, mode='train', batch=None):
-        return ClassificationDataset(root=img_path, imgsz=self.args.imgsz, augment=mode == 'train')
+        return ClassificationDataset(root=img_path, args=self.args, augment=mode == 'train')
 
     def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode='train'):
         """Returns PyTorch DataLoader with transforms to preprocess images for inference."""
@@ -128,7 +126,7 @@ class ClassificationTrainer(BaseTrainer):
 
     def plot_metrics(self):
         """Plots metrics from a CSV file."""
-        plot_results(file=self.csv, classify=True)  # save results.png
+        plot_results(file=self.csv, classify=True, on_plot=self.on_plot)  # save results.png
 
     def final_eval(self):
         """Evaluate trained model and save validation results."""
@@ -149,7 +147,8 @@ class ClassificationTrainer(BaseTrainer):
         plot_images(images=batch['img'],
                     batch_idx=torch.arange(len(batch['img'])),
                     cls=batch['cls'].squeeze(-1),
-                    fname=self.save_dir / f'train_batch{ni}.jpg')
+                    fname=self.save_dir / f'train_batch{ni}.jpg',
+                    on_plot=self.on_plot)
 
 
 def train(cfg=DEFAULT_CFG, use_python=False):

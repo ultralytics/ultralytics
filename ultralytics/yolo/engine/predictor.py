@@ -115,9 +115,7 @@ class BasePredictor:
             im (torch.Tensor | List(np.ndarray)): (N, 3, h, w) for tensor, [(h, w, 3) x N] for list.
         """
         if not isinstance(im, torch.Tensor):
-            same_shapes = all(x.shape == im[0].shape for x in im)
-            auto = same_shapes and self.model.pt
-            im = np.stack([LetterBox(self.imgsz, auto=auto, stride=self.model.stride)(image=x) for x in im])
+            im = np.stack(self.pre_transform(im))
             im = im[..., ::-1].transpose((0, 3, 1, 2))  # BGR to RGB, BHWC to BCHW, (n, 3, h, w)
             im = np.ascontiguousarray(im)  # contiguous
             im = torch.from_numpy(im)
@@ -126,6 +124,18 @@ class BasePredictor:
         img = img.half() if self.model.fp16 else img.float()  # uint8 to fp16/32
         img /= 255  # 0 - 255 to 0.0 - 1.0
         return img
+
+    def pre_transform(self, im):
+        """Pre-tranform input image before inference.
+
+        Args:
+            im (List(np.ndarray)): (N, 3, h, w) for tensor, [(h, w, 3) x N] for list.
+
+        Return: A list of transformed imgs.
+        """
+        same_shapes = all(x.shape == im[0].shape for x in im)
+        auto = same_shapes and self.model.pt
+        return [LetterBox(self.imgsz, auto=auto, stride=self.model.stride)(image=x) for x in im]
 
     def write_results(self, idx, results, batch):
         """Write inference results to a file or directory."""

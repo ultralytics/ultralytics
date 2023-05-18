@@ -242,13 +242,13 @@ if WINDOWS:  # emoji-safe logging
     LOGGER.addFilter(EmojiFilter())
 
 
-def yaml_save(file='data.yaml', data=None):
+def yaml_save(file='data.yaml', data={}):
     """
     Save YAML data to a file.
 
     Args:
         file (str, optional): File name. Default is 'data.yaml'.
-        data (dict, optional): Data to save in YAML format. Default is None.
+        data (dict): Data to save in YAML format.
 
     Returns:
         None: Data is saved to the specified file.
@@ -261,7 +261,7 @@ def yaml_save(file='data.yaml', data=None):
     # Convert Path objects to strings
     for k, v in data.items():
         if isinstance(v, Path):
-            dict[k] = str(v)
+            data[k] = str(v)
 
     # Dump data to file in YAML format
     with open(file, 'w') as f:

@@ -27,6 +27,11 @@ description: Learn how to work with Ultralytics YOLO Detection, Segmentation & C
 :::ultralytics.nn.tasks.ClassificationModel
 <br><br>
 
+# Ensemble
+---
+:::ultralytics.nn.tasks.Ensemble
+<br><br>
+
 # torch_safe_load
 ---
 :::ultralytics.nn.tasks.torch_safe_load

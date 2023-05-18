@@ -13,6 +13,7 @@ In this documentation, we provide information on four major models:
 2. [YOLOv5](./yolov5.md): An improved version of the YOLO architecture, offering better performance and speed tradeoffs compared to previous versions.
 3. [YOLOv8](./yolov8.md): The latest version of the YOLO family, featuring enhanced capabilities such as instance segmentation, pose/keypoints estimation, and classification.
 4. [Segment Anything Model (SAM)](./sam.md): Meta's Segment Anything Model (SAM).
+5. [Realtime Detection Transformers (RT-DETR)](./rtdetr.md): Baidu's RT-DETR model.
 
 You can use these models directly in the Command Line Interface (CLI) or in a Python environment. Below are examples of how to use the models with CLI and Python:
 

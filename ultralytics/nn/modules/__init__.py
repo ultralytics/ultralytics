@@ -4,7 +4,7 @@ from .block import (C1, C2, C3, C3TR, DFL, SPP, SPPF, Bottleneck, BottleneckCSP,
                     HGBlock, HGStem, Proto, RepC3)
 from .conv import (CBAM, ChannelAttention, Concat, Conv, ConvTranspose, DWConv, DWConvTranspose2d, Focus, GhostConv,
                    LightConv, RepConv, SpatialAttention)
-from .head import Classify, Detect, Pose, RTDETRDecoder, Segment
+from .head import Classify, Detect, Pose, OBB, RTDETRDecoder, Segment
 from .transformer import (AIFI, MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer, LayerNorm2d,
                           MLPBlock, MSDeformAttn, TransformerBlock, TransformerEncoderLayer, TransformerLayer)
 
@@ -14,4 +14,4 @@ __all__ = [
     'LayerNorm2d', 'DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', 'C3x', 'C3TR', 'C3Ghost',
     'GhostBottleneck', 'Bottleneck', 'BottleneckCSP', 'Proto', 'Detect', 'Segment', 'Pose', 'Classify',
     'TransformerEncoderLayer', 'RepC3', 'RTDETRDecoder', 'AIFI', 'DeformableTransformerDecoder',
-    'DeformableTransformerDecoderLayer', 'MSDeformAttn', 'MLP']
+    'DeformableTransformerDecoderLayer', 'MSDeformAttn', 'MLP', 'OBB']

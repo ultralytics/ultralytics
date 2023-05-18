@@ -48,7 +48,7 @@ To train a YOLO model on the CIFAR-10 dataset for 100 epochs with an image size 
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=cifar10.yaml model=yolov8n-cls.pt epochs=100 imgsz=32
+        yolo detect train data=cifar10 model=yolov8n-cls.pt epochs=100 imgsz=32
         ```
 
 ## Sample Images and Annotations

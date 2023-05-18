@@ -83,7 +83,7 @@ To use these datasets, simply replace 'imagenette' with 'imagenette160' or 'imag
         # Start training from a pretrained *.pt model with ImageNette160
         yolo detect train data=imagenette160 model=yolov8n-cls.pt epochs=100 imgsz=160
         ```
-        
+
 !!! example "Train Example with ImageNette320"
 
     === "Python"

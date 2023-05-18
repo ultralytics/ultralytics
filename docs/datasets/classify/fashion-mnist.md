@@ -55,14 +55,14 @@ To train a CNN model on the Fashion-MNIST dataset for 100 epochs with an image s
         model = YOLO('yolov8n-cls.pt')  # load a pretrained model (recommended for training)
         
         # Train the model
-        model.train(data='Fashion-MNIST.yaml', epochs=100, imgsz=28)
+        model.train(data='fashion-mnist', epochs=100, imgsz=28)
         ```
 
     === "CLI"
 
         ```bash
         # Start training from a pretrained *.pt model
-        yolo detect train data=Fashion-MNIST.yaml model=yolov8n-cls.pt epochs=100 imgsz=28
+        yolo detect train data=fashion-mnist model=yolov8n-cls.pt epochs=100 imgsz=28
         ```
 
 ## Sample Images and Annotations

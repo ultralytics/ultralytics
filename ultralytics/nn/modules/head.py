@@ -97,6 +97,29 @@ class Segment(Detect):
         return (torch.cat([x, mc], 1), p) if self.export else (torch.cat([x[0], mc], 1), (x[1], mc, p))
 
 
+class OBB(Detect):
+    """ YOLOv8 OBB detection head for detection with rotation models """
+    
+    def __init__(self, nc=80, nc_theta=180, ch=()):
+        super().__init__(nc, ch)
+        self.nc_theta = nc_theta
+        self.no = nc + self.reg_max * 4 + self.nc_theta
+        self.detect = Detect.forward
+
+        c4 = max(ch[0], self.nc_theta)
+        self.cv4 = nn.ModuleList(
+            nn.Sequential(Conv(x, c4, 3), Conv(c4, c4, 3), nn.Conv2d(c4, self.nc_theta, 1)) for x in ch)
+
+    def forward(self, x):
+        bs = x[0].shape[0]
+
+        theta = torch.cat([self.cv4[i](x[i]).view(bs, self.no, -1) for i in range(self.nl)], -1)
+        x = self.detect(self, x)
+        if self.training:
+            return x, theta
+        return torch.cat([x, theta], 1) if self.export else (torch.cat([x[0], theta], 1), (x[1], theta))
+    
+
 class Pose(Detect):
     """YOLOv8 Pose head for keypoints models."""
 

@@ -206,8 +206,6 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
 
     Args:
         root (str): Dataset path.
-        transform (callable, optional): torchvision transforms, used by default.
-        album_transform (callable, optional): Albumentations transforms, used if installed.
 
     Attributes:
         cache_ram (bool): True if images should be cached in RAM, False otherwise.

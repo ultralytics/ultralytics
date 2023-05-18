@@ -99,7 +99,7 @@ class Segment(Detect):
 
 class OBB(Detect):
     """ YOLOv8 OBB detection head for detection with rotation models """
-    
+
     def __init__(self, nc=80, nc_theta=180, ch=()):
         super().__init__(nc, ch)
         self.nc_theta = nc_theta
@@ -118,7 +118,7 @@ class OBB(Detect):
         if self.training:
             return x, theta
         return torch.cat([x, theta], 1) if self.export else (torch.cat([x[0], theta], 1), (x[1], theta))
-    
+
 
 class Pose(Detect):
     """YOLOv8 Pose head for keypoints models."""

@@ -3,13 +3,10 @@
 import glob
 import math
 import os
-import queue
 import random
-import time
 from copy import deepcopy
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
-from threading import Thread
 from typing import Optional
 
 import cv2
@@ -93,6 +90,7 @@ class BaseDataset(Dataset):
 
         # Buffer thread for mosaic images
         self.buffer = []  # buffer size = batch size
+        self.max_buffer_length = min((self.ni, self.batch_size * 8, 1000)) if self.augment else 0
 
     def get_img_files(self, img_path):
         """Read image files."""
@@ -137,7 +135,7 @@ class BaseDataset(Dataset):
             if self.single_cls:
                 self.labels[i]['cls'][:, 0] = 0
 
-    def load_image(self, i, buffer_length=128):
+    def load_image(self, i):
         """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
         im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
         if im is None:  # not cached in RAM
@@ -153,11 +151,18 @@ class BaseDataset(Dataset):
                 interp = cv2.INTER_LINEAR if (self.augment or r > 1) else cv2.INTER_AREA
                 im = cv2.resize(im, (min(math.ceil(w0 * r), self.imgsz), min(math.ceil(h0 * r), self.imgsz)),
                                 interpolation=interp)
-            self.ims[i], self.im_hw0[i], self.im_hw[i] = im, (h0, w0), im.shape[:2]  # im, hw_original, hw_resized
-            self.buffer.append(i)
-            if len(self.buffer) > buffer_length:
-                j = self.buffer.pop(0)
-                self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
+
+            # Add to buffer if training with augmentations
+            if self.augment:
+                self.ims[i], self.im_hw0[i], self.im_hw[i] = im, (h0, w0), im.shape[:2]  # im, hw_original, hw_resized
+
+                print(i in self.buffer)
+                self.buffer.append(i)
+                if len(self.buffer) >= self.max_buffer_length:
+                    j = self.buffer.pop(0)
+                    self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
+
+            return im, (h0, w0), im.shape[:2]
 
         return self.ims[i], self.im_hw0[i], self.im_hw[i]
 

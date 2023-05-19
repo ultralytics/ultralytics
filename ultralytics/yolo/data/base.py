@@ -92,24 +92,7 @@ class BaseDataset(Dataset):
         self.transforms = self.build_transforms(hyp=hyp)
 
         # Buffer thread for mosaic images
-        self.buffer = [0]  # buffer size = batch size
-        Thread(target=self.fill_mosaic_buffer, daemon=True).start()  # do not assign to attribute
-
-    def fill_mosaic_buffer(self):
-        import time
-        # self.buffer = queue.Queue(maxsize=min(self.batch_size * 8, self.ni))  # buffer size = batch size
-        while True:
-            try:
-                i = random.randint(0, self.ni - 1)  # new index
-                if self.ims[i] is None:  # if cache=ram then image is already loaded
-                    self.ims[i], self.im_hw0[i], self.im_hw[i] = self.load_image(i)
-                if len(self.buffer) > self.batch:
-                    j = self.buffer.pop(0)  # old index
-                    self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
-                self.buffer.append(i)
-            except StopIteration:
-                break  # out of data
-            time.sleep(0.01)  # refresh rate of 10 Hz
+        self.buffer = []  # buffer size = batch size
 
     def get_img_files(self, img_path):
         """Read image files."""
@@ -154,7 +137,7 @@ class BaseDataset(Dataset):
             if self.single_cls:
                 self.labels[i]['cls'][:, 0] = 0
 
-    def load_image(self, i):
+    def load_image(self, i, buffer_length=128):
         """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
         im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
         if im is None:  # not cached in RAM
@@ -170,8 +153,13 @@ class BaseDataset(Dataset):
                 interp = cv2.INTER_LINEAR if (self.augment or r > 1) else cv2.INTER_AREA
                 im = cv2.resize(im, (min(math.ceil(w0 * r), self.imgsz), min(math.ceil(h0 * r), self.imgsz)),
                                 interpolation=interp)
-            return im, (h0, w0), im.shape[:2]  # im, hw_original, hw_resized
-        return self.ims[i], self.im_hw0[i], self.im_hw[i]  # im, hw_original, hw_resized
+            self.ims[i], self.im_hw0[i], self.im_hw[i] = im, (h0, w0), im.shape[:2]  # im, hw_original, hw_resized
+            self.buffer.append(i)
+            if len(self.buffer) > buffer_length:
+                j = self.buffer.pop(0)
+                self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
+
+        return self.ims[i], self.im_hw0[i], self.im_hw[i]
 
     def cache_images(self, cache):
         """Cache images to memory or disk."""

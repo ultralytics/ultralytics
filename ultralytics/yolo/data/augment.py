@@ -140,7 +140,8 @@ class Mosaic(BaseMixTransform):
 
     def get_indexes(self):
         """Return a list of random indexes from the dataset."""
-        return [random.randint(0, len(self.dataset) - 1) for _ in range(self.n - 1)]
+        return random.choices(list(self.dataset.buffer), k=self.n - 1)
+        # return [random.randint(0, len(self.dataset) - 1) for _ in range(self.n - 1)]
 
     def _mix_transform(self, labels):
         """Apply mixup transformation to the input image and labels."""

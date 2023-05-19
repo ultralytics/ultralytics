@@ -92,10 +92,24 @@ class BaseDataset(Dataset):
         self.transforms = self.build_transforms(hyp=hyp)
 
         # Buffer thread for mosaic images
-        if augment:
-            self.buffer = queue.Queue(maxsize=self.batch_size)  # buffer size = batch size
-            self.fill_thread = Thread(target=self.fill_mosaic_buffer)
-            self.fill_thread.start()
+        self.buffer = [0]  # buffer size = batch size
+        Thread(target=self.fill_mosaic_buffer, daemon=True).start()  # do not assign to attribute
+
+    def fill_mosaic_buffer(self):
+        import time
+        # self.buffer = queue.Queue(maxsize=min(self.batch_size * 8, self.ni))  # buffer size = batch size
+        while True:
+            try:
+                i = random.randint(0, self.ni - 1)  # new index
+                if self.ims[i] is None:  # if cache=ram then image is already loaded
+                    self.ims[i], self.im_hw0[i], self.im_hw[i] = self.load_image(i)
+                if len(self.buffer) > self.batch:
+                    j = self.buffer.pop(0)  # old index
+                    self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
+                self.buffer.append(i)
+            except StopIteration:
+                break  # out of data
+            time.sleep(0.01)  # refresh rate of 10 Hz
 
     def get_img_files(self, img_path):
         """Read image files."""
@@ -139,19 +153,6 @@ class BaseDataset(Dataset):
                     self.labels[i]['keypoints'] = keypoints[j]
             if self.single_cls:
                 self.labels[i]['cls'][:, 0] = 0
-
-    def fill_mosaic_buffer(self):
-        while True:
-            if not self.buffer.full():
-                try:
-                    i = random.randint(0, self.__len__())  # new index
-                    self.ims[i], self.im_hw0[i], self.im_hw[i] = self.load_image(i)
-                    j = self.buffer.get()  # old index
-                    self.buffer.put(i)
-                    self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
-                except StopIteration:
-                    break  # out of data
-            time.sleep(0.1)  # refresh rate of 10 Hz
 
     def load_image(self, i):
         """Loads 1 image from dataset index 'i', returns (im, resized hw)."""

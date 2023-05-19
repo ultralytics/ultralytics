@@ -3,10 +3,13 @@
 import glob
 import math
 import os
+import queue
 import random
+import time
 from copy import deepcopy
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
+from threading import Thread
 from typing import Optional
 
 import cv2
@@ -15,8 +18,8 @@ import psutil
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
-from ..utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM_BAR_FORMAT
 from .utils import HELP_URL, IMG_FORMATS
+from ..utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM_BAR_FORMAT
 
 
 class BaseDataset(Dataset):
@@ -80,13 +83,19 @@ class BaseDataset(Dataset):
         # Cache stuff
         if cache == 'ram' and not self.check_cache_ram():
             cache = False
-        self.ims = [None] * self.ni
+        self.ims, self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni, [None] * self.ni
         self.npy_files = [Path(f).with_suffix('.npy') for f in self.im_files]
         if cache:
             self.cache_images(cache)
 
         # Transforms
         self.transforms = self.build_transforms(hyp=hyp)
+
+        # Buffer thread for mosaic images
+        if augment:
+            self.buffer = queue.Queue(maxsize=self.batch_size)  # buffer size = batch size
+            self.fill_thread = Thread(target=self.fill_mosaic_buffer)
+            self.fill_thread.start()
 
     def get_img_files(self, img_path):
         """Read image files."""
@@ -131,6 +140,19 @@ class BaseDataset(Dataset):
             if self.single_cls:
                 self.labels[i]['cls'][:, 0] = 0
 
+    def fill_mosaic_buffer(self):
+        while True:
+            if not self.buffer.full():
+                try:
+                    i = random.randint(0, self.__len__())  # new index
+                    self.ims[i], self.im_hw0[i], self.im_hw[i] = self.load_image(i)
+                    j = self.buffer.get()  # old index
+                    self.buffer.put(i)
+                    self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
+                except StopIteration:
+                    break  # out of data
+            time.sleep(0.1)  # refresh rate of 10 Hz
+
     def load_image(self, i):
         """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
         im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
@@ -153,7 +175,6 @@ class BaseDataset(Dataset):
     def cache_images(self, cache):
         """Cache images to memory or disk."""
         b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
-        self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni
         fcn = self.cache_images_to_disk if cache == 'disk' else self.load_image
         with ThreadPool(NUM_THREADS) as pool:
             results = pool.imap(fcn, range(self.ni))
@@ -218,9 +239,9 @@ class BaseDataset(Dataset):
 
     def __getitem__(self, index):
         """Returns transformed label information for given index."""
-        return self.transforms(self.get_label_info(index))
+        return self.transforms(self.get_image_and_label(index))
 
-    def get_label_info(self, index):
+    def get_image_and_label(self, index):
         """Get and return label information from the dataset."""
         label = deepcopy(self.labels[index])  # requires deepcopy() https://github.com/ultralytics/ultralytics/pull/1948
         label.pop('shape', None)  # shape is for rect, remove it
@@ -229,8 +250,7 @@ class BaseDataset(Dataset):
                               label['resized_shape'][1] / label['ori_shape'][1])  # for evaluation
         if self.rect:
             label['rect_shape'] = self.batch_shapes[self.batch[index]]
-        label = self.update_labels_info(label)
-        return label
+        return self.update_labels_info(label)
 
     def __len__(self):
         """Returns the length of the labels list for the dataset."""

@@ -303,12 +303,13 @@ class Exporter:
     @try_export
     def export_neuron(self, prefix=colorstr("Neuron:")):
         """YOLOv8 Neuron model export."""
-        requirements = ['torch_neuron', 'neuron-cc>=1.3', 'numpy>=1.20']
-        check_requirements(requirements)
+        requirements = [f'torch_neuron=={torch.__version__.split("+")[0]}.*', 'neuron-cc>=1.3']
+        check_requirements(requirements, cmds='--extra-index-url https://pip.repos.neuron.amazonaws.com')
+        check_requirements(['numpy<=1.21.6,>=1.20'])
         import torch_neuron
 
-        LOGGER.info(f'\n{prefix} starting export with torch_neuron {torch_neuron.__version__}...')
-        LOGGER.info(f'\n{prefix} compiling with neuron-cc {pkg.require("neuron-cc")[0].version}...')
+        LOGGER.info(f'\n{prefix} starting export with torch_neuron {torch_neuron.__version__} and neuron-cc {pkg.require("neuron-cc")[0].version}...')
+        LOGGER.warning(f'{prefix} WARNING ⚠️ export may fail if requirement numpy<=1.21.6,>=1.20 does not satisfy')
         f = str(self.file).replace(self.file.suffix, '.neuron')
         if self.args.half:
             f = str(self.file).replace(self.file.suffix, '_fp16.neuron')
@@ -328,12 +329,12 @@ class Exporter:
     @try_export
     def export_neuronx(self, prefix=colorstr("Neuronx:")):
         """YOLOv8 Neuronx model export."""
-        requirements = ['torch_neuronx', 'neuronx-cc>=2.1', 'numpy>=1.20']
-        check_requirements(requirements)
+        requirements = [f'torch_neuronx=={torch.__version__.split("+")[0]}.*', 'neuronx-cc==2.*']
+        check_requirements(requirements, cmds="--extra-index-url https://pip.repos.neuron.amazonaws.com")
         import torch_neuronx
 
-        LOGGER.info(f'\n{prefix} starting export with torch_neuronx {torch_neuronx.__version__}...')
-        LOGGER.info(f'\n{prefix} compiling with neuronx-cc {pkg.require("neuronx-cc")[0].version}...')
+        LOGGER.info(f'\n{prefix} starting export with torch_neuronx {torch_neuronx.__version__} and neuronx-cc {pkg.require("neuronx-cc")[0].version}...')
+        LOGGER.warning(f'{prefix} WARNING ⚠️ export may fail if neuron runtime is not installed')
         f = str(self.file).replace(self.file.suffix, '.neuronx')
         if self.args.half:
             f = str(self.file).replace(self.file.suffix, '_fp16.neuronx')

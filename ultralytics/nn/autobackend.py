@@ -114,14 +114,14 @@ class AutoBackend(nn.Module):
             model.half() if fp16 else model.float()
             self.model = model  # explicitly assign for to(), cpu(), cuda(), half()
         elif jit or neuron or neuronx:  # TorchScript / Neuron / Neuronx
-            if neuron:
-                LOGGER.info(f'Loading {w} for Neuron (NeuronCore-v1) inference...')
-                check_requirements(('torch_neuron',))
-                import torch_neuron # intentional import
-            elif neuronx:
+            if neuronx:
                 LOGGER.info(f'Loading {w} for Neuronx (NeuronCore-v2) inference...')
                 check_requirements(('torch_neuronx',))
                 import torch_neuronx # intentional import
+            elif neuron:
+                LOGGER.info(f'Loading {w} for Neuron (NeuronCore-v1) inference...')
+                check_requirements(('torch_neuron',))
+                import torch_neuron # intentional import
             else:
                 LOGGER.info(f'Loading {w} for TorchScript inference...')
             extra_files = {'config.txt': ''}  # model metadata
@@ -323,7 +323,7 @@ class AutoBackend(nn.Module):
 
         if self.pt or self.nn_module:  # PyTorch
             y = self.model(im, augment=augment, visualize=visualize) if augment or visualize else self.model(im)
-        elif self.jit or self.neuron or self.neuronx:  # TorchScript
+        elif self.jit or self.neuronx or self.neuron:  # TorchScript / Neuron / Neuronx
             y = self.model(im)
         elif self.dnn:  # ONNX OpenCV DNN
             im = im.cpu().numpy()  # torch to numpy
@@ -460,7 +460,7 @@ class AutoBackend(nn.Module):
         if not is_url(p, check=False) and not isinstance(p, str):
             check_suffix(p, sf)  # checks
         url = urlparse(p)  # if url may be Triton inference server
-        types = [Path(p).name.endswith(s) for s in sf]
+        types = [s in Path(p).name for s in sf]
         types[8] &= not types[9]  # tflite &= not edgetpu
         triton = not any(types) and all([any(s in url.scheme for s in ['http', 'grpc']), url.netloc])
         return types + [triton]

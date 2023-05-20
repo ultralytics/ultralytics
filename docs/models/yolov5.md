@@ -7,7 +7,7 @@ description: Detect objects faster and more accurately using Ultralytics YOLOv5u
 
 ## Overview
 
-YOLOv5u is an updated version of YOLOv5 that incorporates the anchor-free split Ultralytics head used in the YOLOv8 models. It retains the same backbone and neck architecture as YOLOv5 but offers improved accuracy-speed tradeoff for object detection tasks.
+YOLOv5u is an updated version of [YOLOv5](https://github.com/ultralytics/yolov5) that incorporates the anchor-free split Ultralytics head used in the [YOLOv8](./yolov8.md) models. It retains the same backbone and neck architecture as YOLOv5 but offers improved accuracy-speed tradeoff for object detection tasks.
 
 ## Key Features
 

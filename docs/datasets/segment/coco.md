@@ -1,11 +1,6 @@
 ---
 comments: true
-description: Learn about the COCO-Seg dataset, designed for training YOLO models on instance segmentation tasks.
----
-
----
-comments: true
-description: Learn about the COCO-Seg dataset, designed to encourage research on object instance segmentation with standardized evaluation metrics using the YOLO model.
+description: Learn about the COCO-Seg dataset, designed for simple training of YOLO models on instance segmentation tasks.
 ---
 
 # COCO-Seg Dataset
@@ -33,12 +28,12 @@ COCO-Seg is widely used for training and evaluating deep learning models in inst
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO-Seg dataset, the `coco-seg.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco-seg.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco-seg.yaml).
+A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO-Seg dataset, the `coco.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco.yaml).
 
-!!! example "ultralytics/datasets/coco-seg.yaml"
+!!! example "ultralytics/datasets/coco.yaml"
 
     ```yaml
-    --8<-- "ultralytics/datasets/coco-seg.yaml"
+    --8<-- "ultralytics/datasets/coco.yaml"
     ```
 
 ## Usage

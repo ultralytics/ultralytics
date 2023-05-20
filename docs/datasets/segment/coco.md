@@ -43,7 +43,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLOv8n model on the COCO-Seg dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLOv8n-seg model on the COCO-Seg dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -53,7 +53,7 @@ To train a YOLOv8n model on the COCO-Seg dataset for 100 epochs with an image si
         from ultralytics import YOLO
         
         # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+        model = YOLO('yolov8n-seg.pt')  # load a pretrained model (recommended for training)
         
         # Train the model
         model.train(data='coco-seg.yaml', epochs=100, imgsz=640)
@@ -68,9 +68,7 @@ To train a YOLOv8n model on the COCO-Seg dataset for 100 epochs with an image si
 
 ## Sample Images and Annotations
 
-COCO-Seg
-
-, like its predecessor COCO, contains a diverse set of images with various object categories and complex scenes. However, COCO-Seg introduces more detailed instance segmentation masks for each object in the images. Here are some examples of images from the dataset, along with their corresponding instance segmentation masks:
+COCO-Seg, like its predecessor COCO, contains a diverse set of images with various object categories and complex scenes. However, COCO-Seg introduces more detailed instance segmentation masks for each object in the images. Here are some examples of images from the dataset, along with their corresponding instance segmentation masks:
 
 ![Dataset sample image](https://user-images.githubusercontent.com/26833433/239690696-93fa8765-47a2-4b34-a6e5-516d0d1c725b.jpg)
 

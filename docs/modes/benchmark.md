@@ -69,5 +69,7 @@ Benchmarks will attempt to run automatically on all possible export formats belo
 | [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`         | `yolov8n_edgetpu.tflite`  | ✅        |
 | [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n_web_model/`      | ✅        |
 | [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n_paddle_model/`   | ✅        |
+| [Neuron](https://awsdocs-neuron.readthedocs-hosted.com)            | `neuron`          | `yolov8n.neuron`          | ✅        |
+| [Neuronx](https://awsdocs-neuron.readthedocs-hosted.com)           | `neuronx`         | `yolov8n.neuronx`         | ✅        |
 
 See full `export` details in the [Export](https://docs.ultralytics.com/modes/export/) page.

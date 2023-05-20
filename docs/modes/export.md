@@ -84,3 +84,5 @@ i.e. `format='onnx'` or `format='engine'`.
 | [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`         | `yolov8n_edgetpu.tflite`  | ✅        | `imgsz`                                             |
 | [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n_web_model/`      | ✅        | `imgsz`                                             |
 | [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n_paddle_model/`   | ✅        | `imgsz`                                             |
+| [Neuron](https://awsdocs-neuron.readthedocs-hosted.com)            | `neuron`          | `yolov8n.neuron`          | ✅        | `imgsz`, `half`, `dynamic`                                           |
+| [Neuronx](https://awsdocs-neuron.readthedocs-hosted.com)           | `neuronx`         | `yolov8n.neuronx`         | ✅        | `imgsz`, `half`, `dynamic`                                           |

@@ -7,7 +7,7 @@ description: Learn about the COCO-Pose dataset, designed to encourage research o
 
 The [COCO-Pose](https://cocodataset.org/#keypoints-2017) dataset is a specialized version of the COCO (Common Objects in Context) dataset, designed for pose estimation tasks. It leverages the COCO Keypoints 2017 images and labels to enable the training of models like YOLO for pose estimation tasks.
 
-![Pose sample image](https://user-images.githubusercontent.com/26833433/230785798-fb837f85-3754-4f2e-90fa-35fbbfd6bf8a.png)
+![Pose sample image](https://user-images.githubusercontent.com/26833433/239691398-d62692dc-713e-4207-9908-2f6710050e5c.jpg)
 
 ## Key Features
 

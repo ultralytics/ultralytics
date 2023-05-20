@@ -150,6 +150,10 @@ class DetectionValidator(BaseValidator):
                                            normalize=normalize,
                                            on_plot=self.on_plot)
 
+    def output_bad_cases(self):
+        """Out the images with overkill and underkill result"""
+        pass
+
     def _process_batch(self, detections, labels):
         """
         Return correct prediction matrix

@@ -51,13 +51,13 @@ YOLOv5u is an enhanced version of the [YOLOv5](https://github.com/ultralytics/yo
 
 ## Usage
 
-You can use YOLOv5u for object detection tasks using the Ultralytics YOLOv5 repository. The following is a sample code snippet showing how to use YOLOv5u model for inference:
+You can use YOLOv5u for object detection tasks using the Ultralytics repository. The following is a sample code snippet showing how to use YOLOv5u model for inference:
 
 ```python
 from ultralytics import YOLO
 
 # Load the model
-model = YOLO('yolov5u.pt')  # load a pretrained model
+model = YOLO('yolov5n.pt')  # load a pretrained model
 
 # Perform inference
 results = model('image.jpg')

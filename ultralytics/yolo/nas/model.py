@@ -12,7 +12,7 @@ from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, ROOT, is_git_dir
 from ultralytics.yolo.utils.checks import check_imgsz
 
-from ...yolo.utils.torch_utils import smart_inference_mode
+from ...yolo.utils.torch_utils import smart_inference_mode, model_info
 from .predict import NASPredictor
 from .val import NASValidator
 
@@ -34,6 +34,8 @@ class NAS:
 
         # Standardize model
         self.model.fuse = lambda verbose: self.model
+        self.model.is_fused = lambda: False  # for model_info()
+        self.model.yaml = {}  # for model_info()
         self.model.stride = torch.tensor([32])
         self.model.names = dict(enumerate(self.model._class_names))
 
@@ -101,6 +103,16 @@ class NAS:
         if args.batch == DEFAULT_CFG.batch:
             args.batch = 1  # default to 1 if not modified
         return Exporter(overrides=args)(model=self.model)
+
+    def info(self, detailed=False, verbose=True):
+        """
+        Logs model info.
+
+        Args:
+            detailed (bool): Show detailed information about model.
+            verbose (bool): Controls verbosity.
+        """
+        return model_info(self.model, detailed=detailed, verbose=verbose, imgsz=640)
 
     def __call__(self, source=None, stream=False, **kwargs):
         """Calls the 'predict' function with given arguments to perform object detection."""

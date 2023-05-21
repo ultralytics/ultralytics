@@ -110,3 +110,12 @@ class RTDETR:
         if args.batch == DEFAULT_CFG.batch:
             args.batch = 1  # default to 1 if not modified
         return Exporter(overrides=args)(model=self.model)
+
+    def __call__(self, source=None, stream=False, **kwargs):
+        """Calls the 'predict' function with given arguments to perform object detection."""
+        return self.predict(source, stream, **kwargs)
+
+    def __getattr__(self, attr):
+        """Raises error if object has no requested attribute."""
+        name = self.__class__.__name__
+        raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")

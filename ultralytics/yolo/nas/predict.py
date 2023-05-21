@@ -2,12 +2,10 @@
 
 import torch
 
-from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils import ops
 from ultralytics.yolo.utils.ops import xyxy2xywh
-from ultralytics.yolo.utils.torch_utils import select_device
 
 
 class NASPredictor(BasePredictor):

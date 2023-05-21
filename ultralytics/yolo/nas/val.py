@@ -54,7 +54,6 @@ class NASValidator(DetectionValidator):
             prefix=colorstr(f'{mode}: '),
             data=self.data)
 
-
     def postprocess(self, preds_in):
         """Apply Non-maximum suppression to prediction outputs."""
 

@@ -754,6 +754,7 @@ ENVIRONMENT = 'Colab' if is_colab() else 'Kaggle' if is_kaggle() else 'Jupyter' 
 TESTS_RUNNING = is_pytest_running() or is_github_actions_ci()
 set_sentry()
 
+# Apply monkey patches if the script is being run from within the parent directory of the script's location
 if Path(inspect.stack()[0].filename).parent.parent.as_posix() in inspect.stack()[-1].filename:
     from .patches import imread, imshow, imwrite, torch_save
 

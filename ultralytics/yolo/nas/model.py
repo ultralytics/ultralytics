@@ -34,10 +34,11 @@ class NAS:
 
         # Standardize model
         self.model.fuse = lambda verbose: self.model
-        self.model.is_fused = lambda: False  # for model_info()
-        self.model.yaml = {}  # for model_info()
         self.model.stride = torch.tensor([32])
         self.model.names = dict(enumerate(self.model._class_names))
+        self.model.is_fused = lambda: False  # for info()
+        self.model.yaml = {}  # for info()
+        self.info()
 
     @smart_inference_mode()
     def _load(self, weights: str):

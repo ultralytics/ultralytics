@@ -11,9 +11,10 @@ from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, ROOT, is_git_dir
 from ultralytics.yolo.utils.checks import check_imgsz
+
+from ...yolo.utils.torch_utils import smart_inference_mode
 from .predict import NASPredictor
 from .val import NASValidator
-from ...yolo.utils.torch_utils import smart_inference_mode
 
 
 class NAS:
@@ -27,7 +28,7 @@ class NAS:
         if suffix == '.pt':
             self._load(model)
         elif suffix == '':
-            self.model = super_gradients.training.models.get(model, pretrained_weights="coco")
+            self.model = super_gradients.training.models.get(model, pretrained_weights='coco')
         self.task = 'detect'
         self.model.args = DEFAULT_CFG_DICT  # attach args to model
 

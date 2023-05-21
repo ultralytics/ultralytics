@@ -54,62 +54,15 @@ class NASValidator(DetectionValidator):
             prefix=colorstr(f'{mode}: '),
             data=self.data)
 
-
     def postprocess(self, preds_in):
         """Apply Non-maximum suppression to prediction outputs."""
-
         boxes = xyxy2xywh(preds_in[0][0])
         preds = torch.cat((boxes, preds_in[0][1]), -1).permute(0, 2, 1)
-
-        preds = ops.non_max_suppression(preds,
-                                        self.args.conf,
-                                        self.args.iou,
-                                        labels=self.lb,
-                                        multi_label=True,
-                                        agnostic=self.args.single_cls,
-                                        max_det=self.args.max_det)
-        return preds
-
-    def update_metrics(self, preds, batch):
-        """Metrics."""
-        for si, pred in enumerate(preds):
-            idx = batch['batch_idx'] == si
-            cls = batch['cls'][idx]
-            bbox = batch['bboxes'][idx]
-            nl, npr = cls.shape[0], pred.shape[0]  # number of labels, predictions
-            shape = batch['ori_shape'][si]
-            correct_bboxes = torch.zeros(npr, self.niou, dtype=torch.bool, device=self.device)  # init
-            self.seen += 1
-
-            if npr == 0:
-                if nl:
-                    self.stats.append((correct_bboxes, *torch.zeros((2, 0), device=self.device), cls.squeeze(-1)))
-                    if self.args.plots:
-                        self.confusion_matrix.process_batch(detections=None, labels=cls.squeeze(-1))
-                continue
-
-            # Predictions
-            if self.args.single_cls:
-                pred[:, 5] = 0
-            predn = pred.clone()
-            predn[..., [0, 2]] *= shape[1]  # native-space pred
-            predn[..., [1, 3]] *= shape[0]  # native-space pred
-
-            # Evaluate
-            if nl:
-                tbox = ops.xywh2xyxy(bbox)  # target boxes
-                tbox[..., [0, 2]] *= shape[1]  # native-space pred
-                tbox[..., [1, 3]] *= shape[0]  # native-space pred
-                labelsn = torch.cat((cls, tbox), 1)  # native-space labels
-                correct_bboxes = self._process_batch(predn, labelsn)
-                # TODO: maybe remove these `self.` arguments as they already are member variable
-                if self.args.plots:
-                    self.confusion_matrix.process_batch(predn, labelsn)
-            self.stats.append((correct_bboxes, pred[:, 4], pred[:, 5], cls.squeeze(-1)))  # (conf, pcls, tcls)
-
-            # Save
-            if self.args.save_json:
-                self.pred_to_json(predn, batch['im_file'][si])
-            if self.args.save_txt:
-                file = self.save_dir / 'labels' / f'{Path(batch["im_file"][si]).stem}.txt'
-                self.save_one_txt(predn, self.args.save_conf, shape, file)
+        return ops.non_max_suppression(preds,
+                                       self.args.conf,
+                                       self.args.iou,
+                                       labels=self.lb,
+                                       multi_label=True,
+                                       agnostic=self.args.single_cls,
+                                       max_det=self.args.max_det,
+                                       max_time_img=0.5)

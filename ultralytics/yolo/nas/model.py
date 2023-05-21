@@ -12,7 +12,7 @@ from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, ROOT, is_git_dir
 from ultralytics.yolo.utils.checks import check_imgsz
 
-from ...yolo.utils.torch_utils import smart_inference_mode, model_info
+from ...yolo.utils.torch_utils import model_info, smart_inference_mode
 from .predict import NASPredictor
 from .val import NASValidator
 

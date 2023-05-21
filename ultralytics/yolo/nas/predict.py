@@ -35,20 +35,3 @@ class NASPredictor(BasePredictor):
             img_path = path[i] if isinstance(path, list) else path
             results.append(Results(orig_img=orig_img, path=img_path, names=self.model.names, boxes=pred))
         return results
-
-    def setup_model(self, model, verbose=True):
-        """Initialize YOLO model with given parameters and set it to evaluation mode."""
-        device = select_device(self.args.device, verbose=verbose)
-        model = model or self.args.model
-        model.stride = torch.tensor([32])
-        model.names = {i: f'class{i}' for i in range(1000)}
-        self.args.half &= device.type != 'cpu'  # half precision only supported on CUDA
-        self.model = AutoBackend(model,
-                                 device=device,
-                                 dnn=self.args.dnn,
-                                 data=self.args.data,
-                                 fp16=self.args.half,
-                                 fuse=False,
-                                 verbose=verbose)
-        self.device = device
-        self.model.eval()

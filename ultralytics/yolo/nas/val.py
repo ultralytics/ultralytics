@@ -7,6 +7,7 @@ import torch
 from ultralytics.yolo.data import YOLODataset
 from ultralytics.yolo.data.augment import Compose, Format, LetterBox
 from ultralytics.yolo.utils import colorstr, ops
+from ultralytics.yolo.utils.ops import xyxy2xywh
 from ultralytics.yolo.v8.detect import DetectionValidator
 
 __all__ = ['NASValidator']
@@ -53,21 +54,21 @@ class NASValidator(DetectionValidator):
             prefix=colorstr(f'{mode}: '),
             data=self.data)
 
-    def postprocess(self, preds):
-        """Apply Non-maximum suppression to prediction outputs."""
-        bboxes, scores = preds[:2]  # (1, bs, 300, 4), (1, bs, 300, nc)
-        bboxes, scores = bboxes.squeeze_(0), scores.squeeze_(0)  # (bs, 300, 4)
-        bs = len(bboxes)
-        outputs = [torch.zeros((0, 6), device=bboxes.device)] * bs
-        for i, bbox in enumerate(bboxes):  # (300, 4)
-            bbox = ops.xywh2xyxy(bbox)
-            score, cls = scores[i].max(-1)  # (300, )
-            # Do not need threshold for evaluation as only got 300 boxes here.
-            # idx = score > self.args.conf
-            pred = torch.cat([bbox, score[..., None], cls[..., None]], dim=-1)  # filter
-            outputs[i] = pred  # [idx]
 
-        return outputs
+    def postprocess(self, preds_in):
+        """Apply Non-maximum suppression to prediction outputs."""
+
+        boxes = xyxy2xywh(preds_in[0][0])
+        preds = torch.cat((boxes, preds_in[0][1]), -1).permute(0, 2, 1)
+
+        preds = ops.non_max_suppression(preds,
+                                        self.args.conf,
+                                        self.args.iou,
+                                        labels=self.lb,
+                                        multi_label=True,
+                                        agnostic=self.args.single_cls,
+                                        max_det=self.args.max_det)
+        return preds
 
     def update_metrics(self, preds, batch):
         """Metrics."""

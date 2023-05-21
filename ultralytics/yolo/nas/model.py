@@ -36,6 +36,11 @@ class NAS:
     def _load(self, weights: str):
         self.model = torch.load(weights)
 
+        # Standardize model
+        self.model.fuse = lambda verbose: self.model
+        self.model.stride = torch.tensor([32])
+        self.model.names = {i: f'class{i}' for i in range(1000)}
+
     @smart_inference_mode()
     def predict(self, source=None, stream=False, **kwargs):
         """

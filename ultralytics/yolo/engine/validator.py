@@ -179,7 +179,6 @@ class BaseValidator:
         self.speed = dict(zip(self.speed.keys(), (x.t / len(self.dataloader.dataset) * 1E3 for x in dt)))
         self.finalize_metrics()
         self.print_results()
-        self.output_bad_cases()
         self.run_callbacks('on_val_end')
         if self.training:
             model.float()

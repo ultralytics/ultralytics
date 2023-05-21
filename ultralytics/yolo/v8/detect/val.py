@@ -1,5 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-
+import logging
 import os
 from pathlib import Path
 
@@ -149,9 +149,11 @@ class DetectionValidator(BaseValidator):
                                            names=self.names.values(),
                                            normalize=normalize,
                                            on_plot=self.on_plot)
+            self.output_bad_cases()
 
     def output_bad_cases(self):
         """Out the images with overkill and underkill result"""
+        print('Print sample images')
         pass
 
     def _process_batch(self, detections, labels):

@@ -10,7 +10,7 @@ import numpy as np
 import torch
 
 # OpenCV Multilanguage-friendly functions ------------------------------------------------------------------------------
-imshow_ = cv2.imshow  # copy to avoid recursion errors
+_imshow = cv2.imshow  # copy to avoid recursion errors
 
 
 def imread(filename, flags=cv2.IMREAD_COLOR):
@@ -26,10 +26,11 @@ def imwrite(filename, img):
 
 
 def imshow(path, im):
-    imshow_(path.encode('unicode_escape').decode(), im)
+    _imshow(path.encode('unicode_escape').decode(), im)
 
 
 # PyTorch functions ----------------------------------------------------------------------------------------------------
+_torch_save = torch.save  # copy to avoid recursion errors
 
 
 def torch_save(*args, **kwargs):
@@ -41,4 +42,4 @@ def torch_save(*args, **kwargs):
 
     if 'pickle_module' not in kwargs:
         kwargs['pickle_module'] = pickle
-    return torch.serialization._save(*args, **kwargs)
+    return _torch_save(*args, **kwargs)

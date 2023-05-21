@@ -754,10 +754,8 @@ ENVIRONMENT = 'Colab' if is_colab() else 'Kaggle' if is_kaggle() else 'Jupyter' 
 TESTS_RUNNING = is_pytest_running() or is_github_actions_ci()
 set_sentry()
 
-
-
 if Path(inspect.stack()[0].filename).parent.parent.as_posix() in inspect.stack()[-1].filename:
-    from .patches import imread, imwrite, imshow, torch_save
+    from .patches import imread, imshow, imwrite, torch_save
 
     cv2.imread, cv2.imwrite, cv2.imshow = imread, imwrite, imshow
     torch.save = torch_save

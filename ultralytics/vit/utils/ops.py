@@ -83,7 +83,7 @@ class HungarianMatcher(nn.Module):
         # Compute the L1 cost between boxes
         cost_bbox = (out_bbox.unsqueeze(1) - tgt_bbox.unsqueeze(0)).abs().sum(-1)
 
-        # Compute the giou cost betwen boxes
+        # Compute the GIoU cost between boxes
         cost_giou = self.giou_loss(xywh2xyxy(out_bbox.unsqueeze(1)), xywh2xyxy(tgt_bbox.unsqueeze(0))).squeeze(-1)
 
         # Final cost matrix
@@ -92,7 +92,7 @@ class HungarianMatcher(nn.Module):
             self.matcher_coeff['giou'] * cost_giou
         # Compute the mask cost and dice cost
         if self.with_mask:
-            assert (masks is not None and gt_mask is not None, 'Make sure the input has `mask` and `gt_mask`')
+            assert masks is not None and gt_mask is not None, 'Make sure the input has `mask` and `gt_mask`'
             # all masks share the same set of points for efficient matching
             sample_points = torch.rand([bs, 1, self.num_sample_points, 2])
             sample_points = 2.0 * sample_points - 1.0

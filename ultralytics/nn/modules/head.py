@@ -236,13 +236,13 @@ class RTDETRDecoder(nn.Module):
             import pdb
             pdb.set_trace()
             denoising_class, denoising_bbox_unact, attn_mask, dn_meta = \
-                 get_contrastive_denoising_training_group(gt_meta,
-                                             self.nc,
-                                             self.num_queries,
-                                             self.denoising_class_embed.weight,
-                                             self.num_denoising,
-                                             self.label_noise_ratio,
-                                             self.box_noise_scale)
+                get_contrastive_denoising_training_group(gt_meta,
+                                                         self.nc,
+                                                         self.num_queries,
+                                                         self.denoising_class_embed.weight,
+                                                         self.num_denoising,
+                                                         self.label_noise_ratio,
+                                                         self.box_noise_scale)
         else:
             denoising_class, denoising_bbox_unact, attn_mask = None, None, None
 

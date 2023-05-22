@@ -42,7 +42,7 @@ def select_highest_overlaps(mask_pos, overlaps, n_max_boxes):
     # (b, n_max_boxes, h*w) -> (b, h*w)
     fg_mask = mask_pos.sum(-2)
     if fg_mask.max() > 1:  # one anchor is assigned to multiple gt_bboxes
-        mask_multi_gts = (fg_mask.unsqueeze(1) > 1).repeat([1, n_max_boxes, 1])  # (b, n_max_boxes, h*w)
+        mask_multi_gts = (fg_mask.unsqueeze(1) > 1).expand(-1, n_max_boxes, -1)  # (b, n_max_boxes, h*w)
         max_overlaps_idx = overlaps.argmax(1)  # (b, h*w)
         is_max_overlaps = F.one_hot(max_overlaps_idx, n_max_boxes)  # (b, h*w, n_max_boxes)
         is_max_overlaps = is_max_overlaps.permute(0, 2, 1).to(overlaps.dtype)  # (b, n_max_boxes, h*w)
@@ -131,7 +131,7 @@ class TaskAlignedAssigner(nn.Module):
         # Get anchor_align metric, (b, max_num_obj, h*w)
         align_metric, overlaps = self.get_box_metrics(pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_in_gts * mask_gt)
         # Get topk_metric mask, (b, max_num_obj, h*w)
-        mask_topk = self.select_topk_candidates(align_metric, topk_mask=mask_gt.repeat([1, 1, self.topk]).bool())
+        mask_topk = self.select_topk_candidates(align_metric, topk_mask=mask_gt.expand(-1, -1, self.topk).bool())
         # Merge all mask to a final mask, (b, max_num_obj, h*w)
         mask_pos = mask_topk * mask_in_gts * mask_gt
 
@@ -227,7 +227,7 @@ class TaskAlignedAssigner(nn.Module):
         # Assigned target scores
         target_labels.clamp_(0)
         target_scores = F.one_hot(target_labels, self.num_classes)  # (b, h*w, 80)
-        fg_scores_mask = fg_mask[:, :, None].repeat(1, 1, self.num_classes)  # (b, h*w, 80)
+        fg_scores_mask = fg_mask[:, :, None].expand(-1, -1, self.num_classes)  # (b, h*w, 80)
         target_scores = torch.where(fg_scores_mask > 0, target_scores, 0)
 
         return target_labels, target_bboxes, target_scores

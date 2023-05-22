@@ -72,7 +72,7 @@ class HungarianMatcher(nn.Module):
         tgt_bbox = torch.cat(gt_bbox)
 
         # Compute the classification cost
-        out_prob = torch.gather(out_prob, tgt_ids, dim=1)   # TODO
+        out_prob = torch.gather(out_prob, tgt_ids, dim=1)  # TODO
         if self.use_focal_loss:
             neg_cost_class = (1 - self.alpha) * (out_prob ** self.gamma) * (-(1 - out_prob + 1e-8).log())
             pos_cost_class = self.alpha * ((1 - out_prob) ** self.gamma) * (-(out_prob + 1e-8).log())
@@ -183,7 +183,7 @@ def get_contrastive_denoising_training_group(targets,
         chosen_idx = torch.nonzero(mask * pad_gt_mask).squeeze(-1)
         # randomly put a new one here
         new_label = torch.randint_like(chosen_idx, 0, num_classes, dtype=input_query_class.dtype)
-        input_query_class.scatter_(chosen_idx, new_label)   # TODO
+        input_query_class.scatter_(chosen_idx, new_label)  # TODO
         input_query_class.reshape(bs, num_denoising)
         pad_gt_mask.view(bs, num_denoising)
 
@@ -202,7 +202,8 @@ def get_contrastive_denoising_training_group(targets,
         input_query_bbox = inverse_sigmoid(input_query_bbox)
 
     class_embed = torch.cat([class_embed, torch.zeros([1, class_embed.shape[-1]])])
-    input_query_class = torch.gather(class_embed, input_query_class.flatten(), axis=0).reshape([bs, num_denoising, -1])   # TODO
+    input_query_class = torch.gather(class_embed, input_query_class.flatten(), axis=0).reshape([bs, num_denoising,
+                                                                                                -1])  # TODO
 
     tgt_size = num_denoising + num_queries
     attn_mask = torch.ones([tgt_size, tgt_size]) < 0

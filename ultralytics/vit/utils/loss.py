@@ -185,7 +185,7 @@ class DETRLoss(nn.Module):
 
     def _get_src_target_assign(self, src, target, match_indices):
         src_assign = torch.cat([
-            torch.gather(t, I, axis=0) if len(I) > 0 else torch.zeros([0, t.shape[-1]])   # TODO
+            torch.gather(t, I, axis=0) if len(I) > 0 else torch.zeros([0, t.shape[-1]])  # TODO
             for t, (I, _) in zip(src, match_indices)])
         target_assign = torch.cat([
             torch.gather(t, J, axis=0) if len(J) > 0 else torch.zeros([0, t.shape[-1]])
@@ -195,7 +195,7 @@ class DETRLoss(nn.Module):
     def _get_num_gts(self, targets, dtype='float32'):
         num_gts = sum(len(a) for a in targets)
         num_gts = torch.tensor([num_gts], dtype=dtype)
-        if torch.distributed.get_world_size() > 1:   # TODO
+        if torch.distributed.get_world_size() > 1:  # TODO
             torch.distributed.all_reduce(num_gts)
             num_gts /= torch.distributed.get_world_size()
         num_gts = torch.clip(num_gts, min=1.)

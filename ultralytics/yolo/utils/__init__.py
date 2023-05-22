@@ -754,25 +754,9 @@ ENVIRONMENT = 'Colab' if is_colab() else 'Kaggle' if is_kaggle() else 'Jupyter' 
 TESTS_RUNNING = is_pytest_running() or is_github_actions_ci()
 set_sentry()
 
-# OpenCV Multilanguage-friendly functions ------------------------------------------------------------------------------
-imshow_ = cv2.imshow  # copy to avoid recursion errors
+# Apply monkey patches if the script is being run from within the parent directory of the script's location
+from .patches import imread, imshow, imwrite
 
-
-def imread(filename, flags=cv2.IMREAD_COLOR):
-    return cv2.imdecode(np.fromfile(filename, np.uint8), flags)
-
-
-def imwrite(filename, img):
-    try:
-        cv2.imencode(Path(filename).suffix, img)[1].tofile(filename)
-        return True
-    except Exception:
-        return False
-
-
-def imshow(path, im):
-    imshow_(path.encode('unicode_escape').decode(), im)
-
-
+# torch.save = torch_save
 if Path(inspect.stack()[0].filename).parent.parent.as_posix() in inspect.stack()[-1].filename:
-    cv2.imread, cv2.imwrite, cv2.imshow = imread, imwrite, imshow  # redefine
+    cv2.imread, cv2.imwrite, cv2.imshow = imread, imwrite, imshow

@@ -416,16 +416,16 @@ class BaseTrainer:
 
         # Use dill (if exists) to serialize the lambda functions where pickle does not do this
         try:
-            import dill as dill_pickle
-        except (ImportError, AssertionError):
-            import pickle as dill_pickle
+            import dill as pickle
+        except ImportError:
+            import pickle as pickle
 
         # Save last, best and delete
-        torch.save(ckpt, self.last, pickle_module=dill_pickle)
+        torch.save(ckpt, self.last, pickle_module=pickle)
         if self.best_fitness == self.fitness:
-            torch.save(ckpt, self.best, pickle_module=dill_pickle)
+            torch.save(ckpt, self.best, pickle_module=pickle)
         if (self.epoch > 0) and (self.save_period > 0) and (self.epoch % self.save_period == 0):
-            torch.save(ckpt, self.wdir / f'epoch{self.epoch}.pt', pickle_module=dill_pickle)
+            torch.save(ckpt, self.wdir / f'epoch{self.epoch}.pt', pickle_module=pickle)
         del ckpt
 
     @staticmethod

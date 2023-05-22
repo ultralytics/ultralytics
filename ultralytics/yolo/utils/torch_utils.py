@@ -341,6 +341,12 @@ def strip_optimizer(f: Union[str, Path] = 'best.pt', s: str = '') -> None:
         for f in Path('/Users/glennjocher/Downloads/weights').rglob('*.pt'):
             strip_optimizer(f)
     """
+    # Use dill (if exists) to serialize the lambda functions where pickle does not do this
+    try:
+        import dill as pickle
+    except ImportError:
+        import pickle
+
     x = torch.load(f, map_location=torch.device('cpu'))
     args = {**DEFAULT_CFG_DICT, **x['train_args']}  # combine model args with default args, preferring model args
     if x.get('ema'):
@@ -353,7 +359,7 @@ def strip_optimizer(f: Union[str, Path] = 'best.pt', s: str = '') -> None:
         p.requires_grad = False
     x['train_args'] = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # strip non-default keys
     # x['model'].args = x['train_args']
-    torch.save(x, s or f)
+    torch.save(x, s or f, pickle_module=pickle)
     mb = os.path.getsize(s or f) / 1E6  # filesize
     LOGGER.info(f"Optimizer stripped from {f},{f' saved as {s},' if s else ''} {mb:.1f}MB")
 

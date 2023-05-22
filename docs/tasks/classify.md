@@ -76,21 +76,7 @@ see the [Configuration](../usage/cfg.md) page.
 
 ### Dataset format
 
-The YOLO classification dataset format is same as the torchvision format. Each class of images has its own folder and you have to simply pass the path of the dataset folder, i.e, `yolo classify train data="path/to/dataset"`
-
-```
-dataset/
-├── train/
-├──── class1/
-├──── class2/
-├──── class3/
-├──── ...
-├── val/
-├──── class1/
-├──── class2/
-├──── class3/
-├──── ...
-```
+YOLO classification dataset format can be found in detail in the [Dataset Guide](../datasets/classify/index.md).
 
 ## Val
 

@@ -22,14 +22,19 @@ TensorFlow.js           | `tfjs`                    | yolov8n_web_model/
 PaddlePaddle            | `paddle`                  | yolov8n_paddle_model/
 """
 
+import glob
 import platform
 import time
 from pathlib import Path
 
+import numpy as np
+import torch.cuda
+from tqdm import tqdm
+
 from ultralytics import YOLO
 from ultralytics.yolo.engine.exporter import export_formats
 from ultralytics.yolo.utils import LINUX, LOGGER, MACOS, ROOT, SETTINGS
-from ultralytics.yolo.utils.checks import check_yolo
+from ultralytics.yolo.utils.checks import check_requirements, check_yolo
 from ultralytics.yolo.utils.downloads import download
 from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.torch_utils import select_device
@@ -140,5 +145,120 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
     return df
 
 
+class ProfileModels:
+    def __init__(self, paths: list, num_timed_runs: int = 100, num_warmup_runs: int = 3, imgsz: int = 640):
+        self.paths = paths
+        self.num_timed_runs = num_timed_runs
+        self.num_warmup_runs = num_warmup_runs
+        self.imgsz = imgsz
+
+    def profile(self):
+        files = self.get_files()
+
+        if not files:
+            print("No matching *.pt or *.onnx files found.")
+            return
+
+        table_rows = []
+        for file in files:
+            engine_file = ''
+            if file.suffix in (".pt", ".yaml"):
+                model = YOLO(str(file))
+                num_params, num_flops = model.info()
+                if False and torch.cuda.is_available():
+                    engine_file = model.export(format="engine", half=True, imgsz=self.imgsz, device=0)
+                onnx_file = model.export(format="onnx", half=True, imgsz=self.imgsz, simplify=True)
+            elif file.suffix == ".onnx":
+                num_params, num_flops = self.get_onnx_model_info(file)
+                onnx_file = file
+            else:
+                continue
+
+            t_engine = self.profile_tensorrt_model(str(engine_file))
+            t_onnx = self.profile_onnx_model(str(onnx_file))
+            table_rows.append(self.generate_table_row(file.stem, t_onnx, t_engine, num_params, num_flops))
+
+        self.print_table(table_rows)
+
+    def get_files(self):
+        files = []
+        for path in self.paths:
+            path = Path(path)
+            if path.is_dir():
+                extensions = ["*.pt", "*.onnx", "*.yaml"]
+                files.extend([file for ext in extensions for file in glob.glob(str(path / ext))])
+            elif path.suffix in {".pt", ".yaml"}:  # add non-existing
+                files.append(str(path))
+            else:
+                files.extend(glob.glob(str(path)))
+
+        print(f'Profiling: {sorted(files)}')
+        return [Path(file) for file in sorted(files)]
+
+    def get_onnx_model_info(self, onnx_file: str):
+        return 0.0, 0.0
+
+    def profile_tensorrt_model(self, engine_file: str):
+        if not Path(engine_file).is_file():
+            return 0.0, 0.0
+
+        # Warmup runs
+        model = YOLO(engine_file)
+        input_data = np.random.rand((self.imgsz, self.imgsz, 3)).astype(np.float32)
+        for _ in range(self.num_warmup_runs):
+            model(input_data)
+
+        # Timed runs
+        run_times = []
+        for _ in tqdm(range(self.num_timed_runs), desc=engine_file):
+            results = model(input_data)
+            run_times.append(results[0].speed['inference'])  # Convert to milliseconds
+
+        return np.mean(run_times), np.std(run_times)
+
+    def profile_onnx_model(self, onnx_file: str):
+        check_requirements('onnxruntime')
+        import onnxruntime as ort
+
+        sess_options = ort.SessionOptions()
+        sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+        sess = ort.InferenceSession(onnx_file, sess_options)
+
+        input_tensor = sess.get_inputs()[0]
+        input_data = np.random.rand(*input_tensor.shape).astype(np.float32)
+        input_name = input_tensor.name
+        output_name = sess.get_outputs()[0].name
+
+        # Warmup runs
+        for _ in range(self.num_warmup_runs):
+            sess.run([output_name], {input_name: input_data})
+
+        # Timed runs
+        run_times = []
+        for _ in tqdm(range(self.num_timed_runs), desc=onnx_file):
+            start_time = time.time()
+            sess.run([output_name], {input_name: input_data})
+            run_times.append((time.time() - start_time) * 1000)  # Convert to milliseconds
+
+        return np.mean(run_times), np.std(run_times)
+
+    def generate_table_row(self, model_name, t_onnx, t_engine, num_params, num_flops):
+        return f"| {model_name} | {self.imgsz} | - | {t_onnx[0]:.2f} ± {t_onnx[1]:.2f} ms | {t_engine[0]:.2f} ± {t_engine[1]:.2f} ms | {num_params / 1e6:.1f} | {num_flops:.1f} |"
+
+    def print_table(self, table_rows):
+        header = "| Model | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>A100 TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |"
+        separator = "|-------------|---------------------|--------------------|------------------------------|-----------------------------------|------------------|-----------------|"
+
+        print(header)
+        print(separator)
+        for row in table_rows:
+            print(row)
+
+
 if __name__ == '__main__':
+    # Benchmark all export formats
     benchmark()
+
+    # Profiling models on ONNX and TensorRT
+    profiler = ProfileModels(['yolov8n.yaml', 'yolov8s.yaml'])
+    profiler.profile()

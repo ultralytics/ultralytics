@@ -7,6 +7,7 @@ Welcome to the Ultralytics Help page! We are committed to providing you with com
 
 - [Frequently Asked Questions (FAQ)](FAQ.md): Find answers to common questions and issues faced by users and contributors of Ultralytics YOLO repositories.
 - [Contributing Guide](contributing.md): Learn the best practices for submitting pull requests, reporting bugs, and contributing to the development of our repositories.
+- [Continuous Integration (CI) Guide](CI.md): Understand the CI tests we perform for each Ultralytics repository and see their current statuses.
 - [Contributor License Agreement (CLA)](CLA.md): Familiarize yourself with our CLA to understand the terms and conditions for contributing to Ultralytics projects.
 - [Minimum Reproducible Example (MRE) Guide](minimum_reproducible_example.md): Understand how to create an MRE when submitting bug reports to ensure that our team can quickly and efficiently address the issue.
 - [Code of Conduct](code_of_conduct.md): Learn about our community guidelines and expectations to ensure a welcoming and inclusive environment for all participants.

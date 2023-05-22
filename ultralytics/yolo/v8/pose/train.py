@@ -65,11 +65,12 @@ class PoseTrainer(v8.detect.DetectionTrainer):
                     bboxes,
                     kpts=kpts,
                     paths=paths,
-                    fname=self.save_dir / f'train_batch{ni}.jpg')
+                    fname=self.save_dir / f'train_batch{ni}.jpg',
+                    on_plot=self.on_plot)
 
     def plot_metrics(self):
         """Plots training/val metrics."""
-        plot_results(file=self.csv, pose=True)  # save results.png
+        plot_results(file=self.csv, pose=True, on_plot=self.on_plot)  # save results.png
 
 
 # Criterion class for computing training losses

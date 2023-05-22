@@ -28,7 +28,7 @@ A YAML (Yet Another Markup Language) file is used to define the dataset configur
 
 ## Usage
 
-To train a YOLOv8n model on the COCO8-Pose dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
+To train a YOLOv8n-pose model on the COCO8-Pose dataset for 100 epochs with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
 !!! example "Train Example"
 
@@ -38,7 +38,7 @@ To train a YOLOv8n model on the COCO8-Pose dataset for 100 epochs with an image 
         from ultralytics import YOLO
         
         # Load a model
-        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+        model = YOLO('yolov8n-pose.pt')  # load a pretrained model (recommended for training)
         
         # Train the model
         model.train(data='coco8-pose.yaml', epochs=100, imgsz=640)

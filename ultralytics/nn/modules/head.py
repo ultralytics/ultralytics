@@ -226,20 +226,21 @@ class RTDETRDecoder(nn.Module):
         self._reset_parameters()
 
     def forward(self, feats, gt_meta=None):
+        from ultralytics.vit.utils.ops import get_contrastive_denoising_training_group
         # input projection and embedding
         memory, spatial_shapes, _ = self._get_encoder_input(feats)
 
         # prepare denoising training
         if self.training:
-            raise NotImplementedError
-            # denoising_class, denoising_bbox_unact, attn_mask, dn_meta = \
-            #     get_contrastive_denoising_training_group(gt_meta,
-            #                                 self.num_classes,
-            #                                 self.num_queries,
-            #                                 self.denoising_class_embed.weight,
-            #                                 self.num_denoising,
-            #                                 self.label_noise_ratio,
-            #                                 self.box_noise_scale)
+            import pdb;pdb.set_trace()
+            denoising_class, denoising_bbox_unact, attn_mask, dn_meta = \
+                 get_contrastive_denoising_training_group(gt_meta,
+                                             self.nc,
+                                             self.num_queries,
+                                             self.denoising_class_embed.weight,
+                                             self.num_denoising,
+                                             self.label_noise_ratio,
+                                             self.box_noise_scale)
         else:
             denoising_class, denoising_bbox_unact, attn_mask = None, None, None
 

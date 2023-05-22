@@ -32,7 +32,7 @@ from ultralytics.yolo.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.yolo.utils.files import get_latest_run, increment_path
 from ultralytics.yolo.utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel, init_seeds, one_cycle,
                                                 select_device, strip_optimizer)
-
+from ultralytics.register import REGISTER
 
 class BaseTrainer:
     """
@@ -309,6 +309,7 @@ class BaseTrainer:
             self.tloss = None
             self.optimizer.zero_grad()
             for i, batch in pbar:
+                REGISTER["batch"] = batch
                 self.run_callbacks('on_train_batch_start')
                 # Warmup
                 ni = i + nb * epoch

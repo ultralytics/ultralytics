@@ -10,6 +10,7 @@ import torch.nn as nn
 from torch.nn.init import constant_, xavier_uniform_
 
 from ultralytics.yolo.utils.tal import dist2bbox, make_anchors
+from ultralytics.register import REGISTER
 
 from .block import DFL, Proto
 from .conv import Conv
@@ -233,10 +234,8 @@ class RTDETRDecoder(nn.Module):
 
         # prepare denoising training
         if self.training:
-            import pdb
-            pdb.set_trace()
             denoising_class, denoising_bbox_unact, attn_mask, dn_meta = \
-                get_contrastive_denoising_training_group(gt_meta,
+                get_contrastive_denoising_training_group(REGISTER["batch"],
                                                          self.nc,
                                                          self.num_queries,
                                                          self.denoising_class_embed.weight,

@@ -141,7 +141,7 @@ def get_contrastive_denoising_training_group(targets,
                                              box_noise_scale=1.0):
     if num_denoising <= 0:
         return None, None, None, None
-    num_gts = [len(t) for t in targets['gt_class']]
+    num_gts = [len(t) for t in targets['cls']]
     max_gt_num = max(num_gts)
     if max_gt_num == 0:
         return None, None, None, None
@@ -149,15 +149,15 @@ def get_contrastive_denoising_training_group(targets,
     num_group = num_denoising // max_gt_num
     num_group = 1 if num_group == 0 else num_group
     # pad gt to max_num of a batch
-    bs = len(targets['gt_class'])
-    input_query_class = torch.full([bs, max_gt_num], num_classes, dtype='int32')
+    bs = len(targets['cls'])
+    input_query_class = torch.full([bs, max_gt_num], num_classes) # TBD: removed dtype='int32'
     input_query_bbox = torch.zeros([bs, max_gt_num, 4])
     pad_gt_mask = torch.zeros([bs, max_gt_num])
     for i in range(bs):
         num_gt = num_gts[i]
         if num_gt > 0:
-            input_query_class[i, :num_gt] = targets['gt_class'][i].squeeze(-1)
-            input_query_bbox[i, :num_gt] = targets['gt_bbox'][i]
+            input_query_class[i, :num_gt] = targets['cls'][i].squeeze(-1)
+            input_query_bbox[i, :num_gt] = targets['bboxes'][i]
             pad_gt_mask[i, :num_gt] = 1
     # each group has positive and negative queries.
     input_query_class = input_query_class.repeat(1, 2 * num_group)
@@ -183,6 +183,10 @@ def get_contrastive_denoising_training_group(targets,
         chosen_idx = torch.nonzero(mask * pad_gt_mask).squeeze(-1)
         # randomly put a new one here
         new_label = torch.randint_like(chosen_idx, 0, num_classes, dtype=input_query_class.dtype)
+        
+        # FIX HERE
+        import pdb
+        pdb.set_trace()
         input_query_class.scatter_(chosen_idx, new_label)  # TODO
         input_query_class.reshape(bs, num_denoising)
         pad_gt_mask.view(bs, num_denoising)

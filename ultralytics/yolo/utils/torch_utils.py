@@ -345,7 +345,7 @@ def strip_optimizer(f: Union[str, Path] = 'best.pt', s: str = '') -> None:
     try:
         import dill as pickle
     except ImportError:
-        import pickle as pickle
+        import pickle
 
     x = torch.load(f, map_location=torch.device('cpu'))
     args = {**DEFAULT_CFG_DICT, **x['train_args']}  # combine model args with default args, preferring model args

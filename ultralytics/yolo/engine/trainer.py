@@ -418,7 +418,7 @@ class BaseTrainer:
         try:
             import dill as pickle
         except ImportError:
-            import pickle as pickle
+            import pickle
 
         # Save last, best and delete
         torch.save(ckpt, self.last, pickle_module=pickle)

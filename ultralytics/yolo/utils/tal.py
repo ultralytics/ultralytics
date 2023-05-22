@@ -156,7 +156,7 @@ class TaskAlignedAssigner(nn.Module):
         gt_boxes = gt_bboxes.unsqueeze(2).expand(-1, -1, na, -1)[mask_gt]
         overlaps[mask_gt] = bbox_iou(gt_boxes, pd_boxes, xywh=False, CIoU=True).squeeze(-1).clamp(0)
 
-        align_metric = bbox_scores.pow_(self.alpha).mul_(overlaps.pow_(self.beta))
+        align_metric = bbox_scores.pow(self.alpha) * overlaps.pow(self.beta)
         return align_metric, overlaps
 
     def select_topk_candidates(self, metrics, largest=True, topk_mask=None):

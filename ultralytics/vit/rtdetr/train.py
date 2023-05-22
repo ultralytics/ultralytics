@@ -12,7 +12,7 @@ from ultralytics.yolo.v8.detect import DetectionTrainer
 class RTDETRTrainer(DetectionTrainer):
 
     def build_dataset(self, img_path, mode='val', batch=None):
-        """Build YOLO Dataset
+        """Build RTDETR Dataset
 
         Args:
             img_path (str): Path to the folder containing images.
@@ -31,12 +31,12 @@ class RTDETRTrainer(DetectionTrainer):
             data=self.data)
 
     def get_validator(self):
-        """Returns a DetectionValidator for YOLO model validation."""
+        """Returns a DetectionValidator for RTDETR model validation."""
         self.loss_names = 'box_loss', 'cls_loss', 'dfl_loss'
         return RTDETRValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
 
     def criterion(self, preds, batch):
-        """Compute loss for YOLO prediction and ground-truth."""
+        """Compute loss for RTDETR prediction and ground-truth."""
         if not hasattr(self, 'compute_loss'):
             self.compute_loss = RTDETRLoss(de_parallel(self.model))
         return self.compute_loss(preds, batch)
@@ -89,7 +89,7 @@ class RTDETRLoss(DETRLoss):
 
 
 def train(cfg=DEFAULT_CFG, use_python=False):
-    """Train and optimize YOLO model given training data and device."""
+    """Train and optimize RTDETR model given training data and device."""
     model = 'rt-detr-l.yaml'
     data = cfg.data or 'coco128.yaml'  # or yolo.ClassificationDataset("mnist")
     device = cfg.device if cfg.device is not None else ''

@@ -184,10 +184,8 @@ def get_contrastive_denoising_training_group(targets,
         # randomly put a new one here
         new_label = torch.randint_like(chosen_idx, 0, num_classes, dtype=input_query_class.dtype)
 
-        # FIX HERE
-        import pdb
-        pdb.set_trace()
-        input_query_class.scatter_(chosen_idx, new_label)  # TODO
+
+        input_query_class.scatter_(0, chosen_idx, new_label)
         input_query_class.reshape(bs, num_denoising)
         pad_gt_mask.view(bs, num_denoising)
 
@@ -206,7 +204,11 @@ def get_contrastive_denoising_training_group(targets,
         input_query_bbox = inverse_sigmoid(input_query_bbox)
 
     class_embed = torch.cat([class_embed, torch.zeros([1, class_embed.shape[-1]])])
-    input_query_class = torch.gather(class_embed, input_query_class.flatten(), axis=0).reshape([bs, num_denoising,
+
+    # FIX HERE
+    import pdb
+    pdb.set_trace()
+    input_query_class = torch.gather(class_embed, input_query_class.flatten(), dim=0).reshape([bs, num_denoising,
                                                                                                 -1])  # TODO
 
     tgt_size = num_denoising + num_queries

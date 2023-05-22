@@ -150,7 +150,7 @@ def get_contrastive_denoising_training_group(targets,
     num_group = 1 if num_group == 0 else num_group
     # pad gt to max_num of a batch
     bs = len(targets['cls'])
-    input_query_class = torch.full([bs, max_gt_num], num_classes) # TBD: removed dtype='int32'
+    input_query_class = torch.full([bs, max_gt_num], num_classes)  # TBD: removed dtype='int32'
     input_query_bbox = torch.zeros([bs, max_gt_num, 4])
     pad_gt_mask = torch.zeros([bs, max_gt_num])
     for i in range(bs):
@@ -183,7 +183,7 @@ def get_contrastive_denoising_training_group(targets,
         chosen_idx = torch.nonzero(mask * pad_gt_mask).squeeze(-1)
         # randomly put a new one here
         new_label = torch.randint_like(chosen_idx, 0, num_classes, dtype=input_query_class.dtype)
-        
+
         # FIX HERE
         import pdb
         pdb.set_trace()

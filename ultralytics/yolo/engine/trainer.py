@@ -22,6 +22,7 @@ from torch.optim import lr_scheduler
 from tqdm import tqdm
 
 from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
+from ultralytics.register import REGISTER
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.yolo.utils import (DEFAULT_CFG, LOGGER, ONLINE, RANK, ROOT, SETTINGS, TQDM_BAR_FORMAT, __version__,
@@ -32,7 +33,7 @@ from ultralytics.yolo.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.yolo.utils.files import get_latest_run, increment_path
 from ultralytics.yolo.utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel, init_seeds, one_cycle,
                                                 select_device, strip_optimizer)
-from ultralytics.register import REGISTER
+
 
 class BaseTrainer:
     """
@@ -309,7 +310,7 @@ class BaseTrainer:
             self.tloss = None
             self.optimizer.zero_grad()
             for i, batch in pbar:
-                REGISTER["batch"] = batch
+                REGISTER['batch'] = batch
                 self.run_callbacks('on_train_batch_start')
                 # Warmup
                 ni = i + nb * epoch

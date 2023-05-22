@@ -20,6 +20,8 @@ TensorFlow Lite         | `tflite`                  | yolov8n.tflite
 TensorFlow Edge TPU     | `edgetpu`                 | yolov8n_edgetpu.tflite
 TensorFlow.js           | `tfjs`                    | yolov8n_web_model/
 PaddlePaddle            | `paddle`                  | yolov8n_paddle_model/
+Neuron                  | `neuron`                  | yolov8n.neuron
+Neuronx                 | `neuronx`                 | yolov8n.neuronx
 """
 
 import platform
@@ -40,7 +42,8 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
               half=False,
               int8=False,
               device='cpu',
-              hard_fail=False):
+              hard_fail=False,
+              skip_formats=[]):
     """
     Benchmark a YOLO model across different formats for speed and accuracy.
 
@@ -53,6 +56,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
         device (str, optional): Device to run the benchmark on, either 'cpu' or 'cuda'. Default is 'cpu'.
         hard_fail (Union[bool, float], optional): If True or a float, assert benchmarks pass with given metric.
             Default is False.
+        skip_formats (List[str], optional): Formats to skip the benchmark. Default is [].
 
     Returns:
         df (pandas.DataFrame): A pandas DataFrame with benchmark results for each format, including file size,
@@ -69,6 +73,9 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
     y = []
     t0 = time.time()
     for i, (name, format, suffix, cpu, gpu) in export_formats().iterrows():  # index, (name, format, suffix, CPU, GPU)
+        if format in skip_formats:
+            LOGGER.info(f'Benchmark skipped for {name}\n')
+            continue
         emoji, filename = '❌', None  # export defaults
         try:
             assert i != 9 or LINUX, 'Edge TPU export only supported on Linux'

@@ -26,6 +26,8 @@ Usage - formats:
                               yolov8n.tflite             # TensorFlow Lite
                               yolov8n_edgetpu.tflite     # TensorFlow Edge TPU
                               yolov8n_paddle_model       # PaddlePaddle
+                              yolov8n.neuron             # Neuron
+                              yolov8n.neuronx            # Neuronx
 """
 import platform
 from pathlib import Path

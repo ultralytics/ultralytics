@@ -323,7 +323,7 @@ class AutoBackend(nn.Module):
 
         if self.pt or self.nn_module:  # PyTorch
             y = self.model(im, augment=augment, visualize=visualize) if augment or visualize else self.model(im)
-        elif self.jit or self.neuronx or self.neuron:  # TorchScript / Neuron / Neuronx
+        elif self.jit or self.neuron or self.neuronx:  # TorchScript / Neuron / Neuronx
             y = self.model(im)
         elif self.dnn:  # ONNX OpenCV DNN
             im = im.cpu().numpy()  # torch to numpy

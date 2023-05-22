@@ -92,8 +92,8 @@ class GIoULoss:
         return iou, overlap, union
 
     def __call__(self, pbox, gbox, iou_weight=1., loc_reweight=None):
-        x1, y1, x2, y2 = torch.split(pbox, num_or_sections=4, axis=-1)
-        x1g, y1g, x2g, y2g = torch.split(gbox, num_or_sections=4, axis=-1)
+        x1, y1, x2, y2 = pbox.split(4, dim=-1)
+        x1g, y1g, x2g, y2g = gbox.split(4, dim=-1)
         box1 = [x1, y1, x2, y2]
         box2 = [x1g, y1g, x2g, y2g]
         iou, overlap, union = self.bbox_overlap(box1, box2, self.eps)
@@ -105,9 +105,8 @@ class GIoULoss:
         area_c = (xc2 - xc1) * (yc2 - yc1) + self.eps
         miou = iou - ((area_c - union) / area_c)
         if loc_reweight is not None:
-            loc_reweight = torch.reshape(loc_reweight, shape=(-1, 1))
             loc_thresh = 0.9
-            giou = 1 - (1 - loc_thresh) * miou - loc_thresh * miou * loc_reweight
+            giou = 1 - (1 - loc_thresh) * miou - loc_thresh * miou * loc_reweight.view(-1, 1)
         else:
             giou = 1 - miou
         if self.reduction == 'none':

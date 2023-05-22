@@ -204,11 +204,11 @@ def get_contrastive_denoising_training_group(targets,
 
     class_embed = torch.cat([class_embed, torch.zeros([1, class_embed.shape[-1]])])
 
-    # FIX HERE
-    import pdb
-    pdb.set_trace()
-    input_query_class = torch.gather(class_embed, input_query_class.flatten(), dim=0).reshape([bs, num_denoising,
-                                                                                               -1])  # TODO
+
+    # TODO: check correctness
+    input_query_class = torch.gather(class_embed.flatten(), 0, input_query_class.flatten())
+    # input_query_class = torch.gather(class_embed, input_query_class.flatten(), dim=0).reshape([bs, num_denoising,
+    #                                                                                            -1]) 
 
     tgt_size = num_denoising + num_queries
     attn_mask = torch.ones([tgt_size, tgt_size]) < 0

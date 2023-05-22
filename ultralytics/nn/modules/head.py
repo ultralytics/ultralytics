@@ -355,6 +355,9 @@ class RTDETRDecoder(nn.Module):
         enc_outputs_coord_unact = self.enc_bbox_head(output_memory) + anchors  # (bs, h*w, 4)
 
         # (bs, topk)
+        # FIX HERE
+        import pdb
+        pdb.set_trace()
         _, topk_ind = torch.topk(enc_outputs_class.max(-1).values, self.num_queries, dim=1)
         # extract region proposal boxes
         # (bs, topk_ind)

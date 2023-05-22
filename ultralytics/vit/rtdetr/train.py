@@ -1,15 +1,16 @@
 from copy import copy
 
 import torch
+from val import RTDETRDataset, RTDETRValidator
 
 from ultralytics.vit.utils.loss import DETRLoss
-from ultralytics.yolo.v8.detect import DetectionTrainer
 from ultralytics.yolo.utils import DEFAULT_CFG, colorstr
 from ultralytics.yolo.utils.torch_utils import de_parallel
+from ultralytics.yolo.v8.detect import DetectionTrainer
 
-from val import RTDETRValidator, RTDETRDataset
 
 class RTDETRTrainer(DetectionTrainer):
+
     def build_dataset(self, img_path, mode='val', batch=None):
         """Build YOLO Dataset
 
@@ -43,14 +44,8 @@ class RTDETRTrainer(DetectionTrainer):
 
 class RTDETRLoss(DETRLoss):
 
-    def compute_loss(self,
-                preds,
-                batch,
-                dn_out_bboxes=None,
-                dn_out_logits=None,
-                dn_meta=None,
-                **kwargs):
-        gt_class, gt_bbox = batch["cls"], batch["bboxes"]
+    def compute_loss(self, preds, batch, dn_out_bboxes=None, dn_out_logits=None, dn_meta=None, **kwargs):
+        gt_class, gt_bbox = batch['cls'], batch['bboxes']
         boxes, logits = preds
         num_gts = self._get_num_gts(gt_class)
         total_loss = super().forward(boxes, logits, gt_bbox, gt_class, num_gts=num_gts)

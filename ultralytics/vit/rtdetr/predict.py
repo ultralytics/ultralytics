@@ -18,7 +18,7 @@ class RTDETRPredictor(BasePredictor):
         for i, bbox in enumerate(bboxes):  # (300, 4)
             bbox = ops.xywh2xyxy(bbox)
             score, cls = scores[i].max(-1, keepdim=True)  # (300, 1)
-            idx = score.squeeze(-1) > self.args.conf   # (300, )
+            idx = score.squeeze(-1) > self.args.conf  # (300, )
             if self.args.classes is not None:
                 idx = (cls == torch.tensor(self.args.classes, device=cls.device)).any(1) & idx
             pred = torch.cat([bbox, score, cls], dim=-1)[idx]  # filter

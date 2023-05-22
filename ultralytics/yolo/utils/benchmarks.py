@@ -146,7 +146,6 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
 
 
 class ProfileModels:
-
     """
     ProfileModels class for profiling different models on ONNX and TensorRT.
 

@@ -23,16 +23,17 @@ class VarifocalLoss(nn.Module):
                     weight).sum()
         return loss / normalizer
 
+
 # Losses
 class FocalLoss(nn.Module):
     """Wraps focal loss around existing loss_fcn(), i.e. criteria = FocalLoss(nn.BCEWithLogitsLoss(), gamma=1.5)."""
 
     def __init__(self, ):
-       super().__init__()
+        super().__init__()
 
     def forward(self, pred, label, normalizer=1.0, gamma=1.5, alpha=0.25):
         """Calculates and updates confusion matrix for object detection/classification tasks."""
-        loss = F.binary_cross_entropy_with_logits(pred, label, reduction="none")
+        loss = F.binary_cross_entropy_with_logits(pred, label, reduction='none')
         # p_t = torch.exp(-loss)
         # loss *= self.alpha * (1.000001 - p_t) ** self.gamma  # non-zero power for gradient stability
 
@@ -45,7 +46,8 @@ class FocalLoss(nn.Module):
 
         return loss.mean(1).sum() / normalizer
 
-class GIoULoss(object):
+
+class GIoULoss:
     """
     Generalized Intersection over Union, see https://arxiv.org/abs/1902.09630
     Args:
@@ -105,8 +107,7 @@ class GIoULoss(object):
         if loc_reweight is not None:
             loc_reweight = torch.reshape(loc_reweight, shape=(-1, 1))
             loc_thresh = 0.9
-            giou = 1 - (1 - loc_thresh
-                        ) * miou - loc_thresh * miou * loc_reweight
+            giou = 1 - (1 - loc_thresh) * miou - loc_thresh * miou * loc_reweight
         else:
             giou = 1 - miou
         if self.reduction == 'none':

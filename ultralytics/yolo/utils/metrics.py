@@ -497,7 +497,7 @@ def ap_per_class(tp,
     fp = (tp / (p + eps) - tp).round()  # false positives
     return tp, fp, p, r, f1, ap, unique_classes.astype(int)
 
-    
+
 class Metric(SimpleClass):
     """
         Class for computing evaluation metrics for YOLOv8 model.

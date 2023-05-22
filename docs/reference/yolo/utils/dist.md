@@ -1,3 +1,7 @@
+---
+description: Learn how to find free network port and generate DDP (Distributed Data Parallel) command in Ultralytics YOLO with easy examples.
+---
+
 # find_free_network_port
 ---
 :::ultralytics.yolo.utils.dist.find_free_network_port

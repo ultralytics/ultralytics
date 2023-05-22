@@ -1,3 +1,7 @@
+---
+description: Learn about SegmentationTrainer and Train in Ultralytics YOLO v8 for efficient object detection models. Improve your training with Ultralytics Docs.
+---
+
 # SegmentationTrainer
 ---
 :::ultralytics.yolo.v8.segment.train.SegmentationTrainer

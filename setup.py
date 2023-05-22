@@ -24,7 +24,8 @@ setup(
     version=get_version(),  # version of pypi package
     python_requires='>=3.7',
     license='AGPL-3.0',
-    description='Ultralytics YOLOv8',
+    description=('Ultralytics YOLOv8 for SOTA object detection, multi-object tracking, instance segmentation, '
+                 'pose estimation and image classification.'),
     long_description=README,
     long_description_content_type='text/markdown',
     url='https://github.com/ultralytics/ultralytics',
@@ -39,8 +40,15 @@ setup(
     install_requires=REQUIREMENTS + PKG_REQUIREMENTS,
     extras_require={
         'dev': [
-            'check-manifest', 'pytest', 'pytest-cov', 'coverage', 'mkdocs-material', 'mkdocstrings[python]',
-            'mkdocs-redirects'],
+            'check-manifest',
+            'pytest',
+            'pytest-cov',
+            'coverage',
+            'mkdocs-material',
+            'mkdocstrings[python]',
+            'mkdocs-redirects',  # for 301 redirects
+            'mkdocs-ultralytics-plugin',  # for meta descriptions and images, dates and authors
+        ],
         'export': ['coremltools>=6.0', 'openvino-dev>=2022.3', 'tensorflowjs'],  # automatically installs tensorflow
     },
     classifiers=[

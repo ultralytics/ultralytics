@@ -1,3 +1,7 @@
+---
+description: 'Discover the power of YOLO''s plotting functions: Colors, Labels and Images. Code examples to output targets and visualize features. Check it now.'
+---
+
 # Colors
 ---
 :::ultralytics.yolo.utils.plotting.Colors
@@ -31,4 +35,9 @@
 # output_to_target
 ---
 :::ultralytics.yolo.utils.plotting.output_to_target
+<br><br>
+
+# feature_visualization
+---
+:::ultralytics.yolo.utils.plotting.feature_visualization
 <br><br>

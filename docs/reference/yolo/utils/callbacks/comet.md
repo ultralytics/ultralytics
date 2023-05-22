@@ -1,3 +1,7 @@
+---
+description: Learn about YOLO callbacks using the Comet.ml platform, enhancing object detection training and testing with custom logging and visualizations.
+---
+
 # _get_comet_mode
 ---
 :::ultralytics.yolo.utils.callbacks.comet._get_comet_mode

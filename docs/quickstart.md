@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Install and use YOLOv8 via CLI or Python. Run single-line commands or integrate with Python projects for object detection, segmentation, and classification.
 ---
 
 ## Install
@@ -32,12 +33,10 @@ See the `ultralytics` [requirements.txt](https://github.com/ultralytics/ultralyt
         <img width="800" alt="PyTorch Installation Instructions" src="https://user-images.githubusercontent.com/26833433/228650108-ab0ec98a-b328-4f40-a40d-95355e8a84e3.png">
     </a>
 
-
 ## Use with CLI
 
 The YOLO command line interface (CLI) allows for simple single-line commands without the need for a Python environment.
 CLI requires no customization or Python code. You can simply run all tasks from the terminal with the `yolo` command. Check out the [CLI Guide](usage/cli.md) to learn more about using YOLOv8 from the command line.
-
 
 !!! example
 
@@ -93,10 +92,9 @@ CLI requires no customization or Python code. You can simply run all tasks from 
         yolo cfg
         ```
 
-
 !!! warning "Warning"
 
-    Arguments must be passed as `arg=val` pairs, split by an equals `=` sign and delimited by spaces ` ` between pairs. Do not use `--` argument prefixes or commas `,` beteen arguments.
+    Arguments must be passed as `arg=val` pairs, split by an equals `=` sign and delimited by spaces ` ` between pairs. Do not use `--` argument prefixes or commas `,` between arguments.
 
     - `yolo predict model=yolov8n.pt imgsz=640 conf=0.25` &nbsp; ✅
     - `yolo predict model yolov8n.pt imgsz 640 conf 0.25` &nbsp; ❌

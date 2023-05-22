@@ -1,3 +1,7 @@
+---
+description: Learn how to match and fuse object detections for accurate target tracking using Ultralytics' YOLO merge_matches, iou_distance, and embedding_distance.
+---
+
 # merge_matches
 ---
 :::ultralytics.tracker.utils.matching.merge_matches

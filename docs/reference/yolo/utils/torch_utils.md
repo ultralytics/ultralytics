@@ -1,3 +1,7 @@
+---
+description: Optimize your PyTorch models with Ultralytics YOLO's torch_utils functions such as ModelEMA, select_device, and is_parallel.
+---
+
 # ModelEMA
 ---
 :::ultralytics.yolo.utils.torch_utils.ModelEMA

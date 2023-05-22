@@ -1,3 +1,7 @@
+---
+description: 'Learn about Ultralytics YOLO files and directory utilities: WorkingDirectory, file_age, file_size, and make_dirs.'
+---
+
 # WorkingDirectory
 ---
 :::ultralytics.yolo.utils.files.WorkingDirectory
@@ -26,4 +30,9 @@
 # get_latest_run
 ---
 :::ultralytics.yolo.utils.files.get_latest_run
+<br><br>
+
+# make_dirs
+---
+:::ultralytics.yolo.utils.files.make_dirs
 <br><br>

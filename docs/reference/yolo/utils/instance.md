@@ -1,3 +1,7 @@
+---
+description: Learn about Bounding Boxes (Bboxes) and _ntuple in Ultralytics YOLO for object detection. Improve accuracy and speed with these powerful tools.
+---
+
 # Bboxes
 ---
 :::ultralytics.yolo.utils.instance.Bboxes

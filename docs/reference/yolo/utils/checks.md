@@ -1,3 +1,7 @@
+---
+description: 'Check functions for YOLO utils: image size, version, font, requirements, filename suffix, YAML file, YOLO, and Git version.'
+---
+
 # is_ascii
 ---
 :::ultralytics.yolo.utils.checks.is_ascii

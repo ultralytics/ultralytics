@@ -57,7 +57,7 @@ save_crop: False  # save cropped images with results
 show_labels: True  # show object labels in plots
 show_conf: True  # show object confidence scores in plots
 vid_stride: 1  # video frame-rate stride
-line_thickness: 3  # bounding box thickness (pixels)
+line_width:   # line width of the bounding boxes
 visualize: False  # visualize model features
 augment: False  # apply image augmentation to prediction sources
 agnostic_nms: False  # class-agnostic NMS

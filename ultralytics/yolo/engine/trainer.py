@@ -9,7 +9,7 @@ import os
 import subprocess
 import time
 from copy import deepcopy
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import numpy as np
@@ -85,6 +85,7 @@ class BaseTrainer:
         self.validator = None
         self.model = None
         self.metrics = None
+        self.plots = {}
         init_seeds(self.args.seed + 1 + RANK, deterministic=self.args.deterministic)
 
         # Dirs
@@ -195,7 +196,11 @@ class BaseTrainer:
         torch.cuda.set_device(RANK)
         self.device = torch.device('cuda', RANK)
         LOGGER.info(f'DDP settings: RANK {RANK}, WORLD_SIZE {world_size}, DEVICE {self.device}')
-        dist.init_process_group('nccl' if dist.is_nccl_available() else 'gloo', rank=RANK, world_size=world_size)
+        os.environ['NCCL_BLOCKING_WAIT'] = '1'  # set to enforce timeout
+        dist.init_process_group('nccl' if dist.is_nccl_available() else 'gloo',
+                                timeout=timedelta(seconds=3600),
+                                rank=RANK,
+                                world_size=world_size)
 
     def _setup_train(self, world_size):
         """
@@ -409,12 +414,18 @@ class BaseTrainer:
             'date': datetime.now().isoformat(),
             'version': __version__}
 
+        # Use dill (if exists) to serialize the lambda functions where pickle does not do this
+        try:
+            import dill as pickle
+        except ImportError:
+            import pickle
+
         # Save last, best and delete
-        torch.save(ckpt, self.last)
+        torch.save(ckpt, self.last, pickle_module=pickle)
         if self.best_fitness == self.fitness:
-            torch.save(ckpt, self.best)
+            torch.save(ckpt, self.best, pickle_module=pickle)
         if (self.epoch > 0) and (self.save_period > 0) and (self.epoch % self.save_period == 0):
-            torch.save(ckpt, self.wdir / f'epoch{self.epoch}.pt')
+            torch.save(ckpt, self.wdir / f'epoch{self.epoch}.pt', pickle_module=pickle)
         del ckpt
 
     @staticmethod
@@ -533,6 +544,10 @@ class BaseTrainer:
         """Plot and display metrics visually."""
         pass
 
+    def on_plot(self, name, data=None):
+        """Registers plots (e.g. to be consumed in callbacks)"""
+        self.plots[name] = {'data': data, 'timestamp': time.time()}
+
     def final_eval(self):
         """Performs final evaluation and validation for object detection YOLO model."""
         for f in self.last, self.best:
@@ -549,10 +564,15 @@ class BaseTrainer:
         resume = self.args.resume
         if resume:
             try:
-                last = Path(
-                    check_file(resume) if isinstance(resume, (str,
-                                                              Path)) and Path(resume).exists() else get_latest_run())
-                self.args = get_cfg(attempt_load_weights(last).args)
+                exists = isinstance(resume, (str, Path)) and Path(resume).exists()
+                last = Path(check_file(resume) if exists else get_latest_run())
+
+                # Check that resume data YAML exists, otherwise strip to force re-download of dataset
+                ckpt_args = attempt_load_weights(last).args
+                if not Path(ckpt_args['data']).exists():
+                    ckpt_args['data'] = self.args.data
+
+                self.args = get_cfg(ckpt_args)
                 self.args.model, resume = str(last), True  # reinstate
             except Exception as e:
                 raise FileNotFoundError('Resume checkpoint not found. Please pass a valid checkpoint to resume from, '

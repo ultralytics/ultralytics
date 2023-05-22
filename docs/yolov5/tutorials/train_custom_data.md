@@ -1,5 +1,6 @@
 ---
 comments: true
+description: Train your custom dataset with YOLOv5. Learn to collect, label and annotate images, and train and deploy models. Get started now.
 ---
 
 📚 This guide explains how to train your own **custom dataset** with [YOLOv5](https://github.com/ultralytics/yolov5) 🚀.  
@@ -84,6 +85,7 @@ Now continue with `2. Select a Model`.
 ### 1.1 Create dataset.yaml
 
 [COCO128](https://www.kaggle.com/ultralytics/coco128) is an example small tutorial dataset composed of the first 128 images in [COCO](http://cocodataset.org/#home) train2017. These same 128 images are used for both training and validation to verify our training pipeline is capable of overfitting. [data/coco128.yaml](https://github.com/ultralytics/yolov5/blob/master/data/coco128.yaml), shown below, is the dataset config file that defines 1) the dataset root directory `path` and relative paths to `train` / `val` / `test` image directories (or *.txt files with image paths) and 2) a class `names` dictionary:
+
 ```yaml
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
 path: ../datasets/coco128  # dataset root dir
@@ -102,7 +104,6 @@ names:
   79: toothbrush
 ```
 
-
 ### 1.2 Create Labels
 
 After using an annotation tool to label your images, export your labels to **YOLO format**, with one `*.txt` file per image (if no objects in image, no `*.txt` file is required). The `*.txt` file specifications are:
@@ -118,10 +119,10 @@ The label file corresponding to the above image contains 2 persons (class `0`) a
 
 <p align="center"><img width="428" src="https://user-images.githubusercontent.com/26833433/112467037-d2568c00-8d66-11eb-8796-55402ac0d62f.png"></p>
 
-
 ### 1.3 Organize Directories
 
 Organize your train and val images and labels according to the example below. YOLOv5 assumes  `/coco128` is inside a `/datasets` directory **next to** the `/yolov5` directory. **YOLOv5 locates labels automatically for each image** by replacing the last instance of `/images/` in each image path with `/labels/`. For example:
+
 ```bash
 ../datasets/coco128/images/im0.jpg  # image
 ../datasets/coco128/labels/im0.txt  # label
@@ -129,7 +130,6 @@ Organize your train and val images and labels according to the example below. YO
 
 <p align="center"><img width="700" src="https://user-images.githubusercontent.com/26833433/134436012-65111ad1-9541-4853-81a6-f19a3468b75f.png"></p>
 </details>
-
 
 ### 2. Select a Model
 
@@ -144,6 +144,7 @@ Train a YOLOv5s model on COCO128 by specifying dataset, batch-size, image size a
 ```bash
 python train.py --img 640 --epochs 3 --data coco128.yaml --weights yolov5s.pt
 ```
+
 !!! tip "Tip"
 
     💡 Add `--cache ram` or `--cache disk` to speed up training (requires significant RAM/disk resources).  
@@ -158,9 +159,10 @@ All training results are saved to `runs/train/` with incrementing run directorie
 
 #### Comet Logging and Visualization 🌟 NEW
 
-[Comet](https://bit.ly/yolov5-readme-comet) is now fully integrated with YOLOv5. Track and visualize model metrics in real time, save your hyperparameters, datasets, and model checkpoints, and visualize your model predictions with [Comet Custom Panels](https://bit.ly/yolov5-colab-comet-panels)! Comet makes sure you never lose track of your work and makes it easy to share results and collaborate across teams of all sizes! 
+[Comet](https://bit.ly/yolov5-readme-comet) is now fully integrated with YOLOv5. Track and visualize model metrics in real time, save your hyperparameters, datasets, and model checkpoints, and visualize your model predictions with [Comet Custom Panels](https://bit.ly/yolov5-colab-comet-panels)! Comet makes sure you never lose track of your work and makes it easy to share results and collaborate across teams of all sizes!
 
 Getting started is easy:
+
 ```shell
 pip install comet_ml  # 1. install
 export COMET_API_KEY=<Your API Key>  # 2. paste API key
@@ -186,12 +188,11 @@ You can use ClearML Data to version your dataset and then pass it to YOLOv5 simp
 <a href="https://cutt.ly/yolov5-notebook-clearml">
 <img alt="ClearML Experiment Management UI" src="https://github.com/thepycoder/clearml_screenshots/raw/main/scalars.jpg" width="1280"/></a>
 
-
 #### Local Logging
 
 Training results are automatically logged with [Tensorboard](https://www.tensorflow.org/tensorboard) and [CSV](https://github.com/ultralytics/yolov5/pull/4148) loggers to `runs/train`, with a new experiment directory created for each new training as `runs/train/exp2`, `runs/train/exp3`, etc.
 
-This directory contains train and val statistics, mosaics, labels, predictions and augmented mosaics, as well as metrics and charts including precision-recall (PR) curves and confusion matrices. 
+This directory contains train and val statistics, mosaics, labels, predictions and augmented mosaics, as well as metrics and charts including precision-recall (PR) curves and confusion matrices.
 
 <img alt="Local logging results" src="https://github.com/ultralytics/yolov5/releases/download/v1.0/image-local_logging.jpg" width="1280"/>
 
@@ -204,17 +205,15 @@ plot_results('path/to/results.csv')  # plot 'results.csv' as 'results.png'
 
 <p align="center"><img width="800" alt="results.png" src="https://github.com/ultralytics/yolov5/releases/download/v1.0/results.png"></p>
 
-
-
 ## Next Steps
 
 Once your model is trained you can use your best checkpoint `best.pt` to:
+
 * Run [CLI](https://github.com/ultralytics/yolov5#quick-start-examples) or [Python](https://docs.ultralytics.com/yolov5/tutorials/pytorch_hub_model_loading) inference on new images and videos
 * [Validate](https://github.com/ultralytics/yolov5/blob/master/val.py) accuracy on train, val and test splits
 * [Export](https://docs.ultralytics.com/yolov5/tutorials/model_export) to TensorFlow, Keras, ONNX, TFlite, TF.js, CoreML and TensorRT formats
 * [Evolve](https://docs.ultralytics.com/yolov5/tutorials/hyperparameter_evolution) hyperparameters to improve performance
 * [Improve](https://docs.roboflow.com/adding-data/upload-api?ref=ultralytics) your model by sampling real-world images and adding them to your dataset
-
 
 ## Environments
 
@@ -224,7 +223,6 @@ YOLOv5 may be run in any of the following up-to-date verified environments (with
 - **Google Cloud** Deep Learning VM. See [GCP Quickstart Guide](https://docs.ultralytics.com/yolov5/environments/google_cloud_quickstart_tutorial/)
 - **Amazon** Deep Learning AMI. See [AWS Quickstart Guide](https://docs.ultralytics.com/yolov5/environments/aws_quickstart_tutorial/)
 - **Docker Image**. See [Docker Quickstart Guide](https://docs.ultralytics.com/yolov5/environments/docker_image_quickstart_tutorial/) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
-
 
 ## Status
 

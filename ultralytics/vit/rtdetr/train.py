@@ -23,8 +23,7 @@ class RTDETRLoss(DETRLoss):
                 dn_meta=None,
                 **kwargs):
         num_gts = self._get_num_gts(gt_class)
-        total_loss = super(RTDETRLoss, self).forward(
-            boxes, logits, gt_bbox, gt_class, num_gts=num_gts)
+        total_loss = super().forward(boxes, logits, gt_bbox, gt_class, num_gts=num_gts)
 
         if dn_meta is not None:
             dn_positive_idx, dn_num_group = \
@@ -36,14 +35,13 @@ class RTDETRLoss(DETRLoss):
 
             # compute denoising training loss
             num_gts *= dn_num_group
-            dn_loss = super(RTDETRLoss, self).forward(
-                dn_out_bboxes,
-                dn_out_logits,
-                gt_bbox,
-                gt_class,
-                postfix="_dn",
-                dn_match_indices=dn_match_indices,
-                num_gts=num_gts)
+            dn_loss = super().forward(dn_out_bboxes,
+                                      dn_out_logits,
+                                      gt_bbox,
+                                      gt_class,
+                                      postfix='_dn',
+                                      dn_match_indices=dn_match_indices,
+                                      num_gts=num_gts)
             total_loss.update(dn_loss)
         else:
             total_loss.update({k + '_dn': torch.to_tensor([0.]) for k in total_loss.keys()})

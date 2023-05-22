@@ -147,6 +147,22 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
 
 class ProfileModels:
 
+    """
+    ProfileModels class for profiling different models on ONNX and TensorRT.
+
+    This class profiles the performance of different models, provided their paths. The profiling includes parameters such as
+    model speed and FLOPs.
+
+    Attributes:
+        paths (list): Paths of the models to profile.
+        num_timed_runs (int): Number of timed runs for the profiling. Default is 100.
+        num_warmup_runs (int): Number of warmup runs before profiling. Default is 3.
+        imgsz (int): Image size used in the models. Default is 640.
+
+    Methods:
+        profile(): Profiles the models and prints the result.
+    """
+
     def __init__(self, paths: list, num_timed_runs: int = 100, num_warmup_runs: int = 3, imgsz: int = 640):
         self.paths = paths
         self.num_timed_runs = num_timed_runs

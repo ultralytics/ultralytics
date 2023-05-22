@@ -45,17 +45,18 @@ class SegmentationTrainer(v8.detect.DetectionTrainer):
 
     def plot_training_samples(self, batch, ni):
         """Creates a plot of training sample images with labels and box coordinates."""
-        images = batch['img']
-        masks = batch['masks']
-        cls = batch['cls'].squeeze(-1)
-        bboxes = batch['bboxes']
-        paths = batch['im_file']
-        batch_idx = batch['batch_idx']
-        plot_images(images, batch_idx, cls, bboxes, masks, paths=paths, fname=self.save_dir / f'train_batch{ni}.jpg')
+        plot_images(batch['img'],
+                    batch['batch_idx'],
+                    batch['cls'].squeeze(-1),
+                    batch['bboxes'],
+                    batch['masks'],
+                    paths=batch['im_file'],
+                    fname=self.save_dir / f'train_batch{ni}.jpg',
+                    on_plot=self.on_plot)
 
     def plot_metrics(self):
         """Plots training/val metrics."""
-        plot_results(file=self.csv, segment=True)  # save results.png
+        plot_results(file=self.csv, segment=True, on_plot=self.on_plot)  # save results.png
 
 
 # Criterion class for computing training losses

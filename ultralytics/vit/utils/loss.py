@@ -84,8 +84,8 @@ class DETRLoss(nn.Module):
 
         loss = dict()
         if sum(len(a) for a in gt_bbox) == 0:
-            loss[name_bbox] = torch.to_tensor([0.])
-            loss[name_giou] = torch.to_tensor([0.])
+            loss[name_bbox] = torch.tensor([0.])
+            loss[name_giou] = torch.tensor([0.])
             return loss
 
         src_bbox, target_bbox = self._get_src_target_assign(boxes, gt_bbox, match_indices)
@@ -102,14 +102,14 @@ class DETRLoss(nn.Module):
 
         loss = dict()
         if sum(len(a) for a in gt_mask) == 0:
-            loss[name_mask] = torch.to_tensor([0.])
-            loss[name_dice] = torch.to_tensor([0.])
+            loss[name_mask] = torch.tensor([0.])
+            loss[name_dice] = torch.tensor([0.])
             return loss
 
         src_masks, target_masks = self._get_src_target_assign(masks, gt_mask, match_indices)
         src_masks = F.interpolate(src_masks.unsqueeze(0), size=target_masks.shape[-2:], mode='bilinear')[0]
         loss[name_mask] = self.loss_coeff['mask'] * F.sigmoid_focal_loss(src_masks, target_masks,
-                                                                         torch.to_tensor([num_gts], dtype='float32'))
+                                                                         torch.tensor([num_gts], dtype='float32'))
         loss[name_dice] = self.loss_coeff['dice'] * self._dice_loss(src_masks, target_masks, num_gts)
         return loss
 
@@ -168,7 +168,7 @@ class DETRLoss(nn.Module):
                 loss_mask.append(loss_['loss_mask' + postfix])
                 loss_dice.append(loss_['loss_dice' + postfix])
         loss = {
-            'loss_class_aux' + postfix: torch.add_n(loss_class),
+            'loss_class_aux' + postfix: torch.add_n(loss_class),  # TODO
             'loss_bbox_aux' + postfix: torch.add_n(loss_bbox),
             'loss_giou_aux' + postfix: torch.add_n(loss_giou)}
         if masks is not None and gt_mask is not None:
@@ -177,25 +177,25 @@ class DETRLoss(nn.Module):
         return loss
 
     def _get_index_updates(self, num_query_objects, target, match_indices):
-        batch_idx = torch.concat([torch.full_like(src, i) for i, (src, _) in enumerate(match_indices)])
-        src_idx = torch.concat([src for (src, _) in match_indices])
+        batch_idx = torch.cat([torch.full_like(src, i) for i, (src, _) in enumerate(match_indices)])
+        src_idx = torch.cat([src for (src, _) in match_indices])
         src_idx += (batch_idx * num_query_objects)
-        target_assign = torch.concat([torch.gather(t, dst, axis=0) for t, (_, dst) in zip(target, match_indices)])
+        target_assign = torch.cat([torch.gather(t, dst, axis=0) for t, (_, dst) in zip(target, match_indices)])
         return src_idx, target_assign
 
     def _get_src_target_assign(self, src, target, match_indices):
-        src_assign = torch.concat([
-            torch.gather(t, I, axis=0) if len(I) > 0 else torch.zeros([0, t.shape[-1]])
+        src_assign = torch.cat([
+            torch.gather(t, I, axis=0) if len(I) > 0 else torch.zeros([0, t.shape[-1]])   # TODO
             for t, (I, _) in zip(src, match_indices)])
-        target_assign = torch.concat([
+        target_assign = torch.cat([
             torch.gather(t, J, axis=0) if len(J) > 0 else torch.zeros([0, t.shape[-1]])
             for t, (_, J) in zip(target, match_indices)])
         return src_assign, target_assign
 
     def _get_num_gts(self, targets, dtype='float32'):
         num_gts = sum(len(a) for a in targets)
-        num_gts = torch.to_tensor([num_gts], dtype=dtype)
-        if torch.distributed.get_world_size() > 1:
+        num_gts = torch.tensor([num_gts], dtype=dtype)
+        if torch.distributed.get_world_size() > 1:   # TODO
             torch.distributed.all_reduce(num_gts)
             num_gts /= torch.distributed.get_world_size()
         num_gts = torch.clip(num_gts, min=1.)

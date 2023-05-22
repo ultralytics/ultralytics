@@ -62,14 +62,13 @@ class DetectionValidator(BaseValidator):
 
     def postprocess(self, preds):
         """Apply Non-maximum suppression to prediction outputs."""
-        preds = ops.non_max_suppression(preds,
-                                        self.args.conf,
-                                        self.args.iou,
-                                        labels=self.lb,
-                                        multi_label=True,
-                                        agnostic=self.args.single_cls,
-                                        max_det=self.args.max_det)
-        return preds
+        return ops.non_max_suppression(preds,
+                                       self.args.conf,
+                                       self.args.iou,
+                                       labels=self.lb,
+                                       multi_label=True,
+                                       agnostic=self.args.single_cls,
+                                       max_det=self.args.max_det)
 
     def update_metrics(self, preds, batch):
         """Metrics."""

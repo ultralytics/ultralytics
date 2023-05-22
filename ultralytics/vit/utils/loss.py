@@ -108,8 +108,10 @@ class DETRLoss(nn.Module):
 
         src_masks, target_masks = self._get_src_target_assign(masks, gt_mask, match_indices)
         src_masks = F.interpolate(src_masks.unsqueeze(0), size=target_masks.shape[-2:], mode='bilinear')[0]
-        loss[name_mask] = self.loss_coeff['mask'] * F.sigmoid_focal_loss(src_masks, target_masks,   # TODO
-                                                                         torch.tensor([num_gts], dtype='float32'))
+        loss[name_mask] = self.loss_coeff['mask'] * F.sigmoid_focal_loss(
+            src_masks,
+            target_masks,  # TODO
+            torch.tensor([num_gts], dtype='float32'))
         loss[name_dice] = self.loss_coeff['dice'] * self._dice_loss(src_masks, target_masks, num_gts)
         return loss
 

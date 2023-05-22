@@ -58,7 +58,7 @@ class HungarianMatcher(nn.Module):
 
         num_gts = [len(a) for a in gt_class]
         if sum(num_gts) == 0:
-            return [(torch.to_tensor([], dtype=torch.int64), torch.to_tensor([], dtype=torch.int64)) for _ in range(bs)]
+            return [(torch.tensor([], dtype=torch.int64), torch.tensor([], dtype=torch.int64)) for _ in range(bs)]
 
         # We flatten to compute the cost matrices in a batch
         # [batch_size * num_queries, num_classes]
@@ -68,11 +68,11 @@ class HungarianMatcher(nn.Module):
         out_bbox = boxes.detach().flatten(0, 1)
 
         # Also concat the target labels and boxes
-        tgt_ids = torch.concat(gt_class).flatten()
-        tgt_bbox = torch.concat(gt_bbox)
+        tgt_ids = torch.cat(gt_class).flatten()
+        tgt_bbox = torch.cat(gt_bbox)
 
         # Compute the classification cost
-        out_prob = torch.gather(out_prob, tgt_ids, axis=1)
+        out_prob = torch.gather(out_prob, tgt_ids, dim=1)   # TODO
         if self.use_focal_loss:
             neg_cost_class = (1 - self.alpha) * (out_prob ** self.gamma) * (-(1 - out_prob + 1e-8).log())
             pos_cost_class = self.alpha * ((1 - out_prob) ** self.gamma) * (-(out_prob + 1e-8).log())
@@ -100,11 +100,11 @@ class HungarianMatcher(nn.Module):
             out_mask = F.grid_sample(masks.detach(), sample_points, align_corners=False).squeeze(-2)
             out_mask = out_mask.flatten(0, 1)
 
-            tgt_mask = torch.concat(gt_mask).unsqueeze(1)
-            sample_points = torch.concat([a.tile([b, 1, 1, 1]) for a, b in zip(sample_points, num_gts) if b > 0])
+            tgt_mask = torch.cat(gt_mask).unsqueeze(1)
+            sample_points = torch.cat([a.repeat(b, 1, 1, 1) for a, b in zip(sample_points, num_gts) if b > 0])
             tgt_mask = F.grid_sample(tgt_mask, sample_points, align_corners=False).squeeze([1, 2])
 
-            with torch.amp.auto_cast(enable=False):
+            with torch.cuda.amp.autocast(False):
                 # binary cross entropy cost
                 pos_cost_mask = F.binary_cross_entropy_with_logits(out_mask,
                                                                    torch.ones_like(out_mask),
@@ -129,7 +129,7 @@ class HungarianMatcher(nn.Module):
         C = [a.squeeze(0) for a in C.chunk(bs)]
         sizes = [a.shape[0] for a in gt_bbox]
         indices = [linear_sum_assignment(c.split(sizes, -1)[i].numpy()) for i, c in enumerate(C)]
-        return [(torch.to_tensor(i, dtype=torch.int64), torch.to_tensor(j, dtype=torch.int64)) for i, j in indices]
+        return [(torch.tensor(i, dtype=torch.int64), torch.tensor(j, dtype=torch.int64)) for i, j in indices]
 
 
 def get_contrastive_denoising_training_group(targets,
@@ -160,13 +160,13 @@ def get_contrastive_denoising_training_group(targets,
             input_query_bbox[i, :num_gt] = targets['gt_bbox'][i]
             pad_gt_mask[i, :num_gt] = 1
     # each group has positive and negative queries.
-    input_query_class = input_query_class.tile([1, 2 * num_group])
-    input_query_bbox = input_query_bbox.tile([1, 2 * num_group, 1])
-    pad_gt_mask = pad_gt_mask.tile([1, 2 * num_group])
+    input_query_class = input_query_class.repeat(1, 2 * num_group)
+    input_query_bbox = input_query_bbox.repeat(1, 2 * num_group, 1)
+    pad_gt_mask = pad_gt_mask.repeat(1, 2 * num_group)
     # positive and negative mask
     negative_gt_mask = torch.zeros([bs, max_gt_num * 2, 1])
     negative_gt_mask[:, max_gt_num:] = 1
-    negative_gt_mask = negative_gt_mask.tile([1, num_group, 1])
+    negative_gt_mask = negative_gt_mask.repeat(1, num_group, 1)
     positive_gt_mask = 1 - negative_gt_mask
     # contrastive denoising training positive index
     positive_gt_mask = positive_gt_mask.squeeze(-1) * pad_gt_mask
@@ -183,14 +183,14 @@ def get_contrastive_denoising_training_group(targets,
         chosen_idx = torch.nonzero(mask * pad_gt_mask).squeeze(-1)
         # randomly put a new one here
         new_label = torch.randint_like(chosen_idx, 0, num_classes, dtype=input_query_class.dtype)
-        input_query_class.scatter_(chosen_idx, new_label)
-        input_query_class.reshape_([bs, num_denoising])
-        pad_gt_mask.reshape_([bs, num_denoising])
+        input_query_class.scatter_(chosen_idx, new_label)   # TODO
+        input_query_class.reshape(bs, num_denoising)
+        pad_gt_mask.view(bs, num_denoising)
 
     if box_noise_scale > 0:
         known_bbox = xywh2xyxy(input_query_bbox)
 
-        diff = torch.tile(input_query_bbox[..., 2:] * 0.5, [1, 1, 2]) * box_noise_scale
+        diff = (input_query_bbox[..., 2:] * 0.5).repeat(1, 1, 2) * box_noise_scale
 
         rand_sign = torch.randint_like(input_query_bbox, 0, 2) * 2.0 - 1.0
         rand_part = torch.rand(input_query_bbox.shape)
@@ -201,8 +201,8 @@ def get_contrastive_denoising_training_group(targets,
         input_query_bbox = xywh2xyxy(known_bbox)
         input_query_bbox = inverse_sigmoid(input_query_bbox)
 
-    class_embed = torch.concat([class_embed, torch.zeros([1, class_embed.shape[-1]])])
-    input_query_class = torch.gather(class_embed, input_query_class.flatten(), axis=0).reshape([bs, num_denoising, -1])
+    class_embed = torch.cat([class_embed, torch.zeros([1, class_embed.shape[-1]])])
+    input_query_class = torch.gather(class_embed, input_query_class.flatten(), axis=0).reshape([bs, num_denoising, -1])   # TODO
 
     tgt_size = num_denoising + num_queries
     attn_mask = torch.ones([tgt_size, tgt_size]) < 0

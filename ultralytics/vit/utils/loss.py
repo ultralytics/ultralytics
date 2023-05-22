@@ -5,13 +5,14 @@ import torch.nn.functional as F
 from ultralytics.yolo.utils.loss import FocalLoss, GIoULoss, VarifocalLoss
 from ultralytics.yolo.utils.metrics import bbox_iou
 from ultralytics.yolo.utils.ops import xywh2xyxy
+from ultralytics.vit.utils.ops import HungarianMatcher
 
 
 class DETRLoss(nn.Module):
 
     def __init__(self,
                  num_classes=80,
-                 matcher='HungarianMatcher',
+                 matcher=HungarianMatcher,
                  loss_coeff={
                      'class': 1,
                      'bbox': 5,

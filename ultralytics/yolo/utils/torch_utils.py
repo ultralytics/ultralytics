@@ -206,7 +206,7 @@ def get_flops(model, imgsz=640):
 
 
 def get_flops_with_torch_profiler(model, imgsz=640):
-    # Enable FLOP counting
+    # Compute model FLOPs (thop alternative)
     model = de_parallel(model)
     p = next(model.parameters())
     stride = (max(int(model.stride.max()), 32) if hasattr(model, 'stride') else 32) * 2  # max stride

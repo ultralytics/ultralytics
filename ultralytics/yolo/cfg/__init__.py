@@ -115,7 +115,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
     for k in 'project', 'name':
         if k in cfg and isinstance(cfg[k], (int, float)):
             cfg[k] = str(cfg[k])
-    if cfg.get('name')=='model':  # assign model to 'name' arg
+    if cfg.get('name') == 'model':  # assign model to 'name' arg
         cfg['name'] = cfg.get('model', '').split('.')[0]
 
     # Type and Value checks

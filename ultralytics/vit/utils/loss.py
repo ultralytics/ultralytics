@@ -9,7 +9,6 @@ from ultralytics.yolo.utils.ops import xywh2xyxy
 
 
 class DETRLoss(nn.Module):
-    # TODO
 
     def __init__(self,
                  num_classes=80,
@@ -56,20 +55,22 @@ class DETRLoss(nn.Module):
         name_class = 'loss_class' + postfix
         varifocal_loss = VarifocalLoss()
         focal_loss = FocalLoss()
-        target_label = torch.full(logits.shape[:2], bg_index, dtype='int64')
+        target_label = torch.full(logits.shape[:2], bg_index, dtype=torch.int64)
         bs, num_query_objects = target_label.shape
         num_gt = sum(len(a) for a in gt_class)
         if num_gt > 0:
             index, updates = self._get_index_updates(num_query_objects, gt_class, match_indices)
-            target_label = torch.scatter(target_label.reshape([-1, 1]), index, updates.astype('int64'))
-            target_label = target_label.reshape([bs, num_query_objects])
+            target_label = target_label.view(-1, 1)
+            target_label[index] = updates.to(torch.int64)
+            target_label = target_label.view(bs, num_query_objects)
         if self.use_focal_loss:
             target_label = F.one_hot(target_label, self.num_classes + 1)[..., :-1]
             if iou_score is not None and self.use_vfl:
                 target_score = torch.zeros([bs, num_query_objects])
                 if num_gt > 0:
-                    target_score = torch.scatter(target_score.reshape([-1, 1]), index, iou_score)
-                target_score = target_score.reshape([bs, num_query_objects, 1]) * target_label
+                    target_score = target_score.view(-1, 1)
+                    target_score[index] = iou_score
+                target_score = target_score.view(bs, num_query_objects, 1) * target_label
                 loss_ = self.loss_coeff['class'] * varifocal_loss(logits, target_score, target_label,
                                                                   num_gts / num_query_objects)
             else:
@@ -109,10 +110,11 @@ class DETRLoss(nn.Module):
 
         src_masks, target_masks = self._get_src_target_assign(masks, gt_mask, match_indices)
         src_masks = F.interpolate(src_masks.unsqueeze(0), size=target_masks.shape[-2:], mode='bilinear')[0]
-        loss[name_mask] = self.loss_coeff['mask'] * F.sigmoid_focal_loss(
+        # TODO: torch does not have `sigmoid_focal_loss`, but it's not urgent since we don't use mask branch for now.
+        loss[name_mask] = self.loss_coeff['mask'] * F.sigmoid_focal_loss(   
             src_masks,
-            target_masks,  # TODO
-            torch.tensor([num_gts], dtype='float32'))
+            target_masks,
+            torch.tensor([num_gts], dtype=torch.float32))
         loss[name_dice] = self.loss_coeff['dice'] * self._dice_loss(src_masks, target_masks, num_gts)
         return loss
 
@@ -136,9 +138,8 @@ class DETRLoss(nn.Module):
                       postfix='',
                       masks=None,
                       gt_mask=None):
-        loss_class = []
-        loss_bbox, loss_giou = [], []
-        loss_mask, loss_dice = [], []
+        # NOTE: loss class, bbox, giou, mask, dice
+        loss = torch.zeros(5, device=boxes.device)
         if dn_match_indices is not None:
             match_indices = dn_match_indices
         elif self.use_uni_match:
@@ -160,45 +161,42 @@ class DETRLoss(nn.Module):
                     iou_score = None
             else:
                 iou_score = None
-            loss_class.append(
-                self._get_loss_class(aux_logits, gt_class, match_indices, bg_index, num_gts, postfix,
-                                     iou_score)['loss_class' + postfix])
+            loss[0] += self._get_loss_class(aux_logits, gt_class, match_indices, bg_index, num_gts, postfix,
+                                     iou_score)['loss_class' + postfix]
             loss_ = self._get_loss_bbox(aux_boxes, gt_bbox, match_indices, num_gts, postfix)
-            loss_bbox.append(loss_['loss_bbox' + postfix])
-            loss_giou.append(loss_['loss_giou' + postfix])
+            loss[1] += loss_['loss_bbox' + postfix]
+            loss[2] += loss_['loss_giou' + postfix]
             if masks is not None and gt_mask is not None:
                 loss_ = self._get_loss_mask(aux_masks, gt_mask, match_indices, num_gts, postfix)
-                loss_mask.append(loss_['loss_mask' + postfix])
-                loss_dice.append(loss_['loss_dice' + postfix])
+                loss[3] += loss_['loss_mask' + postfix]
+                loss[4] += loss_['loss_dice' + postfix]
         loss = {
-            'loss_class_aux' + postfix: torch.add_n(loss_class),  # TODO
-            'loss_bbox_aux' + postfix: torch.add_n(loss_bbox),
-            'loss_giou_aux' + postfix: torch.add_n(loss_giou)}
+            'loss_class_aux' + postfix: loss[0],
+            'loss_bbox_aux' + postfix: loss[1],
+            'loss_giou_aux' + postfix: loss[2]}
         if masks is not None and gt_mask is not None:
-            loss['loss_mask_aux' + postfix] = torch.add_n(loss_mask)
-            loss['loss_dice_aux' + postfix] = torch.add_n(loss_dice)
+            loss['loss_mask_aux' + postfix] = loss[3]
+            loss['loss_dice_aux' + postfix] = loss[4]
         return loss
 
     def _get_index_updates(self, num_query_objects, target, match_indices):
         batch_idx = torch.cat([torch.full_like(src, i) for i, (src, _) in enumerate(match_indices)])
         src_idx = torch.cat([src for (src, _) in match_indices])
         src_idx += (batch_idx * num_query_objects)
-        target_assign = torch.cat([torch.gather(t, dst, axis=0) for t, (_, dst) in zip(target, match_indices)])
+        target_assign = torch.cat([t[dst] for t, (_, dst) in zip(target, match_indices)])
         return src_idx, target_assign
 
     def _get_src_target_assign(self, src, target, match_indices):
-        src_assign = torch.cat([
-            torch.gather(t, I, axis=0) if len(I) > 0 else torch.zeros([0, t.shape[-1]])  # TODO
-            for t, (I, _) in zip(src, match_indices)])
-        target_assign = torch.cat([
-            torch.gather(t, J, axis=0) if len(J) > 0 else torch.zeros([0, t.shape[-1]])
-            for t, (_, J) in zip(target, match_indices)])
+        src_assign = torch.cat([t[I] if len(I) > 0 else torch.zeros([0, t.shape[-1]])
+                                for t, (I, _) in zip(src, match_indices)])
+        target_assign = torch.cat([t[J] if len(J) > 0 else torch.zeros([0, t.shape[-1]])
+                                   for t, (_, J) in zip(target, match_indices)])
         return src_assign, target_assign
 
-    def _get_num_gts(self, targets, dtype='float32'):
+    def _get_num_gts(self, targets, dtype=torch.float32):
         num_gts = sum(len(a) for a in targets)
         num_gts = torch.tensor([num_gts], dtype=dtype)
-        if torch.distributed.get_world_size() > 1:  # TODO
+        if torch.distributed.get_world_size() > 1:
             torch.distributed.all_reduce(num_gts)
             num_gts /= torch.distributed.get_world_size()
         num_gts = torch.clip(num_gts, min=1.)

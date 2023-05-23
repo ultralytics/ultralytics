@@ -62,9 +62,9 @@ If you use the Caltech-256 dataset in your research or development work, please 
 
 ```bibtex
 @article{griffin2007caltech,
-  title={Caltech-256 object category dataset},
-  author={Griffin, Gregory and Holub, Alex and Perona, Pietro},
-  year={2007}
+         title={Caltech-256 object category dataset},
+         author={Griffin, Gregory and Holub, Alex and Perona, Pietro},
+         year={2007}
 }
 ```
 

@@ -55,12 +55,12 @@ import json
 import os
 import platform
 import subprocess
-import pkg_resources as pkg
 import time
 import warnings
 from copy import deepcopy
 from pathlib import Path
 
+import pkg_resources as pkg
 import torch
 
 from ultralytics.nn.autobackend import check_class_names
@@ -94,8 +94,7 @@ def export_formats():
         ['TensorFlow.js', 'tfjs', '_web_model', True, False],
         ['PaddlePaddle', 'paddle', '_paddle_model', True, True],
         ['Neuron', 'neuron', '.neuron', True, False],
-        ['Neuronx', 'neuronx', '.neuronx', True, False],
-    ]
+        ['Neuronx', 'neuronx', '.neuronx', True, False], ]
     return pandas.DataFrame(x, columns=['Format', 'Argument', 'Suffix', 'CPU', 'GPU'])
 
 
@@ -193,7 +192,7 @@ class Exporter:
         model = model.fuse()
         for k, m in model.named_modules():
             if isinstance(m, (Detect, Segment)):
-                m.dynamic = not (neuron or neuronx) and self.args.dynamic # Neuron does not require grid reconstruct
+                m.dynamic = not (neuron or neuronx) and self.args.dynamic  # Neuron does not require grid reconstruct
                 m.export = True
                 m.format = self.args.format
             elif isinstance(m, C2f) and not any((saved_model, pb, tflite, edgetpu, tfjs)):
@@ -301,24 +300,27 @@ class Exporter:
         return f, None
 
     @try_export
-    def export_neuron(self, prefix=colorstr("Neuron:")):
+    def export_neuron(self, prefix=colorstr('Neuron:')):
         """YOLOv8 Neuron model export."""
         requirements = [f'torch_neuron=={torch.__version__.split("+")[0]}.*', 'neuron-cc>=1.3']
         check_requirements(requirements, cmds='--extra-index-url https://pip.repos.neuron.amazonaws.com')
         import torch_neuron
 
-        LOGGER.info(f'\n{prefix} starting export with torch_neuron {torch_neuron.__version__} and neuron-cc {pkg.require("neuron-cc")[0].version}...')
+        LOGGER.info(
+            f'\n{prefix} starting export with torch_neuron {torch_neuron.__version__} and neuron-cc {pkg.require("neuron-cc")[0].version}...'
+        )
         LOGGER.warning(f'{prefix} WARNING ⚠️ export may fail if requirement numpy<=1.21.6,>=1.20 does not satisfy')
 
-        neuron_cc_args = ["--fast-math", "none"]
+        neuron_cc_args = ['--fast-math', 'none']
         f = str(self.file).replace(self.file.suffix, '.neuron')
         if self.args.half:
-            neuron_cc_args = ["--fast-math", "fp32-cast-all-fp16"]
+            neuron_cc_args = ['--fast-math', 'fp32-cast-all-fp16']
             f = str(self.file).replace(self.file.suffix, '_fp16.neuron')
         if self.args.ccargs:
-            ccargs_check = isinstance(self.args.ccargs, (list, tuple)) and all(isinstance(arg, str) for arg in self.args.ccargs)
-            assert ccargs_check, "ccargs type error, expected List[str] | Tuple[str]"
-            neuron_cc_args.extend(self.args.ccargs) # will supersede existing args
+            ccargs_check = isinstance(self.args.ccargs,
+                                      (list, tuple)) and all(isinstance(arg, str) for arg in self.args.ccargs)
+            assert ccargs_check, 'ccargs type error, expected List[str] | Tuple[str]'
+            neuron_cc_args.extend(self.args.ccargs)  # will supersede existing args
 
         neuron_model = torch_neuron.trace(
             self.model,
@@ -333,27 +335,32 @@ class Exporter:
         return f, None
 
     @try_export
-    def export_neuronx(self, prefix=colorstr("Neuronx:")):
+    def export_neuronx(self, prefix=colorstr('Neuronx:')):
         """YOLOv8 Neuronx model export."""
         requirements = [f'torch_neuronx=={torch.__version__.split("+")[0]}.*', 'neuronx-cc==2.*']
-        check_requirements(requirements, cmds="--extra-index-url https://pip.repos.neuron.amazonaws.com")
+        check_requirements(requirements, cmds='--extra-index-url https://pip.repos.neuron.amazonaws.com')
         import torch_neuronx
 
-        LOGGER.info(f'\n{prefix} starting export with torch_neuronx {torch_neuronx.__version__} and neuronx-cc {pkg.require("neuronx-cc")[0].version}...')
-        LOGGER.warning(f'{prefix} WARNING ⚠️ export may fail if neuron runtime is not installed (does not require neuron hardware)')
+        LOGGER.info(
+            f'\n{prefix} starting export with torch_neuronx {torch_neuronx.__version__} and neuronx-cc {pkg.require("neuronx-cc")[0].version}...'
+        )
+        LOGGER.warning(
+            f'{prefix} WARNING ⚠️ export may fail if neuron runtime is not installed (does not require neuron hardware)'
+        )
 
-        neuronx_cc_args = ["--auto-cast", "none"]
+        neuronx_cc_args = ['--auto-cast', 'none']
         f = str(self.file).replace(self.file.suffix, '.neuronx')
         if self.args.half:
-            neuronx_cc_args = ["--auto-cast", "all", "--auto-cast-type", "fp16"]
+            neuronx_cc_args = ['--auto-cast', 'all', '--auto-cast-type', 'fp16']
             f = str(self.file).replace(self.file.suffix, '_fp16.neuronx')
         elif self.args.fp8:
-            neuronx_cc_args = ["--auto-cast", "all", "--auto-cast-type", "fp8_e4m3"]
+            neuronx_cc_args = ['--auto-cast', 'all', '--auto-cast-type', 'fp8_e4m3']
             f = str(self.file).replace(self.file.suffix, '_fp8.neuronx')
         if self.args.ccargs:
-            ccargs_check = isinstance(self.args.ccargs, (list, tuple)) and all(isinstance(arg, str) for arg in self.args.ccargs)
-            assert ccargs_check, "ccargs type error, expected List[str] | Tuple[str]"
-            neuronx_cc_args.extend(self.args.ccargs) # will supersede existing args
+            ccargs_check = isinstance(self.args.ccargs,
+                                      (list, tuple)) and all(isinstance(arg, str) for arg in self.args.ccargs)
+            assert ccargs_check, 'ccargs type error, expected List[str] | Tuple[str]'
+            neuronx_cc_args.extend(self.args.ccargs)  # will supersede existing args
 
         neuronx_model = torch_neuronx.trace(
             self.model,

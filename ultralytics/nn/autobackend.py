@@ -81,7 +81,8 @@ class AutoBackend(nn.Module):
         super().__init__()
         w = str(weights[0] if isinstance(weights, list) else weights)
         nn_module = isinstance(weights, torch.nn.Module)
-        pt, jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, neuron, neuronx, triton = self._model_type(w)
+        pt, jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, neuron, neuronx, triton = self._model_type(
+            w)
         fp16 &= pt or jit or onnx or engine or nn_module or triton  # FP16
         nhwc = coreml or saved_model or pb or tflite or edgetpu  # BHWC formats (vs torch BCWH)
         stride = 32  # default stride
@@ -116,12 +117,12 @@ class AutoBackend(nn.Module):
         elif jit or neuron or neuronx:  # TorchScript / Neuron / Neuronx
             if neuronx:
                 LOGGER.info(f'Loading {w} for Neuronx (NeuronCore-v2) inference...')
-                check_requirements(('torch_neuronx',))
-                __import__("torch_neuronx")
+                check_requirements(('torch_neuronx', ))
+                __import__('torch_neuronx')
             elif neuron:
                 LOGGER.info(f'Loading {w} for Neuron (NeuronCore-v1) inference...')
-                check_requirements(('torch_neuron',))
-                __import__("torch_neuron")
+                check_requirements(('torch_neuron', ))
+                __import__('torch_neuron')
             else:
                 LOGGER.info(f'Loading {w} for TorchScript inference...')
             extra_files = {'config.txt': ''}  # model metadata

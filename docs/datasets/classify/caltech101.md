@@ -66,9 +66,7 @@ If you use the Caltech-101 dataset in your research or development work, please 
   author={Fei-Fei, Li and Fergus, Rob and Perona, Pietro},
   journal={Computer vision and Image understanding},
   volume={106},
-  number={
-
-1},
+  number={1},
   pages={59--70},
   year={2007},
   publisher={Elsevier}

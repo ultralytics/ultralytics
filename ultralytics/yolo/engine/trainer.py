@@ -111,8 +111,8 @@ class BaseTrainer:
             print_args(vars(self.args))
 
         # Device
-        #if self.device.type == 'cpu':
-        #    self.args.workers = 0  # faster CPU training as time dominated by inference, not dataloading
+        if self.device.type == 'cpu':
+            self.args.workers = 0  # faster CPU training as time dominated by inference, not dataloading
 
         # Model and Dataset
         self.model = self.args.model

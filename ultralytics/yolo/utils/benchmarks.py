@@ -185,8 +185,8 @@ class ProfileModels:
             if file.suffix in ('.pt', '.yaml'):
                 model = YOLO(str(file))
                 num_params, num_flops = model.info()
-                if self.trt and torch.cuda.is_available():
-                    engine_file = model.export(format='engine', half=True, imgsz=self.imgsz, device=0)
+                if self.trt and device == 0:
+                    engine_file = model.export(format='engine', half=True, imgsz=self.imgsz, device=device)
                 onnx_file = model.export(format='onnx', half=True, imgsz=self.imgsz, simplify=True, device=device)
             elif file.suffix == '.onnx':
                 num_params, num_flops = self.get_onnx_model_info(file)

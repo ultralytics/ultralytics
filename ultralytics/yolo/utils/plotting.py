@@ -10,6 +10,7 @@ import numpy as np
 import torch
 from PIL import Image, ImageDraw, ImageFont
 from PIL import __version__ as pil_version
+from scipy.ndimage.filters import gaussian_filter1d
 
 from ultralytics.yolo.utils import LOGGER, TryExcept, plt_settings, threaded
 
@@ -455,7 +456,8 @@ def plot_results(file='path/to/results.csv', dir='', segment=False, pose=False, 
             for i, j in enumerate(index):
                 y = data.values[:, j].astype('float')
                 # y[y == 0] = np.nan  # don't show zero values
-                ax[i].plot(x, y, marker='.', label=f.stem, linewidth=2, markersize=8)
+                ax[i].plot(x, y, marker='.', label=f.stem, linewidth=2, markersize=8)  # actual results
+                ax[i].plot(x, gaussian_filter1d(y, sigma=3), ':', label='smooth', linewidth=2)  # smoothing line
                 ax[i].set_title(s[j], fontsize=12)
                 # if j in [8, 9, 10]:  # share train and val loss y axes
                 #     ax[i].get_shared_y_axes().join(ax[i], ax[i - 5])

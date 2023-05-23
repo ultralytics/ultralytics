@@ -249,7 +249,9 @@ class ProfileModels:
         input_type = input_tensor.type
 
         # Mapping ONNX datatype to numpy datatype
-        if 'float' in input_type:
+        if 'float16' in input_type:
+            input_dtype = np.float16
+        elif 'float' in input_type:
             input_dtype = np.float32
         elif 'double' in input_type:
             input_dtype = np.float64

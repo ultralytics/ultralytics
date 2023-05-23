@@ -37,45 +37,32 @@ class RTDETRTrainer(DetectionTrainer):
 
     def criterion(self, preds, batch):
         """Compute loss for RTDETR prediction and ground-truth."""
-        dec_out_bboxes, dec_out_logits, enc_topk_bboxes, enc_topk_logits, dn_meta = preds
         if not hasattr(self, 'compute_loss'):
             self.compute_loss = RTDETRLoss(de_parallel(self.model))
 
+        # TODO: now the returned loss is a dict 
+        dec_out_bboxes, dec_out_logits, enc_topk_bboxes, enc_topk_logits, dn_meta = preds
         if dn_meta is not None:
             if isinstance(dn_meta, list):
                 dual_groups = len(dn_meta) - 1
-                dec_out_bboxes = torch.split(
-                    dec_out_bboxes, dual_groups + 1, dim=2)
-                dec_out_logits = torch.split(
-                    dec_out_logits, dual_groups + 1, dim=2)
-                enc_topk_bboxes = torch.split(
-                    enc_topk_bboxes, dual_groups + 1, dim=1)
-                enc_topk_logits = torch.split(
-                    enc_topk_logits, dual_groups + 1, dim=1)
+                dec_out_bboxes = torch.split(dec_out_bboxes, dual_groups + 1, dim=2)
+                dec_out_logits = torch.split(dec_out_logits, dual_groups + 1, dim=2)
+                enc_topk_bboxes = torch.split(enc_topk_bboxes, dual_groups + 1, dim=1)
+                enc_topk_logits = torch.split(enc_topk_logits, dual_groups + 1, dim=1)
 
                 loss = {}
                 for g_id in range(dual_groups + 1):
                     if dn_meta[g_id] is not None:
-                        dn_out_bboxes_gid, dec_out_bboxes_gid = torch.split(
-                            dec_out_bboxes[g_id],
-                            dn_meta[g_id]['dn_num_split'],
-                            dim=2)
-                        dn_out_logits_gid, dec_out_logits_gid = torch.split(
-                            dec_out_logits[g_id],
-                            dn_meta[g_id]['dn_num_split'],
-                            dim=2)
+                        dn_out_bboxes_gid, dec_out_bboxes_gid = torch.split(dec_out_bboxes[g_id],
+                                                                            dn_meta[g_id]['dn_num_split'], dim=2)
+                        dn_out_logits_gid, dec_out_logits_gid = torch.split(dec_out_logits[g_id],
+                                                                            dn_meta[g_id]['dn_num_split'], dim=2)
                     else:
                         dn_out_bboxes_gid, dn_out_logits_gid = None, None
                         dec_out_bboxes_gid = dec_out_bboxes[g_id]
                         dec_out_logits_gid = dec_out_logits[g_id]
-                    out_bboxes_gid = torch.cat([
-                        enc_topk_bboxes[g_id].unsqueeze(0),
-                        dec_out_bboxes_gid
-                    ])
-                    out_logits_gid = torch.cat([
-                        enc_topk_logits[g_id].unsqueeze(0),
-                        dec_out_logits_gid
-                    ])
+                    out_bboxes_gid = torch.cat([enc_topk_bboxes[g_id].unsqueeze(0), dec_out_bboxes_gid])
+                    out_logits_gid = torch.cat([enc_topk_logits[g_id].unsqueeze(0), dec_out_logits_gid])
                     loss_gid = self.compute_loss(
                         (out_bboxes_gid, out_logits_gid),
                         batch,

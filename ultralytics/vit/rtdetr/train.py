@@ -37,6 +37,7 @@ class RTDETRTrainer(DetectionTrainer):
 
     def criterion(self, preds, batch):
         """Compute loss for RTDETR prediction and ground-truth."""
+        dec_out_bboxes, dec_out_logits, enc_topk_bboxes, enc_topk_logits = preds
         if not hasattr(self, 'compute_loss'):
             self.compute_loss = RTDETRLoss(de_parallel(self.model))
         return self.compute_loss(preds, batch)

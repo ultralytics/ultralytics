@@ -160,7 +160,7 @@ def get_contrastive_denoising_training_group(targets,
             input_query_bbox[i, :num_gt] = targets['bboxes'][i]
             pad_gt_mask[i, :num_gt] = 1
     # each group has positive and negative queries.
-    input_query_class = input_query_class.repeat(1, 2 * num_group)   # bs, 2* max_gt_num * num_group
+    input_query_class = input_query_class.repeat(1, 2 * num_group)  # bs, 2* max_gt_num * num_group
     input_query_bbox = input_query_bbox.repeat(1, 2 * num_group, 1)  # bs, 2* max_gt_num * num_group, 4
     pad_gt_mask = pad_gt_mask.repeat(1, 2 * num_group)
     # positive and negative mask

@@ -70,11 +70,11 @@ research or development work, please cite the following paper:
 
 ```bibtex
 @article{lecun2010mnist,
-  title={MNIST handwritten digit database},
-  author={LeCun, Yann and Cortes, Corinna and Burges, CJ},
-  journal={ATT Labs [Online]. Available: http://yann.lecun.com/exdb/mnist},
-  volume={2},
-  year={2010}
+         title={MNIST handwritten digit database},
+         author={LeCun, Yann and Cortes, Corinna and Burges, CJ},
+         journal={ATT Labs [Online]. Available: http://yann.lecun.com/exdb/mnist},
+         volume={2},
+         year={2010}
 }
 ```
 

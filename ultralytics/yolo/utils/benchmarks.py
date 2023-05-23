@@ -222,12 +222,12 @@ class ProfileModels:
         model = YOLO(engine_file)
         input_data = np.random.rand(self.imgsz, self.imgsz, 3).astype(np.float32)
         for _ in range(self.num_warmup_runs):
-            model(input_data)
+            model(input_data, verbose=False)
 
         # Timed runs
         run_times = []
         for _ in tqdm(range(self.num_timed_runs), desc=engine_file):
-            results = model(input_data)
+            results = model(input_data, verbose=False)
             run_times.append(results[0].speed['inference'])  # Convert to milliseconds
 
         return np.mean(run_times), np.std(run_times)
@@ -236,9 +236,10 @@ class ProfileModels:
         check_requirements('onnxruntime')
         import onnxruntime as ort
 
+        # Session with either 'TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider'
         sess_options = ort.SessionOptions()
         sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
-        sess = ort.InferenceSession(onnx_file, sess_options)
+        sess = ort.InferenceSession(onnx_file, sess_options, providers=['CPUExecutionProvider'])
 
         input_tensor = sess.get_inputs()[0]
         input_data = np.random.rand(*input_tensor.shape).astype(np.float32)

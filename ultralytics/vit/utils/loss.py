@@ -111,10 +111,8 @@ class DETRLoss(nn.Module):
         src_masks, target_masks = self._get_src_target_assign(masks, gt_mask, match_indices)
         src_masks = F.interpolate(src_masks.unsqueeze(0), size=target_masks.shape[-2:], mode='bilinear')[0]
         # TODO: torch does not have `sigmoid_focal_loss`, but it's not urgent since we don't use mask branch for now.
-        loss[name_mask] = self.loss_coeff['mask'] * F.sigmoid_focal_loss(   
-            src_masks,
-            target_masks,
-            torch.tensor([num_gts], dtype=torch.float32))
+        loss[name_mask] = self.loss_coeff['mask'] * F.sigmoid_focal_loss(src_masks, target_masks,
+                                                                         torch.tensor([num_gts], dtype=torch.float32))
         loss[name_dice] = self.loss_coeff['dice'] * self._dice_loss(src_masks, target_masks, num_gts)
         return loss
 
@@ -162,7 +160,7 @@ class DETRLoss(nn.Module):
             else:
                 iou_score = None
             loss[0] += self._get_loss_class(aux_logits, gt_class, match_indices, bg_index, num_gts, postfix,
-                                     iou_score)['loss_class' + postfix]
+                                            iou_score)['loss_class' + postfix]
             loss_ = self._get_loss_bbox(aux_boxes, gt_bbox, match_indices, num_gts, postfix)
             loss[1] += loss_['loss_bbox' + postfix]
             loss[2] += loss_['loss_giou' + postfix]
@@ -187,10 +185,10 @@ class DETRLoss(nn.Module):
         return src_idx, target_assign
 
     def _get_src_target_assign(self, src, target, match_indices):
-        src_assign = torch.cat([t[I] if len(I) > 0 else torch.zeros([0, t.shape[-1]])
-                                for t, (I, _) in zip(src, match_indices)])
-        target_assign = torch.cat([t[J] if len(J) > 0 else torch.zeros([0, t.shape[-1]])
-                                   for t, (_, J) in zip(target, match_indices)])
+        src_assign = torch.cat([
+            t[I] if len(I) > 0 else torch.zeros([0, t.shape[-1]]) for t, (I, _) in zip(src, match_indices)])
+        target_assign = torch.cat([
+            t[J] if len(J) > 0 else torch.zeros([0, t.shape[-1]]) for t, (_, J) in zip(target, match_indices)])
         return src_assign, target_assign
 
     def _get_num_gts(self, targets, dtype=torch.float32):

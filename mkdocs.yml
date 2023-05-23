@@ -400,6 +400,7 @@ plugins:
         yolov5/pytorch_hub.md: yolov5/tutorials/pytorch_hub_model_loading.md
         yolov5/hyp_evolution.md: yolov5/tutorials/hyperparameter_evolution.md
         yolov5/pruning_sparsity.md: yolov5/tutorials/model_pruning_and_sparsity.md
+        yolov5/roboflow.md: yolov5/tutorials/roboflow_datasets_integration.md
         yolov5/comet.md: yolov5/tutorials/comet_logging_integration.md
         yolov5/clearml.md: yolov5/tutorials/clearml_logging_integration.md
         yolov5/tta.md: yolov5/tutorials/test_time_augmentation.md

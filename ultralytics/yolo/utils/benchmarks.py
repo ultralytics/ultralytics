@@ -3,8 +3,9 @@
 Benchmark a YOLO model formats for speed and accuracy
 
 Usage:
-    from ultralytics.yolo.utils.benchmarks import run_benchmarks
+    from ultralytics.yolo.utils.benchmarks import run_benchmarks, ProfileModels
     run_benchmarks(model='yolov8n.pt', imgsz=160)
+    ProfileModels(['yolov8n.yaml', 'yolov8s.yaml'])
 
 Format                  | `format=argument`         | Model
 ---                     | ---                       | ---
@@ -167,6 +168,7 @@ class ProfileModels:
         self.num_timed_runs = num_timed_runs
         self.num_warmup_runs = num_warmup_runs
         self.imgsz = imgsz
+        self.profile()
 
     def profile(self):
         files = self.get_files()
@@ -278,5 +280,4 @@ if __name__ == '__main__':
     benchmark()
 
     # Profiling models on ONNX and TensorRT
-    profiler = ProfileModels(['yolov8n.yaml', 'yolov8s.yaml'])
-    profiler.profile()
+    ProfileModels(['yolov8n.yaml', 'yolov8s.yaml'])

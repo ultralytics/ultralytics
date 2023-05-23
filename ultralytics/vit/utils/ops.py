@@ -63,7 +63,7 @@ class HungarianMatcher(nn.Module):
         # We flatten to compute the cost matrices in a batch
         # [batch_size * num_queries, num_classes]
         logits = logits.detach()
-        out_prob = F.sigmoid(logits.flatten(0, 1)) if self.use_focal_loss else F.softmax(logits.flatten(0, 1))
+        out_prob = F.sigmoid(logits.flatten(0, 1)) if self.use_focal_loss else F.softmax(logits.flatten(0, 1), dim=-1)
         # [batch_size * num_queries, 4]
         out_bbox = boxes.detach().flatten(0, 1)
 
@@ -72,7 +72,7 @@ class HungarianMatcher(nn.Module):
         tgt_bbox = torch.cat(gt_bbox)
 
         # Compute the classification cost
-        out_prob = torch.gather(out_prob, tgt_ids, dim=1)  # TODO
+        out_prob = out_prob[:, tgt_ids]
         if self.use_focal_loss:
             neg_cost_class = (1 - self.alpha) * (out_prob ** self.gamma) * (-(1 - out_prob + 1e-8).log())
             pos_cost_class = self.alpha * ((1 - out_prob) ** self.gamma) * (-(out_prob + 1e-8).log())
@@ -112,18 +112,16 @@ class HungarianMatcher(nn.Module):
                 neg_cost_mask = F.binary_cross_entropy_with_logits(out_mask,
                                                                    torch.zeros_like(out_mask),
                                                                    reduction='none')
-                cost_mask = torch.matmul(pos_cost_mask, tgt_mask, transpose_y=True) + torch.matmul(
-                    neg_cost_mask, 1 - tgt_mask, transpose_y=True)
+                cost_mask = torch.matmul(pos_cost_mask, tgt_mask.T) + torch.matmul(neg_cost_mask, 1 - tgt_mask.T)
                 cost_mask /= self.num_sample_points
 
                 # dice cost
                 out_mask = F.sigmoid(out_mask)
-                numerator = 2 * torch.matmul(out_mask, tgt_mask, transpose_y=True)
+                numerator = 2 * torch.matmul(out_mask, tgt_mask.T)
                 denominator = out_mask.sum(-1, keepdim=True) + tgt_mask.sum(-1).unsqueeze(0)
                 cost_dice = 1 - (numerator + 1) / (denominator + 1)
 
-                C = C + self.matcher_coeff['mask'] * cost_mask + \
-                    self.matcher_coeff['dice'] * cost_dice
+                C = C + self.matcher_coeff['mask'] * cost_mask + self.matcher_coeff['dice'] * cost_dice
 
         C = C.reshape([bs, num_queries, -1])
         C = [a.squeeze(0) for a in C.chunk(bs)]

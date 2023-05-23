@@ -150,7 +150,7 @@ def get_contrastive_denoising_training_group(targets,
     num_group = 1 if num_group == 0 else num_group
     # pad gt to max_num of a batch
     bs = len(targets['cls'])
-    input_query_class = torch.full([bs, max_gt_num], num_classes)  # TBD: removed dtype='int32'
+    input_query_class = torch.full([bs, max_gt_num], num_classes)  # bs, max_gt_num
     input_query_bbox = torch.zeros([bs, max_gt_num, 4])
     pad_gt_mask = torch.zeros([bs, max_gt_num])
     for i in range(bs):
@@ -160,8 +160,8 @@ def get_contrastive_denoising_training_group(targets,
             input_query_bbox[i, :num_gt] = targets['bboxes'][i]
             pad_gt_mask[i, :num_gt] = 1
     # each group has positive and negative queries.
-    input_query_class = input_query_class.repeat(1, 2 * num_group)
-    input_query_bbox = input_query_bbox.repeat(1, 2 * num_group, 1)
+    input_query_class = input_query_class.repeat(1, 2 * num_group)   # bs, 2* max_gt_num * num_group
+    input_query_bbox = input_query_bbox.repeat(1, 2 * num_group, 1)  # bs, 2* max_gt_num * num_group, 4
     pad_gt_mask = pad_gt_mask.repeat(1, 2 * num_group)
     # positive and negative mask
     negative_gt_mask = torch.zeros([bs, max_gt_num * 2, 1])
@@ -184,9 +184,9 @@ def get_contrastive_denoising_training_group(targets,
         # randomly put a new one here
         new_label = torch.randint_like(chosen_idx, 0, num_classes, dtype=input_query_class.dtype)
 
-        input_query_class.scatter_(0, chosen_idx, new_label)
-        input_query_class.reshape(bs, num_denoising)
-        pad_gt_mask.view(bs, num_denoising)
+        input_query_class[chosen_idx] = new_label
+        input_query_class = input_query_class.view(bs, num_denoising)
+        pad_gt_mask = pad_gt_mask.view(bs, num_denoising)
 
     if box_noise_scale > 0:
         known_bbox = xywh2xyxy(input_query_bbox)
@@ -204,13 +204,10 @@ def get_contrastive_denoising_training_group(targets,
 
     class_embed = torch.cat([class_embed, torch.zeros([1, class_embed.shape[-1]])])
 
-    # TODO: check correctness
-    input_query_class = torch.gather(class_embed.flatten(), 0, input_query_class.flatten())
-    # input_query_class = torch.gather(class_embed, input_query_class.flatten(), dim=0).reshape([bs, num_denoising,
-    #                                                                                            -1])
+    input_query_class = class_embed[input_query_class.flatten()].view(bs, num_denoising, -1)
 
     tgt_size = num_denoising + num_queries
-    attn_mask = torch.ones([tgt_size, tgt_size]) < 0
+    attn_mask = torch.zeros([tgt_size, tgt_size], dtype=torch.bool)
     # match query cannot see the reconstruct
     attn_mask[num_denoising:, :num_denoising] = True
     # reconstruct cannot see each other

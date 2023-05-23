@@ -37,15 +37,85 @@ class RTDETRTrainer(DetectionTrainer):
 
     def criterion(self, preds, batch):
         """Compute loss for RTDETR prediction and ground-truth."""
-        dec_out_bboxes, dec_out_logits, enc_topk_bboxes, enc_topk_logits = preds
+        dec_out_bboxes, dec_out_logits, enc_topk_bboxes, enc_topk_logits, dn_meta = preds
         if not hasattr(self, 'compute_loss'):
             self.compute_loss = RTDETRLoss(de_parallel(self.model))
-        return self.compute_loss(preds, batch)
+
+        if dn_meta is not None:
+            if isinstance(dn_meta, list):
+                dual_groups = len(dn_meta) - 1
+                dec_out_bboxes = torch.split(
+                    dec_out_bboxes, dual_groups + 1, dim=2)
+                dec_out_logits = torch.split(
+                    dec_out_logits, dual_groups + 1, dim=2)
+                enc_topk_bboxes = torch.split(
+                    enc_topk_bboxes, dual_groups + 1, dim=1)
+                enc_topk_logits = torch.split(
+                    enc_topk_logits, dual_groups + 1, dim=1)
+
+                loss = {}
+                for g_id in range(dual_groups + 1):
+                    if dn_meta[g_id] is not None:
+                        dn_out_bboxes_gid, dec_out_bboxes_gid = torch.split(
+                            dec_out_bboxes[g_id],
+                            dn_meta[g_id]['dn_num_split'],
+                            dim=2)
+                        dn_out_logits_gid, dec_out_logits_gid = torch.split(
+                            dec_out_logits[g_id],
+                            dn_meta[g_id]['dn_num_split'],
+                            dim=2)
+                    else:
+                        dn_out_bboxes_gid, dn_out_logits_gid = None, None
+                        dec_out_bboxes_gid = dec_out_bboxes[g_id]
+                        dec_out_logits_gid = dec_out_logits[g_id]
+                    out_bboxes_gid = torch.cat([
+                        enc_topk_bboxes[g_id].unsqueeze(0),
+                        dec_out_bboxes_gid
+                    ])
+                    out_logits_gid = torch.cat([
+                        enc_topk_logits[g_id].unsqueeze(0),
+                        dec_out_logits_gid
+                    ])
+                    loss_gid = self.compute_loss(
+                        (out_bboxes_gid, out_logits_gid),
+                        batch,
+                        dn_out_bboxes=dn_out_bboxes_gid,
+                        dn_out_logits=dn_out_logits_gid,
+                        dn_meta=dn_meta[g_id])
+                    # sum loss
+                    for key, value in loss_gid.items():
+                        loss.update({
+                            key: loss.get(key, torch.zeros([1])) + value
+                        })
+
+                # average across (dual_groups + 1)
+                for key, value in loss.items():
+                    loss.update({key: value / (dual_groups + 1)})
+                return loss
+            else:
+                dn_out_bboxes, dec_out_bboxes = torch.split(
+                    dec_out_bboxes, dn_meta['dn_num_split'], dim=2)
+                dn_out_logits, dec_out_logits = torch.split(
+                    dec_out_logits, dn_meta['dn_num_split'], dim=2)
+        else:
+            dn_out_bboxes, dn_out_logits = None, None
+
+        out_bboxes = torch.cat(
+            [enc_topk_bboxes.unsqueeze(0), dec_out_bboxes])
+        out_logits = torch.cat(
+            [enc_topk_logits.unsqueeze(0), dec_out_logits])
+
+        return self.compute_loss(
+            (out_bboxes, out_logits),
+            batch,
+            dn_out_bboxes=dn_out_bboxes,
+            dn_out_logits=dn_out_logits,
+            dn_meta=dn_meta)
 
 
 class RTDETRLoss(DETRLoss):
 
-    def compute_loss(self, preds, batch, dn_out_bboxes=None, dn_out_logits=None, dn_meta=None, **kwargs):
+    def forward(self, preds, batch, dn_out_bboxes=None, dn_out_logits=None, dn_meta=None):
         gt_class, gt_bbox = batch['cls'], batch['bboxes']
         boxes, logits = preds
         num_gts = self._get_num_gts(gt_class)

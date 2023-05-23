@@ -118,7 +118,7 @@ Auto-annotation is an essential feature that allows you to generate a segmentati
 To auto-annotate your dataset using the Ultralytics framework, you can use the `auto_annotate` function as shown below:
 
 ```python
-from ultralytics.yolo.data import auto_annotate
+from ultralytics.yolo.data.annotator import auto_annotate
 
 auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model='sam_b.pt')
 ```

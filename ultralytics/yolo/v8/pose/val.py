@@ -18,7 +18,7 @@ class PoseValidator(DetectionValidator):
         """Initialize a 'PoseValidator' object with custom parameters and assigned attributes."""
         super().__init__(dataloader, save_dir, pbar, args, _callbacks)
         self.args.task = 'pose'
-        self.metrics = PoseMetrics(save_dir=self.save_dir)
+        self.metrics = PoseMetrics(save_dir=self.save_dir, on_plot=self.on_plot)
 
     def preprocess(self, batch):
         """Preprocesses the batch by converting the 'keypoints' data into a float and moving it to the device."""
@@ -33,15 +33,14 @@ class PoseValidator(DetectionValidator):
 
     def postprocess(self, preds):
         """Apply non-maximum suppression and return detections with high confidence scores."""
-        preds = ops.non_max_suppression(preds,
-                                        self.args.conf,
-                                        self.args.iou,
-                                        labels=self.lb,
-                                        multi_label=True,
-                                        agnostic=self.args.single_cls,
-                                        max_det=self.args.max_det,
-                                        nc=self.nc)
-        return preds
+        return ops.non_max_suppression(preds,
+                                       self.args.conf,
+                                       self.args.iou,
+                                       labels=self.lb,
+                                       multi_label=True,
+                                       agnostic=self.args.single_cls,
+                                       max_det=self.args.max_det,
+                                       nc=self.nc)
 
     def init_metrics(self, model):
         """Initiate pose estimation metrics for YOLO model."""
@@ -150,7 +149,8 @@ class PoseValidator(DetectionValidator):
                     kpts=batch['keypoints'],
                     paths=batch['im_file'],
                     fname=self.save_dir / f'val_batch{ni}_labels.jpg',
-                    names=self.names)
+                    names=self.names,
+                    on_plot=self.on_plot)
 
     def plot_predictions(self, batch, preds, ni):
         """Plots predictions for YOLO model."""
@@ -160,7 +160,8 @@ class PoseValidator(DetectionValidator):
                     kpts=pred_kpts,
                     paths=batch['im_file'],
                     fname=self.save_dir / f'val_batch{ni}_pred.jpg',
-                    names=self.names)  # pred
+                    names=self.names,
+                    on_plot=self.on_plot)  # pred
 
     def pred_to_json(self, predn, filename):
         """Converts YOLO predictions to COCO JSON format."""

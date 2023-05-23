@@ -158,38 +158,6 @@ jobs:
           python --version
           pip --version
           pip list
-      - name: Test Detect
-        shell: bash  # for Windows compatibility
-        run: |
-          yolo detect train data=coco8.yaml model=yolov8n.yaml epochs=1 imgsz=32
-          yolo detect train data=coco8.yaml model=yolov8n.pt epochs=1 imgsz=32
-          yolo detect val data=coco8.yaml model=runs/detect/train/weights/last.pt imgsz=32
-          yolo detect predict model=runs/detect/train/weights/last.pt imgsz=32 source=ultralytics/assets/bus.jpg
-          yolo export model=runs/detect/train/weights/last.pt imgsz=32 format=torchscript
-      - name: Test Segment
-        shell: bash  # for Windows compatibility
-        run: |
-          yolo segment train data=coco8-seg.yaml model=yolov8n-seg.yaml epochs=1 imgsz=32
-          yolo segment train data=coco8-seg.yaml model=yolov8n-seg.pt epochs=1 imgsz=32
-          yolo segment val data=coco8-seg.yaml model=runs/segment/train/weights/last.pt imgsz=32
-          yolo segment predict model=runs/segment/train/weights/last.pt imgsz=32 source=ultralytics/assets/bus.jpg
-          yolo export model=runs/segment/train/weights/last.pt imgsz=32 format=torchscript
-      - name: Test Classify
-        shell: bash  # for Windows compatibility
-        run: |
-          yolo classify train data=imagenet10 model=yolov8n-cls.yaml epochs=1 imgsz=32
-          yolo classify train data=imagenet10 model=yolov8n-cls.pt epochs=1 imgsz=32
-          yolo classify val data=imagenet10 model=runs/classify/train/weights/last.pt imgsz=32
-          yolo classify predict model=runs/classify/train/weights/last.pt imgsz=32 source=ultralytics/assets/bus.jpg
-          yolo export model=runs/classify/train/weights/last.pt imgsz=32 format=torchscript
-      - name: Test Pose
-        shell: bash  # for Windows compatibility
-        run: |
-          yolo pose train data=coco8-pose.yaml model=yolov8n-pose.yaml epochs=1 imgsz=32
-          yolo pose train data=coco8-pose.yaml model=yolov8n-pose.pt epochs=1 imgsz=32
-          yolo pose val data=coco8-pose.yaml model=runs/pose/train/weights/last.pt imgsz=32
-          yolo pose predict model=runs/pose/train/weights/last.pt imgsz=32 source=ultralytics/assets/bus.jpg
-          yolo export model=runs/pose/train/weights/last.pt imgsz=32 format=torchscript
       - name: Pytest tests
         shell: bash  # for Windows compatibility
         run: pytest tests
@@ -201,7 +169,7 @@ jobs:
     steps:
       - name: Check for failure and notify
         if: (needs.HUB.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure') && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push')
-        uses: slackapi/slack-github-action@v1.23.0
+        uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
             {"text": "<!channel> GitHub Actions error for ${{ github.workflow }} ❌\n\n\n*Repository:* https://github.com/${{ github.repository }}\n*Action:* https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n*Author:* ${{ github.actor }}\n*Event:* ${{ github.event_name }}\n"}

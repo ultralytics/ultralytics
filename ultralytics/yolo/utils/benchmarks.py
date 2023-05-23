@@ -3,7 +3,7 @@
 Benchmark a YOLO model formats for speed and accuracy
 
 Usage:
-    from ultralytics.yolo.utils.benchmarks import ProfileModels, run_benchmarks
+    from ultralytics.yolo.utils.benchmarks import ProfileModels, benchmark
     ProfileModels(['yolov8n.yaml', 'yolov8s.yaml'])
     run_benchmarks(model='yolov8n.pt', imgsz=160)
 
@@ -246,7 +246,8 @@ class ProfileModels:
         sess = ort.InferenceSession(onnx_file, sess_options, providers=['CPUExecutionProvider'])
 
         input_tensor = sess.get_inputs()[0]
-        input_data = np.random.rand(*input_tensor.shape).astype(np.float16 if torch.cuda.is_available() else np.float32)
+        input_dtype = np.dtype(input_tensor.type)
+        input_data = np.random.rand(*input_tensor.shape).astype(input_dtype)
         input_name = input_tensor.name
         output_name = sess.get_outputs()[0].name
 

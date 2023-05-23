@@ -163,7 +163,7 @@ class ProfileModels:
         profile(): Profiles the models and prints the result.
     """
 
-    def __init__(self, paths: list, num_timed_runs=100, num_warmup_runs=3, imgsz=640, trt=True):
+    def __init__(self, paths: list, num_timed_runs=100, num_warmup_runs=10, imgsz=640, trt=True):
         self.paths = paths
         self.num_timed_runs = num_timed_runs
         self.num_warmup_runs = num_warmup_runs
@@ -181,11 +181,11 @@ class ProfileModels:
         table_rows = []
         device = 0 if torch.cuda.is_available() else 'cpu'
         for file in files:
-            engine_file = ''
+            engine_file = file.with_suffix('.engine')
             if file.suffix in ('.pt', '.yaml'):
                 model = YOLO(str(file))
                 num_params, num_flops = model.info()
-                if self.trt and device == 0:
+                if self.trt and device == 0 and not engine_file.is_file():
                     engine_file = model.export(format='engine', half=True, imgsz=self.imgsz, device=device)
                 onnx_file = model.export(format='onnx', half=True, imgsz=self.imgsz, simplify=True, device=device)
             elif file.suffix == '.onnx':
@@ -229,7 +229,7 @@ class ProfileModels:
         return data
 
     def profile_tensorrt_model(self, engine_file: str):
-        if not Path(engine_file).is_file():
+        if not self.trt or not Path(engine_file).is_file():
             return 0.0, 0.0
 
         # Warmup runs
@@ -240,7 +240,7 @@ class ProfileModels:
 
         # Timed runs
         run_times = []
-        for _ in tqdm(range(self.num_timed_runs), desc=engine_file):
+        for _ in tqdm(range(self.num_timed_runs * 10), desc=engine_file):
             results = model(input_data, verbose=False)
             run_times.append(results[0].speed['inference'])  # Convert to milliseconds
 

@@ -128,7 +128,7 @@ class Mosaic(BaseMixTransform):
         n (int, optional): The grid size, either 4 (for 2x2) or 9 (for 3x3).
     """
 
-    def __init__(self, dataset, imgsz=640, p=1.0, n=9):
+    def __init__(self, dataset, imgsz=640, p=1.0, n=4):
         """Initializes the object with a dataset, image size, probability, and border."""
         assert 0 <= p <= 1.0, f'The probability should be in range [0, 1], but got {p}.'
         assert n in (4, 9), 'grid must be equal to 4 or 9.'

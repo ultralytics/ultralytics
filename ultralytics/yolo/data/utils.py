@@ -266,7 +266,7 @@ def check_det_dataset(dataset, autodownload=True):
     return data  # dictionary
 
 
-def check_cls_dataset(dataset: str, split: str):
+def check_cls_dataset(dataset: str, split=''):
     """
     Check a classification dataset such as Imagenet.
 
@@ -275,7 +275,7 @@ def check_cls_dataset(dataset: str, split: str):
 
     Args:
         dataset (str): Name of the dataset.
-        split (str): Dataset split, either 'val', 'test', or ''
+        split (str, optional): Dataset split, either 'val', 'test', or ''. Defaults to ''.
 
     Returns:
         data (dict): A dictionary containing the following keys and values:

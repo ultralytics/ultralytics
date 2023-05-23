@@ -179,6 +179,7 @@ class ProfileModels:
             return
 
         table_rows = []
+        device = 0 if torch.cuda.is_available() else 'cpu'
         for file in files:
             engine_file = ''
             if file.suffix in ('.pt', '.yaml'):
@@ -186,7 +187,7 @@ class ProfileModels:
                 num_params, num_flops = model.info()
                 if self.trt and torch.cuda.is_available():
                     engine_file = model.export(format='engine', half=True, imgsz=self.imgsz, device=0)
-                onnx_file = model.export(format='onnx', half=True, imgsz=self.imgsz, simplify=True)
+                onnx_file = model.export(format='onnx', half=True, imgsz=self.imgsz, simplify=True, device=device)
             elif file.suffix == '.onnx':
                 num_params, num_flops = self.get_onnx_model_info(file)
                 onnx_file = file

@@ -40,7 +40,7 @@ class RTDETRTrainer(DetectionTrainer):
         if not hasattr(self, 'compute_loss'):
             self.compute_loss = RTDETRLoss(de_parallel(self.model))
 
-        # TODO: now the returned loss is a dict
+        # TODO: now the returned loss is a dict, but we need a tensor and a tensor.detach()
         dec_out_bboxes, dec_out_logits, enc_topk_bboxes, enc_topk_logits, dn_meta = preds
         dn_out_bboxes, dec_out_bboxes = torch.split(dec_out_bboxes, dn_meta['dn_num_split'], dim=2)
         dn_out_logits, dec_out_logits = torch.split(dec_out_logits, dn_meta['dn_num_split'], dim=2)
@@ -82,7 +82,7 @@ class RTDETRLoss(DETRLoss):
                                       num_gts=num_gts)
             total_loss.update(dn_loss)
         else:
-            total_loss.update({k + '_dn': torch.to_tensor([0.]) for k in total_loss.keys()})
+            total_loss.update({k + '_dn': torch.tensor([0.]) for k in total_loss.keys()})
 
         return total_loss
 
@@ -92,12 +92,12 @@ class RTDETRLoss(DETRLoss):
         for i in range(len(labels)):
             num_gt = len(labels[i])
             if num_gt > 0:
-                gt_idx = torch.arange(end=num_gt, dtype='int64')
-                gt_idx = gt_idx.tile([dn_num_group])
+                gt_idx = torch.arange(end=num_gt, dtype=torch.int64)
+                gt_idx = gt_idx.repeat(dn_num_group)
                 assert len(dn_positive_idx[i]) == len(gt_idx)
                 dn_match_indices.append((dn_positive_idx[i], gt_idx))
             else:
-                dn_match_indices.append((torch.zeros([0], dtype='int64'), torch.zeros([0], dtype='int64')))
+                dn_match_indices.append((torch.zeros([0], dtype=torch.int64), torch.zeros([0], dtype=torch.int64)))
         return dn_match_indices
 
 

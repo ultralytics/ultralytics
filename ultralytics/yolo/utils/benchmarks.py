@@ -163,12 +163,13 @@ class ProfileModels:
         profile(): Profiles the models and prints the result.
     """
 
-    def __init__(self, paths: list, num_timed_runs: int = 100, num_warmup_runs: int = 3, imgsz: int = 640):
+    def __init__(self, paths: list, num_timed_runs=100, num_warmup_runs=3, imgsz=640, trt=True):
         self.paths = paths
         self.num_timed_runs = num_timed_runs
         self.num_warmup_runs = num_warmup_runs
         self.imgsz = imgsz
-        self.profile()
+        self.trt = trt  # run TensorRT profiling
+        self.profile()  # run profiling
 
     def profile(self):
         files = self.get_files()
@@ -183,7 +184,7 @@ class ProfileModels:
             if file.suffix in ('.pt', '.yaml'):
                 model = YOLO(str(file))
                 num_params, num_flops = model.info()
-                if torch.cuda.is_available():
+                if self.trt and torch.cuda.is_available():
                     engine_file = model.export(format='engine', half=True, imgsz=self.imgsz, device=0)
                 onnx_file = model.export(format='onnx', half=True, imgsz=self.imgsz, simplify=True)
             elif file.suffix == '.onnx':

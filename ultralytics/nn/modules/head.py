@@ -243,7 +243,7 @@ class RTDETRDecoder(nn.Module):
                                                          self.label_noise_ratio,
                                                          self.box_noise_scale)
         else:
-            denoising_class, denoising_bbox_unact, attn_mask = None, None, None
+            denoising_class, denoising_bbox_unact, attn_mask, dn_meta = None, None, None, None
 
         target, init_ref_points_unact, enc_topk_bboxes, enc_topk_logits = \
             self._get_decoder_input(memory, spatial_shapes, denoising_class, denoising_bbox_unact)
@@ -259,7 +259,7 @@ class RTDETRDecoder(nn.Module):
                                               attn_mask=attn_mask)
         if not self.training:
             out_logits = out_logits.sigmoid_()
-        return out_bboxes, out_logits  # enc_topk_bboxes, enc_topk_logits, dn_meta
+        return out_bboxes, out_logits, enc_topk_bboxes, enc_topk_logits, dn_meta
 
     def _reset_parameters(self):
         # class and bbox head init
@@ -355,9 +355,6 @@ class RTDETRDecoder(nn.Module):
         enc_outputs_coord_unact = self.enc_bbox_head(output_memory) + anchors  # (bs, h*w, 4)
 
         # (bs, topk)
-        # FIX HERE
-        import pdb
-        pdb.set_trace()
         _, topk_ind = torch.topk(enc_outputs_class.max(-1).values, self.num_queries, dim=1)
         # extract region proposal boxes
         # (bs, topk_ind)

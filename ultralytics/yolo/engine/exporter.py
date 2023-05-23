@@ -305,7 +305,6 @@ class Exporter:
         """YOLOv8 Neuron model export."""
         requirements = [f'torch_neuron=={torch.__version__.split("+")[0]}.*', 'neuron-cc>=1.3']
         check_requirements(requirements, cmds='--extra-index-url https://pip.repos.neuron.amazonaws.com')
-        check_requirements(['numpy<=1.21.6,>=1.20'])
         import torch_neuron
 
         LOGGER.info(f'\n{prefix} starting export with torch_neuron {torch_neuron.__version__} and neuron-cc {pkg.require("neuron-cc")[0].version}...')

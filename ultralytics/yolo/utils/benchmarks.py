@@ -246,7 +246,20 @@ class ProfileModels:
         sess = ort.InferenceSession(onnx_file, sess_options, providers=['CPUExecutionProvider'])
 
         input_tensor = sess.get_inputs()[0]
-        input_dtype = np.dtype(input_tensor.type)
+        input_type = input_tensor.type
+
+        # Mapping ONNX datatype to numpy datatype
+        if 'float' in input_type:
+            input_dtype = np.float32
+        elif 'double' in input_type:
+            input_dtype = np.float64
+        elif 'int64' in input_type:
+            input_dtype = np.int64
+        elif 'int32' in input_type:
+            input_dtype = np.int32
+        else:
+            raise ValueError(f"Unsupported ONNX datatype {input_type}")
+
         input_data = np.random.rand(*input_tensor.shape).astype(input_dtype)
         input_name = input_tensor.name
         output_name = sess.get_outputs()[0].name

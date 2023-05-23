@@ -9,7 +9,6 @@ from ultralytics.yolo.utils.ops import xywh2xyxy
 
 
 class DETRLoss(nn.Module):
-    # TODO
 
     def __init__(self,
                  num_classes=80,

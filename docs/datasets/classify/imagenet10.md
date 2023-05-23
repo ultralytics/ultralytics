@@ -60,17 +60,13 @@ If you use the ImageNet10 dataset in your research or development work, please c
 
 ```bibtex
 @article{ILSVRC15,
-  Author = {Olga Russakovsky
-
- and Jia Deng and Hao Su and Jonathan Krause and Sanjeev Satheesh and Sean Ma and Zhiheng Huang and Andrej Karpathy and Aditya Khosla and Michael Bernstein and Alexander C. Berg and Li Fei-Fei},
-  Title = { {ImageNet Large
-
-Scale Visual Recognition Challenge}},
-  Year = {2015},
-  journal   = {International Journal of Computer Vision (IJCV)},
-  volume={115},
-  number={3},
-  pages={211-252}
+         author = {Olga Russakovsky and Jia Deng and Hao Su and Jonathan Krause and Sanjeev Satheesh and Sean Ma and Zhiheng Huang and Andrej Karpathy and Aditya Khosla and Michael Bernstein and Alexander C. Berg and Li Fei-Fei},
+         title={ImageNet Large Scale Visual Recognition Challenge},
+         year={2015},
+         journal={International Journal of Computer Vision (IJCV)},
+         volume={115},
+         number={3},
+         pages={211-252}
 }
 ```
 

@@ -65,10 +65,10 @@ If you use the CIFAR-10 dataset in your research or development work, please cit
 
 ```bibtex
 @TECHREPORT{Krizhevsky09learningmultiple,
-    author = {Alex Krizhevsky},
-    title = {Learning multiple layers of features from tiny images},
-    institution = {},
-    year = {2009}
+            author={Alex Krizhevsky},
+            title={Learning multiple layers of features from tiny images},
+            institution={},
+            year={2009}
 }
 ```
 

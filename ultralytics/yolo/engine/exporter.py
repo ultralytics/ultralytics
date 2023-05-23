@@ -310,18 +310,16 @@ class Exporter:
 
         LOGGER.info(f'\n{prefix} starting export with torch_neuron {torch_neuron.__version__} and neuron-cc {pkg.require("neuron-cc")[0].version}...')
         LOGGER.warning(f'{prefix} WARNING ⚠️ export may fail if requirement numpy<=1.21.6,>=1.20 does not satisfy')
+
+        neuron_cc_args = ["--fast-math", "none"]
         f = str(self.file).replace(self.file.suffix, '.neuron')
         if self.args.half:
-            f = str(self.file).replace(self.file.suffix, '_fp16.neuron')
-
-        torch_neuron.analyze_model(self.model, example_inputs=[self.im])
-        neuron_cc_args = ["--fast-math", "none"]
-        if self.args.half:
             neuron_cc_args = ["--fast-math", "fp32-cast-all-fp16"]
+            f = str(self.file).replace(self.file.suffix, '_fp16.neuron')
         if self.args.ccargs:
             ccargs_check = isinstance(self.args.ccargs, (list, tuple)) and all(isinstance(arg, str) for arg in self.args.ccargs)
             assert ccargs_check, "ccargs type error, expected List[str] | Tuple[str]"
-            neuron_cc_args.extend(self.args.ccargs) # will supercede existing args
+            neuron_cc_args.extend(self.args.ccargs) # will supersede existing args
 
         neuron_model = torch_neuron.trace(
             self.model,
@@ -344,19 +342,19 @@ class Exporter:
 
         LOGGER.info(f'\n{prefix} starting export with torch_neuronx {torch_neuronx.__version__} and neuronx-cc {pkg.require("neuronx-cc")[0].version}...')
         LOGGER.warning(f'{prefix} WARNING ⚠️ export may fail if neuron runtime is not installed (does not require neuron hardware)')
-        f = str(self.file).replace(self.file.suffix, '.neuronx')
-        if self.args.half:
-            f = str(self.file).replace(self.file.suffix, '_fp16.neuronx')
 
         neuronx_cc_args = ["--auto-cast", "none"]
+        f = str(self.file).replace(self.file.suffix, '.neuronx')
         if self.args.half:
             neuronx_cc_args = ["--auto-cast", "all", "--auto-cast-type", "fp16"]
+            f = str(self.file).replace(self.file.suffix, '_fp16.neuronx')
         elif self.args.fp8:
             neuronx_cc_args = ["--auto-cast", "all", "--auto-cast-type", "fp8_e4m3"]
+            f = str(self.file).replace(self.file.suffix, '_fp8.neuronx')
         if self.args.ccargs:
             ccargs_check = isinstance(self.args.ccargs, (list, tuple)) and all(isinstance(arg, str) for arg in self.args.ccargs)
             assert ccargs_check, "ccargs type error, expected List[str] | Tuple[str]"
-            neuronx_cc_args.extend(self.args.ccargs) # will supercede existing args
+            neuronx_cc_args.extend(self.args.ccargs) # will supersede existing args
 
         neuronx_model = torch_neuronx.trace(
             self.model,

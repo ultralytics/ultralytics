@@ -240,7 +240,7 @@ class ProfileModels:
 
         # Timed runs
         run_times = []
-        for _ in tqdm(range(self.num_timed_runs * 10), desc=engine_file):
+        for _ in tqdm(range(self.num_timed_runs * 30), desc=engine_file):
             results = model(input_data, verbose=False)
             run_times.append(results[0].speed['inference'])  # Convert to milliseconds
 
@@ -292,7 +292,7 @@ class ProfileModels:
         return np.mean(run_times), np.std(run_times)
 
     def generate_table_row(self, model_name, t_onnx, t_engine, num_params, num_flops):
-        return f'| {model_name} | {self.imgsz} | - | {t_onnx[0]:.2f} ± {t_onnx[1]:.2f} ms | {t_engine[0]:.2f} ± {t_engine[1]:.2f} ms | {num_params / 1e6:.1f} | {num_flops:.1f} |'
+        return f'| {model_name:18s} | {self.imgsz} | - | {t_onnx[0]:.2f} ± {t_onnx[1]:.2f} ms | {t_engine[0]:.2f} ± {t_engine[1]:.2f} ms | {num_params / 1e6:.1f} | {num_flops:.1f} |'
 
     def print_table(self, table_rows):
         gpu = torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'GPU'

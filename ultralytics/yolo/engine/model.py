@@ -10,10 +10,11 @@ from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, PoseModel
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, ROOT, callbacks,
-                                    is_git_dir, yaml_load)
+                                    is_git_dir, yaml_load, IterableSimpleNamespace)
 from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_pip_update_available, check_yaml
 from ultralytics.yolo.utils.downloads import GITHUB_ASSET_STEMS
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode
+
 
 # Map head to model, trainer, validator, and predictor classes
 TASK_MAP = {
@@ -331,10 +332,14 @@ class YOLO:
         overrides = self.overrides.copy()
         overrides.update(kwargs)
         overrides['mode'] = 'export'
-        args = get_cfg(cfg=DEFAULT_CFG, overrides=overrides)
+
+        # Modify the defaults for the export
+        EXPORT_CFG = IterableSimpleNamespace(**vars(DEFAULT_CFG))
+        EXPORT_CFG.imgsz = self.model.args['imgsz']
+        EXPORT_CFG.batch = 1
+
+        args = get_cfg(cfg=EXPORT_CFG, overrides=overrides)
         args.task = self.task
-        if args.imgsz == DEFAULT_CFG.imgsz:
-            args.imgsz = self.model.args['imgsz']  # use trained imgsz unless custom value is passed
         return Exporter(overrides=args, _callbacks=self.callbacks)(model=self.model)
 
     def train(self, **kwargs):

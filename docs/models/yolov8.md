@@ -75,3 +75,40 @@ YOLOv8 is the latest iteration in the YOLO series of real-time object detectors,
         | [YOLOv8l-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-pose.pt)       | 640                   | 67.6                  | 90.0               | 784.5                          | 2.59                                | 44.4               | 168.6             |
         | [YOLOv8x-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose.pt)       | 640                   | 69.2                  | 90.2               | 1607.1                         | 3.73                                | 69.4               | 263.2             |
         | [YOLOv8x-pose-p6](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose-p6.pt) | 1280                  | 71.6                  | 91.2               | 4088.7                         | 10.04                               | 99.1               | 1066.4            |
+
+
+## Usage
+
+You can use YOLOv8 for object detection tasks using the Ultralytics pip package. The following is a sample code snippet showing how to use YOLOv8 models for inference:
+
+```python
+from ultralytics import YOLO
+
+# Load the model
+model = YOLO('yolov8n.pt')  # load a pretrained model
+
+# Perform inference
+results = model('image.jpg')
+
+# Print the results
+results.print()
+```
+
+
+## Citation
+
+If you use the YOLOv8 model or any other software from this repository in your work, please cite it using the following format:
+
+```bibtex
+@software{yolov8_ultralytics,
+  author       = {Glenn Jocher and Ayush Chaurasia and Jing Qiu},
+  title        = {YOLO by Ultralytics},
+  version      = {8.0.0},
+  year         = {2023},
+  url          = {https://github.com/ultralytics/ultralytics},
+  orcid        = {0000-0001-5950-6979, 0000-0002-7603-6750, 0000-0003-3783-7069},
+  license      = {AGPL-3.0}
+}
+```
+
+Please note that the DOI is pending and will be added to the citation once it is available. The usage of the software is in accordance with the AGPL-3.0 license.

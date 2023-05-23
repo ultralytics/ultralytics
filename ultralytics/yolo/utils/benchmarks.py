@@ -246,7 +246,7 @@ class ProfileModels:
         sess = ort.InferenceSession(onnx_file, sess_options, providers=['CPUExecutionProvider'])
 
         input_tensor = sess.get_inputs()[0]
-        input_data = np.random.rand(*input_tensor.shape).astype(np.float32)
+        input_data = np.random.rand(*input_tensor.shape).astype(np.float16 if torch.cuda.is_available() else np.float32)
         input_name = input_tensor.name
         output_name = sess.get_outputs()[0].name
 

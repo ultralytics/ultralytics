@@ -117,11 +117,11 @@ class AutoBackend(nn.Module):
             if neuronx:
                 LOGGER.info(f'Loading {w} for Neuronx (NeuronCore-v2) inference...')
                 check_requirements(('torch_neuronx',))
-                import torch_neuronx # intentional import
+                __import__("torch_neuronx")
             elif neuron:
                 LOGGER.info(f'Loading {w} for Neuron (NeuronCore-v1) inference...')
                 check_requirements(('torch_neuron',))
-                import torch_neuron # intentional import
+                __import__("torch_neuron")
             else:
                 LOGGER.info(f'Loading {w} for TorchScript inference...')
             extra_files = {'config.txt': ''}  # model metadata

@@ -176,7 +176,7 @@ i.e. `yolo predict model=yolov8n-pose.onnx`. Usage examples are shown for your m
 | [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`         | `yolov8n-pose_edgetpu.tflite`  | ✅        | `imgsz`                                             |
 | [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n-pose_web_model/`      | ✅        | `imgsz`                                             |
 | [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n-pose_paddle_model/`   | ✅        | `imgsz`                                             |
-| [Neuron](https://awsdocs-neuron.readthedocs-hosted.com)            | `neuron`          | `yolov8n-pose.neuron`          | ✅        | `imgsz`, `half`, `dynamic`                                           |
-| [Neuronx](https://awsdocs-neuron.readthedocs-hosted.com)           | `neuronx`         | `yolov8n-pose.neuronx`         | ✅        | `imgsz`, `half`, `dynamic`                                           |
+| [Neuron](https://awsdocs-neuron.readthedocs-hosted.com)            | `neuron`          | `yolov8n-pose.neuron`          | ✅        | `imgsz`, `half`, `dynamic`, `ccargs`                                           |
+| [Neuronx](https://awsdocs-neuron.readthedocs-hosted.com)           | `neuronx`         | `yolov8n-pose.neuronx`         | ✅        | `imgsz`, `half`, `fp8`, `dynamic`, `ccargs`                                           |
 
 See full `export` details in the [Export](https://docs.ultralytics.com/modes/export/) page.

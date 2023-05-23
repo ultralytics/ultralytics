@@ -299,9 +299,9 @@ def check_cls_dataset(dataset: str, split: str):
     train_set = data_dir / 'train'
     val_set = data_dir / 'val' if (data_dir / 'val').exists() else None  # data/test or data/val
     test_set = data_dir / 'test' if (data_dir / 'test').exists() else None  # data/val or data/test
-    if split=='val' and not val_set:
+    if split == 'val' and not val_set:
         LOGGER.info(f"WARNING ⚠️ Dataset 'split=val' not found, using 'split=test' instead.")
-    elif split=='test' and not test_set:
+    elif split == 'test' and not test_set:
         LOGGER.info(f"WARNING ⚠️ Dataset 'split=test' not found, using 'split=val' instead.")
 
     nc = len([x for x in (data_dir / 'train').glob('*') if x.is_dir()])  # number of classes

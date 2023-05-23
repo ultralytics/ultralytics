@@ -366,7 +366,7 @@ class RTDETRDecoder(nn.Module):
 
         enc_topk_bboxes = torch.sigmoid(reference_points_unact)
         if denoising_bbox_unact is not None:
-            reference_points_unact = torch.concat([denoising_bbox_unact, reference_points_unact], 1)
+            reference_points_unact = torch.cat([denoising_bbox_unact, reference_points_unact], 1)
         if self.training:
             reference_points_unact = reference_points_unact.detach()
         enc_topk_logits = enc_outputs_class[batch_ind, topk_ind].view(bs, self.num_queries, -1)
@@ -379,6 +379,6 @@ class RTDETRDecoder(nn.Module):
             if self.training:
                 target = target.detach()
         if denoising_class is not None:
-            target = torch.concat([denoising_class, target], 1)
+            target = torch.cat([denoising_class, target], 1)
 
         return target, reference_points_unact, enc_topk_bboxes, enc_topk_logits

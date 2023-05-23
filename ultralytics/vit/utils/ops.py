@@ -200,7 +200,7 @@ def get_contrastive_denoising_training_group(targets,
         input_query_bbox = xywh2xyxy(known_bbox)
         input_query_bbox = inverse_sigmoid(input_query_bbox)
 
-    class_embed = torch.cat([class_embed, torch.zeros([1, class_embed.shape[-1]])])
+    class_embed = torch.cat([class_embed, torch.zeros([1, class_embed.shape[-1]], device=class_embed.device)])
 
     input_query_class = class_embed[input_query_class.flatten()].view(bs, num_denoising, -1)
 
@@ -223,7 +223,7 @@ def get_contrastive_denoising_training_group(targets,
         'dn_num_group': num_group,
         'dn_num_split': [num_denoising, num_queries]}
 
-    return input_query_class, input_query_bbox, attn_mask, dn_meta
+    return input_query_class.to(class_embed.device), input_query_bbox.to(class_embed.device), attn_mask, dn_meta
 
 
 def inverse_sigmoid(x, eps=1e-6):

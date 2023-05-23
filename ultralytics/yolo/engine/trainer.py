@@ -310,7 +310,6 @@ class BaseTrainer:
             self.tloss = None
             self.optimizer.zero_grad()
             for i, batch in pbar:
-                REGISTER['batch'] = batch
                 self.run_callbacks('on_train_batch_start')
                 # Warmup
                 ni = i + nb * epoch
@@ -327,6 +326,7 @@ class BaseTrainer:
                 # Forward
                 with torch.cuda.amp.autocast(self.amp):
                     batch = self.preprocess_batch(batch)
+                    REGISTER['batch'] = batch
                     preds = self.model(batch['img'])
                     self.loss, self.loss_items = self.criterion(preds, batch)
                     if RANK != -1:

@@ -107,7 +107,7 @@ def train(cfg=DEFAULT_CFG, use_python=False):
     data = cfg.data or 'coco128.yaml'  # or yolo.ClassificationDataset("mnist")
     device = cfg.device if cfg.device is not None else ''
 
-    args = dict(model=model, data=data, device=device, imgsz=16)
+    args = dict(model=model, data=data, device=device, imgsz=640)
     trainer = RTDETRTrainer(overrides=args)
     trainer.train()
 

@@ -9,8 +9,8 @@ from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, PoseModel
                                   attempt_load_one_weight, guess_model_task, nn, yaml_model_load)
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
-from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, ROOT,
-                                    IterableSimpleNamespace, callbacks, is_git_dir, yaml_load)
+from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, ROOT, callbacks,
+                                    is_git_dir, yaml_load)
 from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_pip_update_available, check_yaml
 from ultralytics.yolo.utils.downloads import GITHUB_ASSET_STEMS
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode
@@ -331,13 +331,11 @@ class YOLO:
         overrides = self.overrides.copy()
         overrides.update(kwargs)
         overrides['mode'] = 'export'
-
-        # Modify the defaults for the export
-        EXPORT_CFG = IterableSimpleNamespace(**vars(DEFAULT_CFG))
-        EXPORT_CFG.imgsz = self.model.args['imgsz']
-        EXPORT_CFG.batch = 1
-
-        args = get_cfg(cfg=EXPORT_CFG, overrides=overrides)
+        if overrides.get('imgsz') is None:
+            overrides['imgsz'] = self.model.args['imgsz']  # use trained imgsz unless custom value is passed
+        if overrides.get('batch') is None:
+            overrides['batch'] = 1  # default to 1 if not modified
+        args = get_cfg(cfg=DEFAULT_CFG, overrides=overrides)
         args.task = self.task
         return Exporter(overrides=args, _callbacks=self.callbacks)(model=self.model)
 

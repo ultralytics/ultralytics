@@ -162,8 +162,9 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
     """Model information. imgsz may be int or list, i.e. imgsz=640 or imgsz=[640, 320]."""
     if not verbose:
         return
-    n_p = get_num_params(model)
-    n_g = get_num_gradients(model)  # number gradients
+    n_p = get_num_params(model)  # number of parameters
+    n_g = get_num_gradients(model)  # number of gradients
+    n_l = len(list(model.modules()))  # number of layers
     if detailed:
         LOGGER.info(
             f"{'layer':>5} {'name':>40} {'gradient':>9} {'parameters':>12} {'shape':>20} {'mu':>10} {'sigma':>10}")
@@ -176,8 +177,8 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
     fused = ' (fused)' if model.is_fused() else ''
     fs = f', {flops:.1f} GFLOPs' if flops else ''
     m = Path(getattr(model, 'yaml_file', '') or model.yaml.get('yaml_file', '')).stem.replace('yolo', 'YOLO') or 'Model'
-    LOGGER.info(f'{m} summary{fused}: {len(list(model.modules()))} layers, {n_p} parameters, {n_g} gradients{fs}')
-    return n_p, flops
+    LOGGER.info(f'{m} summary{fused}: {n_l} layers, {n_p} parameters, {n_g} gradients{fs}')
+    return n_l, n_p, n_g, flops
 
 
 def get_num_params(model):

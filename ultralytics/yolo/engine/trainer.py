@@ -22,7 +22,6 @@ from torch.optim import lr_scheduler
 from tqdm import tqdm
 
 from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
-from ultralytics.register import REGISTER
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.yolo.utils import (DEFAULT_CFG, LOGGER, ONLINE, RANK, ROOT, SETTINGS, TQDM_BAR_FORMAT, __version__,
@@ -326,7 +325,6 @@ class BaseTrainer:
                 # Forward
                 with torch.cuda.amp.autocast(self.amp):
                     batch = self.preprocess_batch(batch)
-                    REGISTER['batch'] = batch
                     preds = self.model(batch['img'])
                     self.loss, self.loss_items = self.criterion(preds, batch)
                     if RANK != -1:

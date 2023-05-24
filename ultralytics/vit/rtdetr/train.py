@@ -7,6 +7,7 @@ from ultralytics.vit.utils.loss import DETRLoss
 from ultralytics.yolo.utils import DEFAULT_CFG, colorstr
 from ultralytics.yolo.utils.torch_utils import de_parallel
 from ultralytics.yolo.v8.detect import DetectionTrainer
+from ultralytics.register import REGISTER
 
 
 class RTDETRTrainer(DetectionTrainer):
@@ -35,10 +36,17 @@ class RTDETRTrainer(DetectionTrainer):
         self.loss_names = 'box_loss', 'cls_loss', 'dfl_loss'
         return RTDETRValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
 
+    def preprocess_batch(self, batch):
+        """Preprocesses a batch of images by scaling and converting to float."""
+        batch = super().preprocess_batch(batch)
+        targets = torch.cat((batch['batch_idx'].view(-1, 1), batch['cls'].view(-1, 1), batch['bboxes']), 1)
+        REGISTER['batch'] = RTDETRLoss.preprocess(targets, batch_size=len(batch["img"]))
+        return batch
+
     def criterion(self, preds, batch):
         """Compute loss for RTDETR prediction and ground-truth."""
         if not hasattr(self, 'compute_loss'):
-            self.compute_loss = RTDETRLoss(de_parallel(self.model))
+            self.compute_loss = RTDETRLoss(use_vfl=True)
 
         # TODO: now the returned loss is a dict, but we need a tensor and a tensor.detach()
         dec_out_bboxes, dec_out_logits, enc_topk_bboxes, enc_topk_logits, dn_meta = preds
@@ -100,6 +108,23 @@ class RTDETRLoss(DETRLoss):
                 dn_match_indices.append((torch.zeros([0], dtype=torch.int64), torch.zeros([0], dtype=torch.int64)))
         return dn_match_indices
 
+    @staticmethod
+    def preprocess(targets, batch_size):
+        """Preprocesses the target counts and matches with the input batch size to output a tensor."""
+        if targets.shape[0] == 0:
+            out = torch.zeros(batch_size, 0, 5, device=targets.device)
+        else:
+            i = targets[:, 0]  # image index
+            _, counts = i.unique(return_counts=True)
+            counts = counts.to(dtype=torch.int32)
+            out = torch.zeros(batch_size, counts.max(), 5, device=targets.device)
+            for j in range(batch_size):
+                matches = i == j
+                n = matches.sum()
+                if n:
+                    out[j, :n] = targets[matches, 1:]
+        return {"cls": out[..., 0], "bboxes": out[..., 1:]}
+
 
 def train(cfg=DEFAULT_CFG, use_python=False):
     """Train and optimize RTDETR model given training data and device."""
@@ -107,7 +132,7 @@ def train(cfg=DEFAULT_CFG, use_python=False):
     data = cfg.data or 'coco128.yaml'  # or yolo.ClassificationDataset("mnist")
     device = cfg.device if cfg.device is not None else ''
 
-    args = dict(model=model, data=data, device=device, imgsz=640)
+    args = dict(model=model, data=data, device=device, imgsz=640, exist_ok=True, batch=4)
     trainer = RTDETRTrainer(overrides=args)
     trainer.train()
 

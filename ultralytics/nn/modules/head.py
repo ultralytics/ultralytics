@@ -340,7 +340,7 @@ class RTDETRDecoder(nn.Module):
             level_start_index.append(h * w + level_start_index[-1])
 
         # [b, l, c]
-        feat_flatten = torch.concat(feat_flatten, 1)
+        feat_flatten = torch.cat(feat_flatten, 1)
         level_start_index.pop()
         return feat_flatten, spatial_shapes, level_start_index
 

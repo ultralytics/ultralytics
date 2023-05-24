@@ -2,17 +2,17 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ultralytics.vit.utils.ops import HungarianMatcher
+from ultralytics.vit.utils.ops import HungarianMatcher, xywh2xyxy
 from ultralytics.yolo.utils.loss import FocalLoss, GIoULoss, VarifocalLoss
 from ultralytics.yolo.utils.metrics import bbox_iou
-from ultralytics.yolo.utils.ops import xywh2xyxy
+from ultralytics.yolo.utils import WORLD_SIZE
 
 
 class DETRLoss(nn.Module):
 
     def __init__(self,
                  num_classes=80,
-                 matcher=HungarianMatcher,
+                 matcher=HungarianMatcher(matcher_coeff={"class": 2, "bbox": 5, "giou": 2}),
                  loss_coeff={
                      'class': 1,
                      'bbox': 5,
@@ -194,9 +194,9 @@ class DETRLoss(nn.Module):
     def _get_num_gts(self, targets, dtype=torch.float32):
         num_gts = sum(len(a) for a in targets)
         num_gts = torch.tensor([num_gts], dtype=dtype)
-        if torch.distributed.get_world_size() > 1:
+        if WORLD_SIZE > 1:
             torch.distributed.all_reduce(num_gts)
-            num_gts /= torch.distributed.get_world_size()
+            num_gts /= WORLD_SIZE
         num_gts = torch.clip(num_gts, min=1.)
         return num_gts
 

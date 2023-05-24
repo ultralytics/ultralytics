@@ -320,8 +320,7 @@ class DeformableTransformerDecoderLayer(nn.Module):
         # self attention
         q = k = self.with_pos_embed(tgt, query_pos)
         if attn_mask is not None:
-            attn_mask = torch.where(attn_mask.astype('bool'), torch.zeros(attn_mask.shape, tgt.dtype),
-                                    torch.full(attn_mask.shape, float('-inf'), tgt.dtype))
+            attn_mask = torch.where(attn_mask.to(torch.bool), 0, -torch.inf)
         tgt2 = self.self_attn(q.transpose(0, 1), k.transpose(0, 1), tgt.transpose(0, 1))[0].transpose(0, 1)
         tgt = tgt + self.dropout1(tgt2)
         tgt = self.norm1(tgt)

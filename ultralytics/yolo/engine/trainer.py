@@ -693,5 +693,8 @@ def check_amp(model):
     except AssertionError:
         LOGGER.warning(f'{prefix}checks failed ❌. Anomalies were detected with AMP on your system that may lead to '
                        f'NaN losses or zero-mAP results, so AMP will be disabled during training.')
+    except AttributeError:
+        LOGGER.warning(f'{prefix}checks skipped ⚠️. YOLO model may have been modified so the check cannot be done '
+                       f'correctly')
         return False
     return True

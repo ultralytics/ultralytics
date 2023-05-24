@@ -299,7 +299,7 @@ class ProfileModels:
         header = f'| Model | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>{gpu} TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |'
         separator = '|-------------|---------------------|--------------------|------------------------------|-----------------------------------|------------------|-----------------|'
 
-        print(header)
+        print(f'\n\n{header}')
         print(separator)
         for row in table_rows:
             print(row)

@@ -690,9 +690,9 @@ def check_amp(model):
         assert amp_allclose(YOLO('yolov8n.pt'), im)
         LOGGER.info(f'{prefix}checks passed ✅')
     except ConnectionError:
-        LOGGER.warning(f"{prefix}checks skipped ⚠️, offline and unable to download YOLOv8n. {warning_msg}")
+        LOGGER.warning(f'{prefix}checks skipped ⚠️, offline and unable to download YOLOv8n. {warning_msg}')
     except (AttributeError, ModuleNotFoundError):
-        LOGGER.warning(f"{prefix}checks skipped ⚠️. Unable to load YOLOv8n due to possible Ultralytics package 
+        LOGGER.warning(f"{prefix}checks skipped ⚠️. Unable to load YOLOv8n due to possible Ultralytics package
                        modifications. {warning_msg}")
     except AssertionError:
         LOGGER.warning(f'{prefix}checks failed ❌. Anomalies were detected with AMP on your system that may lead to '

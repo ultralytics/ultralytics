@@ -66,8 +66,14 @@ class RTDETRTrainer(DetectionTrainer):
 class RTDETRLoss(DETRLoss):
 
     def forward(self, preds, batch, dn_out_bboxes=None, dn_out_logits=None, dn_meta=None):
-        gt_class, gt_bbox = batch['cls'], batch['bboxes']
         boxes, logits = preds
+        # NOTE: convert bboxes and cls to list.
+        bs = boxes.shape[1]
+        batch_idx = batch["batch_idx"]
+        gt_bbox, gt_class = [], []
+        for i in range(bs):
+            gt_bbox.append(batch['bboxes'][batch_idx==i].to(boxes.device))
+            gt_class.append(batch['cls'][batch_idx==i].to(device=boxes.device, dtype=torch.long))
         num_gts = self._get_num_gts(gt_class)
         total_loss = super().forward(boxes, logits, gt_bbox, gt_class, num_gts=num_gts)
 

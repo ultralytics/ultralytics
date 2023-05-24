@@ -92,8 +92,8 @@ class GIoULoss:
         return iou, overlap, union
 
     def __call__(self, pbox, gbox, iou_weight=1., loc_reweight=None):
-        x1, y1, x2, y2 = pbox.split(4, dim=-1)
-        x1g, y1g, x2g, y2g = gbox.split(4, dim=-1)
+        x1, y1, x2, y2 = pbox.chunk(4, dim=-1)
+        x1g, y1g, x2g, y2g = gbox.chunk(4, dim=-1)
         box1 = [x1, y1, x2, y2]
         box2 = [x1g, y1g, x2g, y2g]
         iou, overlap, union = self.bbox_overlap(box1, box2, self.eps)

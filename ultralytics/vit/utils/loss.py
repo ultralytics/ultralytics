@@ -154,7 +154,7 @@ class DETRLoss(nn.Module):
             if self.use_vfl:
                 if sum(len(a) for a in gt_bbox) > 0:
                     src_bbox, target_bbox = self._get_src_target_assign(aux_boxes.detach(), gt_bbox, match_indices)
-                    iou_score = bbox_iou(xywh2xyxy(src_bbox).split(4, -1), xywh2xyxy(target_bbox).split(4, -1))
+                    iou_score = bbox_iou(xywh2xyxy(src_bbox), xywh2xyxy(target_bbox))
                 else:
                     iou_score = None
             else:
@@ -218,7 +218,7 @@ class DETRLoss(nn.Module):
         if self.use_vfl:
             if sum(len(a) for a in gt_bbox) > 0:
                 src_bbox, target_bbox = self._get_src_target_assign(boxes.detach(), gt_bbox, match_indices)
-                iou_score = bbox_iou(xywh2xyxy(src_bbox).split(4, -1), xywh2xyxy(target_bbox).split(4, -1))
+                iou_score = bbox_iou(xywh2xyxy(src_bbox), xywh2xyxy(target_bbox))
             else:
                 iou_score = None
         else:

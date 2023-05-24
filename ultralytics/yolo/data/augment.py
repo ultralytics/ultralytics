@@ -93,7 +93,7 @@ class BaseMixTransform:
             indexes = [indexes]
 
         # Get images information will be used for Mosaic or MixUp
-        mix_labels = [self.dataset.get_label_info(i) for i in indexes]
+        mix_labels = [self.dataset.get_image_and_label(i) for i in indexes]
 
         if self.pre_transform is not None:
             for i, data in enumerate(mix_labels):
@@ -135,12 +135,15 @@ class Mosaic(BaseMixTransform):
         super().__init__(dataset=dataset, p=p)
         self.dataset = dataset
         self.imgsz = imgsz
-        self.border = [-imgsz // 2, -imgsz // 2] if n == 4 else [-imgsz, -imgsz]
+        self.border = (-imgsz // 2, -imgsz // 2)  # width, height
         self.n = n
 
-    def get_indexes(self):
+    def get_indexes(self, buffer=True):
         """Return a list of random indexes from the dataset."""
-        return [random.randint(0, len(self.dataset) - 1) for _ in range(self.n - 1)]
+        if buffer:  # select images from buffer
+            return random.choices(list(self.dataset.buffer), k=self.n - 1)
+        else:  # select any images
+            return [random.randint(0, len(self.dataset) - 1) for _ in range(self.n - 1)]
 
     def _mix_transform(self, labels):
         """Apply mixup transformation to the input image and labels."""
@@ -224,10 +227,12 @@ class Mosaic(BaseMixTransform):
             img9[y1:y2, x1:x2] = img[y1 - padh:, x1 - padw:]  # img9[ymin:ymax, xmin:xmax]
             hp, wp = h, w  # height, width previous for next iteration
 
-            labels_patch = self._update_labels(labels_patch, padw, padh)
+            # Labels assuming imgsz*2 mosaic size
+            labels_patch = self._update_labels(labels_patch, padw + self.border[0], padh + self.border[1])
             mosaic_labels.append(labels_patch)
         final_labels = self._cat_labels(mosaic_labels)
-        final_labels['img'] = img9
+
+        final_labels['img'] = img9[-self.border[0]:self.border[0], -self.border[1]:self.border[1]]
         return final_labels
 
     @staticmethod
@@ -245,18 +250,20 @@ class Mosaic(BaseMixTransform):
             return {}
         cls = []
         instances = []
+        imgsz = self.imgsz * 2  # mosaic imgsz
         for labels in mosaic_labels:
             cls.append(labels['cls'])
             instances.append(labels['instances'])
         final_labels = {
             'im_file': mosaic_labels[0]['im_file'],
             'ori_shape': mosaic_labels[0]['ori_shape'],
-            'resized_shape': (self.imgsz * 2, self.imgsz * 2),
+            'resized_shape': (imgsz, imgsz),
             'cls': np.concatenate(cls, 0),
             'instances': Instances.concatenate(instances, axis=0),
             'mosaic_border': self.border}  # final_labels
-        clip_size = self.imgsz * (2 if self.n == 4 else 3)
-        final_labels['instances'].clip(clip_size, clip_size)
+        final_labels['instances'].clip(imgsz, imgsz)
+        good = final_labels['instances'].remove_zero_area_boxes()
+        final_labels['cls'] = final_labels['cls'][good]
         return final_labels
 
 

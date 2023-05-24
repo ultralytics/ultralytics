@@ -8,7 +8,7 @@ to as keypoints. The keypoints can represent various parts of the object such as
 features. The locations of the keypoints are usually represented as a set of 2D `[x, y]` or 3D `[x, y, visible]`
 coordinates.
 
-<img width="1024" src="https://user-images.githubusercontent.com/26833433/212094133-6bb8c21c-3d47-41df-a512-81c5931054ae.png">
+<img width="1024" src="https://user-images.githubusercontent.com/26833433/239691398-d62692dc-713e-4207-9908-2f6710050e5c.jpg">
 
 The output of a pose estimation model is a set of points that represent the keypoints on an object in the image, usually
 along with the confidence scores for each point. Pose estimation is a good choice when you need to identify specific
@@ -75,6 +75,10 @@ Train a YOLOv8-pose model on the COCO128-pose dataset.
         # Build a new model from YAML, transfer pretrained weights to it and start training
         yolo pose train data=coco8-pose.yaml model=yolov8n-pose.yaml pretrained=yolov8n-pose.pt epochs=100 imgsz=640
         ```
+
+### Dataset format
+
+YOLO pose dataset format can be found in detail in the [Dataset Guide](../datasets/pose/index.md). To convert your existing dataset from other formats( like COCO etc.) to YOLO format, please use [json2yolo tool](https://github.com/ultralytics/JSON2YOLO) by Ultralytics.
 
 ## Val
 

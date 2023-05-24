@@ -115,6 +115,9 @@ class DetectionValidator(BaseValidator):
             if self.args.save_txt:
                 file = self.save_dir / 'labels' / f'{Path(batch["im_file"][si]).stem}.txt'
                 self.save_one_txt(predn, self.args.save_conf, shape, file)
+            if self.args.plots:
+                self.output_bad_cases(predn, labelsn)
+
 
     def finalize_metrics(self, *args, **kwargs):
         """Set final values for metrics speed and confusion matrix."""
@@ -149,9 +152,18 @@ class DetectionValidator(BaseValidator):
                                            normalize=normalize,
                                            on_plot=self.on_plot)
 
-    def output_bad_cases(self, batch, preds, ni):
-        """Out the images with overkill and underkill result"""
+    def output_bad_cases(self, detections, labels):
+        """Out the images with overkill and underkill result
+        Args:
+            detections (Array[N, 6]): Detected bounding boxes and their associated information.
+                                      Each row should contain (x1, y1, x2, y2, conf, class).
+            labels (Array[M, 5]): Ground truth bounding boxes and their associated class labels.
+                                  Each row should contain (class, x1, y1, x2, y2).
+        """
         print('Print sample images')
+        print(detections)
+        print(labels)
+
         pass
 
     def _process_batch(self, detections, labels):

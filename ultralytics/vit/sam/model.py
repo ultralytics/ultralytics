@@ -2,9 +2,9 @@
 
 from ultralytics.yolo.cfg import get_cfg
 
+from ...yolo.utils.torch_utils import model_info
 from .build import build_sam
 from .predict import Predictor
-from ...yolo.utils.torch_utils import model_info
 
 
 class SAM:

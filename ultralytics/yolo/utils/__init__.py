@@ -372,12 +372,15 @@ def is_online() -> bool:
     """
     import socket
 
-    for server in '1.1.1.1', '8.8.8.8', '223.5.5.5':  # Cloudflare, Google, AliDNS:
+    for host in '1.1.1.1', '8.8.8.8', '223.5.5.5':  # Cloudflare, Google, AliDNS:
         try:
-            socket.create_connection((server, 53), timeout=2)  # connect to (server, port=53)
-            return True
+            test_connection = socket.create_connection(address=(host, 53), timeout=2)
         except (socket.timeout, socket.gaierror, OSError):
             continue
+        else:
+            # If the connection was successful, close it to avoid a ResourceWarning
+            test_connection.close()
+            return True
     return False
 
 

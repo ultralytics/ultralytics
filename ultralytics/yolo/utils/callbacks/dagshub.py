@@ -4,11 +4,9 @@ DagsHub callback
 """
 
 import os
-import re
 from glob import glob
-from pathlib import Path
 
-from ultralytics.yolo.utils import LOGGER, TESTS_RUNNING
+from ultralytics.yolo.utils import TESTS_RUNNING
 
 from .mlflow import mlflow as is_mlflow
 
@@ -26,7 +24,8 @@ except (ImportError, AssertionError):
 def splitter(repo):
     # util function to split stdio
     splitted = repo.split('/')
-    if len(splitted) != 2: raise ValueError(f'Invalid input, should be owner_name/repo_name, but got {repo} instead')
+    if len(splitted) != 2:
+        raise ValueError(f'Invalid input, should be owner_name/repo_name, but got {repo} instead')
     return splitted[1], splitted[0]
 
 

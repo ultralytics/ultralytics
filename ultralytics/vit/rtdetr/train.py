@@ -3,11 +3,11 @@ from copy import copy
 import torch
 from val import RTDETRDataset, RTDETRValidator
 
+from ultralytics.register import REGISTER
 from ultralytics.vit.utils.loss import DETRLoss
 from ultralytics.yolo.utils import DEFAULT_CFG, colorstr
 from ultralytics.yolo.utils.torch_utils import de_parallel
 from ultralytics.yolo.v8.detect import DetectionTrainer
-from ultralytics.register import REGISTER
 
 
 class RTDETRTrainer(DetectionTrainer):
@@ -39,13 +39,13 @@ class RTDETRTrainer(DetectionTrainer):
     def preprocess_batch(self, batch):
         """Preprocesses a batch of images by scaling and converting to float."""
         batch = super().preprocess_batch(batch)
-        bs = len(batch["img"])
-        batch_idx = batch["batch_idx"]
+        bs = len(batch['img'])
+        batch_idx = batch['batch_idx']
         gt_bbox, gt_class = [], []
         for i in range(bs):
-            gt_bbox.append(batch['bboxes'][batch_idx==i].to(batch_idx.device))
-            gt_class.append(batch['cls'][batch_idx==i].to(device=batch_idx.device, dtype=torch.long))
-        REGISTER['batch'] = {"cls": gt_class, "bboxes": gt_bbox}
+            gt_bbox.append(batch['bboxes'][batch_idx == i].to(batch_idx.device))
+            gt_class.append(batch['cls'][batch_idx == i].to(device=batch_idx.device, dtype=torch.long))
+        REGISTER['batch'] = {'cls': gt_class, 'bboxes': gt_bbox}
         return batch
 
     def criterion(self, preds, batch):
@@ -68,7 +68,7 @@ class RTDETRTrainer(DetectionTrainer):
                                  dn_out_bboxes=dn_out_bboxes,
                                  dn_out_logits=dn_out_logits,
                                  dn_meta=dn_meta)
-        return sum(loss.values()), torch.as_tensor([loss[k].detach() for k in ["loss_giou", "loss_class", "loss_bbox"]])
+        return sum(loss.values()), torch.as_tensor([loss[k].detach() for k in ['loss_giou', 'loss_class', 'loss_bbox']])
 
 
 class RTDETRLoss(DETRLoss):
@@ -77,11 +77,11 @@ class RTDETRLoss(DETRLoss):
         boxes, logits = preds
         # NOTE: convert bboxes and cls to list.
         bs = boxes.shape[1]
-        batch_idx = batch["batch_idx"]
+        batch_idx = batch['batch_idx']
         gt_bbox, gt_class = [], []
         for i in range(bs):
-            gt_bbox.append(batch['bboxes'][batch_idx==i].to(boxes.device))
-            gt_class.append(batch['cls'][batch_idx==i].to(device=boxes.device, dtype=torch.long))
+            gt_bbox.append(batch['bboxes'][batch_idx == i].to(boxes.device))
+            gt_class.append(batch['cls'][batch_idx == i].to(device=boxes.device, dtype=torch.long))
         num_gts = self._get_num_gts(gt_class)
         total_loss = super().forward(boxes, logits, gt_bbox, gt_class, num_gts=num_gts)
 
@@ -117,7 +117,7 @@ class RTDETRLoss(DETRLoss):
                 gt_idx = torch.arange(end=num_gt, dtype=torch.int64)
                 gt_idx = gt_idx.repeat(dn_num_group)
                 assert len(dn_positive_idx[i]) == len(gt_idx), \
-                        f"Expected the same length, but got {len(dn_positive_idx[i])} and {len(gt_idx)} respectively."
+                        f'Expected the same length, but got {len(dn_positive_idx[i])} and {len(gt_idx)} respectively.'
                 dn_match_indices.append((dn_positive_idx[i], gt_idx))
             else:
                 dn_match_indices.append((torch.zeros([0], dtype=torch.int64), torch.zeros([0], dtype=torch.int64)))

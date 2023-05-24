@@ -126,7 +126,7 @@ class HungarianMatcher(nn.Module):
         C = C.reshape([bs, num_queries, -1])
         C = [a.squeeze(0) for a in C.chunk(bs)]
         sizes = [a.shape[0] for a in gt_bbox]
-        indices = [linear_sum_assignment(c.split(sizes, -1)[i].numpy()) for i, c in enumerate(C)]
+        indices = [linear_sum_assignment(c.split(sizes, -1)[i].cpu().numpy()) for i, c in enumerate(C)]
         return [(torch.tensor(i, dtype=torch.int64), torch.tensor(j, dtype=torch.int64)) for i, j in indices]
 
 

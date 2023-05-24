@@ -21,7 +21,7 @@ class DETRLoss(nn.Module):
                      'mask': 1,
                      'dice': 1},
                  aux_loss=True,
-                 use_focal_loss=False,
+                 use_focal_loss=True,
                  use_vfl=False,
                  use_uni_match=False,
                  uni_match_ind=0):
@@ -55,18 +55,18 @@ class DETRLoss(nn.Module):
         name_class = 'loss_class' + postfix
         varifocal_loss = VarifocalLoss()
         focal_loss = FocalLoss()
-        target_label = torch.full(logits.shape[:2], bg_index, dtype=torch.int64)
+        target_label = torch.full(logits.shape[:2], bg_index, device=logits.device, dtype=torch.int64)
         bs, num_query_objects = target_label.shape
         num_gt = sum(len(a) for a in gt_class)
         if num_gt > 0:
             index, updates = self._get_index_updates(num_query_objects, gt_class, match_indices)
             target_label = target_label.view(-1, 1)
-            target_label[index] = updates.to(torch.int64)
+            target_label[index] = updates.to(dtype=torch.int64)
             target_label = target_label.view(bs, num_query_objects)
         if self.use_focal_loss:
             target_label = F.one_hot(target_label, self.num_classes + 1)[..., :-1]
             if iou_score is not None and self.use_vfl:
-                target_score = torch.zeros([bs, num_query_objects])
+                target_score = torch.zeros([bs, num_query_objects], device=logits.device)
                 if num_gt > 0:
                     target_score = target_score.view(-1, 1)
                     target_score[index] = iou_score
@@ -77,7 +77,7 @@ class DETRLoss(nn.Module):
                 loss_ = self.loss_coeff['class'] * focal_loss(logits, target_label, num_gts / num_query_objects)
         else:
             loss_ = F.cross_entropy(logits, target_label, weight=self.loss_coeff['class'])
-        return {name_class: loss_}
+        return {name_class: loss_.squeeze()}
 
     def _get_loss_bbox(self, boxes, gt_bbox, match_indices, num_gts, postfix=''):
         # boxes: [b, query, 4], gt_bbox: list[[n, 4]]
@@ -95,6 +95,7 @@ class DETRLoss(nn.Module):
         loss[name_giou] = self.giou_loss(xywh2xyxy(src_bbox), xywh2xyxy(target_bbox))
         loss[name_giou] = loss[name_giou].sum() / num_gts
         loss[name_giou] = self.loss_coeff['giou'] * loss[name_giou]
+        loss = {k: v.squeeze() for k, v in loss.items()}
         return loss
 
     def _get_loss_mask(self, masks, gt_mask, match_indices, num_gts, postfix=''):
@@ -193,11 +194,10 @@ class DETRLoss(nn.Module):
 
     def _get_num_gts(self, targets, dtype=torch.float32):
         num_gts = sum(len(a) for a in targets)
-        num_gts = torch.tensor([num_gts], dtype=dtype)
         if WORLD_SIZE > 1:
             torch.distributed.all_reduce(num_gts)
             num_gts /= WORLD_SIZE
-        num_gts = torch.clip(num_gts, min=1.)
+        num_gts = max(num_gts, 1)
         return num_gts
 
     def _get_prediction_loss(self,

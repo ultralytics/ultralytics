@@ -33,14 +33,19 @@ class RTDETRTrainer(DetectionTrainer):
 
     def get_validator(self):
         """Returns a DetectionValidator for RTDETR model validation."""
-        self.loss_names = 'box_loss', 'cls_loss', 'dfl_loss'
+        self.loss_names = 'giou_loss', 'cls_loss', 'l1_loss'
         return RTDETRValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
 
     def preprocess_batch(self, batch):
         """Preprocesses a batch of images by scaling and converting to float."""
         batch = super().preprocess_batch(batch)
-        targets = torch.cat((batch['batch_idx'].view(-1, 1), batch['cls'].view(-1, 1), batch['bboxes']), 1)
-        REGISTER['batch'] = RTDETRLoss.preprocess(targets, batch_size=len(batch["img"]))
+        bs = len(batch["img"])
+        batch_idx = batch["batch_idx"]
+        gt_bbox, gt_class = [], []
+        for i in range(bs):
+            gt_bbox.append(batch['bboxes'][batch_idx==i].to(batch_idx.device))
+            gt_class.append(batch['cls'][batch_idx==i].to(device=batch_idx.device, dtype=torch.long))
+        REGISTER['batch'] = {"cls": gt_class, "bboxes": gt_bbox}
         return batch
 
     def criterion(self, preds, batch):
@@ -56,11 +61,12 @@ class RTDETRTrainer(DetectionTrainer):
         out_bboxes = torch.cat([enc_topk_bboxes.unsqueeze(0), dec_out_bboxes])
         out_logits = torch.cat([enc_topk_logits.unsqueeze(0), dec_out_logits])
 
-        return self.compute_loss((out_bboxes, out_logits),
+        loss = self.compute_loss((out_bboxes, out_logits),
                                  batch,
                                  dn_out_bboxes=dn_out_bboxes,
                                  dn_out_logits=dn_out_logits,
                                  dn_meta=dn_meta)
+        return sum(loss.values()), torch.as_tensor([loss[k].detach() for k in ["loss_giou", "loss_class", "loss_bbox"]])
 
 
 class RTDETRLoss(DETRLoss):
@@ -108,28 +114,12 @@ class RTDETRLoss(DETRLoss):
             if num_gt > 0:
                 gt_idx = torch.arange(end=num_gt, dtype=torch.int64)
                 gt_idx = gt_idx.repeat(dn_num_group)
-                assert len(dn_positive_idx[i]) == len(gt_idx)
+                assert len(dn_positive_idx[i]) == len(gt_idx), \
+                        f"Expected the same length, but got {len(dn_positive_idx[i])} and {len(gt_idx)} respectively."
                 dn_match_indices.append((dn_positive_idx[i], gt_idx))
             else:
                 dn_match_indices.append((torch.zeros([0], dtype=torch.int64), torch.zeros([0], dtype=torch.int64)))
         return dn_match_indices
-
-    @staticmethod
-    def preprocess(targets, batch_size):
-        """Preprocesses the target counts and matches with the input batch size to output a tensor."""
-        if targets.shape[0] == 0:
-            out = torch.zeros(batch_size, 0, 5, device=targets.device)
-        else:
-            i = targets[:, 0]  # image index
-            _, counts = i.unique(return_counts=True)
-            counts = counts.to(dtype=torch.int32)
-            out = torch.zeros(batch_size, counts.max(), 5, device=targets.device)
-            for j in range(batch_size):
-                matches = i == j
-                n = matches.sum()
-                if n:
-                    out[j, :n] = targets[matches, 1:]
-        return {"cls": out[..., 0], "bboxes": out[..., 1:]}
 
 
 def train(cfg=DEFAULT_CFG, use_python=False):
@@ -138,7 +128,8 @@ def train(cfg=DEFAULT_CFG, use_python=False):
     data = cfg.data or 'coco128.yaml'  # or yolo.ClassificationDataset("mnist")
     device = cfg.device if cfg.device is not None else ''
 
-    args = dict(model=model, data=data, device=device, imgsz=640, exist_ok=True, batch=4)
+    # NOTE: F.grid_sample which is in rt-detr does not support deterministic=True
+    args = dict(model=model, data=data, device=device, imgsz=640, exist_ok=True, batch=4, deterministic=False)
     trainer = RTDETRTrainer(overrides=args)
     trainer.train()
 

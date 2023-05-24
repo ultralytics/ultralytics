@@ -104,7 +104,8 @@ def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None):
     """
     if ratio_pad is None:  # calculate from img0_shape
         gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
-        pad = (img1_shape[1] - img0_shape[1] * gain) / 2, (img1_shape[0] - img0_shape[0] * gain) / 2  # wh padding
+        pad = round((img1_shape[1] - img0_shape[1] * gain) / 2 - 0.1), round(
+            (img1_shape[0] - img0_shape[0] * gain) / 2 - 0.1)  # wh padding
     else:
         gain = ratio_pad[0][0]
         pad = ratio_pad[1]

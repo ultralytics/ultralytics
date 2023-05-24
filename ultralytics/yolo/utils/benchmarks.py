@@ -3,7 +3,8 @@
 Benchmark a YOLO model formats for speed and accuracy
 
 Usage:
-    from ultralytics.yolo.utils.benchmarks import run_benchmarks
+    from ultralytics.yolo.utils.benchmarks import ProfileModels, run_benchmarks
+    ProfileModels(['yolov8n.yaml', 'yolov8s.yaml'])
     run_benchmarks(model='yolov8n.pt', imgsz=160)
 
 Format                  | `format=argument`         | Model
@@ -22,14 +23,19 @@ TensorFlow.js           | `tfjs`                    | yolov8n_web_model/
 PaddlePaddle            | `paddle`                  | yolov8n_paddle_model/
 """
 
+import glob
 import platform
 import time
 from pathlib import Path
 
+import numpy as np
+import torch.cuda
+from tqdm import tqdm
+
 from ultralytics import YOLO
 from ultralytics.yolo.engine.exporter import export_formats
 from ultralytics.yolo.utils import LINUX, LOGGER, MACOS, ROOT, SETTINGS
-from ultralytics.yolo.utils.checks import check_yolo
+from ultralytics.yolo.utils.checks import check_requirements, check_yolo
 from ultralytics.yolo.utils.downloads import download
 from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.torch_utils import select_device
@@ -140,5 +146,140 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
     return df
 
 
+class ProfileModels:
+    """
+    ProfileModels class for profiling different models on ONNX and TensorRT.
+
+    This class profiles the performance of different models, provided their paths. The profiling includes parameters such as
+    model speed and FLOPs.
+
+    Attributes:
+        paths (list): Paths of the models to profile.
+        num_timed_runs (int): Number of timed runs for the profiling. Default is 100.
+        num_warmup_runs (int): Number of warmup runs before profiling. Default is 3.
+        imgsz (int): Image size used in the models. Default is 640.
+
+    Methods:
+        profile(): Profiles the models and prints the result.
+    """
+
+    def __init__(self, paths: list, num_timed_runs=100, num_warmup_runs=3, imgsz=640, trt=True):
+        self.paths = paths
+        self.num_timed_runs = num_timed_runs
+        self.num_warmup_runs = num_warmup_runs
+        self.imgsz = imgsz
+        self.trt = trt  # run TensorRT profiling
+        self.profile()  # run profiling
+
+    def profile(self):
+        files = self.get_files()
+
+        if not files:
+            print('No matching *.pt or *.onnx files found.')
+            return
+
+        table_rows = []
+        device = 0 if torch.cuda.is_available() else 'cpu'
+        for file in files:
+            engine_file = ''
+            if file.suffix in ('.pt', '.yaml'):
+                model = YOLO(str(file))
+                num_params, num_flops = model.info()
+                if self.trt and device == 0:
+                    engine_file = model.export(format='engine', half=True, imgsz=self.imgsz, device=device)
+                onnx_file = model.export(format='onnx', half=True, imgsz=self.imgsz, simplify=True, device=device)
+            elif file.suffix == '.onnx':
+                num_params, num_flops = self.get_onnx_model_info(file)
+                onnx_file = file
+            else:
+                continue
+
+            t_engine = self.profile_tensorrt_model(str(engine_file))
+            t_onnx = self.profile_onnx_model(str(onnx_file))
+            table_rows.append(self.generate_table_row(file.stem, t_onnx, t_engine, num_params, num_flops))
+
+        self.print_table(table_rows)
+
+    def get_files(self):
+        files = []
+        for path in self.paths:
+            path = Path(path)
+            if path.is_dir():
+                extensions = ['*.pt', '*.onnx', '*.yaml']
+                files.extend([file for ext in extensions for file in glob.glob(str(path / ext))])
+            elif path.suffix in {'.pt', '.yaml'}:  # add non-existing
+                files.append(str(path))
+            else:
+                files.extend(glob.glob(str(path)))
+
+        print(f'Profiling: {sorted(files)}')
+        return [Path(file) for file in sorted(files)]
+
+    def get_onnx_model_info(self, onnx_file: str):
+        return 0.0, 0.0
+
+    def profile_tensorrt_model(self, engine_file: str):
+        if not Path(engine_file).is_file():
+            return 0.0, 0.0
+
+        # Warmup runs
+        model = YOLO(engine_file)
+        input_data = np.random.rand(self.imgsz, self.imgsz, 3).astype(np.float32)
+        for _ in range(self.num_warmup_runs):
+            model(input_data, verbose=False)
+
+        # Timed runs
+        run_times = []
+        for _ in tqdm(range(self.num_timed_runs), desc=engine_file):
+            results = model(input_data, verbose=False)
+            run_times.append(results[0].speed['inference'])  # Convert to milliseconds
+
+        return np.mean(run_times), np.std(run_times)
+
+    def profile_onnx_model(self, onnx_file: str):
+        check_requirements('onnxruntime')
+        import onnxruntime as ort
+
+        # Session with either 'TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider'
+        sess_options = ort.SessionOptions()
+        sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+        sess = ort.InferenceSession(onnx_file, sess_options, providers=['CPUExecutionProvider'])
+
+        input_tensor = sess.get_inputs()[0]
+        input_data = np.random.rand(*input_tensor.shape).astype(np.float16 if torch.cuda.is_available() else np.float32)
+        input_name = input_tensor.name
+        output_name = sess.get_outputs()[0].name
+
+        # Warmup runs
+        for _ in range(self.num_warmup_runs):
+            sess.run([output_name], {input_name: input_data})
+
+        # Timed runs
+        run_times = []
+        for _ in tqdm(range(self.num_timed_runs), desc=onnx_file):
+            start_time = time.time()
+            sess.run([output_name], {input_name: input_data})
+            run_times.append((time.time() - start_time) * 1000)  # Convert to milliseconds
+
+        return np.mean(run_times), np.std(run_times)
+
+    def generate_table_row(self, model_name, t_onnx, t_engine, num_params, num_flops):
+        return f'| {model_name} | {self.imgsz} | - | {t_onnx[0]:.2f} ± {t_onnx[1]:.2f} ms | {t_engine[0]:.2f} ± {t_engine[1]:.2f} ms | {num_params / 1e6:.1f} | {num_flops:.1f} |'
+
+    def print_table(self, table_rows):
+        gpu = torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'GPU'
+        header = f'| Model | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>{gpu} TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |'
+        separator = '|-------------|---------------------|--------------------|------------------------------|-----------------------------------|------------------|-----------------|'
+
+        print(header)
+        print(separator)
+        for row in table_rows:
+            print(row)
+
+
 if __name__ == '__main__':
+    # Benchmark all export formats
     benchmark()
+
+    # Profiling models on ONNX and TensorRT
+    ProfileModels(['yolov8n.yaml', 'yolov8s.yaml'])

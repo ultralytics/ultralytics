@@ -205,6 +205,20 @@ def get_flops(model, imgsz=640):
         return 0
 
 
+def get_flops_with_torch_profiler(model, imgsz=640):
+    # Compute model FLOPs (thop alternative)
+    model = de_parallel(model)
+    p = next(model.parameters())
+    stride = (max(int(model.stride.max()), 32) if hasattr(model, 'stride') else 32) * 2  # max stride
+    im = torch.zeros((1, p.shape[1], stride, stride), device=p.device)  # input image in BCHW format
+    with torch.profiler.profile(with_flops=True) as prof:
+        model(im)
+    flops = sum(x.flops for x in prof.key_averages()) / 1E9
+    imgsz = imgsz if isinstance(imgsz, list) else [imgsz, imgsz]  # expand if int/float
+    flops = flops * imgsz[0] / stride * imgsz[1] / stride  # 640x640 GFLOPs
+    return flops
+
+
 def initialize_weights(model):
     """Initialize model weights to random values."""
     for m in model.modules():
@@ -341,6 +355,12 @@ def strip_optimizer(f: Union[str, Path] = 'best.pt', s: str = '') -> None:
         for f in Path('/Users/glennjocher/Downloads/weights').rglob('*.pt'):
             strip_optimizer(f)
     """
+    # Use dill (if exists) to serialize the lambda functions where pickle does not do this
+    try:
+        import dill as pickle
+    except ImportError:
+        import pickle
+
     x = torch.load(f, map_location=torch.device('cpu'))
     args = {**DEFAULT_CFG_DICT, **x['train_args']}  # combine model args with default args, preferring model args
     if x.get('ema'):
@@ -353,7 +373,7 @@ def strip_optimizer(f: Union[str, Path] = 'best.pt', s: str = '') -> None:
         p.requires_grad = False
     x['train_args'] = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # strip non-default keys
     # x['model'].args = x['train_args']
-    torch.save(x, s or f)
+    torch.save(x, s or f, pickle_module=pickle)
     mb = os.path.getsize(s or f) / 1E6  # filesize
     LOGGER.info(f"Optimizer stripped from {f},{f' saved as {s},' if s else ''} {mb:.1f}MB")
 

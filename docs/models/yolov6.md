@@ -19,7 +19,7 @@ structure of a BiC module. (c) A SimCSPSPPF block. ([source](https://arxiv.org/p
 - **Bi-directional Concatenation (BiC) Module:** YOLOv6 introduces a BiC module in the neck of the detector, enhancing localization signals and delivering performance gains with negligible speed degradation.
 - **Anchor-Aided Training (AAT) Strategy:** This model proposes AAT to enjoy the benefits of both anchor-based and anchor-free paradigms without compromising inference efficiency.
 - **Enhanced Backbone and Neck Design:** By deepening YOLOv6 to include another stage in the backbone and neck, this model achieves state-of-the-art performance on the COCO dataset at high-resolution input.
-- **Self-Distillation Strategy:** A new self-distillation strategy is implemented to boost the performance of smaller models of YOLOv6, enhancing the auxiliary regression branch during training and removing it at inference to avoid a marked speed decline【5†source】【6†source】.
+- **Self-Distillation Strategy:** A new self-distillation strategy is implemented to boost the performance of smaller models of YOLOv6, enhancing the auxiliary regression branch during training and removing it at inference to avoid a marked speed decline.
 
 ## Pre-trained Models
 
@@ -31,7 +31,7 @@ YOLOv6 provides various pre-trained models with different scales:
 - YOLOv6-L: 52.8% AP at 116 FPS.
 - YOLOv6-L6: State-of-the-art accuracy in real-time.
 
-YOLOv6 also provides quantized models for different precisions and models optimized for mobile platforms【12†source】【13†source】【14†source】.
+YOLOv6 also provides quantized models for different precisions and models optimized for mobile platforms.
 
 ## Usage
 

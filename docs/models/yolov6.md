@@ -55,6 +55,14 @@ model.predict("path/to/image.jpg")  # predict
 | YOLOv6-L   | `yolov6-l.pt`       | Object Detection |
 | YOLOv6-L6  | `yolov6-l6.pt`      | Object Detection |
 
+## Supported Modes
+
+| Mode       | Supported          |
+|------------|--------------------|
+| Inference  | :heavy_check_mark: |
+| Validation | :heavy_check_mark: |
+| Training   | :heavy_check_mark: |
+
 ## Citations and Acknowledgements
 
 We would like to acknowledge the authors for their significant contributions in the field of real-time object detection:

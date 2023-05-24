@@ -53,8 +53,10 @@ class RTDETRTrainer(DetectionTrainer):
         if not hasattr(self, 'compute_loss'):
             self.compute_loss = RTDETRLoss(use_vfl=True)
 
-        # TODO: now the returned loss is a dict, but we need a tensor and a tensor.detach()
         dec_out_bboxes, dec_out_logits, enc_topk_bboxes, enc_topk_logits, dn_meta = preds
+        # NOTE: `dn_meta` means it's eval mode, loss calculation for eval mode is not supported.
+        if dn_meta is None:
+            return 0, torch.zeros(3, device=dec_out_bboxes.device)
         dn_out_bboxes, dec_out_bboxes = torch.split(dec_out_bboxes, dn_meta['dn_num_split'], dim=2)
         dn_out_logits, dec_out_logits = torch.split(dec_out_logits, dn_meta['dn_num_split'], dim=2)
 
@@ -125,7 +127,7 @@ class RTDETRLoss(DETRLoss):
 def train(cfg=DEFAULT_CFG, use_python=False):
     """Train and optimize RTDETR model given training data and device."""
     model = 'rt-detr-l.yaml'
-    data = cfg.data or 'coco128.yaml'  # or yolo.ClassificationDataset("mnist")
+    data = cfg.data or 'coco8.yaml'  # or yolo.ClassificationDataset("mnist")
     device = cfg.device if cfg.device is not None else ''
 
     # NOTE: F.grid_sample which is in rt-detr does not support deterministic=True

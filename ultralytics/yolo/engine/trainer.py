@@ -692,7 +692,9 @@ def check_amp(model):
     except ConnectionError:
         LOGGER.warning(f'{prefix}checks skipped ⚠️, offline and unable to download YOLOv8n. {warning_msg}')
     except (AttributeError, ModuleNotFoundError):
-        LOGGER.warning(f"{prefix}checks skipped ⚠️. Unable to load YOLOv8n due to possible Ultralytics package modifications. {warning_msg}")
+        LOGGER.warning(
+            f'{prefix}checks skipped ⚠️. Unable to load YOLOv8n due to possible Ultralytics package modifications. {warning_msg}'
+        )
     except AssertionError:
         LOGGER.warning(f'{prefix}checks failed ❌. Anomalies were detected with AMP on your system that may lead to '
                        f'NaN losses or zero-mAP results, so AMP will be disabled during training.')

@@ -29,7 +29,7 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt /u
 
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel
-RUN pip install --no-cache -e . albumentations comet tensorboard thop
+RUN pip install --no-cache -e . albumentations comet tensorboard thop pycocotools
 
 # Set environment variables
 ENV OMP_NUM_THREADS=1

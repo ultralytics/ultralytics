@@ -271,7 +271,7 @@ class ProfileModels:
         elif 'int32' in input_type:
             input_dtype = np.int32
         else:
-            raise ValueError(f"Unsupported ONNX datatype {input_type}")
+            raise ValueError(f'Unsupported ONNX datatype {input_type}')
 
         input_data = np.random.rand(*input_tensor.shape).astype(input_dtype)
         input_name = input_tensor.name

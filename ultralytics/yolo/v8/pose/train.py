@@ -37,12 +37,6 @@ class PoseTrainer(v8.detect.DetectionTrainer):
         self.loss_names = 'box_loss', 'pose_loss', 'kobj_loss', 'cls_loss', 'dfl_loss'
         return v8.pose.PoseValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
 
-    def criterion(self, preds, batch):
-        """Computes pose loss for the YOLO model."""
-        if not hasattr(self, 'compute_loss'):
-            self.compute_loss = PoseLoss(de_parallel(self.model))
-        return self.compute_loss(preds, batch)
-
     def plot_training_samples(self, batch, ni):
         """Plot a batch of training samples with annotated class labels, bounding boxes, and keypoints."""
         images = batch['img']

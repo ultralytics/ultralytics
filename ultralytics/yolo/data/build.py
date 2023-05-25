@@ -116,7 +116,7 @@ def check_source(source):
         is_file = Path(source).suffix[1:] in (IMG_FORMATS + VID_FORMATS)
         is_url = source.lower().startswith(('https://', 'http://', 'rtsp://', 'rtmp://'))
         webcam = source.isnumeric() or source.endswith('.streams') or (is_url and not is_file)
-        screenshot = source.lower().startswith('screen')
+        screenshot = source.lower() == 'screen'
         if is_url and is_file:
             source = check_file(source)  # download
     elif isinstance(source, tuple(LOADERS)):

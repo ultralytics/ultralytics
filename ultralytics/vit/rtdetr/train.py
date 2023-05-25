@@ -132,7 +132,14 @@ def train(cfg=DEFAULT_CFG, use_python=False):
 
     # NOTE: F.grid_sample which is in rt-detr does not support deterministic=True
     # NOTE: amp training causes nan outputs and end with error while doing bipartite graph matching
-    args = dict(model=model, data=data, device=device, imgsz=640, exist_ok=True, batch=4, deterministic=False, amp=False)
+    args = dict(model=model,
+                data=data,
+                device=device,
+                imgsz=640,
+                exist_ok=True,
+                batch=4,
+                deterministic=False,
+                amp=False)
     trainer = RTDETRTrainer(overrides=args)
     trainer.train()
 

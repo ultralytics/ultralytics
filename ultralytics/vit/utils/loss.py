@@ -34,13 +34,7 @@ class DETRLoss(nn.Module):
         super().__init__()
 
         if loss_coeff is None:
-            loss_coeff = {
-                'class': 1,
-                'bbox': 5,
-                'giou': 2,
-                'no_object': 0.1,
-                'mask': 1,
-                'dice': 1}
+            loss_coeff = {'class': 1, 'bbox': 5, 'giou': 2, 'no_object': 0.1, 'mask': 1, 'dice': 1}
         self.num_classes = num_classes
         self.matcher = matcher
         self.loss_coeff = loss_coeff
@@ -182,9 +176,10 @@ class DETRLoss(nn.Module):
                 loss[3] += loss_[f'loss_mask{postfix}']
                 loss[4] += loss_[f'loss_dice{postfix}']
 
-        loss = {f'loss_class_aux{postfix}': loss[0],
-                f'loss_bbox_aux{postfix}': loss[1],
-                f'loss_giou_aux{postfix}': loss[2]}
+        loss = {
+            f'loss_class_aux{postfix}': loss[0],
+            f'loss_bbox_aux{postfix}': loss[1],
+            f'loss_giou_aux{postfix}': loss[2]}
         if masks is not None and gt_mask is not None:
             loss[f'loss_mask_aux{postfix}'] = loss[3]
             loss[f'loss_dice_aux{postfix}'] = loss[4]

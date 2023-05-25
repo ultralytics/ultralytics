@@ -24,12 +24,7 @@ class HungarianMatcher(nn.Module):
         """
         super().__init__()
         if matcher_coeff is None:
-            matcher_coeff = {
-                'class': 1,
-                'bbox': 5,
-                'giou': 2,
-                'mask': 1,
-                'dice': 1}
+            matcher_coeff = {'class': 1, 'bbox': 5, 'giou': 2, 'mask': 1, 'dice': 1}
         self.matcher_coeff = matcher_coeff
         self.use_focal_loss = use_focal_loss
         self.with_mask = with_mask

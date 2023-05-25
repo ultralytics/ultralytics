@@ -331,12 +331,12 @@ class YOLO:
         overrides = self.overrides.copy()
         overrides.update(kwargs)
         overrides['mode'] = 'export'
+        if overrides.get('imgsz') is None:
+            overrides['imgsz'] = self.model.args['imgsz']  # use trained imgsz unless custom value is passed
+        if overrides.get('batch') is None:
+            overrides['batch'] = 1  # default to 1 if not modified
         args = get_cfg(cfg=DEFAULT_CFG, overrides=overrides)
         args.task = self.task
-        if args.imgsz == DEFAULT_CFG.imgsz:
-            args.imgsz = self.model.args['imgsz']  # use trained imgsz unless custom value is passed
-        if args.batch == DEFAULT_CFG.batch:
-            args.batch = 1  # default to 1 if not modified
         return Exporter(overrides=args, _callbacks=self.callbacks)(model=self.model)
 
     def train(self, **kwargs):

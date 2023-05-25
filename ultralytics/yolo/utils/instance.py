@@ -326,10 +326,20 @@ class Instances:
             self.keypoints[..., 0] = self.keypoints[..., 0].clip(0, w)
             self.keypoints[..., 1] = self.keypoints[..., 1].clip(0, h)
 
+    def remove_zero_area_boxes(self):
+        """Remove zero-area boxes, i.e. after clipping some boxes may have zero width or height. This removes them."""
+        good = self._bboxes.areas() > 0
+        if not all(good):
+            self._bboxes = Bboxes(self._bboxes.bboxes[good], format=self._bboxes.format)
+            if len(self.segments):
+                self.segments = self.segments[good]
+            if self.keypoints is not None:
+                self.keypoints = self.keypoints[good]
+        return good
+
     def update(self, bboxes, segments=None, keypoints=None):
         """Updates instance variables."""
-        new_bboxes = Bboxes(bboxes, format=self._bboxes.format)
-        self._bboxes = new_bboxes
+        self._bboxes = Bboxes(bboxes, format=self._bboxes.format)
         if segments is not None:
             self.segments = segments
         if keypoints is not None:

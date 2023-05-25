@@ -15,7 +15,9 @@ from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, c
 from ultralytics.yolo.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.yolo.utils.plotting import feature_visualization
 from ultralytics.yolo.utils.torch_utils import (fuse_conv_and_bn, fuse_deconv_and_bn, initialize_weights,
-                                                intersect_dicts, make_divisible, model_info, scale_img, time_sync)
+                                                intersect_dicts, make_divisible, model_info, scale_img, time_sync, de_parallel)
+
+from ultralytics.yolo.utils.loss import v8DetectionLoss, v8SegmentationLoss, v8PoseLoss
 
 try:
     import thop
@@ -172,6 +174,22 @@ class BaseModel(nn.Module):
         self.load_state_dict(csd, strict=False)  # load
         if verbose:
             LOGGER.info(f'Transferred {len(csd)}/{len(self.model.state_dict())} items from pretrained weights')
+        
+    def loss(self, batch):
+        """
+        Compute loss
+
+        Args:
+            batch (dict): Batch to compute loss on
+        """
+        if not hasattr(self, 'criterion'):
+            self.criterion = self.init_criterion()
+
+        preds = self.forward(batch["img"])
+        return self.criterion(preds, batch), preds
+    
+    def init_criterion(self):
+        raise NotImplementedError("compute_loss() needs to be implemented by task heads")
 
 
 class DetectionModel(BaseModel):
@@ -205,7 +223,7 @@ class DetectionModel(BaseModel):
         if verbose:
             self.info()
             LOGGER.info('')
-
+        
     def forward(self, x, augment=False, profile=False, visualize=False):
         """Run forward pass on input image(s) with optional augmentation and profiling."""
         if augment:
@@ -248,7 +266,10 @@ class DetectionModel(BaseModel):
         i = (y[-1].shape[-1] // g) * sum(4 ** (nl - 1 - x) for x in range(e))  # indices
         y[-1] = y[-1][..., i:]  # small
         return y
-
+    
+    def init_criterion(self):
+        return v8DetectionLoss(de_parallel(self))
+    
 
 class SegmentationModel(DetectionModel):
     """YOLOv8 segmentation model."""
@@ -261,6 +282,8 @@ class SegmentationModel(DetectionModel):
         """Undocumented function."""
         raise NotImplementedError(emojis('WARNING ⚠️ SegmentationModel has not supported augment inference yet!'))
 
+    def init_criterion(self):
+        return v8SegmentationLoss(de_parallel(self))
 
 class PoseModel(DetectionModel):
     """YOLOv8 pose model."""
@@ -273,6 +296,9 @@ class PoseModel(DetectionModel):
             LOGGER.info(f"Overriding model.yaml kpt_shape={cfg['kpt_shape']} with kpt_shape={data_kpt_shape}")
             cfg['kpt_shape'] = data_kpt_shape
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+    
+    def init_criterion(self):
+        return v8PoseLoss(de_parallel(self))
 
 
 class ClassificationModel(BaseModel):
@@ -341,6 +367,9 @@ class ClassificationModel(BaseModel):
                 if m[i].out_channels != nc:
                     m[i] = nn.Conv2d(m[i].in_channels, nc, m[i].kernel_size, m[i].stride, bias=m[i].bias is not None)
 
+    def init_criterion(self):
+        """Compute the classification loss between predictions and true labels."""
+        # TODO
 
 class Ensemble(nn.ModuleList):
     """Ensemble of models."""

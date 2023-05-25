@@ -293,7 +293,7 @@ def check_det_dataset(dataset, autodownload=True):
     return data  # dictionary
 
 
-def check_cls_dataset(dataset: str):
+def check_cls_dataset(dataset: str, split=''):
     """
     Check a classification dataset such as Imagenet.
 
@@ -302,6 +302,7 @@ def check_cls_dataset(dataset: str):
 
     Args:
         dataset (str): Name of the dataset.
+        split (str, optional): Dataset split, either 'val', 'test', or ''. Defaults to ''.
 
     Returns:
         data (dict): A dictionary containing the following keys and values:
@@ -325,10 +326,15 @@ def check_cls_dataset(dataset: str):
     train_set = data_dir / 'train'
     val_set = data_dir / 'val' if (data_dir / 'val').exists() else None  # data/test or data/val
     test_set = data_dir / 'test' if (data_dir / 'test').exists() else None  # data/val or data/test
+    if split == 'val' and not val_set:
+        LOGGER.info("WARNING ⚠️ Dataset 'split=val' not found, using 'split=test' instead.")
+    elif split == 'test' and not test_set:
+        LOGGER.info("WARNING ⚠️ Dataset 'split=test' not found, using 'split=val' instead.")
+
     nc = len([x for x in (data_dir / 'train').glob('*') if x.is_dir()])  # number of classes
     names = [x.name for x in (data_dir / 'train').iterdir() if x.is_dir()]  # class names list
     names = dict(enumerate(sorted(names)))
-    return {'train': train_set, 'val': val_set, 'test': test_set, 'nc': nc, 'names': names}
+    return {'train': train_set, 'val': val_set or test_set, 'test': test_set or val_set, 'nc': nc, 'names': names}
 
 
 class HUBDatasetStats():

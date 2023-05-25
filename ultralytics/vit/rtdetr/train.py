@@ -60,28 +60,6 @@ class RTDETRTrainer(DetectionTrainer):
             gt_class.append(batch['cls'][batch_idx == i].to(device=batch_idx.device, dtype=torch.long))
         return batch
 
-    # def criterion(self, preds, batch):
-    #     """Compute loss for RTDETR prediction and ground-truth."""
-    #     if not hasattr(self, 'compute_loss'):
-    #         self.compute_loss = RTDETRLoss(use_vfl=True)
-    #
-    #     dec_out_bboxes, dec_out_logits, enc_topk_bboxes, enc_topk_logits, dn_meta = preds
-    #     # NOTE: `dn_meta` means it's eval mode, loss calculation for eval mode is not supported.
-    #     if dn_meta is None:
-    #         return 0, torch.zeros(3, device=dec_out_bboxes.device)
-    #     dn_out_bboxes, dec_out_bboxes = torch.split(dec_out_bboxes, dn_meta['dn_num_split'], dim=2)
-    #     dn_out_logits, dec_out_logits = torch.split(dec_out_logits, dn_meta['dn_num_split'], dim=2)
-    #
-    #     out_bboxes = torch.cat([enc_topk_bboxes.unsqueeze(0), dec_out_bboxes])
-    #     out_logits = torch.cat([enc_topk_logits.unsqueeze(0), dec_out_logits])
-    #
-    #     loss = self.compute_loss((out_bboxes, out_logits),
-    #                              batch,
-    #                              dn_out_bboxes=dn_out_bboxes,
-    #                              dn_out_logits=dn_out_logits,
-    #                              dn_meta=dn_meta)
-    #     return sum(loss.values()), torch.as_tensor([loss[k].detach() for k in ['loss_giou', 'loss_class', 'loss_bbox']])
-
 
 def train(cfg=DEFAULT_CFG, use_python=False):
     """Train and optimize RTDETR model given training data and device."""

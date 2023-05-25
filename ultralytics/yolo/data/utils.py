@@ -61,7 +61,7 @@ def exif_size(img):
     return s
 
 
-def class_weight(path, kind = 'auto'):
+def class_weight(path, kind='auto'):
     """Kind: 'auto:' -> Automatically computes class weights
     The class weight can also be manually computed by passing a list of its
     weight instead of 'auto' """

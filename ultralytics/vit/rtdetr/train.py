@@ -6,7 +6,6 @@ from val import RTDETRDataset, RTDETRValidator
 from ultralytics.register import REGISTER
 from ultralytics.vit.utils.loss import DETRLoss
 from ultralytics.yolo.utils import DEFAULT_CFG, colorstr
-from ultralytics.yolo.utils.torch_utils import de_parallel
 from ultralytics.yolo.v8.detect import DetectionTrainer
 
 
@@ -116,8 +115,9 @@ class RTDETRLoss(DETRLoss):
             if num_gt > 0:
                 gt_idx = torch.arange(end=num_gt, dtype=torch.int64)
                 gt_idx = gt_idx.repeat(dn_num_group)
-                assert len(dn_positive_idx[i]) == len(gt_idx), \
-                        f'Expected the same length, but got {len(dn_positive_idx[i])} and {len(gt_idx)} respectively.'
+                assert len(dn_positive_idx[i]) == len(gt_idx), f'Expected the s'
+                f'ame length, but got {len(dn_positive_idx[i])} and '
+                f'{len(gt_idx)} respectively.'
                 dn_match_indices.append((dn_positive_idx[i], gt_idx))
             else:
                 dn_match_indices.append((torch.zeros([0], dtype=torch.int64), torch.zeros([0], dtype=torch.int64)))

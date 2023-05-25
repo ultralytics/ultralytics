@@ -1,8 +1,11 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 import torch
+from torch.types import Device
 import torchvision
-
+from glob import glob
+from pathlib import Path
+import os
 from ultralytics.nn.tasks import ClassificationModel, attempt_load_one_weight
 from ultralytics.yolo import v8
 from ultralytics.yolo.data import ClassificationDataset, build_dataloader
@@ -69,15 +72,17 @@ class ClassificationTrainer(BaseTrainer):
         ClassificationModel.reshape_outputs(self.model, self.data['nc'])
 
         return  # dont return ckpt. Classification doesn't support resume
+    
 
-    def build_dataset(self, img_path, mode='train', batch=None):
+    def build_dataset(self, img_path, mode='train', batch=None, kind='auto'):
         return ClassificationDataset(root=img_path, args=self.args, augment=mode == 'train')
 
     def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode='train'):
         """Returns PyTorch DataLoader with transforms to preprocess images for inference."""
+        
         with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
             dataset = self.build_dataset(dataset_path, mode)
-
+        #print("---"*30+'\n',self.cls_weight,'\n'+"---"*30)
         loader = build_dataloader(dataset, batch_size, self.args.workers, rank=rank)
         # Attach inference transforms
         if mode != 'train':
@@ -103,9 +108,11 @@ class ClassificationTrainer(BaseTrainer):
         self.loss_names = ['loss']
         return v8.classify.ClassificationValidator(self.test_loader, self.save_dir)
 
-    def criterion(self, preds, batch):
+    def criterion(self, preds, batch, class_weight='auto'):
+        if isinstance(class_weight, list) and len(class_weight)==self.data['nc']:
+            self.cls_weight=class_weight
         """Compute the classification loss between predictions and true labels."""
-        loss = torch.nn.functional.cross_entropy(preds, batch['cls'], reduction='sum') / self.args.nbs
+        loss = torch.nn.functional.cross_entropy(preds, batch['cls'], reduction='sum', weight=torch.tensor(self.cls_weight).half().to(device=self.device)) / self.args.nbs
         loss_items = loss.detach()
         return loss, loss_items
 

@@ -23,7 +23,7 @@ from tqdm import tqdm
 
 from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
 from ultralytics.yolo.cfg import get_cfg
-from ultralytics.yolo.data.utils import check_cls_dataset, check_det_dataset
+from ultralytics.yolo.data.utils import check_cls_dataset, check_det_dataset, class_weight
 from ultralytics.yolo.utils import (DEFAULT_CFG, LOGGER, ONLINE, RANK, ROOT, SETTINGS, TQDM_BAR_FORMAT, __version__,
                                     callbacks, clean_url, colorstr, emojis, yaml_save)
 from ultralytics.yolo.utils.autobatch import check_train_batch_size
@@ -127,6 +127,7 @@ class BaseTrainer:
             raise RuntimeError(emojis(f"Dataset '{clean_url(self.args.data)}' error ❌ {e}")) from e
 
         self.trainset, self.testset = self.get_dataset(self.data)
+        
         self.ema = None
 
         # Optimization utils init
@@ -249,7 +250,10 @@ class BaseTrainer:
             self.lf = lambda x: (1 - x / self.epochs) * (1.0 - self.args.lrf) + self.args.lrf  # linear
         self.scheduler = lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
         self.stopper, self.stop = EarlyStopping(patience=self.args.patience), False
-
+        
+        # Class weights
+        self.cls_weight=class_weight(path=self.trainset, kind='auto')  # Class weights defaults as "auto"
+        
         # Dataloaders
         batch_size = self.batch_size // world_size if world_size > 1 else self.batch_size
         self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=RANK, mode='train')
@@ -414,12 +418,18 @@ class BaseTrainer:
             'date': datetime.now().isoformat(),
             'version': __version__}
 
+        # Use dill (if exists) to serialize the lambda functions where pickle does not do this
+        try:
+            import dill as pickle
+        except ImportError:
+            import pickle
+
         # Save last, best and delete
-        torch.save(ckpt, self.last)
+        torch.save(ckpt, self.last, pickle_module=pickle)
         if self.best_fitness == self.fitness:
-            torch.save(ckpt, self.best)
+            torch.save(ckpt, self.best, pickle_module=pickle)
         if (self.epoch > 0) and (self.save_period > 0) and (self.epoch % self.save_period == 0):
-            torch.save(ckpt, self.wdir / f'epoch{self.epoch}.pt')
+            torch.save(ckpt, self.wdir / f'epoch{self.epoch}.pt', pickle_module=pickle)
         del ckpt
 
     @staticmethod
@@ -490,7 +500,7 @@ class BaseTrainer:
         """Build dataset"""
         raise NotImplementedError('build_dataset function not implemented in trainer')
 
-    def criterion(self, preds, batch):
+    def criterion(self, preds, batch, class_weight=None):
         """
         Returns loss and individual loss items as Tensor.
         """

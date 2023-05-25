@@ -496,12 +496,6 @@ class BaseTrainer:
         """Build dataset"""
         raise NotImplementedError('build_dataset function not implemented in trainer')
 
-    def criterion(self, preds, batch):
-        """
-        Returns loss and individual loss items as Tensor.
-        """
-        raise NotImplementedError('criterion function not implemented in trainer')
-
     def label_loss_items(self, loss_items=None, prefix='train'):
         """
         Returns a loss dict with labelled training loss items tensor

@@ -372,6 +372,49 @@ class ClassificationModel(BaseModel):
         """Compute the classification loss between predictions and true labels."""
         return v8ClassificationLoss()
 
+class RTDETRDetectionModel(DetectionModel):
+    def __init__(self, cfg='yolov8n.yaml', ch=3, nc=None, verbose=True):
+        super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+        self.nc = nc
+
+    def init_criterion(self):
+        """Compute the classification loss between predictions and true labels."""
+        from ultralytics.vit.utils.loss import RTDETRDetectionLoss
+
+        return RTDETRDetectionLoss(num_classes=self.nc, use_vfl=True)
+    
+    def loss(self, batch, preds=None):
+        if not hasattr(self, 'criterion'):
+            self.criterion = self.init_criterion()
+
+        if preds is not None:
+            dec_out_bboxes, dec_out_logits, enc_topk_bboxes, enc_topk_logits, dn_meta = preds
+        else:
+            y = []
+            x = batch["img"]
+            for m in self.model[:-1]:
+                if m.f != -1:  # if not from previous layer
+                    x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]
+                x = m(x)  # forward
+                y.append(x if m.i in self.save else None)
+            preds = self.model[-1](x, batch)   # head part
+
+        # NOTE: `dn_meta` means it's eval mode, loss calculation for eval mode is not supported.
+        if dn_meta is None:
+            return 0, torch.zeros(3, device=dec_out_bboxes.device)
+        dn_out_bboxes, dec_out_bboxes = torch.split(dec_out_bboxes, dn_meta['dn_num_split'], dim=2)
+        dn_out_logits, dec_out_logits = torch.split(dec_out_logits, dn_meta['dn_num_split'], dim=2)
+
+        out_bboxes = torch.cat([enc_topk_bboxes.unsqueeze(0), dec_out_bboxes])
+        out_logits = torch.cat([enc_topk_logits.unsqueeze(0), dec_out_logits])
+
+        loss = self.criterion((out_bboxes, out_logits),
+                                 batch,
+                                 dn_out_bboxes=dn_out_bboxes,
+                                 dn_out_logits=dn_out_logits,
+                                 dn_meta=dn_meta)
+        return sum(loss.values()), torch.as_tensor([loss[k].detach() for k in ['loss_giou', 'loss_class', 'loss_bbox']])
+
 
 class Ensemble(nn.ModuleList):
     """Ensemble of models."""

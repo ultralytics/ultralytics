@@ -139,6 +139,7 @@ The prediction settings for YOLO models encompass a range of hyperparameters and
 | `show`         | `False`                | show results if possible                                                       |
 | `save`         | `False`                | save images with results                                                       |
 | `save_txt`     | `False`                | save results as .txt file                                                      |
+| `save_mot`     | `False`                | save results as .txt file in MOT compliant format                              |
 | `save_conf`    | `False`                | save results with confidence scores                                            |
 | `save_crop`    | `False`                | save cropped images with results                                               |
 | `show_labels`  | `True`                 | show object labels in plots                                                    |

@@ -295,6 +295,39 @@ class Results(SimpleClass):
             with open(txt_file, 'a') as f:
                 f.writelines(text + '\n' for text in texts)
 
+    def save_mot(self, txt_file, save_conf=False, frame=0):
+        """
+        Save tracking results in MOT format.
+
+        Args:
+            txt_file (str): txt file path.
+            save_conf (bool): save confidence score or not.
+            frame (int): frame number.
+        """
+        boxes = self.boxes
+        masks = self.masks
+        probs = self.probs
+        kpts = self.keypoints
+        texts = []
+
+        if probs is None and boxes:
+            # Detect/segment/pose
+            for d in boxes:
+                conf, id = float(d.conf), None if d.id is None else int(d.id.item())
+                line = (frame, ) + ((-1, ) if id is None else (id, )) + (*d.xywh.view(-1), )
+                if masks:
+                    # TODO: save masks
+                    pass
+                if kpts is not None:
+                    # TODO: save keypoints
+                    pass
+                line += ((conf, ) if save_conf else (-1, )) + (-1, ) * 3 # world coordinates x,y,z are ignored
+                texts.append(('%g ' * len(line)).rstrip() % line)
+
+        if texts:
+            with open(txt_file, 'a') as f:
+                f.writelines(text + '\n' for text in texts)
+
     def save_crop(self, save_dir, file_name=Path('im.jpg')):
         """
         Save cropped predictions to `save_dir/cls/file_name.jpg`.

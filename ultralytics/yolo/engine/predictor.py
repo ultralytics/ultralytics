@@ -151,6 +151,7 @@ class BasePredictor:
             frame = getattr(self.dataset, 'frame', 0)
         self.data_path = p
         self.txt_path = str(self.save_dir / 'labels' / p.stem) + ('' if self.dataset.mode == 'image' else f'_{frame}')
+        self.mot_path = str(self.save_dir / 'labels' / p.stem) + '_MOT'
         log_string += '%gx%g ' % im.shape[2:]  # print string
         result = results[idx]
         log_string += result.verbose()
@@ -166,6 +167,8 @@ class BasePredictor:
         # Write
         if self.args.save_txt:
             result.save_txt(f'{self.txt_path}.txt', save_conf=self.args.save_conf)
+        if self.args.save_mot:
+            result.save_mot(f'{self.mot_path}.txt', save_conf=self.args.save_conf, frame=frame)
         if self.args.save_crop:
             result.save_crop(save_dir=self.save_dir / 'crops', file_name=self.data_path.stem)
 

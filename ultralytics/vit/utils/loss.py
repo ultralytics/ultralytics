@@ -312,7 +312,7 @@ class RTDETRDetectionLoss(DETRLoss):
             total_loss.update(dn_loss)
         else:
             total_loss.update({k + '_dn': torch.tensor([0.]) for k in total_loss.keys()})
-        
+
         return total_loss
 
     @staticmethod

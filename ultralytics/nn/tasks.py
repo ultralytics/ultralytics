@@ -372,7 +372,9 @@ class ClassificationModel(BaseModel):
         """Compute the classification loss between predictions and true labels."""
         return v8ClassificationLoss()
 
+
 class RTDETRDetectionModel(DetectionModel):
+
     def __init__(self, cfg='yolov8n.yaml', ch=3, nc=None, verbose=True):
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
         self.nc = nc
@@ -382,7 +384,7 @@ class RTDETRDetectionModel(DetectionModel):
         from ultralytics.vit.utils.loss import RTDETRDetectionLoss
 
         return RTDETRDetectionLoss(num_classes=self.nc, use_vfl=True)
-    
+
     def loss(self, batch, preds=None):
         if not hasattr(self, 'criterion'):
             self.criterion = self.init_criterion()
@@ -391,13 +393,13 @@ class RTDETRDetectionModel(DetectionModel):
             dec_out_bboxes, dec_out_logits, enc_topk_bboxes, enc_topk_logits, dn_meta = preds
         else:
             y = []
-            x = batch["img"]
+            x = batch['img']
             for m in self.model[:-1]:
                 if m.f != -1:  # if not from previous layer
                     x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]
                 x = m(x)  # forward
                 y.append(x if m.i in self.save else None)
-            preds = self.model[-1](x, batch)   # head part
+            preds = self.model[-1](x, batch)  # head part
 
         # NOTE: `dn_meta` means it's eval mode, loss calculation for eval mode is not supported.
         if dn_meta is None:
@@ -409,10 +411,10 @@ class RTDETRDetectionModel(DetectionModel):
         out_logits = torch.cat([enc_topk_logits.unsqueeze(0), dec_out_logits])
 
         loss = self.criterion((out_bboxes, out_logits),
-                                 batch,
-                                 dn_out_bboxes=dn_out_bboxes,
-                                 dn_out_logits=dn_out_logits,
-                                 dn_meta=dn_meta)
+                              batch,
+                              dn_out_bboxes=dn_out_bboxes,
+                              dn_out_logits=dn_out_logits,
+                              dn_meta=dn_meta)
         return sum(loss.values()), torch.as_tensor([loss[k].detach() for k in ['loss_giou', 'loss_class', 'loss_bbox']])
 
 

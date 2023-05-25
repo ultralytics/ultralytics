@@ -2,9 +2,10 @@ from copy import copy
 
 import torch
 
-from ultralytics.yolo.utils import DEFAULT_CFG, RANK, colorstr
 from ultralytics.nn.tasks import RTDETRDetectionModel
+from ultralytics.yolo.utils import DEFAULT_CFG, RANK, colorstr
 from ultralytics.yolo.v8.detect import DetectionTrainer
+
 from .val import RTDETRDataset, RTDETRValidator
 
 

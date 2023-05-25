@@ -18,14 +18,11 @@ class Sam(nn.Module):
     mask_threshold: float = 0.0
     image_format: str = 'RGB'
 
-    def __init__(
-        self,
-        image_encoder: ImageEncoderViT,
-        prompt_encoder: PromptEncoder,
-        mask_decoder: MaskDecoder,
-        pixel_mean: List[float] = [123.675, 116.28, 103.53],
-        pixel_std: List[float] = [58.395, 57.12, 57.375],
-    ) -> None:
+    def __init__(self, image_encoder: ImageEncoderViT,
+                 prompt_encoder: PromptEncoder,
+                 mask_decoder: MaskDecoder,
+                 pixel_mean: List[float] = None,
+                 pixel_std: List[float] = None) -> None:
         """
         SAM predicts object masks from an image and input prompts.
 
@@ -38,6 +35,10 @@ class Sam(nn.Module):
           pixel_mean (list(float)): Mean values for normalizing pixels in the input image.
           pixel_std (list(float)): Std values for normalizing pixels in the input image.
         """
+        if pixel_mean is None:
+            pixel_mean = [123.675, 116.28, 103.53]
+        if pixel_std is None:
+            pixel_std = [58.395, 57.12, 57.375]
         super().__init__()
         self.image_encoder = image_encoder
         self.prompt_encoder = prompt_encoder
@@ -51,9 +52,9 @@ class Sam(nn.Module):
 
     @torch.no_grad()
     def forward(
-        self,
-        batched_input: List[Dict[str, Any]],
-        multimask_output: bool,
+            self,
+            batched_input: List[Dict[str, Any]],
+            multimask_output: bool,
     ) -> List[Dict[str, torch.Tensor]]:
         """
         Predicts masks end-to-end from provided images and prompts.
@@ -127,10 +128,10 @@ class Sam(nn.Module):
         return outputs
 
     def postprocess_masks(
-        self,
-        masks: torch.Tensor,
-        input_size: Tuple[int, ...],
-        original_size: Tuple[int, ...],
+            self,
+            masks: torch.Tensor,
+            input_size: Tuple[int, ...],
+            original_size: Tuple[int, ...],
     ) -> torch.Tensor:
         """
         Remove padding and upscale masks to the original image size.

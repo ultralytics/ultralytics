@@ -256,10 +256,8 @@ def remove_small_regions(mask: np.ndarray, area_thresh: float, mode: str) -> Tup
         return mask, False
     fill_labels = [0] + small_regions
     if not correct_holes:
-        fill_labels = [i for i in range(n_labels) if i not in fill_labels]
         # If every region is below threshold, keep largest
-        if not fill_labels:
-            fill_labels = [int(np.argmax(sizes)) + 1]
+        fill_labels = [i for i in range(n_labels) if i not in fill_labels] or [int(np.argmax(sizes)) + 1]
     mask = np.isin(regions, fill_labels)
     return mask, True
 

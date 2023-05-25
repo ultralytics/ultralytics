@@ -12,22 +12,24 @@ from ultralytics.yolo.utils.ops import xywh2xyxy
 class HungarianMatcher(nn.Module):
 
     def __init__(self,
-                 matcher_coeff={
-                     'class': 1,
-                     'bbox': 5,
-                     'giou': 2,
-                     'mask': 1,
-                     'dice': 1},
+                 matcher_coeff=None,
                  use_focal_loss=False,
                  with_mask=False,
                  num_sample_points=12544,
                  alpha=0.25,
                  gamma=2.0):
-        r"""
+        """
         Args:
             matcher_coeff (dict): The coefficient of hungarian matcher cost.
         """
         super().__init__()
+        if matcher_coeff is None:
+            matcher_coeff = {
+                'class': 1,
+                'bbox': 5,
+                'giou': 2,
+                'mask': 1,
+                'dice': 1}
         self.matcher_coeff = matcher_coeff
         self.use_focal_loss = use_focal_loss
         self.with_mask = with_mask
@@ -38,7 +40,7 @@ class HungarianMatcher(nn.Module):
         self.giou_loss = GIoULoss()
 
     def forward(self, boxes, logits, gt_bbox, gt_class, masks=None, gt_mask=None):
-        r"""
+        """
         Args:
             boxes (Tensor): [b, query, 4]
             logits (Tensor): [b, query, num_classes]

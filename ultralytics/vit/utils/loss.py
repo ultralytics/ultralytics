@@ -43,6 +43,7 @@ class DETRLoss(nn.Module):
         self.use_vfl = use_vfl
         self.use_uni_match = use_uni_match
         self.uni_match_ind = uni_match_ind
+        self.device = None
 
         if not self.use_focal_loss:
             self.loss_coeff['class'] = torch.full([num_classes + 1], loss_coeff['class'])
@@ -194,9 +195,11 @@ class DETRLoss(nn.Module):
 
     def _get_src_target_assign(self, src, target, match_indices):
         src_assign = torch.cat([
-            t[I] if len(I) > 0 else torch.zeros([0, t.shape[-1]]) for t, (I, _) in zip(src, match_indices)])
+            t[I] if len(I) > 0 else torch.zeros(0, t.shape[-1], device=self.device) for t, (I, _) in
+            zip(src, match_indices)])
         target_assign = torch.cat([
-            t[J] if len(J) > 0 else torch.zeros([0, t.shape[-1]]) for t, (_, J) in zip(target, match_indices)])
+            t[J] if len(J) > 0 else torch.zeros(0, t.shape[-1], device=self.device) for t, (_, J) in
+            zip(target, match_indices)])
         return src_assign, target_assign
 
     def _get_num_gts(self, targets, dtype=torch.float32):
@@ -250,6 +253,7 @@ class DETRLoss(nn.Module):
             gt_mask (List(Tensor), optional): list[[n, H, W]]
             postfix (str): postfix of loss name
         """
+        self.device = boxes.device
 
         dn_match_indices = kwargs.get('dn_match_indices', None)
         num_gts = kwargs.get('num_gts', None)
@@ -284,7 +288,7 @@ class DETRLoss(nn.Module):
 
 class RTDETRDetectionLoss(DETRLoss):
 
-    def forward(self, preds, batch, dn_out_bboxes=None, dn_out_logits=None, dn_meta=None):
+    def forward(self, preds, batch, dn_out_bboxes=None, dn_out_logits=None, dn_meta=None, **kwargs):
         boxes, logits = preds
         gt_class, gt_bbox = batch['cls'], batch['bboxes']
         num_gts = self._get_num_gts(gt_class)

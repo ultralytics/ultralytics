@@ -78,7 +78,6 @@ class ClassificationTrainer(BaseTrainer):
 
         with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
             dataset = self.build_dataset(dataset_path, mode)
-        #print("---"*30+'\n',self.cls_weight,'\n'+"---"*30)
         loader = build_dataloader(dataset, batch_size, self.args.workers, rank=rank)
         # Attach inference transforms
         if mode != 'train':

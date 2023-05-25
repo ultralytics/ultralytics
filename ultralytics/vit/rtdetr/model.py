@@ -83,6 +83,7 @@ class RTDETR:
         """
         overrides = dict(task='detect', mode='train')
         overrides.update(kwargs)
+        overrides['deterministic'] = False
         if not overrides.get('data'):
             raise AttributeError("Dataset required but missing, i.e. pass 'data=coco128.yaml'")
         if overrides.get('resume'):

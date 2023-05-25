@@ -15,7 +15,7 @@ from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, c
 from ultralytics.yolo.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.yolo.utils.loss import v8ClassificationLoss, v8DetectionLoss, v8PoseLoss, v8SegmentationLoss
 from ultralytics.yolo.utils.plotting import feature_visualization
-from ultralytics.yolo.utils.torch_utils import (de_parallel, fuse_conv_and_bn, fuse_deconv_and_bn, initialize_weights,
+from ultralytics.yolo.utils.torch_utils import (fuse_conv_and_bn, fuse_deconv_and_bn, initialize_weights,
                                                 intersect_dicts, make_divisible, model_info, scale_img, time_sync)
 
 try:
@@ -180,12 +180,13 @@ class BaseModel(nn.Module):
 
         Args:
             batch (dict): Batch to compute loss on
+            pred (torch.Tensor | List[torch.Tensor]): Predictions.
         """
         if not hasattr(self, 'criterion'):
             self.criterion = self.init_criterion()
 
         preds = self.forward(batch['img']) if preds is None else preds
-        return self.criterion(preds, batch), preds
+        return self.criterion(preds, batch)
 
     def init_criterion(self):
         raise NotImplementedError('compute_loss() needs to be implemented by task heads')
@@ -267,7 +268,7 @@ class DetectionModel(BaseModel):
         return y
 
     def init_criterion(self):
-        return v8DetectionLoss(de_parallel(self))
+        return v8DetectionLoss(self)
 
 
 class SegmentationModel(DetectionModel):
@@ -282,7 +283,7 @@ class SegmentationModel(DetectionModel):
         raise NotImplementedError(emojis('WARNING ⚠️ SegmentationModel has not supported augment inference yet!'))
 
     def init_criterion(self):
-        return v8SegmentationLoss(de_parallel(self))
+        return v8SegmentationLoss(self)
 
 
 class PoseModel(DetectionModel):
@@ -298,7 +299,7 @@ class PoseModel(DetectionModel):
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
 
     def init_criterion(self):
-        return v8PoseLoss(de_parallel(self))
+        return v8PoseLoss(self)
 
 
 class ClassificationModel(BaseModel):

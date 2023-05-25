@@ -162,7 +162,7 @@ class BaseValidator:
             # Loss
             with dt[2]:
                 if self.training:
-                    loss_items, preds = model.loss(batch, preds)
+                    loss_items = model.loss(batch, preds)
                     self.loss += loss_items[1]
 
             # Postprocess

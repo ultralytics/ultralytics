@@ -37,13 +37,6 @@ class RTDETRTrainer(DetectionTrainer):
             prefix=colorstr(f'{mode}: '),
             data=self.data)
 
-    def get_model(self, cfg=None, weights=None, verbose=True):
-        """Return a YOLO detection model."""
-        model = RTDETRDetectionModel(cfg, nc=self.data['nc'], verbose=verbose and RANK == -1)
-        if weights:
-            model.load(weights)
-        return model
-
     def get_validator(self):
         """Returns a DetectionValidator for RTDETR model validation."""
         self.loss_names = 'giou_loss', 'cls_loss', 'l1_loss'

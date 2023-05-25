@@ -107,8 +107,7 @@ class ClassificationTrainer(BaseTrainer):
     def criterion(self, preds, batch):
         """Compute the classification loss between predictions and true labels."""
         loss = torch.nn.functional.cross_entropy(
-            preds, batch['cls'], reduction='sum', weight=torch.tensor(
-                self.cls_weight).half().to(device=self.device)) / self.args.nbs
+            preds, batch['cls'], reduction='sum', weight=self.cls_weightto(device=self.device) if isinstance(self.cls_weight, torch.Tensor) else None / self.args.nbs
         loss_items = loss.detach()
         return loss, loss_items
 

@@ -107,6 +107,7 @@ class DetectionValidator(BaseValidator):
                 # TODO: maybe remove these `self.` arguments as they already are member variable
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, labelsn)
+                    self.output_bad_cases(predn, labelsn)
             self.stats.append((correct_bboxes, pred[:, 4], pred[:, 5], cls.squeeze(-1)))  # (conf, pcls, tcls)
 
             # Save
@@ -115,8 +116,6 @@ class DetectionValidator(BaseValidator):
             if self.args.save_txt:
                 file = self.save_dir / 'labels' / f'{Path(batch["im_file"][si]).stem}.txt'
                 self.save_one_txt(predn, self.args.save_conf, shape, file)
-            if self.args.plots:
-                self.output_bad_cases(predn, labelsn)
 
 
     def finalize_metrics(self, *args, **kwargs):
@@ -161,9 +160,33 @@ class DetectionValidator(BaseValidator):
                                   Each row should contain (class, x1, y1, x2, y2).
         """
         print('Print sample images')
-        print(detections)
-        print(labels)
+        if detections is None:
+            pass # Output all labels
 
+        detections = detections[detections[:, 4] > self.metrics.conf]
+        gt_classes = labels[:, 0].int()
+        detection_classes = detections[:, 5].int()
+        iou = box_iou(labels[:, 1:], detections[:, :4])
+
+        x = torch.where(iou > self.metrics.iou_thres)
+        if x[0].shape[0]:
+            matches = torch.cat((torch.stack(x, 1), iou[x[0], x[1]][:, None]), 1).cpu().numpy()
+            if x[0].shape[0] > 1:
+                matches = matches[matches[:, 2].argsort()[::-1]]
+                matches = matches[np.unique(matches[:, 1], return_index=True)[1]]
+                matches = matches[matches[:, 2].argsort()[::-1]]
+                matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
+        else:
+            matches = np.zeros((0, 3))
+
+        # matches is the index of box that meet the iou threshold. like
+        # [[          0           0     0.81668], pred box index, ground truth box index, iou
+        #  [          1           1     0.88082],
+        #  [          2           2      0.9422]]
+        n = matches.shape[0] > 0
+        m0, m1, _ = matches.transpose().astype(int)
+        # We need to find the pairs not in matches here. That is iou < iou_thres
+        # Find the ground truth box without prediction box, and prediction box without ground truth
         pass
 
     def _process_batch(self, detections, labels):

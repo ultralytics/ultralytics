@@ -54,7 +54,7 @@ class BaseDataset(Dataset):
                  hyp=DEFAULT_CFG,
                  prefix='',
                  rect=False,
-                 batch_size=None,
+                 batch_size=16,
                  stride=32,
                  pad=0.5,
                  single_cls=False,
@@ -77,6 +77,10 @@ class BaseDataset(Dataset):
             assert self.batch_size is not None
             self.set_rectangle()
 
+        # Buffer thread for mosaic images
+        self.buffer = []  # buffer size = batch size
+        self.max_buffer_length = min((self.ni, self.batch_size * 8, 1000)) if self.augment else 0
+
         # Cache stuff
         if cache == 'ram' and not self.check_cache_ram():
             cache = False
@@ -87,10 +91,6 @@ class BaseDataset(Dataset):
 
         # Transforms
         self.transforms = self.build_transforms(hyp=hyp)
-
-        # Buffer thread for mosaic images
-        self.buffer = []  # buffer size = batch size
-        self.max_buffer_length = min((self.ni, self.batch_size * 8, 1000)) if self.augment else 0
 
     def get_img_files(self, img_path):
         """Read image files."""

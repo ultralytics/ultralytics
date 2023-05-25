@@ -76,7 +76,8 @@ def class_weight(path, kind='auto'):
         iters = lambda x: len(glob(os.path.join(x, '*')))
         classes = list(map(iters, s))
         if np.mean(np.diff(ans)) != 0:  # Returns class weight is class is imbalanced
-            return torch.tensor(list(map(lambda x: round((sum(classes)) / (nc * x), 6), classes))).type(dtype=torch.float32)
+            return torch.tensor(list(map(lambda x: round((sum(classes)) / (nc * x), 6),
+                                         classes))).type(dtype=torch.float32)
         else:
             return None  # Returns None meaning classes are balanced
     elif isinstance(kind, list) and kind != []:  # Manually pass class weights

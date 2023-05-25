@@ -321,7 +321,7 @@ class Results(SimpleClass):
                 if kpts is not None:
                     # TODO: save keypoints
                     pass
-                line += ((conf, ) if save_conf else (-1, )) + (-1, ) * 3 # world coordinates x,y,z are ignored
+                line += ((conf, ) if save_conf else (-1, )) + (-1, ) * 3  # world coordinates x,y,z are ignored
                 texts.append(('%g ' * len(line)).rstrip() % line)
 
         if texts:

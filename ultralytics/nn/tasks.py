@@ -173,8 +173,8 @@ class BaseModel(nn.Module):
         self.load_state_dict(csd, strict=False)  # load
         if verbose:
             LOGGER.info(f'Transferred {len(csd)}/{len(self.model.state_dict())} items from pretrained weights')
-
-    def loss(self, batch):
+        
+    def loss(self, batch, preds=None):
         """
         Compute loss
 
@@ -184,7 +184,7 @@ class BaseModel(nn.Module):
         if not hasattr(self, 'criterion'):
             self.criterion = self.init_criterion()
 
-        preds = self.forward(batch['img'])
+        preds = self.forward(batch["img"]) if not preds else preds
         return self.criterion(preds, batch), preds
 
     def init_criterion(self):

@@ -1,7 +1,7 @@
 from copy import copy
 
 import torch
-from val import RTDETRDataset, RTDETRValidator
+from .val import RTDETRDataset, RTDETRValidator
 
 from ultralytics.register import REGISTER
 from ultralytics.vit.utils.loss import DETRLoss

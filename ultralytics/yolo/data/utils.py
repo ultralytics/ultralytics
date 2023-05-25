@@ -4,7 +4,6 @@ import contextlib
 import hashlib
 import json
 import os
-import torch
 import subprocess
 import time
 import zipfile
@@ -15,6 +14,7 @@ from tarfile import is_tarfile
 
 import cv2
 import numpy as np
+import torch
 from PIL import ExifTags, Image, ImageOps
 from tqdm import tqdm
 

@@ -163,6 +163,7 @@ nav:
       - models/index.md
       - YOLOv3: models/yolov3.md
       - YOLOv5: models/yolov5.md
+      - YOLOv6: models/yolov6.md
       - YOLOv8: models/yolov8.md
       - SAM (Segment Anything Model): models/sam.md
       - RT-DETR (Realtime Detection Transformer): models/rtdetr.md

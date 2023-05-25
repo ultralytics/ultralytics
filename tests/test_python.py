@@ -108,13 +108,13 @@ def test_amp():
 
 def test_train_scratch():
     model = YOLO(CFG)
-    model.train(data='coco8.yaml', epochs=1, imgsz=32)
+    model.train(data='coco8.yaml', epochs=1, imgsz=32, cache='disk')  # test disk caching
     model(SOURCE)
 
 
 def test_train_pretrained():
     model = YOLO(MODEL)
-    model.train(data='coco8.yaml', epochs=1, imgsz=32)
+    model.train(data='coco8.yaml', epochs=1, imgsz=32, cache='ram')  # test RAM caching
     model(SOURCE)
 
 

@@ -4,6 +4,7 @@ import contextlib
 import hashlib
 import json
 import os
+import torch
 import subprocess
 import time
 import zipfile

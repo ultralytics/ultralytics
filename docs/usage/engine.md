@@ -57,7 +57,7 @@ from ultralytics.yolo.v8.detect import DetectionTrainer
 from ultralytcs.nn.tasks import DetectionModel
 
 class MyCustomModel(DetectionModel):
-  def criterion():
+  def init_criterion():
     ...
 
 

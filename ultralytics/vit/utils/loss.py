@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 from ultralytics.vit.utils.ops import HungarianMatcher, xywh2xyxy
 from ultralytics.yolo.utils import WORLD_SIZE
-from ultralytics.yolo.utils.loss import FocalLoss, GIoULoss, VarifocalLoss
+from ultralytics.yolo.utils.loss import FocalLoss, VarifocalLoss
 from ultralytics.yolo.utils.metrics import bbox_iou
 
 
@@ -48,7 +48,6 @@ class DETRLoss(nn.Module):
         if not self.use_focal_loss:
             self.loss_coeff['class'] = torch.full([num_classes + 1], loss_coeff['class'])
             self.loss_coeff['class'][-1] = loss_coeff['no_object']
-        self.giou_loss = GIoULoss()
 
     def _get_loss_class(self, logits, gt_class, match_indices, bg_index, num_gts, postfix='', iou_score=None):
         # logits: [b, query, num_classes], gt_class: list[[n, 1]]
@@ -92,7 +91,7 @@ class DETRLoss(nn.Module):
 
         src_bbox, target_bbox = self._get_src_target_assign(boxes, gt_bbox, match_indices)
         loss[name_bbox] = self.loss_coeff['bbox'] * F.l1_loss(src_bbox, target_bbox, reduction='sum') / num_gts
-        loss[name_giou] = self.giou_loss(xywh2xyxy(src_bbox), xywh2xyxy(target_bbox))
+        loss[name_giou] = 1.0 - bbox_iou(src_bbox, target_bbox, xywh=True, GIoU=True)
         loss[name_giou] = loss[name_giou].sum() / num_gts
         loss[name_giou] = self.loss_coeff['giou'] * loss[name_giou]
         loss = {k: v.squeeze() for k, v in loss.items()}

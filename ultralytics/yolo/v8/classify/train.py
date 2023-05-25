@@ -104,9 +104,7 @@ class ClassificationTrainer(BaseTrainer):
         self.loss_names = ['loss']
         return v8.classify.ClassificationValidator(self.test_loader, self.save_dir)
 
-    def criterion(self, preds, batch, class_weight='auto'):
-        if isinstance(class_weight, list) and len(class_weight) == self.data['nc']:
-            self.cls_weight = class_weight
+    def criterion(self, preds, batch):
         """Compute the classification loss between predictions and true labels."""
         loss = torch.nn.functional.cross_entropy(
             preds, batch['cls'], reduction='sum', weight=torch.tensor(

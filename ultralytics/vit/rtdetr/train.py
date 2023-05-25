@@ -1,12 +1,13 @@
 from copy import copy
 
 import torch
-from .val import RTDETRDataset, RTDETRValidator
 
 from ultralytics.register import REGISTER
 from ultralytics.vit.utils.loss import DETRLoss
 from ultralytics.yolo.utils import DEFAULT_CFG, colorstr
 from ultralytics.yolo.v8.detect import DetectionTrainer
+
+from .val import RTDETRDataset, RTDETRValidator
 
 
 class RTDETRTrainer(DetectionTrainer):

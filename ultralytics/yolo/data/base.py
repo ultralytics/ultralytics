@@ -54,7 +54,7 @@ class BaseDataset(Dataset):
                  hyp=DEFAULT_CFG,
                  prefix='',
                  rect=False,
-                 batch_size=None,
+                 batch_size=16,
                  stride=32,
                  pad=0.5,
                  single_cls=False,

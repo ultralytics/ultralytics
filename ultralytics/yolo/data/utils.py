@@ -72,7 +72,6 @@ def class_weight(path, kind='auto'):
     if kind == 'auto':
         nc = len(os.listdir(path))
         path = path
-        dirs = glob(os.path.join(path, '*'))
         s = glob(os.path.join(path, '*'))
         iters = lambda x: len(glob(os.path.join(x, '*')))
         ans = list(map(iters, s))

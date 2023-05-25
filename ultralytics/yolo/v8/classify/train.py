@@ -41,7 +41,6 @@ class ClassificationTrainer(BaseTrainer):
                 m.p = self.args.dropout  # set dropout
         for p in model.parameters():
             p.requires_grad = True  # for training
-
         return model
 
     def setup_model(self):

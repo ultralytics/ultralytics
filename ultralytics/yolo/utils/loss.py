@@ -357,3 +357,10 @@ class v8PoseLoss(v8DetectionLoss):
         y[..., 0] += anchor_points[:, [0]] - 0.5
         y[..., 1] += anchor_points[:, [1]] - 0.5
         return y
+
+class v8ClassificationLoss:
+    def __call__(self, preds, batch):
+        """Compute the classification loss between predictions and true labels."""
+        loss = torch.nn.functional.cross_entropy(preds, batch['cls'], reduction='sum') / 64 # TODO: remove hardcoding
+        loss_items = loss.detach()
+        return loss, loss_items

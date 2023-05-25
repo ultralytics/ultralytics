@@ -180,13 +180,17 @@ class DetectionValidator(BaseValidator):
             matches = np.zeros((0, 3))
 
         # matches is the index of box that meet the iou threshold. like
-        # [[          0           0     0.81668], pred box index, ground truth box index, iou
+        # [[          0           0     0.81668], ground truth box index, pred box index, , iou
         #  [          1           1     0.88082],
         #  [          2           2      0.9422]]
-        n = matches.shape[0] > 0
-        m0, m1, _ = matches.transpose().astype(int)
         # We need to find the pairs not in matches here. That is iou < iou_thres
         # Find the ground truth box without prediction box, and prediction box without ground truth
+        y = torch.where(iou <= self.metrics.iou_thres)
+        labels_matches = matches[:,0]
+        pred_matches = matches[:, 0]
+
+        false_positive = y[1] - pred_matches
+        false_negative = y[0] - labels_matches
         pass
 
     def _process_batch(self, detections, labels):

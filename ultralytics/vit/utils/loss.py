@@ -195,11 +195,11 @@ class DETRLoss(nn.Module):
 
     def _get_src_target_assign(self, src, target, match_indices):
         src_assign = torch.cat([
-            t[I] if len(I) > 0 else torch.zeros(0, t.shape[-1], device=self.device) for t, (I, _) in
-            zip(src, match_indices)])
+            t[I] if len(I) > 0 else torch.zeros(0, t.shape[-1], device=self.device)
+            for t, (I, _) in zip(src, match_indices)])
         target_assign = torch.cat([
-            t[J] if len(J) > 0 else torch.zeros(0, t.shape[-1], device=self.device) for t, (_, J) in
-            zip(target, match_indices)])
+            t[J] if len(J) > 0 else torch.zeros(0, t.shape[-1], device=self.device)
+            for t, (_, J) in zip(target, match_indices)])
         return src_assign, target_assign
 
     def _get_num_gts(self, targets, dtype=torch.float32):

@@ -153,7 +153,6 @@ class BaseDataset(Dataset):
                                 interpolation=interp)
 
             # Add to buffer if training with augmentations
-            print(self.augment, self.buffer)
             if self.augment:
                 self.ims[i], self.im_hw0[i], self.im_hw[i] = im, (h0, w0), im.shape[:2]  # im, hw_original, hw_resized
                 self.buffer.append(i)

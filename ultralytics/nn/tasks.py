@@ -388,8 +388,17 @@ class RTDETRDetectionModel(DetectionModel):
         if not hasattr(self, 'criterion'):
             self.criterion = self.init_criterion()
 
-        preds = self._forward_once(batch['img'], 
-                                   batch={k: v for k, v in batch.items() if k in ['cls', 'bboxes']}) if preds is None else preds
+        img = batch['img']
+        # NOTE: preprocess gt_bbox and gt_labels to list.
+        bs = len(img)
+        batch_idx = batch['batch_idx']
+        gt_bbox, gt_class = [], []
+        for i in range(bs):
+            gt_bbox.append(batch['bboxes'][batch_idx == i].to(img.device))
+            gt_class.append(batch['cls'][batch_idx == i].to(device=img.device, dtype=torch.long))
+        targets = {'cls': gt_class, 'bboxes': gt_bbox}
+
+        preds = self._forward_once(img, batch=targets) if preds is None else preds
         dec_out_bboxes, dec_out_logits, enc_topk_bboxes, enc_topk_logits, dn_meta = preds
         # NOTE: `dn_meta` means it's eval mode, loss calculation for eval mode is not supported.
         if dn_meta is None:
@@ -401,7 +410,7 @@ class RTDETRDetectionModel(DetectionModel):
         out_logits = torch.cat([enc_topk_logits.unsqueeze(0), dec_out_logits])
 
         loss = self.criterion((out_bboxes, out_logits),
-                                 batch,
+                                 targets,
                                  dn_out_bboxes=dn_out_bboxes,
                                  dn_out_logits=dn_out_logits,
                                  dn_meta=dn_meta)

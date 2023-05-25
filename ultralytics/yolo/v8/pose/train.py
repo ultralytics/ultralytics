@@ -2,9 +2,6 @@
 
 from copy import copy
 
-import torch
-import torch.nn as nn
-
 from ultralytics.nn.tasks import PoseModel
 from ultralytics.yolo import v8
 from ultralytics.yolo.utils import DEFAULT_CFG

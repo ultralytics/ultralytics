@@ -2,8 +2,6 @@
 from copy import copy
 
 import numpy as np
-import torch
-import torch.nn as nn
 
 from ultralytics.nn.tasks import DetectionModel
 from ultralytics.yolo import v8

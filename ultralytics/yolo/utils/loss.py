@@ -4,10 +4,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ultralytics.yolo.utils.tal import TaskAlignedAssigner, dist2bbox, make_anchors
-from ultralytics.yolo.utils.ops import xywh2xyxy,crop_mask, xyxy2xywh
-
 from ultralytics.yolo.utils.metrics import OKS_SIGMA
+from ultralytics.yolo.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
+from ultralytics.yolo.utils.tal import TaskAlignedAssigner, dist2bbox, make_anchors
 
 from .metrics import bbox_iou
 from .tal import bbox2dist
@@ -78,6 +77,7 @@ class KeypointLoss(nn.Module):
         # e = d / (2 * (area * self.sigmas) ** 2 + 1e-9)  # from formula
         e = d / (2 * self.sigmas) ** 2 / (area + 1e-9) / 2  # from cocoeval
         return kpt_loss_factor * ((1 - torch.exp(-e)) * kpt_mask).mean()
+
 
 # Criterion class for computing Detection training losses
 class v8DetectionLoss:
@@ -173,7 +173,6 @@ class v8DetectionLoss:
         loss[2] *= self.hyp.dfl  # dfl gain
 
         return loss.sum() * batch_size, loss.detach()  # loss(box, cls, dfl)
-
 
 
 # Criterion class for computing training losses

@@ -410,10 +410,10 @@ class RTDETRDetectionModel(DetectionModel):
         out_logits = torch.cat([enc_topk_logits.unsqueeze(0), dec_out_logits])
 
         loss = self.criterion((out_bboxes, out_logits),
-                                 targets,
-                                 dn_out_bboxes=dn_out_bboxes,
-                                 dn_out_logits=dn_out_logits,
-                                 dn_meta=dn_meta)
+                              targets,
+                              dn_out_bboxes=dn_out_bboxes,
+                              dn_out_logits=dn_out_logits,
+                              dn_meta=dn_meta)
         return sum(loss.values()), torch.as_tensor([loss[k].detach() for k in ['loss_giou', 'loss_class', 'loss_bbox']])
 
     def _forward_once(self, x, profile=False, visualize=False, batch=None):
@@ -430,7 +430,7 @@ class RTDETRDetectionModel(DetectionModel):
             (torch.Tensor): The last output of the model.
         """
         y, dt = [], []  # outputs
-        for m in self.model[:-1]:   # expect the head part
+        for m in self.model[:-1]:  # expect the head part
             if m.f != -1:  # if not from previous layer
                 x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
             if profile:
@@ -440,7 +440,7 @@ class RTDETRDetectionModel(DetectionModel):
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
         head = self.model[-1]
-        x = head([y[j] for j in head.f], batch)   # head inference
+        x = head([y[j] for j in head.f], batch)  # head inference
         return x
 
 

@@ -282,7 +282,7 @@ class RTDETRDetectionLoss(DETRLoss):
 
     def forward(self, preds, batch, dn_out_bboxes=None, dn_out_logits=None, dn_meta=None):
         boxes, logits = preds
-        gt_class, gt_bbox = batch["cls"], batch["bboxes"]
+        gt_class, gt_bbox = batch['cls'], batch['bboxes']
         num_gts = self._get_num_gts(gt_class)
         total_loss = super().forward(boxes, logits, gt_bbox, gt_class, num_gts=num_gts)
 
@@ -324,5 +324,3 @@ class RTDETRDetectionLoss(DETRLoss):
             else:
                 dn_match_indices.append((torch.zeros([0], dtype=torch.int64), torch.zeros([0], dtype=torch.int64)))
         return dn_match_indices
-
-

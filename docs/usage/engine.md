@@ -48,22 +48,24 @@ trainer.train()
 
 You now realize that you need to customize the trainer further to:
 
-* * Customize the `loss function`. 
+* Customize the `loss function`.
 * Add `callback` that uploads model to your Google Drive after every 10 `epochs`
   Here's how you can do it:
 
 ```python
 from ultralytics.yolo.v8.detect import DetectionTrainer
-from ultralytcs.nn.tasks import DetectionModel
+from ultralytics.nn.tasks import DetectionModel
+
 
 class MyCustomModel(DetectionModel):
-  def init_criterion():
-    ...
+    def init_criterion(self):
+        ...
 
 
 class CustomTrainer(DetectionTrainer):
     def get_model(self, cfg, weights):
         return MyCustomModel(...)
+
 
 # callback to upload model weights
 def log_model(trainer):

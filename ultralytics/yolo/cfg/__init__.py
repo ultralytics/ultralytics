@@ -111,10 +111,13 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
         check_cfg_mismatch(cfg, overrides)
         cfg = {**cfg, **overrides}  # merge cfg and overrides dicts (prefer overrides)
 
-    # Special handling for numeric project/names
+    # Special handling for numeric project/name
     for k in 'project', 'name':
         if k in cfg and isinstance(cfg[k], (int, float)):
             cfg[k] = str(cfg[k])
+    if cfg.get('name') == 'model':  # assign model to 'name' arg
+        cfg['name'] = cfg.get('model', '').split('.')[0]
+        LOGGER.warning(f"WARNING ⚠️ 'name=model' automatically updated to 'name={cfg['name']}'.")
 
     # Type and Value checks
     for k, v in cfg.items():

@@ -411,11 +411,37 @@ class RTDETRDetectionModel(DetectionModel):
         out_logits = torch.cat([enc_topk_logits.unsqueeze(0), dec_out_logits])
 
         loss = self.criterion((out_bboxes, out_logits),
-                              batch,
-                              dn_out_bboxes=dn_out_bboxes,
-                              dn_out_logits=dn_out_logits,
-                              dn_meta=dn_meta)
+                                 batch,
+                                 dn_out_bboxes=dn_out_bboxes,
+                                 dn_out_logits=dn_out_logits,
+                                 dn_meta=dn_meta)
         return sum(loss.values()), torch.as_tensor([loss[k].detach() for k in ['loss_giou', 'loss_class', 'loss_bbox']])
+
+    def _forward_once(self, x, profile=False, visualize=False, batch=None):
+        """
+        Perform a forward pass through the network.
+
+        Args:
+            x (torch.Tensor): The input tensor to the model
+            profile (bool):  Print the computation time of each layer if True, defaults to False.
+            visualize (bool): Save the feature maps of the model if True, defaults to False
+            batch (dict): A dict including gt boxes and labels from dataloader.
+
+        Returns:
+            (torch.Tensor): The last output of the model.
+        """
+        y, dt = [], []  # outputs
+        for m in self.model[:-1]:   # expect the head part
+            if m.f != -1:  # if not from previous layer
+                x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
+            if profile:
+                self._profile_one_layer(m, x, dt)
+            x = m(x)  # run
+            y.append(x if m.i in self.save else None)  # save output
+            if visualize:
+                feature_visualization(x, m.type, m.i, save_dir=visualize)
+        x = self.model[-1](x, batch)   # head inference
+        return x
 
 
 class Ensemble(nn.ModuleList):

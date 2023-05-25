@@ -278,7 +278,7 @@ class DETRLoss(nn.Module):
         return total_loss
 
 
-class RTDETRDetectionLoss(DETRLoss):
+class RTDETRLoss(DETRLoss):
 
     def forward(self, preds, batch, dn_out_bboxes=None, dn_out_logits=None, dn_meta=None):
         boxes, logits = preds
@@ -330,3 +330,5 @@ class RTDETRDetectionLoss(DETRLoss):
             else:
                 dn_match_indices.append((torch.zeros([0], dtype=torch.int64), torch.zeros([0], dtype=torch.int64)))
         return dn_match_indices
+
+

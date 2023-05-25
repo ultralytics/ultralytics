@@ -5,14 +5,13 @@
 
 from pathlib import Path
 
-from ultralytics.nn.tasks import RTDETRDetectionModel, attempt_load_one_weight, yaml_model_load
+from ultralytics.nn.tasks import RTDETRModel, attempt_load_one_weight, yaml_model_load
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, RANK, ROOT, is_git_dir
 from ultralytics.yolo.utils.checks import check_imgsz
-from ultralytics.yolo.utils.torch_utils import model_info
+from ultralytics.yolo.utils.torch_utils import model_info, smart_inference_mode
 
-from ...yolo.utils.torch_utils import smart_inference_mode
 from .predict import RTDETRPredictor
 from .train import RTDETRTrainer
 from .val import RTDETRValidator
@@ -36,7 +35,7 @@ class RTDETR:
         cfg_dict = yaml_model_load(cfg)
         self.cfg = cfg
         self.task = 'detect'
-        self.model = RTDETRDetectionModel(cfg_dict, verbose=verbose)  # build model
+        self.model = RTDETRModel(cfg_dict, verbose=verbose)  # build model
 
         # Below added to allow export from yamls
         self.model.args = DEFAULT_CFG_DICT  # attach args to model

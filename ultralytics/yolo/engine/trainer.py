@@ -127,7 +127,7 @@ class BaseTrainer:
             raise RuntimeError(emojis(f"Dataset '{clean_url(self.args.data)}' error ❌ {e}")) from e
 
         self.trainset, self.testset = self.get_dataset(self.data)
-        
+
         self.ema = None
 
         # Optimization utils init
@@ -250,10 +250,10 @@ class BaseTrainer:
             self.lf = lambda x: (1 - x / self.epochs) * (1.0 - self.args.lrf) + self.args.lrf  # linear
         self.scheduler = lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
         self.stopper, self.stop = EarlyStopping(patience=self.args.patience), False
-        
+
         # Class weights
-        self.cls_weight=class_weight(path=self.trainset, kind='auto')  # Class weights defaults as "auto"
-        
+        self.cls_weight = class_weight(path=self.trainset, kind='auto')  # Class weights defaults as "auto"
+
         # Dataloaders
         batch_size = self.batch_size // world_size if world_size > 1 else self.batch_size
         self.train_loader = self.get_dataloader(self.trainset, batch_size=batch_size, rank=RANK, mode='train')

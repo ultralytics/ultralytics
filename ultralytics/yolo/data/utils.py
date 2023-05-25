@@ -2,12 +2,12 @@
 
 import contextlib
 import hashlib
-from glob import glob
 import json
 import os
 import subprocess
 import time
 import zipfile
+from glob import glob
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from tarfile import is_tarfile
@@ -60,30 +60,31 @@ def exif_size(img):
             s = (s[1], s[0])
     return s
 
-def class_weight(path ,kind: str|list='auto'):
+
+def class_weight(path, kind: str | list = 'auto'):
     """Kind: 'auto:' -> Automatically computes class weights
     The class weight can also be manually computed by passing a list of its
     weight instead of 'auto' """
-    
+
     if isinstance(kind, int):
         raise ValueError('Class weights cannot be integar')
-    if kind=='auto':
-        nc=len(os.listdir(path))
-        path=path
-        dirs=glob(os.path.join(path, "*"))
-        s=glob(os.path.join(path, '*'))
-        iters=lambda  x:  len(glob(os.path.join(x,'*')))
-        ans=list(map(iters, s))
-        if np.mean(np.diff(ans))!=0:  # Returns class weight is class is imbalanced 
-            return list(map(lambda x: round((sum(ans))/(nc*x), 6), ans))
-        else: 
-            return None   # Returns None meaning classes are balanced
-    elif isinstance(kind, list) and kind != []:   # Manually pass class weights
+    if kind == 'auto':
+        nc = len(os.listdir(path))
+        path = path
+        dirs = glob(os.path.join(path, '*'))
+        s = glob(os.path.join(path, '*'))
+        iters = lambda x: len(glob(os.path.join(x, '*')))
+        ans = list(map(iters, s))
+        if np.mean(np.diff(ans)) != 0:  # Returns class weight is class is imbalanced
+            return list(map(lambda x: round((sum(ans)) / (nc * x), 6), ans))
+        else:
+            return None  # Returns None meaning classes are balanced
+    elif isinstance(kind, list) and kind != []:  # Manually pass class weights
         return kind
-    
+
     else:
         return None
-        
+
 
 def verify_image_label(args):
     """Verify one image-label pair."""
@@ -454,9 +455,6 @@ class HUBDatasetStats():
                     pass
         LOGGER.info(f'Done. All images saved to {self.im_dir}')
         return self.im_dir
-    
-    
-
 
 
 def compress_one_image(f, f_new=None, max_dim=1920, quality=50):

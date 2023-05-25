@@ -375,9 +375,8 @@ class ClassificationModel(BaseModel):
 
 class RTDETRDetectionModel(DetectionModel):
 
-    def __init__(self, cfg='yolov8n.yaml', ch=3, nc=None, verbose=True):
+    def __init__(self, cfg='rtdetr-l.yaml', ch=3, nc=None, verbose=True):
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
-        self.nc = nc
 
     def init_criterion(self):
         """Compute the classification loss between predictions and true labels."""
@@ -389,18 +388,9 @@ class RTDETRDetectionModel(DetectionModel):
         if not hasattr(self, 'criterion'):
             self.criterion = self.init_criterion()
 
-        if preds is not None:
-            dec_out_bboxes, dec_out_logits, enc_topk_bboxes, enc_topk_logits, dn_meta = preds
-        else:
-            y = []
-            x = batch['img']
-            for m in self.model[:-1]:
-                if m.f != -1:  # if not from previous layer
-                    x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]
-                x = m(x)  # forward
-                y.append(x if m.i in self.save else None)
-            preds = self.model[-1](x, batch)  # head part
-
+        preds = self._forward_once(batch['img'], 
+                                   batch={k: v for k, v in batch.items() if k in ['cls', 'bboxes']}) if preds is None else preds
+        dec_out_bboxes, dec_out_logits, enc_topk_bboxes, enc_topk_logits, dn_meta = preds
         # NOTE: `dn_meta` means it's eval mode, loss calculation for eval mode is not supported.
         if dn_meta is None:
             return 0, torch.zeros(3, device=dec_out_bboxes.device)
@@ -440,7 +430,8 @@ class RTDETRDetectionModel(DetectionModel):
             y.append(x if m.i in self.save else None)  # save output
             if visualize:
                 feature_visualization(x, m.type, m.i, save_dir=visualize)
-        x = self.model[-1](x, batch)   # head inference
+        head = self.model[-1]
+        x = head([y[j] for j in head.f], batch)   # head inference
         return x
 
 

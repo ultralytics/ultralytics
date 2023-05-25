@@ -5,7 +5,7 @@
 
 from pathlib import Path
 
-from ultralytics.nn.tasks import RTDETRModel, attempt_load_one_weight, yaml_model_load
+from ultralytics.nn.tasks import RTDETRDetectionModel, attempt_load_one_weight, yaml_model_load
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, RANK, ROOT, is_git_dir
@@ -35,7 +35,7 @@ class RTDETR:
         cfg_dict = yaml_model_load(cfg)
         self.cfg = cfg
         self.task = 'detect'
-        self.model = RTDETRModel(cfg_dict, verbose=verbose)  # build model
+        self.model = RTDETRDetectionModel(cfg_dict, verbose=verbose)  # build model
 
         # Below added to allow export from yamls
         self.model.args = DEFAULT_CFG_DICT  # attach args to model

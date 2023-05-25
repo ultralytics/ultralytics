@@ -278,7 +278,7 @@ class DETRLoss(nn.Module):
         return total_loss
 
 
-class RTDETRLoss(DETRLoss):
+class RTDETRDetectionLoss(DETRLoss):
 
     def forward(self, preds, batch, dn_out_bboxes=None, dn_out_logits=None, dn_meta=None):
         boxes, logits = preds

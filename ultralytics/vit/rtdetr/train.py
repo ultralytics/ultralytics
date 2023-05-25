@@ -5,7 +5,6 @@ import torch
 from ultralytics.nn.tasks import RTDETRDetectionModel
 from ultralytics.yolo.utils import DEFAULT_CFG, RANK, colorstr
 from ultralytics.yolo.v8.detect import DetectionTrainer
-from ultralytics.nn.tasks import RTDETRModel
 
 from .val import RTDETRDataset, RTDETRValidator
 
@@ -14,7 +13,7 @@ class RTDETRTrainer(DetectionTrainer):
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Return a YOLO detection model."""
-        model = RTDETRModel(cfg, nc=self.data['nc'], verbose=verbose and RANK == -1)
+        model = RTDETRDetectionModel(cfg, nc=self.data['nc'], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
         return model

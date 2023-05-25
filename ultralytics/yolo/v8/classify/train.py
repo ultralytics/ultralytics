@@ -1,9 +1,4 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-
-import os
-from glob import glob
-from pathlib import Path
-
 import torch
 import torchvision
 from torch.types import Device

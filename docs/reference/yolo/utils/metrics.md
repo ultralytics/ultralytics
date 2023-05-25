@@ -2,11 +2,6 @@
 description: Explore Ultralytics YOLO's FocalLoss, DetMetrics, PoseMetrics, ClassifyMetrics, and more with Ultralytics Metrics documentation.
 ---
 
-# FocalLoss
----
-:::ultralytics.yolo.utils.metrics.FocalLoss
-<br><br>
-
 # ConfusionMatrix
 ---
 :::ultralytics.yolo.utils.metrics.ConfusionMatrix

@@ -182,7 +182,7 @@ class BaseModel(nn.Module):
 
         Args:
             batch (dict): Batch to compute loss on
-            pred (torch.Tensor | List[torch.Tensor]): Predictions.
+            preds (torch.Tensor | List[torch.Tensor]): Predictions.
         """
         if not hasattr(self, 'criterion'):
             self.criterion = self.init_criterion()

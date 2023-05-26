@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from scipy.optimize import linear_sum_assignment
 
-from ultralytics.yolo.utils.loss import GIoULoss
+from ultralytics.yolo.utils.metrics import bbox_iou
 from ultralytics.yolo.utils.ops import xywh2xyxy
 
 
@@ -31,8 +31,6 @@ class HungarianMatcher(nn.Module):
         self.num_sample_points = num_sample_points
         self.alpha = alpha
         self.gamma = gamma
-
-        self.giou_loss = GIoULoss()
 
     def forward(self, boxes, logits, gt_bbox, gt_class, masks=None, gt_mask=None):
         """
@@ -81,7 +79,7 @@ class HungarianMatcher(nn.Module):
         cost_bbox = (out_bbox.unsqueeze(1) - tgt_bbox.unsqueeze(0)).abs().sum(-1)
 
         # Compute the GIoU cost between boxes
-        cost_giou = self.giou_loss(xywh2xyxy(out_bbox.unsqueeze(1)), xywh2xyxy(tgt_bbox.unsqueeze(0))).squeeze(-1)
+        cost_giou = 1.0 - bbox_iou(out_bbox.unsqueeze(1), tgt_bbox.unsqueeze(0), xywh=True, GIoU=True).squeeze(-1)
 
         # Final cost matrix
         C = self.matcher_coeff['class'] * cost_class + \

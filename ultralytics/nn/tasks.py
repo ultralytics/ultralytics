@@ -402,11 +402,11 @@ class RTDETRDetectionModel(DetectionModel):
 
         preds = self._forward_once(img, batch=targets) if preds is None else preds
         dec_out_bboxes, dec_out_logits, enc_topk_bboxes, enc_topk_logits, dn_meta = preds
-        # NOTE: `dn_meta` means it's eval mode, loss calculation for eval mode is not supported.
         if dn_meta is None:
-            return 0, torch.zeros(3, device=dec_out_bboxes.device)
-        dn_out_bboxes, dec_out_bboxes = torch.split(dec_out_bboxes, dn_meta['dn_num_split'], dim=2)
-        dn_out_logits, dec_out_logits = torch.split(dec_out_logits, dn_meta['dn_num_split'], dim=2)
+            dn_out_bboxes, dn_out_logits = None, None
+        else:
+            dn_out_bboxes, dec_out_bboxes = torch.split(dec_out_bboxes, dn_meta['dn_num_split'], dim=2)
+            dn_out_logits, dec_out_logits = torch.split(dec_out_logits, dn_meta['dn_num_split'], dim=2)
 
         out_bboxes = torch.cat([enc_topk_bboxes.unsqueeze(0), dec_out_bboxes])
         out_logits = torch.cat([enc_topk_logits.unsqueeze(0), dec_out_logits])
@@ -416,6 +416,7 @@ class RTDETRDetectionModel(DetectionModel):
                               dn_out_bboxes=dn_out_bboxes,
                               dn_out_logits=dn_out_logits,
                               dn_meta=dn_meta)
+        # NOTE: There are like 12 losses in RTDETR, backward with all losses but only show the main three losses.
         return sum(loss.values()), torch.as_tensor([loss[k].detach() for k in ['loss_giou', 'loss_class', 'loss_bbox']])
 
     def _forward_once(self, x, profile=False, visualize=False, batch=None):

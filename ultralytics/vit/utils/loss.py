@@ -86,8 +86,8 @@ class DETRLoss(nn.Module):
 
         loss = {}
         if sum(len(a) for a in gt_bbox) == 0:
-            loss[name_bbox] = torch.tensor([0.])
-            loss[name_giou] = torch.tensor([0.])
+            loss[name_bbox] = torch.tensor(0., device=self.device)
+            loss[name_giou] = torch.tensor(0., device=self.device)
             return loss
 
         src_bbox, target_bbox = self._get_src_target_assign(boxes, gt_bbox, match_indices)
@@ -105,8 +105,8 @@ class DETRLoss(nn.Module):
 
         loss = {}
         if sum(len(a) for a in gt_mask) == 0:
-            loss[name_mask] = torch.tensor([0.])
-            loss[name_dice] = torch.tensor([0.])
+            loss[name_mask] = torch.tensor(0., device=self.device)
+            loss[name_dice] = torch.tensor(0., device=self.device)
             return loss
 
         src_masks, target_masks = self._get_src_target_assign(masks, gt_mask, match_indices)
@@ -310,7 +310,7 @@ class RTDETRDetectionLoss(DETRLoss):
                                       num_gts=num_gts)
             total_loss.update(dn_loss)
         else:
-            total_loss.update({f'{k}_dn': torch.tensor([0.]) for k in total_loss.keys()})
+            total_loss.update({f'{k}_dn': torch.tensor(0., device=self.device) for k in total_loss.keys()})
 
         return total_loss
 

@@ -18,7 +18,7 @@ class DETRLoss(nn.Module):
                 'giou': 2}),
             loss_coeff=None,
             aux_loss=True,
-            use_focal_loss=False,  # disabled for testing, default True
+            use_focal_loss=True,
             use_vfl=False,
             use_uni_match=False,
             uni_match_ind=0):
@@ -75,10 +75,7 @@ class DETRLoss(nn.Module):
             else:
                 loss_ = self.loss_coeff['class'] * focal_loss(logits, target_label.float(), num_gts / num_query_objects)
         else:
-            # loss_ = F.cross_entropy(logits, target_label, weight=self.loss_coeff['class'])
-            # disable FocalLoss experiment by Glenn
-            target_label = F.one_hot(target_label, self.num_classes + 1)[..., :-1].float()
-            loss_ = F.binary_cross_entropy_with_logits(logits, target_label, reduction='none').mean(1).sum()
+            loss_ = F.cross_entropy(logits, target_label, weight=self.loss_coeff['class'])
 
         return {name_class: loss_.squeeze()}
 

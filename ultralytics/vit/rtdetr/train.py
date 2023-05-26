@@ -30,7 +30,7 @@ class RTDETRTrainer(DetectionTrainer):
             img_path=img_path,
             imgsz=self.args.imgsz,
             batch_size=batch,
-            augment=False,  # no augmentation
+            augment=True,  # no augmentation
             hyp=self.args,
             rect=False,  # no rect
             cache=self.args.cache or None,

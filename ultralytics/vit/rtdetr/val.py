@@ -5,7 +5,7 @@ from pathlib import Path
 import torch
 
 from ultralytics.yolo.data import YOLODataset
-from ultralytics.yolo.data.augment import Compose, Format, LetterBox
+from ultralytics.yolo.data.augment import Compose, Format, LetterBox, v8_transforms
 from ultralytics.yolo.utils import colorstr, ops
 from ultralytics.yolo.v8.detect import DetectionValidator
 
@@ -20,7 +20,12 @@ class RTDETRDataset(YOLODataset):
 
     def build_transforms(self, hyp=None):
         """Temporarily, only for evaluation."""
-        transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), auto=False, scaleFill=True)])
+        if self.augment:
+            hyp.mosaic = hyp.mosaic if self.augment and not self.rect else 0.0
+            hyp.mixup = hyp.mixup if self.augment and not self.rect else 0.0
+            transforms = v8_transforms(self, self.imgsz, hyp, stretch=True)
+        else:
+            transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), auto=False, scaleFill=True)])
         transforms.append(
             Format(bbox_format='xywh',
                    normalize=True,

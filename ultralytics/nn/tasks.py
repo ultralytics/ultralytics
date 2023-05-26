@@ -417,7 +417,7 @@ class RTDETRDetectionModel(DetectionModel):
                               dn_out_logits=dn_out_logits,
                               dn_meta=dn_meta)
         # NOTE: There are like 12 losses in RTDETR, backward with all losses but only show the main three losses.
-        return sum(loss.values()), torch.as_tensor([loss[k].detach() for k in ['loss_giou', 'loss_class', 'loss_bbox']])
+        return sum(loss.values()), torch.as_tensor([loss[k].detach() for k in ['loss_giou', 'loss_class', 'loss_bbox']], device=img.device)
 
     def _forward_once(self, x, profile=False, visualize=False, batch=None):
         """

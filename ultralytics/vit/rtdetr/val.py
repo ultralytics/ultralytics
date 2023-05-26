@@ -2,14 +2,14 @@
 
 from pathlib import Path
 
+import cv2
+import numpy as np
 import torch
 
 from ultralytics.yolo.data import YOLODataset
 from ultralytics.yolo.data.augment import Compose, Format, LetterBox, v8_transforms
 from ultralytics.yolo.utils import colorstr, ops
 from ultralytics.yolo.v8.detect import DetectionValidator
-import numpy as np
-import cv2
 
 __all__ = ['RTDETRValidator']
 

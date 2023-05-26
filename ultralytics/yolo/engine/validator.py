@@ -80,7 +80,8 @@ class BaseValidator:
         name = self.args.name or f'{self.args.mode}'
         self.save_dir = save_dir or increment_path(Path(project) / name,
                                                    exist_ok=self.args.exist_ok if RANK in (-1, 0) else True)
-        (self.save_dir / 'labels' if (self.args.save_txt or self.args.save_mot) else self.save_dir).mkdir(parents=True, exist_ok=True)
+        (self.save_dir / 'labels' if (self.args.save_txt or self.args.save_mot) else self.save_dir).mkdir(parents=True,
+                                                                                                          exist_ok=True)
 
         if self.args.conf is None:
             self.args.conf = 0.001  # default conf=0.001

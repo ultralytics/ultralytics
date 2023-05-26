@@ -5,7 +5,7 @@ from pathlib import Path
 import torch
 
 from ultralytics.yolo.data import YOLODataset
-from ultralytics.yolo.data.augment import Compose, Format, LetterBox
+from ultralytics.yolo.data.augment import Compose, Format
 from ultralytics.yolo.utils import colorstr, ops
 from ultralytics.yolo.v8.detect import DetectionValidator
 

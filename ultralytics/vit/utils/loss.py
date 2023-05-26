@@ -9,18 +9,19 @@ from ultralytics.yolo.utils.metrics import bbox_iou
 
 class DETRLoss(nn.Module):
 
-    def __init__(self,
-                 num_classes=80,
-                 matcher=HungarianMatcher(matcher_coeff={
-                     'class': 2,
-                     'bbox': 5,
-                     'giou': 2}),
-                 loss_coeff=None,
-                 aux_loss=True,
-                 use_focal_loss=False,  # disabled for testing, default True
-                 use_vfl=False,
-                 use_uni_match=False,
-                 uni_match_ind=0):
+    def __init__(
+            self,
+            num_classes=80,
+            matcher=HungarianMatcher(matcher_coeff={
+                'class': 2,
+                'bbox': 5,
+                'giou': 2}),
+            loss_coeff=None,
+            aux_loss=True,
+            use_focal_loss=False,  # disabled for testing, default True
+            use_vfl=False,
+            use_uni_match=False,
+            uni_match_ind=0):
         """
         Args:
             num_classes (int): The number of classes.

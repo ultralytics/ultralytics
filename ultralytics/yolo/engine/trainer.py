@@ -624,7 +624,7 @@ class BaseTrainer:
 
         for module_name, module in model.named_modules():
             for param_name, param in module.named_parameters(recurse=False):
-                fullname = f"{module_name}.{param_name}" if module_name else param_name
+                fullname = f'{module_name}.{param_name}' if module_name else param_name
                 if 'bias' in fullname:  # bias (no decay)
                     g[2].append(param)
                 elif isinstance(module, bn):  # weight (no decay)

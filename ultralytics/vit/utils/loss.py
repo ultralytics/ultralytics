@@ -73,7 +73,7 @@ class DETRLoss(nn.Module):
                 loss_ = self.loss_coeff['class'] * varifocal_loss(logits, target_score, target_label,
                                                                   num_gts / num_query_objects)
             else:
-                loss_ = self.loss_coeff['class'] * focal_loss(logits, target_label, num_gts / num_query_objects)
+                loss_ = self.loss_coeff['class'] * focal_loss(logits, target_label.float(), num_gts / num_query_objects)
         else:
             loss_ = F.cross_entropy(logits, target_label, weight=self.loss_coeff['class'])
         return {name_class: loss_.squeeze()}

@@ -44,10 +44,11 @@ class FocalLoss(nn.Module):
         # TF implementation https://github.com/tensorflow/addons/blob/v0.7.1/tensorflow_addons/losses/focal_loss.py
         pred_prob = pred.sigmoid()  # prob from logits
         p_t = label * pred_prob + (1 - label) * (1 - pred_prob)
-        alpha_factor = label * alpha + (1 - label) * (1 - alpha)
         modulating_factor = (1.0 - p_t) ** gamma
-        loss *= alpha_factor * modulating_factor
-
+        loss *= modulating_factor
+        if alpha > 0:
+            alpha_factor = label * alpha + (1 - label) * (1 - alpha)
+            loss *= alpha_factor
         return loss.mean(1).sum() / normalizer
 
 

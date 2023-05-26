@@ -17,7 +17,7 @@ class DETRLoss(nn.Module):
                      'giou': 2}),
                  loss_coeff=None,
                  aux_loss=True,
-                 use_focal_loss=True,
+                 use_focal_loss=False,  # disabled for testing, default True
                  use_vfl=False,
                  use_uni_match=False,
                  uni_match_ind=0):
@@ -153,7 +153,7 @@ class DETRLoss(nn.Module):
             if self.use_vfl:
                 if sum(len(a) for a in gt_bbox) > 0:
                     src_bbox, target_bbox = self._get_src_target_assign(aux_boxes.detach(), gt_bbox, match_indices)
-                    iou_score = bbox_iou(xywh2xyxy(src_bbox), xywh2xyxy(target_bbox))
+                    iou_score = bbox_iou(src_bbox, target_bbox, xywh=True)
                 else:
                     iou_score = None
             else:
@@ -223,7 +223,7 @@ class DETRLoss(nn.Module):
         if self.use_vfl:
             if sum(len(a) for a in gt_bbox) > 0:
                 src_bbox, target_bbox = self._get_src_target_assign(boxes.detach(), gt_bbox, match_indices)
-                iou_score = bbox_iou(xywh2xyxy(src_bbox), xywh2xyxy(target_bbox))
+                iou_score = bbox_iou(src_bbox, target_bbox, xywh=True)
             else:
                 iou_score = None
         else:

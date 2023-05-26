@@ -72,8 +72,8 @@ class DETRLoss(nn.Module):
                 # Experiment with YOLO cls loss
                 # loss_ = self.loss_coeff['class'] * varifocal_loss(logits, target_score, target_label,
                 #                                                  num_gts / num_query_objects)  # RTDETR loss
-                loss_ = self.loss_coeff['class'] * nn.BCEWithLogitsLoss(reduction='none')(logits, target_score).mean(
-                    1).sum()  # YOLO CLS loss
+                loss_ = self.loss_coeff['class'] * nn.BCEWithLogitsLoss(reduction='none')(
+                    logits, target_score).mean(1).sum()  # YOLO CLS loss
             else:
                 loss_ = self.loss_coeff['class'] * focal_loss(logits, target_label.float(), num_gts / num_query_objects)
         else:

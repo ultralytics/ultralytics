@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ultralytics.vit.utils.ops import HungarianMatcher, xywh2xyxy
+from ultralytics.vit.utils.ops import HungarianMatcher
 from ultralytics.yolo.utils.loss import FocalLoss, VarifocalLoss
 from ultralytics.yolo.utils.metrics import bbox_iou
 
@@ -70,8 +70,11 @@ class DETRLoss(nn.Module):
                     target_score = target_score.view(-1, 1)
                     target_score[index] = iou_score
                 target_score = target_score.view(bs, num_query_objects, 1) * target_label
-                loss_ = self.loss_coeff['class'] * varifocal_loss(logits, target_score, target_label,
-                                                                  num_gts / num_query_objects)
+                # Experiment with YOLO cls loss
+                # loss_ = self.loss_coeff['class'] * varifocal_loss(logits, target_score, target_label,
+                #                                                  num_gts / num_query_objects)  # RTDETR loss
+                loss_ = self.loss_coeff['class'] * nn.BCEWithLogitsLoss(reduction='none')(logits, target_score).mean(
+                    1).sum()  # YOLO CLS loss
             else:
                 loss_ = self.loss_coeff['class'] * focal_loss(logits, target_label.float(), num_gts / num_query_objects)
         else:

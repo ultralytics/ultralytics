@@ -8,6 +8,8 @@ from ultralytics.yolo.data import YOLODataset
 from ultralytics.yolo.data.augment import Compose, Format, LetterBox, v8_transforms
 from ultralytics.yolo.utils import colorstr, ops
 from ultralytics.yolo.v8.detect import DetectionValidator
+import numpy as np
+import cv2
 
 __all__ = ['RTDETRValidator']
 
@@ -18,6 +20,32 @@ class RTDETRDataset(YOLODataset):
     def __init__(self, *args, data=None, **kwargs):
         super().__init__(*args, data=data, use_segments=False, use_keypoints=False, **kwargs)
 
+    # NOTE: add stretch version load_image for rtdetr mosaic
+    def load_image(self, i):
+        """Loads 1 image from dataset index 'i', returns (im, resized hw)."""
+        im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
+        if im is None:  # not cached in RAM
+            if fn.exists():  # load npy
+                im = np.load(fn)
+            else:  # read image
+                im = cv2.imread(f)  # BGR
+                if im is None:
+                    raise FileNotFoundError(f'Image Not Found {f}')
+            h0, w0 = im.shape[:2]  # orig hw
+            im = cv2.resize(im, (self.imgsz, self.imgsz), interpolation=cv2.INTER_LINEAR)
+
+            # Add to buffer if training with augmentations
+            if self.augment:
+                self.ims[i], self.im_hw0[i], self.im_hw[i] = im, (h0, w0), im.shape[:2]  # im, hw_original, hw_resized
+                self.buffer.append(i)
+                if len(self.buffer) >= self.max_buffer_length:
+                    j = self.buffer.pop(0)
+                    self.ims[j], self.im_hw0[j], self.im_hw[j] = None, None, None
+
+            return im, (h0, w0), im.shape[:2]
+
+        return self.ims[i], self.im_hw0[i], self.im_hw[i]
+
     def build_transforms(self, hyp=None):
         """Temporarily, only for evaluation."""
         if self.augment:
@@ -25,7 +53,8 @@ class RTDETRDataset(YOLODataset):
             hyp.mixup = hyp.mixup if self.augment and not self.rect else 0.0
             transforms = v8_transforms(self, self.imgsz, hyp, stretch=True)
         else:
-            transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), auto=False, scaleFill=True)])
+            # transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), auto=False, scaleFill=True)])
+            transforms = Compose([])
         transforms.append(
             Format(bbox_format='xywh',
                    normalize=True,

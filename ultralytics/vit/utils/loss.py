@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from ultralytics.vit.utils.ops import HungarianMatcher, xywh2xyxy
-from ultralytics.yolo.utils import WORLD_SIZE
 from ultralytics.yolo.utils.loss import FocalLoss, VarifocalLoss
 from ultralytics.yolo.utils.metrics import bbox_iou
 

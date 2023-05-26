@@ -74,7 +74,11 @@ class DETRLoss(nn.Module):
             else:
                 loss_ = self.loss_coeff['class'] * focal_loss(logits, target_label.float(), num_gts / num_query_objects)
         else:
-            loss_ = F.cross_entropy(logits, target_label, weight=self.loss_coeff['class'])
+            # loss_ = F.cross_entropy(logits, target_label, weight=self.loss_coeff['class'])
+            # disable FocalLoss experiment by Glenn
+            target_label = F.one_hot(target_label, self.num_classes + 1)[..., :-1].float()
+            loss_ = F.binary_cross_entropy_with_logits(logits, target_label, reduction='none').mean(1).sum()
+
         return {name_class: loss_.squeeze()}
 
     def _get_loss_bbox(self, boxes, gt_bbox, match_indices, num_gts, postfix=''):

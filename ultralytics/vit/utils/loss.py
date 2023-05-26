@@ -202,11 +202,8 @@ class DETRLoss(nn.Module):
             for t, (_, J) in zip(target, match_indices)])
         return src_assign, target_assign
 
-    def _get_num_gts(self, targets, dtype=torch.float32):
+    def _get_num_gts(self, targets):
         num_gts = sum(len(a) for a in targets)
-        if WORLD_SIZE > 1:
-            torch.distributed.all_reduce(num_gts)
-            num_gts /= WORLD_SIZE
         num_gts = max(num_gts, 1)
         return num_gts
 

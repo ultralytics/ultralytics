@@ -301,18 +301,18 @@ class RTDETRDecoder(nn.Module):
             grid_y, grid_x = torch.meshgrid(torch.arange(end=h, dtype=torch.float32),
                                             torch.arange(end=w, dtype=torch.float32),
                                             indexing='ij')
-            grid_xy = torch.stack([grid_x, grid_y], -1)
+            grid_xy = torch.stack([grid_x, grid_y], -1)    # (h, w, 2)
 
-            valid_WH = torch.tensor([h, w]).to(torch.float32)
-            grid_xy = (grid_xy.unsqueeze(0) + 0.5) / valid_WH
+            valid_WH = torch.tensor([h, w], dtype=torch.float32)
+            grid_xy = (grid_xy.unsqueeze(0) + 0.5) / valid_WH  # (1, h, w, 2)
             wh = torch.ones_like(grid_xy) * grid_size * (2.0 ** lvl)
-            anchors.append(torch.concat([grid_xy, wh], -1).reshape([-1, h * w, 4]))
+            anchors.append(torch.cat([grid_xy, wh], -1).view(-1, h * w, 4))  # (1, h*w, 4)
 
-        anchors = torch.concat(anchors, 1)
-        valid_mask = ((anchors > eps) * (anchors < 1 - eps)).all(-1, keepdim=True)
+        anchors = torch.cat(anchors, 1)   # (1, h*w*nl, 4)
+        valid_mask = ((anchors > eps) * (anchors < 1 - eps)).all(-1, keepdim=True)  # 1, h*w*nl, 1
         anchors = torch.log(anchors / (1 - anchors))
         anchors = torch.where(valid_mask, anchors, torch.inf)
-        return anchors.to(device=device, dtype=dtype), valid_mask.to(device=device)
+        return anchors.to(device=device), valid_mask.to(device=device)
 
     def _get_encoder_input(self, feats):
         # get projection features

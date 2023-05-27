@@ -6,7 +6,7 @@ import torch.nn.functional as F
 from scipy.optimize import linear_sum_assignment
 
 from ultralytics.yolo.utils.metrics import bbox_iou
-from ultralytics.yolo.utils.ops import xywh2xyxy
+from ultralytics.yolo.utils.ops import xywh2xyxy, xyxy2xywh
 
 
 class HungarianMatcher(nn.Module):
@@ -192,7 +192,7 @@ def get_contrastive_denoising_training_group(targets,
         rand_part *= rand_sign
         known_bbox += rand_part * diff
         known_bbox.clip_(min=0.0, max=1.0)
-        input_query_bbox = xywh2xyxy(known_bbox)
+        input_query_bbox = xyxy2xywh(known_bbox)
         input_query_bbox = inverse_sigmoid(input_query_bbox)
 
     class_embed = torch.cat([class_embed, torch.zeros([1, class_embed.shape[-1]], device=class_embed.device)])

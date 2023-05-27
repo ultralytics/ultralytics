@@ -301,14 +301,14 @@ class RTDETRDecoder(nn.Module):
             grid_y, grid_x = torch.meshgrid(torch.arange(end=h, dtype=dtype, device=device),
                                             torch.arange(end=w, dtype=dtype, device=device),
                                             indexing='ij')
-            grid_xy = torch.stack([grid_x, grid_y], -1)    # (h, w, 2)
+            grid_xy = torch.stack([grid_x, grid_y], -1)  # (h, w, 2)
 
             valid_WH = torch.tensor([h, w], dtype=dtype, device=device)
             grid_xy = (grid_xy.unsqueeze(0) + 0.5) / valid_WH  # (1, h, w, 2)
             wh = torch.ones_like(grid_xy, dtype=dtype, device=device) * grid_size * (2.0 ** lvl)
             anchors.append(torch.cat([grid_xy, wh], -1).view(-1, h * w, 4))  # (1, h*w, 4)
 
-        anchors = torch.cat(anchors, 1)   # (1, h*w*nl, 4)
+        anchors = torch.cat(anchors, 1)  # (1, h*w*nl, 4)
         valid_mask = ((anchors > eps) * (anchors < 1 - eps)).all(-1, keepdim=True)  # 1, h*w*nl, 1
         anchors = torch.log(anchors / (1 - anchors))
         anchors = torch.where(valid_mask, anchors, torch.inf)
@@ -347,7 +347,7 @@ class RTDETRDecoder(nn.Module):
         bs = len(memory)
         # prepare input for decoder
         anchors, valid_mask = self._generate_anchors(spatial_shapes, dtype=memory.dtype, device=memory.device)
-        output_memory = self.enc_output(torch.where(valid_mask, memory, 0))   # bs, h*w, 256
+        output_memory = self.enc_output(torch.where(valid_mask, memory, 0))  # bs, h*w, 256
 
         enc_outputs_class = self.enc_score_head(output_memory)  # (bs, h*w, nc)
         enc_outputs_coord_unact = self.enc_bbox_head(output_memory) + anchors  # (bs, h*w, 4)

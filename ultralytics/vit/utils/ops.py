@@ -159,18 +159,18 @@ def get_contrastive_denoising_training_group(targets,
     # positive and negative mask
     negative_gt_mask = torch.zeros([bs, max_gt_num * 2, 1])
     negative_gt_mask[:, max_gt_num:] = 1
-    negative_gt_mask = negative_gt_mask.repeat(1, num_group, 1)
-    positive_gt_mask = 1 - negative_gt_mask
+    negative_gt_mask = negative_gt_mask.repeat(1, num_group, 1)    # bs, 2* max_gt_num * num_group, 1
+    positive_gt_mask = 1 - negative_gt_mask             # bs, 2* max_gt_num * num_group, 1
     # contrastive denoising training positive index
-    positive_gt_mask = positive_gt_mask.squeeze(-1) * pad_gt_mask
+    positive_gt_mask = positive_gt_mask.squeeze(-1) * pad_gt_mask   # bs, 2* max_gt_num * num_group
     dn_positive_idx = torch.nonzero(positive_gt_mask)[:, 1]
     dn_positive_idx = torch.split(dn_positive_idx, [n * num_group for n in num_gts])
     # total denoising queries
     num_denoising = int(max_gt_num * 2 * num_group)
 
     if label_noise_ratio > 0:
-        input_query_class = input_query_class.flatten()
-        pad_gt_mask = pad_gt_mask.flatten()
+        input_query_class = input_query_class.view(-1)
+        pad_gt_mask = pad_gt_mask.view(-1)
         # half of bbox prob
         mask = torch.rand(input_query_class.shape) < (label_noise_ratio * 0.5)
         chosen_idx = torch.nonzero(mask * pad_gt_mask).squeeze(-1)
@@ -184,7 +184,7 @@ def get_contrastive_denoising_training_group(targets,
     if box_noise_scale > 0:
         known_bbox = xywh2xyxy(input_query_bbox)
 
-        diff = (input_query_bbox[..., 2:] * 0.5).repeat(1, 1, 2) * box_noise_scale
+        diff = (input_query_bbox[..., 2:] * 0.5).repeat(1, 1, 2) * box_noise_scale   # bs, 2* max_gt_num * num_group, 4
 
         rand_sign = torch.randint_like(input_query_bbox, 0, 2) * 2.0 - 1.0
         rand_part = torch.rand(input_query_bbox.shape)

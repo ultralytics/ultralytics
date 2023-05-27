@@ -5,6 +5,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
+import cv2
 
 from ultralytics.yolo.data import build_dataloader, build_yolo_dataset
 from ultralytics.yolo.data.dataloaders.v5loader import create_dataloader
@@ -14,6 +15,7 @@ from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
 from ultralytics.yolo.utils.plotting import output_to_target, plot_images
 from ultralytics.yolo.utils.torch_utils import de_parallel
+from ultralytics.yolo.engine.results import Results, Boxes
 
 
 class DetectionValidator(BaseValidator):
@@ -107,7 +109,7 @@ class DetectionValidator(BaseValidator):
                 # TODO: maybe remove these `self.` arguments as they already are member variable
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, labelsn)
-                    self.output_bad_cases(predn, labelsn)
+                    self.output_bad_cases(predn, labelsn, batch, si)
             self.stats.append((correct_bboxes, pred[:, 4], pred[:, 5], cls.squeeze(-1)))  # (conf, pcls, tcls)
 
             # Save
@@ -116,7 +118,6 @@ class DetectionValidator(BaseValidator):
             if self.args.save_txt:
                 file = self.save_dir / 'labels' / f'{Path(batch["im_file"][si]).stem}.txt'
                 self.save_one_txt(predn, self.args.save_conf, shape, file)
-
 
     def finalize_metrics(self, *args, **kwargs):
         """Set final values for metrics speed and confusion matrix."""
@@ -151,7 +152,7 @@ class DetectionValidator(BaseValidator):
                                            normalize=normalize,
                                            on_plot=self.on_plot)
 
-    def output_bad_cases(self, detections, labels):
+    def output_bad_cases(self, detections, labels, batch, si):
         """Out the images with overkill and underkill result
         Args:
             detections (Array[N, 6]): Detected bounding boxes and their associated information.
@@ -161,14 +162,16 @@ class DetectionValidator(BaseValidator):
         """
         print('Print sample images')
         if detections is None:
-            pass # Output all labels
+            pass  # Output all labels
 
-        detections = detections[detections[:, 4] > self.metrics.conf]
+        detections = detections[detections[:, 4] > self.confusion_matrix.conf]
         gt_classes = labels[:, 0].int()
         detection_classes = detections[:, 5].int()
         iou = box_iou(labels[:, 1:], detections[:, :4])
 
-        x = torch.where(iou > self.metrics.iou_thres)
+        boxes = Boxes(torch.cat([detections[:, :4], detections[:, 4], detection_classes], dim=-1), batch['ori_shape'][si])
+
+        x = torch.where(iou > self.confusion_matrix.iou_thres)
         if x[0].shape[0]:
             matches = torch.cat((torch.stack(x, 1), iou[x[0], x[1]][:, None]), 1).cpu().numpy()
             if x[0].shape[0] > 1:
@@ -185,12 +188,36 @@ class DetectionValidator(BaseValidator):
         #  [          2           2      0.9422]]
         # We need to find the pairs not in matches here. That is iou < iou_thres
         # Find the ground truth box without prediction box, and prediction box without ground truth
-        y = torch.where(iou <= self.metrics.iou_thres)
-        labels_matches = matches[:,0]
-        pred_matches = matches[:, 0]
+        x = torch.where(iou > self.confusion_matrix.iou_thres)
+        y = torch.where(iou <= self.confusion_matrix.iou_thres)  # y[0] is predict, y[1] is label
+        labels_matches = matches[:, 0]
+        pred_matches = matches[:, 1]
 
-        false_positive = y[1] - pred_matches
-        false_negative = y[0] - labels_matches
+        false_positive = np.setdiff1d(y[0].cpu().numpy(), pred_matches)
+        false_negative = np.setdiff1d(y[1].cpu().numpy(), labels_matches)
+
+        if false_negative.shape[0] > 0:
+            # plot false negative images
+            for i in range(false_negative.shape[0] + 1):
+
+                plot_args = dict(line_width=None,
+                                 boxes=boxes)
+                result = Results(orig_img=batch['img'][si], path=batch['im_file'][si], names=self.names)
+                plotted_img = result.plot(**plot_args)
+                cv2.imwrite(plotted_img, str(self.save_dir / 'false_negative'))
+
+            pass
+        if false_positive.shape[0] > 0:
+            # plot false positive images
+            for i in range(false_positive.shape[0] + 1):
+                plot_args = dict(line_width=self.args.line_width,
+                                 boxes=self.args.boxes,
+                                 conf=self.args.show_conf,
+                                 labels=self.args.show_labels)
+                result = Results(orig_img=batch['img'][si], path=batch['im_file'][si], names=self.names)
+                plotted_img = result.plot(**plot_args)
+                cv2.imwrite(plotted_img, str(self.save_dir / 'false_positive'))
+
         pass
 
     def _process_batch(self, detections, labels):

@@ -249,7 +249,7 @@ class BaseValidator:
         """Get description of the YOLO model."""
         pass
 
-    def output_bad_cases(self, detections, labels):
+    def output_bad_cases(self, detections, labels, batch, si):
         """Out the images with overkill and underkill"""
         pass
 

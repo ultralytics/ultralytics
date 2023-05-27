@@ -13,7 +13,7 @@ class HungarianMatcher(nn.Module):
 
     def __init__(self,
                  matcher_coeff=None,
-                 use_focal_loss=False,
+                 use_focal_loss=True,
                  with_mask=False,
                  num_sample_points=12544,
                  alpha=0.25,
@@ -49,21 +49,21 @@ class HungarianMatcher(nn.Module):
             For each batch element, it holds:
                 len(index_i) = len(index_j) = min(num_queries, num_target_boxes)
         """
-        bs, num_queries = boxes.shape[:2]
+        bs, num_queries, nc = logits.shape
 
         num_gts = [len(a) for a in gt_class]
         if sum(num_gts) == 0:
-            return [(torch.tensor([], dtype=torch.int64), torch.tensor([], dtype=torch.int64)) for _ in range(bs)]
+            return [(torch.tensor([], dtype=torch.int32), torch.tensor([], dtype=torch.int32)) for _ in range(bs)]
 
         # We flatten to compute the cost matrices in a batch
         # [batch_size * num_queries, num_classes]
-        logits = logits.detach()
-        out_prob = F.sigmoid(logits.flatten(0, 1)) if self.use_focal_loss else F.softmax(logits.flatten(0, 1), dim=-1)
+        logits = logits.detach().view(-1, nc)
+        out_prob = F.sigmoid(logits) if self.use_focal_loss else F.softmax(logits, dim=-1)
         # [batch_size * num_queries, 4]
-        out_bbox = boxes.detach().flatten(0, 1)
+        out_bbox = boxes.detach().view(-1, 4)
 
         # Also concat the target labels and boxes
-        tgt_ids = torch.cat(gt_class).flatten()
+        tgt_ids = torch.cat(gt_class).view(-1)
         tgt_bbox = torch.cat(gt_bbox)
 
         # Compute the classification cost
@@ -76,9 +76,9 @@ class HungarianMatcher(nn.Module):
             cost_class = -out_prob
 
         # Compute the L1 cost between boxes
-        cost_bbox = (out_bbox.unsqueeze(1) - tgt_bbox.unsqueeze(0)).abs().sum(-1)
+        cost_bbox = (out_bbox.unsqueeze(1) - tgt_bbox.unsqueeze(0)).abs().sum(-1)  # (bs*num_queries, num_gt)
 
-        # Compute the GIoU cost between boxes
+        # Compute the GIoU cost between boxes, (bs*num_queries, num_gt)
         cost_giou = 1.0 - bbox_iou(out_bbox.unsqueeze(1), tgt_bbox.unsqueeze(0), xywh=True, GIoU=True).squeeze(-1)
 
         # Final cost matrix
@@ -118,11 +118,10 @@ class HungarianMatcher(nn.Module):
 
                 C = C + self.matcher_coeff['mask'] * cost_mask + self.matcher_coeff['dice'] * cost_dice
 
-        C = C.reshape([bs, num_queries, -1])
+        C = C.view(bs, num_queries, -1)
         C = [a.squeeze(0) for a in C.chunk(bs)]
-        sizes = [a.shape[0] for a in gt_bbox]
-        indices = [linear_sum_assignment(c.split(sizes, -1)[i].cpu().numpy()) for i, c in enumerate(C)]
-        return [(torch.tensor(i, dtype=torch.int64), torch.tensor(j, dtype=torch.int64)) for i, j in indices]
+        indices = [linear_sum_assignment(c.split(num_gts, -1)[i].cpu().numpy()) for i, c in enumerate(C)]
+        return [(torch.tensor(i, dtype=torch.int32), torch.tensor(j, dtype=torch.int32)) for i, j in indices]
 
 
 def get_contrastive_denoising_training_group(targets,

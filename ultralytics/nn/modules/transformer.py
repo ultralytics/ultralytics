@@ -370,6 +370,7 @@ class DeformableTransformerDecoder(nn.Module):
             output = layer(output, ref_points_input, src, src_spatial_shapes, src_padding_mask, attn_mask,
                            query_pos_embed)
 
+            # (bs, num_queries+num_denoising, 4)
             inter_ref_bbox = torch.sigmoid(bbox_head[i](output) + inverse_sigmoid(ref_points_detach))
 
             if self.training:

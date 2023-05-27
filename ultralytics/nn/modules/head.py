@@ -298,21 +298,21 @@ class RTDETRDecoder(nn.Module):
     def _generate_anchors(self, spatial_shapes, grid_size=0.05, dtype=torch.float32, device='cpu', eps=1e-2):
         anchors = []
         for lvl, (h, w) in enumerate(spatial_shapes):
-            grid_y, grid_x = torch.meshgrid(torch.arange(end=h, dtype=torch.float32),
-                                            torch.arange(end=w, dtype=torch.float32),
+            grid_y, grid_x = torch.meshgrid(torch.arange(end=h, dtype=dtype, device=device),
+                                            torch.arange(end=w, dtype=dtype, device=device),
                                             indexing='ij')
             grid_xy = torch.stack([grid_x, grid_y], -1)    # (h, w, 2)
 
-            valid_WH = torch.tensor([h, w], dtype=torch.float32)
+            valid_WH = torch.tensor([h, w], dtype=dtype, device=device)
             grid_xy = (grid_xy.unsqueeze(0) + 0.5) / valid_WH  # (1, h, w, 2)
-            wh = torch.ones_like(grid_xy) * grid_size * (2.0 ** lvl)
+            wh = torch.ones_like(grid_xy, dtype=dtype, device=device) * grid_size * (2.0 ** lvl)
             anchors.append(torch.cat([grid_xy, wh], -1).view(-1, h * w, 4))  # (1, h*w, 4)
 
         anchors = torch.cat(anchors, 1)   # (1, h*w*nl, 4)
         valid_mask = ((anchors > eps) * (anchors < 1 - eps)).all(-1, keepdim=True)  # 1, h*w*nl, 1
         anchors = torch.log(anchors / (1 - anchors))
         anchors = torch.where(valid_mask, anchors, torch.inf)
-        return anchors.to(device=device), valid_mask.to(device=device)
+        return anchors, valid_mask
 
     def _get_encoder_input(self, feats):
         # get projection features
@@ -344,26 +344,24 @@ class RTDETRDecoder(nn.Module):
         return feat_flatten, spatial_shapes, level_start_index
 
     def _get_decoder_input(self, memory, spatial_shapes, denoising_class=None, denoising_bbox_unact=None):
-        bs, _, _ = memory.shape
+        bs = len(memory)
         # prepare input for decoder
         anchors, valid_mask = self._generate_anchors(spatial_shapes, dtype=memory.dtype, device=memory.device)
-        memory = torch.where(valid_mask, memory, 0)
-        output_memory = self.enc_output(memory)
+        output_memory = self.enc_output(torch.where(valid_mask, memory, 0))   # bs, h*w, 256
 
         enc_outputs_class = self.enc_score_head(output_memory)  # (bs, h*w, nc)
         enc_outputs_coord_unact = self.enc_bbox_head(output_memory) + anchors  # (bs, h*w, 4)
 
-        # (bs, topk)
-        _, topk_ind = torch.topk(enc_outputs_class.max(-1).values, self.num_queries, dim=1)
         # extract region proposal boxes
-        # (bs, topk_ind)
+        # (bs, num_queries)
+        topk_ind = torch.topk(enc_outputs_class.max(-1).values, self.num_queries, dim=1).indices.view(-1)
+        # (bs, num_queries)
         batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
-        topk_ind = topk_ind.view(-1)
 
         # Unsigmoided
         reference_points_unact = enc_outputs_coord_unact[batch_ind, topk_ind].view(bs, self.num_queries, -1)
 
-        enc_topk_bboxes = torch.sigmoid(reference_points_unact)
+        enc_topk_bboxes = reference_points_unact.sigmoid()
         if denoising_bbox_unact is not None:
             reference_points_unact = torch.cat([denoising_bbox_unact, reference_points_unact], 1)
         if self.training:

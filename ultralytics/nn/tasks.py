@@ -408,7 +408,7 @@ class RTDETRDetectionModel(DetectionModel):
             dn_out_bboxes, dec_out_bboxes = torch.split(dec_out_bboxes, dn_meta['dn_num_split'], dim=2)
             dn_out_logits, dec_out_logits = torch.split(dec_out_logits, dn_meta['dn_num_split'], dim=2)
 
-        out_bboxes = torch.cat([enc_topk_bboxes.unsqueeze(0), dec_out_bboxes])
+        out_bboxes = torch.cat([enc_topk_bboxes.unsqueeze(0), dec_out_bboxes])   # (7, bs, 300, 4)
         out_logits = torch.cat([enc_topk_logits.unsqueeze(0), dec_out_logits])
 
         loss = self.criterion((out_bboxes, out_logits),

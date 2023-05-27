@@ -169,7 +169,7 @@ class DetectionValidator(BaseValidator):
         detection_classes = detections[:, 5].int()
         iou = box_iou(labels[:, 1:], detections[:, :4])
 
-        boxes = Boxes(torch.cat([detections[:, :4], detections[:, 4], detection_classes], dim=-1), batch['ori_shape'][si])
+        boxes = Boxes(torch.cat([detections[:, :4], detections[:, 4].reshape(-1,1), detection_classes.reshape(-1,1)], dim=1).cpu(), batch['ori_shape'][si])
 
         x = torch.where(iou > self.confusion_matrix.iou_thres)
         if x[0].shape[0]:
@@ -198,25 +198,21 @@ class DetectionValidator(BaseValidator):
 
         if false_negative.shape[0] > 0:
             # plot false negative images
-            for i in range(false_negative.shape[0] + 1):
 
-                plot_args = dict(line_width=None,
-                                 boxes=boxes)
-                result = Results(orig_img=batch['img'][si], path=batch['im_file'][si], names=self.names)
-                plotted_img = result.plot(**plot_args)
-                cv2.imwrite(plotted_img, str(self.save_dir / 'false_negative'))
+            plot_args = dict(line_width=None,
+                             boxes=boxes)
+            result = Results(orig_img=batch['img'][si], path=batch['im_file'][si], names=self.names)
+            plotted_img = result.plot(**plot_args)
+            cv2.imwrite(plotted_img, str(self.save_dir / 'false_negative'))
 
             pass
         if false_positive.shape[0] > 0:
             # plot false positive images
-            for i in range(false_positive.shape[0] + 1):
-                plot_args = dict(line_width=self.args.line_width,
-                                 boxes=self.args.boxes,
-                                 conf=self.args.show_conf,
-                                 labels=self.args.show_labels)
-                result = Results(orig_img=batch['img'][si], path=batch['im_file'][si], names=self.names)
-                plotted_img = result.plot(**plot_args)
-                cv2.imwrite(plotted_img, str(self.save_dir / 'false_positive'))
+            plot_args = dict(line_width=None,
+                             boxes=boxes)
+            result = Results(orig_img=batch['img'][si], path=batch['im_file'][si], names=self.names)
+            plotted_img = result.plot(**plot_args)
+            cv2.imwrite(plotted_img, str(self.save_dir / 'false_negative'))
 
         pass
 

@@ -291,7 +291,7 @@ class RTDETRDecoder(nn.Module):
         in_channels = ch[-1]
         for _ in range(self.nl - len(ch)):
             self.input_proj.append(
-                nn.Sequential(nn.Conv2D(in_channels, self.hidden_dim, kernel_size=3, stride=2, padding=1, bias=False),
+                nn.Sequential(nn.Conv2d(in_channels, self.hidden_dim, kernel_size=3, stride=2, padding=1, bias=False),
                               nn.BatchNorm2d(self.hidden_dim)))
             in_channels = self.hidden_dim
 

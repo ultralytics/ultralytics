@@ -197,7 +197,7 @@ def get_contrastive_denoising_training_group(targets,
 
     class_embed = torch.cat([class_embed, torch.zeros([1, class_embed.shape[-1]], device=class_embed.device)])
 
-    input_query_class = class_embed[input_query_class.flatten()].view(bs, num_denoising, -1)
+    input_query_class = class_embed[input_query_class.view(-1)].view(bs, num_denoising, -1)
 
     tgt_size = num_denoising + num_queries
     attn_mask = torch.zeros([tgt_size, tgt_size], dtype=torch.bool)

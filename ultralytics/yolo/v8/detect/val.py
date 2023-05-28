@@ -1,22 +1,22 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 import logging
 import os
-from pathlib import Path
 import shutil
+from pathlib import Path
 
+import cv2
 import numpy as np
 import torch
-import cv2
 
 from ultralytics.yolo.data import build_dataloader, build_yolo_dataset
 from ultralytics.yolo.data.dataloaders.v5loader import create_dataloader
+from ultralytics.yolo.engine.results import Boxes, Results
 from ultralytics.yolo.engine.validator import BaseValidator
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, colorstr, ops
 from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
-from ultralytics.yolo.utils.plotting import output_to_target, plot_images, Colors
+from ultralytics.yolo.utils.plotting import Colors, output_to_target, plot_images
 from ultralytics.yolo.utils.torch_utils import de_parallel
-from ultralytics.yolo.engine.results import Results, Boxes
 
 colors = Colors()
 
@@ -79,9 +79,9 @@ class DetectionValidator(BaseValidator):
         """Metrics."""
 
         # Clear the false negative and false positive folder to avoid conflict of final val and prev val
-        if  os.path.exists(str(self.save_dir / 'false_negative')):
+        if os.path.exists(str(self.save_dir / 'false_negative')):
             shutil.rmtree(str(self.save_dir / 'false_negative'))
-        if  os.path.exists(str(self.save_dir / 'false_positive')):
+        if os.path.exists(str(self.save_dir / 'false_positive')):
             shutil.rmtree(str(self.save_dir / 'false_positive'))
         os.makedirs(str(self.save_dir / 'false_negative'), exist_ok=True)
         os.makedirs(str(self.save_dir / 'false_positive'), exist_ok=True)
@@ -180,8 +180,8 @@ class DetectionValidator(BaseValidator):
         detection_classes = detections[:, 5].int()
         iou = box_iou(labels[:, 1:], detections[:, :4])
 
-        boxes = torch.cat([detections[:, :4], detections[:, 4].reshape(-1, 1), detection_classes.reshape(-1, 1)],
-                          dim=1).cpu()
+        boxes = torch.cat([detections[:, :4], detections[:, 4].reshape(-1, 1),
+                           detection_classes.reshape(-1, 1)], dim=1).cpu()
 
         x = torch.where(iou > self.confusion_matrix.iou_thres)
         if x[0].shape[0]:
@@ -213,12 +213,12 @@ class DetectionValidator(BaseValidator):
             # In false negative part, show all correct detections, then append the false negative box from label
 
             fn_labels = labels[false_negative].cpu()
-            show_boxes = torch.cat([boxes, torch.cat([fn_labels, torch.ones(fn_labels.shape[0], 1)], dim=1)[:,
-                                      torch.tensor([1, 2, 3, 4, 5, 0])]]) # Rearrange the element position of fn_labels
+            show_boxes = torch.cat([
+                boxes,
+                torch.cat([fn_labels, torch.ones(fn_labels.shape[0], 1)],
+                          dim=1)[:, torch.tensor([1, 2, 3, 4, 5, 0])]])  # Rearrange the element position of fn_labels
             color_list = [colors.GREEN_COLOR] * detections.shape[0] + [colors.RED_COLOR] * fn_labels.shape[0]
-            plot_args = dict(line_width=None,
-                             boxes=True,
-                             color_list=color_list)
+            plot_args = dict(line_width=None, boxes=True, color_list=color_list)
             file_name = batch['im_file'][si]
             result = Results(orig_img=cv2.imread(file_name), path=file_name, names=self.names, boxes=show_boxes)
             plotted_img = result.plot(**plot_args)
@@ -230,15 +230,13 @@ class DetectionValidator(BaseValidator):
             # then mark the false positive part with red
 
             color_list = [colors.GREEN_COLOR] * detections.shape[0]
-            for i in false_positive: color_list[i] = colors.RED_COLOR # Replace the false positive part with red color
-            plot_args = dict(line_width=None,
-                             boxes=True,
-                             color_list=color_list)
+            for i in false_positive:
+                color_list[i] = colors.RED_COLOR  # Replace the false positive part with red color
+            plot_args = dict(line_width=None, boxes=True, color_list=color_list)
             file_name = batch['im_file'][si]
             result = Results(orig_img=cv2.imread(file_name), path=file_name, names=self.names, boxes=boxes)
             plotted_img = result.plot(**plot_args)
             cv2.imwrite(str(self.save_dir / 'false_positive' / os.path.split(file_name)[1]), plotted_img)
-
 
     def _process_batch(self, detections, labels):
         """

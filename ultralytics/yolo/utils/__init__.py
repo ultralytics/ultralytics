@@ -603,10 +603,11 @@ def threaded(func):
 
 def set_sentry():
     """
-    Initialize the Sentry SDK for error tracking and reporting. Enabled when sync=True in settings and
-    disabled when sync=False. Run 'yolo settings' to see and update settings YAML file.
+    Initialize the Sentry SDK for error tracking and reporting. Only used if sentry_sdk pacakge is installed and
+    sync=True in settings. Run 'yolo settings' to see and update settings YAML file.
 
-    Conditions required to send errors:
+    Conditions required to send errors (ALL conditions must be met or no errors will be reported):
+        - sentry_sdk package is installed
         - sync=True in YOLO settings
         - pytest is not running
         - running in a pip package installation
@@ -653,7 +654,12 @@ def set_sentry():
             is_pip_package() and \
             not is_git_dir():
 
-        import sentry_sdk  # noqa
+        # If sentry_sdk package is not installed then return and do not use Sentry
+        try:
+            import sentry_sdk  # noqa
+        except ImportError:
+            return
+
         sentry_sdk.init(
             dsn='https://5ff1556b71594bfea135ff0203a0d290@o4504521589325824.ingest.sentry.io/4504521592406016',
             debug=False,

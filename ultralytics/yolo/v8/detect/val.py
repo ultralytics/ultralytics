@@ -2,6 +2,7 @@
 import logging
 import os
 from pathlib import Path
+import shutil
 
 import numpy as np
 import torch
@@ -76,6 +77,15 @@ class DetectionValidator(BaseValidator):
 
     def update_metrics(self, preds, batch):
         """Metrics."""
+
+        # Clear the false negative and false positive folder to avoid conflict of final val and prev val
+        if  os.path.exists(str(self.save_dir / 'false_negative')):
+            shutil.rmtree(str(self.save_dir / 'false_negative'))
+        if  os.path.exists(str(self.save_dir / 'false_positive')):
+            shutil.rmtree(str(self.save_dir / 'false_positive'))
+        os.makedirs(str(self.save_dir / 'false_negative'), exist_ok=True)
+        os.makedirs(str(self.save_dir / 'false_positive'), exist_ok=True)
+
         for si, pred in enumerate(preds):
             idx = batch['batch_idx'] == si
             cls = batch['cls'][idx]
@@ -195,45 +205,40 @@ class DetectionValidator(BaseValidator):
         labels_matches = matches[:, 0]
         pred_matches = matches[:, 1]
 
-        false_negative = np.setdiff1d(y[0].cpu().numpy(), pred_matches)
-        false_positive = np.setdiff1d(y[1].cpu().numpy(), labels_matches)
+        false_negative = np.setdiff1d(y[0].cpu().numpy(), labels_matches)
+        false_positive = np.setdiff1d(y[1].cpu().numpy(), pred_matches)
 
         if false_negative.shape[0] > 0:
             # plot false negative images
-            if not os.path.exists(str(self.save_dir / 'false_negative')):
-                os.makedirs(str(self.save_dir / 'false_negative'), exist_ok=True)
-            print("false_negative")
+            # In false negative part, show all correct detections, then append the false negative box from label
+
             fn_labels = labels[false_negative].cpu()
-            boxes = torch.cat([boxes, torch.cat([fn_labels, torch.ones(fn_labels.shape[0], 1)], dim=1)[:,
+            show_boxes = torch.cat([boxes, torch.cat([fn_labels, torch.ones(fn_labels.shape[0], 1)], dim=1)[:,
                                       torch.tensor([1, 2, 3, 4, 5, 0])]]) # Rearrange the element position of fn_labels
             color_list = [colors.GREEN_COLOR] * detections.shape[0] + [colors.RED_COLOR] * fn_labels.shape[0]
             plot_args = dict(line_width=None,
                              boxes=True,
                              color_list=color_list)
             file_name = batch['im_file'][si]
-            result = Results(orig_img=cv2.imread(file_name), path=file_name, names=self.names, boxes=boxes)
+            result = Results(orig_img=cv2.imread(file_name), path=file_name, names=self.names, boxes=show_boxes)
             plotted_img = result.plot(**plot_args)
             cv2.imwrite(str(self.save_dir / 'false_negative' / os.path.split(file_name)[1]), plotted_img)
 
-            pass
-        # if false_positive.shape[0] > 0:
-        #     # plot false positive images
-        #     if not os.path.exists(str(self.save_dir / 'false_positive')):
-        #         os.makedirs(str(self.save_dir / 'false_positive'), exist_ok=True)
-        #     print("false_negative")
-        #     fn_labels = labels[false_positive].cpu()
-        #     boxes = torch.cat([boxes, torch.cat([fn_labels, torch.ones(fn_labels.shape[0], 1)], dim=1)[:,
-        #                               torch.tensor([1, 2, 3, 4, 5, 0])]])
-        #     color_list = [colors.GREEN_COLOR] * detections.shape[0] + [colors.RED_COLOR] * boxes.shape[0]
-        #     plot_args = dict(line_width=None,
-        #                      boxes=True,
-        #                      color_list=color_list)
-        #     file_name = batch['im_file'][si]
-        #     result = Results(orig_img=cv2.imread(file_name), path=file_name, names=self.names, boxes=boxes)
-        #     plotted_img = result.plot(**plot_args)
-        #     cv2.imwrite(str(self.save_dir / 'false_positive' / os.path.split(file_name)[1]), plotted_img)
-        #     pass
-        pass
+        if false_positive.shape[0] > 0:
+            # plot false positive images
+            # In false positive mode, will show all detection result on images,
+            # then mark the false positive part with red
+
+            color_list = [colors.GREEN_COLOR] * detections.shape[0]
+            for i in false_positive: color_list[i] = colors.RED_COLOR # Replace the false positive part with red color
+            plot_args = dict(line_width=None,
+                             boxes=True,
+                             color_list=color_list)
+            file_name = batch['im_file'][si]
+            result = Results(orig_img=cv2.imread(file_name), path=file_name, names=self.names, boxes=boxes)
+            plotted_img = result.plot(**plot_args)
+            cv2.imwrite(str(self.save_dir / 'false_positive' / os.path.split(file_name)[1]), plotted_img)
+
 
     def _process_batch(self, detections, labels):
         """

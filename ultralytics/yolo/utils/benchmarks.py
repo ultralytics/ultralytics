@@ -163,12 +163,13 @@ class ProfileModels:
         profile(): Profiles the models and prints the result.
     """
 
-    def __init__(self, paths: list, num_timed_runs=100, num_warmup_runs=10, imgsz=640, trt=True):
+    def __init__(self, paths: list, num_timed_runs=300, num_warmup_runs=30, imgsz=640, trt=True, device=None):
         self.paths = paths
         self.num_timed_runs = num_timed_runs
         self.num_warmup_runs = num_warmup_runs
         self.imgsz = imgsz
         self.trt = trt  # run TensorRT profiling
+        self.device = device or torch.device(0 if torch.cuda.is_available() else 'cpu')
 
     def profile(self):
         files = self.get_files()
@@ -179,16 +180,15 @@ class ProfileModels:
 
         table_rows = []
         output = []
-        device = 0 if torch.cuda.is_available() else 'cpu'
         for file in files:
             engine_file = file.with_suffix('.engine')
             if file.suffix in ('.pt', '.yaml'):
                 model = YOLO(str(file))
                 model.fuse()  # to report correct params and GFLOPs in model.info()
                 model_info = model.info()
-                if self.trt and device == 0 and not engine_file.is_file():
-                    engine_file = model.export(format='engine', half=True, imgsz=self.imgsz, device=device)
-                onnx_file = model.export(format='onnx', half=True, imgsz=self.imgsz, simplify=True, device=device)
+                if self.trt and self.device.type != 'cpu' and not engine_file.is_file():
+                    engine_file = model.export(format='engine', half=True, imgsz=self.imgsz, device=self.device)
+                onnx_file = model.export(format='onnx', half=True, imgsz=self.imgsz, simplify=True, device=self.device)
             elif file.suffix == '.onnx':
                 model_info = self.get_onnx_model_info(file)
                 onnx_file = file
@@ -222,7 +222,7 @@ class ProfileModels:
         # return (num_layers, num_params, num_gradients, num_flops)
         return 0.0, 0.0, 0.0, 0.0
 
-    def iterative_sigma_clipping(self, data, sigma=2, max_iters=5):
+    def iterative_sigma_clipping(self, data, sigma=2, max_iters=3):
         data = np.array(data)
         for _ in range(max_iters):
             mean, std = np.mean(data), np.std(data)
@@ -238,7 +238,7 @@ class ProfileModels:
 
         # Warmup runs
         model = YOLO(engine_file)
-        input_data = np.random.rand(self.imgsz, self.imgsz, 3).astype(np.float16)
+        input_data = np.random.rand(self.imgsz, self.imgsz, 3).astype(np.float32)  # must be FP32
         for _ in range(self.num_warmup_runs):
             model(input_data, verbose=False)
 

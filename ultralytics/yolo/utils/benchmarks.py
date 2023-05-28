@@ -258,6 +258,7 @@ class ProfileModels:
         # Session with either 'TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider'
         sess_options = ort.SessionOptions()
         sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+        sess_options.intra_op_num_threads = 8  # Limit the number of threads
         sess = ort.InferenceSession(onnx_file, sess_options, providers=['CPUExecutionProvider'])
 
         input_tensor = sess.get_inputs()[0]

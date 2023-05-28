@@ -387,7 +387,7 @@ class Exporter:
         import coremltools as ct  # noqa
 
         LOGGER.info(f'\n{prefix} starting export with coremltools {ct.__version__}...')
-        f = self.file.with_suffix('.mlmodel')
+        f = self.file.with_suffix('.mlpackage')
 
         bias = [0.0, 0.0, 0.0]
         scale = 1 / 255

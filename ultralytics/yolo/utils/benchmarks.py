@@ -250,10 +250,6 @@ class ProfileModels:
         input_data = np.random.rand(self.imgsz, self.imgsz, 3).astype(np.float32)  # must be FP32
 
         # Warmup runs
-        for _ in range(self.num_warmup_runs):
-            model(input_data, verbose=False)
-
-        # Warmup runs
         elapsed = 0.0
         for _ in range(3):
             start_time = time.time()

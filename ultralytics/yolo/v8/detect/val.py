@@ -160,7 +160,6 @@ class DetectionValidator(BaseValidator):
             labels (Array[M, 5]): Ground truth bounding boxes and their associated class labels.
                                   Each row should contain (class, x1, y1, x2, y2).
         """
-        print('Print sample images')
         if detections is None:
             pass  # Output all labels
 
@@ -169,7 +168,7 @@ class DetectionValidator(BaseValidator):
         detection_classes = detections[:, 5].int()
         iou = box_iou(labels[:, 1:], detections[:, :4])
 
-        boxes = Boxes(torch.cat([detections[:, :4], detections[:, 4].reshape(-1,1), detection_classes.reshape(-1,1)], dim=1).cpu(), batch['ori_shape'][si])
+        boxes = torch.cat([detections[:, :4], detections[:, 4].reshape(-1,1), detection_classes.reshape(-1,1)], dim=1).cpu()
 
         x = torch.where(iou > self.confusion_matrix.iou_thres)
         if x[0].shape[0]:
@@ -198,21 +197,28 @@ class DetectionValidator(BaseValidator):
 
         if false_negative.shape[0] > 0:
             # plot false negative images
-
+            if not os.path.exists(str(self.save_dir / 'false_negative')):
+                os.makedirs(str(self.save_dir / 'false_negative'), exist_ok=True)
+            print("false_negative")
             plot_args = dict(line_width=None,
-                             boxes=boxes)
-            result = Results(orig_img=batch['img'][si], path=batch['im_file'][si], names=self.names)
+                             boxes=True)
+            file_name = batch['im_file'][si]
+            result = Results(orig_img=cv2.imread(file_name), path=file_name, names=self.names, boxes=boxes)
             plotted_img = result.plot(**plot_args)
-            cv2.imwrite(plotted_img, str(self.save_dir / 'false_negative'))
+            cv2.imwrite(str(self.save_dir / 'false_negative' / os.path.split(file_name)[1]), plotted_img)
 
             pass
         if false_positive.shape[0] > 0:
             # plot false positive images
+            if not os.path.exists(str(self.save_dir / 'false_positive')):
+                os.makedirs(str(self.save_dir / 'false_positive'), exist_ok=True)
+            print("false_positive")
             plot_args = dict(line_width=None,
-                             boxes=boxes)
-            result = Results(orig_img=batch['img'][si], path=batch['im_file'][si], names=self.names)
+                             boxes=True)
+            file_name = batch['im_file'][si]
+            result = Results(orig_img=cv2.imread(file_name), path=file_name, names=self.names, boxes=boxes)
             plotted_img = result.plot(**plot_args)
-            cv2.imwrite(plotted_img, str(self.save_dir / 'false_negative'))
+            cv2.imwrite(str(self.save_dir / 'false_positive'/os.path.split(file_name)[1]),plotted_img)
 
         pass
 

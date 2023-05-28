@@ -15,11 +15,12 @@ from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, c
 from ultralytics.yolo.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.yolo.utils.loss import v8DetectionLoss, v8PoseLoss, v8SegmentationLoss
 from ultralytics.yolo.utils.plotting import feature_visualization
+
 <<<<<<< HEAD
-from ultralytics.yolo.utils.torch_utils import (fuse_conv_and_bn, fuse_deconv_and_bn, initialize_weights,
-=======
-from ultralytics.yolo.utils.torch_utils import (de_parallel, fuse_conv_and_bn, fuse_deconv_and_bn, initialize_weights,
->>>>>>> c636ae5 ([pre-commit.ci] auto fixes from pre-commit.com hooks)
+from ultralytics.yolo.utils.torch_utils import (=======, >>>>>>>, [pre-commit.ci], auto, c636ae5, de_parallel, fixes,
+                                                from, fuse_conv_and_bn, fuse_deconv_and_bn, hooks, import,
+                                                initialize_weights, pre-commit.com, ultralytics.yolo.utils.torch_utils)
+
                                                 intersect_dicts, make_divisible, model_info, scale_img, time_sync)
 
 try:

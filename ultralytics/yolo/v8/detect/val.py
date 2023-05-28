@@ -1,5 +1,4 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-import logging
 import os
 import shutil
 from pathlib import Path
@@ -10,7 +9,7 @@ import torch
 
 from ultralytics.yolo.data import build_dataloader, build_yolo_dataset
 from ultralytics.yolo.data.dataloaders.v5loader import create_dataloader
-from ultralytics.yolo.engine.results import Boxes, Results
+from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.engine.validator import BaseValidator
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, colorstr, ops
 from ultralytics.yolo.utils.checks import check_requirements
@@ -176,7 +175,7 @@ class DetectionValidator(BaseValidator):
             pass  # Output all labels
 
         detections = detections[detections[:, 4] > self.confusion_matrix.conf]
-        gt_classes = labels[:, 0].int()
+        # gt_classes = labels[:, 0].int()
         detection_classes = detections[:, 5].int()
         iou = box_iou(labels[:, 1:], detections[:, :4])
 

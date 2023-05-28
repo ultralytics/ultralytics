@@ -156,17 +156,26 @@ class ProfileModels:
     Attributes:
         paths (list): Paths of the models to profile.
         num_timed_runs (int): Number of timed runs for the profiling. Default is 100.
-        num_warmup_runs (int): Number of warmup runs before profiling. Default is 3.
+        num_warmup_runs (int): Number of warmup runs before profiling. Default is 10.
+        min_time (float): Minimum number of seconds to profile for. Default is 60.
         imgsz (int): Image size used in the models. Default is 640.
 
     Methods:
         profile(): Profiles the models and prints the result.
     """
 
-    def __init__(self, paths: list, num_timed_runs=100, num_warmup_runs=10, imgsz=640, trt=True, device=None):
+    def __init__(self,
+                 paths: list,
+                 num_timed_runs=100,
+                 num_warmup_runs=10,
+                 min_time=60,
+                 imgsz=640,
+                 trt=True,
+                 device=None):
         self.paths = paths
         self.num_timed_runs = num_timed_runs
         self.num_warmup_runs = num_warmup_runs
+        self.min_time = min_time
         self.imgsz = imgsz
         self.trt = trt  # run TensorRT profiling
         self.device = device or torch.device(0 if torch.cuda.is_available() else 'cpu')
@@ -236,15 +245,24 @@ class ProfileModels:
         if not self.trt or not Path(engine_file).is_file():
             return 0.0, 0.0
 
-        # Warmup runs
+        # Model and input
         model = YOLO(engine_file)
         input_data = np.random.rand(self.imgsz, self.imgsz, 3).astype(np.float32)  # must be FP32
-        for _ in range(self.num_warmup_runs):
-            model(input_data, verbose=False)
+
+        # Warmup runs
+        elapsed = 0.0
+        for _ in range(3):
+            start_time = time.time()
+            for _ in range(self.num_warmup_runs):
+                model(input_data, verbose=False)
+            elapsed = time.time() - start_time
+
+        # Compute number of runs as higher of min_time or num_timed_runs
+        num_runs = max(round(self.min_time / elapsed * self.num_warmup_runs), self.num_timed_runs * 50)
 
         # Timed runs
         run_times = []
-        for _ in tqdm(range(self.num_timed_runs * 50), desc=engine_file):
+        for _ in tqdm(range(num_runs), desc=engine_file):
             results = model(input_data, verbose=False)
             run_times.append(results[0].speed['inference'])  # Convert to milliseconds
 
@@ -283,12 +301,19 @@ class ProfileModels:
         output_name = sess.get_outputs()[0].name
 
         # Warmup runs
-        for _ in range(self.num_warmup_runs):
-            sess.run([output_name], {input_name: input_data})
+        elapsed = 0.0
+        for _ in range(3):
+            start_time = time.time()
+            for _ in range(self.num_warmup_runs):
+                sess.run([output_name], {input_name: input_data})
+            elapsed = time.time() - start_time
+
+        # Compute number of runs as higher of min_time or num_timed_runs
+        num_runs = max(round(self.min_time / elapsed * self.num_warmup_runs), self.num_timed_runs)
 
         # Timed runs
         run_times = []
-        for _ in tqdm(range(self.num_timed_runs), desc=onnx_file):
+        for _ in tqdm(range(num_runs), desc=onnx_file):
             start_time = time.time()
             sess.run([output_name], {input_name: input_data})
             run_times.append((time.time() - start_time) * 1000)  # Convert to milliseconds

@@ -4,11 +4,8 @@ from copy import copy
 from ultralytics.nn.tasks import SegmentationModel
 from ultralytics.yolo import v8
 from ultralytics.yolo.utils import DEFAULT_CFG, RANK
-from ultralytics.yolo.utils.ops import crop_mask, xyxy2xywh
 from ultralytics.yolo.utils.plotting import plot_images, plot_results
-from ultralytics.yolo.utils.tal import make_anchors
 from ultralytics.yolo.utils.torch_utils import de_parallel
-from ultralytics.yolo.v8.detect.train import Loss
 
 
 # BaseTrainer python usage

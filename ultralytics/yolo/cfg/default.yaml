@@ -31,6 +31,7 @@ close_mosaic: 0  # (int) disable mosaic augmentation for final epochs
 resume: False  # resume training from last checkpoint
 amp: True  # Automatic Mixed Precision (AMP) training, choices=[True, False], True runs AMP check
 fraction: 1.0  # dataset fraction to train on (default is 1.0, all images in train set)
+profile: False  # profile ONNX and TensorRT speeds during training for loggers
 # Segmentation
 overlap_mask: True  # masks should overlap during training (segment train only)
 mask_ratio: 4  # mask downsample ratio (segment train only)

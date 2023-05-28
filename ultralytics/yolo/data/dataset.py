@@ -226,6 +226,8 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
             cache (Union[bool, str], optional): Cache setting, can be True, False, 'ram' or 'disk'. Defaults to False.
         """
         super().__init__(root=root)
+        if augment and args.fraction < 1.0:  # reduce training fraction
+            self.samples = self.samples[:round(len(self.samples) * args.fraction)]
         self.cache_ram = cache is True or cache == 'ram'
         self.cache_disk = cache == 'disk'
         self.samples = [list(x) + [Path(x[0]).with_suffix('.npy'), None] for x in self.samples]  # file, index, npy, im
@@ -269,4 +271,4 @@ class SemanticDataset(BaseDataset):
 
     def __init__(self):
         """Initialize a SemanticDataset object."""
-        pass
+        super().__init__()

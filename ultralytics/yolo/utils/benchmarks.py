@@ -3,8 +3,8 @@
 Benchmark a YOLO model formats for speed and accuracy
 
 Usage:
-    from ultralytics.yolo.utils.benchmarks import ProfileModels, run_benchmarks
-    ProfileModels(['yolov8n.yaml', 'yolov8s.yaml'])
+    from ultralytics.yolo.utils.benchmarks import ProfileModels, benchmark
+    ProfileModels(['yolov8n.yaml', 'yolov8s.yaml']).profile()
     run_benchmarks(model='yolov8n.pt', imgsz=160)
 
 Format                  | `format=argument`         | Model
@@ -170,13 +170,13 @@ class ProfileModels:
         profile(): Profiles the models and prints the result.
     """
 
-    def __init__(self, paths: list, num_timed_runs=100, num_warmup_runs=3, imgsz=640, trt=True):
+    def __init__(self, paths: list, num_timed_runs=100, num_warmup_runs=10, imgsz=640, trt=True, device=None):
         self.paths = paths
         self.num_timed_runs = num_timed_runs
         self.num_warmup_runs = num_warmup_runs
         self.imgsz = imgsz
         self.trt = trt  # run TensorRT profiling
-        self.profile()  # run profiling
+        self.device = device or torch.device(0 if torch.cuda.is_available() else 'cpu')
 
     def profile(self):
         files = self.get_files()
@@ -186,26 +186,29 @@ class ProfileModels:
             return
 
         table_rows = []
-        device = 0 if torch.cuda.is_available() else 'cpu'
+        output = []
         for file in files:
-            engine_file = ''
+            engine_file = file.with_suffix('.engine')
             if file.suffix in ('.pt', '.yaml'):
                 model = YOLO(str(file))
-                num_params, num_flops = model.info()
-                if self.trt and device == 0:
-                    engine_file = model.export(format='engine', half=True, imgsz=self.imgsz, device=device)
-                onnx_file = model.export(format='onnx', half=True, imgsz=self.imgsz, simplify=True, device=device)
+                model.fuse()  # to report correct params and GFLOPs in model.info()
+                model_info = model.info()
+                if self.trt and self.device.type != 'cpu' and not engine_file.is_file():
+                    engine_file = model.export(format='engine', half=True, imgsz=self.imgsz, device=self.device)
+                onnx_file = model.export(format='onnx', half=True, imgsz=self.imgsz, simplify=True, device=self.device)
             elif file.suffix == '.onnx':
-                num_params, num_flops = self.get_onnx_model_info(file)
+                model_info = self.get_onnx_model_info(file)
                 onnx_file = file
             else:
                 continue
 
             t_engine = self.profile_tensorrt_model(str(engine_file))
             t_onnx = self.profile_onnx_model(str(onnx_file))
-            table_rows.append(self.generate_table_row(file.stem, t_onnx, t_engine, num_params, num_flops))
+            table_rows.append(self.generate_table_row(file.stem, t_onnx, t_engine, model_info))
+            output.append(self.generate_results_dict(file.stem, t_onnx, t_engine, model_info))
 
         self.print_table(table_rows)
+        return output
 
     def get_files(self):
         files = []
@@ -223,24 +226,36 @@ class ProfileModels:
         return [Path(file) for file in sorted(files)]
 
     def get_onnx_model_info(self, onnx_file: str):
-        return 0.0, 0.0
+        # return (num_layers, num_params, num_gradients, num_flops)
+        return 0.0, 0.0, 0.0, 0.0
+
+    def iterative_sigma_clipping(self, data, sigma=2, max_iters=3):
+        data = np.array(data)
+        for _ in range(max_iters):
+            mean, std = np.mean(data), np.std(data)
+            clipped_data = data[(data > mean - sigma * std) & (data < mean + sigma * std)]
+            if len(clipped_data) == len(data):
+                break
+            data = clipped_data
+        return data
 
     def profile_tensorrt_model(self, engine_file: str):
-        if not Path(engine_file).is_file():
+        if not self.trt or not Path(engine_file).is_file():
             return 0.0, 0.0
 
         # Warmup runs
         model = YOLO(engine_file)
-        input_data = np.random.rand(self.imgsz, self.imgsz, 3).astype(np.float32)
+        input_data = np.random.rand(self.imgsz, self.imgsz, 3).astype(np.float32)  # must be FP32
         for _ in range(self.num_warmup_runs):
             model(input_data, verbose=False)
 
         # Timed runs
         run_times = []
-        for _ in tqdm(range(self.num_timed_runs), desc=engine_file):
+        for _ in tqdm(range(self.num_timed_runs * 50), desc=engine_file):
             results = model(input_data, verbose=False)
             run_times.append(results[0].speed['inference'])  # Convert to milliseconds
 
+        run_times = self.iterative_sigma_clipping(np.array(run_times), sigma=2, max_iters=3)  # sigma clipping
         return np.mean(run_times), np.std(run_times)
 
     def profile_onnx_model(self, onnx_file: str):
@@ -250,10 +265,27 @@ class ProfileModels:
         # Session with either 'TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider'
         sess_options = ort.SessionOptions()
         sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+        sess_options.intra_op_num_threads = 8  # Limit the number of threads
         sess = ort.InferenceSession(onnx_file, sess_options, providers=['CPUExecutionProvider'])
 
         input_tensor = sess.get_inputs()[0]
-        input_data = np.random.rand(*input_tensor.shape).astype(np.float16 if torch.cuda.is_available() else np.float32)
+        input_type = input_tensor.type
+
+        # Mapping ONNX datatype to numpy datatype
+        if 'float16' in input_type:
+            input_dtype = np.float16
+        elif 'float' in input_type:
+            input_dtype = np.float32
+        elif 'double' in input_type:
+            input_dtype = np.float64
+        elif 'int64' in input_type:
+            input_dtype = np.int64
+        elif 'int32' in input_type:
+            input_dtype = np.int32
+        else:
+            raise ValueError(f'Unsupported ONNX datatype {input_type}')
+
+        input_data = np.random.rand(*input_tensor.shape).astype(input_dtype)
         input_name = input_tensor.name
         output_name = sess.get_outputs()[0].name
 
@@ -268,17 +300,28 @@ class ProfileModels:
             sess.run([output_name], {input_name: input_data})
             run_times.append((time.time() - start_time) * 1000)  # Convert to milliseconds
 
+        run_times = self.iterative_sigma_clipping(np.array(run_times), sigma=2, max_iters=5)  # sigma clipping
         return np.mean(run_times), np.std(run_times)
 
-    def generate_table_row(self, model_name, t_onnx, t_engine, num_params, num_flops):
-        return f'| {model_name} | {self.imgsz} | - | {t_onnx[0]:.2f} ± {t_onnx[1]:.2f} ms | {t_engine[0]:.2f} ± {t_engine[1]:.2f} ms | {num_params / 1e6:.1f} | {num_flops:.1f} |'
+    def generate_table_row(self, model_name, t_onnx, t_engine, model_info):
+        layers, params, gradients, flops = model_info
+        return f'| {model_name:18s} | {self.imgsz} | - | {t_onnx[0]:.2f} ± {t_onnx[1]:.2f} ms | {t_engine[0]:.2f} ± {t_engine[1]:.2f} ms | {params / 1e6:.1f} | {flops:.1f} |'
+
+    def generate_results_dict(self, model_name, t_onnx, t_engine, model_info):
+        layers, params, gradients, flops = model_info
+        return {
+            'model/name': model_name,
+            'model/parameters': params,
+            'model/GFLOPs': round(flops, 3),
+            'model/speed_ONNX(ms)': round(t_onnx[0], 3),
+            'model/speed_TensorRT(ms)': round(t_engine[0], 3)}
 
     def print_table(self, table_rows):
         gpu = torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'GPU'
         header = f'| Model | size<br><sup>(pixels) | mAP<sup>val<br>50-95 | Speed<br><sup>CPU ONNX<br>(ms) | Speed<br><sup>{gpu} TensorRT<br>(ms) | params<br><sup>(M) | FLOPs<br><sup>(B) |'
         separator = '|-------------|---------------------|--------------------|------------------------------|-----------------------------------|------------------|-----------------|'
 
-        print(header)
+        print(f'\n\n{header}')
         print(separator)
         for row in table_rows:
             print(row)

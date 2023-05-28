@@ -197,7 +197,7 @@ class Results(SimpleClass):
             conf = kwargs['show_conf']
             assert type(conf) == bool, '`show_conf` should be of boolean type, i.e, show_conf=True/False'
 
-        if 'show_conf' in kwargs:
+        if 'line_thickness' in kwargs:
             deprecation_warn('line_thickness', 'line_width')
             line_width = kwargs['line_thickness']
             assert type(line_width) == int, '`line_width` should be of int type, i.e, line_width=3'

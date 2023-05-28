@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ultralytics.vit.utils.ops import HungarianMatcher, xywh2xyxy
+from ultralytics.vit.utils.ops import HungarianMatcher
 from ultralytics.yolo.utils.loss import FocalLoss, VarifocalLoss
 from ultralytics.yolo.utils.metrics import bbox_iou
 
@@ -70,11 +70,14 @@ class DETRLoss(nn.Module):
                     target_score[index] = iou_score
                 target_score = target_score.view(bs, num_query_objects, 1) * target_label
                 loss_ = self.loss_coeff['class'] * varifocal_loss(logits, target_score, target_label,
-                                                                  num_gts / num_query_objects)
+                                                                  num_gts / num_query_objects)  # RTDETR loss
+                # loss_ = self.loss_coeff['class'] * nn.BCEWithLogitsLoss(reduction='none')(logits, target_score).mean(
+                #     1).sum()  # YOLO CLS loss
             else:
                 loss_ = self.loss_coeff['class'] * focal_loss(logits, target_label.float(), num_gts / num_query_objects)
         else:
             loss_ = F.cross_entropy(logits, target_label, weight=self.loss_coeff['class'])
+
         return {name_class: loss_.squeeze()}
 
     def _get_loss_bbox(self, boxes, gt_bbox, match_indices, num_gts, postfix=''):
@@ -153,7 +156,7 @@ class DETRLoss(nn.Module):
             if self.use_vfl:
                 if sum(len(a) for a in gt_bbox) > 0:
                     src_bbox, target_bbox = self._get_src_target_assign(aux_boxes.detach(), gt_bbox, match_indices)
-                    iou_score = bbox_iou(xywh2xyxy(src_bbox), xywh2xyxy(target_bbox))
+                    iou_score = bbox_iou(src_bbox, target_bbox, xywh=True)
                 else:
                     iou_score = None
             else:
@@ -223,7 +226,7 @@ class DETRLoss(nn.Module):
         if self.use_vfl:
             if sum(len(a) for a in gt_bbox) > 0:
                 src_bbox, target_bbox = self._get_src_target_assign(boxes.detach(), gt_bbox, match_indices)
-                iou_score = bbox_iou(xywh2xyxy(src_bbox), xywh2xyxy(target_bbox))
+                iou_score = bbox_iou(src_bbox, target_bbox, xywh=True)
             else:
                 iou_score = None
         else:

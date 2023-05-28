@@ -169,6 +169,7 @@ class Results(SimpleClass):
             boxes=True,
             masks=True,
             probs=True,
+            color_list=None,
             **kwargs  # deprecated args TODO: remove support in 8.2
     ):
         """
@@ -186,7 +187,8 @@ class Results(SimpleClass):
             labels (bool): Whether to plot the label of bounding boxes.
             boxes (bool): Whether to plot the bounding boxes.
             masks (bool): Whether to plot the masks.
-            probs (bool): Whether to plot classification probability
+            probs (bool): Whether to plot classification probability.
+            color_list (list): Specify the color used to display the box. If value is None, use default color.
 
         Returns:
             (numpy.ndarray): A numpy array of the annotated image.
@@ -222,11 +224,11 @@ class Results(SimpleClass):
             annotator.masks(pred_masks.data, colors=[colors(x, True) for x in idx], im_gpu=img_gpu)
 
         if pred_boxes and show_boxes:
-            for d in reversed(pred_boxes):
+            for index, d in enumerate(reversed(pred_boxes)):
                 c, conf, id = int(d.cls), float(d.conf) if conf else None, None if d.id is None else int(d.id.item())
                 name = ('' if id is None else f'id:{id} ') + names[c]
                 label = (f'{name} {conf:.2f}' if conf else name) if labels else None
-                annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
+                annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True) if color_list is None else color_list[len(pred_boxes)-index-1])
 
         if pred_probs is not None and show_probs:
             n5 = min(len(names), 5)

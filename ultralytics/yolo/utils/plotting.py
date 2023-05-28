@@ -32,6 +32,8 @@ class Colors:
                                       [255, 153, 153], [255, 102, 102], [255, 51, 51], [153, 255, 153], [102, 255, 102],
                                       [51, 255, 51], [0, 255, 0], [0, 0, 255], [255, 0, 0], [255, 255, 255]],
                                      dtype=np.uint8)
+        self.RED_COLOR = [0, 0, 255]
+        self.GREEN_COLOR = [0, 255, 0]
 
     def __call__(self, i, bgr=False):
         """Converts hex color codes to rgb values."""

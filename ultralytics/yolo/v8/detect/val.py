@@ -13,9 +13,11 @@ from ultralytics.yolo.engine.validator import BaseValidator
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, colorstr, ops
 from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
-from ultralytics.yolo.utils.plotting import output_to_target, plot_images
+from ultralytics.yolo.utils.plotting import output_to_target, plot_images, Colors
 from ultralytics.yolo.utils.torch_utils import de_parallel
 from ultralytics.yolo.engine.results import Results, Boxes
+
+colors = Colors()
 
 
 class DetectionValidator(BaseValidator):
@@ -168,7 +170,8 @@ class DetectionValidator(BaseValidator):
         detection_classes = detections[:, 5].int()
         iou = box_iou(labels[:, 1:], detections[:, :4])
 
-        boxes = torch.cat([detections[:, :4], detections[:, 4].reshape(-1,1), detection_classes.reshape(-1,1)], dim=1).cpu()
+        boxes = torch.cat([detections[:, :4], detections[:, 4].reshape(-1, 1), detection_classes.reshape(-1, 1)],
+                          dim=1).cpu()
 
         x = torch.where(iou > self.confusion_matrix.iou_thres)
         if x[0].shape[0]:
@@ -188,38 +191,48 @@ class DetectionValidator(BaseValidator):
         # We need to find the pairs not in matches here. That is iou < iou_thres
         # Find the ground truth box without prediction box, and prediction box without ground truth
         x = torch.where(iou > self.confusion_matrix.iou_thres)
-        y = torch.where(iou <= self.confusion_matrix.iou_thres)  # y[0] is predict, y[1] is label
+        y = torch.where(iou <= self.confusion_matrix.iou_thres)  # y[0] is label, y[1] is predict
         labels_matches = matches[:, 0]
         pred_matches = matches[:, 1]
 
-        false_positive = np.setdiff1d(y[0].cpu().numpy(), pred_matches)
-        false_negative = np.setdiff1d(y[1].cpu().numpy(), labels_matches)
+        false_negative = np.setdiff1d(y[0].cpu().numpy(), pred_matches)
+        false_positive = np.setdiff1d(y[1].cpu().numpy(), labels_matches)
 
         if false_negative.shape[0] > 0:
             # plot false negative images
             if not os.path.exists(str(self.save_dir / 'false_negative')):
                 os.makedirs(str(self.save_dir / 'false_negative'), exist_ok=True)
             print("false_negative")
+            fn_labels = labels[false_negative].cpu()
+            boxes = torch.cat([boxes, torch.cat([fn_labels, torch.ones(fn_labels.shape[0], 1)], dim=1)[:,
+                                      torch.tensor([1, 2, 3, 4, 5, 0])]]) # Rearrange the element position of fn_labels
+            color_list = [colors.GREEN_COLOR] * detections.shape[0] + [colors.RED_COLOR] * fn_labels.shape[0]
             plot_args = dict(line_width=None,
-                             boxes=True)
+                             boxes=True,
+                             color_list=color_list)
             file_name = batch['im_file'][si]
             result = Results(orig_img=cv2.imread(file_name), path=file_name, names=self.names, boxes=boxes)
             plotted_img = result.plot(**plot_args)
             cv2.imwrite(str(self.save_dir / 'false_negative' / os.path.split(file_name)[1]), plotted_img)
 
             pass
-        if false_positive.shape[0] > 0:
-            # plot false positive images
-            if not os.path.exists(str(self.save_dir / 'false_positive')):
-                os.makedirs(str(self.save_dir / 'false_positive'), exist_ok=True)
-            print("false_positive")
-            plot_args = dict(line_width=None,
-                             boxes=True)
-            file_name = batch['im_file'][si]
-            result = Results(orig_img=cv2.imread(file_name), path=file_name, names=self.names, boxes=boxes)
-            plotted_img = result.plot(**plot_args)
-            cv2.imwrite(str(self.save_dir / 'false_positive'/os.path.split(file_name)[1]),plotted_img)
-
+        # if false_positive.shape[0] > 0:
+        #     # plot false positive images
+        #     if not os.path.exists(str(self.save_dir / 'false_positive')):
+        #         os.makedirs(str(self.save_dir / 'false_positive'), exist_ok=True)
+        #     print("false_negative")
+        #     fn_labels = labels[false_positive].cpu()
+        #     boxes = torch.cat([boxes, torch.cat([fn_labels, torch.ones(fn_labels.shape[0], 1)], dim=1)[:,
+        #                               torch.tensor([1, 2, 3, 4, 5, 0])]])
+        #     color_list = [colors.GREEN_COLOR] * detections.shape[0] + [colors.RED_COLOR] * boxes.shape[0]
+        #     plot_args = dict(line_width=None,
+        #                      boxes=True,
+        #                      color_list=color_list)
+        #     file_name = batch['im_file'][si]
+        #     result = Results(orig_img=cv2.imread(file_name), path=file_name, names=self.names, boxes=boxes)
+        #     plotted_img = result.plot(**plot_args)
+        #     cv2.imwrite(str(self.save_dir / 'false_positive' / os.path.split(file_name)[1]), plotted_img)
+        #     pass
         pass
 
     def _process_batch(self, detections, labels):

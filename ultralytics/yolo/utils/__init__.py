@@ -164,7 +164,7 @@ class IterableSimpleNamespace(SimpleNamespace):
         return getattr(self, key, default)
 
 
-def plt_settings(rcparams={'font.size': 11}, backend='Agg'):
+def plt_settings(rcparams=None, backend='Agg'):
     """
     Decorator to temporarily set rc parameters and the backend for a plotting function.
 
@@ -179,6 +179,9 @@ def plt_settings(rcparams={'font.size': 11}, backend='Agg'):
     Returns:
         callable: Decorated function with temporarily set rc parameters and backend.
     """
+
+    if rcparams is None:
+        rcparams = {'font.size': 11}
 
     def decorator(func):
         """Decorator to apply temporary rc parameters and backend to a function."""
@@ -242,7 +245,7 @@ if WINDOWS:  # emoji-safe logging
     LOGGER.addFilter(EmojiFilter())
 
 
-def yaml_save(file='data.yaml', data={}):
+def yaml_save(file='data.yaml', data=None):
     """
     Save YAML data to a file.
 
@@ -253,6 +256,8 @@ def yaml_save(file='data.yaml', data={}):
     Returns:
         None: Data is saved to the specified file.
     """
+    if data is None:
+        data = {}
     file = Path(file)
     if not file.parent.exists():
         # Create parent directories if they don't exist
@@ -603,7 +608,7 @@ def threaded(func):
 
 def set_sentry():
     """
-    Initialize the Sentry SDK for error tracking and reporting. Only used if sentry_sdk pacakge is installed and
+    Initialize the Sentry SDK for error tracking and reporting. Only used if sentry_sdk package is installed and
     sync=True in settings. Run 'yolo settings' to see and update settings YAML file.
 
     Conditions required to send errors (ALL conditions must be met or no errors will be reported):

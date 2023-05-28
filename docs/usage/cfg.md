@@ -105,6 +105,7 @@ The training settings for YOLO models encompass various hyperparameters and conf
 | `resume`          | `False`  | resume training from last checkpoint                                        |
 | `amp`             | `True`   | Automatic Mixed Precision (AMP) training, choices=[True, False]             |
 | `fraction`        | `1.0`    | dataset fraction to train on (default is 1.0, all images in train set)      |
+| `profile`         | `False`  | profile ONNX and TensorRT speeds during training for loggers                |
 | `lr0`             | `0.01`   | initial learning rate (i.e. SGD=1E-2, Adam=1E-3)                            |
 | `lrf`             | `0.01`   | final learning rate (lr0 * lrf)                                             |
 | `momentum`        | `0.937`  | SGD momentum/Adam beta1                                                     |

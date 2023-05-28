@@ -163,7 +163,7 @@ class ProfileModels:
         profile(): Profiles the models and prints the result.
     """
 
-    def __init__(self, paths: list, num_timed_runs=300, num_warmup_runs=30, imgsz=640, trt=True, device=None):
+    def __init__(self, paths: list, num_timed_runs=100, num_warmup_runs=10, imgsz=640, trt=True, device=None):
         self.paths = paths
         self.num_timed_runs = num_timed_runs
         self.num_warmup_runs = num_warmup_runs
@@ -244,7 +244,7 @@ class ProfileModels:
 
         # Timed runs
         run_times = []
-        for _ in tqdm(range(self.num_timed_runs * 30), desc=engine_file):
+        for _ in tqdm(range(self.num_timed_runs * 50), desc=engine_file):
             results = model(input_data, verbose=False)
             run_times.append(results[0].speed['inference'])  # Convert to milliseconds
 

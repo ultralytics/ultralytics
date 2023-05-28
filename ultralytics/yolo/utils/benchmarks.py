@@ -301,11 +301,12 @@ class ProfileModels:
 
     def generate_results_dict(self, model_name, t_onnx, t_engine, model_info):
         layers, params, gradients, flops = model_info
-        return {'model/name': model_name,
-                'model/parameters': params,
-                'model/GFLOPs': round(flops, 3),
-                'model/speed_ONNX(ms)': round(t_onnx[0], 3),
-                'model/speed_TensorRT(ms)': round(t_engine[0], 3)}
+        return {
+            'model/name': model_name,
+            'model/parameters': params,
+            'model/GFLOPs': round(flops, 3),
+            'model/speed_ONNX(ms)': round(t_onnx[0], 3),
+            'model/speed_TensorRT(ms)': round(t_engine[0], 3)}
 
     def print_table(self, table_rows):
         gpu = torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'GPU'

@@ -208,8 +208,9 @@ def model_info_for_loggers(trainer):
         results = ProfileModels([trainer.last]).profile()[0]
         results.pop('model/name')
     else:  # only return PyTorch times from most recent validation
-        results = {'model/parameters': get_num_params(trainer.model),
-                   'model/GFLOPs': round(get_flops(trainer.model), 3)}
+        results = {
+            'model/parameters': get_num_params(trainer.model),
+            'model/GFLOPs': round(get_flops(trainer.model), 3)}
     results['model/speed_PyTorch(ms)'] = round(trainer.validator.speed['inference'], 3)
     return results
 

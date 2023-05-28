@@ -25,7 +25,7 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt /u
 
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel
-RUN pip install --no-cache -e . --extra-index-url https://download.pytorch.org/whl/cpu
+RUN pip install --no-cache -e . thop --extra-index-url https://download.pytorch.org/whl/cpu
 
 
 # Usage Examples -------------------------------------------------------------------------------------------------------

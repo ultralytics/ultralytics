@@ -29,7 +29,7 @@ def test_special_modes():
 
 @pytest.mark.parametrize('task,model,data', TASK_ARGS)
 def test_train(task, model, data):
-    run(f'yolo train {task} model={model}.yaml data={data} imgsz=32 epochs=1')
+    run(f'yolo train {task} model={model}.yaml data={data} imgsz=32 epochs=1 cache=disk')
 
 
 @pytest.mark.parametrize('task,model,data', TASK_ARGS)

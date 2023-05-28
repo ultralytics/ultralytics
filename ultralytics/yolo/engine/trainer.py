@@ -625,15 +625,19 @@ class BaseTrainer:
         Returns:
             optimizer (torch.optim.Optimizer): the built optimizer
         """
+
         g = [], [], []  # optimizer parameter groups
         bn = tuple(v for k, v in nn.__dict__.items() if 'Norm' in k)  # normalization layers, i.e. BatchNorm2d()
-        for v in model.modules():
-            if hasattr(v, 'bias') and isinstance(v.bias, nn.Parameter):  # bias (no decay)
-                g[2].append(v.bias)
-            if isinstance(v, bn):  # weight (no decay)
-                g[1].append(v.weight)
-            elif hasattr(v, 'weight') and isinstance(v.weight, nn.Parameter):  # weight (with decay)
-                g[0].append(v.weight)
+
+        for module_name, module in model.named_modules():
+            for param_name, param in module.named_parameters(recurse=False):
+                fullname = f'{module_name}.{param_name}' if module_name else param_name
+                if 'bias' in fullname:  # bias (no decay)
+                    g[2].append(param)
+                elif isinstance(module, bn):  # weight (no decay)
+                    g[1].append(param)
+                else:  # weight (with decay)
+                    g[0].append(param)
 
         if name == 'Adam':
             optimizer = torch.optim.Adam(g[2], lr=lr, betas=(momentum, 0.999))  # adjust beta1 to momentum
@@ -684,12 +688,17 @@ def check_amp(model):
     im = f if f.exists() else 'https://ultralytics.com/images/bus.jpg' if ONLINE else np.ones((640, 640, 3))
     prefix = colorstr('AMP: ')
     LOGGER.info(f'{prefix}running Automatic Mixed Precision (AMP) checks with YOLOv8n...')
+    warning_msg = "Setting 'amp=True'. If you experience zero-mAP or NaN losses you can disable AMP with amp=False."
     try:
         from ultralytics import YOLO
         assert amp_allclose(YOLO('yolov8n.pt'), im)
         LOGGER.info(f'{prefix}checks passed ✅')
     except ConnectionError:
-        LOGGER.warning(f"{prefix}checks skipped ⚠️, offline and unable to download YOLOv8n. Setting 'amp=True'.")
+        LOGGER.warning(f'{prefix}checks skipped ⚠️, offline and unable to download YOLOv8n. {warning_msg}')
+    except (AttributeError, ModuleNotFoundError):
+        LOGGER.warning(
+            f'{prefix}checks skipped ⚠️. Unable to load YOLOv8n due to possible Ultralytics package modifications. {warning_msg}'
+        )
     except AssertionError:
         LOGGER.warning(f'{prefix}checks failed ❌. Anomalies were detected with AMP on your system that may lead to '
                        f'NaN losses or zero-mAP results, so AMP will be disabled during training.')

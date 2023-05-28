@@ -31,12 +31,6 @@ class SegmentationTrainer(v8.detect.DetectionTrainer):
         self.loss_names = 'box_loss', 'seg_loss', 'cls_loss', 'dfl_loss'
         return v8.segment.SegmentationValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
 
-    def criterion(self, preds, batch):
-        """Returns the computed loss using the SegLoss class on the given predictions and batch."""
-        if not hasattr(self, 'compute_loss'):
-            self.compute_loss = SegLoss(de_parallel(self.model), overlap=self.args.overlap_mask)
-        return self.compute_loss(preds, batch)
-
     def plot_training_samples(self, batch, ni):
         """Creates a plot of training sample images with labels and box coordinates."""
         plot_images(batch['img'],

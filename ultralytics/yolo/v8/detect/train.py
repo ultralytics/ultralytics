@@ -89,12 +89,6 @@ class DetectionTrainer(BaseTrainer):
         self.loss_names = 'box_loss', 'cls_loss', 'dfl_loss'
         return v8.detect.DetectionValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
 
-    def criterion(self, preds, batch):
-        """Compute loss for YOLO prediction and ground-truth."""
-        if not hasattr(self, 'compute_loss'):
-            self.compute_loss = Loss(de_parallel(self.model))
-        return self.compute_loss(preds, batch)
-
     def label_loss_items(self, loss_items=None, prefix='train'):
         """
         Returns a loss dict with labelled training loss items tensor

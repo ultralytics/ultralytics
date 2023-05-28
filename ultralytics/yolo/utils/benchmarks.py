@@ -238,7 +238,7 @@ class ProfileModels:
 
         # Warmup runs
         model = YOLO(engine_file)
-        input_data = np.random.rand(self.imgsz, self.imgsz, 3).astype(np.float32)
+        input_data = np.random.rand(self.imgsz, self.imgsz, 3).astype(np.float16)
         for _ in range(self.num_warmup_runs):
             model(input_data, verbose=False)
 

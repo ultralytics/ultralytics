@@ -353,10 +353,10 @@ class YOLO:
             kwargs = self.session.train_args
         check_pip_update_available()
         overrides = self.overrides.copy()
-        overrides.update(kwargs)
         if kwargs.get('cfg'):
             LOGGER.info(f"cfg file passed. Overriding default params with {kwargs['cfg']}.")
             overrides = yaml_load(check_yaml(kwargs['cfg']))
+        overrides.update(kwargs)
         overrides['mode'] = 'train'
         if not overrides.get('data'):
             raise AttributeError("Dataset required but missing, i.e. pass 'data=coco128.yaml'")

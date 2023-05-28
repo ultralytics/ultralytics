@@ -1,4 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 

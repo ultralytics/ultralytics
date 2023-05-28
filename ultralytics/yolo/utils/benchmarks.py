@@ -4,7 +4,7 @@ Benchmark a YOLO model formats for speed and accuracy
 
 Usage:
     from ultralytics.yolo.utils.benchmarks import ProfileModels, benchmark
-    ProfileModels(['yolov8n.yaml', 'yolov8s.yaml'])
+    ProfileModels(['yolov8n.yaml', 'yolov8s.yaml']).profile()
     run_benchmarks(model='yolov8n.pt', imgsz=160)
 
 Format                  | `format=argument`         | Model
@@ -169,7 +169,6 @@ class ProfileModels:
         self.num_warmup_runs = num_warmup_runs
         self.imgsz = imgsz
         self.trt = trt  # run TensorRT profiling
-        self.profile()  # run profiling
 
     def profile(self):
         files = self.get_files()
@@ -179,11 +178,13 @@ class ProfileModels:
             return
 
         table_rows = []
+        output = []
         device = 0 if torch.cuda.is_available() else 'cpu'
         for file in files:
             engine_file = file.with_suffix('.engine')
             if file.suffix in ('.pt', '.yaml'):
                 model = YOLO(str(file))
+                model.fuse()  # to report correct params and GFLOPs in model.info()
                 model_info = model.info()
                 if self.trt and device == 0 and not engine_file.is_file():
                     engine_file = model.export(format='engine', half=True, imgsz=self.imgsz, device=device)
@@ -197,8 +198,10 @@ class ProfileModels:
             t_engine = self.profile_tensorrt_model(str(engine_file))
             t_onnx = self.profile_onnx_model(str(onnx_file))
             table_rows.append(self.generate_table_row(file.stem, t_onnx, t_engine, model_info))
+            output.append(self.generate_results_dict(file.stem, t_onnx, t_engine, model_info))
 
         self.print_table(table_rows)
+        return output
 
     def get_files(self):
         files = []
@@ -295,6 +298,14 @@ class ProfileModels:
     def generate_table_row(self, model_name, t_onnx, t_engine, model_info):
         layers, params, gradients, flops = model_info
         return f'| {model_name:18s} | {self.imgsz} | - | {t_onnx[0]:.2f} ± {t_onnx[1]:.2f} ms | {t_engine[0]:.2f} ± {t_engine[1]:.2f} ms | {params / 1e6:.1f} | {flops:.1f} |'
+
+    def generate_results_dict(self, model_name, t_onnx, t_engine, model_info):
+        layers, params, gradients, flops = model_info
+        return {'model/name': model_name,
+                'model/parameters': params,
+                'model/GFLOPs': round(flops, 3),
+                'model/speed_ONNX(ms)': round(t_onnx[0], 3),
+                'model/speed_TensorRT(ms)': round(t_engine[0], 3)}
 
     def print_table(self, table_rows):
         gpu = torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'GPU'

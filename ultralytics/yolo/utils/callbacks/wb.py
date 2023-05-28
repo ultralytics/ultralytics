@@ -1,11 +1,13 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+from ultralytics.yolo.utils import TESTS_RUNNING
 from ultralytics.yolo.utils.torch_utils import model_info_for_loggers
 
 try:
     import wandb as wb
 
     assert hasattr(wb, '__version__')
+    assert not TESTS_RUNNING  # do not log pytest
 except (ImportError, AssertionError):
     wb = None
 

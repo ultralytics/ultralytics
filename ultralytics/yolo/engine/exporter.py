@@ -362,7 +362,7 @@ class Exporter:
                                     model_name=self.pretty_name,
                                     framework='onnx',
                                     compress_to_fp16=self.args.half)  # export
-        ov_model.set_rt_info('YoloV8', ['model_info', 'model_type'])
+        ov_model.set_rt_info('YOLOv8', ['model_info', 'model_type'])
         ov_model.set_rt_info('fit_to_window_letterbox', ['model_info', 'resize_type'])
         ov_model.set_rt_info(True, ['model_info', 'reverse_input_channels'])
         ov_model.set_rt_info(114, ['model_info', 'pad_value'])

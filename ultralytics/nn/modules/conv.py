@@ -59,7 +59,7 @@ class Conv2(Conv):
         """Fuse parallel convolutions."""
         w = torch.zeros_like(self.conv.weight.data)
         i = [x // 2 for x in w.shape[2:]]
-        w[:, :, i[0] - 1:i[0], i[1] - 1:i[1]] = self.cv2.weight.data.clone()
+        w[:, :, i[0]:i[0] + 1, i[1]:i[1] + 1] = self.cv2.weight.data.clone()
         self.conv.weight.data += w
         self.__delattr__('cv2')
 

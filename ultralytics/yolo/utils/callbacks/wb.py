@@ -12,12 +12,14 @@ except (ImportError, AssertionError):
 
 _processed_plots = {}
 
+
 def _log_plots(plots, step):
     for name, params in plots.items():
         timestamp = params['timestamp']
         if _processed_plots.get(name, None) != timestamp:
             wb.run.log({name.stem: wb.Image(str(name))}, step=step)
             _processed_plots[name] = timestamp
+
 
 def on_pretrain_routine_start(trainer):
     """Initiate and start project if module is present."""

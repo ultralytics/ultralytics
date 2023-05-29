@@ -362,6 +362,16 @@ class Exporter:
                                     model_name=self.pretty_name,
                                     framework='onnx',
                                     compress_to_fp16=self.args.half)  # export
+        ov_model.set_rt_info("YoloV8", ["model_info", "model_type"])
+        ov_model.set_rt_info("fit_to_window_letterbox", ["model_info", "resize_type"])
+        ov_model.set_rt_info(True, ["model_info", "reverse_input_channels"])
+        ov_model.set_rt_info(114, ["model_info", "pad_value"])
+        ov_model.set_rt_info([255.0], ["model_info", "scale_values"])
+        ov_model.set_rt_info(self.args.iou, ["model_info", "iou_threshold"])
+        labels = []
+        for i in range(len(self.model.names)):
+            labels.append(self.model.names[i].replace(" ", "_"))
+        ov_model.set_rt_info(labels, ["model_info", "labels"])
         ov.serialize(ov_model, f_ov)  # save
         yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml
         return f, None

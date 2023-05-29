@@ -187,7 +187,7 @@ class BaseModel(nn.Module):
         if not hasattr(self, 'criterion'):
             self.criterion = self.init_criterion()
 
-        preds = self._forward(batch['img']) if preds is None else preds
+        preds = self.predict(batch['img']) if preds is None else preds
         return self.criterion(preds, batch)
 
     def init_criterion(self):

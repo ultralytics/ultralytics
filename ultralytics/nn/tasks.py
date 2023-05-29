@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 
 from ultralytics.nn.modules import (AIFI, C1, C2, C3, C3TR, SPP, SPPF, Bottleneck, BottleneckCSP, C2f, C3Ghost, C3x,
-                                    Classify, Concat, Conv, ConvTranspose, Detect, DWConv, DWConvTranspose2d, Focus,
+                                    Classify, Concat, Conv, Conv2, ConvTranspose, Detect, DWConv, DWConvTranspose2d, Focus,
                                     GhostBottleneck, GhostConv, HGBlock, HGStem, Pose, RepC3, RepConv, RTDETRDecoder,
                                     Segment)
 from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, colorstr, emojis, yaml_load
@@ -29,22 +29,22 @@ class BaseModel(nn.Module):
     The BaseModel class serves as a base class for all the models in the Ultralytics YOLO family.
     """
 
-    def forward(self, x, profile=False, visualize=False):
+    def forward(self, x, *args, **kwargs):
         """
         Forward pass of the model on a single scale.
         Wrapper for `_forward_once` method.
 
         Args:
-            x (torch.Tensor): The input image tensor
-            profile (bool): Whether to profile the model, defaults to False
-            visualize (bool): Whether to return the intermediate feature maps, defaults to False
+            x (torch.Tensor | dict): The input image tensor or a dict including image tensor and gt labels.
 
         Returns:
             (torch.Tensor): The output of the network.
         """
-        return self._forward_once(x, profile, visualize)
+        if isinstance(x, dict):   # for cases of training and validating while training.
+            return self.loss(x, *args, **kwargs)
+        return self.predict(x, *args, **kwargs)
 
-    def _forward_once(self, x, profile=False, visualize=False):
+    def predict(self, x, profile=False, visualize=False):
         """
         Perform a forward pass through the network.
 
@@ -187,7 +187,7 @@ class BaseModel(nn.Module):
         if not hasattr(self, 'criterion'):
             self.criterion = self.init_criterion()
 
-        preds = self.forward(batch['img']) if preds is None else preds
+        preds = self._forward(batch['img']) if preds is None else preds
         return self.criterion(preds, batch)
 
     def init_criterion(self):
@@ -226,11 +226,11 @@ class DetectionModel(BaseModel):
             self.info()
             LOGGER.info('')
 
-    def forward(self, x, augment=False, profile=False, visualize=False):
+    def predict(self, x, augment=False, profile=False, visualize=False):
         """Run forward pass on input image(s) with optional augmentation and profiling."""
         if augment:
             return self._forward_augment(x)  # augmented inference, None
-        return self._forward_once(x, profile, visualize)  # single-scale inference, train
+        return super().predict(x, profile, visualize)  # single-scale inference, train
 
     def _forward_augment(self, x):
         """Perform augmentations on input image x and return augmented inference and train outputs."""
@@ -400,7 +400,7 @@ class RTDETRDetectionModel(DetectionModel):
             gt_class.append(batch['cls'][batch_idx == i].to(device=img.device, dtype=torch.long))
         targets = {'cls': gt_class, 'bboxes': gt_bbox}
 
-        preds = self._forward_once(img, batch=targets) if preds is None else preds
+        preds = self.predict(img, batch=targets) if preds is None else preds
         dec_out_bboxes, dec_out_logits, enc_topk_bboxes, enc_topk_logits, dn_meta = preds
         # NOTE: `dn_meta` means it's eval mode, loss calculation for eval mode is not supported.
         if dn_meta is None:
@@ -418,7 +418,7 @@ class RTDETRDetectionModel(DetectionModel):
                               dn_meta=dn_meta)
         return sum(loss.values()), torch.as_tensor([loss[k].detach() for k in ['loss_giou', 'loss_class', 'loss_bbox']])
 
-    def _forward_once(self, x, profile=False, visualize=False, batch=None):
+    def predict(self, x, profile=False, visualize=False, batch=None):
         """
         Perform a forward pass through the network.
 

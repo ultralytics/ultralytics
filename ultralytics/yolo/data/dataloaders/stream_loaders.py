@@ -84,7 +84,7 @@ class LoadStreams:
                     LOGGER.warning('WARNING ⚠️ Video stream unresponsive, please check your IP camera connection.')
                     self.imgs[i] = np.zeros_like(self.imgs[i])
                     cap.open(stream)  # re-open stream if signal was lost
-            time.sleep(0.0)  # wait time
+            time.sleep(0.0)  # wait time # TODO(tekert): @glenn-jocher we need to wait here 1/self.fps[i] on youtube streams.
 
     def __iter__(self):
         """Iterates through YOLO image feed and re-opens unresponsive streams."""
@@ -350,6 +350,8 @@ def get_best_youtube_url(url, use_pafy=True, imgsz=640):
     Returns:
         str: The URL of the best quality MP4 video stream, or None if no suitable stream is found.
     """
+    if type(imgsz) is int: # TODO(tekert): @glenn-jocher can you check imgz type? delete this check if all is ok.
+        imgsz = [imgsz]
     if use_pafy:
         check_requirements(('pafy', 'youtube_dl==2020.12.2'))
         import pafy  # noqa

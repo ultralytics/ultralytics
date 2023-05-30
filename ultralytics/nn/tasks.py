@@ -303,6 +303,10 @@ class PoseModel(DetectionModel):
     def init_criterion(self):
         return v8PoseLoss(self)
 
+    def _forward_augment(self, x):
+        """Undocumented function."""
+        raise NotImplementedError(emojis('WARNING ⚠️ PoseModel has not supported augment inference yet!'))
+
 
 class ClassificationModel(BaseModel):
     """YOLOv8 classification model."""
@@ -444,6 +448,10 @@ class RTDETRDetectionModel(DetectionModel):
         head = self.model[-1]
         x = head([y[j] for j in head.f], batch)  # head inference
         return x
+
+    def _forward_augment(self, x):
+        """Undocumented function."""
+        raise NotImplementedError(emojis('WARNING ⚠️ RTDETRModel has not supported augment inference yet!'))
 
 
 class Ensemble(nn.ModuleList):

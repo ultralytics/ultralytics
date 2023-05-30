@@ -157,7 +157,7 @@ class BaseValidator:
 
             # Inference
             with dt[1]:
-                preds = model(batch['img'])
+                preds = model(batch['img'], augment=self.args.augment)
 
             # Loss
             with dt[2]:

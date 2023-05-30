@@ -2,17 +2,10 @@
 
 from copy import copy
 
-import torch
-import torch.nn as nn
-
 from ultralytics.nn.tasks import PoseModel
 from ultralytics.yolo import v8
 from ultralytics.yolo.utils import DEFAULT_CFG
-from ultralytics.yolo.utils.loss import KeypointLoss
-from ultralytics.yolo.utils.metrics import OKS_SIGMA
-from ultralytics.yolo.utils.ops import xyxy2xywh
 from ultralytics.yolo.utils.plotting import plot_images, plot_results
-from ultralytics.yolo.utils.tal import make_anchors
 
 
 # BaseTrainer python usage

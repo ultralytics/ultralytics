@@ -44,14 +44,15 @@ class BaseModel(nn.Module):
             return self.loss(x, *args, **kwargs)
         return self.predict(x, *args, **kwargs)
 
-    def predict(self, x, profile=False, visualize=False):
+    def predict(self, x, profile=False, visualize=False, augment=False):
         """
         Perform a forward pass through the network.
 
         Args:
-            x (torch.Tensor): The input tensor to the model
+            x (torch.Tensor): The input tensor to the model.
             profile (bool):  Print the computation time of each layer if True, defaults to False.
-            visualize (bool): Save the feature maps of the model if True, defaults to False
+            visualize (bool): Save the feature maps of the model if True, defaults to False.
+            augment (bool): Augment image during prediction, defaults to False.
 
         Returns:
             (torch.Tensor): The last output of the model.
@@ -182,13 +183,11 @@ class BaseModel(nn.Module):
 
         Args:
             batch (dict): Batch to compute loss on
-            pred (torch.Tensor | List[torch.Tensor]): Predictions.
+            preds (torch.Tensor | List[torch.Tensor]): Predictions.
         """
         if not hasattr(self, 'criterion'):
             self.criterion = self.init_criterion()
-
-        preds = self.predict(batch['img']) if preds is None else preds
-        return self.criterion(preds, batch)
+        return self.criterion(self.predict(batch['img']) if preds is None else preds, batch)
 
     def init_criterion(self):
         raise NotImplementedError('compute_loss() needs to be implemented by task heads')

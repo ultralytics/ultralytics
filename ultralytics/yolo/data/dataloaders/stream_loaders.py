@@ -45,7 +45,7 @@ class LoadStreams:
             st = f'{i + 1}/{n}: {s}... '
             if urlparse(s).hostname in ('www.youtube.com', 'youtube.com', 'youtu.be'):  # if source is YouTube video
                 # YouTube format i.e. 'https://www.youtube.com/watch?v=Zgi9g1ksQHc' or 'https://youtu.be/Zgi9g1ksQHc'
-                s = get_best_youtube_url(s)
+                s = get_best_youtube_url(s, imgsz=imgsz)
             s = eval(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
             if s == 0 and (is_colab() or is_kaggle()):
                 raise NotImplementedError("'source=0' webcam not supported in Colab and Kaggle notebooks. "
@@ -336,7 +336,7 @@ def autocast_list(source):
 LOADERS = [LoadStreams, LoadPilAndNumpy, LoadImages, LoadScreenshots]
 
 
-def get_best_youtube_url(url, use_pafy=True):
+def get_best_youtube_url(url, use_pafy=True, imgsz=640):
     """
     Retrieves the URL of the best quality MP4 video stream from a given YouTube video.
 
@@ -358,11 +358,14 @@ def get_best_youtube_url(url, use_pafy=True):
         check_requirements('yt-dlp')
         import yt_dlp
         with yt_dlp.YoutubeDL({'quiet': True}) as ydl:
-            info_dict = ydl.extract_info(url, download=False)  # extract info
+            info_dict = ydl.extract_info(url, download=False)  # extract info order: worst to best
         for f in info_dict.get('formats', None):
             if f['vcodec'] != 'none' and f['acodec'] == 'none' and f['ext'] == 'mp4':
-                return f.get('url', None)
-
+                last_best = f
+                if (f['width'] >= imgsz):
+                    return f.get('url', None)
+        # In case there is no resolution higher than imgz return the last best one
+        return last_best.get('url', None)
 
 if __name__ == '__main__':
     img = cv2.imread(str(ROOT / 'assets/bus.jpg'))

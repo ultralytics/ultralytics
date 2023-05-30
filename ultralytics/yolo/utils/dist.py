@@ -29,9 +29,9 @@ def generate_ddp_file(trainer):
 
     content = f'''cfg = {vars(trainer.args)} \nif __name__ == "__main__":
     from {module} import {name}
+    from ultralytics.yolo.utils import DEFAULT_CFG_DICT
 
-    cfg.pop('save_dir')
-    trainer = {name}(overrides=cfg)
+    trainer = {name}(cfg=DEFAULT_CFG_DICT.update(save_dir=''), overrides=cfg)
     trainer.train()'''
     (USER_CONFIG_DIR / 'DDP').mkdir(exist_ok=True)
     with tempfile.NamedTemporaryFile(prefix='_temp_',

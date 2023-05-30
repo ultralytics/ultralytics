@@ -3,7 +3,6 @@
 import glob
 import math
 import os
-import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -85,7 +84,8 @@ class LoadStreams:
                     LOGGER.warning('WARNING ⚠️ Video stream unresponsive, please check your IP camera connection.')
                     self.imgs[i] = np.zeros_like(self.imgs[i])
                     cap.open(stream)  # re-open stream if signal was lost
-            time.sleep(sys.float_info.min)  # wait time (0.0 causes problems on remote file streams)
+            time.sleep(
+                0.0)  # wait time # TODO(tekert): @glenn-jocher we need to wait here 1/self.fps[i] on youtube streams.
 
     def __iter__(self):
         """Iterates through YOLO image feed and re-opens unresponsive streams."""

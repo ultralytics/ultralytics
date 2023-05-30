@@ -32,7 +32,7 @@ def generate_ddp_file(trainer):
     from ultralytics.yolo.utils import DEFAULT_CFG_DICT
 
     cfg = DEFAULT_CFG_DICT.copy()
-    cfg.update(save_dir='')
+    cfg.update(save_dir='')   # handle the extra key 'save_dir'
     trainer = {name}(cfg=cfg, overrides=overrides)
     trainer.train()'''
     (USER_CONFIG_DIR / 'DDP').mkdir(exist_ok=True)

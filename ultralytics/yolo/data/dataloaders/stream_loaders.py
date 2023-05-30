@@ -367,6 +367,7 @@ def get_best_youtube_url(url, use_pafy=True, imgsz=640):
         # In case there is no resolution higher than imgz return the last best one
         return last_best.get('url', None)
 
+
 if __name__ == '__main__':
     img = cv2.imread(str(ROOT / 'assets/bus.jpg'))
     dataset = LoadPilAndNumpy(im0=img)

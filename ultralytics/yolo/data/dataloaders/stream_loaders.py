@@ -336,7 +336,7 @@ def autocast_list(source):
 LOADERS = [LoadStreams, LoadPilAndNumpy, LoadImages, LoadScreenshots]
 
 
-def get_best_youtube_url(url, use_pafy=True, imgsz=640):
+def get_best_youtube_url(url, use_pafy=True, imgsz=[640, 640]):
     """
     Retrieves the URL of the best quality MP4 video stream from a given YouTube video.
 
@@ -362,7 +362,7 @@ def get_best_youtube_url(url, use_pafy=True, imgsz=640):
         for f in info_dict.get('formats', None):
             if f['vcodec'] != 'none' and f['acodec'] == 'none' and f['ext'] == 'mp4':
                 last_best = f
-                if (f['width'] >= imgsz):
+                if f['width'] >= imgsz[0] and f['height'] >= imgsz[1]:
                     return f.get('url', None)
         # In case there is no resolution higher than imgz return the last best one
         return last_best.get('url', None)

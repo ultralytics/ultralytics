@@ -375,7 +375,7 @@ class Exporter:
         from ultralytics.yolo.data.build import build_dataloader
         from ultralytics.yolo.v8.detect import DetectionValidator
         from ultralytics.yolo.v8.segment import SegmentationValidator
-        
+
         def create_nncf_dataset(yaml_path):
 
             def transform_fn(data_item):
@@ -385,7 +385,9 @@ class Exporter:
             dataset = yaml_load(yaml_path)
             testset = os.path.join(dataset['path'], dataset['val'])
             val_dataloader = build_dataloader(testset, 1, 0, shuffle=False, rank=-1)
-            validator = DetectionValidator(dataloader=val_dataloader) if self.model.task == 'detect' else SegmentationValidator(dataloader=val_dataloader)
+            validator = DetectionValidator(
+                dataloader=val_dataloader) if self.model.task == 'detect' else SegmentationValidator(
+                    dataloader=val_dataloader)
             dataloader = validator.get_dataloader(testset, 1)
             return nncf.Dataset(dataloader, transform_fn)
 

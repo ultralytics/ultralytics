@@ -373,18 +373,19 @@ class Exporter:
         import nncf
         from ultralytics.yolo.data.build import build_dataloader
         from ultralytics.yolo.v8.detect import DetectionValidator
+        from ultralytics.yolo.v8.segment import SegmentationValidator
         
         def create_nncf_dataset(yaml_path):
             def transform_fn(data_item):
-                input_tensor = det_validator.preprocess(data_item)['img'].to('cpu').numpy()
+                input_tensor = validator.preprocess(data_item)['img'].to('cpu').numpy()
                 return input_tensor
             dataset = yaml_load(yaml_path)
             testset = os.path.join(dataset['path'], dataset['val'])
             val_dataloader = build_dataloader(testset, 1, 0, shuffle=False, rank=-1)
-            det_validator = DetectionValidator(dataloader=val_dataloader)
-            det_data_loader = det_validator.get_dataloader(testset, 1)
-            return nncf.Dataset(det_data_loader, transform_fn)
-        
+            validator = DetectionValidator(dataloader=val_dataloader) if self.model.task == 'detect' else SegmentationValidator(dataloader=val_dataloader)
+            dataloader = validator.get_dataloader(testset, 1)
+            return nncf.Dataset(dataloader, transform_fn)
+
         f = str(self.file).replace(self.file.suffix, f'_openvino_model_int8{os.sep}')
         f_ov = str(Path(f) / self.file.with_suffix('.xml').name)
         

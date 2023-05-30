@@ -370,7 +370,7 @@ def get_best_youtube_url(url, use_pafy=True, imgsz=640):
         for f in info_dict.get('formats', None):
             if f['vcodec'] != 'none' and f['acodec'] == 'none' and f['ext'] == 'mp4':
                 last_best = f
-                if min(f['width'], f['height']) >= max(imgsz):
+                if max(f['width'], f['height']) >= max(imgsz):
                     return f.get('url', None)
         # In case there is no resolution higher than imgz return the last best one
         return last_best.get('url', None)

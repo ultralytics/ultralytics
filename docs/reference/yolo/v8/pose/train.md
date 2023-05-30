@@ -7,11 +7,6 @@ description: Boost posture detection using PoseTrainer and train models using tr
 :::ultralytics.yolo.v8.pose.train.PoseTrainer
 <br><br>
 
-# PoseLoss
----
-:::ultralytics.yolo.v8.pose.train.PoseLoss
-<br><br>
-
 # train
 ---
 :::ultralytics.yolo.v8.pose.train.train

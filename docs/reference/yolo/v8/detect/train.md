@@ -7,11 +7,6 @@ description: Train and optimize custom object detection models with Ultralytics 
 :::ultralytics.yolo.v8.detect.train.DetectionTrainer
 <br><br>
 
-# Loss
----
-:::ultralytics.yolo.v8.detect.train.Loss
-<br><br>
-
 # train
 ---
 :::ultralytics.yolo.v8.detect.train.train

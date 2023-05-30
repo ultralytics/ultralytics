@@ -41,7 +41,6 @@ class ClassificationTrainer(BaseTrainer):
                 m.p = self.args.dropout  # set dropout
         for p in model.parameters():
             p.requires_grad = True  # for training
-
         return model
 
     def setup_model(self):
@@ -102,12 +101,6 @@ class ClassificationTrainer(BaseTrainer):
         """Returns an instance of ClassificationValidator for validation."""
         self.loss_names = ['loss']
         return v8.classify.ClassificationValidator(self.test_loader, self.save_dir)
-
-    def criterion(self, preds, batch):
-        """Compute the classification loss between predictions and true labels."""
-        loss = torch.nn.functional.cross_entropy(preds, batch['cls'], reduction='sum') / self.args.nbs
-        loss_items = loss.detach()
-        return loss, loss_items
 
     def label_loss_items(self, loss_items=None, prefix='train'):
         """

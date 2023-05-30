@@ -27,11 +27,13 @@ def generate_ddp_file(trainer):
     """Generates a DDP file and returns its file name."""
     module, name = f'{trainer.__class__.__module__}.{trainer.__class__.__name__}'.rsplit('.', 1)
 
-    content = f'''cfg = {vars(trainer.args)} \nif __name__ == "__main__":
+    content = f'''overrides = {vars(trainer.args)} \nif __name__ == "__main__":
     from {module} import {name}
     from ultralytics.yolo.utils import DEFAULT_CFG_DICT
 
-    trainer = {name}(cfg=DEFAULT_CFG_DICT.update(save_dir=''), overrides=cfg)
+    cfg = DEFAULT_CFG_DICT.copy()
+    cfg.update(save_dir='')
+    trainer = {name}(cfg=cfg, overrides=overrides)
     trainer.train()'''
     (USER_CONFIG_DIR / 'DDP').mkdir(exist_ok=True)
     with tempfile.NamedTemporaryFile(prefix='_temp_',

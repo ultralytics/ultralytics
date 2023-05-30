@@ -34,7 +34,7 @@ class LoadStreams:
         """Initialize instance variables and check for consistent input stream shapes."""
         torch.backends.cudnn.benchmark = True  # faster for fixed-size inference
         self.mode = 'stream'
-        self.remotefile = False # True for non-secuential stream (remote non-live stream)
+        self.remotefile = False  # True for non-secuential stream (remote non-live stream)
         self.imgsz = imgsz
         self.vid_stride = vid_stride  # video frame-rate stride
         sources = Path(sources).read_text().rsplit() if os.path.isfile(sources) else [sources]
@@ -76,7 +76,7 @@ class LoadStreams:
         """Read stream `i` frames in daemon thread."""
         n, f = 0, self.frames[i]  # frame number, frame array
         if (self.remotefile):
-            wait_time_sec = 1 / 1000 # 1ms
+            wait_time_sec = 1 / 1000  # 1ms
         else:
             wait_time_sec = 0.0
         while cap.isOpened() and n < f:

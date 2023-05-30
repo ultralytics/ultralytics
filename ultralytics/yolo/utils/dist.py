@@ -30,7 +30,7 @@ def generate_ddp_file(trainer):
     content = f'''cfg = {vars(trainer.args)} \nif __name__ == "__main__":
     from {module} import {name}
 
-    trainer = {name}(cfg=cfg)
+    trainer = {name}(overrides=cfg)
     trainer.train()'''
     (USER_CONFIG_DIR / 'DDP').mkdir(exist_ok=True)
     with tempfile.NamedTemporaryFile(prefix='_temp_',

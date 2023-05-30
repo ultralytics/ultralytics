@@ -336,17 +336,16 @@ def autocast_list(source):
 LOADERS = [LoadStreams, LoadPilAndNumpy, LoadImages, LoadScreenshots]
 
 
-def get_best_youtube_url(s, use_pafy=True):
+def get_best_youtube_url(url, use_pafy=True):
     """
     Retrieves the URL of the best quality MP4 video stream from a given YouTube video.
 
-    This function uses the yt_dlp library to extract the video info from YouTube. It then
-    finds the highest quality MP4 format that has video codec but no audio codec, and
-    returns the URL of this video stream.
+    This function uses the pafy or yt_dlp library to extract the video info from YouTube. It then finds the highest
+    quality MP4 format that has video codec but no audio codec, and returns the URL of this video stream.
 
     Args:
-        s (str): The URL of the YouTube video.
-        use_pafy: Use the pafy package, default=True, otherwise use yt_dlp package.
+        url (str): The URL of the YouTube video.
+        use_pafy (bool): Use the pafy package, default=True, otherwise use yt_dlp package.
 
     Returns:
         str: The URL of the best quality MP4 video stream, or None if no suitable stream is found.
@@ -354,12 +353,12 @@ def get_best_youtube_url(s, use_pafy=True):
     if use_pafy:
         check_requirements(('pafy', 'youtube_dl==2020.12.2'))
         import pafy  # noqa
-        return pafy.new(s).getbest(preftype='mp4').url  # YouTube URL
+        return pafy.new(url).getbest(preftype='mp4').url
     else:
         check_requirements('yt-dlp')
         import yt_dlp
         with yt_dlp.YoutubeDL({'quiet': True}) as ydl:
-            info_dict = ydl.extract_info(s, download=False)  # extract info
+            info_dict = ydl.extract_info(url, download=False)  # extract info
         for f in info_dict.get('formats', None):
             if f['vcodec'] != 'none' and f['acodec'] == 'none' and f['ext'] == 'mp4':
                 return f.get('url', None)

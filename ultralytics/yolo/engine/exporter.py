@@ -63,7 +63,7 @@ from ultralytics.nn.modules import C2f, Detect, Segment
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.utils import (DEFAULT_CFG, LINUX, LOGGER, MACOS, __version__, callbacks, colorstr,
-                                    get_default_args, yaml_save)
+                                    get_default_args, yaml_load, yaml_save)
 from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version
 from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.ops import Profile
@@ -358,11 +358,64 @@ class Exporter:
         f_onnx = self.file.with_suffix('.onnx')
         f_ov = str(Path(f) / self.file.with_suffix('.xml').name)
 
+        self.args.half = False if self.args.int8 else self.args.half  # half=False if int8=True
+
         ov_model = mo.convert_model(f_onnx,
                                     model_name=self.pretty_name,
                                     framework='onnx',
-                                    compress_to_fp16=self.args.half)  # export
-        ov.serialize(ov_model, f_ov)  # save
+                                    compress_to_fp16=self.args.half)
+         
+        if not self.args.int8:
+            ov.serialize(ov_model, f_ov)  # save
+            yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml
+            return f, None
+        
+        import nncf
+        from ultralytics.yolo.data.build import build_dataloader
+        from ultralytics.yolo.v8.detect import DetectionValidator
+        
+        def create_nncf_dataset(yaml_path):
+            def transform_fn(data_item):
+                input_tensor = det_validator.preprocess(data_item)['img'].to('cpu').numpy()
+                return input_tensor
+            dataset = yaml_load(yaml_path)
+            testset = os.path.join(dataset['path'], dataset['val'])
+            val_dataloader = build_dataloader(testset, 1, 0, shuffle=False, rank=-1)
+            det_validator = DetectionValidator(dataloader=val_dataloader)
+            det_data_loader = det_validator.get_dataloader(testset, 1)
+            return nncf.Dataset(det_data_loader, transform_fn)
+        
+        f = str(self.file).replace(self.file.suffix, f'_openvino_model_int8{os.sep}')
+        f_ov = str(Path(f) / self.file.with_suffix('.xml').name)
+        
+        ignored_scope = nncf.IgnoredScope(
+                    types=["Multiply", "Subtract", "Sigmoid"],  # ignore operations
+                    names=[
+                    "/model.22/dfl/conv/Conv",           # in the post-processing subgraph
+                    "/model.22/Add",
+                    "/model.22/Add_1",
+                    "/model.22/Add_2",
+                    "/model.22/Add_3",
+                    "/model.22/Add_4",   
+                    "/model.22/Add_5",
+                    "/model.22/Add_6",
+                    "/model.22/Add_7",
+                    "/model.22/Add_8",
+                    "/model.22/Add_9",
+                    "/model.22/Add_10"
+                    ]
+            )
+            
+        quantization_dataset = create_nncf_dataset(self.args.data)
+        
+        quantized_det_model = nncf.quantize(
+                    ov_model, 
+                    quantization_dataset,
+                    preset=nncf.QuantizationPreset.MIXED,
+                    ignored_scope=ignored_scope
+            )
+            
+        ov.serialize(quantized_det_model, f_ov)
         yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml
         return f, None
 

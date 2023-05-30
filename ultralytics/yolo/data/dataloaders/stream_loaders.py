@@ -34,6 +34,7 @@ class LoadStreams:
         """Initialize instance variables and check for consistent input stream shapes."""
         torch.backends.cudnn.benchmark = True  # faster for fixed-size inference
         self.mode = 'stream'
+        self.remotefile = False # True for non-secuential stream (remote non-live stream)
         self.imgsz = imgsz
         self.vid_stride = vid_stride  # video frame-rate stride
         sources = Path(sources).read_text().rsplit() if os.path.isfile(sources) else [sources]
@@ -46,6 +47,7 @@ class LoadStreams:
             if urlparse(s).hostname in ('www.youtube.com', 'youtube.com', 'youtu.be'):  # if source is YouTube video
                 # YouTube format i.e. 'https://www.youtube.com/watch?v=Zgi9g1ksQHc' or 'https://youtu.be/Zgi9g1ksQHc'
                 s = get_best_youtube_url(s, use_pafy=False, imgsz=imgsz)
+                self.remotefile = True
             s = eval(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
             if s == 0 and (is_colab() or is_kaggle()):
                 raise NotImplementedError("'source=0' webcam not supported in Colab and Kaggle notebooks. "
@@ -73,6 +75,10 @@ class LoadStreams:
     def update(self, i, cap, stream):
         """Read stream `i` frames in daemon thread."""
         n, f = 0, self.frames[i]  # frame number, frame array
+        if (self.remotefile):
+            wait_time_sec = 1 / 1000 # 1ms
+        else:
+            wait_time_sec = 0.0
         while cap.isOpened() and n < f:
             n += 1
             cap.grab()  # .read() = .grab() followed by .retrieve()
@@ -84,8 +90,7 @@ class LoadStreams:
                     LOGGER.warning('WARNING ⚠️ Video stream unresponsive, please check your IP camera connection.')
                     self.imgs[i] = np.zeros_like(self.imgs[i])
                     cap.open(stream)  # re-open stream if signal was lost
-            time.sleep(
-                0.0)  # wait time # TODO(tekert): @glenn-jocher we need to wait here 1/self.fps[i] on youtube streams.
+            time.sleep(wait_time_sec)  # wait time
 
     def __iter__(self):
         """Iterates through YOLO image feed and re-opens unresponsive streams."""

@@ -364,21 +364,24 @@ class Exporter:
                                     model_name=self.pretty_name,
                                     framework='onnx',
                                     compress_to_fp16=self.args.half)
-         
+
         if not self.args.int8:
             ov.serialize(ov_model, f_ov)  # save
             yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml
             return f, None
-        
+
         import nncf
+
         from ultralytics.yolo.data.build import build_dataloader
         from ultralytics.yolo.v8.detect import DetectionValidator
         from ultralytics.yolo.v8.segment import SegmentationValidator
         
         def create_nncf_dataset(yaml_path):
+
             def transform_fn(data_item):
                 input_tensor = validator.preprocess(data_item)['img'].to('cpu').numpy()
                 return input_tensor
+
             dataset = yaml_load(yaml_path)
             testset = os.path.join(dataset['path'], dataset['val'])
             val_dataloader = build_dataloader(testset, 1, 0, shuffle=False, rank=-1)
@@ -388,34 +391,30 @@ class Exporter:
 
         f = str(self.file).replace(self.file.suffix, f'_openvino_model_int8{os.sep}')
         f_ov = str(Path(f) / self.file.with_suffix('.xml').name)
-        
+
         ignored_scope = nncf.IgnoredScope(
-                    types=["Multiply", "Subtract", "Sigmoid"],  # ignore operations
-                    names=[
-                    "/model.22/dfl/conv/Conv",           # in the post-processing subgraph
-                    "/model.22/Add",
-                    "/model.22/Add_1",
-                    "/model.22/Add_2",
-                    "/model.22/Add_3",
-                    "/model.22/Add_4",   
-                    "/model.22/Add_5",
-                    "/model.22/Add_6",
-                    "/model.22/Add_7",
-                    "/model.22/Add_8",
-                    "/model.22/Add_9",
-                    "/model.22/Add_10"
-                    ]
-            )
-            
+            types=['Multiply', 'Subtract', 'Sigmoid'],  # ignore operations
+            names=[
+                '/model.22/dfl/conv/Conv',  # in the post-processing subgraph
+                '/model.22/Add',
+                '/model.22/Add_1',
+                '/model.22/Add_2',
+                '/model.22/Add_3',
+                '/model.22/Add_4',
+                '/model.22/Add_5',
+                '/model.22/Add_6',
+                '/model.22/Add_7',
+                '/model.22/Add_8',
+                '/model.22/Add_9',
+                '/model.22/Add_10'])
+
         quantization_dataset = create_nncf_dataset(self.args.data)
-        
-        quantized_det_model = nncf.quantize(
-                    ov_model, 
-                    quantization_dataset,
-                    preset=nncf.QuantizationPreset.MIXED,
-                    ignored_scope=ignored_scope
-            )
-            
+
+        quantized_det_model = nncf.quantize(ov_model,
+                                            quantization_dataset,
+                                            preset=nncf.QuantizationPreset.MIXED,
+                                            ignored_scope=ignored_scope)
+
         ov.serialize(quantized_det_model, f_ov)
         yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml
         return f, None

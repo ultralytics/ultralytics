@@ -19,7 +19,7 @@ class ClassificationTrainer(BaseTrainer):
         if overrides is None:
             overrides = {}
         overrides['task'] = 'classify'
-        if overrides.get('imgsz') is None:
+        if overrides.get('imgsz') is None and cfg['imgsz'] == DEFAULT_CFG.imgsz == 640:
             overrides['imgsz'] = 224
         super().__init__(cfg, overrides, _callbacks)
 

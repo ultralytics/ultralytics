@@ -182,7 +182,7 @@ class BaseTrainer:
             # Command
             cmd, file = generate_ddp_command(world_size, self)
             try:
-                LOGGER.info(f'Running DDP command {cmd}')
+                LOGGER.info(f'DDP command: {cmd}')
                 subprocess.run(cmd, check=True)
             except Exception as e:
                 raise e
@@ -195,7 +195,7 @@ class BaseTrainer:
         """Initializes and sets the DistributedDataParallel parameters for training."""
         torch.cuda.set_device(RANK)
         self.device = torch.device('cuda', RANK)
-        LOGGER.info(f'DDP settings: RANK {RANK}, WORLD_SIZE {world_size}, DEVICE {self.device}')
+        LOGGER.info(f'DDP info: RANK {RANK}, WORLD_SIZE {world_size}, DEVICE {self.device}')
         os.environ['NCCL_BLOCKING_WAIT'] = '1'  # set to enforce timeout
         dist.init_process_group('nccl' if dist.is_nccl_available() else 'gloo',
                                 timeout=timedelta(seconds=3600),

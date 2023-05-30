@@ -45,9 +45,7 @@ class LoadStreams:
             st = f'{i + 1}/{n}: {s}... '
             if urlparse(s).hostname in ('www.youtube.com', 'youtube.com', 'youtu.be'):  # if source is YouTube video
                 # YouTube format i.e. 'https://www.youtube.com/watch?v=Zgi9g1ksQHc' or 'https://youtu.be/Zgi9g1ksQHc'
-                check_requirements(('pafy', 'youtube_dl==2020.12.2'))
-                import pafy  # noqa
-                s = pafy.new(s).getbest(preftype='mp4').url  # YouTube URL
+                s = get_best_youtube_url(s)
             s = eval(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
             if s == 0 and (is_colab() or is_kaggle()):
                 raise NotImplementedError("'source=0' webcam not supported in Colab and Kaggle notebooks. "
@@ -336,6 +334,35 @@ def autocast_list(source):
 
 
 LOADERS = [LoadStreams, LoadPilAndNumpy, LoadImages, LoadScreenshots]
+
+
+def get_best_youtube_url(url, use_pafy=True):
+    """
+    Retrieves the URL of the best quality MP4 video stream from a given YouTube video.
+
+    This function uses the pafy or yt_dlp library to extract the video info from YouTube. It then finds the highest
+    quality MP4 format that has video codec but no audio codec, and returns the URL of this video stream.
+
+    Args:
+        url (str): The URL of the YouTube video.
+        use_pafy (bool): Use the pafy package, default=True, otherwise use yt_dlp package.
+
+    Returns:
+        str: The URL of the best quality MP4 video stream, or None if no suitable stream is found.
+    """
+    if use_pafy:
+        check_requirements(('pafy', 'youtube_dl==2020.12.2'))
+        import pafy  # noqa
+        return pafy.new(url).getbest(preftype='mp4').url
+    else:
+        check_requirements('yt-dlp')
+        import yt_dlp
+        with yt_dlp.YoutubeDL({'quiet': True}) as ydl:
+            info_dict = ydl.extract_info(url, download=False)  # extract info
+        for f in info_dict.get('formats', None):
+            if f['vcodec'] != 'none' and f['acodec'] == 'none' and f['ext'] == 'mp4':
+                return f.get('url', None)
+
 
 if __name__ == '__main__':
     img = cv2.imread(str(ROOT / 'assets/bus.jpg'))

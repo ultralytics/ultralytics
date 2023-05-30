@@ -48,12 +48,12 @@ class LoadStreams:
                 check_requirements('yt-dlp')
                 import yt_dlp
                 with yt_dlp.YoutubeDL({}) as ydl:
-                     # get all information about the youtube video
+                    # get all information about the youtube video
                     info = ydl.extract_info(s, download=False)
-                     # formats are already sorted worst to best
+                    # formats are already sorted worst to best
                     formats = info['formats']
                     best_video = next(f for f in reversed(formats)
-                        if f['vcodec'] != 'none' and f['acodec'] == 'none' and f['ext'] == 'mp4')
+                                      if f['vcodec'] != 'none' and f['acodec'] == 'none' and f['ext'] == 'mp4')
                     s = best_video['url']
             s = eval(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
             if s == 0 and (is_colab() or is_kaggle()):

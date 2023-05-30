@@ -45,7 +45,7 @@ class LoadStreams:
             st = f'{i + 1}/{n}: {s}... '
             if urlparse(s).hostname in ('www.youtube.com', 'youtube.com', 'youtu.be'):  # if source is YouTube video
                 # YouTube format i.e. 'https://www.youtube.com/watch?v=Zgi9g1ksQHc' or 'https://youtu.be/Zgi9g1ksQHc'
-                s = get_best_youtube_url(s, imgsz=imgsz)
+                s = get_best_youtube_url(s, use_pafy=False, imgsz=imgsz)
             s = eval(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
             if s == 0 and (is_colab() or is_kaggle()):
                 raise NotImplementedError("'source=0' webcam not supported in Colab and Kaggle notebooks. "

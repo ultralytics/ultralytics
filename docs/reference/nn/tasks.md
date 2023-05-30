@@ -27,6 +27,11 @@ description: Learn how to work with Ultralytics YOLO Detection, Segmentation & C
 :::ultralytics.nn.tasks.ClassificationModel
 <br><br>
 
+# RTDETRDetectionModel
+---
+:::ultralytics.nn.tasks.RTDETRDetectionModel
+<br><br>
+
 # Ensemble
 ---
 :::ultralytics.nn.tasks.Ensemble

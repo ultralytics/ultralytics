@@ -229,7 +229,7 @@ class DetectionModel(BaseModel):
         """Run forward pass on input image(s) with optional augmentation and profiling."""
         if augment:
             return self._forward_augment(x)  # augmented inference, None
-        return super().predict(x, profile, visualize)  # single-scale inference, train
+        return super().predict(x, profile=profile, visualize=visualize)  # single-scale inference, train
 
     def _forward_augment(self, x):
         """Perform augmentations on input image x and return augmented inference and train outputs."""

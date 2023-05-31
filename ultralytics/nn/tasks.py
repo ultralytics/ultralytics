@@ -532,7 +532,7 @@ def attempt_load_weights(weights, device=None, inplace=True, fuse=False):
     ensemble = Ensemble()
     for w in weights if isinstance(weights, list) else [weights]:
         ckpt, w = torch_safe_load(w)  # load ckpt
-        args = {**DEFAULT_CFG_DICT, **ckpt['train_args']}  # combine model and default args, preferring model args
+        args = {**DEFAULT_CFG_DICT, **ckpt['train_args']} if 'train_args' in ckpt else None  # combined args
         model = (ckpt.get('ema') or ckpt['model']).to(device).float()  # FP32 model
 
         # Model compatibility updates

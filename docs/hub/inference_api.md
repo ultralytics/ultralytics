@@ -7,7 +7,7 @@ description: Explore Ultralytics YOLOv8 Inference API for efficient object detec
 
 The YOLO Inference API allows you to access the YOLOv8 object detection capabilities via a RESTful API. This enables you to run object detection on images without the need to install and set up the YOLOv8 environment locally.
 
-![Screenshot 2023-05-31 at 20 06 16](https://github.com/ultralytics/ultralytics/assets/26833433/5d5dedcd-c5c6-4dfd-8a85-98c41bb297e8)
+![Screenshot 2023-05-31 at 20 06 16](https://github.com/ultralytics/ultralytics/assets/26833433/b965881b-a0ff-452b-8beb-559d6e1bd7cc)
 Screenshot of the Inference API section in the trained model Preview tab.
 
 ## API URL

@@ -226,28 +226,15 @@ def test_results_api(res):
 
 
 def test_results():
-    model = YOLO('yolov8n-pose.pt')
-    res = model([SOURCE, SOURCE])
-    test_results_api(res[0])
-
-    model = YOLO('yolov8n-seg.pt')
-    res = model([SOURCE, SOURCE])
-    test_results_api(res[0])
-
-    model = YOLO('yolov8n.pt')
-    res = model(SOURCE)
-    test_results_api(res[0])
-
-    model = YOLO('yolov8n-cls.pt')
-    res = model(SOURCE)
-    test_results_api(res[0])
+    for m in ["yolov8n-pose.pt", "yolov8n-seg.pt", "yolov8n.pt", "yolov8n-cls.pt"]:
+        model = YOLO(m)
+        res = model([SOURCE, SOURCE])
+        test_results_api(res[0])
 
 
 def test_track():
     im = cv2.imread(str(SOURCE))
-    model = YOLO(MODEL)
-    seg_model = YOLO('yolov8n-seg.pt')
-    pose_model = YOLO('yolov8n-pose.pt')
-    model.track(source=im)
-    seg_model.track(source=im)
-    pose_model.track(source=im)
+    for m in ["yolov8n-pose.pt", "yolov8n-seg.pt", "yolov8n.pt"]:
+        model = YOLO(m)
+        res = model.track(source=im)
+        test_results_api(res[0])

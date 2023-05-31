@@ -369,7 +369,7 @@ class Exporter:
         ov_model.set_rt_info(114, ['model_info', 'pad_value'])
         ov_model.set_rt_info([255.0], ['model_info', 'scale_values'])
         ov_model.set_rt_info(self.args.iou, ['model_info', 'iou_threshold'])
-        ov_model.set_rt_info([x.replace(' ', '_') for x in self.model.names.values()], ['model_info', 'labels'])
+        ov_model.set_rt_info([v.replace(' ', '_') for k, v in sorted(self.model.names.items())], ['model_info', 'labels'])
         if self.model.task != 'classify':
             ov_model.set_rt_info('fit_to_window_letterbox', ['model_info', 'resize_type'])
 

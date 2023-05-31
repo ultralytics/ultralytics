@@ -207,7 +207,7 @@ def test_predict_callback_and_setup():
         print(boxes)
 
 
-def test_results_api(res):
+def _test_results_api(res):
     # General apis except plot
     res = res.cpu().numpy()
     # res = res.cuda()
@@ -229,7 +229,7 @@ def test_results():
     for m in ['yolov8n-pose.pt', 'yolov8n-seg.pt', 'yolov8n.pt', 'yolov8n-cls.pt']:
         model = YOLO(m)
         res = model([SOURCE, SOURCE])
-        test_results_api(res[0])
+        _test_results_api(res[0])
 
 
 def test_track():
@@ -237,4 +237,4 @@ def test_track():
     for m in ['yolov8n-pose.pt', 'yolov8n-seg.pt', 'yolov8n.pt']:
         model = YOLO(m)
         res = model.track(source=im)
-        test_results_api(res[0])
+        _test_results_api(res[0])

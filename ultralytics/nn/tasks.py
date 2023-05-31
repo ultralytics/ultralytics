@@ -301,7 +301,9 @@ class SegmentationModel(DetectionModel):
 
     def _predict_augment(self, x):
         """Perform augmentations on input image x and return augmented inference."""
-        LOGGER.warning(f'WARNING ⚠️ {self.__class__.__name__} has not supported augment inference yet! Now using single-scale inference instead.')
+        LOGGER.warning(
+            f'WARNING ⚠️ {self.__class__.__name__} has not supported augment inference yet! Now using single-scale inference instead.'
+        )
         return self._predict_once(x)
 
 
@@ -322,8 +324,11 @@ class PoseModel(DetectionModel):
 
     def _predict_augment(self, x):
         """Perform augmentations on input image x and return augmented inference."""
-        LOGGER.warning(f'WARNING ⚠️ {self.__class__.__name__} has not supported augment inference yet! Now using single-scale inference instead.')
+        LOGGER.warning(
+            f'WARNING ⚠️ {self.__class__.__name__} has not supported augment inference yet! Now using single-scale inference instead.'
+        )
         return self._predict_once(x)
+
 
 class ClassificationModel(BaseModel):
     """YOLOv8 classification model."""

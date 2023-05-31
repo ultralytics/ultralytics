@@ -422,7 +422,7 @@ class Boxes(BaseTensor):
     @lru_cache(maxsize=2)
     def xyxyn(self):
         """Return the boxes in xyxy format normalized by original image size."""
-        xyxy = self.xyxy
+        xyxy = self.xyxy.clone() if isinstance(self.xyxy, torch.Tensor) else np.copy(self.xyxy)
         xyxy[..., [0, 2]] /= self.orig_shape[1]
         xyxy[..., [1, 3]] /= self.orig_shape[0]
         return xyxy
@@ -431,7 +431,7 @@ class Boxes(BaseTensor):
     @lru_cache(maxsize=2)
     def xywhn(self):
         """Return the boxes in xywh format normalized by original image size."""
-        xywh = self.xywh
+        xywh = ops.xyxy2xywh(self.xyxy)
         xywh[..., [0, 2]] /= self.orig_shape[1]
         xywh[..., [1, 3]] /= self.orig_shape[0]
         return xywh

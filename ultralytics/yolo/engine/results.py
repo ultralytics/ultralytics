@@ -327,6 +327,7 @@ class Results(SimpleClass):
             return
 
         import json
+
         # Create list of detection dictionaries
         results = []
         data = self.boxes.data.cpu().tolist()
@@ -528,6 +529,7 @@ class Keypoints(BaseTensor):
         cuda(): Returns a copy of the keypoints tensor on GPU memory.
         to(): Returns a copy of the keypoints tensor with the specified device and dtype.
     """
+
     def __init__(self, keypoints, orig_shape) -> None:
         if keypoints.ndim == 2:
             keypoints = keypoints[None, :]
@@ -573,6 +575,7 @@ class Probs(BaseTensor):
         cuda(): Returns a copy of the probs tensor on GPU memory.
         to(): Returns a copy of the probs tensor with the specified device and dtype.
     """
+
     def __init__(self, probs, orig_shape=None) -> None:
         super().__init__(probs, orig_shape)
 

@@ -212,9 +212,9 @@ def test_results_api(res):
     res = res.cpu().numpy()
     # res = res.cuda()
     res = res.to(device='cpu', dtype=torch.float32)
-    res.save_txt("label.txt", save_conf=False)
-    res.save_txt("label.txt", save_conf=True)
-    res.save_crop("crops/")
+    res.save_txt('label.txt', save_conf=False)
+    res.save_txt('label.txt', save_conf=True)
+    res.save_crop('crops/')
     res.tojson(normalize=False)
     res.tojson(normalize=True)
     res.plot(pil=True)
@@ -226,7 +226,7 @@ def test_results_api(res):
 
 
 def test_results():
-    for m in ["yolov8n-pose.pt", "yolov8n-seg.pt", "yolov8n.pt", "yolov8n-cls.pt"]:
+    for m in ['yolov8n-pose.pt', 'yolov8n-seg.pt', 'yolov8n.pt', 'yolov8n-cls.pt']:
         model = YOLO(m)
         res = model([SOURCE, SOURCE])
         test_results_api(res[0])
@@ -234,7 +234,7 @@ def test_results():
 
 def test_track():
     im = cv2.imread(str(SOURCE))
-    for m in ["yolov8n-pose.pt", "yolov8n-seg.pt", "yolov8n.pt"]:
+    for m in ['yolov8n-pose.pt', 'yolov8n-seg.pt', 'yolov8n.pt']:
         model = YOLO(m)
         res = model.track(source=im)
         test_results_api(res[0])

@@ -23,7 +23,13 @@ class BaseTensor(SimpleClass):
     """
 
     def __init__(self, data, orig_shape) -> None:
-        """Initialize BaseTensor with data and original shape."""
+        """Initialize BaseTensor with data and original shape.
+
+        Args:
+            data (torch.Tensor | np.ndarray): Predictions, such as bboxes, masks and keypoints.
+            orig_shape (tuple): Original shape of image.
+        """
+        assert isinstance(data, (torch.Tensor, np.ndarray))
         self.data = data
         self.orig_shape = orig_shape
 
@@ -34,19 +40,19 @@ class BaseTensor(SimpleClass):
 
     def cpu(self):
         """Return a copy of the tensor on CPU memory."""
-        return self.__class__(self.data.cpu(), self.orig_shape)
+        return self if isinstance(self.data, np.ndarray) else self.__class__(self.data.cpu(), self.orig_shape)
 
     def numpy(self):
         """Return a copy of the tensor as a numpy array."""
-        return self.__class__(self.data.numpy(), self.orig_shape)
+        return self if isinstance(self.data, np.ndarray) else self.__class__(self.data.numpy(), self.orig_shape)
 
     def cuda(self):
         """Return a copy of the tensor on GPU memory."""
-        return self.__class__(self.data.cuda(), self.orig_shape)
+        return self.__class__(torch.as_tensor(self.data).cuda(), self.orig_shape)
 
     def to(self, *args, **kwargs):
         """Return a copy of the tensor with the specified device and dtype."""
-        return self.__class__(self.data.to(*args, **kwargs), self.orig_shape)
+        return self.__class__(torch.as_tensor(self.data).to(*args, **kwargs), self.orig_shape)
 
     def __len__(self):  # override len(results)
         """Return the length of the data tensor."""
@@ -91,7 +97,7 @@ class Results(SimpleClass):
         self.boxes = Boxes(boxes, self.orig_shape) if boxes is not None else None  # native size boxes
         self.masks = Masks(masks, self.orig_shape) if masks is not None else None  # native size or imgsz masks
         self.probs = probs if probs is not None else None
-        self.keypoints = keypoints if keypoints is not None else None
+        self.keypoints = Keypoints(keypoints, self.orig_shape) if keypoints is not None else None
         self.speed = {'preprocess': None, 'inference': None, 'postprocess': None}  # milliseconds per image
         self.names = names
         self.path = path
@@ -235,7 +241,7 @@ class Results(SimpleClass):
             annotator.text((32, 32), text, txt_color=(255, 255, 255))  # TODO: allow setting colors
 
         if keypoints is not None:
-            for k in reversed(keypoints):
+            for k in reversed(keypoints.data):
                 annotator.kpts(k, self.orig_shape, kpt_line=kpt_line)
 
         return annotator.result()
@@ -286,7 +292,7 @@ class Results(SimpleClass):
                     seg = masks[j].xyn[0].copy().reshape(-1)  # reversed mask.xyn, (n,2) to (n*2)
                     line = (c, *seg)
                 if kpts is not None:
-                    kpt = (kpts[j][:, :2].cpu() / d.orig_shape[[1, 0]]).reshape(-1).tolist()
+                    kpt = kpts[j].xyn.reshape(-1).tolist()
                     line += (*kpt, )
                 line += (conf, ) * save_conf + (() if id is None else (id, ))
                 texts.append(('%g ' * len(line)).rstrip() % line)
@@ -386,8 +392,7 @@ class Boxes(BaseTensor):
         assert n in (6, 7), f'expected `n` in [6, 7], but got {n}'  # xyxy, (track_id), conf, cls
         super().__init__(boxes, orig_shape)
         self.is_track = n == 7
-        self.orig_shape = torch.as_tensor(orig_shape, device=boxes.device) if isinstance(boxes, torch.Tensor) \
-            else np.asarray(orig_shape)
+        self.orig_shape = orig_shape
 
     @property
     def xyxy(self):
@@ -419,13 +424,19 @@ class Boxes(BaseTensor):
     @lru_cache(maxsize=2)
     def xyxyn(self):
         """Return the boxes in xyxy format normalized by original image size."""
-        return self.xyxy / self.orig_shape[[1, 0, 1, 0]]
+        xyxy = self.xyxy
+        xyxy[..., [0, 2]] /= self.orig_shape[1]
+        xyxy[..., [1, 3]] /= self.orig_shape[0]
+        return xyxy
 
     @property
     @lru_cache(maxsize=2)
     def xywhn(self):
         """Return the boxes in xywh format normalized by original image size."""
-        return self.xywh / self.orig_shape[[1, 0, 1, 0]]
+        xywh = self.xywh
+        xywh[..., [0, 2]] /= self.orig_shape[1]
+        xywh[..., [1, 3]] /= self.orig_shape[0]
+        return xywh
 
     @property
     def boxes(self):
@@ -439,11 +450,11 @@ class Masks(BaseTensor):
     A class for storing and manipulating detection masks.
 
     Args:
-        masks (torch.Tensor): A tensor containing the detection masks, with shape (num_masks, height, width).
+        masks (torch.Tensor | np.ndarray): A tensor containing the detection masks, with shape (num_masks, height, width).
         orig_shape (tuple): Original image size, in the format (height, width).
 
     Attributes:
-        masks (torch.Tensor): A tensor containing the detection masks, with shape (num_masks, height, width).
+        masks (torch.Tensor | np.ndarray): A tensor containing the detection masks, with shape (num_masks, height, width).
         orig_shape (tuple): Original image size, in the format (height, width).
 
     Properties:
@@ -496,3 +507,44 @@ class Masks(BaseTensor):
     def pandas(self):
         """Convert the object to a pandas DataFrame (not yet implemented)."""
         LOGGER.warning("WARNING ⚠️ 'Masks.pandas' method is not yet implemented.")
+
+
+class Keypoints(BaseTensor):
+    """
+    A class for storing and manipulating detection keypoints.
+
+    Args:
+        keypoints (torch.Tensor | np.ndarray): A tensor containing the detection keypoints, with shape (num_dets, num_kpts, 2/3).
+        orig_shape (tuple): Original image size, in the format (height, width).
+
+    Attributes:
+        keypoints (torch.Tensor | np.ndarray): A tensor containing the detection keypoints, with shape (num_dets, num_kpts, 2/3).
+        orig_shape (tuple): Original image size, in the format (height, width).
+
+    Properties:
+        xy (list): A list of keypoints (pixels) which includes x, y keypoints of each detection.
+        xyn (list): A list of keypoints (normalized) which includes x, y keypoints of each detection.
+
+    Methods:
+        cpu(): Returns a copy of the keypoints tensor on CPU memory.
+        numpy(): Returns a copy of the keypoints tensor as a numpy array.
+        cuda(): Returns a copy of the keypoints tensor on GPU memory.
+        to(): Returns a copy of the keypoints tensor with the specified device and dtype.
+    """
+    def __init__(self, keypoints, orig_shape) -> None:
+        if keypoints.ndim == 2:
+            keypoints = keypoints[None, :]
+        super().__init__(keypoints, orig_shape)
+
+    @property
+    @lru_cache(maxsize=1)
+    def xy(self):
+        return self.data[..., :2]
+
+    @property
+    @lru_cache(maxsize=1)
+    def xyn(self):
+        xy = self.xy.clone() if isinstance(self.xy, torch.Tensor) else np.copy(self.xy)
+        xy[..., 0] /= self.orig_shape[1]
+        xy[..., 1] /= self.orig_shape[0]
+        return xy

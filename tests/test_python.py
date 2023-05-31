@@ -209,49 +209,40 @@ def test_predict_callback_and_setup():
 
 def test_results_api(res):
     # General apis except plot
-    res = res.cpu().numpy()
+    # res = res.cpu().numpy()
     # res.cuda()
-    res = res.to(device='cpu', dtype=torch.float32)
-    res.save_txt("label.txt", save_conf=False)
-    res.save_txt("label.txt", save_conf=True)
-    res.save_crop("labels/")
+    # res = res.to(device='cpu', dtype=torch.float32)
+    # res.save_txt("label.txt", save_conf=False)
+    # res.save_txt("label.txt", save_conf=True)
+    # res.save_crop("crops/")
+    # res[0].tojson(normalize=False)
+    # res[0].tojson(normalize=True)
+    res[0].plot(pil=True)
+    res[0].plot(conf=True, boxes=False)
+    res[0].plot()
+    print(res[0].path)
+    for k in res[0].keys:
+        print(getattr(res[0], k).data)
 
 
 def test_results():
-    model = YOLO('yolov8n-pose.pt')
-    res = model([SOURCE, SOURCE])
-    res[0].plot(conf=True, boxes=False)
-    res[0].plot(pil=True)
-    test_results_api(res[0])
-    res[0].tojson(normalize=False)
-    res[0].tojson(normalize=True)
-    print(res[0].path, res[0].keypoints.data)
-
-    model = YOLO('yolov8n-seg.pt')
-    res = model([SOURCE, SOURCE])
-    res[0].plot(conf=True, boxes=False, masks=True)
-    res[0].plot(pil=True)
-    test_results_api(res[0])
-    res[0].tojson(normalize=False)
-    res[0].tojson(normalize=True)
-    print(res[0].path, res[0].masks.data)
-
-    model = YOLO('yolov8n.pt')
-    res = model(SOURCE)
-    res[0].plot(pil=True)
-    res[0].plot()
-    test_results_api(res[0])
-    res[0].tojson(normalize=False)
-    res[0].tojson(normalize=True)
-    print(res[0].path, res[0].boxes.data)
+    # model = YOLO('yolov8n-pose.pt')
+    # res = model([SOURCE, SOURCE])
+    # test_results_api(res[0])
+    #
+    # model = YOLO('yolov8n-seg.pt')
+    # res = model([SOURCE, SOURCE])
+    # test_results_api(res[0])
+    #
+    # model = YOLO('yolov8n.pt')
+    # res = model(SOURCE)
+    # test_results_api(res[0])
 
     model = YOLO('yolov8n-cls.pt')
     res = model(SOURCE)
-    res[0].plot(probs=False)
-    res[0].plot(pil=True)
-    res[0].plot()
     test_results_api(res[0])
-    print(res[0].path, res[0].probs.data)
+
+test_results()
 
 
 def test_track():

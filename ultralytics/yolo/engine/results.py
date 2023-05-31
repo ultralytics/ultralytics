@@ -322,8 +322,11 @@ class Results(SimpleClass):
 
     def tojson(self, normalize=False):
         """Convert the object to JSON format."""
-        import json
+        if self.probs is not None:
+            LOGGER.warning('Warning: Classify task do not support `tojson` yet.')
+            return
 
+        import json
         # Create list of detection dictionaries
         results = []
         data = self.boxes.data.cpu().tolist()
@@ -338,7 +341,7 @@ class Results(SimpleClass):
                 x, y = self.masks.xy[i][:, 0], self.masks.xy[i][:, 1]  # numpy array
                 result['segments'] = {'x': (x / w).tolist(), 'y': (y / h).tolist()}
             if self.keypoints is not None:
-                x, y, visible = self.keypoints[i].data.cpu().unbind(dim=1)  # torch Tensor
+                x, y, visible = self.keypoints[i].data[0].cpu().unbind(dim=1)  # torch Tensor
                 result['keypoints'] = {'x': (x / w).tolist(), 'y': (y / h).tolist(), 'visible': visible.tolist()}
             results.append(result)
 
@@ -526,6 +529,8 @@ class Keypoints(BaseTensor):
         to(): Returns a copy of the keypoints tensor with the specified device and dtype.
     """
     def __init__(self, keypoints, orig_shape) -> None:
+        if keypoints.ndim == 2:
+            keypoints = keypoints[None, :]
         super().__init__(keypoints, orig_shape)
         self.has_visible = self.data.shape[-1] == 3
 

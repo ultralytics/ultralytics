@@ -7,6 +7,11 @@ description: Explore convolutional neural network modules & techniques such as L
 :::ultralytics.nn.modules.conv.Conv
 <br><br>
 
+# Conv2
+---
+:::ultralytics.nn.modules.conv.Conv2
+<br><br>
+
 # LightConv
 ---
 :::ultralytics.nn.modules.conv.LightConv

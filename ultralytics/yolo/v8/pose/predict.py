@@ -11,7 +11,7 @@ class PosePredictor(DetectionPredictor):
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = 'pose'
 
-    def postprocess(self, preds, img, orig_img):
+    def postprocess(self, preds, img, orig_imgs):
         """Return detection results for a given input image or list of images."""
         preds = ops.non_max_suppression(preds,
                                         self.args.conf,
@@ -23,7 +23,7 @@ class PosePredictor(DetectionPredictor):
 
         results = []
         for i, pred in enumerate(preds):
-            orig_img = orig_img[i] if isinstance(orig_img, list) else orig_img
+            orig_img = orig_imgs[i] if isinstance(orig_imgs, list) else orig_imgs
             shape = orig_img.shape
             pred[:, :4] = ops.scale_boxes(img.shape[2:], pred[:, :4], shape).round()
             pred_kpts = pred[:, 6:].view(len(pred), *self.model.kpt_shape) if len(pred) else pred[:, 6:]

@@ -75,6 +75,7 @@ class HungarianMatcher(nn.Module):
         else:
             cost_class = -out_prob
 
+        # TODO: the calculation of matrix C could be optimized.
         # Compute the L1 cost between boxes
         cost_bbox = (out_bbox.unsqueeze(1) - tgt_bbox.unsqueeze(0)).abs().sum(-1)  # (bs*num_queries, num_gt)
 

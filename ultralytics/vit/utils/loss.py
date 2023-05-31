@@ -53,16 +53,16 @@ class DETRLoss(nn.Module):
         name_class = f'loss_class{postfix}'
         varifocal_loss = VarifocalLoss()
         focal_loss = FocalLoss()
-        target_label = torch.full(logits.shape[:2], bg_index, device=logits.device, dtype=torch.int64)
+        target_label = torch.full(logits.shape[:2], bg_index, device=logits.device, dtype=gt_class[0].dtype)
         bs, num_query_objects = target_label.shape
         num_gt = sum(len(a) for a in gt_class)
         if num_gt > 0:
             index, updates = self._get_index_updates(num_query_objects, gt_class, match_indices)
             target_label = target_label.view(-1, 1)
-            target_label[index] = updates.to(dtype=torch.int64)
+            target_label[index] = updates
             target_label = target_label.view(bs, num_query_objects)
         if self.use_focal_loss:
-            target_label = F.one_hot(target_label, self.num_classes + 1)[..., :-1]
+            target_label = F.one_hot(target_label, self.num_classes + 1)[..., :-1]  # (bs, num_queries, num_classes)
             if iou_score is not None and self.use_vfl:
                 target_score = torch.zeros([bs, num_query_objects], device=logits.device)
                 if num_gt > 0:
@@ -321,12 +321,12 @@ class RTDETRDetectionLoss(DETRLoss):
         for i in range(len(labels)):
             num_gt = len(labels[i])
             if num_gt > 0:
-                gt_idx = torch.arange(end=num_gt, dtype=torch.int64)
+                gt_idx = torch.arange(end=num_gt, dtype=torch.int32)
                 gt_idx = gt_idx.repeat(dn_num_group)
                 assert len(dn_positive_idx[i]) == len(gt_idx), 'Expected the sa'
                 f'me length, but got {len(dn_positive_idx[i])} and '
                 f'{len(gt_idx)} respectively.'
                 dn_match_indices.append((dn_positive_idx[i], gt_idx))
             else:
-                dn_match_indices.append((torch.zeros([0], dtype=torch.int64), torch.zeros([0], dtype=torch.int64)))
+                dn_match_indices.append((torch.zeros([0], dtype=torch.int32), torch.zeros([0], dtype=torch.int32)))
         return dn_match_indices

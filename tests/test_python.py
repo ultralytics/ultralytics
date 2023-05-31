@@ -215,11 +215,9 @@ def test_results_api(res):
     res.save_txt("label.txt", save_conf=False)
     res.save_txt("label.txt", save_conf=True)
     res.save_crop("labels/")
-    res.tojson(normalize=False)
-    res.tojson(normalize=True)
 
 
-def test_result():
+def test_results():
     model = YOLO('yolov8n-pose.pt')
     res = model([SOURCE, SOURCE])
     res[0].plot(conf=True, boxes=False)
@@ -239,6 +237,8 @@ def test_result():
     res[0].plot(pil=True)
     res[0].plot()
     test_results_api(res[0])
+    res[0].tojson(normalize=False)
+    res[0].tojson(normalize=True)
     print(res[0].path, res[0].boxes.data)
 
     model = YOLO('yolov8n-cls.pt')

@@ -11,7 +11,7 @@ from ultralytics.yolo.data.augment import Compose, Format, v8_transforms
 from ultralytics.yolo.utils import colorstr, ops
 from ultralytics.yolo.v8.detect import DetectionValidator
 
-__all__ = ['RTDETRValidator']
+__all__ = 'RTDETRValidator',  # tuple or list
 
 
 # TODO: Temporarily, RT-DETR does not need padding.

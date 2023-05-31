@@ -96,7 +96,7 @@ class Results(SimpleClass):
         self.orig_shape = orig_img.shape[:2]
         self.boxes = Boxes(boxes, self.orig_shape) if boxes is not None else None  # native size boxes
         self.masks = Masks(masks, self.orig_shape) if masks is not None else None  # native size or imgsz masks
-        self.probs = probs if probs is not None else None
+        self.probs = Probs(probs) if probs is not None else None
         self.keypoints = Keypoints(keypoints, self.orig_shape) if keypoints is not None else None
         self.speed = {'preprocess': None, 'inference': None, 'postprocess': None}  # milliseconds per image
         self.names = names
@@ -235,9 +235,7 @@ class Results(SimpleClass):
                 annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
 
         if pred_probs is not None and show_probs:
-            n5 = min(len(names), 5)
-            top5i = pred_probs.argsort(0, descending=True)[:n5].tolist()  # top 5 indices
-            text = f"{', '.join(f'{names[j] if names else j} {pred_probs[j]:.2f}' for j in top5i)}, "
+            text = f"{', '.join(f'{names[j] if names else j} {pred_probs.data[j]:.2f}' for j in pred_probs.top5)}, "
             annotator.text((32, 32), text, txt_color=(255, 255, 255))  # TODO: allow setting colors
 
         if keypoints is not None:
@@ -256,9 +254,7 @@ class Results(SimpleClass):
         if len(self) == 0:
             return log_string if probs is not None else f'{log_string}(no detections), '
         if probs is not None:
-            n5 = min(len(self.names), 5)
-            top5i = probs.argsort(0, descending=True)[:n5].tolist()  # top 5 indices
-            log_string += f"{', '.join(f'{self.names[j]} {probs[j]:.2f}' for j in top5i)}, "
+            log_string += f"{', '.join(f'{self.names[j]} {probs.data[j]:.2f}' for j in probs.top5)}, "
         if boxes:
             for c in boxes.cls.unique():
                 n = (boxes.cls == c).sum()  # detections per class
@@ -280,9 +276,7 @@ class Results(SimpleClass):
         texts = []
         if probs is not None:
             # Classify
-            n5 = min(len(self.names), 5)
-            top5i = probs.argsort(0, descending=True)[:n5].tolist()  # top 5 indices
-            [texts.append(f'{probs[j]:.2f} {self.names[j]}') for j in top5i]
+            [texts.append(f'{probs.data[j]:.2f} {self.names[j]}') for j in probs.top5]
         elif boxes:
             # Detect/segment/pose
             for j, d in enumerate(boxes):
@@ -344,7 +338,7 @@ class Results(SimpleClass):
                 x, y = self.masks.xy[i][:, 0], self.masks.xy[i][:, 1]  # numpy array
                 result['segments'] = {'x': (x / w).tolist(), 'y': (y / h).tolist()}
             if self.keypoints is not None:
-                x, y, visible = self.keypoints[i].cpu().unbind(dim=1)  # torch Tensor
+                x, y, visible = self.keypoints[i].data.cpu().unbind(dim=1)  # torch Tensor
                 result['keypoints'] = {'x': (x / w).tolist(), 'y': (y / h).tolist(), 'visible': visible.tolist()}
             results.append(result)
 
@@ -535,6 +529,7 @@ class Keypoints(BaseTensor):
         if keypoints.ndim == 2:
             keypoints = keypoints[None, :]
         super().__init__(keypoints, orig_shape)
+        self.has_visible = self.data.shape[-1] == 3
 
     @property
     @lru_cache(maxsize=1)
@@ -548,3 +543,56 @@ class Keypoints(BaseTensor):
         xy[..., 0] /= self.orig_shape[1]
         xy[..., 1] /= self.orig_shape[0]
         return xy
+
+    @property
+    @lru_cache(maxsize=1)
+    def conf(self):
+        return self.data[..., 3] if self.has_visible else None
+
+
+class Probs(BaseTensor):
+    """
+    A class for storing and manipulating classify predictions.
+
+    Args:
+        probs (torch.Tensor | np.ndarray): A tensor containing the detection keypoints, with shape (num_class, ).
+
+    Attributes:
+        probs (torch.Tensor | np.ndarray): A tensor containing the detection keypoints, with shape (num_class).
+
+    Properties:
+        top5 (list[int]): Top 1 indice.
+        top1 (int): Top 5 indices.
+
+    Methods:
+        cpu(): Returns a copy of the probs tensor on CPU memory.
+        numpy(): Returns a copy of the probs tensor as a numpy array.
+        cuda(): Returns a copy of the probs tensor on GPU memory.
+        to(): Returns a copy of the probs tensor with the specified device and dtype.
+    """
+    def __init__(self, probs, orig_shape) -> None:
+        super().__init__(probs, orig_shape)
+
+    @property
+    @lru_cache(maxsize=1)
+    def top5(self):
+        """Return the indices of top 5."""
+        return (-self.data).argsort(0)[:5].tolist()  # this way works with both torch and numpy.
+
+    @property
+    @lru_cache(maxsize=1)
+    def top1(self):
+        """Return the indices of top 1."""
+        return int(self.data.argmax())
+
+    @property
+    @lru_cache(maxsize=1)
+    def top5conf(self):
+        """Return the confidences of top 5."""
+        return self.data[self.top5]
+
+    @property
+    @lru_cache(maxsize=1)
+    def top1conf(self):
+        """Return the confidences of top 1."""
+        return self.data[self.top1]

@@ -526,8 +526,6 @@ class Keypoints(BaseTensor):
         to(): Returns a copy of the keypoints tensor with the specified device and dtype.
     """
     def __init__(self, keypoints, orig_shape) -> None:
-        if keypoints.ndim == 2:
-            keypoints = keypoints[None, :]
         super().__init__(keypoints, orig_shape)
         self.has_visible = self.data.shape[-1] == 3
 
@@ -570,7 +568,7 @@ class Probs(BaseTensor):
         cuda(): Returns a copy of the probs tensor on GPU memory.
         to(): Returns a copy of the probs tensor with the specified device and dtype.
     """
-    def __init__(self, probs, orig_shape) -> None:
+    def __init__(self, probs, orig_shape=None) -> None:
         super().__init__(probs, orig_shape)
 
     @property

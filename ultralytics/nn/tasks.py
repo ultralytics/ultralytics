@@ -59,7 +59,7 @@ class BaseModel(nn.Module):
         """
         if augment:
             return self._predict_augment(x)
-        return self._predict_once(profile, visualize)
+        return self._predict_once(x, profile, visualize)
 
     def _predict_once(self, x, profile=False, visualize=False):
         """

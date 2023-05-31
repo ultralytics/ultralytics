@@ -9,6 +9,7 @@ YOLOv8 is an AI framework that supports multiple computer vision **tasks**. The 
 perform [detection](detect.md), [segmentation](segment.md), [classification](classify.md),
 and [pose](pose.md) estimation. Each of these tasks has a different objective and use case.
 
+<br>
 <img width="1024" src="https://raw.githubusercontent.com/ultralytics/assets/tasks/im/banner-tasks.png">
 
 ## [Detection](detect.md)

@@ -6,6 +6,7 @@ description: Learn what Instance segmentation is. Get pretrained YOLOv8 segment 
 Instance segmentation goes a step further than object detection and involves identifying individual objects in an image
 and segmenting them from the rest of the image.
 
+<br>
 <img width="1024" src="https://raw.githubusercontent.com/ultralytics/assets/tasks/im/banner-tasks.png">
 
 The output of an instance segmentation model is a set of masks or

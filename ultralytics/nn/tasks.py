@@ -87,7 +87,9 @@ class BaseModel(nn.Module):
 
     def _predict_augment(self, x):
         """Perform augmentations on input image x and return augmented inference."""
-        LOGGER.warning(f'WARNING ⚠️ {self.__class__.__name__} has not supported augment inference yet! Now using single-scale inference instead.')
+        LOGGER.warning(
+            f'WARNING ⚠️ {self.__class__.__name__} has not supported augment inference yet! Now using single-scale inference instead.'
+        )
         return self._predict_once(x)
 
     def _profile_one_layer(self, m, x, dt):
@@ -312,6 +314,7 @@ class PoseModel(DetectionModel):
 
     def init_criterion(self):
         return v8PoseLoss(self)
+
 
 class ClassificationModel(BaseModel):
     """YOLOv8 classification model."""

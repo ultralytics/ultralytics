@@ -6,7 +6,8 @@ description: Check YOLO class label with only one class for the whole image, usi
 Image classification is the simplest of the three tasks and involves classifying an entire image into one of a set of
 predefined classes.
 
-<img width="1024" src="https://user-images.githubusercontent.com/26833433/212094133-6bb8c21c-3d47-41df-a512-81c5931054ae.png">
+<br>
+<img width="1024" src="https://raw.githubusercontent.com/ultralytics/assets/tasks/im/banner-tasks.png">
 
 The output of an image classifier is a single class label and a confidence score. Image
 classification is useful when you need to know only what class an image belongs to and don't need to know where objects

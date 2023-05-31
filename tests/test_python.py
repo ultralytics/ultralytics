@@ -223,6 +223,8 @@ def test_results():
     res[0].plot(conf=True, boxes=False)
     res[0].plot(pil=True)
     test_results_api(res[0])
+    res[0].tojson(normalize=False)
+    res[0].tojson(normalize=True)
     print(res[0].path, res[0].keypoints.data)
 
     model = YOLO('yolov8n-seg.pt')
@@ -230,6 +232,8 @@ def test_results():
     res[0].plot(conf=True, boxes=False, masks=True)
     res[0].plot(pil=True)
     test_results_api(res[0])
+    res[0].tojson(normalize=False)
+    res[0].tojson(normalize=True)
     print(res[0].path, res[0].masks.data)
 
     model = YOLO('yolov8n.pt')

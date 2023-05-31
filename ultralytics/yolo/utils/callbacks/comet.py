@@ -1,9 +1,10 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+
 import os
 from pathlib import Path
 
 from ultralytics.yolo.utils import LOGGER, RANK, TESTS_RUNNING, ops
-from ultralytics.yolo.utils.torch_utils import get_flops, get_num_params
+from ultralytics.yolo.utils.torch_utils import model_info_for_loggers
 
 try:
     import comet_ml
@@ -324,11 +325,7 @@ def on_fit_epoch_end(trainer):
     experiment.log_metrics(trainer.metrics, step=curr_step, epoch=curr_epoch)
     experiment.log_metrics(trainer.lr, step=curr_step, epoch=curr_epoch)
     if curr_epoch == 1:
-        model_info = {
-            'model/parameters': get_num_params(trainer.model),
-            'model/GFLOPs': round(get_flops(trainer.model), 3),
-            'model/speed(ms)': round(trainer.validator.speed['inference'], 3), }
-        experiment.log_metrics(model_info, step=curr_step, epoch=curr_epoch)
+        experiment.log_metrics(model_info_for_loggers(trainer), step=curr_step, epoch=curr_epoch)
 
     if not save_assets:
         return

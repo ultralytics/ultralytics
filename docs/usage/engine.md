@@ -54,18 +54,17 @@ You now realize that you need to customize the trainer further to:
 
 ```python
 from ultralytics.yolo.v8.detect import DetectionTrainer
+from ultralytics.nn.tasks import DetectionModel
+
+
+class MyCustomModel(DetectionModel):
+    def init_criterion(self):
+        ...
 
 
 class CustomTrainer(DetectionTrainer):
     def get_model(self, cfg, weights):
-        ...
-
-    def criterion(self, preds, batch):
-        # get ground truth
-        imgs = batch["imgs"]
-        bboxes = batch["bboxes"]
-        ...
-        return loss, loss_items  # see Reference-> Trainer for details on the expected format
+        return MyCustomModel(...)
 
 
 # callback to upload model weights

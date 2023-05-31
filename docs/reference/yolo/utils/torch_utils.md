@@ -57,9 +57,19 @@ description: Optimize your PyTorch models with Ultralytics YOLO's torch_utils fu
 :::ultralytics.yolo.utils.torch_utils.get_num_gradients
 <br><br>
 
+# model_info_for_loggers
+---
+:::ultralytics.yolo.utils.torch_utils.model_info_for_loggers
+<br><br>
+
 # get_flops
 ---
 :::ultralytics.yolo.utils.torch_utils.get_flops
+<br><br>
+
+# get_flops_with_torch_profiler
+---
+:::ultralytics.yolo.utils.torch_utils.get_flops_with_torch_profiler
 <br><br>
 
 # initialize_weights

@@ -183,7 +183,7 @@ class BaseTrainer:
             # Command
             cmd, file = generate_ddp_command(world_size, self)
             try:
-                LOGGER.info(f'Running DDP command {cmd}')
+                LOGGER.info(f'DDP command: {cmd}')
                 subprocess.run(cmd, check=True)
             except Exception as e:
                 raise e
@@ -196,7 +196,7 @@ class BaseTrainer:
         """Initializes and sets the DistributedDataParallel parameters for training."""
         torch.cuda.set_device(RANK)
         self.device = torch.device('cuda', RANK)
-        LOGGER.info(f'DDP settings: RANK {RANK}, WORLD_SIZE {world_size}, DEVICE {self.device}')
+        LOGGER.info(f'DDP info: RANK {RANK}, WORLD_SIZE {world_size}, DEVICE {self.device}')
         os.environ['NCCL_BLOCKING_WAIT'] = '1'  # set to enforce timeout
         dist.init_process_group('nccl' if dist.is_nccl_available() else 'gloo',
                                 timeout=timedelta(seconds=3600),
@@ -326,8 +326,7 @@ class BaseTrainer:
                 # Forward
                 with torch.cuda.amp.autocast(self.amp):
                     batch = self.preprocess_batch(batch)
-                    preds = self.model(batch['img'])
-                    self.loss, self.loss_items = self.criterion(preds, batch)
+                    self.loss, self.loss_items = self.model(batch)
                     if RANK != -1:
                         self.loss *= world_size
                     self.tloss = (self.tloss * i + self.loss_items) / (i + 1) if self.tloss is not None \
@@ -497,12 +496,6 @@ class BaseTrainer:
         """Build dataset"""
         raise NotImplementedError('build_dataset function not implemented in trainer')
 
-    def criterion(self, preds, batch):
-        """
-        Returns loss and individual loss items as Tensor.
-        """
-        raise NotImplementedError('criterion function not implemented in trainer')
-
     def label_loss_items(self, loss_items=None, prefix='train'):
         """
         Returns a loss dict with labelled training loss items tensor
@@ -626,15 +619,19 @@ class BaseTrainer:
         Returns:
             optimizer (torch.optim.Optimizer): the built optimizer
         """
+
         g = [], [], []  # optimizer parameter groups
         bn = tuple(v for k, v in nn.__dict__.items() if 'Norm' in k)  # normalization layers, i.e. BatchNorm2d()
-        for v in model.modules():
-            if hasattr(v, 'bias') and isinstance(v.bias, nn.Parameter):  # bias (no decay)
-                g[2].append(v.bias)
-            if isinstance(v, bn):  # weight (no decay)
-                g[1].append(v.weight)
-            elif hasattr(v, 'weight') and isinstance(v.weight, nn.Parameter):  # weight (with decay)
-                g[0].append(v.weight)
+
+        for module_name, module in model.named_modules():
+            for param_name, param in module.named_parameters(recurse=False):
+                fullname = f'{module_name}.{param_name}' if module_name else param_name
+                if 'bias' in fullname:  # bias (no decay)
+                    g[2].append(param)
+                elif isinstance(module, bn):  # weight (no decay)
+                    g[1].append(param)
+                else:  # weight (with decay)
+                    g[0].append(param)
 
         if name == 'Adam':
             optimizer = torch.optim.Adam(g[2], lr=lr, betas=(momentum, 0.999))  # adjust beta1 to momentum

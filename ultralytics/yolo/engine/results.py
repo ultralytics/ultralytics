@@ -197,7 +197,7 @@ class Results(SimpleClass):
             conf = kwargs['show_conf']
             assert type(conf) == bool, '`show_conf` should be of boolean type, i.e, show_conf=True/False'
 
-        if 'show_conf' in kwargs:
+        if 'line_thickness' in kwargs:
             deprecation_warn('line_thickness', 'line_width')
             line_width = kwargs['line_thickness']
             assert type(line_width) == int, '`line_width` should be of int type, i.e, line_width=3'
@@ -286,7 +286,7 @@ class Results(SimpleClass):
                     seg = masks[j].xyn[0].copy().reshape(-1)  # reversed mask.xyn, (n,2) to (n*2)
                     line = (c, *seg)
                 if kpts is not None:
-                    kpt = (kpts[j][:, :2] / d.orig_shape[[1, 0]]).reshape(-1).tolist()
+                    kpt = (kpts[j][:, :2].cpu() / d.orig_shape[[1, 0]]).reshape(-1).tolist()
                     line += (*kpt, )
                 line += (conf, ) * save_conf + (() if id is None else (id, ))
                 texts.append(('%g ' * len(line)).rstrip() % line)

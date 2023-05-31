@@ -29,29 +29,30 @@ class BaseModel(nn.Module):
     The BaseModel class serves as a base class for all the models in the Ultralytics YOLO family.
     """
 
-    def forward(self, x, profile=False, visualize=False):
+    def forward(self, x, *args, **kwargs):
         """
         Forward pass of the model on a single scale.
         Wrapper for `_forward_once` method.
 
         Args:
-            x (torch.Tensor): The input image tensor
-            profile (bool): Whether to profile the model, defaults to False
-            visualize (bool): Whether to return the intermediate feature maps, defaults to False
+            x (torch.Tensor | dict): The input image tensor or a dict including image tensor and gt labels.
 
         Returns:
             (torch.Tensor): The output of the network.
         """
-        return self._forward_once(x, profile, visualize)
+        if isinstance(x, dict):  # for cases of training and validating while training.
+            return self.loss(x, *args, **kwargs)
+        return self.predict(x, *args, **kwargs)
 
-    def _forward_once(self, x, profile=False, visualize=False):
+    def predict(self, x, profile=False, visualize=False, augment=False):
         """
         Perform a forward pass through the network.
 
         Args:
-            x (torch.Tensor): The input tensor to the model
+            x (torch.Tensor): The input tensor to the model.
             profile (bool):  Print the computation time of each layer if True, defaults to False.
-            visualize (bool): Save the feature maps of the model if True, defaults to False
+            visualize (bool): Save the feature maps of the model if True, defaults to False.
+            augment (bool): Augment image during prediction, defaults to False.
 
         Returns:
             (torch.Tensor): The last output of the model.
@@ -182,13 +183,11 @@ class BaseModel(nn.Module):
 
         Args:
             batch (dict): Batch to compute loss on
-            pred (torch.Tensor | List[torch.Tensor]): Predictions.
+            preds (torch.Tensor | List[torch.Tensor]): Predictions.
         """
         if not hasattr(self, 'criterion'):
             self.criterion = self.init_criterion()
-
-        preds = self.forward(batch['img']) if preds is None else preds
-        return self.criterion(preds, batch)
+        return self.criterion(self.predict(batch['img']) if preds is None else preds, batch)
 
     def init_criterion(self):
         raise NotImplementedError('compute_loss() needs to be implemented by task heads')
@@ -226,11 +225,11 @@ class DetectionModel(BaseModel):
             self.info()
             LOGGER.info('')
 
-    def forward(self, x, augment=False, profile=False, visualize=False):
+    def predict(self, x, augment=False, profile=False, visualize=False):
         """Run forward pass on input image(s) with optional augmentation and profiling."""
         if augment:
             return self._forward_augment(x)  # augmented inference, None
-        return self._forward_once(x, profile, visualize)  # single-scale inference, train
+        return super().predict(x, profile=profile, visualize=visualize)  # single-scale inference, train
 
     def _forward_augment(self, x):
         """Perform augmentations on input image x and return augmented inference and train outputs."""
@@ -240,7 +239,7 @@ class DetectionModel(BaseModel):
         y = []  # outputs
         for si, fi in zip(s, f):
             xi = scale_img(x.flip(fi) if fi else x, si, gs=int(self.stride.max()))
-            yi = self._forward_once(xi)[0]  # forward
+            yi = super().predict(xi)[0]  # forward
             # cv2.imwrite(f'img_{si}.jpg', 255 * xi[0].cpu().numpy().transpose((1, 2, 0))[:, :, ::-1])  # save
             yi = self._descale_pred(yi, fi, si, img_size)
             y.append(yi)
@@ -302,6 +301,10 @@ class PoseModel(DetectionModel):
 
     def init_criterion(self):
         return v8PoseLoss(self)
+
+    def _forward_augment(self, x):
+        """Undocumented function."""
+        raise NotImplementedError(emojis('WARNING ⚠️ PoseModel has not supported augment inference yet!'))
 
 
 class ClassificationModel(BaseModel):
@@ -373,6 +376,81 @@ class ClassificationModel(BaseModel):
     def init_criterion(self):
         """Compute the classification loss between predictions and true labels."""
         return v8ClassificationLoss()
+
+
+class RTDETRDetectionModel(DetectionModel):
+
+    def __init__(self, cfg='rtdetr-l.yaml', ch=3, nc=None, verbose=True):
+        super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+
+    def init_criterion(self):
+        """Compute the classification loss between predictions and true labels."""
+        from ultralytics.vit.utils.loss import RTDETRDetectionLoss
+
+        return RTDETRDetectionLoss(num_classes=self.nc, use_vfl=True)
+
+    def loss(self, batch, preds=None):
+        if not hasattr(self, 'criterion'):
+            self.criterion = self.init_criterion()
+
+        img = batch['img']
+        # NOTE: preprocess gt_bbox and gt_labels to list.
+        bs = len(img)
+        batch_idx = batch['batch_idx']
+        gt_bbox, gt_class = [], []
+        for i in range(bs):
+            gt_bbox.append(batch['bboxes'][batch_idx == i].to(img.device))
+            gt_class.append(batch['cls'][batch_idx == i].to(device=img.device, dtype=torch.long))
+        targets = {'cls': gt_class, 'bboxes': gt_bbox}
+
+        preds = self.predict(img, batch=targets) if preds is None else preds
+        dec_out_bboxes, dec_out_logits, enc_topk_bboxes, enc_topk_logits, dn_meta = preds
+        # NOTE: `dn_meta` means it's eval mode, loss calculation for eval mode is not supported.
+        if dn_meta is None:
+            return 0, torch.zeros(3, device=dec_out_bboxes.device)
+        dn_out_bboxes, dec_out_bboxes = torch.split(dec_out_bboxes, dn_meta['dn_num_split'], dim=2)
+        dn_out_logits, dec_out_logits = torch.split(dec_out_logits, dn_meta['dn_num_split'], dim=2)
+
+        out_bboxes = torch.cat([enc_topk_bboxes.unsqueeze(0), dec_out_bboxes])
+        out_logits = torch.cat([enc_topk_logits.unsqueeze(0), dec_out_logits])
+
+        loss = self.criterion((out_bboxes, out_logits),
+                              targets,
+                              dn_out_bboxes=dn_out_bboxes,
+                              dn_out_logits=dn_out_logits,
+                              dn_meta=dn_meta)
+        return sum(loss.values()), torch.as_tensor([loss[k].detach() for k in ['loss_giou', 'loss_class', 'loss_bbox']])
+
+    def predict(self, x, profile=False, visualize=False, batch=None):
+        """
+        Perform a forward pass through the network.
+
+        Args:
+            x (torch.Tensor): The input tensor to the model
+            profile (bool):  Print the computation time of each layer if True, defaults to False.
+            visualize (bool): Save the feature maps of the model if True, defaults to False
+            batch (dict): A dict including gt boxes and labels from dataloader.
+
+        Returns:
+            (torch.Tensor): The last output of the model.
+        """
+        y, dt = [], []  # outputs
+        for m in self.model[:-1]:  # except the head part
+            if m.f != -1:  # if not from previous layer
+                x = y[m.f] if isinstance(m.f, int) else [x if j == -1 else y[j] for j in m.f]  # from earlier layers
+            if profile:
+                self._profile_one_layer(m, x, dt)
+            x = m(x)  # run
+            y.append(x if m.i in self.save else None)  # save output
+            if visualize:
+                feature_visualization(x, m.type, m.i, save_dir=visualize)
+        head = self.model[-1]
+        x = head([y[j] for j in head.f], batch)  # head inference
+        return x
+
+    def _forward_augment(self, x):
+        """Undocumented function."""
+        raise NotImplementedError(emojis('WARNING ⚠️ RTDETRModel has not supported augment inference yet!'))
 
 
 class Ensemble(nn.ModuleList):

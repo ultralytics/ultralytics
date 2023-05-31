@@ -1,11 +1,12 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+
 import re
 
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 
 from ultralytics.yolo.utils import LOGGER, TESTS_RUNNING
-from ultralytics.yolo.utils.torch_utils import get_flops, get_num_params
+from ultralytics.yolo.utils.torch_utils import model_info_for_loggers
 
 try:
     import clearml
@@ -105,11 +106,7 @@ def on_fit_epoch_end(trainer):
                                         value=trainer.epoch_time,
                                         iteration=trainer.epoch)
         if trainer.epoch == 0:
-            model_info = {
-                'model/parameters': get_num_params(trainer.model),
-                'model/GFLOPs': round(get_flops(trainer.model), 3),
-                'model/speed(ms)': round(trainer.validator.speed['inference'], 3)}
-            for k, v in model_info.items():
+            for k, v in model_info_for_loggers(trainer).items():
                 task.get_logger().report_single_value(k, v)
 
 

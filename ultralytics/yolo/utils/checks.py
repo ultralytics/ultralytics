@@ -343,6 +343,7 @@ def check_yolo(verbose=True, device=''):
     select_device(device=device, newline=False)
     LOGGER.info(f'Setup complete ✅ {s}')
 
+
 def check_amp(model):
     """
     This function checks the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLOv8 model.
@@ -390,6 +391,7 @@ def check_amp(model):
                        f'NaN losses or zero-mAP results, so AMP will be disabled during training.')
         return False
     return True
+
 
 def git_describe(path=ROOT):  # path must be a directory
     # Return human-readable git description, i.e. v5.0-5-g3e25f1e https://git-scm.com/docs/git-describe

@@ -37,7 +37,6 @@ class RTDETRTrainer(DetectionTrainer):
             prefix=colorstr(f'{mode}: '),
             data=self.data)
 
-
     def get_validator(self):
         """Returns a DetectionValidator for RTDETR model validation."""
         self.loss_names = 'giou_loss', 'cls_loss', 'l1_loss'

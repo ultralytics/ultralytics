@@ -3,6 +3,7 @@
 import glob
 import math
 import os
+import threading
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -34,13 +35,13 @@ class LoadStreams:
         """Initialize instance variables and check for consistent input stream shapes."""
         torch.backends.cudnn.benchmark = True  # faster for fixed-size inference
         self.mode = 'stream'
-        self.remotefile = False  # True for non-secuential stream (remote non-live stream)
         self.imgsz = imgsz
         self.vid_stride = vid_stride  # video frame-rate stride
         sources = Path(sources).read_text().rsplit() if os.path.isfile(sources) else [sources]
         n = len(sources)
         self.sources = [ops.clean_str(x) for x in sources]  # clean source names for later
         self.imgs, self.fps, self.frames, self.threads = [None] * n, [0] * n, [0] * n, [None] * n
+        self.condition = threading.Condition()
         for i, s in enumerate(sources):  # index, source
             # Start thread to read frames from video stream
             st = f'{i + 1}/{n}: {s}... '
@@ -75,10 +76,6 @@ class LoadStreams:
     def update(self, i, cap, stream):
         """Read stream `i` frames in daemon thread."""
         n, f = 0, self.frames[i]  # frame number, frame array
-        if (self.remotefile):
-            wait_time_sec = 1 / 1000  # 1ms
-        else:
-            wait_time_sec = 0.0
         while cap.isOpened() and n < f:
             n += 1
             cap.grab()  # .read() = .grab() followed by .retrieve()
@@ -86,11 +83,13 @@ class LoadStreams:
                 success, im = cap.retrieve()
                 if success:
                     self.imgs[i] = im
+                    with self.condition:
+                        self.condition.wait()
                 else:
                     LOGGER.warning('WARNING ⚠️ Video stream unresponsive, please check your IP camera connection.')
                     self.imgs[i] = np.zeros_like(self.imgs[i])
                     cap.open(stream)  # re-open stream if signal was lost
-            time.sleep(wait_time_sec)  # wait time
+            time.sleep(0.0)  # wait time
 
     def __iter__(self):
         """Iterates through YOLO image feed and re-opens unresponsive streams."""
@@ -105,6 +104,8 @@ class LoadStreams:
             raise StopIteration
 
         im0 = self.imgs.copy()
+        with self.condition:
+            self.condition.notify()
         return self.sources, im0, None, ''
 
     def __len__(self):

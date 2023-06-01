@@ -54,53 +54,6 @@ class RTDETRTrainer(DetectionTrainer):
             gt_class.append(batch['cls'][batch_idx == i].to(device=batch_idx.device, dtype=torch.long))
         return batch
 
-    @staticmethod
-    def build_optimizer(model, name='Adam', lr=0.001, momentum=0.9, decay=1e-5):
-        """
-        Builds an optimizer with the specified parameters and parameter groups.
-
-        Args:
-            model (nn.Module): model to optimize
-            name (str): name of the optimizer to use
-            lr (float): learning rate
-            momentum (float): momentum
-            decay (float): weight decay
-
-        Returns:
-            optimizer (torch.optim.Optimizer): the built optimizer
-        """
-        import torch.nn as nn
-        from ultralytics.yolo.utils import LOGGER
-        g = [], [], []  # optimizer parameter groups
-        bn = tuple(v for k, v in nn.__dict__.items() if 'Norm' in k)  # normalization layers, i.e. BatchNorm2d()
-
-        for module_name, module in model.named_modules():
-            for param_name, param in module.named_parameters(recurse=False):
-                fullname = f'{module_name}.{param_name}' if module_name else param_name
-                if 'bias' in fullname:  # bias (no decay)
-                    g[2].append(param)
-                elif isinstance(module, bn):  # weight (no decay)
-                    g[1].append(param)
-                else:  # weight (with decay)
-                    g[0].append(param)
-
-        if name == 'Adam':
-            optimizer = torch.optim.Adam(g[2], lr=lr)  # adjust beta1 to momentum
-        elif name == 'AdamW':
-            optimizer = torch.optim.AdamW(g[2], lr=lr)
-        elif name == 'RMSProp':
-            optimizer = torch.optim.RMSprop(g[2], lr=lr)
-        elif name == 'SGD':
-            optimizer = torch.optim.SGD(g[2], lr=lr)
-        else:
-            raise NotImplementedError(f'Optimizer {name} not implemented.')
-
-        optimizer.add_param_group({'params': g[0]})  # add g0 with weight_decay
-        optimizer.add_param_group({'params': g[1]})  # add g1 (BatchNorm2d weights)
-        LOGGER.info(f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}) with parameter groups "
-                    f'{len(g[1])} weight, {len(g[0])} weight, {len(g[2])} bias')
-        return optimizer
-
 
 def train(cfg=DEFAULT_CFG, use_python=False):
     """Train and optimize RTDETR model given training data and device."""

@@ -262,16 +262,16 @@ class RTDETRDecoder(nn.Module):
 
     def _reset_parameters(self):
         # class and bbox head init
-        bias_cls = math.log(5 / self.nc / (640 / 32) ** 2)
-        # linear_init_(self.enc_score_head)
+        bias_cls = bias_init_with_prob(0.01)
+        linear_init_(self.enc_score_head)
         constant_(self.enc_score_head.bias, bias_cls)
-        # constant_(self.enc_bbox_head.layers[-1].weight, 0.)
-        constant_(self.enc_bbox_head.layers[-1].bias, 1.)
+        constant_(self.enc_bbox_head.layers[-1].weight, 0.)
+        constant_(self.enc_bbox_head.layers[-1].bias, 0.)
         for cls_, reg_ in zip(self.dec_score_head, self.dec_bbox_head):
-            # linear_init_(cls_)
+            linear_init_(cls_)
             constant_(cls_.bias, bias_cls)
-            # constant_(reg_.layers[-1].weight, 0.)
-            constant_(reg_.layers[-1].bias, 1.)
+            constant_(reg_.layers[-1].weight, 0.)
+            constant_(reg_.layers[-1].bias, 0.)
 
         linear_init_(self.enc_output[0])
         xavier_uniform_(self.enc_output[0].weight)

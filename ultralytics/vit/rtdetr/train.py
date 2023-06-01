@@ -54,6 +54,7 @@ class RTDETRTrainer(DetectionTrainer):
             gt_class.append(batch['cls'][batch_idx == i].to(device=batch_idx.device, dtype=torch.long))
         return batch
 
+    @staticmethod
     def build_optimizer(model, name='Adam', lr=0.001, momentum=0.9, decay=1e-5):
         """
         Builds an optimizer with the specified parameters and parameter groups.

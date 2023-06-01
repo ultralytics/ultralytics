@@ -101,7 +101,7 @@ def test_val_scratch():
 
 def test_amp():
     if torch.cuda.is_available():
-        from ultralytics.yolo.engine.trainer import check_amp
+        from ultralytics.yolo.utils.checks import check_amp
         model = YOLO(MODEL).model.cuda()
         assert check_amp(model)
 

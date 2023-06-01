@@ -77,7 +77,7 @@ class HungarianMatcher(nn.Module):
 
         # TODO: the calculation of matrix C could be optimized.
         # Compute the L1 cost between boxes
-        cost_bbox = (out_bbox.unsqueeze(1) - tgt_bbox.unsqueeze(0)).abs().sum(-1)  # (bs*num_queries, num_gt)
+        cost_bbox = torch.cdist(out_bbox, tgt_bbox, p=1)  # (bs*num_queries, num_gt)
 
         # Compute the GIoU cost between boxes, (bs*num_queries, num_gt)
         cost_giou = 1.0 - bbox_iou(out_bbox.unsqueeze(1), tgt_bbox.unsqueeze(0), xywh=True, GIoU=True).squeeze(-1)
@@ -119,9 +119,8 @@ class HungarianMatcher(nn.Module):
 
                 C = C + self.matcher_coeff['mask'] * cost_mask + self.matcher_coeff['dice'] * cost_dice
 
-        C = C.view(bs, num_queries, -1)
-        C = [a.squeeze(0) for a in C.chunk(bs)]
-        indices = [linear_sum_assignment(c.split(num_gts, -1)[i].cpu().numpy()) for i, c in enumerate(C)]
+        C = C.view(bs, num_queries, -1).cpu()
+        indices = [linear_sum_assignment(c[i]) for i, c in enumerate(C.split(num_gts, -1))]
         return [(torch.tensor(i, dtype=torch.int32), torch.tensor(j, dtype=torch.int32)) for i, j in indices]
 
 

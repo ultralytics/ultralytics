@@ -223,7 +223,7 @@ class RTDETRDecoder(nn.Module):
         self.dec_bbox_head = nn.ModuleList([
             MLP(hidden_dim, hidden_dim, 4, num_layers=3) for _ in range(num_decoder_layers)])
 
-        self._reset_parameters()
+        # self._reset_parameters()
 
     def forward(self, feats, batch):
         from ultralytics.vit.utils.ops import get_contrastive_denoising_training_group

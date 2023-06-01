@@ -232,7 +232,7 @@ class Exporter:
         if jit:  # TorchScript
             f[0], _ = self.export_torchscript()
         if engine:  # TensorRT required before ONNX
-            f[1], _ = self.export_engine()
+            f[1], _ = self.export_engine(workspace=self.args.workspace, verbose=self.args.verbose)
         if onnx or xml:  # OpenVINO requires ONNX
             f[2], _ = self.export_onnx()
         if xml:  # OpenVINO

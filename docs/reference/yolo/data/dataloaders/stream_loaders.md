@@ -36,3 +36,8 @@ description: 'Ultralytics YOLO Docs: Learn about stream loaders for image and te
 ---
 :::ultralytics.yolo.data.dataloaders.stream_loaders.autocast_list
 <br><br>
+
+# get_best_youtube_url
+---
+:::ultralytics.yolo.data.dataloaders.stream_loaders.get_best_youtube_url
+<br><br>

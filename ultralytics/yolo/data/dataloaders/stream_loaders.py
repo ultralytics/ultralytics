@@ -105,7 +105,7 @@ class LoadStreams:
 
         im0 = self.imgs.copy()
         with self.condition:
-            self.condition.notify()
+            self.condition.notify_all()
         return self.sources, im0, None, ''
 
     def __len__(self):

@@ -636,12 +636,19 @@ class BaseTrainer:
             optimizer = torch.optim.Adam(g[2], lr=lr, betas=(momentum, 0.999))  # adjust beta1 to momentum
         elif name == 'AdamW':
             optimizer = torch.optim.AdamW(g[2], lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
+        elif name == 'NAdam':
+            optimizer = torch.optim.NAdam(g[2], lr=lr, betas=(momentum, 0.999))
+        elif name == 'RAdam':
+            optimizer = torch.optim.RAdam(g[2], lr=lr, betas=(momentum, 0.999))
         elif name == 'RMSProp':
             optimizer = torch.optim.RMSprop(g[2], lr=lr, momentum=momentum)
         elif name == 'SGD':
             optimizer = torch.optim.SGD(g[2], lr=lr, momentum=momentum, nesterov=True)
         else:
-            raise NotImplementedError(f'Optimizer {name} not implemented.')
+            raise NotImplementedError(
+                f"Optimizer '{name}' not found in list of available optimizers "
+                f"[Adam, AdamW, NAdam, RAdam, RMSProp, SGD]."
+                "To request support for addition optimizers please visit https://github.com/ultralytics/ultralytics.")
 
         optimizer.add_param_group({'params': g[0], 'weight_decay': decay})  # add g0 with weight_decay
         optimizer.add_param_group({'params': g[1], 'weight_decay': 0.0})  # add g1 (BatchNorm2d weights)

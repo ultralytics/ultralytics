@@ -3,11 +3,11 @@
 import glob
 import math
 import os
-import threading
 import time
 from dataclasses import dataclass
 from pathlib import Path
 from threading import Thread
+from queue import Queue
 from urllib.parse import urlparse
 
 import cv2
@@ -40,8 +40,8 @@ class LoadStreams:
         sources = Path(sources).read_text().rsplit() if os.path.isfile(sources) else [sources]
         n = len(sources)
         self.sources = [ops.clean_str(x) for x in sources]  # clean source names for later
-        self.imgs, self.fps, self.frames, self.threads = [None] * n, [0] * n, [0] * n, [None] * n
-        self.condition = threading.Condition()
+        self.qbuffer = 30 # daemons frame buffer size (n of frames)
+        self.imgs_queues, self.fps, self.frames, self.threads = [Queue(maxsize=self.qbuffer)] * n, [0] * n, [0] * n, [None] * n
         for i, s in enumerate(sources):  # index, source
             # Start thread to read frames from video stream
             st = f'{i + 1}/{n}: {s}... '
@@ -62,9 +62,10 @@ class LoadStreams:
             self.frames[i] = max(int(cap.get(cv2.CAP_PROP_FRAME_COUNT)), 0) or float('inf')  # infinite stream fallback
             self.fps[i] = max((fps if math.isfinite(fps) else 0) % 100, 0) or 30  # 30 FPS fallback
 
-            success, self.imgs[i] = cap.read()  # guarantee first frame
+            success, im = cap.read()  # guarantee first frame
             if not success or self.imgs[i] is None:
                 raise ConnectionError(f'{st}Failed to read images from {s}')
+            self.imgs_queues[i].put(im)
             self.threads[i] = Thread(target=self.update, args=([i, cap, s]), daemon=True)
             LOGGER.info(f'{st}Success ✅ ({self.frames[i]} frames of shape {w}x{h} at {self.fps[i]:.2f} FPS)')
             self.threads[i].start()
@@ -82,12 +83,10 @@ class LoadStreams:
             if n % self.vid_stride == 0:
                 success, im = cap.retrieve()
                 if success:
-                    self.imgs[i] = im
-                    with self.condition:
-                        self.condition.wait()
+                    self.imgs_queues[i].put(im)
                 else:
                     LOGGER.warning('WARNING ⚠️ Video stream unresponsive, please check your IP camera connection.')
-                    self.imgs[i] = np.zeros_like(self.imgs[i])
+                    # NOTE(tekert): no need to clear the buffer queue (it has valid data)
                     cap.open(stream)  # re-open stream if signal was lost
             time.sleep(0.0)  # wait time
 
@@ -103,9 +102,11 @@ class LoadStreams:
             cv2.destroyAllWindows()
             raise StopIteration
 
-        im0 = self.imgs.copy()
-        with self.condition:
-            self.condition.notify_all()
+        n = len(self.imgs_queues)
+        im0 = [None] * n
+        for i in range(n):
+            # NOTE(tekert): we could use a timeout if we want @glenn-jocher
+            im0[i] = self.imgs_queues[i].get()
         return self.sources, im0, None, ''
 
     def __len__(self):

@@ -647,8 +647,8 @@ class BaseTrainer:
         else:
             raise NotImplementedError(
                 f"Optimizer '{name}' not found in list of available optimizers "
-                f"[Adam, AdamW, NAdam, RAdam, RMSProp, SGD]."
-                "To request support for addition optimizers please visit https://github.com/ultralytics/ultralytics.")
+                f'[Adam, AdamW, NAdam, RAdam, RMSProp, SGD].'
+                'To request support for addition optimizers please visit https://github.com/ultralytics/ultralytics.')
 
         optimizer.add_param_group({'params': g[0], 'weight_decay': decay})  # add g0 with weight_decay
         optimizer.add_param_group({'params': g[1], 'weight_decay': 0.0})  # add g1 (BatchNorm2d weights)

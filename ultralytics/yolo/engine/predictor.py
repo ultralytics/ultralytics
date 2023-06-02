@@ -222,7 +222,8 @@ class BasePredictor:
             self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, 3, *self.imgsz))
             self.done_warmup = True
 
-        self.seen, self.windows, self.batch, profilers, quit = 0, [], None, (ops.Profile(), ops.Profile(), ops.Profile()), False
+        self.seen, self.windows, self.batch, profilers, quit = 0, [], None, (ops.Profile(), ops.Profile(),
+                                                                             ops.Profile()), False
         self.run_callbacks('on_predict_start')
         for batch in self.dataset:
             self.run_callbacks('on_predict_batch_start')

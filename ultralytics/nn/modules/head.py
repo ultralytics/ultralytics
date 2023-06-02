@@ -225,7 +225,7 @@ class RTDETRDecoder(nn.Module):
 
         # self._reset_parameters()
 
-    def forward(self, feats, batch):
+    def forward(self, feats, batch=None):
         from ultralytics.vit.utils.ops import get_contrastive_denoising_training_group
 
         # input projection and embedding

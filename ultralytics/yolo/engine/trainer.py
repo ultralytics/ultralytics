@@ -628,7 +628,7 @@ class BaseTrainer:
         g = [], [], []  # optimizer parameter groups
         bn = tuple(v for k, v in nn.__dict__.items() if 'Norm' in k)  # normalization layers, i.e. BatchNorm2d()
         if name == 'auto':
-            name, lr = ('SGD', 0.01) if iterations > 6000 else ('NAdam', 0.002)
+            name, lr, momentum = ('SGD', 0.01, 0.9) if iterations > 6000 else ('NAdam', 0.002, 0.9)
             self.args.warmup_bias_lr = 0.01  # no higher than 0.01 for NAdam
 
         for module_name, module in model.named_modules():
@@ -661,6 +661,7 @@ class BaseTrainer:
 
         optimizer.add_param_group({'params': g[0], 'weight_decay': decay})  # add g0 with weight_decay
         optimizer.add_param_group({'params': g[1], 'weight_decay': 0.0})  # add g1 (BatchNorm2d weights)
-        LOGGER.info(f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}) with parameter groups "
-                    f'{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias')
+        LOGGER.info(
+            f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "
+            f'{len(g[1])} weight(decay=0.0), {len(g[0])} weight(decay={decay}), {len(g[2])} bias(decay=0.0)')
         return optimizer

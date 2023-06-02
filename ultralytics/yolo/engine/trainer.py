@@ -641,14 +641,8 @@ class BaseTrainer:
                 else:  # weight (with decay)
                     g[0].append(param)
 
-        if name == 'Adam':
-            optimizer = torch.optim.Adam(g[2], lr=lr, betas=(momentum, 0.999))  # adjust beta1 to momentum
-        elif name == 'AdamW':
-            optimizer = torch.optim.AdamW(g[2], lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
-        elif name == 'NAdam':
-            optimizer = torch.optim.NAdam(g[2], lr=lr, betas=(momentum, 0.999))
-        elif name == 'RAdam':
-            optimizer = torch.optim.RAdam(g[2], lr=lr, betas=(momentum, 0.999))
+        if name in ('Adam', 'Adamax', 'AdamW', 'NAdam', 'RAdam'):
+            optimizer = getattr(torch.optim, name, 'Adam')(g[2], lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
         elif name == 'RMSProp':
             optimizer = torch.optim.RMSprop(g[2], lr=lr, momentum=momentum)
         elif name == 'SGD':

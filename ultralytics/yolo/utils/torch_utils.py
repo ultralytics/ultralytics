@@ -386,7 +386,7 @@ def strip_optimizer(f: Union[str, Path] = 'best.pt', s: str = '') -> None:
         import pickle
 
     x = torch.load(f, map_location=torch.device('cpu'))
-    args = {**DEFAULT_CFG_DICT, **x['train_args']}  # combine model args with default args, preferring model args
+    args = {**DEFAULT_CFG_DICT, **x['train_args']} if 'train_args' in x else None  # combine args
     if x.get('ema'):
         x['model'] = x['ema']  # replace model with ema
     for k in 'optimizer', 'best_fitness', 'ema', 'updates':  # keys

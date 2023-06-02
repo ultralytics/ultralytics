@@ -17,9 +17,9 @@ import numpy as np
 import torch
 import torch.distributed as dist
 import torch.nn as nn
+from torch import optim
 from torch.cuda import amp
 from torch.nn.parallel import DistributedDataParallel as DDP
-from torch.optim import lr_scheduler
 from tqdm import tqdm
 
 from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
@@ -262,7 +262,7 @@ class BaseTrainer:
             self.lf = one_cycle(1, self.args.lrf, self.epochs)  # cosine 1->hyp['lrf']
         else:
             self.lf = lambda x: (1 - x / self.epochs) * (1.0 - self.args.lrf) + self.args.lrf  # linear
-        self.scheduler = lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
+        self.scheduler = optim.lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lf)
         self.stopper, self.stop = EarlyStopping(patience=self.args.patience), False
         self.resume_training(ckpt)
         self.scheduler.last_epoch = self.start_epoch - 1  # do not move
@@ -642,11 +642,11 @@ class BaseTrainer:
                     g[0].append(param)
 
         if name in ('Adam', 'Adamax', 'AdamW', 'NAdam', 'RAdam'):
-            optimizer = getattr(torch.optim, name, 'Adam')(g[2], lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
+            optimizer = getattr(optim, name, optim.Adam)(g[2], lr=lr, betas=(momentum, 0.999), weight_decay=0.0)
         elif name == 'RMSProp':
-            optimizer = torch.optim.RMSprop(g[2], lr=lr, momentum=momentum)
+            optimizer = optim.RMSprop(g[2], lr=lr, momentum=momentum)
         elif name == 'SGD':
-            optimizer = torch.optim.SGD(g[2], lr=lr, momentum=momentum, nesterov=True)
+            optimizer = optim.SGD(g[2], lr=lr, momentum=momentum, nesterov=True)
         else:
             raise NotImplementedError(
                 f"Optimizer '{name}' not found in list of available optimizers "

@@ -222,7 +222,7 @@ class BasePredictor:
             self.model.warmup(imgsz=(1 if self.model.pt or self.model.triton else self.dataset.bs, 3, *self.imgsz))
             self.done_warmup = True
 
-        self.seen, self.windows, self.batch, profilers = 0, [], None, (ops.Profile(), ops.Profile(), ops.Profile())
+        self.seen, self.windows, self.batch, profilers, quit = 0, [], None, (ops.Profile(), ops.Profile(), ops.Profile()), False
         self.run_callbacks('on_predict_start')
         for batch in self.dataset:
             self.run_callbacks('on_predict_batch_start')
@@ -260,7 +260,7 @@ class BasePredictor:
                     s += self.write_results(i, self.results, (p, im, im0))
 
                 if self.args.show and self.plotted_img is not None:
-                    self.show(p)
+                    quit = not self.show(p)
 
                 if self.args.save and self.plotted_img is not None:
                     self.save_preds(vid_cap, i, str(self.save_dir / p.name))
@@ -270,6 +270,9 @@ class BasePredictor:
             # Print time (inference-only)
             if self.args.verbose:
                 LOGGER.info(f'{s}{profilers[1].dt * 1E3:.1f}ms')
+
+            if (quit):
+                break
 
         # Release assets
         if isinstance(self.vid_writer[-1], cv2.VideoWriter):
@@ -312,7 +315,8 @@ class BasePredictor:
         cv2.imshow(str(p), im0)
         if cv2.waitKey(500 if self.batch[3].startswith('image') else 1) == ord('q'):  # 1 millisecond
             cv2.destroyAllWindows()
-            raise StopIteration
+            return False
+        return True
 
     def save_preds(self, vid_cap, idx, save_path):
         """Save video predictions as mp4 at specified path."""

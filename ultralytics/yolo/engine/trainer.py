@@ -628,7 +628,7 @@ class BaseTrainer:
         g = [], [], []  # optimizer parameter groups
         bn = tuple(v for k, v in nn.__dict__.items() if 'Norm' in k)  # normalization layers, i.e. BatchNorm2d()
         if name == 'auto':
-            name, lr, momentum = ('SGD', 0.01, 0.9) if iterations > 6000 else ('NAdam', 0.002, 0.9)
+            name, lr, momentum = ('SGD', 0.01, 0.9) if iterations > 6000 else ('NAdam', 0.001, 0.9)
             self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for NAdam
 
         for module_name, module in model.named_modules():

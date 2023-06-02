@@ -15,7 +15,8 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from torch import distributed as dist, nn, optim
+from torch import distributed as dist
+from torch import nn, optim
 from torch.cuda import amp
 from torch.nn.parallel import DistributedDataParallel as DDP
 from tqdm import tqdm

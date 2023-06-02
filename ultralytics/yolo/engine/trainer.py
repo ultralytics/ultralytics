@@ -606,8 +606,7 @@ class BaseTrainer:
             if hasattr(self.train_loader.dataset, 'close_mosaic'):
                 self.train_loader.dataset.close_mosaic(hyp=self.args)
 
-    @staticmethod
-    def build_optimizer(model, name='auto', lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
+    def build_optimizer(self, model, name='auto', lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
         """
         Constructs an optimizer for the given model, based on the specified optimizer name, learning rate,
         momentum, weight decay, and number of iterations.
@@ -630,6 +629,7 @@ class BaseTrainer:
         bn = tuple(v for k, v in nn.__dict__.items() if 'Norm' in k)  # normalization layers, i.e. BatchNorm2d()
         if name == 'auto':
             name, lr = ('SGD', 0.01) if iterations > 6000 else ('NAdam', 0.002)
+            self.args.warmup_bias_lr = 0.01  # no higher than 0.01 for NAdam
 
         for module_name, module in model.named_modules():
             for param_name, param in module.named_parameters(recurse=False):

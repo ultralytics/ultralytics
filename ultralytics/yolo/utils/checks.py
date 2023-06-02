@@ -344,6 +344,55 @@ def check_yolo(verbose=True, device=''):
     LOGGER.info(f'Setup complete ✅ {s}')
 
 
+def check_amp(model):
+    """
+    This function checks the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLOv8 model.
+    If the checks fail, it means there are anomalies with AMP on the system that may cause NaN losses or zero-mAP
+    results, so AMP will be disabled during training.
+
+    Args:
+        model (nn.Module): A YOLOv8 model instance.
+
+    Returns:
+        (bool): Returns True if the AMP functionality works correctly with YOLOv8 model, else False.
+
+    Raises:
+        AssertionError: If the AMP checks fail, indicating anomalies with the AMP functionality on the system.
+    """
+    device = next(model.parameters()).device  # get model device
+    if device.type in ('cpu', 'mps'):
+        return False  # AMP only used on CUDA devices
+
+    def amp_allclose(m, im):
+        """All close FP32 vs AMP results."""
+        a = m(im, device=device, verbose=False)[0].boxes.data  # FP32 inference
+        with torch.cuda.amp.autocast(True):
+            b = m(im, device=device, verbose=False)[0].boxes.data  # AMP inference
+        del m
+        return a.shape == b.shape and torch.allclose(a, b.float(), atol=0.5)  # close to 0.5 absolute tolerance
+
+    f = ROOT / 'assets/bus.jpg'  # image to check
+    im = f if f.exists() else 'https://ultralytics.com/images/bus.jpg' if ONLINE else np.ones((640, 640, 3))
+    prefix = colorstr('AMP: ')
+    LOGGER.info(f'{prefix}running Automatic Mixed Precision (AMP) checks with YOLOv8n...')
+    warning_msg = "Setting 'amp=True'. If you experience zero-mAP or NaN losses you can disable AMP with amp=False."
+    try:
+        from ultralytics import YOLO
+        assert amp_allclose(YOLO('yolov8n.pt'), im)
+        LOGGER.info(f'{prefix}checks passed ✅')
+    except ConnectionError:
+        LOGGER.warning(f'{prefix}checks skipped ⚠️, offline and unable to download YOLOv8n. {warning_msg}')
+    except (AttributeError, ModuleNotFoundError):
+        LOGGER.warning(
+            f'{prefix}checks skipped ⚠️. Unable to load YOLOv8n due to possible Ultralytics package modifications. {warning_msg}'
+        )
+    except AssertionError:
+        LOGGER.warning(f'{prefix}checks failed ❌. Anomalies were detected with AMP on your system that may lead to '
+                       f'NaN losses or zero-mAP results, so AMP will be disabled during training.')
+        return False
+    return True
+
+
 def git_describe(path=ROOT):  # path must be a directory
     # Return human-readable git description, i.e. v5.0-5-g3e25f1e https://git-scm.com/docs/git-describe
     try:

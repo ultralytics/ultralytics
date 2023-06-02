@@ -629,7 +629,7 @@ class BaseTrainer:
         bn = tuple(v for k, v in nn.__dict__.items() if 'Norm' in k)  # normalization layers, i.e. BatchNorm2d()
         if name == 'auto':
             name, lr, momentum = ('SGD', 0.01, 0.9) if iterations > 6000 else ('NAdam', 0.002, 0.9)
-            self.args.warmup_bias_lr = 0.01  # no higher than 0.01 for NAdam
+            self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for NAdam
 
         for module_name, module in model.named_modules():
             for param_name, param in module.named_parameters(recurse=False):

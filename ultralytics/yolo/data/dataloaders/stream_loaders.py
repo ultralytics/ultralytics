@@ -6,8 +6,8 @@ import os
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from threading import Thread
 from queue import Queue
+from threading import Thread
 from urllib.parse import urlparse
 
 import cv2
@@ -40,8 +40,9 @@ class LoadStreams:
         sources = Path(sources).read_text().rsplit() if os.path.isfile(sources) else [sources]
         n = len(sources)
         self.sources = [ops.clean_str(x) for x in sources]  # clean source names for later
-        self.qbuffer = 30 # daemons frame buffer size (n of frames)
-        self.imgs_queues, self.fps, self.frames, self.threads = [Queue(maxsize=self.qbuffer)] * n, [0] * n, [0] * n, [None] * n
+        self.qbuffer = 30  # daemons frame buffer size (n of frames)
+        self.imgs_queues, self.fps, self.frames, self.threads = [Queue(maxsize=self.qbuffer)] * n, [0] * n, [0] * n, [
+            None] * n
         for i, s in enumerate(sources):  # index, source
             # Start thread to read frames from video stream
             st = f'{i + 1}/{n}: {s}... '

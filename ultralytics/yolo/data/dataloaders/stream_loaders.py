@@ -6,8 +6,8 @@ import os
 import time
 from dataclasses import dataclass
 from pathlib import Path
+from queue import Empty, Queue
 from threading import Thread
-from queue import Queue, Empty
 from urllib.parse import urlparse
 
 import cv2
@@ -41,8 +41,8 @@ class LoadStreams:
         n = len(sources)
         self.sources = [ops.clean_str(x) for x in sources]  # clean source names for later
         self.imgs, self.fps, self.frames, self.threads = [None] * n, [0] * n, [0] * n, [None] * n
-        self.is_live = [True] * n # live stream
-        self.imgs_queue = [Queue(maxsize=30)] * n # buffer size for non-live streams (remote files)
+        self.is_live = [True] * n  # live stream
+        self.imgs_queue = [Queue(maxsize=30)] * n  # buffer size for non-live streams (remote files)
         for i, s in enumerate(sources):  # index, source
             # Start thread to read frames from video stream
             st = f'{i + 1}/{n}: {s}... '
@@ -116,7 +116,7 @@ class LoadStreams:
                     continue
                 except Empty:
                     pass
-            im0[i] = self.imgs[i].copy() # use last frame from stream
+            im0[i] = self.imgs[i].copy()  # use last frame from stream
 
         return self.sources, im0, None, ''
 

@@ -226,6 +226,7 @@ operations are cached, meaning they're only calculated once per object, and thos
     probs.top1    # The top1 indices of classification, a value with Int type.
     probs.top5conf  # The top5 scores of classification, a tensor with shape (5, ).
     probs.top1conf  # The top1 scores of classification. a value with torch.tensor type.
+    keypoints.data  # raw probs tensor, (num_class, ) 
     ```
 
 Class reference documentation for `Results` module and its components can be found [here](../reference/yolo/engine/results.md)

@@ -6,8 +6,8 @@ import os
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from queue import Queue
 from threading import Thread
+from queue import Queue, Empty
 from urllib.parse import urlparse
 
 import cv2
@@ -40,16 +40,17 @@ class LoadStreams:
         sources = Path(sources).read_text().rsplit() if os.path.isfile(sources) else [sources]
         n = len(sources)
         self.sources = [ops.clean_str(x) for x in sources]  # clean source names for later
-        self.qbuffer = 30  # daemons frame buffer size (n of frames)
-        self.imgs_queues, self.fps, self.frames, self.threads = [Queue(maxsize=self.qbuffer)] * n, [0] * n, [0] * n, [
-            None] * n
+        self.imgs, self.fps, self.frames, self.threads = [None] * n, [0] * n, [0] * n, [None] * n
+        self.is_live = [True] * n # live stream
+        self.imgs_queue = [Queue(maxsize=30)] * n # buffer size for non-live streams (remote files)
         for i, s in enumerate(sources):  # index, source
             # Start thread to read frames from video stream
             st = f'{i + 1}/{n}: {s}... '
             if urlparse(s).hostname in ('www.youtube.com', 'youtube.com', 'youtu.be'):  # if source is YouTube video
                 # YouTube format i.e. 'https://www.youtube.com/watch?v=Zgi9g1ksQHc' or 'https://youtu.be/Zgi9g1ksQHc'
-                s = get_best_youtube_url(s, use_pafy=False, imgsz=imgsz)
-                self.remotefile = True
+                s, is_live = get_best_youtube_url(s, use_pafy=False, imgsz=imgsz)
+                if (not is_live) and is_live is not None:
+                    self.is_live[i] = False
             s = eval(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
             if s == 0 and (is_colab() or is_kaggle()):
                 raise NotImplementedError("'source=0' webcam not supported in Colab and Kaggle notebooks. "
@@ -63,10 +64,11 @@ class LoadStreams:
             self.frames[i] = max(int(cap.get(cv2.CAP_PROP_FRAME_COUNT)), 0) or float('inf')  # infinite stream fallback
             self.fps[i] = max((fps if math.isfinite(fps) else 0) % 100, 0) or 30  # 30 FPS fallback
 
-            success, im = cap.read()  # guarantee first frame
+            success, self.imgs[i] = cap.read()  # guarantee first frame
             if not success or self.imgs[i] is None:
                 raise ConnectionError(f'{st}Failed to read images from {s}')
-            self.imgs_queues[i].put(im)
+            if not self.is_live[i]:
+                self.imgs_queue[i].put(self.imgs[i])
             self.threads[i] = Thread(target=self.update, args=([i, cap, s]), daemon=True)
             LOGGER.info(f'{st}Success ✅ ({self.frames[i]} frames of shape {w}x{h} at {self.fps[i]:.2f} FPS)')
             self.threads[i].start()
@@ -84,10 +86,12 @@ class LoadStreams:
             if n % self.vid_stride == 0:
                 success, im = cap.retrieve()
                 if success:
-                    self.imgs_queues[i].put(im)
+                    self.imgs[i] = im
+                    if not self.is_live[i]:
+                        self.imgs_queue[i].put(im)
                 else:
                     LOGGER.warning('WARNING ⚠️ Video stream unresponsive, please check your IP camera connection.')
-                    # NOTE(tekert): no need to clear the buffer queue (it has valid data)
+                    self.imgs[i] = np.zeros_like(self.imgs[i])
                     cap.open(stream)  # re-open stream if signal was lost
             time.sleep(0.0)  # wait time
 
@@ -103,11 +107,17 @@ class LoadStreams:
             cv2.destroyAllWindows()
             raise StopIteration
 
-        n = len(self.imgs_queues)
+        n = len(self.imgs)
         im0 = [None] * n
         for i in range(n):
-            # NOTE(tekert): we could use a timeout if we want @glenn-jocher
-            im0[i] = self.imgs_queues[i].get()
+            if not self.is_live[i]:
+                try:
+                    im0[i] = self.imgs_queue[i].get_nowait()
+                    continue
+                except Empty:
+                    pass
+            im0[i] = self.imgs[i].copy() # use last frame from stream
+
         return self.sources, im0, None, ''
 
     def __len__(self):
@@ -165,7 +175,7 @@ class LoadImages:
             path = Path(path).read_text().rsplit()
         files = []
         for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:
-            p = str(Path(p).resolve())
+            p = str(Path(p).absolute())  # do not use .resolve() https://github.com/ultralytics/ultralytics/issues/2912
             if '*' in p:
                 files.extend(sorted(glob.glob(p, recursive=True)))  # glob
             elif os.path.isdir(p):
@@ -358,25 +368,30 @@ def get_best_youtube_url(url, use_pafy=True, imgsz=640):
 
     Returns:
         str: The URL of the best quality MP4 video stream, or None if no suitable stream is found.
+        boolean: Is the youtube stream currently live streaming? or None if no suitable stream is found.
     """
-    if type(imgsz) is int:  # TODO(tekert): @glenn-jocher can you check imgz type? delete this check if all is ok.
+    if isinstance(imgsz, int):
         imgsz = [imgsz]
     if use_pafy:
         check_requirements(('pafy', 'youtube_dl==2020.12.2'))
         import pafy  # noqa
-        return pafy.new(url).getbest(preftype='mp4').url
+        return pafy.new(url).getbest(preftype='mp4').url, False
     else:
         check_requirements('yt-dlp')
         import yt_dlp
         with yt_dlp.YoutubeDL({'quiet': True}) as ydl:
             info_dict = ydl.extract_info(url, download=False)  # extract info order: worst to best
+        is_live = info_dict.get('is_live', None)
+        last_best = None
         for f in info_dict.get('formats', None):
             if f['vcodec'] != 'none' and f['acodec'] == 'none' and f['ext'] == 'mp4':
                 last_best = f
                 if max(f['width'], f['height']) >= max(imgsz):
-                    return f.get('url', None)
-        # In case there is no resolution higher than imgz return the last best one
-        return last_best.get('url', None)
+                    return f.get('url', None), is_live
+        # In case there is no resolution higher than imgz return the last best one like pafy does.
+        if (last_best == None):
+            last_best = f
+        return last_best.get('url', None), is_live
 
 
 if __name__ == '__main__':

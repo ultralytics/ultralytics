@@ -179,8 +179,8 @@ operations are cached, meaning they're only calculated once per object, and thos
     boxes.xywh  # box with xywh format, (N, 4)
     boxes.xyxyn  # box with xyxy format but normalized, (N, 4)
     boxes.xywhn  # box with xywh format but normalized, (N, 4)
-    boxes.conf  # confidence score, (N, 1)
-    boxes.cls  # cls, (N, 1)
+    boxes.conf  # confidence score, (N, )
+    boxes.cls  # cls, (N, )
     boxes.data  # raw bboxes tensor, (N, 6) or boxes.boxes
     ```
 
@@ -215,7 +215,7 @@ operations are cached, meaning they're only calculated once per object, and thos
 
 ### probs
 
-`Probs` object can be used index, get top5/1 indices and scores of classification.
+`Probs` object can be used index, get top1&top5 indices and scores of classification.
 
 !!! example "Probs"
 

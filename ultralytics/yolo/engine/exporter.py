@@ -423,7 +423,7 @@ class Exporter:
         return f, ct_model
 
     @try_export
-    def export_engine(self, workspace=4, verbose=False, prefix=colorstr('TensorRT:')):
+    def export_engine(self, prefix=colorstr('TensorRT:')):
         """YOLOv8 TensorRT export https://developer.nvidia.com/tensorrt."""
         assert self.im.device.type != 'cpu', "export running on CPU but must be on GPU, i.e. use 'device=0'"
         try:
@@ -441,12 +441,12 @@ class Exporter:
         assert Path(f_onnx).exists(), f'failed to export ONNX file: {f_onnx}'
         f = self.file.with_suffix('.engine')  # TensorRT engine file
         logger = trt.Logger(trt.Logger.INFO)
-        if verbose:
+        if self.args.verbose:
             logger.min_severity = trt.Logger.Severity.VERBOSE
 
         builder = trt.Builder(logger)
         config = builder.create_builder_config()
-        config.max_workspace_size = workspace * 1 << 30
+        config.max_workspace_size = self.args.workspace * 1 << 30
         # config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace << 30)  # fix TRT 8.4 deprecation notice
 
         flag = (1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH))

@@ -367,8 +367,8 @@ def get_best_youtube_url(url, use_pafy=True, imgsz=640):
         use_pafy (bool): Use the pafy package, default=True, otherwise use yt_dlp package.
 
     Returns:
-        str: The URL of the best quality MP4 video stream, or None if no suitable stream is found.
-        boolean: Is the youtube stream currently live streaming? or None if no suitable stream is found.
+        (str): The URL of the best quality MP4 video stream, or None if no suitable stream is found.
+        (bool): Is the youtube stream currently live streaming? or None if no suitable stream is found.
     """
     if isinstance(imgsz, int):
         imgsz = [imgsz]

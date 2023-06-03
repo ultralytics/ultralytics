@@ -138,7 +138,8 @@ The `Results` object contains the following components:
 
 - `Results.boxes`: `Boxes` object with properties and methods for manipulating bounding boxes
 - `Results.masks`: `Masks` object for indexing masks or getting segment coordinates
-- `Results.probs`: `torch.Tensor` containing class probabilities or logits
+- `Results.keypoints`: `Keypoints` object for with properties and methods for manipulating predicted keypoints.
+- `Results.probs`: `Probs` object for containing class probabilities or logits.
 - `Results.orig_img`: Original image loaded in memory
 - `Results.path`: `Path` containing the path to the input image
 
@@ -197,15 +198,34 @@ operations are cached, meaning they're only calculated once per object, and thos
     masks.data  # raw masks tensor, (N, H, W) or masks.masks 
     ```
 
+### Keypoints
+
+`Keypoints` object can be used index, manipulate and normalize coordinates. The keypoint conversion operation is cached.
+
+!!! example "Keypoints"
+
+    ```python
+    results = model(inputs)
+    keypoints = results[0].keypoints  # Masks object
+    keypoints.xy  # x, y keypoints (pixels), (num_dets, num_kpts, 2/3), the last dimension can be 2 or 3, depends the model.
+    keypoints.xyn  # x, y keypoints (normalized), (num_dets, num_kpts, 2/3)
+    keypoints.conf  # confidence score(num_dets, num_kpts) of each keypoint if the last dimension is 3.
+    keypoints.data  # raw keypoints tensor, (num_dets, num_kpts, 2/3) 
+    ```
+
 ### probs
 
-`probs` attribute of `Results` class is a `Tensor` containing class probabilities of a classification operation.
+`Probs` object can be used index, get top5/1 indices and scores of classification.
 
 !!! example "Probs"
 
     ```python
     results = model(inputs)
-    results[0].probs  # cls prob, (num_class, )
+    probs = results[0].probs  # cls prob, (num_class, )
+    probs.top5    # The top5 indices of classification, List[Int] * 5.
+    probs.top1    # The top1 indices of classification, a value with Int type.
+    probs.top5conf  # The top5 scores of classification, a tensor with shape (5, ).
+    probs.top1conf  # The top1 scores of classification. a value with torch.tensor type.
     ```
 
 Class reference documentation for `Results` module and its components can be found [here](../reference/yolo/engine/results.md)

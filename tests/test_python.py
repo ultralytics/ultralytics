@@ -220,6 +220,7 @@ def _test_results_api(res):
     res.plot(pil=True)
     res.plot(conf=True, boxes=False)
     res.plot()
+    print(res)
     print(res.path)
     for k in res.keys:
         print(getattr(res, k).data)

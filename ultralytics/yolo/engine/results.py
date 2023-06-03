@@ -552,7 +552,7 @@ class Keypoints(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def conf(self):
-        return self.data[..., 3] if self.has_visible else None
+        return self.data[..., 2] if self.has_visible else None
 
 
 class Probs(BaseTensor):

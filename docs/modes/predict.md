@@ -139,7 +139,7 @@ The `Results` object contains the following components:
 - `Results.boxes`: `Boxes` object with properties and methods for manipulating bounding boxes
 - `Results.masks`: `Masks` object for indexing masks or getting segment coordinates
 - `Results.keypoints`: `Keypoints` object for with properties and methods for manipulating predicted keypoints.
-- `Results.probs`: `Probs` object for containing class probabilities or logits.
+- `Results.probs`: `Probs` object for containing class probabilities.
 - `Results.orig_img`: Original image loaded in memory
 - `Results.path`: `Path` containing the path to the input image
 
@@ -234,7 +234,7 @@ Class reference documentation for `Results` module and its components can be fou
 ## Plotting results
 
 You can use `plot()` function of `Result` object to plot results on in image object. It plots all components(boxes,
-masks, classification logits, etc.) found in the results object
+masks, classification probabilities, etc.) found in the results object
 
 !!! example "Plotting"
 

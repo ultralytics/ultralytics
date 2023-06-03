@@ -223,7 +223,7 @@ def _test_results_api(res):
     print(res)
     print(res.path)
     for k in res.keys:
-        print(getattr(res, k).data)
+        print(getattr(res, k))
 
 
 def test_results():

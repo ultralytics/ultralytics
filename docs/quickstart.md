@@ -73,6 +73,13 @@ CLI requires no customization or Python code. You can simply run all tasks from 
         yolo val model=yolov8n.pt data=coco128.yaml batch=1 imgsz=640
         ```
 
+    === "Test"
+
+        Test a detection model on first 128 images from COCO train2017:
+        ```bash
+        yolo test model=yolov8n.pt data=coco128.yaml
+        ```
+
     === "Export"
 
         Export a YOLOv8n classification model to ONNX format at image size 224 by 128 (no TASK required)
@@ -127,6 +134,9 @@ For example, users can load a model, train it, evaluate its performance on a val
     
     # Perform object detection on an image using the model
     results = model('https://ultralytics.com/images/bus.jpg')
+
+    # Evaluate the model's performance on the test set
+    results = model.test()
     
     # Export the model to ONNX format
     success = model.export(format='onnx')

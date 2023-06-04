@@ -61,7 +61,8 @@ YOLO models can be used in different modes depending on the specific problem you
 include:
 
 **Train**: For training a YOLOv8 model on a custom dataset.  
-**Val**: For validating a YOLOv8 model after it has been trained.  
+**Val**: For validating a YOLOv8 model after it has been trained.
+**Test**: For testing a YOLOv8 model after it has been trained.
 **Predict**: For making predictions using a trained YOLOv8 model on new images or videos.  
 **Export**: For exporting a YOLOv8 model to a format that can be used for deployment.  
 **Track**: For tracking objects in real-time using a YOLOv8 model.  
@@ -176,6 +177,14 @@ The val (validation) settings for YOLO models involve various hyperparameters an
 | `split`       | `val`   | dataset split to use for validation, i.e. 'val', 'test' or 'train' |
 
 [Val Guide](../modes/val.md){ .md-button .md-button--primary}
+
+## Test
+
+The test settings for YOLO models encompass various hyperparameters and configurations used to evaluate the model's performance on a test dataset. These settings influence the model's performance, speed, and accuracy. Common YOLO test settings include batch size, test frequency during training, and performance evaluation metrics. Other factors affecting the test process include the test dataset's size and composition, as well as the specific task the model is employed for. Careful tuning and experimentation with these settings are crucial to ensure optimal performance on the test dataset and detect and prevent overfitting.
+
+Test settings are the same as [Val](#val) settings.
+
+[Test Guide](../modes/test.md){ .md-button .md-button--primary}
 
 ## Export
 

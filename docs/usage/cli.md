@@ -43,6 +43,13 @@ CLI requires no customization or Python code. You can simply run all tasks from 
         yolo val model=yolov8n.pt data=coco128.yaml batch=1 imgsz=640
         ```
 
+    === "Test"
+    
+        Test a detection model on first 128 images from COCO train2017:
+        ```bash
+        yolo test model=yolov8n.pt data=coco128.yaml
+        ```
+
     === "Export"
 
         Export a YOLOv8n classification model to ONNX format at image size 224 by 128 (no TASK required)
@@ -66,7 +73,7 @@ Where:
 
 - `TASK` (optional) is one of `[detect, segment, classify]`. If it is not passed explicitly YOLOv8 will try to guess
   the `TASK` from the model type.
-- `MODE` (required) is one of `[train, val, predict, export, track]`
+- `MODE` (required) is one of `[train, val, test, predict, export, track]`
 - `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults.
   For a full list of available `ARGS` see the [Configuration](cfg.md) page and `defaults.yaml`
   GitHub [source](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/cfg/default.yaml).
@@ -119,6 +126,27 @@ training `data` and arguments as model attributes.
         Validate a custom-trained model.
         ```bash
         yolo detect val model=path/to/best.pt
+        ```
+
+## Test
+
+Test trained YOLOv8n model accuracy on the COCO128 dataset. No argument need to passed as the `model` retains it's
+training `data` and arguments as model attributes.
+
+!!! example "Example"
+
+    === "Official"
+
+        Validate an official YOLOv8n model using the test set.
+        ```bash
+        yolo detect test model=yolov8n.pt
+        ```
+
+    === "Custom"
+
+        Validate a custom-trained model using the test set.
+        ```bash
+        yolo detect test model=path/to/best.pt
         ```
 
 ## Predict
@@ -203,6 +231,12 @@ Default arguments can be overridden by simply passing them as arguments in the C
         Validate a pretrained detection model at batch-size 1 and image size 640:
         ```bash
         yolo detect val model=yolov8n.pt data=coco128.yaml batch=1 imgsz=640
+        ```
+
+    === "Test"
+        Test a custom trained detection model on validation set:
+        ```bash
+        yolo detect test model=path/to/best.pt data=coco128.yaml split=val
         ```
 
 ---

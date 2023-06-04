@@ -47,10 +47,13 @@ CLI_HELP_MSG = \
     3. Val a pretrained detection model at batch-size 1 and image size 640:
         yolo val model=yolov8n.pt data=coco128.yaml batch=1 imgsz=640
 
-    4. Export a YOLOv8n classification model to ONNX format at image size 224 by 128 (no TASK required)
+    4. Test a detection model on first 128 images from COCO train2017:
+        yolo test model=yolov8n.pt data=coco128.yaml
+
+    5. Export a YOLOv8n classification model to ONNX format at image size 224 by 128 (no TASK required)
         yolo export model=yolov8n-cls.pt format=onnx imgsz=224,128
 
-    5. Run special commands:
+    6. Run special commands:
         yolo help
         yolo checks
         yolo version

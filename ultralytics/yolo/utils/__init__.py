@@ -58,6 +58,7 @@ HELP_MSG = \
         results = model.train(data="coco128.yaml", epochs=3)  # train the model
         results = model.val()  # evaluate model performance on the validation set
         results = model('https://ultralytics.com/images/bus.jpg')  # predict on an image
+        results = model.test()  # run test on a test dataset
         success = model.export(format='onnx')  # export the model to ONNX format
 
     3. Use the command line interface (CLI):
@@ -79,6 +80,9 @@ HELP_MSG = \
 
         - Val a pretrained detection model at batch-size 1 and image size 640:
             yolo detect val model=yolov8n.pt data=coco128.yaml batch=1 imgsz=640
+
+        - Test a detection model on first 128 images from COCO train2017:
+            yolo test model=yolov8n.pt data=coco128.yaml
 
         - Export a YOLOv8n classification model to ONNX format at image size 224 by 128 (no TASK required)
             yolo export model=yolov8n-cls.pt format=onnx imgsz=224,128

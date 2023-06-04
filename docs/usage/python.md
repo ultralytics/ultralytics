@@ -33,6 +33,9 @@ format with just a few lines of code.
     
     # Perform object detection on an image using the model
     results = model('https://ultralytics.com/images/bus.jpg')
+
+    # Evaluate the model's performance on the test set
+    results = model.test()
     
     # Export the model to ONNX format
     success = model.export(format='onnx')
@@ -99,6 +102,36 @@ of the model to improve its performance.
         ```
 
 [Val Examples](../modes/val.md){ .md-button .md-button--primary}
+
+## [Test](../modes/test.md)
+
+Test mode is used for validating a YOLOv8 model using test set after it has been trained. In this mode, the model is evaluated on a
+test set to measure its accuracy and generalization performance. This mode can be used to tune the hyperparameters of the model to 
+improve its performance.
+
+!!! example "Test"
+
+    === "Test after training"
+        ```python
+          from ultralytics import YOLO
+
+          model = YOLO('yolov8n.yaml')
+          model.train(data='coco128.yaml', epochs=5)
+          model.test()  # It'll automatically evaluate the data you trained.
+        ```
+
+    === "Test independently"
+        ```python
+          from ultralytics import YOLO
+
+          model = YOLO("model.pt")
+          # It'll use the data yaml file in model.pt if you don't set data.
+          model.test()
+          # or you can set the data you want to test
+          model.test(data='coco128.yaml')
+        ```
+
+[Test Examples](../modes/test.md){ .md-button .md-button--primary}
 
 ## [Predict](../modes/predict.md)
 

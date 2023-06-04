@@ -99,6 +99,16 @@ def test_val_scratch():
     model.val(data='coco8.yaml', imgsz=32)
 
 
+def test_test():
+    model = YOLO(MODEL)
+    model.test(data='coco8.yaml', imgsz=32)
+
+
+def test_test_scratch():
+    model = YOLO(CFG)
+    model.test(data='coco8.yaml', imgsz=32)
+
+
 def test_amp():
     if torch.cuda.is_available():
         from ultralytics.yolo.utils.checks import check_amp
@@ -182,6 +192,7 @@ def test_workflow():
     model.train(data='coco8.yaml', epochs=1, imgsz=32)
     model.val()
     model.predict(SOURCE)
+    model.test()
     model.export(format='onnx')  # export a model to ONNX format
 
 

@@ -14,7 +14,7 @@ except ImportError:
     tune = None
 
 default_space = {
-    # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'RMSProp']),
+    # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'NAdam', 'RAdam', 'RMSProp']),
     'lr0': tune.uniform(1e-5, 1e-1),
     'lrf': tune.uniform(0.01, 1.0),  # final OneCycleLR learning rate (lr0 * lrf)
     'momentum': tune.uniform(0.6, 0.98),  # SGD momentum/Adam beta1

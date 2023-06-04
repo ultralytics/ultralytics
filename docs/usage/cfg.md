@@ -94,7 +94,7 @@ The training settings for YOLO models encompass various hyperparameters and conf
 | `name`            | `None`   | experiment name                                                                   |
 | `exist_ok`        | `False`  | whether to overwrite existing experiment                                          |
 | `pretrained`      | `False`  | whether to use a pretrained model                                                 |
-| `optimizer`       | `'auto'` | optimizer to use, choices=[SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto] |
+| `optimizer`       | `'SGD'`  | optimizer to use, choices=[SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto] |
 | `verbose`         | `False`  | whether to print verbose output                                                   |
 | `seed`            | `0`      | random seed for reproducibility                                                   |
 | `deterministic`   | `True`   | whether to enable deterministic mode                                              |

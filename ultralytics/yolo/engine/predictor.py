@@ -225,7 +225,8 @@ class BasePredictor:
 
         use_threads = True
         self.threads = {}
-        self.seen, self.windows, self.batch, profilers, quit = 0, [], None, (ops.Profile(), ops.Profile(), ops.Profile()), False
+        self.seen, self.windows, self.batch, profilers, quit = 0, [], None, (ops.Profile(), ops.Profile(),
+                                                                             ops.Profile()), False
         self.run_callbacks('on_predict_start')
         for batch in self.dataset:
             self.run_callbacks('on_predict_batch_start')
@@ -323,7 +324,6 @@ class BasePredictor:
             cv2.resizeWindow(str(p), im0.shape[1], im0.shape[0])
         cv2.imshow(str(p), im0)
         cv2.waitKey(500 if self.batch[3].startswith('image') else 1)  # 1 millisecond
-
 
     def show_thread(self, p):
         """Display an image in a window using OpenCV imshow() inside a thread."""

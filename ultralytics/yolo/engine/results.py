@@ -71,9 +71,9 @@ class Results(SimpleClass):
         orig_img (numpy.ndarray): The original image as a numpy array.
         path (str): The path to the image file.
         names (dict): A dictionary of class names.
-        boxes (List[List[float]], optional): A list of bounding box coordinates for each detection.
-        masks (numpy.ndarray, optional): A 3D numpy array of detection masks, where each mask is a binary image.
-        probs (numpy.ndarray, optional): A 2D numpy array of detection probabilities for each class.
+        boxes (torch.tensor, optional): A 2D tensor of bounding box coordinates for each detection.
+        masks (torch.tensor, optional): A 3D tensor of detection masks, where each mask is a binary image.
+        probs (torch.tensor, optional): A 1D tensor of probabilities of each class for classification task.
         keypoints (List[List[float]], optional): A list of detected keypoints for each object.
 
 
@@ -82,10 +82,10 @@ class Results(SimpleClass):
         orig_shape (tuple): The original image shape in (height, width) format.
         boxes (Boxes, optional): A Boxes object containing the detection bounding boxes.
         masks (Masks, optional): A Masks object containing the detection masks.
-        probs (numpy.ndarray, optional): A 2D numpy array of detection probabilities for each class.
+        probs (Probs, optional): A Probs object containing probabilities of each class for classification task.
         names (dict): A dictionary of class names.
         path (str): The path to the image file.
-        keypoints (List[List[float]], optional): A list of detected keypoints for each object.
+        keypoints (Keypoints, optional): A Keypoints object containing detected keypoints for each object.
         speed (dict): A dictionary of preprocess, inference and postprocess speeds in milliseconds per image.
         _keys (tuple): A tuple of attribute names for non-empty attributes.
     """
@@ -552,7 +552,7 @@ class Keypoints(BaseTensor):
     @property
     @lru_cache(maxsize=1)
     def conf(self):
-        return self.data[..., 3] if self.has_visible else None
+        return self.data[..., 2] if self.has_visible else None
 
 
 class Probs(BaseTensor):

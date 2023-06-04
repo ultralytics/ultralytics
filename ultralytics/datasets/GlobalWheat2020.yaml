@@ -48,7 +48,7 @@ download: |
   # Move
   for p in 'arvalis_1', 'arvalis_2', 'arvalis_3', 'ethz_1', 'rres_1', 'inrae_1', 'usask_1', \
            'utokyo_1', 'utokyo_2', 'nau_1', 'uq_1':
-      (dir / p).rename(dir / 'images' / p)  # move to /images
-      f = (dir / p).with_suffix('.json')  # json file
+      (dir / 'global-wheat-codalab-official' / p).rename(dir / 'images' / p)  # move to /images
+      f = (dir / 'global-wheat-codalab-official' / p).with_suffix('.json')  # json file
       if f.exists():
           f.rename((dir / 'annotations' / p).with_suffix('.json'))  # move to /annotations

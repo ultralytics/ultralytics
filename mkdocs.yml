@@ -312,6 +312,7 @@ nav:
               - loss: reference/yolo/utils/loss.md
               - metrics: reference/yolo/utils/metrics.md
               - ops: reference/yolo/utils/ops.md
+              - patches: reference/yolo/utils/patches.md
               - plotting: reference/yolo/utils/plotting.md
               - tal: reference/yolo/utils/tal.md
               - torch_utils: reference/yolo/utils/torch_utils.md

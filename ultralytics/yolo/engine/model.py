@@ -305,6 +305,42 @@ class YOLO:
         return validator.metrics
 
     @smart_inference_mode()
+    def test(self, data=None, **kwargs):
+        """
+        Test a model on a given dataset.
+
+        Actually, this method is just an wrapper for the val method with task set to 'test'.
+
+        Args:
+            data (str): The dataset to test on. Accepts all formats accepted by yolo
+            **kwargs : Any other args accepted by the validators. To see all args check 'configuration' section in docs
+
+        Returns:
+            (dict): The test results.
+        """
+        overrides = self.overrides.copy()
+        overrides['rect'] = True  # rect batches as default
+        overrides.update(kwargs)
+        overrides['mode'] = 'test'
+        overrides['split'] = 'test'
+        args = get_cfg(cfg=DEFAULT_CFG, overrides=overrides)
+        args.data = data or args.data
+        if 'task' in overrides:
+            self.task = args.task
+        else:
+            args.task = self.task
+        if args.imgsz == DEFAULT_CFG.imgsz and not isinstance(self.model, (str, Path)):
+            args.imgsz = self.model.args['imgsz']  # use trained imgsz unless custom value is passed
+        args.imgsz = check_imgsz(args.imgsz, max_dim=1)
+
+        validator = TASK_MAP[self.task][2](args=args, _callbacks=self.callbacks)
+        validator(model=self.model)
+        self.metrics = validator.metrics
+
+        return validator.metrics
+
+
+    @smart_inference_mode()
     def benchmark(self, **kwargs):
         """
         Benchmark a model on all export formats.

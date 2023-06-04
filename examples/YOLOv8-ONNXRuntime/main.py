@@ -1,12 +1,16 @@
 import argparse
-import torch
-import onnxruntime as ort
+
 import cv2
 import numpy as np
+import onnxruntime as ort
+import torch
+
+from ultralytics.yolo.utils import ROOT, yaml_load
 from ultralytics.yolo.utils.checks import check_requirements, check_yaml
-from ultralytics.yolo.utils import ROOT,yaml_load
+
 
 class Yolov8:
+
     def __init__(self, onnx_model, input_image, confidence_thres, iou_thres):
         """
         Initializes an instance of the Yolov8 class.
@@ -17,17 +21,16 @@ class Yolov8:
             confidence_thres: Confidence threshold for filtering detections.
             iou_thres: IoU (Intersection over Union) threshold for non-maximum suppression.
         """
-        self.onnx_model = onnx_model 
+        self.onnx_model = onnx_model
         self.input_image = input_image
-        self.confidence_thres = confidence_thres 
+        self.confidence_thres = confidence_thres
         self.iou_thres = iou_thres
-        
+
         # Load the class names from the COCO dataset
         self.classes = yaml_load(check_yaml('coco128.yaml'))['names']
-        
+
         # Generate a color palette for the classes
         self.color_palette = np.random.uniform(0, 255, size=(len(self.classes), 3))
-
 
     def draw_detections(self, img, box, score, class_id):
         """
@@ -40,7 +43,7 @@ class Yolov8:
             class_id: Class ID for the detected object.
 
         Returns:
-            None 
+            None
         """
 
         # Extract the coordinates of the bounding box
@@ -50,10 +53,10 @@ class Yolov8:
         color = self.color_palette[class_id]
 
         # Draw the bounding box on the image
-        cv2.rectangle(img, (int(x1), int(y1)), (int(x1+w), int(y1+h)), color, 2)
+        cv2.rectangle(img, (int(x1), int(y1)), (int(x1 + w), int(y1 + h)), color, 2)
 
         # Create the label text with class name and score
-        label = f"{self.classes[class_id]}: {score:.2f}"
+        label = f'{self.classes[class_id]}: {score:.2f}'
 
         # Calculate the dimensions of the label text
         (label_width, label_height), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
@@ -63,7 +66,8 @@ class Yolov8:
         label_y = y1 - 10 if y1 - 10 > label_height else y1 + 10
 
         # Draw a filled rectangle as the background for the label text
-        cv2.rectangle(img, (label_x, label_y - label_height), (label_x + label_width, label_y + label_height), color, cv2.FILLED)
+        cv2.rectangle(img, (label_x, label_y - label_height), (label_x + label_width, label_y + label_height), color,
+                      cv2.FILLED)
 
         # Draw the label text on the image
         cv2.putText(img, label, (label_x, label_y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
@@ -98,7 +102,7 @@ class Yolov8:
 
         # Return the preprocessed image data
         return image_data
-    
+
     def postprocess(self, input_image, output):
         """
         Performs post-processing on the model's output to extract bounding boxes, scores, and class IDs.
@@ -143,8 +147,8 @@ class Yolov8:
                 x, y, w, h = outputs[i][0], outputs[i][1], outputs[i][2], outputs[i][3]
 
                 # Calculate the scaled coordinates of the bounding box
-                left = int((x - w/2) * x_factor)
-                top = int((y - h/2) * y_factor)
+                left = int((x - w / 2) * x_factor)
+                top = int((y - h / 2) * y_factor)
                 width = int(w * x_factor)
                 height = int(h * y_factor)
 
@@ -168,7 +172,7 @@ class Yolov8:
 
         # Return the modified input image
         return input_image
-    
+
     def main(self):
         """
         Performs inference using an ONNX model and returns the output image with drawn detections.
@@ -198,14 +202,15 @@ class Yolov8:
 
         # Return the resulting output image
         return output_img
-    
-if __name__ == "__main__":
+
+
+if __name__ == '__main__':
     # Create an argument parser to handle command-line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, default='yolov8n.onnx', help='Input your ONNX model.')
     parser.add_argument('--img', type=str, default=str(ROOT / 'assets/bus.jpg'), help='Path to input image.')
-    parser.add_argument('--conf-thres', type=float, default=0.5, help="Confidence threshold")
-    parser.add_argument('--iou-thres', type=float, default=0.5, help="NMS IoU threshold")
+    parser.add_argument('--conf-thres', type=float, default=0.5, help='Confidence threshold')
+    parser.add_argument('--iou-thres', type=float, default=0.5, help='NMS IoU threshold')
     args = parser.parse_args()
 
     # Check the requirements and select the appropriate backend (CPU or GPU)
@@ -218,8 +223,8 @@ if __name__ == "__main__":
     output_image = detection.main()
 
     # Display the output image in a window
-    cv2.namedWindow("Output", cv2.WINDOW_NORMAL)
-    cv2.imshow("Output", output_image)
+    cv2.namedWindow('Output', cv2.WINDOW_NORMAL)
+    cv2.imshow('Output', output_image)
 
     # Wait for a key press to exit
     cv2.waitKey(0)

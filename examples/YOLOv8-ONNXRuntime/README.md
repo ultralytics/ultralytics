@@ -41,4 +41,3 @@ python main.py --model yolov8n.onnx --img image.jpg --conf-thres 0.5 --iou-thres
 ```
 
 Make sure to replace yolov8n.onnx with the path to your YOLOv8 ONNX model file, image.jpg with the path to your input image, and adjust the confidence threshold (conf-thres) and IoU threshold (iou-thres) values as needed.
-

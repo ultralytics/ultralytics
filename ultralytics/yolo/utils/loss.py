@@ -178,10 +178,10 @@ class v8DetectionLoss:
 # Criterion class for computing training losses
 class v8SegmentationLoss(v8DetectionLoss):
 
-    def __init__(self, model, overlap=True):  # model must be de-paralleled
+    def __init__(self, model):  # model must be de-paralleled
         super().__init__(model)
         self.nm = model.model[-1].nm  # number of masks
-        self.overlap = overlap
+        self.overlap = model.args.overlap_mask
 
     def __call__(self, preds, batch):
         """Calculate and return the loss for the YOLO model."""

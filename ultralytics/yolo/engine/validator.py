@@ -124,7 +124,7 @@ class BaseValidator:
                     LOGGER.info(f'Forcing batch=1 square inference (1,3,{imgsz},{imgsz}) for non-PyTorch models')
 
             if isinstance(self.args.data, str) and self.args.data.endswith('.yaml'):
-                self.data = check_det_dataset(self.args.data)
+                self.data = check_det_dataset(self.args.data, split=self.args.split)
             elif self.args.task == 'classify':
                 self.data = check_cls_dataset(self.args.data, split=self.args.split)
             else:

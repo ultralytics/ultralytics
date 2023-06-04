@@ -190,7 +190,7 @@ def polygons2masks_overlap(imgsz, segments, downsample_ratio=1):
     return masks, index
 
 
-def check_det_dataset(dataset, autodownload=True):
+def check_det_dataset(dataset, split='', autodownload=True):
     """Download, check and/or unzip dataset if not found locally."""
     data = check_file(dataset)
 
@@ -262,6 +262,14 @@ def check_det_dataset(dataset, autodownload=True):
             s = f"success ✅ {dt}, saved to {colorstr('bold', DATASETS_DIR)}" if r in (0, None) else f'failure {dt} ❌'
             LOGGER.info(f'Dataset download {s}\n')
     check_font('Arial.ttf' if is_ascii(data['names']) else 'Arial.Unicode.ttf')  # download fonts
+
+    # Check whether val or test is missing, and fix by set to test to val or vice versa
+    if split == 'val' and not data.get('val'):
+        LOGGER.info("WARNING ⚠️ Dataset 'split=val' not found, using 'split=test' instead.")
+        data['val'] = data.get('test')
+    elif split == 'test' and not data.get('test'):
+        LOGGER.info("WARNING ⚠️ Dataset 'split=test' not found, using 'split=val' instead.")
+        data['test'] = data.get('val')
 
     return data  # dictionary
 

@@ -94,7 +94,7 @@ class LoadStreams:
     def __next__(self):
         """Returns source paths, transformed and original images for processing YOLOv5."""
         self.count += 1
-        if not all(x.is_alive() for x in self.threads) or cv2.waitKey(1) == ord('q'):  # q to quit
+        if not all(x.is_alive() for x in self.threads):
             cv2.destroyAllWindows()
             raise StopIteration
 

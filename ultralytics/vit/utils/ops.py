@@ -129,24 +129,24 @@ def get_cdn_group(targets,
                   num_queries,
                   class_embed,
                   num_dn=100,
-                  label_noise_ratio=0.5,
+                  cls_noise_ratio=0.5,
                   box_noise_scale=1.0,
                   training=False):
     """get contrastive denoising training group"""
     if (not training) or num_dn <= 0:
         return None, None, None, None
     num_gts = [len(t) for t in targets['cls']]
-    max_gt_num = max(num_gts)
-    if max_gt_num == 0:
+    max_nums = max(num_gts)
+    if max_nums == 0:
         return None, None, None, None
 
-    num_group = num_dn // max_gt_num
+    num_group = num_dn // max_nums
     num_group = 1 if num_group == 0 else num_group
     # pad gt to max_num of a batch
     bs = len(targets['cls'])
-    gt_cls = torch.full([bs, max_gt_num], num_classes)  # bs, max_gt_num
-    gt_bbox = torch.zeros([bs, max_gt_num, 4])
-    mask_gt = torch.zeros([bs, max_gt_num])
+    gt_cls = torch.full([bs, max_nums], num_classes)  # bs, max_gt_num
+    gt_bbox = torch.zeros([bs, max_nums, 4])
+    mask_gt = torch.zeros([bs, max_nums])
     for i in range(bs):
         num_gt = num_gts[i]
         if num_gt > 0:
@@ -158,21 +158,21 @@ def get_cdn_group(targets,
     dn_bbox = gt_bbox.repeat(1, 2 * num_group, 1)  # bs, 2* max_gt_num * num_group, 4
     mask_gt = mask_gt.repeat(1, 2 * num_group)
     # positive and negative mask
-    neg_idx = torch.zeros([bs, max_gt_num * 2], dtype=torch.bool)
-    neg_idx[:, max_gt_num:] = 1
+    neg_idx = torch.zeros([bs, max_nums * 2], dtype=torch.bool)
+    neg_idx[:, max_nums:] = 1
     neg_idx = neg_idx.repeat(1, num_group)  # bs, 2* max_gt_num * num_group
     # contrastive denoising training positive index
     pos_idx = (~neg_idx) * mask_gt  # bs, 2* max_gt_num * num_group
     dn_pos_idx = torch.nonzero(pos_idx)[:, 1]
     dn_pos_idx = torch.split(dn_pos_idx, [n * num_group for n in num_gts])
     # total denoising queries
-    num_dn = int(max_gt_num * 2 * num_group)
+    num_dn = int(max_nums * 2 * num_group)
 
-    if label_noise_ratio > 0:
+    if cls_noise_ratio > 0:
         dn_cls = dn_cls.view(-1)
         mask_gt = mask_gt.view(-1)
         # half of bbox prob
-        mask = torch.rand(dn_cls.shape) < (label_noise_ratio * 0.5)
+        mask = torch.rand(dn_cls.shape) < (cls_noise_ratio * 0.5)
         idx = torch.nonzero(mask * mask_gt).squeeze(-1)
         # randomly put a new one here
         new_label = torch.randint_like(idx, 0, num_classes, dtype=dn_cls.dtype)
@@ -206,12 +206,12 @@ def get_cdn_group(targets,
     # reconstruct cannot see each other
     for i in range(num_group):
         if i == 0:
-            attn_mask[max_gt_num * 2 * i:max_gt_num * 2 * (i + 1), max_gt_num * 2 * (i + 1):num_dn] = True
+            attn_mask[max_nums * 2 * i:max_nums * 2 * (i + 1), max_nums * 2 * (i + 1):num_dn] = True
         if i == num_group - 1:
-            attn_mask[max_gt_num * 2 * i:max_gt_num * 2 * (i + 1), :max_gt_num * i * 2] = True
+            attn_mask[max_nums * 2 * i:max_nums * 2 * (i + 1), :max_nums * i * 2] = True
         else:
-            attn_mask[max_gt_num * 2 * i:max_gt_num * 2 * (i + 1), max_gt_num * 2 * (i + 1):num_dn] = True
-            attn_mask[max_gt_num * 2 * i:max_gt_num * 2 * (i + 1), :max_gt_num * 2 * i] = True
+            attn_mask[max_nums * 2 * i:max_nums * 2 * (i + 1), max_nums * 2 * (i + 1):num_dn] = True
+            attn_mask[max_nums * 2 * i:max_nums * 2 * (i + 1), :max_nums * 2 * i] = True
     attn_mask = ~attn_mask
     dn_meta = {
         'dn_pos_idx': dn_pos_idx,

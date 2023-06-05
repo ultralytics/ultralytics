@@ -131,9 +131,10 @@ def safe_download(url,
             a successful download. Default: 1E0.
         progress (bool, optional): Whether to display a progress bar during the download. Default: True.
     """
-    if '://' not in str(url) and Path(url).is_file():  # exists ('://' check required in Windows Python<3.10)
+    f = dir / url2file(url) if dir else Path(file)  # URL converted to filename
+    if '://' not in str(url) and Path(url).is_file():  # URL exists ('://' check required in Windows Python<3.10)
         f = Path(url)  # filename
-    else:  # does not exist
+    elif not f.is_file():  # URL and file do not exist
         assert dir or file, 'dir or file required for download'
         f = dir / url2file(url) if dir else Path(file)
         desc = f'Downloading {clean_url(url)} to {f}'

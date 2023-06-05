@@ -224,7 +224,7 @@ class RTDETRDecoder(nn.Module):
         memory, shapes = self._get_encoder_input(feats)
 
         # prepare denoising training
-        denoising_class, denoising_bbox_unact, attn_mask, dn_meta = \
+        dn_cls_embed, dn_bbox, attn_mask, dn_meta = \
             get_cdn_group(batch,
                           self.nc,
                           self.num_queries,
@@ -235,7 +235,7 @@ class RTDETRDecoder(nn.Module):
                           self.training)
 
         target, init_ref_points_unact, enc_topk_bboxes, enc_topk_logits = \
-            self._get_decoder_input(memory, shapes, denoising_class, denoising_bbox_unact)
+            self._get_decoder_input(memory, shapes, dn_cls_embed, dn_bbox)
 
         # decoder
         out_bboxes, out_logits = self.decoder(target,
@@ -286,7 +286,7 @@ class RTDETRDecoder(nn.Module):
         feat_flatten = torch.cat(feat_flatten, 1)
         return feat_flatten, shapes
 
-    def _get_decoder_input(self, memory, shapes, denoising_class=None, denoising_bbox_unact=None):
+    def _get_decoder_input(self, memory, shapes, dn_cls_embed=None, dn_bbox=None):
         bs = len(memory)
         # prepare input for decoder
         anchors, valid_mask = self._generate_anchors(shapes, dtype=memory.dtype, device=memory.device)
@@ -305,8 +305,8 @@ class RTDETRDecoder(nn.Module):
         reference_points_unact = enc_outputs_coord_unact[batch_ind, topk_ind].view(bs, self.num_queries, -1)
 
         enc_topk_bboxes = reference_points_unact.sigmoid()
-        if denoising_bbox_unact is not None:
-            reference_points_unact = torch.cat([denoising_bbox_unact, reference_points_unact], 1)
+        if dn_bbox is not None:
+            reference_points_unact = torch.cat([dn_bbox, reference_points_unact], 1)
         if self.training:
             reference_points_unact = reference_points_unact.detach()
         enc_topk_logits = enc_outputs_class[batch_ind, topk_ind].view(bs, self.num_queries, -1)
@@ -318,8 +318,8 @@ class RTDETRDecoder(nn.Module):
             target = output_memory[batch_ind, topk_ind].view(bs, self.num_queries, -1)
             if self.training:
                 target = target.detach()
-        if denoising_class is not None:
-            target = torch.cat([denoising_class, target], 1)
+        if dn_cls_embed is not None:
+            target = torch.cat([dn_cls_embed, target], 1)
 
         return target, reference_points_unact, enc_topk_bboxes, enc_topk_logits
 

@@ -197,7 +197,7 @@ def get_cdn_group(targets,
 
     class_embed = torch.cat([class_embed, torch.zeros([1, class_embed.shape[-1]], device=class_embed.device)])
 
-    dn_cls = class_embed[dn_cls.view(-1)].view(bs, num_dn, -1)
+    dn_cls_embed = class_embed[dn_cls.view(-1)].view(bs, num_dn, -1)  # bs, max_nums * 2 * num_group, 256
 
     tgt_size = num_dn + num_queries
     attn_mask = torch.zeros([tgt_size, tgt_size], dtype=torch.bool)
@@ -215,7 +215,7 @@ def get_cdn_group(targets,
     attn_mask = ~attn_mask
     dn_meta = {'dn_pos_idx': dn_pos_idx, 'dn_num_group': num_group, 'dn_num_split': [num_dn, num_queries]}
 
-    return dn_cls.to(class_embed.device), dn_bbox.to(class_embed.device), attn_mask, dn_meta
+    return dn_cls_embed.to(class_embed.device), dn_bbox.to(class_embed.device), attn_mask, dn_meta
 
 
 def inverse_sigmoid(x, eps=1e-6):

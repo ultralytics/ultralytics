@@ -158,12 +158,11 @@ def get_cdn_group(targets,
     dn_bbox = gt_bbox.repeat(1, 2 * num_group, 1)  # bs, 2* max_gt_num * num_group, 4
     mask_gt = mask_gt.repeat(1, 2 * num_group)
     # positive and negative mask
-    neg_idx = torch.zeros([bs, max_gt_num * 2, 1])
+    neg_idx = torch.zeros([bs, max_gt_num * 2], dtype=torch.bool)
     neg_idx[:, max_gt_num:] = 1
-    neg_idx = neg_idx.repeat(1, num_group, 1)  # bs, 2* max_gt_num * num_group, 1
-    pos_idx = 1 - neg_idx  # bs, 2* max_gt_num * num_group, 1
+    neg_idx = neg_idx.repeat(1, num_group)  # bs, 2* max_gt_num * num_group
     # contrastive denoising training positive index
-    pos_idx = pos_idx.squeeze(-1) * mask_gt  # bs, 2* max_gt_num * num_group
+    pos_idx = (~neg_idx) * mask_gt  # bs, 2* max_gt_num * num_group
     dn_pos_idx = torch.nonzero(pos_idx)[:, 1]
     dn_pos_idx = torch.split(dn_pos_idx, [n * num_group for n in num_gts])
     # total denoising queries

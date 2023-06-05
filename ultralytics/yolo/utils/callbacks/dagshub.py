@@ -51,12 +51,17 @@ def on_pretrain_routine_end(trainer):
     # log dataset to repository
     if os.getenv('DAGSHUB_LOG_DATASET', '').lower() == 'true':
         dataset = trainer.data['path'].as_posix().split('/')[-1]
-        repo.directory(f'data/{dataset}').add_dir(trainer.data['path'].as_posix(), commit_message=f'added {dataset}', force=True)
+        repo.directory(f'data/{dataset}').add_dir(trainer.data['path'].as_posix(),
+                                                  commit_message=f'added {dataset}',
+                                                  force=True)
 
 
 def on_model_save(trainer):
     # log artifacts to dagshub storage
-    repo.directory('artifacts').add_dir(trainer.save_dir.as_posix(), glob_exclude='*.yaml', commit_message='added artifacts', force=True)
+    repo.directory('artifacts').add_dir(trainer.save_dir.as_posix(),
+                                        glob_exclude='*.yaml',
+                                        commit_message='added artifacts',
+                                        force=True)
     for file in glob(os.path.join(trainer.save_dir.as_posix(), '*.yaml')):
         repo.upload(file,
                     directory_path='.',

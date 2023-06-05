@@ -165,7 +165,7 @@ class RTDETRDecoder(nn.Module):
             ch=(512, 1024, 2048),
             hd=256,  # hidden dim
             nq=300,  # num queries
-            ndp=4, # num decoder points
+            ndp=4,  # num decoder points
             nh=8,  # num head
             ndl=6,  # num decoder layers
             d_ffn=1024,  # dim of feedforward
@@ -186,10 +186,9 @@ class RTDETRDecoder(nn.Module):
         self.num_decoder_layers = ndl
 
         # backbone feature projection
-        self.input_proj = nn.ModuleList(nn.Sequential(nn.Conv2d(x, hd, 1, bias=False),
-                                                      nn.BatchNorm2d(hd)) for x in ch)
+        self.input_proj = nn.ModuleList(nn.Sequential(nn.Conv2d(x, hd, 1, bias=False), nn.BatchNorm2d(hd)) for x in ch)
         # NOTE: simplified version but is not consistent with .pt weights.
-        # self.input_proj = nn.ModuleList(Conv(x, hd, act=False) for x in ch)  
+        # self.input_proj = nn.ModuleList(Conv(x, hd, act=False) for x in ch)
 
         # Transformer module
         decoder_layer = DeformableTransformerDecoderLayer(hd, nh, d_ffn, dropout, act, self.nl, ndp)
@@ -214,8 +213,7 @@ class RTDETRDecoder(nn.Module):
 
         # decoder head
         self.dec_score_head = nn.ModuleList([nn.Linear(hd, nc) for _ in range(ndl)])
-        self.dec_bbox_head = nn.ModuleList([
-            MLP(hd, hd, 4, num_layers=3) for _ in range(ndl)])
+        self.dec_bbox_head = nn.ModuleList([MLP(hd, hd, 4, num_layers=3) for _ in range(ndl)])
 
         # self._reset_parameters()
 
@@ -233,7 +231,7 @@ class RTDETRDecoder(nn.Module):
                           self.denoising_class_embed.weight,
                           self.num_denoising,
                           self.label_noise_ratio,
-                          self.box_noise_scale, 
+                          self.box_noise_scale,
                           self.training)
 
         target, init_ref_points_unact, enc_topk_bboxes, enc_topk_logits = \
@@ -346,4 +344,3 @@ class RTDETRDecoder(nn.Module):
         xavier_uniform_(self.query_pos_head.layers[1].weight)
         for layer in self.input_proj:
             xavier_uniform_(layer[0].weight)
-

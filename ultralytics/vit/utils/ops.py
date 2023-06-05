@@ -213,10 +213,7 @@ def get_cdn_group(targets,
             attn_mask[max_nums * 2 * i:max_nums * 2 * (i + 1), max_nums * 2 * (i + 1):num_dn] = True
             attn_mask[max_nums * 2 * i:max_nums * 2 * (i + 1), :max_nums * 2 * i] = True
     attn_mask = ~attn_mask
-    dn_meta = {
-        'dn_pos_idx': dn_pos_idx,
-        'dn_num_group': num_group,
-        'dn_num_split': [num_dn, num_queries]}
+    dn_meta = {'dn_pos_idx': dn_pos_idx, 'dn_num_group': num_group, 'dn_num_split': [num_dn, num_queries]}
 
     return dn_cls.to(class_embed.device), dn_bbox.to(class_embed.device), attn_mask, dn_meta
 

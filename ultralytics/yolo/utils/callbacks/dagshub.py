@@ -30,27 +30,33 @@ def splitter(repo):
 
 
 def on_pretrain_routine_end(trainer):
-    # setup dagshub repository and mlflow tracking uri
-    global repo, artifacts
+    global repo
 
+    # get dagshub remote information
     repo_name, repo_owner = os.getenv('DAGSHUB_REPO_NAME', None), os.getenv('DAGSHUB_REPO_OWNER', None)
     if not repo_name or not repo_owner:
         repo_name, repo_owner = splitter(input('Please insert your repository owner_name/repo_name:'))
 
+    # setup dagshub repository and artifacts directory
     dagshub.init(repo_name=repo_name, repo_owner=repo_owner)
     repo = Repo(owner=repo_owner, name=repo_name, branch=os.getenv('DAGSHUB_REPO_BRANCH', 'main'))
-    artifacts = repo.directory('artifacts')
 
+    # setup mlflow tracking uri
     if is_mlflow:
         token = dagshub.auth.get_token()
         os.environ['MLFLOW_TRACKING_USERNAME'] = token
         os.environ['MLFLOW_TRACKING_PASSWORD'] = token
         os.environ['MLFLOW_TRACKING_URI'] = f'https://dagshub.com/{repo_owner}/{repo_name}.mlflow'
 
+    # log dataset to repository
+    if os.getenv('DAGSHUB_LOG_DATASET', '').lower() == 'true':
+        dataset = trainer.data['path'].as_posix().split('/')[-1]
+        repo.directory(f'data/{dataset}').add_dir(trainer.data['path'].as_posix(), commit_message=f'added {dataset}', force=True)
+
 
 def on_model_save(trainer):
     # log artifacts to dagshub storage
-    artifacts.add_dir(trainer.save_dir.as_posix(), glob_exclude='*.yaml', commit_message='added artifacts', force=True)
+    repo.directory('artifacts').add_dir(trainer.save_dir.as_posix(), glob_exclude='*.yaml', commit_message='added artifacts', force=True)
     for file in glob(os.path.join(trainer.save_dir.as_posix(), '*.yaml')):
         repo.upload(file,
                     directory_path='.',
@@ -68,6 +74,6 @@ def on_export_end(exporter):
 
 
 callbacks = {
-    'on_pretrain_routine_end': on_pretrain_routine_end,
     'on_model_save': on_model_save,
+    'on_pretrain_routine_end': on_pretrain_routine_end,
     'on_export_end': on_export_end} if dagshub else {}

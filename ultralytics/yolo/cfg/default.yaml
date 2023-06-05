@@ -5,7 +5,7 @@ task: detect  # YOLO task, i.e. detect, segment, classify, pose
 mode: train  # YOLO mode, i.e. train, val, predict, export, track, benchmark
 
 # Train settings -------------------------------------------------------------------------------------------------------
-model:  # path to model file, i.e. yolov8n.pt, yolov8n.yaml
+model: yolov8l-pose.pt # path to model file, i.e. yolov8n.pt, yolov8n.yaml
 data:  # path to data file, i.e. coco128.yaml
 epochs: 100  # number of epochs to train for
 patience: 50  # epochs to wait for no observable improvement for early stopping of training
@@ -14,7 +14,7 @@ imgsz: 640  # size of input images as integer or w,h
 save: True  # save train checkpoints and predict results
 save_period: -1 # Save checkpoint every x epochs (disabled if < 1)
 cache: False  # True/ram, disk or False. Use cache for data loading
-device:  # device to run on, i.e. cuda device=0 or device=0,1,2,3 or device=cpu
+device: 0 # device to run on, i.e. cuda device=0 or device=0,1,2,3 or device=cpu
 workers: 8  # number of worker threads for data loading (per RANK if DDP)
 project:  # project name
 name:  # experiment name, results saved to 'project/name' directory
@@ -51,7 +51,7 @@ dnn: False  # use OpenCV DNN for ONNX inference
 plots: True  # save plots during train/val
 
 # Prediction settings --------------------------------------------------------------------------------------------------
-source:  # source directory for images or videos
+source: test.jpg # source directory for images or videos
 show: False  # show results if possible
 save_txt: False  # save results as .txt file
 save_conf: False  # save results with confidence scores

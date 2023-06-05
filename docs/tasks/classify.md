@@ -7,7 +7,7 @@ Image classification is the simplest of the three tasks and involves classifying
 predefined classes.
 
 <br>
-<img width="1024" src="https://raw.githubusercontent.com/ultralytics/assets/tasks/im/banner-tasks.png">
+<img width="1024" src="https://user-images.githubusercontent.com/26833433/243418606-adf35c62-2e11-405d-84c6-b84e7d013804.png">
 
 The output of an image classifier is a single class label and a confidence score. Image
 classification is useful when you need to know only what class an image belongs to and don't need to know where objects

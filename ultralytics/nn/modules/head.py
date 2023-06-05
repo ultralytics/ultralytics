@@ -234,12 +234,12 @@ class RTDETRDecoder(nn.Module):
                           self.box_noise_scale,
                           self.training)
 
-        target, init_ref_points_unact, enc_topk_bboxes, enc_topk_logits = \
+        cls_embed, refer_bbox, enc_bboxes, enc_cls = \
             self._get_decoder_input(memory, shapes, dn_cls_embed, dn_bbox)
 
         # decoder
-        out_bboxes, out_logits = self.decoder(target,
-                                              init_ref_points_unact,
+        out_bboxes, out_logits = self.decoder(cls_embed,
+                                              refer_bbox,
                                               memory,
                                               shapes,
                                               self.dec_bbox_head,
@@ -248,7 +248,7 @@ class RTDETRDecoder(nn.Module):
                                               attn_mask=attn_mask)
         if not self.training:
             out_logits = out_logits.sigmoid_()
-        return out_bboxes, out_logits, enc_topk_bboxes, enc_topk_logits, dn_meta
+        return out_bboxes, out_logits, enc_bboxes, enc_cls, dn_meta
 
     def _generate_anchors(self, shapes, grid_size=0.05, dtype=torch.float32, device='cpu', eps=1e-2):
         anchors = []
@@ -293,7 +293,7 @@ class RTDETRDecoder(nn.Module):
         output_memory = self.enc_output(torch.where(valid_mask, memory, 0))  # bs, h*w, 256
 
         enc_outputs_class = self.enc_score_head(output_memory)  # (bs, h*w, nc)
-        enc_outputs_coord_unact = self.enc_bbox_head(output_memory) + anchors  # (bs, h*w, 4)
+        enc_outputs_coord = self.enc_bbox_head(output_memory) + anchors  # (bs, h*w, 4)
 
         # extract region proposal boxes
         # (bs, num_queries)
@@ -302,26 +302,26 @@ class RTDETRDecoder(nn.Module):
         batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
 
         # Unsigmoided
-        reference_points_unact = enc_outputs_coord_unact[batch_ind, topk_ind].view(bs, self.num_queries, -1)
+        refer_bbox = enc_outputs_coord[batch_ind, topk_ind].view(bs, self.num_queries, -1)
 
-        enc_topk_bboxes = reference_points_unact.sigmoid()
+        enc_bboxes = refer_bbox.sigmoid()
         if dn_bbox is not None:
-            reference_points_unact = torch.cat([dn_bbox, reference_points_unact], 1)
+            refer_bbox = torch.cat([dn_bbox, refer_bbox], 1)
         if self.training:
-            reference_points_unact = reference_points_unact.detach()
-        enc_topk_logits = enc_outputs_class[batch_ind, topk_ind].view(bs, self.num_queries, -1)
+            refer_bbox = refer_bbox.detach()
+        enc_cls = enc_outputs_class[batch_ind, topk_ind].view(bs, self.num_queries, -1)
 
         # extract region features
         if self.learnt_init_query:
-            target = self.tgt_embed.weight.unsqueeze(0).repeat(bs, 1, 1)
+            cls_embed = self.tgt_embed.weight.unsqueeze(0).repeat(bs, 1, 1)
         else:
-            target = output_memory[batch_ind, topk_ind].view(bs, self.num_queries, -1)
+            cls_embed = output_memory[batch_ind, topk_ind].view(bs, self.num_queries, -1)
             if self.training:
-                target = target.detach()
+                cls_embed = cls_embed.detach()
         if dn_cls_embed is not None:
-            target = torch.cat([dn_cls_embed, target], 1)
+            cls_embed = torch.cat([dn_cls_embed, cls_embed], 1)
 
-        return target, reference_points_unact, enc_topk_bboxes, enc_topk_logits
+        return cls_embed, refer_bbox, enc_bboxes, enc_cls
 
     def _reset_parameters(self):
         # class and bbox head init

@@ -67,7 +67,10 @@ def _create_experiment(args):
         return
     try:
         comet_mode = _get_comet_mode()
-        experiment = _get_experiment_type(comet_mode, args.project)
+        
+        _project_name = os.environ.get('COMET_PROJECT_NAME', args.project)
+        experiment = _get_experiment_type(comet_mode, _project_name)
+        
         experiment.log_parameters(vars(args))
         experiment.log_others({
             'eval_batch_logging_interval': _get_eval_batch_logging_interval(),

@@ -224,9 +224,9 @@ class BasePredictor:
             self.done_warmup = True
 
         use_threads = True
+        profilers = ops.Profile(), ops.Profile(), ops.Profile()
         self.threads = {}
-        self.seen, self.windows, self.batch, profilers, quit = 0, [], None, (ops.Profile(), ops.Profile(),
-                                                                             ops.Profile()), False
+        self.seen, self.windows, self.batch, quit = 0, [], None, False
         self.run_callbacks('on_predict_start')
         for batch in self.dataset:
             self.run_callbacks('on_predict_batch_start')

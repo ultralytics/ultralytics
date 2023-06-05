@@ -28,9 +28,9 @@ Usage - formats:
                               yolov8n_paddle_model       # PaddlePaddle
 """
 import platform
+import time
 from pathlib import Path
 from threading import Thread
-import time
 
 import cv2
 import numpy as np
@@ -110,9 +110,9 @@ class BasePredictor:
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 
-        self.end = [time.time()] * 5 # TEST
-        self.start = [time.time()] * 5 # TEST
-        self.elapsed = [time.time()] * 5 # TEST
+        self.end = [time.time()] * 5  # TEST
+        self.start = [time.time()] * 5  # TEST
+        self.elapsed = [time.time()] * 5  # TEST
 
     def preprocess(self, im):
         """Prepares input image before inference.
@@ -231,8 +231,8 @@ class BasePredictor:
         use_threads = True
         profilers = ops.Profile(), ops.Profile(), ops.Profile()
         self.threads = {}
-        self.fps = None # TEST
-        self.ifps = None # TEST
+        self.fps = None  # TEST
+        self.ifps = None  # TEST
         self.seen, self.windows, self.batch, quit = 0, [], None, False
         self.run_callbacks('on_predict_start')
         for batch in self.dataset:
@@ -271,11 +271,11 @@ class BasePredictor:
                     s += self.write_results(i, self.results, (p, im, im0))
 
                 if self.args.show and self.plotted_img is not None:
-                    if (self.fps == None): # TEST
-                        self.fps = [None] * n # TEST
-                        self.ifps = [None] * n # TEST
-                    self.fps[i] = 1 / self.elapsed[0] # TEST
-                    self.ifps[i] = 1 / profilers[1].dt # TEST
+                    if (self.fps == None):  # TEST
+                        self.fps = [None] * n  # TEST
+                        self.ifps = [None] * n  # TEST
+                    self.fps[i] = 1 / self.elapsed[0]  # TEST
+                    self.ifps[i] = 1 / profilers[1].dt  # TEST
                     if (use_threads and not self.batch[3].startswith('image')):
                         if self.threads.get(i) is None:
                             self.threads[i] = Thread(target=self.show_thread, args=([p, i]), daemon=True)
@@ -289,9 +289,9 @@ class BasePredictor:
             self.run_callbacks('on_predict_batch_end')
             yield from self.results
 
-            self.end[i] = time.time() # TEST
-            self.elapsed[i] = self.end[i] - self.start[i] # TEST
-            self.start[i] = time.time() # TEST
+            self.end[i] = time.time()  # TEST
+            self.elapsed[i] = self.end[i] - self.start[i]  # TEST
+            self.start[i] = time.time()  # TEST
 
             # Print time (inference-only) + TEST Total time per frame
             if self.args.verbose:
@@ -348,8 +348,8 @@ class BasePredictor:
             cv2.namedWindow(str(p), cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
             cv2.resizeWindow(str(p), self.plotted_img.shape[1], self.plotted_img.shape[0])
         while (True):
-            cv2.putText(self.plotted_img, f"{self.fps[i]:.2f} fps {self.ifps[i]:.2f} ifps", (15, 30), cv2.FONT_HERSHEY_SIMPLEX,
-                    0.6, (0, 255, 0), 2) # TEST
+            cv2.putText(self.plotted_img, f'{self.fps[i]:.2f} fps {self.ifps[i]:.2f} ifps', (15, 30),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)  # TEST
             cv2.imshow(str(p), self.plotted_img)
             if cv2.waitKey(1) == ord('q'):
                 cv2.destroyAllWindows()

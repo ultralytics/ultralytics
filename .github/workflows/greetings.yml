@@ -31,6 +31,8 @@ jobs:
             If this is a 🐛 Bug Report, please provide a [minimum reproducible example](https://docs.ultralytics.com/help/minimum_reproducible_example/) to help us debug it.
 
             If this is a custom training ❓ Question, please provide as much information as possible, including dataset image examples and training logs, and verify you are following our [Tips for Best Training Results](https://docs.ultralytics.com/yolov5/tutorials/tips_for_best_training_results/).
+            
+            Join the [Ultralytics Discord](https://discord.gg/YVsATxj6wr) 🎧 community for discussions, questions, and/or support with other community members regarding any Ultralytics products.
 
             ## Install
 

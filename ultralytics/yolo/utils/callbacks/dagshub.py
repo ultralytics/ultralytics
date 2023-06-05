@@ -13,6 +13,7 @@ from .mlflow import mlflow as is_mlflow
 try:
     import dagshub
     from dagshub.upload import Repo
+    from dagshub.upload.wrapper import DataSet
 
     assert not TESTS_RUNNING  # do not log pytest
     assert hasattr(dagshub, '__version__')  # verify package is not directory
@@ -56,6 +57,15 @@ def on_pretrain_routine_end(trainer):
                                                   force=True)
 
 
+def on_val_end(validator):
+    if os.getenv('DAGSHUB_LOG_SAMPLE', '').lower() == 'true':
+        # upload a sample (1 batch) of the dataset
+        repo.upload_files([DataSet.get_file(file, f"sample/{file.split('/')[-1]}") for file in next(validator.dataloader.iterator)['im_file']],
+                          commit_message='added sample batch',
+                          versioning='dvc',
+                          force=True)
+
+
 def on_model_save(trainer):
     # log artifacts to dagshub storage
     repo.directory('artifacts').add_dir(trainer.save_dir.as_posix(),
@@ -80,5 +90,6 @@ def on_export_end(exporter):
 
 callbacks = {
     'on_model_save': on_model_save,
+    'on_val_end': on_val_end,
     'on_pretrain_routine_end': on_pretrain_routine_end,
     'on_export_end': on_export_end} if dagshub else {}

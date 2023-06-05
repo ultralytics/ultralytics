@@ -220,32 +220,30 @@ class RTDETRDecoder(nn.Module):
         # self._reset_parameters()
 
     def forward(self, feats, batch=None):
-        from ultralytics.vit.utils.ops import get_contrastive_denoising_training_group
+        from ultralytics.vit.utils.ops import get_cdn_group
 
         # input projection and embedding
-        memory, spatial_shapes = self._get_encoder_input(feats)
+        memory, shapes = self._get_encoder_input(feats)
 
         # prepare denoising training
-        if self.training:
-            denoising_class, denoising_bbox_unact, attn_mask, dn_meta = \
-                get_contrastive_denoising_training_group(batch,
-                                                         self.nc,
-                                                         self.num_queries,
-                                                         self.denoising_class_embed.weight,
-                                                         self.num_denoising,
-                                                         self.label_noise_ratio,
-                                                         self.box_noise_scale)
-        else:
-            denoising_class, denoising_bbox_unact, attn_mask, dn_meta = None, None, None, None
+        denoising_class, denoising_bbox_unact, attn_mask, dn_meta = \
+            get_cdn_group(batch,
+                          self.nc,
+                          self.num_queries,
+                          self.denoising_class_embed.weight,
+                          self.num_denoising,
+                          self.label_noise_ratio,
+                          self.box_noise_scale, 
+                          self.training)
 
         target, init_ref_points_unact, enc_topk_bboxes, enc_topk_logits = \
-            self._get_decoder_input(memory, spatial_shapes, denoising_class, denoising_bbox_unact)
+            self._get_decoder_input(memory, shapes, denoising_class, denoising_bbox_unact)
 
         # decoder
         out_bboxes, out_logits = self.decoder(target,
                                               init_ref_points_unact,
                                               memory,
-                                              spatial_shapes,
+                                              shapes,
                                               self.dec_bbox_head,
                                               self.dec_score_head,
                                               self.query_pos_head,
@@ -276,9 +274,9 @@ class RTDETRDecoder(nn.Module):
         for layer in self.input_proj:
             xavier_uniform_(layer[0].weight)
 
-    def _generate_anchors(self, spatial_shapes, grid_size=0.05, dtype=torch.float32, device='cpu', eps=1e-2):
+    def _generate_anchors(self, shapes, grid_size=0.05, dtype=torch.float32, device='cpu', eps=1e-2):
         anchors = []
-        for lvl, (h, w) in enumerate(spatial_shapes):
+        for lvl, (h, w) in enumerate(shapes):
             grid_y, grid_x = torch.meshgrid(torch.arange(end=h, dtype=dtype, device=device),
                                             torch.arange(end=w, dtype=dtype, device=device),
                                             indexing='ij')
@@ -312,10 +310,10 @@ class RTDETRDecoder(nn.Module):
         feat_flatten = torch.cat(feat_flatten, 1)
         return feat_flatten, shapes
 
-    def _get_decoder_input(self, memory, spatial_shapes, denoising_class=None, denoising_bbox_unact=None):
+    def _get_decoder_input(self, memory, shapes, denoising_class=None, denoising_bbox_unact=None):
         bs = len(memory)
         # prepare input for decoder
-        anchors, valid_mask = self._generate_anchors(spatial_shapes, dtype=memory.dtype, device=memory.device)
+        anchors, valid_mask = self._generate_anchors(shapes, dtype=memory.dtype, device=memory.device)
         output_memory = self.enc_output(torch.where(valid_mask, memory, 0))  # bs, h*w, 256
 
         enc_outputs_class = self.enc_score_head(output_memory)  # (bs, h*w, nc)

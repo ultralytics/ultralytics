@@ -124,14 +124,16 @@ class HungarianMatcher(nn.Module):
         return [(torch.tensor(i, dtype=torch.int32), torch.tensor(j, dtype=torch.int32)) for i, j in indices]
 
 
-def get_contrastive_denoising_training_group(targets,
-                                             num_classes,
-                                             num_queries,
-                                             class_embed,
-                                             num_denoising=100,
-                                             label_noise_ratio=0.5,
-                                             box_noise_scale=1.0):
-    if num_denoising <= 0:
+def get_cdn_group(targets,
+                  num_classes,
+                  num_queries,
+                  class_embed,
+                  num_denoising=100,
+                  label_noise_ratio=0.5,
+                  box_noise_scale=1.0,
+                  training=False):
+    """get contrastive denoising training group"""
+    if (not training) or num_denoising <= 0:
         return None, None, None, None
     num_gts = [len(t) for t in targets['cls']]
     max_gt_num = max(num_gts)

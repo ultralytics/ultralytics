@@ -163,65 +163,59 @@ class RTDETRDecoder(nn.Module):
             self,
             nc=80,
             ch=(512, 1024, 2048),
-            hidden_dim=256,
-            num_queries=300,
-            strides=(8, 16, 32),  # TODO
-            nl=3,
-            num_decoder_points=4,
-            nhead=8,
-            num_decoder_layers=6,
-            dim_feedforward=1024,
+            hd=256,  # hidden dim
+            nq=300,  # num queries
+            ndp=4, # num decoder points
+            nh=8,  # num head
+            ndl=6,  # num decoder layers
+            d_ffn=1024,  # dim of feedforward
             dropout=0.,
             act=nn.ReLU(),
             eval_idx=-1,
             # training args
-            num_denoising=100,
+            nd=100,  # num denoising
             label_noise_ratio=0.5,
             box_noise_scale=1.0,
             learnt_init_query=False):
         super().__init__()
-        assert len(ch) <= nl
-        assert len(strides) == len(ch)
-        for _ in range(nl - len(strides)):
-            strides.append(strides[-1] * 2)
-
-        self.hidden_dim = hidden_dim
-        self.nhead = nhead
-        self.feat_strides = strides
-        self.nl = nl
+        self.hidden_dim = hd
+        self.nhead = nh
+        self.nl = len(ch)  # num level
         self.nc = nc
-        self.num_queries = num_queries
-        self.num_decoder_layers = num_decoder_layers
+        self.num_queries = nq
+        self.num_decoder_layers = ndl
 
         # backbone feature projection
-        self._build_input_proj_layer(ch)
+        self.input_proj = nn.ModuleList(nn.Sequential(nn.Conv2d(x, hd, 1, bias=False),
+                                                      nn.BatchNorm2d(nd)) for x in ch)
+        # NOTE: simplified version but is not consistent with .pt weights.
+        # self.input_proj = nn.ModuleList(Conv(x, hd, act=False) for x in ch)  
 
         # Transformer module
-        decoder_layer = DeformableTransformerDecoderLayer(hidden_dim, nhead, dim_feedforward, dropout, act, nl,
-                                                          num_decoder_points)
-        self.decoder = DeformableTransformerDecoder(hidden_dim, decoder_layer, num_decoder_layers, eval_idx)
+        decoder_layer = DeformableTransformerDecoderLayer(hd, nh, d_ffn, dropout, act, self.nl, ndp)
+        self.decoder = DeformableTransformerDecoder(hd, decoder_layer, ndl, eval_idx)
 
         # denoising part
-        self.denoising_class_embed = nn.Embedding(nc, hidden_dim)
-        self.num_denoising = num_denoising
+        self.denoising_class_embed = nn.Embedding(nc, hd)
+        self.num_denoising = nd
         self.label_noise_ratio = label_noise_ratio
         self.box_noise_scale = box_noise_scale
 
         # decoder embedding
         self.learnt_init_query = learnt_init_query
         if learnt_init_query:
-            self.tgt_embed = nn.Embedding(num_queries, hidden_dim)
-        self.query_pos_head = MLP(4, 2 * hidden_dim, hidden_dim, num_layers=2)
+            self.tgt_embed = nn.Embedding(nq, hd)
+        self.query_pos_head = MLP(4, 2 * hd, hd, num_layers=2)
 
         # encoder head
-        self.enc_output = nn.Sequential(nn.Linear(hidden_dim, hidden_dim), nn.LayerNorm(hidden_dim))
-        self.enc_score_head = nn.Linear(hidden_dim, nc)
-        self.enc_bbox_head = MLP(hidden_dim, hidden_dim, 4, num_layers=3)
+        self.enc_output = nn.Sequential(nn.Linear(hd, hd), nn.LayerNorm(hd))
+        self.enc_score_head = nn.Linear(hd, nc)
+        self.enc_bbox_head = MLP(hd, hd, 4, num_layers=3)
 
         # decoder head
-        self.dec_score_head = nn.ModuleList([nn.Linear(hidden_dim, nc) for _ in range(num_decoder_layers)])
+        self.dec_score_head = nn.ModuleList([nn.Linear(hd, nc) for _ in range(ndl)])
         self.dec_bbox_head = nn.ModuleList([
-            MLP(hidden_dim, hidden_dim, 4, num_layers=3) for _ in range(num_decoder_layers)])
+            MLP(hd, hd, 4, num_layers=3) for _ in range(ndl)])
 
         # self._reset_parameters()
 
@@ -229,7 +223,7 @@ class RTDETRDecoder(nn.Module):
         from ultralytics.vit.utils.ops import get_contrastive_denoising_training_group
 
         # input projection and embedding
-        memory, spatial_shapes, _ = self._get_encoder_input(feats)
+        memory, spatial_shapes = self._get_encoder_input(feats)
 
         # prepare denoising training
         if self.training:
@@ -282,19 +276,6 @@ class RTDETRDecoder(nn.Module):
         for layer in self.input_proj:
             xavier_uniform_(layer[0].weight)
 
-    def _build_input_proj_layer(self, ch):
-        self.input_proj = nn.ModuleList()
-        for in_channels in ch:
-            self.input_proj.append(
-                nn.Sequential(nn.Conv2d(in_channels, self.hidden_dim, kernel_size=1, bias=False),
-                              nn.BatchNorm2d(self.hidden_dim)))
-        in_channels = ch[-1]
-        for _ in range(self.nl - len(ch)):
-            self.input_proj.append(
-                nn.Sequential(nn.Conv2d(in_channels, self.hidden_dim, kernel_size=3, stride=2, padding=1, bias=False),
-                              nn.BatchNorm2d(self.hidden_dim)))
-            in_channels = self.hidden_dim
-
     def _generate_anchors(self, spatial_shapes, grid_size=0.05, dtype=torch.float32, device='cpu', eps=1e-2):
         anchors = []
         for lvl, (h, w) in enumerate(spatial_shapes):
@@ -314,34 +295,22 @@ class RTDETRDecoder(nn.Module):
         anchors = torch.where(valid_mask, anchors, torch.inf)
         return anchors, valid_mask
 
-    def _get_encoder_input(self, feats):
+    def _get_encoder_input(self, x):
         # get projection features
-        proj_feats = [self.input_proj[i](feat) for i, feat in enumerate(feats)]
-        if self.nl > len(proj_feats):
-            len_srcs = len(proj_feats)
-            for i in range(len_srcs, self.nl):
-                if i == len_srcs:
-                    proj_feats.append(self.input_proj[i](feats[-1]))
-                else:
-                    proj_feats.append(self.input_proj[i](proj_feats[-1]))
-
+        x = [self.input_proj[i](feat) for i, feat in enumerate(x)]
         # get encoder inputs
         feat_flatten = []
-        spatial_shapes = []
-        level_start_index = [0]
-        for feat in proj_feats:
-            _, _, h, w = feat.shape
+        shapes = []
+        for feat in x:
+            h, w = feat.shape[2:]
             # [b, c, h, w] -> [b, h*w, c]
             feat_flatten.append(feat.flatten(2).permute(0, 2, 1))
             # [nl, 2]
-            spatial_shapes.append([h, w])
-            # [l], start index of each level
-            level_start_index.append(h * w + level_start_index[-1])
+            shapes.append([h, w])
 
         # [b, l, c]
         feat_flatten = torch.cat(feat_flatten, 1)
-        level_start_index.pop()
-        return feat_flatten, spatial_shapes, level_start_index
+        return feat_flatten, shapes
 
     def _get_decoder_input(self, memory, spatial_shapes, denoising_class=None, denoising_bbox_unact=None):
         bs = len(memory)

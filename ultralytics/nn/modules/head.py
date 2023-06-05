@@ -252,28 +252,6 @@ class RTDETRDecoder(nn.Module):
             out_logits = out_logits.sigmoid_()
         return out_bboxes, out_logits, enc_topk_bboxes, enc_topk_logits, dn_meta
 
-    def _reset_parameters(self):
-        # class and bbox head init
-        bias_cls = bias_init_with_prob(0.01)
-        linear_init_(self.enc_score_head)
-        constant_(self.enc_score_head.bias, bias_cls)
-        constant_(self.enc_bbox_head.layers[-1].weight, 0.)
-        constant_(self.enc_bbox_head.layers[-1].bias, 0.)
-        for cls_, reg_ in zip(self.dec_score_head, self.dec_bbox_head):
-            linear_init_(cls_)
-            constant_(cls_.bias, bias_cls)
-            constant_(reg_.layers[-1].weight, 0.)
-            constant_(reg_.layers[-1].bias, 0.)
-
-        linear_init_(self.enc_output[0])
-        xavier_uniform_(self.enc_output[0].weight)
-        if self.learnt_init_query:
-            xavier_uniform_(self.tgt_embed.weight)
-        xavier_uniform_(self.query_pos_head.layers[0].weight)
-        xavier_uniform_(self.query_pos_head.layers[1].weight)
-        for layer in self.input_proj:
-            xavier_uniform_(layer[0].weight)
-
     def _generate_anchors(self, shapes, grid_size=0.05, dtype=torch.float32, device='cpu', eps=1e-2):
         anchors = []
         for lvl, (h, w) in enumerate(shapes):
@@ -346,3 +324,26 @@ class RTDETRDecoder(nn.Module):
             target = torch.cat([denoising_class, target], 1)
 
         return target, reference_points_unact, enc_topk_bboxes, enc_topk_logits
+
+    def _reset_parameters(self):
+        # class and bbox head init
+        bias_cls = bias_init_with_prob(0.01)
+        linear_init_(self.enc_score_head)
+        constant_(self.enc_score_head.bias, bias_cls)
+        constant_(self.enc_bbox_head.layers[-1].weight, 0.)
+        constant_(self.enc_bbox_head.layers[-1].bias, 0.)
+        for cls_, reg_ in zip(self.dec_score_head, self.dec_bbox_head):
+            linear_init_(cls_)
+            constant_(cls_.bias, bias_cls)
+            constant_(reg_.layers[-1].weight, 0.)
+            constant_(reg_.layers[-1].bias, 0.)
+
+        linear_init_(self.enc_output[0])
+        xavier_uniform_(self.enc_output[0].weight)
+        if self.learnt_init_query:
+            xavier_uniform_(self.tgt_embed.weight)
+        xavier_uniform_(self.query_pos_head.layers[0].weight)
+        xavier_uniform_(self.query_pos_head.layers[1].weight)
+        for layer in self.input_proj:
+            xavier_uniform_(layer[0].weight)
+

@@ -4,9 +4,12 @@ from pathlib import Path
 
 from ultralytics import YOLO
 from ultralytics.yolo.cfg import get_cfg
+from ultralytics.yolo.data.augment import classify_transforms
 from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.utils import DEFAULT_CFG, ROOT, SETTINGS
 from ultralytics.yolo.v8 import classify, detect, segment
+import numpy as np
+import pytest
 
 CFG_DET = 'yolov8n.yaml'
 CFG_SEG = 'yolov8n-seg.yaml'
@@ -123,3 +126,11 @@ def test_classify():
     assert test_func in pred.callbacks['on_predict_start'], 'callback test failed'
     result = pred(source=SOURCE, model=trainer.best)
     assert len(result), 'predictor test failed'
+
+
+@pytest.mark.parametrize("image_size,imgsz", [((640, 480), 500), ((480, 640), 500), ((640, 480), 244), ((640, 480), 1024), ((500, 500), 500)])
+def test_preprocessing_classify(image_size, imgsz):
+    augment = classify_transforms(imgsz)
+    image = np.random.randint(0, 255, (image_size[0], image_size[1], 3))
+    processed_image = augment(image)
+    assert processed_image.shape[1] == imgsz and processed_image.shape[2] == imgsz, "preprocessed size not as expected"

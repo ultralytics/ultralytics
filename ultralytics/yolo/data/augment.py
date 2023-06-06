@@ -879,9 +879,22 @@ class CenterCrop:
 
     def __call__(self, im):  # im = np.array HWC
         imh, imw = im.shape[:2]
-        m = min(imh, imw)  # min dimension
-        top, left = (imh - m) // 2, (imw - m) // 2
-        return cv2.resize(im[top:top + m, left:left + m], (self.w, self.h), interpolation=cv2.INTER_LINEAR)
+
+        if self.w > imw or self.h > imh: # Add padding if the crop is larger than the image
+            left, top, right, bottom = (
+                (self.w - imw) // 2 if self.w > imw else 0,
+                (self.h - imh) // 2 if self.h > imh else 0,
+                (self.w - imw + 1) // 2 if self.w > imw else 0,
+                (self.h - imh + 1) // 2 if self.h > imh else 0,
+            )
+            im = cv2.copyMakeBorder(im, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(114, 114, 114))
+            imh, imw = im.shape[:2]
+
+        top, left = (
+            int(round((imh - self.h) / 2.0)),
+            int(round((imw - self.w) / 2.0))
+        )
+        return im[top:top + self.h, left:left + self.w]
 
 
 class ToTensor:

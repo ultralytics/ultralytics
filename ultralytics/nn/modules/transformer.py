@@ -310,8 +310,6 @@ class DeformableTransformerDecoderLayer(nn.Module):
     def forward(self, embed, refer_bbox, feats, shapes, padding_mask=None, attn_mask=None, query_pos=None):
         # self attention
         q = k = self.with_pos_embed(embed, query_pos)
-        if attn_mask is not None:
-            attn_mask = torch.where(attn_mask.to(torch.bool), 0, -torch.inf)
         tgt = self.self_attn(q.transpose(0, 1), k.transpose(0, 1), embed.transpose(0, 1),
                              attn_mask=attn_mask)[0].transpose(0, 1)
         embed = embed + self.dropout1(tgt)

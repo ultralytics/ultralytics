@@ -373,7 +373,7 @@ class Exporter:
             ov_model.set_rt_info([255.0], ['model_info', 'scale_values'])
             ov_model.set_rt_info(self.args.iou, ['model_info', 'iou_threshold'])
             ov_model.set_rt_info([v.replace(' ', '_') for k, v in sorted(self.model.names.items())],
-                                ['model_info', 'labels'])
+                                 ['model_info', 'labels'])
             if self.model.task != 'classify':
                 ov_model.set_rt_info('fit_to_window_letterbox', ['model_info', 'resize_type'])
             ov.serialize(ov_model, f_ov)  # save
@@ -393,7 +393,7 @@ class Exporter:
                 return input_tensor
 
             dataset = yaml_load(yaml_path)
-            
+
             testset = os.path.join(dataset['path'], dataset['val'])
             val_dataloader = build_dataloader(testset, 1, 0, shuffle=False, rank=-1)
             validator = DetectionValidator(
@@ -427,7 +427,7 @@ class Exporter:
                                             quantization_dataset,
                                             preset=nncf.QuantizationPreset.MIXED,
                                             ignored_scope=ignored_scope)
-        
+
         # Set RT info
         quantized_det_model.set_rt_info('YOLOv8', ['model_info', 'model_type'])
         quantized_det_model.set_rt_info(True, ['model_info', 'reverse_input_channels'])
@@ -435,7 +435,7 @@ class Exporter:
         quantized_det_model.set_rt_info([255.0], ['model_info', 'scale_values'])
         quantized_det_model.set_rt_info(self.args.iou, ['model_info', 'iou_threshold'])
         quantized_det_model.set_rt_info([v.replace(' ', '_') for k, v in sorted(self.model.names.items())],
-                            ['model_info', 'labels'])
+                                        ['model_info', 'labels'])
         if self.model.task != 'classify':
             quantized_det_model.set_rt_info('fit_to_window_letterbox', ['model_info', 'resize_type'])
 

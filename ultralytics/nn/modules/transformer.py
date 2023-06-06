@@ -244,7 +244,7 @@ class MSDeformAttn(nn.Module):
             output (Tensor): [bs, Length_{query}, C]
         """
         bs, len_q = query.shape[:2]
-        _, len_v = value.shape[:2]
+        len_v = value.shape[1]
         assert sum(s[0] * s[1] for s in value_shapes) == len_v
 
         value = self.value_proj(value)
@@ -255,17 +255,16 @@ class MSDeformAttn(nn.Module):
         attention_weights = self.attention_weights(query).view(bs, len_q, self.n_heads, self.n_levels * self.n_points)
         attention_weights = F.softmax(attention_weights, -1).view(bs, len_q, self.n_heads, self.n_levels, self.n_points)
         # N, Len_q, n_heads, n_levels, n_points, 2
-        n = refer_bbox.shape[-1]
-        if n == 2:
+        num_points = refer_bbox.shape[-1]
+        if num_points == 2:
             offset_normalizer = torch.as_tensor(value_shapes, dtype=query.dtype, device=query.device).flip(-1)
             add = sampling_offsets / offset_normalizer[None, None, None, :, None, :]
             sampling_locations = refer_bbox[:, :, None, :, None, :] + add
-
-        elif n == 4:
+        elif num_points == 4:
             add = sampling_offsets / self.n_points * refer_bbox[:, :, None, :, None, 2:] * 0.5
             sampling_locations = refer_bbox[:, :, None, :, None, :2] + add
         else:
-            raise ValueError(f'Last dim of reference_points must be 2 or 4, but got {n}.')
+            raise ValueError(f'Last dim of reference_points must be 2 or 4, but got {num_points}.')
         output = multi_scale_deformable_attn_pytorch(value, value_shapes, sampling_locations, attention_weights)
         output = self.output_proj(output)
         return output
@@ -320,7 +319,7 @@ class DeformableTransformerDecoderLayer(nn.Module):
         q = k = self.with_pos_embed(embed, query_pos)
         if attn_mask is not None:
             attn_mask = torch.where(attn_mask.to(torch.bool), 0, -torch.inf)
-        tgt = self.self_attn(q.transpose(0, 1), k.transpose(0, 1), embed.transpose(0, 1))[0].transpose(0, 1)
+        tgt = self.self_attn(q.transpose(0, 1), k.transpose(0, 1), embed.transpose(0, 1), attn_mask=attn_mask)[0].transpose(0, 1)
         embed = embed + self.dropout1(tgt)
         embed = self.norm1(embed)
 

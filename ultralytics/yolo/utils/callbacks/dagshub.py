@@ -40,7 +40,7 @@ def on_pretrain_routine_end(trainer):
     # get dagshub remote information
     repo_name, repo_owner = os.getenv('DAGSHUB_REPO_NAME', None), os.getenv('DAGSHUB_REPO_OWNER', None)
     if 'dagshub' in os.getenv('MLFLOW_TRACKING_URI' , ''):
-        repo_name, repo_owner = *os.getenv('MLFLOW_TRACKING_URI' , '')[:-7].split('/')[-2:]
+        repo_name, repo_owner = os.getenv('MLFLOW_TRACKING_URI' , '')[:-7].split('/')[-2:]
     if not repo_name or not repo_owner:
         repo_name, repo_owner = splitter(input('Please insert your repository owner_name/repo_name:'))
 
@@ -67,7 +67,7 @@ def on_pretrain_routine_end(trainer):
 def on_val_end(validator):
     if os.getenv('DAGSHUB_LOG_SAMPLE', 'true').lower() == 'true':
         # upload a sample (1 batch) of the dataset
-        repo.upload_files([DataSet.get_file(file, f"sample/{files.split('/')[-1]}") for file in next(validator.dataloader.iterator)['im_file']]
+        repo.upload_files([DataSet.get_file(file, f"sample/{file.split('/')[-1]}") for file in next(validator.dataloader.iterator)['im_file']],
                           commit_message='added sample batch',
                           versioning='dvc',
                           force=True)
@@ -76,7 +76,7 @@ def on_val_end(validator):
 def on_model_save(trainer):
     # log artifacts to dagshub storage
     if os.getenv('DAGSHUB_LOG_ARTIFACTS_WITH_DVC', 'true').lower() == 'true':
-        repo.directory('artifacts').add_dir(trainer.save_dir.as_posix(),
+        repo.directory('/'.join(trainer.save_dir.parent.as_posix().split('/')[-2:] + ['train'])).add_dir(trainer.save_dir.as_posix(),
                                             glob_exclude='*.yaml',
                                             commit_message='added artifacts',
                                             force=True)
@@ -90,7 +90,7 @@ def on_model_save(trainer):
 
 def on_export_end(exporter):
     # log model exports
-    repo.directory('exports').add_dir(exporter.file.parent.as_posix(),
+    repo.directory('/'.join(exporter.file.parent.parent.parent.as_posix().split('/')[-2:] + ['train', 'weights'])).add_dir(exporter.file.parent.as_posix(),
                       glob_exclude='*.yaml',
                       commit_message='exported model',
                       force=True)

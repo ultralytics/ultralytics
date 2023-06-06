@@ -90,10 +90,11 @@ def on_model_save(trainer):
 
 def on_export_end(exporter):
     # log model exports
-    repo.directory('/'.join(exporter.file.parent.parent.parent.as_posix().split('/')[-2:] + ['train', 'weights'])).add_dir(exporter.file.parent.as_posix(),
-                      glob_exclude='*.yaml',
-                      commit_message='exported model',
-                      force=True)
+    if os.getenv('DAGSHUB_LOG_ARTIFACTS_WITH_DVC', 'true').lower() == 'true':
+        repo.directory('/'.join(exporter.file.parent.parent.parent.as_posix().split('/')[-2:] + ['train', 'weights'])).add_dir(exporter.file.parent.as_posix(),
+                          glob_exclude='*.yaml',
+                          commit_message='exported model',
+                          force=True)
 
 
 callbacks = {

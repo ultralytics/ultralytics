@@ -273,18 +273,18 @@ class RTDETRDecoder(nn.Module):
         # get projection features
         x = [self.input_proj[i](feat) for i, feat in enumerate(x)]
         # get encoder inputs
-        feat_flatten = []
+        feats = []
         shapes = []
         for feat in x:
             h, w = feat.shape[2:]
             # [b, c, h, w] -> [b, h*w, c]
-            feat_flatten.append(feat.flatten(2).permute(0, 2, 1))
+            feats.append(feat.flatten(2).permute(0, 2, 1))
             # [nl, 2]
             shapes.append([h, w])
 
-        # [b, l, c]
-        feat_flatten = torch.cat(feat_flatten, 1)
-        return feat_flatten, shapes
+        # [b, h*w, c]
+        feats = torch.cat(feats, 1)
+        return feats, shapes
 
     def _get_decoder_input(self, memory, shapes, dn_cls_embed=None, dn_bbox=None):
         bs = len(memory)
@@ -292,24 +292,25 @@ class RTDETRDecoder(nn.Module):
         anchors, valid_mask = self._generate_anchors(shapes, dtype=memory.dtype, device=memory.device)
         output_memory = self.enc_output(torch.where(valid_mask, memory, 0))  # bs, h*w, 256
 
-        enc_outputs_class = self.enc_score_head(output_memory)  # (bs, h*w, nc)
-        enc_outputs_coord = self.enc_bbox_head(output_memory) + anchors  # (bs, h*w, 4)
+        enc_outputs_cls = self.enc_score_head(output_memory)  # (bs, h*w, nc)
+        # dynamic anchors + static contect
+        enc_outputs_bboxes = self.enc_bbox_head(output_memory) + anchors  # (bs, h*w, 4)
 
-        # extract region proposal boxes
+        # query selection
         # (bs, num_queries)
-        topk_ind = torch.topk(enc_outputs_class.max(-1).values, self.num_queries, dim=1).indices.view(-1)
+        topk_ind = torch.topk(enc_outputs_cls.max(-1).values, self.num_queries, dim=1).indices.view(-1)
         # (bs, num_queries)
         batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
 
         # Unsigmoided
-        refer_bbox = enc_outputs_coord[batch_ind, topk_ind].view(bs, self.num_queries, -1)
+        refer_bbox = enc_outputs_bboxes[batch_ind, topk_ind].view(bs, self.num_queries, -1)
 
         enc_bboxes = refer_bbox.sigmoid()
         if dn_bbox is not None:
             refer_bbox = torch.cat([dn_bbox, refer_bbox], 1)
         if self.training:
             refer_bbox = refer_bbox.detach()
-        enc_cls = enc_outputs_class[batch_ind, topk_ind].view(bs, self.num_queries, -1)
+        enc_cls = enc_outputs_cls[batch_ind, topk_ind].view(bs, self.num_queries, -1)
 
         # extract region features
         if self.learnt_init_query:
@@ -323,24 +324,25 @@ class RTDETRDecoder(nn.Module):
 
         return cls_embed, refer_bbox, enc_bboxes, enc_cls
 
+    # TODO
     def _reset_parameters(self):
         # class and bbox head init
         bias_cls = bias_init_with_prob(0.01)
-        linear_init_(self.enc_score_head)
+        # linear_init_(self.enc_score_head)
         constant_(self.enc_score_head.bias, bias_cls)
         constant_(self.enc_bbox_head.layers[-1].weight, 0.)
         constant_(self.enc_bbox_head.layers[-1].bias, 0.)
-        for cls_, reg_ in zip(self.dec_score_head, self.dec_bbox_head):
-            linear_init_(cls_)
-            constant_(cls_.bias, bias_cls)
-            constant_(reg_.layers[-1].weight, 0.)
-            constant_(reg_.layers[-1].bias, 0.)
-
-        linear_init_(self.enc_output[0])
-        xavier_uniform_(self.enc_output[0].weight)
-        if self.learnt_init_query:
-            xavier_uniform_(self.tgt_embed.weight)
-        xavier_uniform_(self.query_pos_head.layers[0].weight)
-        xavier_uniform_(self.query_pos_head.layers[1].weight)
-        for layer in self.input_proj:
-            xavier_uniform_(layer[0].weight)
+        # for cls_, reg_ in zip(self.dec_score_head, self.dec_bbox_head):
+        #     linear_init_(cls_)
+        #     constant_(cls_.bias, bias_cls)
+        #     constant_(reg_.layers[-1].weight, 0.)
+        #     constant_(reg_.layers[-1].bias, 0.)
+        #
+        # linear_init_(self.enc_output[0])
+        # xavier_uniform_(self.enc_output[0].weight)
+        # if self.learnt_init_query:
+        #     xavier_uniform_(self.tgt_embed.weight)
+        # xavier_uniform_(self.query_pos_head.layers[0].weight)
+        # xavier_uniform_(self.query_pos_head.layers[1].weight)
+        # for layer in self.input_proj:
+        #     xavier_uniform_(layer[0].weight)

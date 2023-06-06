@@ -307,25 +307,19 @@ class DeformableTransformerDecoderLayer(nn.Module):
         tgt = self.norm3(tgt)
         return tgt
 
-    def forward(self,
-                embed,
-                refer_bbox,
-                feats,
-                shapes,
-                padding_mask=None,
-                attn_mask=None,
-                query_pos=None):
+    def forward(self, embed, refer_bbox, feats, shapes, padding_mask=None, attn_mask=None, query_pos=None):
         # self attention
         q = k = self.with_pos_embed(embed, query_pos)
         if attn_mask is not None:
             attn_mask = torch.where(attn_mask.to(torch.bool), 0, -torch.inf)
-        tgt = self.self_attn(q.transpose(0, 1), k.transpose(0, 1), embed.transpose(0, 1), attn_mask=attn_mask)[0].transpose(0, 1)
+        tgt = self.self_attn(q.transpose(0, 1), k.transpose(0, 1), embed.transpose(0, 1),
+                             attn_mask=attn_mask)[0].transpose(0, 1)
         embed = embed + self.dropout1(tgt)
         embed = self.norm1(embed)
 
-        # cross attention 
+        # cross attention
         tgt = self.cross_attn(self.with_pos_embed(embed, query_pos), refer_bbox.unsqueeze(2), feats, shapes,
-                               padding_mask)
+                              padding_mask)
         embed = embed + self.dropout2(tgt)
         embed = self.norm2(embed)
 
@@ -347,29 +341,24 @@ class DeformableTransformerDecoder(nn.Module):
         self.hidden_dim = hidden_dim
         self.eval_idx = eval_idx if eval_idx >= 0 else num_layers + eval_idx
 
-    def forward(self,
-                embed,   # decoder embeddings
-                refer_bbox,  # anchor
-                feats,   # image features
-                shapes,  # feature shapes
-                bbox_head,
-                score_head,
-                pos_mlp,
-                attn_mask=None,
-                padding_mask=None):
+    def forward(
+            self,
+            embed,  # decoder embeddings
+            refer_bbox,  # anchor
+            feats,  # image features
+            shapes,  # feature shapes
+            bbox_head,
+            score_head,
+            pos_mlp,
+            attn_mask=None,
+            padding_mask=None):
         output = embed
         dec_bboxes = []
         dec_cls = []
         last_refined_bbox = None
         refer_bbox = refer_bbox.sigmoid()
         for i, layer in enumerate(self.layers):
-            output = layer(output, 
-                           refer_bbox,
-                           feats, 
-                           shapes,
-                           padding_mask,
-                           attn_mask,
-                           pos_mlp(refer_bbox))
+            output = layer(output, refer_bbox, feats, shapes, padding_mask, attn_mask, pos_mlp(refer_bbox))
 
             # refine bboxes, (bs, num_queries+num_denoising, 4)
             refined_bbox = torch.sigmoid(bbox_head[i](output) + inverse_sigmoid(refer_bbox))

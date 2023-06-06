@@ -215,7 +215,8 @@ def get_cdn_group(targets,
     attn_mask = ~attn_mask
     dn_meta = {'dn_pos_idx': dn_pos_idx, 'dn_num_group': num_group, 'dn_num_split': [num_dn, num_queries]}
 
-    return dn_cls_embed.to(class_embed.device), dn_bbox.to(class_embed.device), attn_mask.to(class_embed.device), dn_meta
+    return dn_cls_embed.to(class_embed.device), dn_bbox.to(class_embed.device), attn_mask.to(
+        class_embed.device), dn_meta
 
 
 def inverse_sigmoid(x, eps=1e-6):

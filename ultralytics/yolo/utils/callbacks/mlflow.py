@@ -22,39 +22,37 @@ def on_pretrain_routine_end(trainer):
     if os.environ.get('MLFLOW_TRACKING_URI') is None:
         mlflow = None
 
-    if mlflow:
-        mlflow_location = os.environ['MLFLOW_TRACKING_URI']  # "http://192.168.xxx.xxx:5000"
-        mlflow.set_tracking_uri(mlflow_location)
+    mlflow_location = os.environ['MLFLOW_TRACKING_URI']  # "http://192.168.xxx.xxx:5000"
+    mlflow.set_tracking_uri(mlflow_location)
 
-        experiment_name = trainer.args.project or os.getenv('MLFLOW_EXPERIMENT_NAME', None) or 'default'
-        experiment = mlflow.get_experiment_by_name(experiment_name)
-        if experiment is None:
-            mlflow.create_experiment(experiment_name)
-        mlflow.set_experiment(experiment_name)
+    experiment_name = trainer.args.project or os.getenv('MLFLOW_EXPERIMENT_NAME', None) or 'default'
+    experiment = mlflow.get_experiment_by_name(experiment_name)
+    if experiment is None:
+        mlflow.create_experiment(experiment_name)
+    mlflow.set_experiment(experiment_name)
 
-        prefix = colorstr('MLFlow: ')
-        try:
-            run, active_run = mlflow, mlflow.active_run()
-            if not active_run:
-                active_run = mlflow.start_run(experiment_id=experiment.experiment_id)
-            run_id = active_run.info.run_id
-            LOGGER.info(f'{prefix}Using run_id({run_id}) at {mlflow_location}')
-            run.log_params(vars(trainer.model.args))
-        except Exception as err:
-            LOGGER.error(f'{prefix}Failing init - {repr(err)}')
-            LOGGER.warning(f'{prefix}Continuing without Mlflow')
+    prefix = colorstr('MLFlow: ')
+    try:
+        run, active_run = mlflow, mlflow.active_run()
+        if not active_run:
+            active_run = mlflow.start_run(experiment_id=experiment.experiment_id)
+        run_id = active_run.info.run_id
+        LOGGER.info(f'{prefix}Using run_id({run_id}) at {mlflow_location}')
+        run.log_params(vars(trainer.model.args))
+    except Exception as err:
+        LOGGER.error(f'{prefix}Failing init - {repr(err)}')
+        LOGGER.warning(f'{prefix}Continuing without Mlflow')
 
 
 def on_fit_epoch_end(trainer):
     """Logs training metrics to Mlflow."""
-    if mlflow:
-        metrics_dict = {f"{re.sub('[()]', '', k)}": float(v) for k, v in trainer.metrics.items()}
-        run.log_metrics(metrics=metrics_dict, step=trainer.epoch)
+    metrics_dict = {f"{re.sub('[()]', '', k)}": float(v) for k, v in trainer.metrics.items()}
+    run.log_metrics(metrics=metrics_dict, step=trainer.epoch)
 
 
 def on_train_end(trainer):
     """Called at end of train loop to log model artifact info."""
-    if mlflow:
+    if os.getenv('MLFLOW_LOG_ARTIFACT', '').lower() == 'true':
         root_dir = Path(__file__).resolve().parents[3]
         run.log_artifact(trainer.last)
         run.log_artifact(trainer.best)

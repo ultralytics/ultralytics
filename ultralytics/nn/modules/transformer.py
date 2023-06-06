@@ -309,31 +309,31 @@ class DeformableTransformerDecoderLayer(nn.Module):
         return tgt
 
     def forward(self,
-                tgt,
-                reference_points,
-                src,
-                src_spatial_shapes,
-                src_padding_mask=None,
+                embed,
+                refer_bbox,
+                feats,
+                shapes,
+                padding_mask=None,
                 attn_mask=None,
                 query_pos=None):
         # self attention
-        q = k = self.with_pos_embed(tgt, query_pos)
+        q = k = self.with_pos_embed(embed, query_pos)
         if attn_mask is not None:
             attn_mask = torch.where(attn_mask.to(torch.bool), 0, -torch.inf)
-        tgt2 = self.self_attn(q.transpose(0, 1), k.transpose(0, 1), tgt.transpose(0, 1))[0].transpose(0, 1)
-        tgt = tgt + self.dropout1(tgt2)
-        tgt = self.norm1(tgt)
+        tgt2 = self.self_attn(q.transpose(0, 1), k.transpose(0, 1), embed.transpose(0, 1))[0].transpose(0, 1)
+        embed = embed + self.dropout1(tgt2)
+        embed = self.norm1(embed)
 
-        # cross attention
-        tgt2 = self.cross_attn(self.with_pos_embed(tgt, query_pos), reference_points, src, src_spatial_shapes,
-                               src_padding_mask)
-        tgt = tgt + self.dropout2(tgt2)
-        tgt = self.norm2(tgt)
+        # cross attention 
+        tgt2 = self.cross_attn(self.with_pos_embed(embed, query_pos), refer_bbox.unsqueeze(2), feats, shapes,
+                               padding_mask)
+        embed = embed + self.dropout2(tgt2)
+        embed = self.norm2(embed)
 
         # ffn
-        tgt = self.forward_ffn(tgt)
+        embed = self.forward_ffn(embed)
 
-        return tgt
+        return embed
 
 
 class DeformableTransformerDecoder(nn.Module):
@@ -349,41 +349,44 @@ class DeformableTransformerDecoder(nn.Module):
         self.eval_idx = eval_idx if eval_idx >= 0 else num_layers + eval_idx
 
     def forward(self,
-                cls_embed,
-                refer_bbox,
-                src,
-                src_spatial_shapes,
+                embed,   # decoder embeddings
+                refer_bbox,  # anchor
+                feats,   # image features
+                shapes,  # feature shapes
                 bbox_head,
                 score_head,
-                query_pos_head,
+                pos_mlp,
                 attn_mask=None,
-                src_padding_mask=None):
-        output = cls_embed
+                padding_mask=None):
+        output = embed
         dec_bboxes = []
         dec_cls = []
-        ref_points = None
-        refer_bbox_detach = torch.sigmoid(refer_bbox)
+        last_refined_bbox = None
+        refer_bbox = refer_bbox.sigmoid()
         for i, layer in enumerate(self.layers):
-            ref_points_input = refer_bbox_detach.unsqueeze(2)
-            query_pos_embed = query_pos_head(refer_bbox_detach)
-            output = layer(output, ref_points_input, src, src_spatial_shapes, src_padding_mask, attn_mask,
-                           query_pos_embed)
+            output = layer(output, 
+                           refer_bbox,
+                           feats, 
+                           shapes,
+                           padding_mask,
+                           attn_mask,
+                           pos_mlp(refer_bbox))
 
-            # (bs, num_queries+num_denoising, 4)
-            inter_ref_bbox = torch.sigmoid(bbox_head[i](output) + inverse_sigmoid(refer_bbox_detach))
+            # refine bboxes, (bs, num_queries+num_denoising, 4)
+            refined_bbox = torch.sigmoid(bbox_head[i](output) + inverse_sigmoid(refer_bbox))
 
             if self.training:
                 dec_cls.append(score_head[i](output))
                 if i == 0:
-                    dec_bboxes.append(inter_ref_bbox)
+                    dec_bboxes.append(refined_bbox)
                 else:
-                    dec_bboxes.append(torch.sigmoid(bbox_head[i](output) + inverse_sigmoid(ref_points)))
+                    dec_bboxes.append(torch.sigmoid(bbox_head[i](output) + inverse_sigmoid(last_refined_bbox)))
             elif i == self.eval_idx:
                 dec_cls.append(score_head[i](output))
-                dec_bboxes.append(inter_ref_bbox)
+                dec_bboxes.append(refined_bbox)
                 break
 
-            ref_points = inter_ref_bbox
-            refer_bbox_detach = inter_ref_bbox.detach() if self.training else inter_ref_bbox
+            last_refined_bbox = refined_bbox
+            refer_bbox = refined_bbox.detach() if self.training else refined_bbox
 
         return torch.stack(dec_bboxes), torch.stack(dec_cls)

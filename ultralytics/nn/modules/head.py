@@ -217,14 +217,14 @@ class RTDETRDecoder(nn.Module):
 
         # self._reset_parameters()
 
-    def forward(self, feats, batch=None):
+    def forward(self, x, batch=None):
         from ultralytics.vit.utils.ops import get_cdn_group
 
         # input projection and embedding
-        memory, shapes = self._get_encoder_input(feats)
+        feats, shapes = self._get_encoder_input(x)
 
         # prepare denoising training
-        dn_cls_embed, dn_bbox, attn_mask, dn_meta = \
+        dn_embed, dn_bbox, attn_mask, dn_meta = \
             get_cdn_group(batch,
                           self.nc,
                           self.num_queries,
@@ -234,18 +234,18 @@ class RTDETRDecoder(nn.Module):
                           self.box_noise_scale,
                           self.training)
 
-        cls_embed, refer_bbox, enc_bboxes, enc_cls = \
-            self._get_decoder_input(memory, shapes, dn_cls_embed, dn_bbox)
+        embed, refer_bbox, enc_bboxes, enc_cls = \
+            self._get_decoder_input(feats, shapes, dn_embed, dn_bbox)
 
         # decoder
-        dec_bboxes, dec_cls = self.decoder(cls_embed,
-                                              refer_bbox,
-                                              memory,
-                                              shapes,
-                                              self.dec_bbox_head,
-                                              self.dec_score_head,
-                                              self.query_pos_head,
-                                              attn_mask=attn_mask)
+        dec_bboxes, dec_cls = self.decoder(embed,
+                                           refer_bbox,
+                                           feats,
+                                           shapes,
+                                           self.dec_bbox_head,
+                                           self.dec_score_head,
+                                           self.query_pos_head,
+                                           attn_mask=attn_mask)
         if not self.training:
             dec_cls = dec_cls.sigmoid_()
         return dec_bboxes, dec_cls, enc_bboxes, enc_cls, dn_meta
@@ -286,15 +286,15 @@ class RTDETRDecoder(nn.Module):
         feats = torch.cat(feats, 1)
         return feats, shapes
 
-    def _get_decoder_input(self, memory, shapes, dn_cls_embed=None, dn_bbox=None):
-        bs = len(memory)
+    def _get_decoder_input(self, feats, shapes, dn_embed=None, dn_bbox=None):
+        bs = len(feats)
         # prepare input for decoder
-        anchors, valid_mask = self._generate_anchors(shapes, dtype=memory.dtype, device=memory.device)
-        output_memory = self.enc_output(torch.where(valid_mask, memory, 0))  # bs, h*w, 256
+        anchors, valid_mask = self._generate_anchors(shapes, dtype=feats.dtype, device=feats.device)
+        features = self.enc_output(torch.where(valid_mask, feats, 0))  # bs, h*w, 256
 
-        enc_outputs_cls = self.enc_score_head(output_memory)  # (bs, h*w, nc)
+        enc_outputs_cls = self.enc_score_head(features)  # (bs, h*w, nc)
         # dynamic anchors + static contect
-        enc_outputs_bboxes = self.enc_bbox_head(output_memory) + anchors  # (bs, h*w, 4)
+        enc_outputs_bboxes = self.enc_bbox_head(features) + anchors  # (bs, h*w, 4)
 
         # query selection
         # (bs, num_queries)
@@ -313,17 +313,16 @@ class RTDETRDecoder(nn.Module):
             refer_bbox = refer_bbox.detach()
         enc_cls = enc_outputs_cls[batch_ind, topk_ind].view(bs, self.num_queries, -1)
 
-        # extract region features
         if self.learnt_init_query:
-            cls_embed = self.tgt_embed.weight.unsqueeze(0).repeat(bs, 1, 1)
+            embeddings = self.tgt_embed.weight.unsqueeze(0).repeat(bs, 1, 1)
         else:
-            cls_embed = output_memory[batch_ind, topk_ind].view(bs, self.num_queries, -1)
+            embeddings = features[batch_ind, topk_ind].view(bs, self.num_queries, -1)
             if self.training:
-                cls_embed = cls_embed.detach()
-        if dn_cls_embed is not None:
-            cls_embed = torch.cat([dn_cls_embed, cls_embed], 1)
+                embeddings = embeddings.detach()
+        if dn_embed is not None:
+            embeddings = torch.cat([dn_embed, embeddings], 1)
 
-        return cls_embed, refer_bbox, enc_bboxes, enc_cls
+        return embeddings, refer_bbox, enc_bboxes, enc_cls
 
     # TODO
     def _reset_parameters(self):

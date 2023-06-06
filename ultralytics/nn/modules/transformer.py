@@ -349,8 +349,8 @@ class DeformableTransformerDecoder(nn.Module):
         self.eval_idx = eval_idx if eval_idx >= 0 else num_layers + eval_idx
 
     def forward(self,
-                tgt,
-                reference_points,
+                cls_embed,
+                refer_bbox,
                 src,
                 src_spatial_shapes,
                 bbox_head,
@@ -358,32 +358,32 @@ class DeformableTransformerDecoder(nn.Module):
                 query_pos_head,
                 attn_mask=None,
                 src_padding_mask=None):
-        output = tgt
-        dec_out_bboxes = []
-        dec_out_logits = []
+        output = cls_embed
+        dec_bboxes = []
+        dec_cls = []
         ref_points = None
-        ref_points_detach = torch.sigmoid(reference_points)
+        refer_bbox_detach = torch.sigmoid(refer_bbox)
         for i, layer in enumerate(self.layers):
-            ref_points_input = ref_points_detach.unsqueeze(2)
-            query_pos_embed = query_pos_head(ref_points_detach)
+            ref_points_input = refer_bbox_detach.unsqueeze(2)
+            query_pos_embed = query_pos_head(refer_bbox_detach)
             output = layer(output, ref_points_input, src, src_spatial_shapes, src_padding_mask, attn_mask,
                            query_pos_embed)
 
             # (bs, num_queries+num_denoising, 4)
-            inter_ref_bbox = torch.sigmoid(bbox_head[i](output) + inverse_sigmoid(ref_points_detach))
+            inter_ref_bbox = torch.sigmoid(bbox_head[i](output) + inverse_sigmoid(refer_bbox_detach))
 
             if self.training:
-                dec_out_logits.append(score_head[i](output))
+                dec_cls.append(score_head[i](output))
                 if i == 0:
-                    dec_out_bboxes.append(inter_ref_bbox)
+                    dec_bboxes.append(inter_ref_bbox)
                 else:
-                    dec_out_bboxes.append(torch.sigmoid(bbox_head[i](output) + inverse_sigmoid(ref_points)))
+                    dec_bboxes.append(torch.sigmoid(bbox_head[i](output) + inverse_sigmoid(ref_points)))
             elif i == self.eval_idx:
-                dec_out_logits.append(score_head[i](output))
-                dec_out_bboxes.append(inter_ref_bbox)
+                dec_cls.append(score_head[i](output))
+                dec_bboxes.append(inter_ref_bbox)
                 break
 
             ref_points = inter_ref_bbox
-            ref_points_detach = inter_ref_bbox.detach() if self.training else inter_ref_bbox
+            refer_bbox_detach = inter_ref_bbox.detach() if self.training else inter_ref_bbox
 
-        return torch.stack(dec_out_bboxes), torch.stack(dec_out_logits)
+        return torch.stack(dec_bboxes), torch.stack(dec_cls)

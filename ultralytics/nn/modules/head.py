@@ -238,7 +238,7 @@ class RTDETRDecoder(nn.Module):
             self._get_decoder_input(memory, shapes, dn_cls_embed, dn_bbox)
 
         # decoder
-        out_bboxes, out_logits = self.decoder(cls_embed,
+        dec_bboxes, dec_cls = self.decoder(cls_embed,
                                               refer_bbox,
                                               memory,
                                               shapes,
@@ -247,12 +247,12 @@ class RTDETRDecoder(nn.Module):
                                               self.query_pos_head,
                                               attn_mask=attn_mask)
         if not self.training:
-            out_logits = out_logits.sigmoid_()
-        return out_bboxes, out_logits, enc_bboxes, enc_cls, dn_meta
+            dec_cls = dec_cls.sigmoid_()
+        return dec_bboxes, dec_cls, enc_bboxes, enc_cls, dn_meta
 
     def _generate_anchors(self, shapes, grid_size=0.05, dtype=torch.float32, device='cpu', eps=1e-2):
         anchors = []
-        for lvl, (h, w) in enumerate(shapes):
+        for i, (h, w) in enumerate(shapes):
             grid_y, grid_x = torch.meshgrid(torch.arange(end=h, dtype=dtype, device=device),
                                             torch.arange(end=w, dtype=dtype, device=device),
                                             indexing='ij')
@@ -260,7 +260,7 @@ class RTDETRDecoder(nn.Module):
 
             valid_WH = torch.tensor([h, w], dtype=dtype, device=device)
             grid_xy = (grid_xy.unsqueeze(0) + 0.5) / valid_WH  # (1, h, w, 2)
-            wh = torch.ones_like(grid_xy, dtype=dtype, device=device) * grid_size * (2.0 ** lvl)
+            wh = torch.ones_like(grid_xy, dtype=dtype, device=device) * grid_size * (2.0 ** i)
             anchors.append(torch.cat([grid_xy, wh], -1).view(-1, h * w, 4))  # (1, h*w, 4)
 
         anchors = torch.cat(anchors, 1)  # (1, h*w*nl, 4)
@@ -304,6 +304,7 @@ class RTDETRDecoder(nn.Module):
 
         # Unsigmoided
         refer_bbox = enc_outputs_bboxes[batch_ind, topk_ind].view(bs, self.num_queries, -1)
+        # refer_bbox = torch.gather(enc_outputs_bboxes, 1, topk_ind.reshape(bs, self.num_queries).unsqueeze(-1).repeat(1, 1, 4))
 
         enc_bboxes = refer_bbox.sigmoid()
         if dn_bbox is not None:

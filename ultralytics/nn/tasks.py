@@ -429,20 +429,20 @@ class RTDETRDetectionModel(DetectionModel):
         targets = {'cls': gt_class, 'bboxes': gt_bbox}
 
         preds = self.predict(img, batch=targets) if preds is None else preds
-        dec_out_bboxes, dec_out_logits, enc_topk_bboxes, enc_topk_logits, dn_meta = preds
+        dec_bboxes, dec_cls, enc_bboxes, enc_cls, dn_meta = preds
         if dn_meta is None:
-            dn_out_bboxes, dn_out_logits = None, None
+            dn_bboxes, dn_cls = None, None
         else:
-            dn_out_bboxes, dec_out_bboxes = torch.split(dec_out_bboxes, dn_meta['dn_num_split'], dim=2)
-            dn_out_logits, dec_out_logits = torch.split(dec_out_logits, dn_meta['dn_num_split'], dim=2)
+            dn_bboxes, dec_bboxes = torch.split(dec_bboxes, dn_meta['dn_num_split'], dim=2)
+            dn_cls, dec_cls = torch.split(dec_cls, dn_meta['dn_num_split'], dim=2)
 
-        out_bboxes = torch.cat([enc_topk_bboxes.unsqueeze(0), dec_out_bboxes])  # (7, bs, 300, 4)
-        out_logits = torch.cat([enc_topk_logits.unsqueeze(0), dec_out_logits])
+        dec_bboxes = torch.cat([enc_bboxes.unsqueeze(0), dec_bboxes])  # (7, bs, 300, 4)
+        dec_cls = torch.cat([enc_cls.unsqueeze(0), dec_cls])
 
-        loss = self.criterion((out_bboxes, out_logits),
+        loss = self.criterion((dec_bboxes, dec_cls),
                               targets,
-                              dn_out_bboxes=dn_out_bboxes,
-                              dn_out_logits=dn_out_logits,
+                              dn_out_bboxes=dn_bboxes,
+                              dn_out_logits=dn_cls,
                               dn_meta=dn_meta)
         # NOTE: There are like 12 losses in RTDETR, backward with all losses but only show the main three losses.
         return sum(loss.values()), torch.as_tensor([loss[k].detach() for k in ['loss_giou', 'loss_class', 'loss_bbox']],

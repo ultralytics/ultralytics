@@ -99,7 +99,8 @@ class RTDETRValidator(DetectionValidator):
             # Do not need threshold for evaluation as only got 300 boxes here.
             # idx = score > self.args.conf
             pred = torch.cat([bbox, score[..., None], cls[..., None]], dim=-1)  # filter
-            pred = pred[score.argsort(descending=True)]  # sort by confidence
+            # sort by confidence to correctly get internal metrics.
+            pred = pred[score.argsort(descending=True)]
             outputs[i] = pred  # [idx]
 
         return outputs
@@ -135,7 +136,8 @@ class RTDETRValidator(DetectionValidator):
                 tbox[..., [0, 2]] *= shape[1]  # native-space pred
                 tbox[..., [1, 3]] *= shape[0]  # native-space pred
                 labelsn = torch.cat((cls, tbox), 1)  # native-space labels
-                correct_bboxes = self._process_batch(predn, labelsn)
+                # NOTE: To get correct metrics, the inputs of `_process_batch` should always be float32 type.
+                correct_bboxes = self._process_batch(predn.float(), labelsn)
                 # TODO: maybe remove these `self.` arguments as they already are member variable
                 if self.args.plots:
                     self.confusion_matrix.process_batch(predn, labelsn)

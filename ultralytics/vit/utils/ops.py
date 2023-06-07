@@ -109,12 +109,8 @@ class HungarianMatcher(nn.Module):
 
         with torch.cuda.amp.autocast(False):
             # binary cross entropy cost
-            pos_cost_mask = F.binary_cross_entropy_with_logits(out_mask,
-                                                               torch.ones_like(out_mask),
-                                                               reduction='none')
-            neg_cost_mask = F.binary_cross_entropy_with_logits(out_mask,
-                                                               torch.zeros_like(out_mask),
-                                                               reduction='none')
+            pos_cost_mask = F.binary_cross_entropy_with_logits(out_mask, torch.ones_like(out_mask), reduction='none')
+            neg_cost_mask = F.binary_cross_entropy_with_logits(out_mask, torch.zeros_like(out_mask), reduction='none')
             cost_mask = torch.matmul(pos_cost_mask, tgt_mask.T) + torch.matmul(neg_cost_mask, 1 - tgt_mask.T)
             cost_mask /= self.num_sample_points
 

@@ -111,7 +111,7 @@ class DETRLoss(nn.Module):
         src_masks = F.interpolate(src_masks.unsqueeze(0), size=target_masks.shape[-2:], mode='bilinear')[0]
         # TODO: torch does not have `sigmoid_focal_loss`, but it's not urgent since we don't use mask branch for now.
         loss[name_mask] = self.loss_gain['mask'] * F.sigmoid_focal_loss(src_masks, target_masks,
-                                                                         torch.tensor([num_gts], dtype=torch.float32))
+                                                                        torch.tensor([num_gts], dtype=torch.float32))
         loss[name_dice] = self.loss_gain['dice'] * self._dice_loss(src_masks, target_masks, num_gts)
         return loss
 
@@ -219,8 +219,7 @@ class DETRLoss(nn.Module):
             iou_score = bbox_iou(src_bbox, target_bbox, xywh=True).squeeze(-1)
 
         loss = {}
-        loss.update(self._get_loss_class(logits, gt_class, match_indices, num_gts, postfix,
-                                         iou_score))
+        loss.update(self._get_loss_class(logits, gt_class, match_indices, num_gts, postfix, iou_score))
         loss.update(self._get_loss_bbox(boxes, gt_bbox, match_indices, num_gts, postfix))
         if masks is not None and gt_mask is not None:
             loss.update(self._get_loss_mask(masks, gt_mask, match_indices, num_gts, postfix))

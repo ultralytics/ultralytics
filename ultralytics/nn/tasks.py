@@ -412,7 +412,7 @@ class RTDETRDetectionModel(DetectionModel):
         """Compute the classification loss between predictions and true labels."""
         from ultralytics.vit.utils.loss import RTDETRDetectionLoss
 
-        return RTDETRDetectionLoss(num_classes=self.nc, use_vfl=True)
+        return RTDETRDetectionLoss(nc=self.nc, use_vfl=True)
 
     def loss(self, batch, preds=None):
         if not hasattr(self, 'criterion'):

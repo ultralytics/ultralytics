@@ -10,12 +10,12 @@ from ultralytics.yolo.utils.metrics import bbox_iou
 class DETRLoss(nn.Module):
 
     def __init__(self,
-                 num_classes=80,
-                 matcher=HungarianMatcher(matcher_coeff={
+                 nc=80,
+                 matcher=HungarianMatcher(cost_gain={
                      'class': 2,
                      'bbox': 5,
                      'giou': 2}),
-                 loss_coeff=None,
+                 loss_gain=None,
                  aux_loss=True,
                  use_focal_loss=True,
                  use_vfl=False,
@@ -23,36 +23,36 @@ class DETRLoss(nn.Module):
                  uni_match_ind=0):
         """
         Args:
-            num_classes (int): The number of classes.
+            nc (int): The number of classes.
             matcher (HungarianMatcher): It computes an assignment between the targets
                 and the predictions of the network.
-            loss_coeff (dict): The coefficient of loss.
+            loss_gain (dict): The coefficient of loss.
             aux_loss (bool): If 'aux_loss = True', loss at each decoder layer are to be used.
             use_focal_loss (bool): Use focal loss or not.
+            use_vfl (bool): Use VarifocalLoss or not.
         """
         super().__init__()
 
-        if loss_coeff is None:
-            loss_coeff = {'class': 1, 'bbox': 5, 'giou': 2, 'no_object': 0.1, 'mask': 1, 'dice': 1}
-        self.num_classes = num_classes
+        if loss_gain is None:
+            loss_gain = {'class': 1, 'bbox': 5, 'giou': 2, 'no_object': 0.1, 'mask': 1, 'dice': 1}
+        self.nc = nc
         self.matcher = matcher
-        self.loss_coeff = loss_coeff
+        self.loss_gain = loss_gain
         self.aux_loss = aux_loss
-        self.use_focal_loss = use_focal_loss
-        self.use_vfl = use_vfl
+        self.fl = FocalLoss() if use_focal_loss else None
+        self.vfl = VarifocalLoss() if use_vfl else None
+
         self.use_uni_match = use_uni_match
         self.uni_match_ind = uni_match_ind
         self.device = None
 
-        if not self.use_focal_loss:
-            self.loss_coeff['class'] = torch.full([num_classes + 1], loss_coeff['class'])
-            self.loss_coeff['class'][-1] = loss_coeff['no_object']
+        if not use_focal_loss:
+            self.loss_gain['class'] = torch.full([nc + 1], loss_gain['class'])
+            self.loss_gain['class'][-1] = loss_gain['no_object']
 
     def _get_loss_class(self, logits, gt_class, match_indices, bg_index, num_gts, postfix='', iou_score=None):
         # logits: [b, query, num_classes], gt_class: list[[n, 1]]
         name_class = f'loss_class{postfix}'
-        varifocal_loss = VarifocalLoss()
-        focal_loss = FocalLoss()
         target_label = torch.full(logits.shape[:2], bg_index, device=logits.device, dtype=gt_class[0].dtype)
         bs, num_query_objects = target_label.shape
         num_gt = sum(len(a) for a in gt_class)
@@ -61,22 +61,22 @@ class DETRLoss(nn.Module):
             target_label = target_label.view(-1, 1)
             target_label[index] = updates
             target_label = target_label.view(bs, num_query_objects)
-        if self.use_focal_loss:
-            target_label = F.one_hot(target_label, self.num_classes + 1)[..., :-1]  # (bs, num_queries, num_classes)
-            if iou_score is not None and self.use_vfl:
+        if self.fl:
+            target_label = F.one_hot(target_label, self.nc + 1)[..., :-1]  # (bs, num_queries, num_classes)
+            if iou_score is not None and self.vfl:
                 target_score = torch.zeros([bs, num_query_objects], device=logits.device)
                 if num_gt > 0:
                     target_score = target_score.view(-1, 1)
                     target_score[index] = iou_score
                 target_score = target_score.view(bs, num_query_objects, 1) * target_label
-                loss_ = self.loss_coeff['class'] * varifocal_loss(logits, target_score, target_label,
+                loss_ = self.loss_gain['class'] * self.vfl(logits, target_score, target_label,
                                                                   num_gts / num_query_objects)  # RTDETR loss
                 # loss_ = self.loss_coeff['class'] * nn.BCEWithLogitsLoss(reduction='none')(logits, target_score).mean(
                 #     1).sum()  # YOLO CLS loss
             else:
-                loss_ = self.loss_coeff['class'] * focal_loss(logits, target_label.float(), num_gts / num_query_objects)
+                loss_ = self.loss_gain['class'] * self.fl(logits, target_label.float(), num_gts / num_query_objects)
         else:
-            loss_ = F.cross_entropy(logits, target_label, weight=self.loss_coeff['class'])
+            loss_ = F.cross_entropy(logits, target_label, weight=self.loss_gain['class'])
 
         return {name_class: loss_.squeeze()}
 
@@ -92,10 +92,10 @@ class DETRLoss(nn.Module):
             return loss
 
         src_bbox, target_bbox = self._get_src_target_assign(boxes, gt_bbox, match_indices)
-        loss[name_bbox] = self.loss_coeff['bbox'] * F.l1_loss(src_bbox, target_bbox, reduction='sum') / num_gts
+        loss[name_bbox] = self.loss_gain['bbox'] * F.l1_loss(src_bbox, target_bbox, reduction='sum') / num_gts
         loss[name_giou] = 1.0 - bbox_iou(src_bbox, target_bbox, xywh=True, GIoU=True)
         loss[name_giou] = loss[name_giou].sum() / num_gts
-        loss[name_giou] = self.loss_coeff['giou'] * loss[name_giou]
+        loss[name_giou] = self.loss_gain['giou'] * loss[name_giou]
         loss = {k: v.squeeze() for k, v in loss.items()}
         return loss
 
@@ -113,9 +113,9 @@ class DETRLoss(nn.Module):
         src_masks, target_masks = self._get_src_target_assign(masks, gt_mask, match_indices)
         src_masks = F.interpolate(src_masks.unsqueeze(0), size=target_masks.shape[-2:], mode='bilinear')[0]
         # TODO: torch does not have `sigmoid_focal_loss`, but it's not urgent since we don't use mask branch for now.
-        loss[name_mask] = self.loss_coeff['mask'] * F.sigmoid_focal_loss(src_masks, target_masks,
+        loss[name_mask] = self.loss_gain['mask'] * F.sigmoid_focal_loss(src_masks, target_masks,
                                                                          torch.tensor([num_gts], dtype=torch.float32))
-        loss[name_dice] = self.loss_coeff['dice'] * self._dice_loss(src_masks, target_masks, num_gts)
+        loss[name_dice] = self.loss_gain['dice'] * self._dice_loss(src_masks, target_masks, num_gts)
         return loss
 
     def _dice_loss(self, inputs, targets, num_gts):
@@ -153,7 +153,7 @@ class DETRLoss(nn.Module):
             aux_masks = masks[i] if masks is not None else None
             if not self.use_uni_match and dn_match_indices is None:
                 match_indices = self.matcher(aux_boxes, aux_logits, gt_bbox, gt_class, masks=aux_masks, gt_mask=gt_mask)
-            if self.use_vfl:
+            if self.vfl:
                 if sum(len(a) for a in gt_bbox) > 0:
                     src_bbox, target_bbox = self._get_src_target_assign(aux_boxes.detach(), gt_bbox, match_indices)
                     iou_score = bbox_iou(src_bbox, target_bbox, xywh=True)
@@ -223,7 +223,8 @@ class DETRLoss(nn.Module):
         else:
             match_indices = dn_match_indices
 
-        if self.use_vfl:
+        print("\n", sum(len(a) for a in gt_bbox), num_gts)
+        if self.vfl:
             if sum(len(a) for a in gt_bbox) > 0:
                 src_bbox, target_bbox = self._get_src_target_assign(boxes.detach(), gt_bbox, match_indices)
                 iou_score = bbox_iou(src_bbox, target_bbox, xywh=True)
@@ -233,7 +234,7 @@ class DETRLoss(nn.Module):
             iou_score = None
 
         loss = {}
-        loss.update(self._get_loss_class(logits, gt_class, match_indices, self.num_classes, num_gts, postfix,
+        loss.update(self._get_loss_class(logits, gt_class, match_indices, self.nc, num_gts, postfix,
                                          iou_score))
         loss.update(self._get_loss_bbox(boxes, gt_bbox, match_indices, num_gts, postfix))
         if masks is not None and gt_mask is not None:
@@ -274,7 +275,7 @@ class DETRLoss(nn.Module):
                                    logits[:-1],
                                    gt_bbox,
                                    gt_class,
-                                   self.num_classes,
+                                   self.nc,
                                    num_gts,
                                    dn_match_indices,
                                    postfix,

@@ -72,7 +72,7 @@ task.
 | `name`            | `None`   | experiment name                                                                   |
 | `exist_ok`        | `False`  | whether to overwrite existing experiment                                          |
 | `pretrained`      | `False`  | whether to use a pretrained model                                                 |
-| `optimizer`       | `'SGD'`  | optimizer to use, choices=[SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto] |
+| `optimizer`       | `'auto'` | optimizer to use, choices=[SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto] |
 | `verbose`         | `False`  | whether to print verbose output                                                   |
 | `seed`            | `0`      | random seed for reproducibility                                                   |
 | `deterministic`   | `True`   | whether to enable deterministic mode                                              |
@@ -102,3 +102,60 @@ task.
 | `mask_ratio`      | `4`      | mask downsample ratio (segment train only)                                        |
 | `dropout`         | `0.0`    | use dropout regularization (classify train only)                                  |
 | `val`             | `True`   | validate/test during training                                                     |
+
+## Logging
+
+In training a YOLOv8 model, you might find it valuable to keep track of the model's performance over time. This is where logging comes into play. Ultralytics' YOLO provides support for three types of loggers - Comet, ClearML, and TensorBoard.
+
+To use a logger, select it from the dropdown menu in the code snippet above and run it. The chosen logger will be installed and initialized.
+
+### Comet
+
+[Comet](https://www.comet.ml/site/) is a platform that allows data scientists and developers to track, compare, explain and optimize experiments and models. It provides functionalities such as real-time metrics, code diffs, and hyperparameters tracking.
+
+To use Comet:
+
+```python
+# pip install comet_ml
+import comet_ml
+
+comet_ml.init()
+```
+
+Remember to sign in to your Comet account on their website and get your API key. You will need to add this to your environment variables or your script to log your experiments.
+
+### ClearML
+
+[ClearML](https://www.clear.ml/) is an open-source platform that automates tracking of experiments and helps with efficient sharing of resources. It is designed to help teams manage, execute, and reproduce their ML work more efficiently.
+
+To use ClearML:
+
+```python
+# pip install clearml
+import clearml
+
+clearml.browser_login()
+```
+
+After running this script, you will need to sign in to your ClearML account on the browser and authenticate your session.
+
+### TensorBoard
+
+[TensorBoard](https://www.tensorflow.org/tensorboard) is a visualization toolkit for TensorFlow. It allows you to visualize your TensorFlow graph, plot quantitative metrics about the execution of your graph, and show additional data like images that pass through it.
+
+To use TensorBoard in [Google Colab](https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb):
+
+```bash
+load_ext tensorboard
+tensorboard --logdir ultralytics/runs  # replace with 'runs' directory
+```
+
+To use TensorBoard locally run the below command and view results at http://localhost:6006/.
+
+```bash
+tensorboard --logdir ultralytics/runs  # replace with 'runs' directory
+```
+
+This will load TensorBoard and direct it to the directory where your training logs are saved.
+
+After setting up your logger, you can then proceed with your model training. All training metrics will be automatically logged in your chosen platform, and you can access these logs to monitor your model's performance over time, compare different models, and identify areas for improvement.

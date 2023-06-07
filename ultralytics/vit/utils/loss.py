@@ -55,22 +55,19 @@ class DETRLoss(nn.Module):
         name_class = f'loss_class{postfix}'
         bs, nq = scores.shape[:2]
         targets = torch.full((bs, nq), self.nc, device=scores.device, dtype=gt_class[0].dtype)
+        # NOTE: num_gt could be different from num_gts, because of the denoising part.
         num_gt = sum(len(a) for a in gt_class)
         if num_gt > 0:
-            index, updates = self._get_index_updates(nq, gt_class, match_indices)
-            targets = targets.view(-1, 1)
-            targets[index] = updates
-            targets = targets.view(bs, nq)
+            b_idx, q_idx, assigned_gt = self._get_index_updates(gt_class, match_indices)
+            targets[b_idx, q_idx] = assigned_gt
         if self.fl:
             targets = F.one_hot(targets, self.nc + 1)[..., :-1]  # (bs, num_queries, num_classes)
             if iou_score is not None and self.vfl:
                 target_score = torch.zeros([bs, nq], device=scores.device)
                 if num_gt > 0:
-                    target_score = target_score.view(-1, 1)
-                    target_score[index] = iou_score
+                    target_score[b_idx, q_idx] = iou_score
                 target_score = target_score.view(bs, nq, 1) * targets
-                loss_ = self.loss_gain['class'] * self.vfl(scores, target_score, targets,
-                                                                  num_gts / nq)  # RTDETR loss
+                loss_ = self.loss_gain['class'] * self.vfl(scores, target_score, targets, num_gts / nq)
                 # loss_ = self.loss_coeff['class'] * nn.BCEWithLogitsLoss(reduction='none')(logits, target_score).mean(
                 #     1).sum()  # YOLO CLS loss
             else:
@@ -155,7 +152,7 @@ class DETRLoss(nn.Module):
             iou_score = None
             if self.vfl and (sum(len(a) for a in gt_bbox) > 0):
                 src_bbox, target_bbox = self._get_src_target_assign(aux_boxes.detach(), gt_bbox, match_indices)
-                iou_score = bbox_iou(src_bbox, target_bbox, xywh=True)
+                iou_score = bbox_iou(src_bbox, target_bbox, xywh=True).squeeze(-1)
             loss[0] += self._get_loss_class(
                 aux_logits,
                 gt_class,
@@ -181,12 +178,11 @@ class DETRLoss(nn.Module):
             loss[f'loss_dice_aux{postfix}'] = loss[4]
         return loss
 
-    def _get_index_updates(self, num_query_objects, target, match_indices):
+    def _get_index_updates(self, target, match_indices):
         batch_idx = torch.cat([torch.full_like(src, i) for i, (src, _) in enumerate(match_indices)])
         src_idx = torch.cat([src for (src, _) in match_indices])
-        src_idx += (batch_idx * num_query_objects)
-        target_assign = torch.cat([t[dst] for t, (_, dst) in zip(target, match_indices)])
-        return src_idx, target_assign
+        target_assign = torch.cat([t[dst].squeeze(-1) for t, (_, dst) in zip(target, match_indices)])
+        return batch_idx, src_idx, target_assign
 
     def _get_src_target_assign(self, src, target, match_indices):
         src_assign = torch.cat([
@@ -220,7 +216,7 @@ class DETRLoss(nn.Module):
         iou_score = None
         if self.vfl and (sum(len(a) for a in gt_bbox) > 0):
             src_bbox, target_bbox = self._get_src_target_assign(boxes.detach(), gt_bbox, match_indices)
-            iou_score = bbox_iou(src_bbox, target_bbox, xywh=True)
+            iou_score = bbox_iou(src_bbox, target_bbox, xywh=True).squeeze(-1)
 
         loss = {}
         loss.update(self._get_loss_class(logits, gt_class, match_indices, num_gts, postfix,

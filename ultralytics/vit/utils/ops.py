@@ -91,6 +91,7 @@ class HungarianMatcher(nn.Module):
 
         C = C.view(bs, nq, -1).cpu()
         indices = [linear_sum_assignment(c[i]) for i, c in enumerate(C.split(num_gts, -1))]
+        # (idx for queries, idx for gt)
         return [(torch.tensor(i, dtype=torch.int32), torch.tensor(j, dtype=torch.int32)) for i, j in indices]
 
     def _cost_mask(self, bs, num_gts, masks=None, gt_mask=None):

@@ -99,6 +99,7 @@ class RTDETRValidator(DetectionValidator):
             # Do not need threshold for evaluation as only got 300 boxes here.
             # idx = score > self.args.conf
             pred = torch.cat([bbox, score[..., None], cls[..., None]], dim=-1)  # filter
+            pred = pred[score.argsort(descending=True)]  # sort by confidence
             outputs[i] = pred  # [idx]
 
         return outputs

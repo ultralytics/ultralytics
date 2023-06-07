@@ -12,7 +12,7 @@ from ultralytics.yolo.utils.ops import xywh2xyxy, xyxy2xywh
 class HungarianMatcher(nn.Module):
 
     def __init__(self,
-                 matcher_coeff=None,
+                 cost_gain=None,
                  use_focal_loss=True,
                  with_mask=False,
                  num_sample_points=12544,
@@ -23,22 +23,22 @@ class HungarianMatcher(nn.Module):
             matcher_coeff (dict): The coefficient of hungarian matcher cost.
         """
         super().__init__()
-        if matcher_coeff is None:
-            matcher_coeff = {'class': 1, 'bbox': 5, 'giou': 2, 'mask': 1, 'dice': 1}
-        self.matcher_coeff = matcher_coeff
+        if cost_gain is None:
+            cost_gain = {'class': 1, 'bbox': 5, 'giou': 2, 'mask': 1, 'dice': 1}
+        self.cost_gain = cost_gain
         self.use_focal_loss = use_focal_loss
         self.with_mask = with_mask
         self.num_sample_points = num_sample_points
         self.alpha = alpha
         self.gamma = gamma
 
-    def forward(self, boxes, logits, gt_bbox, gt_class, masks=None, gt_mask=None):
+    def forward(self, bboxes, scores, gt_bboxes, gt_cls, masks=None, gt_mask=None):
         """
         Args:
-            boxes (Tensor): [b, query, 4]
-            logits (Tensor): [b, query, num_classes]
+            bboxes (Tensor): [b, query, 4]
+            scores (Tensor): [b, query, num_classes]
             gt_bbox (List(Tensor)): list[[n, 4]]
-            gt_class (List(Tensor)): list[[n, 1]]
+            gt_cls (List(Tensor)): list[[n, 1]]
             masks (Tensor|None): [b, query, h, w]
             gt_mask (List(Tensor)): list[[n, H, W]]
 
@@ -49,47 +49,47 @@ class HungarianMatcher(nn.Module):
             For each batch element, it holds:
                 len(index_i) = len(index_j) = min(num_queries, num_target_boxes)
         """
-        bs, num_queries, nc = logits.shape
+        bs, nq, nc = scores.shape
 
-        num_gts = [len(a) for a in gt_class]
+        num_gts = [len(a) for a in gt_cls]
         if sum(num_gts) == 0:
             return [(torch.tensor([], dtype=torch.int32), torch.tensor([], dtype=torch.int32)) for _ in range(bs)]
 
         # We flatten to compute the cost matrices in a batch
         # [batch_size * num_queries, num_classes]
-        logits = logits.detach().view(-1, nc)
-        out_prob = F.sigmoid(logits) if self.use_focal_loss else F.softmax(logits, dim=-1)
+        scores = scores.detach().view(-1, nc)
+        pred_scores = F.sigmoid(scores) if self.use_focal_loss else F.softmax(scores, dim=-1)
         # [batch_size * num_queries, 4]
-        out_bbox = boxes.detach().view(-1, 4)
+        pred_bboxes = bboxes.detach().view(-1, 4)
 
         # Also concat the target labels and boxes
-        tgt_ids = torch.cat(gt_class).view(-1)
-        tgt_bbox = torch.cat(gt_bbox)
+        gt_cls = torch.cat(gt_cls).view(-1)
+        gt_bboxes = torch.cat(gt_bboxes)
 
         # Compute the classification cost
-        out_prob = out_prob[:, tgt_ids]
+        pred_scores = pred_scores[:, gt_cls]
         if self.use_focal_loss:
-            neg_cost_class = (1 - self.alpha) * (out_prob ** self.gamma) * (-(1 - out_prob + 1e-8).log())
-            pos_cost_class = self.alpha * ((1 - out_prob) ** self.gamma) * (-(out_prob + 1e-8).log())
+            neg_cost_class = (1 - self.alpha) * (pred_scores ** self.gamma) * (-(1 - pred_scores + 1e-8).log())
+            pos_cost_class = self.alpha * ((1 - pred_scores) ** self.gamma) * (-(pred_scores + 1e-8).log())
             cost_class = pos_cost_class - neg_cost_class
         else:
-            cost_class = -out_prob
+            cost_class = -pred_scores
 
         # Compute the L1 cost between boxes
-        cost_bbox = (out_bbox.unsqueeze(1) - tgt_bbox.unsqueeze(0)).abs().sum(-1)  # (bs*num_queries, num_gt)
+        cost_bbox = (pred_bboxes.unsqueeze(1) - gt_bboxes.unsqueeze(0)).abs().sum(-1)  # (bs*num_queries, num_gt)
 
         # Compute the GIoU cost between boxes, (bs*num_queries, num_gt)
-        cost_giou = 1.0 - bbox_iou(out_bbox.unsqueeze(1), tgt_bbox.unsqueeze(0), xywh=True, GIoU=True).squeeze(-1)
+        cost_giou = 1.0 - bbox_iou(pred_bboxes.unsqueeze(1), gt_bboxes.unsqueeze(0), xywh=True, GIoU=True).squeeze(-1)
 
         # Final cost matrix
-        C = self.matcher_coeff['class'] * cost_class + \
-            self.matcher_coeff['bbox'] * cost_bbox + \
-            self.matcher_coeff['giou'] * cost_giou
+        C = self.cost_gain['class'] * cost_class + \
+            self.cost_gain['bbox'] * cost_bbox + \
+            self.cost_gain['giou'] * cost_giou
         # Compute the mask cost and dice cost
         if self.with_mask:
             C += self._cost_mask(bs, num_gts, masks, gt_mask)
 
-        C = C.view(bs, num_queries, -1).cpu()
+        C = C.view(bs, nq, -1).cpu()
         indices = [linear_sum_assignment(c[i]) for i, c in enumerate(C.split(num_gts, -1))]
         return [(torch.tensor(i, dtype=torch.int32), torch.tensor(j, dtype=torch.int32)) for i, j in indices]
 
@@ -123,7 +123,7 @@ class HungarianMatcher(nn.Module):
             denominator = out_mask.sum(-1, keepdim=True) + tgt_mask.sum(-1).unsqueeze(0)
             cost_dice = 1 - (numerator + 1) / (denominator + 1)
 
-            C = self.matcher_coeff['mask'] * cost_mask + self.matcher_coeff['dice'] * cost_dice
+            C = self.cost_gain['mask'] * cost_mask + self.cost_gain['dice'] * cost_dice
         return C
 
 

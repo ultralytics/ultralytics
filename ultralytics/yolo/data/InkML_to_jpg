@@ -1,0 +1,153 @@
+import numpy as np
+import cv2
+import xml.etree.ElementTree
+import os
+from os import walk
+import matplotlib.pyplot as plt
+
+def parse_file(input_path, output_path = '/content/img2.jpg', scale_factor = 1, vertexlen = 2):
+    #################################
+    ##### GET XML FILE ##############
+    #################################
+    root = xml.etree.ElementTree.parse(input_path).getroot()
+    tag_header_len = len(root.tag) - 3
+    vertex_arr = []
+    min_x = 999999
+    min_y = 999999
+    max_x = 0
+    max_y = 0
+    for child in root:
+        tag = child.tag[tag_header_len:]
+        ################################
+        ####### GET VERTICES ###########
+        ################################
+        if tag == 'trace':
+            temp_arr = []
+            processing_text = child.text
+            processing_text = processing_text.replace(',', '')
+            processing_text = processing_text.replace('\n', '')
+            raw_vertex_list = processing_text.split(' ')
+            for i in range(len(raw_vertex_list) // vertexlen):
+                x = float(raw_vertex_list[vertexlen * i])
+                y = float(raw_vertex_list[vertexlen * i + 1])
+
+                if x > max_x:
+                    max_x = x
+                if y > max_y:
+                    max_y = y
+                if x < min_x:
+                    min_x = x
+                if y < min_y:
+                    min_y = y
+                temp_arr.append ((x, y))
+            vertex_arr.append(temp_arr)
+
+    #################################
+    ##### GENERATE ##################
+    #################################
+    width = max_x - min_x
+    heigh = max_y - min_y
+    expr_img = np.zeros((int(heigh * scale_factor) + 1 , int(width * scale_factor) + 1 ))
+    for stroke in vertex_arr:
+        temp_vertex_arr = []
+        for vertex in stroke:
+            temp_vertex_arr.append((int((vertex[0]-min_x) * scale_factor ), int((vertex[1]-min_y) * scale_factor)))
+
+        for i in range (len(stroke) - 1):
+            cv2.line(expr_img, temp_vertex_arr[i], temp_vertex_arr[i + 1], (255, 255, 255), 10)
+
+
+    cv2.imwrite(output_path, expr_img)
+    return (min_x, min_y)
+
+def get_traces_data(inkml_file_abs_path, xmlns='{http://www.w3.org/2003/InkML}'):
+
+    traces_data = []
+
+    root = xml.etree.ElementTree.parse(inkml_file_abs_path).getroot()
+
+    # doc_namespace = "{http://www.w3.org/2003/InkML}"
+    doc_namespace = xmlns
+
+    'Stores traces_all with their corresponding id'
+    traces_all = [{'id': trace_tag.get('id'),
+                   'coords': [[round(float(axis_coord)) if float(axis_coord).is_integer() else round(float(axis_coord) * 10000)
+                               for axis_coord in coord[1:].split(' ')] if coord.startswith(' ')
+                              else [round(float(axis_coord)) if float(axis_coord).is_integer() else round(float(axis_coord) * 10000)
+                                    for axis_coord in coord.split(' ')]
+                              for coord in (trace_tag.text).replace('\n', '').split(',')]}
+                  for trace_tag in root.findall(doc_namespace + 'trace')]
+
+    'Sort traces_all list by id to make searching for references faster'
+    traces_all.sort(key=lambda trace_dict: int(trace_dict['id']))
+
+    'Always 1st traceGroup is a redundant wrapper'
+    traceGroupWrapper = root.find(doc_namespace + 'traceGroup')
+
+    if traceGroupWrapper is not None:
+        for traceGroup in traceGroupWrapper.findall(doc_namespace + 'traceGroup'):
+
+            label = traceGroup.find(doc_namespace + 'annotation').text
+
+            'traces of the current traceGroup'
+            traces_curr = []
+            for traceView in traceGroup.findall(doc_namespace + 'traceView'):
+
+                'Id reference to specific trace tag corresponding to currently considered label'
+                traceDataRef = int(traceView.get('traceDataRef'))
+
+                'Each trace is represented by a list of coordinates to connect'
+                single_trace = traces_all[traceDataRef]['coords']
+                traces_curr.append(single_trace)
+
+            traces_data.append({'label': label, 'trace_group': traces_curr})
+
+    else:
+        'Consider Validation data that has no labels'
+        [traces_data.append({'trace_group': [trace['coords']]})
+         for trace in traces_all]
+
+    return traces_data
+
+
+
+def get_min_coords(trace_group):
+    min_x_coords = []
+    min_y_coords = []
+    max_x_coords = []
+    max_y_coords = []
+
+    for trace in trace_group:
+        x_coords = [coord[0] for coord in trace]
+        y_coords = [coord[1] for coord in trace]
+
+        min_x_coords.append(min(x_coords))
+        min_y_coords.append(min(y_coords))
+        max_x_coords.append(max(x_coords))
+        max_y_coords.append(max(y_coords))
+    return min(min_x_coords), min(min_y_coords), max(max_x_coords), max(max_y_coords)
+
+
+def complete(path, output_dir):
+  min_x, min_y = parse_file(path, output_path=output_dir)
+  im = cv2.imread(output_dir)
+  traces = get_traces_data(path)
+  for elem in traces:
+    ls = elem['trace_group']
+
+    x0, y0, x1, y1 = get_min_coords(ls)
+    x0 = int(x0)
+    y0 = int(y0)
+    x1 = int(x1)
+    y1 = int(y1)
+    min_x = int(min_x)
+    min_y = int(min_y)
+    #x0-min_x, y0-min_y, x1-min_x, y1-min_y are the bounding box coordinates.
+    cv2.rectangle(im, ((x0-min_x)-2, (y0-min_y)-2), ((x1-min_x)+2, (y1-min_y)+2), color=(0, 255, 0), thickness=2)
+  cv2_imshow(im)
+
+
+
+#You call the comlete function using the input directory (file) and the output directory (image). This will write an image in the output directory that has the bounding boxes placed onto them
+#if you want just the image + bounding boxes, you need to use the xyxy2xywh function to do so.
+complete("/content/CROHME_extractor/data/CROHME_full_v2/CROHME2013_data/TrainINKML/MathBrush/2009210-947-0.inkml", "/content/tempimg.jpg")

@@ -88,40 +88,44 @@ class HungarianMatcher(nn.Module):
             self.matcher_coeff['giou'] * cost_giou
         # Compute the mask cost and dice cost
         if self.with_mask:
-            assert masks is not None and gt_mask is not None, 'Make sure the input has `mask` and `gt_mask`'
-            # all masks share the same set of points for efficient matching
-            sample_points = torch.rand([bs, 1, self.num_sample_points, 2])
-            sample_points = 2.0 * sample_points - 1.0
-
-            out_mask = F.grid_sample(masks.detach(), sample_points, align_corners=False).squeeze(-2)
-            out_mask = out_mask.flatten(0, 1)
-
-            tgt_mask = torch.cat(gt_mask).unsqueeze(1)
-            sample_points = torch.cat([a.repeat(b, 1, 1, 1) for a, b in zip(sample_points, num_gts) if b > 0])
-            tgt_mask = F.grid_sample(tgt_mask, sample_points, align_corners=False).squeeze([1, 2])
-
-            with torch.cuda.amp.autocast(False):
-                # binary cross entropy cost
-                pos_cost_mask = F.binary_cross_entropy_with_logits(out_mask,
-                                                                   torch.ones_like(out_mask),
-                                                                   reduction='none')
-                neg_cost_mask = F.binary_cross_entropy_with_logits(out_mask,
-                                                                   torch.zeros_like(out_mask),
-                                                                   reduction='none')
-                cost_mask = torch.matmul(pos_cost_mask, tgt_mask.T) + torch.matmul(neg_cost_mask, 1 - tgt_mask.T)
-                cost_mask /= self.num_sample_points
-
-                # dice cost
-                out_mask = F.sigmoid(out_mask)
-                numerator = 2 * torch.matmul(out_mask, tgt_mask.T)
-                denominator = out_mask.sum(-1, keepdim=True) + tgt_mask.sum(-1).unsqueeze(0)
-                cost_dice = 1 - (numerator + 1) / (denominator + 1)
-
-                C = C + self.matcher_coeff['mask'] * cost_mask + self.matcher_coeff['dice'] * cost_dice
+            C += self._cost_mask(bs, num_gts, masks, gt_mask)
 
         C = C.view(bs, num_queries, -1).cpu()
         indices = [linear_sum_assignment(c[i]) for i, c in enumerate(C.split(num_gts, -1))]
         return [(torch.tensor(i, dtype=torch.int32), torch.tensor(j, dtype=torch.int32)) for i, j in indices]
+
+    def _cost_mask(self, bs, num_gts, masks=None, gt_mask=None):
+        assert masks is not None and gt_mask is not None, 'Make sure the input has `mask` and `gt_mask`'
+        # all masks share the same set of points for efficient matching
+        sample_points = torch.rand([bs, 1, self.num_sample_points, 2])
+        sample_points = 2.0 * sample_points - 1.0
+
+        out_mask = F.grid_sample(masks.detach(), sample_points, align_corners=False).squeeze(-2)
+        out_mask = out_mask.flatten(0, 1)
+
+        tgt_mask = torch.cat(gt_mask).unsqueeze(1)
+        sample_points = torch.cat([a.repeat(b, 1, 1, 1) for a, b in zip(sample_points, num_gts) if b > 0])
+        tgt_mask = F.grid_sample(tgt_mask, sample_points, align_corners=False).squeeze([1, 2])
+
+        with torch.cuda.amp.autocast(False):
+            # binary cross entropy cost
+            pos_cost_mask = F.binary_cross_entropy_with_logits(out_mask,
+                                                               torch.ones_like(out_mask),
+                                                               reduction='none')
+            neg_cost_mask = F.binary_cross_entropy_with_logits(out_mask,
+                                                               torch.zeros_like(out_mask),
+                                                               reduction='none')
+            cost_mask = torch.matmul(pos_cost_mask, tgt_mask.T) + torch.matmul(neg_cost_mask, 1 - tgt_mask.T)
+            cost_mask /= self.num_sample_points
+
+            # dice cost
+            out_mask = F.sigmoid(out_mask)
+            numerator = 2 * torch.matmul(out_mask, tgt_mask.T)
+            denominator = out_mask.sum(-1, keepdim=True) + tgt_mask.sum(-1).unsqueeze(0)
+            cost_dice = 1 - (numerator + 1) / (denominator + 1)
+
+            C = self.matcher_coeff['mask'] * cost_mask + self.matcher_coeff['dice'] * cost_dice
+        return C
 
 
 def get_cdn_group(targets,

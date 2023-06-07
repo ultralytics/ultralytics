@@ -198,8 +198,8 @@ def add_integration_callbacks(instance):
     """
     from .clearml import callbacks as clearml_cb
     from .comet import callbacks as comet_cb
-    from .dvc import callbacks as dvc_cb
     from .dagshub import callbacks as dagshub_cb
+    from .dvc import callbacks as dvc_cb
     from .hub import callbacks as hub_cb
     from .mlflow import callbacks as mlflow_cb
     from .neptune import callbacks as neptune_cb

@@ -50,33 +50,33 @@ class DETRLoss(nn.Module):
             self.loss_gain['class'] = torch.full([nc + 1], loss_gain['class'])
             self.loss_gain['class'][-1] = loss_gain['no_object']
 
-    def _get_loss_class(self, logits, gt_class, match_indices, bg_index, num_gts, postfix='', iou_score=None):
+    def _get_loss_class(self, scores, gt_class, match_indices, num_gts, postfix='', iou_score=None):
         # logits: [b, query, num_classes], gt_class: list[[n, 1]]
         name_class = f'loss_class{postfix}'
-        target_label = torch.full(logits.shape[:2], bg_index, device=logits.device, dtype=gt_class[0].dtype)
-        bs, num_query_objects = target_label.shape
+        bs, nq = scores.shape[:2]
+        targets = torch.full((bs, nq), self.nc, device=scores.device, dtype=gt_class[0].dtype)
         num_gt = sum(len(a) for a in gt_class)
         if num_gt > 0:
-            index, updates = self._get_index_updates(num_query_objects, gt_class, match_indices)
-            target_label = target_label.view(-1, 1)
-            target_label[index] = updates
-            target_label = target_label.view(bs, num_query_objects)
+            index, updates = self._get_index_updates(nq, gt_class, match_indices)
+            targets = targets.view(-1, 1)
+            targets[index] = updates
+            targets = targets.view(bs, nq)
         if self.fl:
-            target_label = F.one_hot(target_label, self.nc + 1)[..., :-1]  # (bs, num_queries, num_classes)
+            targets = F.one_hot(targets, self.nc + 1)[..., :-1]  # (bs, num_queries, num_classes)
             if iou_score is not None and self.vfl:
-                target_score = torch.zeros([bs, num_query_objects], device=logits.device)
+                target_score = torch.zeros([bs, nq], device=scores.device)
                 if num_gt > 0:
                     target_score = target_score.view(-1, 1)
                     target_score[index] = iou_score
-                target_score = target_score.view(bs, num_query_objects, 1) * target_label
-                loss_ = self.loss_gain['class'] * self.vfl(logits, target_score, target_label,
-                                                                  num_gts / num_query_objects)  # RTDETR loss
+                target_score = target_score.view(bs, nq, 1) * targets
+                loss_ = self.loss_gain['class'] * self.vfl(scores, target_score, targets,
+                                                                  num_gts / nq)  # RTDETR loss
                 # loss_ = self.loss_coeff['class'] * nn.BCEWithLogitsLoss(reduction='none')(logits, target_score).mean(
                 #     1).sum()  # YOLO CLS loss
             else:
-                loss_ = self.loss_gain['class'] * self.fl(logits, target_label.float(), num_gts / num_query_objects)
+                loss_ = self.loss_gain['class'] * self.fl(scores, targets.float(), num_gts / nq)
         else:
-            loss_ = F.cross_entropy(logits, target_label, weight=self.loss_gain['class'])
+            loss_ = F.cross_entropy(scores, targets, weight=self.loss_gain['class'])
 
         return {name_class: loss_.squeeze()}
 
@@ -132,7 +132,6 @@ class DETRLoss(nn.Module):
                       logits,
                       gt_bbox,
                       gt_class,
-                      bg_index,
                       num_gts,
                       dn_match_indices=None,
                       postfix='',
@@ -153,19 +152,14 @@ class DETRLoss(nn.Module):
             aux_masks = masks[i] if masks is not None else None
             if not self.use_uni_match and dn_match_indices is None:
                 match_indices = self.matcher(aux_boxes, aux_logits, gt_bbox, gt_class, masks=aux_masks, gt_mask=gt_mask)
-            if self.vfl:
-                if sum(len(a) for a in gt_bbox) > 0:
-                    src_bbox, target_bbox = self._get_src_target_assign(aux_boxes.detach(), gt_bbox, match_indices)
-                    iou_score = bbox_iou(src_bbox, target_bbox, xywh=True)
-                else:
-                    iou_score = None
-            else:
-                iou_score = None
+            iou_score = None
+            if self.vfl and (sum(len(a) for a in gt_bbox) > 0):
+                src_bbox, target_bbox = self._get_src_target_assign(aux_boxes.detach(), gt_bbox, match_indices)
+                iou_score = bbox_iou(src_bbox, target_bbox, xywh=True)
             loss[0] += self._get_loss_class(
                 aux_logits,
                 gt_class,
                 match_indices,
-                bg_index,
                 num_gts,
                 postfix,
                 iou_score,
@@ -223,18 +217,13 @@ class DETRLoss(nn.Module):
         else:
             match_indices = dn_match_indices
 
-        print("\n", sum(len(a) for a in gt_bbox), num_gts)
-        if self.vfl:
-            if sum(len(a) for a in gt_bbox) > 0:
-                src_bbox, target_bbox = self._get_src_target_assign(boxes.detach(), gt_bbox, match_indices)
-                iou_score = bbox_iou(src_bbox, target_bbox, xywh=True)
-            else:
-                iou_score = None
-        else:
-            iou_score = None
+        iou_score = None
+        if self.vfl and (sum(len(a) for a in gt_bbox) > 0):
+            src_bbox, target_bbox = self._get_src_target_assign(boxes.detach(), gt_bbox, match_indices)
+            iou_score = bbox_iou(src_bbox, target_bbox, xywh=True)
 
         loss = {}
-        loss.update(self._get_loss_class(logits, gt_class, match_indices, self.nc, num_gts, postfix,
+        loss.update(self._get_loss_class(logits, gt_class, match_indices, num_gts, postfix,
                                          iou_score))
         loss.update(self._get_loss_bbox(boxes, gt_bbox, match_indices, num_gts, postfix))
         if masks is not None and gt_mask is not None:
@@ -275,7 +264,6 @@ class DETRLoss(nn.Module):
                                    logits[:-1],
                                    gt_bbox,
                                    gt_class,
-                                   self.nc,
                                    num_gts,
                                    dn_match_indices,
                                    postfix,

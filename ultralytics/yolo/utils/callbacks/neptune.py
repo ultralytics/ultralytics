@@ -93,7 +93,6 @@ def on_train_end(trainer):
         # Log the final model
         run[f'weights/{trainer.args.name or trainer.args.task}/{str(trainer.best.name)}'].upload(File(str(
             trainer.best)))
-        run.stop()
 
 
 callbacks = {

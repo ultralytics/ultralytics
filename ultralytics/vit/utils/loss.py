@@ -56,26 +56,29 @@ class DETRLoss(nn.Module):
         bs, nq = scores.shape[:2]
         targets = torch.full((bs, nq), self.nc, device=scores.device, dtype=gt_class[0].dtype)
         # NOTE: num_gt could be different from num_gts, because of the denoising part.
-        num_gt = sum(len(a) for a in gt_class)
-        if num_gt > 0:
-            b_idx, q_idx, assigned_gt = self._get_index_updates(gt_class, match_indices)
-            targets[b_idx, q_idx] = assigned_gt
+        idx = self._get_index(match_indices)
+        targets[idx] = torch.cat([t[dst].squeeze(-1) for t, (_, dst) in zip(gt_class, match_indices)])
         if self.fl:
-            targets = F.one_hot(targets, self.nc + 1)[..., :-1]  # (bs, num_queries, num_classes)
+            # one_hot = F.one_hot(targets, self.nc + 1)[..., :-1]  # (bs, num_queries, num_classes)
+            one_hot = torch.zeros((bs, nq, self.nc + 1),
+                                   dtype=torch.int64,
+                                   device=targets.device)
+            one_hot.scatter_(2, targets.unsqueeze(-1), 1)
+            one_hot = one_hot[..., :-1]
+
             if iou_score is not None and self.vfl:
-                target_score = torch.zeros([bs, nq], device=scores.device)
-                if num_gt > 0:
-                    target_score[b_idx, q_idx] = iou_score
-                target_score = target_score.view(bs, nq, 1) * targets
-                loss_ = self.loss_gain['class'] * self.vfl(scores, target_score, targets, num_gts / nq)
+                gt_scores = torch.zeros([bs, nq], device=scores.device)
+                gt_scores[idx] = iou_score
+                gt_scores = gt_scores.view(bs, nq, 1) * one_hot
+                loss_cls = self.loss_gain['class'] * self.vfl(scores, gt_scores, one_hot, num_gts / nq)
                 # loss_ = self.loss_coeff['class'] * nn.BCEWithLogitsLoss(reduction='none')(logits, target_score).mean(
                 #     1).sum()  # YOLO CLS loss
             else:
-                loss_ = self.loss_gain['class'] * self.fl(scores, targets.float(), num_gts / nq)
+                loss_cls = self.loss_gain['class'] * self.fl(scores, one_hot.float(), num_gts / nq)
         else:
-            loss_ = F.cross_entropy(scores, targets, weight=self.loss_gain['class'])
+            loss_cls = F.cross_entropy(scores, targets, weight=self.loss_gain['class'])
 
-        return {name_class: loss_.squeeze()}
+        return {name_class: loss_cls.squeeze()}
 
     def _get_loss_bbox(self, boxes, gt_bbox, match_indices, num_gts, postfix=''):
         # boxes: [b, query, 4], gt_bbox: list[[n, 4]]
@@ -178,11 +181,10 @@ class DETRLoss(nn.Module):
             loss[f'loss_dice_aux{postfix}'] = loss[4]
         return loss
 
-    def _get_index_updates(self, target, match_indices):
+    def _get_index(self, match_indices):
         batch_idx = torch.cat([torch.full_like(src, i) for i, (src, _) in enumerate(match_indices)])
         src_idx = torch.cat([src for (src, _) in match_indices])
-        target_assign = torch.cat([t[dst].squeeze(-1) for t, (_, dst) in zip(target, match_indices)])
-        return batch_idx, src_idx, target_assign
+        return batch_idx, src_idx
 
     def _get_src_target_assign(self, src, target, match_indices):
         src_assign = torch.cat([

@@ -247,7 +247,7 @@ def get_cdn_group_(targets,
 
     # positive and negative mask
     # (bs*num*num_group, ), the second part as neg_idx sample
-    neg_idx = torch.arange(total_num * num_group, dtype=torch.long, device=gt_bbox.device) + num_group * total_num
+    neg_idx = torch.arange(total_num, dtype=torch.long, device=gt_bbox.device).repeat(num_group) + num_group * total_num
 
     if cls_noise_ratio > 0:
         # half of bbox prob
@@ -279,7 +279,7 @@ def get_cdn_group_(targets,
     padding_bbox = torch.zeros(bs, num_dn, 4, device=gt_bbox.device)
 
     map_indices = torch.cat([torch.tensor(range(num)) for num in num_gts])
-    pos_idx = torch.stack([map_indices + max_nums * i for i in range(1 * num_group)], dim=1).view(-1).long()
+    pos_idx = torch.stack([map_indices + max_nums * i for i in range(num_group)], dim=0).long()
 
     map_indices = torch.cat([map_indices + max_nums * i for i in range(2 * num_group)]).long()
     padding_cls[(dn_b_idx, map_indices)] = dn_cls_embed
@@ -298,10 +298,8 @@ def get_cdn_group_(targets,
         else:
             attn_mask[max_nums * 2 * i:max_nums * 2 * (i + 1), max_nums * 2 * (i + 1):num_dn] = True
             attn_mask[max_nums * 2 * i:max_nums * 2 * (i + 1), :max_nums * 2 * i] = True
-    dn_meta = {
-        'dn_pos_idx': pos_idx.cpu().split([n * num_group for n in num_gts]),
-        'dn_num_group': num_group,
-        'dn_num_split': [num_dn, num_queries]}
+    dn_meta = {'dn_pos_idx': [p.reshape(-1) for p in pos_idx.cpu().split([n for n in num_gts], dim=1)],
+               'dn_num_group': num_group, 'dn_num_split': [num_dn, num_queries]}
 
     return padding_cls.to(class_embed.device), padding_bbox.to(class_embed.device), attn_mask.to(
         class_embed.device), dn_meta

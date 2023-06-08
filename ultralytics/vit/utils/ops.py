@@ -88,7 +88,8 @@ class HungarianMatcher(nn.Module):
         indices = [linear_sum_assignment(c[i]) for i, c in enumerate(C.split(gt_numgts, -1))]
         gt_numgts = [0] + gt_numgts[:-1]
         # (idx for queries, idx for gt)
-        return [(torch.tensor(i, dtype=torch.int32), torch.tensor(j, dtype=torch.int32) + gt_numgts[k]) for k, (i, j) in enumerate(indices)]
+        return [(torch.tensor(i, dtype=torch.int32), torch.tensor(j, dtype=torch.int32) + gt_numgts[k])
+                for k, (i, j) in enumerate(indices)]
 
     def _cost_mask(self, bs, num_gts, masks=None, gt_mask=None):
         assert masks is not None and gt_mask is not None, 'Make sure the input has `mask` and `gt_mask`'
@@ -215,17 +216,17 @@ def get_cdn_group(targets,
 
 
 def get_cdn_group_(targets,
-                  num_classes,
-                  num_queries,
-                  class_embed,
-                  num_dn=100,
-                  cls_noise_ratio=0.5,
-                  box_noise_scale=1.0,
-                  training=False):
+                   num_classes,
+                   num_queries,
+                   class_embed,
+                   num_dn=100,
+                   cls_noise_ratio=0.5,
+                   box_noise_scale=1.0,
+                   training=False):
     """get contrastive denoising training group"""
     if (not training) or num_dn <= 0:
         return None, None, None, None
-    num_gts = targets["num_gts"]
+    num_gts = targets['num_gts']
     total_num = sum(num_gts)
     max_nums = max(num_gts)
     if max_nums == 0:
@@ -242,13 +243,13 @@ def get_cdn_group_(targets,
     # each group has positive and negative queries.
     dn_cls = gt_cls.repeat(2 * num_group)  # (2*num_group*bs*num, )
     dn_bbox = gt_bbox.repeat(2 * num_group, 1)  # 2*num_group*bs*num, 4
-    dn_b_idx = b_idx.repeat(2 * num_group).view(-1) # (2*num_group*bs*num, )
+    dn_b_idx = b_idx.repeat(2 * num_group).view(-1)  # (2*num_group*bs*num, )
 
     num_dn = int(max_nums * 2 * num_group)
     # positive and negative mask
     # (bs*num*num_group, ), the first part as positive sample
     pos_idx = torch.tensor(range(total_num * num_group), dtype=torch.long, device=gt_bbox.device)
-    
+
     # the second part as positive sample
     neg_idx = pos_idx + num_group * total_num
     # total denoising queries
@@ -301,8 +302,10 @@ def get_cdn_group_(targets,
         else:
             attn_mask[max_nums * 2 * i:max_nums * 2 * (i + 1), max_nums * 2 * (i + 1):num_dn] = True
             attn_mask[max_nums * 2 * i:max_nums * 2 * (i + 1), :max_nums * 2 * i] = True
-    dn_meta = {'dn_pos_idx': pos_idx.cpu().split([n * num_group for n in num_gts]),
-               'dn_num_group': num_group, 'dn_num_split': [num_dn, num_queries]}
+    dn_meta = {
+        'dn_pos_idx': pos_idx.cpu().split([n * num_group for n in num_gts]),
+        'dn_num_group': num_group,
+        'dn_num_split': [num_dn, num_queries]}
 
     return padding_cls.to(class_embed.device), padding_bbox.to(class_embed.device), attn_mask.to(
         class_embed.device), dn_meta

@@ -217,7 +217,13 @@ class DETRLoss(nn.Module):
                              dn_match_indices=None,
                              num_gts=1):
         if dn_match_indices is None:
-            match_indices = self.matcher(pred_bboxes, pred_scores, gt_bboxes, gt_cls, gt_numgts, masks=masks, gt_mask=gt_mask)
+            match_indices = self.matcher(pred_bboxes,
+                                         pred_scores,
+                                         gt_bboxes,
+                                         gt_cls,
+                                         gt_numgts,
+                                         masks=masks,
+                                         gt_mask=gt_mask)
         else:
             match_indices = dn_match_indices
 
@@ -252,7 +258,7 @@ class DETRLoss(nn.Module):
         dn_match_indices = kwargs.get('dn_match_indices', None)
         num_gts = kwargs.get('num_gts', None)
 
-        gt_cls, gt_bboxes, gt_numgts = batch['cls'], batch['bboxes'], batch["num_gts"]
+        gt_cls, gt_bboxes, gt_numgts = batch['cls'], batch['bboxes'], batch['num_gts']
         total_loss = self._get_prediction_loss(pred_bboxes[-1],
                                                pred_scores[-1],
                                                gt_bboxes,
@@ -284,16 +290,16 @@ class RTDETRDetectionLoss(DETRLoss):
 
     def forward(self, preds, batch, dn_out_bboxes=None, dn_out_logits=None, dn_meta=None):
         boxes, logits = preds
-        num_gts = max(sum(batch["num_gts"]), 1)
+        num_gts = max(sum(batch['num_gts']), 1)
         total_loss = super().forward(boxes, logits, batch, num_gts=num_gts)
 
         if dn_meta is not None:
             dn_pos_idx, dn_num_group = \
                 dn_meta['dn_pos_idx'], dn_meta['dn_num_group']
-            assert len(batch["num_gts"]) == len(dn_pos_idx)
+            assert len(batch['num_gts']) == len(dn_pos_idx)
 
             # denoising match indices
-            dn_match_indices = self.get_dn_match_indices(batch["cls"], dn_pos_idx, dn_num_group, batch["num_gts"])
+            dn_match_indices = self.get_dn_match_indices(batch['cls'], dn_pos_idx, dn_num_group, batch['num_gts'])
 
             # compute denoising training loss
             num_gts *= dn_num_group

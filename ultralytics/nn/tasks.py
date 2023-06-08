@@ -426,11 +426,10 @@ class RTDETRDetectionModel(DetectionModel):
         for i in range(bs):
             num_gts.append((batch_idx == i).sum().item())
         targets = {
-            "cls": batch["cls"].to(img.device, dtype=torch.long).view(-1),
-            "bboxes": batch["bboxes"].to(device=img.device),
-            "batch_idx": batch["batch_idx"].to(img.device, dtype=torch.long).view(-1),
-            "num_gts": num_gts,
-        }
+            'cls': batch['cls'].to(img.device, dtype=torch.long).view(-1),
+            'bboxes': batch['bboxes'].to(device=img.device),
+            'batch_idx': batch['batch_idx'].to(img.device, dtype=torch.long).view(-1),
+            'num_gts': num_gts, }
 
         preds = self.predict(img, batch=targets) if preds is None else preds
         dec_bboxes, dec_cls, enc_bboxes, enc_cls, dn_meta = preds

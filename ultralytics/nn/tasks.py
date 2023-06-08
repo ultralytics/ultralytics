@@ -422,13 +422,15 @@ class RTDETRDetectionModel(DetectionModel):
         # NOTE: preprocess gt_bbox and gt_labels to list.
         bs = len(img)
         batch_idx = batch['batch_idx']
-        gt_bbox, gt_class = [], []
         num_gts = []
         for i in range(bs):
             num_gts.append((batch_idx == i).sum().item())
-            gt_bbox.append(batch['bboxes'][batch_idx == i].to(img.device))
-            gt_class.append(batch['cls'][batch_idx == i].to(device=img.device, dtype=torch.long))
-        targets = {'cls': gt_class, 'bboxes': gt_bbox}
+        targets = {
+            "cls": batch["cls"].to(img.device, dtype=torch.long).view(-1),
+            "bboxes": batch["bboxes"].to(device=img.device),
+            "batch_idx": batch["batch_idx"].to(img.device, dtype=torch.long).view(-1),
+            "num_gts": num_gts,
+        }
 
         preds = self.predict(img, batch=targets) if preds is None else preds
         dec_bboxes, dec_cls, enc_bboxes, enc_cls, dn_meta = preds

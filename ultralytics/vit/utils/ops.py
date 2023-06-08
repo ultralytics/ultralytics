@@ -32,7 +32,7 @@ class HungarianMatcher(nn.Module):
         self.alpha = alpha
         self.gamma = gamma
 
-    def forward(self, bboxes, scores, gt_bboxes, gt_cls, masks=None, gt_mask=None):
+    def forward(self, bboxes, scores, gt_bboxes, gt_cls, gt_numgts, masks=None, gt_mask=None):
         """
         Args:
             bboxes (Tensor): [b, query, 4]
@@ -51,8 +51,7 @@ class HungarianMatcher(nn.Module):
         """
         bs, nq, nc = scores.shape
 
-        num_gts = [len(a) for a in gt_cls]
-        if sum(num_gts) == 0:
+        if sum(gt_numgts) == 0:
             return [(torch.tensor([], dtype=torch.int32), torch.tensor([], dtype=torch.int32)) for _ in range(bs)]
 
         # We flatten to compute the cost matrices in a batch
@@ -61,10 +60,6 @@ class HungarianMatcher(nn.Module):
         pred_scores = F.sigmoid(scores) if self.use_focal_loss else F.softmax(scores, dim=-1)
         # [batch_size * num_queries, 4]
         pred_bboxes = bboxes.detach().view(-1, 4)
-
-        # Also concat the target labels and boxes
-        gt_cls = torch.cat(gt_cls).view(-1)
-        gt_bboxes = torch.cat(gt_bboxes)
 
         # Compute the classification cost
         pred_scores = pred_scores[:, gt_cls]
@@ -87,12 +82,13 @@ class HungarianMatcher(nn.Module):
             self.cost_gain['giou'] * cost_giou
         # Compute the mask cost and dice cost
         if self.with_mask:
-            C += self._cost_mask(bs, num_gts, masks, gt_mask)
+            C += self._cost_mask(bs, gt_numgts, masks, gt_mask)
 
         C = C.view(bs, nq, -1).cpu()
-        indices = [linear_sum_assignment(c[i]) for i, c in enumerate(C.split(num_gts, -1))]
+        indices = [linear_sum_assignment(c[i]) for i, c in enumerate(C.split(gt_numgts, -1))]
+        gt_numgts = [0] + gt_numgts[:-1]
         # (idx for queries, idx for gt)
-        return [(torch.tensor(i, dtype=torch.int32), torch.tensor(j, dtype=torch.int32)) for i, j in indices]
+        return [(torch.tensor(i, dtype=torch.int32), torch.tensor(j, dtype=torch.int32) + gt_numgts[k]) for k, (i, j) in enumerate(indices)]
 
     def _cost_mask(self, bs, num_gts, masks=None, gt_mask=None):
         assert masks is not None and gt_mask is not None, 'Make sure the input has `mask` and `gt_mask`'
@@ -229,7 +225,7 @@ def get_cdn_group_(targets,
     """get contrastive denoising training group"""
     if (not training) or num_dn <= 0:
         return None, None, None, None
-    num_gts = [len(t) for t in targets['cls']]
+    num_gts = targets["num_gts"]
     total_num = sum(num_gts)
     max_nums = max(num_gts)
     if max_nums == 0:
@@ -238,15 +234,15 @@ def get_cdn_group_(targets,
     num_group = num_dn // max_nums
     num_group = 1 if num_group == 0 else num_group
     # pad gt to max_num of a batch
-    bs = len(targets['cls'])
-    gt_cls = torch.cat(targets['cls']).squeeze(-1)  # (bs*num, )
-    gt_bbox = torch.cat(targets['bboxes']).squeeze(-1)  # bs*num, 4
-    b_idx = torch.cat([torch.full_like(t.long(), i) for i, t in enumerate(targets['cls'])])
+    bs = len(targets['num_gts'])
+    gt_cls = targets['cls']  # (bs*num, )
+    gt_bbox = targets['bboxes']  # bs*num, 4
+    b_idx = targets['batch_idx']
 
     # each group has positive and negative queries.
     dn_cls = gt_cls.repeat(2 * num_group)  # (2*num_group*bs*num, )
     dn_bbox = gt_bbox.repeat(2 * num_group, 1)  # 2*num_group*bs*num, 4
-    dn_b_idx = b_idx.repeat(2 * num_group, 1).view(-1) # (2*num_group*bs*num, )
+    dn_b_idx = b_idx.repeat(2 * num_group).view(-1) # (2*num_group*bs*num, )
 
     num_dn = int(max_nums * 2 * num_group)
     # positive and negative mask

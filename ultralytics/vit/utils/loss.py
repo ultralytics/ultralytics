@@ -54,10 +54,11 @@ class DETRLoss(nn.Module):
         # logits: [b, query, num_classes], gt_class: list[[n, 1]]
         name_class = f'loss_class{postfix}'
         bs, nq = scores.shape[:2]
-        targets = torch.full((bs, nq), self.nc, device=scores.device, dtype=gt_class[0].dtype)
+        targets = torch.full((bs, nq), self.nc, device=scores.device, dtype=gt_class.dtype)
         # NOTE: num_gt could be different from num_gts, because of the denoising part.
-        idx = self._get_index(match_indices)
-        targets[idx] = torch.cat([t[dst].squeeze(-1) for t, (_, dst) in zip(gt_class, match_indices)])
+        idx, gt_idx = self._get_index(match_indices)
+        # targets[idx] = torch.cat([t[dst].squeeze(-1) for t, (_, dst) in zip(gt_class, match_indices)])
+        targets[idx] = gt_class[gt_idx]
         if self.fl:
             # one_hot = F.one_hot(targets, self.nc + 1)[..., :-1]  # (bs, num_queries, num_classes)
             one_hot = torch.zeros((bs, nq, self.nc + 1), dtype=torch.int64, device=targets.device)
@@ -128,6 +129,7 @@ class DETRLoss(nn.Module):
                       pred_scores,
                       gt_bboxes,
                       gt_cls,
+                      gt_numgts,
                       num_gts,
                       dn_match_indices=None,
                       postfix='',
@@ -142,6 +144,7 @@ class DETRLoss(nn.Module):
                                          pred_scores[self.uni_match_ind],
                                          gt_bboxes,
                                          gt_cls,
+                                         gt_numgts,
                                          masks=masks[self.uni_match_ind] if masks is not None else None,
                                          gt_mask=gt_mask)
         for i, (aux_bboxes, aux_scores) in enumerate(zip(pred_bboxes, pred_scores)):
@@ -151,12 +154,14 @@ class DETRLoss(nn.Module):
                                              aux_scores,
                                              gt_bboxes,
                                              gt_cls,
+                                             gt_numgts,
                                              masks=aux_masks,
                                              gt_mask=gt_mask)
             # TODO
-            idx = self._get_index(match_indices)
+            idx, gt_idx = self._get_index(match_indices)
             pred_bboxes_ = aux_bboxes[idx]
-            gt_bboxes_ = torch.cat([t[i] for t, (_, i) in zip(gt_bboxes, match_indices)], dim=0)
+            # gt_bboxes_ = torch.cat([t[i] for t, (_, i) in zip(gt_bboxes, match_indices)], dim=0)
+            gt_bboxes_ = gt_bboxes[gt_idx]
             iou_score = bbox_iou(pred_bboxes_.detach(), gt_bboxes_, xywh=True).squeeze(-1) \
                     if self.vfl and len(gt_bboxes) else None
 
@@ -188,7 +193,8 @@ class DETRLoss(nn.Module):
     def _get_index(self, match_indices):
         batch_idx = torch.cat([torch.full_like(src, i) for i, (src, _) in enumerate(match_indices)])
         src_idx = torch.cat([src for (src, _) in match_indices])
-        return batch_idx, src_idx
+        dst_idx = torch.cat([dst for (_, dst) in match_indices])
+        return (batch_idx, src_idx), dst_idx
 
     def _get_assigned_bboxes(self, pred_bboxes, gt_bboxes, match_indices):
         pred_assigned = torch.cat([
@@ -199,30 +205,27 @@ class DETRLoss(nn.Module):
             for t, (_, J) in zip(gt_bboxes, match_indices)])
         return pred_assigned, gt_assigned
 
-    def _get_num_gts(self, targets):
-        num_gts = sum(len(a) for a in targets)
-        num_gts = max(num_gts, 1)
-        return num_gts
-
     def _get_prediction_loss(self,
                              pred_bboxes,
                              pred_scores,
                              gt_bboxes,
                              gt_cls,
+                             gt_numgts,
                              masks=None,
                              gt_mask=None,
                              postfix='',
                              dn_match_indices=None,
                              num_gts=1):
         if dn_match_indices is None:
-            match_indices = self.matcher(pred_bboxes, pred_scores, gt_bboxes, gt_cls, masks=masks, gt_mask=gt_mask)
+            match_indices = self.matcher(pred_bboxes, pred_scores, gt_bboxes, gt_cls, gt_numgts, masks=masks, gt_mask=gt_mask)
         else:
             match_indices = dn_match_indices
 
         # TODO
-        idx = self._get_index(match_indices)
+        idx, gt_idx = self._get_index(match_indices)
         pred_bboxes = pred_bboxes[idx]
-        gt_bboxes = torch.cat([t[i] for t, (_, i) in zip(gt_bboxes, match_indices)], dim=0)
+        # gt_bboxes = torch.cat([t[i] for t, (_, i) in zip(gt_bboxes, match_indices)], dim=0)
+        gt_bboxes = gt_bboxes[gt_idx]
         iou_score = bbox_iou(pred_bboxes.detach(), gt_bboxes, xywh=True).squeeze(-1) \
                 if self.vfl and len(gt_bboxes) else None
 
@@ -233,7 +236,7 @@ class DETRLoss(nn.Module):
             loss.update(self._get_loss_mask(masks, gt_mask, match_indices, num_gts, postfix))
         return loss
 
-    def forward(self, pred_bboxes, pred_scores, gt_bboxes, gt_cls, masks=None, gt_mask=None, postfix='', **kwargs):
+    def forward(self, pred_bboxes, pred_scores, batch, masks=None, gt_mask=None, postfix='', **kwargs):
         """
         Args:
             pred_bboxes (Tensor): [l, b, query, 4]
@@ -248,13 +251,13 @@ class DETRLoss(nn.Module):
 
         dn_match_indices = kwargs.get('dn_match_indices', None)
         num_gts = kwargs.get('num_gts', None)
-        if num_gts is None:
-            num_gts = self._get_num_gts(gt_cls)
 
+        gt_cls, gt_bboxes, gt_numgts = batch['cls'], batch['bboxes'], batch["num_gts"]
         total_loss = self._get_prediction_loss(pred_bboxes[-1],
                                                pred_scores[-1],
                                                gt_bboxes,
                                                gt_cls,
+                                               gt_numgts,
                                                masks=masks[-1] if masks is not None else None,
                                                gt_mask=gt_mask,
                                                postfix=postfix,
@@ -267,6 +270,7 @@ class DETRLoss(nn.Module):
                                    pred_scores[:-1],
                                    gt_bboxes,
                                    gt_cls,
+                                   gt_numgts,
                                    num_gts,
                                    dn_match_indices,
                                    postfix,
@@ -280,24 +284,22 @@ class RTDETRDetectionLoss(DETRLoss):
 
     def forward(self, preds, batch, dn_out_bboxes=None, dn_out_logits=None, dn_meta=None):
         boxes, logits = preds
-        gt_class, gt_bbox = batch['cls'], batch['bboxes']
-        num_gts = self._get_num_gts(gt_class)
-        total_loss = super().forward(boxes, logits, gt_bbox, gt_class, num_gts=num_gts)
+        num_gts = max(sum(batch["num_gts"]), 1)
+        total_loss = super().forward(boxes, logits, batch, num_gts=num_gts)
 
         if dn_meta is not None:
             dn_pos_idx, dn_num_group = \
                 dn_meta['dn_pos_idx'], dn_meta['dn_num_group']
-            assert len(gt_class) == len(dn_pos_idx)
+            assert len(batch["num_gts"]) == len(dn_pos_idx)
 
             # denoising match indices
-            dn_match_indices = self.get_dn_match_indices(gt_class, dn_pos_idx, dn_num_group)
+            dn_match_indices = self.get_dn_match_indices(batch["cls"], dn_pos_idx, dn_num_group, batch["num_gts"])
 
             # compute denoising training loss
             num_gts *= dn_num_group
             dn_loss = super().forward(dn_out_bboxes,
                                       dn_out_logits,
-                                      gt_bbox,
-                                      gt_class,
+                                      batch,
                                       postfix='_dn',
                                       dn_match_indices=dn_match_indices,
                                       num_gts=num_gts)
@@ -308,8 +310,9 @@ class RTDETRDetectionLoss(DETRLoss):
         return total_loss
 
     @staticmethod
-    def get_dn_match_indices(labels, dn_pos_idx, dn_num_group):
+    def get_dn_match_indices(labels, dn_pos_idx, dn_num_group, gt_numgts):
         dn_match_indices = []
+        labels = labels.split([n for n in gt_numgts])
         for i in range(len(labels)):
             num_gt = len(labels[i])
             if num_gt > 0:

@@ -362,6 +362,18 @@ class Exporter:
                                     model_name=self.pretty_name,
                                     framework='onnx',
                                     compress_to_fp16=self.args.half)  # export
+
+        # Set RT info
+        ov_model.set_rt_info('YOLOv8', ['model_info', 'model_type'])
+        ov_model.set_rt_info(True, ['model_info', 'reverse_input_channels'])
+        ov_model.set_rt_info(114, ['model_info', 'pad_value'])
+        ov_model.set_rt_info([255.0], ['model_info', 'scale_values'])
+        ov_model.set_rt_info(self.args.iou, ['model_info', 'iou_threshold'])
+        ov_model.set_rt_info([v.replace(' ', '_') for k, v in sorted(self.model.names.items())],
+                             ['model_info', 'labels'])
+        if self.model.task != 'classify':
+            ov_model.set_rt_info('fit_to_window_letterbox', ['model_info', 'resize_type'])
+
         ov.serialize(ov_model, f_ov)  # save
         yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml
         return f, None
@@ -423,7 +435,7 @@ class Exporter:
         return f, ct_model
 
     @try_export
-    def export_engine(self, workspace=4, verbose=False, prefix=colorstr('TensorRT:')):
+    def export_engine(self, prefix=colorstr('TensorRT:')):
         """YOLOv8 TensorRT export https://developer.nvidia.com/tensorrt."""
         assert self.im.device.type != 'cpu', "export running on CPU but must be on GPU, i.e. use 'device=0'"
         try:
@@ -441,12 +453,12 @@ class Exporter:
         assert Path(f_onnx).exists(), f'failed to export ONNX file: {f_onnx}'
         f = self.file.with_suffix('.engine')  # TensorRT engine file
         logger = trt.Logger(trt.Logger.INFO)
-        if verbose:
+        if self.args.verbose:
             logger.min_severity = trt.Logger.Severity.VERBOSE
 
         builder = trt.Builder(logger)
         config = builder.create_builder_config()
-        config.max_workspace_size = workspace * 1 << 30
+        config.max_workspace_size = self.args.workspace * 1 << 30
         # config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, workspace << 30)  # fix TRT 8.4 deprecation notice
 
         flag = (1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH))

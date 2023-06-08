@@ -247,7 +247,7 @@ def get_cdn_group_(targets,
     num_dn = int(max_nums * 2 * num_group)
     # positive and negative mask
     # (bs*num*num_group, ), the first part as positive sample
-    pos_idx = torch.tensor(range(total_num), dtype=torch.long, device=gt_bbox.device).repeat(num_group)
+    pos_idx = torch.tensor(range(total_num * num_group), dtype=torch.long, device=gt_bbox.device)
     
     # the second part as positive sample
     neg_idx = pos_idx + num_group * total_num

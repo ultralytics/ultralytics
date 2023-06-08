@@ -423,7 +423,9 @@ class RTDETRDetectionModel(DetectionModel):
         bs = len(img)
         batch_idx = batch['batch_idx']
         gt_bbox, gt_class = [], []
+        num_gts = []
         for i in range(bs):
+            num_gts.append((batch_idx == i).sum().item())
             gt_bbox.append(batch['bboxes'][batch_idx == i].to(img.device))
             gt_class.append(batch['cls'][batch_idx == i].to(device=img.device, dtype=torch.long))
         targets = {'cls': gt_class, 'bboxes': gt_bbox}

@@ -278,7 +278,7 @@ class DETRLoss(nn.Module):
 
 class RTDETRDetectionLoss(DETRLoss):
 
-    def forward(self, preds, batch, dn_out_bboxes=None, dn_out_logits=None, dn_meta=None, **kwargs):
+    def forward(self, preds, batch, dn_out_bboxes=None, dn_out_logits=None, dn_meta=None):
         boxes, logits = preds
         gt_class, gt_bbox = batch['cls'], batch['bboxes']
         num_gts = self._get_num_gts(gt_class)

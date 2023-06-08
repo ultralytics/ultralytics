@@ -319,10 +319,11 @@ class RTDETRDetectionLoss(DETRLoss):
     def get_dn_match_indices(labels, dn_pos_idx, dn_num_group, gt_numgts):
         dn_match_indices = []
         labels = labels.split([n for n in gt_numgts])
+        gt_numgts = [0] + gt_numgts[:-1]
         for i in range(len(labels)):
             num_gt = len(labels[i])
             if num_gt > 0:
-                gt_idx = torch.arange(end=num_gt, dtype=torch.int32)
+                gt_idx = torch.arange(end=num_gt, dtype=torch.int32) + gt_numgts[i]
                 gt_idx = gt_idx.repeat(dn_num_group)
                 assert len(dn_pos_idx[i]) == len(gt_idx), 'Expected the sa'
                 f'me length, but got {len(dn_pos_idx[i])} and '

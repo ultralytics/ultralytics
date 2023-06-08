@@ -60,9 +60,7 @@ class DETRLoss(nn.Module):
         targets[idx] = torch.cat([t[dst].squeeze(-1) for t, (_, dst) in zip(gt_class, match_indices)])
         if self.fl:
             # one_hot = F.one_hot(targets, self.nc + 1)[..., :-1]  # (bs, num_queries, num_classes)
-            one_hot = torch.zeros((bs, nq, self.nc + 1),
-                                   dtype=torch.int64,
-                                   device=targets.device)
+            one_hot = torch.zeros((bs, nq, self.nc + 1), dtype=torch.int64, device=targets.device)
             one_hot.scatter_(2, targets.unsqueeze(-1), 1)
             one_hot = one_hot[..., :-1]
 
@@ -149,7 +147,12 @@ class DETRLoss(nn.Module):
         for i, (aux_bboxes, aux_scores) in enumerate(zip(pred_bboxes, pred_scores)):
             aux_masks = masks[i] if masks is not None else None
             if not self.use_uni_match and dn_match_indices is None:
-                match_indices = self.matcher(aux_bboxes, aux_scores, gt_bboxes, gt_cls, masks=aux_masks, gt_mask=gt_mask)
+                match_indices = self.matcher(aux_bboxes,
+                                             aux_scores,
+                                             gt_bboxes,
+                                             gt_cls,
+                                             masks=aux_masks,
+                                             gt_mask=gt_mask)
             # TODO
             idx = self._get_index(match_indices)
             pred_bboxes_ = aux_bboxes[idx]

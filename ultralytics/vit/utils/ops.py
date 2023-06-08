@@ -280,14 +280,12 @@ def get_cdn_group_(targets,
     dn_cls_embed = class_embed[dn_cls]  # bs*num * 2 * num_group, 256
     padding_cls = torch.zeros(bs, num_dn, dn_cls_embed.shape[-1], device=gt_cls.device)
     padding_bbox = torch.zeros(bs, num_dn, 4, device=gt_bbox.device)
-    map_indices = torch.tensor([], device=gt_bbox.device)
-    if total_num:
-        map_indices = torch.cat([torch.tensor(range(num)) for num in num_gts])
-        pos_idx = torch.cat([map_indices + max_nums * i for i in range(1 * num_group)]).long()
-        map_indices = torch.cat([map_indices + max_nums * i for i in range(2 * num_group)]).long()
-    if len(dn_b_idx):
-        padding_cls[(dn_b_idx, map_indices)] = dn_cls_embed
-        padding_bbox[(dn_b_idx, map_indices)] = dn_bbox
+
+    map_indices = torch.cat([torch.tensor(range(num)) for num in num_gts])
+    pos_idx = torch.stack([map_indices + max_nums * i for i in range(1 * num_group)], dim=1).view(-1).long()
+    map_indices = torch.cat([map_indices + max_nums * i for i in range(2 * num_group)]).long()
+    padding_cls[(dn_b_idx, map_indices)] = dn_cls_embed
+    padding_bbox[(dn_b_idx, map_indices)] = dn_bbox
 
     tgt_size = num_dn + num_queries
     attn_mask = torch.zeros([tgt_size, tgt_size], dtype=torch.bool)

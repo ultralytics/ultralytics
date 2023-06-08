@@ -245,14 +245,9 @@ def get_cdn_group_(targets,
     dn_bbox = gt_bbox.repeat(2 * num_group, 1)  # 2*num_group*bs*num, 4
     dn_b_idx = b_idx.repeat(2 * num_group).view(-1)  # (2*num_group*bs*num, )
 
-    num_dn = int(max_nums * 2 * num_group)
     # positive and negative mask
-    # (bs*num*num_group, ), the first part as positive sample
-    pos_idx = torch.tensor(range(total_num * num_group), dtype=torch.long, device=gt_bbox.device)
-
-    # the second part as positive sample
-    neg_idx = pos_idx + num_group * total_num
-    # total denoising queries
+    # (bs*num*num_group, ), the second part as neg_idx sample
+    neg_idx = torch.arange(total_num * num_group, dtype=torch.long, device=gt_bbox.device) + num_group * total_num
 
     if cls_noise_ratio > 0:
         # half of bbox prob
@@ -276,6 +271,8 @@ def get_cdn_group_(targets,
         dn_bbox = xyxy2xywh(known_bbox)
         dn_bbox = inverse_sigmoid(dn_bbox)
 
+    # total denoising queries
+    num_dn = int(max_nums * 2 * num_group)
     # class_embed = torch.cat([class_embed, torch.zeros([1, class_embed.shape[-1]], device=class_embed.device)])
     dn_cls_embed = class_embed[dn_cls]  # bs*num * 2 * num_group, 256
     padding_cls = torch.zeros(bs, num_dn, dn_cls_embed.shape[-1], device=gt_cls.device)
@@ -283,6 +280,7 @@ def get_cdn_group_(targets,
 
     map_indices = torch.cat([torch.tensor(range(num)) for num in num_gts])
     pos_idx = torch.stack([map_indices + max_nums * i for i in range(1 * num_group)], dim=1).view(-1).long()
+
     map_indices = torch.cat([map_indices + max_nums * i for i in range(2 * num_group)]).long()
     padding_cls[(dn_b_idx, map_indices)] = dn_cls_embed
     padding_bbox[(dn_b_idx, map_indices)] = dn_bbox

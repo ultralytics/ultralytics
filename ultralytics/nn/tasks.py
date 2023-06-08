@@ -83,7 +83,7 @@ class BaseModel(nn.Module):
                 self._profile_one_layer(m, x, dt)
             x = m(x)  # run
             if embed_from is not None:
-                if embed_from>0 and idx + 1 == embed_from:
+                if embed_from > 0 and idx + 1 == embed_from:
                     embeddings = x
                 elif embed_from < 0 and idx + 1 == len(self.model) + embed_from:
                     embeddings = x

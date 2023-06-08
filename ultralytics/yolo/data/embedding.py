@@ -1,15 +1,15 @@
-import torch
 import lancedb
+import torch
 
 from ultralytics import YOLO
 from ultralytics.yolo.data.utils import check_cls_dataset, check_det_dataset
-from ultralytics.yolo.utils import LOGGER
-from ultralytics.yolo.utils import ops
-
+from ultralytics.yolo.utils import LOGGER, ops
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 from ultralytics.yolo.v8.detect.predict import DetectionPredictor
 
+
 class EmbeddingsPredictor(DetectionPredictor):
+
     @smart_inference_mode()
     def stream_inference(self, source=None, model=None):
         """Streams real-time inference on camera feed and saves results to file."""
@@ -30,37 +30,36 @@ class EmbeddingsPredictor(DetectionPredictor):
         self.seen, self.windows, self.batch, profilers = 0, [], None, (ops.Profile(), ops.Profile(), ops.Profile())
         for batch in self.dataset:
             path, im0s, vid_cap, s = batch
-            
+
             # Preprocess
             with profilers[0]:
                 im = self.preprocess(im0s)
-            
+
             # Inference
             with profilers[1]:
                 preds = self.model(im, augment=self.args.augment, embed_from=-1)
 
-            import pdb;pdb.set_trace()
+            import pdb
+            pdb.set_trace()
             yield from preds
 
 
-def get_train_split(data="coco128.yaml", task="detect", batch=16):
+def get_train_split(data='coco128.yaml', task='detect', batch=16):
     # TODO: handle exception
     if task == 'classify':
         data = check_cls_dataset(data)
     elif data.endswith('.yaml') or task in ('detect', 'segment'):
         data = check_det_dataset(data)
-    
+
     return data['train']
 
 
-
-def build_table(data="coco128.yaml", model="yolov8n.pt"):
+def build_table(data='coco128.yaml', model='yolov8n.pt'):
     model = YOLO(model)
     predictor = EmbeddingsPredictor()
     preds = predictor(get_train_split(data, task=model.task), model=model.model, stream=True)
     for pred in preds:
         print(pred)
 
-build_table()
 
-    
+build_table()

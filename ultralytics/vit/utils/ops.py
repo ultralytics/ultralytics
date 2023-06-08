@@ -298,8 +298,10 @@ def get_cdn_group_(targets,
         else:
             attn_mask[max_nums * 2 * i:max_nums * 2 * (i + 1), max_nums * 2 * (i + 1):num_dn] = True
             attn_mask[max_nums * 2 * i:max_nums * 2 * (i + 1), :max_nums * 2 * i] = True
-    dn_meta = {'dn_pos_idx': [p.reshape(-1) for p in pos_idx.cpu().split([n for n in num_gts], dim=1)],
-               'dn_num_group': num_group, 'dn_num_split': [num_dn, num_queries]}
+    dn_meta = {
+        'dn_pos_idx': [p.reshape(-1) for p in pos_idx.cpu().split([n for n in num_gts], dim=1)],
+        'dn_num_group': num_group,
+        'dn_num_split': [num_dn, num_queries]}
 
     return padding_cls.to(class_embed.device), padding_bbox.to(class_embed.device), attn_mask.to(
         class_embed.device), dn_meta

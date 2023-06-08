@@ -409,6 +409,8 @@ class YOLO:
         Raises:
             ModuleNotFoundError: If Ray Tune is not installed.
         """
+        if train_args is None:
+            train_args = {}
 
         try:
             from ultralytics.yolo.utils.tuner import (ASHAScheduler, RunConfig, WandbLoggerCallback, default_space,

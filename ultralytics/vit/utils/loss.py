@@ -230,28 +230,28 @@ class DETRLoss(nn.Module):
             loss.update(self._get_loss_mask(masks, gt_mask, match_indices, num_gts, postfix))
         return loss
 
-    def forward(self, boxes, logits, gt_bbox, gt_class, masks=None, gt_mask=None, postfix='', **kwargs):
+    def forward(self, pred_bboxes, pred_scores, gt_bboxes, gt_cls, masks=None, gt_mask=None, postfix='', **kwargs):
         """
         Args:
-            boxes (Tensor): [l, b, query, 4]
-            logits (Tensor): [l, b, query, num_classes]
-            gt_bbox (List(Tensor)): list[[n, 4]]
-            gt_class (List(Tensor)): list[[n, 1]]
+            pred_bboxes (Tensor): [l, b, query, 4]
+            pred_scores (Tensor): [l, b, query, num_classes]
+            gt_bboxes (List(Tensor)): list[[n, 4]]
+            gt_cls (List(Tensor)): list[[n, 1]]
             masks (Tensor, optional): [l, b, query, h, w]
             gt_mask (List(Tensor), optional): list[[n, H, W]]
             postfix (str): postfix of loss name
         """
-        self.device = boxes.device
+        self.device = pred_bboxes.device
 
         dn_match_indices = kwargs.get('dn_match_indices', None)
         num_gts = kwargs.get('num_gts', None)
         if num_gts is None:
-            num_gts = self._get_num_gts(gt_class)
+            num_gts = self._get_num_gts(gt_cls)
 
-        total_loss = self._get_prediction_loss(boxes[-1],
-                                               logits[-1],
-                                               gt_bbox,
-                                               gt_class,
+        total_loss = self._get_prediction_loss(pred_bboxes[-1],
+                                               pred_scores[-1],
+                                               gt_bboxes,
+                                               gt_cls,
                                                masks=masks[-1] if masks is not None else None,
                                                gt_mask=gt_mask,
                                                postfix=postfix,
@@ -260,10 +260,10 @@ class DETRLoss(nn.Module):
 
         if self.aux_loss:
             total_loss.update(
-                self._get_loss_aux(boxes[:-1],
-                                   logits[:-1],
-                                   gt_bbox,
-                                   gt_class,
+                self._get_loss_aux(pred_bboxes[:-1],
+                                   pred_scores[:-1],
+                                   gt_bboxes,
+                                   gt_cls,
                                    num_gts,
                                    dn_match_indices,
                                    postfix,

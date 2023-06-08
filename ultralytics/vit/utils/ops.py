@@ -282,6 +282,7 @@ def get_cdn_group_(targets,
     map_indices = torch.tensor([], device=gt_bbox.device)
     if total_num:
         map_indices = torch.cat([torch.tensor(range(num)) for num in num_gts])
+        pos_idx = torch.cat([map_indices + max_nums * i for i in range(1 * num_group)]).long()
         map_indices = torch.cat([map_indices + max_nums * i for i in range(2 * num_group)]).long()
     if len(dn_b_idx):
         padding_cls[(dn_b_idx, map_indices)] = dn_cls_embed

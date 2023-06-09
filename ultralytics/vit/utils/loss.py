@@ -50,24 +50,17 @@ class DETRLoss(nn.Module):
             self.loss_gain['class'] = torch.full([nc + 1], loss_gain['class'])
             self.loss_gain['class'][-1] = loss_gain['no_object']
 
-    def _get_loss_class(self, scores, gt_class, match_indices, num_gts, postfix='', iou_score=None):
+    def _get_loss_class(self, scores, targets, gt_scores=None, num_gts=1, postfix=''):
         # logits: [b, query, num_classes], gt_class: list[[n, 1]]
         name_class = f'loss_class{postfix}'
         bs, nq = scores.shape[:2]
-        targets = torch.full((bs, nq), self.nc, device=scores.device, dtype=gt_class.dtype)
-        # NOTE: num_gt could be different from num_gts, because of the denoising part.
-        idx, gt_idx = self._get_index(match_indices)
-        # targets[idx] = torch.cat([t[dst].squeeze(-1) for t, (_, dst) in zip(gt_class, match_indices)])
-        targets[idx] = gt_class[gt_idx]
         if self.fl:
             # one_hot = F.one_hot(targets, self.nc + 1)[..., :-1]  # (bs, num_queries, num_classes)
             one_hot = torch.zeros((bs, nq, self.nc + 1), dtype=torch.int64, device=targets.device)
             one_hot.scatter_(2, targets.unsqueeze(-1), 1)
             one_hot = one_hot[..., :-1]
 
-            if iou_score is not None and self.vfl:
-                gt_scores = torch.zeros([bs, nq], device=scores.device)
-                gt_scores[idx] = iou_score
+            if gt_scores is not None and self.vfl:
                 gt_scores = gt_scores.view(bs, nq, 1) * one_hot
                 loss_cls = self.vfl(scores, gt_scores, one_hot, num_gts / nq)
                 # loss_ = nn.BCEWithLogitsLoss(reduction='none')(logits, target_score).mean(1).sum()  # YOLO CLS loss
@@ -78,7 +71,7 @@ class DETRLoss(nn.Module):
 
         return {name_class: loss_cls.squeeze() * self.loss_gain['class']}
 
-    def _get_loss_bbox(self, pred_bboxes, gt_bboxes, num_gts, postfix=''):
+    def _get_loss_bbox(self, pred_bboxes, gt_bboxes, postfix=''):
         # boxes: [b, query, 4], gt_bbox: list[[n, 4]]
         name_bbox = f'loss_bbox{postfix}'
         name_giou = f'loss_giou{postfix}'
@@ -89,14 +82,14 @@ class DETRLoss(nn.Module):
             loss[name_giou] = torch.tensor(0., device=self.device)
             return loss
 
-        loss[name_bbox] = self.loss_gain['bbox'] * F.l1_loss(pred_bboxes, gt_bboxes, reduction='sum') / num_gts
+        loss[name_bbox] = self.loss_gain['bbox'] * F.l1_loss(pred_bboxes, gt_bboxes, reduction='sum') / len(gt_bboxes)
         loss[name_giou] = 1.0 - bbox_iou(pred_bboxes, gt_bboxes, xywh=True, GIoU=True)
-        loss[name_giou] = loss[name_giou].sum() / num_gts
+        loss[name_giou] = loss[name_giou].sum() / len(gt_bboxes)
         loss[name_giou] = self.loss_gain['giou'] * loss[name_giou]
         loss = {k: v.squeeze() for k, v in loss.items()}
         return loss
 
-    def _get_loss_mask(self, masks, gt_mask, match_indices, num_gts, postfix=''):
+    def _get_loss_mask(self, masks, gt_mask, match_indices, postfix=''):
         # masks: [b, query, h, w], gt_mask: list[[n, H, W]]
         name_mask = f'loss_mask{postfix}'
         name_dice = f'loss_dice{postfix}'
@@ -107,6 +100,7 @@ class DETRLoss(nn.Module):
             loss[name_dice] = torch.tensor(0., device=self.device)
             return loss
 
+        num_gts = len(gt_mask)
         src_masks, target_masks = self._get_assigned_bboxes(masks, gt_mask, match_indices)
         src_masks = F.interpolate(src_masks.unsqueeze(0), size=target_masks.shape[-2:], mode='bilinear')[0]
         # TODO: torch does not have `sigmoid_focal_loss`, but it's not urgent since we don't use mask branch for now.
@@ -157,23 +151,27 @@ class DETRLoss(nn.Module):
                                              gt_numgts,
                                              masks=aux_masks,
                                              gt_mask=gt_mask)
-            # TODO
             idx, gt_idx = self._get_index(match_indices)
-            pred_bboxes_ = aux_bboxes[idx]
-            # gt_bboxes_ = torch.cat([t[i] for t, (_, i) in zip(gt_bboxes, match_indices)], dim=0)
-            gt_bboxes_ = gt_bboxes[gt_idx]
-            iou_score = bbox_iou(pred_bboxes_.detach(), gt_bboxes_, xywh=True).squeeze(-1) \
-                    if self.vfl and len(gt_bboxes) else None
+            pred_bboxes_, gt_bboxes_ = aux_bboxes[idx], gt_bboxes[gt_idx]
+
+            bs, nq = aux_scores.shape[:2]
+            targets = torch.full((bs, nq), self.nc, device=aux_scores.device, dtype=gt_cls.dtype)
+            targets[idx] = gt_cls[gt_idx]
+
+            gt_scores = None
+            if self.vfl and len(gt_bboxes_):
+                iou_score = bbox_iou(pred_bboxes_.detach(), gt_bboxes_, xywh=True).squeeze(-1)
+                gt_scores = torch.zeros([bs, nq], device=aux_scores.device)
+                gt_scores[idx] = iou_score
 
             loss[0] += self._get_loss_class(
                 aux_scores,
-                gt_cls,
-                match_indices,
+                targets,
+                gt_scores,
                 num_gts,
                 postfix,
-                iou_score,
             )[f'loss_class{postfix}']
-            loss_ = self._get_loss_bbox(pred_bboxes_, gt_bboxes_, num_gts, postfix)
+            loss_ = self._get_loss_bbox(pred_bboxes_, gt_bboxes_, postfix)
             loss[1] += loss_[f'loss_bbox{postfix}']
             loss[2] += loss_[f'loss_giou{postfix}']
             if masks is not None and gt_mask is not None:
@@ -229,12 +227,20 @@ class DETRLoss(nn.Module):
 
         idx, gt_idx = self._get_index(match_indices)
         pred_bboxes, gt_bboxes = pred_bboxes[idx], gt_bboxes[gt_idx]
-        iou_score = bbox_iou(pred_bboxes.detach(), gt_bboxes, xywh=True).squeeze(-1) \
-                if self.vfl and len(gt_bboxes) else None
+
+        bs, nq = pred_scores.shape[:2]
+        targets = torch.full((bs, nq), self.nc, device=pred_scores.device, dtype=gt_cls.dtype)
+        targets[idx] = gt_cls[gt_idx]
+
+        gt_scores = None
+        if self.vfl and len(gt_bboxes):
+            iou_score = bbox_iou(pred_bboxes.detach(), gt_bboxes, xywh=True).squeeze(-1)
+            gt_scores = torch.zeros([bs, nq], device=pred_scores.device)
+            gt_scores[idx] = iou_score
 
         loss = {}
-        loss.update(self._get_loss_class(pred_scores, gt_cls, match_indices, num_gts, postfix, iou_score))
-        loss.update(self._get_loss_bbox(pred_bboxes, gt_bboxes, num_gts, postfix))
+        loss.update(self._get_loss_class(pred_scores, targets, gt_scores, max(len(gt_idx), 1),postfix))
+        loss.update(self._get_loss_bbox(pred_bboxes, gt_bboxes, postfix))
         if masks is not None and gt_mask is not None:
             loss.update(self._get_loss_mask(masks, gt_mask, match_indices, num_gts, postfix))
         return loss

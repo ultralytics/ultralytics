@@ -247,8 +247,7 @@ def get_cdn_group_(targets,
 
     # positive and negative mask
     # (bs*num*num_group, ), the second part as neg_idx sample
-    # TODO
-    neg_idx = torch.arange(total_num, dtype=torch.long, device=gt_bbox.device).repeat(num_group) + num_group * total_num
+    neg_idx = torch.arange(total_num * num_group, dtype=torch.long, device=gt_bbox.device) + num_group * total_num
 
     if cls_noise_ratio > 0:
         # half of bbox prob

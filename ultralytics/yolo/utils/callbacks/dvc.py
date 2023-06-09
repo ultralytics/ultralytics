@@ -1,6 +1,8 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 import os
 
+import pkg_resources as pkg
+
 from ultralytics.yolo.utils import LOGGER, TESTS_RUNNING
 from ultralytics.yolo.utils.torch_utils import get_flops, get_num_params
 
@@ -10,8 +12,12 @@ try:
     import dvclive
 
     assert not TESTS_RUNNING  # do not log pytest
-    assert version('dvclive')
-except (ImportError, AssertionError):
+
+    ver = version('dvclive')
+    if pkg.parse_version(ver) < pkg.parse_version('2.11.0'):
+        LOGGER.debug(f'DVCLive is detected but version {ver} is incompatible (>=2.11 required).')
+        dvclive = None  # noqa: F811
+except (ImportError, AssertionError, TypeError):
     dvclive = None
 
 # DVCLive logger instance

@@ -276,11 +276,7 @@ class RTDETRDetectionLoss(DETRLoss):
             match_indices = self.get_dn_match_indices(batch['cls'], dn_pos_idx, dn_num_group, batch['num_gts'])
 
             # compute denoising training loss
-            dn_loss = super().forward(dn_bboxes,
-                                      dn_scores,
-                                      batch,
-                                      postfix='_dn',
-                                      match_indices=match_indices)
+            dn_loss = super().forward(dn_bboxes, dn_scores, batch, postfix='_dn', match_indices=match_indices)
             total_loss.update(dn_loss)
         else:
             total_loss.update({f'{k}_dn': torch.tensor(0., device=self.device) for k in total_loss.keys()})

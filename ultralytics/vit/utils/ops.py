@@ -130,26 +130,46 @@ def get_cdn_group(targets,
                   box_noise_scale=1.0,
                   training=False):
     """get contrastive denoising training group"""
+
+    def preprocess(targets, batch_size):
+        """Preprocesses the target counts and matches with the input batch size to output a tensor."""
+        if targets.shape[0] == 0:
+            out = torch.zeros(batch_size, 0, 5)
+        else:
+            i = targets[:, 0]  # image index
+            _, counts = i.unique(return_counts=True)
+            counts = counts.to(dtype=torch.int32)
+            out = torch.zeros(batch_size, counts.max(), 5)
+            for j in range(batch_size):
+                matches = i == j
+                n = matches.sum()
+                if n:
+                    out[j, :n] = targets[matches, 1:]
+        return out
+
     if (not training) or num_dn <= 0:
         return None, None, None, None
-    num_gts = [len(t) for t in targets['cls']]
-    max_nums = max(num_gts)
+    # num_gts = [len(t) for t in targets['cls']]
+    # max_nums = max(num_gts)
+    # if max_nums == 0:
+    #     return None, None, None, None
+
+    num_gts = targets['num_gts']
+    targets = torch.cat((targets['batch_idx'].view(-1, 1), targets['cls'].view(-1, 1), targets['bboxes']), 1)
+    targets = preprocess(targets, batch_size=len(num_gts))
+    bs, max_nums = targets.shape[:2]
     if max_nums == 0:
         return None, None, None, None
+
+    gt_cls, gt_bbox = targets.split((1, 4), 2)  # cls, xyxy
+    gt_cls = gt_cls.squeeze(-1).long()
+    mask_gt = gt_bbox.sum(2).gt_(0)
 
     num_group = num_dn // max_nums
     num_group = 1 if num_group == 0 else num_group
     # pad gt to max_num of a batch
-    bs = len(targets['cls'])
-    gt_cls = torch.full([bs, max_nums], num_classes)  # bs, max_gt_num
-    gt_bbox = torch.zeros([bs, max_nums, 4])
-    mask_gt = torch.zeros([bs, max_nums])
-    for i in range(bs):
-        num_gt = num_gts[i]
-        if num_gt > 0:
-            gt_cls[i, :num_gt] = targets['cls'][i].squeeze(-1)
-            gt_bbox[i, :num_gt] = targets['bboxes'][i]
-            mask_gt[i, :num_gt] = 1
+    # bs = len(targets['cls'])
+
     # each group has positive and negative queries.
     dn_cls = gt_cls.repeat(1, 2 * num_group)  # bs, 2* max_gt_num * num_group
     dn_bbox = gt_bbox.repeat(1, 2 * num_group, 1)  # bs, 2* max_gt_num * num_group, 4

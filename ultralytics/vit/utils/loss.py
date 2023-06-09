@@ -140,35 +140,16 @@ class DETRLoss(nn.Module):
                                          gt_mask=gt_mask)
         for i, (aux_bboxes, aux_scores) in enumerate(zip(pred_bboxes, pred_scores)):
             aux_masks = masks[i] if masks is not None else None
-            if match_indices is None:
-                match_indices = self.matcher(aux_bboxes,
-                                             aux_scores,
-                                             gt_bboxes,
-                                             gt_cls,
-                                             gt_numgts,
-                                             masks=aux_masks,
-                                             gt_mask=gt_mask)
-            idx, gt_idx = self._get_index(match_indices)
-            pred_bboxes_, gt_bboxes_ = aux_bboxes[idx], gt_bboxes[gt_idx]
-
-            bs, nq = aux_scores.shape[:2]
-            targets = torch.full((bs, nq), self.nc, device=aux_scores.device, dtype=gt_cls.dtype)
-            targets[idx] = gt_cls[gt_idx]
-
-            gt_scores = None
-            if self.vfl and len(gt_bboxes_):
-                iou_score = bbox_iou(pred_bboxes_.detach(), gt_bboxes_, xywh=True).squeeze(-1)
-                gt_scores = torch.zeros([bs, nq], device=aux_scores.device)
-                gt_scores[idx] = iou_score
-
-            loss[0] += self._get_loss_class(
-                aux_scores,
-                targets,
-                gt_scores,
-                max(len(gt_idx), 1),
-                postfix,
-            )[f'loss_class{postfix}']
-            loss_ = self._get_loss_bbox(pred_bboxes_, gt_bboxes_, postfix)
+            loss_ = self._get_prediction_loss(aux_bboxes,
+                                              aux_scores,
+                                              gt_bboxes,
+                                              gt_cls,
+                                              gt_numgts,
+                                              masks=aux_masks,
+                                              gt_mask=gt_mask,
+                                              postfix=postfix,
+                                              match_indices=match_indices)
+            loss[0] += loss_[f'loss_class{postfix}']
             loss[1] += loss_[f'loss_bbox{postfix}']
             loss[2] += loss_[f'loss_giou{postfix}']
             # if masks is not None and gt_mask is not None:

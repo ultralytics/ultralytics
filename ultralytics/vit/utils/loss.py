@@ -256,7 +256,7 @@ class DETRLoss(nn.Module):
         """
         self.device = pred_bboxes.device
 
-        dn_match_indices = kwargs.get('dn_match_indices', None)
+        match_indices = kwargs.get('match_indices', None)
 
         gt_cls, gt_bboxes, gt_numgts = batch['cls'], batch['bboxes'], batch['num_gts']
         total_loss = self._get_prediction_loss(pred_bboxes[-1],
@@ -267,7 +267,7 @@ class DETRLoss(nn.Module):
                                                masks=masks[-1] if masks is not None else None,
                                                gt_mask=gt_mask,
                                                postfix=postfix,
-                                               dn_match_indices=dn_match_indices)
+                                               dn_match_indices=match_indices)
 
         if self.aux_loss:
             total_loss.update(
@@ -276,7 +276,7 @@ class DETRLoss(nn.Module):
                                    gt_bboxes,
                                    gt_cls,
                                    gt_numgts,
-                                   dn_match_indices,
+                                   match_indices,
                                    postfix,
                                    masks=masks[:-1] if masks is not None else None,
                                    gt_mask=gt_mask))
@@ -288,8 +288,7 @@ class RTDETRDetectionLoss(DETRLoss):
 
     def forward(self, preds, batch, dn_bboxes=None, dn_scores=None, dn_meta=None):
         boxes, logits = preds
-        num_gts = max(sum(batch['num_gts']), 1)
-        total_loss = super().forward(boxes, logits, batch, num_gts=num_gts)
+        total_loss = super().forward(boxes, logits, batch)
 
         if dn_meta is not None:
             dn_pos_idx, dn_num_group = \
@@ -297,16 +296,14 @@ class RTDETRDetectionLoss(DETRLoss):
             assert len(batch['num_gts']) == len(dn_pos_idx)
 
             # denoising match indices
-            dn_match_indices = self.get_dn_match_indices(batch['cls'], dn_pos_idx, dn_num_group, batch['num_gts'])
+            match_indices = self.get_dn_match_indices(batch['cls'], dn_pos_idx, dn_num_group, batch['num_gts'])
 
             # compute denoising training loss
-            num_gts *= dn_num_group
             dn_loss = super().forward(dn_bboxes,
                                       dn_scores,
                                       batch,
                                       postfix='_dn',
-                                      dn_match_indices=dn_match_indices,
-                                      num_gts=num_gts)
+                                      match_indices=match_indices)
             total_loss.update(dn_loss)
         else:
             total_loss.update({f'{k}_dn': torch.tensor(0., device=self.device) for k in total_loss.keys()})

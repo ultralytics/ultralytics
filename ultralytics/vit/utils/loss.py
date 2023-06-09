@@ -319,7 +319,7 @@ class RTDETRDetectionLoss(DETRLoss):
     def get_dn_match_indices(labels, dn_pos_idx, dn_num_group, gt_numgts):
         dn_match_indices = []
         labels = labels.split([n for n in gt_numgts])
-        gt_numgts = [0] + gt_numgts[:-1]
+        gt_numgts = torch.as_tensor([0, *gt_numgts[:-1]]).cumsum_(0)
         for i in range(len(labels)):
             num_gt = len(labels[i])
             if num_gt > 0:

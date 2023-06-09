@@ -227,11 +227,8 @@ class DETRLoss(nn.Module):
         else:
             match_indices = dn_match_indices
 
-        # TODO
         idx, gt_idx = self._get_index(match_indices)
-        pred_bboxes = pred_bboxes[idx]
-        # gt_bboxes = torch.cat([t[i] for t, (_, i) in zip(gt_bboxes, match_indices)], dim=0)
-        gt_bboxes = gt_bboxes[gt_idx]
+        pred_bboxes, gt_bboxes = pred_bboxes[idx], gt_bboxes[gt_idx]
         iou_score = bbox_iou(pred_bboxes.detach(), gt_bboxes, xywh=True).squeeze(-1) \
                 if self.vfl and len(gt_bboxes) else None
 
@@ -288,7 +285,7 @@ class DETRLoss(nn.Module):
 
 class RTDETRDetectionLoss(DETRLoss):
 
-    def forward(self, preds, batch, dn_out_bboxes=None, dn_out_logits=None, dn_meta=None):
+    def forward(self, preds, batch, dn_bboxes=None, dn_scores=None, dn_meta=None):
         boxes, logits = preds
         num_gts = max(sum(batch['num_gts']), 1)
         total_loss = super().forward(boxes, logits, batch, num_gts=num_gts)
@@ -303,8 +300,8 @@ class RTDETRDetectionLoss(DETRLoss):
 
             # compute denoising training loss
             num_gts *= dn_num_group
-            dn_loss = super().forward(dn_out_bboxes,
-                                      dn_out_logits,
+            dn_loss = super().forward(dn_bboxes,
+                                      dn_scores,
                                       batch,
                                       postfix='_dn',
                                       dn_match_indices=dn_match_indices,

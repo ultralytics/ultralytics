@@ -432,17 +432,17 @@ class RTDETRDetectionModel(DetectionModel):
             'num_gts': num_gts, }
 
         preds = self.predict(img, batch=targets) if preds is None else preds
-        dec_bboxes, dec_cls, enc_bboxes, enc_cls, dn_meta = preds
+        dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta = preds
         if dn_meta is None:
             dn_bboxes, dn_cls = None, None
         else:
             dn_bboxes, dec_bboxes = torch.split(dec_bboxes, dn_meta['dn_num_split'], dim=2)
-            dn_cls, dec_cls = torch.split(dec_cls, dn_meta['dn_num_split'], dim=2)
+            dn_cls, dec_scores = torch.split(dec_scores, dn_meta['dn_num_split'], dim=2)
 
         dec_bboxes = torch.cat([enc_bboxes.unsqueeze(0), dec_bboxes])  # (7, bs, 300, 4)
-        dec_cls = torch.cat([enc_cls.unsqueeze(0), dec_cls])
+        dec_scores = torch.cat([enc_scores.unsqueeze(0), dec_scores])
 
-        loss = self.criterion((dec_bboxes, dec_cls),
+        loss = self.criterion((dec_bboxes, dec_scores),
                               targets,
                               dn_out_bboxes=dn_bboxes,
                               dn_out_logits=dn_cls,

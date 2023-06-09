@@ -218,14 +218,14 @@ class RTDETRDecoder(nn.Module):
         self._reset_parameters()
 
     def forward(self, x, batch=None):
-        from ultralytics.vit.utils.ops import get_cdn_group_
+        from ultralytics.vit.utils.ops import get_cdn_group
 
         # input projection and embedding
         feats, shapes = self._get_encoder_input(x)
 
         # prepare denoising training
         dn_embed, dn_bbox, attn_mask, dn_meta = \
-            get_cdn_group_(batch,
+            get_cdn_group(batch,
                           self.nc,
                           self.num_queries,
                           self.denoising_class_embed.weight,
@@ -234,21 +234,21 @@ class RTDETRDecoder(nn.Module):
                           self.box_noise_scale,
                           self.training)
 
-        embed, refer_bbox, enc_bboxes, enc_cls = \
+        embed, refer_bbox, enc_bboxes, enc_scores = \
             self._get_decoder_input(feats, shapes, dn_embed, dn_bbox)
 
         # decoder
-        dec_bboxes, dec_cls = self.decoder(embed,
-                                           refer_bbox,
-                                           feats,
-                                           shapes,
-                                           self.dec_bbox_head,
-                                           self.dec_score_head,
-                                           self.query_pos_head,
-                                           attn_mask=attn_mask)
+        dec_bboxes, dec_scores = self.decoder(embed,
+                                              refer_bbox,
+                                              feats,
+                                              shapes,
+                                              self.dec_bbox_head,
+                                              self.dec_score_head,
+                                              self.query_pos_head,
+                                              attn_mask=attn_mask)
         if not self.training:
-            dec_cls = dec_cls.sigmoid_()
-        return dec_bboxes, dec_cls, enc_bboxes, enc_cls, dn_meta
+            dec_scores = dec_scores.sigmoid_()
+        return dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta
 
     def _generate_anchors(self, shapes, grid_size=0.05, dtype=torch.float32, device='cpu', eps=1e-2):
         anchors = []
@@ -292,13 +292,13 @@ class RTDETRDecoder(nn.Module):
         anchors, valid_mask = self._generate_anchors(shapes, dtype=feats.dtype, device=feats.device)
         features = self.enc_output(torch.where(valid_mask, feats, 0))  # bs, h*w, 256
 
-        enc_outputs_cls = self.enc_score_head(features)  # (bs, h*w, nc)
+        enc_outputs_scores = self.enc_score_head(features)  # (bs, h*w, nc)
         # dynamic anchors + static contect
         enc_outputs_bboxes = self.enc_bbox_head(features) + anchors  # (bs, h*w, 4)
 
         # query selection
         # (bs, num_queries)
-        topk_ind = torch.topk(enc_outputs_cls.max(-1).values, self.num_queries, dim=1).indices.view(-1)
+        topk_ind = torch.topk(enc_outputs_scores.max(-1).values, self.num_queries, dim=1).indices.view(-1)
         # (bs, num_queries)
         batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
 
@@ -311,7 +311,7 @@ class RTDETRDecoder(nn.Module):
             refer_bbox = torch.cat([dn_bbox, refer_bbox], 1)
         if self.training:
             refer_bbox = refer_bbox.detach()
-        enc_cls = enc_outputs_cls[batch_ind, topk_ind].view(bs, self.num_queries, -1)
+        enc_scores = enc_outputs_scores[batch_ind, topk_ind].view(bs, self.num_queries, -1)
 
         if self.learnt_init_query:
             embeddings = self.tgt_embed.weight.unsqueeze(0).repeat(bs, 1, 1)
@@ -322,7 +322,7 @@ class RTDETRDecoder(nn.Module):
         if dn_embed is not None:
             embeddings = torch.cat([dn_embed, embeddings], 1)
 
-        return embeddings, refer_bbox, enc_bboxes, enc_cls
+        return embeddings, refer_bbox, enc_bboxes, enc_scores
 
     # TODO
     def _reset_parameters(self):

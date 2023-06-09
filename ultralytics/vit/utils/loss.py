@@ -124,15 +124,13 @@ class DETRLoss(nn.Module):
                       gt_bboxes,
                       gt_cls,
                       gt_numgts,
-                      dn_match_indices=None,
+                      match_indices=None,
                       postfix='',
                       masks=None,
                       gt_mask=None):
         # NOTE: loss class, bbox, giou, mask, dice
         loss = torch.zeros(5 if masks is not None else 3, device=pred_bboxes.device)
-        if dn_match_indices is not None:
-            match_indices = dn_match_indices
-        elif self.use_uni_match:
+        if match_indices is None and self.use_uni_match:
             match_indices = self.matcher(pred_bboxes[self.uni_match_ind],
                                          pred_scores[self.uni_match_ind],
                                          gt_bboxes,
@@ -142,7 +140,7 @@ class DETRLoss(nn.Module):
                                          gt_mask=gt_mask)
         for i, (aux_bboxes, aux_scores) in enumerate(zip(pred_bboxes, pred_scores)):
             aux_masks = masks[i] if masks is not None else None
-            if not self.use_uni_match and dn_match_indices is None:
+            if match_indices is None:
                 match_indices = self.matcher(aux_bboxes,
                                              aux_scores,
                                              gt_bboxes,
@@ -211,8 +209,8 @@ class DETRLoss(nn.Module):
                              masks=None,
                              gt_mask=None,
                              postfix='',
-                             dn_match_indices=None):
-        if dn_match_indices is None:
+                             match_indices=None):
+        if match_indices is None:
             match_indices = self.matcher(pred_bboxes,
                                          pred_scores,
                                          gt_bboxes,
@@ -220,8 +218,6 @@ class DETRLoss(nn.Module):
                                          gt_numgts,
                                          masks=masks,
                                          gt_mask=gt_mask)
-        else:
-            match_indices = dn_match_indices
 
         idx, gt_idx = self._get_index(match_indices)
         pred_bboxes, gt_bboxes = pred_bboxes[idx], gt_bboxes[gt_idx]
@@ -267,7 +263,7 @@ class DETRLoss(nn.Module):
                                                masks=masks[-1] if masks is not None else None,
                                                gt_mask=gt_mask,
                                                postfix=postfix,
-                                               dn_match_indices=match_indices)
+                                               match_indices=match_indices)
 
         if self.aux_loss:
             total_loss.update(

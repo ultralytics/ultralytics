@@ -124,7 +124,6 @@ class DETRLoss(nn.Module):
                       gt_bboxes,
                       gt_cls,
                       gt_numgts,
-                      num_gts,
                       dn_match_indices=None,
                       postfix='',
                       masks=None,
@@ -168,24 +167,24 @@ class DETRLoss(nn.Module):
                 aux_scores,
                 targets,
                 gt_scores,
-                num_gts,
+                max(len(gt_idx), 1),
                 postfix,
             )[f'loss_class{postfix}']
             loss_ = self._get_loss_bbox(pred_bboxes_, gt_bboxes_, postfix)
             loss[1] += loss_[f'loss_bbox{postfix}']
             loss[2] += loss_[f'loss_giou{postfix}']
-            if masks is not None and gt_mask is not None:
-                loss_ = self._get_loss_mask(aux_masks, gt_mask, match_indices, num_gts, postfix)
-                loss[3] += loss_[f'loss_mask{postfix}']
-                loss[4] += loss_[f'loss_dice{postfix}']
+            # if masks is not None and gt_mask is not None:
+            #     loss_ = self._get_loss_mask(aux_masks, gt_mask, match_indices, postfix)
+            #     loss[3] += loss_[f'loss_mask{postfix}']
+            #     loss[4] += loss_[f'loss_dice{postfix}']
 
         loss = {
             f'loss_class_aux{postfix}': loss[0],
             f'loss_bbox_aux{postfix}': loss[1],
             f'loss_giou_aux{postfix}': loss[2]}
-        if masks is not None and gt_mask is not None:
-            loss[f'loss_mask_aux{postfix}'] = loss[3]
-            loss[f'loss_dice_aux{postfix}'] = loss[4]
+        # if masks is not None and gt_mask is not None:
+        #     loss[f'loss_mask_aux{postfix}'] = loss[3]
+        #     loss[f'loss_dice_aux{postfix}'] = loss[4]
         return loss
 
     def _get_index(self, match_indices):
@@ -212,8 +211,7 @@ class DETRLoss(nn.Module):
                              masks=None,
                              gt_mask=None,
                              postfix='',
-                             dn_match_indices=None,
-                             num_gts=1):
+                             dn_match_indices=None):
         if dn_match_indices is None:
             match_indices = self.matcher(pred_bboxes,
                                          pred_scores,
@@ -239,10 +237,10 @@ class DETRLoss(nn.Module):
             gt_scores[idx] = iou_score
 
         loss = {}
-        loss.update(self._get_loss_class(pred_scores, targets, gt_scores, max(len(gt_idx), 1),postfix))
+        loss.update(self._get_loss_class(pred_scores, targets, gt_scores, max(len(gt_idx), 1), postfix))
         loss.update(self._get_loss_bbox(pred_bboxes, gt_bboxes, postfix))
-        if masks is not None and gt_mask is not None:
-            loss.update(self._get_loss_mask(masks, gt_mask, match_indices, num_gts, postfix))
+        # if masks is not None and gt_mask is not None:
+        #     loss.update(self._get_loss_mask(masks, gt_mask, match_indices, postfix))
         return loss
 
     def forward(self, pred_bboxes, pred_scores, batch, masks=None, gt_mask=None, postfix='', **kwargs):
@@ -259,7 +257,6 @@ class DETRLoss(nn.Module):
         self.device = pred_bboxes.device
 
         dn_match_indices = kwargs.get('dn_match_indices', None)
-        num_gts = kwargs.get('num_gts', None)
 
         gt_cls, gt_bboxes, gt_numgts = batch['cls'], batch['bboxes'], batch['num_gts']
         total_loss = self._get_prediction_loss(pred_bboxes[-1],
@@ -270,8 +267,7 @@ class DETRLoss(nn.Module):
                                                masks=masks[-1] if masks is not None else None,
                                                gt_mask=gt_mask,
                                                postfix=postfix,
-                                               dn_match_indices=dn_match_indices,
-                                               num_gts=num_gts)
+                                               dn_match_indices=dn_match_indices)
 
         if self.aux_loss:
             total_loss.update(
@@ -280,7 +276,6 @@ class DETRLoss(nn.Module):
                                    gt_bboxes,
                                    gt_cls,
                                    gt_numgts,
-                                   num_gts,
                                    dn_match_indices,
                                    postfix,
                                    masks=masks[:-1] if masks is not None else None,

@@ -10,24 +10,22 @@ from lancedb.embeddings import with_embeddings
 from ultralytics import YOLO
 from ultralytics.yolo.data.utils import check_cls_dataset, check_det_dataset, IMG_FORMATS
 from ultralytics.yolo.utils.checks import check_requirements
+from ultralytics.yolo.utils import LOGGER
+from ultralytics.yolo.utils import ops
+
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 from ultralytics.yolo.v8.detect.predict import DetectionPredictor
 
 
 class EmbeddingsPredictor(DetectionPredictor):
-
     def postprocess(self, preds, img, orig_imgs):
-        embeddings = preds[1]
-        embeddings = F.adaptive_avg_pool2d(embeddings, 2).flatten(1)
-
-        return embeddings
+        embedding = preds[1]
+        embedding = F.adaptive_avg_pool2d(embedding, 2).flatten(1)
+        return embedding
 
     @smart_inference_mode()
-    def stream_inference(self, source=None, model=None):
+    def embed(self, source=None, model=None, verbose=True):
         """Streams real-time inference on camera feed and saves results to file."""
-        if self.args.verbose:
-            LOGGER.info('')
-
         # Setup model
         if not self.model:
             self.setup_model(model)
@@ -42,7 +40,8 @@ class EmbeddingsPredictor(DetectionPredictor):
         self.seen, self.windows, self.batch, profilers = 0, [], None, (ops.Profile(), ops.Profile(), ops.Profile())
         for batch in self.dataset:
             path, im0s, vid_cap, s = batch
-
+            if verbose:
+                LOGGER.info(path[0])
             # Preprocess
             with profilers[0]:
                 im = self.preprocess(im0s)
@@ -53,8 +52,10 @@ class EmbeddingsPredictor(DetectionPredictor):
 
             with profilers[2]:
                 embeddings = self.postprocess(preds, im, im0s)
-            embeddings = embeddings if isinstance(embeddings, list) else [embeddings]
-            yield from embeddings
+
+            return embeddings 
+            # yeilding seems pointless as this is designed specifically for large datasets, 
+            # batching with embed_func would make things complex
 
 
 def get_train_split(data='coco128.yaml', task='detect', batch=16):
@@ -91,6 +92,7 @@ class DatasetUtil:
         trainset = trainset if isinstance(trainset, list) else [trainset]
         self.trainset = trainset
         self.predictor = EmbeddingsPredictor()
+        self.predictor.setup_model(self.model.model)
         if self.table is not None:
             LOGGER.info("Overwriting the existing embedding space")
         
@@ -102,20 +104,18 @@ class DatasetUtil:
             self.orig_imgs.extend(files)
         
         db = self._connect()
-        table = pa.table([self.orig_imgs], names=["path"]).to_pandas()
-        self.table = with_embeddings(self._embedding_func, table, "path")
-    
+        pa_table = pa.table([self.orig_imgs], names=["path"]).to_pandas()
+        pa_table = with_embeddings(self._embedding_func, pa_table, "path")
+        self.table = db.create_table(self.data, data=pa_table)
+
     def _connect(self):
         db = lancedb.connect(self.project)
 
         return db
         
     def _embedding_func(self, imgs):
-        embed_gen = self.predictor(imgs, model=self.model.model, stream=True) # generator
-        for i, embed in enumerate(embed_gen):
-            import pdb;pdb.set_trace()
 
-        return [emb.squeeze().cpu().numpy() for emb in embed_gen]
+        return [self.predictor.embed(img, verbose=self.verbose).squeeze().cpu().numpy() for img in imgs]
 
 
         
@@ -185,10 +185,9 @@ def build_table(data='VOC.yaml', model='yolov8n.pt'):
 
     return table
 
-
 def project_embeddings(table, n_components=2):
     pca = PCA(n_components=n_components)
-    embeddings = np.array(table.to_arrow()['vector'].to_pylist())
+    embeddings = np.array(table.to_arrow()["vector"].to_pylist())
     embeddings_reduced = pca.fit_transform(embeddings)
     # TODO: plot embeddings_reduced
     import wandb

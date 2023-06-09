@@ -1,23 +1,23 @@
-import lancedb
-import pyarrow as pa
-import numpy as np
-import cv2
-import torch.nn.functional as F
-from sklearn.decomposition import PCA
 from pathlib import Path
+
+import cv2
+import lancedb
+import numpy as np
+import pyarrow as pa
+import torch.nn.functional as F
 from lancedb.embeddings import with_embeddings
+from sklearn.decomposition import PCA
 
 from ultralytics import YOLO
-from ultralytics.yolo.data.utils import check_cls_dataset, check_det_dataset, IMG_FORMATS
+from ultralytics.yolo.data.utils import IMG_FORMATS, check_cls_dataset, check_det_dataset
+from ultralytics.yolo.utils import LOGGER, ops
 from ultralytics.yolo.utils.checks import check_requirements
-from ultralytics.yolo.utils import LOGGER
-from ultralytics.yolo.utils import ops
-
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 from ultralytics.yolo.v8.detect.predict import DetectionPredictor
 
 
 class EmbeddingsPredictor(DetectionPredictor):
+
     def postprocess(self, preds, img, orig_imgs):
         embedding = preds[1]
         embedding = F.adaptive_avg_pool2d(embedding, 2).flatten(1)
@@ -53,8 +53,8 @@ class EmbeddingsPredictor(DetectionPredictor):
             with profilers[2]:
                 embeddings = self.postprocess(preds, im, im0s)
 
-            return embeddings 
-            # yeilding seems pointless as this is designed specifically for large datasets, 
+            return embeddings
+            # yeilding seems pointless as this is designed specifically for large datasets,
             # batching with embed_func would make things complex
 
 
@@ -72,6 +72,7 @@ class DatasetUtil:
     """
     Dataset utils. Supports detection, segmnetation and Pose and YOLO models.
     """
+
     def __init__(self, data, project=None, verbose=False) -> None:
         """
         Args:
@@ -79,13 +80,13 @@ class DatasetUtil:
             model (str, optional): path to model. Defaults to None.
         """
         self.data = data
-        self.project = project or "runs/dataset"
+        self.project = project or 'runs/dataset'
         self.verbose = verbose
         self.predictor = None
         self.trainset = None
         self.orig_imgs = None
         self.table = None
-            
+
     def build_embeddings(self, model=None):
         self.model = YOLO(model)
         trainset = get_train_split(self.data, task=self.model.task)
@@ -94,42 +95,37 @@ class DatasetUtil:
         self.predictor = EmbeddingsPredictor()
         self.predictor.setup_model(self.model.model)
         if self.table is not None:
-            LOGGER.info("Overwriting the existing embedding space")
-        
+            LOGGER.info('Overwriting the existing embedding space')
+
         self.orig_imgs = []
         for train_split in trainset:
             print(train_split)
             path = Path(train_split)
             files = sorted(str(x) for x in path.rglob('*.*') if x.suffix[1:].lower() in IMG_FORMATS)  # image files only
             self.orig_imgs.extend(files)
-        
+
         db = self._connect()
-        pa_table = pa.table([self.orig_imgs], names=["path"]).to_pandas()
-        pa_table = with_embeddings(self._embedding_func, pa_table, "path")
+        pa_table = pa.table([self.orig_imgs], names=['path']).to_pandas()
+        pa_table = with_embeddings(self._embedding_func, pa_table, 'path')
         self.table = db.create_table(self.data, data=pa_table)
 
     def _connect(self):
         db = lancedb.connect(self.project)
 
         return db
-        
+
     def _embedding_func(self, imgs):
 
         return [self.predictor.embed(img, verbose=self.verbose).squeeze().cpu().numpy() for img in imgs]
 
-
-        
-        
 
 #build_table("VOC.yaml")
 #db = lancedb.connect("db/")
 #table = db.open_table("VOC")
 #project_embeddings(table)
 
-ds = DatasetUtil("coco128.yaml")
-ds.build_embeddings("yolov8n.pt")
-
-
+ds = DatasetUtil('coco128.yaml')
+ds.build_embeddings('yolov8n.pt')
 '''
 
 def create_mosaic(image_paths):
@@ -195,7 +191,7 @@ def project_embeddings(table, n_components=2):
     table = wandb.Table(data=embeddings_reduced, columns=["x", "y"])
     wandb.log({
     "embeddings": wandb.Table(
-        columns = ["D1", "D2"], 
+        columns = ["D1", "D2"],
         data    = embeddings_reduced
     )
     })

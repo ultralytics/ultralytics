@@ -86,7 +86,7 @@ class HungarianMatcher(nn.Module):
 
         C = C.view(bs, nq, -1).cpu()
         indices = [linear_sum_assignment(c[i]) for i, c in enumerate(C.split(gt_numgts, -1))]
-        gt_numgts = [0] + gt_numgts[:-1]
+        gt_numgts = torch.as_tensor([0, *gt_numgts[:-1]]).cumsum_(0)
         # (idx for queries, idx for gt)
         return [(torch.tensor(i, dtype=torch.int32), torch.tensor(j, dtype=torch.int32) + gt_numgts[k])
                 for k, (i, j) in enumerate(indices)]
@@ -247,6 +247,7 @@ def get_cdn_group_(targets,
 
     # positive and negative mask
     # (bs*num*num_group, ), the second part as neg_idx sample
+    # TODO
     neg_idx = torch.arange(total_num, dtype=torch.long, device=gt_bbox.device).repeat(num_group) + num_group * total_num
 
     if cls_noise_ratio > 0:

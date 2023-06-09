@@ -218,14 +218,14 @@ class RTDETRDecoder(nn.Module):
         # self._reset_parameters()
 
     def forward(self, x, batch=None):
-        from ultralytics.vit.utils.ops import get_cdn_group
+        from ultralytics.vit.utils.ops import get_cdn_group_
 
         # input projection and embedding
         feats, shapes = self._get_encoder_input(x)
 
         # prepare denoising training
         dn_embed, dn_bbox, attn_mask, dn_meta = \
-            get_cdn_group(batch,
+            get_cdn_group_(batch,
                           self.nc,
                           self.num_queries,
                           self.denoising_class_embed.weight,

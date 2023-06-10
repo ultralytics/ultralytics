@@ -533,6 +533,7 @@ def get_user_config_dir(sub_dir='Ultralytics'):
     # GCP and AWS lambda fix, only /tmp is writeable
     if not is_dir_writeable(str(path.parent)):
         path = Path('/tmp') / sub_dir
+        LOGGER.warning(f"WARNING ⚠️ user config directory is not writeable, defaulting to '{path}'.")
 
     # Create the subdirectory if it does not exist
     path.mkdir(parents=True, exist_ok=True)

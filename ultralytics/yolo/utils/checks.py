@@ -19,7 +19,8 @@ import requests
 import torch
 from matplotlib import font_manager
 
-from ultralytics.yolo.utils import (AUTOINSTALL, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, TryExcept, clean_url, colorstr,
+from ultralytics.yolo.utils import (AUTOINSTALL, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, RANK, TryExcept, clean_url,
+                                    colorstr,
                                     downloads, emojis, is_colab, is_docker, is_kaggle, is_online, is_pip_package,
                                     url2file)
 
@@ -164,23 +165,26 @@ def check_font(font='Arial.ttf'):
     Returns:
         file (Path): Resolved font file path.
     """
-    name = Path(font).name
+    from ultralytics.yolo.utils.torch_utils import torch_distributed_zero_first
 
-    # Check USER_CONFIG_DIR
-    file = USER_CONFIG_DIR / name
-    if file.exists():
-        return file
+    with torch_distributed_zero_first(RANK):
+        name = Path(font).name
 
-    # Check system fonts
-    matches = [s for s in font_manager.findSystemFonts() if font in s]
-    if any(matches):
-        return matches[0]
+        # Check USER_CONFIG_DIR
+        file = USER_CONFIG_DIR / name
+        if file.exists():
+            return file
 
-    # Download to USER_CONFIG_DIR if missing
-    url = f'https://ultralytics.com/assets/{name}'
-    if downloads.is_url(url):
-        downloads.safe_download(url=url, file=file)
-        return file
+        # Check system fonts
+        matches = [s for s in font_manager.findSystemFonts() if font in s]
+        if any(matches):
+            return matches[0]
+
+        # Download to USER_CONFIG_DIR if missing
+        url = f'https://ultralytics.com/assets/{name}'
+        if downloads.is_url(url):
+            downloads.safe_download(url=url, file=file)
+            return file
 
 
 def check_python(minimum: str = '3.7.0') -> bool:
@@ -254,7 +258,7 @@ def check_suffix(file='yolov8n.pt', suffix='.pt', msg=''):
     """Check file(s) for acceptable suffix."""
     if file and suffix:
         if isinstance(suffix, str):
-            suffix = (suffix, )
+            suffix = (suffix,)
         for f in file if isinstance(file, (list, tuple)) else [file]:
             s = Path(f).suffix.lower().strip()  # file suffix
             if len(s):

@@ -166,6 +166,7 @@ nav:
       - YOLOv6: models/yolov6.md
       - YOLOv8: models/yolov8.md
       - SAM (Segment Anything Model): models/sam.md
+      - YOLO-NAS (Neural Architecture Search): models/yolo-nas.md
       - RT-DETR (Realtime Detection Transformer): models/rtdetr.md
   - Datasets:
       - datasets/index.md

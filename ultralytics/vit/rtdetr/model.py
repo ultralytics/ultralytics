@@ -48,6 +48,16 @@ class RTDETR:
         self.task = self.model.args['task']
 
     @smart_inference_mode()
+    def load(self, weights='yolov8n.pt'):
+        """
+        Transfers parameters with matching names and shapes from 'weights' to model.
+        """
+        if isinstance(weights, (str, Path)):
+            weights, self.ckpt = attempt_load_one_weight(weights)
+        self.model.load(weights)
+        return self
+
+    @smart_inference_mode()
     def predict(self, source=None, stream=False, **kwargs):
         """
         Perform prediction using the YOLO model.

@@ -224,6 +224,11 @@ def set_logging(name=LOGGING_NAME, verbose=True):
                 'propagate': False}}})
 
 
+def emojis(string=''):
+    """Return platform-dependent emoji-safe version of string."""
+    return string.encode().decode('ascii', 'ignore') if WINDOWS else string
+
+
 class EmojiFilter(logging.Filter):
     """
     A custom logging filter class for removing emojis in log messages.
@@ -543,11 +548,6 @@ def get_user_config_dir(sub_dir='Ultralytics'):
 
 USER_CONFIG_DIR = Path(os.getenv('YOLO_CONFIG_DIR', get_user_config_dir()))  # Ultralytics settings dir
 SETTINGS_YAML = USER_CONFIG_DIR / 'settings.yaml'
-
-
-def emojis(string=''):
-    """Return platform-dependent emoji-safe version of string."""
-    return string.encode().decode('ascii', 'ignore') if WINDOWS else string
 
 
 def colorstr(*input):

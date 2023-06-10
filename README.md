@@ -194,7 +194,15 @@ See [Classification Docs](https://docs.ultralytics.com/tasks/classify/) for usag
   <br>Reproduce by `yolo val classify data=path/to/ImageNet batch=1 device=0/cpu`
 
 </details>
-
+<details><summary>Models HUB</summary>
+  * Segment Anything(SAM) 
+  * RTDETR
+  * YOLOv6
+  * YOLOv7
+  * YOLOv5
+  * YOLOv3
+  * ...
+  </details>
 ## <div align="center">Integrations</div>
 
 <br>

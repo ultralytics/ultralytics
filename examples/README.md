@@ -10,6 +10,7 @@ This repository features a collection of real-world applications and walkthrough
 | [YOLO OpenCV ONNX Detection Python](./YOLOv8-OpenCV-ONNX-Python)                                               | OpenCV/Python/ONNX | [Farid Inawan](https://github.com/frdteknikelektro) |
 | [YOLO .Net ONNX Detection C#](https://www.nuget.org/packages/Yolov8.Net)                                       | C# .Net            | [Samuel Stainback](https://github.com/sstainba)     |
 | [YOLOv8 on NVIDIA Jetson(TensorRT and DeepStream)](https://wiki.seeedstudio.com/YOLOv8-DeepStream-TRT-Jetson/) | Python             | [Lakshantha](https://github.com/lakshanthad)        |
+| [YOLOv8 ONNXRuntime Python](./YOLOv8-ONNXRuntime)                                                              | Python/ONNXRuntime | [Semih Demirel](https://github.com/semihhdemirel)   |
 
 ### How to Contribute
 

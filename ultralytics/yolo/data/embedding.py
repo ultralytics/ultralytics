@@ -1,11 +1,11 @@
-import lancedb
-import pyarrow as pa
-import numpy as np
-import cv2
-import torch.nn.functional as F
-from sklearn.decomposition import PCA
-import matplotlib.pyplot as plt
 from pathlib import Path
+
+import cv2
+import lancedb
+import matplotlib.pyplot as plt
+import numpy as np
+import pyarrow as pa
+import torch.nn.functional as F
 from lancedb.embeddings import with_embeddings
 from sklearn.decomposition import PCA
 
@@ -73,6 +73,7 @@ class DatasetUtil:
     """
     Dataset utils. Supports detection, segmnetation and Pose and YOLO models.
     """
+
     #TODO: Allow starting from an existing table
     def __init__(self, data, table=None, project=None, verbose=False) -> None:
         """
@@ -87,7 +88,7 @@ class DatasetUtil:
         self.trainset = None
         self.orig_imgs = None
         self.table = table
-            
+
     def build_embeddings(self, model=None):
         self.model = YOLO(model)
         trainset = get_train_split(self.data, task=self.model.task)
@@ -106,34 +107,34 @@ class DatasetUtil:
             self.orig_imgs.extend(files)
 
         db = self._connect()
-        pa_table = pa.table([self.orig_imgs], names=["path"]).to_pandas()
-        pa_table = with_embeddings(self._embedding_func, pa_table, "path")
-        self.table = db.create_table(self.data, data=pa_table, mode="overwrite") # TODO: reuse built table
+        pa_table = pa.table([self.orig_imgs], names=['path']).to_pandas()
+        pa_table = with_embeddings(self._embedding_func, pa_table, 'path')
+        self.table = db.create_table(self.data, data=pa_table, mode='overwrite')  # TODO: reuse built table
 
     def project_embeddings(self, n_components=2):
         if self.table is None:
-            LOGGER.error("No embedding space found. Please build the embedding space first.")
+            LOGGER.error('No embedding space found. Please build the embedding space first.')
             return None
         pca = PCA(n_components=n_components)
-        embeddings = np.array(self.table.to_arrow()["vector"].to_pylist())
+        embeddings = np.array(self.table.to_arrow()['vector'].to_pylist())
         embeddings_reduced = pca.fit_transform(embeddings)
 
         return embeddings_reduced
-    
+
     def get_similar_imgs(self, img, n=10):
         if isinstance(img, int):
             img_path = self.orig_imgs[img]
         elif isinstance(img, (str, Path)):
             img_path = img
         else:
-            LOGGER.error("img should be index from the table(int) or path of an image (str or Path)")
+            LOGGER.error('img should be index from the table(int) or path of an image (str or Path)')
             return
         # predictor = EmbeddingsPredictor()
         embeddings = self.predictor.embed(img_path).squeeze().cpu().numpy()
-        sim = self.table.search(embeddings).limit(n).to_df()["path"]
+        sim = self.table.search(embeddings).limit(n).to_df()['path']
         return sim
 
-    def show_similar_imgs(self, img=None, n=10):        
+    def show_similar_imgs(self, img=None, n=10):
         img_paths = self.get_similar_imgs(img, n)
         images = [cv2.imread(image_path) for image_path in img_paths]
 
@@ -148,10 +149,10 @@ class DatasetUtil:
         for i, ax in enumerate(axes.ravel()):
             ax.imshow(resized_images[i])
             ax.axis('off')
-        import pdb;pdb.set_trace()
+        import pdb
+        pdb.set_trace()
         # Display the grid of images
         plt.show()
-  
 
     def _connect(self):
         db = lancedb.connect(self.project)
@@ -168,6 +169,6 @@ class DatasetUtil:
 #table = db.open_table("VOC")
 #project_embeddings(table)
 
-ds = DatasetUtil("coco128.yaml")
-ds.build_embeddings("yolov8n.pt")
+ds = DatasetUtil('coco128.yaml')
+ds.build_embeddings('yolov8n.pt')
 ds.show_similar_imgs(100, 20)

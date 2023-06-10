@@ -106,6 +106,8 @@ All YOLOv8 pretrained models are available here. Detect, Segment and Pose models
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
+<img width="1024" src="https://raw.githubusercontent.com/ultralytics/assets/tasks/im/banner-tasks.png">
+
 <details open><summary>Detection</summary>
 
 See [Detection Docs](https://docs.ultralytics.com/tasks/detect/) for usage examples with these models.

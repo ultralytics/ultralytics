@@ -1,10 +1,11 @@
-from pathlib import Path
-
-import cv2
 import lancedb
-import numpy as np
 import pyarrow as pa
+import numpy as np
+import cv2
 import torch.nn.functional as F
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
+from pathlib import Path
 from lancedb.embeddings import with_embeddings
 from sklearn.decomposition import PCA
 
@@ -72,8 +73,8 @@ class DatasetUtil:
     """
     Dataset utils. Supports detection, segmnetation and Pose and YOLO models.
     """
-
-    def __init__(self, data, project=None, verbose=False) -> None:
+    #TODO: Allow starting from an existing table
+    def __init__(self, data, table=None, project=None, verbose=False) -> None:
         """
         Args:
             dataset (str): path to dataset
@@ -85,8 +86,8 @@ class DatasetUtil:
         self.predictor = None
         self.trainset = None
         self.orig_imgs = None
-        self.table = None
-
+        self.table = table
+            
     def build_embeddings(self, model=None):
         self.model = YOLO(model)
         trainset = get_train_split(self.data, task=self.model.task)
@@ -105,9 +106,52 @@ class DatasetUtil:
             self.orig_imgs.extend(files)
 
         db = self._connect()
-        pa_table = pa.table([self.orig_imgs], names=['path']).to_pandas()
-        pa_table = with_embeddings(self._embedding_func, pa_table, 'path')
-        self.table = db.create_table(self.data, data=pa_table)
+        pa_table = pa.table([self.orig_imgs], names=["path"]).to_pandas()
+        pa_table = with_embeddings(self._embedding_func, pa_table, "path")
+        self.table = db.create_table(self.data, data=pa_table, mode="overwrite") # TODO: reuse built table
+
+    def project_embeddings(self, n_components=2):
+        if self.table is None:
+            LOGGER.error("No embedding space found. Please build the embedding space first.")
+            return None
+        pca = PCA(n_components=n_components)
+        embeddings = np.array(self.table.to_arrow()["vector"].to_pylist())
+        embeddings_reduced = pca.fit_transform(embeddings)
+
+        return embeddings_reduced
+    
+    def get_similar_imgs(self, img, n=10):
+        if isinstance(img, int):
+            img_path = self.orig_imgs[img]
+        elif isinstance(img, (str, Path)):
+            img_path = img
+        else:
+            LOGGER.error("img should be index from the table(int) or path of an image (str or Path)")
+            return
+        # predictor = EmbeddingsPredictor()
+        embeddings = self.predictor.embed(img_path).squeeze().cpu().numpy()
+        sim = self.table.search(embeddings).limit(n).to_df()["path"]
+        return sim
+
+    def show_similar_imgs(self, img=None, n=10):        
+        img_paths = self.get_similar_imgs(img, n)
+        images = [cv2.imread(image_path) for image_path in img_paths]
+
+        # Resize the images to the minimum and maximum width and height
+        resized_images = []
+        for image in images:
+            resized_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            resized_images.append(resized_image)
+
+        # Create a grid of the images
+        fig, axes = plt.subplots(nrows=len(resized_images) // 2, ncols=2)
+        for i, ax in enumerate(axes.ravel()):
+            ax.imshow(resized_images[i])
+            ax.axis('off')
+        import pdb;pdb.set_trace()
+        # Display the grid of images
+        plt.show()
+  
 
     def _connect(self):
         db = lancedb.connect(self.project)
@@ -124,78 +168,6 @@ class DatasetUtil:
 #table = db.open_table("VOC")
 #project_embeddings(table)
 
-ds = DatasetUtil('coco128.yaml')
-ds.build_embeddings('yolov8n.pt')
-'''
-
-def create_mosaic(image_paths):
-    image_sizes = [cv2.imread(path).shape for path in image_paths]
-
-    mosaic_width = np.sum(image_sizes[:, 0])
-    mosaic_height = np.sum(image_sizes[:, 1])
-
-    mosaic = np.zeros((mosaic_height, mosaic_width, 3), dtype=np.uint8)
-
-    for i, image_path in enumerate(image_paths):
-        image = cv2.imread(image_path)
-        image = cv2.resize(image, (image_sizes[i][1], image_sizes[i][0]))
-        mosaic[i * image_sizes[i][1]:(i + 1) * image_sizes[i][1], :image_sizes[i][0]] = image
-
-    # Display the mosaic
-    cv2.imshow('Mosaic', mosaic)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
-def get_similar_imgs(img_path, table, n=10):
-    predictor = EmbeddingsPredictor()
-    embeddings = list(predictor(img_path, model='yolov8n.pt', stream=True))[0]
-    embeddings = embeddings[0].squeeze().cpu().numpy()
-    sim = table.search(embeddings).limit(n).to_df()["path"].to_pylist()
-    return sim
-
-PREDICTOR = EmbeddingsPredictor
-MODEL = None
-#def emnedding_func(imgs):
-
-def build_table(data='VOC.yaml', model='yolov8n.pt'):
-    global PREDICTOR
-    global MODEL
-    model = YOLO(model)
-    predictor = EmbeddingsPredictor()
-    path_col = [] # path
-    trainset = get_train_split(data, task=model.task)
-    trainset = trainset if isinstance(trainset, list) else [trainset]
-    for train_split in trainset:
-        path = Path(train_split)
-        files = sorted(x for x in path.rglob('*.*') if x.suffix[1:].lower() in IMG_FORMATS)  # image files only
-        path_col.extend(files)
-
-        embeddings = predictor(train_split, model=model.model, stream=True)
-        for embedding in embeddings:
-            print(embedding[0])
-            cols[0].append(embedding[0].squeeze().cpu().numpy())
-            cols[1].append(embedding[1][0])
-    db = lancedb.connect(f"db/")
-    table = pa.table(path_col, names=["path"])
-    table = db.create_table(name=data.split('.')[0], data=table, mode="overwrite")
-
-    return table
-
-def project_embeddings(table, n_components=2):
-    pca = PCA(n_components=n_components)
-    embeddings = np.array(table.to_arrow()["vector"].to_pylist())
-    embeddings_reduced = pca.fit_transform(embeddings)
-    # TODO: plot embeddings_reduced
-    import wandb
-    wandb.init(project="lance")
-    table = wandb.Table(data=embeddings_reduced, columns=["x", "y"])
-    wandb.log({
-    "embeddings": wandb.Table(
-        columns = ["D1", "D2"],
-        data    = embeddings_reduced
-    )
-    })
-    wandb.finish()
-
-
-'''
+ds = DatasetUtil("coco128.yaml")
+ds.build_embeddings("yolov8n.pt")
+ds.show_similar_imgs(100, 20)

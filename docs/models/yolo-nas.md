@@ -15,12 +15,12 @@ Developed by Deci AI, YOLO-NAS is a groundbreaking object detection foundational
 ### Key Features
 
 - **Quantization-Friendly Basic Block:** YOLO-NAS introduces a new basic block that is friendly to quantization, addressing one of the significant limitations of previous YOLO models.
-- **Sophisticated Training and Quantization:** YOLO-NAS leverages advanced training schemes and post-training quantization to enhance performance. 
+- **Sophisticated Training and Quantization:** YOLO-NAS leverages advanced training schemes and post-training quantization to enhance performance.
 - **AutoNAC Optimization and Pre-training:** YOLO-NAS utilizes AutoNAC optimization and is pre-trained on prominent datasets such as COCO, Objects365, and Roboflow 100. This pre-training makes it extremely suitable for downstream object detection tasks in production environments.
 
 ## Pre-trained Models
 
-Ultralytics provides several pre-trained YOLO-NAS models available for auto-download:
+Experience the power of next-generation object detection with the pre-trained YOLO-NAS models provided by Ultralytics. These models are designed to deliver top-notch performance in terms of both speed and accuracy. Choose from a variety of options tailored to your specific needs:
 
 | Model            | mAP   | Latency (ms) |
 |------------------|-------|--------------|
@@ -31,19 +31,43 @@ Ultralytics provides several pre-trained YOLO-NAS models available for auto-down
 | YOLO-NAS M INT-8 | 51.0  | 3.78         |
 | YOLO-NAS L INT-8 | 52.1  | 4.78         |
 
+Each model variant is designed to offer a balance between Mean Average Precision (mAP) and latency, helping you optimize your object detection tasks for both performance and speed.
+
 ## Usage
 
 ### Python API
 
+The YOLO-NAS models are easy to integrate into your Python applications. Ultralytics provides a user-friendly Python API to streamline the process.
+
+#### Predict Usage
+
+To perform object detection on an image, use the `predict` method as shown below:
+
 ```python
 from ultralytics import NAS
 
-model = NAS("yolo_nas_l.pt")
-model.info()  # display model information
-model.predict("path/to/image.jpg")  # predict
+model = NAS('yolo_nas_s')
+results = model.predict('ultralytics/assets/bus.jpg')
 ```
 
+This snippet demonstrates the simplicity of loading a pre-trained model and running a prediction on an image.
+
+#### Val Usage
+
+Validation of the model on a dataset can be done as follows:
+
+```python
+from ultralytics import NAS
+
+model = NAS('yolo_nas_s')
+results = model.val(data='coco8.yaml)
+```
+
+In this example, the model is validated against the dataset specified in the 'coco8.yaml' file.
+
 ### Supported Tasks
+
+The YOLO-NAS models are primarily designed for object detection tasks. You can download the pre-trained weights for each variant of the model as follows:
 
 | Model Type | Pre-trained Weights                                                                           | Tasks Supported  |
 |------------|-----------------------------------------------------------------------------------------------|------------------|
@@ -53,11 +77,15 @@ model.predict("path/to/image.jpg")  # predict
 
 ### Supported Modes
 
+The YOLO-NAS models support both inference and validation modes, allowing you to predict and validate results with ease. Training mode, however, is currently not supported.
+
 | Mode       | Supported          |
 |------------|--------------------|
 | Inference  | :heavy_check_mark: |
 | Validation | :heavy_check_mark: |
 | Training   | :x:                |
+
+Harness the power of the YOLO-NAS models to drive your object detection tasks to new heights of performance and speed.
 
 ## Acknowledgements and Citations
 

@@ -195,7 +195,7 @@ See [Classification Docs](https://docs.ultralytics.com/tasks/classify/) for usag
 
 </details>
 <details><summary>Models HUB</summary>
-  * Segment Anything(SAM) 
+  * Segment Anything(SAM)
   * RTDETR
   * YOLOv6
   * YOLOv7

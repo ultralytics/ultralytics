@@ -1,9 +1,9 @@
 ---
 comments: true
-description: YOLOv5u by Ultralytics explained. Discover the evolution of this model and its key specifications. Experience faster and more accurate object detection.
+description: YOLOv5 by Ultralytics explained. Discover the evolution of this model and its key specifications. Experience faster and more accurate object detection.
 ---
 
-# YOLOv5u
+# YOLOv5
 
 ## Overview
 

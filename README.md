@@ -102,7 +102,7 @@ path = model.export(format="onnx")  # export the model to ONNX format
 
 ## <div align="center">Models</div>
 
-YOLOv8 pretrained models are available for [Detect](https://docs.ultralytics.com/tasks/detect), [Segment](https://docs.ultralytics.com/tasks/segment) and [Pose](https://docs.ultralytics.com/tasks/pose) [tasks](https://docs.ultralytics.com/tasks) pretrained on the [COCO](https://docs.ultralytics.com/datasets/detect/coco) dataset, and for Classify tasks pretrained on the [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet) dataset. [Track](https://docs.ultralytics.com/modes/track) mode is available for all Detect, Segment and Pose models. 
+YOLOv8 pretrained models are available for [Detect](https://docs.ultralytics.com/tasks/detect), [Segment](https://docs.ultralytics.com/tasks/segment) and [Pose](https://docs.ultralytics.com/tasks/pose) [tasks](https://docs.ultralytics.com/tasks) pretrained on the [COCO](https://docs.ultralytics.com/datasets/detect/coco) dataset, and for Classify tasks pretrained on the [ImageNet](https://docs.ultralytics.com/datasets/classify/imagenet) dataset. [Track](https://docs.ultralytics.com/modes/track) mode is available for all Detect, Segment and Pose models.
 
 <img width="1024" src="https://raw.githubusercontent.com/ultralytics/assets/tasks/im/banner-tasks.png">
 

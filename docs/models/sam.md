@@ -3,7 +3,7 @@ comments: true
 description: Discover the Segment Anything Model (SAM), a revolutionary promptable image segmentation model, and delve into the details of its advanced architecture and the large-scale SA-1B dataset.
 ---
 
-# Unveiling the Segment Anything Model (SAM): A New Age in Image Segmentation 
+# Segment Anything Model (SAM)
 
 Welcome to the frontier of image segmentation with the Segment Anything Model, or SAM. This revolutionary model has changed the game by introducing promptable image segmentation with real-time performance, setting new standards in the field. 
 
@@ -78,7 +78,7 @@ The `auto_annotate` function takes the path to your images, with optional argume
 
 Auto-annotation with pre-trained models can dramatically cut down the time and effort required for creating high-quality segmentation datasets. This feature is especially beneficial for researchers and developers dealing with large image collections, as it allows them to focus on model development and evaluation rather than manual annotation.
 
-## Giving Credit Where It's Due
+## Citations and Acknowledgements
 
 If you find SAM useful in your research or development work, please consider citing our paper:
 

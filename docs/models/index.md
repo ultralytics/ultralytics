@@ -15,7 +15,7 @@ In this documentation, we provide information on four major models:
 4. [YOLOv8](./yolov8.md): The latest version of the YOLO family, featuring enhanced capabilities such as instance segmentation, pose/keypoints estimation, and classification.
 5. [Segment Anything Model (SAM)](./sam.md): Meta's Segment Anything Model (SAM).
 6. [YOLO-NAS](./yolo-nas.md): YOLO Neural Architecture Search (NAS) Models.
-7. [Realtime Detection Transformers (RT-DETR)](./rtdetr.md): Baidu's Realtime Detection Transformer (RT-DETR) model.
+7. [Realtime Detection Transformers (RT-DETR)](./rtdetr.md): Baidu's PaddlePaddle Realtime Detection Transformer (RT-DETR) models.
 
 You can use these models directly in the Command Line Interface (CLI) or in a Python environment. Below are examples of how to use the models with CLI and Python:
 

@@ -263,7 +263,7 @@ class ProfileModels:
         for _ in range(3):
             start_time = time.time()
             for _ in range(self.num_warmup_runs):
-                model(input_data, verbose=False)
+                model(input_data, imgsz=self.imgsz, verbose=False)
             elapsed = time.time() - start_time
 
         # Compute number of runs as higher of min_time or num_timed_runs
@@ -272,7 +272,7 @@ class ProfileModels:
         # Timed runs
         run_times = []
         for _ in tqdm(range(num_runs), desc=engine_file):
-            results = model(input_data, verbose=False)
+            results = model(input_data, imgsz=self.imgsz, verbose=False)
             run_times.append(results[0].speed['inference'])  # Convert to milliseconds
 
         run_times = self.iterative_sigma_clipping(np.array(run_times), sigma=2, max_iters=3)  # sigma clipping

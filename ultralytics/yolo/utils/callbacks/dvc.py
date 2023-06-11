@@ -42,7 +42,7 @@ def _log_images(image_path, prefix=''):
 def _log_plots(plots, prefix=''):
     for name, params in plots.items():
         timestamp = params['timestamp']
-        if _processed_plots.get(name, None) != timestamp:
+        if _processed_plots.get(name) != timestamp:
             _log_images(name, prefix)
             _processed_plots[name] = timestamp
 

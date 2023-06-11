@@ -3,7 +3,7 @@ comments: true
 description: Dive into YOLO-NAS, Deci's next-generation object detection model, offering breakthroughs in speed and accuracy. Learn how to utilize pre-trained models using the Ultralytics Python API for various tasks.
 ---
 
-# Deci's YOLO-NAS
+# YOLO-NAS
 
 ## Overview
 

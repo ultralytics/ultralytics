@@ -70,8 +70,7 @@ jobs:
           headers = {"x-api-key": api_key}
           data = {"size": 320, "confidence": 0.25, "iou": 0.45}
           with open("ultralytics/assets/zidane.jpg", "rb") as f:
-              files = {"image": f}
-          response = requests.post(url, headers=headers, files=files, data=data)
+              response = requests.post(url, headers=headers, data=data, files={"image": f})
           assert response.status_code == 200, f'Status code {response.status_code}, Reason {response.reason}'
           print(json.dumps(response.json(), indent=2))
 

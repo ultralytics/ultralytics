@@ -68,7 +68,7 @@ jobs:
           api_key, model_id = os.environ['API_KEY'], os.environ['MODEL_ID']
           url = f"https://api.ultralytics.com/v1/predict/{model_id}"
           headers = {"x-api-key": api_key}
-          data = {"size": 320, "confidence": 0.01, "iou": 0.45}
+          data = {"size": 640, "confidence": 0.0001, "iou": 0.45}
           with open("ultralytics/assets/zidane.jpg", "rb") as f:
               response = requests.post(url, headers=headers, data=data, files={"image": f})
           assert response.status_code == 200, f'Status code {response.status_code}, Reason {response.reason}'

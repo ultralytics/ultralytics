@@ -196,8 +196,17 @@ class ProfileModels:
                 model.fuse()  # to report correct params and GFLOPs in model.info()
                 model_info = model.info()
                 if self.trt and self.device.type != 'cpu' and not engine_file.is_file():
-                    engine_file = model.export(format='engine', half=True, imgsz=self.imgsz, device=self.device)
-                onnx_file = model.export(format='onnx', half=True, imgsz=self.imgsz, simplify=True, device=self.device)
+                    engine_file = model.export(format='engine',
+                                               half=True,
+                                               imgsz=self.imgsz,
+                                               device=self.device,
+                                               verbose=False)
+                onnx_file = model.export(format='onnx',
+                                         half=True,
+                                         imgsz=self.imgsz,
+                                         simplify=True,
+                                         device=self.device,
+                                         verbose=False)
             elif file.suffix == '.onnx':
                 model_info = self.get_onnx_model_info(file)
                 onnx_file = file

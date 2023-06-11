@@ -64,13 +64,16 @@ jobs:
         run: |
           import os
           import requests
+          import json
           api_key, model_id = os.environ['API_KEY'], os.environ['MODEL_ID']
           url = f"https://api.ultralytics.com/v1/predict/{model_id}"
           headers = {"x-api-key": api_key}
-          data = {"size": 640, "confidence": 0.25, "iou": 0.45}
-          files = {"image": open("ultralytics/assets/zidane.jpg", "rb")}
+          data = {"size": 320, "confidence": 0.25, "iou": 0.45}
+          with open("ultralytics/assets/zidane.jpg", "rb") as f:
+              files = {"image": f}
           response = requests.post(url, headers=headers, files=files, data=data)
-          print(response)
+          assert response.status_code == 200, f'Status code {response.status_code}, Reason {response.reason}'
+          print(json.dumps(response.json(), indent=2))
 
   Benchmarks:
     runs-on: ${{ matrix.os }}

@@ -13,7 +13,7 @@ on:
 
 jobs:
   HUB:
-    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push')
+    if: github.repository == 'ultralytics/ultralytics' # && (github.event_name == 'schedule' || github.event_name == 'push')
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -56,6 +56,21 @@ jobs:
           hub.reset_model(model_id)
           model = YOLO('https://hub.ultralytics.com/models/' + model_id)
           model.train()
+      - name: Test HUB inference API
+        shell: python
+        env:
+          API_KEY: ${{ secrets.ULTRALYTICS_HUB_API_KEY }}
+          MODEL_ID: ${{ secrets.ULTRALYTICS_HUB_MODEL_ID }}
+        run: |
+          import os
+          import requests
+          api_key, model_id = os.environ['API_KEY'], os.environ['MODEL_ID']
+          url = f"https://api.ultralytics.com/v1/predict/{model_id}"
+          headers = {"x-api-key": api_key}
+          data = {"size": 640, "confidence": 0.25, "iou": 0.45}
+          files = {"image": open("ultralytics/assets/zidane.jpg", "rb")}
+          response = requests.post(url, headers=headers, files=files, data=data)
+          print(response)
 
   Benchmarks:
     runs-on: ${{ matrix.os }}

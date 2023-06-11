@@ -1,13 +1,15 @@
 ---
 comments: true
-description: YOLOv5u by Ultralytics explained. Discover the evolution of this model and its key specifications. Experience faster and more accurate object detection.
+description: YOLOv5 by Ultralytics explained. Discover the evolution of this model and its key specifications. Experience faster and more accurate object detection.
 ---
 
-# YOLOv5u
+# YOLOv5
 
 ## Overview
 
 YOLOv5u is an enhanced version of the [YOLOv5](https://github.com/ultralytics/yolov5) object detection model from Ultralytics. This iteration incorporates the anchor-free, objectness-free split head that is featured in the [YOLOv8](./yolov8.md) models. Although it maintains the same backbone and neck architecture as YOLOv5, YOLOv5u provides an improved accuracy-speed tradeoff for object detection tasks, making it a robust choice for numerous applications.
+
+![Ultralytics YOLOv5](https://raw.githubusercontent.com/ultralytics/assets/main/yolov5/v70/splash.png)
 
 ## Key Features
 

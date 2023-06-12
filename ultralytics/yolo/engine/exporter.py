@@ -172,7 +172,8 @@ class Exporter:
 
         # Input
         im = torch.zeros(self.args.batch, 3, *self.imgsz).to(self.device)
-        file = Path(getattr(model, 'pt_path', None) or getattr(model, 'yaml_file', None) or model.yaml['yaml_file'])
+        file = Path(
+            getattr(model, 'pt_path', None) or getattr(model, 'yaml_file', None) or model.yaml.get('yaml_file', ''))
         if file.suffix == '.yaml':
             file = Path(file.name)
 
@@ -207,7 +208,8 @@ class Exporter:
         self.im = im
         self.model = model
         self.file = file
-        self.output_shape = tuple(y.shape) if isinstance(y, torch.Tensor) else tuple(tuple(x.shape) for x in y)
+        self.output_shape = tuple(y.shape) if isinstance(y, torch.Tensor) else \
+            tuple(tuple(x.shape if isinstance(x, torch.Tensor) else []) for x in y)
         self.pretty_name = Path(self.model.yaml.get('yaml_file', self.file)).stem.replace('yolo', 'YOLO')
         trained_on = f'trained on {Path(self.args.data).name}' if self.args.data else '(untrained)'
         description = f'Ultralytics {self.pretty_name} model {trained_on}'

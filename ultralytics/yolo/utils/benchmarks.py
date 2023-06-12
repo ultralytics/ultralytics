@@ -90,7 +90,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
                 filename = model.ckpt_path or model.cfg
                 export = model  # PyTorch format
             else:
-                filename = model.export(imgsz=imgsz, format=format, half=half, int8=int8, device=device)  # all others
+                filename = model.export(imgsz=imgsz, format=format, half=half, int8=int8, device=device, verbose=False)
                 export = YOLO(filename, task=model.task)
                 assert suffix in str(filename), 'export failed'
             emoji = '❎'  # indicates export succeeded
@@ -196,8 +196,17 @@ class ProfileModels:
                 model.fuse()  # to report correct params and GFLOPs in model.info()
                 model_info = model.info()
                 if self.trt and self.device.type != 'cpu' and not engine_file.is_file():
-                    engine_file = model.export(format='engine', half=True, imgsz=self.imgsz, device=self.device)
-                onnx_file = model.export(format='onnx', half=True, imgsz=self.imgsz, simplify=True, device=self.device)
+                    engine_file = model.export(format='engine',
+                                               half=True,
+                                               imgsz=self.imgsz,
+                                               device=self.device,
+                                               verbose=False)
+                onnx_file = model.export(format='onnx',
+                                         half=True,
+                                         imgsz=self.imgsz,
+                                         simplify=True,
+                                         device=self.device,
+                                         verbose=False)
             elif file.suffix == '.onnx':
                 model_info = self.get_onnx_model_info(file)
                 onnx_file = file
@@ -254,7 +263,7 @@ class ProfileModels:
         for _ in range(3):
             start_time = time.time()
             for _ in range(self.num_warmup_runs):
-                model(input_data, verbose=False)
+                model(input_data, imgsz=self.imgsz, verbose=False)
             elapsed = time.time() - start_time
 
         # Compute number of runs as higher of min_time or num_timed_runs
@@ -263,7 +272,7 @@ class ProfileModels:
         # Timed runs
         run_times = []
         for _ in tqdm(range(num_runs), desc=engine_file):
-            results = model(input_data, verbose=False)
+            results = model(input_data, imgsz=self.imgsz, verbose=False)
             run_times.append(results[0].speed['inference'])  # Convert to milliseconds
 
         run_times = self.iterative_sigma_clipping(np.array(run_times), sigma=2, max_iters=3)  # sigma clipping

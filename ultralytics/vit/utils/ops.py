@@ -11,13 +11,7 @@ from ultralytics.yolo.utils.ops import xywh2xyxy, xyxy2xywh
 
 class HungarianMatcher(nn.Module):
 
-    def __init__(self,
-                 cost_gain=None,
-                 use_fl=True,
-                 with_mask=False,
-                 num_sample_points=12544,
-                 alpha=0.25,
-                 gamma=2.0):
+    def __init__(self, cost_gain=None, use_fl=True, with_mask=False, num_sample_points=12544, alpha=0.25, gamma=2.0):
         """
         Args:
             matcher_coeff (dict): The coefficient of hungarian matcher cost.

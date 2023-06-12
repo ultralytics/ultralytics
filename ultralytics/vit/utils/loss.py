@@ -257,7 +257,7 @@ class RTDETRDetectionLoss(DETRLoss):
             assert len(batch['gt_groups']) == len(dn_pos_idx)
 
             # denoising match indices
-            match_indices = self.get_dn_match_indices(batch['cls'], dn_pos_idx, dn_num_group, batch['gt_groups'])
+            match_indices = self.get_dn_match_indices(dn_pos_idx, dn_num_group, batch['gt_groups'])
 
             # compute denoising training loss
             dn_loss = super().forward(dn_bboxes, dn_scores, batch, postfix='_dn', match_indices=match_indices)
@@ -268,14 +268,12 @@ class RTDETRDetectionLoss(DETRLoss):
         return total_loss
 
     @staticmethod
-    def get_dn_match_indices(labels, dn_pos_idx, dn_num_group, gt_groups):
+    def get_dn_match_indices(dn_pos_idx, dn_num_group, gt_groups):
         dn_match_indices = []
-        labels = labels.split([n for n in gt_groups])
-        gt_groups = torch.as_tensor([0, *gt_groups[:-1]]).cumsum_(0)
-        for i in range(len(labels)):
-            num_gt = len(labels[i])
+        idx_groups = torch.as_tensor([0, *gt_groups[:-1]]).cumsum_(0)
+        for i, num_gt in enumerate(gt_groups):
             if num_gt > 0:
-                gt_idx = torch.arange(end=num_gt, dtype=torch.int32) + gt_groups[i]
+                gt_idx = torch.arange(end=num_gt, dtype=torch.int32) + idx_groups[i]
                 gt_idx = gt_idx.repeat(dn_num_group)
                 assert len(dn_pos_idx[i]) == len(gt_idx), 'Expected the sa'
                 f'me length, but got {len(dn_pos_idx[i])} and '

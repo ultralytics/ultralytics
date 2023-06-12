@@ -32,7 +32,7 @@ class HungarianMatcher(nn.Module):
         self.alpha = alpha
         self.gamma = gamma
 
-    def forward(self, bboxes, scores, gt_bboxes, gt_cls, gt_numgts, masks=None, gt_mask=None):
+    def forward(self, bboxes, scores, gt_bboxes, gt_cls, gt_groups, masks=None, gt_mask=None):
         """
         Args:
             bboxes (Tensor): [b, query, 4]
@@ -51,7 +51,7 @@ class HungarianMatcher(nn.Module):
         """
         bs, nq, nc = scores.shape
 
-        if sum(gt_numgts) == 0:
+        if sum(gt_groups) == 0:
             return [(torch.tensor([], dtype=torch.int32), torch.tensor([], dtype=torch.int32)) for _ in range(bs)]
 
         # We flatten to compute the cost matrices in a batch
@@ -82,13 +82,13 @@ class HungarianMatcher(nn.Module):
             self.cost_gain['giou'] * cost_giou
         # Compute the mask cost and dice cost
         if self.with_mask:
-            C += self._cost_mask(bs, gt_numgts, masks, gt_mask)
+            C += self._cost_mask(bs, gt_groups, masks, gt_mask)
 
         C = C.view(bs, nq, -1).cpu()
-        indices = [linear_sum_assignment(c[i]) for i, c in enumerate(C.split(gt_numgts, -1))]
-        gt_numgts = torch.as_tensor([0, *gt_numgts[:-1]]).cumsum_(0)
+        indices = [linear_sum_assignment(c[i]) for i, c in enumerate(C.split(gt_groups, -1))]
+        gt_groups = torch.as_tensor([0, *gt_groups[:-1]]).cumsum_(0)
         # (idx for queries, idx for gt)
-        return [(torch.tensor(i, dtype=torch.int32), torch.tensor(j, dtype=torch.int32) + gt_numgts[k])
+        return [(torch.tensor(i, dtype=torch.int32), torch.tensor(j, dtype=torch.int32) + gt_groups[k])
                 for k, (i, j) in enumerate(indices)]
 
     def _cost_mask(self, bs, num_gts, masks=None, gt_mask=None):
@@ -132,16 +132,16 @@ def get_cdn_group(targets,
     """get contrastive denoising training group"""
     if (not training) or num_dn <= 0:
         return None, None, None, None
-    num_gts = targets['num_gts']
-    total_num = sum(num_gts)
-    max_nums = max(num_gts)
+    gt_groups = targets['gt_groups']
+    total_num = sum(gt_groups)
+    max_nums = max(gt_groups)
     if max_nums == 0:
         return None, None, None, None
 
     num_group = num_dn // max_nums
     num_group = 1 if num_group == 0 else num_group
     # pad gt to max_num of a batch
-    bs = len(targets['num_gts'])
+    bs = len(gt_groups)
     gt_cls = targets['cls']  # (bs*num, )
     gt_bbox = targets['bboxes']  # bs*num, 4
     b_idx = targets['batch_idx']
@@ -184,7 +184,7 @@ def get_cdn_group(targets,
     padding_cls = torch.zeros(bs, num_dn, dn_cls_embed.shape[-1], device=gt_cls.device)
     padding_bbox = torch.zeros(bs, num_dn, 4, device=gt_bbox.device)
 
-    map_indices = torch.cat([torch.tensor(range(num)) for num in num_gts])
+    map_indices = torch.cat([torch.tensor(range(num)) for num in gt_groups])
     pos_idx = torch.stack([map_indices + max_nums * i for i in range(num_group)], dim=0).long()
 
     map_indices = torch.cat([map_indices + max_nums * i for i in range(2 * num_group)]).long()
@@ -205,7 +205,7 @@ def get_cdn_group(targets,
             attn_mask[max_nums * 2 * i:max_nums * 2 * (i + 1), max_nums * 2 * (i + 1):num_dn] = True
             attn_mask[max_nums * 2 * i:max_nums * 2 * (i + 1), :max_nums * 2 * i] = True
     dn_meta = {
-        'dn_pos_idx': [p.reshape(-1) for p in pos_idx.cpu().split([n for n in num_gts], dim=1)],
+        'dn_pos_idx': [p.reshape(-1) for p in pos_idx.cpu().split([n for n in gt_groups], dim=1)],
         'dn_num_group': num_group,
         'dn_num_split': [num_dn, num_queries]}
 

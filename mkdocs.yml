@@ -17,7 +17,7 @@ theme:
   icon:
     repo: fontawesome/brands/github
   font:
-    text: Roboto
+    text: Helvetica
     code: Roboto Mono
 
   palette:

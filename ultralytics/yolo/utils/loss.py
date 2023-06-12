@@ -19,13 +19,13 @@ class VarifocalLoss(nn.Module):
         """Initialize the VarifocalLoss class."""
         super().__init__()
 
-    def forward(self, pred_score, gt_score, label, normalizer=1.0, alpha=0.75, gamma=2.0):
+    def forward(self, pred_score, gt_score, label, alpha=0.75, gamma=2.0):
         """Computes varfocal loss."""
         weight = alpha * pred_score.sigmoid().pow(gamma) * (1 - label) + gt_score * label
         with torch.cuda.amp.autocast(enabled=False):
             loss = (F.binary_cross_entropy_with_logits(pred_score.float(), gt_score.float(), reduction='none') *
                     weight).mean(1).sum()
-        return loss / normalizer
+        return loss
 
 
 # Losses
@@ -35,7 +35,7 @@ class FocalLoss(nn.Module):
     def __init__(self, ):
         super().__init__()
 
-    def forward(self, pred, label, normalizer=1.0, gamma=1.5, alpha=0.25):
+    def forward(self, pred, label, gamma=1.5, alpha=0.25):
         """Calculates and updates confusion matrix for object detection/classification tasks."""
         loss = F.binary_cross_entropy_with_logits(pred, label, reduction='none')
         # p_t = torch.exp(-loss)
@@ -49,7 +49,7 @@ class FocalLoss(nn.Module):
         if alpha > 0:
             alpha_factor = label * alpha + (1 - label) * (1 - alpha)
             loss *= alpha_factor
-        return loss.mean(1).sum() / normalizer
+        return loss.mean(1).sum()
 
 
 class BboxLoss(nn.Module):

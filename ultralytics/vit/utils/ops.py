@@ -13,7 +13,7 @@ class HungarianMatcher(nn.Module):
 
     def __init__(self,
                  cost_gain=None,
-                 use_focal_loss=True,
+                 use_fl=True,
                  with_mask=False,
                  num_sample_points=12544,
                  alpha=0.25,
@@ -26,7 +26,7 @@ class HungarianMatcher(nn.Module):
         if cost_gain is None:
             cost_gain = {'class': 1, 'bbox': 5, 'giou': 2, 'mask': 1, 'dice': 1}
         self.cost_gain = cost_gain
-        self.use_focal_loss = use_focal_loss
+        self.use_fl = use_fl
         self.with_mask = with_mask
         self.num_sample_points = num_sample_points
         self.alpha = alpha
@@ -57,13 +57,13 @@ class HungarianMatcher(nn.Module):
         # We flatten to compute the cost matrices in a batch
         # [batch_size * num_queries, num_classes]
         scores = scores.detach().view(-1, nc)
-        pred_scores = F.sigmoid(scores) if self.use_focal_loss else F.softmax(scores, dim=-1)
+        pred_scores = F.sigmoid(scores) if self.use_fl else F.softmax(scores, dim=-1)
         # [batch_size * num_queries, 4]
         pred_bboxes = bboxes.detach().view(-1, 4)
 
         # Compute the classification cost
         pred_scores = pred_scores[:, gt_cls]
-        if self.use_focal_loss:
+        if self.use_fl:
             neg_cost_class = (1 - self.alpha) * (pred_scores ** self.gamma) * (-(1 - pred_scores + 1e-8).log())
             pos_cost_class = self.alpha * ((1 - pred_scores) ** self.gamma) * (-(pred_scores + 1e-8).log())
             cost_class = pos_cost_class - neg_cost_class

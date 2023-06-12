@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import yaml
 import cv2
 import lancedb
 import matplotlib.pyplot as plt
@@ -96,7 +97,6 @@ class DatasetUtil:
             
     def build_embeddings(self, model=None, verbose=False, force=False):
         self.model = YOLO(model)
-
         self.dataset_info = get_dataset_info(self.data, task=self.model.task)
         trainset = self.dataset_info['train']
         trainset = trainset if isinstance(trainset, list) else [trainset]
@@ -116,9 +116,13 @@ class DatasetUtil:
 
         db = self._connect()
         if not force and self.data in db.table_names():
-            LOGGER.info('Embedding space already exists. Use force=True to overwrite.')
+            LOGGER.info('Embedding space already exists. Attempting to reuse it. Use force=True to overwrite.')
             self.table = db.open_table(self.data)
-            return        
+            if len(self.table.to_arrow()) == len(self.orig_imgs):
+                return
+            else:
+                LOGGER.info("Table length does not match the number of images in the dataset. Building embeddings...")
+            
         idx = [i for i in range(len(self.orig_imgs))] # for easier hashing
         df = pa.table([self.orig_imgs, idx], names=["path", "id"]).to_pandas()
         pa_table = with_embeddings(self._embedding_func, df, "path")
@@ -249,8 +253,8 @@ class DatasetUtil:
         self.removed_imgs = []
         LOGGER.info("Dataset reset to original state.")
 
-    '''
-    def persist(self):
+
+    def persist(self, name=None):
         """
         Persists the changes made to the dataset.
         """
@@ -259,32 +263,45 @@ class DatasetUtil:
             LOGGER.info("No changes made to the dataset.")
             return
         
-        # TODO: create a new YOLO dataset with the new images
         LOGGER.info("Persisting changes to the dataset...")
         self.log_status()
 
-        for x in txt:
-            if (path.parent / x).exists():
-                (path.parent / x).unlink()  # remove existing
+        if not name:
+            name = self.data.split(".")[0] + "_updated." + self.data.split(".")[1]
+        train_txt = "train_updated.txt"
 
-        print(f'Autosplitting images from {path}' + ', using *.txt labeled images only' * annotated_only)
-        for i, img in tqdm(zip(indices, files), total=n):
-            if not annotated_only or Path(img2label_paths([str(img)])[0]).exists():  # check label
-                with open(path.parent / txt[i], 'a') as f:
-                    f.write(f'./{img.relative_to(path.parent).as_posix()}' + '\n')  # add image to txt file
+        path = Path(self.dataset_info["path"]).resolve() # add new train.txt file in the dataset parent path
+        if (path / train_txt).exists():
+            (path / train_txt).unlink()  # remove existing
 
+        for img in tqdm(self.orig_imgs):
+                with open(path / train_txt, 'a') as f:
+                    f.write(f'./{Path(img).relative_to(path).as_posix()}' + '\n')  # add image to txt file
         
+        new_dataset_info = self.dataset_info.copy()
+        new_dataset_info["train"] = train_txt
+        for key, value in new_dataset_info.items():
+            if isinstance(value, Path):
+                new_dataset_info[key] = value.as_posix()
+
+        yaml.dump(new_dataset_info, open(Path(self.project) / name, "w")) # update dataset.yaml file
+
+        # TODO: not sure if this should be called data_final to prevent overwriting the original data? Creating embs for large datasets is expensive
         self.table = db.create_table(self.data, data=self.table.to_arrow(), mode="overwrite")
         db.drop_table(self.temp_table_name)
 
         LOGGER.info("Changes persisted to the dataset.")
-    '''
+        self._log_training_cmd((Path(self.project) / name).as_posix())
 
     def log_status(self):
         # TODO: Pretty print log status
         LOGGER.info(f"Number of images: {len(self.orig_imgs)}")
         LOGGER.info(f"Number of removed images: {len(self.removed_imgs)}")
         LOGGER.info(f"Number of images in the embedding space: {len(self.table)}")
+
+    def _log_training_cmd(self, data_path):
+        LOGGER.info("New dataset created successfully! Run the following command to train a model:")
+        LOGGER.info(f"yolo train data={data_path} epochs=10")
 
     def _connect(self):
         db = lancedb.connect(self.project)
@@ -298,6 +315,9 @@ class DatasetUtil:
                 LOGGER.info(img)
             embeddings.append(self.predictor.embed(img, verbose=self.verbose).squeeze().cpu().numpy())
         return embeddings
+
+    def _create_trainable_dataset(self, train_txt):
+        pass
     
     def create_index(self):
         # TODO: create index
@@ -311,10 +331,14 @@ class DatasetUtil:
 
 ds = DatasetUtil("coco128.yaml")
 ds.build_embeddings("yolov8n.pt") 
-ds.plot_similar_imgs(4, 10)
+#ds.plot_similar_imgs(4, 10)
 #ds.plot_similirity_index()
 sim = ds.get_similarity_index()
 paths, ids = ds.get_similar_imgs(4, 10)
 ds.remove_imgs(ids)
-#ds.persist()
-import pdb; pdb.set_trace()
+ds.reset()
+ds.log_status()
+ds.remove_imgs([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+ds.remove_imgs([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+
+ds.persist()

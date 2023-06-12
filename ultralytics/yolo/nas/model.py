@@ -1,61 +1,56 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 """
-# RT-DETR model interface
+YOLO-NAS model interface.
+
+Usage - Predict:
+    from ultralytics import NAS
+
+    model = NAS('yolo_nas_s')
+    results = model.predict('ultralytics/assets/bus.jpg')
 """
 
 from pathlib import Path
 
-from ultralytics.nn.tasks import RTDETRDetectionModel, attempt_load_one_weight, yaml_model_load
+import torch
+
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
-from ultralytics.yolo.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, RANK, ROOT, is_git_dir
+from ultralytics.yolo.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, ROOT, is_git_dir
 from ultralytics.yolo.utils.checks import check_imgsz
-from ultralytics.yolo.utils.torch_utils import model_info, smart_inference_mode
 
-from .predict import RTDETRPredictor
-from .train import RTDETRTrainer
-from .val import RTDETRValidator
+from ...yolo.utils.torch_utils import model_info, smart_inference_mode
+from .predict import NASPredictor
+from .val import NASValidator
 
 
-class RTDETR:
+class NAS:
 
-    def __init__(self, model='rtdetr-l.pt') -> None:
-        if model and not model.endswith('.pt') and not model.endswith('.yaml'):
-            raise NotImplementedError('RT-DETR only supports creating from pt file or yaml file.')
-        # Load or create new YOLO model
+    def __init__(self, model='yolo_nas_s.pt') -> None:
+        # Load or create new NAS model
+        import super_gradients
+
         self.predictor = None
-        self.ckpt = None
         suffix = Path(model).suffix
-        if suffix == '.yaml':
-            self._new(model)
-        else:
+        if suffix == '.pt':
             self._load(model)
-
-    def _new(self, cfg: str, verbose=True):
-        cfg_dict = yaml_model_load(cfg)
-        self.cfg = cfg
+        elif suffix == '':
+            self.model = super_gradients.training.models.get(model, pretrained_weights='coco')
         self.task = 'detect'
-        self.model = RTDETRDetectionModel(cfg_dict, verbose=verbose)  # build model
-
-        # Below added to allow export from yamls
         self.model.args = DEFAULT_CFG_DICT  # attach args to model
-        self.model.task = self.task
+
+        # Standardize model
+        self.model.fuse = lambda verbose=True: self.model
+        self.model.stride = torch.tensor([32])
+        self.model.names = dict(enumerate(self.model._class_names))
+        self.model.is_fused = lambda: False  # for info()
+        self.model.yaml = {}  # for info()
+        self.model.pt_path = model  # for export()
+        self.model.task = 'detect'  # for export()
+        self.info()
 
     @smart_inference_mode()
     def _load(self, weights: str):
-        self.model, self.ckpt = attempt_load_one_weight(weights)
-        self.model.args = DEFAULT_CFG_DICT  # attach args to model
-        self.task = self.model.args['task']
-
-    @smart_inference_mode()
-    def load(self, weights='yolov8n.pt'):
-        """
-        Transfers parameters with matching names and shapes from 'weights' to model.
-        """
-        if isinstance(weights, (str, Path)):
-            weights, self.ckpt = attempt_load_one_weight(weights)
-        self.model.load(weights)
-        return self
+        self.model = torch.load(weights)
 
     @smart_inference_mode()
     def predict(self, source=None, stream=False, **kwargs):
@@ -78,37 +73,15 @@ class RTDETR:
         overrides = dict(conf=0.25, task='detect', mode='predict')
         overrides.update(kwargs)  # prefer kwargs
         if not self.predictor:
-            self.predictor = RTDETRPredictor(overrides=overrides)
+            self.predictor = NASPredictor(overrides=overrides)
             self.predictor.setup_model(model=self.model)
         else:  # only update args if predictor is already setup
             self.predictor.args = get_cfg(self.predictor.args, overrides)
         return self.predictor(source, stream=stream)
 
     def train(self, **kwargs):
-        """
-        Trains the model on a given dataset.
-
-        Args:
-            **kwargs (Any): Any number of arguments representing the training configuration.
-        """
-        overrides = dict(task='detect', mode='train')
-        overrides.update(kwargs)
-        overrides['deterministic'] = False
-        if not overrides.get('data'):
-            raise AttributeError("Dataset required but missing, i.e. pass 'data=coco128.yaml'")
-        if overrides.get('resume'):
-            overrides['resume'] = self.ckpt_path
-        self.task = overrides.get('task') or self.task
-        self.trainer = RTDETRTrainer(overrides=overrides)
-        if not overrides.get('resume'):  # manually set model only if not resuming
-            self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
-            self.model = self.trainer.model
-        self.trainer.train()
-        # Update model and cfg after training
-        if RANK in (-1, 0):
-            self.model, _ = attempt_load_one_weight(str(self.trainer.best))
-            self.overrides = self.model.args
-            self.metrics = getattr(self.trainer.validator, 'metrics', None)  # TODO: no metrics returned by DDP
+        """Function trains models but raises an error as NAS models do not support training."""
+        raise NotImplementedError("NAS models don't support training")
 
     def val(self, **kwargs):
         """Run validation given dataset."""
@@ -116,14 +89,10 @@ class RTDETR:
         overrides.update(kwargs)  # prefer kwargs
         args = get_cfg(cfg=DEFAULT_CFG, overrides=overrides)
         args.imgsz = check_imgsz(args.imgsz, max_dim=1)
-        validator = RTDETRValidator(args=args)
+        validator = NASValidator(args=args)
         validator(model=self.model)
         self.metrics = validator.metrics
         return validator.metrics
-
-    def info(self, verbose=True):
-        """Get model info"""
-        return model_info(self.model, verbose=verbose)
 
     @smart_inference_mode()
     def export(self, **kwargs):
@@ -143,6 +112,16 @@ class RTDETR:
         if args.batch == DEFAULT_CFG.batch:
             args.batch = 1  # default to 1 if not modified
         return Exporter(overrides=args)(model=self.model)
+
+    def info(self, detailed=False, verbose=True):
+        """
+        Logs model info.
+
+        Args:
+            detailed (bool): Show detailed information about model.
+            verbose (bool): Controls verbosity.
+        """
+        return model_info(self.model, detailed=detailed, verbose=verbose, imgsz=640)
 
     def __call__(self, source=None, stream=False, **kwargs):
         """Calls the 'predict' function with given arguments to perform object detection."""

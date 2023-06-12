@@ -10,7 +10,7 @@ from lancedb.embeddings import with_embeddings
 from sklearn.decomposition import PCA
 from tqdm import tqdm
 
-from collections import defaultdict
+
 from ultralytics import YOLO
 from ultralytics.yolo.data.utils import IMG_FORMATS, check_cls_dataset, check_det_dataset
 from ultralytics.yolo.utils import LOGGER, ops
@@ -164,6 +164,7 @@ class DatasetUtil:
             ax.axis('off')
         # Display the grid of images
         plt.show()
+    
     
     def get_similarity_index(self, sim_thres=0.9, top_k=0.01):
         """

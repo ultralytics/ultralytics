@@ -140,7 +140,7 @@ def get_cdn_group(batch,
         training (bool): If it's training or not.
 
     Returns:
-        
+
     """
     if (not training) or num_dn <= 0:
         return None, None, None, None

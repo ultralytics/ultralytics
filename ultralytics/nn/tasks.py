@@ -429,8 +429,7 @@ class RTDETRDetectionModel(DetectionModel):
             'cls': batch['cls'].to(img.device, dtype=torch.long).view(-1),
             'bboxes': batch['bboxes'].to(device=img.device),
             'batch_idx': batch_idx.to(img.device, dtype=torch.long).view(-1),
-            'gt_groups': gt_groups
-            }
+            'gt_groups': gt_groups}
 
         preds = self.predict(img, batch=targets) if preds is None else preds
         dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta = preds

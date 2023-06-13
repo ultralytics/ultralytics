@@ -236,8 +236,9 @@ class DETRLoss(nn.Module):
                                     match_indices=match_indices)
 
         if self.aux_loss:
-            total_loss.update(self._get_loss_aux(pred_bboxes[:-1], pred_scores[:-1], gt_bboxes, 
-                                                 gt_cls, gt_groups, match_indices, postfix))
+            total_loss.update(
+                self._get_loss_aux(pred_bboxes[:-1], pred_scores[:-1], gt_bboxes, gt_cls, gt_groups, match_indices,
+                                   postfix))
 
         return total_loss
 
@@ -274,7 +275,7 @@ class RTDETRDetectionLoss(DETRLoss):
 
         Returns:
             dn_match_indices (List(tuple)): Matched indices.
-            
+
         """
         dn_match_indices = []
         idx_groups = torch.as_tensor([0, *gt_groups[:-1]]).cumsum_(0)

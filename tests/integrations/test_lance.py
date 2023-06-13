@@ -42,7 +42,7 @@ def test_operations():
     ds.reset()
     ds.log_status()
     ds.remove_imgs([0, 1])
-    ds.remove_imgs([0, 1])
+    ds.remove_imgs([0])
 
     ds.persist()
 

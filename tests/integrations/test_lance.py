@@ -45,4 +45,5 @@ def test_operations():
     ds.remove_imgs([0])
 
     ds.persist()
+    assert len(ds.table.to_arrow()) == 1, "the length of the embeddings table should be 1"
 

@@ -12,8 +12,8 @@ from sklearn.decomposition import PCA
 from tqdm import tqdm
 
 from ultralytics import YOLO
-from ultralytics.yolo.data.utils import IMG_FORMATS, check_cls_dataset, check_det_dataset
-from ultralytics.yolo.utils import LOGGER, ops
+from ultralytics.yolo.data.utils import IMG_FORMATS, check_det_dataset
+from ultralytics.yolo.utils import LOGGER, ops, colorstr
 from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 from ultralytics.yolo.v8.detect.predict import DetectionPredictor
@@ -117,9 +117,9 @@ class DatasetUtil:
             orig_imgs.extend(files)
 
         db = self._connect()
-        if not force and self.data in db.table_names():
-            LOGGER.info('Embedding space already exists. Attempting to reuse it. Use force=True to overwrite.')
-            self.table = db.open_table(self.data)
+        if not force and self.table_name in db.table_names():
+            LOGGER.info('LanceDB embedding space already exists. Attempting to reuse it. Use force=True to overwrite.')
+            self.table = self._open_table(self.table_name)
             if len(self.table.to_arrow()) == len(orig_imgs):
                 return
             else:
@@ -128,7 +128,8 @@ class DatasetUtil:
         idx = [i for i in range(len(orig_imgs))]  # for easier hashing #TODO: remove. not needed anymore
         df = pa.table([orig_imgs, idx], names=['path', 'id']).to_pandas()
         pa_table = with_embeddings(self._embedding_func, df, 'path')
-        self.table = db.create_table(self.table_name, data=pa_table, mode='overwrite')
+        self.table = self._create_table(self.table_name, data=pa_table, mode='overwrite')
+        LOGGER.info(f'{colorstr("LanceDB:")} Embedding space built successfully.')
 
     def project_embeddings(self, n_components=2):
         if self.table is None:
@@ -300,13 +301,13 @@ class DatasetUtil:
 
     def log_status(self):
         # TODO: Pretty print log status
-        LOGGER.info('|-----------------------------------------------|')
+        LOGGER.info('\n|-----------------------------------------------|')
         LOGGER.info(f'\t Number of images: {len(self.table.to_arrow())}')
         LOGGER.info(f'\t Number of removed images: {self.removed_img_count}')
         LOGGER.info('|------------------------------------------------|')
 
     def _log_training_cmd(self, data_path):
-        LOGGER.info('New dataset created successfully! Run the following command to train a model:')
+        LOGGER.info(f'{colorstr("LanceDB: ") }New dataset created successfully! Run the following command to train a model:')
         LOGGER.info(f'yolo train data={data_path} epochs=10')
 
     def _connect(self):
@@ -328,7 +329,7 @@ class DatasetUtil:
     
     def _copy_table_to_project(self, table_path):
         if not table_path.endswith(".lance"):
-            raise ValueError("Table must be a .lance file")
+            raise ValueError(f"{colorstr('LanceDB: ')} Table must be a .lance file")
 
         LOGGER.info(f"Copying table from {table_path}")
         path = Path(table_path).parent
@@ -340,8 +341,6 @@ class DatasetUtil:
     def _embedding_func(self, imgs):
         embeddings = []
         for img in tqdm(imgs):
-            if self.verbose:
-                LOGGER.info(img)
             embeddings.append(self.predictor.embed(img, verbose=self.verbose).squeeze().cpu().numpy())
         return embeddings
 
@@ -359,19 +358,11 @@ class DatasetUtil:
         # TODO: create index
         pass
 
-
-'''
-project = "runs/test/temp/"
-ds = DatasetUtil("coco8.yaml", project=project)
-ds.build_embeddings()
-table = project + ds.table_name + ".lance"
-ds2 = DatasetUtil(table=table)
-
 ds = DatasetUtil('coco128.yaml')
 ds.build_embeddings('yolov8n.pt')
 
-ds.plot_similar_imgs(4, 10)
-ds.plot_similirity_index(threshold=0.9, top_k=10)
+#ds.plot_similar_imgs(4, 10)
+#ds.plot_similirity_index()
 sim = ds.get_similarity_index()
 paths, ids = ds.get_similar_imgs(3, 10)
 ds.remove_imgs(ids[0])
@@ -379,14 +370,3 @@ ds.reset()
 ds.log_status()
 ds.remove_imgs([0, 1])
 ds.remove_imgs([0])
-
-ds.persist()
-'''
-# Construct a dataset from a table
-'''
-ds = DatasetUtil(table="../datasets/VOC/VOC.yaml.lance", model="yolov8n.pt", data="VOC.yaml")
-#ds.plot_similirity_index()
-#ds.plot_similar_imgs(50, 10)
-ds.remove_imgs([i for i in range(100)])
-ds.persist()
-'''

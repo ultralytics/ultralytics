@@ -20,12 +20,12 @@ class DETRLoss(nn.Module):
         """
         Args:
             nc (int): The number of classes.
-            matcher (HungarianMatcher): It computes an assignment between the targets
-                and the predictions of the network.
             loss_gain (dict): The coefficient of loss.
             aux_loss (bool): If 'aux_loss = True', loss at each decoder layer are to be used.
             use_focal_loss (bool): Use focal loss or not.
             use_vfl (bool): Use VarifocalLoss or not.
+            use_uni_match (bool): Whether to use a fixed layer to assign labels for auxiliary branch.
+            uni_match_ind (int): The fixed indices of a layer.
         """
         super().__init__()
 
@@ -120,6 +120,7 @@ class DETRLoss(nn.Module):
                       postfix='',
                       masks=None,
                       gt_mask=None):
+        """Get auxiliary losses"""
         # NOTE: loss class, bbox, giou, mask, dice
         loss = torch.zeros(5 if masks is not None else 3, device=pred_bboxes.device)
         if match_indices is None and self.use_uni_match:
@@ -183,6 +184,7 @@ class DETRLoss(nn.Module):
                   gt_mask=None,
                   postfix='',
                   match_indices=None):
+        """Get losses"""
         if match_indices is None:
             match_indices = self.matcher(pred_bboxes,
                                          pred_scores,
@@ -213,13 +215,13 @@ class DETRLoss(nn.Module):
     def forward(self, pred_bboxes, pred_scores, batch, postfix='', **kwargs):
         """
         Args:
-            pred_bboxes (Tensor): [l, b, query, 4]
-            pred_scores (Tensor): [l, b, query, num_classes]
-            gt_bboxes (List(Tensor)): list[[n, 4]]
-            gt_cls (List(Tensor)): list[[n, 1]]
-            masks (Tensor, optional): [l, b, query, h, w]
-            gt_mask (List(Tensor), optional): list[[n, H, W]]
-            postfix (str): postfix of loss name
+            pred_bboxes (torch.Tensor): [l, b, query, 4]
+            pred_scores (torch.Tensor): [l, b, query, num_classes]
+            batch (dict): A dict includes:
+                gt_cls (torch.Tensor) with shape [num_gts, ],
+                gt_bboxes (torch.Tensor): [num_gts, 4],
+                gt_groups (List(int)): a list of batch size length includes the number of gts of each image.
+            postfix (str): postfix of loss name.
         """
         self.device = pred_bboxes.device
         match_indices = kwargs.get('match_indices', None)
@@ -234,9 +236,8 @@ class DETRLoss(nn.Module):
                                     match_indices=match_indices)
 
         if self.aux_loss:
-            total_loss.update(
-                self._get_loss_aux(pred_bboxes[:-1], pred_scores[:-1], gt_bboxes, gt_cls, gt_groups, match_indices,
-                                   postfix))
+            total_loss.update(self._get_loss_aux(pred_bboxes[:-1], pred_scores[:-1], gt_bboxes, 
+                                                 gt_cls, gt_groups, match_indices, postfix))
 
         return total_loss
 
@@ -244,8 +245,8 @@ class DETRLoss(nn.Module):
 class RTDETRDetectionLoss(DETRLoss):
 
     def forward(self, preds, batch, dn_bboxes=None, dn_scores=None, dn_meta=None):
-        boxes, logits = preds
-        total_loss = super().forward(boxes, logits, batch)
+        pred_bboxes, pred_scores = preds
+        total_loss = super().forward(pred_bboxes, pred_scores, batch)
 
         if dn_meta is not None:
             dn_pos_idx, dn_num_group = dn_meta['dn_pos_idx'], dn_meta['dn_num_group']
@@ -264,15 +265,25 @@ class RTDETRDetectionLoss(DETRLoss):
 
     @staticmethod
     def get_dn_match_indices(dn_pos_idx, dn_num_group, gt_groups):
+        """Get the match indices for denoising.
+
+        Args:
+            dn_pos_idx (List[torch.Tensor]): A list includes postive indices of denoising.
+            dn_num_group (int): The number of groups of denoising.
+            gt_groups (List(int)): a list of batch size length includes the number of gts of each image.
+
+        Returns:
+            dn_match_indices (List(tuple)): Matched indices.
+            
+        """
         dn_match_indices = []
         idx_groups = torch.as_tensor([0, *gt_groups[:-1]]).cumsum_(0)
         for i, num_gt in enumerate(gt_groups):
             if num_gt > 0:
                 gt_idx = torch.arange(end=num_gt, dtype=torch.int32) + idx_groups[i]
                 gt_idx = gt_idx.repeat(dn_num_group)
-                assert len(dn_pos_idx[i]) == len(gt_idx), 'Expected the sa'
-                f'me length, but got {len(dn_pos_idx[i])} and '
-                f'{len(gt_idx)} respectively.'
+                assert len(dn_pos_idx[i]) == len(gt_idx), 'Expected the same length, '
+                f'but got {len(dn_pos_idx[i])} and {len(gt_idx)} respectively.'
                 dn_match_indices.append((dn_pos_idx[i], gt_idx))
             else:
                 dn_match_indices.append((torch.zeros([0], dtype=torch.int32), torch.zeros([0], dtype=torch.int32)))

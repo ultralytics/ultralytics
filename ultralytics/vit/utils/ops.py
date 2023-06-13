@@ -26,13 +26,14 @@ class HungarianMatcher(nn.Module):
         self.alpha = alpha
         self.gamma = gamma
 
-    def forward(self, bboxes, scores, gt_bboxes, gt_cls, gt_groups, masks=None, gt_mask=None):
+    def forward(self, pred_bboxes, pred_scores, gt_bboxes, gt_cls, gt_groups, masks=None, gt_mask=None):
         """
         Args:
-            bboxes (Tensor): [b, query, 4]
-            scores (Tensor): [b, query, num_classes]
-            gt_bbox (List(Tensor)): list[[n, 4]]
-            gt_cls (List(Tensor)): list[[n, 1]]
+            pred_bboxes (Tensor): [b, query, 4]
+            pred_scores (Tensor): [b, query, num_classes]
+            gt_cls (torch.Tensor) with shape [num_gts, ]
+            gt_bboxes (torch.Tensor): [num_gts, 4]
+            gt_groups (List(int)): a list of batch size length includes the number of gts of each image.
             masks (Tensor|None): [b, query, h, w]
             gt_mask (List(Tensor)): list[[n, H, W]]
 
@@ -43,17 +44,17 @@ class HungarianMatcher(nn.Module):
             For each batch element, it holds:
                 len(index_i) = len(index_j) = min(num_queries, num_target_boxes)
         """
-        bs, nq, nc = scores.shape
+        bs, nq, nc = pred_scores.shape
 
         if sum(gt_groups) == 0:
             return [(torch.tensor([], dtype=torch.int32), torch.tensor([], dtype=torch.int32)) for _ in range(bs)]
 
         # We flatten to compute the cost matrices in a batch
         # [batch_size * num_queries, num_classes]
-        scores = scores.detach().view(-1, nc)
-        pred_scores = F.sigmoid(scores) if self.use_fl else F.softmax(scores, dim=-1)
+        pred_scores = pred_scores.detach().view(-1, nc)
+        pred_scores = F.sigmoid(pred_scores) if self.use_fl else F.softmax(pred_scores, dim=-1)
         # [batch_size * num_queries, 4]
-        pred_bboxes = bboxes.detach().view(-1, 4)
+        pred_bboxes = pred_bboxes.detach().view(-1, 4)
 
         # Compute the classification cost
         pred_scores = pred_scores[:, gt_cls]
@@ -115,7 +116,7 @@ class HungarianMatcher(nn.Module):
         return C
 
 
-def get_cdn_group(targets,
+def get_cdn_group(batch,
                   num_classes,
                   num_queries,
                   class_embed,
@@ -123,10 +124,27 @@ def get_cdn_group(targets,
                   cls_noise_ratio=0.5,
                   box_noise_scale=1.0,
                   training=False):
-    """get contrastive denoising training group"""
+    """Get contrastive denoising training group
+
+    Args:
+        batch (dict): A dict includes:
+            gt_cls (torch.Tensor) with shape [num_gts, ],
+            gt_bboxes (torch.Tensor): [num_gts, 4],
+            gt_groups (List(int)): a list of batch size length includes the number of gts of each image.
+        num_classes (int): Number of classes.
+        num_queries (int): Number of queries.
+        class_embed (torch.Tensor): Embedding weights to map cls to embedding space.
+        num_dn (int): Number of denoising.
+        cls_noise_ratio (float): Noise ratio for class.
+        box_noise_scale (float): Noise scale for bbox.
+        training (bool): If it's training or not.
+
+    Returns:
+        
+    """
     if (not training) or num_dn <= 0:
         return None, None, None, None
-    gt_groups = targets['gt_groups']
+    gt_groups = batch['gt_groups']
     total_num = sum(gt_groups)
     max_nums = max(gt_groups)
     if max_nums == 0:
@@ -136,9 +154,9 @@ def get_cdn_group(targets,
     num_group = 1 if num_group == 0 else num_group
     # pad gt to max_num of a batch
     bs = len(gt_groups)
-    gt_cls = targets['cls']  # (bs*num, )
-    gt_bbox = targets['bboxes']  # bs*num, 4
-    b_idx = targets['batch_idx']
+    gt_cls = batch['cls']  # (bs*num, )
+    gt_bbox = batch['bboxes']  # bs*num, 4
+    b_idx = batch['batch_idx']
 
     # each group has positive and negative queries.
     dn_cls = gt_cls.repeat(2 * num_group)  # (2*num_group*bs*num, )
@@ -146,7 +164,7 @@ def get_cdn_group(targets,
     dn_b_idx = b_idx.repeat(2 * num_group).view(-1)  # (2*num_group*bs*num, )
 
     # positive and negative mask
-    # (bs*num*num_group, ), the second part as neg_idx sample
+    # (bs*num*num_group, ), the second total_num*num_group part as negative samples
     neg_idx = torch.arange(total_num * num_group, dtype=torch.long, device=gt_bbox.device) + num_group * total_num
 
     if cls_noise_ratio > 0:
@@ -178,10 +196,10 @@ def get_cdn_group(targets,
     padding_cls = torch.zeros(bs, num_dn, dn_cls_embed.shape[-1], device=gt_cls.device)
     padding_bbox = torch.zeros(bs, num_dn, 4, device=gt_bbox.device)
 
-    map_indices = torch.cat([torch.tensor(range(num)) for num in gt_groups])
-    pos_idx = torch.stack([map_indices + max_nums * i for i in range(num_group)], dim=0).long()
+    map_indices = torch.cat([torch.tensor(range(num), dtype=torch.long) for num in gt_groups])
+    pos_idx = torch.stack([map_indices + max_nums * i for i in range(num_group)], dim=0)
 
-    map_indices = torch.cat([map_indices + max_nums * i for i in range(2 * num_group)]).long()
+    map_indices = torch.cat([map_indices + max_nums * i for i in range(2 * num_group)])
     padding_cls[(dn_b_idx, map_indices)] = dn_cls_embed
     padding_bbox[(dn_b_idx, map_indices)] = dn_bbox
 

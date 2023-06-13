@@ -77,8 +77,10 @@ class DatasetUtil:
     def __init__(self, data=None, table=None, model="yolov8n.pt", project="runs/dataset") -> None:
         """
         Args:
-            dataset (str): path to dataset
+            data (str, optional): path to dataset file
+            table (str, optional): path to LanceDB table to load embeddings Table from.
             model (str, optional): path to model. Defaults to None.
+            project (str, optional): path to project. Defaults to "runs/dataset".
         """
         if data is None and table is None:
             raise ValueError('Either data or table must be provided')
@@ -104,6 +106,13 @@ class DatasetUtil:
     
 
     def build_embeddings(self, verbose=False, force=False):
+        """
+        Builds the embedding space for the dataset in LanceDB table format
+
+        Args:
+            verbose (bool, optional): verbose. Defaults to False.
+            force (bool, optional): force rebuild. Defaults to False.
+        """
         trainset = self.dataset_info['train']
         trainset = trainset if isinstance(trainset, list) else [trainset]
         self.trainset = trainset
@@ -131,7 +140,13 @@ class DatasetUtil:
         self.table = self._create_table(self.table_name, data=pa_table, mode='overwrite')
         LOGGER.info(f'{colorstr("LanceDB:")} Embedding space built successfully.')
 
-    def project_embeddings(self, n_components=2):
+    def plot_embeddings(self, n_components=2):
+        """
+        Projects the embedding space to 2D using PCA
+
+        Args:
+            n_components (int, optional): number of components. Defaults to 2.
+        """
         if self.table is None:
             LOGGER.error('No embedding space found. Please build the embedding space first.')
             return None
@@ -142,6 +157,16 @@ class DatasetUtil:
         return embeddings_reduced
 
     def get_similar_imgs(self, img, n=10):
+        """
+        Returns the n most similar images to the given image
+
+        Args:
+            img (int, str, Path): index of image in the table, or path to image
+            n (int, optional): number of similar images to return. Defaults to 10.
+
+        Returns:
+            tuple: (list of paths, list of ids)
+        """
         if isinstance(img, int):
             img_path = str(self.table.to_arrow()["path"][img])
         elif isinstance(img, (str, Path)):
@@ -154,7 +179,14 @@ class DatasetUtil:
         sim = self.table.search(embeddings).limit(n).to_df()
         return sim['path'].to_list(), sim['id'].to_list()
 
-    def plot_similar_imgs(self, img=None, n=10):
+    def plot_similar_imgs(self, img, n=10):
+        """
+        Plots the n most similar images to the given image
+
+        Args:
+            img (int, str, Path): index of image in the table, or path to image.
+            n (int, optional): number of similar images to return. Defaults to 10.
+        """
         img_paths, _ = self.get_similar_imgs(img, n)
         images = [cv2.imread(image_path) for image_path in img_paths]
 
@@ -178,6 +210,9 @@ class DatasetUtil:
         Args:
             sim_thres (float, optional): Similarity threshold to set the minimum similarity. Defaults to 0.9.
             top_k (float, optional): Top k fraction of the similar embeddings to apply the threshold on. Defaults to 0.1.
+
+        Returns:
+            np.array: Similarity index
         """
         if self.table is None:
             LOGGER.error('No embedding space found. Please build the embedding space first.')
@@ -207,6 +242,14 @@ class DatasetUtil:
         return index
 
     def plot_similirity_index(self, threshold=0.9, top_k=0.01, sorted=False):
+        """
+        Plots the similarity index
+
+        Args:
+            threshold (float, optional): Similarity threshold to set the minimum similarity. Defaults to 0.9.
+            top_k (float, optional): Top k fraction of the similar embeddings to apply the threshold on. Defaults to 0.1.
+            sorted (bool, optional): Whether to sort the index or not. Defaults to False.
+        """
         index = self.get_similarity_index(threshold, top_k)
         if sorted:
             index = np.sort(index)
@@ -243,7 +286,7 @@ class DatasetUtil:
 
     def reset(self):
         """
-        Resets the dataset to the original state.
+        Resets the dataset table to its original state or to the last persisted state.
         """
         if self.table is None:
             LOGGER.info('No changes made to the dataset.')
@@ -259,7 +302,10 @@ class DatasetUtil:
 
     def persist(self, name=None):
         """
-        Persists the changes made to the dataset.
+        Persists the changes made to the dataset. Avaiable only if data is provided in the constructor.
+
+        Args:
+            name (str, optional): Name of the new dataset. Defaults to `data_updated.yaml`.
         """
         db = self._connect()
         if self.table is None or self.temp_table_name not in db.table_names():
@@ -357,16 +403,3 @@ class DatasetUtil:
     def create_index(self):
         # TODO: create index
         pass
-
-ds = DatasetUtil('coco128.yaml')
-ds.build_embeddings('yolov8n.pt')
-
-#ds.plot_similar_imgs(4, 10)
-#ds.plot_similirity_index()
-sim = ds.get_similarity_index()
-paths, ids = ds.get_similar_imgs(3, 10)
-ds.remove_imgs(ids[0])
-ds.reset()
-ds.log_status()
-ds.remove_imgs([0, 1])
-ds.remove_imgs([0])

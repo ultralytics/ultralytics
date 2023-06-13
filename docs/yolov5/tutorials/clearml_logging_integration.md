@@ -240,3 +240,7 @@ ClearML comes with autoscalers too! This tool will automatically spin up new rem
 Check out the autoscalers getting started video below.
 
 [![Watch the video](https://img.youtube.com/vi/j4XVMAaUt3E/0.jpg)](https://youtu.be/j4XVMAaUt3E)
+
+### Disable Default ClearML Logging
+
+You can create your own clearml custom logging system by overriding the callbacks function and disabling the default ClearML logging. This will ensure that your custom logging does not mix with the default ClearML logging. To disable the default ClearML logging, set the environment variable `ULTRALYTICS_CLEARML_DISABLED=true`.

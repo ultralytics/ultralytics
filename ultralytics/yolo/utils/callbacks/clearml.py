@@ -1,5 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import os
 import re
 
 import matplotlib.image as mpimg
@@ -19,6 +20,9 @@ try:
 except (ImportError, AssertionError):
     clearml = None
 
+if os.getenv('ULTRALYTICS_CLEARML_DISABLED') == 'true':
+    LOGGER.info('ClearML disabled by ULTRALYTICS_CLEARML_DISABLED environment variable.')
+    clearml = None
 
 def _log_debug_samples(files, title='Debug Samples') -> None:
     """
@@ -87,6 +91,10 @@ def on_pretrain_routine_start(trainer):
 def on_train_epoch_end(trainer):
     task = Task.current_task()
 
+    LOGGER.info(
+        'ClearML is detected and auto logging is enabled (can be disabled with `ULTRALYTICS_CLEARML_DISABLED=true`).'
+    )
+    
     if task:
         """Logs debug samples for the first epoch of YOLO training."""
         if trainer.epoch == 1:

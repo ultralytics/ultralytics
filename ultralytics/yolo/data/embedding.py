@@ -8,7 +8,7 @@ import pyarrow as pa
 import torch.nn.functional as F
 import yaml
 from lancedb.embeddings import with_embeddings
-from sklearn.decomposition import PCA
+#from sklearn.decomposition import PCA
 from tqdm import tqdm
 
 from ultralytics import YOLO
@@ -138,7 +138,7 @@ class Explorer:
         pa_table = with_embeddings(self._embedding_func, df, 'path')
         self.table = self._create_table(self.table_name, data=pa_table, mode='overwrite')
         LOGGER.info(f'{colorstr("LanceDB:")} Embedding space built successfully.')
-
+    '''
     def plot_embeddings(self, n_components=2):
         """
         Projects the embedding space to 2D using PCA
@@ -154,6 +154,7 @@ class Explorer:
         embeddings_reduced = pca.fit_transform(embeddings)
 
         return embeddings_reduced
+    '''
 
     def get_similar_imgs(self, img, n=10):
         """

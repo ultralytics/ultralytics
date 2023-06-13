@@ -85,15 +85,16 @@ def on_pretrain_routine_start(trainer):
             LOGGER.warning('ClearML Initialized a new task. If you want to run remotely, '
                            'please add clearml-init and connect your arguments before initializing YOLO.')
         task.connect(vars(trainer.args), name='General')
+        LOGGER.info(
+            'ClearML is detected and auto logging is enabled (can be disabled with `ULTRALYTICS_CLEARML_DISABLED=true`).'
+        )
+    
     except Exception as e:
         LOGGER.warning(f'WARNING ⚠️ ClearML installed but not initialized correctly, not logging this run. {e}')
 
 
 def on_train_epoch_end(trainer):
     task = Task.current_task()
-
-    LOGGER.info(
-        'ClearML is detected and auto logging is enabled (can be disabled with `ULTRALYTICS_CLEARML_DISABLED=true`).')
 
     if task:
         """Logs debug samples for the first epoch of YOLO training."""

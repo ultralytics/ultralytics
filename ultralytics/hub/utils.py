@@ -172,6 +172,7 @@ class Events:
             'session_id': round(random.random() * 1E15),
             'engagement_time_msec': 1000}
         self.enabled = \
+            False and \
             SETTINGS['sync'] and \
             RANK in (-1, 0) and \
             not TESTS_RUNNING and \

@@ -36,7 +36,7 @@ NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLOv5 multiproces
 AUTOINSTALL = str(os.getenv('YOLO_AUTOINSTALL', True)).lower() == 'true'  # global auto-install mode
 VERBOSE = str(os.getenv('YOLO_VERBOSE', True)).lower() == 'true'  # global verbose mode
 TQDM_BAR_FORMAT = '{l_bar}{bar:10}{r_bar}'  # tqdm bar format
-LOGGING_NAME = 'ultralytics'
+LOGGING_NAME = 'operation_logger'
 MACOS, LINUX, WINDOWS = (platform.system() == x for x in ('Darwin', 'Linux', 'Windows'))  # environment booleans
 HELP_MSG = \
     """
@@ -380,17 +380,17 @@ def is_online() -> bool:
     Returns:
         bool: True if connection is successful, False otherwise.
     """
-    import socket
-
-    for host in '1.1.1.1', '8.8.8.8', '223.5.5.5':  # Cloudflare, Google, AliDNS:
-        try:
-            test_connection = socket.create_connection(address=(host, 53), timeout=2)
-        except (socket.timeout, socket.gaierror, OSError):
-            continue
-        else:
-            # If the connection was successful, close it to avoid a ResourceWarning
-            test_connection.close()
-            return True
+    # import socket
+    #
+    # for host in '1.1.1.1', '8.8.8.8', '223.5.5.5':  # Cloudflare, Google, AliDNS:
+    #     try:
+    #         test_connection = socket.create_connection(address=(host, 53), timeout=2)
+    #     except (socket.timeout, socket.gaierror, OSError):
+    #         continue
+    #     else:
+    #         # If the connection was successful, close it to avoid a ResourceWarning
+    #         test_connection.close()
+    #         return True
     return False
 
 

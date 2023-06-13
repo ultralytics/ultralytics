@@ -19,21 +19,16 @@ def get_version():
 
 
 setup(
-    name='ultralytics',  # name of pypi package
+    name='syml_ultralytics',  # name of pypi package
     version=get_version(),  # version of pypi package
     python_requires='>=3.7',
-    license='AGPL-3.0',
-    description=('Ultralytics YOLOv8 for SOTA object detection, multi-object tracking, instance segmentation, '
+    license='GPL-3.0',
+    description=('SyML Ultralytics YOLOv8 for SOTA object detection, multi-object tracking, instance segmentation, '
                  'pose estimation and image classification.'),
     long_description=README,
     long_description_content_type='text/markdown',
-    url='https://github.com/ultralytics/ultralytics',
-    project_urls={
-        'Bug Reports': 'https://github.com/ultralytics/ultralytics/issues',
-        'Funding': 'https://ultralytics.com',
-        'Source': 'https://github.com/ultralytics/ultralytics'},
-    author='Ultralytics',
-    author_email='hello@ultralytics.com',
+    url='https://github.com/mario-dg/syml_ultralytics',
+    author='syml_ultralytics',
     packages=find_packages(),  # required
     include_package_data=True,
     install_requires=REQUIREMENTS,

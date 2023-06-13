@@ -34,6 +34,7 @@ from ultralytics import RTDETR
 
 model = RTDETR("rtdetr-l.pt")
 model.info()  # display model information
+model.train(data="coco128.yaml")   # train
 model.predict("path/to/image.jpg")  # predict
 ```
 
@@ -50,7 +51,7 @@ model.predict("path/to/image.jpg")  # predict
 |------------|--------------------|
 | Inference  | :heavy_check_mark: |
 | Validation | :heavy_check_mark: |
-| Training   | :x: (Coming soon)  |
+| Training   | :heavy_check_mark: |
 
 # Citations and Acknowledgements
 

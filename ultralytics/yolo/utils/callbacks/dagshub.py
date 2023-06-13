@@ -70,9 +70,9 @@ def on_val_end(validator):
         repo.upload_files([
             DataSet.get_file(file, f"sample/{file.split('/')[-1]}")
             for file in next(validator.dataloader.iterator)['im_file']],
-            commit_message='added sample batch',
-            versioning='dvc',
-            force=True)
+                          commit_message='added sample batch',
+                          versioning='dvc',
+                          force=True)
 
 
 def on_model_save(trainer):

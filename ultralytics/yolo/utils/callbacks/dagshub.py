@@ -28,10 +28,10 @@ except (ImportError, AssertionError):
 
 def splitter(repo):
     # util function to split stdio
-    splitted = repo.split('/')
-    if len(splitted) != 2:
+    split = repo.split('/')
+    if len(split) != 2:
         raise ValueError(f'Invalid input, should be owner_name/repo_name, but got {repo} instead')
-    return splitted[1], splitted[0]
+    return split[1], split[0]
 
 
 def on_pretrain_routine_end(trainer):
@@ -70,9 +70,9 @@ def on_val_end(validator):
         repo.upload_files([
             DataSet.get_file(file, f"sample/{file.split('/')[-1]}")
             for file in next(validator.dataloader.iterator)['im_file']],
-                          commit_message='added sample batch',
-                          versioning='dvc',
-                          force=True)
+            commit_message='added sample batch',
+            versioning='dvc',
+            force=True)
 
 
 def on_model_save(trainer):

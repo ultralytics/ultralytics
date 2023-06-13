@@ -144,7 +144,6 @@ class BaseTrainer:
 
         # Callbacks
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
-
         if RANK in (-1, 0):
             callbacks.add_integration_callbacks(self)
 

@@ -138,6 +138,7 @@ class Explorer:
         pa_table = with_embeddings(self._embedding_func, df, 'path')
         self.table = self._create_table(self.table_name, data=pa_table, mode='overwrite')
         LOGGER.info(f'{colorstr("LanceDB:")} Embedding space built successfully.')
+        
     '''
     def plot_embeddings(self, n_components=2):
         """

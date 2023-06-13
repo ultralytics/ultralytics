@@ -154,7 +154,7 @@ class DatasetUtil:
         # predictor = EmbeddingsPredictor()
         embeddings = self.predictor.embed(img_path).squeeze().cpu().numpy()
         sim = self.table.search(embeddings).limit(n).to_df()
-        return sim['path'], sim['id']
+        return sim['path'].to_list(), sim['id'].to_list()
 
     def plot_similar_imgs(self, img=None, n=10):
         img_paths, _ = self.get_similar_imgs(img, n)
@@ -200,7 +200,7 @@ class DatasetUtil:
         threshold = 1.0 - sim_thres
         embs = np.array(self.table.to_arrow()['vector'].to_pylist())
         index = np.zeros(len(embs))
-        limit = int(len(embs) * top_k)
+        limit = max(int(len(embs) * top_k), 1)
         for _, emb in enumerate(tqdm(embs)):
             df = self.table.search(emb).metric('cosine').limit(limit).to_df().query(f'score <= {threshold}')
             for idx in df['id'][1:]:
@@ -348,7 +348,7 @@ class DatasetUtil:
         # TODO: create index
         pass
 
-
+'''
 #build_table("VOC.yaml")
 #db = lancedb.connect("db/")
 #table = db.open_table("VOC")
@@ -358,19 +358,4 @@ ds = DatasetUtil("coco8.yaml", project=project)
 ds.build_embeddings()
 table = project + ds.table_name + ".lance"
 ds2 = DatasetUtil(table=table)
-"""
-ds = DatasetUtil('coco8.yaml')
-ds.build_embeddings('yolov8n.pt')
-
-#ds.plot_similar_imgs(4, 10)
-#ds.plot_similirity_index()
-sim = ds.get_similarity_index()
-paths, ids = ds.get_similar_imgs(4, 10)
-ds.remove_imgs(ids)
-ds.reset()
-ds.log_status()
-ds.remove_imgs([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-ds.remove_imgs([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-
-ds.persist()
-"""
+'''

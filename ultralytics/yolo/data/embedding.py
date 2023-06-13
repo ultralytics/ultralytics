@@ -77,24 +77,32 @@ class DatasetUtil:
     """
 
     #TODO: Allow starting from an existing table
-    def __init__(self, data, table=None, project=None) -> None:
+    def __init__(self, data=None, table=None, project=None) -> None:
         """
         Args:
             dataset (str): path to dataset
             model (str, optional): path to model. Defaults to None.
         """
-        self.data = data
-        self.dataset_info = None
+        if data is None and table is None:
+            raise ValueError('Either data or table must be provided')
+
+        self.data = data 
+        self.table = None
         self.project = project or 'runs/dataset'
+        self.table_name = data if data is not None else Path(table).stem # Keep the table name when copying
+        self.temp_table_name = self.table_name + '_temp'
+        self.dataset_info = None
         self.predictor = None
         self.trainset = None
         self.orig_imgs = []
         self.removed_imgs = []
-        self.table = table
-        self.temp_table_name = data + '_temp'
         self.verbose = False  # For embedding function
 
-    def build_embeddings(self, model=None, verbose=False, force=False):
+        # copy table to project if table is provided
+        if table:
+            self.table = self._copy_table_to_project(table)
+
+    def build_embeddings(self, model="yolov8n.pt", verbose=False, force=False):
         self.model = YOLO(model)
         self.dataset_info = get_dataset_info(self.data, task=self.model.task)
         trainset = self.dataset_info['train']
@@ -103,8 +111,6 @@ class DatasetUtil:
         self.predictor = EmbeddingsPredictor()
         self.predictor.setup_model(self.model.model)
         self.verbose = verbose
-        if self.table is not None:
-            LOGGER.info('Overwriting the existing embedding space')
 
         self.orig_imgs = []
         for train_split in trainset:
@@ -122,10 +128,10 @@ class DatasetUtil:
             else:
                 LOGGER.info('Table length does not match the number of images in the dataset. Building embeddings...')
 
-        idx = [i for i in range(len(self.orig_imgs))]  # for easier hashing
+        idx = [i for i in range(len(self.orig_imgs))]  # for easier hashing #TODO: remove. not needed anymore
         df = pa.table([self.orig_imgs, idx], names=['path', 'id']).to_pandas()
         pa_table = with_embeddings(self._embedding_func, df, 'path')
-        self.table = db.create_table(self.data, data=pa_table, mode='overwrite')
+        self.table = db.create_table(self.table_name, data=pa_table, mode='overwrite')
 
     def project_embeddings(self, n_components=2):
         if self.table is None:
@@ -283,7 +289,7 @@ class DatasetUtil:
         yaml.dump(new_dataset_info, open(Path(self.project) / name, 'w'))  # update dataset.yaml file
 
         # TODO: not sure if this should be called data_final to prevent overwriting the original data? Creating embs for large datasets is expensive
-        self.table = db.create_table(self.data, data=self.table.to_arrow(), mode='overwrite')
+        self.table = db.create_table(self.table_name, data=self.table.to_arrow(), mode='overwrite')
         db.drop_table(self.temp_table_name)
 
         LOGGER.info('Changes persisted to the dataset.')
@@ -303,6 +309,29 @@ class DatasetUtil:
         db = lancedb.connect(self.project)
 
         return db
+    
+    def _create_table(self, name, data=None, mode='overwrite'):
+        db = lancedb.connect(self.project)
+        table = db.create_table(name, data=data, mode=mode)
+
+        return table
+    
+    def _open_table(self, name):
+        db = lancedb.connect(self.project)
+        table = db.open_table(name)
+
+        return table
+    
+    def _copy_table_to_project(self, table_path):
+        if not table_path.endswith(".lance"):
+            raise ValueError("Table must be a .lance file")
+
+        LOGGER.info(f"Copying table from {table_path}")
+        path = Path(table_path).parent
+        name = Path(table_path).stem # lancedb doesn't need .lance extension
+        db = lancedb.connect(path)
+        table = db.open_table(name)
+        return self._create_table(self.table_name, data=table.to_arrow(), mode='overwrite')
 
     def _embedding_func(self, imgs):
         embeddings = []
@@ -324,9 +353,15 @@ class DatasetUtil:
 #db = lancedb.connect("db/")
 #table = db.open_table("VOC")
 #project_embeddings(table)
-
-ds = DatasetUtil('coco128.yaml')
+project = "runs/test/temp/"
+ds = DatasetUtil("coco8.yaml", project=project)
+ds.build_embeddings()
+table = project + ds.table_name + ".lance"
+ds2 = DatasetUtil(table=table)
+"""
+ds = DatasetUtil('coco8.yaml')
 ds.build_embeddings('yolov8n.pt')
+
 #ds.plot_similar_imgs(4, 10)
 #ds.plot_similirity_index()
 sim = ds.get_similarity_index()
@@ -338,3 +373,4 @@ ds.remove_imgs([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 ds.remove_imgs([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 
 ds.persist()
+"""

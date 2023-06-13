@@ -88,7 +88,7 @@ def on_pretrain_routine_start(trainer):
         LOGGER.info(
             'ClearML is detected and auto logging is enabled (can be disabled with `ULTRALYTICS_CLEARML_DISABLED=true`).'
         )
-    
+
     except Exception as e:
         LOGGER.warning(f'WARNING ⚠️ ClearML installed but not initialized correctly, not logging this run. {e}')
 

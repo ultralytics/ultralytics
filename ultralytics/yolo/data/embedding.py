@@ -68,9 +68,9 @@ def get_dataset_info(data='coco128.yaml', task='detect'):
     return data
 
 
-class DatasetUtil:
+class Explorer:
     """
-    Dataset utils. Supports detection, segmnetation and Pose and YOLO models.
+    YOLO Explorer. Supports detection, segmnetation and Pose and YOLO models.
     """
 
     #TODO: Allow starting from an existing table

@@ -1,4 +1,4 @@
-from ultralytics.yolo.data.embedding import DatasetUtil
+from ultralytics import Explorer
 from ultralytics.yolo.utils.checks import check_requirements
 
 DEPS = ['lancedb']
@@ -9,14 +9,14 @@ check_requirements(DEPS)
 
 
 def test_embeddings_creation():
-    ds = DatasetUtil('coco8.yaml')
+    ds = Explorer('coco8.yaml')
     ds.build_embeddings()
     assert ds.table_name == 'coco8.yaml', 'the table name should be coco8.yaml'
     assert len(ds.table.to_arrow()) == 4, 'the length of the embeddings table should be 8'
 
 
 def test_sim_idx():
-    ds = DatasetUtil('coco8.yaml')
+    ds = Explorer('coco8.yaml')
     ds.build_embeddings()
 
     idx = ds.get_similarity_index(0, 1)  # get all imgs
@@ -25,16 +25,16 @@ def test_sim_idx():
 
 def test_copy_embeddings_from_table():
     project = 'runs/test/temp/'
-    ds = DatasetUtil('coco8.yaml', project=project)
+    ds = Explorer('coco8.yaml', project=project)
     ds.build_embeddings()
 
     table = project + ds.table_name + '.lance'
-    ds2 = DatasetUtil(table=table)
+    ds2 = Explorer(table=table)
     assert ds2.table_name == 'coco8.yaml', 'the table name should be coco8.yaml'
 
 
 def test_operations():
-    ds = DatasetUtil('coco8.yaml')
+    ds = Explorer('coco8.yaml')
     ds.build_embeddings('yolov8n.pt')
 
     #ds.plot_similar_imgs(4, 10)

@@ -31,7 +31,7 @@ jobs:
         shell: bash  # for Windows compatibility
         run: |
           python -m pip install --upgrade pip wheel
-          pip install -e . --extra-index-url https://download.pytorch.org/whl/cpu
+          pip install -e '.[dev]' --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Check environment
         run: |
           echo "RUNNER_OS is ${{ runner.os }}"

@@ -47,7 +47,6 @@ setup(
             'mkdocstrings[python]',
             'mkdocs-redirects',  # for 301 redirects
             'mkdocs-ultralytics-plugin',  # for meta descriptions and images, dates and authors
-            'lancedb',  # For LanceDB integration CI tests
         ],
         'export': ['coremltools>=6.0', 'openvino-dev>=2022.3', 'tensorflowjs'],  # automatically installs tensorflow
     },

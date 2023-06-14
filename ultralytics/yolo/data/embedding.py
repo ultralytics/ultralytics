@@ -8,13 +8,12 @@ import pyarrow as pa
 import torch.nn.functional as F
 import yaml
 from lancedb.embeddings import with_embeddings
-#from sklearn.decomposition import PCA
+from sklearn.decomposition import PCA
 from tqdm import tqdm
 
 from ultralytics import YOLO
 from ultralytics.yolo.data.utils import IMG_FORMATS, check_det_dataset
 from ultralytics.yolo.utils import LOGGER, colorstr, ops
-from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 from ultralytics.yolo.v8.detect.predict import DetectionPredictor
 
@@ -42,7 +41,7 @@ class EmbeddingsPredictor(DetectionPredictor):
 
         self.seen, self.windows, self.batch, profilers = 0, [], None, (ops.Profile(), ops.Profile(), ops.Profile())
         for batch in self.dataset:
-            path, im0s, vid_cap, s = batch
+            path, im0s, _, _ = batch
             if verbose:
                 LOGGER.info(path[0])
             # Preprocess
@@ -57,7 +56,7 @@ class EmbeddingsPredictor(DetectionPredictor):
                 embeddings = self.postprocess(preds, im, im0s)
 
             return embeddings
-            # yeilding seems pointless as this is designed specifically for large datasets,
+            # yeilding seems pointless as this is designed specifically to be used in for loops,
             # batching with embed_func would make things complex
 
 
@@ -87,6 +86,7 @@ class Explorer:
 
         self.data = data
         self.table = None
+        self.model = model
         self.project = project
         self.table_name = data if data is not None else Path(table).stem  # Keep the table name when copying
         self.temp_table_name = self.table_name + '_temp'
@@ -139,8 +139,7 @@ class Explorer:
         self.table = self._create_table(self.table_name, data=pa_table, mode='overwrite')
         LOGGER.info(f'{colorstr("LanceDB:")} Embedding space built successfully.')
 
-    '''
-    def plot_embeddings(self, n_components=2):
+    def plot_embeddings(self):
         """
         Projects the embedding space to 2D using PCA
 
@@ -150,12 +149,11 @@ class Explorer:
         if self.table is None:
             LOGGER.error('No embedding space found. Please build the embedding space first.')
             return None
-        pca = PCA(n_components=n_components)
-        embeddings = np.array(self.table.to_arrow['vector'].to_pylist())
-        embeddings_reduced = pca.fit_transform(embeddings)
-
-        return embeddings_reduced
-    '''
+        pca = PCA(n_components=2)
+        embeddings = np.array(self.table.to_arrow()['vector'].to_pylist())
+        embeddings = pca.fit_transform(embeddings)
+        plt.scatter(embeddings[:, 0], embeddings[:, 1])
+        plt.show()
 
     def get_similar_imgs(self, img, n=10):
         """
@@ -168,6 +166,9 @@ class Explorer:
         Returns:
             tuple: (list of paths, list of ids)
         """
+        if self.table is None:
+            LOGGER.error('No embedding space found. Please build the embedding space first.')
+            return None
         if isinstance(img, int):
             img_path = str(self.table.to_arrow()['path'][img])
         elif isinstance(img, (str, Path)):
@@ -242,7 +243,7 @@ class Explorer:
         self.sim_index = index
         return index
 
-    def plot_similirity_index(self, threshold=0.9, top_k=0.01, sorted=False):
+    def plot_similirity_index(self, sim_thres=0.9, top_k=0.01, sorted=False):
         """
         Plots the similarity index
 
@@ -251,7 +252,7 @@ class Explorer:
             top_k (float, optional): Top k fraction of the similar embeddings to apply the threshold on. Defaults to 0.1.
             sorted (bool, optional): Whether to sort the index or not. Defaults to False.
         """
-        index = self.get_similarity_index(threshold, top_k)
+        index = self.get_similarity_index(sim_thres, top_k)
         if sorted:
             index = np.sort(index)
         plt.bar([i for i in range(len(index))], index)

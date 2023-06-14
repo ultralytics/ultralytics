@@ -269,7 +269,7 @@ class RTDETRDetectionLoss(DETRLoss):
         """Get the match indices for denoising.
 
         Args:
-            dn_pos_idx (List[torch.Tensor]): A list includes postive indices of denoising.
+            dn_pos_idx (List[torch.Tensor]): A list includes positive indices of denoising.
             dn_num_group (int): The number of groups of denoising.
             gt_groups (List(int)): a list of batch size length includes the number of gts of each image.
 

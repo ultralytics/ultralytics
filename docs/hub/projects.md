@@ -1,3 +1,8 @@
+---
+comments: true
+description: Efficiently manage and compare AI models with Ultralytics HUB Projects. Create, share, and edit projects for streamlined model development.
+---
+
 # Ultralytics HUB Projects
 
 Ultralytics HUB projects provide an effective solution for consolidating and managing your models. If you are working with several models that perform similar tasks or have related purposes, Ultralytics HUB projects allow you to group these models together.

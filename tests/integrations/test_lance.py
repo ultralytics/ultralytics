@@ -1,12 +1,6 @@
 from ultralytics import Explorer
 from ultralytics.yolo.utils.checks import check_requirements
 
-DEPS = ['lancedb']
-
-check_requirements(DEPS)
-
-# YOLODatabase tests
-
 
 def test_embeddings_creation():
     ds = Explorer('coco8.yaml')

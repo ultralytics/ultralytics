@@ -72,6 +72,11 @@ description: 'Check functions for YOLO utils: image size, version, font, require
 :::ultralytics.yolo.utils.checks.check_yolo
 <br><br>
 
+# check_amp
+---
+:::ultralytics.yolo.utils.checks.check_amp
+<br><br>
+
 # git_describe
 ---
 :::ultralytics.yolo.utils.checks.git_describe

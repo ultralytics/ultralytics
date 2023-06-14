@@ -40,13 +40,13 @@ Here's a compilation of comprehensive tutorials that will guide you through diff
 * [NVIDIA Jetson platform Deployment](tutorials/running_on_jetson_nano.md) 🌟 NEW: Learn how to deploy your YOLOv5 model on NVIDIA Jetson platform.
 * [Test-Time Augmentation (TTA)](tutorials/test_time_augmentation.md): Explore how to use TTA to improve your model's prediction accuracy.
 * [Model Ensembling](tutorials/model_ensembling.md): Learn the strategy of combining multiple models for improved performance.
-* [Model Pruning/Sparsity](tutorials/model_pruning_and_sparsity.md): Understand the concepts of model pruning and sparsity, and how they contribute to a more efficient model.
+* [Model Pruning/Sparsity](tutorials/model_pruning_and_sparsity.md): Understand pruning and sparsity concepts, and how to create a more efficient model.
 * [Hyperparameter Evolution](tutorials/hyperparameter_evolution.md): Discover the process of automated hyperparameter tuning for better model performance.
 * [Transfer Learning with Frozen Layers](tutorials/transfer_learning_with_frozen_layers.md): Learn how to implement transfer learning by freezing layers in YOLOv5.
-* [Architecture Summary](tutorials/architecture_description.md) 🌟 NEW: Delve into the structural details of the YOLOv5 model.
-* [Roboflow for Datasets, Labeling, and Active Learning](tutorials/roboflow_datasets_integration.md): Understand how to utilize Roboflow for dataset management, labeling, and active learning.
-* [ClearML Logging](tutorials/clearml_logging_integration.md) 🌟 NEW: Learn how to integrate ClearML for efficient logging during your model training.
-* [YOLOv5 with Neural Magic's Deepsparse](tutorials/neural_magic_pruning_quantization.md) 🌟 NEW: Discover how to use Neural Magic's Deepsparse to prune and quantize your YOLOv5 model.
+* [Architecture Summary](tutorials/architecture_description.md) 🌟 Delve into the structural details of the YOLOv5 model.
+* [Roboflow for Datasets](tutorials/roboflow_datasets_integration.md): Understand how to utilize Roboflow for dataset management, labeling, and active learning.
+* [ClearML Logging](tutorials/clearml_logging_integration.md) 🌟 Learn how to integrate ClearML for efficient logging during your model training.
+* [YOLOv5 with Neural Magic's Deepsparse](tutorials/neural_magic_pruning_quantization.md) Discover how to use Neural Magic's Deepsparse to prune and quantize your YOLOv5 model.
 * [Comet Logging](tutorials/comet_logging_integration.md) 🌟 NEW: Explore how to utilize Comet for improved model training logging.
 
 ## Environments

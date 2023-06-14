@@ -291,6 +291,10 @@ nav:
               - results: reference/yolo/engine/results.md
               - trainer: reference/yolo/engine/trainer.md
               - validator: reference/yolo/engine/validator.md
+          - nas:
+              - model: reference/yolo/nas/model.md
+              - predict: reference/yolo/nas/predict.md
+              - val: reference/yolo/nas/val.md
           - utils:
               - autobatch: reference/yolo/utils/autobatch.md
               - benchmarks: reference/yolo/utils/benchmarks.md
@@ -298,6 +302,7 @@ nav:
                   - base: reference/yolo/utils/callbacks/base.md
                   - clearml: reference/yolo/utils/callbacks/clearml.md
                   - comet: reference/yolo/utils/callbacks/comet.md
+                  - dvc: reference/yolo/utils/callbacks/dvc.md
                   - hub: reference/yolo/utils/callbacks/hub.md
                   - mlflow: reference/yolo/utils/callbacks/mlflow.md
                   - neptune: reference/yolo/utils/callbacks/neptune.md

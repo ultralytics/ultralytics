@@ -37,7 +37,7 @@ AUTOINSTALL = str(os.getenv('YOLO_AUTOINSTALL', True)).lower() == 'true'  # glob
 VERBOSE = str(os.getenv('YOLO_VERBOSE', True)).lower() == 'true'  # global verbose mode
 TQDM_BAR_FORMAT = '{l_bar}{bar:10}{r_bar}'  # tqdm bar format
 LOGGING_NAME = 'ultralytics'
-MACOS, LINUX, WINDOWS = (platform.system() == x for x in {'Darwin', 'Linux', 'Windows'})  # environment booleans
+MACOS, LINUX, WINDOWS = (platform.system() == x for x in ('Darwin', 'Linux', 'Windows'))  # environment booleans
 HELP_MSG = \
     """
     Usage examples for running YOLOv8:
@@ -222,6 +222,11 @@ def set_logging(name=LOGGING_NAME, verbose=True):
                 'level': level,
                 'handlers': [name],
                 'propagate': False}}})
+
+
+def emojis(string=''):
+    """Return platform-dependent emoji-safe version of string."""
+    return string.encode().decode('ascii', 'ignore') if WINDOWS else string
 
 
 class EmojiFilter(logging.Filter):
@@ -533,6 +538,7 @@ def get_user_config_dir(sub_dir='Ultralytics'):
     # GCP and AWS lambda fix, only /tmp is writeable
     if not is_dir_writeable(str(path.parent)):
         path = Path('/tmp') / sub_dir
+        LOGGER.warning(f"WARNING ⚠️ user config directory is not writeable, defaulting to '{path}'.")
 
     # Create the subdirectory if it does not exist
     path.mkdir(parents=True, exist_ok=True)
@@ -542,11 +548,6 @@ def get_user_config_dir(sub_dir='Ultralytics'):
 
 USER_CONFIG_DIR = Path(os.getenv('YOLO_CONFIG_DIR', get_user_config_dir()))  # Ultralytics settings dir
 SETTINGS_YAML = USER_CONFIG_DIR / 'settings.yaml'
-
-
-def emojis(string=''):
-    """Return platform-dependent emoji-safe version of string."""
-    return string.encode().decode('ascii', 'ignore') if WINDOWS else string
 
 
 def colorstr(*input):

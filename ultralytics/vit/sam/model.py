@@ -35,6 +35,15 @@ class SAM:
         """Run validation given dataset."""
         raise NotImplementedError("SAM models don't support validation")
 
+    def __call__(self, source=None, stream=False, **kwargs):
+        """Calls the 'predict' function with given arguments to perform object detection."""
+        return self.predict(source, stream, **kwargs)
+
+    def __getattr__(self, attr):
+        """Raises error if object has no requested attribute."""
+        name = self.__class__.__name__
+        raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
+
     def info(self, detailed=False, verbose=True):
         """
         Logs model info.

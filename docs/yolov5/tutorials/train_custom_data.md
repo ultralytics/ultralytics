@@ -4,7 +4,7 @@ description: Train your custom dataset with YOLOv5. Learn to collect, label and 
 ---
 
 📚 This guide explains how to train your own **custom dataset** with [YOLOv5](https://github.com/ultralytics/yolov5) 🚀.  
-UPDATED 26 March 2023.
+UPDATED 7 June 2023.
 
 ## Before You Start
 
@@ -31,6 +31,10 @@ YOLOv5 models must be trained on labelled data in order to learn classes of obje
 
 <details markdown>
 <summary>Use <a href="https://roboflow.com/?ref=ultralytics">Roboflow</a> to create your dataset in YOLO format</summary>
+
+!!! warning
+
+    Roboflow users can use Ultralytics under the [AGPL license](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) or procure an [Enterprise license](https://ultralytics.com/license) directly from Ultralytics. Be aware that Roboflow does **not** provide Ultralytics licenses, and it is the responsibility of the user to ensure appropriate licensing.
 
 ### 1.1 Collect Images
 
@@ -200,6 +204,7 @@ Results file `results.csv` is updated after each epoch, and then plotted as `res
 
 ```python
 from utils.plots import plot_results
+
 plot_results('path/to/results.csv')  # plot 'results.csv' as 'results.png'
 ```
 

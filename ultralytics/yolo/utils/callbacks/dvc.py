@@ -1,8 +1,10 @@
 # Ultralytics YOLO 🚀, GPL-3.0 license
 import os
 
+import pkg_resources as pkg
+
 from ultralytics.yolo.utils import LOGGER, TESTS_RUNNING
-from ultralytics.yolo.utils.torch_utils import get_flops, get_num_params
+from ultralytics.yolo.utils.torch_utils import model_info_for_loggers
 
 try:
     from importlib.metadata import version
@@ -10,8 +12,12 @@ try:
     import dvclive
 
     assert not TESTS_RUNNING  # do not log pytest
-    assert version('dvclive')
-except (ImportError, AssertionError):
+
+    ver = version('dvclive')
+    if pkg.parse_version(ver) < pkg.parse_version('2.11.0'):
+        LOGGER.debug(f'DVCLive is detected but version {ver} is incompatible (>=2.11 required).')
+        dvclive = None  # noqa: F811
+except (ImportError, AssertionError, TypeError):
     dvclive = None
 
 # DVCLive logger instance
@@ -36,7 +42,7 @@ def _log_images(image_path, prefix=''):
 def _log_plots(plots, prefix=''):
     for name, params in plots.items():
         timestamp = params['timestamp']
-        if _processed_plots.get(name, None) != timestamp:
+        if _processed_plots.get(name) != timestamp:
             _log_images(name, prefix)
             _processed_plots[name] = timestamp
 
@@ -94,12 +100,7 @@ def on_fit_epoch_end(trainer):
             live.log_metric(metric, value)
 
         if trainer.epoch == 0:
-            model_info = {
-                'model/parameters': get_num_params(trainer.model),
-                'model/GFLOPs': round(get_flops(trainer.model), 3),
-                'model/speed(ms)': round(trainer.validator.speed['inference'], 3)}
-
-            for metric, value in model_info.items():
+            for metric, value in model_info_for_loggers(trainer).items():
                 live.log_metric(metric, value, plot=False)
 
         _log_plots(trainer.plots, 'train')

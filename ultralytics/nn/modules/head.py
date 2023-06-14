@@ -293,7 +293,7 @@ class RTDETRDecoder(nn.Module):
         features = self.enc_output(torch.where(valid_mask, feats, 0))  # bs, h*w, 256
 
         enc_outputs_scores = self.enc_score_head(features)  # (bs, h*w, nc)
-        # dynamic anchors + static contect
+        # dynamic anchors + static content
         enc_outputs_bboxes = self.enc_bbox_head(features) + anchors  # (bs, h*w, 4)
 
         # query selection

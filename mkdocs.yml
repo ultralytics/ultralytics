@@ -164,6 +164,7 @@ nav:
       - YOLOv3: models/yolov3.md
       - YOLOv5: models/yolov5.md
       - YOLOv6: models/yolov6.md
+      - YOLOv7: models/yolov7.md
       - YOLOv8: models/yolov8.md
       - SAM (Segment Anything Model): models/sam.md
       - YOLO-NAS (Neural Architecture Search): models/yolo-nas.md

@@ -1,5 +1,6 @@
 ---
 description: 'Check functions for YOLO utils: image size, version, font, requirements, filename suffix, YAML file, YOLO, and Git version.'
+keywords: YOLO, Ultralytics, Utils, Checks, image sizing, version updates, font compatibility, Python requirements, file suffixes, YAML syntax, image showing, AMP
 ---
 
 # is_ascii
@@ -70,6 +71,11 @@ description: 'Check functions for YOLO utils: image size, version, font, require
 # check_yolo
 ---
 :::ultralytics.yolo.utils.checks.check_yolo
+<br><br>
+
+# check_amp
+---
+:::ultralytics.yolo.utils.checks.check_amp
 <br><br>
 
 # git_describe

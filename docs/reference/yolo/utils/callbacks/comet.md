@@ -1,5 +1,6 @@
 ---
 description: Learn about YOLO callbacks using the Comet.ml platform, enhancing object detection training and testing with custom logging and visualizations.
+keywords: Ultralytics, YOLO, callbacks, Comet ML, log images, log predictions, log plots, fetch metadata, fetch annotations, create experiment data, format experiment data
 ---
 
 # _get_comet_mode

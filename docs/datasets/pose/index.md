@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Learn how to format your dataset for training YOLO models with Ultralytics YOLO format using our concise tutorial and example YAML files.
+keywords: pose estimation, datasets, supported formats, YAML file, object class index, keypoints, ultralytics YOLO format
 ---
 
 # Pose Estimation Datasets Overview

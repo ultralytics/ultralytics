@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Explore YOLOv8n-based object tracking with Ultralytics' BoT-SORT and ByteTrack. Learn configuration, usage, and customization tips.
+keywords: object tracking, YOLO, trackers, BoT-SORT, ByteTrack
 ---
 
 <img width="1024" src="https://user-images.githubusercontent.com/26833433/243418637-1d6250fd-1515-4c10-a844-a32818ae6d46.png">
@@ -98,4 +99,3 @@ any configurations(expect the `tracker_type`) you need to.
 
 Please refer to [ultralytics/tracker/cfg](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/tracker/cfg)
 page
-

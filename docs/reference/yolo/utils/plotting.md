@@ -1,5 +1,6 @@
 ---
 description: 'Discover the power of YOLO''s plotting functions: Colors, Labels and Images. Code examples to output targets and visualize features. Check it now.'
+keywords: YOLO, object detection, plotting, visualization, annotator, save one box, plot results, feature visualization, Ultralytics
 ---
 
 # Colors

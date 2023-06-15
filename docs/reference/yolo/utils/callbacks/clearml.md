@@ -1,5 +1,6 @@
 ---
 description: Improve your YOLOv5 model training with callbacks from ClearML. Learn about log debug samples, pre-training routines, validation and more.
+keywords: Ultralytics YOLO, callbacks, log plots, epoch monitoring, training end events
 ---
 
 # _log_debug_samples

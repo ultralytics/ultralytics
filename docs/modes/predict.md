@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Get started with YOLOv8 Predict mode and input sources. Accepts various input sources such as images, videos, and directories.
+keywords: YOLOv8, predict mode, generator, streaming mode, input sources, video formats, arguments customization
 ---
 
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">

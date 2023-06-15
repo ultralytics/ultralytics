@@ -1,5 +1,6 @@
 ---
 description: Improve YOLOv5 training with Neptune, a powerful logging tool. Track metrics like images, plots, and epochs for better model performance.
+keywords: Ultralytics, YOLO, Neptune, Callbacks, log scalars, log images, log plots, training, validation
 ---
 
 # _log_scalars

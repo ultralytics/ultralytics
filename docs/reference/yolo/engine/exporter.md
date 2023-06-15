@@ -1,5 +1,6 @@
 ---
 description: Learn how to export your YOLO model in various formats using Ultralytics' exporter package - iOS, GDC, and more.
+keywords: Ultralytics, YOLO, exporter, iOS detect model, gd_outputs, export
 ---
 
 # Exporter

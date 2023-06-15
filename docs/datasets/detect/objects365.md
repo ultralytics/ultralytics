@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Discover the Objects365 dataset, designed for object detection research with a focus on diverse objects, featuring 365 categories, 2 million images, and 30 million bounding boxes.
+keywords: Objects365 dataset, object detection, computer vision, deep learning, Ultralytics Docs
 ---
 
 # Objects365 Dataset

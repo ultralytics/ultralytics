@@ -1,5 +1,6 @@
 ---
 description: Learn how to install the Ultralytics package in developer mode and build/serve locally using MkDocs. Deploy your project to your host easily.
+keywords: install Ultralytics package, deploy documentation, building locally, deploy site, GitHub Pages, GitLab Pages, Amazon S3, MkDocs documentation
 ---
 
 # Ultralytics Docs

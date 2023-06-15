@@ -91,7 +91,7 @@ extra:
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/ultralytics/
     - icon: fontawesome/brands/discord
-      link: https://discord.gg/n6cFeSPZdD
+      link: https://discord.gg/7aegy5d8
 
 extra_css:
   - stylesheets/style.css
@@ -162,8 +162,10 @@ nav:
   - Models:
       - models/index.md
       - YOLOv3: models/yolov3.md
+      - YOLOv4: models/yolov4.md
       - YOLOv5: models/yolov5.md
       - YOLOv6: models/yolov6.md
+      - YOLOv7: models/yolov7.md
       - YOLOv8: models/yolov8.md
       - SAM (Segment Anything Model): models/sam.md
       - YOLO-NAS (Neural Architecture Search): models/yolo-nas.md
@@ -291,6 +293,10 @@ nav:
               - results: reference/yolo/engine/results.md
               - trainer: reference/yolo/engine/trainer.md
               - validator: reference/yolo/engine/validator.md
+          - nas:
+              - model: reference/yolo/nas/model.md
+              - predict: reference/yolo/nas/predict.md
+              - val: reference/yolo/nas/val.md
           - utils:
               - autobatch: reference/yolo/utils/autobatch.md
               - benchmarks: reference/yolo/utils/benchmarks.md
@@ -298,6 +304,7 @@ nav:
                   - base: reference/yolo/utils/callbacks/base.md
                   - clearml: reference/yolo/utils/callbacks/clearml.md
                   - comet: reference/yolo/utils/callbacks/comet.md
+                  - dvc: reference/yolo/utils/callbacks/dvc.md
                   - hub: reference/yolo/utils/callbacks/hub.md
                   - mlflow: reference/yolo/utils/callbacks/mlflow.md
                   - neptune: reference/yolo/utils/callbacks/neptune.md

@@ -1,5 +1,6 @@
 ---
 description: Use Ultralytics YOLO Data Augmentation transforms with Base, MixUp, and Albumentations for object detection and classification.
+keywords: YOLO, data augmentation, transforms, BaseTransform, MixUp, RandomHSV, Albumentations, ToTensor, classify_transforms, classify_albumentations
 ---
 
 # BaseTransform

@@ -72,7 +72,7 @@ def _create_experiment(args):
         experiment.log_parameters(vars(args))
         experiment.log_others({
             'eval_batch_logging_interval': _get_eval_batch_logging_interval(),
-            'log_confusion_matrix': _should_log_confusion_matrix(),
+            'log_confusion_matrix_on_eval': _should_log_confusion_matrix(),
             'log_image_predictions': _should_log_image_predictions(),
             'max_image_predictions': _get_max_image_predictions_to_log(), })
         experiment.log_other('Created from', 'yolov8')

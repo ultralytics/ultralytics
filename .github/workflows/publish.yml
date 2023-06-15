@@ -63,7 +63,7 @@ jobs:
           python -m twine upload dist/* -u __token__ -p $PYPI_TOKEN
       - name: Deploy Docs
         continue-on-error: true
-        if: ((github.event_name == 'push' && (contains(github.event.head_commit.message, 'docs/') || contains(github.event.head_commit.message, 'mkdocs.yaml'))) || github.event.inputs.docs == 'true') && github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher'
+        if: (github.event_name == 'push' || github.event.inputs.docs == 'true') && github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher'
         env:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |

@@ -46,7 +46,7 @@ def _scale_confidence_score(score):
 
 
 def _should_log_confusion_matrix():
-    return os.getenv('COMET_EVAL_LOG_CONFUSION_MATRIX', 'true').lower() == 'true'
+    return os.getenv('COMET_EVAL_LOG_CONFUSION_MATRIX', 'false').lower() == 'true'
 
 
 def _should_log_image_predictions():
@@ -67,7 +67,8 @@ def _create_experiment(args):
         return
     try:
         comet_mode = _get_comet_mode()
-        experiment = _get_experiment_type(comet_mode, args.project)
+        _project_name = os.getenv('COMET_PROJECT_NAME', args.project)
+        experiment = _get_experiment_type(comet_mode, _project_name)
         experiment.log_parameters(vars(args))
         experiment.log_others({
             'eval_batch_logging_interval': _get_eval_batch_logging_interval(),
@@ -195,7 +196,7 @@ def _create_prediction_metadata_map(model_predictions):
 
 
 def _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch):
-    """Log the confusion matrix to Weights and Biases experiment."""
+    """Log the confusion matrix to Comet experiment."""
     conf_mat = trainer.validator.confusion_matrix.matrix
     names = list(trainer.data['names'].values()) + ['background']
     experiment.log_confusion_matrix(
@@ -360,8 +361,8 @@ def on_train_end(trainer):
     _comet_image_prediction_count = 0
 
 
-callbacks = {
+callbacks = ({
     'on_pretrain_routine_start': on_pretrain_routine_start,
     'on_train_epoch_end': on_train_epoch_end,
     'on_fit_epoch_end': on_fit_epoch_end,
-    'on_train_end': on_train_end} if comet_ml else {}
+    'on_train_end': on_train_end, } if comet_ml else {})

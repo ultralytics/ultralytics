@@ -6,7 +6,10 @@ keywords: YOLOv4, object detection, real-time, CNN, GPU, Ultralytics, documentat
 
 # YOLOv4: High-Speed and Precise Object Detection
 
-Welcome to the Ultralytics documentation page for YOLOv4, a state-of-the-art, real-time object detector by Alex Brockhoivsky launched in 2020 by Alexey Bochkovskiy at (https://github.com/AlexeyAB/darknet)[https://github.com/AlexeyAB/darknet]. YOLOv4 is designed to provide the optimal balance between speed and accuracy, making it an excellent choice for many applications.
+Welcome to the Ultralytics documentation page for YOLOv4, a state-of-the-art, real-time object detector by Alex Brockhoivsky launched in 2020 by Alexey Bochkovskiy at [https://github.com/AlexeyAB/darknet](https://github.com/AlexeyAB/darknet). YOLOv4 is designed to provide the optimal balance between speed and accuracy, making it an excellent choice for many applications.
+
+![YOLOv4 architecture diagram](https://user-images.githubusercontent.com/26833433/246185689-530b7fe8-737b-4bb0-b5dd-de10ef5aface.png)
+**YOLOv4 architecture diagram**. Showcasing the intricate network design of YOLOv4, including the backbone, neck, and head components, and their interconnected layers for optimal real-time object detection.
 
 ## Introduction
 

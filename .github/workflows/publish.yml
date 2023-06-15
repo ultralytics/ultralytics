@@ -93,7 +93,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
 
   deploy_docs:
-    if: github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher' && (contains(github.event.head_commit.message, 'docs/') || contains(github.event.head_commit.message, 'mkdocs.yaml'))
+    if: github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher' && (contains(github.event.head_commit.message, 'docs/') || contains(github.event.head_commit.message, 'mkdocs.yaml') || github.event_name == 'workflow_dispatch')
     name: Docs
     runs-on: ubuntu-latest
     needs: publish

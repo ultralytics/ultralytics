@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Efficiently manage and compare AI models with Ultralytics HUB Projects. Create, share, and edit projects for streamlined model development.
+keywords: Ultralytics HUB projects, model management, model comparison, create project, share project, edit project, delete project, compare models
 ---
 
 # Ultralytics HUB Projects

@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Learn about the ImageNet10 dataset, a compact subset of the original ImageNet dataset designed for quick testing, CI tests, and sanity checks.
+keywords: ImageNet10 dataset, ImageNet, small scale, subset, computer vision models, pipelines, testing, debugging, synsets, annotations, applications, structure, sample images, citations, acknowledgments, Ultralytics Docs
 ---
 
 # ImageNet10 Dataset

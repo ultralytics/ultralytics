@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Learn how to train your dataset on single or multiple machines using YOLOv5 on multiple GPUs. Use simple commands with DDP mode for faster performance.
+keywords: ultralytics, yolo, yolov5, multi-gpu, training, dataset, dataloader, data parallel, distributed data parallel, docker, pytorch
 ---
 
 📚 This guide explains how to properly use **multiple** GPUs to train a dataset with YOLOv5 🚀 on single or multiple machine(s).  

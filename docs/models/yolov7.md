@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Discover YOLOv7, a cutting-edge real-time object detector that surpasses competitors in speed and accuracy. Explore its unique trainable bag-of-freebies.
+keywords: object detection, real-time object detector, YOLOv7, MS COCO, computer vision, neural networks, AI, deep learning, deep neural networks, real-time, GPU, GitHub, arXiv
 ---
 
 # YOLOv7: Trainable Bag-of-Freebies
@@ -58,8 +59,3 @@ We would like to acknowledge the YOLOv7 authors for their significant contributi
 ```
 
 The original YOLOv7 paper can be found on [arXiv](https://arxiv.org/pdf/2207.02696.pdf). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/WongKinYiu/yolov7). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
-
-
-
-
-

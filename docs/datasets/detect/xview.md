@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Discover the xView Dataset, a large-scale overhead imagery dataset for object detection tasks, featuring 1M instances, 60 classes, and high-resolution images.
+keywords: xView dataset, overhead imagery, computer vision, deep learning models, satellite imagery analysis, object detection
 ---
 
 # xView Dataset

@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Learn how to use Test Time Augmentation (TTA) with YOLOv5 to improve mAP and Recall during testing and inference. Code examples included.
+keywords: YOLOv5, test time augmentation, TTA, mAP, recall, object detection, deep learning, computer vision, PyTorch
 ---
 
 # Test-Time Augmentation (TTA)

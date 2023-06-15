@@ -1,5 +1,6 @@
 ---
 description: Learn about YOLO's callback functions from on_train_start to add_integration_callbacks. See how these callbacks modify and save models.
+keywords: YOLO, Ultralytics, callbacks, object detection, training, inference
 ---
 
 # on_pretrain_routine_start

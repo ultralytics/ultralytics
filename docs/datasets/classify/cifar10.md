@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Learn about the CIFAR-10 dataset, a collection of images that are commonly used to train machine learning and computer vision algorithms.
+keywords: CIFAR-10 dataset, YOLO model training, image classification, deep learning, computer vision, object detection, machine learning, convolutional neural networks, Alex Krizhevsky
 ---
 
 # CIFAR-10 Dataset

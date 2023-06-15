@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Learn how to ensemble YOLOv5 models for improved mAP and Recall! Clone the repo, install requirements, and start testing and inference.
+keywords: YOLOv5, object detection, ensemble learning, mAP, Recall
 ---
 
 📚 This guide explains how to use YOLOv5 🚀 **model ensembling** during testing and inference for improved mAP and Recall.  

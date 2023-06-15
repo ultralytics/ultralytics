@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Understand all the Continuous Integration (CI) tests for Ultralytics repositories and see their statuses in a clear, concise table.
+keywords: Ultralytics, CI Tests, Continuous Integration, Docker Deployment, Broken Links, CodeQL, PyPI Publishing
 ---
 
 # Continuous Integration (CI)

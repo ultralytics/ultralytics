@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Learn about the supported models and architectures, such as YOLOv3, YOLOv5, and YOLOv8, and how to contribute your own model to Ultralytics.
+keywords: Ultralytics YOLO, YOLOv3, YOLOv5, YOLOv6, YOLOv7, YOLOv8, SAM, YOLO-NAS, RT-DETR, object detection, instance segmentation, detection transformers, real-time detection, computer vision, CLI, Python
 ---
 
 # Models

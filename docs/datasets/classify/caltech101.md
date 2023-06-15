@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Learn about the Caltech-101 dataset, a collection of images for object recognition tasks in machine learning and computer vision algorithms.
+keywords: Caltech-101 Dataset, Object recognition tasks, Ultralytics YOLO Docs, training, testing, code snippets & examples, machine learning, computer vision
 ---
 
 # Caltech-101 Dataset

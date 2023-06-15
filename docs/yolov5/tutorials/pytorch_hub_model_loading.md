@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Learn how to load YOLOv5🚀 from PyTorch Hub at https://pytorch.org/hub/ultralytics_yolov5 and perform image inference. UPDATED 26 March 2023.
+keywords: YOLOv5, PyTorch Hub, object detection, computer vision, machine learning, artificial intelligence
 ---
 
 📚 This guide explains how to load YOLOv5 🚀 from PyTorch Hub at [https://pytorch.org/hub/ultralytics_yolov5](https://pytorch.org/hub/ultralytics_yolov5).  

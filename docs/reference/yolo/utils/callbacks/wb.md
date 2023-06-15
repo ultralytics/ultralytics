@@ -1,5 +1,6 @@
 ---
 description: Learn how to use Ultralytics YOLO's built-in callbacks `on_pretrain_routine_start` and `on_train_epoch_end` for improved training performance.
+keywords: Ultralytics, YOLO, callbacks, weights, biases, training
 ---
 
 # _log_plots

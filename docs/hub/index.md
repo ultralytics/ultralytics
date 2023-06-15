@@ -1,6 +1,7 @@
 ---
 comments: true
 description: 'Ultralytics HUB: Train & deploy YOLO models from one spot! Use drag-and-drop interface with templates & pre-training models. Check quickstart, datasets, and more.'
+keywords: Ultralytics HUB, YOLOv5, YOLOv8, object detection, instance segmentation, classification, drag-and-drop interface, pre-trained models, integrations, mobile app, Inference API, datasets, projects, models
 ---
 
 # Ultralytics HUB

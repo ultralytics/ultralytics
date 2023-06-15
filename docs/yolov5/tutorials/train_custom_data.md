@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Train your custom dataset with YOLOv5. Learn to collect, label and annotate images, and train and deploy models. Get started now.
+keywords: YOLOv5, train custom dataset, object detection, artificial intelligence, deep learning, computer vision
 ---
 
 📚 This guide explains how to train your own **custom dataset** with [YOLOv5](https://github.com/ultralytics/yolov5) 🚀.  

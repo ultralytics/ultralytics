@@ -1,6 +1,7 @@
 ---
 comments: true
-description: 'Explore the details of Ultralytics YOLOv5 architecture, a comprehensive guide to its model structure, data augmentation techniques, training strategies, and various features. Understand the intricacies of object detection algorithms and improve your skills in the machine learning field.'
+description: Explore the details of Ultralytics YOLOv5 architecture, a comprehensive guide to its model structure, data augmentation techniques, training strategies, and various features. Understand the intricacies of object detection algorithms and improve your skills in the machine learning field.
+keywords: yolov5 architecture, data augmentation, training strategies, object detection, yolo docs, ultralytics
 ---
 
 # Ultralytics YOLOv5 Architecture

@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Learn how to quickly start using YOLOv5 including installation, inference, and training on this Ultralytics Docs page.
+keywords: YOLOv5, object detection, PyTorch, quickstart, detect.py, training, Ultralytics Docs
 ---
 
 # YOLOv5 Quickstart

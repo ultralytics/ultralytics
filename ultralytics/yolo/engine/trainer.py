@@ -229,7 +229,7 @@ class BaseTrainer:
         # Batch size
         if self.batch_size == -1:
             if RANK == -1:  # single-GPU only, estimate best batch size
-                self.batch_size = check_train_batch_size(self.model, self.args.imgsz, self.amp)
+                self.args.batch = self.batch_size = check_train_batch_size(self.model, self.args.imgsz, self.amp)
             else:
                 SyntaxError('batch=-1 to use AutoBatch is only available in Single-GPU training. '
                             'Please pass a valid batch size value for Multi-GPU DDP training, i.e. batch=16')

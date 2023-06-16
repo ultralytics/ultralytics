@@ -250,6 +250,8 @@ class YOLO:
             self.predictor.setup_model(model=self.model, verbose=is_cli)
         else:  # only update args if predictor is already setup
             self.predictor.args = get_cfg(self.predictor.args, overrides)
+            if 'project' in overrides or 'name' in overrides:
+                self.predictor.save_dir = self.predictor.get_save_dir()
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
 
     def track(self, source=None, stream=False, persist=False, **kwargs):

@@ -361,8 +361,8 @@ def on_train_end(trainer):
     _comet_image_prediction_count = 0
 
 
-callbacks = ({
+callbacks = {
     'on_pretrain_routine_start': on_pretrain_routine_start,
     'on_train_epoch_end': on_train_epoch_end,
     'on_fit_epoch_end': on_fit_epoch_end,
-    'on_train_end': on_train_end, } if comet_ml else {})
+    'on_train_end': on_train_end} if comet_ml else {}

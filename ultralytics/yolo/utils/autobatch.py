@@ -8,7 +8,7 @@ from copy import deepcopy
 import numpy as np
 import torch
 
-from ultralytics.yolo.utils import LOGGER, DEFAULT_CFG, colorstr
+from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, colorstr
 from ultralytics.yolo.utils.torch_utils import profile
 
 

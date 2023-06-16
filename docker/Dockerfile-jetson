@@ -26,7 +26,9 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt /u
 # Install pip packages manually for TensorRT compatibility https://github.com/NVIDIA/TensorRT/issues/2567
 RUN python3 -m pip install --upgrade pip wheel
 RUN pip install --no-cache tqdm matplotlib pyyaml psutil pandas onnx thop "numpy==1.23"
-RUN pip install --no-cache -e .
+# RUN pip install --no-cache -e .
+# Avoid installing opencv-python as creates conflicts with opencv-python installed in base image
+RUN pip install --no-cache -r <(grep -Ev 'opencv-python' requirements.txt)
 
 # Set environment variables
 ENV OMP_NUM_THREADS=1

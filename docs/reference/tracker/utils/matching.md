@@ -1,5 +1,6 @@
 ---
 description: Learn how to match and fuse object detections for accurate target tracking using Ultralytics' YOLO merge_matches, iou_distance, and embedding_distance.
+keywords: Ultralytics, multi-object tracking, object tracking, detection, recognition, matching, indices, iou distance, gate cost matrix, fuse iou, bbox ious
 ---
 
 # merge_matches

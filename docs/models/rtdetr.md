@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Dive into Baidu's RT-DETR, a revolutionary real-time object detection model built on the foundation of Vision Transformers (ViT). Learn how to use pre-trained PaddlePaddle RT-DETR models with the Ultralytics Python API for various tasks.
+keywords: RT-DETR, Transformer, ViT, Vision Transformers, Baidu RT-DETR, PaddlePaddle, Paddle Paddle RT-DETR, real-time object detection, Vision Transformers-based object detection, pre-trained PaddlePaddle RT-DETR models, Baidu's RT-DETR usage, Ultralytics Python API, object detector
 ---
 
 # Baidu's RT-DETR: A Vision Transformer-Based Real-Time Object Detector

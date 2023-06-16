@@ -1,5 +1,6 @@
 ---
 description: Learn how to register custom event-tracking and track predictions with Ultralytics YOLO via on_predict_start and register_tracker methods.
+keywords: Ultralytics YOLO, tracker registration, on_predict_start, object detection
 ---
 
 # on_predict_start

@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Learn about the ImageNette dataset, a subset of 10 easily classified classes from the Imagenet dataset commonly used for training various image processing systems and machine learning models.
+keywords: ImageNette Dataset, ImageNette, training set, validation set, image classification, convolutional neural networks, machine learning, computer vision, ultralytics, yolov8n-cls.pt, python
 ---
 
 # ImageNette Dataset

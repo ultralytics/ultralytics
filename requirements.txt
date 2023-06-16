@@ -3,7 +3,7 @@
 
 # Base ----------------------------------------
 matplotlib>=3.2.2
-opencv-python>=4.6.0
+opencv-python>=4.5.0  # <=4.5.0 required for Jetson Docker https://github.com/ultralytics/ultralytics/issues/3183
 Pillow>=7.1.2
 PyYAML>=5.3.1
 requests>=2.23.0

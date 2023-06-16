@@ -70,7 +70,7 @@ After your dataset is uploaded and processed, you will be able to access it from
 
 ![Ultralytics HUB screenshot of the Datasets page with an arrow pointing to one of the datasets](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_upload_dataset_6.jpg)
 
-You can view the images inside your dataset grouped (Train, Validation, Test).
+You can view the images in your dataset grouped by splits (Train, Validation, Test).
 
 ![Ultralytics HUB screenshot of the Dataset page with an arrow pointing to the Images tab](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_upload_dataset_7.jpg)
 

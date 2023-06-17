@@ -249,6 +249,7 @@ nav:
       - Inference API: hub/inference_api.md
   - Reference:
       - hub:
+          - __init__: reference/hub/__init__.md
           - auth: reference/hub/auth.md
           - session: reference/hub/session.md
           - utils: reference/hub/utils.md
@@ -256,8 +257,8 @@ nav:
           - autobackend: reference/nn/autobackend.md
           - autoshape: reference/nn/autoshape.md
           - modules:
-              - blocks: reference/nn/modules/block.md
-              - convs: reference/nn/modules/conv.md
+              - block: reference/nn/modules/block.md
+              - conv: reference/nn/modules/conv.md
               - head: reference/nn/modules/head.md
               - transformer: reference/nn/modules/transformer.md
               - utils: reference/nn/modules/utils.md
@@ -273,6 +274,8 @@ nav:
               - kalman_filter: reference/tracker/utils/kalman_filter.md
               - matching: reference/tracker/utils/matching.md
       - yolo:
+          - cfg:
+              - __init__: reference/yolo/cfg/__init__.md
           - data:
               - annotator: reference/yolo/data/annotator.md
               - augment: reference/yolo/data/augment.md
@@ -298,6 +301,7 @@ nav:
               - predict: reference/yolo/nas/predict.md
               - val: reference/yolo/nas/val.md
           - utils:
+              - __init__: reference/yolo/utils/__init__.md
               - autobatch: reference/yolo/utils/autobatch.md
               - benchmarks: reference/yolo/utils/benchmarks.md
               - callbacks:
@@ -341,6 +345,7 @@ nav:
                   - predict: reference/yolo/v8/segment/predict.md
                   - train: reference/yolo/v8/segment/train.md
                   - val: reference/yolo/v8/segment/val.md
+
   - Help:
       - Help: help/index.md
       - Frequently Asked Questions (FAQ): help/FAQ.md

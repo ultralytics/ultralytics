@@ -35,7 +35,7 @@ from ultralytics import RTDETR
 
 model = RTDETR("rtdetr-l.pt")
 model.info()  # display model information
-model.train(data="coco128.yaml")   # train
+model.train(data="coco8.yaml")   # train
 model.predict("path/to/image.jpg")  # predict
 ```
 

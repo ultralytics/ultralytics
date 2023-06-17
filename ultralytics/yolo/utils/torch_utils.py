@@ -327,6 +327,9 @@ def init_seeds(seed=0, deterministic=False):
             os.environ['PYTHONHASHSEED'] = str(seed)
         else:
             LOGGER.warning('WARNING ⚠️ Upgrade to torch>=2.0.0 for deterministic training.')
+    else:
+        torch.use_deterministic_algorithms(False)
+        torch.backends.cudnn.deterministic = False
 
 
 class ModelEMA:

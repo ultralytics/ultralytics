@@ -177,7 +177,8 @@ def plt_settings(rcparams=None, backend='Agg'):
         backend (str, optional): Name of the backend to use. Defaults to 'Agg'.
 
     Returns:
-        callable: Decorated function with temporarily set rc parameters and backend.
+        (Callable): Decorated function with temporarily set rc parameters and backend. This decorator can be
+            applied to any function that needs to have specific matplotlib rc parameters and backend for its execution.
     """
 
     if rcparams is None:
@@ -259,7 +260,7 @@ def yaml_save(file='data.yaml', data=None):
         data (dict): Data to save in YAML format.
 
     Returns:
-        None: Data is saved to the specified file.
+        (None): Data is saved to the specified file.
     """
     if data is None:
         data = {}
@@ -287,7 +288,7 @@ def yaml_load(file='data.yaml', append_filename=False):
         append_filename (bool): Add the YAML filename to the YAML dictionary. Default is False.
 
     Returns:
-        dict: YAML data and file name.
+        (dict): YAML data and file name.
     """
     with open(file, errors='ignore', encoding='utf-8') as f:
         s = f.read()  # string
@@ -329,7 +330,7 @@ def is_colab():
     Check if the current script is running inside a Google Colab notebook.
 
     Returns:
-        bool: True if running inside a Colab notebook, False otherwise.
+        (bool): True if running inside a Colab notebook, False otherwise.
     """
     return 'COLAB_RELEASE_TAG' in os.environ or 'COLAB_BACKEND_VERSION' in os.environ
 
@@ -339,7 +340,7 @@ def is_kaggle():
     Check if the current script is running inside a Kaggle kernel.
 
     Returns:
-        bool: True if running inside a Kaggle kernel, False otherwise.
+        (bool): True if running inside a Kaggle kernel, False otherwise.
     """
     return os.environ.get('PWD') == '/kaggle/working' and os.environ.get('KAGGLE_URL_BASE') == 'https://www.kaggle.com'
 
@@ -350,7 +351,7 @@ def is_jupyter():
     Verified on Colab, Jupyterlab, Kaggle, Paperspace.
 
     Returns:
-        bool: True if running inside a Jupyter Notebook, False otherwise.
+        (bool): True if running inside a Jupyter Notebook, False otherwise.
     """
     with contextlib.suppress(Exception):
         from IPython import get_ipython
@@ -363,7 +364,7 @@ def is_docker() -> bool:
     Determine if the script is running inside a Docker container.
 
     Returns:
-        bool: True if the script is running inside a Docker container, False otherwise.
+        (bool): True if the script is running inside a Docker container, False otherwise.
     """
     file = Path('/proc/self/cgroup')
     if file.exists():
@@ -378,7 +379,7 @@ def is_online() -> bool:
     Check internet connectivity by attempting to connect to a known online host.
 
     Returns:
-        bool: True if connection is successful, False otherwise.
+        (bool): True if connection is successful, False otherwise.
     """
     import socket
 
@@ -405,7 +406,7 @@ def is_pip_package(filepath: str = __name__) -> bool:
         filepath (str): The filepath to check.
 
     Returns:
-        bool: True if the file is part of a pip package, False otherwise.
+        (bool): True if the file is part of a pip package, False otherwise.
     """
     import importlib.util
 
@@ -424,7 +425,7 @@ def is_dir_writeable(dir_path: Union[str, Path]) -> bool:
         dir_path (str) or (Path): The path to the directory.
 
     Returns:
-        bool: True if the directory is writeable, False otherwise.
+        (bool): True if the directory is writeable, False otherwise.
     """
     return os.access(str(dir_path), os.W_OK)
 
@@ -509,7 +510,7 @@ def get_default_args(func):
         func (callable): The function to inspect.
 
     Returns:
-        dict: A dictionary where each key is a parameter name, and each value is the default value of that parameter.
+        (dict): A dictionary where each key is a parameter name, and each value is the default value of that parameter.
     """
     signature = inspect.signature(func)
     return {k: v.default for k, v in signature.parameters.items() if v.default is not inspect.Parameter.empty}
@@ -523,7 +524,7 @@ def get_user_config_dir(sub_dir='Ultralytics'):
         sub_dir (str): The name of the subdirectory to create.
 
     Returns:
-        Path: The path to the user config directory.
+        (Path): The path to the user config directory.
     """
     # Return the appropriate config directory for each operating system
     if WINDOWS:
@@ -690,7 +691,7 @@ def get_settings(file=SETTINGS_YAML, version='0.0.3'):
         version (str): Settings version. If min settings version not met, new default settings will be saved.
 
     Returns:
-        dict: Dictionary of settings key-value pairs.
+        (dict): Dictionary of settings key-value pairs.
     """
     import hashlib
 

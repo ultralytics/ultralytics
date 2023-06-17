@@ -7,8 +7,7 @@ import numpy as np
 import torch
 from PIL import Image
 
-from ultralytics import YOLO
-from ultralytics.vit import RTDETR
+from ultralytics import RTDETR, YOLO
 from ultralytics.yolo.data.build import load_inference_source
 from ultralytics.yolo.utils import LINUX, ONLINE, ROOT, SETTINGS
 

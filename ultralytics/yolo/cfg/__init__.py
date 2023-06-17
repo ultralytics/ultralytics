@@ -99,7 +99,7 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
 
     Args:
         cfg (str | Path | Dict | SimpleNamespace): Configuration data.
-        overrides (str | Dict), optional: Overrides in the form of a file name or a dictionary. Default is None.
+        overrides (str | Dict, optional): Overrides in the form of a file name or a dictionary. Default is None.
 
     Returns:
         (SimpleNamespace): Training arguments namespace.

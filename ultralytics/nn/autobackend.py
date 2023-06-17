@@ -55,7 +55,7 @@ class AutoBackend(nn.Module):
             weights (str): The path to the weights file. Default: 'yolov8n.pt'
             device (torch.device): The device to run the model on.
             dnn (bool): Use OpenCV's DNN module for inference if True, defaults to False.
-            data (str), (Path): Additional data.yaml file for class names, optional
+            data (str | Path, optional): Additional data.yaml file for class names.
             fp16 (bool): If True, use half precision. Default: False
             fuse (bool): Whether to fuse the model or not. Default: True
             verbose (bool): Whether to run in verbose mode or not. Default: True

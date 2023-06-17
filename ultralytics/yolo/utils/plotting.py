@@ -63,6 +63,9 @@ class Annotator:
                 self.font = ImageFont.truetype(str(font), size)
             except Exception:
                 self.font = ImageFont.load_default()
+            # Deprecation fix for w, h = getsize(string) -> _, _, w, h = getbox(string)
+            if self.pil_9_2_0_check:
+                self.font.getsize = lambda x: self.font.getbbox(x)[2:4]  # text width, height
         else:  # use cv2
             self.im = im
         self.lw = line_width or max(round(sum(im.shape) / 2 * 0.003), 2)  # line width
@@ -80,10 +83,7 @@ class Annotator:
         if self.pil or not is_ascii(label):
             self.draw.rectangle(box, width=self.lw, outline=color)  # box
             if label:
-                if self.pil_9_2_0_check:
-                    _, _, w, h = self.font.getbbox(label)  # text width, height (New)
-                else:
-                    w, h = self.font.getsize(label)  # text width, height (Old, deprecated in 9.2.0)
+                w, h = self.font.getsize(label)  # text width, height
                 outside = box[1] - h >= 0  # label fits outside box
                 self.draw.rectangle(
                     (box[0], box[1] - h if outside else box[1], box[0] + w + 1,

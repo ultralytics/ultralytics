@@ -11,5 +11,4 @@ from ultralytics.yolo.utils.checks import check_yolo as checks
 
 from ultralytics.yolo.data.embedding import Explorer
 
-
 __all__ = '__version__', 'YOLO', 'NAS', 'SAM', 'RTDETR', 'checks', 'start', 'Explorer'  # allow simpler import

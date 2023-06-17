@@ -3,72 +3,72 @@ description: Learn how to work with Ultralytics YOLO Detection, Segmentation & C
 keywords: neural network, deep learning, computer vision, object detection, image segmentation, image classification, model ensemble, PyTorch
 ---
 
-# BaseModel
+## BaseModel
 ---
-:::ultralytics.nn.tasks.BaseModel
+### ::: ultralytics.nn.tasks.BaseModel
 <br><br>
 
-# DetectionModel
+## DetectionModel
 ---
-:::ultralytics.nn.tasks.DetectionModel
+### ::: ultralytics.nn.tasks.DetectionModel
 <br><br>
 
-# SegmentationModel
+## SegmentationModel
 ---
-:::ultralytics.nn.tasks.SegmentationModel
+### ::: ultralytics.nn.tasks.SegmentationModel
 <br><br>
 
-# PoseModel
+## PoseModel
 ---
-:::ultralytics.nn.tasks.PoseModel
+### ::: ultralytics.nn.tasks.PoseModel
 <br><br>
 
-# ClassificationModel
+## ClassificationModel
 ---
-:::ultralytics.nn.tasks.ClassificationModel
+### ::: ultralytics.nn.tasks.ClassificationModel
 <br><br>
 
-# RTDETRDetectionModel
+## RTDETRDetectionModel
 ---
-:::ultralytics.nn.tasks.RTDETRDetectionModel
+### ::: ultralytics.nn.tasks.RTDETRDetectionModel
 <br><br>
 
-# Ensemble
+## Ensemble
 ---
-:::ultralytics.nn.tasks.Ensemble
+### ::: ultralytics.nn.tasks.Ensemble
 <br><br>
 
-# torch_safe_load
+## torch_safe_load
 ---
-:::ultralytics.nn.tasks.torch_safe_load
+### ::: ultralytics.nn.tasks.torch_safe_load
 <br><br>
 
-# attempt_load_weights
+## attempt_load_weights
 ---
-:::ultralytics.nn.tasks.attempt_load_weights
+### ::: ultralytics.nn.tasks.attempt_load_weights
 <br><br>
 
-# attempt_load_one_weight
+## attempt_load_one_weight
 ---
-:::ultralytics.nn.tasks.attempt_load_one_weight
+### ::: ultralytics.nn.tasks.attempt_load_one_weight
 <br><br>
 
-# parse_model
+## parse_model
 ---
-:::ultralytics.nn.tasks.parse_model
+### ::: ultralytics.nn.tasks.parse_model
 <br><br>
 
-# yaml_model_load
+## yaml_model_load
 ---
-:::ultralytics.nn.tasks.yaml_model_load
+### ::: ultralytics.nn.tasks.yaml_model_load
 <br><br>
 
-# guess_model_scale
+## guess_model_scale
 ---
-:::ultralytics.nn.tasks.guess_model_scale
+### ::: ultralytics.nn.tasks.guess_model_scale
 <br><br>
 
-# guess_model_task
+## guess_model_task
 ---
-:::ultralytics.nn.tasks.guess_model_task
+### ::: ultralytics.nn.tasks.guess_model_task
 <br><br>

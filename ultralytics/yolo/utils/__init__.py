@@ -422,7 +422,7 @@ def is_dir_writeable(dir_path: Union[str, Path]) -> bool:
     Check if a directory is writeable.
 
     Args:
-        dir_path (str) or (Path): The path to the directory.
+        dir_path (str | Path): The path to the directory.
 
     Returns:
         (bool): True if the directory is writeable, False otherwise.
@@ -467,7 +467,7 @@ def get_git_dir():
     If the current file is not part of a git repository, returns None.
 
     Returns:
-        (Path) or (None): Git root directory if found or None if not found.
+        (Path | None): Git root directory if found or None if not found.
     """
     for d in Path(__file__).parents:
         if (d / '.git').is_dir():
@@ -480,7 +480,7 @@ def get_git_origin_url():
     Retrieves the origin URL of a git repository.
 
     Returns:
-        (str) or (None): The origin URL of the git repository.
+        (str | None): The origin URL of the git repository.
     """
     if is_git_dir():
         with contextlib.suppress(subprocess.CalledProcessError):
@@ -494,7 +494,7 @@ def get_git_branch():
     Returns the current git branch name. If not in a git repository, returns None.
 
     Returns:
-        (str) or (None): The current git branch name.
+        (str | None): The current git branch name.
     """
     if is_git_dir():
         with contextlib.suppress(subprocess.CalledProcessError):

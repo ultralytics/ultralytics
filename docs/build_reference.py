@@ -43,8 +43,8 @@ def create_markdown(py_filepath, module_path, classes, functions):
                 header_content = f"{header_parts[0]}---{header_parts[1]}---\n\n"
 
     module_path = module_path.replace('.__init__', '')
-    md_content = [f"# {class_name}\n---\n:::{module_path}.{class_name}\n<br><br>\n" for class_name in classes]
-    md_content.extend(f"# {func_name}\n---\n:::{module_path}.{func_name}\n<br><br>\n" for func_name in functions)
+    md_content = [f"## {class_name}\n---\n### ::: {module_path}.{class_name}\n<br><br>\n" for class_name in classes]
+    md_content.extend(f"## {func_name}\n---\n### ::: {module_path}.{func_name}\n<br><br>\n" for func_name in functions)
     md_content = header_content + "\n".join(md_content)
 
     os.makedirs(os.path.dirname(md_filepath), exist_ok=True)

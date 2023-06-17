@@ -355,23 +355,23 @@ class Boxes(BaseTensor):
     A class for storing and manipulating detection boxes.
 
     Args:
-        boxes (torch.Tensor) or (numpy.ndarray): A tensor or numpy array containing the detection boxes,
+        boxes (torch.Tensor | numpy.ndarray): A tensor or numpy array containing the detection boxes,
             with shape (num_boxes, 6). The last two columns should contain confidence and class values.
         orig_shape (tuple): Original image size, in the format (height, width).
 
     Attributes:
-        boxes (torch.Tensor) or (numpy.ndarray): The detection boxes with shape (num_boxes, 6).
-        orig_shape (torch.Tensor) or (numpy.ndarray): Original image size, in the format (height, width).
+        boxes (torch.Tensor | numpy.ndarray): The detection boxes with shape (num_boxes, 6).
+        orig_shape (torch.Tensor | numpy.ndarray): Original image size, in the format (height, width).
         is_track (bool): True if the boxes also include track IDs, False otherwise.
 
     Properties:
-        xyxy (torch.Tensor) or (numpy.ndarray): The boxes in xyxy format.
-        conf (torch.Tensor) or (numpy.ndarray): The confidence values of the boxes.
-        cls (torch.Tensor) or (numpy.ndarray): The class values of the boxes.
-        id (torch.Tensor) or (numpy.ndarray): The track IDs of the boxes (if available).
-        xywh (torch.Tensor) or (numpy.ndarray): The boxes in xywh format.
-        xyxyn (torch.Tensor) or (numpy.ndarray): The boxes in xyxy format normalized by original image size.
-        xywhn (torch.Tensor) or (numpy.ndarray): The boxes in xywh format normalized by original image size.
+        xyxy (torch.Tensor | numpy.ndarray): The boxes in xyxy format.
+        conf (torch.Tensor | numpy.ndarray): The confidence values of the boxes.
+        cls (torch.Tensor | numpy.ndarray): The class values of the boxes.
+        id (torch.Tensor | numpy.ndarray): The track IDs of the boxes (if available).
+        xywh (torch.Tensor | numpy.ndarray): The boxes in xywh format.
+        xyxyn (torch.Tensor | numpy.ndarray): The boxes in xyxy format normalized by original image size.
+        xywhn (torch.Tensor | numpy.ndarray): The boxes in xywh format normalized by original image size.
         data (torch.Tensor): The raw bboxes tensor
 
     Methods:

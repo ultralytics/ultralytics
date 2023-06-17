@@ -3,7 +3,7 @@ description: Learn about BaseDataset in Ultralytics YOLO, a flexible dataset cla
 keywords: BaseDataset, Ultralytics YOLO, object detection, real-world applications, documentation
 ---
 
-# BaseDataset
+## BaseDataset
 ---
-:::ultralytics.yolo.data.base.BaseDataset
+### ::: ultralytics.yolo.data.base.BaseDataset
 <br><br>

@@ -3,37 +3,37 @@ description: 'Learn about Ultralytics YOLO files and directory utilities: Workin
 keywords: YOLO, object detection, file utils, file age, file size, working directory, make directories, Ultralytics Docs
 ---
 
-# WorkingDirectory
+## WorkingDirectory
 ---
-:::ultralytics.yolo.utils.files.WorkingDirectory
+### ::: ultralytics.yolo.utils.files.WorkingDirectory
 <br><br>
 
-# increment_path
+## increment_path
 ---
-:::ultralytics.yolo.utils.files.increment_path
+### ::: ultralytics.yolo.utils.files.increment_path
 <br><br>
 
-# file_age
+## file_age
 ---
-:::ultralytics.yolo.utils.files.file_age
+### ::: ultralytics.yolo.utils.files.file_age
 <br><br>
 
-# file_date
+## file_date
 ---
-:::ultralytics.yolo.utils.files.file_date
+### ::: ultralytics.yolo.utils.files.file_date
 <br><br>
 
-# file_size
+## file_size
 ---
-:::ultralytics.yolo.utils.files.file_size
+### ::: ultralytics.yolo.utils.files.file_size
 <br><br>
 
-# get_latest_run
+## get_latest_run
 ---
-:::ultralytics.yolo.utils.files.get_latest_run
+### ::: ultralytics.yolo.utils.files.get_latest_run
 <br><br>
 
-# make_dirs
+## make_dirs
 ---
-:::ultralytics.yolo.utils.files.make_dirs
+### ::: ultralytics.yolo.utils.files.make_dirs
 <br><br>

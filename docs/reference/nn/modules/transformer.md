@@ -3,52 +3,52 @@ description: Explore the Ultralytics nn modules pages on Transformer and MLP blo
 keywords: Ultralytics, NN Modules, TransformerEncoderLayer, TransformerLayer, MLPBlock, LayerNorm2d, DeformableTransformerDecoderLayer, examples, code snippets, tutorials
 ---
 
-# TransformerEncoderLayer
+## TransformerEncoderLayer
 ---
-:::ultralytics.nn.modules.transformer.TransformerEncoderLayer
+### ::: ultralytics.nn.modules.transformer.TransformerEncoderLayer
 <br><br>
 
-# AIFI
+## AIFI
 ---
-:::ultralytics.nn.modules.transformer.AIFI
+### ::: ultralytics.nn.modules.transformer.AIFI
 <br><br>
 
-# TransformerLayer
+## TransformerLayer
 ---
-:::ultralytics.nn.modules.transformer.TransformerLayer
+### ::: ultralytics.nn.modules.transformer.TransformerLayer
 <br><br>
 
-# TransformerBlock
+## TransformerBlock
 ---
-:::ultralytics.nn.modules.transformer.TransformerBlock
+### ::: ultralytics.nn.modules.transformer.TransformerBlock
 <br><br>
 
-# MLPBlock
+## MLPBlock
 ---
-:::ultralytics.nn.modules.transformer.MLPBlock
+### ::: ultralytics.nn.modules.transformer.MLPBlock
 <br><br>
 
-# MLP
+## MLP
 ---
-:::ultralytics.nn.modules.transformer.MLP
+### ::: ultralytics.nn.modules.transformer.MLP
 <br><br>
 
-# LayerNorm2d
+## LayerNorm2d
 ---
-:::ultralytics.nn.modules.transformer.LayerNorm2d
+### ::: ultralytics.nn.modules.transformer.LayerNorm2d
 <br><br>
 
-# MSDeformAttn
+## MSDeformAttn
 ---
-:::ultralytics.nn.modules.transformer.MSDeformAttn
+### ::: ultralytics.nn.modules.transformer.MSDeformAttn
 <br><br>
 
-# DeformableTransformerDecoderLayer
+## DeformableTransformerDecoderLayer
 ---
-:::ultralytics.nn.modules.transformer.DeformableTransformerDecoderLayer
+### ::: ultralytics.nn.modules.transformer.DeformableTransformerDecoderLayer
 <br><br>
 
-# DeformableTransformerDecoder
+## DeformableTransformerDecoder
 ---
-:::ultralytics.nn.modules.transformer.DeformableTransformerDecoder
+### ::: ultralytics.nn.modules.transformer.DeformableTransformerDecoder
 <br><br>

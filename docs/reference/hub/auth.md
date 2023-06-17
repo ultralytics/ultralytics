@@ -3,7 +3,7 @@ description: Learn how to use Ultralytics hub authentication in your projects wi
 keywords: Ultralytics, ultralytics hub, api keys, authentication, collab accounts, requests, hub management, monitoring
 ---
 
-# Auth
+## Auth
 ---
-:::ultralytics.hub.auth.Auth
+### ::: ultralytics.hub.auth.Auth
 <br><br>

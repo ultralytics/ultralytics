@@ -1,6 +1,7 @@
 ---
 comments: true
-description: 'Learn about YOLO settings and modes for different tasks like detection, segmentation etc. Train and predict with custom argparse commands.'
+description: Learn about YOLO settings and modes for different tasks like detection, segmentation etc. Train and predict with custom argparse commands.
+keywords: YOLO settings, hyperparameters, YOLOv8, Ultralytics, YOLO guide, YOLO commands, YOLO tasks, YOLO modes, YOLO training, YOLO detect, YOLO segment, YOLO classify, YOLO pose, YOLO train, YOLO val, YOLO predict, YOLO export, YOLO track, YOLO benchmark
 ---
 
 YOLO settings and hyperparameters play a critical role in the model's performance, speed, and accuracy. These settings
@@ -95,7 +96,7 @@ The training settings for YOLO models encompass various hyperparameters and conf
 | `name`            | `None`   | experiment name                                                                   |
 | `exist_ok`        | `False`  | whether to overwrite existing experiment                                          |
 | `pretrained`      | `False`  | whether to use a pretrained model                                                 |
-| `optimizer`       | `'SGD'`  | optimizer to use, choices=[SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto] |
+| `optimizer`       | `'auto'` | optimizer to use, choices=[SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto] |
 | `verbose`         | `False`  | whether to print verbose output                                                   |
 | `seed`            | `0`      | random seed for reproducibility                                                   |
 | `deterministic`   | `True`   | whether to enable deterministic mode                                              |

@@ -1,5 +1,6 @@
 ---
 description: Improve YOLOv5 model training with Ultralytics' on-train callbacks. Boost performance on-pretrain-routine-end, model-save, train/predict start.
+keywords: Ultralytics, YOLO, callbacks, on_pretrain_routine_end, on_fit_epoch_end, on_train_start, on_val_start, on_predict_start, on_export_start
 ---
 
 # on_pretrain_routine_end

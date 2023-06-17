@@ -64,6 +64,8 @@ def select_device(device='', batch=0, newline=False, verbose=True):
     if cpu or mps:
         os.environ['CUDA_VISIBLE_DEVICES'] = '-1'  # force torch.cuda.is_available() = False
     elif device:  # non-cpu device requested
+        if device == 'cuda':
+            device = '0'
         visible = os.environ.get('CUDA_VISIBLE_DEVICES', None)
         os.environ['CUDA_VISIBLE_DEVICES'] = device  # set environment variable - must be before assert is_available()
         if not (torch.cuda.is_available() and torch.cuda.device_count() >= len(device.replace(',', ''))):
@@ -325,6 +327,9 @@ def init_seeds(seed=0, deterministic=False):
             os.environ['PYTHONHASHSEED'] = str(seed)
         else:
             LOGGER.warning('WARNING ⚠️ Upgrade to torch>=2.0.0 for deterministic training.')
+    else:
+        torch.use_deterministic_algorithms(False)
+        torch.backends.cudnn.deterministic = False
 
 
 class ModelEMA:

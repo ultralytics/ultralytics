@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Explore Ultralytics YOLOv8 Inference API for efficient object detection. Check out our Python and CLI examples to streamline your image analysis.
+keywords: YOLO, object detection, Ultralytics, inference API, RESTful API
 ---
 
 # YOLO Inference API

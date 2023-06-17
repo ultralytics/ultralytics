@@ -1,5 +1,6 @@
 ---
 description: Learn about BaseTensor & Boxes in Ultralytics YOLO Engine. Check out Ultralytics Docs for quality tutorials and resources on object detection.
+keywords: YOLO, Engine, Results, Masks, Probs, Ultralytics
 ---
 
 # BaseTensor
@@ -20,4 +21,14 @@ description: Learn about BaseTensor & Boxes in Ultralytics YOLO Engine. Check ou
 # Masks
 ---
 :::ultralytics.yolo.engine.results.Masks
+<br><br>
+
+# Keypoints
+---
+:::ultralytics.yolo.engine.results.Keypoints
+<br><br>
+
+# Probs
+---
+:::ultralytics.yolo.engine.results.Probs
 <br><br>

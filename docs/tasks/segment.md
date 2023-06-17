@@ -1,13 +1,13 @@
 ---
 comments: true
 description: Learn what Instance segmentation is. Get pretrained YOLOv8 segment models, and how to train and export them to segments masks. Check the preformance metrics!
+keywords: instance segmentation, YOLOv8, Ultralytics, pretrained models, train, predict, export, datasets
 ---
 
 Instance segmentation goes a step further than object detection and involves identifying individual objects in an image
 and segmenting them from the rest of the image.
 
-<br>
-<img width="1024" src="https://raw.githubusercontent.com/ultralytics/assets/tasks/im/banner-tasks.png">
+<img width="1024" src="https://user-images.githubusercontent.com/26833433/243418644-7df320b8-098d-47f1-85c5-26604d761286.png">
 
 The output of an instance segmentation model is a set of masks or
 contours that outline each object in the image, along with class labels and confidence scores for each object. Instance

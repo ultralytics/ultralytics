@@ -1,5 +1,6 @@
 ---
 description: Convert COCO-91 to COCO-80 class, RLE to polygon, and merge multi-segment images with Ultralytics YOLO data converter. Improve your object detection.
+keywords: Ultralytics, YOLO, converter, COCO91, COCO80, rle2polygon, merge_multi_segment, annotations
 ---
 
 # coco91_to_coco80_class

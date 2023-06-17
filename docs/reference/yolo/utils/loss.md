@@ -1,10 +1,16 @@
 ---
 description: Learn about Varifocal Loss and Keypoint Loss in Ultralytics YOLO for advanced bounding box and pose estimation. Visit our docs for more.
+keywords: Ultralytics, YOLO, loss functions, object detection, keypoint detection, segmentation, classification
 ---
 
 # VarifocalLoss
 ---
 :::ultralytics.yolo.utils.loss.VarifocalLoss
+<br><br>
+
+# FocalLoss
+---
+:::ultralytics.yolo.utils.loss.FocalLoss
 <br><br>
 
 # BboxLoss

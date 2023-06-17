@@ -172,7 +172,8 @@ class Exporter:
 
         # Input
         im = torch.zeros(self.args.batch, 3, *self.imgsz).to(self.device)
-        file = Path(getattr(model, 'pt_path', None) or getattr(model, 'yaml_file', None) or model.yaml['yaml_file'])
+        file = Path(
+            getattr(model, 'pt_path', None) or getattr(model, 'yaml_file', None) or model.yaml.get('yaml_file', ''))
         if file.suffix == '.yaml':
             file = Path(file.name)
 
@@ -207,7 +208,8 @@ class Exporter:
         self.im = im
         self.model = model
         self.file = file
-        self.output_shape = tuple(y.shape) if isinstance(y, torch.Tensor) else tuple(tuple(x.shape) for x in y)
+        self.output_shape = tuple(y.shape) if isinstance(y, torch.Tensor) else \
+            tuple(tuple(x.shape if isinstance(x, torch.Tensor) else []) for x in y)
         self.pretty_name = Path(self.model.yaml.get('yaml_file', self.file)).stem.replace('yolo', 'YOLO')
         trained_on = f'trained on {Path(self.args.data).name}' if self.args.data else '(untrained)'
         description = f'Ultralytics {self.pretty_name} model {trained_on}'
@@ -362,6 +364,18 @@ class Exporter:
                                     model_name=self.pretty_name,
                                     framework='onnx',
                                     compress_to_fp16=self.args.half)  # export
+
+        # Set RT info
+        ov_model.set_rt_info('YOLOv8', ['model_info', 'model_type'])
+        ov_model.set_rt_info(True, ['model_info', 'reverse_input_channels'])
+        ov_model.set_rt_info(114, ['model_info', 'pad_value'])
+        ov_model.set_rt_info([255.0], ['model_info', 'scale_values'])
+        ov_model.set_rt_info(self.args.iou, ['model_info', 'iou_threshold'])
+        ov_model.set_rt_info([v.replace(' ', '_') for k, v in sorted(self.model.names.items())],
+                             ['model_info', 'labels'])
+        if self.model.task != 'classify':
+            ov_model.set_rt_info('fit_to_window_letterbox', ['model_info', 'resize_type'])
+
         ov.serialize(ov_model, f_ov)  # save
         yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml
         return f, None

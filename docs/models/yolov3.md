@@ -1,6 +1,7 @@
 ---
 comments: true
 description: YOLOv3, YOLOv3-Ultralytics and YOLOv3u by Ultralytics explained. Learn the evolution of these models and their specifications.
+keywords: YOLOv3, Ultralytics YOLOv3, YOLO v3, YOLOv3 models, object detection, models, machine learning, AI, image recognition, object recognition
 ---
 
 # YOLOv3, YOLOv3-Ultralytics, and YOLOv3u
@@ -14,6 +15,8 @@ This document presents an overview of three closely related object detection mod
 2. **YOLOv3-Ultralytics:** This is Ultralytics' implementation of the YOLOv3 model. It reproduces the original YOLOv3 architecture and offers additional functionalities, such as support for more pre-trained models and easier customization options.
 
 3. **YOLOv3u:** This is an updated version of YOLOv3-Ultralytics that incorporates the anchor-free, objectness-free split head used in YOLOv8 models. YOLOv3u maintains the same backbone and neck architecture as YOLOv3 but with the updated detection head from YOLOv8.
+
+![Ultralytics YOLOv3](https://raw.githubusercontent.com/ultralytics/assets/main/yolov3/banner-yolov3.png)
 
 ## Key Features
 

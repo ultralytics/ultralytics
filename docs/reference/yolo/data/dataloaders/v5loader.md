@@ -1,5 +1,6 @@
 ---
 description: Efficiently load images and labels to models using Ultralytics YOLO's InfiniteDataLoader, LoadScreenshots, and LoadStreams.
+keywords: YOLO, data loader, image classification, object detection, Ultralytics
 ---
 
 # InfiniteDataLoader

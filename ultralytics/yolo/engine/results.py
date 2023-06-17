@@ -287,8 +287,8 @@ class Results(SimpleClass):
                     line = (c, *seg)
                 if kpts is not None:
                     kpt = kpts[j].xyn.reshape(-1).tolist()
-                    line += (*kpt,)
-                line += (conf,) * save_conf + (() if id is None else (id,))
+                    line += (*kpt, )
+                line += (conf, ) * save_conf + (() if id is None else (id, ))
                 texts.append(('%g ' * len(line)).rstrip() % line)
 
         if texts:

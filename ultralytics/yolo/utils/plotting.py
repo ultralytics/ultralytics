@@ -13,6 +13,7 @@ from PIL import __version__ as pil_version
 from scipy.ndimage import gaussian_filter1d
 
 from ultralytics.yolo.utils import LOGGER, TryExcept, plt_settings, threaded
+
 from .checks import check_font, check_version, is_ascii
 from .files import increment_path
 from .ops import clip_boxes, scale_image, xywh2xyxy, xyxy2xywh

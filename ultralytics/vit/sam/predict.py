@@ -6,6 +6,7 @@ import torch
 from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils.torch_utils import select_device
+
 from .modules.mask_generator import SamAutomaticMaskGenerator
 
 

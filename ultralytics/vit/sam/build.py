@@ -10,11 +10,11 @@ from functools import partial
 
 import torch
 
+from ...yolo.utils.downloads import attempt_download_asset
 from .modules.decoders import MaskDecoder
 from .modules.encoders import ImageEncoderViT, PromptEncoder
 from .modules.sam import Sam
 from .modules.transformer import TwoWayTransformer
-from ...yolo.utils.downloads import attempt_download_asset
 
 
 def build_sam_vit_h(checkpoint=None):
@@ -51,11 +51,11 @@ def build_sam_vit_b(checkpoint=None):
 
 
 def _build_sam(
-        encoder_embed_dim,
-        encoder_depth,
-        encoder_num_heads,
-        encoder_global_attn_indexes,
-        checkpoint=None,
+    encoder_embed_dim,
+    encoder_depth,
+    encoder_num_heads,
+    encoder_global_attn_indexes,
+    checkpoint=None,
 ):
     """Builds the selected SAM model architecture."""
     prompt_embed_dim = 256

@@ -94,20 +94,23 @@ class Annotator:
                 self.draw.text((box[0], box[1] - h if outside else box[1]), label, fill=txt_color, font=self.font)
         else:  # cv2
             p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
-            cv2.rectangle(self.im, p1, p2, color, thickness=self.lw, lineType=cv2.LINE_AA)
+            overlay = self.im.copy()
+            alpha = 0.4  # Should be config from predict method, but now set to default value
+            cv2.rectangle(overlay, p1, p2, color, thickness=self.lw, lineType=cv2.LINE_AA)
             if label:
                 tf = max(self.lw - 1, 1)  # font thickness
                 w, h = cv2.getTextSize(label, 0, fontScale=self.lw / 3, thickness=tf)[0]  # text width, height
                 outside = p1[1] - h >= 3
                 p2 = p1[0] + w, p1[1] - h - 3 if outside else p1[1] + h + 3
-                cv2.rectangle(self.im, p1, p2, color, -1, cv2.LINE_AA)  # filled
-                cv2.putText(self.im,
+                cv2.rectangle(overlay, p1, p2, color, -1, cv2.LINE_AA)  # filled
+                cv2.putText(overlay,
                             label, (p1[0], p1[1] - 2 if outside else p1[1] + h + 2),
                             0,
                             self.lw / 3,
                             txt_color,
                             thickness=tf,
                             lineType=cv2.LINE_AA)
+                self.im = cv2.addWeighted(overlay, alpha, self.im, 1 - alpha, 0)
 
     def masks(self, masks, colors, im_gpu, alpha=0.5, retina_masks=False):
         """Plot masks at once.

@@ -223,7 +223,7 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
             root (str): Dataset path.
             args (Namespace): Argument parser containing dataset related settings.
             augment (bool, optional): True if dataset should be augmented, False otherwise. Defaults to False.
-            cache (Union[bool, str], optional): Cache setting, can be True, False, 'ram' or 'disk'. Defaults to False.
+            cache (bool | str | optional): Cache setting, can be True, False, 'ram' or 'disk'. Defaults to False.
         """
         super().__init__(root=root)
         if augment and args.fraction < 1.0:  # reduce training fraction

@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Learn about the MNIST dataset, a large database of handwritten digits commonly used for training various image processing systems and machine learning models.
+keywords: MNIST, EMNIST, dataset, handwritten digits, convolutional neural networks, support vector machines, machine learning, computer vision, image processing, benchmark data, Ultralytics
 ---
 
 # MNIST Dataset

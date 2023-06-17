@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Learn how to leverage callbacks in Ultralytics YOLO framework to perform custom tasks in trainer, validator, predictor and exporter modes.
+keywords: callbacks, Ultralytics framework, Trainer, Validator, Predictor, Exporter, train, val, export, predict, YOLO, Object Detection
 ---
 
 ## Callbacks

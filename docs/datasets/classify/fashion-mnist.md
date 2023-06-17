@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Learn about the Fashion-MNIST dataset, a large database of Zalando's article images used for training various image processing systems and machine learning models.
+keywords: Fashion-MNIST, dataset, machine learning, image classification, convolutional neural networks, benchmarking, Zalando's article images
 ---
 
 # Fashion-MNIST Dataset

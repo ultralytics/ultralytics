@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Run YOLO models on your Android device for real-time object detection with Ultralytics Android App. Utilizes TensorFlow Lite and hardware delegates.
+keywords: Ultralytics, Android, app, YOLO models, real-time object detection, TensorFlow Lite, quantization, acceleration, delegates, performance variability
 ---
 
 # Ultralytics Android App: Real-time Object Detection with YOLO Models

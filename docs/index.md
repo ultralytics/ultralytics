@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Explore Ultralytics YOLOv8, a cutting-edge real-time object detection and image segmentation model for various applications and hardware platforms.
+keywords: YOLOv8, object detection, image segmentation, computer vision, machine learning, deep learning, AGPL-3.0 License, Enterprise License
 ---
 
 <div align="center">

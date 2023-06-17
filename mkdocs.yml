@@ -17,7 +17,7 @@ theme:
   icon:
     repo: fontawesome/brands/github
   font:
-    text: Roboto
+    text: Helvetica
     code: Roboto Mono
 
   palette:
@@ -91,7 +91,7 @@ extra:
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/ultralytics/
     - icon: fontawesome/brands/discord
-      link: https://discord.gg/n6cFeSPZdD
+      link: https://discord.gg/7aegy5d8
 
 extra_css:
   - stylesheets/style.css
@@ -162,10 +162,13 @@ nav:
   - Models:
       - models/index.md
       - YOLOv3: models/yolov3.md
+      - YOLOv4: models/yolov4.md
       - YOLOv5: models/yolov5.md
       - YOLOv6: models/yolov6.md
+      - YOLOv7: models/yolov7.md
       - YOLOv8: models/yolov8.md
       - SAM (Segment Anything Model): models/sam.md
+      - YOLO-NAS (Neural Architecture Search): models/yolo-nas.md
       - RT-DETR (Realtime Detection Transformer): models/rtdetr.md
   - Datasets:
       - datasets/index.md
@@ -246,6 +249,7 @@ nav:
       - Inference API: hub/inference_api.md
   - Reference:
       - hub:
+          - __init__: reference/hub/__init__.md
           - auth: reference/hub/auth.md
           - session: reference/hub/session.md
           - utils: reference/hub/utils.md
@@ -253,8 +257,8 @@ nav:
           - autobackend: reference/nn/autobackend.md
           - autoshape: reference/nn/autoshape.md
           - modules:
-              - blocks: reference/nn/modules/block.md
-              - convs: reference/nn/modules/conv.md
+              - block: reference/nn/modules/block.md
+              - conv: reference/nn/modules/conv.md
               - head: reference/nn/modules/head.md
               - transformer: reference/nn/modules/transformer.md
               - utils: reference/nn/modules/utils.md
@@ -269,7 +273,31 @@ nav:
               - gmc: reference/tracker/utils/gmc.md
               - kalman_filter: reference/tracker/utils/kalman_filter.md
               - matching: reference/tracker/utils/matching.md
+      - vit:
+          - rtdetr:
+              - model: reference/vit/rtdetr/model.md
+              - predict: reference/vit/rtdetr/predict.md
+              - train: reference/vit/rtdetr/train.md
+              - val: reference/vit/rtdetr/val.md
+          - sam:
+              - amg: reference/vit/sam/amg.md
+              - autosize: reference/vit/sam/autosize.md
+              - build: reference/vit/sam/build.md
+              - model: reference/vit/sam/model.md
+              - modules:
+                  - decoders: reference/vit/sam/modules/decoders.md
+                  - encoders: reference/vit/sam/modules/encoders.md
+                  - mask_generator: reference/vit/sam/modules/mask_generator.md
+                  - prompt_predictor: reference/vit/sam/modules/prompt_predictor.md
+                  - sam: reference/vit/sam/modules/sam.md
+                  - transformer: reference/vit/sam/modules/transformer.md
+              - predict: reference/vit/sam/predict.md
+          - utils:
+              - loss: reference/vit/utils/loss.md
+              - ops: reference/vit/utils/ops.md
       - yolo:
+          - cfg:
+              - __init__: reference/yolo/cfg/__init__.md
           - data:
               - annotator: reference/yolo/data/annotator.md
               - augment: reference/yolo/data/augment.md
@@ -290,13 +318,19 @@ nav:
               - results: reference/yolo/engine/results.md
               - trainer: reference/yolo/engine/trainer.md
               - validator: reference/yolo/engine/validator.md
+          - nas:
+              - model: reference/yolo/nas/model.md
+              - predict: reference/yolo/nas/predict.md
+              - val: reference/yolo/nas/val.md
           - utils:
+              - __init__: reference/yolo/utils/__init__.md
               - autobatch: reference/yolo/utils/autobatch.md
               - benchmarks: reference/yolo/utils/benchmarks.md
               - callbacks:
                   - base: reference/yolo/utils/callbacks/base.md
                   - clearml: reference/yolo/utils/callbacks/clearml.md
                   - comet: reference/yolo/utils/callbacks/comet.md
+                  - dvc: reference/yolo/utils/callbacks/dvc.md
                   - hub: reference/yolo/utils/callbacks/hub.md
                   - mlflow: reference/yolo/utils/callbacks/mlflow.md
                   - neptune: reference/yolo/utils/callbacks/neptune.md
@@ -333,6 +367,7 @@ nav:
                   - predict: reference/yolo/v8/segment/predict.md
                   - train: reference/yolo/v8/segment/train.md
                   - val: reference/yolo/v8/segment/val.md
+
   - Help:
       - Help: help/index.md
       - Frequently Asked Questions (FAQ): help/FAQ.md

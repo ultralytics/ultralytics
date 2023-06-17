@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Integrate YOLOv8 in Python. Load, use pretrained models, train, and infer images. Export to ONNX. Track objects in videos.
+keywords: yolov8, python usage, object detection, segmentation, classification, pretrained models, train models, image predictions
 ---
 
 # Python Usage

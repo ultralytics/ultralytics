@@ -7,7 +7,7 @@ import numpy as np
 import torch
 from PIL import Image
 
-from ultralytics import YOLO
+from ultralytics import RTDETR, YOLO
 from ultralytics.yolo.data.build import load_inference_source
 from ultralytics.yolo.utils import LINUX, ONLINE, ROOT, SETTINGS
 
@@ -174,7 +174,10 @@ def test_export_paddle(enabled=False):
 
 def test_all_model_yamls():
     for m in list((ROOT / 'models').rglob('yolo*.yaml')):
-        YOLO(m.name)
+        if m.name == 'yolov8-rtdetr.yaml':  # except the rtdetr model
+            RTDETR(m.name)
+        else:
+            YOLO(m.name)
 
 
 def test_workflow():

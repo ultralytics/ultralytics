@@ -5,15 +5,15 @@
 
 from pathlib import Path
 
-from ultralytics.nn.tasks import DetectionModel, attempt_load_one_weight, yaml_model_load
+from ultralytics.nn.tasks import RTDETRDetectionModel, attempt_load_one_weight, yaml_model_load
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
-from ultralytics.yolo.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, ROOT, is_git_dir
+from ultralytics.yolo.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, RANK, ROOT, is_git_dir
 from ultralytics.yolo.utils.checks import check_imgsz
-from ultralytics.yolo.utils.torch_utils import model_info
+from ultralytics.yolo.utils.torch_utils import model_info, smart_inference_mode
 
-from ...yolo.utils.torch_utils import smart_inference_mode
 from .predict import RTDETRPredictor
+from .train import RTDETRTrainer
 from .val import RTDETRValidator
 
 
@@ -24,6 +24,7 @@ class RTDETR:
             raise NotImplementedError('RT-DETR only supports creating from pt file or yaml file.')
         # Load or create new YOLO model
         self.predictor = None
+        self.ckpt = None
         suffix = Path(model).suffix
         if suffix == '.yaml':
             self._new(model)
@@ -34,7 +35,7 @@ class RTDETR:
         cfg_dict = yaml_model_load(cfg)
         self.cfg = cfg
         self.task = 'detect'
-        self.model = DetectionModel(cfg_dict, verbose=verbose)  # build model
+        self.model = RTDETRDetectionModel(cfg_dict, verbose=verbose)  # build model
 
         # Below added to allow export from yamls
         self.model.args = DEFAULT_CFG_DICT  # attach args to model
@@ -42,9 +43,19 @@ class RTDETR:
 
     @smart_inference_mode()
     def _load(self, weights: str):
-        self.model, _ = attempt_load_one_weight(weights)
+        self.model, self.ckpt = attempt_load_one_weight(weights)
         self.model.args = DEFAULT_CFG_DICT  # attach args to model
         self.task = self.model.args['task']
+
+    @smart_inference_mode()
+    def load(self, weights='yolov8n.pt'):
+        """
+        Transfers parameters with matching names and shapes from 'weights' to model.
+        """
+        if isinstance(weights, (str, Path)):
+            weights, self.ckpt = attempt_load_one_weight(weights)
+        self.model.load(weights)
+        return self
 
     @smart_inference_mode()
     def predict(self, source=None, stream=False, **kwargs):
@@ -74,8 +85,30 @@ class RTDETR:
         return self.predictor(source, stream=stream)
 
     def train(self, **kwargs):
-        """Function trains models but raises an error as RTDETR models do not support training."""
-        raise NotImplementedError("RTDETR models don't support training")
+        """
+        Trains the model on a given dataset.
+
+        Args:
+            **kwargs (Any): Any number of arguments representing the training configuration.
+        """
+        overrides = dict(task='detect', mode='train')
+        overrides.update(kwargs)
+        overrides['deterministic'] = False
+        if not overrides.get('data'):
+            raise AttributeError("Dataset required but missing, i.e. pass 'data=coco128.yaml'")
+        if overrides.get('resume'):
+            overrides['resume'] = self.ckpt_path
+        self.task = overrides.get('task') or self.task
+        self.trainer = RTDETRTrainer(overrides=overrides)
+        if not overrides.get('resume'):  # manually set model only if not resuming
+            self.trainer.model = self.trainer.get_model(weights=self.model if self.ckpt else None, cfg=self.model.yaml)
+            self.model = self.trainer.model
+        self.trainer.train()
+        # Update model and cfg after training
+        if RANK in (-1, 0):
+            self.model, _ = attempt_load_one_weight(str(self.trainer.best))
+            self.overrides = self.model.args
+            self.metrics = getattr(self.trainer.validator, 'metrics', None)  # TODO: no metrics returned by DDP
 
     def val(self, **kwargs):
         """Run validation given dataset."""

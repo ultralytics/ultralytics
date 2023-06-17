@@ -3,11 +3,6 @@ description: Explore Ultralytics YOLO's FocalLoss, DetMetrics, PoseMetrics, Clas
 keywords: YOLOv5, metrics, losses, confusion matrix, detection metrics, pose metrics, classification metrics, intersection over area, intersection over union, keypoint intersection over union, average precision, per class average precision, Ultralytics Docs
 ---
 
-# FocalLoss
----
-:::ultralytics.yolo.utils.metrics.FocalLoss
-<br><br>
-
 # ConfusionMatrix
 ---
 :::ultralytics.yolo.utils.metrics.ConfusionMatrix

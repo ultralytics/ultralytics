@@ -1,14 +1,12 @@
 from pathlib import Path
 
 import cv2
-import lancedb
 import matplotlib.pyplot as plt
 import numpy as np
 import pyarrow as pa
 import torch.nn.functional as F
 import yaml
 from lancedb.embeddings import with_embeddings
-from sklearn.decomposition import PCA
 from tqdm import tqdm
 
 from ultralytics import YOLO
@@ -17,6 +15,12 @@ from ultralytics.yolo.utils import LOGGER, colorstr, ops
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 from ultralytics.yolo.v8.detect.predict import DetectionPredictor
 
+try:
+    from sklearn.decomposition import PCA
+    import lancedb
+except ImportError:
+    LOGGER.error('Please install lancedb and sklearn to use this module - `pip install lancedb sklearn`')
+    raise ImportError('Optional modules not installed')
 
 class EmbeddingsPredictor(DetectionPredictor):
 

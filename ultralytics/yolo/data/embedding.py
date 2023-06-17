@@ -15,12 +15,12 @@ from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 from ultralytics.yolo.v8.detect.predict import DetectionPredictor
 
 try:
-    from sklearn.decomposition import PCA
     import lancedb
     from lancedb.embeddings import with_embeddings
+    from sklearn.decomposition import PCA
 except ImportError:
     LOGGER.error('Please install lancedb and sklearn to use Explorer - `pip install lancedb sklearn`')
-  
+
 
 class EmbeddingsPredictor(DetectionPredictor):
 

@@ -1,6 +1,8 @@
 import pytest
-from ultralytics.yolo.utils.checks import check_requirements
+
 from ultralytics import Explorer
+from ultralytics.yolo.utils.checks import check_requirements
+
 try:
     import lancedb
     import sklearn
@@ -8,8 +10,10 @@ except ImportError as e:
     lancedb = False
     sklearn = False
 
-@pytest.mark.skipif(not lancedb or not sklearn, reason="requires lancedb and sklearn")
+
+@pytest.mark.skipif(not lancedb or not sklearn, reason='requires lancedb and sklearn')
 class TestExplorer:
+
     def test_embeddings_creation(self):
         ds = Explorer('coco8.yaml')
         ds.build_embeddings()

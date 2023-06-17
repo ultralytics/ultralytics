@@ -22,20 +22,15 @@ class MaskDecoder(nn.Module):
         iou_head_hidden_dim: int = 256,
     ) -> None:
         """
-        Predicts masks given an image and prompt embeddings, using a
-        transformer architecture.
+        Predicts masks given an image and prompt embeddings, using a transformer architecture.
 
         Arguments:
-          transformer_dim (int): the channel dimension of the transformer
-          transformer (nn.Module): the transformer used to predict masks
-          num_multimask_outputs (int): the number of masks to predict
-            when disambiguating masks
-          activation (nn.Module): the type of activation to use when
-            upscaling masks
-          iou_head_depth (int): the depth of the MLP used to predict
-            mask quality
-          iou_head_hidden_dim (int): the hidden dimension of the MLP
-            used to predict mask quality
+            transformer_dim (int): the channel dimension of the transformer module
+            transformer (nn.Module): the transformer used to predict masks
+            num_multimask_outputs (int): the number of masks to predict when disambiguating masks
+            activation (nn.Module): the type of activation to use when upscaling masks
+            iou_head_depth (int): the depth of the MLP used to predict mask quality
+            iou_head_hidden_dim (int): the hidden dimension of the MLP used to predict mask quality
         """
         super().__init__()
         self.transformer_dim = transformer_dim
@@ -71,16 +66,15 @@ class MaskDecoder(nn.Module):
         Predict masks given image and prompt embeddings.
 
         Arguments:
-          image_embeddings (torch.Tensor): the embeddings from the image encoder
-          image_pe (torch.Tensor): positional encoding with the shape of image_embeddings
-          sparse_prompt_embeddings (torch.Tensor): the embeddings of the points and boxes
-          dense_prompt_embeddings (torch.Tensor): the embeddings of the mask inputs
-          multimask_output (bool): Whether to return multiple masks or a single
-            mask.
+            image_embeddings (torch.Tensor): the embeddings from the image encoder
+            image_pe (torch.Tensor): positional encoding with the shape of image_embeddings
+            sparse_prompt_embeddings (torch.Tensor): the embeddings of the points and boxes
+            dense_prompt_embeddings (torch.Tensor): the embeddings of the mask inputs
+            multimask_output (bool): Whether to return multiple masks or a single mask.
 
         Returns:
-          torch.Tensor: batched predicted masks
-          torch.Tensor: batched predictions of mask quality
+            torch.Tensor: batched predicted masks
+            torch.Tensor: batched predictions of mask quality
         """
         masks, iou_pred = self.predict_masks(
             image_embeddings=image_embeddings,
@@ -136,9 +130,11 @@ class MaskDecoder(nn.Module):
         return masks, iou_pred
 
 
-# Lightly adapted from
-# https://github.com/facebookresearch/MaskFormer/blob/main/mask_former/modeling/transformer/transformer_predictor.py # noqa
 class MLP(nn.Module):
+    """
+    Lightly adapted from
+    https://github.com/facebookresearch/MaskFormer/blob/main/mask_former/modeling/transformer/transformer_predictor.py
+    """
 
     def __init__(
         self,

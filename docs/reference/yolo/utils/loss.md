@@ -13,11 +13,6 @@ keywords: Ultralytics, YOLO, loss functions, object detection, keypoint detectio
 :::ultralytics.yolo.utils.loss.FocalLoss
 <br><br>
 
-# GIoULoss
----
-:::ultralytics.yolo.utils.loss.GIoULoss
-<br><br>
-
 # BboxLoss
 ---
 :::ultralytics.yolo.utils.loss.BboxLoss

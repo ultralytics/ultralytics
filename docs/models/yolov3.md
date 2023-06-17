@@ -1,6 +1,7 @@
 ---
 comments: true
 description: YOLOv3, YOLOv3-Ultralytics and YOLOv3u by Ultralytics explained. Learn the evolution of these models and their specifications.
+keywords: YOLOv3, Ultralytics YOLOv3, YOLO v3, YOLOv3 models, object detection, models, machine learning, AI, image recognition, object recognition
 ---
 
 # YOLOv3, YOLOv3-Ultralytics, and YOLOv3u

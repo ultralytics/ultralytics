@@ -3,7 +3,6 @@ from pathlib import Path
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-import pyarrow as pa
 import torch.nn.functional as F
 import yaml
 from tqdm import tqdm
@@ -17,7 +16,7 @@ from ultralytics.yolo.v8.detect.predict import DetectionPredictor
 try:
     import lancedb
     from lancedb.embeddings import with_embeddings
-    from sklearn.decomposition import PCA
+    import pyarrow as pa # dependency of lancedb
 except ImportError:
     LOGGER.error('Please install lancedb and sklearn to use Explorer - `pip install lancedb sklearn`')
 

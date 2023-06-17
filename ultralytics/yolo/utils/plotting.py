@@ -8,7 +8,8 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from PIL import Image, ImageDraw, ImageFont, __version__ as pil_version
+from PIL import Image, ImageDraw, ImageFont
+from PIL import __version__ as pil_version
 from scipy.ndimage import gaussian_filter1d
 
 from ultralytics.yolo.utils import LOGGER, TryExcept, plt_settings, threaded
@@ -62,7 +63,7 @@ class Annotator:
             except Exception:
                 self.font = ImageFont.load_default()
             # Deprecation fix for w, h = getsize(string) -> _, _, w, h = getbox(string)
-            if check_version(pil_version, '9.2.0') :
+            if check_version(pil_version, '9.2.0'):
                 self.font.getsize = lambda x: self.font.getbbox(x)[2:4]  # text width, height
         else:  # use cv2
             self.im = im

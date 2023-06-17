@@ -47,7 +47,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
     stride, update it to the nearest multiple of the stride that is greater than or equal to the given floor value.
 
     Args:
-        imgsz (int) or (cList[int]): Image size.
+        imgsz (int | cList[int]): Image size.
         stride (int): Stride value.
         min_dim (int): Minimum number of dimensions.
         floor (int): Minimum allowed value for image size.

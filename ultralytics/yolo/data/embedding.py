@@ -19,7 +19,7 @@ from ultralytics.yolo.v8.detect.predict import DetectionPredictor
 
 
 class EmbeddingsPredictor(DetectionPredictor):
-    
+
     def postprocess(self, preds, img, orig_imgs):
         embedding = preds[1]
         embedding = F.adaptive_avg_pool2d(embedding, 2).flatten(1)
@@ -65,6 +65,7 @@ def get_dataset_info(data='coco128.yaml', task='detect'):
     data = check_det_dataset(data)
 
     return data
+
 
 class Explorer:
     """
@@ -135,7 +136,7 @@ class Explorer:
 
         idx = [i for i in range(len(orig_imgs))]  # for easier hashing #TODO: remove. not needed anymore
         df = pa.table([orig_imgs, idx], names=['path', 'id']).to_pandas()
-        pa_table = with_embeddings(self._embedding_func, df, 'path', batch_size=10000) # TODO: remove hardcoding?
+        pa_table = with_embeddings(self._embedding_func, df, 'path', batch_size=10000)  # TODO: remove hardcoding?
         self.table = self._create_table(self.table_name, data=pa_table, mode='overwrite')
         LOGGER.info(f'{colorstr("LanceDB:")} Embedding space built successfully.')
 
@@ -244,15 +245,16 @@ class Explorer:
         reduced_embs = pca.fit_transform(embs)
         dim = reduced_embs.shape[1]
         values = pa.array(reduced_embs.reshape(-1), type=pa.float32())
-        table_data =  pa.FixedSizeListArray.from_arrays(values, dim)
+        table_data = pa.FixedSizeListArray.from_arrays(values, dim)
         table = pa.table([table_data, self.table.to_arrow()['id']], names=['vector', 'id'])
-        self._reduced_embs_table = self._create_table('reduced_embs', data=table, mode="overwrite")
+        self._reduced_embs_table = self._create_table('reduced_embs', data=table, mode='overwrite')
 
         #with multiprocessing.Pool() as pool: # multiprocessing doesn't do much. Need to revisit when GIL removal is widely adopted
         #    list(tqdm(pool.imap(build_index, iterable)))
 
         for _, emb in enumerate(tqdm(reduced_embs)):
-            df = self._reduced_embs_table.search(emb).metric('cosine').limit(limit).to_df().query(f'score <= {threshold}')
+            df = self._reduced_embs_table.search(emb).metric('cosine').limit(limit).to_df().query(
+                f'score <= {threshold}')
             for idx in df['id'][1:]:
                 self._sim_index[idx] += 1
         self._drop_table('reduced_embs')
@@ -427,7 +429,6 @@ class Explorer:
         predictor.setup_model(model.model)
 
         return predictor
-
 
     def create_index(self):
         # TODO: create index

@@ -6,7 +6,6 @@ import numpy as np
 import pyarrow as pa
 import torch.nn.functional as F
 import yaml
-from lancedb.embeddings import with_embeddings
 from tqdm import tqdm
 
 from ultralytics import YOLO
@@ -16,12 +15,12 @@ from ultralytics.yolo.utils.torch_utils import smart_inference_mode
 from ultralytics.yolo.v8.detect.predict import DetectionPredictor
 
 try:
-    import lancedb
     from sklearn.decomposition import PCA
+    import lancedb
+    from lancedb.embeddings import with_embeddings
 except ImportError:
-    LOGGER.error('Please install lancedb and sklearn to use this module - `pip install lancedb sklearn`')
-    raise ImportError('Optional modules not installed')
-
+    LOGGER.error('Please install lancedb and sklearn to use Explorer - `pip install lancedb sklearn`')
+  
 
 class EmbeddingsPredictor(DetectionPredictor):
 

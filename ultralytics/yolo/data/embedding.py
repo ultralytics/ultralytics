@@ -19,7 +19,7 @@ from ultralytics.yolo.v8.detect.predict import DetectionPredictor
 
 
 class EmbeddingsPredictor(DetectionPredictor):
-
+    
     def postprocess(self, preds, img, orig_imgs):
         embedding = preds[1]
         embedding = F.adaptive_avg_pool2d(embedding, 2).flatten(1)
@@ -66,7 +66,6 @@ def get_dataset_info(data='coco128.yaml', task='detect'):
 
     return data
 
-
 class Explorer:
     """
     YOLO Explorer. Supports detection, segmnetation and Pose and YOLO models.
@@ -95,6 +94,7 @@ class Explorer:
         self.trainset = None
         self.removed_img_count = 0
         self.verbose = False  # For embedding function
+        self._sim_index = None
 
         # copy table to project if table is provided
         if table:
@@ -135,7 +135,7 @@ class Explorer:
 
         idx = [i for i in range(len(orig_imgs))]  # for easier hashing #TODO: remove. not needed anymore
         df = pa.table([orig_imgs, idx], names=['path', 'id']).to_pandas()
-        pa_table = with_embeddings(self._embedding_func, df, 'path')
+        pa_table = with_embeddings(self._embedding_func, df, 'path', batch_size=10000) # TODO: remove hardcoding?
         self.table = self._create_table(self.table_name, data=pa_table, mode='overwrite')
         LOGGER.info(f'{colorstr("LanceDB:")} Embedding space built successfully.')
 
@@ -166,18 +166,20 @@ class Explorer:
         Returns:
             tuple: (list of paths, list of ids)
         """
+        embeddings = None
         if self.table is None:
             LOGGER.error('No embedding space found. Please build the embedding space first.')
             return None
         if isinstance(img, int):
-            img_path = str(self.table.to_arrow()['path'][img])
+            embeddings = self.table.to_pandas()['vector'][img]
         elif isinstance(img, (str, Path)):
             img_path = img
         else:
             LOGGER.error('img should be index from the table(int) or path of an image (str or Path)')
             return
-        # predictor = EmbeddingsPredictor()
-        embeddings = self.predictor.embed(img_path).squeeze().cpu().numpy()
+
+        if embeddings is None:
+            embeddings = self.predictor.embed(img_path).squeeze().cpu().numpy()
         sim = self.table.search(embeddings).limit(n).to_df()
         return sim['path'].to_list(), sim['id'].to_list()
 
@@ -206,13 +208,14 @@ class Explorer:
         # Display the grid of images
         plt.show()
 
-    def get_similarity_index(self, sim_thres=0.9, top_k=0.01):
+    def get_similarity_index(self, sim_thres=0.90, top_k=0.01, dim=256, sorted=False):
         """
 
         Args:
             sim_thres (float, optional): Similarity threshold to set the minimum similarity. Defaults to 0.9.
             top_k (float, optional): Top k fraction of the similar embeddings to apply the threshold on. Defaults to 0.1.
-
+            dim (int, optional): Dimension of the reduced embedding space. Defaults to 256.
+            sorted (bool, optional): Sort the embeddings by similarity. Defaults to False.
         Returns:
             np.array: Similarity index
         """
@@ -231,25 +234,39 @@ class Explorer:
         if sim_thres < 0.0:
             LOGGER.warning('sim_thres should be between 0 and 1. Setting sim_thres to 0.0')
             sim_thres = 0.0
-
         threshold = 1.0 - sim_thres
         embs = np.array(self.table.to_arrow()['vector'].to_pylist())
-        index = np.zeros(len(embs))
+        self._sim_index = np.zeros(len(embs))
         limit = max(int(len(embs) * top_k), 1)
-        for _, emb in enumerate(tqdm(embs)):
-            df = self.table.search(emb).metric('cosine').limit(limit).to_df().query(f'score <= {threshold}')
-            for idx in df['id'][1:]:
-                index[idx] += 1
-        self.sim_index = index
-        return index
 
-    def plot_similirity_index(self, sim_thres=0.9, top_k=0.01, sorted=False):
+        # create a new table with reduced dimensionality to speedup the search
+        pca = PCA(n_components=min(dim, len(embs)))
+        reduced_embs = pca.fit_transform(embs)
+        dim = reduced_embs.shape[1]
+        values = pa.array(reduced_embs.reshape(-1), type=pa.float32())
+        table_data =  pa.FixedSizeListArray.from_arrays(values, dim)
+        table = pa.table([table_data, self.table.to_arrow()['id']], names=['vector', 'id'])
+        self._reduced_embs_table = self._create_table('reduced_embs', data=table, mode="overwrite")
+
+        #with multiprocessing.Pool() as pool: # multiprocessing doesn't do much. Need to revisit when GIL removal is widely adopted
+        #    list(tqdm(pool.imap(build_index, iterable)))
+
+        for _, emb in enumerate(tqdm(reduced_embs)):
+            df = self._reduced_embs_table.search(emb).metric('cosine').limit(limit).to_df().query(f'score <= {threshold}')
+            for idx in df['id'][1:]:
+                self._sim_index[idx] += 1
+        self._drop_table('reduced_embs')
+
+        return self._sim_index if not sorted else np.sort(self._sim_index)
+
+    def plot_similirity_index(self, sim_thres=0.90, top_k=0.01, dim=256, sorted=False):
         """
         Plots the similarity index
 
         Args:
             threshold (float, optional): Similarity threshold to set the minimum similarity. Defaults to 0.9.
             top_k (float, optional): Top k fraction of the similar embeddings to apply the threshold on. Defaults to 0.1.
+            dim (int, optional): Dimension of the reduced embedding space. Defaults to 256.
             sorted (bool, optional): Whether to sort the index or not. Defaults to False.
         """
         index = self.get_similarity_index(sim_thres, top_k)
@@ -296,10 +313,11 @@ class Explorer:
 
         db = self._connect()
         if self.temp_table_name in db.table_names():
-            db.drop_table(self.temp_table_name)
+            self._drop_table(self.temp_table_name)
 
         self.table = self._open_table(self.table_name)
         self.removed_img_count = 0
+        # self._sim_index = None # Not sure if we should reset this as computing the index is expensive
         LOGGER.info('Dataset reset to original state.')
 
     def persist(self, name=None):
@@ -372,9 +390,19 @@ class Explorer:
 
     def _open_table(self, name):
         db = lancedb.connect(self.project)
-        table = db.open_table(name)
-
+        table = db.open_table(name) if name in db.table_names() else None
+        if table is None:
+            raise ValueError(f'{colorstr("LanceDB: ") }Table not found.')
         return table
+
+    def _drop_table(self, name):
+        db = lancedb.connect(self.project)
+        try:
+            db.drop_table(name)
+        except:
+            return False
+
+        return True
 
     def _copy_table_to_project(self, table_path):
         if not table_path.endswith('.lance'):
@@ -400,8 +428,6 @@ class Explorer:
 
         return predictor
 
-    def _create_trainable_dataset(self, train_txt):
-        pass
 
     def create_index(self):
         # TODO: create index

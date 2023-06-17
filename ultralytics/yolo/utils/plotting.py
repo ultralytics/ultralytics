@@ -8,8 +8,7 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from PIL import Image, ImageDraw, ImageFont
-from PIL import __version__ as pil_version
+from PIL import Image, ImageDraw, ImageFont, __version__ as pil_version
 from scipy.ndimage import gaussian_filter1d
 
 from ultralytics.yolo.utils import LOGGER, TryExcept, plt_settings, threaded
@@ -54,7 +53,6 @@ class Annotator:
         non_ascii = not is_ascii(example)  # non-latin labels, i.e. asian, arabic, cyrillic
         self.pil = pil or non_ascii
         if self.pil:  # use PIL
-            self.pil_9_2_0_check = check_version(pil_version, '9.2.0')  # deprecation check
             self.im = im if isinstance(im, Image.Image) else Image.fromarray(im)
             self.draw = ImageDraw.Draw(self.im)
             try:
@@ -64,7 +62,7 @@ class Annotator:
             except Exception:
                 self.font = ImageFont.load_default()
             # Deprecation fix for w, h = getsize(string) -> _, _, w, h = getbox(string)
-            if self.pil_9_2_0_check:
+            if check_version(pil_version, '9.2.0') :
                 self.font.getsize = lambda x: self.font.getbbox(x)[2:4]  # text width, height
         else:  # use cv2
             self.im = im

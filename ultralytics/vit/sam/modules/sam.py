@@ -55,9 +55,9 @@ class Sam(nn.Module):
 
     @torch.no_grad()
     def forward(
-        self,
-        batched_input: List[Dict[str, Any]],
-        multimask_output: bool,
+            self,
+            batched_input: List[Dict[str, Any]],
+            multimask_output: bool,
     ) -> List[Dict[str, torch.Tensor]]:
         """
         Predicts masks end-to-end from provided images and prompts.
@@ -131,10 +131,10 @@ class Sam(nn.Module):
         return outputs
 
     def postprocess_masks(
-        self,
-        masks: torch.Tensor,
-        input_size: Tuple[int, ...],
-        original_size: Tuple[int, ...],
+            self,
+            masks: torch.Tensor,
+            input_size: Tuple[int, ...],
+            original_size: Tuple[int, ...],
     ) -> torch.Tensor:
         """
         Remove padding and upscale masks to the original image size.

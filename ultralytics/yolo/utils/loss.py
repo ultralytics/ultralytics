@@ -7,7 +7,6 @@ import torch.nn.functional as F
 from ultralytics.yolo.utils.metrics import OKS_SIGMA
 from ultralytics.yolo.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
 from ultralytics.yolo.utils.tal import TaskAlignedAssigner, dist2bbox, make_anchors
-
 from .metrics import bbox_iou
 from .tal import bbox2dist
 

@@ -13,10 +13,9 @@ from ultralytics.yolo.data.dataloaders.stream_loaders import (LOADERS, LoadImage
                                                               LoadStreams, LoadTensor, SourceTypes, autocast_list)
 from ultralytics.yolo.data.utils import IMG_FORMATS, VID_FORMATS
 from ultralytics.yolo.utils.checks import check_file
-
-from ..utils import RANK, colorstr
 from .dataset import YOLODataset
 from .utils import PIN_MEMORY
+from ..utils import RANK, colorstr
 
 
 class InfiniteDataLoader(dataloader.DataLoader):

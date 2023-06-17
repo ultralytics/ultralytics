@@ -15,8 +15,8 @@ from ultralytics.yolo.v8.detect.predict import DetectionPredictor
 
 try:
     import lancedb
+    import pyarrow as pa  # dependency of lancedb
     from lancedb.embeddings import with_embeddings
-    import pyarrow as pa # dependency of lancedb
 except ImportError:
     LOGGER.error('Please install lancedb and sklearn to use Explorer - `pip install lancedb sklearn`')
 

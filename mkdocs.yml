@@ -273,6 +273,28 @@ nav:
               - gmc: reference/tracker/utils/gmc.md
               - kalman_filter: reference/tracker/utils/kalman_filter.md
               - matching: reference/tracker/utils/matching.md
+      - vit:
+          - rtdetr:
+              - model: reference/vit/rtdetr/model.md
+              - predict: reference/vit/rtdetr/predict.md
+              - train: reference/vit/rtdetr/train.md
+              - val: reference/vit/rtdetr/val.md
+          - sam:
+              - amg: reference/vit/sam/amg.md
+              - autosize: reference/vit/sam/autosize.md
+              - build: reference/vit/sam/build.md
+              - model: reference/vit/sam/model.md
+              - modules:
+                  - decoders: reference/vit/sam/modules/decoders.md
+                  - encoders: reference/vit/sam/modules/encoders.md
+                  - mask_generator: reference/vit/sam/modules/mask_generator.md
+                  - prompt_predictor: reference/vit/sam/modules/prompt_predictor.md
+                  - sam: reference/vit/sam/modules/sam.md
+                  - transformer: reference/vit/sam/modules/transformer.md
+              - predict: reference/vit/sam/predict.md
+          - utils:
+              - loss: reference/vit/utils/loss.md
+              - ops: reference/vit/utils/ops.md
       - yolo:
           - cfg:
               - __init__: reference/yolo/cfg/__init__.md

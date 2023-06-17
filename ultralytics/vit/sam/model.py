@@ -1,4 +1,7 @@
-# SAM model interface
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+"""
+SAM model interface
+"""
 
 from ultralytics.yolo.cfg import get_cfg
 

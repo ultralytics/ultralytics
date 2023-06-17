@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Learn how to contribute to Ultralytics Open-Source YOLO Repositories with contributions guidelines, pull requests requirements, and GitHub CI tests.
+keywords: Ultralytics YOLO, Open source, Contribution guidelines, Pull requests, CLA, GitHub Actions CI Tests, Google-style docstrings
 ---
 
 # Contributing to Ultralytics Open-Source YOLO Repositories

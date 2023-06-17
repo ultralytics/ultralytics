@@ -98,7 +98,7 @@ def main():
     nav_items = []
     for root, _, files in os.walk(CODE_DIR):
         for file in files:
-            if file.endswith(".py") and file != "__init__.py":
+            if file.endswith(".py"):
                 py_filepath = Path(root) / file
                 classes, functions = extract_classes_and_functions(py_filepath)
 

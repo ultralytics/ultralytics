@@ -3,32 +3,32 @@ description: Learn about BaseTensor & Boxes in Ultralytics YOLO Engine. Check ou
 keywords: YOLO, Engine, Results, Masks, Probs, Ultralytics
 ---
 
-# BaseTensor
+## BaseTensor
 ---
-:::ultralytics.yolo.engine.results.BaseTensor
+### ::: ultralytics.yolo.engine.results.BaseTensor
 <br><br>
 
-# Results
+## Results
 ---
-:::ultralytics.yolo.engine.results.Results
+### ::: ultralytics.yolo.engine.results.Results
 <br><br>
 
-# Boxes
+## Boxes
 ---
-:::ultralytics.yolo.engine.results.Boxes
+### ::: ultralytics.yolo.engine.results.Boxes
 <br><br>
 
-# Masks
+## Masks
 ---
-:::ultralytics.yolo.engine.results.Masks
+### ::: ultralytics.yolo.engine.results.Masks
 <br><br>
 
-# Keypoints
+## Keypoints
 ---
-:::ultralytics.yolo.engine.results.Keypoints
+### ::: ultralytics.yolo.engine.results.Keypoints
 <br><br>
 
-# Probs
+## Probs
 ---
-:::ultralytics.yolo.engine.results.Probs
+### ::: ultralytics.yolo.engine.results.Probs
 <br><br>

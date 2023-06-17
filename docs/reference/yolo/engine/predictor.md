@@ -3,7 +3,7 @@ description: '"The BasePredictor class in Ultralytics YOLO Engine predicts objec
 keywords: Ultralytics, YOLO, BasePredictor, Object Detection, Computer Vision, Fast Model, Insights
 ---
 
-# BasePredictor
+## BasePredictor
 ---
-:::ultralytics.yolo.engine.predictor.BasePredictor
+### ::: ultralytics.yolo.engine.predictor.BasePredictor
 <br><br>

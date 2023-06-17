@@ -3,32 +3,32 @@ description: Learn how to export your YOLO model in various formats using Ultral
 keywords: Ultralytics, YOLO, exporter, iOS detect model, gd_outputs, export
 ---
 
-# Exporter
+## Exporter
 ---
-:::ultralytics.yolo.engine.exporter.Exporter
+### ::: ultralytics.yolo.engine.exporter.Exporter
 <br><br>
 
-# iOSDetectModel
+## iOSDetectModel
 ---
-:::ultralytics.yolo.engine.exporter.iOSDetectModel
+### ::: ultralytics.yolo.engine.exporter.iOSDetectModel
 <br><br>
 
-# export_formats
+## export_formats
 ---
-:::ultralytics.yolo.engine.exporter.export_formats
+### ::: ultralytics.yolo.engine.exporter.export_formats
 <br><br>
 
-# gd_outputs
+## gd_outputs
 ---
-:::ultralytics.yolo.engine.exporter.gd_outputs
+### ::: ultralytics.yolo.engine.exporter.gd_outputs
 <br><br>
 
-# try_export
+## try_export
 ---
-:::ultralytics.yolo.engine.exporter.try_export
+### ::: ultralytics.yolo.engine.exporter.try_export
 <br><br>
 
-# export
+## export
 ---
-:::ultralytics.yolo.engine.exporter.export
+### ::: ultralytics.yolo.engine.exporter.export
 <br><br>

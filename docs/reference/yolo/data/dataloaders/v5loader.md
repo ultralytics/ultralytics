@@ -3,92 +3,92 @@ description: Efficiently load images and labels to models using Ultralytics YOLO
 keywords: YOLO, data loader, image classification, object detection, Ultralytics
 ---
 
-# InfiniteDataLoader
+## InfiniteDataLoader
 ---
-:::ultralytics.yolo.data.dataloaders.v5loader.InfiniteDataLoader
+### ::: ultralytics.yolo.data.dataloaders.v5loader.InfiniteDataLoader
 <br><br>
 
-# _RepeatSampler
+## _RepeatSampler
 ---
-:::ultralytics.yolo.data.dataloaders.v5loader._RepeatSampler
+### ::: ultralytics.yolo.data.dataloaders.v5loader._RepeatSampler
 <br><br>
 
-# LoadScreenshots
+## LoadScreenshots
 ---
-:::ultralytics.yolo.data.dataloaders.v5loader.LoadScreenshots
+### ::: ultralytics.yolo.data.dataloaders.v5loader.LoadScreenshots
 <br><br>
 
-# LoadImages
+## LoadImages
 ---
-:::ultralytics.yolo.data.dataloaders.v5loader.LoadImages
+### ::: ultralytics.yolo.data.dataloaders.v5loader.LoadImages
 <br><br>
 
-# LoadStreams
+## LoadStreams
 ---
-:::ultralytics.yolo.data.dataloaders.v5loader.LoadStreams
+### ::: ultralytics.yolo.data.dataloaders.v5loader.LoadStreams
 <br><br>
 
-# LoadImagesAndLabels
+## LoadImagesAndLabels
 ---
-:::ultralytics.yolo.data.dataloaders.v5loader.LoadImagesAndLabels
+### ::: ultralytics.yolo.data.dataloaders.v5loader.LoadImagesAndLabels
 <br><br>
 
-# ClassificationDataset
+## ClassificationDataset
 ---
-:::ultralytics.yolo.data.dataloaders.v5loader.ClassificationDataset
+### ::: ultralytics.yolo.data.dataloaders.v5loader.ClassificationDataset
 <br><br>
 
-# get_hash
+## get_hash
 ---
-:::ultralytics.yolo.data.dataloaders.v5loader.get_hash
+### ::: ultralytics.yolo.data.dataloaders.v5loader.get_hash
 <br><br>
 
-# exif_size
+## exif_size
 ---
-:::ultralytics.yolo.data.dataloaders.v5loader.exif_size
+### ::: ultralytics.yolo.data.dataloaders.v5loader.exif_size
 <br><br>
 
-# exif_transpose
+## exif_transpose
 ---
-:::ultralytics.yolo.data.dataloaders.v5loader.exif_transpose
+### ::: ultralytics.yolo.data.dataloaders.v5loader.exif_transpose
 <br><br>
 
-# seed_worker
+## seed_worker
 ---
-:::ultralytics.yolo.data.dataloaders.v5loader.seed_worker
+### ::: ultralytics.yolo.data.dataloaders.v5loader.seed_worker
 <br><br>
 
-# create_dataloader
+## create_dataloader
 ---
-:::ultralytics.yolo.data.dataloaders.v5loader.create_dataloader
+### ::: ultralytics.yolo.data.dataloaders.v5loader.create_dataloader
 <br><br>
 
-# img2label_paths
+## img2label_paths
 ---
-:::ultralytics.yolo.data.dataloaders.v5loader.img2label_paths
+### ::: ultralytics.yolo.data.dataloaders.v5loader.img2label_paths
 <br><br>
 
-# flatten_recursive
+## flatten_recursive
 ---
-:::ultralytics.yolo.data.dataloaders.v5loader.flatten_recursive
+### ::: ultralytics.yolo.data.dataloaders.v5loader.flatten_recursive
 <br><br>
 
-# extract_boxes
+## extract_boxes
 ---
-:::ultralytics.yolo.data.dataloaders.v5loader.extract_boxes
+### ::: ultralytics.yolo.data.dataloaders.v5loader.extract_boxes
 <br><br>
 
-# autosplit
+## autosplit
 ---
-:::ultralytics.yolo.data.dataloaders.v5loader.autosplit
+### ::: ultralytics.yolo.data.dataloaders.v5loader.autosplit
 <br><br>
 
-# verify_image_label
+## verify_image_label
 ---
-:::ultralytics.yolo.data.dataloaders.v5loader.verify_image_label
+### ::: ultralytics.yolo.data.dataloaders.v5loader.verify_image_label
 <br><br>
 
-# create_classification_dataloader
+## create_classification_dataloader
 ---
-:::ultralytics.yolo.data.dataloaders.v5loader.create_classification_dataloader
+### ::: ultralytics.yolo.data.dataloaders.v5loader.create_classification_dataloader
 <br><br>

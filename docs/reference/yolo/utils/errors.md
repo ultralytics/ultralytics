@@ -3,7 +3,7 @@ description: Learn about HUBModelError in Ultralytics YOLO Docs. Resolve the err
 keywords: HUBModelError, Ultralytics YOLO, YOLO Documentation, Object detection errors, YOLO Errors, HUBModelError Solutions
 ---
 
-# HUBModelError
+## HUBModelError
 ---
-:::ultralytics.yolo.utils.errors.HUBModelError
+### ::: ultralytics.yolo.utils.errors.HUBModelError
 <br><br>

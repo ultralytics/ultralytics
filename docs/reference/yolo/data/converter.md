@@ -3,32 +3,32 @@ description: Convert COCO-91 to COCO-80 class, RLE to polygon, and merge multi-s
 keywords: Ultralytics, YOLO, converter, COCO91, COCO80, rle2polygon, merge_multi_segment, annotations
 ---
 
-# coco91_to_coco80_class
+## coco91_to_coco80_class
 ---
-:::ultralytics.yolo.data.converter.coco91_to_coco80_class
+### ::: ultralytics.yolo.data.converter.coco91_to_coco80_class
 <br><br>
 
-# convert_coco
+## convert_coco
 ---
-:::ultralytics.yolo.data.converter.convert_coco
+### ::: ultralytics.yolo.data.converter.convert_coco
 <br><br>
 
-# rle2polygon
+## rle2polygon
 ---
-:::ultralytics.yolo.data.converter.rle2polygon
+### ::: ultralytics.yolo.data.converter.rle2polygon
 <br><br>
 
-# min_index
+## min_index
 ---
-:::ultralytics.yolo.data.converter.min_index
+### ::: ultralytics.yolo.data.converter.min_index
 <br><br>
 
-# merge_multi_segment
+## merge_multi_segment
 ---
-:::ultralytics.yolo.data.converter.merge_multi_segment
+### ::: ultralytics.yolo.data.converter.merge_multi_segment
 <br><br>
 
-# delete_dsstore
+## delete_dsstore
 ---
-:::ultralytics.yolo.data.converter.delete_dsstore
+### ::: ultralytics.yolo.data.converter.delete_dsstore
 <br><br>

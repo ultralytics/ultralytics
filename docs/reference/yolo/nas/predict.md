@@ -3,7 +3,7 @@ description: Learn how to use NASPredictor in Ultralytics YOLO for deploying eff
 keywords: Ultralytics YOLO, NASPredictor, neural architecture search, efficient CNN models, search algorithms
 ---
 
-# NASPredictor
+## NASPredictor
 ---
-:::ultralytics.yolo.nas.predict.NASPredictor
+### ::: ultralytics.yolo.nas.predict.NASPredictor
 <br><br>

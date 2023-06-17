@@ -3,87 +3,87 @@ description: Explore ultralytics.nn.modules.block to build powerful YOLO object 
 keywords: Ultralytics, NN Modules, Blocks, DFL, HGStem, SPP, C1, C2f, C3x, C3TR, GhostBottleneck, BottleneckCSP, Computer Vision
 ---
 
-# DFL
+## DFL
 ---
-:::ultralytics.nn.modules.block.DFL
+### ::: ultralytics.nn.modules.block.DFL
 <br><br>
 
-# Proto
+## Proto
 ---
-:::ultralytics.nn.modules.block.Proto
+### ::: ultralytics.nn.modules.block.Proto
 <br><br>
 
-# HGStem
+## HGStem
 ---
-:::ultralytics.nn.modules.block.HGStem
+### ::: ultralytics.nn.modules.block.HGStem
 <br><br>
 
-# HGBlock
+## HGBlock
 ---
-:::ultralytics.nn.modules.block.HGBlock
+### ::: ultralytics.nn.modules.block.HGBlock
 <br><br>
 
-# SPP
+## SPP
 ---
-:::ultralytics.nn.modules.block.SPP
+### ::: ultralytics.nn.modules.block.SPP
 <br><br>
 
-# SPPF
+## SPPF
 ---
-:::ultralytics.nn.modules.block.SPPF
+### ::: ultralytics.nn.modules.block.SPPF
 <br><br>
 
-# C1
+## C1
 ---
-:::ultralytics.nn.modules.block.C1
+### ::: ultralytics.nn.modules.block.C1
 <br><br>
 
-# C2
+## C2
 ---
-:::ultralytics.nn.modules.block.C2
+### ::: ultralytics.nn.modules.block.C2
 <br><br>
 
-# C2f
+## C2f
 ---
-:::ultralytics.nn.modules.block.C2f
+### ::: ultralytics.nn.modules.block.C2f
 <br><br>
 
-# C3
+## C3
 ---
-:::ultralytics.nn.modules.block.C3
+### ::: ultralytics.nn.modules.block.C3
 <br><br>
 
-# C3x
+## C3x
 ---
-:::ultralytics.nn.modules.block.C3x
+### ::: ultralytics.nn.modules.block.C3x
 <br><br>
 
-# RepC3
+## RepC3
 ---
-:::ultralytics.nn.modules.block.RepC3
+### ::: ultralytics.nn.modules.block.RepC3
 <br><br>
 
-# C3TR
+## C3TR
 ---
-:::ultralytics.nn.modules.block.C3TR
+### ::: ultralytics.nn.modules.block.C3TR
 <br><br>
 
-# C3Ghost
+## C3Ghost
 ---
-:::ultralytics.nn.modules.block.C3Ghost
+### ::: ultralytics.nn.modules.block.C3Ghost
 <br><br>
 
-# GhostBottleneck
+## GhostBottleneck
 ---
-:::ultralytics.nn.modules.block.GhostBottleneck
+### ::: ultralytics.nn.modules.block.GhostBottleneck
 <br><br>
 
-# Bottleneck
+## Bottleneck
 ---
-:::ultralytics.nn.modules.block.Bottleneck
+### ::: ultralytics.nn.modules.block.Bottleneck
 <br><br>
 
-# BottleneckCSP
+## BottleneckCSP
 ---
-:::ultralytics.nn.modules.block.BottleneckCSP
+### ::: ultralytics.nn.modules.block.BottleneckCSP
 <br><br>

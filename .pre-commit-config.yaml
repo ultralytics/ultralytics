@@ -32,6 +32,7 @@ repos:
     hooks:
       - id: isort
         name: Sort imports
+        exclude: 'ultralytics/__init__.py'
 
   - repo: https://github.com/google/yapf
     rev: v0.33.0

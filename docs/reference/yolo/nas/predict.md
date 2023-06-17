@@ -5,5 +5,5 @@ keywords: Ultralytics YOLO, NASPredictor, neural architecture search, efficient 
 
 # NASPredictor
 ---
-:::ultralytics.yolo.nas.predict.NASPredictor
+::: ultralytics.yolo.nas.predict.NASPredictor
 <br><br>

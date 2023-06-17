@@ -5,10 +5,10 @@ keywords: AutoBackend, ultralytics, nn, autobackend, check class names, neural n
 
 # AutoBackend
 ---
-:::ultralytics.nn.autobackend.AutoBackend
+::: ultralytics.nn.autobackend.AutoBackend
 <br><br>
 
 # check_class_names
 ---
-:::ultralytics.nn.autobackend.check_class_names
+::: ultralytics.nn.autobackend.check_class_names
 <br><br>

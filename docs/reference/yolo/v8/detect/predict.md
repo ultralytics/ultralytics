@@ -5,10 +5,10 @@ keywords: detectionpredictor, ultralytics yolo, object detection, neural network
 
 # DetectionPredictor
 ---
-:::ultralytics.yolo.v8.detect.predict.DetectionPredictor
+::: ultralytics.yolo.v8.detect.predict.DetectionPredictor
 <br><br>
 
 # predict
 ---
-:::ultralytics.yolo.v8.detect.predict.predict
+::: ultralytics.yolo.v8.detect.predict.predict
 <br><br>

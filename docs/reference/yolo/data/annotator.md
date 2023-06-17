@@ -5,5 +5,5 @@ keywords: Ultralytics YOLO, Auto Annotator, AI, image annotation, object detecti
 
 # auto_annotate
 ---
-:::ultralytics.yolo.data.annotator.auto_annotate
+::: ultralytics.yolo.data.annotator.auto_annotate
 <br><br>

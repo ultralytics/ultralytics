@@ -5,5 +5,5 @@ keywords: Ultralytics, ultralytics hub, api keys, authentication, collab account
 
 # Auth
 ---
-:::ultralytics.hub.auth.Auth
+::: ultralytics.hub.auth.Auth
 <br><br>

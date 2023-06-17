@@ -5,5 +5,5 @@ keywords: NASValidator, YOLO, neural architecture search, validation, performanc
 
 # NASValidator
 ---
-:::ultralytics.yolo.nas.val.NASValidator
+::: ultralytics.yolo.nas.val.NASValidator
 <br><br>

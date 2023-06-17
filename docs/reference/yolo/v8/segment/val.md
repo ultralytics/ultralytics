@@ -5,10 +5,10 @@ keywords: SegmentationValidator, YOLOv8, Ultralytics Docs, segmentation model, v
 
 # SegmentationValidator
 ---
-:::ultralytics.yolo.v8.segment.val.SegmentationValidator
+::: ultralytics.yolo.v8.segment.val.SegmentationValidator
 <br><br>
 
 # val
 ---
-:::ultralytics.yolo.v8.segment.val.val
+::: ultralytics.yolo.v8.segment.val.val
 <br><br>

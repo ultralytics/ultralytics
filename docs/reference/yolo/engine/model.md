@@ -5,5 +5,5 @@ keywords: YOLO, object detection, model, architecture, usage, customization, Ult
 
 # YOLO
 ---
-:::ultralytics.yolo.engine.model.YOLO
+::: ultralytics.yolo.engine.model.YOLO
 <br><br>

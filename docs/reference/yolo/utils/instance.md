@@ -5,15 +5,15 @@ keywords: Ultralytics, YOLO, Bboxes, _ntuple, object detection, instance segment
 
 # Bboxes
 ---
-:::ultralytics.yolo.utils.instance.Bboxes
+::: ultralytics.yolo.utils.instance.Bboxes
 <br><br>
 
 # Instances
 ---
-:::ultralytics.yolo.utils.instance.Instances
+::: ultralytics.yolo.utils.instance.Instances
 <br><br>
 
 # _ntuple
 ---
-:::ultralytics.yolo.utils.instance._ntuple
+::: ultralytics.yolo.utils.instance._ntuple
 <br><br>

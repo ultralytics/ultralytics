@@ -5,5 +5,5 @@ keywords: HUBModelError, Ultralytics YOLO, YOLO Documentation, Object detection 
 
 # HUBModelError
 ---
-:::ultralytics.yolo.utils.errors.HUBModelError
+::: ultralytics.yolo.utils.errors.HUBModelError
 <br><br>

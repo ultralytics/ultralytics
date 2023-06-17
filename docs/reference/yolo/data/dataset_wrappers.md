@@ -5,5 +5,5 @@ keywords: Ultralytics YOLO, MixAndRectDataset, dataset wrapper, image-level anno
 
 # MixAndRectDataset
 ---
-:::ultralytics.yolo.data.dataset_wrappers.MixAndRectDataset
+::: ultralytics.yolo.data.dataset_wrappers.MixAndRectDataset
 <br><br>

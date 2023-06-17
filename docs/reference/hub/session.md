@@ -5,5 +5,5 @@ keywords: YOLOv5, object detection, HUBTrainingSession, custom models, Ultralyti
 
 # HUBTrainingSession
 ---
-:::ultralytics.hub.session.HUBTrainingSession
+::: ultralytics.hub.session.HUBTrainingSession
 <br><br>

@@ -5,10 +5,10 @@ keywords: KalmanFilterXYAH, Ultralytics Docs, Kalman filter algorithm, object tr
 
 # KalmanFilterXYAH
 ---
-:::ultralytics.tracker.utils.kalman_filter.KalmanFilterXYAH
+::: ultralytics.tracker.utils.kalman_filter.KalmanFilterXYAH
 <br><br>
 
 # KalmanFilterXYWH
 ---
-:::ultralytics.tracker.utils.kalman_filter.KalmanFilterXYWH
+::: ultralytics.tracker.utils.kalman_filter.KalmanFilterXYWH
 <br><br>

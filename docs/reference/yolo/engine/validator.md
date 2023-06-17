@@ -5,5 +5,5 @@ keywords: Ultralytics, YOLO, BaseValidator, models, validation, object detection
 
 # BaseValidator
 ---
-:::ultralytics.yolo.engine.validator.BaseValidator
+::: ultralytics.yolo.engine.validator.BaseValidator
 <br><br>

@@ -5,10 +5,10 @@ keywords: Byte Tracker, Ultralytics STrack, application monitoring, bytes sent, 
 
 # STrack
 ---
-:::ultralytics.tracker.trackers.byte_tracker.STrack
+::: ultralytics.tracker.trackers.byte_tracker.STrack
 <br><br>
 
 # BYTETracker
 ---
-:::ultralytics.tracker.trackers.byte_tracker.BYTETracker
+::: ultralytics.tracker.trackers.byte_tracker.BYTETracker
 <br><br>

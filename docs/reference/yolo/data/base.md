@@ -5,5 +5,5 @@ keywords: BaseDataset, Ultralytics YOLO, object detection, real-world applicatio
 
 # BaseDataset
 ---
-:::ultralytics.yolo.data.base.BaseDataset
+::: ultralytics.yolo.data.base.BaseDataset
 <br><br>

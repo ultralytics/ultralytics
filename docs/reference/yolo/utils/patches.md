@@ -5,20 +5,20 @@ keywords: imread, imshow, ultralytics, YOLO, image files, torchsave
 
 # imread
 ---
-:::ultralytics.yolo.utils.patches.imread
+::: ultralytics.yolo.utils.patches.imread
 <br><br>
 
 # imwrite
 ---
-:::ultralytics.yolo.utils.patches.imwrite
+::: ultralytics.yolo.utils.patches.imwrite
 <br><br>
 
 # imshow
 ---
-:::ultralytics.yolo.utils.patches.imshow
+::: ultralytics.yolo.utils.patches.imshow
 <br><br>
 
 # torch_save
 ---
-:::ultralytics.yolo.utils.patches.torch_save
+::: ultralytics.yolo.utils.patches.torch_save
 <br><br>

@@ -5,5 +5,5 @@ keywords: Ultralytics, YOLO, BasePredictor, Object Detection, Computer Vision, F
 
 # BasePredictor
 ---
-:::ultralytics.yolo.engine.predictor.BasePredictor
+::: ultralytics.yolo.engine.predictor.BasePredictor
 <br><br>

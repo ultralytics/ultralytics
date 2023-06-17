@@ -5,5 +5,5 @@ keywords: Ultralytics, YOLO, object detection, tracker, optimization, models, do
 
 # GMC
 ---
-:::ultralytics.tracker.utils.gmc.GMC
+::: ultralytics.tracker.utils.gmc.GMC
 <br><br>

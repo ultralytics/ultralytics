@@ -1,12 +1,11 @@
 import pytest
 
 from ultralytics import Explorer
-from ultralytics.yolo.utils.checks import check_requirements
 
 try:
     import lancedb
     import sklearn
-except ImportError as e:
+except ImportError:
     lancedb = False
     sklearn = False
 
@@ -40,10 +39,10 @@ class TestExplorer:
         ds = Explorer('coco8.yaml')
         ds.build_embeddings('yolov8n.pt')
 
-        #ds.plot_similar_imgs(4, 10)
-        #ds.plot_similirity_index()
         sim = ds.get_similarity_index()
-        paths, ids = ds.get_similar_imgs(3, 10)
+        assert sim.shape[0] == 4, 'the length of the embeddings table should be 1'
+
+        _, ids = ds.get_similar_imgs(3, 10)
         ds.remove_imgs(ids[0])
         ds.reset()
         ds.log_status()

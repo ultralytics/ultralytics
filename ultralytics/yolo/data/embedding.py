@@ -15,6 +15,7 @@ from ultralytics.yolo.v8.detect.predict import DetectionPredictor
 
 try:
     import lancedb
+    from sklearn.decomposition import PCA
     import pyarrow as pa  # dependency of lancedb
     from lancedb.embeddings import with_embeddings
 except ImportError:

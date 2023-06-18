@@ -428,7 +428,7 @@ class Explorer:
 
     def _setup_predictor(self, model, device=''):
         model = YOLO(model)
-        predictor = EmbeddingsPredictor(overrides={"device": device})
+        predictor = EmbeddingsPredictor(overrides={'device': device})
         predictor.setup_model(model.model)
 
         return predictor

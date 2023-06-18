@@ -324,6 +324,7 @@ class HUBDatasetStats():
         stats = HUBDatasetStats('/Users/glennjocher/Downloads/coco8.zip', task='detect')  # detect dataset
         stats = HUBDatasetStats('/Users/glennjocher/Downloads/coco8-seg.zip', task='segment')  # segment dataset
         stats = HUBDatasetStats('/Users/glennjocher/Downloads/coco8-pose.zip', task='pose')  # pose dataset
+        stats = HUBDatasetStats('/Users/glennjocher/Downloads/imagenet10.zip', task='classify')  # classify dataset
         stats.get_json(save=False)
         stats.process_images()
     """
@@ -331,21 +332,28 @@ class HUBDatasetStats():
     def __init__(self, path='coco128.yaml', task='detect', autodownload=False):
         """Initialize class."""
         LOGGER.info(f'Starting HUB dataset checks for {path}....')
-        zipped, data_dir, yaml_path = self._unzip(Path(path))
-        try:
-            # data = yaml_load(check_yaml(yaml_path))  # data dict
-            data = check_det_dataset(yaml_path, autodownload)  # data dict
-            if zipped:
-                data['path'] = data_dir
-        except Exception as e:
-            raise Exception('error/HUB/dataset_stats/yaml_load') from e
+        self.task = task  # detect, segment, pose, classify
+
+        if self.task == 'classify':
+            unzip_dir = unzip_file(path)
+            unzip_dir = Path(unzip_dir) / Path(path).stem
+            data = check_cls_dataset(unzip_dir)
+            data['path'] = unzip_dir
+        else:  # detect, segment, pose
+            zipped, data_dir, yaml_path = self._unzip(Path(path))
+            try:
+                # data = yaml_load(check_yaml(yaml_path))  # data dict
+                data = check_det_dataset(yaml_path, autodownload)  # data dict
+                if zipped:
+                    data['path'] = data_dir
+            except Exception as e:
+                raise Exception('error/HUB/dataset_stats/yaml_load') from e
 
         self.hub_dir = Path(str(data['path']) + '-hub')
         self.im_dir = self.hub_dir / 'images'
         self.im_dir.mkdir(parents=True, exist_ok=True)  # makes /images
         self.stats = {'nc': len(data['names']), 'names': list(data['names'].values())}  # statistics dictionary
         self.data = data
-        self.task = task  # detect, segment, pose, classify
 
     @staticmethod
     def _find_yaml(dir):

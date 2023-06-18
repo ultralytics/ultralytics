@@ -327,7 +327,7 @@ def check_yolo(verbose=True, device=''):
 
     if is_jupyter():
         if check_requirements('wandb', install=False):
-            os.system('pip uninstall wandb')  # uninstall wandb: unwanted account creation prompt with infinite hang
+            os.system('pip uninstall -y wandb')  # uninstall wandb: unwanted account creation prompt with infinite hang
         if is_colab():
             shutil.rmtree('sample_data', ignore_errors=True)  # remove colab /sample_data directory
 

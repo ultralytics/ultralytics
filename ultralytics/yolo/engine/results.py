@@ -101,6 +101,7 @@ class Results(SimpleClass):
         self.speed = {'preprocess': None, 'inference': None, 'postprocess': None}  # milliseconds per image
         self.names = names
         self.path = path
+        self.save_dir = None
         self._keys = ('boxes', 'masks', 'probs', 'keypoints')
 
     def __getitem__(self, idx):

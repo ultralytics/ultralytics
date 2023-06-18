@@ -249,7 +249,7 @@ def get_cdn_group(batch,
             attn_mask[max_nums * 2 * i:max_nums * 2 * (i + 1), max_nums * 2 * (i + 1):num_dn] = True
             attn_mask[max_nums * 2 * i:max_nums * 2 * (i + 1), :max_nums * 2 * i] = True
     dn_meta = {
-        'dn_pos_idx': [p.reshape(-1) for p in pos_idx.cpu().split([n for n in gt_groups], dim=1)],
+        'dn_pos_idx': [p.reshape(-1) for p in pos_idx.cpu().split(list(gt_groups), dim=1)],
         'dn_num_group': num_group,
         'dn_num_split': [num_dn, num_queries]}
 
@@ -258,5 +258,6 @@ def get_cdn_group(batch,
 
 
 def inverse_sigmoid(x, eps=1e-6):
+    """Inverse sigmoid function."""
     x = x.clip(min=0., max=1.)
     return torch.log(x / (1 - x + eps) + eps)

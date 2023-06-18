@@ -20,8 +20,8 @@ import torch
 from matplotlib import font_manager
 
 from ultralytics.yolo.utils import (AUTOINSTALL, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, TryExcept, clean_url, colorstr,
-                                    downloads, emojis, is_colab, is_docker, is_kaggle, is_online, is_pip_package,
-                                    url2file)
+                                    downloads, emojis, is_colab, is_docker, is_jupyter, is_kaggle, is_online,
+                                    is_pip_package, url2file)
 
 
 def is_ascii(s) -> bool:
@@ -325,8 +325,11 @@ def check_yolo(verbose=True, device=''):
     """Return a human-readable YOLO software and hardware summary."""
     from ultralytics.yolo.utils.torch_utils import select_device
 
-    if is_colab():
-        shutil.rmtree('sample_data', ignore_errors=True)  # remove colab /sample_data directory
+    if is_jupyter():
+        if check_requirements('wandb', install=False):
+            os.system('pip uninstall -y wandb')  # uninstall wandb: unwanted account creation prompt with infinite hang
+        if is_colab():
+            shutil.rmtree('sample_data', ignore_errors=True)  # remove colab /sample_data directory
 
     if verbose:
         # System info

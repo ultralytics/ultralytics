@@ -194,7 +194,7 @@ class DetectionValidator(BaseValidator):
             matches = np.zeros((0, 3))
 
         # matches is the index of box that meet the iou threshold. like
-        # [[          0           0     0.81668], ground truth box index, pred box index, , iou
+        # [[          0           0     0.81668], ground truth box index, pred box index, iou
         #  [          1           1     0.88082],
         #  [          2           2      0.9422]]
         # We need to find the pairs not in matches here. That is iou < iou_thres
@@ -204,8 +204,8 @@ class DetectionValidator(BaseValidator):
         labels_matches = matches[:, 0]
         pred_matches = matches[:, 1]
 
-        false_negative = np.setdiff1d(y[0].cpu().numpy(), labels_matches)
-        false_positive = np.setdiff1d(y[1].cpu().numpy(), pred_matches)
+        false_negative = np.setdiff1d(np.concatenate([x[0].cpu().numpy(), y[0].cpu().numpy()]), labels_matches)
+        false_positive = np.setdiff1d(np.concatenate([x[1].cpu().numpy(), y[1].cpu().numpy()]), pred_matches)
 
         if false_negative.shape[0] > 0:
             # plot false negative images

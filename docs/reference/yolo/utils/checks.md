@@ -3,87 +3,87 @@ description: 'Check functions for YOLO utils: image size, version, font, require
 keywords: YOLO, Ultralytics, Utils, Checks, image sizing, version updates, font compatibility, Python requirements, file suffixes, YAML syntax, image showing, AMP
 ---
 
-# is_ascii
+## is_ascii
 ---
-:::ultralytics.yolo.utils.checks.is_ascii
+### ::: ultralytics.yolo.utils.checks.is_ascii
 <br><br>
 
-# check_imgsz
+## check_imgsz
 ---
-:::ultralytics.yolo.utils.checks.check_imgsz
+### ::: ultralytics.yolo.utils.checks.check_imgsz
 <br><br>
 
-# check_version
+## check_version
 ---
-:::ultralytics.yolo.utils.checks.check_version
+### ::: ultralytics.yolo.utils.checks.check_version
 <br><br>
 
-# check_latest_pypi_version
+## check_latest_pypi_version
 ---
-:::ultralytics.yolo.utils.checks.check_latest_pypi_version
+### ::: ultralytics.yolo.utils.checks.check_latest_pypi_version
 <br><br>
 
-# check_pip_update_available
+## check_pip_update_available
 ---
-:::ultralytics.yolo.utils.checks.check_pip_update_available
+### ::: ultralytics.yolo.utils.checks.check_pip_update_available
 <br><br>
 
-# check_font
+## check_font
 ---
-:::ultralytics.yolo.utils.checks.check_font
+### ::: ultralytics.yolo.utils.checks.check_font
 <br><br>
 
-# check_python
+## check_python
 ---
-:::ultralytics.yolo.utils.checks.check_python
+### ::: ultralytics.yolo.utils.checks.check_python
 <br><br>
 
-# check_requirements
+## check_requirements
 ---
-:::ultralytics.yolo.utils.checks.check_requirements
+### ::: ultralytics.yolo.utils.checks.check_requirements
 <br><br>
 
-# check_suffix
+## check_suffix
 ---
-:::ultralytics.yolo.utils.checks.check_suffix
+### ::: ultralytics.yolo.utils.checks.check_suffix
 <br><br>
 
-# check_yolov5u_filename
+## check_yolov5u_filename
 ---
-:::ultralytics.yolo.utils.checks.check_yolov5u_filename
+### ::: ultralytics.yolo.utils.checks.check_yolov5u_filename
 <br><br>
 
-# check_file
+## check_file
 ---
-:::ultralytics.yolo.utils.checks.check_file
+### ::: ultralytics.yolo.utils.checks.check_file
 <br><br>
 
-# check_yaml
+## check_yaml
 ---
-:::ultralytics.yolo.utils.checks.check_yaml
+### ::: ultralytics.yolo.utils.checks.check_yaml
 <br><br>
 
-# check_imshow
+## check_imshow
 ---
-:::ultralytics.yolo.utils.checks.check_imshow
+### ::: ultralytics.yolo.utils.checks.check_imshow
 <br><br>
 
-# check_yolo
+## check_yolo
 ---
-:::ultralytics.yolo.utils.checks.check_yolo
+### ::: ultralytics.yolo.utils.checks.check_yolo
 <br><br>
 
-# check_amp
+## check_amp
 ---
-:::ultralytics.yolo.utils.checks.check_amp
+### ::: ultralytics.yolo.utils.checks.check_amp
 <br><br>
 
-# git_describe
+## git_describe
 ---
-:::ultralytics.yolo.utils.checks.git_describe
+### ::: ultralytics.yolo.utils.checks.git_describe
 <br><br>
 
-# print_args
+## print_args
 ---
-:::ultralytics.yolo.utils.checks.print_args
+### ::: ultralytics.yolo.utils.checks.print_args
 <br><br>

@@ -3,12 +3,12 @@ description: Dynamically adjusts input size to optimize GPU memory usage during 
 keywords: YOLOv5, batch size, training, Ultralytics Autobatch, object detection, model performance
 ---
 
-# check_train_batch_size
+## check_train_batch_size
 ---
-:::ultralytics.yolo.utils.autobatch.check_train_batch_size
+### ::: ultralytics.yolo.utils.autobatch.check_train_batch_size
 <br><br>
 
-# autobatch
+## autobatch
 ---
-:::ultralytics.yolo.utils.autobatch.autobatch
+### ::: ultralytics.yolo.utils.autobatch.autobatch
 <br><br>

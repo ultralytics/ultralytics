@@ -3,12 +3,12 @@ description: '"Optimize tracking with Ultralytics BOTrack. Easily sort and track
 keywords: BOTrack, Ultralytics YOLO Docs, features, usage
 ---
 
-# BOTrack
+## BOTrack
 ---
-:::ultralytics.tracker.trackers.bot_sort.BOTrack
+### ::: ultralytics.tracker.trackers.bot_sort.BOTrack
 <br><br>
 
-# BOTSORT
+## BOTSORT
 ---
-:::ultralytics.tracker.trackers.bot_sort.BOTSORT
+### ::: ultralytics.tracker.trackers.bot_sort.BOTSORT
 <br><br>

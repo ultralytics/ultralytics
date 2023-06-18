@@ -3,72 +3,72 @@ description: Explore convolutional neural network modules & techniques such as L
 keywords: Ultralytics, Convolutional Neural Network, Conv2, DWConv, ConvTranspose, GhostConv, ChannelAttention, CBAM, autopad
 ---
 
-# Conv
+## Conv
 ---
-:::ultralytics.nn.modules.conv.Conv
+### ::: ultralytics.nn.modules.conv.Conv
 <br><br>
 
-# Conv2
+## Conv2
 ---
-:::ultralytics.nn.modules.conv.Conv2
+### ::: ultralytics.nn.modules.conv.Conv2
 <br><br>
 
-# LightConv
+## LightConv
 ---
-:::ultralytics.nn.modules.conv.LightConv
+### ::: ultralytics.nn.modules.conv.LightConv
 <br><br>
 
-# DWConv
+## DWConv
 ---
-:::ultralytics.nn.modules.conv.DWConv
+### ::: ultralytics.nn.modules.conv.DWConv
 <br><br>
 
-# DWConvTranspose2d
+## DWConvTranspose2d
 ---
-:::ultralytics.nn.modules.conv.DWConvTranspose2d
+### ::: ultralytics.nn.modules.conv.DWConvTranspose2d
 <br><br>
 
-# ConvTranspose
+## ConvTranspose
 ---
-:::ultralytics.nn.modules.conv.ConvTranspose
+### ::: ultralytics.nn.modules.conv.ConvTranspose
 <br><br>
 
-# Focus
+## Focus
 ---
-:::ultralytics.nn.modules.conv.Focus
+### ::: ultralytics.nn.modules.conv.Focus
 <br><br>
 
-# GhostConv
+## GhostConv
 ---
-:::ultralytics.nn.modules.conv.GhostConv
+### ::: ultralytics.nn.modules.conv.GhostConv
 <br><br>
 
-# RepConv
+## RepConv
 ---
-:::ultralytics.nn.modules.conv.RepConv
+### ::: ultralytics.nn.modules.conv.RepConv
 <br><br>
 
-# ChannelAttention
+## ChannelAttention
 ---
-:::ultralytics.nn.modules.conv.ChannelAttention
+### ::: ultralytics.nn.modules.conv.ChannelAttention
 <br><br>
 
-# SpatialAttention
+## SpatialAttention
 ---
-:::ultralytics.nn.modules.conv.SpatialAttention
+### ::: ultralytics.nn.modules.conv.SpatialAttention
 <br><br>
 
-# CBAM
+## CBAM
 ---
-:::ultralytics.nn.modules.conv.CBAM
+### ::: ultralytics.nn.modules.conv.CBAM
 <br><br>
 
-# Concat
+## Concat
 ---
-:::ultralytics.nn.modules.conv.Concat
+### ::: ultralytics.nn.modules.conv.Concat
 <br><br>
 
-# autopad
+## autopad
 ---
-:::ultralytics.nn.modules.conv.autopad
+### ::: ultralytics.nn.modules.conv.autopad
 <br><br>

@@ -3,22 +3,22 @@ description: Learn how to use the Ultralytics YOLO Utils package's imread and im
 keywords: imread, imshow, ultralytics, YOLO, image files, torchsave
 ---
 
-# imread
+## imread
 ---
-:::ultralytics.yolo.utils.patches.imread
+### ::: ultralytics.yolo.utils.patches.imread
 <br><br>
 
-# imwrite
+## imwrite
 ---
-:::ultralytics.yolo.utils.patches.imwrite
+### ::: ultralytics.yolo.utils.patches.imwrite
 <br><br>
 
-# imshow
+## imshow
 ---
-:::ultralytics.yolo.utils.patches.imshow
+### ::: ultralytics.yolo.utils.patches.imshow
 <br><br>
 
-# torch_save
+## torch_save
 ---
-:::ultralytics.yolo.utils.patches.torch_save
+### ::: ultralytics.yolo.utils.patches.torch_save
 <br><br>

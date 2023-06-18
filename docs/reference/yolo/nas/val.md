@@ -3,7 +3,7 @@ description: Learn about NASValidator in the Ultralytics YOLO Docs. Properly val
 keywords: NASValidator, YOLO, neural architecture search, validation, performance, Ultralytics
 ---
 
-# NASValidator
+## NASValidator
 ---
-:::ultralytics.yolo.nas.val.NASValidator
+### ::: ultralytics.yolo.nas.val.NASValidator
 <br><br>

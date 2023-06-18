@@ -3,12 +3,12 @@ description: '"Use SegmentationPredictor in YOLOv8 for efficient object detectio
 keywords: Ultralytics YOLO, SegmentationPredictor, object detection, segmentation masks, predict
 ---
 
-# SegmentationPredictor
+## SegmentationPredictor
 ---
-:::ultralytics.yolo.v8.segment.predict.SegmentationPredictor
+### ::: ultralytics.yolo.v8.segment.predict.SegmentationPredictor
 <br><br>
 
-# predict
+## predict
 ---
-:::ultralytics.yolo.v8.segment.predict.predict
+### ::: ultralytics.yolo.v8.segment.predict.predict
 <br><br>

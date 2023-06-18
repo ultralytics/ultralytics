@@ -19,6 +19,8 @@ Usage - formats:
                           yolov8n_paddle_model       # PaddlePaddle
 """
 import json
+import os
+import shutil
 import time
 from pathlib import Path
 
@@ -94,6 +96,15 @@ class BaseValidator:
         Supports validation of a pre-trained model if passed or a model being trained
         if trainer is passed (trainer gets priority).
         """
+
+        # Clear the false negative and false positive folder to avoid conflict of final val and prev val
+        if os.path.exists(str(self.save_dir / 'false_negative')):
+            shutil.rmtree(str(self.save_dir / 'false_negative'))
+        if os.path.exists(str(self.save_dir / 'false_positive')):
+            shutil.rmtree(str(self.save_dir / 'false_positive'))
+        os.makedirs(str(self.save_dir / 'false_negative'), exist_ok=True)
+        os.makedirs(str(self.save_dir / 'false_positive'), exist_ok=True)
+
         self.training = trainer is not None
         if self.training:
             self.device = trainer.device

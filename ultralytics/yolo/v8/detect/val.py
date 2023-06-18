@@ -1,6 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 import os
-import shutil
 from pathlib import Path
 
 import cv2
@@ -76,14 +75,6 @@ class DetectionValidator(BaseValidator):
 
     def update_metrics(self, preds, batch):
         """Metrics."""
-
-        # Clear the false negative and false positive folder to avoid conflict of final val and prev val
-        if os.path.exists(str(self.save_dir / 'false_negative')):
-            shutil.rmtree(str(self.save_dir / 'false_negative'))
-        if os.path.exists(str(self.save_dir / 'false_positive')):
-            shutil.rmtree(str(self.save_dir / 'false_positive'))
-        os.makedirs(str(self.save_dir / 'false_negative'), exist_ok=True)
-        os.makedirs(str(self.save_dir / 'false_positive'), exist_ok=True)
 
         for si, pred in enumerate(preds):
             idx = batch['batch_idx'] == si

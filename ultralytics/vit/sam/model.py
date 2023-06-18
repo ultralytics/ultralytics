@@ -17,6 +17,7 @@ class SAM:
             # Should raise AssertionError instead?
             raise NotImplementedError('Segment anything prediction requires pre-trained checkpoint')
         self.model = build_sam(model)
+        self.task = 'segment'  # required
         self.predictor = None  # reuse predictor
 
     def predict(self, source, stream=False, **kwargs):

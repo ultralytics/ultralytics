@@ -427,7 +427,7 @@ class Explorer:
         return embeddings
 
     def _setup_predictor(self, model, device=''):
-        model = YOLO(model,)
+        model = YOLO(model, )
         predictor = EmbeddingsPredictor()
         model.to(device=device)
         predictor.setup_model(model.model)

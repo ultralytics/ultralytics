@@ -204,7 +204,7 @@ class ConfusionMatrix:
         """
         preds, targets = torch.cat(preds)[:, 0], torch.cat(targets)
         for p, t in zip(preds.cpu().numpy(), targets.cpu().numpy()):
-            self.matrix[t][p] += 1
+            self.matrix[p][t] += 1
 
     def process_batch(self, detections, labels):
         """

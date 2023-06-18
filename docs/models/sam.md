@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Discover the Segment Anything Model (SAM), a revolutionary promptable image segmentation model, and delve into the details of its advanced architecture and the large-scale SA-1B dataset.
+keywords: Segment Anything, Segment Anything Model, SAM, Meta SAM, image segmentation, promptable segmentation, zero-shot performance, SA-1B dataset, advanced architecture, auto-annotation, Ultralytics, pre-trained models, SAM base, SAM large, instance segmentation, computer vision, AI, artificial intelligence, machine learning, data annotation, segmentation masks, detection model, YOLO detection model, bibtex, Meta AI
 ---
 
 # Segment Anything Model (SAM)

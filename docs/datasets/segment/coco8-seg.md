@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Test and debug segmentation models on small, versatile COCO8-Seg instance segmentation dataset, now available for use with YOLOv8 and Ultralytics HUB.
+keywords: Ultralytics, COCO8-Seg, instance segmentation dataset, segmentation models, new detection approaches, COCO train 2017 set
 ---
 
 # COCO8-Seg Dataset

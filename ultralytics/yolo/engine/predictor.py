@@ -65,14 +65,13 @@ class BasePredictor:
     Attributes:
         args (SimpleNamespace): Configuration for the predictor.
         save_dir (Path): Directory to save results.
-        done_setup (bool): Whether the predictor has finished setup.
+        done_warmup (bool): Whether the predictor has finished setup.
         model (nn.Module): Model used for prediction.
         data (dict): Data configuration.
         device (torch.device): Device used for prediction.
         dataset (Dataset): Dataset used for prediction.
         vid_path (str): Path to video file.
         vid_writer (cv2.VideoWriter): Video writer for saving video output.
-        annotator (Annotator): Annotator used for prediction.
         data_path (str): Path to data.
     """
 
@@ -85,9 +84,7 @@ class BasePredictor:
             overrides (dict, optional): Configuration overrides. Defaults to None.
         """
         self.args = get_cfg(cfg, overrides)
-        project = self.args.project or Path(SETTINGS['runs_dir']) / self.args.task
-        name = self.args.name or f'{self.args.mode}'
-        self.save_dir = increment_path(Path(project) / name, exist_ok=self.args.exist_ok)
+        self.save_dir = self.get_save_dir()
         if self.args.conf is None:
             self.args.conf = 0.25  # default conf=0.25
         self.done_warmup = False
@@ -105,8 +102,15 @@ class BasePredictor:
         self.data_path = None
         self.source_type = None
         self.batch = None
+        self.results = None
+        self.transforms = None
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
+
+    def get_save_dir(self):
+        project = self.args.project or Path(SETTINGS['runs_dir']) / self.args.task
+        name = self.args.name or f'{self.args.mode}'
+        return increment_path(Path(project) / name, exist_ok=self.args.exist_ok)
 
     def preprocess(self, im):
         """Prepares input image before inference.
@@ -258,12 +262,13 @@ class BasePredictor:
 
                 if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
                     s += self.write_results(i, self.results, (p, im, im0))
-
+                if self.args.save or self.args.save_txt:
+                    self.results[i].save_dir = self.save_dir.__str__()
                 if self.args.show and self.plotted_img is not None:
                     self.show(p)
-
                 if self.args.save and self.plotted_img is not None:
                     self.save_preds(vid_cap, i, str(self.save_dir / p.name))
+
             self.run_callbacks('on_predict_batch_end')
             yield from self.results
 

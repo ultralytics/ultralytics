@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Learn about the Global Wheat Head Dataset, aimed at supporting the development of accurate wheat head models for applications in wheat phenotyping and crop management.
+keywords: Global Wheat Head Dataset, wheat head detection, wheat phenotyping, crop management, object detection, deep learning models, dataset structure, annotations, sample data, citations and acknowledgments
 ---
 
 # Global Wheat Head Dataset

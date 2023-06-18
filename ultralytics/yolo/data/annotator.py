@@ -13,7 +13,7 @@ def auto_annotate(data, det_model='yolov8x.pt', sam_model='sam_b.pt', device='',
         det_model (str, optional): Pre-trained YOLO detection model. Defaults to 'yolov8x.pt'.
         sam_model (str, optional): Pre-trained SAM segmentation model. Defaults to 'sam_b.pt'.
         device (str, optional): Device to run the models on. Defaults to an empty string (CPU or GPU, if available).
-        output_dir (str, None, optional): Directory to save the annotated results.
+        output_dir (str | None | optional): Directory to save the annotated results.
             Defaults to a 'labels' folder in the same directory as 'data'.
     """
     device = select_device(device)

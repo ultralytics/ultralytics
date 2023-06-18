@@ -1,98 +1,94 @@
 ---
 description: Explore Ultralytics YOLO's FocalLoss, DetMetrics, PoseMetrics, ClassifyMetrics, and more with Ultralytics Metrics documentation.
+keywords: YOLOv5, metrics, losses, confusion matrix, detection metrics, pose metrics, classification metrics, intersection over area, intersection over union, keypoint intersection over union, average precision, per class average precision, Ultralytics Docs
 ---
 
-# FocalLoss
+## ConfusionMatrix
 ---
-:::ultralytics.yolo.utils.metrics.FocalLoss
+### ::: ultralytics.yolo.utils.metrics.ConfusionMatrix
 <br><br>
 
-# ConfusionMatrix
+## Metric
 ---
-:::ultralytics.yolo.utils.metrics.ConfusionMatrix
+### ::: ultralytics.yolo.utils.metrics.Metric
 <br><br>
 
-# Metric
+## DetMetrics
 ---
-:::ultralytics.yolo.utils.metrics.Metric
+### ::: ultralytics.yolo.utils.metrics.DetMetrics
 <br><br>
 
-# DetMetrics
+## SegmentMetrics
 ---
-:::ultralytics.yolo.utils.metrics.DetMetrics
+### ::: ultralytics.yolo.utils.metrics.SegmentMetrics
 <br><br>
 
-# SegmentMetrics
+## PoseMetrics
 ---
-:::ultralytics.yolo.utils.metrics.SegmentMetrics
+### ::: ultralytics.yolo.utils.metrics.PoseMetrics
 <br><br>
 
-# PoseMetrics
+## ClassifyMetrics
 ---
-:::ultralytics.yolo.utils.metrics.PoseMetrics
+### ::: ultralytics.yolo.utils.metrics.ClassifyMetrics
 <br><br>
 
-# ClassifyMetrics
+## box_area
 ---
-:::ultralytics.yolo.utils.metrics.ClassifyMetrics
+### ::: ultralytics.yolo.utils.metrics.box_area
 <br><br>
 
-# box_area
+## bbox_ioa
 ---
-:::ultralytics.yolo.utils.metrics.box_area
+### ::: ultralytics.yolo.utils.metrics.bbox_ioa
 <br><br>
 
-# bbox_ioa
+## box_iou
 ---
-:::ultralytics.yolo.utils.metrics.bbox_ioa
+### ::: ultralytics.yolo.utils.metrics.box_iou
 <br><br>
 
-# box_iou
+## bbox_iou
 ---
-:::ultralytics.yolo.utils.metrics.box_iou
+### ::: ultralytics.yolo.utils.metrics.bbox_iou
 <br><br>
 
-# bbox_iou
+## mask_iou
 ---
-:::ultralytics.yolo.utils.metrics.bbox_iou
+### ::: ultralytics.yolo.utils.metrics.mask_iou
 <br><br>
 
-# mask_iou
+## kpt_iou
 ---
-:::ultralytics.yolo.utils.metrics.mask_iou
+### ::: ultralytics.yolo.utils.metrics.kpt_iou
 <br><br>
 
-# kpt_iou
+## smooth_BCE
 ---
-:::ultralytics.yolo.utils.metrics.kpt_iou
+### ::: ultralytics.yolo.utils.metrics.smooth_BCE
 <br><br>
 
-# smooth_BCE
+## smooth
 ---
-:::ultralytics.yolo.utils.metrics.smooth_BCE
+### ::: ultralytics.yolo.utils.metrics.smooth
 <br><br>
 
-# smooth
+## plot_pr_curve
 ---
-:::ultralytics.yolo.utils.metrics.smooth
+### ::: ultralytics.yolo.utils.metrics.plot_pr_curve
 <br><br>
 
-# plot_pr_curve
+## plot_mc_curve
 ---
-:::ultralytics.yolo.utils.metrics.plot_pr_curve
+### ::: ultralytics.yolo.utils.metrics.plot_mc_curve
 <br><br>
 
-# plot_mc_curve
+## compute_ap
 ---
-:::ultralytics.yolo.utils.metrics.plot_mc_curve
+### ::: ultralytics.yolo.utils.metrics.compute_ap
 <br><br>
 
-# compute_ap
+## ap_per_class
 ---
-:::ultralytics.yolo.utils.metrics.compute_ap
-<br><br>
-
-# ap_per_class
----
-:::ultralytics.yolo.utils.metrics.ap_per_class
+### ::: ultralytics.yolo.utils.metrics.ap_per_class
 <br><br>

@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Learn about supported dataset formats for training YOLO detection models, including Ultralytics YOLO and COCO, in this Object Detection Datasets Overview.
+keywords: object detection, datasets, formats, Ultralytics YOLO, label format, dataset file format, dataset definition, YOLO dataset, model configuration
 ---
 
 # Object Detection Datasets Overview

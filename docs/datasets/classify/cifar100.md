@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Learn about the CIFAR-100 dataset, a collection of images that are commonly used to train machine learning and computer vision algorithms.
+keywords: CIFAR-100 dataset, CIFAR-100 classes, CIFAR-100 structure, CIFAR-100 applications, CIFAR-100 usage, YOLO model training, machine learning, computer vision
 ---
 
 # CIFAR-100 Dataset

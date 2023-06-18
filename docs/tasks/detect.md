@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Learn how to use YOLOv8, an object detection model pre-trained with COCO and about the different YOLOv8 models and how to train and export them.
+keywords: object detection, YOLOv8 Detect models, COCO dataset, models, train, predict, export
 ---
 
 Object detection is a task that involves identifying the location and class of objects in an image or video stream.

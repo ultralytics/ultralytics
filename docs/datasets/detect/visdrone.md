@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Discover the VisDrone dataset, a comprehensive benchmark for drone-based computer vision tasks, including object detection, tracking, and crowd counting.
+keywords: VisDrone Dataset, Ultralytics YOLO Docs, AISKYEYE, Lab of Machine Learning and Data Mining, Computer Vision tasks, drone-based image analysis, object detection, object tracking, crowd counting, YOLOv8n model
 ---
 
 # VisDrone Dataset

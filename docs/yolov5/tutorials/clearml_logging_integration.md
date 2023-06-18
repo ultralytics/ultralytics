@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Integrate ClearML with YOLOv5 to track experiments and manage data versions. Optimize hyperparameters and remotely monitor your runs.
+keywords: YOLOv5, ClearML, experiment manager, remotely train, monitor, hyperparameter optimization, data versioning tool, HPO, data version management, optimization locally, agent, training progress, custom YOLOv5, AI development, model building
 ---
 
 # ClearML Integration

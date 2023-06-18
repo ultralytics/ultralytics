@@ -368,13 +368,13 @@ def entrypoint(debug=''):
         LOGGER.warning(f"WARNING ⚠️ 'model' is missing. Using default 'model={model}'.")
     overrides['model'] = model
     if 'rtdetr' in model.lower():  # guess architecture
-        from ultralytics.yolo.engine.model import RTDETR
+        from ultralytics import RTDETR
         model = RTDETR(model)  # no task argument
     elif 'sam' in model.lower():
         from ultralytics import SAM
         model = SAM(model)
     else:
-        from ultralytics.yolo.engine.model import YOLO
+        from ultralytics import YOLO
         model = YOLO(model, task=task)
     if isinstance(overrides.get('pretrained'), str):
         model.load(overrides['pretrained'])

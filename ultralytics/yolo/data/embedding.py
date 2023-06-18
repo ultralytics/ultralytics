@@ -1,3 +1,5 @@
+import glob
+import os
 from pathlib import Path
 
 import cv2
@@ -123,11 +125,26 @@ class Explorer:
         self.verbose = verbose
 
         orig_imgs = []
-        for train_split in trainset:
-            print(train_split)
-            path = Path(train_split)
-            files = sorted(str(x) for x in path.rglob('*.*') if x.suffix[1:].lower() in IMG_FORMATS)  # image files only
-            orig_imgs.extend(files)
+        try:
+            f = []  # image files
+            for p in trainset:
+                p = Path(p)  # os-agnostic
+                if p.is_dir():  # dir
+                    f += glob.glob(str(p / '**' / '*.*'), recursive=True)
+                    # F = list(p.rglob('*.*'))  # pathlib
+                elif p.is_file():  # file
+                    with open(p) as t:
+                        t = t.read().strip().splitlines()
+                        parent = str(p.parent) + os.sep
+                        f += [x.replace('./', parent) if x.startswith('./') else x for x in t]  # local to global path
+                        # F += [p.parent / x.lstrip(os.sep) for x in t]  # local to global path (pathlib)
+                else:
+                    raise FileNotFoundError(f'{p} does not exist')
+            orig_imgs = sorted(x.replace('/', os.sep) for x in f if x.split('.')[-1].lower() in IMG_FORMATS)
+            # self.img_files = sorted([x for x in f if x.suffix[1:].lower() in IMG_FORMATS])  # pathlib
+            assert orig_imgs, f'No images found'
+        except Exception as e:
+            raise FileNotFoundError(f'Error loading data from {p}') from e
 
         db = self._connect()
         if not force and self.table_name in db.table_names():

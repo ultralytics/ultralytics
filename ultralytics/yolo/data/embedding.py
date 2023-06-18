@@ -60,7 +60,7 @@ class EmbeddingsPredictor(DetectionPredictor):
                 embeddings = self.postprocess(preds, im, im0s)
 
             return embeddings
-            # yeilding seems pointless as this is designed specifically to be used in for loops,
+            # yielding seems pointless as this is designed specifically to be used in for loops,
             # batching with embed_func would make things complex
 
 
@@ -328,7 +328,7 @@ class Explorer:
 
     def persist(self, name=None):
         """
-        Persists the changes made to the dataset. Avaiable only if data is provided in the constructor.
+        Persists the changes made to the dataset. Available only if data is provided in the constructor.
 
         Args:
             name (str, optional): Name of the new dataset. Defaults to `data_updated.yaml`.

@@ -70,7 +70,7 @@ class BaseModel(nn.Module):
             x (torch.Tensor): The input tensor to the model.
             profile (bool):  Print the computation time of each layer if True, defaults to False.
             visualize (bool): Save the feature maps of the model if True, defaults to False.
-            embed_from (int): The index of the layer to embed the output from, defaults to None. Accpets -ve indexing.
+            embed_from (int): The index of the layer to embed the output from, defaults to None. Accepts -ve indexing.
         Returns:
             (torch.Tensor): The last output of the model.
         """

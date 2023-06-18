@@ -20,7 +20,7 @@ import torch
 from matplotlib import font_manager
 
 from ultralytics.yolo.utils import (AUTOINSTALL, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, TryExcept, clean_url, colorstr,
-                                    downloads, emojis, is_colab, is_docker, is_kaggle, is_jupyter, is_online,
+                                    downloads, emojis, is_colab, is_docker, is_jupyter, is_kaggle, is_online,
                                     is_pip_package, url2file)
 
 
@@ -254,7 +254,7 @@ def check_suffix(file='yolov8n.pt', suffix='.pt', msg=''):
     """Check file(s) for acceptable suffix."""
     if file and suffix:
         if isinstance(suffix, str):
-            suffix = (suffix,)
+            suffix = (suffix, )
         for f in file if isinstance(file, (list, tuple)) else [file]:
             s = Path(f).suffix.lower().strip()  # file suffix
             if len(s):

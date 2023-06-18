@@ -76,12 +76,13 @@ class Explorer:
     YOLO Explorer. Supports detection, segmnetation and Pose and YOLO models.
     """
 
-    def __init__(self, data=None, table=None, model='yolov8n.pt', project='runs/dataset') -> None:
+    def __init__(self, data=None, table=None, model='yolov8n.pt', device='', project='runs/dataset') -> None:
         """
         Args:
             data (str, optional): path to dataset file
             table (str, optional): path to LanceDB table to load embeddings Table from.
             model (str, optional): path to model. Defaults to None.
+            device (str, optional): device to use. Defaults to ''. If empty, uses the default device.
             project (str, optional): path to project. Defaults to "runs/dataset".
         """
         if data is None and table is None:
@@ -104,7 +105,7 @@ class Explorer:
         if table:
             self.table = self._copy_table_to_project(table)
         if model:
-            self.predictor = self._setup_predictor(model)
+            self.predictor = self._setup_predictor(model, device)
         if data:
             self.dataset_info = get_dataset_info(self.data)
 
@@ -425,9 +426,10 @@ class Explorer:
             embeddings.append(self.predictor.embed(img, verbose=self.verbose).squeeze().cpu().numpy())
         return embeddings
 
-    def _setup_predictor(self, model):
-        model = YOLO(model)
+    def _setup_predictor(self, model, device=''):
+        model = YOLO(model,)
         predictor = EmbeddingsPredictor()
+        model.to(device=device)
         predictor.setup_model(model.model)
 
         return predictor

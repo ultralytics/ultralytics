@@ -422,9 +422,7 @@ class RTDETRDetectionModel(DetectionModel):
         # NOTE: preprocess gt_bbox and gt_labels to list.
         bs = len(img)
         batch_idx = batch['batch_idx']
-        gt_groups = []
-        for i in range(bs):
-            gt_groups.append((batch_idx == i).sum().item())
+        gt_groups = [(batch_idx == i).sum().item() for i in range(bs)]
         targets = {
             'cls': batch['cls'].to(img.device, dtype=torch.long).view(-1),
             'bboxes': batch['bboxes'].to(device=img.device),
@@ -606,7 +604,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
 
     # Args
     max_channels = float('inf')
-    nc, act, scales = (d.get(x) for x in ('nc', 'act', 'scales'))
+    nc, act, scales = (d.get(x) for x in ('nc', 'activation', 'scales'))
     depth, width, kpt_shape = (d.get(x, 1.0) for x in ('depth_multiple', 'width_multiple', 'kpt_shape'))
     if scales:
         scale = d.get('scale')

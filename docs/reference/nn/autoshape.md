@@ -3,12 +3,12 @@ description: Detect 80+ object categories with bounding box coordinates and clas
 keywords: Ultralytics, YOLO, docs, autoshape, detections, object detection, customized shapes, bounding boxes, computer vision
 ---
 
-# AutoShape
+## AutoShape
 ---
-:::ultralytics.nn.autoshape.AutoShape
+### ::: ultralytics.nn.autoshape.AutoShape
 <br><br>
 
-# Detections
+## Detections
 ---
-:::ultralytics.nn.autoshape.Detections
+### ::: ultralytics.nn.autoshape.Detections
 <br><br>

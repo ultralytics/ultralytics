@@ -3,27 +3,27 @@ description: 'Learn about Ultralytics YOLO modules: Segment, Classify, and RTDET
 keywords: Ultralytics, YOLO, object detection, pose estimation, RTDETRDecoder, modules, classes, documentation
 ---
 
-# Detect
+## Detect
 ---
-:::ultralytics.nn.modules.head.Detect
+### ::: ultralytics.nn.modules.head.Detect
 <br><br>
 
-# Segment
+## Segment
 ---
-:::ultralytics.nn.modules.head.Segment
+### ::: ultralytics.nn.modules.head.Segment
 <br><br>
 
-# Pose
+## Pose
 ---
-:::ultralytics.nn.modules.head.Pose
+### ::: ultralytics.nn.modules.head.Pose
 <br><br>
 
-# Classify
+## Classify
 ---
-:::ultralytics.nn.modules.head.Classify
+### ::: ultralytics.nn.modules.head.Classify
 <br><br>
 
-# RTDETRDecoder
+## RTDETRDecoder
 ---
-:::ultralytics.nn.modules.head.RTDETRDecoder
+### ::: ultralytics.nn.modules.head.RTDETRDecoder
 <br><br>

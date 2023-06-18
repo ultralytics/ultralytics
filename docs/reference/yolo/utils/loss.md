@@ -3,37 +3,42 @@ description: Learn about Varifocal Loss and Keypoint Loss in Ultralytics YOLO fo
 keywords: Ultralytics, YOLO, loss functions, object detection, keypoint detection, segmentation, classification
 ---
 
-# VarifocalLoss
+## VarifocalLoss
 ---
-:::ultralytics.yolo.utils.loss.VarifocalLoss
+### ::: ultralytics.yolo.utils.loss.VarifocalLoss
 <br><br>
 
-# BboxLoss
+## FocalLoss
 ---
-:::ultralytics.yolo.utils.loss.BboxLoss
+### ::: ultralytics.yolo.utils.loss.FocalLoss
 <br><br>
 
-# KeypointLoss
+## BboxLoss
 ---
-:::ultralytics.yolo.utils.loss.KeypointLoss
+### ::: ultralytics.yolo.utils.loss.BboxLoss
 <br><br>
 
-# v8DetectionLoss
+## KeypointLoss
 ---
-:::ultralytics.yolo.utils.loss.v8DetectionLoss
+### ::: ultralytics.yolo.utils.loss.KeypointLoss
 <br><br>
 
-# v8SegmentationLoss
+## v8DetectionLoss
 ---
-:::ultralytics.yolo.utils.loss.v8SegmentationLoss
+### ::: ultralytics.yolo.utils.loss.v8DetectionLoss
 <br><br>
 
-# v8PoseLoss
+## v8SegmentationLoss
 ---
-:::ultralytics.yolo.utils.loss.v8PoseLoss
+### ::: ultralytics.yolo.utils.loss.v8SegmentationLoss
 <br><br>
 
-# v8ClassificationLoss
+## v8PoseLoss
 ---
-:::ultralytics.yolo.utils.loss.v8ClassificationLoss
+### ::: ultralytics.yolo.utils.loss.v8PoseLoss
+<br><br>
+
+## v8ClassificationLoss
+---
+### ::: ultralytics.yolo.utils.loss.v8ClassificationLoss
 <br><br>

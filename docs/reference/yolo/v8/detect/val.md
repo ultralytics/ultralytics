@@ -3,12 +3,12 @@ description: Validate YOLOv5 detections using this PyTorch module. Ensure model 
 keywords: detection, validator, YOLOv5, object detection, model improvement, Ultralytics Docs
 ---
 
-# DetectionValidator
+## DetectionValidator
 ---
-:::ultralytics.yolo.v8.detect.val.DetectionValidator
+### ::: ultralytics.yolo.v8.detect.val.DetectionValidator
 <br><br>
 
-# val
+## val
 ---
-:::ultralytics.yolo.v8.detect.val.val
+### ::: ultralytics.yolo.v8.detect.val.val
 <br><br>

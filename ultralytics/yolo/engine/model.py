@@ -129,7 +129,7 @@ class YOLO:
 
         Args:
             cfg (str): model configuration file
-            task (str) or (None): model task
+            task (str | None): model task
             verbose (bool): display model info on load
         """
         cfg_dict = yaml_model_load(cfg)
@@ -149,7 +149,7 @@ class YOLO:
 
         Args:
             weights (str): model checkpoint to be loaded
-            task (str) or (None): model task
+            task (str | None): model task
         """
         suffix = Path(weights).suffix
         if suffix == '.pt':
@@ -250,6 +250,8 @@ class YOLO:
             self.predictor.setup_model(model=self.model, verbose=is_cli)
         else:  # only update args if predictor is already setup
             self.predictor.args = get_cfg(self.predictor.args, overrides)
+            if 'project' in overrides or 'name' in overrides:
+                self.predictor.save_dir = self.predictor.get_save_dir()
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
 
     def track(self, source=None, stream=False, persist=False, **kwargs):
@@ -333,7 +335,7 @@ class YOLO:
         overrides['mode'] = 'export'
         if overrides.get('imgsz') is None:
             overrides['imgsz'] = self.model.args['imgsz']  # use trained imgsz unless custom value is passed
-        if overrides.get('batch') is None:
+        if 'batch' not in kwargs:
             overrides['batch'] = 1  # default to 1 if not modified
         args = get_cfg(cfg=DEFAULT_CFG, overrides=overrides)
         args.task = self.task

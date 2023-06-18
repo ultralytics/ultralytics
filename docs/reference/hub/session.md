@@ -3,7 +3,7 @@ description: Accelerate your AI development with the Ultralytics HUB Training Se
 keywords: YOLOv5, object detection, HUBTrainingSession, custom models, Ultralytics Docs
 ---
 
-# HUBTrainingSession
+## HUBTrainingSession
 ---
-:::ultralytics.hub.session.HUBTrainingSession
+### ::: ultralytics.hub.session.HUBTrainingSession
 <br><br>

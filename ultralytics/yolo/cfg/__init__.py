@@ -342,7 +342,7 @@ def entrypoint(debug=''):
     check_cfg_mismatch(full_args_dict, overrides)
 
     # Mode
-    mode = overrides.get('mode', None)
+    mode = overrides.get('mode')
     if mode is None:
         mode = DEFAULT_CFG.mode or 'predict'
         LOGGER.warning(f"WARNING ⚠️ 'mode' is missing. Valid modes are {MODES}. Using default 'mode={mode}'.")
@@ -368,7 +368,8 @@ def entrypoint(debug=''):
         LOGGER.warning(f"WARNING ⚠️ 'model' is missing. Using default 'model={model}'.")
     from ultralytics.yolo.engine.model import YOLO
     overrides['model'] = model
-    model = YOLO(model, task=task)
+    kwargs = {k: overrides[k] for k in ('nc', 'activation') if k in overrides}  # model kwargs (optional)
+    model = YOLO(model, task=task, **kwargs)
     if isinstance(overrides.get('pretrained'), str):
         model.load(overrides['pretrained'])
 

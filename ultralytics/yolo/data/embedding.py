@@ -76,7 +76,6 @@ class Explorer:
     YOLO Explorer. Supports detection, segmnetation and Pose and YOLO models.
     """
 
-    #TODO: Allow starting from an existing table
     def __init__(self, data=None, table=None, model='yolov8n.pt', project='runs/dataset') -> None:
         """
         Args:
@@ -253,7 +252,7 @@ class Explorer:
         table = pa.table([table_data, self.table.to_arrow()['id']], names=['vector', 'id'])
         self._reduced_embs_table = self._create_table('reduced_embs', data=table, mode='overwrite')
 
-        #with multiprocessing.Pool() as pool: # multiprocessing doesn't do much. Need to revisit when GIL removal is widely adopted
+        # with multiprocessing.Pool() as pool: # multiprocessing doesn't do much. Need to revisit when GIL removal is widely adopted
         #    list(tqdm(pool.imap(build_index, iterable)))
 
         for _, emb in enumerate(tqdm(reduced_embs)):
@@ -403,12 +402,11 @@ class Explorer:
 
     def _drop_table(self, name):
         db = lancedb.connect(self.project)
-        try:
+        if name in db.table_names():
             db.drop_table(name)
-        except:
-            return False
+            return True
 
-        return True
+        return False
 
     def _copy_table_to_project(self, table_path):
         if not table_path.endswith('.lance'):

@@ -27,8 +27,8 @@ def on_pretrain_routine_end(trainer):
         mlflow.set_tracking_uri(mlflow_location)
 
         experiment_name = os.environ.get(
-            "MLFLOW_EXPERIMENT", # use MLFLOW_EXPERIMENT env var if available...
-            (trainer.args.project or "/Shared/YOLOv8") # ... or use these defaults
+            'MLFLOW_EXPERIMENT',  # use MLFLOW_EXPERIMENT env var if available...
+            (trainer.args.project or '/Shared/YOLOv8')  # ... or use these defaults
         )
 
         experiment = mlflow.get_experiment_by_name(experiment_name)

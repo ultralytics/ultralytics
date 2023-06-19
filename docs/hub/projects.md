@@ -26,7 +26,7 @@ Click on the **Create Project** button on the top right of the page. This action
 
 ![Ultralytics HUB screenshot of the Projects page with an arrow pointing to the Create Project button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_create_project_3.jpg)
 
-Type the name of your project in the *Project name* field or keep the default name and finalize the project creation with a single click.
+Type the name of your project in the _Project name_ field or keep the default name and finalize the project creation with a single click.
 
 You have the additional option to enrich your project with a description and a unique image, enhancing its recognizability on the Projects page.
 
@@ -38,9 +38,9 @@ After your project is created, you will be able to access it from the Projects p
 
 ![Ultralytics HUB screenshot of the Projects page with an arrow pointing to one of the projects](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_create_project_5.jpg)
 
-Next, [create a model](./models.md) inside your project.
+Next, [train a model](https://docs.ultralytics.com/hub/models/#train-model) inside your project.
 
-![Ultralytics HUB screenshot of the Project page with an arrow pointing to the Create Model button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_create_project_6.jpg)
+![Ultralytics HUB screenshot of the Project page with an arrow pointing to the Train Model button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_create_project_6.jpg)
 
 ## Share Project
 
@@ -120,7 +120,7 @@ Navigate to the Project page of the project you want to delete, open the project
 
 ## Compare Models
 
-Navigate to the Project page of the project where the models you want to compare are located. To use the model comparison feature, click on the  **Charts** tab.
+Navigate to the Project page of the project where the models you want to compare are located. To use the model comparison feature, click on the **Charts** tab.
 
 ![Ultralytics HUB screenshot of the Project page with an arrow pointing to the Charts tab](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/projects/hub_compare_models_1.jpg)
 

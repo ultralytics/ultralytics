@@ -12,7 +12,7 @@ keywords: pose estimation, datasets, supported formats, YAML file, object class 
 
 ** Label Format **
 
-The dataset format used for training YOLO segmentation models is as follows:
+The dataset format used for training YOLO pose models is as follows:
 
 1. One text file per image: Each image in the dataset has a corresponding text file with the same name as the image file and the ".txt" extension.
 2. One row per object: Each row in the text file corresponds to one object instance in the image.

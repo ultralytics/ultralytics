@@ -142,7 +142,7 @@ class Explorer:
                     raise FileNotFoundError(f'{p} does not exist')
             orig_imgs = sorted(x.replace('/', os.sep) for x in f if x.split('.')[-1].lower() in IMG_FORMATS)
             # self.img_files = sorted([x for x in f if x.suffix[1:].lower() in IMG_FORMATS])  # pathlib
-            assert orig_imgs, f'No images found'
+            assert orig_imgs, f'No images found: {p}'
         except Exception as e:
             raise FileNotFoundError(f'Error loading data from {p}') from e
 

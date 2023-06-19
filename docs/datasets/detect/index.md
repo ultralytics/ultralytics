@@ -40,13 +40,12 @@ In this example, the first object is of class 0 (person), with its center at (0.
 
 The Ultralytics framework uses a YAML file format to define the dataset and model configuration for training Detection Models. Here is an example of the YAML format used for defining a detection dataset:
 
-```
+```yaml
 train: <path-to-training-images>
 val: <path-to-validation-images>
 
 nc: <number-of-classes>
 names: [<class-1>, <class-2>, ..., <class-n>]
-
 ```
 
 The `train` and `val` fields specify the paths to the directories containing the training and validation images, respectively.
@@ -105,7 +104,7 @@ TODO
 
 ### COCO dataset format to YOLO format
 
-```
+```python
 from ultralytics.yolo.data.converter import convert_coco
 
 convert_coco(labels_dir='../coco/annotations/')

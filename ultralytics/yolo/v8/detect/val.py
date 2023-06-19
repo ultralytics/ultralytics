@@ -203,11 +203,15 @@ class DetectionValidator(BaseValidator):
             # In false negative part, show all correct detections, then append the false negative box from label
 
             fn_labels = labels[false_negative].cpu()
+            correct_labels = labels[[i for i in range(labels.shape[0]) if i not in false_negative]].cpu()
             show_boxes = torch.cat([
-                boxes,
-                torch.cat([fn_labels, torch.ones(fn_labels.shape[0], 1)],
+                boxes,  # Prediction boxes
+                torch.cat([correct_labels, torch.zeros(fn_labels.shape[0], 1)],  # Correct label boxes
+                          dim=1)[:, torch.tensor([1, 2, 3, 4, 5, 0])],
+                torch.cat([fn_labels, torch.zeros(fn_labels.shape[0], 1)],  # Under kill label boxes
                           dim=1)[:, torch.tensor([1, 2, 3, 4, 5, 0])]])  # Rearrange the element position of fn_labels
-            color_list = [colors.GREEN_COLOR] * detections.shape[0] + [colors.RED_COLOR] * fn_labels.shape[0]
+            color_list = [colors.BLUE_COLOR] * detections.shape[0] \
+                         + [colors.GREEN_COLOR] * correct_labels.shape[0] + [colors.RED_COLOR] * fn_labels.shape[0]
             plot_args = dict(line_width=None, boxes=True, color_list=color_list)
             file_name = batch['im_file'][si]
             result = Results(orig_img=cv2.imread(file_name), path=file_name, names=self.names, boxes=show_boxes)
@@ -218,13 +222,14 @@ class DetectionValidator(BaseValidator):
             # plot false positive images
             # In false positive mode, will show all detection result on images,
             # then mark the false positive part with red
-
-            color_list = [colors.GREEN_COLOR] * detections.shape[0]
+            show_boxes = torch.cat([boxes, torch.cat([labels.cpu(), torch.zeros(labels.shape[0], 1)],  # Correct label boxes
+                                                     dim=1)[:, torch.tensor([1, 2, 3, 4, 5, 0])]])
+            color_list = [colors.GREEN_COLOR] * detections.shape[0] + [colors.BLUE_COLOR] * labels.shape[0]
             for i in false_positive:
                 color_list[i] = colors.RED_COLOR  # Replace the false positive part with red color
             plot_args = dict(line_width=None, boxes=True, color_list=color_list)
             file_name = batch['im_file'][si]
-            result = Results(orig_img=cv2.imread(file_name), path=file_name, names=self.names, boxes=boxes)
+            result = Results(orig_img=cv2.imread(file_name), path=file_name, names=self.names, boxes=show_boxes)
             plotted_img = result.plot(**plot_args)
             cv2.imwrite(str(self.save_dir / 'false_positive' / os.path.split(file_name)[1]), plotted_img)
 

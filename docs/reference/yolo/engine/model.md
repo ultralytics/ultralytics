@@ -3,7 +3,7 @@ description: Discover the YOLO model of Ultralytics engine to simplify your obje
 keywords: YOLO, object detection, model, architecture, usage, customization, Ultralytics Docs
 ---
 
-# YOLO
+## YOLO
 ---
-:::ultralytics.yolo.engine.model.YOLO
+### ::: ultralytics.yolo.engine.model.YOLO
 <br><br>

@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 """
-# RT-DETR model interface
+RT-DETR model interface
 """
 
 from pathlib import Path

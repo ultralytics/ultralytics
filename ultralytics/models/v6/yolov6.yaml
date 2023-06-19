@@ -2,8 +2,8 @@
 # YOLOv6 object detection model with P3-P5 outputs. For Usage examples see https://docs.ultralytics.com/models/yolov6
 
 # Parameters
-act: nn.ReLU()
 nc: 80  # number of classes
+activation: nn.ReLU()  # (optional) model default activation function
 scales: # model compound scaling constants, i.e. 'model=yolov6n.yaml' will call yolov8.yaml with scale 'n'
   # [depth, width, max_channels]
   n: [0.33, 0.25, 1024]

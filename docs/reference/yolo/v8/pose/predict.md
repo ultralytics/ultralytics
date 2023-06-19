@@ -3,12 +3,12 @@ description: Predict human pose coordinates and confidence scores using YOLOv5. 
 keywords: Ultralytics, YOLO, v8, documentation, PosePredictor, pose prediction, pose estimation, predict method
 ---
 
-# PosePredictor
+## PosePredictor
 ---
-:::ultralytics.yolo.v8.pose.predict.PosePredictor
+### ::: ultralytics.yolo.v8.pose.predict.PosePredictor
 <br><br>
 
-# predict
+## predict
 ---
-:::ultralytics.yolo.v8.pose.predict.predict
+### ::: ultralytics.yolo.v8.pose.predict.predict
 <br><br>

@@ -3,12 +3,12 @@ description: Learn how to track ByteAI model sizes and tips for model optimizati
 keywords: Byte Tracker, Ultralytics STrack, application monitoring, bytes sent, bytes received, code examples, setup instructions
 ---
 
-# STrack
+## STrack
 ---
-:::ultralytics.tracker.trackers.byte_tracker.STrack
+### ::: ultralytics.tracker.trackers.byte_tracker.STrack
 <br><br>
 
-# BYTETracker
+## BYTETracker
 ---
-:::ultralytics.tracker.trackers.byte_tracker.BYTETracker
+### ::: ultralytics.tracker.trackers.byte_tracker.BYTETracker
 <br><br>

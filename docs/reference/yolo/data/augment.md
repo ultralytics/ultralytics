@@ -3,97 +3,97 @@ description: Use Ultralytics YOLO Data Augmentation transforms with Base, MixUp,
 keywords: YOLO, data augmentation, transforms, BaseTransform, MixUp, RandomHSV, Albumentations, ToTensor, classify_transforms, classify_albumentations
 ---
 
-# BaseTransform
+## BaseTransform
 ---
-:::ultralytics.yolo.data.augment.BaseTransform
+### ::: ultralytics.yolo.data.augment.BaseTransform
 <br><br>
 
-# Compose
+## Compose
 ---
-:::ultralytics.yolo.data.augment.Compose
+### ::: ultralytics.yolo.data.augment.Compose
 <br><br>
 
-# BaseMixTransform
+## BaseMixTransform
 ---
-:::ultralytics.yolo.data.augment.BaseMixTransform
+### ::: ultralytics.yolo.data.augment.BaseMixTransform
 <br><br>
 
-# Mosaic
+## Mosaic
 ---
-:::ultralytics.yolo.data.augment.Mosaic
+### ::: ultralytics.yolo.data.augment.Mosaic
 <br><br>
 
-# MixUp
+## MixUp
 ---
-:::ultralytics.yolo.data.augment.MixUp
+### ::: ultralytics.yolo.data.augment.MixUp
 <br><br>
 
-# RandomPerspective
+## RandomPerspective
 ---
-:::ultralytics.yolo.data.augment.RandomPerspective
+### ::: ultralytics.yolo.data.augment.RandomPerspective
 <br><br>
 
-# RandomHSV
+## RandomHSV
 ---
-:::ultralytics.yolo.data.augment.RandomHSV
+### ::: ultralytics.yolo.data.augment.RandomHSV
 <br><br>
 
-# RandomFlip
+## RandomFlip
 ---
-:::ultralytics.yolo.data.augment.RandomFlip
+### ::: ultralytics.yolo.data.augment.RandomFlip
 <br><br>
 
-# LetterBox
+## LetterBox
 ---
-:::ultralytics.yolo.data.augment.LetterBox
+### ::: ultralytics.yolo.data.augment.LetterBox
 <br><br>
 
-# CopyPaste
+## CopyPaste
 ---
-:::ultralytics.yolo.data.augment.CopyPaste
+### ::: ultralytics.yolo.data.augment.CopyPaste
 <br><br>
 
-# Albumentations
+## Albumentations
 ---
-:::ultralytics.yolo.data.augment.Albumentations
+### ::: ultralytics.yolo.data.augment.Albumentations
 <br><br>
 
-# Format
+## Format
 ---
-:::ultralytics.yolo.data.augment.Format
+### ::: ultralytics.yolo.data.augment.Format
 <br><br>
 
-# ClassifyLetterBox
+## ClassifyLetterBox
 ---
-:::ultralytics.yolo.data.augment.ClassifyLetterBox
+### ::: ultralytics.yolo.data.augment.ClassifyLetterBox
 <br><br>
 
-# CenterCrop
+## CenterCrop
 ---
-:::ultralytics.yolo.data.augment.CenterCrop
+### ::: ultralytics.yolo.data.augment.CenterCrop
 <br><br>
 
-# ToTensor
+## ToTensor
 ---
-:::ultralytics.yolo.data.augment.ToTensor
+### ::: ultralytics.yolo.data.augment.ToTensor
 <br><br>
 
-# v8_transforms
+## v8_transforms
 ---
-:::ultralytics.yolo.data.augment.v8_transforms
+### ::: ultralytics.yolo.data.augment.v8_transforms
 <br><br>
 
-# classify_transforms
+## classify_transforms
 ---
-:::ultralytics.yolo.data.augment.classify_transforms
+### ::: ultralytics.yolo.data.augment.classify_transforms
 <br><br>
 
-# hsv2colorjitter
+## hsv2colorjitter
 ---
-:::ultralytics.yolo.data.augment.hsv2colorjitter
+### ::: ultralytics.yolo.data.augment.hsv2colorjitter
 <br><br>
 
-# classify_albumentations
+## classify_albumentations
 ---
-:::ultralytics.yolo.data.augment.classify_albumentations
+### ::: ultralytics.yolo.data.augment.classify_albumentations
 <br><br>

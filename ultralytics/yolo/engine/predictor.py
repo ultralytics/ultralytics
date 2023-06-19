@@ -102,6 +102,8 @@ class BasePredictor:
         self.data_path = None
         self.source_type = None
         self.batch = None
+        self.results = None
+        self.transforms = None
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 
@@ -260,12 +262,13 @@ class BasePredictor:
 
                 if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
                     s += self.write_results(i, self.results, (p, im, im0))
-
+                if self.args.save or self.args.save_txt:
+                    self.results[i].save_dir = self.save_dir.__str__()
                 if self.args.show and self.plotted_img is not None:
                     self.show(p)
-
                 if self.args.save and self.plotted_img is not None:
                     self.save_preds(vid_cap, i, str(self.save_dir / p.name))
+
             self.run_callbacks('on_predict_batch_end')
             yield from self.results
 

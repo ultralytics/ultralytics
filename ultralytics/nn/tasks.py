@@ -190,7 +190,7 @@ class BaseModel(nn.Module):
         """Load the weights into the model.
 
         Args:
-            weights (dict) or (torch.nn.Module): The pre-trained weights to be loaded.
+            weights (dict | torch.nn.Module): The pre-trained weights to be loaded.
             verbose (bool, optional): Whether to log the transfer progress. Defaults to True.
         """
         model = weights['model'] if isinstance(weights, dict) else weights  # torchvision models are not dicts
@@ -422,9 +422,7 @@ class RTDETRDetectionModel(DetectionModel):
         # NOTE: preprocess gt_bbox and gt_labels to list.
         bs = len(img)
         batch_idx = batch['batch_idx']
-        gt_groups = []
-        for i in range(bs):
-            gt_groups.append((batch_idx == i).sum().item())
+        gt_groups = [(batch_idx == i).sum().item() for i in range(bs)]
         targets = {
             'cls': batch['cls'].to(img.device, dtype=torch.long).view(-1),
             'bboxes': batch['bboxes'].to(device=img.device),
@@ -606,7 +604,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
 
     # Args
     max_channels = float('inf')
-    nc, act, scales = (d.get(x) for x in ('nc', 'act', 'scales'))
+    nc, act, scales = (d.get(x) for x in ('nc', 'activation', 'scales'))
     depth, width, kpt_shape = (d.get(x, 1.0) for x in ('depth_multiple', 'width_multiple', 'kpt_shape'))
     if scales:
         scale = d.get('scale')
@@ -701,7 +699,7 @@ def guess_model_scale(model_path):
     which is denoted by n, s, m, l, or x. The function returns the size character of the model scale as a string.
 
     Args:
-        model_path (str) or (Path): The path to the YOLO model's YAML file.
+        model_path (str | Path): The path to the YOLO model's YAML file.
 
     Returns:
         (str): The size character of the model's scale, which can be n, s, m, l, or x.
@@ -717,7 +715,7 @@ def guess_model_task(model):
     Guess the task of a PyTorch model from its architecture or configuration.
 
     Args:
-        model (nn.Module) or (dict): PyTorch model or model configuration in YAML format.
+        model (nn.Module | dict): PyTorch model or model configuration in YAML format.
 
     Returns:
         (str): Task of the model ('detect', 'segment', 'classify', 'pose').

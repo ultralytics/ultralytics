@@ -129,7 +129,7 @@ class YOLO:
 
         Args:
             cfg (str): model configuration file
-            task (str) or (None): model task
+            task (str | None): model task
             verbose (bool): display model info on load
         """
         cfg_dict = yaml_model_load(cfg)
@@ -149,7 +149,7 @@ class YOLO:
 
         Args:
             weights (str): model checkpoint to be loaded
-            task (str) or (None): model task
+            task (str | None): model task
         """
         suffix = Path(weights).suffix
         if suffix == '.pt':

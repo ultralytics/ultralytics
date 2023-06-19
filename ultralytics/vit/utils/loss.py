@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -18,11 +20,12 @@ class DETRLoss(nn.Module):
                  use_uni_match=False,
                  uni_match_ind=0):
         """
+        DETR loss function.
+
         Args:
             nc (int): The number of classes.
             loss_gain (dict): The coefficient of loss.
             aux_loss (bool): If 'aux_loss = True', loss at each decoder layer are to be used.
-            use_focal_loss (bool): Use focal loss or not.
             use_vfl (bool): Use VarifocalLoss or not.
             use_uni_match (bool): Whether to use a fixed layer to assign labels for auxiliary branch.
             uni_match_ind (int): The fixed indices of a layer.

@@ -3,7 +3,7 @@ description: Learn about the Neural Architecture Search (NAS) feature available 
 keywords: Ultralytics YOLO, object detection, NAS, Neural Architecture Search, model optimization, accuracy improvement
 ---
 
-# NAS
+## NAS
 ---
-:::ultralytics.yolo.nas.model.NAS
+### ::: ultralytics.yolo.nas.model.NAS
 <br><br>

@@ -3,12 +3,12 @@ description: Ensure model classification accuracy with Ultralytics YOLO's Classi
 keywords: ClassificationValidator, Ultralytics YOLO, Validation, Data Science, Deep Learning
 ---
 
-# ClassificationValidator
+## ClassificationValidator
 ---
-:::ultralytics.yolo.v8.classify.val.ClassificationValidator
+### ::: ultralytics.yolo.v8.classify.val.ClassificationValidator
 <br><br>
 
-# val
+## val
 ---
-:::ultralytics.yolo.v8.classify.val.val
+### ::: ultralytics.yolo.v8.classify.val.val
 <br><br>

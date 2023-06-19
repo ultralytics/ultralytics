@@ -3,7 +3,7 @@ description: Train faster with mixed precision. Learn how to use BaseTrainer wit
 keywords: Ultralytics YOLO, BaseTrainer, object detection models, training guide
 ---
 
-# BaseTrainer
+## BaseTrainer
 ---
-:::ultralytics.yolo.engine.trainer.BaseTrainer
+### ::: ultralytics.yolo.engine.trainer.BaseTrainer
 <br><br>

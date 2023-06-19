@@ -86,7 +86,7 @@ Also, you can analyze your dataset by click on the **Overview** tab.
 
 ![Ultralytics HUB screenshot of the Dataset page with an arrow pointing to the Overview tab](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_upload_dataset_10.jpg)
 
-Next, [train a model](./models.md) on your dataset.
+Next, [train a model](https://docs.ultralytics.com/hub/models/#train-model) on your dataset.
 
 ![Ultralytics HUB screenshot of the Dataset page with an arrow pointing to the Train Model button](https://raw.githubusercontent.com/ultralytics/assets/main/docs/hub/datasets/hub_upload_dataset_11.jpg)
 

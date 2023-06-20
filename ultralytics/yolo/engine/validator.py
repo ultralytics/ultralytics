@@ -98,12 +98,12 @@ class BaseValidator:
         """
 
         # Clear the false negative and false positive folder to avoid conflict of final val and prev val
-        if os.path.exists(str(self.save_dir / 'false_negative')):
-            shutil.rmtree(str(self.save_dir / 'false_negative'))
-        if os.path.exists(str(self.save_dir / 'false_positive')):
-            shutil.rmtree(str(self.save_dir / 'false_positive'))
-        os.makedirs(str(self.save_dir / 'false_negative'), exist_ok=True)
-        os.makedirs(str(self.save_dir / 'false_positive'), exist_ok=True)
+        if os.path.exists(str(self.save_dir / 'false_negative_underkill')):
+            shutil.rmtree(str(self.save_dir / 'false_negative_underkill'))
+        if os.path.exists(str(self.save_dir / 'false_positive_overkill')):
+            shutil.rmtree(str(self.save_dir / 'false_positive_overkill'))
+        os.makedirs(str(self.save_dir / 'false_negative_underkill'), exist_ok=True)
+        os.makedirs(str(self.save_dir / 'false_positive_overkill'), exist_ok=True)
 
         self.training = trainer is not None
         if self.training:

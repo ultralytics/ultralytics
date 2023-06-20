@@ -19,7 +19,7 @@ workers: 8  # (int) number of worker threads for data loading (per RANK if DDP)
 project:  # (str, optional) project name
 name:  # (str, optional) experiment name, results saved to 'project/name' directory
 exist_ok: False  # (bool) whether to overwrite existing experiment
-pretrained: True  # (bool) whether to use a pretrained model
+pretrained: True  # (bool | str) whether to use a pretrained model (bool) or a model to load weights from (str)
 optimizer: auto  # (str) optimizer to use, choices=[SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto]
 verbose: True  # (bool) whether to print verbose output
 seed: 0  # (int) random seed for reproducibility

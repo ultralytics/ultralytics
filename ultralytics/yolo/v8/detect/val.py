@@ -218,7 +218,7 @@ class DetectionValidator(BaseValidator):
             file_name = batch['im_file'][si]
             result = Results(orig_img=cv2.imread(file_name), path=file_name, names=self.names, boxes=show_boxes)
             plotted_img = result.plot(**plot_args)
-            cv2.imwrite(str(self.save_dir / 'false_negative' / os.path.split(file_name)[1]), plotted_img)
+            cv2.imwrite(str(self.save_dir / 'false_negative_underkill' / os.path.split(file_name)[1]), plotted_img)
 
         if false_positive.shape[0] > 0:
             # plot false positive images
@@ -236,7 +236,7 @@ class DetectionValidator(BaseValidator):
             file_name = batch['im_file'][si]
             result = Results(orig_img=cv2.imread(file_name), path=file_name, names=self.names, boxes=show_boxes)
             plotted_img = result.plot(**plot_args)
-            cv2.imwrite(str(self.save_dir / 'false_positive' / os.path.split(file_name)[1]), plotted_img)
+            cv2.imwrite(str(self.save_dir / 'false_positive_overkill' / os.path.split(file_name)[1]), plotted_img)
 
     def _process_batch(self, detections, labels):
         """

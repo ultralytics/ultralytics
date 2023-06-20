@@ -207,7 +207,7 @@ class DetectionValidator(BaseValidator):
             show_boxes = torch.cat([
                 boxes,  # Prediction boxes
                 torch.cat(
-                    [correct_labels, torch.zeros(fn_labels.shape[0], 1)],  # Correct label boxes
+                    [correct_labels, torch.zeros(correct_labels.shape[0], 1)],  # Correct label boxes
                     dim=1)[:, torch.tensor([1, 2, 3, 4, 5, 0])],
                 torch.cat(
                     [fn_labels, torch.zeros(fn_labels.shape[0], 1)],  # Under kill label boxes

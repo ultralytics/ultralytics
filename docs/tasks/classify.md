@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Check YOLO class label with only one class for the whole image, using image classification. Get strategies for training and validation models.
+keywords: YOLOv8n-cls, image classification, pretrained models
 ---
 
 Image classification is the simplest of the three tasks and involves classifying an entire image into one of a set of

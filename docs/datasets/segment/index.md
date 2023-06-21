@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Learn about the Ultralytics YOLO dataset format for segmentation models. Use YAML to train Detection Models. Convert COCO to YOLO format using Python.
+keywords: instance segmentation datasets, yolov8 segmentations, yaml dataset format, auto annotation, convert label formats
 ---
 
 # Instance Segmentation Datasets Overview
@@ -103,7 +104,7 @@ names: [ 'person', 'car' ]
 
 ### COCO dataset format to YOLO format
 
-```
+```python
 from ultralytics.yolo.data.converter import convert_coco
 
 convert_coco(labels_dir='../coco/annotations/', use_segments=True)

@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Learn about YOLOv8's pre-trained weights supporting detection, instance segmentation, pose, and classification tasks. Get performance details.
+keywords: YOLOv8, real-time object detection, object detection, deep learning, machine learning
 ---
 
 # YOLOv8

@@ -1,4 +1,7 @@
-# SAM model interface
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+"""
+SAM model interface
+"""
 
 from ultralytics.yolo.cfg import get_cfg
 
@@ -14,6 +17,7 @@ class SAM:
             # Should raise AssertionError instead?
             raise NotImplementedError('Segment anything prediction requires pre-trained checkpoint')
         self.model = build_sam(model)
+        self.task = 'segment'  # required
         self.predictor = None  # reuse predictor
 
     def predict(self, source, stream=False, **kwargs):

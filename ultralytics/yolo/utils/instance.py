@@ -102,7 +102,7 @@ class Bboxes:
     def mul(self, scale):
         """
         Args:
-            scale (tuple) or (list) or (int): the scale for four coords.
+            scale (tuple | list | int): the scale for four coords.
         """
         if isinstance(scale, Number):
             scale = to_4tuple(scale)
@@ -116,7 +116,7 @@ class Bboxes:
     def add(self, offset):
         """
         Args:
-            offset (tuple) or (list) or (int): the offset for four coords.
+            offset (tuple | list | int): the offset for four coords.
         """
         if isinstance(offset, Number):
             offset = to_4tuple(offset)

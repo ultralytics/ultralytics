@@ -12,7 +12,7 @@ keywords: pose estimation, datasets, supported formats, YAML file, object class 
 
 ** Label Format **
 
-The dataset format used for training YOLO segmentation models is as follows:
+The dataset format used for training YOLO pose models is as follows:
 
 1. One text file per image: Each image in the dataset has a corresponding text file with the same name as the image file and the ".txt" extension.
 2. One row per object: Each row in the text file corresponds to one object instance in the image.
@@ -52,7 +52,6 @@ names: [<class-1>, <class-2>, ..., <class-n>]
 # Keypoints
 kpt_shape: [num_kpts, dim]  # number of keypoints, number of dims (2 for x,y or 3 for x,y,visible)
 flip_idx: [n1, n2 ... , n(num_kpts)]
-
 ```
 
 The `train` and `val` fields specify the paths to the directories containing the training and validation images, respectively.
@@ -65,7 +64,7 @@ NOTE: Either `nc` or `names` must be defined. Defining both are not mandatory
 
 Alternatively, you can directly define class names like this:
 
-```
+```yaml
 names:
   0: person
   1: bicycle
@@ -118,7 +117,7 @@ TODO
 
 ### COCO dataset format to YOLO format
 
-```
+```python
 from ultralytics.yolo.data.converter import convert_coco
 
 convert_coco(labels_dir='../coco/annotations/', use_keypoints=True)

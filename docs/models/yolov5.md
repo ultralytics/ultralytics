@@ -75,7 +75,7 @@ If you use YOLOv5 or YOLOv5u in your research, please cite the Ultralytics YOLOv
 
 ```bibtex
 @software{yolov5,
-  title = {YOLOv5 by Ultralytics},
+  title = {Ultralytics YOLOv5},
   author = {Glenn Jocher},
   year = {2020},
   version = {7.0},

@@ -126,6 +126,7 @@ Below is an example of how to resume an interrupted training using Python and vi
         ```bash
         # Resume an interrupted training
         yolo train resume model=path/to/last.pt
+        ```
 
 By setting `resume=True`, the `train` function will continue training from where it left off, using the state stored in the 'path/to/last.pt' file. If the `resume` argument is omitted or set to `False`, the `train` function will start a new training session.
 

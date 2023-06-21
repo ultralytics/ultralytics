@@ -221,8 +221,8 @@ class DetectionValidator(BaseValidator):
             label_color_list = [colors.GREEN_COLOR] * correct_labels.shape[0] + [colors.RED_COLOR] * fn_labels.shape[0]
             detection_color_list = [colors.BLUE_COLOR] * detections.shape[0]
 
-            combined_img = self._generate_combined_img(detection_boxes, detection_color_list,
-                                                       label_boxes, label_color_list, file_name)
+            combined_img = self._generate_combined_img(detection_boxes, detection_color_list, label_boxes,
+                                                       label_color_list, file_name)
 
             cv2.imwrite(str(self.save_dir / 'false_negative_underkill' / os.path.split(file_name)[1]), combined_img)
 
@@ -243,8 +243,8 @@ class DetectionValidator(BaseValidator):
                 detection_color_list[i] = colors.RED_COLOR  # Replace the false positive part with red color
             file_name = batch['im_file'][si]
 
-            combined_img = self._generate_combined_img(detection_boxes, detection_color_list,
-                                                       label_boxes, label_color_list, file_name)
+            combined_img = self._generate_combined_img(detection_boxes, detection_color_list, label_boxes,
+                                                       label_color_list, file_name)
 
             cv2.imwrite(str(self.save_dir / 'false_positive_overkill' / os.path.split(file_name)[1]), combined_img)
 
@@ -255,19 +255,31 @@ class DetectionValidator(BaseValidator):
         label_result = Results(orig_img=cv2.imread(file_name), path=file_name, names=self.names, boxes=label_boxes)
         label_plotted_img = label_result.plot(**label_plot_args)
         # Prepare detection image
-        detection_result = Results(orig_img=cv2.imread(file_name), path=file_name, names=self.names,
+        detection_result = Results(orig_img=cv2.imread(file_name),
+                                   path=file_name,
+                                   names=self.names,
                                    boxes=detection_boxes)
         detection_plotted_img = detection_result.plot(**detection_plot_args)
 
-        label_plotted_img = cv2.copyMakeBorder(label_plotted_img, 25, 0, 0, 0, cv2.BORDER_CONSTANT,
+        label_plotted_img = cv2.copyMakeBorder(label_plotted_img,
+                                               25,
+                                               0,
+                                               0,
+                                               0,
+                                               cv2.BORDER_CONSTANT,
                                                value=[127, 127, 127])
-        detection_plotted_img = cv2.copyMakeBorder(detection_plotted_img, 25, 0, 0, 0, cv2.BORDER_CONSTANT,
+        detection_plotted_img = cv2.copyMakeBorder(detection_plotted_img,
+                                                   25,
+                                                   0,
+                                                   0,
+                                                   0,
+                                                   cv2.BORDER_CONSTANT,
                                                    value=[127, 127, 127])
 
-        label_plotted_img = cv2.putText(label_plotted_img, 'True', (20, 18), cv2.FONT_HERSHEY_SIMPLEX,
-                                        0.6, (0, 0, 0), 1, cv2.LINE_AA)
-        detection_plotted_img = cv2.putText(detection_plotted_img, 'Predicted', (20, 18), cv2.FONT_HERSHEY_SIMPLEX,
-                                            0.6, (0, 0, 0), 1, cv2.LINE_AA)
+        label_plotted_img = cv2.putText(label_plotted_img, 'True', (20, 18), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0),
+                                        1, cv2.LINE_AA)
+        detection_plotted_img = cv2.putText(detection_plotted_img, 'Predicted', (20, 18), cv2.FONT_HERSHEY_SIMPLEX, 0.6,
+                                            (0, 0, 0), 1, cv2.LINE_AA)
 
         combined_img = np.concatenate([label_plotted_img, detection_plotted_img], axis=1)
         return combined_img

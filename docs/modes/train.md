@@ -21,6 +21,8 @@ training arguments.
 
 !!! example ""
 
+    Device is determined automatically. If a GPU is available then it will be used, otherwise training will start on CPU.
+
     === "Python"
     
         ```python
@@ -45,6 +47,30 @@ training arguments.
 
         # Build a new model from YAML, transfer pretrained weights to it and start training
         yolo detect train data=coco128.yaml model=yolov8n.yaml pretrained=yolov8n.pt epochs=100 imgsz=640
+        ```
+
+### Multi-GPU
+
+The training device can be specified using the `device` argument. If no argument is passed GPU `device=0` will be used if available, otherwise `device=cpu` will be used.
+
+!!! example "Multi-GPU training example"
+
+    === "Python"
+    
+        ```python
+        from ultralytics import YOLO
+        
+        # Load a model
+        model = YOLO('yolov8n.pt')  # load a pretrained model (recommended for training)
+        
+        # Train the model with 2 GPUs
+        model.train(data='coco128.yaml', epochs=100, imgsz=640, device=[0, 1])
+        ```
+    === "CLI"
+    
+        ```bash
+        # Start training from a pretrained *.pt model using GPUs 0 and 1
+        yolo detect train data=coco128.yaml model=yolov8n.pt epochs=100 imgsz=640 device=0,1
         ```
 
 ## Arguments

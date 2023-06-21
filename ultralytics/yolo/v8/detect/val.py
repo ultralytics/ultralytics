@@ -204,39 +204,73 @@ class DetectionValidator(BaseValidator):
 
             fn_labels = labels[false_negative].cpu()
             correct_labels = labels[[i for i in range(labels.shape[0]) if i not in false_negative]].cpu()
-            show_boxes = torch.cat([
-                boxes,  # Prediction boxes
+
+            label_boxes = torch.cat([
                 torch.cat(
                     [correct_labels, torch.zeros(correct_labels.shape[0], 1)],  # Correct label boxes
                     dim=1)[:, torch.tensor([1, 2, 3, 4, 5, 0])],
                 torch.cat(
                     [fn_labels, torch.zeros(fn_labels.shape[0], 1)],  # Under kill label boxes
                     dim=1)[:, torch.tensor([1, 2, 3, 4, 5, 0])]])  # Rearrange the element position of fn_labels
+            detection_boxes = boxes
             color_list = [colors.BLUE_COLOR] * detections.shape[0] \
                          + [colors.GREEN_COLOR] * correct_labels.shape[0] + [colors.RED_COLOR] * fn_labels.shape[0]
-            plot_args = dict(line_width=None, boxes=True, color_list=color_list)
+
             file_name = batch['im_file'][si]
-            result = Results(orig_img=cv2.imread(file_name), path=file_name, names=self.names, boxes=show_boxes)
-            plotted_img = result.plot(**plot_args)
-            cv2.imwrite(str(self.save_dir / 'false_negative_underkill' / os.path.split(file_name)[1]), plotted_img)
+
+            label_color_list = [colors.GREEN_COLOR] * correct_labels.shape[0] + [colors.RED_COLOR] * fn_labels.shape[0]
+            detection_color_list = [colors.BLUE_COLOR] * detections.shape[0]
+
+            combined_img = self._generate_combined_img(detection_boxes, detection_color_list,
+                                                       label_boxes, label_color_list, file_name)
+
+            cv2.imwrite(str(self.save_dir / 'false_negative_underkill' / os.path.split(file_name)[1]), combined_img)
 
         if false_positive.shape[0] > 0:
             # plot false positive images
             # In false positive mode, will show all detection result on images,
             # then mark the false positive part with red
-            show_boxes = torch.cat([
-                boxes,
-                torch.cat(
-                    [labels.cpu(), torch.zeros(labels.shape[0], 1)],  # Correct label boxes
-                    dim=1)[:, torch.tensor([1, 2, 3, 4, 5, 0])]])
+
+            detection_boxes = boxes
+            label_boxes = torch.cat(
+                [labels.cpu(), torch.zeros(labels.shape[0], 1)],  # Correct label boxes
+                dim=1)[:, torch.tensor([1, 2, 3, 4, 5, 0])]
+
+            label_color_list = [colors.GREEN_COLOR] * labels.shape[0]
+            detection_color_list = [colors.BLUE_COLOR] * detections.shape[0]
             color_list = [colors.GREEN_COLOR] * detections.shape[0] + [colors.BLUE_COLOR] * labels.shape[0]
             for i in false_positive:
-                color_list[i] = colors.RED_COLOR  # Replace the false positive part with red color
-            plot_args = dict(line_width=None, boxes=True, color_list=color_list)
+                detection_color_list[i] = colors.RED_COLOR  # Replace the false positive part with red color
             file_name = batch['im_file'][si]
-            result = Results(orig_img=cv2.imread(file_name), path=file_name, names=self.names, boxes=show_boxes)
-            plotted_img = result.plot(**plot_args)
-            cv2.imwrite(str(self.save_dir / 'false_positive_overkill' / os.path.split(file_name)[1]), plotted_img)
+
+            combined_img = self._generate_combined_img(detection_boxes, detection_color_list,
+                                                       label_boxes, label_color_list, file_name)
+
+            cv2.imwrite(str(self.save_dir / 'false_positive_overkill' / os.path.split(file_name)[1]), combined_img)
+
+    def _generate_combined_img(self, detection_boxes, detection_color_list, label_boxes, label_color_list, file_name):
+        label_plot_args = dict(line_width=None, boxes=True, color_list=label_color_list)
+        detection_plot_args = dict(line_width=None, boxes=True, color_list=detection_color_list)
+        # Prepare label image
+        label_result = Results(orig_img=cv2.imread(file_name), path=file_name, names=self.names, boxes=label_boxes)
+        label_plotted_img = label_result.plot(**label_plot_args)
+        # Prepare detection image
+        detection_result = Results(orig_img=cv2.imread(file_name), path=file_name, names=self.names,
+                                   boxes=detection_boxes)
+        detection_plotted_img = detection_result.plot(**detection_plot_args)
+
+        label_plotted_img = cv2.copyMakeBorder(label_plotted_img, 25, 0, 0, 0, cv2.BORDER_CONSTANT,
+                                               value=[127, 127, 127])
+        detection_plotted_img = cv2.copyMakeBorder(detection_plotted_img, 25, 0, 0, 0, cv2.BORDER_CONSTANT,
+                                                   value=[127, 127, 127])
+
+        label_plotted_img = cv2.putText(label_plotted_img, 'True', (20, 18), cv2.FONT_HERSHEY_SIMPLEX,
+                                        0.6, (0, 0, 0), 1, cv2.LINE_AA)
+        detection_plotted_img = cv2.putText(detection_plotted_img, 'Predicted', (20, 18), cv2.FONT_HERSHEY_SIMPLEX,
+                                            0.6, (0, 0, 0), 1, cv2.LINE_AA)
+
+        combined_img = np.concatenate([label_plotted_img, detection_plotted_img], axis=1)
+        return combined_img
 
     def _process_batch(self, detections, labels):
         """

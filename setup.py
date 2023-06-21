@@ -27,8 +27,8 @@ setup(
                  'pose estimation and image classification.'),
     long_description=README,
     long_description_content_type='text/markdown',
-    download_url='https://github.com/mario-dg/syml_ultralytics/archive/refs/tags/v_8.0.117.tar.gz',
-    url='https://github.com/mario-dg/syml_ultralytics',
+    download_url='https://github.com/synentec/syml_ultralytics/archive/refs/tags/v_8.0.120.tar.gz',
+    url='https://github.com/synentec/syml_ultralytics',
     author='syml_ultralytics',
     packages=find_packages(),  # required
     include_package_data=True,

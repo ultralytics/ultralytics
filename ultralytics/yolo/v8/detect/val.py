@@ -249,8 +249,8 @@ class DetectionValidator(BaseValidator):
             cv2.imwrite(str(self.save_dir / 'false_positive_overkill' / os.path.split(file_name)[1]), combined_img)
 
     def _generate_combined_img(self, detection_boxes, detection_color_list, label_boxes, label_color_list, file_name):
-        label_plot_args = dict(line_width=None, boxes=True, color_list=label_color_list)
-        detection_plot_args = dict(line_width=None, boxes=True, color_list=detection_color_list)
+        label_plot_args = dict(line_width=1, boxes=True, color_list=label_color_list)
+        detection_plot_args = dict(line_width=1, boxes=True, color_list=detection_color_list)
         # Prepare label image
         label_result = Results(orig_img=cv2.imread(file_name), path=file_name, names=self.names, boxes=label_boxes)
         label_plotted_img = label_result.plot(**label_plot_args)

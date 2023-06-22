@@ -10,69 +10,51 @@ keywords: object detection, datasets, formats, Ultralytics YOLO, label format, d
 
 ### Ultralytics YOLO format
 
-** Label Format **
-
-The dataset format used for training YOLO detection models is as follows:
-
-1. One text file per image: Each image in the dataset has a corresponding text file with the same name as the image file and the ".txt" extension.
-2. One row per object: Each row in the text file corresponds to one object instance in the image.
-3. Object information per row: Each row contains the following information about the object instance:
-    - Object class index: An integer representing the class of the object (e.g., 0 for person, 1 for car, etc.).
-    - Object center coordinates: The x and y coordinates of the center of the object, normalized to be between 0 and 1.
-    - Object width and height: The width and height of the object, normalized to be between 0 and 1.
-
-The format for a single row in the detection dataset file is as follows:
-
-```
-<object-class> <x> <y> <width> <height>
-```
-
-Here is an example of the YOLO dataset format for a single image with two object instances:
-
-```
-0 0.5 0.4 0.3 0.6
-1 0.3 0.7 0.4 0.2
-```
-
-In this example, the first object is of class 0 (person), with its center at (0.5, 0.4), width of 0.3, and height of 0.6. The second object is of class 1 (car), with its center at (0.3, 0.7), width of 0.4, and height of 0.2.
-
-** Dataset file format **
-
-The Ultralytics framework uses a YAML file format to define the dataset and model configuration for training Detection Models. Here is an example of the YAML format used for defining a detection dataset:
+The dataset config file that defines 1) the dataset root directory `path` and relative paths to `train` / `val` / `test` image directories (or *.txt files with image paths) and 2) a class `names` dictionary:
 
 ```yaml
-train: <path-to-training-images>
-val: <path-to-validation-images>
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+path: ../datasets/coco128  # dataset root dir
+train: images/train2017  # train images (relative to 'path') 128 images
+val: images/train2017  # val images (relative to 'path') 128 images
+test:  # test images (optional)
 
-nc: <number-of-classes>
-names: [<class-1>, <class-2>, ..., <class-n>]
-```
-
-The `train` and `val` fields specify the paths to the directories containing the training and validation images, respectively.
-
-The `nc` field specifies the number of object classes in the dataset.
-
-The `names` field is a list of the names of the object classes. The order of the names should match the order of the object class indices in the YOLO dataset files.
-
-NOTE: Either `nc` or `names` must be defined. Defining both are not mandatory
-
-Alternatively, you can directly define class names like this:
-
-```yaml
+# Classes (80 COCO classes)
 names:
   0: person
   1: bicycle
+  2: car
+  ...
+  77: teddy bear
+  78: hair drier
+  79: toothbrush
 ```
 
-** Example **
+### 1.2 Create Labels
 
-```yaml
-train: data/train/
-val: data/val/
+After using an annotation tool to label your images, export your labels to **YOLO format**, with one `*.txt` file per image (if no objects in image, no `*.txt` file is required). The `*.txt` file specifications are:
 
-nc: 2
-names: ['person', 'car']
+- One row per object
+- Each row is `class x_center y_center width height` format.
+- Box coordinates must be in **normalized xywh** format (from 0 - 1). If your boxes are in pixels, divide `x_center` and `width` by image width, and `y_center` and `height` by image height.
+- Class numbers are zero-indexed (start from 0).
+
+<p align="center"><img width="750" src="https://user-images.githubusercontent.com/26833433/91506361-c7965000-e886-11ea-8291-c72b98c25eec.jpg"></p>
+
+The label file corresponding to the above image contains 2 persons (class `0`) and a tie (class `27`):
+
+<p align="center"><img width="428" src="https://user-images.githubusercontent.com/26833433/112467037-d2568c00-8d66-11eb-8796-55402ac0d62f.png"></p>
+
+### 1.3 Organize Directories
+
+Organize your train and val images and labels according to the example below. YOLOv5 assumes  `/coco128` is inside a `/datasets` directory **next to** the `/yolov5` directory. **YOLOv5 locates labels automatically for each image** by replacing the last instance of `/images/` in each image path with `/labels/`. For example:
+
+```bash
+../datasets/coco128/images/im0.jpg  # image
+../datasets/coco128/labels/im0.txt  # label
 ```
+
+<p align="center"><img width="700" src="https://user-images.githubusercontent.com/26833433/134436012-65111ad1-9541-4853-81a6-f19a3468b75f.png"></p>
 
 ## Usage
 
@@ -98,7 +80,15 @@ names: ['person', 'car']
 
 ## Supported Datasets
 
-TODO
+- Argoverse
+- COCO
+- COCO8
+- GlobalWheat2020
+- Objects365
+- SKU-110K
+- VisDrone
+- VOC
+- xView
 
 ## Port or Convert label formats
 

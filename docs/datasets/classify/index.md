@@ -114,3 +114,7 @@ Ultralytics supports the following datasets with automatic download:
 * [Imagenette](imagenette.md): A smaller subset of ImageNet that contains 10 easily distinguishable classes for quicker training and testing.
 * [Imagewoof](imagewoof.md): A more challenging subset of ImageNet containing 10 dog breed categories for image classification tasks.
 * [MNIST](mnist.md): A dataset of 70,000 grayscale images of handwritten digits for image classification tasks.
+
+### Adding your own dataset
+
+If you have your own dataset and would like to use it for training classification models with Ultralytics, ensure that it follows the format specified above under "Dataset format" and then point your `data` argument to the dataset directory.

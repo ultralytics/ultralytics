@@ -44,8 +44,7 @@ class MixAndRectDataset:
                 indexes = transform.get_indexes(self.dataset)
                 if not isinstance(indexes, collections.abc.Sequence):
                     indexes = [indexes]
-                mix_labels = [deepcopy(self.dataset[index]) for index in indexes]
-                labels['mix_labels'] = mix_labels
+                labels['mix_labels'] = [deepcopy(self.dataset[index]) for index in indexes]
             if self.dataset.rect and isinstance(transform, LetterBox):
                 transform.new_shape = self.dataset.batch_shapes[self.dataset.batch[index]]
             labels = transform(labels)

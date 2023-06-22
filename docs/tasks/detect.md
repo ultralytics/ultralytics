@@ -1,11 +1,12 @@
 ---
 comments: true
 description: Learn how to use YOLOv8, an object detection model pre-trained with COCO and about the different YOLOv8 models and how to train and export them.
+keywords: object detection, YOLOv8 Detect models, COCO dataset, models, train, predict, export
 ---
 
 Object detection is a task that involves identifying the location and class of objects in an image or video stream.
 
-<img width="1024" src="https://user-images.githubusercontent.com/26833433/212094133-6bb8c21c-3d47-41df-a512-81c5931054ae.png">
+<img width="1024" src="https://user-images.githubusercontent.com/26833433/243418624-5785cb93-74c9-4541-9179-d5c6782d491a.png">
 
 The output of an object detector is a set of bounding boxes that enclose the objects in the image, along with class labels and confidence scores for each box. Object detection is a good choice when you need to identify objects of interest in a scene, but don't need to know exactly where the object is or its exact shape.
 
@@ -67,7 +68,7 @@ Train YOLOv8n on the COCO128 dataset for 100 epochs at image size 640. For a ful
 
 ### Dataset format
 
-YOLO detection dataset format can be found in detail in the [Dataset Guide](../yolov5/tutorials/train_custom_data.md). To convert your existing dataset from other formats( like COCO, VOC etc.) to YOLO format, please use [json2yolo tool](https://github.com/ultralytics/JSON2YOLO) by Ultralytics.
+YOLO detection dataset format can be found in detail in the [Dataset Guide](../datasets/detect/index.md). To convert your existing dataset from other formats( like COCO etc.) to YOLO format, please use [json2yolo tool](https://github.com/ultralytics/JSON2YOLO) by Ultralytics.
 
 ## Val
 

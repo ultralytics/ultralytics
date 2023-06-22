@@ -138,7 +138,7 @@ def polygon2mask(imgsz, polygons, color=1, downsample_ratio=1):
     """
     Args:
         imgsz (tuple): The image size.
-        polygons (np.ndarray): [N, M], N is the number of polygons, M is the number of points(Be divided by 2).
+        polygons (list[np.ndarray]): [N, M], N is the number of polygons, M is the number of points(Be divided by 2).
         color (int): color
         downsample_ratio (int): downsample ratio
     """
@@ -226,7 +226,7 @@ def check_det_dataset(dataset, autodownload=True):
 
     if not path.is_absolute():
         path = (DATASETS_DIR / path).resolve()
-        data['path'] = path  # download scripts
+    data['path'] = path  # download scripts
     for k in 'train', 'val', 'test':
         if data.get(k):  # prepend path
             if isinstance(data[k], str):
@@ -266,7 +266,7 @@ def check_det_dataset(dataset, autodownload=True):
     return data  # dictionary
 
 
-def check_cls_dataset(dataset: str):
+def check_cls_dataset(dataset: str, split=''):
     """
     Check a classification dataset such as Imagenet.
 
@@ -275,6 +275,7 @@ def check_cls_dataset(dataset: str):
 
     Args:
         dataset (str): Name of the dataset.
+        split (str, optional): Dataset split, either 'val', 'test', or ''. Defaults to ''.
 
     Returns:
         data (dict): A dictionary containing the following keys and values:
@@ -298,10 +299,15 @@ def check_cls_dataset(dataset: str):
     train_set = data_dir / 'train'
     val_set = data_dir / 'val' if (data_dir / 'val').exists() else None  # data/test or data/val
     test_set = data_dir / 'test' if (data_dir / 'test').exists() else None  # data/val or data/test
+    if split == 'val' and not val_set:
+        LOGGER.info("WARNING ⚠️ Dataset 'split=val' not found, using 'split=test' instead.")
+    elif split == 'test' and not test_set:
+        LOGGER.info("WARNING ⚠️ Dataset 'split=test' not found, using 'split=val' instead.")
+
     nc = len([x for x in (data_dir / 'train').glob('*') if x.is_dir()])  # number of classes
     names = [x.name for x in (data_dir / 'train').iterdir() if x.is_dir()]  # class names list
     names = dict(enumerate(sorted(names)))
-    return {'train': train_set, 'val': val_set, 'test': test_set, 'nc': nc, 'names': names}
+    return {'train': train_set, 'val': val_set or test_set, 'test': test_set or val_set, 'nc': nc, 'names': names}
 
 
 class HUBDatasetStats():
@@ -324,6 +330,7 @@ class HUBDatasetStats():
 
     def __init__(self, path='coco128.yaml', task='detect', autodownload=False):
         """Initialize class."""
+        LOGGER.info(f'Starting HUB dataset checks for {path}....')
         zipped, data_dir, yaml_path = self._unzip(Path(path))
         try:
             # data = yaml_load(check_yaml(yaml_path))  # data dict

@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
 from typing import Optional, Tuple
 
 import numpy as np

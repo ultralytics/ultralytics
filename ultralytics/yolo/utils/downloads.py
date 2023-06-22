@@ -18,7 +18,9 @@ from ultralytics.yolo.utils import LOGGER, checks, clean_url, emojis, is_online,
 GITHUB_ASSET_NAMES = [f'yolov8{k}{suffix}.pt' for k in 'nsmlx' for suffix in ('', '6', '-cls', '-seg', '-pose')] + \
                      [f'yolov5{k}u.pt' for k in 'nsmlx'] + \
                      [f'yolov3{k}u.pt' for k in ('', '-spp', '-tiny')] + \
-                     [f'sam_{k}.pt' for k in 'bl']
+                     [f'yolo_nas_{k}.pt' for k in 'sml'] + \
+                     [f'sam_{k}.pt' for k in 'bl'] + \
+                     [f'rtdetr-{k}.pt' for k in 'lx']
 GITHUB_ASSET_STEMS = [Path(k).stem for k in GITHUB_ASSET_NAMES]
 
 
@@ -130,9 +132,10 @@ def safe_download(url,
             a successful download. Default: 1E0.
         progress (bool, optional): Whether to display a progress bar during the download. Default: True.
     """
-    if '://' not in str(url) and Path(url).is_file():  # exists ('://' check required in Windows Python<3.10)
+    f = dir / url2file(url) if dir else Path(file)  # URL converted to filename
+    if '://' not in str(url) and Path(url).is_file():  # URL exists ('://' check required in Windows Python<3.10)
         f = Path(url)  # filename
-    else:  # does not exist
+    elif not f.is_file():  # URL and file do not exist
         assert dir or file, 'dir or file required for download'
         f = dir / url2file(url) if dir else Path(file)
         desc = f'Downloading {clean_url(url)} to {f}'

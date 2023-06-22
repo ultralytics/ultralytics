@@ -1,11 +1,23 @@
 ---
 comments: true
 description: Learn about YOLOv8's pre-trained weights supporting detection, instance segmentation, pose, and classification tasks. Get performance details.
+keywords: YOLOv8, real-time object detection, object detection, deep learning, machine learning
 ---
 
 # YOLOv8
 
-## About
+## Overview
+
+YOLOv8 is the latest iteration in the YOLO series of real-time object detectors, offering cutting-edge performance in terms of accuracy and speed. Building upon the advancements of previous YOLO versions, YOLOv8 introduces new features and optimizations that make it an ideal choice for various object detection tasks in a wide range of applications.
+
+![Ultralytics YOLOv8](https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/yolo-comparison-plots.png)
+
+## Key Features
+
+- **Advanced Backbone and Neck Architectures:** YOLOv8 employs state-of-the-art backbone and neck architectures, resulting in improved feature extraction and object detection performance.
+- **Anchor-free Split Ultralytics Head:** YOLOv8 adopts an anchor-free split Ultralytics head, which contributes to better accuracy and a more efficient detection process compared to anchor-based approaches.
+- **Optimized Accuracy-Speed Tradeoff:** With a focus on maintaining an optimal balance between accuracy and speed, YOLOv8 is suitable for real-time object detection tasks in diverse application areas.
+- **Variety of Pre-trained Models:** YOLOv8 offers a range of pre-trained models to cater to various tasks and performance requirements, making it easier to find the right model for your specific use case.
 
 ## Supported Tasks
 
@@ -24,7 +36,7 @@ description: Learn about YOLOv8's pre-trained weights supporting detection, inst
 | Validation | :heavy_check_mark: |
 | Training   | :heavy_check_mark: |
 
-??? Performance
+!!! Performance
 
     === "Detection"
 
@@ -66,3 +78,38 @@ description: Learn about YOLOv8's pre-trained weights supporting detection, inst
         | [YOLOv8l-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8l-pose.pt)       | 640                   | 67.6                  | 90.0               | 784.5                          | 2.59                                | 44.4               | 168.6             |
         | [YOLOv8x-pose](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose.pt)       | 640                   | 69.2                  | 90.2               | 1607.1                         | 3.73                                | 69.4               | 263.2             |
         | [YOLOv8x-pose-p6](https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8x-pose-p6.pt) | 1280                  | 71.6                  | 91.2               | 4088.7                         | 10.04                               | 99.1               | 1066.4            |
+
+## Usage
+
+You can use YOLOv8 for object detection tasks using the Ultralytics pip package. The following is a sample code snippet showing how to use YOLOv8 models for inference:
+
+```python
+from ultralytics import YOLO
+
+# Load the model
+model = YOLO('yolov8n.pt')  # load a pretrained model
+
+# Perform inference
+results = model('image.jpg')
+
+# Print the results
+results.print()
+```
+
+## Citation
+
+If you use the YOLOv8 model or any other software from this repository in your work, please cite it using the following format:
+
+```bibtex
+@software{yolov8_ultralytics,
+  author       = {Glenn Jocher and Ayush Chaurasia and Jing Qiu},
+  title        = {Ultralytics YOLOv8},
+  version      = {8.0.0},
+  year         = {2023},
+  url          = {https://github.com/ultralytics/ultralytics},
+  orcid        = {0000-0001-5950-6979, 0000-0002-7603-6750, 0000-0003-3783-7069},
+  license      = {AGPL-3.0}
+}
+```
+
+Please note that the DOI is pending and will be added to the citation once it is available. The usage of the software is in accordance with the AGPL-3.0 license.

@@ -1,4 +1,5 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+
 import ast
 import contextlib
 import json
@@ -53,8 +54,8 @@ class AutoBackend(nn.Module):
         Args:
             weights (str): The path to the weights file. Default: 'yolov8n.pt'
             device (torch.device): The device to run the model on.
-            dnn (bool): Use OpenCV's DNN module for inference if True, defaults to False.
-            data (str), (Path): Additional data.yaml file for class names, optional
+            dnn (bool): Use OpenCV DNN module for inference if True, defaults to False.
+            data (str | Path | optional): Additional data.yaml file for class names.
             fp16 (bool): If True, use half precision. Default: False
             fuse (bool): Whether to fuse the model or not. Default: True
             verbose (bool): Whether to run in verbose mode or not. Default: True
@@ -79,7 +80,7 @@ class AutoBackend(nn.Module):
         w = str(weights[0] if isinstance(weights, list) else weights)
         nn_module = isinstance(weights, torch.nn.Module)
         pt, jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, triton = self._model_type(w)
-        fp16 &= pt or jit or onnx or engine or nn_module  # FP16
+        fp16 &= pt or jit or onnx or engine or nn_module or triton  # FP16
         nhwc = coreml or saved_model or pb or tflite or edgetpu  # BHWC formats (vs torch BCWH)
         stride = 32  # default stride
         model, metadata = None, None

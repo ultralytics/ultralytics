@@ -13,7 +13,8 @@ torchvision>=0.8.1
 tqdm>=4.64.0
 
 # Logging -------------------------------------
-# tensorboard>=2.4.1
+# tensorboard>=2.13.0
+# dvclive>=2.11.0
 # clearml
 # comet
 
@@ -35,7 +36,7 @@ seaborn>=0.11.0
 
 # Extras --------------------------------------
 psutil  # system utilization
-thop>=0.1.1  # FLOPs computation
+# thop>=0.1.1  # FLOPs computation
 # ipython  # interactive notebook
 # albumentations>=1.0.3
 # pycocotools>=2.0.6  # COCO mAP

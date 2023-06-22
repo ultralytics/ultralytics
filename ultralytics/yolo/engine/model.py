@@ -9,8 +9,8 @@ from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, PoseModel
                                   attempt_load_one_weight, guess_model_task, nn, yaml_model_load)
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
-from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, ROOT, callbacks,
-                                    is_git_dir, yaml_load)
+from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, NUM_THREADS, RANK, ROOT,
+                                    callbacks, is_git_dir, yaml_load)
 from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_pip_update_available, check_yaml
 from ultralytics.yolo.utils.downloads import GITHUB_ASSET_STEMS
 from ultralytics.yolo.utils.torch_utils import smart_inference_mode
@@ -119,7 +119,7 @@ class YOLO:
     def is_hub_model(model):
         """Check if the provided model is a HUB model."""
         return any((
-            model.startswith('https://hub.ultra'),  # i.e. https://hub.ultralytics.com/models/MODEL_ID
+            model.startswith('https://hub.ultralytics.com/models/'),  # i.e. https://hub.ultralytics.com/models/MODEL_ID
             [len(x) for x in model.split('_')] == [42, 20],  # APIKEY_MODELID
             len(model) == 20 and not Path(model).exists() and all(x not in model for x in './\\')))  # MODELID
 
@@ -129,7 +129,7 @@ class YOLO:
 
         Args:
             cfg (str): model configuration file
-            task (str) or (None): model task
+            task (str | None): model task
             verbose (bool): display model info on load
         """
         cfg_dict = yaml_model_load(cfg)
@@ -149,7 +149,7 @@ class YOLO:
 
         Args:
             weights (str): model checkpoint to be loaded
-            task (str) or (None): model task
+            task (str | None): model task
         """
         suffix = Path(weights).suffix
         if suffix == '.pt':
@@ -250,6 +250,8 @@ class YOLO:
             self.predictor.setup_model(model=self.model, verbose=is_cli)
         else:  # only update args if predictor is already setup
             self.predictor.args = get_cfg(self.predictor.args, overrides)
+            if 'project' in overrides or 'name' in overrides:
+                self.predictor.save_dir = self.predictor.get_save_dir()
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
 
     def track(self, source=None, stream=False, persist=False, **kwargs):
@@ -333,7 +335,7 @@ class YOLO:
         overrides['mode'] = 'export'
         if overrides.get('imgsz') is None:
             overrides['imgsz'] = self.model.args['imgsz']  # use trained imgsz unless custom value is passed
-        if overrides.get('batch') is None:
+        if 'batch' not in kwargs:
             overrides['batch'] = 1  # default to 1 if not modified
         args = get_cfg(cfg=DEFAULT_CFG, overrides=overrides)
         args.task = self.task
@@ -391,7 +393,7 @@ class YOLO:
              grace_period: int = 10,
              gpu_per_trial: int = None,
              max_samples: int = 10,
-             train_args: dict = {}):
+             train_args: dict = None):
         """
         Runs hyperparameter tuning using Ray Tune.
 
@@ -409,6 +411,8 @@ class YOLO:
         Raises:
             ModuleNotFoundError: If Ray Tune is not installed.
         """
+        if train_args is None:
+            train_args = {}
 
         try:
             from ultralytics.yolo.utils.tuner import (ASHAScheduler, RunConfig, WandbLoggerCallback, default_space,
@@ -443,7 +447,7 @@ class YOLO:
         space['data'] = data
 
         # Define the trainable function with allocated resources
-        trainable_with_resources = tune.with_resources(_tune, {'cpu': 8, 'gpu': gpu_per_trial if gpu_per_trial else 0})
+        trainable_with_resources = tune.with_resources(_tune, {'cpu': NUM_THREADS, 'gpu': gpu_per_trial or 0})
 
         # Define the ASHA scheduler for hyperparameter search
         asha_scheduler = ASHAScheduler(time_attr='epoch',
@@ -454,7 +458,7 @@ class YOLO:
                                        reduction_factor=3)
 
         # Define the callbacks for the hyperparameter search
-        tuner_callbacks = [WandbLoggerCallback(project='yolov8_tune')] if wandb else []
+        tuner_callbacks = [WandbLoggerCallback(project='YOLOv8-tune')] if wandb else []
 
         # Create the Ray Tune hyperparameter search tuner
         tuner = tune.Tuner(trainable_with_resources,

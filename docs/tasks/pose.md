@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Learn how to use YOLOv8 pose estimation models to identify the position of keypoints on objects in an image, and how to train, validate, predict, and export these models for use with various formats such as ONNX or CoreML.
+keywords: YOLOv8, Pose Models, Keypoint Detection, COCO dataset, COCO val2017, Amazon EC2 P4d, PyTorch
 ---
 
 Pose estimation is a task that involves identifying the location of specific points in an image, usually referred
@@ -8,7 +9,7 @@ to as keypoints. The keypoints can represent various parts of the object such as
 features. The locations of the keypoints are usually represented as a set of 2D `[x, y]` or 3D `[x, y, visible]`
 coordinates.
 
-<img width="1024" src="https://user-images.githubusercontent.com/26833433/239691398-d62692dc-713e-4207-9908-2f6710050e5c.jpg">
+<img width="1024" src="https://user-images.githubusercontent.com/26833433/243418616-9811ac0b-a4a7-452a-8aba-484ba32bb4a8.png">
 
 The output of a pose estimation model is a set of points that represent the keypoints on an object in the image, usually
 along with the confidence scores for each point. Pose estimation is a good choice when you need to identify specific

@@ -123,7 +123,7 @@ def make_divisible(x, divisor):
 
     Args:
         x (int): The number to make divisible.
-        divisor (int) or (torch.Tensor): The divisor.
+        divisor (int | torch.Tensor): The divisor.
 
     Returns:
         (int): The nearest number divisible by the divisor.
@@ -166,7 +166,7 @@ def non_max_suppression(
             list contains the apriori labels for a given image. The list should be in the format
             output by a dataloader, with each label being a tuple of (class_index, x1, y1, x2, y2).
         max_det (int): The maximum number of boxes to keep after NMS.
-        nc (int): (optional) The number of classes output by the model. Any indices after this will be considered masks.
+        nc (int, optional): The number of classes output by the model. Any indices after this will be considered masks.
         max_time_img (float): The maximum time (seconds) for processing one image.
         max_nms (int): The maximum number of boxes into torchvision.ops.nms().
         max_wh (int): The maximum box width and height in pixels
@@ -290,7 +290,7 @@ def clip_coords(coords, shape):
     Clip line coordinates to the image boundaries.
 
     Args:
-        coords (torch.Tensor) or (numpy.ndarray): A list of line coordinates.
+        coords (torch.Tensor | numpy.ndarray): A list of line coordinates.
         shape (tuple): A tuple of integers representing the size of the image in the format (height, width).
 
     Returns:
@@ -347,9 +347,9 @@ def xyxy2xywh(x):
     Convert bounding box coordinates from (x1, y1, x2, y2) format to (x, y, width, height) format.
 
     Args:
-        x (np.ndarray) or (torch.Tensor): The input bounding box coordinates in (x1, y1, x2, y2) format.
+        x (np.ndarray | torch.Tensor): The input bounding box coordinates in (x1, y1, x2, y2) format.
     Returns:
-       y (np.ndarray) or (torch.Tensor): The bounding box coordinates in (x, y, width, height) format.
+       y (np.ndarray | torch.Tensor): The bounding box coordinates in (x, y, width, height) format.
     """
     y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
     y[..., 0] = (x[..., 0] + x[..., 2]) / 2  # x center
@@ -365,9 +365,9 @@ def xywh2xyxy(x):
     top-left corner and (x2, y2) is the bottom-right corner.
 
     Args:
-        x (np.ndarray) or (torch.Tensor): The input bounding box coordinates in (x, y, width, height) format.
+        x (np.ndarray | torch.Tensor): The input bounding box coordinates in (x, y, width, height) format.
     Returns:
-        y (np.ndarray) or (torch.Tensor): The bounding box coordinates in (x1, y1, x2, y2) format.
+        y (np.ndarray | torch.Tensor): The bounding box coordinates in (x1, y1, x2, y2) format.
     """
     y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
     y[..., 0] = x[..., 0] - x[..., 2] / 2  # top left x
@@ -382,13 +382,13 @@ def xywhn2xyxy(x, w=640, h=640, padw=0, padh=0):
     Convert normalized bounding box coordinates to pixel coordinates.
 
     Args:
-        x (np.ndarray) or (torch.Tensor): The bounding box coordinates.
+        x (np.ndarray | torch.Tensor): The bounding box coordinates.
         w (int): Width of the image. Defaults to 640
         h (int): Height of the image. Defaults to 640
         padw (int): Padding width. Defaults to 0
         padh (int): Padding height. Defaults to 0
     Returns:
-        y (np.ndarray) or (torch.Tensor): The coordinates of the bounding box in the format [x1, y1, x2, y2] where
+        y (np.ndarray | torch.Tensor): The coordinates of the bounding box in the format [x1, y1, x2, y2] where
             x1,y1 is the top-left corner, x2,y2 is the bottom-right corner of the bounding box.
     """
     y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
@@ -405,13 +405,13 @@ def xyxy2xywhn(x, w=640, h=640, clip=False, eps=0.0):
     x, y, width and height are normalized to image dimensions
 
     Args:
-        x (np.ndarray) or (torch.Tensor): The input bounding box coordinates in (x1, y1, x2, y2) format.
+        x (np.ndarray | torch.Tensor): The input bounding box coordinates in (x1, y1, x2, y2) format.
         w (int): The width of the image. Defaults to 640
         h (int): The height of the image. Defaults to 640
         clip (bool): If True, the boxes will be clipped to the image boundaries. Defaults to False
         eps (float): The minimum value of the box's width and height. Defaults to 0.0
     Returns:
-        y (np.ndarray) or (torch.Tensor): The bounding box coordinates in (x, y, width, height, normalized) format
+        y (np.ndarray | torch.Tensor): The bounding box coordinates in (x, y, width, height, normalized) format
     """
     if clip:
         clip_boxes(x, (h - eps, w - eps))  # warning: inplace clip
@@ -428,13 +428,13 @@ def xyn2xy(x, w=640, h=640, padw=0, padh=0):
     Convert normalized coordinates to pixel coordinates of shape (n,2)
 
     Args:
-        x (np.ndarray) or (torch.Tensor): The input tensor of normalized bounding box coordinates
+        x (np.ndarray | torch.Tensor): The input tensor of normalized bounding box coordinates
         w (int): The width of the image. Defaults to 640
         h (int): The height of the image. Defaults to 640
         padw (int): The width of the padding. Defaults to 0
         padh (int): The height of the padding. Defaults to 0
     Returns:
-        y (np.ndarray) or (torch.Tensor): The x and y coordinates of the top left corner of the bounding box
+        y (np.ndarray | torch.Tensor): The x and y coordinates of the top left corner of the bounding box
     """
     y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
     y[..., 0] = w * x[..., 0] + padw  # top left x
@@ -447,9 +447,9 @@ def xywh2ltwh(x):
     Convert the bounding box format from [x, y, w, h] to [x1, y1, w, h], where x1, y1 are the top-left coordinates.
 
     Args:
-        x (np.ndarray) or (torch.Tensor): The input tensor with the bounding box coordinates in the xywh format
+        x (np.ndarray | torch.Tensor): The input tensor with the bounding box coordinates in the xywh format
     Returns:
-        y (np.ndarray) or (torch.Tensor): The bounding box coordinates in the xyltwh format
+        y (np.ndarray | torch.Tensor): The bounding box coordinates in the xyltwh format
     """
     y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
     y[:, 0] = x[:, 0] - x[:, 2] / 2  # top left x
@@ -462,9 +462,9 @@ def xyxy2ltwh(x):
     Convert nx4 bounding boxes from [x1, y1, x2, y2] to [x1, y1, w, h], where xy1=top-left, xy2=bottom-right
 
     Args:
-      x (np.ndarray) or (torch.Tensor): The input tensor with the bounding boxes coordinates in the xyxy format
+      x (np.ndarray | torch.Tensor): The input tensor with the bounding boxes coordinates in the xyxy format
     Returns:
-      y (np.ndarray) or (torch.Tensor): The bounding box coordinates in the xyltwh format.
+      y (np.ndarray | torch.Tensor): The bounding box coordinates in the xyltwh format.
     """
     y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
     y[:, 2] = x[:, 2] - x[:, 0]  # width
@@ -490,10 +490,10 @@ def ltwh2xyxy(x):
     It converts the bounding box from [x1, y1, w, h] to [x1, y1, x2, y2] where xy1=top-left, xy2=bottom-right
 
     Args:
-      x (np.ndarray) or (torch.Tensor): the input image
+      x (np.ndarray | torch.Tensor): the input image
 
     Returns:
-      y (np.ndarray) or (torch.Tensor): the xyxy coordinates of the bounding boxes.
+      y (np.ndarray | torch.Tensor): the xyxy coordinates of the bounding boxes.
     """
     y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
     y[:, 2] = x[:, 2] + x[:, 0]  # width

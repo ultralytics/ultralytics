@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Learn how to train and customize your models fast with the Ultralytics YOLO 'DetectionTrainer' and 'CustomTrainer'. Read more here!
+keywords: Ultralytics, YOLO, DetectionTrainer, BaseTrainer, engine components, trainers, customizing, callbacks, validators, predictors
 ---
 
 Both the Ultralytics YOLO command-line and python interfaces are simply a high-level abstraction on the base engine

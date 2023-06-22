@@ -270,7 +270,7 @@ class RTDETRDecoder(nn.Module):
         anchors = torch.cat(anchors, 1)  # (1, h*w*nl, 4)
         valid_mask = ((anchors > eps) * (anchors < 1 - eps)).all(-1, keepdim=True)  # 1, h*w*nl, 1
         anchors = torch.log(anchors / (1 - anchors))
-        anchors = anchors.masked_fill(~valid_mask, float("inf"))
+        anchors = anchors.masked_fill(~valid_mask, float('inf'))
         return anchors, valid_mask
 
     def _get_encoder_input(self, x):

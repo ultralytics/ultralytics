@@ -48,6 +48,8 @@ When using the Ultralytics YOLO format, organize your training and validation im
 
 Here's how you can use these formats to train your model:
 
+!!! example ""
+
     === "Python"
     
         ```python

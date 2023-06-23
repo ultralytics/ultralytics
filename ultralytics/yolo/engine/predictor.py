@@ -122,8 +122,9 @@ class BasePredictor:
             im = np.stack(self.pre_transform(im))
             im = im[..., ::-1].transpose((0, 3, 1, 2))  # BGR to RGB, BHWC to BCHW, (n, 3, h, w)
             im = np.ascontiguousarray(im)  # contiguous
-            im = torch.from_numpy(im).float() / 255.0  # Convert to float and normalize to 0.0 - 1.0
+            im = torch.from_numpy(im).float() / 255.0  # Convert to float and normalize to 0.0 - 1.0 from 0 - 255
 
+        # NOTE: assuming im with (b, 3, h, w) if it's a tensor
         img = im.to(self.device)
 
         if self.model.fp16:

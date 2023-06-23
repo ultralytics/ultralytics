@@ -1,11 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,26 +17,27 @@ Misc functions.
 Mostly copy-paste from torchvision references or other public repos like DETR:
 https://github.com/facebookresearch/detr/blob/master/util/misc.py
 """
+import datetime
+import math
 import os
+import random
+import subprocess
 import sys
 import time
-import math
-import random
-import datetime
-import subprocess
 from collections import defaultdict, deque
 
 import numpy as np
 import torch
-from torch import nn
 import torch.distributed as dist
 from PIL import ImageFilter, ImageOps
+from torch import nn
 
 
-class GaussianBlur(object):
+class GaussianBlur:
     """
     Apply Gaussian Blur to the PIL image.
     """
+
     def __init__(self, p=0.5, radius_min=0.1, radius_max=2.):
         self.prob = p
         self.radius_min = radius_min
@@ -47,17 +48,14 @@ class GaussianBlur(object):
         if not do_it:
             return img
 
-        return img.filter(
-            ImageFilter.GaussianBlur(
-                radius=random.uniform(self.radius_min, self.radius_max)
-            )
-        )
+        return img.filter(ImageFilter.GaussianBlur(radius=random.uniform(self.radius_min, self.radius_max)))
 
 
-class Solarization(object):
+class Solarization:
     """
     Apply Solarization to the PIL image.
     """
+
     def __init__(self, p):
         self.p = p
 
@@ -70,63 +68,63 @@ class Solarization(object):
 
 def load_pretrained_weights(model, pretrained_weights, checkpoint_key, model_name, patch_size):
     if os.path.isfile(pretrained_weights):
-        state_dict = torch.load(pretrained_weights, map_location="cpu")
+        state_dict = torch.load(pretrained_weights, map_location='cpu')
         if checkpoint_key is not None and checkpoint_key in state_dict:
-            print(f"Take key {checkpoint_key} in provided checkpoint dict")
+            print(f'Take key {checkpoint_key} in provided checkpoint dict')
             state_dict = state_dict[checkpoint_key]
         # remove `module.` prefix
-        state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
+        state_dict = {k.replace('module.', ''): v for k, v in state_dict.items()}
         # remove `backbone.` prefix induced by multicrop wrapper
-        state_dict = {k.replace("backbone.", ""): v for k, v in state_dict.items()}
+        state_dict = {k.replace('backbone.', ''): v for k, v in state_dict.items()}
         msg = model.load_state_dict(state_dict, strict=False)
         print('Pretrained weights found at {} and loaded with msg: {}'.format(pretrained_weights, msg))
     else:
-        print("Please use the `--pretrained_weights` argument to indicate the path of the checkpoint to evaluate.")
+        print('Please use the `--pretrained_weights` argument to indicate the path of the checkpoint to evaluate.')
         url = None
-        if model_name == "vit_small" and patch_size == 16:
-            url = "dino_deitsmall16_pretrain/dino_deitsmall16_pretrain.pth"
-        elif model_name == "vit_small" and patch_size == 8:
-            url = "dino_deitsmall8_pretrain/dino_deitsmall8_pretrain.pth"
-        elif model_name == "vit_base" and patch_size == 16:
-            url = "dino_vitbase16_pretrain/dino_vitbase16_pretrain.pth"
-        elif model_name == "vit_base" and patch_size == 8:
-            url = "dino_vitbase8_pretrain/dino_vitbase8_pretrain.pth"
-        elif model_name == "xcit_small_12_p16":
-            url = "dino_xcit_small_12_p16_pretrain/dino_xcit_small_12_p16_pretrain.pth"
-        elif model_name == "xcit_small_12_p8":
-            url = "dino_xcit_small_12_p8_pretrain/dino_xcit_small_12_p8_pretrain.pth"
-        elif model_name == "xcit_medium_24_p16":
-            url = "dino_xcit_medium_24_p16_pretrain/dino_xcit_medium_24_p16_pretrain.pth"
-        elif model_name == "xcit_medium_24_p8":
-            url = "dino_xcit_medium_24_p8_pretrain/dino_xcit_medium_24_p8_pretrain.pth"
-        elif model_name == "resnet50":
-            url = "dino_resnet50_pretrain/dino_resnet50_pretrain.pth"
+        if model_name == 'vit_small' and patch_size == 16:
+            url = 'dino_deitsmall16_pretrain/dino_deitsmall16_pretrain.pth'
+        elif model_name == 'vit_small' and patch_size == 8:
+            url = 'dino_deitsmall8_pretrain/dino_deitsmall8_pretrain.pth'
+        elif model_name == 'vit_base' and patch_size == 16:
+            url = 'dino_vitbase16_pretrain/dino_vitbase16_pretrain.pth'
+        elif model_name == 'vit_base' and patch_size == 8:
+            url = 'dino_vitbase8_pretrain/dino_vitbase8_pretrain.pth'
+        elif model_name == 'xcit_small_12_p16':
+            url = 'dino_xcit_small_12_p16_pretrain/dino_xcit_small_12_p16_pretrain.pth'
+        elif model_name == 'xcit_small_12_p8':
+            url = 'dino_xcit_small_12_p8_pretrain/dino_xcit_small_12_p8_pretrain.pth'
+        elif model_name == 'xcit_medium_24_p16':
+            url = 'dino_xcit_medium_24_p16_pretrain/dino_xcit_medium_24_p16_pretrain.pth'
+        elif model_name == 'xcit_medium_24_p8':
+            url = 'dino_xcit_medium_24_p8_pretrain/dino_xcit_medium_24_p8_pretrain.pth'
+        elif model_name == 'resnet50':
+            url = 'dino_resnet50_pretrain/dino_resnet50_pretrain.pth'
         if url is not None:
-            print("Since no pretrained weights have been provided, we load the reference pretrained DINO weights.")
-            state_dict = torch.hub.load_state_dict_from_url(url="https://dl.fbaipublicfiles.com/dino/" + url)
+            print('Since no pretrained weights have been provided, we load the reference pretrained DINO weights.')
+            state_dict = torch.hub.load_state_dict_from_url(url='https://dl.fbaipublicfiles.com/dino/' + url)
             model.load_state_dict(state_dict, strict=True)
         else:
-            print("There is no reference weights available for this model => We use random weights.")
+            print('There is no reference weights available for this model => We use random weights.')
 
 
 def load_pretrained_linear_weights(linear_classifier, model_name, patch_size):
     url = None
-    if model_name == "vit_small" and patch_size == 16:
-        url = "dino_deitsmall16_pretrain/dino_deitsmall16_linearweights.pth"
-    elif model_name == "vit_small" and patch_size == 8:
-        url = "dino_deitsmall8_pretrain/dino_deitsmall8_linearweights.pth"
-    elif model_name == "vit_base" and patch_size == 16:
-        url = "dino_vitbase16_pretrain/dino_vitbase16_linearweights.pth"
-    elif model_name == "vit_base" and patch_size == 8:
-        url = "dino_vitbase8_pretrain/dino_vitbase8_linearweights.pth"
-    elif model_name == "resnet50":
-        url = "dino_resnet50_pretrain/dino_resnet50_linearweights.pth"
+    if model_name == 'vit_small' and patch_size == 16:
+        url = 'dino_deitsmall16_pretrain/dino_deitsmall16_linearweights.pth'
+    elif model_name == 'vit_small' and patch_size == 8:
+        url = 'dino_deitsmall8_pretrain/dino_deitsmall8_linearweights.pth'
+    elif model_name == 'vit_base' and patch_size == 16:
+        url = 'dino_vitbase16_pretrain/dino_vitbase16_linearweights.pth'
+    elif model_name == 'vit_base' and patch_size == 8:
+        url = 'dino_vitbase8_pretrain/dino_vitbase8_linearweights.pth'
+    elif model_name == 'resnet50':
+        url = 'dino_resnet50_pretrain/dino_resnet50_linearweights.pth'
     if url is not None:
-        print("We load the reference pretrained linear weights.")
-        state_dict = torch.hub.load_state_dict_from_url(url="https://dl.fbaipublicfiles.com/dino/" + url)["state_dict"]
+        print('We load the reference pretrained linear weights.')
+        state_dict = torch.hub.load_state_dict_from_url(url='https://dl.fbaipublicfiles.com/dino/' + url)['state_dict']
         linear_classifier.load_state_dict(state_dict, strict=True)
     else:
-        print("We use random linear weights.")
+        print('We use random linear weights.')
 
 
 def clip_gradients(model, clip):
@@ -145,7 +143,7 @@ def cancel_gradients_last_layer(epoch, model, freeze_last_layer):
     if epoch >= freeze_last_layer:
         return
     for n, p in model.named_parameters():
-        if "last_layer" in n:
+        if 'last_layer' in n:
             p.grad = None
 
 
@@ -155,10 +153,10 @@ def restart_from_checkpoint(ckp_path, run_variables=None, **kwargs):
     """
     if not os.path.isfile(ckp_path):
         return
-    print("Found checkpoint at {}".format(ckp_path))
+    print('Found checkpoint at {}'.format(ckp_path))
 
     # open checkpoint file
-    checkpoint = torch.load(ckp_path, map_location="cpu")
+    checkpoint = torch.load(ckp_path, map_location='cpu')
 
     # key is what to look for in the checkpoint file
     # value is the object to load
@@ -202,14 +200,14 @@ def bool_flag(s):
     """
     Parse boolean arguments from the command line.
     """
-    FALSY_STRINGS = {"off", "false", "0"}
-    TRUTHY_STRINGS = {"on", "true", "1"}
+    FALSY_STRINGS = {'off', 'false', '0'}
+    TRUTHY_STRINGS = {'on', 'true', '1'}
     if s.lower() in FALSY_STRINGS:
         return False
     elif s.lower() in TRUTHY_STRINGS:
         return True
     else:
-        raise argparse.ArgumentTypeError("invalid value for a boolean flag")
+        raise argparse.ArgumentTypeError('invalid value for a boolean flag')
 
 
 def fix_random_seeds(seed=31):
@@ -221,14 +219,14 @@ def fix_random_seeds(seed=31):
     np.random.seed(seed)
 
 
-class SmoothedValue(object):
+class SmoothedValue:
     """Track a series of values and provide access to smoothed values over a
     window or the global series average.
     """
 
     def __init__(self, window_size=20, fmt=None):
         if fmt is None:
-            fmt = "{median:.6f} ({global_avg:.6f})"
+            fmt = '{median:.6f} ({global_avg:.6f})'
         self.deque = deque(maxlen=window_size)
         self.total = 0.0
         self.count = 0
@@ -275,12 +273,11 @@ class SmoothedValue(object):
         return self.deque[-1]
 
     def __str__(self):
-        return self.fmt.format(
-            median=self.median,
-            avg=self.avg,
-            global_avg=self.global_avg,
-            max=self.max,
-            value=self.value)
+        return self.fmt.format(median=self.median,
+                               avg=self.avg,
+                               global_avg=self.global_avg,
+                               max=self.max,
+                               value=self.value)
 
 
 def reduce_dict(input_dict, average=True):
@@ -310,8 +307,9 @@ def reduce_dict(input_dict, average=True):
     return reduced_dict
 
 
-class MetricLogger(object):
-    def __init__(self, delimiter="\t"):
+class MetricLogger:
+
+    def __init__(self, delimiter='\t'):
         self.meters = defaultdict(SmoothedValue)
         self.delimiter = delimiter
 
@@ -327,15 +325,12 @@ class MetricLogger(object):
             return self.meters[attr]
         if attr in self.__dict__:
             return self.__dict__[attr]
-        raise AttributeError("'{}' object has no attribute '{}'".format(
-            type(self).__name__, attr))
+        raise AttributeError("'{}' object has no attribute '{}'".format(type(self).__name__, attr))
 
     def __str__(self):
         loss_str = []
         for name, meter in self.meters.items():
-            loss_str.append(
-                "{}: {}".format(name, str(meter))
-            )
+            loss_str.append('{}: {}'.format(name, str(meter)))
         return self.delimiter.join(loss_str)
 
     def synchronize_between_processes(self):
@@ -356,23 +351,11 @@ class MetricLogger(object):
         space_fmt = ':' + str(len(str(len(iterable)))) + 'd'
         if torch.cuda.is_available():
             log_msg = self.delimiter.join([
-                header,
-                '[{0' + space_fmt + '}/{1}]',
-                'eta: {eta}',
-                '{meters}',
-                'time: {time}',
-                'data: {data}',
-                'max mem: {memory:.0f}'
-            ])
+                header, '[{0' + space_fmt + '}/{1}]', 'eta: {eta}', '{meters}', 'time: {time}', 'data: {data}',
+                'max mem: {memory:.0f}'])
         else:
             log_msg = self.delimiter.join([
-                header,
-                '[{0' + space_fmt + '}/{1}]',
-                'eta: {eta}',
-                '{meters}',
-                'time: {time}',
-                'data: {data}'
-            ])
+                header, '[{0' + space_fmt + '}/{1}]', 'eta: {eta}', '{meters}', 'time: {time}', 'data: {data}'])
         MB = 1024.0 * 1024.0
         for obj in iterable:
             data_time.update(time.time() - end)
@@ -382,22 +365,27 @@ class MetricLogger(object):
                 eta_seconds = iter_time.global_avg * (len(iterable) - i)
                 eta_string = str(datetime.timedelta(seconds=int(eta_seconds)))
                 if torch.cuda.is_available():
-                    print(log_msg.format(
-                        i, len(iterable), eta=eta_string,
-                        meters=str(self),
-                        time=str(iter_time), data=str(data_time),
-                        memory=torch.cuda.max_memory_allocated() / MB))
+                    print(
+                        log_msg.format(i,
+                                       len(iterable),
+                                       eta=eta_string,
+                                       meters=str(self),
+                                       time=str(iter_time),
+                                       data=str(data_time),
+                                       memory=torch.cuda.max_memory_allocated() / MB))
                 else:
-                    print(log_msg.format(
-                        i, len(iterable), eta=eta_string,
-                        meters=str(self),
-                        time=str(iter_time), data=str(data_time)))
+                    print(
+                        log_msg.format(i,
+                                       len(iterable),
+                                       eta=eta_string,
+                                       meters=str(self),
+                                       time=str(iter_time),
+                                       data=str(data_time)))
             i += 1
             end = time.time()
         total_time = time.time() - start_time
         total_time_str = str(datetime.timedelta(seconds=int(total_time)))
-        print('{} Total time: {} ({:.6f} s / it)'.format(
-            header, total_time_str, total_time / len(iterable)))
+        print('{} Total time: {} ({:.6f} s / it)'.format(header, total_time_str, total_time / len(iterable)))
 
 
 def get_sha():
@@ -405,18 +393,19 @@ def get_sha():
 
     def _run(command):
         return subprocess.check_output(command, cwd=cwd).decode('ascii').strip()
+
     sha = 'N/A'
-    diff = "clean"
+    diff = 'clean'
     branch = 'N/A'
     try:
         sha = _run(['git', 'rev-parse', 'HEAD'])
         subprocess.check_output(['git', 'diff'], cwd=cwd)
         diff = _run(['git', 'diff-index', 'HEAD'])
-        diff = "has uncommited changes" if diff else "clean"
+        diff = 'has uncommited changes' if diff else 'clean'
         branch = _run(['git', 'rev-parse', '--abbrev-ref', 'HEAD'])
     except Exception:
         pass
-    message = f"sha: {sha}, status: {diff}, branch: {branch}"
+    message = f'sha: {sha}, status: {diff}, branch: {branch}'
     return message
 
 
@@ -467,7 +456,7 @@ def setup_for_distributed(is_master):
 def init_distributed_mode(args):
     # launched with torch.distributed.launch
     if 'RANK' in os.environ and 'WORLD_SIZE' in os.environ:
-        args.rank = int(os.environ["RANK"])
+        args.rank = int(os.environ['RANK'])
         args.world_size = int(os.environ['WORLD_SIZE'])
         args.gpu = int(os.environ['LOCAL_RANK'])
     # launched with submitit on a slurm cluster
@@ -486,20 +475,19 @@ def init_distributed_mode(args):
         sys.exit(1)
 
     dist.init_process_group(
-        backend="nccl",
+        backend='nccl',
         init_method=args.dist_url,
         world_size=args.world_size,
         rank=args.rank,
     )
 
     torch.cuda.set_device(args.gpu)
-    print('| distributed init (rank {}): {}'.format(
-        args.rank, args.dist_url), flush=True)
+    print('| distributed init (rank {}): {}'.format(args.rank, args.dist_url), flush=True)
     dist.barrier()
     setup_for_distributed(args.rank == 0)
 
 
-def accuracy(output, target, topk=(1,)):
+def accuracy(output, target, topk=(1, )):
     """Computes the accuracy over the k top predictions for the specified values of k"""
     maxk = max(topk)
     batch_size = target.size(0)
@@ -517,9 +505,10 @@ def _no_grad_trunc_normal_(tensor, mean, std, a, b):
         return (1. + math.erf(x / math.sqrt(2.))) / 2.
 
     if (mean < a - 2 * std) or (mean > b + 2 * std):
-        warnings.warn("mean is more than 2 std from [a, b] in nn.init.trunc_normal_. "
-                      "The distribution of values may be incorrect.",
-                      stacklevel=2)
+        warnings.warn(
+            'mean is more than 2 std from [a, b] in nn.init.trunc_normal_. '
+            'The distribution of values may be incorrect.',
+            stacklevel=2)
 
     with torch.no_grad():
         # Values are generated by using a truncated uniform distribution and
@@ -554,10 +543,20 @@ class LARS(torch.optim.Optimizer):
     """
     Almost copy-paste from https://github.com/facebookresearch/barlowtwins/blob/main/main.py
     """
-    def __init__(self, params, lr=0, weight_decay=0, momentum=0.9, eta=0.001,
-                 weight_decay_filter=None, lars_adaptation_filter=None):
-        defaults = dict(lr=lr, weight_decay=weight_decay, momentum=momentum,
-                        eta=eta, weight_decay_filter=weight_decay_filter,
+
+    def __init__(self,
+                 params,
+                 lr=0,
+                 weight_decay=0,
+                 momentum=0.9,
+                 eta=0.001,
+                 weight_decay_filter=None,
+                 lars_adaptation_filter=None):
+        defaults = dict(lr=lr,
+                        weight_decay=weight_decay,
+                        momentum=momentum,
+                        eta=eta,
+                        weight_decay_filter=weight_decay_filter,
                         lars_adaptation_filter=lars_adaptation_filter)
         super().__init__(params, defaults)
 
@@ -578,8 +577,7 @@ class LARS(torch.optim.Optimizer):
                     update_norm = torch.norm(dp)
                     one = torch.ones_like(param_norm)
                     q = torch.where(param_norm > 0.,
-                                    torch.where(update_norm > 0,
-                                                (g['eta'] * param_norm / update_norm), one), one)
+                                    torch.where(update_norm > 0, (g['eta'] * param_norm / update_norm), one), one)
                     dp = dp.mul(q)
 
                 param_state = self.state[p]
@@ -600,8 +598,9 @@ class MultiCropWrapper(nn.Module):
     concatenate all the output features and run the head forward on these
     concatenated features.
     """
+
     def __init__(self, backbone, head):
-        super(MultiCropWrapper, self).__init__()
+        super().__init__()
         # disable layers dedicated to ImageNet labels classification
         backbone.fc, backbone.head = nn.Identity(), nn.Identity()
         self.backbone = backbone
@@ -611,13 +610,14 @@ class MultiCropWrapper(nn.Module):
         # convert to list
         if not isinstance(x, list):
             x = [x]
-        idx_crops = torch.cumsum(torch.unique_consecutive(
-            torch.tensor([inp.shape[-1] for inp in x]),
-            return_counts=True,
-        )[1], 0)
+        idx_crops = torch.cumsum(
+            torch.unique_consecutive(
+                torch.tensor([inp.shape[-1] for inp in x]),
+                return_counts=True,
+            )[1], 0)
         start_idx, output = 0, torch.empty(0).to(x[0].device)
         for end_idx in idx_crops:
-            _out = self.backbone(torch.cat(x[start_idx: end_idx]))
+            _out = self.backbone(torch.cat(x[start_idx:end_idx]))
             # The output is a tuple with XCiT model. See:
             # https://github.com/facebookresearch/xcit/blob/master/xcit.py#L404-L405
             if isinstance(_out, tuple):
@@ -636,7 +636,7 @@ def get_params_groups(model):
         if not param.requires_grad:
             continue
         # we do not regularize biases nor Norm parameters
-        if name.endswith(".bias") or len(param.shape) == 1:
+        if name.endswith('.bias') or len(param.shape) == 1:
             not_regularized.append(param)
         else:
             regularized.append(param)
@@ -655,6 +655,7 @@ class PCA():
     """
     Class to  compute and apply PCA.
     """
+
     def __init__(self, dim=256, whit=0.5):
         self.dim = dim
         self.whit = whit
@@ -678,10 +679,10 @@ class PCA():
         d = d[idx]
         v = v[:, idx]
 
-        print("keeping %.2f %% of the energy" % (d.sum() / totenergy * 100.0))
+        print('keeping %.2f %% of the energy' % (d.sum() / totenergy * 100.0))
 
         # for the whitening
-        d = np.diag(1. / d**self.whit)
+        d = np.diag(1. / d ** self.whit)
 
         # principal components
         self.dvt = np.dot(d, v.T)
@@ -756,7 +757,7 @@ def compute_map(ranks, gnd, kappas=[]):
     """
 
     map = 0.
-    nq = len(gnd) # number of queries
+    nq = len(gnd)  # number of queries
     aps = np.zeros(nq)
     pr = np.zeros(len(kappas))
     prs = np.zeros((nq, len(kappas)))
@@ -778,11 +779,11 @@ def compute_map(ranks, gnd, kappas=[]):
             qgndj = np.empty(0)
 
         # sorted positions of positive and junk images (0 based)
-        pos  = np.arange(ranks.shape[0])[np.in1d(ranks[:,i], qgnd)]
-        junk = np.arange(ranks.shape[0])[np.in1d(ranks[:,i], qgndj)]
+        pos = np.arange(ranks.shape[0])[np.in1d(ranks[:, i], qgnd)]
+        junk = np.arange(ranks.shape[0])[np.in1d(ranks[:, i], qgndj)]
 
-        k = 0;
-        ij = 0;
+        k = 0
+        ij = 0
         if len(junk):
             # decrease positions of positives based on the number of
             # junk images appearing before them
@@ -800,9 +801,9 @@ def compute_map(ranks, gnd, kappas=[]):
         aps[i] = ap
 
         # compute precision @ k
-        pos += 1 # get it to 1-based
+        pos += 1  # get it to 1-based
         for j in np.arange(len(kappas)):
-            kq = min(max(pos), kappas[j]); 
+            kq = min(max(pos), kappas[j])
             prs[i, j] = (pos <= kq).sum() / kq
         pr = pr + prs[i, :]
 
@@ -814,7 +815,7 @@ def compute_map(ranks, gnd, kappas=[]):
 
 def multi_scale(samples, model):
     v = None
-    for s in [1, 1/2**(1/2), 1/2]:  # we use 3 different scales
+    for s in [1, 1 / 2 ** (1 / 2), 1 / 2]:  # we use 3 different scales
         if s == 1:
             inp = samples.clone()
         else:

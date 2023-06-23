@@ -1,11 +1,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,31 +19,34 @@ import math
 from functools import partial
 
 import torch
-import torch.nn as nn 
-
+import torch.nn as nn
 from utils import trunc_normal_
 
-def drop_path(x, drop_prob: float =0., training: bool = False):
+
+def drop_path(x, drop_prob: float = 0., training: bool = False):
     if drop_prob == 0. or not training:
         return x
     keep_prob = 1 - drop_prob
-    shape = (x.shape[0],) + (1,) * (x.ndim - 1) #work with diff dim tensors, not just 2D convnets
+    shape = (x.shape[0], ) + (1, ) * (x.ndim - 1)  #work with diff dim tensors, not just 2D convnets
     random_tensor = keep_prob + torch.rand(shape, dtype=x.dtype, device=x.device)
-    random_tensor.floor_() #binarize
+    random_tensor.floor_()  #binarize
     output = x.div(keep_prob) * random_tensor
     return output
 
 
 class DropPath(nn.Module):
     """Drop paths (Stochastic Depth) per sample  (when sapplied in main path of residual blocks)"""
+
     def __init__(self, drop_prob=None):
-        super(DropPath, self).__init__()
+        super().__init__()
         self.drop_prob = drop_prob
-        
+
     def forward(self, x):
         return drop_path(x, self.drop_prob, self.training)
-    
+
+
 class Mlp(nn.Module):
+
     def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
         super().__init__()
         out_features = out_features or in_features
@@ -52,7 +55,7 @@ class Mlp(nn.Module):
         self.act = act_layer()
         self.fc2 = nn.Linear(hidden_features, out_features)
         self.drop = nn.Dropout(drop)
-    
+
     def forward(self, x):
         x = self.fc1(x)
         x = self.act(x)
@@ -60,29 +63,30 @@ class Mlp(nn.Module):
         x = self.fc2(x)
         x = self.drop(x)
         return x
-    
-    
+
+
 class Attention(nn.Module):
+
     def __init__(self, dim, num_heads=8, qkv_bias=False, qk_scale=None, attn_drop=0., proj_drop=0.):
         super().__init__()
         self.num_heads = num_heads
         head_dim = dim // num_heads
         self.scale = qk_scale or head_dim ** -0.5
-        
+
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
         self.attn_drop = nn.Dropout(attn_drop)
         self.proj = nn.Linear(dim, dim)
         self.proj_drop = nn.Dropout(proj_drop)
-        
+
     def forward(self, x):
         B, N, C = x.shape
         qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, c // self.num_heads).permute(2, 0, 3, 1, 4)
         q, k, v = qkv[0], qkv[1], qkv[2]
-        
+
         attn = (q @ k.transpose(-2, -1)) * self.scale
         attn = attn.softmax(dim=-1)
-        attn = self.attn_drop(attn) 
-        
+        attn = self.attn_drop(attn)
+
         x = (attn @ v).transpose(1, 2).reshape(B, N, C)
         x = self.proj(x)
         x = self.proj_drop(x)
@@ -90,12 +94,26 @@ class Attention(nn.Module):
 
 
 class Block(nn.Module):
-    def __init__(self, dim, num_heads, mlp_ratio=4., qkv_bias=False, qk_scale=None, drop=0., attn_drop=0.,
-                 drop_path=0., act_layer=nn.GELU, norm_layer=nn.LayerNorm):
+
+    def __init__(self,
+                 dim,
+                 num_heads,
+                 mlp_ratio=4.,
+                 qkv_bias=False,
+                 qk_scale=None,
+                 drop=0.,
+                 attn_drop=0.,
+                 drop_path=0.,
+                 act_layer=nn.GELU,
+                 norm_layer=nn.LayerNorm):
         super().__init__()
         self.norm1 = norm_layer(dim)
-        self.attn = Attention(
-            dim, num_heads=num_heads, qkv_bias=qkv_bias, qk_scale=qk_scale, attn_drop=attn_drop, proj_drop=drop)
+        self.attn = Attention(dim,
+                              num_heads=num_heads,
+                              qkv_bias=qkv_bias,
+                              qk_scale=qk_scale,
+                              attn_drop=attn_drop,
+                              proj_drop=drop)
         self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
         self.norm2 = norm_layer(dim)
         mlp_hidden_dim = int(dim * mlp_ratio)
@@ -113,6 +131,7 @@ class Block(nn.Module):
 class PatchEmbed(nn.Module):
     """ Image to Patch Embedding
     """
+
     def __init__(self, img_size=224, patch_size=16, in_chans=3, embed_dim=768):
         super().__init__()
         num_patches = (img_size // patch_size) * (img_size // patch_size)
@@ -130,14 +149,30 @@ class PatchEmbed(nn.Module):
 
 class VisionTransformer(nn.Module):
     """ Vision Transformer """
-    def __init__(self, img_size=[224], patch_size=16, in_chans=3, num_classes=0, embed_dim=768, depth=12,
-                 num_heads=12, mlp_ratio=4., qkv_bias=False, qk_scale=None, drop_rate=0., attn_drop_rate=0.,
-                 drop_path_rate=0., norm_layer=nn.LayerNorm, **kwargs):
+
+    def __init__(self,
+                 img_size=[224],
+                 patch_size=16,
+                 in_chans=3,
+                 num_classes=0,
+                 embed_dim=768,
+                 depth=12,
+                 num_heads=12,
+                 mlp_ratio=4.,
+                 qkv_bias=False,
+                 qk_scale=None,
+                 drop_rate=0.,
+                 attn_drop_rate=0.,
+                 drop_path_rate=0.,
+                 norm_layer=nn.LayerNorm,
+                 **kwargs):
         super().__init__()
         self.num_features = self.embed_dim = embed_dim
 
-        self.patch_embed = PatchEmbed(
-            img_size=img_size[0], patch_size=patch_size, in_chans=in_chans, embed_dim=embed_dim)
+        self.patch_embed = PatchEmbed(img_size=img_size[0],
+                                      patch_size=patch_size,
+                                      in_chans=in_chans,
+                                      embed_dim=embed_dim)
         num_patches = self.patch_embed.num_patches
 
         self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
@@ -146,10 +181,15 @@ class VisionTransformer(nn.Module):
 
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate, depth)]  # stochastic depth decay rule
         self.blocks = nn.ModuleList([
-            Block(
-                dim=embed_dim, num_heads=num_heads, mlp_ratio=mlp_ratio, qkv_bias=qkv_bias, qk_scale=qk_scale,
-                drop=drop_rate, attn_drop=attn_drop_rate, drop_path=dpr[i], norm_layer=norm_layer)
-            for i in range(depth)])
+            Block(dim=embed_dim,
+                  num_heads=num_heads,
+                  mlp_ratio=mlp_ratio,
+                  qkv_bias=qkv_bias,
+                  qk_scale=qk_scale,
+                  drop=drop_rate,
+                  attn_drop=attn_drop_rate,
+                  drop_path=dpr[i],
+                  norm_layer=norm_layer) for i in range(depth)])
         self.norm = norm_layer(embed_dim)
 
         # Classifier head
@@ -231,28 +271,51 @@ class VisionTransformer(nn.Module):
 
 
 def vit_tiny(patch_size=16, **kwargs):
-    model = VisionTransformer(
-        patch_size=patch_size, embed_dim=192, depth=12, num_heads=3, mlp_ratio=4,
-        qkv_bias=True, norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs)
+    model = VisionTransformer(patch_size=patch_size,
+                              embed_dim=192,
+                              depth=12,
+                              num_heads=3,
+                              mlp_ratio=4,
+                              qkv_bias=True,
+                              norm_layer=partial(nn.LayerNorm, eps=1e-6),
+                              **kwargs)
     return model
 
 
 def vit_small(patch_size=16, **kwargs):
-    model = VisionTransformer(
-        patch_size=patch_size, embed_dim=384, depth=12, num_heads=6, mlp_ratio=4,
-        qkv_bias=True, norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs)
+    model = VisionTransformer(patch_size=patch_size,
+                              embed_dim=384,
+                              depth=12,
+                              num_heads=6,
+                              mlp_ratio=4,
+                              qkv_bias=True,
+                              norm_layer=partial(nn.LayerNorm, eps=1e-6),
+                              **kwargs)
     return model
 
 
 def vit_base(patch_size=16, **kwargs):
-    model = VisionTransformer(
-        patch_size=patch_size, embed_dim=768, depth=12, num_heads=12, mlp_ratio=4,
-        qkv_bias=True, norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs)
+    model = VisionTransformer(patch_size=patch_size,
+                              embed_dim=768,
+                              depth=12,
+                              num_heads=12,
+                              mlp_ratio=4,
+                              qkv_bias=True,
+                              norm_layer=partial(nn.LayerNorm, eps=1e-6),
+                              **kwargs)
     return model
 
 
 class DINOHead(nn.Module):
-    def __init__(self, in_dim, out_dim, use_bn=False, norm_last_layer=True, nlayers=3, hidden_dim=2048, bottleneck_dim=256):
+
+    def __init__(self,
+                 in_dim,
+                 out_dim,
+                 use_bn=False,
+                 norm_last_layer=True,
+                 nlayers=3,
+                 hidden_dim=2048,
+                 bottleneck_dim=256):
         super().__init__()
         nlayers = max(nlayers, 1)
         if nlayers == 1:
@@ -285,4 +348,4 @@ class DINOHead(nn.Module):
         x = self.mlp(x)
         x = nn.functional.normalize(x, dim=-1, p=2)
         x = self.last_layer(x)
-        return x      
+        return x

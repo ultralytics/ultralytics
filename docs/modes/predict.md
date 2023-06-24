@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Get started with YOLOv8 Predict mode and input sources. Accepts various input sources such as images, videos, and directories.
+description: Get started with YOLOv8 Predict mode and input sources. Accepts various input sources such as images, videos, and directories.
 keywords: YOLOv8, predict mode, generator, streaming mode, input sources, video formats, arguments customization
 ---
 

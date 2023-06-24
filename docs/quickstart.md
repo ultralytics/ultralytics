@@ -10,21 +10,21 @@ Ultralytics provides various installation methods including pip, conda, and Dock
 
 !!! example "Install"
 
-    === "pip install (recommended)"
+    === "Pip install (recommended)"
         Install the `ultralytics` package using pip, or update an existing installation by running `pip install -U ultralytics`. Visit the Python Package Index (PyPI) for more details on the `ultralytics` package: [https://pypi.org/project/ultralytics/](https://pypi.org/project/ultralytics/).
         ```bash
         # Install the ultralytics package using pip
         pip install ultralytics
         ```
     
-    === "conda install"
-        Conda is an alternative package manager to pip which may also be used for installation. Visit Anaconda for more details at [https://anaconda.org/conda-forge/ultralytics](https://anaconda.org/conda-forge/ultralytics). Ultralytics feedstock is located at [https://github.com/conda-forge/ultralytics-feedstock/](https://github.com/conda-forge/ultralytics-feedstock/).
+    === "Conda install"
+        Conda is an alternative package manager to pip which may also be used for installation. Visit Anaconda for more details at [https://anaconda.org/conda-forge/ultralytics](https://anaconda.org/conda-forge/ultralytics). Ultralytics feedstock repository for updating the conda package is at [https://github.com/conda-forge/ultralytics-feedstock/](https://github.com/conda-forge/ultralytics-feedstock/).
         ```bash
         # Install the ultralytics package using conda
         conda install ultralytics
         ```
     
-    === "git clone (for development)"
+    === "Git clone"
         Clone the `ultralytics` repository if you are interested in contributing to the development or wish to experiment with the latest source code. After cloning, navigate into the directory and install the package in editable mode `-e` using pip.
         ```bash
         # Clone the ultralytics repository
@@ -62,7 +62,7 @@ Ultralytics provides various installation methods including pip, conda, and Dock
     
         Alter `/path/on/host` with the directory path on your local machine, and `/path/in/container` with the desired path inside the Docker container for accessibility.
 
-See the `ultralytics` [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) file for a list of dependencies. Note that `pip` automatically installs all required dependencies.
+See the `ultralytics` [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) file for a list of dependencies. Note that all examples above install all required dependencies.
 
 !!! tip "Tip"
 

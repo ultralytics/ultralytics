@@ -295,10 +295,18 @@ class LoadPilAndNumpy:
 class LoadTensor:
 
     def __init__(self, im0) -> None:
-        self.im0 = im0
-        self.bs = im0.shape[0]
+        self.im0 = self._single_check(im0)
+        self.bs = self.im0.shape[0]
         self.mode = 'image'
         self.paths = [getattr(im, 'filename', f'image{i}.jpg') for i, im in enumerate(im0)]
+
+    @staticmethod
+    def _single_check(im):
+        """Validate and format an image to numpy array."""
+        if len(im.shape) < 4:
+            LOGGER.warning('WARNING ⚠️ torch.Tensor inputs should be BCHW format, i.e. shape(1,3,640,640).')
+            im = im.unsqueeze(0)
+        return im
 
     def __iter__(self):
         """Returns an iterator object."""

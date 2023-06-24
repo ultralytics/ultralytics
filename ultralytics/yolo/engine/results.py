@@ -198,6 +198,10 @@ class Results(SimpleClass):
         Returns:
             (numpy.ndarray): A numpy array of the annotated image.
         """
+        if img is None and isinstance(self.orig_img, torch.Tensor):
+            LOGGER.warning('WARNING ⚠️ Results plotting is not supported for torch.Tensor image types.')
+            return
+
         # Deprecation warn TODO: remove in 8.2
         if 'show_conf' in kwargs:
             deprecation_warn('show_conf', 'conf')
@@ -305,7 +309,7 @@ class Results(SimpleClass):
             file_name (str | pathlib.Path): File name.
         """
         if self.probs is not None:
-            LOGGER.warning('Warning: Classify task do not support `save_crop`.')
+            LOGGER.warning('WARNING ⚠️ Classify task do not support `save_crop`.')
             return
         if isinstance(save_dir, str):
             save_dir = Path(save_dir)

@@ -196,12 +196,11 @@ class BaseTrainer:
         torch.cuda.set_device(RANK)
         self.device = torch.device('cuda', RANK)
         LOGGER.info(f'DDP info: RANK {RANK}, WORLD_SIZE {world_size}, DEVICE {self.device}')
-        os.environ['NCCL_BLOCKING_WAIT'] = '0'  # set to enforce timeout
-        dist.init_process_group(
-            'nccl' if dist.is_nccl_available() else 'gloo',
-            timeout=timedelta(seconds=72000000),  # if you use dataset around 2TB
-            rank=RANK,
-            world_size=world_size)
+        os.environ['NCCL_BLOCKING_WAIT'] = '1'  # set to enforce timeout
+        dist.init_process_group('nccl' if dist.is_nccl_available() else 'gloo',
+                                timeout=timedelta(seconds=10800),  # 3 hours
+                                rank=RANK,
+                                world_size=world_size)
 
     def _setup_train(self, world_size):
         """

@@ -23,7 +23,7 @@ passing `stream=True` in the predictor's call method.
         images = ['im1.jpg', 'im2.jpg']  # list of images
         results = model(images)  # list of Results objects
         
-        # Process results generator
+        # Process results list
         for result in results:
             boxes = result.boxes  # Boxes object for bbox outputs
             masks = result.masks  # Masks object for segmentation masks outputs
@@ -41,7 +41,7 @@ passing `stream=True` in the predictor's call method.
         images = ['im1.jpg', 'im2.jpg']  # list of images
         results = model(images)  # generator of Results objects
         
-        # Process results list
+        # Process results generator
         for result in results:
             boxes = result.boxes  # Boxes object for bbox outputs
             masks = result.masks  # Masks object for segmentation masks outputs

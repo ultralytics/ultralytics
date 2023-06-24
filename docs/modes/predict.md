@@ -90,20 +90,6 @@ whether each source can be used in streaming mode with `stream=True` ✅ and an 
         results = model(source)  # list of Results objects
         ```
 
-    === "video"
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
-
-        # Define path to video file
-        source = 'path/to/video.mp4'
-
-        # Run inference on the source
-        results = model(source, stream=True)  # generator of Results objects
-        ```
-
     === "URL"
         ```python
         from ultralytics import YOLO
@@ -172,10 +158,100 @@ whether each source can be used in streaming mode with `stream=True` ✅ and an 
         model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
 
         # Create a random torch tensor of BCHW shape (1, 3, 640, 640) with values in range [0, 1] and type float32
-        random_tensor = torch.rand(1, 3, 640, 640, dtype=torch.float32)
+        source = torch.rand(1, 3, 640, 640, dtype=torch.float32)
 
         # Run inference on the source
         results = model(source)  # list of Results objects
+        ```
+
+    === "CSV"
+        ```python
+        import torch
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
+
+        # Define a path to a CSV file 
+        source = torch.rand(1, 3, 640, 640, dtype=torch.float32)
+
+        # Run inference on the source
+        results = model(source)  # list of Results objects
+        ```
+
+    === "video"
+        Example video inference code. Video sources may use `stream=True` to reduce memory by creating a results generator rather than a results list.
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
+
+        # Define path to video file
+        source = 'path/to/video.mp4'
+
+        # Run inference on the source
+        results = model(source, stream=True)  # generator of Results objects
+        ```
+
+    === "directory"
+        Example inference code to run inference on all images and videos in a directory.
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
+
+        # Define path to directory containing images and videos for inference
+        source = 'path/to/dir'
+
+        # Run inference on the source
+        results = model(source, stream=True)  # generator of Results objects
+        ```
+
+    === "glob"
+        Example inference code to run inference on all images and videos matching a glob expression with '*' characters.
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
+
+        # Define a glob search of a directory for matching paths, i.e. all JPG files in a directory
+        source = 'path/to/dir/*.jpg'
+
+        # Run inference on the source
+        results = model(source, stream=True)  # generator of Results objects
+        ```
+
+    === "YouTube"
+        Example YouTube inference code using `stream=True` to reduce memory for long YouTube videos.
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
+
+        # Define source as YouTube video URL
+        source = 'https://youtu.be/Zgi9g1ksQHc'
+
+        # Run inference on the source
+        results = model(source, stream=True)  # generator of Results objects
+        ```
+
+    === "Stream"
+        Example inference code for webcams and other remote streaming sources using RTSP, RTMP and IP address protocols.
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
+
+        # Define source as RTSP, RTMP or IP streaming address
+        source = 'rtsp://example.com/media.mp4'
+
+        # Run inference on the source
+        results = model(source, stream=True)  # generator of Results objects
         ```
 
 ## Arguments

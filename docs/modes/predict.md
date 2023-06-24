@@ -12,22 +12,36 @@ passing `stream=True` in the predictor's call method.
 
 !!! example "Predict"
 
-    === "Return a list with `Stream=False`"
+    === "Return a list with `stream=False`"
         ```python
-        inputs = [img, img]  # list of numpy arrays
-        results = model(inputs)  # list of Results objects
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
+
+        # Run batched inference on a list of images
+        images = ['im1.jpg', 'im2.jpg']  # list of images
+        results = model(images)  # list of Results objects
         
+        # Process results generator
         for result in results:
             boxes = result.boxes  # Boxes object for bbox outputs
             masks = result.masks  # Masks object for segmentation masks outputs
             probs = result.probs  # Class probabilities for classification outputs
         ```
 
-    === "Return a generator with `Stream=True`"
+    === "Return a generator with `stream=True`"
         ```python
-        inputs = [img, img]  # list of numpy arrays
-        results = model(inputs, stream=True)  # generator of Results objects
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
+
+        # Run batched inference on a list of images
+        images = ['im1.jpg', 'im2.jpg']  # list of images
+        results = model(images)  # generator of Results objects
         
+        # Process results list
         for result in results:
             boxes = result.boxes  # Boxes object for bbox outputs
             masks = result.masks  # Masks object for segmentation masks outputs

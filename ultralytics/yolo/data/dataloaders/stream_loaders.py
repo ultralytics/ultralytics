@@ -308,7 +308,6 @@ class LoadTensor:
             im = im.unsqueeze(0)
         return im
 
-
     def __iter__(self):
         """Returns an iterator object."""
         self.count = 0

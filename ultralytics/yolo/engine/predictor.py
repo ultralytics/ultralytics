@@ -159,10 +159,11 @@ class BasePredictor:
         log_string += result.verbose()
 
         if self.args.save or self.args.show:  # Add bbox to image
-            plot_args = {'line_width': self.args.line_width,
-                         'boxes': self.args.boxes,
-                         'conf': self.args.show_conf,
-                         'labels': self.args.show_labels}
+            plot_args = {
+                'line_width': self.args.line_width,
+                'boxes': self.args.boxes,
+                'conf': self.args.show_conf,
+                'labels': self.args.show_labels}
             if not self.args.retina_masks:
                 plot_args['im_gpu'] = im[idx]
             self.plotted_img = result.plot(**plot_args)

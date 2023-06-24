@@ -58,21 +58,21 @@ YOLOv8 can accept various input sources, as shown in the table below. This inclu
 numpy arrays, torch tensors, CSV files, videos, directories, globs, YouTube videos, and streams. The table indicates
 whether each source can be used in streaming mode with `stream=True` ✅ and an example argument for each source.
 
-| source      | model(arg)                                 | type           | notes            |
-|-------------|--------------------------------------------|----------------|------------------|
-| image       | `'im.jpg'`                                 | `str`, `Path`  |                  |
-| URL         | `'https://ultralytics.com/images/bus.jpg'` | `str`          |                  |
-| screenshot  | `'screen'`                                 | `str`          |                  |
-| PIL         | `Image.open('im.jpg')`                     | `PIL.Image`    | HWC, RGB         |
-| OpenCV      | `cv2.imread('im.jpg')`                     | `np.ndarray`   | HWC, BGR         |
-| numpy       | `np.zeros((640,1280,3))`                   | `np.ndarray`   | HWC              |
-| torch       | `torch.zeros(16,3,320,640)`                | `torch.Tensor` | BCHW, RGB        |
-| CSV         | `'sources.csv'`                            | `str`, `Path`  | RTSP, RTMP, HTTP |         
-| video ✅     | `'vid.mp4'`                                | `str`, `Path`  |                  |
-| directory ✅ | `'path/'`                                  | `str`, `Path`  |                  |
-| glob ✅      | `'path/*.jpg'`                             | `str`          | Use `*` operator |
-| YouTube ✅   | `'https://youtu.be/Zgi9g1ksQHc'`           | `str`          |                  |
-| stream ✅    | `'rtsp://example.com/media.mp4'`           | `str`          | RTSP, RTMP, HTTP |
+| Source      | Argument                                   | Type                                  | Notes            |
+|-------------|--------------------------------------------|---------------------------------------|------------------|
+| image       | `'image.jpg'`                              | `str` or `Path`                       |                  |
+| URL         | `'https://ultralytics.com/images/bus.jpg'` | `str`                                 |                  |
+| screenshot  | `'screen'`                                 | `str`                                 |                  |
+| PIL         | `Image.open('im.jpg')`                     | `PIL.Image`                           | HWC, RGB         |
+| OpenCV      | `cv2.imread('im.jpg')`                     | `np.ndarray` of `uint8 (0-255)`       | HWC, BGR         |
+| numpy       | `np.zeros((640,1280,3))`                   | `np.ndarray` of `uint8 (0-255)`       | HWC              |
+| torch       | `torch.zeros(16,3,320,640)`                | `torch.Tensor` of `float32 (0.0-1.0)` | BCHW, RGB        |
+| CSV         | `'sources.csv'`                            | `str` or `Path`                       | RTSP, RTMP, HTTP |        
+| video ✅     | `'video.mp4'`                              | `str` or `Path`                       |                  |
+| directory ✅ | `'path/'`                                  | `str` or `Path`                       |                  |
+| glob ✅      | `'path/*.jpg'`                             | `str`                                 | Use `*` operator |
+| YouTube ✅   | `'https://youtu.be/Zgi9g1ksQHc'`           | `str`                                 |                  |
+| stream ✅    | `'rtsp://example.com/media.mp4'`           | `str`                                 | RTSP, RTMP, HTTP |
 
 !!! example "Prediction sources"
 

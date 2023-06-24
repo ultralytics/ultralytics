@@ -74,6 +74,110 @@ whether each source can be used in streaming mode with `stream=True` ✅ and an 
 | YouTube ✅   | `'https://youtu.be/Zgi9g1ksQHc'`           | `str`          |                  |
 | stream ✅    | `'rtsp://example.com/media.mp4'`           | `str`          | RTSP, RTMP, HTTP |
 
+!!! example "Prediction sources"
+
+    === "image"
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
+
+        # Define path to image file
+        source = 'path/to/image.jpg'
+
+        # Run inference on the source
+        results = model(source)  # list of Results objects
+        ```
+
+    === "video"
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
+
+        # Define path to video file
+        source = 'path/to/video.mp4'
+
+        # Run inference on the source
+        results = model(source, stream=True)  # generator of Results objects
+        ```
+
+    === "URL"
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
+
+        # Define remote image or video URL
+        source = 'https://ultralytics.com/images/bus.jpg'
+
+        # Run inference on the source
+        results = model(source)  # list of Results objects
+        ```
+
+    === "PIL"
+        ```python
+        from PIL import Image
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
+
+        # Open an image using PIL
+        source = Image.open('path/to/image.jpg')
+
+        # Run inference on the source
+        results = model(source)  # list of Results objects
+        ```
+
+    === "OpenCV"
+        ```python
+        import cv2
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
+
+        # Read an image using OpenCV
+        source = cv2.imread('path/to/image.jpg')
+
+        # Run inference on the source
+        results = model(source)  # list of Results objects
+        ```
+
+    === "numpy"
+        ```python
+        import numpy as np
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
+
+        # Create a random numpy array of HWC shape (640, 640, 3) with values in range [0, 255] and type uint8
+        source = np.random.randint(low=0, high=255, size=(640, 640, 3), dtype='uint8')
+
+        # Run inference on the source
+        results = model(source)  # list of Results objects
+        ```
+
+    === "torch"
+        ```python
+        import torch
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
+
+        # Create a random torch tensor of BCHW shape (1, 3, 640, 640) with values in range [0, 1] and type float32
+        random_tensor = torch.rand(1, 3, 640, 640, dtype=torch.float32)
+
+        # Run inference on the source
+        results = model(source)  # list of Results objects
+        ```
+
 ## Arguments
 
 `model.predict` accepts multiple arguments that control the prediction operation. These arguments can be passed directly to `model.predict`:

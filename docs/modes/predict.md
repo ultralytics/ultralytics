@@ -65,7 +65,7 @@ whether each source can be used in streaming mode with `stream=True` ✅ and an 
 `model.predict` accepts multiple arguments that control the prediction operation. These arguments can be passed directly to `model.predict`:
 !!! example
 
-    ```
+    ```python
     model.predict(source, save=True, imgsz=320, conf=0.5)
     ```
 

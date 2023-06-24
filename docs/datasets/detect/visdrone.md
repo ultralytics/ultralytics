@@ -10,22 +10,6 @@ The [VisDrone Dataset](https://github.com/VisDrone/VisDrone-Dataset) is a large-
 
 VisDrone is composed of 288 video clips with 261,908 frames and 10,209 static images, captured by various drone-mounted cameras. The dataset covers a wide range of aspects, including location (14 different cities across China), environment (urban and rural), objects (pedestrians, vehicles, bicycles, etc.), and density (sparse and crowded scenes). The dataset was collected using various drone platforms under different scenarios and weather and lighting conditions. These frames are manually annotated with over 2.6 million bounding boxes of targets such as pedestrians, cars, bicycles, and tricycles. Attributes like scene visibility, object class, and occlusion are also provided for better data utilization.
 
-## Citation
-
-If you use the VisDrone dataset in your research or development work, please cite the following paper:
-
-```bibtex
-@ARTICLE{9573394,
-  author={Zhu, Pengfei and Wen, Longyin and Du, Dawei and Bian, Xiao and Fan, Heng and Hu, Qinghua and Ling, Haibin},
-  journal={IEEE Transactions on Pattern Analysis and Machine Intelligence}, 
-  title={Detection and Tracking Meet Drones Challenge}, 
-  year={2021},
-  volume={},
-  number={},
-  pages={1-1},
-  doi={10.1109/TPAMI.2021.3119563}}
-```
-
 ## Dataset Structure
 
 The VisDrone dataset is organized into five main subsets, each focusing on a specific task:

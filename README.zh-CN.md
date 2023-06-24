@@ -57,11 +57,13 @@
 <details open>
 <summary>安装</summary>
 
-在一个 [**Python>=3.7**](https://www.python.org/) 环境中，使用 [**PyTorch>=1.7**](https://pytorch.org/get-started/locally/)，通过 pip 安装 ultralytics 软件包以及所有[依赖项](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt)。
+使用Pip在一个[**Python>=3.8**](https://www.python.org/)环境中安装`ultralytics`包，此环境还需包含[**PyTorch>=1.7**](https://pytorch.org/get-started/locally/)。这也会安装所有必要的[依赖项](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt)。
 
 ```bash
 pip install ultralytics
 ```
+
+如需使用包括Conda、Docker和Git在内的其他安装方法，请参考[Ultralytics快速入门指南](https://docs.ultralytics.com/quickstart)。
 
 </details>
 

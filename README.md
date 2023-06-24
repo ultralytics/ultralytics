@@ -57,11 +57,13 @@ See below for a quickstart installation and usage example, and see the [YOLOv8 D
 <details open>
 <summary>Install</summary>
 
-Pip install the ultralytics package including all [requirements](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) in a [**Python>=3.7**](https://www.python.org/) environment with [**PyTorch>=1.7**](https://pytorch.org/get-started/locally/).
+Pip install the ultralytics package including all [requirements](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) in a [**Python>=3.8**](https://www.python.org/) environment with [**PyTorch>=1.7**](https://pytorch.org/get-started/locally/).
 
 ```bash
 pip install ultralytics
 ```
+
+For alternative installation methods including Conda, Docker, and Git, please refer to the [Ultralytics Quickstart Guide](https://docs.ultralytics.com/quickstart).
 
 </details>
 

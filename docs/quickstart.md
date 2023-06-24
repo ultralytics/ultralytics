@@ -4,11 +4,9 @@ description: Install and use YOLOv8 via CLI or Python. Run single-line commands 
 keywords: YOLOv8, object detection, segmentation, classification, pip, git, CLI, Python
 ---
 
-## Install
+## Install Ultralytics
 
-Install YOLOv8 via the `ultralytics` pip package for the latest stable release or by cloning
-the [https://github.com/ultralytics/ultralytics](https://github.com/ultralytics/ultralytics) repository for the most
-up-to-date version.
+Ultralytics provides various installation methods including pip, conda, and Docker. Install YOLOv8 via the `ultralytics` pip package for the latest stable release or by cloning the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics) for the most up-to-date version. Docker can be used to execute the package in an isolated container, avoiding local installation.
 
 !!! example "Install"
 
@@ -74,7 +72,7 @@ See the `ultralytics` [requirements.txt](https://github.com/ultralytics/ultralyt
         <img width="800" alt="PyTorch Installation Instructions" src="https://user-images.githubusercontent.com/26833433/228650108-ab0ec98a-b328-4f40-a40d-95355e8a84e3.png">
     </a>
 
-## Use with CLI
+## Use Ultralytics with CLI
 
 The Ultralytics command line interface (CLI) allows for simple single-line commands without the need for a Python environment.
 CLI requires no customization or Python code. You can simply run all tasks from the terminal with the `yolo` command. Check out the [CLI Guide](usage/cli.md) to learn more about using YOLOv8 from the command line.
@@ -143,7 +141,7 @@ CLI requires no customization or Python code. You can simply run all tasks from 
 
 [CLI Guide](usage/cli.md){ .md-button .md-button--primary}
 
-## Use with Python
+## Use Ultralytics with Python
 
 YOLOv8's Python interface allows for seamless integration into your Python projects, making it easy to load, run, and process the model's output. Designed with simplicity and ease of use in mind, the Python interface enables users to quickly implement object detection, segmentation, and classification in their projects. This makes YOLOv8's Python interface an invaluable tool for anyone looking to incorporate these functionalities into their Python projects.
 

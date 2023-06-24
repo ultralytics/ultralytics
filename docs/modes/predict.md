@@ -17,7 +17,7 @@ passing `stream=True` in the predictor's call method.
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
+        model = YOLO('yolov8n.pt')  # pretrained YOLOv8n model
 
         # Run batched inference on a list of images
         images = ['im1.jpg', 'im2.jpg']  # list of images
@@ -35,7 +35,7 @@ passing `stream=True` in the predictor's call method.
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
+        model = YOLO('yolov8n.pt')  # pretrained YOLOv8n model
 
         # Run batched inference on a list of images
         images = ['im1.jpg', 'im2.jpg']  # list of images
@@ -81,7 +81,7 @@ whether each source can be used in streaming mode with `stream=True` ✅ and an 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
+        model = YOLO('yolov8n.pt')  # pretrained YOLOv8n model
 
         # Define path to image file
         source = 'path/to/image.jpg'
@@ -95,7 +95,7 @@ whether each source can be used in streaming mode with `stream=True` ✅ and an 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
+        model = YOLO('yolov8n.pt')  # pretrained YOLOv8n model
 
         # Define remote image or video URL
         source = 'https://ultralytics.com/images/bus.jpg'
@@ -110,7 +110,7 @@ whether each source can be used in streaming mode with `stream=True` ✅ and an 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
+        model = YOLO('yolov8n.pt')  # pretrained YOLOv8n model
 
         # Open an image using PIL
         source = Image.open('path/to/image.jpg')
@@ -125,7 +125,7 @@ whether each source can be used in streaming mode with `stream=True` ✅ and an 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
+        model = YOLO('yolov8n.pt')  # pretrained YOLOv8n model
 
         # Read an image using OpenCV
         source = cv2.imread('path/to/image.jpg')
@@ -140,7 +140,7 @@ whether each source can be used in streaming mode with `stream=True` ✅ and an 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
+        model = YOLO('yolov8n.pt')  # pretrained YOLOv8n model
 
         # Create a random numpy array of HWC shape (640, 640, 3) with values in range [0, 255] and type uint8
         source = np.random.randint(low=0, high=255, size=(640, 640, 3), dtype='uint8')
@@ -155,7 +155,7 @@ whether each source can be used in streaming mode with `stream=True` ✅ and an 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
+        model = YOLO('yolov8n.pt')  # pretrained YOLOv8n model
 
         # Create a random torch tensor of BCHW shape (1, 3, 640, 640) with values in range [0, 1] and type float32
         source = torch.rand(1, 3, 640, 640, dtype=torch.float32)
@@ -170,7 +170,7 @@ whether each source can be used in streaming mode with `stream=True` ✅ and an 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
+        model = YOLO('yolov8n.pt')  # pretrained YOLOv8n model
 
         # Define a path to a CSV file 
         source = torch.rand(1, 3, 640, 640, dtype=torch.float32)
@@ -185,7 +185,7 @@ whether each source can be used in streaming mode with `stream=True` ✅ and an 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
+        model = YOLO('yolov8n.pt')  # pretrained YOLOv8n model
 
         # Define path to video file
         source = 'path/to/video.mp4'
@@ -200,7 +200,7 @@ whether each source can be used in streaming mode with `stream=True` ✅ and an 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
+        model = YOLO('yolov8n.pt')  # pretrained YOLOv8n model
 
         # Define path to directory containing images and videos for inference
         source = 'path/to/dir'
@@ -210,15 +210,18 @@ whether each source can be used in streaming mode with `stream=True` ✅ and an 
         ```
 
     === "glob"
-        Example inference code to run inference on all images and videos matching a glob expression with '*' characters.
+        Example inference code to run inference on all images and videos matching a glob expression with `*` characters.
         ```python
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
+        model = YOLO('yolov8n.pt')  # pretrained YOLOv8n model
 
-        # Define a glob search of a directory for matching paths, i.e. all JPG files in a directory
+        # Define a glob search for all JPG files in a directory
         source = 'path/to/dir/*.jpg'
+
+        # OR define a glob search for all JPG files in a directory recursively (including subdirectories)
+        source = 'path/to/dir/**/*.jpg'
 
         # Run inference on the source
         results = model(source, stream=True)  # generator of Results objects
@@ -230,7 +233,7 @@ whether each source can be used in streaming mode with `stream=True` ✅ and an 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
+        model = YOLO('yolov8n.pt')  # pretrained YOLOv8n model
 
         # Define source as YouTube video URL
         source = 'https://youtu.be/Zgi9g1ksQHc'
@@ -245,7 +248,7 @@ whether each source can be used in streaming mode with `stream=True` ✅ and an 
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolov8n.pt")  # pretrained YOLOv8n model
+        model = YOLO('yolov8n.pt')  # pretrained YOLOv8n model
 
         # Define source as RTSP, RTMP or IP streaming address
         source = 'rtsp://example.com/media.mp4'

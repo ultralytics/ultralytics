@@ -147,7 +147,6 @@ class BasePredictor:
         log_string = ''
         if len(im.shape) == 3:
             im = im[None]  # expand for batch dim
-        self.seen += 1
         if self.source_type.webcam or self.source_type.from_img:  # batch_size >= 1
             log_string += f'{idx}: '
             frame = self.dataset.count
@@ -251,11 +250,14 @@ class BasePredictor:
             # Visualize, save, write results
             n = len(im0s)
             for i in range(n):
+                self.seen += 1
                 self.results[i].speed = {
                     'preprocess': profilers[0].dt * 1E3 / n,
                     'inference': profilers[1].dt * 1E3 / n,
                     'postprocess': profilers[2].dt * 1E3 / n}
                 if self.source_type.tensor:  # skip write, show and plot operations if input is raw tensor
+                    if self.args.save or self.args.save_txt or self.args.show:
+                        LOGGER.warning('WARNING ⚠️ save, save_txt and show argument not enabled for tensor inference.')
                     continue
                 p, im0 = path[i], im0s[i].copy()
                 p = Path(p)

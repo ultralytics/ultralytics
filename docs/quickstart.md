@@ -13,16 +13,56 @@ up-to-date version.
 !!! example "Install"
 
     === "pip install (recommended)"
+        Install the `ultralytics` package using pip, or update an existing installation by running `pip install -U ultralytics`. Visit the Python Package Index (PyPI) for more details on the `ultralytics` package: [https://pypi.org/project/ultralytics/](https://pypi.org/project/ultralytics/).
         ```bash
+        # Install the ultralytics package using pip
         pip install ultralytics
         ```
-
-    === "git clone (for development)"
+    
+    === "conda install"
+        Conda is an alternative package manager to pip which may also be used for installation. Visit Anaconda for more details at [https://anaconda.org/conda-forge/ultralytics](https://anaconda.org/conda-forge/ultralytics). Ultralytics feedstock is located at [https://github.com/conda-forge/ultralytics-feedstock/](https://github.com/conda-forge/ultralytics-feedstock/).
         ```bash
+        # Install the ultralytics package using conda
+        conda install ultralytics
+        ```
+    
+    === "git clone (for development)"
+        Clone the `ultralytics` repository if you are interested in contributing to the development or wish to experiment with the latest source code. After cloning, navigate into the directory and install the package in editable mode `-e` using pip.
+        ```bash
+        # Clone the ultralytics repository
         git clone https://github.com/ultralytics/ultralytics
+        
+        # Navigate to the cloned directory
         cd ultralytics
+        
+        # Install the package in editable mode for development
         pip install -e .
         ```
+
+    === "Docker"
+        Utilize Docker to execute the `ultralytics` package in an isolated container. By employing the official `ultralytics` image from [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics), you can avoid local installation. Below are the commands to get the latest image and execute it:
+    
+        ```bash
+        # Set image name as a variable
+        t=ultralytics/ultralytics:latest
+        
+        # Pull the latest ultralytics image from Docker Hub
+        sudo docker pull $t
+        
+        # Run the ultralytics image in a container with GPU support
+        sudo docker run -it --ipc=host --gpus all $t
+        ```
+    
+        The above command initializes a Docker container with the latest `ultralytics` image. The `-it` flag assigns a pseudo-TTY and maintains stdin open, enabling you to interact with the container. The `--ipc=host` flag sets the IPC (Inter-Process Communication) namespace to the host, which is essential for sharing memory between processes. The `--gpus all` flag enables access to all available GPUs inside the container, which is crucial for tasks that require GPU computation.
+    
+        Note: To work with files on your local machine within the container, use Docker volumes for mounting a local directory into the container:
+    
+        ```bash
+        # Mount local directory to a directory inside the container
+        sudo docker run -it --ipc=host --gpus all -v /path/on/host:/path/in/container $t
+        ```
+    
+        Alter `/path/on/host` with the directory path on your local machine, and `/path/in/container` with the desired path inside the Docker container for accessibility.
 
 See the `ultralytics` [requirements.txt](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt) file for a list of dependencies. Note that `pip` automatically installs all required dependencies.
 
@@ -36,7 +76,7 @@ See the `ultralytics` [requirements.txt](https://github.com/ultralytics/ultralyt
 
 ## Use with CLI
 
-The YOLO command line interface (CLI) allows for simple single-line commands without the need for a Python environment.
+The Ultralytics command line interface (CLI) allows for simple single-line commands without the need for a Python environment.
 CLI requires no customization or Python code. You can simply run all tasks from the terminal with the `yolo` command. Check out the [CLI Guide](usage/cli.md) to learn more about using YOLOv8 from the command line.
 
 !!! example

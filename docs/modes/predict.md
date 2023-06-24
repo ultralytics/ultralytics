@@ -63,10 +63,10 @@ whether each source can be used in streaming mode with `stream=True` ✅ and an 
 | image       | `'image.jpg'`                              | `str` or `Path`                       |                  |
 | URL         | `'https://ultralytics.com/images/bus.jpg'` | `str`                                 |                  |
 | screenshot  | `'screen'`                                 | `str`                                 |                  |
-| PIL         | `Image.open('im.jpg')`                     | `PIL.Image`                           | HWC, RGB         |
-| OpenCV      | `cv2.imread('im.jpg')`                     | `np.ndarray` of `uint8 (0-255)`       | HWC, BGR         |
-| numpy       | `np.zeros((640,1280,3))`                   | `np.ndarray` of `uint8 (0-255)`       | HWC              |
-| torch       | `torch.zeros(16,3,320,640)`                | `torch.Tensor` of `float32 (0.0-1.0)` | BCHW, RGB        |
+| PIL         | `Image.open('im.jpg')`                     | `PIL.Image`                           | HWC with RGB     |
+| OpenCV      | `cv2.imread('im.jpg')`                     | `np.ndarray` of `uint8 (0-255)`       | HWC with BGR     |
+| numpy       | `np.zeros((640,1280,3))`                   | `np.ndarray` of `uint8 (0-255)`       | HWC with BGR     |
+| torch       | `torch.zeros(16,3,320,640)`                | `torch.Tensor` of `float32 (0.0-1.0)` | BCHW with RGB    |
 | CSV         | `'sources.csv'`                            | `str` or `Path`                       | RTSP, RTMP, HTTP |        
 | video ✅     | `'video.mp4'`                              | `str` or `Path`                       |                  |
 | directory ✅ | `'path/'`                                  | `str` or `Path`                       |                  |

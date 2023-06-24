@@ -116,21 +116,23 @@ class BasePredictor:
         """Prepares input image before inference.
 
         Args:
-            im (torch.Tensor | List(np.ndarray)): (N, 3, h, w) for tensor, [(h, w, 3) x N] for list.
+            im (torch.Tensor | List(np.ndarray)): BCHW for tensor, [(HWC) x B] for list.
         """
-        if not isinstance(im, torch.Tensor):
+        not_tensor = not isinstance(im, torch.Tensor)
+        if not_tensor:
             im = np.stack(self.pre_transform(im))
             im = im[..., ::-1].transpose((0, 3, 1, 2))  # BGR to RGB, BHWC to BCHW, (n, 3, h, w)
             im = np.ascontiguousarray(im)  # contiguous
             im = torch.from_numpy(im)
-        # NOTE: assuming im with (b, 3, h, w) if it's a tensor
+
         img = im.to(self.device)
         img = img.half() if self.model.fp16 else img.float()  # uint8 to fp16/32
-        img /= 255  # 0 - 255 to 0.0 - 1.0
+        if not_tensor:
+            img /= 255  # 0 - 255 to 0.0 - 1.0
         return img
 
     def pre_transform(self, im):
-        """Pre-tranform input image before inference.
+        """Pre-transform input image before inference.
 
         Args:
             im (List(np.ndarray)): (N, 3, h, w) for tensor, [(h, w, 3) x N] for list.

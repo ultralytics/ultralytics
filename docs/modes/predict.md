@@ -54,25 +54,25 @@ passing `stream=True` in the predictor's call method.
 
 ## Sources
 
-YOLOv8 can accept various input sources, as shown in the table below. This includes images, URLs, PIL images, OpenCV,
-numpy arrays, torch tensors, CSV files, videos, directories, globs, YouTube videos, and streams. The table indicates
-whether each source can be used in streaming mode with `stream=True` ✅ and an example argument for each source.
+YOLOv8 can process different types of input sources for object detection, as shown in the table below. The sources include static images, video streams, and various data formats. The table also indicates whether each source can be used in streaming mode with the argument `stream=True` ✅. Streaming mode is beneficial for processing videos or live streams as it creates a generator of results instead of loading all frames into memory.
 
-| Source      | Argument                                   | Type                                  | Notes            |
-|-------------|--------------------------------------------|---------------------------------------|------------------|
-| image       | `'image.jpg'`                              | `str` or `Path`                       |                  |
-| URL         | `'https://ultralytics.com/images/bus.jpg'` | `str`                                 |                  |
-| screenshot  | `'screen'`                                 | `str`                                 |                  |
-| PIL         | `Image.open('im.jpg')`                     | `PIL.Image`                           | HWC with RGB     |
-| OpenCV      | `cv2.imread('im.jpg')`                     | `np.ndarray` of `uint8 (0-255)`       | HWC with BGR     |
-| numpy       | `np.zeros((640,1280,3))`                   | `np.ndarray` of `uint8 (0-255)`       | HWC with BGR     |
-| torch       | `torch.zeros(16,3,320,640)`                | `torch.Tensor` of `float32 (0.0-1.0)` | BCHW with RGB    |
-| CSV         | `'sources.csv'`                            | `str` or `Path`                       | RTSP, RTMP, HTTP |        
-| video ✅     | `'video.mp4'`                              | `str` or `Path`                       |                  |
-| directory ✅ | `'path/'`                                  | `str` or `Path`                       |                  |
-| glob ✅      | `'path/*.jpg'`                             | `str`                                 | Use `*` operator |
-| YouTube ✅   | `'https://youtu.be/Zgi9g1ksQHc'`           | `str`                                 |                  |
-| stream ✅    | `'rtsp://example.com/media.mp4'`           | `str`                                 | RTSP, RTMP, HTTP |
+| Source      | Argument                                   | Type                                  | Notes                                                                      |
+|-------------|--------------------------------------------|---------------------------------------|----------------------------------------------------------------------------|
+| image       | `'image.jpg'`                              | `str` or `Path`                       | Single image file.                                                         |
+| URL         | `'https://ultralytics.com/images/bus.jpg'` | `str`                                 | URL to an image.                                                           |
+| screenshot  | `'screen'`                                 | `str`                                 | Capture a screenshot.                                                      |
+| PIL         | `Image.open('im.jpg')`                     | `PIL.Image`                           | HWC format with RGB channels.                                              |
+| OpenCV      | `cv2.imread('im.jpg')`                     | `np.ndarray` of `uint8 (0-255)`       | HWC format with BGR channels.                                              |
+| numpy       | `np.zeros((640,1280,3))`                   | `np.ndarray` of `uint8 (0-255)`       | HWC format with BGR channels.                                              |
+| torch       | `torch.zeros(16,3,320,640)`                | `torch.Tensor` of `float32 (0.0-1.0)` | BCHW format with RGB channels.                                             |
+| CSV         | `'sources.csv'`                            | `str` or `Path`                       | CSV file containing links to images, videos, or directories.               |       
+| video ✅     | `'video.mp4'`                              | `str` or `Path`                       | Video file in formats like MP4, AVI, etc.                                  |
+| directory ✅ | `'path/'`                                  | `str` or `Path`                       | Path to a directory containing images or videos.                           |
+| glob ✅      | `'path/*.jpg'`                             | `str`                                 | Glob pattern to match multiple files. Use the `*` character as a wildcard. |
+| YouTube ✅   | `'https://youtu.be/Zgi9g1ksQHc'`           | `str`                                 | URL to a YouTube video.                                                    |
+| stream ✅    | `'rtsp://example.com/media.mp4'`           | `str`                                 | URL for streaming protocols such as RTSP, RTMP, or an IP address.          |
+
+Below are code examples for using each source type:
 
 !!! example "Prediction sources"
 
@@ -87,6 +87,20 @@ whether each source can be used in streaming mode with `stream=True` ✅ and an 
         source = 'path/to/image.jpg'
 
         # Run inference on the source
+        results = model(source)  # list of Results objects
+        ```
+
+    === "screenshot"
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO('yolov8n.pt')  # pretrained YOLOv8n model
+
+        # Define current screenshot as source
+        source = 'screen'
+
+        # Run inference
         results = model(source)  # list of Results objects
         ```
 
@@ -172,15 +186,15 @@ whether each source can be used in streaming mode with `stream=True` ✅ and an 
         # Load a model
         model = YOLO('yolov8n.pt')  # pretrained YOLOv8n model
 
-        # Define a path to a CSV file 
-        source = torch.rand(1, 3, 640, 640, dtype=torch.float32)
+        # Define a path to a CSV file with images, URLs, videos and directories
+        source = 'path/to/file.csv'
 
         # Run inference on the source
         results = model(source)  # list of Results objects
         ```
 
     === "video"
-        Example video inference code. Video sources may use `stream=True` to reduce memory by creating a results generator rather than a results list.
+        Example video inference code. Video sources may use `stream=True` to reduce memory by creating a results generator rather than a results list. See below for valid video formats.
         ```python
         from ultralytics import YOLO
 
@@ -195,7 +209,7 @@ whether each source can be used in streaming mode with `stream=True` ✅ and an 
         ```
 
     === "directory"
-        Example inference code to run inference on all images and videos in a directory.
+        Example inference code to run inference on all images and videos in a directory. To also capture images and videos in subdirectories use a glob pattern, i.e. `path/to/dir/**/*`.
         ```python
         from ultralytics import YOLO
 
@@ -220,7 +234,7 @@ whether each source can be used in streaming mode with `stream=True` ✅ and an 
         # Define a glob search for all JPG files in a directory
         source = 'path/to/dir/*.jpg'
 
-        # OR define a glob search for all JPG files in a directory recursively (including subdirectories)
+        # OR define a recursive glob search for all JPG files including subdirectories
         source = 'path/to/dir/**/*.jpg'
 
         # Run inference on the source
@@ -228,7 +242,7 @@ whether each source can be used in streaming mode with `stream=True` ✅ and an 
         ```
 
     === "YouTube"
-        Example YouTube inference code using `stream=True` to reduce memory for long YouTube videos.
+        Example YouTube inference code using `stream=True` to reduce memory for long [YouTube videos](https://www.youtube.com/watch?v=Zgi9g1ksQHc).
         ```python
         from ultralytics import YOLO
 

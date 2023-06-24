@@ -48,17 +48,13 @@ passing `stream=True` in the predictor's call method.
             probs = result.probs  # Class probabilities for classification outputs
         ```
 
-!!! tip "Tip"
-
-    Streaming mode with `stream=True` should be used for long videos or large predict sources, otherwise results will accumuate in memory and will eventually cause out-of-memory errors. 
-
 ## Inference Sources
 
 YOLOv8 can process different types of input sources for inference, as shown in the table below. The sources include static images, video streams, and various data formats. The table also indicates whether each source can be used in streaming mode with the argument `stream=True` ✅. Streaming mode is beneficial for processing videos or live streams as it creates a generator of results instead of loading all frames into memory.
 
 !!! tip "Tip"
 
-    Streaming mode with `stream=True` should be used for long videos or large predict sources, otherwise results will accumuate in memory and will eventually cause out-of-memory errors. 
+    Use `stream=True` for processing long videos or large datasets to efficiently manage memory. When `stream=False`, the results for all frames or data points are stored in memory, which can quickly add up and cause out-of-memory errors for large inputs. In contrast, `stream=True` utilizes a generator, which only keeps the results of the current frame or data point in memory, significantly reducing memory consumption and preventing out-of-memory issues.
 
 | Source      | Argument                                   | Type                                  | Notes                                                                      |
 |-------------|--------------------------------------------|---------------------------------------|----------------------------------------------------------------------------|

@@ -105,7 +105,6 @@ class BasePredictor:
         self.results = None
         self.transforms = None
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
-        self.fourcc = 'avc1' if MACOS else 'wmv2' if WINDOWS else 'mjpg'
         callbacks.add_integration_callbacks(self)
 
     def get_save_dir(self):
@@ -342,8 +341,10 @@ class BasePredictor:
                     h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
                 else:  # stream
                     fps, w, h = 30, im0.shape[1], im0.shape[0]
-                save_path = str(Path(save_path).with_suffix('.mp4'))  # force *.mp4 suffix on results videos
-                self.vid_writer[idx] = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*self.fourcc), fps, (w, h))
+                suffix = '.mp4' if MACOS else '.avi' if WINDOWS else '.avi'
+                fourcc = 'avc1' if MACOS else 'WMV2' if WINDOWS else 'MJPG'
+                save_path = str(Path(save_path).with_suffix(suffix))
+                self.vid_writer[idx] = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*fourcc), fps, (w, h))
             self.vid_writer[idx].write(im0)
 
     def run_callbacks(self, event: str):

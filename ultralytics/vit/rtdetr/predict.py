@@ -12,8 +12,8 @@ class RTDETRPredictor(BasePredictor):
 
     def postprocess(self, preds, img, orig_imgs):
         """Postprocess predictions and returns a list of Results objects."""
-        bboxes, scores = preds[:2]  # (1, bs, 300, 4), (1, bs, 300, nc)
-        bboxes, scores = bboxes.squeeze_(0), scores.squeeze_(0)
+        nd = preds[0].shape[-1]
+        bboxes, scores = preds[0].split((4, nd - 4), dim=-1)
         results = []
         for i, bbox in enumerate(bboxes):  # (300, 4)
             bbox = ops.xywh2xyxy(bbox)

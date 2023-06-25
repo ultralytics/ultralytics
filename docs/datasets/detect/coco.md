@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Learn about the COCO dataset, designed to encourage research on object detection, segmentation, and captioning with standardized evaluation metrics.
+keywords: COCO dataset, object detection, segmentation, captioning, deep learning models, computer vision, benchmarking, data annotations, COCO Consortium
 ---
 
 # COCO Dataset

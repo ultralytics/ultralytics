@@ -64,6 +64,8 @@ def select_device(device='', batch=0, newline=False, verbose=True):
     if cpu or mps:
         os.environ['CUDA_VISIBLE_DEVICES'] = '-1'  # force torch.cuda.is_available() = False
     elif device:  # non-cpu device requested
+        if device == 'cuda':
+            device = '0'
         visible = os.environ.get('CUDA_VISIBLE_DEVICES', None)
         os.environ['CUDA_VISIBLE_DEVICES'] = device  # set environment variable - must be before assert is_available()
         if not (torch.cuda.is_available() and torch.cuda.device_count() >= len(device.replace(',', ''))):
@@ -192,6 +194,29 @@ def get_num_gradients(model):
     return sum(x.numel() for x in model.parameters() if x.requires_grad)
 
 
+def model_info_for_loggers(trainer):
+    """
+    Return model info dict with useful model information.
+
+    Example for YOLOv8n:
+        {'model/parameters': 3151904,
+         'model/GFLOPs': 8.746,
+         'model/speed_ONNX(ms)': 41.244,
+         'model/speed_TensorRT(ms)': 3.211,
+         'model/speed_PyTorch(ms)': 18.755}
+    """
+    if trainer.args.profile:  # profile ONNX and TensorRT times
+        from ultralytics.yolo.utils.benchmarks import ProfileModels
+        results = ProfileModels([trainer.last], device=trainer.device).profile()[0]
+        results.pop('model/name')
+    else:  # only return PyTorch times from most recent validation
+        results = {
+            'model/parameters': get_num_params(trainer.model),
+            'model/GFLOPs': round(get_flops(trainer.model), 3)}
+    results['model/speed_PyTorch(ms)'] = round(trainer.validator.speed['inference'], 3)
+    return results
+
+
 def get_flops(model, imgsz=640):
     """Return a YOLO model's FLOPs."""
     try:
@@ -302,6 +327,9 @@ def init_seeds(seed=0, deterministic=False):
             os.environ['PYTHONHASHSEED'] = str(seed)
         else:
             LOGGER.warning('WARNING ⚠️ Upgrade to torch>=2.0.0 for deterministic training.')
+    else:
+        torch.use_deterministic_algorithms(False)
+        torch.backends.cudnn.deterministic = False
 
 
 class ModelEMA:
@@ -363,7 +391,7 @@ def strip_optimizer(f: Union[str, Path] = 'best.pt', s: str = '') -> None:
         import pickle
 
     x = torch.load(f, map_location=torch.device('cpu'))
-    args = {**DEFAULT_CFG_DICT, **x['train_args']}  # combine model args with default args, preferring model args
+    args = {**DEFAULT_CFG_DICT, **x['train_args']} if 'train_args' in x else None  # combine args
     if x.get('ema'):
         x['model'] = x['ema']  # replace model with ema
     for k in 'optimizer', 'best_fitness', 'ema', 'updates':  # keys

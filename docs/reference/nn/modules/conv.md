@@ -1,68 +1,74 @@
 ---
 description: Explore convolutional neural network modules & techniques such as LightConv, DWConv, ConvTranspose, GhostConv, CBAM & autopad with Ultralytics Docs.
+keywords: Ultralytics, Convolutional Neural Network, Conv2, DWConv, ConvTranspose, GhostConv, ChannelAttention, CBAM, autopad
 ---
 
-# Conv
+## Conv
 ---
-:::ultralytics.nn.modules.conv.Conv
+### ::: ultralytics.nn.modules.conv.Conv
 <br><br>
 
-# LightConv
+## Conv2
 ---
-:::ultralytics.nn.modules.conv.LightConv
+### ::: ultralytics.nn.modules.conv.Conv2
 <br><br>
 
-# DWConv
+## LightConv
 ---
-:::ultralytics.nn.modules.conv.DWConv
+### ::: ultralytics.nn.modules.conv.LightConv
 <br><br>
 
-# DWConvTranspose2d
+## DWConv
 ---
-:::ultralytics.nn.modules.conv.DWConvTranspose2d
+### ::: ultralytics.nn.modules.conv.DWConv
 <br><br>
 
-# ConvTranspose
+## DWConvTranspose2d
 ---
-:::ultralytics.nn.modules.conv.ConvTranspose
+### ::: ultralytics.nn.modules.conv.DWConvTranspose2d
 <br><br>
 
-# Focus
+## ConvTranspose
 ---
-:::ultralytics.nn.modules.conv.Focus
+### ::: ultralytics.nn.modules.conv.ConvTranspose
 <br><br>
 
-# GhostConv
+## Focus
 ---
-:::ultralytics.nn.modules.conv.GhostConv
+### ::: ultralytics.nn.modules.conv.Focus
 <br><br>
 
-# RepConv
+## GhostConv
 ---
-:::ultralytics.nn.modules.conv.RepConv
+### ::: ultralytics.nn.modules.conv.GhostConv
 <br><br>
 
-# ChannelAttention
+## RepConv
 ---
-:::ultralytics.nn.modules.conv.ChannelAttention
+### ::: ultralytics.nn.modules.conv.RepConv
 <br><br>
 
-# SpatialAttention
+## ChannelAttention
 ---
-:::ultralytics.nn.modules.conv.SpatialAttention
+### ::: ultralytics.nn.modules.conv.ChannelAttention
 <br><br>
 
-# CBAM
+## SpatialAttention
 ---
-:::ultralytics.nn.modules.conv.CBAM
+### ::: ultralytics.nn.modules.conv.SpatialAttention
 <br><br>
 
-# Concat
+## CBAM
 ---
-:::ultralytics.nn.modules.conv.Concat
+### ::: ultralytics.nn.modules.conv.CBAM
 <br><br>
 
-# autopad
+## Concat
 ---
-:::ultralytics.nn.modules.conv.autopad
+### ::: ultralytics.nn.modules.conv.Concat
+<br><br>
+
+## autopad
+---
+### ::: ultralytics.nn.modules.conv.autopad
 <br><br>

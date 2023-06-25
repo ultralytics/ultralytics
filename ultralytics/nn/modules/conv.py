@@ -9,9 +9,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-__all__ = [
-    'Conv', 'LightConv', 'DWConv', 'DWConvTranspose2d', 'ConvTranspose', 'Focus', 'GhostConv', 'ChannelAttention',
-    'SpatialAttention', 'CBAM', 'Concat', 'RepConv']
+__all__ = ('Conv', 'LightConv', 'DWConv', 'DWConvTranspose2d', 'ConvTranspose', 'Focus', 'GhostConv',
+           'ChannelAttention', 'SpatialAttention', 'CBAM', 'Concat', 'RepConv')
 
 
 def autopad(k, p=None, d=1):  # kernel, padding, dilation
@@ -59,7 +58,7 @@ class Conv2(Conv):
         """Fuse parallel convolutions."""
         w = torch.zeros_like(self.conv.weight.data)
         i = [x // 2 for x in w.shape[2:]]
-        w[:, :, i[0] - 1:i[0], i[1] - 1:i[1]] = self.cv2.weight.data.clone()
+        w[:, :, i[0]:i[0] + 1, i[1]:i[1] + 1] = self.cv2.weight.data.clone()
         self.conv.weight.data += w
         self.__delattr__('cv2')
 

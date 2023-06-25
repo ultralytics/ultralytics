@@ -1,27 +1,34 @@
 ---
 comments: true
-description: 'Ultralytics YOLOv5 Docs: Learn model structure, data augmentation &amp; training strategies. Build targets and the losses of object detection.'
+description: Explore the details of Ultralytics YOLOv5 architecture, a comprehensive guide to its model structure, data augmentation techniques, training strategies, and various features. Understand the intricacies of object detection algorithms and improve your skills in the machine learning field.
+keywords: yolov5 architecture, data augmentation, training strategies, object detection, yolo docs, ultralytics
 ---
+
+# Ultralytics YOLOv5 Architecture
+
+YOLOv5 (v6.0/6.1) is a powerful object detection algorithm developed by Ultralytics. This article dives deep into the YOLOv5 architecture, data augmentation strategies, training methodologies, and loss computation techniques. This comprehensive understanding will help improve your practical application of object detection in various fields, including surveillance, autonomous vehicles, and image recognition.
 
 ## 1. Model Structure
 
-YOLOv5 (v6.0/6.1) consists of:
+YOLOv5's architecture consists of three main parts:
 
-- **Backbone**: `New CSP-Darknet53`
-- **Neck**: `SPPF`, `New CSP-PAN`
-- **Head**: `YOLOv3 Head`
+- **Backbone**: This is the main body of the network. For YOLOv5, the backbone is designed using the `New CSP-Darknet53` structure, a modification of the Darknet architecture used in previous versions.
+- **Neck**: This part connects the backbone and the head. In YOLOv5, `SPPF` and `New CSP-PAN` structures are utilized.
+- **Head**: This part is responsible for generating the final output. YOLOv5 uses the `YOLOv3 Head` for this purpose.
 
-Model structure (`yolov5l.yaml`):
+The structure of the model is depicted in the image below. The model structure details can be found in `yolov5l.yaml`.
 
 ![yolov5](https://user-images.githubusercontent.com/31005897/172404576-c260dcf9-76bb-4bc8-b6a9-f2d987792583.png)
 
-Some minor changes compared to previous versions:
+YOLOv5 introduces some minor changes compared to its predecessors:
 
-1. Replace the `Focus` structure with `6x6 Conv2d`(more efficient, refer #4825)
-2. Replace the `SPP` structure with `SPPF`(more than double the speed)
+1. The `Focus` structure, found in earlier versions, is replaced with a `6x6 Conv2d` structure. This change boosts efficiency [#4825](https://github.com/ultralytics/yolov5/issues/4825).
+2. The `SPP` structure is replaced with `SPPF`. This alteration more than doubles the speed of processing.
+
+To test the speed of `SPP` and `SPPF`, the following code can be used:
 
 <details markdown>
-<summary>test code</summary>
+<summary>SPP vs SPPF speed profiling example (click to open)</summary>
 
 ```python
 import time
@@ -67,12 +74,12 @@ def main():
     t_start = time.time()
     for _ in range(100):
         spp(input_tensor)
-    print(f"spp time: {time.time() - t_start}")
+    print(f"SPP time: {time.time() - t_start}")
 
     t_start = time.time()
     for _ in range(100):
         sppf(input_tensor)
-    print(f"sppf time: {time.time() - t_start}")
+    print(f"SPPF time: {time.time() - t_start}")
 
 
 if __name__ == '__main__':
@@ -83,63 +90,75 @@ result:
 
 ```
 True
-spp time: 0.5373051166534424
-sppf time: 0.20780706405639648
+SPP time: 0.5373051166534424
+SPPF time: 0.20780706405639648
 ```
 
 </details>
 
-## 2. Data Augmentation
+## 2. Data Augmentation Techniques
 
-- Mosaic
-  <img src="https://user-images.githubusercontent.com/31005897/159109235-c7aad8f2-1d4f-41f9-8d5f-b2fde6f2885e.png#pic_center" width=80%>
+YOLOv5 employs various data augmentation techniques to improve the model's ability to generalize and reduce overfitting. These techniques include:
 
-- Copy paste
-  <img src="https://user-images.githubusercontent.com/31005897/159116277-91b45033-6bec-4f82-afc4-41138866628e.png#pic_center" width=80%>
+- **Mosaic Augmentation**: An image processing technique that combines four training images into one in ways that encourage object detection models to better handle various object scales and translations.
 
-- Random affine(Rotation, Scale, Translation and Shear)
-  <img src="https://user-images.githubusercontent.com/31005897/159109326-45cd5acb-14fa-43e7-9235-0f21b0021c7d.png#pic_center" width=80%>
+  ![mosaic](https://user-images.githubusercontent.com/31005897/159109235-c7aad8f2-1d4f-41f9-8d5f-b2fde6f2885e.png)
 
-- MixUp
-  <img src="https://user-images.githubusercontent.com/31005897/159109361-3b24333b-f481-478b-ae00-df7838f0b5cd.png#pic_center" width=80%>
+- **Copy-Paste Augmentation**: An innovative data augmentation method that copies random patches from an image and pastes them onto another randomly chosen image, effectively generating a new training sample.
 
-- Albumentations
-- Augment HSV(Hue, Saturation, Value)
-  <img src="https://user-images.githubusercontent.com/31005897/159109407-83d100ba-1aba-4f4b-aa03-4f048f815981.png#pic_center" width=80%>
+  ![copy-paste](https://user-images.githubusercontent.com/31005897/159116277-91b45033-6bec-4f82-afc4-41138866628e.png)
 
-- Random horizontal flip
-  <img src="https://user-images.githubusercontent.com/31005897/159109429-0d44619a-a76a-49eb-bfc0-6709860c043e.png#pic_center" width=80%>
+- **Random Affine Transformations**: This includes random rotation, scaling, translation, and shearing of the images.
+
+  ![random-affine](https://user-images.githubusercontent.com/31005897/159109326-45cd5acb-14fa-43e7-9235-0f21b0021c7d.png)
+
+- **MixUp Augmentation**: A method that creates composite images by taking a linear combination of two images and their associated labels.
+
+  ![mixup](https://user-images.githubusercontent.com/31005897/159109361-3b24333b-f481-478b-ae00-df7838f0b5cd.png)
+
+- **Albumentations**: A powerful library for image augmenting that supports a wide variety of augmentation techniques.
+- **HSV Augmentation**: Random changes to the Hue, Saturation, and Value of the images.
+
+  ![hsv](https://user-images.githubusercontent.com/31005897/159109407-83d100ba-1aba-4f4b-aa03-4f048f815981.png)
+
+- **Random Horizontal Flip**: An augmentation method that randomly flips images horizontally.
+
+  ![horizontal-flip](https://user-images.githubusercontent.com/31005897/159109429-0d44619a-a76a-49eb-bfc0-6709860c043e.png)
 
 ## 3. Training Strategies
 
-- Multi-scale training(0.5~1.5x)
-- AutoAnchor(For training custom data)
-- Warmup and Cosine LR scheduler
-- EMA(Exponential Moving Average)
-- Mixed precision
-- Evolve hyper-parameters
+YOLOv5 applies several sophisticated training strategies to enhance the model's performance. They include:
 
-## 4. Others
+- **Multiscale Training**: The input images are randomly rescaled within a range of 0.5 to 1.5 times their original size during the training process.
+- **AutoAnchor**: This strategy optimizes the prior anchor boxes to match the statistical characteristics of the ground truth boxes in your custom data.
+- **Warmup and Cosine LR Scheduler**: A method to adjust the learning rate to enhance model performance.
+- **Exponential Moving Average (EMA)**: A strategy that uses the average of parameters over past steps to stabilize the training process and reduce generalization error.
+- **Mixed Precision Training**: A method to perform operations in half-precision format, reducing memory usage and enhancing computational speed.
+- **Hyperparameter Evolution**: A strategy to automatically tune hyperparameters to achieve optimal performance.
+
+## 4. Additional Features
 
 ### 4.1 Compute Losses
 
-The YOLOv5 loss consists of three parts:
+The loss in YOLOv5 is computed as a combination of three individual loss components:
 
-- Classes loss(BCE loss)
-- Objectness loss(BCE loss)
-- Location loss(CIoU loss)
+- **Classes Loss (BCE Loss)**: Binary Cross-Entropy loss, measures the error for the classification task.
+- **Objectness Loss (BCE Loss)**: Another Binary Cross-Entropy loss, calculates the error in detecting whether an object is present in a particular grid cell or not.
+- **Location Loss (CIoU Loss)**: Complete IoU loss, measures the error in localizing the object within the grid cell.
+
+The overall loss function is depicted by:
 
 ![loss](https://latex.codecogs.com/svg.image?Loss=\lambda_1L_{cls}+\lambda_2L_{obj}+\lambda_3L_{loc})
 
 ### 4.2 Balance Losses
 
-The objectness losses of the three prediction layers(`P3`, `P4`, `P5`) are weighted differently. The balance weights are `[4.0, 1.0, 0.4]` respectively.
+The objectness losses of the three prediction layers (`P3`, `P4`, `P5`) are weighted differently. The balance weights are `[4.0, 1.0, 0.4]` respectively. This approach ensures that the predictions at different scales contribute appropriately to the total loss.
 
 ![obj_loss](https://latex.codecogs.com/svg.image?L_{obj}=4.0\cdot&space;L_{obj}^{small}+1.0\cdot&space;L_{obj}^{medium}+0.4\cdot&space;L_{obj}^{large})
 
 ### 4.3 Eliminate Grid Sensitivity
 
-In YOLOv2 and YOLOv3, the formula for calculating the predicted target information is:
+The YOLOv5 architecture makes some important changes to the box prediction strategy compared to earlier versions of YOLO. In YOLOv2 and YOLOv3, the box coordinates were directly predicted using the activation of the last layer.
 
 ![b_x](https://latex.codecogs.com/svg.image?b_x=\sigma(t_x)+c_x)  
 ![b_y](https://latex.codecogs.com/svg.image?b_y=\sigma(t_y)+c_y)  
@@ -148,9 +167,9 @@ In YOLOv2 and YOLOv3, the formula for calculating the predicted target informati
 
 <img src="https://user-images.githubusercontent.com/31005897/158508027-8bf63c28-8290-467b-8a3e-4ad09235001a.png#pic_center" width=40%>
 
+However, in YOLOv5, the formula for predicting the box coordinates has been updated to reduce grid sensitivity and prevent the model from predicting unbounded box dimensions.
 
-
-In YOLOv5, the formula is:
+The revised formulas for calculating the predicted bounding box are as follows:
 
 ![bx](https://latex.codecogs.com/svg.image?b_x=(2\cdot\sigma(t_x)-0.5)+c_x)  
 ![by](https://latex.codecogs.com/svg.image?b_y=(2\cdot\sigma(t_y)-0.5)+c_y)  
@@ -168,9 +187,11 @@ Compare the height and width scaling ratio(relative to anchor) before and after 
 
 ### 4.4 Build Targets
 
-Match positive samples:
+The build target process in YOLOv5 is critical for training efficiency and model accuracy. It involves assigning ground truth boxes to the appropriate grid cells in the output map and matching them with the appropriate anchor boxes.
 
-- Calculate the aspect ratio of GT and Anchor Templates
+This process follows these steps:
+
+- Calculate the ratio of the ground truth box dimensions and the dimensions of each anchor template.
 
 ![rw](https://latex.codecogs.com/svg.image?r_w=w_{gt}/w_{at})
 
@@ -186,10 +207,18 @@ Match positive samples:
 
 <img src="https://user-images.githubusercontent.com/31005897/158508119-fbb2e483-7b8c-4975-8e1f-f510d367f8ff.png#pic_center" width=70%>
 
-- Assign the successfully matched Anchor Templates to the corresponding cells
+- If the calculated ratio is within the threshold, match the ground truth box with the corresponding anchor.
 
 <img src="https://user-images.githubusercontent.com/31005897/158508771-b6e7cab4-8de6-47f9-9abf-cdf14c275dfe.png#pic_center" width=70%>
 
-- Because the center point offset range is adjusted from (0, 1) to (-0.5, 1.5). GT Box can be assigned to more anchors.
+- Assign the matched anchor to the appropriate cells, keeping in mind that due to the revised center point offset, a ground truth box can be assigned to more than one anchor. Because the center point offset range is adjusted from (0, 1) to (-0.5, 1.5). GT Box can be assigned to more anchors.
 
 <img src="https://user-images.githubusercontent.com/31005897/158508139-9db4e8c2-cf96-47e0-bc80-35d11512f296.png#pic_center" width=70%>
+
+This way, the build targets process ensures that each ground truth object is properly assigned and matched during the training process, allowing YOLOv5 to learn the task of object detection more effectively.
+
+## Conclusion
+
+In conclusion, YOLOv5 represents a significant step forward in the development of real-time object detection models. By incorporating various new features, enhancements, and training strategies, it surpasses previous versions of the YOLO family in performance and efficiency.
+
+The primary enhancements in YOLOv5 include the use of a dynamic architecture, an extensive range of data augmentation techniques, innovative training strategies, as well as important adjustments in computing losses and the process of building targets. All these innovations significantly improve the accuracy and efficiency of object detection while retaining a high degree of speed, which is the trademark of YOLO models.

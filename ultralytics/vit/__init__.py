@@ -3,4 +3,4 @@
 from .rtdetr import RTDETR
 from .sam import SAM
 
-__all__ = 'RTDETR', 'SAM', 'SAM'  # allow simpler import
+__all__ = 'RTDETR', 'SAM'  # allow simpler import

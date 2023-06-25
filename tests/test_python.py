@@ -6,8 +6,9 @@ import cv2
 import numpy as np
 import torch
 from PIL import Image
+from torchvision.transforms import ToTensor
 
-from ultralytics import YOLO
+from ultralytics import RTDETR, YOLO
 from ultralytics.yolo.data.build import load_inference_source
 from ultralytics.yolo.utils import LINUX, ONLINE, ROOT, SETTINGS
 
@@ -70,7 +71,7 @@ def test_predict_img():
     # Test tensor inference
     im = cv2.imread(str(SOURCE))  # OpenCV
     t = cv2.resize(im, (32, 32))
-    t = torch.from_numpy(t.transpose((2, 0, 1)))
+    t = ToTensor()(t)
     t = torch.stack([t, t, t, t])
     results = model(t, visualize=True)
     assert len(results) == t.shape[0]
@@ -101,7 +102,7 @@ def test_val_scratch():
 
 def test_amp():
     if torch.cuda.is_available():
-        from ultralytics.yolo.engine.trainer import check_amp
+        from ultralytics.yolo.utils.checks import check_amp
         model = YOLO(MODEL).model.cuda()
         assert check_amp(model)
 
@@ -174,7 +175,10 @@ def test_export_paddle(enabled=False):
 
 def test_all_model_yamls():
     for m in list((ROOT / 'models').rglob('yolo*.yaml')):
-        YOLO(m.name)
+        if m.name == 'yolov8-rtdetr.yaml':  # except the rtdetr model
+            RTDETR(m.name)
+        else:
+            YOLO(m.name)
 
 
 def test_workflow():
@@ -207,42 +211,35 @@ def test_predict_callback_and_setup():
         print(boxes)
 
 
-def test_result():
-    model = YOLO('yolov8n-pose.pt')
-    res = model([SOURCE, SOURCE])
-    res[0].plot(conf=True, boxes=False)
-    res[0].plot(pil=True)
-    res[0] = res[0].cpu().numpy()
-    print(res[0].path, res[0].keypoints)
+def _test_results_api(res):
+    # General apis except plot
+    res = res.cpu().numpy()
+    # res = res.cuda()
+    res = res.to(device='cpu', dtype=torch.float32)
+    res.save_txt('label.txt', save_conf=False)
+    res.save_txt('label.txt', save_conf=True)
+    res.save_crop('crops/')
+    res.tojson(normalize=False)
+    res.tojson(normalize=True)
+    res.plot(pil=True)
+    res.plot(conf=True, boxes=False)
+    res.plot()
+    print(res)
+    print(res.path)
+    for k in res.keys:
+        print(getattr(res, k))
 
-    model = YOLO('yolov8n-seg.pt')
-    res = model([SOURCE, SOURCE])
-    res[0].plot(conf=True, boxes=False, masks=True)
-    res[0].plot(pil=True)
-    res[0] = res[0].cpu().numpy()
-    print(res[0].path, res[0].masks.data)
 
-    model = YOLO('yolov8n.pt')
-    res = model(SOURCE)
-    res[0].plot(pil=True)
-    res[0].plot()
-    res[0] = res[0].cpu().numpy()
-    print(res[0].path)
-
-    model = YOLO('yolov8n-cls.pt')
-    res = model(SOURCE)
-    res[0].plot(probs=False)
-    res[0].plot(pil=True)
-    res[0].plot()
-    res[0] = res[0].cpu().numpy()
-    print(res[0].path)
+def test_results():
+    for m in ['yolov8n-pose.pt', 'yolov8n-seg.pt', 'yolov8n.pt', 'yolov8n-cls.pt']:
+        model = YOLO(m)
+        res = model([SOURCE, SOURCE])
+        _test_results_api(res[0])
 
 
 def test_track():
     im = cv2.imread(str(SOURCE))
-    model = YOLO(MODEL)
-    seg_model = YOLO('yolov8n-seg.pt')
-    pose_model = YOLO('yolov8n-pose.pt')
-    model.track(source=im)
-    seg_model.track(source=im)
-    pose_model.track(source=im)
+    for m in ['yolov8n-pose.pt', 'yolov8n-seg.pt', 'yolov8n.pt']:
+        model = YOLO(m)
+        res = model.track(source=im)
+        _test_results_api(res[0])

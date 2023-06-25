@@ -1,13 +1,14 @@
 ---
 description: Detect and predict objects in images and videos using the Ultralytics YOLO v8 model with DetectionPredictor.
+keywords: detectionpredictor, ultralytics yolo, object detection, neural network, machine learning
 ---
 
-# DetectionPredictor
+## DetectionPredictor
 ---
-:::ultralytics.yolo.v8.detect.predict.DetectionPredictor
+### ::: ultralytics.yolo.v8.detect.predict.DetectionPredictor
 <br><br>
 
-# predict
+## predict
 ---
-:::ultralytics.yolo.v8.detect.predict.predict
+### ::: ultralytics.yolo.v8.detect.predict.predict
 <br><br>

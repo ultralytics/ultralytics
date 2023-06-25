@@ -1,18 +1,19 @@
 ---
 description: Create custom YOLOv5 datasets with Ultralytics YOLODataset and SemanticDataset. Streamline your object detection and segmentation projects.
+keywords: YOLODataset, SemanticDataset, Ultralytics YOLO Docs, Object Detection, Segmentation
 ---
 
-# YOLODataset
+## YOLODataset
 ---
-:::ultralytics.yolo.data.dataset.YOLODataset
+### ::: ultralytics.yolo.data.dataset.YOLODataset
 <br><br>
 
-# ClassificationDataset
+## ClassificationDataset
 ---
-:::ultralytics.yolo.data.dataset.ClassificationDataset
+### ::: ultralytics.yolo.data.dataset.ClassificationDataset
 <br><br>
 
-# SemanticDataset
+## SemanticDataset
 ---
-:::ultralytics.yolo.data.dataset.SemanticDataset
+### ::: ultralytics.yolo.data.dataset.SemanticDataset
 <br><br>

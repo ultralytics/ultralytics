@@ -11,7 +11,6 @@ FILE = Path(__file__).resolve()
 PARENT = FILE.parent  # root directory
 README = (PARENT / 'README.md').read_text(encoding='utf-8')
 REQUIREMENTS = [f'{x.name}{x.specifier}' for x in pkg.parse_requirements((PARENT / 'requirements.txt').read_text())]
-PKG_REQUIREMENTS = ['sentry_sdk']  # pip-only requirements
 
 
 def get_version():
@@ -37,7 +36,7 @@ setup(
     author_email='hello@ultralytics.com',
     packages=find_packages(),  # required
     include_package_data=True,
-    install_requires=REQUIREMENTS + PKG_REQUIREMENTS,
+    install_requires=REQUIREMENTS,
     extras_require={
         'dev': [
             'check-manifest',

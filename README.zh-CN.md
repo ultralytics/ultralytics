@@ -63,7 +63,7 @@
 pip install ultralytics
 ```
 
-如需使用包括Conda、Docker和Git在内的其他安装方法，请参考[Ultralytics快速入门指南](https://docs.ultralytics.com/quickstart)。
+如需使用包括Conda、Docker和Git在内的其他安装方法，请参考[快速入门指南](https://docs.ultralytics.com/quickstart)。
 
 </details>
 

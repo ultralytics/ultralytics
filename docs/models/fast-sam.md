@@ -18,7 +18,7 @@ FastSAM is designed to address the limitations of the Segment Anything Model (SA
 
 1. **Real-time Solution:** By leveraging the computational efficiency of CNNs, FastSAM provides a real-time solution for the segment anything task, making it valuable for industrial applications that require quick results.
 
-2. **Efficiency and Performance:** FastSAM offers a significant reduction in computational and resource demands without compromising on performance quality. It achieves comparable performance to SAM but with drastically reduced computational resources, enabling real-time application【27†source】.
+2. **Efficiency and Performance:** FastSAM offers a significant reduction in computational and resource demands without compromising on performance quality. It achieves comparable performance to SAM but with drastically reduced computational resources, enabling real-time application.
 
 3. **Prompt-guided Segmentation:** FastSAM can segment any object within an image guided by various possible user interaction prompts, providing flexibility and adaptability in different scenarios.
 
@@ -28,11 +28,11 @@ FastSAM is designed to address the limitations of the Segment Anything Model (SA
 
 6. **Practical Applications:** The proposed approach provides a new, practical solution for a large number of vision tasks at a really high speed, tens or hundreds of times faster than current methods.
 
-7. **Model Compression Feasibility:** FastSAM demonstrates the feasibility of a path that can significantly reduce the computational effort by introducing an artificial prior to the structure, thus opening new possibilities for large model architecture for general vision tasks【27†source】.
+7. **Model Compression Feasibility:** FastSAM demonstrates the feasibility of a path that can significantly reduce the computational effort by introducing an artificial prior to the structure, thus opening new possibilities for large model architecture for general vision tasks.
 
 ## Usage
 
-FastSAM is not yet available directly via the `ultralytics` package, but it is available directly from the https://github.com/CASIA-IVA-Lab/FastSAM repository. Here is a brief overview of the typical steps you might take to use FastSAM:
+FastSAM is not yet available directly via the `ultralytics` package, but it is available directly from the [https://github.com/CASIA-IVA-Lab/FastSAM](https://github.com/CASIA-IVA-Lab/FastSAM) repository. Here is a brief overview of the typical steps you might take to use FastSAM:
 
 ### Installation
 

@@ -8,6 +8,8 @@ keywords: FastSAM, Segment Anything Model, SAM, Convolutional Neural Network, CN
 
 The Fast Segment Anything Model (FastSAM) is a novel, real-time CNN-based solution for the Segment Anything task. This task is designed to segment any object within an image based on various possible user interaction prompts. FastSAM significantly reduces computational demands while maintaining competitive performance, making it a practical choice for a variety of vision tasks.
 
+![Fast Segment Anything Model (FastSAM) architecture overview](https://user-images.githubusercontent.com/26833433/248551984-d98f0f6d-7535-45d0-b380-2e1440b52ad7.jpg)
+
 ## Overview
 
 FastSAM is designed to address the limitations of the Segment Anything Model (SAM), a heavy Transformer model with substantial computational resource requirements. The FastSAM decouples the segment anything task into two sequential stages: all-instance segmentation and prompt-guided selection. The first stage uses a Convolutional Neural Network (CNN)-based detector to produce the segmentation masks of all instances in the image. In the second stage, it outputs the region-of-interest corresponding to the prompt.
@@ -29,6 +31,8 @@ FastSAM is designed to address the limitations of the Segment Anything Model (SA
 7. **Model Compression Feasibility:** FastSAM demonstrates the feasibility of a path that can significantly reduce the computational effort by introducing an artificial prior to the structure, thus opening new possibilities for large model architecture for general vision tasks【27†source】.
 
 ## Usage
+
+FastSAM is not yet available directly via the `ultralytics` package, but it is available directly from the https://github.com/CASIA-IVA-Lab/FastSAM repository. Here is a brief overview of the typical steps you might take to use FastSAM:
 
 ### Installation
 

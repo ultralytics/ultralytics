@@ -37,44 +37,31 @@ Here is an example of the YOLO dataset format for a single image with two object
 
 Note: The length of each row does not have to be equal.
 
-** Dataset file format **
+### Dataset YAML format
 
 The Ultralytics framework uses a YAML file format to define the dataset and model configuration for training Detection Models. Here is an example of the YAML format used for defining a detection dataset:
 
 ```yaml
-train: <path-to-training-images>
-val: <path-to-validation-images>
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+path: ../datasets/coco8-seg  # dataset root dir
+train: images/train  # train images (relative to 'path') 4 images
+val: images/val  # val images (relative to 'path') 4 images
+test:  # test images (optional)
 
-nc: <number-of-classes>
-names: [<class-1>, <class-2>, ..., <class-n>]
-
+# Classes (80 COCO classes)
+names:
+  0: person
+  1: bicycle
+  2: car
+  ...
+  77: teddy bear
+  78: hair drier
+  79: toothbrush
 ```
 
 The `train` and `val` fields specify the paths to the directories containing the training and validation images, respectively.
 
-The `nc` field specifies the number of object classes in the dataset.
-
-The `names` field is a list of the names of the object classes. The order of the names should match the order of the object class indices in the YOLO dataset files.
-
-NOTE: Either `nc` or `names` must be defined. Defining both are not mandatory.
-
-Alternatively, you can directly define class names like this:
-
-```yaml
-names:
-  0: person
-  1: bicycle
-```
-
-** Example **
-
-```yaml
-train: data/train/
-val: data/val/
-
-nc: 2
-names: ['person', 'car']
-```
+`names` is a dictionary of class names. The order of the names should match the order of the object class indices in the YOLO dataset files.
 
 ## Usage
 

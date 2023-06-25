@@ -105,7 +105,7 @@ class BasePredictor:
         self.results = None
         self.transforms = None
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
-        self.fourcc = 'avc1' if MACOS else 'wmv2' if WINDOWS else 'divx'  # video codec for saving video results
+        self.fourcc = list('avc1' if MACOS else 'wmv2' if WINDOWS else 'mp4v')
         callbacks.add_integration_callbacks(self)
 
     def get_save_dir(self):

@@ -3,7 +3,7 @@
 # Image is CPU-optimized for ONNX, OpenVINO and PyTorch YOLOv8 deployments
 
 # Start FROM Ubuntu image https://hub.docker.com/_/ubuntu
-FROM ubuntu:22.10
+FROM ubuntu:lunar-20230615
 
 # Downloads to user config dir
 ADD https://ultralytics.com/assets/Arial.ttf https://ultralytics.com/assets/Arial.Unicode.ttf /root/.config/Ultralytics/
@@ -22,6 +22,9 @@ WORKDIR /usr/src/ultralytics
 # COPY . /usr/src/app  (issues as not a .git directory)
 RUN git clone https://github.com/ultralytics/ultralytics /usr/src/ultralytics
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt /usr/src/ultralytics/
+
+# Remove python3.11/EXTERNALLY-MANAGED or use 'pip install --break-system-packages' avoid 'externally-managed-environment' Ubuntu nightly error
+RUN rm -rf /usr/lib/python3.11/EXTERNALLY-MANAGED
 
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel

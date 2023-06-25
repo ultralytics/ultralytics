@@ -23,9 +23,9 @@ WORKDIR /usr/src/ultralytics
 RUN git clone https://github.com/ultralytics/ultralytics /usr/src/ultralytics
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt /usr/src/ultralytics/
 
-# Install pip packages
-# RUN python3 -m pip install --upgrade pip wheel
-RUN pip install --no-cache -e . thop --extra-index-url https://download.pytorch.org/whl/cpu
+# Install pip packages using --break-system-packages to avoid 'externally-managed-environment' Ubuntu error
+RUN python3 -m pip install --upgrade pip wheel --break-system-packages
+RUN pip install --no-cache -e . thop --extra-index-url https://download.pytorch.org/whl/cpu --break-system-packages
 
 
 # Usage Examples -------------------------------------------------------------------------------------------------------

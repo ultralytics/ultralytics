@@ -4,7 +4,7 @@ description: Explore the Fast Segment Anything Model (FastSAM), a real-time solu
 keywords: FastSAM, Segment Anything Model, SAM, Convolutional Neural Network, CNN, image segmentation, real-time image processing
 ---
 
-# Fast Segment Anything Model (Fast SAM)
+# Fast Segment Anything Model (FastSAM)
 
 The Fast Segment Anything Model (FastSAM) is a novel, real-time CNN-based solution for the Segment Anything task. This task is designed to segment any object within an image based on various possible user interaction prompts. FastSAM significantly reduces computational demands while maintaining competitive performance, making it a practical choice for a variety of vision tasks.
 
@@ -88,7 +88,7 @@ Additionally, you can try FastSAM through a [Colab demo](https://colab.research.
 
 ## Citations and Acknowledgements
 
-We would like to acknowledge the Fast SAM authors for their significant contributions in the field of real-time instance segmentation:
+We would like to acknowledge the FastSAM authors for their significant contributions in the field of real-time instance segmentation:
 
 ```bibtex
 @misc{zhao2023fast,
@@ -101,4 +101,4 @@ We would like to acknowledge the Fast SAM authors for their significant contribu
 }
 ```
 
-The original Fast Segment Anything paper can be found on [arXiv](https://arxiv.org/abs/2306.12156). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/CASIA-IVA-Lab/FastSAM). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
+The original FastSAM paper can be found on [arXiv](https://arxiv.org/abs/2306.12156). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/CASIA-IVA-Lab/FastSAM). We appreciate their efforts in advancing the field and making their work accessible to the broader community.

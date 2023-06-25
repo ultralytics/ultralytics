@@ -23,8 +23,8 @@ WORKDIR /usr/src/ultralytics
 RUN git clone https://github.com/ultralytics/ultralytics /usr/src/ultralytics
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt /usr/src/ultralytics/
 
-# Set PIP_BYPASS_EXTERNAL_MANAGEMENT or use 'pip install --break-system-packages' avoid 'externally-managed-environment' Ubuntu nightly error
-ENV PIP_BYPASS_EXTERNAL_MANAGEMENT=1
+# Remove python3.11/EXTERNALLY-MANAGED or use 'pip install --break-system-packages' avoid 'externally-managed-environment' Ubuntu nightly error
+RUN rm -rf /usr/lib/python3.11/EXTERNALLY-MANAGED
 
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel

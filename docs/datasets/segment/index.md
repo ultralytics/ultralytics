@@ -46,7 +46,7 @@ train: <path-to-training-images>
 val: <path-to-validation-images>
 
 nc: <number-of-classes>
-names: [ <class-1>, <class-2>, ..., <class-n> ]
+names: [<class-1>, <class-2>, ..., <class-n>]
 
 ```
 
@@ -73,7 +73,7 @@ train: data/train/
 val: data/val/
 
 nc: 2
-names: [ 'person', 'car' ]
+names: ['person', 'car']
 ```
 
 ## Usage
@@ -100,15 +100,28 @@ names: [ 'person', 'car' ]
 
 ## Supported Datasets
 
-## Port or Convert label formats
+* [COCO](coco.md): A large-scale dataset designed for object detection, segmentation, and captioning tasks with over 200K labeled images.
+* [COCO8-seg](coco8-seg.md): A smaller dataset for instance segmentation tasks, containing a subset of 8 COCO images with segmentation annotations.
 
-### COCO dataset format to YOLO format
+### Adding your own dataset
+
+If you have your own dataset and would like to use it for training segmentation models with Ultralytics YOLO format, ensure that it follows the format specified above under "Ultralytics YOLO format". Convert your annotations to the required format and specify the paths, number of classes, and class names in the YAML configuration file.
+
+## Port or Convert Label Formats
+
+### COCO Dataset Format to YOLO Format
+
+You can easily convert labels from the popular COCO dataset format to the YOLO format using the following code snippet:
 
 ```python
 from ultralytics.yolo.data.converter import convert_coco
 
 convert_coco(labels_dir='../coco/annotations/', use_segments=True)
 ```
+
+This conversion tool can be used to convert the COCO dataset or any dataset in the COCO format to the Ultralytics YOLO format.
+
+Remember to double-check if the dataset you want to use is compatible with your model and follows the necessary format conventions. Properly formatted datasets are crucial for training successful object detection models.
 
 ## Auto-Annotation
 

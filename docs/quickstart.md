@@ -12,6 +12,9 @@ Ultralytics provides various installation methods including pip, conda, and Dock
 
     === "Pip install (recommended)"
         Install the `ultralytics` package using pip, or update an existing installation by running `pip install -U ultralytics`. Visit the Python Package Index (PyPI) for more details on the `ultralytics` package: [https://pypi.org/project/ultralytics/](https://pypi.org/project/ultralytics/).
+
+        [![PyPI version](https://badge.fury.io/py/ultralytics.svg)](https://badge.fury.io/py/ultralytics) [![Downloads](https://static.pepy.tech/badge/ultralytics)](https://pepy.tech/project/ultralytics)
+
         ```bash
         # Install the ultralytics package using pip
         pip install ultralytics
@@ -19,6 +22,10 @@ Ultralytics provides various installation methods including pip, conda, and Dock
     
     === "Conda install"
         Conda is an alternative package manager to pip which may also be used for installation. Visit Anaconda for more details at [https://anaconda.org/conda-forge/ultralytics](https://anaconda.org/conda-forge/ultralytics). Ultralytics feedstock repository for updating the conda package is at [https://github.com/conda-forge/ultralytics-feedstock/](https://github.com/conda-forge/ultralytics-feedstock/).
+
+
+        [![Conda Recipe](https://img.shields.io/badge/recipe-ultralytics-green.svg)](https://anaconda.org/conda-forge/ultralytics) [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/ultralytics.svg)](https://anaconda.org/conda-forge/ultralytics) [![Conda Version](https://img.shields.io/conda/vn/conda-forge/ultralytics.svg)](https://anaconda.org/conda-forge/ultralytics) [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/ultralytics.svg)](https://anaconda.org/conda-forge/ultralytics)
+
         ```bash
         # Install the ultralytics package using conda
         conda install ultralytics
@@ -39,6 +46,8 @@ Ultralytics provides various installation methods including pip, conda, and Dock
 
     === "Docker"
         Utilize Docker to execute the `ultralytics` package in an isolated container. By employing the official `ultralytics` image from [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics), you can avoid local installation. Below are the commands to get the latest image and execute it:
+
+        <a href="https://hub.docker.com/r/ultralytics/ultralytics"><img src="https://img.shields.io/docker/pulls/ultralytics/ultralytics?logo=docker" alt="Docker Pulls"></a>
     
         ```bash
         # Set image name as a variable

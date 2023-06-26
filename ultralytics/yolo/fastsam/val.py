@@ -7,7 +7,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, NUM_THREADS, ops
+from ultralytics.yolo.utils import LOGGER, NUM_THREADS, ops
 from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils.metrics import SegmentMetrics, box_iou, mask_iou
 from ultralytics.yolo.utils.plotting import output_to_target, plot_images

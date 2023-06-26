@@ -100,7 +100,7 @@ class FastSAMPrompt:
         plt.switch_backend('TkAgg')
         plt.figure(figsize=(original_w / 100, original_h / 100))
         plt.imshow(image)
-        if better_quality == True:
+        if better_quality:
             if isinstance(annotations[0], torch.Tensor):
                 annotations = np.array(annotations.cpu())
             for i, mask in enumerate(annotations):
@@ -135,14 +135,14 @@ class FastSAMPrompt:
             )
         if isinstance(annotations, torch.Tensor):
             annotations = annotations.cpu().numpy()
-        if withContours == True:
+        if withContours:
             contour_all = []
             temp = np.zeros((original_h, original_w, 1))
             for i, mask in enumerate(annotations):
                 if type(mask) == dict:
                     mask = mask['segmentation']
                 annotation = mask.astype(np.uint8)
-                if retina == False:
+                if not retina:
                     annotation = cv2.resize(
                         annotation,
                         (original_w, original_h),
@@ -194,7 +194,7 @@ class FastSAMPrompt:
         annotation = annotation[sorted_indices]
 
         index = (annotation != 0).argmax(axis=0)
-        if random_color == True:
+        if random_color:
             color = np.random.random((msak_sum, 1, 1, 3))
         else:
             color = np.ones((msak_sum, 1, 1, 3)) * np.array([30 / 255, 144 / 255, 255 / 255])
@@ -225,7 +225,7 @@ class FastSAMPrompt:
                 c='m',
             )
 
-        if retinamask == False:
+        if not retinamask:
             show = cv2.resize(show, (target_width, target_height), interpolation=cv2.INTER_NEAREST)
         ax.imshow(show)
 
@@ -249,7 +249,7 @@ class FastSAMPrompt:
         annotation = annotation[sorted_indices]
         # 找每个位置第一个非零值下标
         index = (annotation != 0).to(torch.long).argmax(dim=0)
-        if random_color == True:
+        if random_color:
             color = torch.rand((msak_sum, 1, 1, 3)).to(annotation.device)
         else:
             color = torch.ones((msak_sum, 1, 1, 3)).to(annotation.device) * torch.tensor([
@@ -281,7 +281,7 @@ class FastSAMPrompt:
                 s=20,
                 c='m',
             )
-        if retinamask == False:
+        if not retinamask:
             show_cpu = cv2.resize(show_cpu, (target_width, target_height), interpolation=cv2.INTER_NEAREST)
         ax.imshow(show_cpu)
 

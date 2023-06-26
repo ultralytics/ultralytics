@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from PIL import Image
+
 try:
     import clip  # for linear_assignment
 
@@ -13,6 +14,7 @@ except (ImportError, AssertionError, AttributeError):
 
     check_requirements('git+https://github.com/openai/CLIP.git')  # required before installing lap from source
     import clip
+
 
 class FastSAMPrompt:
 

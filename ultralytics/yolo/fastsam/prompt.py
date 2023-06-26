@@ -1,4 +1,3 @@
-import ast
 import os
 
 import clip

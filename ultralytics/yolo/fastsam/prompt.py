@@ -5,57 +5,19 @@ import cv2
 import torch
 import os
 import clip
+import ast
 
-def prompt_process(results, args, type="everything"):
-
-    if type == "bbox":
-        assert(args.box_prompt[2] != 0 and args.box_prompt[3] != 0:)
-
-    elif type == "point":
-        pass
-    elif type == "text":
-        pass
-    elif type == 'everything':
-        return results
-    
-class Prompt:
-    def __init__(self, img_path, annotations, device='cuda') -> None:
+class FastSAMPrompt:
+    def __init__(self, img_path, results, device='cuda') -> None:
         # self.img_path = img_path
         self.device = device
-        self.annotations = annotations
+        self.results = results
+        self.img_path = img_path
         self.ori_img = cv2.imread(img_path)
 
-    
-    def prompt_process(results, args, box=None, point=None, text=None):
-        ori_img = cv2.imread(args.img_path)
-        ori_h = ori_img.shape[0]
-        ori_w = ori_img.shape[1]
-        if box:
-            mask, idx = self.box_prompt(
-                results[0].masks.data,
-                self.convert_box_xywh_to_xyxy(args.box_prompt),
-                ori_h,
-                ori_w,
-            )
-        elif point:
-            mask, idx = point_prompt(
-                results, args.point_prompt, args.point_label, ori_h, ori_w
-            )
-        elif text:
-            mask, idx = text_prompt(results, args)
-        else:
-            return None
-        return mask
-
-    def convert_box_xywh_to_xyxy(box):
-        x1 = box[0]
-        y1 = box[1]
-        x2 = box[0] + box[2]
-        y2 = box[1] + box[3]
-        return [x1, y1, x2, y2]
 
 
-    def segment_image(image, bbox):
+    def _segment_image(self, image, bbox):
         image_array = np.array(image)
         segmented_image_array = np.zeros_like(image_array)
         x1, y1, x2, y2 = bbox
@@ -72,7 +34,7 @@ class Prompt:
         return black_image
 
 
-    def format_results(result, filter=0):
+    def _format_results(self, result, filter=0):
         annotations = []
         n = len(result.masks.data)
         for i in range(n):
@@ -108,7 +70,7 @@ class Prompt:
         return [a for i, a in enumerate(annotations) if i not in to_remove], to_remove
 
 
-    def get_bbox_from_mask(mask):
+    def _get_bbox_from_mask(self, mask):
         mask = mask.astype(np.uint8)
         contours, hierarchy = cv2.findContours(
             mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
@@ -128,19 +90,20 @@ class Prompt:
         return [x1, y1, x2, y2]
 
 
-    def fast_process(
-        annotations, args, mask_random_color, bbox=None, points=None, edges=False
+    def plot(
+        self, annotations, output, bbox=None, points=None, point_label=None, mask_random_color=True, better_quality=True, retina=False, withContours=True
     ):
         if isinstance(annotations[0], dict):
             annotations = [annotation["segmentation"] for annotation in annotations]
-        result_name = os.path.basename(args.img_path)
-        image = cv2.imread(args.img_path)
+        result_name = os.path.basename(self.img_path)
+        image = self.ori_img
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         original_h = image.shape[0]
         original_w = image.shape[1]
+        plt.switch_backend('TkAgg')
         plt.figure(figsize=(original_w/100, original_h/100))
         plt.imshow(image)
-        if args.better_quality == True:
+        if better_quality == True:
             if isinstance(annotations[0], torch.Tensor):
                 annotations = np.array(annotations.cpu())
             for i, mask in enumerate(annotations):
@@ -150,43 +113,43 @@ class Prompt:
                 annotations[i] = cv2.morphologyEx(
                     mask.astype(np.uint8), cv2.MORPH_OPEN, np.ones((8, 8), np.uint8)
                 )
-        if args.device == "cpu":
+        if self.device == "cpu":
             annotations = np.array(annotations)
-            fast_show_mask(
+            self.fast_show_mask(
                 annotations,
                 plt.gca(),
                 random_color=mask_random_color,
                 bbox=bbox,
                 points=points,
-                pointlabel=args.point_label,
-                retinamask=args.retina,
+                pointlabel=point_label,
+                retinamask=retina,
                 target_height=original_h,
                 target_width=original_w,
             )
         else:
             if isinstance(annotations[0], np.ndarray):
                 annotations = torch.from_numpy(annotations)
-            fast_show_mask_gpu(
+            self.fast_show_mask_gpu(
                 annotations,
                 plt.gca(),
-                random_color=args.randomcolor,
+                random_color=mask_random_color,
                 bbox=bbox,
                 points=points,
-                pointlabel=args.point_label,
-                retinamask=args.retina,
+                pointlabel=point_label,
+                retinamask=retina,
                 target_height=original_h,
                 target_width=original_w,
             )
         if isinstance(annotations, torch.Tensor):
             annotations = annotations.cpu().numpy()
-        if args.withContours == True:
+        if withContours == True:
             contour_all = []
             temp = np.zeros((original_h, original_w, 1))
             for i, mask in enumerate(annotations):
                 if type(mask) == dict:
                     mask = mask["segmentation"]
                 annotation = mask.astype(np.uint8)
-                if args.retina == False:
+                if retina == False:
                     annotation = cv2.resize(
                         annotation,
                         (original_w, original_h),
@@ -202,7 +165,7 @@ class Prompt:
             contour_mask = temp / 255 * color.reshape(1, 1, -1)
             plt.imshow(contour_mask)
 
-        save_path = args.output
+        save_path = output
         if not os.path.exists(save_path):
             os.makedirs(save_path)
         plt.axis("off")
@@ -214,15 +177,15 @@ class Prompt:
         except AttributeError:
             fig.canvas.draw()
             buf = fig.canvas.tostring_rgb()
-        
         cols, rows = fig.canvas.get_width_height()
-        img_array = np.fromstring(buf, dtype=np.uint8).reshape(rows, cols, 3)
+        img_array = np.frombuffer(buf, dtype=np.uint8).reshape(rows, cols, 3)
         cv2.imwrite(os.path.join(save_path, result_name), cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR))
 
 
 
     #   CPU post process
     def fast_show_mask(
+        self,
         annotation,
         ax,
         random_color=False,
@@ -289,6 +252,7 @@ class Prompt:
 
 
     def fast_show_mask_gpu(
+        self,
         annotation,
         ax,
         random_color=False,
@@ -356,7 +320,7 @@ class Prompt:
     # clip
     @torch.no_grad()
     def retriev(
-        model, preprocess, elements: [Image.Image], search_text: str, device
+        self, model, preprocess, elements, search_text: str, device
     ) -> int:
         preprocessed_images = [preprocess(image).to(device) for image in elements]
         tokenized_text = clip.tokenize([search_text]).to(device)
@@ -369,9 +333,11 @@ class Prompt:
         return probs[:, 0].softmax(dim=0)
 
 
-    def crop_image(annotations, image_path):
-        image = Image.open(image_path)
+    def _crop_image(self, format_results):
+        
+        image = Image.fromarray(cv2.cvtColor(self.ori_img, cv2.COLOR_BGR2RGB))
         ori_w, ori_h = image.size
+        annotations = format_results
         mask_h, mask_w = annotations[0]["segmentation"].shape
         if ori_w != mask_w or ori_h != mask_h:
             image = image.resize((mask_w, mask_h))
@@ -385,8 +351,8 @@ class Prompt:
             if np.sum(mask["segmentation"]) <= 100:
                 filter_id.append(_)
                 continue
-            bbox = get_bbox_from_mask(mask["segmentation"])  # mask 的 bbox
-            cropped_boxes.append(segment_image(image, bbox))  # 保存裁剪的图片
+            bbox = self._get_bbox_from_mask(mask["segmentation"])  # mask 的 bbox
+            cropped_boxes.append(self._segment_image(image, bbox))  # 保存裁剪的图片
             # cropped_boxes.append(segment_image(image,mask["segmentation"]))
             cropped_images.append(bbox)  # 保存裁剪的图片的bbox
 
@@ -394,9 +360,11 @@ class Prompt:
 
 
     def box_prompt(self, bbox):
-        masks = self.annotations[0].masks.data
-        target_height = target_height
-        target_width = 
+
+        assert(bbox[2] != 0 and bbox[3] != 0)
+        masks = self.results[0].masks.data
+        target_height = self.ori_img.shape[0]
+        target_width = self.ori_img.shape[1]
         h = masks.shape[1]
         w = masks.shape[2]
         if h != target_height or w != target_width:
@@ -421,10 +389,14 @@ class Prompt:
         IoUs = masks_area / union
         max_iou_index = torch.argmax(IoUs)
 
-        return masks[max_iou_index].cpu().numpy(), max_iou_index
+        return np.array([masks[max_iou_index].cpu().numpy()])
 
 
-    def point_prompt(masks, points, pointlabel, target_height, target_width):  # numpy 处理
+    def point_prompt(self, points, pointlabel):  # numpy 处理
+        
+        masks = self._format_results(self.results[0], 0)
+        target_height = self.ori_img.shape[0]
+        target_width = self.ori_img.shape[1]
         h = masks[0]["segmentation"].shape[0]
         w = masks[0]["segmentation"].shape[1]
         if h != target_height or w != target_width:
@@ -444,18 +416,20 @@ class Prompt:
                 if mask[point[1], point[0]] == 1 and pointlabel[i] == 0:
                     onemask -= mask
         onemask = onemask >= 1
-        return onemask, 0
+        return np.array([onemask])
 
 
-    def text_prompt(annotations, args):
-        cropped_boxes, cropped_images, not_crop, filter_id, annotaions = crop_image(
-            annotations, args.img_path
-        )
-        clip_model, preprocess = clip.load("ViT-B/32", device=args.device)
-        scores = retriev(
-            clip_model, preprocess, cropped_boxes, args.text_prompt, device=args.device
+    def text_prompt(self, text):
+        format_results = self._format_results(self.results[0], 0)
+        cropped_boxes, cropped_images, not_crop, filter_id, annotaions = self._crop_image(format_results)
+        clip_model, preprocess = clip.load("ViT-B/32", device=self.device)
+        scores = self.retriev(
+            clip_model, preprocess, cropped_boxes, text, device=self.device
         )
         max_idx = scores.argsort()
         max_idx = max_idx[-1]
         max_idx += sum(np.array(filter_id) <= int(max_idx))
-        return annotaions[max_idx]["segmentation"], max_idx
+        return np.array([annotaions[max_idx]["segmentation"]])
+    
+    def everything_prompt(self):
+        return self.results[0].masks.data

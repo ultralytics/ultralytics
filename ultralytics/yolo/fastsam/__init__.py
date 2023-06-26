@@ -2,7 +2,8 @@
 
 from .model import FastSAM
 from .predict import FastSAMPredictor
+from .prompt import FastSAMPrompt
 # from .val import FastValidator
 
-__all__ = 'FastSAMPredictor',  'FastSAM', \
+__all__ = 'FastSAMPredictor',  'FastSAM', 'FastSAMPrompt'\
           #'FastValidator'

@@ -1,18 +1,27 @@
 from ultralytics import FastSAM
+from ultralytics.yolo.fastsam import FastSAMPrompt
 import cv2
 
-# Load a model
-# model = YOLO('yoloxlast.pt')  # load a custom model
-model = FastSAM('last.pt')
-# model = YOLO('yolox_15_1024/last.pt')
-# model = YOLO('yolos_640/yolos_23_640_10e.pt')
-# Predict with the model
-IMAGE_PATH = 'sa_548233.jpg'
-DEVICE = '0'
-# results = model('cake.png', device='4', retina_masks=True, imgsz=1024, conf=0.01, iou=0.9,)  # predict on an image
-everything_results = model(IMAGE_PATH, device='0', retina_masks=True, imgsz=1024, conf=0.4, iou=0.9,) 
-promopt_results = 
-# 为了画图改了ultralytics/yolo/engine/results.py 第221行
-# image = everything_results[0].plot(labels=False, boxes=False, masks=True, probs=False)
-# cv2.imwrite("yolox_20_1024_overlap_e33_street_pred_1024_iou0.9.jpg", image)
-cv2.imwrite("test9.jpg", image)
+
+model = FastSAM('FastSAM.pt')
+IMAGE_PATH = 'images/dog.jpg'
+DEVICE = 'cpu'
+everything_results = model(IMAGE_PATH, device=DEVICE, retina_masks=True, imgsz=1024, conf=0.4, iou=0.9,) 
+prompt_process = FastSAMPrompt(IMAGE_PATH, everything_results, device=DEVICE)
+
+ann = prompt_process.everything_prompt()
+
+#bbox default shape [0,0,0,0] -> [x1,y1,x2,y2]
+
+ann = prompt_process.box_prompt(bbox=[200, 200, 300, 300]) 
+
+ann = prompt_process.text_prompt(text='a photo of a dog')
+
+#point prompt 
+#points default [[0,0]] [[x1,y1],[x2,y2]]
+#point_label default [0] [1,0] 0:background, 1:foreground
+
+# ann = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
+
+
+prompt_process.plot(annotations=ann, output='./', )

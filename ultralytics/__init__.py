@@ -10,4 +10,4 @@ from ultralytics.yolo.nas import NAS
 from ultralytics.yolo.fastsam import FastSAM
 from ultralytics.yolo.utils.checks import check_yolo as checks
 
-__all__ = '__version__', 'YOLO', 'NAS', 'SAM', 'RTDETR', 'checks', 'start', 'FastSAM'  # allow simpler import
+__all__ = '__version__', 'YOLO', 'NAS', 'SAM', 'RTDETR', 'checks', 'start', 'download', 'FastSAM'  # allow simpler import  # allow simpler import

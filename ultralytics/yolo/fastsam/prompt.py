@@ -319,7 +319,7 @@ class FastSAMPrompt:
 
     # clip
     @torch.no_grad()
-    def retriev(
+    def retrieve(
         self, model, preprocess, elements, search_text: str, device
     ) -> int:
         preprocessed_images = [preprocess(image).to(device) for image in elements]
@@ -421,15 +421,15 @@ class FastSAMPrompt:
 
     def text_prompt(self, text):
         format_results = self._format_results(self.results[0], 0)
-        cropped_boxes, cropped_images, not_crop, filter_id, annotaions = self._crop_image(format_results)
+        cropped_boxes, cropped_images, not_crop, filter_id, annotations = self._crop_image(format_results)
         clip_model, preprocess = clip.load("ViT-B/32", device=self.device)
-        scores = self.retriev(
+        scores = self.retrieve(
             clip_model, preprocess, cropped_boxes, text, device=self.device
         )
         max_idx = scores.argsort()
         max_idx = max_idx[-1]
         max_idx += sum(np.array(filter_id) <= int(max_idx))
-        return np.array([annotaions[max_idx]["segmentation"]])
+        return np.array([annotations[max_idx]["segmentation"]])
     
     def everything_prompt(self):
         return self.results[0].masks.data

@@ -105,7 +105,7 @@ class FastSAMPrompt:
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         original_h = image.shape[0]
         original_w = image.shape[1]
-        plt.switch_backend('TkAgg')
+        # plt.switch_backend('TkAgg')
         plt.figure(figsize=(original_w / 100, original_h / 100))
         plt.imshow(image)
         if better_quality:

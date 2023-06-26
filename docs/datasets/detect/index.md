@@ -1,80 +1,52 @@
 ---
 comments: true
-description: Learn about supported dataset formats for training YOLO detection models, including Ultralytics YOLO and COCO, in this Object Detection Datasets Overview.
-keywords: object detection, datasets, formats, Ultralytics YOLO, label format, dataset file format, dataset definition, YOLO dataset, model configuration
+description: Explore supported dataset formats for training YOLO detection models, including Ultralytics YOLO and COCO. This guide covers various dataset formats and their specific configurations for effective object detection training.
+keywords: object detection, datasets, formats, Ultralytics YOLO, COCO, label format, dataset file format, dataset definition, YOLO dataset, model configuration
 ---
 
 # Object Detection Datasets Overview
+
+Training a robust and accurate object detection model requires a comprehensive dataset. This guide introduces various formats of datasets that are compatible with the Ultralytics YOLO model and provides insights into their structure, usage, and how to convert between different formats.
 
 ## Supported Dataset Formats
 
 ### Ultralytics YOLO format
 
-** Label Format **
-
-The dataset format used for training YOLO detection models is as follows:
-
-1. One text file per image: Each image in the dataset has a corresponding text file with the same name as the image file and the ".txt" extension.
-2. One row per object: Each row in the text file corresponds to one object instance in the image.
-3. Object information per row: Each row contains the following information about the object instance:
-    - Object class index: An integer representing the class of the object (e.g., 0 for person, 1 for car, etc.).
-    - Object center coordinates: The x and y coordinates of the center of the object, normalized to be between 0 and 1.
-    - Object width and height: The width and height of the object, normalized to be between 0 and 1.
-
-The format for a single row in the detection dataset file is as follows:
-
-```
-<object-class> <x> <y> <width> <height>
-```
-
-Here is an example of the YOLO dataset format for a single image with two object instances:
-
-```
-0 0.5 0.4 0.3 0.6
-1 0.3 0.7 0.4 0.2
-```
-
-In this example, the first object is of class 0 (person), with its center at (0.5, 0.4), width of 0.3, and height of 0.6. The second object is of class 1 (car), with its center at (0.3, 0.7), width of 0.4, and height of 0.2.
-
-** Dataset file format **
-
-The Ultralytics framework uses a YAML file format to define the dataset and model configuration for training Detection Models. Here is an example of the YAML format used for defining a detection dataset:
+The Ultralytics YOLO format is a dataset configuration format that allows you to define the dataset root directory, the relative paths to training/validation/testing image directories or *.txt files containing image paths, and a dictionary of class names. Here is an example:
 
 ```yaml
-train: <path-to-training-images>
-val: <path-to-validation-images>
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+path: ../datasets/coco8  # dataset root dir
+train: images/train  # train images (relative to 'path') 4 images
+val: images/val  # val images (relative to 'path') 4 images
+test:  # test images (optional)
 
-nc: <number-of-classes>
-names: [<class-1>, <class-2>, ..., <class-n>]
-```
-
-The `train` and `val` fields specify the paths to the directories containing the training and validation images, respectively.
-
-The `nc` field specifies the number of object classes in the dataset.
-
-The `names` field is a list of the names of the object classes. The order of the names should match the order of the object class indices in the YOLO dataset files.
-
-NOTE: Either `nc` or `names` must be defined. Defining both are not mandatory
-
-Alternatively, you can directly define class names like this:
-
-```yaml
+# Classes (80 COCO classes)
 names:
   0: person
   1: bicycle
+  2: car
+  ...
+  77: teddy bear
+  78: hair drier
+  79: toothbrush
 ```
 
-** Example **
+Labels for this format should be exported to YOLO format with one `*.txt` file per image. If there are no objects in an image, no `*.txt` file is required. The `*.txt` file should be formatted with one row per object in `class x_center y_center width height` format. Box coordinates must be in **normalized xywh** format (from 0 - 1). If your boxes are in pixels, you should divide `x_center` and `width` by image width, and `y_center` and `height` by image height. Class numbers should be zero-indexed (start with 0).
 
-```yaml
-train: data/train/
-val: data/val/
+<p align="center"><img width="750" src="https://user-images.githubusercontent.com/26833433/91506361-c7965000-e886-11ea-8291-c72b98c25eec.jpg"></p>
 
-nc: 2
-names: ['person', 'car']
-```
+The label file corresponding to the above image contains 2 persons (class `0`) and a tie (class `27`):
+
+<p align="center"><img width="428" src="https://user-images.githubusercontent.com/26833433/112467037-d2568c00-8d66-11eb-8796-55402ac0d62f.png"></p>
+
+When using the Ultralytics YOLO format, organize your training and validation images and labels as shown in the example below.
+
+<p align="center"><img width="700" src="https://user-images.githubusercontent.com/26833433/134436012-65111ad1-9541-4853-81a6-f19a3468b75f.png"></p>
 
 ## Usage
+
+Here's how you can use these formats to train your model:
 
 !!! example ""
 
@@ -98,14 +70,34 @@ names: ['person', 'car']
 
 ## Supported Datasets
 
-TODO
+Here is a list of the supported datasets and a brief description for each:
 
-## Port or Convert label formats
+- [**Argoverse**](./argoverse.md): A collection of sensor data collected from autonomous vehicles. It contains 3D tracking annotations for car objects.
+- [**COCO**](./coco.md): Common Objects in Context (COCO) is a large-scale object detection, segmentation, and captioning dataset with 80 object categories.
+- [**COCO8**](./coco8.md): A smaller subset of the COCO dataset, COCO8 is more lightweight and faster to train.
+- [**GlobalWheat2020**](./globalwheat2020.md): A dataset containing images of wheat heads for the Global Wheat Challenge 2020.
+- [**Objects365**](./objects365.md): A large-scale object detection dataset with 365 object categories and 600k images, aimed at advancing object detection research.
+- [**SKU-110K**](./sku-110k.md): A dataset containing images of densely packed retail products, intended for retail environment object detection.
+- [**VisDrone**](./visdrone.md): A dataset focusing on drone-based images, containing various object categories like cars, pedestrians, and cyclists.
+- [**VOC**](./voc.md): PASCAL VOC is a popular object detection dataset with 20 object categories including vehicles, animals, and furniture.
+- [**xView**](./xview.md): A dataset containing high-resolution satellite imagery, designed for the detection of various object classes in overhead views.
 
-### COCO dataset format to YOLO format
+### Adding your own dataset
+
+If you have your own dataset and would like to use it for training detection models with Ultralytics YOLO format, ensure that it follows the format specified above under "Ultralytics YOLO format". Convert your annotations to the required format and specify the paths, number of classes, and class names in the YAML configuration file.
+
+## Port or Convert Label Formats
+
+### COCO Dataset Format to YOLO Format
+
+You can easily convert labels from the popular COCO dataset format to the YOLO format using the following code snippet:
 
 ```python
 from ultralytics.yolo.data.converter import convert_coco
 
 convert_coco(labels_dir='../coco/annotations/')
 ```
+
+This conversion tool can be used to convert the COCO dataset or any dataset in the COCO format to the Ultralytics YOLO format.
+
+Remember to double-check if the dataset you want to use is compatible with your model and follows the necessary format conventions. Properly formatted datasets are crucial for training successful object detection models.

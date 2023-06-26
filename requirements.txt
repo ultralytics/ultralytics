@@ -41,4 +41,4 @@ psutil  # system utilization
 # albumentations>=1.0.3
 # pycocotools>=2.0.6  # COCO mAP
 # roboflow
-pip install git+https://github.com/openai/CLIP.git
+git+https://github.com/openai/CLIP.git

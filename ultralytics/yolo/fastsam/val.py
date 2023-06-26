@@ -243,20 +243,3 @@ class FastSAMValidator(DetectionValidator):
                 LOGGER.warning(f'pycocotools unable to run: {e}')
         return stats
 
-
-def val(cfg=DEFAULT_CFG, use_python=False):
-    """Validate trained YOLO model on validation data."""
-    model = cfg.model or 'yolov8n-seg.pt'
-    data = cfg.data or 'coco128-seg.yaml'
-
-    args = dict(model=model, data=data)
-    if use_python:
-        from ultralytics import YOLO
-        YOLO(model).val(**args)
-    else:
-        validator = SegmentationValidator(args=args)
-        validator(model=args['model'])
-
-
-if __name__ == '__main__':
-    val()

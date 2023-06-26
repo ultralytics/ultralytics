@@ -3,9 +3,9 @@
 YOLO-NAS model interface.
 
 Usage - Predict:
-    from ultralytics import NAS
+    from ultralytics import FastSAM
 
-    model = NAS('yolo_nas_s')
+    model = FastSAM('last.pt')
     results = model.predict('ultralytics/assets/bus.jpg')
 """
 

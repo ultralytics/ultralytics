@@ -19,7 +19,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ['3.10']
+        python-version: ['3.11']
         model: [yolov5n]
     steps:
       - uses: actions/checkout@v3
@@ -80,7 +80,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ['3.10']
+        python-version: ['3.11']
         model: [yolov8n]
     steps:
       - uses: actions/checkout@v3

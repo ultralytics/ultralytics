@@ -45,9 +45,7 @@ class LoadStreams:
             st = f'{i + 1}/{n}: {s}... '
             if urlparse(s).hostname in ('www.youtube.com', 'youtube.com', 'youtu.be'):  # if source is YouTube video
                 # YouTube format i.e. 'https://www.youtube.com/watch?v=Zgi9g1ksQHc' or 'https://youtu.be/Zgi9g1ksQHc'
-                check_requirements(('pafy', 'youtube_dl==2020.12.2'))
-                import pafy  # noqa
-                s = pafy.new(s).getbest(preftype='mp4').url  # YouTube URL
+                s = get_best_youtube_url(s)
             s = eval(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
             if s == 0 and (is_colab() or is_kaggle()):
                 raise NotImplementedError("'source=0' webcam not supported in Colab and Kaggle notebooks. "
@@ -158,7 +156,7 @@ class LoadImages:
             path = Path(path).read_text().rsplit()
         files = []
         for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:
-            p = str(Path(p).resolve())
+            p = str(Path(p).absolute())  # do not use .resolve() https://github.com/ultralytics/ultralytics/issues/2912
             if '*' in p:
                 files.extend(sorted(glob.glob(p, recursive=True)))  # glob
             elif os.path.isdir(p):
@@ -296,10 +294,31 @@ class LoadPilAndNumpy:
 
 class LoadTensor:
 
-    def __init__(self, imgs) -> None:
-        self.im0 = imgs
-        self.bs = imgs.shape[0]
+    def __init__(self, im0) -> None:
+        self.im0 = self._single_check(im0)
+        self.bs = self.im0.shape[0]
         self.mode = 'image'
+        self.paths = [getattr(im, 'filename', f'image{i}.jpg') for i, im in enumerate(im0)]
+
+    @staticmethod
+    def _single_check(im, stride=32):
+        """Validate and format an image to torch.Tensor."""
+        s = f'WARNING ⚠️ torch.Tensor inputs should be BCHW i.e. shape(1, 3, 640, 640) ' \
+            f'divisible by stride {stride}. Input shape{tuple(im.shape)} is incompatible.'
+        if len(im.shape) != 4:
+            if len(im.shape) == 3:
+                LOGGER.warning(s)
+                im = im.unsqueeze(0)
+            else:
+                raise ValueError(s)
+        if im.shape[2] % stride or im.shape[3] % stride:
+            raise ValueError(s)
+        if im.max() > 1.0:
+            LOGGER.warning(f'WARNING ⚠️ torch.Tensor inputs should be normalized 0.0-1.0 but max value is {im.max()}. '
+                           f'Dividing input by 255.')
+            im = im.float() / 255.0
+
+        return im
 
     def __iter__(self):
         """Returns an iterator object."""
@@ -311,7 +330,7 @@ class LoadTensor:
         if self.count == 1:
             raise StopIteration
         self.count += 1
-        return None, self.im0, None, ''  # self.paths, im, self.im0, None, ''
+        return self.paths, self.im0, None, ''
 
     def __len__(self):
         """Returns the batch size."""
@@ -336,6 +355,35 @@ def autocast_list(source):
 
 
 LOADERS = [LoadStreams, LoadPilAndNumpy, LoadImages, LoadScreenshots]
+
+
+def get_best_youtube_url(url, use_pafy=True):
+    """
+    Retrieves the URL of the best quality MP4 video stream from a given YouTube video.
+
+    This function uses the pafy or yt_dlp library to extract the video info from YouTube. It then finds the highest
+    quality MP4 format that has video codec but no audio codec, and returns the URL of this video stream.
+
+    Args:
+        url (str): The URL of the YouTube video.
+        use_pafy (bool): Use the pafy package, default=True, otherwise use yt_dlp package.
+
+    Returns:
+        (str): The URL of the best quality MP4 video stream, or None if no suitable stream is found.
+    """
+    if use_pafy:
+        check_requirements(('pafy', 'youtube_dl==2020.12.2'))
+        import pafy  # noqa
+        return pafy.new(url).getbest(preftype='mp4').url
+    else:
+        check_requirements('yt-dlp')
+        import yt_dlp
+        with yt_dlp.YoutubeDL({'quiet': True}) as ydl:
+            info_dict = ydl.extract_info(url, download=False)  # extract info
+        for f in info_dict.get('formats', None):
+            if f['vcodec'] != 'none' and f['acodec'] == 'none' and f['ext'] == 'mp4':
+                return f.get('url', None)
+
 
 if __name__ == '__main__':
     img = cv2.imread(str(ROOT / 'assets/bus.jpg'))

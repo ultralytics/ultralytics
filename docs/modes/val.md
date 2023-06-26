@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Validate and improve YOLOv8n model accuracy on COCO128 and other datasets using hyperparameter & configuration tuning, in Val mode.
+keywords: Ultralytics, YOLO, YOLOv8, Val, Validation, Hyperparameters, Performance, Accuracy, Generalization, COCO, Export Formats, PyTorch
 ---
 
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">

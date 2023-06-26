@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Explore the SKU-110k dataset, designed for object detection in densely packed retail shelf images, featuring over 110k unique SKU categories and annotations.
+keywords: SKU-110k, object detection, retail shelves, dataset, computer vision
 ---
 
 # SKU-110k Dataset
@@ -60,6 +61,7 @@ To train a YOLOv8n model on the SKU-110K dataset for 100 epochs with an image si
         ```bash
         # Start training from a pretrained *.pt model
         yolo detect train data=SKU-110K.yaml model=yolov8n.pt epochs=100 imgsz=640
+        ```
 
 ## Sample Data and Annotations
 

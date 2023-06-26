@@ -1,6 +1,7 @@
 ---
 comments: true
 description: 'Export mode: Create a deployment-ready YOLOv8 model by converting it to various formats. Export to ONNX or OpenVINO for up to 3x CPU speedup.'
+keywords: ultralytics docs, YOLOv8, export YOLOv8, YOLOv8 model deployment, exporting YOLOv8, ONNX, OpenVINO, TensorRT, CoreML, TF SavedModel, PaddlePaddle, TorchScript, ONNX format, OpenVINO format, TensorRT format, CoreML format, TF SavedModel format, PaddlePaddle format
 ---
 
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">

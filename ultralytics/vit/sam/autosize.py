@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # All rights reserved.
 

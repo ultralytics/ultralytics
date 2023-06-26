@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Learn how to deploy YOLOv5 with DeepSparse to achieve exceptional CPU performance close to GPUs, using pruning, and quantization.<br>
+keywords: YOLOv5, DeepSparse, Neural Magic, CPU, Production, Performance, Deployments, APIs, SparseZoo, Ultralytics, Model Sparsity, Inference, Open-source, ONNX, Server
 ---
 
 <!--

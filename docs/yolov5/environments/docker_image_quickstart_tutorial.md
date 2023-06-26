@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Get started with YOLOv5 in a Docker container. Learn to set up and run YOLOv5 models and explore other quickstart options. 🚀
+keywords: YOLOv5, Docker, tutorial, setup, training, testing, detection
 ---
 
 # Get Started with YOLOv5 🚀 in Docker

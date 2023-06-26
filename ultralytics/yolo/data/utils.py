@@ -138,7 +138,7 @@ def polygon2mask(imgsz, polygons, color=1, downsample_ratio=1):
     """
     Args:
         imgsz (tuple): The image size.
-        polygons (np.ndarray): [N, M], N is the number of polygons, M is the number of points(Be divided by 2).
+        polygons (list[np.ndarray]): [N, M], N is the number of polygons, M is the number of points(Be divided by 2).
         color (int): color
         downsample_ratio (int): downsample ratio
     """
@@ -226,7 +226,7 @@ def check_det_dataset(dataset, autodownload=True):
 
     if not path.is_absolute():
         path = (DATASETS_DIR / path).resolve()
-        data['path'] = path  # download scripts
+    data['path'] = path  # download scripts
     for k in 'train', 'val', 'test':
         if data.get(k):  # prepend path
             if isinstance(data[k], str):

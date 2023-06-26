@@ -102,7 +102,7 @@ class Bboxes:
     def mul(self, scale):
         """
         Args:
-            scale (tuple) or (list) or (int): the scale for four coords.
+            scale (tuple | list | int): the scale for four coords.
         """
         if isinstance(scale, Number):
             scale = to_4tuple(scale)
@@ -116,7 +116,7 @@ class Bboxes:
     def add(self, offset):
         """
         Args:
-            offset (tuple) or (list) or (int): the offset for four coords.
+            offset (tuple | list | int): the offset for four coords.
         """
         if isinstance(offset, Number):
             offset = to_4tuple(offset)
@@ -209,9 +209,10 @@ class Instances:
         """Convert bounding box format."""
         self._bboxes.convert(format=format)
 
+    @property
     def bbox_areas(self):
         """Calculate the area of bounding boxes."""
-        self._bboxes.areas()
+        return self._bboxes.areas()
 
     def scale(self, scale_w, scale_h, bbox_only=False):
         """this might be similar with denormalize func but without normalized sign."""
@@ -328,9 +329,9 @@ class Instances:
 
     def remove_zero_area_boxes(self):
         """Remove zero-area boxes, i.e. after clipping some boxes may have zero width or height. This removes them."""
-        good = self._bboxes.areas() > 0
+        good = self.bbox_areas > 0
         if not all(good):
-            self._bboxes = Bboxes(self._bboxes.bboxes[good], format=self._bboxes.format)
+            self._bboxes = self._bboxes[good]
             if len(self.segments):
                 self.segments = self.segments[good]
             if self.keypoints is not None:

@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Discover the VisDrone dataset, a comprehensive benchmark for drone-based computer vision tasks, including object detection, tracking, and crowd counting.
+keywords: VisDrone Dataset, Ultralytics YOLO Docs, AISKYEYE, Lab of Machine Learning and Data Mining, Computer Vision tasks, drone-based image analysis, object detection, object tracking, crowd counting, YOLOv8n model
 ---
 
 # VisDrone Dataset
@@ -8,22 +9,6 @@ description: Discover the VisDrone dataset, a comprehensive benchmark for drone-
 The [VisDrone Dataset](https://github.com/VisDrone/VisDrone-Dataset) is a large-scale benchmark created by the AISKYEYE team at the Lab of Machine Learning and Data Mining, Tianjin University, China. It contains carefully annotated ground truth data for various computer vision tasks related to drone-based image and video analysis.
 
 VisDrone is composed of 288 video clips with 261,908 frames and 10,209 static images, captured by various drone-mounted cameras. The dataset covers a wide range of aspects, including location (14 different cities across China), environment (urban and rural), objects (pedestrians, vehicles, bicycles, etc.), and density (sparse and crowded scenes). The dataset was collected using various drone platforms under different scenarios and weather and lighting conditions. These frames are manually annotated with over 2.6 million bounding boxes of targets such as pedestrians, cars, bicycles, and tricycles. Attributes like scene visibility, object class, and occlusion are also provided for better data utilization.
-
-## Citation
-
-If you use the VisDrone dataset in your research or development work, please cite the following paper:
-
-```bibtex
-@ARTICLE{9573394,
-  author={Zhu, Pengfei and Wen, Longyin and Du, Dawei and Bian, Xiao and Fan, Heng and Hu, Qinghua and Ling, Haibin},
-  journal={IEEE Transactions on Pattern Analysis and Machine Intelligence}, 
-  title={Detection and Tracking Meet Drones Challenge}, 
-  year={2021},
-  volume={},
-  number={},
-  pages={1-1},
-  doi={10.1109/TPAMI.2021.3119563}}
-```
 
 ## Dataset Structure
 

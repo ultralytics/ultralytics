@@ -20,8 +20,8 @@ import torch
 from matplotlib import font_manager
 
 from ultralytics.yolo.utils import (AUTOINSTALL, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, TryExcept, clean_url, colorstr,
-                                    downloads, emojis, is_colab, is_docker, is_kaggle, is_online, is_pip_package,
-                                    url2file)
+                                    downloads, emojis, is_colab, is_docker, is_jupyter, is_kaggle, is_online,
+                                    is_pip_package, url2file)
 
 
 def is_ascii(s) -> bool:
@@ -47,7 +47,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
     stride, update it to the nearest multiple of the stride that is greater than or equal to the given floor value.
 
     Args:
-        imgsz (int) or (cList[int]): Image size.
+        imgsz (int | cList[int]): Image size.
         stride (int): Stride value.
         min_dim (int): Minimum number of dimensions.
         floor (int): Minimum allowed value for image size.
@@ -222,26 +222,33 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
     s = ''  # console string
     n = 0  # number of packages updates
     for r in requirements:
+        rmin = r.split('/')[-1].replace('.git', '')  # replace git+https://org/repo.git -> 'repo'
         try:
-            pkg.require(r)
+            pkg.require(rmin)
         except (pkg.VersionConflict, pkg.DistributionNotFound):  # exception if requirements not met
             try:  # attempt to import (slower but more accurate)
                 import importlib
-                importlib.import_module(next(pkg.parse_requirements(r)).name)
+                importlib.import_module(next(pkg.parse_requirements(rmin)).name)
             except ImportError:
                 s += f'"{r}" '
                 n += 1
 
-    if s and install and AUTOINSTALL:  # check environment variable
-        LOGGER.info(f"{prefix} Ultralytics requirement{'s' * (n > 1)} {s}not found, attempting AutoUpdate...")
-        try:
-            assert is_online(), 'AutoUpdate skipped (offline)'
-            LOGGER.info(subprocess.check_output(f'pip install --no-cache {s} {cmds}', shell=True).decode())
-            s = f"{prefix} {n} package{'s' * (n > 1)} updated per {file or requirements}\n" \
-                f"{prefix} ⚠️ {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n"
-            LOGGER.info(s)
-        except Exception as e:
-            LOGGER.warning(f'{prefix} ❌ {e}')
+    if s:
+        if install and AUTOINSTALL:  # check environment variable
+            LOGGER.info(f"{prefix} Ultralytics requirement{'s' * (n > 1)} {s}not found, attempting AutoUpdate...")
+            try:
+                assert is_online(), 'AutoUpdate skipped (offline)'
+                LOGGER.info(subprocess.check_output(f'pip install --no-cache {s} {cmds}', shell=True).decode())
+                s = f"{prefix} {n} package{'s' * (n > 1)} updated per {file or requirements}\n" \
+                    f"{prefix} ⚠️ {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n"
+                LOGGER.info(s)
+            except Exception as e:
+                LOGGER.warning(f'{prefix} ❌ {e}')
+                return False
+        else:
+            return False
+
+    return True
 
 
 def check_suffix(file='yolov8n.pt', suffix='.pt', msg=''):
@@ -319,8 +326,11 @@ def check_yolo(verbose=True, device=''):
     """Return a human-readable YOLO software and hardware summary."""
     from ultralytics.yolo.utils.torch_utils import select_device
 
-    if is_colab():
-        shutil.rmtree('sample_data', ignore_errors=True)  # remove colab /sample_data directory
+    if is_jupyter():
+        if check_requirements('wandb', install=False):
+            os.system('pip uninstall -y wandb')  # uninstall wandb: unwanted account creation prompt with infinite hang
+        if is_colab():
+            shutil.rmtree('sample_data', ignore_errors=True)  # remove colab /sample_data directory
 
     if verbose:
         # System info
@@ -336,6 +346,55 @@ def check_yolo(verbose=True, device=''):
 
     select_device(device=device, newline=False)
     LOGGER.info(f'Setup complete ✅ {s}')
+
+
+def check_amp(model):
+    """
+    This function checks the PyTorch Automatic Mixed Precision (AMP) functionality of a YOLOv8 model.
+    If the checks fail, it means there are anomalies with AMP on the system that may cause NaN losses or zero-mAP
+    results, so AMP will be disabled during training.
+
+    Args:
+        model (nn.Module): A YOLOv8 model instance.
+
+    Returns:
+        (bool): Returns True if the AMP functionality works correctly with YOLOv8 model, else False.
+
+    Raises:
+        AssertionError: If the AMP checks fail, indicating anomalies with the AMP functionality on the system.
+    """
+    device = next(model.parameters()).device  # get model device
+    if device.type in ('cpu', 'mps'):
+        return False  # AMP only used on CUDA devices
+
+    def amp_allclose(m, im):
+        """All close FP32 vs AMP results."""
+        a = m(im, device=device, verbose=False)[0].boxes.data  # FP32 inference
+        with torch.cuda.amp.autocast(True):
+            b = m(im, device=device, verbose=False)[0].boxes.data  # AMP inference
+        del m
+        return a.shape == b.shape and torch.allclose(a, b.float(), atol=0.5)  # close to 0.5 absolute tolerance
+
+    f = ROOT / 'assets/bus.jpg'  # image to check
+    im = f if f.exists() else 'https://ultralytics.com/images/bus.jpg' if ONLINE else np.ones((640, 640, 3))
+    prefix = colorstr('AMP: ')
+    LOGGER.info(f'{prefix}running Automatic Mixed Precision (AMP) checks with YOLOv8n...')
+    warning_msg = "Setting 'amp=True'. If you experience zero-mAP or NaN losses you can disable AMP with amp=False."
+    try:
+        from ultralytics import YOLO
+        assert amp_allclose(YOLO('yolov8n.pt'), im)
+        LOGGER.info(f'{prefix}checks passed ✅')
+    except ConnectionError:
+        LOGGER.warning(f'{prefix}checks skipped ⚠️, offline and unable to download YOLOv8n. {warning_msg}')
+    except (AttributeError, ModuleNotFoundError):
+        LOGGER.warning(
+            f'{prefix}checks skipped ⚠️. Unable to load YOLOv8n due to possible Ultralytics package modifications. {warning_msg}'
+        )
+    except AssertionError:
+        LOGGER.warning(f'{prefix}checks failed ❌. Anomalies were detected with AMP on your system that may lead to '
+                       f'NaN losses or zero-mAP results, so AMP will be disabled during training.')
+        return False
+    return True
 
 
 def git_describe(path=ROOT):  # path must be a directory

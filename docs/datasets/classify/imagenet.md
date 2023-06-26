@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Learn about the ImageNet dataset, a large-scale database of annotated images commonly used for training deep learning models in computer vision tasks.
+keywords: ImageNet, dataset, deep learning, computer vision, YOLO models, training, object recognition, image classification, object detection, WordNet, synsets, ILSVRC
 ---
 
 # ImageNet Dataset

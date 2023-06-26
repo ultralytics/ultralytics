@@ -4,7 +4,7 @@ Benchmark a YOLO model formats for speed and accuracy
 
 Usage:
     from ultralytics.yolo.utils.benchmarks import ProfileModels, benchmark
-    ProfileModels(['yolov8n.yaml', 'yolov8s.yaml'])
+    ProfileModels(['yolov8n.yaml', 'yolov8s.yaml']).profile()
     run_benchmarks(model='yolov8n.pt', imgsz=160)
 
 Format                  | `format=argument`         | Model
@@ -51,13 +51,13 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
     Benchmark a YOLO model across different formats for speed and accuracy.
 
     Args:
-        model (Union[str, Path], optional): Path to the model file or directory. Default is
+        model (str | Path | optional): Path to the model file or directory. Default is
             Path(SETTINGS['weights_dir']) / 'yolov8n.pt'.
         imgsz (int, optional): Image size for the benchmark. Default is 160.
         half (bool, optional): Use half-precision for the model if True. Default is False.
         int8 (bool, optional): Use int8-precision for the model if True. Default is False.
         device (str, optional): Device to run the benchmark on, either 'cpu' or 'cuda'. Default is 'cpu'.
-        hard_fail (Union[bool, float], optional): If True or a float, assert benchmarks pass with given metric.
+        hard_fail (bool | float | optional): If True or a float, assert benchmarks pass with given metric.
             Default is False.
 
     Returns:
@@ -90,7 +90,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
                 filename = model.ckpt_path or model.cfg
                 export = model  # PyTorch format
             else:
-                filename = model.export(imgsz=imgsz, format=format, half=half, int8=int8, device=device)  # all others
+                filename = model.export(imgsz=imgsz, format=format, half=half, int8=int8, device=device, verbose=False)
                 export = YOLO(filename, task=model.task)
                 assert suffix in str(filename), 'export failed'
             emoji = '❎'  # indicates export succeeded
@@ -156,20 +156,29 @@ class ProfileModels:
     Attributes:
         paths (list): Paths of the models to profile.
         num_timed_runs (int): Number of timed runs for the profiling. Default is 100.
-        num_warmup_runs (int): Number of warmup runs before profiling. Default is 3.
+        num_warmup_runs (int): Number of warmup runs before profiling. Default is 10.
+        min_time (float): Minimum number of seconds to profile for. Default is 60.
         imgsz (int): Image size used in the models. Default is 640.
 
     Methods:
         profile(): Profiles the models and prints the result.
     """
 
-    def __init__(self, paths: list, num_timed_runs=100, num_warmup_runs=10, imgsz=640, trt=True):
+    def __init__(self,
+                 paths: list,
+                 num_timed_runs=100,
+                 num_warmup_runs=10,
+                 min_time=60,
+                 imgsz=640,
+                 trt=True,
+                 device=None):
         self.paths = paths
         self.num_timed_runs = num_timed_runs
         self.num_warmup_runs = num_warmup_runs
+        self.min_time = min_time
         self.imgsz = imgsz
         self.trt = trt  # run TensorRT profiling
-        self.profile()  # run profiling
+        self.device = device or torch.device(0 if torch.cuda.is_available() else 'cpu')
 
     def profile(self):
         files = self.get_files()
@@ -179,15 +188,25 @@ class ProfileModels:
             return
 
         table_rows = []
-        device = 0 if torch.cuda.is_available() else 'cpu'
+        output = []
         for file in files:
             engine_file = file.with_suffix('.engine')
             if file.suffix in ('.pt', '.yaml'):
                 model = YOLO(str(file))
+                model.fuse()  # to report correct params and GFLOPs in model.info()
                 model_info = model.info()
-                if self.trt and device == 0 and not engine_file.is_file():
-                    engine_file = model.export(format='engine', half=True, imgsz=self.imgsz, device=device)
-                onnx_file = model.export(format='onnx', half=True, imgsz=self.imgsz, simplify=True, device=device)
+                if self.trt and self.device.type != 'cpu' and not engine_file.is_file():
+                    engine_file = model.export(format='engine',
+                                               half=True,
+                                               imgsz=self.imgsz,
+                                               device=self.device,
+                                               verbose=False)
+                onnx_file = model.export(format='onnx',
+                                         half=True,
+                                         imgsz=self.imgsz,
+                                         simplify=True,
+                                         device=self.device,
+                                         verbose=False)
             elif file.suffix == '.onnx':
                 model_info = self.get_onnx_model_info(file)
                 onnx_file = file
@@ -197,8 +216,10 @@ class ProfileModels:
             t_engine = self.profile_tensorrt_model(str(engine_file))
             t_onnx = self.profile_onnx_model(str(onnx_file))
             table_rows.append(self.generate_table_row(file.stem, t_onnx, t_engine, model_info))
+            output.append(self.generate_results_dict(file.stem, t_onnx, t_engine, model_info))
 
         self.print_table(table_rows)
+        return output
 
     def get_files(self):
         files = []
@@ -219,7 +240,7 @@ class ProfileModels:
         # return (num_layers, num_params, num_gradients, num_flops)
         return 0.0, 0.0, 0.0, 0.0
 
-    def iterative_sigma_clipping(self, data, sigma=2, max_iters=5):
+    def iterative_sigma_clipping(self, data, sigma=2, max_iters=3):
         data = np.array(data)
         for _ in range(max_iters):
             mean, std = np.mean(data), np.std(data)
@@ -233,16 +254,25 @@ class ProfileModels:
         if not self.trt or not Path(engine_file).is_file():
             return 0.0, 0.0
 
-        # Warmup runs
+        # Model and input
         model = YOLO(engine_file)
-        input_data = np.random.rand(self.imgsz, self.imgsz, 3).astype(np.float32)
-        for _ in range(self.num_warmup_runs):
-            model(input_data, verbose=False)
+        input_data = np.random.rand(self.imgsz, self.imgsz, 3).astype(np.float32)  # must be FP32
+
+        # Warmup runs
+        elapsed = 0.0
+        for _ in range(3):
+            start_time = time.time()
+            for _ in range(self.num_warmup_runs):
+                model(input_data, imgsz=self.imgsz, verbose=False)
+            elapsed = time.time() - start_time
+
+        # Compute number of runs as higher of min_time or num_timed_runs
+        num_runs = max(round(self.min_time / elapsed * self.num_warmup_runs), self.num_timed_runs * 50)
 
         # Timed runs
         run_times = []
-        for _ in tqdm(range(self.num_timed_runs * 30), desc=engine_file):
-            results = model(input_data, verbose=False)
+        for _ in tqdm(range(num_runs), desc=engine_file):
+            results = model(input_data, imgsz=self.imgsz, verbose=False)
             run_times.append(results[0].speed['inference'])  # Convert to milliseconds
 
         run_times = self.iterative_sigma_clipping(np.array(run_times), sigma=2, max_iters=3)  # sigma clipping
@@ -255,6 +285,7 @@ class ProfileModels:
         # Session with either 'TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider'
         sess_options = ort.SessionOptions()
         sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+        sess_options.intra_op_num_threads = 8  # Limit the number of threads
         sess = ort.InferenceSession(onnx_file, sess_options, providers=['CPUExecutionProvider'])
 
         input_tensor = sess.get_inputs()[0]
@@ -279,22 +310,38 @@ class ProfileModels:
         output_name = sess.get_outputs()[0].name
 
         # Warmup runs
-        for _ in range(self.num_warmup_runs):
-            sess.run([output_name], {input_name: input_data})
+        elapsed = 0.0
+        for _ in range(3):
+            start_time = time.time()
+            for _ in range(self.num_warmup_runs):
+                sess.run([output_name], {input_name: input_data})
+            elapsed = time.time() - start_time
+
+        # Compute number of runs as higher of min_time or num_timed_runs
+        num_runs = max(round(self.min_time / elapsed * self.num_warmup_runs), self.num_timed_runs)
 
         # Timed runs
         run_times = []
-        for _ in tqdm(range(self.num_timed_runs), desc=onnx_file):
+        for _ in tqdm(range(num_runs), desc=onnx_file):
             start_time = time.time()
             sess.run([output_name], {input_name: input_data})
             run_times.append((time.time() - start_time) * 1000)  # Convert to milliseconds
 
-        run_times = self.iterative_sigma_clipping(np.array(run_times), sigma=2, max_iters=3)  # sigma clipping
+        run_times = self.iterative_sigma_clipping(np.array(run_times), sigma=2, max_iters=5)  # sigma clipping
         return np.mean(run_times), np.std(run_times)
 
     def generate_table_row(self, model_name, t_onnx, t_engine, model_info):
         layers, params, gradients, flops = model_info
         return f'| {model_name:18s} | {self.imgsz} | - | {t_onnx[0]:.2f} ± {t_onnx[1]:.2f} ms | {t_engine[0]:.2f} ± {t_engine[1]:.2f} ms | {params / 1e6:.1f} | {flops:.1f} |'
+
+    def generate_results_dict(self, model_name, t_onnx, t_engine, model_info):
+        layers, params, gradients, flops = model_info
+        return {
+            'model/name': model_name,
+            'model/parameters': params,
+            'model/GFLOPs': round(flops, 3),
+            'model/speed_ONNX(ms)': round(t_onnx[0], 3),
+            'model/speed_TensorRT(ms)': round(t_engine[0], 3)}
 
     def print_table(self, table_rows):
         gpu = torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'GPU'

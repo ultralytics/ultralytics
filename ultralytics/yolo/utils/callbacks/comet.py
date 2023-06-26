@@ -1,9 +1,10 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+
 import os
 from pathlib import Path
 
 from ultralytics.yolo.utils import LOGGER, RANK, TESTS_RUNNING, ops
-from ultralytics.yolo.utils.torch_utils import get_flops, get_num_params
+from ultralytics.yolo.utils.torch_utils import model_info_for_loggers
 
 try:
     import comet_ml
@@ -45,7 +46,7 @@ def _scale_confidence_score(score):
 
 
 def _should_log_confusion_matrix():
-    return os.getenv('COMET_EVAL_LOG_CONFUSION_MATRIX', 'true').lower() == 'true'
+    return os.getenv('COMET_EVAL_LOG_CONFUSION_MATRIX', 'false').lower() == 'true'
 
 
 def _should_log_image_predictions():
@@ -66,11 +67,12 @@ def _create_experiment(args):
         return
     try:
         comet_mode = _get_comet_mode()
-        experiment = _get_experiment_type(comet_mode, args.project)
+        _project_name = os.getenv('COMET_PROJECT_NAME', args.project)
+        experiment = _get_experiment_type(comet_mode, _project_name)
         experiment.log_parameters(vars(args))
         experiment.log_others({
             'eval_batch_logging_interval': _get_eval_batch_logging_interval(),
-            'log_confusion_matrix': _should_log_confusion_matrix(),
+            'log_confusion_matrix_on_eval': _should_log_confusion_matrix(),
             'log_image_predictions': _should_log_image_predictions(),
             'max_image_predictions': _get_max_image_predictions_to_log(), })
         experiment.log_other('Created from', 'yolov8')
@@ -194,7 +196,7 @@ def _create_prediction_metadata_map(model_predictions):
 
 
 def _log_confusion_matrix(experiment, trainer, curr_step, curr_epoch):
-    """Log the confusion matrix to Weights and Biases experiment."""
+    """Log the confusion matrix to Comet experiment."""
     conf_mat = trainer.validator.confusion_matrix.matrix
     names = list(trainer.data['names'].values()) + ['background']
     experiment.log_confusion_matrix(
@@ -324,11 +326,7 @@ def on_fit_epoch_end(trainer):
     experiment.log_metrics(trainer.metrics, step=curr_step, epoch=curr_epoch)
     experiment.log_metrics(trainer.lr, step=curr_step, epoch=curr_epoch)
     if curr_epoch == 1:
-        model_info = {
-            'model/parameters': get_num_params(trainer.model),
-            'model/GFLOPs': round(get_flops(trainer.model), 3),
-            'model/speed(ms)': round(trainer.validator.speed['inference'], 3), }
-        experiment.log_metrics(model_info, step=curr_step, epoch=curr_epoch)
+        experiment.log_metrics(model_info_for_loggers(trainer), step=curr_step, epoch=curr_epoch)
 
     if not save_assets:
         return

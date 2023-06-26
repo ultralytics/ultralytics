@@ -683,7 +683,7 @@ class Albumentations:
                 if len(new['class_labels']) > 0:  # skip update if no bbox in new im
                     labels['img'] = new['image']
                     labels['cls'] = np.array(new['class_labels'])
-                    bboxes = np.array(new['bboxes'])
+                    bboxes = np.array(new['bboxes'], dtype=np.float32)
             labels['instances'].update(bboxes=bboxes)
         return labels
 
@@ -759,7 +759,7 @@ class Format:
         return masks, instances, cls
 
 
-def v8_transforms(dataset, imgsz, hyp):
+def v8_transforms(dataset, imgsz, hyp, stretch=False):
     """Convert images to a size suitable for YOLOv8 training."""
     pre_transform = Compose([
         Mosaic(dataset, imgsz=imgsz, p=hyp.mosaic),
@@ -770,7 +770,7 @@ def v8_transforms(dataset, imgsz, hyp):
             scale=hyp.scale,
             shear=hyp.shear,
             perspective=hyp.perspective,
-            pre_transform=LetterBox(new_shape=(imgsz, imgsz)),
+            pre_transform=None if stretch else LetterBox(new_shape=(imgsz, imgsz)),
         )])
     flip_idx = dataset.data.get('flip_idx', None)  # for keypoints augmentation
     if dataset.use_keypoints:
@@ -778,11 +778,8 @@ def v8_transforms(dataset, imgsz, hyp):
         if flip_idx is None and hyp.fliplr > 0.0:
             hyp.fliplr = 0.0
             LOGGER.warning("WARNING ⚠️ No 'flip_idx' array defined in data.yaml, setting augmentation 'fliplr=0.0'")
-        elif flip_idx:
-            if len(flip_idx) != kpt_shape[0]:
-                raise ValueError(f'data.yaml flip_idx={flip_idx} length must be equal to kpt_shape[0]={kpt_shape[0]}')
-            elif flip_idx[0] != 0:
-                raise ValueError(f'data.yaml flip_idx={flip_idx} must be zero-index (start from 0)')
+        elif flip_idx and (len(flip_idx) != kpt_shape[0]):
+            raise ValueError(f'data.yaml flip_idx={flip_idx} length must be equal to kpt_shape[0]={kpt_shape[0]}')
 
     return Compose([
         pre_transform,

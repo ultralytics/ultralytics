@@ -13,7 +13,8 @@ try:
 except (ImportError, AssertionError, AttributeError):
     from ultralytics.yolo.utils.checks import check_requirements
 
-    check_requirements('lap>=0.4')  # install
+    check_requirements('cython')  # required before installing lap from source
+    check_requirements('git+https://github.com/gatagat/lap.git')  # more reliable than 'pip install lap'
     import lap
 
 

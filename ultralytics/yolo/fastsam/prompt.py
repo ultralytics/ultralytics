@@ -1,11 +1,13 @@
-import numpy as np
-from PIL import Image
-import matplotlib.pyplot as plt
-import cv2
-import torch
-import os
-import clip
 import ast
+import os
+
+import clip
+import cv2
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
+from PIL import Image
+
 
 class FastSAMPrompt:
     def __init__(self, img_path, results, device='cuda') -> None:
@@ -23,13 +25,13 @@ class FastSAMPrompt:
         x1, y1, x2, y2 = bbox
         segmented_image_array[y1:y2, x1:x2] = image_array[y1:y2, x1:x2]
         segmented_image = Image.fromarray(segmented_image_array)
-        black_image = Image.new("RGB", image.size, (255, 255, 255))
+        black_image = Image.new('RGB', image.size, (255, 255, 255))
         # transparency_mask = np.zeros_like((), dtype=np.uint8)
         transparency_mask = np.zeros(
             (image_array.shape[0], image_array.shape[1]), dtype=np.uint8
         )
         transparency_mask[y1:y2, x1:x2] = 255
-        transparency_mask_image = Image.fromarray(transparency_mask, mode="L")
+        transparency_mask_image = Image.fromarray(transparency_mask, mode='L')
         black_image.paste(segmented_image, mask=transparency_mask_image)
         return black_image
 
@@ -43,17 +45,17 @@ class FastSAMPrompt:
 
             if torch.sum(mask) < filter:
                 continue
-            annotation["id"] = i
-            annotation["segmentation"] = mask.cpu().numpy()
-            annotation["bbox"] = result.boxes.data[i]
-            annotation["score"] = result.boxes.conf[i]
-            annotation["area"] = annotation["segmentation"].sum()
+            annotation['id'] = i
+            annotation['segmentation'] = mask.cpu().numpy()
+            annotation['bbox'] = result.boxes.data[i]
+            annotation['score'] = result.boxes.conf[i]
+            annotation['area'] = annotation['segmentation'].sum()
             annotations.append(annotation)
         return annotations
 
 
     def filter_masks(annotations):  # filte the overlap mask
-        annotations.sort(key=lambda x: x["area"], reverse=True)
+        annotations.sort(key=lambda x: x['area'], reverse=True)
         to_remove = set()
         for i in range(0, len(annotations)):
             a = annotations[i]
@@ -61,9 +63,9 @@ class FastSAMPrompt:
                 b = annotations[j]
                 if i != j and j not in to_remove:
                     # check if
-                    if b["area"] < a["area"]:
-                        if (a["segmentation"] & b["segmentation"]).sum() / b[
-                            "segmentation"
+                    if b['area'] < a['area']:
+                        if (a['segmentation'] & b['segmentation']).sum() / b[
+                            'segmentation'
                         ].sum() > 0.8:
                             to_remove.add(j)
 
@@ -94,7 +96,7 @@ class FastSAMPrompt:
         self, annotations, output, bbox=None, points=None, point_label=None, mask_random_color=True, better_quality=True, retina=False, withContours=True
     ):
         if isinstance(annotations[0], dict):
-            annotations = [annotation["segmentation"] for annotation in annotations]
+            annotations = [annotation['segmentation'] for annotation in annotations]
         result_name = os.path.basename(self.img_path)
         image = self.ori_img
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -113,7 +115,7 @@ class FastSAMPrompt:
                 annotations[i] = cv2.morphologyEx(
                     mask.astype(np.uint8), cv2.MORPH_OPEN, np.ones((8, 8), np.uint8)
                 )
-        if self.device == "cpu":
+        if self.device == 'cpu':
             annotations = np.array(annotations)
             self.fast_show_mask(
                 annotations,
@@ -147,7 +149,7 @@ class FastSAMPrompt:
             temp = np.zeros((original_h, original_w, 1))
             for i, mask in enumerate(annotations):
                 if type(mask) == dict:
-                    mask = mask["segmentation"]
+                    mask = mask['segmentation']
                 annotation = mask.astype(np.uint8)
                 if retina == False:
                     annotation = cv2.resize(
@@ -168,10 +170,10 @@ class FastSAMPrompt:
         save_path = output
         if not os.path.exists(save_path):
             os.makedirs(save_path)
-        plt.axis("off")
+        plt.axis('off')
         fig = plt.gcf()
         plt.draw()
-        
+
         try:
             buf = fig.canvas.tostring_rgb()
         except AttributeError:
@@ -217,7 +219,7 @@ class FastSAMPrompt:
 
         show = np.zeros((height, weight, 4))
         h_indices, w_indices = np.meshgrid(
-            np.arange(height), np.arange(weight), indexing="ij"
+            np.arange(height), np.arange(weight), indexing='ij'
         )
         indices = (index[h_indices, w_indices], h_indices, w_indices, slice(None))
         # 使用向量化索引更新show的值
@@ -226,7 +228,7 @@ class FastSAMPrompt:
             x1, y1, x2, y2 = bbox
             ax.add_patch(
                 plt.Rectangle(
-                    (x1, y1), x2 - x1, y2 - y1, fill=False, edgecolor="b", linewidth=1
+                    (x1, y1), x2 - x1, y2 - y1, fill=False, edgecolor='b', linewidth=1
                 )
             )
         # draw point
@@ -235,13 +237,13 @@ class FastSAMPrompt:
                 [point[0] for i, point in enumerate(points) if pointlabel[i] == 1],
                 [point[1] for i, point in enumerate(points) if pointlabel[i] == 1],
                 s=20,
-                c="y",
+                c='y',
             )
             plt.scatter(
                 [point[0] for i, point in enumerate(points) if pointlabel[i] == 0],
                 [point[1] for i, point in enumerate(points) if pointlabel[i] == 0],
                 s=20,
-                c="m",
+                c='m',
             )
 
         if retinamask == False:
@@ -283,7 +285,7 @@ class FastSAMPrompt:
         # 按index取数，index指每个位置选哪个batch的数，把mask_image转成一个batch的形式
         show = torch.zeros((height, weight, 4)).to(annotation.device)
         h_indices, w_indices = torch.meshgrid(
-            torch.arange(height), torch.arange(weight), indexing="ij"
+            torch.arange(height), torch.arange(weight), indexing='ij'
         )
         indices = (index[h_indices, w_indices], h_indices, w_indices, slice(None))
         # 使用向量化索引更新show的值
@@ -293,7 +295,7 @@ class FastSAMPrompt:
             x1, y1, x2, y2 = bbox
             ax.add_patch(
                 plt.Rectangle(
-                    (x1, y1), x2 - x1, y2 - y1, fill=False, edgecolor="b", linewidth=1
+                    (x1, y1), x2 - x1, y2 - y1, fill=False, edgecolor='b', linewidth=1
                 )
             )
         # draw point
@@ -302,13 +304,13 @@ class FastSAMPrompt:
                 [point[0] for i, point in enumerate(points) if pointlabel[i] == 1],
                 [point[1] for i, point in enumerate(points) if pointlabel[i] == 1],
                 s=20,
-                c="y",
+                c='y',
             )
             plt.scatter(
                 [point[0] for i, point in enumerate(points) if pointlabel[i] == 0],
                 [point[1] for i, point in enumerate(points) if pointlabel[i] == 0],
                 s=20,
-                c="m",
+                c='m',
             )
         if retinamask == False:
             show_cpu = cv2.resize(
@@ -334,11 +336,11 @@ class FastSAMPrompt:
 
 
     def _crop_image(self, format_results):
-        
+
         image = Image.fromarray(cv2.cvtColor(self.ori_img, cv2.COLOR_BGR2RGB))
         ori_w, ori_h = image.size
         annotations = format_results
-        mask_h, mask_w = annotations[0]["segmentation"].shape
+        mask_h, mask_w = annotations[0]['segmentation'].shape
         if ori_w != mask_w or ori_h != mask_h:
             image = image.resize((mask_w, mask_h))
         cropped_boxes = []
@@ -348,10 +350,10 @@ class FastSAMPrompt:
         # annotations, _ = filter_masks(annotations)
         # filter_id = list(_)
         for _, mask in enumerate(annotations):
-            if np.sum(mask["segmentation"]) <= 100:
+            if np.sum(mask['segmentation']) <= 100:
                 filter_id.append(_)
                 continue
-            bbox = self._get_bbox_from_mask(mask["segmentation"])  # mask 的 bbox
+            bbox = self._get_bbox_from_mask(mask['segmentation'])  # mask 的 bbox
             cropped_boxes.append(self._segment_image(image, bbox))  # 保存裁剪的图片
             # cropped_boxes.append(segment_image(image,mask["segmentation"]))
             cropped_images.append(bbox)  # 保存裁剪的图片的bbox
@@ -393,12 +395,12 @@ class FastSAMPrompt:
 
 
     def point_prompt(self, points, pointlabel):  # numpy 处理
-        
+
         masks = self._format_results(self.results[0], 0)
         target_height = self.ori_img.shape[0]
         target_width = self.ori_img.shape[1]
-        h = masks[0]["segmentation"].shape[0]
-        w = masks[0]["segmentation"].shape[1]
+        h = masks[0]['segmentation'].shape[0]
+        w = masks[0]['segmentation'].shape[1]
         if h != target_height or w != target_width:
             points = [
                 [int(point[0] * w / target_width), int(point[1] * h / target_height)]
@@ -407,7 +409,7 @@ class FastSAMPrompt:
         onemask = np.zeros((h, w))
         for i, annotation in enumerate(masks):
             if type(annotation) == dict:
-                mask = annotation["segmentation"]
+                mask = annotation['segmentation']
             else:
                 mask = annotation
             for i, point in enumerate(points):

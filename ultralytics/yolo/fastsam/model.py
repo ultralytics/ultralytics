@@ -15,12 +15,14 @@ import torch
 
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
+from ultralytics.yolo.engine.model import YOLO
 from ultralytics.yolo.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, ROOT, is_git_dir
 from ultralytics.yolo.utils.checks import check_imgsz
-from ...yolo.utils.torch_utils import model_info, smart_inference_mode
 
-from ultralytics.yolo.engine.model import YOLO
+from ...yolo.utils.torch_utils import model_info, smart_inference_mode
 from .predict import FastSAMPredictor
+
+
 class FastSAM(YOLO):
 
     @smart_inference_mode()
@@ -104,4 +106,3 @@ class FastSAM(YOLO):
         """Raises error if object has no requested attribute."""
         name = self.__class__.__name__
         raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")
-

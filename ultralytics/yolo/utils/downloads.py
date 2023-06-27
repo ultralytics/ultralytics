@@ -37,7 +37,7 @@ def is_url(url, check=True):
     return False
 
 
-def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX')):
+def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX'), exist_ok=False):
     """
     Unzips a *.zip file to the specified path, excluding files containing strings in the exclude list.
 
@@ -49,6 +49,7 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX')):
         file (str): The path to the zipfile to be extracted.
         path (str, optional): The path to extract the zipfile to. Defaults to None.
         exclude (tuple, optional): A tuple of filename strings to be excluded. Defaults to ('.DS_Store', '__MACOSX').
+        exist_ok (bool, optional): Whether to overwrite existing contents if they exist. Defaults to False.
 
     Raises:
         BadZipFile: If the provided file does not exist or is not a valid zipfile.
@@ -61,12 +62,20 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX')):
     if path is None:
         path = Path(file).parent  # default path
 
+    # Unzip the file contents
     with ZipFile(file) as zipObj:
         file_list = [f for f in zipObj.namelist() if all(x not in f for x in exclude)]
         top_level_dirs = {Path(f).parts[0] for f in file_list}
 
         if len(top_level_dirs) > 1 or not file_list[0].endswith('/'):
             path = Path(path) / Path(file).stem  # define new unzip directory
+
+        # Check if destination directory already exists and contains files
+        extract_path = Path(path) / list(top_level_dirs)[0]
+        if extract_path.exists() and any(extract_path.iterdir()) and not exist_ok:
+            # If it exists and is not empty, return the path without unzipping
+            LOGGER.info(f'Skipping {file} unzip (already unzipped)')
+            return path
 
         for f in file_list:
             zipObj.extract(f, path=path)

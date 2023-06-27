@@ -30,7 +30,7 @@ WORLD_SIZE = int(os.getenv('WORLD_SIZE', 1))
 
 # Other Constants
 FILE = Path(__file__).resolve()
-ROOT = FILE.parents[2]  # YOLO
+ROOT = FILE.parents[1]  # YOLO
 DEFAULT_CFG_PATH = ROOT / 'cfg/default.yaml'
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLOv5 multiprocessing threads
 AUTOINSTALL = str(os.getenv('YOLO_AUTOINSTALL', True)).lower() == 'true'  # global auto-install mode

@@ -20,8 +20,8 @@ import torch
 from matplotlib import font_manager
 
 from ultralytics.utils import (AUTOINSTALL, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, TryExcept, clean_url, colorstr,
-                               downloads, emojis, is_colab, is_docker, is_jupyter, is_kaggle, is_online,
-                               is_pip_package, url2file)
+                               downloads, emojis, is_colab, is_docker, is_jupyter, is_kaggle, is_online, is_pip_package,
+                               url2file)
 
 
 def is_ascii(s) -> bool:

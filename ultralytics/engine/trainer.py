@@ -21,17 +21,17 @@ from torch.cuda import amp
 from torch.nn.parallel import DistributedDataParallel as DDP
 from tqdm import tqdm
 
-from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
 from ultralytics.cfg import get_cfg
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
-from ultralytics.utils import (DEFAULT_CFG, LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, __version__, callbacks,
-                               clean_url, colorstr, emojis, yaml_save)
+from ultralytics.nn.tasks import attempt_load_one_weight, attempt_load_weights
+from ultralytics.utils import (DEFAULT_CFG, LOGGER, RANK, SETTINGS, TQDM_BAR_FORMAT, __version__, callbacks, clean_url,
+                               colorstr, emojis, yaml_save)
 from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, print_args
 from ultralytics.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.utils.files import get_latest_run, increment_path
-from ultralytics.utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel, init_seeds, one_cycle,
-                                                select_device, strip_optimizer)
+from ultralytics.utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel, init_seeds, one_cycle, select_device,
+                                           strip_optimizer)
 
 
 class BaseTrainer:

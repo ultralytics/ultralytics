@@ -58,12 +58,12 @@ from pathlib import Path
 
 import torch
 
+from ultralytics.cfg import get_cfg
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import C2f, Detect, Segment
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel
-from ultralytics.cfg import get_cfg
-from ultralytics.utils import (DEFAULT_CFG, LINUX, LOGGER, MACOS, __version__, callbacks, colorstr,
-                               get_default_args, yaml_save)
+from ultralytics.utils import (DEFAULT_CFG, LINUX, LOGGER, MACOS, __version__, callbacks, colorstr, get_default_args,
+                               yaml_save)
 from ultralytics.utils.checks import check_imgsz, check_requirements, check_version
 from ultralytics.utils.files import file_size
 from ultralytics.utils.ops import Profile

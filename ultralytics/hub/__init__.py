@@ -2,9 +2,9 @@
 
 import requests
 
+from ultralytics.data.utils import HUBDatasetStats
 from ultralytics.hub.auth import Auth
 from ultralytics.hub.utils import PREFIX
-from ultralytics.data.utils import HUBDatasetStats
 from ultralytics.utils import LOGGER, SETTINGS, USER_CONFIG_DIR, yaml_save
 
 

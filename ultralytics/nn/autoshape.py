@@ -14,8 +14,8 @@ import torch.nn as nn
 from PIL import Image, ImageOps
 from torch.cuda import amp
 
-from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.data.augment import LetterBox
+from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils import LOGGER, colorstr
 from ultralytics.utils.files import increment_path
 from ultralytics.utils.ops import Profile, make_divisible, non_max_suppression, scale_boxes, xyxy2xywh

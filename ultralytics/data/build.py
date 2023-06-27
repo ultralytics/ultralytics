@@ -9,13 +9,12 @@ import torch
 from PIL import Image
 from torch.utils.data import dataloader, distributed
 
-from .dataloaders.stream_loaders import (LOADERS, LoadImages, LoadPilAndNumpy, LoadScreenshots,
-                                                              LoadStreams, LoadTensor, SourceTypes, autocast_list)
-from .utils import IMG_FORMATS, VID_FORMATS, PIN_MEMORY
-
 from ..utils import RANK, colorstr
 from ..utils.checks import check_file
+from .dataloaders.stream_loaders import (LOADERS, LoadImages, LoadPilAndNumpy, LoadScreenshots, LoadStreams, LoadTensor,
+                                         SourceTypes, autocast_list)
 from .dataset import YOLODataset
+from .utils import IMG_FORMATS, PIN_MEMORY, VID_FORMATS
 
 
 class InfiniteDataLoader(dataloader.DataLoader):

@@ -1,8 +1,8 @@
 from pathlib import Path
 
 from ultralytics import YOLO
-from ultralytics.vit.sam import PromptPredictor, build_sam
 from ultralytics.utils.torch_utils import select_device
+from ultralytics.vit.sam import PromptPredictor, build_sam
 
 
 def auto_annotate(data, det_model='yolov8x.pt', sam_model='sam_b.pt', device='', output_dir=None):

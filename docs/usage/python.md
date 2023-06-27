@@ -240,7 +240,7 @@ their specific use case based on their requirements for speed and accuracy.
     
         Benchmark an official YOLOv8n model across all export formats.
         ```python
-        from ultralytics.yolo.utils.benchmarks import benchmark
+        from ultralytics.utils.benchmarks import benchmark
         
         # Benchmark
         benchmark(model='yolov8n.pt', imgsz=640, half=False, device=0)

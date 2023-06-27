@@ -320,7 +320,7 @@ class HUBDatasetStats():
         autodownload:   Attempt to download dataset if not found locally
 
     Usage
-        from ultralytics.yolo.data.utils import HUBDatasetStats
+        from ultralytics.data.utils import HUBDatasetStats
         stats = HUBDatasetStats('/Users/glennjocher/Downloads/coco8.zip', task='detect')  # detect dataset
         stats = HUBDatasetStats('/Users/glennjocher/Downloads/coco8-seg.zip', task='segment')  # segment dataset
         stats = HUBDatasetStats('/Users/glennjocher/Downloads/coco8-pose.zip', task='pose')  # pose dataset

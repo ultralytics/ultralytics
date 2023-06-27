@@ -510,7 +510,7 @@ def torch_safe_load(weight):
     Returns:
         (dict): The loaded PyTorch model.
     """
-    from ultralytics.yolo.utils.downloads import attempt_download_asset
+    from ultralytics.utils.downloads import attempt_download_asset
 
     check_suffix(file=weight, suffix='.pt')
     file = attempt_download_asset(weight)  # search online if missing locally

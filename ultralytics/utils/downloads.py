@@ -153,7 +153,7 @@ def safe_download(url,
                     if method == 'torch':
                         torch.hub.download_url_to_file(url, f, progress=progress)
                     else:
-                        from ultralytics.yolo.utils import TQDM_BAR_FORMAT
+                        from ultralytics.utils import TQDM_BAR_FORMAT
                         with request.urlopen(url) as response, tqdm(total=int(response.getheader('Content-Length', 0)),
                                                                     desc=desc,
                                                                     disable=not progress,

@@ -206,7 +206,7 @@ def model_info_for_loggers(trainer):
          'model/speed_PyTorch(ms)': 18.755}
     """
     if trainer.args.profile:  # profile ONNX and TensorRT times
-        from ultralytics.yolo.utils.benchmarks import ProfileModels
+        from ultralytics.utils.benchmarks import ProfileModels
         results = ProfileModels([trainer.last], device=trainer.device).profile()[0]
         results.pop('model/name')
     else:  # only return PyTorch times from most recent validation

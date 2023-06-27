@@ -3,8 +3,8 @@ import argparse
 import cv2.dnn
 import numpy as np
 
-from ultralytics.yolo.utils import ROOT, yaml_load
-from ultralytics.yolo.utils.checks import check_yaml
+from ultralytics.utils import ROOT, yaml_load
+from ultralytics.utils.checks import check_yaml
 
 CLASSES = yaml_load(check_yaml('coco128.yaml'))['names']
 

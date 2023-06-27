@@ -695,8 +695,8 @@ def get_settings(file=SETTINGS_YAML, version='0.0.3'):
     """
     import hashlib
 
-    from ultralytics.yolo.utils.checks import check_version
-    from ultralytics.yolo.utils.torch_utils import torch_distributed_zero_first
+    from ultralytics.utils.checks import check_version
+    from ultralytics.utils.torch_utils import torch_distributed_zero_first
 
     git_dir = get_git_dir()
     root = git_dir or Path()

@@ -9,7 +9,7 @@
 #     └── ...
 
 python - <<EOF
-from ultralytics.yolo.utils.downloads import attempt_download_asset
+from ultralytics.utils.downloads import attempt_download_asset
 
 assets = [f'yolov8{size}{suffix}.pt' for size in 'nsmlx' for suffix in ('', '-cls', '-seg')]
 for x in assets:

@@ -71,9 +71,10 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX'), exist_ok=Fals
             path = Path(path) / Path(file).stem  # define new unzip directory
 
         # Check if destination directory already exists and contains files
-        if Path(path).exists() and any(Path(path).iterdir()) and not exist_ok:
+        extract_path = Path(path) / list(top_level_dirs)[0]
+        if extract_path.exists() and any(extract_path.iterdir()) and not exist_ok:
             # If it exists and is not empty, return the path without unzipping
-            LOGGER.info(f'Found {file} already unzipped, skipping unzip.')
+            LOGGER.info(f'Skipping {file} unzip (already unzipped)')
             return path
 
         for f in file_list:

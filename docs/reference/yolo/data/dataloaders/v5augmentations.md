@@ -3,87 +3,87 @@ description: Enhance image data with Albumentations CenterCrop, normalize, augme
 keywords: YOLO, object detection, data loaders, V5 augmentations, CenterCrop, normalize, random_perspective
 ---
 
-# Albumentations
+## Albumentations
 ---
-:::ultralytics.yolo.data.dataloaders.v5augmentations.Albumentations
+### ::: ultralytics.yolo.data.dataloaders.v5augmentations.Albumentations
 <br><br>
 
-# LetterBox
+## LetterBox
 ---
-:::ultralytics.yolo.data.dataloaders.v5augmentations.LetterBox
+### ::: ultralytics.yolo.data.dataloaders.v5augmentations.LetterBox
 <br><br>
 
-# CenterCrop
+## CenterCrop
 ---
-:::ultralytics.yolo.data.dataloaders.v5augmentations.CenterCrop
+### ::: ultralytics.yolo.data.dataloaders.v5augmentations.CenterCrop
 <br><br>
 
-# ToTensor
+## ToTensor
 ---
-:::ultralytics.yolo.data.dataloaders.v5augmentations.ToTensor
+### ::: ultralytics.yolo.data.dataloaders.v5augmentations.ToTensor
 <br><br>
 
-# normalize
+## normalize
 ---
-:::ultralytics.yolo.data.dataloaders.v5augmentations.normalize
+### ::: ultralytics.yolo.data.dataloaders.v5augmentations.normalize
 <br><br>
 
-# denormalize
+## denormalize
 ---
-:::ultralytics.yolo.data.dataloaders.v5augmentations.denormalize
+### ::: ultralytics.yolo.data.dataloaders.v5augmentations.denormalize
 <br><br>
 
-# augment_hsv
+## augment_hsv
 ---
-:::ultralytics.yolo.data.dataloaders.v5augmentations.augment_hsv
+### ::: ultralytics.yolo.data.dataloaders.v5augmentations.augment_hsv
 <br><br>
 
-# hist_equalize
+## hist_equalize
 ---
-:::ultralytics.yolo.data.dataloaders.v5augmentations.hist_equalize
+### ::: ultralytics.yolo.data.dataloaders.v5augmentations.hist_equalize
 <br><br>
 
-# replicate
+## replicate
 ---
-:::ultralytics.yolo.data.dataloaders.v5augmentations.replicate
+### ::: ultralytics.yolo.data.dataloaders.v5augmentations.replicate
 <br><br>
 
-# letterbox
+## letterbox
 ---
-:::ultralytics.yolo.data.dataloaders.v5augmentations.letterbox
+### ::: ultralytics.yolo.data.dataloaders.v5augmentations.letterbox
 <br><br>
 
-# random_perspective
+## random_perspective
 ---
-:::ultralytics.yolo.data.dataloaders.v5augmentations.random_perspective
+### ::: ultralytics.yolo.data.dataloaders.v5augmentations.random_perspective
 <br><br>
 
-# copy_paste
+## copy_paste
 ---
-:::ultralytics.yolo.data.dataloaders.v5augmentations.copy_paste
+### ::: ultralytics.yolo.data.dataloaders.v5augmentations.copy_paste
 <br><br>
 
-# cutout
+## cutout
 ---
-:::ultralytics.yolo.data.dataloaders.v5augmentations.cutout
+### ::: ultralytics.yolo.data.dataloaders.v5augmentations.cutout
 <br><br>
 
-# mixup
+## mixup
 ---
-:::ultralytics.yolo.data.dataloaders.v5augmentations.mixup
+### ::: ultralytics.yolo.data.dataloaders.v5augmentations.mixup
 <br><br>
 
-# box_candidates
+## box_candidates
 ---
-:::ultralytics.yolo.data.dataloaders.v5augmentations.box_candidates
+### ::: ultralytics.yolo.data.dataloaders.v5augmentations.box_candidates
 <br><br>
 
-# classify_albumentations
+## classify_albumentations
 ---
-:::ultralytics.yolo.data.dataloaders.v5augmentations.classify_albumentations
+### ::: ultralytics.yolo.data.dataloaders.v5augmentations.classify_albumentations
 <br><br>
 
-# classify_transforms
+## classify_transforms
 ---
-:::ultralytics.yolo.data.dataloaders.v5augmentations.classify_transforms
+### ::: ultralytics.yolo.data.dataloaders.v5augmentations.classify_transforms
 <br><br>

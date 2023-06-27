@@ -80,8 +80,8 @@ def cfg2dict(cfg):
     """
     Convert a configuration object to a dictionary, whether it is a file path, a string, or a SimpleNamespace object.
 
-    Inputs:
-        cfg (str) or (Path) or (SimpleNamespace): Configuration object to be converted to a dictionary.
+    Args:
+        cfg (str | Path | SimpleNamespace): Configuration object to be converted to a dictionary.
 
     Returns:
         cfg (dict): Configuration object in dictionary format.
@@ -98,8 +98,8 @@ def get_cfg(cfg: Union[str, Path, Dict, SimpleNamespace] = DEFAULT_CFG_DICT, ove
     Load and merge configuration data from a file or dictionary.
 
     Args:
-        cfg (str) or (Path) or (Dict) or (SimpleNamespace): Configuration data.
-        overrides (str) or (Dict), optional: Overrides in the form of a file name or a dictionary. Default is None.
+        cfg (str | Path | Dict | SimpleNamespace): Configuration data.
+        overrides (str | Dict | optional): Overrides in the form of a file name or a dictionary. Default is None.
 
     Returns:
         (SimpleNamespace): Training arguments namespace.
@@ -168,9 +168,9 @@ def check_cfg_mismatch(base: Dict, custom: Dict, e=None):
     This function checks for any mismatched keys between a custom configuration list and a base configuration list.
     If any mismatched keys are found, the function prints out similar keys from the base list and exits the program.
 
-    Inputs:
-        - custom (Dict): a dictionary of custom configuration options
-        - base (Dict): a dictionary of base configuration options
+    Args:
+        custom (Dict): a dictionary of custom configuration options
+        base (Dict): a dictionary of base configuration options
     """
     custom = _handle_deprecation(custom)
     base, custom = (set(x.keys()) for x in (base, custom))
@@ -366,9 +366,16 @@ def entrypoint(debug=''):
     if model is None:
         model = 'yolov8n.pt'
         LOGGER.warning(f"WARNING ⚠️ 'model' is missing. Using default 'model={model}'.")
-    from ultralytics.yolo.engine.model import YOLO
     overrides['model'] = model
-    model = YOLO(model, task=task)
+    if 'rtdetr' in model.lower():  # guess architecture
+        from ultralytics import RTDETR
+        model = RTDETR(model)  # no task argument
+    elif 'sam' in model.lower():
+        from ultralytics import SAM
+        model = SAM(model)
+    else:
+        from ultralytics import YOLO
+        model = YOLO(model, task=task)
     if isinstance(overrides.get('pretrained'), str):
         model.load(overrides['pretrained'])
 

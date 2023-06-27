@@ -3,7 +3,7 @@ description: '"Track Google Marketing Campaigns in GMC with Ultralytics Tracker.
 keywords: Ultralytics, YOLO, object detection, tracker, optimization, models, documentation
 ---
 
-# GMC
+## GMC
 ---
-:::ultralytics.tracker.utils.gmc.GMC
+### ::: ultralytics.tracker.utils.gmc.GMC
 <br><br>

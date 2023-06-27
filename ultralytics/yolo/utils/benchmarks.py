@@ -51,13 +51,13 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
     Benchmark a YOLO model across different formats for speed and accuracy.
 
     Args:
-        model (Union[str, Path], optional): Path to the model file or directory. Default is
+        model (str | Path | optional): Path to the model file or directory. Default is
             Path(SETTINGS['weights_dir']) / 'yolov8n.pt'.
         imgsz (int, optional): Image size for the benchmark. Default is 160.
         half (bool, optional): Use half-precision for the model if True. Default is False.
         int8 (bool, optional): Use int8-precision for the model if True. Default is False.
         device (str, optional): Device to run the benchmark on, either 'cpu' or 'cuda'. Default is 'cpu'.
-        hard_fail (Union[bool, float], optional): If True or a float, assert benchmarks pass with given metric.
+        hard_fail (bool | float | optional): If True or a float, assert benchmarks pass with given metric.
             Default is False.
 
     Returns:

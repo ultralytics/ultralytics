@@ -103,7 +103,7 @@ If you use the YOLOv8 model or any other software from this repository in your w
 ```bibtex
 @software{yolov8_ultralytics,
   author       = {Glenn Jocher and Ayush Chaurasia and Jing Qiu},
-  title        = {YOLO by Ultralytics},
+  title        = {Ultralytics YOLOv8},
   version      = {8.0.0},
   year         = {2023},
   url          = {https://github.com/ultralytics/ultralytics},

@@ -124,7 +124,8 @@ class AutoShape(nn.Module):
 
 
 class Detections:
-    # YOLOv8 detections class for inference results
+    """ YOLOv8 detections class for inference results"""
+
     def __init__(self, ims, pred, files, times=(0, 0, 0), names=None, shape=None):
         """Initialize object attributes for YOLO detection results."""
         super().__init__()

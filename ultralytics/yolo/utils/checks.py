@@ -20,8 +20,8 @@ import torch
 from matplotlib import font_manager
 
 from ultralytics.yolo.utils import (AUTOINSTALL, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, TryExcept, clean_url, colorstr,
-                                    downloads, emojis, is_colab, is_docker, is_kaggle, is_online, is_pip_package,
-                                    url2file)
+                                    downloads, emojis, is_colab, is_docker, is_jupyter, is_kaggle, is_online,
+                                    is_pip_package, url2file)
 
 
 def is_ascii(s) -> bool:
@@ -47,7 +47,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
     stride, update it to the nearest multiple of the stride that is greater than or equal to the given floor value.
 
     Args:
-        imgsz (int) or (cList[int]): Image size.
+        imgsz (int | cList[int]): Image size.
         stride (int): Stride value.
         min_dim (int): Minimum number of dimensions.
         floor (int): Minimum allowed value for image size.
@@ -222,12 +222,13 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
     s = ''  # console string
     n = 0  # number of packages updates
     for r in requirements:
+        rmin = r.split('/')[-1].replace('.git', '')  # replace git+https://org/repo.git -> 'repo'
         try:
-            pkg.require(r)
+            pkg.require(rmin)
         except (pkg.VersionConflict, pkg.DistributionNotFound):  # exception if requirements not met
             try:  # attempt to import (slower but more accurate)
                 import importlib
-                importlib.import_module(next(pkg.parse_requirements(r)).name)
+                importlib.import_module(next(pkg.parse_requirements(rmin)).name)
             except ImportError:
                 s += f'"{r}" '
                 n += 1
@@ -325,8 +326,11 @@ def check_yolo(verbose=True, device=''):
     """Return a human-readable YOLO software and hardware summary."""
     from ultralytics.yolo.utils.torch_utils import select_device
 
-    if is_colab():
-        shutil.rmtree('sample_data', ignore_errors=True)  # remove colab /sample_data directory
+    if is_jupyter():
+        if check_requirements('wandb', install=False):
+            os.system('pip uninstall -y wandb')  # uninstall wandb: unwanted account creation prompt with infinite hang
+        if is_colab():
+            shutil.rmtree('sample_data', ignore_errors=True)  # remove colab /sample_data directory
 
     if verbose:
         # System info

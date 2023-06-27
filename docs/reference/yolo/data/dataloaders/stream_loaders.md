@@ -3,42 +3,42 @@ description: 'Ultralytics YOLO Docs: Learn about stream loaders for image and te
 keywords: Ultralytics YOLO, data loaders, stream load images, screenshots, tensor data, autocast list, youtube URL retriever
 ---
 
-# SourceTypes
+## SourceTypes
 ---
-:::ultralytics.yolo.data.dataloaders.stream_loaders.SourceTypes
+### ::: ultralytics.yolo.data.dataloaders.stream_loaders.SourceTypes
 <br><br>
 
-# LoadStreams
+## LoadStreams
 ---
-:::ultralytics.yolo.data.dataloaders.stream_loaders.LoadStreams
+### ::: ultralytics.yolo.data.dataloaders.stream_loaders.LoadStreams
 <br><br>
 
-# LoadScreenshots
+## LoadScreenshots
 ---
-:::ultralytics.yolo.data.dataloaders.stream_loaders.LoadScreenshots
+### ::: ultralytics.yolo.data.dataloaders.stream_loaders.LoadScreenshots
 <br><br>
 
-# LoadImages
+## LoadImages
 ---
-:::ultralytics.yolo.data.dataloaders.stream_loaders.LoadImages
+### ::: ultralytics.yolo.data.dataloaders.stream_loaders.LoadImages
 <br><br>
 
-# LoadPilAndNumpy
+## LoadPilAndNumpy
 ---
-:::ultralytics.yolo.data.dataloaders.stream_loaders.LoadPilAndNumpy
+### ::: ultralytics.yolo.data.dataloaders.stream_loaders.LoadPilAndNumpy
 <br><br>
 
-# LoadTensor
+## LoadTensor
 ---
-:::ultralytics.yolo.data.dataloaders.stream_loaders.LoadTensor
+### ::: ultralytics.yolo.data.dataloaders.stream_loaders.LoadTensor
 <br><br>
 
-# autocast_list
+## autocast_list
 ---
-:::ultralytics.yolo.data.dataloaders.stream_loaders.autocast_list
+### ::: ultralytics.yolo.data.dataloaders.stream_loaders.autocast_list
 <br><br>
 
-# get_best_youtube_url
+## get_best_youtube_url
 ---
-:::ultralytics.yolo.data.dataloaders.stream_loaders.get_best_youtube_url
+### ::: ultralytics.yolo.data.dataloaders.stream_loaders.get_best_youtube_url
 <br><br>

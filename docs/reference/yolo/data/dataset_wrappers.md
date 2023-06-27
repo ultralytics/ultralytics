@@ -3,7 +3,7 @@ description: Create a custom dataset of mixed and oriented rectangular objects w
 keywords: Ultralytics YOLO, MixAndRectDataset, dataset wrapper, image-level annotations, object-level annotations, rectangular object detection
 ---
 
-# MixAndRectDataset
+## MixAndRectDataset
 ---
-:::ultralytics.yolo.data.dataset_wrappers.MixAndRectDataset
+### ::: ultralytics.yolo.data.dataset_wrappers.MixAndRectDataset
 <br><br>

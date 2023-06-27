@@ -63,11 +63,11 @@ class YOLO:
             Logs the model info.
         fuse() -> None:
             Fuses the model for faster inference.
-        predict(source=None, stream=False, **kwargs) -> List[ultralytics.yolo.engine.results.Results]:
+        predict(source=None, stream=False, **kwargs) -> List[ultralytics.engine.results.Results]:
             Performs prediction using the YOLO model.
 
     Returns:
-        list(ultralytics.yolo.engine.results.Results): The prediction results.
+        list(ultralytics.engine.results.Results): The prediction results.
     """
 
     def __init__(self, model: Union[str, Path] = 'yolov8n.pt', task=None) -> None:
@@ -230,7 +230,7 @@ class YOLO:
                        Check the 'configuration' section in the documentation for all available options.
 
         Returns:
-            (List[ultralytics.yolo.engine.results.Results]): The prediction results.
+            (List[ultralytics.engine.results.Results]): The prediction results.
         """
         if source is None:
             source = ROOT / 'assets' if is_git_dir() else 'https://ultralytics.com/images/bus.jpg'
@@ -265,7 +265,7 @@ class YOLO:
             **kwargs (optional): Additional keyword arguments for the tracking process.
 
         Returns:
-            (List[ultralytics.yolo.engine.results.Results]): The tracking results.
+            (List[ultralytics.engine.results.Results]): The tracking results.
 
         """
         if not hasattr(self.predictor, 'trackers'):
@@ -415,7 +415,7 @@ class YOLO:
             train_args = {}
 
         try:
-            from ultralytics.yolo.utils.tuner import (ASHAScheduler, RunConfig, WandbLoggerCallback, default_space,
+            from ultralytics.utils.tuner import (ASHAScheduler, RunConfig, WandbLoggerCallback, default_space,
                                                       task_metric_map, tune)
         except ImportError:
             raise ModuleNotFoundError("Install Ray Tune: `pip install 'ray[tune]'`")

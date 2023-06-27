@@ -380,7 +380,7 @@ def strip_optimizer(f: Union[str, Path] = 'best.pt', s: str = '') -> None:
 
     Usage:
         from pathlib import Path
-        from ultralytics.yolo.utils.torch_utils import strip_optimizer
+        from ultralytics.utils.torch_utils import strip_optimizer
         for f in Path('/Users/glennjocher/Downloads/weights').rglob('*.pt'):
             strip_optimizer(f)
     """

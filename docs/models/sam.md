@@ -62,7 +62,7 @@ Auto-annotation is a key feature of SAM, allowing users to generate a [segmentat
 To auto-annotate your dataset with the Ultralytics framework, use the `auto_annotate` function as shown below:
 
 ```python
-from ultralytics.yolo.data.annotator import auto_annotate
+from ultralytics.data.annotator import auto_annotate
 
 auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model='sam_b.pt')
 ```

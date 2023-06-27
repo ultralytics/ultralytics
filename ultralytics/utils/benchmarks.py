@@ -3,7 +3,7 @@
 Benchmark a YOLO model formats for speed and accuracy
 
 Usage:
-    from ultralytics.yolo.utils.benchmarks import ProfileModels, benchmark
+    from ultralytics.utils.benchmarks import ProfileModels, benchmark
     ProfileModels(['yolov8n.yaml', 'yolov8s.yaml']).profile()
     run_benchmarks(model='yolov8n.pt', imgsz=160)
 

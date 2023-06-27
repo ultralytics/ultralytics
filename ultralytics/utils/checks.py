@@ -324,7 +324,7 @@ def check_imshow(warn=False):
 
 def check_yolo(verbose=True, device=''):
     """Return a human-readable YOLO software and hardware summary."""
-    from ultralytics.yolo.utils.torch_utils import select_device
+    from ultralytics.utils.torch_utils import select_device
 
     if is_jupyter():
         if check_requirements('wandb', install=False):

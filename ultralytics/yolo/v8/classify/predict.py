@@ -2,9 +2,9 @@
 
 import torch
 
-from ultralytics.yolo.engine.predictor import BasePredictor
-from ultralytics.yolo.engine.results import Results
-from ultralytics.yolo.utils import DEFAULT_CFG, ROOT
+from ultralytics.engine.predictor import BasePredictor
+from ultralytics.engine.results import Results
+from ultralytics.utils import DEFAULT_CFG, ROOT
 
 
 class ClassificationPredictor(BasePredictor):

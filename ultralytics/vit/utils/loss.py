@@ -5,8 +5,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from ultralytics.vit.utils.ops import HungarianMatcher
-from ultralytics.yolo.utils.loss import FocalLoss, VarifocalLoss
-from ultralytics.yolo.utils.metrics import bbox_iou
+from ultralytics.utils.loss import FocalLoss, VarifocalLoss
+from ultralytics.utils.metrics import bbox_iou
 
 
 class DETRLoss(nn.Module):

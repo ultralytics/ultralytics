@@ -5,11 +5,11 @@ import torchvision
 
 from ultralytics.nn.tasks import ClassificationModel, attempt_load_one_weight
 from ultralytics.yolo import v8
-from ultralytics.yolo.data import ClassificationDataset, build_dataloader
-from ultralytics.yolo.engine.trainer import BaseTrainer
-from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, RANK, colorstr
-from ultralytics.yolo.utils.plotting import plot_images, plot_results
-from ultralytics.yolo.utils.torch_utils import is_parallel, strip_optimizer, torch_distributed_zero_first
+from ultralytics.data import ClassificationDataset, build_dataloader
+from ultralytics.engine.trainer import BaseTrainer
+from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, colorstr
+from ultralytics.utils.plotting import plot_images, plot_results
+from ultralytics.utils.torch_utils import is_parallel, strip_optimizer, torch_distributed_zero_first
 
 
 class ClassificationTrainer(BaseTrainer):

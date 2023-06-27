@@ -3,7 +3,7 @@
 import requests
 
 from ultralytics.hub.utils import HUB_API_ROOT, PREFIX, request_with_credentials
-from ultralytics.yolo.utils import LOGGER, SETTINGS, emojis, is_colab, set_settings
+from ultralytics.utils import LOGGER, SETTINGS, emojis, is_colab, set_settings
 
 API_KEY_URL = 'https://hub.ultralytics.com/settings?tab=api+keys'
 

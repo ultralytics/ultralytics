@@ -5,10 +5,10 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, ops
-from ultralytics.yolo.utils.checks import check_requirements
-from ultralytics.yolo.utils.metrics import OKS_SIGMA, PoseMetrics, box_iou, kpt_iou
-from ultralytics.yolo.utils.plotting import output_to_target, plot_images
+from ultralytics.utils import DEFAULT_CFG, LOGGER, ops
+from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.metrics import OKS_SIGMA, PoseMetrics, box_iou, kpt_iou
+from ultralytics.utils.plotting import output_to_target, plot_images
 from ultralytics.yolo.v8.detect import DetectionValidator
 
 

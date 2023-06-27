@@ -1,7 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.yolo.engine.results import Results
-from ultralytics.yolo.utils import DEFAULT_CFG, ROOT, ops
+from ultralytics.engine.results import Results
+from ultralytics.utils import DEFAULT_CFG, ROOT, ops
 from ultralytics.yolo.v8.detect.predict import DetectionPredictor
 
 

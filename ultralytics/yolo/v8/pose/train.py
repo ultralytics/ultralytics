@@ -4,8 +4,8 @@ from copy import copy
 
 from ultralytics.nn.tasks import PoseModel
 from ultralytics.yolo import v8
-from ultralytics.yolo.utils import DEFAULT_CFG
-from ultralytics.yolo.utils.plotting import plot_images, plot_results
+from ultralytics.utils import DEFAULT_CFG
+from ultralytics.utils.plotting import plot_images, plot_results
 
 
 # BaseTrainer python usage

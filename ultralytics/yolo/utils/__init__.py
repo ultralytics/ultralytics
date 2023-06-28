@@ -2,4 +2,4 @@
 
 from ultralytics.utils import *
 
-LOGGER.warning("WARNING ⚠️ 'from ultralytics.yolo.utils' is deprecated and will be removed. Please use 'from ultralytics.utils' instead.")
+LOGGER.warning("WARNING ⚠️ 'ultralytics.yolo.utils' is deprecated and will be removed. Please use 'ultralytics.utils' instead.")

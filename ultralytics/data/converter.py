@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
 import json
 from collections import defaultdict
 from pathlib import Path
@@ -6,8 +8,8 @@ import cv2
 import numpy as np
 from tqdm import tqdm
 
-from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.files import make_dirs
+from ultralytics.yolo.utils.checks import check_requirements
+from ultralytics.yolo.utils.files import make_dirs
 
 
 def coco91_to_coco80_class():
@@ -55,7 +57,7 @@ def convert_coco(labels_dir='../coco/annotations/', use_segments=False, use_keyp
             data = json.load(f)
 
         # Create image dict
-        images = {'%g' % x['id']: x for x in data['images']}
+        images = {f'{x["id"]:d}': x for x in data['images']}
         # Create image-annotations dict
         imgToAnns = defaultdict(list)
         for ann in data['annotations']:
@@ -63,7 +65,7 @@ def convert_coco(labels_dir='../coco/annotations/', use_segments=False, use_keyp
 
         # Write labels file
         for img_id, anns in tqdm(imgToAnns.items(), desc=f'Annotations {json_file}'):
-            img = images['%g' % img_id]
+            img = images[f'{img_id:d}']
             h, w, f = img['height'], img['width'], img['file_name']
 
             bboxes = []

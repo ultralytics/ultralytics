@@ -13,7 +13,7 @@ import requests
 import torch
 from tqdm import tqdm
 
-from ultralytics.utils import LOGGER, checks, clean_url, emojis, is_online, url2file
+from ultralytics.yolo.utils import LOGGER, checks, clean_url, emojis, is_online, url2file
 
 GITHUB_ASSET_NAMES = [f'yolov8{k}{suffix}.pt' for k in 'nsmlx' for suffix in ('', '6', '-cls', '-seg', '-pose')] + \
                      [f'yolov5{k}u.pt' for k in 'nsmlx'] + \
@@ -37,7 +37,7 @@ def is_url(url, check=True):
     return False
 
 
-def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX')):
+def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX'), exist_ok=False):
     """
     Unzips a *.zip file to the specified path, excluding files containing strings in the exclude list.
 
@@ -49,6 +49,7 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX')):
         file (str): The path to the zipfile to be extracted.
         path (str, optional): The path to extract the zipfile to. Defaults to None.
         exclude (tuple, optional): A tuple of filename strings to be excluded. Defaults to ('.DS_Store', '__MACOSX').
+        exist_ok (bool, optional): Whether to overwrite existing contents if they exist. Defaults to False.
 
     Raises:
         BadZipFile: If the provided file does not exist or is not a valid zipfile.
@@ -61,12 +62,20 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX')):
     if path is None:
         path = Path(file).parent  # default path
 
+    # Unzip the file contents
     with ZipFile(file) as zipObj:
         file_list = [f for f in zipObj.namelist() if all(x not in f for x in exclude)]
         top_level_dirs = {Path(f).parts[0] for f in file_list}
 
         if len(top_level_dirs) > 1 or not file_list[0].endswith('/'):
             path = Path(path) / Path(file).stem  # define new unzip directory
+
+        # Check if destination directory already exists and contains files
+        extract_path = Path(path) / list(top_level_dirs)[0]
+        if extract_path.exists() and any(extract_path.iterdir()) and not exist_ok:
+            # If it exists and is not empty, return the path without unzipping
+            LOGGER.info(f'Skipping {file} unzip (already unzipped)')
+            return path
 
         for f in file_list:
             zipObj.extract(f, path=path)
@@ -153,7 +162,7 @@ def safe_download(url,
                     if method == 'torch':
                         torch.hub.download_url_to_file(url, f, progress=progress)
                     else:
-                        from ultralytics.utils import TQDM_BAR_FORMAT
+                        from ultralytics.yolo.utils import TQDM_BAR_FORMAT
                         with request.urlopen(url) as response, tqdm(total=int(response.getheader('Content-Length', 0)),
                                                                     desc=desc,
                                                                     disable=not progress,
@@ -193,7 +202,7 @@ def safe_download(url,
 
 def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
     """Attempt file download from GitHub release assets if not found locally. release = 'latest', 'v6.2', etc."""
-    from ultralytics.utils import SETTINGS  # scoped for circular import
+    from ultralytics.yolo.utils import SETTINGS  # scoped for circular import
 
     def github_assets(repository, version='latest'):
         """Return GitHub repo tag and assets (i.e. ['yolov8n.pt', 'yolov8s.pt', ...])."""

@@ -6,8 +6,6 @@ import numpy as np
 import torch
 from PIL import Image
 
-
-
 try:
     import clip  # for linear_assignment
 
@@ -26,7 +24,7 @@ class FastSAMPrompt:
         self.results = results
         self.img_path = img_path
         self.ori_img = cv2.imread(img_path)
-        
+
     def _segment_image(self, image, bbox):
         image_array = np.array(image)
         segmented_image_array = np.zeros_like(image_array)

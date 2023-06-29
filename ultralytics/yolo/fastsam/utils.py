@@ -1,5 +1,6 @@
 import torch
 
+
 def adjust_bboxes_to_image_border(boxes, image_shape, threshold=20):
     '''Adjust bounding boxes to stick to image border if they are within a certain threshold.
     Args:
@@ -21,7 +22,6 @@ def adjust_bboxes_to_image_border(boxes, image_shape, threshold=20):
     boxes[:, 3] = torch.where(boxes[:, 3] > h - threshold, h, boxes[:, 3])  # y2
 
     return boxes
-
 
 
 def bbox_iou(box1, boxes, iou_thres=0.9, image_shape=(640, 640), raw_output=False):
@@ -61,4 +61,3 @@ def bbox_iou(box1, boxes, iou_thres=0.9, image_shape=(640, 640), raw_output=Fals
     high_iou_indices = torch.nonzero(iou > iou_thres).flatten()
 
     return high_iou_indices
-

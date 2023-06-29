@@ -6,6 +6,8 @@ import numpy as np
 import torch
 from PIL import Image
 
+
+
 try:
     import clip  # for linear_assignment
 
@@ -24,7 +26,7 @@ class FastSAMPrompt:
         self.results = results
         self.img_path = img_path
         self.ori_img = cv2.imread(img_path)
-
+        
     def _segment_image(self, image, bbox):
         image_array = np.array(image)
         segmented_image_array = np.zeros_like(image_array)
@@ -105,6 +107,7 @@ class FastSAMPrompt:
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         original_h = image.shape[0]
         original_w = image.shape[1]
+        # for MacOS only
         # plt.switch_backend('TkAgg')
         plt.figure(figsize=(original_w / 100, original_h / 100))
         # Add subplot with no margin.

@@ -22,7 +22,7 @@ void file_iterator(DCSP_ONNX*& p)
 			{
 				cv::rectangle(img, res.at(i).box, cv::Scalar(125, 123, 0), 3);
 			}
-			
+
 			k++;
 			cv::imshow("TEST_ORIGIN", img);
 			cv::waitKey(0);
@@ -42,4 +42,3 @@ int main()
 	char* ret = p1->CreateSession(params);
 	file_iterator(p1);
 }
-

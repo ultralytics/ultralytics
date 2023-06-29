@@ -7,7 +7,7 @@
 
 DCSP_CORE::DCSP_CORE()
 {
-	
+
 }
 
 
@@ -140,7 +140,7 @@ char* DCSP_CORE::RunSession(cv::Mat &iImg, std::vector<DCSP_RESULT>& oResult)
 #ifdef benchmark
 	clock_t starttime_1 = clock();
 #endif // benchmark
-	
+
 	char* Ret = RET_OK;
 	cv::Mat processedImg;
 	PostProcess(iImg, imgSize, processedImg);
@@ -151,7 +151,7 @@ char* DCSP_CORE::RunSession(cv::Mat &iImg, std::vector<DCSP_RESULT>& oResult)
 		std::vector<int64_t> inputNodeDims = { 1,3,imgSize.at(0),imgSize.at(1) };
 		TensorProcess(starttime_1, iImg, blob, inputNodeDims, oResult);
 	}
-	
+
 	return Ret;
 }
 
@@ -242,7 +242,7 @@ char* DCSP_CORE::TensorProcess(clock_t& starttime_1, cv::Mat& iImg, N& blob, std
 		{
 			std::cout << "[DCSP_ONNX(CPU)]: " << pre_process_time << "ms pre-process, " << process_time << "ms inference, " << post_process_time << "ms post-process." << std::endl;
 		}
-#endif // benchmark		
+#endif // benchmark
 
 		break;
 	}
@@ -274,6 +274,6 @@ char* DCSP_CORE::WarmUpSession()
 			std::cout << "[DCSP_ONNX(CUDA)]: " << "Cuda warm-up cost " << post_process_time << " ms. " << std::endl;
 		}
 	}
-	
+
 	return Ret;
 }

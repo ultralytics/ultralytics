@@ -16,7 +16,7 @@ enum MODEL_TYPE
 {
 	//FLOAT32 MODEL
 	YOLO_ORIGIN_V5 = 0,
-	YOLO_ORIGIN_V8 = 1,//only support v8 detector currently 
+	YOLO_ORIGIN_V8 = 1,//only support v8 detector currently
 	YOLO_POSE_V8 = 2,
 	YOLO_CLS_V8 = 3
 };

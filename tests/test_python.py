@@ -174,7 +174,7 @@ def test_export_paddle(enabled=False):
 
 
 def test_all_model_yamls():
-    for m in list((ROOT / 'models').rglob('yolo*.yaml')):
+    for m in list((ROOT / 'cfg/models').rglob('yolo*.yaml')):
         if m.name == 'yolov8-rtdetr.yaml':  # except the rtdetr model
             RTDETR(m.name)
         else:

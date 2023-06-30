@@ -293,7 +293,7 @@ def check_file(file, suffix='', download=True, hard=True):
         return file
     else:  # search
         files = []
-        for d in 'tracker/cfg', 'cfg':  # search directories
+        for d in 'models/tracker/cfg', 'cfg':  # search directories
             files.extend(glob.glob(str(ROOT / d / '**' / file), recursive=True))  # find file
         if not files and hard:
             raise FileNotFoundError(f"'{file}' does not exist")

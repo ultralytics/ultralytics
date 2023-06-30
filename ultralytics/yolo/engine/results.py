@@ -201,7 +201,8 @@ class Results(SimpleClass):
         np_of_orig_img = None
         if img is None and isinstance(self.orig_img, torch.Tensor):
             # LOGGER.warning('WARNING ⚠️ Results plotting is not supported for torch.Tensor image types.')
-            np_of_orig_img=np.ascontiguousarray(torch.permute(torch.squeeze(self.orig_img,0),(1,2,0)).cpu().detach().numpy())*255
+            np_of_orig_img = np.ascontiguousarray(
+                torch.permute(torch.squeeze(self.orig_img, 0), (1, 2, 0)).cpu().detach().numpy()) * 255
             # return
 
         # Deprecation warn TODO: remove in 8.2
@@ -216,12 +217,13 @@ class Results(SimpleClass):
             assert type(line_width) == int, '`line_width` should be of int type, i.e, line_width=3'
 
         names = self.names
-        annotator = Annotator(deepcopy(self.orig_img if img is None else img) if np_of_orig_img is None else deepcopy(np_of_orig_img),
-                              line_width,
-                              font_size,
-                              font,
-                              pil,
-                              example=names)
+        annotator = Annotator(
+            deepcopy(self.orig_img if img is None else img) if np_of_orig_img is None else deepcopy(np_of_orig_img),
+            line_width,
+            font_size,
+            font,
+            pil,
+            example=names)
         pred_boxes, show_boxes = self.boxes, boxes
         pred_masks, show_masks = self.masks, masks
         pred_probs, show_probs = self.probs, probs

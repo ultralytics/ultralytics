@@ -57,7 +57,7 @@ char* DCSP_CORE::CreateSession(DCSP_INIT_PARAM &iParams)
 	bool result = std::regex_search(iParams.ModelPath, pattern);
 	if (result)
 	{
-		Ret = "[DCSP_ONNX]:model path error.change your model path whihout path without chinese.";
+		Ret = "[DCSP_ONNX]:model path error.change your model path without chinese characters.";
 		std::cout << Ret << std::endl;
 		return Ret;
 	}

@@ -32,10 +32,16 @@ if __name__ == "__main__":
 
 ```c++
 //cpu inference
-DCSP_INIT_PARAM params{ model_path, YOLO_ORIGIN_V8 , 80, {imgsz_w, imgsz_h}, 0.1, 0.5, false};
+DCSP_INIT_PARAM params{ model_path, YOLO_ORIGIN_V8 , class_num, {imgsz_w, imgsz_h}, 0.1, 0.5, false};
 //gpu inference
-DCSP_INIT_PARAM params{ model_path, YOLO_ORIGIN_V8 , 80, {imgsz_w, imgsz_h}, 0.1, 0.5, true};
+DCSP_INIT_PARAM params{ model_path, YOLO_ORIGIN_V8 , class_num, {imgsz_w, imgsz_h}, 0.1, 0.5, true};
 
+//load your image
+cv::Mat img = cv::imread(img_path);
+
+char* ret = p1->CreateSession(params);
+
+char* ret = p->RunSession(img, res);
 ```
 
 This repository should work for YOLOv5 as well which need a permute operator to the output of yolov5 model, but they have not been tested.

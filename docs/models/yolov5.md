@@ -1,6 +1,7 @@
 ---
 comments: true
 description: YOLOv5 by Ultralytics explained. Discover the evolution of this model and its key specifications. Experience faster and more accurate object detection.
+keywords: YOLOv5, Ultralytics YOLOv5, YOLO v5, YOLOv5 models, YOLO, object detection, model, neural network, accuracy, speed, pre-trained weights, inference, validation, training
 ---
 
 # YOLOv5
@@ -74,7 +75,7 @@ If you use YOLOv5 or YOLOv5u in your research, please cite the Ultralytics YOLOv
 
 ```bibtex
 @software{yolov5,
-  title = {YOLOv5 by Ultralytics},
+  title = {Ultralytics YOLOv5},
   author = {Glenn Jocher},
   year = {2020},
   version = {7.0},

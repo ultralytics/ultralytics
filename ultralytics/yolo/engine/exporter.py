@@ -224,7 +224,7 @@ class Exporter:
             'imgsz': self.imgsz,
             'names': model.names}  # model metadata
         if model.task == 'pose':
-            self.metadata['kpt_shape'] = model.kpt_shape
+            self.metadata['kpt_shape'] = model.model[-1].kpt_shape
 
         LOGGER.info(f"\n{colorstr('PyTorch:')} starting from {file} with input shape {tuple(im.shape)} BCHW and "
                     f'output shape(s) {self.output_shape} ({file_size(file):.1f} MB)')

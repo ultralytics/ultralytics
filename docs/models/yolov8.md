@@ -1,6 +1,7 @@
 ---
 comments: true
 description: Learn about YOLOv8's pre-trained weights supporting detection, instance segmentation, pose, and classification tasks. Get performance details.
+keywords: YOLOv8, real-time object detection, object detection, deep learning, machine learning
 ---
 
 # YOLOv8
@@ -102,7 +103,7 @@ If you use the YOLOv8 model or any other software from this repository in your w
 ```bibtex
 @software{yolov8_ultralytics,
   author       = {Glenn Jocher and Ayush Chaurasia and Jing Qiu},
-  title        = {YOLO by Ultralytics},
+  title        = {Ultralytics YOLOv8},
   version      = {8.0.0},
   year         = {2023},
   url          = {https://github.com/ultralytics/ultralytics},

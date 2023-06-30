@@ -17,6 +17,7 @@ from .modules.sam import Sam
 from .modules.transformer import TwoWayTransformer
 from .setup_mobile_sam import setup_model
 
+
 def build_sam_vit_h(checkpoint=None):
     """Build and return a Segment Anything Model (SAM) h-size model."""
     return _build_sam(
@@ -48,6 +49,8 @@ def build_sam_vit_b(checkpoint=None):
         encoder_global_attn_indexes=[2, 5, 8, 11],
         checkpoint=checkpoint,
     )
+
+
 def build_sam_vit_tiny(checkpoint=None):
     """Build and return a Segment Anything Model (SAM) b-size model."""
     return setup_model(checkpoint)
@@ -115,7 +118,7 @@ sam_model_map = {
     'sam_h.pt': build_sam_vit_h,
     'sam_l.pt': build_sam_vit_l,
     'sam_b.pt': build_sam_vit_b,
-    'mobile_sam.pt': build_sam_vit_tiny,}
+    'mobile_sam.pt': build_sam_vit_tiny, }
 
 
 def build_sam(ckpt='sam_b.pt'):

@@ -1,5 +1,8 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
+import os
+
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
@@ -9,8 +12,8 @@ from ultralytics.yolo.utils.torch_utils import select_device
 
 from .modules.mask_generator import SamAutomaticMaskGenerator
 from .modules.prompt_predictor import PromptPredictor
-import matplotlib.pyplot as plt
-import os
+
+
 class Predictor(BasePredictor):
 
     def preprocess(self, im):
@@ -35,27 +38,28 @@ class Predictor(BasePredictor):
         self.model.stride = 32
         self.model.fp16 = False
         self.done_warmup = True
-    def predict_point(self, model,source,input_point,input_label):
+
+    def predict_point(self, model, source, input_point, input_label):
         """Set up YOLO model with specified thresholds and device."""
         device = select_device(self.args.device)
         save_dir = self.save_dir
         predictor = PromptPredictor(model)
         predictor.set_image(source)
-        masks,scores, logits = predictor.predict(
+        masks, scores, logits = predictor.predict(
             point_coords=input_point,
             point_labels=input_label,
             multimask_output=False,
         )
-        plt.figure(figsize=(10,10))
+        plt.figure(figsize=(10, 10))
         plt.imshow(source)
         show_mask(masks, plt.gca())
         show_points(input_point, input_label, plt.gca())
         plt.axis('off')
-        #plt.show() 
-        save_dir=str(save_dir)+'_point/'
+        #plt.show()
+        save_dir = str(save_dir) + '_point/'
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
-        plt.savefig("{}mobile_test.jpg".format(save_dir), bbox_inches='tight', pad_inches = 0.0)
+        plt.savefig('{}mobile_test.jpg'.format(save_dir), bbox_inches='tight', pad_inches=0.0)
 
         self.device = device
         # TODO: Temporary settings for compatibility
@@ -65,7 +69,8 @@ class Predictor(BasePredictor):
         # self.model.fp16 = False
         # self.done_warmup = True
         return 0
-    def predict_box(self, model,source,input_box):
+
+    def predict_box(self, model, source, input_box):
         """Set up YOLO model with specified thresholds and device."""
         device = select_device(self.args.device)
         save_dir = self.save_dir
@@ -83,10 +88,10 @@ class Predictor(BasePredictor):
         show_box(input_box, plt.gca())
         plt.axis('off')
         plt.show()
-        save_dir=str(save_dir)+'_box/'
+        save_dir = str(save_dir) + '_box/'
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
-        plt.savefig("{}mobile_test.jpg".format(save_dir), bbox_inches='tight', pad_inches = 0.0)
+        plt.savefig('{}mobile_test.jpg'.format(save_dir), bbox_inches='tight', pad_inches=0.0)
 
         self.device = device
         # TODO: Temporary settings for compatibility
@@ -96,6 +101,7 @@ class Predictor(BasePredictor):
         # self.model.fp16 = False
         # self.done_warmup = True
         return 0
+
     def postprocess(self, preds, path, orig_imgs):
         """Postprocesses inference output predictions to create detection masks for objects."""
         names = dict(enumerate(list(range(len(preds)))))
@@ -109,6 +115,7 @@ class Predictor(BasePredictor):
             results.append(Results(orig_img=orig_img, path=img_path, names=names, masks=masks))
         return results
 
+
     # def __call__(self, source=None, model=None, stream=False):
     #     frame = cv2.imread(source)
     #     preds = self.model.generate(frame)
@@ -117,18 +124,32 @@ def show_mask(mask, ax, random_color=False):
     if random_color:
         color = np.concatenate([np.random.random(3), np.array([0.6])], axis=0)
     else:
-        color = np.array([30/255, 144/255, 255/255, 0.6])
+        color = np.array([30 / 255, 144 / 255, 255 / 255, 0.6])
     h, w = mask.shape[-2:]
     mask_image = mask.reshape(h, w, 1) * color.reshape(1, 1, -1)
     ax.imshow(mask_image)
-    
+
+
 def show_points(coords, labels, ax, marker_size=375):
-    pos_points = coords[labels==1]
-    neg_points = coords[labels==0]
-    ax.scatter(pos_points[:, 0], pos_points[:, 1], color='green', marker='*', s=marker_size, edgecolor='white', linewidth=1.25)
-    ax.scatter(neg_points[:, 0], neg_points[:, 1], color='red', marker='*', s=marker_size, edgecolor='white', linewidth=1.25)   
-    
+    pos_points = coords[labels == 1]
+    neg_points = coords[labels == 0]
+    ax.scatter(pos_points[:, 0],
+               pos_points[:, 1],
+               color='green',
+               marker='*',
+               s=marker_size,
+               edgecolor='white',
+               linewidth=1.25)
+    ax.scatter(neg_points[:, 0],
+               neg_points[:, 1],
+               color='red',
+               marker='*',
+               s=marker_size,
+               edgecolor='white',
+               linewidth=1.25)
+
+
 def show_box(box, ax):
     x0, y0 = box[0], box[1]
     w, h = box[2] - box[0], box[3] - box[1]
-    ax.add_patch(plt.Rectangle((x0, y0), w, h, edgecolor='green', facecolor=(0,0,0,0), lw=2))  
+    ax.add_patch(plt.Rectangle((x0, y0), w, h, edgecolor='green', facecolor=(0, 0, 0, 0), lw=2))

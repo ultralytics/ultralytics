@@ -1,6 +1,5 @@
 #include "DCSP_CORE.h"
 #include <regex>
-#include <cuda_fp16.h>
 
 #define benchmark
 #define ELOG
@@ -15,13 +14,6 @@ DCSP_CORE::~DCSP_CORE()
 {
 	delete session;
 }
-
-
-namespace Ort
-{
-	template<>
-	struct TypeToTensorType<half> { static constexpr ONNXTensorElementDataType type = ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT16; };
-} //namespace Ort
 
 
 template<typename T>
@@ -65,7 +57,7 @@ char* DCSP_CORE::CreateSession(DCSP_INIT_PARAM &iParams)
 	bool result = std::regex_search(iParams.ModelPath, pattern);
 	if (result)
 	{
-		Ret = "[DCSP_ONNX]:路径中不能含有中文,请重新设定模型路径.";
+		Ret = "[DCSP_ONNX]:model path error.change your model path whihout path with chinese.";
 		std::cout << Ret << std::endl;
 		return Ret;
 	}
@@ -217,7 +209,7 @@ char* DCSP_CORE::TensorProcess(clock_t& starttime_1, cv::Mat& iImg, N& blob, std
 		}
 
 		std::vector<int> nmsResult;
-		cv::dnn::NMSBoxes(boxes, confidences, rectConfidenceThreshold, 0.5, nmsResult);
+		cv::dnn::NMSBoxes(boxes, confidences, rectConfidenceThreshold, iouThreshold, nmsResult);
 		for (int i = 0; i < nmsResult.size(); ++i)
 		{
 			int idx = nmsResult[i];

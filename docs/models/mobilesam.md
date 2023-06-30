@@ -5,7 +5,7 @@ keywords: MobileSAM, Faster Segment Anything, Segment Anything, Segment Anything
 ---
 
 <p float="center">
-  <img src="assets/logo2.png?raw=true" width="99.1%" />
+  <img src="https://github.com/ChaoningZhang/MobileSAM/blob/master/assets/logo2.png?raw=true" width="99.1%" />
 </p>
 
 # Faster Segment Anything (MobileSAM)
@@ -46,12 +46,12 @@ keywords: MobileSAM, Faster Segment Anything, Segment Anything, Segment Anything
 :star: **Original SAM and MobileSAM with a point as the prompt.**  
 
 <p float="left">
-  <img src="assets/mask_point.jpg?raw=true" width="99.1%" />
+  <img src="https://raw.githubusercontent.com/ChaoningZhang/MobileSAM/master/assets/mask_box.jpg?raw=true" width="99.1%" />
 </p>
 
 :star: **Original SAM and MobileSAM with a box as the prompt.** 
 <p float="left">
-  <img src="assets/mask_box.jpg?raw=true" width="99.1%" />
+  <img src="https://raw.githubusercontent.com/ChaoningZhang/MobileSAM/master/assets/mask_box.jpg?raw=true" width="99.1%" />
 </p>
 
 :muscle: With superior performance, MobileSAM is arunnd 5 times smaller and 7 times faster than the current FastSAM. See [MobileSAM project](https://github.com/ChaoningZhang/MobileSAM) for more details. 

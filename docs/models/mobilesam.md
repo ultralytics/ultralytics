@@ -59,6 +59,9 @@ keywords: MobileSAM, Faster Segment Anything, Segment Anything, Segment Anything
 ## Testing MobileSAM in Ultralytics
 Following the original SAM, we provide a simple testing method in Ultralytics that includes modes for Point prompt and Box prompt. 
 
+### Model Download
+[mobile_sam_model](https://github.com/ChaoningZhang/MobileSAM/blob/master/weights/mobile_sam.pt)
+
 ### Point Prompt
 ```python
 from ultralytics import MobileSAM

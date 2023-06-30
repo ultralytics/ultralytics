@@ -83,13 +83,11 @@ Auto-annotation with pre-trained models can dramatically cut down the time and e
 If you find SAM useful in your research or development work, please consider citing our paper:
 
 ```bibtex
-@misc{kirillov2023segment,
-      title={Segment Anything}, 
-      author={Alexander Kirillov and Eric Mintun and Nikhila Ravi and Hanzi Mao and Chloe Rolland and Laura Gustafson and Tete Xiao and Spencer Whitehead and Alexander C. Berg and Wan-Yen Lo and Piotr Dollár and Ross Girshick},
-      year={2023},
-      eprint={2304.02643},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV}
+@article{mobile_sam,
+  title={Faster Segment Anything: Towards Lightweight SAM for Mobile Applications},
+  author={Zhang, Chaoning and Han, Dongshen and Qiao, Yu and Kim, Jung Uk and Bae, Sung Ho and Lee, Seungkyu and Hong, Choong Seon},
+  journal={arXiv preprint arXiv:2306.14289},
+  year={2023}
 }
 ```
 

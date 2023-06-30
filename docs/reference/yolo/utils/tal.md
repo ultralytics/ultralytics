@@ -1,6 +1,6 @@
 ---
 description: Improve your YOLO models with Ultralytics' TaskAlignedAssigner, select_highest_overlaps, and dist2bbox utilities. Streamline your workflow today.
-keywords: Ultrayltics, YOLO, select_candidates_in_gts, make_anchor, bbox2dist, object detection, tracking
+keywords: Ultralytics, YOLO, select_candidates_in_gts, make_anchor, bbox2dist, object detection, tracking
 ---
 
 ## TaskAlignedAssigner

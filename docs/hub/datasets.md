@@ -34,7 +34,7 @@ The dataset YAML is the same standard YOLOv5 and YOLOv8 YAML format.
 !!! example "coco8.yaml"
 
     ```yaml
-    --8<-- "ultralytics/datasets/coco8.yaml"
+    --8<-- "ultralytics/cfg/datasets/coco8.yaml"
     ```
 
 After zipping your dataset, you should validate it before uploading it to Ultralytics HUB. Ultralytics HUB conducts the dataset validation check post-upload, so by ensuring your dataset is correctly formatted and error-free ahead of time, you can forestall any setbacks due to dataset rejection.

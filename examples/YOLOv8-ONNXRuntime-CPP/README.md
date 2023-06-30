@@ -7,7 +7,7 @@ It is recommended to use VisualStudio to build the project.
 ## Specific
 
 1. Frendly for deployment in the industrial sector
-1. More fatser than OpenCV's DNN inference
+1. More faster than OpenCV's DNN inference
 1. Support CUDA accelerate
 1. Frendly for adding FP16 inference(using template function)
 

@@ -1,86 +1,81 @@
 ---
 comments: true
-description: Discover the Segment Anything Model (SAM), a revolutionary promptable image segmentation model, and delve into the details of its advanced architecture and the large-scale SA-1B dataset.
-keywords: Segment Anything, Segment Anything Model, SAM, Meta SAM, image segmentation, promptable segmentation, zero-shot performance, SA-1B dataset, advanced architecture, auto-annotation, Ultralytics, pre-trained models, SAM base, SAM large, instance segmentation, computer vision, AI, artificial intelligence, machine learning, data annotation, segmentation masks, detection model, YOLO detection model, bibtex, Meta AI
+description: MobileSAM aims to make the recent Segment Anything Model (SAM) lightweight for mobile applications. It keeps has exactly the same functionality as the original SAM but is significantly faster, which makes MobileSAM compatible with CPU-only edge devices, like mobile phones.
+keywords: MobileSAM, Faster Segment Anything, Segment Anything, Segment Anything Model, SAM, Meta SAM, image segmentation, promptable segmentation, zero-shot performance, SA-1B dataset, advanced architecture, auto-annotation, Ultralytics, pre-trained models, SAM base, SAM large, instance segmentation, computer vision, AI, artificial intelligence, machine learning, data annotation, segmentation masks, detection model, YOLO detection model, bibtex, Meta AI
 ---
 
-# Segment Anything Model (SAM)
+<p float="center">
+  <img src="assets/logo2.png?raw=true" width="99.1%" />
+</p>
 
-Welcome to the frontier of image segmentation with the Segment Anything Model, or SAM. This revolutionary model has changed the game by introducing promptable image segmentation with real-time performance, setting new standards in the field.
+# Faster Segment Anything (MobileSAM)
+:pushpin: MobileSAM paper is available at [ResearchGate](https://www.researchgate.net/publication/371851844_Faster_Segment_Anything_Towards_Lightweight_SAM_for_Mobile_Applications) and [arXiv](https://arxiv.org/pdf/2306.14289.pdf). The latest version will first appear on [ResearchGate](https://arxiv.org/pdf/2306.14289.pdf), since it takes time for arXiv to update the content.
 
-## Introduction to SAM: The Segment Anything Model
+:pushpin: **A demo of MobileSAM** running on **CPU** is open at [demo link](https://huggingface.co/spaces/dhkim2810/MobileSAM). On a Mac i5 CPU, it takes around 3s. On the hugging face demo, the interface and inferior CPUs make it slower but still works fine. 
 
-The Segment Anything Model, or SAM, is a cutting-edge image segmentation model that allows for promptable segmentation, providing unparalleled versatility in image analysis tasks. SAM forms the heart of the Segment Anything initiative, a groundbreaking project that introduces a novel model, task, and dataset for image segmentation.
+:grapes: Regarding Segment Anything, there is a trend to replace the original SAM with our MobileSAM in numerous prohects, like [Grounding-SAM](https://github.com/IDEA-Research/Grounded-Segment-Anything), [AnyLabeling](https://github.com/vietanhdev/anylabeling), [SegmentAnythingin3D](https://github.com/Jumpat/SegmentAnythingin3D), etc.
 
-SAM's advanced design allows it to adapt to new image distributions and tasks without prior knowledge, a feature known as zero-shot transfer. Trained on the expansive [SA-1B dataset](https://ai.facebook.com/datasets/segment-anything/), which contains more than 1 billion masks spread over 11 million carefully curated images, SAM has displayed impressive zero-shot performance, surpassing previous fully supervised results in many cases.
 
-![Dataset sample image](https://user-images.githubusercontent.com/26833433/238056229-0e8ffbeb-f81a-477e-a490-aff3d82fd8ce.jpg)
-Example images with overlaid masks from our newly introduced dataset, SA-1B. SA-1B contains 11M diverse, high-resolution, licensed, and privacy protecting images and 1.1B high-quality segmentation masks. These masks were annotated fully automatically by SAM, and as verified by human ratings and numerous experiments, are of high quality and diversity. Images are grouped by number of masks per image for visualization (there are ∼100 masks per image on average).
+:star: **How is MobileSAM trained?** MobileSAM is trained on a single GPU with 100k datasets (1% of the original images) for less than a day. The training code will be available soon.
 
-## Key Features of the Segment Anything Model (SAM)
+:star: **How to Adapt from SAM to MobileSAM?** Since MobileSAM keeps exactly the same pipeline as the original SAM, we inherit pre-processing, post-processing, and all other interfaces from the original SAM. Therefore, by assuming everything is exactly the same except for a smaller image encoder, those who use the original SAM for their projects can **adapt to MobileSAM with almost zero effort**.
+ 
+:star: **MobileSAM performs on par with the original SAM (at least visually)** and keeps exactly the same pipeline as the original SAM except for a change on the image encoder. Specifically, we replace the original heavyweight ViT-H encoder (632M) with a much smaller Tiny-ViT (5M). On a single GPU, MobileSAM runs around 12ms per image: 8ms on the image encoder and 4ms on the mask decoder. 
 
-- **Promptable Segmentation Task:** SAM was designed with a promptable segmentation task in mind, allowing it to generate valid segmentation masks from any given prompt, such as spatial or text clues identifying an object.
-- **Advanced Architecture:** The Segment Anything Model employs a powerful image encoder, a prompt encoder, and a lightweight mask decoder. This unique architecture enables flexible prompting, real-time mask computation, and ambiguity awareness in segmentation tasks.
-- **The SA-1B Dataset:** Introduced by the Segment Anything project, the SA-1B dataset features over 1 billion masks on 11 million images. As the largest segmentation dataset to date, it provides SAM with a diverse and large-scale training data source.
-- **Zero-Shot Performance:** SAM displays outstanding zero-shot performance across various segmentation tasks, making it a ready-to-use tool for diverse applications with minimal need for prompt engineering.
+* The comparison of ViT-based image encoder is summarzed as follows: 
 
-For an in-depth look at the Segment Anything Model and the SA-1B dataset, please visit the [Segment Anything website](https://segment-anything.com) and check out the research paper [Segment Anything](https://arxiv.org/abs/2304.02643).
+    Image Encoder                                      | Original SAM | MobileSAM 
+    :-----------------------------------------:|:---------|:-----:
+    Paramters      |  611M   | 5M
+    Speed      |  452ms  | 8ms
 
-## How to Use SAM: Versatility and Power in Image Segmentation
+* Original SAM and MobileSAM have exactly the same prompt-guided mask decoder: 
 
-The Segment Anything Model can be employed for a multitude of downstream tasks that go beyond its training data. This includes edge detection, object proposal generation, instance segmentation, and preliminary text-to-mask prediction. With prompt engineering, SAM can swiftly adapt to new tasks and data distributions in a zero-shot manner, establishing it as a versatile and potent tool for all your image segmentation needs.
+    Mask Decoder                                      | Original SAM | MobileSAM 
+    :-----------------------------------------:|:---------|:-----:
+    Paramters      |  3.876M   | 3.876M
+    Speed      |  4ms  | 4ms
 
+* The comparison of the whole pipeline is summarized as follows:
+
+    Whole Pipeline (Enc+Dec)                                      | Original SAM | MobileSAM 
+    :-----------------------------------------:|:---------|:-----:
+    Paramters      |  615M   | 9.66M
+    Speed      |  456ms  | 12ms
+
+:star: **Original SAM and MobileSAM with a point as the prompt.**  
+
+<p float="left">
+  <img src="assets/mask_point.jpg?raw=true" width="99.1%" />
+</p>
+
+:star: **Original SAM and MobileSAM with a box as the prompt.** 
+<p float="left">
+  <img src="assets/mask_box.jpg?raw=true" width="99.1%" />
+</p>
+
+:muscle: With superior performance, MobileSAM is arunnd 5 times smaller and 7 times faster than the current FastSAM. See [MobileSAM project](https://github.com/ChaoningZhang/MobileSAM) for more details. 
+
+## Testing MobileSAM in Ultralytics
+Following the original SAM, we provide a simple testing method in Ultralytics that includes modes for Point prompt and Box prompt. 
+
+### Point Prompt
 ```python
 from ultralytics import MobileSAM
 
 model = MobileSAM('mobile_sam.pt')
-model.info()  # display model information
-model.predict('path/to/image.jpg')  # predict
+model.predict_point('picture1.jpg',[[400, 400]],[1])
 ```
-
-## Available Models and Supported Tasks
-
-| Model Type | Pre-trained Weights | Tasks Supported       |
-|------------|---------------------|-----------------------|
-| SAM base   | `mobile_sam.pt`          | Instance Segmentation |
-
-## Operating Modes
-
-| Mode       | Supported          |
-|------------|--------------------|
-| Inference  | :heavy_check_mark: |
-| Validation | :x:                |
-| Training   | :x:                |
-
-## Auto-Annotation: A Quick Path to Segmentation Datasets
-
-Auto-annotation is a key feature of SAM, allowing users to generate a [segmentation dataset](https://docs.ultralytics.com/datasets/segment) using a pre-trained detection model. This feature enables rapid and accurate annotation of a large number of images, bypassing the need for time-consuming manual labeling.
-
-### Generate Your Segmentation Dataset Using a Detection Model
-
-To auto-annotate your dataset with the Ultralytics framework, use the `auto_annotate` function as shown below:
-
+### Box Prompt
 ```python
-from ultralytics.yolo.data.annotator import auto_annotate
+from ultralytics import MobileSAM
 
-auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model='sam_b.pt')
+model = MobileSAM('mobile_sam.pt')
+model.predict_box('picture1.jpg',[190, 70, 460, 280])
 ```
 
-| Argument   | Type                | Description                                                                                             | Default      |
-|------------|---------------------|---------------------------------------------------------------------------------------------------------|--------------|
-| data       | str                 | Path to a folder containing images to be annotated.                                                     |              |
-| det_model  | str, optional       | Pre-trained YOLO detection model. Defaults to 'yolov8x.pt'.                                             | 'yolov8x.pt' |
-| sam_model  | str, optional       | Pre-trained SAM segmentation model. Defaults to 'sam_b.pt'.                                             | 'sam_b.pt'   |
-| device     | str, optional       | Device to run the models on. Defaults to an empty string (CPU or GPU, if available).                    |              |
-| output_dir | str, None, optional | Directory to save the annotated results. Defaults to a 'labels' folder in the same directory as 'data'. | None         |
-
-The `auto_annotate` function takes the path to your images, with optional arguments for specifying the pre-trained detection and SAM segmentation models, the device to run the models on, and the output directory for saving the annotated results.
-
-Auto-annotation with pre-trained models can dramatically cut down the time and effort required for creating high-quality segmentation datasets. This feature is especially beneficial for researchers and developers dealing with large image collections, as it allows them to focus on model development and evaluation rather than manual annotation.
-
-## Citations and Acknowledgements
-
-If you find SAM useful in your research or development work, please consider citing our paper:
+### BibTex of our MobileSAM
+If you use MobileSAM in your research, please use the following BibTeX entry. :mega: Thank you!
 
 ```bibtex
 @article{mobile_sam,
@@ -90,7 +85,3 @@ If you find SAM useful in your research or development work, please consider cit
   year={2023}
 }
 ```
-
-We would like to express our gratitude to Meta AI for creating and maintaining this valuable resource for the computer vision community.
-
-*keywords: Segment Anything, Segment Anything Model, SAM, Meta SAM, image segmentation, promptable segmentation, zero-shot performance, SA-1B dataset, advanced architecture, auto-annotation, Ultralytics, pre-trained models, SAM base, SAM large, instance segmentation, computer vision, AI, artificial intelligence, machine learning, data annotation, segmentation masks, detection model, YOLO detection model, bibtex, Meta AI.*

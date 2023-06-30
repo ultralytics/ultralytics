@@ -4,8 +4,8 @@ SAM model interface
 """
 
 from ultralytics.cfg import get_cfg
-
 from ultralytics.utils.torch_utils import model_info
+
 from .build import build_sam
 from .predict import Predictor
 

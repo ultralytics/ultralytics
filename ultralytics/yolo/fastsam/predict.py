@@ -1,7 +1,7 @@
 import torch
 
 from ultralytics.yolo.engine.results import Results
-from ultralytics.yolo.fastsam.utils import *
+from ultralytics.yolo.fastsam.utils import adjust_bboxes_to_image_border, bbox_iou
 from ultralytics.yolo.utils import DEFAULT_CFG, ops
 from ultralytics.yolo.v8.detect.predict import DetectionPredictor
 

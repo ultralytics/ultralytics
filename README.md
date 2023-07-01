@@ -65,6 +65,12 @@ Pip install the ultralytics package including all [requirements](https://github.
 pip install ultralytics
 ```
 
+or for a headless install
+
+```bash
+pip install ultralytics[headless]
+```
+
 For alternative installation methods including Conda, Docker, and Git, please refer to the [Quickstart Guide](https://docs.ultralytics.com/quickstart).
 
 </details>

@@ -3,7 +3,6 @@
 
 # Base ----------------------------------------
 matplotlib>=3.2.2
-opencv-python>=4.6.0
 Pillow>=7.1.2
 PyYAML>=5.3.1
 requests>=2.23.0

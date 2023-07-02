@@ -13,10 +13,15 @@ from ultralytics.yolo.utils.checks import check_requirements
 from ...yolo.utils.torch_utils import model_info
 from .build import build_sam
 from .predict import Predictor
-
-
+import numpy as np
+import cv2
+from ultralytics.nn.tasks import torch_safe_load
+from ultralytics.yolo.utils.checks import check_requirements
+from ultralytics.yolo.v8.detect import DetectionValidator
 #MOBILESAM
-class MobileSAM:
+
+from ultralytics.yolo.utils import LOGGER, NUM_THREADS, ops
+class MobileSAM(DetectionValidator):
 
     def __init__(self, model='mobile_sam.pt') -> None:
         if model and not model.endswith('.pt') and not model.endswith('.pth'):
@@ -26,6 +31,17 @@ class MobileSAM:
         self.model = build_sam(model)  #.eval()
         self.task = 'segment'  # required
         self.predictor = None  # reuse predictor
+        
+    def init_metrics(self, model):
+        """Initialize metrics and select mask processing function based on save_json flag."""
+        super().init_metrics(model)
+        self.plot_masks = []
+        if self.args.save_json:
+            check_requirements('timm')
+            self.process = ops.process_mask_upsample  # more accurate
+        else:
+            self.process = ops.process_mask  # faster
+
 
     def predict(self, source, stream=False, **kwargs):
         overrides = dict(conf=0.25, task='segment', mode='predict')

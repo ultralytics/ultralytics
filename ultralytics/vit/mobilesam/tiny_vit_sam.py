@@ -302,7 +302,7 @@ class TinyViTBlock(nn.Module):
 
     Args:
         dim (int): Number of input channels.
-        input_resolution (tuple[int, int]): Input resulotion.
+        input_resolution (tuple[int, int]): Input resolution.
         num_heads (int): Number of attention heads.
         window_size (int): Window size.
         mlp_ratio (float): Ratio of mlp hidden dim to embedding dim.

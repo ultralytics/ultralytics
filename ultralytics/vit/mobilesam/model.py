@@ -4,15 +4,20 @@ SAM model interface
 """
 import cv2
 import numpy as np
+
 from ultralytics.nn.tasks import torch_safe_load
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.utils import LOGGER, NUM_THREADS, ops
 from ultralytics.yolo.utils.checks import check_requirements
+
 check_requirements('timm')
 from ultralytics.yolo.v8.detect import DetectionValidator
+
 from ...yolo.utils.torch_utils import model_info
 from .build import build_sam
 from .predict import Predictor
+
+
 class MobileSAM(DetectionValidator):
 
     def __init__(self, model='mobile_sam.pt') -> None:
@@ -32,13 +37,14 @@ class MobileSAM(DetectionValidator):
             self.process = ops.process_mask_upsample  # more accurate
         else:
             self.process = ops.process_mask  # faster
+
     def predict(self, source, stream=False, **kwargs):
         overrides = dict(conf=0.25, task='segment', mode='predict')
         overrides.update(kwargs)  # prefer kwargs
         if not self.predictor:
             self.predictor = Predictor(overrides=overrides)
             self.predictor.setup_model(model=self.model)
-        else: 
+        else:
             self.predictor.args = get_cfg(self.predictor.args, overrides)
         return self.predictor(source, stream=stream)
 

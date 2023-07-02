@@ -27,7 +27,6 @@ class Predictor(BasePredictor):
     def setup_model(self, model):
         """Set up YOLO model with specified thresholds and device."""
         device = select_device(self.args.device)
-        #model.eval()
         self.model = SamAutomaticMaskGenerator(model.to(device).eval(),
                                                pred_iou_thresh=self.args.conf,
                                                box_nms_thresh=self.args.iou)
@@ -55,7 +54,6 @@ class Predictor(BasePredictor):
         show_mask(masks, plt.gca())
         show_points(input_point, input_label, plt.gca())
         plt.axis('off')
-        #plt.show()
         save_dir = str(save_dir) + '_point/'
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
@@ -114,12 +112,6 @@ class Predictor(BasePredictor):
             img_path = path[i] if isinstance(path, list) else path
             results.append(Results(orig_img=orig_img, path=img_path, names=names, masks=masks))
         return results
-
-
-    # def __call__(self, source=None, model=None, stream=False):
-    #     frame = cv2.imread(source)
-    #     preds = self.model.generate(frame)
-    #     return self.postprocess(preds, source, frame)
 def show_mask(mask, ax, random_color=False):
     if random_color:
         color = np.concatenate([np.random.random(3), np.array([0.6])], axis=0)

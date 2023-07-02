@@ -23,9 +23,9 @@ class MobileSAM(DetectionValidator):
         if model and not model.endswith('.pt') and not model.endswith('.pth'):
             raise NotImplementedError('Mobile Segment anything prediction requires pre-trained checkpoint')
         check_requirements('timm')
-        self.model = build_sam(model)  #.eval()
-        self.task = 'segment'  # required
-        self.predictor = None  # reuse predictor
+        self.model = build_sam(model)
+        self.task = 'segment'
+        self.predictor = None
 
     def init_metrics(self, model):
         super().init_metrics(model)

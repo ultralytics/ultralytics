@@ -4,15 +4,19 @@ SAM model interface
 """
 import cv2
 import numpy as np
+
 from ultralytics.nn.tasks import torch_safe_load
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.utils import LOGGER, NUM_THREADS, ops
 from ultralytics.yolo.utils.checks import check_requirements
+
 check_requirements('timm')
 from ultralytics.yolo.v8.detect import DetectionValidator
+
 from ...yolo.utils.torch_utils import model_info
 from .build import build_sam
 from .predict import Predictor
+
 
 class MobileSAM(DetectionValidator):
 

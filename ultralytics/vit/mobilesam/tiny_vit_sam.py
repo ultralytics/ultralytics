@@ -587,7 +587,6 @@ class TinyViT(nn.Module):
         depth = sum(self.depths)
         lr_scales = [decay_rate ** (depth - i - 1) for i in range(depth)]
 
-        #print("LR SCALES:", lr_scales)
 
         def _set_lr_scale(m, scale):
             for p in m.parameters():
@@ -645,8 +644,6 @@ class TinyViT(nn.Module):
 
     def forward(self, x):
         x = self.forward_features(x)
-        #x = self.norm_head(x)
-        #x = self.head(x)
         return x
 
 

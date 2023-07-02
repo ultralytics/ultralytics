@@ -10,6 +10,7 @@ from ultralytics.nn.tasks import torch_safe_load
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.utils import LOGGER, NUM_THREADS, ops
 from ultralytics.yolo.utils.checks import check_requirements
+
 check_requirements('timm')
 from ultralytics.yolo.v8.detect import DetectionValidator
 

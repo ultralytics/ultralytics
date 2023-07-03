@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
-from ultralytics.yolo.cfg import TASK2METRIC, TASK2DATA
-from ultralytics.yolo.utils import LOGGER, NUM_THREADS, DEFAULT_CFG_DICT
+from ultralytics.yolo.cfg import TASK2DATA, TASK2METRIC
+from ultralytics.yolo.utils import DEFAULT_CFG_DICT, LOGGER, NUM_THREADS
 
 
 def run_ray_tune(model,

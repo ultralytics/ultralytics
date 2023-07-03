@@ -35,7 +35,10 @@ Here is an example of the YOLO dataset format for a single image with two object
 1 0.5046 0.0 0.5015 0.004 0.4984 0.00416 0.4937 0.010 0.492 0.0104
 ```
 
-Note: The length of each row does not have to be equal.
+!!! tip "Tip"
+
+      - The length of each row does not have to be equal.
+      - Each segmentation label must have a **minimum of 3 xy points**: `<class-index> <x1> <y1> <x2> <y2> <x3> <y3>`
 
 ### Dataset YAML format
 

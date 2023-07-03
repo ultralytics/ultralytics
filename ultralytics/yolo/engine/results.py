@@ -199,8 +199,7 @@ class Results(SimpleClass):
             (numpy.ndarray): A numpy array of the annotated image.
         """
         if img is None and isinstance(self.orig_img, torch.Tensor):
-            LOGGER.warning('WARNING ⚠️ Results plotting is not supported for torch.Tensor image types.')
-            return
+            img = np.ascontiguousarray(self.orig_img[0].permute(1, 2, 0).cpu().detach().numpy()) * 255
 
         # Deprecation warn TODO: remove in 8.2
         if 'show_conf' in kwargs:

@@ -31,7 +31,7 @@ def run_ray_tune(model,
 
     try:
         from ray import tune
-        from ray.air import RunConfig, session
+        from ray.air import RunConfig
         from ray.air.integrations.wandb import WandbLoggerCallback
         from ray.tune.schedulers import ASHAScheduler
     except ImportError:
@@ -39,8 +39,9 @@ def run_ray_tune(model,
 
     try:
         import wandb
-        from wandb import __version__
-    except ImportError:
+
+        assert hasattr(wandb, '__version__')
+    except (ImportError, AssertionError):
         wandb = False
 
     default_space = {

@@ -10,6 +10,7 @@
 #include "direct.h"
 #include "opencv.hpp"
 #include <Windows.h>
+#include "onnxruntime_cxx_api.h"
 
 
 enum MODEL_TYPE

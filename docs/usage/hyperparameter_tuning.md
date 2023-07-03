@@ -32,8 +32,11 @@ To install the required packages, run:
 !!! tip "Installation"
 
     ```bash
-    pip install -U ultralytics "ray[tune]"  # install and/or update
-    pip install wandb  # optional
+    # Install and update Ultralytics and Ray Tune pacakges
+    pip install -U ultralytics 'ray[tune]'
+
+    # Optionally install W&B for logging
+    pip install wandb
     ```
 
 ## Usage

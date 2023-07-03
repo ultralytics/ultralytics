@@ -44,7 +44,7 @@ Version dependency of c++ is not necessary,the version requirement here is due t
 //cpu inference
 DCSP_INIT_PARAM params{ model_path, YOLO_ORIGIN_V8, {imgsz_w, imgsz_h}, class_num, 0.1, 0.5, false};
 //gpu inference
-DCSP_INIT_PARAM params{ model_path, YOLO_ORIGIN_V8 , class_num, {imgsz_w, imgsz_h}, 0.1, 0.5, true};
+DCSP_INIT_PARAM params{ model_path, YOLO_ORIGIN_V8, {imgsz_w, imgsz_h} , class_num, 0.1, 0.5, true};
 
 //load your image
 cv::Mat img = cv::imread(img_path);

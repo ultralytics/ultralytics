@@ -14,7 +14,7 @@ tqdm>=4.64.0
 
 # Logging -------------------------------------
 # tensorboard>=2.13.0
-# dvclive>=2.11.0
+# dvclive>=2.12.0
 # clearml
 # comet
 

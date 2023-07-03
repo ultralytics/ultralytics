@@ -5,7 +5,7 @@
 
 
 
-void file_iterator(DCSP_ONNX*& p)
+void file_iterator(DCSP_CORE*& p)
 {
 	std::filesystem::path img_path = R"(E:\project\Project_C++\DCPS_ONNX\TEST_ORIGIN)";
 	int k = 0;
@@ -38,7 +38,7 @@ int main()
 {
 	DCSP_CORE* p1 = new DCSP_CORE;
 	std::string model_path = "yolov8n.onnx";
-	DCSP_INIT_PARAM params{ model_path, YOLO_ORIGIN_V8 , 80, {640, 640}, 0.1, 0.5, false};
+	DCSP_INIT_PARAM params{ model_path, YOLO_ORIGIN_V8, {640, 640}, 80, 0.1, 0.5, false };
 	char* ret = p1->CreateSession(params);
 	file_iterator(p1);
 }

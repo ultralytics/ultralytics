@@ -407,7 +407,7 @@ class YOLO:
         """
         self._check_is_pytorch_model()
         from ultralytics.yolo.utils.tuner import run_ray_tune
-        return run_ray_tune(*args, **kwargs)
+        return run_ray_tune(self, *args, **kwargs)
 
     @property
     def names(self):

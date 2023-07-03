@@ -7,9 +7,9 @@ It is recommended to use VisualStudio to build the project.
 ## Specific
 
 1. Frendly for deployment in the industrial sector
-2. More faster than OpenCV's DNN inference both cpu and gpu
-3. Support CUDA accelerate
-4. Frendly for adding FP16 inference(using template function)
+1. More faster than OpenCV's DNN inference both cpu and gpu
+1. Support CUDA accelerate
+1. Frendly for adding FP16 inference(using template function)
 
 ## Exporting YOLOv8 Models
 
@@ -28,16 +28,15 @@ if __name__ == "__main__":
     main()
 ```
 
-
 ## Dependency
-| Dependency | version |
-| --- | --- |
+
+| Dependency              | version  |
+| ----------------------- | -------- |
 | Onnxruntime-win-x64-gpu | >=1.14.1 |
-| Opencv | >=4.0.0 |
-| C++ | >=17 |
+| Opencv                  | >=4.0.0  |
+| C++                     | >=17     |
 
 Version dependency of c++ is not necessary,the version requirement here is due to the use of c++17's advanced feature filesystem.
-
 
 ## Usage
 
@@ -55,7 +54,4 @@ char* ret = p1->CreateSession(params);
 ret = p->RunSession(img, res);
 ```
 
-
-
 This repository should work for YOLOv5 as well which need a permute operator to the output of yolov5 model, but they have not been realized.
-

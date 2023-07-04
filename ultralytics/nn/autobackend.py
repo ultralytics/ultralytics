@@ -75,7 +75,6 @@ class AutoBackend(nn.Module):
             | TensorFlow Lite       | *.tflite         |
             | TensorFlow Edge TPU   | *_edgetpu.tflite |
             | PaddlePaddle          | *_paddle_model   |
-            | NCNN                  | *_ncnn_model     |
         """
         super().__init__()
         w = str(weights[0] if isinstance(weights, list) else weights)

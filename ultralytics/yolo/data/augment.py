@@ -427,7 +427,7 @@ class RandomPerspective:
         """
         if self.pre_transform and 'mosaic_border' not in labels:
             labels = self.pre_transform(labels)
-            labels.pop('ratio_pad')  # do not need ratio pad
+        labels.pop('ratio_pad', None)  # do not need ratio pad
 
         img = labels['img']
         cls = labels['cls']

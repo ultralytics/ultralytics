@@ -4,7 +4,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ultralytics.yolo.utils.metrics import OKS_SIGMA
 from ultralytics.yolo.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
 from ultralytics.yolo.utils.tal import TaskAlignedAssigner, dist2bbox, make_anchors
 
@@ -301,9 +300,11 @@ class v8PoseLoss(v8DetectionLoss):
         super().__init__(model)
         self.kpt_shape = model.model[-1].kpt_shape
         self.bce_pose = nn.BCEWithLogitsLoss()
-        is_pose = self.kpt_shape == [17, 3]
+        #is_pose = self.kpt_shape == [17, 3]
         nkpt = self.kpt_shape[0]  # number of keypoints
-        sigmas = torch.from_numpy(OKS_SIGMA).to(self.device) if is_pose else torch.ones(nkpt, device=self.device) / nkpt
+        OKS_SIGMA = model.args.OKS_SIGMA
+        is_pose = len(OKS_SIGMA) == nkpt
+        sigmas = torch.tensor(OKS_SIGMA).to(self.device) if is_pose else torch.ones(nkpt, device=self.device) / nkpt
         self.keypoint_loss = KeypointLoss(sigmas=sigmas)
 
     def __call__(self, preds, batch):

@@ -12,8 +12,6 @@ import torch
 
 from ultralytics.yolo.utils import LOGGER, SimpleClass, TryExcept, plt_settings
 
-OKS_SIGMA = np.array([.26, .25, .25, .35, .35, .79, .79, .72, .72, .62, .62, 1.07, 1.07, .87, .87, .89, .89]) / 10.0
-
 
 # Boxes
 def box_area(box):

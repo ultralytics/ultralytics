@@ -7,7 +7,7 @@ import torch
 
 from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, ops
 from ultralytics.yolo.utils.checks import check_requirements
-from ultralytics.yolo.utils.metrics import OKS_SIGMA, PoseMetrics, box_iou, kpt_iou
+from ultralytics.yolo.utils.metrics import PoseMetrics, box_iou, kpt_iou
 from ultralytics.yolo.utils.plotting import output_to_target, plot_images
 from ultralytics.yolo.v8.detect import DetectionValidator
 
@@ -46,9 +46,10 @@ class PoseValidator(DetectionValidator):
         """Initiate pose estimation metrics for YOLO model."""
         super().init_metrics(model)
         self.kpt_shape = self.data['kpt_shape']
-        is_pose = self.kpt_shape == [17, 3]
         nkpt = self.kpt_shape[0]
-        self.sigma = OKS_SIGMA if is_pose else np.ones(nkpt) / nkpt
+        OKS_SIGMA = model.args.OKS_SIGMA
+        is_pose = len(OKS_SIGMA) == nkpt
+        self.sigma = np.array(OKS_SIGMA) if is_pose else np.ones(nkpt) / nkpt
 
     def update_metrics(self, preds, batch):
         """Metrics."""

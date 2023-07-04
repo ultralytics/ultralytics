@@ -106,6 +106,7 @@ fliplr: 0.5  # (float) image flip left-right (probability)
 mosaic: 1.0  # (float) image mosaic (probability)
 mixup: 0.0  # (float) image mixup (probability)
 copy_paste: 0.0  # (float) segment copy-paste (probability)
+OKS_SIGMA: [.026, .025, .025, .035, .035, .079, .079, .072, .072, .062, .062, 0.107, .107, .087, .087, .089, .089]
 
 # Custom config.yaml ---------------------------------------------------------------------------------------------------
 cfg:  # (str, optional) for overriding defaults.yaml

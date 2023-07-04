@@ -91,7 +91,7 @@ extra:
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/ultralytics/
     - icon: fontawesome/brands/discord
-      link: https://discord.gg/7aegy5d8
+      link: https://discord.gg/bNc8wwx7Qy
 
 extra_css:
   - stylesheets/style.css
@@ -168,6 +168,7 @@ nav:
       - YOLOv7: models/yolov7.md
       - YOLOv8: models/yolov8.md
       - SAM (Segment Anything Model): models/sam.md
+      - FastSAM (Fast Segment Anything Model): models/fast-sam.md
       - YOLO-NAS (Neural Architecture Search): models/yolo-nas.md
       - RT-DETR (Realtime Detection Transformer): models/rtdetr.md
   - Datasets:

@@ -340,7 +340,7 @@ class AutoBackend(nn.Module):
         elif self.coreml:  # CoreML
             im = im[0].cpu().numpy()
             im_pil = Image.fromarray((im * 255).astype('uint8'))
-            # im = im.resize((192, 320), Image.ANTIALIAS)
+            # im = im.resize((192, 320), Image.BILINEAR)
             y = self.model.predict({'image': im_pil})  # coordinates are xywh normalized
             if 'confidence' in y:
                 box = xywh2xyxy(y['coordinates'] * [[w, h, w, h]])  # xyxy pixels

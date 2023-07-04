@@ -26,6 +26,12 @@ TASK2MODEL = {
     'segment': 'yolov8n-seg.pt',
     'classify': 'yolov8n-cls.pt',
     'pose': 'yolov8n-pose.pt'}
+TASK2METRIC = {
+    'detect': 'metrics/mAP50-95(B)',
+    'segment': 'metrics/mAP50-95(M)',
+    'classify': 'metrics/accuracy_top1',
+    'pose': 'metrics/mAP50-95(P)'}
+
 
 CLI_HELP_MSG = \
     f"""

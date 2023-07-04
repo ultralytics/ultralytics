@@ -16,6 +16,7 @@ TensorFlow Lite         | `tflite`                  | yolov8n.tflite
 TensorFlow Edge TPU     | `edgetpu`                 | yolov8n_edgetpu.tflite
 TensorFlow.js           | `tfjs`                    | yolov8n_web_model/
 PaddlePaddle            | `paddle`                  | yolov8n_paddle_model/
+NCNN                    | `ncnn`                    | yolov8n_ncnn_model/
 
 Requirements:
     $ pip install ultralytics[export]
@@ -87,7 +88,8 @@ def export_formats():
         ['TensorFlow Lite', 'tflite', '.tflite', True, False],
         ['TensorFlow Edge TPU', 'edgetpu', '_edgetpu.tflite', True, False],
         ['TensorFlow.js', 'tfjs', '_web_model', True, False],
-        ['PaddlePaddle', 'paddle', '_paddle_model', True, True], ]
+        ['PaddlePaddle', 'paddle', '_paddle_model', True, True],
+        ['NCNN', 'ncnn', '_ncnn_model', True, True], ]
     return pandas.DataFrame(x, columns=['Format', 'Argument', 'Suffix', 'CPU', 'GPU'])
 
 
@@ -153,7 +155,7 @@ class Exporter:
         flags = [x == format for x in fmts]
         if sum(flags) != 1:
             raise ValueError(f"Invalid export format='{format}'. Valid formats are {fmts}")
-        jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle = flags  # export booleans
+        jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, ncnn = flags  # export booleans
 
         # Load PyTorch model
         self.device = select_device('cpu' if self.args.device is None else self.args.device)
@@ -235,7 +237,7 @@ class Exporter:
             f[0], _ = self.export_torchscript()
         if engine:  # TensorRT required before ONNX
             f[1], _ = self.export_engine()
-        if onnx or xml:  # OpenVINO requires ONNX
+        if onnx or xml or ncnn:  # OpenVINO requires ONNX
             f[2], _ = self.export_onnx()
         if xml:  # OpenVINO
             f[3], _ = self.export_openvino()
@@ -254,6 +256,8 @@ class Exporter:
                 f[9], _ = self.export_tfjs()
         if paddle:  # PaddlePaddle
             f[10], _ = self.export_paddle()
+        if ncnn:  # NCNN
+            f[11], _ = self.export_ncnn()
 
         # Finish
         f = [str(x) for x in f if x]  # filter out '' and None
@@ -391,6 +395,29 @@ class Exporter:
         f = str(self.file).replace(self.file.suffix, f'_paddle_model{os.sep}')
 
         pytorch2paddle(module=self.model, save_dir=f, jit_type='trace', input_examples=[self.im])  # export
+        yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml
+        return f, None
+
+    @try_export
+    def export_ncnn(self, prefix=colorstr('NCNN:')):
+        """
+        YOLOv8 NCNN export.
+        For installation instructions see https://github.com/Tencent/ncnn/wiki/how-to-build
+        """
+        check_requirements('git+https://github.com/Tencent/ncnn.git')  # requires NCNN
+        import ncnn  # noqa
+
+        LOGGER.info(f'\n{prefix} starting export with NCNN {ncnn.__version__}...')
+        f = str(self.file).replace(self.file.suffix, f'_ncnn_model{os.sep}')
+        f_onnx = self.file.with_suffix('.onnx')
+        f_param = str(Path(f) / self.file.with_suffix('.param').name)
+        f_bin = str(Path(f) / self.file.with_suffix('.bin').name)
+
+        # onnx2ncnn yolov8n.onnx yolov8n_ncnn_model/model.param yolov8n_ncnn_model/model.bin
+        cmd = f'onnx2ncnn {f_onnx} {f_param} {f_bin}'
+        LOGGER.info(f"\n{prefix} running '{cmd.strip()}'")
+        subprocess.run(cmd, shell=True)
+
         yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml
         return f, None
 

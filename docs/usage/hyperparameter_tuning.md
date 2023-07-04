@@ -44,7 +44,7 @@ To install the required packages, run:
     from ultralytics import YOLO
 
     model = YOLO("yolov8n.pt")
-    results = model.tune(data="coco128.yaml")
+    result_grid = model.tune(data="coco128.yaml")
     ```
 
 ## `tune()` Method Parameters
@@ -103,9 +103,67 @@ In this example, we demonstrate how to use a custom search space for hyperparame
     model = YOLO("yolov8n.pt")
 
     # Run Ray Tune on the model
-    result = model.tune(data="coco128.yaml",
-                        space={"lr0": tune.uniform(1e-5, 1e-1)},
-                        epochs=50)
+    result_grid = model.tune(data="coco128.yaml",
+                             space={"lr0": tune.uniform(1e-5, 1e-1)},
+                             epochs=50)
     ```
 
 In the code snippet above, we create a YOLO model with the "yolov8n.pt" pretrained weights. Then, we call the `tune()` method, specifying the dataset configuration with "coco128.yaml". We provide a custom search space for the initial learning rate `lr0` using a dictionary with the key "lr0" and the value `tune.uniform(1e-5, 1e-1)`. Finally, we pass additional training arguments, such as the number of epochs directly to the tune method as `epochs=50`.
+
+# Processing Ray Tune Results
+
+After running a hyperparameter tuning experiment with Ray Tune, you might want to perform various analyses on the obtained results. This guide will take you through common workflows for processing and analyzing these results.
+
+## Loading Tune Experiment Results from a Directory
+
+After running the tuning experiment with `tuner.fit()`, you can load the results from a directory. This is useful, especially if you're performing the analysis after the initial training script has exited.
+
+```python
+experiment_path = f"{storage_path}/{exp_name}"
+print(f"Loading results from {experiment_path}...")
+
+restored_tuner = tune.Tuner.restore(experiment_path, trainable=train_mnist)
+result_grid = restored_tuner.get_results()
+```
+
+## Basic Experiment-Level Analysis
+
+Get an overview of how trials performed. You can quickly check if there were any errors during the trials.
+
+```python
+if result_grid.errors:
+    print("One or more trials failed!")
+else:
+    print("No errors!")
+```
+
+## Basic Trial-Level Analysis
+
+Access individual trial hyperparameter configurations and the last reported metrics.
+
+```python
+for i, result in enumerate(result_grid):
+    print(f"Trial #{i}: Configuration: {result.config}, Last Reported Metrics: {result.metrics}")
+```
+
+## Plotting the Entire History of Reported Metrics for a Trial
+
+You can plot the history of reported metrics for each trial to see how the metrics evolved over time.
+
+```python
+import matplotlib.pyplot as plt
+
+for result in result_grid:
+    plt.plot(result.metrics_dataframe["training_iteration"], result.metrics_dataframe["mean_accuracy"], label=f"Trial {i}")
+
+plt.xlabel('Training Iterations')
+plt.ylabel('Mean Accuracy')
+plt.legend()
+plt.show()
+```
+
+## Summary
+
+In this documentation, we covered common workflows to analyze the results of experiments run with Ray Tune using Ultralytics. The key steps include loading the experiment results from a directory, performing basic experiment-level and trial-level analysis and plotting metrics.
+
+Explore further by looking into Ray Tune’s [Analyze Results](https://docs.ray.io/en/latest/tune/examples/tune_analyze_results.html) docs page to get the most out of your hyperparameter tuning experiments.

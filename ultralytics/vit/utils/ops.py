@@ -71,7 +71,7 @@ class HungarianMatcher(nn.Module):
         bs, nq, nc = pred_scores.shape
 
         if sum(gt_groups) == 0:
-            return [(torch.tensor([], dtype=torch.int32), torch.tensor([], dtype=torch.int32)) for _ in range(bs)]
+            return [(torch.tensor([], dtype=torch.long), torch.tensor([], dtype=torch.long)) for _ in range(bs)]
 
         # We flatten to compute the cost matrices in a batch
         # [batch_size * num_queries, num_classes]

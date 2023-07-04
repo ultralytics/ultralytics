@@ -19,10 +19,10 @@ To export YOLOv8 models, use the following Python script:
 from ultralytics import YOLO
 
 # Load a YOLOv8 model
-model = YOLO('yolov8n.pt')
+model = YOLO("yolov8n.pt")
 
 # Export the model
-model.export(format='onnx', opset=12, simplify=True, dynamic=False, imgsz=640)
+model.export(format="onnx", opset=12, simplify=True, dynamic=False, imgsz=640)
 ```
 
 ## Dependencies

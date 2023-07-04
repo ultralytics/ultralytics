@@ -1,52 +1,49 @@
 # YOLOv8 OnnxRuntime C++
 
-This example demonstrates how to perform inference using YOLOv8 in C++ with OnnxRuntime and OpenCV's API.
+This example demonstrates how to perform inference using YOLOv8 in C++ with ONNX Runtime and OpenCV's API.
 
-It is recommended to use VisualStudio to build the project.
+We recommend using Visual Studio to build the project.
 
-## Specific
+## Benefits
 
-1. Frendly for deployment in the industrial sector
-1. More faster than OpenCV's DNN inference both cpu and gpu
-1. Support CUDA accelerate
-1. Frendly for adding FP16 inference(using template function)
+- Friendly for deployment in the industrial sector.
+- Faster than OpenCV's DNN inference on both CPU and GPU.
+- Supports CUDA acceleration.
+- Easy to add FP16 inference (using template functions).
 
 ## Exporting YOLOv8 Models
 
-To export YOLOv8 models:
+To export YOLOv8 models, use the following Python script:
 
 ```python
 from ultralytics import YOLO
 
+# Load a YOLOv8 model
+model = YOLO('yolov8n.pt')
 
-def main():
-    model = YOLO(R"your_model.pt")
-    model.export(format="onnx", opset=12, simplify=True, dynamic=False, imgsz=640)
-
-
-if __name__ == "__main__":
-    main()
+# Export the model
+model.export(format='onnx', opset=12, simplify=True, dynamic=False, imgsz=640)
 ```
 
-## Dependency
+## Dependencies
 
-| Dependency              | version  |
+| Dependency              | Version  |
 | ----------------------- | -------- |
 | Onnxruntime-win-x64-gpu | >=1.14.1 |
-| Opencv                  | >=4.0.0  |
+| OpenCV                  | >=4.0.0  |
 | C++                     | >=17     |
 
-Version dependency of c++ is not necessary,the version requirement here is due to the use of c++17's advanced feature filesystem.
+Note: The dependency on C++17 is due to the usage of the C++17 filesystem feature.
 
 ## Usage
 
 ```c++
-//cpu inference
+// CPU inference
 DCSP_INIT_PARAM params{ model_path, YOLO_ORIGIN_V8, {imgsz_w, imgsz_h}, class_num, 0.1, 0.5, false};
-//gpu inference
-DCSP_INIT_PARAM params{ model_path, YOLO_ORIGIN_V8, {imgsz_w, imgsz_h} , class_num, 0.1, 0.5, true};
+// GPU inference
+DCSP_INIT_PARAM params{ model_path, YOLO_ORIGIN_V8, {imgsz_w, imgsz_h}, class_num, 0.1, 0.5, true};
 
-//load your image
+// Load your image
 cv::Mat img = cv::imread(img_path);
 
 char* ret = p1->CreateSession(params);
@@ -54,4 +51,4 @@ char* ret = p1->CreateSession(params);
 ret = p->RunSession(img, res);
 ```
 
-This repository should work for YOLOv5 as well which need a permute operator to the output of yolov5 model, but they have not been realized.
+This repository should also work for YOLOv5, which needs a permute operator for the output of the YOLOv5 model, but this has not been implemented yet.

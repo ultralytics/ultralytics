@@ -410,12 +410,10 @@ class Exporter:
         LOGGER.info(f'\n{prefix} starting export with NCNN {ncnn.__version__}...')
         f = str(self.file).replace(self.file.suffix, f'_ncnn_model{os.sep}')
         f_onnx = self.file.with_suffix('.onnx')
-        f_param = str(Path(f) / self.file.with_suffix('.param').name)
-        f_bin = str(Path(f) / self.file.with_suffix('.bin').name)
 
-        # onnx2ncnn yolov8n.onnx yolov8n_ncnn_model/model.param yolov8n_ncnn_model/model.bin
-        cmd = f'onnx2ncnn {f_onnx} {f_param} {f_bin}'
-        LOGGER.info(f"\n{prefix} running '{cmd.strip()}'")
+        # Example cmd: 'onnx2ncnn yolov8n.onnx yolov8n_ncnn_model/model.param yolov8n_ncnn_model/model.bin'
+        cmd = f"onnx2ncnn {f_onnx} {Path(f) / 'model.param'} {Path(f) / 'model.bin'}"
+        LOGGER.info(f"{prefix} running '{cmd.strip()}'")
         subprocess.run(cmd, shell=True)
 
         yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml

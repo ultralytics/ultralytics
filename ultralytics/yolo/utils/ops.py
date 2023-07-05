@@ -52,7 +52,7 @@ class Profile(contextlib.ContextDecorator):
         """
         if self.cuda:
             torch.cuda.synchronize()
-        return time.time()
+        return time.perf_counter()
 
 
 def coco80_to_coco91_class():  # converts 80-index (val2014) to 91-index (paper)
@@ -203,7 +203,7 @@ def non_max_suppression(
     prediction = prediction.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
     prediction[..., :4] = xywh2xyxy(prediction[..., :4])  # xywh to xyxy
 
-    t = time.time()
+    t = time.perf_counter()
     output = [torch.zeros((0, 6 + nm), device=prediction.device)] * bs
     for xi, x in enumerate(prediction):  # image index, image inference
         # Apply constraints
@@ -263,7 +263,7 @@ def non_max_suppression(
         output[xi] = x[i]
         if mps:
             output[xi] = output[xi].to(device)
-        if (time.time() - t) > time_limit:
+        if (time.perf_counter() - t) > time_limit:
             LOGGER.warning(f'WARNING ⚠️ NMS time limit {time_limit:.3f}s exceeded')
             break  # time limit exceeded
 

@@ -34,6 +34,7 @@ import torch.cuda
 from tqdm import tqdm
 
 from ultralytics import YOLO
+from ultralytics.yolo.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.yolo.engine.exporter import export_formats
 from ultralytics.yolo.utils import LINUX, LOGGER, MACOS, ROOT, SETTINGS
 from ultralytics.yolo.utils.checks import check_requirements, check_yolo
@@ -97,6 +98,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
             emoji = '❎'  # indicates export succeeded
 
             # Predict
+            assert model.task != 'pose' or i != 7, 'GraphDef Pose inference is not supported'
             assert i not in (9, 10, 12), 'inference not supported'  # Edge TPU, TF.js and NCNN are unsupported
             assert i != 5 or platform.system() == 'Darwin', 'inference only supported on macOS>=10.13'  # CoreML
             if not (ROOT / 'assets/bus.jpg').exists():
@@ -104,15 +106,8 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
             export.predict(ROOT / 'assets/bus.jpg', imgsz=imgsz, device=device, half=half)
 
             # Validate
-            if model.task == 'detect':
-                data, key = 'coco8.yaml', 'metrics/mAP50-95(B)'
-            elif model.task == 'segment':
-                data, key = 'coco8-seg.yaml', 'metrics/mAP50-95(M)'
-            elif model.task == 'classify':
-                data, key = 'imagenet100', 'metrics/accuracy_top5'
-            elif model.task == 'pose':
-                data, key = 'coco8-pose.yaml', 'metrics/mAP50-95(P)'
-
+            data = TASK2DATA[model.task]  # task to dataset, i.e. coco8.yaml for task=detect
+            key = TASK2METRIC[model.task]  # task to metric, i.e. metrics/mAP50-95(B) for task=detect
             results = export.val(data=data,
                                  batch=1,
                                  imgsz=imgsz,

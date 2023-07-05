@@ -1,6 +1,6 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 """
-YOLO-NAS model interface.
+FastSAM model interface.
 
 Usage - Predict:
     from ultralytics import FastSAM

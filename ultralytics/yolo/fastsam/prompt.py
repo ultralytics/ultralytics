@@ -18,14 +18,14 @@ class FastSAMPrompt:
         self.img_path = img_path
         self.ori_img = cv2.imread(img_path)
 
+        # Import and assign clip
         try:
             import clip  # for linear_assignment
-
         except ImportError:
             from ultralytics.yolo.utils.checks import check_requirements
-
             check_requirements('git+https://github.com/openai/CLIP.git')  # required before installing lap from source
             import clip
+        self.clip = clip
 
     @staticmethod
     def _segment_image(image, bbox):
@@ -60,7 +60,8 @@ class FastSAMPrompt:
             annotations.append(annotation)
         return annotations
 
-    def filter_masks(annotations):  # filte the overlap mask
+    @staticmethod
+    def filter_masks(annotations):  # filter the overlap mask
         annotations.sort(key=lambda x: x['area'], reverse=True)
         to_remove = set()
         for i in range(len(annotations)):
@@ -191,16 +192,16 @@ class FastSAMPrompt:
 
     #   CPU post process
     def fast_show_mask(
-        self,
-        annotation,
-        ax,
-        random_color=False,
-        bbox=None,
-        points=None,
-        pointlabel=None,
-        retinamask=True,
-        target_height=960,
-        target_width=960,
+            self,
+            annotation,
+            ax,
+            random_color=False,
+            bbox=None,
+            points=None,
+            pointlabel=None,
+            retinamask=True,
+            target_height=960,
+            target_width=960,
     ):
         msak_sum = annotation.shape[0]
         height = annotation.shape[1]
@@ -247,16 +248,16 @@ class FastSAMPrompt:
         ax.imshow(show)
 
     def fast_show_mask_gpu(
-        self,
-        annotation,
-        ax,
-        random_color=False,
-        bbox=None,
-        points=None,
-        pointlabel=None,
-        retinamask=True,
-        target_height=960,
-        target_width=960,
+            self,
+            annotation,
+            ax,
+            random_color=False,
+            bbox=None,
+            points=None,
+            pointlabel=None,
+            retinamask=True,
+            target_height=960,
+            target_width=960,
     ):
         msak_sum = annotation.shape[0]
         height = annotation.shape[1]
@@ -269,8 +270,8 @@ class FastSAMPrompt:
         if random_color:
             color = torch.rand((msak_sum, 1, 1, 3)).to(annotation.device)
         else:
-            color = torch.ones((msak_sum, 1, 1, 3)).to(annotation.device) * \
-                    torch.tensor([30 / 255, 144 / 255, 1.0]).to(annotation.device)
+            color = torch.ones((msak_sum, 1, 1, 3)).to(annotation.device) * torch.tensor([30 / 255, 144 / 255, 1.0]).to(
+                annotation.device)
         transparency = torch.ones((msak_sum, 1, 1, 1)).to(annotation.device) * 0.6
         visual = torch.cat([color, transparency], dim=-1)
         mask_image = torch.unsqueeze(annotation, -1) * visual
@@ -306,7 +307,7 @@ class FastSAMPrompt:
     @torch.no_grad()
     def retrieve(self, model, preprocess, elements, search_text: str, device) -> int:
         preprocessed_images = [preprocess(image).to(device) for image in elements]
-        tokenized_text = clip.tokenize([search_text]).to(device)
+        tokenized_text = self.clip.tokenize([search_text]).to(device)
         stacked_images = torch.stack(preprocessed_images)
         image_features = model.encode_image(stacked_images)
         text_features = model.encode_text(tokenized_text)
@@ -394,7 +395,7 @@ class FastSAMPrompt:
     def text_prompt(self, text):
         format_results = self._format_results(self.results[0], 0)
         cropped_boxes, cropped_images, not_crop, filter_id, annotations = self._crop_image(format_results)
-        clip_model, preprocess = clip.load('ViT-B/32', device=self.device)
+        clip_model, preprocess = self.clip.load('ViT-B/32', device=self.device)
         scores = self.retrieve(clip_model, preprocess, cropped_boxes, text, device=self.device)
         max_idx = scores.argsort()
         max_idx = max_idx[-1]

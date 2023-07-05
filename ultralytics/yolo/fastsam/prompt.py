@@ -192,16 +192,16 @@ class FastSAMPrompt:
 
     #   CPU post process
     def fast_show_mask(
-            self,
-            annotation,
-            ax,
-            random_color=False,
-            bbox=None,
-            points=None,
-            pointlabel=None,
-            retinamask=True,
-            target_height=960,
-            target_width=960,
+        self,
+        annotation,
+        ax,
+        random_color=False,
+        bbox=None,
+        points=None,
+        pointlabel=None,
+        retinamask=True,
+        target_height=960,
+        target_width=960,
     ):
         msak_sum = annotation.shape[0]
         height = annotation.shape[1]
@@ -248,16 +248,16 @@ class FastSAMPrompt:
         ax.imshow(show)
 
     def fast_show_mask_gpu(
-            self,
-            annotation,
-            ax,
-            random_color=False,
-            bbox=None,
-            points=None,
-            pointlabel=None,
-            retinamask=True,
-            target_height=960,
-            target_width=960,
+        self,
+        annotation,
+        ax,
+        random_color=False,
+        bbox=None,
+        points=None,
+        pointlabel=None,
+        retinamask=True,
+        target_height=960,
+        target_width=960,
     ):
         msak_sum = annotation.shape[0]
         height = annotation.shape[1]

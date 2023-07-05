@@ -243,6 +243,8 @@ class DetectionModel(BaseModel):
             m.stride = torch.tensor([s / x.shape[-2] for x in forward(torch.zeros(1, ch, s, s))])  # forward
             self.stride = m.stride
             m.bias_init()  # only run once
+        else:
+            self.stride = torch.Tensor([32])  # default stride for i.e. RTDETR
 
         # Init weights, biases
         initialize_weights(self)
@@ -430,7 +432,7 @@ class RTDETRDetectionModel(DetectionModel):
             'gt_groups': gt_groups}
 
         preds = self.predict(img, batch=targets) if preds is None else preds
-        dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta = preds
+        dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta = preds if self.training else preds[1]
         if dn_meta is None:
             dn_bboxes, dn_scores = None, None
         else:

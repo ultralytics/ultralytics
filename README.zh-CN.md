@@ -20,7 +20,7 @@
 
 [Ultralytics](https://ultralytics.com) [YOLOv8](https://github.com/ultralytics/ultralytics) 是一款前沿、最先进（SOTA）的模型，基于先前 YOLO 版本的成功，引入了新功能和改进，进一步提升性能和灵活性。YOLOv8 设计快速、准确且易于使用，使其成为各种物体检测与跟踪、实例分割、图像分类和姿态估计任务的绝佳选择。
 
-我们希望这里的资源能帮助您充分利用 YOLOv8。请浏览 YOLOv8 <a href="https://docs.ultralytics.com/">文档</a> 了解详细信息，在 <a href="https://github.com/ultralytics/ultralytics/issues/new/choose">GitHub</a> 上提交问题以获得支持，并加入我们的 <a href="https://discord.gg/7aegy5d8">Discord</a> 社区进行问题和讨论！
+我们希望这里的资源能帮助您充分利用 YOLOv8。请浏览 YOLOv8 <a href="https://docs.ultralytics.com/">文档</a> 了解详细信息，在 <a href="https://github.com/ultralytics/ultralytics/issues/new/choose">GitHub</a> 上提交问题以获得支持，并加入我们的 <a href="https://discord.gg/2wNGbc6g9X">Discord</a> 社区进行问题和讨论！
 
 如需申请企业许可，请在 [Ultralytics Licensing](https://ultralytics.com/license) 处填写表格
 
@@ -45,7 +45,7 @@
   <a href="https://www.instagram.com/ultralytics/" style="text-decoration:none;">
     <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-instagram.png" width="2%" alt="" /></a>
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="2%" alt="" />
-  <a href="https://discord.gg/7aegy5d8" style="text-decoration:none;">
+  <a href="https://discord.gg/2wNGbc6g9X" style="text-decoration:none;">
     <img src="https://github.com/ultralytics/assets/blob/main/social/logo-social-discord.png" width="2%" alt="" /></a>
 </div>
 </div>
@@ -57,11 +57,15 @@
 <details open>
 <summary>安装</summary>
 
-在一个 [**Python>=3.7**](https://www.python.org/) 环境中，使用 [**PyTorch>=1.7**](https://pytorch.org/get-started/locally/)，通过 pip 安装 ultralytics 软件包以及所有[依赖项](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt)。
+使用Pip在一个[**Python>=3.8**](https://www.python.org/)环境中安装`ultralytics`包，此环境还需包含[**PyTorch>=1.7**](https://pytorch.org/get-started/locally/)。这也会安装所有必要的[依赖项](https://github.com/ultralytics/ultralytics/blob/main/requirements.txt)。
+
+[![PyPI version](https://badge.fury.io/py/ultralytics.svg)](https://badge.fury.io/py/ultralytics) [![Downloads](https://static.pepy.tech/badge/ultralytics)](https://pepy.tech/project/ultralytics)
 
 ```bash
 pip install ultralytics
 ```
+
+如需使用包括Conda、Docker和Git在内的其他安装方法，请参考[快速入门指南](https://docs.ultralytics.com/quickstart)。
 
 </details>
 
@@ -236,7 +240,7 @@ YOLOv8 提供两种不同的许可证：
 
 ## <div align="center">联系方式</div>
 
-对于 YOLOv8 的错误报告和功能请求，请访问 [GitHub Issues](https://github.com/ultralytics/ultralytics/issues)，并加入我们的 [Discord](https://discord.gg/7aegy5d8) 社区进行问题和讨论！
+对于 YOLOv8 的错误报告和功能请求，请访问 [GitHub Issues](https://github.com/ultralytics/ultralytics/issues)，并加入我们的 [Discord](https://discord.gg/2wNGbc6g9X) 社区进行问题和讨论！
 
 <br>
 <div align="center">
@@ -257,6 +261,6 @@ YOLOv8 提供两种不同的许可证：
   <img src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" width="3%" alt="" />
   <a href="https://www.instagram.com/ultralytics/" style="text-decoration:none;">
     <img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-instagram.png" width="3%" alt="" /></a>
-  <a href="https://discord.gg/7aegy5d8" style="text-decoration:none;">
+  <a href="https://discord.gg/2wNGbc6g9X" style="text-decoration:none;">
     <img src="https://github.com/ultralytics/assets/blob/main/social/logo-social-discord.png" width="3%" alt="" /></a>
 </div>

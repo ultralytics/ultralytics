@@ -47,7 +47,7 @@ class PoseValidator(DetectionValidator):
         super().init_metrics(model)
         self.kpt_shape = self.data['kpt_shape']
         nkpt = self.kpt_shape[0]
-        OKS_SIGMA = model.args.OKS_SIGMA
+        OKS_SIGMA = self.args.OKS_SIGMA
         is_pose = len(OKS_SIGMA) == nkpt
         self.sigma = np.array(OKS_SIGMA) if is_pose else np.ones(nkpt) / nkpt
 

@@ -58,24 +58,20 @@ results = model(
 
 prompt_process = FastSAMPrompt(IMAGE_PATH, everything_results, device=DEVICE)
 
-# everything prompt
+# Everything prompt
 ann = prompt_process.everything_prompt()
 
-# bbox default shape [0,0,0,0] -> [x1,y1,x2,y2]
+# Bbox default shape [0,0,0,0] -> [x1,y1,x2,y2]
 ann = prompt_process.box_prompt(bbox=[200, 200, 300, 300])
 
-# text prompt
+# Text prompt
 ann = prompt_process.text_prompt(text='a photo of a dog')
 
-# point prompt
+# Point prompt
 # points default [[0,0]] [[x1,y1],[x2,y2]]
 # point_label default [0] [1,0] 0:background, 1:foreground
 ann = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
-prompt_process.plot(
-    annotations=ann,
-    output='./',
-)
-
+prompt_process.plot(annotations=ann, output='./')
 ```
 
 This snippet demonstrates the simplicity of loading a pre-trained model and running a prediction on an image.

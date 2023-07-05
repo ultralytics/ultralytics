@@ -44,17 +44,20 @@ To perform object detection on an image, use the `predict` method as shown below
 from ultralytics import FastSAM
 from ultralytics.yolo.fastsam import FastSAMPrompt
 
-IMAGE_PATH = 'images/dog.jpg'
+# Define image path and inference device
+IMAGE_PATH = 'ultralytics/assets/bus.jpg'
 DEVICE = 'cpu'
-model = FastSAM('FastSAM.pt')
-results = model(
-    IMAGE_PATH,
-    device=DEVICE,
-    retina_masks=True,
-    imgsz=1024,
-    conf=0.4,
-    iou=0.9,
-)
+
+# Create a FastSAM model
+model = FastSAM('FastSAM-s.pt')  # or FastSAM-x.pt
+
+# Run inference on an image
+everything_results = model(IMAGE_PATH,
+                           device=DEVICE,
+                           retina_masks=True,
+                           imgsz=1024,
+                           conf=0.4,
+                           iou=0.9)
 
 prompt_process = FastSAMPrompt(IMAGE_PATH, everything_results, device=DEVICE)
 
@@ -83,8 +86,11 @@ Validation of the model on a dataset can be done as follows:
 ```python
 from ultralytics import FastSAM
 
-model = FastSAM('FastSAM.pt')
-results = model.val(data='coco8-seg.yaml)
+# Create a FastSAM model
+model = FastSAM('FastSAM-s.pt')  # or FastSAM-x.pt
+
+# Validate the model
+results = model.val(data='coco8-seg.yaml')
 ```
 
 Please note that FastSAM only supports detection and segmentation of a single class of object. This means it will recognize and segment all objects as the same class. Therefore, when preparing the dataset, you need to convert all object category IDs to 0.

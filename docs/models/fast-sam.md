@@ -44,16 +44,16 @@ To perform object detection on an image, use the `predict` method as shown below
 from ultralytics import FastSAM
 from ultralytics.yolo.fastsam import FastSAMPrompt
 
-IMAGE_PATH = 'images/dog.jpg'
+IMAGE_PATH = 'ultralytics/assets/bus.jpg'
 DEVICE = 'cpu'
 model = FastSAM('FastSAM.pt')
 results = model(
-    IMAGE_PATH,
-    device=DEVICE,
-    retina_masks=True,
-    imgsz=1024,
-    conf=0.4,
-    iou=0.9,
+   IMAGE_PATH,
+   device=DEVICE,
+   retina_masks=True,
+   imgsz=1024,
+   conf=0.4,
+   iou=0.9,
 )
 
 prompt_process = FastSAMPrompt(IMAGE_PATH, everything_results, device=DEVICE)

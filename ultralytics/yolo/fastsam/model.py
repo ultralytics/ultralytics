@@ -20,6 +20,11 @@ from ...yolo.utils.torch_utils import model_info, smart_inference_mode
 
 class FastSAM(YOLO):
 
+    def __init__(self, model='FastSAM-x.pt'):
+        # Call the __init__ method of the parent class (YOLO) with the updated default model
+        super().__init__(model=model)
+        # any additional initialization code for FastSAM
+
     @smart_inference_mode()
     def predict(self, source=None, stream=False, **kwargs):
         """

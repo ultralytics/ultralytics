@@ -10,7 +10,6 @@ import torch.nn as nn
 from torch.nn.init import constant_, xavier_uniform_
 
 from ultralytics.yolo.utils.tal import dist2bbox, make_anchors
-
 from .block import DFL, Proto
 from .conv import Conv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
@@ -52,12 +51,11 @@ class Detect(nn.Module):
             self.shape = shape
 
         x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2)
-        if self.export:
-            if self.format in ('saved_model', 'pb', 'tflite', 'edgetpu', 'tfjs'):  # avoid TF FlexSplitV ops
-                box = x_cat[:, :self.reg_max * 4]
-                cls = x_cat[:, self.reg_max * 4:]
-            elif self.format == 'ncnn':
+        if self.export and self.format in ('saved_model', 'pb', 'tflite', 'edgetpu', 'tfjs', 'ncnn'):
+            if self.format == 'ncnn':
                 return x_cat.permute(0, 2, 1)
+            box = x_cat[:, :self.reg_max * 4]  # avoid TF FlexSplitV ops
+            cls = x_cat[:, self.reg_max * 4:]
         else:
             box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
         dbox = dist2bbox(self.dfl(box), self.anchors.unsqueeze(0), xywh=True, dim=1) * self.strides

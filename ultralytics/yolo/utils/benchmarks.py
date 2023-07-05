@@ -80,6 +80,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
         emoji, filename = '❌', None  # export defaults
         try:
             assert i != 9 or LINUX, 'Edge TPU export only supported on Linux'
+            assert model.task == 'detect' or i!=12, 'NCNN only supports Detect tasks'
             if i == 10:
                 assert MACOS or LINUX, 'TF.js export only supported on macOS and Linux'
             if 'cpu' in device.type:

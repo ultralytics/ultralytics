@@ -32,9 +32,68 @@ FastSAM is designed to address the limitations of the [Segment Anything Model (S
 
 ## Usage
 
-FastSAM is not yet available within the [`ultralytics` package](../quickstart.md), but it is available directly from the [https://github.com/CASIA-IVA-Lab/FastSAM](https://github.com/CASIA-IVA-Lab/FastSAM) repository. Here is a brief overview of the typical steps you might take to use FastSAM:
+### Python API
 
-### Installation
+The FastSAM models are easy to integrate into your Python applications. Ultralytics provides a user-friendly Python API to streamline the process.
+
+#### Predict Usage
+
+To perform object detection on an image, use the `predict` method as shown below:
+
+```python
+from ultralytics import FastSAM
+from ultralytics.yolo.fastsam import FastSAMPrompt
+
+IMAGE_PATH = 'images/dog.jpg'
+DEVICE = 'cpu'
+model = FastSAM('FastSAM.pt')
+results = model(
+    IMAGE_PATH,
+    device=DEVICE,
+    retina_masks=True,
+    imgsz=1024,
+    conf=0.4,
+    iou=0.9,
+)
+
+prompt_process = FastSAMPrompt(IMAGE_PATH, everything_results, device=DEVICE)
+
+# Everything prompt
+ann = prompt_process.everything_prompt()
+
+# Bbox default shape [0,0,0,0] -> [x1,y1,x2,y2]
+ann = prompt_process.box_prompt(bbox=[200, 200, 300, 300])
+
+# Text prompt
+ann = prompt_process.text_prompt(text='a photo of a dog')
+
+# Point prompt
+# points default [[0,0]] [[x1,y1],[x2,y2]]
+# point_label default [0] [1,0] 0:background, 1:foreground
+ann = prompt_process.point_prompt(points=[[200, 200]], pointlabel=[1])
+prompt_process.plot(annotations=ann, output='./')
+```
+
+This snippet demonstrates the simplicity of loading a pre-trained model and running a prediction on an image.
+
+#### Val Usage
+
+Validation of the model on a dataset can be done as follows:
+
+```python
+from ultralytics import FastSAM
+
+model = FastSAM('FastSAM.pt')
+results = model.val(data='coco8-seg.yaml)
+```
+
+Please note that FastSAM only supports detection and segmentation of a single class of object. This means it will recognize and segment all objects as the same class. Therefore, when preparing the dataset, you need to convert all object category IDs to 0.
+
+### FastSAM official Usage
+
+FastSAM is also available directly from the [https://github.com/CASIA-IVA-Lab/FastSAM](https://github.com/CASIA-IVA-Lab/FastSAM) repository. Here is a brief overview of the typical steps you might take to use FastSAM:
+
+#### Installation
 
 1. Clone the FastSAM repository:
    ```shell
@@ -58,7 +117,7 @@ FastSAM is not yet available within the [`ultralytics` package](../quickstart.md
    pip install git+https://github.com/openai/CLIP.git
    ```
 
-### Example Usage
+#### Example Usage
 
 1. Download a [model checkpoint](https://drive.google.com/file/d/1m1sjY4ihXBU1fZXdQ-Xdj-mDltW-2Rqv/view?usp=sharing).
 

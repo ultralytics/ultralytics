@@ -1,3 +1,5 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+
 import torch
 
 from ultralytics.yolo.engine.results import Results

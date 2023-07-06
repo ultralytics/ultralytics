@@ -546,10 +546,12 @@ class Metric(SimpleClass):
 
         Methods:
             ap50(): AP at IoU threshold of 0.5 for all classes. Returns: List of AP scores. Shape: (nc,) or [].
+            ap60(): AP at IoU threshold of 0.6 for all classes. Returns: List of AP scores. Shape: (nc,) or [].
             ap(): AP at IoU thresholds from 0.5 to 0.95 for all classes. Returns: List of AP scores. Shape: (nc,) or [].
             mp(): Mean precision of all classes. Returns: Float.
             mr(): Mean recall of all classes. Returns: Float.
             map50(): Mean AP at IoU threshold of 0.5 for all classes. Returns: Float.
+            map60(): Mean AP at IoU threshold of 0.6 for all classes. Returns: Float.
             map75(): Mean AP at IoU threshold of 0.75 for all classes. Returns: Float.
             map(): Mean AP at IoU thresholds from 0.5 to 0.95 for all classes. Returns: Float.
             mean_results(): Mean of results, returns mp, mr, map50, map.
@@ -577,6 +579,16 @@ class Metric(SimpleClass):
             (np.ndarray, list): Array of shape (nc,) with AP50 values per class, or an empty list if not available.
         """
         return self.all_ap[:, 0] if len(self.all_ap) else []
+
+    @property
+    def ap60(self):
+        """
+        Returns the Average Precision (AP) at an IoU threshold of 0.6 for all classes.
+
+        Returns:
+            (np.ndarray, list): Array of shape (nc,) with AP60 values per class, or an empty list if not available.
+        """
+        return self.all_ap[:, 2] if len(self.all_ap) else []
 
     @property
     def ap(self):
@@ -617,6 +629,16 @@ class Metric(SimpleClass):
             (float): The mAP50 at an IoU threshold of 0.5.
         """
         return self.all_ap[:, 0].mean() if len(self.all_ap) else 0.0
+
+    @property
+    def map60(self):
+        """
+        Returns the mean Average Precision (mAP) at an IoU threshold of 0.6.
+
+        Returns:
+            (float): The mAP at an IoU threshold of 0.6.
+        """
+        return self.all_ap[:, 2].mean() if len(self.all_ap) else 0.0
 
     @property
     def map75(self):

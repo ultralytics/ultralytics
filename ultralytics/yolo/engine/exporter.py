@@ -64,7 +64,7 @@ from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.utils import (DEFAULT_CFG, LINUX, LOGGER, MACOS, __version__, callbacks, colorstr,
-                                    get_default_args, yaml_save)
+                                    get_default_args, yaml_save, ROOT)
 from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version
 from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.ops import Profile
@@ -234,11 +234,11 @@ class Exporter:
 
         # Exports
         f = [''] * len(fmts)  # exported filenames
-        if jit:  # TorchScript
+        if jit or ncnn:  # TorchScript
             f[0], _ = self.export_torchscript()
         if engine:  # TensorRT required before ONNX
             f[1], _ = self.export_engine()
-        if onnx or xml or ncnn:  # OpenVINO requires ONNX
+        if onnx or xml:  # OpenVINO requires ONNX
             f[2], _ = self.export_onnx()
         if xml:  # OpenVINO
             f[3], _ = self.export_openvino()
@@ -402,23 +402,43 @@ class Exporter:
     @try_export
     def export_ncnn(self, prefix=colorstr('NCNN:')):
         """
-        YOLOv8 NCNN export.
-        For installation instructions see https://github.com/Tencent/ncnn/wiki/how-to-build
+        YOLOv8 NCNN export using PNNX https://github.com/pnnx/pnnx.
         """
         check_requirements('git+https://github.com/Tencent/ncnn.git')  # requires NCNN
         import ncnn  # noqa
 
         LOGGER.info(f'\n{prefix} starting export with NCNN {ncnn.__version__}...')
-        f = str(self.file).replace(self.file.suffix, f'_ncnn_model{os.sep}')
-        f_onnx = self.file.with_suffix('.onnx')
+        f = Path(str(self.file).replace(self.file.suffix, f'_ncnn_model{os.sep}'))
+        f_ts = str(self.file.with_suffix('.torchscript'))
+        f.mkdir(exist_ok=True)
 
-        # Example cmd: 'onnx2ncnn yolov8n.onnx yolov8n_ncnn_model/model.param yolov8n_ncnn_model/model.bin'
-        cmd = f"onnx2ncnn {f_onnx} {Path(f) / 'model.param'} {Path(f) / 'model.bin'}"
-        LOGGER.info(f"{prefix} running '{cmd.strip()}'")
-        subprocess.run(cmd, shell=True)
+        if Path('./pnnx').is_file():
+            pnnx = './pnnx'
+        elif (ROOT / 'pnnx').is_file():
+            pnnx = ROOT / 'pnnx'
+        else:
+            raise ModuleNotFoundError('PNNX not found. Please download and install binary file '
+                                      'from https://github.com/pnnx/pnnx/ before exporting to NCNN.\nPNNX Binary file '
+                                      f'must be in current working directory or in {ROOT}.')
 
-        yaml_save(Path(f) / 'metadata.yaml', self.metadata)  # add metadata.yaml
-        return f, None
+        cmd = [pnnx,
+               f_ts,
+               f'pnnxparam={f / "model.pnnx.param"}',
+               f'pnnxbin={f / "model.pnnx.bin"}',
+               f'pnnxpy={f / "model_pnnx.py"}',
+               f'pnnxonnx={f / "model.pnnx.onnx"}',
+               f'ncnnparam={f / "model.ncnn.param"}',
+               f'ncnnbin={f / "model.ncnn.bin"}',
+               f'ncnnpy={f / "model_ncnn.py"}',
+               f'fp16={int(self.args.half)}',
+               f'device={self.device.type}',
+               f'inputshape="{[self.args.batch, 3, *self.imgsz]}"']
+
+        LOGGER.info(f"{prefix} running '{' '.join(cmd)}'")
+        subprocess.run(cmd, check=True)
+
+        yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml
+        return str(f), None
 
     @try_export
     def export_coreml(self, prefix=colorstr('CoreML:')):

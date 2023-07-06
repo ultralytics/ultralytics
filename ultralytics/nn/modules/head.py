@@ -53,8 +53,6 @@ class Detect(nn.Module):
 
         x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2)
         if self.export and self.format in ('saved_model', 'pb', 'tflite', 'edgetpu', 'tfjs', 'ncnn'):
-            if self.format == 'ncnn':
-                return x_cat.permute(0, 2, 1)
             box = x_cat[:, :self.reg_max * 4]  # avoid TF FlexSplitV ops
             cls = x_cat[:, self.reg_max * 4:]
         else:

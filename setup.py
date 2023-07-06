@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 
 import pkg_resources as pkg
-from setuptools import setup, find_namespace_packages
+from setuptools import find_namespace_packages, setup
 
 # Settings
 FILE = Path(__file__).resolve()

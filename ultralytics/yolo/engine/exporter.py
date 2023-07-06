@@ -162,7 +162,6 @@ class Exporter:
 
         # Checks
         model.names = check_class_names(model.names)
-        assert model.task == 'detect' or not ncnn, f'NCNN only supports Detect tasks, this is a {model.task} model.'
         if self.args.half and onnx and self.device.type == 'cpu':
             LOGGER.warning('WARNING ⚠️ half=True only compatible with GPU export, i.e. use device=0')
             self.args.half = False

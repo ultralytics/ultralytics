@@ -63,8 +63,8 @@ from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel
 from ultralytics.yolo.cfg import get_cfg
-from ultralytics.yolo.utils import (DEFAULT_CFG, LINUX, LOGGER, MACOS, __version__, callbacks, colorstr,
-                                    get_default_args, yaml_save, ROOT)
+from ultralytics.yolo.utils import (DEFAULT_CFG, LINUX, LOGGER, MACOS, ROOT, __version__, callbacks, colorstr,
+                                    get_default_args, yaml_save)
 from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version
 from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.ops import Profile
@@ -421,18 +421,11 @@ class Exporter:
                                       'from https://github.com/pnnx/pnnx/ before exporting to NCNN.\nPNNX Binary file '
                                       f'must be in current working directory or in {ROOT}.')
 
-        cmd = [pnnx,
-               f_ts,
-               f'pnnxparam={f / "model.pnnx.param"}',
-               f'pnnxbin={f / "model.pnnx.bin"}',
-               f'pnnxpy={f / "model_pnnx.py"}',
-               f'pnnxonnx={f / "model.pnnx.onnx"}',
-               f'ncnnparam={f / "model.ncnn.param"}',
-               f'ncnnbin={f / "model.ncnn.bin"}',
-               f'ncnnpy={f / "model_ncnn.py"}',
-               f'fp16={int(self.args.half)}',
-               f'device={self.device.type}',
-               f'inputshape="{[self.args.batch, 3, *self.imgsz]}"']
+        cmd = [
+            pnnx, f_ts, f'pnnxparam={f / "model.pnnx.param"}', f'pnnxbin={f / "model.pnnx.bin"}',
+            f'pnnxpy={f / "model_pnnx.py"}', f'pnnxonnx={f / "model.pnnx.onnx"}', f'ncnnparam={f / "model.ncnn.param"}',
+            f'ncnnbin={f / "model.ncnn.bin"}', f'ncnnpy={f / "model_ncnn.py"}', f'fp16={int(self.args.half)}',
+            f'device={self.device.type}', f'inputshape="{[self.args.batch, 3, *self.imgsz]}"']
 
         LOGGER.info(f"{prefix} running '{' '.join(cmd)}'")
         subprocess.run(cmd, check=True)

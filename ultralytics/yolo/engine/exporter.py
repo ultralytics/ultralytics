@@ -420,15 +420,18 @@ class Exporter:
                                       'from https://github.com/pnnx/pnnx/ before exporting to NCNN.\nPNNX Binary file '
                                       f'must be in current working directory or in {ROOT}.')
 
-        cmd = [pnnx, f_ts, f'pnnxparam={f / "model.pnnx.param"}', 
+        cmd = [
+            pnnx,
+            f_ts,
+            f'pnnxparam={f / "model.pnnx.param"}',
             f'pnnxbin={f / "model.pnnx.bin"}',
-            f'pnnxpy={f / "model_pnnx.py"}', 
-            f'pnnxonnx={f / "model.pnnx.onnx"}', 
+            f'pnnxpy={f / "model_pnnx.py"}',
+            f'pnnxonnx={f / "model.pnnx.onnx"}',
             f'ncnnparam={f / "model.ncnn.param"}',
-            f'ncnnbin={f / "model.ncnn.bin"}', 
-            f'ncnnpy={f / "model_ncnn.py"}', 
+            f'ncnnbin={f / "model.ncnn.bin"}',
+            f'ncnnpy={f / "model_ncnn.py"}',
             f'fp16={int(self.args.half)}',
-            f'device={self.device.type}', 
+            f'device={self.device.type}',
             f'inputshape="{[self.args.batch, 3, *self.imgsz]}"', ]
 
         LOGGER.info(f"{prefix} running '{' '.join(cmd)}'")

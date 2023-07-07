@@ -418,11 +418,11 @@ class Exporter:
             pnnx = ROOT / 'pnnx'
         else:
             LOGGER.warning(
-                '{prefix} WARNING ⚠️ PNNX not found. Attempting to download binary file from '
-                'https://github.com/pnnx/pnnx/.\n See repo for installation guidelines. Note PNNX Binary file '
-                f'must be in current working directory or in {ROOT}.')
-            assets = get_github_assets(repo='pnnx/pnnx')
-            asset = [x for x in assets if ('macos' if MACOS else 'ubuntu' if LINUX else 'windows') in x]
+                f'{prefix} WARNING ⚠️ PNNX not found. Attempting to download binary file from '
+                'https://github.com/pnnx/pnnx/.\nNote PNNX Binary file must be placed in current working directory '
+                f'or in {ROOT}. See PNNX repo for full installation instructions.')
+            _, assets = get_github_assets(repo='pnnx/pnnx')
+            asset = [x for x in assets if ('macos' if MACOS else 'ubuntu' if LINUX else 'windows') in x][0]
             attempt_download_asset(asset, repo='pnnx/pnnx', release='latest')
 
         cmd = [

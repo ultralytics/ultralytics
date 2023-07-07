@@ -429,6 +429,7 @@ class Exporter:
             (unzip_dir / 'pnnx').rename(pnnx)  # move binary to ROOT
             shutil.rmtree(unzip_dir)  # delete unzip dir
             Path(asset).unlink()  # delete zip
+            pnnx.chmod(0o777)  # set read, write, and execute permissions for everyone
 
         cmd = [
             str(pnnx),

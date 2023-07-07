@@ -66,7 +66,7 @@ from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.utils import (DEFAULT_CFG, LINUX, LOGGER, MACOS, ROOT, __version__, callbacks, colorstr,
                                     get_default_args, yaml_save)
 from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version
-from ultralytics.yolo.utils.downloads import get_github_assets, attempt_download_asset
+from ultralytics.yolo.utils.downloads import attempt_download_asset, get_github_assets
 from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.ops import Profile
 from ultralytics.yolo.utils.torch_utils import get_latest_opset, select_device, smart_inference_mode

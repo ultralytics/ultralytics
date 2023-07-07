@@ -83,7 +83,7 @@ def requests_with_progress(method, url, **kwargs):
         for data in response.iter_content(chunk_size=1024):
             pbar.update(len(data))
         pbar.close()
-    except requests.exceptions.ChunkedEncodingError:
+    except requests.exceptions.ChunkedEncodingError:  # avoid 'Connection broken: IncompleteRead' warnings
         response.close()
     return response
 

@@ -8,6 +8,7 @@ import platform
 import re
 import shutil
 import subprocess
+import time
 from pathlib import Path
 from typing import Optional
 
@@ -237,11 +238,12 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
         if install and AUTOINSTALL:  # check environment variable
             LOGGER.info(f"{prefix} Ultralytics requirement{'s' * (n > 1)} {s}not found, attempting AutoUpdate...")
             try:
+                t = time.time()
                 assert is_online(), 'AutoUpdate skipped (offline)'
                 LOGGER.info(subprocess.check_output(f'pip install --no-cache {s} {cmds}', shell=True).decode())
-                s = f"{prefix} {n} package{'s' * (n > 1)} updated per {file or requirements}\n" \
-                    f"{prefix} ⚠️ {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n"
-                LOGGER.info(s)
+                LOGGER.info(
+                    f"{prefix} {n} package{'s' * (n > 1)} updated per {file or requirements} ({time.time() - t:.1s})\n"
+                    f"{prefix} ⚠️ {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n")
             except Exception as e:
                 LOGGER.warning(f'{prefix} ❌ {e}')
                 return False
@@ -255,7 +257,7 @@ def check_suffix(file='yolov8n.pt', suffix='.pt', msg=''):
     """Check file(s) for acceptable suffix."""
     if file and suffix:
         if isinstance(suffix, str):
-            suffix = (suffix, )
+            suffix = (suffix,)
         for f in file if isinstance(file, (list, tuple)) else [file]:
             s = Path(f).suffix.lower().strip()  # file suffix
             if len(s):

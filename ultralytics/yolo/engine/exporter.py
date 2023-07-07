@@ -51,6 +51,7 @@ TensorFlow.js:
 import json
 import os
 import platform
+import shutil
 import subprocess
 import time
 import warnings
@@ -410,7 +411,6 @@ class Exporter:
         LOGGER.info(f'\n{prefix} starting export with NCNN {ncnn.__version__}...')
         f = Path(str(self.file).replace(self.file.suffix, f'_ncnn_model{os.sep}'))
         f_ts = str(self.file.with_suffix('.torchscript'))
-        f.mkdir(exist_ok=True)
 
         if Path('./pnnx').is_file():
             pnnx = './pnnx'
@@ -424,9 +424,14 @@ class Exporter:
             _, assets = get_github_assets(repo='pnnx/pnnx')
             asset = [x for x in assets if ('macos' if MACOS else 'ubuntu' if LINUX else 'windows') in x][0]
             attempt_download_asset(asset, repo='pnnx/pnnx', release='latest')
+            unzip_dir = Path(asset).with_suffix('')
+            pnnx = ROOT / 'pnnx'  # new location
+            (unzip_dir / 'pnnx').rename(pnnx)  # move binary to ROOT
+            shutil.rmtree(unzip_dir)  # delete unzip dir
+            Path(asset).unlink()  # delete zip
 
         cmd = [
-            pnnx,
+            str(pnnx),
             f_ts,
             f'pnnxparam={f / "model.pnnx.param"}',
             f'pnnxbin={f / "model.pnnx.bin"}',
@@ -438,7 +443,7 @@ class Exporter:
             f'fp16={int(self.args.half)}',
             f'device={self.device.type}',
             f'inputshape="{[self.args.batch, 3, *self.imgsz]}"', ]
-
+        f.mkdir(exist_ok=True)  # make ncnn_model directory
         LOGGER.info(f"{prefix} running '{' '.join(cmd)}'")
         subprocess.run(cmd, check=True)
 

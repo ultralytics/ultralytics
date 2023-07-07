@@ -101,7 +101,7 @@ class LoadStreams:
         # Wait for an image to be available
         while all(img is None for img in self.imgs):
             time.sleep(1 / max(self.fps))
-            if not all(x.is_alive() for x in self.threads) or cv2.waitKey(1) == ord('q'):    # q to quit
+            if not all(x.is_alive() for x in self.threads) or cv2.waitKey(1) == ord('q'):  # q to quit
                 cv2.destroyAllWindows()
                 raise StopIteration
 

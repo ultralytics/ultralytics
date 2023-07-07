@@ -98,8 +98,20 @@ class LoadStreams:
             cv2.destroyAllWindows()
             raise StopIteration
 
-        im0 = self.imgs.copy()
-        return self.sources, im0, None, ''
+        # Wait for an image to be available
+        while all(img is None for img in self.imgs):
+            time.sleep(1 / max(self.fps))
+            if not all(x.is_alive() for x in self.threads) or cv2.waitKey(1) == ord('q'):    # q to quit
+                cv2.destroyAllWindows()
+                raise StopIteration
+
+        # Reset self.imgs and return available images
+        self.imgs, im0 = [None] * len(self.imgs), self.imgs
+        available = [i for i, img in enumerate(im0) if img is not None]
+        sources = [self.sources[i] for i in available]
+        im0 = [im0[i] for i in available]
+
+        return sources, im0, None, ''
 
     def __len__(self):
         """Return the length of the sources object."""

@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 
 import pkg_resources as pkg
-from setuptools import find_namespace_packages, setup
+from setuptools import find_packages, setup
 
 # Settings
 FILE = Path(__file__).resolve()
@@ -34,7 +34,7 @@ setup(
         'Source': 'https://github.com/ultralytics/ultralytics'},
     author='Ultralytics',
     author_email='hello@ultralytics.com',
-    packages=find_namespace_packages(include=['ultralytics.*']),
+    packages=find_packages(),  # required
     include_package_data=True,
     install_requires=REQUIREMENTS,
     extras_require={

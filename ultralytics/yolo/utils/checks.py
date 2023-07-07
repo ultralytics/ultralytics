@@ -241,8 +241,9 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
                 t = time.time()
                 assert is_online(), 'AutoUpdate skipped (offline)'
                 LOGGER.info(subprocess.check_output(f'pip install --no-cache {s} {cmds}', shell=True).decode())
+                dt = time.time() - t
                 LOGGER.info(
-                    f"{prefix} {n} package{'s' * (n > 1)} updated per {file or requirements} ({time.time() - t:.1s})\n"
+                    f"{prefix} {n} package{'s' * (n > 1)} updated per {file or requirements} ✅ {dt:.1f}s\n"
                     f"{prefix} ⚠️ {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n")
             except Exception as e:
                 LOGGER.warning(f'{prefix} ❌ {e}')

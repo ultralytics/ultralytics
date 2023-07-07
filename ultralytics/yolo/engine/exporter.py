@@ -405,7 +405,7 @@ class Exporter:
         """
         YOLOv8 NCNN export using PNNX https://github.com/pnnx/pnnx.
         """
-        check_requirements('git+https://github.com/Tencent/ncnn.git')  # requires NCNN
+        check_requirements('ncnn')  # requires NCNN
         import ncnn  # noqa
 
         LOGGER.info(f'\n{prefix} starting export with NCNN {ncnn.__version__}...')

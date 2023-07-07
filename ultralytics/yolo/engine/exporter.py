@@ -170,7 +170,8 @@ class Exporter:
             assert not self.args.dynamic, 'half=True not compatible with dynamic=True, i.e. use only one.'
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
         if self.args.optimize:
-            assert self.device.type == 'cpu', '--optimize not compatible with cuda devices, i.e. use --device cpu'
+            assert not ncnn, "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
+            assert self.device.type == 'cpu', "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
         if edgetpu and not LINUX:
             raise SystemError('Edge TPU export only supported on Linux. See https://coral.ai/docs/edgetpu/compiler/')
 
@@ -405,7 +406,7 @@ class Exporter:
         """
         YOLOv8 NCNN export using PNNX https://github.com/pnnx/pnnx.
         """
-        check_requirements('ncnn')  # requires NCNN
+        check_requirements('git+https://github.com/Tencent/ncnn.git' if ARM64 else 'ncnn')  # requires NCNN
         import ncnn  # noqa
 
         LOGGER.info(f'\n{prefix} starting export with NCNN {ncnn.__version__}...')

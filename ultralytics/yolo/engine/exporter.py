@@ -66,6 +66,7 @@ from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.utils import (DEFAULT_CFG, LINUX, LOGGER, MACOS, ROOT, __version__, callbacks, colorstr,
                                     get_default_args, yaml_save)
 from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version
+from ultralytics.yolo.utils.downloads import get_github_assets, attempt_download_asset
 from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.ops import Profile
 from ultralytics.yolo.utils.torch_utils import get_latest_opset, select_device, smart_inference_mode
@@ -416,9 +417,13 @@ class Exporter:
         elif (ROOT / 'pnnx').is_file():
             pnnx = ROOT / 'pnnx'
         else:
-            raise ModuleNotFoundError('PNNX not found. Please download and install binary file '
-                                      'from https://github.com/pnnx/pnnx/ before exporting to NCNN.\nPNNX Binary file '
-                                      f'must be in current working directory or in {ROOT}.')
+            LOGGER.warning(
+                '{prefix} WARNING ⚠️ PNNX not found. Attempting to download binary file from '
+                'https://github.com/pnnx/pnnx/.\n See repo for installation guidelines. Note PNNX Binary file '
+                f'must be in current working directory or in {ROOT}.')
+            assets = get_github_assets(repo='pnnx/pnnx')
+            asset = [x for x in assets if ('macos' if MACOS else 'ubuntu' if LINUX else 'windows') in x]
+            attempt_download_asset(asset, repo='pnnx/pnnx', release='latest')
 
         cmd = [
             pnnx,

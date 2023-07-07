@@ -772,10 +772,10 @@ def v8_transforms(dataset, imgsz, hyp, stretch=False):
             perspective=hyp.perspective,
             pre_transform=None if stretch else LetterBox(new_shape=(imgsz, imgsz)),
         )])
-    flip_idx = dataset.data.get('flip_idx', None)  # for keypoints augmentation
+    flip_idx = dataset.data.get('flip_idx', [])  # for keypoints augmentation
     if dataset.use_keypoints:
         kpt_shape = dataset.data.get('kpt_shape', None)
-        if flip_idx is None and hyp.fliplr > 0.0:
+        if len(flip_idx) == 0 and hyp.fliplr > 0.0:
             hyp.fliplr = 0.0
             LOGGER.warning("WARNING ⚠️ No 'flip_idx' array defined in data.yaml, setting augmentation 'fliplr=0.0'")
         elif flip_idx and (len(flip_idx) != kpt_shape[0]):

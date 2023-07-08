@@ -172,7 +172,7 @@ class DetectionValidator(BaseValidator):
                                   Each row should contain (class, x1, y1, x2, y2).
         """
         if detections is None:
-            detections = torch.empty((0,6), device=self.device)  # Output all labels
+            detections = torch.empty((0, 6), device=self.device)  # Output all labels
 
         detections = detections[detections[:, 4] > self.confusion_matrix.conf]
         # gt_classes = labels[:, 0].int()

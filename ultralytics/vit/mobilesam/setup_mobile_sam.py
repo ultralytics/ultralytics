@@ -1,9 +1,9 @@
 import torch
 
-from .modules.decoders import MaskDecoder
-from .modules.encoders import PromptEncoder
-from .modules.sam import Sam
-from .modules.transformer import TwoWayTransformer
+from ..sam.modules.decoders import MaskDecoder
+from ..sam.modules.encoders import PromptEncoder
+from ..sam.modules.sam import Sam
+from ..sam.modules.transformer import TwoWayTransformer
 from .tiny_vit_sam import TinyViT
 
 

@@ -10,8 +10,8 @@ from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils.torch_utils import select_device
 
-from .modules.mask_generator import SamAutomaticMaskGenerator
-from .modules.prompt_predictor import PromptPredictor
+from ..sam.modules.mask_generator import SamAutomaticMaskGenerator
+from ..sam.modules.prompt_predictor import PromptPredictor
 
 
 class Predictor(BasePredictor):

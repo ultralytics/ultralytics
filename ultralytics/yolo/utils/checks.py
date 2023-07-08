@@ -8,6 +8,7 @@ import platform
 import re
 import shutil
 import subprocess
+import time
 from pathlib import Path
 from typing import Optional
 
@@ -235,13 +236,16 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
 
     if s:
         if install and AUTOINSTALL:  # check environment variable
-            LOGGER.info(f"{prefix} Ultralytics requirement{'s' * (n > 1)} {s}not found, attempting AutoUpdate...")
+            pkgs = file or requirements  # missing packages
+            LOGGER.info(f"{prefix} Ultralytics requirement{'s' * (n > 1)} {pkgs} not found, attempting AutoUpdate...")
             try:
+                t = time.time()
                 assert is_online(), 'AutoUpdate skipped (offline)'
                 LOGGER.info(subprocess.check_output(f'pip install --no-cache {s} {cmds}', shell=True).decode())
-                s = f"{prefix} {n} package{'s' * (n > 1)} updated per {file or requirements}\n" \
-                    f"{prefix} ⚠️ {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n"
-                LOGGER.info(s)
+                dt = time.time() - t
+                LOGGER.info(
+                    f"{prefix} AutoUpdate success ✅ {dt:.1f}s, installed {n} package{'s' * (n > 1)}: {pkgs}\n"
+                    f"{prefix} ⚠️ {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n")
             except Exception as e:
                 LOGGER.warning(f'{prefix} ❌ {e}')
                 return False

@@ -189,7 +189,7 @@ def safe_download(url,
 
     if unzip and f.exists() and f.suffix in ('', '.zip', '.tar', '.gz'):
         unzip_dir = dir or f.parent  # unzip to dir if provided else unzip in place
-        LOGGER.info(f'Unzipping {f} to {unzip_dir}...')
+        LOGGER.info(f'Unzipping {f} to {unzip_dir.absolute()}...')
         if is_zipfile(f):
             unzip_dir = unzip_file(file=f, path=unzip_dir)  # unzip
         elif f.suffix == '.tar':
@@ -201,16 +201,17 @@ def safe_download(url,
         return unzip_dir
 
 
+def get_github_assets(repo='ultralytics/assets', version='latest'):
+    """Return GitHub repo tag and assets (i.e. ['yolov8n.pt', 'yolov8s.pt', ...])."""
+    if version != 'latest':
+        version = f'tags/{version}'  # i.e. tags/v6.2
+    response = requests.get(f'https://api.github.com/repos/{repo}/releases/{version}').json()  # github api
+    return response['tag_name'], [x['name'] for x in response['assets']]  # tag, assets
+
+
 def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
     """Attempt file download from GitHub release assets if not found locally. release = 'latest', 'v6.2', etc."""
     from ultralytics.yolo.utils import SETTINGS  # scoped for circular import
-
-    def github_assets(repository, version='latest'):
-        """Return GitHub repo tag and assets (i.e. ['yolov8n.pt', 'yolov8s.pt', ...])."""
-        if version != 'latest':
-            version = f'tags/{version}'  # i.e. tags/v6.2
-        response = requests.get(f'https://api.github.com/repos/{repository}/releases/{version}').json()  # github api
-        return response['tag_name'], [x['name'] for x in response['assets']]  # tag, assets
 
     # YOLOv3/5u updates
     file = str(file)
@@ -235,10 +236,10 @@ def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
         # GitHub assets
         assets = GITHUB_ASSET_NAMES
         try:
-            tag, assets = github_assets(repo, release)
+            tag, assets = get_github_assets(repo, release)
         except Exception:
             try:
-                tag, assets = github_assets(repo)  # latest release
+                tag, assets = get_github_assets(repo)  # latest release
             except Exception:
                 try:
                     tag = subprocess.check_output(['git', 'tag']).decode().split()[-1]

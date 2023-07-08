@@ -20,7 +20,6 @@ import torch.utils.checkpoint as checkpoint
 from ultralytics.yolo.utils.instance import to_2tuple
 
 
-
 class Conv2d_BN(torch.nn.Sequential):
 
     def __init__(self, a, b, ks=1, stride=1, pad=0, dilation=1, groups=1, bn_weight_init=1):

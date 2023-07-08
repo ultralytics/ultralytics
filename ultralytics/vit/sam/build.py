@@ -13,8 +13,8 @@ import torch
 from ...yolo.utils.downloads import attempt_download_asset
 from .modules.decoders import MaskDecoder
 from .modules.encoders import ImageEncoderViT, PromptEncoder
-from .modules.tiny_encoder import TinyViT 
 from .modules.sam import Sam
+from .modules.tiny_encoder import TinyViT
 from .modules.transformer import TwoWayTransformer
 
 
@@ -50,6 +50,7 @@ def build_sam_vit_b(checkpoint=None):
         checkpoint=checkpoint,
     )
 
+
 def build_mobile_sam(checkpoint=None):
     """Build and return Mobile Segment Anything Model (Mobile-SAM)."""
     return _build_sam(
@@ -62,52 +63,46 @@ def build_mobile_sam(checkpoint=None):
     )
 
 
-def _build_sam(
-    encoder_embed_dim,
-    encoder_depth,
-    encoder_num_heads,
-    encoder_global_attn_indexes,
-    checkpoint=None,
-    mobile_sam=False
-):
+def _build_sam(encoder_embed_dim,
+               encoder_depth,
+               encoder_num_heads,
+               encoder_global_attn_indexes,
+               checkpoint=None,
+               mobile_sam=False):
     """Builds the selected SAM model architecture."""
     prompt_embed_dim = 256
     image_size = 1024
     vit_patch_size = 16
     image_embedding_size = image_size // vit_patch_size
-    image_encoder = (
-        TinyViT(
-            img_size=1024,
-            in_chans=3,
-            num_classes=1000,
-            embed_dims=encoder_embed_dim,
-            depths=encoder_depth,
-            num_heads=encoder_num_heads,
-            window_sizes=[7, 7, 14, 7],
-            mlp_ratio=4.0,
-            drop_rate=0.0,
-            drop_path_rate=0.0,
-            use_checkpoint=False,
-            mbconv_expand_ratio=4.0,
-            local_conv_size=3,
-            layer_lr_decay=0.8,
-        )
-        if mobile_sam
-        else ImageEncoderViT(
-            depth=encoder_depth,
-            embed_dim=encoder_embed_dim,
-            img_size=image_size,
-            mlp_ratio=4,
-            norm_layer=partial(torch.nn.LayerNorm, eps=1e-6),
-            num_heads=encoder_num_heads,
-            patch_size=vit_patch_size,
-            qkv_bias=True,
-            use_rel_pos=True,
-            global_attn_indexes=encoder_global_attn_indexes,
-            window_size=14,
-            out_chans=prompt_embed_dim,
-        )
-    )
+    image_encoder = (TinyViT(
+        img_size=1024,
+        in_chans=3,
+        num_classes=1000,
+        embed_dims=encoder_embed_dim,
+        depths=encoder_depth,
+        num_heads=encoder_num_heads,
+        window_sizes=[7, 7, 14, 7],
+        mlp_ratio=4.0,
+        drop_rate=0.0,
+        drop_path_rate=0.0,
+        use_checkpoint=False,
+        mbconv_expand_ratio=4.0,
+        local_conv_size=3,
+        layer_lr_decay=0.8,
+    ) if mobile_sam else ImageEncoderViT(
+        depth=encoder_depth,
+        embed_dim=encoder_embed_dim,
+        img_size=image_size,
+        mlp_ratio=4,
+        norm_layer=partial(torch.nn.LayerNorm, eps=1e-6),
+        num_heads=encoder_num_heads,
+        patch_size=vit_patch_size,
+        qkv_bias=True,
+        use_rel_pos=True,
+        global_attn_indexes=encoder_global_attn_indexes,
+        window_size=14,
+        out_chans=prompt_embed_dim,
+    ))
     sam = Sam(
         image_encoder=image_encoder,
         prompt_encoder=PromptEncoder(
@@ -145,9 +140,8 @@ def _build_sam(
 sam_model_map = {
     'sam_h.pt': build_sam_vit_h,
     'sam_l.pt': build_sam_vit_l,
-    'sam_b.pt': build_sam_vit_b, 
-    'mobile_sam.pt': build_mobile_sam,
-    }
+    'sam_b.pt': build_sam_vit_b,
+    'mobile_sam.pt': build_mobile_sam, }
 
 
 def build_sam(ckpt='sam_b.pt'):

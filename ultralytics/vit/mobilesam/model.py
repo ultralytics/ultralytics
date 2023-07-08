@@ -7,7 +7,6 @@ import numpy as np
 
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.utils import ops, plt_settings
-
 from ultralytics.yolo.v8.detect import DetectionValidator
 
 from ...yolo.utils.torch_utils import model_info

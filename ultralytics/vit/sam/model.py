@@ -4,10 +4,10 @@ SAM model interface
 """
 
 from ultralytics.yolo.cfg import get_cfg
-from .modules.prompt_predictor import PromptPredictor
 
 from ...yolo.utils.torch_utils import model_info
 from .build import build_sam
+from .modules.prompt_predictor import PromptPredictor
 from .predict import Predictor
 
 

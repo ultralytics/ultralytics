@@ -22,7 +22,7 @@ from .predict import FastSAMPredictor
 class FastSAM(YOLO):
 
     def __init__(self, model='FastSAM-x.pt'):
-        # Call the __init__ method of the parent class (YOLO) with the updated default model
+        """Call the __init__ method of the parent class (YOLO) with the updated default model"""
         if model == 'FastSAM.pt':
             model = 'FastSAM-x.pt'
         super().__init__(model=model)

@@ -78,10 +78,13 @@ def requests_with_progress(method, url, **kwargs):
         return requests.request(method, url, **kwargs)
     response = requests.request(method, url, stream=True, **kwargs)
     total = int(response.headers.get('content-length', 0))  # total size
-    pbar = tqdm(total=total, unit='B', unit_scale=True, unit_divisor=1024, bar_format=TQDM_BAR_FORMAT)
-    for data in response.iter_content(chunk_size=1024):
-        pbar.update(len(data))
-    pbar.close()
+    try:
+        pbar = tqdm(total=total, unit='B', unit_scale=True, unit_divisor=1024, bar_format=TQDM_BAR_FORMAT)
+        for data in response.iter_content(chunk_size=1024):
+            pbar.update(len(data))
+        pbar.close()
+    except requests.exceptions.ChunkedEncodingError:  # avoid 'Connection broken: IncompleteRead' warnings
+        response.close()
     return response
 
 

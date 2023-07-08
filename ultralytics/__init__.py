@@ -11,4 +11,4 @@ from ultralytics.yolo.nas import NAS
 from ultralytics.yolo.utils.checks import check_yolo as checks
 from ultralytics.yolo.utils.downloads import download
 
-__all__ = '__version__', 'YOLO', 'NAS', 'SAM', 'RTDETR', 'checks', 'start', 'download', 'FastSAM'  # allow simpler import
+__all__ = '__version__', 'YOLO', 'NAS', 'SAM', 'FastSAM', 'RTDETR', 'checks', 'download', 'start'  # allow simpler import

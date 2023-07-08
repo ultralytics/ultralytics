@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 
 from ultralytics.yolo.cfg import get_cfg
-from ultralytics.yolo.utils import ops
+from ultralytics.yolo.utils import ops, plt_settings
 from ultralytics.yolo.utils.checks import check_requirements
 
 check_requirements('timm')
@@ -46,10 +46,11 @@ class MobileSAM(DetectionValidator):
             self.predictor.args = get_cfg(self.predictor.args, overrides)
         return self.predictor(source, stream=stream)
 
+    @plt_settings()
     def predict_point(self, source, point, label, stream=False, **kwargs):
         overrides = dict(conf=0.25, task='segment', mode='predict')
         overrides.update(kwargs)  # prefer kwargs
-        image = cv2.imread('picture1.jpg')
+        image = cv2.imread(source)
         source = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         input_point = point
         input_label = label
@@ -60,11 +61,12 @@ class MobileSAM(DetectionValidator):
         self.predictor.predict_point(model=self.model, source=source, input_point=input_point, input_label=input_label)
         return 'Point prompt ' + str(input_point)
 
+    @plt_settings()
     def predict_box(self, source, input_box, stream=False, **kwargs):
         overrides = dict(conf=0.25, task='segment', mode='predict')
         overrides.update(kwargs)  # prefer kwargs
 
-        image = cv2.imread('picture1.jpg')
+        image = cv2.imread(source)
         source = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
         input_box = np.array(input_box)

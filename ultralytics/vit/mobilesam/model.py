@@ -7,13 +7,11 @@ import numpy as np
 
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.utils import ops, plt_settings
-from ultralytics.yolo.utils.checks import check_requirements
 
-check_requirements('timm')
 from ultralytics.yolo.v8.detect import DetectionValidator
 
 from ...yolo.utils.torch_utils import model_info
-from .build import build_sam
+from ..sam.build import build_sam
 from .predict import Predictor
 
 
@@ -22,7 +20,6 @@ class MobileSAM(DetectionValidator):
     def __init__(self, model='mobile_sam.pt') -> None:
         if model and not model.endswith('.pt') and not model.endswith('.pth'):
             raise NotImplementedError('Mobile Segment anything prediction requires pre-trained checkpoint')
-        check_requirements('timm')
         self.model = build_sam(model)
         self.task = 'segment'
         self.predictor = None
@@ -31,7 +28,6 @@ class MobileSAM(DetectionValidator):
         super().init_metrics(model)
         self.plot_masks = []
         if self.args.save_json:
-            check_requirements('timm')
             self.process = ops.process_mask_upsample  # more accurate
         else:
             self.process = ops.process_mask  # faster

@@ -20,6 +20,7 @@ def _ntuple(n):
     return parse
 
 
+to_2tuple = _ntuple(2)
 to_4tuple = _ntuple(4)
 
 # `xyxy` means left top and right bottom

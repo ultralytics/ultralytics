@@ -90,6 +90,15 @@ class DetectionValidator(BaseValidator):
                     self.stats.append((correct_bboxes, *torch.zeros((2, 0), device=self.device), cls.squeeze(-1)))
                     if self.args.plots:
                         self.confusion_matrix.process_batch(detections=None, labels=cls.squeeze(-1))
+
+                        # Have duplicated with code in following lines. Can create the labelsn as begining
+                        height, width = batch['img'].shape[2:]
+                        tbox = ops.xywh2xyxy(bbox) * torch.tensor(
+                            (width, height, width, height), device=self.device)  # target boxes
+                        ops.scale_boxes(batch['img'][si].shape[1:], tbox, shape,
+                                        ratio_pad=batch['ratio_pad'][si])  # native-space labels
+                        labelsn = torch.cat((cls, tbox), 1)  # native-space labels
+                        self.output_bad_cases(None, labelsn, batch, si)
                 continue
 
             # Predictions
@@ -163,7 +172,7 @@ class DetectionValidator(BaseValidator):
                                   Each row should contain (class, x1, y1, x2, y2).
         """
         if detections is None:
-            pass  # Output all labels
+            detections = torch.empty((0,6), device=self.device)  # Output all labels
 
         detections = detections[detections[:, 4] > self.confusion_matrix.conf]
         # gt_classes = labels[:, 0].int()
@@ -195,8 +204,8 @@ class DetectionValidator(BaseValidator):
         labels_matches = matches[:, 0]
         pred_matches = matches[:, 1]
 
-        false_negative = np.setdiff1d(np.concatenate([x[0].cpu().numpy(), y[0].cpu().numpy()]), labels_matches)
-        false_positive = np.setdiff1d(np.concatenate([x[1].cpu().numpy(), y[1].cpu().numpy()]), pred_matches)
+        false_negative = np.setdiff1d(list(range(labels.shape[0])), labels_matches)
+        false_positive = np.setdiff1d(list(range(detections.shape[0])), pred_matches)
 
         if false_negative.shape[0] > 0:
             # plot false negative images

@@ -3,7 +3,6 @@
 import glob
 import math
 import os
-import time
 from dataclasses import dataclass
 from pathlib import Path
 from threading import Thread
@@ -84,7 +83,7 @@ class LoadStreams:
                     LOGGER.warning('WARNING ⚠️ Video stream unresponsive, please check your IP camera connection.')
                     self.imgs[i] = np.zeros_like(self.imgs[i])
                     cap.open(stream)  # re-open stream if signal was lost
-            time.sleep(0.0)  # wait time
+                # time.sleep(1 / self.fps[i])  # wait time adjusted to match video frame rate
 
     def __iter__(self):
         """Iterates through YOLO image feed and re-opens unresponsive streams."""
@@ -92,14 +91,13 @@ class LoadStreams:
         return self
 
     def __next__(self):
-        """Returns source paths, transformed and original images for processing YOLOv5."""
+        """Returns source paths, transformed and original images for processing."""
         self.count += 1
         if not all(x.is_alive() for x in self.threads) or cv2.waitKey(1) == ord('q'):  # q to quit
             cv2.destroyAllWindows()
             raise StopIteration
 
-        im0 = self.imgs.copy()
-        return self.sources, im0, None, ''
+        return self.sources, self.imgs.copy(), None, ''
 
     def __len__(self):
         """Return the length of the sources object."""

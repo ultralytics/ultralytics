@@ -91,7 +91,7 @@ class DetectionValidator(BaseValidator):
                     if self.args.plots:
                         self.confusion_matrix.process_batch(detections=None, labels=cls.squeeze(-1))
 
-                        # Have duplicated with code in following lines. Can create the labelsn as begining
+                        # Have duplicate with code in following lines. Can create the labelsn as beginning
                         height, width = batch['img'].shape[2:]
                         tbox = ops.xywh2xyxy(bbox) * torch.tensor(
                             (width, height, width, height), device=self.device)  # target boxes

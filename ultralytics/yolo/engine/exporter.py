@@ -50,7 +50,6 @@ TensorFlow.js:
 """
 import json
 import os
-import platform
 import shutil
 import subprocess
 import time
@@ -64,15 +63,13 @@ from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel
 from ultralytics.yolo.cfg import get_cfg
-from ultralytics.yolo.utils import (DEFAULT_CFG, LINUX, LOGGER, MACOS, ROOT, __version__, callbacks, colorstr,
+from ultralytics.yolo.utils import (ARM64, DEFAULT_CFG, LINUX, LOGGER, MACOS, ROOT, __version__, callbacks, colorstr,
                                     get_default_args, yaml_save)
 from ultralytics.yolo.utils.checks import check_imgsz, check_requirements, check_version
 from ultralytics.yolo.utils.downloads import attempt_download_asset, get_github_assets
 from ultralytics.yolo.utils.files import file_size
 from ultralytics.yolo.utils.ops import Profile
 from ultralytics.yolo.utils.torch_utils import get_latest_opset, select_device, smart_inference_mode
-
-ARM64 = platform.machine() in ('arm64', 'aarch64')
 
 
 def export_formats():
@@ -170,7 +167,8 @@ class Exporter:
             assert not self.args.dynamic, 'half=True not compatible with dynamic=True, i.e. use only one.'
         self.imgsz = check_imgsz(self.args.imgsz, stride=model.stride, min_dim=2)  # check image size
         if self.args.optimize:
-            assert self.device.type == 'cpu', '--optimize not compatible with cuda devices, i.e. use --device cpu'
+            assert not ncnn, "optimize=True not compatible with format='ncnn', i.e. use optimize=False"
+            assert self.device.type == 'cpu', "optimize=True not compatible with cuda devices, i.e. use device='cpu'"
         if edgetpu and not LINUX:
             raise SystemError('Edge TPU export only supported on Linux. See https://coral.ai/docs/edgetpu/compiler/')
 
@@ -405,7 +403,7 @@ class Exporter:
         """
         YOLOv8 NCNN export using PNNX https://github.com/pnnx/pnnx.
         """
-        check_requirements('ncnn')  # requires NCNN
+        check_requirements('git+https://github.com/Tencent/ncnn.git' if ARM64 else 'ncnn')  # requires NCNN
         import ncnn  # noqa
 
         LOGGER.info(f'\n{prefix} starting export with NCNN {ncnn.__version__}...')

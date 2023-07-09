@@ -67,14 +67,14 @@ Following the original SAM, we provide a simple testing method in Ultralytics th
 from ultralytics import MobileSAM
 
 model = MobileSAM('mobile_sam.pt')
-model.predict_point('picture1.jpg',[[400, 400]],[1])
+model.predict_point('ultralytics/assets/bus.jpg',[[400, 400]],[1])
 ```
 ### Box Prompt
 ```python
 from ultralytics import MobileSAM
 
 model = MobileSAM('mobile_sam.pt')
-model.predict_box('picture1.jpg',[190, 70, 460, 280])
+model.predict_box('ultralytics/assets/bus.jpg',[190, 70, 460, 280])
 ```
 
 ### BibTex of our MobileSAM

@@ -261,7 +261,7 @@ class AutoBackend(nn.Module):
             if not w.is_file():  # if not *.param
                 w = next(w.glob('*.param'))  # get *.param file from *_ncnn_model dir
             net = ncnn.Net()
-            net.load_param(w)
+            net.load_param(str(w))
             input_name = self.net.input_names()[0]
             output_name = self.net.output_names()[0]
         elif triton:  # NVIDIA Triton Inference Server

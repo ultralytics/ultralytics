@@ -26,7 +26,7 @@ backbone:
   - [-1, 1, SPPF, [1024, 5]]  # 9
 
 # YOLOv8.0n AFPN head
-head:
+head_afpn_orig:
   - [4, 1, Conv, [128, 1, 1]] # 10 downsample backbone P3
   - [6, 1, Conv, [256, 1, 1]] # 11 downsample backbone P4
 
@@ -45,4 +45,26 @@ head:
   - [17, 1, C2f, [128, False]]  # 20 (P3/8-small)
   - [18, 1, C2f, [256, False]]  # 21 (P4/16-medium)
   - [19, 1, C2f, [512, False]]  # 22 (P5/32-large)
+  - [[20, 21, 22], 1, Detect, [nc]]  # Detect(P3, P4, P5)
+
+
+head:
+  - [4, 1, Conv, [128, 1, 1]] # 10 downsample backbone P3
+  - [6, 1, Conv, [256, 1, 1]] # 11 downsample backbone P4
+
+  - [[10, 11], 1, ASFF2, [128, 0]] # 12
+  - [[10, 11], 1, ASFF2, [256, 1]] # 13
+
+  - [-2, 1, C2f, [128, False]] # 14
+  - [-2, 1, C2f, [256, False]] # 15
+
+  - [9, 1, Conv, [512, 1, 1]] # 16 downsample backbone P5
+
+  - [[14, 15, 16], 1, ASFF3, [128, 0]] # 17
+  - [[14, 15, 16], 1, ASFF3, [256, 1]] # 18
+  - [[14, 15, 16], 1, ASFF3, [512, 2]] # 19
+
+  - [17, 3, C2f, [256, False]]  # 20 (P3/8-small)
+  - [18, 3, C2f, [512, False]]  # 21 (P4/16-medium)
+  - [19, 3, C2f, [1024, False]]  # 22 (P5/32-large)
   - [[20, 21, 22], 1, Detect, [nc]]  # Detect(P3, P4, P5)

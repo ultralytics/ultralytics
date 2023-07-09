@@ -354,8 +354,7 @@ class ASFF2(nn.Module):
         levels_weight = self.weights_levels(levels_weight_v)
         levels_weight = F.softmax(levels_weight, dim=1)
 
-        fused_out_reduced = level_0_resized * levels_weight[:, 0:1, :, :] + level_1_resized * levels_weight[:,
-                                                                                                            1:2, :, :]
+        fused_out_reduced = level_0_resized * levels_weight[:, 0:1] + level_1_resized * levels_weight[:, 1:2]
         return self.conv(fused_out_reduced)
 
 
@@ -412,11 +411,8 @@ class ASFF3(nn.Module):
         level_2_weight_v = self.weight_level_2(level_2_resized)
 
         levels_weight_v = torch.cat((level_0_weight_v, level_1_weight_v, level_2_weight_v), 1)
-        levels_weight = self.weights_levels(levels_weight_v)
-        levels_weight = F.softmax(levels_weight, dim=1)
+        w = self.weights_levels(levels_weight_v)
+        w = F.softmax(w, dim=1)
 
-        fused_out_reduced = level_0_resized * levels_weight[:, 0:1, :, :] + \
-                            level_1_resized * levels_weight[:, 1:2, :, :] + \
-                            level_2_resized * levels_weight[:, 2:, :, :]
-
+        fused_out_reduced = level_0_resized * w[:, :1] + level_1_resized * w[:, 1:2] + level_2_resized * w[:, 2:]
         return self.conv(fused_out_reduced)

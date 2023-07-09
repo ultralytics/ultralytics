@@ -1,6 +1,7 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
+
 """
-SAM model interface
+MobileSAM model interface
 """
 import cv2
 import numpy as np

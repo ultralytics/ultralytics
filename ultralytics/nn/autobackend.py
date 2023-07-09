@@ -262,8 +262,8 @@ class AutoBackend(nn.Module):
                 w = next(w.glob('*.param'))  # get *.param file from *_ncnn_model dir
             net = ncnn.Net()
             net.load_param(str(w))
-            input_name = self.net.input_names()[0]
-            output_name = self.net.output_names()[0]
+            input_name = net.input_names()[0]
+            output_name = net.output_names()[0]
         elif triton:  # NVIDIA Triton Inference Server
             LOGGER.info('Triton Inference Server not supported...')
             '''
@@ -371,9 +371,10 @@ class AutoBackend(nn.Module):
             im = im.cpu().numpy().astype(np.float32)
             mat_in = self.ncnn.Mat.from_pixels(im, self.ncnn.Mat.PixelType.PIXEL_RGB)
             ex = self.net.create_extractor()
-            ex.input(self.input_name, mat_in)
+            input_names, output_names = self.net.input_names(), self.net.output_names()
+            ex.input(input_names[0], mat_in)
             mat_out = self.ncnn.Mat()
-            ex.extract(self.output_name, mat_out)
+            ex.extract(output_names[0], mat_out)
             y = np.array(mat_out)
         elif self.triton:  # NVIDIA Triton Inference Server
             y = self.model(im)

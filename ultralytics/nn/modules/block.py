@@ -309,16 +309,16 @@ class Upsample(nn.Module):
 
     def __init__(self, c1, c2, scale_factor=2):
         super().__init__()
-        # self.cv1 = Conv(c1, c2, 1)
-        # self.upsample = nn.Upsample(scale_factor=scale_factor, mode='bilinear')
-        if scale_factor == 2:
-            self.cv1 = nn.ConvTranspose2d(c1, c2, 2, 2, 0, bias=True)  # nn.Upsample(scale_factor=2, mode='nearest')
-        elif scale_factor == 4:
-            self.cv1 = nn.ConvTranspose2d(c1, c2, 4, 4, 0, bias=True)  # nn.Upsample(scale_factor=4, mode='nearest')
+        self.cv1 = Conv(c1, c2, 1)
+        self.upsample = nn.Upsample(scale_factor=scale_factor, mode='bilinear')
+        # if scale_factor == 2:
+        #     self.cv1 = nn.ConvTranspose2d(c1, c2, 2, 2, 0, bias=True)  # nn.Upsample(scale_factor=2, mode='nearest')
+        # elif scale_factor == 4:
+        #     self.cv1 = nn.ConvTranspose2d(c1, c2, 4, 4, 0, bias=True)  # nn.Upsample(scale_factor=4, mode='nearest')
 
     def forward(self, x):
-        # return self.upsample(self.cv1(x))
-        return self.cv1(x)
+        return self.upsample(self.cv1(x))
+        # return self.cv1(x)
 
 
 class ASFF2(nn.Module):

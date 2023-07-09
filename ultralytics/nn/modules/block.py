@@ -310,7 +310,7 @@ class Upsample(nn.Module):
     def __init__(self, c1, c2, scale_factor=2):
         super().__init__()
         self.cv1 = Conv(c1, c2, 1)
-        self.upsample = nn.Upsample(scale_factor=scale_factor, mode='nearest')  # or model='bilinear' non-deterministic
+        self.upsample = nn.Upsample(scale_factor=scale_factor, mode='bilinear')  # or model='bilinear' non-deterministic
         # if scale_factor == 2:
         #    self.cv1 = nn.ConvTranspose2d(c1, c2, 2, 2, 0, bias=True)  # nn.Upsample(scale_factor=2, mode='nearest')
         # elif scale_factor == 4:

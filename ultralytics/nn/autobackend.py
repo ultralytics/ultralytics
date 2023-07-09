@@ -253,7 +253,7 @@ class AutoBackend(nn.Module):
             input_handle = predictor.get_input_handle(predictor.get_input_names()[0])
             output_names = predictor.get_output_names()
             metadata = w.parents[1] / 'metadata.yaml'
-        elif ncnn:  # PaddlePaddle
+        elif ncnn:  # NCNN
             LOGGER.info(f'Loading {w} for NCNN inference...')
             check_requirements('git+https://github.com/Tencent/ncnn.git' if ARM64 else 'ncnn')  # requires NCNN
             import ncnn
@@ -262,8 +262,7 @@ class AutoBackend(nn.Module):
                 w = next(w.glob('*.param'))  # get *.param file from *_ncnn_model dir
             net = ncnn.Net()
             net.load_param(str(w))
-            input_name = net.input_names()[0]
-            output_name = net.output_names()[0]
+            metadata = w.parent / 'metadata.yaml'
         elif triton:  # NVIDIA Triton Inference Server
             LOGGER.info('Triton Inference Server not supported...')
             '''

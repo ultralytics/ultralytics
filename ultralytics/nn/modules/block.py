@@ -11,7 +11,8 @@ from .conv import Conv, DWConv, GhostConv, LightConv, RepConv
 from .transformer import TransformerBlock
 
 __all__ = ('DFL', 'HGBlock', 'HGStem', 'SPP', 'SPPF', 'C1', 'C2', 'C3', 'C2f', 'C3x', 'C3TR', 'C3Ghost',
-           'GhostBottleneck', 'Bottleneck', 'BottleneckCSP', 'Proto', 'RepC3', 'ASFF2' 'ASFF3')
+           'GhostBottleneck', 'Bottleneck', 'BottleneckCSP', 'Proto', 'RepC3', 'ASFF2'
+           'ASFF3')
 
 
 class DFL(nn.Module):
@@ -354,8 +355,8 @@ class ASFF2(nn.Module):
         levels_weight = self.weights_levels(levels_weight_v)
         levels_weight = F.softmax(levels_weight, dim=1)
 
-        fused_out_reduced = level_0_resized * levels_weight[:, 0:1, :, :] + level_1_resized * levels_weight[:, 1:2, :,
-                                                                                              :]
+        fused_out_reduced = level_0_resized * levels_weight[:, 0:1, :, :] + level_1_resized * levels_weight[:,
+                                                                                                            1:2, :, :]
         return self.conv(fused_out_reduced)
 
 

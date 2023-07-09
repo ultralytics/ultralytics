@@ -20,6 +20,7 @@ GITHUB_ASSET_NAMES = [f'yolov8{k}{suffix}.pt' for k in 'nsmlx' for suffix in (''
                      [f'yolov3{k}u.pt' for k in ('', '-spp', '-tiny')] + \
                      [f'yolo_nas_{k}.pt' for k in 'sml'] + \
                      [f'sam_{k}.pt' for k in 'bl'] + \
+                     [f'FastSAM-{k}.pt' for k in 'sx'] + \
                      [f'rtdetr-{k}.pt' for k in 'lx']
 GITHUB_ASSET_STEMS = [Path(k).stem for k in GITHUB_ASSET_NAMES]
 
@@ -37,7 +38,7 @@ def is_url(url, check=True):
     return False
 
 
-def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX')):
+def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX'), exist_ok=False):
     """
     Unzips a *.zip file to the specified path, excluding files containing strings in the exclude list.
 
@@ -49,6 +50,7 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX')):
         file (str): The path to the zipfile to be extracted.
         path (str, optional): The path to extract the zipfile to. Defaults to None.
         exclude (tuple, optional): A tuple of filename strings to be excluded. Defaults to ('.DS_Store', '__MACOSX').
+        exist_ok (bool, optional): Whether to overwrite existing contents if they exist. Defaults to False.
 
     Raises:
         BadZipFile: If the provided file does not exist or is not a valid zipfile.
@@ -61,12 +63,20 @@ def unzip_file(file, path=None, exclude=('.DS_Store', '__MACOSX')):
     if path is None:
         path = Path(file).parent  # default path
 
+    # Unzip the file contents
     with ZipFile(file) as zipObj:
         file_list = [f for f in zipObj.namelist() if all(x not in f for x in exclude)]
         top_level_dirs = {Path(f).parts[0] for f in file_list}
 
         if len(top_level_dirs) > 1 or not file_list[0].endswith('/'):
             path = Path(path) / Path(file).stem  # define new unzip directory
+
+        # Check if destination directory already exists and contains files
+        extract_path = Path(path) / list(top_level_dirs)[0]
+        if extract_path.exists() and any(extract_path.iterdir()) and not exist_ok:
+            # If it exists and is not empty, return the path without unzipping
+            LOGGER.info(f'Skipping {file} unzip (already unzipped)')
+            return path
 
         for f in file_list:
             zipObj.extract(f, path=path)
@@ -179,7 +189,7 @@ def safe_download(url,
 
     if unzip and f.exists() and f.suffix in ('', '.zip', '.tar', '.gz'):
         unzip_dir = dir or f.parent  # unzip to dir if provided else unzip in place
-        LOGGER.info(f'Unzipping {f} to {unzip_dir}...')
+        LOGGER.info(f'Unzipping {f} to {unzip_dir.absolute()}...')
         if is_zipfile(f):
             unzip_dir = unzip_file(file=f, path=unzip_dir)  # unzip
         elif f.suffix == '.tar':
@@ -191,16 +201,17 @@ def safe_download(url,
         return unzip_dir
 
 
+def get_github_assets(repo='ultralytics/assets', version='latest'):
+    """Return GitHub repo tag and assets (i.e. ['yolov8n.pt', 'yolov8s.pt', ...])."""
+    if version != 'latest':
+        version = f'tags/{version}'  # i.e. tags/v6.2
+    response = requests.get(f'https://api.github.com/repos/{repo}/releases/{version}').json()  # github api
+    return response['tag_name'], [x['name'] for x in response['assets']]  # tag, assets
+
+
 def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
     """Attempt file download from GitHub release assets if not found locally. release = 'latest', 'v6.2', etc."""
     from ultralytics.yolo.utils import SETTINGS  # scoped for circular import
-
-    def github_assets(repository, version='latest'):
-        """Return GitHub repo tag and assets (i.e. ['yolov8n.pt', 'yolov8s.pt', ...])."""
-        if version != 'latest':
-            version = f'tags/{version}'  # i.e. tags/v6.2
-        response = requests.get(f'https://api.github.com/repos/{repository}/releases/{version}').json()  # github api
-        return response['tag_name'], [x['name'] for x in response['assets']]  # tag, assets
 
     # YOLOv3/5u updates
     file = str(file)
@@ -225,10 +236,10 @@ def attempt_download_asset(file, repo='ultralytics/assets', release='v0.0.0'):
         # GitHub assets
         assets = GITHUB_ASSET_NAMES
         try:
-            tag, assets = github_assets(repo, release)
+            tag, assets = get_github_assets(repo, release)
         except Exception:
             try:
-                tag, assets = github_assets(repo)  # latest release
+                tag, assets = get_github_assets(repo)  # latest release
             except Exception:
                 try:
                     tag = subprocess.check_output(['git', 'tag']).decode().split()[-1]

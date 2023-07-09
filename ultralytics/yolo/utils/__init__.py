@@ -38,6 +38,7 @@ VERBOSE = str(os.getenv('YOLO_VERBOSE', True)).lower() == 'true'  # global verbo
 TQDM_BAR_FORMAT = '{l_bar}{bar:10}{r_bar}'  # tqdm bar format
 LOGGING_NAME = 'ultralytics'
 MACOS, LINUX, WINDOWS = (platform.system() == x for x in ['Darwin', 'Linux', 'Windows'])  # environment booleans
+ARM64 = platform.machine() in ('arm64', 'aarch64')  # ARM64 booleans
 HELP_MSG = \
     """
     Usage examples for running YOLOv8:

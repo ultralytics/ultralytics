@@ -10,7 +10,7 @@ data:  # (str, optional) path to data file, i.e. coco128.yaml
 epochs: 100  # (int) number of epochs to train for
 patience: 50  # (int) epochs to wait for no observable improvement for early stopping of training
 batch: 16  # (int) number of images per batch (-1 for AutoBatch)
-imgsz: 640  # (int) size of input images as integer or w,h
+imgsz: 640  # (int | list) input images size as int for train and val modes, or list[w,h] for predict and export modes
 save: True  # (bool) save train checkpoints and predict results
 save_period: -1 # (int) Save checkpoint every x epochs (disabled if < 1)
 cache: False  # (bool) True/ram, disk or False. Use cache for data loading
@@ -27,7 +27,7 @@ deterministic: True  # (bool) whether to enable deterministic mode
 single_cls: False  # (bool) train multi-class data as single-class
 rect: False  # (bool) rectangular training if mode='train' or rectangular validation if mode='val'
 cos_lr: False  # (bool) use cosine learning rate scheduler
-close_mosaic: 0  # (int) disable mosaic augmentation for final epochs
+close_mosaic: 10  # (int) disable mosaic augmentation for final epochs
 resume: False  # (bool) resume training from last checkpoint
 amp: True  # (bool) Automatic Mixed Precision (AMP) training, choices=[True, False], True runs AMP check
 fraction: 1.0  # (float) dataset fraction to train on (default is 1.0, all images in train set)

@@ -16,16 +16,18 @@ from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_P
 # Define valid tasks and modes
 MODES = 'train', 'val', 'predict', 'export', 'track', 'benchmark'
 TASKS = 'detect', 'segment', 'classify', 'pose'
-TASK2DATA = {
-    'detect': 'coco128.yaml',
-    'segment': 'coco128-seg.yaml',
-    'classify': 'imagenet100',
-    'pose': 'coco8-pose.yaml'}
+TASK2DATA = {'detect': 'coco8.yaml', 'segment': 'coco8-seg.yaml', 'classify': 'imagenet100', 'pose': 'coco8-pose.yaml'}
 TASK2MODEL = {
     'detect': 'yolov8n.pt',
     'segment': 'yolov8n-seg.pt',
     'classify': 'yolov8n-cls.pt',
     'pose': 'yolov8n-pose.pt'}
+TASK2METRIC = {
+    'detect': 'metrics/mAP50-95(B)',
+    'segment': 'metrics/mAP50-95(M)',
+    'classify': 'metrics/accuracy_top1',
+    'pose': 'metrics/mAP50-95(P)'}
+
 
 CLI_HELP_MSG = \
     f"""

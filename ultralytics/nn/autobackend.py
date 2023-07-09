@@ -79,7 +79,8 @@ class AutoBackend(nn.Module):
         super().__init__()
         w = str(weights[0] if isinstance(weights, list) else weights)
         nn_module = isinstance(weights, torch.nn.Module)
-        pt, jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, triton = self._model_type(w)
+        pt, jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, ncnn, triton = \
+            self._model_type(w)
         fp16 &= pt or jit or onnx or engine or nn_module or triton  # FP16
         nhwc = coreml or saved_model or pb or tflite or edgetpu  # BHWC formats (vs torch BCWH)
         stride = 32  # default stride
@@ -237,7 +238,7 @@ class AutoBackend(nn.Module):
                     meta_file = model.namelist()[0]
                     metadata = ast.literal_eval(model.read(meta_file).decode('utf-8'))
         elif tfjs:  # TF.js
-            raise NotImplementedError('YOLOv8 TF.js inference is not supported')
+            raise NotImplementedError('YOLOv8 TF.js inference is not currently supported.')
         elif paddle:  # PaddlePaddle
             LOGGER.info(f'Loading {w} for PaddlePaddle inference...')
             check_requirements('paddlepaddle-gpu' if cuda else 'paddlepaddle')
@@ -252,6 +253,8 @@ class AutoBackend(nn.Module):
             input_handle = predictor.get_input_handle(predictor.get_input_names()[0])
             output_names = predictor.get_output_names()
             metadata = w.parents[1] / 'metadata.yaml'
+        elif ncnn:  # PaddlePaddle
+            raise NotImplementedError('YOLOv8 NCNN inference is not currently supported.')
         elif triton:  # NVIDIA Triton Inference Server
             LOGGER.info('Triton Inference Server not supported...')
             '''
@@ -340,7 +343,7 @@ class AutoBackend(nn.Module):
         elif self.coreml:  # CoreML
             im = im[0].cpu().numpy()
             im_pil = Image.fromarray((im * 255).astype('uint8'))
-            # im = im.resize((192, 320), Image.ANTIALIAS)
+            # im = im.resize((192, 320), Image.BILINEAR)
             y = self.model.predict({'image': im_pil})  # coordinates are xywh normalized
             if 'confidence' in y:
                 box = xywh2xyxy(y['coordinates'] * [[w, h, w, h]])  # xyxy pixels

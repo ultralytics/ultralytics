@@ -15,7 +15,7 @@ import torch
 import torch.nn as nn
 from PIL import Image
 
-from ultralytics.yolo.utils import LINUX, LOGGER, ROOT, yaml_load
+from ultralytics.yolo.utils import ARM64, LINUX, LOGGER, ROOT, yaml_load
 from ultralytics.yolo.utils.checks import check_requirements, check_suffix, check_version, check_yaml
 from ultralytics.yolo.utils.downloads import attempt_download_asset, is_url
 from ultralytics.yolo.utils.ops import xywh2xyxy
@@ -254,7 +254,16 @@ class AutoBackend(nn.Module):
             output_names = predictor.get_output_names()
             metadata = w.parents[1] / 'metadata.yaml'
         elif ncnn:  # PaddlePaddle
-            raise NotImplementedError('YOLOv8 NCNN inference is not currently supported.')
+            LOGGER.info(f'Loading {w} for NCNN inference...')
+            check_requirements('git+https://github.com/Tencent/ncnn.git' if ARM64 else 'ncnn')  # requires NCNN
+            import ncnn
+            w = Path(w)
+            if not w.is_file():  # if not *.param
+                w = next(w.glob('*.param'))  # get *.param file from *_ncnn_model dir
+            net = ncnn.Net()
+            net.load_param(w)
+            input_name = self.net.input_names()[0]
+            output_name = self.net.output_names()[0]
         elif triton:  # NVIDIA Triton Inference Server
             LOGGER.info('Triton Inference Server not supported...')
             '''
@@ -358,6 +367,14 @@ class AutoBackend(nn.Module):
             self.input_handle.copy_from_cpu(im)
             self.predictor.run()
             y = [self.predictor.get_output_handle(x).copy_to_cpu() for x in self.output_names]
+        elif self.ncnn:  # NCNN
+            im = im.cpu().numpy().astype(np.float32)
+            mat_in = self.ncnn.Mat.from_pixels(im, self.ncnn.Mat.PixelType.PIXEL_RGB)
+            ex = self.net.create_extractor()
+            ex.input(self.input_name, mat_in)
+            mat_out = self.ncnn.Mat()
+            ex.extract(self.output_name, mat_out)
+            y = np.array(mat_out)
         elif self.triton:  # NVIDIA Triton Inference Server
             y = self.model(im)
         else:  # TensorFlow (SavedModel, GraphDef, Lite, Edge TPU)

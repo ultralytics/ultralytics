@@ -77,8 +77,6 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
     y = []
     t0 = time.time()
     for i, (name, format, suffix, cpu, gpu) in export_formats().iterrows():  # index, (name, format, suffix, CPU, GPU)
-        if format != 'ncnn':
-            continue
         emoji, filename = '❌', None  # export defaults
         try:
             assert i != 9 or LINUX, 'Edge TPU export only supported on Linux'

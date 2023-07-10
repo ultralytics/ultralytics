@@ -34,7 +34,7 @@ class Predictor(BasePredictor):
             img = (img - self.mean) / self.std
         return img
 
-    def preprocess(self, im):
+    def pre_preprocess(self, im):
         """Pre-transform input image before inference.
 
         Args:
@@ -65,8 +65,6 @@ class Predictor(BasePredictor):
                 mask is needed, the model's predicted quality score can be used
                 to select the best mask. For non-ambiguous prompts, such as multiple
                 input prompts, multimask_output=False can give better results.
-            return_logits (bool): If true, returns un-thresholded masks logits
-                instead of a binary mask.
 
         Returns:
             (np.ndarray): The output masks in CxHxW format, where C is the
@@ -77,9 +75,9 @@ class Predictor(BasePredictor):
                 of masks and H=W=256. These low resolution logits can be passed to
                 a subsequent iteration as mask input.
         """
-        features = self.model.image_encoder(im) if getattr(self, "features", None) is None else self.features
+        features = self.model.image_encoder(im) if self.features is None else self.features
 
-        src_shape, dst_shape = self.batch[1].shape[:2], im.shape[2:]
+        src_shape, dst_shape = self.batch[1][0].shape[:2], im.shape[2:]
         # Transform input prompts
         if points is not None:
             assert (labels is not None), '`labels` must be supplied if points is supplied.'
@@ -89,8 +87,8 @@ class Predictor(BasePredictor):
             # (N, 2) --> (1, N, 2), (N, ) --> (1, N)
             points, labels = points[None, :, :], labels[None, :]
         if boxes is not None:
-            boxes = ops.scale_boxes(src_shape, boxes, dst_shape)
             boxes = torch.as_tensor(boxes, dtype=torch.float32, device=self.device)
+            boxes = ops.scale_boxes(src_shape, boxes, dst_shape)
         if masks is not None:
             masks = torch.as_tensor(masks, dtype=torch.float32, device=self.device)
             masks = masks[:, None, :, :]
@@ -104,7 +102,7 @@ class Predictor(BasePredictor):
         )
 
         # Predict masks
-        low_res_masks, iou_predictions = self.model.mask_decoder(
+        pred_masks, pred_ious = self.model.mask_decoder(
             image_embeddings=features,
             image_pe=self.model.prompt_encoder.get_dense_pe(),
             sparse_prompt_embeddings=sparse_embeddings,
@@ -112,13 +110,7 @@ class Predictor(BasePredictor):
             multimask_output=multimask_output,
         )
 
-        # Upscale the masks to the original image resolution
-        masks = self.model.postprocess_masks(low_res_masks, self.input_size, self.original_size)
-
-        if not return_logits:
-            masks = masks > self.model.mask_threshold
-
-        return masks, iou_predictions, low_res_masks
+        return pred_masks, pred_ious
 
 
     def setup_model(self, model):
@@ -128,7 +120,7 @@ class Predictor(BasePredictor):
         # self.model = SamAutomaticMaskGenerator(model.to(device),
         #                                        pred_iou_thresh=self.args.conf,
         #                                        box_nms_thresh=self.args.iou)
-        self.model = model
+        self.model = model.to(device)
         self.device = device
         self.mean = torch.tensor([123.675, 116.28, 103.53]).view(-1, 1, 1).to(device)
         self.std = torch.tensor([58.395, 57.12, 57.375]).view(-1, 1, 1).to(device)
@@ -139,14 +131,16 @@ class Predictor(BasePredictor):
         self.model.fp16 = False
         self.done_warmup = True
 
-    def postprocess(self, preds, path, orig_imgs):
+    def postprocess(self, preds, img, orig_imgs):
         """Postprocesses inference output predictions to create detection masks for objects."""
-        names = dict(enumerate(list(range(len(preds)))))
+        # (N, 1, H, W), (N, 1)
+        pred_masks, pred_ious = preds
+        names = dict(enumerate(list(range(len(pred_masks)))))
         results = []
-        # TODO
-        for i, pred in enumerate([preds]):
-            masks = torch.from_numpy(np.stack([p['segmentation'] for p in pred], axis=0))
+        for i, masks in enumerate([pred_masks]):
             orig_img = orig_imgs[i] if isinstance(orig_imgs, list) else orig_imgs
+            masks = ops.scale_masks(masks, orig_img.shape[:2])[0]
+            masks = masks > self.model.mask_threshold  # to bool
             path = self.batch[0]
             img_path = path[i] if isinstance(path, list) else path
             results.append(Results(orig_img=orig_img, path=img_path, names=names, masks=masks))

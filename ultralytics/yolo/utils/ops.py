@@ -647,9 +647,9 @@ def scale_masks(masks, shape):
     pad = (mw - shape[1] * gain) / 2, (mh - shape[0] * gain) / 2  # wh padding
     top, left = int(pad[1]), int(pad[0])  # y, x
     bottom, right = int(mh - pad[1]), int(mw - pad[0])
-    masks = masks[:, top:bottom, left:right]
+    masks = masks[..., top:bottom, left:right]
 
-    masks = F.interpolate(masks[None], shape, mode='bilinear', align_corners=False)  # NCHW
+    masks = F.interpolate(masks, shape, mode='bilinear', align_corners=False)  # NCHW
     return masks
 
 

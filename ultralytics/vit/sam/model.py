@@ -22,16 +22,16 @@ class SAM:
         self.predictor = None  # reuse predictor
         self.prompt_predictor = None  # predictor for prompts
 
-    def predict(self, source, stream=False, **kwargs):
+    def predict(self, source, stream=False, boxes=None, **kwargs):
         """Predicts and returns segmentation masks for given image or video source."""
-        overrides = dict(conf=0.25, task='segment', mode='predict')
+        overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024)
         overrides.update(kwargs)  # prefer kwargs
         if not self.predictor:
             self.predictor = Predictor(overrides=overrides)
             self.predictor.setup_model(model=self.model)
         else:  # only update args if predictor is already setup
             self.predictor.args = get_cfg(self.predictor.args, overrides)
-        return self.predictor(source, stream=stream)
+        return self.predictor(source, stream=stream, boxes=boxes)
 
     def predict_box(self, source, input_bbox):
         """Predicts and returns segmentation masks for given image and box."""

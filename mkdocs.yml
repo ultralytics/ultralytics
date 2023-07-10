@@ -406,6 +406,7 @@ plugins:
         quick-start.md: quickstart.md
         app.md: hub/app/index.md
         sdk.md: index.md
+        usage/hyperparameter_tuning.md: integrations/ray-tune.md
         reference/base_pred.md: reference/yolo/engine/predictor.md
         reference/base_trainer.md: reference/yolo/engine/trainer.md
         reference/exporter.md: reference/yolo/engine/exporter.md

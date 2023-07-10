@@ -3,14 +3,15 @@
 import numpy as np
 import torch
 
-from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.data.augment import LetterBox
+from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.engine.results import Results
+from ultralytics.yolo.utils import DEFAULT_CFG, ops
 from ultralytics.yolo.utils.torch_utils import select_device
-from ultralytics.yolo.utils import ops, DEFAULT_CFG
 
 
 class Predictor(BasePredictor):
+
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         super().__init__(cfg, overrides, _callbacks)
         self.features = None
@@ -42,11 +43,17 @@ class Predictor(BasePredictor):
 
         Return: A list of transformed imgs.
         """
-        assert len(im) == 1, "SAM model has not supported batch inference yet!"
+        assert len(im) == 1, 'SAM model has not supported batch inference yet!'
         return [LetterBox(self.imgsz, auto=False)(image=x) for x in im]
 
-    def inference(self, im, boxes=None, points=None, labels=None, masks=None, 
-                  multimask_output=True, return_logits=False):
+    def inference(self,
+                  im,
+                  boxes=None,
+                  points=None,
+                  labels=None,
+                  masks=None,
+                  multimask_output=True,
+                  return_logits=False):
         """
         Predict masks for the given input prompts, using the currently set image.
 
@@ -111,7 +118,6 @@ class Predictor(BasePredictor):
         )
 
         return pred_masks, pred_ious
-
 
     def setup_model(self, model):
         """Set up YOLO model with specified thresholds and device."""

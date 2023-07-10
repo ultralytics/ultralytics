@@ -2,6 +2,7 @@
 
 import contextlib
 import math
+import warnings
 from pathlib import Path
 
 import cv2
@@ -232,6 +233,9 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(''), on_plot=None):
     """Save and plot image with no axis or spines."""
     import pandas as pd
     import seaborn as sn
+
+    # Filter matplotlib>=3.7.2 warning
+    warnings.filterwarnings('ignore', category=UserWarning, message='The figure layout has changed to tight')
 
     # Plot dataset labels
     LOGGER.info(f"Plotting labels to {save_dir / 'labels.jpg'}... ")

@@ -7,10 +7,13 @@ from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.data.augment import LetterBox
 from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils.torch_utils import select_device
-from .modules.mask_generator import SamAutomaticMaskGenerator
+from ultralytics.yolo.utils import ops, DEFAULT_CFG
 
 
 class Predictor(BasePredictor):
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+        super().__init__(cfg, overrides, _callbacks)
+        self.features = None
 
     def preprocess(self, im):
         """Prepares input image before inference.
@@ -39,60 +42,84 @@ class Predictor(BasePredictor):
 
         Return: A list of transformed imgs.
         """
+        assert len(im) == 1, "SAM model has not supported batch inference yet!"
         return [LetterBox(self.imgsz, auto=False)(image=x) for x in im]
 
-    def inference(self, im, boxes=None, points=None, labels=None):
+    def inference(self, im, boxes=None, points=None, labels=None, masks=None, 
+                  multimask_output=True, return_logits=False):
         """
         Predict masks for the given input prompts, using the currently set image.
 
         Args:
-          box (np.ndarray, None): A length 4 array given a box prompt to the
-            model, in XYXY format.
-          point_coords (np.ndarray, None): A Nx2 array of point prompts to the
-            model. Each point is in (X,Y) in pixels.
-          point_labels (np.ndarray, None): A length N array of labels for the
-            point prompts. 1 indicates a foreground point and 0 indicates a
-            background point.
-          mask_input (np.ndarray): A low resolution mask input to the model, typically
-            coming from a previous prediction iteration. Has form 1xHxW, where
-            for SAM, H=W=256.
-          multimask_output (bool): If true, the model will return three masks.
-            For ambiguous input prompts (such as a single click), this will often
-            produce better masks than a single prediction. If only a single
-            mask is needed, the model's predicted quality score can be used
-            to select the best mask. For non-ambiguous prompts, such as multiple
-            input prompts, multimask_output=False can give better results.
-          return_logits (bool): If true, returns un-thresholded masks logits
-            instead of a binary mask.
+            im (torch.Tensor): The input image after preprocessing.
+            boxes (np.ndarray, None): (N, 4), in XYXY format.
+            points (np.ndarray, None): (N, 2), Each point is in (X,Y) in pixels.
+            labels (np.ndarray, None): (N, ), labels for the point prompts.
+                1 indicates a foreground point and 0 indicates a background point.
+            masks (np.ndarray, None): A low resolution mask input to the model, typically
+                coming from a previous prediction iteration. Has form (N, H, W), where
+                for SAM, H=W=256.
+            multimask_output (bool): If true, the model will return three masks.
+                For ambiguous input prompts (such as a single click), this will often
+                produce better masks than a single prediction. If only a single
+                mask is needed, the model's predicted quality score can be used
+                to select the best mask. For non-ambiguous prompts, such as multiple
+                input prompts, multimask_output=False can give better results.
+            return_logits (bool): If true, returns un-thresholded masks logits
+                instead of a binary mask.
 
         Returns:
-          (np.ndarray): The output masks in CxHxW format, where C is the
-            number of masks, and (H, W) is the original image size.
-          (np.ndarray): An array of length C containing the model's
-            predictions for the quality of each mask.
-          (np.ndarray): An array of shape CxHxW, where C is the number
-            of masks and H=W=256. These low resolution logits can be passed to
-            a subsequent iteration as mask input.
+            (np.ndarray): The output masks in CxHxW format, where C is the
+                number of masks, and (H, W) is the original image size.
+            (np.ndarray): An array of length C containing the model's
+                predictions for the quality of each mask.
+            (np.ndarray): An array of shape CxHxW, where C is the number
+                of masks and H=W=256. These low resolution logits can be passed to
+                a subsequent iteration as mask input.
         """
-        if not self.is_image_set:
-            raise RuntimeError('An image must be set with .set_image(...) before mask prediction.')
+        features = self.model.image_encoder(im) if getattr(self, "features", None) is None else self.features
 
+        src_shape, dst_shape = self.batch[1].shape[:2], im.shape[2:]
         # Transform input prompts
-        coords_torch, labels_torch, box_torch, mask_input_torch = None, None, None, None
-        if point_coords is not None:
-            assert (point_labels is not None), 'point_labels must be supplied if point_coords is supplied.'
-            point_coords = self.transform.apply_coords(point_coords, self.original_size)
-            coords_torch = torch.as_tensor(point_coords, dtype=torch.float, device=self.device)
-            labels_torch = torch.as_tensor(point_labels, dtype=torch.int, device=self.device)
-            coords_torch, labels_torch = coords_torch[None, :, :], labels_torch[None, :]
-        if box is not None:
-            box = self.transform.apply_boxes(box, self.original_size)
-            box_torch = torch.as_tensor(box, dtype=torch.float, device=self.device)
-            box_torch = box_torch[None, :]
-        if mask_input is not None:
-            mask_input_torch = torch.as_tensor(mask_input, dtype=torch.float, device=self.device)
-            mask_input_torch = mask_input_torch[None, :, :, :]
-        pass
+        if points is not None:
+            assert (labels is not None), '`labels` must be supplied if points is supplied.'
+            points = ops.scale_coords(src_shape, points, dst_shape)
+            points = torch.as_tensor(points, dtype=torch.float32, device=self.device)
+            labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
+            # (N, 2) --> (1, N, 2), (N, ) --> (1, N)
+            points, labels = points[None, :, :], labels[None, :]
+        if boxes is not None:
+            boxes = ops.scale_boxes(src_shape, boxes, dst_shape)
+            boxes = torch.as_tensor(boxes, dtype=torch.float32, device=self.device)
+        if masks is not None:
+            masks = torch.as_tensor(masks, dtype=torch.float32, device=self.device)
+            masks = masks[:, None, :, :]
+
+        points = (points, labels) if points is not None else None
+        # Embed prompts
+        sparse_embeddings, dense_embeddings = self.model.prompt_encoder(
+            points=points,
+            boxes=boxes,
+            masks=masks,
+        )
+
+        # Predict masks
+        low_res_masks, iou_predictions = self.model.mask_decoder(
+            image_embeddings=features,
+            image_pe=self.model.prompt_encoder.get_dense_pe(),
+            sparse_prompt_embeddings=sparse_embeddings,
+            dense_prompt_embeddings=dense_embeddings,
+            multimask_output=multimask_output,
+        )
+
+        # Upscale the masks to the original image resolution
+        masks = self.model.postprocess_masks(low_res_masks, self.input_size, self.original_size)
+
+        if not return_logits:
+            masks = masks > self.model.mask_threshold
+
+        return masks, iou_predictions, low_res_masks
+
 
     def setup_model(self, model):
         """Set up YOLO model with specified thresholds and device."""

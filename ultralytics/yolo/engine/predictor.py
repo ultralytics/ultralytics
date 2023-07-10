@@ -131,6 +131,11 @@ class BasePredictor:
             img /= 255  # 0 - 255 to 0.0 - 1.0
         return img
 
+    def inference(self, im):
+        visualize = increment_path(self.save_dir / Path(self.batch[0][0]).stem,
+                                   mkdir=True) if self.args.visualize and (not self.source_type.tensor) else False
+        return self.model(im, augment=self.args.augment, visualize=visualize)
+
     def pre_transform(self, im):
         """Pre-transform input image before inference.
 
@@ -236,8 +241,6 @@ class BasePredictor:
             self.run_callbacks('on_predict_batch_start')
             self.batch = batch
             path, im0s, vid_cap, s = batch
-            visualize = increment_path(self.save_dir / Path(path[0]).stem,
-                                       mkdir=True) if self.args.visualize and (not self.source_type.tensor) else False
 
             # Preprocess
             with profilers[0]:
@@ -245,7 +248,7 @@ class BasePredictor:
 
             # Inference
             with profilers[1]:
-                preds = self.model(im, augment=self.args.augment, visualize=visualize)
+                preds = self.model(im)
 
             # Postprocess
             with profilers[2]:

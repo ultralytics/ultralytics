@@ -3,6 +3,7 @@
 import ast
 import contextlib
 import json
+import os
 import platform
 import zipfile
 from collections import OrderedDict, namedtuple
@@ -253,15 +254,18 @@ class AutoBackend(nn.Module):
             input_handle = predictor.get_input_handle(predictor.get_input_names()[0])
             output_names = predictor.get_output_names()
             metadata = w.parents[1] / 'metadata.yaml'
-        elif ncnn:  # NCNN
-            LOGGER.info(f'Loading {w} for NCNN inference...')
+        elif ncnn:  # ncnn
+            LOGGER.info(f'Loading {w} for ncnn inference...')
             check_requirements('git+https://github.com/Tencent/ncnn.git' if ARM64 else 'ncnn')  # requires NCNN
-            import ncnn
+            import ncnn as pyncnn
+            net = pyncnn.Net()
+            net.opt.num_threads = os.cpu_count()
+            net.opt.use_vulkan_compute = cuda
             w = Path(w)
             if not w.is_file():  # if not *.param
                 w = next(w.glob('*.param'))  # get *.param file from *_ncnn_model dir
-            net = ncnn.Net()
             net.load_param(str(w))
+            net.load_model(str(w.with_suffix('.bin')))
             metadata = w.parent / 'metadata.yaml'
         elif triton:  # NVIDIA Triton Inference Server
             LOGGER.info('Triton Inference Server not supported...')
@@ -366,15 +370,15 @@ class AutoBackend(nn.Module):
             self.input_handle.copy_from_cpu(im)
             self.predictor.run()
             y = [self.predictor.get_output_handle(x).copy_to_cpu() for x in self.output_names]
-        elif self.ncnn:  # NCNN
-            im = im.cpu().numpy().astype(np.float32)
-            mat_in = self.ncnn.Mat.from_pixels(im, self.ncnn.Mat.PixelType.PIXEL_RGB)
+        elif self.ncnn:  # ncnn
+            im = im[0].cpu().numpy().astype(np.float32)
+            mat_in = self.pyncnn.Mat.from_pixels(im, self.pyncnn.Mat.PixelType.PIXEL_RGB, *im.shape[1:])
             ex = self.net.create_extractor()
             input_names, output_names = self.net.input_names(), self.net.output_names()
             ex.input(input_names[0], mat_in)
-            mat_out = self.ncnn.Mat()
+            mat_out = self.pyncnn.Mat()
             ex.extract(output_names[0], mat_out)
-            y = np.array(mat_out)
+            y = np.array(mat_out)[None]
         elif self.triton:  # NVIDIA Triton Inference Server
             y = self.model(im)
         else:  # TensorFlow (SavedModel, GraphDef, Lite, Edge TPU)

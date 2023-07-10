@@ -377,9 +377,11 @@ class AutoBackend(nn.Module):
             ex = self.net.create_extractor()
             input_names, output_names = self.net.input_names(), self.net.output_names()
             ex.input(input_names[0], mat_in)
-            mat_out = self.pyncnn.Mat()
-            ex.extract(output_names[0], mat_out)
-            y = np.array(mat_out)[None]
+            y = []
+            for output_name in output_names:
+                mat_out = self.pyncnn.Mat()
+                ex.extract(output_name, mat_out)
+                y.append(np.array(mat_out)[None])
         elif self.triton:  # NVIDIA Triton Inference Server
             y = self.model(im)
         else:  # TensorFlow (SavedModel, GraphDef, Lite, Edge TPU)

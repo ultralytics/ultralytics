@@ -547,7 +547,7 @@ def crop_mask(masks, boxes):
     It takes a mask and a bounding box, and returns a mask that is cropped to the bounding box
 
     Args:
-      masks (torch.Tensor): [h, w, n] tensor of masks
+      masks (torch.Tensor): [n, h, w] tensor of masks
       boxes (torch.Tensor): [n, 4] tensor of bbox coordinates in relative point form
 
     Returns:
@@ -629,15 +629,28 @@ def process_mask_native(protos, masks_in, bboxes, shape):
     """
     c, mh, mw = protos.shape  # CHW
     masks = (masks_in @ protos.float().view(c, -1)).sigmoid().view(-1, mh, mw)
+    masks = scale_masks(masks[None], shape)[0]  # CHW
+    masks = crop_mask(masks, bboxes)  # CHW
+    return masks.gt_(0.5)
+
+
+def scale_masks(masks, shape):
+    """
+    Rescale segment masks to shape.
+
+    Args:
+        masks (torch.Tensor): (N, C, H, W).
+        shape (tuple): Height and width.
+    """
+    mh, mw = masks.shape[2:]
     gain = min(mh / shape[0], mw / shape[1])  # gain  = old / new
     pad = (mw - shape[1] * gain) / 2, (mh - shape[0] * gain) / 2  # wh padding
     top, left = int(pad[1]), int(pad[0])  # y, x
     bottom, right = int(mh - pad[1]), int(mw - pad[0])
     masks = masks[:, top:bottom, left:right]
 
-    masks = F.interpolate(masks[None], shape, mode='bilinear', align_corners=False)[0]  # CHW
-    masks = crop_mask(masks, bboxes)  # CHW
-    return masks.gt_(0.5)
+    masks = F.interpolate(masks[None], shape, mode='bilinear', align_corners=False)  # NCHW
+    return masks
 
 
 def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize=False):

@@ -131,7 +131,7 @@ class BasePredictor:
             img /= 255  # 0 - 255 to 0.0 - 1.0
         return img
 
-    def inference(self, im):
+    def inference(self, im, *args, **kwargs):
         visualize = increment_path(self.save_dir / Path(self.batch[0][0]).stem,
                                    mkdir=True) if self.args.visualize and (not self.source_type.tensor) else False
         return self.model(im, augment=self.args.augment, visualize=visualize)
@@ -186,13 +186,13 @@ class BasePredictor:
         """Post-processes predictions for an image and returns them."""
         return preds
 
-    def __call__(self, source=None, model=None, stream=False):
+    def __call__(self, source=None, model=None, stream=False, *args, **kwargs):
         """Performs inference on an image or stream."""
         self.stream = stream
         if stream:
-            return self.stream_inference(source, model)
+            return self.stream_inference(source, model, *args, **kwargs)
         else:
-            return list(self.stream_inference(source, model))  # merge list of Result into one
+            return list(self.stream_inference(source, model, *args, **kwargs))  # merge list of Result into one
 
     def predict_cli(self, source=None, model=None):
         """Method used for CLI prediction. It uses always generator as outputs as not required by CLI mode."""
@@ -214,7 +214,7 @@ class BasePredictor:
         self.vid_path, self.vid_writer = [None] * self.dataset.bs, [None] * self.dataset.bs
 
     @smart_inference_mode()
-    def stream_inference(self, source=None, model=None):
+    def stream_inference(self, source=None, model=None, *args, **kwargs):
         """Streams real-time inference on camera feed and saves results to file."""
         if self.args.verbose:
             LOGGER.info('')
@@ -248,7 +248,7 @@ class BasePredictor:
 
             # Inference
             with profilers[1]:
-                preds = self.model(im)
+                preds = self.inference(im, *args, **kwargs)
 
             # Postprocess
             with profilers[2]:

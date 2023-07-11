@@ -2,19 +2,30 @@
 
 import numpy as np
 import torch
+import torch.nn.functional as F
 
 from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.data.augment import LetterBox
 from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils.torch_utils import select_device
 from ultralytics.yolo.utils import ops, DEFAULT_CFG
+from .amg import generate_crop_boxes, build_all_layer_point_grids, batch_iterator
 
 
 class Predictor(BasePredictor):
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         super().__init__(cfg, overrides, _callbacks)
+        # Args for set_image
         self.im = None
         self.features = None
+        # Args for segment everything
+        self.crop_n_layers = 0
+        self.crop_overlap_ratio = 512 / 1500
+        self.crop_n_points_downscale_factor = 1
+        self.point_grids = None
+        self.points_per_side = 32
+        self.points_per_batch = 64
+        self.pred_iou_thresh = 0.88
 
     def preprocess(self, im):
         """Prepares input image before inference.
@@ -53,7 +64,39 @@ class Predictor(BasePredictor):
         Predict masks for the given input prompts, using the currently set image.
 
         Args:
-            im (torch.Tensor): The input image after preprocessing.
+            im (torch.Tensor): The preprocessed image, (N, C, H, W).
+            boxes (np.ndarray | List, None): (N, 4), in XYXY format.
+            points (np.ndarray | List, None): (N, 2), Each point is in (X,Y) in pixels.
+            labels (np.ndarray | List, None): (N, ), labels for the point prompts.
+                1 indicates a foreground point and 0 indicates a background point.
+            masks (np.ndarray, None): A low resolution mask input to the model, typically
+                coming from a previous prediction iteration. Has form (N, H, W), where
+                for SAM, H=W=256.
+            multimask_output (bool): If true, the model will return three masks.
+                For ambiguous input prompts (such as a single click), this will often
+                produce better masks than a single prediction. If only a single
+                mask is needed, the model's predicted quality score can be used
+                to select the best mask. For non-ambiguous prompts, such as multiple
+                input prompts, multimask_output=False can give better results.
+
+        Returns:
+            (np.ndarray): The output masks in CxHxW format, where C is the
+                number of masks, and (H, W) is the original image size.
+            (np.ndarray): An array of length C containing the model's
+                predictions for the quality of each mask.
+            (np.ndarray): An array of shape CxHxW, where C is the number
+                of masks and H=W=256. These low resolution logits can be passed to
+                a subsequent iteration as mask input.
+        """
+        pred_masks, pred_ious = self.prompt_inference(im, boxes, points, labels, masks, multimask_output)
+        return pred_masks, pred_ious
+
+    def prompt_inference(self, im, boxes=None, points=None, labels=None, masks=None, multimask_output=True):
+        """
+        Predict masks for the given input prompts, using the currently set image.
+
+        Args:
+            im (torch.Tensor): The preprocessed image, (N, C, H, W).
             boxes (np.ndarray | List, None): (N, 4), in XYXY format.
             points (np.ndarray | List, None): (N, 2), Each point is in (X,Y) in pixels.
             labels (np.ndarray | List, None): (N, ), labels for the point prompts.
@@ -84,6 +127,9 @@ class Predictor(BasePredictor):
         if points is not None:
             assert (labels is not None), '`labels` must be supplied if points is supplied.'
             points = torch.as_tensor(points, dtype=torch.float32, device=self.device)
+            # Assuming labels are all positive if users don't pass labels.
+            if labels is None:
+                labels = np.ones(points.shape[0])
             labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
             points = ops.scale_coords(src_shape, points, dst_shape)
             # (N, 2) --> (1, N, 2), (N, ) --> (1, N)
@@ -113,6 +159,31 @@ class Predictor(BasePredictor):
         )
 
         return pred_masks, pred_ious
+
+    # TODO: This function is WIP.
+    def generate(self, im):
+        """Segment the whole image.
+
+        Args:
+            im(torch.Tensor): The preprocessed image, (N, C, H, W).
+        """
+        ih, iw = im.shape
+        crop_boxes, layer_idxs = generate_crop_boxes((ih, iw), self.crop_n_layers, self.crop_overlap_ratio)
+        self.point_grids = build_all_layer_point_grids(
+            self.points_per_side,
+            self.crop_n_layers,
+            self.crop_n_points_downscale_factor,
+        )
+        for crop_box, layer_idx in zip(crop_boxes, layer_idxs):
+            x1, y1, x2, y2 = crop_box
+            w, h = x2 - x1, y2 - y1
+            points_scale = np.array([[w, h]])   # w, h
+            # Crop image and interpolate to input size
+            crop_im = F.interpolate(im[..., y1:y2, x1:x2], (ih, iw), mode='bilinear', align_corners=False)
+            # (num_points, 2)
+            points_for_image = self.point_grids[layer_idx] * points_scale
+            for (points, ) in batch_iterator(self.points_per_batch, points_for_image):
+                pred_masks, pred_ious = self.prompt_inference(crop_im, points=points)
 
 
     def setup_model(self, model):

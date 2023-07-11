@@ -8,6 +8,8 @@ keywords: Ultralytics integrations, Roboflow, Neural Magic, ClearML, Comet ML, D
 
 Welcome to the Ultralytics Integrations page! Here you'll find an overview of our integrations with various tools and platforms to help you improve and streamline your machine learning workflows.
 
+<img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
+
 ## Integrations Overview
 
 - [Roboflow](https://roboflow.com/): Manage your datasets efficiently with Roboflow's powerful annotation, preprocessing, and augmentation tools.

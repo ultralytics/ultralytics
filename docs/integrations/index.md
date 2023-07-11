@@ -10,27 +10,27 @@ Welcome to the Ultralytics Integrations page! Here you'll find an overview of ou
 
 ## Integrations Overview
 
-- **[Roboflow](https://roboflow.com/)**: Manage your datasets efficiently with Roboflow's powerful annotation, preprocessing, and augmentation tools.
+- [Roboflow](https://roboflow.com/): Manage your datasets efficiently with Roboflow's powerful annotation, preprocessing, and augmentation tools.
 
-- **[Neural Magic](https://neuralmagic.com/)**: Optimize your models for better performance and smaller size with Quantization Aware Training (QAT) and pruning techniques.
+- [Neural Magic](https://neuralmagic.com/): Optimize your models for better performance and smaller size with Quantization Aware Training (QAT) and pruning techniques.
 
-- **[ClearML](https://clear.ml/)**: Automate ML workflows, track experiments, and collaborate with your team more efficiently.
+- [ClearML](https://clear.ml/): Automate ML workflows, track experiments, and collaborate with your team more efficiently.
 
-- **[Comet ML](https://www.comet.ml/)**: Track, compare, explain, and optimize your ML experiments and models for continual improvement.
+- [Comet ML](https://www.comet.ml/): Track, compare, explain, and optimize your ML experiments and models for continual improvement.
 
-- **[DVC](https://dvc.org/)**: Use version control for your machine learning projects to keep data, code, and models synced and versioned.
+- [DVC](https://dvc.org/): Use version control for your machine learning projects to keep data, code, and models synced and versioned.
 
-- **[Ultralytics HUB](https://hub.ultralytics.com)**: Access pre-trained Ultralytics models and contribute to the community.
+- [Ultralytics HUB](https://hub.ultralytics.com): Access pre-trained Ultralytics models and contribute to the community.
 
-- **[MLFlow](https://mlflow.org/)**: Manage the ML lifecycle, including experimentation, reproducibility, and deployment.
+- [MLFlow](https://mlflow.org/): Manage the ML lifecycle, including experimentation, reproducibility, and deployment.
 
-- **[Neptune](https://neptune.ai/)**: Keep track of your ML experiments with this metadata store for MLOps.
+- [Neptune](https://neptune.ai/): Keep track of your ML experiments with this metadata store for MLOps.
 
-- **[Ray Tune](https://docs.ray.io/en/latest/tune/index.html)**: Execute experiments and tune hyperparameters at any scale with this Python library.
+- [Ray Tune](https://docs.ray.io/en/latest/tune/index.html): Execute experiments and tune hyperparameters at any scale with this Python library.
 
-- **[TensorBoard](https://tensorboard.dev/)**: Visualize your ML workflows, track metrics, and share findings with your team.
+- [TensorBoard](https://tensorboard.dev/): Visualize your ML workflows, track metrics, and share findings with your team.
 
-- **[Weights & Biases (W&B)](https://wandb.ai/site)**: Track experiments, visualize metrics, and share and reproduce findings.
+- [Weights & Biases (W&B)](https://wandb.ai/site): Track experiments, visualize metrics, and share and reproduce findings.
 
 ## Export Formats
 

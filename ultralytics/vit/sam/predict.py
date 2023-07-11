@@ -13,6 +13,7 @@ from ultralytics.yolo.utils import ops, DEFAULT_CFG
 class Predictor(BasePredictor):
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         super().__init__(cfg, overrides, _callbacks)
+        self.im = None
         self.features = None
 
     def preprocess(self, im):
@@ -21,6 +22,8 @@ class Predictor(BasePredictor):
         Args:
             im (torch.Tensor | List(np.ndarray)): BCHW for tensor, [(HWC) x B] for list.
         """
+        if self.im is not None:
+            return self.im
         not_tensor = not isinstance(im, torch.Tensor)
         if not_tensor:
             im = np.stack(self.pre_transform(im))
@@ -45,16 +48,15 @@ class Predictor(BasePredictor):
         assert len(im) == 1, "SAM model has not supported batch inference yet!"
         return [LetterBox(self.imgsz, auto=False)(image=x) for x in im]
 
-    def inference(self, im, boxes=None, points=None, labels=None, masks=None, 
-                  multimask_output=True, return_logits=False):
+    def inference(self, im, boxes=None, points=None, labels=None, masks=None, multimask_output=True):
         """
         Predict masks for the given input prompts, using the currently set image.
 
         Args:
             im (torch.Tensor): The input image after preprocessing.
-            boxes (np.ndarray, None): (N, 4), in XYXY format.
-            points (np.ndarray, None): (N, 2), Each point is in (X,Y) in pixels.
-            labels (np.ndarray, None): (N, ), labels for the point prompts.
+            boxes (np.ndarray | List, None): (N, 4), in XYXY format.
+            points (np.ndarray | List, None): (N, 2), Each point is in (X,Y) in pixels.
+            labels (np.ndarray | List, None): (N, ), labels for the point prompts.
                 1 indicates a foreground point and 0 indicates a background point.
             masks (np.ndarray, None): A low resolution mask input to the model, typically
                 coming from a previous prediction iteration. Has form (N, H, W), where
@@ -81,9 +83,9 @@ class Predictor(BasePredictor):
         # Transform input prompts
         if points is not None:
             assert (labels is not None), '`labels` must be supplied if points is supplied.'
-            points = ops.scale_coords(src_shape, points, dst_shape)
             points = torch.as_tensor(points, dtype=torch.float32, device=self.device)
             labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
+            points = ops.scale_coords(src_shape, points, dst_shape)
             # (N, 2) --> (1, N, 2), (N, ) --> (1, N)
             points, labels = points[None, :, :], labels[None, :]
         if boxes is not None:
@@ -154,6 +156,8 @@ class Predictor(BasePredictor):
         """
         im = self.preprocess(image)
         self.features = self.model.image_encoder(im)
+        self.im = im
 
     def reset_image(self):
+        self.im = None
         self.features = None

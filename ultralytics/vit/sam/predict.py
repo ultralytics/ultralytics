@@ -2,6 +2,7 @@
 
 import numpy as np
 import torch
+import torchvision
 import torch.nn.functional as F
 
 from ultralytics.yolo.data.augment import LetterBox
@@ -10,7 +11,7 @@ from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils import DEFAULT_CFG, ops
 from ultralytics.yolo.utils.torch_utils import select_device
 
-from .amg import batch_iterator, build_all_layer_point_grids, generate_crop_boxes
+from .amg import batch_iterator, build_all_layer_point_grids, generate_crop_boxes, calculate_stability_score, batched_mask_to_box, is_box_near_crop_edge, uncrop_masks, uncrop_boxes_xyxy
 
 
 class Predictor(BasePredictor):
@@ -21,6 +22,7 @@ class Predictor(BasePredictor):
         self.im = None
         self.features = None
         # Args for segment everything
+        self.segment_all = False
         self.crop_n_layers = 0
         self.crop_overlap_ratio = 512 / 1500
         self.crop_n_points_downscale_factor = 1
@@ -28,6 +30,8 @@ class Predictor(BasePredictor):
         self.points_per_side = 32
         self.points_per_batch = 64
         self.pred_iou_thresh = 0.88
+        self.stability_score_offset = 1.0
+        self.stability_score_thresh = 0.95
 
     def preprocess(self, im):
         """Prepares input image before inference.
@@ -90,8 +94,9 @@ class Predictor(BasePredictor):
                 of masks and H=W=256. These low resolution logits can be passed to
                 a subsequent iteration as mask input.
         """
-        pred_masks, pred_ious = self.prompt_inference(im, boxes, points, labels, masks, multimask_output)
-        return pred_masks, pred_ious
+        if all([i is None for i in [boxes, points, masks]]):
+            return self.generate(im)
+        return self.prompt_inference(im, boxes, points, labels, masks, multimask_output)
 
     def prompt_inference(self, im, boxes=None, points=None, labels=None, masks=None, multimask_output=False):
         """
@@ -152,7 +157,7 @@ class Predictor(BasePredictor):
         )
 
         # Predict masks
-        pred_masks, pred_ious = self.model.mask_decoder(
+        pred_masks, pred_scores = self.model.mask_decoder(
             image_embeddings=features,
             image_pe=self.model.prompt_encoder.get_dense_pe(),
             sparse_prompt_embeddings=sparse_embeddings,
@@ -160,7 +165,7 @@ class Predictor(BasePredictor):
             multimask_output=multimask_output,
         )
 
-        return pred_masks, pred_ious
+        return pred_masks, pred_scores
 
     # TODO: This function is WIP.
     def generate(self, im):
@@ -169,6 +174,7 @@ class Predictor(BasePredictor):
         Args:
             im(torch.Tensor): The preprocessed image, (N, C, H, W).
         """
+        self.segment_all = True
         ih, iw = im.shape
         crop_boxes, layer_idxs = generate_crop_boxes((ih, iw), self.crop_n_layers, self.crop_overlap_ratio)
         self.point_grids = build_all_layer_point_grids(
@@ -176,6 +182,7 @@ class Predictor(BasePredictor):
             self.crop_n_layers,
             self.crop_n_points_downscale_factor,
         )
+        pred_masks, pred_scores, pred_bboxes = [], [], []
         for crop_box, layer_idx in zip(crop_boxes, layer_idxs):
             x1, y1, x2, y2 = crop_box
             w, h = x2 - x1, y2 - y1
@@ -184,8 +191,31 @@ class Predictor(BasePredictor):
             crop_im = F.interpolate(im[..., y1:y2, x1:x2], (ih, iw), mode='bilinear', align_corners=False)
             # (num_points, 2)
             points_for_image = self.point_grids[layer_idx] * points_scale
-            for (points, ) in batch_iterator(self.points_per_batch, points_for_image):
-                pred_masks, pred_ious = self.prompt_inference(crop_im, points=points)
+            for points in batch_iterator(self.points_per_batch, points_for_image):
+                pred_mask, pred_score = self.prompt_inference(crop_im, points=points)
+                # Interpolate predicted masks to input size
+                pred_mask = F.interpolate(pred_mask, (h, w), mode='bilinear', align_corners=False)
+                idx = pred_score > self.pred_iou_thresh
+                pred_mask, pred_score = pred_mask[idx], pred_score[idx]
+                stability_score = calculate_stability_score(pred_mask, self.model.mask_threshold, self.stability_score_offset)
+                idx = stability_score > self.stability_score_thresh
+                # (N, H, W), (N, )
+                pred_mask, pred_score = pred_mask[idx], pred_score[idx]
+                # (N, 4)
+                pred_bbox = batched_mask_to_box(pred_mask > self.model.mask_threshold)
+                keep_mask = ~is_box_near_crop_edge(pred_bbox, crop_box, [0, 0, iw, ih])
+                if not torch.all(keep_mask):
+                    pred_bbox = pred_bbox[keep_mask]
+                    pred_mask = pred_mask[keep_mask]
+                    pred_score = pred_score[keep_mask]
+                pred_mask = uncrop_masks(pred_mask, crop_box, ih, iw)
+                pred_bbox = uncrop_boxes_xyxy(pred_bbox, crop_box)
+
+                pred_masks.append(pred_mask)
+                pred_bboxes.append(pred_bbox)
+                pred_scores.append(pred_score)
+        return torch.cat(pred_masks), torch.cat(pred_scores), torch.cat(pred_bboxes)
+
 
     def setup_model(self, model):
         """Set up YOLO model with specified thresholds and device."""
@@ -208,16 +238,25 @@ class Predictor(BasePredictor):
     def postprocess(self, preds, img, orig_imgs):
         """Postprocesses inference output predictions to create detection masks for objects."""
         # (N, 1, H, W), (N, 1)
-        pred_masks, pred_ious = preds
+        pred_masks, pred_scores = preds[:2]
+        pred_bboxes = preds[2] if self.segment_all else None
         names = dict(enumerate(list(range(len(pred_masks)))))
         results = []
         for i, masks in enumerate([pred_masks]):
             orig_img = orig_imgs[i] if isinstance(orig_imgs, list) else orig_imgs
+            if pred_bboxes is not None:
+                keep = torchvision.ops.nms(pred_bboxes, pred_scores, self.args.iou)  # NMS
+                pred_bboxes = pred_bboxes[keep]
+                pred_scores = pred_scores[keep]
+                masks = masks[keep]
+
             masks = ops.scale_masks(masks, orig_img.shape[:2]).flatten(0, 1)
             masks = masks > self.model.mask_threshold  # to bool
             path = self.batch[0]
             img_path = path[i] if isinstance(path, list) else path
             results.append(Results(orig_img=orig_img, path=img_path, names=names, masks=masks))
+        # Reset segment-all mode.
+        self.segment_all = False
         return results
 
     def set_image(self, image):

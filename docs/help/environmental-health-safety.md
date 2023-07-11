@@ -4,11 +4,11 @@ description: Discover Ultralytics' commitment to Environmental, Health, and Safe
 keywords: Ultralytics, Environmental Policy, Health and Safety, EHS, Sustainability, Workplace Safety, Environmental Compliance
 ---
 
-## Ultralytics Environmental, Health and Safety (EHS) Policy
+# Ultralytics Environmental, Health and Safety (EHS) Policy
 
 At Ultralytics, we recognize that the long-term success of our company relies not only on the products and services we offer, but also the manner in which we conduct our business. We are committed to ensuring the safety and well-being of our employees, stakeholders, and the environment, and we will continuously strive to mitigate our impact on the environment while promoting health and safety.
 
-### Policy Principles:
+## Policy Principles:
 
 1. **Compliance**: We will comply with all applicable laws, regulations, and standards related to EHS, and we will strive to exceed these standards where possible.
 
@@ -20,7 +20,7 @@ At Ultralytics, we recognize that the long-term success of our company relies no
 
 5. **Education and Training**: We will educate and train our employees and contractors in appropriate EHS procedures and practices.
 
-### Implementation Measures:
+## Implementation Measures:
 
 1. **Responsibility and Accountability**: Every employee and contractor working at or with Ultralytics is responsible for adhering to this policy. Managers and supervisors are accountable for ensuring this policy is implemented within their areas of control.
 
@@ -31,8 +31,6 @@ At Ultralytics, we recognize that the long-term success of our company relies no
 4. **Emergency Preparedness and Response**: We will develop, maintain, and test emergency preparedness and response plans to ensure we can respond effectively to EHS incidents.
 
 5. **Monitoring and Review**: We will monitor and review our EHS performance regularly to identify opportunities for improvement and ensure we are meeting our objectives.
-
----
 
 This policy reflects our commitment to minimizing our environmental footprint, ensuring the safety and well-being of our employees, and continuously improving our performance.
 

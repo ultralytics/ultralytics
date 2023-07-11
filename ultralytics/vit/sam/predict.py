@@ -9,8 +9,8 @@ from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils import DEFAULT_CFG, ops
 from ultralytics.yolo.utils.torch_utils import select_device
-from ultralytics.yolo.utils import ops, DEFAULT_CFG
-from .amg import generate_crop_boxes, build_all_layer_point_grids, batch_iterator
+
+from .amg import batch_iterator, build_all_layer_point_grids, generate_crop_boxes
 
 
 class Predictor(BasePredictor):
@@ -179,14 +179,13 @@ class Predictor(BasePredictor):
         for crop_box, layer_idx in zip(crop_boxes, layer_idxs):
             x1, y1, x2, y2 = crop_box
             w, h = x2 - x1, y2 - y1
-            points_scale = np.array([[w, h]])   # w, h
+            points_scale = np.array([[w, h]])  # w, h
             # Crop image and interpolate to input size
             crop_im = F.interpolate(im[..., y1:y2, x1:x2], (ih, iw), mode='bilinear', align_corners=False)
             # (num_points, 2)
             points_for_image = self.point_grids[layer_idx] * points_scale
             for (points, ) in batch_iterator(self.points_per_batch, points_for_image):
                 pred_masks, pred_ious = self.prompt_inference(crop_im, points=points)
-
 
     def setup_model(self, model):
         """Set up YOLO model with specified thresholds and device."""

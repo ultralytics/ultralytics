@@ -35,6 +35,7 @@ theme:
         icon: material/brightness-4
         name: Switch to light mode
   features:
+    - announce.dismiss
     - content.action.edit
     - content.code.annotate
     - content.code.copy

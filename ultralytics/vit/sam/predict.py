@@ -11,7 +11,7 @@ from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils import DEFAULT_CFG, ops
 from ultralytics.yolo.utils.torch_utils import select_device
 
-from .amg import (batch_iterator, batched_mask_to_box, build_all_layer_point_grids, calculate_stability_score,
+from .amg import (batch_iterator, batched_mask_to_box, build_all_layer_point_grids,
                   generate_crop_boxes, is_box_near_crop_edge, uncrop_boxes_xyxy, uncrop_masks)
 
 
@@ -197,6 +197,7 @@ class Predictor(BasePredictor):
                 pred_mask = F.interpolate(pred_mask, (h, w), mode='bilinear', align_corners=False)
                 # idx = pred_score > self.pred_iou_thresh
                 # pred_mask, pred_score = pred_mask[idx], pred_score[idx]
+                # from .amg import  calculate_stability_score
                 # stability_score = calculate_stability_score(pred_mask, self.model.mask_threshold,
                 #                                             self.stability_score_offset)
                 # idx = stability_score > self.stability_score_thresh

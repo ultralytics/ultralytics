@@ -92,6 +92,10 @@ The Intel® Data Center GPU Flex Series is a versatile and robust solution desig
 
 Benchmark results for Flex GPU at FP32 precision with `half=False`:
 
+<div align="center">
+<img width="640" src="https://user-images.githubusercontent.com/26833433/252764833-6faa5a1f-040d-48b1-96ad-95b3c0cb343d.jpg">
+</div>
+
 | Model   | Format      | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
 |---------|-------------|--------|-----------|-------------|------------------------|
 | yolov8n | PyTorch     | ✅      | 6.2       | 0.3709      | 21.79                  |
@@ -118,6 +122,10 @@ Benchmark results for Flex GPU at FP32 precision with `half=False`:
 #### Flex GPU (FP16 Precision)
 
 Benchmark results for Flex GPU at FP16 precision with `half=True`:
+
+<div align="center">
+<img width="640" src="https://user-images.githubusercontent.com/26833433/252764828-442bd1c9-e52c-426f-b31c-98e88a887d9c.jpg">
+</div>
 
 | Model   | Format      | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
 |---------|-------------|--------|-----------|-------------|------------------------|
@@ -147,6 +155,10 @@ Benchmark results for Flex GPU at FP16 precision with `half=True`:
 The Intel® Xeon® CPU is a high-performance, server-grade processor designed for complex and demanding workloads. From high-end cloud computing and virtualization to artificial intelligence and machine learning applications, Xeon® CPUs provide the power, reliability, and flexibility required for today's data centers.
 
 Notably, Xeon® CPUs deliver high compute density and scalability, making them ideal for both small businesses and large enterprises. By choosing Intel® Xeon® CPUs, organizations can confidently handle their most demanding computing tasks and foster innovation while maintaining cost-effectiveness and operational efficiency.
+
+<div align="center">
+<img width="640" src="https://user-images.githubusercontent.com/26833433/252764834-4f15a36d-eeb1-4bcb-94d1-981afd592659.jpg">
+</div>
 
 | Model   | Format      | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
 |---------|-------------|--------|-----------|---------------------|------------------------|
@@ -178,6 +190,10 @@ Intel® Arc™ represents Intel's foray into the dedicated GPU market. The Arc�
 The Arc™ series is divided into three categories: Arc™ 3, Arc™ 5, and Arc™ 7, with each number indicating the performance level. Each category includes several models, and the 'M' in the GPU model name signifies a mobile, integrated variant.
 
 Early reviews have praised the Arc™ series, particularly the integrated A770M GPU, for its impressive graphics performance. The availability of the Arc™ series varies by region, and additional models are expected to be released soon. Intel® Arc™ GPUs offer high-performance solutions for a range of computing needs, from gaming to content creation.
+
+<div align="center">
+<img width="640" src="https://user-images.githubusercontent.com/26833433/252764815-6b04336c-cc22-424d-9088-70b204f638be.jpg">
+</div>
 
 | Model   | Format      | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
 |---------|-------------|--------|-----------|---------------------|------------------------|

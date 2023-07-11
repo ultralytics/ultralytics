@@ -1,7 +1,7 @@
 ---
 comments: true
 description: 'Export mode: Create a deployment-ready YOLOv8 model by converting it to various formats. Export to ONNX or OpenVINO for up to 3x CPU speedup.'
-keywords: ultralytics docs, YOLOv8, export YOLOv8, YOLOv8 model deployment, exporting YOLOv8, ONNX, OpenVINO, TensorRT, CoreML, TF SavedModel, PaddlePaddle, TorchScript, ONNX format, OpenVINO format, TensorRT format, CoreML format, TF SavedModel format, PaddlePaddle format, Tencent NCNN, NCNN
+keywords: ultralytics docs, YOLOv8, export YOLOv8, YOLOv8 model deployment, exporting YOLOv8, ONNX, OpenVINO, TensorRT, CoreML, TF SavedModel, PaddlePaddle, TorchScript, ONNX format, OpenVINO format, TensorRT format, CoreML format, TF SavedModel format, PaddlePaddle format, Tencent ncnn format
 ---
 
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">
@@ -85,4 +85,4 @@ i.e. `format='onnx'` or `format='engine'`.
 | [TF Edge TPU](https://coral.ai/docs/edgetpu/models-intro/)         | `edgetpu`         | `yolov8n_edgetpu.tflite`  | ✅        | `imgsz`                                             |
 | [TF.js](https://www.tensorflow.org/js)                             | `tfjs`            | `yolov8n_web_model/`      | ✅        | `imgsz`                                             |
 | [PaddlePaddle](https://github.com/PaddlePaddle)                    | `paddle`          | `yolov8n_paddle_model/`   | ✅        | `imgsz`                                             |
-| [NCNN](https://github.com/Tencent/ncnn)                            | `ncnn`            | `yolov8n_ncnn_model/`     | ✅        | `imgsz`, `half`                                     |
+| [ncnn](https://github.com/Tencent/ncnn)                            | `ncnn`            | `yolov8n_ncnn_model/`     | ✅        | `imgsz`, `half`                                     |

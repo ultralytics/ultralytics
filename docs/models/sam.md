@@ -79,22 +79,22 @@ Here we compare Meta's smallest SAM model, SAM-b, with Ultralytics smallest segm
 | Meta's SAM-b                                | 358 MB                     | 94.7 M                 | 51096 ms                |
 | Ultralytics [YOLOv8n-seg](../tasks/segment) | **6.7 MB** (53.4x smaller) | **3.4 M** (27.9x less) | **59 ms** (866x faster) |
 
-This comparison shows the order-of-magnitude differences in the model sizes and speeds. Whereas SAM presents unique capabilities for automatic segmenting, it is not a direct competitor to YOLOv8 segment models, which are smaller, faster and more efficient since they are dedicated to more targeted use cases. To reproduce this test:
+This comparison shows the order-of-magnitude differences in the model sizes and speeds. Whereas SAM presents unique capabilities for automatic segmenting, it is not a direct competitor to YOLOv8 segment models, which are smaller, faster and more efficient since they are dedicated to more targeted use cases.
+
+To reproduce this test:
 
 ```python
 from ultralytics import SAM, YOLO
 
-# Load both models
-yolo = YOLO('yolov8n-seg.pt')
-sam = SAM('sam_b.pt')
+# Profile SAM-b
+model = SAM('sam_b.pt')
+model.info()
+model('ultralytics/assets')
 
-# Print model parameters
-yolo.info()
-sam.info()
-
-# Profile inference speeds
-yolo('ultralytics/assets')
-sam('ultralytics/assets')
+# Profile YOLOv8n-seg
+model = YOLO('yolov8n-seg.pt')
+model.info()
+model('ultralytics/assets')
 ```
 
 ## Auto-Annotation: A Quick Path to Segmentation Datasets

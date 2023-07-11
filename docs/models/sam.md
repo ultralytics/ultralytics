@@ -30,13 +30,30 @@ For an in-depth look at the Segment Anything Model and the SA-1B dataset, please
 
 The Segment Anything Model can be employed for a multitude of downstream tasks that go beyond its training data. This includes edge detection, object proposal generation, instance segmentation, and preliminary text-to-mask prediction. With prompt engineering, SAM can swiftly adapt to new tasks and data distributions in a zero-shot manner, establishing it as a versatile and potent tool for all your image segmentation needs.
 
-```python
-from ultralytics import SAM
+!!! example "SAM prediction example"
 
-model = SAM('sam_b.pt')
-model.info()  # display model information
-model.predict('path/to/image.jpg')  # predict
-```
+    Device is determined automatically. If a GPU is available then it will be used, otherwise inference will run on CPU.
+
+    === "Python"
+    
+        ```python
+        from ultralytics import SAM
+        
+        # Load a model
+        model = SAM('sam_b.pt')
+
+        # Display model information (optional)
+        model.info()
+
+        # Run inference with the model
+        model('path/to/image.jpg')
+        ```
+    === "CLI"
+    
+        ```bash
+        # Run inference with a SAM model
+        yolo predict model=sam_b.pt source=path/to/image.jpg
+        ```
 
 ## Available Models and Supported Tasks
 
@@ -52,6 +69,33 @@ model.predict('path/to/image.jpg')  # predict
 | Inference  | :heavy_check_mark: |
 | Validation | :x:                |
 | Training   | :x:                |
+
+## SAM comparison vs YOLOv8
+
+Here we compare Meta's smallest SAM model, SAM-b, with Ultralytics smallest segmentation model, [YOLOv8n-seg](../tasks/segment):
+
+| Model                                       | Size                       | Parameters             | Speed (CPU)             |
+|---------------------------------------------|----------------------------|------------------------|-------------------------|
+| Meta's SAM-b                                | 358 MB                     | 94.7 M                 | 51096 ms                |
+| Ultralytics [YOLOv8n-seg](../tasks/segment) | **6.7 MB** (53.4x smaller) | **3.4 M** (27.9x less) | **59 ms** (866x faster) |
+
+This comparison shows the order-of-magnitude differences in the model sizes and speeds. Whereas SAM presents unique capabilities for automatic segmenting, it is not a direct competitor to YOLOv8 segment models, which are smaller, faster and more efficient since they are dedicated to more targeted use cases.
+
+To reproduce this test:
+
+```python
+from ultralytics import SAM, YOLO
+
+# Profile SAM-b
+model = SAM('sam_b.pt')
+model.info()
+model('ultralytics/assets')
+
+# Profile YOLOv8n-seg
+model = YOLO('yolov8n-seg.pt')
+model.info()
+model('ultralytics/assets')
+```
 
 ## Auto-Annotation: A Quick Path to Segmentation Datasets
 

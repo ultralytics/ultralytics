@@ -53,6 +53,33 @@ model.predict('path/to/image.jpg')  # predict
 | Validation | :x:                |
 | Training   | :x:                |
 
+## SAM comparison vs YOLOv8
+
+Here we compare Meta's smallest SAM model, SAM-b, with Ultralytics smallest segmentation model, [YOLOv8n-seg](../tasks/segment):
+
+| Model                                       | Size                       | Parameters             | Speed (CPU)             |
+|---------------------------------------------|----------------------------|------------------------|-------------------------|
+| Meta's SAM-b                                | 358 MB                     | 94.7 M                 | 51096 ms                |
+| Ultralytics [YOLOv8n-seg](../tasks/segment) | **6.7 MB** (53.4x smaller) | **3.4 M** (27.9x less) | **59 ms** (866x faster) |
+
+To reproducuce this test:
+
+```python
+from ultralytics import SAM, YOLO
+
+# Load both models
+yolo = YOLO('yolov8n-seg.pt')
+sam = SAM('sam_b.pt')
+
+# Print model parameters
+yolo.info()
+sam.info()
+
+# Profile inference speeds
+yolo('ultralytics/assets')
+sam('ultralytics/assets')
+```
+
 ## Auto-Annotation: A Quick Path to Segmentation Datasets
 
 Auto-annotation is a key feature of SAM, allowing users to generate a [segmentation dataset](https://docs.ultralytics.com/datasets/segment) using a pre-trained detection model. This feature enables rapid and accurate annotation of a large number of images, bypassing the need for time-consuming manual labeling.

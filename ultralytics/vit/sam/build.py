@@ -127,7 +127,7 @@ def _build_sam(encoder_embed_dim,
         pixel_std=[58.395, 57.12, 57.375],
     )
     if checkpoint is not None:
-        attempt_download_asset(checkpoint)
+        checkpoint = attempt_download_asset(checkpoint)
         with open(checkpoint, 'rb') as f:
             state_dict = torch.load(f)
         sam.load_state_dict(state_dict)

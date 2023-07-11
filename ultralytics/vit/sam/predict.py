@@ -2,8 +2,8 @@
 
 import numpy as np
 import torch
-import torchvision
 import torch.nn.functional as F
+import torchvision
 
 from ultralytics.yolo.data.augment import LetterBox
 from ultralytics.yolo.engine.predictor import BasePredictor
@@ -11,7 +11,8 @@ from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils import DEFAULT_CFG, ops
 from ultralytics.yolo.utils.torch_utils import select_device
 
-from .amg import batch_iterator, build_all_layer_point_grids, generate_crop_boxes, calculate_stability_score, batched_mask_to_box, is_box_near_crop_edge, uncrop_masks, uncrop_boxes_xyxy
+from .amg import (batch_iterator, batched_mask_to_box, build_all_layer_point_grids, calculate_stability_score,
+                  generate_crop_boxes, is_box_near_crop_edge, uncrop_boxes_xyxy, uncrop_masks)
 
 
 class Predictor(BasePredictor):
@@ -197,7 +198,8 @@ class Predictor(BasePredictor):
                 pred_mask = F.interpolate(pred_mask, (h, w), mode='bilinear', align_corners=False)
                 idx = pred_score > self.pred_iou_thresh
                 pred_mask, pred_score = pred_mask[idx], pred_score[idx]
-                stability_score = calculate_stability_score(pred_mask, self.model.mask_threshold, self.stability_score_offset)
+                stability_score = calculate_stability_score(pred_mask, self.model.mask_threshold,
+                                                            self.stability_score_offset)
                 idx = stability_score > self.stability_score_thresh
                 # (N, H, W), (N, )
                 pred_mask, pred_score = pred_mask[idx], pred_score[idx]
@@ -215,7 +217,6 @@ class Predictor(BasePredictor):
                 pred_bboxes.append(pred_bbox)
                 pred_scores.append(pred_score)
         return torch.cat(pred_masks), torch.cat(pred_scores), torch.cat(pred_bboxes)
-
 
     def setup_model(self, model):
         """Set up YOLO model with specified thresholds and device."""

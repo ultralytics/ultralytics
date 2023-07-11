@@ -11,8 +11,8 @@ from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils import DEFAULT_CFG, ops
 from ultralytics.yolo.utils.torch_utils import select_device
 
-from .amg import (batch_iterator, batched_mask_to_box, build_all_layer_point_grids,
-                  generate_crop_boxes, is_box_near_crop_edge, uncrop_boxes_xyxy, uncrop_masks)
+from .amg import (batch_iterator, batched_mask_to_box, build_all_layer_point_grids, generate_crop_boxes,
+                  is_box_near_crop_edge, uncrop_boxes_xyxy, uncrop_masks)
 
 
 class Predictor(BasePredictor):

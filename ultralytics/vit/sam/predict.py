@@ -133,7 +133,6 @@ class Predictor(BasePredictor):
         src_shape, dst_shape = self.batch[1][0].shape[:2], im.shape[2:]
         # Transform input prompts
         if points is not None:
-            assert (labels is not None), '`labels` must be supplied if points is supplied.'
             points = torch.as_tensor(points, dtype=torch.float32, device=self.device)
             # Assuming labels are all positive if users don't pass labels.
             if labels is None:
@@ -176,7 +175,7 @@ class Predictor(BasePredictor):
             im(torch.Tensor): The preprocessed image, (N, C, H, W).
         """
         self.segment_all = True
-        ih, iw = im.shape
+        ih, iw = im.shape[2:]
         crop_boxes, layer_idxs = generate_crop_boxes((ih, iw), self.crop_n_layers, self.crop_overlap_ratio)
         self.point_grids = build_all_layer_point_grids(
             self.points_per_side,
@@ -192,12 +191,12 @@ class Predictor(BasePredictor):
             crop_im = F.interpolate(im[..., y1:y2, x1:x2], (ih, iw), mode='bilinear', align_corners=False)
             # (num_points, 2)
             points_for_image = self.point_grids[layer_idx] * points_scale
-            for points in batch_iterator(self.points_per_batch, points_for_image):
+            for (points, ) in batch_iterator(self.points_per_batch, points_for_image):
                 pred_mask, pred_score = self.prompt_inference(crop_im, points=points)
                 # Interpolate predicted masks to input size
                 pred_mask = F.interpolate(pred_mask, (h, w), mode='bilinear', align_corners=False)
-                idx = pred_score > self.pred_iou_thresh
-                pred_mask, pred_score = pred_mask[idx], pred_score[idx]
+                # idx = pred_score > self.pred_iou_thresh
+                # pred_mask, pred_score = pred_mask[idx], pred_score[idx]
                 stability_score = calculate_stability_score(pred_mask, self.model.mask_threshold,
                                                             self.stability_score_offset)
                 idx = stability_score > self.stability_score_thresh

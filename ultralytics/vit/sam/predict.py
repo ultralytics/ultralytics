@@ -197,11 +197,11 @@ class Predictor(BasePredictor):
                 pred_mask = F.interpolate(pred_mask, (h, w), mode='bilinear', align_corners=False)
                 # idx = pred_score > self.pred_iou_thresh
                 # pred_mask, pred_score = pred_mask[idx], pred_score[idx]
-                stability_score = calculate_stability_score(pred_mask, self.model.mask_threshold,
-                                                            self.stability_score_offset)
-                idx = stability_score > self.stability_score_thresh
-                # (N, H, W), (N, )
-                pred_mask, pred_score = pred_mask[idx], pred_score[idx]
+                # stability_score = calculate_stability_score(pred_mask, self.model.mask_threshold,
+                #                                             self.stability_score_offset)
+                # idx = stability_score > self.stability_score_thresh
+                # # (N, H, W), (N, )
+                # pred_mask, pred_score = pred_mask[idx], pred_score[idx]
                 # (N, 4)
                 pred_bbox = batched_mask_to_box(pred_mask > self.model.mask_threshold)
                 keep_mask = ~is_box_near_crop_edge(pred_bbox, crop_box, [0, 0, iw, ih])
@@ -244,8 +244,10 @@ class Predictor(BasePredictor):
         results = []
         for i, masks in enumerate([pred_masks]):
             orig_img = orig_imgs[i] if isinstance(orig_imgs, list) else orig_imgs
+            pred_scores = pred_scores.flatten(0, 1)
             if pred_bboxes is not None:
-                keep = torchvision.ops.nms(pred_bboxes, pred_scores, self.args.iou)  # NMS
+                pred_bboxes = pred_bboxes.flatten(0, 1)
+                keep = torchvision.ops.nms(pred_bboxes.float(), pred_scores, self.args.iou)  # NMS
                 pred_bboxes = pred_bboxes[keep]
                 pred_scores = pred_scores[keep]
                 masks = masks[keep]

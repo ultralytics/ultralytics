@@ -30,13 +30,30 @@ For an in-depth look at the Segment Anything Model and the SA-1B dataset, please
 
 The Segment Anything Model can be employed for a multitude of downstream tasks that go beyond its training data. This includes edge detection, object proposal generation, instance segmentation, and preliminary text-to-mask prediction. With prompt engineering, SAM can swiftly adapt to new tasks and data distributions in a zero-shot manner, establishing it as a versatile and potent tool for all your image segmentation needs.
 
-```python
-from ultralytics import SAM
+!!! example "SAM prediction example"
 
-model = SAM('sam_b.pt')
-model.info()  # display model information
-model.predict('path/to/image.jpg')  # predict
-```
+    Device is determined automatically. If a GPU is available then it will be used, otherwise inference will run on CPU.
+
+    === "Python"
+    
+        ```python
+        from ultralytics import SAM
+        
+        # Load a model
+        model = SAM('sam_b.pt')
+
+        # Display model information (optional)
+        model.info()
+
+        # Run inference with the model
+        model('path/to/image.jpg')
+        ```
+    === "CLI"
+    
+        ```bash
+        # Run inference with a SAM model
+        yolo predict model=sam_b.pt source=path/to/image.jpg
+        ```
 
 ## Available Models and Supported Tasks
 

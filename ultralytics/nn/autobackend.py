@@ -372,10 +372,7 @@ class AutoBackend(nn.Module):
             self.predictor.run()
             y = [self.predictor.get_output_handle(x).copy_to_cpu() for x in self.output_names]
         elif self.ncnn:  # ncnn
-            im = (im[0] * 255.).cpu().numpy().astype(np.uint8)
-            im = np.ascontiguousarray(im.transpose(1, 2, 0))
-            mat_in = self.pyncnn.Mat.from_pixels(im, self.pyncnn.Mat.PixelType.PIXEL_RGB, *im.shape[:2])
-            mat_in.substract_mean_normalize([], [1 / 255.0, 1 / 255.0, 1 / 255.0])
+            mat_in = self.pyncnn.Mat(im[0].cpu().numpy())
             ex = self.net.create_extractor()
             input_names, output_names = self.net.input_names(), self.net.output_names()
             ex.input(input_names[0], mat_in)

@@ -28,7 +28,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Neptune](https://neptune.ai/): Maintain a comprehensive log of your ML experiments with Ultralytics in this metadata store designed for MLOps.
 
-- [Ray Tune](https://docs.ray.io/en/latest/tune/index.html): Optimize the hyperparameters of your Ultralytics models at any scale.
+- [Ray Tune](ray-tune.md): Optimize the hyperparameters of your Ultralytics models at any scale.
 
 - [TensorBoard](https://tensorboard.dev/): Visualize your Ultralytics ML workflows, monitor model metrics, and foster team collaboration.
 
@@ -47,7 +47,7 @@ We also support a variety of model export formats for deployment in different en
 | [PyTorch](https://pytorch.org/)                                    | -                 | `yolov8n.pt`              | ✅        | -                                                   |
 | [TorchScript](https://pytorch.org/docs/stable/jit.html)            | `torchscript`     | `yolov8n.torchscript`     | ✅        | `imgsz`, `optimize`                                 |
 | [ONNX](https://onnx.ai/)                                           | `onnx`            | `yolov8n.onnx`            | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `opset`     |
-| [OpenVINO](https://docs.openvino.ai/latest/index.html)             | `openvino`        | `yolov8n_openvino_model/` | ✅        | `imgsz`, `half`                                     |
+| [OpenVINO](/integrations/openvino.md)                              | `openvino`        | `yolov8n_openvino_model/` | ✅        | `imgsz`, `half`                                     |
 | [TensorRT](https://developer.nvidia.com/tensorrt)                  | `engine`          | `yolov8n.engine`          | ✅        | `imgsz`, `half`, `dynamic`, `simplify`, `workspace` |
 | [CoreML](https://github.com/apple/coremltools)                     | `coreml`          | `yolov8n.mlmodel`         | ✅        | `imgsz`, `half`, `int8`, `nms`                      |
 | [TF SavedModel](https://www.tensorflow.org/guide/saved_model)      | `saved_model`     | `yolov8n_saved_model/`    | ✅        | `imgsz`, `keras`                                    |

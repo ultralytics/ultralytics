@@ -1,5 +1,5 @@
 ---
-comments: true
+comments: false
 description: Discover Ultralytics' commitment to Environmental, Health, and Safety (EHS). Learn about our policy, principles, and strategies for ensuring a sustainable and safe working environment.
 keywords: Ultralytics, Environmental Policy, Health and Safety, EHS, Sustainability, Workplace Safety, Environmental Compliance
 ---
@@ -8,7 +8,7 @@ keywords: Ultralytics, Environmental Policy, Health and Safety, EHS, Sustainabil
 
 At Ultralytics, we recognize that the long-term success of our company relies not only on the products and services we offer, but also the manner in which we conduct our business. We are committed to ensuring the safety and well-being of our employees, stakeholders, and the environment, and we will continuously strive to mitigate our impact on the environment while promoting health and safety.
 
-## Policy Principles:
+## Policy Principles
 
 1. **Compliance**: We will comply with all applicable laws, regulations, and standards related to EHS, and we will strive to exceed these standards where possible.
 
@@ -20,7 +20,7 @@ At Ultralytics, we recognize that the long-term success of our company relies no
 
 5. **Education and Training**: We will educate and train our employees and contractors in appropriate EHS procedures and practices.
 
-## Implementation Measures:
+## Implementation Measures
 
 1. **Responsibility and Accountability**: Every employee and contractor working at or with Ultralytics is responsible for adhering to this policy. Managers and supervisors are accountable for ensuring this policy is implemented within their areas of control.
 

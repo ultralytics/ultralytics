@@ -59,7 +59,7 @@ class Predictor(BasePredictor):
         assert len(im) == 1, "SAM model has not supported batch inference yet!"
         return [LetterBox(self.imgsz, auto=False)(image=x) for x in im]
 
-    def inference(self, im, boxes=None, points=None, labels=None, masks=None, multimask_output=True):
+    def inference(self, im, boxes=None, points=None, labels=None, masks=None, multimask_output=False):
         """
         Predict masks for the given input prompts, using the currently set image.
 
@@ -91,7 +91,7 @@ class Predictor(BasePredictor):
         pred_masks, pred_ious = self.prompt_inference(im, boxes, points, labels, masks, multimask_output)
         return pred_masks, pred_ious
 
-    def prompt_inference(self, im, boxes=None, points=None, labels=None, masks=None, multimask_output=True):
+    def prompt_inference(self, im, boxes=None, points=None, labels=None, masks=None, multimask_output=False):
         """
         Predict masks for the given input prompts, using the currently set image.
 
@@ -212,7 +212,7 @@ class Predictor(BasePredictor):
         results = []
         for i, masks in enumerate([pred_masks]):
             orig_img = orig_imgs[i] if isinstance(orig_imgs, list) else orig_imgs
-            masks = ops.scale_masks(masks, orig_img.shape[:2])[0]
+            masks = ops.scale_masks(masks, orig_img.shape[:2]).flatten(0, 1)
             masks = masks > self.model.mask_threshold  # to bool
             path = self.batch[0]
             img_path = path[i] if isinstance(path, list) else path

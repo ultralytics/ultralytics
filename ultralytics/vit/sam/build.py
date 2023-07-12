@@ -100,7 +100,7 @@ def _build_sam(
     )
     sam.eval()
     if checkpoint is not None:
-        attempt_download_asset(checkpoint)
+        checkpoint = attempt_download_asset(checkpoint)
         with open(checkpoint, 'rb') as f:
             state_dict = torch.load(f)
         sam.load_state_dict(state_dict)

@@ -2,6 +2,7 @@
 
 import contextlib
 import math
+import warnings
 from pathlib import Path
 
 import cv2
@@ -20,7 +21,8 @@ from .ops import clip_boxes, scale_image, xywh2xyxy, xyxy2xywh
 
 
 class Colors:
-    # Ultralytics color palette https://ultralytics.com/
+    """Ultralytics color palette https://ultralytics.com/."""
+
     def __init__(self):
         """Initialize colors as hex = matplotlib.colors.TABLEAU_COLORS.values()."""
         hexs = ('FF3838', 'FF9D97', 'FF701F', 'FFB21D', 'CFD231', '48F90A', '92CC17', '3DDB86', '1A9334', '00D4BB',
@@ -47,7 +49,8 @@ colors = Colors()  # create instance for 'from utils.plots import colors'
 
 
 class Annotator:
-    # YOLOv8 Annotator for train/val mosaics and jpgs and detect/hub inference annotations
+    """YOLOv8 Annotator for train/val mosaics and jpgs and detect/hub inference annotations."""
+
     def __init__(self, im, line_width=None, font_size=None, font='Arial.ttf', pil=False, example='abc'):
         """Initialize the Annotator class with image and line width along with color palette for keypoints and limbs."""
         assert im.data.contiguous, 'Image not contiguous. Apply np.ascontiguousarray(im) to Annotator() input images.'
@@ -203,7 +206,14 @@ class Annotator:
                 self.draw.rectangle((xy[0], xy[1], xy[0] + w + 1, xy[1] + h + 1), fill=txt_color)
                 # Using `txt_color` for background and draw fg with white color
                 txt_color = (255, 255, 255)
-            self.draw.text(xy, text, fill=txt_color, font=self.font)
+            if '\n' in text:
+                lines = text.split('\n')
+                _, h = self.font.getsize(text)
+                for line in lines:
+                    self.draw.text(xy, line, fill=txt_color, font=self.font)
+                    xy[1] += h
+            else:
+                self.draw.text(xy, text, fill=txt_color, font=self.font)
         else:
             if box_style:
                 tf = max(self.lw - 1, 1)  # font thickness
@@ -232,6 +242,9 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(''), on_plot=None):
     """Save and plot image with no axis or spines."""
     import pandas as pd
     import seaborn as sn
+
+    # Filter matplotlib>=3.7.2 warning
+    warnings.filterwarnings('ignore', category=UserWarning, message='The figure layout has changed to tight')
 
     # Plot dataset labels
     LOGGER.info(f"Plotting labels to {save_dir / 'labels.jpg'}... ")
@@ -306,7 +319,7 @@ def plot_images(images,
                 fname='images.jpg',
                 names=None,
                 on_plot=None):
-    # Plot image grid with labels
+    """Plot image grid with labels."""
     if isinstance(images, torch.Tensor):
         images = images.cpu().float().numpy()
     if isinstance(cls, torch.Tensor):

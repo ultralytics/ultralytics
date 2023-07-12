@@ -21,7 +21,7 @@ TensorFlow Lite         | `tflite`                  | yolov8n.tflite
 TensorFlow Edge TPU     | `edgetpu`                 | yolov8n_edgetpu.tflite
 TensorFlow.js           | `tfjs`                    | yolov8n_web_model/
 PaddlePaddle            | `paddle`                  | yolov8n_paddle_model/
-NCNN                    | `ncnn`                    | yolov8n_ncnn_model/
+ncnn                    | `ncnn`                    | yolov8n_ncnn_model/
 """
 
 import glob
@@ -99,7 +99,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
 
             # Predict
             assert model.task != 'pose' or i != 7, 'GraphDef Pose inference is not supported'
-            assert i not in (9, 10, 12), 'inference not supported'  # Edge TPU, TF.js and NCNN are unsupported
+            assert i not in (9, 10), 'inference not supported'  # Edge TPU and TF.js are unsupported
             assert i != 5 or platform.system() == 'Darwin', 'inference only supported on macOS>=10.13'  # CoreML
             if not (ROOT / 'assets/bus.jpg').exists():
                 download(url='https://ultralytics.com/images/bus.jpg', dir=ROOT / 'assets')

@@ -55,6 +55,7 @@ import subprocess
 import time
 import warnings
 from copy import deepcopy
+from datetime import datetime
 from pathlib import Path
 
 import torch
@@ -201,7 +202,7 @@ class Exporter:
         if self.args.half and (engine or onnx) and self.device.type != 'cpu':
             im, model = im.half(), model.half()  # to FP16
 
-        # Warnings
+        # Filter warnings
         warnings.filterwarnings('ignore', category=torch.jit.TracerWarning)  # suppress TracerWarning
         warnings.filterwarnings('ignore', category=UserWarning)  # suppress shape prim::Constant missing ONNX warning
         warnings.filterwarnings('ignore', category=DeprecationWarning)  # suppress CoreML np.bool deprecation warning
@@ -219,6 +220,7 @@ class Exporter:
             'description': description,
             'author': 'Ultralytics',
             'license': 'AGPL-3.0 https://ultralytics.com/license',
+            'date': datetime.now().isoformat(),
             'version': __version__,
             'stride': int(max(model.stride)),
             'task': model.task,
@@ -445,6 +447,8 @@ class Exporter:
         f.mkdir(exist_ok=True)  # make ncnn_model directory
         LOGGER.info(f"{prefix} running '{' '.join(cmd)}'")
         subprocess.run(cmd, check=True)
+        for f_debug in 'debug.bin', 'debug.param', 'debug2.bin', 'debug2.param':  # remove debug files
+            Path(f_debug).unlink(missing_ok=True)
 
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml
         return str(f), None

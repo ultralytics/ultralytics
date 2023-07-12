@@ -213,16 +213,17 @@ class Results(SimpleClass):
             assert type(line_width) == int, '`line_width` should be of int type, i.e, line_width=3'
 
         names = self.names
+        pred_boxes, show_boxes = self.boxes, boxes
+        pred_masks, show_masks = self.masks, masks
+        pred_probs, show_probs = self.probs, probs
         annotator = Annotator(deepcopy(self.orig_img if img is None else img),
                               line_width,
                               font_size,
                               font,
-                              pil,
+                              pil or (pred_probs is not None and show_probs),  # Classify tasks default to pil=True
                               example=names)
-        pred_boxes, show_boxes = self.boxes, boxes
-        pred_masks, show_masks = self.masks, masks
-        pred_probs, show_probs = self.probs, probs
-        keypoints = self.keypoints
+
+        # Plot Segment results
         if pred_masks and show_masks:
             if img_gpu is None:
                 img = LetterBox(pred_masks.shape[1:])(image=annotator.result())
@@ -231,6 +232,7 @@ class Results(SimpleClass):
             idx = pred_boxes.cls if pred_boxes else range(len(pred_masks))
             annotator.masks(pred_masks.data, colors=[colors(x, True) for x in idx], im_gpu=img_gpu)
 
+        # Plot Detect results
         if pred_boxes and show_boxes:
             for d in reversed(pred_boxes):
                 c, conf, id = int(d.cls), float(d.conf) if conf else None, None if d.id is None else int(d.id.item())
@@ -238,12 +240,15 @@ class Results(SimpleClass):
                 label = (f'{name} {conf:.2f}' if conf else name) if labels else None
                 annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
 
+        # Plot Classify results
         if pred_probs is not None and show_probs:
-            text = f"{', '.join(f'{names[j] if names else j} {pred_probs.data[j]:.2f}' for j in pred_probs.top5)}, "
-            annotator.text((32, 32), text, txt_color=(255, 255, 255))  # TODO: allow setting colors
+            text = ',\n'.join(f'{names[j] if names else j} {pred_probs.data[j]:.2f}' for j in pred_probs.top5)
+            x = round(self.orig_shape[0] * 0.03)
+            annotator.text([x, x], text, txt_color=(255, 255, 255))  # TODO: allow setting colors
 
-        if keypoints is not None:
-            for k in reversed(keypoints.data):
+        # Plot Pose results
+        if self.keypoints is not None:
+            for k in reversed(self.keypoints.data):
                 annotator.kpts(k, self.orig_shape, kpt_line=kpt_line)
 
         return annotator.result()
@@ -291,8 +296,8 @@ class Results(SimpleClass):
                     line = (c, *seg)
                 if kpts is not None:
                     kpt = torch.cat((kpts[j].xyn, kpts[j].conf[..., None]), 2) if kpts[j].has_visible else kpts[j].xyn
-                    line += (*kpt.reshape(-1).tolist(), )
-                line += (conf, ) * save_conf + (() if id is None else (id, ))
+                    line += (*kpt.reshape(-1).tolist(),)
+                line += (conf,) * save_conf + (() if id is None else (id,))
                 texts.append(('%g ' * len(line)).rstrip() % line)
 
         if texts:

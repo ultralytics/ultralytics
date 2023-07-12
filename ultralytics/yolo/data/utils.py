@@ -279,11 +279,11 @@ def check_cls_dataset(dataset: str, split=''):
 
     Returns:
         dict: A dictionary containing the following keys:
-            - 'train' (pathlib.Path): The directory path containing the training set of the dataset.
-            - 'val' (pathlib.Path): The directory path containing the validation set of the dataset.
-            - 'test' (pathlib.Path): The directory path containing the test set of the dataset.
+            - 'train' (Path): The directory path containing the training set of the dataset.
+            - 'val' (Path): The directory path containing the validation set of the dataset.
+            - 'test' (Path): The directory path containing the test set of the dataset.
             - 'nc' (int): The number of classes in the dataset.
-            - 'names' (list[str]): A list of class names in the dataset.
+            - 'names' (dict): A dictionary of class names in the dataset.
 
     Raises:
         FileNotFoundError: If the specified dataset is not found and cannot be downloaded.

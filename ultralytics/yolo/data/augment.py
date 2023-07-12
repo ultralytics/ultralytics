@@ -642,7 +642,8 @@ class CopyPaste:
 
 
 class Albumentations:
-    # YOLOv8 Albumentations class (optional, only used if package is installed)
+    """YOLOv8 Albumentations class (optional, only used if package is installed)"""
+
     def __init__(self, p=1.0):
         """Initialize the transform object for YOLO bbox formatted params."""
         self.p = p
@@ -819,7 +820,7 @@ def classify_albumentations(
         std=(1.0, 1.0, 1.0),  # IMAGENET_STD
         auto_aug=False,
 ):
-    # YOLOv8 classification Albumentations (optional, only used if package is installed)
+    """YOLOv8 classification Albumentations (optional, only used if package is installed)."""
     prefix = colorstr('albumentations: ')
     try:
         import albumentations as A
@@ -851,7 +852,8 @@ def classify_albumentations(
 
 
 class ClassifyLetterBox:
-    # YOLOv8 LetterBox class for image preprocessing, i.e. T.Compose([LetterBox(size), ToTensor()])
+    """YOLOv8 LetterBox class for image preprocessing, i.e. T.Compose([LetterBox(size), ToTensor()])"""
+
     def __init__(self, size=(640, 640), auto=False, stride=32):
         """Resizes image and crops it to center with max dimensions 'h' and 'w'."""
         super().__init__()
@@ -871,7 +873,8 @@ class ClassifyLetterBox:
 
 
 class CenterCrop:
-    # YOLOv8 CenterCrop class for image preprocessing, i.e. T.Compose([CenterCrop(size), ToTensor()])
+    """YOLOv8 CenterCrop class for image preprocessing, i.e. T.Compose([CenterCrop(size), ToTensor()])"""
+
     def __init__(self, size=640):
         """Converts an image from numpy array to PyTorch tensor."""
         super().__init__()
@@ -885,7 +888,8 @@ class CenterCrop:
 
 
 class ToTensor:
-    # YOLOv8 ToTensor class for image preprocessing, i.e. T.Compose([LetterBox(size), ToTensor()])
+    """YOLOv8 ToTensor class for image preprocessing, i.e. T.Compose([LetterBox(size), ToTensor()])."""
+
     def __init__(self, half=False):
         """Initialize YOLOv8 ToTensor object with optional half-precision support."""
         super().__init__()

@@ -46,7 +46,7 @@ setup(
             'mkdocs-material',
             'mkdocstrings[python]',
             'mkdocs-redirects',  # for 301 redirects
-            'mkdocs-ultralytics-plugin',  # for meta descriptions and images, dates and authors
+            'mkdocs-ultralytics-plugin>=0.0.21',  # for meta descriptions and images, dates and authors
         ],
         'export': ['coremltools>=6.0', 'openvino-dev>=2022.3', 'tensorflowjs'],  # automatically installs tensorflow
     },

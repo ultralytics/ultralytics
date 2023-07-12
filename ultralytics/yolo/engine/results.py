@@ -216,12 +216,13 @@ class Results(SimpleClass):
         pred_boxes, show_boxes = self.boxes, boxes
         pred_masks, show_masks = self.masks, masks
         pred_probs, show_probs = self.probs, probs
-        annotator = Annotator(deepcopy(self.orig_img if img is None else img),
-                              line_width,
-                              font_size,
-                              font,
-                              pil or (pred_probs is not None and show_probs),  # Classify tasks default to pil=True
-                              example=names)
+        annotator = Annotator(
+            deepcopy(self.orig_img if img is None else img),
+            line_width,
+            font_size,
+            font,
+            pil or (pred_probs is not None and show_probs),  # Classify tasks default to pil=True
+            example=names)
 
         # Plot Segment results
         if pred_masks and show_masks:
@@ -296,8 +297,8 @@ class Results(SimpleClass):
                     line = (c, *seg)
                 if kpts is not None:
                     kpt = torch.cat((kpts[j].xyn, kpts[j].conf[..., None]), 2) if kpts[j].has_visible else kpts[j].xyn
-                    line += (*kpt.reshape(-1).tolist(),)
-                line += (conf,) * save_conf + (() if id is None else (id,))
+                    line += (*kpt.reshape(-1).tolist(), )
+                line += (conf, ) * save_conf + (() if id is None else (id, ))
                 texts.append(('%g ' * len(line)).rstrip() % line)
 
         if texts:

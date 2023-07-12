@@ -64,18 +64,19 @@ Following the original SAM, we provide a simple testing method in Ultralytics th
 
 ### Point Prompt
 ```python
-from ultralytics import MobileSAM
+from ultralytics import SAM
 
-model = MobileSAM('mobile_sam.pt')
-model.predict_point('ultralytics/assets/bus.jpg',[[400, 400]],[1])
+model = SAM('mobile_sam.pt')
+model.predict('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
 ```
 ### Box Prompt
 ```python
-from ultralytics import MobileSAM
+from ultralytics import SAM
 
-model = MobileSAM('mobile_sam.pt')
-model.predict_box('ultralytics/assets/bus.jpg',[190, 70, 460, 280])
+model = SAM('mobile_sam.pt')
+model.predict('ultralytics/assets/zidane.jpg', bboxes=[439, 437, 524, 709])
 ```
+We implement `MobileSAM` and `SAM` with exact the same api, more usage see ![SAM page](./sam.md).
 
 ### BibTex of our MobileSAM
 If you use MobileSAM in your research, please use the following BibTeX entry. :mega: Thank you!

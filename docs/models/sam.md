@@ -28,9 +28,11 @@ For an in-depth look at the Segment Anything Model and the SA-1B dataset, please
 
 ## How to Use SAM: Versatility and Power in Image Segmentation
 
+### SAM prediction example
+
 The Segment Anything Model can be employed for a multitude of downstream tasks that go beyond its training data. This includes edge detection, object proposal generation, instance segmentation, and preliminary text-to-mask prediction. With prompt engineering, SAM can swiftly adapt to new tasks and data distributions in a zero-shot manner, establishing it as a versatile and potent tool for all your image segmentation needs.
 
-!!! example "SAM prediction example"
+!!! example "Segment with prompt"
 
     Device is determined automatically. If a GPU is available then it will be used, otherwise inference will run on CPU.
 
@@ -45,14 +47,64 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         # Display model information (optional)
         model.info()
 
-        # Run inference with the model
+        # Run inference with bboxes prompt
+        model('ultralytics/assets/zidane.jpg', bboxes=[439, 437, 524, 709])
+
+        # Run inference with points prompt
+        model.predict('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
+        ```
+
+!!! example "Segment the whole image"
+
+    Device is determined automatically. If a GPU is available then it will be used, otherwise inference will run on CPU.
+
+    === "Python"
+    
+        ```python
+        from ultralytics import SAM
+        
+        # Load a model
+        model = SAM('sam_b.pt')
+
+        # Display model information (optional)
+        model.info()
+
+        # Run inference
         model('path/to/image.jpg')
+
+        # Run inference with additional args
+        model('path/to/image.jpg', crop_n_layers=1)
         ```
     === "CLI"
     
         ```bash
         # Run inference with a SAM model
         yolo predict model=sam_b.pt source=path/to/image.jpg
+        ```
+Tips: 
+- The logic here is to segment the whole image if you don't pass any prompts(bboxes/points).
+- More additional args see function `generate()` in [`Predictor` Reference](../reference/vit/sam/predict.md).
+
+!!! example "SAMPredictor example"
+
+    This way you can set image once and run prompts inference multiple times without running image encoder multiple times.
+
+    === "Python"
+    
+        ```python
+        from ultralytics.vit.sam.predict import Predictor as SAMPredictor
+
+        # Create SAMPredictor
+        overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model="mobile_sam.pt")
+        predictor = SAMPredictor(overrides=overrides)
+
+        # Set image
+        predictor.set_image("ultralytics/assets/zidane.jpg")  # set with image file
+        predictor.set_image(cv2.imread("ultralytics/assets/zidane.jpg"))  # set with np.ndarray
+        results = predictor(bboxes=[439, 437, 524, 709])
+        results = predictor(points=[900, 370], labels=[1])
+        # Reset image
+        predictor.reset_image()
         ```
 
 ## Available Models and Supported Tasks

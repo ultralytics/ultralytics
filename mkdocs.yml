@@ -250,133 +250,133 @@ nav:
           - 'Android': hub/app/android.md
       - Inference API: hub/inference_api.md
   - Reference:
-    - hub:
-      - __init__: reference/hub/__init__.md
-      - auth: reference/hub/auth.md
-      - session: reference/hub/session.md
-      - utils: reference/hub/utils.md
-    - nn:
-      - autobackend: reference/nn/autobackend.md
-      - autoshape: reference/nn/autoshape.md
-      - modules:
-        - block: reference/nn/modules/block.md
-        - conv: reference/nn/modules/conv.md
-        - head: reference/nn/modules/head.md
-        - transformer: reference/nn/modules/transformer.md
-        - utils: reference/nn/modules/utils.md
-      - tasks: reference/nn/tasks.md
-    - tracker:
-      - track: reference/tracker/track.md
-      - trackers:
-        - basetrack: reference/tracker/trackers/basetrack.md
-        - bot_sort: reference/tracker/trackers/bot_sort.md
-        - byte_tracker: reference/tracker/trackers/byte_tracker.md
-      - utils:
-        - gmc: reference/tracker/utils/gmc.md
-        - kalman_filter: reference/tracker/utils/kalman_filter.md
-        - matching: reference/tracker/utils/matching.md
-    - vit:
-      - rtdetr:
-        - model: reference/vit/rtdetr/model.md
-        - predict: reference/vit/rtdetr/predict.md
-        - train: reference/vit/rtdetr/train.md
-        - val: reference/vit/rtdetr/val.md
-      - sam:
-        - amg: reference/vit/sam/amg.md
-        - autosize: reference/vit/sam/autosize.md
-        - build: reference/vit/sam/build.md
-        - model: reference/vit/sam/model.md
-        - modules:
-          - decoders: reference/vit/sam/modules/decoders.md
-          - encoders: reference/vit/sam/modules/encoders.md
-          - mask_generator: reference/vit/sam/modules/mask_generator.md
-          - prompt_predictor: reference/vit/sam/modules/prompt_predictor.md
-          - sam: reference/vit/sam/modules/sam.md
-          - tiny_encoder: reference/vit/sam/modules/tiny_encoder.md
-          - transformer: reference/vit/sam/modules/transformer.md
-        - predict: reference/vit/sam/predict.md
-      - utils:
-        - loss: reference/vit/utils/loss.md
-        - ops: reference/vit/utils/ops.md
-    - yolo:
-      - cfg:
-        - __init__: reference/yolo/cfg/__init__.md
-      - data:
-        - annotator: reference/yolo/data/annotator.md
-        - augment: reference/yolo/data/augment.md
-        - base: reference/yolo/data/base.md
-        - build: reference/yolo/data/build.md
-        - converter: reference/yolo/data/converter.md
-        - dataloaders:
-          - stream_loaders: reference/yolo/data/dataloaders/stream_loaders.md
-          - v5augmentations: reference/yolo/data/dataloaders/v5augmentations.md
-          - v5loader: reference/yolo/data/dataloaders/v5loader.md
-        - dataset: reference/yolo/data/dataset.md
-        - dataset_wrappers: reference/yolo/data/dataset_wrappers.md
-        - utils: reference/yolo/data/utils.md
-      - engine:
-        - exporter: reference/yolo/engine/exporter.md
-        - model: reference/yolo/engine/model.md
-        - predictor: reference/yolo/engine/predictor.md
-        - results: reference/yolo/engine/results.md
-        - trainer: reference/yolo/engine/trainer.md
-        - validator: reference/yolo/engine/validator.md
-      - fastsam:
-        - model: reference/yolo/fastsam/model.md
-        - predict: reference/yolo/fastsam/predict.md
-        - prompt: reference/yolo/fastsam/prompt.md
-        - utils: reference/yolo/fastsam/utils.md
-        - val: reference/yolo/fastsam/val.md
-      - nas:
-        - model: reference/yolo/nas/model.md
-        - predict: reference/yolo/nas/predict.md
-        - val: reference/yolo/nas/val.md
-      - utils:
-        - __init__: reference/yolo/utils/__init__.md
-        - autobatch: reference/yolo/utils/autobatch.md
-        - benchmarks: reference/yolo/utils/benchmarks.md
-        - callbacks:
-          - base: reference/yolo/utils/callbacks/base.md
-          - clearml: reference/yolo/utils/callbacks/clearml.md
-          - comet: reference/yolo/utils/callbacks/comet.md
-          - dvc: reference/yolo/utils/callbacks/dvc.md
-          - hub: reference/yolo/utils/callbacks/hub.md
-          - mlflow: reference/yolo/utils/callbacks/mlflow.md
-          - neptune: reference/yolo/utils/callbacks/neptune.md
-          - raytune: reference/yolo/utils/callbacks/raytune.md
-          - tensorboard: reference/yolo/utils/callbacks/tensorboard.md
-          - wb: reference/yolo/utils/callbacks/wb.md
-        - checks: reference/yolo/utils/checks.md
-        - dist: reference/yolo/utils/dist.md
-        - downloads: reference/yolo/utils/downloads.md
-        - errors: reference/yolo/utils/errors.md
-        - files: reference/yolo/utils/files.md
-        - instance: reference/yolo/utils/instance.md
-        - loss: reference/yolo/utils/loss.md
-        - metrics: reference/yolo/utils/metrics.md
-        - ops: reference/yolo/utils/ops.md
-        - patches: reference/yolo/utils/patches.md
-        - plotting: reference/yolo/utils/plotting.md
-        - tal: reference/yolo/utils/tal.md
-        - torch_utils: reference/yolo/utils/torch_utils.md
-        - tuner: reference/yolo/utils/tuner.md
-      - v8:
-        - classify:
-          - predict: reference/yolo/v8/classify/predict.md
-          - train: reference/yolo/v8/classify/train.md
-          - val: reference/yolo/v8/classify/val.md
-        - detect:
-          - predict: reference/yolo/v8/detect/predict.md
-          - train: reference/yolo/v8/detect/train.md
-          - val: reference/yolo/v8/detect/val.md
-        - pose:
-          - predict: reference/yolo/v8/pose/predict.md
-          - train: reference/yolo/v8/pose/train.md
-          - val: reference/yolo/v8/pose/val.md
-        - segment:
-          - predict: reference/yolo/v8/segment/predict.md
-          - train: reference/yolo/v8/segment/train.md
-          - val: reference/yolo/v8/segment/val.md
+      - hub:
+          - __init__: reference/hub/__init__.md
+          - auth: reference/hub/auth.md
+          - session: reference/hub/session.md
+          - utils: reference/hub/utils.md
+      - nn:
+          - autobackend: reference/nn/autobackend.md
+          - autoshape: reference/nn/autoshape.md
+          - modules:
+              - block: reference/nn/modules/block.md
+              - conv: reference/nn/modules/conv.md
+              - head: reference/nn/modules/head.md
+              - transformer: reference/nn/modules/transformer.md
+              - utils: reference/nn/modules/utils.md
+          - tasks: reference/nn/tasks.md
+      - tracker:
+          - track: reference/tracker/track.md
+          - trackers:
+              - basetrack: reference/tracker/trackers/basetrack.md
+              - bot_sort: reference/tracker/trackers/bot_sort.md
+              - byte_tracker: reference/tracker/trackers/byte_tracker.md
+          - utils:
+              - gmc: reference/tracker/utils/gmc.md
+              - kalman_filter: reference/tracker/utils/kalman_filter.md
+              - matching: reference/tracker/utils/matching.md
+      - vit:
+          - rtdetr:
+              - model: reference/vit/rtdetr/model.md
+              - predict: reference/vit/rtdetr/predict.md
+              - train: reference/vit/rtdetr/train.md
+              - val: reference/vit/rtdetr/val.md
+          - sam:
+              - amg: reference/vit/sam/amg.md
+              - autosize: reference/vit/sam/autosize.md
+              - build: reference/vit/sam/build.md
+              - model: reference/vit/sam/model.md
+              - modules:
+                  - decoders: reference/vit/sam/modules/decoders.md
+                  - encoders: reference/vit/sam/modules/encoders.md
+                  - mask_generator: reference/vit/sam/modules/mask_generator.md
+                  - prompt_predictor: reference/vit/sam/modules/prompt_predictor.md
+                  - sam: reference/vit/sam/modules/sam.md
+                  - tiny_encoder: reference/vit/sam/modules/tiny_encoder.md
+                  - transformer: reference/vit/sam/modules/transformer.md
+              - predict: reference/vit/sam/predict.md
+          - utils:
+              - loss: reference/vit/utils/loss.md
+              - ops: reference/vit/utils/ops.md
+      - yolo:
+          - cfg:
+              - __init__: reference/yolo/cfg/__init__.md
+          - data:
+              - annotator: reference/yolo/data/annotator.md
+              - augment: reference/yolo/data/augment.md
+              - base: reference/yolo/data/base.md
+              - build: reference/yolo/data/build.md
+              - converter: reference/yolo/data/converter.md
+              - dataloaders:
+                  - stream_loaders: reference/yolo/data/dataloaders/stream_loaders.md
+                  - v5augmentations: reference/yolo/data/dataloaders/v5augmentations.md
+                  - v5loader: reference/yolo/data/dataloaders/v5loader.md
+              - dataset: reference/yolo/data/dataset.md
+              - dataset_wrappers: reference/yolo/data/dataset_wrappers.md
+              - utils: reference/yolo/data/utils.md
+          - engine:
+              - exporter: reference/yolo/engine/exporter.md
+              - model: reference/yolo/engine/model.md
+              - predictor: reference/yolo/engine/predictor.md
+              - results: reference/yolo/engine/results.md
+              - trainer: reference/yolo/engine/trainer.md
+              - validator: reference/yolo/engine/validator.md
+          - fastsam:
+              - model: reference/yolo/fastsam/model.md
+              - predict: reference/yolo/fastsam/predict.md
+              - prompt: reference/yolo/fastsam/prompt.md
+              - utils: reference/yolo/fastsam/utils.md
+              - val: reference/yolo/fastsam/val.md
+          - nas:
+              - model: reference/yolo/nas/model.md
+              - predict: reference/yolo/nas/predict.md
+              - val: reference/yolo/nas/val.md
+          - utils:
+              - __init__: reference/yolo/utils/__init__.md
+              - autobatch: reference/yolo/utils/autobatch.md
+              - benchmarks: reference/yolo/utils/benchmarks.md
+              - callbacks:
+                  - base: reference/yolo/utils/callbacks/base.md
+                  - clearml: reference/yolo/utils/callbacks/clearml.md
+                  - comet: reference/yolo/utils/callbacks/comet.md
+                  - dvc: reference/yolo/utils/callbacks/dvc.md
+                  - hub: reference/yolo/utils/callbacks/hub.md
+                  - mlflow: reference/yolo/utils/callbacks/mlflow.md
+                  - neptune: reference/yolo/utils/callbacks/neptune.md
+                  - raytune: reference/yolo/utils/callbacks/raytune.md
+                  - tensorboard: reference/yolo/utils/callbacks/tensorboard.md
+                  - wb: reference/yolo/utils/callbacks/wb.md
+              - checks: reference/yolo/utils/checks.md
+              - dist: reference/yolo/utils/dist.md
+              - downloads: reference/yolo/utils/downloads.md
+              - errors: reference/yolo/utils/errors.md
+              - files: reference/yolo/utils/files.md
+              - instance: reference/yolo/utils/instance.md
+              - loss: reference/yolo/utils/loss.md
+              - metrics: reference/yolo/utils/metrics.md
+              - ops: reference/yolo/utils/ops.md
+              - patches: reference/yolo/utils/patches.md
+              - plotting: reference/yolo/utils/plotting.md
+              - tal: reference/yolo/utils/tal.md
+              - torch_utils: reference/yolo/utils/torch_utils.md
+              - tuner: reference/yolo/utils/tuner.md
+          - v8:
+              - classify:
+                  - predict: reference/yolo/v8/classify/predict.md
+                  - train: reference/yolo/v8/classify/train.md
+                  - val: reference/yolo/v8/classify/val.md
+              - detect:
+                  - predict: reference/yolo/v8/detect/predict.md
+                  - train: reference/yolo/v8/detect/train.md
+                  - val: reference/yolo/v8/detect/val.md
+              - pose:
+                  - predict: reference/yolo/v8/pose/predict.md
+                  - train: reference/yolo/v8/pose/train.md
+                  - val: reference/yolo/v8/pose/val.md
+              - segment:
+                  - predict: reference/yolo/v8/segment/predict.md
+                  - train: reference/yolo/v8/segment/train.md
+                  - val: reference/yolo/v8/segment/val.md
 
   - Help:
       - Help: help/index.md

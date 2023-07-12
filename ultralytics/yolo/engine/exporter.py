@@ -445,9 +445,8 @@ class Exporter:
         f.mkdir(exist_ok=True)  # make ncnn_model directory
         LOGGER.info(f"{prefix} running '{' '.join(cmd)}'")
         subprocess.run(cmd, check=True)
-        for i in Path.cwd().iterdir():
-            if 'debug' in i.stem and i.suffix in ('.param', '.bin'):
-                i.unlink()
+        for f in 'debug.bin', 'debug.param', 'debug2.bin', 'debug2.param':  # remove debug files
+            Path(f).unlink(missing_ok=True)
 
         yaml_save(f / 'metadata.yaml', self.metadata)  # add metadata.yaml
         return str(f), None

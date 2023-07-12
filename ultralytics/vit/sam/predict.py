@@ -47,7 +47,7 @@ class Predictor(BasePredictor):
             img = (img - self.mean) / self.std
         return img
 
-    def pre_preprocess(self, im):
+    def pre_transform(self, im):
         """Pre-transform input image before inference.
 
         Args:
@@ -56,7 +56,7 @@ class Predictor(BasePredictor):
         Return: A list of transformed imgs.
         """
         assert len(im) == 1, 'SAM model has not supported batch inference yet!'
-        return [LetterBox(self.imgsz, auto=False)(image=x) for x in im]
+        return [LetterBox(self.args.imgsz, auto=False)(image=x) for x in im]
 
     def inference(self, im, bboxes=None, points=None, labels=None, masks=None, multimask_output=False, *args, **kwargs):
         """
@@ -301,7 +301,10 @@ class Predictor(BasePredictor):
 
             im (torch.Tensor | np.ndarray): BCHW for tensor, HWC for ndarray.
         """
-        im = self.preprocess(image)
+        if self.model is None:
+            model = build_sam(self.args.model)
+            self.setup_model(model)
+        im = self.preprocess([image])
         self.features = self.model.image_encoder(im)
         self.im = im
 

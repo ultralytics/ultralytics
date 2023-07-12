@@ -22,6 +22,7 @@ from .ops import clip_boxes, scale_image, xywh2xyxy, xyxy2xywh
 
 class Colors:
     """Ultralytics color palette https://ultralytics.com/."""
+
     def __init__(self):
         """Initialize colors as hex = matplotlib.colors.TABLEAU_COLORS.values()."""
         hexs = ('FF3838', 'FF9D97', 'FF701F', 'FFB21D', 'CFD231', '48F90A', '92CC17', '3DDB86', '1A9334', '00D4BB',
@@ -49,6 +50,7 @@ colors = Colors()  # create instance for 'from utils.plots import colors'
 
 class Annotator:
     """YOLOv8 Annotator for train/val mosaics and jpgs and detect/hub inference annotations."""
+
     def __init__(self, im, line_width=None, font_size=None, font='Arial.ttf', pil=False, example='abc'):
         """Initialize the Annotator class with image and line width along with color palette for keypoints and limbs."""
         assert im.data.contiguous, 'Image not contiguous. Apply np.ascontiguousarray(im) to Annotator() input images.'

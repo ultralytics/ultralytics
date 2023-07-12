@@ -139,8 +139,8 @@ class Predictor(BasePredictor):
                 labels = np.ones(points.shape[0])
             labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
             points = ops.scale_coords(src_shape, points, dst_shape)
-            # (N, 2) --> (1, N, 2), (N, ) --> (1, N)
-            points, labels = points[None, :, :], labels[None, :]
+            # (N, 2) --> (N, 1, 2), (N, ) --> (N, 1)
+            points, labels = points[:, None, :], labels[:, None]
         if boxes is not None:
             boxes = torch.as_tensor(boxes, dtype=torch.float32, device=self.device)
             boxes = ops.scale_boxes(src_shape, boxes, dst_shape)
@@ -164,9 +164,10 @@ class Predictor(BasePredictor):
             dense_prompt_embeddings=dense_embeddings,
             multimask_output=multimask_output,
         )
-        print(pred_masks.shape, points[0].shape, points[1].shape)
 
-        return pred_masks, pred_scores
+        # (N, d, H, W) --> (N*d, H, W), (N, d) --> (N*d, )
+        # `d` could be 1 or 3 depends on `multimask_output`.
+        return pred_masks.flatten(0, 1), pred_scores.flatten(0, 1)
 
     # TODO: This function is WIP.
     def generate(self, im):
@@ -195,14 +196,14 @@ class Predictor(BasePredictor):
             for (points, ) in batch_iterator(self.points_per_batch, points_for_image):
                 pred_mask, pred_score = self.prompt_inference(crop_im, points=points)
                 # Interpolate predicted masks to input size
-                pred_mask = F.interpolate(pred_mask, (h, w), mode='bilinear', align_corners=False)
-                # idx = pred_score > self.pred_iou_thresh
-                # pred_mask, pred_score = pred_mask[idx], pred_score[idx]
-                # stability_score = calculate_stability_score(pred_mask, self.model.mask_threshold,
-                #                                             self.stability_score_offset)
-                # idx = stability_score > self.stability_score_thresh
+                pred_mask = F.interpolate(pred_mask[None], (h, w), mode='bilinear', align_corners=False)[0]
+                idx = pred_score > self.pred_iou_thresh
+                pred_mask, pred_score = pred_mask[idx], pred_score[idx]
+                stability_score = calculate_stability_score(pred_mask, self.model.mask_threshold,
+                                                            self.stability_score_offset)
+                idx = stability_score > self.stability_score_thresh
                 # # (N, H, W), (N, )
-                # pred_mask, pred_score = pred_mask[idx], pred_score[idx]
+                pred_mask, pred_score = pred_mask[idx], pred_score[idx]
                 # (N, 4)
                 pred_bbox = batched_mask_to_box(pred_mask > self.model.mask_threshold)
                 keep_mask = ~is_box_near_crop_edge(pred_bbox, crop_box, [0, 0, iw, ih])
@@ -245,20 +246,18 @@ class Predictor(BasePredictor):
         results = []
         for i, masks in enumerate([pred_masks]):
             orig_img = orig_imgs[i] if isinstance(orig_imgs, list) else orig_imgs
-            pred_scores = pred_scores.flatten(0, 1)[:, None]
             if pred_bboxes is not None:
-                pred_bboxes = pred_bboxes.flatten(0, 1)
-                # keep = torchvision.ops.nms(pred_bboxes.float(), pred_scores, self.args.iou)  # NMS
-                # pred_bboxes = pred_bboxes[keep]
-                # pred_scores = pred_scores[keep]
-                # masks = masks[keep]
+                keep = torchvision.ops.nms(pred_bboxes.float(), pred_scores, self.args.iou)  # NMS
+                pred_bboxes = pred_bboxes[keep]
+                pred_scores = pred_scores[keep]
+                masks = masks[keep]
 
-            masks = ops.scale_masks(masks, orig_img.shape[:2]).flatten(0, 1)
+            masks = ops.scale_masks(masks[None], orig_img.shape[:2])[0]
             masks = masks > self.model.mask_threshold  # to bool
             path = self.batch[0]
             img_path = path[i] if isinstance(path, list) else path
-            # boxes = torch.cat([pred_bboxes, pred_scores, torch.zeros_like(pred_scores).to(torch.int32)], dim=-1)
-            results.append(Results(orig_img=orig_img, path=img_path, names=names, masks=masks))
+            boxes = torch.cat([pred_bboxes, pred_scores[:, None], torch.zeros_like(pred_scores)[:, None].to(torch.int32)], dim=-1)
+            results.append(Results(orig_img=orig_img, path=img_path, names=names, masks=masks, boxes=boxes))
         # Reset segment-all mode.
         self.segment_all = False
         return results

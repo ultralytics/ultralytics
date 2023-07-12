@@ -289,11 +289,12 @@ def check_cls_dataset(dataset: str, split=''):
         FileNotFoundError: If the specified dataset is not found and cannot be downloaded.
     """
 
-    data_dir = (DATASETS_DIR / dataset).resolve()
+    dataset = Path(dataset)
+    data_dir = (dataset if dataset.is_dir() else (DATASETS_DIR / dataset)).resolve()
     if not data_dir.is_dir():
         LOGGER.info(f'\nDataset not found ⚠️, missing path {data_dir}, attempting download...')
         t = time.time()
-        if dataset == 'imagenet':
+        if str(dataset) == 'imagenet':
             subprocess.run(f"bash {ROOT / 'yolo/data/scripts/get_imagenet.sh'}", shell=True, check=True)
         else:
             url = f'https://github.com/ultralytics/yolov5/releases/download/v1.0/{dataset}.zip'

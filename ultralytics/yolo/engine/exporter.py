@@ -53,6 +53,7 @@ import os
 import shutil
 import subprocess
 import time
+from datetime import datetime
 import warnings
 from copy import deepcopy
 from pathlib import Path
@@ -219,6 +220,7 @@ class Exporter:
             'description': description,
             'author': 'Ultralytics',
             'license': 'AGPL-3.0 https://ultralytics.com/license',
+            'date': datetime.now().isoformat(),
             'version': __version__,
             'stride': int(max(model.stride)),
             'task': model.task,

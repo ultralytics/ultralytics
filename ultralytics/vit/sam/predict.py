@@ -4,6 +4,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 import torchvision
+from torchvision.ops.boxes import box_area
 
 from ultralytics.yolo.data.augment import LetterBox
 from ultralytics.yolo.engine.predictor import BasePredictor
@@ -195,16 +196,16 @@ class Predictor(BasePredictor):
             points_for_image = self.point_grids[layer_idx] * points_scale
             crop_masks, crop_scores, crop_bboxes = [], [], []
             for (points, ) in batch_iterator(self.points_per_batch, points_for_image):
-                pred_mask, pred_score = self.prompt_inference(crop_im, points=points)
+                pred_mask, pred_score = self.prompt_inference(crop_im, points=points, multimask_output=True)
                 # Interpolate predicted masks to input size
                 pred_mask = F.interpolate(pred_mask[None], (h, w), mode='bilinear', align_corners=False)[0]
                 idx = pred_score > self.pred_iou_thresh
                 pred_mask, pred_score = pred_mask[idx], pred_score[idx]
 
-                # stability_score = calculate_stability_score(pred_mask, self.model.mask_threshold,
-                #                                             self.stability_score_offset)
-                # idx = stability_score > self.stability_score_thresh
-                # pred_mask, pred_score = pred_mask[idx], pred_score[idx]
+                stability_score = calculate_stability_score(pred_mask, self.model.mask_threshold,
+                                                            self.stability_score_offset)
+                idx = stability_score > self.stability_score_thresh
+                pred_mask, pred_score = pred_mask[idx], pred_score[idx]
                 # (N, 4)
                 pred_bbox = batched_mask_to_box(pred_mask > self.model.mask_threshold)
                 keep_mask = ~is_box_near_crop_edge(pred_bbox, crop_box, [0, 0, iw, ih])
@@ -229,6 +230,20 @@ class Predictor(BasePredictor):
             pred_masks.append(crop_masks)
             pred_bboxes.append(crop_bboxes)
             pred_scores.append(crop_scores)
+
+        pred_masks = torch.cat(pred_masks)
+        pred_bboxes = torch.cat(pred_bboxes)
+        pred_scores = torch.cat(pred_scores)
+
+        # Remove duplicate masks between crops
+        # scores = 1 / box_area(data['crop_boxes'])
+        # scores = scores.to(data['boxes'].device)
+        # keep_by_nms = torchvision.ops.nms(
+        #     data['boxes'].float(),
+        #     scores,
+        #     torch.zeros_like(data['boxes'][:, 0]),  # categories
+        #     iou_threshold=self.crop_nms_thresh,
+        # )
 
         return torch.cat(pred_masks), torch.cat(pred_scores), torch.cat(pred_bboxes)
 
@@ -259,13 +274,16 @@ class Predictor(BasePredictor):
         results = []
         for i, masks in enumerate([pred_masks]):
             orig_img = orig_imgs[i] if isinstance(orig_imgs, list) else orig_imgs
+            if pred_bboxes is not None:
+                pred_bboxes = ops.scale_boxes(img.shape[2:], pred_bboxes.float(), orig_img.shape)
 
             masks = ops.scale_masks(masks[None], orig_img.shape[:2])[0]
             masks = masks > self.model.mask_threshold  # to bool
             path = self.batch[0]
             img_path = path[i] if isinstance(path, list) else path
-            boxes = torch.cat([pred_bboxes, pred_scores[:, None], torch.zeros_like(pred_scores)[:, None].to(torch.int32)], dim=-1)
-            results.append(Results(orig_img=orig_img, path=img_path, names=names, masks=masks))
+            cls = torch.arange(len(pred_masks), dtype=torch.int32, device=pred_masks.device)
+            boxes = torch.cat([pred_bboxes, pred_scores[:, None], cls[:, None]], dim=-1)
+            results.append(Results(orig_img=orig_img, path=img_path, names=names, masks=masks, boxes=boxes))
         # Reset segment-all mode.
         self.segment_all = False
         return results

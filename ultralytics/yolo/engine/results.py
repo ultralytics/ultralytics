@@ -198,6 +198,9 @@ class Results(SimpleClass):
         Returns:
             (numpy.ndarray): A numpy array of the annotated image.
         """
+        if img is None and isinstance(self.orig_img, torch.Tensor):
+            img = np.ascontiguousarray(self.orig_img[0].permute(1, 2, 0).cpu().detach().numpy()) * 255
+
         # Deprecation warn TODO: remove in 8.2
         if 'show_conf' in kwargs:
             deprecation_warn('show_conf', 'conf')
@@ -287,8 +290,8 @@ class Results(SimpleClass):
                     seg = masks[j].xyn[0].copy().reshape(-1)  # reversed mask.xyn, (n,2) to (n*2)
                     line = (c, *seg)
                 if kpts is not None:
-                    kpt = kpts[j].xyn.reshape(-1).tolist()
-                    line += (*kpt, )
+                    kpt = torch.cat((kpts[j].xyn, kpts[j].conf[..., None]), 2) if kpts[j].has_visible else kpts[j].xyn
+                    line += (*kpt.reshape(-1).tolist(), )
                 line += (conf, ) * save_conf + (() if id is None else (id, ))
                 texts.append(('%g ' * len(line)).rstrip() % line)
 
@@ -305,7 +308,7 @@ class Results(SimpleClass):
             file_name (str | pathlib.Path): File name.
         """
         if self.probs is not None:
-            LOGGER.warning('Warning: Classify task do not support `save_crop`.')
+            LOGGER.warning('WARNING ⚠️ Classify task do not support `save_crop`.')
             return
         if isinstance(save_dir, str):
             save_dir = Path(save_dir)

@@ -67,7 +67,7 @@ def on_pretrain_routine_start(trainer):
     try:
         global live
         if not _logger_disabled():
-            live = dvclive.Live(save_dvc_exp=True)
+            live = dvclive.Live(save_dvc_exp=True, cache_images=True)
             LOGGER.info(
                 'DVCLive is detected and auto logging is enabled (can be disabled with `ULTRALYTICS_DVC_DISABLED=true`).'
             )

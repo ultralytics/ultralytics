@@ -8,6 +8,7 @@ import platform
 import re
 import shutil
 import subprocess
+import time
 from pathlib import Path
 from typing import Optional
 
@@ -222,25 +223,29 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
     s = ''  # console string
     n = 0  # number of packages updates
     for r in requirements:
+        rmin = r.split('/')[-1].replace('.git', '')  # replace git+https://org/repo.git -> 'repo'
         try:
-            pkg.require(r)
+            pkg.require(rmin)
         except (pkg.VersionConflict, pkg.DistributionNotFound):  # exception if requirements not met
             try:  # attempt to import (slower but more accurate)
                 import importlib
-                importlib.import_module(next(pkg.parse_requirements(r)).name)
+                importlib.import_module(next(pkg.parse_requirements(rmin)).name)
             except ImportError:
                 s += f'"{r}" '
                 n += 1
 
     if s:
         if install and AUTOINSTALL:  # check environment variable
-            LOGGER.info(f"{prefix} Ultralytics requirement{'s' * (n > 1)} {s}not found, attempting AutoUpdate...")
+            pkgs = file or requirements  # missing packages
+            LOGGER.info(f"{prefix} Ultralytics requirement{'s' * (n > 1)} {pkgs} not found, attempting AutoUpdate...")
             try:
+                t = time.time()
                 assert is_online(), 'AutoUpdate skipped (offline)'
                 LOGGER.info(subprocess.check_output(f'pip install --no-cache {s} {cmds}', shell=True).decode())
-                s = f"{prefix} {n} package{'s' * (n > 1)} updated per {file or requirements}\n" \
-                    f"{prefix} ⚠️ {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n"
-                LOGGER.info(s)
+                dt = time.time() - t
+                LOGGER.info(
+                    f"{prefix} AutoUpdate success ✅ {dt:.1f}s, installed {n} package{'s' * (n > 1)}: {pkgs}\n"
+                    f"{prefix} ⚠️ {colorstr('bold', 'Restart runtime or rerun command for updates to take effect')}\n")
             except Exception as e:
                 LOGGER.warning(f'{prefix} ❌ {e}')
                 return False

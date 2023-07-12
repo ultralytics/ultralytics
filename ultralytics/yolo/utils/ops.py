@@ -653,7 +653,7 @@ def scale_masks(masks, shape, padding=True):
     if padding:
         pad[0] /= 2
         pad[1] /= 2
-    top, left = (int(pad[1]), int(pad[0])) if padding else (0, 0) # y, x
+    top, left = (int(pad[1]), int(pad[0])) if padding else (0, 0)  # y, x
     bottom, right = (int(mh - pad[1]), int(mw - pad[0]))
     masks = masks[..., top:bottom, left:right]
 

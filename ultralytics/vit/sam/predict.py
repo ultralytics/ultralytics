@@ -11,9 +11,9 @@ from ultralytics.yolo.engine.results import Results
 from ultralytics.yolo.utils import DEFAULT_CFG, ops
 from ultralytics.yolo.utils.torch_utils import select_device
 
+from .amg import (batch_iterator, batched_mask_to_box, build_all_layer_point_grids, calculate_stability_score,
+                  generate_crop_boxes, is_box_near_crop_edge, uncrop_boxes_xyxy, uncrop_masks)
 from .build import build_sam
-from .amg import (batch_iterator, batched_mask_to_box, build_all_layer_point_grids, generate_crop_boxes,
-                  is_box_near_crop_edge, uncrop_boxes_xyxy, uncrop_masks, calculate_stability_score)
 
 
 class Predictor(BasePredictor):
@@ -166,19 +166,18 @@ class Predictor(BasePredictor):
         # `d` could be 1 or 3 depends on `multimask_output`.
         return pred_masks.flatten(0, 1), pred_scores.flatten(0, 1)
 
-    def generate(
-        self,
-        im,
-        crop_n_layers=0,
-        crop_overlap_ratio=512 / 1500,
-        crop_downscale_factor=1,
-        point_grids=None,
-        points_stride=32,
-        points_batch_size=64,
-        conf_thres=0.88,
-        stability_score_thresh = 0.95,
-        stability_score_offset = 0.95,
-        crop_nms_thresh=0.7):
+    def generate(self,
+                 im,
+                 crop_n_layers=0,
+                 crop_overlap_ratio=512 / 1500,
+                 crop_downscale_factor=1,
+                 point_grids=None,
+                 points_stride=32,
+                 points_batch_size=64,
+                 conf_thres=0.88,
+                 stability_score_thresh=0.95,
+                 stability_score_offset=0.95,
+                 crop_nms_thresh=0.7):
         """Segment the whole image.
 
         Args:
@@ -337,7 +336,7 @@ class Predictor(BasePredictor):
             model = build_sam(self.args.model)
             self.setup_model(model)
         self.setup_source(image)
-        assert len(self.dataset) == 1, "`set_image` only supports setting one image!"
+        assert len(self.dataset) == 1, '`set_image` only supports setting one image!'
         for batch in self.dataset:
             im = self.preprocess(batch[1])
             self.features = self.model.image_encoder(im)

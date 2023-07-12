@@ -56,7 +56,7 @@ class Predictor(BasePredictor):
         Return: A list of transformed imgs.
         """
         assert len(im) == 1, 'SAM model has not supported batch inference yet!'
-        return [LetterBox(self.args.imgsz, auto=False)(image=x) for x in im]
+        return [LetterBox(self.args.imgsz, auto=False, center=False)(image=x) for x in im]
 
     def inference(self, im, bboxes=None, points=None, labels=None, masks=None, multimask_output=False, *args, **kwargs):
         """
@@ -123,6 +123,7 @@ class Predictor(BasePredictor):
         features = self.model.image_encoder(im) if self.features is None else self.features
 
         src_shape, dst_shape = self.batch[1][0].shape[:2], im.shape[2:]
+        r = 1.0 if self.segment_all else min(dst_shape[0] / src_shape[0], dst_shape[1] / src_shape[1])
         # Transform input prompts
         if points is not None:
             points = torch.as_tensor(points, dtype=torch.float32, device=self.device)
@@ -130,13 +131,12 @@ class Predictor(BasePredictor):
             if labels is None:
                 labels = np.ones(points.shape[0])
             labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
-            # TODO
-            # points = ops.scale_coords(src_shape, points, dst_shape)
+            points *= r
             # (N, 2) --> (N, 1, 2), (N, ) --> (N, 1)
             points, labels = points[:, None, :], labels[:, None]
         if bboxes is not None:
             bboxes = torch.as_tensor(bboxes, dtype=torch.float32, device=self.device)
-            bboxes = ops.scale_boxes(src_shape, bboxes, dst_shape)
+            bboxes *= r
         if masks is not None:
             masks = torch.as_tensor(masks, dtype=torch.float32, device=self.device)
             masks = masks[:, None, :, :]
@@ -179,6 +179,32 @@ class Predictor(BasePredictor):
 
         Args:
             im(torch.Tensor): The preprocessed image, (N, C, H, W).
+            crop_n_layers (int): If >0, mask prediction will be run again on
+              crops of the image. Sets the number of layers to run, where each
+              layer has 2**i_layer number of image crops.
+            crop_overlap_ratio (float): Sets the degree to which crops overlap.
+                In the first crop layer, crops will overlap by this fraction of
+                the image length. Later layers with more crops scale down this overlap.
+            crop_downscale_factor (int): The number of points-per-side
+                sampled in layer n is scaled down by crop_n_points_downscale_factor**n.
+            point_grids (list(np.ndarray), None): A list over explicit grids
+                of points used for sampling, normalized to [0,1]. The nth grid in the
+              l  ist is used in the nth crop layer. Exclusive with points_per_side.
+            points_stride (int, None): The number of points to be sampled
+                along one side of the image. The total number of points is
+                points_per_side**2. If None, 'point_grids' must provide explicit
+                point sampling.
+            points_batch_size (int): Sets the number of points run simultaneously
+                by the model. Higher numbers may be faster but use more GPU memory.
+            conf_thres (float): A filtering threshold in [0,1], using the
+                model's predicted mask quality.
+            stability_score_thresh (float): A filtering threshold in [0,1], using
+                the stability of the mask under changes to the cutoff used to binarize
+                the model's mask predictions.
+            stability_score_offset (float): The amount to shift the cutoff when
+                calculated the stability score.
+            crop_nms_thresh (float): The box IoU cutoff used by non-maximal
+                suppression to filter duplicate masks between different crops.
         """
         self.segment_all = True
         ih, iw = im.shape[2:]
@@ -279,11 +305,11 @@ class Predictor(BasePredictor):
         for i, masks in enumerate([pred_masks]):
             orig_img = orig_imgs[i] if isinstance(orig_imgs, list) else orig_imgs
             if pred_bboxes is not None:
-                pred_bboxes = ops.scale_boxes(img.shape[2:], pred_bboxes.float(), orig_img.shape)
+                pred_bboxes = ops.scale_boxes(img.shape[2:], pred_bboxes.float(), orig_img.shape, padding=False)
                 cls = torch.arange(len(pred_masks), dtype=torch.int32, device=pred_masks.device)
                 pred_bboxes = torch.cat([pred_bboxes, pred_scores[:, None], cls[:, None]], dim=-1)
 
-            masks = ops.scale_masks(masks[None], orig_img.shape[:2])[0]
+            masks = ops.scale_masks(masks[None], orig_img.shape[:2], padding=False)[0]
             masks = masks > self.model.mask_threshold  # to bool
             path = self.batch[0]
             img_path = path[i] if isinstance(path, list) else path

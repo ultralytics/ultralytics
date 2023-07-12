@@ -217,3 +217,13 @@ Early reviews have praised the Arc™ series, particularly the integrated A770M 
 | yolov8x | TorchScript | ✅      | 260.7     | 0.5371              | 1186.42                |
 | yolov8x | ONNX        | ✅      | 260.4     | 0.5371              | 768.90                 |
 | yolov8x | OpenVINO    | ✅      | 260.6     | 0.5367              | 19                     |
+
+## Conclusion
+
+The benchmarking results clearly demonstrate the benefits of exporting the YOLOv8 model to the OpenVINO format. Across different models and hardware platforms, the OpenVINO format consistently outperforms other formats in terms of inference speed while maintaining comparable accuracy.
+
+For the Intel® Data Center GPU Flex Series, the OpenVINO format was able to deliver inference speeds almost 10 times faster than the original PyTorch format. On the Xeon CPU, the OpenVINO format was twice as fast as the PyTorch format. The accuracy of the models remained nearly identical across the different formats.
+
+The benchmarks underline the effectiveness of OpenVINO as a tool for deploying deep learning models. By converting models to the OpenVINO format, developers can achieve significant performance improvements, making it easier to deploy these models in real-world applications.
+
+For more detailed information and instructions on using OpenVINO, refer to the [official OpenVINO documentation](https://docs.openvinotoolkit.org/latest/index.html).

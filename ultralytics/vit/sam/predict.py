@@ -138,7 +138,7 @@ class Predictor(BasePredictor):
             if labels is None:
                 labels = np.ones(points.shape[0])
             labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
-            points = ops.scale_coords(src_shape, points, dst_shape)
+            # points = ops.scale_coords(src_shape, points, dst_shape)
             # (N, 2) --> (N, 1, 2), (N, ) --> (N, 1)
             points, labels = points[:, None, :], labels[:, None]
         if boxes is not None:
@@ -193,17 +193,18 @@ class Predictor(BasePredictor):
             crop_im = F.interpolate(im[..., y1:y2, x1:x2], (ih, iw), mode='bilinear', align_corners=False)
             # (num_points, 2)
             points_for_image = self.point_grids[layer_idx] * points_scale
+            crop_masks, crop_scores, crop_bboxes = [], [], []
             for (points, ) in batch_iterator(self.points_per_batch, points_for_image):
                 pred_mask, pred_score = self.prompt_inference(crop_im, points=points)
                 # Interpolate predicted masks to input size
                 pred_mask = F.interpolate(pred_mask[None], (h, w), mode='bilinear', align_corners=False)[0]
                 idx = pred_score > self.pred_iou_thresh
                 pred_mask, pred_score = pred_mask[idx], pred_score[idx]
-                stability_score = calculate_stability_score(pred_mask, self.model.mask_threshold,
-                                                            self.stability_score_offset)
-                idx = stability_score > self.stability_score_thresh
-                # # (N, H, W), (N, )
-                pred_mask, pred_score = pred_mask[idx], pred_score[idx]
+
+                # stability_score = calculate_stability_score(pred_mask, self.model.mask_threshold,
+                #                                             self.stability_score_offset)
+                # idx = stability_score > self.stability_score_thresh
+                # pred_mask, pred_score = pred_mask[idx], pred_score[idx]
                 # (N, 4)
                 pred_bbox = batched_mask_to_box(pred_mask > self.model.mask_threshold)
                 keep_mask = ~is_box_near_crop_edge(pred_bbox, crop_box, [0, 0, iw, ih])
@@ -211,12 +212,24 @@ class Predictor(BasePredictor):
                     pred_bbox = pred_bbox[keep_mask]
                     pred_mask = pred_mask[keep_mask]
                     pred_score = pred_score[keep_mask]
-                pred_mask = uncrop_masks(pred_mask, crop_box, ih, iw)
-                pred_bbox = uncrop_boxes_xyxy(pred_bbox, crop_box)
 
-                pred_masks.append(pred_mask)
-                pred_bboxes.append(pred_bbox)
-                pred_scores.append(pred_score)
+                crop_masks.append(pred_mask)
+                crop_bboxes.append(pred_bbox)
+                crop_scores.append(pred_score)
+
+            # Do nms within this crop
+            crop_masks = torch.cat(crop_masks)
+            crop_bboxes = torch.cat(crop_bboxes)
+            crop_scores = torch.cat(crop_scores)
+            keep = torchvision.ops.nms(crop_bboxes.float(), crop_scores, self.args.iou)  # NMS
+            crop_bboxes = uncrop_boxes_xyxy(crop_bboxes[keep], crop_box)
+            crop_masks = uncrop_masks(crop_masks[keep], crop_box, ih, iw)
+            crop_scores = crop_scores[keep]
+
+            pred_masks.append(crop_masks)
+            pred_bboxes.append(crop_bboxes)
+            pred_scores.append(crop_scores)
+
         return torch.cat(pred_masks), torch.cat(pred_scores), torch.cat(pred_bboxes)
 
     def setup_model(self, model):
@@ -246,18 +259,13 @@ class Predictor(BasePredictor):
         results = []
         for i, masks in enumerate([pred_masks]):
             orig_img = orig_imgs[i] if isinstance(orig_imgs, list) else orig_imgs
-            if pred_bboxes is not None:
-                keep = torchvision.ops.nms(pred_bboxes.float(), pred_scores, self.args.iou)  # NMS
-                pred_bboxes = pred_bboxes[keep]
-                pred_scores = pred_scores[keep]
-                masks = masks[keep]
 
             masks = ops.scale_masks(masks[None], orig_img.shape[:2])[0]
             masks = masks > self.model.mask_threshold  # to bool
             path = self.batch[0]
             img_path = path[i] if isinstance(path, list) else path
             boxes = torch.cat([pred_bboxes, pred_scores[:, None], torch.zeros_like(pred_scores)[:, None].to(torch.int32)], dim=-1)
-            results.append(Results(orig_img=orig_img, path=img_path, names=names, masks=masks, boxes=boxes))
+            results.append(Results(orig_img=orig_img, path=img_path, names=names, masks=masks))
         # Reset segment-all mode.
         self.segment_all = False
         return results

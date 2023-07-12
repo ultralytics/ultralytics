@@ -171,8 +171,8 @@ def check_cfg_mismatch(base: Dict, custom: Dict, e=None):
     If any mismatched keys are found, the function prints out similar keys from the base list and exits the program.
 
     Args:
-        custom (Dict): a dictionary of custom configuration options
-        base (Dict): a dictionary of base configuration options
+        custom (dict): a dictionary of custom configuration options
+        base (dict): a dictionary of base configuration options
     """
     custom = _handle_deprecation(custom)
     base, custom = (set(x.keys()) for x in (base, custom))

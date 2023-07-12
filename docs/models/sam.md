@@ -72,12 +72,12 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
 
 ## SAM comparison vs YOLOv8
 
-Here we compare Meta's smallest SAM model, SAM-b, with Ultralytics smallest segmentation model, [YOLOv8n-seg](../tasks/segment):
+Here we compare Meta's smallest SAM model, SAM-b, with Ultralytics smallest segmentation model, [YOLOv8n-seg](../tasks/segment.md):
 
-| Model                                       | Size                       | Parameters             | Speed (CPU)             |
-|---------------------------------------------|----------------------------|------------------------|-------------------------|
-| Meta's SAM-b                                | 358 MB                     | 94.7 M                 | 51096 ms                |
-| Ultralytics [YOLOv8n-seg](../tasks/segment) | **6.7 MB** (53.4x smaller) | **3.4 M** (27.9x less) | **59 ms** (866x faster) |
+| Model                                          | Size                       | Parameters             | Speed (CPU)             |
+|------------------------------------------------|----------------------------|------------------------|-------------------------|
+| Meta's SAM-b                                   | 358 MB                     | 94.7 M                 | 51096 ms                |
+| Ultralytics [YOLOv8n-seg](../tasks/segment.md) | **6.7 MB** (53.4x smaller) | **3.4 M** (27.9x less) | **59 ms** (866x faster) |
 
 This comparison shows the order-of-magnitude differences in the model sizes and speeds. Whereas SAM presents unique capabilities for automatic segmenting, it is not a direct competitor to YOLOv8 segment models, which are smaller, faster and more efficient since they are dedicated to more targeted use cases.
 

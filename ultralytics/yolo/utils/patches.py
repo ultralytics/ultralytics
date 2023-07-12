@@ -34,7 +34,7 @@ _torch_save = torch.save  # copy to avoid recursion errors
 
 
 def torch_save(*args, **kwargs):
-    # Use dill (if exists) to serialize the lambda functions where pickle does not do this
+    """Use dill (if exists) to serialize the lambda functions where pickle does not do this."""
     try:
         import dill as pickle
     except ImportError:

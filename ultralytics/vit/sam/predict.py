@@ -20,6 +20,8 @@ class Predictor(BasePredictor):
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         super().__init__(cfg, overrides, _callbacks)
+        # SAM needs retina_masks=True, or the results would be a mess.
+        self.args.retina_masks = True
         # Args for set_image
         self.im = None
         self.features = None

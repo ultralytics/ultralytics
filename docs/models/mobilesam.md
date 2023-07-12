@@ -43,9 +43,7 @@ keywords: MobileSAM, Faster Segment Anything, Segment Anything, Segment Anything
 
 :star: **Original SAM and MobileSAM with a point as the prompt.**
 
-
 <img src="https://raw.githubusercontent.com/ChaoningZhang/MobileSAM/master/assets/mask_box.jpg?raw=true" width="99.1%" />
-
 
 :star: **Original SAM and MobileSAM with a box as the prompt.**
 

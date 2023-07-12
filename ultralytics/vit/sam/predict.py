@@ -13,7 +13,7 @@ from ultralytics.yolo.utils.torch_utils import select_device
 
 from .build import build_sam
 from .amg import (batch_iterator, batched_mask_to_box, build_all_layer_point_grids, generate_crop_boxes,
-                  is_box_near_crop_edge, uncrop_boxes_xyxy, uncrop_masks)
+                  is_box_near_crop_edge, uncrop_boxes_xyxy, uncrop_masks, calculate_stability_score)
 
 
 class Predictor(BasePredictor):
@@ -258,9 +258,6 @@ class Predictor(BasePredictor):
         if model is None:
             model = build_sam(self.args.model)
         model.eval()
-        # self.model = SamAutomaticMaskGenerator(model.to(device),
-        #                                        pred_iou_thresh=self.args.conf,
-        #                                        box_nms_thresh=self.args.iou)
         self.model = model.to(device)
         self.device = device
         self.mean = torch.tensor([123.675, 116.28, 103.53]).view(-1, 1, 1).to(device)
@@ -295,18 +292,27 @@ class Predictor(BasePredictor):
         self.segment_all = False
         return results
 
+    def setup_source(self, source):
+        """Sets up source and inference mode."""
+        if source is not None:
+            super().setup_source(source)
+
     def set_image(self, image):
         """Set image in advance.
         Args:
 
-            im (torch.Tensor | np.ndarray): BCHW for tensor, HWC for ndarray.
+            image (str | np.ndarray): image file path or np.ndarray image by cv2.
         """
         if self.model is None:
             model = build_sam(self.args.model)
             self.setup_model(model)
-        im = self.preprocess([image])
-        self.features = self.model.image_encoder(im)
-        self.im = im
+        self.setup_source(image)
+        assert len(self.dataset) == 1, "`set_image` only supports setting one image!"
+        for batch in self.dataset:
+            im = self.preprocess(batch[1])
+            self.features = self.model.image_encoder(im)
+            self.im = im
+            break
 
     def reset_image(self):
         self.im = None

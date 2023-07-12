@@ -127,6 +127,7 @@ class Predictor(BasePredictor):
         # Transform input prompts
         if points is not None:
             points = torch.as_tensor(points, dtype=torch.float32, device=self.device)
+            points = points[None] if points.ndim == 1 else points
             # Assuming labels are all positive if users don't pass labels.
             if labels is None:
                 labels = np.ones(points.shape[0])
@@ -136,6 +137,7 @@ class Predictor(BasePredictor):
             points, labels = points[:, None, :], labels[:, None]
         if bboxes is not None:
             bboxes = torch.as_tensor(bboxes, dtype=torch.float32, device=self.device)
+            bboxes = bboxes[None] if bboxes.ndim == 1 else bboxes
             bboxes *= r
         if masks is not None:
             masks = torch.as_tensor(masks, dtype=torch.float32, device=self.device)

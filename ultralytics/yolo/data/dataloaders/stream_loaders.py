@@ -29,7 +29,8 @@ class SourceTypes:
 
 
 class LoadStreams:
-    # YOLOv8 streamloader, i.e. `yolo predict source='rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP streams`
+    """YOLOv8 streamloader, i.e. `yolo predict source='rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP streams`."""
+
     def __init__(self, sources='file.streams', imgsz=640, vid_stride=1):
         """Initialize instance variables and check for consistent input stream shapes."""
         torch.backends.cudnn.benchmark = True  # faster for fixed-size inference
@@ -116,7 +117,8 @@ class LoadStreams:
 
 
 class LoadScreenshots:
-    # YOLOv8 screenshot dataloader, i.e. `yolo predict source=screen`
+    """YOLOv8 screenshot dataloader, i.e. `yolo predict source=screen`."""
+
     def __init__(self, source, imgsz=640):
         """source = [screen_number left top width height] (pixels)."""
         check_requirements('mss')
@@ -158,7 +160,8 @@ class LoadScreenshots:
 
 
 class LoadImages:
-    # YOLOv8 image/video dataloader, i.e. `yolo predict source=image.jpg/vid.mp4`
+    """YOLOv8 image/video dataloader, i.e. `yolo predict source=image.jpg/vid.mp4`."""
+
     def __init__(self, path, imgsz=640, vid_stride=1):
         """Initialize the Dataloader and raise FileNotFoundError if file not found."""
         if isinstance(path, str) and Path(path).suffix == '.txt':  # *.txt file with img/vid/dir on each line

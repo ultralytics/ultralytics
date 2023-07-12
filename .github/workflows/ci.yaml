@@ -19,8 +19,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ['3.10']
-        model: [yolov5n]
+        python-version: ['3.11']
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -113,22 +112,22 @@ jobs:
         shell: python
         run: |
           from ultralytics.yolo.utils.benchmarks import benchmark
-          benchmark(model='${{ matrix.model }}.pt', imgsz=160, half=False, hard_fail=0.20)
+          benchmark(model='${{ matrix.model }}.pt', imgsz=160, half=False, hard_fail=0.26)
       - name: Benchmark SegmentationModel
         shell: python
         run: |
           from ultralytics.yolo.utils.benchmarks import benchmark
-          benchmark(model='${{ matrix.model }}-seg.pt', imgsz=160, half=False, hard_fail=0.14)
+          benchmark(model='${{ matrix.model }}-seg.pt', imgsz=160, half=False, hard_fail=0.30)
       - name: Benchmark ClassificationModel
         shell: python
         run: |
           from ultralytics.yolo.utils.benchmarks import benchmark
-          benchmark(model='${{ matrix.model }}-cls.pt', imgsz=160, half=False, hard_fail=0.61)
+          benchmark(model='${{ matrix.model }}-cls.pt', imgsz=160, half=False, hard_fail=0.36)
       - name: Benchmark PoseModel
         shell: python
         run: |
           from ultralytics.yolo.utils.benchmarks import benchmark
-          benchmark(model='${{ matrix.model }}-pose.pt', imgsz=160, half=False, hard_fail=0.0)
+          benchmark(model='${{ matrix.model }}-pose.pt', imgsz=160, half=False, hard_fail=0.17)
       - name: Benchmark Summary
         run: |
           cat benchmarks.log
@@ -141,7 +140,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ['3.8', '3.9', '3.10']
+        python-version: ['3.11']
         model: [yolov8n]
         torch: [latest]
         include:

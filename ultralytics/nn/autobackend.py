@@ -3,6 +3,7 @@
 import ast
 import contextlib
 import json
+import os
 import platform
 import zipfile
 from collections import OrderedDict, namedtuple
@@ -15,7 +16,7 @@ import torch
 import torch.nn as nn
 from PIL import Image
 
-from ultralytics.yolo.utils import LINUX, LOGGER, ROOT, yaml_load
+from ultralytics.yolo.utils import ARM64, LINUX, LOGGER, ROOT, yaml_load
 from ultralytics.yolo.utils.checks import check_requirements, check_suffix, check_version, check_yaml
 from ultralytics.yolo.utils.downloads import attempt_download_asset, is_url
 from ultralytics.yolo.utils.ops import xywh2xyxy
@@ -75,11 +76,13 @@ class AutoBackend(nn.Module):
             | TensorFlow Lite       | *.tflite         |
             | TensorFlow Edge TPU   | *_edgetpu.tflite |
             | PaddlePaddle          | *_paddle_model   |
+            | ncnn                  | *_ncnn_model     |
         """
         super().__init__()
         w = str(weights[0] if isinstance(weights, list) else weights)
         nn_module = isinstance(weights, torch.nn.Module)
-        pt, jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, triton = self._model_type(w)
+        pt, jit, onnx, xml, engine, coreml, saved_model, pb, tflite, edgetpu, tfjs, paddle, ncnn, triton = \
+            self._model_type(w)
         fp16 &= pt or jit or onnx or engine or nn_module or triton  # FP16
         nhwc = coreml or saved_model or pb or tflite or edgetpu  # BHWC formats (vs torch BCWH)
         stride = 32  # default stride
@@ -237,7 +240,7 @@ class AutoBackend(nn.Module):
                     meta_file = model.namelist()[0]
                     metadata = ast.literal_eval(model.read(meta_file).decode('utf-8'))
         elif tfjs:  # TF.js
-            raise NotImplementedError('YOLOv8 TF.js inference is not supported')
+            raise NotImplementedError('YOLOv8 TF.js inference is not currently supported.')
         elif paddle:  # PaddlePaddle
             LOGGER.info(f'Loading {w} for PaddlePaddle inference...')
             check_requirements('paddlepaddle-gpu' if cuda else 'paddlepaddle')
@@ -252,6 +255,19 @@ class AutoBackend(nn.Module):
             input_handle = predictor.get_input_handle(predictor.get_input_names()[0])
             output_names = predictor.get_output_names()
             metadata = w.parents[1] / 'metadata.yaml'
+        elif ncnn:  # ncnn
+            LOGGER.info(f'Loading {w} for ncnn inference...')
+            check_requirements('git+https://github.com/Tencent/ncnn.git' if ARM64 else 'ncnn')  # requires NCNN
+            import ncnn as pyncnn
+            net = pyncnn.Net()
+            net.opt.num_threads = os.cpu_count()
+            net.opt.use_vulkan_compute = cuda
+            w = Path(w)
+            if not w.is_file():  # if not *.param
+                w = next(w.glob('*.param'))  # get *.param file from *_ncnn_model dir
+            net.load_param(str(w))
+            net.load_model(str(w.with_suffix('.bin')))
+            metadata = w.parent / 'metadata.yaml'
         elif triton:  # NVIDIA Triton Inference Server
             LOGGER.info('Triton Inference Server not supported...')
             '''
@@ -340,7 +356,7 @@ class AutoBackend(nn.Module):
         elif self.coreml:  # CoreML
             im = im[0].cpu().numpy()
             im_pil = Image.fromarray((im * 255).astype('uint8'))
-            # im = im.resize((192, 320), Image.ANTIALIAS)
+            # im = im.resize((192, 320), Image.BILINEAR)
             y = self.model.predict({'image': im_pil})  # coordinates are xywh normalized
             if 'confidence' in y:
                 box = xywh2xyxy(y['coordinates'] * [[w, h, w, h]])  # xyxy pixels
@@ -355,6 +371,16 @@ class AutoBackend(nn.Module):
             self.input_handle.copy_from_cpu(im)
             self.predictor.run()
             y = [self.predictor.get_output_handle(x).copy_to_cpu() for x in self.output_names]
+        elif self.ncnn:  # ncnn
+            mat_in = self.pyncnn.Mat(im[0].cpu().numpy())
+            ex = self.net.create_extractor()
+            input_names, output_names = self.net.input_names(), self.net.output_names()
+            ex.input(input_names[0], mat_in)
+            y = []
+            for output_name in output_names:
+                mat_out = self.pyncnn.Mat()
+                ex.extract(output_name, mat_out)
+                y.append(np.array(mat_out)[None])
         elif self.triton:  # NVIDIA Triton Inference Server
             y = self.model(im)
         else:  # TensorFlow (SavedModel, GraphDef, Lite, Edge TPU)

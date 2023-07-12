@@ -50,7 +50,7 @@ def on_train_end(trainer):
     art = wb.Artifact(type='model', name=f'run_{wb.run.id}_model')
     if trainer.best.exists():
         art.add_file(trainer.best)
-        wb.run.log_artifact(art)
+        wb.run.log_artifact(art, aliases=['best'])
 
 
 callbacks = {

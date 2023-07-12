@@ -39,7 +39,7 @@ class LoadStreams:
         sources = Path(sources).read_text().rsplit() if os.path.isfile(sources) else [sources]
         n = len(sources)
         self.sources = [ops.clean_str(x) for x in sources]  # clean source names for later
-        self.imgs, self.fps, self.frames, self.threads = [None] * n, [0] * n, [0] * n, [None] * n
+        self.imgs, self.fps, self.frames, self.threads, self.shape = [[]] * n, [0] * n, [0] * n, [None] * n, [None] * n
         for i, s in enumerate(sources):  # index, source
             # Start thread to read frames from video stream
             st = f'{i + 1}/{n}: {s}... '
@@ -59,9 +59,11 @@ class LoadStreams:
             self.frames[i] = max(int(cap.get(cv2.CAP_PROP_FRAME_COUNT)), 0) or float('inf')  # infinite stream fallback
             self.fps[i] = max((fps if math.isfinite(fps) else 0) % 100, 0) or 30  # 30 FPS fallback
 
-            success, self.imgs[i] = cap.read()  # guarantee first frame
-            if not success or self.imgs[i] is None:
+            success, im = cap.read()  # guarantee first frame
+            if not success or im is None:
                 raise ConnectionError(f'{st}Failed to read images from {s}')
+            self.imgs[i].append(im)
+            self.shape[i] = im.shape
             self.threads[i] = Thread(target=self.update, args=([i, cap, s]), daemon=True)
             LOGGER.info(f'{st}Success ✅ ({self.frames[i]} frames of shape {w}x{h} at {self.fps[i]:.2f} FPS)')
             self.threads[i].start()
@@ -74,17 +76,20 @@ class LoadStreams:
         """Read stream `i` frames in daemon thread."""
         n, f = 0, self.frames[i]  # frame number, frame array
         while cap.isOpened() and n < f:
-            n += 1
-            cap.grab()  # .read() = .grab() followed by .retrieve()
-            if n % self.vid_stride == 0:
-                success, im = cap.retrieve()
-                if success:
-                    self.imgs[i] = im
-                else:
-                    LOGGER.warning('WARNING ⚠️ Video stream unresponsive, please check your IP camera connection.')
-                    self.imgs[i] = np.zeros_like(self.imgs[i])
-                    cap.open(stream)  # re-open stream if signal was lost
-            time.sleep(0.0)  # wait time
+            # Only read a new frame if the buffer is empty
+            if not self.imgs[i]:
+                n += 1
+                cap.grab()  # .read() = .grab() followed by .retrieve()
+                if n % self.vid_stride == 0:
+                    success, im = cap.retrieve()
+                    if success:
+                        self.imgs[i].append(im)  # add image to buffer
+                    else:
+                        LOGGER.warning('WARNING ⚠️ Video stream unresponsive, please check your IP camera connection.')
+                        self.imgs[i].append(np.zeros(self.shape[i]))
+                        cap.open(stream)  # re-open stream if signal was lost
+            else:
+                time.sleep(0.01)  # wait until the buffer is empty
 
     def __iter__(self):
         """Iterates through YOLO image feed and re-opens unresponsive streams."""
@@ -92,14 +97,18 @@ class LoadStreams:
         return self
 
     def __next__(self):
-        """Returns source paths, transformed and original images for processing YOLOv5."""
+        """Returns source paths, transformed and original images for processing."""
         self.count += 1
-        if not all(x.is_alive() for x in self.threads) or cv2.waitKey(1) == ord('q'):  # q to quit
-            cv2.destroyAllWindows()
-            raise StopIteration
 
-        im0 = self.imgs.copy()
-        return self.sources, im0, None, ''
+        # Wait until a frame is available in each buffer
+        while not all(self.imgs):
+            if not all(x.is_alive() for x in self.threads) or cv2.waitKey(1) == ord('q'):  # q to quit
+                cv2.destroyAllWindows()
+                raise StopIteration
+            time.sleep(1 / min(self.fps))
+
+        # Get and remove the next frame from imgs buffer
+        return self.sources, [x.pop(0) for x in self.imgs], None, ''
 
     def __len__(self):
         """Return the length of the sources object."""
@@ -294,10 +303,31 @@ class LoadPilAndNumpy:
 
 class LoadTensor:
 
-    def __init__(self, imgs) -> None:
-        self.im0 = imgs
-        self.bs = imgs.shape[0]
+    def __init__(self, im0) -> None:
+        self.im0 = self._single_check(im0)
+        self.bs = self.im0.shape[0]
         self.mode = 'image'
+        self.paths = [getattr(im, 'filename', f'image{i}.jpg') for i, im in enumerate(im0)]
+
+    @staticmethod
+    def _single_check(im, stride=32):
+        """Validate and format an image to torch.Tensor."""
+        s = f'WARNING ⚠️ torch.Tensor inputs should be BCHW i.e. shape(1, 3, 640, 640) ' \
+            f'divisible by stride {stride}. Input shape{tuple(im.shape)} is incompatible.'
+        if len(im.shape) != 4:
+            if len(im.shape) == 3:
+                LOGGER.warning(s)
+                im = im.unsqueeze(0)
+            else:
+                raise ValueError(s)
+        if im.shape[2] % stride or im.shape[3] % stride:
+            raise ValueError(s)
+        if im.max() > 1.0:
+            LOGGER.warning(f'WARNING ⚠️ torch.Tensor inputs should be normalized 0.0-1.0 but max value is {im.max()}. '
+                           f'Dividing input by 255.')
+            im = im.float() / 255.0
+
+        return im
 
     def __iter__(self):
         """Returns an iterator object."""
@@ -309,7 +339,7 @@ class LoadTensor:
         if self.count == 1:
             raise StopIteration
         self.count += 1
-        return None, self.im0, None, ''  # self.paths, im, self.im0, None, ''
+        return self.paths, self.im0, None, ''
 
     def __len__(self):
         """Returns the batch size."""

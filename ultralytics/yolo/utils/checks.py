@@ -261,7 +261,7 @@ def check_torchvision():
     Checks the installed versions of PyTorch and Torchvision to ensure they're compatible.
 
     This function checks the installed versions of PyTorch and Torchvision, and warns if they're incompatible according
-    to the provided compatibility table based on https://github.com/pytorch/pytorch/wiki/PyTorch-Versions. The
+    to the provided compatibility table based on https://github.com/pytorch/vision#installation. The
     compatibility table is a dictionary where the keys are PyTorch versions and the values are lists of compatible
     Torchvision versions.
 
@@ -273,50 +273,31 @@ def check_torchvision():
     A warning if the installed Torchvision version is incompatible with the installed PyTorch version.
     """
 
-    # Compatibility table from https://github.com/pytorch/pytorch/wiki/PyTorch-Versions
-    compatibility_table = {
-        '2.0.1': ['0.15.2'],
-        '2.0.0': ['0.15.1'],
-        '1.13.0': ['0.14.0'],
-        '1.12.0': ['0.13.0'],
-        '1.11.0': ['0.12.0'],
-        '1.10.1': ['0.11.2'],
-        '1.10': ['0.11.0'],
-        '1.9.1': ['0.10.1'],
-        '1.9.0': ['0.10.0'],
-        '1.8.1': ['0.9.1'],
-        '1.8.0': ['0.9.0'],
-        '1.7.1': ['0.8.2'],
-        '1.7.0': ['0.8.0', '0.8.1'],  # Here is an example of multiple compatible versions
-        '1.6.0': ['0.7.0'],
-        '1.5.1': ['0.6.1'],
-        '1.5.0': ['0.6.0'],
-        '1.4.0': ['0.5.0'],
-        '1.3.1': ['0.4.2'],
-        '1.3.0': ['0.4.1'],
-        '1.2.0': ['0.4.0'],
-        '1.1.0': ['0.3.0'],
-        '1.0.0': ['0.2.2'],
-        '0.4.0': ['0.2.1']}
-
     import torchvision
 
-    v_torch = torch.__version__.split('+')[0]
-    v_torchvision = torchvision.__version__.split('+')[0]
+    # Compatibility table
+    compatibility_table = {'2.0': ['0.15'],
+                           '1.13': ['0.14'],
+                           '1.12': ['0.13']}
+
+    # Extract only the major and minor versions
+    v_torch = '.'.join(torch.__version__.split('+')[0].split('.')[:2])
+    v_torchvision = '.'.join(torchvision.__version__.split('+')[0].split('.')[:2])
 
     if v_torch in compatibility_table:
         compatible_versions = compatibility_table[v_torch]
         if all(pkg.parse_version(v_torchvision) != pkg.parse_version(v) for v in compatible_versions):
-            LOGGER.warning(f'WARNING ⚠️ torchvision=={v_torchvision} is incompatible with torch=={v_torch}.\n'
-                           f"Either run 'pip install torchvision=={compatible_versions[0]}' to fix torchvision or "
-                           f"'pip install -U torch torchvision' (RECOMMENDED) to update both.")
+            print(f'WARNING ⚠️ torchvision=={v_torchvision} is incompatible with torch=={v_torch}.\n'
+                  f"Run 'pip install torchvision=={compatible_versions[0]}' to fix torchvision or "
+                  "'pip install -U torch torchvision' to update both.\n"
+                  "For a full compatibility table see https://github.com/pytorch/vision#installation")
 
 
 def check_suffix(file='yolov8n.pt', suffix='.pt', msg=''):
     """Check file(s) for acceptable suffix."""
     if file and suffix:
         if isinstance(suffix, str):
-            suffix = (suffix, )
+            suffix = (suffix,)
         for f in file if isinstance(file, (list, tuple)) else [file]:
             s = Path(f).suffix.lower().strip()  # file suffix
             if len(s):

@@ -18,6 +18,11 @@ keywords: SAM, VIT, computer vision models, build SAM models, build VIT models, 
 ### ::: ultralytics.vit.sam.build.build_sam_vit_b
 <br><br>
 
+## build_mobile_sam
+---
+### ::: ultralytics.vit.sam.build.build_mobile_sam
+<br><br>
+
 ## _build_sam
 ---
 ### ::: ultralytics.vit.sam.build._build_sam

@@ -55,6 +55,7 @@ import subprocess
 import time
 import warnings
 from copy import deepcopy
+from datetime import datetime
 from pathlib import Path
 
 import torch
@@ -219,6 +220,7 @@ class Exporter:
             'description': description,
             'author': 'Ultralytics',
             'license': 'AGPL-3.0 https://ultralytics.com/license',
+            'date': datetime.now().isoformat(),
             'version': __version__,
             'stride': int(max(model.stride)),
             'task': model.task,

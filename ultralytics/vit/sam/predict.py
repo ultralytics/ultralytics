@@ -164,6 +164,7 @@ class Predictor(BasePredictor):
             dense_prompt_embeddings=dense_embeddings,
             multimask_output=multimask_output,
         )
+        print(pred_masks.shape, points[0].shape, points[1].shape)
 
         return pred_masks, pred_scores
 
@@ -240,22 +241,23 @@ class Predictor(BasePredictor):
         # (N, 1, H, W), (N, 1)
         pred_masks, pred_scores = preds[:2]
         pred_bboxes = preds[2] if self.segment_all else None
-        names = dict(enumerate(list(range(len(pred_masks)))))
+        names = dict(enumerate([str(i) for i in range(len(pred_masks))]))
         results = []
         for i, masks in enumerate([pred_masks]):
             orig_img = orig_imgs[i] if isinstance(orig_imgs, list) else orig_imgs
-            pred_scores = pred_scores.flatten(0, 1)
+            pred_scores = pred_scores.flatten(0, 1)[:, None]
             if pred_bboxes is not None:
                 pred_bboxes = pred_bboxes.flatten(0, 1)
-                keep = torchvision.ops.nms(pred_bboxes.float(), pred_scores, self.args.iou)  # NMS
-                pred_bboxes = pred_bboxes[keep]
-                pred_scores = pred_scores[keep]
-                masks = masks[keep]
+                # keep = torchvision.ops.nms(pred_bboxes.float(), pred_scores, self.args.iou)  # NMS
+                # pred_bboxes = pred_bboxes[keep]
+                # pred_scores = pred_scores[keep]
+                # masks = masks[keep]
 
             masks = ops.scale_masks(masks, orig_img.shape[:2]).flatten(0, 1)
             masks = masks > self.model.mask_threshold  # to bool
             path = self.batch[0]
             img_path = path[i] if isinstance(path, list) else path
+            # boxes = torch.cat([pred_bboxes, pred_scores, torch.zeros_like(pred_scores).to(torch.int32)], dim=-1)
             results.append(Results(orig_img=orig_img, path=img_path, names=names, masks=masks))
         # Reset segment-all mode.
         self.segment_all = False

@@ -276,9 +276,7 @@ def check_torchvision():
     import torchvision
 
     # Compatibility table
-    compatibility_table = {'2.0': ['0.15'],
-                           '1.13': ['0.14'],
-                           '1.12': ['0.13']}
+    compatibility_table = {'2.0': ['0.15'], '1.13': ['0.14'], '1.12': ['0.13']}
 
     # Extract only the major and minor versions
     v_torch = '.'.join(torch.__version__.split('+')[0].split('.')[:2])
@@ -290,14 +288,14 @@ def check_torchvision():
             print(f'WARNING ⚠️ torchvision=={v_torchvision} is incompatible with torch=={v_torch}.\n'
                   f"Run 'pip install torchvision=={compatible_versions[0]}' to fix torchvision or "
                   "'pip install -U torch torchvision' to update both.\n"
-                  "For a full compatibility table see https://github.com/pytorch/vision#installation")
+                  'For a full compatibility table see https://github.com/pytorch/vision#installation')
 
 
 def check_suffix(file='yolov8n.pt', suffix='.pt', msg=''):
     """Check file(s) for acceptable suffix."""
     if file and suffix:
         if isinstance(suffix, str):
-            suffix = (suffix,)
+            suffix = (suffix, )
         for f in file if isinstance(file, (list, tuple)) else [file]:
             s = Path(f).suffix.lower().strip()  # file suffix
             if len(s):

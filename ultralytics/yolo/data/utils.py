@@ -278,7 +278,7 @@ def check_cls_dataset(dataset: str, split=''):
         split (str, optional): The split of the dataset. Either 'val', 'test', or ''. Defaults to ''.
 
     Returns:
-        dict: A dictionary containing the following keys:
+        (dict): A dictionary containing the following keys:
             - 'train' (Path): The directory path containing the training set of the dataset.
             - 'val' (Path): The directory path containing the validation set of the dataset.
             - 'test' (Path): The directory path containing the test set of the dataset.

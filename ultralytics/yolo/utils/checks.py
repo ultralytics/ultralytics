@@ -308,8 +308,9 @@ def check_torchvision():
     if v_torch in compatibility_table:
         compatible_versions = compatibility_table[v_torch]
         if all(pkg.parse_version(v_torchvision) != pkg.parse_version(v) for v in compatible_versions):
-            LOGGER.warning(f"WARNING ⚠️ torchvision=={v_torchvision} is incompatible with torch=={v_torch}. "
-                           f"Recommended torchvision version is {compatible_versions[0]}.")
+            LOGGER.warning(f"WARNING ⚠️ torchvision=={v_torchvision} is incompatible with torch=={v_torch}.\n"
+                           f"Either run 'pip install torchvision=={compatible_versions[0]}' to fix torchvision or "
+                           f"'pip install -U torch torchvision' (RECOMMENDED) to update both.")
 
 
 def check_suffix(file='yolov8n.pt', suffix='.pt', msg=''):

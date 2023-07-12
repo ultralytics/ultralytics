@@ -192,7 +192,7 @@ class Predictor(BasePredictor):
                 sampled in layer n is scaled down by crop_n_points_downscale_factor**n.
             point_grids (list(np.ndarray), None): A list over explicit grids
                 of points used for sampling, normalized to [0,1]. The nth grid in the
-              l  ist is used in the nth crop layer. Exclusive with points_per_side.
+                list is used in the nth crop layer. Exclusive with points_per_side.
             points_stride (int, None): The number of points to be sampled
                 along one side of the image. The total number of points is
                 points_per_side**2. If None, 'point_grids' must provide explicit

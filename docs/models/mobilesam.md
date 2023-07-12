@@ -76,7 +76,7 @@ from ultralytics import SAM
 model = SAM('mobile_sam.pt')
 model.predict('ultralytics/assets/zidane.jpg', bboxes=[439, 437, 524, 709])
 ```
-We implement `MobileSAM` and `SAM` with exact the same api, more usage see ![SAM page](./sam.md).
+We implement `MobileSAM` and `SAM` with exact the same api, more usage see [SAM page](./sam.md).
 
 ### BibTex of our MobileSAM
 If you use MobileSAM in your research, please use the following BibTeX entry. :mega: Thank you!

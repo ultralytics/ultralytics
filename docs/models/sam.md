@@ -28,9 +28,9 @@ For an in-depth look at the Segment Anything Model and the SA-1B dataset, please
 
 ## How to Use SAM: Versatility and Power in Image Segmentation
 
-### SAM prediction example
-
 The Segment Anything Model can be employed for a multitude of downstream tasks that go beyond its training data. This includes edge detection, object proposal generation, instance segmentation, and preliminary text-to-mask prediction. With prompt engineering, SAM can swiftly adapt to new tasks and data distributions in a zero-shot manner, establishing it as a versatile and potent tool for all your image segmentation needs.
+
+### SAM prediction example
 
 !!! example "Segment with prompt"
 
@@ -81,7 +81,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         # Run inference with a SAM model
         yolo predict model=sam_b.pt source=path/to/image.jpg
         ```
-Tips: 
+
 - The logic here is to segment the whole image if you don't pass any prompts(bboxes/points).
 - More additional args see function `generate()` in [`Predictor` Reference](../reference/vit/sam/predict.md).
 

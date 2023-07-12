@@ -649,7 +649,7 @@ def scale_masks(masks, shape, padding=True):
     """
     mh, mw = masks.shape[2:]
     gain = min(mh / shape[0], mw / shape[1])  # gain  = old / new
-    pad = mw - shape[1] * gain, mh - shape[0] * gain  # wh padding
+    pad = [mw - shape[1] * gain, mh - shape[0] * gain]  # wh padding
     if padding:
         pad[0] /= 2
         pad[1] /= 2

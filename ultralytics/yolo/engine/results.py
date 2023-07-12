@@ -170,7 +170,7 @@ class Results(SimpleClass):
             font='Arial.ttf',
             pil=False,
             img=None,
-            img_gpu=None,
+            im_gpu=None,
             kpt_line=True,
             labels=True,
             boxes=True,
@@ -224,12 +224,12 @@ class Results(SimpleClass):
         pred_probs, show_probs = self.probs, probs
         keypoints = self.keypoints
         if pred_masks and show_masks:
-            if img_gpu is None:
+            if im_gpu is None:
                 img = LetterBox(pred_masks.shape[1:])(image=annotator.result())
-                img_gpu = torch.as_tensor(img, dtype=torch.float16, device=pred_masks.data.device).permute(
+                im_gpu = torch.as_tensor(img, dtype=torch.float16, device=pred_masks.data.device).permute(
                     2, 0, 1).flip(0).contiguous() / 255
             idx = pred_boxes.cls if pred_boxes else range(len(pred_masks))
-            annotator.masks(pred_masks.data, colors=[colors(x, True) for x in idx], im_gpu=img_gpu)
+            annotator.masks(pred_masks.data, colors=[colors(x, True) for x in idx], im_gpu=im_gpu)
 
         if pred_boxes and show_boxes:
             for d in reversed(pred_boxes):

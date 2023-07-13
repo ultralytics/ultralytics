@@ -40,6 +40,7 @@ def check_class_names(names):
 
 
 class AutoBackend(nn.Module):
+
     def __init__(self,
                  weights='yolov8n.pt',
                  device=torch.device('cpu'),
@@ -97,8 +98,8 @@ class AutoBackend(nn.Module):
         if not (pt or triton or nn_module):
             w = attempt_download_asset(w)
 
-            # NOTE: special case: in-memory pytorch model
-        if nn_module:
+        # Load model
+        if nn_module:  # in-memory PyTorch model
             model = weights.to(device)
             model = model.fuse(verbose=verbose) if fuse else model
             if hasattr(model, 'kpt_shape'):

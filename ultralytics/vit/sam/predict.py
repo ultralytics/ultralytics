@@ -241,8 +241,10 @@ class Predictor(BasePredictor):
                                                             stability_score_offset)
                 idx = stability_score > stability_score_thresh
                 pred_mask, pred_score = pred_mask[idx], pred_score[idx]
+                # Bool type is much more memory-efficient.
+                pred_mask = pred_mask > self.model.mask_threshold
                 # (N, 4)
-                pred_bbox = batched_mask_to_box(pred_mask > self.model.mask_threshold).float()
+                pred_bbox = batched_mask_to_box(pred_mask).float()
                 keep_mask = ~is_box_near_crop_edge(pred_bbox, crop_region, [0, 0, iw, ih])
                 if not torch.all(keep_mask):
                     pred_bbox = pred_bbox[keep_mask]
@@ -313,7 +315,7 @@ class Predictor(BasePredictor):
                 cls = torch.arange(len(pred_masks), dtype=torch.int32, device=pred_masks.device)
                 pred_bboxes = torch.cat([pred_bboxes, pred_scores[:, None], cls[:, None]], dim=-1)
 
-            masks = ops.scale_masks(masks[None], orig_img.shape[:2], padding=False)[0]
+            masks = ops.scale_masks(masks[None].float(), orig_img.shape[:2], padding=False)[0]
             masks = masks > self.model.mask_threshold  # to bool
             path = self.batch[0]
             img_path = path[i] if isinstance(path, list) else path

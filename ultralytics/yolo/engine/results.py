@@ -170,7 +170,7 @@ class Results(SimpleClass):
             font='Arial.ttf',
             pil=False,
             img=None,
-            img_gpu=None,
+            im_gpu=None,
             kpt_line=True,
             labels=True,
             boxes=True,
@@ -188,7 +188,7 @@ class Results(SimpleClass):
             font (str): The font to use for the text.
             pil (bool): Whether to return the image as a PIL Image.
             img (numpy.ndarray): Plot to another image. if not, plot to original image.
-            img_gpu (torch.Tensor): Normalized image in gpu with shape (1, 3, 640, 640), for faster mask plotting.
+            im_gpu (torch.Tensor): Normalized image in gpu with shape (1, 3, 640, 640), for faster mask plotting.
             kpt_line (bool): Whether to draw lines connecting keypoints.
             labels (bool): Whether to plot the label of bounding boxes.
             boxes (bool): Whether to plot the bounding boxes.
@@ -226,12 +226,12 @@ class Results(SimpleClass):
 
         # Plot Segment results
         if pred_masks and show_masks:
-            if img_gpu is None:
+            if im_gpu is None:
                 img = LetterBox(pred_masks.shape[1:])(image=annotator.result())
-                img_gpu = torch.as_tensor(img, dtype=torch.float16, device=pred_masks.data.device).permute(
+                im_gpu = torch.as_tensor(img, dtype=torch.float16, device=pred_masks.data.device).permute(
                     2, 0, 1).flip(0).contiguous() / 255
             idx = pred_boxes.cls if pred_boxes else range(len(pred_masks))
-            annotator.masks(pred_masks.data, colors=[colors(x, True) for x in idx], im_gpu=img_gpu)
+            annotator.masks(pred_masks.data, colors=[colors(x, True) for x in idx], im_gpu=im_gpu)
 
         # Plot Detect results
         if pred_boxes and show_boxes:

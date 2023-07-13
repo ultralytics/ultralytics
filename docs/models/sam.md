@@ -88,7 +88,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
     === "Prompt inference"
     
         ```python
-        from ultralytics.vit.sam.predict import Predictor as SAMPredictor
+        from ultralytics.vit.sam import Predictor as SAMPredictor
 
         # Create SAMPredictor
         overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model="mobile_sam.pt")
@@ -108,7 +108,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
     === "Segment everything"
     
         ```python
-        from ultralytics.vit.sam.predict import Predictor as SAMPredictor
+        from ultralytics.vit.sam import Predictor as SAMPredictor
 
         # Create SAMPredictor
         overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model="mobile_sam.pt")

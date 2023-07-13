@@ -142,10 +142,10 @@ Here we compare Meta's smallest SAM model, SAM-b, with Ultralytics smallest segm
 
 | Model                                          | Size                       | Parameters             | Speed (CPU)             |
 |------------------------------------------------|----------------------------|------------------------|-------------------------|
-| Meta's SAM-b                                   | 358 MB                     | 94.7 M                 | 51096 ms                |
-| [MobileSAM](mobile-sam.md)                     | 40.7 MB                    | 10.1 M                 | 46122 ms                |
-| [FastSAM-s](fast-sam.md) with YOLOv8 backbone  | 23.7 MB                    | 11.8 M                 | 115 ms                  |
-| Ultralytics [YOLOv8n-seg](../tasks/segment.md) | **6.7 MB** (53.4x smaller) | **3.4 M** (27.9x less) | **59 ms** (866x faster) |
+| Meta's SAM-b                                   | 358 MB                     | 94.7 M                 | 51096 ms/im             |
+| [MobileSAM](mobile-sam.md)                     | 40.7 MB                    | 10.1 M                 | 46122 ms/im             |
+| [FastSAM-s](fast-sam.md) with YOLOv8 backbone  | 23.7 MB                    | 11.8 M                 | 115 ms/im               |
+| Ultralytics [YOLOv8n-seg](../tasks/segment.md) | **6.7 MB** (53.4x smaller) | **3.4 M** (27.9x less) | **59 ms/im** (866x faster) |
 
 This comparison shows the order-of-magnitude differences in the model sizes and speeds between models. Whereas SAM presents unique capabilities for automatic segmenting, it is not a direct competitor to YOLOv8 segment models, which are smaller, faster and more efficient.
 

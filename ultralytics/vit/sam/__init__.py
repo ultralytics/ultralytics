@@ -4,6 +4,5 @@ from .model import SAM
 from .predict import Predictor
 
 # from .build import build_sam
-# from .modules.prompt_predictor import PromptPredictor
 
 __all__ = 'SAM', 'Predictor'  # tuple or list

@@ -10,14 +10,6 @@ keywords: Conv2d_BN, MBConv, ConvLayer, Attention, BasicLayer, TinyViT
 
 ## PatchEmbed
 ---
-
-## Conv2d_BN
----
-### ::: ultralytics.vit.sam.modules.tiny_encoder.Conv2d_BN
-<br><br>
-
-## PatchEmbed
----
 ### ::: ultralytics.vit.sam.modules.tiny_encoder.PatchEmbed
 <br><br>
 

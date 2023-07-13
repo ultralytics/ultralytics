@@ -1,9 +1,9 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
 from .model import SAM
+from .predict import Predictor
 
 # from .build import build_sam
 # from .modules.prompt_predictor import PromptPredictor
-# from .predict import Predictor
 
-__all__ = 'SAM',  # tuple or list
+__all__ = 'SAM', 'Predictor'  # tuple or list

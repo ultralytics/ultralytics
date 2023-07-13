@@ -12,7 +12,7 @@ from ultralytics.yolo.utils import DEFAULT_CFG, ops
 from ultralytics.yolo.utils.torch_utils import select_device
 
 from .amg import (batch_iterator, batched_mask_to_box, build_all_layer_point_grids, calculate_stability_score,
-                  generate_crop_boxes, is_box_near_crop_edge, uncrop_boxes_xyxy, uncrop_masks)
+                  generate_crop_boxes, is_box_near_crop_edge, uncrop_boxes_xyxy, uncrop_masks, remove_small_regions)
 from .build import build_sam
 
 
@@ -349,3 +349,49 @@ class Predictor(BasePredictor):
     def reset_image(self):
         self.im = None
         self.features = None
+
+
+    @staticmethod
+    def remove_small_regions(masks, min_area=0, nms_thresh=0.7):
+        """
+        Removes small disconnected regions and holes in masks, then reruns
+        box NMS to remove any new duplicates. Requires open-cv as a dependency.
+
+        Args:
+            masks (torch.Tensor): Masks, (N, H, W).
+            min_area (int): Minimum area threshold.
+            nms_thresh (float): NMS threshold.
+        """
+        if len(masks) == 0:
+            return masks
+
+        # Filter small disconnected regions and holes
+        new_masks = []
+        scores = []
+        for mask in masks:
+            mask = mask.cpu().numpy()
+            mask, changed = remove_small_regions(mask, min_area, mode='holes')
+            unchanged = not changed
+            mask, changed = remove_small_regions(mask, min_area, mode='islands')
+            unchanged = unchanged and not changed
+
+            new_masks.append(torch.as_tensor(mask).unsqueeze(0))
+            # Give score=0 to changed masks and score=1 to unchanged masks
+            # so NMS will prefer ones that didn't need postprocessing
+            scores.append(float(unchanged))
+
+        # Recalculate boxes and remove any new duplicates
+        new_masks = torch.cat(new_masks, dim=0)
+        boxes = batched_mask_to_box(new_masks)
+        keep = torchvision.ops.nms(
+            boxes.float(),
+            torch.as_tensor(scores),
+            nms_thresh,
+        )
+
+        # Only recalculate masks for masks that have changed
+        for i in keep:
+            if scores[i] == 0.0:
+                masks[i] = new_masks[i]
+
+        return masks[keep]

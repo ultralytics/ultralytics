@@ -21,7 +21,8 @@ GITHUB_ASSET_NAMES = [f'yolov8{k}{suffix}.pt' for k in 'nsmlx' for suffix in (''
                      [f'yolo_nas_{k}.pt' for k in 'sml'] + \
                      [f'sam_{k}.pt' for k in 'bl'] + \
                      [f'FastSAM-{k}.pt' for k in 'sx'] + \
-                     [f'rtdetr-{k}.pt' for k in 'lx']
+                     [f'rtdetr-{k}.pt' for k in 'lx'] + \
+                     ['mobile_sam.pt']
 GITHUB_ASSET_STEMS = [Path(k).stem for k in GITHUB_ASSET_NAMES]
 
 

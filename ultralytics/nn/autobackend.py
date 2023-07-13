@@ -135,7 +135,7 @@ class AutoBackend(nn.Module):
             metadata = session.get_modelmeta().custom_metadata_map  # metadata
         elif xml:  # OpenVINO
             LOGGER.info(f'Loading {w} for OpenVINO inference...')
-            check_requirements('openvino')  # requires openvino-dev: https://pypi.org/project/openvino-dev/
+            check_requirements('openvino>=2023.0')  # requires openvino-dev: https://pypi.org/project/openvino-dev/
             from openvino.runtime import Core, Layout, get_batch  # noqa
             core = Core()
             w = Path(w)
@@ -339,7 +339,7 @@ class AutoBackend(nn.Module):
             y = self.session.run(self.output_names, {self.session.get_inputs()[0].name: im})
         elif self.xml:  # OpenVINO
             im = im.cpu().numpy()  # FP32
-            y = list(self.ov_compiled_model([im]).values())
+            y = list(self.ov_compiled_model(im).values())
         elif self.engine:  # TensorRT
             if self.dynamic and im.shape != self.bindings['images'].shape:
                 i = self.model.get_binding_index('images')

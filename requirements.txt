@@ -32,7 +32,7 @@ seaborn>=0.11.0
 # tensorflow>=2.4.1  # TF exports (-cpu, -aarch64, -macos)
 # tflite-support
 # tensorflowjs>=3.9.0  # TF.js export
-# openvino-dev>=2022.3  # OpenVINO export
+# openvino-dev>=2023.0  # OpenVINO export
 
 # Extras --------------------------------------
 psutil  # system utilization

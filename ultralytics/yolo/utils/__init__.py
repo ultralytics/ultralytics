@@ -252,6 +252,36 @@ if WINDOWS:  # emoji-safe logging
     LOGGER.addFilter(EmojiFilter())
 
 
+class ThreadingLocked:
+    """
+    A decorator class for ensuring thread-safe execution of a function or method.
+    This class can be used as a decorator to make sure that if the decorated function
+    is called from multiple threads, only one thread at a time will be able to execute the function.
+
+    Attributes:
+        lock (threading.Lock): A lock object used to manage access to the decorated function.
+
+    Usage:
+        @ThreadingLocked()
+        def my_function():
+            # Your code here
+            pass
+    """
+
+    def __init__(self):
+        self.lock = threading.Lock()
+
+    def __call__(self, f):
+        from functools import wraps
+
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            with self.lock:
+                return f(*args, **kwargs)
+
+        return decorated
+
+
 def yaml_save(file='data.yaml', data=None):
     """
     Save YAML data to a file.

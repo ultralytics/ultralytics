@@ -22,7 +22,7 @@ from matplotlib import font_manager
 
 from ultralytics.yolo.utils import (AUTOINSTALL, LOGGER, ONLINE, ROOT, USER_CONFIG_DIR, TryExcept, clean_url, colorstr,
                                     downloads, emojis, is_colab, is_docker, is_jupyter, is_kaggle, is_online,
-                                    is_pip_package, url2file)
+                                    is_pip_package, url2file, ThreadingLocked)
 
 
 def is_ascii(s) -> bool:
@@ -155,6 +155,7 @@ def check_pip_update_available():
     return False
 
 
+@ThreadingLocked()
 def check_font(font='Arial.ttf'):
     """
     Find font locally or download to user's configuration directory if it does not already exist.
@@ -288,7 +289,7 @@ def check_suffix(file='yolov8n.pt', suffix='.pt', msg=''):
     """Check file(s) for acceptable suffix."""
     if file and suffix:
         if isinstance(suffix, str):
-            suffix = (suffix, )
+            suffix = (suffix,)
         for f in file if isinstance(file, (list, tuple)) else [file]:
             s = Path(f).suffix.lower().strip()  # file suffix
             if len(s):

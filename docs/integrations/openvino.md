@@ -45,7 +45,7 @@ Export a YOLOv8n model to OpenVINO format.
 
 ## Benefits of OpenVINO
 
-1. **Performance**: OpenVINO delivers high-performance inference by utilizing the power of Intel CPUs, integrated GPUs, and FPGAs.
+1. **Performance**: OpenVINO delivers high-performance inference by utilizing the power of Intel CPUs, integrated and discrete GPUs, and FPGAs.
 2. **Support for Heterogeneous Execution**: OpenVINO provides an API to write once and deploy on any supported Intel hardware (CPU, GPU, FPGA, VPU, etc.).
 3. **Model Optimizer**: OpenVINO provides a Model Optimizer that imports, converts, and optimizes models from popular deep learning frameworks such as TensorFlow, Keras, ONNX, PyTorch, and Caffe.
 4. **Pre-optimized Libraries**: OpenVINO includes optimized calls for computer vision (CV) standards, including OpenCV, OpenCL kernels, and more.

@@ -78,7 +78,7 @@ For more detailed steps and code snippets, refer to the [OpenVINO documentation]
 
 ## OpenVINO YOLOv8 Benchmarks
 
-YOLOv8 benchmarks below were run by the Ultralytics team on 4 different model formats measuring speed and accuracy: PyTorch, TorchScript, ONNX and OpenVINO. Benchmarks were run on Intel Flex and Arc GPUs, and on Intel Xeon CPUs.
+YOLOv8 benchmarks below were run by the Ultralytics team on 4 different model formats measuring speed and accuracy: PyTorch, TorchScript, ONNX and OpenVINO. Benchmarks were run on Intel Flex and Arc GPUs, and on Intel Xeon CPUs at FP32 precision (with the `half=False` argument).
 
 !!! note
 
@@ -87,10 +87,6 @@ YOLOv8 benchmarks below were run by the Ultralytics team on 4 different model fo
 ### Flex GPU
 
 The Intel® Data Center GPU Flex Series is a versatile and robust solution designed for the intelligent visual cloud. This GPU supports a wide array of workloads including media streaming, cloud gaming, AI visual inference, and virtual desktop Infrastructure workloads. It stands out for its open architecture and built-in support for the AV1 encode, providing a standards-based software stack for high-performance, cross-architecture applications. The Flex Series GPU is optimized for density and quality, offering high reliability, availability, and scalability.
-
-#### Flex GPU (FP32 Precision)
-
-Benchmark results for Flex GPU at FP32 precision with `half=False`:
 
 <div align="center">
 <img width="640" src="https://user-images.githubusercontent.com/26833433/252764833-6faa5a1f-040d-48b1-96ad-95b3c0cb343d.jpg">
@@ -118,37 +114,6 @@ Benchmark results for Flex GPU at FP32 precision with `half=False`:
 | yolov8x | TorchScript | ✅      | 260.7     | 0.5371      | 114.64                 |
 | yolov8x | ONNX        | ✅      | 260.4     | 0.5371      | 110.32                 |
 | yolov8x | OpenVINO    | ✅      | 260.6     | 0.5367      | 15.02                  |
-
-#### Flex GPU (FP16 Precision)
-
-Benchmark results for Flex GPU at FP16 precision with `half=True`:
-
-<div align="center">
-<img width="640" src="https://user-images.githubusercontent.com/26833433/252764828-442bd1c9-e52c-426f-b31c-98e88a887d9c.jpg">
-</div>
-
-| Model   | Format      | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
-|---------|-------------|--------|-----------|-------------|------------------------|
-| yolov8n | PyTorch     | ✅      | 6.2       | 0.3709      | 24.39                  |
-| yolov8n | TorchScript | ✅      | 12.4      | 0.3704      | 23.76                  |
-| yolov8n | ONNX        | ✅      | 12.2      | 0.3704      | 37.37                  |
-| yolov8n | OpenVINO    | ✅      | 6.3       | 0.3703      | 3.29                   |
-| yolov8s | PyTorch     | ✅      | 21.5      | 0.4471      | 30.60                  |
-| yolov8s | TorchScript | ✅      | 42.9      | 0.4472      | 34.40                  |
-| yolov8s | ONNX        | ✅      | 42.8      | 0.4472      | 43.53                  |
-| yolov8s | OpenVINO    | ✅      | 21.6      | 0.4470      | 3.91                   |
-| yolov8m | PyTorch     | ✅      | 49.7      | 0.5013      | 50.75                  |
-| yolov8m | TorchScript | ✅      | 99.2      | 0.4999      | 47.90                  |
-| yolov8m | ONNX        | ✅      | 99.0      | 0.4999      | 63.16                  |
-| yolov8m | OpenVINO    | ✅      | 49.8      | 0.4997      | 7.11                   |
-| yolov8l | PyTorch     | ✅      | 83.7      | 0.5293      | 78.55                  |
-| yolov8l | TorchScript | ✅      | 167.2     | 0.5268      | 84.75                  |
-| yolov8l | ONNX        | ✅      | 166.8     | 0.5268      | 87.71                  |
-| yolov8l | OpenVINO    | ✅      | 83.8      | 0.5264      | 9.38                   |
-| yolov8x | PyTorch     | ✅      | 130.5     | 0.5404      | 94.85                  |
-| yolov8x | TorchScript | ✅      | 260.7     | 0.5371      | 113.11                 |
-| yolov8x | ONNX        | ✅      | 260.4     | 0.5371      | 111.00                 |
-| yolov8x | OpenVINO    | ✅      | 130.6     | 0.5367      | 15.02                  |
 
 ### Xeon CPU
 

@@ -18,7 +18,8 @@ from .build import build_sam
 
 class Predictor(BasePredictor):
 
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+    def __init__(self, cfg=DEFAULT_CFG, overrides={}, _callbacks=None):
+        overrides.update(dict(task='segment', mode='predict', imgsz=1024))
         super().__init__(cfg, overrides, _callbacks)
         # SAM needs retina_masks=True, or the results would be a mess.
         self.args.retina_masks = True

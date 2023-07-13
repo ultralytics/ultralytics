@@ -74,7 +74,7 @@ In your deployment application, you would typically do the following steps:
 2. Prepare the input and output blobs.
 3. Run inference using `InferenceEngine::ExecutableNetwork::Infer`.
 
-For more detailed steps and code snippets, refer to the [OpenVINO documentation](https://docs.openvino.ai/).
+For more detailed steps and code snippets, refer to the [OpenVINO documentation](https://docs.openvino.ai/) or [API tutorial](https://github.com/openvinotoolkit/openvino_notebooks/blob/main/notebooks/002-openvino-api/002-openvino-api.ipynb).
 
 ## OpenVINO YOLOv8 Benchmarks
 

@@ -283,7 +283,7 @@ def check_cls_dataset(dataset: str, split=''):
             - 'val' (Path): The directory path containing the validation set of the dataset.
             - 'test' (Path): The directory path containing the test set of the dataset.
             - 'nc' (int): The number of classes in the dataset.
-            - 'names' (Dict): A dictionary of class names in the dataset.
+            - 'names' (dict): A dictionary of class names in the dataset.
 
     Raises:
         FileNotFoundError: If the specified dataset is not found and cannot be downloaded.

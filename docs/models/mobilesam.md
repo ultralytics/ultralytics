@@ -1,70 +1,73 @@
 ---
 comments: true
-description: MobileSAM aims to make the recent Segment Anything Model (SAM) lightweight for mobile applications. It keeps has exactly the same functionality as the original SAM but is significantly faster, which makes MobileSAM compatible with CPU-only edge devices, like mobile phones.
+description: MobileSAM is a lightweight adaptation of the Segment Anything Model (SAM) designed for mobile applications. It maintains the full functionality of the original SAM while significantly improving speed, making it suitable for CPU-only edge devices, such as mobile phones.
 keywords: MobileSAM, Faster Segment Anything, Segment Anything, Segment Anything Model, SAM, Meta SAM, image segmentation, promptable segmentation, zero-shot performance, SA-1B dataset, advanced architecture, auto-annotation, Ultralytics, pre-trained models, SAM base, SAM large, instance segmentation, computer vision, AI, artificial intelligence, machine learning, data annotation, segmentation masks, detection model, YOLO detection model, bibtex, Meta AI
 ---
 
-<img src="https://github.com/ChaoningZhang/MobileSAM/blob/master/assets/logo2.png?raw=true" width="99.1%" />
+![MobileSAM Logo](https://github.com/ChaoningZhang/MobileSAM/blob/master/assets/logo2.png?raw=true)
 
 # Faster Segment Anything (MobileSAM)
 
-:pushpin: MobileSAM paper is available at [ResearchGate](https://www.researchgate.net/publication/371851844_Faster_Segment_Anything_Towards_Lightweight_SAM_for_Mobile_Applications) and [arXiv](https://arxiv.org/pdf/2306.14289.pdf). The latest version will first appear on [ResearchGate](https://arxiv.org/pdf/2306.14289.pdf), since it takes time for arXiv to update the content.
+The MobileSAM paper is now available on [ResearchGate](https://www.researchgate.net/publication/371851844_Faster_Segment_Anything_Towards_Lightweight_SAM_for_Mobile_Applications) and [arXiv](https://arxiv.org/pdf/2306.14289.pdf). The most recent version will initially appear on ResearchGate due to the delayed content update on arXiv.
 
-:pushpin: **A demo of MobileSAM** running on **CPU** is open at [demo link](https://huggingface.co/spaces/dhkim2810/MobileSAM). On a Mac i5 CPU, it takes around 3s. On the hugging face demo, the interface and inferior CPUs make it slower but still works fine.
+A demonstration of MobileSAM running on a CPU can be accessed at this [demo link](https://huggingface.co/spaces/dhkim2810/MobileSAM). The performance on a Mac i5 CPU takes approximately 3 seconds. On the Hugging Face demo, the interface and lower-performance CPUs contribute to a slower response, but it continues to function effectively.
 
-:grapes: Regarding Segment Anything, there is a trend to replace the original SAM with our MobileSAM in numerous prohects, like [Grounding-SAM](https://github.com/IDEA-Research/Grounded-Segment-Anything), [AnyLabeling](https://github.com/vietanhdev/anylabeling), [SegmentAnythingin3D](https://github.com/Jumpat/SegmentAnythingin3D), etc.
+MobileSAM is implemented in various projects including [Grounding-SAM](https://github.com/IDEA-Research/Grounded-Segment-Anything), [AnyLabeling](https://github.com/vietanhdev/anylabeling), and [SegmentAnythingin3D](https://github.com/Jumpat/SegmentAnythingin3D).
 
-:star: **How is MobileSAM trained?** MobileSAM is trained on a single GPU with 100k datasets (1% of the original images) for less than a day. The training code will be available soon.
+MobileSAM is trained on a single GPU with a 100k dataset (1% of the original images) in less than a day. The code for this training will be made available in the future.
 
-:star: **How to Adapt from SAM to MobileSAM?** Since MobileSAM keeps exactly the same pipeline as the original SAM, we inherit pre-processing, post-processing, and all other interfaces from the original SAM. Therefore, by assuming everything is exactly the same except for a smaller image encoder, those who use the original SAM for their projects can **adapt to MobileSAM with almost zero effort**.
+## Adapting from SAM to MobileSAM
 
-:star: **MobileSAM performs on par with the original SAM (at least visually)** and keeps exactly the same pipeline as the original SAM except for a change on the image encoder. Specifically, we replace the original heavyweight ViT-H encoder (632M) with a much smaller Tiny-ViT (5M). On a single GPU, MobileSAM runs around 12ms per image: 8ms on the image encoder and 4ms on the mask decoder.
+Since MobileSAM retains the same pipeline as the original SAM, we have incorporated the original's pre-processing, post-processing, and all other interfaces. Consequently, those currently using the original SAM can transition to MobileSAM with minimal effort.
 
-* The comparison of ViT-based image encoder is summarized as follows:
+MobileSAM performs comparably to the original SAM and retains the same pipeline except for a change in the image encoder. Specifically, we replace the original heavyweight ViT-H encoder (632M) with a smaller Tiny-ViT (5M). On a single GPU, MobileSAM operates at about 12ms per image: 8ms on the image encoder and 4ms on the mask decoder.
 
-  | Image Encoder | Original SAM | MobileSAM |
-  |---------------|--------------|-----------|
-  | Parameters    | 611M         | 5M        |
-  | Speed         | 452ms        | 8ms       |
+The following table provides a comparison of ViT-based image encoders:
 
-* Original SAM and MobileSAM have exactly the same prompt-guided mask decoder:
+| Image Encoder | Original SAM | MobileSAM |
+|---------------|--------------|-----------|
+| Parameters    | 611M         | 5M        |
+| Speed         | 452ms        | 8ms       |
 
-  | Mask Decoder | Original SAM | MobileSAM |
-  |--------------|--------------|-----------|
-  | Parameters   | 3.876M       | 3.876M    |
-  | Speed        | 4ms          | 4ms       |
+Both the original SAM and MobileSAM utilize the same prompt-guided mask decoder:
 
-* The comparison of the whole pipeline is summarized as follows:
+| Mask Decoder | Original SAM | MobileSAM |
+|--------------|--------------|-----------|
+| Parameters   | 3.876M       | 3.876M    |
+| Speed        | 4ms          | 4ms       |
 
-  | Whole Pipeline (Enc+Dec) | Original SAM | MobileSAM |
-  |--------------------------|--------------|-----------|
-  | Parameters               | 615M         | 9.66M     |
-  | Speed                    | 456ms        | 12ms      |
+Here is the comparison of the whole pipeline:
 
-:star: **Original SAM and MobileSAM with a point as the prompt.**
+| Whole Pipeline (Enc+Dec) | Original SAM | MobileSAM |
+|--------------------------|--------------|-----------|
+| Parameters               | 615M         | 9.66M     |
+| Speed                    | 456ms        | 12ms      |
 
-<img src="https://raw.githubusercontent.com/ChaoningZhang/MobileSAM/master/assets/mask_box.jpg?raw=true" width="99.1%" />
+The performance of MobileSAM and the original SAM are demonstrated using both a point and a box as prompts.
 
-:star: **Original SAM and MobileSAM with a box as the prompt.**
+![Image with Point as Prompt](https://raw.githubusercontent.com/ChaoningZhang/MobileSAM/master/assets/mask_box.jpg?raw=true)
 
-<img src="https://raw.githubusercontent.com/ChaoningZhang/MobileSAM/master/assets/mask_box.jpg?raw=true" width="99.1%" />
+![Image with Box as Prompt](https://raw.githubusercontent.com/ChaoningZhang/MobileSAM/master/assets/mask_box.jpg?raw=true)
 
-:muscle: With superior performance, MobileSAM is arunnd 5 times smaller and 7 times faster than the current FastSAM. See [MobileSAM project](https://github.com/ChaoningZhang/MobileSAM) for more details.
+With its superior performance, MobileSAM is approximately 5 times smaller and 7 times faster than the current FastSAM. More details are available at the [MobileSAM project page](https://github.com/ChaoningZhang/MobileSAM).
 
 ## Testing MobileSAM in Ultralytics
 
-Following the original SAM, we provide a simple testing method in Ultralytics that includes modes for Point prompt and Box prompt.
+Just like the original SAM, we offer a straightforward testing method in Ultralytics, including modes for both Point and Box prompts.
 
 ### Model Download
 
-[mobile_sam_model](https://github.com/ChaoningZhang/MobileSAM/blob/master/weights/mobile_sam.pt)
+You can download the model [here](https://github.com/ChaoningZhang/MobileSAM/blob/master/weights/mobile_sam.pt).
 
 ### Point Prompt
 
 ```python
 from ultralytics import SAM
 
+# Load the model
 model = SAM('mobile_sam.pt')
+
+# Predict a segment based on a point prompt
 model.predict('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
 ```
 
@@ -73,15 +76,18 @@ model.predict('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
 ```python
 from ultralytics import SAM
 
+# Load the model
 model = SAM('mobile_sam.pt')
+
+# Predict a segment based on a box prompt
 model.predict('ultralytics/assets/zidane.jpg', bboxes=[439, 437, 524, 709])
 ```
 
-We implement `MobileSAM` and `SAM` with exact the same api, more usage see [SAM page](./sam.md).
+We have implemented `MobileSAM` and `SAM` using the same API. For more usage information, please see the [SAM page](./sam.md).
 
-### BibTex of our MobileSAM
+### Citing MobileSAM
 
-If you use MobileSAM in your research, please use the following BibTeX entry. :mega: Thank you!
+If you find MobileSAM useful in your research or development work, please consider citing our paper:
 
 ```bibtex
 @article{mobile_sam,

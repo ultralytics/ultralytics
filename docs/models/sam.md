@@ -32,9 +32,9 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
 
 ### SAM prediction example
 
-!!! example "Segment with prompt"
+!!! example "Segment with prompts"
 
-    Device is determined automatically. If a GPU is available then it will be used, otherwise inference will run on CPU.
+    Segment image with given prompts.
 
     === "Python"
     
@@ -54,9 +54,9 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         model.predict('ultralytics/assets/zidane.jpg', points=[900, 370], labels=[1])
         ```
 
-!!! example "Segment the whole image"
+!!! example "Segment everything"
 
-    Device is determined automatically. If a GPU is available then it will be used, otherwise inference will run on CPU.
+    Segment the whole image.
 
     === "Python"
     
@@ -71,9 +71,6 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
 
         # Run inference
         model('path/to/image.jpg')
-
-        # Run inference with additional args
-        model('path/to/image.jpg', crop_n_layers=1)
         ```
     === "CLI"
     
@@ -82,14 +79,13 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         yolo predict model=sam_b.pt source=path/to/image.jpg
         ```
 
-- The logic here is to segment the whole image if you don't pass any prompts(bboxes/points).
-- More additional args see [`Predictor/generate` Reference](../reference/vit/sam/predict.md).
+- The logic here is to segment the whole image if you don't pass any prompts(bboxes/points/masks).
 
 !!! example "SAMPredictor example"
 
     This way you can set image once and run prompts inference multiple times without running image encoder multiple times.
 
-    === "Python"
+    === "Prompt inference"
     
         ```python
         from ultralytics.vit.sam.predict import Predictor as SAMPredictor
@@ -106,6 +102,24 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         # Reset image
         predictor.reset_image()
         ```
+
+    Segment everything with additional args.
+
+    === "Segment everything"
+    
+        ```python
+        from ultralytics.vit.sam.predict import Predictor as SAMPredictor
+
+        # Create SAMPredictor
+        overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model="mobile_sam.pt")
+        predictor = SAMPredictor(overrides=overrides)
+
+        # segment with additional args
+        results = predictor(source="ultralytics/assets/zidane.jpg", crop_n_layers=1, points_stride=64)
+
+        ```
+
+- More additional args for `Segment everything` see [`Predictor/generate` Reference](../reference/vit/sam/predict.md).
 
 ## Available Models and Supported Tasks
 

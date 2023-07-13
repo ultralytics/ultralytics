@@ -8,7 +8,7 @@ keywords: ultralytics docs, YOLOv8, export YOLOv8, YOLOv8 model deployment, expo
 
 **Export mode** is used for exporting a YOLOv8 model to a format that can be used for deployment. In this guide, we specifically cover exporting to OpenVINO, which can provide up to 3x CPU speedup.
 
-OpenVINO, short for Open Visual Inference & Neural Network Optimization toolkit, is a comprehensive toolkit for quickly developing applications and solutions that emulate human vision. It includes optimized calls for CV standards, including OpenCV, OpenCL kernels, and more. OpenVINO is particularly useful for neural network inference and is compatible with many different types of pre-trained models from the open model zoo.
+OpenVINO, short for Open Visual Inference & Neural Network Optimization toolkit, is a comprehensive toolkit for optimizing and deploying AI inference models. Even though the name contains Visual, OpenVINO also supports various additional tasks including language, audio, time series, etc.
 
 ## Usage Examples
 

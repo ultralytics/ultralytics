@@ -92,7 +92,7 @@ def segment2box(segment, width=640, height=640):
         4, dtype=segment.dtype)  # xyxy
 
 
-def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None):
+def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None, padding=True):
     """
     Rescales bounding boxes (in the format of xyxy) from the shape of the image they were originally specified in
     (img1_shape) to the shape of a different image (img0_shape).
@@ -103,6 +103,8 @@ def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None):
       img0_shape (tuple): the shape of the target image, in the format of (height, width).
       ratio_pad (tuple): a tuple of (ratio, pad) for scaling the boxes. If not provided, the ratio and pad will be
                          calculated based on the size difference between the two images.
+      padding (bool): If True, assuming the boxes is based on image augmented by yolo style. If False then do regular
+        rescaling.
 
     Returns:
       boxes (torch.Tensor): The scaled bounding boxes, in the format of (x1, y1, x2, y2)
@@ -115,8 +117,9 @@ def scale_boxes(img1_shape, boxes, img0_shape, ratio_pad=None):
         gain = ratio_pad[0][0]
         pad = ratio_pad[1]
 
-    boxes[..., [0, 2]] -= pad[0]  # x padding
-    boxes[..., [1, 3]] -= pad[1]  # y padding
+    if padding:
+        boxes[..., [0, 2]] -= pad[0]  # x padding
+        boxes[..., [1, 3]] -= pad[1]  # y padding
     boxes[..., :4] /= gain
     clip_boxes(boxes, img0_shape)
     return boxes
@@ -552,7 +555,7 @@ def crop_mask(masks, boxes):
     It takes a mask and a bounding box, and returns a mask that is cropped to the bounding box
 
     Args:
-      masks (torch.Tensor): [h, w, n] tensor of masks
+      masks (torch.Tensor): [n, h, w] tensor of masks
       boxes (torch.Tensor): [n, 4] tensor of bbox coordinates in relative point form
 
     Returns:
@@ -634,18 +637,36 @@ def process_mask_native(protos, masks_in, bboxes, shape):
     """
     c, mh, mw = protos.shape  # CHW
     masks = (masks_in @ protos.float().view(c, -1)).sigmoid().view(-1, mh, mw)
-    gain = min(mh / shape[0], mw / shape[1])  # gain  = old / new
-    pad = (mw - shape[1] * gain) / 2, (mh - shape[0] * gain) / 2  # wh padding
-    top, left = int(pad[1]), int(pad[0])  # y, x
-    bottom, right = int(mh - pad[1]), int(mw - pad[0])
-    masks = masks[:, top:bottom, left:right]
-
-    masks = F.interpolate(masks[None], shape, mode='bilinear', align_corners=False)[0]  # CHW
+    masks = scale_masks(masks[None], shape)[0]  # CHW
     masks = crop_mask(masks, bboxes)  # CHW
     return masks.gt_(0.5)
 
 
-def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize=False):
+def scale_masks(masks, shape, padding=True):
+    """
+    Rescale segment masks to shape.
+
+    Args:
+        masks (torch.Tensor): (N, C, H, W).
+        shape (tuple): Height and width.
+        padding (bool): If True, assuming the boxes is based on image augmented by yolo style. If False then do regular
+            rescaling.
+    """
+    mh, mw = masks.shape[2:]
+    gain = min(mh / shape[0], mw / shape[1])  # gain  = old / new
+    pad = [mw - shape[1] * gain, mh - shape[0] * gain]  # wh padding
+    if padding:
+        pad[0] /= 2
+        pad[1] /= 2
+    top, left = (int(pad[1]), int(pad[0])) if padding else (0, 0)  # y, x
+    bottom, right = (int(mh - pad[1]), int(mw - pad[0]))
+    masks = masks[..., top:bottom, left:right]
+
+    masks = F.interpolate(masks, shape, mode='bilinear', align_corners=False)  # NCHW
+    return masks
+
+
+def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize=False, padding=True):
     """
     Rescale segment coordinates (xyxy) from img1_shape to img0_shape
 
@@ -655,6 +676,8 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize=False
       img0_shape (tuple): the shape of the image that the segmentation is being applied to
       ratio_pad (tuple): the ratio of the image size to the padded image size.
       normalize (bool): If True, the coordinates will be normalized to the range [0, 1]. Defaults to False
+      padding (bool): If True, assuming the boxes is based on image augmented by yolo style. If False then do regular
+        rescaling.
 
     Returns:
       coords (torch.Tensor): the segmented image.
@@ -666,8 +689,9 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize=False
         gain = ratio_pad[0][0]
         pad = ratio_pad[1]
 
-    coords[..., 0] -= pad[0]  # x padding
-    coords[..., 1] -= pad[1]  # y padding
+    if padding:
+        coords[..., 0] -= pad[0]  # x padding
+        coords[..., 1] -= pad[1]  # y padding
     coords[..., 0] /= gain
     coords[..., 1] /= gain
     clip_coords(coords, img0_shape)

@@ -17,6 +17,7 @@ In this documentation, we provide information on four major models:
 5. [YOLOv7](./yolov7.md): Updated YOLO models released in 2022 by the authors of YOLOv4.
 6. [YOLOv8](./yolov8.md): The latest version of the YOLO family, featuring enhanced capabilities such as instance segmentation, pose/keypoints estimation, and classification.
 7. [Segment Anything Model (SAM)](./sam.md): Meta's Segment Anything Model (SAM).
+7. [Mobile Segment Anything Model (MobileSAM)](./mobile-sam.md): MobileSAM for mobile applications by Kyung Hee University.
 8. [Fast Segment Anything Model (FastSAM)](./fast-sam.md): FastSAM by Image & Video Analysis Group, Institute of Automation, Chinese Academy of Sciences.
 9. [YOLO-NAS](./yolo-nas.md): YOLO Neural Architecture Search (NAS) Models.
 10. [Realtime Detection Transformers (RT-DETR)](./rtdetr.md): Baidu's PaddlePaddle Realtime Detection Transformer (RT-DETR) models.

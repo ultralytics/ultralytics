@@ -339,7 +339,7 @@ class AutoBackend(nn.Module):
             y = self.session.run(self.output_names, {self.session.get_inputs()[0].name: im})
         elif self.xml:  # OpenVINO
             im = im.cpu().numpy()  # FP32
-            y = list(self.ov_compiled_model([im]).values())
+            y = list(self.ov_compiled_model(im).values())
         elif self.engine:  # TensorRT
             if self.dynamic and im.shape != self.bindings['images'].shape:
                 i = self.model.get_binding_index('images')

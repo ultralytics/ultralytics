@@ -168,6 +168,7 @@ nav:
       - YOLOv7: models/yolov7.md
       - YOLOv8: models/yolov8.md
       - SAM (Segment Anything Model): models/sam.md
+      - MobileSAM (Mobile Segment Anything Model): models/mobile-sam.md
       - FastSAM (Fast Segment Anything Model): models/fast-sam.md
       - YOLO-NAS (Neural Architecture Search): models/yolo-nas.md
       - RT-DETR (Realtime Detection Transformer): models/rtdetr.md
@@ -282,15 +283,13 @@ nav:
               - val: reference/vit/rtdetr/val.md
           - sam:
               - amg: reference/vit/sam/amg.md
-              - autosize: reference/vit/sam/autosize.md
               - build: reference/vit/sam/build.md
               - model: reference/vit/sam/model.md
               - modules:
                   - decoders: reference/vit/sam/modules/decoders.md
                   - encoders: reference/vit/sam/modules/encoders.md
-                  - mask_generator: reference/vit/sam/modules/mask_generator.md
-                  - prompt_predictor: reference/vit/sam/modules/prompt_predictor.md
                   - sam: reference/vit/sam/modules/sam.md
+                  - tiny_encoder: reference/vit/sam/modules/tiny_encoder.md
                   - transformer: reference/vit/sam/modules/transformer.md
               - predict: reference/vit/sam/predict.md
           - utils:
@@ -319,6 +318,12 @@ nav:
               - results: reference/yolo/engine/results.md
               - trainer: reference/yolo/engine/trainer.md
               - validator: reference/yolo/engine/validator.md
+          - fastsam:
+              - model: reference/yolo/fastsam/model.md
+              - predict: reference/yolo/fastsam/predict.md
+              - prompt: reference/yolo/fastsam/prompt.md
+              - utils: reference/yolo/fastsam/utils.md
+              - val: reference/yolo/fastsam/val.md
           - nas:
               - model: reference/yolo/nas/model.md
               - predict: reference/yolo/nas/predict.md

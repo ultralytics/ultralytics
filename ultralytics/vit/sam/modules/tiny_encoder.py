@@ -314,7 +314,7 @@ class TinyViTBlock(nn.Module):
         drop_path (float, optional): Stochastic depth rate. Default: 0.0
         local_conv_size (int): the kernel size of the convolution between
                                Attention and MLP. Default: 3
-        activation: the activation function. Default: nn.GELU
+        activation (torch.nn): the activation function. Default: nn.GELU
     """
 
     def __init__(
@@ -413,9 +413,9 @@ class BasicLayer(nn.Module):
         drop_path (float | tuple[float], optional): Stochastic depth rate. Default: 0.0
         downsample (nn.Module | None, optional): Downsample layer at the end of the layer. Default: None
         use_checkpoint (bool): Whether to use checkpointing to save memory. Default: False.
-        local_conv_size: the kernel size of the depthwise convolution between attention and MLP. Default: 3
-        activation: the activation function. Default: nn.GELU
-        out_dim: the output dimension of the layer. Default: dim
+        local_conv_size (int): the kernel size of the depthwise convolution between attention and MLP. Default: 3
+        activation (torch.nn): the activation function. Default: nn.GELU
+        out_dim (int | optional): the output dimension of the layer. Default: None
     """
 
     def __init__(

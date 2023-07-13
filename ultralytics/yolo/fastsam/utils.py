@@ -8,12 +8,12 @@ def adjust_bboxes_to_image_border(boxes, image_shape, threshold=20):
     Adjust bounding boxes to stick to image border if they are within a certain threshold.
 
     Args:
-        boxes: (n, 4)
-        image_shape: (height, width)
-        threshold: pixel threshold
+        boxes (torch.Tensor): (n, 4)
+        image_shape (tuple): (height, width)
+        threshold (int): pixel threshold
 
     Returns:
-        adjusted_boxes: adjusted bounding boxes
+        adjusted_boxes (torch.Tensor): adjusted bounding boxes
     """
 
     # Image dimensions
@@ -32,11 +32,11 @@ def bbox_iou(box1, boxes, iou_thres=0.9, image_shape=(640, 640), raw_output=Fals
     Compute the Intersection-Over-Union of a bounding box with respect to an array of other bounding boxes.
 
     Args:
-        box1: (4, )
-        boxes: (n, 4)
+        box1 (torch.Tensor): (4, )
+        boxes (torch.Tensor): (n, 4)
 
     Returns:
-        high_iou_indices: Indices of boxes with IoU > thres
+        high_iou_indices (torch.Tensor): Indices of boxes with IoU > thres
     """
     boxes = adjust_bboxes_to_image_border(boxes, image_shape)
     # obtain coordinates for intersections

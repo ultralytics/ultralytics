@@ -188,7 +188,7 @@ class Results(SimpleClass):
             font (str): The font to use for the text.
             pil (bool): Whether to return the image as a PIL Image.
             img (numpy.ndarray): Plot to another image. if not, plot to original image.
-            img_gpu (torch.Tensor): Normalized image in gpu with shape (1, 3, 640, 640), for faster mask plotting.
+            im_gpu (torch.Tensor): Normalized image in gpu with shape (1, 3, 640, 640), for faster mask plotting.
             kpt_line (bool): Whether to draw lines connecting keypoints.
             labels (bool): Whether to plot the label of bounding boxes.
             boxes (bool): Whether to plot the bounding boxes.

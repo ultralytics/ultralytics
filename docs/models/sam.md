@@ -83,7 +83,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         ```
 
 - The logic here is to segment the whole image if you don't pass any prompts(bboxes/points).
-- More additional args see function `generate()` in [`Predictor` Reference](../reference/vit/sam/predict.md).
+- More additional args see [`Predictor/generate` Reference](../reference/vit/sam/predict.md).
 
 !!! example "SAMPredictor example"
 

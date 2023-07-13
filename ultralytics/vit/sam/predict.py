@@ -181,10 +181,10 @@ class Predictor(BasePredictor):
         """Segment the whole image.
 
         Args:
-            im(torch.Tensor): The preprocessed image, (N, C, H, W).
+            im (torch.Tensor): The preprocessed image, (N, C, H, W).
             crop_n_layers (int): If >0, mask prediction will be run again on
-              crops of the image. Sets the number of layers to run, where each
-              layer has 2**i_layer number of image crops.
+                crops of the image. Sets the number of layers to run, where each
+                layer has 2**i_layer number of image crops.
             crop_overlap_ratio (float): Sets the degree to which crops overlap.
                 In the first crop layer, crops will overlap by this fraction of
                 the image length. Later layers with more crops scale down this overlap.

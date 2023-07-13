@@ -70,9 +70,11 @@ Remember, you'll need the XML and BIN files as well as any application-specific 
 
 In your deployment application, you would typically do the following steps:
 
-1. Load the model using the `InferenceEngine::Core::ReadNetwork` method.
-2. Prepare the input and output blobs.
-3. Run inference using `InferenceEngine::ExecutableNetwork::Infer`.
+1. Initialize OpenVINO by creating `core = Core()`.
+2. Load the model using the `core.read_model()` method.
+3. Compile the model using the `core.compile_model()` function.
+4. Prepare the input (image, text, audio, etc.).
+5. Run inference using `compiled_model(input_data)`.
 
 For more detailed steps and code snippets, refer to the [OpenVINO documentation](https://docs.openvino.ai/) or [API tutorial](https://github.com/openvinotoolkit/openvino_notebooks/blob/main/notebooks/002-openvino-api/002-openvino-api.ipynb).
 

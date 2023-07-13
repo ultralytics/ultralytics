@@ -1,3 +1,8 @@
+---
+description: Learn about the Conv2d_BN, MBConv, ConvLayer, Attention, BasicLayer, and TinyViT modules.
+keywords: Conv2d_BN, MBConv, ConvLayer, Attention, BasicLayer, TinyViT
+---
+
 ## Conv2d_BN
 ---
 ### ::: ultralytics.vit.sam.modules.tiny_encoder.Conv2d_BN

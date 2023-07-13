@@ -12,7 +12,7 @@ OpenVINO, short for Open Visual Inference & Neural Network Optimization toolkit,
 
 ## Usage Examples
 
-Export a YOLOv8n model to OpenVINO format.
+Export a YOLOv8n model to OpenVINO format and run inference with the exported model.
 
 !!! example ""
 
@@ -21,18 +21,26 @@ Export a YOLOv8n model to OpenVINO format.
         ```python
         from ultralytics import YOLO
         
-        # Load a model
-        model = YOLO('yolov8n.pt')  # load an official model
-        model = YOLO('path/to/best.pt')  # load a custom trained
+        # Load a YOLOv8n PyTorch model
+        model = YOLO('yolov8n.pt')
         
         # Export the model
-        model.export(format='openvino')
+        model.export(format='openvino')  # creates 'yolov8n_openvino_model/'
+
+        # Load the exported OpenVINO model
+        ov_model = YOLO('yolov8n_openvino_model/')
+
+        # Run inference
+        results = ov_model('https://ultralytics.com/images/bus.jpg')
         ```
     === "CLI"
     
         ```bash
-        yolo export model=yolov8n.pt format=openvino  # export official model
-        yolo export model=path/to/best.pt format=openvino  # export custom trained model
+        # Export a YOLOv8n PyTorch model to OpenVINO format
+        yolo export model=yolov8n.pt format=openvino  # creates 'yolov8n_openvino_model/'
+
+        # Run inference with the exported model
+        yolo predict model=yolov8n_openvino_model source='https://ultralytics.com/images/bus.jpg'
         ```
 
 ## Arguments

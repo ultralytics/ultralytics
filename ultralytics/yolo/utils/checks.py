@@ -234,7 +234,7 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
                 importlib.import_module(next(pkg.parse_requirements(rmin)).name)
             except ImportError:
                 s += f'"{r}" '
-                n += 1
+            n += 1
 
     if s:
         if install and AUTOINSTALL:  # check environment variable

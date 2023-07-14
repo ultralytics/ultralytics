@@ -300,17 +300,16 @@ class BasePredictor:
 
     def setup_model(self, model, verbose=True):
         """Initialize YOLO model with given parameters and set it to evaluation mode."""
-        device = select_device(self.args.device, verbose=verbose)
-        model = model or self.args.model
-        self.args.half &= device.type != 'cpu'  # half precision only supported on CUDA
-        self.model = AutoBackend(model,
-                                 device=device,
+        self.model = AutoBackend(model or self.args.model,
+                                 device=select_device(self.args.device, verbose=verbose),
                                  dnn=self.args.dnn,
                                  data=self.args.data,
                                  fp16=self.args.half,
                                  fuse=True,
                                  verbose=verbose)
-        self.device = device
+
+        self.device = self.model.device  # update device
+        self.args.half = self.model.fp16  # update half
         self.model.eval()
 
     def show(self, p):

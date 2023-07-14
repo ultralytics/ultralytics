@@ -257,7 +257,6 @@ nav:
           - utils: reference/hub/utils.md
       - nn:
           - autobackend: reference/nn/autobackend.md
-          - autoshape: reference/nn/autoshape.md
           - modules:
               - block: reference/nn/modules/block.md
               - conv: reference/nn/modules/conv.md

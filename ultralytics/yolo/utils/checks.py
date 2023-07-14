@@ -223,7 +223,7 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
         requirements = [requirements]
 
     s = ''  # console string
-    n = 0  # number of packages updates
+    pkgs = []
     for r in requirements:
         rmin = r.split('/')[-1].replace('.git', '')  # replace git+https://org/repo.git -> 'repo'
         try:
@@ -234,11 +234,11 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
                 importlib.import_module(next(pkg.parse_requirements(rmin)).name)
             except ImportError:
                 s += f'"{r}" '
-                n += 1
+                pkgs.append(r)
 
     if s:
         if install and AUTOINSTALL:  # check environment variable
-            pkgs = file or requirements  # missing packages
+            n = len(pkgs)  # number of packages updates
             LOGGER.info(f"{prefix} Ultralytics requirement{'s' * (n > 1)} {pkgs} not found, attempting AutoUpdate...")
             try:
                 t = time.time()

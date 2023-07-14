@@ -1,6 +1,6 @@
 ---
 comments: true
-description: 'Export mode: Create a deployment-ready YOLOv8 model by converting it to OpenVINO format. Export to OpenVINO for up to 3x CPU speedup.'
+description: Discover the power of deploying your Ultralytics YOLOv8 model using OpenVINO format for up to 10x speedup vs PyTorch.
 keywords: ultralytics docs, YOLOv8, export YOLOv8, YOLOv8 model deployment, exporting YOLOv8, OpenVINO, OpenVINO format
 ---
 

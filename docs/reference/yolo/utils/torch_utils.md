@@ -23,6 +23,11 @@ keywords: Ultralytics YOLO, Torch, Utils, Pytorch, Object Detection
 ### ::: ultralytics.yolo.utils.torch_utils.smart_inference_mode
 <br><br>
 
+## get_cpu_info
+---
+### ::: ultralytics.yolo.utils.torch_utils.get_cpu_info
+<br><br>
+
 ## select_device
 ---
 ### ::: ultralytics.yolo.utils.torch_utils.select_device

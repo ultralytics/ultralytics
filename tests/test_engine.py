@@ -65,7 +65,6 @@ def test_detect():
 def test_segment():
     overrides = {'data': 'coco8-seg.yaml', 'model': CFG_SEG, 'imgsz': 32, 'epochs': 1, 'save': False}
     CFG.data = 'coco8-seg.yaml'
-    CFG.v5loader = False
     # YOLO(CFG_SEG).train(**overrides)  # works
 
     # trainer

@@ -244,7 +244,7 @@ class BaseTrainer:
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix='val')
             self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))  # TODO: init metrics for plot_results()?
             self.ema = ModelEMA(self.model)
-            if self.args.plots and not self.args.v5loader:
+            if self.args.plots:
                 self.plot_training_labels()
 
         # Optimizer

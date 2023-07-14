@@ -305,8 +305,6 @@ nav:
               - converter: reference/yolo/data/converter.md
               - dataloaders:
                   - stream_loaders: reference/yolo/data/dataloaders/stream_loaders.md
-                  - v5augmentations: reference/yolo/data/dataloaders/v5augmentations.md
-                  - v5loader: reference/yolo/data/dataloaders/v5loader.md
               - dataset: reference/yolo/data/dataset.md
               - dataset_wrappers: reference/yolo/data/dataset_wrappers.md
               - utils: reference/yolo/data/utils.md

@@ -4,6 +4,7 @@ import contextlib
 import hashlib
 import json
 import os
+import random
 import subprocess
 import time
 import zipfile
@@ -522,3 +523,35 @@ def zip_directory(dir, use_zipfile_library=True):
     else:
         import shutil
         shutil.make_archive(dir, 'zip', dir)
+
+
+def autosplit(path=DATASETS_DIR / 'coco128/images', weights=(0.9, 0.1, 0.0), annotated_only=False):
+    """
+    Autosplit a dataset into train/val/test splits and save the resulting splits into autosplit_*.txt files.
+
+    Args:
+        path (Path, optional): Path to images directory. Defaults to DATASETS_DIR / 'coco128/images'.
+        weights (list | tuple, optional): Train, validation, and test split fractions. Defaults to (0.9, 0.1, 0.0).
+        annotated_only (bool, optional): If True, only images with an associated txt file are used. Defaults to False.
+
+    Usage:
+        from utils.dataloaders import autosplit
+        autosplit()
+    """
+
+    path = Path(path)  # images dir
+    files = sorted(x for x in path.rglob('*.*') if x.suffix[1:].lower() in IMG_FORMATS)  # image files only
+    n = len(files)  # number of files
+    random.seed(0)  # for reproducibility
+    indices = random.choices([0, 1, 2], weights=weights, k=n)  # assign each image to a split
+
+    txt = ['autosplit_train.txt', 'autosplit_val.txt', 'autosplit_test.txt']  # 3 txt files
+    for x in txt:
+        if (path.parent / x).exists():
+            (path.parent / x).unlink()  # remove existing
+
+    LOGGER.info(f'Autosplitting images from {path}' + ', using *.txt labeled images only' * annotated_only)
+    for i, img in tqdm(zip(indices, files), total=n):
+        if not annotated_only or Path(img2label_paths([str(img)])[0]).exists():  # check label
+            with open(path.parent / txt[i], 'a') as f:
+                f.write(f'./{img.relative_to(path.parent).as_posix()}' + '\n')  # add image to txt file

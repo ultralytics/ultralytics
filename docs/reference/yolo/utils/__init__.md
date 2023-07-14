@@ -18,6 +18,11 @@ keywords: Ultralytics, YOLO, utils, SimpleClass, IterableSimpleNamespace, EmojiF
 ### ::: ultralytics.yolo.utils.EmojiFilter
 <br><br>
 
+## ThreadingLocked
+---
+### ::: ultralytics.yolo.utils.ThreadingLocked
+<br><br>
+
 ## TryExcept
 ---
 ### ::: ultralytics.yolo.utils.TryExcept

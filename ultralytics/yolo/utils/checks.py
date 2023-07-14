@@ -225,13 +225,13 @@ def check_requirements(requirements=ROOT.parent / 'requirements.txt', exclude=()
     s = ''  # console string
     pkgs = []
     for r in requirements:
-        rmin = r.split('/')[-1].replace('.git', '')  # replace git+https://org/repo.git -> 'repo'
+        r_stripped = r.split('/')[-1].replace('.git', '')  # replace git+https://org/repo.git -> 'repo'
         try:
-            pkg.require(rmin)
+            pkg.require(r_stripped)
         except (pkg.VersionConflict, pkg.DistributionNotFound):  # exception if requirements not met
             try:  # attempt to import (slower but more accurate)
                 import importlib
-                importlib.import_module(next(pkg.parse_requirements(rmin)).name)
+                importlib.import_module(next(pkg.parse_requirements(r_stripped)).name)
             except ImportError:
                 s += f'"{r}" '
                 pkgs.append(r)

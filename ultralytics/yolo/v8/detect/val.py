@@ -8,7 +8,7 @@ import torch
 
 from ultralytics.yolo.data import build_dataloader, build_yolo_dataset
 from ultralytics.yolo.engine.validator import BaseValidator
-from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, colorstr, ops
+from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, ops
 from ultralytics.yolo.utils.checks import check_requirements
 from ultralytics.yolo.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
 from ultralytics.yolo.utils.plotting import output_to_target, plot_images

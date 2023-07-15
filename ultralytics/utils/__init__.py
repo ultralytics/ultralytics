@@ -790,7 +790,7 @@ def url2file(url):
     return Path(clean_url(url)).name
 
 
-# Run below code on yolo/utils init ------------------------------------------------------------------------------------
+# Run below code on utils init ------------------------------------------------------------------------------------
 
 # Check first-install steps
 PREFIX = colorstr('Ultralytics: ')

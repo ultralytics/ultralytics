@@ -12,9 +12,9 @@ from torch.utils.data import dataloader, distributed
 from ultralytics.data.dataloaders.stream_loaders import (LOADERS, LoadImages, LoadPilAndNumpy, LoadScreenshots,
                                                          LoadStreams, LoadTensor, SourceTypes, autocast_list)
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
+from ultralytics.utils import RANK, colorstr
 from ultralytics.utils.checks import check_file
 
-from ultralytics.utils import RANK, colorstr
 from .dataset import YOLODataset
 from .utils import PIN_MEMORY
 

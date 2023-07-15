@@ -16,6 +16,7 @@ from torch.utils.data import Dataset
 from tqdm import tqdm
 
 from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM_BAR_FORMAT
+
 from .utils import HELP_URL, IMG_FORMATS
 
 

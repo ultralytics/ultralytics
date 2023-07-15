@@ -119,7 +119,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
 
         ```
 
-- More additional args for `Segment everything` see [`Predictor/generate` Reference](../reference/vit/sam/predict.md).
+- More additional args for `Segment everything` see [`Predictor/generate` Reference](../reference/models/vit/sam/predict.md).
 
 ## Available Models and Supported Tasks
 

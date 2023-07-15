@@ -128,7 +128,7 @@ class Mosaic(BaseMixTransform):
         n (int, optional): The grid size, either 4 (for 2x2) or 9 (for 3x3).
     """
 
-    def __init__(self, dataset, imgsz=640, p=1.0, n=4):
+    def __init__(self, dataset, imgsz=640, p=1.0, n=9):
         """Initializes the object with a dataset, image size, probability, and border."""
         assert 0 <= p <= 1.0, f'The probability should be in range [0, 1], but got {p}.'
         assert n in (4, 9), 'grid must be equal to 4 or 9.'
@@ -192,8 +192,9 @@ class Mosaic(BaseMixTransform):
         mosaic_labels = []
         s = self.imgsz
         hp, wp = -1, -1  # height, width previous
+        len_mix_labels = len(labels['mix_labels'])
         for i in range(9):
-            labels_patch = labels if i == 0 else labels['mix_labels'][i - 1]
+            labels_patch = labels if i == 0 else deepcopy(labels['mix_labels'][(i - 1) % len_mix_labels])
             # Load image
             img = labels_patch['img']
             h, w = labels_patch.pop('resized_shape')

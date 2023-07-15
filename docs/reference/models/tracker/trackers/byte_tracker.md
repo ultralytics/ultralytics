@@ -1,9 +1,9 @@
 ## STrack
 ---
-### ::: ultralytics.models.tracker.trackers.byte_tracker.STrack
+### ::: ultralytics.trackers.trackers.byte_tracker.STrack
 <br><br>
 
 ## BYTETracker
 ---
-### ::: ultralytics.models.tracker.trackers.byte_tracker.BYTETracker
+### ::: ultralytics.trackers.trackers.byte_tracker.BYTETracker
 <br><br>

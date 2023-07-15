@@ -1,9 +1,9 @@
 ## TrackState
 ---
-### ::: ultralytics.models.tracker.trackers.basetrack.TrackState
+### ::: ultralytics.trackers.trackers.basetrack.TrackState
 <br><br>
 
 ## BaseTrack
 ---
-### ::: ultralytics.models.tracker.trackers.basetrack.BaseTrack
+### ::: ultralytics.trackers.trackers.basetrack.BaseTrack
 <br><br>

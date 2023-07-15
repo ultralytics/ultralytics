@@ -1,4 +1,4 @@
 ## GMC
 ---
-### ::: ultralytics.models.tracker.utils.gmc.GMC
+### ::: ultralytics.trackers.utils.gmc.GMC
 <br><br>

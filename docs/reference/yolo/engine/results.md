@@ -5,30 +5,30 @@ keywords: YOLO, Engine, Results, Masks, Probs, Ultralytics
 
 ## BaseTensor
 ---
-### ::: ultralytics.yolo.engine.results.BaseTensor
+### ::: ultralytics.engine.results.BaseTensor
 <br><br>
 
 ## Results
 ---
-### ::: ultralytics.yolo.engine.results.Results
+### ::: ultralytics.engine.results.Results
 <br><br>
 
 ## Boxes
 ---
-### ::: ultralytics.yolo.engine.results.Boxes
+### ::: ultralytics.engine.results.Boxes
 <br><br>
 
 ## Masks
 ---
-### ::: ultralytics.yolo.engine.results.Masks
+### ::: ultralytics.engine.results.Masks
 <br><br>
 
 ## Keypoints
 ---
-### ::: ultralytics.yolo.engine.results.Keypoints
+### ::: ultralytics.engine.results.Keypoints
 <br><br>
 
 ## Probs
 ---
-### ::: ultralytics.yolo.engine.results.Probs
+### ::: ultralytics.engine.results.Probs
 <br><br>

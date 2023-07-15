@@ -5,5 +5,5 @@ keywords: Ultralytics YOLO, BaseTrainer, object detection models, training guide
 
 ## BaseTrainer
 ---
-### ::: ultralytics.yolo.engine.trainer.BaseTrainer
+### ::: ultralytics.engine.trainer.BaseTrainer
 <br><br>

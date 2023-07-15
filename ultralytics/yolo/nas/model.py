@@ -65,7 +65,7 @@ class NAS:
                        Check the 'configuration' section in the documentation for all available options.
 
         Returns:
-            (List[ultralytics.yolo.engine.results.Results]): The prediction results.
+            (List[ultralytics.engine.results.Results]): The prediction results.
         """
         if source is None:
             source = ROOT / 'assets' if is_git_dir() else 'https://ultralytics.com/images/bus.jpg'

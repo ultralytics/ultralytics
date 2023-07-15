@@ -269,7 +269,7 @@ class YOLO:
 
         """
         if not hasattr(self.predictor, 'trackers'):
-            from ultralytics.tracker import register_tracker
+            from ultralytics.models.tracker import register_tracker
             register_tracker(self, persist)
         # ByteTrack-based method needs low confidence predictions as input
         conf = kwargs.get('conf') or 0.1

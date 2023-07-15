@@ -5,10 +5,10 @@ keywords: object detection, object tracking, Ultralytics YOLO, TrackState, workf
 
 ## TrackState
 ---
-### ::: ultralytics.tracker.trackers.basetrack.TrackState
+### ::: ultralytics.models.tracker.trackers.basetrack.TrackState
 <br><br>
 
 ## BaseTrack
 ---
-### ::: ultralytics.tracker.trackers.basetrack.BaseTrack
+### ::: ultralytics.models.tracker.trackers.basetrack.BaseTrack
 <br><br>

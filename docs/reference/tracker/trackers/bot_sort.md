@@ -5,10 +5,10 @@ keywords: BOTrack, Ultralytics YOLO Docs, features, usage
 
 ## BOTrack
 ---
-### ::: ultralytics.tracker.trackers.bot_sort.BOTrack
+### ::: ultralytics.models.tracker.trackers.bot_sort.BOTrack
 <br><br>
 
 ## BOTSORT
 ---
-### ::: ultralytics.tracker.trackers.bot_sort.BOTSORT
+### ::: ultralytics.models.tracker.trackers.bot_sort.BOTSORT
 <br><br>

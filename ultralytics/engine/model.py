@@ -389,7 +389,7 @@ class YOLO:
 
     def tune(self, *args, **kwargs):
         """
-        Runs hyperparameter tuning using Ray Tune. See ultralytics.yolo.utils.tuner.run_ray_tune for Args.
+        Runs hyperparameter tuning using Ray Tune. See ultralytics.utils.tuner.run_ray_tune for Args.
 
         Returns:
             (dict): A dictionary containing the results of the hyperparameter search.

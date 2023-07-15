@@ -5,10 +5,10 @@ keywords: Ultralytics YOLO, ProfileModels, benchmark, model inference, detection
 
 ## ProfileModels
 ---
-### ::: ultralytics.yolo.utils.benchmarks.ProfileModels
+### ::: ultralytics.utils.benchmarks.ProfileModels
 <br><br>
 
 ## benchmark
 ---
-### ::: ultralytics.yolo.utils.benchmarks.benchmark
+### ::: ultralytics.utils.benchmarks.benchmark
 <br><br>

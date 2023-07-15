@@ -63,7 +63,7 @@ import torch
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import C2f, Detect, RTDETRDecoder
 from ultralytics.nn.tasks import DetectionModel, SegmentationModel
-from ultralytics.yolo.cfg import get_cfg
+from ultralytics.cfg import get_cfg
 from ultralytics.utils import (ARM64, DEFAULT_CFG, LINUX, LOGGER, MACOS, ROOT, __version__, callbacks, colorstr,
                                     get_default_args, yaml_save)
 from ultralytics.utils.checks import check_imgsz, check_requirements, check_version

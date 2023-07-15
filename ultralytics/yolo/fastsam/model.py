@@ -9,7 +9,7 @@ Usage - Predict:
     results = model.predict('ultralytics/assets/bus.jpg')
 """
 
-from ultralytics.yolo.cfg import get_cfg
+from ultralytics.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.engine.model import YOLO
 from ultralytics.utils import DEFAULT_CFG, LOGGER, ROOT, is_git_dir

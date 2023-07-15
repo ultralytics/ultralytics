@@ -7,7 +7,7 @@ from typing import Union
 from ultralytics import yolo  # noqa
 from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, PoseModel, SegmentationModel,
                                   attempt_load_one_weight, guess_model_task, nn, yaml_model_load)
-from ultralytics.yolo.cfg import get_cfg
+from ultralytics.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, ROOT, callbacks,
                                     is_git_dir, yaml_load)

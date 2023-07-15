@@ -34,7 +34,7 @@ import torch.cuda
 from tqdm import tqdm
 
 from ultralytics import YOLO
-from ultralytics.yolo.cfg import TASK2DATA, TASK2METRIC
+from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.yolo.engine.exporter import export_formats
 from ultralytics.utils import LINUX, LOGGER, MACOS, ROOT, SETTINGS
 from ultralytics.utils.checks import check_requirements, check_yolo

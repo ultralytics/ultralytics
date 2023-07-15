@@ -35,7 +35,7 @@ import numpy as np
 import torch
 
 from ultralytics.nn.autobackend import AutoBackend
-from ultralytics.yolo.cfg import get_cfg
+from ultralytics.cfg import get_cfg
 from ultralytics.yolo.data import load_inference_source
 from ultralytics.yolo.data.augment import LetterBox, classify_transforms
 from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, SETTINGS, WINDOWS, callbacks, colorstr, ops

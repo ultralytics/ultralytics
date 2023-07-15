@@ -18,11 +18,11 @@ from PIL import ExifTags, Image, ImageOps
 from tqdm import tqdm
 
 from ultralytics.nn.autobackend import check_class_names
-from ultralytics.yolo.utils import (DATASETS_DIR, LOGGER, NUM_THREADS, ROOT, SETTINGS_YAML, clean_url, colorstr, emojis,
+from ultralytics.utils import (DATASETS_DIR, LOGGER, NUM_THREADS, ROOT, SETTINGS_YAML, clean_url, colorstr, emojis,
                                     yaml_load)
-from ultralytics.yolo.utils.checks import check_file, check_font, is_ascii
-from ultralytics.yolo.utils.downloads import download, safe_download, unzip_file
-from ultralytics.yolo.utils.ops import segments2boxes
+from ultralytics.utils.checks import check_file, check_font, is_ascii
+from ultralytics.utils.downloads import download, safe_download, unzip_file
+from ultralytics.utils.ops import segments2boxes
 
 HELP_URL = 'See https://docs.ultralytics.com/yolov5/tutorials/train_custom_data'
 IMG_FORMATS = 'bmp', 'dng', 'jpeg', 'jpg', 'mpo', 'png', 'tif', 'tiff', 'webp', 'pfm'  # image suffixes

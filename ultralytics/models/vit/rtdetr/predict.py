@@ -5,7 +5,7 @@ import torch
 from ultralytics.yolo.data.augment import LetterBox
 from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.engine.results import Results
-from ultralytics.yolo.utils import ops
+from ultralytics.utils import ops
 
 
 class RTDETRPredictor(BasePredictor):

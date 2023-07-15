@@ -4,8 +4,8 @@ import json
 from time import time
 
 from ultralytics.hub.utils import PREFIX, events
-from ultralytics.yolo.utils import LOGGER
-from ultralytics.yolo.utils.torch_utils import model_info_for_loggers
+from ultralytics.utils import LOGGER
+from ultralytics.utils.torch_utils import model_info_for_loggers
 
 
 def on_pretrain_routine_end(trainer):

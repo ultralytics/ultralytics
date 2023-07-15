@@ -3,7 +3,7 @@
 Benchmark a YOLO model formats for speed and accuracy
 
 Usage:
-    from ultralytics.yolo.utils.benchmarks import ProfileModels, benchmark
+    from ultralytics.utils.benchmarks import ProfileModels, benchmark
     ProfileModels(['yolov8n.yaml', 'yolov8s.yaml']).profile()
     run_benchmarks(model='yolov8n.pt', imgsz=160)
 
@@ -36,11 +36,11 @@ from tqdm import tqdm
 from ultralytics import YOLO
 from ultralytics.yolo.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.yolo.engine.exporter import export_formats
-from ultralytics.yolo.utils import LINUX, LOGGER, MACOS, ROOT, SETTINGS
-from ultralytics.yolo.utils.checks import check_requirements, check_yolo
-from ultralytics.yolo.utils.downloads import download
-from ultralytics.yolo.utils.files import file_size
-from ultralytics.yolo.utils.torch_utils import select_device
+from ultralytics.utils import LINUX, LOGGER, MACOS, ROOT, SETTINGS
+from ultralytics.utils.checks import check_requirements, check_yolo
+from ultralytics.utils.downloads import download
+from ultralytics.utils.files import file_size
+from ultralytics.utils.torch_utils import select_device
 
 
 def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',

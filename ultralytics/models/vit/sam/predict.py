@@ -8,8 +8,8 @@ import torchvision
 from ultralytics.yolo.data.augment import LetterBox
 from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.engine.results import Results
-from ultralytics.yolo.utils import DEFAULT_CFG, ops
-from ultralytics.yolo.utils.torch_utils import select_device
+from ultralytics.utils import DEFAULT_CFG, ops
+from ultralytics.utils.torch_utils import select_device
 
 from .amg import (batch_iterator, batched_mask_to_box, build_all_layer_point_grids, calculate_stability_score,
                   generate_crop_boxes, is_box_near_crop_edge, remove_small_regions, uncrop_boxes_xyxy, uncrop_masks)

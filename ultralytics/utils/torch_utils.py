@@ -17,8 +17,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
 
-from ultralytics.yolo.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, __version__
-from ultralytics.yolo.utils.checks import check_requirements, check_version
+from ultralytics.utils import DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, __version__
+from ultralytics.utils.checks import check_requirements, check_version
 
 try:
     import thop
@@ -213,7 +213,7 @@ def model_info_for_loggers(trainer):
          'model/speed_PyTorch(ms)': 18.755}
     """
     if trainer.args.profile:  # profile ONNX and TensorRT times
-        from ultralytics.yolo.utils.benchmarks import ProfileModels
+        from ultralytics.utils.benchmarks import ProfileModels
         results = ProfileModels([trainer.last], device=trainer.device).profile()[0]
         results.pop('model/name')
     else:  # only return PyTorch times from most recent validation
@@ -387,7 +387,7 @@ def strip_optimizer(f: Union[str, Path] = 'best.pt', s: str = '') -> None:
 
     Usage:
         from pathlib import Path
-        from ultralytics.yolo.utils.torch_utils import strip_optimizer
+        from ultralytics.utils.torch_utils import strip_optimizer
         for f in Path('/Users/glennjocher/Downloads/weights').rglob('*.pt'):
             strip_optimizer(f)
     """

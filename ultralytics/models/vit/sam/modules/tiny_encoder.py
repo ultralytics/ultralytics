@@ -17,7 +17,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.checkpoint as checkpoint
 
-from ultralytics.yolo.utils.instance import to_2tuple
+from ultralytics.utils.instance import to_2tuple
 
 
 class Conv2d_BN(torch.nn.Sequential):
@@ -50,7 +50,7 @@ class Conv2d_BN(torch.nn.Sequential):
 
 
 # NOTE: This module and timm package is needed only for training.
-# from ultralytics.yolo.utils.checks import check_requirements
+# from ultralytics.utils.checks import check_requirements
 # check_requirements('timm')
 # from timm.models.layers import DropPath as TimmDropPath
 # from timm.models.layers import trunc_normal_

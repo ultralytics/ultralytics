@@ -29,7 +29,7 @@ def generate_ddp_file(trainer):
 
     content = f'''overrides = {vars(trainer.args)} \nif __name__ == "__main__":
     from {module} import {name}
-    from ultralytics.yolo.utils import DEFAULT_CFG_DICT
+    from ultralytics.utils import DEFAULT_CFG_DICT
 
     cfg = DEFAULT_CFG_DICT.copy()
     cfg.update(save_dir='')   # handle the extra key 'save_dir'

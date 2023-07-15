@@ -9,11 +9,11 @@ from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, PoseModel
                                   attempt_load_one_weight, guess_model_task, nn, yaml_model_load)
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
-from ultralytics.yolo.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, ROOT, callbacks,
+from ultralytics.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, ROOT, callbacks,
                                     is_git_dir, yaml_load)
-from ultralytics.yolo.utils.checks import check_file, check_imgsz, check_pip_update_available, check_yaml
-from ultralytics.yolo.utils.downloads import GITHUB_ASSET_STEMS
-from ultralytics.yolo.utils.torch_utils import smart_inference_mode
+from ultralytics.utils.checks import check_file, check_imgsz, check_pip_update_available, check_yaml
+from ultralytics.utils.downloads import GITHUB_ASSET_STEMS
+from ultralytics.utils.torch_utils import smart_inference_mode
 
 # Map head to model, trainer, validator, and predictor classes
 TASK_MAP = {
@@ -315,7 +315,7 @@ class YOLO:
             **kwargs : Any other args accepted by the validators. To see all args check 'configuration' section in docs
         """
         self._check_is_pytorch_model()
-        from ultralytics.yolo.utils.benchmarks import benchmark
+        from ultralytics.utils.benchmarks import benchmark
         overrides = self.model.args.copy()
         overrides.update(kwargs)
         overrides['mode'] = 'benchmark'
@@ -398,7 +398,7 @@ class YOLO:
             ModuleNotFoundError: If Ray Tune is not installed.
         """
         self._check_is_pytorch_model()
-        from ultralytics.yolo.utils.tuner import run_ray_tune
+        from ultralytics.utils.tuner import run_ray_tune
         return run_ray_tune(self, *args, **kwargs)
 
     @property

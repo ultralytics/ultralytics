@@ -12,10 +12,10 @@ Usage - Predict:
 from ultralytics.yolo.cfg import get_cfg
 from ultralytics.yolo.engine.exporter import Exporter
 from ultralytics.yolo.engine.model import YOLO
-from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, ROOT, is_git_dir
-from ultralytics.yolo.utils.checks import check_imgsz
+from ultralytics.utils import DEFAULT_CFG, LOGGER, ROOT, is_git_dir
+from ultralytics.utils.checks import check_imgsz
 
-from ultralytics.yolo.utils.torch_utils import model_info, smart_inference_mode
+from ultralytics.utils.torch_utils import model_info, smart_inference_mode
 from .predict import FastSAMPredictor
 
 

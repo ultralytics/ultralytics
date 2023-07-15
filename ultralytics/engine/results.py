@@ -13,8 +13,8 @@ import numpy as np
 import torch
 
 from ultralytics.yolo.data.augment import LetterBox
-from ultralytics.yolo.utils import LOGGER, SimpleClass, deprecation_warn, ops
-from ultralytics.yolo.utils.plotting import Annotator, colors, save_one_box
+from ultralytics.utils import LOGGER, SimpleClass, deprecation_warn, ops
+from ultralytics.utils.plotting import Annotator, colors, save_one_box
 
 
 class BaseTensor(SimpleClass):

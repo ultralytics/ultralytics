@@ -3,8 +3,8 @@ from copy import copy
 
 from ultralytics.nn.tasks import SegmentationModel
 from ultralytics.yolo import v8
-from ultralytics.yolo.utils import DEFAULT_CFG, RANK
-from ultralytics.yolo.utils.plotting import plot_images, plot_results
+from ultralytics.utils import DEFAULT_CFG, RANK
+from ultralytics.utils.plotting import plot_images, plot_results
 
 
 # BaseTrainer python usage

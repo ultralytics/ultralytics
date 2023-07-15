@@ -11,6 +11,7 @@ from functools import partial
 import torch
 
 from ultralytics.utils.downloads import attempt_download_asset
+
 from .modules.decoders import MaskDecoder
 from .modules.encoders import ImageEncoderViT, PromptEncoder
 from .modules.sam import Sam

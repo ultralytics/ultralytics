@@ -14,8 +14,8 @@ from ultralytics.engine.exporter import Exporter
 from ultralytics.engine.model import YOLO
 from ultralytics.utils import DEFAULT_CFG, LOGGER, ROOT, is_git_dir
 from ultralytics.utils.checks import check_imgsz
-
 from ultralytics.utils.torch_utils import model_info, smart_inference_mode
+
 from .predict import FastSAMPredictor
 
 

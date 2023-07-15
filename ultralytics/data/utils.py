@@ -19,7 +19,7 @@ from tqdm import tqdm
 
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.utils import (DATASETS_DIR, LOGGER, NUM_THREADS, ROOT, SETTINGS_YAML, clean_url, colorstr, emojis,
-                                    yaml_load)
+                               yaml_load)
 from ultralytics.utils.checks import check_file, check_font, is_ascii
 from ultralytics.utils.downloads import download, safe_download, unzip_file
 from ultralytics.utils.ops import segments2boxes

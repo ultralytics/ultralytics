@@ -17,8 +17,8 @@ from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
 from ultralytics.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, ROOT, is_git_dir
 from ultralytics.utils.checks import check_imgsz
-
 from ultralytics.utils.torch_utils import model_info, smart_inference_mode
+
 from .predict import NASPredictor
 from .val import NASValidator
 

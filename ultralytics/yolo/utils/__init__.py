@@ -1,6 +1,7 @@
-from ultralytics.utils import LOGGER
 import importlib
 import sys
+
+from ultralytics.utils import LOGGER
 
 # Set modules in sys.modules under their old name
 sys.modules[f'ultralytics.yolo.utils'] = importlib.import_module(f'ultralytics.utils')

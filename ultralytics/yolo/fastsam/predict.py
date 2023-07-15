@@ -3,8 +3,8 @@
 import torch
 
 from ultralytics.engine.results import Results
-from ultralytics.yolo.fastsam.utils import bbox_iou
 from ultralytics.utils import DEFAULT_CFG, ops
+from ultralytics.yolo.fastsam.utils import bbox_iou
 from ultralytics.yolo.v8.detect.predict import DetectionPredictor
 
 

@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 from typing import Union
 
-from ultralytics import yolo  # noqa
+from ultralytics.models import yolo  # noqa
 from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
 from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, PoseModel, SegmentationModel,
@@ -18,15 +18,15 @@ from ultralytics.utils.torch_utils import smart_inference_mode
 # Map head to model, trainer, validator, and predictor classes
 TASK_MAP = {
     'classify': [
-        ClassificationModel, yolo.v8.classify.ClassificationTrainer, yolo.v8.classify.ClassificationValidator,
-        yolo.v8.classify.ClassificationPredictor],
+        ClassificationModel, yolo.classify.ClassificationTrainer, yolo.classify.ClassificationValidator,
+        yolo.classify.ClassificationPredictor],
     'detect': [
-        DetectionModel, yolo.v8.detect.DetectionTrainer, yolo.v8.detect.DetectionValidator,
-        yolo.v8.detect.DetectionPredictor],
+        DetectionModel, yolo.detect.DetectionTrainer, yolo.detect.DetectionValidator,
+        yolo.detect.DetectionPredictor],
     'segment': [
-        SegmentationModel, yolo.v8.segment.SegmentationTrainer, yolo.v8.segment.SegmentationValidator,
-        yolo.v8.segment.SegmentationPredictor],
-    'pose': [PoseModel, yolo.v8.pose.PoseTrainer, yolo.v8.pose.PoseValidator, yolo.v8.pose.PosePredictor]}
+        SegmentationModel, yolo.segment.SegmentationTrainer, yolo.segment.SegmentationValidator,
+        yolo.segment.SegmentationPredictor],
+    'pose': [PoseModel, yolo.pose.PoseTrainer, yolo.pose.PoseValidator, yolo.pose.PosePredictor]}
 
 
 class YOLO:

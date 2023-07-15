@@ -4,7 +4,7 @@ import torch
 
 from ultralytics.engine.results import Results
 from ultralytics.utils import DEFAULT_CFG, ROOT, ops
-from ultralytics.yolo.v8.detect.predict import DetectionPredictor
+from ultralytics.models.yolo.detect.predict import DetectionPredictor
 
 
 class SegmentationPredictor(DetectionPredictor):

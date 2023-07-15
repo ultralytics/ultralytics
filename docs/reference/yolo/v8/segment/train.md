@@ -5,10 +5,10 @@ keywords: SegmentationTrainer, Ultralytics YOLO, object detection, segmentation,
 
 ## SegmentationTrainer
 ---
-### ::: ultralytics.yolo.v8.segment.train.SegmentationTrainer
+### ::: ultralytics.models.yolo.segment.train.SegmentationTrainer
 <br><br>
 
 ## train
 ---
-### ::: ultralytics.yolo.v8.segment.train.train
+### ::: ultralytics.models.yolo.segment.train.train
 <br><br>

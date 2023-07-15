@@ -6,7 +6,7 @@ from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
 from ultralytics.utils import DEFAULT_CFG, ROOT, SETTINGS
-from ultralytics.yolo.v8 import classify, detect, segment
+from ultralytics.models.yolo import classify, detect, segment
 
 CFG_DET = 'yolov8n.yaml'
 CFG_SEG = 'yolov8n-seg.yaml'

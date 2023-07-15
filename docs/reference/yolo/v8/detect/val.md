@@ -5,10 +5,10 @@ keywords: detection, validator, YOLOv5, object detection, model improvement, Ult
 
 ## DetectionValidator
 ---
-### ::: ultralytics.yolo.v8.detect.val.DetectionValidator
+### ::: ultralytics.models.yolo.detect.val.DetectionValidator
 <br><br>
 
 ## val
 ---
-### ::: ultralytics.yolo.v8.detect.val.val
+### ::: ultralytics.models.yolo.detect.val.val
 <br><br>

@@ -5,10 +5,10 @@ keywords: DetectionTrainer, Ultralytics YOLO, custom object detection, train mod
 
 ## DetectionTrainer
 ---
-### ::: ultralytics.yolo.v8.detect.train.DetectionTrainer
+### ::: ultralytics.models.yolo.detect.train.DetectionTrainer
 <br><br>
 
 ## train
 ---
-### ::: ultralytics.yolo.v8.detect.train.train
+### ::: ultralytics.models.yolo.detect.train.train
 <br><br>

@@ -9,7 +9,7 @@ import torch
 from ultralytics.data import YOLODataset
 from ultralytics.data.augment import Compose, Format, v8_transforms
 from ultralytics.utils import colorstr, ops
-from ultralytics.yolo.v8.detect import DetectionValidator
+from ultralytics.models.yolo.detect import DetectionValidator
 
 __all__ = 'RTDETRValidator',  # tuple or list
 

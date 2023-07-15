@@ -5,10 +5,10 @@ keywords: PoseTrainer, human pose models, deep learning, computer vision, Ultral
 
 ## PoseTrainer
 ---
-### ::: ultralytics.yolo.v8.pose.train.PoseTrainer
+### ::: ultralytics.models.yolo.pose.train.PoseTrainer
 <br><br>
 
 ## train
 ---
-### ::: ultralytics.yolo.v8.pose.train.train
+### ::: ultralytics.models.yolo.pose.train.train
 <br><br>

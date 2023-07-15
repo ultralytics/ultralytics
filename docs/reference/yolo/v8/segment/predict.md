@@ -5,10 +5,10 @@ keywords: Ultralytics YOLO, SegmentationPredictor, object detection, segmentatio
 
 ## SegmentationPredictor
 ---
-### ::: ultralytics.yolo.v8.segment.predict.SegmentationPredictor
+### ::: ultralytics.models.yolo.segment.predict.SegmentationPredictor
 <br><br>
 
 ## predict
 ---
-### ::: ultralytics.yolo.v8.segment.predict.predict
+### ::: ultralytics.models.yolo.segment.predict.predict
 <br><br>

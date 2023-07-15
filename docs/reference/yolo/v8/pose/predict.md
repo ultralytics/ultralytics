@@ -5,10 +5,10 @@ keywords: Ultralytics, YOLO, v8, documentation, PosePredictor, pose prediction, 
 
 ## PosePredictor
 ---
-### ::: ultralytics.yolo.v8.pose.predict.PosePredictor
+### ::: ultralytics.models.yolo.pose.predict.PosePredictor
 <br><br>
 
 ## predict
 ---
-### ::: ultralytics.yolo.v8.pose.predict.predict
+### ::: ultralytics.models.yolo.pose.predict.predict
 <br><br>

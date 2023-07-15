@@ -5,10 +5,10 @@ keywords: ClassificationValidator, Ultralytics YOLO, Validation, Data Science, D
 
 ## ClassificationValidator
 ---
-### ::: ultralytics.yolo.v8.classify.val.ClassificationValidator
+### ::: ultralytics.models.yolo.classify.val.ClassificationValidator
 <br><br>
 
 ## val
 ---
-### ::: ultralytics.yolo.v8.classify.val.val
+### ::: ultralytics.models.yolo.classify.val.val
 <br><br>

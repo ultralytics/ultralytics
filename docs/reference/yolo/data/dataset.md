@@ -5,15 +5,15 @@ keywords: YOLODataset, SemanticDataset, Ultralytics YOLO Docs, Object Detection,
 
 ## YOLODataset
 ---
-### ::: ultralytics.yolo.data.dataset.YOLODataset
+### ::: ultralytics.data.dataset.YOLODataset
 <br><br>
 
 ## ClassificationDataset
 ---
-### ::: ultralytics.yolo.data.dataset.ClassificationDataset
+### ::: ultralytics.data.dataset.ClassificationDataset
 <br><br>
 
 ## SemanticDataset
 ---
-### ::: ultralytics.yolo.data.dataset.SemanticDataset
+### ::: ultralytics.data.dataset.SemanticDataset
 <br><br>

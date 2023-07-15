@@ -5,95 +5,95 @@ keywords: YOLO, data augmentation, transforms, BaseTransform, MixUp, RandomHSV, 
 
 ## BaseTransform
 ---
-### ::: ultralytics.yolo.data.augment.BaseTransform
+### ::: ultralytics.data.augment.BaseTransform
 <br><br>
 
 ## Compose
 ---
-### ::: ultralytics.yolo.data.augment.Compose
+### ::: ultralytics.data.augment.Compose
 <br><br>
 
 ## BaseMixTransform
 ---
-### ::: ultralytics.yolo.data.augment.BaseMixTransform
+### ::: ultralytics.data.augment.BaseMixTransform
 <br><br>
 
 ## Mosaic
 ---
-### ::: ultralytics.yolo.data.augment.Mosaic
+### ::: ultralytics.data.augment.Mosaic
 <br><br>
 
 ## MixUp
 ---
-### ::: ultralytics.yolo.data.augment.MixUp
+### ::: ultralytics.data.augment.MixUp
 <br><br>
 
 ## RandomPerspective
 ---
-### ::: ultralytics.yolo.data.augment.RandomPerspective
+### ::: ultralytics.data.augment.RandomPerspective
 <br><br>
 
 ## RandomHSV
 ---
-### ::: ultralytics.yolo.data.augment.RandomHSV
+### ::: ultralytics.data.augment.RandomHSV
 <br><br>
 
 ## RandomFlip
 ---
-### ::: ultralytics.yolo.data.augment.RandomFlip
+### ::: ultralytics.data.augment.RandomFlip
 <br><br>
 
 ## LetterBox
 ---
-### ::: ultralytics.yolo.data.augment.LetterBox
+### ::: ultralytics.data.augment.LetterBox
 <br><br>
 
 ## CopyPaste
 ---
-### ::: ultralytics.yolo.data.augment.CopyPaste
+### ::: ultralytics.data.augment.CopyPaste
 <br><br>
 
 ## Albumentations
 ---
-### ::: ultralytics.yolo.data.augment.Albumentations
+### ::: ultralytics.data.augment.Albumentations
 <br><br>
 
 ## Format
 ---
-### ::: ultralytics.yolo.data.augment.Format
+### ::: ultralytics.data.augment.Format
 <br><br>
 
 ## ClassifyLetterBox
 ---
-### ::: ultralytics.yolo.data.augment.ClassifyLetterBox
+### ::: ultralytics.data.augment.ClassifyLetterBox
 <br><br>
 
 ## CenterCrop
 ---
-### ::: ultralytics.yolo.data.augment.CenterCrop
+### ::: ultralytics.data.augment.CenterCrop
 <br><br>
 
 ## ToTensor
 ---
-### ::: ultralytics.yolo.data.augment.ToTensor
+### ::: ultralytics.data.augment.ToTensor
 <br><br>
 
 ## v8_transforms
 ---
-### ::: ultralytics.yolo.data.augment.v8_transforms
+### ::: ultralytics.data.augment.v8_transforms
 <br><br>
 
 ## classify_transforms
 ---
-### ::: ultralytics.yolo.data.augment.classify_transforms
+### ::: ultralytics.data.augment.classify_transforms
 <br><br>
 
 ## hsv2colorjitter
 ---
-### ::: ultralytics.yolo.data.augment.hsv2colorjitter
+### ::: ultralytics.data.augment.hsv2colorjitter
 <br><br>
 
 ## classify_albumentations
 ---
-### ::: ultralytics.yolo.data.augment.classify_albumentations
+### ::: ultralytics.data.augment.classify_albumentations
 <br><br>

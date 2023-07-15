@@ -296,7 +296,7 @@ nav:
               - ops: reference/vit/utils/ops.md
       - yolo:
           - cfg:
-              - __init__: reference/yolo/cfg/__init__.md
+              - __init__: reference/cfg/__init__.md
           - data:
               - annotator: reference/yolo/data/annotator.md
               - augment: reference/yolo/data/augment.md

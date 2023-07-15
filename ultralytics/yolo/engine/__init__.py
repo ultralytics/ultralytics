@@ -7,4 +7,5 @@ from ultralytics.utils import LOGGER
 sys.modules['ultralytics.yolo.engine'] = importlib.import_module('ultralytics.engine')
 
 LOGGER.warning(
-    "WARNING ⚠️ 'ultralytics.yolo.engine' is deprecated since '8.0.136' and will be removed. Please use 'ultralytics.engine' instead.")
+    "WARNING ⚠️ 'ultralytics.yolo.engine' is deprecated since '8.0.136' and will be removed. Please use 'ultralytics.engine' instead."
+)

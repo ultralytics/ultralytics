@@ -4,9 +4,9 @@ import sys
 from pathlib import Path
 from typing import Union
 
-from ultralytics.models import yolo  # noqa
 from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
+from ultralytics.models import yolo  # noqa
 from ultralytics.nn.tasks import (ClassificationModel, DetectionModel, PoseModel, SegmentationModel,
                                   attempt_load_one_weight, guess_model_task, nn, yaml_model_load)
 from ultralytics.utils import (DEFAULT_CFG, DEFAULT_CFG_DICT, DEFAULT_CFG_KEYS, LOGGER, RANK, ROOT, callbacks,
@@ -20,9 +20,8 @@ TASK_MAP = {
     'classify': [
         ClassificationModel, yolo.classify.ClassificationTrainer, yolo.classify.ClassificationValidator,
         yolo.classify.ClassificationPredictor],
-    'detect': [
-        DetectionModel, yolo.detect.DetectionTrainer, yolo.detect.DetectionValidator,
-        yolo.detect.DetectionPredictor],
+    'detect':
+    [DetectionModel, yolo.detect.DetectionTrainer, yolo.detect.DetectionValidator, yolo.detect.DetectionPredictor],
     'segment': [
         SegmentationModel, yolo.segment.SegmentationTrainer, yolo.segment.SegmentationValidator,
         yolo.segment.SegmentationPredictor],

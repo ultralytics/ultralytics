@@ -7,11 +7,11 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
+from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, NUM_THREADS, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import SegmentMetrics, box_iou, mask_iou
 from ultralytics.utils.plotting import output_to_target, plot_images
-from ultralytics.models.yolo.detect import DetectionValidator
 
 
 class FastSAMValidator(DetectionValidator):

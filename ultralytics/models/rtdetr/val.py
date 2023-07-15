@@ -8,8 +8,8 @@ import torch
 
 from ultralytics.data import YOLODataset
 from ultralytics.data.augment import Compose, Format, v8_transforms
-from ultralytics.utils import colorstr, ops
 from ultralytics.models.yolo.detect import DetectionValidator
+from ultralytics.utils import colorstr, ops
 
 __all__ = 'RTDETRValidator',  # tuple or list
 

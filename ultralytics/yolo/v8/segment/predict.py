@@ -2,7 +2,7 @@
 
 import torch
 
-from ultralytics.yolo.engine.results import Results
+from ultralytics.engine.results import Results
 from ultralytics.utils import DEFAULT_CFG, ROOT, ops
 from ultralytics.yolo.v8.detect.predict import DetectionPredictor
 

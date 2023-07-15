@@ -5,7 +5,7 @@ __version__ = '8.0.135'
 from ultralytics.hub import start
 from ultralytics.vit.rtdetr import RTDETR
 from ultralytics.vit.sam import SAM
-from ultralytics.yolo.engine.model import YOLO
+from ultralytics.engine.model import YOLO
 from ultralytics.yolo.fastsam import FastSAM
 from ultralytics.yolo.nas import NAS
 from ultralytics.utils.checks import check_yolo as checks

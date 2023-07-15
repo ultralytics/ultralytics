@@ -14,7 +14,7 @@ from pathlib import Path
 import torch
 
 from ultralytics.cfg import get_cfg
-from ultralytics.yolo.engine.exporter import Exporter
+from ultralytics.engine.exporter import Exporter
 from ultralytics.utils import DEFAULT_CFG, DEFAULT_CFG_DICT, LOGGER, ROOT, is_git_dir
 from ultralytics.utils.checks import check_imgsz
 

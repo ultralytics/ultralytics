@@ -6,8 +6,8 @@ import torch.nn.functional as F
 import torchvision
 
 from ultralytics.data.augment import LetterBox
-from ultralytics.yolo.engine.predictor import BasePredictor
-from ultralytics.yolo.engine.results import Results
+from ultralytics.engine.predictor import BasePredictor
+from ultralytics.engine.results import Results
 from ultralytics.utils import DEFAULT_CFG, ops
 from ultralytics.utils.torch_utils import select_device
 

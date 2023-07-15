@@ -10,8 +10,8 @@ Usage - Predict:
 """
 
 from ultralytics.cfg import get_cfg
-from ultralytics.yolo.engine.exporter import Exporter
-from ultralytics.yolo.engine.model import YOLO
+from ultralytics.engine.exporter import Exporter
+from ultralytics.engine.model import YOLO
 from ultralytics.utils import DEFAULT_CFG, LOGGER, ROOT, is_git_dir
 from ultralytics.utils.checks import check_imgsz
 

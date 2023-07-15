@@ -296,7 +296,7 @@ def check_cls_dataset(dataset: str, split=''):
         LOGGER.info(f'\nDataset not found ⚠️, missing path {data_dir}, attempting download...')
         t = time.time()
         if str(dataset) == 'imagenet':
-            subprocess.run(f"bash {ROOT / 'yolo/data/scripts/get_imagenet.sh'}", shell=True, check=True)
+            subprocess.run(f"bash {ROOT / 'data/scripts/get_imagenet.sh'}", shell=True, check=True)
         else:
             url = f'https://github.com/ultralytics/yolov5/releases/download/v1.0/{dataset}.zip'
             download(url, dir=data_dir.parent)

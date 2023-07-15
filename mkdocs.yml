@@ -298,16 +298,16 @@ nav:
           - cfg:
               - __init__: reference/cfg/__init__.md
           - data:
-              - annotator: reference/yolo/data/annotator.md
-              - augment: reference/yolo/data/augment.md
-              - base: reference/yolo/data/base.md
-              - build: reference/yolo/data/build.md
-              - converter: reference/yolo/data/converter.md
+              - annotator: reference/data/annotator.md
+              - augment: reference/data/augment.md
+              - base: reference/data/base.md
+              - build: reference/data/build.md
+              - converter: reference/data/converter.md
               - dataloaders:
-                  - stream_loaders: reference/yolo/data/dataloaders/stream_loaders.md
-              - dataset: reference/yolo/data/dataset.md
-              - dataset_wrappers: reference/yolo/data/dataset_wrappers.md
-              - utils: reference/yolo/data/utils.md
+                  - stream_loaders: reference/data/dataloaders/stream_loaders.md
+              - dataset: reference/data/dataset.md
+              - dataset_wrappers: reference/data/dataset_wrappers.md
+              - utils: reference/data/utils.md
           - engine:
               - exporter: reference/yolo/engine/exporter.md
               - model: reference/yolo/engine/model.md

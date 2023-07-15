@@ -1,3 +1,4 @@
-from .vit import RTDETR, SAM
+from .rtdetr import RTDETR
+from .sam import SAM
 
-__all__ = 'RTDETR', 'SAM'
+__all__ = 'RTDETR', 'SAM'  # allow simpler import

@@ -1,4 +1,4 @@
 ## Predictor
 ---
-### ::: ultralytics.models.vit.sam.predict.Predictor
+### ::: ultralytics.models.sam.predict.Predictor
 <br><br>

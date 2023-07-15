@@ -1,4 +1,4 @@
 ## Sam
 ---
-### ::: ultralytics.models.vit.sam.modules.sam.Sam
+### ::: ultralytics.models.sam.modules.sam.Sam
 <br><br>

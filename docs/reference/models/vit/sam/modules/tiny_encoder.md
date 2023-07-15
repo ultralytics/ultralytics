@@ -1,54 +1,54 @@
 ## Conv2d_BN
 ---
-### ::: ultralytics.models.vit.sam.modules.tiny_encoder.Conv2d_BN
+### ::: ultralytics.models.sam.modules.tiny_encoder.Conv2d_BN
 <br><br>
 
 ## PatchEmbed
 ---
-### ::: ultralytics.models.vit.sam.modules.tiny_encoder.PatchEmbed
+### ::: ultralytics.models.sam.modules.tiny_encoder.PatchEmbed
 <br><br>
 
 ## MBConv
 ---
-### ::: ultralytics.models.vit.sam.modules.tiny_encoder.MBConv
+### ::: ultralytics.models.sam.modules.tiny_encoder.MBConv
 <br><br>
 
 ## PatchMerging
 ---
-### ::: ultralytics.models.vit.sam.modules.tiny_encoder.PatchMerging
+### ::: ultralytics.models.sam.modules.tiny_encoder.PatchMerging
 <br><br>
 
 ## ConvLayer
 ---
-### ::: ultralytics.models.vit.sam.modules.tiny_encoder.ConvLayer
+### ::: ultralytics.models.sam.modules.tiny_encoder.ConvLayer
 <br><br>
 
 ## Mlp
 ---
-### ::: ultralytics.models.vit.sam.modules.tiny_encoder.Mlp
+### ::: ultralytics.models.sam.modules.tiny_encoder.Mlp
 <br><br>
 
 ## Attention
 ---
-### ::: ultralytics.models.vit.sam.modules.tiny_encoder.Attention
+### ::: ultralytics.models.sam.modules.tiny_encoder.Attention
 <br><br>
 
 ## TinyViTBlock
 ---
-### ::: ultralytics.models.vit.sam.modules.tiny_encoder.TinyViTBlock
+### ::: ultralytics.models.sam.modules.tiny_encoder.TinyViTBlock
 <br><br>
 
 ## BasicLayer
 ---
-### ::: ultralytics.models.vit.sam.modules.tiny_encoder.BasicLayer
+### ::: ultralytics.models.sam.modules.tiny_encoder.BasicLayer
 <br><br>
 
 ## LayerNorm2d
 ---
-### ::: ultralytics.models.vit.sam.modules.tiny_encoder.LayerNorm2d
+### ::: ultralytics.models.sam.modules.tiny_encoder.LayerNorm2d
 <br><br>
 
 ## TinyViT
 ---
-### ::: ultralytics.models.vit.sam.modules.tiny_encoder.TinyViT
+### ::: ultralytics.models.sam.modules.tiny_encoder.TinyViT
 <br><br>

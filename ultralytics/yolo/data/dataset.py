@@ -259,7 +259,14 @@ class ClassificationDataset(torchvision.datasets.ImageFolder):
         if self.album_transforms:
             sample = self.album_transforms(image=cv2.cvtColor(im, cv2.COLOR_BGR2RGB))['image']
         else:
-            sample = self.torch_transforms(im)
+            try:
+                sample = self.torch_transforms(im)
+            except AttributeError: # bad image files force the creation of a 'bad list', will not do multiple files at once in current configuration
+                q = open('bad.file', 'w+')
+                q.write(f+"\n")
+                q.close()
+                print('Warning: corrupt image files, see bad.file for faulty image')
+                exit(1)
         return {'img': sample, 'cls': j}
 
     def __len__(self) -> int:

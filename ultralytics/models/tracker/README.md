@@ -69,7 +69,7 @@ while True:
 
 ## Change tracker parameters
 
-You can change the tracker parameters by eding the `tracker.yaml` file which is located in the ultralytics/tracker/cfg folder.
+You can change the tracker parameters by eding the `tracker.yaml` file which is located in the ultralytics/models/tracker/cfg folder.
 
 ## Command Line Interface (CLI)
 
@@ -81,6 +81,6 @@ yolo segment track source=... tracker=...
 yolo pose track source=... tracker=...
 ```
 
-By default, trackers will use the configuration in `ultralytics/tracker/cfg`.
+By default, trackers will use the configuration in `ultralytics/models/tracker/cfg`.
 We also support using a modified tracker config file. Please refer to the tracker config files
-in `ultralytics/tracker/cfg`.<br>
+in `ultralytics/models/tracker/cfg`.<br>

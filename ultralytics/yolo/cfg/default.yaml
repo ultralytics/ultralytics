@@ -37,6 +37,9 @@ overlap_mask: True  # (bool) masks should overlap during training (segment train
 mask_ratio: 4  # (int) mask downsample ratio (segment train only)
 # Classification
 dropout: 0.0  # (float) use dropout regularization (classify train only)
+# Model YAML overrides
+activation:  # (str, optional) model default activation function, i.e. 'nn.SiLU()' for YOLOv8
+nc:  # (int, optional) number of classes, i.e. 80 for COCO
 
 # Val/Test settings ----------------------------------------------------------------------------------------------------
 val: True  # (bool) validate/test during training

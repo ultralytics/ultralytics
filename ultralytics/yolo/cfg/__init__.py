@@ -344,7 +344,7 @@ def entrypoint(debug=''):
     check_cfg_mismatch(full_args_dict, overrides)
 
     # Mode
-    mode = overrides.get('mode', None)
+    mode = overrides.get('mode')
     if mode is None:
         mode = DEFAULT_CFG.mode or 'predict'
         LOGGER.warning(f"WARNING ⚠️ 'mode' is missing. Valid modes are {MODES}. Using default 'mode={mode}'.")
@@ -369,6 +369,7 @@ def entrypoint(debug=''):
         model = 'yolov8n.pt'
         LOGGER.warning(f"WARNING ⚠️ 'model' is missing. Using default 'model={model}'.")
     overrides['model'] = model
+    kwargs = {k: overrides[k] for k in ('nc', 'activation') if k in overrides}  # model kwargs (optional)
     if 'rtdetr' in model.lower():  # guess architecture
         from ultralytics import RTDETR
         model = RTDETR(model)  # no task argument
@@ -377,7 +378,7 @@ def entrypoint(debug=''):
         model = SAM(model)
     else:
         from ultralytics import YOLO
-        model = YOLO(model, task=task)
+        model = YOLO(model, task=task, **kwargs)
     if isinstance(overrides.get('pretrained'), str):
         model.load(overrides['pretrained'])
 

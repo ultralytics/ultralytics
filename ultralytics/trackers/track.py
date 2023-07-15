@@ -7,7 +7,8 @@ import torch
 from ultralytics.utils import IterableSimpleNamespace, yaml_load
 from ultralytics.utils.checks import check_yaml
 
-from .trackers import BOTSORT, BYTETracker
+from .bot_sort import BOTSORT
+from .byte_tracker import BYTETracker
 
 TRACKER_MAP = {'bytetrack': BYTETracker, 'botsort': BOTSORT}
 

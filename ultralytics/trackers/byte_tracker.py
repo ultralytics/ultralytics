@@ -2,8 +2,8 @@
 
 import numpy as np
 
-from ..utils import matching
-from ..utils.kalman_filter import KalmanFilterXYAH
+from .utils import matching
+from .utils.kalman_filter import KalmanFilterXYAH
 from .basetrack import BaseTrack, TrackState
 
 

@@ -325,9 +325,7 @@ def check_file(file, suffix='', download=True, hard=True):
             downloads.safe_download(url=url, file=file, unzip=False)
         return file
     else:  # search
-        files = []
-        for d in 'models/tracker/cfg', 'cfg':  # search directories
-            files.extend(glob.glob(str(ROOT / d / '**' / file), recursive=True))  # find file
+        files = glob.glob(str(ROOT / 'cfg' / '**' / file), recursive=True)  # find file
         if not files and hard:
             raise FileNotFoundError(f"'{file}' does not exist")
         elif len(files) > 1 and hard:

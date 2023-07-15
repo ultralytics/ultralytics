@@ -5,5 +5,5 @@ keywords: FastSAMValidator, Ultralytics YOLO, SAM datasets, object detection, va
 
 ## FastSAMValidator
 ---
-### ::: ultralytics.yolo.fastsam.val.FastSAMValidator
+### ::: ultralytics.models.fastsam.val.FastSAMValidator
 <br><br>

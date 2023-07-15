@@ -5,5 +5,5 @@ keywords: FastSAMPrompt, Ultralytics YOLO, object detection, tracking, fast, eff
 
 ## FastSAMPrompt
 ---
-### ::: ultralytics.yolo.fastsam.prompt.FastSAMPrompt
+### ::: ultralytics.models.fastsam.prompt.FastSAMPrompt
 <br><br>

@@ -5,10 +5,10 @@ keywords: adjust_bboxes_to_image_border, Ultralytics YOLO, object detection, bou
 
 ## adjust_bboxes_to_image_border
 ---
-### ::: ultralytics.yolo.fastsam.utils.adjust_bboxes_to_image_border
+### ::: ultralytics.models.fastsam.utils.adjust_bboxes_to_image_border
 <br><br>
 
 ## bbox_iou
 ---
-### ::: ultralytics.yolo.fastsam.utils.bbox_iou
+### ::: ultralytics.models.fastsam.utils.bbox_iou
 <br><br>

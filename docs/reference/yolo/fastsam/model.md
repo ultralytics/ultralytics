@@ -5,5 +5,5 @@ keywords: FastSAM, object detection, accuracy, speed, Ultralytics YOLO
 
 ## FastSAM
 ---
-### ::: ultralytics.yolo.fastsam.model.FastSAM
+### ::: ultralytics.models.fastsam.model.FastSAM
 <br><br>

@@ -5,5 +5,5 @@ keywords: FastSAMPredictor, API, reference, usage, guide, Ultralytics, YOLO, obj
 
 ## FastSAMPredictor
 ---
-### ::: ultralytics.yolo.fastsam.predict.FastSAMPredictor
+### ::: ultralytics.models.fastsam.predict.FastSAMPredictor
 <br><br>

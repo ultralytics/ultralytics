@@ -219,7 +219,7 @@ class RTDETRDecoder(nn.Module):
         self._reset_parameters()
 
     def forward(self, x, batch=None):
-        from ultralytics.models.vit.utils.ops import get_cdn_group
+        from ultralytics.models.utils.ops import get_cdn_group
 
         # input projection and embedding
         feats, shapes = self._get_encoder_input(x)

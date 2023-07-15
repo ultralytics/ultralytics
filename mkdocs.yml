@@ -261,7 +261,6 @@ nav:
           - dataloaders:
               - stream_loaders: reference/data/dataloaders/stream_loaders.md
           - dataset: reference/data/dataset.md
-          - dataset_wrappers: reference/data/dataset_wrappers.md
           - utils: reference/data/utils.md
       - engine:
           - exporter: reference/engine/exporter.md

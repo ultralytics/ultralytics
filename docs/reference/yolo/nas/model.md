@@ -5,5 +5,5 @@ keywords: Ultralytics YOLO, object detection, NAS, Neural Architecture Search, m
 
 ## NAS
 ---
-### ::: ultralytics.yolo.nas.model.NAS
+### ::: ultralytics.models.nas.model.NAS
 <br><br>

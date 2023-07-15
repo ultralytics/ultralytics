@@ -1,7 +1,7 @@
 import importlib
 import sys
 
-from ultralytics.cfg import LOGGER
+from ultralytics.utils import LOGGER
 
 # Set modules in sys.modules under their old name
 sys.modules['ultralytics.yolo.cfg'] = importlib.import_module('ultralytics.cfg')

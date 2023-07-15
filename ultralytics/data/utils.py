@@ -326,7 +326,7 @@ class HUBDatasetStats():
         autodownload (bool): Attempt to download dataset if not found locally. Default is False.
 
     Usage
-        from ultralytics.yolo.data.utils import HUBDatasetStats
+        from ultralytics.data.utils import HUBDatasetStats
         stats = HUBDatasetStats('/Users/glennjocher/Downloads/coco8.zip', task='detect')  # detect dataset
         stats = HUBDatasetStats('/Users/glennjocher/Downloads/coco8-seg.zip', task='segment')  # segment dataset
         stats = HUBDatasetStats('/Users/glennjocher/Downloads/coco8-pose.zip', task='pose')  # pose dataset
@@ -379,7 +379,7 @@ class HUBDatasetStats():
 
     def get_json(self, save=False, verbose=False):
         """Return dataset JSON for Ultralytics HUB."""
-        from ultralytics.yolo.data import YOLODataset  # ClassificationDataset
+        from ultralytics.data import YOLODataset  # ClassificationDataset
 
         def _round(labels):
             """Update labels to integer class and 4 decimal place floats."""
@@ -430,7 +430,7 @@ class HUBDatasetStats():
 
     def process_images(self):
         """Compress images for Ultralytics HUB."""
-        from ultralytics.yolo.data import YOLODataset  # ClassificationDataset
+        from ultralytics.data import YOLODataset  # ClassificationDataset
 
         for split in 'train', 'val', 'test':
             if self.data.get(split) is None:
@@ -457,7 +457,7 @@ def compress_one_image(f, f_new=None, max_dim=1920, quality=50):
 
     Usage:
         from pathlib import Path
-        from ultralytics.yolo.data.utils import compress_one_image
+        from ultralytics.data.utils import compress_one_image
         for f in Path('/Users/glennjocher/Downloads/dataset').rglob('*.jpg'):
             compress_one_image(f)
     """
@@ -485,7 +485,7 @@ def delete_dsstore(path):
         path (str, optional): The directory path where the ".DS_store" files should be deleted.
 
     Usage:
-        from ultralytics.yolo.data.utils import delete_dsstore
+        from ultralytics.data.utils import delete_dsstore
         delete_dsstore('/Users/glennjocher/Downloads/dataset')
 
     Note:
@@ -508,7 +508,7 @@ def zip_directory(dir, use_zipfile_library=True):
         use_zipfile_library (bool): Whether to use zipfile library or shutil for zipping.
 
     Usage:
-        from ultralytics.yolo.data.utils import zip_directory
+        from ultralytics.data.utils import zip_directory
         zip_directory('/Users/glennjocher/Downloads/playground')
 
         zip -r coco8-pose.zip coco8-pose

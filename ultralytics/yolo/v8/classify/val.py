@@ -2,7 +2,7 @@
 
 import torch
 
-from ultralytics.yolo.data import ClassificationDataset, build_dataloader
+from ultralytics.data import ClassificationDataset, build_dataloader
 from ultralytics.yolo.engine.validator import BaseValidator
 from ultralytics.utils import DEFAULT_CFG, LOGGER
 from ultralytics.utils.metrics import ClassifyMetrics, ConfusionMatrix

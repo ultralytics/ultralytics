@@ -5,7 +5,7 @@ import torch
 import torch.nn.functional as F
 import torchvision
 
-from ultralytics.yolo.data.augment import LetterBox
+from ultralytics.data.augment import LetterBox
 from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.engine.results import Results
 from ultralytics.utils import DEFAULT_CFG, ops

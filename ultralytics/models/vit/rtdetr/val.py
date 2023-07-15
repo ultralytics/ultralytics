@@ -6,8 +6,8 @@ import cv2
 import numpy as np
 import torch
 
-from ultralytics.yolo.data import YOLODataset
-from ultralytics.yolo.data.augment import Compose, Format, v8_transforms
+from ultralytics.data import YOLODataset
+from ultralytics.data.augment import Compose, Format, v8_transforms
 from ultralytics.utils import colorstr, ops
 from ultralytics.yolo.v8.detect import DetectionValidator
 

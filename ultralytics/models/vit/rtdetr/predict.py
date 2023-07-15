@@ -2,7 +2,7 @@
 
 import torch
 
-from ultralytics.yolo.data.augment import LetterBox
+from ultralytics.data.augment import LetterBox
 from ultralytics.yolo.engine.predictor import BasePredictor
 from ultralytics.yolo.engine.results import Results
 from ultralytics.utils import ops

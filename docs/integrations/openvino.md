@@ -99,7 +99,7 @@ The Intel® Data Center GPU Flex Series is a versatile and robust solution desig
 Benchmarks below run on Intel® Data Center GPU Flex 170 at FP32 precision.
 
 <div align="center">
-<img width="640" src="https://user-images.githubusercontent.com/26833433/252764833-6faa5a1f-040d-48b1-96ad-95b3c0cb343d.jpg">
+<img width="800" src="https://user-images.githubusercontent.com/26833433/253741543-62659bf8-1765-4d0b-b71c-8a4f9885506a.jpg">
 </div>
 
 | Model   | Format      | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
@@ -136,7 +136,7 @@ Early reviews have praised the Arc™ series, particularly the integrated A770M 
 Benchmarks below run on Intel® Arc 770 GPU at FP32 precision.
 
 <div align="center">
-<img width="640" src="https://user-images.githubusercontent.com/26833433/252764815-6b04336c-cc22-424d-9088-70b204f638be.jpg">
+<img width="800" src="https://user-images.githubusercontent.com/26833433/253741545-8530388f-8fd1-44f7-a4ae-f875d59dc282.jpg">
 </div>
 
 | Model   | Format      | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
@@ -171,7 +171,7 @@ Notably, Xeon® CPUs deliver high compute density and scalability, making them i
 Benchmarks below run on 4th Gen Intel® Xeon® Scalable CPU at FP32 precision.
 
 <div align="center">
-<img width="640" src="https://user-images.githubusercontent.com/26833433/252764834-4f15a36d-eeb1-4bcb-94d1-981afd592659.jpg">
+<img width="800" src="https://user-images.githubusercontent.com/26833433/253741546-dcd8e52a-fc38-424f-b87e-c8365b6f28dc.jpg">
 </div>
 
 | Model   | Format      | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
@@ -204,7 +204,7 @@ The Intel® Core® series is a range of high-performance processors by Intel. Th
 Benchmarks below run on 12th Gen Intel® Core® i9 CPU at FP32 precision.
 
 <div align="center">
-<img width="640" src="https://user-images.githubusercontent.com/26833433/253741360-890e5906-57a0-4b2d-a149-a5157f10aa08.jpg">
+<img width="800" src="![img.png](img.png)https://user-images.githubusercontent.com/26833433/253741360-890e5906-57a0-4b2d-a149-a5157f10aa08.jpg">
 </div>
 
 | Model   | Format      | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |

@@ -67,3 +67,8 @@ keywords: YOLOv4, Object Detection, Computer Vision, Deep Learning, Convolutiona
 ---
 ### ::: ultralytics.yolo.data.utils.zip_directory
 <br><br>
+
+## autosplit
+---
+### ::: ultralytics.yolo.data.utils.autosplit
+<br><br>

@@ -6,9 +6,8 @@ import numpy as np
 from ultralytics.nn.tasks import DetectionModel
 from ultralytics.yolo import v8
 from ultralytics.yolo.data import build_dataloader, build_yolo_dataset
-from ultralytics.yolo.data.dataloaders.v5loader import create_dataloader
 from ultralytics.yolo.engine.trainer import BaseTrainer
-from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, RANK, colorstr
+from ultralytics.yolo.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.yolo.utils.plotting import plot_images, plot_labels, plot_results
 from ultralytics.yolo.utils.torch_utils import de_parallel, torch_distributed_zero_first
 
@@ -17,7 +16,8 @@ from ultralytics.yolo.utils.torch_utils import de_parallel, torch_distributed_ze
 class DetectionTrainer(BaseTrainer):
 
     def build_dataset(self, img_path, mode='train', batch=None):
-        """Build YOLO Dataset
+        """
+        Build YOLO Dataset.
 
         Args:
             img_path (str): Path to the folder containing images.
@@ -28,27 +28,7 @@ class DetectionTrainer(BaseTrainer):
         return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == 'val', stride=gs)
 
     def get_dataloader(self, dataset_path, batch_size=16, rank=0, mode='train'):
-        """TODO: manage splits differently."""
-        # Calculate stride - check if model is initialized
-        if self.args.v5loader:
-            LOGGER.warning("WARNING ⚠️ 'v5loader' feature is deprecated and will be removed soon. You can train using "
-                           'the default YOLOv8 dataloader instead, no argument is needed.')
-            gs = max(int(de_parallel(self.model).stride.max() if self.model else 0), 32)
-            return create_dataloader(path=dataset_path,
-                                     imgsz=self.args.imgsz,
-                                     batch_size=batch_size,
-                                     stride=gs,
-                                     hyp=vars(self.args),
-                                     augment=mode == 'train',
-                                     cache=self.args.cache,
-                                     pad=0 if mode == 'train' else 0.5,
-                                     rect=self.args.rect or mode == 'val',
-                                     rank=rank,
-                                     workers=self.args.workers,
-                                     close_mosaic=self.args.close_mosaic != 0,
-                                     prefix=colorstr(f'{mode}: '),
-                                     shuffle=mode == 'train',
-                                     seed=self.args.seed)[0]
+        """Construct and return dataloader."""
         assert mode in ['train', 'val']
         with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
             dataset = self.build_dataset(dataset_path, mode, batch_size)

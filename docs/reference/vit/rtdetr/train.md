@@ -5,10 +5,10 @@ keywords: RTDETRTrainer, Ultralytics YOLO Docs, object detection, VIT-based RTDE
 
 ## RTDETRTrainer
 ---
-### ::: ultralytics.vit.rtdetr.train.RTDETRTrainer
+### ::: ultralytics.models.vit.rtdetr.train.RTDETRTrainer
 <br><br>
 
 ## train
 ---
-### ::: ultralytics.vit.rtdetr.train.train
+### ::: ultralytics.models.vit.rtdetr.train.train
 <br><br>

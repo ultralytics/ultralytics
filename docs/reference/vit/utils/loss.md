@@ -5,10 +5,10 @@ keywords: DETRLoss, RTDETRDetectionLoss, Ultralytics, object detection, image cl
 
 ## DETRLoss
 ---
-### ::: ultralytics.vit.utils.loss.DETRLoss
+### ::: ultralytics.models.vit.utils.loss.DETRLoss
 <br><br>
 
 ## RTDETRDetectionLoss
 ---
-### ::: ultralytics.vit.utils.loss.RTDETRDetectionLoss
+### ::: ultralytics.models.vit.utils.loss.RTDETRDetectionLoss
 <br><br>

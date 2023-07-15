@@ -412,7 +412,7 @@ class RTDETRDetectionModel(DetectionModel):
 
     def init_criterion(self):
         """Compute the classification loss between predictions and true labels."""
-        from ultralytics.vit.utils.loss import RTDETRDetectionLoss
+        from ultralytics.models.vit.utils.loss import RTDETRDetectionLoss
 
         return RTDETRDetectionLoss(nc=self.nc, use_vfl=True)
 

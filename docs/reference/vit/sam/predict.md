@@ -5,5 +5,5 @@ keywords: Ultralytics, VIT SAM Predictor, object detection, YOLO
 
 ## Predictor
 ---
-### ::: ultralytics.vit.sam.predict.Predictor
+### ::: ultralytics.models.vit.sam.predict.Predictor
 <br><br>

@@ -5,5 +5,5 @@ keywords: RTDETRPredictor, object detection, vision transformer, Ultralytics YOL
 
 ## RTDETRPredictor
 ---
-### ::: ultralytics.vit.rtdetr.predict.RTDETRPredictor
+### ::: ultralytics.models.vit.rtdetr.predict.RTDETRPredictor
 <br><br>

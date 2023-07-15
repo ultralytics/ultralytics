@@ -5,5 +5,5 @@ keywords: Ultralytics, VIT, SAM, object detection, computer vision, deep learnin
 
 ## SAM
 ---
-### ::: ultralytics.vit.sam.model.SAM
+### ::: ultralytics.models.vit.sam.model.SAM
 <br><br>

@@ -5,10 +5,10 @@ keywords: Ultralytics YOLO, MaskDecoder, Transformer architecture, mask predicti
 
 ## MaskDecoder
 ---
-### ::: ultralytics.vit.sam.modules.decoders.MaskDecoder
+### ::: ultralytics.models.vit.sam.modules.decoders.MaskDecoder
 <br><br>
 
 ## MLP
 ---
-### ::: ultralytics.vit.sam.modules.decoders.MLP
+### ::: ultralytics.models.vit.sam.modules.decoders.MLP
 <br><br>

@@ -5,5 +5,5 @@ keywords: Ultralytics VIT, Sam module, PyTorch vision library, image classificat
 
 ## Sam
 ---
-### ::: ultralytics.vit.sam.modules.sam.Sam
+### ::: ultralytics.models.vit.sam.modules.sam.Sam
 <br><br>

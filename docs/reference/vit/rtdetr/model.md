@@ -5,5 +5,5 @@ keywords: RTDETR, Ultralytics, YOLO, object detection, speed, accuracy, implemen
 
 ## RTDETR
 ---
-### ::: ultralytics.vit.rtdetr.model.RTDETR
+### ::: ultralytics.models.vit.rtdetr.model.RTDETR
 <br><br>

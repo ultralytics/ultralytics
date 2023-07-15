@@ -4,9 +4,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ultralytics.vit.utils.ops import HungarianMatcher
 from ultralytics.yolo.utils.loss import FocalLoss, VarifocalLoss
 from ultralytics.yolo.utils.metrics import bbox_iou
+from .ops import HungarianMatcher
 
 
 class DETRLoss(nn.Module):

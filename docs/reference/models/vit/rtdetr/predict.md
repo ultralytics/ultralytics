@@ -1,4 +1,4 @@
 ## RTDETRPredictor
 ---
-### ::: ultralytics.models.vit.rtdetr.predict.RTDETRPredictor
+### ::: ultralytics.models.rtdetr.predict.RTDETRPredictor
 <br><br>

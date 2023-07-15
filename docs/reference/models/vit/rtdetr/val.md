@@ -1,9 +1,9 @@
 ## RTDETRDataset
 ---
-### ::: ultralytics.models.vit.rtdetr.val.RTDETRDataset
+### ::: ultralytics.models.rtdetr.val.RTDETRDataset
 <br><br>
 
 ## RTDETRValidator
 ---
-### ::: ultralytics.models.vit.rtdetr.val.RTDETRValidator
+### ::: ultralytics.models.rtdetr.val.RTDETRValidator
 <br><br>

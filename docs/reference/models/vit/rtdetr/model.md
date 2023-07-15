@@ -1,4 +1,4 @@
 ## RTDETR
 ---
-### ::: ultralytics.models.vit.rtdetr.model.RTDETR
+### ::: ultralytics.models.rtdetr.model.RTDETR
 <br><br>

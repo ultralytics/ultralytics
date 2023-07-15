@@ -204,7 +204,7 @@ The Intel® Core® series is a range of high-performance processors by Intel. Th
 Benchmarks below run on 12th Gen Intel® Core® i9 CPU at FP32 precision.
 
 <div align="center">
-<img width="800" src="![img.png](img.png)https://user-images.githubusercontent.com/26833433/253741360-890e5906-57a0-4b2d-a149-a5157f10aa08.jpg">
+<img width="800" src="https://user-images.githubusercontent.com/26833433/253741547-bc63da36-6c2c-44ea-823d-4486cadeed0b.jpg">
 </div>
 
 | Model   | Format      | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |

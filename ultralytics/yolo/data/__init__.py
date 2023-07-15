@@ -8,7 +8,7 @@ sys.modules['ultralytics.yolo.data'] = importlib.import_module('ultralytics.data
 # This is for updating old cls models, or the way in following warning won't work.
 sys.modules['ultralytics.yolo.data.augment'] = importlib.import_module('ultralytics.data.augment')
 
-DATA_WARNING = """WARNING ⚠️ 'ultralytics.yolo.data' is deprecated and will be removed. Please use 'ultralytics.data' instead.
+DATA_WARNING = """WARNING ⚠️ 'ultralytics.yolo.data' is deprecated since '8.0.136' and will be removed. Please use 'ultralytics.data' instead.
 Or this warning might be related to the classify model you're using, please update your classify model by:
     import torch
     ckpt = torch.load("original-cls.pt")  # it applies to both official and custom classify models.

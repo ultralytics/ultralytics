@@ -451,7 +451,7 @@ operations are cached, meaning they're only calculated once per object, and thos
     keypoints.data  # raw probs tensor, (num_class, ) 
     ```
 
-Class reference documentation for `Results` module and its components can be found [here](../reference/yolo/engine/results.md)
+Class reference documentation for `Results` module and its components can be found [here](../reference/engine/results.md)
 
 ## Plotting results
 

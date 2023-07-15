@@ -15,7 +15,7 @@ custom model and dataloader by just overriding these functions:
 
 * `get_model(cfg, weights)` - The function that builds the model to be trained
 * `get_dataloder()` - The function that builds the dataloader
-  More details and source code can be found in [`BaseTrainer` Reference](../reference/yolo/engine/trainer.md)
+  More details and source code can be found in [`BaseTrainer` Reference](../reference/engine/trainer.md)
 
 ## DetectionTrainer
 

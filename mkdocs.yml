@@ -258,8 +258,7 @@ nav:
           - base: reference/data/base.md
           - build: reference/data/build.md
           - converter: reference/data/converter.md
-          - dataloaders:
-              - stream_loaders: reference/data/dataloaders/stream_loaders.md
+          - loaders: reference/data/dataloaders/loaders.md
           - dataset: reference/data/dataset.md
           - utils: reference/data/utils.md
       - engine:

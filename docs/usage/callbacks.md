@@ -40,7 +40,7 @@ for (result, frame) in model.track/predict():
 
 ## All callbacks
 
-Here are all supported callbacks. See callbacks [source code](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/utils/callbacks/base.py) for additional details.
+Here are all supported callbacks. See callbacks [source code](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/base.py) for additional details.
 
 ### Trainer Callbacks
 

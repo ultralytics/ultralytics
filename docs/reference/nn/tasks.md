@@ -1,8 +1,3 @@
----
-description: Learn how to work with Ultralytics YOLO Detection, Segmentation & Classification Models, load weights and parse models in PyTorch.
-keywords: neural network, deep learning, computer vision, object detection, image segmentation, image classification, model ensemble, PyTorch
----
-
 ## BaseModel
 ---
 ### ::: ultralytics.nn.tasks.BaseModel
@@ -36,6 +31,11 @@ keywords: neural network, deep learning, computer vision, object detection, imag
 ## Ensemble
 ---
 ### ::: ultralytics.nn.tasks.Ensemble
+<br><br>
+
+## temporary_modules
+---
+### ::: ultralytics.nn.tasks.temporary_modules
 <br><br>
 
 ## torch_safe_load

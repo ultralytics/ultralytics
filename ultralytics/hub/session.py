@@ -7,8 +7,8 @@ from time import sleep
 import requests
 
 from ultralytics.hub.utils import HUB_API_ROOT, PREFIX, smart_request
-from ultralytics.yolo.utils import LOGGER, __version__, checks, emojis, is_colab, threaded
-from ultralytics.yolo.utils.errors import HUBModelError
+from ultralytics.utils import LOGGER, __version__, checks, emojis, is_colab, threaded
+from ultralytics.utils.errors import HUBModelError
 
 AGENT_NAME = f'python-{__version__}-colab' if is_colab() else f'python-{__version__}-local'
 

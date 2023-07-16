@@ -1,8 +1,3 @@
----
-description: 'Learn about Ultralytics NN modules: get_clones, linear_init_, and multi_scale_deformable_attn_pytorch. Code examples and usage tips.'
-keywords: Ultralytics, NN Utils, Docs, PyTorch, bias initialization, linear initialization, multi-scale deformable attention
----
-
 ## _get_clones
 ---
 ### ::: ultralytics.nn.modules.utils._get_clones

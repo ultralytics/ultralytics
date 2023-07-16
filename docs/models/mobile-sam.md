@@ -6,9 +6,9 @@ keywords: MobileSAM, Faster Segment Anything, Segment Anything, Segment Anything
 
 ![MobileSAM Logo](https://github.com/ChaoningZhang/MobileSAM/blob/master/assets/logo2.png?raw=true)
 
-# Faster Segment Anything (MobileSAM)
+# Mobile Segment Anything (MobileSAM)
 
-The MobileSAM paper is now available on [ResearchGate](https://www.researchgate.net/publication/371851844_Faster_Segment_Anything_Towards_Lightweight_SAM_for_Mobile_Applications) and [arXiv](https://arxiv.org/pdf/2306.14289.pdf). The most recent version will initially appear on ResearchGate due to the delayed content update on arXiv.
+The MobileSAM paper is now available on [arXiv](https://arxiv.org/pdf/2306.14289.pdf).
 
 A demonstration of MobileSAM running on a CPU can be accessed at this [demo link](https://huggingface.co/spaces/dhkim2810/MobileSAM). The performance on a Mac i5 CPU takes approximately 3 seconds. On the Hugging Face demo, the interface and lower-performance CPUs contribute to a slower response, but it continues to function effectively.
 

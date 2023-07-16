@@ -2,10 +2,10 @@
 
 from copy import copy
 
+from ultralytics.models import yolo
 from ultralytics.nn.tasks import PoseModel
 from ultralytics.utils import DEFAULT_CFG
 from ultralytics.utils.plotting import plot_images, plot_results
-from ultralytics.models import yolo
 
 
 # BaseTrainer python usage

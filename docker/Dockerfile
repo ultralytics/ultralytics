@@ -3,7 +3,7 @@
 # Image is CUDA-optimized for YOLOv8 single/multi-GPU training and inference
 
 # Start FROM PyTorch image https://hub.docker.com/r/pytorch/pytorch or nvcr.io/nvidia/pytorch:23.03-py3
-FROM pytorch/pytorch:2.0.0-cuda11.7-cudnn8-runtime
+FROM pytorch/pytorch:2.0.1-cuda11.7-cudnn8-runtime
 RUN pip install --no-cache nvidia-tensorrt --index-url https://pypi.ngc.nvidia.com
 
 # Downloads to user config dir
@@ -31,6 +31,8 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt /u
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel
 RUN pip install --no-cache -e . albumentations comet thop pycocotools onnx onnx-simplifier onnxruntime-gpu
+# Avoid DDP error "MKL_THREADING_LAYER=INTEL is incompatible with libgomp.so.1 library"
+RUN pip install -U numpy
 
 # Set environment variables
 ENV OMP_NUM_THREADS=1

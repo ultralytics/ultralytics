@@ -9,7 +9,7 @@ from ultralytics.nn.tasks import DetectionModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.plotting import plot_images, plot_labels, plot_results
 from ultralytics.utils.torch_utils import de_parallel, torch_distributed_zero_first
-from ultralytics.yolo import v8
+from ultralytics.models import yolo
 
 
 # BaseTrainer python usage
@@ -64,7 +64,7 @@ class DetectionTrainer(BaseTrainer):
     def get_validator(self):
         """Returns a DetectionValidator for YOLO model validation."""
         self.loss_names = 'box_loss', 'cls_loss', 'dfl_loss'
-        return v8.detect.DetectionValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
+        return yolo.detect.DetectionValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
 
     def label_loss_items(self, loss_items=None, prefix='train'):
         """

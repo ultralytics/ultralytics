@@ -9,7 +9,7 @@ from ultralytics.nn.tasks import ClassificationModel, attempt_load_one_weight
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, colorstr
 from ultralytics.utils.plotting import plot_images, plot_results
 from ultralytics.utils.torch_utils import is_parallel, strip_optimizer, torch_distributed_zero_first
-from ultralytics.yolo import v8
+from ultralytics.models import yolo
 
 
 class ClassificationTrainer(BaseTrainer):
@@ -98,7 +98,7 @@ class ClassificationTrainer(BaseTrainer):
     def get_validator(self):
         """Returns an instance of ClassificationValidator for validation."""
         self.loss_names = ['loss']
-        return v8.classify.ClassificationValidator(self.test_loader, self.save_dir)
+        return yolo.classify.ClassificationValidator(self.test_loader, self.save_dir)
 
     def label_loss_items(self, loss_items=None, prefix='train'):
         """

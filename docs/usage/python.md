@@ -256,7 +256,7 @@ from `BaseTrainer`.
 !!! tip "Detection Trainer Example"
 
         ```python
-        from ultralytics.yolo import v8 import DetectionTrainer, DetectionValidator, DetectionPredictor
+        from ultralytics.models.yolo import DetectionTrainer, DetectionValidator, DetectionPredictor
 
         # trainer
         trainer = DetectionTrainer(overrides={})

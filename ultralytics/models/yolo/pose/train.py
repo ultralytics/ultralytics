@@ -5,11 +5,11 @@ from copy import copy
 from ultralytics.nn.tasks import PoseModel
 from ultralytics.utils import DEFAULT_CFG
 from ultralytics.utils.plotting import plot_images, plot_results
-from ultralytics.yolo import v8
+from ultralytics.models import yolo
 
 
 # BaseTrainer python usage
-class PoseTrainer(v8.detect.DetectionTrainer):
+class PoseTrainer(yolo.detect.DetectionTrainer):
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """Initialize a PoseTrainer object with specified configurations and overrides."""
@@ -34,7 +34,7 @@ class PoseTrainer(v8.detect.DetectionTrainer):
     def get_validator(self):
         """Returns an instance of the PoseValidator class for validation."""
         self.loss_names = 'box_loss', 'pose_loss', 'kobj_loss', 'cls_loss', 'dfl_loss'
-        return v8.pose.PoseValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
+        return yolo.pose.PoseValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
 
     def plot_training_samples(self, batch, ni):
         """Plot a batch of training samples with annotated class labels, bounding boxes, and keypoints."""

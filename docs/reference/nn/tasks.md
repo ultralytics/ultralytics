@@ -33,6 +33,11 @@
 ### ::: ultralytics.nn.tasks.Ensemble
 <br><br>
 
+## temporary_modules
+---
+### ::: ultralytics.nn.tasks.temporary_modules
+<br><br>
+
 ## torch_safe_load
 ---
 ### ::: ultralytics.nn.tasks.torch_safe_load

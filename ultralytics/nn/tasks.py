@@ -509,11 +509,6 @@ def temporary_modules(modules=None):
 
     Args:
         modules (dict, optional): A dictionary mapping old module paths to new module paths.
-            The keys are the old module paths as strings, and the values are the new module paths as strings.
-            Default is an empty dictionary, which means no modules are temporarily added or modified.
-
-    Yields:
-        None
 
     Example:
         with temporary_modules({'old.module.path': 'new.module.path'}):

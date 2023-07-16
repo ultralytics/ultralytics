@@ -497,6 +497,7 @@ class Ensemble(nn.ModuleList):
 
 # Functions ------------------------------------------------------------------------------------------------------------
 
+
 @contextlib.contextmanager
 def temporary_modules(modules=None):
     """
@@ -526,8 +527,8 @@ def temporary_modules(modules=None):
     if not modules:
         modules = {}
 
-    import sys
     import importlib
+    import sys
     try:
         # Set modules in sys.modules under their old name
         for old, new in modules.items():
@@ -558,9 +559,10 @@ def torch_safe_load(weight):
     check_suffix(file=weight, suffix='.pt')
     file = attempt_download_asset(weight)  # search online if missing locally
     try:
-        with temporary_modules({'ultralytics.yolo.utils': 'ultralytics.utils',
-                                'ultralytics.yolo.v8': 'ultralytics.models.yolo',
-                                'ultralytics.yolo.data': 'ultralytics.data'}):
+        with temporary_modules({
+                'ultralytics.yolo.utils': 'ultralytics.utils',
+                'ultralytics.yolo.v8': 'ultralytics.models.yolo',
+                'ultralytics.yolo.data': 'ultralytics.data'}):
             return torch.load(file, map_location='cpu'), file  # load
 
     except ModuleNotFoundError as e:  # e.name is missing module name

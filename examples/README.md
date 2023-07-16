@@ -13,6 +13,7 @@ This repository features a collection of real-world applications and walkthrough
 | [YOLOv8 on NVIDIA Jetson(TensorRT and DeepStream)](https://wiki.seeedstudio.com/YOLOv8-DeepStream-TRT-Jetson/) | Python             | [Lakshantha](https://github.com/lakshanthad)        |
 | [YOLOv8 ONNXRuntime Python](./YOLOv8-ONNXRuntime)                                                              | Python/ONNXRuntime | [Semih Demirel](https://github.com/semihhdemirel)   |
 | [YOLOv8-ONNXRuntime-CPP](./YOLOv8-ONNXRuntime-CPP)                                                             | C++/ONNXRuntime    | [DennisJcy](https://github.com/DennisJcy)           |
+| [RTDETR ONNXRuntime C#](https://github.com/Kayzwer/yolo-cs/blob/master/RTDETR.cs)                              | C#/ONNX            | [Kayzwer](https://github.com/Kayzwer)               |
 
 ### How to Contribute
 

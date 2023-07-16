@@ -170,7 +170,7 @@ class Results(SimpleClass):
             font='Arial.ttf',
             pil=False,
             img=None,
-            img_gpu=None,
+            im_gpu=None,
             kpt_line=True,
             labels=True,
             boxes=True,
@@ -188,7 +188,7 @@ class Results(SimpleClass):
             font (str): The font to use for the text.
             pil (bool): Whether to return the image as a PIL Image.
             img (numpy.ndarray): Plot to another image. if not, plot to original image.
-            img_gpu (torch.Tensor): Normalized image in gpu with shape (1, 3, 640, 640), for faster mask plotting.
+            im_gpu (torch.Tensor): Normalized image in gpu with shape (1, 3, 640, 640), for faster mask plotting.
             kpt_line (bool): Whether to draw lines connecting keypoints.
             labels (bool): Whether to plot the label of bounding boxes.
             boxes (bool): Whether to plot the bounding boxes.
@@ -213,24 +213,27 @@ class Results(SimpleClass):
             assert type(line_width) == int, '`line_width` should be of int type, i.e, line_width=3'
 
         names = self.names
-        annotator = Annotator(deepcopy(self.orig_img if img is None else img),
-                              line_width,
-                              font_size,
-                              font,
-                              pil,
-                              example=names)
         pred_boxes, show_boxes = self.boxes, boxes
         pred_masks, show_masks = self.masks, masks
         pred_probs, show_probs = self.probs, probs
-        keypoints = self.keypoints
+        annotator = Annotator(
+            deepcopy(self.orig_img if img is None else img),
+            line_width,
+            font_size,
+            font,
+            pil or (pred_probs is not None and show_probs),  # Classify tasks default to pil=True
+            example=names)
+
+        # Plot Segment results
         if pred_masks and show_masks:
-            if img_gpu is None:
+            if im_gpu is None:
                 img = LetterBox(pred_masks.shape[1:])(image=annotator.result())
-                img_gpu = torch.as_tensor(img, dtype=torch.float16, device=pred_masks.data.device).permute(
+                im_gpu = torch.as_tensor(img, dtype=torch.float16, device=pred_masks.data.device).permute(
                     2, 0, 1).flip(0).contiguous() / 255
             idx = pred_boxes.cls if pred_boxes else range(len(pred_masks))
-            annotator.masks(pred_masks.data, colors=[colors(x, True) for x in idx], im_gpu=img_gpu)
+            annotator.masks(pred_masks.data, colors=[colors(x, True) for x in idx], im_gpu=im_gpu)
 
+        # Plot Detect results
         if pred_boxes and show_boxes:
             for d in reversed(pred_boxes):
                 c, conf, id = int(d.cls), float(d.conf) if conf else None, None if d.id is None else int(d.id.item())
@@ -238,12 +241,15 @@ class Results(SimpleClass):
                 label = (f'{name} {conf:.2f}' if conf else name) if labels else None
                 annotator.box_label(d.xyxy.squeeze(), label, color=colors(c, True))
 
+        # Plot Classify results
         if pred_probs is not None and show_probs:
-            text = f"{', '.join(f'{names[j] if names else j} {pred_probs.data[j]:.2f}' for j in pred_probs.top5)}, "
-            annotator.text((32, 32), text, txt_color=(255, 255, 255))  # TODO: allow setting colors
+            text = ',\n'.join(f'{names[j] if names else j} {pred_probs.data[j]:.2f}' for j in pred_probs.top5)
+            x = round(self.orig_shape[0] * 0.03)
+            annotator.text([x, x], text, txt_color=(255, 255, 255))  # TODO: allow setting colors
 
-        if keypoints is not None:
-            for k in reversed(keypoints.data):
+        # Plot Pose results
+        if self.keypoints is not None:
+            for k in reversed(self.keypoints.data):
                 annotator.kpts(k, self.orig_shape, kpt_line=kpt_line)
 
         return annotator.result()
@@ -290,8 +296,8 @@ class Results(SimpleClass):
                     seg = masks[j].xyn[0].copy().reshape(-1)  # reversed mask.xyn, (n,2) to (n*2)
                     line = (c, *seg)
                 if kpts is not None:
-                    kpt = kpts[j].xyn.reshape(-1).tolist()
-                    line += (*kpt, )
+                    kpt = torch.cat((kpts[j].xyn, kpts[j].conf[..., None]), 2) if kpts[j].has_visible else kpts[j].xyn
+                    line += (*kpt.reshape(-1).tolist(), )
                 line += (conf, ) * save_conf + (() if id is None else (id, ))
                 texts.append(('%g ' * len(line)).rstrip() % line)
 

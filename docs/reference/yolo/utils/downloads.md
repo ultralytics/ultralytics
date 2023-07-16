@@ -23,6 +23,11 @@ keywords: Ultralytics YOLO, downloads, trained models, datasets, weights, deep l
 ### ::: ultralytics.yolo.utils.downloads.safe_download
 <br><br>
 
+## get_github_assets
+---
+### ::: ultralytics.yolo.utils.downloads.get_github_assets
+<br><br>
+
 ## attempt_download_asset
 ---
 ### ::: ultralytics.yolo.utils.downloads.attempt_download_asset

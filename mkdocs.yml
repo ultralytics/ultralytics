@@ -168,6 +168,7 @@ nav:
       - YOLOv7: models/yolov7.md
       - YOLOv8: models/yolov8.md
       - SAM (Segment Anything Model): models/sam.md
+      - MobileSAM (Mobile Segment Anything Model): models/mobile-sam.md
       - FastSAM (Fast Segment Anything Model): models/fast-sam.md
       - YOLO-NAS (Neural Architecture Search): models/yolo-nas.md
       - RT-DETR (Realtime Detection Transformer): models/rtdetr.md
@@ -256,7 +257,6 @@ nav:
           - utils: reference/hub/utils.md
       - nn:
           - autobackend: reference/nn/autobackend.md
-          - autoshape: reference/nn/autoshape.md
           - modules:
               - block: reference/nn/modules/block.md
               - conv: reference/nn/modules/conv.md
@@ -282,15 +282,13 @@ nav:
               - val: reference/vit/rtdetr/val.md
           - sam:
               - amg: reference/vit/sam/amg.md
-              - autosize: reference/vit/sam/autosize.md
               - build: reference/vit/sam/build.md
               - model: reference/vit/sam/model.md
               - modules:
                   - decoders: reference/vit/sam/modules/decoders.md
                   - encoders: reference/vit/sam/modules/encoders.md
-                  - mask_generator: reference/vit/sam/modules/mask_generator.md
-                  - prompt_predictor: reference/vit/sam/modules/prompt_predictor.md
                   - sam: reference/vit/sam/modules/sam.md
+                  - tiny_encoder: reference/vit/sam/modules/tiny_encoder.md
                   - transformer: reference/vit/sam/modules/transformer.md
               - predict: reference/vit/sam/predict.md
           - utils:
@@ -307,8 +305,6 @@ nav:
               - converter: reference/yolo/data/converter.md
               - dataloaders:
                   - stream_loaders: reference/yolo/data/dataloaders/stream_loaders.md
-                  - v5augmentations: reference/yolo/data/dataloaders/v5augmentations.md
-                  - v5loader: reference/yolo/data/dataloaders/v5loader.md
               - dataset: reference/yolo/data/dataset.md
               - dataset_wrappers: reference/yolo/data/dataset_wrappers.md
               - utils: reference/yolo/data/utils.md
@@ -319,6 +315,12 @@ nav:
               - results: reference/yolo/engine/results.md
               - trainer: reference/yolo/engine/trainer.md
               - validator: reference/yolo/engine/validator.md
+          - fastsam:
+              - model: reference/yolo/fastsam/model.md
+              - predict: reference/yolo/fastsam/predict.md
+              - prompt: reference/yolo/fastsam/prompt.md
+              - utils: reference/yolo/fastsam/utils.md
+              - val: reference/yolo/fastsam/val.md
           - nas:
               - model: reference/yolo/nas/model.md
               - predict: reference/yolo/nas/predict.md
@@ -351,6 +353,7 @@ nav:
               - plotting: reference/yolo/utils/plotting.md
               - tal: reference/yolo/utils/tal.md
               - torch_utils: reference/yolo/utils/torch_utils.md
+              - tuner: reference/yolo/utils/tuner.md
           - v8:
               - classify:
                   - predict: reference/yolo/v8/classify/predict.md
@@ -377,6 +380,7 @@ nav:
       - Contributor License Agreement (CLA): help/CLA.md
       - Minimum Reproducible Example (MRE) Guide: help/minimum_reproducible_example.md
       - Code of Conduct: help/code_of_conduct.md
+      - Environmental, Health and Safety (EHS) Policy: help/environmental-health-safety.md
       - Security Policy: SECURITY.md
 
 # Plugins including 301 redirects navigation ---------------------------------------------------------------------------

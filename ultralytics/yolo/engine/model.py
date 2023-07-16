@@ -389,15 +389,7 @@ class YOLO:
 
     def tune(self, *args, **kwargs):
         """
-        Runs hyperparameter tuning using Ray Tune.
-
-        Args:
-            data (str): The dataset to run the tuner on.
-            space (dict, optional): The hyperparameter search space. Defaults to None.
-            grace_period (int, optional): The grace period in epochs of the ASHA scheduler. Defaults to 10.
-            gpu_per_trial (int, optional): The number of GPUs to allocate per trial. Defaults to None.
-            max_samples (int, optional): The maximum number of trials to run. Defaults to 10.
-            train_args (dict, optional): Additional arguments to pass to the `train()` method. Defaults to {}.
+        Runs hyperparameter tuning using Ray Tune. See ultralytics.yolo.utils.tuner.run_ray_tune for Args.
 
         Returns:
             (dict): A dictionary containing the results of the hyperparameter search.

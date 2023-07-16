@@ -43,6 +43,11 @@ keywords: YOLO, Ultralytics, Utils, Checks, image sizing, version updates, font 
 ### ::: ultralytics.yolo.utils.checks.check_requirements
 <br><br>
 
+## check_torchvision
+---
+### ::: ultralytics.yolo.utils.checks.check_torchvision
+<br><br>
+
 ## check_suffix
 ---
 ### ::: ultralytics.yolo.utils.checks.check_suffix

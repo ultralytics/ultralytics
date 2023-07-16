@@ -123,6 +123,11 @@ keywords: Ultralytics, YOLO, Utils Ops, Functions, coco80_to_coco91_class, scale
 ### ::: ultralytics.yolo.utils.ops.process_mask_native
 <br><br>
 
+## scale_masks
+---
+### ::: ultralytics.yolo.utils.ops.scale_masks
+<br><br>
+
 ## scale_coords
 ---
 ### ::: ultralytics.yolo.utils.ops.scale_coords

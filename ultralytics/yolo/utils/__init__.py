@@ -38,6 +38,7 @@ VERBOSE = str(os.getenv('YOLO_VERBOSE', True)).lower() == 'true'  # global verbo
 TQDM_BAR_FORMAT = '{l_bar}{bar:10}{r_bar}'  # tqdm bar format
 LOGGING_NAME = 'ultralytics'
 MACOS, LINUX, WINDOWS = (platform.system() == x for x in ['Darwin', 'Linux', 'Windows'])  # environment booleans
+ARM64 = platform.machine() in ('arm64', 'aarch64')  # ARM64 booleans
 HELP_MSG = \
     """
     Usage examples for running YOLOv8:
@@ -249,6 +250,36 @@ set_logging(LOGGING_NAME, verbose=VERBOSE)  # run before defining LOGGER
 LOGGER = logging.getLogger(LOGGING_NAME)  # define globally (used in train.py, val.py, detect.py, etc.)
 if WINDOWS:  # emoji-safe logging
     LOGGER.addFilter(EmojiFilter())
+
+
+class ThreadingLocked:
+    """
+    A decorator class for ensuring thread-safe execution of a function or method.
+    This class can be used as a decorator to make sure that if the decorated function
+    is called from multiple threads, only one thread at a time will be able to execute the function.
+
+    Attributes:
+        lock (threading.Lock): A lock object used to manage access to the decorated function.
+
+    Usage:
+        @ThreadingLocked()
+        def my_function():
+            # Your code here
+            pass
+    """
+
+    def __init__(self):
+        self.lock = threading.Lock()
+
+    def __call__(self, f):
+        from functools import wraps
+
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            with self.lock:
+                return f(*args, **kwargs)
+
+        return decorated
 
 
 def yaml_save(file='data.yaml', data=None):

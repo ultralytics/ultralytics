@@ -91,7 +91,7 @@ def get_latest_run(search_dir='.'):
 
 
 def make_dirs(dir='new_dir/'):
-    # Create folders
+    """Create directories."""
     dir = Path(dir)
     if dir.exists():
         shutil.rmtree(dir)  # delete dir

@@ -27,8 +27,8 @@ download: |
   import pandas as pd
   from tqdm import tqdm
 
-  from ultralytics.yolo.utils.downloads import download
-  from ultralytics.yolo.utils.ops import xyxy2xywh
+  from ultralytics.utils.downloads import download
+  from ultralytics.utils.ops import xyxy2xywh
 
   # Download
   dir = Path(yaml['path'])  # dataset root dir

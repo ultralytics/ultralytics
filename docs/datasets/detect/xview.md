@@ -32,12 +32,12 @@ The xView dataset is widely used for training and evaluating deep learning model
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the xView dataset, the `xView.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/xView.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/xView.yaml).
+A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the xView dataset, the `xView.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/xView.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/xView.yaml).
 
-!!! example "ultralytics/datasets/xView.yaml"
+!!! example "ultralytics/cfg/datasets/xView.yaml"
 
     ```yaml
-    --8<-- "ultralytics/datasets/xView.yaml"
+    --8<-- "ultralytics/cfg/datasets/xView.yaml"
     ```
 
 ## Usage

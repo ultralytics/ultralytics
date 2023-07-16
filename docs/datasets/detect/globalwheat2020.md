@@ -28,12 +28,12 @@ The Global Wheat Head Dataset is widely used for training and evaluating deep le
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. For the case of the Global Wheat Head Dataset, the `GlobalWheat2020.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/GlobalWheat2020.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/GlobalWheat2020.yaml).
+A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. For the case of the Global Wheat Head Dataset, the `GlobalWheat2020.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/GlobalWheat2020.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/GlobalWheat2020.yaml).
 
-!!! example "ultralytics/datasets/GlobalWheat2020.yaml"
+!!! example "ultralytics/cfg/datasets/GlobalWheat2020.yaml"
 
     ```yaml
-    --8<-- "ultralytics/datasets/GlobalWheat2020.yaml"
+    --8<-- "ultralytics/cfg/datasets/GlobalWheat2020.yaml"
     ```
 
 ## Usage

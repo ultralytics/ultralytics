@@ -240,7 +240,7 @@ their specific use case based on their requirements for speed and accuracy.
     
         Benchmark an official YOLOv8n model across all export formats.
         ```python
-        from ultralytics.yolo.utils.benchmarks import benchmark
+        from ultralytics.utils.benchmarks import benchmark
         
         # Benchmark
         benchmark(model='yolov8n.pt', imgsz=640, half=False, device=0)
@@ -256,7 +256,7 @@ from `BaseTrainer`.
 !!! tip "Detection Trainer Example"
 
         ```python
-        from ultralytics.yolo import v8 import DetectionTrainer, DetectionValidator, DetectionPredictor
+        from ultralytics.models.yolo import DetectionTrainer, DetectionValidator, DetectionPredictor
 
         # trainer
         trainer = DetectionTrainer(overrides={})

@@ -104,7 +104,7 @@ def on_fit_epoch_end(trainer):
                 live.log_metric(metric, value, plot=False)
 
         _log_plots(trainer.plots, 'train')
-        _log_plots(trainer.validator.plots, 'val')
+        _log_plots(trainer.validator.plots, 'eval')
 
         live.next_step()
         _training_epoch = False

@@ -93,7 +93,7 @@ If you have your own dataset and would like to use it for training detection mod
 You can easily convert labels from the popular COCO dataset format to the YOLO format using the following code snippet:
 
 ```python
-from ultralytics.yolo.data.converter import convert_coco
+from ultralytics.data.converter import convert_coco
 
 convert_coco(labels_dir='../coco/annotations/')
 ```

@@ -1,8 +1,3 @@
----
-description: Access Ultralytics HUB, manage API keys, train models, and export in various formats with ease using the HUB API.
-keywords: Ultralytics, YOLO, Docs HUB, API, login, logout, reset model, export model, check dataset, HUBDatasetStats, YOLO training, YOLO model
----
-
 ## login
 ---
 ### ::: ultralytics.hub.login

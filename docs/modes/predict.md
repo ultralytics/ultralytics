@@ -316,7 +316,7 @@ All supported arguments:
 
 ## Image and Video Formats
 
-YOLOv8 supports various image and video formats, as specified in [yolo/data/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/data/utils.py). See the tables below for the valid suffixes and example predict commands.
+YOLOv8 supports various image and video formats, as specified in [data/utils.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/utils.py). See the tables below for the valid suffixes and example predict commands.
 
 ### Image Suffixes
 
@@ -451,7 +451,7 @@ operations are cached, meaning they're only calculated once per object, and thos
     keypoints.data  # raw probs tensor, (num_class, ) 
     ```
 
-Class reference documentation for `Results` module and its components can be found [here](../reference/yolo/engine/results.md)
+Class reference documentation for `Results` module and its components can be found [here](../reference/engine/results.md)
 
 ## Plotting results
 

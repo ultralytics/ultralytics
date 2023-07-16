@@ -79,7 +79,7 @@ to [predict page](https://docs.ultralytics.com/modes/predict/).
 ### Tracker
 
 We also support using a modified tracker config file, just copy a config file i.e `custom_tracker.yaml`
-from [ultralytics/tracker/cfg](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/tracker/cfg) and modify
+from [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers) and modify
 any configurations(expect the `tracker_type`) you need to.
 !!! example ""
 
@@ -97,5 +97,5 @@ any configurations(expect the `tracker_type`) you need to.
         yolo track model=yolov8n.pt source="https://youtu.be/Zgi9g1ksQHc" tracker='custom_tracker.yaml'
         ```
 
-Please refer to [ultralytics/tracker/cfg](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/tracker/cfg)
+Please refer to [ultralytics/cfg/trackers](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/trackers)
 page

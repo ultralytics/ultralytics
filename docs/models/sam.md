@@ -88,7 +88,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
     === "Prompt inference"
     
         ```python
-        from ultralytics.vit.sam import Predictor as SAMPredictor
+        from ultralytics.models.sam import Predictor as SAMPredictor
 
         # Create SAMPredictor
         overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model="mobile_sam.pt")
@@ -108,7 +108,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
     === "Segment everything"
     
         ```python
-        from ultralytics.vit.sam import Predictor as SAMPredictor
+        from ultralytics.models.sam import Predictor as SAMPredictor
 
         # Create SAMPredictor
         overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model="mobile_sam.pt")
@@ -119,7 +119,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
 
         ```
 
-- More additional args for `Segment everything` see [`Predictor/generate` Reference](../reference/vit/sam/predict.md).
+- More additional args for `Segment everything` see [`Predictor/generate` Reference](../reference/models/sam/predict.md).
 
 ## Available Models and Supported Tasks
 
@@ -184,7 +184,7 @@ Auto-annotation is a key feature of SAM, allowing users to generate a [segmentat
 To auto-annotate your dataset with the Ultralytics framework, use the `auto_annotate` function as shown below:
 
 ```python
-from ultralytics.yolo.data.annotator import auto_annotate
+from ultralytics.data.annotator import auto_annotate
 
 auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model='sam_b.pt')
 ```

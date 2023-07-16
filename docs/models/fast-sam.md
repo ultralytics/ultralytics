@@ -42,7 +42,7 @@ To perform object detection on an image, use the `predict` method as shown below
 
 ```python
 from ultralytics import FastSAM
-from ultralytics.yolo.fastsam import FastSAMPrompt
+from ultralytics.models.fastsam import FastSAMPrompt
 
 # Define image path and inference device
 IMAGE_PATH = 'ultralytics/assets/bus.jpg'

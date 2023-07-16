@@ -38,7 +38,7 @@ Where:
 - `MODE` (required) is one of `[train, val, predict, export, track, benchmark]`
 - `ARGS` (optional) are any number of custom `arg=value` pairs like `imgsz=320` that override defaults.
   For a full list of available `ARGS` see the [Configuration](cfg.md) page and `defaults.yaml`
-  GitHub [source](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/cfg/default.yaml).
+  GitHub [source](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/default.yaml).
 
 #### Tasks
 

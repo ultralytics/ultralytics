@@ -30,12 +30,12 @@ The SKU-110k dataset is widely used for training and evaluating deep learning mo
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. For the case of the SKU-110K dataset, the `SKU-110K.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/SKU-110K.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/SKU-110K.yaml).
+A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. For the case of the SKU-110K dataset, the `SKU-110K.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/SKU-110K.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/SKU-110K.yaml).
 
-!!! example "ultralytics/datasets/SKU-110K.yaml"
+!!! example "ultralytics/cfg/datasets/SKU-110K.yaml"
 
     ```yaml
-    --8<-- "ultralytics/datasets/SKU-110K.yaml"
+    --8<-- "ultralytics/cfg/datasets/SKU-110K.yaml"
     ```
 
 ## Usage

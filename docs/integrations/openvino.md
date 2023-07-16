@@ -201,7 +201,7 @@ Benchmarks below run on 4th Gen Intel® Xeon® Scalable CPU at FP32 precision.
 
 The Intel® Core® series is a range of high-performance processors by Intel. The lineup includes Core i3 (entry-level), Core i5 (mid-range), Core i7 (high-end), and Core i9 (extreme performance). Each series caters to different computing needs and budgets, from everyday tasks to demanding professional workloads. With each new generation, improvements are made to performance, energy efficiency, and features.
 
-Benchmarks below run on 12th Gen Intel® Core® i9 CPU at FP32 precision.
+Benchmarks below run on 9th Gen Intel® Core® i9-9900K CPU @ 3.60GHz at FP32 precision.
 
 <div align="center">
 <img width="800" src="https://user-images.githubusercontent.com/26833433/253741547-bc63da36-6c2c-44ea-823d-4486cadeed0b.jpg">

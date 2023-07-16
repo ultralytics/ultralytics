@@ -34,6 +34,8 @@ RUN pip install --no-cache -e . albumentations comet thop pycocotools onnx onnx-
 
 # Set environment variables
 ENV OMP_NUM_THREADS=1
+# Avoid DDP error "MKL_THREADING_LAYER=INTEL is incompatible with libgomp.so.1 library"
+ENV MKL_THREADING_LAYER=GNU
 
 
 # Usage Examples -------------------------------------------------------------------------------------------------------

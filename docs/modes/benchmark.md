@@ -27,7 +27,7 @@ full list of export arguments.
     === "Python"
     
         ```python
-        from ultralytics.yolo.utils.benchmarks import benchmark
+        from ultralytics.utils.benchmarks import benchmark
         
         # Benchmark on GPU
         benchmark(model='yolov8n.pt', imgsz=640, half=False, device=0)

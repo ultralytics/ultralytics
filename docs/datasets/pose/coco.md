@@ -30,12 +30,12 @@ The COCO-Pose dataset is specifically used for training and evaluating deep lear
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO-Pose dataset, the `coco-pose.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco-pose.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco-pose.yaml).
+A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO-Pose dataset, the `coco-pose.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco-pose.yaml).
 
-!!! example "ultralytics/datasets/coco-pose.yaml"
+!!! example "ultralytics/cfg/datasets/coco-pose.yaml"
 
     ```yaml
-    --8<-- "ultralytics/datasets/coco-pose.yaml"
+    --8<-- "ultralytics/cfg/datasets/coco-pose.yaml"
     ```
 
 ## Usage

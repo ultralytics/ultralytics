@@ -29,12 +29,12 @@ The Argoverse dataset is widely used for training and evaluating deep learning m
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. For the case of the Argoverse dataset, the `Argoverse.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/Argoverse.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/Argoverse.yaml).
+A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. For the case of the Argoverse dataset, the `Argoverse.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/Argoverse.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/Argoverse.yaml).
 
-!!! example "ultralytics/datasets/Argoverse.yaml"
+!!! example "ultralytics/cfg/datasets/Argoverse.yaml"
 
     ```yaml
-    --8<-- "ultralytics/datasets/Argoverse.yaml"
+    --8<-- "ultralytics/cfg/datasets/Argoverse.yaml"
     ```
 
 ## Usage

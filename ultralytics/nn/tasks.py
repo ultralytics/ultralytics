@@ -497,6 +497,49 @@ class Ensemble(nn.ModuleList):
 
 # Functions ------------------------------------------------------------------------------------------------------------
 
+@contextlib.contextmanager
+def temporary_modules(modules=None):
+    """
+    Context manager for temporarily adding or modifying modules in Python's module cache (`sys.modules`).
+
+    This function can be used to change the module paths during runtime. It's useful when refactoring code,
+    where you've moved a module from one location to another, but you still want to support the old import
+    paths for backwards compatibility.
+
+    Args:
+        modules (dict, optional): A dictionary mapping old module paths to new module paths.
+            The keys are the old module paths as strings, and the values are the new module paths as strings.
+            Default is an empty dictionary, which means no modules are temporarily added or modified.
+
+    Yields:
+        None
+
+    Example:
+        with temporary_modules({'old.module.path': 'new.module.path'}):
+            import old.module.path  # this will now import new.module.path
+
+    Note:
+        The changes are only in effect inside the context manager and are undone once the context manager exits.
+        Be aware that directly manipulating `sys.modules` can lead to unpredictable results, especially in larger
+        applications or libraries. Use this function with caution.
+    """
+    if not modules:
+        modules = {}
+
+    import sys
+    import importlib
+    try:
+        # Set modules in sys.modules under their old name
+        for old, new in modules.items():
+            sys.modules[old] = importlib.import_module(new)
+
+        yield
+    finally:
+        # Remove the temporary module paths
+        for old in modules:
+            if old in sys.modules:
+                del sys.modules[old]
+
 
 def torch_safe_load(weight):
     """
@@ -515,7 +558,11 @@ def torch_safe_load(weight):
     check_suffix(file=weight, suffix='.pt')
     file = attempt_download_asset(weight)  # search online if missing locally
     try:
-        return torch.load(file, map_location='cpu'), file  # load
+        with temporary_modules({'ultralytics.yolo.utils': 'ultralytics.utils',
+                                'ultralytics.yolo.v8': 'ultralytics.models.yolo',
+                                'ultralytics.yolo.data': 'ultralytics.data'}):
+            return torch.load(file, map_location='cpu'), file  # load
+
     except ModuleNotFoundError as e:  # e.name is missing module name
         if e.name == 'models':
             raise TypeError(

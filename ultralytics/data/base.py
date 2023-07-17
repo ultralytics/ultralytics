@@ -7,7 +7,7 @@ import random
 from copy import deepcopy
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
-from typing import Optional
+from typing import Dict, Optional
 
 import cv2
 import numpy as np
@@ -47,12 +47,13 @@ class BaseDataset(Dataset):
         npy_files (list): List of numpy file paths.
         transforms (callable): Image transformation function.
     """
+    BACKGRUND_SUFFIX = '_background.jpg'
 
     def __init__(self,
                  img_path,
                  imgsz=640,
                  cache=False,
-                 augment=True,
+                 augment=False,
                  hyp=DEFAULT_CFG,
                  prefix='',
                  rect=False,
@@ -65,7 +66,7 @@ class BaseDataset(Dataset):
         super().__init__()
         self.img_path = img_path
         self.imgsz = imgsz
-        self.augment = augment
+        self.augment = False # TODO: Currently not working for 6ch dataset
         self.single_cls = single_cls
         self.prefix = prefix
         self.fraction = fraction
@@ -84,6 +85,7 @@ class BaseDataset(Dataset):
         # Buffer thread for mosaic images
         self.buffer = []  # buffer size = batch size
         self.max_buffer_length = min((self.ni, self.batch_size * 8, 1000)) if self.augment else 0
+        self.backgrounds: Dict[str, np.ndarray] = {}
 
         # Cache stuff
         if cache == 'ram' and not self.check_cache_ram():
@@ -151,12 +153,31 @@ class BaseDataset(Dataset):
                 im = cv2.imread(f)  # BGR
                 if im is None:
                     raise FileNotFoundError(f'Image Not Found {f}')
+            background_filename = f.split('_')[:-1]
+            background_filename = '_'.join(background_filename)
+            background_filename += self.BACKGRUND_SUFFIX
+            background_filename = background_filename.replace('images', 'backgrounds')
+            # if background already loaded, use it
+            if background_filename in self.backgrounds:
+                background = self.backgrounds[background_filename]
+            # otherwise load it
+            else:
+                background = cv2.imread(background_filename)
+                if background is None:
+                    raise FileNotFoundError(f'Background Not Found {background_filename}')
+                self.backgrounds[background_filename] = background
             h0, w0 = im.shape[:2]  # orig hw
             r = self.imgsz / max(h0, w0)  # ratio
             if r != 1:  # if sizes are not equal
                 interp = cv2.INTER_LINEAR if (self.augment or r > 1) else cv2.INTER_AREA
                 im = cv2.resize(im, (min(math.ceil(w0 * r), self.imgsz), min(math.ceil(h0 * r), self.imgsz)),
                                 interpolation=interp)
+                background = cv2.resize(background, (min(math.ceil(w0 * r), self.imgsz), min(math.ceil(h0 * r), self.imgsz)),
+                                interpolation=interp)
+            # concatenate the image and background on the channel axis
+            im = np.concatenate((im, background), axis=2)
+            assert im.shape[2] == 6 # 6 channels
+            
 
             # Add to buffer if training with augmentations
             if self.augment:

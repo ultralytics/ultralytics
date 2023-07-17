@@ -85,7 +85,9 @@ class DetectionTrainer(BaseTrainer):
 
     def plot_training_samples(self, batch, ni):
         """Plots training samples with their annotations."""
-        plot_images(images=batch['img'],
+        # Separate only images from backgrounds, only the 3 first channels for all images
+        batch_images = batch['img'][:, :3].clone()
+        plot_images(images=batch_images,
                     batch_idx=batch['batch_idx'],
                     cls=batch['cls'].squeeze(-1),
                     bboxes=batch['bboxes'],

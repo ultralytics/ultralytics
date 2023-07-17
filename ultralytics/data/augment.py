@@ -584,8 +584,17 @@ class LetterBox:
             img = cv2.resize(img, new_unpad, interpolation=cv2.INTER_LINEAR)
         top, bottom = int(round(dh - 0.1)) if self.center else 0, int(round(dh + 0.1))
         left, right = int(round(dw - 0.1)) if self.center else 0, int(round(dw + 0.1))
-        img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT,
-                                 value=(114, 114, 114))  # add border
+        # Since image is now 6 chnnels, pad for each 3 channels slice separately
+        # assert 6 channels before padding
+        assert img.shape[2] == 6
+        img, background = img[:, :, :3], img[:, :, 3:]
+        img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=0)
+        background = cv2.copyMakeBorder(background, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(114, 114, 114))
+        # concat image and background on channel dim 
+        img = np.concatenate((img, background), axis=-1)
+        
+            
+        
 
         if len(labels):
             labels = self._update_labels(labels, ratio, dw, dh)

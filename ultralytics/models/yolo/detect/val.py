@@ -191,7 +191,9 @@ class DetectionValidator(BaseValidator):
 
     def plot_val_samples(self, batch, ni):
         """Plot validation image samples."""
-        plot_images(batch['img'],
+        # Separate only images from backgrounds, only the 3 first channels for all images
+        batch_images = batch['img'][:, :3].clone()
+        plot_images(batch_images,
                     batch['batch_idx'],
                     batch['cls'].squeeze(-1),
                     batch['bboxes'],
@@ -202,7 +204,8 @@ class DetectionValidator(BaseValidator):
 
     def plot_predictions(self, batch, preds, ni):
         """Plots predicted bounding boxes on input images and saves the result."""
-        plot_images(batch['img'],
+        batch_images = batch['img'][:, :3].clone()
+        plot_images(batch_images,
                     *output_to_target(preds, max_det=self.args.max_det),
                     paths=batch['im_file'],
                     fname=self.save_dir / f'val_batch{ni}_pred.jpg',

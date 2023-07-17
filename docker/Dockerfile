@@ -10,9 +10,9 @@ RUN pip install --no-cache nvidia-tensorrt --index-url https://pypi.ngc.nvidia.c
 ADD https://ultralytics.com/assets/Arial.ttf https://ultralytics.com/assets/Arial.Unicode.ttf /root/.config/Ultralytics/
 
 # Install linux packages
-# g++ required to build 'tflite_support' and 'lap' packages
+# g++ required to build 'tflite_support' and 'lap' packages, libusb-1.0-0 required for 'tflite_support' package
 RUN apt update \
-    && apt install --no-install-recommends -y gcc git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++
+    && apt install --no-install-recommends -y gcc git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0
 # RUN alias python=python3
 
 # Security updates
@@ -31,11 +31,11 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt /u
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel
 RUN pip install --no-cache -e . albumentations comet thop pycocotools onnx onnx-simplifier onnxruntime-gpu
-# Avoid DDP error "MKL_THREADING_LAYER=INTEL is incompatible with libgomp.so.1 library"
-RUN pip install -U numpy
 
 # Set environment variables
 ENV OMP_NUM_THREADS=1
+# Avoid DDP error "MKL_THREADING_LAYER=INTEL is incompatible with libgomp.so.1 library" https://github.com/pytorch/pytorch/issues/37377
+ENV MKL_THREADING_LAYER=GNU
 
 
 # Usage Examples -------------------------------------------------------------------------------------------------------

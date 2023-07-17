@@ -1,11 +1,12 @@
 # Ultralytics YOLO 🚀, AGPL-3.0 license
 
-from ultralytics.utils import LOGGER, TESTS_RUNNING, colorstr
+from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING, colorstr
 
 try:
     from torch.utils.tensorboard import SummaryWriter
 
     assert not TESTS_RUNNING  # do not log pytest
+    assert SETTINGS['integrations']['tensorboard'] == True  # verify integration is enabled
 except (ImportError, AssertionError):
     SummaryWriter = None
 

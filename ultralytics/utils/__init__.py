@@ -739,7 +739,17 @@ def get_settings(file=SETTINGS_YAML, version='0.0.3'):
         'uuid': hashlib.sha256(str(uuid.getnode()).encode()).hexdigest(),  # SHA-256 anonymized UUID hash
         'sync': True,  # sync analytics to help with YOLO development
         'api_key': '',  # Ultralytics HUB API key (https://hub.ultralytics.com/)
-        'settings_version': version}  # Ultralytics settings version
+        'settings_version': version,  # Ultralytics settings version
+        'integrations': {
+            'clearml': True,
+            'comet': True,
+            'dvc': True,
+            'hub': True,
+            'mlflow': True,
+            'neptune': True,
+            'raytune': True,
+            'tensorboard': True,
+            'wandb': True}}
 
     with torch_distributed_zero_first(RANK):
         if not file.exists():

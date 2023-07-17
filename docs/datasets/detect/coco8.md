@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Get started with Ultralytics COCO8. Ideal for testing and debugging object detection models or experimenting with new detection approaches.
-keywords: Ultralytics, COCO8, object detection dataset, YAML file format, dataset usage, COCO dataset, acknowledgments
+description: Discover the benefits of using the practical and diverse COCO8 dataset for object detection model testing. Learn to configure and use it via Ultralytics HUB and YOLOv8.
+keywords: Ultralytics, COCO8 dataset, object detection, model testing, dataset configuration, detection approaches, sanity check, training pipelines, YOLOv8
 ---
 
 # COCO8 Dataset

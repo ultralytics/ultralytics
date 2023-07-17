@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn about the COCO-Seg dataset, designed for simple training of YOLO models on instance segmentation tasks.
-keywords: COCO-Seg, COCO, instance segmentation, segmentation annotations, computer vision, deep learning, data science, YOLO models, image size, open-source datasets
+description: Explore the possibilities of the COCO-Seg dataset, designed for object instance segmentation and YOLO model training. Discover key features, dataset structure, applications, and usage.
+keywords: Ultralytics, YOLO, COCO-Seg, dataset, instance segmentation, model training, deep learning, computer vision
 ---
 
 # COCO-Seg Dataset

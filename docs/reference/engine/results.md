@@ -1,3 +1,8 @@
+---
+description: Master Ultralytics engine results including base tensors, boxes, and keypoints with our thorough documentation.
+keywords: Ultralytics, engine, results, base tensor, boxes, keypoints
+---
+
 ## BaseTensor
 ---
 ### ::: ultralytics.engine.results.BaseTensor

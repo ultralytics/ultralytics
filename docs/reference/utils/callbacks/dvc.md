@@ -1,3 +1,8 @@
+---
+description: Browse through Ultralytics YOLO docs to learn about important logging and callback functions used in training and pretraining models.
+keywords: Ultralytics, YOLO, callbacks, logger, training, pretraining, machine learning, models
+---
+
 ## _logger_disabled
 ---
 ### ::: ultralytics.utils.callbacks.dvc._logger_disabled

@@ -1,3 +1,8 @@
+---
+description: Explore Ultralytics methods for mask data processing, transformation and encoding. Deepen your understanding of RLE encoding, image cropping and more.
+keywords: Ultralytics, Mask Data, Transformation, Encoding, RLE encoding, Image cropping, Pytorch, SAM, AMG, Ultralytics model
+---
+
 ## MaskData
 ---
 ### ::: ultralytics.models.sam.amg.MaskData

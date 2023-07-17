@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Get started with YOLOv8 Predict mode and input sources. Accepts various input sources such as images, videos, and directories.
-keywords: YOLOv8, predict mode, generator, streaming mode, input sources, video formats, arguments customization
+description: Discover how to use YOLOv8 predict mode for various tasks. Learn about different inference sources like images, videos, and data formats.
+keywords: Ultralytics, YOLOv8, predict mode, inference sources, prediction tasks, streaming mode, image processing, video processing, machine learning, AI
 ---
 
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">

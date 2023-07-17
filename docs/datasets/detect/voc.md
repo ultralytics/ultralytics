@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn about the VOC dataset, designed to encourage research on object detection, segmentation, and classification with standardized evaluation metrics.
-keywords: PASCAL VOC dataset, object detection, segmentation, classification, computer vision, deep learning, benchmarking, VOC2007, VOC2012, mean Average Precision, mAP, PASCAL VOC evaluation server, trained models, YAML, YAML file, VOC.yaml, training, YOLOv8n model, model training, image size, annotations, object bounding boxes, segmentation masks, instance segmentation, SSD, Mask R-CNN, yolov8n.pt, mosaicing, PASCAL VOC Consortium
+description: A complete guide to the PASCAL VOC dataset used for object detection, segmentation and classification tasks with relevance to YOLO model training.
+keywords: Ultralytics, PASCAL VOC dataset, object detection, segmentation, image classification, YOLO, model training, VOC.yaml, deep learning
 ---
 
 # VOC Dataset

@@ -1,3 +1,8 @@
+---
+description: Deep dive into Ultralytics callbacks. Learn how to use the _log_plots, on_fit_epoch_end, and on_train_end functions effectively.
+keywords: Ultralytics, callbacks, _log_plots, on_fit_epoch_end, on_train_end
+---
+
 ## _log_plots
 ---
 ### ::: ultralytics.utils.callbacks.wb._log_plots

@@ -1,3 +1,8 @@
+---
+description: Explore the Ultralytics Utils package, with handy functions like colorstr, yaml_save, set_logging & more, designed to enhance your coding experience.
+keywords: Ultralytics, Utils, utilitarian functions, colorstr, yaml_save, set_logging, is_kaggle, is_docker, clean_url
+---
+
 ## SimpleClass
 ---
 ### ::: ultralytics.utils.SimpleClass

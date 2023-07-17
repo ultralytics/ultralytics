@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to use YOLOv8 pose estimation models to identify the position of keypoints on objects in an image, and how to train, validate, predict, and export these models for use with various formats such as ONNX or CoreML.
-keywords: YOLOv8, Pose Models, Keypoint Detection, COCO dataset, COCO val2017, Amazon EC2 P4d, PyTorch
+description: Learn how to use Ultralytics YOLOv8 for pose estimation tasks. Find pretrained models, learn how to train, validate, predict, and export your own.
+keywords: Ultralytics, YOLO, YOLOv8, pose estimation, keypoints detection, object detection, pre-trained models, machine learning, artificial intelligence
 ---
 
 Pose estimation is a task that involves identifying the location of specific points in an image, usually referred

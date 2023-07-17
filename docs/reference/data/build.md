@@ -1,3 +1,8 @@
+---
+description: Explore the Ultralytics YOLO v3 data build procedures, including the InfiniteDataLoader, seed_worker, build_dataloader, and load_inference_source.
+keywords: Ultralytics, YOLO v3, Data build, DataLoader, InfiniteDataLoader, seed_worker, build_dataloader, load_inference_source
+---
+
 ## InfiniteDataLoader
 ---
 ### ::: ultralytics.data.build.InfiniteDataLoader

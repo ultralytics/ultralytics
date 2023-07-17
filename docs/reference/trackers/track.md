@@ -1,3 +1,8 @@
+---
+description: Explore Ultralytics documentation on prediction function starters & register trackers. Understand our code & its applications better.
+keywords: Ultralytics, YOLO, on predict start, register tracker, prediction functions, documentation
+---
+
 ## on_predict_start
 ---
 ### ::: ultralytics.trackers.track.on_predict_start

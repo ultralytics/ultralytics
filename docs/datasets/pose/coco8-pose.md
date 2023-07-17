@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Test and debug object detection models with Ultralytics COCO8-Pose Dataset - a small, versatile pose detection dataset with 8 images.
-keywords: coco8-pose dataset, ultralytics, object detection, pose detection, yolo, hub
+description: Discover the versatile COCO8-Pose dataset, perfect for testing and debugging pose detection models. Learn how to get started with YOLOv8-pose model training.
+keywords: Ultralytics, YOLOv8, pose detection, COCO8-Pose dataset, dataset, model training, YAML
 ---
 
 # COCO8-Pose Dataset

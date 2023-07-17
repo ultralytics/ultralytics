@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Get started with YOLOv5 on AWS. Our comprehensive guide provides everything you need to know to run YOLOv5 on an Amazon Deep Learning instance.
-keywords: YOLOv5, AWS, Deep Learning, Instance, Guide, Quickstart
+description: Step-by-step guide to run YOLOv5 on AWS Deep Learning instance. Learn how to create an instance, connect to it and train, validate and deploy models.
+keywords: AWS, YOLOv5, instance, deep learning, Ultralytics, guide, training, deployment, object detection
 ---
 
 # YOLOv5 🚀 on AWS Deep Learning Instance: A Comprehensive Guide

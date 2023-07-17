@@ -1,3 +1,8 @@
+---
+description: Explore comprehensive documentation for utilising Comet Callbacks in Ultralytics. Learn to optimise training, logging, and experiment workflows.
+keywords: Ultralytics, Comet Callbacks, Training optimisation, Logging, Experiment Workflows
+---
+
 ## _get_comet_mode
 ---
 ### ::: ultralytics.utils.callbacks.comet._get_comet_mode

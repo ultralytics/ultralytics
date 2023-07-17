@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn about the COCO dataset, designed to encourage research on object detection, segmentation, and captioning with standardized evaluation metrics.
-keywords: COCO dataset, object detection, segmentation, captioning, deep learning models, computer vision, benchmarking, data annotations, COCO Consortium
+description: Learn how COCO, a leading dataset for object detection and segmentation, integrates with Ultralytics. Discover ways to use it for training YOLO models.
+keywords: Ultralytics, COCO dataset, object detection, YOLO, YOLO model training, image segmentation, computer vision, deep learning models
 ---
 
 # COCO Dataset

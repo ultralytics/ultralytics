@@ -1,3 +1,8 @@
+---
+description: Uncover the specifics of Ultralytics ClearML callbacks, from pretrain routine start to training end. Boost your ML model performance.
+keywords: Ultralytics, clearML, callbacks, pretrain routine start, validation end, train epoch end, training end
+---
+
 ## _log_debug_samples
 ---
 ### ::: ultralytics.utils.callbacks.clearml._log_debug_samples

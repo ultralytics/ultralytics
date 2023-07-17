@@ -1,3 +1,8 @@
+---
+description: Master building SAM ViT models with Ultralytics. Discover steps to leverage the power of SAM and Vision Transformer sessions.
+keywords: Ultralytics, SAM, build sam, vision transformer, vits, build_sam_vit_l, build_sam_vit_b, build_sam
+---
+
 ## build_sam_vit_h
 ---
 ### ::: ultralytics.models.sam.build.build_sam_vit_h

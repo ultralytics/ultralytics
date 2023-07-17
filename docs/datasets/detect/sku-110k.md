@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore the SKU-110k dataset, designed for object detection in densely packed retail shelf images, featuring over 110k unique SKU categories and annotations.
-keywords: SKU-110k, object detection, retail shelves, dataset, computer vision
+description: 'Explore the SKU-110k dataset: densely packed retail shelf images for object detection research. Learn how to use it with Ultralytics.'
+keywords: SKU-110k dataset, object detection, retail shelf images, Ultralytics, YOLO, computer vision, deep learning models
 ---
 
 # SKU-110k Dataset

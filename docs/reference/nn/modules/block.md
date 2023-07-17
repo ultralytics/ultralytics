@@ -1,3 +1,8 @@
+---
+description: Explore Ultralytics YOLO neural network modules, Proto to BottleneckCSP. Detailed explanation of each module with easy-to-follow code examples.
+keywords: YOLO, Ultralytics, neural network, nn.modules.block, Proto, HGBlock, SPPF, C2, C3, RepC3, C3Ghost, Bottleneck, BottleneckCSP
+---
+
 ## DFL
 ---
 ### ::: ultralytics.nn.modules.block.DFL

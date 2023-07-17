@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover the xView Dataset, a large-scale overhead imagery dataset for object detection tasks, featuring 1M instances, 60 classes, and high-resolution images.
-keywords: xView dataset, overhead imagery, computer vision, deep learning models, satellite imagery analysis, object detection
+description: Explore xView, a large-scale, high resolution satellite imagery dataset for object detection. Dive into dataset structure, usage examples & its potential applications.
+keywords: Ultralytics, YOLO, computer vision, xView dataset, satellite imagery, object detection, overhead imagery, training, deep learning, dataset YAML
 ---
 
 # xView Dataset

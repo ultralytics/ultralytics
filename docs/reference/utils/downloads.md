@@ -1,3 +1,8 @@
+---
+description: Learn about the download utilities in Ultralytics YOLO, featuring functions like is_url, check_disk_space, get_github_assets, and download.
+keywords: Ultralytics, YOLO, download utilities, is_url, check_disk_space, get_github_assets, download, documentation
+---
+
 ## is_url
 ---
 ### ::: ultralytics.utils.downloads.is_url

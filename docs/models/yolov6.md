@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover Meituan YOLOv6, a robust real-time object detector. Learn how to utilize pre-trained models with Ultralytics Python API for a variety of tasks.
-keywords: Meituan, YOLOv6, object detection, Bi-directional Concatenation (BiC), anchor-aided training (AAT), pre-trained models, high-resolution input, real-time, ultra-fast computations
+description: Explore Meituan YOLOv6, a state-of-the-art object detection model striking a balance between speed and accuracy. Dive into features, pre-trained models, and Python usage.
+keywords: Meituan YOLOv6, object detection, Ultralytics, YOLOv6 docs, Bi-directional Concatenation, Anchor-Aided Training, pretrained models, real-time applications
 ---
 
 # Meituan YOLOv6

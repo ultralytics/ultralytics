@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore the Fast Segment Anything Model (FastSAM), a real-time solution for the segment anything task that leverages a Convolutional Neural Network (CNN) for segmenting any object within an image, guided by user interaction prompts.
-keywords: FastSAM, Segment Anything Model, SAM, Convolutional Neural Network, CNN, image segmentation, real-time image processing
+description: Explore FastSAM, a CNN-based solution for real-time object segmentation in images. Enhanced user interaction, computational efficiency and adaptable across vision tasks.
+keywords: FastSAM, machine learning, CNN-based solution, object segmentation, real-time solution, Ultralytics, vision tasks, image processing, industrial applications, user interaction
 ---
 
 # Fast Segment Anything Model (FastSAM)

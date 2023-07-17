@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Install and use YOLOv8 via CLI or Python. Run single-line commands or integrate with Python projects for object detection, segmentation, and classification.
-keywords: YOLOv8, object detection, segmentation, classification, pip, git, CLI, Python
+description: Explore various methods to install Ultralytics using pip, conda, git and Docker. Learn how to use Ultralytics with command line interface or within your Python projects.
+keywords: Ultralytics installation, pip install Ultralytics, Docker install Ultralytics, Ultralytics command line interface, Ultralytics Python interface
 ---
 
 ## Install Ultralytics

@@ -1,3 +1,8 @@
+---
+description: Learn about our routine checks that safeguard Ultralytics operations including ASCII, font, YOLO file, YAML, Python and torchvision checks.
+keywords: Ultralytics, utility checks, ASCII, check_version, pip_update, check_python, check_torchvision, check_yaml, YOLO filename
+---
+
 ## is_ascii
 ---
 ### ::: ultralytics.utils.checks.is_ascii

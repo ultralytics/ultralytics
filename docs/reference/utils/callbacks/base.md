@@ -1,3 +1,8 @@
+---
+description: Explore how to use the on-train, on-validation, on-pretrain, and on-predict callbacks in Ultralytics. Learn to update params, save models, and add integration callbacks.
+keywords: Ultralytics, Callbacks, On-train, On-validation, On-pretrain, On-predict, Parameters update, Model saving, Integration callbacks
+---
+
 ## on_pretrain_routine_start
 ---
 ### ::: ultralytics.utils.callbacks.base.on_pretrain_routine_start

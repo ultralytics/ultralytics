@@ -1,3 +1,8 @@
+---
+description: Explore Ultralytics' versatile loss functions - VarifocalLoss, BboxLoss, v8DetectionLoss, v8PoseLoss. Improve your accuracy on YOLO implementations.
+keywords: Ultralytics, Loss functions, VarifocalLoss, BboxLoss, v8DetectionLoss, v8PoseLoss, YOLO, Ultralytics Documentation
+---
+
 ## VarifocalLoss
 ---
 ### ::: ultralytics.utils.loss.VarifocalLoss

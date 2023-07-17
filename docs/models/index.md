@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn about the supported models and architectures, such as YOLOv3, YOLOv5, and YOLOv8, and how to contribute your own model to Ultralytics.
-keywords: Ultralytics YOLO, YOLOv3, YOLOv4, YOLOv5, YOLOv6, YOLOv7, YOLOv8, SAM, YOLO-NAS, RT-DETR, object detection, instance segmentation, detection transformers, real-time detection, computer vision, CLI, Python
+description: Learn about the YOLO family, SAM, MobileSAM, FastSAM, YOLO-NAS, and RT-DETR models supported by Ultralytics, with examples on how to use them via CLI and Python.
+keywords: Ultralytics, documentation, YOLO, SAM, MobileSAM, FastSAM, YOLO-NAS, RT-DETR, models, architectures, Python, CLI
 ---
 
 # Models

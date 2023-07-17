@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how torchvision organizes classification image datasets. Use this code to create and train models. CLI and Python code shown.
-keywords: image classification, datasets, format, torchvision, YOLO, Ultralytics
+description: Explore image classification datasets supported by Ultralytics, learn the standard dataset format, and set up your own dataset for training models.
+keywords: Ultralytics, image classification, dataset, machine learning, CIFAR-10, ImageNet, MNIST, torchvision
 ---
 
 # Image Classification Datasets Overview

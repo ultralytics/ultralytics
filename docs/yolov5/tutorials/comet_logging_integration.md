@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to use YOLOv5 with Comet, a tool for logging and visualizing machine learning model metrics in real-time. Install, log and analyze seamlessly.
-keywords: object detection, YOLOv5, Comet, model metrics, deep learning, image classification, Colab notebook, machine learning, datasets, hyperparameters tracking, training script, checkpoint
+description: Learn how to set up and use Comet to enhance your YOLOv5 model training, metrics tracking and visualization. Includes a step by step guide to integrate Comet with YOLOv5.
+keywords: YOLOv5, Comet, Machine Learning, Ultralytics, Real time metrics tracking, Hyperparameters, Model checkpoints, Model predictions, YOLOv5 training, Comet Credentials
 ---
 
 <img src="https://cdn.comet.ml/img/notebook_logo.png">

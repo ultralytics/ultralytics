@@ -1,3 +1,8 @@
+---
+description: Detailed exploration into Ultralytics data augmentation methods including BaseTransform, MixUp, LetterBox, ToTensor, and more for enhancing model performance.
+keywords: Ultralytics, Data Augmentation, BaseTransform, MixUp, RandomHSV, LetterBox, Albumentations, classify_transforms, classify_albumentations
+---
+
 ## BaseTransform
 ---
 ### ::: ultralytics.data.augment.BaseTransform

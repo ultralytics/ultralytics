@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn about the ImageWoof dataset, a subset of the ImageNet consisting of 10 challenging-to-classify dog breed classes.
-keywords: ImageWoof dataset, dog breed images, image classification, noisy labels, deep learning models, CNN training, fastai
+description: Explore the ImageWoof dataset, designed for challenging dog breed classification. Train AI models with Ultralytics YOLO using this dataset.
+keywords: ImageWoof, image classification, dog breeds, machine learning, deep learning, Ultralytics, YOLO, dataset
 ---
 
 # ImageWoof Dataset

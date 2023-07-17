@@ -1,3 +1,8 @@
+---
+description: Explore Ultralytics data converter functions like coco91_to_coco80_class, merge_multi_segment, rle2polygon for efficient data handling.
+keywords: Ultralytics, Data Converter, coco91_to_coco80_class, merge_multi_segment, rle2polygon
+---
+
 ## coco91_to_coco80_class
 ---
 ### ::: ultralytics.data.converter.coco91_to_coco80_class

@@ -963,8 +963,8 @@ class ClassifyMetrics(SimpleClass):
 
     @property
     def fitness(self):
-        """Returns top-5 accuracy as fitness score."""
-        return self.top5
+        """Returns mean of top-1 and top-5 accuracies as fitness score."""
+        return (self.top1 + self.top5) / 2
 
     @property
     def results_dict(self):

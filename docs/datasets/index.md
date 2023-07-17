@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Ultralytics provides support for various datasets to facilitate multiple computer vision tasks. Check out our list of main datasets and their summaries.
-keywords: ultralytics, computer vision, object detection, instance segmentation, pose estimation, image classification, multi-object tracking
+description: Explore various computer vision datasets supported by Ultralytics for object detection, segmentation, pose estimation, image classification, and multi-object tracking.
+keywords: computer vision, datasets, Ultralytics, YOLO, object detection, instance segmentation, pose estimation, image classification, multi-object tracking
 ---
 
 # Datasets Overview

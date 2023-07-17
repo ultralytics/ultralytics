@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn about YOLO settings and modes for different tasks like detection, segmentation etc. Train and predict with custom argparse commands.
-keywords: YOLO settings, hyperparameters, YOLOv8, Ultralytics, YOLO guide, YOLO commands, YOLO tasks, YOLO modes, YOLO training, YOLO detect, YOLO segment, YOLO classify, YOLO pose, YOLO train, YOLO val, YOLO predict, YOLO export, YOLO track, YOLO benchmark
+description: Master YOLOv8 settings and hyperparameters for improved model performance. Learn to use YOLO CLI commands, adjust training settings, and optimize YOLO tasks & modes.
+keywords: YOLOv8, settings, hyperparameters, YOLO CLI commands, YOLO tasks, YOLO modes, Ultralytics documentation, model optimization, YOLOv8 training
 ---
 
 YOLO settings and hyperparameters play a critical role in the model's performance, speed, and accuracy. These settings

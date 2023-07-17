@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Validate and improve YOLOv8n model accuracy on COCO128 and other datasets using hyperparameter & configuration tuning, in Val mode.
-keywords: Ultralytics, YOLO, YOLOv8, Val, Validation, Hyperparameters, Performance, Accuracy, Generalization, COCO, Export Formats, PyTorch
+description: 'Guide for Validating YOLOv8 Models: Learn how to evaluate the performance of your YOLO models using validation settings and metrics with Python and CLI examples.'
+keywords: Ultralytics, YOLO Docs, YOLOv8, validation, model evaluation, hyperparameters, accuracy, metrics, Python, CLI
 ---
 
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">

@@ -117,8 +117,8 @@ def on_train_end(trainer):
         for metric, value in all_metrics.items():
             live.log_metric(metric, value, plot=False)
 
-        _log_plots(trainer.plots, 'eval')
-        _log_plots(trainer.validator.plots, 'eval')
+        _log_plots(trainer.plots, 'val')
+        _log_plots(trainer.validator.plots, 'val')
         _log_confusion_matrix(trainer.validator)
 
         if trainer.best.exists():

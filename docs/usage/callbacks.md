@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to leverage callbacks in Ultralytics YOLO framework to perform custom tasks in trainer, validator, predictor and exporter modes.
-keywords: callbacks, Ultralytics framework, Trainer, Validator, Predictor, Exporter, train, val, export, predict, YOLO, Object Detection
+description: Learn how to utilize callbacks in the Ultralytics framework during train, val, export, and predict modes for enhanced functionality.
+keywords: Ultralytics, YOLO, callbacks guide, training callback, validation callback, export callback, prediction callback
 ---
 
 ## Callbacks
@@ -40,7 +40,7 @@ for (result, frame) in model.track/predict():
 
 ## All callbacks
 
-Here are all supported callbacks. See callbacks [source code](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/yolo/utils/callbacks/base.py) for additional details.
+Here are all supported callbacks. See callbacks [source code](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/callbacks/base.py) for additional details.
 
 ### Trainer Callbacks
 

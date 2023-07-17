@@ -10,7 +10,7 @@ import os
 import re
 from collections import defaultdict
 from pathlib import Path
-from ultralytics.yolo.utils import ROOT
+from ultralytics.utils import ROOT
 
 NEW_YAML_DIR = ROOT.parent
 CODE_DIR = ROOT
@@ -39,7 +39,7 @@ def create_markdown(py_filepath, module_path, classes, functions):
         with open(md_filepath, 'r') as file:
             existing_content = file.read()
             header_parts = existing_content.split('---', 2)
-            if len(header_parts) >= 3:
+            if 'description:' in header_parts or 'comments:' in header_parts and len(header_parts) >= 3:
                 header_content = f"{header_parts[0]}---{header_parts[1]}---\n\n"
 
     module_path = module_path.replace('.__init__', '')

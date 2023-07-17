@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Integrate YOLOv8 in Python. Load, use pretrained models, train, and infer images. Export to ONNX. Track objects in videos.
-keywords: yolov8, python usage, object detection, segmentation, classification, pretrained models, train models, image predictions
+description: Boost your Python projects with object detection, segmentation and classification using YOLOv8. Explore how to load, train, validate, predict, export, track and benchmark models with ease.
+keywords: YOLOv8, Ultralytics, Python, object detection, segmentation, classification, model training, validation, prediction, model export, benchmark, real-time tracking
 ---
 
 # Python Usage
@@ -240,7 +240,7 @@ their specific use case based on their requirements for speed and accuracy.
     
         Benchmark an official YOLOv8n model across all export formats.
         ```python
-        from ultralytics.yolo.utils.benchmarks import benchmark
+        from ultralytics.utils.benchmarks import benchmark
         
         # Benchmark
         benchmark(model='yolov8n.pt', imgsz=640, half=False, device=0)
@@ -256,7 +256,7 @@ from `BaseTrainer`.
 !!! tip "Detection Trainer Example"
 
         ```python
-        from ultralytics.yolo import v8 import DetectionTrainer, DetectionValidator, DetectionPredictor
+        from ultralytics.models.yolo import DetectionTrainer, DetectionValidator, DetectionPredictor
 
         # trainer
         trainer = DetectionTrainer(overrides={})

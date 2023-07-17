@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Get started with Ultralytics COCO8. Ideal for testing and debugging object detection models or experimenting with new detection approaches.
-keywords: Ultralytics, COCO8, object detection dataset, YAML file format, dataset usage, COCO dataset, acknowledgments
+description: Discover the benefits of using the practical and diverse COCO8 dataset for object detection model testing. Learn to configure and use it via Ultralytics HUB and YOLOv8.
+keywords: Ultralytics, COCO8 dataset, object detection, model testing, dataset configuration, detection approaches, sanity check, training pipelines, YOLOv8
 ---
 
 # COCO8 Dataset
@@ -19,12 +19,12 @@ and [YOLOv8](https://github.com/ultralytics/ultralytics).
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO8 dataset, the `coco8.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco8.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco8.yaml).
+A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO8 dataset, the `coco8.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8.yaml).
 
-!!! example "ultralytics/datasets/coco8.yaml"
+!!! example "ultralytics/cfg/datasets/coco8.yaml"
 
     ```yaml
-    --8<-- "ultralytics/datasets/coco8.yaml"
+    --8<-- "ultralytics/cfg/datasets/coco8.yaml"
     ```
 
 ## Usage

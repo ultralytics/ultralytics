@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Test and debug segmentation models on small, versatile COCO8-Seg instance segmentation dataset, now available for use with YOLOv8 and Ultralytics HUB.
-keywords: Ultralytics, COCO8-Seg, instance segmentation dataset, segmentation models, new detection approaches, COCO train 2017 set
+description: 'Discover the COCO8-Seg: a compact but versatile instance segmentation dataset ideal for testing Ultralytics YOLOv8 detection approaches. Complete usage guide included.'
+keywords: COCO8-Seg dataset, Ultralytics, YOLOv8, instance segmentation, dataset configuration, YAML, YOLOv8n-seg model, mosaiced dataset images
 ---
 
 # COCO8-Seg Dataset
@@ -19,12 +19,12 @@ and [YOLOv8](https://github.com/ultralytics/ultralytics).
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO8-Seg dataset, the `coco8-seg.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco8-seg.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/datasets/coco8-seg.yaml).
+A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO8-Seg dataset, the `coco8-seg.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-seg.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco8-seg.yaml).
 
-!!! example "ultralytics/datasets/coco8-seg.yaml"
+!!! example "ultralytics/cfg/datasets/coco8-seg.yaml"
 
     ```yaml
-    --8<-- "ultralytics/datasets/coco8-seg.yaml"
+    --8<-- "ultralytics/cfg/datasets/coco8-seg.yaml"
     ```
 
 ## Usage

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn how to train custom YOLOv8 models on various datasets, configure hyperparameters, and use Ultralytics' YOLO for seamless training.
-keywords: YOLOv8, train mode, train a custom YOLOv8 model, hyperparameters, train a model, Comet, ClearML, TensorBoard, logging, loggers
+description: Step-by-step guide to train YOLOv8 models with Ultralytics YOLO with examples of single-GPU and multi-GPU training. Efficient way for object detection training.
+keywords: Ultralytics, YOLOv8, YOLO, object detection, train mode, custom dataset, GPU training, multi-GPU, hyperparameters, CLI examples, Python examples
 ---
 
 <img width="1024" src="https://github.com/ultralytics/assets/raw/main/yolov8/banner-integrations.png">

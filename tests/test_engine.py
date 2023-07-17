@@ -3,10 +3,10 @@
 from pathlib import Path
 
 from ultralytics import YOLO
-from ultralytics.yolo.cfg import get_cfg
-from ultralytics.yolo.engine.exporter import Exporter
-from ultralytics.yolo.utils import DEFAULT_CFG, ROOT, SETTINGS
-from ultralytics.yolo.v8 import classify, detect, segment
+from ultralytics.cfg import get_cfg
+from ultralytics.engine.exporter import Exporter
+from ultralytics.models.yolo import classify, detect, segment
+from ultralytics.utils import DEFAULT_CFG, ROOT, SETTINGS
 
 CFG_DET = 'yolov8n.yaml'
 CFG_SEG = 'yolov8n-seg.yaml'
@@ -65,7 +65,6 @@ def test_detect():
 def test_segment():
     overrides = {'data': 'coco8-seg.yaml', 'model': CFG_SEG, 'imgsz': 32, 'epochs': 1, 'save': False}
     CFG.data = 'coco8-seg.yaml'
-    CFG.v5loader = False
     # YOLO(CFG_SEG).train(**overrides)  # works
 
     # trainer

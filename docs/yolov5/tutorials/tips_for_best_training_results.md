@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Get the most out of YOLOv5 with this guide; producing best results, checking dataset, hypertuning & more. Updated May 2022.
-keywords: YOLOv5 training guide, mAP, best results, dataset, model selection, training settings, hyperparameters, Ultralytics Docs
+description: Our comprehensive guide provides insights on how to train your YOLOv5 system to get the best mAP. Master dataset preparation, model selection, training settings, and more.
+keywords: Ultralytics, YOLOv5, Training guide, dataset preparation, model selection, training settings, mAP results, Machine Learning, Object Detection
 ---
 
 📚 This guide explains how to produce the best mAP and training results with YOLOv5 🚀.  

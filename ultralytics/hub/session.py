@@ -7,8 +7,8 @@ from time import sleep
 import requests
 
 from ultralytics.hub.utils import HUB_API_ROOT, PREFIX, smart_request
-from ultralytics.yolo.utils import LOGGER, __version__, checks, emojis, is_colab, threaded
-from ultralytics.yolo.utils.errors import HUBModelError
+from ultralytics.utils import LOGGER, __version__, checks, emojis, is_colab, threaded
+from ultralytics.utils.errors import HUBModelError
 
 AGENT_NAME = f'python-{__version__}-colab' if is_colab() else f'python-{__version__}-local'
 
@@ -25,11 +25,11 @@ class HUBTrainingSession:
         model_id (str): Identifier for the YOLOv5 model being trained.
         model_url (str): URL for the model in Ultralytics HUB.
         api_url (str): API URL for the model in Ultralytics HUB.
-        auth_header (Dict): Authentication header for the Ultralytics HUB API requests.
-        rate_limits (Dict): Rate limits for different API calls (in seconds).
-        timers (Dict): Timers for rate limiting.
-        metrics_queue (Dict): Queue for the model's metrics.
-        model (Dict): Model data fetched from Ultralytics HUB.
+        auth_header (dict): Authentication header for the Ultralytics HUB API requests.
+        rate_limits (dict): Rate limits for different API calls (in seconds).
+        timers (dict): Timers for rate limiting.
+        metrics_queue (dict): Queue for the model's metrics.
+        model (dict): Model data fetched from Ultralytics HUB.
         alive (bool): Indicates if the heartbeat loop is active.
     """
 

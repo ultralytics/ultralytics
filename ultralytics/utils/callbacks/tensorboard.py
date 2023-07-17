@@ -6,7 +6,7 @@ try:
     from torch.utils.tensorboard import SummaryWriter
 
     assert not TESTS_RUNNING  # do not log pytest
-    assert SETTINGS['integrations']['tensorboard'] == True  # verify integration is enabled
+    assert SETTINGS['integrations']['tensorboard'] is True  # verify integration is enabled
 except (ImportError, AssertionError):
     SummaryWriter = None
 

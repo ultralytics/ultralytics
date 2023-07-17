@@ -1,3 +1,8 @@
+---
+description: Explore detailed documentation for Ultralytics utility operations. Learn about methods like segment2box, make_divisible, clip_boxes, and many more.
+keywords: Ultralytics YOLO, Utility Operations, segment2box, make_divisible, clip_boxes, scale_image, xywh2xyxy, xyxy2xywhn, xywh2ltwh, ltwh2xywh, segments2boxes, crop_mask, process_mask, scale_masks, masks2segments
+---
+
 ## Profile
 ---
 ### ::: ultralytics.utils.ops.Profile

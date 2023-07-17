@@ -1,3 +1,8 @@
+---
+description: Uncover a detailed guide to Ultralytics data utilities. Learn functions from img2label_paths to autosplit, all boosting your YOLO model’s efficiency.
+keywords: Ultralytics, data utils, YOLO, img2label_paths, exif_size, polygon2mask, polygons2masks_overlap, check_cls_dataset, delete_dsstore, autosplit
+---
+
 ## HUBDatasetStats
 ---
 ### ::: ultralytics.data.utils.HUBDatasetStats

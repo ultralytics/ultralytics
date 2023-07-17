@@ -1,3 +1,8 @@
+---
+description: Discover detailed information on ImageEncoderViT, PositionEmbeddingRandom, Attention, window_partition, get_rel_pos and more in Ultralytics models encoders documentation.
+keywords: Ultralytics, Encoders, Modules, Documentation, ImageEncoderViT, PositionEmbeddingRandom, Attention, window_partition, get_rel_pos
+---
+
 ## ImageEncoderViT
 ---
 ### ::: ultralytics.models.sam.modules.encoders.ImageEncoderViT

@@ -1,3 +1,8 @@
+---
+description: Explore Ultralytics utilities for optimized task assignment, bounding box creation, and distance calculation. Learn more about algorithm implementations.
+keywords: Ultralytics, task aligned assigner, select highest overlaps, make anchors, dist2bbox, bbox2dist, utilities, algorithm
+---
+
 ## TaskAlignedAssigner
 ---
 ### ::: ultralytics.utils.tal.TaskAlignedAssigner

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Efficiently manage and use custom datasets on Ultralytics HUB for streamlined training with YOLOv5 and YOLOv8 models.
-keywords: Ultralytics, HUB, Datasets, Upload, Visualize, Train, Custom Data, YAML, YOLOv5, YOLOv8
+description: Learn how Ultralytics HUB datasets streamline your ML workflow. Upload, format, validate, access, share, edit or delete datasets for Ultralytics YOLO model training.
+keywords: Ultralytics, HUB datasets, YOLO model training, upload datasets, dataset validation, ML workflow, share datasets
 ---
 
 # HUB Datasets

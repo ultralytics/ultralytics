@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Learn about the COCO-Pose dataset, designed to encourage research on pose estimation tasks with standardized evaluation metrics.
-keywords: COCO-Pose, COCO dataset, pose estimation, keypoints detection, computer vision, deep learning, YOLOv8n-pose, dataset configuration
+description: Detailed guide on the special COCO-Pose Dataset in Ultralytics. Learn about its key features, structure, and usage in pose estimation tasks with YOLO.
+keywords: Ultralytics YOLO, COCO-Pose Dataset, Deep Learning, Pose Estimation, Training Models, Dataset YAML, openpose, YOLO
 ---
 
 # COCO-Pose Dataset

@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Explore YOLOv4, a state-of-the-art, real-time object detector. Learn about its architecture, features, and performance.
-keywords: YOLOv4, object detection, real-time, CNN, GPU, Ultralytics, documentation, YOLOv4 architecture, YOLOv4 features, YOLOv4 performance
+description: Explore our detailed guide on YOLOv4, a state-of-the-art real-time object detector. Understand its architectural highlights, innovative features, and application examples.
+keywords: ultralytics, YOLOv4, object detection, neural network, real-time detection, object detector, machine learning
 ---
 
 # YOLOv4: High-Speed and Precise Object Detection

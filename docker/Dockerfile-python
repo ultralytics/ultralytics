@@ -31,10 +31,15 @@ RUN python3 -m pip install --upgrade pip wheel
 RUN pip install --no-cache -e '.[export]' thop py-cpuinfo --extra-index-url https://download.pytorch.org/whl/cpu
 
 # Run exports to AutoInstall packages
+WORKDIR /tmp_exports
 RUN yolo export format=edgetpu imgsz=32
 RUN yolo export format=ncnn imgsz=32
 # Requires <= Python 3.10, bug with paddlepaddle==2.5.0
 RUN pip install --no-cache paddlepaddle==2.4.2 x2paddle
+
+# Reset workdir
+WORKDIR /usr/src/ultralytics
+RUN rm -rf /tmp_exports
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
 

@@ -9,9 +9,9 @@ FROM python:3.10-slim-bookworm
 ADD https://ultralytics.com/assets/Arial.ttf https://ultralytics.com/assets/Arial.Unicode.ttf /root/.config/Ultralytics/
 
 # Install linux packages
-# g++ required to build 'tflite_support' and 'lap' packages, libusb-1.0-0 required for 'tflite_support' package
+# g++ required to build 'tflite_support' and 'lap' packages, libusb-1.0-0 required for 'tflite_support' package, libssl1.1 required for PaddlePaddle
 RUN apt update \
-    && apt install --no-install-recommends -y python3-pip git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0
+    && apt install --no-install-recommends -y python3-pip git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0 libssl1.1
 # RUN alias python=python3
 
 # Create working directory
@@ -28,14 +28,15 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt /u
 
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel
-RUN pip install --no-cache -e '.[export]' thop --extra-index-url https://download.pytorch.org/whl/cpu
+RUN pip install --no-cache -e '.[export]' thop py-cpuinfo --extra-index-url https://download.pytorch.org/whl/cpu
 
 # Run exports to AutoInstall packages
 RUN yolo export format=edgetpu imgsz=32
-RUN yolo export format=ncnn imgsz=32
 # Requires <= Python 3.10
 RUN pip install --no-cache paddlepaddle x2paddle
+RUN yolo export format=ncnn imgsz=32
 
+# Set the working directory for the application
 WORKDIR /app
 
 # Usage Examples -------------------------------------------------------------------------------------------------------

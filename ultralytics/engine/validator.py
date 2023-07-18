@@ -75,7 +75,8 @@ class BaseValidator:
         self.training = True
         self.speed = {'preprocess': 0.0, 'inference': 0.0, 'loss': 0.0, 'postprocess': 0.0}
         self.jdict = None
-
+        self.num_samples = 0
+        
         project = self.args.project or Path(SETTINGS['runs_dir']) / self.args.task
         name = self.args.name or f'{self.args.mode}'
         self.save_dir = save_dir or increment_path(Path(project) / name,
@@ -156,6 +157,7 @@ class BaseValidator:
             # Preprocess
             with dt[0]:
                 batch = self.preprocess(batch)
+                self.num_samples += batch['img'].shape[0]
 
             # Inference
             with dt[1]:

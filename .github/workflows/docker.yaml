@@ -12,10 +12,11 @@ on:
         type: choice
         description: Select Docker Image
         options:
-        - Arm64
-        - Jetson
-        - CPU
-        - GPU
+          - Arm64
+          - Jetson
+          - Python
+          - CPU
+          - GPU
 
 jobs:
   docker:
@@ -59,6 +60,16 @@ jobs:
           file: docker/Dockerfile-jetson
           push: true
           tags: ultralytics/ultralytics:latest-jetson
+
+      - name: Build and push Python image
+        if: github.event_name == 'push' || github.event.inputs.image == 'Python'
+        uses: docker/build-push-action@v4
+        continue-on-error: true
+        with:
+          context: .
+          file: docker/Dockerfile-python
+          push: true
+          tags: ultralytics/ultralytics:latest-python
 
       - name: Build and push CPU image
         if: github.event_name == 'push' || github.event.inputs.image == 'CPU'

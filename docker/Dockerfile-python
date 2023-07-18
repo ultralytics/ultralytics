@@ -28,12 +28,13 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt /u
 
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel
-RUN pip install --no-cache -e '.[export]' thop py-cpuinfo --extra-index-url https://download.pytorch.org/whl/cpu
+RUN pip install --no-cache -e . thop py-cpuinfo --extra-index-url https://download.pytorch.org/whl/cpu
 
 # Run exports to AutoInstall packages
 # RUN yolo export format=edgetpu imgsz=32
 # Requires <= Python 3.10
-RUN pip install --no-cache paddlepaddle x2paddle
+# RUN pip install --no-cache paddlepaddle x2paddle
+RUN yolo export format=paddle
 # RUN yolo export format=ncnn imgsz=32
 
 # Usage Examples -------------------------------------------------------------------------------------------------------

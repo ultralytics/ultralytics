@@ -125,6 +125,9 @@ Benchmarks below run on Intel® Data Center GPU Flex 170 at FP32 precision.
 | YOLOv8x | ONNX        | ✅      | 260.4     | 0.5371      | 110.32                 |
 | YOLOv8x | OpenVINO    | ✅      | 260.6     | 0.5367      | 15.02                  |
 
+This table represents the benchmark results for five different models (YOLOv8n, YOLOv8s, YOLOv8m, YOLOv8l, YOLOv8x) across four different formats (PyTorch, TorchScript, ONNX, OpenVINO), giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
+
+
 ### Intel Arc GPU
 
 Intel® Arc™ represents Intel's foray into the dedicated GPU market. The Arc™ series, designed to compete with leading GPU manufacturers like AMD and Nvidia, caters to both the laptop and desktop markets. The series includes mobile versions for compact devices like laptops, and larger, more powerful versions for desktop computers.
@@ -201,34 +204,34 @@ Benchmarks below run on 4th Gen Intel® Xeon® Scalable CPU at FP32 precision.
 
 The Intel® Core® series is a range of high-performance processors by Intel. The lineup includes Core i3 (entry-level), Core i5 (mid-range), Core i7 (high-end), and Core i9 (extreme performance). Each series caters to different computing needs and budgets, from everyday tasks to demanding professional workloads. With each new generation, improvements are made to performance, energy efficiency, and features.
 
-Benchmarks below run on 9th Gen Intel® Core® i9-9900K CPU @ 3.60GHz at FP32 precision.
+Benchmarks below run on 13th Gen Intel® Core® i7-13700H CPU at FP32 precision.
 
 <div align="center">
-<img width="800" src="https://user-images.githubusercontent.com/26833433/253741547-bc63da36-6c2c-44ea-823d-4486cadeed0b.jpg">
+<img width="800" src="https://user-images.githubusercontent.com/26833433/254402495-e351de30-0d0c-4a8b-b915-d08be7128c1d.jpg">
 </div>
 
 | Model   | Format      | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
 |---------|-------------|--------|-----------|---------------------|------------------------|
-| YOLOv8n | PyTorch     | ✅      | 6.2       | 0.6381              | 111.16                 |
-| YOLOv8n | TorchScript | ✅      | 12.4      | 0.6092              | 176.53                 |
-| YOLOv8n | ONNX        | ✅      | 12.2      | 0.6092              | 44.02                  |
-| YOLOv8n | OpenVINO    | ✅      | 12.3      | 0.6092              | 36.21                  |
-| YOLOv8s | PyTorch     | ✅      | 21.5      | 0.6967              | 220.05                 |
-| YOLOv8s | TorchScript | ✅      | 42.9      | 0.7136              | 296.72                 |
-| YOLOv8s | ONNX        | ✅      | 42.7      | 0.7136              | 113.11                 |
-| YOLOv8s | OpenVINO    | ✅      | 42.9      | 0.7136              | 109.95                 |
-| YOLOv8m | PyTorch     | ✅      | 49.7      | 0.7370              | 441.78                 |
-| YOLOv8m | TorchScript | ✅      | 99.2      | 0.7280              | 584.21                 |
-| YOLOv8m | ONNX        | ✅      | 98.9      | 0.7280              | 296.79                 |
-| YOLOv8m | OpenVINO    | ✅      | 99.1      | 0.7280              | 275.81                 |
-| YOLOv8l | PyTorch     | ✅      | 83.7      | 0.7769              | 794.17                 |
-| YOLOv8l | TorchScript | ✅      | 167.1     | 0.7551              | 1007.51                |
-| YOLOv8l | ONNX        | ✅      | 166.8     | 0.7551              | 561.54                 |
-| YOLOv8l | OpenVINO    | ✅      | 167.0     | 0.7551              | 540.29                 |
-| YOLOv8x | PyTorch     | ✅      | 130.5     | 0.7759              | 1099.90                |
-| YOLOv8x | TorchScript | ✅      | 260.7     | 0.7479              | 1361.70                |
-| YOLOv8x | ONNX        | ✅      | 260.4     | 0.7479              | 879.89                 |
-| YOLOv8x | OpenVINO    | ✅      | 260.6     | 0.7479              | 838.10                 |
+| YOLOv8n | PyTorch     | ✅      | 6.2       | 0.4478              | 104.61                 |
+| YOLOv8n | TorchScript | ✅      | 12.4      | 0.4525              | 112.39                 |
+| YOLOv8n | ONNX        | ✅      | 12.2      | 0.4525              | 28.02                  |
+| YOLOv8n | OpenVINO    | ✅      | 12.3      | 0.4504              | 23.53                  |
+| YOLOv8s | PyTorch     | ✅      | 21.5      | 0.5885              | 194.83                 |
+| YOLOv8s | TorchScript | ✅      | 43.0      | 0.5962              | 202.01                 |
+| YOLOv8s | ONNX        | ✅      | 42.8      | 0.5962              | 65.74                  |
+| YOLOv8s | OpenVINO    | ✅      | 42.9      | 0.5966              | 38.66                  |
+| YOLOv8m | PyTorch     | ✅      | 49.7      | 0.6101              | 355.23                 |
+| YOLOv8m | TorchScript | ✅      | 99.2      | 0.6120              | 424.78                 |
+| YOLOv8m | ONNX        | ✅      | 99.0      | 0.6120              | 173.39                 |
+| YOLOv8m | OpenVINO    | ✅      | 99.1      | 0.6091              | 69.80                  |
+| YOLOv8l | PyTorch     | ✅      | 83.7      | 0.6591              | 593.00                 |
+| YOLOv8l | TorchScript | ✅      | 167.2     | 0.6580              | 697.54                 |
+| YOLOv8l | ONNX        | ✅      | 166.8     | 0.6580              | 342.15                 |
+| YOLOv8l | OpenVINO    | ✅      | 167.0     | 0.0708              | 117.69                 |
+| YOLOv8x | PyTorch     | ✅      | 130.5     | 0.6651              | 804.65                 |
+| YOLOv8x | TorchScript | ✅      | 260.8     | 0.6650              | 921.46                 |
+| YOLOv8x | ONNX        | ✅      | 260.4     | 0.6650              | 526.66                 |
+| YOLOv8x | OpenVINO    | ✅      | 260.6     | 0.6619              | 158.73                 |
 
 ## Conclusion
 

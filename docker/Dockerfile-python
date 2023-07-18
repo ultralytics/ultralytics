@@ -28,15 +28,23 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt /u
 
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel
-RUN pip install --no-cache -e . thop --extra-index-url https://download.pytorch.org/whl/cpu
+RUN pip install --no-cache -e '.[export]' thop --extra-index-url https://download.pytorch.org/whl/cpu
 
+# Run exports to AutoInstall packages
+RUN yolo export format=edgetpu imgsz=32
+RUN yolo export format=ncnn imgsz=32
+# Requires <= Python 3.10
+RUN pip install --no-cache paddlepaddle x2paddle
 
 WORKDIR /app
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
 
 # Build and Push
-# t=ultralytics/ultralytics:latest-python && sudo docker build -f docker/Dockerfile-cpu -t $t . && sudo docker push $t
+# t=ultralytics/ultralytics:latest-python && sudo docker build -f docker/Dockerfile-python -t $t . && sudo docker push $t
 
-# Pull and Run
+# Run
+# t=ultralytics/ultralytics:latest-python && sudo docker run -it --ipc=host $t
+
+# Pull and Run with local volume mounted
 # t=ultralytics/ultralytics:latest-python && sudo docker pull $t && sudo docker run -it --ipc=host -v "$(pwd)"/datasets:/usr/src/datasets $t

@@ -413,10 +413,10 @@ class Exporter:
         f_ts = str(self.file.with_suffix('.torchscript'))
 
         pnnx_filename = 'pnnx.exe' if WINDOWS else 'pnnx'
-        if Path(f'./{pnnx_filename}').is_file():
-            pnnx = f'./{pnnx_filename}'
-        elif (ROOT / f'{pnnx_filename}').is_file():
-            pnnx = ROOT / f'{pnnx_filename}'
+        if Path(pnnx_filename).is_file():
+            pnnx = pnnx_filename
+        elif (ROOT / pnnx_filename).is_file():
+            pnnx = ROOT / pnnx_filename
         else:
             LOGGER.warning(
                 f'{prefix} WARNING ⚠️ PNNX not found. Attempting to download binary file from '
@@ -426,8 +426,8 @@ class Exporter:
             asset = [x for x in assets if ('macos' if MACOS else 'ubuntu' if LINUX else 'windows') in x][0]
             attempt_download_asset(asset, repo='pnnx/pnnx', release='latest')
             unzip_dir = Path(asset).with_suffix('')
-            pnnx = ROOT / f'{pnnx_filename}'  # new location
-            (unzip_dir / f'{pnnx_filename}').rename(pnnx)  # move binary to ROOT
+            pnnx = ROOT / pnnx_filename  # new location
+            (unzip_dir / pnnx_filename).rename(pnnx)  # move binary to ROOT
             shutil.rmtree(unzip_dir)  # delete unzip dir
             Path(asset).unlink()  # delete zip
             pnnx.chmod(0o777)  # set read, write, and execute permissions for everyone

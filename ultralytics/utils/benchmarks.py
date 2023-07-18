@@ -45,6 +45,7 @@ from ultralytics.utils.torch_utils import select_device
 
 def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
               imgsz=160,
+              data=None,
               half=False,
               int8=False,
               device='cpu',
@@ -56,6 +57,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
         model (str | Path | optional): Path to the model file or directory. Default is
             Path(SETTINGS['weights_dir']) / 'yolov8n.pt'.
         imgsz (int, optional): Image size for the benchmark. Default is 160.
+        data (str, optional): Dataset to evaluate on, inherited from TASK2DATA if not passed. Default is None.
         half (bool, optional): Use half-precision for the model if True. Default is False.
         int8 (bool, optional): Use int8-precision for the model if True. Default is False.
         device (str, optional): Device to run the benchmark on, either 'cpu' or 'cuda'. Default is 'cpu'.
@@ -106,7 +108,7 @@ def benchmark(model=Path(SETTINGS['weights_dir']) / 'yolov8n.pt',
             export.predict(ROOT / 'assets/bus.jpg', imgsz=imgsz, device=device, half=half)
 
             # Validate
-            data = TASK2DATA[model.task]  # task to dataset, i.e. coco8.yaml for task=detect
+            data = data or TASK2DATA[model.task]  # task to dataset, i.e. coco8.yaml for task=detect
             key = TASK2METRIC[model.task]  # task to metric, i.e. metrics/mAP50-95(B) for task=detect
             results = export.val(data=data,
                                  batch=1,

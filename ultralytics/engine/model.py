@@ -4,6 +4,8 @@ import sys
 from pathlib import Path
 from typing import Union
 
+import torch
+
 from ultralytics.cfg import get_cfg
 from ultralytics.engine.exporter import Exporter
 from ultralytics.models import yolo  # noqa
@@ -303,7 +305,7 @@ class YOLO:
         validator(model=self.model)
         self.metrics = validator.metrics
 
-        return validator.metrics
+        return validator.num_samples, validator.metrics
 
     @smart_inference_mode()
     def benchmark(self, **kwargs):
@@ -375,6 +377,9 @@ class YOLO:
             self.model, _ = attempt_load_one_weight(str(self.trainer.best))
             self.overrides = self.model.args
             self.metrics = getattr(self.trainer.validator, 'metrics', None)  # TODO: no metrics returned by DDP
+
+        total_loss = torch.sum(self.trainer.tloss).float()
+        return self.trainer.num_samples, float(total_loss)
 
     def to(self, device):
         """

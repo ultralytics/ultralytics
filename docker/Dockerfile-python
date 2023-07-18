@@ -32,10 +32,9 @@ RUN pip install --no-cache -e '.[export]' thop py-cpuinfo --extra-index-url http
 
 # Run exports to AutoInstall packages
 RUN yolo export format=edgetpu imgsz=32
-# Requires <= Python 3.10
 RUN yolo export format=ncnn imgsz=32
+# Requires <= Python 3.10, bug with paddlepaddle==2.5.0
 RUN pip install --no-cache paddlepaddle==2.4.2 x2paddle
-RUN yolo export format=paddle
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
 

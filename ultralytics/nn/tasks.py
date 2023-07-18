@@ -7,6 +7,9 @@ from pathlib import Path
 import torch
 import torch.nn as nn
 
+from collections import OrderedDict
+import flwr as fl
+
 from ultralytics.nn.modules import (AIFI, C1, C2, C3, C3TR, SPP, SPPF, Bottleneck, BottleneckCSP, C2f, C3Ghost, C3x,
                                     Classify, Concat, Conv, Conv2, ConvTranspose, Detect, DWConv, DWConvTranspose2d,
                                     Focus, GhostBottleneck, GhostConv, HGBlock, HGStem, Pose, RepC3, RepConv,
@@ -266,6 +269,22 @@ class DetectionModel(BaseModel):
             y.append(yi)
         y = self._clip_augmented(y)  # clip augmented tails
         return torch.cat(y, -1), None  # augmented inference, train
+
+    def get_weights(self) -> fl.common.NDArrays:
+        """Get model weights as a list of NumPy ndarrays."""
+        LOGGER.info("****************************** GETTING WEIGHTS FROM YOLO ******************************")
+        return [val.cpu().numpy() for _, val in self.model.state_dict().items()]
+
+    def set_weights(self, weights: fl.common.NDArrays) -> None:
+        """Set model weights from a list of NumPy ndarrays."""
+        LOGGER.info("****************************** SETTING WEIGHTS FROM YOLO ******************************")
+        state_dict = OrderedDict(
+            {k: torch.tensor(v) for k, v in zip(self.model.state_dict().keys(), weights)}
+        )
+        self.load_state_dict(state_dict, strict=False)  # load
+        #self.load(state_dict)
+        #self.model.load_state_dict(state_dict, strict=True)
+        LOGGER.info("****************************** SUCCESSFULLY UPDATED WEIGHTS ******************************")
 
     @staticmethod
     def _descale_pred(p, flips, scale, img_size, dim=1):

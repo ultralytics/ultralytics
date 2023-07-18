@@ -31,13 +31,10 @@ RUN python3 -m pip install --upgrade pip wheel
 RUN pip install --no-cache -e '.[export]' thop py-cpuinfo --extra-index-url https://download.pytorch.org/whl/cpu
 
 # Run exports to AutoInstall packages
-RUN yolo export format=edgetpu imgsz=32
+# RUN yolo export format=edgetpu imgsz=32
 # Requires <= Python 3.10
 RUN pip install --no-cache paddlepaddle x2paddle
-RUN yolo export format=ncnn imgsz=32
-
-# Set the working directory for the application
-WORKDIR /app
+# RUN yolo export format=ncnn imgsz=32
 
 # Usage Examples -------------------------------------------------------------------------------------------------------
 

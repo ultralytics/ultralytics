@@ -142,6 +142,8 @@ class BaseTrainer:
         self.csv = self.save_dir / 'results.csv'
         self.plot_idx = [0, 1, 2]
 
+        self.num_samples = 0
+
         # Callbacks
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         if RANK in (-1, 0):
@@ -329,6 +331,7 @@ class BaseTrainer:
                 # Forward
                 with torch.cuda.amp.autocast(self.amp):
                     batch = self.preprocess_batch(batch)
+                    self.num_samples += batch['img'].shape[0]
                     self.loss, self.loss_items = self.model(batch)
                     if RANK != -1:
                         self.loss *= world_size

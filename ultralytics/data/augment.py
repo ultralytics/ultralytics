@@ -589,12 +589,15 @@ class LetterBox:
         assert img.shape[2] == 6
         img, background = img[:, :, :3], img[:, :, 3:]
         img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=0)
-        background = cv2.copyMakeBorder(background, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(114, 114, 114))
-        # concat image and background on channel dim 
+        background = cv2.copyMakeBorder(background,
+                                        top,
+                                        bottom,
+                                        left,
+                                        right,
+                                        cv2.BORDER_CONSTANT,
+                                        value=(114, 114, 114))
+        # concat image and background on channel dim
         img = np.concatenate((img, background), axis=-1)
-        
-            
-        
 
         if len(labels):
             labels = self._update_labels(labels, ratio, dw, dh)

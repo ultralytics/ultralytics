@@ -66,7 +66,7 @@ class BaseDataset(Dataset):
         super().__init__()
         self.img_path = img_path
         self.imgsz = imgsz
-        self.augment = False # TODO: Currently not working for 6ch dataset
+        self.augment = False  # TODO: Currently not working for 6ch dataset
         self.single_cls = single_cls
         self.prefix = prefix
         self.fraction = fraction
@@ -172,12 +172,12 @@ class BaseDataset(Dataset):
                 interp = cv2.INTER_LINEAR if (self.augment or r > 1) else cv2.INTER_AREA
                 im = cv2.resize(im, (min(math.ceil(w0 * r), self.imgsz), min(math.ceil(h0 * r), self.imgsz)),
                                 interpolation=interp)
-                background = cv2.resize(background, (min(math.ceil(w0 * r), self.imgsz), min(math.ceil(h0 * r), self.imgsz)),
-                                interpolation=interp)
+                background = cv2.resize(background,
+                                        (min(math.ceil(w0 * r), self.imgsz), min(math.ceil(h0 * r), self.imgsz)),
+                                        interpolation=interp)
             # concatenate the image and background on the channel axis
             im = np.concatenate((im, background), axis=2)
-            assert im.shape[2] == 6 # 6 channels
-            
+            assert im.shape[2] == 6  # 6 channels
 
             # Add to buffer if training with augmentations
             if self.augment:

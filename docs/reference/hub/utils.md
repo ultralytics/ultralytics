@@ -1,6 +1,6 @@
 ---
-description: Explore Ultralytics events, including 'request_with_credentials' and 'smart_request', to improve your project's performance and efficiency.
-keywords: Ultralytics, Hub Utils, API Documentation, Python, requests_with_progress, Events, classes, usage, examples
+description: Explore Ultralytics docs for various Events, including "request_with_credentials" and "requests_with_progress". Also, understand the use of the "smart_request".
+keywords: Ultralytics, Events, request_with_credentials, smart_request, Ultralytics hub utils, requests_with_progress
 ---
 
 ## Events

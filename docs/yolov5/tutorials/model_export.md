@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Export YOLOv5 models to TFLite, ONNX, CoreML, and TensorRT formats. Achieve up to 5x GPU speedup using TensorRT. Benchmarks included.
-keywords: YOLOv5, object detection, export, ONNX, CoreML, TensorFlow, TensorRT, OpenVINO
+description: Learn how to export a trained YOLOv5 model from PyTorch to different formats including TorchScript, ONNX, OpenVINO, TensorRT, and CoreML, and how to use these models.
+keywords: Ultralytics, YOLOv5, model export, PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, CoreML, TensorFlow
 ---
 
 # TFLite, ONNX, CoreML, TensorRT Export

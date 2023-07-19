@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Get started with YOLOv5 in a Docker container. Learn to set up and run YOLOv5 models and explore other quickstart options. 🚀
-keywords: YOLOv5, Docker, tutorial, setup, training, testing, detection
+description: Learn how to set up and run YOLOv5 in a Docker container. This tutorial includes the prerequisites and step-by-step instructions.
+keywords: YOLOv5, Docker, Ultralytics, Image Detection, YOLOv5 Docker Image, Docker Container, Machine Learning, AI
 ---
 
 # Get Started with YOLOv5 🚀 in Docker

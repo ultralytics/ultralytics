@@ -1,7 +1,7 @@
 ---
 comments: false
-description: Discover Ultralytics' commitment to Environmental, Health, and Safety (EHS). Learn about our policy, principles, and strategies for ensuring a sustainable and safe working environment.
-keywords: Ultralytics, Environmental Policy, Health and Safety, EHS, Sustainability, Workplace Safety, Environmental Compliance
+description: Discover Ultralytics’ EHS policy principles and implementation measures. Committed to safety, environment, and continuous improvement for a sustainable future.
+keywords: Ultralytics policy, EHS, environment, health and safety, compliance, prevention, continuous improvement, risk management, emergency preparedness, resource allocation, communication
 ---
 
 # Ultralytics Environmental, Health and Safety (EHS) Policy

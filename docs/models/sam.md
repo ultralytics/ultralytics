@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover the Segment Anything Model (SAM), a revolutionary promptable image segmentation model, and delve into the details of its advanced architecture and the large-scale SA-1B dataset.
-keywords: Segment Anything, Segment Anything Model, SAM, Meta SAM, image segmentation, promptable segmentation, zero-shot performance, SA-1B dataset, advanced architecture, auto-annotation, Ultralytics, pre-trained models, SAM base, SAM large, instance segmentation, computer vision, AI, artificial intelligence, machine learning, data annotation, segmentation masks, detection model, YOLO detection model, bibtex, Meta AI
+description: Explore the cutting-edge Segment Anything Model (SAM) from Ultralytics that allows real-time image segmentation. Learn about its promptable segmentation, zero-shot performance, and how to use it.
+keywords: Ultralytics, image segmentation, Segment Anything Model, SAM, SA-1B dataset, real-time performance, zero-shot transfer, object detection, image analysis, machine learning
 ---
 
 # Segment Anything Model (SAM)
@@ -88,7 +88,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
     === "Prompt inference"
     
         ```python
-        from ultralytics.vit.sam import Predictor as SAMPredictor
+        from ultralytics.models.sam import Predictor as SAMPredictor
 
         # Create SAMPredictor
         overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model="mobile_sam.pt")
@@ -108,7 +108,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
     === "Segment everything"
     
         ```python
-        from ultralytics.vit.sam import Predictor as SAMPredictor
+        from ultralytics.models.sam import Predictor as SAMPredictor
 
         # Create SAMPredictor
         overrides = dict(conf=0.25, task='segment', mode='predict', imgsz=1024, model="mobile_sam.pt")
@@ -119,7 +119,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
 
         ```
 
-- More additional args for `Segment everything` see [`Predictor/generate` Reference](../reference/vit/sam/predict.md).
+- More additional args for `Segment everything` see [`Predictor/generate` Reference](../reference/models/sam/predict.md).
 
 ## Available Models and Supported Tasks
 
@@ -184,7 +184,7 @@ Auto-annotation is a key feature of SAM, allowing users to generate a [segmentat
 To auto-annotate your dataset with the Ultralytics framework, use the `auto_annotate` function as shown below:
 
 ```python
-from ultralytics.yolo.data.annotator import auto_annotate
+from ultralytics.data.annotator import auto_annotate
 
 auto_annotate(data="path/to/images", det_model="yolov8x.pt", sam_model='sam_b.pt')
 ```

@@ -9,9 +9,9 @@ FROM nvcr.io/nvidia/l4t-pytorch:r35.2.1-pth2.0-py3
 ADD https://ultralytics.com/assets/Arial.ttf https://ultralytics.com/assets/Arial.Unicode.ttf /root/.config/Ultralytics/
 
 # Install linux packages
-# g++ required to build 'tflite_support' and 'lap' packages
+# g++ required to build 'tflite_support' and 'lap' packages, libusb-1.0-0 required for 'tflite_support' package
 RUN apt update \
-    && apt install --no-install-recommends -y gcc git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++
+    && apt install --no-install-recommends -y gcc git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++ libusb-1.0-0
 # RUN alias python=python3
 
 # Create working directory
@@ -40,5 +40,8 @@ ENV OMP_NUM_THREADS=1
 # Build and Push
 # t=ultralytics/ultralytics:latest-jetson && sudo docker build --platform linux/arm64 -f docker/Dockerfile-jetson -t $t . && sudo docker push $t
 
-# Pull and Run
+# Run
+# t=ultralytics/ultralytics:latest-jetson && sudo docker run -it --ipc=host $t
+
+# Pull and Run with local volume mounted
 # t=ultralytics/ultralytics:jetson && sudo docker pull $t && sudo docker run -it --runtime=nvidia $t
